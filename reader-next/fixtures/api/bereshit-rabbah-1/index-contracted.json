@@ -1,0 +1,500 @@
+{
+  "title": "Bereshit Rabbah",
+  "categories": [
+    "Midrash",
+    "Aggadah",
+    "Midrash Rabbah"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Integer"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Paragraph"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "genesis-rabbah"
+        ]
+      },
+      {
+        "term_slugs": [
+          "genesis",
+          "rabbah"
+        ]
+      },
+      {
+        "term_slugs": [
+          "midrash",
+          "genesis",
+          "rabbah"
+        ]
+      },
+      {
+        "term_slugs": [
+          "midrash",
+          "midrash-rabbah",
+          "genesis"
+        ]
+      },
+      {
+        "term_slugs": [
+          "midrash-rabbah",
+          "genesis"
+        ]
+      }
+    ],
+    "lengths": [
+      100,
+      1036
+    ],
+    "titles": [
+      {
+        "text": "Genesis Rabbah",
+        "lang": "en"
+      },
+      {
+        "text": "Gen. Rabbah",
+        "lang": "en"
+      },
+      {
+        "text": "Gen Rabbah",
+        "lang": "en"
+      },
+      {
+        "text": "Bereishith Rabbah",
+        "lang": "en"
+      },
+      {
+        "text": "Genesis Rabba",
+        "lang": "en"
+      },
+      {
+        "text": "Gen. Rabba",
+        "lang": "en"
+      },
+      {
+        "text": "Bereshit Rabba",
+        "lang": "en"
+      },
+      {
+        "text": "Gen Rabba",
+        "lang": "en"
+      },
+      {
+        "text": "Bereishith Rabba",
+        "lang": "en"
+      },
+      {
+        "text": "Bereishit Rabba",
+        "lang": "en"
+      },
+      {
+        "text": "Breishit Rabba",
+        "lang": "en"
+      },
+      {
+        "text": "Breishit Rabbah",
+        "lang": "en"
+      },
+      {
+        "text": "Midrash Rabbah Bereshit",
+        "lang": "en"
+      },
+      {
+        "text": "Bereshith Rabbah",
+        "lang": "en"
+      },
+      {
+        "text": "Gen. R.",
+        "lang": "en"
+      },
+      {
+        "text": "Gen. Rab.",
+        "lang": "en"
+      },
+      {
+        "text": "B’reshit Rabbah",
+        "lang": "en"
+      },
+      {
+        "text": "B’reishit Rabbah",
+        "lang": "en"
+      },
+      {
+        "text": "Bereishis Rabbah",
+        "lang": "en"
+      },
+      {
+        "text": "Bereishit Rabbah",
+        "lang": "en"
+      },
+      {
+        "text": "ב\"ר",
+        "lang": "he"
+      },
+      {
+        "text": "מדרש רבה בראשית",
+        "lang": "he"
+      },
+      {
+        "text": "ב״ר",
+        "lang": "he"
+      },
+      {
+        "text": "בר\"ר",
+        "lang": "he"
+      },
+      {
+        "text": "בר״ר",
+        "lang": "he"
+      },
+      {
+        "text": "ב”ר",
+        "lang": "he"
+      },
+      {
+        "text": "בר”ר",
+        "lang": "he"
+      },
+      {
+        "text": "בראשית רבה",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Bereshit Rabbah",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Bereshit Rabbah",
+    "heTitle": "בראשית רבה",
+    "heSectionNames": [
+      "פרק",
+      "פסקה"
+    ],
+    "key": "Bereshit Rabbah",
+    "content_counts": [
+      15,
+      5,
+      9,
+      7,
+      10,
+      9,
+      5,
+      13,
+      14,
+      9,
+      10,
+      16,
+      17,
+      10,
+      7,
+      6,
+      8,
+      6,
+      12,
+      12,
+      9,
+      13,
+      7,
+      7,
+      3,
+      7,
+      4,
+      9,
+      5,
+      10,
+      14,
+      11,
+      7,
+      15,
+      3,
+      8,
+      8,
+      14,
+      16,
+      6,
+      10,
+      8,
+      9,
+      23,
+      10,
+      13,
+      10,
+      21,
+      14,
+      12,
+      11,
+      13,
+      15,
+      6,
+      8,
+      11,
+      4,
+      9,
+      12,
+      16,
+      7,
+      4,
+      14,
+      10,
+      23,
+      7,
+      13,
+      14,
+      8,
+      20,
+      10,
+      6,
+      12,
+      17,
+      13,
+      9,
+      3,
+      16,
+      8,
+      12,
+      5,
+      15,
+      5,
+      22,
+      14,
+      6,
+      10,
+      7,
+      9,
+      6,
+      11,
+      9,
+      12,
+      9,
+      4,
+      5,
+      6,
+      20,
+      12,
+      13
+    ]
+  },
+  "order": [
+    1
+  ],
+  "authors": [],
+  "enDesc": "Bereshit Rabbah is a talmudic-era midrash on the book of Genesis. It interprets most of Genesis (with the exception of genealogies and such) with verse-by-verse and often word-by-word commentary. Written in Hebrew, mixed with Aramaic and occasional Greek words, its style is simple and clear.",
+  "heDesc": "\"בראשית רבה\" הינו מדרש אגדה על ספר בראשית. הוא כולל פירושים פשוטים רבים למילים ולפסוקים, המתאימים להוראת הספר לילדים, לעתים קרובות בארמית. בנוסף כולל החיבור גם תיאורים אגדיים מגוונים, שהיו פופולריים בדרשות הפומביות שהוצגו בבתי הכנסת בתקופה בה נוצר. המסורת המייחסת את חיבורו של \"בראשית רבה\" לרב אושעיא מלמדת אולי שהוא החל את מלאכת איסוף המדרשים, אך תוספות רבות נוספו אחרי תקופתו לפני שהחיבור נערך (במאה ה-5-4 לספירה). העורך חיבר בין הסברים ארוכים וקצרים ובין פרשנויות אגדיות לפסקאות המקראיות, לעתים באופן אנונימי ולעתים באזכור שם בעל הפרשנות/האגדה. גם לאחר עריכה זו, ככל הנראה, לא נחתם הטקסט סופית, וניתן היה להוסיף פסקאות נוספות, להגדיל את מספר פסקאות ההקדמה לחלק מסוים של המדרש או להוסיף מלל לאלו הקיימים. מבנה החיבור מורכב מפרשיות, אשר מספרן נע בין 98 ל-101 בהתאם למהדורות כתב-יד שונות, וארגון זה של הטקסט דומה במקצת למחזור התלת-שנתי של קריאת התורה, כפי שהיה נהוג בארץ ישראל.",
+  "enShortDesc": "Talmudic-era midrash on the book of Genesis with verse-by-verse interpretations",
+  "heShortDesc": "מדרש על ספר בראשית מתקופת התלמוד, ובו פירושים רצופים על פסוקי הספר.",
+  "pubDate": [
+    1512
+  ],
+  "compDate": [
+    400
+  ],
+  "compPlace": "Talmudic Israel",
+  "pubPlace": "Istanbul",
+  "era": "T",
+  "is_cited": true,
+  "dedication": {
+    "he": "מוקדש על-ידי ג'וריאן פוליס שוץ לכבוד הוריו סטיבן וסוזן פוליס שוץ וכל אבות אבותיו משני הצדדים, כולל רבנו שמואל בן שלמה פלייז זצ\"ל הידוע כסיור מורל.",
+    "en": "Dedicated by Jorian Polis Schutz in honor of his parents Stephen and Susan Polis Schutz and all of his ancestors on both sides, including Rabbeinu Shmuel ben Shlomo Falaise ztz''l, known as Sieur Morel."
+  },
+  "corpora": [
+    "Midrash Rabbah"
+  ],
+  "heTitle": "בראשית רבה",
+  "titleVariants": [
+    "Genesis Rabbah",
+    "Gen. Rabbah",
+    "Gen Rabbah",
+    "Bereishith Rabbah",
+    "Genesis Rabba",
+    "Gen. Rabba",
+    "Bereshit Rabba",
+    "Gen Rabba",
+    "Bereishith Rabba",
+    "Bereishit Rabba",
+    "Breishit Rabba",
+    "Breishit Rabbah",
+    "Midrash Rabbah Bereshit",
+    "Bereshith Rabbah",
+    "Gen. R.",
+    "Gen. Rab.",
+    "B’reshit Rabbah",
+    "B’reishit Rabbah",
+    "Bereishis Rabbah",
+    "Bereishit Rabbah",
+    "Bereshit Rabbah"
+  ],
+  "heTitleVariants": [
+    "ב\"ר",
+    "מדרש רבה בראשית",
+    "ב״ר",
+    "בר\"ר",
+    "בר״ר",
+    "ב”ר",
+    "בר”ר",
+    "בראשית רבה"
+  ],
+  "sectionNames": [
+    "Chapter",
+    "Paragraph"
+  ],
+  "depth": 2,
+  "firstSectionRef": "Bereshit Rabbah 1",
+  "heCategories": [
+    "מדרש",
+    "אגדה",
+    "מדרש רבה"
+  ],
+  "compDateString": {
+    "en": " (400 CE)",
+    "he": " (400 לספירה)"
+  },
+  "pubDateString": {
+    "en": " (1512 CE)",
+    "he": " (1512 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Talmudic Israel",
+    "he": "ישראל התלמודית"
+  },
+  "pubPlaceString": {
+    "en": "Istanbul",
+    "he": "איסטנבול"
+  },
+  "relatedTopics": [
+    {
+      "slug": "abraham",
+      "title": {
+        "en": "Abraham",
+        "he": "אברהם"
+      }
+    },
+    {
+      "slug": "creation",
+      "title": {
+        "en": "Creation",
+        "he": "בריאה"
+      }
+    },
+    {
+      "slug": "gender",
+      "title": {
+        "en": "Gender",
+        "he": "מגדר"
+      }
+    },
+    {
+      "slug": "sarah",
+      "title": {
+        "en": "Sarah",
+        "he": "שרה"
+      }
+    },
+    {
+      "slug": "truth",
+      "title": {
+        "en": "Truth",
+        "he": "אמת"
+      }
+    },
+    {
+      "slug": "binding-of-isaac",
+      "title": {
+        "en": "Binding of Isaac",
+        "he": "עקידה"
+      }
+    },
+    {
+      "slug": "joseph",
+      "title": {
+        "en": "Joseph",
+        "he": "יוסף"
+      }
+    },
+    {
+      "slug": "chanukkah",
+      "title": {
+        "en": "Chanukkah",
+        "he": "חנוכה"
+      }
+    },
+    {
+      "slug": "love",
+      "title": {
+        "en": "Love",
+        "he": "אהבה"
+      }
+    },
+    {
+      "slug": "midrash",
+      "title": {
+        "en": "Midrash",
+        "he": "מדרש"
+      }
+    },
+    {
+      "slug": "isaac",
+      "title": {
+        "en": "Isaac",
+        "he": "יצחק"
+      }
+    },
+    {
+      "slug": "jacob",
+      "title": {
+        "en": "Jacob",
+        "he": "יעקב"
+      }
+    },
+    {
+      "slug": "transgender",
+      "title": {
+        "en": "Transgender",
+        "he": "טרנסג'נדר"
+      }
+    },
+    {
+      "slug": "lgbtq",
+      "title": {
+        "en": "LGBTQ",
+        "he": "להט\"בק"
+      }
+    },
+    {
+      "slug": "shabbat",
+      "title": {
+        "en": "Shabbat",
+        "he": "שבת"
+      }
+    },
+    {
+      "slug": "torah",
+      "title": {
+        "en": "Torah",
+        "he": "תורה"
+      }
+    },
+    {
+      "slug": "hagar",
+      "title": {
+        "en": "Hagar",
+        "he": "הגר"
+      }
+    },
+    {
+      "slug": "esau",
+      "title": {
+        "en": "Esau",
+        "he": "עשיו"
+      }
+    }
+  ]
+}

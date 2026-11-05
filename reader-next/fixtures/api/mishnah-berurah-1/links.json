@@ -1,0 +1,1168 @@
+[
+  {
+    "_id": "53bbb241fbfba2197070d316",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:1",
+    "anchorRef": "Mishnah Berurah 1:1",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:1"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "57e2405fd6e4a97d136902d4",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:3",
+    "anchorRef": "Mishnah Berurah 1:10",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:10"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:3",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ג׳",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0003,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "57e2405fd6e4a97d136902d6",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:3",
+    "anchorRef": "Mishnah Berurah 1:11",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:11"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:3",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ג׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0003,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "695ea32dce06144202d814b2",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 126:1",
+    "anchorRef": "Mishnah Berurah 1:11",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:11"
+    ],
+    "sourceRef": "Psalms 126:1",
+    "sourceHeRef": "תהילים קכ״ו:א׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 126.0001,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "695ea32ece06144202d814b4",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 137:1",
+    "anchorRef": "Mishnah Berurah 1:11",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:11"
+    ],
+    "sourceRef": "Psalms 137:1",
+    "sourceHeRef": "תהילים קל״ז:א׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 137.0001,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "57e2405fd6e4a97d136902d8",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:4",
+    "anchorRef": "Mishnah Berurah 1:12",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:12"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:4",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ד׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0004,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "57e2405fd6e4a97d136902da",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:5",
+    "anchorRef": "Mishnah Berurah 1:13",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:13"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:5",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ה׳",
+    "anchorVerse": 13,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0005,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "618d211c122e79833735feb1",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 145",
+    "anchorRef": "Mishnah Berurah 1:13",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:13"
+    ],
+    "sourceRef": "Psalms 145",
+    "sourceHeRef": "תהילים קמ״ה",
+    "anchorVerse": 13,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 145,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "57e2405fd6e4a97d136902dc",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:5",
+    "anchorRef": "Mishnah Berurah 1:14",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:14"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:5",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ה׳",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0005,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "57e24060d6e4a97d136902de",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:5",
+    "anchorRef": "Mishnah Berurah 1:15",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:15"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:5",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ה׳",
+    "anchorVerse": 15,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0005,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "57e24060d6e4a97d136902e0",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:5",
+    "anchorRef": "Mishnah Berurah 1:16",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:16"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:5",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ה׳",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0005,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "57e24060d6e4a97d136902e2",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:6",
+    "anchorRef": "Mishnah Berurah 1:17",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:17"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:6",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ו׳",
+    "anchorVerse": 17,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0006,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "695ea9a63ce70411792a72c9",
+    "index_title": "Mishnah Berurah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Mishnah Berurah 48:1",
+    "anchorRef": "Mishnah Berurah 1:17",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:17"
+    ],
+    "sourceRef": "Mishnah Berurah 48:1",
+    "sourceHeRef": "משנה ברורה מ״ח:א׳",
+    "anchorVerse": 17,
+    "sourceHasEn": false,
+    "compDate": [
+      1875,
+      1905
+    ],
+    "commentaryNum": 48.0001,
+    "collectiveTitle": {
+      "en": "Mishnah Berurah",
+      "he": "משנה ברורה"
+    }
+  },
+  {
+    "_id": "6960cac28f7b45fc30f2a763",
+    "index_title": "Peninei Halakhah, Prayer",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Peninei Halakhah, Prayer 13:1:4",
+    "anchorRef": "Mishnah Berurah 1:17",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:17"
+    ],
+    "sourceRef": "Peninei Halakhah, Prayer 13:1:4",
+    "sourceHeRef": "פניני הלכה, תפילה י״ג:א׳:ד׳",
+    "anchorVerse": 17,
+    "sourceHasEn": true,
+    "compDate": [
+      1998,
+      2002
+    ],
+    "commentaryNum": 1.0004,
+    "collectiveTitle": {
+      "en": "Peninei Halakhah, Prayer",
+      "he": "פניני הלכה, תפילה"
+    }
+  },
+  {
+    "_id": "57e24060d6e4a97d136902e4",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:7",
+    "anchorRef": "Mishnah Berurah 1:18",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:18"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:7",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ז׳",
+    "anchorVerse": 18,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0007,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "6a04994d3ff9e110f26d87e1",
+    "index_title": "Sha'arei Teshuvah on Shulchan Arukh, Orach Chayim",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Sha'arei Teshuvah on Shulchan Arukh, Orach Chayim 1:13",
+    "anchorRef": "Mishnah Berurah 1:18",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:18"
+    ],
+    "sourceRef": "Sha'arei Teshuvah on Shulchan Arukh, Orach Chayim 1:13",
+    "sourceHeRef": "שערי תשובה על שולחן ערוך אורח חיים א׳:י״ג",
+    "anchorVerse": 18,
+    "sourceHasEn": false,
+    "compDate": [
+      1800,
+      1820
+    ],
+    "commentaryNum": 1.0013,
+    "collectiveTitle": {
+      "en": "Sha'arei Teshuvah on Shulchan Arukh, Orach Chayim",
+      "he": "שערי תשובה על שולחן ערוך אורח חיים"
+    },
+    "heTitle": "שערי תשובה על שולחן ערוך אורח חיים"
+  },
+  {
+    "_id": "57e24060d6e4a97d136902e6",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:8",
+    "anchorRef": "Mishnah Berurah 1:19",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:19"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:8",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ח׳",
+    "anchorVerse": 19,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0008,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "6a04b5f4ea07aeeb2b89cf8f",
+    "index_title": "Mishnah Berurah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Mishnah Berurah 554:7",
+    "anchorRef": "Mishnah Berurah 1:19",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:19"
+    ],
+    "sourceRef": "Mishnah Berurah 554:7",
+    "sourceHeRef": "משנה ברורה תקנ״ד:ז׳",
+    "anchorVerse": 19,
+    "sourceHasEn": false,
+    "compDate": [
+      1875,
+      1905
+    ],
+    "commentaryNum": 554.0007,
+    "collectiveTitle": {
+      "en": "Mishnah Berurah",
+      "he": "משנה ברורה"
+    }
+  },
+  {
+    "_id": "57e2405ed6e4a97d136902c4",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:1",
+    "anchorRef": "Mishnah Berurah 1:2",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:2"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "695ea9a68d828dfe92804021",
+    "index_title": "Mishnah Berurah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Mishnah Berurah 1:8",
+    "anchorRef": "Mishnah Berurah 1:2",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:2"
+    ],
+    "sourceRef": "Mishnah Berurah 1:8",
+    "sourceHeRef": "משנה ברורה א׳:ח׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1875,
+      1905
+    ],
+    "commentaryNum": 1.0008,
+    "collectiveTitle": {
+      "en": "Mishnah Berurah",
+      "he": "משנה ברורה"
+    }
+  },
+  {
+    "_id": "6960c698eae8fcf84871171c",
+    "index_title": "Peninei Halakhah, Women's Prayer",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Peninei Halakhah, Women's Prayer 5:3:6",
+    "anchorRef": "Mishnah Berurah 1:2",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:2"
+    ],
+    "sourceRef": "Peninei Halakhah, Women's Prayer 5:3:6",
+    "sourceHeRef": "פניני הלכה, תפילת נשים ה׳:ג׳:ו׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      2000,
+      2004
+    ],
+    "commentaryNum": 3.0006,
+    "collectiveTitle": {
+      "en": "Peninei Halakhah, Women's Prayer",
+      "he": "פניני הלכה, תפילת נשים"
+    }
+  },
+  {
+    "_id": "6a0498f4532a801eb922849e",
+    "index_title": "Sha'arei Teshuvah on Shulchan Arukh, Orach Chayim",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Sha'arei Teshuvah on Shulchan Arukh, Orach Chayim 1:2",
+    "anchorRef": "Mishnah Berurah 1:2",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:2"
+    ],
+    "sourceRef": "Sha'arei Teshuvah on Shulchan Arukh, Orach Chayim 1:2",
+    "sourceHeRef": "שערי תשובה על שולחן ערוך אורח חיים א׳:ב׳",
+    "anchorVerse": 2,
+    "sourceHasEn": false,
+    "compDate": [
+      1800,
+      1820
+    ],
+    "commentaryNum": 1.0002,
+    "collectiveTitle": {
+      "en": "Sha'arei Teshuvah on Shulchan Arukh, Orach Chayim",
+      "he": "שערי תשובה על שולחן ערוך אורח חיים"
+    },
+    "heTitle": "שערי תשובה על שולחן ערוך אורח חיים"
+  },
+  {
+    "_id": "57e24060d6e4a97d136902e8",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:8",
+    "anchorRef": "Mishnah Berurah 1:20",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:20"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:8",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ח׳",
+    "anchorVerse": 20,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0008,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "57e2405ed6e4a97d136902c6",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:1",
+    "anchorRef": "Mishnah Berurah 1:3",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:3"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "695ea9a67412435fbe33e775",
+    "index_title": "Mishnah Berurah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Mishnah Berurah 1:9",
+    "anchorRef": "Mishnah Berurah 1:3",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:3"
+    ],
+    "sourceRef": "Mishnah Berurah 1:9",
+    "sourceHeRef": "משנה ברורה א׳:ט׳",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      1875,
+      1905
+    ],
+    "commentaryNum": 1.0009,
+    "collectiveTitle": {
+      "en": "Mishnah Berurah",
+      "he": "משנה ברורה"
+    }
+  },
+  {
+    "_id": "57e2405ed6e4a97d136902c8",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:1",
+    "anchorRef": "Mishnah Berurah 1:4",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:4"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+    "anchorVerse": 4,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "6960d21480d3d758f7641ed3",
+    "index_title": "Notes by Rabbi Yehoshua Hartman on Derekh Chayim",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Notes by Rabbi Yehoshua Hartman on Derekh Chayim 2:13:7",
+    "anchorRef": "Mishnah Berurah 1:4",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:4"
+    ],
+    "sourceRef": "Notes by Rabbi Yehoshua Hartman on Derekh Chayim 2:13:7",
+    "sourceHeRef": "פירושים והערות מהרב יהושע הרטמן על דרך חיים ב׳:י״ג:ז׳",
+    "anchorVerse": 4,
+    "sourceHasEn": false,
+    "compDate": [
+      1999,
+      2005
+    ],
+    "commentaryNum": 13.0007,
+    "collectiveTitle": {
+      "en": "Notes by Rabbi Yehoshua Hartman on Derekh Chayim",
+      "he": "פירושים והערות מהרב יהושע הרטמן על דרך חיים"
+    }
+  },
+  {
+    "_id": "6a049913d77bdaa4c78b9c67",
+    "index_title": "Sha'arei Teshuvah on Shulchan Arukh, Orach Chayim",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Sha'arei Teshuvah on Shulchan Arukh, Orach Chayim 1:3",
+    "anchorRef": "Mishnah Berurah 1:4",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:4"
+    ],
+    "sourceRef": "Sha'arei Teshuvah on Shulchan Arukh, Orach Chayim 1:3",
+    "sourceHeRef": "שערי תשובה על שולחן ערוך אורח חיים א׳:ג׳",
+    "anchorVerse": 4,
+    "sourceHasEn": false,
+    "compDate": [
+      1800,
+      1820
+    ],
+    "commentaryNum": 1.0003,
+    "collectiveTitle": {
+      "en": "Sha'arei Teshuvah on Shulchan Arukh, Orach Chayim",
+      "he": "שערי תשובה על שולחן ערוך אורח חיים"
+    },
+    "heTitle": "שערי תשובה על שולחן ערוך אורח חיים"
+  },
+  {
+    "_id": "57e2405fd6e4a97d136902ca",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:1",
+    "anchorRef": "Mishnah Berurah 1:5",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:5"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "6960d6e79806cee683205426",
+    "index_title": "Notes by Rabbi Yehoshua Hartman on Derekh Chayim",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Notes by Rabbi Yehoshua Hartman on Derekh Chayim 5:20:9",
+    "anchorRef": "Mishnah Berurah 1:5",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:5"
+    ],
+    "sourceRef": "Notes by Rabbi Yehoshua Hartman on Derekh Chayim 5:20:9",
+    "sourceHeRef": "פירושים והערות מהרב יהושע הרטמן על דרך חיים ה׳:כ׳:ט׳",
+    "anchorVerse": 5,
+    "sourceHasEn": false,
+    "compDate": [
+      1999,
+      2005
+    ],
+    "commentaryNum": 20.0009,
+    "collectiveTitle": {
+      "en": "Notes by Rabbi Yehoshua Hartman on Derekh Chayim",
+      "he": "פירושים והערות מהרב יהושע הרטמן על דרך חיים"
+    }
+  },
+  {
+    "_id": "57e2405fd6e4a97d136902cc",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:1",
+    "anchorRef": "Mishnah Berurah 1:6",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:6"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "57e2405fd6e4a97d136902ce",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:1",
+    "anchorRef": "Mishnah Berurah 1:7",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:7"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "57e2405fd6e4a97d136902d0",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:1",
+    "anchorRef": "Mishnah Berurah 1:8",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:8"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "6960c695e6f501ab187054e1",
+    "index_title": "Peninei Halakhah, Women's Prayer",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Peninei Halakhah, Women's Prayer 4:1:3",
+    "anchorRef": "Mishnah Berurah 1:8",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:8"
+    ],
+    "sourceRef": "Peninei Halakhah, Women's Prayer 4:1:3",
+    "sourceHeRef": "פניני הלכה, תפילת נשים ד׳:א׳:ג׳",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      2000,
+      2004
+    ],
+    "commentaryNum": 1.0003,
+    "collectiveTitle": {
+      "en": "Peninei Halakhah, Women's Prayer",
+      "he": "פניני הלכה, תפילת נשים"
+    }
+  },
+  {
+    "_id": "6960cb16eae8fcf848712506",
+    "index_title": "Peninei Halakhah, Prayer",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Peninei Halakhah, Prayer 7:1:4",
+    "anchorRef": "Mishnah Berurah 1:8",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:8"
+    ],
+    "sourceRef": "Peninei Halakhah, Prayer 7:1:4",
+    "sourceHeRef": "פניני הלכה, תפילה ז׳:א׳:ד׳",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      1998,
+      2002
+    ],
+    "commentaryNum": 1.0004,
+    "collectiveTitle": {
+      "en": "Peninei Halakhah, Prayer",
+      "he": "פניני הלכה, תפילה"
+    }
+  },
+  {
+    "_id": "6962d07bd9b88aa49f0b09bf",
+    "index_title": "Notes by Rabbi Yehoshua Hartman on Derashat Shabbat HaGadol",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Notes by Rabbi Yehoshua Hartman on Derashat Shabbat HaGadol 4:9",
+    "anchorRef": "Mishnah Berurah 1:8",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:8"
+    ],
+    "sourceRef": "Notes by Rabbi Yehoshua Hartman on Derashat Shabbat HaGadol 4:9",
+    "sourceHeRef": "פירושים והערות מהרב יהושע הרטמן על דרשת שבת הגדול ד׳:ט׳",
+    "anchorVerse": 8,
+    "sourceHasEn": false,
+    "commentaryNum": 4.0009,
+    "collectiveTitle": {
+      "en": "Notes by Rabbi Yehoshua Hartman on Derashat Shabbat HaGadol",
+      "he": "פירושים והערות מהרב יהושע הרטמן על דרשת שבת הגדול"
+    },
+    "heTitle": "פירושים והערות מהרב יהושע הרטמן על דרשת שבת הגדול"
+  },
+  {
+    "_id": "57e2405fd6e4a97d136902d2",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:3",
+    "anchorRef": "Mishnah Berurah 1:9",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:9"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:3",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ג׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0003,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "695ea32c66640df63e4e6f3d",
+    "index_title": "Proverbs",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Proverbs 14:28",
+    "anchorRef": "Mishnah Berurah 1:9",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:9"
+    ],
+    "sourceRef": "Proverbs 14:28",
+    "sourceHeRef": "משלי י״ד:כ״ח",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      -800,
+      -400
+    ],
+    "commentaryNum": 14.0028,
+    "collectiveTitle": {
+      "en": "Proverbs",
+      "he": "משלי"
+    },
+    "heTitle": "משלי"
+  },
+  {
+    "_id": "5ceef30cf2f26200187fea1d",
+    "index_title": "Kitzur Shulchan Arukh",
+    "category": "Halakhah",
+    "type": "quotation",
+    "ref": "Kitzur Shulchan Arukh 1:4",
+    "anchorRef": "Mishnah Berurah 1:1",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:1"
+    ],
+    "sourceRef": "Kitzur Shulchan Arukh 1:4",
+    "sourceHeRef": "קיצור שלחן ערוך א׳:ד׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1844,
+      1864
+    ],
+    "commentaryNum": 1.0004,
+    "collectiveTitle": {
+      "en": "Kitzur Shulchan Arukh",
+      "he": "קיצור שלחן ערוך"
+    },
+    "heTitle": "קיצור שלחן ערוך"
+  },
+  {
+    "_id": "695ea32b08fde1b4d906753a",
+    "index_title": "Isaiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Isaiah 43:7",
+    "anchorRef": "Mishnah Berurah 1:1",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:1"
+    ],
+    "sourceRef": "Isaiah 43:7",
+    "sourceHeRef": "ישעיהו מ״ג:ז׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      -750,
+      -450
+    ],
+    "commentaryNum": 43.0007,
+    "collectiveTitle": {
+      "en": "Isaiah",
+      "he": "ישעיהו"
+    },
+    "heTitle": "ישעיהו"
+  },
+  {
+    "_id": "695ea32c435133f528b5b764",
+    "index_title": "Leviticus",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Leviticus 6:18",
+    "anchorRef": "Mishnah Berurah 1:13",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:13"
+    ],
+    "sourceRef": "Leviticus 6:18",
+    "sourceHeRef": "ויקרא ו׳:י״ח",
+    "anchorVerse": 13,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 6.0018,
+    "collectiveTitle": {
+      "en": "Leviticus",
+      "he": "ויקרא"
+    },
+    "heTitle": "ויקרא"
+  },
+  {
+    "_id": "695ea32d435133f528b5b766",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Berakhot 4b:17",
+    "anchorRef": "Mishnah Berurah 1:13",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:13"
+    ],
+    "sourceRef": "Berakhot 4b:17",
+    "sourceHeRef": "ברכות ד׳ ב:י״ז",
+    "anchorVerse": 13,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 8.0017,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "695ea32d435133f528b5b768",
+    "index_title": "Exodus",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Exodus 16:18",
+    "anchorRef": "Mishnah Berurah 1:13",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:13"
+    ],
+    "sourceRef": "Exodus 16:18",
+    "sourceHeRef": "שמות ט״ז:י״ח",
+    "anchorVerse": 13,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 16.0018,
+    "collectiveTitle": {
+      "en": "Exodus",
+      "he": "שמות"
+    },
+    "heTitle": "שמות"
+  },
+  {
+    "_id": "695ea32d435133f528b5b76a",
+    "index_title": "Menachot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Menachot 110a:13",
+    "anchorRef": "Mishnah Berurah 1:13",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:13"
+    ],
+    "sourceRef": "Menachot 110a:13",
+    "sourceHeRef": "מנחות ק״י א:י״ג",
+    "anchorVerse": 13,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 219.0013,
+    "collectiveTitle": {
+      "en": "Menachot",
+      "he": "מנחות"
+    },
+    "heTitle": "מנחות"
+  },
+  {
+    "_id": "695ea32b8d828dfe92802d3d",
+    "index_title": "Lamentations",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Lamentations 4:1",
+    "anchorRef": "Mishnah Berurah 1:4",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:4"
+    ],
+    "sourceRef": "Lamentations 4:1",
+    "sourceHeRef": "איכה ד׳:א׳",
+    "anchorVerse": 4,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 4.0001,
+    "collectiveTitle": {
+      "en": "Lamentations",
+      "he": "איכה"
+    },
+    "heTitle": "איכה"
+  },
+  {
+    "_id": "660211035b6b7d44bbf38a2c",
+    "index_title": "Gittin",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Gittin 70a:21",
+    "anchorRef": "Mishnah Berurah 1:8",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:8"
+    ],
+    "sourceRef": "Gittin 70a:21",
+    "sourceHeRef": "גיטין ע׳ א:כ״א",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 139.0021,
+    "collectiveTitle": {
+      "en": "Gittin",
+      "he": "גיטין"
+    },
+    "heTitle": "גיטין"
+  },
+  {
+    "_id": "61852d65cda961804197c2d0",
+    "index_title": "Gittin",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Gittin 70",
+    "anchorRef": "Mishnah Berurah 1:8",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:8"
+    ],
+    "sourceRef": "Gittin 70",
+    "sourceHeRef": "גיטין ע׳",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 139,
+    "collectiveTitle": {
+      "en": "Gittin",
+      "he": "גיטין"
+    },
+    "heTitle": "גיטין"
+  },
+  {
+    "_id": "695ea32c21229ba95ae84775",
+    "index_title": "Lamentations",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Lamentations 3:23",
+    "anchorRef": "Mishnah Berurah 1:8",
+    "anchorRefExpanded": [
+      "Mishnah Berurah 1:8"
+    ],
+    "sourceRef": "Lamentations 3:23",
+    "sourceHeRef": "איכה ג׳:כ״ג",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 3.0023,
+    "collectiveTitle": {
+      "en": "Lamentations",
+      "he": "איכה"
+    },
+    "heTitle": "איכה"
+  }
+]

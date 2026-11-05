@@ -1,0 +1,359 @@
+{
+  "title": "Pirkei Avot",
+  "categories": [
+    "Mishnah",
+    "Seder Nezikin"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Mishnah"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Mishnah"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "mishnah",
+          "pirkei-avot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "pirkei-avot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "tractate",
+          "pirkei-avot"
+        ]
+      }
+    ],
+    "lengths": [
+      6,
+      108
+    ],
+    "titles": [
+      {
+        "text": "Avot",
+        "lang": "en"
+      },
+      {
+        "text": "M Avot",
+        "lang": "en"
+      },
+      {
+        "text": "Mishna Avot",
+        "lang": "en"
+      },
+      {
+        "text": "M. Avot",
+        "lang": "en"
+      },
+      {
+        "text": "Avoth",
+        "lang": "en"
+      },
+      {
+        "text": "Perkei Avot",
+        "lang": "en"
+      },
+      {
+        "text": "Mishnah Avot",
+        "lang": "en"
+      },
+      {
+        "text": "Pirke Abot",
+        "lang": "en"
+      },
+      {
+        "text": "Ethics of the Fathers",
+        "lang": "en"
+      },
+      {
+        "text": "<i>Ethics of the Fathers</i>",
+        "lang": "en"
+      },
+      {
+        "text": "<i>Pirkei Avot</i>",
+        "lang": "en"
+      },
+      {
+        "text": "Pir. Av.",
+        "lang": "en"
+      },
+      {
+        "text": "Ab.",
+        "lang": "en"
+      },
+      {
+        "text": "Aboth",
+        "lang": "en"
+      },
+      {
+        "text": "Mishnah Ab.",
+        "lang": "en"
+      },
+      {
+        "text": "Mishnah Aboth",
+        "lang": "en"
+      },
+      {
+        "text": "Pir. Ab.",
+        "lang": "en"
+      },
+      {
+        "text": "Avos",
+        "lang": "en"
+      },
+      {
+        "text": "Pirkei Avos",
+        "lang": "en"
+      },
+      {
+        "text": "אבות",
+        "lang": "he"
+      },
+      {
+        "text": "פרקי אבות",
+        "lang": "he"
+      },
+      {
+        "text": "משנה אבות",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Pirkei Avot",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Pirkei Avot",
+    "heTitle": "משנה אבות",
+    "heSectionNames": [
+      "פרק",
+      "משנה"
+    ],
+    "key": "Pirkei Avot",
+    "content_counts": [
+      18,
+      16,
+      18,
+      22,
+      23,
+      11
+    ]
+  },
+  "order": [
+    39,
+    9
+  ],
+  "authors": [],
+  "enDesc": "Pirkei Avot (literally “Chapters of the Fathers,” also known as “Ethics of our Fathers”) is a tractate in Seder Nezikin (“Order of Damages”) and the only tractate in the Mishnah with almost no laws, consisting instead of short statements of advice, ethics, and wisdom. The first chapter outlines the stages of the transmission of the Oral Torah, beginning with Moses at Mount Sinai and continuing through the prophets and sages. The next four chapters contain statements of rabbinic sages, largely in chronological order. The last chapter, not included in the original version of the Mishnah, focuses on the merits of Torah study.",
+  "heDesc": "",
+  "enShortDesc": "Short statements of advice, ethics, and wisdom.",
+  "heShortDesc": "מימרות קצרות המשיאות עצה בענייני מוסר, מידות טובות ודרך ארץ.",
+  "pubDate": [
+    1492
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    190,
+    230
+  ],
+  "compPlace": "Talmudic Israel",
+  "pubPlace": "Naples",
+  "era": "T",
+  "is_cited": true,
+  "corpora": [
+    "Mishnah"
+  ],
+  "heTitle": "משנה אבות",
+  "titleVariants": [
+    "Avot",
+    "M Avot",
+    "Mishna Avot",
+    "M. Avot",
+    "Avoth",
+    "Perkei Avot",
+    "Mishnah Avot",
+    "Pirke Abot",
+    "Ethics of the Fathers",
+    "<i>Ethics of the Fathers</i>",
+    "<i>Pirkei Avot</i>",
+    "Pir. Av.",
+    "Ab.",
+    "Aboth",
+    "Mishnah Ab.",
+    "Mishnah Aboth",
+    "Pir. Ab.",
+    "Avos",
+    "Pirkei Avos",
+    "Pirkei Avot"
+  ],
+  "heTitleVariants": [
+    "אבות",
+    "פרקי אבות",
+    "משנה אבות"
+  ],
+  "sectionNames": [
+    "Chapter",
+    "Mishnah"
+  ],
+  "depth": 2,
+  "firstSectionRef": "Pirkei Avot 1",
+  "heCategories": [
+    "משנה",
+    "סדר נזיקין"
+  ],
+  "compDateString": {
+    "en": " (c.190  – c.230 CE)",
+    "he": " (190 – 230 לספירה בקירוב)"
+  },
+  "pubDateString": {
+    "en": " (1492 CE)",
+    "he": " (1492 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Talmudic Israel",
+    "he": "ישראל התלמודית"
+  },
+  "pubPlaceString": {
+    "en": "Naples",
+    "he": "נאפולי"
+  },
+  "relatedTopics": [
+    {
+      "slug": "pirkei-avot",
+      "title": {
+        "en": "Pirkei Avot",
+        "he": "פרקי אבות"
+      }
+    },
+    {
+      "slug": "torah",
+      "title": {
+        "en": "Torah",
+        "he": "תורה"
+      }
+    },
+    {
+      "slug": "learning",
+      "title": {
+        "en": "Learning",
+        "he": "לימוד"
+      }
+    },
+    {
+      "slug": "machloket",
+      "title": {
+        "en": "Machloket",
+        "he": "מחלוקת"
+      }
+    },
+    {
+      "slug": "education",
+      "title": {
+        "en": "Education",
+        "he": "חינוך"
+      }
+    },
+    {
+      "slug": "torah-study",
+      "title": {
+        "en": "Torah Study",
+        "he": "לימוד תורה"
+      }
+    },
+    {
+      "slug": "kehillah",
+      "title": {
+        "en": "Kehillah",
+        "he": "קהילה"
+      }
+    },
+    {
+      "slug": "teaching",
+      "title": {
+        "en": "Teaching",
+        "he": "הוראה"
+      }
+    },
+    {
+      "slug": "hillel",
+      "title": {
+        "en": "Hillel",
+        "he": "הִלֵּל"
+      }
+    },
+    {
+      "slug": "governments",
+      "title": {
+        "en": "Governments",
+        "he": "ממשלה"
+      }
+    },
+    {
+      "slug": "hillel-and-shammai",
+      "title": {
+        "en": "Hillel and Shammai",
+        "he": "הלל ושמאי"
+      }
+    },
+    {
+      "slug": "friendship",
+      "title": {
+        "en": "Friendship",
+        "he": "חברות"
+      }
+    },
+    {
+      "slug": "kindness",
+      "title": {
+        "en": "Kindness",
+        "he": "גמילות חסדים"
+      }
+    },
+    {
+      "slug": "free-will",
+      "title": {
+        "en": "Free Will",
+        "he": "בחירה חופשית"
+      }
+    },
+    {
+      "slug": "debates",
+      "title": {
+        "en": "Debates",
+        "he": "עימות"
+      }
+    },
+    {
+      "slug": "peace",
+      "title": {
+        "en": "Peace",
+        "he": "שלום"
+      }
+    },
+    {
+      "slug": "justice",
+      "title": {
+        "en": "Justice",
+        "he": "צדק"
+      }
+    },
+    {
+      "slug": "wisdom",
+      "title": {
+        "en": "Wisdom",
+        "he": "חכמה"
+      }
+    }
+  ]
+}

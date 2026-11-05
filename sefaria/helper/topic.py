@@ -88,6 +88,9 @@ def get_topic(v2, topic, lang, with_html=True, with_links=True, annotate_links=T
         response['refs'] = ref_links
     if with_indexes and isinstance(topic_obj, AuthorTopic):
         response['indexes'] = topic_obj.get_aggregated_urls_for_authors_indexes()
+    if v2:
+        # the new reader decides from these whether a topic page is the Library's (reader/views.py topic_page answers 404 otherwise)
+        response['pools'] = topic_obj.get_pools()
 
     if getattr(topic_obj, 'isAmbiguous', False):
         possibility_links = topic_obj.link_set(_class="intraTopic", query_kwargs={"linkType": TopicLinkType.possibility_type})

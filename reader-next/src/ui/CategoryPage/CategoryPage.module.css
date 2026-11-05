@@ -1,0 +1,42 @@
+/* The old TextCategoryPage (static/css/s2.css .readerNavCategoryMenu, .navTitle, .navToggles, .gridBox, .navBlock, .category,
+   .categoryDescription, .categoryAttribution), VERIFIED on sefaria.org (/texts/Tanakh, /texts/Talmud, /texts/Mishnah...) at 1280px and
+   with a phone User-Agent, 2026-10-29. */
+.titleBar { display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start; margin-block-end: 40px; }
+.title { margin: 0; font-family: var(--sefaria-font-text-en); font-size: 30px; font-weight: 500; line-height: normal; color: var(--sefaria-color-text-strong); text-align: start; text-transform: uppercase; letter-spacing: 0; }
+.title[lang="he"] { font-family: var(--sefaria-font-text-he); text-transform: none; }
+/* Talmud / Tosefta: the edition toggles, after the title; the content-language toggle still sits at the row's end */
+/* block flow, as the old .navToggles (its flex-direction never applied): the inline toggles sit in a 16px serif line */
+.toggles { display: block; flex: 1; margin: 4px 0 30px; margin-inline-start: 16px; font-family: var(--sefaria-font-text-en); font-size: 16px; line-height: normal; }
+.toggle { display: inline-block; margin-inline-end: 12px; font-family: var(--sefaria-font-text-en); font-size: 13px; font-weight: lighter; color: var(--sefaria-color-text-dark-grey); line-height: normal; text-transform: uppercase; text-decoration: none; cursor: pointer; }
+.toggle[lang="he"], .toggle :lang(he) { font-family: var(--sefaria-font-text-he); }
+.toggle[data-current] { padding-block-end: 4px; border-block-end: 2px solid var(--sefaria-color-border-mid); color: var(--sefaria-color-text-strong); }
+.toggle:hover { text-decoration: none; }
+/* phone: the category's description under its title (on a wide screen the sidebar's About module has it) */
+.topDesc { display: none; margin: -26px 0 40px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: normal; color: var(--sefaria-color-text-dark-grey); }
+.topDesc[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.topDesc p { margin: 0; }
+.attribution { margin: 16px 0 30px; font-family: var(--sefaria-font-text-en); font-size: 24px; font-style: italic; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-align: start; }
+.attribution[lang="he"], .attribution :lang(he) { font-family: var(--sefaria-font-text-he); font-style: normal; }
+.attribution a { color: inherit; text-decoration: none; }
+/* the old .gridBox of .navBlock items: two columns, 10px apart (5px margins between items), rows 6px apart */
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 10px; row-gap: 6px; margin-block-end: 40px; }
+/* a grid outside any section: each old .gridBoxItem had 5px over and under it, so rows are 16px apart (the last row's 6px margin folds into the 40px) */
+.grid[data-loose] { row-gap: 16px; padding-block: 5px; }
+.block { padding-block-end: 12px; border-block-start: 1px solid var(--sefaria-color-border-light); }
+.block[data-line] { border-block-start: 4px solid var(--_line); }
+.blockTitle { display: flex; align-items: center; margin: 0; margin-inline-end: 20px; padding: 15px 0 8px; font-family: var(--sefaria-font-text-en); font-size: 24px; font-weight: 400; line-height: 1.3; color: var(--sefaria-color-text-strong); text-align: start; text-decoration: none; }
+.blockTitle[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.blockTitle:hover { color: var(--sefaria-color-text-dark-grey); text-decoration: none; }
+.desc { margin-inline-end: 20px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-dark-grey); }
+.desc[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+/* a nested section: an 18px uppercase grey heading, 20px over its contents, 40px under the section */
+.category { margin-block-end: 40px; }
+.category h2 { margin: 0 0 20px; font-family: var(--sefaria-font-text-en); font-size: 18px; font-weight: normal; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-align: start; text-transform: uppercase; letter-spacing: 0; }
+.category h2[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.inlineDesc { margin-inline-start: 5px; font-family: var(--sefaria-font-text-en); font-size: 18px; text-transform: none; color: var(--sefaria-color-text-dark-grey); }
+.longDesc { margin: -8px 0 20px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: normal; color: var(--sefaria-color-text-dark-grey); }
+
+@media (max-width: 842px) {
+  .grid { grid-template-columns: 1fr; }
+  .topDesc { display: block; }
+}

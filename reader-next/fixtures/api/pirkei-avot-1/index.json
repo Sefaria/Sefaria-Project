@@ -1,0 +1,163 @@
+{
+  "title": "Pirkei Avot",
+  "categories": [
+    "Mishnah",
+    "Seder Nezikin"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Mishnah"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Mishnah"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "mishnah",
+          "pirkei-avot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "pirkei-avot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "tractate",
+          "pirkei-avot"
+        ]
+      }
+    ],
+    "lengths": [
+      6,
+      108
+    ],
+    "titles": [
+      {
+        "text": "Avot",
+        "lang": "en"
+      },
+      {
+        "text": "M Avot",
+        "lang": "en"
+      },
+      {
+        "text": "Mishna Avot",
+        "lang": "en"
+      },
+      {
+        "text": "M. Avot",
+        "lang": "en"
+      },
+      {
+        "text": "Avoth",
+        "lang": "en"
+      },
+      {
+        "text": "Perkei Avot",
+        "lang": "en"
+      },
+      {
+        "text": "Mishnah Avot",
+        "lang": "en"
+      },
+      {
+        "text": "Pirke Abot",
+        "lang": "en"
+      },
+      {
+        "text": "Ethics of the Fathers",
+        "lang": "en"
+      },
+      {
+        "text": "<i>Ethics of the Fathers</i>",
+        "lang": "en"
+      },
+      {
+        "text": "<i>Pirkei Avot</i>",
+        "lang": "en"
+      },
+      {
+        "text": "Pir. Av.",
+        "lang": "en"
+      },
+      {
+        "text": "Ab.",
+        "lang": "en"
+      },
+      {
+        "text": "Aboth",
+        "lang": "en"
+      },
+      {
+        "text": "Mishnah Ab.",
+        "lang": "en"
+      },
+      {
+        "text": "Mishnah Aboth",
+        "lang": "en"
+      },
+      {
+        "text": "Pir. Ab.",
+        "lang": "en"
+      },
+      {
+        "text": "Avos",
+        "lang": "en"
+      },
+      {
+        "text": "Pirkei Avos",
+        "lang": "en"
+      },
+      {
+        "text": "אבות",
+        "lang": "he"
+      },
+      {
+        "text": "פרקי אבות",
+        "lang": "he"
+      },
+      {
+        "text": "משנה אבות",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Pirkei Avot",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Pirkei Avot"
+  },
+  "order": [
+    39,
+    9
+  ],
+  "authors": [],
+  "enDesc": "Pirkei Avot (literally “Chapters of the Fathers,” also known as “Ethics of our Fathers”) is a tractate in Seder Nezikin (“Order of Damages”) and the only tractate in the Mishnah with almost no laws, consisting instead of short statements of advice, ethics, and wisdom. The first chapter outlines the stages of the transmission of the Oral Torah, beginning with Moses at Mount Sinai and continuing through the prophets and sages. The next four chapters contain statements of rabbinic sages, largely in chronological order. The last chapter, not included in the original version of the Mishnah, focuses on the merits of Torah study.",
+  "heDesc": "",
+  "enShortDesc": "Short statements of advice, ethics, and wisdom.",
+  "heShortDesc": "מימרות קצרות המשיאות עצה בענייני מוסר, מידות טובות ודרך ארץ.",
+  "pubDate": [
+    1492
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    190,
+    230
+  ],
+  "compPlace": "Talmudic Israel",
+  "pubPlace": "Naples",
+  "era": "T",
+  "is_cited": true,
+  "corpora": [
+    "Mishnah"
+  ]
+}

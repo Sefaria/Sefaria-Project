@@ -1,0 +1,30 @@
+/* The old lexicon-edit.scss in the sidebar: the lexicon's name, the headword large, the content as a tree of greyed keys
+   with rendered values, each value editable in place with a small toolbar; Save as the site's small button */
+.box { margin-block-start: var(--sefaria-space-4); font-family: var(--sefaria-font-ui-en); font-size: 14px; color: var(--sefaria-color-text); }
+.lexiconName { color: var(--sefaria-color-text-secondary); margin-block-end: var(--sefaria-space-2); }
+.headword { font-family: var(--sefaria-font-text-he), var(--sefaria-font-text-en); font-size: 24px; margin-block-end: var(--sefaria-space-4); }
+.label { display: block; color: var(--sefaria-color-text-secondary); margin-block-end: 6px; }
+.input { box-sizing: border-box; width: 100%; padding: 8px 10px; margin-block-end: var(--sefaria-space-3); border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); font: inherit; font-size: 18px; }
+.save { height: 32px; padding: 0 var(--sefaria-space-4); border: 0; border-radius: var(--sefaria-radius-md); background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); font: inherit; cursor: pointer; }
+.save:disabled { opacity: 0.5; cursor: default; }
+.saved { margin-block-start: var(--sefaria-space-2); color: var(--sefaria-color-text-secondary); }
+.error { margin: var(--sefaria-space-2) 0; color: var(--sefaria-color-danger); }
+.tree { margin-block-end: var(--sefaria-space-4); }
+.node, .leaf { margin-block: 4px; }
+.children { padding-inline-start: var(--sefaria-space-4); border-inline-start: 1px solid var(--sefaria-color-border); }
+.key { padding: 0; border: 0; background: none; font: inherit; color: var(--sefaria-color-text-muted); cursor: pointer; }
+.leaf > .key { display: block; cursor: default; }
+.count { font-size: 12px; }
+.scalar { color: var(--sefaria-color-text-secondary); }
+.value { padding: 4px 6px; border-radius: var(--sefaria-radius-md); cursor: text; font-family: var(--sefaria-font-text-he), var(--sefaria-font-text-en); font-size: 16px; }
+.value:hover, .value:focus-visible { background: var(--sefaria-color-border); }
+.placeholder { color: var(--sefaria-color-text-muted); font-style: italic; }
+.editWrapper { margin-block: 4px; }
+.toolbar { display: flex; gap: 4px; margin-block-end: 4px; }
+.toolbar button, .cancel, .linkActions button { min-width: 28px; height: 26px; padding: 0 6px; border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-sm, 4px); background: var(--sefaria-color-surface); font: inherit; cursor: pointer; }
+.editor { min-height: 2.5em; padding: 6px 8px; border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); background: var(--sefaria-color-surface); font-family: var(--sefaria-font-text-he), var(--sefaria-font-text-en); font-size: 16px; }
+.cancel { margin-block-start: 4px; }
+.linkForm { display: grid; gap: 6px; margin-block-start: 6px; padding: 8px; border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); background: var(--sefaria-color-surface); }
+.linkForm label { display: grid; gap: 2px; }
+.linkForm input { padding: 4px 6px; font: inherit; }
+.linkActions { display: flex; gap: 6px; }

@@ -1,0 +1,68 @@
+{
+  "title": "Teshuvot haRashba part I",
+  "categories": [
+    "Responsa",
+    "Rishonim",
+    "Rashba"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Siman",
+      "Seif"
+    ],
+    "sectionNames": [
+      "Teshuva",
+      "Paragraph"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "teshuvot",
+          "rashba",
+          "volume-i"
+        ]
+      }
+    ],
+    "lengths": [
+      413,
+      11
+    ],
+    "titles": [
+      {
+        "lang": "en",
+        "text": "Teshuvot HaRashba part I"
+      },
+      {
+        "lang": "he",
+        "text": "שו\"ת הרשב\"א חלק א",
+        "primary": true
+      },
+      {
+        "text": "Teshuvot haRashba part I",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Teshuvot haRashba part I"
+  },
+  "order": [
+    1
+  ],
+  "authors": [
+    "rashba1"
+  ],
+  "enDesc": "A collection of responsa written by the medieval rabbi, halakhic authority and Talmudist, Shlomo ben Avraham ibn Aderet (Rashba). The Rashba (1235–1310) lived in Spain, where he was a leader of the community. He was a student of the Ramban.",
+  "pubDate": [
+    1470
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    1270,
+    1310
+  ],
+  "compPlace": "Barcelona, Spain",
+  "pubPlace": "Rome",
+  "era": "RI"
+}

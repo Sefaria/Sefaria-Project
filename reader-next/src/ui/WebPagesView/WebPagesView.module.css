@@ -1,0 +1,17 @@
+.view { padding-block: var(--sefaria-space-2); }
+.sites, .pages { list-style: none; margin: 0; padding: 0; }
+.site { display: flex; align-items: center; gap: var(--sefaria-space-3); padding-block: var(--sefaria-space-2); color: var(--sefaria-color-text); text-decoration: none; font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); }
+.site:hover span { text-decoration: underline; }
+.count { color: var(--sefaria-color-text-muted); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); }
+.icon { flex: none; width: 16px; height: 16px; }
+.page { padding-block: var(--sefaria-space-4); border-block-end: 1px solid var(--sefaria-color-border); }
+.page .icon { vertical-align: middle; margin-inline-end: var(--sefaria-space-2); }
+.title { font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); color: var(--sefaria-color-text); text-decoration: none; }
+.title:hover { text-decoration: underline; }
+.page[data-hebrew="true"] .title, .page[data-hebrew="true"] .description { font-family: var(--sefaria-font-text-he); direction: rtl; }
+.domain { margin-block-start: 2px; font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-caption); color: var(--sefaria-color-text-muted); }
+.description { margin-block-start: var(--sefaria-space-2); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); line-height: 1.45; color: var(--sefaria-color-text-secondary); }
+.meta { margin-block-start: var(--sefaria-space-2); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-caption); color: var(--sefaria-color-text-muted); line-height: 1.5; }
+.message { margin: var(--sefaria-space-6) 0; font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); color: var(--sefaria-color-text-secondary); }
+.linker { margin-block-start: var(--sefaria-space-6); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-caption); color: var(--sefaria-color-text-muted); }
+.linker a { color: inherit; }

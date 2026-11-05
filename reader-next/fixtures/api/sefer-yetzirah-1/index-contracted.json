@@ -1,0 +1,186 @@
+{
+  "title": "Sefer Yetzirah",
+  "categories": [
+    "Kabbalah",
+    "Sefer Yetzirah"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Mishnah"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Mishnah"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "yetzirah1"
+        ]
+      },
+      {
+        "term_slugs": [
+          "sefer",
+          "yetzirah1"
+        ]
+      }
+    ],
+    "lengths": [
+      6,
+      48
+    ],
+    "titles": [
+      {
+        "text": "Sef. Yets",
+        "lang": "en"
+      },
+      {
+        "text": "Sefer Y’tsirah",
+        "lang": "en"
+      },
+      {
+        "text": "ספר יצירה",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Sefer Yetzirah",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Sefer Yetzirah",
+    "heTitle": "ספר יצירה",
+    "heSectionNames": [
+      "פרק",
+      "משנה"
+    ],
+    "key": "Sefer Yetzirah",
+    "content_counts": [
+      14,
+      6,
+      8,
+      12,
+      4,
+      4
+    ]
+  },
+  "order": [
+    5
+  ],
+  "authors": [],
+  "enDesc": "Sefer Yetzirah (the \"Book of Creation\") is the title of the earliest extant book of Jewish esotericism. This short, enigmatic book describes how God created the universe through “32 secret paths of wisdom,” composed of the 22 letters of the Hebrew alphabet plus the ten “sefirot,” which in this early period refer simply to “numbers” even as they allude to metaphysical principles. The origin of the text is unknown and debated. Based on the language of the text, scholars date it to between the third and sixth centuries, admitting some later additions. Some attribute its origin to Abraham the patriarch and others to the tanna R. Akiva, who, according to the Babylonian Talmud, engaged in mystical activities. Given the subject matter and the work’s laconic style, it has been the subject of many varied commentaries. \n",
+  "heDesc": "'ספר יצירה' הוא הספר הקדום ביותר של תורת הסוד היהודית. ספר חידתי קצר זה מתאר כיצד אלוהים ברא את היקום באמצעות 32 נתיבים פלאיים של חוכמה, המורכבים מ-22 האותיות של האלפבית העברי בתוספת עשר ה\"ספירות\", אשר בתקופה מוקדמת זו מתייחסות באופן פשוט לספרות של מספרים גם כאשר היו טעונות בעקרונות מטאפיזיים. מקור הטקסט של ספר יצירה אינו ידוע ונתון במחלוקת. בהתבסס על השפה בה נכתב, חוקרים מתארכים אותו בין המאה השלישית לשישית, כאשר יש בו כמה תוספות מאוחרות יותר. יש המייחסים את מקורו לאברהם ואחרים לתנא ר' עקיבא, שעל פי התלמוד הבבלי עסק בתורת הסוד ובמיסטיקה. המסתורין שבספר וסגנונו התמציתי הפכו אותו למושא לפרשנויות רבות ומגוונות.",
+  "enShortDesc": "Earliest extant Jewish mystical work describing how God used the Hebrew alphabet and numbers to create the universe",
+  "heShortDesc": "החיבור המיסטי היהודי הקדום ביותר, המתאר כיצד האל ברא את העולם בשימוש באותיות האלפבית ובמספרים.",
+  "pubDate": [
+    1562
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    -200,
+    200
+  ],
+  "pubPlace": "Mantua",
+  "era": "T",
+  "is_cited": true,
+  "heTitle": "ספר יצירה",
+  "titleVariants": [
+    "Sef. Yets",
+    "Sefer Y’tsirah",
+    "Sefer Yetzirah"
+  ],
+  "heTitleVariants": [
+    "ספר יצירה"
+  ],
+  "sectionNames": [
+    "Chapter",
+    "Mishnah"
+  ],
+  "depth": 2,
+  "firstSectionRef": "Sefer Yetzirah 1",
+  "heCategories": [
+    "קבלה",
+    "ספר יצירה"
+  ],
+  "compDateString": {
+    "en": " (c.200 BCE  – c.200 CE)",
+    "he": " (200 לפנה\"ס  – 200 לספירה בקירוב)"
+  },
+  "pubDateString": {
+    "en": " (1562 CE)",
+    "he": " (1562 לספירה)"
+  },
+  "pubPlaceString": {
+    "en": "Mantua",
+    "he": "מנטובה"
+  },
+  "relatedTopics": [
+    {
+      "slug": "kabbalah",
+      "title": {
+        "en": "Kabbalah",
+        "he": "קבלה"
+      }
+    },
+    {
+      "slug": "sefirot",
+      "title": {
+        "en": "Sefirot (Kabbalah)",
+        "he": "ספירות (קבלה)"
+      }
+    },
+    {
+      "slug": "zohar",
+      "title": {
+        "en": "Zohar",
+        "he": "זהר"
+      }
+    },
+    {
+      "slug": "golems",
+      "title": {
+        "en": "Golems",
+        "he": "גולם"
+      }
+    },
+    {
+      "slug": "teli",
+      "title": {
+        "en": "Teli",
+        "he": "תלי"
+      }
+    },
+    {
+      "slug": "creation",
+      "title": {
+        "en": "Creation",
+        "he": "בריאה"
+      }
+    },
+    {
+      "slug": "justice",
+      "title": {
+        "en": "Justice",
+        "he": "צדק"
+      }
+    },
+    {
+      "slug": "calendar",
+      "title": {
+        "en": "Calendar",
+        "he": "לוח שנה"
+      }
+    },
+    {
+      "slug": "birth",
+      "title": {
+        "en": "Birth",
+        "he": "לידה"
+      }
+    }
+  ]
+}

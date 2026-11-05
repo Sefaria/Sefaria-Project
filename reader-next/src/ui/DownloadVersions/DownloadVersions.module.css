@@ -1,0 +1,5 @@
+.module { margin-block-start: var(--sefaria-space-6); }
+.form { display: flex; flex-direction: column; gap: var(--sefaria-space-2); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); }
+.form select { padding: 8px 10px; border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-sm, 6px); background: var(--sefaria-color-surface, #fff); font: inherit; color: var(--sefaria-color-text); }
+.button { display: block; text-align: center; padding: 10px 12px; border-radius: var(--sefaria-radius-sm, 6px); background: var(--sefaria-color-brand, #18345d); color: #fff; text-decoration: none; }
+.button[aria-disabled="true"] { background: var(--sefaria-color-border); color: var(--sefaria-color-text-muted); cursor: not-allowed; }

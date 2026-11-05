@@ -1,0 +1,126 @@
+[
+  {
+    "manuscript_slug": "bomberg-(venice)-pressing-(1523-ce)",
+    "page_id": "Berakhot 2a",
+    "image_url": "https://manuscripts.sefaria.org/bomberg/masekhet_22_0008.jpg",
+    "thumbnail_url": "https://manuscripts.sefaria.org/bomberg/masekhet_22_0008_thumbnail.jpg",
+    "anchorRef": "Berakhot 2a",
+    "anchorRefExpanded": [
+      "Berakhot 2a:12",
+      "Berakhot 2a:7",
+      "Berakhot 2a:5",
+      "Berakhot 2a:11",
+      "Berakhot 2a:14",
+      "Berakhot 2a:3",
+      "Berakhot 2a:10",
+      "Berakhot 2a:8",
+      "Berakhot 2a:1",
+      "Berakhot 2a:9",
+      "Berakhot 2a:13",
+      "Berakhot 2a:2",
+      "Berakhot 2a:4",
+      "Berakhot 2a:6"
+    ],
+    "manuscript": {
+      "slug": "bomberg-(venice)-pressing-(1523-ce)",
+      "title": "Bomberg (Venice) Pressing (1523 CE)",
+      "he_title": "דפוס בומברג (ונציה) (1523)",
+      "source": "https://rosetta.nli.org.il",
+      "description": "",
+      "he_description": ""
+    }
+  },
+  {
+    "manuscript_slug": "bomberg-(venice)-pressing-(1523-ce)",
+    "page_id": "Berakhot 2b",
+    "image_url": "https://manuscripts.sefaria.org/bomberg/masekhet_22_0009.jpg",
+    "thumbnail_url": "https://manuscripts.sefaria.org/bomberg/masekhet_22_0009_thumbnail.jpg",
+    "anchorRef": "Berakhot 2",
+    "anchorRefExpanded": [
+      "Berakhot 2a:7",
+      "Berakhot 2a:12",
+      "Berakhot 2a:5",
+      "Berakhot 2a:11",
+      "Berakhot 2a:14",
+      "Berakhot 2a:3",
+      "Berakhot 2a:10",
+      "Berakhot 2a:8",
+      "Berakhot 2a:1",
+      "Berakhot 2a:9",
+      "Berakhot 2a:13",
+      "Berakhot 2a:2",
+      "Berakhot 2a:4",
+      "Berakhot 2a:6"
+    ],
+    "manuscript": {
+      "slug": "bomberg-(venice)-pressing-(1523-ce)",
+      "title": "Bomberg (Venice) Pressing (1523 CE)",
+      "he_title": "דפוס בומברג (ונציה) (1523)",
+      "source": "https://rosetta.nli.org.il",
+      "description": "",
+      "he_description": ""
+    }
+  },
+  {
+    "manuscript_slug": "munich-manuscript-95-(1342-ce)",
+    "page_id": "Cod. hebr. 95 pg. 0278",
+    "image_url": "https://manuscripts.sefaria.org/munich-manuscript/munich-manuscript-95Cod.hebr.95pg.0278.jpg",
+    "thumbnail_url": "https://manuscripts.sefaria.org/munich-manuscript/munich-manuscript-95Cod.hebr.95pg.0278_thumbnail.jpg",
+    "anchorRef": "Berakhot 2a-4a",
+    "anchorRefExpanded": [
+      "Berakhot 2a:7",
+      "Berakhot 2a:12",
+      "Berakhot 2a:5",
+      "Berakhot 2a:11",
+      "Berakhot 2a:14",
+      "Berakhot 2a:3",
+      "Berakhot 2a:10",
+      "Berakhot 2a:8",
+      "Berakhot 2a:1",
+      "Berakhot 2a:9",
+      "Berakhot 2a:13",
+      "Berakhot 2a:2",
+      "Berakhot 2a:4",
+      "Berakhot 2a:6"
+    ],
+    "manuscript": {
+      "slug": "munich-manuscript-95-(1342-ce)",
+      "title": "Munich Manuscript 95 (1342 CE)",
+      "he_title": "כתב יד מינכן 95 (1342)",
+      "source": "https://www.digitale-sammlungen.de",
+      "description": "",
+      "he_description": ""
+    }
+  },
+  {
+    "manuscript_slug": "romm-vilna-pressing-(1880-86-ce)",
+    "page_id": "Berakhot 2a",
+    "image_url": "https://manuscripts.sefaria.org/vilna-romm/Berakhot_2a.jpg",
+    "thumbnail_url": "https://manuscripts.sefaria.org/vilna-romm/Berakhot_2a_thumbnail.jpg",
+    "anchorRef": "Berakhot 2a",
+    "anchorRefExpanded": [
+      "Berakhot 2a:12",
+      "Berakhot 2a:7",
+      "Berakhot 2a:5",
+      "Berakhot 2a:11",
+      "Berakhot 2a:14",
+      "Berakhot 2a:3",
+      "Berakhot 2a:10",
+      "Berakhot 2a:8",
+      "Berakhot 2a:1",
+      "Berakhot 2a:9",
+      "Berakhot 2a:13",
+      "Berakhot 2a:2",
+      "Berakhot 2a:4",
+      "Berakhot 2a:6"
+    ],
+    "manuscript": {
+      "slug": "romm-vilna-pressing-(1880-86-ce)",
+      "title": "Romm Vilna Pressing (1880-86 CE)",
+      "he_title": "דפוס וילנא של האלמנה והאחים ראם (1880-86)",
+      "source": "https://www.nli.org.il/he/books/NNL_ALEPH001300957/NLI",
+      "description": "",
+      "he_description": ""
+    }
+  }
+]

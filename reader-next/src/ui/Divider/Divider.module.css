@@ -1,0 +1,3 @@
+/* .sefaria-divider from static/css/auth.scss: 14px #707070, 1px #e6e6e6 rules on both sides, 4px gaps. */
+.labelled { display: flex; align-items: center; gap: 4px; color: var(--sefaria-color-text-secondary); font-size: 14px; }
+.labelled::before, .labelled::after { content: ""; flex: 1 1 auto; height: 1px; background: var(--sefaria-color-border); }

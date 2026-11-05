@@ -1,0 +1,124 @@
+{
+  "title": "Isaiah",
+  "categories": [
+    "Tanakh",
+    "Prophets"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Pasuk"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Verse"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "sefer",
+          "isaiah"
+        ]
+      },
+      {
+        "term_slugs": [
+          "isaiah"
+        ]
+      }
+    ],
+    "lengths": [
+      66,
+      1291
+    ],
+    "titles": [
+      {
+        "text": "Isa.",
+        "lang": "en"
+      },
+      {
+        "text": "Yishayahu",
+        "lang": "en"
+      },
+      {
+        "text": "Isa",
+        "lang": "en"
+      },
+      {
+        "text": "Yeshayahu",
+        "lang": "en"
+      },
+      {
+        "text": "Is.",
+        "lang": "en"
+      },
+      {
+        "text": "Isaïe",
+        "lang": "en"
+      },
+      {
+        "text": "Jésaïe",
+        "lang": "en"
+      },
+      {
+        "text": "Esaïe",
+        "lang": "en"
+      },
+      {
+        "text": "Jes.",
+        "lang": "en"
+      },
+      {
+        "text": "ישעיה",
+        "lang": "he"
+      },
+      {
+        "text": "ישעי׳",
+        "lang": "he"
+      },
+      {
+        "text": "ישעי'",
+        "lang": "he"
+      },
+      {
+        "text": "ישע׳",
+        "lang": "he"
+      },
+      {
+        "text": "ישעיהו",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Isaiah",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Isaiah"
+  },
+  "order": [
+    12,
+    7
+  ],
+  "authors": [],
+  "enDesc": "Isaiah (“Yeshayahu”) is the fifth book of the Prophets and is known for its visions of universal peace and renewal. Beginning in the period of the First Temple against the backdrop of a rising Assyrian empire and Israel on the decline, Isaiah rebukes Israel for abandoning God and pursuing corruption, calls for change, and warns the nations of their ultimate downfalls. The last third of the book contains comforting prophecies about returning to Jerusalem and redemption.",
+  "heDesc": "ישעיהו הוא הספר החמישי בספרי הנביאים. נבואת ישעיהו מלווה את עלייתה של המעצמה האשורית בתקופת בית המקדש הראשון וכוללת פרשנות לאירועים ההיסטוריים: יד אלוהים הפועלת בעולם. חזונו של הנביא כולל בשורת שלום עולמי, קריאה לצדק חברתי והתנהלות מוסרית בין אדם לחברו ומלחמה בפולחן האלילות. חלקו האחרון של הספר כולל נבואות נחמה בדבר השיבה לירושלים וגאולת ישראל.",
+  "enShortDesc": "Criticism of religious corruption, calls for change, and descriptions of a utopian future.",
+  "heShortDesc": "ביקורת על שחיתות דתית וקריאות לשינוי, תיאורים של עתיד אוטופי.",
+  "pubDate": [
+    1488
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    -750,
+    -450
+  ],
+  "compPlace": "Judea/Israel",
+  "pubPlace": "Soncino",
+  "is_cited": true,
+  "corpora": [
+    "Tanakh"
+  ]
+}

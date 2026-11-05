@@ -1,0 +1,3014 @@
+{
+  "links": [
+    {
+      "_id": "6422b9ad1660c166971b9653",
+      "index_title": "Narboni on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Narboni on Guide for the Perplexed, Part 1 1:1",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:1-9",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:1",
+        "Guide for the Perplexed, Part 1 1:2",
+        "Guide for the Perplexed, Part 1 1:3",
+        "Guide for the Perplexed, Part 1 1:4",
+        "Guide for the Perplexed, Part 1 1:5",
+        "Guide for the Perplexed, Part 1 1:6",
+        "Guide for the Perplexed, Part 1 1:7",
+        "Guide for the Perplexed, Part 1 1:8",
+        "Guide for the Perplexed, Part 1 1:9"
+      ],
+      "sourceRef": "Narboni on Guide for the Perplexed, Part 1 1:1",
+      "sourceHeRef": "נרבוני על מורה נבוכים, חלק א א׳:א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "compDate": [
+        1354,
+        1362
+      ],
+      "commentaryNum": 1.0001,
+      "collectiveTitle": {
+        "en": "Narboni",
+        "he": "נרבוני"
+      },
+      "heTitle": "חלק א"
+    },
+    {
+      "_id": "695ef21491b3f25f5d0da24a",
+      "index_title": "Isaiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Isaiah 26:2",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:1",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:1"
+      ],
+      "sourceRef": "Isaiah 26:2",
+      "sourceHeRef": "ישעיהו כ״ו:ב׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        -750,
+        -450
+      ],
+      "commentaryNum": 26.0002,
+      "collectiveTitle": {
+        "en": "Isaiah",
+        "he": "ישעיהו"
+      },
+      "heTitle": "ישעיהו"
+    },
+    {
+      "_id": "5c24ed65ae104a00197184ef",
+      "index_title": "I Samuel",
+      "category": "Tanakh",
+      "type": "quotation",
+      "ref": "I Samuel 6:5",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "sourceRef": "I Samuel 6:5",
+      "sourceHeRef": "שמואל א ו׳:ה׳",
+      "anchorVerse": 2,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        -500
+      ],
+      "commentaryNum": 6.0005,
+      "collectiveTitle": {
+        "en": "I Samuel",
+        "he": "שמואל א"
+      },
+      "heTitle": "שמואל א"
+    },
+    {
+      "_id": "6422b46d6d73154b078c33f8",
+      "index_title": "Shem Tov on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Shem Tov on Guide for the Perplexed, Part 1 1:1",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "sourceRef": "Shem Tov on Guide for the Perplexed, Part 1 1:1",
+      "sourceHeRef": "שם טוב על מורה נבוכים, חלק א א׳:א׳",
+      "anchorVerse": 2,
+      "sourceHasEn": false,
+      "compDate": [
+        1484,
+        1492
+      ],
+      "commentaryNum": 1.0001,
+      "collectiveTitle": {
+        "en": "Shem Tov",
+        "he": "שם טוב"
+      }
+    },
+    {
+      "_id": "6422b46e6d73154b078c33fa",
+      "index_title": "Shem Tov on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Shem Tov on Guide for the Perplexed, Part 1 1:2",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "sourceRef": "Shem Tov on Guide for the Perplexed, Part 1 1:2",
+      "sourceHeRef": "שם טוב על מורה נבוכים, חלק א א׳:ב׳",
+      "anchorVerse": 2,
+      "sourceHasEn": false,
+      "compDate": [
+        1484,
+        1492
+      ],
+      "commentaryNum": 1.0002,
+      "collectiveTitle": {
+        "en": "Shem Tov",
+        "he": "שם טוב"
+      }
+    },
+    {
+      "_id": "6962a846672bcc8ed53b3dd7",
+      "index_title": "Guide for the Perplexed",
+      "category": "Jewish Thought",
+      "type": "",
+      "ref": "Guide for the Perplexed, Part 1 73:33",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "sourceRef": "Guide for the Perplexed, Part 1 73:33",
+      "sourceHeRef": "מורה נבוכים, חלק א' ע״ג:ל״ג",
+      "anchorVerse": 2,
+      "sourceHasEn": true,
+      "compDate": [
+        1190
+      ],
+      "commentaryNum": 73.0033,
+      "collectiveTitle": {
+        "en": "Guide for the Perplexed",
+        "he": "מורה נבוכים"
+      }
+    },
+    {
+      "_id": "6422b46f6d73154b078c33fc",
+      "index_title": "Shem Tov on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Shem Tov on Guide for the Perplexed, Part 1 1:3",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:3",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:3"
+      ],
+      "sourceRef": "Shem Tov on Guide for the Perplexed, Part 1 1:3",
+      "sourceHeRef": "שם טוב על מורה נבוכים, חלק א א׳:ג׳",
+      "anchorVerse": 3,
+      "sourceHasEn": false,
+      "compDate": [
+        1484,
+        1492
+      ],
+      "commentaryNum": 1.0003,
+      "collectiveTitle": {
+        "en": "Shem Tov",
+        "he": "שם טוב"
+      }
+    },
+    {
+      "_id": "6962eb30d5b2ed0c021f40ff",
+      "index_title": "Guide for the Perplexed",
+      "category": "Jewish Thought",
+      "type": "",
+      "ref": "Guide for the Perplexed, Part 1 33:2",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:34-35",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:34",
+        "Guide for the Perplexed, Part 1 1:35"
+      ],
+      "sourceRef": "Guide for the Perplexed, Part 1 33:2",
+      "sourceHeRef": "מורה נבוכים, חלק א' ל״ג:ב׳",
+      "anchorVerse": 34,
+      "sourceHasEn": true,
+      "compDate": [
+        1190
+      ],
+      "commentaryNum": 33.0002,
+      "collectiveTitle": {
+        "en": "Guide for the Perplexed",
+        "he": "מורה נבוכים"
+      }
+    },
+    {
+      "_id": "695ef213bd7cc9318a1fdb31",
+      "index_title": "I Samuel",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "I Samuel 28:14",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:4",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:4"
+      ],
+      "sourceRef": "I Samuel 28:14",
+      "sourceHeRef": "שמואל א כ״ח:י״ד",
+      "anchorVerse": 4,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        -500
+      ],
+      "commentaryNum": 28.0014,
+      "collectiveTitle": {
+        "en": "I Samuel",
+        "he": "שמואל א"
+      },
+      "heTitle": "שמואל א"
+    },
+    {
+      "_id": "695ef214bd7cc9318a1fdb33",
+      "index_title": "Judges",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Judges 8:18",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:4",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:4"
+      ],
+      "sourceRef": "Judges 8:18",
+      "sourceHeRef": "שופטים ח׳:י״ח",
+      "anchorVerse": 4,
+      "sourceHasEn": true,
+      "compDate": [
+        -1300,
+        -500
+      ],
+      "commentaryNum": 8.0018,
+      "collectiveTitle": {
+        "en": "Judges",
+        "he": "שופטים"
+      },
+      "heTitle": "שופטים"
+    },
+    {
+      "_id": "695ef214bd7cc9318a1fdb35",
+      "index_title": "Isaiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Isaiah 44:13",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:4",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:4"
+      ],
+      "sourceRef": "Isaiah 44:13",
+      "sourceHeRef": "ישעיהו מ״ד:י״ג",
+      "anchorVerse": 4,
+      "sourceHasEn": true,
+      "compDate": [
+        -750,
+        -450
+      ],
+      "commentaryNum": 44.0013,
+      "collectiveTitle": {
+        "en": "Isaiah",
+        "he": "ישעיהו"
+      },
+      "heTitle": "ישעיהו"
+    },
+    {
+      "_id": "6962a8371b4034e781fe0161",
+      "index_title": "Judges",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Judges 13:18",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:4",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:4"
+      ],
+      "sourceRef": "Judges 13:18",
+      "sourceHeRef": "שופטים י״ג:י״ח",
+      "anchorVerse": 4,
+      "sourceHasEn": true,
+      "compDate": [
+        -1300,
+        -500
+      ],
+      "commentaryNum": 13.0018,
+      "collectiveTitle": {
+        "en": "Judges",
+        "he": "שופטים"
+      },
+      "heTitle": "שופטים"
+    },
+    {
+      "_id": "6962eb30d1275d9d3dcc6872",
+      "index_title": "Guide for the Perplexed",
+      "category": "Jewish Thought",
+      "type": "",
+      "ref": "Guide for the Perplexed, Part 1 31:7",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:46-49",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:46",
+        "Guide for the Perplexed, Part 1 1:47",
+        "Guide for the Perplexed, Part 1 1:48",
+        "Guide for the Perplexed, Part 1 1:49"
+      ],
+      "sourceRef": "Guide for the Perplexed, Part 1 31:7",
+      "sourceHeRef": "מורה נבוכים, חלק א' ל״א:ז׳",
+      "anchorVerse": 46,
+      "sourceHasEn": true,
+      "compDate": [
+        1190
+      ],
+      "commentaryNum": 31.0007,
+      "collectiveTitle": {
+        "en": "Guide for the Perplexed",
+        "he": "מורה נבוכים"
+      }
+    },
+    {
+      "_id": "6422b4706d73154b078c33fe",
+      "index_title": "Shem Tov on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Shem Tov on Guide for the Perplexed, Part 1 1:4",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:5",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:5"
+      ],
+      "sourceRef": "Shem Tov on Guide for the Perplexed, Part 1 1:4",
+      "sourceHeRef": "שם טוב על מורה נבוכים, חלק א א׳:ד׳",
+      "anchorVerse": 5,
+      "sourceHasEn": false,
+      "compDate": [
+        1484,
+        1492
+      ],
+      "commentaryNum": 1.0004,
+      "collectiveTitle": {
+        "en": "Shem Tov",
+        "he": "שם טוב"
+      }
+    },
+    {
+      "_id": "6960d35ca33e4e233f59a04e",
+      "index_title": "Notes by Rabbi Yehoshua Hartman on Derekh Chayim",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Notes by Rabbi Yehoshua Hartman on Derekh Chayim 3:14:18",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:5",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:5"
+      ],
+      "sourceRef": "Notes by Rabbi Yehoshua Hartman on Derekh Chayim 3:14:18",
+      "sourceHeRef": "פירושים והערות מהרב יהושע הרטמן על דרך חיים ג׳:י״ד:י״ח",
+      "anchorVerse": 5,
+      "sourceHasEn": false,
+      "compDate": [
+        1999,
+        2005
+      ],
+      "commentaryNum": 14.0018,
+      "collectiveTitle": {
+        "en": "Notes by Rabbi Yehoshua Hartman on Derekh Chayim",
+        "he": "פירושים והערות מהרב יהושע הרטמן על דרך חיים"
+      }
+    },
+    {
+      "_id": "6a151828adc5179dbfa703a1",
+      "index_title": "Guide for the Perplexed",
+      "category": "Jewish Thought",
+      "type": "",
+      "ref": "Guide for the Perplexed, Part 3 8:3",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:5",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:5"
+      ],
+      "sourceRef": "Guide for the Perplexed, Part 3 8:3",
+      "sourceHeRef": "מורה נבוכים, חלק ג' ח׳:ג׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        1190
+      ],
+      "commentaryNum": 8.0003,
+      "collectiveTitle": {
+        "en": "Guide for the Perplexed",
+        "he": "מורה נבוכים"
+      }
+    },
+    {
+      "_id": "6962eb30ac7c3cf91f3682c8",
+      "index_title": "Guide for the Perplexed",
+      "category": "Jewish Thought",
+      "type": "",
+      "ref": "Guide for the Perplexed, Part 1 20:6",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:50-70",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:50",
+        "Guide for the Perplexed, Part 1 1:51",
+        "Guide for the Perplexed, Part 1 1:52",
+        "Guide for the Perplexed, Part 1 1:53",
+        "Guide for the Perplexed, Part 1 1:54",
+        "Guide for the Perplexed, Part 1 1:55",
+        "Guide for the Perplexed, Part 1 1:56",
+        "Guide for the Perplexed, Part 1 1:57",
+        "Guide for the Perplexed, Part 1 1:58",
+        "Guide for the Perplexed, Part 1 1:59",
+        "Guide for the Perplexed, Part 1 1:60",
+        "Guide for the Perplexed, Part 1 1:61",
+        "Guide for the Perplexed, Part 1 1:62",
+        "Guide for the Perplexed, Part 1 1:63",
+        "Guide for the Perplexed, Part 1 1:64",
+        "Guide for the Perplexed, Part 1 1:65",
+        "Guide for the Perplexed, Part 1 1:66",
+        "Guide for the Perplexed, Part 1 1:67",
+        "Guide for the Perplexed, Part 1 1:68",
+        "Guide for the Perplexed, Part 1 1:69",
+        "Guide for the Perplexed, Part 1 1:70"
+      ],
+      "sourceRef": "Guide for the Perplexed, Part 1 20:6",
+      "sourceHeRef": "מורה נבוכים, חלק א' כ׳:ו׳",
+      "anchorVerse": 50,
+      "sourceHasEn": true,
+      "compDate": [
+        1190
+      ],
+      "commentaryNum": 20.0006,
+      "collectiveTitle": {
+        "en": "Guide for the Perplexed",
+        "he": "מורה נבוכים"
+      }
+    },
+    {
+      "_id": "6962eb32177554fb6ff84267",
+      "index_title": "Guide for the Perplexed",
+      "category": "Jewish Thought",
+      "type": "",
+      "ref": "Guide for the Perplexed, Part 1 58:2",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:51-57",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:51",
+        "Guide for the Perplexed, Part 1 1:52",
+        "Guide for the Perplexed, Part 1 1:53",
+        "Guide for the Perplexed, Part 1 1:54",
+        "Guide for the Perplexed, Part 1 1:55",
+        "Guide for the Perplexed, Part 1 1:56",
+        "Guide for the Perplexed, Part 1 1:57"
+      ],
+      "sourceRef": "Guide for the Perplexed, Part 1 58:2",
+      "sourceHeRef": "מורה נבוכים, חלק א' נ״ח:ב׳",
+      "anchorVerse": 51,
+      "sourceHasEn": true,
+      "compDate": [
+        1190
+      ],
+      "commentaryNum": 58.0002,
+      "collectiveTitle": {
+        "en": "Guide for the Perplexed",
+        "he": "מורה נבוכים"
+      }
+    },
+    {
+      "_id": "6962eb32ffec7848aeefcb3b",
+      "index_title": "Guide for the Perplexed",
+      "category": "Jewish Thought",
+      "type": "",
+      "ref": "Guide for the Perplexed, Part 1 53:9",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:58-59",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:58",
+        "Guide for the Perplexed, Part 1 1:59"
+      ],
+      "sourceRef": "Guide for the Perplexed, Part 1 53:9",
+      "sourceHeRef": "מורה נבוכים, חלק א' נ״ג:ט׳",
+      "anchorVerse": 58,
+      "sourceHasEn": true,
+      "compDate": [
+        1190
+      ],
+      "commentaryNum": 53.0009,
+      "collectiveTitle": {
+        "en": "Guide for the Perplexed",
+        "he": "מורה נבוכים"
+      }
+    },
+    {
+      "_id": "6422b4716d73154b078c3400",
+      "index_title": "Shem Tov on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Shem Tov on Guide for the Perplexed, Part 1 1:5",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:6",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:6"
+      ],
+      "sourceRef": "Shem Tov on Guide for the Perplexed, Part 1 1:5",
+      "sourceHeRef": "שם טוב על מורה נבוכים, חלק א א׳:ה׳",
+      "anchorVerse": 6,
+      "sourceHasEn": false,
+      "compDate": [
+        1484,
+        1492
+      ],
+      "commentaryNum": 1.0005,
+      "collectiveTitle": {
+        "en": "Shem Tov",
+        "he": "שם טוב"
+      }
+    },
+    {
+      "_id": "6422b4726d73154b078c3402",
+      "index_title": "Shem Tov on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Shem Tov on Guide for the Perplexed, Part 1 1:6",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:6",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:6"
+      ],
+      "sourceRef": "Shem Tov on Guide for the Perplexed, Part 1 1:6",
+      "sourceHeRef": "שם טוב על מורה נבוכים, חלק א א׳:ו׳",
+      "anchorVerse": 6,
+      "sourceHasEn": false,
+      "compDate": [
+        1484,
+        1492
+      ],
+      "commentaryNum": 1.0006,
+      "collectiveTitle": {
+        "en": "Shem Tov",
+        "he": "שם טוב"
+      }
+    },
+    {
+      "_id": "6422b4736d73154b078c3404",
+      "index_title": "Shem Tov on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Shem Tov on Guide for the Perplexed, Part 1 1:7",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:6",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:6"
+      ],
+      "sourceRef": "Shem Tov on Guide for the Perplexed, Part 1 1:7",
+      "sourceHeRef": "שם טוב על מורה נבוכים, חלק א א׳:ז׳",
+      "anchorVerse": 6,
+      "sourceHasEn": false,
+      "compDate": [
+        1484,
+        1492
+      ],
+      "commentaryNum": 1.0007,
+      "collectiveTitle": {
+        "en": "Shem Tov",
+        "he": "שם טוב"
+      }
+    },
+    {
+      "_id": "695ef2134c54e1cd02f2a44f",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 73:20",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:6",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:6"
+      ],
+      "sourceRef": "Psalms 73:20",
+      "sourceHeRef": "תהילים ע״ג:כ׳",
+      "anchorVerse": 6,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 73.002,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "695ef2144c54e1cd02f2a451",
+      "index_title": "I Samuel",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "I Samuel 6:5",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:6",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:6"
+      ],
+      "sourceRef": "I Samuel 6:5",
+      "sourceHeRef": "שמואל א ו׳:ה׳",
+      "anchorVerse": 6,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        -500
+      ],
+      "commentaryNum": 6.0005,
+      "collectiveTitle": {
+        "en": "I Samuel",
+        "he": "שמואל א"
+      },
+      "heTitle": "שמואל א"
+    },
+    {
+      "_id": "69602e7812e013c43dd4610e",
+      "index_title": "Yismach Moshe",
+      "category": "Chasidut",
+      "type": "",
+      "ref": "Yismach Moshe, Eikev 2:3",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:7",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:7"
+      ],
+      "sourceRef": "Yismach Moshe, Eikev 2:3",
+      "sourceHeRef": "ישמח משה, עקב ב׳:ג׳",
+      "anchorVerse": 7,
+      "sourceHasEn": false,
+      "compDate": [
+        1790,
+        1840
+      ],
+      "commentaryNum": 2.0003,
+      "collectiveTitle": {
+        "en": "Yismach Moshe",
+        "he": "ישמח משה"
+      },
+      "heTitle": "עקב"
+    },
+    {
+      "_id": "6962eb372e9833b8e5bda34b",
+      "index_title": "Guide for the Perplexed",
+      "category": "Jewish Thought",
+      "type": "",
+      "ref": "Guide for the Perplexed, Part 1 71:18",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:73-76",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:73",
+        "Guide for the Perplexed, Part 1 1:74",
+        "Guide for the Perplexed, Part 1 1:75",
+        "Guide for the Perplexed, Part 1 1:76"
+      ],
+      "sourceRef": "Guide for the Perplexed, Part 1 71:18",
+      "sourceHeRef": "מורה נבוכים, חלק א' ע״א:י״ח",
+      "anchorVerse": 73,
+      "sourceHasEn": true,
+      "compDate": [
+        1190
+      ],
+      "commentaryNum": 71.0018,
+      "collectiveTitle": {
+        "en": "Guide for the Perplexed",
+        "he": "מורה נבוכים"
+      }
+    },
+    {
+      "_id": "6962eb36d5b2ed0c021f4116",
+      "index_title": "Guide for the Perplexed",
+      "category": "Jewish Thought",
+      "type": "",
+      "ref": "Guide for the Perplexed, Part 1 73:44",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:74-76",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:74",
+        "Guide for the Perplexed, Part 1 1:75",
+        "Guide for the Perplexed, Part 1 1:76"
+      ],
+      "sourceRef": "Guide for the Perplexed, Part 1 73:44",
+      "sourceHeRef": "מורה נבוכים, חלק א' ע״ג:מ״ד",
+      "anchorVerse": 74,
+      "sourceHasEn": true,
+      "compDate": [
+        1190
+      ],
+      "commentaryNum": 73.0044,
+      "collectiveTitle": {
+        "en": "Guide for the Perplexed",
+        "he": "מורה נבוכים"
+      }
+    },
+    {
+      "_id": "6422b4746d73154b078c3406",
+      "index_title": "Shem Tov on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Shem Tov on Guide for the Perplexed, Part 1 1:8",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Shem Tov on Guide for the Perplexed, Part 1 1:8",
+      "sourceHeRef": "שם טוב על מורה נבוכים, חלק א א׳:ח׳",
+      "anchorVerse": 8,
+      "sourceHasEn": false,
+      "compDate": [
+        1484,
+        1492
+      ],
+      "commentaryNum": 1.0008,
+      "collectiveTitle": {
+        "en": "Shem Tov",
+        "he": "שם טוב"
+      }
+    },
+    {
+      "_id": "6422b4746d73154b078c3408",
+      "index_title": "Shem Tov on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Shem Tov on Guide for the Perplexed, Part 1 1:9",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Shem Tov on Guide for the Perplexed, Part 1 1:9",
+      "sourceHeRef": "שם טוב על מורה נבוכים, חלק א א׳:ט׳",
+      "anchorVerse": 8,
+      "sourceHasEn": false,
+      "compDate": [
+        1484,
+        1492
+      ],
+      "commentaryNum": 1.0009,
+      "collectiveTitle": {
+        "en": "Shem Tov",
+        "he": "שם טוב"
+      }
+    },
+    {
+      "_id": "6422b4766d73154b078c340a",
+      "index_title": "Shem Tov on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Shem Tov on Guide for the Perplexed, Part 1 1:10",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Shem Tov on Guide for the Perplexed, Part 1 1:10",
+      "sourceHeRef": "שם טוב על מורה נבוכים, חלק א א׳:י׳",
+      "anchorVerse": 8,
+      "sourceHasEn": false,
+      "compDate": [
+        1484,
+        1492
+      ],
+      "commentaryNum": 1.001,
+      "collectiveTitle": {
+        "en": "Shem Tov",
+        "he": "שם טוב"
+      }
+    },
+    {
+      "_id": "695ef213dec289fd6237199d",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 102:7",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Psalms 102:7",
+      "sourceHeRef": "תהילים ק״ב:ז׳",
+      "anchorVerse": 8,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 102.0007,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "695ef214dec289fd623719a3",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 58:5",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Psalms 58:5",
+      "sourceHeRef": "תהילים נ״ח:ה׳",
+      "anchorVerse": 8,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 58.0005,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "695ef215dec289fd623719a5",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 17:12",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Psalms 17:12",
+      "sourceHeRef": "תהילים י״ז:י״ב",
+      "anchorVerse": 8,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 17.0012,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "6422b4766d73154b078c340c",
+      "index_title": "Shem Tov on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Shem Tov on Guide for the Perplexed, Part 1 1:11",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:9",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:9"
+      ],
+      "sourceRef": "Shem Tov on Guide for the Perplexed, Part 1 1:11",
+      "sourceHeRef": "שם טוב על מורה נבוכים, חלק א א׳:י״א",
+      "anchorVerse": 9,
+      "sourceHasEn": false,
+      "compDate": [
+        1484,
+        1492
+      ],
+      "commentaryNum": 1.0011,
+      "collectiveTitle": {
+        "en": "Shem Tov",
+        "he": "שם טוב"
+      }
+    },
+    {
+      "_id": "6422b4776d73154b078c340e",
+      "index_title": "Shem Tov on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Shem Tov on Guide for the Perplexed, Part 1 1:12",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:9",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:9"
+      ],
+      "sourceRef": "Shem Tov on Guide for the Perplexed, Part 1 1:12",
+      "sourceHeRef": "שם טוב על מורה נבוכים, חלק א א׳:י״ב",
+      "anchorVerse": 9,
+      "sourceHasEn": false,
+      "compDate": [
+        1484,
+        1492
+      ],
+      "commentaryNum": 1.0012,
+      "collectiveTitle": {
+        "en": "Shem Tov",
+        "he": "שם טוב"
+      }
+    },
+    {
+      "_id": "6962a838a4b82ab0b4f191c3",
+      "index_title": "Guide for the Perplexed",
+      "category": "Jewish Thought",
+      "type": "",
+      "ref": "Guide for the Perplexed, Part 1 4",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:9",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:9"
+      ],
+      "sourceRef": "Guide for the Perplexed, Part 1 4",
+      "sourceHeRef": "מורה נבוכים, חלק א' ד׳",
+      "anchorVerse": 9,
+      "sourceHasEn": true,
+      "compDate": [
+        1190
+      ],
+      "commentaryNum": 4,
+      "collectiveTitle": {
+        "en": "Guide for the Perplexed",
+        "he": "מורה נבוכים"
+      }
+    },
+    {
+      "_id": "6422a25e4f950dc91b35ec14",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:1",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:1",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:1"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:1",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0001,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422a2664f950dc91b35ec2a",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:2",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:2",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:ב׳",
+      "anchorVerse": 2,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0002,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422a2674f950dc91b35ec2c",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:3",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:3",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:ג׳",
+      "anchorVerse": 2,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0003,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422affd6d73154b078c2e52",
+      "index_title": "Abarbanel on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Abarbanel on Guide for the Perplexed, Part 1 1:1",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "sourceRef": "Abarbanel on Guide for the Perplexed, Part 1 1:1",
+      "sourceHeRef": "אברבנאל על מורה נבוכים, חלק א א׳:א׳",
+      "anchorVerse": 2,
+      "sourceHasEn": false,
+      "compDate": [
+        1492,
+        1508
+      ],
+      "commentaryNum": 1.0001,
+      "collectiveTitle": {
+        "en": "Abarbanel",
+        "he": "אברבנאל"
+      },
+      "heTitle": "חלק א"
+    },
+    {
+      "_id": "6422affd6d73154b078c2e54",
+      "index_title": "Abarbanel on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Abarbanel on Guide for the Perplexed, Part 1 1:2",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "sourceRef": "Abarbanel on Guide for the Perplexed, Part 1 1:2",
+      "sourceHeRef": "אברבנאל על מורה נבוכים, חלק א א׳:ב׳",
+      "anchorVerse": 2,
+      "sourceHasEn": false,
+      "compDate": [
+        1492,
+        1508
+      ],
+      "commentaryNum": 1.0002,
+      "collectiveTitle": {
+        "en": "Abarbanel",
+        "he": "אברבנאל"
+      },
+      "heTitle": "חלק א"
+    },
+    {
+      "_id": "6422affe6d73154b078c2e56",
+      "index_title": "Abarbanel on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Abarbanel on Guide for the Perplexed, Part 1 1:3",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "sourceRef": "Abarbanel on Guide for the Perplexed, Part 1 1:3",
+      "sourceHeRef": "אברבנאל על מורה נבוכים, חלק א א׳:ג׳",
+      "anchorVerse": 2,
+      "sourceHasEn": false,
+      "compDate": [
+        1492,
+        1508
+      ],
+      "commentaryNum": 1.0003,
+      "collectiveTitle": {
+        "en": "Abarbanel",
+        "he": "אברבנאל"
+      },
+      "heTitle": "חלק א"
+    },
+    {
+      "_id": "695ef2123489d9ecd3b8a4f7",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 1:26",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "sourceRef": "Genesis 1:26",
+      "sourceHeRef": "בראשית א׳:כ״ו",
+      "anchorVerse": 2,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 1.0026,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "6422a2684f950dc91b35ec2e",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:4",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:3",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:3"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:4",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:ד׳",
+      "anchorVerse": 3,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0004,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422afff6d73154b078c2e58",
+      "index_title": "Abarbanel on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Abarbanel on Guide for the Perplexed, Part 1 1:4",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:3",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:3"
+      ],
+      "sourceRef": "Abarbanel on Guide for the Perplexed, Part 1 1:4",
+      "sourceHeRef": "אברבנאל על מורה נבוכים, חלק א א׳:ד׳",
+      "anchorVerse": 3,
+      "sourceHasEn": false,
+      "compDate": [
+        1492,
+        1508
+      ],
+      "commentaryNum": 1.0004,
+      "collectiveTitle": {
+        "en": "Abarbanel",
+        "he": "אברבנאל"
+      },
+      "heTitle": "חלק א"
+    },
+    {
+      "_id": "6422a2694f950dc91b35ec30",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:5",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:4",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:4"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:5",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:ה׳",
+      "anchorVerse": 4,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0005,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422afff6d73154b078c2e5a",
+      "index_title": "Abarbanel on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Abarbanel on Guide for the Perplexed, Part 1 1:5",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:4",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:4"
+      ],
+      "sourceRef": "Abarbanel on Guide for the Perplexed, Part 1 1:5",
+      "sourceHeRef": "אברבנאל על מורה נבוכים, חלק א א׳:ה׳",
+      "anchorVerse": 4,
+      "sourceHasEn": false,
+      "compDate": [
+        1492,
+        1508
+      ],
+      "commentaryNum": 1.0005,
+      "collectiveTitle": {
+        "en": "Abarbanel",
+        "he": "אברבנאל"
+      },
+      "heTitle": "חלק א"
+    },
+    {
+      "_id": "695ef213bd7cc9318a1fdb2f",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 39:6",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:4",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:4"
+      ],
+      "sourceRef": "Genesis 39:6",
+      "sourceHeRef": "בראשית ל״ט:ו׳",
+      "anchorVerse": 4,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 39.0006,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "6422a26a4f950dc91b35ec32",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:6",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:5",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:5"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:6",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:ו׳",
+      "anchorVerse": 5,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0006,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422a26a4f950dc91b35ec34",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:7",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:5",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:5"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:7",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:ז׳",
+      "anchorVerse": 5,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0007,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422a26b4f950dc91b35ec36",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:8",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:5",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:5"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:8",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:ח׳",
+      "anchorVerse": 5,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0008,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422a26c4f950dc91b35ec38",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:9",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:5",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:5"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:9",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:ט׳",
+      "anchorVerse": 5,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0009,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422aa4074a182b40133a42e",
+      "index_title": "Crescas on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Crescas on Guide for the Perplexed, Part 1 1:1",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:5",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:5"
+      ],
+      "sourceRef": "Crescas on Guide for the Perplexed, Part 1 1:1",
+      "sourceHeRef": "קרשקש על מורה נבוכים, חלק א א׳:א׳",
+      "anchorVerse": 5,
+      "sourceHasEn": false,
+      "compDate": [
+        1400,
+        1440
+      ],
+      "commentaryNum": 1.0001,
+      "collectiveTitle": {
+        "en": "Crescas",
+        "he": "קרשקש"
+      }
+    },
+    {
+      "_id": "6422aa4274a182b40133a430",
+      "index_title": "Crescas on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Crescas on Guide for the Perplexed, Part 1 1:2",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:5",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:5"
+      ],
+      "sourceRef": "Crescas on Guide for the Perplexed, Part 1 1:2",
+      "sourceHeRef": "קרשקש על מורה נבוכים, חלק א א׳:ב׳",
+      "anchorVerse": 5,
+      "sourceHasEn": false,
+      "compDate": [
+        1400,
+        1440
+      ],
+      "commentaryNum": 1.0002,
+      "collectiveTitle": {
+        "en": "Crescas",
+        "he": "קרשקש"
+      }
+    },
+    {
+      "_id": "695ef212043803e6c9195017",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 1:27",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:5",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:5"
+      ],
+      "sourceRef": "Genesis 1:27",
+      "sourceHeRef": "בראשית א׳:כ״ז",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 1.0027,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "6962a837dab1dd93f8eecc69",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 1:26",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:5",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:5"
+      ],
+      "sourceRef": "Genesis 1:26",
+      "sourceHeRef": "בראשית א׳:כ״ו",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 1.0026,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "6422a25f4f950dc91b35ec16",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:10",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:6",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:6"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:10",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:י׳",
+      "anchorVerse": 6,
+      "sourceHasEn": false,
+      "commentaryNum": 1.001,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422a25f4f950dc91b35ec18",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:11",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:6",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:6"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:11",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:י״א",
+      "anchorVerse": 6,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0011,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422a2604f950dc91b35ec1a",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:12",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:6",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:6"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:12",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:י״ב",
+      "anchorVerse": 6,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0012,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422a2614f950dc91b35ec1c",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:13",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:6",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:6"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:13",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:י״ג",
+      "anchorVerse": 6,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0013,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422aa4374a182b40133a432",
+      "index_title": "Crescas on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Crescas on Guide for the Perplexed, Part 1 1:3",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:6",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:6"
+      ],
+      "sourceRef": "Crescas on Guide for the Perplexed, Part 1 1:3",
+      "sourceHeRef": "קרשקש על מורה נבוכים, חלק א א׳:ג׳",
+      "anchorVerse": 6,
+      "sourceHasEn": false,
+      "compDate": [
+        1400,
+        1440
+      ],
+      "commentaryNum": 1.0003,
+      "collectiveTitle": {
+        "en": "Crescas",
+        "he": "קרשקש"
+      }
+    },
+    {
+      "_id": "6422b0006d73154b078c2e5c",
+      "index_title": "Abarbanel on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Abarbanel on Guide for the Perplexed, Part 1 1:6",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:6",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:6"
+      ],
+      "sourceRef": "Abarbanel on Guide for the Perplexed, Part 1 1:6",
+      "sourceHeRef": "אברבנאל על מורה נבוכים, חלק א א׳:ו׳",
+      "anchorVerse": 6,
+      "sourceHasEn": false,
+      "compDate": [
+        1492,
+        1508
+      ],
+      "commentaryNum": 1.0006,
+      "collectiveTitle": {
+        "en": "Abarbanel",
+        "he": "אברבנאל"
+      },
+      "heTitle": "חלק א"
+    },
+    {
+      "_id": "6422a2624f950dc91b35ec1e",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:14",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:7",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:7"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:14",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:י״ד",
+      "anchorVerse": 7,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0014,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "695ef2135e52c6548cdfade0",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 1:26",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:7",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:7"
+      ],
+      "sourceRef": "Genesis 1:26",
+      "sourceHeRef": "בראשית א׳:כ״ו",
+      "anchorVerse": 7,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 1.0026,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "6422a2624f950dc91b35ec20",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:15",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:15",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:ט״ו",
+      "anchorVerse": 8,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0015,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422a2634f950dc91b35ec22",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:16",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:16",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:ט״ז",
+      "anchorVerse": 8,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0016,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422a2644f950dc91b35ec24",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:17",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:17",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:י״ז",
+      "anchorVerse": 8,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0017,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422b0016d73154b078c2e5e",
+      "index_title": "Abarbanel on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Abarbanel on Guide for the Perplexed, Part 1 1:7",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Abarbanel on Guide for the Perplexed, Part 1 1:7",
+      "sourceHeRef": "אברבנאל על מורה נבוכים, חלק א א׳:ז׳",
+      "anchorVerse": 8,
+      "sourceHasEn": false,
+      "compDate": [
+        1492,
+        1508
+      ],
+      "commentaryNum": 1.0007,
+      "collectiveTitle": {
+        "en": "Abarbanel",
+        "he": "אברבנאל"
+      },
+      "heTitle": "חלק א"
+    },
+    {
+      "_id": "638485a6b6947b643b98a383",
+      "index_title": "Ezekiel",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Ezekiel 8",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Ezekiel 8",
+      "sourceHeRef": "יחזקאל ח׳",
+      "anchorVerse": 8,
+      "sourceHasEn": true,
+      "compDate": [
+        -550,
+        -450
+      ],
+      "commentaryNum": 8,
+      "collectiveTitle": {
+        "en": "Ezekiel",
+        "he": "יחזקאל"
+      },
+      "heTitle": "יחזקאל"
+    },
+    {
+      "_id": "695ef214dec289fd6237199f",
+      "index_title": "Ezekiel",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Ezekiel 1:13",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Ezekiel 1:13",
+      "sourceHeRef": "יחזקאל א׳:י״ג",
+      "anchorVerse": 8,
+      "sourceHasEn": true,
+      "compDate": [
+        -550,
+        -450
+      ],
+      "commentaryNum": 1.0013,
+      "collectiveTitle": {
+        "en": "Ezekiel",
+        "he": "יחזקאל"
+      },
+      "heTitle": "יחזקאל"
+    },
+    {
+      "_id": "695ef214dec289fd623719a1",
+      "index_title": "Ezekiel",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Ezekiel 1:26",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Ezekiel 1:26",
+      "sourceHeRef": "יחזקאל א׳:כ״ו",
+      "anchorVerse": 8,
+      "sourceHasEn": true,
+      "compDate": [
+        -550,
+        -450
+      ],
+      "commentaryNum": 1.0026,
+      "collectiveTitle": {
+        "en": "Ezekiel",
+        "he": "יחזקאל"
+      },
+      "heTitle": "יחזקאל"
+    },
+    {
+      "_id": "6962a836b938ddae26979d99",
+      "index_title": "Ezekiel",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Ezekiel 31:8",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Ezekiel 31:8",
+      "sourceHeRef": "יחזקאל ל״א:ח׳",
+      "anchorVerse": 8,
+      "sourceHasEn": true,
+      "compDate": [
+        -550,
+        -450
+      ],
+      "commentaryNum": 31.0008,
+      "collectiveTitle": {
+        "en": "Ezekiel",
+        "he": "יחזקאל"
+      },
+      "heTitle": "יחזקאל"
+    },
+    {
+      "_id": "6a1515eb20c58f4184e225fd",
+      "index_title": "Ezekiel",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Ezekiel 10:1",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:8",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "sourceRef": "Ezekiel 10:1",
+      "sourceHeRef": "יחזקאל י׳:א׳",
+      "anchorVerse": 8,
+      "sourceHasEn": true,
+      "compDate": [
+        -550,
+        -450
+      ],
+      "commentaryNum": 10.0001,
+      "collectiveTitle": {
+        "en": "Ezekiel",
+        "he": "יחזקאל"
+      },
+      "heTitle": "יחזקאל"
+    },
+    {
+      "_id": "6422a2654f950dc91b35ec26",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:18",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:9",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:9"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:18",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:י״ח",
+      "anchorVerse": 9,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0018,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422a2654f950dc91b35ec28",
+      "index_title": "Efodi on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Efodi on Guide for the Perplexed, Part 1 1:19",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:9",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:9"
+      ],
+      "sourceRef": "Efodi on Guide for the Perplexed, Part 1 1:19",
+      "sourceHeRef": "אפודי על מורה נבוכים, חלק א א׳:י״ט",
+      "anchorVerse": 9,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0019,
+      "collectiveTitle": {
+        "en": "Efodi",
+        "he": "אפודי"
+      }
+    },
+    {
+      "_id": "6422aa4474a182b40133a434",
+      "index_title": "Crescas on Guide for the Perplexed",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Crescas on Guide for the Perplexed, Part 1 1:4",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:9",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:9"
+      ],
+      "sourceRef": "Crescas on Guide for the Perplexed, Part 1 1:4",
+      "sourceHeRef": "קרשקש על מורה נבוכים, חלק א א׳:ד׳",
+      "anchorVerse": 9,
+      "sourceHasEn": false,
+      "compDate": [
+        1400,
+        1440
+      ],
+      "commentaryNum": 1.0004,
+      "collectiveTitle": {
+        "en": "Crescas",
+        "he": "קרשקש"
+      }
+    }
+  ],
+  "sheets": [
+    {
+      "owner": 12989,
+      "_id": "5636729efddb66644e50c147",
+      "id": "19334",
+      "public": true,
+      "title": "Binah",
+      "sheetUrl": "/sheets/19334",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:1-4",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:4",
+        "Guide for the Perplexed, Part 1 1:3",
+        "Guide for the Perplexed, Part 1 1:1",
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "options": {
+        "numbered": 1,
+        "boxed": 1,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "h",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Rudy Stoler",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/rudy-stoler",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 3760,
+      "topics": [
+        {
+          "slug": "tanakh",
+          "asTyped": "Tanakh",
+          "en": "Tanakh",
+          "he": "תנ\"ך"
+        },
+        {
+          "slug": "wisdom",
+          "asTyped": "Wisdom",
+          "en": "Wisdom",
+          "he": "חכמה"
+        },
+        {
+          "slug": "prayer",
+          "asTyped": "Tefilla",
+          "en": "Tefilla",
+          "he": "תפילה"
+        },
+        {
+          "slug": "shemoneh-esrei",
+          "asTyped": "Amidah",
+          "en": "Amidah",
+          "he": "עמידה"
+        },
+        {
+          "slug": "prayer",
+          "asTyped": "Prayer",
+          "en": "Prayer",
+          "he": "תפילה"
+        }
+      ],
+      "likes": [],
+      "summary": "                                \n        \n        \n        \n        ",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2015-11-01T12:14:22.274718",
+      "combined_score": 0.45801751754247866
+    },
+    {
+      "owner": 2019,
+      "_id": "62abeb3193dfcd5e4cd43ff9",
+      "id": "414656",
+      "public": true,
+      "title": "Artificial Intelligence: What is (Wo)Man?",
+      "sheetUrl": "/sheets/414656",
+      "anchorRef": "Guide for the Perplexed, Part 1 1",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:7",
+        "Guide for the Perplexed, Part 1 1:8",
+        "Guide for the Perplexed, Part 1 1:6",
+        "Guide for the Perplexed, Part 1 1:1",
+        "Guide for the Perplexed, Part 1 1:3",
+        "Guide for the Perplexed, Part 1 1:5",
+        "Guide for the Perplexed, Part 1 1:9",
+        "Guide for the Perplexed, Part 1 1:4",
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Evan Krame",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/evan-krame",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/evan-krame-1626299932-small.png",
+      "status": "public",
+      "views": 2047,
+      "topics": [
+        {
+          "asTyped": "Human Being",
+          "slug": "human-being",
+          "en": "Human Being",
+          "he": ""
+        },
+        {
+          "asTyped": "Human",
+          "slug": "human",
+          "en": "Human",
+          "he": ""
+        },
+        {
+          "asTyped": "Golem",
+          "slug": "golems",
+          "en": "Golem",
+          "he": "גולם"
+        },
+        {
+          "asTyped": "Humanoid",
+          "slug": "humanoid",
+          "en": "Humanoid",
+          "he": ""
+        },
+        {
+          "asTyped": "Artificial Intelligence",
+          "slug": "artificial-intelligence",
+          "en": "Artificial Intelligence",
+          "he": ""
+        }
+      ],
+      "likes": [],
+      "summary": "Based on lectures by Rabbi Dr. Ira Bedzow and tomes by Yuval Noah Harari, we are presently challenged to define what is human for the purposes of Jewish law and living in a civilized, ethical society.  How Torah defines a human is a starting point only.",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2022-06-16T23:47:13.582795",
+      "combined_score": 0.3478849981639317
+    },
+    {
+      "owner": 41545,
+      "_id": "63c8e8d7e46448ac6a8b0f2a",
+      "id": "460694",
+      "public": true,
+      "title": "B'tzelem Elohim - Beyond Image",
+      "sheetUrl": "/sheets/460694",
+      "anchorRef": "Guide for the Perplexed, Part 1 1",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:7",
+        "Guide for the Perplexed, Part 1 1:8",
+        "Guide for the Perplexed, Part 1 1:6",
+        "Guide for the Perplexed, Part 1 1:1",
+        "Guide for the Perplexed, Part 1 1:3",
+        "Guide for the Perplexed, Part 1 1:5",
+        "Guide for the Perplexed, Part 1 1:9",
+        "Guide for the Perplexed, Part 1 1:4",
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Gabe Snyder",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/gabe-snyder",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/gabe-snyder-1671557861-small.png",
+      "status": "public",
+      "views": 5913,
+      "topics": [
+        {
+          "asTyped": "Image of God",
+          "slug": "image-of-god",
+          "en": "Image of God",
+          "he": "צלם אלוקים"
+        },
+        {
+          "asTyped": "Anthropomorphism",
+          "slug": "anthropomorphism",
+          "en": "Anthropomorphism",
+          "he": ""
+        }
+      ],
+      "likes": [],
+      "summary": "Rashi, Nachmanides, and Maimonides on B'tzelem Elohim and the issue of God's corporeality.",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2023-01-19T02:53:11.706832",
+      "combined_score": 0.5099094567404426
+    },
+    {
+      "owner": 16761,
+      "_id": "646d837a8de07918faabdede",
+      "id": "490076",
+      "public": true,
+      "title": "AI and Halacha",
+      "sheetUrl": "/sheets/490076",
+      "anchorRef": "Guide for the Perplexed, Part 1 1-5",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:7",
+        "Guide for the Perplexed, Part 1 1:8",
+        "Guide for the Perplexed, Part 1 1:6",
+        "Guide for the Perplexed, Part 1 1:1",
+        "Guide for the Perplexed, Part 1 1:3",
+        "Guide for the Perplexed, Part 1 1:5",
+        "Guide for the Perplexed, Part 1 1:9",
+        "Guide for the Perplexed, Part 1 1:4",
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Shua Solomon",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/shua-solomon",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 810,
+      "topics": [],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2023-05-24T00:24:42.670346",
+      "combined_score": 0.2283222591362126
+    },
+    {
+      "owner": 68832,
+      "_id": "65202af61c11ce99cffefc46",
+      "id": "515573",
+      "public": true,
+      "title": "Humans in God's Image \n\n Jewish Methods of Biblical Interpretation \n\n October 10, 2023",
+      "sheetUrl": "/sheets/515573",
+      "anchorRef": "Guide for the Perplexed, Part 1 1",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:7",
+        "Guide for the Perplexed, Part 1 1:8",
+        "Guide for the Perplexed, Part 1 1:6",
+        "Guide for the Perplexed, Part 1 1:1",
+        "Guide for the Perplexed, Part 1 1:3",
+        "Guide for the Perplexed, Part 1 1:5",
+        "Guide for the Perplexed, Part 1 1:9",
+        "Guide for the Perplexed, Part 1 1:4",
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "options": {
+        "numbered": 1,
+        "boxed": 1,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Shulamit Jelen",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/shulamit-jelen",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 5038,
+      "topics": [
+        {
+          "slug": "adam",
+          "asTyped": "Adam",
+          "en": "Adam",
+          "he": "אדם הראשון"
+        },
+        {
+          "slug": "cain-and-abel",
+          "asTyped": "Cain and Abel",
+          "en": "Cain and Abel",
+          "he": "קין והבל"
+        },
+        {
+          "slug": "the-body",
+          "asTyped": "The Body",
+          "en": "The Body",
+          "he": ""
+        },
+        {
+          "slug": "the-intellect",
+          "asTyped": "The Intellect",
+          "en": "The Intellect",
+          "he": ""
+        },
+        {
+          "slug": "seth",
+          "asTyped": "Seth",
+          "en": "Seth",
+          "he": "שת"
+        },
+        {
+          "slug": "be-tselem",
+          "asTyped": "Be-Tselem",
+          "en": "Be-Tselem",
+          "he": ""
+        }
+      ],
+      "likes": [],
+      "summary": "What does it mean to be created in God's image? In this discussion we will try to understand how this concept is understood by traditional Jewish Torah commentators. ",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2023-10-06T12:42:46.028739",
+      "combined_score": 0.38282627404439784
+    },
+    {
+      "owner": 16933,
+      "_id": "57e291eab77993fa7c40ac42",
+      "id": "44191",
+      "public": true,
+      "title": "B'tzelem Elohim:  What does it mean to be Created in God's Image?",
+      "sheetUrl": "/sheets/44191",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "options": {
+        "layout": "stacked",
+        "bsd": 0,
+        "collaboration": "none",
+        "language": "english",
+        "highlightMode": 0,
+        "boxed": 0,
+        "langLayout": "heRight",
+        "assignable": 0,
+        "numbered": 1,
+        "divineNames": "noSub"
+      },
+      "collectionTOC": null,
+      "ownerName": "Rachel Petroff Kessler",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/rachel-kessler",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/rachel-kessler-1580844449-small.png",
+      "status": "public",
+      "views": 17834,
+      "topics": [],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2016-09-21T06:58:02.131450",
+      "combined_score": 0.30828402366863905
+    },
+    {
+      "owner": 72262,
+      "_id": "5dc9f8586f971d1f83b5d432",
+      "id": "200924",
+      "public": true,
+      "title": "Anthropomorphism of God",
+      "sheetUrl": "/sheets/200924",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "options": {
+        "divineNames": "noSub",
+        "layout": "sideBySide",
+        "collaboration": "anyone-can-edit",
+        "language": "bilingual",
+        "boxed": 0,
+        "numbered": 0,
+        "langLayout": "heRight",
+        "bsd": 0,
+        "highlightMode": 0,
+        "assignable": 0
+      },
+      "collectionTOC": null,
+      "ownerName": "Jon Laxdal",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/jon-laxdal",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 9963,
+      "topics": [],
+      "likes": [],
+      "summary": "Sefaria worksheet raising the question over anthropomorphism of God in Judaism. How has the image of God changed over time? \n\nCreated by Jon Laxdal and Abdur Khan",
+      "attribution": "<p>Source Sheet by Jon Laxdal and Abdur Khan</p>\n",
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2019-11-11T20:10:00.767867",
+      "combined_score": 0.8550038371094215
+    },
+    {
+      "owner": 48645,
+      "_id": "614c9442186d9533ab84a04c",
+      "id": "348874",
+      "public": true,
+      "title": "Bereshit: Created in God's Image",
+      "sheetUrl": "/sheets/348874",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Yair Robinson",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/yair-robinson",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/yair-robinson-1726607361-small.png",
+      "status": "public",
+      "views": 1130,
+      "topics": [],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2021-09-23T11:50:42.719520",
+      "combined_score": 0.22712483399734393
+    },
+    {
+      "owner": 73255,
+      "_id": "61db4e0f23280d9e803a11c5",
+      "id": "374760",
+      "public": true,
+      "title": "The Different Opinions on Btzelem Elokim",
+      "sheetUrl": "/sheets/374760",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 1,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "ykvk",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Israel Fruchter",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/israel-fruchter",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/israel-fruchter-1632063339-small.png",
+      "status": "public",
+      "views": 2323,
+      "topics": [
+        {
+          "slug": "neshama",
+          "asTyped": "Soul",
+          "en": "Soul",
+          "he": "נשמה"
+        },
+        {
+          "slug": "btzelem-elokim",
+          "asTyped": "Btzelem Elokim",
+          "en": "Btzelem Elokim",
+          "he": ""
+        },
+        {
+          "slug": "image-of-god",
+          "asTyped": "B'tzelem Elohim",
+          "en": "B'tzelem Elohim",
+          "he": "צלם אלוקים"
+        },
+        {
+          "slug": "creation-of-man",
+          "asTyped": "Creation of Man",
+          "en": "Creation of Man",
+          "he": "בריאת אדם"
+        },
+        {
+          "slug": "image-of-god",
+          "asTyped": "Image of God",
+          "en": "Image of God",
+          "he": "צלם אלוקים"
+        },
+        {
+          "slug": "intellect1",
+          "asTyped": "Intellect",
+          "en": "Intellect",
+          "he": "דעת"
+        },
+        {
+          "slug": "creation",
+          "asTyped": "Creation",
+          "en": "Creation",
+          "he": "בריאה"
+        }
+      ],
+      "likes": [],
+      "summary": "At humanity's point of origin, the Torah tells us that Hashem made us \"btzelem Elokim,\" in His image. The significance of this is not lost on us, but the details behind such significance sometimes are. \n\nWhich part of us was made btzelem Elokim? What are the possibilities? How do we practically understand that? \n\nThis source sheet presents four different opinions or \"camps\" on btzelem Elokim's meaning, and while it is not all-inclusive, the hope is that it close to that.  \n\n(Main credit is to Rav Dovid'll Weinberg for these sources)",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2022-01-09T17:05:19.403109",
+      "combined_score": 0.31258131778756226
+    },
+    {
+      "owner": 15565,
+      "_id": "6828501f50d54f0376a67201",
+      "id": "648953",
+      "public": true,
+      "title": "Hashem Is Here? Hashem Is There? (No Seriously Where Is Hashem)",
+      "sheetUrl": "/sheets/648953",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:3",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:3"
+      ],
+      "options": {
+        "layout": "stacked",
+        "boxed": 0,
+        "language": "bilingual",
+        "numbered": 0,
+        "assignable": 0,
+        "divineNames": "h",
+        "collaboration": "none",
+        "highlightMode": 0,
+        "langLayout": "heRight",
+        "bsd": 0
+      },
+      "collectionTOC": null,
+      "ownerName": "Benjamin Ezzes",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/benjamin-ezzes",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/benjamin-ezzes-1626301758-small.png",
+      "status": "public",
+      "views": 1804,
+      "topics": [
+        {
+          "asTyped": "Tikkun Leil Shavuot",
+          "slug": "tikkun-leil-shavuot",
+          "en": "Tikkun Leil Shavuot",
+          "he": "תיקון ליל שבועות"
+        },
+        {
+          "asTyped": "G-D",
+          "slug": "g-d",
+          "en": "G-D",
+          "he": ""
+        },
+        {
+          "asTyped": "Holiness",
+          "slug": "holiness",
+          "en": "Holiness",
+          "he": "קדושה"
+        },
+        {
+          "asTyped": "Immanence",
+          "slug": "immanence",
+          "en": "Immanence",
+          "he": ""
+        }
+      ],
+      "likes": [],
+      "summary": "A short shiur for Tikkun Leil on the immanence and transcendence of G-d .",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2025-05-17T06:00:15.926722",
+      "combined_score": 0.9082452926039368
+    },
+    {
+      "owner": 34192,
+      "_id": "58c0e35a1905c62b2678e7ad",
+      "id": "59706",
+      "public": true,
+      "title": "When Robots Outsmart Humans... What makes us human? Part 1",
+      "sheetUrl": "/sheets/59706",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:4",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:4"
+      ],
+      "options": {
+        "layout": "sideBySide",
+        "bsd": 0,
+        "collaboration": "none",
+        "language": "bilingual",
+        "highlightMode": 0,
+        "boxed": 0,
+        "langLayout": "heRight",
+        "assignable": 0,
+        "numbered": 0,
+        "divineNames": "h"
+      },
+      "collectionTOC": null,
+      "ownerName": "Noam Buckman",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/noam-buckman",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 5894,
+      "topics": [
+        {
+          "slug": "technology",
+          "asTyped": "Technology",
+          "en": "Technology",
+          "he": "טכנולוגיה"
+        },
+        {
+          "slug": "robots",
+          "asTyped": "Robots",
+          "en": "Robots",
+          "he": ""
+        },
+        {
+          "slug": "robot",
+          "asTyped": "Robot",
+          "en": "Robot",
+          "he": ""
+        }
+      ],
+      "likes": [],
+      "summary": null,
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2017-03-08T21:08:42.648703",
+      "combined_score": 0.4918443463542788
+    },
+    {
+      "owner": 55223,
+      "_id": "5ba007f75bce1cb77d85053c",
+      "id": "131686",
+      "public": true,
+      "title": "Guide 1.2",
+      "sheetUrl": "/sheets/131686",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:4",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:4"
+      ],
+      "options": {
+        "boxed": 0,
+        "numbered": 0,
+        "assignable": 0,
+        "language": "hebrew",
+        "highlightMode": 0,
+        "divineNames": "noSub",
+        "bsd": 0,
+        "collaboration": "none",
+        "langLayout": "heRight",
+        "layout": "stacked"
+      },
+      "collectionTOC": null,
+      "ownerName": "S K",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/s-k2",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/s-k2-1626798897-small.png",
+      "status": "public",
+      "views": 451,
+      "topics": [],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2018-09-17T13:00:55.047413",
+      "combined_score": 0.07583798882681564
+    },
+    {
+      "owner": 118595,
+      "_id": "64060e0bfe4d4eec02d7d0c8",
+      "id": "471980",
+      "public": true,
+      "title": "Parashat Bereishit: Commentary",
+      "sheetUrl": "/sheets/471980",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:5",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:5"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "anyone-can-edit"
+      },
+      "collectionTOC": null,
+      "ownerName": "Hadar Institute",
+      "via": 368411,
+      "viaOwnerName": "Sefaria Education",
+      "assignerName": null,
+      "viaOwnerProfileUrl": "/profile/sefaria-education1",
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/hadar",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/hadar-1611181647-small.png",
+      "status": "public",
+      "views": 1341,
+      "topics": [
+        {
+          "asTyped": "Commentaries",
+          "slug": "commentaries",
+          "en": "Commentaries",
+          "he": "מפרשים"
+        },
+        {
+          "asTyped": "Parashat Bereshit",
+          "slug": "parashat-bereshit",
+          "en": "Parashat Bereshit",
+          "he": "פרשת בראשית"
+        },
+        {
+          "asTyped": "Breishit",
+          "slug": "breishit",
+          "en": "Breishit",
+          "he": ""
+        },
+        {
+          "asTyped": "Bereshis",
+          "slug": "parashat-bereshit",
+          "en": "Bereshis",
+          "he": "פרשת בראשית"
+        },
+        {
+          "asTyped": "Parshanut",
+          "slug": "parshanut1",
+          "en": "Parshanut",
+          "he": "פרשנות"
+        },
+        {
+          "asTyped": "Devash",
+          "slug": "devash",
+          "en": "Devash",
+          "he": ""
+        },
+        {
+          "asTyped": "Bereishit",
+          "slug": "parashat-bereshit",
+          "en": "Bereishit",
+          "he": "פרשת בראשית"
+        }
+      ],
+      "likes": [],
+      "summary": "What does \"the image of God\" mean?",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2023-03-06T12:00:11.173493",
+      "combined_score": 0.855844793713163
+    },
+    {
+      "owner": 138175,
+      "_id": "66548f704391fdd7992ff84a",
+      "id": "567434",
+      "public": true,
+      "title": "Close Encounters of a Non-Human Kind",
+      "sheetUrl": "/sheets/567434",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:7",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:7"
+      ],
+      "options": {
+        "numbered": 1,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 1,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "h",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Drew Gottlieb",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/drew-gottlieb",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 591,
+      "topics": [
+        {
+          "asTyped": "Creation",
+          "slug": "creation",
+          "en": "Creation",
+          "he": "בריאה"
+        },
+        {
+          "asTyped": "Tikkun Leil Shavuot",
+          "slug": "tikkun-leil-shavuot",
+          "en": "Tikkun Leil Shavuot",
+          "he": "תיקון ליל שבועות"
+        },
+        {
+          "asTyped": "Golems",
+          "slug": "golems",
+          "en": "Golems",
+          "he": "גולם"
+        },
+        {
+          "asTyped": "Science",
+          "slug": "science",
+          "en": "Science",
+          "he": "מדע"
+        }
+      ],
+      "likes": [],
+      "summary": "Given at Harvard Hillel's Tikkun Leil Shavuos 5784. ",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2024-05-27T10:49:36.414080",
+      "combined_score": 0.5251350531478551
+    },
+    {
+      "owner": 2019,
+      "_id": "6a6320147f44234864530509",
+      "id": "740687",
+      "public": true,
+      "title": "Being Human: humanity defined (based on a week of learning at SHI)",
+      "sheetUrl": "/sheets/740687",
+      "anchorRef": "Guide for the Perplexed, Part 1 1:7-9",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:7",
+        "Guide for the Perplexed, Part 1 1:9",
+        "Guide for the Perplexed, Part 1 1:8"
+      ],
+      "options": {
+        "layout": "stacked",
+        "boxed": 0,
+        "language": "bilingual",
+        "numbered": 0,
+        "assignable": 0,
+        "collaboration": "none",
+        "highlightMode": 0,
+        "langLayout": "heRight",
+        "bsd": 0
+      },
+      "collectionTOC": null,
+      "ownerName": "Evan Krame",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/evan-krame",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/evan-krame-1626299932-small.png",
+      "status": "public",
+      "views": 100,
+      "topics": [
+        {
+          "asTyped": "Humanity",
+          "slug": "humanity",
+          "en": "Humanity",
+          "he": "אנושיות"
+        },
+        {
+          "asTyped": "Tzelem Elohim",
+          "slug": "tzelem-elohim",
+          "en": "Tzelem Elohim",
+          "he": ""
+        }
+      ],
+      "likes": [],
+      "summary": "What are the qualities that we understand to be \"human\", exhibited through acts of humanity.",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2026-07-24T05:19:32.219813",
+      "combined_score": 0
+    }
+  ],
+  "notes": [],
+  "topics": [
+    {
+      "linkType": "about",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Aspaklaria",
+        "he": "אספקלריא",
+        "slug": "aspaklaria"
+      },
+      "is_sheet": false,
+      "order": {
+        "tfidf": 36.68074816209183,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 1190,
+        "order_id": "A00700000400600010002-00010004",
+        "pr": 1,
+        "numSources": 172
+      },
+      "topic": "image-of-god",
+      "title": {
+        "en": "Image of God",
+        "he": "צלם אלוקים"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {},
+      "shouldDisplay": true,
+      "pools": [
+        "torah_tab",
+        "library",
+        "general_en",
+        "sheets"
+      ],
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2-4",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2",
+        "Guide for the Perplexed, Part 1 1:3",
+        "Guide for the Perplexed, Part 1 1:4"
+      ]
+    },
+    {
+      "linkType": "about",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Aspaklaria",
+        "he": "אספקלריא",
+        "slug": "aspaklaria"
+      },
+      "is_sheet": false,
+      "order": {
+        "tfidf": 15.319871358330175,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 1190,
+        "order_id": "A00700000400600010002",
+        "pr": 0,
+        "numSources": 68
+      },
+      "topic": "physicality",
+      "title": {
+        "en": "Incorporeality of God",
+        "he": "שלילת גשמות האל"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {
+        "en": "Many biblical and rabbinic sources describe God using the language of physicality, but influential rabbinic texts emphasize that denial of God's physicality is a [key principle of Jewish faith](https://www.sefaria.org/Rambam_on_Mishnah_Sanhedrin.10.1.18?lang=en). Philosophers, scholars, kabbalists, and commentators have all attempted to explain how a transcendent God can be described in human terms. A few have maintained that God does or could indeed possess a physical form, some have interpreted physical language in traditional sources metaphorically, and some have reinterpreted it in light of kabbalistic concepts.\n",
+        "he": ""
+      },
+      "shouldDisplay": true,
+      "pools": [
+        "library",
+        "general_en",
+        "sheets"
+      ],
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ]
+    },
+    {
+      "linkType": "about",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Aspaklaria",
+        "he": "אספקלריא",
+        "slug": "aspaklaria"
+      },
+      "is_sheet": false,
+      "order": {
+        "tfidf": 14.11735932653084,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 1190,
+        "order_id": "A00700000400600010004",
+        "pr": 0,
+        "numSources": 123
+      },
+      "topic": "discernment",
+      "title": {
+        "en": "Discernment",
+        "he": "שכל"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {},
+      "shouldDisplay": true,
+      "pools": [
+        "library",
+        "general_en",
+        "sheets"
+      ],
+      "anchorRef": "Guide for the Perplexed, Part 1 1:4",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:4"
+      ]
+    },
+    {
+      "linkType": "about",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Aspaklaria",
+        "he": "אספקלריא",
+        "slug": "aspaklaria"
+      },
+      "is_sheet": false,
+      "order": {
+        "tfidf": 12.13988430020868,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 1190,
+        "order_id": "A00700000400600010002",
+        "pr": 0,
+        "numSources": 30
+      },
+      "topic": "image",
+      "title": {
+        "en": "Image",
+        "he": "צלם"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {},
+      "shouldDisplay": true,
+      "pools": [
+        "library",
+        "sheets"
+      ],
+      "anchorRef": "Guide for the Perplexed, Part 1 1:2",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:2"
+      ]
+    },
+    {
+      "linkType": "about",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Aspaklaria",
+        "he": "אספקלריא",
+        "slug": "aspaklaria"
+      },
+      "is_sheet": false,
+      "order": {
+        "tfidf": 4.527040986578347,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 1190,
+        "order_id": "A00700000400600010003",
+        "pr": 0,
+        "numSources": 11
+      },
+      "topic": "images",
+      "title": {
+        "en": "Images",
+        "he": "דמות"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {},
+      "shouldDisplay": true,
+      "pools": [
+        "library",
+        "sheets"
+      ],
+      "anchorRef": "Guide for the Perplexed, Part 1 1:3",
+      "anchorRefExpanded": [
+        "Guide for the Perplexed, Part 1 1:3"
+      ]
+    }
+  ],
+  "manuscripts": [],
+  "media": [],
+  "guides": []
+}

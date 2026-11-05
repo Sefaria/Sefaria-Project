@@ -1,0 +1,369 @@
+{
+  "title": "Song of Songs",
+  "categories": [
+    "Tanakh",
+    "Writings"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Pasuk"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Verse"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "sefer",
+          "song-of-songs"
+        ]
+      },
+      {
+        "term_slugs": [
+          "song-of-songs"
+        ]
+      }
+    ],
+    "lengths": [
+      8,
+      117
+    ],
+    "titles": [
+      {
+        "text": "Shir HaShirim",
+        "lang": "en"
+      },
+      {
+        "text": "Canticles",
+        "lang": "en"
+      },
+      {
+        "text": "Song.",
+        "lang": "en"
+      },
+      {
+        "text": "Song",
+        "lang": "en"
+      },
+      {
+        "text": "Song of Solomon",
+        "lang": "en"
+      },
+      {
+        "text": "Cant.",
+        "lang": "en"
+      },
+      {
+        "text": "Canticum",
+        "lang": "en"
+      },
+      {
+        "text": "Songs",
+        "lang": "en"
+      },
+      {
+        "text": "Shir haShirim",
+        "lang": "en"
+      },
+      {
+        "text": "Shir Hashirim",
+        "lang": "en"
+      },
+      {
+        "text": "Cantique des cant.",
+        "lang": "en"
+      },
+      {
+        "text": "S. S.",
+        "lang": "en"
+      },
+      {
+        "text": "S.S.",
+        "lang": "en"
+      },
+      {
+        "text": "שה\"ש",
+        "lang": "he"
+      },
+      {
+        "text": "שיר",
+        "lang": "he"
+      },
+      {
+        "text": "שה״ש",
+        "lang": "he"
+      },
+      {
+        "text": "שה''ש",
+        "lang": "he"
+      },
+      {
+        "text": "שיה\"ש",
+        "lang": "he"
+      },
+      {
+        "text": "שיה״ש",
+        "lang": "he"
+      },
+      {
+        "text": "שה”ש",
+        "lang": "he"
+      },
+      {
+        "text": "שיה”ש",
+        "lang": "he"
+      },
+      {
+        "text": "שה״‎ש",
+        "lang": "he"
+      },
+      {
+        "text": "שה\"‎ש",
+        "lang": "he"
+      },
+      {
+        "text": "שה”‎ש",
+        "lang": "he"
+      },
+      {
+        "text": "שיר השירים",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Song of Songs",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Song of Songs",
+    "heTitle": "שיר השירים",
+    "heSectionNames": [
+      "פרק",
+      "פסוק"
+    ],
+    "key": "Song of Songs",
+    "content_counts": [
+      17,
+      17,
+      11,
+      16,
+      16,
+      12,
+      14,
+      14
+    ]
+  },
+  "order": [
+    30,
+    4
+  ],
+  "authors": [],
+  "enDesc": "Song of Songs (“Shir Hashirim”) is one of the five megillot (scrolls), part of the section of the Hebrew Bible called Writings. Attributed in its opening verse to King Solomon, the book records poetic conversations between two lovers, describing their pursuit of each other through vineyards and fields of blossoming flowers. It is traditionally understood as a metaphor for the loving relationship between God and the people of Israel, and is often read publicly on Passover or on Shabbat evening.",
+  "heDesc": "שיר השירים הוא המגילה הראשונה שבחמש המגילות, קובץ בחטיבת הכתובים שבמקרא, ופסוק הפתיחה של המגילה מייחס אותה לשלמה המלך. המגילה מורכבת מסדרה של שירי אהבה המתארים את חיפושיהם ההדדיים של האוהבים בין כרמים ושדות מלבלבים. חז\"ל פירשו את המגילה כאלגוריה ליחסי עם ישראל עם אלוקיו, והיא נקראת בציבור בשבת חול המועד פסח ובערבי שבת.",
+  "enShortDesc": "Poetic conversations of two lovers, traditionally read as a metaphor for God and Israel.",
+  "heShortDesc": "שיח פיוטי בין נאהבים שנתפרש במסורת חז\"ל כאלגוריה ליחסי עם ישראל עם אלוקיו.",
+  "pubDate": [
+    1488
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    -900,
+    -100
+  ],
+  "compPlace": "Judea/Israel",
+  "pubPlace": "Soncino",
+  "is_cited": true,
+  "corpora": [
+    "Tanakh"
+  ],
+  "heTitle": "שיר השירים",
+  "titleVariants": [
+    "Shir HaShirim",
+    "Canticles",
+    "Song.",
+    "Song",
+    "Song of Solomon",
+    "Cant.",
+    "Canticum",
+    "Songs",
+    "Shir haShirim",
+    "Shir Hashirim",
+    "Cantique des cant.",
+    "S. S.",
+    "S.S.",
+    "Song of Songs"
+  ],
+  "heTitleVariants": [
+    "שה\"ש",
+    "שיר",
+    "שה״ש",
+    "שה''ש",
+    "שיה\"ש",
+    "שיה״ש",
+    "שה”ש",
+    "שיה”ש",
+    "שה״‎ש",
+    "שה\"‎ש",
+    "שה”‎ש",
+    "שיר השירים"
+  ],
+  "sectionNames": [
+    "Chapter",
+    "Verse"
+  ],
+  "depth": 2,
+  "firstSectionRef": "Song of Songs 1",
+  "heCategories": [
+    "תנ\"ך",
+    "כתובים"
+  ],
+  "compDateString": {
+    "en": " (c.900  – c.100 BCE)",
+    "he": " (900 – 100 לפנה\"ס בקירוב)"
+  },
+  "pubDateString": {
+    "en": " (1488 CE)",
+    "he": " (1488 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Judea/Israel",
+    "he": "יהודה / ישראל"
+  },
+  "pubPlaceString": {
+    "en": "Soncino",
+    "he": "שונצינו"
+  },
+  "relatedTopics": [
+    {
+      "slug": "song-of-songs",
+      "title": {
+        "en": "Song of Songs",
+        "he": "שיר השירים"
+      }
+    },
+    {
+      "slug": "love",
+      "title": {
+        "en": "Love",
+        "he": "אהבה"
+      }
+    },
+    {
+      "slug": "tanakh",
+      "title": {
+        "en": "Tanakh",
+        "he": "תנ\"ך"
+      }
+    },
+    {
+      "slug": "elul",
+      "title": {
+        "en": "Elul",
+        "he": "אלול"
+      }
+    },
+    {
+      "slug": "shavuot",
+      "title": {
+        "en": "Shavuot",
+        "he": "שבועות"
+      }
+    },
+    {
+      "slug": "milk",
+      "title": {
+        "en": "Milk",
+        "he": "חָלָב"
+      }
+    },
+    {
+      "slug": "teshuvah",
+      "title": {
+        "en": "Repentance (Teshuvah)",
+        "he": "תשובה"
+      }
+    },
+    {
+      "slug": "rosh-hashanah",
+      "title": {
+        "en": "Rosh Hashanah",
+        "he": "ראש השנה"
+      }
+    },
+    {
+      "slug": "sexuality",
+      "title": {
+        "en": "Sexuality",
+        "he": "מיניות"
+      }
+    },
+    {
+      "slug": "king-solomon",
+      "title": {
+        "en": "King Solomon",
+        "he": "שְׁלֹמֹה"
+      }
+    },
+    {
+      "slug": "high-holidays",
+      "title": {
+        "en": "High Holidays",
+        "he": "הימים הנוראים"
+      }
+    },
+    {
+      "slug": "tu-bishvat",
+      "title": {
+        "en": "Tu Bishvat",
+        "he": "ט\"ו בשבט"
+      }
+    },
+    {
+      "slug": "rabbi-akiva",
+      "title": {
+        "en": "Rabbi Akiva",
+        "he": "רבי עקיבא"
+      }
+    },
+    {
+      "slug": "shabbat",
+      "title": {
+        "en": "Shabbat",
+        "he": "שבת"
+      }
+    },
+    {
+      "slug": "nature",
+      "title": {
+        "en": "Nature",
+        "he": "טבע"
+      }
+    },
+    {
+      "slug": "cheese-cake",
+      "title": {
+        "en": "Cheese Cake",
+        "he": "עוגת גבינה"
+      }
+    },
+    {
+      "slug": "passover",
+      "title": {
+        "en": "Passover",
+        "he": "פסח"
+      }
+    },
+    {
+      "slug": "lekha-dodi1",
+      "title": {
+        "en": "Lekha Dodi",
+        "he": "לכה דודי"
+      }
+    }
+  ]
+}

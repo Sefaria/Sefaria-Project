@@ -1,0 +1,24 @@
+/* The old MobileNavMenu (static/css/s2.css .mobileNavMenu and friends), VERIFIED on sefaria.org /texts with a phone User-Agent
+   (2026-10-29): a white sheet under the 60px header filling the screen; full-width 16px var(--sefaria-color-text-dark-grey) rows, 15px in, each icon 16px and 15px
+   from its label; Donate a blue row; the account part on var(--sefaria-color-surface-subtle) between var(--sefaria-color-border-strong) rules, its groups split by var(--sefaria-color-border-light) lines. */
+.menu { position: fixed; top: 60px; left: 0; z-index: 1000; box-sizing: border-box; width: 100%; height: calc(100vh - 60px); height: calc(100dvh - 60px); overflow-y: scroll; background: var(--sefaria-color-surface); font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: normal; text-align: start; }
+.menu[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.menu[hidden] { display: none; }
+.searchLine { padding: 15px 10px; border-bottom: 1px solid var(--sefaria-color-border-light); }
+.menu a, .languageToggle { position: relative; display: block; padding: 15px; color: var(--sefaria-color-text-dark-grey); font-size: 16px; text-decoration: none; }
+.menu a > img, .languageToggle img { position: relative; top: 3px; width: 16px; height: 16px; margin-inline-end: 15px; }
+.menu a.blue { background-color: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); }
+.menu a.blue img { filter: invert(1); }
+.accountLinks { border-top: 1px solid var(--sefaria-color-border-strong); border-bottom: 1px solid var(--sefaria-color-border-strong); background-color: var(--sefaria-color-surface-subtle); }
+.accountLinks hr { border: none; border-bottom: 1px solid var(--sefaria-color-border-light); }
+.languageToggle a { display: inline; padding: 0; border: none; }
+.languageToggle .separator { margin: 0 7px; font-size: 13px; }
+.languageToggle .inactive { color: var(--sefaria-color-text-muted); }
+.languageToggle :lang(he) { font-family: var(--sefaria-font-ui-he); }
+.menu a.moduleSwitcher { display: flex; align-items: center; }
+.dot { display: inline-block; flex-shrink: 0; width: 16px; height: 16px; margin-inline-end: 15px; border-radius: 50%; }
+.menu[lang="he"] .chevron { transform: rotate(180deg); }
+/* Sign up / Log in: the old dropdown items' first/last spacing */
+.menu a.first { padding: 10px 15px 5px; }
+.menu a.last { padding: 5px 15px 10px; }
+.menu a.logout { color: var(--sefaria-color-text-muted); }

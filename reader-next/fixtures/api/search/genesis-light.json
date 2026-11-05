@@ -1,0 +1,2023 @@
+{
+ "took": 34,
+ "timed_out": false,
+ "_shards": {
+  "total": 1,
+  "successful": 1,
+  "skipped": 0,
+  "failed": 0
+ },
+ "hits": {
+  "total": {
+   "value": 112,
+   "relation": "eq"
+  },
+  "max_score": null,
+  "hits": [
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (Torah Yesharah, translated and edited by Chas. Kahane. New York, 1963 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "Torah Yesharah, translated and edited by Chas. Kahane. New York, 1963",
+     "lang": "en",
+     "version_priority": 31,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "Then the Almighty willed that light emanate from Him. And there was immense light. ",
+     "naive_lemmatizer": "Then the Almighty willed that light emanate from Him. And there was immense light. ",
+     "hebrew_version_title": "",
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "Then the Almighty willed that <b>light</b> emanate from Him. And there was immense <b>light</b>."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (The Holy Scriptures: A New Translation (JPS 1917) [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "The Holy Scriptures: A New Translation (JPS 1917)",
+     "lang": "en",
+     "version_priority": 9,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "And God said: ‘Let there be light.’ And there was light.",
+     "naive_lemmatizer": "And God said: ‘Let there be light.’ And there was light.",
+     "hebrew_version_title": "כתבי הקודש: תרגום חדש (1917 JPS)",
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And God said: ‘Let there be <b>light</b>.’ And there was <b>light</b>."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (Metsudah Chumash, Metsudah Publications, 2009 [with Onkelos translation] [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "Metsudah Chumash, Metsudah Publications, 2009 [with Onkelos translation]",
+     "lang": "en",
+     "version_priority": 27,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "Elohim said, Let there be light. and there was light.",
+     "naive_lemmatizer": "Elohim said, Let there be light. and there was light.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "Elohim said, Let there be <b>light</b>. and there was <b>light</b>."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (The Koren Jerusalem Bible [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "The Koren Jerusalem Bible",
+     "lang": "en",
+     "version_priority": 3,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "And God said, Let there be light: and there was light.",
+     "naive_lemmatizer": "And God said, Let there be light: and there was light.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And God said, Let there be <b>light</b>: and there was <b>light</b>."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (Jewish English Torah [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "Jewish English Torah",
+     "lang": "en",
+     "version_priority": 14,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "God said, \"Let there be light,\" and there was light.",
+     "naive_lemmatizer": "God said, \"Let there be light,\" and there was light.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God said, \"Let there be <b>light</b>,\" and there was <b>light</b>."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (Tanakh: The Holy Scriptures, published by JPS [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "Tanakh: The Holy Scriptures, published by JPS",
+     "lang": "en",
+     "version_priority": 6,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "God said, “Let there be light”; and there was light.",
+     "naive_lemmatizer": "God said, “Let there be light”; and there was light.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God said, “Let there be <b>light</b>”; and there was <b>light</b>."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (The Rashi chumash by Rabbi Shraga Silverstein [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "The Rashi chumash by Rabbi Shraga Silverstein",
+     "lang": "en",
+     "version_priority": 7,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "And G-d said: Let there be light! And there was light.",
+     "naive_lemmatizer": "And G-d said: Let there be light! And there was light.",
+     "hebrew_version_title": "חומש רש״י, רבי שרגא זילברשטיין",
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And G-d said: Let there be <b>light</b>! And there was <b>light</b>."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (Modernized Tanakh - Based on JPS 1917, Edited by Adam Cohn [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "Modernized Tanakh - Based on JPS 1917, Edited by Adam Cohn",
+     "lang": "en",
+     "version_priority": 15,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "And God said: ‘Let there be light.’ And there was light.",
+     "naive_lemmatizer": "And God said: ‘Let there be light.’ And there was light.",
+     "hebrew_version_title": "תנ״ך מחודש - מבוסס על הוצאת JPS 1917, נערך ע״י אדם כהן",
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And God said: ‘Let there be <b>light</b>.’ And there was <b>light</b>."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (Metsudah Chumash, Metsudah Publications, 2009 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "Metsudah Chumash, Metsudah Publications, 2009",
+     "lang": "en",
+     "version_priority": 4,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "Elohim said, Let there be light. and there was light.",
+     "naive_lemmatizer": "Elohim said, Let there be light. and there was light.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "Elohim said, Let there be <b>light</b>. and there was <b>light</b>."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (The Kehot Chumash; Chabad House Publications, Los Angeles [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "The Kehot Chumash; Chabad House Publications, Los Angeles",
+     "lang": "en",
+     "version_priority": 5,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": " God said, “Let there be light,” and there was light. This primeval light did not emanate from any specific heavenly body, since the sun and moon were not fixed in their orbits until the fourth day. Also, it did not shine during any fixed portion of the day; darkness and light alternated randomly. 1 Likutei Sichot , vol. 25, pp. 1–2.",
+     "naive_lemmatizer": " God said, “Let there be light,” and there was light. This primeval light did not emanate from any specific heavenly body, since the sun and moon were not fixed in their orbits until the fourth day. Also, it did not shine during any fixed portion of the day; darkness and light alternated randomly. 1 Likutei Sichot , vol. 25, pp. 1–2.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God said, “Let there be <b>light</b>,” and there was <b>light</b>. This primeval <b>light</b> did not emanate from any specific heavenly body, since the sun and moon were not fixed in their orbits until the fourth day.",
+      "Also, it did not shine during any fixed portion of the day; darkness and <b>light</b> alternated randomly. 1 Likutei Sichot , vol. 25, pp. 1–2."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (The Five Books of Moses, by Everett Fox. New York, Schocken Books, 1995 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "The Five Books of Moses, by Everett Fox. New York, Schocken Books, 1995",
+     "lang": "en",
+     "version_priority": 2,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "God said: Let there be light! And there was light.",
+     "naive_lemmatizer": "God said: Let there be light! And there was light.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God said: Let there be <b>light</b>! And there was <b>light</b>."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (THE JPS TANAKH: Gender-Sensitive Edition [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "THE JPS TANAKH: Gender-Sensitive Edition",
+     "lang": "en",
+     "version_priority": 0,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "God said, “Let there be light”; and there was light.",
+     "naive_lemmatizer": "God said, “Let there be light”; and there was light.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God said, “Let there be <b>light</b>”; and there was <b>light</b>."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (The Contemporary Torah, Jewish Publication Society, 2006 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "The Contemporary Torah, Jewish Publication Society, 2006",
+     "lang": "en",
+     "version_priority": 1,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "God said, “Let there be light”; and there was light.",
+     "naive_lemmatizer": "God said, “Let there be light”; and there was light.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God said, “Let there be <b>light</b>”; and there was <b>light</b>."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:4 (Torah Yesharah, translated and edited by Chas. Kahane. New York, 1963 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "version": "Torah Yesharah, translated and edited by Chas. Kahane. New York, 1963",
+     "lang": "en",
+     "version_priority": 31,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010004",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1868807.1016899063,
+     "comp_date": -1400,
+     "exact": "The Almighty saw that the immense light was fit for numerous functions, and the Almighty separated the light from the darkness. ",
+     "naive_lemmatizer": "The Almighty saw that the immense light was fit for numerous functions, and the Almighty separated the light from the darkness. ",
+     "hebrew_version_title": "",
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "The Almighty saw that the immense <b>light</b> was fit for numerous functions, and the Almighty separated the <b>light</b> from the darkness."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010004"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:4 (The Holy Scriptures: A New Translation (JPS 1917) [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "version": "The Holy Scriptures: A New Translation (JPS 1917)",
+     "lang": "en",
+     "version_priority": 9,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010004",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1868807.1016899063,
+     "comp_date": -1400,
+     "exact": "And God saw the light, that it was good; and God divided the light from the darkness.",
+     "naive_lemmatizer": "And God saw the light, that it was good; and God divided the light from the darkness.",
+     "hebrew_version_title": "כתבי הקודש: תרגום חדש (1917 JPS)",
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And God saw the <b>light</b>, that it was good; and God divided the <b>light</b> from the darkness."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010004"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:4 (Metsudah Chumash, Metsudah Publications, 2009 [with Onkelos translation] [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "version": "Metsudah Chumash, Metsudah Publications, 2009 [with Onkelos translation]",
+     "lang": "en",
+     "version_priority": 27,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010004",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1868807.1016899063,
+     "comp_date": -1400,
+     "exact": "Elohim saw that the light was good, and Elohim divided the light from the darkness.",
+     "naive_lemmatizer": "Elohim saw that the light was good, and Elohim divided the light from the darkness.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "Elohim saw that the <b>light</b> was good, and Elohim divided the <b>light</b> from the darkness."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010004"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:4 (The Koren Jerusalem Bible [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "version": "The Koren Jerusalem Bible",
+     "lang": "en",
+     "version_priority": 3,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010004",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1868807.1016899063,
+     "comp_date": -1400,
+     "exact": "And God saw the light, that it was good: and God divided the light from the darkness.",
+     "naive_lemmatizer": "And God saw the light, that it was good: and God divided the light from the darkness.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And God saw the <b>light</b>, that it was good: and God divided the <b>light</b> from the darkness."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010004"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:4 (Jewish English Torah [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "version": "Jewish English Torah",
+     "lang": "en",
+     "version_priority": 14,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010004",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1868807.1016899063,
+     "comp_date": -1400,
+     "exact": "God saw that the light was good, and God divided the light from the darkness.",
+     "naive_lemmatizer": "God saw that the light was good, and God divided the light from the darkness.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God saw that the <b>light</b> was good, and God divided the <b>light</b> from the darkness."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010004"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:4 (Tanakh: The Holy Scriptures, published by JPS [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "version": "Tanakh: The Holy Scriptures, published by JPS",
+     "lang": "en",
+     "version_priority": 6,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010004",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1868807.1016899063,
+     "comp_date": -1400,
+     "exact": "God saw that the light was good, and God separated the light from the darkness.",
+     "naive_lemmatizer": "God saw that the light was good, and God separated the light from the darkness.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God saw that the <b>light</b> was good, and God separated the <b>light</b> from the darkness."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010004"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:4 (The Rashi chumash by Rabbi Shraga Silverstein [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "version": "The Rashi chumash by Rabbi Shraga Silverstein",
+     "lang": "en",
+     "version_priority": 7,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010004",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1868807.1016899063,
+     "comp_date": -1400,
+     "exact": "And G-d saw that the light was good, [and that it was not appropriate for light and darkness to serve in combination] and G-d separated between the light and the darkness, [making the day the domain of the first and the night the domain of the second].",
+     "naive_lemmatizer": "And G-d saw that the light was good, [and that it was not appropriate for light and darkness to serve in combination] and G-d separated between the light and the darkness, [making the day the domain of the first and the night the domain of the second].",
+     "hebrew_version_title": "חומש רש״י, רבי שרגא זילברשטיין",
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And G-d saw that the <b>light</b> was good, [and that it was not appropriate for <b>light</b> and darkness to serve in combination] and G-d separated between the <b>light</b> and the darkness, [making the day the domain of"
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010004"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:4 (Modernized Tanakh - Based on JPS 1917, Edited by Adam Cohn [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "version": "Modernized Tanakh - Based on JPS 1917, Edited by Adam Cohn",
+     "lang": "en",
+     "version_priority": 15,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010004",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1868807.1016899063,
+     "comp_date": -1400,
+     "exact": "And God saw the light, that it was good; and God divided the light from the darkness.",
+     "naive_lemmatizer": "And God saw the light, that it was good; and God divided the light from the darkness.",
+     "hebrew_version_title": "תנ״ך מחודש - מבוסס על הוצאת JPS 1917, נערך ע״י אדם כהן",
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And God saw the <b>light</b>, that it was good; and God divided the <b>light</b> from the darkness."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010004"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:4 (Metsudah Chumash, Metsudah Publications, 2009 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "version": "Metsudah Chumash, Metsudah Publications, 2009",
+     "lang": "en",
+     "version_priority": 4,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010004",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1868807.1016899063,
+     "comp_date": -1400,
+     "exact": "Elohim saw that the light was good, and Elohim divided the light from the darkness.",
+     "naive_lemmatizer": "Elohim saw that the light was good, and Elohim divided the light from the darkness.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "Elohim saw that the <b>light</b> was good, and Elohim divided the <b>light</b> from the darkness."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010004"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:4 (The Kehot Chumash; Chabad House Publications, Los Angeles [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "version": "The Kehot Chumash; Chabad House Publications, Los Angeles",
+     "lang": "en",
+     "version_priority": 5,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010004",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1868807.1016899063,
+     "comp_date": -1400,
+     "exact": " Light God saw that this primeval light not only illuminated the world, making it physically visible to its future inhabitants, but that it was also “ good ,” in that it revealed the Divine energy sustaining everything from within. Such an obvious display of Godliness would not allow humanity free choice, so God separated this spiritual “goodness” of the light from its simple, optical dimension and reserved this quality of light as a reward for the righteous in the messianic future. God then saw that the remaining, physical light was good and would enable life to function in an orderly manner were it to shine consistently rather than randomly, so God separated between the light and the darkness , setting aside half the day for each . This ambient light shone for the duration of the creation week, after which only the light emitted by the heavenly bodies shone on earth. 2 Ibid., pp. 3–9. 3 Rashi on 1:14; Likutei Sichot , vol. 25, p. 4, note 24.",
+     "naive_lemmatizer": " Light God saw that this primeval light not only illuminated the world, making it physically visible to its future inhabitants, but that it was also “ good ,” in that it revealed the Divine energy sustaining everything from within. Such an obvious display of Godliness would not allow humanity free choice, so God separated this spiritual “goodness” of the light from its simple, optical dimension and reserved this quality of light as a reward for the righteous in the messianic future. God then saw that the remaining, physical light was good and would enable life to function in an orderly manner were it to shine consistently rather than randomly, so God separated between the light and the darkness , setting aside half the day for each . This ambient light shone for the duration of the creation week, after which only the light emitted by the heavenly bodies shone on earth. 2 Ibid., pp. 3–9. 3 Rashi on 1:14; Likutei Sichot , vol. 25, p. 4, note 24.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "<b>Light</b> God saw that this primeval <b>light</b> not only illuminated the world, making it physically visible to its future inhabitants, but that it was also “ good ,” in that it revealed the Divine energy sustaining",
+      "Such an obvious display of Godliness would not allow humanity free choice, so God separated this spiritual “goodness” of the <b>light</b> from its simple, optical dimension and reserved this quality of <b>light</b>",
+      "God then saw that the remaining, physical <b>light</b> was good and would enable life to function in an orderly manner were it to shine consistently rather than randomly, so God separated between the <b>light</b> and",
+      "This ambient <b>light</b> shone for the duration of the creation week, after which only the <b>light</b> emitted by the heavenly bodies shone on earth. 2 Ibid., pp. 3–9. 3 Rashi on 1:14; Likutei Sichot , vol. 25, p."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010004"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:4 (The Five Books of Moses, by Everett Fox. New York, Schocken Books, 1995 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "version": "The Five Books of Moses, by Everett Fox. New York, Schocken Books, 1995",
+     "lang": "en",
+     "version_priority": 2,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010004",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1868807.1016899063,
+     "comp_date": -1400,
+     "exact": "God saw the light: that it was good. God separated the light from the darkness. * God saw … that it was good: The syntax is emphatic; others use “God saw how good it was.” The phrase is reminiscent of ancient Near Eastern descriptions of a craftsman being pleased with his work. * separated: The verb occurs four more times early in the chapter , and further points to the motif of order.",
+     "naive_lemmatizer": "God saw the light: that it was good. God separated the light from the darkness. * God saw … that it was good: The syntax is emphatic; others use “God saw how good it was.” The phrase is reminiscent of ancient Near Eastern descriptions of a craftsman being pleased with his work. * separated: The verb occurs four more times early in the chapter , and further points to the motif of order.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God saw the <b>light</b>: that it was good. God separated the <b>light</b> from the darkness. * God saw … that it was good: The syntax is emphatic; others use “God saw how good it was.”"
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010004"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:4 (THE JPS TANAKH: Gender-Sensitive Edition [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "version": "THE JPS TANAKH: Gender-Sensitive Edition",
+     "lang": "en",
+     "version_priority": 0,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010004",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1868807.1016899063,
+     "comp_date": -1400,
+     "exact": "God saw that the light was good, and God separated the light from the darkness.",
+     "naive_lemmatizer": "God saw that the light was good, and God separated the light from the darkness.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God saw that the <b>light</b> was good, and God separated the <b>light</b> from the darkness."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010004"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:4 (The Contemporary Torah, Jewish Publication Society, 2006 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "version": "The Contemporary Torah, Jewish Publication Society, 2006",
+     "lang": "en",
+     "version_priority": 1,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010004",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1868807.1016899063,
+     "comp_date": -1400,
+     "exact": "God saw that the light was good, and God separated the light from the darkness.",
+     "naive_lemmatizer": "God saw that the light was good, and God separated the light from the darkness.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God saw that the <b>light</b> was good, and God separated the <b>light</b> from the darkness."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010004"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:5 (Torah Yesharah, translated and edited by Chas. Kahane. New York, 1963 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "version": "Torah Yesharah, translated and edited by Chas. Kahane. New York, 1963",
+     "lang": "en",
+     "version_priority": 31,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010005",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1482613.4695038819,
+     "comp_date": -1400,
+     "exact": "The Almighty called the light “Day,” and the darkness He called “Night.” And at first there was evening and then morning; on that day when the Almighty was Alone and One. ",
+     "naive_lemmatizer": "The Almighty called the light “Day,” and the darkness He called “Night.” And at first there was evening and then morning; on that day when the Almighty was Alone and One. ",
+     "hebrew_version_title": "",
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "The Almighty called the <b>light</b> “Day,” and the darkness He called “Night.” And at first there was evening and then morning; on that day when the Almighty was Alone and One."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010005"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:5 (The Holy Scriptures: A New Translation (JPS 1917) [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "version": "The Holy Scriptures: A New Translation (JPS 1917)",
+     "lang": "en",
+     "version_priority": 9,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010005",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1482613.4695038819,
+     "comp_date": -1400,
+     "exact": "And God called the light Day, and the darkness He called Night. And there was evening and there was morning, one day.",
+     "naive_lemmatizer": "And God called the light Day, and the darkness He called Night. And there was evening and there was morning, one day.",
+     "hebrew_version_title": "כתבי הקודש: תרגום חדש (1917 JPS)",
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And God called the <b>light</b> Day, and the darkness He called Night. And there was evening and there was morning, one day."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010005"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:5 (Metsudah Chumash, Metsudah Publications, 2009 [with Onkelos translation] [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "version": "Metsudah Chumash, Metsudah Publications, 2009 [with Onkelos translation]",
+     "lang": "en",
+     "version_priority": 27,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010005",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1482613.4695038819,
+     "comp_date": -1400,
+     "exact": "Elohim called the light day, and the darkness He called night. It became evening and it became morning, one day.",
+     "naive_lemmatizer": "Elohim called the light day, and the darkness He called night. It became evening and it became morning, one day.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "Elohim called the <b>light</b> day, and the darkness He called night. It became evening and it became morning, one day."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010005"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:5 (The Koren Jerusalem Bible [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "version": "The Koren Jerusalem Bible",
+     "lang": "en",
+     "version_priority": 3,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010005",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1482613.4695038819,
+     "comp_date": -1400,
+     "exact": "And God called the light Day, and the darkness He called Night. And there was evening and there was morning, one day.",
+     "naive_lemmatizer": "And God called the light Day, and the darkness He called Night. And there was evening and there was morning, one day.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And God called the <b>light</b> Day, and the darkness He called Night. And there was evening and there was morning, one day."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010005"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:5 (Jewish English Torah [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "version": "Jewish English Torah",
+     "lang": "en",
+     "version_priority": 14,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010005",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1482613.4695038819,
+     "comp_date": -1400,
+     "exact": "God called the light Day, and the darkness He called Night. There was evening and there was morning, a first day.",
+     "naive_lemmatizer": "God called the light Day, and the darkness He called Night. There was evening and there was morning, a first day.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God called the <b>light</b> Day, and the darkness He called Night. There was evening and there was morning, a first day."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010005"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:5 (Tanakh: The Holy Scriptures, published by JPS [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "version": "Tanakh: The Holy Scriptures, published by JPS",
+     "lang": "en",
+     "version_priority": 6,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010005",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1482613.4695038819,
+     "comp_date": -1400,
+     "exact": "God called the light Day, and the darkness He called Night. And there was evening and there was morning, a first day. c Others “one day.”",
+     "naive_lemmatizer": "God called the light Day, and the darkness He called Night. And there was evening and there was morning, a first day. c Others “one day.”",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God called the <b>light</b> Day, and the darkness He called Night. And there was evening and there was morning, a first day. c Others “one day.”"
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010005"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:5 (The Rashi chumash by Rabbi Shraga Silverstein [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "version": "The Rashi chumash by Rabbi Shraga Silverstein",
+     "lang": "en",
+     "version_priority": 7,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010005",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1482613.4695038819,
+     "comp_date": -1400,
+     "exact": "And G-d called the light day, and the darkness He called night. And it was evening and it was morning, the day of the One, [the angels not being created until the second day].",
+     "naive_lemmatizer": "And G-d called the light day, and the darkness He called night. And it was evening and it was morning, the day of the One, [the angels not being created until the second day].",
+     "hebrew_version_title": "חומש רש״י, רבי שרגא זילברשטיין",
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And G-d called the <b>light</b> day, and the darkness He called night. And it was evening and it was morning, the day of the One, [the angels not being created until the second day]."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010005"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:5 (Modernized Tanakh - Based on JPS 1917, Edited by Adam Cohn [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "version": "Modernized Tanakh - Based on JPS 1917, Edited by Adam Cohn",
+     "lang": "en",
+     "version_priority": 15,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010005",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1482613.4695038819,
+     "comp_date": -1400,
+     "exact": "And God called the light Day, and the darkness He called Night. And there was evening and there was morning, day one.",
+     "naive_lemmatizer": "And God called the light Day, and the darkness He called Night. And there was evening and there was morning, day one.",
+     "hebrew_version_title": "תנ״ך מחודש - מבוסס על הוצאת JPS 1917, נערך ע״י אדם כהן",
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And God called the <b>light</b> Day, and the darkness He called Night. And there was evening and there was morning, day one."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010005"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:5 (Metsudah Chumash, Metsudah Publications, 2009 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "version": "Metsudah Chumash, Metsudah Publications, 2009",
+     "lang": "en",
+     "version_priority": 4,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010005",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1482613.4695038819,
+     "comp_date": -1400,
+     "exact": "Elohim called the light day, and the darkness He called night. It became evening and it became morning, one day.",
+     "naive_lemmatizer": "Elohim called the light day, and the darkness He called night. It became evening and it became morning, one day.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "Elohim called the <b>light</b> day, and the darkness He called night. It became evening and it became morning, one day."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010005"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:5 (The Kehot Chumash; Chabad House Publications, Los Angeles [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "version": "The Kehot Chumash; Chabad House Publications, Los Angeles",
+     "lang": "en",
+     "version_priority": 5,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010005",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1482613.4695038819,
+     "comp_date": -1400,
+     "exact": " God called to the light and assigned it to the day, and He called to the darkness and assigned it to the night. He assigned the night to the first half of the day, and the day to the second half. Thus, there was first nightfall , followed by the rest of the night, and then morning, followed by the rest of the day; together, night and day constituted one full day. 4 Hitva’aduyot 5743 , vol. 1, pp. 354–355.",
+     "naive_lemmatizer": " God called to the light and assigned it to the day, and He called to the darkness and assigned it to the night. He assigned the night to the first half of the day, and the day to the second half. Thus, there was first nightfall , followed by the rest of the night, and then morning, followed by the rest of the day; together, night and day constituted one full day. 4 Hitva’aduyot 5743 , vol. 1, pp. 354–355.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God called to the <b>light</b> and assigned it to the day, and He called to the darkness and assigned it to the night. He assigned the night to the first half of the day, and the day to the second half."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010005"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:5 (The Five Books of Moses, by Everett Fox. New York, Schocken Books, 1995 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "version": "The Five Books of Moses, by Everett Fox. New York, Schocken Books, 1995",
+     "lang": "en",
+     "version_priority": 2,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010005",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1482613.4695038819,
+     "comp_date": -1400,
+     "exact": "God called the light: Day, and the darkness he called: Night. There was setting, there was dawning: day one. * setting … dawning: The Heb. terms erev and boker are rather more specific than the usual “evening” and “morning.” Elsewhere I have used “sunset” and “daybreak”; the latter would have clashed with “day” in these lines.",
+     "naive_lemmatizer": "God called the light: Day, and the darkness he called: Night. There was setting, there was dawning: day one. * setting … dawning: The Heb. terms erev and boker are rather more specific than the usual “evening” and “morning.” Elsewhere I have used “sunset” and “daybreak”; the latter would have clashed with “day” in these lines.",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God called the <b>light</b>: Day, and the darkness he called: Night."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010005"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:5 (THE JPS TANAKH: Gender-Sensitive Edition [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "version": "THE JPS TANAKH: Gender-Sensitive Edition",
+     "lang": "en",
+     "version_priority": 0,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010005",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1482613.4695038819,
+     "comp_date": -1400,
+     "exact": "God called the light Day—and called the darkness Night. And there was evening and there was morning, a first day. c a first day In contrast to others “one day.”",
+     "naive_lemmatizer": "God called the light Day—and called the darkness Night. And there was evening and there was morning, a first day. c a first day In contrast to others “one day.”",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God called the <b>light</b> Day—and called the darkness Night. And there was evening and there was morning, a first day. c a first day In contrast to others “one day.”"
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010005"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:5 (The Contemporary Torah, Jewish Publication Society, 2006 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "version": "The Contemporary Torah, Jewish Publication Society, 2006",
+     "lang": "en",
+     "version_priority": 1,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010005",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1482613.4695038819,
+     "comp_date": -1400,
+     "exact": "God called the light Day and called the darkness Night. And there was evening and there was morning, a first day. * a first day Others “one day.”",
+     "naive_lemmatizer": "God called the light Day and called the darkness Night. And there was evening and there was morning, a first day. * a first day Others “one day.”",
+     "hebrew_version_title": null,
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God called the <b>light</b> Day and called the darkness Night. And there was evening and there was morning, a first day. * a first day Others “one day.”"
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010005"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:14 (Torah Yesharah, translated and edited by Chas. Kahane. New York, 1963 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:14",
+     "heRef": "בראשית א׳:י״ד",
+     "version": "Torah Yesharah, translated and edited by Chas. Kahane. New York, 1963",
+     "lang": "en",
+     "version_priority": 31,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010014",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 1999471.3163731042,
+     "comp_date": -1400,
+     "exact": "The Almighty said: “Let the immense light — created on the first day — be condensed and suspended as luminaries in the partition of the heaven, to divide the day from the night. And let them be signs for direction, and for seasons, and for establishing the holidays, and for days and years. ",
+     "naive_lemmatizer": "The Almighty said: “Let the immense light — created on the first day — be condensed and suspended as luminaries in the partition of the heaven, to divide the day from the night. And let them be signs for direction, and for seasons, and for establishing the holidays, and for days and years. ",
+     "hebrew_version_title": "",
+     "languageFamilyName": "english",
+     "isPrimary": false
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "The Almighty said: “Let the immense <b>light</b> — created on the first day — be condensed and suspended as luminaries in the partition of the heaven, to divide the day from the night."
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010014"
+    ]
+   }
+  ]
+ }
+}

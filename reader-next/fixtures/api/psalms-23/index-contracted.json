@@ -1,0 +1,2040 @@
+{
+  "title": "Psalms",
+  "categories": [
+    "Tanakh",
+    "Writings"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Pasuk"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Verse"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "sefer",
+          "psalms"
+        ]
+      },
+      {
+        "term_slugs": [
+          "psalms"
+        ]
+      }
+    ],
+    "lengths": [
+      150,
+      2527
+    ],
+    "titles": [
+      {
+        "text": "Ps",
+        "lang": "en"
+      },
+      {
+        "text": "Ps.",
+        "lang": "en"
+      },
+      {
+        "text": "Psa",
+        "lang": "en"
+      },
+      {
+        "text": "Tehilim",
+        "lang": "en"
+      },
+      {
+        "text": "Psa.",
+        "lang": "en"
+      },
+      {
+        "text": "Psalm",
+        "lang": "en"
+      },
+      {
+        "text": "Tehillim",
+        "lang": "en"
+      },
+      {
+        "text": "תהלים",
+        "lang": "he"
+      },
+      {
+        "text": "תְּהִלִּים",
+        "lang": "he"
+      },
+      {
+        "text": "תילים",
+        "lang": "he"
+      },
+      {
+        "text": "תהילות",
+        "lang": "he"
+      },
+      {
+        "text": "תהילי'",
+        "lang": "he"
+      },
+      {
+        "text": "תהילי׳",
+        "lang": "he"
+      },
+      {
+        "text": "תהלי׳",
+        "lang": "he"
+      },
+      {
+        "text": "תהלי'",
+        "lang": "he"
+      },
+      {
+        "text": "תהל'",
+        "lang": "he"
+      },
+      {
+        "text": "תהל׳",
+        "lang": "he"
+      },
+      {
+        "text": "תלים",
+        "lang": "he"
+      },
+      {
+        "text": "תה׳",
+        "lang": "he"
+      },
+      {
+        "text": "תהי'",
+        "lang": "he"
+      },
+      {
+        "text": "תהילים",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Psalms",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Psalms",
+    "heTitle": "תהילים",
+    "heSectionNames": [
+      "פרק",
+      "פסוק"
+    ],
+    "key": "Psalms",
+    "content_counts": [
+      6,
+      12,
+      9,
+      9,
+      13,
+      11,
+      18,
+      10,
+      21,
+      18,
+      7,
+      9,
+      6,
+      7,
+      5,
+      11,
+      15,
+      51,
+      15,
+      10,
+      14,
+      32,
+      6,
+      10,
+      22,
+      12,
+      14,
+      9,
+      11,
+      13,
+      25,
+      11,
+      22,
+      23,
+      28,
+      13,
+      40,
+      23,
+      14,
+      18,
+      14,
+      12,
+      5,
+      27,
+      18,
+      12,
+      10,
+      15,
+      21,
+      23,
+      21,
+      11,
+      7,
+      9,
+      24,
+      14,
+      12,
+      12,
+      18,
+      14,
+      9,
+      13,
+      12,
+      11,
+      14,
+      20,
+      8,
+      36,
+      37,
+      6,
+      24,
+      20,
+      28,
+      23,
+      11,
+      13,
+      21,
+      72,
+      13,
+      20,
+      17,
+      8,
+      19,
+      13,
+      14,
+      17,
+      7,
+      19,
+      53,
+      17,
+      16,
+      16,
+      5,
+      23,
+      11,
+      13,
+      12,
+      9,
+      9,
+      5,
+      8,
+      29,
+      22,
+      35,
+      45,
+      48,
+      43,
+      14,
+      31,
+      7,
+      10,
+      10,
+      9,
+      8,
+      18,
+      19,
+      2,
+      29,
+      176,
+      7,
+      8,
+      9,
+      4,
+      8,
+      5,
+      6,
+      5,
+      6,
+      8,
+      8,
+      3,
+      18,
+      3,
+      3,
+      21,
+      26,
+      9,
+      8,
+      24,
+      14,
+      10,
+      8,
+      12,
+      15,
+      21,
+      10,
+      20,
+      14,
+      9,
+      6
+    ]
+  },
+  "order": [
+    27,
+    1
+  ],
+  "authors": [],
+  "enDesc": "Psalms (“Tehillim”), the first book of the section in the Hebrew Bible called Writings, is an anthology of 150 poems attributed to King David and to others. It includes songs of praise to God, laments of communal or personal tragedy, and expressions of anger, despair, hope, and gratitude. Psalms are prevalent throughout Jewish liturgy and commonly recited as an independent form of prayer. They are often sung or chanted.",
+  "heDesc": "תהילים, הספר הפותח את ספרי הכתובים, הוא קובץ של מאה וחמישים מזמורים המיוחסים לדוד המלך ולאישים אחרים. יש בספר מזמורי תהילה לא-ל, קינות על אסונות אישיים ולאומיים והבעת רגשות זעם, ייאוש, תקווה ושבח. מזמורי תהילים משולבים רבות בסדר התפילה ומושרים או מדוקלמים לעיתים קרובות כתפילה בפני עצמה.",
+  "enShortDesc": "Poems of despair, hope, gratitude, and supplication to God, attributed to David and others.",
+  "heShortDesc": "פיוטים המביעים קשת רגשות - תקווה ודכדוך, שבח ותחנונים לאלוהים - ומיוחסים לדוד המלך ולאישים אחרים.",
+  "pubDate": [
+    1488
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    -1000,
+    0
+  ],
+  "compPlace": "Judea/Israel",
+  "pubPlace": "Soncino",
+  "is_cited": true,
+  "corpora": [
+    "Tanakh"
+  ],
+  "heTitle": "תהילים",
+  "titleVariants": [
+    "Ps",
+    "Ps.",
+    "Psa",
+    "Tehilim",
+    "Psa.",
+    "Psalm",
+    "Tehillim",
+    "Psalms"
+  ],
+  "heTitleVariants": [
+    "תהלים",
+    "תְּהִלִּים",
+    "תילים",
+    "תהילות",
+    "תהילי'",
+    "תהילי׳",
+    "תהלי׳",
+    "תהלי'",
+    "תהל'",
+    "תהל׳",
+    "תלים",
+    "תה׳",
+    "תהי'",
+    "תהילים"
+  ],
+  "alts": {
+    "30 Day Cycle": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 1-9",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 1",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום א",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 1",
+          "heTitle": "יום א",
+          "refs": [
+            "Psalms 1",
+            "Psalms 2",
+            "Psalms 3",
+            "Psalms 4",
+            "Psalms 5",
+            "Psalms 6",
+            "Psalms 7",
+            "Psalms 8",
+            "Psalms 9"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 0
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 10-17",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 2",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום ב",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 2",
+          "heTitle": "יום ב",
+          "refs": [
+            "Psalms 10",
+            "Psalms 11",
+            "Psalms 12",
+            "Psalms 13",
+            "Psalms 14",
+            "Psalms 15",
+            "Psalms 16",
+            "Psalms 17"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 9
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 18-22",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 3",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום ג",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 3",
+          "heTitle": "יום ג",
+          "refs": [
+            "Psalms 18",
+            "Psalms 19",
+            "Psalms 20",
+            "Psalms 21",
+            "Psalms 22"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 17
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 23-28",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 4",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום ד",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 4",
+          "heTitle": "יום ד",
+          "refs": [
+            "Psalms 23",
+            "Psalms 24",
+            "Psalms 25",
+            "Psalms 26",
+            "Psalms 27",
+            "Psalms 28"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 22
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 29-34",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 5",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום ה",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 5",
+          "heTitle": "יום ה",
+          "refs": [
+            "Psalms 29",
+            "Psalms 30",
+            "Psalms 31",
+            "Psalms 32",
+            "Psalms 33",
+            "Psalms 34"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 28
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 35-38",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 6",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום ו",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 6",
+          "heTitle": "יום ו",
+          "refs": [
+            "Psalms 35",
+            "Psalms 36",
+            "Psalms 37",
+            "Psalms 38"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 34
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 39-43",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 7",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום ז",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 7",
+          "heTitle": "יום ז",
+          "refs": [
+            "Psalms 39",
+            "Psalms 40",
+            "Psalms 41",
+            "Psalms 42",
+            "Psalms 43"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 38
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 44-48",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 8",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום ח",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 8",
+          "heTitle": "יום ח",
+          "refs": [
+            "Psalms 44",
+            "Psalms 45",
+            "Psalms 46",
+            "Psalms 47",
+            "Psalms 48"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 43
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 49-54",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 9",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום ט",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 9",
+          "heTitle": "יום ט",
+          "refs": [
+            "Psalms 49",
+            "Psalms 50",
+            "Psalms 51",
+            "Psalms 52",
+            "Psalms 53",
+            "Psalms 54"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 48
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 55-59",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 10",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום י",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 10",
+          "heTitle": "יום י",
+          "refs": [
+            "Psalms 55",
+            "Psalms 56",
+            "Psalms 57",
+            "Psalms 58",
+            "Psalms 59"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 54
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 60-65",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 11",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום יא",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 11",
+          "heTitle": "יום יא",
+          "refs": [
+            "Psalms 60",
+            "Psalms 61",
+            "Psalms 62",
+            "Psalms 63",
+            "Psalms 64",
+            "Psalms 65"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 59
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 66-68",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 12",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום יב",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 12",
+          "heTitle": "יום יב",
+          "refs": [
+            "Psalms 66",
+            "Psalms 67",
+            "Psalms 68"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 65
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 69-71",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 13",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום יג",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 13",
+          "heTitle": "יום יג",
+          "refs": [
+            "Psalms 69",
+            "Psalms 70",
+            "Psalms 71"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 68
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 72-76",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 14",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום יד",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 14",
+          "heTitle": "יום יד",
+          "refs": [
+            "Psalms 72",
+            "Psalms 73",
+            "Psalms 74",
+            "Psalms 75",
+            "Psalms 76"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 71
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 77-78",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 15",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום טו",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 15",
+          "heTitle": "יום טו",
+          "refs": [
+            "Psalms 77",
+            "Psalms 78"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 76
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 79-82",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 16",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום טז",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 16",
+          "heTitle": "יום טז",
+          "refs": [
+            "Psalms 79",
+            "Psalms 80",
+            "Psalms 81",
+            "Psalms 82"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 78
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 83-87",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 17",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום יז",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 17",
+          "heTitle": "יום יז",
+          "refs": [
+            "Psalms 83",
+            "Psalms 84",
+            "Psalms 85",
+            "Psalms 86",
+            "Psalms 87"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 82
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 88-89",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 18",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום יח",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 18",
+          "heTitle": "יום יח",
+          "refs": [
+            "Psalms 88",
+            "Psalms 89"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 87
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 90-96",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 19",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום יט",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 19",
+          "heTitle": "יום יט",
+          "refs": [
+            "Psalms 90",
+            "Psalms 91",
+            "Psalms 92",
+            "Psalms 93",
+            "Psalms 94",
+            "Psalms 95",
+            "Psalms 96"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 89
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 97-103",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 20",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום כ",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 20",
+          "heTitle": "יום כ",
+          "refs": [
+            "Psalms 97",
+            "Psalms 98",
+            "Psalms 99",
+            "Psalms 100",
+            "Psalms 101",
+            "Psalms 102",
+            "Psalms 103"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 96
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 104-105",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 21",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום כא",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 21",
+          "heTitle": "יום כא",
+          "refs": [
+            "Psalms 104",
+            "Psalms 105"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 103
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 106-107",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 22",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום כב",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 22",
+          "heTitle": "יום כב",
+          "refs": [
+            "Psalms 106",
+            "Psalms 107"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 105
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 108-112",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 23",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום כג",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 23",
+          "heTitle": "יום כג",
+          "refs": [
+            "Psalms 108",
+            "Psalms 109",
+            "Psalms 110",
+            "Psalms 111",
+            "Psalms 112"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 107
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 113-118",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 24",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום כד",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 24",
+          "heTitle": "יום כד",
+          "refs": [
+            "Psalms 113",
+            "Psalms 114",
+            "Psalms 115",
+            "Psalms 116",
+            "Psalms 117",
+            "Psalms 118"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 112
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalm 119:1-96",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 25",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום כה",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 25",
+          "heTitle": "יום כה",
+          "refs": [
+            "Psalms 119:1-96"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 118
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalm 119:97-176",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 26",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום כו",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 26",
+          "heTitle": "יום כו",
+          "refs": [
+            "Psalms 119:97-176"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 118
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 120-134",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 27",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום כז",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 27",
+          "heTitle": "יום כז",
+          "refs": [
+            "Psalms 120",
+            "Psalms 121",
+            "Psalms 122",
+            "Psalms 123",
+            "Psalms 124",
+            "Psalms 125",
+            "Psalms 126",
+            "Psalms 127",
+            "Psalms 128",
+            "Psalms 129",
+            "Psalms 130",
+            "Psalms 131",
+            "Psalms 132",
+            "Psalms 133",
+            "Psalms 134"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 119
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 135-139",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 28",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום כח",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 28",
+          "heTitle": "יום כח",
+          "refs": [
+            "Psalms 135",
+            "Psalms 136",
+            "Psalms 137",
+            "Psalms 138",
+            "Psalms 139"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 134
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 140-144",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 29",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום כט",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 29",
+          "heTitle": "יום כט",
+          "refs": [
+            "Psalms 140",
+            "Psalms 141",
+            "Psalms 142",
+            "Psalms 143",
+            "Psalms 144"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 139
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 145-150 ",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Day 30",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "יום ל",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Day 30",
+          "heTitle": "יום ל",
+          "refs": [
+            "Psalms 145",
+            "Psalms 146",
+            "Psalms 147",
+            "Psalms 148",
+            "Psalms 149",
+            "Psalms 150"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 144
+        }
+      ],
+      "titles": [
+        {
+          "text": "Ps",
+          "lang": "en"
+        },
+        {
+          "text": "Ps.",
+          "lang": "en"
+        },
+        {
+          "text": "Psa",
+          "lang": "en"
+        },
+        {
+          "text": "Tehilim",
+          "lang": "en"
+        },
+        {
+          "text": "Psa.",
+          "lang": "en"
+        },
+        {
+          "text": "Psalm",
+          "lang": "en"
+        },
+        {
+          "text": "Tehillim",
+          "lang": "en"
+        },
+        {
+          "text": "תהלים",
+          "lang": "he"
+        },
+        {
+          "text": "תְּהִלִּים",
+          "lang": "he"
+        },
+        {
+          "text": "תילים",
+          "lang": "he"
+        },
+        {
+          "text": "תהילות",
+          "lang": "he"
+        },
+        {
+          "text": "תהילי'",
+          "lang": "he"
+        },
+        {
+          "text": "תהילי׳",
+          "lang": "he"
+        },
+        {
+          "text": "תהלי׳",
+          "lang": "he"
+        },
+        {
+          "text": "תהלי'",
+          "lang": "he"
+        },
+        {
+          "text": "תהל'",
+          "lang": "he"
+        },
+        {
+          "text": "תהל׳",
+          "lang": "he"
+        },
+        {
+          "text": "תלים",
+          "lang": "he"
+        },
+        {
+          "text": "תה׳",
+          "lang": "he"
+        },
+        {
+          "text": "תהי'",
+          "lang": "he"
+        },
+        {
+          "text": "תהילים",
+          "lang": "he",
+          "primary": true
+        },
+        {
+          "text": "Psalms",
+          "lang": "en",
+          "primary": true
+        }
+      ],
+      "title": "Psalms",
+      "heTitle": "תהילים"
+    },
+    "Book": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 1-41",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Book 1",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "ספר ראשון",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Book 1",
+          "heTitle": "ספר ראשון",
+          "refs": [
+            "Psalms 1",
+            "Psalms 2",
+            "Psalms 3",
+            "Psalms 4",
+            "Psalms 5",
+            "Psalms 6",
+            "Psalms 7",
+            "Psalms 8",
+            "Psalms 9",
+            "Psalms 10",
+            "Psalms 11",
+            "Psalms 12",
+            "Psalms 13",
+            "Psalms 14",
+            "Psalms 15",
+            "Psalms 16",
+            "Psalms 17",
+            "Psalms 18",
+            "Psalms 19",
+            "Psalms 20",
+            "Psalms 21",
+            "Psalms 22",
+            "Psalms 23",
+            "Psalms 24",
+            "Psalms 25",
+            "Psalms 26",
+            "Psalms 27",
+            "Psalms 28",
+            "Psalms 29",
+            "Psalms 30",
+            "Psalms 31",
+            "Psalms 32",
+            "Psalms 33",
+            "Psalms 34",
+            "Psalms 35",
+            "Psalms 36",
+            "Psalms 37",
+            "Psalms 38",
+            "Psalms 39",
+            "Psalms 40",
+            "Psalms 41"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 0
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 42-72",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Book 2",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "ספר שני",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Book 2",
+          "heTitle": "ספר שני",
+          "refs": [
+            "Psalms 42",
+            "Psalms 43",
+            "Psalms 44",
+            "Psalms 45",
+            "Psalms 46",
+            "Psalms 47",
+            "Psalms 48",
+            "Psalms 49",
+            "Psalms 50",
+            "Psalms 51",
+            "Psalms 52",
+            "Psalms 53",
+            "Psalms 54",
+            "Psalms 55",
+            "Psalms 56",
+            "Psalms 57",
+            "Psalms 58",
+            "Psalms 59",
+            "Psalms 60",
+            "Psalms 61",
+            "Psalms 62",
+            "Psalms 63",
+            "Psalms 64",
+            "Psalms 65",
+            "Psalms 66",
+            "Psalms 67",
+            "Psalms 68",
+            "Psalms 69",
+            "Psalms 70",
+            "Psalms 71",
+            "Psalms 72"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 41
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 73-89",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Book 3",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "ספר שלישי",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Book 3",
+          "heTitle": "ספר שלישי",
+          "refs": [
+            "Psalms 73",
+            "Psalms 74",
+            "Psalms 75",
+            "Psalms 76",
+            "Psalms 77",
+            "Psalms 78",
+            "Psalms 79",
+            "Psalms 80",
+            "Psalms 81",
+            "Psalms 82",
+            "Psalms 83",
+            "Psalms 84",
+            "Psalms 85",
+            "Psalms 86",
+            "Psalms 87",
+            "Psalms 88",
+            "Psalms 89"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 72
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 90-106",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Book 4",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "ספר רביעי",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Book 4",
+          "heTitle": "ספר רביעי",
+          "refs": [
+            "Psalms 90",
+            "Psalms 91",
+            "Psalms 92",
+            "Psalms 93",
+            "Psalms 94",
+            "Psalms 95",
+            "Psalms 96",
+            "Psalms 97",
+            "Psalms 98",
+            "Psalms 99",
+            "Psalms 100",
+            "Psalms 101",
+            "Psalms 102",
+            "Psalms 103",
+            "Psalms 104",
+            "Psalms 105",
+            "Psalms 106"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 89
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Psalms 107-150",
+          "includeSections": true,
+          "match_templates": [],
+          "titles": [
+            {
+              "text": "Book 5",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "ספר חמישי",
+              "lang": "he",
+              "primary": true
+            }
+          ],
+          "title": "Book 5",
+          "heTitle": "ספר חמישי",
+          "refs": [
+            "Psalms 107",
+            "Psalms 108",
+            "Psalms 109",
+            "Psalms 110",
+            "Psalms 111",
+            "Psalms 112",
+            "Psalms 113",
+            "Psalms 114",
+            "Psalms 115",
+            "Psalms 116",
+            "Psalms 117",
+            "Psalms 118",
+            "Psalms 119",
+            "Psalms 120",
+            "Psalms 121",
+            "Psalms 122",
+            "Psalms 123",
+            "Psalms 124",
+            "Psalms 125",
+            "Psalms 126",
+            "Psalms 127",
+            "Psalms 128",
+            "Psalms 129",
+            "Psalms 130",
+            "Psalms 131",
+            "Psalms 132",
+            "Psalms 133",
+            "Psalms 134",
+            "Psalms 135",
+            "Psalms 136",
+            "Psalms 137",
+            "Psalms 138",
+            "Psalms 139",
+            "Psalms 140",
+            "Psalms 141",
+            "Psalms 142",
+            "Psalms 143",
+            "Psalms 144",
+            "Psalms 145",
+            "Psalms 146",
+            "Psalms 147",
+            "Psalms 148",
+            "Psalms 149",
+            "Psalms 150"
+          ],
+          "addressTypes": [
+            "Perek"
+          ],
+          "sectionNames": [
+            "Chapter"
+          ],
+          "offset": 106
+        }
+      ],
+      "titles": [
+        {
+          "text": "Ps",
+          "lang": "en"
+        },
+        {
+          "text": "Ps.",
+          "lang": "en"
+        },
+        {
+          "text": "Psa",
+          "lang": "en"
+        },
+        {
+          "text": "Tehilim",
+          "lang": "en"
+        },
+        {
+          "text": "Psa.",
+          "lang": "en"
+        },
+        {
+          "text": "Psalm",
+          "lang": "en"
+        },
+        {
+          "text": "Tehillim",
+          "lang": "en"
+        },
+        {
+          "text": "תהלים",
+          "lang": "he"
+        },
+        {
+          "text": "תְּהִלִּים",
+          "lang": "he"
+        },
+        {
+          "text": "תילים",
+          "lang": "he"
+        },
+        {
+          "text": "תהילות",
+          "lang": "he"
+        },
+        {
+          "text": "תהילי'",
+          "lang": "he"
+        },
+        {
+          "text": "תהילי׳",
+          "lang": "he"
+        },
+        {
+          "text": "תהלי׳",
+          "lang": "he"
+        },
+        {
+          "text": "תהלי'",
+          "lang": "he"
+        },
+        {
+          "text": "תהל'",
+          "lang": "he"
+        },
+        {
+          "text": "תהל׳",
+          "lang": "he"
+        },
+        {
+          "text": "תלים",
+          "lang": "he"
+        },
+        {
+          "text": "תה׳",
+          "lang": "he"
+        },
+        {
+          "text": "תהי'",
+          "lang": "he"
+        },
+        {
+          "text": "תהילים",
+          "lang": "he",
+          "primary": true
+        },
+        {
+          "text": "Psalms",
+          "lang": "en",
+          "primary": true
+        }
+      ],
+      "title": "Psalms",
+      "heTitle": "תהילים"
+    }
+  },
+  "sectionNames": [
+    "Chapter",
+    "Verse"
+  ],
+  "depth": 2,
+  "firstSectionRef": "Psalms 1",
+  "heCategories": [
+    "תנ\"ך",
+    "כתובים"
+  ],
+  "compDateString": {
+    "en": " (c.1000  – c.0 BCE)",
+    "he": " (1000 – 0 לפנה\"ס בקירוב)"
+  },
+  "pubDateString": {
+    "en": " (1488 CE)",
+    "he": " (1488 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Judea/Israel",
+    "he": "יהודה / ישראל"
+  },
+  "pubPlaceString": {
+    "en": "Soncino",
+    "he": "שונצינו"
+  },
+  "relatedTopics": [
+    {
+      "slug": "psalms",
+      "title": {
+        "en": "Psalms",
+        "he": "תהילים"
+      }
+    },
+    {
+      "slug": "prayer",
+      "title": {
+        "en": "Prayer",
+        "he": "תפילה"
+      }
+    },
+    {
+      "slug": "rosh-hashanah",
+      "title": {
+        "en": "Rosh Hashanah",
+        "he": "ראש השנה"
+      }
+    },
+    {
+      "slug": "jerusalem",
+      "title": {
+        "en": "Jerusalem",
+        "he": "ירושלים"
+      }
+    },
+    {
+      "slug": "shabbat",
+      "title": {
+        "en": "Shabbat",
+        "he": "שבת"
+      }
+    },
+    {
+      "slug": "teshuvah",
+      "title": {
+        "en": "Repentance (Teshuvah)",
+        "he": "תשובה"
+      }
+    },
+    {
+      "slug": "high-holidays",
+      "title": {
+        "en": "High Holidays",
+        "he": "הימים הנוראים"
+      }
+    },
+    {
+      "slug": "passover",
+      "title": {
+        "en": "Passover",
+        "he": "פסח"
+      }
+    },
+    {
+      "slug": "elul",
+      "title": {
+        "en": "Elul",
+        "he": "אלול"
+      }
+    },
+    {
+      "slug": "shofar",
+      "title": {
+        "en": "Shofar",
+        "he": "שופר"
+      }
+    },
+    {
+      "slug": "creation",
+      "title": {
+        "en": "Creation",
+        "he": "בריאה"
+      }
+    },
+    {
+      "slug": "kabbalat-shabbat",
+      "title": {
+        "en": "Kabbalat Shabbat",
+        "he": "קבלת שבת"
+      }
+    },
+    {
+      "slug": "tisha-bav",
+      "title": {
+        "en": "Tisha B'Av",
+        "he": "תשעה באב"
+      }
+    },
+    {
+      "slug": "music",
+      "title": {
+        "en": "Music",
+        "he": "מוסיקה"
+      }
+    },
+    {
+      "slug": "psalm-27",
+      "title": {
+        "en": "Psalm 27",
+        "he": ""
+      }
+    },
+    {
+      "slug": "israel",
+      "title": {
+        "en": "Israel",
+        "he": "ישראל"
+      }
+    },
+    {
+      "slug": "truth",
+      "title": {
+        "en": "Truth",
+        "he": "אמת"
+      }
+    },
+    {
+      "slug": "kindness",
+      "title": {
+        "en": "Kindness",
+        "he": "גמילות חסדים"
+      }
+    }
+  ]
+}

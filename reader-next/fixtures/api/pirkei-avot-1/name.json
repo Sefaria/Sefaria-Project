@@ -1,0 +1,137 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Pirkei Avot",
+    "Avot",
+    "Tosafot Yom Tov on Pirkei Avot, Pirkei Avot, Introduction",
+    "Gra on Pirkei Avot",
+    "Yachin on Pirkei Avot",
+    "Boaz on Pirkei Avot",
+    "Avodat Yisrael, Pirkei Avot",
+    "Rambam on Pirkei Avot",
+    "Bartenura on Pirkei Avot",
+    "Mahzor Vitry, Pirkei Avot"
+  ],
+  "completion_objects": [
+    {
+      "title": "Pirkei Avot",
+      "key": "Pirkei Avot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Pirkei Avot",
+      "type": "Topic",
+      "key": "pirkei-avot",
+      "is_primary": true,
+      "order": 4999723,
+      "topic_pools": [
+        "torah_tab",
+        "library",
+        "general_en",
+        "sheets",
+        "general_he"
+      ]
+    },
+    {
+      "title": "Avot",
+      "type": "Topic",
+      "key": "the-patriarchs",
+      "is_primary": false,
+      "order": 4999754,
+      "topic_pools": [
+        "library",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Tosafot Yom Tov on Pirkei Avot, Pirkei Avot, Introduction",
+      "key": "Tosafot Yom Tov on Pirkei Avot, Pirkei Avot, Introduction",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Gra on Pirkei Avot",
+      "key": "Gra on Pirkei Avot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Yachin on Pirkei Avot",
+      "key": "Yachin on Pirkei Avot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Boaz on Pirkei Avot",
+      "key": "Boaz on Pirkei Avot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Avodat Yisrael, Pirkei Avot",
+      "key": "Avodat Yisrael, Pirkei Avot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Rambam on Pirkei Avot",
+      "key": "Rambam on Pirkei Avot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Bartenura on Pirkei Avot",
+      "key": "Bartenura on Pirkei Avot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Mahzor Vitry, Pirkei Avot",
+      "key": "Machzor Vitry, Pirkei Avot",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Pirkei Avot",
+  "url": "Pirkei_Avot",
+  "index": "Pirkei Avot",
+  "book": "Pirkei Avot",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": [],
+  "sectionNames": [
+    "Chapter",
+    "Mishnah"
+  ],
+  "heSectionNames": [
+    "פרק",
+    "משנה"
+  ],
+  "addressExamples": [
+    "3",
+    "6"
+  ],
+  "heAddressExamples": [
+    "ג׳",
+    "ו׳"
+  ]
+}

@@ -1,0 +1,273 @@
+{
+  "title": "On the Account of the World's Creation",
+  "categories": [
+    "Second Temple",
+    "Philo"
+  ],
+  "schema": {
+    "nodes": [
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "sharedTitle": "Introduction",
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Introduction",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "הקדמה",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "מבוא"
+          }
+        ],
+        "title": "Introduction",
+        "heTitle": "הקדמה",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "Introduction",
+        "content_counts": 24
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 2,
+        "addressTypes": [
+          "Integer",
+          "Integer"
+        ],
+        "sectionNames": [
+          "Chapter",
+          "Paragraph"
+        ],
+        "default": true,
+        "title": "",
+        "heTitle": "",
+        "heSectionNames": [
+          "פרק",
+          "פסקה"
+        ],
+        "key": "default",
+        "content_counts": [
+          6,
+          7,
+          3,
+          5,
+          3,
+          3,
+          4,
+          2,
+          4,
+          2,
+          2,
+          2,
+          3,
+          2,
+          2,
+          4,
+          3,
+          4,
+          5,
+          3,
+          5,
+          2,
+          4,
+          5,
+          2,
+          3,
+          1,
+          4,
+          2,
+          6,
+          2,
+          2,
+          2,
+          2,
+          3,
+          2,
+          4,
+          3,
+          3,
+          3,
+          6,
+          2,
+          1,
+          2,
+          3,
+          2,
+          3,
+          1,
+          3,
+          2,
+          3,
+          3,
+          2,
+          2,
+          2,
+          4,
+          3,
+          2,
+          2,
+          3,
+          9
+        ]
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "text": "Appendix",
+            "lang": "en",
+            "primary": true
+          },
+          {
+            "text": "הערות",
+            "lang": "he",
+            "primary": true
+          }
+        ],
+        "title": "Appendix",
+        "heTitle": "הערות",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "Appendix",
+        "content_counts": 16
+      }
+    ],
+    "titles": [
+      {
+        "text": "On the Account of the World's Creation Given by Moses",
+        "lang": "en"
+      },
+      {
+        "text": "De Opficio Mundi",
+        "lang": "en"
+      },
+      {
+        "text": "De M. Opif.",
+        "lang": "en"
+      },
+      {
+        "text": "De O. M.",
+        "lang": "en"
+      },
+      {
+        "text": "על בריאת העולם",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "On the Account of the World's Creation",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "On the Account of the World's Creation",
+    "heTitle": "על בריאת העולם",
+    "key": "On the Account of the World's Creation"
+  },
+  "authors": [
+    {
+      "en": "Philo of Alexandria",
+      "he": "פילון האלכסנדרוני",
+      "slug": "philo-of-alexandria"
+    }
+  ],
+  "enDesc": "",
+  "heDesc": "",
+  "enShortDesc": "",
+  "heShortDesc": "",
+  "heTitle": "על בריאת העולם",
+  "titleVariants": [
+    "On the Account of the World's Creation Given by Moses",
+    "De Opficio Mundi",
+    "De M. Opif.",
+    "De O. M.",
+    "On the Account of the World's Creation"
+  ],
+  "heTitleVariants": [
+    "על בריאת העולם"
+  ],
+  "firstSectionRef": "On the Account of the World's Creation, Introduction",
+  "heCategories": [
+    "בית שני",
+    "פילון"
+  ],
+  "relatedTopics": [
+    {
+      "slug": "creation-of-plants",
+      "title": {
+        "en": "Creation of Plants",
+        "he": "בריאת הצמחים"
+      }
+    },
+    {
+      "slug": "god-and-man",
+      "title": {
+        "en": "God and Being",
+        "he": "אלקים ואדם"
+      }
+    },
+    {
+      "slug": "astronomy",
+      "title": {
+        "en": "Astronomy",
+        "he": "אסטרונומיה"
+      }
+    },
+    {
+      "slug": "man-and-animals",
+      "title": {
+        "en": "Man and Animals",
+        "he": "אדם ובעלי חיים"
+      }
+    },
+    {
+      "slug": "fruit",
+      "title": {
+        "en": "Fruit",
+        "he": "פרי"
+      }
+    },
+    {
+      "slug": "planting",
+      "title": {
+        "en": "Planting",
+        "he": "שתילה"
+      }
+    },
+    {
+      "slug": "creation-of-light-and-luminaires",
+      "title": {
+        "en": "Creation of Light and Luminaires",
+        "he": "בריאת האור והמאורות"
+      }
+    },
+    {
+      "slug": "horses",
+      "title": {
+        "en": "Horses",
+        "he": "סוס"
+      }
+    }
+  ]
+}

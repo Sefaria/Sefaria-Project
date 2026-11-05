@@ -1,0 +1,607 @@
+{
+  "title": "Genesis",
+  "categories": [
+    "Tanakh",
+    "Torah"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Pasuk"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Verse"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "sefer",
+          "genesis"
+        ]
+      },
+      {
+        "term_slugs": [
+          "torah",
+          "genesis"
+        ]
+      },
+      {
+        "term_slugs": [
+          "torah",
+          "sefer",
+          "genesis"
+        ]
+      },
+      {
+        "term_slugs": [
+          "genesis"
+        ]
+      }
+    ],
+    "lengths": [
+      50,
+      1533
+    ],
+    "titles": [
+      {
+        "text": "Bereshit",
+        "lang": "en"
+      },
+      {
+        "text": "Gen",
+        "lang": "en"
+      },
+      {
+        "text": "Gen.",
+        "lang": "en"
+      },
+      {
+        "text": "Breishit",
+        "lang": "en"
+      },
+      {
+        "text": "Bereishit",
+        "lang": "en"
+      },
+      {
+        "text": "Beresheet",
+        "lang": "en"
+      },
+      {
+        "text": "Bereshith",
+        "lang": "en"
+      },
+      {
+        "text": "Bereishis",
+        "lang": "en"
+      },
+      {
+        "text": "B’resh.",
+        "lang": "en"
+      },
+      {
+        "text": "B’reshith",
+        "lang": "en"
+      },
+      {
+        "text": "Genèse",
+        "lang": "en"
+      },
+      {
+        "text": "Beresheit",
+        "lang": "en"
+      },
+      {
+        "text": "Gn.",
+        "lang": "en"
+      },
+      {
+        "text": "ברא'",
+        "lang": "he"
+      },
+      {
+        "text": "בר'",
+        "lang": "he"
+      },
+      {
+        "text": "בר׳",
+        "lang": "he"
+      },
+      {
+        "text": "ברא׳",
+        "lang": "he"
+      },
+      {
+        "text": "בְּרֵאשִׁית",
+        "lang": "he"
+      },
+      {
+        "text": "בראשית",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Genesis",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Genesis"
+  },
+  "alt_structs": {
+    "Parasha": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Genesis 1:1-6:8",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Genesis 1:1-2:3",
+            "Genesis 2:4-2:19",
+            "Genesis 2:20-3:21",
+            "Genesis 3:22-4:18",
+            "Genesis 4:19-4:22",
+            "Genesis 4:23-5:24",
+            "Genesis 5:25-6:8"
+          ],
+          "match_templates": [
+            {
+              "term_slugs": [
+                "parasha",
+                "bereshit"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bereshit"
+              ],
+              "scope": "any"
+            }
+          ],
+          "isMapReferenceable": false,
+          "sharedTitle": "Bereshit"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Genesis 6:9-11:32",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Genesis 6:9-6:22",
+            "Genesis 7:1-7:16",
+            "Genesis 7:17-8:14",
+            "Genesis 8:15-9:7",
+            "Genesis 9:8-9:17",
+            "Genesis 9:18-10:32",
+            "Genesis 11:1-11:32"
+          ],
+          "match_templates": [
+            {
+              "term_slugs": [
+                "parasha",
+                "noach"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "noach"
+              ],
+              "scope": "any"
+            }
+          ],
+          "isMapReferenceable": false,
+          "sharedTitle": "Noach"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Genesis 12:1-17:27",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Genesis 12:1-12:13",
+            "Genesis 12:14-13:4",
+            "Genesis 13:5-13:18",
+            "Genesis 14:1-14:20",
+            "Genesis 14:21-15:6",
+            "Genesis 15:7-17:6",
+            "Genesis 17:7-17:27"
+          ],
+          "match_templates": [
+            {
+              "term_slugs": [
+                "parasha",
+                "lech-lecha"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "lech-lecha"
+              ],
+              "scope": "any"
+            }
+          ],
+          "isMapReferenceable": false,
+          "sharedTitle": "Lech Lecha"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Genesis 18:1-22:24",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Genesis 18:1-18:14",
+            "Genesis 18:15-18:33",
+            "Genesis 19:1-19:20",
+            "Genesis 19:21-21:4",
+            "Genesis 21:5-21:21",
+            "Genesis 21:22-21:34",
+            "Genesis 22:1-22:24"
+          ],
+          "match_templates": [
+            {
+              "term_slugs": [
+                "parasha",
+                "vayera"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "vayera"
+              ],
+              "scope": "any"
+            }
+          ],
+          "isMapReferenceable": false,
+          "sharedTitle": "Vayera"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Genesis 23:1-25:18",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Genesis 23:1-23:16",
+            "Genesis 23:17-24:9",
+            "Genesis 24:10-24:26",
+            "Genesis 24:27-24:52",
+            "Genesis 24:53-24:67",
+            "Genesis 25:1-25:11",
+            "Genesis 25:12-25:18"
+          ],
+          "match_templates": [
+            {
+              "term_slugs": [
+                "parasha",
+                "chayei-sara"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "chayei-sara"
+              ],
+              "scope": "any"
+            }
+          ],
+          "isMapReferenceable": false,
+          "sharedTitle": "Chayei Sara"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Genesis 25:19-28:9",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Genesis 25:19-26:5",
+            "Genesis 26:6-26:12",
+            "Genesis 26:13-26:22",
+            "Genesis 26:23-26:29",
+            "Genesis 26:30-27:27",
+            "Genesis 27:28-28:4",
+            "Genesis 28:5-28:9"
+          ],
+          "match_templates": [
+            {
+              "term_slugs": [
+                "parasha",
+                "toldot"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "toldot"
+              ],
+              "scope": "any"
+            }
+          ],
+          "isMapReferenceable": false,
+          "sharedTitle": "Toldot"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Genesis 28:10-32:3",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Genesis 28:10-28:22",
+            "Genesis 29:1-29:17",
+            "Genesis 29:18-30:13",
+            "Genesis 30:14-30:27",
+            "Genesis 30:28-31:16",
+            "Genesis 31:17-31:42",
+            "Genesis 31:43-32:3"
+          ],
+          "match_templates": [
+            {
+              "term_slugs": [
+                "parasha",
+                "vayetzei"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "vayetzei"
+              ],
+              "scope": "any"
+            }
+          ],
+          "isMapReferenceable": false,
+          "sharedTitle": "Vayetzei"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Genesis 32:4-36:43",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Genesis 32:4-32:13",
+            "Genesis 32:14-32:30",
+            "Genesis 32:31-33:5",
+            "Genesis 33:6-33:20",
+            "Genesis 34:1-35:11",
+            "Genesis 35:12-36:19",
+            "Genesis 36:20-36:43"
+          ],
+          "match_templates": [
+            {
+              "term_slugs": [
+                "parasha",
+                "vayishlach"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "vayishlach"
+              ],
+              "scope": "any"
+            }
+          ],
+          "isMapReferenceable": false,
+          "sharedTitle": "Vayishlach"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Genesis 37:1-40:23",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Genesis 37:1-37:11",
+            "Genesis 37:12-37:22",
+            "Genesis 37:23-37:36",
+            "Genesis 38:1-38:30",
+            "Genesis 39:1-39:6",
+            "Genesis 39:7-39:23",
+            "Genesis 40:1-40:23"
+          ],
+          "match_templates": [
+            {
+              "term_slugs": [
+                "parasha",
+                "vayeshev"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "vayeshev"
+              ],
+              "scope": "any"
+            }
+          ],
+          "isMapReferenceable": false,
+          "sharedTitle": "Vayeshev"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Genesis 41:1-44:17",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Genesis 41:1-41:14",
+            "Genesis 41:15-41:38",
+            "Genesis 41:39-41:52",
+            "Genesis 41:53-42:18",
+            "Genesis 42:19-43:15",
+            "Genesis 43:16-43:29",
+            "Genesis 43:30-44:17"
+          ],
+          "match_templates": [
+            {
+              "term_slugs": [
+                "parasha",
+                "miketz"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "miketz"
+              ],
+              "scope": "any"
+            }
+          ],
+          "isMapReferenceable": false,
+          "sharedTitle": "Miketz"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Genesis 44:18-47:27",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Genesis 44:18-44:30",
+            "Genesis 44:31-45:7",
+            "Genesis 45:8-45:18",
+            "Genesis 45:19-45:27",
+            "Genesis 45:28-46:27",
+            "Genesis 46:28-47:10",
+            "Genesis 47:11-47:27"
+          ],
+          "match_templates": [
+            {
+              "term_slugs": [
+                "parasha",
+                "vayigash"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "vayigash"
+              ],
+              "scope": "any"
+            }
+          ],
+          "isMapReferenceable": false,
+          "sharedTitle": "Vayigash"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Genesis 47:28-50:26",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Genesis 47:28-48:9",
+            "Genesis 48:10-48:16",
+            "Genesis 48:17-48:22",
+            "Genesis 49:1-49:18",
+            "Genesis 49:19-49:26",
+            "Genesis 49:27-50:20",
+            "Genesis 50:21-50:26"
+          ],
+          "match_templates": [
+            {
+              "term_slugs": [
+                "parasha",
+                "vayechi"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "vayechi"
+              ],
+              "scope": "any"
+            }
+          ],
+          "isMapReferenceable": false,
+          "sharedTitle": "Vayechi"
+        }
+      ]
+    }
+  },
+  "order": [
+    1,
+    1
+  ],
+  "authors": [],
+  "enDesc": "Genesis (“Bereshit”) is the first book of the Torah, Judaism’s foundational text, and the only one consisting almost entirely of stories, with just three explicit laws. It tells of the origins of mankind and the Israelites, with stories on creation, Adam and Eve, Noah’s ark, the patriarchs and matriarchs - Abraham and Sarah, Isaac and Rebecca, Jacob, Leah and Rachel - and Joseph and his brothers. Its narratives depict figures as they encounter God, face wandering and exile, and grapple with conflict in family relationships",
+  "heDesc": "ספר בראשית הוא הספר הראשון בחמשת חומשי התורה והיחיד הכולל כמעט אך ורק סיפורים - ורק שלושה חוקים מפורשים. הוא מספר על תולדות האדם ועם ישראל בסיפורי הבריאה, אדם חוה, תיבת נח, האבות והאימהות - אברהם ושרה, יצחק ורבקה, יעקב, רחל ולאה ויוסף ואחיו. עלילותיו מתארות דמויות המתעמתות עם אלוהים ומתמודדות עם אתגרי גלות ונדודים ועם מאבקים פנים-משפחתיים.",
+  "enShortDesc": "Creation, the beginning of mankind, and stories of the patriarchs and matriarchs.",
+  "heShortDesc": "בריאת העולם, תחילתה של האנושות וסיפורי האבות והאמהות.",
+  "pubDate": [
+    1488
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    -1400,
+    -400
+  ],
+  "compPlace": "Sinai/Canaan",
+  "pubPlace": "Soncino",
+  "is_cited": true,
+  "corpora": [
+    "Tanakh"
+  ]
+}

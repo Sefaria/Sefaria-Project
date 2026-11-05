@@ -1,0 +1,39 @@
+/* The header's drop-downs as the old DropdownMenu draws them (static/css/s2.css .headerDropdownMenu .dropdownLinks-menu and
+   friends), VERIFIED on sefaria.org /texts at 1280px (2026-10-29): a 200px white card 35px under the icon's top, its end edge on
+   the icon's, a 1px 3px shadow, 6px corners; items 16px black, 15px in, with the old first/middle/last spacing. */
+.menu { position: absolute; top: 35px; inset-inline-end: 0; z-index: 1; box-sizing: border-box; width: 200px; min-width: 200px; overflow: hidden; background: var(--sefaria-color-surface); border-radius: 6px; box-shadow: var(--sefaria-shadow-1); font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: normal; text-align: start; }
+.menu[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.options { display: flex; flex-direction: column; }
+.item { display: flex; flex-direction: column; align-items: flex-start; padding-inline: 15px; color: var(--sefaria-color-text-strong); text-decoration: none; cursor: pointer; }
+.item:nth-child(n+2):nth-last-child(n+2) { padding-block: 5px; }
+.item:first-child { padding-block: 10px 5px; }
+.item:last-child { padding-block: 5px 10px; }
+.item:hover { background-color: var(--sefaria-color-highlight); text-decoration: none; }
+.item:not([href]) { cursor: default; }
+.item:not([href]):hover { background-color: transparent; }
+.separator { margin-block: 5px; border-top: 1px solid var(--sefaria-color-border-strong); }
+.languageHeader { padding: 5px 15px 2px; font-size: 14px; font-weight: 400; line-height: 18px; color: var(--sefaria-color-text-muted); }
+.languageToggle { display: flex; flex-direction: row; align-items: baseline; height: 23px; margin-top: 7px; padding-inline: 15px; line-height: 18px; }
+.languageToggle a { color: var(--sefaria-color-text-strong); text-decoration: none; }
+.languageToggle a:not([aria-current="true"]) { color: var(--sefaria-color-text-dark-grey); }
+.englishButton::after { content: "•"; padding: 6px; color: var(--sefaria-color-text-strong); }
+
+/* the globe's menu: the heading ruled off, the two languages one under the other, a tick by the current one */
+.globe .languageHeader { padding: 12px; border-bottom: 1px solid var(--sefaria-color-border-strong); }
+.globe .languageToggle { flex-direction: column; align-items: unset; height: unset; padding: 4px 0; }
+.globe .englishButton::after { content: none; padding: 0; }
+.globe .languageToggle a { display: flex; align-items: center; padding: 5px; font-size: 16px; line-height: 23px; color: var(--sefaria-color-text-dark-grey); direction: ltr; }
+.globe .languageToggle a:hover { background-color: var(--sefaria-color-border-light); }
+.globe .languageToggle a::before { content: ""; width: 0; padding: 0 15px; }
+.globe .languageToggle a[aria-current="true"]::before { display: none; }
+.check { flex: none; box-sizing: content-box; width: 13px; height: 13px; padding: 0 8px; color: var(--sefaria-color-text-dark-grey); }
+
+/* the module switcher: the Sefaria logo, then Library / Voices / Developers with their dots, 15px around each, no gaps */
+.modules .separator { margin-block: 0; }
+.options.modules > .item { padding-block: 15px; }
+.logoItem { align-items: center; justify-content: center; }
+.logoItem img { width: 100px; height: 32px; }
+.moreItem { align-items: center; text-align: center; }
+.moduleHeader { display: block; font-size: 16px; font-weight: 400; line-height: 18.75px; color: var(--sefaria-color-text-strong); }
+.dot { display: inline-block; flex-shrink: 0; width: 12px; height: 12px; border-radius: 50%; }
+.moduleText { padding-inline-start: 10px; }

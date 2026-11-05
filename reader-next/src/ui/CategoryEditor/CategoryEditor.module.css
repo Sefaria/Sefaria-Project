@@ -1,0 +1,22 @@
+/* The old AdminEditor / ReorderEditor pages (s2.css .editTextInfo): a header with Cancel and Save over labelled sections */
+.editor { max-width: 760px; font-family: var(--sefaria-font-ui-en); font-size: 14px; color: var(--sefaria-color-text); }
+.header { display: flex; align-items: center; justify-content: space-between; gap: var(--sefaria-space-4); margin-block-end: var(--sefaria-space-4); }
+.pageTitle { margin: 0; font-family: var(--sefaria-font-text-en); font-size: 30px; font-weight: 400; }
+.end { display: flex; gap: var(--sefaria-space-2); }
+.section { display: grid; gap: 4px; margin: 0 0 var(--sefaria-space-4); padding: 0; border: 0; }
+.section input[type="text"], .section textarea { box-sizing: border-box; width: 100%; padding: 8px 10px; border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); font: inherit; font-size: 16px; background: var(--sefaria-color-surface); color: inherit; }
+.section textarea { min-height: 80px; }
+.label { font-weight: 500; }
+.radio { display: inline-flex; gap: 6px; align-items: center; margin-inline-end: var(--sefaria-space-4); }
+.reorder { margin: 0 0 var(--sefaria-space-4); padding: 0; list-style: none; }
+.reorder li { display: flex; align-items: center; gap: var(--sefaria-space-2); padding: 6px 0; border-block-end: 1px solid var(--sefaria-color-border); }
+.reorder li span { flex: 1; }
+.reorder button { padding: 2px; border: 0; background: none; color: var(--sefaria-color-text-secondary); cursor: pointer; }
+.reorder button:disabled { opacity: 0.3; cursor: default; }
+.save, .cancel, .delete { height: 32px; padding: 0 var(--sefaria-space-4); border-radius: var(--sefaria-radius-md); font: inherit; cursor: pointer; }
+.save { border: 0; background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); }
+.cancel { border: 1px solid var(--sefaria-color-border-strong); background: var(--sefaria-color-surface); color: var(--sefaria-color-text); }
+.delete { border: 1px solid var(--sefaria-color-danger); background: var(--sefaria-color-surface); color: var(--sefaria-color-danger); }
+.save:disabled, .delete:disabled { opacity: 0.6; cursor: progress; }
+.status { margin-block-end: var(--sefaria-space-3); color: var(--sefaria-color-text-secondary); }
+.error { margin-block-end: var(--sefaria-space-3); color: var(--sefaria-color-danger); }

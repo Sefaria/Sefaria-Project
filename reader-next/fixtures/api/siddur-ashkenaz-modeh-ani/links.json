@@ -1,0 +1,377 @@
+[
+  {
+    "_id": "5bf99aaac3b8da0017e8c938",
+    "index_title": "Kitzur Shulchan Arukh",
+    "category": "Halakhah",
+    "type": "quotation",
+    "ref": "Kitzur Shulchan Arukh 1:2",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1"
+    ],
+    "sourceRef": "Kitzur Shulchan Arukh 1:2",
+    "sourceHeRef": "קיצור שלחן ערוך א׳:ב׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1844,
+      1864
+    ],
+    "commentaryNum": 1.0002,
+    "collectiveTitle": {
+      "en": "Kitzur Shulchan Arukh",
+      "he": "קיצור שלחן ערוך"
+    },
+    "heTitle": "קיצור שלחן ערוך"
+  },
+  {
+    "_id": "5bf99baecbb9270016c27f13",
+    "index_title": "Arukh HaShulchan",
+    "category": "Halakhah",
+    "type": "reference",
+    "ref": "Arukh HaShulchan, Orach Chaim 4:20",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1"
+    ],
+    "sourceRef": "Arukh HaShulchan, Orach Chaim 4:20",
+    "sourceHeRef": "ערוך השולחן, אורח חיים ד׳:כ׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "compDate": [
+      1865,
+      1905
+    ],
+    "commentaryNum": 4.002,
+    "collectiveTitle": {
+      "en": "Arukh HaShulchan",
+      "he": "ערוך השולחן"
+    },
+    "heTitle": "אורח חיים"
+  },
+  {
+    "_id": "648868018fd78fd792b3148d",
+    "index_title": "Olat Reiyah",
+    "category": "Jewish Thought",
+    "type": "commentary",
+    "ref": "Olat Reiyah, Modeh Ani 1",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1"
+    ],
+    "sourceRef": "Olat Reiyah, Modeh Ani 1",
+    "sourceHeRef": "עולת ראיה, מודה אני א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1900,
+      1930
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Olat Reiyah",
+      "he": "עולת ראיה"
+    },
+    "heTitle": "מודה אני"
+  },
+  {
+    "_id": "6571a84835ab76ba47e052f0",
+    "index_title": "Olat Reiyah",
+    "category": "Jewish Thought",
+    "type": "commentary",
+    "ref": "Olat Reiyah, Modeh Ani 2",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1"
+    ],
+    "sourceRef": "Olat Reiyah, Modeh Ani 2",
+    "sourceHeRef": "עולת ראיה, מודה אני ב׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1900,
+      1930
+    ],
+    "commentaryNum": 2,
+    "collectiveTitle": {
+      "en": "Olat Reiyah",
+      "he": "עולת ראיה"
+    },
+    "heTitle": "מודה אני"
+  },
+  {
+    "_id": "6571a84835ab76ba47e052f2",
+    "index_title": "Olat Reiyah",
+    "category": "Jewish Thought",
+    "type": "commentary",
+    "ref": "Olat Reiyah, Modeh Ani 3",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1"
+    ],
+    "sourceRef": "Olat Reiyah, Modeh Ani 3",
+    "sourceHeRef": "עולת ראיה, מודה אני ג׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "compDate": [
+      1900,
+      1930
+    ],
+    "commentaryNum": 3,
+    "collectiveTitle": {
+      "en": "Olat Reiyah",
+      "he": "עולת ראיה"
+    },
+    "heTitle": "מודה אני"
+  },
+  {
+    "_id": "6571a84835ab76ba47e052f4",
+    "index_title": "Olat Reiyah",
+    "category": "Jewish Thought",
+    "type": "commentary",
+    "ref": "Olat Reiyah, Modeh Ani 4",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1"
+    ],
+    "sourceRef": "Olat Reiyah, Modeh Ani 4",
+    "sourceHeRef": "עולת ראיה, מודה אני ד׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "compDate": [
+      1900,
+      1930
+    ],
+    "commentaryNum": 4,
+    "collectiveTitle": {
+      "en": "Olat Reiyah",
+      "he": "עולת ראיה"
+    },
+    "heTitle": "מודה אני"
+  },
+  {
+    "_id": "6571a84835ab76ba47e052f6",
+    "index_title": "Olat Reiyah",
+    "category": "Jewish Thought",
+    "type": "commentary",
+    "ref": "Olat Reiyah, Modeh Ani 5",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1"
+    ],
+    "sourceRef": "Olat Reiyah, Modeh Ani 5",
+    "sourceHeRef": "עולת ראיה, מודה אני ה׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "compDate": [
+      1900,
+      1930
+    ],
+    "commentaryNum": 5,
+    "collectiveTitle": {
+      "en": "Olat Reiyah",
+      "he": "עולת ראיה"
+    },
+    "heTitle": "מודה אני"
+  },
+  {
+    "_id": "6571a84835ab76ba47e052f8",
+    "index_title": "Olat Reiyah",
+    "category": "Jewish Thought",
+    "type": "commentary",
+    "ref": "Olat Reiyah, Modeh Ani 6",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1"
+    ],
+    "sourceRef": "Olat Reiyah, Modeh Ani 6",
+    "sourceHeRef": "עולת ראיה, מודה אני ו׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "compDate": [
+      1900,
+      1930
+    ],
+    "commentaryNum": 6,
+    "collectiveTitle": {
+      "en": "Olat Reiyah",
+      "he": "עולת ראיה"
+    },
+    "heTitle": "מודה אני"
+  },
+  {
+    "_id": "6571a84835ab76ba47e052fa",
+    "index_title": "Olat Reiyah",
+    "category": "Jewish Thought",
+    "type": "commentary",
+    "ref": "Olat Reiyah, Modeh Ani 7",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1"
+    ],
+    "sourceRef": "Olat Reiyah, Modeh Ani 7",
+    "sourceHeRef": "עולת ראיה, מודה אני ז׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "compDate": [
+      1900,
+      1930
+    ],
+    "commentaryNum": 7,
+    "collectiveTitle": {
+      "en": "Olat Reiyah",
+      "he": "עולת ראיה"
+    },
+    "heTitle": "מודה אני"
+  },
+  {
+    "_id": "6571a84835ab76ba47e052fc",
+    "index_title": "Olat Reiyah",
+    "category": "Jewish Thought",
+    "type": "commentary",
+    "ref": "Olat Reiyah, Modeh Ani 8",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1"
+    ],
+    "sourceRef": "Olat Reiyah, Modeh Ani 8",
+    "sourceHeRef": "עולת ראיה, מודה אני ח׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "compDate": [
+      1900,
+      1930
+    ],
+    "commentaryNum": 8,
+    "collectiveTitle": {
+      "en": "Olat Reiyah",
+      "he": "עולת ראיה"
+    },
+    "heTitle": "מודה אני"
+  },
+  {
+    "_id": "6571a84835ab76ba47e052fe",
+    "index_title": "Olat Reiyah",
+    "category": "Jewish Thought",
+    "type": "commentary",
+    "ref": "Olat Reiyah, Modeh Ani 9",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1"
+    ],
+    "sourceRef": "Olat Reiyah, Modeh Ani 9",
+    "sourceHeRef": "עולת ראיה, מודה אני ט׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "compDate": [
+      1900,
+      1930
+    ],
+    "commentaryNum": 9,
+    "collectiveTitle": {
+      "en": "Olat Reiyah",
+      "he": "עולת ראיה"
+    },
+    "heTitle": "מודה אני"
+  },
+  {
+    "_id": "6571a84835ab76ba47e05300",
+    "index_title": "Olat Reiyah",
+    "category": "Jewish Thought",
+    "type": "commentary",
+    "ref": "Olat Reiyah, Modeh Ani 10",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1"
+    ],
+    "sourceRef": "Olat Reiyah, Modeh Ani 10",
+    "sourceHeRef": "עולת ראיה, מודה אני י׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "compDate": [
+      1900,
+      1930
+    ],
+    "commentaryNum": 10,
+    "collectiveTitle": {
+      "en": "Olat Reiyah",
+      "he": "עולת ראיה"
+    },
+    "heTitle": "מודה אני"
+  },
+  {
+    "_id": "6571a84835ab76ba47e05302",
+    "index_title": "Olat Reiyah",
+    "category": "Jewish Thought",
+    "type": "commentary",
+    "ref": "Olat Reiyah, Modeh Ani 11",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1"
+    ],
+    "sourceRef": "Olat Reiyah, Modeh Ani 11",
+    "sourceHeRef": "עולת ראיה, מודה אני י״א",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "compDate": [
+      1900,
+      1930
+    ],
+    "commentaryNum": 11,
+    "collectiveTitle": {
+      "en": "Olat Reiyah",
+      "he": "עולת ראיה"
+    },
+    "heTitle": "מודה אני"
+  },
+  {
+    "_id": "623bed03f3caf0c7db90ff4d",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "quotation_auto_tanakh",
+    "ref": "Psalms 72:19",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 2",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 2"
+    ],
+    "sourceRef": "Psalms 72:19",
+    "sourceHeRef": "תהילים ע״ב:י״ט",
+    "anchorVerse": 2,
+    "sourceHasEn": false,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 72.0019,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "623bed04f3caf0c7db90ff4f",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "quotation_auto_tanakh",
+    "ref": "Psalms 111:10",
+    "anchorRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 2",
+    "anchorRefExpanded": [
+      "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 2"
+    ],
+    "sourceRef": "Psalms 111:10",
+    "sourceHeRef": "תהילים קי״א:י׳",
+    "anchorVerse": 2,
+    "sourceHasEn": false,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 111.001,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  }
+]

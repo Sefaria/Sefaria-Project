@@ -1,0 +1,70 @@
+/*
+ * The version-diff page is a bare page in the browser's own styles on sefaria.org (templates/compare.html loads no site stylesheet):
+ * Times, 16px, default form controls, the body's 8px margin (the body's own, base.css `body[data-standalone]`). Inside it every site rule is reverted to the browser's (`all: revert`;
+ * doubled classes outrank base.css's `:lang(he)` font and `*` box-sizing), then compare.html's own rules are applied.
+ */
+.page.page {
+  all: initial;
+  display: block;
+  /* compare.html sets no dir in either interface language: the page is left-to-right in Hebrew too (`all` leaves direction alone) */
+  direction: ltr;
+  color: var(--sefaria-color-diff-text);
+}
+.page.page * {
+  all: revert;
+}
+
+/* compare.html: <div id="filters" style="direction: rtl"> and the Update button's <div style="direction: rtl"> */
+.page.page .rtl {
+  direction: rtl;
+}
+
+/* th, td { padding: 8px; border: 1px solid #ddd; }  td:hover { background-color: #ccffff; } */
+.page.page .table td {
+  padding: 8px;
+  border: 1px solid var(--sefaria-color-diff-cell-border);
+}
+.page.page .table td:hover {
+  background-color: var(--sefaria-color-diff-cell-hover);
+}
+.page.page .table td.he {
+  direction: rtl;
+  text-align: right;
+}
+.page.page .table td.en {
+  direction: ltr;
+  text-align: left;
+}
+
+.page.page .ins {
+  background: var(--sefaria-color-diff-insert);
+}
+.page.page .del {
+  background: var(--sefaria-color-diff-delete);
+}
+.page.page .filtered {
+  background: none;
+}
+
+.page.page .change {
+  position: absolute;
+  z-index: 1;
+  background-color: var(--sefaria-color-diff-tip);
+  color: var(--sefaria-color-diff-tip-text);
+  padding: 10px;
+  border: 2px solid var(--sefaria-color-diff-tip-border);
+  direction: ltr;
+  text-align: left;
+}
+
+.page.page .changeDialog {
+  display: inline-block;
+  position: absolute;
+  z-index: 1;
+  background-color: var(--sefaria-color-diff-dialog);
+  color: var(--sefaria-color-diff-dialog-text);
+  padding: 10px;
+  border: 2px solid var(--sefaria-color-diff-tip-border);
+  direction: ltr;
+  text-align: left;
+}

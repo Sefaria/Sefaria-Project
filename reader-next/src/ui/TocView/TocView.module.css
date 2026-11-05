@@ -1,0 +1,48 @@
+.view { display: flex; flex-direction: column; gap: var(--sefaria-space-4); padding-block-end: var(--sefaria-space-8); }
+.tabs { display: flex; }
+.heading { font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small);  color: var(--sefaria-color-text-muted); margin: 0 0 var(--sefaria-space-2); font-weight: 400; }
+.heading[lang="he"] { font-family: var(--sefaria-font-ui-he); letter-spacing: 0; text-transform: none; }
+.level { display: flex; flex-direction: column; gap: var(--sefaria-space-3); }
+.grid { display: flex; flex-wrap: wrap; gap: var(--sefaria-space-2); margin: 0; padding: 0; list-style: none; }
+.sectionLink { display: inline-flex; align-items: center; justify-content: center; min-width: 2.4rem; min-height: 2.4rem; padding: 0 var(--sefaria-space-2); box-sizing: border-box; border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-sm, 4px); background: var(--sefaria-color-surface); color: var(--sefaria-color-text); text-decoration: none; font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); }
+.sectionLink[lang="he"] { font-family: var(--sefaria-font-text-he); font-size: 1.05rem; }
+.sectionLink:hover { background: var(--sefaria-color-surface-hover, var(--sefaria-color-surface)); }
+.sectionLink[data-current] { font-weight: 700; border-color: var(--sefaria-color-text); }
+.group { border-block-start: 1px solid var(--sefaria-color-border-subtle, var(--sefaria-color-border)); padding-block-start: var(--sefaria-space-3); }
+.groupTitle { display: flex; align-items: center; gap: var(--sefaria-space-2); width: 100%; margin: 0 0 var(--sefaria-space-2); padding: 0; border: 0; background: none; cursor: pointer; text-align: start; font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-medium, 1.15rem); color: var(--sefaria-color-text); }
+.groupTitle[lang="he"], .groupTitle [lang="he"] { font-family: var(--sefaria-font-text-he); }
+.groupTitle[data-fixed] { cursor: default; }
+a.groupTitle { text-decoration: none; }
+.chevron { transition: transform 120ms; flex: none; }
+.chevron[data-open="false"] { transform: rotate(-90deg); }
+[dir="rtl"] .chevron[data-open="false"] { transform: rotate(90deg); }
+.sectionName { font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); color: var(--sefaria-color-text-secondary); margin: var(--sefaria-space-2) 0; }
+.titleLink { display: block; padding-block: var(--sefaria-space-2); border-block-start: 1px solid var(--sefaria-color-border-subtle, var(--sefaria-color-border)); font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-medium, 1.15rem); color: var(--sefaria-color-text); text-decoration: none; }
+.titleLink[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.titleLink[data-current] { font-weight: 700; }
+.titleLink:hover { text-decoration: underline; }
+
+/* On the book page: bigger tiles (50px, serif numbers on a pale ground) and the Torah portions in two columns */
+.view[data-variant="page"] .sectionLink { min-width: 50px; min-height: 50px; border: 0; background: var(--sefaria-color-surface-subtle, #fbfbfa); font-family: var(--sefaria-font-text-en); font-size: 1.15rem; color: var(--sefaria-color-text-secondary); }
+.view[data-variant="page"] .grid { gap: 6px; }
+.view[data-variant="page"] .group { border: 0; padding-block-start: var(--sefaria-space-2); }
+/* The Torah portions on the book page: a small label, two columns, aliyot as plain small numbers */
+.view[data-variant="page"] .group[data-fixed-group="heading"] > .groupTitle { font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--sefaria-color-text-muted); }
+.view[data-variant="page"] .group[data-fixed-group="heading"] > .level { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sefaria-space-6); row-gap: var(--sefaria-space-4); }
+.view[data-variant="page"] .group[data-fixed-group="part"] .sectionLink { min-width: 0; min-height: 0; padding: 0 3px; background: none; font-family: var(--sefaria-font-ui-en); font-size: 13px; color: var(--sefaria-color-text-muted); }
+.view[data-variant="page"] .group[data-fixed-group="part"] .grid { gap: 2px; }
+.view[data-variant="page"] .group[data-fixed-group="part"] { padding-block-start: 0; }
+.view[data-variant="page"] .group[data-fixed-group="part"] .groupTitle { font-size: 1.4rem; margin-block-end: 2px; }
+
+/* VERIFIED on sefaria.org: the book page's group titles are 24px black serif with a small grey chevron AFTER the title */
+.view[data-variant="page"] .groupTitle { font-size: 24px; color: #000; gap: 8px; }
+.view[data-variant="page"] .groupTitle .chevron { color: #999; }
+
+/* The reader's sidebar contents (VERIFIED on sefaria.org): white 50px tiles, 18px serif numbers, the reader's place filled dark;
+   headings ("Chapters", "Torah Portions") 16px grey sans */
+.view:not([data-variant="page"]) .grid { gap: 6px; }
+.view:not([data-variant="page"]) .sectionLink { min-width: 50px; min-height: 50px; padding: 0; border: 0; border-radius: 0; background: #fff; font-family: var(--sefaria-font-text-en); font-size: 18px; color: #000; }
+.view:not([data-variant="page"]) .sectionLink[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.view:not([data-variant="page"]) .sectionLink[data-current] { background: #18345d; color: #fff; font-weight: 400; border: 0; }
+.view:not([data-variant="page"]) .heading { font-size: 16px; color: #666; }
+.view:not([data-variant="page"]) .group[data-fixed-group="heading"] > .groupTitle { font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 400; color: #666; }

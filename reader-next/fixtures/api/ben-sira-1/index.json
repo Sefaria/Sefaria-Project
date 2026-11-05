@@ -1,0 +1,89 @@
+{
+  "title": "Ben Sira",
+  "categories": [
+    "Second Temple",
+    "Apocrypha"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Pasuk"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Verse"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "sefer",
+          "ben-sira"
+        ]
+      },
+      {
+        "term_slugs": [
+          "ben-sira"
+        ]
+      }
+    ],
+    "lengths": [
+      51,
+      1018
+    ],
+    "titles": [
+      {
+        "text": "Ecclesiasticus",
+        "lang": "en"
+      },
+      {
+        "text": "Wisdom of Sirach",
+        "lang": "en"
+      },
+      {
+        "text": "Sirach",
+        "lang": "en"
+      },
+      {
+        "text": "The Wisdom of Ben Sira",
+        "lang": "en"
+      },
+      {
+        "text": "Book of Ben Sira",
+        "lang": "en"
+      },
+      {
+        "text": "בן סירא",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "חכמת בן סירא",
+        "lang": "he"
+      },
+      {
+        "text": "Ben Sira",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Ben Sira"
+  },
+  "authors": [
+    "ben-sira"
+  ],
+  "enDesc": "Ben Sira, also known as Ecclesiasticus, is an apocryphal poetic book of guidance for living a wise, ethical, and God-fearing life, composed in the second century BCE by a scribe in Jerusalem named Shimon ben Yeshua ben Elazar ben Sira. The book was translated into Greek by the author’s grandson, and by the early medieval period the original Hebrew was lost. In the late-19th century, fragments of the work in its original Hebrew were among the first texts discovered in the Cairo Genizah. Ben Sira is quoted several times in rabbinic literature and is the first known source for several customs that were later codified as law, like saying a blessing upon seeing a rainbow (Ben Sira 43:11).",
+  "heDesc": "הספר בן סירא, הידוע גם בשם \"חכמת בן סירא\" או \"משלי בן סירא\", הוא מהספרים הידועים ביותר בין הספרים החיצוניים, כולל הנחיות מוסריות וקריאה לשמירת התורה, יחד עם המנונים בשבח אבות העולם ובשבח הכהן הגדול, ועוד. לשונו של ספר בן סירא דומה לזו של ספרות החכמה המקראית כדוגמת משלי ואיוב, כמו גם ללשונם של חלק ממזמורי תהלים.",
+  "enShortDesc": "Poetic book of guidance for living a wise and ethical life, composed in the second century BCE",
+  "heShortDesc": "ספר הדרכה לחיי חכמה ומוסר מן המאה ה-2 לפני הספירה.",
+  "pubDate": [
+    1455
+  ],
+  "compDate": [
+    180
+  ],
+  "compPlace": "Jerusalem",
+  "pubPlace": "Mainz, Germany",
+  "era": "T"
+}

@@ -1,0 +1,85 @@
+/* A small pill under the site header, centred, out of the text's way. Fixed so it stays put while the reader scrolls. */
+.bar {
+  position: fixed;
+  top: calc(var(--sefaria-header-height) + var(--sefaria-space-2));
+  /* centred on the screen in vw, with its own width (see RecordingUi.module.css: in %, it ran off a phone's right edge) */
+  left: 50vw;
+  transform: translateX(-50%);
+  width: max-content;
+  z-index: var(--sefaria-z-sheet);
+  display: flex;
+  align-items: center;
+  gap: var(--sefaria-space-3);
+  max-width: calc(100vw - 2 * var(--sefaria-space-4));
+  box-sizing: border-box;
+  padding: var(--sefaria-space-1) var(--sefaria-space-2) var(--sefaria-space-1) var(--sefaria-space-4);
+  background: var(--sefaria-color-surface);
+  color: var(--sefaria-color-text);
+  border: 1px solid var(--sefaria-color-border-light);
+  border-radius: var(--sefaria-radius-pill);
+  box-shadow: var(--sefaria-shadow-card);
+  font-family: var(--sefaria-font-ui-en);
+  font-size: var(--sefaria-text-sans-small);
+  line-height: var(--sefaria-leading-ui);
+}
+:global([dir="rtl"]) .bar { padding: var(--sefaria-space-1) var(--sefaria-space-4) var(--sefaria-space-1) var(--sefaria-space-2); }
+
+.message { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.actions { display: inline-flex; gap: var(--sefaria-space-1); flex-shrink: 0; }
+
+.action {
+  padding: var(--sefaria-space-1) var(--sefaria-space-3);
+  border: 1px solid var(--sefaria-color-border);
+  border-radius: var(--sefaria-radius-pill);
+  background: var(--sefaria-color-surface);
+  color: var(--sefaria-color-text-secondary);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.action:hover { color: var(--sefaria-color-text); border-color: var(--sefaria-color-border-strong); }
+.primary { background: var(--sefaria-color-brand); border-color: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); }
+.primary:hover { background: var(--sefaria-color-brand-hover); border-color: var(--sefaria-color-brand-hover); color: var(--sefaria-color-on-brand); }
+.action:focus-visible, .face:focus-visible, .menuItem:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
+
+/* Presence: overlapping round faces with initials. */
+.faces { display: flex; align-items: center; margin: 0; padding: 0; list-style: none; flex-shrink: 0; }
+.faces > li + li { margin-inline-start: -6px; }
+.face {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 2px solid var(--sefaria-color-surface);
+  border-radius: var(--sefaria-radius-round);
+  background: var(--sefaria-color-surface-muted);
+  color: var(--sefaria-color-text-secondary);
+  font: inherit;
+  font-size: var(--sefaria-text-micro);
+  font-weight: 600;
+  cursor: pointer;
+}
+span.face { cursor: default; }
+.face:hover { color: var(--sefaria-color-text); }
+.leading { background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); }
+.leading:hover { color: var(--sefaria-color-on-brand); }
+.followed { box-shadow: 0 0 0 2px var(--sefaria-color-brand); }
+/* Away (tab hidden): a dashed outline instead of fading, so the initials keep their contrast. */
+.away, .away:hover { background: var(--sefaria-color-surface); color: var(--sefaria-color-text-secondary); border-style: dashed; border-color: var(--sefaria-color-border-strong); }
+/* The leader's mark: a small dot at the face's corner, so it reads without colour too. */
+.badge { position: absolute; inset-block-end: -2px; inset-inline-end: -2px; width: 8px; height: 8px; border: 2px solid var(--sefaria-color-surface); border-radius: var(--sefaria-radius-round); background: var(--sefaria-color-success); }
+.more { padding-inline: var(--sefaria-space-2); color: var(--sefaria-color-text-muted); font-size: var(--sefaria-text-caption); }
+
+.menu { display: flex; flex-direction: column; gap: var(--sefaria-space-1); }
+.menuItem { padding: var(--sefaria-space-2); border: 0; border-radius: var(--sefaria-radius-sm); background: none; color: var(--sefaria-color-text); font: inherit; text-align: start; cursor: pointer; }
+.menuItem:hover { background: var(--sefaria-color-surface-subtle); }
+
+@media (max-width: 540px) {
+  /* A phone: the pill becomes a card that wraps, faces on their own line, rather than hiding presence. */
+  .bar { flex-wrap: wrap; justify-content: center; gap: var(--sefaria-space-2); width: calc(100vw - 2 * var(--sefaria-space-4)); border-radius: var(--sefaria-radius-lg); padding: var(--sefaria-space-2) var(--sefaria-space-3); }
+  :global([dir="rtl"]) .bar { padding: var(--sefaria-space-2) var(--sefaria-space-3); }
+  .message { white-space: normal; text-align: center; }
+}

@@ -1,0 +1,1912 @@
+{
+  "links": [
+    {
+      "_id": "51d43fd6edbab443a0c137c0",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 16:8",
+      "anchorRef": "Kitzur Shulchan Arukh 1:1",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:1"
+      ],
+      "sourceRef": "Psalms 16:8",
+      "sourceHeRef": "תהילים ט״ז:ח׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 16.0008,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "51d44287edbab443a0c137ef",
+      "index_title": "Lamentations",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Lamentations 3:23",
+      "anchorRef": "Kitzur Shulchan Arukh 1:2",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:2"
+      ],
+      "sourceRef": "Lamentations 3:23",
+      "sourceHeRef": "איכה ג׳:כ״ג",
+      "anchorVerse": 2,
+      "sourceHasEn": true,
+      "compDate": [
+        -600,
+        -500
+      ],
+      "commentaryNum": 3.0023,
+      "collectiveTitle": {
+        "en": "Lamentations",
+        "he": "איכה"
+      },
+      "heTitle": "איכה"
+    },
+    {
+      "_id": "53b8c899fbfba25e5bdd1f3d",
+      "index_title": "Tamid",
+      "category": "Talmud",
+      "type": "",
+      "ref": "Tamid 32b",
+      "anchorRef": "Kitzur Shulchan Arukh 1:2-6",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:2",
+        "Kitzur Shulchan Arukh 1:3",
+        "Kitzur Shulchan Arukh 1:4",
+        "Kitzur Shulchan Arukh 1:5",
+        "Kitzur Shulchan Arukh 1:6"
+      ],
+      "sourceRef": "Tamid 32b",
+      "sourceHeRef": "תמיד ל״ב ב",
+      "anchorVerse": 2,
+      "sourceHasEn": false,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 64,
+      "collectiveTitle": {
+        "en": "Tamid",
+        "he": "תמיד"
+      },
+      "heTitle": "תמיד"
+    },
+    {
+      "_id": "5bf99aaac3b8da0017e8c938",
+      "index_title": "Siddur Ashkenaz",
+      "category": "Liturgy",
+      "type": "quotation",
+      "ref": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+      "anchorRef": "Kitzur Shulchan Arukh 1:2",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:2"
+      ],
+      "sourceRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+      "sourceHeRef": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, מודה אני א׳",
+      "anchorVerse": 2,
+      "sourceHasEn": true,
+      "compDate": [
+        1055,
+        1105
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Siddur Ashkenaz",
+        "he": "סידור אשכנז"
+      },
+      "heTitle": "מודה אני"
+    },
+    {
+      "_id": "695ea60b435133f528b5bd20",
+      "index_title": "Kitzur Shulchan Arukh",
+      "category": "Halakhah",
+      "type": "",
+      "ref": "Kitzur Shulchan Arukh 29:8",
+      "anchorRef": "Kitzur Shulchan Arukh 1:3",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:3"
+      ],
+      "sourceRef": "Kitzur Shulchan Arukh 29:8",
+      "sourceHeRef": "קיצור שלחן ערוך כ״ט:ח׳",
+      "anchorVerse": 3,
+      "sourceHasEn": true,
+      "compDate": [
+        1844,
+        1864
+      ],
+      "commentaryNum": 29.0008,
+      "collectiveTitle": {
+        "en": "Kitzur Shulchan Arukh",
+        "he": "קיצור שלחן ערוך"
+      },
+      "heTitle": "קיצור שלחן ערוך"
+    },
+    {
+      "_id": "69601c9d9806cee6831da554",
+      "index_title": "Shulchan Arukh, Orach Chayim",
+      "category": "Halakhah",
+      "type": "",
+      "ref": "Shulchan Arukh, Orach Chayim 1:1",
+      "anchorRef": "Kitzur Shulchan Arukh 1:3",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:3"
+      ],
+      "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+      "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+      "anchorVerse": 3,
+      "sourceHasEn": true,
+      "compDate": [
+        1563
+      ],
+      "commentaryNum": 1.0001,
+      "collectiveTitle": {
+        "en": "Shulchan Arukh, Orach Chayim",
+        "he": "שולחן ערוך, אורח חיים"
+      },
+      "heTitle": "שולחן ערוך, אורח חיים"
+    },
+    {
+      "_id": "69601ce67429f65e73a5c2ce",
+      "index_title": "Pirkei Avot",
+      "category": "Mishnah",
+      "type": "",
+      "ref": "Pirkei Avot 5:20",
+      "anchorRef": "Kitzur Shulchan Arukh 1:3",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:3"
+      ],
+      "sourceRef": "Pirkei Avot 5:20",
+      "sourceHeRef": "משנה אבות ה׳:כ׳",
+      "anchorVerse": 3,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 5.002,
+      "collectiveTitle": {
+        "en": "Pirkei Avot",
+        "he": "משנה אבות"
+      },
+      "heTitle": "משנה אבות"
+    },
+    {
+      "_id": "51d443b0edbab443a0c137f8",
+      "index_title": "Yoma",
+      "category": "Talmud",
+      "type": "",
+      "ref": "Yoma 38b",
+      "anchorRef": "Kitzur Shulchan Arukh 1:4",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:4"
+      ],
+      "sourceRef": "Yoma 38b",
+      "sourceHeRef": "יומא ל״ח ב",
+      "anchorVerse": 4,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 76,
+      "collectiveTitle": {
+        "en": "Yoma",
+        "he": "יומא"
+      },
+      "heTitle": "יומא"
+    },
+    {
+      "_id": "5ceef30cf2f26200187fea1d",
+      "index_title": "Mishnah Berurah",
+      "category": "Quoting Commentary",
+      "type": "quotation",
+      "ref": "Mishnah Berurah 1:1",
+      "anchorRef": "Kitzur Shulchan Arukh 1:4",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:4"
+      ],
+      "sourceRef": "Mishnah Berurah 1:1",
+      "sourceHeRef": "משנה ברורה א׳:א׳",
+      "anchorVerse": 4,
+      "sourceHasEn": true,
+      "compDate": [
+        1875,
+        1905
+      ],
+      "commentaryNum": 1.0001,
+      "collectiveTitle": {
+        "en": "Mishnah Berurah",
+        "he": "משנה ברורה"
+      }
+    },
+    {
+      "_id": "51d44444edbab443a0c13805",
+      "index_title": "Tamid",
+      "category": "Talmud",
+      "type": "",
+      "ref": "Tamid 32b",
+      "anchorRef": "Kitzur Shulchan Arukh 1:5",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:5"
+      ],
+      "sourceRef": "Tamid 32b",
+      "sourceHeRef": "תמיד ל״ב ב",
+      "anchorVerse": 5,
+      "sourceHasEn": false,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 64,
+      "collectiveTitle": {
+        "en": "Tamid",
+        "he": "תמיד"
+      },
+      "heTitle": "תמיד"
+    },
+    {
+      "_id": "53b4a0a9fbfba235cfda9309",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "quotation",
+      "ref": "Psalms 108:3",
+      "anchorRef": "Kitzur Shulchan Arukh 1:5",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:5"
+      ],
+      "sourceRef": "Psalms 108:3",
+      "sourceHeRef": "תהילים ק״ח:ג׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 108.0003,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "69601c9d68f25fd88ba8ddfb",
+      "index_title": "Kitzur Shulchan Arukh",
+      "category": "Halakhah",
+      "type": "",
+      "ref": "Kitzur Shulchan Arukh 71:1",
+      "anchorRef": "Kitzur Shulchan Arukh 1:5",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:5"
+      ],
+      "sourceRef": "Kitzur Shulchan Arukh 71:1",
+      "sourceHeRef": "קיצור שלחן ערוך ע״א:א׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        1844,
+        1864
+      ],
+      "commentaryNum": 71.0001,
+      "collectiveTitle": {
+        "en": "Kitzur Shulchan Arukh",
+        "he": "קיצור שלחן ערוך"
+      },
+      "heTitle": "קיצור שלחן ערוך"
+    },
+    {
+      "_id": "69601c9e68f25fd88ba8ddfd",
+      "index_title": "Shulchan Arukh, Orach Chayim",
+      "category": "Halakhah",
+      "type": "",
+      "ref": "Shulchan Arukh, Orach Chayim 1",
+      "anchorRef": "Kitzur Shulchan Arukh 1:5",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:5"
+      ],
+      "sourceRef": "Shulchan Arukh, Orach Chayim 1",
+      "sourceHeRef": "שולחן ערוך, אורח חיים א׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        1563
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Shulchan Arukh, Orach Chayim",
+        "he": "שולחן ערוך, אורח חיים"
+      },
+      "heTitle": "שולחן ערוך, אורח חיים"
+    },
+    {
+      "_id": "69601ce764ff2ce71f4630ba",
+      "index_title": "Lamentations",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Lamentations 2:19",
+      "anchorRef": "Kitzur Shulchan Arukh 1:5",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:5"
+      ],
+      "sourceRef": "Lamentations 2:19",
+      "sourceHeRef": "איכה ב׳:י״ט",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        -600,
+        -500
+      ],
+      "commentaryNum": 2.0019,
+      "collectiveTitle": {
+        "en": "Lamentations",
+        "he": "איכה"
+      },
+      "heTitle": "איכה"
+    },
+    {
+      "_id": "69601ce864ff2ce71f4630be",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 57:9",
+      "anchorRef": "Kitzur Shulchan Arukh 1:5",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:5"
+      ],
+      "sourceRef": "Psalms 57:9",
+      "sourceHeRef": "תהילים נ״ז:ט׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 57.0009,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "69601ce964ff2ce71f4630c2",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 134:1",
+      "anchorRef": "Kitzur Shulchan Arukh 1:5",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:5"
+      ],
+      "sourceRef": "Psalms 134:1",
+      "sourceHeRef": "תהילים קל״ד:א׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 134.0001,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "53b8c97afbfba25e5bdd1f54",
+      "index_title": "Lamentations",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Lamentations 2:19",
+      "anchorRef": "Kitzur Shulchan Arukh 1:6",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:6"
+      ],
+      "sourceRef": "Lamentations 2:19",
+      "sourceHeRef": "איכה ב׳:י״ט",
+      "anchorVerse": 6,
+      "sourceHasEn": true,
+      "compDate": [
+        -600,
+        -500
+      ],
+      "commentaryNum": 2.0019,
+      "collectiveTitle": {
+        "en": "Lamentations",
+        "he": "איכה"
+      },
+      "heTitle": "איכה"
+    },
+    {
+      "_id": "53b8ca13fbfba25e5bdd1f56",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 134:1",
+      "anchorRef": "Kitzur Shulchan Arukh 1:6",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:6"
+      ],
+      "sourceRef": "Psalms 134:1",
+      "sourceHeRef": "תהילים קל״ד:א׳",
+      "anchorVerse": 6,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 134.0001,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "53b8ca2afbfba25e5bdd1f58",
+      "index_title": "Menachot",
+      "category": "Talmud",
+      "type": "",
+      "ref": "Menachot 110a",
+      "anchorRef": "Kitzur Shulchan Arukh 1:6",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:6"
+      ],
+      "sourceRef": "Menachot 110a",
+      "sourceHeRef": "מנחות ק״י א",
+      "anchorVerse": 6,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 219,
+      "collectiveTitle": {
+        "en": "Menachot",
+        "he": "מנחות"
+      },
+      "heTitle": "מנחות"
+    },
+    {
+      "_id": "69601c9d5315987136800cbd",
+      "index_title": "Kitzur Shulchan Arukh",
+      "category": "Halakhah",
+      "type": "",
+      "ref": "Kitzur Shulchan Arukh 49",
+      "anchorRef": "Kitzur Shulchan Arukh 1:6",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:6"
+      ],
+      "sourceRef": "Kitzur Shulchan Arukh 49",
+      "sourceHeRef": "קיצור שלחן ערוך מ״ט",
+      "anchorVerse": 6,
+      "sourceHasEn": true,
+      "compDate": [
+        1844,
+        1864
+      ],
+      "commentaryNum": 49,
+      "collectiveTitle": {
+        "en": "Kitzur Shulchan Arukh",
+        "he": "קיצור שלחן ערוך"
+      },
+      "heTitle": "קיצור שלחן ערוך"
+    },
+    {
+      "_id": "6a04a1b6322a5c64139b6eb5",
+      "index_title": "Seder Ma'amadot",
+      "category": "Liturgy",
+      "type": "",
+      "ref": "Seder Ma'amadot 3:40",
+      "anchorRef": "Kitzur Shulchan Arukh 1:7",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:7"
+      ],
+      "sourceRef": "Seder Ma'amadot 3:40",
+      "sourceHeRef": "סדר מעמדות ג׳:מ׳",
+      "anchorVerse": 7,
+      "sourceHasEn": true,
+      "compDate": [
+        1000,
+        1060
+      ],
+      "commentaryNum": 3.004,
+      "collectiveTitle": {
+        "en": "Seder Ma'amadot",
+        "he": "סדר מעמדות"
+      },
+      "heTitle": "סדר מעמדות"
+    },
+    {
+      "_id": "51d4400dedbab443a0c137c5",
+      "index_title": "Jeremiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Jeremiah 23:24",
+      "anchorRef": "Kitzur Shulchan Arukh 1:1",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:1"
+      ],
+      "sourceRef": "Jeremiah 23:24",
+      "sourceHeRef": "ירמיהו כ״ג:כ״ד",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        -600,
+        -500
+      ],
+      "commentaryNum": 23.0024,
+      "collectiveTitle": {
+        "en": "Jeremiah",
+        "he": "ירמיהו"
+      },
+      "heTitle": "ירמיהו"
+    },
+    {
+      "_id": "69601ce864ff2ce71f4630bc",
+      "index_title": "Jeremiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Jeremiah 25:30",
+      "anchorRef": "Kitzur Shulchan Arukh 1:5",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:5"
+      ],
+      "sourceRef": "Jeremiah 25:30",
+      "sourceHeRef": "ירמיהו כ״ה:ל׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        -600,
+        -500
+      ],
+      "commentaryNum": 25.003,
+      "collectiveTitle": {
+        "en": "Jeremiah",
+        "he": "ירמיהו"
+      },
+      "heTitle": "ירמיהו"
+    },
+    {
+      "_id": "69601ce964ff2ce71f4630c0",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "",
+      "ref": "Berakhot 3a",
+      "anchorRef": "Kitzur Shulchan Arukh 1:5",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:5"
+      ],
+      "sourceRef": "Berakhot 3a",
+      "sourceHeRef": "ברכות ג׳ א",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 5,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "69601d492d1cfff954111b6a",
+      "index_title": "Kitzur Shulchan Arukh",
+      "category": "Halakhah",
+      "type": "",
+      "ref": "Kitzur Shulchan Arukh 1:5",
+      "anchorRef": "Kitzur Shulchan Arukh 151:7",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 151:7"
+      ],
+      "sourceRef": "Kitzur Shulchan Arukh 1:5",
+      "sourceHeRef": "קיצור שלחן ערוך א׳:ה׳",
+      "anchorVerse": 7,
+      "sourceHasEn": true,
+      "compDate": [
+        1844,
+        1864
+      ],
+      "commentaryNum": 1.0005,
+      "collectiveTitle": {
+        "en": "Kitzur Shulchan Arukh",
+        "he": "קיצור שלחן ערוך"
+      },
+      "heTitle": "קיצור שלחן ערוך"
+    },
+    {
+      "_id": "53b8ca77fbfba25e5bdd1f5a",
+      "index_title": "Gittin",
+      "category": "Talmud",
+      "type": "reference",
+      "ref": "Gittin 60b",
+      "anchorRef": "Kitzur Shulchan Arukh 1:7",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:7"
+      ],
+      "sourceRef": "Gittin 60b",
+      "sourceHeRef": "גיטין ס׳ ב",
+      "anchorVerse": 7,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 120,
+      "collectiveTitle": {
+        "en": "Gittin",
+        "he": "גיטין"
+      },
+      "heTitle": "גיטין"
+    }
+  ],
+  "sheets": [
+    {
+      "owner": 42463,
+      "_id": "5a12a53cf0864d4914ac02b8",
+      "id": "88167",
+      "public": true,
+      "title": "is there room for shtick in our shtark lives?",
+      "sheetUrl": "/sheets/88167",
+      "anchorRef": "Kitzur Shulchan Arukh 1:1",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:1"
+      ],
+      "options": {
+        "layout": "sideBySide",
+        "bsd": 0,
+        "collaboration": "none",
+        "language": "bilingual",
+        "highlightMode": 0,
+        "boxed": 0,
+        "langLayout": "heRight",
+        "assignable": 0,
+        "numbered": 0,
+        "divineNames": "h"
+      },
+      "collectionTOC": null,
+      "ownerName": "alli cohen",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/alli-cohen",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 2926,
+      "topics": [],
+      "likes": [],
+      "summary": "",
+      "attribution": "",
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2017-11-20T01:49:48.572830",
+      "combined_score": 0.3436700778269281
+    },
+    {
+      "owner": 59076,
+      "_id": "5f56a2f572fc7b8ee1a6664f",
+      "id": "260884",
+      "public": true,
+      "title": "Nitzavim: Stepping Back in Order to Move Forward",
+      "sheetUrl": "/sheets/260884",
+      "anchorRef": "Kitzur Shulchan Arukh 1:1",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:1"
+      ],
+      "options": {
+        "numbered": 1,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 1,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "h",
+        "highlightMode": 0,
+        "collaboration": "anyone-can-edit"
+      },
+      "collectionTOC": null,
+      "ownerName": "Suzanne Rabinovitch",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/suzanne-rabinovitch",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 1123,
+      "topics": [
+        {
+          "asTyped": "Teshuvah",
+          "slug": "teshuvah",
+          "en": "Teshuvah",
+          "he": "תשובה"
+        },
+        {
+          "asTyped": "Mindfulness",
+          "slug": "mindfulness",
+          "en": "Mindfulness",
+          "he": "שימת לב"
+        },
+        {
+          "asTyped": "Rosh Hashanah",
+          "slug": "rosh-hashanah",
+          "en": "Rosh Hashanah",
+          "he": "ראש השנה"
+        },
+        {
+          "asTyped": "Parshat Nitzavim",
+          "slug": "parashat-nitzavim",
+          "en": "Parshat Nitzavim",
+          "he": "פרשת נצבים"
+        },
+        {
+          "asTyped": "Elul",
+          "slug": "elul",
+          "en": "Elul",
+          "he": "אלול"
+        },
+        {
+          "asTyped": "Netzavim",
+          "slug": "parashat-nitzavim",
+          "en": "Netzavim",
+          "he": "פרשת נצבים"
+        },
+        {
+          "asTyped": "Awareness",
+          "slug": "awareness",
+          "en": "Awareness",
+          "he": "מודעות"
+        }
+      ],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2020-09-07T18:15:33.026279",
+      "combined_score": 0.32235242934208475
+    },
+    {
+      "owner": 125864,
+      "_id": "607d7815ffab0b064dda7776",
+      "id": "315349",
+      "public": true,
+      "title": "קיצור שולחן ערוך חלק א",
+      "sheetUrl": "/sheets/315349",
+      "anchorRef": "Kitzur Shulchan Arukh 1",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:3",
+        "Kitzur Shulchan Arukh 1:1",
+        "Kitzur Shulchan Arukh 1:5",
+        "Kitzur Shulchan Arukh 1:7",
+        "Kitzur Shulchan Arukh 1:6",
+        "Kitzur Shulchan Arukh 1:4",
+        "Kitzur Shulchan Arukh 1:2"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "stacked",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "ארז כהן",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/-13089",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 4581,
+      "topics": [],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2021-04-19T09:31:17.384218",
+      "combined_score": 0.22585942295887046
+    },
+    {
+      "owner": 141485,
+      "_id": "61839b7c6d596ce7d6c636f1",
+      "id": "359633",
+      "public": true,
+      "title": "Commandements - extraits des grands livres",
+      "sheetUrl": "/sheets/359633",
+      "anchorRef": "Kitzur Shulchan Arukh 1",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:3",
+        "Kitzur Shulchan Arukh 1:1",
+        "Kitzur Shulchan Arukh 1:5",
+        "Kitzur Shulchan Arukh 1:7",
+        "Kitzur Shulchan Arukh 1:6",
+        "Kitzur Shulchan Arukh 1:4",
+        "Kitzur Shulchan Arukh 1:2"
+      ],
+      "options": {
+        "numbered": 1,
+        "boxed": 1,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "hebrew",
+        "layout": "stacked",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Floriane Chinsky",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/floriane-chinsky",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 462,
+      "topics": [],
+      "likes": [],
+      "summary": "sources floriane 2",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2021-11-04T05:36:12.191172",
+      "combined_score": 0.22534567901234565
+    },
+    {
+      "owner": 47995,
+      "_id": "60afd7c27382e9fe67fa15f9",
+      "id": "326459",
+      "public": true,
+      "title": "A New Beginning: Modeh Ani and the Jewish New Year",
+      "sheetUrl": "/sheets/326459",
+      "anchorRef": "Kitzur Shulchan Arukh 1:2",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:2"
+      ],
+      "options": {
+        "numbered": 1,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 1,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "h",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Jacob Felix",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/jacob-felix",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 2430,
+      "topics": [
+        {
+          "slug": "rosh-hashanah",
+          "asTyped": "Rosh Hashanah",
+          "en": "Rosh Hashanah",
+          "he": "ראש השנה"
+        },
+        {
+          "slug": "new-year",
+          "asTyped": "New Year",
+          "en": "New Year",
+          "he": "שנה חדשה"
+        },
+        {
+          "slug": "gratitude",
+          "asTyped": "Gratitude",
+          "en": "Gratitude",
+          "he": "הכרת הטוב"
+        },
+        {
+          "slug": "prayer",
+          "asTyped": "Tefila",
+          "en": "Tefila",
+          "he": "תפילה"
+        }
+      ],
+      "likes": [],
+      "summary": "A collection of sources on Modeh Ani",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2021-05-27T14:32:50.549711",
+      "combined_score": 0.3135956644674835
+    },
+    {
+      "owner": 87059,
+      "_id": "6237c6f96b9bbc181808314a",
+      "id": "393251",
+      "public": true,
+      "title": "Loosen - Aly Halpert",
+      "sheetUrl": "/sheets/393251",
+      "anchorRef": "Kitzur Shulchan Arukh 1:2",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:2"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 1,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heLeft",
+        "divineNames": "h",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Rising Song Institute",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/rising-song-institute",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/rising-song-institute-1643748821-small.png",
+      "status": "public",
+      "views": 9723,
+      "topics": [
+        {
+          "asTyped": "Elul",
+          "slug": "elul",
+          "en": "Elul",
+          "he": "אלול"
+        },
+        {
+          "asTyped": "Healing",
+          "slug": "medicine",
+          "en": "Healing",
+          "he": "תרופה"
+        },
+        {
+          "asTyped": "Liturgy",
+          "slug": "prayer",
+          "en": "Liturgy",
+          "he": "תפילה"
+        },
+        {
+          "asTyped": "Songs",
+          "slug": "songs",
+          "en": "Songs",
+          "he": "שירים"
+        },
+        {
+          "asTyped": "Niggun",
+          "slug": "niggun",
+          "en": "Niggun",
+          "he": "ניגון"
+        },
+        {
+          "asTyped": "Music",
+          "slug": "music",
+          "en": "Music",
+          "he": "מוסיקה"
+        },
+        {
+          "asTyped": "Psalms",
+          "slug": "psalms",
+          "en": "Psalms",
+          "he": "תהילים"
+        },
+        {
+          "asTyped": "Ashrei",
+          "slug": "ashrei",
+          "en": "Ashrei",
+          "he": ""
+        },
+        {
+          "asTyped": "תהילים",
+          "slug": "psalms",
+          "he": "תהילים",
+          "en": "Psalms"
+        }
+      ],
+      "likes": [],
+      "summary": "This source sheet collects the lyrics from Aly Halpert's forthcoming album, Loosen, and is interspersed with song demos and video from the recording sessions, and occasionally related teachings/texts for further learning and guitar chords so you can play along.",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2022-03-20T21:29:44.633794",
+      "combined_score": 0.7633308183002954
+    },
+    {
+      "owner": 47987,
+      "_id": "63612d6d3c5aa66df1d84c6e",
+      "id": "442562",
+      "public": true,
+      "title": "קיצור שלחן ערוך הלכות השכמת הבקר",
+      "sheetUrl": "/sheets/442562",
+      "anchorRef": "Kitzur Shulchan Arukh 1:2",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:2"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Yechiel Chrysler",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/yechiel--chrysler",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 797,
+      "topics": [
+        {
+          "slug": "arising-in-the-morning",
+          "asTyped": "Arising in the Morning",
+          "en": "Arising in the Morning",
+          "he": ""
+        },
+        {
+          "slug": "הלכות-השכמת-הבוקר",
+          "asTyped": "הלכות השכמת הבוקר",
+          "he": "הלכות השכמת הבוקר",
+          "en": ""
+        }
+      ],
+      "likes": [],
+      "summary": "Fill in the blanks - Kitzur Shulchon Oruch S1 s2",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2022-11-01T11:30:05.687777",
+      "combined_score": 0.46693430656934304
+    },
+    {
+      "owner": 54319,
+      "_id": "6383819d855f60e512639775",
+      "id": "448826",
+      "public": true,
+      "title": "Gratitude",
+      "sheetUrl": "/sheets/448826",
+      "anchorRef": "Kitzur Shulchan Arukh 1:2",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:2"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "h",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Alise Gold",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/alise-gold",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/alise-gold-1626798777-small.png",
+      "status": "public",
+      "views": 2279,
+      "topics": [
+        {
+          "asTyped": "Modeh Ani",
+          "slug": "modeh-ani",
+          "en": "Modeh Ani",
+          "he": ""
+        },
+        {
+          "asTyped": "Gratitude",
+          "slug": "gratitude",
+          "en": "Gratitude",
+          "he": "הכרת הטוב"
+        },
+        {
+          "asTyped": "Vayeitzei",
+          "slug": "parashat-vayetzei",
+          "en": "Vayeitzei",
+          "he": "פרשת ויצא"
+        },
+        {
+          "asTyped": "Chanukah",
+          "slug": "chanukkah",
+          "en": "Chanukah",
+          "he": "חנוכה"
+        },
+        {
+          "asTyped": "Leah",
+          "slug": "leah",
+          "en": "Leah",
+          "he": "לאה"
+        }
+      ],
+      "likes": [],
+      "summary": "Chanukah and Gratitude",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2022-11-27T11:26:21.582695",
+      "combined_score": 0.45688690759789274
+    },
+    {
+      "owner": 176933,
+      "_id": "643ff813340f1cfef03358b5",
+      "id": "481200",
+      "public": true,
+      "title": "In-Work Ashkenaz Siddur",
+      "sheetUrl": "/sheets/481200",
+      "anchorRef": "Kitzur Shulchan Arukh 1:2",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:2"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "MS Z",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/mordechaishachnazirkind",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/mordechai-shachna-zirkind2-1673883536-small.png",
+      "status": "public",
+      "views": 917,
+      "topics": [],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2023-04-19T11:17:55.502815",
+      "combined_score": 0.19334040836601285
+    },
+    {
+      "owner": 72739,
+      "_id": "645cbac9d6017b8bb75d245d",
+      "id": "486232",
+      "public": true,
+      "title": "Parashat Behar-Shemita y Emuna",
+      "sheetUrl": "/sheets/486232",
+      "anchorRef": "Kitzur Shulchan Arukh 1:2",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:2"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "hebrew",
+        "layout": "stacked",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Baruj Sirota",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/diego-sirota",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 702,
+      "topics": [],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2023-05-11T06:52:09.961866",
+      "combined_score": 0.3476726238429619
+    },
+    {
+      "owner": 222709,
+      "_id": "670d46a8a7194ed1867af238",
+      "id": "597092",
+      "public": true,
+      "title": "Modeh Ani and Mindfulness",
+      "sheetUrl": "/sheets/597092",
+      "anchorRef": "Kitzur Shulchan Arukh 1:2",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:2"
+      ],
+      "options": {
+        "numbered": 0,
+        "divineNames": "h"
+      },
+      "collectionTOC": null,
+      "ownerName": "Julia Lange",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/julia-lange1",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 775,
+      "topics": [
+        {
+          "asTyped": "Mindfulness",
+          "slug": "mindfulness",
+          "en": "Mindfulness",
+          "he": "שימת לב"
+        },
+        {
+          "asTyped": "Breath",
+          "slug": "breath",
+          "en": "Breath",
+          "he": "נשימה"
+        }
+      ],
+      "likes": [],
+      "summary": "Brainstorming for a session on modeh ani and the DBT skill of mindfulness",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2024-10-14T13:28:24.784657",
+      "combined_score": 0.47685029364390474
+    },
+    {
+      "owner": 106992,
+      "_id": "6a17281c699a22ffe8c56053",
+      "id": "732173",
+      "public": true,
+      "title": "Renewal as Cosmic Principle",
+      "sheetUrl": "/sheets/732173",
+      "anchorRef": "Kitzur Shulchan Arukh 1:2",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:2"
+      ],
+      "options": {
+        "layout": "stacked",
+        "boxed": 0,
+        "language": "bilingual",
+        "numbered": 0,
+        "assignable": 0,
+        "divineNames": "noSub",
+        "collaboration": "none",
+        "highlightMode": 0,
+        "langLayout": "heRight",
+        "bsd": 0
+      },
+      "collectionTOC": null,
+      "ownerName": "Melanie Gruenwald",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/melanie-gruenwald",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/melanie-gruenwald-1643245342-small.png",
+      "status": "public",
+      "views": 53,
+      "topics": [
+        {
+          "asTyped": "Renewal",
+          "slug": "renewal",
+          "en": "Renewal",
+          "he": "התחדשות"
+        }
+      ],
+      "likes": [],
+      "summary": "Sources on renewal and constant change",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2026-05-27T14:21:32.571503",
+      "combined_score": 0
+    },
+    {
+      "owner": 22369,
+      "_id": "5734d6cbb77993fa7c4084ee",
+      "id": "34284",
+      "public": true,
+      "title": "Run,Don't Walk  זריזות",
+      "sheetUrl": "/sheets/34284",
+      "anchorRef": "Kitzur Shulchan Arukh 1:3",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:3"
+      ],
+      "options": {
+        "layout": "sideBySide",
+        "bsd": 0,
+        "collaboration": "none",
+        "language": "bilingual",
+        "boxed": 0,
+        "langLayout": "heRight",
+        "assignable": 0,
+        "numbered": 0,
+        "divineNames": "noSub"
+      },
+      "collectionTOC": null,
+      "ownerName": "Ayelet Shachar",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/ayelet-shachar",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 3521,
+      "topics": [],
+      "likes": [],
+      "summary": null,
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2016-05-12T12:17:31.717531",
+      "combined_score": 0.5036271991270368
+    },
+    {
+      "owner": 12563,
+      "_id": "58b5a6a11905c62b2678e295",
+      "id": "58413",
+      "public": true,
+      "title": "Out of Control: The Antelope as a Model for Radical Devotion",
+      "sheetUrl": "/sheets/58413",
+      "anchorRef": "Kitzur Shulchan Arukh 1:3",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:3"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 1,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heLeft",
+        "divineNames": "h",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Josh Fleet",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/josh-fleet",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/josh-fleet-1626301319-small.png",
+      "status": "public",
+      "views": 3039,
+      "topics": [
+        {
+          "asTyped": "Animals",
+          "slug": "animals",
+          "en": "Animals",
+          "he": "בעלי חיים"
+        }
+      ],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2017-02-28T08:34:41.861726",
+      "combined_score": 0.43350569121428695
+    },
+    {
+      "owner": 21491,
+      "_id": "5d54af128eb15e515f62cc97",
+      "id": "186479",
+      "public": true,
+      "title": "Running",
+      "sheetUrl": "/sheets/186479",
+      "anchorRef": "Kitzur Shulchan Arukh 1:3",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:3"
+      ],
+      "options": {
+        "numbered": 0,
+        "bsd": 0,
+        "highlightMode": 0,
+        "assignable": 0,
+        "langLayout": "heRight",
+        "layout": "sideBySide",
+        "boxed": 0,
+        "collaboration": "none",
+        "divineNames": "noSub",
+        "language": "bilingual"
+      },
+      "collectionTOC": null,
+      "ownerName": "Barry Leff",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/rabbi-barry-leff",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 1896,
+      "topics": [
+        {
+          "slug": "running",
+          "asTyped": "Running",
+          "en": "Running",
+          "he": "ריצה"
+        },
+        {
+          "slug": "exercise",
+          "asTyped": "Exercise",
+          "en": "Exercise",
+          "he": ""
+        }
+      ],
+      "likes": [],
+      "summary": "Running in scripture and Talmud",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2019-08-14T22:02:10.429893",
+      "combined_score": 0.07536697247706421
+    },
+    {
+      "owner": 176749,
+      "_id": "67352364c12372448a6977d4",
+      "id": "604144",
+      "public": true,
+      "title": "This is about running, and this is not about running",
+      "sheetUrl": "/sheets/604144",
+      "anchorRef": "Kitzur Shulchan Arukh 1:3",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:3"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Tobi Katz",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/tobi-katz3",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 231,
+      "topics": [],
+      "likes": [],
+      "summary": "Sources related to running",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2024-11-13T18:08:36.307133",
+      "combined_score": 0.3556160849569601
+    },
+    {
+      "owner": 59076,
+      "_id": "60d4d7d349e5bde02a523221",
+      "id": "331865",
+      "public": true,
+      "title": "Consistency: Making and Breaking Habits",
+      "sheetUrl": "/sheets/331865",
+      "anchorRef": "Kitzur Shulchan Arukh 1:4",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:4"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 1,
+        "assignable": 0,
+        "bsd": 1,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "h",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Suzanne Rabinovitch",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/suzanne-rabinovitch",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 2357,
+      "topics": [
+        {
+          "slug": "emotions",
+          "asTyped": "Emotions",
+          "en": "Emotions",
+          "he": "רגשות"
+        },
+        {
+          "slug": "consistency",
+          "asTyped": "Consistency",
+          "en": "Consistency",
+          "he": ""
+        },
+        {
+          "slug": "human-knowledge",
+          "asTyped": "Human Knowledge",
+          "en": "Human Knowledge",
+          "he": "ידיעה אנושית"
+        },
+        {
+          "slug": "god-and-man",
+          "asTyped": "God and Man",
+          "en": "God and Man",
+          "he": "אלקים ואדם"
+        },
+        {
+          "slug": "god",
+          "asTyped": "God",
+          "en": "God",
+          "he": "אלוהים"
+        },
+        {
+          "slug": "mitzvot",
+          "asTyped": "Mitzvot",
+          "en": "Mitzvot",
+          "he": "מצוות"
+        },
+        {
+          "slug": "habits1",
+          "asTyped": "Habits",
+          "en": "Habits",
+          "he": "הרגל"
+        }
+      ],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2021-06-24T16:06:59.707332",
+      "combined_score": 0.7329012164188805
+    },
+    {
+      "owner": 57599,
+      "_id": "6372c1998d24c01db4defc43",
+      "id": "446193",
+      "public": true,
+      "title": "לימוד יומי - קשר השותפות",
+      "sheetUrl": "/sheets/446193",
+      "anchorRef": "Kitzur Shulchan Arukh 1:4",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:4"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 1,
+        "language": "hebrew",
+        "layout": "stacked",
+        "langLayout": "heRight",
+        "divineNames": "h",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Idan Eilon",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/idan-eilon",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/idan-eilon-1626799243-small.png",
+      "status": "public",
+      "views": 454,
+      "topics": [],
+      "likes": [],
+      "summary": "",
+      "attribution": "",
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2022-11-14T18:30:49.367817",
+      "combined_score": 0.41287370765344333
+    },
+    {
+      "owner": 239690,
+      "_id": "682fc2951297e07567ad2098",
+      "id": "650603",
+      "public": true,
+      "title": "Equilibrium",
+      "sheetUrl": "/sheets/650603",
+      "anchorRef": "Kitzur Shulchan Arukh 1:4",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:4"
+      ],
+      "options": {
+        "layout": "stacked",
+        "boxed": 0,
+        "language": "bilingual",
+        "numbered": 0,
+        "assignable": 0,
+        "divineNames": "noSub",
+        "collaboration": "none",
+        "highlightMode": 0,
+        "langLayout": "heRight",
+        "bsd": 0
+      },
+      "collectionTOC": null,
+      "ownerName": "Manuel Maimon",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/melmaimon",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/manuel-maimon1-1747428529-small.png",
+      "status": "public",
+      "views": 379,
+      "topics": [
+        {
+          "asTyped": "Emunah",
+          "slug": "faith",
+          "en": "Emunah",
+          "he": "אמונה"
+        },
+        {
+          "asTyped": "Nefesh",
+          "slug": "neshama",
+          "en": "Nefesh",
+          "he": "נשמה"
+        },
+        {
+          "asTyped": "Ruach",
+          "slug": "ruach1",
+          "en": "Ruach",
+          "he": "רוח (נשמת חיים)"
+        },
+        {
+          "asTyped": "Balance",
+          "slug": "balance",
+          "en": "Balance",
+          "he": ""
+        }
+      ],
+      "likes": [],
+      "summary": "Distinguishing the polarities with measure and balance.",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2025-05-22T21:34:29.962692",
+      "combined_score": 0.4976487302898903
+    }
+  ],
+  "notes": [],
+  "topics": [
+    {
+      "linkType": "popular-writing-of",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Sefaria",
+        "he": "ספריא",
+        "slug": "sefaria"
+      },
+      "is_sheet": false,
+      "generatedBy": "calculate_popular_writings_for_authors",
+      "order": {
+        "custom_order": 345.96000000000004,
+        "tfidf": 1.11222852986598,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 1844,
+        "order_id": "A00400700010001",
+        "pr": 0,
+        "numSources": 10
+      },
+      "topic": "shlomo-ganzfried",
+      "title": {
+        "en": "Shlomo Ganzfried",
+        "he": "רבי שלמה בן יוסף גאנצפריד"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {
+        "en": "Shlomo ben Joseph Ganzfried was the rabbi of Brezevitz for many years before returning to his hometown of Ungvar (Austrian Empire/Ukraine) to serve as a judge on the rabbinical court. In his role as community leader, Ganzfried came to believe that every Jew needed to know and understand Jewish law if Orthodoxy was to survive. To that end he composed the Kitzur Shulchan Aruch, which was published both in Hebrew and in Yiddish and quickly became popular.",
+        "he": "שלמה בן יוסף גאנצפריד היה הרב בברזביץ במשך שנים רבות, ולאחר מכן חזר לעיר הולדתו אונגבר (האימפריה האוסטרית / אוקראינה) כדי לכהן כדיין בבית הדין. במהלך תפקידו כמנהיג קהילה הבין שכדי שהאורתודוקסיה תשרוד, על כל יהודי לדעת ולהבין את ההלכה. לשם כך כתב את הקיצור שולחן ערוך, שיצא לאור בעברית וביידיש ונעשה פופולרי במהרה."
+      },
+      "shouldDisplay": true,
+      "pools": [
+        "library"
+      ],
+      "anchorRef": "Kitzur Shulchan Arukh 1:1",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:1"
+      ]
+    },
+    {
+      "linkType": "popular-writing-of",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Sefaria",
+        "he": "ספריא",
+        "slug": "sefaria"
+      },
+      "is_sheet": false,
+      "generatedBy": "calculate_popular_writings_for_authors",
+      "order": {
+        "custom_order": 836.9120692460101,
+        "tfidf": 0.9080267418331383,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 1844,
+        "order_id": "A00400700010004",
+        "pr": 0,
+        "numSources": 10
+      },
+      "topic": "shlomo-ganzfried",
+      "title": {
+        "en": "Shlomo Ganzfried",
+        "he": "רבי שלמה בן יוסף גאנצפריד"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {
+        "en": "Shlomo ben Joseph Ganzfried was the rabbi of Brezevitz for many years before returning to his hometown of Ungvar (Austrian Empire/Ukraine) to serve as a judge on the rabbinical court. In his role as community leader, Ganzfried came to believe that every Jew needed to know and understand Jewish law if Orthodoxy was to survive. To that end he composed the Kitzur Shulchan Aruch, which was published both in Hebrew and in Yiddish and quickly became popular.",
+        "he": "שלמה בן יוסף גאנצפריד היה הרב בברזביץ במשך שנים רבות, ולאחר מכן חזר לעיר הולדתו אונגבר (האימפריה האוסטרית / אוקראינה) כדי לכהן כדיין בבית הדין. במהלך תפקידו כמנהיג קהילה הבין שכדי שהאורתודוקסיה תשרוד, על כל יהודי לדעת ולהבין את ההלכה. לשם כך כתב את הקיצור שולחן ערוך, שיצא לאור בעברית וביידיש ונעשה פופולרי במהרה."
+      },
+      "shouldDisplay": true,
+      "pools": [
+        "library"
+      ],
+      "anchorRef": "Kitzur Shulchan Arukh 1:4",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:4"
+      ]
+    },
+    {
+      "linkType": "popular-writing-of",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Sefaria",
+        "he": "ספריא",
+        "slug": "sefaria"
+      },
+      "is_sheet": false,
+      "generatedBy": "calculate_popular_writings_for_authors",
+      "order": {
+        "custom_order": 353.44000000000005,
+        "tfidf": 0.8904097078759218,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 1844,
+        "order_id": "A00400700010002",
+        "pr": 0,
+        "numSources": 10
+      },
+      "topic": "shlomo-ganzfried",
+      "title": {
+        "en": "Shlomo Ganzfried",
+        "he": "רבי שלמה בן יוסף גאנצפריד"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {
+        "en": "Shlomo ben Joseph Ganzfried was the rabbi of Brezevitz for many years before returning to his hometown of Ungvar (Austrian Empire/Ukraine) to serve as a judge on the rabbinical court. In his role as community leader, Ganzfried came to believe that every Jew needed to know and understand Jewish law if Orthodoxy was to survive. To that end he composed the Kitzur Shulchan Aruch, which was published both in Hebrew and in Yiddish and quickly became popular.",
+        "he": "שלמה בן יוסף גאנצפריד היה הרב בברזביץ במשך שנים רבות, ולאחר מכן חזר לעיר הולדתו אונגבר (האימפריה האוסטרית / אוקראינה) כדי לכהן כדיין בבית הדין. במהלך תפקידו כמנהיג קהילה הבין שכדי שהאורתודוקסיה תשרוד, על כל יהודי לדעת ולהבין את ההלכה. לשם כך כתב את הקיצור שולחן ערוך, שיצא לאור בעברית וביידיש ונעשה פופולרי במהרה."
+      },
+      "shouldDisplay": true,
+      "pools": [
+        "library"
+      ],
+      "anchorRef": "Kitzur Shulchan Arukh 1:2",
+      "anchorRefExpanded": [
+        "Kitzur Shulchan Arukh 1:2"
+      ]
+    }
+  ],
+  "manuscripts": [],
+  "media": [],
+  "guides": []
+}

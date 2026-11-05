@@ -1,0 +1,291 @@
+{
+  "title": "Ben Sira",
+  "categories": [
+    "Second Temple",
+    "Apocrypha"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Pasuk"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Verse"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "sefer",
+          "ben-sira"
+        ]
+      },
+      {
+        "term_slugs": [
+          "ben-sira"
+        ]
+      }
+    ],
+    "lengths": [
+      51,
+      1018
+    ],
+    "titles": [
+      {
+        "text": "Ecclesiasticus",
+        "lang": "en"
+      },
+      {
+        "text": "Wisdom of Sirach",
+        "lang": "en"
+      },
+      {
+        "text": "Sirach",
+        "lang": "en"
+      },
+      {
+        "text": "The Wisdom of Ben Sira",
+        "lang": "en"
+      },
+      {
+        "text": "Book of Ben Sira",
+        "lang": "en"
+      },
+      {
+        "text": "בן סירא",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "חכמת בן סירא",
+        "lang": "he"
+      },
+      {
+        "text": "Ben Sira",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Ben Sira",
+    "heTitle": "בן סירא",
+    "heSectionNames": [
+      "פרק",
+      "פסוק"
+    ],
+    "key": "Ben Sira",
+    "content_counts": [
+      35,
+      18,
+      31,
+      33,
+      20,
+      37,
+      37,
+      25,
+      24,
+      33,
+      45,
+      25,
+      27,
+      27,
+      20,
+      26,
+      0,
+      33,
+      2,
+      13,
+      23,
+      0,
+      0,
+      0,
+      25,
+      3,
+      6,
+      13,
+      0,
+      28,
+      46,
+      24,
+      3,
+      20,
+      27,
+      0,
+      36,
+      27,
+      35,
+      30,
+      24,
+      23,
+      33,
+      24,
+      27,
+      21,
+      25,
+      25,
+      16,
+      28,
+      33
+    ]
+  },
+  "authors": [
+    {
+      "en": "Ben Sira",
+      "he": "בן סירא",
+      "slug": "ben-sira"
+    }
+  ],
+  "enDesc": "Ben Sira, also known as Ecclesiasticus, is an apocryphal poetic book of guidance for living a wise, ethical, and God-fearing life, composed in the second century BCE by a scribe in Jerusalem named Shimon ben Yeshua ben Elazar ben Sira. The book was translated into Greek by the author’s grandson, and by the early medieval period the original Hebrew was lost. In the late-19th century, fragments of the work in its original Hebrew were among the first texts discovered in the Cairo Genizah. Ben Sira is quoted several times in rabbinic literature and is the first known source for several customs that were later codified as law, like saying a blessing upon seeing a rainbow (Ben Sira 43:11).",
+  "heDesc": "הספר בן סירא, הידוע גם בשם \"חכמת בן סירא\" או \"משלי בן סירא\", הוא מהספרים הידועים ביותר בין הספרים החיצוניים, כולל הנחיות מוסריות וקריאה לשמירת התורה, יחד עם המנונים בשבח אבות העולם ובשבח הכהן הגדול, ועוד. לשונו של ספר בן סירא דומה לזו של ספרות החכמה המקראית כדוגמת משלי ואיוב, כמו גם ללשונם של חלק ממזמורי תהלים.",
+  "enShortDesc": "Poetic book of guidance for living a wise and ethical life, composed in the second century BCE",
+  "heShortDesc": "ספר הדרכה לחיי חכמה ומוסר מן המאה ה-2 לפני הספירה.",
+  "pubDate": [
+    1455
+  ],
+  "compDate": [
+    180
+  ],
+  "compPlace": "Jerusalem",
+  "pubPlace": "Mainz, Germany",
+  "era": "T",
+  "heTitle": "בן סירא",
+  "titleVariants": [
+    "Ecclesiasticus",
+    "Wisdom of Sirach",
+    "Sirach",
+    "The Wisdom of Ben Sira",
+    "Book of Ben Sira",
+    "Ben Sira"
+  ],
+  "heTitleVariants": [
+    "בן סירא",
+    "חכמת בן סירא"
+  ],
+  "sectionNames": [
+    "Chapter",
+    "Verse"
+  ],
+  "depth": 2,
+  "firstSectionRef": "Ben Sira 1",
+  "heCategories": [
+    "בית שני",
+    "ספרים חיצונים"
+  ],
+  "compDateString": {
+    "en": " (180 CE)",
+    "he": " (180 לספירה)"
+  },
+  "pubDateString": {
+    "en": " (1455 CE)",
+    "he": " (1455 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Jerusalem",
+    "he": "ירושלים"
+  },
+  "pubPlaceString": {
+    "en": "Mainz, Germany",
+    "he": "מיינץ, גרמניה"
+  },
+  "relatedTopics": [
+    {
+      "slug": "joy",
+      "title": {
+        "en": "Joy",
+        "he": "שמחה"
+      }
+    },
+    {
+      "slug": "health",
+      "title": {
+        "en": "Health",
+        "he": "בריאות"
+      }
+    },
+    {
+      "slug": "yirat-shamayim",
+      "title": {
+        "en": "Fear of Heaven",
+        "he": "יראת שמיים"
+      }
+    },
+    {
+      "slug": "happiness",
+      "title": {
+        "en": "Happiness",
+        "he": "אושר"
+      }
+    },
+    {
+      "slug": "life",
+      "title": {
+        "en": "Life",
+        "he": "חיים"
+      }
+    },
+    {
+      "slug": "hezekiah",
+      "title": {
+        "en": "Hezekiah",
+        "he": "חזקיה"
+      }
+    },
+    {
+      "slug": "pinchas",
+      "title": {
+        "en": "Pinchas",
+        "he": "פינחס"
+      }
+    },
+    {
+      "slug": "natan",
+      "title": {
+        "en": "Natan",
+        "he": "נתן הנביא"
+      }
+    },
+    {
+      "slug": "good",
+      "title": {
+        "en": "Good",
+        "he": "טוב"
+      }
+    },
+    {
+      "slug": "rabbinic-authority",
+      "title": {
+        "en": "Rabbinic Authority",
+        "he": "רבנות"
+      }
+    },
+    {
+      "slug": "poetry",
+      "title": {
+        "en": "Poetry",
+        "he": "שירה"
+      }
+    },
+    {
+      "slug": "nehemiah",
+      "title": {
+        "en": "Nehemiah",
+        "he": "נחמיה"
+      }
+    },
+    {
+      "slug": "folklore",
+      "title": {
+        "en": "Folklore",
+        "he": "פולקלור"
+      }
+    },
+    {
+      "slug": "organ-donation",
+      "title": {
+        "en": "Organ Donation",
+        "he": "תרומת איברים"
+      }
+    }
+  ]
+}

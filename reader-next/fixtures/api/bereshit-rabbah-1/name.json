@@ -1,0 +1,155 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Bereshit Rabbah",
+    "Bereshit",
+    "Seder Olam Rabbah",
+    "Rabbah",
+    "Rashi on Bereshit Rabbah",
+    "Matnot Kehunah on Bereshit Rabbah",
+    "Perush Maharzu on Bereshit Rabbah",
+    "Yedei Moshe on Bereshit Rabbah",
+    "Maharzu Hakatzar on Bereshit Rabbah",
+    "Yefeh To'ar on Bereshit Rabbah"
+  ],
+  "completion_objects": [
+    {
+      "title": "Bereshit Rabbah",
+      "key": "Bereshit Rabbah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Bereshit",
+      "key": "Genesis",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Bereshit",
+      "type": "Topic",
+      "key": "parashat-bereshit",
+      "is_primary": false,
+      "order": 4999738,
+      "topic_pools": [
+        "library",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Bereshit",
+      "type": "Topic",
+      "key": "bereshit",
+      "is_primary": true,
+      "order": 4999973,
+      "topic_pools": [
+        "sheets"
+      ]
+    },
+    {
+      "title": "Seder Olam Rabbah",
+      "key": "Seder Olam Rabbah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Seder Olam Rabbah",
+      "type": "TocCategory",
+      "key": [
+        "Midrash",
+        "Aggadah",
+        "Seder Olam Rabbah"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Rabbah",
+      "type": "PersonTopic",
+      "key": "rabbah-b-nachmani",
+      "is_primary": false,
+      "order": 4995090,
+      "topic_pools": [
+        "library"
+      ]
+    },
+    {
+      "title": "Rashi on Bereshit Rabbah",
+      "key": "Rashi on Bereshit Rabbah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Matnot Kehunah on Bereshit Rabbah",
+      "key": "Matnot Kehunah on Bereshit Rabbah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Perush Maharzu on Bereshit Rabbah",
+      "key": "Perush Maharzu on Bereshit Rabbah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Yedei Moshe on Bereshit Rabbah",
+      "key": "Yedei Moshe on Bereshit Rabbah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Maharzu Hakatzar on Bereshit Rabbah",
+      "key": "Maharzu Hakatzar on Bereshit Rabbah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Yefeh To'ar on Bereshit Rabbah",
+      "key": "Yefeh To'ar on Bereshit Rabbah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Bereshit Rabbah",
+  "url": "Bereshit_Rabbah",
+  "index": "Bereshit Rabbah",
+  "book": "Bereshit Rabbah",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": [],
+  "sectionNames": [
+    "Chapter",
+    "Paragraph"
+  ],
+  "heSectionNames": [
+    "פרק",
+    "פסקה"
+  ],
+  "addressExamples": [
+    "3",
+    "6"
+  ],
+  "heAddressExamples": [
+    "ג׳",
+    "ו׳"
+  ]
+}

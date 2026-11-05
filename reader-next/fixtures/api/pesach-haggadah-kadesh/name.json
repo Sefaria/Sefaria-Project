@@ -1,0 +1,103 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Pesach Haggadah",
+    "Pesach Haggadah, Magid",
+    "Pesach Haggadah, Maror",
+    "Pesach Haggadah, Barech",
+    "Pesach Haggadah, Hallel",
+    "Pesach Haggadah, Kadesh",
+    "Pesach Haggadah, Karpas",
+    "Pesach Haggadah, Korech",
+    "Pesach Haggadah, Tzafun",
+    "Pesach Haggadah, Nirtzah"
+  ],
+  "completion_objects": [
+    {
+      "title": "Pesach Haggadah",
+      "key": "Pesach Haggadah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Pesach Haggadah, Magid",
+      "key": "Pesach Haggadah, Magid",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Pesach Haggadah, Maror",
+      "key": "Pesach Haggadah, Maror",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Pesach Haggadah, Barech",
+      "key": "Pesach Haggadah, Barech",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Pesach Haggadah, Hallel",
+      "key": "Pesach Haggadah, Hallel",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Pesach Haggadah, Kadesh",
+      "key": "Pesach Haggadah, Kadesh",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Pesach Haggadah, Karpas",
+      "key": "Pesach Haggadah, Karpas",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Pesach Haggadah, Korech",
+      "key": "Pesach Haggadah, Korech",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Pesach Haggadah, Tzafun",
+      "key": "Pesach Haggadah, Tzafun",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Pesach Haggadah, Nirtzah",
+      "key": "Pesach Haggadah, Nirtzah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Pesach Haggadah",
+  "url": "Pesach_Haggadah",
+  "index": "Pesach Haggadah",
+  "book": "Pesach Haggadah",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": []
+}

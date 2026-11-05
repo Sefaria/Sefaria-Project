@@ -4,3 +4,7 @@
 /.idea
 /.pytest_cache
 /.secrets
+/reader-next/node_modules
+/reader-next/dist
+/reader-next/test-results
+/reader-next/playwright-report

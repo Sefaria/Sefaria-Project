@@ -1,0 +1,302 @@
+{
+  "title": "Mishnah Berakhot",
+  "categories": [
+    "Mishnah",
+    "Seder Zeraim"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Mishnah"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Mishnah"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "mishnah",
+          "berakhot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "berakhot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "tractate",
+          "berakhot"
+        ]
+      }
+    ],
+    "lengths": [
+      9,
+      57
+    ],
+    "titles": [
+      {
+        "text": "M. Berakhot",
+        "lang": "en"
+      },
+      {
+        "text": "Mishna Berakhot",
+        "lang": "en"
+      },
+      {
+        "text": "M Berakhot",
+        "lang": "en"
+      },
+      {
+        "text": "Mishna Berachot",
+        "lang": "en"
+      },
+      {
+        "text": "Mishnah Brachot",
+        "lang": "en"
+      },
+      {
+        "text": "Mishna Brachot",
+        "lang": "en"
+      },
+      {
+        "text": "Mishnah Berachot",
+        "lang": "en"
+      },
+      {
+        "text": "Mishnah Ber.",
+        "lang": "en"
+      },
+      {
+        "text": "Mishnah B’rakhoth",
+        "lang": "en"
+      },
+      {
+        "text": "משנה ברכות",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Mishnah Berakhot",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Mishnah Berakhot",
+    "heTitle": "משנה ברכות",
+    "heSectionNames": [
+      "פרק",
+      "משנה"
+    ],
+    "key": "Mishnah Berakhot",
+    "content_counts": [
+      5,
+      8,
+      6,
+      7,
+      5,
+      8,
+      5,
+      8,
+      5
+    ]
+  },
+  "order": [
+    1,
+    1
+  ],
+  "authors": [],
+  "enDesc": "Berakhot (“Blessings”) is the first tractate of Zeraim (“Seeds”), the first order of the Mishnah, and the only tractate in Zeraim included in the Babylonian Talmud. Its nine chapters discuss the laws of prayers, focusing on the Shema, the Amidah, and blessings, including those recited in the context of eating.",
+  "heDesc": "",
+  "enShortDesc": "Blessings and prayers, focusing on Shema and the Amidah.",
+  "heShortDesc": "ברכות ותפילות, בדגש על קריאת שמע ועל תפילת העמידה.",
+  "pubDate": [
+    1492
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    190,
+    230
+  ],
+  "compPlace": "Talmudic Israel",
+  "pubPlace": "Naples",
+  "era": "T",
+  "is_cited": true,
+  "corpora": [
+    "Mishnah"
+  ],
+  "heTitle": "משנה ברכות",
+  "titleVariants": [
+    "M. Berakhot",
+    "Mishna Berakhot",
+    "M Berakhot",
+    "Mishna Berachot",
+    "Mishnah Brachot",
+    "Mishna Brachot",
+    "Mishnah Berachot",
+    "Mishnah Ber.",
+    "Mishnah B’rakhoth",
+    "Mishnah Berakhot"
+  ],
+  "heTitleVariants": [
+    "משנה ברכות"
+  ],
+  "sectionNames": [
+    "Chapter",
+    "Mishnah"
+  ],
+  "depth": 2,
+  "firstSectionRef": "Mishnah Berakhot 1",
+  "heCategories": [
+    "משנה",
+    "סדר זרעים"
+  ],
+  "compDateString": {
+    "en": " (c.190  – c.230 CE)",
+    "he": " (190 – 230 לספירה בקירוב)"
+  },
+  "pubDateString": {
+    "en": " (1492 CE)",
+    "he": " (1492 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Talmudic Israel",
+    "he": "ישראל התלמודית"
+  },
+  "pubPlaceString": {
+    "en": "Naples",
+    "he": "נאפולי"
+  },
+  "relatedTopics": [
+    {
+      "slug": "prayer",
+      "title": {
+        "en": "Prayer",
+        "he": "תפילה"
+      }
+    },
+    {
+      "slug": "shema",
+      "title": {
+        "en": "Shema",
+        "he": "קריאת שמע"
+      }
+    },
+    {
+      "slug": "mishnah",
+      "title": {
+        "en": "Mishnah",
+        "he": "משנה"
+      }
+    },
+    {
+      "slug": "kavanah",
+      "title": {
+        "en": "Kavanah",
+        "he": "כוונה"
+      }
+    },
+    {
+      "slug": "blessings-(halakhah)",
+      "title": {
+        "en": "Blessings (Halakhah)",
+        "he": "ברכות"
+      }
+    },
+    {
+      "slug": "shemoneh-esrei",
+      "title": {
+        "en": "Amidah",
+        "he": "עמידה"
+      }
+    },
+    {
+      "slug": "women",
+      "title": {
+        "en": "Women",
+        "he": "נשים"
+      }
+    },
+    {
+      "slug": "tefillin",
+      "title": {
+        "en": "Tefillin",
+        "he": "תפילין"
+      }
+    },
+    {
+      "slug": "mindfulness",
+      "title": {
+        "en": "Mindfulness",
+        "he": "שימת לב"
+      }
+    },
+    {
+      "slug": "hillel",
+      "title": {
+        "en": "Hillel",
+        "he": "הִלֵּל"
+      }
+    },
+    {
+      "slug": "obligations",
+      "title": {
+        "en": "Obligations",
+        "he": "חובה"
+      }
+    },
+    {
+      "slug": "passover",
+      "title": {
+        "en": "Passover",
+        "he": "פסח"
+      }
+    },
+    {
+      "slug": "hillel-and-shammai",
+      "title": {
+        "en": "Hillel and Shammai",
+        "he": "הלל ושמאי"
+      }
+    },
+    {
+      "slug": "machloket",
+      "title": {
+        "en": "Machloket",
+        "he": "מחלוקת"
+      }
+    },
+    {
+      "slug": "meditation",
+      "title": {
+        "en": "Meditation",
+        "he": "מדיטציה"
+      }
+    },
+    {
+      "slug": "birkat-hamazon",
+      "title": {
+        "en": "Birkat HaMazon",
+        "he": "ברכת המזון"
+      }
+    },
+    {
+      "slug": "psukei-dezimrah",
+      "title": {
+        "en": "Psukei Dezimrah",
+        "he": "פסוקי דזמרא"
+      }
+    },
+    {
+      "slug": "haggadah",
+      "title": {
+        "en": "Haggadah",
+        "he": "הגדה"
+      }
+    }
+  ]
+}

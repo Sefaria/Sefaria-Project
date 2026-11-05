@@ -1,0 +1,151 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Mishneh Torah, Foundations of the Torah",
+    "Mishneh Torah",
+    "Kessef Mishneh on Mishneh Torah, Foundations of the Torah",
+    "Lechem Mishneh on Mishneh Torah, Foundations of the Torah",
+    "Mishneh LaMelech on Mishneh Torah, Foundations of the Torah",
+    "Peirush on Mishneh Torah, Foundations of the Torah",
+    "Steinsaltz on Mishneh Torah, Foundations of the Torah",
+    "Maharam of Padua on Mishneh Torah, Foundations of the Torah",
+    "Torah",
+    "Hasagot HaRaavad on Mishneh Torah, Foundations of the Torah"
+  ],
+  "completion_objects": [
+    {
+      "title": "Mishneh Torah, Foundations of the Torah",
+      "key": "Mishneh Torah, Foundations of the Torah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Mishneh Torah",
+      "type": "TocCategory",
+      "key": [
+        "Halakhah",
+        "Mishneh Torah"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Mishneh Torah",
+      "type": "Topic",
+      "key": "mishneh-torah",
+      "is_primary": true,
+      "order": 4999886,
+      "topic_pools": [
+        "library",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Kessef Mishneh on Mishneh Torah, Foundations of the Torah",
+      "key": "Kessef Mishneh on Mishneh Torah, Foundations of the Torah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Lechem Mishneh on Mishneh Torah, Foundations of the Torah",
+      "key": "Lechem Mishneh on Mishneh Torah, Foundations of the Torah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Mishneh LaMelech on Mishneh Torah, Foundations of the Torah",
+      "key": "Mishneh LaMelech on Mishneh Torah, Foundations of the Torah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Peirush on Mishneh Torah, Foundations of the Torah",
+      "key": "Peirush on Mishneh Torah, Foundations of the Torah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Steinsaltz on Mishneh Torah, Foundations of the Torah",
+      "key": "Steinsaltz on Mishneh Torah, Foundations of the Torah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Maharam of Padua on Mishneh Torah, Foundations of the Torah",
+      "key": "Maharam of Padua on Mishneh Torah, Foundations of the Torah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Torah",
+      "type": "TocCategory",
+      "key": [
+        "Tanakh",
+        "Torah"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Torah",
+      "type": "Topic",
+      "key": "torah",
+      "is_primary": true,
+      "order": 4998258,
+      "topic_pools": [
+        "torah_tab",
+        "library",
+        "general_en",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Hasagot HaRaavad on Mishneh Torah, Foundations of the Torah",
+      "key": "Hasagot HaRa'avad on Mishneh Torah, Foundations of the Torah",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Mishneh Torah, Foundations of the Torah",
+  "url": "Mishneh_Torah,_Foundations_of_the_Torah",
+  "index": "Mishneh Torah, Foundations of the Torah",
+  "book": "Mishneh Torah, Foundations of the Torah",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": [],
+  "sectionNames": [
+    "Chapter",
+    "Halakhah"
+  ],
+  "heSectionNames": [
+    "פרק",
+    "הלכה"
+  ],
+  "addressExamples": [
+    "3",
+    "6"
+  ],
+  "heAddressExamples": [
+    "ג׳",
+    "ו׳"
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "title": "Mishnah Berurah",
+  "categories": [
+    "Halakhah",
+    "Shulchan Arukh",
+    "Commentary",
+    "Mishnah Berurah"
+  ],
+  "schema": {
+    "nodes": [
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "text": "Introduction",
+            "lang": "en",
+            "primary": true
+          },
+          {
+            "text": "הקדמה",
+            "lang": "he",
+            "primary": true
+          }
+        ],
+        "key": "Introduction"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "text": "Introduction to the Laws of Shabbat",
+            "lang": "en",
+            "primary": true
+          },
+          {
+            "text": "הקדמה להלכות שבת",
+            "lang": "he",
+            "primary": true
+          }
+        ],
+        "key": "Introduction to the Laws of Shabbat"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 2,
+        "addressTypes": [
+          "Siman",
+          "SeifKatan"
+        ],
+        "sectionNames": [
+          "Siman",
+          "Seif Katan"
+        ],
+        "default": true,
+        "key": "default"
+      }
+    ],
+    "nodeType": "SchemaNode",
+    "match_templates": [
+      {
+        "term_slugs": [
+          "mishnah-berurah"
+        ]
+      }
+    ],
+    "titles": [
+      {
+        "text": "Mishneh Brurah",
+        "lang": "en"
+      },
+      {
+        "text": "Mishna Berura",
+        "lang": "en"
+      },
+      {
+        "text": "Mishna Brurah",
+        "lang": "en"
+      },
+      {
+        "text": "<i>Mishnah Berurah</i>",
+        "lang": "en"
+      },
+      {
+        "text": "Mishneh Berurah",
+        "lang": "en"
+      },
+      {
+        "text": "M.B.",
+        "lang": "en"
+      },
+      {
+        "text": "MB",
+        "lang": "en"
+      },
+      {
+        "text": "Mishnah Berurah O.C.",
+        "lang": "en"
+      },
+      {
+        "text": "Mishnah Brura",
+        "lang": "en"
+      },
+      {
+        "text": "Mishnah Brurah",
+        "lang": "en"
+      },
+      {
+        "text": "Drafting - Summer - Product Announcements",
+        "lang": "en"
+      },
+      {
+        "text": "Mishna Berurah",
+        "lang": "en"
+      },
+      {
+        "text": "משנה ברורה",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Mishnah Berurah",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Mishnah Berurah"
+  },
+  "order": [
+    20
+  ],
+  "authors": [
+    "israel-meir-kagan"
+  ],
+  "enDesc": "Mishnah Berurah (Clarified Teaching) is a work of halakhah by Rabbi Yisrael Meir Kagan also colloquially known by the name of another of his books, Chafetz Chaim (Desirer of Life). His Mishnah Berurah is a commentary on Orach Chaim, the first section of the Shulchan Arukh, which deals with laws of prayer, synagogue, Shabbat and holidays, summarizing the opinions of the post-Medieval rabbinic authorities. It is widely used as a reference and has mostly supplanted the Chayei Adam and the Arukh HaShulchan as the primary authority on Jewish daily living among Ashkenazi Jews. He displays a tendency towards stringency though he does include lenient opinions.",
+  "heDesc": "ה\"משנה ברורה\" הינה יצירת הלכה פרי עטו של ר' ישראל מאיר הכהן מראדין, הידוע גם כ\"חפץ חיים\", כשמו של ספר נוסף שלו. המשנה ברורה הינה פירוש על \"אורח חיים\", החלק הראשון של ה\"שולחן ערוך\", העוסק בהלכות תפילה, בית הכנסת, שבת וחגים, והוא מסכם את דעותיהם של הסמכויות הרבניות הבתר-ימי-ביניימיות בנושאים אלו. הספר נמצא בשימוש רחב, ותפס כמעט לחלוטין את מקום ה\"חיי אדם\" ו\"ערוך השולחן\" כסמכות המרכזית בנושא החיים היהודיים היום-יומיים בקרב יהודי אשכנז. המחבר מפגין בספר נטייה לפסיקה מחמירה, למרות שהוא כולל בו גם דעות מקילות.",
+  "enShortDesc": "",
+  "heShortDesc": "Late-19th century commentary on the Orach Chaim section of the Shulchan Arukh, by Rabbi Yisrael Meir Kagan",
+  "pubDate": [
+    1884,
+    1907
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    1875,
+    1905
+  ],
+  "compPlace": "Raduń",
+  "pubPlace": "Warsaw",
+  "era": "AH",
+  "dependence": "Commentary",
+  "base_text_titles": [
+    "Shulchan Arukh, Orach Chayim"
+  ],
+  "is_cited": true
+}

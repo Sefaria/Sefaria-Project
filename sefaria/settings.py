@@ -141,6 +141,7 @@ MIDDLEWARE = [
     'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
+    'sefaria.helper.reader_choice.ReaderChoiceMiddleware',
     'sefaria.system.middleware.CORSDebugMiddleware',
     'sefaria.system.middleware.SharedCacheMiddleware',
     'django_structlog.middlewares.RequestMiddleware',

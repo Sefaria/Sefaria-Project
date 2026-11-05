@@ -1,0 +1,153 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Tosefta Berakhot",
+    "Tosefta Berakhot (Lieberman)",
+    "Berakhot",
+    "Tosefta",
+    "Tosefta Kifshutah on Berakhot",
+    "M. Berakhot",
+    "Rambam, Berakhot",
+    "Rif Berakhot",
+    "JT Berakhot",
+    "Sheva Berakhot"
+  ],
+  "completion_objects": [
+    {
+      "title": "Tosefta Berakhot",
+      "key": "Tosefta Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Tosefta Berakhot (Lieberman)",
+      "key": "Tosefta Berakhot (Lieberman)",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Berakhot",
+      "key": "Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Berakhot",
+      "type": "Topic",
+      "key": "blessings-(halakhah)",
+      "is_primary": false,
+      "order": 4999651,
+      "topic_pools": [
+        "torah_tab",
+        "library",
+        "general_he",
+        "general_en",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Tosefta",
+      "type": "TocCategory",
+      "key": [
+        "Tosefta"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Tosefta",
+      "type": "Topic",
+      "key": "tosefta",
+      "is_primary": true,
+      "order": 4999986,
+      "topic_pools": [
+        "library",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Tosefta Kifshutah on Berakhot",
+      "key": "Tosefta Kifshutah on Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "M. Berakhot",
+      "key": "Mishnah Berakhot",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Rambam, Berakhot",
+      "key": "Mishneh Torah, Blessings",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Rif Berakhot",
+      "key": "Rif Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "JT Berakhot",
+      "key": "Jerusalem Talmud Berakhot",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Sheva Berakhot",
+      "type": "Topic",
+      "key": "sheva-berakhot",
+      "is_primary": true,
+      "order": 4999971,
+      "topic_pools": [
+        "torah_tab",
+        "library",
+        "sheets",
+        "general_en"
+      ]
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Tosefta Berakhot",
+  "url": "Tosefta_Berakhot",
+  "index": "Tosefta Berakhot",
+  "book": "Tosefta Berakhot",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": [],
+  "sectionNames": [
+    "Chapter",
+    "Tosefta"
+  ],
+  "heSectionNames": [
+    "פרק",
+    "תוספתא"
+  ],
+  "addressExamples": [
+    "3",
+    "6"
+  ],
+  "heAddressExamples": [
+    "ג׳",
+    "ו׳"
+  ]
+}

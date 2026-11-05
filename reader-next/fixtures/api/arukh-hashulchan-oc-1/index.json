@@ -1,0 +1,3534 @@
+{
+  "title": "Arukh HaShulchan",
+  "categories": [
+    "Halakhah"
+  ],
+  "schema": {
+    "nodes": [
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "sharedTitle": "Introduction",
+        "key": "Introduction"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 2,
+        "addressTypes": [
+          "Siman",
+          "Integer"
+        ],
+        "sectionNames": [
+          "Siman",
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "orach-chayim"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "text": "Orach Chaim",
+            "lang": "en"
+          },
+          {
+            "primary": true,
+            "text": "אורח חיים",
+            "lang": "he"
+          }
+        ],
+        "key": "Orach Chaim"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 2,
+        "addressTypes": [
+          "Siman",
+          "Integer"
+        ],
+        "sectionNames": [
+          "Siman",
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "yoreh-deah"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "text": "Yoreh De'ah",
+            "lang": "en"
+          },
+          {
+            "primary": true,
+            "text": "יורה דעה",
+            "lang": "he"
+          }
+        ],
+        "key": "Yoreh De'ah"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 2,
+            "addressTypes": [
+              "Siman",
+              "Integer"
+            ],
+            "sectionNames": [
+              "Siman",
+              "Paragraph"
+            ],
+            "default": true,
+            "key": "default"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "seder-haget"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "primary": true,
+                "text": "Seder HaGet",
+                "lang": "en"
+              },
+              {
+                "primary": true,
+                "text": "סדר הגט",
+                "lang": "he"
+              }
+            ],
+            "key": "Seder HaGet"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "seder-chalitza"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "primary": true,
+                "text": "Seder Chalitza",
+                "lang": "en"
+              },
+              {
+                "primary": true,
+                "text": "סדר חליצה",
+                "lang": "he"
+              }
+            ],
+            "key": "Seder Chalitza"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [
+          {
+            "term_slugs": [
+              "even-haezer"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "text": "Even HaEzer",
+            "lang": "en"
+          },
+          {
+            "primary": true,
+            "text": "אבן העזר",
+            "lang": "he"
+          }
+        ],
+        "key": "Even HaEzer"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 2,
+        "addressTypes": [
+          "Siman",
+          "Integer"
+        ],
+        "sectionNames": [
+          "Siman",
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "choshen-mishpat"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "text": "Choshen Mishpat",
+            "lang": "en"
+          },
+          {
+            "primary": true,
+            "text": "חושן משפט",
+            "lang": "he"
+          }
+        ],
+        "key": "Choshen Mishpat"
+      }
+    ],
+    "nodeType": "SchemaNode",
+    "match_templates": [
+      {
+        "term_slugs": [
+          "arukh-hashulchan"
+        ]
+      }
+    ],
+    "titles": [
+      {
+        "text": "Aruch Hashulchan",
+        "lang": "en"
+      },
+      {
+        "text": "Arukh ha-Shulḥan",
+        "lang": "en"
+      },
+      {
+        "text": "Aruch HaShulchan",
+        "lang": "en"
+      },
+      {
+        "text": "Arukh Hashulhan",
+        "lang": "en"
+      },
+      {
+        "text": "AHS",
+        "lang": "en"
+      },
+      {
+        "text": "ערוך השולחן",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "ערוך השלחן",
+        "lang": "he"
+      },
+      {
+        "text": "ערוה\"ש",
+        "lang": "he"
+      },
+      {
+        "text": "ערוה״ש",
+        "lang": "he"
+      },
+      {
+        "text": "Arukh HaShulchan",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Arukh HaShulchan"
+  },
+  "alt_structs": {
+    "Topic": {
+      "nodes": [
+        {
+          "nodes": [
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 1-7",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-upon-awakening-in-the-morning1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws Upon Awakening in the Morning",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות השכמת הבוקר",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 8-24",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-tzitzit1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Tzitzit",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות ציצית",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 25-45",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-tefillin1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Tefillin",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות תפילין",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 46-57",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-morning-blessings1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Morning Blessings",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות ברכות השחר",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 58-88",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-reciting-shema1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Reciting Shema",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות קריאת שמע",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 89-134",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-prayer1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Prayer",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות תפילה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 135-149",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-reading-the-torah1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Reading the Torah",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות קריאת התורה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 150-155",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-the-synagogue1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of the Synagogue",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות בית הכנסת",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 156-156",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-business"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of  Business",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות משא ומתן",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 157-165",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-washing-ones-hands-for-a-meal1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Washing One's Hands for a Meal",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות נטילת ידים לסעודה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 166-169",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-cutting-the-bread"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Cutting the Bread",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות בציעת הפת",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 170-181",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-the-meal1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of the Meal",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות סעודה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 182-201",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-grace-after-meals"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Grace After Meals",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות ברכת המזון",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 202-217",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-blessings-on-fruit1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Blessings on Fruit",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות ברכת הפירות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 218-231",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-other-blessings1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Other Blessings",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "דיני שאר מיני ברכות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 232-241",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-afternoon-and-evening-prayers"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Afternoon and Evening Prayers",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות תפילות מנחה וערבית",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 242-248",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-work-done-by-non-jew"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Work Done by Non Jew",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "כללים ומלאכה על ידי אינו יהודי",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 249-300",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-sabbath-day"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Sabbath Day",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "סדר יום השבת",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 301-344",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-forbidden-activities-on-the-sabbath"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Forbidden Activities on the Sabbath",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "מלאכות שבת",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 345-365",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-eruvin1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Eruvin",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הוצאה והכנסה מרשות לרשות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 366-395",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-eruvei-chatzerot"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Eruvei Chatzerot",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "עירובי חצרות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 396-407",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-techumin1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Techumin",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "תחום שבת",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 408-416",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-eruv-techumin1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Eruv Techumin",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "עירובי תחומין",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 417-428",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-rosh-chodesh1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Rosh Chodesh",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות ראש חודש",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 429-494",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-passover1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Passover",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות פסח ודיני חודש ניסן",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 495-529",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-the-festivals1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of the Festivals",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות יום טוב",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 530-548",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-chol-hamoed1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Chol HaMoed",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות חול המועד",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 549-561",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-the-ninth-of-av1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of the Ninth of Av",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות תשעה באב",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 562-580",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-fast-days1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Fast Days",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות תענית",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 581-603",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-rosh-hashanah1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Rosh Hashanah",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות ראש השנה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 604-624",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-yom-kippur1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Yom Kippur",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות יום הכיפורים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 625-644",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-sukkot1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Sukkot",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות סוכה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 645-669",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-the-four-species1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of the Four Species",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות לולב",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 670-685",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-chanukah1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Chanukah",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות חנוכה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Orach Chaim 686-695",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-purim1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Purim",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות מגילה",
+                  "lang": "he"
+                }
+              ]
+            }
+          ],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Orach Chaim",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "אורח חיים",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 1-28",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "ritual-slaughter2"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Ritual Slaughter",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות שחיטה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 29-60",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "unslaughterable-animals1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Unslaughterable Animals",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות טריפות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 61-61",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "priestly-gifts1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Priestly Gifts",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות מתנות כהונה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 62-62",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "a-limb-from-a-live-animal1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "A Limb from a Live Animal",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות אבר מן החי",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 63-63",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "meat-that-was-unobserved1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Meat that was Unobserved",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות בשר שנתעלם מן העין",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 64-64",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "prohibited-fats1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Prohibited Fats",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות חלבים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 65-68",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "blood1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Blood",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות דם",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 69-78",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "salting1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Salting",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות מליחה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 79-80",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "domesticated-and-undomesticated-kosher-animals"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Domesticated and Undomesticated Kosher Animals",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות בהמה וחיה טהורה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 81-81",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "things-that-come-from-a-live-animal1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Things that Come From a Live Animal",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות דברים היוצאים מן החי",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 82-82",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "birds1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Birds",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות עופות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 83-83",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "fish1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Fish",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות סימני דגים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 84-85",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "insects1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Insects",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות שרצים תולעים וחגבים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 86-86",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "eggs1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Eggs",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות ביצים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 87-97",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "meat-with-milk1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Meat with Milk",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות בשר בחלב",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 98-111",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "admixtures1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Admixtures",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות תערובות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 112-120",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "food-of-idol-worshipers1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Food of Idol Worshipers",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות מאכלי עובדי כוכבים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 121-121",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "the-koshering-of-utensils"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "The Koshering of Utensils",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות הכשר כלים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 122-122",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "that-which-gives-detrimental-taste1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "That Which Gives Detrimental Taste",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות נותן טעם לפגם",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 183-200",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "the-menstruant1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "The Menstruant",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות נדה ",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 201-202",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "ritual-baths1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Ritual Baths",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות מקוואות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 240-241",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "honoring-ones-father-and-mother1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Honoring One's Father and Mother",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות כיבוד אב ואם",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 242-242",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "honoring-ones-rabbi-and-a-torah-scholar1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Honoring One's Rabbi and a Torah Scholar",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות כבוד רבו ותלמיד חכם",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 243-244",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "honoring-a-torah-scholar1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Honoring a Torah Scholar",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות כבוד תלמיד חכם",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 245-246",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "torah-study2"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Torah Study",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות תלמוד תורה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 247-259",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "charity1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Charity",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות צדקה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 260-266",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "circumcision2"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Circumcision",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות מילה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 267-267",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "slaves2"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Slaves",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות עבדים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 268-269",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "converts1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Converts",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות גרים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 270-284",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "a-torah-scroll1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "A Torah Scroll",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות ספר תורה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 285-291",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "mezuzah1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Mezuzah",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות מזוזה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 292-292",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "sending-away-the-mother-bird1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Sending Away the Mother Bird",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות שילוח הקן",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 293-293",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "new-grain1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "New Grain",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות חדש",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 294-294",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "orlah2"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Orlah",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות ערלה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 295-304",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "interspecies-mingling"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Interspecies Mingling",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות כלאים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 305-321",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "redemption-of-the-firstborn1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Redemption of the Firstborn",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות בכור",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 322-330",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "challah2"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Challah",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות חלה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 331-332",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "tithes2"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": " Tithes",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות תרומות ומעשרות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 333-333",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "first-shearings"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "First Shearings",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות ראשית הגז",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 334-334",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "excommunication1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Excommunication",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות נידוי וחרם",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 335-338",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "visiting-the-sick1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": " Visiting the Sick",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות ביקור חולים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Yoreh De'ah 339-403",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "mourning2"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "\tMourning",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות אבלות",
+                  "lang": "he"
+                }
+              ]
+            }
+          ],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Yoreh De'ah",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "יורה דעה",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Even HaEzer 1-6",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-procreation1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Procreation",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות פריה ורביה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Even HaEzer 7-25",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-matrimony"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Matrimony",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות אישות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Even HaEzer 26-65",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-kiddushin1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Kiddushin",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות קידושין",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Even HaEzer 119-154",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-gittin1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Gittin",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות גיטין",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Even HaEzer 155-155",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-miun1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Miun",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות מיאון",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Even HaEzer 156-176",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-chalitza-and-yibbum"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Chalitza and Yibbum",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות חליצה ויבום",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Even HaEzer 177-177",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-a-seducer"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of a Seducer",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות אונס ומפתה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Even HaEzer 178-178",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "laws-of-sotah"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Laws of Sotah",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות סוטה",
+                  "lang": "he"
+                }
+              ]
+            }
+          ],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Even HaEzer",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "אבן העזר",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 1-27",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "jurisprudence1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Jurisprudence",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות דיינים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 28-38",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "testimony2"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Testimony",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות עדות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 39-74",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "loans1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Loans",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות הלואה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 75-96",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "plaintiff-and-defendant2"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Plaintiff and Defendant",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות טוען ונטען",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 97-106",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "collecting-debts"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Collecting Debts",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות גביית מלוה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 107-110",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "collecting-debt-from-orphans"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Collecting Debt from Orphans",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות גביית חוב מהיתומים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 111-116",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "collecting-debt-from-liened-property"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Collecting Debt from Liened Property",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות גביית חוב מנכסים משועבדים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 117-120",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "mortgage-loans1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Mortgage Loans",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות אפותיקי",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 121-121",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "debt-collection-by-agent"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Debt Collection by Agent",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות העושה שליח לגבות חובו",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 122-128",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "authorizations1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Authorizations",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות הרשאה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 129-132",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "guarantors1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Guarantors",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות ערב",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 133-139",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "ownership-of-movable-property"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Ownership of Movable Property",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות חזקת מטלטלין",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 140-152",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "ownership-of-immovable-property"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Ownership of Immovable Property",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות חזקת קרקעות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 153-156",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "neighbor-disputes1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Neighbor Disputes",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות נזקי שכנים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 157-170",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "land-partnerships1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Land Partnerships",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות שותפים בקרקע",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 171-174",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "partnership-termination1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Partnership Termination",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות חלוקת שותפות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 175-175",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "pre-emption-rights1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Pre emption Rights",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות מצרנות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 176-181",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "partnerships1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Partnerships",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות שותפים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 182-188",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "agents1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Agents",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות שלוחין",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 189-226",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "business-dealings"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Business Dealings",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות מקח וממכר",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 227-240",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "onaah1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Ona'ah",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות אונאה ומקח טעות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 241-249",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "gifts1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Gifts",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות מתנה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 250-258",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "deathbed-gifts1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Deathbed Gifts",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות מתנת שכיב מרע",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 259-275",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "lost-property1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Lost Property",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות השבת אבידה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 276-290",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "inheritances2"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Inheritances",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות נחלות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 291-302",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "deposit1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Deposit",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות פיקדון",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 303-305",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "paid-bailee1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Paid Bailee",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות שומר שכר",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 306-306",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "skilled-labor1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Skilled Labor",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות אומנים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 307-319",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "hiring2"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Hiring",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות שוכר",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 320-330",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "leases-and-contracts1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Leases and Contracts",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות חכירות וקבלנות",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 331-339",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "employing-labor1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Employing Labor",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות שכירות פועלים",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 340-347",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "borrowing"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Borrowing",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות שאלה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 348-358",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "theft2"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Theft",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות גניבה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 359-377",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "robbery1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Robbery",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות גזילה",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 378-388",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "tort1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Tort",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות נזיקין",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 389-419",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "monetary-damages1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Monetary Damages",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות נזקי ממון",
+                  "lang": "he"
+                }
+              ]
+            },
+            {
+              "nodeType": "ArrayMapNode",
+              "depth": 0,
+              "wholeRef": "Arukh HaShulchan, Choshen Mishpat 420-427",
+              "refs": [],
+              "includeSections": true,
+              "match_templates": [
+                {
+                  "term_slugs": [
+                    "personal-injury1"
+                  ]
+                }
+              ],
+              "titles": [
+                {
+                  "primary": true,
+                  "text": "Personal Injury",
+                  "lang": "en"
+                },
+                {
+                  "primary": true,
+                  "text": "הלכות חובל בחבירו",
+                  "lang": "he"
+                }
+              ]
+            }
+          ],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Choshen Mishpat",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "חושן משפט",
+              "lang": "he"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "order": [
+    50
+  ],
+  "authors": [
+    "yechiel-michel-epstein"
+  ],
+  "enDesc": "The Arukh HaShulchan (“The Table is Set”) is a comprehensive halakhic digest following the order of the Shulchan Arukh, first published in 1884. It traces the origins of laws and customs to their source and discusses the views of legal authorities who wrote after the Shulchan Arukh. It is known for its lenient rulings and is considered an authoritative work; some later authorities give the work preference because its author, Rabbi Yechiel Michel Epstein, was the rabbi of a congregation and therefore was able to combine abstract considerations with a practical understanding of human needs.",
+  "heDesc": "חיבור הלכתי מקיף לפי סדר ארבעת חלקי השולחן ערוך הכולל מקור של כל הלכה ממקורו בהתלמוד ועד הדיונים של הפוסקים האחרונים.",
+  "enShortDesc": "19th-century comprehensive digest following the order of the Shulchan Arukh.",
+  "heShortDesc": "חיבור הלכתי מקיף מן המאה ה-19 שנכתב לפי סדר הסימנים בשולחן ערוך.",
+  "pubDate": [
+    1884,
+    1909
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    1865,
+    1905
+  ],
+  "compPlace": "Navahrudak (Novogrudok )",
+  "pubPlace": "",
+  "era": "AH"
+}

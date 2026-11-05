@@ -1,0 +1,794 @@
+{
+  "title": "Guide for the Perplexed",
+  "categories": [
+    "Jewish Thought",
+    "Rishonim"
+  ],
+  "schema": {
+    "nodes": [
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "introduction-of-ibn-tibon"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "he",
+            "text": "פתיחת אבן תיבון",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Introduction of Ibn Tibon",
+            "primary": true
+          }
+        ],
+        "title": "Introduction of Ibn Tibon",
+        "heTitle": "פתיחת אבן תיבון",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "Introduction of Ibn Tibon",
+        "content_counts": 19
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "letter-to-r-joseph-son-of-judah"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "he",
+            "text": "איגרת אל ר' יוסף ש\"ץ ב\"ר יהודה",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Letter to R Joseph son of Judah",
+            "primary": true
+          }
+        ],
+        "title": "Letter to R Joseph son of Judah",
+        "heTitle": "איגרת אל ר' יוסף ש\"ץ ב\"ר יהודה",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "Letter to R Joseph son of Judah",
+        "content_counts": 4
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "prefatory-remarks"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "he",
+            "text": "פתיחת הרמב\"ם",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Prefatory Remarks",
+            "primary": true
+          }
+        ],
+        "title": "Prefatory Remarks",
+        "heTitle": "פתיחת הרמב\"ם",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "Prefatory Remarks",
+        "content_counts": 28
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "introduction"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "he",
+                "text": "הקדמה",
+                "primary": true
+              },
+              {
+                "lang": "en",
+                "text": "Introduction",
+                "primary": true
+              }
+            ],
+            "title": "Introduction",
+            "heTitle": "הקדמה",
+            "heSectionNames": [
+              "פסקה"
+            ],
+            "key": "Introduction",
+            "content_counts": 15
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 2,
+            "addressTypes": [
+              "Perek",
+              "Integer"
+            ],
+            "sectionNames": [
+              "Chapter",
+              "Paragraph"
+            ],
+            "lengths": [
+              76
+            ],
+            "default": true,
+            "title": "",
+            "heTitle": "",
+            "heSectionNames": [
+              "פרק",
+              "פסקה"
+            ],
+            "key": "default",
+            "content_counts": [
+              9,
+              8,
+              2,
+              5,
+              8,
+              2,
+              3,
+              3,
+              3,
+              9,
+              5,
+              3,
+              1,
+              2,
+              5,
+              2,
+              3,
+              7,
+              2,
+              6,
+              7,
+              1,
+              3,
+              4,
+              3,
+              4,
+              6,
+              8,
+              3,
+              5,
+              9,
+              7,
+              5,
+              17,
+              5,
+              7,
+              6,
+              2,
+              7,
+              7,
+              2,
+              4,
+              5,
+              2,
+              5,
+              11,
+              3,
+              6,
+              8,
+              4,
+              6,
+              16,
+              9,
+              12,
+              3,
+              5,
+              8,
+              9,
+              11,
+              7,
+              7,
+              7,
+              7,
+              2,
+              4,
+              3,
+              6,
+              9,
+              9,
+              9,
+              18,
+              23,
+              58,
+              14,
+              9,
+              9
+            ]
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [
+          {
+            "term_slugs": [
+              "part-1"
+            ]
+          }
+        ],
+        "numeric_equivalent": 1,
+        "titles": [
+          {
+            "lang": "he",
+            "text": "חלק א'",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Part 1",
+            "primary": true
+          }
+        ],
+        "title": "Part 1",
+        "heTitle": "חלק א'",
+        "key": "Part 1"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "introduction"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "text": "Introduction",
+                "lang": "en",
+                "primary": true
+              },
+              {
+                "text": "הקדמה",
+                "lang": "he",
+                "primary": true
+              }
+            ],
+            "title": "Introduction",
+            "heTitle": "הקדמה",
+            "heSectionNames": [
+              "פסקה"
+            ],
+            "key": "Part 2 Introduction",
+            "content_counts": 37
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 2,
+            "addressTypes": [
+              "Perek",
+              "Integer"
+            ],
+            "sectionNames": [
+              "Chapter",
+              "Paragraph"
+            ],
+            "lengths": [
+              48
+            ],
+            "default": true,
+            "title": "",
+            "heTitle": "",
+            "heSectionNames": [
+              "פרק",
+              "פסקה"
+            ],
+            "key": "default",
+            "content_counts": [
+              20,
+              5,
+              1,
+              6,
+              5,
+              7,
+              1,
+              1,
+              3,
+              8,
+              5,
+              5,
+              12,
+              14,
+              9,
+              4,
+              11,
+              9,
+              19,
+              5,
+              4,
+              13,
+              6,
+              11,
+              4,
+              7,
+              3,
+              3,
+              30,
+              30,
+              3,
+              9,
+              5,
+              3,
+              6,
+              6,
+              6,
+              9,
+              3,
+              7,
+              6,
+              6,
+              6,
+              3,
+              17,
+              8,
+              6,
+              9
+            ]
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [
+          {
+            "term_slugs": [
+              "part-2"
+            ]
+          }
+        ],
+        "numeric_equivalent": 2,
+        "titles": [
+          {
+            "lang": "he",
+            "text": "חלק ב'",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Part 2",
+            "primary": true
+          }
+        ],
+        "title": "Part 2",
+        "heTitle": "חלק ב'",
+        "key": "Part 2"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "introduction"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "text": "Introduction",
+                "lang": "en",
+                "primary": true
+              },
+              {
+                "text": "הקדמה",
+                "lang": "he",
+                "primary": true
+              }
+            ],
+            "title": "Introduction",
+            "heTitle": "הקדמה",
+            "heSectionNames": [
+              "פסקה"
+            ],
+            "key": "Part 3 Introduction",
+            "content_counts": 6
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 2,
+            "addressTypes": [
+              "Perek",
+              "Integer"
+            ],
+            "sectionNames": [
+              "Chapter",
+              "Paragraph"
+            ],
+            "lengths": [
+              54
+            ],
+            "default": true,
+            "title": "",
+            "heTitle": "",
+            "heSectionNames": [
+              "פרק",
+              "פסקה"
+            ],
+            "key": "default",
+            "content_counts": [
+              1,
+              6,
+              1,
+              2,
+              2,
+              1,
+              10,
+              9,
+              1,
+              5,
+              1,
+              10,
+              11,
+              6,
+              2,
+              6,
+              13,
+              6,
+              5,
+              6,
+              2,
+              9,
+              10,
+              12,
+              6,
+              7,
+              7,
+              4,
+              20,
+              2,
+              2,
+              9,
+              4,
+              2,
+              17,
+              4,
+              14,
+              2,
+              11,
+              8,
+              24,
+              6,
+              12,
+              1,
+              17,
+              22,
+              10,
+              15,
+              26,
+              12,
+              23,
+              3,
+              7,
+              17
+            ]
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [
+          {
+            "term_slugs": [
+              "part-3"
+            ]
+          }
+        ],
+        "numeric_equivalent": 3,
+        "titles": [
+          {
+            "lang": "he",
+            "text": "חלק ג'",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Part 3",
+            "primary": true
+          }
+        ],
+        "title": "Part 3",
+        "heTitle": "חלק ג'",
+        "key": "Part 3"
+      }
+    ],
+    "nodeType": "SchemaNode",
+    "match_templates": [
+      {
+        "term_slugs": [
+          "sefer",
+          "guide-for-the-perplexed1"
+        ]
+      },
+      {
+        "term_slugs": [
+          "guide-for-the-perplexed1"
+        ]
+      }
+    ],
+    "titles": [
+      {
+        "text": "More Nevuchim",
+        "lang": "en"
+      },
+      {
+        "text": "Moreh Nebuchim",
+        "lang": "en"
+      },
+      {
+        "text": "Moreh Nevukhim",
+        "lang": "en"
+      },
+      {
+        "text": "Guide of the Perplexed",
+        "lang": "en"
+      },
+      {
+        "text": "מורה נבוכים",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "ספר המורה",
+        "lang": "he"
+      },
+      {
+        "text": "Guide for the Perplexed",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Guide for the Perplexed",
+    "heTitle": "מורה נבוכים",
+    "key": "Guide for the Perplexed"
+  },
+  "authors": [
+    {
+      "en": "Moses ben Maimon (Rambam)",
+      "he": "רמב\"ם",
+      "slug": "rambam"
+    }
+  ],
+  "enDesc": "The Guide for the Perplexed, written by Maimonides (Rambam), contains the author’s philosophical views. It is written in the form of a letter to his student, Rabbi Joseph ben Judah of Ceuta. Originally written in Judeo-Arabic, it was later translated to Hebrew (1204). The Guide includes Rambam’s objection to anthropomorphism, an explanation of the Biblical account of creation, and a description of the Merkavah.",
+  "heDesc": "",
+  "enShortDesc": "Maimonides’ 12th-century philosophical masterwork, written as a letter to his student demonstrating the compatibility of Judaism and philosophy.",
+  "heShortDesc": "יצירת המופת של הרמב\"ם שנכתבה במאה ה-12 כאיגרת לתלמידיו שבה הוא מצביע על ההתאמה בין עיקרי היהדות ובין הפילוסופיה.",
+  "pubDate": [
+    1475
+  ],
+  "compDate": [
+    1190
+  ],
+  "compPlace": "Fustat",
+  "pubPlace": "Rome",
+  "era": "RI",
+  "heTitle": "מורה נבוכים",
+  "titleVariants": [
+    "More Nevuchim",
+    "Moreh Nebuchim",
+    "Moreh Nevukhim",
+    "Guide of the Perplexed",
+    "Guide for the Perplexed"
+  ],
+  "heTitleVariants": [
+    "מורה נבוכים",
+    "ספר המורה"
+  ],
+  "firstSectionRef": "Guide for the Perplexed, Introduction of Ibn Tibon",
+  "heCategories": [
+    "מחשבת ישראל",
+    "ראשונים"
+  ],
+  "compDateString": {
+    "en": " (1190 CE)",
+    "he": " (1190 לספירה)"
+  },
+  "pubDateString": {
+    "en": " (1475 CE)",
+    "he": " (1475 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Fustat",
+    "he": "פוסטאט"
+  },
+  "pubPlaceString": {
+    "en": "Rome",
+    "he": "רומא"
+  },
+  "relatedTopics": [
+    {
+      "slug": "rambam",
+      "title": {
+        "en": "Moses ben Maimon (Rambam)",
+        "he": "רמב\"ם"
+      }
+    },
+    {
+      "slug": "angels",
+      "title": {
+        "en": "Angels",
+        "he": "מלאכים"
+      }
+    },
+    {
+      "slug": "prophecy",
+      "title": {
+        "en": "Prophecy",
+        "he": "נבואה"
+      }
+    },
+    {
+      "slug": "actuality",
+      "title": {
+        "en": "Reality",
+        "he": "מציאות"
+      }
+    },
+    {
+      "slug": "knowing",
+      "title": {
+        "en": "Knowing",
+        "he": "ידיעה"
+      }
+    },
+    {
+      "slug": "sacrifices",
+      "title": {
+        "en": "Sacrifices",
+        "he": "קרבן"
+      }
+    },
+    {
+      "slug": "torah",
+      "title": {
+        "en": "Torah",
+        "he": "תורה"
+      }
+    },
+    {
+      "slug": "humanity",
+      "title": {
+        "en": "Humanity",
+        "he": "אנושיות"
+      }
+    },
+    {
+      "slug": "human-knowledge",
+      "title": {
+        "en": "Human Knowledge",
+        "he": "ידיעה אנושית"
+      }
+    },
+    {
+      "slug": "descriptors-of-god",
+      "title": {
+        "en": "Descriptors of God",
+        "he": "תארי אלקים"
+      }
+    },
+    {
+      "slug": "physicality",
+      "title": {
+        "en": "Incorporeality of God",
+        "he": "שלילת גשמות האל"
+      }
+    },
+    {
+      "slug": "discernment",
+      "title": {
+        "en": "Discernment",
+        "he": "שכל"
+      }
+    },
+    {
+      "slug": "heavenly-spheres",
+      "title": {
+        "en": "Heavenly Spheres",
+        "he": "גלגלים"
+      }
+    },
+    {
+      "slug": "nature",
+      "title": {
+        "en": "Nature",
+        "he": "טבע"
+      }
+    },
+    {
+      "slug": "knowing-god",
+      "title": {
+        "en": "Knowing God",
+        "he": "ידיעת השם"
+      }
+    },
+    {
+      "slug": "moses",
+      "title": {
+        "en": "Moses",
+        "he": "משה"
+      }
+    },
+    {
+      "slug": "commandments-between-man-and-god-and-between-man-and-his-fellow",
+      "title": {
+        "en": "Commandments between Man and God, and between Man and His Fellow",
+        "he": "מצוות בין אדם למקום ובין אדם לחברו"
+      }
+    },
+    {
+      "slug": "learning",
+      "title": {
+        "en": "Learning",
+        "he": "לימוד"
+      }
+    }
+  ]
+}

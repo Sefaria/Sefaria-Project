@@ -1,0 +1,353 @@
+{
+  "title": "Onkelos Genesis",
+  "categories": [
+    "Tanakh",
+    "Targum",
+    "Onkelos",
+    "Torah"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Pasuk"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Verse"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "onkelos",
+          "genesis"
+        ]
+      }
+    ],
+    "lengths": [
+      50,
+      1533
+    ],
+    "titles": [
+      {
+        "text": "Targum Onkelos Genesis",
+        "lang": "en"
+      },
+      {
+        "text": "Targ. Gen.",
+        "lang": "en"
+      },
+      {
+        "text": "Targ. O. Gen.",
+        "lang": "en"
+      },
+      {
+        "text": "תרגום אונקלוס בראשית",
+        "lang": "he"
+      },
+      {
+        "text": "אונקלוס בראשית",
+        "lang": "he"
+      },
+      {
+        "text": "אונקלוס, בראשית",
+        "lang": "he"
+      },
+      {
+        "text": "תרגום אונקלוס על בראשית",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Onkelos Genesis",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Onkelos Genesis"
+  },
+  "alt_structs": {
+    "Parasha": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 1:1-6:8",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 1:1-2:3",
+            "Onkelos Genesis 2:4-2:19",
+            "Onkelos Genesis 2:20-3:21",
+            "Onkelos Genesis 3:22-4:18",
+            "Onkelos Genesis 4:19-4:22",
+            "Onkelos Genesis 4:23-5:24",
+            "Onkelos Genesis 5:25-6:8"
+          ],
+          "sharedTitle": "Bereshit"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 6:9-11:32",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 6:9-6:22",
+            "Onkelos Genesis 7:1-7:16",
+            "Onkelos Genesis 7:17-8:14",
+            "Onkelos Genesis 8:15-9:7",
+            "Onkelos Genesis 9:8-9:17",
+            "Onkelos Genesis 9:18-10:32",
+            "Onkelos Genesis 11:1-11:32"
+          ],
+          "sharedTitle": "Noach"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 12:1-17:27",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 12:1-12:13",
+            "Onkelos Genesis 12:14-13:4",
+            "Onkelos Genesis 13:5-13:18",
+            "Onkelos Genesis 14:1-14:20",
+            "Onkelos Genesis 14:21-15:6",
+            "Onkelos Genesis 15:7-17:6",
+            "Onkelos Genesis 17:7-17:27"
+          ],
+          "sharedTitle": "Lech Lecha"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 18:1-22:24",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 18:1-18:14",
+            "Onkelos Genesis 18:15-18:33",
+            "Onkelos Genesis 19:1-19:20",
+            "Onkelos Genesis 19:21-21:4",
+            "Onkelos Genesis 21:5-21:21",
+            "Onkelos Genesis 21:22-21:34",
+            "Onkelos Genesis 22:1-22:24"
+          ],
+          "sharedTitle": "Vayera"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 23:1-25:18",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 23:1-23:16",
+            "Onkelos Genesis 23:17-24:9",
+            "Onkelos Genesis 24:10-24:26",
+            "Onkelos Genesis 24:27-24:52",
+            "Onkelos Genesis 24:53-24:67",
+            "Onkelos Genesis 25:1-25:11",
+            "Onkelos Genesis 25:12-25:18"
+          ],
+          "sharedTitle": "Chayei Sara"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 25:19-28:9",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 25:19-26:5",
+            "Onkelos Genesis 26:6-26:12",
+            "Onkelos Genesis 26:13-26:22",
+            "Onkelos Genesis 26:23-26:29",
+            "Onkelos Genesis 26:30-27:27",
+            "Onkelos Genesis 27:28-28:4",
+            "Onkelos Genesis 28:5-28:9"
+          ],
+          "sharedTitle": "Toldot"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 28:10-32:3",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 28:10-28:22",
+            "Onkelos Genesis 29:1-29:17",
+            "Onkelos Genesis 29:18-30:13",
+            "Onkelos Genesis 30:14-30:27",
+            "Onkelos Genesis 30:28-31:16",
+            "Onkelos Genesis 31:17-31:42",
+            "Onkelos Genesis 31:43-32:3"
+          ],
+          "sharedTitle": "Vayetzei"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 32:4-36:43",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 32:4-32:13",
+            "Onkelos Genesis 32:14-32:30",
+            "Onkelos Genesis 32:31-33:5",
+            "Onkelos Genesis 33:6-33:20",
+            "Onkelos Genesis 34:1-35:11",
+            "Onkelos Genesis 35:12-36:19",
+            "Onkelos Genesis 36:20-36:43"
+          ],
+          "sharedTitle": "Vayishlach"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 37:1-40:23",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 37:1-37:11",
+            "Onkelos Genesis 37:12-37:22",
+            "Onkelos Genesis 37:23-37:36",
+            "Onkelos Genesis 38:1-38:30",
+            "Onkelos Genesis 39:1-39:6",
+            "Onkelos Genesis 39:7-39:23",
+            "Onkelos Genesis 40:1-40:23"
+          ],
+          "sharedTitle": "Vayeshev"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 41:1-44:17",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 41:1-41:14",
+            "Onkelos Genesis 41:15-41:38",
+            "Onkelos Genesis 41:39-41:52",
+            "Onkelos Genesis 41:53-42:18",
+            "Onkelos Genesis 42:19-43:15",
+            "Onkelos Genesis 43:16-43:29",
+            "Onkelos Genesis 43:30-44:17"
+          ],
+          "sharedTitle": "Miketz"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 44:18-47:27",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 44:18-44:30",
+            "Onkelos Genesis 44:31-45:7",
+            "Onkelos Genesis 45:8-45:18",
+            "Onkelos Genesis 45:19-45:27",
+            "Onkelos Genesis 45:28-46:27",
+            "Onkelos Genesis 46:28-47:10",
+            "Onkelos Genesis 47:11-47:27"
+          ],
+          "sharedTitle": "Vayigash"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 47:28-50:26",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 47:28-48:9",
+            "Onkelos Genesis 48:10-48:16",
+            "Onkelos Genesis 48:17-48:22",
+            "Onkelos Genesis 49:1-49:18",
+            "Onkelos Genesis 49:19-49:26",
+            "Onkelos Genesis 49:27-50:20",
+            "Onkelos Genesis 50:21-50:26"
+          ],
+          "sharedTitle": "Vayechi"
+        }
+      ]
+    }
+  },
+  "authors": [
+    "onkelos"
+  ],
+  "enDesc": "Targum Onkelos is the official eastern (Babylonian) targum (Aramaic translation) to the Torah. However, its early origins may have been western, in Israel. Some identify this translation as the work of Aquila of Sinope in an Aramaic translation (Zvi Hirsch Chajes), or believe that the name \"Onkelos\" originally referred to Aquila but was applied in error to the Aramaic instead of the Greek translation. The translator is unique in that he avoids any type of personification. Samuel D. Luzzatto suggests that the translation was originally meant for the \"simple people\". This view was strongly rebutted by Nathan Marcus Adler in his introduction to Netinah La-Ger. In talmudic times, and to this day in Yemenite Jewish communities, Targum Onkelos was recited by heart as a verse-by-verse translation alternately with the Hebrew verses of the Torah in the synagogue. The Talmud states that \"a person should complete his portions of Scripture along with the community, reading the Scripture twice and the targum once (shnayim mikra ve-echad targum).\" This passage is taken by many to refer to Targum Onkelos.",
+  "heDesc": "",
+  "enShortDesc": "",
+  "heShortDesc": "",
+  "pubDate": [
+    1482
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    80,
+    120
+  ],
+  "compPlace": "Talmudic Israel/Babylon",
+  "pubPlace": "Bologna",
+  "era": "T",
+  "dependence": "Targum",
+  "base_text_titles": [
+    "Genesis"
+  ],
+  "base_text_mapping": "one_to_one",
+  "collective_title": "Onkelos",
+  "is_cited": true
+}

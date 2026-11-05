@@ -1,0 +1,1162 @@
+{
+  "links": [
+    {
+      "_id": "5c4670b708d98a02694c5416",
+      "index_title": "Yevamot",
+      "category": "Talmud",
+      "type": "reference",
+      "ref": "Yevamot 21b:4",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Yevamot 21b:4",
+      "sourceHeRef": "יבמות כ״א ב:ד׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 42.0004,
+      "collectiveTitle": {
+        "en": "Yevamot",
+        "he": "יבמות"
+      },
+      "heTitle": "יבמות"
+    },
+    {
+      "_id": "5c4670b708d98a02694c5417",
+      "index_title": "Onkelos Genesis",
+      "category": "Targum",
+      "type": "reference",
+      "ref": "Onkelos Genesis 17:4",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Onkelos Genesis 17:4",
+      "sourceHeRef": "תרגום אונקלוס על בראשית י״ז:ד׳",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "compDate": [
+        80,
+        120
+      ],
+      "commentaryNum": 17.0004,
+      "collectiveTitle": {
+        "en": "Onkelos Genesis",
+        "he": "תרגום אונקלוס על בראשית"
+      },
+      "heTitle": "תרגום אונקלוס על בראשית"
+    },
+    {
+      "_id": "5c4670b708d98a02694c5419",
+      "index_title": "Mishnah Sanhedrin",
+      "category": "Mishnah",
+      "type": "reference",
+      "ref": "Mishnah Sanhedrin 3:2",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Mishnah Sanhedrin 3:2",
+      "sourceHeRef": "משנה סנהדרין ג׳:ב׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 3.0002,
+      "collectiveTitle": {
+        "en": "Mishnah Sanhedrin",
+        "he": "משנה סנהדרין"
+      },
+      "heTitle": "משנה סנהדרין"
+    },
+    {
+      "_id": "5c4670b708d98a02694c541d",
+      "index_title": "Targum Jonathan on Deuteronomy",
+      "category": "Targum",
+      "type": "reference",
+      "ref": "Targum Jonathan on Deuteronomy 24:16",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Targum Jonathan on Deuteronomy 24:16",
+      "sourceHeRef": "תרגום יונתן על דברים כ״ד:ט״ז",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        30,
+        70
+      ],
+      "commentaryNum": 24.0016,
+      "collectiveTitle": {
+        "en": "Targum Jonathan on Deuteronomy",
+        "he": "תרגום יונתן על דברים"
+      },
+      "heTitle": "תרגום יונתן על דברים"
+    },
+    {
+      "_id": "5c4670b708d98a02694c541e",
+      "index_title": "Onkelos Genesis",
+      "category": "Targum",
+      "type": "reference",
+      "ref": "Onkelos Genesis 41:43",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Onkelos Genesis 41:43",
+      "sourceHeRef": "תרגום אונקלוס על בראשית מ״א:מ״ג",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "compDate": [
+        80,
+        120
+      ],
+      "commentaryNum": 41.0043,
+      "collectiveTitle": {
+        "en": "Onkelos Genesis",
+        "he": "תרגום אונקלוס על בראשית"
+      },
+      "heTitle": "תרגום אונקלוס על בראשית"
+    },
+    {
+      "_id": "5c4670b708d98a02694c541f",
+      "index_title": "Shabbat",
+      "category": "Talmud",
+      "type": "reference",
+      "ref": "Shabbat 22a:4",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Shabbat 22a:4",
+      "sourceHeRef": "שבת כ״ב א:ד׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 43.0004,
+      "collectiveTitle": {
+        "en": "Shabbat",
+        "he": "שבת"
+      },
+      "heTitle": "שבת"
+    },
+    {
+      "_id": "5c4670b708d98a02694c5420",
+      "index_title": "Sanhedrin",
+      "category": "Talmud",
+      "type": "reference",
+      "ref": "Sanhedrin 113a:16",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Sanhedrin 113a:16",
+      "sourceHeRef": "סנהדרין קי״ג א:ט״ז",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 225.0016,
+      "collectiveTitle": {
+        "en": "Sanhedrin",
+        "he": "סנהדרין"
+      },
+      "heTitle": "סנהדרין"
+    },
+    {
+      "_id": "5c4670b708d98a02694c5421",
+      "index_title": "Menachot",
+      "category": "Talmud",
+      "type": "reference",
+      "ref": "Menachot 53a:14",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Menachot 53a:14",
+      "sourceHeRef": "מנחות נ״ג א:י״ד",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 105.0014,
+      "collectiveTitle": {
+        "en": "Menachot",
+        "he": "מנחות"
+      },
+      "heTitle": "מנחות"
+    },
+    {
+      "_id": "5c4670b708d98a02694c5422",
+      "index_title": "Megillah",
+      "category": "Talmud",
+      "type": "reference",
+      "ref": "Megillah 12b:6",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Megillah 12b:6",
+      "sourceHeRef": "מגילה י״ב ב:ו׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 24.0006,
+      "collectiveTitle": {
+        "en": "Megillah",
+        "he": "מגילה"
+      },
+      "heTitle": "מגילה"
+    },
+    {
+      "_id": "5c4670b708d98a02694c5423",
+      "index_title": "Mishnah Bava Batra",
+      "category": "Mishnah",
+      "type": "reference",
+      "ref": "Mishnah Bava Batra 9:3",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Mishnah Bava Batra 9:3",
+      "sourceHeRef": "משנה בבא בתרא ט׳:ג׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 9.0003,
+      "collectiveTitle": {
+        "en": "Mishnah Bava Batra",
+        "he": "משנה בבא בתרא"
+      },
+      "heTitle": "משנה בבא בתרא"
+    },
+    {
+      "_id": "5c4670b708d98a02694c5424",
+      "index_title": "Yevamot",
+      "category": "Talmud",
+      "type": "reference",
+      "ref": "Yevamot 21b:7",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Yevamot 21b:7",
+      "sourceHeRef": "יבמות כ״א ב:ז׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 42.0007,
+      "collectiveTitle": {
+        "en": "Yevamot",
+        "he": "יבמות"
+      },
+      "heTitle": "יבמות"
+    },
+    {
+      "_id": "5c4670b708d98a02694c5425",
+      "index_title": "Targum of I Chronicles",
+      "category": "Targum",
+      "type": "reference",
+      "ref": "Targum of I Chronicles 1:2",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Targum of I Chronicles 1:2",
+      "sourceHeRef": "תרגום דברי הימים א א׳:ב׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        350,
+        1150
+      ],
+      "commentaryNum": 1.0002,
+      "collectiveTitle": {
+        "en": "Targum of I Chronicles",
+        "he": "תרגום דברי הימים א"
+      },
+      "heTitle": "תרגום דברי הימים א"
+    },
+    {
+      "_id": "5c46b71608d98a02694f5b82",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, בָּא I 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, בָּא I 1",
+      "sourceHeRef": "מילון יסטרוב, בָּא I א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "בָּא I"
+    },
+    {
+      "_id": "5c46b72108d98a02694f669e",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, וָוא 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, וָוא 1",
+      "sourceHeRef": "מילון יסטרוב, וָוא א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "וָוא"
+    },
+    {
+      "_id": "5c46b72a08d98a02694f6fc2",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, וָלָד 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, וָלָד 1",
+      "sourceHeRef": "מילון יסטרוב, וָלָד א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "וָלָד"
+    },
+    {
+      "_id": "5c46b73208d98a02694f7766",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, קְדוּשָּׁה 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, קְדוּשָּׁה 1",
+      "sourceHeRef": "מילון יסטרוב, קְדוּשָּׁה א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "קְדוּשָּׁה"
+    },
+    {
+      "_id": "5c46b73508d98a02694f7ac9",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, בני 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, בני 1",
+      "sourceHeRef": "מילון יסטרוב, בני א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "בני"
+    },
+    {
+      "_id": "5c46b75108d98a02694f92ab",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, שִׁיכּוּן 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, שִׁיכּוּן 1",
+      "sourceHeRef": "מילון יסטרוב, שִׁיכּוּן א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "שִׁיכּוּן"
+    },
+    {
+      "_id": "5c46b75508d98a02694f96b3",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, טוּמְאָה 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, טוּמְאָה 1",
+      "sourceHeRef": "מילון יסטרוב, טוּמְאָה א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "טוּמְאָה"
+    },
+    {
+      "_id": "5c46b75808d98a02694f9a72",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, סָב 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, סָב 1",
+      "sourceHeRef": "מילון יסטרוב, סָב א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "סָב"
+    },
+    {
+      "_id": "5c46b75e08d98a02694fa087",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, אָב II ² 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, אָב II ² 1",
+      "sourceHeRef": "מילון יסטרוב, אָב II ² א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "אָב II ²"
+    },
+    {
+      "_id": "5c46b76008d98a02694fa1e9",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, ב 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, ב 1",
+      "sourceHeRef": "מילון יסטרוב, ב א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "ב"
+    },
+    {
+      "_id": "5c46b7ae08d98a02694fc05e",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, נָשִׂיא 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, נָשִׂיא 1",
+      "sourceHeRef": "מילון יסטרוב, נָשִׂיא א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "נָשִׂיא"
+    },
+    {
+      "_id": "5c46b7b308d98a02694fc5a2",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, אוֹרְיָין II 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, אוֹרְיָין II 1",
+      "sourceHeRef": "מילון יסטרוב, אוֹרְיָין II א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "אוֹרְיָין II"
+    },
+    {
+      "_id": "5c46b7b308d98a02694fc5b8",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, אָח I 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, אָח I 1",
+      "sourceHeRef": "מילון יסטרוב, אָח I א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "אָח I"
+    },
+    {
+      "_id": "5c46b7b408d98a02694fc70e",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, אַבָּהוּ 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, אַבָּהוּ 1",
+      "sourceHeRef": "מילון יסטרוב, אַבָּהוּ א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "אַבָּהוּ"
+    },
+    {
+      "_id": "5c46b7b808d98a02694fcb01",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, בִּנְיָן 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, בִּנְיָן 1",
+      "sourceHeRef": "מילון יסטרוב, בִּנְיָן א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "בִּנְיָן"
+    },
+    {
+      "_id": "5c46b7df08d98a02694ff1d0",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, אָב II 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, אָב II 1",
+      "sourceHeRef": "מילון יסטרוב, אָב II א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "אָב II"
+    },
+    {
+      "_id": "5c46b7e208d98a02694ff591",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, מָגֵן 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, מָגֵן 1",
+      "sourceHeRef": "מילון יסטרוב, מָגֵן א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "מָגֵן"
+    },
+    {
+      "_id": "5c46b7e308d98a02694ff638",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, דְּחִיפָה 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, דְּחִיפָה 1",
+      "sourceHeRef": "מילון יסטרוב, דְּחִיפָה א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "דְּחִיפָה"
+    },
+    {
+      "_id": "5c46b7e808d98a02694ffbe2",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, מְלָאכָה 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, מְלָאכָה 1",
+      "sourceHeRef": "מילון יסטרוב, מְלָאכָה א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "מְלָאכָה"
+    },
+    {
+      "_id": "5c46b7ea08d98a02694ffd2b",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, אמוראי 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, אמוראי 1",
+      "sourceHeRef": "מילון יסטרוב, אמוראי א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "אמוראי"
+    },
+    {
+      "_id": "619624eaba4d16f58eb6ee25",
+      "index_title": "Jerusalem Talmud Bava Metzia",
+      "category": "Talmud",
+      "type": "reference",
+      "ref": "Jerusalem Talmud Bava Metzia 4:1:3",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jerusalem Talmud Bava Metzia 4:1:3",
+      "sourceHeRef": "תלמוד ירושלמי בבא מציעא ד׳:א׳:ג׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        375,
+        425
+      ],
+      "commentaryNum": 1.0003,
+      "collectiveTitle": {
+        "en": "Jerusalem Talmud Bava Metzia",
+        "he": "תלמוד ירושלמי בבא מציעא"
+      },
+      "heTitle": "תלמוד ירושלמי בבא מציעא"
+    },
+    {
+      "_id": "5c46b71608d98a02694f5b0a",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, א ⁵ 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, א ⁵ 1",
+      "sourceHeRef": "מילון יסטרוב, א ⁵ א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "א ⁵"
+    },
+    {
+      "_id": "5c46b76d08d98a02694faef1",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, א ⁶ 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, א ⁶ 1",
+      "sourceHeRef": "מילון יסטרוב, א ⁶ א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "א ⁶"
+    },
+    {
+      "_id": "5c46b6fb08d98a02694f4028",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, אֲבָהָתָא 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, אֲבָהָתָא 1",
+      "sourceHeRef": "מילון יסטרוב, אֲבָהָתָא א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "אֲבָהָתָא"
+    },
+    {
+      "_id": "5c46b7cd08d98a02694fdffb",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, אִיבָּא II 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, אִיבָּא II 1",
+      "sourceHeRef": "מילון יסטרוב, אִיבָּא II א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "אִיבָּא II"
+    },
+    {
+      "_id": "5c46b74108d98a02694f85c4",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, אִימָּא II 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, אִימָּא II 1",
+      "sourceHeRef": "מילון יסטרוב, אִימָּא II א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "אִימָּא II"
+    },
+    {
+      "_id": "5c46b75108d98a02694f92a4",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, אִימָּא III 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, אִימָּא III 1",
+      "sourceHeRef": "מילון יסטרוב, אִימָּא III א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "אִימָּא III"
+    },
+    {
+      "_id": "5c4670b708d98a02694c5418",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "reference",
+      "ref": "Berakhot 10a:31",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Berakhot 10a:31",
+      "sourceHeRef": "ברכות י׳ א:ל״א",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 19.0031,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "5c4670b708d98a02694c541a",
+      "index_title": "Aramaic Targum to Proverbs",
+      "category": "Targum",
+      "type": "reference",
+      "ref": "Aramaic Targum to Proverbs 19:14",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Aramaic Targum to Proverbs 19:14",
+      "sourceHeRef": "תרגום משלי י״ט:י״ד",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "compDate": [
+        0,
+        600
+      ],
+      "commentaryNum": 19.0014,
+      "collectiveTitle": {
+        "en": "Aramaic Targum to Proverbs",
+        "he": "תרגום משלי"
+      },
+      "heTitle": "תרגום משלי"
+    },
+    {
+      "_id": "5c4670b708d98a02694c541b",
+      "index_title": "Esther",
+      "category": "Tanakh",
+      "type": "reference",
+      "ref": "Esther 7:10",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Esther 7:10",
+      "sourceHeRef": "אסתר ז׳:י׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        -400,
+        -200
+      ],
+      "commentaryNum": 7.001,
+      "collectiveTitle": {
+        "en": "Esther",
+        "he": "אסתר"
+      },
+      "heTitle": "אסתר"
+    },
+    {
+      "_id": "5c4670b708d98a02694c541c",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "reference",
+      "ref": "Berakhot 18b:14",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Berakhot 18b:14",
+      "sourceHeRef": "ברכות י״ח ב:י״ד",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 36.0014,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "5c46b7d108d98a02694fe476",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, אֵם 1",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "sourceRef": "Jastrow, אֵם 1",
+      "sourceHeRef": "מילון יסטרוב, אֵם א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "אֵם"
+    }
+  ],
+  "sheets": [
+    {
+      "owner": 135565,
+      "_id": "61545f1ae334137671105f8a",
+      "id": "349934",
+      "public": true,
+      "title": "Jastrow 2-letter roots",
+      "sheetUrl": "/sheets/349934",
+      "anchorRef": "Jastrow, אַבָּא I 1",
+      "anchorRefExpanded": [
+        "Jastrow, אַבָּא I 1"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "english",
+        "layout": "stacked",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Peter Hillerström",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/peter-hillerstrm",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/peter-hillerstrm1-1627764174-small.png",
+      "status": "public",
+      "views": 2198,
+      "topics": [
+        {
+          "slug": "jastrow",
+          "asTyped": "Jastrow",
+          "en": "Jastrow",
+          "he": ""
+        }
+      ],
+      "likes": [],
+      "summary": "Two letter hebrew root words",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2021-09-29T09:42:02.687454",
+      "combined_score": 0.3001379905131522
+    }
+  ],
+  "notes": [],
+  "topics": [],
+  "manuscripts": [],
+  "media": [],
+  "guides": []
+}

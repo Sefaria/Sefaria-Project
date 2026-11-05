@@ -1,0 +1,163 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Jerusalem Talmud Berakhot",
+    "Talmud",
+    "Berakhot",
+    "Sirilio on Jerusalem Talmud Berakhot",
+    "Targum Jerusalem",
+    "Chiddushei Ridbaz on Jerusalem Talmud Berakhot",
+    "Mareh HaPanim on Jerusalem Talmud Berakhot",
+    "Penei Moshe on Jerusalem Talmud Berakhot",
+    "Tosafot HaRid on Jerusalem Talmud Berakhot",
+    "Amudei Yerushalayim on Jerusalem Talmud Berakhot"
+  ],
+  "completion_objects": [
+    {
+      "title": "Jerusalem Talmud Berakhot",
+      "key": "Jerusalem Talmud Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Talmud",
+      "type": "TocCategory",
+      "key": [
+        "Talmud"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Talmud",
+      "type": "Topic",
+      "key": "talmud",
+      "is_primary": true,
+      "order": 4999200,
+      "topic_pools": [
+        "library",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Berakhot",
+      "key": "Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Berakhot",
+      "type": "Topic",
+      "key": "blessings-(halakhah)",
+      "is_primary": false,
+      "order": 4999651,
+      "topic_pools": [
+        "torah_tab",
+        "library",
+        "general_he",
+        "general_en",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Sirilio on Jerusalem Talmud Berakhot",
+      "key": "Sirilio on Jerusalem Talmud Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Targum Jerusalem",
+      "key": "Targum Jerusalem",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Targum Jerusalem",
+      "type": "TocCategory",
+      "key": [
+        "Tanakh",
+        "Targum",
+        "Targum Jerusalem"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Chiddushei Ridbaz on Jerusalem Talmud Berakhot",
+      "key": "Chiddushei Ridbaz on Jerusalem Talmud Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Mareh HaPanim on Jerusalem Talmud Berakhot",
+      "key": "Mareh HaPanim on Jerusalem Talmud Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Penei Moshe on Jerusalem Talmud Berakhot",
+      "key": "Penei Moshe on Jerusalem Talmud Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Tosafot HaRid on Jerusalem Talmud Berakhot",
+      "key": "Tosafot HaRid on Jerusalem Talmud Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Amudei Yerushalayim on Jerusalem Talmud Berakhot",
+      "key": "Amudei Yerushalayim on Jerusalem Talmud Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Jerusalem Talmud Berakhot",
+  "url": "Jerusalem_Talmud_Berakhot",
+  "index": "Jerusalem Talmud Berakhot",
+  "book": "Jerusalem Talmud Berakhot",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": [],
+  "sectionNames": [
+    "Chapter",
+    "Halakhah",
+    "Segment"
+  ],
+  "heSectionNames": [
+    "פרק",
+    "הלכה",
+    ""
+  ],
+  "addressExamples": [
+    "3",
+    "6",
+    "9"
+  ],
+  "heAddressExamples": [
+    "ג׳",
+    "ו׳",
+    "ט׳"
+  ]
+}

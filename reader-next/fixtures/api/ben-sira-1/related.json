@@ -1,0 +1,120 @@
+{
+  "links": [
+    {
+      "_id": "6960cdfbe6f501ab18706d44",
+      "index_title": "Tractate Kallah Rabbati",
+      "category": "Talmud",
+      "type": "",
+      "ref": "Tractate Kallah Rabbati 3:4",
+      "anchorRef": "Ben Sira 1:14",
+      "anchorRefExpanded": [
+        "Ben Sira 1:14"
+      ],
+      "sourceRef": "Tractate Kallah Rabbati 3:4",
+      "sourceHeRef": "מסכת כלה רבתי ג׳:ד׳",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        -100,
+        900
+      ],
+      "commentaryNum": 3.0004,
+      "collectiveTitle": {
+        "en": "Tractate Kallah Rabbati",
+        "he": "מסכת כלה רבתי"
+      },
+      "heTitle": "מסכת כלה רבתי"
+    },
+    {
+      "_id": "6960fe2e1001674249c473aa",
+      "index_title": "Ohev Ger",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Ohev Ger, Additions, On Syriac Grammar, Letter Resh 8",
+      "anchorRef": "Ben Sira 1:19",
+      "anchorRefExpanded": [
+        "Ben Sira 1:19"
+      ],
+      "sourceRef": "Ohev Ger, Additions, On Syriac Grammar, Letter Resh 8",
+      "sourceHeRef": "אוהב גר, נוספות, דרכי לשון סורי, אות הרי\"ש ח׳",
+      "anchorVerse": 19,
+      "sourceHasEn": false,
+      "compDate": [
+        1823,
+        1829
+      ],
+      "commentaryNum": 8,
+      "collectiveTitle": {
+        "en": "Ohev Ger",
+        "he": "אוהב גר"
+      },
+      "heTitle": "אות הרי\"ש"
+    }
+  ],
+  "sheets": [],
+  "notes": [],
+  "topics": [
+    {
+      "linkType": "about",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Curation of the Sefaria Learning Team",
+        "he": "איסוף ועריכה של צוות החינוך בספריא",
+        "slug": "learning-team"
+      },
+      "is_sheet": false,
+      "generatedBy": "auto-curator",
+      "order": {
+        "curatedPrimacy": {
+          "en": 12
+        },
+        "tfidf": 245.17364174073182,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 180,
+        "order_id": "A01200100000010016",
+        "pr": 0,
+        "numSources": 285
+      },
+      "descriptions": {
+        "en": {
+          "ai_context": "N/A",
+          "published": true,
+          "review_state": "reviewed",
+          "title": "The Foundation of Wisdom",
+          "ai_title": "The Foundation of Wisdom",
+          "prompt": "The fear of the Lord is foundational to acquiring wisdom and positively impacts peace, life, and wellbeing. Ben Sira, a 2nd-century BCE work of ethical teachings, emphasizes the importance of living a wise, ethical, and God-fearing life.",
+          "ai_prompt": "The fear of the Lord is foundational to acquiring wisdom and positively impacts peace, life, and wellbeing. Ben Sira, a 2nd-century BCE work of ethical teachings, emphasizes the importance of living a wise, ethical, and God-fearing life."
+        }
+      },
+      "topic": "yirat-shamayim",
+      "title": {
+        "en": "Fear of Heaven",
+        "he": "יראת שמיים"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {
+        "en": "*Yirat Shamayim* — translated as “fear of heaven,” “awe of heaven,” or “reverence of heaven” — refers to an attitude toward God and is often considered an essential commandment and the basis of religious observance. In the Torah, “fear of God” connotes general ethical conduct, as may be the case in the Torah’s first use of the phrase in the story of [Abraham’s visit to Gerar](https://www.sefaria.org/Genesis.20.11?lang=bi&amp;with=all&amp;lang2=en). Rabbinic literature and later Jewish texts expand on the concept of fearing God — claiming it is the one thing that God [does not control](https://www.sefaria.org/Berakhot.33b.23?lang=bi&amp;with=all&amp;lang2=en) — analyze how fear of God intersects with [love of God](https://www.sefaria.org/topics/love-of-god1?tab=admin), and discuss how to achieve fear of God.",
+        "he": "על פי רוב כוונת הביטוי יראת שמיים היא יראה מפני האל. יראת שמיים היא תכונה רוחנית חשובה ומרכזית המאגדת בתוכה פחד ויראה מן האל ובריאתו."
+      },
+      "shouldDisplay": true,
+      "pools": [
+        "library",
+        "sheets"
+      ],
+      "anchorRef": "Ben Sira 1:16",
+      "anchorRefExpanded": [
+        "Ben Sira 1:16"
+      ]
+    }
+  ],
+  "manuscripts": [],
+  "media": [],
+  "guides": []
+}

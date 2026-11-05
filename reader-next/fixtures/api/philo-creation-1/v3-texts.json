@@ -1,0 +1,115 @@
+{
+  "versions": [
+    {
+      "status": "locked",
+      "priority": "",
+      "license": "Public Domain",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "versionSource": "https://www.nli.org.il/en/books/NNL_ALEPH001216057/NLI",
+      "versionTitle": "Loeb Classical Library, Harvard University Press, 1929",
+      "actualLanguage": "en",
+      "languageFamilyName": "english",
+      "isSource": false,
+      "isPrimary": true,
+      "direction": "ltr",
+      "text": [
+        "[1] While among other lawgivers some have nakedly and without embellishment drawn up a code of the things held to be right among their people, and others, dressing up their ideas in much irrelevant and cumbersome matter, have befogged the masses and hidden the truth under their fictions,",
+        "[2] Moses, disdaining either course, the one as devoid of the philosopher’s painstaking effort to explore his subject thoroughly, the other as full of falsehood and imposture, introduced his laws with an admirable and most impressive exordium. He refrained, on the one hand, from stating abruptly what should be practised or avoided, and on the other hand, in face of the necessity of preparing the minds of those who were to live under the laws for their reception, he refrained from inventing myths himself or acquiescing in those composed by others.",
+        "[3] His exordium, as I have said, is one that excites our admiration in the highest degree. It consists of an account of the creation of the world, implying that the world is in harmony with the Law, and the Law with the world, and that the man who observes the law is constituted thereby a loyal citizen of the world, regulating his doings by the purpose and will of Nature, in accordance with which the entire world itself also is administered.",
+        "[4] Now it is true that no writer in verse or prose could possibly do justice to the beauty of the ideas embodied in this account of the creation of the kosmos. For they transcend our capacity of speech and of hearing, being too great and august to be adjusted to the tongue or ear of any mortal.",
+        "[5] Nevertheless they must not on this account be passed over in silence. Nay, for the sake of the God-beloved author we must be venturesome even beyond our power. We shall fetch nothing from our own store, but, with a great array of points before us, we shall mention only a few, such as we may believe to be within reach of the human mind when possessed by love and longing for wisdom.",
+        "[6] The minutest seal takes in under the graver’s hand the contours of colossal figures. So perchance shall the beauties of the world’s creation recorded in the Laws, transcendent as they are and dazzling as they do by their bright gleams the souls of readers, be indicated by delineations minute and slight. But first we must draw attention to a matter which ought not to be passed over in silence."
+      ]
+    }
+  ],
+  "available_versions": [
+    {
+      "status": "locked",
+      "priority": "",
+      "license": "Public Domain",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "title": "On the Account of the World's Creation",
+      "versionSource": "https://www.nli.org.il/en/books/NNL_ALEPH001216057/NLI",
+      "versionTitle": "Loeb Classical Library, Harvard University Press, 1929",
+      "actualLanguage": "en",
+      "languageFamilyName": "english",
+      "isSource": false,
+      "isPrimary": true,
+      "direction": "ltr"
+    }
+  ],
+  "ref": "On the Account of the World's Creation 1",
+  "heRef": "על בריאת העולם א׳",
+  "sections": [
+    "1"
+  ],
+  "toSections": [
+    "1"
+  ],
+  "sectionRef": "On the Account of the World's Creation 1",
+  "heSectionRef": "על בריאת העולם א׳",
+  "firstAvailableSectionRef": "On the Account of the World's Creation 1",
+  "isSpanning": false,
+  "next": "On the Account of the World's Creation 2",
+  "prev": "On the Account of the World's Creation, Introduction",
+  "title": "On the Account of the World's Creation 1",
+  "book": "On the Account of the World's Creation",
+  "heTitle": "על בריאת העולם",
+  "primary_category": "Second Temple",
+  "type": "Second Temple",
+  "indexTitle": "On the Account of the World's Creation",
+  "categories": [
+    "Second Temple",
+    "Philo"
+  ],
+  "heIndexTitle": "על בריאת העולם",
+  "isComplex": true,
+  "isDependant": false,
+  "order": "",
+  "collectiveTitle": "",
+  "heCollectiveTitle": "",
+  "alts": [],
+  "textDepth": 2,
+  "sectionNames": [
+    "Chapter",
+    "Paragraph"
+  ],
+  "addressTypes": [
+    "Integer",
+    "Integer"
+  ],
+  "titleVariants": [],
+  "heTitleVariants": [],
+  "index_offsets_by_depth": {},
+  "warnings": []
+}

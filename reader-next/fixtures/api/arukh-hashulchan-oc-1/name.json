@@ -1,0 +1,114 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Arukh HaShulchan",
+    "Arukh HaShulchan HeAtid",
+    "Arukh HaShulchan, Yoreh De'ah",
+    "Arukh HaShulchan, Even HaEzer",
+    "Arukh HaShulchan, Orach Chaim",
+    "Arukh HaShulchan, Introduction",
+    "Arukh HaShulchan, Choshen Mishpat",
+    "Arukh HaShulchan HeAtid, Assorted Laws",
+    "Arukh HaShulchan HeAtid, Laws of Zeraim",
+    "Arukh HaShulchan HeAtid, Laws of Tahorot"
+  ],
+  "completion_objects": [
+    {
+      "title": "Arukh HaShulchan",
+      "key": "Arukh HaShulchan",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Arukh HaShulchan HeAtid",
+      "key": "Arukh HaShulchan HeAtid",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Arukh HaShulchan, Yoreh De'ah",
+      "key": "Arukh HaShulchan, Yoreh De'ah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Arukh HaShulchan",
+      "type": "AuthorTopic",
+      "key": "yechiel-michel-epstein",
+      "is_primary": false,
+      "order": 4999899,
+      "topic_pools": [
+        "library",
+        "general_en"
+      ]
+    },
+    {
+      "title": "Arukh HaShulchan, Even HaEzer",
+      "key": "Arukh HaShulchan, Even HaEzer",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Arukh HaShulchan, Orach Chaim",
+      "key": "Arukh HaShulchan, Orach Chaim",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Arukh HaShulchan, Introduction",
+      "key": "Arukh HaShulchan, Introduction",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Arukh HaShulchan, Choshen Mishpat",
+      "key": "Arukh HaShulchan, Choshen Mishpat",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Arukh HaShulchan HeAtid, Assorted Laws",
+      "key": "Arukh HaShulchan HeAtid, Assorted Laws",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Arukh HaShulchan HeAtid, Laws of Zeraim",
+      "key": "Arukh HaShulchan HeAtid, Laws of Zeraim",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Arukh HaShulchan HeAtid, Laws of Tahorot",
+      "key": "Arukh HaShulchan HeAtid, Laws of Tahorot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Arukh HaShulchan",
+  "url": "Arukh_HaShulchan",
+  "index": "Arukh HaShulchan",
+  "book": "Arukh HaShulchan",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": []
+}

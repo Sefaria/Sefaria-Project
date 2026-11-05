@@ -1,0 +1,168 @@
+{
+  "title": "Song of Songs",
+  "categories": [
+    "Tanakh",
+    "Writings"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Pasuk"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Verse"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "sefer",
+          "song-of-songs"
+        ]
+      },
+      {
+        "term_slugs": [
+          "song-of-songs"
+        ]
+      }
+    ],
+    "lengths": [
+      8,
+      117
+    ],
+    "titles": [
+      {
+        "text": "Shir HaShirim",
+        "lang": "en"
+      },
+      {
+        "text": "Canticles",
+        "lang": "en"
+      },
+      {
+        "text": "Song.",
+        "lang": "en"
+      },
+      {
+        "text": "Song",
+        "lang": "en"
+      },
+      {
+        "text": "Song of Solomon",
+        "lang": "en"
+      },
+      {
+        "text": "Cant.",
+        "lang": "en"
+      },
+      {
+        "text": "Canticum",
+        "lang": "en"
+      },
+      {
+        "text": "Songs",
+        "lang": "en"
+      },
+      {
+        "text": "Shir haShirim",
+        "lang": "en"
+      },
+      {
+        "text": "Shir Hashirim",
+        "lang": "en"
+      },
+      {
+        "text": "Cantique des cant.",
+        "lang": "en"
+      },
+      {
+        "text": "S. S.",
+        "lang": "en"
+      },
+      {
+        "text": "S.S.",
+        "lang": "en"
+      },
+      {
+        "text": "שה\"ש",
+        "lang": "he"
+      },
+      {
+        "text": "שיר",
+        "lang": "he"
+      },
+      {
+        "text": "שה״ש",
+        "lang": "he"
+      },
+      {
+        "text": "שה''ש",
+        "lang": "he"
+      },
+      {
+        "text": "שיה\"ש",
+        "lang": "he"
+      },
+      {
+        "text": "שיה״ש",
+        "lang": "he"
+      },
+      {
+        "text": "שה”ש",
+        "lang": "he"
+      },
+      {
+        "text": "שיה”ש",
+        "lang": "he"
+      },
+      {
+        "text": "שה״‎ש",
+        "lang": "he"
+      },
+      {
+        "text": "שה\"‎ש",
+        "lang": "he"
+      },
+      {
+        "text": "שה”‎ש",
+        "lang": "he"
+      },
+      {
+        "text": "שיר השירים",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Song of Songs",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Song of Songs"
+  },
+  "order": [
+    30,
+    4
+  ],
+  "authors": [],
+  "enDesc": "Song of Songs (“Shir Hashirim”) is one of the five megillot (scrolls), part of the section of the Hebrew Bible called Writings. Attributed in its opening verse to King Solomon, the book records poetic conversations between two lovers, describing their pursuit of each other through vineyards and fields of blossoming flowers. It is traditionally understood as a metaphor for the loving relationship between God and the people of Israel, and is often read publicly on Passover or on Shabbat evening.",
+  "heDesc": "שיר השירים הוא המגילה הראשונה שבחמש המגילות, קובץ בחטיבת הכתובים שבמקרא, ופסוק הפתיחה של המגילה מייחס אותה לשלמה המלך. המגילה מורכבת מסדרה של שירי אהבה המתארים את חיפושיהם ההדדיים של האוהבים בין כרמים ושדות מלבלבים. חז\"ל פירשו את המגילה כאלגוריה ליחסי עם ישראל עם אלוקיו, והיא נקראת בציבור בשבת חול המועד פסח ובערבי שבת.",
+  "enShortDesc": "Poetic conversations of two lovers, traditionally read as a metaphor for God and Israel.",
+  "heShortDesc": "שיח פיוטי בין נאהבים שנתפרש במסורת חז\"ל כאלגוריה ליחסי עם ישראל עם אלוקיו.",
+  "pubDate": [
+    1488
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    -900,
+    -100
+  ],
+  "compPlace": "Judea/Israel",
+  "pubPlace": "Soncino",
+  "is_cited": true,
+  "corpora": [
+    "Tanakh"
+  ]
+}

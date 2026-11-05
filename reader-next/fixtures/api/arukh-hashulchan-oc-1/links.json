@@ -1,0 +1,1565 @@
+[
+  {
+    "_id": "53150440fbfba21fcbbe3c54",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "quotation",
+    "ref": "Psalms 104:3",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:1",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:1"
+    ],
+    "sourceRef": "Psalms 104:3",
+    "sourceHeRef": "תהילים ק״ד:ג׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 104.0003,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "537e3b21fbfba25107324264",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 104:4",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:1",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:1"
+    ],
+    "sourceRef": "Psalms 104:4",
+    "sourceHeRef": "תהילים ק״ד:ד׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 104.0004,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "69604d8e7429f65e73a65864",
+    "index_title": "Proverbs",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Proverbs 15:24",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:1",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:1"
+    ],
+    "sourceRef": "Proverbs 15:24",
+    "sourceHeRef": "משלי ט״ו:כ״ד",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      -800,
+      -400
+    ],
+    "commentaryNum": 15.0024,
+    "collectiveTitle": {
+      "en": "Proverbs",
+      "he": "משלי"
+    },
+    "heTitle": "משלי"
+  },
+  {
+    "_id": "69604edfc64225b00330e62b",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Deuteronomy 8:5",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:10",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:10"
+    ],
+    "sourceRef": "Deuteronomy 8:5",
+    "sourceHeRef": "דברים ח׳:ה׳",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 8.0005,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "69604ee0c64225b00330e62d",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 91",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:10",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:10"
+    ],
+    "sourceRef": "Psalms 91",
+    "sourceHeRef": "תהילים צ״א",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 91,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "69604ee0c64225b00330e62f",
+    "index_title": "Zechariah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Zechariah 13:9",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:10",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:10"
+    ],
+    "sourceRef": "Zechariah 13:9",
+    "sourceHeRef": "זכריה י״ג:ט׳",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      -520,
+      -380
+    ],
+    "commentaryNum": 13.0009,
+    "collectiveTitle": {
+      "en": "Zechariah",
+      "he": "זכריה"
+    },
+    "heTitle": "זכריה"
+  },
+  {
+    "_id": "54b1db59fbfba21603f70b16",
+    "index_title": "Gittin",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Gittin 60a",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:12",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:12"
+    ],
+    "sourceRef": "Gittin 60a",
+    "sourceHeRef": "גיטין ס׳ א",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 119,
+    "collectiveTitle": {
+      "en": "Gittin",
+      "he": "גיטין"
+    },
+    "heTitle": "גיטין"
+  },
+  {
+    "_id": "69604d8d9806cee6831e59d6",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Berakhot 12b:22",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:14",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:14"
+    ],
+    "sourceRef": "Berakhot 12b:22",
+    "sourceHeRef": "ברכות י״ב ב:כ״ב",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 24.0022,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "613bc7481ac8da5ac9f3d4ce",
+    "index_title": "Ecclesiastes",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Ecclesiastes 12:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:15",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:15"
+    ],
+    "sourceRef": "Ecclesiastes 12:1",
+    "sourceHeRef": "קהלת י״ב:א׳",
+    "anchorVerse": 15,
+    "sourceHasEn": false,
+    "compDate": [
+      -900,
+      -100
+    ],
+    "commentaryNum": 12.0001,
+    "collectiveTitle": {
+      "en": "Ecclesiastes",
+      "he": "קהלת"
+    },
+    "heTitle": "קהלת"
+  },
+  {
+    "_id": "69604d8ee2d3ed5993bdb33a",
+    "index_title": "Shulchan Arukh, Yoreh De'ah",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Shulchan Arukh, Yoreh De'ah 157:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:15",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:15"
+    ],
+    "sourceRef": "Shulchan Arukh, Yoreh De'ah 157:1",
+    "sourceHeRef": "שולחן ערוך, יורה דעה קנ״ז:א׳",
+    "anchorVerse": 15,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 157.0001,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Yoreh De'ah",
+      "he": "שולחן ערוך, יורה דעה"
+    },
+    "heTitle": "שולחן ערוך, יורה דעה"
+  },
+  {
+    "_id": "695591facf1091cfe0d55868",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Shulchan Arukh, Orach Chayim 1:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:17",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:17"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+    "anchorVerse": 17,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "69604d8e5354625dbebf1d0c",
+    "index_title": "Guide for the Perplexed",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Guide for the Perplexed, Part 3 52:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:17",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:17"
+    ],
+    "sourceRef": "Guide for the Perplexed, Part 3 52:1",
+    "sourceHeRef": "מורה נבוכים, חלק ג' נ״ב:א׳",
+    "anchorVerse": 17,
+    "sourceHasEn": true,
+    "compDate": [
+      1190
+    ],
+    "commentaryNum": 52.0001,
+    "collectiveTitle": {
+      "en": "Guide for the Perplexed",
+      "he": "מורה נבוכים"
+    }
+  },
+  {
+    "_id": "6a0a6b8f7ceb73c60b108989",
+    "index_title": "Arukh HaShulchan",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Arukh HaShulchan, Orach Chaim 241:3",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:17",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:17"
+    ],
+    "sourceRef": "Arukh HaShulchan, Orach Chaim 241:3",
+    "sourceHeRef": "ערוך השולחן, אורח חיים רמ״א:ג׳",
+    "anchorVerse": 17,
+    "sourceHasEn": false,
+    "compDate": [
+      1865,
+      1905
+    ],
+    "commentaryNum": 241.0003,
+    "collectiveTitle": {
+      "en": "Arukh HaShulchan",
+      "he": "ערוך השולחן"
+    },
+    "heTitle": "אורח חיים"
+  },
+  {
+    "_id": "6955a34c896bf5f49621929b",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Shulchan Arukh, Orach Chayim 1:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:18",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:18"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+    "anchorVerse": 18,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "5c17b8e8b071e100bf4e4e8e",
+    "index_title": "Yevamot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Yevamot 72a:4",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:19",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:19"
+    ],
+    "sourceRef": "Yevamot 72a:4",
+    "sourceHeRef": "יבמות ע״ב א:ד׳",
+    "anchorVerse": 19,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 143.0004,
+    "collectiveTitle": {
+      "en": "Yevamot",
+      "he": "יבמות"
+    },
+    "heTitle": "יבמות"
+  },
+  {
+    "_id": "5c17b8e8b071e100bf4e4e8f",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Berakhot 8a:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:19",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:19"
+    ],
+    "sourceRef": "Berakhot 8a:1",
+    "sourceHeRef": "ברכות ח׳ א:א׳",
+    "anchorVerse": 19,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 15.0001,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "69604d8e9806cee6831e59da",
+    "index_title": "Taanit",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Taanit 24b:6",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:19",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:19"
+    ],
+    "sourceRef": "Taanit 24b:6",
+    "sourceHeRef": "תענית כ״ד ב:ו׳",
+    "anchorVerse": 19,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 48.0006,
+    "collectiveTitle": {
+      "en": "Taanit",
+      "he": "תענית"
+    },
+    "heTitle": "תענית"
+  },
+  {
+    "_id": "69604d8e9806cee6831e59dc",
+    "index_title": "Yoma",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Yoma 69b",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:19",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:19"
+    ],
+    "sourceRef": "Yoma 69b",
+    "sourceHeRef": "יומא ס״ט ב",
+    "anchorVerse": 19,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 138,
+    "collectiveTitle": {
+      "en": "Yoma",
+      "he": "יומא"
+    },
+    "heTitle": "יומא"
+  },
+  {
+    "_id": "53153e2bfbfba229b44b6b29",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "quotation",
+    "ref": "Psalms 36:9-10",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:2",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:2"
+    ],
+    "sourceRef": "Psalms 36:9-10",
+    "sourceHeRef": "תהילים ל״ו:ט׳-י׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 36.0009,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "531542a1fbfba229b44b6b2e",
+    "index_title": "Eruvin",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Eruvin 19a:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:2",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:2"
+    ],
+    "sourceRef": "Eruvin 19a:1",
+    "sourceHeRef": "עירובין י״ט א:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 37.0001,
+    "collectiveTitle": {
+      "en": "Eruvin",
+      "he": "עירובין"
+    },
+    "heTitle": "עירובין"
+  },
+  {
+    "_id": "5c17b9c8b071e100bf4ee063",
+    "index_title": "Eruvin",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Eruvin 19a:16",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:2",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:2"
+    ],
+    "sourceRef": "Eruvin 19a:16",
+    "sourceHeRef": "עירובין י״ט א:ט״ז",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 37.0016,
+    "collectiveTitle": {
+      "en": "Eruvin",
+      "he": "עירובין"
+    },
+    "heTitle": "עירובין"
+  },
+  {
+    "_id": "69604ee0e2d3ed5993bdb7fe",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 36:9",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:2",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:2"
+    ],
+    "sourceRef": "Psalms 36:9",
+    "sourceHeRef": "תהילים ל״ו:ט׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 36.0009,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "69604ee0e2d3ed5993bdb800",
+    "index_title": "Isaiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Isaiah 30:33",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:2",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:2"
+    ],
+    "sourceRef": "Isaiah 30:33",
+    "sourceHeRef": "ישעיהו ל׳:ל״ג",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      -750,
+      -450
+    ],
+    "commentaryNum": 30.0033,
+    "collectiveTitle": {
+      "en": "Isaiah",
+      "he": "ישעיהו"
+    },
+    "heTitle": "ישעיהו"
+  },
+  {
+    "_id": "69604ee1e2d3ed5993bdb802",
+    "index_title": "Isaiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Isaiah 66:24",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:2",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:2"
+    ],
+    "sourceRef": "Isaiah 66:24",
+    "sourceHeRef": "ישעיהו ס״ו:כ״ד",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      -750,
+      -450
+    ],
+    "commentaryNum": 66.0024,
+    "collectiveTitle": {
+      "en": "Isaiah",
+      "he": "ישעיהו"
+    },
+    "heTitle": "ישעיהו"
+  },
+  {
+    "_id": "69604ee2e2d3ed5993bdb804",
+    "index_title": "Proverbs",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Proverbs 20:27",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:2",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:2"
+    ],
+    "sourceRef": "Proverbs 20:27",
+    "sourceHeRef": "משלי כ׳:כ״ז",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      -800,
+      -400
+    ],
+    "commentaryNum": 20.0027,
+    "collectiveTitle": {
+      "en": "Proverbs",
+      "he": "משלי"
+    },
+    "heTitle": "משלי"
+  },
+  {
+    "_id": "69604ee2e2d3ed5993bdb806",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 16:8",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:2",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:2"
+    ],
+    "sourceRef": "Psalms 16:8",
+    "sourceHeRef": "תהילים ט״ז:ח׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 16.0008,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "6a0a63f067bc62a65c8b1d3a",
+    "index_title": "Eruvin",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Eruvin 19a:19",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:2",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:2"
+    ],
+    "sourceRef": "Eruvin 19a:19",
+    "sourceHeRef": "עירובין י״ט א:י״ט",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 37.0019,
+    "collectiveTitle": {
+      "en": "Eruvin",
+      "he": "עירובין"
+    },
+    "heTitle": "עירובין"
+  },
+  {
+    "_id": "673f6d7bcef11ea60fce5999",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "reference",
+    "ref": "Shulchan Arukh, Orach Chayim 1:2",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:20",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:20"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:2",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ב׳",
+    "anchorVerse": 20,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0002,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "69604d8f7429f65e73a65868",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Berakhot 3a:6",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:20",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:20"
+    ],
+    "sourceRef": "Berakhot 3a:6",
+    "sourceHeRef": "ברכות ג׳ א:ו׳",
+    "anchorVerse": 20,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 5.0006,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "6a0a66e1e73cc14b28d48156",
+    "index_title": "Arukh HaShulchan",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Arukh HaShulchan, Orach Chaim 51:9",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:21",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:21"
+    ],
+    "sourceRef": "Arukh HaShulchan, Orach Chaim 51:9",
+    "sourceHeRef": "ערוך השולחן, אורח חיים נ״א:ט׳",
+    "anchorVerse": 21,
+    "sourceHasEn": false,
+    "compDate": [
+      1865,
+      1905
+    ],
+    "commentaryNum": 51.0009,
+    "collectiveTitle": {
+      "en": "Arukh HaShulchan",
+      "he": "ערוך השולחן"
+    },
+    "heTitle": "אורח חיים"
+  },
+  {
+    "_id": "673f6d7bcef11ea60fce599b",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "reference",
+    "ref": "Shulchan Arukh, Orach Chayim 1:5",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:22",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:22"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:5",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ה׳",
+    "anchorVerse": 22,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0005,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "6a0a63e36eee74a5978bc450",
+    "index_title": "Tamid",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Tamid 33b:10",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:22",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:22"
+    ],
+    "sourceRef": "Tamid 33b:10",
+    "sourceHeRef": "תמיד ל״ג ב:י׳",
+    "anchorVerse": 22,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 66.001,
+    "collectiveTitle": {
+      "en": "Tamid",
+      "he": "תמיד"
+    },
+    "heTitle": "תמיד"
+  },
+  {
+    "_id": "69604d8eabe37339b20bcbc6",
+    "index_title": "Yoma",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Yoma 33a:2",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:23",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:23"
+    ],
+    "sourceRef": "Yoma 33a:2",
+    "sourceHeRef": "יומא ל״ג א:ב׳",
+    "anchorVerse": 23,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 65.0002,
+    "collectiveTitle": {
+      "en": "Yoma",
+      "he": "יומא"
+    },
+    "heTitle": "יומא"
+  },
+  {
+    "_id": "69604d8fabe37339b20bcbc8",
+    "index_title": "Zevachim",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Zevachim 47a:12",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:23",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:23"
+    ],
+    "sourceRef": "Zevachim 47a:12",
+    "sourceHeRef": "זבחים מ״ז א:י״ב",
+    "anchorVerse": 23,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 93.0012,
+    "collectiveTitle": {
+      "en": "Zevachim",
+      "he": "זבחים"
+    },
+    "heTitle": "זבחים"
+  },
+  {
+    "_id": "69604d8f9806cee6831e59e0",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Berakhot 12a:5",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:24",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:24"
+    ],
+    "sourceRef": "Berakhot 12a:5",
+    "sourceHeRef": "ברכות י״ב א:ה׳",
+    "anchorVerse": 24,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 23.0005,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "69604d8e792e48e4b3aeb476",
+    "index_title": "Zevachim",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Zevachim 19b:16",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:25",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:25"
+    ],
+    "sourceRef": "Zevachim 19b:16",
+    "sourceHeRef": "זבחים י״ט ב:ט״ז",
+    "anchorVerse": 25,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 38.0016,
+    "collectiveTitle": {
+      "en": "Zevachim",
+      "he": "זבחים"
+    },
+    "heTitle": "זבחים"
+  },
+  {
+    "_id": "6a0a638e8285019f8fae86ad",
+    "index_title": "Zevachim",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Zevachim 20a:13",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:25",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:25"
+    ],
+    "sourceRef": "Zevachim 20a:13",
+    "sourceHeRef": "זבחים כ׳ א:י״ג",
+    "anchorVerse": 25,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 39.0013,
+    "collectiveTitle": {
+      "en": "Zevachim",
+      "he": "זבחים"
+    },
+    "heTitle": "זבחים"
+  },
+  {
+    "_id": "64ada3ccef63b915308acbe6",
+    "index_title": "Arukh HaShulchan",
+    "category": "Halakhah",
+    "type": "quotation",
+    "ref": "Arukh HaShulchan, Orach Chaim 48:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:26",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:26"
+    ],
+    "sourceRef": "Arukh HaShulchan, Orach Chaim 48:1",
+    "sourceHeRef": "ערוך השולחן, אורח חיים מ״ח:א׳",
+    "anchorVerse": 26,
+    "sourceHasEn": false,
+    "compDate": [
+      1865,
+      1905
+    ],
+    "commentaryNum": 48.0001,
+    "collectiveTitle": {
+      "en": "Arukh HaShulchan",
+      "he": "ערוך השולחן"
+    },
+    "heTitle": "אורח חיים"
+  },
+  {
+    "_id": "69604d8eed2acb22cd8b8723",
+    "index_title": "Taanit",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Taanit 26a:4",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:26",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:26"
+    ],
+    "sourceRef": "Taanit 26a:4",
+    "sourceHeRef": "תענית כ״ו א:ד׳",
+    "anchorVerse": 26,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 51.0004,
+    "collectiveTitle": {
+      "en": "Taanit",
+      "he": "תענית"
+    },
+    "heTitle": "תענית"
+  },
+  {
+    "_id": "69604d8fed2acb22cd8b8725",
+    "index_title": "Tamid",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Tamid 32b:9",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:26",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:26"
+    ],
+    "sourceRef": "Tamid 32b:9",
+    "sourceHeRef": "תמיד ל״ב ב:ט׳",
+    "anchorVerse": 26,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 64.0009,
+    "collectiveTitle": {
+      "en": "Tamid",
+      "he": "תמיד"
+    },
+    "heTitle": "תמיד"
+  },
+  {
+    "_id": "69604d8fed2acb22cd8b8727",
+    "index_title": "Magen Avraham",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Magen Avraham 48",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:26",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:26"
+    ],
+    "sourceRef": "Magen Avraham 48",
+    "sourceHeRef": "מגן אברהם מ״ח",
+    "anchorVerse": 26,
+    "sourceHasEn": false,
+    "compDate": [
+      1665,
+      1671
+    ],
+    "commentaryNum": 48,
+    "collectiveTitle": {
+      "en": "Magen Avraham",
+      "he": "מגן אברהם"
+    }
+  },
+  {
+    "_id": "69604d90e2d3ed5993bdb340",
+    "index_title": "Shulchan Arukh, Yoreh De'ah",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Shulchan Arukh, Yoreh De'ah 5:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:27",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:27"
+    ],
+    "sourceRef": "Shulchan Arukh, Yoreh De'ah 5:1",
+    "sourceHeRef": "שולחן ערוך, יורה דעה ה׳:א׳",
+    "anchorVerse": 27,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 5.0001,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Yoreh De'ah",
+      "he": "שולחן ערוך, יורה דעה"
+    },
+    "heTitle": "שולחן ערוך, יורה דעה"
+  },
+  {
+    "_id": "69604d90e2d3ed5993bdb342",
+    "index_title": "Keritot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Keritot 25a:13",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:27",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:27"
+    ],
+    "sourceRef": "Keritot 25a:13",
+    "sourceHeRef": "כריתות כ״ה א:י״ג",
+    "anchorVerse": 27,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 49.0013,
+    "collectiveTitle": {
+      "en": "Keritot",
+      "he": "כריתות"
+    },
+    "heTitle": "כריתות"
+  },
+  {
+    "_id": "6a0a66698e25bcfdd424f586",
+    "index_title": "Arukh HaShulchan",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Arukh HaShulchan, Orach Chaim 50:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:27",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:27"
+    ],
+    "sourceRef": "Arukh HaShulchan, Orach Chaim 50:1",
+    "sourceHeRef": "ערוך השולחן, אורח חיים נ׳:א׳",
+    "anchorVerse": 27,
+    "sourceHasEn": false,
+    "compDate": [
+      1865,
+      1905
+    ],
+    "commentaryNum": 50.0001,
+    "collectiveTitle": {
+      "en": "Arukh HaShulchan",
+      "he": "ערוך השולחן"
+    },
+    "heTitle": "אורח חיים"
+  },
+  {
+    "_id": "67982a9960c91a7d5d26cfeb",
+    "index_title": "Tur",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Tur, Orach Chayim 1:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:28",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:28"
+    ],
+    "sourceRef": "Tur, Orach Chayim 1:1",
+    "sourceHeRef": "טור, אורח חיים א׳:א׳",
+    "anchorVerse": 28,
+    "sourceHasEn": true,
+    "compDate": [
+      1300,
+      1340
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Tur",
+      "he": "טור"
+    }
+  },
+  {
+    "_id": "69604d8fc68ad38eb3a0fc6c",
+    "index_title": "Magen Avraham",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Magen Avraham 340",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:28",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:28"
+    ],
+    "sourceRef": "Magen Avraham 340",
+    "sourceHeRef": "מגן אברהם ש״מ",
+    "anchorVerse": 28,
+    "sourceHasEn": false,
+    "compDate": [
+      1665,
+      1671
+    ],
+    "commentaryNum": 340,
+    "collectiveTitle": {
+      "en": "Magen Avraham",
+      "he": "מגן אברהם"
+    }
+  },
+  {
+    "_id": "69604ede338c46700f036df5",
+    "index_title": "Proverbs",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Proverbs 15:24",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:3",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:3"
+    ],
+    "sourceRef": "Proverbs 15:24",
+    "sourceHeRef": "משלי ט״ו:כ״ד",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      -800,
+      -400
+    ],
+    "commentaryNum": 15.0024,
+    "collectiveTitle": {
+      "en": "Proverbs",
+      "he": "משלי"
+    },
+    "heTitle": "משלי"
+  },
+  {
+    "_id": "69604edfabe37339b20bd13b",
+    "index_title": "Pirkei Avot",
+    "category": "Mishnah",
+    "type": "",
+    "ref": "Pirkei Avot 3:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:4",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:4"
+    ],
+    "sourceRef": "Pirkei Avot 3:1",
+    "sourceHeRef": "משנה אבות ג׳:א׳",
+    "anchorVerse": 4,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 3.0001,
+    "collectiveTitle": {
+      "en": "Pirkei Avot",
+      "he": "משנה אבות"
+    },
+    "heTitle": "משנה אבות"
+  },
+  {
+    "_id": "54dd04b5fbfba216b69ca68a",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "quotation",
+    "ref": "Deuteronomy 6:5",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:6",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:6"
+    ],
+    "sourceRef": "Deuteronomy 6:5",
+    "sourceHeRef": "דברים ו׳:ה׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 6.0005,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "69604edec64225b00330e627",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Deuteronomy 4:5",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:6",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:6"
+    ],
+    "sourceRef": "Deuteronomy 4:5",
+    "sourceHeRef": "דברים ד׳:ה׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 4.0005,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "54dd05e1fbfba216b69ca68f",
+    "index_title": "Sefer HaChinukh",
+    "category": "Halakhah",
+    "type": "reference",
+    "ref": "Sefer HaChinukh 418:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:7",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:7"
+    ],
+    "sourceRef": "Sefer HaChinukh 418:1",
+    "sourceHeRef": "ספר החינוך תי״ח:א׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      1255,
+      1285
+    ],
+    "commentaryNum": 418.0001,
+    "collectiveTitle": {
+      "en": "Sefer HaChinukh",
+      "he": "ספר החינוך"
+    }
+  },
+  {
+    "_id": "69604edd792e48e4b3aeb9d5",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Deuteronomy 6:13",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:8",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:8"
+    ],
+    "sourceRef": "Deuteronomy 6:13",
+    "sourceHeRef": "דברים ו׳:י״ג",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 6.0013,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "5c17b9c8b071e100bf4ee064",
+    "index_title": "Ketubot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Ketubot 111b:6-7",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:9",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:9"
+    ],
+    "sourceRef": "Ketubot 111b:6-7",
+    "sourceHeRef": "כתובות קי״א ב:ו׳-ז׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 222.0006,
+    "collectiveTitle": {
+      "en": "Ketubot",
+      "he": "כתובות"
+    },
+    "heTitle": "כתובות"
+  },
+  {
+    "_id": "54b1db59fbfba21603f70b14",
+    "index_title": "Sotah",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Sotah 14a:3",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:9",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:9"
+    ],
+    "sourceRef": "Sotah 14a:3",
+    "sourceHeRef": "סוטה י״ד א:ג׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 27.0003,
+    "collectiveTitle": {
+      "en": "Sotah",
+      "he": "סוטה"
+    },
+    "heTitle": "סוטה"
+  },
+  {
+    "_id": "69604edfb4a30cfb29e06e76",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Deuteronomy 13:5",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:9",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:9"
+    ],
+    "sourceRef": "Deuteronomy 13:5",
+    "sourceHeRef": "דברים י״ג:ה׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 13.0005,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "69604ee0b4a30cfb29e06e78",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 1:1",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:9",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:9"
+    ],
+    "sourceRef": "Psalms 1:1",
+    "sourceHeRef": "תהילים א׳:א׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "69604ee0b4a30cfb29e06e7a",
+    "index_title": "Sotah",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Sotah 14b",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:9",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:9"
+    ],
+    "sourceRef": "Sotah 14b",
+    "sourceHeRef": "סוטה י״ד ב",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 28,
+    "collectiveTitle": {
+      "en": "Sotah",
+      "he": "סוטה"
+    },
+    "heTitle": "סוטה"
+  },
+  {
+    "_id": "69604ee1b4a30cfb29e06e7c",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Deuteronomy 4:24",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:9",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:9"
+    ],
+    "sourceRef": "Deuteronomy 4:24",
+    "sourceHeRef": "דברים ד׳:כ״ד",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 4.0024,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "69604ee2b4a30cfb29e06e7e",
+    "index_title": "Proverbs",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Proverbs 13:20",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:9",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:9"
+    ],
+    "sourceRef": "Proverbs 13:20",
+    "sourceHeRef": "משלי י״ג:כ׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      -800,
+      -400
+    ],
+    "commentaryNum": 13.002,
+    "collectiveTitle": {
+      "en": "Proverbs",
+      "he": "משלי"
+    },
+    "heTitle": "משלי"
+  },
+  {
+    "_id": "69604ee2b4a30cfb29e06e80",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Deuteronomy 26:13",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:9",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:9"
+    ],
+    "sourceRef": "Deuteronomy 26:13",
+    "sourceHeRef": "דברים כ״ו:י״ג",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 26.0013,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "69604ee3b4a30cfb29e06e82",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Deuteronomy 10:12",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:9",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:9"
+    ],
+    "sourceRef": "Deuteronomy 10:12",
+    "sourceHeRef": "דברים י׳:י״ב",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 10.0012,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "6a0a635067712803f6a4cdd6",
+    "index_title": "Ketubot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Ketubot 111b:8",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 1:9",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 1:9"
+    ],
+    "sourceRef": "Ketubot 111b:8",
+    "sourceHeRef": "כתובות קי״א ב:ח׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 222.0008,
+    "collectiveTitle": {
+      "en": "Ketubot",
+      "he": "כתובות"
+    },
+    "heTitle": "כתובות"
+  },
+  {
+    "_id": "6a0a6fdd3e4e5791b92cb877",
+    "index_title": "Arukh HaShulchan",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Arukh HaShulchan, Orach Chaim 1:17",
+    "anchorRef": "Arukh HaShulchan, Orach Chaim 124:8",
+    "anchorRefExpanded": [
+      "Arukh HaShulchan, Orach Chaim 124:8"
+    ],
+    "sourceRef": "Arukh HaShulchan, Orach Chaim 1:17",
+    "sourceHeRef": "ערוך השולחן, אורח חיים א׳:י״ז",
+    "anchorVerse": 8,
+    "sourceHasEn": false,
+    "compDate": [
+      1865,
+      1905
+    ],
+    "commentaryNum": 1.0017,
+    "collectiveTitle": {
+      "en": "Arukh HaShulchan",
+      "he": "ערוך השולחן"
+    },
+    "heTitle": "אורח חיים"
+  }
+]

@@ -1,0 +1,212 @@
+{
+  "title": "Jastrow",
+  "categories": [
+    "Reference",
+    "Dictionary"
+  ],
+  "schema": {
+    "nodes": [
+      {
+        "nodeType": "DictionaryNode",
+        "lexiconName": "Jastrow Dictionary",
+        "firstWord": "א",
+        "lastWord": "תתנא",
+        "headwordMap": [
+          [
+            "א",
+            "Jastrow, א"
+          ],
+          [
+            "ב",
+            "Jastrow, ב"
+          ],
+          [
+            "ג",
+            "Jastrow, ג"
+          ],
+          [
+            "ד",
+            "Jastrow, ד"
+          ],
+          [
+            "ה",
+            "Jastrow, ה"
+          ],
+          [
+            "ו",
+            "Jastrow, ו"
+          ],
+          [
+            "ז",
+            "Jastrow, ז"
+          ],
+          [
+            "ח",
+            "Jastrow, ח"
+          ],
+          [
+            "ט",
+            "Jastrow, ט"
+          ],
+          [
+            "י",
+            "Jastrow, י"
+          ],
+          [
+            "כ",
+            "Jastrow, כ"
+          ],
+          [
+            "ל",
+            "Jastrow, ל"
+          ],
+          [
+            "מ",
+            "Jastrow, מ"
+          ],
+          [
+            "נ",
+            "Jastrow, נ"
+          ],
+          [
+            "ס",
+            "Jastrow, ס"
+          ],
+          [
+            "ע",
+            "Jastrow, ע"
+          ],
+          [
+            "פ",
+            "Jastrow, פ"
+          ],
+          [
+            "צ",
+            "Jastrow, צ"
+          ],
+          [
+            "ק",
+            "Jastrow, ק"
+          ],
+          [
+            "ר",
+            "Jastrow, ר"
+          ],
+          [
+            "ש",
+            "Jastrow, שׁ"
+          ],
+          [
+            "ת",
+            "Jastrow, ת"
+          ]
+        ],
+        "default": true
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "lang": "he",
+            "text": "הקדמה"
+          },
+          {
+            "primary": true,
+            "lang": "en",
+            "text": "Preface"
+          }
+        ],
+        "key": "Preface"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Line"
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "lang": "he",
+            "text": "קיצורים בעברית או בארמית"
+          },
+          {
+            "primary": true,
+            "lang": "en",
+            "text": "Hebrew or Aramaic Abbreviations"
+          }
+        ],
+        "key": "Hebrew or Aramaic Abbreviations"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Line"
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "lang": "he",
+            "text": "רשימת קיצורים"
+          },
+          {
+            "primary": true,
+            "lang": "en",
+            "text": "List of Abbreviations"
+          }
+        ],
+        "key": "List of Abbreviations"
+      }
+    ],
+    "titles": [
+      {
+        "primary": true,
+        "lang": "he",
+        "text": "מילון יסטרוב"
+      },
+      {
+        "text": "Jastrow",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Jastrow"
+  },
+  "order": [
+    1
+  ],
+  "authors": [
+    "marcus-jastrow"
+  ],
+  "enDesc": "Commonly known as Jastrow’s Dictionary, this work was the first English language dictionary for studying the Talmud, Midrashim and Targumim. With over 30,000 entries, it was far more comprehensive than any other dictionary of Aramaic/Hebrew available until surpassed by more modern works. Each entry is fully vocalized, defined in English and presented in various contexts. Word roots are cross-referenced wherever possible.",
+  "enShortDesc": "Early 20th-century English dictionary of Aramaic and Hebrew words in the Talmud, midrashic literature, and the Targumim.",
+  "heShortDesc": "מילון באנגלית המפרש מילים בעברית וארמית מן התלמוד, מספרות המדרש ומהתרגומים, נכתב בתחילת המאה ה-20.",
+  "pubDate": [
+    1903
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    1883,
+    1903
+  ],
+  "compPlace": "Philadelphia",
+  "pubPlace": "New York",
+  "era": "CO",
+  "is_cited": false,
+  "lexiconName": "Jastrow Dictionary"
+}
