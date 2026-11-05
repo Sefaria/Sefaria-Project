@@ -10,7 +10,7 @@
  *
  * Contrast (1.4.3, 1.4.11, including the pressed chip) is covered by the token audit in
  * cssColorLiterals.test.js; the menu staying open by headerAppearance.test.js; in-browser
- * behaviour (Tab order, focus rings, key presses) by the E2E theme-a11y specs.
+ * behaviour (Tab order, focus rings, key presses) by the E2E appearance-a11y specs.
  */
 import React from 'react';
 import ReactDOM from 'react-dom';

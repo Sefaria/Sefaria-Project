@@ -533,10 +533,10 @@ export const SITE_CONFIGS: { readonly LIBRARY: SiteConfig; readonly VOICES: Site
     ],
     actionButton: { text: 'Sign Up', href: '/register' },
     // Anonymous English header in tab order, asserted by ModuleHeaderPage.testTabOrder
-    // (MOD-H009a). Verified against www.sefaria.org on 2026-09-27, before the toggle
-    // shipped. The dark-mode toggle sits between the module switcher and the account
-    // menu. Keep its selector in sync with THEME_SELECTORS.DESKTOP_TOGGLE in
-    // pages/themeTogglePage.ts.
+    // (MOD-H009a). Verified against www.sefaria.org on 2026-09-27. The header has no theme
+    // control: Appearance (Auto / Light / Dark) lives inside the account menu, so the account
+    // menu button follows the module switcher directly (also checked by THEME-A001 in
+    // library/appearance-a11y.spec.ts).
     tabOrder: [
       { selector: '.header a.textLink[href="/texts"]', description: 'Texts link' },
       { selector: '.header a.textLink[href="/topics"]', description: 'Topics link' },
@@ -547,7 +547,6 @@ export const SITE_CONFIGS: { readonly LIBRARY: SiteConfig; readonly VOICES: Site
       { selector: '.header .header-icons a[aria-label="Help"]', description: 'Help link' },
       { selector: '.header button[aria-label="Toggle Interface Language Menu"]', description: 'Language globe button' },
       { selector: '.header button[aria-label="Library"]', description: 'Module switcher button' },
-      { selector: '.header button.themeToggle', description: 'Dark mode toggle' },
       { selector: '.header button[aria-label="Account menu"]', description: 'User menu button' },
     ]
   },
@@ -573,7 +572,6 @@ export const SITE_CONFIGS: { readonly LIBRARY: SiteConfig; readonly VOICES: Site
       { selector: '.header .header-icons a[aria-label="Help"]', description: 'Help link' },
       { selector: '.header button[aria-label="Toggle Interface Language Menu"]', description: 'Language globe button' },
       { selector: '.header button[aria-label="Library"]', description: 'Module switcher button' },
-      { selector: '.header button.themeToggle', description: 'Dark mode toggle' },
       { selector: '.header button[aria-label="Account menu"]', description: 'User menu button' }
     ]
   }

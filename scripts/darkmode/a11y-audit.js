@@ -12,15 +12,23 @@
  *   - duplicate ids, in the whole document and inside the header / mobile menu (4.1.1);
  *   - an axe-core run with the wcag2a, wcag21a, wcag2aa and wcag21aa tags, when axe-core is
  *     available (--axe, AXE_CORE_PATH, or an installed `axe-core`). axe-core is not a dependency
- *     of this repo, so without it the audit simply records `axe: null`.
+ *     of this repo, so without it the audit simply records `axe: null`;
+ *   - the Appearance options (Auto / Light / Dark: in the account menu on desktop, in the
+ *     hamburger menu on mobile): the pressed chip against the menu and every icon against what it
+ *     is drawn on (e2e-tests/support/a11y-scan.js scanToggleGroup: 1.4.11, 3:1).
  * and on the pages marked `keyboard` below:
- *   - desktop: the Tab sequence from the top of the page (skip link first, the toggle after the
- *     module switcher, the account menu after it, focus keeps moving past the header), the focus
- *     ring of every stop with its contrast, the skip link's target, activating the toggle with
- *     Enter and Space (theme flips, same URL, no navigation, focus stays, `lang` kept), and single
- *     character keys doing nothing (2.1.1, 2.1.2, 2.1.4, 2.4.1, 2.4.3, 2.4.7, 3.2.1, 3.2.2);
- *   - mobile: the menu opened, the switch reached with Tab, Space toggles it, the menu stays open,
- *     focus stays, and Tab moves on.
+ *   - desktop: the Tab sequence from the top of the page (skip link first, the account menu right
+ *     after the module switcher, no theme control in the header, focus keeps moving past it), the
+ *     focus ring of every stop with its contrast, the skip link's target; then the account menu
+ *     opened with Enter: Tab reaches Auto, Light, Dark right after Site Language (focus ring of
+ *     each), Enter and Space choose in place (theme changes, same URL, no navigation, focus stays,
+ *     menu stays open, `lang` kept), focus alone and single character keys do nothing, Tab moves
+ *     on from Dark, and Escape closes the menu and returns focus to the account button
+ *     (2.1.1, 2.1.2, 2.1.4, 2.4.1, 2.4.3, 2.4.7, 3.2.1, 3.2.2);
+ *   - mobile: the menu opened, Auto reached with Tab from the language row, then Light and Dark,
+ *     Enter and Space choose in place, the menu stays open, focus stays, and Tab moves on.
+ * The run's theme is the `theme` cookie (an explicit light or dark preference), so the context's
+ * colour scheme does not matter; the keyboard checks always finish on the run's preference.
  *
  * Exit code 0 unless a page failed to load; the report is for people to read. A summary of dark
  * contrast failures, split into "dark only" (not failing in light on the same page) and "both
@@ -49,7 +57,7 @@ const S = require('../../e2e-tests/support/a11y-scan');
 
 const REPO_DEFAULT = path.resolve(__dirname, '..', '..');
 
-/** Pages audited by default. `keyboard` runs the keyboard/toggle checks there; `menu` opens the mobile menu. */
+/** Pages audited by default. `keyboard` runs the keyboard/Appearance checks there; `menu` opens the mobile menu. */
 const PAGES = [
   { path: '/texts', ready: '.navBlock', keyboard: true, menu: true },
   { path: '/Genesis.1', ready: '.segment', menu: true },
@@ -60,14 +68,22 @@ const PAGES = [
   { path: 'he:/texts', ready: '.navBlock', keyboard: true, menu: true },
 ];
 
+// Keep in step with APPEARANCE_SELECTORS in e2e-tests/pages/appearancePage.ts.
 const SEL = {
-  DESKTOP_TOGGLE: '.header .header-icons button.themeToggle',
-  MOBILE_TOGGLE: '.mobileNavMenu .mobileThemeToggle',
   MOBILE_MENU_OPEN: '.mobileNavMenu:not(.closed)',
   MODULE_SWITCHER: '.headerDropdownMenu[data-anl-feature_name="module_switcher"]',
   ACCOUNT: '.headerDropdownMenu:has(.profile-pic), .headerDropdownMenu:has(img[src*="profile_loggedout_mdl"])',
+  DROPDOWN_TRIGGER: '.dropdownLinks-button > :is(button, a, [tabindex])',
+  ACCOUNT_PANEL_OPEN: '.header .header-icons .dropdownLinks-menu.open',
+  LANGUAGE_TOGGLE: '.dropdownLanguageToggle',
+  DESKTOP_GROUP: '.header .dropdownAppearanceToggle',
+  MOBILE_GROUP: '.mobileNavMenu .mobileAppearanceToggle',
+  OPTION: 'button.appearanceOption',
+  /** The two-state controls the Appearance setting replaced; they must not come back. */
+  LEGACY: 'button.themeToggle, .mobileThemeToggle',
   LANGUAGE_ROW: '.mobileNavMenu .mobileInterfaceLanguageToggle',
 };
+const PREFERENCES = ['auto', 'light', 'dark'];
 
 function parseArgs(argv) {
   const opts = {
@@ -167,7 +183,6 @@ async function runAxe(page, axe, include) {
   }, { include, tags: S.AXE_TAGS });
 }
 
-/** Press Tab from the top of the document `max` times; one describeFocus() per stop. */
 /** Put the sequential-focus starting point at the very start of <body>, as on a fresh load. */
 async function focusFromTop(page) {
   await page.evaluate(() => {
@@ -203,6 +218,27 @@ async function ringPixels(page) {
   return page.evaluate(S.compareFocusPixels, { focused, unfocused });
 }
 
+/** Where the focused element sits: header, module switcher, account menu, Appearance group. */
+function where(page) {
+  return page.evaluate((s) => {
+    const a = document.activeElement;
+    const inside = (sel) => !!(a && a.closest(sel));
+    return {
+      option: a && a.matches(s.OPTION) ? a.getAttribute('data-appearance') : null,
+      isLegacy: !!(a && a.matches(s.LEGACY)),
+      inModuleSwitcher: inside(s.MODULE_SWITCHER),
+      isAccountTrigger: inside(s.ACCOUNT) && inside('.dropdownLinks-button'),
+      inAccountPanel: inside(s.ACCOUNT) && inside('.dropdownLinks-menu'),
+      inLanguageToggle: inside(s.LANGUAGE_TOGGLE),
+      inDesktopGroup: inside(s.DESKTOP_GROUP),
+      inMobileGroup: inside(s.MOBILE_GROUP),
+      inMobileMenu: inside('.mobileNavMenu'),
+      inHeader: inside('.header'),
+    };
+  }, SEL);
+}
+
+/** Press Tab from the top of the document `max` times; one describeFocus() per stop. */
 async function tabWalk(page, max) {
   await focusFromTop(page);
   const stops = [];
@@ -210,31 +246,75 @@ async function tabWalk(page, max) {
     await page.keyboard.press('Tab');
     const d = await page.evaluate(S.describeFocus);
     d.pixels = d.inViewport ? await ringPixels(page) : null;
-    d.isToggle = await page.evaluate((s) => document.activeElement && document.activeElement.matches(s), SEL.DESKTOP_TOGGLE);
-    d.inModuleSwitcher = await page.evaluate((s) => !!(document.activeElement && document.activeElement.closest(s)), SEL.MODULE_SWITCHER);
-    d.inAccount = await page.evaluate((s) => !!(document.activeElement && document.activeElement.closest(s)), SEL.ACCOUNT);
-    d.inHeader = await page.evaluate(() => !!(document.activeElement && document.activeElement.closest('.header')));
+    Object.assign(d, await where(page));
     stops.push(d);
   }
   return stops;
+}
+
+/** The page state the "nothing else changed" checks compare. */
+function appearanceState(page) {
+  return page.evaluate((s) => {
+    const a = document.activeElement;
+    return {
+      theme: document.documentElement.getAttribute('data-theme'), lang: document.documentElement.getAttribute('lang'),
+      url: location.href, title: document.title,
+      pressed: Array.from(document.querySelectorAll(`${s.OPTION}[aria-pressed="true"]`)).map((e) => e.getAttribute('data-appearance')),
+      focusedOption: a && a.matches(s.OPTION) ? a.getAttribute('data-appearance') : null,
+      accountMenuOpen: !!document.querySelector(s.ACCOUNT_PANEL_OPEN),
+      mobileMenuOpen: !!document.querySelector(s.MOBILE_MENU_OPEN),
+    };
+  }, SEL);
+}
+
+/** From the focused option, Tab / Shift+Tab to `pref` (the options are consecutive stops). */
+async function moveToOption(page, pref) {
+  const current = (await where(page)).option;
+  if (!current) return false;
+  const delta = PREFERENCES.indexOf(pref) - PREFERENCES.indexOf(current);
+  for (let i = 0; i < Math.abs(delta); i++) await page.keyboard.press(delta > 0 ? 'Tab' : 'Shift+Tab');
+  return (await where(page)).option === pref;
+}
+
+/**
+ * Choose options from the keyboard: the other explicit theme with Enter, then the run's own
+ * theme with Space, so the page ends where it started. Records the state around each key.
+ */
+async function chooseWithKeys(page, theme) {
+  const other = theme === 'dark' ? 'light' : 'dark';
+  const steps = [];
+  for (const [pref, key] of [[other, 'Enter'], [theme, 'Space']]) {
+    const reached = await moveToOption(page, pref);
+    const before = await appearanceState(page);
+    await page.keyboard.press(key);
+    await page.waitForTimeout(300);
+    steps.push({ pref, key, reached, before, after: await appearanceState(page) });
+  }
+  return steps;
+}
+
+/** Contrast of the Appearance options in `root` (pressed chip vs menu, icons), mouse moved away. */
+async function optionContrast(page, root) {
+  await page.mouse.move(0, 0);
+  return page.evaluate(S.scanToggleGroup, { root, option: SEL.OPTION });
 }
 
 async function keyboardDesktop(page) {
   const out = {};
   const stops = await tabWalk(page, 24);
   out.stops = stops.map((d) => ({
-    tag: d.tag, name: d.name, cls: d.className && d.className.slice(0, 40), href: d.href, isToggle: d.isToggle,
+    tag: d.tag, name: d.name, cls: d.className && d.className.slice(0, 40), href: d.href, isAccountTrigger: d.isAccountTrigger,
     inHeader: d.inHeader, inViewport: d.inViewport, ring: d.ring, pixels: d.pixels,
   }));
-  const ti = stops.findIndex((d) => d.isToggle);
-  out.toggleIndex = ti;
+  const ai = stops.findIndex((d) => d.isAccountTrigger);
+  out.accountIndex = ai;
   out.firstStop = stops[0] && { name: stops[0].name, href: stops[0].href, inViewport: stops[0].inViewport, ring: stops[0].ring };
-  out.prevIsModuleSwitcher = ti > 0 && stops[ti - 1].inModuleSwitcher;
-  out.nextIsAccount = ti >= 0 && !!stops[ti + 1] && stops[ti + 1].inAccount;
-  const after = stops.slice(ti + 1).map((d) => `${d.tag}|${d.name}|${d.href}`);
-  out.distinctStopsAfterToggle = new Set(after).size;
-  out.leftHeader = stops.slice(ti + 1).some((d) => !d.inHeader);
-  out.toggleRing = ti >= 0 ? stops[ti].ring : null;
+  out.prevIsModuleSwitcher = ai > 0 && stops[ai - 1].inModuleSwitcher;
+  // The menu is closed: no Appearance option, and no old header toggle, may take focus.
+  out.themeStopsInHeader = stops.filter((d) => d.option || d.isLegacy).map((d) => d.name);
+  const after = stops.slice(ai + 1).map((d) => `${d.tag}|${d.name}|${d.href}`);
+  out.distinctStopsAfterAccount = new Set(after).size;
+  out.leftHeader = stops.slice(ai + 1).some((d) => !d.inHeader);
 
   // Skip link (2.4.1): first stop, visible when focused, and it moves focus/scroll to its target.
   await focusFromTop(page);
@@ -265,35 +345,53 @@ async function keyboardDesktop(page) {
     pixels: skip.pixels, textContrast: skip.textContrast, targetExists, afterSkip,
   };
 
-  // Toggle with Enter and Space (2.1.1, 3.2.1, 3.2.2).
-  const toggle = page.locator(SEL.DESKTOP_TOGGLE);
+  // The account menu from the keyboard (2.1.1, 2.1.2, 2.4.3, 2.4.7, 3.2.1, 3.2.2): Tab from the
+  // module switcher to the account button, Enter, then Tab through the menu to the options.
   const navs = []; const onNav = (f) => { if (f === page.mainFrame()) navs.push(f.url()); };
   page.on('framenavigated', onNav);
-  const state = () => page.evaluate((s) => ({
-    theme: document.documentElement.getAttribute('data-theme'), lang: document.documentElement.getAttribute('lang'),
-    url: location.href, pressed: document.querySelector(s) && document.querySelector(s).getAttribute('aria-pressed'),
-    focusOnToggle: !!(document.activeElement && document.activeElement.matches(s)),
-    title: document.title,
-  }), SEL.DESKTOP_TOGGLE);
-  await toggle.focus();
-  const before = await state();
+  const menu = {};
+  await page.locator(SEL.MODULE_SWITCHER).locator(SEL.DROPDOWN_TRIGGER).first().focus().catch(() => {});
+  await page.keyboard.press('Tab');
+  menu.accountButtonFocused = (await where(page)).isAccountTrigger;
   await page.keyboard.press('Enter');
   await page.waitForTimeout(300);
-  const afterEnter = await state();
-  await page.keyboard.press('Space');
-  await page.waitForTimeout(300);
-  const afterSpace = await state();
+  menu.opened = !!(await page.$(SEL.ACCOUNT_PANEL_OPEN));
+  const seq = [{ ...(await where(page)), name: (await page.evaluate(S.describeFocus)).name }];
+  for (let i = 0; i < 12 && seq[seq.length - 1].option !== 'dark'; i++) {
+    await page.keyboard.press('Tab');
+    const d = await page.evaluate(S.describeFocus);
+    const w = await where(page);
+    seq.push({ ...w, name: d.name, ring: w.option ? d.ring : undefined, pixels: w.option && d.inViewport ? await ringPixels(page) : undefined });
+  }
+  const a = seq.findIndex((d) => d.option === 'auto');
+  menu.sequence = seq.map((d) => d.option || d.name);
+  menu.prevIsSiteLanguage = a > 0 && seq[a - 1].inLanguageToggle;
+  menu.optionOrder = a >= 0 ? seq.slice(a).map((d) => d.option) : [];
+  menu.optionRings = seq.filter((d) => d.option).map((d) => ({ option: d.option, ring: d.ring, pixels: d.pixels }));
+  // Enter and Space choose in place; the run's theme comes back at the end.
+  menu.keys = await chooseWithKeys(page, await page.evaluate(() => document.documentElement.getAttribute('data-theme')));
   // Focus alone must not change anything (3.2.1).
-  await page.locator(SEL.MODULE_SWITCHER).locator('button, a, [tabindex]').first().focus().catch(() => {});
-  await toggle.focus();
-  const afterFocus = await state();
-  // Single character keys (2.1.4): none may switch the theme.
-  await page.evaluate(() => document.activeElement && document.activeElement.blur && document.activeElement.blur());
-  for (const k of ['d', 'D', 't', 'l', 'm', 'n']) await page.keyboard.press(k);
+  const beforeFocus = await appearanceState(page);
+  for (const pref of PREFERENCES) await page.locator(`${SEL.DESKTOP_GROUP} ${SEL.OPTION}[data-appearance="${pref}"]`).focus().catch(() => {});
+  menu.focusOnly = { before: beforeFocus, after: await appearanceState(page) };
+  // Tab moves on from Dark (2.1.2), then Escape closes the menu and returns focus to its button.
+  await page.locator(`${SEL.DESKTOP_GROUP} ${SEL.OPTION}[data-appearance="dark"]`).focus().catch(() => {});
+  await page.keyboard.press('Tab');
+  const next = await where(page);
+  menu.tabFromDark = { inGroup: next.inDesktopGroup, inMenu: next.inAccountPanel };
+  await page.keyboard.press('Escape');
   await page.waitForTimeout(200);
-  const afterChars = await state();
+  const esc = await where(page);
+  menu.escape = { stillOpen: !!(await page.$(SEL.ACCOUNT_PANEL_OPEN)), focusOnAccountButton: esc.isAccountTrigger };
+  // Single character keys (2.1.4): none may change the appearance.
+  const beforeChars = await appearanceState(page);
+  await page.evaluate(() => document.activeElement && document.activeElement.blur && document.activeElement.blur());
+  for (const k of ['a', 'A', 'd', 'D', 'l', 'L', 't', 'm', 'n']) await page.keyboard.press(k);
+  await page.waitForTimeout(200);
+  menu.characterKeys = { before: beforeChars, after: await appearanceState(page) };
   page.off('framenavigated', onNav);
-  out.toggleKeys = { before, afterEnter, afterSpace, afterFocus, afterChars, navigations: navs };
+  menu.navigations = navs;
+  out.accountMenu = menu;
   return out;
 }
 
@@ -316,6 +414,9 @@ async function headerPopups(page, axe) {
       await page.waitForTimeout(200);
       row.contrast = await page.evaluate(S.scanTextContrast, { roots: ['.header .dropdownLinks-menu.open'] });
       row.axe = await runAxe(page, axe, ['.header .dropdownLinks-menu.open']);
+      if (await page.$(`.header .dropdownLinks-menu.open ${SEL.OPTION}`)) {
+        row.appearance = await optionContrast(page, `.header .dropdownLinks-menu.open .dropdownAppearanceToggle`);
+      }
       await page.keyboard.press('Escape');
       await page.waitForTimeout(200);
       row.escape = await page.evaluate(() => ({
@@ -369,31 +470,24 @@ async function keyboardMobile(page) {
   for (let i = 0; i < 4; i++) {
     await page.keyboard.press('Tab');
     const d = await page.evaluate(S.describeFocus);
-    d.isSwitch = await page.evaluate((s) => !!(document.activeElement && document.activeElement.matches(s)), SEL.MOBILE_TOGGLE);
+    Object.assign(d, await where(page));
     seq.push(d);
-    if (d.isSwitch) break;
+    if (d.option === 'auto') break;
   }
   out.stepsFromLanguageRow = seq.length;
-  out.reached = seq.some((d) => d.isSwitch);
+  out.reachedAuto = seq.some((d) => d.option === 'auto');
   out.ring = seq.length ? seq[seq.length - 1].ring : null;
-  out.pixels = out.reached ? await ringPixels(page) : null;
-  const state = () => page.evaluate((s) => ({
-    theme: document.documentElement.getAttribute('data-theme'), lang: document.documentElement.getAttribute('lang'),
-    checked: document.querySelector(s.MOBILE_TOGGLE) && document.querySelector(s.MOBILE_TOGGLE).getAttribute('aria-checked'),
-    menuOpen: !!document.querySelector(s.MOBILE_MENU_OPEN), url: location.href,
-    focusOnSwitch: !!(document.activeElement && document.activeElement.matches(s.MOBILE_TOGGLE)),
-  }), SEL);
-  const before = await state();
-  await page.keyboard.press('Space');
-  await page.waitForTimeout(400);
-  const afterSpace = await state();
-  await page.keyboard.press('Enter');
-  await page.waitForTimeout(400);
-  const afterEnter = await state();
+  out.pixels = out.reachedAuto ? await ringPixels(page) : null;
+  // Auto, Light, Dark are consecutive stops.
+  const order = [];
+  for (let i = 0; i < 2; i++) { await page.keyboard.press('Tab'); order.push((await where(page)).option); }
+  out.optionOrder = ['auto', ...order];
+  out.keys = await chooseWithKeys(page, await page.evaluate(() => document.documentElement.getAttribute('data-theme')));
+  await moveToOption(page, 'dark');
   await page.keyboard.press('Tab');
   const next = await page.evaluate(S.describeFocus);
-  out.toggleKeys = { before, afterSpace, afterEnter };
-  out.nextAfterSwitch = { tag: next.tag, name: next.name, focused: next.focused };
+  const nextWhere = await where(page);
+  out.nextAfterDark = { tag: next.tag, name: next.name, focused: next.focused, inGroup: nextWhere.inMobileGroup, inMenu: nextWhere.inMobileMenu };
   return out;
 }
 
@@ -419,6 +513,7 @@ async function auditOne(browser, opts, shared, spec, viewport, theme) {
       if (await openMobileMenu(page)) {
         row.menu = {
           contrast: await page.evaluate(S.scanTextContrast, { roots: ['.mobileNavMenu'] }),
+          appearance: await optionContrast(page, SEL.MOBILE_GROUP),
           axe: await runAxe(page, shared.axe, ['.mobileNavMenu']),
           duplicateIds: await page.evaluate(S.duplicateIds, '.mobileNavMenu'),
         };
@@ -449,6 +544,12 @@ function summarise(rows) {
       const only = df.filter((x) => !lk.has(key(x)));
       lines.push(`${dark.slug} ${dark.viewport} ${label}: ${df.length} dark contrast failures (${only.length} dark only)`);
       for (const x of only.slice(0, 12)) lines.push(`   dark-only ${x.ratio}:1 < ${x.min} ${x.fg} on ${x.bg}  ${x.selector}  "${x.text}"`);
+    }
+    const optionFails = (rows) => (rows || []).filter((r) => (r.pressed && r.chipOnSurround < 3) || (r.iconOnChip || 0) < 3)
+      .map((r) => `${r.value}${r.pressed ? ' (pressed)' : ''} chip ${r.chipOnSurround}:1 icon ${r.iconOnChip}:1`);
+    for (const [label, rows] of [['account menu', ((dark.popups || []).find((p) => p.appearance) || {}).appearance], ['mobile menu', dark.menu && dark.menu.appearance]]) {
+      const of = optionFails(rows);
+      if (of.length) lines.push(`${dark.slug} ${dark.viewport} ${label} Appearance options below 3:1: ${of.join('; ')}`);
     }
     for (const p of dark.popups || []) {
       const pf = fails(p.contrast);

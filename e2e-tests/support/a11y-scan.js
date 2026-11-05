@@ -1,8 +1,9 @@
 /*
- * In-page accessibility probes for the dark-mode work (WCAG 2.1: 1.4.1, 1.4.3, 1.4.11, 2.4.1,
- * 2.4.3, 2.4.7, 4.1.1). Shared by the Playwright specs (e2e-tests/library/theme-a11y.spec.ts,
- * "e2e-tests/mobile web/theme-a11y.spec.ts", through pages/themeTogglePage.ts) and by the
- * live-HTML audit harness (scripts/darkmode/a11y-audit.js).
+ * In-page accessibility probes for the dark-mode and Appearance work (WCAG 2.1: 1.4.1, 1.4.3,
+ * 1.4.11, 2.4.1, 2.4.3, 2.4.7, 4.1.1). Shared by the Playwright specs
+ * (e2e-tests/library/appearance-a11y.spec.ts, "e2e-tests/mobile web/appearance-a11y.spec.ts",
+ * through pages/appearancePage.ts) and by the live-HTML audit harness
+ * (scripts/darkmode/a11y-audit.js).
  *
  * Every probe is passed to `page.evaluate`, which serialises the function's source, so each one
  * is self-contained: no references to anything outside its own body. Plain CommonJS on purpose,
@@ -267,6 +268,68 @@ function duplicateIds(scope) {
 }
 
 /**
+ * WCAG 1.4.11 (AA, 3:1) for a group of icon-only toggle buttons whose pressed member is a filled
+ * chip (the Appearance options: Auto / Light / Dark). For each option under the first match of
+ * `root`, as painted now (move the mouse away first, or :hover colours are measured):
+ *   - chipOnSurround: the option's own background, composited over what is behind it, against
+ *     what surrounds it. 1:1 for an option with no background of its own;
+ *   - iconOnChip: the icon (the inline SVG's stroke, else its fill, else the button's `color`)
+ *     against the chip.
+ * @param {object} opts
+ * @param {string} opts.root    the group's selector
+ * @param {string} opts.option  the option selector inside it
+ * @returns {Array<object>|null} one row per option in DOM order, or null when `root` is missing
+ */
+function scanToggleGroup(opts) {
+  const o = opts || {};
+  const root = document.querySelector(o.root);
+  if (!root) return null;
+  const parse = (c) => {
+    const m = /rgba?\(([^)]+)\)/.exec(c || '');
+    if (!m) return null;
+    const p = m[1].split(/[\s,/]+/).filter(Boolean).map(parseFloat);
+    return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+  };
+  const over = (fg, bg) => ({
+    r: fg.r * fg.a + bg.r * (1 - fg.a), g: fg.g * fg.a + bg.g * (1 - fg.a), b: fg.b * fg.a + bg.b * (1 - fg.a), a: 1,
+  });
+  const lum = (c) => {
+    const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b);
+  };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return Math.round(((Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)) * 100) / 100; };
+  const hex = (c) => '#' + [c.r, c.g, c.b].map((v) => Math.round(v).toString(16).padStart(2, '0')).join('').toUpperCase();
+  const canvas = () => (/dark/.test(getComputedStyle(document.documentElement).colorScheme || '')
+    ? { r: 18, g: 18, b: 18, a: 1 } : { r: 255, g: 255, b: 255, a: 1 });
+  const effectiveBg = (start) => {
+    const layers = [];
+    for (let n = start; n && n.nodeType === 1; n = n.parentElement) {
+      const c = parse(getComputedStyle(n).backgroundColor);
+      if (c && c.a > 0) { layers.push(c); if (c.a >= 1) break; }
+    }
+    let bg = layers.length && layers[layers.length - 1].a >= 1 ? layers.pop() : canvas();
+    while (layers.length) bg = over(layers.pop(), bg);
+    return bg;
+  };
+  return Array.from(root.querySelectorAll(o.option)).map((el) => {
+    const surround = effectiveBg(el.parentElement);
+    const own = parse(getComputedStyle(el).backgroundColor);
+    const chip = own && own.a > 0 ? over(own, surround) : surround;
+    const svg = el.querySelector('svg');
+    const paints = svg ? [getComputedStyle(svg).stroke, getComputedStyle(svg).fill] : [];
+    const raw = paints.map(parse).find((c) => c && c.a > 0) || parse(getComputedStyle(el).color);
+    const icon = raw ? over(raw, chip) : null;
+    return {
+      value: el.getAttribute('data-appearance') || (el.getAttribute('aria-label') || '').trim(),
+      pressed: el.getAttribute('aria-pressed') === 'true',
+      chip: hex(chip), surround: hex(surround), icon: icon ? hex(icon) : null,
+      chipOnSurround: ratio(chip, surround),
+      iconOnChip: icon ? ratio(icon, chip) : null,
+    };
+  });
+}
+
+/**
  * Pixel measurement of a focus indicator, for rings the computed style cannot describe (the
  * browser's `outline: auto` ring is two-tone). Takes two same-size PNG screenshots (base64) of
  * the same box, focused and unfocused, and compares them pixel by pixel, the way WCAG 2.2's
@@ -322,7 +385,7 @@ const AXE_TAGS = ['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa'];
 /**
  * The axe-core source, if the package can be found: AXE_CORE_PATH (a path to axe.min.js), or
  * `axe-core` resolvable from the repo. axe-core is NOT a dependency of this repo; the specs that
- * use it skip themselves when it is missing (see theme-a11y.spec.ts).
+ * use it skip themselves when it is missing (see appearance-a11y.spec.ts).
  */
 function axeSource() {
   const fs = require('fs');
@@ -335,4 +398,4 @@ function axeSource() {
   return null;
 }
 
-module.exports = { scanTextContrast, scanInlineLinks, describeFocus, duplicateIds, compareFocusPixels, contrastOfHex, AXE_TAGS, axeSource };
+module.exports = { scanTextContrast, scanInlineLinks, describeFocus, duplicateIds, scanToggleGroup, compareFocusPixels, contrastOfHex, AXE_TAGS, axeSource };

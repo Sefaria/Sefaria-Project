@@ -3,7 +3,7 @@ import { HelperBase } from './helperBase';
 import { hideAllModalsAndPopups } from '../utils';
 import { LANGUAGES, t } from '../globals';
 import { MOBILE_HAMBURGER, MOBILE_PAGE_URLS, SEARCH_DROPDOWN } from '../constants';
-import { THEME_SELECTORS } from './themeTogglePage';
+import { APPEARANCE_SELECTORS } from './appearancePage';
 
 /**
  * Page object for the mobile hamburger menu rendered by Sefaria's
@@ -152,9 +152,9 @@ export class MobileHamburgerPage extends HelperBase {
     return this.navMenu.locator(MOBILE_HAMBURGER.LABELS.LANG_TOGGLE_CONTAINER);
   }
 
-  /** Dark-mode switch row, directly after the language row (details: themeTogglePage.ts). */
-  private get themeToggleRow(): Locator {
-    return this.navMenu.locator(THEME_SELECTORS.MOBILE_TOGGLE);
+  /** Appearance row (Auto / Light / Dark), directly after the language row (details: appearancePage.ts). */
+  private get appearanceRow(): Locator {
+    return this.navMenu.locator(APPEARANCE_SELECTORS.MOBILE_GROUP);
   }
 
   private get englishLanguageLinkInMenu(): Locator {
@@ -237,6 +237,18 @@ export class MobileHamburgerPage extends HelperBase {
   async openMenu(): Promise<void> {
     if (await this.isMenuOpen()) return;
     await this.tapMenuButton();
+    await expect(this.navMenuOpen).toBeVisible({ timeout: t(5000) });
+  }
+
+  /**
+   * Open the drawer with a mouse click: for a desktop browser window narrowed below the mobile
+   * breakpoint, which has no touch support (so `openMenu`'s tap would throw).
+   */
+  async openMenuWithMouse(): Promise<void> {
+    if (await this.isMenuOpen()) return;
+    await hideAllModalsAndPopups(this.page);
+    await expect(this.menuButton).toBeVisible({ timeout: t(10000) });
+    await this.menuButton.click();
     await expect(this.navMenuOpen).toBeVisible({ timeout: t(5000) });
   }
 
@@ -325,9 +337,11 @@ export class MobileHamburgerPage extends HelperBase {
     await expect(this.englishLanguageLinkInMenu).toBeVisible({ timeout: t(5000) });
     await expect(this.hebrewLanguageLinkInMenu).toBeVisible({ timeout: t(5000) });
 
-    // Dark-mode switch row (placement and behavior: THEME-M0xx in theme-toggle.spec.ts)
-    await expect(this.themeToggleRow).toBeVisible({ timeout: t(5000) });
-    await expect(this.themeToggleRow).toHaveAttribute('role', 'switch');
+    // Appearance row: a labelled group of three options (placement and behaviour: THEME-M0xx
+    // in appearance.spec.ts)
+    await expect(this.appearanceRow).toBeVisible({ timeout: t(5000) });
+    await expect(this.appearanceRow).toHaveAttribute('role', 'group');
+    await expect(this.appearanceRow.locator(APPEARANCE_SELECTORS.OPTION)).toHaveCount(3);
 
     // Help, About, Voices on Sefaria, Developers, More from Sefaria
     await expect(this.getHelpLink).toBeVisible({ timeout: t(5000) });

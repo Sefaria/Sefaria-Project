@@ -25,7 +25,9 @@ re-runs itself with that flag when a proxy is configured. On the way through:
 
 The page HTML is changed for each run:
 
-* `<html data-theme="light|dark">`, plus a `theme` cookie with the same value;
+* `<html data-theme="light|dark">`, plus a `theme` cookie with the same value. Each run is an
+  explicit Light or Dark preference; Auto (which follows `prefers-color-scheme`) is not a capture
+  theme, and the browser context is always light, so the OS setting never changes a shot;
 * `<meta name="theme-color">` set to `#181818` on dark runs;
 * the branch's `templates/elements/theme_head.html` (if present, `{% comment %}` stripped),
   inserted after the theme-color meta and before any stylesheet, as `base.html` does;
@@ -47,6 +49,10 @@ node scripts/darkmode/screenshots.js --out /tmp/shots
 # the base branch, light only, with the mobile menu open as an extra shot
 node scripts/darkmode/screenshots.js --out /tmp/base --themes light --mobile-menu-open
 
+# the Appearance setting itself: desktop shots with the account menu open (Auto / Light / Dark
+# under Site Language, the run's theme pressed) and mobile shots with the hamburger menu open
+node scripts/darkmode/screenshots.js --out /tmp/appearance --pages /texts --account-menu-open --mobile-menu-open
+
 # a few pages, Hebrew interface too
 node scripts/darkmode/screenshots.js --out /tmp/he --pages /texts,/Genesis.1 --hebrew
 
@@ -54,15 +60,15 @@ node scripts/darkmode/screenshots.js --out /tmp/he --pages /texts,/Genesis.1 --h
 node scripts/darkmode/screenshots.js --compare /tmp/base /tmp/branch --out /tmp/diff --fail-on-diff
 ```
 
-In the agent containers, point it at the Chromium that is installed there. Never run
-`playwright install`:
+In the agent containers, point it at the Chromium that is installed there (the build number in
+the path changes with the image; `ls /opt/pw-browsers`). Never run `playwright install`:
 
 ```bash
-export DARKMODE_CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome
+export DARKMODE_CHROMIUM_PATH=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome
 ```
 
 `--help` lists every option: `--css-dir`, `--bundle-dir`, `--repo`, `--out`, `--pages`,
-`--themes`, `--viewports`, `--mobile-menu-open`, `--hebrew`, `--base-url`, `--render`,
+`--themes`, `--viewports`, `--mobile-menu-open`, `--account-menu-open`, `--hebrew`, `--base-url`, `--render`,
 `--no-local-static`, `--full-page`, `--concurrency`, `--settle`, `--compare`, `--threshold`
 and `--fail-on-diff`.
 
@@ -76,7 +82,8 @@ but it is flagged `contentReady: false` and counted as a WARN.
 
 ### Output
 
-* `<page>__<desktop|mobile>__<light|dark>[__menu].png`
+* `<page>__<desktop|mobile>__<light|dark>[__menu|__account].png` (`__menu`: mobile, hamburger
+  menu open; `__account`: desktop, account menu open)
 * `manifest.json`, one row per shot, with these fields:
   * `data-theme` and body background at capture time;
   * whether the app and the page content rendered;
@@ -113,8 +120,10 @@ Run base and branch on the same day. Calendar and daily-learning content change 
   `/topics/moses` loses all its sources; `/topics/shabbat` loses a batch below the fold.
 * **Anonymous only.** Logged-in pages need a session cookie, which the harness does not have.
 * **Server-side changes are not exercised.** The HTML is production's, apart from the injected
-  pieces above. The authoritative end-to-end check is the Playwright suite against the `dark`
-  cauldron (`e2e-tests/library/theme-toggle.spec.ts`, `e2e-tests/mobile web/theme-toggle.spec.ts`).
+  pieces above, so the server-rendered `data-theme`, the head script's Auto path and the first
+  paint are not covered here. The authoritative end-to-end check is the Playwright suite against
+  the `dark` cauldron (`e2e-tests/library/appearance.spec.ts`, `e2e-tests/library/appearance-a11y.spec.ts`,
+  `e2e-tests/mobile web/appearance.spec.ts`, `e2e-tests/mobile web/appearance-a11y.spec.ts`).
 
 ## Accessibility audit (`a11y-audit.js`)
 
@@ -123,12 +132,18 @@ harness's routing) and records WCAG 2.1 evidence for light and dark in `<out>/a1
 
 * the contrast of every visible text node's element against its effective background (1.4.3),
   links in running text (1.4.1) and duplicate ids (4.1.1), using the in-page probes in
-  `e2e-tests/support/a11y-scan.js` (shared with `e2e-tests/*/theme-a11y.spec.ts`);
+  `e2e-tests/support/a11y-scan.js` (shared with `e2e-tests/*/appearance-a11y.spec.ts`);
+* the Appearance options (Auto / Light / Dark) in the account menu and the mobile menu: the pressed
+  chip against the menu and every icon against what it is drawn on (1.4.11, 3:1; `scanToggleGroup`);
 * on `/texts` (English and Hebrew), desktop: the Tab sequence from the top with a pixel measurement
-  of every focus ring, the skip link, the toggle with Enter and Space (same URL, focus, `lang`),
-  single character keys, and each header dropdown and the search autocomplete opened;
-* on mobile: the menu opened and scanned, and the switch reached with Tab and toggled with Space and
-  Enter while the menu stays open;
+  of every focus ring (the account menu right after the module switcher, no theme stop in the
+  header), the skip link, then the account menu opened with Enter: Auto, Light and Dark reached with
+  Tab right after Site Language (with their focus rings), chosen with Enter and Space (same URL,
+  focus, `lang`; the menu stays open; the run's theme is restored), focus alone and single
+  character keys, Tab moving on from Dark, and Escape; plus each header dropdown and the search
+  autocomplete opened;
+* on mobile: the menu opened and scanned, and Auto reached with Tab from the language row, then
+  Light and Dark, chosen with Enter and Space while the menu stays open, and Tab moving on;
 * an axe-core run (`wcag2a`, `wcag21a`, `wcag2aa`, `wcag21aa`) when axe-core is available.
   axe-core is **not** a dependency of this repo. Install it somewhere outside the repo and pass it:
 
@@ -139,4 +154,9 @@ node scripts/darkmode/a11y-audit.js --out /tmp/a11y --axe /tmp/axe/node_modules/
 
 The summary at the end splits dark-mode contrast failures into "dark only" (they do not fail in light
 on the same page, so the dark theme caused them) and failures in both themes (pre-existing). The same
-`AXE_CORE_PATH` makes the axe tests in `theme-a11y.spec.ts` run instead of skipping.
+`AXE_CORE_PATH` makes the axe tests in `appearance-a11y.spec.ts` run instead of skipping.
+
+Known gap the audit records (`accountMenu.escape`, `popups[].escape`): after Escape, focus is not
+returned to the dropdown's button for any header dropdown, because `common/Button.jsx` does not
+forward the ref `DropdownMenu` returns focus to. It predates Appearance, but the setting now sits in
+such a menu.

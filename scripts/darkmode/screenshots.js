@@ -17,7 +17,8 @@
  *
  * What the harness changes in the fetched HTML (per run):
  *   - <html data-theme="light|dark"> (plus a `theme` cookie so the head script
- *     resolves the same value);
+ *     resolves the same value). Each run is an explicit Light or Dark preference;
+ *     Auto, which follows prefers-color-scheme, is not a capture theme;
  *   - <meta name="theme-color"> set to the dark colour on dark runs;
  *   - the branch's templates/elements/theme_head.html, when it exists, right
  *     after the theme-color meta and before the first stylesheet or script;
@@ -133,6 +134,8 @@ Capture options:
   --themes <list>          light,dark (default: light,dark)
   --viewports <list>       desktop,mobile (default: desktop,mobile)
   --mobile-menu-open       on mobile, also capture each page with the hamburger menu open
+  --account-menu-open      on desktop, also capture each page with the account menu open
+                           (where the Appearance setting lives)
   --hebrew                 also capture every page with the Hebrew interface
   --base-url <url>         live site to fetch HTML from (default: https://www.sefaria.org)
   --render client|hydrate  client: branch bundle renders from scratch (default); hydrate: keep prod SSR
@@ -149,7 +152,7 @@ Env:
 function parseArgs(argv) {
   const opts = {
     repo: REPO_DEFAULT, cssDir: null, bundleDir: null, out: null, pages: null,
-    themes: ['light', 'dark'], viewports: ['desktop', 'mobile'], mobileMenuOpen: false,
+    themes: ['light', 'dark'], viewports: ['desktop', 'mobile'], mobileMenuOpen: false, accountMenuOpen: false,
     hebrew: false, baseUrl: 'https://www.sefaria.org', render: 'client', localStatic: true,
     fullPage: false, concurrency: 4, settle: 1500, compare: null, threshold: 0.1, failOnDiff: false,
   };
@@ -171,6 +174,7 @@ function parseArgs(argv) {
       case '--themes': opts.themes = list(next()); break;
       case '--viewports': opts.viewports = list(next()); break;
       case '--mobile-menu-open': opts.mobileMenuOpen = true; break;
+      case '--account-menu-open': opts.accountMenuOpen = true; break;
       case '--hebrew': opts.hebrew = true; break;
       case '--base-url': opts.baseUrl = next().replace(/\/$/, ''); break;
       case '--render': opts.render = next(); break;
@@ -528,7 +532,7 @@ async function capture(browser, opts, spec, viewportName, theme, shared) {
     await page.screenshot({ path: path.join(opts.out, file), fullPage: opts.fullPage, animations: 'disabled' });
     results.push({
       file, page: spec.path || spec.pagePath, url, viewport: viewportName, theme, hebrew: spec.hebrew,
-      menuOpen: suffix === '__menu', status, appReady, contentReady, ...probe,
+      menuOpen: suffix === '__menu', accountMenuOpen: suffix === '__account', status, appReady, contentReady, ...probe,
     });
   };
 
@@ -547,6 +551,22 @@ async function capture(browser, opts, spec, viewportName, theme, shared) {
     } catch (e) {
       if (e.skip) menuSkipped = e.message;
       else errors.push(`menu: ${String(e.message || e).split('\n')[0]}`);
+    }
+  }
+  if (opts.accountMenuOpen && viewportName === 'desktop' && appReady) {
+    try {
+      // The account menu (person icon, logged out): Site Language, then Appearance (Auto / Light /
+      // Dark) with the run's theme pressed. The mouse is moved off so no option shows :hover.
+      const trigger = page.locator('.header .header-icons .headerDropdownMenu:has(img[src*="profile_loggedout_mdl"]) .dropdownLinks-button > :is(button, a, [tabindex])').first();
+      if (!(await trigger.count())) throw Object.assign(new Error('no account menu on this page'), { skip: true });
+      await trigger.click({ timeout: 10000 });
+      await page.waitForSelector('.header .dropdownLinks-menu.open .dropdownAppearanceToggle', { state: 'visible', timeout: 10000 });
+      await page.mouse.move(0, 0);
+      await page.waitForTimeout(300);
+      await snapshot('__account');
+    } catch (e) {
+      if (e.skip) menuSkipped = e.message;
+      else errors.push(`account menu: ${String(e.message || e).split('\n')[0]}`);
     }
   }
   await context.close();
