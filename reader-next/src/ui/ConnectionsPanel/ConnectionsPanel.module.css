@@ -6,8 +6,8 @@
 .body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--sefaria-space-6) var(--sefaria-space-8) var(--sefaria-space-12); }
 
 /* VERIFIED on sefaria.org (1280px): bar #ededed, 34px sides, title 16px light #666 letter-spaced 1px, then the language button (18px, 40% grey) and the circled × */
-.header { background: #ededed; padding-inline: 34px; gap: 15px; }
-.headerTitle { font-weight: 100; letter-spacing: 1px; color: #666; }
+.header { background: var(--sefaria-color-band); padding-inline: 34px; gap: 15px; }
+.headerTitle { font-weight: 100; letter-spacing: 1px; color: var(--sefaria-color-text-dark-grey); }
 .langToggle { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 32px; padding: 0; border: 0; background: none; cursor: pointer; }
 .langToggle img { opacity: 0.4; }
 .langToggle:hover img { opacity: 0.7; }

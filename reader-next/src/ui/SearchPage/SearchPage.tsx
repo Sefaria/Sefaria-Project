@@ -159,7 +159,7 @@ export function ExactToggle({ exact, onChange, block }: { exact: boolean; onChan
     <button type="button" aria-pressed={exact === value} onClick={() => exact !== value && onChange(value)} style={{ flex: block ? 1 : undefined, padding: "6px 14px", border: 0, borderRadius: 6, cursor: "pointer", fontSize: 15, background: exact === value ? "var(--sefaria-color-surface)" : "transparent", boxShadow: exact === value ? "0 1px 3px rgb(0 0 0 / 20%)" : "none", fontWeight: exact === value ? 600 : 400, color: "var(--sefaria-color-text)" }}>{he ? hb : en}</button>
   );
   return (
-    <div role="group" aria-label={he ? "סוג חיפוש" : "Search type"} style={{ display: block ? "flex" : "inline-flex", gap: 2, padding: 3, borderRadius: 8, background: "#f5f5f4", border: "1px solid var(--sefaria-color-border)" }}>
+    <div role="group" aria-label={he ? "סוג חיפוש" : "Search type"} style={{ display: block ? "flex" : "inline-flex", gap: 2, padding: 3, borderRadius: 8, background: "var(--sefaria-color-surface-disabled)", border: "1px solid var(--sefaria-color-border)" }}>
       {btn(false, "All Results", "כל התוצאות")}
       {btn(true, "Exact Phrase", "ביטוי מדויק")}
     </div>

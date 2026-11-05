@@ -15,8 +15,8 @@
 /* VERIFIED on sefaria.org (1280px): tool and resource rows are Roboto 16px black, letter-spacing 1px, counts light; every row 41px apart */
 .row { padding-block: 9px; }
 .row[data-tool] { padding-block: 10px; }
-.row[data-tool] .label { font-family: var(--sefaria-font-ui-en); font-size: 16px; letter-spacing: 1px; color: #000; }
-.row[data-tool] .count { font-weight: 300; letter-spacing: 1px; color: #666; }
+.row[data-tool] .label { font-family: var(--sefaria-font-ui-en); font-size: 16px; letter-spacing: 1px; color: var(--sefaria-color-text-strong); }
+.row[data-tool] .count { font-weight: 300; letter-spacing: 1px; color: var(--sefaria-color-text-dark-grey); }
 .count { font-weight: 300; }
 .label { line-height: 23px; }
 .row[data-tool] .label { line-height: 21px; }
@@ -25,7 +25,7 @@
 .main { line-height: 21px; }
 
 /* "English (14)": mixed case, 16px, letter-spaced, the count light (VERIFIED on sefaria.org) */
-.headingLanguage { margin: 20px 0 16px; padding-block-end: 10px; border-bottom: 1px solid var(--sefaria-color-border-strong); font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 400; letter-spacing: 1px; color: #666; }
+.headingLanguage { margin: 20px 0 16px; padding-block-end: 10px; border-bottom: 1px solid var(--sefaria-color-border-strong); font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 400; letter-spacing: 1px; color: var(--sefaria-color-text-dark-grey); }
 
 /* A category's book list (ConnectionsList; VERIFIED on sefaria.org 1280px, Mishnah Peah 4:1): no icon; 19px above and
    below and a #E5E5E5 rule under every row; serif 18px/21.6px in #333; Roboto 14px descriptions 10px below the title;

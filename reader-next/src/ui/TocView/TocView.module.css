@@ -35,14 +35,14 @@ a.groupTitle { text-decoration: none; }
 .view[data-variant="page"] .group[data-fixed-group="part"] .groupTitle { font-size: 1.4rem; margin-block-end: 2px; }
 
 /* VERIFIED on sefaria.org: the book page's group titles are 24px black serif with a small grey chevron AFTER the title */
-.view[data-variant="page"] .groupTitle { font-size: 24px; color: #000; gap: 8px; }
+.view[data-variant="page"] .groupTitle { font-size: 24px; color: var(--sefaria-color-text-strong); gap: 8px; }
 .view[data-variant="page"] .groupTitle .chevron { color: #999; }
 
 /* The reader's sidebar contents (VERIFIED on sefaria.org): white 50px tiles, 18px serif numbers, the reader's place filled dark;
    headings ("Chapters", "Torah Portions") 16px grey sans */
 .view:not([data-variant="page"]) .grid { gap: 6px; }
-.view:not([data-variant="page"]) .sectionLink { min-width: 50px; min-height: 50px; padding: 0; border: 0; border-radius: 0; background: #fff; font-family: var(--sefaria-font-text-en); font-size: 18px; color: #000; }
+.view:not([data-variant="page"]) .sectionLink { min-width: 50px; min-height: 50px; padding: 0; border: 0; border-radius: 0; background: var(--sefaria-color-surface); font-family: var(--sefaria-font-text-en); font-size: 18px; color: var(--sefaria-color-text-strong); }
 .view:not([data-variant="page"]) .sectionLink[lang="he"] { font-family: var(--sefaria-font-text-he); }
-.view:not([data-variant="page"]) .sectionLink[data-current] { background: #18345d; color: #fff; font-weight: 400; border: 0; }
-.view:not([data-variant="page"]) .heading { font-size: 16px; color: #666; }
-.view:not([data-variant="page"]) .group[data-fixed-group="heading"] > .groupTitle { font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 400; color: #666; }
+.view:not([data-variant="page"]) .sectionLink[data-current] { background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); font-weight: 400; border: 0; }
+.view:not([data-variant="page"]) .heading { font-size: 16px; color: var(--sefaria-color-text-dark-grey); }
+.view:not([data-variant="page"]) .group[data-fixed-group="heading"] > .groupTitle { font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 400; color: var(--sefaria-color-text-dark-grey); }

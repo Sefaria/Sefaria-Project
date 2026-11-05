@@ -63,5 +63,5 @@
 
 /* VERIFIED on sefaria.org (2026-10-06, desktop and phone UA): a translation shown ALONE is black and justified; beside the source it
    is #666 and left-aligned. */
-.translation { color: #666; }
-[data-language="english"] .translation { color: #000; text-align: justify; }
+.translation { color: var(--sefaria-color-text-dark-grey); }
+[data-language="english"] .translation { color: var(--sefaria-color-text-strong); text-align: justify; }

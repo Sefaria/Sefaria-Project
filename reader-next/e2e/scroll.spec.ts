@@ -333,8 +333,11 @@ test("windowing on a slow connection never moves the verse being read", async ({
         const ref = document.querySelector('[data-focused="true"]')!.getAttribute("data-ref")!;
         const top = () => document.querySelector(`[role="group"][data-ref="${ref}"]`)?.getBoundingClientRect().top;
         const start = top()!;
-        const sections = () => document.querySelectorAll("section[data-ref]").length;
-        let seen = sections();
+        // A trim is a section that was there and is gone. Counting sections missed it: a load below and a trim above are separate
+        // commits that can both land between two frames, leaving the count unchanged.
+        const sections = () => [...document.querySelectorAll("section[data-ref]")].map((e) => e.getAttribute("data-ref")!);
+        const first = sections();
+        let seen = first;
         let trims = 0;
         // watch until a trim has happened and things have been quiet for 3 s after it (a slow machine trims later), at most 20 s
         const began = performance.now();
@@ -342,14 +345,14 @@ test("windowing on a slow connection never moves the verse being read", async ({
         const tick = () => {
           const t = top();
           const n = sections();
-          if (n < seen) trims++;
-          if (n !== seen) quietFrom = performance.now();
+          if (seen.some((r) => !n.includes(r))) trims++;
+          if (n.join("|") !== seen.join("|")) quietFrom = performance.now();
           seen = n;
           if (t === undefined || Math.abs(t - start) > 1.5) out.push(`${ref} moved ${t === undefined ? "away" : Math.round(t - start)}px`);
           const now = performance.now();
           const done = now - began > 20_000 || (trims > 0 && now - quietFrom > 3000);
           if (!done && out.length < 5) requestAnimationFrame(tick);
-          else resolve(trims ? out : ["no trim happened: the test did not exercise windowing"]);
+          else resolve(trims ? out : [`no trim happened: the test did not exercise windowing (sections ${first.join(", ")} → ${seen.join(", ")})`]);
         };
         requestAnimationFrame(tick);
       }),

@@ -18,19 +18,19 @@
 
 /* VERIFIED on sefaria.org (1280px): 18px black upper-case title with a 4px category-coloured rule under its own width; each connected
    text a 1px #eee-ruled block: the source in grey 18px serif, the text justified 18px/25px, "⧉ Open" in 14px grey sans */
-.title { display: inline-block; margin: 0 0 18px; padding-block-end: 9px; border-block-end: 4px solid var(--_color, #4b71b7); font-size: 18px; line-height: 21.6px; text-transform: uppercase; color: #000; }
+.title { display: inline-block; margin: 0 0 18px; padding-block-end: 9px; border-block-end: 4px solid var(--_color, #4b71b7); font-size: 18px; line-height: 21.6px; text-transform: uppercase; color: var(--sefaria-color-text-strong); }
 .titleBar { display: none; }
 .list { gap: 0; }
 .item { gap: 0; padding-block: 17px 15px; border-block-end: 1px solid #eee; font-size: 18px; line-height: 25.2px; }
 .item[data-lang="he"] { font-size: 20px; line-height: 28px; }
-.ref { font-family: var(--sefaria-font-text-en); font-size: 18px; letter-spacing: 0; color: #6f6f6f; line-height: 25.2px; }
+.ref { font-family: var(--sefaria-font-text-en); font-size: 18px; letter-spacing: 0; color: var(--sefaria-color-text-muted); line-height: 25.2px; }
 .ref a { color: inherit; }
 .text { text-align: justify; }
 .actions { margin-block-start: 10px; }
-.open { display: inline-flex; align-items: center; gap: 6px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 22px; color: #6f6f6f; text-decoration: none; }
+.open { display: inline-flex; align-items: center; gap: 6px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 22px; color: var(--sefaria-color-text-muted); text-decoration: none; }
 .open:hover { text-decoration: underline; }
 button.open { padding: 0; border: 0; background: none; cursor: pointer; }
-.notice { font-family: var(--sefaria-font-ui-en); font-size: 14px; font-style: italic; color: #000; }
+.notice { font-family: var(--sefaria-font-ui-en); font-size: 14px; font-style: italic; color: var(--sefaria-color-text-strong); }
 
 /* VERIFIED on sefaria.org (1280px, Mishnah Peah 4:1 with Bartenura): a book's title keeps its case ("Bartenura"); only a
    category filter is upper-case ("COMMENTARY", the old TextFilter's `book === category`). Beside its text the old sidebar

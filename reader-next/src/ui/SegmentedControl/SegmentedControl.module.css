@@ -11,15 +11,15 @@
 
 /* The display menu's own look (VERIFIED on sefaria.org): language as three full-width rows, the dark one chosen, a radio circle at the end */
 .rows { display: flex; flex-direction: column; gap: 0; border: 0; border-radius: 0; background: none; overflow: visible; }
-.rows .option { justify-content: space-between; width: 100%; min-height: 35px; padding: 0 10px; border: 0; border-radius: 6px; background: #ededec; color: #000; font-size: 14px; text-align: start; }
-.rows .option:hover:not([aria-disabled="true"]) { background: #e4e4e2; }
-.rows .option[aria-checked="true"] { background: #18345d; color: #fff; }
-.radio { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #666; background: #fff; box-sizing: border-box; color: #18345d; }
-.rows .option[aria-checked="true"] .radio { border-color: #fff; }
+.rows .option { justify-content: space-between; width: 100%; min-height: 35px; padding: 0 10px; border: 0; border-radius: 6px; background: var(--sefaria-color-chip); color: var(--sefaria-color-text-strong); font-size: 14px; text-align: start; }
+.rows .option:hover:not([aria-disabled="true"]) { background: var(--sefaria-color-chip-hover); }
+.rows .option[aria-checked="true"] { background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); }
+.radio { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--sefaria-color-text-dark-grey); background: var(--sefaria-color-surface); box-sizing: border-box; color: var(--sefaria-color-brand); }
+.rows .option[aria-checked="true"] .radio { border-color: var(--sefaria-color-on-brand); }
 .tiles { display: inline-flex; gap: 16px; border: 0; border-radius: 0; background: none; overflow: visible; }
-.tiles .option { width: 36px; min-height: 32px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #666; }
-.tiles .option:hover:not([aria-disabled="true"]) { background: #ededec; }
-.tiles .option[aria-checked="true"] { background: #18345d; color: #fff; }
+.tiles .option { width: 36px; min-height: 32px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--sefaria-color-text-dark-grey); }
+.tiles .option:hover:not([aria-disabled="true"]) { background: var(--sefaria-color-chip); }
+.tiles .option[aria-checked="true"] { background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); }
 
 /* VERIFIED on sefaria.org (2026-10-29), s2.css .show-source-translation-buttons / .layout-button: no hover change on either; the radio
    is a 2px #6f6f6f ring, and the chosen one a borderless white disc with a 10px clip-path tick; the layout icons are 28x24 masks,
