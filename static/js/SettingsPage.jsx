@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import {ProfilePic} from "./ProfilePic";
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
@@ -100,37 +101,51 @@ const HelpIcon = () => (
   </svg>
 );
 
-/* icon: "info" (default) or "help". above: opens over the label instead of over the field. */
-const InfoTip = ({fieldId, wide, icon = "info", above = false, children}) => {
+/* icon: "info" (default) or "help". above: opens over the label instead of over the field.
+   interactive: the tip holds a link, so it stays open while the pointer is on the icon or the tip (with a short
+   grace period to cross the gap), and the icon is a real button for keyboard users (Escape closes). */
+const InfoTip = ({fieldId, wide, icon = "info", above = false, interactive = false, label, lead, children}) => {
   const [open, setOpen] = useState(false);
+  const closeTimer = useRef(null);
+  const show = () => { clearTimeout(closeTimer.current); setOpen(true); };
+  const hideSoon = () => { clearTimeout(closeTimer.current); closeTimer.current = setTimeout(() => setOpen(false), interactive ? 200 : 0); };
+  useEffect(() => () => clearTimeout(closeTimer.current), []);
   useEffect(() => {
     const field = document.getElementById(fieldId);
     if (!field) { return undefined; }
-    const show = () => { if (keyboardFocused(field)) { setOpen(true); } };
-    const hide = () => setOpen(false);
-    field.addEventListener("focus", show);
-    field.addEventListener("blur", hide);
+    const onFocus = () => { if (keyboardFocused(field)) { setOpen(true); } };
+    const onBlur = () => setOpen(false);
+    field.addEventListener("focus", onFocus);
+    field.addEventListener("blur", onBlur);
     return () => {
-      field.removeEventListener("focus", show);
-      field.removeEventListener("blur", hide);
+      field.removeEventListener("focus", onFocus);
+      field.removeEventListener("blur", onBlur);
     };
   }, [fieldId]);
   return (
     <span
       className="devPocTip"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={show}
+      onMouseLeave={hideSoon}
+      onFocus={interactive ? show : undefined}
+      onBlur={interactive ? (e => { if (!e.currentTarget.contains(e.relatedTarget)) { hideSoon(); } }) : undefined}
+      onKeyDown={interactive ? (e => { if (e.key === "Escape") { setOpen(false); } }) : undefined}
     >
+      {/* lead: text before the icon that opens the tip on hover too, as a column header's label (2026-11-05). */}
+      {lead}
       <button
         type="button"
         className="devPocInfoButton"
-        tabIndex={-1}
-        aria-hidden="true"
+        tabIndex={interactive ? 0 : -1}
+        aria-hidden={interactive ? null : "true"}
+        aria-label={interactive ? label : null}
+        aria-expanded={interactive ? open : null}
         onClick={(e) => { e.preventDefault(); setOpen(o => !o); }}
       >{icon === "help" ? <HelpIcon /> : <InfoIcon />}</button>
       {open ?
-        <span className={"devPocPopover" + (wide ? " devPocPopoverWide" : "") + (above ? " devPocPopoverAbove" : "")} aria-hidden="true">{children}</span> : null}
-      <span id={tipId(fieldId)} hidden>{children}</span>
+        <span className={"devPocPopover" + (wide ? " devPocPopoverWide" : "") + (above ? " devPocPopoverAbove" : "")}
+          aria-hidden={interactive ? null : "true"} role={interactive ? "tooltip" : null}>{children}</span> : null}
+      {interactive ? null : <span id={tipId(fieldId)} hidden>{children}</span>}
     </span>
   );
 };
@@ -562,7 +577,8 @@ const EStep = ({icon, iconOk, title, lead, dots, onBack, backLabel, children}) =
 
 /* Required fields carry no mark; optional ones say so, quietly. */
 const EOpt = <span className="devE-opt">{tE("Optional", "לא חובה")}</span>;
-const ESecRec = <span className="devE-recBadge">{tE("Security recommendation", "המלצת אבטחה")}</span>;
+const EShieldIcon = ({size} = {}) => eLucide(<React.Fragment><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /><path d="m9 12 2 2 4-4" /></React.Fragment>, size);
+const ESecRec = <span className="devE-recBadge"><EShieldIcon size={12} />{tE("Security recommendation", "המלצת אבטחה")}</span>;
 
 /* A note to read before acting: Lucide info icon, quiet panel. */
 const ENote = ({children}) => (
@@ -1057,16 +1073,21 @@ const ERemoveSiteDialog = ({host, keys, onKeep, onSave}) => {
       onClick={e => { if (e.target === e.currentTarget) { onKeep(); } }}>
       <section className="devE-deleteModal">
         <h3 id="devERmSiteTitle">{tE("Remove the website?", "להסיר את האתר?")}</h3>
+        {/* Copy 2026-11-05: which keys are limited to the site (bolded), then what removing it does. Keep the website is
+            the safe choice and takes focus; Remove the website is the action, at the end like the other windows. */}
         <div id="devERmSiteText">
           <p><InterfaceText text={{
-            en: <React.Fragment>{keys.length === 1 ? "This key is" : "These keys are"} limited to <bdi dir="ltr">{host}</bdi>. Without a website, the limit turns off and {keys.length === 1 ? "it works" : "they work"} from any site:</React.Fragment>,
-            he: <React.Fragment>{keys.length === 1 ? "המפתח הזה מוגבל" : "המפתחות האלה מוגבלים"} ל־<bdi dir="ltr">{host}</bdi>. בלי אתר, ההגבלה תכובה {keys.length === 1 ? "והוא יעבוד" : "והם יעבדו"} מכל אתר:</React.Fragment>,
+            en: <React.Fragment>The following keys are limited to <strong><bdi dir="ltr">{host}</bdi></strong>:</React.Fragment>,
+            he: <React.Fragment>המפתחות הבאים מוגבלים ל־<strong><bdi dir="ltr">{host}</bdi></strong>:</React.Fragment>,
           }} /></p>
           <ul className="devE-dialogList">{keys.map(k => <li key={k.id} dir="auto"><strong>{k.label}</strong></li>)}</ul>
+          {/* The same plural copy for one key or several (2026-11-05). */}
+          <p>{tE("Removing the website will turn this limit off and allow these keys to be used on any site.",
+            "הסרת האתר תכבה את ההגבלה ותאפשר להשתמש במפתחות האלה בכל אתר.")}</p>
         </div>
         <div className="devE-deleteActions">
-          <button type="button" className="devE-deleteBtn devE-deleteBtnPrimary" ref={keepRef} onClick={onKeep}>{tE("Keep the website", "השארת האתר")}</button>
-          <button type="button" className="devE-deleteBtn" onClick={onSave}>{tE("Save details", "שמירת הפרטים")}</button>
+          <button type="button" className="devE-deleteBtn devE-deleteBtnDanger" onClick={onSave}>{tE("Remove the website", "הסרת האתר")}</button>
+          <button type="button" className="devE-deleteBtn" ref={keepRef} onClick={onKeep}>{tE("Keep the website", "השארת האתר")}</button>
         </div>
       </section>
     </div>
@@ -1086,13 +1107,14 @@ const EDeleteProjectDialog = ({project, onDelete, onCancel}) => {
         <h3 id="devEDelProjTitle"><InterfaceText text={{en: <React.Fragment>Delete the project <bdi dir="auto">{project.name}</bdi>?</React.Fragment>,
           he: <React.Fragment>למחוק את הפרויקט <bdi dir="auto">{project.name}</bdi>?</React.Fragment>}} /></h3>
         <div id="devEDelProjText">
+          {/* With keys: which ones stop working, as a bulleted list. Without: only that it can't be undone. */}
           {keys.length ?
             <React.Fragment>
-              <p>{keys.length === 1 ? tE("This key stops working right away:", "המפתח הזה יפסיק לעבוד מיד:")
-                : tE("These keys stop working right away:", "המפתחות האלה יפסיקו לעבוד מיד:")}</p>
+              <p>{keys.length === 1 ? tE("The following key will stop working immediately:", "המפתח הבא יפסיק לעבוד מיד:")
+                : tE("The following keys will stop working immediately:", "המפתחות הבאים יפסיקו לעבוד מיד:")}</p>
               <ul className="devE-dialogList">{keys.map(k => <li key={k.id} dir="auto"><strong>{k.label}</strong></li>)}</ul>
-            </React.Fragment> : null}
-          <p>{tE("You can't undo this action.", "אי אפשר לבטל את הפעולה.")}</p>
+            </React.Fragment> :
+            <p>{tE("You can't undo this action.", "אי אפשר לבטל את הפעולה.")}</p>}
         </div>
         <div className="devE-deleteActions">
           <button type="button" className="devE-deleteBtn devE-deleteBtnDanger" onClick={onDelete}>{tE("Delete project", "מחיקת הפרויקט")}</button>
@@ -1113,9 +1135,9 @@ const EEditProject = ({project, onBack, backLabel, onSave, onDelete, dots, inSet
   const [banner, setBanner] = useState(null);
   const [asking, setAsking] = useState(false);
   const [siteWarn, setSiteWarn] = useState(null);   // the limited keys, while asking about removing the website
-  const save = () => {
+  const save = (override) => {
     setBanner(null);
-    Promise.resolve(onSave(form.projectBody({aiAssisted: !!project.aiAssisted, visibility: project.visibility || "private"})))
+    Promise.resolve(onSave({...form.projectBody({aiAssisted: !!project.aiAssisted, visibility: project.visibility || "private"}), ...override}))
       .catch(err => setBanner(saveFailure(err)));
   };
   const submit = (e) => {
@@ -1125,11 +1147,12 @@ const EEditProject = ({project, onBack, backLabel, onSave, onDelete, dots, inSet
     if (limited.length) { setSiteWarn(limited); return; }
     save();
   };
+  /* Keep the website (2026-11-05): saves the form's other changes with the website left as it was, like any save.
+     It used to only close the window and refill the field, so other edits stayed unsaved. */
   const keepSite = () => {
     setSiteWarn(null);
     form.set("websiteUrl", project.websiteUrl);
-    const el = document.getElementById("devEProjSite");
-    if (el) { el.focus(); }
+    save({websiteUrl: project.websiteUrl});
   };
   const keys = project.keys.length;
   return (
@@ -1217,6 +1240,21 @@ const ELimitKeyDialog = ({project, apiKey, run, onDone, onCancel}) => {
   );
 };
 
+/* A key's name stays on one line in the table (2026-11-05): a long one ends in "…", and hovering it shows the whole
+   name in the page's tooltip. The tip only appears when the name is actually cut off. Every button in the row
+   already names the key in full for screen readers. In the stacked phone layout the name wraps instead (CSS). */
+const EKeyName = ({name}) => {
+  const textRef = useRef(null);
+  const [cut, setCut] = useState(false);
+  const measure = () => { const el = textRef.current; if (el) { setCut(el.scrollWidth > el.clientWidth + 1); } };
+  return (
+    <span className="devE-tipWrap devE-keyName" onMouseEnter={measure}>
+      <span className="devE-keyNameText" ref={textRef}>{name}</span>
+      {cut ? <span className="devPocPopover devE-tip" aria-hidden="true" dir="auto">{name}</span> : null}
+    </span>
+  );
+};
+
 /* The home: a page header, then each project as a section with its keys in a plain table. */
 /* Usage against the project's monthly limit (D56, 2026-10-26): a bar that goes green, then yellow from 70%, then red
    from 90%. The words carry the same state, so color is never the only signal. The window is 30 days, not a calendar
@@ -1226,33 +1264,37 @@ const E_USAGE_SAMPLES = [0.36, 0.78, 0.96, 1];
 const eUsageOf = (project, index) => {
   if (project.usage) { return project.usage; }
   const limit = 5000;
+  /* A project with no keys can't have made any calls, so its sample usage is empty. */
+  if (!project.keys || !project.keys.length) { return {used: 0, limit, resetsAt: new Date(Date.now() + 30 * 86400000).toISOString()}; }
   const reset = new Date(Date.now() + (5 + index * 9) * 86400000);
   return {used: Math.round(limit * E_USAGE_SAMPLES[index % E_USAGE_SAMPLES.length]), limit, resetsAt: reset.toISOString()};
 };
-const EUsage = ({usage, projectName}) => {
+/* Option D (2026-11-05): usage is one quiet line in the project's details, a tiny bar and "36% of monthly limit ·
+   Resets Nov 10". It only gets loud near the limit, as a red chip beside the project name (EUsageChip). Never says
+   "calls". The bar is gray, then feedback-warning from 70%, then feedback-error from 90%; words carry the state too. */
+const eUsageLevel = (usage) => {
   const pct = usage.limit ? Math.min(100, Math.round(usage.used / usage.limit * 100)) : 0;
-  const level = pct >= 90 ? "high" : pct >= 70 ? "mid" : "low";
   const he = Sefaria.interfaceLang === "hebrew";
   const date = new Date(usage.resetsAt).toLocaleDateString(he ? "he-IL" : "en-US", {month: "short", day: "numeric"});
-  const status = pct >= 100 ? tE("Limit reached. Calls fail until " + date + ".", "הגעתם למגבלה. קריאות ייכשלו עד " + date + ".")
-    : level === "high" ? tE("Almost at the limit", "קרוב למגבלה") : null;
+  return {pct, date, level: pct >= 90 ? "high" : pct >= 70 ? "mid" : "low"};
+};
+const EUsage = ({usage, projectName}) => {
+  const {pct, date, level} = eUsageLevel(usage);
   return (
-    <div className={"devE-usage is-" + level}>
-      <div className="devE-usageTop">
-        <span className="devE-usageLabel">{tE("Monthly limit", "מגבלה חודשית")}</span>
-        <span className="devE-usagePct"><InterfaceText text={{en: pct + "% used", he: pct + "% בשימוש"}} /></span>
-      </div>
-      <div className="devE-usageBar" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}
+    <div className={"devE-usageLine is-" + level}>
+      <span className="devE-usageMini" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}
         aria-label={vE("Monthly limit used for " + projectName, "השימוש במגבלה החודשית של " + projectName)}
-        aria-valuetext={vE(pct + "% used, resets " + date, pct + "% בשימוש, מתאפס ב־" + date)}>
-        <span style={{width: pct + "%"}} />
-      </div>
-      <div className="devE-usageSub">
-        {status ? <strong className="devE-usageStatus">{status} </strong> : null}
-        <InterfaceText text={{en: "Resets " + date, he: "מתאפס ב־" + date}} />
-      </div>
+        aria-valuetext={vE(pct + "% used, resets " + date, pct + "% בשימוש, מתאפס ב־" + date)}><span style={{width: pct + "%"}} /></span>
+      <span aria-hidden="true"><InterfaceText text={{en: pct + "% of monthly limit", he: pct + "% מהמגבלה החודשית"}} /></span>
+      <span className="devE-usageDot" aria-hidden="true">·</span>
+      <span className="devE-usageReset" aria-hidden="true"><InterfaceText text={{en: "Resets " + date, he: "מתאפס ב־" + date}} /></span>
     </div>
   );
+};
+const EUsageChip = ({usage}) => {
+  const {pct} = eUsageLevel(usage);
+  if (pct < 90) { return null; }
+  return <span className="devE-usageChip">{pct >= 100 ? tE("Limit reached", "הגעתם למגבלה") : tE("Almost at the limit", "קרוב למגבלה")}</span>;
 };
 
 /* The key table's column heads, repeated over each project's keys. Fixed widths keep the columns lined up
@@ -1263,10 +1305,15 @@ const EKeyColumns = ({id}) => (
     <thead><tr>
       <th scope="col">{tE("Name", "שם")}</th><th scope="col">{tE("Key", "מפתח")}</th><th scope="col">{tE("Created", "נוצר")}</th>
       <th scope="col">
-        <span className="devE-thTip">{tE("Limit to website", "הגבלה לאתר")}
-          <InfoTip fieldId={"devEWebsiteOnly-" + id} icon="help" above wide>
-            {tE("When it's on, the key only works for requests from your project's website. Turn it on for a key that sits in a web page's code.",
-              "כשהאפשרות פועלת, המפתח עובד רק לבקשות מהאתר של הפרויקט. הפעילו אותה למפתח שנמצא בקוד של דף אינטרנט.")}
+        {/* Hovering the label opens the tip as well as the ? (2026-11-05). */}
+        <span className="devE-thTip">
+          <InfoTip lead={tE("Limit to website", "הגבלה לאתר")} fieldId={"devEWebsiteOnly-" + id} icon="help" above wide interactive label={vE("About Limit to website", "על הגבלה לאתר")}>
+            <InterfaceText text={{
+              en: <React.Fragment>Limit a key to your project's website and its subdomains, so that no one else can use it. Turn it <strong>on</strong> if the key is going in your web page's code.{" "}
+                <a className="devE-inlineLink" href={E_SITE_LEARN_MORE_URL} target="_blank" rel="noopener noreferrer">Learn more</a></React.Fragment>,
+              he: <React.Fragment>הגבלת מפתח לאתר של הפרויקט ולתתי־הדומיינים שלו, כך שאף אחד אחר לא יוכל להשתמש בו. <strong>הפעילו</strong> אם המפתח נכנס לקוד של דף האינטרנט שלכם.{" "}
+                <a className="devE-inlineLink" href={E_SITE_LEARN_MORE_URL} target="_blank" rel="noopener noreferrer">מידע נוסף</a></React.Fragment>,
+            }} />
           </InfoTip></span>
       </th><th scope="col"><span className="sr-only">{tE("Actions", "פעולות")}</span></th>
     </tr></thead>
@@ -1523,7 +1570,7 @@ const ESharePick = ({projects, onPick, onBack}) => (
   </EStep>
 );
 
-const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast, freshKeyId, open}) => {
+const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast, freshKeyId, freshProjectId, open}) => {
   const [needSite, setNeedSite] = useState(null);   // the project whose key someone tried to limit before it had a website
   const [confirmDel, setConfirmDel] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
@@ -1554,14 +1601,17 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
         onDone={() => setNeedSite(null)} /> : null}   {/* no message: the switch turning on says it (Penina, 2026-11-05) */}
       {!canCreate ? <EReconfirmBanner sentAt={state.confirmationSentAt} run={run} /> : null}
 
-      {/* Edit profile opens the setup's About you step on its own, with the same fields. */}
-      {
-        <p className="devE-profile">
-          <span dir="auto">{accountName() || profile.developerName}</span>
-          <span className="devE-dot" aria-hidden="true">·</span>
-          {emails.map((e, i) => <React.Fragment key={e}>{i ? ", " : null}<bdi dir="ltr">{e}</bdi></React.Fragment>)}
-          <button type="button" className="devE-link" data-agent-action="edit-profile" onClick={() => open({screen: "profile"})}>{tE("Edit profile", "עריכת פרופיל")}</button>
-        </p>}
+      {/* The profile as a card (option B, Penina 2026-11-05): the site's ProfilePic (photo, else initials), name over
+          email(s), and Edit profile, which opens the setup's About you step on its own. */}
+      <div className="devE-note devE-profileCard">
+        <ProfilePic url={Sefaria.profile_pic_url} name={accountName() || profile.developerName} len={32} />
+        <span className="devE-profileWho">
+          <span className="devE-profileName" dir="auto">{accountName() || profile.developerName}</span>
+          <span className="devE-profileEmail">{emails.map((e, i) => <React.Fragment key={e}>{i ? ", " : null}<bdi dir="ltr">{e}</bdi></React.Fragment>)}</span>
+        </span>
+        <button type="button" className="devE-quiet" data-agent-action="edit-profile" onClick={() => open({screen: "profile"})}>
+          <EPencilIcon />{tE("Edit profile", "עריכת פרופיל")}</button>
+      </div>
 
       {/* The section header, then one block per project. */}
       <div className="devE-sectionHead">
@@ -1580,8 +1630,8 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
               <span className="devPocPopover devE-tip" id="devEProjLimitTip" role="tooltip">{E_CONFIRM_TIP()}</span> :
             atProjectLimit ?
               <span className="devPocPopover devE-tip" id="devEProjLimitTip" role="tooltip">
-                {tE("You have " + maxProjects + " projects, the most an account can have. To add another, delete one you don't use.",
-                  "יש לך " + maxProjects + " פרויקטים, המספר המרבי לחשבון. כדי להוסיף עוד, מחקו פרויקט שאינו בשימוש.")}
+                {tE("You have reached the maximum of " + maxProjects + " projects. To add another project, delete one no longer in use.",
+                  "הגעתם למספר המרבי של " + maxProjects + " פרויקטים. כדי להוסיף פרויקט נוסף, מחקו פרויקט שאינו בשימוש עוד.")}
               </span> : null}
           </span> : null}
       </div>
@@ -1616,11 +1666,13 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
           const host = websiteHost(project.websiteUrl);
           const atLimit = project.keys.length >= (state.maxKeysPerProject || 5);
           return (
-            <section key={project.id} className="devE-project" aria-labelledby={"devEProj-" + project.id}>
+            <section key={project.id} className={"devE-project" + (project.id === freshProjectId ? " is-new" : "")} aria-labelledby={"devEProj-" + project.id}
+              ref={project.id === freshProjectId ? (el => { if (el && !el.dataset.shown) { el.dataset.shown = "1"; el.scrollIntoView({block: "center", behavior: "smooth"}); } }) : null}>
               <div className="devE-projHead">
                 <div className="devE-projInfo">
                   <h3 className="devE-projName" id={"devEProj-" + project.id}><bdi dir="auto">{project.name}</bdi>
-                    {project.organization ? <span className="devE-org"> · <bdi dir="auto">{project.organization}</bdi></span> : null}</h3>
+                    {project.organization ? <span className="devE-org"> · <bdi dir="auto">{project.organization}</bdi></span> : null}
+                    <EUsageChip usage={eUsageOf(project, index)} /></h3>
                   {project.description ? <span className="devE-desc" dir="auto">{project.description}</span> : null}
                   {/* The project's two optional extras, as chips: a button until done, then a quiet fact. */}
                   <span className="devE-chips">
@@ -1633,30 +1685,36 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
                       <button type="button" className="devE-chip" onClick={() => open({screen: "share", projectId: project.id})}>
                         <EStarIcon />{tE("Share your project with Sefaria", "שתפו את הפרויקט עם ספריא")}</button>}
                   </span>
+                  <EUsage usage={eUsageOf(project, index)} projectName={project.name} />
                 </div>
                 <div className="devE-projSide">
                 <div className="devE-actions">
                   <button type="button" className="devE-quiet" data-agent-action="edit-project" onClick={() => open({screen: "editproj", projectId: project.id})}
                     aria-label={vE("Edit details of " + project.name, "עריכת הפרטים של " + project.name)}><EPencilIcon />{tE("Edit project details", "עריכת פרטי הפרויקט")}</button>
                   <span className="devE-tipWrap">
-                    <button type="button" className="devE-pill devE-pillSm" data-agent-action="new-key" disabled={atLimit}
-                      aria-disabled={!canCreate ? "true" : null} aria-describedby={!canCreate ? "devEKeyTip-" + project.id : null}
-                      title={atLimit ? vE("5 keys is the most a project can have. Delete one you don't use to make room.", "חמישה מפתחות הם המקסימום לפרויקט. מחקו מפתח שאינו בשימוש כדי לפנות מקום.") : ""}
+                    {/* Disabled at the key limit or while the email needs confirming, with a tooltip saying which, the same
+                        way as New project at the project limit (2026-11-05). aria-disabled so it can be hovered and focused. */}
+                    <button type="button" className="devE-pill devE-pillSm" data-agent-action="new-key"
+                      aria-disabled={!canCreate || atLimit ? "true" : null} aria-describedby={!canCreate || atLimit ? "devEKeyTip-" + project.id : null}
                       aria-label={vE("Add a key to " + project.name, "הוספת מפתח ל־" + project.name)}
-                      onClick={() => { if (canCreate) { open({screen: "newkey", projectId: project.id}); } }}><EPlusIcon />{tE("Add key", "הוספת מפתח")}</button>
-                    {!canCreate ? <span className="devPocPopover devE-tip" id={"devEKeyTip-" + project.id} role="tooltip">{E_CONFIRM_TIP()}</span> : null}
+                      onClick={() => { if (canCreate && !atLimit) { open({screen: "newkey", projectId: project.id}); } }}><EPlusIcon />{tE("Add key", "הוספת מפתח")}</button>
+                    {!canCreate ? <span className="devPocPopover devE-tip" id={"devEKeyTip-" + project.id} role="tooltip">{E_CONFIRM_TIP()}</span>
+                      : atLimit ? <span className="devPocPopover devE-tip" id={"devEKeyTip-" + project.id} role="tooltip">
+                        {tE("You have reached the maximum of " + (state.maxKeysPerProject || 5) + " keys for this project. To add another key, delete one no longer in use.",
+                          "הגעתם למספר המרבי של " + (state.maxKeysPerProject || 5) + " מפתחות לפרויקט הזה. כדי להוסיף מפתח נוסף, מחקו מפתח שאינו בשימוש עוד.")}
+                      </span> : null}
                   </span>
                 </div>
-                <EUsage usage={eUsageOf(project, index)} projectName={project.name} />
                 </div>
               </div>
-              <div className="devE-board">
+              {/* A project with no keys shows only its header, no empty table (2026-11-05). */}
+              {project.keys.length ? <div className="devE-board">
                 <table className="devE-table" aria-labelledby={"devEProj-" + project.id}>
                   <EKeyColumns id={project.id} />
                   <tbody>
-                    {project.keys.length ? project.keys.map(apiKey => (
+                    {project.keys.map(apiKey => (
                       <tr key={apiKey.id} className={"devE-keyRowT" + (apiKey.id === freshKeyId ? " is-new" : "")}>
-                        <td data-l={vE("Name", "שם")} dir="auto">{apiKey.label}</td>
+                        <td data-l={vE("Name", "שם")} dir="auto"><EKeyName name={apiKey.label} /></td>
                         <td data-l={vE("Key", "מפתח")}>
                           <span className="devE-keyCell">
                             <code className="devE-keyText" dir="ltr">{shownIds.includes(apiKey.id) ? apiKey.value : apiKey.value.slice(0, 4) + "••••" + apiKey.value.slice(-4)}</code>
@@ -1691,11 +1749,10 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
                             aria-haspopup="dialog" onClick={() => setConfirmDel(apiKey)}><ETrashIcon /></button>
                         </td>
                       </tr>
-                    )) :
-                      <tr className="devE-emptyRow"><td colSpan={5}>{tE("No keys yet.", "אין עדיין מפתחות.")}</td></tr>}
+                    ))}
                   </tbody>
                 </table>
-              </div>
+              </div> : null}
             </section>
           );
         })}
@@ -1775,6 +1832,9 @@ const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessag
   const [view, setView] = useState(null);   // {screen, projectId, keyId, inSetup}
   const [toast, setToast] = useState("");
   const [freshKeyId, setFreshKeyId] = useState(null);
+  /* A project made during this visit gets a short highlight when the projects page shows it, in place of a
+     "saved" message (Penina, 2026-11-05). */
+  const [freshProjectId, setFreshProjectId] = useState(null);
   const [sent, setSent] = useState(false);
   /* A link sent during this visit shows "Check your email" at once, before the state's sent time arrives. */
   const [sentThisVisit, setSentThisVisitState] = useState(eSentThisVisit);
@@ -1822,7 +1882,7 @@ const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessag
     const {restrict, websiteUrl} = keyOptions || {};
     const minimum = new Promise(resolve => setTimeout(resolve, KEY_SETUP_MS));
     const projectReady = existingProjectId ? Promise.resolve(existingProjectId)
-      : run(createProject(projectBody), {quiet: true}).then(data => data.projectId);
+      : run(createProject(projectBody), {quiet: true}).then(data => { setFreshProjectId(data.projectId); return data.projectId; });
     return projectReady.then(projectId => {
       setView({screen: "wait", projectId, inSetup, withConfirm: confirmStep});
       /* A website typed in the key form is saved to the project first, so the key can be limited to it. */
@@ -1958,7 +2018,7 @@ const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessag
       onBack={() => setView({screen: "setupProfile", inSetup: true, withConfirm: view.withConfirm})}
       onSkip={() => E_SHARE_LINK ? open({screen: "share", fromLink: true})
         : home(vE("Your profile is saved. Create a project whenever you're ready.", "הפרופיל שלך נשמר. צרו פרויקט מתי שתרצו."))}
-      onCreate={projectBody => run(createProject(projectBody), {quiet: true})
+      onCreate={projectBody => run(createProject(projectBody), {quiet: true}).then(data => { setFreshProjectId(data.projectId); return data; })
         .then(data => setView(E_SHARE_LINK
           /* from the Powered by link: no key step, straight to sharing */
           ? {screen: "share", projectId: data.projectId, fromLink: true, inSetup: true, withConfirm: view.withConfirm}
@@ -1968,7 +2028,7 @@ const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessag
     body = <ESetupKey dots={dots(2)} project={project} backLabel={tE("Back", "חזרה")}
       onBack={() => setView({screen: "setupProjectEdit", projectId: project.id, inSetup: true, withConfirm: view.withConfirm})}
       onSkip={() => E_SHARE_LINK ? open({screen: "share", projectId: project.id, fromLink: true})
-        : home(vE(project.name + " is saved. Add a key when you're ready.", project.name + " נשמר. הוסיפו מפתח מתי שתרצו."))}
+        : home()}
       onCreate={(label, opts) => createWithKey(null, label, true, project.id, opts,
         E_SHARE_LINK ? () => open({screen: "share", projectId: project.id, fromLink: true}) : null)} />;
   } else if (view && view.screen === "firstkey" || view && view.screen === "newproj") {
@@ -1980,14 +2040,14 @@ const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessag
     const leave = () => toShare ? open({screen: "share", fromLink: true}) : home();
     body = <ESetupProject title={tE("New project", "פרויקט חדש")} onBack={leave}
       onSkip={leave} skipLabel={tE("Cancel", "ביטול")}
-      onCreate={projectBody => run(createProject(projectBody), {quiet: true})
+      onCreate={projectBody => run(createProject(projectBody), {quiet: true}).then(data => { setFreshProjectId(data.projectId); return data; })
         .then(data => setView({screen: "projectKey", projectId: data.projectId, toShare}))} />;
   } else if (view && view.screen === "projectKey" && projectById(view.projectId)) {
     const project = projectById(view.projectId);
     const toShare = view.toShare;
     const backToShare = () => open({screen: "share", projectId: project.id, fromLink: true});
     body = <ESetupKey project={project} onBack={toShare ? backToShare : () => home()}
-      onSkip={toShare ? backToShare : () => home(vE(project.name + " is saved. Add a key when you're ready.", project.name + " נשמר. הוסיפו מפתח מתי שתרצו."))}
+      onSkip={toShare ? backToShare : () => home()}
       onCreate={(label, opts) => createWithKey(null, label, false, project.id, opts, toShare ? backToShare : null)} />;
   } else if (view && view.screen === "newkey" && projectById(view.projectId)) {
     body = <ENewKey project={projectById(view.projectId)} onBack={() => home()}
@@ -2031,7 +2091,7 @@ const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessag
       onDelete={() => run(deleteProject(project.id), {quiet: true}).then(() => home(vE(project.name + " and its keys are deleted.", project.name + " והמפתחות שלו נמחקו.")))} />;
   } else {
     body = <EHome state={state} run={run} notice={notice} setNotice={setNotice} connectedMessage={connectedMessage}
-      toast={toast} setToast={setToast} freshKeyId={freshKeyId} open={open} />;
+      toast={toast} setToast={setToast} freshKeyId={freshKeyId} freshProjectId={freshProjectId} open={open} />;
   }
 
   return <div className="devPocPage devE">{header}{body}</div>;

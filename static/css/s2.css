@@ -18305,6 +18305,8 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-tog { display: inline-flex; align-items: center; vertical-align: middle; }
 @media (max-width: 842px) { /* the header's mobile breakpoint, $bp-mobile-max */
   .devPocPage .devE-title { font-size: 22px; }
+}
+@container devEBoard (max-width: 599px) {
   .devPocPage .devE-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .devPocPage .devE-table .devE-keyRowT { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; padding: 12px 16px; border-top: 1px solid #ededec; }
   .devPocPage .devE-table .devE-keyRowT td { padding: 0; border: 0; background: none !important; }
@@ -18388,7 +18390,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-emptyState { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
 .devPocPage .devE-emptyState h3 { margin: 0; font: 600 16px/1.4 var(--english-sans-serif-font-family); color: #121212; }
 .devPocPage .devE-emptyState p { margin: 0 0 8px; max-width: 44ch; font-size: 14px; line-height: 21px; color: #575757; /* en-system-small-comfortable, text-secondary */ }
-@media (max-width: 842px) { /* the header's mobile breakpoint, $bp-mobile-max */
+@container devEBoard (max-width: 599px) { /* the header's mobile breakpoint, $bp-mobile-max */
   .devPocPage .devE-table .devE-emptyTableRow, .devPocPage .devE-table .devE-emptyTableRow td { display: block; }
 }
 /* trial E: a link inside running text is underlined, so it doesn't rely on colour alone */
@@ -18442,7 +18444,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-ico { color: #6f6f6f; width: 32px; height: 32px; }
 .devPocPage .devE-icoDanger:hover { color: #c03522; background: #f9ebe9; /* feedback-error-text, feedback-error-background */ }
 .devPocPage .devE-table .devE-emptyRow td { padding: 12px 16px 16px; border-top: 0; font-size: 14px; color: #707070; }
-@media (max-width: 842px) { /* the header's mobile breakpoint, $bp-mobile-max */
+@container devEBoard (max-width: 599px) { /* the header's mobile breakpoint, $bp-mobile-max */
   .devPocPage .devE-table .devE-keyRowT { border-top: 1px solid #eeeeee; /* border-subtle */ }
   .devPocPage .devE-table .devE-projRow + .devE-keyRowT { border-top: 0; }
 }
@@ -18467,10 +18469,6 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 @keyframes devESlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .devE-deleteStage, .devE-deleteModal { animation: none; } }
 /* trial E: the AI prompt dialog, and the new key's row tinted for a moment instead of a message */
-.devE-aiDialog h2 { font-size: 16px; }
-.devE-aiDialog p { font-size: 14px; line-height: 21px; color: #575757; }
-.devE-aiDialog .devE-code { margin-top: 16px; white-space: pre-wrap; overflow-wrap: anywhere; }
-.devE-dialogActions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 .devPocPage .devE-table .devE-keyRowT.is-new td { animation: devENewRow 4s ease-out; }
 @keyframes devENewRow { 0%, 40% { background: #e4eaf3; } 100% { background: transparent; } /* surface-highlighted, fading */ }
 /* trial E: project row extras as chips; Add key is the row's primary action */
@@ -18512,8 +18510,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 
 /* Trial E header links (D57): API docs first, the library download beside it in a quieter color. */
 .devPocPage .devE-headLinks { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; }
-.devPocPage .devE-docsMinor { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #575757; /* text-secondary */ }
-.devPocPage .devE-docsMinor:hover { color: #18345d; }
+.devPocPage .devE-docsMinor { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #18345d; /* text-link, the same as Technical documentation (2026-11-05) */ }
 
 /* 2026-11-01 review fixes */
 .devPocPage .devE-head { gap: 12px; /* spacing-medium: more room between a step's title and its lead */ }
@@ -18557,7 +18554,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   .devPocPage .devE-footer .devE-backBtn, .devPocPage .devE-footer .sefaria-common-button.fullwidth { width: 100%; flex: 0 0 auto; }
 }
 /* Mobile: the empty state spans the whole table, not the first fixed-width column. */
-@media (max-width: 842px) {
+@container devEBoard (max-width: 599px) {
   .devPocPage .devE-table:has(.devE-emptyTableRow) { table-layout: auto; }
   .devPocPage .devE-table:has(.devE-emptyTableRow) colgroup { display: none; }
 }
@@ -18611,7 +18608,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 /* Mobile key rows (2026-11-01). Below the header's breakpoint the fixed-width table can't fit, so each key becomes
    a small block: name and delete on top, the key and its copy/AI buttons under it, then Created and the
    "Limit to website" switch on one line. */
-@media (max-width: 842px) {
+@container devEBoard (max-width: 599px) {
   .devPocPage .devE-table, .devPocPage .devE-table tbody { display: block; width: 100%; table-layout: auto; }
   .devPocPage .devE-table colgroup { display: none; }
   .devPocPage .devE-table .devE-keyRowT { display: grid; grid-template-columns: minmax(0, 1fr) auto;
@@ -18764,3 +18761,98 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-quiet, .devPocPage .devE-pillSm { height: 32px; padding: 0 12px; border-width: 1px; font: 500 14px/1 var(--english-sans-serif-font-family); }
 .devPocPage .devE-quiet { border-color: #cccccc; /* gray-300, as the design system's small secondary button */ }
 .devPocPage .devE-quiet:hover { background: #eeeeee; /* surface-hover */ }
+/* Profile card at the top of the projects page (option B): the note box, a 32px ProfilePic, name over email, and Edit
+   profile as the card's secondary button. */
+.devPocPage .devE-profileCard { align-items: center; gap: 16px; margin-block-end: 32px; padding: 16px; }
+.devPocPage .devE-profileCard .profile-pic { flex: none; }
+.devPocPage .devE-profileWho { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.devPocPage .devE-profileName { font: 600 16px/1.4 var(--english-sans-serif-font-family); color: #121212; /* en-system-body-strong */ }
+.devPocPage .devE-profileEmail { font-size: 14px; line-height: 21px; color: #575757; overflow-wrap: anywhere; /* text-secondary */ }
+@media (max-width: 600px) { .devPocPage .devE-profileCard { flex-wrap: wrap; } }
+/* A project just made: a navy-200 ring that fades, instead of a "saved" message (2026-11-05). */
+@keyframes devENewProject { 0%, 50% { box-shadow: 0 0 0 3px #e4eaf3, 0 0 0 4px #4f6f9a; } 100% { box-shadow: 0 0 0 0 transparent; } }
+.devPocPage .devE-project.is-new { animation: devENewProject 2.4s ease-out; /* navy-200 halo with a navy-600 edge */ }
+@media (prefers-reduced-motion: reduce) { .devPocPage .devE-project.is-new { animation: none; } }
+/* "Limit to website" column: the ? tip holds a Learn more link. */
+.devPocPage .devE-thTip { display: inline-flex; align-items: center; gap: 4px; }
+.devPocPage .devE-thTip .devPocPopover { text-transform: none; letter-spacing: normal; font-weight: 400; }
+
+/* Window audit (2026-11-05): every developer settings window shares one frame (.devE-deleteStage + .devE-deleteModal):
+   the same scrim, 12px corners, 28/24/24 padding, 20px title, 16px body and 40px buttons. Shadow is the design
+   system's dialog shadow (shadow-xlarge). */
+.devE-deleteModal { box-shadow: 0px 40px 80px 0px rgba(0, 0, 0, 0.18), 0px 1px 2px 0px rgba(0, 0, 0, 0.08); /* shadow-xlarge */ max-height: 90vh; overflow-y: auto; }
+.devE-deleteBtn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+/* The "Security recommendation" badge carries a 12px shield, sized to the badge's text. */
+.devPocPage .devE-recBadge { gap: 4px; }
+.devPocPage .devE-recBadge svg { flex: none; }
+
+/* Key names (2026-11-05): one line with "…" in the table; the whole name in a tooltip on hover (EKeyName).
+   In the stacked phone layout there is room to wrap, so long names wrap and the tooltip never shows. */
+.devPocPage .devE-keyName { display: flex; max-width: 100%; min-width: 0; }
+.devPocPage .devE-keyNameText { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.devPocPage .devE-keyName .devE-tip { inset-inline-start: 0; inset-inline-end: auto; overflow-wrap: anywhere; }
+@container devEBoard (max-width: 599px) {
+  .devPocPage .devE-keyNameText { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+  .devPocPage .devE-keyName .devE-tip { display: none !important; }
+}
+
+/* "Limit to website" header (2026-11-05): 8px before the ?, as Carbon spaces its toggletip icon (spacing-small).
+   The ? takes the label's own gray (text-muted), so the header reads as one quiet unit. The ? was darker
+   than the label before; gray-400 would be lighter still but fails the 3:1 contrast icons need (2.8:1 on white). */
+.devPocPage .devE-thTip { gap: 4px; }
+.devPocPage .devE-thTip .devPocTip { margin-inline-start: 4px; /* + the 4px gap = 8px, dimension-100 */ }
+.devPocPage .devE-thTip .devPocInfoButton { color: #707070; /* text-muted, as the header label */ }
+.devPocPage .devE-thTip .devPocInfoButton:hover, .devPocPage .devE-thTip .devPocInfoButton:focus-visible { color: #575757; /* text-secondary */ }
+
+/* Window corners use the dimension scale: 12px = dimension-150 (the codebase has no radius variables, so the value
+   is written out). */
+.devE-deleteModal { border-radius: 12px; /* dimension-150 */ }
+
+/* Column widths and the stacked layout follow the table's own width, not the window's (2026-11-05). Between the
+   phone breakpoint and wide desktop the table was too narrow for its columns, so the switch, date and ? spilled
+   out. Now each key board is a container:
+   - 840px and up: Key fits a shown key on one line (sfr_ + 32 characters, eye, copy); Created, Limit to website and
+     delete get just the room their content needs; Name takes the rest.
+   - 600 to 839px: the same, but Key fits the hidden key (a shown key wraps inside its column).
+   - Under 600px: each key stacks into a small block (the rules that used to sit behind the 842px media query). */
+.devPocPage .devE-board { container: devEBoard / inline-size; }
+@container devEBoard (min-width: 600px) {
+  .devPocPage .devE-table .devE-cName { width: auto; }
+  .devPocPage .devE-table .devE-cKey { width: 200px; }
+  .devPocPage .devE-table .devE-cDate { width: 104px; }
+  .devPocPage .devE-table .devE-cLimit { width: 168px; }
+  .devPocPage .devE-table .devE-cEnd { width: 56px; }
+}
+@container devEBoard (min-width: 840px) {
+  .devPocPage .devE-table .devE-cKey { width: 376px; }
+}
+
+
+/* No hover tint on key rows (2026-11-05): the row isn't clickable, only its buttons are. */
+.devPocPage .devE-table .devE-keyRowT:hover td { background: none; }
+
+/* Stacked key blocks: "Created" and its date read as one line in one style, the same as the "Limit to website"
+   label beside them (en-system-small, text-secondary) (2026-11-05). */
+@container devEBoard (max-width: 599px) {
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(3),
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(3)::before { font-size: 14px; line-height: 20px; font-weight: 400; color: #575757; }
+}
+
+/* Show/hide and copy in a key row (2026-11-05): no background on hover, only a color change, from the gray to
+   action-primary (navy-700). */
+.devPocPage .devE-table .devE-keyCell .devE-ico:hover { background: none; color: #18345d; /* action-primary */ }
+
+/* "Limit to website" header (2026-11-05): no shield; the label sits inside the tip's hover area, so hovering the
+   words opens the same tooltip as the ?. 8px between the words and the ? (dimension-100). */
+.devPocPage .devE-thTip .devPocTip { margin-inline-start: 0; gap: 8px; align-items: center; cursor: default; }
+.devPocPage .devE-recBadge { gap: 4px; /* the shield stays in the badge, out of the table header */ }
+
+/* Usage, option D (2026-11-05): one line under the project's chips, and a red chip by the name near the limit. */
+.devPocPage .devE-usageLine { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; font-size: 14px; line-height: 20px; color: #575757; font-variant-numeric: tabular-nums; /* text-secondary */ }
+.devPocPage .devE-usageMini { display: inline-block; flex: none; width: 40px; height: 4px; border-radius: 2px; background: #eeeeee; overflow: hidden; /* surface-hover */ }
+.devPocPage .devE-usageMini > span { display: block; height: 100%; background: #575757; }
+.devPocPage .devE-usageLine.is-mid .devE-usageMini > span { background: #e6b624; /* feedback-warning: a mark only */ }
+.devPocPage .devE-usageLine.is-high .devE-usageMini > span { background: #c03522; /* feedback-error */ }
+.devPocPage .devE-usageDot { color: #cccccc; /* gray-300 */ }
+.devPocPage .devE-usageReset { color: #707070; /* text-muted */ }
+.devPocPage .devE-usageChip { display: inline-flex; align-items: center; margin-inline-start: 8px; padding: 0 8px; border-radius: 4px; background: #f9ebe9; color: #c03522; font-size: 12px; line-height: 20px; font-weight: 500; vertical-align: middle; /* feedback-error-background, feedback-error-text */ }
