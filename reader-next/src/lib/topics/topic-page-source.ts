@@ -202,20 +202,34 @@ export function topicPageModel(
   };
 }
 
-/** Why a slug is not rendered here: Django's 404, or Django's own page (the pool cannot be confirmed). */
-export type TopicPageResult = { kind: "page"; page: TopicPageModel } | { kind: "missing" } | { kind: "django" };
+/** The page, or Django's 404 (a topic that does not exist or is not in the Library's pool). */
+export type TopicPageResult = { kind: "page"; page: TopicPageModel } | { kind: "missing" };
+
+/**
+ * Whether a topic outside the A–Z list is in the Library's pool, asked of the name completer (`GET /api/name/<title>?type=Topic
+ * &topic_pool=library`), which filters by pool on sefaria.org today. Used only when the topic API does not give `pools` (it does
+ * on this branch's Django). The English title is asked first, then the Hebrew one; an error is thrown (the page shows its error).
+ */
+async function inLibraryPool(slug: string, title: { en?: string; he?: string } | undefined): Promise<boolean> {
+  for (const name of [title?.en, title?.he]) {
+    if (!name) continue;
+    const r = await fetch(`${SEFARIA_API_ORIGIN}/api/name/${encodeURIComponent(name)}?limit=50&type=Topic&topic_pool=library`);
+    const d = await apiJson<{ completion_objects?: { key?: string }[] }>(r, `Topic pool ${slug}`);
+    if (d?.completion_objects?.some((o) => o.key === slug)) return true;
+  }
+  return false;
+}
 
 /**
  * The page, on the server. reader/views.py topic_page answers 404 for a topic that does not exist or is not in the Library's pool.
- * A topic in the A–Z list is in the pool; one that is not is decided by its `pools` where the API gives them (this branch's Django),
- * and otherwise left to Django ("django": the route passes the request through, so nothing the old site rendered disappears).
+ * A topic in the A–Z list is in the pool; one that is not (some 300: authors' students, ambiguous names…) is decided by its `pools`
+ * where the API gives them (this branch's Django), and otherwise by inLibraryPool. Every Library topic is rendered here, as the
+ * opted-in reader must not land in the old client (TOP-036); noindex unless it passes should_display, as on live.
  */
 const readTopicPage = createServerFn({ method: "GET" })
   .validator((d: { slug: string; lang: AzLang }) => d)
   .handler(async ({ data }): Promise<TopicPageResult> => {
     const [toc, listed, tree] = await Promise.all([serverTopicToc().catch(() => [] as TopicTocNode[]), serverListedTopicSlugs().catch(() => undefined), serverCatalogTree().catch(() => [] as TocNode[])]);
-    // a topic outside the A–Z list is Django's page: hand it on without fetching it (the server does so before rendering, TOP-036)
-    if (listed?.size && !listed.has(data.slug)) return { kind: "django" };
     const tocPaths = topicTocCategoryPaths(toc);
     const filters = refLinkTypeFilters(tocPaths[data.slug]?.at(-1)?.slug);
     const r = await fetch(`${SEFARIA_API_ORIGIN}${topicApiPath(data.slug, filters)}`, {
@@ -226,10 +240,7 @@ const readTopicPage = createServerFn({ method: "GET" })
     const t = await apiJson<ApiTopic>(r, `Topic ${data.slug}`);
     if (!t || !t.slug) return { kind: "missing" };
     const inList = listed?.has(t.slug) ?? false;
-    if (!inList) {
-      if (!t.pools) return { kind: "django" };
-      if (!t.pools.includes("library")) return { kind: "missing" };
-    }
+    if (!inList && !(t.pools ? t.pools.includes("library") : await inLibraryPool(t.slug, t.primaryTitle))) return { kind: "missing" };
     return { kind: "page", page: topicPageModel(t, { slug: t.slug, tocPaths, toc, books: indexLookup(tree).books, listed: inList }) };
   });
 

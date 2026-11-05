@@ -475,7 +475,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
       <ConnectionsPanel label="Notes" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
         <NotesView
           notes={notesQ.data}
-          allNotesHref={`${SITE_ORIGIN}/texts/notes`}
+          allNotesHref="/texts/notes"
           onSave={async (text, note) => {
             const refs = refsForSave(note, notesRefs); // an edit stays on its own verses, whatever is selected now
             if (!refs) throw new Error("This note cannot be edited here: its place is unknown.");

@@ -233,6 +233,7 @@ shared_patterns = [
 
     path('api/portals/<path:slug>', reader_views.portals_api),
 
+    re_path(r'^api/activity/(?P<tref>.+?)/(?P<lang>.{2})/(?P<version>.+)$', reader_views.segment_history_api),
     re_path(r'^api/history/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.texts_history_api),
     path('api/history/<path:tref>', reader_views.texts_history_api),
 

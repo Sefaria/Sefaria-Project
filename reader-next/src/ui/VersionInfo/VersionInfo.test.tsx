@@ -11,7 +11,7 @@ describe("VersionInfo", () => {
     expect(screen.getByRole("link", { name: "jps.org" })).toHaveAttribute("href", "https://www.jps.org/books/x"); // www. stripped
     expect(screen.getByRole("link", { name: "CC-BY-NC" })).toHaveAttribute("href", "https://creativecommons.org/licenses/by-nc/4.0/");
     expect(screen.getByRole("link", { name: "Sefaria" })).toHaveAttribute("href", "https://www.sefaria.org/digitized-by-sefaria");
-    expect(screen.getByRole("link", { name: "Revision History" })).toHaveAttribute("href", "https://www.sefaria.org/activity/Genesis.1.1/en/THE_JPS_TANAKH:_Gender-Sensitive_Edition");
+    expect(screen.getByRole("link", { name: "Revision History" })).toHaveAttribute("href", "/activity/Genesis.1.1/en/THE_JPS_TANAKH:_Gender-Sensitive_Edition");
     expect(screen.getByRole("link", { name: "Buy in Print" })).toHaveAttribute("href", "https://store.example/b");
   });
   it("hides rows the version lacks; revision history is always there", () => {

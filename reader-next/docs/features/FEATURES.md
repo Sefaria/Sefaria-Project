@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**961 features**, 3922 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
+**961 features**, 3932 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 390 · partial 51 · todo 392 · replaced 19 · deferred 22 · n/a 87; 383 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 391 · partial 57 · todo 385 · replaced 19 · deferred 22 · n/a 87; 390 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -5453,6 +5453,7 @@ A topic category page lists its subtopics as cards, sorted and filtered for the 
 - Analytics data-anl-panel_category; server topics_category_page 404s unknown slug and sets SEO title/desc (reader/views.py:1013-1037).
 - Geometry: the title row (CategoryHeader) keeps 15px under it and the h1 none, so the cards start 40px under the title's top; two columns 323px wide 20px apart at ≥900px and 600–700px, one column at 700–900px and below 600px (.contentInner .table); a 1px #EDEDEC line over the first row. Sidebar: AboutTopics, (StudyCompanion — torah-portions, English interface only), Promo, TrendingTopics, SponsorADay; data-anl-panel_category is the parents' slugs joined by '|' or 'Topic Landing' for a top-level category. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 - NEW READER: the subtopics come from the server's topics TOC (GET /api/topics-toc on this branch's Django; on sefaria.org that 404s and the server reads the same tree out of /data.js), handed to the page as its slice through a server function — the browser never downloads the tree. Not ported: the moderators' CategoryHeader buttons (add sub-category, edit, reorder) on topic categories.
+- /topics/category/<a topic that is not a category>: the old client crashed (blank page, console errors; VERIFIED 2026-11-05 on /topics/category/moses). Deliberate deviation: the new reader replaces the address with /topics/<slug>, which renders the topic or Django's 404 (src/features/topics/TopicCategoryRoute.tsx loadTopicCategory). Tests: e2e/topic-page.spec.ts.
 
 Code: [`static/js/TopicPage.jsx:225-273`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L225-L273), [`static/js/sefaria/sefaria.js:3002-3036`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3002-L3036), [`reader/views.py:1013-1037`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1013-L1037)
 
@@ -5814,7 +5815,7 @@ Source: `inv_05_library_topics.md`
 ### Topic page
 
 #### TOP-036 · Topic page Library pool check
-`core` `live` · rebuild: **done** — Decided on the server before rendering: A–Z slugs and TOC categories are the client's, the rest Django's (src/server/topics-owner.ts) · *tested*
+`core` `live` · rebuild: **done** — Every Library-pool topic rendered (pools from the API, else the name completer's topic_pool filter); only ?editor=1 goes to Django · *tested*
 
 A topic page exists on the Library only for topics in the Library's pool; the new reader decides it from the A–Z list or the topic's pools, and otherwise lets Django answer.
 
@@ -5823,6 +5824,8 @@ A topic page exists on the Library only for topics in the Library's pool; the ne
 - NEW READER: the hand-off to Django also works after an in-app navigation: the topics routes' notFoundComponent (src/features/topics/DjangoHandoff.tsx) loads the address again from the server when the 404 was reached in the app (the document was loaded at another address, src/lib/routing/django-handoff.ts) — a related link, a description link, a card or ?editor=1 reached by navigation then gets Django's page when pass-through is on; the server's own 404 shows 'Page not found.' and never reloads. Before, TanStack's bare 'Not Found' showed and Django never got the request.
 - Open: the backend change (get_topic's v2 answer carries `pools`) and its test (sefaria/helper/tests/topic_test.py::test_get_topic_v2_answers_the_topics_pools) have not been run (no Django/Mongo environment); until it is deployed, Library topics outside the A–Z list (~1,366) always go to Django.
 - BUILT 2026-11-04 (review fix): src/server/topics-owner.ts decides before rendering, in the cluster's pass-through: /topics/<slug> and /topics/b/<slug> are this client's only for the A–Z list's slugs, /topics/category/<slug> only for the TOC's categories; ?editor=1 and everything else go to Django without the topic being fetched (curl with pass-through: /topics/aarons-staff 200 django 1.6s, /topics/category/moses 0.3s, /topics/moses?editor=1 1.0s). In the app, readTopicPage hands a slug outside the A–Z list to Django without fetching it, so the backend 'pools' field is no longer needed to decide. Tests: src/server/topics-owner.test.ts.
+- Owner rule (2026-11-05): an opted-in reader must never land in the legacy client from inside the new reader; port the page or point the link at a reader-next page (wiki projects/reader-next/exits-to-legacy).
+- BUILT 2026-11-05 (replaces 2026-11-04's hand-off): every Library-pool topic is rendered here. A topic outside the A–Z list (some 300: Rashi's students rabbenu-tam, rivan, meir-ben-shmuel; yehuda-herzl-henkin…) is fetched and its pool decided from the API's `pools` where given (this branch's Django), else from the name completer, which filters by pool on sefaria.org today: GET /api/name/<title>?type=Topic&topic_pool=library (VERIFIED 2026-11-05: rabbenu-tam, rivan, yehuda-herzl-henkin found; youth, a sheets-only topic, not; live answers youth 404). Not in the pool: the 404 Django gives. Indexing as live (rabbenu-tam has no robots meta on sefaria.org). src/server/topics-owner.ts now hands Django only ?editor=1 (the moderators' editors, not ported). Tests: e2e/topic-page.spec.ts ('topics outside the A–Z list'), src/server/topics-owner.test.ts.
 
 Code: [`reader/views.py:3592-3640`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3592-L3640), `sefaria/helper/topic.py get_topic`
 
@@ -8727,24 +8730,26 @@ Source: `inv_02_reader_shell.md#20`
 ### Notes
 
 #### USL-003 · My Notes page
-`standard` `live` · rebuild: **todo** `signed-in`
+`standard` `live` · rebuild: **done** — /texts/notes: the Notes tab · *tested* `signed-in`
 
 A page listing all of the user's notes with add-to-sheet and links back to the text.
 
 - /texts/notes via MyNotesPanel; lazy rendering: 2 notes initially then 3 more on scroll within 500px; every note rendered as placeholder so ctrl-F works.
 - Empty state 'You haven't written any notes yet.'; NoteListing has 'Add to Sheet' opening modal AddToSourceSheetWindow with note text as sheet comment, and link /<ref>?with=Notes.
 - /api/notes/all?private=1 returns all of a user's notes (reader/views.py:2599-2610).
+- BUILT 2026-11-05: /texts/notes is the Notes tab of the Saved / History / Notes page (its own route, no longer the /texts/$ category page, which rendered a wrong page there). Tests: e2e/user-history-page.spec.ts.
 
 Code: [`static/js/MyNotesPanel.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/MyNotesPanel.jsx), [`reader/views.py:2599`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L2599)
 
 Source: `inv_04_connections.md#11`
 
 #### USL-004 · Note listing with delete and sheet-aware links
-`optional` `live` · rebuild: **todo** `signed-in`
+`optional` `live` · rebuild: **partial** — Listing with delete and sheet-aware links; Add to Sheet on a note not built · *tested* `signed-in`
 
 Compact note entries on profile/note lists with delete and a link to the source.
 
 - NoteListing.jsx: circled-x delete with confirm; ref link goes to voices /sheets/<id>.<node> for sheet refs else library /<ref>?with=Notes; NotesList renders empty state.
+- BUILT 2026-11-05: each note links to /<ref>?with=Notes (a sheet's note to /sheets/x.y), the text, delete with a confirm. Not built: Add to Sheet on a note. Tests: src/ui/UserHistoryPage/UserHistoryPage.test.tsx.
 
 Code: [`static/js/NoteListing.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NoteListing.jsx)
 
@@ -8793,7 +8798,7 @@ Source: `inv_08_other.md#1.6`
 ### Saved and history
 
 #### USL-008 · Saved items and reading history pages
-`core` `live` · rebuild: **todo** `signed-in`
+`core` `live` · rebuild: **partial** — Saved and History pages built; per-item save button and language toggle not · *tested* `signed-in`
 
 Users see saved items and reading history, split by Library texts and Voices sheets.
 
@@ -8803,6 +8808,7 @@ Users see saved items and reading history, split by Library texts and Voices she
 - History de-dupes consecutive items of same book (library) or same sheet (voices); Saved not deduped, no timestamps; history shows relative time
 - Items: sheets -> SheetBlock (title, save button, author ProfileListing with follow); texts -> TextPassage (ref link with version params, save button, he/en content)
 - History disabled -> message linking to account settings; empty states; /history requires login
+- BUILT 2026-11-05: /saved and /history in the new reader (signed out: 302 to /login?next=, as login_required), tabs Saved / History / Notes routed in the app, /api/profile/user_history 20 at a time with scroll-to-load, history deduped by consecutive book with its time stamp, the reading-history-off message. Not built: the per-item save button, the language toggle. Tests: e2e/user-history-page.spec.ts, src/lib/user/user-history-page.test.ts, src/ui/UserHistoryPage/UserHistoryPage.test.tsx.
 
 Code: [`static/js/UserHistoryPanel.jsx:44-179`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/UserHistoryPanel.jsx#L44-L179), [`reader/views.py:1335-1371`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1335-L1371), [`sefaria/model/user_profile.py:248`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/user_profile.py#L248), [`static/js/Story.jsx:283-358`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Story.jsx#L283-L358)
 
@@ -11070,12 +11076,13 @@ Code: [`reader/views.py:5267-5271`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-015 · Torah tracker and notes URLs
-`optional` `live` · rebuild: **todo** `signed-in`
+`optional` `live` · rebuild: **partial** — /texts/notes routed to the client; /torahtracker still Django's · *tested* `signed-in`
 
 /torahtracker shows a user's learning stats and /texts/notes shows 'My Notes'; both need login.
 
 - /torahtracker -> menu 'user_stats' (login required).
 - /texts/notes -> menu 'notes', @login_required (client history writes /texts/notes for notes menu).
+- BUILT 2026-11-05: /texts/notes is this client's (src/routes/texts.notes.tsx). /torahtracker is still Django's.
 
 Code: [`reader/views.py:1373-1382`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1373-L1382)
 
@@ -11115,7 +11122,7 @@ Code: [`reader/views.py:1523-1660`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-018 · Activity feed and leaderboard URLs
-`optional` `legacy` · rebuild: **todo**
+`optional` `legacy` · rebuild: **partial** — Segment history routed to the client; the other activity URLs Django's · *tested*
 
 Contribution history pages show recent edits globally, per user, and per text segment.
 
@@ -11124,6 +11131,7 @@ Contribution history pages show recent edits globally, per user, and per text se
 - /activity/<slug>/[<page>]: user_activity; needs trailing-slash form. BUG: next_page links go to global /activity/N.
 - /activity/<tref>/<lang>/<version>[/<page>]: segment_history revision history; 404 if version missing.
 - robots.txt disallows /activity/.
+- BUILT 2026-11-05: /activity/<ref>/<lang>/<version>[/<page>] is this client's on the Library host (src/lib/routing/django-paths.ts CLIENT_UNDER_DJANGO_PREFIX_RE, src/server/route-manifest.ts); /activity, /activity/<n>, /activity/<user>/… and /activity/leaderboard stay Django's, as does all of /activity on the Voices host. Tests: src/lib/routing/django-paths.test.ts.
 
 Code: [`reader/views.py:3961-4107`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3961-L4107), [`reader/views.py:4023-4025`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4023-L4025)
 
@@ -11334,13 +11342,14 @@ Code: [`reader/views.py:1013-1051`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.3`
 
 #### RTE-031 · Saved, history and notifications URLs
-`standard` `live` · rebuild: **todo** `signed-in`
+`standard` `live` · rebuild: **partial** — /saved and /history routed to the client; notifications still Django's · *tested* `signed-in`
 
 Signed-in users have URLs for saved items, reading history and notifications.
 
 - /saved: menu 'saved', saved.loaded=true with 20 annotated items; voices shows sheets only; login required.
 - /history: menu 'history', userHistory; respects reading_history setting; login required.
 - /notifications: menu 'notifications', scoped by active module; login required.
+- BUILT 2026-11-05: /saved and /history are this client's on the Library host (LIBRARY_ONLY_PREFIXES; Django's on Voices). Tests: e2e/user-history-page.spec.ts.
 
 Code: [`reader/views.py:1334-1394`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1334-L1394)
 
@@ -14388,7 +14397,7 @@ Code: [`reader/views.py:4543`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-019 · Text edit activity feed (/activity)
-`optional` `legacy` · rebuild: **todo** `desktop only`
+`optional` `legacy` · rebuild: **partial** — A text's revision history ported (needs this branch's /api/activity); global, user and leaderboard pages still Django's · *tested* `desktop only`
 
 A public feed of recent text edits, filterable by type, by user, or by segment, with revert links for logged-in users.
 
@@ -14396,6 +14405,7 @@ A public feed of recent text edits, filterable by type, by user, or by segment, 
 - Excludes API-method edits unless ?api; ?type= filter; consecutive edits 'collapsed'; paging max 40 pages -> 'Activity Unavailable';
 - revert via POST /api/revert/<ref>/<lang>/<version>/<revision> (revert_api :4080 requires login); star ratings (jquery.raty).
 - robots.txt Disallows /activity/.
+- BUILT 2026-11-05, a text's revision history only (/activity/<ref>/<lang>/<version>[/<page>]?type=): title, version (Hebrew title in the Hebrew interface), the filter menu, the feed as activity_feed.html (text edits with their diff in green/red, connections, notes, index and term changes with 'details', version metadata, lexicon entries, reviews with a star score, sheets), Django's naturaltime, 'Older Activity »', noindex; refs open in the app. Data: GET /api/activity/<ref>/<lang>/<version>?type=&page= — reader/views.py segment_history_api, NEW on this branch (sefaria.org has no JSON for this page; until it is deployed the API's 404 makes the page a 404, which the server passes to Django). The reader's 'Revision History' link is now relative (same tab rule as live: a new tab). Not built: the site's and a user's activity, the leaderboard (still Django's), and the template's dead revert button. Tests: e2e/activity.spec.ts (the API answer written into the cassette), src/lib/activity/segment-history.test.ts.
 
 Code: [`reader/views.py:3963`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3963), [`reader/views.py:4080`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4080), [`templates/activity.html:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/activity.html#L1)
 

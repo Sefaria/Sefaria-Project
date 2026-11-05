@@ -5,15 +5,15 @@
  * Not here (rendered by this client since their ports): "login", "register" and "password" (the reset link); "translations" (the
  * translations-by-language pages); "calendars" (the Learning Schedules page) and the shortcuts "parashat-hashavua" and
  * "todays-daf-yomi" (this server answers their redirect); "compare" (the version-diff tool); "topics" (the landing page, categories,
- * A–Z and a single topic, /topics/<slug> and /topics/b/<slug>: a topic whose Library pool cannot be confirmed is a 404 here and so goes
- * on to Django, features/topics). All of these on the Library host only (LIBRARY_ONLY_PREFIXES); the Voices host keeps Django's.
+ * A–Z and a single topic, /topics/<slug> and /topics/b/<slug>: every Library-pool topic is rendered; only ?editor=1 goes
+ * on to Django, features/topics); "saved" and "history" (the Saved / History / Notes page, with /texts/notes, features/user-history). All of these on the Library host only (LIBRARY_ONLY_PREFIXES); the Voices host keeps Django's.
  */
 
 /** First path segments that are always Django's (sefaria/urls*.py, plus the pages the old site serves under them). */
 export const DJANGO_PREFIXES = [
   "api", "_api", "static", "admin", "logout", "account", "accounts", "_allauth", "gauth", "unlink-gauth", "sso",
-  "sheets", "sheets-with-ref", "collections", "groups", "profile", "people", "person", "settings", "notifications", "saved",
-  "history", "my", "community", "activity", "dashboard", "explore", "garden", "vgarden", "visualize", "translate", "contributors",
+  "sheets", "sheets-with-ref", "collections", "groups", "profile", "people", "person", "settings", "notifications",
+  "my", "community", "activity", "dashboard", "explore", "garden", "vgarden", "visualize", "translate", "contributors",
   "download", "data", "linker", "linker-editor", "modtools", "random", "torahtracker", "edit",
   "add", "new-home", "getstarted", "healthz", "healthz-rollout", "health-check", "sefaria.js", "search-autocomplete-redirecter", "embed", "edit_text",
   "enable-library-assistant",
@@ -25,7 +25,7 @@ const PREFIX_RE = new RegExp(`^/(?:${DJANGO_PREFIXES.map((p) => p.replace(/[.*+?
  * they stay Django's: which pages each module serves is not decided yet (TARGET_ARCHITECTURE Q-E1), so a Voices request for them is
  * passed through as before (src/start.ts).
  */
-export const LIBRARY_ONLY_PREFIXES = ["translations", "calendars", "parashat-hashavua", "todays-daf-yomi", "compare", "topics"];
+export const LIBRARY_ONLY_PREFIXES = ["translations", "calendars", "parashat-hashavua", "todays-daf-yomi", "compare", "topics", "saved", "history"];
 /** @deprecated the translations, compare and topics ports' names for LIBRARY_ONLY_PREFIXES */
 export const LIBRARY_HOST_ONLY = LIBRARY_ONLY_PREFIXES;
 export const LIBRARY_HOST_ONLY_PREFIXES = LIBRARY_ONLY_PREFIXES;
@@ -38,6 +38,13 @@ export const isLibraryOnlyPage = (pathname: string): boolean => LIBRARY_ONLY_RE.
  * and so must we (rather than redirect to the address without the slash). "/calendars/" is not one: it is a page of its own on sefaria.org.
  */
 const DJANGO_WITH_SLASH_RE = /^\/translations(?:\/.*)?\/$/;
+
+/**
+ * Pages this client renders under a Django prefix, on the Library host only: a text's revision history,
+ * `/activity/<ref>/<lang>/<version>[/<page>]` (urls_library.py segment_history; LEG-019). The rest of /activity (the site's and a
+ * user's activity, the leaderboard: one or two segments) stays Django's.
+ */
+const CLIENT_UNDER_DJANGO_PREFIX_RE = /^\/activity\/[^/]+\/[^/]{2}\/[^/]/;
 
 /**
  * Is this request's host the Voices site? Its host is the configured Voices origin's (PUBLIC_VOICES_ORIGIN), or any host whose first
@@ -62,7 +69,9 @@ export function isVoicesHost(host: string | null | undefined, voicesOrigin?: str
  * Django's on the Voices host, and a translations path with a trailing slash is Django's everywhere.
  */
 export const isDjangoPage = (pathname: string, host?: string | null, voicesOrigin?: string): boolean =>
-  PREFIX_RE.test(pathname) || DJANGO_WITH_SLASH_RE.test(pathname) || (isLibraryOnlyPage(pathname) && isVoicesHost(host, voicesOrigin));
+  (PREFIX_RE.test(pathname) && !(CLIENT_UNDER_DJANGO_PREFIX_RE.test(pathname) && !isVoicesHost(host, voicesOrigin))) ||
+  DJANGO_WITH_SLASH_RE.test(pathname) ||
+  (isLibraryOnlyPage(pathname) && isVoicesHost(host, voicesOrigin));
 
 /**
  * Paths this server answers with a redirect rather than a page (the calendar shortcuts): the browser must load them, as it loads a

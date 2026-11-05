@@ -85,7 +85,7 @@ describe("SiteHeader", () => {
     render(<SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada Lovelace", profileUrl: "/profile/ada" }} />);
     expect(screen.queryByRole("link", { name: "Sign Up" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Toggle Interface Language Menu" })).toBeNull();
-    expect(screen.getByRole("link", { name: "Saved items" })).toHaveAttribute("href", "https://www.sefaria.org/saved");
+    expect(screen.getByRole("link", { name: "Saved items" })).toHaveAttribute("href", "/saved");
     await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
     const menu = screen.getByRole("dialog", { name: "Account menu" });
     expect(menu).toHaveTextContent("Ada Lovelace");

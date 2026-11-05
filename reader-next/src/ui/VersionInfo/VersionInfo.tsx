@@ -66,7 +66,8 @@ export function VersionInfo({ version: v, urlRef, showImage }: VersionInfoProps)
           ) : null}
         </dl>
         <p className={styles.links}>
-          <a href={`${SITE_ORIGIN}/activity/${urlRef}/${v.language}/${encodeTitle(v.versionTitle)}`} target="_blank" rel="noopener noreferrer">
+          {/* the new reader's page (LEG-019), in a new tab as on sefaria.org */}
+          <a href={`/activity/${urlRef}/${v.language}/${encodeTitle(v.versionTitle)}`} target="_blank" rel="noopener noreferrer">
             <InterfaceText en="Revision History" he="היסטורית עריכה" />
           </a>
           {v.purchaseInformationURL ? (

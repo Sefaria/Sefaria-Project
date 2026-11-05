@@ -1865,7 +1865,42 @@
  },
  "TOP-036": {
   "status": "done",
-  "note": "Decided on the server before rendering: A–Z slugs and TOC categories are the client's, the rest Django's (src/server/topics-owner.ts)",
-  "by": "src/server/topics-owner.ts, src/lib/topics/topic-page-source.ts (readTopicPage), src/features/topics/DjangoHandoff.tsx"
+  "note": "Every Library-pool topic rendered (pools from the API, else the name completer's topic_pool filter); only ?editor=1 goes to Django",
+  "by": "src/lib/topics/topic-page-source.ts (readTopicPage, inLibraryPool), src/server/topics-owner.ts"
+ },
+ "LEG-019": {
+  "status": "partial",
+  "note": "A text's revision history ported (needs this branch's /api/activity); global, user and leaderboard pages still Django's",
+  "by": "src/routes/activity.$.tsx, src/features/activity/RevisionHistoryRoute.tsx, src/ui/RevisionHistory, src/lib/activity/segment-history.ts, reader/views.py segment_history_api"
+ },
+ "RTE-018": {
+  "status": "partial",
+  "note": "Segment history routed to the client; the other activity URLs Django's",
+  "by": "src/lib/routing/django-paths.ts"
+ },
+ "USL-008": {
+  "status": "partial",
+  "note": "Saved and History pages built; per-item save button and language toggle not",
+  "by": "src/routes/saved.tsx, src/routes/history.tsx, src/features/user-history, src/ui/UserHistoryPage"
+ },
+ "USL-003": {
+  "status": "done",
+  "note": "/texts/notes: the Notes tab",
+  "by": "src/routes/texts.notes.tsx, src/ui/UserHistoryPage"
+ },
+ "USL-004": {
+  "status": "partial",
+  "note": "Listing with delete and sheet-aware links; Add to Sheet on a note not built",
+  "by": "src/ui/UserHistoryPage"
+ },
+ "RTE-031": {
+  "status": "partial",
+  "note": "/saved and /history routed to the client; notifications still Django's",
+  "by": "src/lib/routing/django-paths.ts"
+ },
+ "RTE-015": {
+  "status": "partial",
+  "note": "/texts/notes routed to the client; /torahtracker still Django's",
+  "by": "src/routes/texts.notes.tsx"
  }
 }

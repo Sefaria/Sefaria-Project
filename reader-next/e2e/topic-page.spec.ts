@@ -411,3 +411,22 @@ test.describe("the topic page's analytics", () => {
     await expect(page.getByText("Some of the text on this page has been AI generated.")).toBeVisible();
   });
 });
+
+// @feature TOP-036 — an opted-in reader never lands in the old client from a topic link
+test.describe("topics outside the A–Z list", () => {
+  test("a Library topic outside the A–Z list renders here (indexable when it passes should_display, as on live)", async ({ page }) => {
+    const res = await open(page, "/topics/rabbenu-tam");
+    expect(res!.status()).toBe(200);
+    await expect(main(page).getByRole("heading", { level: 1, name: "Rabbenu Tam" })).toBeVisible();
+    // VERIFIED 2026-11-05: sefaria.org/topics/rabbenu-tam has no robots meta
+    await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+  });
+  test("a topic outside the Library's pool is a 404, as Django's", async ({ request }) => {
+    expect((await request.get("/topics/youth")).status()).toBe(404);
+  });
+  test("/topics/category/<a topic> goes on to the topic page (the old client showed a blank page)", async ({ page }) => {
+    await open(page, "/topics/category/moses");
+    await expect(page).toHaveURL(/\/topics\/moses(\?|$)/);
+    await expect(main(page).getByRole("heading", { level: 1, name: "Moses" })).toBeVisible();
+  });
+});

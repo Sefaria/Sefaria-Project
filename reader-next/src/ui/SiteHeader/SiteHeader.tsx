@@ -177,7 +177,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
           <div className={styles.icons}>
             <a className={styles.iconLink} href={HELP[lang]} target="_blank" rel="noopener noreferrer" aria-label={t("Help", "עזרה")} title={t("Help", "עזרה")}><img src="/icons/help_mdl.svg" alt="" width={18} height={18} /></a>
             {viewer ? (
-              <a className={styles.iconLink} href={`${LIBRARY}/saved`} aria-label={t("Saved items", "שמורים")} title={t("Saved items", "שמורים")} data-testid="saved-link"><img src="/icons/bookmarkset_outline_mdl.svg" alt="" width={18} height={18} /></a>
+              <Link className={styles.iconLink} href="/saved" aria-label={t("Saved items", "שמורים")} title={t("Saved items", "שמורים")} data-testid="saved-link"><img src="/icons/bookmarkset_outline_mdl.svg" alt="" width={18} height={18} /></Link>
             ) : (
               <Menu icon="globallanguageswitcher_mdl" label={t("Toggle Interface Language Menu", "החלפת שפת הממשק")} optionsClassName={dd.globe}>
                 <DropdownLanguageToggle next={next} lang={lang} globe />
@@ -247,7 +247,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
         <div className={mn.accountLinks}>
           {viewer ? (
             <>
-              <A href={`${LIBRARY}/saved`}><img src="/icons/bookmarkset_outline_mdl.svg" alt="" /><InterfaceText en="Saved, History & Notes" he="שמורים, היסטוריה והערות" /></A>
+              <Link href="/saved" onClick={() => setMobileOpen(false)}><img src="/icons/bookmarkset_outline_mdl.svg" alt="" /><InterfaceText en="Saved, History & Notes" he="שמורים, היסטוריה והערות" /></Link>
               <A href={`${LIBRARY}/settings/account`}><img src="/icons/settings.svg" alt="" /><InterfaceText en="Account Settings" he="הגדרות" /></A>
             </>
           ) : null}

@@ -18,7 +18,7 @@ export interface NotesViewProps {
 }
 
 /** Links in a note's text, and its line breaks (the old Sefaria.util.linkify + \n → <br>). Text is escaped first. */
-function noteHtml(text: string): string {
+export function noteHtml(text: string): string {
   const esc = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   return esc.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>').replace(/\n/g, "<br />");
 }

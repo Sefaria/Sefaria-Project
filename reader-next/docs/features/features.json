@@ -327,7 +327,8 @@
   "summary": "/torahtracker shows a user's learning stats and /texts/notes shows 'My Notes'; both need login.",
   "details": [
    "/torahtracker -> menu 'user_stats' (login required).",
-   "/texts/notes -> menu 'notes', @login_required (client history writes /texts/notes for notes menu)."
+   "/texts/notes -> menu 'notes', @login_required (client history writes /texts/notes for notes menu).",
+   "BUILT 2026-11-05: /texts/notes is this client's (src/routes/texts.notes.tsx). /torahtracker is still Django's."
   ],
   "audience": "signed-in",
   "platform": "all",
@@ -399,7 +400,8 @@
    "/activity/leaderboard (regex leaderboard?$ tolerates missing last letter).",
    "/activity/<slug>/[<page>]: user_activity; needs trailing-slash form. BUG: next_page links go to global /activity/N.",
    "/activity/<tref>/<lang>/<version>[/<page>]: segment_history revision history; 404 if version missing.",
-   "robots.txt disallows /activity/."
+   "robots.txt disallows /activity/.",
+   "BUILT 2026-11-05: /activity/<ref>/<lang>/<version>[/<page>] is this client's on the Library host (src/lib/routing/django-paths.ts CLIENT_UNDER_DJANGO_PREFIX_RE, src/server/route-manifest.ts); /activity, /activity/<n>, /activity/<user>/… and /activity/leaderboard stay Django's, as does all of /activity on the Voices host. Tests: src/lib/routing/django-paths.test.ts."
   ],
   "audience": "all",
   "platform": "all",
@@ -721,7 +723,8 @@
   "details": [
    "/saved: menu 'saved', saved.loaded=true with 20 annotated items; voices shows sheets only; login required.",
    "/history: menu 'history', userHistory; respects reading_history setting; login required.",
-   "/notifications: menu 'notifications', scoped by active module; login required."
+   "/notifications: menu 'notifications', scoped by active module; login required.",
+   "BUILT 2026-11-05: /saved and /history are this client's on the Library host (LIBRARY_ONLY_PREFIXES; Django's on Voices). Tests: e2e/user-history-page.spec.ts."
   ],
   "audience": "signed-in",
   "platform": "all",
@@ -9596,7 +9599,8 @@
    "Sidebar: AboutTopics, Promo, TrendingTopics, SponsorADay; for torah-portions in English inserts StudyCompanion after AboutTopics.",
    "Analytics data-anl-panel_category; server topics_category_page 404s unknown slug and sets SEO title/desc (reader/views.py:1013-1037).",
    "Geometry: the title row (CategoryHeader) keeps 15px under it and the h1 none, so the cards start 40px under the title's top; two columns 323px wide 20px apart at ≥900px and 600–700px, one column at 700–900px and below 600px (.contentInner .table); a 1px #EDEDEC line over the first row. Sidebar: AboutTopics, (StudyCompanion — torah-portions, English interface only), Promo, TrendingTopics, SponsorADay; data-anl-panel_category is the parents' slugs joined by '|' or 'Topic Landing' for a top-level category. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
-   "NEW READER: the subtopics come from the server's topics TOC (GET /api/topics-toc on this branch's Django; on sefaria.org that 404s and the server reads the same tree out of /data.js), handed to the page as its slice through a server function — the browser never downloads the tree. Not ported: the moderators' CategoryHeader buttons (add sub-category, edit, reorder) on topic categories."
+   "NEW READER: the subtopics come from the server's topics TOC (GET /api/topics-toc on this branch's Django; on sefaria.org that 404s and the server reads the same tree out of /data.js), handed to the page as its slice through a server function — the browser never downloads the tree. Not ported: the moderators' CategoryHeader buttons (add sub-category, edit, reorder) on topic categories.",
+   "/topics/category/<a topic that is not a category>: the old client crashed (blank page, console errors; VERIFIED 2026-11-05 on /topics/category/moses). Deliberate deviation: the new reader replaces the address with /topics/<slug>, which renders the topic or Django's 404 (src/features/topics/TopicCategoryRoute.tsx loadTopicCategory). Tests: e2e/topic-page.spec.ts."
   ],
   "audience": "all",
   "platform": "all",
@@ -10136,7 +10140,9 @@
    "NEW READER: a slug in the server's A–Z list (/api/topics?limit=0: library pool, displayable, ≥3 text sources or a description) renders; otherwise the v2 topic's `pools` decide (added to get_topic's v2 answer on this branch, sefaria/helper/topic.py); where the API gives no pools (sefaria.org today) the route answers 404 and the server hands the request to Django, which renders the old page or its 404. noindex is the same test on the topic's fields.",
    "NEW READER: the hand-off to Django also works after an in-app navigation: the topics routes' notFoundComponent (src/features/topics/DjangoHandoff.tsx) loads the address again from the server when the 404 was reached in the app (the document was loaded at another address, src/lib/routing/django-handoff.ts) — a related link, a description link, a card or ?editor=1 reached by navigation then gets Django's page when pass-through is on; the server's own 404 shows 'Page not found.' and never reloads. Before, TanStack's bare 'Not Found' showed and Django never got the request.",
    "Open: the backend change (get_topic's v2 answer carries `pools`) and its test (sefaria/helper/tests/topic_test.py::test_get_topic_v2_answers_the_topics_pools) have not been run (no Django/Mongo environment); until it is deployed, Library topics outside the A–Z list (~1,366) always go to Django.",
-   "BUILT 2026-11-04 (review fix): src/server/topics-owner.ts decides before rendering, in the cluster's pass-through: /topics/<slug> and /topics/b/<slug> are this client's only for the A–Z list's slugs, /topics/category/<slug> only for the TOC's categories; ?editor=1 and everything else go to Django without the topic being fetched (curl with pass-through: /topics/aarons-staff 200 django 1.6s, /topics/category/moses 0.3s, /topics/moses?editor=1 1.0s). In the app, readTopicPage hands a slug outside the A–Z list to Django without fetching it, so the backend 'pools' field is no longer needed to decide. Tests: src/server/topics-owner.test.ts."
+   "BUILT 2026-11-04 (review fix): src/server/topics-owner.ts decides before rendering, in the cluster's pass-through: /topics/<slug> and /topics/b/<slug> are this client's only for the A–Z list's slugs, /topics/category/<slug> only for the TOC's categories; ?editor=1 and everything else go to Django without the topic being fetched (curl with pass-through: /topics/aarons-staff 200 django 1.6s, /topics/category/moses 0.3s, /topics/moses?editor=1 1.0s). In the app, readTopicPage hands a slug outside the A–Z list to Django without fetching it, so the backend 'pools' field is no longer needed to decide. Tests: src/server/topics-owner.test.ts.",
+   "Owner rule (2026-11-05): an opted-in reader must never land in the legacy client from inside the new reader; port the page or point the link at a reader-next page (wiki projects/reader-next/exits-to-legacy).",
+   "BUILT 2026-11-05 (replaces 2026-11-04's hand-off): every Library-pool topic is rendered here. A topic outside the A–Z list (some 300: Rashi's students rabbenu-tam, rivan, meir-ben-shmuel; yehuda-herzl-henkin…) is fetched and its pool decided from the API's `pools` where given (this branch's Django), else from the name completer, which filters by pool on sefaria.org today: GET /api/name/<title>?type=Topic&topic_pool=library (VERIFIED 2026-11-05: rabbenu-tam, rivan, yehuda-herzl-henkin found; youth, a sheets-only topic, not; live answers youth 404). Not in the pool: the 404 Django gives. Indexing as live (rabbenu-tam has no robots meta on sefaria.org). src/server/topics-owner.ts now hands Django only ?editor=1 (the moderators' editors, not ported). Tests: e2e/topic-page.spec.ts ('topics outside the A–Z list'), src/server/topics-owner.test.ts."
   ],
   "refs": [
    "reader/views.py:3592-3640",
@@ -14951,7 +14957,8 @@
   "details": [
    "/texts/notes via MyNotesPanel; lazy rendering: 2 notes initially then 3 more on scroll within 500px; every note rendered as placeholder so ctrl-F works.",
    "Empty state 'You haven't written any notes yet.'; NoteListing has 'Add to Sheet' opening modal AddToSourceSheetWindow with note text as sheet comment, and link /<ref>?with=Notes.",
-   "/api/notes/all?private=1 returns all of a user's notes (reader/views.py:2599-2610)."
+   "/api/notes/all?private=1 returns all of a user's notes (reader/views.py:2599-2610).",
+   "BUILT 2026-11-05: /texts/notes is the Notes tab of the Saved / History / Notes page (its own route, no longer the /texts/$ category page, which rendered a wrong page there). Tests: e2e/user-history-page.spec.ts."
   ],
   "audience": "signed-in",
   "platform": "all",
@@ -14970,7 +14977,8 @@
   "name": "Note listing with delete and sheet-aware links",
   "summary": "Compact note entries on profile/note lists with delete and a link to the source.",
   "details": [
-   "NoteListing.jsx: circled-x delete with confirm; ref link goes to voices /sheets/<id>.<node> for sheet refs else library /<ref>?with=Notes; NotesList renders empty state."
+   "NoteListing.jsx: circled-x delete with confirm; ref link goes to voices /sheets/<id>.<node> for sheet refs else library /<ref>?with=Notes; NotesList renders empty state.",
+   "BUILT 2026-11-05: each note links to /<ref>?with=Notes (a sheet's note to /sheets/x.y), the text, delete with a confirm. Not built: Add to Sheet on a note. Tests: src/ui/UserHistoryPage/UserHistoryPage.test.tsx."
   ],
   "audience": "signed-in",
   "platform": "all",
@@ -15057,7 +15065,8 @@
    "Module-scoped: get_user_history sets is_sheet = sheets_only, so Library shows non-sheet items and Voices only sheets",
    "History de-dupes consecutive items of same book (library) or same sheet (voices); Saved not deduped, no timestamps; history shows relative time",
    "Items: sheets -> SheetBlock (title, save button, author ProfileListing with follow); texts -> TextPassage (ref link with version params, save button, he/en content)",
-   "History disabled -> message linking to account settings; empty states; /history requires login"
+   "History disabled -> message linking to account settings; empty states; /history requires login",
+   "BUILT 2026-11-05: /saved and /history in the new reader (signed out: 302 to /login?next=, as login_required), tabs Saved / History / Notes routed in the app, /api/profile/user_history 20 at a time with scroll-to-load, history deduped by consecutive book with its time stamp, the reading-history-off message. Not built: the per-item save button, the language toggle. Tests: e2e/user-history-page.spec.ts, src/lib/user/user-history-page.test.ts, src/ui/UserHistoryPage/UserHistoryPage.test.tsx."
   ],
   "audience": "signed-in",
   "platform": "all",
@@ -18849,7 +18858,8 @@
    "Routes /activity, /activity/<page>, /activity/<slug>[/<page>], /activity/<tref>/<lang>/<version>[/<page>] (reader/views.py:3963-4078); activity.html + elements/activity_feed.html.",
    "Excludes API-method edits unless ?api; ?type= filter; consecutive edits 'collapsed'; paging max 40 pages -> 'Activity Unavailable';",
    "revert via POST /api/revert/<ref>/<lang>/<version>/<revision> (revert_api :4080 requires login); star ratings (jquery.raty).",
-   "robots.txt Disallows /activity/."
+   "robots.txt Disallows /activity/.",
+   "BUILT 2026-11-05, a text's revision history only (/activity/<ref>/<lang>/<version>[/<page>]?type=): title, version (Hebrew title in the Hebrew interface), the filter menu, the feed as activity_feed.html (text edits with their diff in green/red, connections, notes, index and term changes with 'details', version metadata, lexicon entries, reviews with a star score, sheets), Django's naturaltime, 'Older Activity »', noindex; refs open in the app. Data: GET /api/activity/<ref>/<lang>/<version>?type=&page= — reader/views.py segment_history_api, NEW on this branch (sefaria.org has no JSON for this page; until it is deployed the API's 404 makes the page a 404, which the server passes to Django). The reader's 'Revision History' link is now relative (same tab rule as live: a new tab). Not built: the site's and a user's activity, the leaderboard (still Django's), and the template's dead revert button. Tests: e2e/activity.spec.ts (the API answer written into the cassette), src/lib/activity/segment-history.test.ts."
   ],
   "audience": "all",
   "platform": "desktop",

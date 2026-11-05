@@ -1,5 +1,5 @@
 import { useQuery, type QueryClient } from "@tanstack/react-query";
-import { notFound } from "@tanstack/react-router";
+import { notFound, redirect } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { langCode, useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { shouldDisplayInModule, sortTopicsCompare, topicCard, type AzLang } from "~/lib/topics/topic-model";
@@ -12,10 +12,14 @@ import { TopicCard, TopicCardGrid } from "~/ui/TopicsNav/TopicCard";
 import { TopicCategoryPage } from "~/ui/TopicsNav/TopicsPages";
 import { topicPageHref } from "~/ui/NavSidebar/TopicModules";
 
-/** The category's TOC page (404 when the slug is not a category: the old topics_category_page raised Http404) and the trending list. */
+/**
+ * The category's TOC page and the trending list. A slug that is not a category goes on to its topic page, which decides whether
+ * the topic exists (the old client crashed on `/topics/category/<a topic>`, a blank page; Django's own 404 is not this client's).
+ */
 export async function loadTopicCategory(queryClient: QueryClient, slug: string, lang: AzLang) {
   const [page] = await Promise.all([queryClient.ensureQueryData(topicTocPageQueryOptions(slug)), queryClient.ensureQueryData(trendingTopicsQueryOptions(lang)).catch(() => undefined)]);
-  if (!page || !page.title) throw notFound();
+  if (!page) throw redirect({ href: `/topics/${encodeURIComponent(slug)}`, replace: true });
+  if (!page.title) throw notFound();
   return { title: page.title };
 }
 
@@ -46,7 +50,6 @@ export function TopicCategoryRoute({ slug }: { slug: string }) {
       cards={
         <TopicCardGrid>
           {cards.map((c) => (
-            // a sub-category is this client's page; a topic is still Django's (a link that leaves the app)
             <TopicCard key={c.slug} href={c.isCategory ? c.href : topicPageHref(c.slug)} routed title={c.title} description={c.description} analyticsEvent="navto_topic:click" />
           ))}
         </TopicCardGrid>

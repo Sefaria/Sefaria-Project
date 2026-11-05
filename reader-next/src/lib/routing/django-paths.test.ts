@@ -52,3 +52,15 @@ describe("the ported pages together (integration of the 2026-11-04 ports)", () =
     expect(isDjangoPage("/calendars/")).toBe(false);
   });
 });
+
+// @feature LEG-019 @feature RTE-018
+describe("revision history under /activity", () => {
+  it("a text's history is this client's on the Library host; the rest of /activity stays Django's", () => {
+    expect(isDjangoPage("/activity/Genesis.1.1/en/The_Koren_Jerusalem_Bible")).toBe(false);
+    expect(isDjangoPage("/activity/Genesis.1.1/en/The_Koren_Jerusalem_Bible/2")).toBe(false);
+    for (const p of ["/activity", "/activity/", "/activity/2", "/activity/leaderboard", "/activity/some-user/2"]) expect(isDjangoPage(p), p).toBe(true);
+  });
+  it("is Django's on the Voices host", () => {
+    expect(isDjangoPage("/activity/Genesis.1.1/en/The_Koren_Jerusalem_Bible", "voices.sefaria.org")).toBe(true);
+  });
+});

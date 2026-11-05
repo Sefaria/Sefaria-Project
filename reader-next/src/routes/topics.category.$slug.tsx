@@ -2,7 +2,7 @@ import { DjangoHandoff } from "~/features/topics/DjangoHandoff";
 import { createFileRoute } from "@tanstack/react-router";
 import { loadTopicCategory, TopicCategoryRoute } from "~/features/topics/TopicCategoryRoute";
 
-/** /topics/category/<slug>: a topic category (an unknown slug is a 404, which the server hands to Django, as the old Http404). */
+/** /topics/category/<slug>: a topic category; any other slug goes on to /topics/<slug> (loadTopicCategory). */
 export const Route = createFileRoute("/topics/category/$slug")({
   notFoundComponent: DjangoHandoff,
   loader: async ({ context, params }) => {

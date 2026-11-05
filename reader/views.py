@@ -4124,6 +4124,89 @@ def segment_history(request, tref, lang, version, page=1):
 
 
 @catch_error_as_json
+def segment_history_api(request, tref, lang, version):
+    """
+    JSON twin of segment_history (the revision history page, templates/activity.html), for the new reader:
+    GET /api/activity/<tref>/<lang>/<version>?type=<filter>&page=<n>. Each item carries what the template's filters computed
+    (the user's name and profile URL, refs' Hebrew names and URLs, the version's Hebrew title); `new` / `old` are passed through
+    as JSON for the "details" of index and term changes.
+    """
+    from sefaria.model.user_profile import public_user_data
+    try:
+        oref = Ref(tref)
+    except InputError:
+        return jsonResponse({"error": "Unknown ref: {}".format(tref)}, status=404)
+    version = version.replace("_", " ")
+    version_record = Version().load({"title": oref.index.title, "versionTitle": version, "language": lang})
+    if not version_record:
+        return jsonResponse({"error": "We do not have a version of {} called '{}'.".format(oref.index.title, version)}, status=404)
+    filter_type = request.GET.get("type") or None
+    try:
+        page = max(1, int(request.GET.get("page", 1)))
+    except ValueError:
+        page = 1
+    history = text_history(oref, version, lang, filter_type=filter_type, page=page)
+
+    he_versions = {}
+    def he_version(title):
+        if title not in he_versions:
+            v = Version().load({"versionTitle": title})
+            he_versions[title] = getattr(v, "versionTitleInHebrew", title) if v else title
+        return he_versions[title]
+
+    def ref_obj(r):
+        if not r:
+            return None
+        try:
+            o = Ref(r)
+            return {"en": r, "he": re.sub(r"\d+(-\d+)?", "", o.he_normal()), "url": "/" + o.url()}
+        except Exception:
+            return {"en": r, "he": r, "url": None}
+
+    def plain(x):
+        return json.loads(json.dumps(x, default=str)) if x is not None else None
+
+    items = []
+    for a in history:
+        new, old = a.get("new") or {}, a.get("old") or {}
+        refs = (new.get("refs") or old.get("refs") or []) if isinstance(new, dict) and isinstance(old, dict) else []
+        items.append({
+            "rev_type": a.get("rev_type"),
+            "date": a["date"].isoformat() if a.get("date") else None,
+            "user": {k: v for k, v in public_user_data(a.get("user")).items() if k in ("name", "profileUrl")} if a.get("user") else None,
+            "method": a.get("method"),
+            "ref": ref_obj(a.get("ref")),
+            "title": ref_obj(a.get("title")) if a.get("title") else None,
+            "version": a.get("version"),
+            "versionHe": he_version(a["version"]) if a.get("version") else None,
+            "language": a.get("language"),
+            "diff_html": a.get("diff_html"),
+            "history_url": a.get("history_url"),
+            "summary": bool(a.get("summary")),
+            "updates_count": a.get("updates_count"),
+            "linkRefs": [ref_obj(r) for r in refs[:2]],
+            "noteRef": ref_obj(new.get("ref") or old.get("ref")) if isinstance(new, dict) and "note" in (a.get("rev_type") or "") else None,
+            "new": plain(new),
+            "old": plain(old),
+            "score": a.get("score"),
+            "comment": a.get("comment"),
+            "sheet": a.get("sheet"),
+        })
+    return jsonResponse({
+        "ref": oref.normal(),
+        "heRef": oref.he_normal(),
+        "url": "/" + oref.url(),
+        "lang": lang,
+        "version": version,
+        "versionTitleInHebrew": getattr(version_record, "versionTitleInHebrew", version_record.versionTitle),
+        "filterType": filter_type,
+        "page": page,
+        "hasMore": len(history) >= 100,
+        "items": items,
+    })
+
+
+@catch_error_as_json
 def revert_api(request, tref, lang, version, revision):
     """
     API for reverting a text segment to a previous revision.

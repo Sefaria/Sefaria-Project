@@ -13,14 +13,18 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as CalendarsRouteImport } from './routes/calendars'
+import { Route as HistoryRouteImport } from './routes/history'
+import { Route as SavedRouteImport } from './routes/saved'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as AuthLoginRouteImport } from './routes/_auth.login'
 import { Route as AuthRegisterRouteImport } from './routes/_auth.register'
+import { Route as ActivitySplatRouteImport } from './routes/activity.$'
 import { Route as CompareIndexRouteImport } from './routes/compare.index'
 import { Route as CompareSplatRouteImport } from './routes/compare.$'
 import { Route as InterfaceLangRouteImport } from './routes/interface.$lang'
 import { Route as TextsIndexRouteImport } from './routes/texts.index'
 import { Route as TextsSplatRouteImport } from './routes/texts.$'
+import { Route as TextsNotesRouteImport } from './routes/texts.notes'
 import { Route as TopicsIndexRouteImport } from './routes/topics.index'
 import { Route as TopicsSplatRouteImport } from './routes/topics.$'
 import { Route as TranslationsSlugRouteImport } from './routes/translations.$slug'
@@ -48,6 +52,16 @@ const CalendarsRoute = CalendarsRouteImport.update({
   path: '/calendars',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SavedRoute = SavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -62,6 +76,11 @@ const AuthRegisterRoute = AuthRegisterRouteImport.update({
   id: '/register',
   path: '/register',
   getParentRoute: () => AuthRoute,
+} as any)
+const ActivitySplatRoute = ActivitySplatRouteImport.update({
+  id: '/activity/$',
+  path: '/activity/$',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CompareIndexRoute = CompareIndexRouteImport.update({
   id: '/compare/',
@@ -86,6 +105,11 @@ const TextsIndexRoute = TextsIndexRouteImport.update({
 const TextsSplatRoute = TextsSplatRouteImport.update({
   id: '/texts/$',
   path: '/texts/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TextsNotesRoute = TextsNotesRouteImport.update({
+  id: '/texts/notes',
+  path: '/texts/notes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TopicsIndexRoute = TopicsIndexRouteImport.update({
@@ -129,12 +153,16 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/calendars': typeof CalendarsRoute
+  '/history': typeof HistoryRoute
+  '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
+  '/activity/$': typeof ActivitySplatRoute
   '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
+  '/texts/notes': typeof TextsNotesRoute
   '/topics/$': typeof TopicsSplatRoute
   '/translations/$slug': typeof TranslationsSlugRoute
   '/compare/': typeof CompareIndexRoute
@@ -149,12 +177,16 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/calendars': typeof CalendarsRoute
+  '/history': typeof HistoryRoute
+  '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
+  '/activity/$': typeof ActivitySplatRoute
   '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
+  '/texts/notes': typeof TextsNotesRoute
   '/topics/$': typeof TopicsSplatRoute
   '/translations/$slug': typeof TranslationsSlugRoute
   '/compare': typeof CompareIndexRoute
@@ -171,12 +203,16 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/_auth': typeof AuthRouteWithChildren
   '/calendars': typeof CalendarsRoute
+  '/history': typeof HistoryRoute
+  '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/register': typeof AuthRegisterRoute
+  '/activity/$': typeof ActivitySplatRoute
   '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
+  '/texts/notes': typeof TextsNotesRoute
   '/topics/$': typeof TopicsSplatRoute
   '/translations/$slug': typeof TranslationsSlugRoute
   '/compare/': typeof CompareIndexRoute
@@ -193,12 +229,16 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/calendars'
+    | '/history'
+    | '/saved'
     | '/search'
     | '/login'
     | '/register'
+    | '/activity/$'
     | '/compare/$'
     | '/interface/$lang'
     | '/texts/$'
+    | '/texts/notes'
     | '/topics/$'
     | '/translations/$slug'
     | '/compare/'
@@ -213,12 +253,16 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/calendars'
+    | '/history'
+    | '/saved'
     | '/search'
     | '/login'
     | '/register'
+    | '/activity/$'
     | '/compare/$'
     | '/interface/$lang'
     | '/texts/$'
+    | '/texts/notes'
     | '/topics/$'
     | '/translations/$slug'
     | '/compare'
@@ -234,12 +278,16 @@ export interface FileRouteTypes {
     | '/$'
     | '/_auth'
     | '/calendars'
+    | '/history'
+    | '/saved'
     | '/search'
     | '/_auth/login'
     | '/_auth/register'
+    | '/activity/$'
     | '/compare/$'
     | '/interface/$lang'
     | '/texts/$'
+    | '/texts/notes'
     | '/topics/$'
     | '/translations/$slug'
     | '/compare/'
@@ -256,10 +304,14 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   AuthRoute: typeof AuthRouteWithChildren
   CalendarsRoute: typeof CalendarsRoute
+  HistoryRoute: typeof HistoryRoute
+  SavedRoute: typeof SavedRoute
   SearchRoute: typeof SearchRoute
+  ActivitySplatRoute: typeof ActivitySplatRoute
   CompareSplatRoute: typeof CompareSplatRoute
   InterfaceLangRoute: typeof InterfaceLangRoute
   TextsSplatRoute: typeof TextsSplatRoute
+  TextsNotesRoute: typeof TextsNotesRoute
   TopicsSplatRoute: typeof TopicsSplatRoute
   TranslationsSlugRoute: typeof TranslationsSlugRoute
   CompareIndexRoute: typeof CompareIndexRoute
@@ -300,6 +352,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saved': {
+      id: '/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof SavedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -320,6 +386,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/register'
       preLoaderRoute: typeof AuthRegisterRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/activity/$': {
+      id: '/activity/$'
+      path: '/activity/$'
+      fullPath: '/activity/$'
+      preLoaderRoute: typeof ActivitySplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/compare/': {
       id: '/compare/'
@@ -354,6 +427,13 @@ declare module '@tanstack/react-router' {
       path: '/texts/$'
       fullPath: '/texts/$'
       preLoaderRoute: typeof TextsSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/texts/notes': {
+      id: '/texts/notes'
+      path: '/texts/notes'
+      fullPath: '/texts/notes'
+      preLoaderRoute: typeof TextsNotesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/topics/': {
@@ -428,10 +508,14 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   AuthRoute: AuthRouteWithChildren,
   CalendarsRoute: CalendarsRoute,
+  HistoryRoute: HistoryRoute,
+  SavedRoute: SavedRoute,
   SearchRoute: SearchRoute,
+  ActivitySplatRoute: ActivitySplatRoute,
   CompareSplatRoute: CompareSplatRoute,
   InterfaceLangRoute: InterfaceLangRoute,
   TextsSplatRoute: TextsSplatRoute,
+  TextsNotesRoute: TextsNotesRoute,
   TopicsSplatRoute: TopicsSplatRoute,
   TranslationsSlugRoute: TranslationsSlugRoute,
   CompareIndexRoute: CompareIndexRoute,

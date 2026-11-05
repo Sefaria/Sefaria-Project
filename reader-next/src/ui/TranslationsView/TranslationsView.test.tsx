@@ -56,7 +56,7 @@ describe("TranslationsView (Genesis 1:1, recorded)", () => {
     await userEvent.click(first.getByText("Revised JPS, 2023"));
     expect(first.getByRole("link", { name: "jps.org" })).toHaveAttribute("href", "https://jps.org/books/the-jps-tanakh-gender-sensitive-edition/");
     expect(first.getByRole("link", { name: "CC-BY-NC" })).toHaveAttribute("href", "https://creativecommons.org/licenses/by-nc/4.0/");
-    expect(first.getByRole("link", { name: "Revision History" })).toHaveAttribute("href", "https://www.sefaria.org/activity/Genesis.1.1/en/THE_JPS_TANAKH:_Gender-Sensitive_Edition");
+    expect(first.getByRole("link", { name: "Revision History" })).toHaveAttribute("href", "/activity/Genesis.1.1/en/THE_JPS_TANAKH:_Gender-Sensitive_Edition");
     expect(first.getByRole("link", { name: "Open Text" })).toBeInTheDocument();
   });
 
