@@ -85,18 +85,24 @@ jobs:
               ].join('\n'),
             });
 
-            // 3. Slack mention of the pusher, if a webhook is configured.
+            // 3. Slack mention of the pusher and the PR author, if a webhook is configured.
             const webhook = process.env.SLACK_WEBHOOK_URL;
             if (!webhook) return core.info('SLACK_TEST_FAILURE_WEBHOOK_URL not set; skipping Slack.');
             let slackMap = {};
             try { slackMap = JSON.parse(process.env.GITUSER_SLACK_MAP || '{}'); } catch (e) { core.warning('GITUSER_SLACK_MAP is not valid JSON'); }
-            const slackUser = slackMap[pusher];
-            const who = !slackUser ? pusher : /^[UW][A-Z0-9]+$/.test(slackUser) ? `<@${slackUser}>` : `@${slackUser}`;
+            // Only a Slack user ID (U.../W...) renders as a real mention that notifies.
+            const slackMention = login => {
+              const id = slackMap[login];
+              if (id && /^[UW][A-Z0-9]+$/.test(id)) return `<@${id}>`;
+              core.warning(`GITUSER_SLACK_MAP has no Slack user ID for ${login}; Slack will not notify them.`);
+              return id ? `@${id}` : login;
+            };
+            const who = [...new Set([pusher, author])].map(slackMention).join(' ');
             const res = await fetch(webhook, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                text: `:warning: ${who} your push <${pr.html_url}/commits/${headSha}|${shortSha}> to <${pr.html_url}|PR #${pull_number}> was not built: the PR has a merge conflict with \`${base}\`. Merge \`${base}\` and push again to rebuild the images and cauldron.`,
+                text: `:warning: ${who} the push <${pr.html_url}/commits/${headSha}|${shortSha}> to <${pr.html_url}|PR #${pull_number}> was not built: the PR has a merge conflict with \`${base}\`. Merge \`${base}\` and push again to rebuild the images and cauldron.`,
               }),
             });
             if (!res.ok) core.warning(`Slack webhook returned ${res.status}`);
