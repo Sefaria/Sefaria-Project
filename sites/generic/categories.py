@@ -3,13 +3,13 @@
 # is for readability only. The table of contents will follow this structure.
 CATEGORY_ORDER = [
     "Classics",
-        "Homer",
-        "Plutarch",
+    "Homer",
+    "Plutarch",
     "Religion",
-        "Judaism",
-        "Christianity",
-        "Islam",
-        "Apocrypha",
+    "Judaism",
+    "Christianity",
+    "Islam",
+    "Apocrypha",
     "Philosophy",
     "Drama",
     "Poetry",
@@ -23,5 +23,4 @@ TOP_CATEGORIES = [
     "Poetry",
 ]
 
-REVERSE_ORDER = [
-]
+REVERSE_ORDER = []

@@ -19,13 +19,9 @@ class NewsletterServiceError(Exception):
     the views answer differently. Catching this class catches all of them.
     """
 
-    pass
-
 
 class NewsletterListUnavailableError(NewsletterServiceError):
     """Raised when managed newsletter metadata cannot be loaded for a user flow."""
-
-    pass
 
 
 class NewsletterServiceNotConfiguredError(NewsletterServiceError):
@@ -34,8 +30,6 @@ class NewsletterServiceNotConfiguredError(NewsletterServiceError):
     The views answer 503 for it instead of the 500 a real AC failure gets. It's a
     subclass so code that already catches NewsletterServiceError still catches it.
     """
-
-    pass
 
 
 class NewsletterUpdateIncompleteError(NewsletterServiceError):

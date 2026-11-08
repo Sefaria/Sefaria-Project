@@ -36,66 +36,161 @@ const HELP_CONTENT = (
   <>
     <h3>What This Tool Does</h3>
     <p>
-      This tool edits <strong>Index metadata</strong> (text catalog records) across multiple texts.
-      An "Index" in Sefaria is the master record for a text, containing its title, category,
-      authorship, composition date, and structural information.
+      This tool edits <strong>Index metadata</strong> (text catalog records) across multiple texts. An &quot;Index&quot;
+      in Sefaria is the master record for a text, containing its title, category, authorship, composition date, and
+      structural information.
     </p>
     <p>
-      Unlike the Version Editor which edits translations/editions, this tool edits the
-      underlying text record itself. Use this when you need to update catalog information
-      like descriptions, categories, authors, or commentary relationships.
+      Unlike the Version Editor which edits translations/editions, this tool edits the underlying text record itself.
+      Use this when you need to update catalog information like descriptions, categories, authors, or commentary
+      relationships.
     </p>
 
     <h3>How It Works</h3>
     <ol>
-      <li><strong>Search:</strong> Enter a version title to find all indices that have versions with that title.</li>
-      <li><strong>Select:</strong> Choose which indices to update.</li>
-      <li><strong>Edit:</strong> Fill in the metadata fields you want to change.</li>
-      <li><strong>Save:</strong> Each index is updated individually via the API, with cache clearing.</li>
+      <li>
+        <strong>Search:</strong> Enter a version title to find all indices that have versions with that title.
+      </li>
+      <li>
+        <strong>Select:</strong> Choose which indices to update.
+      </li>
+      <li>
+        <strong>Edit:</strong> Fill in the metadata fields you want to change.
+      </li>
+      <li>
+        <strong>Save:</strong> Each index is updated individually via the API, with cache clearing.
+      </li>
     </ol>
 
     <h3>Available Fields</h3>
     <table className="field-table">
       <thead>
-        <tr><th>Field</th><th>Description</th></tr>
+        <tr>
+          <th>Field</th>
+          <th>Description</th>
+        </tr>
       </thead>
       <tbody>
-        <tr><td><code>enDesc</code></td><td>English description of the text (shown in reader)</td></tr>
-        <tr><td><code>heDesc</code></td><td>Hebrew description of the text</td></tr>
-        <tr><td><code>enShortDesc</code></td><td>Brief English description for search results</td></tr>
-        <tr><td><code>heShortDesc</code></td><td>Brief Hebrew description</td></tr>
-        <tr><td><code>categories</code></td><td>Category path in the table of contents (e.g., "Mishnah, Seder Zeraim")</td></tr>
-        <tr><td><code>authors</code></td><td>Author slugs (must exist in AuthorTopic). Comma-separated.</td></tr>
-        <tr><td><code>compDate</code></td><td>Composition date. Single year or range like [1200, 1250]</td></tr>
-        <tr><td><code>compPlace</code></td><td>Place of composition (English)</td></tr>
-        <tr><td><code>pubDate</code></td><td>Publication date</td></tr>
-        <tr><td><code>pubPlace</code></td><td>Place of publication (English)</td></tr>
-        <tr><td><code>dependence</code></td><td>"Commentary" or "Targum" - marks text as dependent on another</td></tr>
-        <tr><td><code>base_text_titles</code></td><td>For commentaries: exact titles of base texts. Comma-separated.</td></tr>
-        <tr><td><code>collective_title</code></td><td>For commentaries: the commentary name (e.g., "Rashi")</td></tr>
+        <tr>
+          <td>
+            <code>enDesc</code>
+          </td>
+          <td>English description of the text (shown in reader)</td>
+        </tr>
+        <tr>
+          <td>
+            <code>heDesc</code>
+          </td>
+          <td>Hebrew description of the text</td>
+        </tr>
+        <tr>
+          <td>
+            <code>enShortDesc</code>
+          </td>
+          <td>Brief English description for search results</td>
+        </tr>
+        <tr>
+          <td>
+            <code>heShortDesc</code>
+          </td>
+          <td>Brief Hebrew description</td>
+        </tr>
+        <tr>
+          <td>
+            <code>categories</code>
+          </td>
+          <td>Category path in the table of contents (e.g., &quot;Mishnah, Seder Zeraim&quot;)</td>
+        </tr>
+        <tr>
+          <td>
+            <code>authors</code>
+          </td>
+          <td>Author slugs (must exist in AuthorTopic). Comma-separated.</td>
+        </tr>
+        <tr>
+          <td>
+            <code>compDate</code>
+          </td>
+          <td>Composition date. Single year or range like [1200, 1250]</td>
+        </tr>
+        <tr>
+          <td>
+            <code>compPlace</code>
+          </td>
+          <td>Place of composition (English)</td>
+        </tr>
+        <tr>
+          <td>
+            <code>pubDate</code>
+          </td>
+          <td>Publication date</td>
+        </tr>
+        <tr>
+          <td>
+            <code>pubPlace</code>
+          </td>
+          <td>Place of publication (English)</td>
+        </tr>
+        <tr>
+          <td>
+            <code>dependence</code>
+          </td>
+          <td>&quot;Commentary&quot; or &quot;Targum&quot; - marks text as dependent on another</td>
+        </tr>
+        <tr>
+          <td>
+            <code>base_text_titles</code>
+          </td>
+          <td>For commentaries: exact titles of base texts. Comma-separated.</td>
+        </tr>
+        <tr>
+          <td>
+            <code>collective_title</code>
+          </td>
+          <td>For commentaries: the commentary name (e.g., &quot;Rashi&quot;)</td>
+        </tr>
       </tbody>
     </table>
 
     <h3>Auto-Detection Feature</h3>
     <p>
-      For texts with "X on Y" naming pattern (e.g., "Rashi on Genesis"), you can use
-      <code>'auto'</code> as a value for certain fields:
+      For texts with &quot;X on Y&quot; naming pattern (e.g., &quot;Rashi on Genesis&quot;), you can use
+      <code>&apos;auto&apos;</code> as a value for certain fields:
     </p>
     <ul>
-      <li><code>dependence: 'auto'</code> - Sets to "Commentary" if pattern detected</li>
-      <li><code>base_text_titles: 'auto'</code> - Extracts the base text name (e.g., "Genesis")</li>
-      <li><code>collective_title: 'auto'</code> - Extracts the commentary name (e.g., "Rashi")</li>
-      <li><code>authors: 'auto'</code> - Looks up the commentary name as an AuthorTopic</li>
+      <li>
+        <code>dependence: &apos;auto&apos;</code> - Sets to &quot;Commentary&quot; if pattern detected
+      </li>
+      <li>
+        <code>base_text_titles: &apos;auto&apos;</code> - Extracts the base text name (e.g., &quot;Genesis&quot;)
+      </li>
+      <li>
+        <code>collective_title: &apos;auto&apos;</code> - Extracts the commentary name (e.g., &quot;Rashi&quot;)
+      </li>
+      <li>
+        <code>authors: &apos;auto&apos;</code> - Looks up the commentary name as an AuthorTopic
+      </li>
     </ul>
 
     <div className="warning">
       <strong>Important Notes:</strong>
       <ul>
-        <li><strong>Authors must exist</strong> in the AuthorTopic database. Invalid author names will fail validation.</li>
-        <li><strong>Base text titles must be exact</strong> index titles (e.g., "Mishnah Berakhot", not "Mishnah").</li>
-        <li><strong>Categories</strong> must match existing category paths in the Sefaria table of contents.</li>
-        <li>Changes trigger a <strong>cache reset</strong> for each index, which may take a moment.</li>
-        <li>Changes are applied <strong>immediately to production</strong>. There is no undo.</li>
+        <li>
+          <strong>Authors must exist</strong> in the AuthorTopic database. Invalid author names will fail validation.
+        </li>
+        <li>
+          <strong>Base text titles must be exact</strong> index titles (e.g., &quot;Mishnah Berakhot&quot;, not
+          &quot;Mishnah&quot;).
+        </li>
+        <li>
+          <strong>Categories</strong> must match existing category paths in the Sefaria table of contents.
+        </li>
+        <li>
+          Changes trigger a <strong>cache reset</strong> for each index, which may take a moment.
+        </li>
+        <li>
+          Changes are applied <strong>immediately to production</strong>. There is no undo.
+        </li>
       </ul>
     </div>
 
@@ -118,7 +213,7 @@ const detectCommentaryPattern = (title) => {
   if (match) {
     return {
       commentaryName: match[1].trim(),
-      baseText: match[2].trim()
+      baseText: match[2].trim(),
     };
   }
   return null;
@@ -154,8 +249,8 @@ const termExists = (name) => name in Sefaria._translateTerms;
 
 const BulkIndexEditor = () => {
   // Search state
-  const [vtitle, setVtitle] = useState("");
-  const [lang, setLang] = useState("");
+  const [vtitle, setVtitle] = useState('');
+  const [lang, setLang] = useState('');
   const [searched, setSearched] = useState(false);
 
   // Results state
@@ -168,10 +263,10 @@ const BulkIndexEditor = () => {
   const [updates, setUpdates] = useState({});
 
   // UI state
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [progress, setProgress] = useState({ current: 0, total: 0, label: "" });
+  const [progress, setProgress] = useState({ current: 0, total: 0, label: '' });
 
   // Load categories on mount
   useEffect(() => {
@@ -181,16 +276,16 @@ const BulkIndexEditor = () => {
         const cats = [];
         const extractCategories = (node, path = []) => {
           if (node.category) {
-            const fullPath = [...path, node.category].join(", ");
+            const fullPath = [...path, node.category].join(', ');
             cats.push(fullPath);
           }
           if (node.contents) {
-            node.contents.forEach(item => {
+            node.contents.forEach((item) => {
               extractCategories(item, node.category ? [...path, node.category] : path);
             });
           }
         };
-        data.forEach(cat => extractCategories(cat));
+        data.forEach((cat) => extractCategories(cat));
         setCategories(cats.sort());
       } catch (error) {
         console.error('Failed to load categories:', error);
@@ -206,7 +301,7 @@ const BulkIndexEditor = () => {
     setIndices([]);
     setPick(new Set());
     setUpdates({});
-    setMsg("");
+    setMsg('');
     setSearched(false);
   };
 
@@ -215,13 +310,13 @@ const BulkIndexEditor = () => {
    */
   const load = async () => {
     if (!vtitle.trim()) {
-      setMsg("Please enter a version title");
+      setMsg('Please enter a version title');
       return;
     }
 
     setLoading(true);
     setSearched(true);
-    setMsg("Loading indices...");
+    setMsg('Loading indices...');
 
     const urlParams = { versionTitle: vtitle };
     if (lang) {
@@ -233,19 +328,19 @@ const BulkIndexEditor = () => {
       const resultIndices = data.indices || [];
       const resultMetadata = data.metadata || {};
       // Combine indices and metadata into single array of objects
-      const combinedIndices = resultIndices.map(title => ({
+      const combinedIndices = resultIndices.map((title) => ({
         title,
-        categories: resultMetadata[title]?.categories
+        categories: resultMetadata[title]?.categories,
       }));
       setIndices(combinedIndices);
       setPick(new Set(resultIndices)); // Set of title strings
       if (resultIndices.length > 0) {
         setMsg(`Found ${resultIndices.length} indices with version "${vtitle}"`);
       } else {
-        setMsg("");
+        setMsg('');
       }
     } catch (error) {
-      setMsg(`Error: ${error.message || "Failed to load indices"}`);
+      setMsg(`Error: ${error.message || 'Failed to load indices'}`);
       setIndices([]);
       setPick(new Set());
     } finally {
@@ -257,7 +352,7 @@ const BulkIndexEditor = () => {
    * Handle field value changes
    */
   const handleFieldChange = (fieldName, value) => {
-    setUpdates(prev => ({ ...prev, [fieldName]: value }));
+    setUpdates((prev) => ({ ...prev, [fieldName]: value }));
   };
 
   /**
@@ -267,8 +362,8 @@ const BulkIndexEditor = () => {
     if (!pick.size || !Object.keys(updates).length) return;
 
     setSaving(true);
-    setMsg("Saving changes...");
-    setProgress({ current: 0, total: pick.size, label: "" });
+    setMsg('Saving changes...');
+    setProgress({ current: 0, total: pick.size, label: '' });
 
     // Process updates to ensure correct data types
     const processedUpdates = {};
@@ -287,7 +382,10 @@ const BulkIndexEditor = () => {
           if (value === 'auto') {
             processedUpdates[field] = 'auto';
           } else {
-            processedUpdates[field] = value.split(',').map(v => v.trim()).filter(v => v);
+            processedUpdates[field] = value
+              .split(',')
+              .map((v) => v.trim())
+              .filter((v) => v);
           }
           break;
         case 'daterange':
@@ -311,7 +409,7 @@ const BulkIndexEditor = () => {
             }
           }
           break;
-        case 'number':
+        case 'number': {
           const numValue = parseInt(value);
           if (isNaN(numValue)) {
             setMsg(`Invalid number format for ${field}`);
@@ -320,6 +418,7 @@ const BulkIndexEditor = () => {
           }
           processedUpdates[field] = numValue;
           break;
+        }
         default:
           processedUpdates[field] = value;
       }
@@ -331,14 +430,15 @@ const BulkIndexEditor = () => {
         const authorSlugs = [];
         for (const authorName of processedUpdates.authors) {
           const response = await Sefaria.apiRequestWithBody(`/api/name/${authorName}`, null, null, 'GET');
-          const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
-          const exactMatch = matches.find(t => t.title.toLowerCase() === authorName.toLowerCase());
+          const matches = response.completion_objects?.filter((t) => t.type === 'AuthorTopic') || [];
+          const exactMatch = matches.find((t) => t.title.toLowerCase() === authorName.toLowerCase());
 
           if (!exactMatch) {
-            const closestMatches = matches.map(t => t.title).slice(0, 3);
-            const msg = matches.length > 0
-              ? `Invalid author "${authorName}". Did you mean: ${closestMatches.join(', ')}?`
-              : `Invalid author "${authorName}". Make sure it exists in the Authors topic.`;
+            const closestMatches = matches.map((t) => t.title).slice(0, 3);
+            const msg =
+              matches.length > 0
+                ? `Invalid author "${authorName}". Did you mean: ${closestMatches.join(', ')}?`
+                : `Invalid author "${authorName}". Make sure it exists in the Authors topic.`;
             setMsg(`Error: ${msg}`);
             setSaving(false);
             return;
@@ -403,9 +503,14 @@ const BulkIndexEditor = () => {
         if (indexSpecificUpdates.authors === 'auto') {
           if (pattern?.commentaryName) {
             try {
-              const response = await Sefaria.apiRequestWithBody(`/api/name/${pattern.commentaryName}`, null, null, 'GET');
-              const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
-              const exactMatch = matches.find(t => t.title.toLowerCase() === pattern.commentaryName.toLowerCase());
+              const response = await Sefaria.apiRequestWithBody(
+                `/api/name/${pattern.commentaryName}`,
+                null,
+                null,
+                'GET'
+              );
+              const matches = response.completion_objects?.filter((t) => t.type === 'AuthorTopic') || [];
+              const exactMatch = matches.find((t) => t.title.toLowerCase() === pattern.commentaryName.toLowerCase());
               if (exactMatch) {
                 indexSpecificUpdates.authors = [exactMatch.key];
               } else {
@@ -423,7 +528,7 @@ const BulkIndexEditor = () => {
         // If any is missing, drop the whole field for this index.
         if (indexSpecificUpdates.base_text_titles?.length) {
           const titles = indexSpecificUpdates.base_text_titles;
-          const exists = await Promise.all(titles.map(t => indexExists(t)));
+          const exists = await Promise.all(titles.map((t) => indexExists(t)));
           const missing = titles.filter((t, i) => !exists[i]);
           if (missing.length) {
             delete indexSpecificUpdates.base_text_titles;
@@ -436,7 +541,9 @@ const BulkIndexEditor = () => {
         if (indexSpecificUpdates.collective_title) {
           const exists = termExists(indexSpecificUpdates.collective_title);
           if (!exists) {
-            warnings.push(`${indexTitle}: skipped collective_title (no term "${indexSpecificUpdates.collective_title}"). If you just created it, reload the page and try again.`);
+            warnings.push(
+              `${indexTitle}: skipped collective_title (no term "${indexSpecificUpdates.collective_title}"). If you just created it, reload the page and try again.`
+            );
             delete indexSpecificUpdates.collective_title;
           }
         }
@@ -445,10 +552,10 @@ const BulkIndexEditor = () => {
           title: indexTitle,
           categories: existingIndexData.categories,
           schema: existingIndexData.schema,
-          ...indexSpecificUpdates
+          ...indexSpecificUpdates,
         };
 
-        const indexPath = encodeURIComponent(indexTitle.replace(/ /g, "_"));
+        const indexPath = encodeURIComponent(indexTitle.replace(/ /g, '_'));
 
         // Update index via raw API. index_api reads request.POST.get("json"), so the
         // body must be form-encoded (application/x-www-form-urlencoded), not JSON.
@@ -458,22 +565,22 @@ const BulkIndexEditor = () => {
           credentials: 'same-origin',
           headers: {
             'X-CSRFToken': getCsrfToken(),
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/x-www-form-urlencoded',
           },
-          body: new URLSearchParams({ json: JSON.stringify(postData) }).toString()
+          body: new URLSearchParams({ json: JSON.stringify(postData) }).toString(),
         });
         const updateData = await updateResponse.json();
         if (!updateResponse.ok || updateData.error) {
-          throw new Error(updateData.error || "Failed to update index");
+          throw new Error(updateData.error || 'Failed to update index');
         }
 
         // Clear caches (non-JSON endpoint)
         const resetResponse = await fetch(`/admin/reset/${encodeURIComponent(indexTitle)}`, {
           method: 'GET',
-          credentials: 'same-origin'
+          credentials: 'same-origin',
         });
         if (!resetResponse.ok) {
-          throw new Error("Failed to reset cache");
+          throw new Error('Failed to reset cache');
         }
 
         successCount++;
@@ -493,7 +600,7 @@ const BulkIndexEditor = () => {
       setMsg(`Successfully updated ${successCount} indices.${warningText}`);
       if (!warnings.length) setUpdates({});
     }
-    setProgress({ current: 0, total: 0, label: "" });
+    setProgress({ current: 0, total: 0, label: '' });
     setSaving(false);
   };
 
@@ -502,46 +609,47 @@ const BulkIndexEditor = () => {
    */
   const renderField = (fieldName) => {
     const fieldMeta = INDEX_FIELD_METADATA[fieldName];
-    const currentValue = updates[fieldName] || "";
+    const currentValue = updates[fieldName] || '';
 
     const commonProps = {
-      className: "dlVersionSelect fieldInput",
+      className: 'dlVersionSelect fieldInput',
       placeholder: fieldMeta.placeholder,
       value: currentValue,
-      onChange: e => handleFieldChange(fieldName, e.target.value),
-      style: { width: "100%", direction: fieldMeta.dir || "ltr" }
+      onChange: (e) => handleFieldChange(fieldName, e.target.value),
+      style: { width: '100%', direction: fieldMeta.dir || 'ltr' },
     };
 
     return (
       <div key={fieldName} className="fieldGroup">
         <label>{fieldMeta.label}:</label>
 
-        {fieldMeta.help && (
-          <div className="fieldHelp">{fieldMeta.help}</div>
-        )}
+        {fieldMeta.help && <div className="fieldHelp">{fieldMeta.help}</div>}
 
         {fieldMeta.auto && (
           <div className="autoWarning">
-            ⚠ <code>'auto'</code> only works for titles using the "X on Y" naming
-            pattern (e.g., "Rashi on Genesis"). It is skipped for any selected index
-            whose title doesn't match.
+            ⚠ <code>&apos;auto&apos;</code> only works for titles using the &quot;X on Y&quot; naming pattern (e.g.,
+            &quot;Rashi on Genesis&quot;). It is skipped for any selected index whose title doesn&apos;t match.
           </div>
         )}
 
-        {fieldName === "categories" ? (
+        {fieldName === 'categories' ? (
           <select {...commonProps}>
             <option value="">Select category...</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
             ))}
           </select>
-        ) : fieldMeta.type === "select" && fieldMeta.options ? (
+        ) : fieldMeta.type === 'select' && fieldMeta.options ? (
           <select {...commonProps}>
-            {fieldMeta.options.map(option => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+            {fieldMeta.options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
-        ) : fieldMeta.type === "textarea" ? (
+        ) : fieldMeta.type === 'textarea' ? (
           <textarea {...commonProps} rows={3} />
         ) : (
           <input {...commonProps} type="text" />
@@ -551,21 +659,23 @@ const BulkIndexEditor = () => {
   };
 
   // Check if there are actual changes
-  const hasChanges = Object.keys(updates).some(k => updates[k]);
+  const hasChanges = Object.keys(updates).some((k) => updates[k]);
 
   return (
-    <ModToolsSection
-      title="Bulk Edit Index Metadata"
-      titleHe="עריכת אינדקסים בכמות"
-      helpContent={HELP_CONTENT}
-    >
+    <ModToolsSection title="Bulk Edit Index Metadata" titleHe="עריכת אינדקסים בכמות" helpContent={HELP_CONTENT}>
       {/* Warning box */}
       <div className="warningBox">
         <strong>Important Notes:</strong>
         <ul>
-          <li><strong>Authors:</strong> Must exist in the Authors topic. Use exact names or slugs.</li>
-          <li><strong>Base Text Titles:</strong> Must be exact index titles (e.g., "Mishnah Berakhot").</li>
-          <li><strong>Auto-detection:</strong> Works for commentary texts with "X on Y" format.</li>
+          <li>
+            <strong>Authors:</strong> Must exist in the Authors topic. Use exact names or slugs.
+          </li>
+          <li>
+            <strong>Base Text Titles:</strong> Must be exact index titles (e.g., &quot;Mishnah Berakhot&quot;).
+          </li>
+          <li>
+            <strong>Auto-detection:</strong> Works for commentary texts with &quot;X on Y&quot; format.
+          </li>
         </ul>
       </div>
 
@@ -576,26 +686,25 @@ const BulkIndexEditor = () => {
           type="text"
           placeholder="Version title (e.g., 'Torat Emet 357')"
           value={vtitle}
-          onChange={e => setVtitle(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && load()}
+          onChange={(e) => setVtitle(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && load()}
         />
-        <button
-          className="modtoolsButton"
-          onClick={load}
-          disabled={loading || !vtitle.trim()}
-        >
-          {loading ? <><span className="loadingSpinner" />Searching...</> : "Find Indices"}
+        <button className="modtoolsButton" onClick={load} disabled={loading || !vtitle.trim()}>
+          {loading ? (
+            <>
+              <span className="loadingSpinner" />
+              Searching...
+            </>
+          ) : (
+            'Find Indices'
+          )}
         </button>
       </div>
 
       {/* Language filter - inline */}
       <div className="filterRow">
         <label>Filter by language:</label>
-        <select
-          className="dlVersionSelect"
-          value={lang}
-          onChange={e => setLang(e.target.value)}
-        >
+        <select className="dlVersionSelect" value={lang} onChange={(e) => setLang(e.target.value)}>
           <option value="">All languages</option>
           <option value="he">Hebrew only</option>
           <option value="en">English only</option>
@@ -605,11 +714,7 @@ const BulkIndexEditor = () => {
       {/* Clear button - centered */}
       {searched && (
         <div className="clearSearchRow">
-          <button
-            className="modtoolsButton secondary"
-            onClick={clearSearch}
-            type="button"
-          >
+          <button className="modtoolsButton secondary" onClick={clearSearch} type="button">
             Clear Search
           </button>
         </div>
@@ -618,20 +723,15 @@ const BulkIndexEditor = () => {
       {/* No results message */}
       {searched && !loading && indices.length === 0 && (
         <div className="noResults">
-          <strong>No indices found with version "{vtitle}"</strong>
-          Please verify the exact version title. Version titles are case-sensitive
-          and must match exactly (e.g., "Torat Emet 357" not "torat emet").
+          <strong>No indices found with version &quot;{vtitle}&quot;</strong>
+          Please verify the exact version title. Version titles are case-sensitive and must match exactly (e.g.,
+          &quot;Torat Emet 357&quot; not &quot;torat emet&quot;).
         </div>
       )}
 
       {/* Index selector */}
       {indices.length > 0 && (
-        <IndexSelector
-          indices={indices}
-          selectedIndices={pick}
-          onSelectionChange={setPick}
-          label="indices"
-        />
+        <IndexSelector indices={indices} selectedIndices={pick} onSelectionChange={setPick} label="indices" />
       )}
 
       {/* Field inputs */}
@@ -641,46 +741,48 @@ const BulkIndexEditor = () => {
             Edit fields for {pick.size} selected {pick.size === 1 ? 'index' : 'indices'}:
           </div>
 
-          <div className="fieldGroupSection">
-            {Object.keys(INDEX_FIELD_METADATA).map(f => renderField(f))}
-          </div>
+          <div className="fieldGroupSection">{Object.keys(INDEX_FIELD_METADATA).map((f) => renderField(f))}</div>
 
           {hasChanges && (
             <div className="changesPreview">
               <strong>Changes to apply:</strong>
               <ul>
-                {Object.entries(updates).filter(([k, v]) => v).map(([k, v]) => (
-                  <li key={k}>{INDEX_FIELD_METADATA[k]?.label || k}: "{v}"</li>
-                ))}
+                {Object.entries(updates)
+                  .filter(([k, v]) => v)
+                  .map(([k, v]) => (
+                    <li key={k}>
+                      {INDEX_FIELD_METADATA[k]?.label || k}: &quot;{v}&quot;
+                    </li>
+                  ))}
               </ul>
             </div>
           )}
 
           <div className="actionRow">
-            <button
-              className="modtoolsButton"
-              disabled={!hasChanges || saving}
-              onClick={save}
-            >
-              {saving ? <><span className="loadingSpinner" />Saving...</> : `Save Changes to ${pick.size} Indices`}
+            <button className="modtoolsButton" disabled={!hasChanges || saving} onClick={save}>
+              {saving ? (
+                <>
+                  <span className="loadingSpinner" />
+                  Saving...
+                </>
+              ) : (
+                `Save Changes to ${pick.size} Indices`
+              )}
             </button>
           </div>
 
           {saving && progress.total > 0 && (
             <div className="saveProgress">
               <div className="saveProgressHeader">
-                <span>{progress.current} of {progress.total} indices</span>
+                <span>
+                  {progress.current} of {progress.total} indices
+                </span>
                 <span>{Math.round((progress.current / progress.total) * 100)}%</span>
               </div>
               <div className="saveProgressTrack">
-                <div
-                  className="saveProgressBar"
-                  style={{ width: `${(progress.current / progress.total) * 100}%` }}
-                />
+                <div className="saveProgressBar" style={{ width: `${(progress.current / progress.total) * 100}%` }} />
               </div>
-              {progress.label && (
-                <div className="saveProgressLabel">Updating: {progress.label}</div>
-              )}
+              {progress.label && <div className="saveProgressLabel">Updating: {progress.label}</div>}
             </div>
           )}
         </>

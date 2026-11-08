@@ -17,10 +17,11 @@ Usage:
     ./run scripts/audit_linker_chunk_version_titles.py --repair
     ./run scripts/audit_linker_chunk_version_titles.py --delete
 """
+
 import argparse
 import json
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 import django
 
@@ -30,7 +31,6 @@ from bson import ObjectId
 
 from sefaria.model import Ref, TextChunk
 from sefaria.system.database import db
-
 
 COLLECTIONS = {
     "marked_up_text_chunks": db.marked_up_text_chunks,
@@ -87,10 +87,15 @@ def _active_span_checks(doc):
 def _candidate_version_titles(title, language, cache):
     key = (title, language)
     if key not in cache:
-        cache[key] = sorted(db.texts.distinct("versionTitle", {
-            "title": title,
-            "language": language,
-        }))
+        cache[key] = sorted(
+            db.texts.distinct(
+                "versionTitle",
+                {
+                    "title": title,
+                    "language": language,
+                },
+            )
+        )
     return cache[key]
 
 
@@ -145,11 +150,17 @@ def _find_invalid_version_title_docs(collection, collection_name, limit=None):
 
             if cache_key not in version_exists_cache:
                 title, language, version_title = cache_key
-                version_exists_cache[cache_key] = db.texts.count_documents({
-                    "title": title,
-                    "language": language,
-                    "versionTitle": version_title,
-                }, limit=1) > 0
+                version_exists_cache[cache_key] = (
+                    db.texts.count_documents(
+                        {
+                            "title": title,
+                            "language": language,
+                            "versionTitle": version_title,
+                        },
+                        limit=1,
+                    )
+                    > 0
+                )
 
             if version_exists_cache[cache_key]:
                 summary["valid"] += 1
@@ -165,16 +176,19 @@ def _find_invalid_version_title_docs(collection, collection_name, limit=None):
             else:
                 repair_status = repair_blocked_reason or "no_matching_version"
             summary[repair_status] += 1
-            yield {
-                "collection": collection_name,
-                "_id": doc["_id"],
-                "ref": doc.get("ref"),
-                "title": title,
-                "language": language,
-                "versionTitle": version_title,
-                "repairStatus": repair_status,
-                "candidateVersionTitles": candidates,
-            }, summary
+            yield (
+                {
+                    "collection": collection_name,
+                    "_id": doc["_id"],
+                    "ref": doc.get("ref"),
+                    "title": title,
+                    "language": language,
+                    "versionTitle": version_title,
+                    "repairStatus": repair_status,
+                    "candidateVersionTitles": candidates,
+                },
+                summary,
+            )
     finally:
         cursor.close()
 
@@ -232,7 +246,9 @@ def audit_collection(collection_name, delete=False, repair=False, limit=None):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Print, repair, or delete linker markup records whose versionTitle has no matching Version.")
+    parser = argparse.ArgumentParser(
+        description="Print, repair, or delete linker markup records whose versionTitle has no matching Version."
+    )
     parser.add_argument(
         "--collection",
         choices=["both", *COLLECTIONS.keys()],
@@ -240,8 +256,14 @@ def main():
         help="collection to scan",
     )
     action_group = parser.add_mutually_exclusive_group()
-    action_group.add_argument("--repair", action="store_true", help="repair records when exactly one current Version matches all saved span ranges")
-    action_group.add_argument("--delete", action="store_true", help="delete invalid version-title records after printing them")
+    action_group.add_argument(
+        "--repair",
+        action="store_true",
+        help="repair records when exactly one current Version matches all saved span ranges",
+    )
+    action_group.add_argument(
+        "--delete", action="store_true", help="delete invalid version-title records after printing them"
+    )
     parser.add_argument("--limit", type=int, help="scan at most this many records per collection")
     args = parser.parse_args()
 
@@ -251,11 +273,18 @@ def main():
         summary = audit_collection(collection_name, delete=args.delete, repair=args.repair, limit=args.limit)
         overall[collection_name] = dict(summary)
 
-    print(json.dumps({
-        "mode": "delete" if args.delete else "repair" if args.repair else "dry-run",
-        "summary": overall,
-        "finishedAt": datetime.now(timezone.utc),
-    }, ensure_ascii=False, default=_json_default, indent=2))
+    print(
+        json.dumps(
+            {
+                "mode": "delete" if args.delete else "repair" if args.repair else "dry-run",
+                "summary": overall,
+                "finishedAt": datetime.now(UTC),
+            },
+            ensure_ascii=False,
+            default=_json_default,
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

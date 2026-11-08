@@ -8,11 +8,11 @@ New here? Read the root [handbook](../README.md) first — it covers setup, the 
 
 ## What it covers
 
-| Spec file | Test IDs | Area |
-| --- | --- | --- |
-| [header.spec.ts](header.spec.ts) | `MOD-H001` – `MOD-H013` | Library module header: logo navigation, search dropdown sections/icons, full-text search, language switcher, module switcher, user-auth menu, browser back/forward, keyboard-nav a11y, and cross-module auth (Library ↔ Voices). |
-| [sidebar.spec.ts](sidebar.spec.ts) | `MOD-S001` – `MOD-S013` | Sticky nav sidebar + footer links: A Living Library, Translations, Learning Schedules, Resources, About, Help (Zendesk), Contact (mailto), Newsletter, Blog, Social/Shop (new tabs), Ways to Give, Terms & Privacy. |
-| [texts-tree-traversal.spec.ts](texts-tree-traversal.spec.ts) | *(descriptive names, no `MOD-` IDs)* — 25 tests | Deep TOC traversal across Tanach, Talmud, Kabbalah, and Reference works (Contents/Versions tabs, alt-TOCs, browse-by-letter, author indexes). |
+| Spec file                                                    | Test IDs                                        | Area                                                                                                                                                                                                                             |
+| ------------------------------------------------------------ | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [header.spec.ts](header.spec.ts)                             | `MOD-H001` – `MOD-H013`                         | Library module header: logo navigation, search dropdown sections/icons, full-text search, language switcher, module switcher, user-auth menu, browser back/forward, keyboard-nav a11y, and cross-module auth (Library ↔ Voices). |
+| [sidebar.spec.ts](sidebar.spec.ts)                           | `MOD-S001` – `MOD-S013`                         | Sticky nav sidebar + footer links: A Living Library, Translations, Learning Schedules, Resources, About, Help (Zendesk), Contact (mailto), Newsletter, Blog, Social/Shop (new tabs), Ways to Give, Terms & Privacy.              |
+| [texts-tree-traversal.spec.ts](texts-tree-traversal.spec.ts) | _(descriptive names, no `MOD-` IDs)_ — 25 tests | Deep TOC traversal across Tanach, Talmud, Kabbalah, and Reference works (Contents/Versions tabs, alt-TOCs, browse-by-letter, author indexes).                                                                                    |
 
 > ⚠️ **`texts-tree-traversal.spec.ts` is a legacy-pattern spec** — it bypasses `PageManager` and uses raw `page.getByRole()` throughout (it's on the root handbook's [legacy list](../README.md#legacy-patterns-to-recognise)). It works and stays, but **do not model new specs on it.** Use [header.spec.ts](header.spec.ts) as the canonical example for this folder.
 

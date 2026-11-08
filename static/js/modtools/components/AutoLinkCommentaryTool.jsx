@@ -41,55 +41,84 @@ const HELP_CONTENT = (
   <>
     <h3>What This Tool Does</h3>
     <p>
-      This tool automatically creates <strong>links between commentaries and their base texts</strong>.
-      When a user views "Genesis 1:1", they see connections to "Rashi on Genesis 1:1:1" and other
-      commentaries. This tool generates those connections automatically.
+      This tool automatically creates <strong>links between commentaries and their base texts</strong>. When a user
+      views &quot;Genesis 1:1&quot;, they see connections to &quot;Rashi on Genesis 1:1:1&quot; and other commentaries.
+      This tool generates those connections automatically.
     </p>
     <p>
-      The tool works by setting up commentary metadata on the Index record and then triggering
-      Sefaria's auto-linking system to generate the actual link records.
+      The tool works by setting up commentary metadata on the Index record and then triggering Sefaria&apos;s
+      auto-linking system to generate the actual link records.
     </p>
 
     <h3>How It Works</h3>
     <ol>
-      <li><strong>Search:</strong> Enter a version title to find commentary texts (texts with "X on Y" pattern).</li>
-      <li><strong>Select:</strong> Choose which commentaries to link.</li>
-      <li><strong>Choose mapping:</strong> Select how commentary sections map to base text sections.</li>
-      <li><strong>Create Links:</strong> The tool patches each Index with commentary metadata, then triggers link building.</li>
+      <li>
+        <strong>Search:</strong> Enter a version title to find commentary texts (texts with &quot;X on Y&quot; pattern).
+      </li>
+      <li>
+        <strong>Select:</strong> Choose which commentaries to link.
+      </li>
+      <li>
+        <strong>Choose mapping:</strong> Select how commentary sections map to base text sections.
+      </li>
+      <li>
+        <strong>Create Links:</strong> The tool patches each Index with commentary metadata, then triggers link
+        building.
+      </li>
     </ol>
 
     <h3>What Gets Changed</h3>
     <p>For each selected commentary, the tool sets:</p>
     <ul>
-      <li><code>dependence: "Commentary"</code> - Marks the text as a commentary</li>
-      <li><code>base_text_titles</code> - The text(s) being commented on (extracted from title pattern)</li>
-      <li><code>base_text_mapping</code> - The algorithm for mapping commentary refs to base refs</li>
+      <li>
+        <code>dependence: &quot;Commentary&quot;</code> - Marks the text as a commentary
+      </li>
+      <li>
+        <code>base_text_titles</code> - The text(s) being commented on (extracted from title pattern)
+      </li>
+      <li>
+        <code>base_text_mapping</code> - The algorithm for mapping commentary refs to base refs
+      </li>
     </ul>
-    <p>Then it calls <code>/admin/rebuild/auto-links/</code> to generate the actual link records.</p>
+    <p>
+      Then it calls <code>/admin/rebuild/auto-links/</code> to generate the actual link records.
+    </p>
 
     <h3>Mapping Algorithms</h3>
     <table className="field-table">
       <thead>
-        <tr><th>Algorithm</th><th>Use Case</th><th>Example</th></tr>
+        <tr>
+          <th>Algorithm</th>
+          <th>Use Case</th>
+          <th>Example</th>
+        </tr>
       </thead>
       <tbody>
         <tr>
-          <td><code>many_to_one_default_only</code></td>
+          <td>
+            <code>many_to_one_default_only</code>
+          </td>
           <td>Most common. Multiple commentary segments per verse.</td>
           <td>Rashi on Genesis 1:1:1, 1:1:2, 1:1:3 all link to Genesis 1:1</td>
         </tr>
         <tr>
-          <td><code>many_to_one</code></td>
+          <td>
+            <code>many_to_one</code>
+          </td>
           <td>Like above but includes alt structures.</td>
           <td>Same as above, but also links to alt verse numberings</td>
         </tr>
         <tr>
-          <td><code>one_to_one_default_only</code></td>
+          <td>
+            <code>one_to_one_default_only</code>
+          </td>
           <td>One commentary segment per base segment.</td>
           <td>Translation where Chapter 1:1 = Chapter 1:1</td>
         </tr>
         <tr>
-          <td><code>one_to_one</code></td>
+          <td>
+            <code>one_to_one</code>
+          </td>
           <td>Like above but includes alt structures.</td>
           <td>Same as above with alt structures</td>
         </tr>
@@ -97,32 +126,35 @@ const HELP_CONTENT = (
     </table>
 
     <div className="info">
-      <strong>Which mapping should I use?</strong><br/>
-      For most Tanakh commentaries (Rashi, Ibn Ezra, etc.) and Mishnah commentaries (Kehati, Bartenura),
-      use <code>many_to_one_default_only</code>. This is the default and works for commentaries where
-      each verse/mishnah has multiple comment segments.
+      <strong>Which mapping should I use?</strong>
+      <br />
+      For most Tanakh commentaries (Rashi, Ibn Ezra, etc.) and Mishnah commentaries (Kehati, Bartenura), use{' '}
+      <code>many_to_one_default_only</code>. This is the default and works for commentaries where each verse/mishnah has
+      multiple comment segments.
     </div>
 
-    <h3>What "X on Y" Pattern Means</h3>
-    <p>
-      The tool only works with texts that follow the "X on Y" naming pattern:
-    </p>
+    <h3>What &quot;X on Y&quot; Pattern Means</h3>
+    <p>The tool only works with texts that follow the &quot;X on Y&quot; naming pattern:</p>
     <ul>
-      <li>"Rashi on Genesis" - Commentary name is "Rashi", base text is "Genesis"</li>
-      <li>"Kehati on Mishnah Berakhot" - Commentary is "Kehati", base is "Mishnah Berakhot"</li>
-      <li>"Ibn Ezra on Psalms" - Commentary is "Ibn Ezra", base is "Psalms"</li>
+      <li>&quot;Rashi on Genesis&quot; - Commentary name is &quot;Rashi&quot;, base text is &quot;Genesis&quot;</li>
+      <li>
+        &quot;Kehati on Mishnah Berakhot&quot; - Commentary is &quot;Kehati&quot;, base is &quot;Mishnah Berakhot&quot;
+      </li>
+      <li>&quot;Ibn Ezra on Psalms&quot; - Commentary is &quot;Ibn Ezra&quot;, base is &quot;Psalms&quot;</li>
     </ul>
     <p>
-      The tool extracts the base text name from after " on " in the title and uses that
-      to set <code>base_text_titles</code>.
+      The tool extracts the base text name from after &quot; on &quot; in the title and uses that to set{' '}
+      <code>base_text_titles</code>.
     </p>
 
     <div className="warning">
       <strong>Important Notes:</strong>
       <ul>
-        <li>This tool is <strong>idempotent</strong> - running it multiple times is safe.</li>
-        <li>Only texts with " on " in their title are shown (non-commentaries are filtered out).</li>
-        <li>The base text (e.g., "Genesis") must already exist in Sefaria for links to work.</li>
+        <li>
+          This tool is <strong>idempotent</strong> - running it multiple times is safe.
+        </li>
+        <li>Only texts with &quot; on &quot; in their title are shown (non-commentaries are filtered out).</li>
+        <li>The base text (e.g., &quot;Genesis&quot;) must already exist in Sefaria for links to work.</li>
         <li>Link building may take a few seconds per text.</li>
         <li>Links update automatically when text content changes.</li>
       </ul>
@@ -137,17 +169,25 @@ const HELP_CONTENT = (
 
     <h3>Troubleshooting</h3>
     <ul>
-      <li><strong>"Title pattern didn't reveal base text"</strong> - The index title doesn't match "X on Y" pattern. Rename the index first.</li>
-      <li><strong>Links not appearing</strong> - Make sure the base text exists and the ref structure matches.</li>
-      <li><strong>Wrong links</strong> - Try a different mapping algorithm. "many_to_one" vs "one_to_one" depends on commentary structure.</li>
+      <li>
+        <strong>&quot;Title pattern didn&apos;t reveal base text&quot;</strong> - The index title doesn&apos;t match
+        &quot;X on Y&quot; pattern. Rename the index first.
+      </li>
+      <li>
+        <strong>Links not appearing</strong> - Make sure the base text exists and the ref structure matches.
+      </li>
+      <li>
+        <strong>Wrong links</strong> - Try a different mapping algorithm. &quot;many_to_one&quot; vs
+        &quot;one_to_one&quot; depends on commentary structure.
+      </li>
     </ul>
   </>
 );
 
 const AutoLinkCommentaryTool = () => {
   // Search state
-  const [vtitle, setVtitle] = useState("");
-  const [lang, setLang] = useState("");
+  const [vtitle, setVtitle] = useState('');
+  const [lang, setLang] = useState('');
   const [searched, setSearched] = useState(false);
 
   // Results state
@@ -156,10 +196,10 @@ const AutoLinkCommentaryTool = () => {
   const [pick, setPick] = useState(new Set());
 
   // Options state
-  const [mapping, setMapping] = useState("many_to_one_default_only");
+  const [mapping, setMapping] = useState('many_to_one_default_only');
 
   // UI state
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [linking, setLinking] = useState(false);
 
@@ -169,7 +209,7 @@ const AutoLinkCommentaryTool = () => {
   const clearSearch = () => {
     setIndices([]);
     setPick(new Set());
-    setMsg("");
+    setMsg('');
     setSearched(false);
   };
 
@@ -178,13 +218,13 @@ const AutoLinkCommentaryTool = () => {
    */
   const load = async () => {
     if (!vtitle.trim()) {
-      setMsg("Please enter a version title");
+      setMsg('Please enter a version title');
       return;
     }
 
     setLoading(true);
     setSearched(true);
-    setMsg("Loading indices...");
+    setMsg('Loading indices...');
 
     const urlParams = { versionTitle: vtitle };
     if (lang) {
@@ -196,20 +236,20 @@ const AutoLinkCommentaryTool = () => {
       const resultMetadata = data.metadata || {};
       // Filter for commentary pattern and combine with metadata
       const commentaryIndices = (data.indices || [])
-        .filter(title => title.includes(" on "))
-        .map(title => ({
+        .filter((title) => title.includes(' on '))
+        .map((title) => ({
           title,
-          categories: resultMetadata[title]?.categories
+          categories: resultMetadata[title]?.categories,
         }));
       setIndices(commentaryIndices);
-      setPick(new Set(commentaryIndices.map(item => item.title))); // Set of title strings
+      setPick(new Set(commentaryIndices.map((item) => item.title))); // Set of title strings
       if (commentaryIndices.length > 0) {
         setMsg(`Found ${commentaryIndices.length} commentaries with version "${vtitle}"`);
       } else {
-        setMsg("");
+        setMsg('');
       }
     } catch (error) {
-      setMsg(`Error: ${error.message || "Failed to load indices"}`);
+      setMsg(`Error: ${error.message || 'Failed to load indices'}`);
       setIndices([]);
       setPick(new Set());
     } finally {
@@ -224,7 +264,7 @@ const AutoLinkCommentaryTool = () => {
     if (!pick.size) return;
 
     setLinking(true);
-    setMsg("Creating links...");
+    setMsg('Creating links...');
 
     let successCount = 0;
     const errors = [];
@@ -243,14 +283,14 @@ const AutoLinkCommentaryTool = () => {
         if (!raw.base_text_titles || !raw.base_text_mapping) {
           const patched = {
             ...raw,
-            dependence: "Commentary",
+            dependence: 'Commentary',
             base_text_titles: raw.base_text_titles || [guess],
-            base_text_mapping: raw.base_text_mapping || mapping
+            base_text_mapping: raw.base_text_mapping || mapping,
           };
           delete patched._id;
 
           const urlParams = { update: '1' };
-          const indexPath = encodeURIComponent(indexTitle.replace(/ /g, "_"));
+          const indexPath = encodeURIComponent(indexTitle.replace(/ /g, '_'));
           const payload = { json: JSON.stringify(patched) };
 
           // Update index via raw API
@@ -259,34 +299,34 @@ const AutoLinkCommentaryTool = () => {
           // Clear caches (non-JSON endpoint)
           const resetResponse = await fetch(`/admin/reset/${encodeURIComponent(indexTitle)}`, {
             method: 'GET',
-            credentials: 'same-origin'
+            credentials: 'same-origin',
           });
           if (!resetResponse.ok) {
-            throw new Error("Failed to reset cache");
+            throw new Error('Failed to reset cache');
           }
         }
 
         // 4. Rebuild links (non-JSON endpoint)
         setMsg(`Building links for ${indexTitle}...`);
-        const rebuildPath = encodeURIComponent(indexTitle.replace(/ /g, "_"));
+        const rebuildPath = encodeURIComponent(indexTitle.replace(/ /g, '_'));
         const rebuildResponse = await fetch(`/admin/rebuild/auto-links/${rebuildPath}`, {
           method: 'GET',
-          credentials: 'same-origin'
+          credentials: 'same-origin',
         });
         if (!rebuildResponse.ok) {
-          throw new Error("Failed to rebuild links");
+          throw new Error('Failed to rebuild links');
         }
 
         successCount++;
       } catch (e) {
-        const m = e.message || "Unknown error";
+        const m = e.message || 'Unknown error';
         errors.push(`${indexTitle}: ${m}`);
       }
     }
 
     setMsg(
       errors.length
-        ? `Finished. Linked ${successCount}/${pick.size}. Errors: ${errors.join("; ")}`
+        ? `Finished. Linked ${successCount}/${pick.size}. Errors: ${errors.join('; ')}`
         : `Links built for all ${successCount} indices`
     );
     setLinking(false);
@@ -300,9 +340,9 @@ const AutoLinkCommentaryTool = () => {
     >
       {/* Info box */}
       <div className="infoBox">
-        <strong>How it works:</strong> This tool automatically creates links between commentaries
-        and their base texts. For example, "Rashi on Genesis 1:1:1" will be linked to "Genesis 1:1".
-        Links update dynamically when text changes.
+        <strong>How it works:</strong> This tool automatically creates links between commentaries and their base texts.
+        For example, &quot;Rashi on Genesis 1:1:1&quot; will be linked to &quot;Genesis 1:1&quot;. Links update
+        dynamically when text changes.
       </div>
 
       {/* Search bar */}
@@ -312,26 +352,25 @@ const AutoLinkCommentaryTool = () => {
           type="text"
           placeholder="Version title (e.g., 'Torat Emet 357')"
           value={vtitle}
-          onChange={e => setVtitle(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && load()}
+          onChange={(e) => setVtitle(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && load()}
         />
-        <button
-          className="modtoolsButton"
-          onClick={load}
-          disabled={loading || !vtitle.trim()}
-        >
-          {loading ? <><span className="loadingSpinner" />Searching...</> : "Find Commentaries"}
+        <button className="modtoolsButton" onClick={load} disabled={loading || !vtitle.trim()}>
+          {loading ? (
+            <>
+              <span className="loadingSpinner" />
+              Searching...
+            </>
+          ) : (
+            'Find Commentaries'
+          )}
         </button>
       </div>
 
       {/* Language filter - inline */}
       <div className="filterRow">
         <label>Filter by language:</label>
-        <select
-          className="dlVersionSelect"
-          value={lang}
-          onChange={e => setLang(e.target.value)}
-        >
+        <select className="dlVersionSelect" value={lang} onChange={(e) => setLang(e.target.value)}>
           <option value="">All languages</option>
           <option value="he">Hebrew only</option>
           <option value="en">English only</option>
@@ -341,11 +380,7 @@ const AutoLinkCommentaryTool = () => {
       {/* Clear button - centered */}
       {searched && (
         <div className="clearSearchRow">
-          <button
-            className="modtoolsButton secondary"
-            onClick={clearSearch}
-            type="button"
-          >
+          <button className="modtoolsButton secondary" onClick={clearSearch} type="button">
             Clear Search
           </button>
         </div>
@@ -354,45 +389,37 @@ const AutoLinkCommentaryTool = () => {
       {/* No results message */}
       {searched && !loading && indices.length === 0 && (
         <div className="noResults">
-          <strong>No commentaries found with version "{vtitle}"</strong>
-          This tool only finds texts with " on " in their title (e.g., "Rashi on Genesis").
-          Verify the version title is correct and contains commentary texts.
+          <strong>No commentaries found with version &quot;{vtitle}&quot;</strong>
+          This tool only finds texts with &quot; on &quot; in their title (e.g., &quot;Rashi on Genesis&quot;). Verify
+          the version title is correct and contains commentary texts.
         </div>
       )}
 
       {/* Index selector */}
       {indices.length > 0 && (
         <>
-          <IndexSelector
-            indices={indices}
-            selectedIndices={pick}
-            onSelectionChange={setPick}
-            label="commentaries"
-          />
+          <IndexSelector indices={indices} selectedIndices={pick} onSelectionChange={setPick} label="commentaries" />
 
           {/* Mapping selector */}
           <div className="optionRow">
             <label>base_text_mapping:</label>
-            <select
-              className="dlVersionSelect"
-              value={mapping}
-              onChange={e => setMapping(e.target.value)}
-            >
-              {BASE_TEXT_MAPPING_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <select className="dlVersionSelect" value={mapping} onChange={(e) => setMapping(e.target.value)}>
+              {BASE_TEXT_MAPPING_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
             </select>
           </div>
 
           {/* Action button */}
           <div className="actionRow">
-            <button
-              className="modtoolsButton"
-              disabled={!pick.size || linking}
-              onClick={createLinks}
-            >
+            <button className="modtoolsButton" disabled={!pick.size || linking} onClick={createLinks}>
               {linking ? (
-                <><span className="loadingSpinner" />Creating Links...</>
+                <>
+                  <span className="loadingSpinner" />
+                  Creating Links...
+                </>
               ) : (
                 `Create Links for ${pick.size} Commentaries`
               )}

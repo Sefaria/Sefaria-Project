@@ -1,8 +1,8 @@
 import base64
-from django.contrib.admin.views.decorators import staff_member_required
 from functools import wraps
-from django.conf import settings
 
+from django.conf import settings
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse
 
 
@@ -12,7 +12,7 @@ def webhook_auth_or_staff_required(view_func):
         auth_header = request.headers.get("authorization")
 
         if not auth_header or not auth_header.startswith("Basic "):
-            return staff_member_required(view_func, login_url='/login')(request, *args, **kwargs)
+            return staff_member_required(view_func, login_url="/login")(request, *args, **kwargs)
 
         try:
             encoded_credentials = auth_header.split(" ")[1]
@@ -25,5 +25,5 @@ def webhook_auth_or_staff_required(view_func):
             return HttpResponse("Invalid credentials", status=401)
 
         return view_func(request, *args, **kwargs)
-    return _wrapped_view
 
+    return _wrapped_view

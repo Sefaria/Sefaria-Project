@@ -41,7 +41,11 @@ import SearchAnalytics from '../sefaria/searchAnalytics';
 
 // BreadcrumbPath measures itself with a ResizeObserver, which jsdom does not implement.
 // Nothing here depends on the truncation it drives, so a no-op stub is enough.
-global.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+global.ResizeObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
 
 let container = null;
 
@@ -50,11 +54,13 @@ const CARD_PROPS = {
   tref: 'Genesis 44:1',
   href: '/Genesis.44.1',
   query: 'joseph',
-  analyticsPosition: 3,          // opting the card into analytics; without it it stays silent
+  analyticsPosition: 3, // opting the card into analytics; without it it stays silent
   snippet: 'and he commanded',
   versionName: 'The Koren Jerusalem Bible',
-  crumbs: [{ label: 'Tanakh', href: '/texts/Tanakh' },
-           { label: 'Torah',  href: '/texts/Tanakh/Torah' }],
+  crumbs: [
+    { label: 'Tanakh', href: '/texts/Tanakh' },
+    { label: 'Torah', href: '/texts/Tanakh/Torah' },
+  ],
   secondaryAuthor: 'Rashi',
   secondaryAuthorHref: '/topics/rashi',
   onResultClick: () => {},
@@ -70,26 +76,29 @@ function mount(props = {}) {
 
 afterEach(() => {
   if (!container) return;
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
 });
 
 // Dispatch a real auxclick the way a browser does for the middle button. React listens for
 // auxclick natively, so this reaches onAuxClick through its normal delegation.
-const middleClick = (el) => act(() => {
-  el.dispatchEvent(new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 1 }));
-});
+const middleClick = (el) =>
+  act(() => {
+    el.dispatchEvent(new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 1 }));
+  });
 
-const leftClick = (el) => act(() => {
-  el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
-});
+const leftClick = (el) =>
+  act(() => {
+    el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+  });
 
 const titleLink = () => container.querySelector('a.searchResultCard-titleLink');
 // BreadcrumbPath renders the crumbs twice: an aria-hidden measurement copy (deliberately
 // given no link props) and the interactive copy. Scope to the interactive one.
-const crumbLink = () =>
-  container.querySelector('.searchResultCard-breadcrumbs-inner a.searchResultCard-crumb--link');
+const crumbLink = () => container.querySelector('.searchResultCard-breadcrumbs-inner a.searchResultCard-crumb--link');
 const measureCopyCrumbLink = () =>
   container.querySelector('.searchResultCard-breadcrumbs-measure a.searchResultCard-crumb--link');
 const authorLink = () => container.querySelector('a[href="/topics/rashi"]');
@@ -98,7 +107,7 @@ let elementClicked, endFlow;
 beforeEach(() => {
   // Spy on the analytics seam rather than on gtag, so these tests describe the card's
   // behaviour and stay independent of how the events are shaped.
-  SearchAnalytics._flow = { flowId: 'flow-1' };   // a flow must be active or everything no-ops
+  SearchAnalytics._flow = { flowId: 'flow-1' }; // a flow must be active or everything no-ops
   SearchAnalytics._query = null;
   elementClicked = jest.spyOn(SearchAnalytics, 'elementClicked').mockImplementation(() => {});
   endFlow = jest.spyOn(SearchAnalytics, 'endFlow').mockImplementation(() => {});
@@ -116,11 +125,13 @@ describe('middle-clicking a result', () => {
     middleClick(titleLink());
 
     expect(elementClicked).toHaveBeenCalledTimes(1);
-    expect(elementClicked).toHaveBeenCalledWith(expect.objectContaining({
-      elementType: 'result',
-      elementValue: 'Genesis 44:1',
-      resultPosition: 3,
-    }));
+    expect(elementClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        elementType: 'result',
+        elementValue: 'Genesis 44:1',
+        resultPosition: 3,
+      })
+    );
   });
 
   test('does NOT end the flow -- the user is still on the search page', () => {

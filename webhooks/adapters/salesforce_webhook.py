@@ -19,7 +19,11 @@ from typing import assert_never
 
 from django.conf import settings
 
-from sefaria.donors.types import NormalizedEmailAddress, PersonAsIdentifiedBySalesforce, UserBecameDonorAccordingToSalesforce
+from sefaria.donors.types import (
+    NormalizedEmailAddress,
+    PersonAsIdentifiedBySalesforce,
+    UserBecameDonorAccordingToSalesforce,
+)
 from webhooks.webhook_source_adapter import (
     MalformedWebhookPayload,
     ParsedWebhookEvent,
@@ -41,42 +45,34 @@ class SalesforceWebhookEventType(Enum):
     USER_BECAME_DONOR = "UserBecameDonor"
 
 
-def verify_salesforce_request_secret(
-    raw_body: bytes, headers: Mapping[str, str]
-) -> None:
+def verify_salesforce_request_secret(raw_body: bytes, headers: Mapping[str, str]) -> None:
     # Must come first: hmac.compare_digest("", "") is True, so an unset secret compared with an
     # empty header would pass. Failing closed here prevents that.
     if not SALESFORCE_WEBHOOK_SECRET:
         raise WebhookSecretNotConfigured("SALESFORCE_WEBHOOK_SECRET")
     presented_secret = lowercase_header_names(headers).get(SECRET_HEADER_NAME, "")
-    if not hmac.compare_digest(
-        presented_secret.encode(), SALESFORCE_WEBHOOK_SECRET.encode()
-    ):
-        raise SignatureRejected()
+    if not hmac.compare_digest(presented_secret.encode(), SALESFORCE_WEBHOOK_SECRET.encode()):
+        raise SignatureRejected
 
 
-def parse_salesforce_payload(
-    raw_body: bytes, headers: Mapping[str, str]
-) -> ParsedWebhookEvent:
+def parse_salesforce_payload(raw_body: bytes, headers: Mapping[str, str]) -> ParsedWebhookEvent:
     try:
         payload = json.loads(raw_body)
     except (ValueError, UnicodeDecodeError):
-        raise MalformedWebhookPayload()
+        raise MalformedWebhookPayload
     match payload:
         case {"source": "salesforce", "eventType": str() as event_type_name}:
             try:
                 event_type = SalesforceWebhookEventType(event_type_name)
             except ValueError:
-                return WebhookEventIgnored(
-                    ReasonWebhookEventWasIgnored.UNHANDLED_EVENT_TYPE
-                )
+                return WebhookEventIgnored(ReasonWebhookEventWasIgnored.UNHANDLED_EVENT_TYPE)
             match event_type:
                 case SalesforceWebhookEventType.USER_BECAME_DONOR:
                     return _user_became_donor_event_from_payload(payload)
                 case unreachable:
                     assert_never(unreachable)
         case _:
-            raise MalformedWebhookPayload()
+            raise MalformedWebhookPayload
 
 
 def _user_became_donor_event_from_payload(payload: dict) -> ParsedWebhookEvent:
@@ -98,7 +94,7 @@ def _user_became_donor_event_from_payload(payload: dict) -> ParsedWebhookEvent:
                 or not _is_optional_int(classy_supporter_id)
                 or not _is_valid_optional_donation(payload.get("donation"))
             ):
-                raise MalformedWebhookPayload()
+                raise MalformedWebhookPayload
             return UserBecameDonorAccordingToSalesforce(
                 event_id_assigned_by_source=source_event_id,
                 occurred_at_according_to_source=occurred_at,
@@ -109,7 +105,7 @@ def _user_became_donor_event_from_payload(payload: dict) -> ParsedWebhookEvent:
                 ),
             )
         case _:
-            raise MalformedWebhookPayload()
+            raise MalformedWebhookPayload
 
 
 def _is_optional_int(value: object) -> bool:

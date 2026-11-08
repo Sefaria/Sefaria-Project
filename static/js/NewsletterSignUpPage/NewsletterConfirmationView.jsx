@@ -1,10 +1,10 @@
-import React from "react";
-import Sefaria from "../sefaria/sefaria";
-import { InterfaceText } from "../Misc";
-import { TEXT_KEYS } from "./textKeys";
-import { InterfaceTextWithSlots } from "./InterfaceTextWithSlots";
-import { FORM_STATUS } from "./stateSymbols";
-import LearningLevelSurvey from "./LearningLevelSurvey";
+import React from 'react';
+import Sefaria from '../sefaria/sefaria';
+import { InterfaceText } from '../Misc';
+import { TEXT_KEYS } from './textKeys';
+import { InterfaceTextWithSlots } from './InterfaceTextWithSlots';
+import { FORM_STATUS } from './stateSymbols';
+import LearningLevelSurvey from './LearningLevelSurvey';
 
 /**
  * Resolves a newsletter key (e.g., "general") to its bilingual display label.
@@ -14,7 +14,7 @@ function keyToDisplayLabel(newsletters, key) {
   const nl = newsletters.find((n) => n.key === key);
   if (!nl) return key;
   const { en, he } = nl.displayName;
-  return Sefaria.interfaceLang === "hebrew" ? he || en : en || he;
+  return Sefaria.interfaceLang === 'hebrew' ? he || en : en || he;
 }
 
 /**
@@ -58,19 +58,19 @@ function SubscriptionChangesSummary({ diffs, marketingOptOut, newsletters }) {
       {!marketingOptOut && (
         <>
           {added.length > 0 && (
-            <div data-anl-text={added.join(", ")}>
+            <div data-anl-text={added.join(', ')}>
               <p className="selectedLabel">
                 <InterfaceText>{TEXT_KEYS.SUBSCRIBED_TO}</InterfaceText>
               </p>
-              <p className="selectedList">{added.map((k) => keyToDisplayLabel(newsletters, k)).join(", ")}</p>
+              <p className="selectedList">{added.map((k) => keyToDisplayLabel(newsletters, k)).join(', ')}</p>
             </div>
           )}
           {removed.length > 0 && (
-            <div data-anl-text={removed.join(", ")}>
+            <div data-anl-text={removed.join(', ')}>
               <p className="selectedLabel">
                 <InterfaceText>{TEXT_KEYS.UNSUBSCRIBED_FROM}</InterfaceText>
               </p>
-              <p className="selectedList">{removed.map((k) => keyToDisplayLabel(newsletters, k)).join(", ")}</p>
+              <p className="selectedList">{removed.map((k) => keyToDisplayLabel(newsletters, k)).join(', ')}</p>
             </div>
           )}
         </>
@@ -131,16 +131,16 @@ export default function NewsletterConfirmationView({
   const selectedKeys = Object.entries(selectedNewsletters)
     .filter(([, isSelected]) => isSelected)
     .map(([key]) => key);
-  const selectedNewsletterKeys = selectedKeys.join(", ");
-  const selectedNewsletterLabels = selectedKeys.map((k) => keyToDisplayLabel(newsletters, k)).join(", ");
+  const selectedNewsletterKeys = selectedKeys.join(', ');
+  const selectedNewsletterLabels = selectedKeys.map((k) => keyToDisplayLabel(newsletters, k)).join(', ');
 
   return (
     <div
       className="newsletterConfirmationView"
       data-anl-event="newsletter_signup_success:scrollIntoView"
       data-anl-batch={JSON.stringify({
-        form_name: "newsletter_confirmation",
-        engagement_type: "success",
+        form_name: 'newsletter_confirmation',
+        engagement_type: 'success',
       })}
     >
       {/* SUCCESS ICON AND HEADING - Only show when NOT opting out of marketing */}
@@ -165,7 +165,8 @@ export default function NewsletterConfirmationView({
             */}
             {willReceiveConfirmationEmail ? (
               <p className="confirmationMessage">
-                <InterfaceTextWithSlots id={TEXT_KEYS.CONFIRMATION_SENT} slots={{ email: <strong>{email}</strong> }} /><br />
+                <InterfaceTextWithSlots id={TEXT_KEYS.CONFIRMATION_SENT} slots={{ email: <strong>{email}</strong> }} />
+                <br />
                 <InterfaceText>{TEXT_KEYS.SHOULD_SEE_SOON}</InterfaceText>
               </p>
             ) : (
