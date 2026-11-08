@@ -15,10 +15,7 @@ const AUTH_NOTICES = {
 
 const AuthNotice = ({ kind }) => (
   <p className="sefaria-auth-notice">
-    {/* Lucide info, 18px */}
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-      <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
-    </svg>
+    {/* No icon (Penina, 2026-11-08). */}
     <span>
       <strong><InterfaceText text={AUTH_NOTICES[kind].title} /></strong>{' '}
       <InterfaceText text={AUTH_NOTICES[kind].body} />

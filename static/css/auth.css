@@ -326,11 +326,6 @@
   color: #121212;
   text-align: start;
 }
-.sefaria-auth-notice svg {
-  flex: 0 0 18px;
-  margin-top: 1px;
-  color: #575757;
-}
 .sefaria-auth-notice strong {
   font-weight: 500;
 }
