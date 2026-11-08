@@ -10,20 +10,19 @@ from ne_span import NEDoc
 from ne_span.ne_span import LABEL_TO_NAMED_ENTITY_TYPE_ATTR, LABEL_TO_REF_PART_TYPE_ATTR
 
 from sefaria import tracker
-from sefaria.model import Ref, Link, library
+from sefaria.helper.linker.tasks import LinkingArgs, _span_refs, enqueue_linking_chain
+from sefaria.model import Link, Ref, library
+from sefaria.model.linker.linker_entity_recognizer import get_linker_normalizer
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, RefPartType, TermContext
 from sefaria.model.linker.ref_resolver import AmbiguousResolvedRef, ResolutionThoroughness
-from sefaria.model.linker.linker_entity_recognizer import get_linker_normalizer
 from sefaria.model.linker_dataset_example import LinkerDatasetExample
 from sefaria.model.marked_up_text_chunk import LinkerOutput, MarkedUpTextChunk, MUTCSpanType
 from sefaria.model.text import TextChunk
 from sefaria.system.exceptions import InputError
-from sefaria.helper.linker.tasks import LinkingArgs, enqueue_linking_chain, _span_refs
-
 
 REF_PART_TYPE_BY_NAME = {part_type.name: part_type for part_type in RefPartType}
 
-_HEBREW_CHAR_RE = re.compile(r'[֐-׿]')
+_HEBREW_CHAR_RE = re.compile(r"[֐-׿]")
 
 
 def _reverse_labels_by_lang(label_to_attr: dict) -> dict:
@@ -137,14 +136,16 @@ def _update_deleted_marker(payload: dict, deleted: bool, chunk) -> bool:
     return updated
 
 
-def _delete_generated_link(source_ref: str, target_refs: set[str], user_id: Optional[int]) -> bool:
+def _delete_generated_link(source_ref: str, target_refs: set[str], user_id: int | None) -> bool:
     # Callers pass already-normalized refs (see set_linker_citation_deleted).
     deleted = False
     for target_ref in target_refs:
-        link = Link().load({
-            "refs": {"$all": [source_ref, target_ref]},
-            "generated_by": "add_links_from_text",
-        })
+        link = Link().load(
+            {
+                "refs": {"$all": [source_ref, target_ref]},
+                "generated_by": "add_links_from_text",
+            }
+        )
         if not link:
             continue
         tracker.delete(user_id, Link, link._id)
@@ -152,21 +153,23 @@ def _delete_generated_link(source_ref: str, target_refs: set[str], user_id: Opti
     return deleted
 
 
-def rerun_linker_for_segment(payload: dict, user_id: Optional[int]) -> dict:
+def rerun_linker_for_segment(payload: dict, user_id: int | None) -> dict:
     ref = Ref(_required(payload, "ref")).normal()
     version_title = _required(payload, "versionTitle")
     lang = _required(payload, "lang")
     tc = TextChunk(Ref(ref), lang=lang, vtitle=version_title)
     if not tc.text:
         raise InputError(f"No text found for {ref}, {lang}, {version_title}")
-    async_result = enqueue_linking_chain(LinkingArgs(
-        ref=ref,
-        text=tc.text,
-        lang=lang,
-        vtitle=version_title,
-        user_id=user_id,
-        kwargs={},
-    ))
+    async_result = enqueue_linking_chain(
+        LinkingArgs(
+            ref=ref,
+            text=tc.text,
+            lang=lang,
+            vtitle=version_title,
+            user_id=user_id,
+            kwargs={},
+        )
+    )
     return {
         "ok": True,
         "ref": ref,
@@ -176,7 +179,7 @@ def rerun_linker_for_segment(payload: dict, user_id: Optional[int]) -> dict:
     }
 
 
-def set_linker_citation_deleted(payload: dict, user_id: Optional[int], deleted: bool) -> dict:
+def set_linker_citation_deleted(payload: dict, user_id: int | None, deleted: bool) -> dict:
     normalized = {
         "ref": Ref(_required(payload, "ref")).normal(),
         "versionTitle": _required(payload, "versionTitle"),
@@ -261,7 +264,7 @@ def _serialize_part(part) -> dict:
     }
 
 
-def _serialize_node(node) -> Optional[dict]:
+def _serialize_node(node) -> dict | None:
     if node is None:
         return None
     try:
@@ -312,8 +315,10 @@ def parse_linker_citation_sync(payload: dict, timeout: int = 20) -> dict:
     if not isinstance(payload, dict) or not payload.get("parts"):
         raise InputError("Missing required field: parts")
     from celery.exceptions import TimeoutError as CeleryTimeoutError
-    from sefaria.helper.linker.tasks import parse_linker_citation_task
+
     from sefaria.celery_setup.config import CeleryQueue
+    from sefaria.helper.linker.tasks import parse_linker_citation_task
+
     async_result = parse_linker_citation_task.apply_async(args=(payload,), queue=CeleryQueue.TASKS.value)
     try:
         return async_result.get(timeout=timeout)
@@ -364,8 +369,10 @@ def parse_linker_citation(payload: dict) -> dict:
 # Dataset example capture ("+ Ref Dataset" / "+ Ref Part Dataset" buttons)
 # ---------------------------------------------------------------------------
 
-def _upsert_dataset_example(example_type: str, text: str, entities: list, ref: str, lang: str,
-                            version_title: str, user_id: Optional[int]) -> dict:
+
+def _upsert_dataset_example(
+    example_type: str, text: str, entities: list, ref: str, lang: str, version_title: str, user_id: int | None
+) -> dict:
     """
     Store (or overwrite) one gold training example. Uniqueness is (type, ref, text) so
     re-clicking a button refreshes the labels rather than creating duplicates.
@@ -389,7 +396,7 @@ def _upsert_dataset_example(example_type: str, text: str, entities: list, ref: s
     }
 
 
-def add_ref_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
+def add_ref_dataset_example(payload: dict, user_id: int | None) -> dict:
     """
     Capture a named-entity ("ref") model training example for a whole segment: the normalized
     segment text plus every non-deleted citation/person span from the current linker output.
@@ -520,7 +527,7 @@ def _locate_ref_part_entities(normalized_citation: str, span: dict, normalizer, 
     return entities
 
 
-def add_ref_part_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
+def add_ref_part_dataset_example(payload: dict, user_id: int | None) -> dict:
     """
     Capture a "ref part" model training example for a single citation: the normalized citation
     text plus its ref parts (offsets relative to the citation text). `ref` is the segment ref.
@@ -536,7 +543,8 @@ def add_ref_part_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
 
     span = next(
         (
-            s for s in chunk.spans
+            s
+            for s in chunk.spans
             if s.get("type") == MUTCSpanType.CITATION.value
             and s.get("charRange") == char_range
             and not s.get("deleted")

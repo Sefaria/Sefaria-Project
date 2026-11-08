@@ -7,18 +7,18 @@ A complete inventory of every Sefaria API endpoint and the decision on whether t
 
 ## Summary
 
-| Bucket | Count |
-|---|---|
-| Already documented in `openAPI.json` | 30 |
-| Newly added in the 2026-05 documentation pass | 28 |
-| Skipped — login-required (per-user data) | ~38 |
-| Skipped — staff-only (admin / moderation) | ~22 |
-| Skipped — internal infrastructure | ~8 |
-| Skipped — auth flow (login / register / JWT) | 4 |
-| Skipped — forms / telemetry / subscribe | 5 |
-| Skipped — duplicates or version-status helpers | ~12 |
-| Skipped — broken / unreliable | 3 |
-| **Total** | **~152** |
+| Bucket                                         | Count    |
+| ---------------------------------------------- | -------- |
+| Already documented in `openAPI.json`           | 30       |
+| Newly added in the 2026-05 documentation pass  | 28       |
+| Skipped — login-required (per-user data)       | ~38      |
+| Skipped — staff-only (admin / moderation)      | ~22      |
+| Skipped — internal infrastructure              | ~8       |
+| Skipped — auth flow (login / register / JWT)   | 4        |
+| Skipped — forms / telemetry / subscribe        | 5        |
+| Skipped — duplicates or version-status helpers | ~12      |
+| Skipped — broken / unreliable                  | 3        |
+| **Total**                                      | **~152** |
 
 (Counts use ~ because a few endpoints serve multiple regex patterns; the totals jiggle by 1–3 depending on how you count.)
 
@@ -37,109 +37,109 @@ When a future engineer adds a new endpoint, the rubric above is the contract: if
 
 ## In scope — newly documented (29 endpoints)
 
-All endpoints are served from `https://www.sefaria.org`. Sheets are *viewed* at `voices.sefaria.org`, but their API endpoints live at `www.sefaria.org` like everything else.
+All endpoints are served from `https://www.sefaria.org`. Sheets are _viewed_ at `voices.sefaria.org`, but their API endpoints live at `www.sefaria.org` like everything else.
 
 ### Sheets (11)
 
-| Endpoint | Description | Notes |
-|---|---|---|
-| `GET /api/sheets/{sheet_id}` | Fetch a single sheet by ID. | sheet_id lookup recipe |
-| `GET /api/sheets/modified/{sheet_id}/{timestamp}` | Check whether a sheet has been modified since a timestamp. | sheet_id lookup recipe |
-| `GET /api/sheets/user/{user_id}` | List a user's public sheets. | Split path; user_id recipe; public-only caveat |
-| `GET /api/sheets/user/{user_id}/{sort_by}/{limiter}/{offset}` | Same, paginated and sorted. | Same as above |
-| `GET /api/v2/sheets/bulk/{sheet_id_list}` | Fetch many sheets at once via piped ID list. | sheet_id recipe |
-| `GET /api/sheets/trending-tags` | Currently trending sheet tags. | — |
-| `GET /api/sheets/tag-list` | All sheet tags, sorted by count. | — |
-| `GET /api/sheets/tag-list/{sort_by}` | All sheet tags with chosen sort order. | — |
-| `GET /api/sheets/tag-list/user/{user_id}` | Tags used on a specific user's sheets. | user_id recipe |
-| `GET /api/sheets/ref/{ref}` | Public sheets that cite a given ref. | — |
-| `GET /api/sheets/all-sheets/{limiter}/{offset}` | Paginated list of all public sheets. | — |
+| Endpoint                                                      | Description                                                | Notes                                          |
+| ------------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------- |
+| `GET /api/sheets/{sheet_id}`                                  | Fetch a single sheet by ID.                                | sheet_id lookup recipe                         |
+| `GET /api/sheets/modified/{sheet_id}/{timestamp}`             | Check whether a sheet has been modified since a timestamp. | sheet_id lookup recipe                         |
+| `GET /api/sheets/user/{user_id}`                              | List a user's public sheets.                               | Split path; user_id recipe; public-only caveat |
+| `GET /api/sheets/user/{user_id}/{sort_by}/{limiter}/{offset}` | Same, paginated and sorted.                                | Same as above                                  |
+| `GET /api/v2/sheets/bulk/{sheet_id_list}`                     | Fetch many sheets at once via piped ID list.               | sheet_id recipe                                |
+| `GET /api/sheets/trending-tags`                               | Currently trending sheet tags.                             | —                                              |
+| `GET /api/sheets/tag-list`                                    | All sheet tags, sorted by count.                           | —                                              |
+| `GET /api/sheets/tag-list/{sort_by}`                          | All sheet tags with chosen sort order.                     | —                                              |
+| `GET /api/sheets/tag-list/user/{user_id}`                     | Tags used on a specific user's sheets.                     | user_id recipe                                 |
+| `GET /api/sheets/ref/{ref}`                                   | Public sheets that cite a given ref.                       | —                                              |
+| `GET /api/sheets/all-sheets/{limiter}/{offset}`               | Paginated list of all public sheets.                       | —                                              |
 
 ### Collections (3)
 
-| Endpoint | Description | Notes |
-|---|---|---|
-| `GET /api/collections` | List collections. | Unauthenticated shape; logged-in users see more |
-| `GET /api/collections/{slug}` | Fetch a single collection. | Unauthenticated shape; logged-in users see more |
-| `GET /api/collections/user-collections/{user_id}` | List a user's collections. | user_id recipe |
+| Endpoint                                          | Description                | Notes                                           |
+| ------------------------------------------------- | -------------------------- | ----------------------------------------------- |
+| `GET /api/collections`                            | List collections.          | Unauthenticated shape; logged-in users see more |
+| `GET /api/collections/{slug}`                     | Fetch a single collection. | Unauthenticated shape; logged-in users see more |
+| `GET /api/collections/user-collections/{user_id}` | List a user's collections. | user_id recipe                                  |
 
 ### Text (2)
 
-| Endpoint | Description |
-|---|---|
+| Endpoint                   | Description                                  |
+| -------------------------- | -------------------------------------------- |
 | `GET /api/bulktext/{refs}` | Text for many refs at once (pipe-delimited). |
-| `GET /api/passages/{refs}` | Contiguous passages for refs. |
+| `GET /api/passages/{refs}` | Contiguous passages for refs.                |
 
 (`GET /api/texts/parashat_hashavua` was originally in scope but moved to "broken / unreliable" — see below — after consistent 504s during capture on 2026-05-05.)
 
 ### Index (7, including Authors fold-in)
 
-| Endpoint | Description |
-|---|---|
-| `GET /api/index/titles` | All index titles. |
-| `GET /api/index/{title}` | Index metadata. |
-| `GET /api/v2/index/{title}` | v2 index metadata. |
-| `GET /api/counts/{title}` | Word/segment counts for a title. |
-| `GET /api/counts/links/{cat1}/{cat2}` | Link counts between two categories. |
-| `GET /api/counts/words/{title}/{version}/{language}` | Word counts for a specific version. |
-| `GET /api/authors/{author_slug}/indexes` | List of indexes by an author. (author_slug lookup recipe.) |
+| Endpoint                                             | Description                                                |
+| ---------------------------------------------------- | ---------------------------------------------------------- |
+| `GET /api/index/titles`                              | All index titles.                                          |
+| `GET /api/index/{title}`                             | Index metadata.                                            |
+| `GET /api/v2/index/{title}`                          | v2 index metadata.                                         |
+| `GET /api/counts/{title}`                            | Word/segment counts for a title.                           |
+| `GET /api/counts/links/{cat1}/{cat2}`                | Link counts between two categories.                        |
+| `GET /api/counts/words/{title}/{version}/{language}` | Word counts for a specific version.                        |
+| `GET /api/authors/{author_slug}/indexes`             | List of indexes by an author. (author_slug lookup recipe.) |
 
 ### Related (1)
 
-| Endpoint | Description |
-|---|---|
+| Endpoint                      | Description                   |
+| ----------------------------- | ----------------------------- |
 | `GET /api/link-summary/{ref}` | Summary of links by category. |
 
 ### Calendars (3)
 
-| Endpoint | Description | Notes |
-|---|---|---|
-| `GET /api/calendars/topics/parasha` | Topic info for current parasha. | — |
-| `GET /api/calendars/topics/holiday` | Topic info for current holiday. | Returns 404 when no holiday is active; example uses a fixed canonical holiday date |
-| `GET /api/sheets/{parasha}/get_aliyot` | Aliyot ranges for a parasha. | Moved to Calendars tag (URL is under /api/sheets/ for historical reasons) |
+| Endpoint                               | Description                     | Notes                                                                              |
+| -------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------- |
+| `GET /api/calendars/topics/parasha`    | Topic info for current parasha. | —                                                                                  |
+| `GET /api/calendars/topics/holiday`    | Topic info for current holiday. | Returns 404 when no holiday is active; example uses a fixed canonical holiday date |
+| `GET /api/sheets/{parasha}/get_aliyot` | Aliyot ranges for a parasha.    | Moved to Calendars tag (URL is under /api/sheets/ for historical reasons)          |
 
 ### Misc (1, including Profile fold-in)
 
-| Endpoint | Description |
-|---|---|
+| Endpoint                  | Description             |
+| ------------------------- | ----------------------- |
 | `GET /api/profile/{slug}` | Public profile by slug. |
 
 ## Already documented (30 endpoints)
 
 These are present in `openAPI.json` as of 2026-05-04. No re-work in this pass; new entries will reuse their tags and component schemas where possible.
 
-| Endpoint | Tag |
-|---|---|
-| `GET /api/v3/texts/{tref}` | Text |
-| `GET /api/texts/{tref}` | Text |
-| `GET /api/texts/versions/{index}` | Text |
-| `GET /api/texts/translations` | Text |
-| `GET /api/texts/translations/{lang}` | Text |
-| `GET /api/texts/random` | Text |
-| `GET /api/texts/random-by-topic` | Text |
-| `GET /api/index` | Index |
-| `GET /api/v2/raw/index/{index_title}` | Index |
-| `GET /api/shape/{title}` | Index |
-| `GET /api/links/{tref}` | Related |
-| `GET /api/related/{tref}` | Related |
-| `GET /api/related/{tref}/websites` | Related |
-| `GET /api/manuscripts/{tref}` | Related |
-| `GET /api/img-gen/{tref}` | Related |
-| `GET /api/calendars` | Calendars |
-| `GET /api/calendars/next-read/{parasha}` | Calendars |
-| `GET /api/words/{word}` | Lexicon |
-| `GET /api/words/completion/{word}/{lexicon}` | Lexicon |
-| `GET /api/topics` | Topic |
-| `GET /api/topics/{topic_slug}` | Topic |
-| `GET /api/v2/topics/{topic_slug}` | Topic |
-| `GET /api/topics-graph/{topic_slug}` | Topic |
-| `GET /api/ref-topic-links/{tref}` | Topic |
-| `GET /api/recommend/topics/{ref_list}` | Topic |
-| `GET /api/terms/{name}` | Term |
-| `GET /api/category/{category_path}` | Misc |
-| `GET /api/name/{name}` | Misc |
-| `POST /api/find-refs` | Misc |
-| `POST /api/search-wrapper` | Misc |
+| Endpoint                                     | Tag       |
+| -------------------------------------------- | --------- |
+| `GET /api/v3/texts/{tref}`                   | Text      |
+| `GET /api/texts/{tref}`                      | Text      |
+| `GET /api/texts/versions/{index}`            | Text      |
+| `GET /api/texts/translations`                | Text      |
+| `GET /api/texts/translations/{lang}`         | Text      |
+| `GET /api/texts/random`                      | Text      |
+| `GET /api/texts/random-by-topic`             | Text      |
+| `GET /api/index`                             | Index     |
+| `GET /api/v2/raw/index/{index_title}`        | Index     |
+| `GET /api/shape/{title}`                     | Index     |
+| `GET /api/links/{tref}`                      | Related   |
+| `GET /api/related/{tref}`                    | Related   |
+| `GET /api/related/{tref}/websites`           | Related   |
+| `GET /api/manuscripts/{tref}`                | Related   |
+| `GET /api/img-gen/{tref}`                    | Related   |
+| `GET /api/calendars`                         | Calendars |
+| `GET /api/calendars/next-read/{parasha}`     | Calendars |
+| `GET /api/words/{word}`                      | Lexicon   |
+| `GET /api/words/completion/{word}/{lexicon}` | Lexicon   |
+| `GET /api/topics`                            | Topic     |
+| `GET /api/topics/{topic_slug}`               | Topic     |
+| `GET /api/v2/topics/{topic_slug}`            | Topic     |
+| `GET /api/topics-graph/{topic_slug}`         | Topic     |
+| `GET /api/ref-topic-links/{tref}`            | Topic     |
+| `GET /api/recommend/topics/{ref_list}`       | Topic     |
+| `GET /api/terms/{name}`                      | Term      |
+| `GET /api/category/{category_path}`          | Misc      |
+| `GET /api/name/{name}`                       | Misc      |
+| `POST /api/find-refs`                        | Misc      |
+| `POST /api/search-wrapper`                   | Misc      |
 
 ## Out of scope — login required (per-user data)
 
@@ -235,15 +235,15 @@ Returned 504 Gateway Timeout under normal load when verified live. Should be rev
 
 Endpoints group into the following sidebar folders (= OpenAPI `tags`):
 
-| Tag | Endpoint count | Net change |
-|---|---|---|
-| Text | 9 | +2 |
-| Index | 10 | +7 (incl. Authors fold-in) |
-| Related | 5 | +1 |
-| Calendars | 5 | +3 (incl. Aliyot fold-in) |
-| Lexicon | 3 | unchanged |
-| Topic | 5 | unchanged |
-| Term | 1 | unchanged |
-| Sheets *(new)* | 11 | +11 |
-| Collections *(new)* | 3 | +3 |
-| Misc | 7 | +1 (Profile fold-in) |
+| Tag                 | Endpoint count | Net change                 |
+| ------------------- | -------------- | -------------------------- |
+| Text                | 9              | +2                         |
+| Index               | 10             | +7 (incl. Authors fold-in) |
+| Related             | 5              | +1                         |
+| Calendars           | 5              | +3 (incl. Aliyot fold-in)  |
+| Lexicon             | 3              | unchanged                  |
+| Topic               | 5              | unchanged                  |
+| Term                | 1              | unchanged                  |
+| Sheets _(new)_      | 11             | +11                        |
+| Collections _(new)_ | 3              | +3                         |
+| Misc                | 7              | +1 (Profile fold-in)       |

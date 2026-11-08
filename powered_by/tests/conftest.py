@@ -7,6 +7,7 @@ fails its foreign key. So before each database test this fixture re-runs the sam
 uses. It is idempotent. It seeds only the aliases the test may use (a test that allows no `default`
 is left alone) and skips an alias while its tables do not exist (the migration tests drop and rebuild them).
 """
+
 import importlib
 
 import pytest
@@ -43,7 +44,9 @@ def _permitted_aliases(request):
     if marker is not None and "databases" in marker.kwargs:
         declared = marker.kwargs["databases"]
     else:
-        declared = getattr(request.instance, "databases", None) if isinstance(request.instance, TransactionTestCase) else None
+        declared = (
+            getattr(request.instance, "databases", None) if isinstance(request.instance, TransactionTestCase) else None
+        )
         if declared is None:
             declared = {"default"}
     if declared == "__all__" or declared is True:
@@ -72,4 +75,4 @@ def seed_api_tiers_before_each_test(request, django_db_blocker):
             for alias in sorted(_permitted_aliases(request)):
                 if alias in connections and "api_tier" in connections[alias].introspection.table_names():
                     SEED.seed_api_tiers(apps, using=alias)
-    yield
+    return

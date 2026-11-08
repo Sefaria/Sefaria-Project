@@ -46,10 +46,13 @@ class _DistinctQueues(Enum):
 
 def test_find_refs_api_enqueues_on_find_refs_queue_with_expiry():
     from sefaria import views
-    post_data = {'text': {'title': 'title', 'body': 'body'}, 'version_preferences_by_corpus': {}}
-    request = RequestFactory().post('/api/find-refs', data=json.dumps(post_data), content_type='application/json')
-    with patch("sefaria.helper.linker.tasks.find_refs_api_task") as task, \
-            patch.object(views, "CeleryQueue", _DistinctQueues):
+
+    post_data = {"text": {"title": "title", "body": "body"}, "version_preferences_by_corpus": {}}
+    request = RequestFactory().post("/api/find-refs", data=json.dumps(post_data), content_type="application/json")
+    with (
+        patch("sefaria.helper.linker.tasks.find_refs_api_task") as task,
+        patch.object(views, "CeleryQueue", _DistinctQueues),
+    ):
         task.apply_async.return_value.id = "task-id"
         response = views.find_refs_api(request)
 

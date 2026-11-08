@@ -8,6 +8,7 @@ Powered by row or touching last_used_at sends nothing.
 The auth service rejects a load with an origins value that is not an array, so a check keeps such
 a row from ever being written. Postgres only; elsewhere (SQLite in local development) this migration does nothing.
 """
+
 from django.db import migrations
 
 
@@ -57,7 +58,6 @@ def drop_triggers(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("powered_by", "0003_developer_settings"),
     ]

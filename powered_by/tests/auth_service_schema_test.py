@@ -7,6 +7,7 @@ triggers. Postgres only.
 Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry
 the `failing` marker, so the default CI run (-m "not failing") leaves them out.
 """
+
 import re
 import unittest
 from pathlib import Path
@@ -28,30 +29,44 @@ def normalise(sql):
 def describe(cursor, schema):
     """The parts of the schema the auth service depends on, in a comparable shape."""
     cursor.execute("SET LOCAL search_path TO " + schema)
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT table_name, column_name, data_type, character_maximum_length, is_nullable, column_default
         FROM information_schema.columns WHERE table_schema = %s AND table_name = ANY(%s)
-    """, [schema, list(TABLES)])
-    columns = {(t, c): {"type": dt, "length": length, "nullable": nullable, "default": default}
-               for t, c, dt, length, nullable, default in cursor.fetchall()}
-    cursor.execute("""
+    """,
+        [schema, list(TABLES)],
+    )
+    columns = {
+        (t, c): {"type": dt, "length": length, "nullable": nullable, "default": default}
+        for t, c, dt, length, nullable, default in cursor.fetchall()
+    }
+    cursor.execute(
+        """
         SELECT rel.relname, pg_get_constraintdef(con.oid)
         FROM pg_constraint con JOIN pg_class rel ON rel.oid = con.conrelid
         JOIN pg_namespace ns ON ns.oid = rel.relnamespace
         WHERE ns.nspname = %s AND rel.relname = ANY(%s) AND con.contype = 'c'
-    """, [schema, list(TABLES)])
+    """,
+        [schema, list(TABLES)],
+    )
     checks = {(t, normalise(d)) for t, d in cursor.fetchall()}
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT tg.tgname, pg_get_triggerdef(tg.oid)
         FROM pg_trigger tg JOIN pg_class rel ON rel.oid = tg.tgrelid
         JOIN pg_namespace ns ON ns.oid = rel.relnamespace
         WHERE ns.nspname = %s AND rel.relname = ANY(%s) AND NOT tg.tgisinternal
-    """, [schema, list(TABLES)])
+    """,
+        [schema, list(TABLES)],
+    )
     triggers = {name: normalise(definition.replace(schema + ".", "")) for name, definition in cursor.fetchall()}
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT p.prosrc FROM pg_proc p JOIN pg_namespace ns ON ns.oid = p.pronamespace
         WHERE ns.nspname = %s AND p.proname = 'apikeys_notify'
-    """, [schema])
+    """,
+        [schema],
+    )
     function = [normalise(src) for (src,) in cursor.fetchall()]
     return {"columns": columns, "checks": checks, "triggers": triggers, "function": function}
 
@@ -82,8 +97,9 @@ class AuthServiceFixtureSchemaTest(TestCase):
 
     def test_N_E7_the_key_table_has_the_same_columns(self):
         fixture = self.fixture_columns("powered_by_apikey")
-        django = self.django_columns("powered_by_apikey", set(fixture) | {
-            c for (t, c) in self.django["columns"] if t == "powered_by_apikey"})
+        django = self.django_columns(
+            "powered_by_apikey", set(fixture) | {c for (t, c) in self.django["columns"] if t == "powered_by_apikey"}
+        )
 
         self.assertEqual(self.without_defaults(fixture), self.without_defaults(django))
 

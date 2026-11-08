@@ -3,6 +3,7 @@ C9: with DEVELOPER_SETTINGS_ENABLED off, every developer settings route in urls_
 logged in or not and for any method, even with the test controls switched on. Every method and
 login state is checked by calling the resolved view; each route also gets one full request.
 """
+
 import re
 
 import pytest
@@ -34,15 +35,24 @@ def concrete_urls(pattern):
     return ["/" + url for url in urls]
 
 
-GATED_URLS = sorted({url for p in urls_library.urlpatterns if GATED_ROUTE.search(str(p.pattern))
-                     for url in concrete_urls(p)})
+GATED_URLS = sorted(
+    {url for p in urls_library.urlpatterns if GATED_ROUTE.search(str(p.pattern)) for url in concrete_urls(p)}
+)
 
 
 def test_C9_the_route_list_covers_every_developer_surface():
-    for expected in ("/settings/developer", "/settings/developer/projects/1", "/settings/developer/confirm-email/1",
-                     "/settings/developer/email-confirmed", "/api/developer/state", "/api/developer/mock",
-                     "/api/developer/listings/1/claim", "/api/developer/listings/1/dismiss", "/powered-by/form",
-                     "/api/developer-poc/powered-by-submissions"):
+    for expected in (
+        "/settings/developer",
+        "/settings/developer/projects/1",
+        "/settings/developer/confirm-email/1",
+        "/settings/developer/email-confirmed",
+        "/api/developer/state",
+        "/api/developer/mock",
+        "/api/developer/listings/1/claim",
+        "/api/developer/listings/1/dismiss",
+        "/powered-by/form",
+        "/api/developer-poc/powered-by-submissions",
+    ):
         assert expected in GATED_URLS
 
 

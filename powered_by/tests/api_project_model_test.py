@@ -3,6 +3,7 @@ ApiProject, ApiTier and ApiTierMeterLimit (migration 0006): the database refuses
 API project for one profile, an unknown tier, and a deleted owner leaves the project in place
 with no owner. The three tiers are seeded by the migration.
 """
+
 from django.contrib.auth.models import User
 from django.db import IntegrityError, connection, transaction
 from django.test import TestCase
@@ -16,7 +17,8 @@ class ApiProjectModelTest(TestCase):
 
     def setUp(self):
         self.profile = Project.objects.create(
-            submission_source=SubmissionSource.MANUAL, project_name="Profile", is_published=False)
+            submission_source=SubmissionSource.MANUAL, project_name="Profile", is_published=False
+        )
 
     def test_second_live_api_project_for_a_profile_is_refused(self):
         ApiProject.objects.create(profile=self.profile)
@@ -55,5 +57,4 @@ class ApiProjectModelTest(TestCase):
         self.assertTrue({"developer", "partner", "internal"} <= slugs)
         for slug in ("developer", "partner", "internal"):
             with self.subTest(tier=slug):
-                self.assertTrue(
-                    ApiTierMeterLimit.objects.filter(tier_id=slug, meter="semantic").exists())
+                self.assertTrue(ApiTierMeterLimit.objects.filter(tier_id=slug, meter="semantic").exists())

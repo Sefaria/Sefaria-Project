@@ -15,7 +15,17 @@ import { InterfaceText } from '../Misc.jsx';
  * @param description  helper text under the label (keyed string ID or node)
  * @param error        error message (keyed string ID or node)
  */
-const Checkbox = ({ id, checked, onChange, label, description = null, error = null, disabled = false, required = false, ...rest }) => {
+const Checkbox = ({
+  id,
+  checked,
+  onChange,
+  label,
+  description = null,
+  error = null,
+  disabled = false,
+  required = false,
+  ...rest
+}) => {
   const descriptionId = description ? `${id}-description` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const describedBy = [descriptionId, errorId].filter(Boolean).join(' ') || undefined;
@@ -23,7 +33,9 @@ const Checkbox = ({ id, checked, onChange, label, description = null, error = nu
     'sefaria-checkbox',
     error ? 'sefaria-checkbox--error' : '',
     disabled ? 'sefaria-checkbox--disabled' : '',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
   const text = (node) => (typeof node === 'string' ? <InterfaceText>{node}</InterfaceText> : node);
 
   return (
@@ -43,17 +55,31 @@ const Checkbox = ({ id, checked, onChange, label, description = null, error = nu
             {...rest}
           />
           {/* Lucide square / square-check: the design system's checkbox-empty and checkbox-checked icons */}
-          <svg className="sefaria-checkbox-icon sefaria-checkbox-icon--off" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <svg
+            className="sefaria-checkbox-icon sefaria-checkbox-icon--off"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
             <rect width="18" height="18" x="3" y="3" rx="2" />
           </svg>
-          <svg className="sefaria-checkbox-icon sefaria-checkbox-icon--on" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <svg
+            className="sefaria-checkbox-icon sefaria-checkbox-icon--on"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
             <rect width="18" height="18" x="3" y="3" rx="2" />
             <path d="m16 9-5.5 5.5L8 12" />
           </svg>
         </span>
         <span className="sefaria-checkbox-label">{text(label)}</span>
       </label>
-      {description && <p className="sefaria-checkbox-description" id={descriptionId}>{text(description)}</p>}
+      {description && (
+        <p className="sefaria-checkbox-description" id={descriptionId}>
+          {text(description)}
+        </p>
+      )}
       {error && (
         <div className="sefaria-input-error sefaria-checkbox-error" id={errorId} role="alert">
           <img className="sefaria-input-errorIcon" src="/static/icons/info-error.svg" alt="" aria-hidden="true" />

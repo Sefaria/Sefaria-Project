@@ -16,44 +16,44 @@
 const PAGE_TYPE = Object.freeze({
   // Not a page: the wildcard an editor picks (and the default a missing/older document gets) to
   // mean "no page-type restriction" — the pre-feature behavior.
-  ALL_PAGES: "all_pages",
+  ALL_PAGES: 'all_pages',
 
-  HOMEPAGE: "homepage",
+  HOMEPAGE: 'homepage',
   // Any /texts/<category-path> browse page. This DELIBERATELY includes "collection TOCs" like
   // /texts/.../Jonathan Sacks/Covenant and Conversation: a collective work's grouping node and a
   // broad canon category are both plain Category records — same Mongo model, same TOC node shape,
   // same React component — so the client cannot tell them apart (decision 2026-08-31: fold them
   // together; target a specific collection with pageType category_toc + a keyword, e.g.
   // "covenant and conversation").
-  CATEGORY_TOC: "category_toc",
-  BOOK_TOC: "book_toc",
-  TOPIC_PAGE: "topic_page",
+  CATEGORY_TOC: 'category_toc',
+  BOOK_TOC: 'book_toc',
+  TOPIC_PAGE: 'topic_page',
   // A topic page whose topic is an author (backend AuthorTopic, e.g. /topics/samson-raphael-hirsch).
   // Distinguished from TOPIC_PAGE because the audience differs: someone on an author page is
   // browsing a corpus/person, not a theme.
-  AUTHOR_PAGE: "author_page",
+  AUTHOR_PAGE: 'author_page',
   // A topic page with a `portal_slug` (e.g. /topics/jonathan-sacks -> the 'sacks' portal):
   // TopicPage swaps in the sponsor-branded PortalNavSideBar, making it its own kind of page.
   // Classification is EXCLUSIVE (decision 2026-09-01): a portal page is portal_page and nothing
   // else — Sacks is also an author, but an author_page-targeted ad must not land on a
   // sponsor-branded page; editors target portals deliberately or not at all.
-  PORTAL_PAGE: "portal_page",
-  TOPIC_CATEGORY_TOC: "topic_category_toc",
-  TOPICS_LANDING: "topics_landing",
-  ALL_TOPICS: "all_topics",
-  CALENDARS: "calendars",
-  TRANSLATIONS: "translations",
-  COLLECTION_PAGE: "collection_page",
-  PUBLIC_COLLECTIONS: "public_collections",
-  USER_LIBRARY: "user_library",
-  NOTIFICATIONS: "notifications",
-  VOICES_HOME: "voices_home",
+  PORTAL_PAGE: 'portal_page',
+  TOPIC_CATEGORY_TOC: 'topic_category_toc',
+  TOPICS_LANDING: 'topics_landing',
+  ALL_TOPICS: 'all_topics',
+  CALENDARS: 'calendars',
+  TRANSLATIONS: 'translations',
+  COLLECTION_PAGE: 'collection_page',
+  PUBLIC_COLLECTIONS: 'public_collections',
+  USER_LIBRARY: 'user_library',
+  NOTIFICATIONS: 'notifications',
+  VOICES_HOME: 'voices_home',
 });
 
 // Stable console prefix (SKIPPED_ROWS_LOG pattern) so vocabulary drift between the Strapi
 // enumeration and this module is findable in a console or a test, instead of surfacing months
 // later as "why did that campaign get zero impressions".
-const UNKNOWN_PAGE_TYPE_LOG = "Unknown sidebar-ad pageType from Strapi (ad will match no page):";
+const UNKNOWN_PAGE_TYPE_LOG = 'Unknown sidebar-ad pageType from Strapi (ad will match no page):';
 
 const KNOWN_PAGE_TYPES = new Set(Object.values(PAGE_TYPE));
 
@@ -77,9 +77,9 @@ const normalizePageType = (rawPageType) => {
 // menuOpen names come from ReaderPanel.jsx's render branches; see classifyPanel for the values
 // that need more than a lookup.
 const MENU_TO_PAGE_TYPE = Object.freeze({
-  "book toc": PAGE_TYPE.BOOK_TOC,
+  'book toc': PAGE_TYPE.BOOK_TOC,
   // The same BookPage component repurposed for a book's editorial notes — still "about one book".
-  "extended notes": PAGE_TYPE.BOOK_TOC,
+  'extended notes': PAGE_TYPE.BOOK_TOC,
   allTopics: PAGE_TYPE.ALL_TOPICS,
   calendars: PAGE_TYPE.CALENDARS,
   translationsPage: PAGE_TYPE.TRANSLATIONS,
@@ -107,10 +107,10 @@ const MENU_TO_PAGE_TYPE = Object.freeze({
 //     (topicPageTypeOf below); until then the panel is deliberately unclassified.
 const classifyPanel = (panel) => {
   if (!panel?.menuOpen) return null;
-  if (panel.menuOpen === "navigation") {
+  if (panel.menuOpen === 'navigation') {
     return panel.navigationCategories?.length ? PAGE_TYPE.CATEGORY_TOC : PAGE_TYPE.HOMEPAGE;
   }
-  if (panel.menuOpen === "topics") {
+  if (panel.menuOpen === 'topics') {
     if (panel.navigationTopicCategory) return PAGE_TYPE.TOPIC_CATEGORY_TOC;
     if (panel.navigationTopic) return null; // TopicPage's pageTypeOverride is authoritative — see above
     return PAGE_TYPE.TOPICS_LANDING;
@@ -121,9 +121,7 @@ const classifyPanel = (panel) => {
 // All open panels -> the deduped set of page types in play, nulls dropped.
 // A union, mirroring how keywordTargets already merges all panels: an ad targeting book_toc shows
 // while a book TOC is open in ANY panel.
-const classifyPanels = (panels) => [
-  ...new Set((panels || []).map(classifyPanel).filter(Boolean)),
-];
+const classifyPanels = (panels) => [...new Set((panels || []).map(classifyPanel).filter(Boolean))];
 
 // Fetched topic data -> portal_page | author_page | topic_page.
 //
@@ -136,7 +134,7 @@ const classifyPanels = (panels) => [
 // author page.
 const topicPageTypeOf = (topicData) => {
   if (topicData?.portal_slug) return PAGE_TYPE.PORTAL_PAGE;
-  return topicData?.subclass === "author" ? PAGE_TYPE.AUTHOR_PAGE : PAGE_TYPE.TOPIC_PAGE;
+  return topicData?.subclass === 'author' ? PAGE_TYPE.AUTHOR_PAGE : PAGE_TYPE.TOPIC_PAGE;
 };
 
 // The matching gate Promotions ANDs in with the existing keyword/language/date/audience checks.
@@ -146,11 +144,4 @@ const topicPageTypeOf = (topicData) => {
 const adMatchesPageTypes = (adPageType, activePageTypes) =>
   adPageType === PAGE_TYPE.ALL_PAGES || (activePageTypes || []).includes(adPageType);
 
-export {
-  PAGE_TYPE,
-  normalizePageType,
-  classifyPanel,
-  classifyPanels,
-  topicPageTypeOf,
-  adMatchesPageTypes,
-};
+export { PAGE_TYPE, normalizePageType, classifyPanel, classifyPanels, topicPageTypeOf, adMatchesPageTypes };

@@ -1,19 +1,26 @@
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-mock_topics_pool = {'sheets_topic_only': ['sheets', 'general_en', 'torah_tab'],
- 'library_topic_only': ['library'],
- 'sheets_and_library_topic': ['library', 'sheets', 'general_en']}
+import pytest
+
+mock_topics_pool = {
+    "sheets_topic_only": ["sheets", "general_en", "torah_tab"],
+    "library_topic_only": ["library"],
+    "sheets_and_library_topic": ["library", "sheets", "general_en"],
+}
 
 
 def mock_get_pools(self):
     return mock_topics_pool.get(self.slug, [])
 
+
 patch("sefaria.model.topic.Topic.get_pools", mock_get_pools).start()
+
 
 def pytest_configure(config):
     import sys
+
     import django
+
     sys._called_from_test = True
     django.setup()
 
@@ -25,6 +32,7 @@ def pytest_configure(config):
     # are skipped separately. Remove this once pgvector is reachable in CI.
     from django.conf import settings as _dj_settings
     from django.db import connections as _dj_connections
+
     _dj_settings.DATABASES.pop("vector_db", None)
     # Bust the ConnectionHandler's cached settings so the popped alias is really gone.
     _dj_connections.__dict__.pop("settings", None)
@@ -34,6 +42,7 @@ def pytest_configure(config):
     # index iterates every linked ref and spawns varnishadm subprocesses,
     # hanging mutation tests for hours. Tests must not purge shared caches.
     from sefaria import settings as sefaria_settings
+
     sefaria_settings.USE_VARNISH = False
     for module in list(sys.modules.values()):
         if getattr(module, "USE_VARNISH", False):
@@ -42,6 +51,7 @@ def pytest_configure(config):
 
 def pytest_unconfigure(config):
     import sys
+
     del sys._called_from_test
 
 

@@ -4,6 +4,7 @@
 Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry
 the `failing` marker, so the default CI run (-m "not failing") leaves them out.
 """
+
 import pytest
 from django.test import Client, override_settings
 
