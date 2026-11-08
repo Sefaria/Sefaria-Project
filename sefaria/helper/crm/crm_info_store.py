@@ -1,11 +1,11 @@
-from sefaria.model.user_profile import UserProfile
+import structlog
 from django.conf import settings as sls
+
+from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
 
-import structlog
 
-class CrmInfoStore(object):
-
+class CrmInfoStore:
     @staticmethod
     def save_crm_id(crm_id, email, crm_type, profile=None):
         """
@@ -21,7 +21,7 @@ class CrmInfoStore(object):
                 user_profile.save()
                 return True
             return False
-        elif crm_type == "SALESFORCE":
+        if crm_type == "SALESFORCE":
             if profile:
                 user_profile = profile
             else:
@@ -31,7 +31,7 @@ class CrmInfoStore(object):
                 user_profile.save()
                 return True
             return False
-        elif crm_type == "NONE" or not crm_type:
+        if crm_type == "NONE" or not crm_type:
             return True
 
     @staticmethod
@@ -47,9 +47,9 @@ class CrmInfoStore(object):
 
         if crm_type == "NATIONBUILDER":
             return user_profile.nationbuilder_id
-        elif crm_type == "SALESFORCE":
+        if crm_type == "SALESFORCE":
             return user_profile.sf_app_user_id
-        elif crm_type == "NONE":
+        if crm_type == "NONE":
             return True
 
     @staticmethod
@@ -58,8 +58,8 @@ class CrmInfoStore(object):
 
     @staticmethod
     def find_sustainer_profile(sustainer):
-        if sustainer['email']:
-            return UserProfile(email=sustainer['email'])
+        if sustainer["email"]:
+            return UserProfile(email=sustainer["email"])
 
     @staticmethod
     def mark_sustainer(profile, is_sustainer=True):

@@ -5,22 +5,23 @@ Reads and mutates linker metadata (MatchTemplates, AddressTypes) on schema nodes
 keeps the NonUniqueTerm usage index in sync. Kept separate from the thin API views in
 api/views.py. See docs / Shortcut epic 44935.
 """
-import re
-from typing import List, Optional
 
-from sefaria.model import library
-from sefaria.model.schema import NonUniqueTerm, NonUniqueTermSet, AddressType
-from sefaria.model.linker.match_template import MatchTemplate
-from sefaria.model.linker.linker_entity_recognizer import get_linker_normalizer
-from sefaria.model.linker_editor_history import log_linker_editor_action
+import re
+from typing import Optional
+
 import sefaria.model.linker.nonuniqueterm_index as nut_index
+from sefaria.model import library
+from sefaria.model.linker.linker_entity_recognizer import get_linker_normalizer
+from sefaria.model.linker.match_template import MatchTemplate
+from sefaria.model.linker_editor_history import log_linker_editor_action
+from sefaria.model.schema import AddressType, NonUniqueTerm, NonUniqueTermSet
 from sefaria.settings import USE_VARNISH
 from sefaria.system.exceptions import InputError
-
 
 # ---------------------------------------------------------------------------
 # Persistence
 # ---------------------------------------------------------------------------
+
 
 def _save_linker_metadata(index) -> None:
     """
@@ -34,6 +35,7 @@ def _save_linker_metadata(index) -> None:
 
     if USE_VARNISH:
         from sefaria.system.varnish.wrapper import invalidate_title
+
         invalidate_title(index.title)
 
 
@@ -53,12 +55,13 @@ def _invalidate_non_unique_term_cache(slug: str) -> None:
 # Node resolution
 # ---------------------------------------------------------------------------
 
-def parse_node_key_path(node_key_path: str) -> List[str]:
+
+def parse_node_key_path(node_key_path: str) -> list[str]:
     """Node key paths are passed as dot-separated keys, e.g. "Berakhot.Intro"."""
     return [k for k in node_key_path.split(".") if k != ""]
 
 
-def get_node_by_key_path(index, key_path: List[str]):
+def get_node_by_key_path(index, key_path: list[str]):
     """
     Resolve a schema node from a list of keys (as produced by node.address(), which
     includes the root key). Tolerates a path that omits the leading root key.
@@ -78,7 +81,7 @@ def get_node_by_key_path(index, key_path: List[str]):
     return node
 
 
-def get_node_by_editor_path(index, key_path: List[str]):
+def get_node_by_editor_path(index, key_path: list[str]):
     """
     Resolve a linker editor node path.
     Default-structure paths are schema key paths. Alt-structure paths are encoded as:
@@ -106,7 +109,7 @@ def _resolve_node(title: str, node_key_path: str):
     index = library.get_index(title)
     node, struct_name = get_node_by_editor_path(index, parse_node_key_path(node_key_path))
     if node is None:
-        raise InputError("Could not find node '{}' in index '{}'.".format(node_key_path, title))
+        raise InputError(f"Could not find node '{node_key_path}' in index '{title}'.")
     return index, node, struct_name
 
 
@@ -114,25 +117,27 @@ def _resolve_node(title: str, node_key_path: str):
 # MatchTemplate editing
 # ---------------------------------------------------------------------------
 
-def _validate_slugs(term_slugs: List[str]) -> None:
+
+def _validate_slugs(term_slugs: list[str]) -> None:
     for slug in term_slugs:
         if NonUniqueTerm.init(slug) is None:
-            raise InputError("No NonUniqueTerm with slug '{}'.".format(slug))
+            raise InputError(f"No NonUniqueTerm with slug '{slug}'.")
 
 
-def _normalize_scope(scope: Optional[str]) -> str:
+def _normalize_scope(scope: str | None) -> str:
     scope = scope or "combined"
     if scope not in ("combined", "alone", "any"):
-        raise InputError("Invalid scope '{}'. Must be one of combined|alone|any.".format(scope))
+        raise InputError(f"Invalid scope '{scope}'. Must be one of combined|alone|any.")
     return scope
 
 
 def _match_templates_equal(a: dict, b: dict) -> bool:
-    return (list(a.get("term_slugs", [])) == list(b.get("term_slugs", []))
-            and a.get("scope", "combined") == b.get("scope", "combined"))
+    return list(a.get("term_slugs", [])) == list(b.get("term_slugs", [])) and a.get("scope", "combined") == b.get(
+        "scope", "combined"
+    )
 
 
-def add_match_template(title: str, node_key_path: str, term_slugs: List[str], scope: str, uid: int) -> dict:
+def add_match_template(title: str, node_key_path: str, term_slugs: list[str], scope: str, uid: int) -> dict:
     """Append a new MatchTemplate to a node, persist, and update the usage index."""
     if not term_slugs:
         raise InputError("term_slugs must be a non-empty list.")
@@ -148,7 +153,8 @@ def add_match_template(title: str, node_key_path: str, term_slugs: List[str], sc
 
     nut_index.add_template_usage(title, node, template, struct_name=struct_name)
     log_linker_editor_action(
-        uid, "add_match_template",
+        uid,
+        "add_match_template",
         {"title": title, "node_key_path": node_key_path, "term_slugs": list(term_slugs), "scope": scope},
         index_title=title,
     )
@@ -162,7 +168,7 @@ def remove_match_template(title: str, node_key_path: str, serialized_template: d
     existing = list(getattr(node, "match_templates", []))
     remaining = [mt for mt in existing if not _match_templates_equal(mt, serialized_template)]
     if len(remaining) == len(existing):
-        raise InputError("No matching MatchTemplate found on node '{}'.".format(node_key_path))
+        raise InputError(f"No matching MatchTemplate found on node '{node_key_path}'.")
     node.match_templates = remaining
     _save_linker_metadata(index)
 
@@ -172,13 +178,16 @@ def remove_match_template(title: str, node_key_path: str, serialized_template: d
     )
     nut_index.remove_template_usage(title, node, template, struct_name=struct_name)
     log_linker_editor_action(
-        uid, "remove_match_template",
+        uid,
+        "remove_match_template",
         {"title": title, "node_key_path": node_key_path, "serialized_template": serialized_template},
         index_title=title,
     )
 
 
-def _replace_match_template_impl(title: str, node_key_path: str, old_template_data: dict, new_template_data: dict) -> dict:
+def _replace_match_template_impl(
+    title: str, node_key_path: str, old_template_data: dict, new_template_data: dict
+) -> dict:
     """Replace one MatchTemplate on a node with one index save. No uid/logging -- called both by
     the public `replace_match_template` (which logs one `replace_match_template` entry) and by
     `swap_non_unique_term_usages` (which logs its own single compound entry for the whole swap)."""
@@ -206,7 +215,7 @@ def _replace_match_template_impl(title: str, node_key_path: str, old_template_da
         else:
             next_templates.append(mt)
     if not replaced:
-        raise InputError("No matching MatchTemplate found on node '{}'.".format(node_key_path))
+        raise InputError(f"No matching MatchTemplate found on node '{node_key_path}'.")
 
     node.match_templates = next_templates
     _save_linker_metadata(index)
@@ -217,13 +226,20 @@ def _replace_match_template_impl(title: str, node_key_path: str, old_template_da
     return new_serialized
 
 
-def replace_match_template(title: str, node_key_path: str, old_template_data: dict, new_template_data: dict, uid: int) -> dict:
+def replace_match_template(
+    title: str, node_key_path: str, old_template_data: dict, new_template_data: dict, uid: int
+) -> dict:
     """Replace one MatchTemplate on a node with one index save, and log the action."""
     new_serialized = _replace_match_template_impl(title, node_key_path, old_template_data, new_template_data)
     log_linker_editor_action(
-        uid, "replace_match_template",
-        {"title": title, "node_key_path": node_key_path, "old_template_data": old_template_data,
-         "new_template_data": new_template_data},
+        uid,
+        "replace_match_template",
+        {
+            "title": title,
+            "node_key_path": node_key_path,
+            "old_template_data": old_template_data,
+            "new_template_data": new_template_data,
+        },
         index_title=title,
     )
     return new_serialized
@@ -233,38 +249,40 @@ def replace_match_template(title: str, node_key_path: str, old_template_data: di
 # AddressType editing
 # ---------------------------------------------------------------------------
 
-def all_address_type_names() -> List[str]:
+
+def all_address_type_names() -> list[str]:
     """All valid addressType strings (AddressType subclass names minus the 'Address' prefix)."""
     names = []
 
     def recurse(cls):
         for sub in cls.__subclasses__():
-            names.append(sub.__name__[len("Address"):])
+            names.append(sub.__name__[len("Address") :])
             recurse(sub)
 
     recurse(AddressType)
     return sorted(set(names))
 
 
-def set_address_types(title: str, node_key_path: str, address_types: List[str], uid: int) -> List[str]:
+def set_address_types(title: str, node_key_path: str, address_types: list[str], uid: int) -> list[str]:
     """Overwrite a node's addressTypes. Validates length == depth and that each name resolves."""
     index, node, _ = _resolve_node(title, node_key_path)
 
     depth = getattr(node, "depth", None)
     if depth is None:
-        raise InputError("Node '{}' has no depth; it does not support addressTypes.".format(node_key_path))
+        raise InputError(f"Node '{node_key_path}' has no depth; it does not support addressTypes.")
     if len(address_types) != depth:
-        raise InputError("Expected {} addressTypes to match node depth, got {}.".format(depth, len(address_types)))
+        raise InputError(f"Expected {depth} addressTypes to match node depth, got {len(address_types)}.")
 
     valid = set(all_address_type_names())
     for atype in address_types:
         if atype not in valid:
-            raise InputError("Unknown addressType '{}'.".format(atype))
+            raise InputError(f"Unknown addressType '{atype}'.")
 
     node.addressTypes = list(address_types)
     _save_linker_metadata(index)
     log_linker_editor_action(
-        uid, "set_address_types",
+        uid,
+        "set_address_types",
         {"title": title, "node_key_path": node_key_path, "address_types": list(address_types)},
         index_title=title,
     )
@@ -325,7 +343,7 @@ def _apply_node_property(node, prop: str, value) -> None:
                 raise InputError("referenceableSections must be a list of booleans.")
             depth = getattr(node, "depth", None)
             if depth is not None and len(value) != depth:
-                raise InputError("referenceableSections must have length {} (node depth), got {}.".format(depth, len(value)))
+                raise InputError(f"referenceableSections must have length {depth} (node depth), got {len(value)}.")
             if all(value):  # all-referenceable is the default; keep the schema clean
                 _remove_property(node, prop)
             else:
@@ -349,7 +367,7 @@ def _apply_node_property(node, prop: str, value) -> None:
                 try:
                     re.compile(pattern)
                 except re.error as e:
-                    raise InputError("Invalid regex '{}': {}".format(pattern, e))
+                    raise InputError(f"Invalid regex '{pattern}': {e}")
             node.diburHamatchilRegexes = list(value)
 
     elif prop == "skipped_addresses":
@@ -372,16 +390,12 @@ def _apply_node_property(node, prop: str, value) -> None:
             raise InputError("isMapReferenceable must be a boolean.")
 
     else:
-        raise InputError("Property '{}' is not editable.".format(prop))
+        raise InputError(f"Property '{prop}' is not editable.")
 
 
 def serialize_node_properties(node) -> dict:
     """Current values of the editable properties that apply to this node (None when unset)."""
-    return {
-        prop: getattr(node, prop, None)
-        for prop in EDITABLE_NODE_PROPERTIES
-        if _node_supports_property(node, prop)
-    }
+    return {prop: getattr(node, prop, None) for prop in EDITABLE_NODE_PROPERTIES if _node_supports_property(node, prop)}
 
 
 def set_node_properties(title: str, node_key_path: str, properties: dict, uid: int) -> dict:
@@ -396,14 +410,15 @@ def set_node_properties(title: str, node_key_path: str, properties: dict, uid: i
 
     for prop, value in properties.items():
         if prop not in EDITABLE_NODE_PROPERTIES:
-            raise InputError("Property '{}' is not editable.".format(prop))
+            raise InputError(f"Property '{prop}' is not editable.")
         if not _node_supports_property(node, prop):
-            raise InputError("Property '{}' does not apply to a {}.".format(prop, type(node).__name__))
+            raise InputError(f"Property '{prop}' does not apply to a {type(node).__name__}.")
         _apply_node_property(node, prop, value)
 
     _save_linker_metadata(index)
     log_linker_editor_action(
-        uid, "set_node_properties",
+        uid,
+        "set_node_properties",
         {"title": title, "node_key_path": node_key_path, "properties": properties},
         index_title=title,
     )
@@ -414,6 +429,7 @@ def set_node_properties(title: str, node_key_path: str, properties: dict, uid: i
 # Dibur Hamatchil rebuild
 # ---------------------------------------------------------------------------
 
+
 def enqueue_rebuild_dibur_hamatchils(title: str, uid: int) -> str:
     """
     Enqueue a Celery task to recompute the dibur_hamatchils for one index (after
@@ -422,14 +438,18 @@ def enqueue_rebuild_dibur_hamatchils(title: str, uid: int) -> str:
     Returns the async task id; poll it via /api/async/<task_id>.
     """
     index = library.get_index(title)  # raises BookNameError (an InputError) if unknown
-    from sefaria.helper.linker.tasks import rebuild_dibur_hamatchils_task
     from sefaria.celery_setup.config import CeleryQueue
+    from sefaria.helper.linker.tasks import rebuild_dibur_hamatchils_task
+
     async_result = rebuild_dibur_hamatchils_task.apply_async(
         args=(index.title,),
         queue=CeleryQueue.TASKS.value,
     )
     log_linker_editor_action(
-        uid, "rebuild_dibur_hamatchils", {"title": index.title}, index_title=index.title,
+        uid,
+        "rebuild_dibur_hamatchils",
+        {"title": index.title},
+        index_title=index.title,
     )
     return async_result.id
 
@@ -455,8 +475,9 @@ def enqueue_rebuild_linker_resolvers(langs) -> str:
     if invalid_langs:
         raise InputError("Invalid linker language(s): {}.".format(", ".join(invalid_langs)))
 
-    from sefaria.helper.linker.tasks import rebuild_linker_resolvers_task
     from sefaria.celery_setup.config import CeleryQueue
+    from sefaria.helper.linker.tasks import rebuild_linker_resolvers_task
+
     async_result = rebuild_linker_resolvers_task.apply_async(
         args=(langs,),
         queue=CeleryQueue.TASKS.value,
@@ -467,6 +488,7 @@ def enqueue_rebuild_linker_resolvers(langs) -> str:
 # ---------------------------------------------------------------------------
 # NonUniqueTerm read / search
 # ---------------------------------------------------------------------------
+
 
 def _term_match_rank(term: NonUniqueTerm, q_lower: str) -> int:
     """
@@ -497,7 +519,7 @@ def _term_match_rank(term: NonUniqueTerm, q_lower: str) -> int:
     return 3
 
 
-def search_non_unique_terms(q: str, limit: int = 20) -> List[dict]:
+def search_non_unique_terms(q: str, limit: int = 20) -> list[dict]:
     """
     Search NonUniqueTerms by title text or slug (case-insensitive) for autocomplete.
     Mongo's $regex carries no relevance signal, so ranking exact/prefix matches first is
@@ -515,15 +537,17 @@ def search_non_unique_terms(q: str, limit: int = 20) -> List[dict]:
     candidates.sort(key=lambda term: _term_match_rank(term, q_lower))
     results = []
     for term in candidates[:limit]:
-        results.append({
-            "slug": term.slug,
-            "primary_en": term.get_primary_title("en"),
-            "primary_he": term.get_primary_title("he"),
-        })
+        results.append(
+            {
+                "slug": term.slug,
+                "primary_en": term.get_primary_title("en"),
+                "primary_he": term.get_primary_title("he"),
+            }
+        )
     return results
 
 
-def get_non_unique_term_titles(slugs: List[str]) -> dict:
+def get_non_unique_term_titles(slugs: list[str]) -> dict:
     """Map each slug to its primary en/he titles, for rendering MatchTemplate badges."""
     unique_slugs = list({s for s in slugs if s})
     if not unique_slugs:
@@ -540,7 +564,7 @@ def get_non_unique_term_titles(slugs: List[str]) -> dict:
 def _require_term(slug: str) -> NonUniqueTerm:
     term = NonUniqueTerm.init(slug)
     if term is None:
-        raise InputError("No NonUniqueTerm with slug '{}'.".format(slug))
+        raise InputError(f"No NonUniqueTerm with slug '{slug}'.")
     return term
 
 
@@ -564,7 +588,7 @@ def _validated_title(title: dict) -> tuple:
     return lang, _normalize_non_unique_term_title(title.get("text"), lang)
 
 
-def create_non_unique_term(titles: List[dict], uid: int) -> dict:
+def create_non_unique_term(titles: list[dict], uid: int) -> dict:
     """
     Create a new NonUniqueTerm from a list of {lang, text} titles (at least one
     non-blank title is required). The first title of each language becomes its primary.
@@ -592,12 +616,15 @@ def create_non_unique_term(titles: List[dict], uid: int) -> dict:
     # collision-avoidance suffix (see abstract.py: normalize_slug_field), so it isn't guaranteed
     # identical across environments even given the same input titles.
     log_linker_editor_action(
-        uid, "create_non_unique_term", {"titles": titles, "slug": term.slug}, slug=term.slug,
+        uid,
+        "create_non_unique_term",
+        {"titles": titles, "slug": term.slug},
+        slug=term.slug,
     )
     return get_non_unique_term_detail(term.slug)
 
 
-def add_non_unique_term_titles(slug: str, titles: List[dict], uid: int) -> dict:
+def add_non_unique_term_titles(slug: str, titles: list[dict], uid: int) -> dict:
     """Add alternate titles to a NonUniqueTerm and return the refreshed term detail."""
     term = _require_term(slug)
     if not isinstance(titles, list) or not titles:
@@ -612,7 +639,10 @@ def add_non_unique_term_titles(slug: str, titles: List[dict], uid: int) -> dict:
     term.save()
     _invalidate_non_unique_term_cache(slug)
     log_linker_editor_action(
-        uid, "add_non_unique_term_titles", {"slug": slug, "titles": titles}, slug=slug,
+        uid,
+        "add_non_unique_term_titles",
+        {"slug": slug, "titles": titles},
+        slug=slug,
     )
     return get_non_unique_term_detail(slug)
 
@@ -624,8 +654,8 @@ def delete_non_unique_term(slug: str, uid: int) -> None:
     usages = nut_index.get_term_usages(slug)
     if len(usages) > 0:
         raise InputError(
-            "Cannot delete NonUniqueTerm '{}' because it has {} usage(s). "
-            "Delete the other usages first or use Swap to replace them with another term.".format(slug, len(usages))
+            f"Cannot delete NonUniqueTerm '{slug}' because it has {len(usages)} usage(s). "
+            "Delete the other usages first or use Swap to replace them with another term."
         )
 
     term.delete()
@@ -636,8 +666,8 @@ def delete_non_unique_term(slug: str, uid: int) -> None:
 
 def swap_non_unique_term_usages(slug: str, new_slug: str, uid: int) -> dict:
     """Replace every MatchTemplate usage of `slug` with `new_slug`."""
-    old_term = _require_term(slug)
-    new_term = _require_term(new_slug)
+    _require_term(slug)
+    _require_term(new_slug)
     if slug == new_slug:
         raise InputError("Choose a different NonUniqueTerm to swap with.")
 
@@ -659,17 +689,20 @@ def swap_non_unique_term_usages(slug: str, new_slug: str, uid: int) -> dict:
             {"term_slugs": old_slugs, "scope": scope},
             {"term_slugs": new_slugs, "scope": scope},
         )
-        affected_usages.append({
-            "index_title": usage["index_title"],
-            "node_key_path": node_key_path,
-            "old_term_slugs": old_slugs,
-            "new_term_slugs": new_slugs,
-            "scope": scope,
-        })
+        affected_usages.append(
+            {
+                "index_title": usage["index_title"],
+                "node_key_path": node_key_path,
+                "old_term_slugs": old_slugs,
+                "new_term_slugs": new_slugs,
+                "scope": scope,
+            }
+        )
         changed += 1
 
     log_linker_editor_action(
-        uid, "swap_non_unique_term_usages",
+        uid,
+        "swap_non_unique_term_usages",
         {"old_slug": slug, "new_slug": new_slug, "affected_usages": affected_usages},
     )
 
@@ -682,7 +715,7 @@ def swap_non_unique_term_usages(slug: str, new_slug: str, uid: int) -> dict:
     }
 
 
-def _normalize_non_unique_term_title(text: Optional[str], lang: str) -> str:
+def _normalize_non_unique_term_title(text: str | None, lang: str) -> str:
     """
     Normalize titles with the same normalizer the linker applies to input text
     server-side, so stored titles match what the linker sees at match time.

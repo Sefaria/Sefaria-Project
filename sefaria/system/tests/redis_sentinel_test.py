@@ -3,6 +3,7 @@ Tests for sefaria.system.redis_sentinel. The unit tests never open a socket.
 The failover test needs a real Sentinel cluster and only runs when SENTINEL_TEST_HEADLESS_URL
 is set.
 """
+
 import os
 import time
 from pathlib import Path
@@ -65,13 +66,17 @@ def test_django_cache_options_with_sentinel_build_a_sentinel_pool(redis_config, 
 
 @pytest.mark.parametrize("read_from_replicas,expected_is_master", [(True, [True, False]), (False, [True])])
 def test_django_cache_replica_reads_are_opt_out(redis_config, sentinel_config, read_from_replicas, expected_is_master):
-    from django_redis.client import DefaultClient
     from django.utils.module_loading import import_string
+    from django_redis.client import DefaultClient
 
-    location, options = rs.get_django_redis_cache_options(redis_config, sentinel_config, 5, read_from_replicas=read_from_replicas)
+    location, options = rs.get_django_redis_cache_options(
+        redis_config, sentinel_config, 5, read_from_replicas=read_from_replicas
+    )
     client = import_string(options["CLIENT_CLASS"])(location, {"OPTIONS": options}, backend=None)
-    pools = [client.connection_factory.get_connection_pool(client.connection_factory.make_connection_params(url))
-             for url in client._server]
+    pools = [
+        client.connection_factory.get_connection_pool(client.connection_factory.make_connection_params(url))
+        for url in client._server
+    ]
     assert [pool.is_master for pool in pools] == expected_is_master
     assert isinstance(client, DefaultClient)
 
@@ -88,11 +93,14 @@ def _redis_values(doc):
     return values.get("tasks", {}).get("redis", {})
 
 
-@pytest.mark.parametrize("override_path", [
-    "envs/prod/helmrelease.yaml",
-    "envs/preprod/helmrelease.yaml",
-    "build/ci/preprod-values.yaml",
-])
+@pytest.mark.parametrize(
+    "override_path",
+    [
+        "envs/prod/helmrelease.yaml",
+        "envs/preprod/helmrelease.yaml",
+        "build/ci/preprod-values.yaml",
+    ],
+)
 def test_redis_db_numbers_do_not_collide(override_path):
     """Celery, CACHES and GenCache share one Redis; each needs its own DB number."""
     with open(REPO_ROOT / "helm-chart/sefaria/values.yaml") as f:
@@ -101,7 +109,13 @@ def test_redis_db_numbers_do_not_collide(override_path):
         for doc in yaml.safe_load_all(f):
             if doc:
                 merged.update(_redis_values(doc))
-    keys = ["brokerDBNumber", "resultBackendDBNumber", "defaultCacheDbNumber", "sharedCacheDbNumber", "gencacheDbNumber"]
+    keys = [
+        "brokerDBNumber",
+        "resultBackendDBNumber",
+        "defaultCacheDbNumber",
+        "sharedCacheDbNumber",
+        "gencacheDbNumber",
+    ]
     db_nums = [str(merged[k]) for k in keys]
     assert len(set(db_nums)) == len(db_nums), dict(zip(keys, db_nums))
 
@@ -116,8 +130,11 @@ def test_client_follows_sentinel_failover():
     SENTINEL_TEST_MASTER_SET.
     """
     sentinel_config = SentinelConfig(
-        os.environ["SENTINEL_TEST_HEADLESS_URL"], os.getenv("SENTINEL_TEST_PASSWORD"),
-        os.getenv("SENTINEL_TEST_PORT", "26379"), {}, os.getenv("SENTINEL_TEST_MASTER_SET", "mymaster"),
+        os.environ["SENTINEL_TEST_HEADLESS_URL"],
+        os.getenv("SENTINEL_TEST_PASSWORD"),
+        os.getenv("SENTINEL_TEST_PORT", "26379"),
+        {},
+        os.getenv("SENTINEL_TEST_MASTER_SET", "mymaster"),
     )
     redis_config = RedisConfig("", os.getenv("SENTINEL_TEST_REDIS_PASSWORD"), sentinel_config.port)
     client = rs.get_redis_client(redis_config, sentinel_config, 15, decode_responses=True)

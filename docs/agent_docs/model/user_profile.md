@@ -1,12 +1,15 @@
 # User Profile
+
 > Source: `sefaria/model/user_profile.py`
 
 ## Purpose
+
 Manages user identity (profile data, social links, settings) and reading history (what a user has read, saved, or bookmarked). UserProfile is a hybrid object that bridges Django's `auth.User` (Postgres) with a MongoDB `profiles` document, while UserHistory is a pure Mongo record tracking individual page-view and save events.
 
 ## Key Classes
 
 ### UserHistory
+
 - **Inherits**: `AbstractMongoRecord`
 - **Collection**: `user_history`
 - **Role**: Tracks each ref a user views or saves. One record per (uid, ref, versions, secondary) tuple. Also tracks "last place" per book and saved/bookmarked items.
@@ -20,24 +23,27 @@ Manages user identity (profile data, social links, settings) and reading history
   - `_validate()` -- Enforces that `secondary` and `saved` cannot both be True.
 
 ### UserHistorySet
+
 - **Inherits**: `AbstractMongoSet`
 - **Collection**: `user_history`
 - **Role**: Set class for UserHistory.
 - **Key methods**: `hits()` -- Sums `num_times_read` across the set (used in legacy migration).
 
 ### UserWrapper
+
 - **Inherits**: `object`
 - **Collection**: N/A (Django ORM only)
 - **Role**: Thin wrapper around Django User for changing a user's primary email address safely. Validates uniqueness and format before saving.
 
 ### UserProfile
+
 - **Inherits**: `object` (NOT AbstractMongoRecord)
 - **Collection**: `profiles` (direct pymongo, not via abstract framework)
 - **Role**: The main user identity object. Combines Django User fields (first_name, last_name, email) with MongoDB profile fields (slug, bio, settings, social links, version preferences). Manages followers/followees, notifications, and delegates to UserHistory for reading history.
-- **Key fields**: `id` (Django user ID), `slug`, `settings` (dict with `email_notifications`, `interface_language`, `textual_custom`, `reading_history`, `translation_language_preference`), `version_preferences_by_corpus`, `attr_time_stamps`, `profile_pic_url`, `gauth_token`, `nationbuilder_id`, `sf_app_user_id`, `is_sustainer`
+- **Key fields**: `id` (Django user ID), `slug`, `settings` (dict with `email_notifications`, `interface_language`, `textual_custom`, `reading_history`, `translation_language_preference`), `version_preferences_by_corpus`, `attr_time_stamps`, `profile_pic_url`, `gauth_token`, `nationbuilder_id`, `sf_app_user_id`, `is_sustainer`, `donor_status`, `became_donor_at`
 - **Key methods**:
   - `__init__(user_obj, id, slug, email, user_registration)` -- Can load by any of id/slug/email/user_obj. Side effect: if a Django user exists but has no profile doc, one is auto-created on init (unless `user_registration=True`).
-  - `save()` -- Writes to MongoDB `profiles` collection. If name changed, also updates Django User. If `reading_history` was toggled off, cascades a history delete.
+  - `save()` -- Writes to MongoDB `profiles` collection: `insert_one` for a new profile, otherwise `update_one` with `$set` of every `to_mongo_dict()` field except `DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION` (those go in `$setOnInsert`, so only a recreated document gets them). Because it is a `$set`, not a replace, keys another writer set (e.g. the spam dashboard's `reviewed`) survive a save, and keys no longer in `to_mongo_dict()` are not deleted. If name changed, also updates Django User. If `reading_history` was toggled off, cascades a history delete.
   - `update(obj, ignore_flags_on_init)` -- Merges dict into profile. `settings` and `version_preferences_by_corpus` are deep-merged, not replaced.
   - `process_history_item(hist, time_stamp)` -- Routes history events: respects the `reading_history` setting; if history is disabled, only saved items are persisted.
   - `get_history(...)` -- Returns empty if `reading_history` is disabled (unless querying saved items).
@@ -53,11 +59,17 @@ Manages user identity (profile data, social links, settings) and reading history
 - **History gating.** When `settings.reading_history` is False, `process_history_item` silently drops non-save history events, and `get_history` returns empty. Toggling it from True to False triggers bulk deletion of existing history (excluding saved items).
 - **last_place tracking.** Each new (non-secondary) history save marks the item as `last_place=True` and clears the previous `last_place` for that book. This is done in `__init__` of UserHistory via `update_last_place`.
 - **load_existing dedup.** When `load_existing=True`, UserHistory's `__init__` queries Mongo for an existing record matching (uid, ref, versions, secondary) and merges `field_updates` into it, preventing duplicate records for save/unsave toggling.
-- **_normalize derives fields at write time.** `context_refs`, `categories`, `authors`, and `is_sheet` are computed from the ref during `_normalize()` and stored denormalized for fast downstream queries.
-- **Per-process cache.** `public_user_data_cache` is a module-level dict caching basic public profile info by uid, as `(expires_at, data)`. Entries expire after `PUBLIC_USER_DATA_CACHE_TTL` (10 minutes). `UserProfile.save()` clears the entry in the current process, and when a field in `UserProfile.public_data_fields` changed via `update()`, it also bumps the `public_user_data` GenCache generation (`PUBLIC_USER_DATA_GEN_KEY`), which makes every process clear its whole cache the next time it reads `public_user_data()`. Changes that skip `save()` (e.g. a rename or `is_staff` change in Django admin) are only picked up when the entry expires.
+- **\_normalize derives fields at write time.** `context_refs`, `categories`, `authors`, and `is_sheet` are computed from the ref during `_normalize()` and stored denormalized for fast downstream queries.
+- **Per-process cache.** `public_user_data_cache` is a module-level dict caching basic public profile info by uid, as `(expires_at, data)`. Entries expire after `PUBLIC_USER_DATA_CACHE_TTL` (10 minutes). `UserProfile.save()` clears the entry in the current process, and when a field in `UserProfile.public_data_fields` changed via `update()`, it also bumps the `public_user_data` GenCache generation so other processes clear theirs (the generation is shared by all users, so a bump drops every cached entry). Changes that skip `save()` (e.g. a rename or `is_staff` change in Django admin) are only picked up when the entry expires.
 - **settings deep merge.** `update()` deep-merges `settings` and `version_preferences_by_corpus` rather than replacing them, so partial updates are safe.
+- **Donor fields (`donor_status`, `became_donor_at`).** Sit next to `is_sustainer` in `__init__` (defaults `"unknown"` and `None`) and are persisted by `to_mongo_dict`. `donor_status` is kept as a raw string, because `update()` copies Mongo values straight into `__dict__`; decode it with `DonorStatus.from_stored_value` (`sefaria/donors/types.py`), where a missing or unrecognized value means `unknown`. `became_donor_at` is the earliest date any source reported a donation.
+  - **Written only by webhooks**, in `sefaria/donors/donor_recording.py`, with one atomic `db.profiles.update_one` using an update _pipeline_ (MongoDB 4.2+): `donor_status` set to `"donor"` and `became_donor_at` set to the aggregation `$min` of the stored and incoming dates. It must be the aggregation `$min`, not the `$min` update operator: profiles store `became_donor_at: null` by default and null sorts below every date, so the operator would keep the null forever. A profile with no matching Mongo document logs `donor_profile_document_missing`.
+  - **User input cannot set them**: the `profile_api` POST in `reader/views.py` pops both keys before `profile.update()`.
+  - **No stale write-back**: `save()` never writes these two fields on an existing profile (see `save()` above), so a request that loaded the profile before a webhook landed cannot undo the donation when it saves. Covered by `sefaria/model/tests/user_profile_save_test.py` against real Mongo. Account merging (`sefaria/utils/user.py`) copies profile data through `save()`, so it does not carry a donor source's status yet.
+  - **API exposure**: only `donor_status` (decoded) is in `to_api_dict`; `became_donor_at` is not. `base_props` in `reader/views.py` sends the decoded status to the page as `donor_status`.
 
 ## Relationships
+
 - **Depends on**: `abstract` (AbstractMongoRecord/Set), `text` (Ref, TextChunk), `following` (FollowersSet, FolloweesSet), `blocking` (BlockersSet, BlockeesSet), `notification` (NotificationSet), `sefaria.sheets` (get_sheet_listing_data), `sefaria.system.database` (db), Django `auth.User`
 - **Depended on by**: `reader/views.py`, `sefaria/views.py`, `sefaria/model/notification.py`, `sefaria/model/trend.py`, `sefaria/model/story.py`, `sefaria/model/garden.py`, `sefaria/sheets.py`, `sefaria/search.py`, `sefaria/client/wrapper.py`, `sefaria/system/middleware.py`, `sefaria/system/context_processors.py`, `sourcesheets/views.py`
 - **Dependency subscriptions**: `Index` title change -> `process_index_title_change_in_user_history` (updates `ref` field in all matching UserHistory records)
