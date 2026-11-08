@@ -515,7 +515,11 @@ const eLucide = (paths, size = 18) => (
 const EPencilIcon = ({size} = {}) => eLucide(<React.Fragment><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></React.Fragment>, size);
 const EPlusIcon = ({size} = {}) => eLucide(<React.Fragment><path d="M5 12h14" /><path d="M12 5v14" /></React.Fragment>, size);
 const EGlobeIcon = ({size} = {}) => eLucide(<React.Fragment><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></React.Fragment>, size);
-const EStarIcon = ({size} = {}) => eLucide(<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />, size);
+/* Lucide "megaphone": the button to publish a project (2026-11-08, Penina's pick after trying send and rocket). */
+const EXIcon = ({size} = {}) => eLucide(<React.Fragment><path d="M18 6 6 18" /><path d="m6 6 12 12" /></React.Fragment>, size);
+const EBookIcon = ({size} = {}) => eLucide(<React.Fragment><path d="M12 7v14" /><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" /></React.Fragment>, size);
+const EDownloadIcon = ({size} = {}) => eLucide(<React.Fragment><path d="M12 15V3" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5" /></React.Fragment>, size);
+const EMegaphoneIcon = ({size} = {}) => eLucide(<React.Fragment><path d="m3 11 18-5v12L3 14v-3z" /><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" /></React.Fragment>, size);
 const ECheckIcon = ({size} = {}) => eLucide(<path d="M20 6 9 17l-5-5" />, size);
 const EArrowLeftIcon = ({size} = {}) => eLucide(<React.Fragment><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></React.Fragment>, size);
 const EMailIcon = ({size} = {}) => eLucide(<React.Fragment><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></React.Fragment>, size);
@@ -851,8 +855,11 @@ const useEProjectForm = (initial, withKey, initialLabel) => {
   return {fields, set, check, errors, label, setKeyLabel, validate, projectBody};
 };
 
+/* Key names stop at 100 characters, the server's limit (powered_by ApiKey.label), so a long name can't fail on save
+   with a generic error (N-C12) (2026-11-08). */
+const E_KEY_NAME_MAX = 100;
 const EKeyNameField = ({label, setLabel, error, hint, placeholder}) => (
-  <Input id="devEKeyName" required dir="auto" label={tE("API key name", "שם המפתח")}
+  <Input id="devEKeyName" required dir="auto" maxLength={E_KEY_NAME_MAX} label={tE("API key name", "שם המפתח")}
     hint={hint || null} placeholder={placeholder}
     value={label} onChange={e => setLabel(e.target.value)} error={error} />
 );
@@ -1291,6 +1298,9 @@ const EUsage = ({usage, projectName}) => {
     </div>
   );
 };
+/* Shown once the project has a key, or has used part of its limit this window even with no keys now: deleting
+   every key doesn't reset usage (2026-11-08). */
+const eShowUsage = (project, usage) => !!(project.keys && project.keys.length) || usage.used > 0;
 const EUsageChip = ({usage}) => {
   const {pct} = eUsageLevel(usage);
   if (pct < 90) { return null; }
@@ -1672,20 +1682,8 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
                 <div className="devE-projInfo">
                   <h3 className="devE-projName" id={"devEProj-" + project.id}><bdi dir="auto">{project.name}</bdi>
                     {project.organization ? <span className="devE-org"> · <bdi dir="auto">{project.organization}</bdi></span> : null}
-                    <EUsageChip usage={eUsageOf(project, index)} /></h3>
+                    {eShowUsage(project, eUsageOf(project, index)) ? <EUsageChip usage={eUsageOf(project, index)} /> : null}</h3>
                   {project.description ? <span className="devE-desc" dir="auto">{project.description}</span> : null}
-                  {/* The project's two optional extras, as chips: a button until done, then a quiet fact. */}
-                  <span className="devE-chips">
-                    {host ?
-                      <span className="devE-chip devE-chipDone"><EGlobeIcon /><bdi dir="ltr">{host}</bdi></span> :
-                      <button type="button" className="devE-chip" data-agent-action="add-website" onClick={() => setNeedSite({project})}>
-                        <EPlusIcon />{tE("Add website", "הוספת אתר")}</button>}
-                    {project.visibility === "public" ?
-                      <span className="devE-chip devE-chipDone"><ECheckIcon />{tE("Submitted to Powered by Sefaria", "נשלח ל־Powered by Sefaria")}</span> :
-                      <button type="button" className="devE-chip" onClick={() => open({screen: "share", projectId: project.id})}>
-                        <EStarIcon />{tE("Share your project with Sefaria", "שתפו את הפרויקט עם ספריא")}</button>}
-                  </span>
-                  <EUsage usage={eUsageOf(project, index)} projectName={project.name} />
                 </div>
                 <div className="devE-projSide">
                 <div className="devE-actions">
@@ -1706,6 +1704,25 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
                   </span>
                 </div>
                 </div>
+                {/* Website and Share chips on the left, the usage line all the way on the right, in one row
+                    under the name and buttons (2026-11-08). */}
+                <div className="devE-projExtras">
+                  {/* The project's two optional extras, as chips: a button until done, then a quiet fact. */}
+                  <span className="devE-chips">
+                    {/* Idea G (2026-11-08): once added, the website is a link that opens the site, styled as a link (underline,
+                        external icon), so it reads as "go to your site", not as another button beside Publish project. */}
+                    {host ?
+                      <a className="devE-siteLink" href={project.websiteUrl} target="_blank" rel="noopener noreferrer"
+                        aria-label={vE(host + " (opens in a new tab)", host + " (נפתח בכרטיסייה חדשה)")}><bdi dir="ltr">{host}</bdi><ExternalIcon /></a> :
+                      <button type="button" className="devE-chip" data-agent-action="add-website" onClick={() => setNeedSite({project})}>
+                        <EPlusIcon />{tE("Add website", "הוספת אתר")}</button>}
+                    {project.visibility === "public" ?
+                      <span className="devE-chip devE-chipDone"><ECheckIcon />{tE("Submitted for review", "נשלח לבדיקה")}</span> :
+                      <button type="button" className="devE-chip" onClick={() => open({screen: "share", projectId: project.id})}>
+                        <EMegaphoneIcon />{tE("Publish project", "פרסום הפרויקט")}</button>}
+                  </span>
+                  {eShowUsage(project, eUsageOf(project, index)) ? <EUsage usage={eUsageOf(project, index)} projectName={project.name} /> : null}
+                </div>
               </div>
               {/* A project with no keys shows only its header, no empty table (2026-11-05). */}
               {project.keys.length ? <div className="devE-board">
@@ -1719,13 +1736,14 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
                           <span className="devE-keyCell">
                             <code className="devE-keyText" dir="ltr">{shownIds.includes(apiKey.id) ? apiKey.value : apiKey.value.slice(0, 4) + "••••" + apiKey.value.slice(-4)}</code>
                             {/* Show or hide the whole key: the eye from the sign-in password field. */}
-                            <button type="button" className="devE-ico" aria-pressed={shownIds.includes(apiKey.id)}
-                              aria-label={shownIds.includes(apiKey.id) ? vE("Hide " + apiKey.label, "הסתרת " + apiKey.label) : vE("Show " + apiKey.label, "הצגת " + apiKey.label)}
-                              title={shownIds.includes(apiKey.id) ? vE("Hide key", "הסתרת המפתח") : vE("Show key", "הצגת המפתח")}
+                            {/* ARIA labels "Show key" / "Hide key" / "Copy key", no tooltips (Penina, 2026-11-08). The label changes
+                                with the state, so the button has no aria-pressed. */}
+                            <button type="button" className="devE-ico"
+                              aria-label={shownIds.includes(apiKey.id) ? vE("Hide key", "הסתרת המפתח") : vE("Show key", "הצגת המפתח")}
                               onClick={() => toggleShown(apiKey.id)}>
                               <span className={"devE-eye" + (shownIds.includes(apiKey.id) ? " is-off" : "")} aria-hidden="true" />
                             </button>
-                            <button type="button" className="devE-ico" aria-label={vE("Copy " + apiKey.label, "העתקת " + apiKey.label)}
+                            <button type="button" className="devE-ico" aria-label={vE("Copy key", "העתקת המפתח")}
                               onClick={() => eCopy(apiKey.value, () => { setCopiedId(apiKey.id); setTimeout(() => setCopiedId(null), 2000); })}>
                               <ECopyIcon />
                             </button>
@@ -1745,7 +1763,7 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
                           </span>
                         </td>
                         <td className="devE-end">
-                          <button type="button" className="devE-ico devE-icoDanger" aria-label={vE("Delete " + apiKey.label, "מחיקת " + apiKey.label)}
+                          <button type="button" className="devE-ico devE-icoDanger" aria-label={vE("Delete key", "מחיקת המפתח")}
                             aria-haspopup="dialog" onClick={() => setConfirmDel(apiKey)}><ETrashIcon /></button>
                         </td>
                       </tr>

@@ -18856,3 +18856,27 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-usageDot { color: #cccccc; /* gray-300 */ }
 .devPocPage .devE-usageReset { color: #707070; /* text-muted */ }
 .devPocPage .devE-usageChip { display: inline-flex; align-items: center; margin-inline-start: 8px; padding: 0 8px; border-radius: 4px; background: #f9ebe9; color: #c03522; font-size: 12px; line-height: 20px; font-weight: 500; vertical-align: middle; /* feedback-error-background, feedback-error-text */ }
+/* Website and Share chips, then the usage line all the way on the right, on one row under the project's name and
+   buttons (2026-11-08). On narrow cards the usage line wraps under the chips. */
+.devPocPage .devE-projExtras { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin-top: -6px; }
+.devPocPage .devE-projExtras .devE-chips { margin-top: 0; }
+.devPocPage .devE-projExtras .devE-usageLine { margin-top: 0; margin-inline-start: auto; }
+@media (max-width: 842px) { .devPocPage .devE-projExtras .devE-usageLine { margin-inline-start: 0; } }
+/* The added website and "Submitted to be featured" are facts, not buttons: no hover (2026-11-08). */
+.devPocPage .devE-chipDone:hover { text-decoration: none; background: none; }
+/* Website as a link to the site (idea G, 2026-11-08): text-secondary with a gray-300 underline and the external
+   icon, darkening on hover; same row and height as before. */
+.devPocPage .devE-siteLink { display: inline-flex; align-items: center; gap: 4px; height: 32px; font-size: 14px; line-height: 20px; color: #575757; text-decoration: underline; text-decoration-color: #cccccc; text-underline-offset: 3px; }
+.devPocPage .devE-siteLink:hover { color: #121212; text-decoration-color: currentColor; }
+.devPocPage .devE-siteLink:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; border-radius: 2px; }
+.devPocPage .devE-siteLink svg { width: 12px; height: 12px; flex: none; }
+.devPocPage .devE-siteLink { padding: 0 8px; /* lines the text up with the name, like the text buttons' padding */ }
+/* Usage bar track (2026-11-08): surface-hover (#eeeeee) disappeared on the project card's navy-100; gray-300 gives the
+   empty part of the bar a visible edge. */
+.devPocPage .devE-usageMini { background: #cccccc; /* gray-300 */ }
+/* Usage bar fill below 70% (2026-11-08): green, feedback-success (green-tbr-700), instead of dark gray. */
+.devPocPage .devE-usageMini > span { background: #518159; /* feedback-success */ }
+.devPocPage .devE-usageLine.is-mid .devE-usageMini > span { background: #e6b624; /* feedback-warning */ }
+.devPocPage .devE-usageLine.is-high .devE-usageMini > span { background: #c03522; /* feedback-error */ }
+/* feedback-success (#518159) read as gray on the 4px bar; the design system's Core Validation green-700 is brighter. */
+.devPocPage .devE-usageLine.is-low .devE-usageMini > span { background: #3fa26a; /* green-700 */ }
