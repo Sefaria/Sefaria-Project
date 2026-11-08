@@ -1,5 +1,5 @@
-from typing import List, Union, Dict
 import re
+from typing import Union
 
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.text import Ref
@@ -21,9 +21,9 @@ class LegacyRefParserMappingKeyError(LegacyRefParserError, KeyError):
 
 class LegacyRefParsingData(AbstractMongoRecord):
     """
-    This class is a mongo backed data store for data to aid legacy ref parsing. 
+    This class is a mongo backed data store for data to aid legacy ref parsing.
     It can contain ref mapping or any other data we think of down the line to help in future cases.
-    Imagine a structure for e.g. 
+    Imagine a structure for e.g.
     ```
     {
         "index_title" : "Zohar",
@@ -35,15 +35,16 @@ class LegacyRefParsingData(AbstractMongoRecord):
     To be used with LegacyRefParser classes in this module.
     Current assumption is all trefs in the mapping (both old and mapped) are in URL form and are segment level.
     """
-    collection = 'legacy_ref_data'
-    criteria_field = 'title'
+
+    collection = "legacy_ref_data"
+    criteria_field = "title"
     pkeys = ["index_title"]
     required_attrs = [
         "index_title",
         "data",
     ]
 
-    __slots__ = ['index_title', 'data']
+    __slots__ = ["index_title", "data"]
 
 
 class LegacyRefParser:
@@ -76,9 +77,9 @@ class MappingLegacyRefParser(LegacyRefParser):
     - segment level
     - ranged segment level but not spanning sections
     """
-    
+
     def __init__(self, data: LegacyRefParsingData):
-        self._mapping: Dict[str, str] = data.data['mapping']
+        self._mapping: dict[str, str] = data.data["mapping"]
 
     def parse(self, legacy_tref: str) -> Ref:
         """
@@ -107,16 +108,16 @@ class MappingLegacyRefParser(LegacyRefParser):
         return "-" in tref
 
     @staticmethod
-    def __range_list(ranged_tref: str) -> List[str]:
-        segment_range_match = re.search(r'(\d+)-(\d+)$', ranged_tref)
+    def __range_list(ranged_tref: str) -> list[str]:
+        segment_range_match = re.search(r"(\d+)-(\d+)$", ranged_tref)
         if segment_range_match is None:
             return [ranged_tref]
         start_segment = int(segment_range_match.group(1))
         end_segment = int(segment_range_match.group(2))
-        base_tref = ranged_tref[:segment_range_match.start(0)]
+        base_tref = ranged_tref[: segment_range_match.start(0)]
 
         range_list = []
-        for segment_num in range(start_segment, end_segment+1):
+        for segment_num in range(start_segment, end_segment + 1):
             range_list += [f"{base_tref}{segment_num}"]
 
         return range_list
@@ -150,8 +151,9 @@ class LegacyRefParserHandler:
     pattern copied from django.core.cache.CacheHandler
     This just makes sure to load the correct legacy ref parser class given an index title
     """
+
     def __init__(self):
-        self._parsers: Dict[str, PossiblyNonExistentLegacyRefParser] = {}
+        self._parsers: dict[str, PossiblyNonExistentLegacyRefParser] = {}
 
     def __getitem__(self, index_title: str) -> LegacyRefParser:
         parser = self.__get_parser(index_title)
@@ -166,11 +168,10 @@ class LegacyRefParserHandler:
             pass
         try:
             parser = self.__create_legacy_parser(index_title)
-        except NoLegacyRefParserError as e:
+        except NoLegacyRefParserError:
             parser = NON_EXISTENT_LEGACY_REF_PARSER
         self._parsers[index_title] = parser
         return parser
-
 
     @staticmethod
     def __load_data(index_title: str) -> LegacyRefParsingData:

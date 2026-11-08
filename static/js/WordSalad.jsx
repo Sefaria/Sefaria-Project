@@ -16,7 +16,11 @@ export const WordSalad = ({ numLines, salad, renderItem, addBullets = true }) =>
 
   const renderItemWithSpacesForBreaks = (item) => {
     // inner span to prevent wrapping on spaces mid-item, outer span with trailing space to allow wrapping between items
-    const trailingSpacedElement = <span><span className='no-wrapping-salad-item-container'>{renderItem(item)}</span> </span>
+    const trailingSpacedElement = (
+      <span>
+        <span className="no-wrapping-salad-item-container">{renderItem(item)}</span>{' '}
+      </span>
+    );
     return trailingSpacedElement;
   };
 
@@ -28,7 +32,7 @@ export const WordSalad = ({ numLines, salad, renderItem, addBullets = true }) =>
       const items = document.querySelectorAll('.no-wrapping-salad-item-container');
 
       // Clear bullets from all items first
-      items.forEach(item => item.classList.remove('has-bullet'));
+      items.forEach((item) => item.classList.remove('has-bullet'));
 
       // For each item, if it shares a line with the NEXT item,
       // add a bullet to the CURRENT item.

@@ -1,8 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { makeUuid } from './utils.js';
 import {
-  persistActiveFlow, clearActiveFlow, clearPendingAttempt,
-  fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded, fireFlowEnded,
+  persistActiveFlow,
+  clearActiveFlow,
+  clearPendingAttempt,
+  fireFlowStarted,
+  fireMethodChosen,
+  fireProcessStarted,
+  fireProcessEnded,
+  fireFlowEnded,
 } from './authAnalytics.js';
 
 // login/register both get a tracked flow; reset (password reset) never does.
@@ -17,8 +23,11 @@ const isTrackedFlow = (f) => f === 'login' || f === 'register';
  * @param source the CTA that led here (nav_bar, login_prompt, signup_modal_*,
  *               login_crosslink, ...) — AuthPage's `authSource` prop, ultimately
  *               read off a `data-signup-source` DOM attribute by ReaderApp.
+ * @param lazy   start the flow on the first chosen method instead of on arrival — for
+ *               sign-up options shown outside AuthPage (SignupOptions), which are on the
+ *               page whether or not anyone means to sign up.
  */
-export function useAuthTracking({ flow, source }) {
+export function useAuthTracking({ flow, source, lazy = false }) {
   const flowIdRef = useRef(null);
   const attemptRef = useRef(null);
   const flowEndedRef = useRef(true);
@@ -46,7 +55,14 @@ export function useAuthTracking({ flow, source }) {
     fireFlowStarted(flowIdRef.current, src, flowIntent);
   }
 
+  // Arriving at (or coming back to) a tracked flow starts it, unless lazy: then the first
+  // chosen method does (chooseMethod below).
+  function startFlowOnArrival() {
+    if (!lazy) startFlow(source);
+  }
+
   function chooseMethod(method) {
+    if (lazy && flowEndedRef.current) startFlow(source);
     // Close out whatever attempt is still open first (e.g. the user's email
     // submit came back "you already have a Google account" and they clicked
     // "Continue with Google" — the email attempt should already be ended by
@@ -120,8 +136,7 @@ export function useAuthTracking({ flow, source }) {
     prevFlowRef.current = flow;
     if (prevFlow === flow) return;
     if (isTrackedFlow(prevFlow)) endFlow();
-    if (isTrackedFlow(flow)) startFlow(source);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (isTrackedFlow(flow)) startFlowOnArrival();
   }, [flow, source]);
 
   // beforeunload can be suppressed (mobile SSO redirect may be in flight — resolved
@@ -148,7 +163,7 @@ export function useAuthTracking({ flow, source }) {
         endProcess('failure', 'back_navigation');
       }
       endFlow();
-      startFlow(source);
+      startFlowOnArrival();
     };
     window.addEventListener('beforeunload', onBeforeUnload);
     window.addEventListener('popstate', onPopState);
@@ -158,7 +173,6 @@ export function useAuthTracking({ flow, source }) {
       window.removeEventListener('popstate', onPopState);
       window.removeEventListener('pageshow', onPageShow);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flow, source]);
 
   // Unmount-cleanup: ReaderApp.openURL can unmount AuthPage via a pure SPA
@@ -166,6 +180,10 @@ export function useAuthTracking({ flow, source }) {
   useEffect(() => endFlow, []);
 
   return {
-    chooseMethod, startProcess, endProcess, getIds, suppressFlowEndRef,
+    chooseMethod,
+    startProcess,
+    endProcess,
+    getIds,
+    suppressFlowEndRef,
   };
 }

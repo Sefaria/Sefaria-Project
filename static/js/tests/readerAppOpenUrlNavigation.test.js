@@ -16,68 +16,107 @@
  */
 
 jest.mock('../sefaria/sefaria', () => {
-  const LIBRARY = 'library', VOICES = 'voices';
-  return { __esModule: true, default: {
-    LIBRARY_MODULE: LIBRARY,
-    VOICES_MODULE: VOICES,
-    activeModule: LIBRARY,
-    _: (k) => k,
-    _bilingual: (s) => ({ en: s, he: s }),
-    interfaceLang: 'english',
-    apiHost: '',
-    toc: [],
-    terms: {},
-    _tocOrderLookup: {},
-    _siteSettings: { ABOUT_SIDEBAR_PAGES: [] },
-    hebrew: { isHebrew: () => false },
-    search: { entitySearch: jest.fn() },
-    setup: () => {},
-    isRef: () => false,
-    humanRef: (r) => r,
-    util: {
-      clone: (x) => x,
-      cookie: () => {},
-      getObjectFromUrlParam: () => null,
-      currentPath: () => '/',
-      // Real fullURL rewrites the subdomain for a cross-module target; all these tests need
-      // is an absolute URL for `new URL()` to parse.
-      fullURL: (href, moduleTarget) =>
-        (href.startsWith('http') ? href
-          : `https://${moduleTarget === VOICES ? 'voices' : 'www'}.sefaria.org${href}`),
+  const LIBRARY = 'library',
+    VOICES = 'voices';
+  return {
+    __esModule: true,
+    default: {
+      LIBRARY_MODULE: LIBRARY,
+      VOICES_MODULE: VOICES,
+      activeModule: LIBRARY,
+      _: (k) => k,
+      _bilingual: (s) => ({ en: s, he: s }),
+      interfaceLang: 'english',
+      apiHost: '',
+      toc: [],
+      terms: {},
+      _tocOrderLookup: {},
+      _siteSettings: { ABOUT_SIDEBAR_PAGES: [] },
+      hebrew: { isHebrew: () => false },
+      search: { entitySearch: jest.fn() },
+      setup: () => {},
+      isRef: () => false,
+      humanRef: (r) => r,
+      util: {
+        clone: (x) => x,
+        cookie: () => {},
+        getObjectFromUrlParam: () => null,
+        currentPath: () => '/',
+        // Real fullURL rewrites the subdomain for a cross-module target; all these tests need
+        // is an absolute URL for `new URL()` to parse.
+        fullURL: (href, moduleTarget) =>
+          href.startsWith('http') ? href : `https://${moduleTarget === VOICES ? 'voices' : 'www'}.sefaria.org${href}`,
+      },
+      isSefariaURL: (url) => url.hostname.endsWith('sefaria.org'),
     },
-    isSefariaURL: (url) => url.hostname.endsWith('sefaria.org'),
-  }};
+  };
 });
 
-global.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+global.ResizeObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
 
 // Misc.jsx and ImageCropper.jsx are the only two modules in the tree that import a
 // stylesheet, which Jest cannot parse. Stubbing them keeps this test free of any
 // project-level Jest configuration. Every named export becomes a no-op component; nothing
 // under test renders them.
 // (factories must be inline -- jest hoists them above the imports)
-jest.mock("../Misc", () => new Proxy({}, {
-  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
-}));
-jest.mock("../ImageCropper", () => new Proxy({}, {
-  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
-}));
+jest.mock(
+  '../Misc',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => (prop === '__esModule' ? true : () => null),
+      }
+    )
+);
+jest.mock(
+  '../ImageCropper',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => (prop === '__esModule' ? true : () => null),
+      }
+    )
+);
 // json-edit-react (pulled in via ConnectionsPanel -> LexiconContentEditBox) does DOM feature
 // detection at import time that jsdom doesn't support (insertAdjacentElement); stubbing it
 // avoids ever evaluating the real package, same as the two mocks above.
-jest.mock("json-edit-react", () => new Proxy({}, {
-  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
-}));
+jest.mock(
+  'json-edit-react',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => (prop === '__esModule' ? true : () => null),
+      }
+    )
+);
 // react-simple-wysiwyg (pulled in via LexiconContentEditBox -> LexiconWysiwygValue) injects its
 // stylesheet at import time via insertAdjacentElement, same jsdom gap as json-edit-react above.
 // createButton(...) is called at module-load time and must itself return a component, not null.
-jest.mock("react-simple-wysiwyg", () => new Proxy({}, {
-  get: (_t, prop) => {
-    if (prop === "__esModule") { return true; }
-    if (prop === "createButton") { return () => (() => null); }
-    return () => null;
-  },
-}));
+jest.mock(
+  'react-simple-wysiwyg',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => {
+          if (prop === '__esModule') {
+            return true;
+          }
+          if (prop === 'createButton') {
+            return () => () => null;
+          }
+          return () => null;
+        },
+      }
+    )
+);
 
 import Sefaria from '../sefaria/sefaria';
 import { ReaderApp } from '../ReaderApp.jsx';
@@ -117,9 +156,9 @@ describe('cases that open a new tab -- the page itself does not move', () => {
     const app = makeApp();
     const { handled, navigated } = call(app, 'https://example.com/article');
 
-    expect(handled).toBe(true);           // openURL "handled" it
+    expect(handled).toBe(true); // openURL "handled" it
     expect(window.open).toHaveBeenCalled();
-    expect(navigated).toBe(false);        // ...but this page stayed put
+    expect(navigated).toBe(false); // ...but this page stayed put
   });
 
   test('a cross-module link, e.g. a Voices link clicked from the library', () => {
@@ -146,7 +185,7 @@ describe('a cancelled unsaved-changes prompt', () => {
   test('is handled, but nothing moved', () => {
     const app = makeApp({
       shouldAlertBeforeCloseEditor: () => true,
-      alertUnsavedChangesConfirmed: () => false,   // user clicked Cancel
+      alertUnsavedChangesConfirmed: () => false, // user clicked Cancel
     });
     const { handled, navigated } = call(app, '/texts');
 
@@ -164,13 +203,13 @@ describe('real in-app navigation', () => {
     expect(handled).toBe(true);
     expect(app.showLibrary).toHaveBeenCalled();
     expect(window.open).not.toHaveBeenCalled();
-    expect(navigated).toBe(true);        // the case that SHOULD end a search flow
+    expect(navigated).toBe(true); // the case that SHOULD end a search flow
   });
 
   test('confirming the unsaved-changes prompt still navigates', () => {
     const app = makeApp({
       shouldAlertBeforeCloseEditor: () => true,
-      alertUnsavedChangesConfirmed: () => true,    // user clicked OK
+      alertUnsavedChangesConfirmed: () => true, // user clicked OK
     });
     const { handled, navigated } = call(app, '/texts');
 
@@ -186,11 +225,7 @@ describe('real in-app navigation', () => {
     const { handled, navigated } = call(app, '/Book%2FPart%5CObject');
 
     expect(handled).toBe(true);
-    expect(app.openPanel).toHaveBeenCalledWith(
-      'Book/Part\\Object',
-      { en: null, he: null },
-      { showHighlight: false },
-    );
+    expect(app.openPanel).toHaveBeenCalledWith('Book/Part\\Object', { en: null, he: null }, { showHighlight: false });
     expect(navigated).toBe(true);
   });
 });

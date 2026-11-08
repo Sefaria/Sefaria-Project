@@ -160,6 +160,78 @@ export class ReaderScrollPage extends HelperBase {
     await expect(target.first()).toBeAttached({ timeout: t(30000) });
   }
 
+  /** Refs of the base-text sections currently rendered, top to bottom. */
+  async getSectionRefs(): Promise<string[]> {
+    return this.page.evaluate(() =>
+      Array.from(document.querySelectorAll<HTMLElement>('.textColumn .textRange.basetext'))
+        .map((el) => el.getAttribute('data-ref') ?? '')
+    );
+  }
+
+  /**
+   * One upward infinite-scroll trigger on the window: scroll to the top once and
+   * wait for the section(s) it prepends to finish loading. Returns the refs that
+   * were added above the previous top section.
+   */
+  async scrollWindowUpOnceAndGetPrepended(): Promise<string[]> {
+    const before = await this.getSectionRefs();
+    const prevTop = before[0];
+    // Nudge away from the top first: the top-load only fires on a scroll event.
+    await this.page.evaluate(() => window.scrollTo(0, 200));
+    await this.page.waitForTimeout(t(150));
+    await this.scrollWindowToTop();
+    await expect
+      .poll(async () => (await this.getSectionRefs()).indexOf(prevTop), { timeout: t(30000) })
+      .toBeGreaterThan(0);
+    await expect(this.page.locator('.textColumn .textRange.basetext.loading')).toHaveCount(0, { timeout: t(30000) });
+    // Pacing, not state-waiting: let the post-prepend scroll restore settle.
+    await this.page.waitForTimeout(t(500));
+    const after = await this.getSectionRefs();
+    return after.slice(0, after.indexOf(prevTop));
+  }
+
+  /** At least one segment of the given section is inside the viewport. */
+  async expectSectionInViewport(ref: string) {
+    await expect
+      .poll(
+        () =>
+          this.section(ref).first().evaluate((el) =>
+            Array.from(el.querySelectorAll('.segment')).some((seg) => {
+              const rect = seg.getBoundingClientRect();
+              return rect.bottom > 0 && rect.top < window.innerHeight;
+            })
+          ),
+        { timeout: t(10000) }
+      )
+      .toBe(true);
+  }
+
+  /**
+   * Open a library path through the app's in-app link handling (pushState, no
+   * page reload), the way a tap on a link inside the app does. Throws if
+   * the navigation reloaded the document, since a reload would reset the
+   * client text cache this is meant to exercise.
+   */
+  async openPathInApp(path: string) {
+    await this.page.evaluate(() => { (window as any).__noReloadMarker = true; });
+    await this.page.evaluate((href) => {
+      const link = document.createElement('a');
+      link.href = href;
+      link.textContent = 'in-app link';
+      link.id = 'e2e-in-app-link';
+      link.style.cssText = 'position:fixed;top:50%;left:0;z-index:2147483647;padding:12px;background:#fff;';
+      // Inside the React root, where the app's in-app link click handler listens.
+      document.querySelector('.readerApp')!.appendChild(link);
+    }, path);
+    await this.page.locator('#e2e-in-app-link').click();
+    await expect(this.page).toHaveURL((url) => url.pathname === path, { timeout: t(15000) });
+    await this.page.evaluate(() => document.getElementById('e2e-in-app-link')?.remove());
+    expect(
+      await this.page.evaluate(() => (window as any).__noReloadMarker === true),
+      'in-app navigation reloaded the page'
+    ).toBe(true);
+  }
+
   /** Same loop for the desktop .textColumn scroll container. */
   async scrollColumnUntilSectionLoads(ref: string, direction: 'down' | 'up', maxSteps = 20) {
     const target = this.section(ref);
