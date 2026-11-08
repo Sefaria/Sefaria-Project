@@ -362,6 +362,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.5-darkmode.1.tgz
     version: 0.92.5-darkmode.1
   - apiVersion: v2
+    appVersion: v7.11.3
+    created: "2026-11-08T11:19:22.874526236Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 75817e133c19f0bd0af73810d05f4e4f9e11b55b1c3edd9b1f02edd65f99de4e
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.5-chorerecord-preprod-ancestry.1.tgz
+    version: 0.92.5-chorerecord-preprod-ancestry.1
+  - apiVersion: v2
     appVersion: v7.11.1
     created: "2026-11-04T11:31:20.440349604Z"
     description: Chart to deploy complete Sefaria environment
@@ -24180,4 +24195,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-08T09:05:06.977775607Z"
+generated: "2026-11-08T11:19:22.869535822Z"
