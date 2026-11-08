@@ -20,10 +20,10 @@ const SearchToggle = ({ options, selected, onChange }) => {
   };
 
   // Set initial position synchronously before first paint (avoids flash, no transition needed)
-  useLayoutEffect(() => { updateSlider(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => { updateSlider(); }, []);  
 
   // Animate on change — fires after paint so the CSS transition has a "from" state
-  useEffect(() => { updateSlider(); }, [selected]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { updateSlider(); }, [selected]);  
 
   return (
     <div className="searchToggle" role="group" ref={containerRef}>

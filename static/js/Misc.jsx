@@ -191,7 +191,7 @@ const DonateLink = ({children, classes, source, link}) => {
   const url = `${Sefaria._v(linkOptions[link])}?c_src=${source}`;
 
   return (
-    <a href={url} className={classes} target="_blank">
+    <a href={url} className={classes} target="_blank" rel="noreferrer">
       {children}
     </a>
   );
@@ -374,11 +374,11 @@ const FilterableList = ({
         <div className={"filter-content" + (containerClass ? " " + containerClass : "")}>
           {dataUpToPage.length ?
           <>
-            { !!renderHeader ? renderHeader({filter}) : null }
+            { renderHeader ? renderHeader({filter}) : null }
             { dataUpToPage.map(renderItem) }
           </>
-          : <>{!!renderEmptyList ? renderEmptyList({filter}) : null}</>}
-          { !!renderFooter ? renderFooter({filter}) : null }
+          : <>{renderEmptyList ? renderEmptyList({filter}) : null}</>}
+          { renderFooter ? renderFooter({filter}) : null }
         </div>
       }
     </div>
@@ -672,8 +672,8 @@ class TextBlockLink extends Component {
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
-              <span className={elang} data-ref-child={true}>{title}{!!sheetOwner ? (<i className="byLine" data-ref-child={true}>{byLine}</i>) : null}</span>
-              <span className={hlang} data-ref-child={true}>{heTitle}{!!sheetOwner ? (<i className="byLine" data-ref-child={true}>{byLine}</i>) : null}</span>
+              <span className={elang} data-ref-child={true}>{title}{sheetOwner ? (<i className="byLine" data-ref-child={true}>{byLine}</i>) : null}</span>
+              <span className={hlang} data-ref-child={true}>{heTitle}{sheetOwner ? (<i className="byLine" data-ref-child={true}>{byLine}</i>) : null}</span>
             </div>
           </div>
           <div className="sideColorRight">
@@ -792,7 +792,7 @@ SimpleContentBlock.propTypes = {
 
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick, openInNewTab}) => (
   <div className={classes} onClick={onClick}>
-    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"} data-target-module={Sefaria.activeModule}>
+    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"} data-target-module={Sefaria.activeModule} rel="noreferrer">
       <InterfaceText text={{en, he}}/>
     </a>
     {children}
@@ -1318,7 +1318,7 @@ function InterfaceLanguageMenu({translationLanguagePreference, setTranslationLan
       <div className="dropdownLinks-options globeLanguageToggle">
         <DropdownLanguageToggle/>
       </div>
-      { !!translationLanguagePreference ? (
+      { translationLanguagePreference ? (
             <>
               <div className="interfaceLinks-header">
                 <InterfaceText>misc.preferred_translation</InterfaceText>
@@ -1677,7 +1677,7 @@ class ProfileListing extends Component {
               disableUnfollow={true}
               toggleSignUpModal={toggleSignUpModal} />
           </SimpleLinkedBlock>
-          {!!organization ?
+          {organization ?
           <SimpleInterfaceBlock
             classes="authorOrganization"
             en={organization}
@@ -1761,7 +1761,7 @@ const SheetListing = ({
   const sheetInfo = hideAuthor ? null :
       <div className="sheetInfo">
         <div className="sheetUser">
-          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} data-target-module={Sefaria.VOICES_MODULE}>
+          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} data-target-module={Sefaria.VOICES_MODULE} rel="noreferrer">
             <ProfilePic
               outerStyle={{display: "inline-block"}}
               name={sheet.ownerName}
@@ -1769,7 +1769,7 @@ const SheetListing = ({
               len={26}
             />
           </a>
-          <a href={sheet.ownerProfileUrl} data-target-module={Sefaria.VOICES_MODULE} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
+          <a href={sheet.ownerProfileUrl} data-target-module={Sefaria.VOICES_MODULE} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick} rel="noreferrer">{sheet.ownerName}</a>
         </div>
         {viewsIcon}
       </div>
@@ -1785,7 +1785,7 @@ const SheetListing = ({
         target={openInNewTab ? "_blank" : "_self"}
         className="sheetTag"
         data-target-module={Sefaria.VOICES_MODULE}
-        key={i}
+        key={i} rel="noreferrer"
       >
         {collection.name}
         {separator}
@@ -1800,7 +1800,7 @@ const SheetListing = ({
         className="sheetTag"
         key={i}
         onClick={handleTopicClick.bind(null, topic.slug)}
-        data-target-module={Sefaria.VOICES_MODULE}
+        data-target-module={Sefaria.VOICES_MODULE} rel="noreferrer"
       >
         <InterfaceText text={topic} />
         {separator}
@@ -1810,7 +1810,7 @@ const SheetListing = ({
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg" alt={Sefaria._("misc.not_published")}/><span>{Sefaria._("misc.not_published_2")}</span></span>) : undefined,
-      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} data-target-module={Sefaria.VOICES_MODULE} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
+      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} data-target-module={Sefaria.VOICES_MODULE} target={openInNewTab ? "_blank" : "_self"} rel="noreferrer">{sheet.ownerName}</a>) : undefined,
       views,
       created,
       collections.length ? collections : undefined,
@@ -1826,7 +1826,7 @@ const SheetListing = ({
     <div className="sheet" key={sheet.sheetUrl}>
       <div className="sheetLeft">
         {sheetInfo}
-        <a href={sheet.sheetUrl} data-target-module={Sefaria.VOICES_MODULE} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
+        <a href={sheet.sheetUrl} data-target-module={Sefaria.VOICES_MODULE} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal} rel="noreferrer">
           <span className="sheetTitleText">{title}</span>
         </a>
         {sheetSummary}
@@ -2243,7 +2243,7 @@ const InterruptingMessage = ({
                       href={strapi.modal.buttonURL.en}
                       onClick={() => {
                         closeModal("modal_button_clicked");
-                      }}
+                      }} rel="noreferrer"
                     >
                       <span className="int-en">
                         {strapi.modal.buttonText.en}
@@ -2255,7 +2255,7 @@ const InterruptingMessage = ({
                       href={strapi.modal.buttonURL.he}
                       onClick={() => {
                         closeModal("modal_button_clicked");
-                      }}
+                      }} rel="noreferrer"
                     >
                       <span className="int-he">
                         {strapi.modal.buttonText.he}
@@ -3194,10 +3194,10 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
       setCurrentSuggestions(results.currentSuggestions);
       setShowAddButton(results.showAddButton);
       setHelperPromptText(results.helperPromptText);
-      if (!!results.previewText) {
+      if (results.previewText) {
         generatePreviewText(results.previewText);
       }
-      if (!!results.helperPromptText) {
+      if (results.helperPromptText) {
         document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
       }
     });
@@ -3369,7 +3369,7 @@ const AppStoreButton = ({ platform, href, altText }) => {
   const iconSrc = `/static/icons/${isIOS ? 'ios' : 'android'}.svg`;
   const text = isIOS ? 'iOS' : 'Android';
   return (
-      <a target="_blank" className={aClasses} href={href}>
+      <a target="_blank" className={aClasses} href={href} rel="noreferrer">
         <img src={iconSrc} alt={altText} />
         <InterfaceText>{text}</InterfaceText>
       </a>

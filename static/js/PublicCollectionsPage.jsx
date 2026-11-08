@@ -74,7 +74,7 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
             <SidebarModules type={"AboutCollections"} props={{hideTitle: true}} /> }
 
             <div className="collectionsList">
-              { !!collectionsList ?
+              { collectionsList ?
               (collectionsList.public.length ?
                 (Sefaria.interfaceLang === "hebrew" ?
                 <>

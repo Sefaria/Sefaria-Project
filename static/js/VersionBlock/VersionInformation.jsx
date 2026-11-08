@@ -15,7 +15,7 @@ function VersionInformation({currentRef, version}) {
           <span className="versionDetailsLabel">
             {`${Sefaria._("common.source")}: `}
           </span>
-          <a className="versionDetailsLink" href={version.versionSource} target="_blank">
+          <a className="versionDetailsLink" href={version.versionSource} target="_blank" rel="noreferrer">
             { Sefaria.util.parseUrl(version.versionSource).host.replace("www.", "") }
           </a>
         </div>
@@ -31,17 +31,17 @@ function VersionInformation({currentRef, version}) {
           <span className="versionDetailsLabel">
             {`${Sefaria._("common.license")}: `}
           </span>
-          <a className="versionDetailsLink" href={makeLicenseLink()} target="_blank">
+          <a className="versionDetailsLink" href={makeLicenseLink()} target="_blank" rel="noreferrer">
             {Sefaria.translateLicense(version?.license)}
           </a>
         </div>
         <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionHistoryLink": 1, "versionDetailsElement": 1}, null))}>
-           <a className="versionDetailsLink" href={`/activity/${Sefaria.normRef(currentRef)}/${version.language}/${version.versionTitle && Sefaria.util.encodeTitleForUrl(version.versionTitle)}`} target="_blank">
+           <a className="versionDetailsLink" href={`/activity/${Sefaria.normRef(currentRef)}/${version.language}/${version.versionTitle && Sefaria.util.encodeTitleForUrl(version.versionTitle)}`} target="_blank" rel="noreferrer">
              {Sefaria._("version_information.revision_history")}
            </a>
         </div>
         <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionBuyLink": 1, "versionDetailsElement": 1}, "purchaseInformationURL"))}>
-           <a className="versionDetailsLink" href={version.purchaseInformationURL} target="_blank">
+           <a className="versionDetailsLink" href={version.purchaseInformationURL} target="_blank" rel="noreferrer">
             {Sefaria._("version_information.buy_in_print")}
            </a>
         </div>

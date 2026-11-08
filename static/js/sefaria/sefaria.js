@@ -602,7 +602,7 @@ Sefaria = extend(Sefaria, {
 
     let paramStr = '';
     for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar, transLangPref})) {
-      paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
+      paramStr = paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
     }
     paramStr = paramStr.replace(/&/,'?');
     paramStr = encodeURI(paramStr);
@@ -1077,7 +1077,7 @@ Sefaria = extend(Sefaria, {
       for (let v of versions) {
         Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(v.versionTitle, v.language)] = {
           en: v.versionTitle,
-          he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
+          he: v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
         };
       }
       this._versions[ref] = this._sortVersionsIntoBuckets(versions);
@@ -1092,7 +1092,7 @@ Sefaria = extend(Sefaria, {
         const lang = matches ? matches[1] : v.language;
         v.actualLanguage = lang; //add actual language onto the object. Hopefully its then available always.
         //Sort each language into its own bucket
-        versionStore[lang] = !!versionStore[lang] ? versionStore[lang].concat(v)  :  [v];
+        versionStore[lang] = versionStore[lang] ? versionStore[lang].concat(v)  :  [v];
       }
       return versionStore;
   },
@@ -2807,13 +2807,13 @@ _media: {},
   },
   toggleSavedItem: ({ ref, versions, sheet_owner, sheet_title }) => {
     return new Promise((resolve, reject) => {
-      const action = !!Sefaria.getSavedItem({ ref, versions }) ? "delete_saved" : "add_saved";
+      const action = Sefaria.getSavedItem({ ref, versions }) ? "delete_saved" : "add_saved";
       const savedItem = { ref, versions, time_stamp: Sefaria.util.epoch_time(), action, sheet_owner, sheet_title };
       if (Sefaria._uid) {
         $.post(`${Sefaria.apiHost}/api/profile/sync?no_return=1`,
           { user_history: JSON.stringify([savedItem]), client: 'web' }
         ).done(response => {
-          if (!!response['error']) {
+          if (response['error']) {
             reject(response['error'])
           } else {
             if (action === "add_saved" && !!response.created && response.created.length > 0) {
@@ -2940,7 +2940,7 @@ _media: {},
       }))).then(new_hist_array => {
         const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
         const user_history_cookie = cookie("user_history");
-        const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
+        const user_history = user_history_cookie ? JSON.parse(user_history_cookie) : [];
         const trimmed = Sefaria._trimUserHistoryForCookie(new_hist_array.concat(user_history));
         cookie("user_history", JSON.stringify(trimmed), {path: "/"});
         Sefaria.userHistory.items = trimmed;

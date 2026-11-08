@@ -38,7 +38,7 @@ const WebPage = ({authors, isHebrew, favicon, url, domain, title, description, a
   return (
     <div className={"webpage" + (isHebrew ? " hebrew" : "")} key={url}>
       <img className="icon" src={favicon} alt={Sefaria._("common.website_icon")} />
-      <a className="title" href={url} target="_blank">{title}</a>
+      <a className="title" href={url} target="_blank" rel="noreferrer">{title}</a>
       <div className="domain">{domain}</div>
       {description ? <div className="description">{description}</div> : null}
       <div className="webpageMetadata">

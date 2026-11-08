@@ -257,7 +257,7 @@ const ContestLandingPage = () => (
 
 
 const RambanLandingPage = () => {
-    const emailLink = <a target="_blank" href="mailto:hannah@sefaria.org?Subject=Ramban Sponsorship">hannah@sefaria.org</a>
+    const emailLink = <a target="_blank" href="mailto:hannah@sefaria.org?Subject=Ramban Sponsorship" rel="noreferrer">hannah@sefaria.org</a>
     return <StaticPage optionalClass="englishOnly">
         <Header
             enTitle="Ramban on Torah: A Translation"
@@ -2286,7 +2286,7 @@ const ButtonRow = ({children, light, white, enTitle, heTitle, optionalClass=""})
 
 const SimpleButton = ({href, he_href, he, en, white, rounded=true, tall=false, newTab=false}) => (
     <div className="simpleButtonWrapper">
-        <a href={href} className={classNames({button:1, flexContainer:1, "int-en":1, white: white, tall: tall, rounded:rounded})} target={newTab ? "_blank" : "_self"}>
+        <a href={href} className={classNames({button:1, flexContainer:1, "int-en":1, white: white, tall: tall, rounded:rounded})} target={newTab ? "_blank" : "_self"} rel="noreferrer">
             <span className="int-en">{en}</span>
         </a>
         <a href={he_href || href} className={classNames({button:1, flexContainer:1, "int-he":1, white: white, tall: tall, rounded:rounded})}>
@@ -2299,7 +2299,7 @@ const ParashaSponsorship = ({title, sponsorNames, message, link}) => {
     if (!sponsorNames) {
         return <div className="parashaSponsorship">
             <div className="parashaTitle">{title}</div>
-            <div className="parashaSponsorNames"><a target="_blank" href='mailto:hannah@sefaria.org?subject=Ramban Sponsorship'><b><i>Available for Sponsorship</i></b></a></div>
+            <div className="parashaSponsorNames"><a target="_blank" href='mailto:hannah@sefaria.org?subject=Ramban Sponsorship' rel="noreferrer"><b><i>Available for Sponsorship</i></b></a></div>
         </div>
     }
     else {
@@ -2316,7 +2316,7 @@ const StaticHR = () =>
     <div className="staticPageBlockInner"><hr /></div>;
 
 const ConditionalLink = ({ link, children }) =>
-  link ? <a href={link} target="_blank">{children}</a> : children;
+  link ? <a href={link} target="_blank" rel="noreferrer">{children}</a> : children;
 
 /*
 * Team Page
@@ -2591,7 +2591,7 @@ const JobsPageHeader = ({ jobsAreAvailable }) => {
 const Job = ({ job }) => {
     return (
         <div className="job">
-            <a className="joblink" target="_blank" href={job.jobLink}>
+            <a className="joblink" target="_blank" href={job.jobLink} rel="noreferrer">
                 {job.jobDescription}
             </a>
         </div>
@@ -2645,12 +2645,12 @@ const NoJobsNotice = () => {
             <p>
                 <span className="int-en">
                     Sefaria does not currently have any open positions.
-                    Please follow us on <a target="_blank" href="http://www.facebook.com/sefaria.org" >Facebook</a>
+                    Please follow us on <a target="_blank" href="http://www.facebook.com/sefaria.org" rel="noreferrer" >Facebook</a>
                     to hear about our next openings.
                 </span>
                 <span className="int-he">
                     ספריא איננה מחפשת כעת עובדים חדשים.
-                    עקבו אחרינו ב<a target="_blank" href="http://www.facebook.com/sefaria.org" >פייסבוק</a>&nbsp;
+                    עקבו אחרינו ב<a target="_blank" href="http://www.facebook.com/sefaria.org" rel="noreferrer" >פייסבוק</a>&nbsp;
                     כדי להשאר מעודכנים במשרות עתידיות.
                 </span>
             </p>
@@ -3251,22 +3251,22 @@ const mobileAppStoreUrls = (search) => {
 const MobileDownloadButtons = ({storeUrls}) => (
     <div className="mobileHeaderButtons">
         <a href={storeUrls.ios}
-           className="button flexContainer mobileDownloadButton int-en" target="_blank">
+           className="button flexContainer mobileDownloadButton int-en" target="_blank" rel="noreferrer">
             <img src="/static/img/mobile-landing-page/apple.png" alt="iOS" />
             <span>Download for iOS</span>
         </a>
         <a href={storeUrls.android}
-           className="button flexContainer mobileDownloadButton int-en" target="_blank">
+           className="button flexContainer mobileDownloadButton int-en" target="_blank" rel="noreferrer">
             <img src="/static/img/mobile-landing-page/googleplay.png" alt="Android" />
             <span>Download for Android</span>
         </a>
         <a href={storeUrls.ios}
-           className="button flexContainer mobileDownloadButton int-he" target="_blank">
+           className="button flexContainer mobileDownloadButton int-he" target="_blank" rel="noreferrer">
             <img src="/static/img/mobile-landing-page/apple.png" alt="iOS" />
             <span>הורדה ל iOS</span>
         </a>
         <a href={storeUrls.android}
-           className="button flexContainer mobileDownloadButton int-he" target="_blank">
+           className="button flexContainer mobileDownloadButton int-he" target="_blank" rel="noreferrer">
             <img src="/static/img/mobile-landing-page/googleplay.png" alt="Android" />
             <span>הורדה לאנדרואיד</span>
         </a>
@@ -3348,7 +3348,7 @@ const MobileAppPage = () => {
                 />
             </div>
         </GreyBox>
-        <div class="mobileFeatures">
+        <div className="mobileFeatures">
             <Feature
                 enTitle="Calendar"
                 heTitle="לוח לימוד יומי"
@@ -3403,22 +3403,22 @@ const MobileAppPage = () => {
             </h3>
             <div className="mobileDownloadCtaButtons">
                 <a href={storeUrls.ios}
-                   className="mobileDownloadButton dark flexContainer int-en" target="_blank">
+                   className="mobileDownloadButton dark flexContainer int-en" target="_blank" rel="noreferrer">
                     <img src="/static/img/mobile-landing-page/apple.png" alt="iOS" />
                     <span>Download for iOS</span>
                 </a>
                 <a href={storeUrls.android}
-                   className="mobileDownloadButton dark flexContainer int-en" target="_blank">
+                   className="mobileDownloadButton dark flexContainer int-en" target="_blank" rel="noreferrer">
                     <img src="/static/img/mobile-landing-page/googleplay.png" alt="Android" />
                     <span>Download for Android</span>
                 </a>
                 <a href={storeUrls.ios}
-                   className="mobileDownloadButton dark flexContainer int-he" target="_blank">
+                   className="mobileDownloadButton dark flexContainer int-he" target="_blank" rel="noreferrer">
                     <img src="/static/img/mobile-landing-page/apple.png" alt="iOS" />
                     <span>הורדה ל iOS</span>
                 </a>
                 <a href={storeUrls.android}
-                   className="mobileDownloadButton dark flexContainer int-he" target="_blank">
+                   className="mobileDownloadButton dark flexContainer int-he" target="_blank" rel="noreferrer">
                     <img src="/static/img/mobile-landing-page/googleplay.png" alt="Android" />
                     <span>הורדה לאנדרואיד</span>
                 </a>

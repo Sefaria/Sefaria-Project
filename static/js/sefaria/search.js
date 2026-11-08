@@ -254,7 +254,7 @@ class Search {
             result.aggregations = {path: {buckets: newBuckets}};
             this.buckets = newBuckets;
         }
-        if (!!filters.length) {
+        if (filters.length) {
             const expression = new RegExp(`^(${filters.join('|')})(\/.*|$)`);
             const accumulatedTotal = this.buckets.reduce((total, currentBook) => {
                 if (expression.test(currentBook.key)) {

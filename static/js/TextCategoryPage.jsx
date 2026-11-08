@@ -266,7 +266,7 @@ TextCategoryContents.defaultProps = {
 
 
 const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDesc, module}) => {
-  const keytype  = !!cats ? "cat" : "text";
+  const keytype  = cats ? "cat" : "text";
   const classes = classNames({ navBlockTitle: 1 });
   return (
     <div className="navBlock">

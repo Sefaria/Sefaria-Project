@@ -100,7 +100,7 @@ const LinkerPairings = ({pairings, contextType}) => {
             <div>{pairing.parts.map((part, j) => <LinkerPartChip key={j} part={part} contextType={contextType} />)}</div>
             <div className="linkerAdminNode">
               {pairingRef
-                ? <a className="linkerAdminRefValue" href={`/${Sefaria.normRef(pairingRef)}`} target="_blank">{pairingRef}</a>
+                ? <a className="linkerAdminRefValue" href={`/${Sefaria.normRef(pairingRef)}`} target="_blank" rel="noreferrer">{pairingRef}</a>
                 : (pairing.node?.key || "No node")}
             </div>
           </div>
@@ -426,7 +426,7 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
                   <div className="linkerAdminRefItem">
                     <span className="linkerAdminRefTag">Linker</span>
                     {option.ref
-                      ? <a className="linkerAdminRefValue" href={`/${Sefaria.normRef(option.ref)}`} target="_blank">{option.ref}</a>
+                      ? <a className="linkerAdminRefValue" href={`/${Sefaria.normRef(option.ref)}`} target="_blank" rel="noreferrer">{option.ref}</a>
                       : <span className="linkerAdminRefValue">No Ref</span>}
                   </div>
                   {optionDisambiguatedRef ? (
@@ -434,7 +434,7 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
                       <span className="linkerAdminRefArrow">→</span>
                       <div className="linkerAdminRefItem disambiguated">
                         <span className="linkerAdminRefTag">Disambiguator</span>
-                        <a className="linkerAdminRefValue" href={`/${Sefaria.normRef(optionDisambiguatedRef)}`} target="_blank">{optionDisambiguatedRef}</a>
+                        <a className="linkerAdminRefValue" href={`/${Sefaria.normRef(optionDisambiguatedRef)}`} target="_blank" rel="noreferrer">{optionDisambiguatedRef}</a>
                       </div>
                     </React.Fragment>
                   ) : null}

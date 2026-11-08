@@ -130,7 +130,7 @@ const getQueryObj = (query) => {
       const allowedTypes = MODULE_ALLOWED_SEARCH_TYPES[Sefaria.activeModule];
       if (d["is_ref"] && allowedTypes.includes('ref')) {
         return {'type': 'Ref', 'id': d["ref"], 'is_book': d['is_book']};
-      } else if (!!d["topic_slug"]) {
+      } else if (d["topic_slug"]) {
         return {'type': 'Topic', 'id': d["topic_slug"], 'is_book': d['is_book']};
       } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
         return {'type': d["type"], 'id': d["key"], 'is_book': d['is_book']};

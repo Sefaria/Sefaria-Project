@@ -455,7 +455,7 @@ class ElasticSearchQuerier extends Component {
                 let registry = {};
                 let orphans = [];
                 for (let aggregation of args.aggregationsToUpdate) {
-                  if (!!data.aggregations[aggregation]) {
+                  if (data.aggregations[aggregation]) {
                     const { buckets } = data.aggregations[aggregation];
                     const {
                       availableFilters: tempAvailable,

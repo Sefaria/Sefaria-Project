@@ -1192,7 +1192,7 @@ const Element = (props) => {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
             }
             else if (vimeoRe.exec(element.mediaUrl) !== null) {
-                mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="315" src={element.mediaUrl} frameborder="0" allow="autoplay; fullscreen" allowfullscreen>{children}</iframe></div>;
+                mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="315" src={element.mediaUrl} frameBorder="0" allow="autoplay; fullscreen" allowfullscreen>{children}</iframe></div>;
             }
             else if (element.mediaUrl.match(/^https?:\/\/open\.spotify\.com\/embed\/\w+\/\w+/i) != null) {
                 mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="380" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
@@ -2218,7 +2218,7 @@ const withLinks = editor => {
         const { selection } = editor;
         const link = editor.createLinkNode(url, "New Link");
         ReactEditor.focus(editor);
-        if (!!selection) {
+        if (selection) {
             const [parentNode, parentPath] = Editor.parent(
                 editor,
                 selection.focus?.path
@@ -2852,7 +2852,7 @@ const SefariaEditor = (props) => {
             }
             else {
                 //set cursor to previous location or top of doc
-                const newSelect = !!lastSelection ? lastSelection : {anchor: {path: [0, 0], offset: 0},focus: {path: [0, 0], offset: 0}}
+                const newSelect = lastSelection ? lastSelection : {anchor: {path: [0, 0], offset: 0},focus: {path: [0, 0], offset: 0}}
                 Transforms.select(editor, newSelect);
             }
         }, [readyForNormalize]

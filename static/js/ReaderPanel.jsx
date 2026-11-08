@@ -564,7 +564,7 @@ class ReaderPanel extends Component {
     if (mode === "Resources") {
       this.setFilter();
     }
-    state["connectionData"] = !!connectionData ? connectionData : null;
+    state["connectionData"] = connectionData ? connectionData : null;
     this.conditionalSetState(state);
   }
   setConnectionsCategory(category) {
@@ -1169,7 +1169,7 @@ class ReaderPanel extends Component {
 
 
     const sheet = Sefaria.sheets.loadSheetByID(this.state.sheetID);
-    const sheetTitle = !!sheet ? sheet.title.stripHtmlConvertLineBreaks() : null;
+    const sheetTitle = sheet ? sheet.title.stripHtmlConvertLineBreaks() : null;
 
     const hideReaderControls = (
       this.state.mode === "TextAndConnections" ||
@@ -1424,7 +1424,7 @@ class ReaderControls extends Component {
       :
       <div className={readerTextTocClasses} onClick={this.props.sheetID ? this.openSheetConnectionsPanel : this.openTextConnectionsPanel}>
         <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
-          <a href={url} data-target-module={!!this.props.sheetID ? Sefaria.VOICES_MODULE : Sefaria.LIBRARY_MODULE} aria-label={"Show Connection Panel contents for " + title} >
+          <a href={url} data-target-module={this.props.sheetID ? Sefaria.VOICES_MODULE : Sefaria.LIBRARY_MODULE} aria-label={"Show Connection Panel contents for " + title} >
             <div className="readerControlsTitle">
               { this.props.sheetID ?
               <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}

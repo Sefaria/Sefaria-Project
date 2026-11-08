@@ -557,7 +557,7 @@ class TextSegment extends Component {
   }
   addHighlights(text) {
     // for adding in highlights to query results in Reader
-    if (!!this.props.textHighlights) {
+    if (this.props.textHighlights) {
       const highList = this.props.textHighlights.map(h => this.wrapWordsInGenericHTMLRegex(h));
       const reg = new RegExp(`(${highList.join("|")})`, 'g');
       return text.replace(reg, '<span class="queryTextHighlight">$1</span>');

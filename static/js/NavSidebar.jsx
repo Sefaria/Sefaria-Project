@@ -100,7 +100,7 @@ const SidebarModuleTitle = ({children, en, he}) => {
 const TitledText = ({children, title, text}) => {
   return <SidebarModule>
             <SidebarModuleTitle en={title.en} he={title.he}/>
-            <p class="sidebarModuleText">
+            <p className="sidebarModuleText">
                  <InterfaceText markdown={{en: text.en, he: text.he}} />
             </p>
             {children}
@@ -953,7 +953,7 @@ const Wrapper = ({title, content}) => (
 const IconLink = ({text, url, icon, openInNewTab}) => (
   <div className="navSidebarLink gray">
     <img src={"/static/icons/" + icon} className="navSidebarIcon" alt={`${Sefaria._(text)} ${Sefaria._("nav_sidebar.icon")}`} />
-    <a href={url} target={openInNewTab ? "_blank" : "_self"}><InterfaceText>{text}</InterfaceText></a>
+    <a href={url} target={openInNewTab ? "_blank" : "_self"} rel="noreferrer"><InterfaceText>{text}</InterfaceText></a>
   </div>
 );
 

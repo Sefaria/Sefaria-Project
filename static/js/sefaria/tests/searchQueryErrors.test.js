@@ -142,7 +142,7 @@ describe('an exception thrown by args.success', () => {
         // render bug must not be recorded in GA4 as a failed search.
         const boom = new Error('render blew up');
         const args = makeArgs({ success: jest.fn(() => { throw boom; }) });
-        // eslint-disable-next-line no-console
+         
         const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
         runQuery(args).success(okResponse());

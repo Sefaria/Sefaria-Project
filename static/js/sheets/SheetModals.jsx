@@ -89,7 +89,7 @@ const CopyModal = ({close, sheetID}) => {
   const getCopySuccessMessage = () => {
     return (
       <><InterfaceText>sheet_modals.success</InterfaceText>
-                <a className="successMessage" href={`/sheets/${copiedSheetId}`} data-target-module={Sefaria.VOICES_MODULE} target='_blank'>
+                <a className="successMessage" href={`/sheets/${copiedSheetId}`} data-target-module={Sefaria.VOICES_MODULE} target='_blank' rel="noreferrer">
                 <InterfaceText>View your Copy</InterfaceText>
                 </a>
             </>
@@ -206,7 +206,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
       return (
         <>
           <InterfaceText>{googleDriveText}</InterfaceText>
-          <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>sheet_modals.view_in_google_docs</InterfaceText></a>
+          <a href={googleDriveLink} target="_blank" className="successMessage" rel="noreferrer"><InterfaceText>sheet_modals.view_in_google_docs</InterfaceText></a>
         </>
       );
     } else {

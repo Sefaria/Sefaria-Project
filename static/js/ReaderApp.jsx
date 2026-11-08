@@ -711,7 +711,7 @@ class ReaderApp extends Component {
 
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
-        if (!!state.filterRef) {
+        if (state.filterRef) {
           hist.filterRef = state.filterRef;
         }
         if(state.connectionsMode === "WebPagesList") {
@@ -1506,7 +1506,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const state = this.state.panels[n];
     const searchState = this._getSearchState(state);
     this.setPanelState(n, {
-      searchState: !!searchState ?
+      searchState: searchState ?
         searchState.update({
           type: searchState.type,
           availableFilters,
