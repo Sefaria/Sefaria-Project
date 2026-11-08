@@ -46,27 +46,17 @@ ALLOWLISTED_TRANSACTION_FIELDS = (
 
 
 def pick_allowlisted_transaction_fields(transaction: Mapping) -> dict:
-    return {
-        name: transaction[name]
-        for name in ALLOWLISTED_TRANSACTION_FIELDS
-        if name in transaction
-    }
+    return {name: transaction[name] for name in ALLOWLISTED_TRANSACTION_FIELDS if name in transaction}
 
 
-def verify_classy_request_signature(
-    raw_body: bytes, headers: Mapping[str, str]
-) -> None:
+def verify_classy_request_signature(raw_body: bytes, headers: Mapping[str, str]) -> None:
     if not CLASSY_WEBHOOK_SECRET:
         raise WebhookSecretNotConfigured("CLASSY_WEBHOOK_SECRET")
-    if not is_valid_svix_signature(
-        CLASSY_WEBHOOK_SECRET, raw_body, headers, now=time.time()
-    ):
+    if not is_valid_svix_signature(CLASSY_WEBHOOK_SECRET, raw_body, headers, now=time.time()):
         raise SignatureRejected()
 
 
-def parse_classy_transaction_payload(
-    raw_body: bytes, headers: Mapping[str, str]
-) -> ParsedWebhookEvent:
+def parse_classy_transaction_payload(raw_body: bytes, headers: Mapping[str, str]) -> ParsedWebhookEvent:
     try:
         payload = json.loads(raw_body)
     except (ValueError, UnicodeDecodeError):
@@ -85,16 +75,12 @@ def parse_classy_transaction_payload(
             # an unrelated event type to ignore (200).
             raise MalformedWebhookPayload()
         case {"eventType": str()}:
-            return WebhookEventIgnored(
-                ReasonWebhookEventWasIgnored.UNHANDLED_EVENT_TYPE
-            )
+            return WebhookEventIgnored(ReasonWebhookEventWasIgnored.UNHANDLED_EVENT_TYPE)
         case _:
             raise MalformedWebhookPayload()
 
 
-def _donation_event_from_transaction(
-    transaction: dict, message_id: str | None
-) -> ParsedWebhookEvent:
+def _donation_event_from_transaction(transaction: dict, message_id: str | None) -> ParsedWebhookEvent:
     match transaction:
         case {
             "status": str() as status,
@@ -102,25 +88,19 @@ def _donation_event_from_transaction(
         } if is_json_number(amount):
             # `not amount > 0` rather than `amount <= 0`, so a NaN amount is ignored too.
             if status != "success" or not amount > 0:
-                return WebhookEventIgnored(
-                    ReasonWebhookEventWasIgnored.NOT_A_SUCCESSFUL_NONZERO_DONATION
-                )
+                return WebhookEventIgnored(ReasonWebhookEventWasIgnored.NOT_A_SUCCESSFUL_NONZERO_DONATION)
             return _donation_event_from_successful_transaction(transaction, message_id)
         case _:
             raise MalformedWebhookPayload()
 
 
-def _donation_event_from_successful_transaction(
-    transaction: dict, message_id: str | None
-) -> ParsedWebhookEvent:
+def _donation_event_from_successful_transaction(transaction: dict, message_id: str | None) -> ParsedWebhookEvent:
     match transaction:
         case {
             "id": transaction_id,
             "supporter_id": supporter_id,
             "updated_at": updated_at,
-        } if is_json_integer(transaction_id) and is_json_integer(
-            supporter_id
-        ) and message_id:
+        } if is_json_integer(transaction_id) and is_json_integer(supporter_id) and message_id:
             # `message_id` is required: without the svix id there is no idempotency key for the event.
             occurred_at = parse_timestamp_assuming_utc(updated_at)
             if occurred_at is None:
@@ -131,9 +111,7 @@ def _donation_event_from_successful_transaction(
                 occurred_at_according_to_source=occurred_at,
                 person=PersonAsIdentifiedByClassy(
                     classy_supporter_id=supporter_id,
-                    email_address=NormalizedEmailAddress.parse(
-                        transaction.get("member_email_address")
-                    ),
+                    email_address=NormalizedEmailAddress.parse(transaction.get("member_email_address")),
                 ),
                 classy_transaction_id=transaction_id,
             )

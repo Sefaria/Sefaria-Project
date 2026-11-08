@@ -18,23 +18,33 @@ const SCOPES = ['combined', 'alone', 'any'];
 // ---------------------------------------------------------------------------
 
 const nodePrimaryTitle = (node) => {
-  if (node.default) { return '<Default Node>'; }
+  if (node.default) {
+    return '<Default Node>';
+  }
   const titles = node.titles || [];
-  const primaryEn = titles.find(t => t.lang === 'en' && t.primary);
-  if (primaryEn) { return primaryEn.text; }
-  const anyEn = titles.find(t => t.lang === 'en');
-  if (anyEn) { return anyEn.text; }
+  const primaryEn = titles.find((t) => t.lang === 'en' && t.primary);
+  if (primaryEn) {
+    return primaryEn.text;
+  }
+  const anyEn = titles.find((t) => t.lang === 'en');
+  if (anyEn) {
+    return anyEn.text;
+  }
   return node.title || node.sharedTitle || node.key || node.wholeRef || '(untitled)';
 };
 
 // Companion Hebrew title, shown smaller underneath the primary (English) title.
 // A default node has no titles of its own, so there's nothing to show here.
 const nodePrimaryHebrewTitle = (node) => {
-  if (node.default) { return null; }
+  if (node.default) {
+    return null;
+  }
   const titles = node.titles || [];
-  const primaryHe = titles.find(t => t.lang === 'he' && t.primary);
-  if (primaryHe) { return primaryHe.text; }
-  const anyHe = titles.find(t => t.lang === 'he');
+  const primaryHe = titles.find((t) => t.lang === 'he' && t.primary);
+  if (primaryHe) {
+    return primaryHe.text;
+  }
+  const anyHe = titles.find((t) => t.lang === 'he');
   return anyHe ? anyHe.text : null;
 };
 
@@ -71,8 +81,10 @@ const TermBadge = ({ slug, termTitles, onClick, children }) => {
 const collectTermSlugs = (rawIndex) => {
   const slugs = new Set();
   const walk = (node) => {
-    if (!node) { return; }
-    (node.match_templates || []).forEach(mt => (mt.term_slugs || []).forEach(s => slugs.add(s)));
+    if (!node) {
+      return;
+    }
+    (node.match_templates || []).forEach((mt) => (mt.term_slugs || []).forEach((s) => slugs.add(s)));
     (node.nodes || []).forEach(walk);
   };
   walk(rawIndex && rawIndex.schema);
@@ -82,23 +94,24 @@ const collectTermSlugs = (rawIndex) => {
 
 const altStructRoots = (rawIndex) => {
   const altStructs = rawIndex?.alt_structs || {};
-  return Object.entries(altStructs)
-    .map(([structName, struct]) => ({ structName, nodes: struct.nodes || [] }));
+  return Object.entries(altStructs).map(([structName, struct]) => ({ structName, nodes: struct.nodes || [] }));
 };
 
 const nodeDomId = (path) => `linker-editor-node-${path.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 
 const encPath = (s) => encodeURIComponent(s);
 
-const detectTitleLang = (text) => Sefaria.hebrew.isHebrew(text) ? 'he' : 'en';
+const detectTitleLang = (text) => (Sefaria.hebrew.isHebrew(text) ? 'he' : 'en');
 
 const editorApi = {
   loadRawIndex: (title) => Sefaria._ApiPromise(`${Sefaria.apiHost}/api/v2/raw/index/${encPath(title)}?_=${Date.now()}`),
   searchTerms: (q) => Sefaria._ApiPromise(`${Sefaria.apiHost}/api/linker/non-unique-terms?q=${encPath(q)}`),
   termDetail: (slug) => Sefaria._ApiPromise(`${Sefaria.apiHost}/_api/linker-editor/non-unique-term/${encPath(slug)}`),
-  termTitles: (slugs) => Sefaria._ApiPromise(`${Sefaria.apiHost}/_api/linker-editor/non-unique-term-titles?slugs=${encPath(slugs.join(','))}`),
-  createTerm: (payload) =>
-    Sefaria.apiRequestWithBody('/_api/linker-editor/non-unique-term', {}, payload, 'POST'),
+  termTitles: (slugs) =>
+    Sefaria._ApiPromise(
+      `${Sefaria.apiHost}/_api/linker-editor/non-unique-term-titles?slugs=${encPath(slugs.join(','))}`
+    ),
+  createTerm: (payload) => Sefaria.apiRequestWithBody('/_api/linker-editor/non-unique-term', {}, payload, 'POST'),
   addTermTitles: (slug, payload) =>
     Sefaria.apiRequestWithBody(`/_api/linker-editor/non-unique-term/${encPath(slug)}`, {}, payload, 'POST'),
   deleteTerm: (slug) =>
@@ -107,15 +120,40 @@ const editorApi = {
     Sefaria.apiRequestWithBody(`/_api/linker-editor/non-unique-term/${encPath(slug)}/swap`, {}, payload, 'POST'),
   addressTypes: () => Sefaria._ApiPromise(`${Sefaria.apiHost}/_api/linker-editor/address-types`),
   addMatchTemplate: (title, path, payload) =>
-    Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/match-templates`, {}, payload, 'POST'),
+    Sefaria.apiRequestWithBody(
+      `/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/match-templates`,
+      {},
+      payload,
+      'POST'
+    ),
   replaceMatchTemplate: (title, path, payload) =>
-    Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/match-templates`, {}, payload, 'PUT'),
+    Sefaria.apiRequestWithBody(
+      `/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/match-templates`,
+      {},
+      payload,
+      'PUT'
+    ),
   deleteMatchTemplate: (title, path, payload) =>
-    Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/match-templates`, {}, payload, 'DELETE'),
+    Sefaria.apiRequestWithBody(
+      `/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/match-templates`,
+      {},
+      payload,
+      'DELETE'
+    ),
   setAddressTypes: (title, path, payload) =>
-    Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/address-type`, {}, payload, 'PUT'),
+    Sefaria.apiRequestWithBody(
+      `/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/address-type`,
+      {},
+      payload,
+      'PUT'
+    ),
   setNodeProperties: (title, path, payload) =>
-    Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/properties`, {}, payload, 'PUT'),
+    Sefaria.apiRequestWithBody(
+      `/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/properties`,
+      {},
+      payload,
+      'PUT'
+    ),
   rebuildLinkerResolvers: (langs) => Sefaria.apiRequestWithBody('/admin/reset/linker-resolvers', {}, { langs }, 'POST'),
   rebuildDiburHamatchils: (title) =>
     Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/rebuild-dibur-hamatchils`, {}, {}, 'POST'),
@@ -124,11 +162,18 @@ const editorApi = {
 // True if any node in the raw index (default or alt structure) is a segment-level
 // dibur-hamatchil node — i.e. the index has dibur hamatchils worth (re)building.
 const indexHasDiburHamatchil = (rawIndex) => {
-  if (!rawIndex) { return false; }
+  if (!rawIndex) {
+    return false;
+  }
   let found = false;
   const walk = (node) => {
-    if (!node || found) { return; }
-    if (node.isSegmentLevelDiburHamatchil) { found = true; return; }
+    if (!node || found) {
+      return;
+    }
+    if (node.isSegmentLevelDiburHamatchil) {
+      found = true;
+      return;
+    }
     (node.nodes || []).forEach(walk);
   };
   walk(rawIndex.schema);
@@ -148,43 +193,66 @@ const DIBUR_HAMATCHIL_PROPS = new Set(['isSegmentLevelDiburHamatchil', 'diburHam
 // jump straight to creating the typed text as a new NonUniqueTerm.
 const CREATE_TERM_ITEM = (text) => ({ __create__: true, name: text, slug: text });
 
-const TermAutocomplete = ({ onSelect, placeholder, clearOnSelect=false, autoFocus=false, onCreateTerm }) => {
+const TermAutocomplete = ({ onSelect, placeholder, clearOnSelect = false, autoFocus = false, onCreateTerm }) => {
   let clearInput = null;
   const selectTerm = (term) => {
-    if (!term) { return; }
+    if (!term) {
+      return;
+    }
     if (term.__create__) {
-      if (onCreateTerm) { onCreateTerm(term.name); }
-      if (clearOnSelect && clearInput) { clearInput(); }
+      if (onCreateTerm) {
+        onCreateTerm(term.name);
+      }
+      if (clearOnSelect && clearInput) {
+        clearInput();
+      }
       return;
     }
     onSelect(term);
-    if (clearOnSelect && clearInput) { clearInput(); }
+    if (clearOnSelect && clearInput) {
+      clearInput();
+    }
   };
   const getSuggestions = async (inputValue) => {
     const trimmed = (inputValue || '').trim();
-    if (!trimmed) { return []; }
+    if (!trimmed) {
+      return [];
+    }
     try {
       const d = await editorApi.searchTerms(trimmed);
-      const terms = (d.terms || []).map(t => ({ ...t, name: t.slug }));
-      if (!terms.length && onCreateTerm) { return [CREATE_TERM_ITEM(trimmed)]; }
+      const terms = (d.terms || []).map((t) => ({ ...t, name: t.slug }));
+      if (!terms.length && onCreateTerm) {
+        return [CREATE_TERM_ITEM(trimmed)];
+      }
       return terms;
-    } catch (e) { return []; }
+    } catch (e) {
+      return [];
+    }
   };
   const renderInput = (highlightedIndex, highlightedSuggestion, getInputProps, setInputValue) => {
     clearInput = () => setInputValue('');
     return (
-      <input {...getInputProps()} className="linkerEditorTermInput" placeholder={placeholder || Sefaria._('Search terms…')} autoFocus={autoFocus} />
+      <input
+        {...getInputProps()}
+        className="linkerEditorTermInput"
+        placeholder={placeholder || Sefaria._('Search terms…')}
+        autoFocus={autoFocus}
+      />
     );
   };
-  const renderItems = (suggestions, highlightedIndex, getItemProps) => (
-    suggestions.map((item, index) => (
+  const renderItems = (suggestions, highlightedIndex, getItemProps) =>
+    suggestions.map((item, index) =>
       item.__create__ ? (
         <div
           key="__create__"
           {...getItemProps({ item, index })}
-          className={'linkerEditorSuggestion linkerEditorSuggestionCreate' + (highlightedIndex === index ? ' highlighted' : '')}
+          className={
+            'linkerEditorSuggestion linkerEditorSuggestionCreate' + (highlightedIndex === index ? ' highlighted' : '')
+          }
         >
-          <span className="termCreateSuggestion">+ {Sefaria._('Add')} “{item.slug}” {Sefaria._('as a new term')}</span>
+          <span className="termCreateSuggestion">
+            + {Sefaria._('Add')} “{item.slug}” {Sefaria._('as a new term')}
+          </span>
         </div>
       ) : (
         <div
@@ -193,11 +261,13 @@ const TermAutocomplete = ({ onSelect, placeholder, clearOnSelect=false, autoFocu
           className={'linkerEditorSuggestion' + (highlightedIndex === index ? ' highlighted' : '')}
         >
           <span className="termSlug">{item.slug}</span>
-          <span className="termTitles">{item.primary_en}{item.primary_he ? ` · ${item.primary_he}` : ''}</span>
+          <span className="termTitles">
+            {item.primary_en}
+            {item.primary_he ? ` · ${item.primary_he}` : ''}
+          </span>
         </div>
       )
-    ))
-  );
+    );
   return (
     <GeneralAutocomplete
       containerClassString="linkerEditorAutocomplete"
@@ -208,7 +278,9 @@ const TermAutocomplete = ({ onSelect, placeholder, clearOnSelect=false, autoFocu
       onSelectedItemChange={({ selectedItem }) => selectTerm(selectedItem)}
       onEnter={({ event, highlightedSuggestion, suggestions }) => {
         const item = highlightedSuggestion || suggestions[0];
-        if (!item) { return false; }
+        if (!item) {
+          return false;
+        }
         event.preventDefault();
         selectTerm(item);
         return true;
@@ -229,18 +301,24 @@ const MatchTemplateRow = ({ template, title, keyPath, termTitles, onTermClick, o
   const scope = template.scope || 'combined';
 
   const removeTemplate = async () => {
-    if (!confirm(Sefaria._('Delete this MatchTemplate?'))) { return; }
+    if (!confirm(Sefaria._('Delete this MatchTemplate?'))) {
+      return;
+    }
     setBusy(true);
     try {
       await editorApi.deleteMatchTemplate(title, path, { term_slugs: template.term_slugs, scope });
       await onChanged();
-    } catch (e) { alert(e.message || e); }
+    } catch (e) {
+      alert(e.message || e);
+    }
     setBusy(false);
   };
 
   const addTermToTemplate = async (term) => {
     setAddingTerm(false);
-    if (template.term_slugs.includes(term.slug)) { return; }
+    if (template.term_slugs.includes(term.slug)) {
+      return;
+    }
     setBusy(true);
     try {
       await editorApi.replaceMatchTemplate(title, path, {
@@ -248,7 +326,9 @@ const MatchTemplateRow = ({ template, title, keyPath, termTitles, onTermClick, o
         new: { term_slugs: [...template.term_slugs, term.slug], scope },
       });
       await onChanged();
-    } catch (e) { alert(e.message || e); }
+    } catch (e) {
+      alert(e.message || e);
+    }
     setBusy(false);
   };
 
@@ -261,10 +341,21 @@ const MatchTemplateRow = ({ template, title, keyPath, termTitles, onTermClick, o
         <span className={'scopeBadge scope-' + scope}>{scope}</span>
       </div>
       <div className="matchTemplateActions">
-        {addingTerm
-          ? <TermAutocomplete onSelect={addTermToTemplate} placeholder={Sefaria._('Add term…')} autoFocus={true} onCreateTerm={onCreateTerm} />
-          : <button className="linkerEditorBtn small" onClick={() => setAddingTerm(true)}>+ {Sefaria._('term')}</button>}
-        <button className="linkerEditorBtn small danger" onClick={removeTemplate} title={Sefaria._('Delete')}>×</button>
+        {addingTerm ? (
+          <TermAutocomplete
+            onSelect={addTermToTemplate}
+            placeholder={Sefaria._('Add term…')}
+            autoFocus={true}
+            onCreateTerm={onCreateTerm}
+          />
+        ) : (
+          <button className="linkerEditorBtn small" onClick={() => setAddingTerm(true)}>
+            + {Sefaria._('term')}
+          </button>
+        )}
+        <button className="linkerEditorBtn small danger" onClick={removeTemplate} title={Sefaria._('Delete')}>
+          ×
+        </button>
       </div>
     </div>
   );
@@ -279,46 +370,71 @@ const AddMatchTemplateForm = ({ title, keyPath, termTitles, onChanged, onCreateT
   const [busy, setBusy] = useState(false);
   const path = pathString(keyPath);
 
-  const reset = () => { setSlugs([]); setPickedTitles({}); setScope('combined'); setOpen(false); };
+  const reset = () => {
+    setSlugs([]);
+    setPickedTitles({});
+    setScope('combined');
+    setOpen(false);
+  };
   const badgeTitles = { ...(termTitles || {}), ...pickedTitles };
   const addSlug = (term) => {
-    if (slugs.includes(term.slug)) { return; }
+    if (slugs.includes(term.slug)) {
+      return;
+    }
     setSlugs([...slugs, term.slug]);
-    setPickedTitles(prev => ({ ...prev, [term.slug]: { primary_en: term.primary_en, primary_he: term.primary_he } }));
+    setPickedTitles((prev) => ({ ...prev, [term.slug]: { primary_en: term.primary_en, primary_he: term.primary_he } }));
   };
 
   const save = async () => {
-    if (!slugs.length) { return; }
+    if (!slugs.length) {
+      return;
+    }
     setBusy(true);
     try {
       await editorApi.addMatchTemplate(title, path, { term_slugs: slugs, scope });
       await onChanged();
       reset();
-    } catch (e) { alert(e.message || e); }
+    } catch (e) {
+      alert(e.message || e);
+    }
     setBusy(false);
   };
 
   if (!open) {
-    return <button className="linkerEditorBtn" onClick={() => setOpen(true)}>+ {Sefaria._('Add MatchTemplate')}</button>;
+    return (
+      <button className="linkerEditorBtn" onClick={() => setOpen(true)}>
+        + {Sefaria._('Add MatchTemplate')}
+      </button>
+    );
   }
   return (
     <div className="addMatchTemplateForm">
       <div className="addMatchTemplateBadges">
         {slugs.map((slug, i) => (
           <TermBadge key={i} slug={slug} termTitles={badgeTitles}>
-            <span className="removeSlug" onClick={() => setSlugs(slugs.filter((_, j) => j !== i))}>×</span>
+            <span className="removeSlug" onClick={() => setSlugs(slugs.filter((_, j) => j !== i))}>
+              ×
+            </span>
           </TermBadge>
         ))}
       </div>
       <TermAutocomplete autoFocus={true} clearOnSelect={true} onSelect={addSlug} onCreateTerm={onCreateTerm} />
       <label className="scopeSelect">
         {Sefaria._('scope')}:
-        <select value={scope} onChange={e => setScope(e.target.value)}>
-          {SCOPES.map(s => <option key={s} value={s}>{s}</option>)}
+        <select value={scope} onChange={(e) => setScope(e.target.value)}>
+          {SCOPES.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
         </select>
       </label>
-      <button className="linkerEditorBtn small" disabled={!slugs.length || busy} onClick={save}>{Sefaria._('Save')}</button>
-      <button className="linkerEditorBtn small" onClick={reset}>{Sefaria._('Cancel')}</button>
+      <button className="linkerEditorBtn small" disabled={!slugs.length || busy} onClick={save}>
+        {Sefaria._('Save')}
+      </button>
+      <button className="linkerEditorBtn small" onClick={reset}>
+        {Sefaria._('Cancel')}
+      </button>
     </div>
   );
 };
@@ -336,23 +452,30 @@ const AddressTypeEditor = ({ node, title, keyPath, addressTypeOptions, onChanged
   const changeAt = async (levelIdx, value) => {
     const next = addressTypes.slice();
     next[levelIdx] = value;
-    setBusy(true); setMsg(null);
+    setBusy(true);
+    setMsg(null);
     try {
       await editorApi.setAddressTypes(title, path, { address_types: next });
       setMsg({ ok: true, text: Sefaria._('Saved') });
       await onChanged();
-    } catch (e) { setMsg({ ok: false, text: e.message || String(e) }); }
+    } catch (e) {
+      setMsg({ ok: false, text: e.message || String(e) });
+    }
     setBusy(false);
   };
 
-  if (!addressTypes.length) { return null; }
+  if (!addressTypes.length) {
+    return null;
+  }
   return (
     <div className={'addressTypeEditor' + (busy ? ' busy' : '')}>
       <span className="cardLabel">{Sefaria._('AddressTypes')}</span>
       {addressTypes.map((atype, i) => (
-        <select key={i} value={atype} disabled={busy} onChange={e => changeAt(i, e.target.value)}>
-          {(addressTypeOptions.includes(atype) ? addressTypeOptions : [atype, ...addressTypeOptions]).map(opt => (
-            <option key={opt} value={opt}>{opt}</option>
+        <select key={i} value={atype} disabled={busy} onChange={(e) => changeAt(i, e.target.value)}>
+          {(addressTypeOptions.includes(atype) ? addressTypeOptions : [atype, ...addressTypeOptions]).map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
           ))}
         </select>
       ))}
@@ -373,43 +496,49 @@ const NODE_PROPERTIES = [
     key: 'referenceable',
     label: 'referenceable',
     what: "Whether the linker can cite this node directly. Default leaves nothing stored and lets the schema decide — for an ordinary named node that's the same as On, but for a structural placeholder node (one standing in for its parent without its own title) it behaves like Off instead. On: the node is matchable and its children are traversed normally. Off: the node itself is skipped and only its referenceable descendants are used. Optional: the node is BOTH matchable by name AND transparent, so its children flatten up — a citation can land on the node or descend straight into it.",
-    example: "Mark a Zohar sub-section like “Saba DeMishpatim” as Optional so a bare daf citation (זח\"ב צה.) can resolve into it, while the sub-section is still citable by its own name.",
+    example:
+      'Mark a Zohar sub-section like “Saba DeMishpatim” as Optional so a bare daf citation (זח"ב צה.) can resolve into it, while the sub-section is still citable by its own name.',
   },
   {
     key: 'numeric_equivalent',
     label: 'numeric_equivalent',
-    what: "The integer this named node stands in for, so a numeric citation can match it. Set it on a named (usually alt-structure) node that corresponds to a number.",
-    example: "An alt-struct perek node titled “Chapter 2” gets numeric_equivalent = 2, so both “Chapter 2” and a bare “2” resolve to it.",
+    what: 'The integer this named node stands in for, so a numeric citation can match it. Set it on a named (usually alt-structure) node that corresponds to a number.',
+    example:
+      'An alt-struct perek node titled “Chapter 2” gets numeric_equivalent = 2, so both “Chapter 2” and a bare “2” resolve to it.',
   },
   {
     key: 'referenceableSections',
     label: 'referenceableSections',
-    what: "Per-depth flags marking which section levels of this node can be cited by number. Turn a level off to stop the linker from matching a number at that depth. Defaults to all-on.",
-    example: "On a commentary stored as Daf → Line, turn off the “Line” level so citations resolve to the daf but never to a specific line.",
+    what: 'Per-depth flags marking which section levels of this node can be cited by number. Turn a level off to stop the linker from matching a number at that depth. Defaults to all-on.',
+    example:
+      'On a commentary stored as Daf → Line, turn off the “Line” level so citations resolve to the daf but never to a specific line.',
   },
   {
     key: 'isSegmentLevelDiburHamatchil',
     label: 'isSegmentLevelDiburHamatchil',
-    what: "When on, the deepest section is matched by its opening words (dibur hamatchil) instead of by a number.",
-    example: "A commentary whose comments are quoted by their opening phrase — “Rashi ד\"ה בראשית” — rather than “Rashi 1:3”.",
+    what: 'When on, the deepest section is matched by its opening words (dibur hamatchil) instead of by a number.',
+    example:
+      'A commentary whose comments are quoted by their opening phrase — “Rashi ד"ה בראשית” — rather than “Rashi 1:3”.',
   },
   {
     key: 'diburHamatchilRegexes',
     label: 'diburHamatchilRegexes',
     what: "Ordered list of regular expressions used to extract the dibur hamatchil (opening phrase) from each segment's text. Used together with isSegmentLevelDiburHamatchil.",
-    example: "^(<b>.*?</b>) to grab the bolded lemma at the start of each comment as its citable opening phrase.",
+    example: '^(<b>.*?</b>) to grab the bolded lemma at the start of each comment as its citable opening phrase.',
   },
   {
     key: 'skipped_addresses',
     label: 'skipped_addresses',
     what: "Address numbers that don't exist in this map and should be skipped when numbering its entries. Keeps a daf/page map aligned when some pages are missing.",
-    example: "A daf-based map where daf 245 doesn't exist — add 245 so the entries after it map to daf 246 and onward correctly.",
+    example:
+      "A daf-based map where daf 245 doesn't exist — add 245 so the entries after it map to daf 246 and onward correctly.",
   },
   {
     key: 'isMapReferenceable',
     label: 'isMapReferenceable',
-    what: "Whether this alt-structure map can be reached by the linker at all (default on). Turn off to keep the mapping for display/navigation while hiding it from citation resolution.",
-    example: "A supplementary cross-reference map you want shown in the sidebar but never matched as a citation target.",
+    what: 'Whether this alt-structure map can be reached by the linker at all (default on). Turn off to keep the mapping for display/navigation while hiding it from citation resolution.',
+    example:
+      'A supplementary cross-reference map you want shown in the sidebar but never matched as a citation target.',
   },
 ];
 
@@ -418,8 +547,8 @@ const NODE_PROPERTIES = [
 // value must match those strings exactly, so mind the string escaping here
 // (doubled backslashes so the stored regex is `^(.+?)[\-–]` / `^(.*?)\.`).
 const DH_REGEX_PRESETS = [
-  { label: 'Bold',   regex: '^<b>(.+?)</b>' },
-  { label: 'Dash',   regex: '^(.+?)[\\-–]' },
+  { label: 'Bold', regex: '^<b>(.+?)</b>' },
+  { label: 'Dash', regex: '^(.+?)[\\-–]' },
   { label: 'Period', regex: '^(.*?)\\.' },
 ];
 
@@ -455,12 +584,16 @@ const HelpTip = ({ what, example }) => {
         className="linkerHelpTipIcon"
         aria-label={Sefaria._('What is this?')}
         aria-expanded={open}
-        onClick={() => setOpen(o => !o)}
-      >?</button>
+        onClick={() => setOpen((o) => !o)}
+      >
+        ?
+      </button>
       {open && (
         <span className="linkerHelpTipPopover" role="tooltip">
           <span className="linkerHelpTipWhat">{what}</span>
-          <span className="linkerHelpTipExample"><em>{Sefaria._('Example')}:</em> {example}</span>
+          <span className="linkerHelpTipExample">
+            <em>{Sefaria._('Example')}:</em> {example}
+          </span>
         </span>
       )}
     </span>
@@ -488,14 +621,16 @@ const ReferenceableControl = ({ value, disabled, onChange }) => {
   const current = value === undefined ? null : value;
   return (
     <div className="segmentedControl">
-      {options.map(opt => (
+      {options.map((opt) => (
         <button
           key={String(opt.v)}
           type="button"
           disabled={disabled}
           className={'segment' + (current === opt.v ? ' active' : '')}
           onClick={() => onChange(opt.v)}
-        >{opt.label}</button>
+        >
+          {opt.label}
+        </button>
       ))}
     </div>
   );
@@ -503,19 +638,14 @@ const ReferenceableControl = ({ value, disabled, onChange }) => {
 
 const ToggleControl = ({ name, value, defaultValue, disabled, onChange }) => {
   const on = value === undefined || value === null ? defaultValue : value;
-  return (
-    <ToggleSwitch
-      name={name}
-      disabled={disabled}
-      isChecked={!!on}
-      onChange={() => onChange(!on)}
-    />
-  );
+  return <ToggleSwitch name={name} disabled={disabled} isChecked={!!on} onChange={() => onChange(!on)} />;
 };
 
 const NumberControl = ({ value, disabled, onSave }) => {
   const [draft, setDraft] = useState(value ?? '');
-  useEffect(() => { setDraft(value ?? ''); }, [value]);
+  useEffect(() => {
+    setDraft(value ?? '');
+  }, [value]);
   const commit = () => {
     const trimmed = String(draft).trim();
     onSave(trimmed === '' ? null : Number(trimmed));
@@ -527,9 +657,13 @@ const NumberControl = ({ value, disabled, onSave }) => {
       value={draft}
       disabled={disabled}
       placeholder={Sefaria._('unset')}
-      onChange={e => setDraft(e.target.value)}
+      onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
-      onKeyDown={e => { if (e.key === 'Enter') { e.target.blur(); } }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.target.blur();
+        }
+      }}
     />
   );
 };
@@ -547,7 +681,12 @@ const ReferenceableSectionsControl = ({ node, value, disabled, onChange }) => {
     <div className="referenceableSections">
       {sectionNames.map((name, i) => (
         <label key={i} className="referenceableSectionItem">
-          <input type="checkbox" disabled={disabled} checked={current[i]} onChange={e => setAt(i, e.target.checked)} />
+          <input
+            type="checkbox"
+            disabled={disabled}
+            checked={current[i]}
+            onChange={(e) => setAt(i, e.target.checked)}
+          />
           <span>{name}</span>
         </label>
       ))}
@@ -558,12 +697,16 @@ const ReferenceableSectionsControl = ({ node, value, disabled, onChange }) => {
 // Editable list of free-text rows (used for regexes and, in numeric mode, skipped addresses).
 const ListControl = ({ value, disabled, numeric, placeholder, presets, onSave }) => {
   const [rows, setRows] = useState(() => (Array.isArray(value) ? value.map(String) : []));
-  useEffect(() => { setRows(Array.isArray(value) ? value.map(String) : []); }, [JSON.stringify(value)]);
+  useEffect(() => {
+    setRows(Array.isArray(value) ? value.map(String) : []);
+  }, [JSON.stringify(value)]);
   const dirty = JSON.stringify(rows) !== JSON.stringify((value || []).map(String));
   const setAt = (i, v) => setRows(rows.map((r, j) => (j === i ? v : r)));
-  const addPreset = (regex) => { if (!rows.includes(regex)) setRows([...rows, regex]); };
+  const addPreset = (regex) => {
+    if (!rows.includes(regex)) setRows([...rows, regex]);
+  };
   const save = () => {
-    const cleaned = rows.map(r => r.trim()).filter(r => r !== '');
+    const cleaned = rows.map((r) => r.trim()).filter((r) => r !== '');
     onSave(cleaned.length ? (numeric ? cleaned.map(Number) : cleaned) : null);
   };
   return (
@@ -571,7 +714,7 @@ const ListControl = ({ value, disabled, numeric, placeholder, presets, onSave })
       {presets && presets.length > 0 && (
         <div className="linkerListPresets">
           <span className="linkerListPresetsLabel">{Sefaria._('Presets')}:</span>
-          {presets.map(p => {
+          {presets.map((p) => {
             const added = rows.includes(p.regex);
             return (
               <button
@@ -581,7 +724,10 @@ const ListControl = ({ value, disabled, numeric, placeholder, presets, onSave })
                 disabled={disabled || added}
                 title={p.regex}
                 onClick={() => addPreset(p.regex)}
-              >{added ? '✓ ' : '+ '}{Sefaria._(p.label)}</button>
+              >
+                {added ? '✓ ' : '+ '}
+                {Sefaria._(p.label)}
+              </button>
             );
           })}
         </div>
@@ -594,14 +740,32 @@ const ListControl = ({ value, disabled, numeric, placeholder, presets, onSave })
             value={row}
             disabled={disabled}
             placeholder={placeholder}
-            onChange={e => setAt(i, e.target.value)}
+            onChange={(e) => setAt(i, e.target.value)}
           />
-          <button type="button" className="linkerEditorBtn small danger" disabled={disabled} onClick={() => setRows(rows.filter((_, j) => j !== i))}>×</button>
+          <button
+            type="button"
+            className="linkerEditorBtn small danger"
+            disabled={disabled}
+            onClick={() => setRows(rows.filter((_, j) => j !== i))}
+          >
+            ×
+          </button>
         </div>
       ))}
       <div className="linkerListActions">
-        <button type="button" className="linkerEditorBtn small" disabled={disabled} onClick={() => setRows([...rows, ''])}>+ {Sefaria._('add')}</button>
-        {dirty && <button type="button" className="linkerEditorBtn small" disabled={disabled} onClick={save}>{Sefaria._('Save')}</button>}
+        <button
+          type="button"
+          className="linkerEditorBtn small"
+          disabled={disabled}
+          onClick={() => setRows([...rows, ''])}
+        >
+          + {Sefaria._('add')}
+        </button>
+        {dirty && (
+          <button type="button" className="linkerEditorBtn small" disabled={disabled} onClick={save}>
+            {Sefaria._('Save')}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -612,15 +776,20 @@ const NodePropertiesEditor = ({ node, title, keyPath, onChanged, onDhChanged }) 
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
   const path = pathString(keyPath);
-  const applicable = NODE_PROPERTIES.filter(meta => nodePropertyApplies(node, meta.key));
-  if (!applicable.length) { return null; }
+  const applicable = NODE_PROPERTIES.filter((meta) => nodePropertyApplies(node, meta.key));
+  if (!applicable.length) {
+    return null;
+  }
 
   const saveProperty = async (key, value) => {
-    setBusy(true); setMsg(null);
+    setBusy(true);
+    setMsg(null);
     try {
       await editorApi.setNodeProperties(title, path, { properties: { [key]: value } });
       setMsg({ ok: true, text: Sefaria._('Saved') });
-      if (DIBUR_HAMATCHIL_PROPS.has(key) && onDhChanged) { onDhChanged(); }
+      if (DIBUR_HAMATCHIL_PROPS.has(key) && onDhChanged) {
+        onDhChanged();
+      }
       await onChanged();
     } catch (e) {
       setMsg({ ok: false, text: e.message || String(e) });
@@ -632,19 +801,60 @@ const NodePropertiesEditor = ({ node, title, keyPath, onChanged, onDhChanged }) 
     const value = node[meta.key];
     switch (meta.key) {
       case 'referenceable':
-        return <ReferenceableControl value={value} disabled={busy} onChange={v => saveProperty('referenceable', v)} />;
+        return (
+          <ReferenceableControl value={value} disabled={busy} onChange={(v) => saveProperty('referenceable', v)} />
+        );
       case 'numeric_equivalent':
-        return <NumberControl value={value} disabled={busy} onSave={v => saveProperty('numeric_equivalent', v)} />;
+        return <NumberControl value={value} disabled={busy} onSave={(v) => saveProperty('numeric_equivalent', v)} />;
       case 'referenceableSections':
-        return <ReferenceableSectionsControl node={node} value={value} disabled={busy} onChange={v => saveProperty('referenceableSections', v)} />;
+        return (
+          <ReferenceableSectionsControl
+            node={node}
+            value={value}
+            disabled={busy}
+            onChange={(v) => saveProperty('referenceableSections', v)}
+          />
+        );
       case 'isSegmentLevelDiburHamatchil':
-        return <ToggleControl name={`${path}-isSegmentLevelDiburHamatchil`} value={value} defaultValue={false} disabled={busy} onChange={v => saveProperty('isSegmentLevelDiburHamatchil', v)} />;
+        return (
+          <ToggleControl
+            name={`${path}-isSegmentLevelDiburHamatchil`}
+            value={value}
+            defaultValue={false}
+            disabled={busy}
+            onChange={(v) => saveProperty('isSegmentLevelDiburHamatchil', v)}
+          />
+        );
       case 'diburHamatchilRegexes':
-        return <ListControl value={value} disabled={busy} presets={DH_REGEX_PRESETS} placeholder={Sefaria._('regex')} onSave={v => saveProperty('diburHamatchilRegexes', v)} />;
+        return (
+          <ListControl
+            value={value}
+            disabled={busy}
+            presets={DH_REGEX_PRESETS}
+            placeholder={Sefaria._('regex')}
+            onSave={(v) => saveProperty('diburHamatchilRegexes', v)}
+          />
+        );
       case 'skipped_addresses':
-        return <ListControl value={value} disabled={busy} numeric={true} placeholder={Sefaria._('address #')} onSave={v => saveProperty('skipped_addresses', v)} />;
+        return (
+          <ListControl
+            value={value}
+            disabled={busy}
+            numeric={true}
+            placeholder={Sefaria._('address #')}
+            onSave={(v) => saveProperty('skipped_addresses', v)}
+          />
+        );
       case 'isMapReferenceable':
-        return <ToggleControl name={`${path}-isMapReferenceable`} value={value} defaultValue={true} disabled={busy} onChange={v => saveProperty('isMapReferenceable', v)} />;
+        return (
+          <ToggleControl
+            name={`${path}-isMapReferenceable`}
+            value={value}
+            defaultValue={true}
+            disabled={busy}
+            onChange={(v) => saveProperty('isMapReferenceable', v)}
+          />
+        );
       default:
         return null;
     }
@@ -652,14 +862,16 @@ const NodePropertiesEditor = ({ node, title, keyPath, onChanged, onDhChanged }) 
 
   return (
     <div className="nodePropertiesEditor">
-      <button className="nodePropertiesToggle" onClick={() => setOpen(o => !o)}>
+      <button className="nodePropertiesToggle" onClick={() => setOpen((o) => !o)}>
         <span className="expandToggle">{open ? '▾' : '▸'}</span>
         {Sefaria._('Properties')}
       </button>
       {open && (
         <div className="nodePropertiesBody">
-          {applicable.map(meta => (
-            <PropertyRow key={meta.key} meta={meta}>{controlFor(meta)}</PropertyRow>
+          {applicable.map((meta) => (
+            <PropertyRow key={meta.key} meta={meta}>
+              {controlFor(meta)}
+            </PropertyRow>
           ))}
           {msg && <span className={'nodePropertiesMsg' + (msg.ok ? ' ok' : ' err')}>{msg.text}</span>}
         </div>
@@ -677,7 +889,7 @@ const SchemaNodeCard = ({
   keyPath,
   title,
   isRoot,
-  forceExpanded=false,
+  forceExpanded = false,
   expandedPaths,
   toggleExpand,
   addressTypeOptions,
@@ -686,9 +898,9 @@ const SchemaNodeCard = ({
   onCreateTerm,
   onChanged,
   onDhChanged,
-  altStructRootEntries=[],
-  collapseBranchBodyWhenCollapsed=false,
-  ancestorCrumbs=[],
+  altStructRootEntries = [],
+  collapseBranchBodyWhenCollapsed = false,
+  ancestorCrumbs = [],
   jumpToPath,
 }) => {
   const path = pathString(keyPath);
@@ -700,19 +912,28 @@ const SchemaNodeCard = ({
   // name, so its own MatchTemplates are never consulted by the linker. Don't offer to
   // add them; still show any existing (legacy) ones so they can be deleted.
   const isDefault = !!node.default;
-  const childKeyPath = (child, index) => keyPath[0] === '__alt__' ? [...keyPath, String(index)] : [...keyPath, child.key];
+  const childKeyPath = (child, index) =>
+    keyPath[0] === '__alt__' ? [...keyPath, String(index)] : [...keyPath, child.key];
   const childAncestorCrumbs = [...ancestorCrumbs, { label: nodePrimaryTitle(node), path }];
   const showBody = forceExpanded || expanded || !hasChildren || !collapseBranchBodyWhenCollapsed;
 
   return (
     <div id={nodeDomId(path)} className={'schemaNodeCard' + (isRoot ? ' root' : '')}>
       <div className="schemaNodeHeader">
-        {hasChildren && !forceExpanded
-          ? <span className="expandToggle" onClick={() => toggleExpand(path)}>{expanded ? '▾' : '▸'}</span>
-          : <span className="expandToggle placeholder" />}
+        {hasChildren && !forceExpanded ? (
+          <span className="expandToggle" onClick={() => toggleExpand(path)}>
+            {expanded ? '▾' : '▸'}
+          </span>
+        ) : (
+          <span className="expandToggle placeholder" />
+        )}
         <span className="schemaNodeTitleGroup">
           <span className="schemaNodeTitle">{nodePrimaryTitle(node)}</span>
-          {nodePrimaryHebrewTitle(node) && <span className="schemaNodeTitleHe" dir="rtl">{nodePrimaryHebrewTitle(node)}</span>}
+          {nodePrimaryHebrewTitle(node) && (
+            <span className="schemaNodeTitleHe" dir="rtl">
+              {nodePrimaryHebrewTitle(node)}
+            </span>
+          )}
         </span>
         {ancestorCrumbs.length > 0 && (
           <span className="schemaNodePath">
@@ -720,7 +941,9 @@ const SchemaNodeCard = ({
             {ancestorCrumbs.map((crumb, i) => (
               <React.Fragment key={`${crumb.path}-${i}`}>
                 {i > 0 && <span className="schemaNodePathSeparator"> / </span>}
-                <button className="schemaNodePathCrumb" onClick={() => jumpToPath(crumb.path)}>{crumb.label}</button>
+                <button className="schemaNodePathCrumb" onClick={() => jumpToPath(crumb.path)}>
+                  {crumb.label}
+                </button>
               </React.Fragment>
             ))}
             )
@@ -729,43 +952,53 @@ const SchemaNodeCard = ({
         <span className="schemaNodeKey">{node.key || node.nodeType}</span>
       </div>
 
-      {showBody && <div className="schemaNodeBody">
-        {(!isDefault || matchTemplates.length > 0) && (
-          <div className="matchTemplatesSection">
-            <span className="cardLabel">{Sefaria._('MatchTemplates')}</span>
-            {matchTemplates.length === 0 && <span className="emptyNote">{Sefaria._('none')}</span>}
-            {matchTemplates.map((mt, i) => (
-              <MatchTemplateRow
-                key={i}
-                template={{ term_slugs: mt.term_slugs || [], scope: mt.scope || 'combined' }}
-                title={title}
-                keyPath={keyPath}
-                termTitles={termTitles}
-                onTermClick={onTermClick}
-                onChanged={onChanged}
-                onCreateTerm={onCreateTerm}
-              />
-            ))}
-            {!isDefault && <AddMatchTemplateForm title={title} keyPath={keyPath} termTitles={termTitles} onChanged={onChanged} onCreateTerm={onCreateTerm} />}
-          </div>
-        )}
+      {showBody && (
+        <div className="schemaNodeBody">
+          {(!isDefault || matchTemplates.length > 0) && (
+            <div className="matchTemplatesSection">
+              <span className="cardLabel">{Sefaria._('MatchTemplates')}</span>
+              {matchTemplates.length === 0 && <span className="emptyNote">{Sefaria._('none')}</span>}
+              {matchTemplates.map((mt, i) => (
+                <MatchTemplateRow
+                  key={i}
+                  template={{ term_slugs: mt.term_slugs || [], scope: mt.scope || 'combined' }}
+                  title={title}
+                  keyPath={keyPath}
+                  termTitles={termTitles}
+                  onTermClick={onTermClick}
+                  onChanged={onChanged}
+                  onCreateTerm={onCreateTerm}
+                />
+              ))}
+              {!isDefault && (
+                <AddMatchTemplateForm
+                  title={title}
+                  keyPath={keyPath}
+                  termTitles={termTitles}
+                  onChanged={onChanged}
+                  onCreateTerm={onCreateTerm}
+                />
+              )}
+            </div>
+          )}
 
-        <AddressTypeEditor
-          node={node}
-          title={title}
-          keyPath={keyPath}
-          addressTypeOptions={addressTypeOptions}
-          onChanged={onChanged}
-        />
+          <AddressTypeEditor
+            node={node}
+            title={title}
+            keyPath={keyPath}
+            addressTypeOptions={addressTypeOptions}
+            onChanged={onChanged}
+          />
 
-        <NodePropertiesEditor
-          node={node}
-          title={title}
-          keyPath={keyPath}
-          onChanged={onChanged}
-          onDhChanged={onDhChanged}
-        />
-      </div>}
+          <NodePropertiesEditor
+            node={node}
+            title={title}
+            keyPath={keyPath}
+            onChanged={onChanged}
+            onDhChanged={onDhChanged}
+          />
+        </div>
+      )}
 
       {expanded && hasChildren && (
         <div className="schemaNodeChildren">
@@ -819,14 +1052,29 @@ const SchemaNodeCard = ({
   );
 };
 
-const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand, addressTypeOptions, termTitles, onTermClick, onCreateTerm, onChanged, onDhChanged, jumpToPath }) => {
+const AltStructGroup = ({
+  structName,
+  nodes,
+  title,
+  expandedPaths,
+  toggleExpand,
+  addressTypeOptions,
+  termTitles,
+  onTermClick,
+  onCreateTerm,
+  onChanged,
+  onDhChanged,
+  jumpToPath,
+}) => {
   const path = pathString(['__alt__', structName]);
   const expanded = expandedPaths.has(path);
 
   return (
     <div id={nodeDomId(path)} className="schemaNodeCard altStructGroup">
       <div className="schemaNodeHeader">
-        <span className="expandToggle" onClick={() => toggleExpand(path)}>{expanded ? '▾' : '▸'}</span>
+        <span className="expandToggle" onClick={() => toggleExpand(path)}>
+          {expanded ? '▾' : '▸'}
+        </span>
         <span className="schemaNodeTitle">{structName}</span>
         <span className="schemaNodeStructName">{Sefaria._('Alt Struct')}</span>
       </div>
@@ -850,9 +1098,7 @@ const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand,
               onChanged={onChanged}
               onDhChanged={onDhChanged}
               collapseBranchBodyWhenCollapsed={true}
-              ancestorCrumbs={[
-                { label: structName, path },
-              ]}
+              ancestorCrumbs={[{ label: structName, path }]}
               jumpToPath={jumpToPath}
             />
           ))}
@@ -866,7 +1112,17 @@ const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand,
 // NonUniqueTerm detail panel (bottom slide-up)
 // ---------------------------------------------------------------------------
 
-const TermDetailPanel = ({ slug, createMode, initialTitle, onCreateTerm, refreshToken, onClose, onCreated, onJump, onChanged }) => {
+const TermDetailPanel = ({
+  slug,
+  createMode,
+  initialTitle,
+  onCreateTerm,
+  refreshToken,
+  onClose,
+  onCreated,
+  onJump,
+  onChanged,
+}) => {
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState(null);
   const [newTitle, setNewTitle] = useState('');
@@ -881,29 +1137,44 @@ const TermDetailPanel = ({ slug, createMode, initialTitle, onCreateTerm, refresh
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    if (createMode) { return; }
-    setDetail(null); setError(null);
-    editorApi.termDetail(slug).then(setDetail, e => setError(e.message || String(e)));
+    if (createMode) {
+      return;
+    }
+    setDetail(null);
+    setError(null);
+    editorApi.termDetail(slug).then(setDetail, (e) => setError(e.message || String(e)));
   }, [slug, createMode, refreshToken]);
 
   // Entering create mode (including re-entering it from an "Add as new term" autosuggest
   // elsewhere on the page) seeds whichever language field matches what was already typed.
   useEffect(() => {
-    if (!createMode) { return; }
+    if (!createMode) {
+      return;
+    }
     setNewEn(initialTitle && initialTitle.lang === 'en' ? initialTitle.text : '');
     setNewHe(initialTitle && initialTitle.lang === 'he' ? initialTitle.text : '');
   }, [createMode, initialTitle]);
 
   const handlePanelKeyDown = (e) => {
-    if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      onClose();
+    }
   };
 
   const createTerm = async () => {
     const titles = [];
-    if (newEn.trim()) { titles.push({ lang: 'en', text: newEn.trim() }); }
-    if (newHe.trim()) { titles.push({ lang: 'he', text: newHe.trim() }); }
-    if (!titles.length) { return; }
-    setCreating(true); setError(null);
+    if (newEn.trim()) {
+      titles.push({ lang: 'en', text: newEn.trim() });
+    }
+    if (newHe.trim()) {
+      titles.push({ lang: 'he', text: newHe.trim() });
+    }
+    if (!titles.length) {
+      return;
+    }
+    setCreating(true);
+    setError(null);
     try {
       const created = await editorApi.createTerm({ titles });
       onCreated(created.slug);
@@ -922,8 +1193,11 @@ const TermDetailPanel = ({ slug, createMode, initialTitle, onCreateTerm, refresh
 
   const addTitles = async () => {
     const text = newTitle.trim();
-    if (!text) { return; }
-    setSavingTitles(true); setError(null);
+    if (!text) {
+      return;
+    }
+    setSavingTitles(true);
+    setError(null);
     try {
       const nextDetail = await editorApi.addTermTitles(slug, { titles: [{ lang: detectTitleLang(text), text }] });
       setDetail(nextDetail);
@@ -937,11 +1211,18 @@ const TermDetailPanel = ({ slug, createMode, initialTitle, onCreateTerm, refresh
   const deleteTerm = async () => {
     const usageCount = (detail?.usages || []).length;
     if (usageCount > 0) {
-      alert(Sefaria._('This term is still used by MatchTemplates. Delete the other usages first or use Swap to replace them with another term.'));
+      alert(
+        Sefaria._(
+          'This term is still used by MatchTemplates. Delete the other usages first or use Swap to replace them with another term.'
+        )
+      );
       return;
     }
-    if (!confirm(Sefaria._('Permanently delete this NonUniqueTerm? This action cannot be undone.'))) { return; }
-    setDeleting(true); setError(null);
+    if (!confirm(Sefaria._('Permanently delete this NonUniqueTerm? This action cannot be undone.'))) {
+      return;
+    }
+    setDeleting(true);
+    setError(null);
     try {
       await editorApi.deleteTerm(slug);
       onClose();
@@ -952,14 +1233,19 @@ const TermDetailPanel = ({ slug, createMode, initialTitle, onCreateTerm, refresh
   };
 
   const saveSwap = async () => {
-    if (!swapTarget || swapTarget.slug === slug) { return; }
-    setSwapping(true); setError(null);
+    if (!swapTarget || swapTarget.slug === slug) {
+      return;
+    }
+    setSwapping(true);
+    setError(null);
     try {
       const result = await editorApi.swapTerm(slug, { new_slug: swapTarget.slug });
       setDetail(result.old_term);
       setSwapOpen(false);
       setSwapTarget(null);
-      if (onChanged) { await onChanged(); }
+      if (onChanged) {
+        await onChanged();
+      }
     } catch (e) {
       setError(e.message || String(e));
     }
@@ -971,16 +1257,21 @@ const TermDetailPanel = ({ slug, createMode, initialTitle, onCreateTerm, refresh
       <div className="termDetailPanel" onKeyDown={handlePanelKeyDown}>
         <div className="termDetailHeader">
           <span className="termDetailSlug">{Sefaria._('New term')}</span>
-          <button className="linkerEditorBtn small" onClick={onClose}>{Sefaria._('Close')}</button>
+          <button className="linkerEditorBtn small" onClick={onClose}>
+            {Sefaria._('Close')}
+          </button>
         </div>
         {error && <div className="termDetailError">{error}</div>}
         <div className="termDetailBody">
           <div className="termCreateForm">
-            <span className="cardLabel">{Sefaria._('Primary titles')} <span className="termCreateHint">({Sefaria._('at least one required')})</span></span>
+            <span className="cardLabel">
+              {Sefaria._('Primary titles')}{' '}
+              <span className="termCreateHint">({Sefaria._('at least one required')})</span>
+            </span>
             <input
               className="linkerEditorTermInput"
               value={newEn}
-              onChange={e => setNewEn(e.target.value)}
+              onChange={(e) => setNewEn(e.target.value)}
               onKeyDown={handleCreateKeyDown}
               placeholder={Sefaria._('Primary English title')}
               autoFocus
@@ -988,7 +1279,7 @@ const TermDetailPanel = ({ slug, createMode, initialTitle, onCreateTerm, refresh
             <input
               className="linkerEditorTermInput"
               value={newHe}
-              onChange={e => setNewHe(e.target.value)}
+              onChange={(e) => setNewHe(e.target.value)}
               onKeyDown={handleCreateKeyDown}
               placeholder={Sefaria._('Primary Hebrew title')}
               dir="rtl"
@@ -1010,25 +1301,19 @@ const TermDetailPanel = ({ slug, createMode, initialTitle, onCreateTerm, refresh
     <div className="termDetailPanel" onKeyDown={handlePanelKeyDown}>
       <div className="termDetailHeader">
         <span className="termDetailSlug">{slug}</span>
-        <button className="linkerEditorBtn small" onClick={onClose}>{Sefaria._('Close')}</button>
+        <button className="linkerEditorBtn small" onClick={onClose}>
+          {Sefaria._('Close')}
+        </button>
       </div>
       {error && <div className="termDetailError">{error}</div>}
       {!detail && !error && <LoadingMessage />}
       {detail && (
         <div className="termDetailBody">
           <div className="termDetailActions">
-            <button
-              className="linkerEditorBtn small danger termDeleteBtn"
-              disabled={deleting}
-              onClick={deleteTerm}
-            >
+            <button className="linkerEditorBtn small danger termDeleteBtn" disabled={deleting} onClick={deleteTerm}>
               {deleting ? Sefaria._('Deleting…') : Sefaria._('Delete NonUniqueTerm')}
             </button>
-            <button
-              className="linkerEditorBtn small"
-              disabled={swapping}
-              onClick={() => setSwapOpen(!swapOpen)}
-            >
+            <button className="linkerEditorBtn small" disabled={swapping} onClick={() => setSwapOpen(!swapOpen)}>
               {Sefaria._('Swap')}
             </button>
             {swapOpen && (
@@ -1053,7 +1338,10 @@ const TermDetailPanel = ({ slug, createMode, initialTitle, onCreateTerm, refresh
           <div className="termTitlesList">
             <span className="cardLabel">{Sefaria._('Titles')}</span>
             {(detail.titles || []).map((t, i) => (
-              <span key={i} className="termTitleItem"><em>{t.lang}</em> {t.text}{t.primary ? ' ★' : ''}</span>
+              <span key={i} className="termTitleItem">
+                <em>{t.lang}</em> {t.text}
+                {t.primary ? ' ★' : ''}
+              </span>
             ))}
           </div>
           <div className="termAddTitlesForm">
@@ -1061,26 +1349,35 @@ const TermDetailPanel = ({ slug, createMode, initialTitle, onCreateTerm, refresh
             <input
               className="linkerEditorTermInput"
               value={newTitle}
-              onChange={e => setNewTitle(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !savingTitles && newTitle.trim()) { addTitles(); } }}
+              onChange={(e) => setNewTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !savingTitles && newTitle.trim()) {
+                  addTitles();
+                }
+              }}
               placeholder={Sefaria._('Alternate title')}
             />
-            <button
-              className="linkerEditorBtn small"
-              disabled={savingTitles || !newTitle.trim()}
-              onClick={addTitles}
-            >
+            <button className="linkerEditorBtn small" disabled={savingTitles || !newTitle.trim()} onClick={addTitles}>
               {savingTitles ? Sefaria._('Saving…') : Sefaria._('Save')}
             </button>
           </div>
           <div className="termUsagesList">
-            <span className="cardLabel">{Sefaria._('Used by')} ({(detail.usages || []).length})</span>
+            <span className="cardLabel">
+              {Sefaria._('Used by')} ({(detail.usages || []).length})
+            </span>
             {(detail.usages || []).map((u, i) => (
               <div key={i} className="termUsageItem">
-                <span className="usageNodeTitle">{u.index_title}{u.node_title && u.node_title !== u.index_title ? ` › ${u.node_title}` : ''}</span>
-                <span className="usageTemplate">[{(u.term_slugs || []).join(', ')}] · {u.scope}</span>
+                <span className="usageNodeTitle">
+                  {u.index_title}
+                  {u.node_title && u.node_title !== u.index_title ? ` › ${u.node_title}` : ''}
+                </span>
+                <span className="usageTemplate">
+                  [{(u.term_slugs || []).join(', ')}] · {u.scope}
+                </span>
                 {u.index_title && (!u.struct_name || (u.node_key_path || [])[0] === '__alt__') && (
-                  <button className="linkerEditorBtn small" onClick={() => onJump(u.index_title, u.node_key_path)}>{Sefaria._('Jump')}</button>
+                  <button className="linkerEditorBtn small" onClick={() => onJump(u.index_title, u.node_key_path)}>
+                    {Sefaria._('Jump')}
+                  </button>
                 )}
               </div>
             ))}
@@ -1097,11 +1394,15 @@ const TermDetailPanel = ({ slug, createMode, initialTitle, onCreateTerm, refresh
 
 const IndexSearch = ({ onSelect }) => {
   const getSuggestions = async (inputValue) => {
-    if (!inputValue || inputValue.trim().length < 2) { return []; }
+    if (!inputValue || inputValue.trim().length < 2) {
+      return [];
+    }
     try {
       const d = await Sefaria.getName(inputValue.trim(), 10, ['ref']);
-      return (d.completion_objects || []).map(co => ({ name: co.title, key: co.key || co.title }));
-    } catch (e) { return []; }
+      return (d.completion_objects || []).map((co) => ({ name: co.title, key: co.key || co.title }));
+    } catch (e) {
+      return [];
+    }
   };
   const select = async (item) => {
     // Resolve whatever was picked to its Index title.
@@ -1113,9 +1414,14 @@ const IndexSearch = ({ onSelect }) => {
     }
   };
   const renderInput = (highlightedIndex, highlightedSuggestion, getInputProps) => (
-    <input {...getInputProps()} className="linkerEditorSearchInput" placeholder={Sefaria._('Search for a text…')} autoFocus />
+    <input
+      {...getInputProps()}
+      className="linkerEditorSearchInput"
+      placeholder={Sefaria._('Search for a text…')}
+      autoFocus
+    />
   );
-  const renderItems = (suggestions, highlightedIndex, getItemProps) => (
+  const renderItems = (suggestions, highlightedIndex, getItemProps) =>
     suggestions.map((item, index) => (
       <div
         key={item.key + index}
@@ -1124,8 +1430,7 @@ const IndexSearch = ({ onSelect }) => {
       >
         {item.name}
       </div>
-    ))
-  );
+    ));
   return (
     <div className="linkerEditorSearchWrap">
       <GeneralAutocomplete
@@ -1134,10 +1439,16 @@ const IndexSearch = ({ onSelect }) => {
         getSuggestions={getSuggestions}
         renderInput={renderInput}
         renderItems={renderItems}
-        onSelectedItemChange={({ selectedItem }) => { if (selectedItem) { select(selectedItem); } }}
+        onSelectedItemChange={({ selectedItem }) => {
+          if (selectedItem) {
+            select(selectedItem);
+          }
+        }}
         onEnter={({ event, highlightedSuggestion, suggestions }) => {
           const item = highlightedSuggestion || suggestions[0];
-          if (!item) { return false; }
+          if (!item) {
+            return false;
+          }
           event.preventDefault();
           select(item);
           return true;
@@ -1173,44 +1484,83 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
   const [dhRebuilding, setDhRebuilding] = useState(false);
   const [dhMsg, setDhMsg] = useState(null);
 
-  const markDhDirty = useCallback(() => { setDhDirty(true); setDhMsg(null); }, []);
+  const markDhDirty = useCallback(() => {
+    setDhDirty(true);
+    setDhMsg(null);
+  }, []);
 
-  const openTerm = useCallback((slug) => { setAddingTerm(false); setSearchingTerm(false); setCreatePrefill(null); setTermSlug(slug); }, []);
-  const closeTermDrawer = useCallback(() => { setTermSlug(null); setAddingTerm(false); setCreatePrefill(null); }, []);
-  const openSearchedTerm = useCallback((term) => { openTerm(term.slug); }, [openTerm]);
+  const openTerm = useCallback((slug) => {
+    setAddingTerm(false);
+    setSearchingTerm(false);
+    setCreatePrefill(null);
+    setTermSlug(slug);
+  }, []);
+  const closeTermDrawer = useCallback(() => {
+    setTermSlug(null);
+    setAddingTerm(false);
+    setCreatePrefill(null);
+  }, []);
+  const openSearchedTerm = useCallback(
+    (term) => {
+      openTerm(term.slug);
+    },
+    [openTerm]
+  );
   // Opened from a term autosuggest box with no matches — jumps straight to the Add New
   // Term drawer with whatever was typed pre-filled into the matching language field.
   const openCreateTerm = useCallback((text) => {
-    setTermSlug(null); setSearchingTerm(false);
+    setTermSlug(null);
+    setSearchingTerm(false);
     setCreatePrefill({ lang: detectTitleLang(text), text });
     setAddingTerm(true);
   }, []);
 
   useEffect(() => {
-    editorApi.addressTypes().then(d => setAddressTypeOptions(d.address_types || []));
+    editorApi.addressTypes().then((d) => setAddressTypeOptions(d.address_types || []));
   }, []);
 
   const loadTermTitles = useCallback((rawIndexData) => {
     const slugs = collectTermSlugs(rawIndexData);
-    if (!slugs.length) { setTermTitles({}); return; }
-    editorApi.termTitles(slugs).then(d => setTermTitles(d.titles || {}), () => {});
+    if (!slugs.length) {
+      setTermTitles({});
+      return;
+    }
+    editorApi.termTitles(slugs).then(
+      (d) => setTermTitles(d.titles || {}),
+      () => {}
+    );
   }, []);
 
-  const loadIndex = useCallback((indexTitle) => {
-    setLoading(true); setError(null); setRawIndex(null); setTitle(indexTitle);
-    setDhDirty(false); setDhMsg(null);
-    if (onBookChange) { onBookChange(indexTitle); }
-    editorApi.loadRawIndex(indexTitle)
-      .then(d => {
-        if (d.error) { setError(d.error); }
-        else {
-          setRawIndex(d);
-          setExpandedPaths(new Set(d.schema?.key ? [d.schema.key] : []));
-          loadTermTitles(d);
+  const loadIndex = useCallback(
+    (indexTitle) => {
+      setLoading(true);
+      setError(null);
+      setRawIndex(null);
+      setTitle(indexTitle);
+      setDhDirty(false);
+      setDhMsg(null);
+      if (onBookChange) {
+        onBookChange(indexTitle);
+      }
+      editorApi.loadRawIndex(indexTitle).then(
+        (d) => {
+          if (d.error) {
+            setError(d.error);
+          } else {
+            setRawIndex(d);
+            setExpandedPaths(new Set(d.schema?.key ? [d.schema.key] : []));
+            loadTermTitles(d);
+          }
+          setLoading(false);
+        },
+        (e) => {
+          setError(e.message || String(e));
+          setLoading(false);
         }
-        setLoading(false);
-      }, e => { setError(e.message || String(e)); setLoading(false); })
-  }, [loadTermTitles, onBookChange]);
+      );
+    },
+    [loadTermTitles, onBookChange]
+  );
 
   // Keep the loaded book in sync with the URL: react to browser back/forward
   // (initialBook prop changing under us) and to the very first mount landing
@@ -1218,35 +1568,48 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
   // changes it initiates back up via onBookChange, so this only needs to act
   // when initialBook and the currently-loaded title have drifted apart.
   useEffect(() => {
-    if (initialBook === title) { return; }
+    if (initialBook === title) {
+      return;
+    }
     if (initialBook) {
       loadIndex(initialBook);
     } else {
-      setTitle(null); setRawIndex(null); setDhDirty(false); setDhMsg(null);
+      setTitle(null);
+      setRawIndex(null);
+      setDhDirty(false);
+      setDhMsg(null);
     }
   }, [initialBook]);
 
   const reload = useCallback(async () => {
-    if (!title) { return; }
+    if (!title) {
+      return;
+    }
     const d = await editorApi.loadRawIndex(title);
     setRawIndex(d);
     loadTermTitles(d);
-    setRefreshToken(t => t + 1);
+    setRefreshToken((t) => t + 1);
   }, [title, loadTermTitles]);
 
   const toggleExpand = useCallback((path) => {
-    setExpandedPaths(prev => {
+    setExpandedPaths((prev) => {
       const next = new Set(prev);
-      if (next.has(path)) { next.delete(path); } else { next.add(path); }
+      if (next.has(path)) {
+        next.delete(path);
+      } else {
+        next.add(path);
+      }
       return next;
     });
   }, []);
 
   const jumpToPath = useCallback((path) => {
-    setExpandedPaths(prev => {
+    setExpandedPaths((prev) => {
       const next = new Set(prev);
       const parts = path.split('.');
-      for (let i = 1; i <= parts.length; i++) { next.add(parts.slice(0, i).join('.')); }
+      for (let i = 1; i <= parts.length; i++) {
+        next.add(parts.slice(0, i).join('.'));
+      }
       return next;
     });
     setTimeout(() => {
@@ -1254,21 +1617,26 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
     }, 0);
   }, []);
 
-  const jumpToNode = useCallback((indexTitle, nodeKeyPath) => {
-    if (indexTitle !== title) {
-      loadIndex(indexTitle);
-    }
-    const path = pathString(nodeKeyPath);
-    // Expand every ancestor path so the target node is visible.
-    setExpandedPaths(prev => {
-      const next = new Set(prev);
-      for (let i = 1; i <= nodeKeyPath.length; i++) { next.add(nodeKeyPath.slice(0, i).join('.')); }
-      return next;
-    });
-    setTimeout(() => {
-      document.getElementById(nodeDomId(path))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 0);
-  }, [title, loadIndex]);
+  const jumpToNode = useCallback(
+    (indexTitle, nodeKeyPath) => {
+      if (indexTitle !== title) {
+        loadIndex(indexTitle);
+      }
+      const path = pathString(nodeKeyPath);
+      // Expand every ancestor path so the target node is visible.
+      setExpandedPaths((prev) => {
+        const next = new Set(prev);
+        for (let i = 1; i <= nodeKeyPath.length; i++) {
+          next.add(nodeKeyPath.slice(0, i).join('.'));
+        }
+        return next;
+      });
+      setTimeout(() => {
+        document.getElementById(nodeDomId(path))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 0);
+    },
+    [title, loadIndex]
+  );
 
   const rebuildLinkerResolvers = async (langs, label) => {
     setRebuildingResolver(label);
@@ -1276,13 +1644,18 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
       const { task_id } = await editorApi.rebuildLinkerResolvers(langs);
       await Sefaria.pollTask(task_id, { interval: 2000 });
       alert(Sefaria._('RefResolver rebuilt.'));
-    } catch (e) { alert(e.message || String(e)); }
+    } catch (e) {
+      alert(e.message || String(e));
+    }
     setRebuildingResolver(null);
   };
 
   const rebuildDiburHamatchils = async () => {
-    if (!title) { return; }
-    setDhRebuilding(true); setDhMsg(null);
+    if (!title) {
+      return;
+    }
+    setDhRebuilding(true);
+    setDhMsg(null);
     try {
       const { task_id } = await editorApi.rebuildDiburHamatchils(title);
       const result = await Sefaria.pollTask(task_id, { interval: 2000 });
@@ -1298,8 +1671,14 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
   // Confirm before leaving an index (new search) with unbuilt DH changes. Returns
   // true if it's safe to proceed.
   const confirmLeaveIfDhDirty = () => {
-    if (!dhDirty) { return true; }
-    return confirm(Sefaria._('You changed Dibur Hamatchil settings for this index but haven’t rebuilt them yet. Leave without rebuilding?'));
+    if (!dhDirty) {
+      return true;
+    }
+    return confirm(
+      Sefaria._(
+        'You changed Dibur Hamatchil settings for this index but haven’t rebuilt them yet. Leave without rebuilding?'
+      )
+    );
   };
 
   const leaveIndex = () => {
@@ -1307,15 +1686,25 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
     // points at the last loaded book. Otherwise "New search" would push its own
     // back-stack entry between books, so Back would land on an empty search
     // screen instead of the previously loaded book.
-    if (!confirmLeaveIfDhDirty()) { return; }
-    setTitle(null); setRawIndex(null); setDhDirty(false); setDhMsg(null);
+    if (!confirmLeaveIfDhDirty()) {
+      return;
+    }
+    setTitle(null);
+    setRawIndex(null);
+    setDhDirty(false);
+    setDhMsg(null);
   };
 
   // Warn on tab close / navigation away while DH changes are unbuilt (browser shows
   // its own generic prompt; the text can't be customized).
   useEffect(() => {
-    if (!dhDirty) { return undefined; }
-    const handler = (e) => { e.preventDefault(); e.returnValue = ''; };
+    if (!dhDirty) {
+      return undefined;
+    }
+    const handler = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [dhDirty]);
@@ -1327,18 +1716,39 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
   // Escape shouldn't bubble up to ReaderPanel and close the whole editor (which navigates
   // home if it's the only panel open). TermDetailPanel handles its own Escape and stops
   // propagation before it reaches here; this catches Escape everywhere else in the editor.
-  const swallowEscape = (e) => { if (e.key === 'Escape') { e.stopPropagation(); } };
+  const swallowEscape = (e) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+    }
+  };
 
   return (
     <div className="readerNavMenu linkerEditorNavMenu sans-serif" onKeyDown={swallowEscape}>
       <div className="content linkerEditorContent">
         <div className="linkerEditorPage">
           <div className="linkerEditorTopBar">
-            <h1><InterfaceText>Linker Editor</InterfaceText></h1>
+            <h1>
+              <InterfaceText>Linker Editor</InterfaceText>
+            </h1>
             <div className="linkerEditorTopActions">
-              {title && <button className="linkerEditorBtn" onClick={leaveIndex}>{Sefaria._('New search')}</button>}
-              <button className="linkerEditorBtn" onClick={() => { setTermSlug(null); setCreatePrefill(null); setAddingTerm(true); }}>{Sefaria._('Add New Term')}</button>
-              <button className="linkerEditorBtn" onClick={() => setSearchingTerm(!searchingTerm)}>{Sefaria._('Search Term')}</button>
+              {title && (
+                <button className="linkerEditorBtn" onClick={leaveIndex}>
+                  {Sefaria._('New search')}
+                </button>
+              )}
+              <button
+                className="linkerEditorBtn"
+                onClick={() => {
+                  setTermSlug(null);
+                  setCreatePrefill(null);
+                  setAddingTerm(true);
+                }}
+              >
+                {Sefaria._('Add New Term')}
+              </button>
+              <button className="linkerEditorBtn" onClick={() => setSearchingTerm(!searchingTerm)}>
+                {Sefaria._('Search Term')}
+              </button>
               {searchingTerm && (
                 <div className="linkerEditorHeaderTermSearch">
                   <TermAutocomplete
@@ -1392,8 +1802,12 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
                       {dhRebuilding ? Sefaria._('Rebuilding…') : Sefaria._('Rebuild Dibur Hamatchils')}
                     </button>
                     <HelpTip
-                      what={Sefaria._('Re-extracts each segment’s dibur hamatchil (opening phrase) from its text using this index’s diburHamatchilRegexes, and replaces the stored dibur hamatchils the linker matches against. Run this after changing isSegmentLevelDiburHamatchil or diburHamatchilRegexes on any node, otherwise the linker keeps matching the old phrases. Runs in the background.')}
-                      example={Sefaria._('You add a Bold regex to a Rashi commentary so comments are cited by their bolded lemma — rebuild to (re)generate those dibur hamatchils.')}
+                      what={Sefaria._(
+                        'Re-extracts each segment’s dibur hamatchil (opening phrase) from its text using this index’s diburHamatchilRegexes, and replaces the stored dibur hamatchils the linker matches against. Run this after changing isSegmentLevelDiburHamatchil or diburHamatchilRegexes on any node, otherwise the linker keeps matching the old phrases. Runs in the background.'
+                      )}
+                      example={Sefaria._(
+                        'You add a Bold regex to a Rashi commentary so comments are cited by their bolded lemma — rebuild to (re)generate those dibur hamatchils.'
+                      )}
                     />
                   </span>
                 )}

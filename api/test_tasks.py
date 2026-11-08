@@ -1,11 +1,12 @@
 """
 Tests for api/tasks.py: copying a new user's learning level from ActiveCampaign.
 """
+
 from types import SimpleNamespace
 from unittest.mock import patch
 
 from api import tasks
-from api.newsletter_service import NewsletterServiceError, REGISTRATION_PROVIDER_TIMEOUT
+from api.newsletter_service import REGISTRATION_PROVIDER_TIMEOUT, NewsletterServiceError
 from sefaria.celery_setup.config import CeleryQueue
 
 

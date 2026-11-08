@@ -15,24 +15,25 @@ from typing import Any, ParamSpec, cast
 
 from django.http import HttpRequest, HttpResponse
 from django.views.decorators.csrf import csrf_protect
-from sefaria.client.util import jsonResponse
-from sefaria.system.exceptions import InputError
+
 from api.newsletter_service import (
     NewsletterInfo,
     NewsletterListUnavailableError,
     NewsletterServiceError,
     NewsletterServiceNotConfiguredError,
+    add_newsletter_subscriptions,
+    fetch_user_subscriptions,
     get_newsletters,
     is_newsletter_service_configured,
     is_valid_learning_level,
     normalize_and_validate_email,
-    sign_learning_level_token,
-    verify_learning_level_token,
-    add_newsletter_subscriptions,
-    fetch_user_subscriptions,
     replace_user_preferences,
     set_learning_level,
+    sign_learning_level_token,
+    verify_learning_level_token,
 )
+from sefaria.client.util import jsonResponse
+from sefaria.system.exceptions import InputError
 
 logger: logging.Logger = logging.getLogger(__name__)
 P = ParamSpec("P")
@@ -45,6 +46,7 @@ AUTHENTICATION_REQUIRED_CODE: str = "authentication_required"
 
 class NewsletterViewAction(Enum):
     """What a newsletter view was doing when it failed. The value goes in the log message."""
+
     GET_LISTS = "getting newsletter lists"
     SUBSCRIBE = "during subscription"
     FETCH_SUBSCRIPTIONS = "fetching subscriptions"
@@ -100,9 +102,7 @@ def parse_selected_newsletters(body: dict[str, Any]) -> list[str]:
         InputError: If newsletters isn't an object of true/false values
     """
     newsletters: Any = body.get("newsletters", {})
-    if not isinstance(newsletters, dict) or not all(
-        isinstance(selected, bool) for selected in newsletters.values()
-    ):
+    if not isinstance(newsletters, dict) or not all(isinstance(selected, bool) for selected in newsletters.values()):
         raise InputError("newsletters must be an object of true/false values.")
     return [key for key, selected in newsletters.items() if selected]
 
@@ -118,9 +118,7 @@ def handle_newsletter_view_errors(
             try:
                 return view_func(*args, **kwargs)
             except json.JSONDecodeError:
-                return jsonResponse(
-                    {"error": "Invalid JSON in request body"}, status=400
-                )
+                return jsonResponse({"error": "Invalid JSON in request body"}, status=400)
             except InputError as e:
                 logger.warning(f"Validation error {action.value}: {e}")
                 body: dict[str, str] = {"error": str(e)}
@@ -149,9 +147,7 @@ def handle_newsletter_view_errors(
                 return jsonResponse(ac_body, status=500)
             except Exception as e:
                 logger.exception(f"Unexpected error {action.value}: {e}")
-                return jsonResponse(
-                    {"error": "An unexpected error occurred"}, status=500
-                )
+                return jsonResponse({"error": "An unexpected error occurred"}, status=500)
 
         return wrapper
 
@@ -293,9 +289,7 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
 
     # Validate required fields
     if not first_name or not last_name or not email:
-        return jsonResponse(
-            {"error": "First name, last name, and email are required."}, status=400
-        )
+        return jsonResponse({"error": "First name, last name, and email are required."}, status=400)
     email = normalize_and_validate_email(email)
 
     # Extract selected newsletter stringids
@@ -303,14 +297,10 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
 
     # Validate at least one newsletter selected
     if not selected_newsletters:
-        return jsonResponse(
-            {"error": "Please select at least one newsletter."}, status=400
-        )
+        return jsonResponse({"error": "Please select at least one newsletter."}, status=400)
 
     # Subscribe using union behavior
-    logger.info(
-        f"Processing subscription for {email} with newsletters: {selected_newsletters}"
-    )
+    logger.info(f"Processing subscription for {email} with newsletters: {selected_newsletters}")
     add_newsletter_subscriptions(email, first_name, last_name, selected_newsletters)
 
     # Return only what this request selected, not result["all_subscriptions"].
@@ -374,7 +364,7 @@ def get_user_subscriptions(request: HttpRequest) -> HttpResponse:
         return jsonResponse({"error": "Only GET method is supported"}, status=405)
 
     # Extract user from middleware-injected attribute (not on base HttpRequest type)
-    user: Any = getattr(request, "user")
+    user: Any = request.user
 
     # Check authentication
     if not user.is_authenticated:
@@ -465,7 +455,7 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
         return jsonResponse({"error": "Only POST method is supported"}, status=405)
 
     # Extract user from middleware-injected attribute (not on base HttpRequest type)
-    user: Any = getattr(request, "user")
+    user: Any = request.user
 
     # Check authentication
     if not user.is_authenticated:
@@ -595,7 +585,7 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
         return jsonResponse({"error": "Only POST method is supported"}, status=405)
 
     # Extract user from middleware-injected attribute (not on base HttpRequest type)
-    user: Any = getattr(request, "user")
+    user: Any = request.user
 
     # Parse request body
     body: dict[str, Any] = parse_json_object(request)

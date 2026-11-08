@@ -6,7 +6,9 @@ export const LAUNCHER_OFFSET = '--lc-launcher-bottom-offset';
 
 export function liftLauncherAbove(el) {
   const root = document.documentElement;
-  if (!el || typeof ResizeObserver === 'undefined') { return () => {}; }
+  if (!el || typeof ResizeObserver === 'undefined') {
+    return () => {};
+  }
   const observer = new ResizeObserver(() => root.style.setProperty(LAUNCHER_OFFSET, `${el.offsetHeight}px`));
   observer.observe(el);
   return () => {

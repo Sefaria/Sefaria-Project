@@ -1,98 +1,133 @@
 import hashlib
-import time
-import urllib.request, urllib.parse, urllib.error
 import re
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+
 import bleach
 from bleach.css_sanitizer import CSSSanitizer
 
 _BIO_ALLOWED_TAGS = [
-    'a', 'strong', 'em', 'u', 's', 'sub', 'sup',
-    'p', 'br', 'div', 'span',
-    'ul', 'ol', 'li',
-    'table', 'tbody', 'tr', 'th', 'td',
-    'img', 'hr',
+    "a",
+    "strong",
+    "em",
+    "u",
+    "s",
+    "sub",
+    "sup",
+    "p",
+    "br",
+    "div",
+    "span",
+    "ul",
+    "ol",
+    "li",
+    "table",
+    "tbody",
+    "tr",
+    "th",
+    "td",
+    "img",
+    "hr",
 ]
 _BIO_ALLOWED_ATTRS = {
-    'a':   ['href', 'target'],
-    'img': ['src', 'alt', 'height', 'width', 'style'],
-    'td':  ['colspan', 'rowspan', 'style'],
-    'th':  ['colspan', 'rowspan', 'style'],
-    '*':   ['style', 'dir'],
+    "a": ["href", "target"],
+    "img": ["src", "alt", "height", "width", "style"],
+    "td": ["colspan", "rowspan", "style"],
+    "th": ["colspan", "rowspan", "style"],
+    "*": ["style", "dir"],
 }
-_BIO_CSS_SANITIZER = CSSSanitizer(allowed_css_properties=[
-    'color', 'background-color', 'font-family', 'font-size', 'text-align', 'direction',
-])
+_BIO_CSS_SANITIZER = CSSSanitizer(
+    allowed_css_properties=[
+        "color",
+        "background-color",
+        "font-family",
+        "font-size",
+        "text-align",
+        "direction",
+    ]
+)
 
 
 def _target_blank_noopener(attrs, new=False):
-    if attrs.get((None, 'target')) == '_blank':
-        rel_key = (None, 'rel')
-        rel_values = attrs.get(rel_key, '').split()
-        for val in ('noopener', 'noreferrer'):
+    if attrs.get((None, "target")) == "_blank":
+        rel_key = (None, "rel")
+        rel_values = attrs.get(rel_key, "").split()
+        for val in ("noopener", "noreferrer"):
             if val not in rel_values:
                 rel_values.append(val)
-        attrs[rel_key] = ' '.join(rel_values)
+        attrs[rel_key] = " ".join(rel_values)
     return attrs
 
 
 def sanitize_bio(bio):
-    cleaned = bleach.clean(bio, tags=_BIO_ALLOWED_TAGS, attributes=_BIO_ALLOWED_ATTRS, css_sanitizer=_BIO_CSS_SANITIZER, strip=True)
+    cleaned = bleach.clean(
+        bio, tags=_BIO_ALLOWED_TAGS, attributes=_BIO_ALLOWED_ATTRS, css_sanitizer=_BIO_CSS_SANITIZER, strip=True
+    )
     return bleach.linkify(cleaned, callbacks=[bleach.callbacks.nofollow, _target_blank_noopener])
-import sys
-import json
+
+
 import csv
+import json
+import sys
 from datetime import datetime
-from django.utils.translation import gettext as _, ngettext_lazy
 from random import randint
 
-from sefaria.system.exceptions import InputError, SheetNotFoundError
-from sefaria.constants.model import VOICES_MODULE, LIBRARY_ASSISTANT_SETTING_KEY
+from django.utils.translation import gettext as _
+from django.utils.translation import ngettext_lazy
+
+from sefaria.constants.model import LIBRARY_ASSISTANT_SETTING_KEY, VOICES_MODULE
 from sefaria.donors.types import DonorStatus
+from sefaria.system.exceptions import InputError, SheetNotFoundError
 
 # Profile fields that save() writes only when it creates the document. Every other save leaves
 # them as stored, because the donor webhook can change them while a request holds an older copy
 # of the profile: writing that copy's value back, even "unknown", would undo the donation.
 DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION = ("donor_status", "became_donor_at")
 
-if not hasattr(sys, '_doc_build'):
-    from django.contrib.auth.models import User, Group, AnonymousUser
-    from emailusernames.utils import get_user, user_exists
-    from django.core.mail import EmailMultiAlternatives
-    from django.template.loader import render_to_string
-    from django.core.validators import URLValidator, EmailValidator
-    from django.core.exceptions import ValidationError
+if not hasattr(sys, "_doc_build"):
     from anymail.exceptions import AnymailRecipientsRefused
+    from django.contrib.auth.models import AnonymousUser, Group, User
+    from django.core.exceptions import ValidationError
+    from django.core.mail import EmailMultiAlternatives
+    from django.core.validators import EmailValidator, URLValidator
+    from django.template.loader import render_to_string
 
-from . import abstract as abst
-from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_recommendations
-from sefaria.model.blocking import BlockersSet, BlockeesSet
-from sefaria.model.text import Ref
-from sefaria.system.database import db
-from sefaria.system.cache import gen_cache
-from sefaria.utils.util import epoch_time
-from django.utils import translation
+    from emailusernames.utils import get_user, user_exists
 
 import structlog
+from django.utils import translation
+
+from sefaria.model.blocking import BlockeesSet, BlockersSet
+from sefaria.model.following import FolloweesSet, FollowersSet, general_follow_recommendations
+from sefaria.model.text import Ref
+from sefaria.system.cache import gen_cache
+from sefaria.system.database import db
 from sefaria.system.progress_context import report_progress
+from sefaria.utils.util import epoch_time
+
+from . import abstract as abst
+
 logger = structlog.get_logger(__name__)
 
 MAX_SYNC_RESPONSE_HISTORY = 1000  # max recent history items returned by a single profile sync
 
 
 class UserHistory(abst.AbstractMongoRecord):
-    collection = 'user_history'
+    collection = "user_history"
 
     required_attrs = [
-        "uid",                # user id
-        "ref",                # str
-        "he_ref",             # str
-        "versions",           # dict: {en: str, he: str}
-        "time_stamp",         # int: time this ref was read in epoch time
+        "uid",  # user id
+        "ref",  # str
+        "he_ref",  # str
+        "versions",  # dict: {en: str, he: str}
+        "time_stamp",  # int: time this ref was read in epoch time
         "server_time_stamp",  # int: time this was saved on the server in epoch time
-        "last_place",         # bool: True if this is the last ref read for this user in this book
-        "book",               # str: index title
-        "saved",              # bool: True if saved
-        "secondary"          # bool: True when view is from sidebar
+        "last_place",  # bool: True if this is the last ref read for this user in this book
+        "book",  # str: index title
+        "saved",  # bool: True if saved
+        "secondary",  # bool: True when view is from sidebar
     ]
 
     optional_attrs = [
@@ -101,12 +136,12 @@ class UserHistory(abst.AbstractMongoRecord):
         "categories",  # list of str: derived from ref.  Can move to required once legacy records are converted.
         "authors",  # list of str: derived from ref.  Can move to required once legacy records are converted.
         "is_sheet",  # bool: is this a sheet ref?  Can move to required once legacy records are converted.
-        "language",           # oneOf(english, hebrew, bilingual) didn't exist in legacy model
-        "num_times_read",     # int: legacy for migrating old recent views
-        "sheet_title",        # str: for sheet history
-        "sheet_owner",        # str: ditto
-        "sheet_id",           # int: ditto
-        "delete_saved",       # bool: True if this item was saved and but then was deleted
+        "language",  # oneOf(english, hebrew, bilingual) didn't exist in legacy model
+        "num_times_read",  # int: legacy for migrating old recent views
+        "sheet_title",  # str: for sheet history
+        "sheet_owner",  # str: ditto
+        "sheet_id",  # int: ditto
+        "delete_saved",  # bool: True if this item was saved and but then was deleted
     ]
 
     def __init__(self, attrs=None, load_existing=False, field_updates=None, update_last_place=False):
@@ -125,13 +160,20 @@ class UserHistory(abst.AbstractMongoRecord):
         if "last_place" not in attrs:
             attrs["last_place"] = False
         # remove empty versions
-        if not hasattr(attrs.get("versions", None), "items"):
+        if not hasattr(attrs.get("versions"), "items"):
             attrs["versions"] = {}  # if versions doesn't have 'items', make it an empty dict
         for k, v in list(attrs.get("versions", {}).items()):
             if v is None:
                 del attrs["versions"][k]
         if load_existing:
-            temp = UserHistory().load({"uid": attrs["uid"], "ref": attrs["ref"], "versions": attrs["versions"], "secondary": attrs['secondary']})
+            temp = UserHistory().load(
+                {
+                    "uid": attrs["uid"],
+                    "ref": attrs["ref"],
+                    "versions": attrs["versions"],
+                    "secondary": attrs["secondary"],
+                }
+            )
             if temp is not None:
                 attrs = temp._saveable_attrs()
             # in the race-condition case where you're creating the saved item before the history item, do the update outside the previous if
@@ -144,59 +186,65 @@ class UserHistory(abst.AbstractMongoRecord):
                 temp.save()
             attrs["last_place"] = True
 
-        super(UserHistory, self).__init__(attrs=attrs)
+        super().__init__(attrs=attrs)
 
     def _validate(self):
         if self.secondary and self.saved:
-            raise InputError("UserHistory item cannot currently have both saved and secondary flags set at the same time")
+            raise InputError(
+                "UserHistory item cannot currently have both saved and secondary flags set at the same time"
+            )
 
     def _normalize(self):
         # Derived values - used to make downstream queries quicker
         self.datetime = datetime.utcfromtimestamp(self.time_stamp)
         try:
             r = Ref(self.ref)
-            self.context_refs   = [r.normal() for r in r.all_context_refs()]
-            self.categories     = r.index.categories
-            self.authors        = getattr(r.index, "authors", [])
-            self.is_sheet       = r.index.title == "Sheet"
+            self.context_refs = [r.normal() for r in r.all_context_refs()]
+            self.categories = r.index.categories
+            self.authors = getattr(r.index, "authors", [])
+            self.is_sheet = r.index.title == "Sheet"
             if self.is_sheet:
                 self.sheet_id = r.sections[0]
-            if not self.secondary and not self.is_sheet and getattr(self, "language", None) != "hebrew" and r.is_empty("en"):
+            if (
+                not self.secondary
+                and not self.is_sheet
+                and getattr(self, "language", None) != "hebrew"
+                and r.is_empty("en")
+            ):
                 # logically, this would be on frontend, but easier here.
                 self.language = "hebrew"
         except SheetNotFoundError:
-            self.context_refs   = [self.ref]
-            self.categories     = ["_unlisted"]
-            self.authors        = []
-            self.is_sheet       = True
-        except InputError:   # Ref failed to resolve
-            self.context_refs   = [self.ref]
-            self.categories     = []
-            self.authors        = []
-            self.is_sheet       = False
-        except KeyError:     # is_text_translated() stumbled on a bad version state
+            self.context_refs = [self.ref]
+            self.categories = ["_unlisted"]
+            self.authors = []
+            self.is_sheet = True
+        except InputError:  # Ref failed to resolve
+            self.context_refs = [self.ref]
+            self.categories = []
+            self.authors = []
+            self.is_sheet = False
+        except KeyError:  # is_text_translated() stumbled on a bad version state
             pass
 
     def contents(self, **kwargs):
         from sefaria.sheets import get_sheet_listing_data
-        d = super(UserHistory, self).contents(**kwargs)
+
+        d = super().contents(**kwargs)
         if kwargs.get("for_api", False):
             keys = {
-                'ref': '',
-                'he_ref': '',
-                'book': '',
-                'versions': {},
-                'time_stamp': 0,
-                'saved': False,
-                'delete_saved': False,
-                'is_sheet': False,
-                'sheet_id': -1,
-                'sheet_owner': '',
-                'sheet_title': '',
+                "ref": "",
+                "he_ref": "",
+                "book": "",
+                "versions": {},
+                "time_stamp": 0,
+                "saved": False,
+                "delete_saved": False,
+                "is_sheet": False,
+                "sheet_id": -1,
+                "sheet_owner": "",
+                "sheet_title": "",
             }
-            d = {
-                key: d.get(key, default) for key, default in list(keys.items())
-            }
+            d = {key: d.get(key, default) for key, default in list(keys.items())}
         if kwargs.get("annotate", False):
             try:
                 ref = Ref(d["ref"])
@@ -207,10 +255,10 @@ class UserHistory(abst.AbstractMongoRecord):
                     # ltr/rtl dichotomy rather than genuine source/translation, unlike the main reader.
                     d["text"] = {
                         "en": ref.text(direction="ltr").as_sized_string(),
-                        "he": ref.text(direction="rtl").as_sized_string()
+                        "he": ref.text(direction="rtl").as_sized_string(),
                     }
-            except Exception as e:
-                logger.warning("Failed to retrieve text for history Ref: {}".format(d['ref']))
+            except Exception:
+                logger.warning("Failed to retrieve text for history Ref: {}".format(d["ref"]))
                 return d
         return d
 
@@ -227,14 +275,21 @@ class UserHistory(abst.AbstractMongoRecord):
             oref = Ref(hist["ref"])
             hist["he_ref"] = oref.he_normal()
             hist["book"] = oref.index.title
-        hist["server_time_stamp"] = time_stamp if "server_time_stamp" not in hist else hist["server_time_stamp"]  # DEBUG: helpful to include this field for debugging
+        hist["server_time_stamp"] = (
+            time_stamp if "server_time_stamp" not in hist else hist["server_time_stamp"]
+        )  # DEBUG: helpful to include this field for debugging
 
         saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
-        uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
-            "saved": saved,
-            "server_time_stamp": hist["server_time_stamp"],
-            "delete_saved": action == "delete_saved"
-        })
+        uh = UserHistory(
+            hist,
+            load_existing=(action is not None),
+            update_last_place=(action is None),
+            field_updates={
+                "saved": saved,
+                "server_time_stamp": hist["server_time_stamp"],
+                "delete_saved": action == "delete_saved",
+            },
+        )
         uh.save()
         return uh
 
@@ -245,7 +300,18 @@ class UserHistory(abst.AbstractMongoRecord):
         uh.delete()
 
     @staticmethod
-    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets_only=False, serialized=False, annotate=False, limit=0, skip=0):
+    def get_user_history(
+        uid=None,
+        oref=None,
+        saved=None,
+        secondary=None,
+        last_place=None,
+        sheets_only=False,
+        serialized=False,
+        annotate=False,
+        limit=0,
+        skip=0,
+    ):
         query = {}
         if uid is not None:
             query["uid"] = uid
@@ -261,8 +327,13 @@ class UserHistory(abst.AbstractMongoRecord):
         if last_place is not None:
             query["last_place"] = last_place
         if serialized:
-            items = [uh.contents(for_api=True, annotate=annotate) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit, skip=skip)]
-            return items 
+            items = [
+                uh.contents(for_api=True, annotate=annotate)
+                for uh in UserHistorySet(
+                    query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit, skip=skip
+                )
+            ]
+            return items
         return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit, skip=skip)
 
     @staticmethod
@@ -292,9 +363,13 @@ class UserHistory(abst.AbstractMongoRecord):
         by_time_index = "uid_1_server_time_stamp_1"
         recent_items = UserHistorySet(changed_query, sort=[("server_time_stamp", -1)], limit=limit, hint=by_time_index)
         if last_sync:
-            flagged_items = UserHistorySet({**changed_query,
-                                            "$or": [saved_filter, unsaved_filter, last_place_filter]},  # client has saved items, so it needs unsaved to remove them
-                                           hint=by_time_index)  # changed window is usually small. It's slow only if the user read a lot on the site between two uses of the app
+            flagged_items = UserHistorySet(
+                {
+                    **changed_query,
+                    "$or": [saved_filter, unsaved_filter, last_place_filter],
+                },  # client has saved items, so it needs unsaved to remove them
+                hint=by_time_index,
+            )  # changed window is usually small. It's slow only if the user read a lot on the site between two uses of the app
         else:  # full pull: the time index doesn't narrow anything - query separately to use the saved and last_place indexes
             saved_items = UserHistorySet(user_query | saved_filter)
             last_place_items = UserHistorySet(user_query | last_place_filter)
@@ -335,7 +410,9 @@ class UserHistorySet(abst.AbstractMongoSet):
 """
 Wrapper class for operations on the user object. Currently only for changing primary email.
 """
-class UserWrapper(object):
+
+
+class UserWrapper:
     def __init__(self, email=None, user_obj=None):
         if email:
             self.user = get_user(email)
@@ -362,14 +439,14 @@ class UserWrapper(object):
         email_val = EmailValidator()
         try:
             email_val(self.email)
-        except ValidationError as e:
+        except ValidationError:
             self._errors.append(_("The email address is not valid."))
         return self._errors[0] if len(self._errors) else None
 
     def save(self):
         if self.validate():
             self.user.email = self.email
-            self.user.username = self.email #this is to conform with our username-as-email library, which doesnt really take care of itself properly as advertised
+            self.user.username = self.email  # this is to conform with our username-as-email library, which doesnt really take care of itself properly as advertised
             self.user.save()
         else:
             raise ValueError(self.errors())
@@ -382,12 +459,12 @@ class UserWrapper(object):
             return False
 
 
-class UserProfile(object):
+class UserProfile:
     def __init__(self, user_obj=None, id=None, slug=None, email=None, user_registration=False):
         """
         :param user_registration: pass during user registration so as to not create an extra profile record as init side effect
         """
-        #TODO: Can we optimize the init to be able to load a profile without a call to user db?
+        # TODO: Can we optimize the init to be able to load a profile without a call to user db?
         # say in a case where we already have an id and just want some fields from the profile object
         if slug:  # Load profile by slug, if passed
             profile = db.profiles.find_one({"slug": slug})
@@ -404,55 +481,53 @@ class UserProfile(object):
                 id = user.id
             else:
                 user = User.objects.get(id=id)
-            self.first_name        = user.first_name
-            self.last_name         = user.last_name
-            self.email             = user.email
-            self.date_joined       = user.date_joined
-            self.user              = user
+            self.first_name = user.first_name
+            self.last_name = user.last_name
+            self.email = user.email
+            self.date_joined = user.date_joined
+            self.user = user
         except:
             # These default values allow profiles to function even
             # if the Django User records are missing (for testing)
-            self.first_name        = "User"
-            self.last_name         = str(id)
-            self.email             = "test@sefaria.org"
-            self.date_joined       = None
-            self.user              = None
+            self.first_name = "User"
+            self.last_name = str(id)
+            self.email = "test@sefaria.org"
+            self.date_joined = None
+            self.user = None
 
-        self._id                   = None  # Mongo ID of profile doc
-        self.id                    = id    # user ID
-        self.slug                  = ""
-        self.position              = ""
-        self.organization          = ""
-        self.jewish_education      = []
-        self.bio                   = ""
-        self.website               = ""
-        self.location              = ""
-        self.public_email          = ""
-        self.youtube               = ""
-        self.facebook              = ""
-        self.twitter               = ""
-        self.linkedin              = ""
-        self.pinned_sheets         = []
-        self.last_sync_web        = 0  # epoch time for last sync of web app
-        self.profile_pic_url      = ""
+        self._id = None  # Mongo ID of profile doc
+        self.id = id  # user ID
+        self.slug = ""
+        self.position = ""
+        self.organization = ""
+        self.jewish_education = []
+        self.bio = ""
+        self.website = ""
+        self.location = ""
+        self.public_email = ""
+        self.youtube = ""
+        self.facebook = ""
+        self.twitter = ""
+        self.linkedin = ""
+        self.pinned_sheets = []
+        self.last_sync_web = 0  # epoch time for last sync of web app
+        self.profile_pic_url = ""
         self.profile_pic_url_small = ""
 
-        self.settings     =  {
+        self.settings = {
             "email_notifications": "daily",
             "interface_language": "english",
-            "textual_custom" : "sephardi",
-            "reading_history" : True,
+            "textual_custom": "sephardi",
+            "reading_history": True,
             "translation_language_preference": None,
         }
         self.version_preferences_by_corpus = {}
 
         # dict that stores the last time an attr has been modified
-        self.attr_time_stamps = {
-            "settings": 0
-        }
+        self.attr_time_stamps = {"settings": 0}
 
         # flags that indicate a change needing a cascade after save
-        self._name_updated      = False
+        self._name_updated = False
         self._process_remove_history = False
         self._public_data_updated = False
 
@@ -489,7 +564,7 @@ class UserProfile(object):
 
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
-        if profile: # overwrite if fake profile in db
+        if profile:  # overwrite if fake profile in db
             # TODO: think about how we want to handle the postgres database not being synced
             # with the mongo database. This is an existing issue; a 'new user' will be populated with 'old user'
             # data from a nonexistent user (in postgres)
@@ -517,32 +592,38 @@ class UserProfile(object):
 
     # Profile fields that public_user_data() exposes. A change to one of them bumps the
     # GenCache generation so other servers drop their cached copy; other fields do not.
-    public_data_fields = ["first_name", "last_name", "slug", "profile_pic_url_small",
-                          "position", "organization"]
+    public_data_fields = ["first_name", "last_name", "slug", "profile_pic_url_small", "position", "organization"]
 
     def _set_flags_on_update(self, obj):
         if "first_name" in obj or "last_name" in obj:
-            if (self.first_name != obj.get("first_name", self.first_name)
-                    or self.last_name != obj.get("last_name", self.last_name)):
+            if self.first_name != obj.get("first_name", self.first_name) or self.last_name != obj.get(
+                "last_name", self.last_name
+            ):
                 self._name_updated = True
 
         # `or ""` treats None and "" as the same value, so re-posting an unchanged
         # empty field doesn't count as a change.
-        if any(k in obj and (obj[k] or "") != (getattr(self, k, None) or "")
-               for k in self.public_data_fields):
+        if any(k in obj and (obj[k] or "") != (getattr(self, k, None) or "") for k in self.public_data_fields):
             self._public_data_updated = True
 
         if "reading_history" in self.settings and self.settings["reading_history"] == True:
-            if "settings" in obj and "reading_history" in obj["settings"] and obj["settings"]["reading_history"] == False:
+            if (
+                "settings" in obj
+                and "reading_history" in obj["settings"]
+                and obj["settings"]["reading_history"] == False
+            ):
                 self._process_remove_history = True
 
     @staticmethod
     def transformOldRecents(uid, recents):
-        from dateutil import parser
-        from sefaria.system.exceptions import InputError
         import pytz
+        from dateutil import parser
+
+        from sefaria.system.exceptions import InputError
+
         default_epoch_time = epoch_time(
-            datetime(2017, 12, 1))  # the Sefaria epoch. approx time since we added time stamps to recent items
+            datetime(2017, 12, 1)
+        )  # the Sefaria epoch. approx time since we added time stamps to recent items
 
         def xformer(recent):
             try:
@@ -552,13 +633,16 @@ class UserProfile(object):
                     "he_ref": recent[1],
                     "book": Ref(recent[0]).index.title,
                     "last_place": True,
-                    "time_stamp": epoch_time(parser.parse(recent[2]).replace(tzinfo=None)) if recent[2] is not None else default_epoch_time,
-                    "server_time_stamp": epoch_time(parser.parse(recent[2]).replace(tzinfo=None)) if recent[2] is not None else default_epoch_time,
-                    "num_times_read": (recent[3] if recent[3] and isinstance(recent[3], int) else 1),  # we dont really know how long they've read this book. it's probably correlated with the number of times they opened the book
-                    "versions": {
-                        "en": recent[4],
-                        "he": recent[5]
-                    }
+                    "time_stamp": epoch_time(parser.parse(recent[2]).replace(tzinfo=None))
+                    if recent[2] is not None
+                    else default_epoch_time,
+                    "server_time_stamp": epoch_time(parser.parse(recent[2]).replace(tzinfo=None))
+                    if recent[2] is not None
+                    else default_epoch_time,
+                    "num_times_read": (
+                        recent[3] if recent[3] and isinstance(recent[3], int) else 1
+                    ),  # we dont really know how long they've read this book. it's probably correlated with the number of times they opened the book
+                    "versions": {"en": recent[4], "he": recent[5]},
                 }
             except InputError:
                 return None
@@ -568,6 +652,7 @@ class UserProfile(object):
                 return None
             except AttributeError:
                 return None
+
         return [_f for _f in [xformer(r) for r in recents] if _f]
 
     def update(self, obj, ignore_flags_on_init=False):
@@ -580,6 +665,7 @@ class UserProfile(object):
             # merge these keys separately since they are themselves dicts.
             # want to allow partial updates to be passed to update.
             from sefaria.utils.util import deep_update
+
             if dict_key in obj and dict_key in self.__dict__:
                 obj[dict_key] = deep_update(self.__dict__[dict_key], obj[dict_key])
         self.__dict__.update(obj)
@@ -587,8 +673,11 @@ class UserProfile(object):
         return self
 
     def update_empty(self, obj):
-        to_apply = {k: v for k, v in obj.items()
-                    if v and (k not in self.__dict__ or self.__dict__[k] == '' or self.__dict__[k] == [])}
+        to_apply = {
+            k: v
+            for k, v in obj.items()
+            if v and (k not in self.__dict__ or self.__dict__[k] == "" or self.__dict__[k] == [])
+        }
         # Flag only the fields that will actually be written.
         self._set_flags_on_update(to_apply)
         self.__dict__.update(to_apply)
@@ -618,8 +707,8 @@ class UserProfile(object):
                 name: d.pop(name) for name in DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION
             }
             db.profiles.update_one(
-                {'_id': self._id},
-                {'$set': d, '$setOnInsert': fields_written_on_creation_only},
+                {"_id": self._id},
+                {"$set": d, "$setOnInsert": fields_written_on_creation_only},
                 upsert=True,
             )
         else:
@@ -630,7 +719,7 @@ class UserProfile(object):
         if self._name_updated:
             user = User.objects.get(id=self.id)
             user.first_name = self.first_name
-            user.last_name  = self.last_name
+            user.last_name = self.last_name
             user.save()
             self._name_updated = False
 
@@ -678,21 +767,25 @@ class UserProfile(object):
         # URL Fields: website, facebook, linkedin
         url_val = URLValidator()
         try:
-            if self.facebook: url_val(self.facebook)
-        except ValidationError as e:
+            if self.facebook:
+                url_val(self.facebook)
+        except ValidationError:
             return "The Facebook URL you entered is not valid."
         try:
-            if self.linkedin: url_val(self.linkedin)
-        except ValidationError as e:
+            if self.linkedin:
+                url_val(self.linkedin)
+        except ValidationError:
             return "The LinkedIn URL you entered is not valid."
         try:
-            if self.website: url_val(self.website)
-        except ValidationError as e:
+            if self.website:
+                url_val(self.website)
+        except ValidationError:
             return "The Website URL you entered is not valid."
         email_val = EmailValidator()
         try:
-            if self.email: email_val(self.email)
-        except ValidationError as e:
+            if self.email:
+                email_val(self.email)
+        except ValidationError:
             return "The email address you entered is not valid."
 
         return None
@@ -725,6 +818,7 @@ class UserProfile(object):
         Add this user as a editor of any collections for which there is an outstanding invitation.
         """
         from sefaria.model import CollectionSet
+
         collections = CollectionSet({"invitations.email": self.email})
         for collection in collections:
             collection.add_member(self.id)
@@ -740,24 +834,39 @@ class UserProfile(object):
 
     def recent_notifications(self, scope=VOICES_MODULE):
         from sefaria.model.notification import NotificationSet
+
         return NotificationSet().recent_for_user(self.id, scope=scope)
 
     def unread_notification_count(self, scope=VOICES_MODULE):
         # TODO: Why do we not need to scope the notifications to the module here?
         from sefaria.model.notification import NotificationSet
+
         return NotificationSet().unread_for_user(self.id, scope=scope).count()
 
     def process_history_item(self, hist, time_stamp):
         action = hist.pop("action", None)
-        if self.settings.get("reading_history", True) or action == "add_saved":  # regular case where history enabled, save/unsave saved item etc. or save history in either case
+        if (
+            self.settings.get("reading_history", True) or action == "add_saved"
+        ):  # regular case where history enabled, save/unsave saved item etc. or save history in either case
             return UserHistory.save_history_item(self.id, hist, action, time_stamp)
-        elif action == "delete_saved":  # user has disabled history and is "unsaving", therefore deleting this item.
+        if action == "delete_saved":  # user has disabled history and is "unsaving", therefore deleting this item.
             UserHistory.remove_history_item(self.id, hist)
             return None
-        else:  # history disabled do nothing.
-            return None
+        # history disabled do nothing.
+        return None
 
-    def get_history(self, oref=None, saved=None, secondary=None, sheets_only=False, last_place=None, serialized=False, annotate=False, limit=0, skip=0):
+    def get_history(
+        self,
+        oref=None,
+        saved=None,
+        secondary=None,
+        sheets_only=False,
+        last_place=None,
+        serialized=False,
+        annotate=False,
+        limit=0,
+        skip=0,
+    ):
         """
         personal user history
         :param oref:
@@ -769,9 +878,20 @@ class UserProfile(object):
         :param limit: Passed on to Mongo to limit # of results
         :return:
         """
-        if not self.settings.get('reading_history', True) and not saved:
+        if not self.settings.get("reading_history", True) and not saved:
             return [] if serialized else None
-        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets_only=sheets_only, last_place=last_place, serialized=serialized, annotate=annotate, limit=limit, skip=skip)
+        return UserHistory.get_user_history(
+            uid=self.id,
+            oref=oref,
+            saved=saved,
+            secondary=secondary,
+            sheets_only=sheets_only,
+            last_place=last_place,
+            serialized=serialized,
+            annotate=annotate,
+            limit=limit,
+            skip=skip,
+        )
 
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
         UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)
@@ -781,6 +901,7 @@ class UserProfile(object):
         Returns a list of users recommended for `self` to follow.
         """
         from random import choices
+
         options = general_follow_recommendations(lang=lang, n=100)
         if not len(options):
             return []
@@ -793,36 +914,36 @@ class UserProfile(object):
         Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
         """
         return {
-            "id":                    self.id,
-            "slug":                  self.slug,
-            "position":              self.position,
-            "organization":          self.organization,
-            "jewish_education":      self.jewish_education,
-            "bio":                   self.bio,
-            "website":               self.website,
-            "location":              self.location,
-            "public_email":          self.public_email,
-            "facebook":              self.facebook,
-            "twitter":               self.twitter,
-            "linkedin":              self.linkedin,
-            "youtube":               self.youtube,
-            "pinned_sheets":         self.pinned_sheets,
-            "settings":              self.settings,
+            "id": self.id,
+            "slug": self.slug,
+            "position": self.position,
+            "organization": self.organization,
+            "jewish_education": self.jewish_education,
+            "bio": self.bio,
+            "website": self.website,
+            "location": self.location,
+            "public_email": self.public_email,
+            "facebook": self.facebook,
+            "twitter": self.twitter,
+            "linkedin": self.linkedin,
+            "youtube": self.youtube,
+            "pinned_sheets": self.pinned_sheets,
+            "settings": self.settings,
             "version_preferences_by_corpus": self.version_preferences_by_corpus,
-            "attr_time_stamps":      self.attr_time_stamps,
-            "is_sustainer":          self.is_sustainer,
-            "donor_status":          self.donor_status,
-            "became_donor_at":       self.became_donor_at,
-            "experiments":           self.experiments,
-            "tag_order":             getattr(self, "tag_order", None),
-            "last_sync_web":         self.last_sync_web,
-            "profile_pic_url":       self.profile_pic_url,
+            "attr_time_stamps": self.attr_time_stamps,
+            "is_sustainer": self.is_sustainer,
+            "donor_status": self.donor_status,
+            "became_donor_at": self.became_donor_at,
+            "experiments": self.experiments,
+            "tag_order": getattr(self, "tag_order", None),
+            "last_sync_web": self.last_sync_web,
+            "profile_pic_url": self.profile_pic_url,
             "profile_pic_url_small": self.profile_pic_url_small,
-            "gauth_token":           self.gauth_token,
-            "nationbuilder_id":      self.nationbuilder_id,
-            "sf_app_user_id":        self.sf_app_user_id,
-            "gauth_email":           self.gauth_email,
-            "learning_level":        self.learning_level,
+            "gauth_token": self.gauth_token,
+            "nationbuilder_id": self.nationbuilder_id,
+            "sf_app_user_id": self.sf_app_user_id,
+            "gauth_email": self.gauth_email,
+            "learning_level": self.learning_level,
             "wants_marketing_emails": self.wants_marketing_emails,
         }
 
@@ -832,37 +953,36 @@ class UserProfile(object):
         If basic is True, only return enough data to display a profile listing
         """
         dictionary = {
-                "id": self.id,
-                "slug": self.slug,
-                "profile_pic_url": self.profile_pic_url,
-                "full_name": self.full_name,
-                "followers": self.followers.uids,
-                "followees": self.followees.uids,
-                "profile_pic_url": self.profile_pic_url,
-                "jewish_education": self.jewish_education,
-                "bio": self.bio,
-                "website": self.website,
-                "location": self.location,
-                "public_email": self.public_email,
-                "facebook": self.facebook,
-                "twitter": self.twitter,
-                "linkedin": self.linkedin,
-                "youtube": self.youtube,
-                "position": self.position,
-                "organization": self.organization
-            }
+            "id": self.id,
+            "slug": self.slug,
+            "profile_pic_url": self.profile_pic_url,
+            "full_name": self.full_name,
+            "followers": self.followers.uids,
+            "followees": self.followees.uids,
+            "profile_pic_url": self.profile_pic_url,
+            "jewish_education": self.jewish_education,
+            "bio": self.bio,
+            "website": self.website,
+            "location": self.location,
+            "public_email": self.public_email,
+            "facebook": self.facebook,
+            "twitter": self.twitter,
+            "linkedin": self.linkedin,
+            "youtube": self.youtube,
+            "position": self.position,
+            "organization": self.organization,
+        }
         if basic:
             return dictionary
         other_info = {
-            "pinned_sheets":         self.pinned_sheets,
-            "is_sustainer":          self.is_sustainer,
-            "learning_level":        self.learning_level,
-            "donor_status":          DonorStatus.from_stored_value(self.donor_status).value,
-            "experiments":           self.experiments,
+            "pinned_sheets": self.pinned_sheets,
+            "is_sustainer": self.is_sustainer,
+            "learning_level": self.learning_level,
+            "donor_status": DonorStatus.from_stored_value(self.donor_status).value,
+            "experiments": self.experiments,
         }
         dictionary.update(other_info)
         return dictionary
-
 
     def to_mongo_json(self):
         """
@@ -875,26 +995,11 @@ def detect_potential_spam_message_notifications():
     # Get "message" type notifications where one user has sent many messages to multiple users.
     spammers = db.notifications.aggregate(
         [
-            {
-                "$match": {
-                    "read": False,
-                    "is_global": False,
-                    "type": "message"
-                }
-            },
-            {
-                "$group": {
-                    "_id": "$content.sender",
-                    "countmessages": {
-                        "$sum": 1
-                    },
-                    "uids": {
-                        "$addToSet": "$uid"
-                    }
-                }
-            },
+            {"$match": {"read": False, "is_global": False, "type": "message"}},
+            {"$group": {"_id": "$content.sender", "countmessages": {"$sum": 1}, "uids": {"$addToSet": "$uid"}}},
             {"$match": {"countmessages": {"$gt": 20}}},
-        ])
+        ]
+    )
     suspect_results = []
     for spammer in spammers:
         spammer_id = spammer["_id"]
@@ -931,7 +1036,7 @@ def email_unread_notifications(timeframe):
 
     for uid in users:
         profile = UserProfile(id=uid)
-        if profile.settings["email_notifications"] != timeframe and timeframe != 'all':
+        if profile.settings["email_notifications"] != timeframe and timeframe != "all":
             continue
         notifications = NotificationSet().unread_personal_for_user(uid)
         if len(notifications) == 0:
@@ -944,17 +1049,19 @@ def email_unread_notifications(timeframe):
         if "interface_language" in profile.settings:
             translation.activate(profile.settings["interface_language"][0:2])
 
-        message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name})
+        message_html = render_to_string(
+            "email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name}
+        )
         actors_string = notifications.actors_string()
         # TODO Hebrew subjects
         if actors_string:
-            verb      = "have" if " and " in actors_string else "has"
-            subject   = "%s %s new activity on Sefaria" % (actors_string, verb)
+            verb = "have" if " and " in actors_string else "has"
+            subject = "%s %s new activity on Sefaria" % (actors_string, verb)
         elif notifications.like_count() > 0:
-            noun      = "likes" if notifications.like_count() > 1 else "like"
-            subject   = "%d new %s on your Source Sheet" % (notifications.like_count(), noun)
-        from_email    = "Sefaria Notifications <notifications@sefaria.org>"
-        to            = user.email
+            noun = "likes" if notifications.like_count() > 1 else "like"
+            subject = "%d new %s on your Source Sheet" % (notifications.like_count(), noun)
+        from_email = "Sefaria Notifications <notifications@sefaria.org>"
+        to = user.email
 
         msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
         msg.content_subtype = "html"
@@ -962,7 +1069,7 @@ def email_unread_notifications(timeframe):
             msg.send()
             notifications.mark_read(via="email")
         except AnymailRecipientsRefused:
-            print('bad email address: {}'.format(to))
+            print(f"bad email address: {to}")
 
         if "interface_language" in profile.settings:
             translation.deactivate()
@@ -1015,7 +1122,7 @@ def public_user_data(uid, ignore_cache=False):
         "position": profile.position,
         "organization": profile.organization,
         "isStaff": is_staff,
-        "uid": uid
+        "uid": uid,
     }
     public_user_data_cache[uid] = (time.monotonic() + PUBLIC_USER_DATA_CACHE_TTL, data)
     return data
@@ -1054,13 +1161,14 @@ def is_user_staff(uid):
     """
     Returns True if the user with uid is staff.
     """
-    data = public_user_data(uid)  #needed?
+    data = public_user_data(uid)  # needed?
     try:
-        uid  = int(uid)
+        uid = int(uid)
         user = User.objects.get(id=uid)
         return user.is_staff
     except:
         return False
+
 
 def annotate_user_list(uids):
     """
@@ -1070,27 +1178,27 @@ def annotate_user_list(uids):
     annotated_list = []
     for uid in uids:
         data = public_user_data(uid)
-        annotated = {
-            "userLink": user_link(uid),
-            "imageUrl": data["imageUrl"]
-        }
+        annotated = {"userLink": user_link(uid), "imageUrl": data["imageUrl"]}
         annotated_list.append(annotated)
 
     return annotated_list
 
 
 def process_index_title_change_in_user_history(indx, **kwargs):
-    report_progress("Cascading User History from {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading User History from {} to {}".format(kwargs["old"], kwargs["new"]))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
     from .text import re as reg_reg
-    patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
-                for pattern in Ref(indx.title).regex(as_list=True)]
-    queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
+
+    patterns = [
+        pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
+        for pattern in Ref(indx.title).regex(as_list=True)
+    ]
+    queries = [{"ref": {"$regex": pattern}} for pattern in patterns]
     objs = UserHistorySet({"$or": queries})
     for o in objs:
         o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
         try:
             o.save()
         except InputError:
-            logger.warning("Failed to convert user history from: {} to {}".format(kwargs['old'], kwargs['new']))
+            logger.warning("Failed to convert user history from: {} to {}".format(kwargs["old"], kwargs["new"]))

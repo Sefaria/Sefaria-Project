@@ -1,6 +1,10 @@
-import sys, socket, argparse
-from sefaria.celery_setup.app import app as celery_app
+import argparse
+import socket
+import sys
+
 from kombu.exceptions import OperationalError
+
+from sefaria.celery_setup.app import app as celery_app
 
 
 def check_broker(app, timeout=5):
@@ -32,7 +36,7 @@ def check_worker_ping(app, timeout=5):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", choices=["liveness","readiness"], required=True)
+    ap.add_argument("--mode", choices=["liveness", "readiness"], required=True)
     ap.add_argument("--timeout", type=int, default=5)
     args = ap.parse_args()
 

@@ -1,64 +1,66 @@
-# coding=utf-8
+import re
+
 import pytest
 
 from sefaria.model import *
 from sefaria.model.legacy_text import LegacyTextChunk, TextFamily
+from sefaria.model.text import AbstractTextRecord
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
-import re
-from sefaria.model.text import AbstractTextRecord
 from sefaria.utils.util import list_depth
 
 
 def test_text_index_map():
     r = Ref("Shabbat 8b")
-    tc = LegacyTextChunk(r,"he")
+    tc = LegacyTextChunk(r, "he")
 
     def tokenizer(str):
-        return re.split(r"\s+",str)
+        return re.split(r"\s+", str)
 
-    ind_list,ref_list, total_len = tc.text_index_map(tokenizer)
-    #print len(ind_list), len(ref_list)
-    #make sure the last element in ind_last (start index of last segment) + the last of the last segment == len of the whole string
-    assert ind_list[-1]+len(tokenizer(LegacyTextChunk(r.all_subrefs()[-1],"he").as_string())) == len(tokenizer(tc.as_string()))
+    ind_list, ref_list, total_len = tc.text_index_map(tokenizer)
+    # print len(ind_list), len(ref_list)
+    # make sure the last element in ind_last (start index of last segment) + the last of the last segment == len of the whole string
+    assert ind_list[-1] + len(tokenizer(LegacyTextChunk(r.all_subrefs()[-1], "he").as_string())) == len(
+        tokenizer(tc.as_string())
+    )
 
     # Test Range
-    g = Ref('Genesis 1:31-2:2')
-    chunk = g.text('en', 'The Holy Scriptures: A New Translation (JPS 1917)')
-    ind_list, ref_list, total_len = chunk.text_index_map(lambda x: x.split(' '))
-    assert (ind_list, ref_list) == ([0, 26, 40], [Ref('Genesis 1:31'), Ref('Genesis 2:1'), Ref('Genesis 2:2')])
+    g = Ref("Genesis 1:31-2:2")
+    chunk = g.text("en", "The Holy Scriptures: A New Translation (JPS 1917)")
+    ind_list, ref_list, total_len = chunk.text_index_map(lambda x: x.split(" "))
+    assert (ind_list, ref_list) == ([0, 26, 40], [Ref("Genesis 1:31"), Ref("Genesis 2:1"), Ref("Genesis 2:2")])
 
-    #test depth 3 with empty sections
+    # test depth 3 with empty sections
     r = Ref("Rashi on Joshua")
-    tc = LegacyTextChunk(r,"he")
+    tc = LegacyTextChunk(r, "he")
     ind_list, ref_list, total_len = tc.text_index_map()
     for sub_ref in ref_list:
         assert sub_ref.is_segment_level()
-    assert ref_list[5] == Ref('Rashi on Joshua 1:4:3')
-    assert ref_list[8] == Ref('Rashi on Joshua 1:7:1')
+    assert ref_list[5] == Ref("Rashi on Joshua 1:4:3")
+    assert ref_list[8] == Ref("Rashi on Joshua 1:7:1")
 
-    #test depth 2 range
+    # test depth 2 range
     r = Ref("Rashi on Joshua 1:4-1:7")
-    tc = LegacyTextChunk(r,"he")
+    tc = LegacyTextChunk(r, "he")
     ind_list, ref_list, total_len = tc.text_index_map()
-    assert ref_list[5] == Ref('Rashi on Joshua 1:7:1')
+    assert ref_list[5] == Ref("Rashi on Joshua 1:7:1")
 
-    #test depth 3 range with missing super-section (Ramban Chapter 50 is missing)
+    # test depth 3 range with missing super-section (Ramban Chapter 50 is missing)
     r = Ref("Ramban on Genesis 48-50")
-    tc = LegacyTextChunk(r,"he")
+    tc = LegacyTextChunk(r, "he")
     ind_list, ref_list, total_len = tc.text_index_map()
-    assert ref_list[-1] == Ref('Ramban on Genesis 49:33:3')
+    assert ref_list[-1] == Ref("Ramban on Genesis 49:33:3")
 
+    # test depth 2 with empty segments
+    # r = Ref("Targum Jerusalem, Genesis")
 
-    #test depth 2 with empty segments
-    #r = Ref("Targum Jerusalem, Genesis")
 
 def test_verse_chunk():
     chunks = [
         LegacyTextChunk(Ref("Daniel 2:3"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
         LegacyTextChunk(Ref("Daniel 2:3"), "he", "Tanach with Nikkud"),
         LegacyTextChunk(Ref("Daniel 2:3"), "en"),
-        LegacyTextChunk(Ref("Daniel 2:3"), "he")
+        LegacyTextChunk(Ref("Daniel 2:3"), "he"),
     ]
     for c in chunks:
         assert isinstance(c.text, str)
@@ -70,7 +72,7 @@ def test_chapter_chunk():
         LegacyTextChunk(Ref("Daniel 2"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
         LegacyTextChunk(Ref("Daniel 2"), "he", "Tanach with Nikkud"),
         LegacyTextChunk(Ref("Daniel 2"), "en"),
-        LegacyTextChunk(Ref("Daniel 2"), "he")
+        LegacyTextChunk(Ref("Daniel 2"), "he"),
     ]
     for c in chunks:
         assert isinstance(c.text, list)
@@ -111,7 +113,7 @@ def test_spanning_chunk():
         LegacyTextChunk(Ref("Daniel 2:3-4:5"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
         LegacyTextChunk(Ref("Daniel 2:3-4:5"), "he", "Tanach with Nikkud"),
         LegacyTextChunk(Ref("Daniel 2:3-4:5"), "en"),
-        LegacyTextChunk(Ref("Daniel 2:3-4:5"), "he")
+        LegacyTextChunk(Ref("Daniel 2:3-4:5"), "he"),
     ]
 
     for c in chunks:
@@ -135,7 +137,7 @@ def test_commentary_chunks():
 
 
 def test_default_in_family():
-    r = Ref('Shulchan Arukh, Even HaEzer')
+    r = Ref("Shulchan Arukh, Even HaEzer")
     f = TextFamily(r)
     assert isinstance(f.text, list)
     assert isinstance(f.he, list)
@@ -166,10 +168,12 @@ def test_spanning_family():
 
 def test_family_chapter_result_no_merge():
     families = [
-        TextFamily(Ref("Onkelos Exodus 12")),  # this is supposed to get a version with exactly 1 en and 1 he.  The data may change.
+        TextFamily(
+            Ref("Onkelos Exodus 12")
+        ),  # this is supposed to get a version with exactly 1 en and 1 he.  The data may change.
         TextFamily(Ref("Daniel 2")),
         TextFamily(Ref("Daniel 4"), lang="en", version="The Holy Scriptures: A New Translation (JPS 1917)"),
-        TextFamily(Ref("Daniel 4"), lang="he", version="Tanach with Nikkud")
+        TextFamily(Ref("Daniel 4"), lang="he", version="Tanach with Nikkud"),
     ]
 
     for v in families:
@@ -177,11 +181,12 @@ def test_family_chapter_result_no_merge():
         assert isinstance(v.he, list)
 
         c = v.contents()
-        for key in ["text", "ref", "he", "book", "commentary"]:  # todo: etc.
+        for key in ["text", "ref", "he", "book", "commentary"]:  # TODO: etc.
             assert key in c
 
+
 # Yoma.1 is no longer merged.
-# todo: find a merged text to test with
+# TODO: find a merged text to test with
 @pytest.mark.xfail(reason="unknown")
 def test_chapter_result_merge():
     v = TextFamily(Ref("Mishnah_Yoma.1"))
@@ -189,7 +194,7 @@ def test_chapter_result_merge():
     assert isinstance(v.text, list)
     assert isinstance(v.he, list)
     c = v.contents()
-    for key in ["text", "ref", "he", "book", "sources", "commentary"]:  # todo: etc.
+    for key in ["text", "ref", "he", "book", "sources", "commentary"]:  # TODO: etc.
         assert key in c
 
 
@@ -208,28 +213,32 @@ def test_sources_scoped_and_no_fake_attribution_for_depth_gt_2():
     except Exception:
         pass
 
-    idx = Index({
-        "title": title,
-        "categories": ["Liturgy"],
-        "schema": {
-            "titles": [
-                {"lang": "en", "text": title, "primary": True},
-                {"lang": "he", "text": "ספר בדיקה", "primary": True},
-            ],
-            "nodeType": "JaggedArrayNode",
-            "depth": 3,
-            "sectionNames": ["Chapter", "Verse", "Comment"],
-            "addressTypes": ["Integer", "Integer", "Integer"],
-            "key": title,
-        },
-    })
+    idx = Index(
+        {
+            "title": title,
+            "categories": ["Liturgy"],
+            "schema": {
+                "titles": [
+                    {"lang": "en", "text": title, "primary": True},
+                    {"lang": "he", "text": "ספר בדיקה", "primary": True},
+                ],
+                "nodeType": "JaggedArrayNode",
+                "depth": 3,
+                "sectionNames": ["Chapter", "Verse", "Comment"],
+                "addressTypes": ["Integer", "Integer", "Integer"],
+                "key": title,
+            },
+        }
+    )
     idx.save()
 
     vt_a, vt_b = "Sources Test A", "Sources Test B"
-    va = Version({"language": "en", "title": title, "versionSource": "http://foobar.com",
-                 "versionTitle": vt_a, "chapter": []}).save()
-    vb = Version({"language": "en", "title": title, "versionSource": "http://foobar.com",
-                 "versionTitle": vt_b, "chapter": []}).save()
+    va = Version(
+        {"language": "en", "title": title, "versionSource": "http://foobar.com", "versionTitle": vt_a, "chapter": []}
+    ).save()
+    vb = Version(
+        {"language": "en", "title": title, "versionSource": "http://foobar.com", "versionTitle": vt_b, "chapter": []}
+    ).save()
 
     try:
         c = LegacyTextChunk(Ref(f"{title} 1:1"), "en", vt_a)
@@ -270,38 +279,42 @@ def test_normalize_does_not_suffix_existing_unsuffixed_version_on_unrelated_resa
     except Exception:
         pass
 
-    idx = Index({
-        "title": title,
-        "categories": ["Liturgy"],
-        "schema": {
-            "titles": [
-                {"lang": "en", "text": title, "primary": True},
-                {"lang": "he", "text": "ספר בדיקת שמירה חוזרת", "primary": True},
-            ],
-            "nodeType": "JaggedArrayNode",
-            "depth": 2,
-            "sectionNames": ["Chapter", "Verse"],
-            "addressTypes": ["Integer", "Integer"],
-            "key": title,
-        },
-    })
+    idx = Index(
+        {
+            "title": title,
+            "categories": ["Liturgy"],
+            "schema": {
+                "titles": [
+                    {"lang": "en", "text": title, "primary": True},
+                    {"lang": "he", "text": "ספר בדיקת שמירה חוזרת", "primary": True},
+                ],
+                "nodeType": "JaggedArrayNode",
+                "depth": 2,
+                "sectionNames": ["Chapter", "Verse"],
+                "addressTypes": ["Integer", "Integer"],
+                "key": title,
+            },
+        }
+    )
     idx.save()
 
     try:
         # Simulate pre-existing legacy data: a non-en/he version saved without the "[xx]" suffix
         # (bypassing Version.save()/_normalize() entirely, as real such data would predate it).
-        db.texts.insert_one({
-            "title": title,
-            "versionTitle": "Bare Title",
-            "versionSource": "http://example.com",
-            "language": "he",
-            "actualLanguage": "yi",
-            "languageFamilyName": "yiddish",
-            "isSource": False,
-            "isPrimary": True,
-            "direction": "rtl",
-            "chapter": [["First segment"]],
-        })
+        db.texts.insert_one(
+            {
+                "title": title,
+                "versionTitle": "Bare Title",
+                "versionSource": "http://example.com",
+                "language": "he",
+                "actualLanguage": "yi",
+                "languageFamilyName": "yiddish",
+                "isSource": False,
+                "isPrimary": True,
+                "direction": "rtl",
+                "chapter": [["First segment"]],
+            }
+        )
 
         version = Version().load({"title": title, "versionTitle": "Bare Title"})
         assert version is not None
@@ -332,21 +345,23 @@ def test_save_reuses_existing_version_despite_stale_unsuffixed_vtitle():
     except Exception:
         pass
 
-    idx = Index({
-        "title": title,
-        "categories": ["Liturgy"],
-        "schema": {
-            "titles": [
-                {"lang": "en", "text": title, "primary": True},
-                {"lang": "he", "text": "ספר בדיקת גרסה", "primary": True},
-            ],
-            "nodeType": "JaggedArrayNode",
-            "depth": 2,
-            "sectionNames": ["Chapter", "Verse"],
-            "addressTypes": ["Integer", "Integer"],
-            "key": title,
-        },
-    })
+    idx = Index(
+        {
+            "title": title,
+            "categories": ["Liturgy"],
+            "schema": {
+                "titles": [
+                    {"lang": "en", "text": title, "primary": True},
+                    {"lang": "he", "text": "ספר בדיקת גרסה", "primary": True},
+                ],
+                "nodeType": "JaggedArrayNode",
+                "depth": 2,
+                "sectionNames": ["Chapter", "Verse"],
+                "addressTypes": ["Integer", "Integer"],
+                "key": title,
+            },
+        }
+    )
     idx.save()
 
     vtitle = "Suffix Test Version"
@@ -383,21 +398,23 @@ def _make_synthetic_index(title, he_title, depth, section_names):
         Index().load({"title": title}).delete()
     except Exception:
         pass
-    idx = Index({
-        "title": title,
-        "categories": ["Liturgy"],
-        "schema": {
-            "titles": [
-                {"lang": "en", "text": title, "primary": True},
-                {"lang": "he", "text": he_title, "primary": True},
-            ],
-            "nodeType": "JaggedArrayNode",
-            "depth": depth,
-            "sectionNames": section_names,
-            "addressTypes": ["Integer"] * depth,
-            "key": title,
-        },
-    })
+    idx = Index(
+        {
+            "title": title,
+            "categories": ["Liturgy"],
+            "schema": {
+                "titles": [
+                    {"lang": "en", "text": title, "primary": True},
+                    {"lang": "he", "text": he_title, "primary": True},
+                ],
+                "nodeType": "JaggedArrayNode",
+                "depth": depth,
+                "sectionNames": section_names,
+                "addressTypes": ["Integer"] * depth,
+                "key": title,
+            },
+        }
+    )
     idx.save()
     return idx
 
@@ -590,17 +607,27 @@ def test_text_family_alts():
     c = tf.contents()
     assert c.get("alts")
 
+
 def test_text_family_version_with_underscores():
     with_spaces = TextFamily(
-        Ref("Amos 1"), lang="he", lang2="en", commentary=False,
+        Ref("Amos 1"),
+        lang="he",
+        lang2="en",
+        commentary=False,
         version="Miqra according to the Masorah",
-        version2="Tanakh: The Holy Scriptures, published by JPS")
+        version2="Tanakh: The Holy Scriptures, published by JPS",
+    )
     with_underscores = TextFamily(
-        Ref("Amos 1"), lang="he", lang2="en", commentary=False,
+        Ref("Amos 1"),
+        lang="he",
+        lang2="en",
+        commentary=False,
         version="Miqra_according_to_the_Masorah",
-        version2="Tanakh:_The_Holy_Scriptures,_published_by_JPS")
+        version2="Tanakh:_The_Holy_Scriptures,_published_by_JPS",
+    )
     assert with_spaces.he == with_underscores.he
     assert with_spaces.text == with_underscores.text
+
 
 def test_validate():
     passing_refs = [
@@ -629,7 +656,7 @@ def test_validate():
         Ref("Rashi on Shabbat 7a-8b"),
         Ref("Rashi on Shabbat 7a:9"),
         Ref("Rashi on Shabbat 7a:2-9"),
-        Ref("Rashi on Shabbat 7a:2-7b:3")
+        Ref("Rashi on Shabbat 7a:2-7b:3"),
     ]
     for ref in passing_refs:
         LegacyTextChunk(ref, lang="he")._validate()
@@ -645,13 +672,15 @@ def test_save():
             pass
 
     # create new version, depth 1
-    v = Version({
-        "language": "en",
-        "title": "Hadran",
-        "versionSource": "http://foobar.com",
-        "versionTitle": "Hadran Test",
-        "chapter": []
-    }).save()
+    v = Version(
+        {
+            "language": "en",
+            "title": "Hadran",
+            "versionSource": "http://foobar.com",
+            "versionTitle": "Hadran Test",
+            "chapter": [],
+        }
+    ).save()
     # write to blank version
     c = LegacyTextChunk(Ref("Hadran 3"), "en", "Hadran Test")
     c.text = "Here's a translation for the eras"
@@ -683,13 +712,15 @@ def test_save():
     v.delete()
 
     # create new version, depth 2
-    v = Version({
-        "language": "en",
-        "title": "Pirkei Avot",
-        "versionSource": "http://foobar.com",
-        "versionTitle": "Pirkei Avot Test",
-        "chapter": []
-    }).save()
+    v = Version(
+        {
+            "language": "en",
+            "title": "Pirkei Avot",
+            "versionSource": "http://foobar.com",
+            "versionTitle": "Pirkei Avot Test",
+            "chapter": [],
+        }
+    ).save()
 
     # write to new verse of new chapter
     c = LegacyTextChunk(Ref("Pirkei Avot 2:3"), "en", "Pirkei Avot Test")
@@ -737,7 +768,7 @@ def test_save():
         ["", "", "Text for 2:3"],
         ["", "", "Text for 3:3", "Text for 3:4", "Text for 3:5"],
         ["Text for 4:1", "New Text for 4:2", "Text for 4:3", "Text for 4:4"],
-        ["Text for 5:1", "Text for 5:2", "Text for 5:3", "Text for 5:4"]
+        ["Text for 5:1", "Text for 5:2", "Text for 5:3", "Text for 5:4"],
     ]
 
     # Test overwrite of whole text
@@ -746,7 +777,7 @@ def test_save():
         ["Fee", "", "Fi", ""],
         ["", "", "Fo"],
         ["", "Fum", "Text for 3:3", "Text for 3:4"],
-        ["Text for 4:1", "New Text for 4:2","", "Text for 4:4",""]
+        ["Text for 4:1", "New Text for 4:2", "", "Text for 4:4", ""],
     ]
     c.save()
     c = LegacyTextChunk(Ref("Pirkei Avot"), "en", "Pirkei Avot Test")
@@ -754,28 +785,32 @@ def test_save():
         ["Fee", "", "Fi"],
         ["", "", "Fo"],
         ["", "Fum", "Text for 3:3", "Text for 3:4"],
-        ["Text for 4:1", "New Text for 4:2","", "Text for 4:4"]
+        ["Text for 4:1", "New Text for 4:2", "", "Text for 4:4"],
     ]
 
     v.delete()
 
     with pytest.raises(Exception) as e_info:
         # create new version for a non existing commentary, depth 3 - should fail
-        v = Version({
-            "language": "en",
-            "title": "Rashi on Pirkei Avot",
-            "versionSource": "http://foobar.com",
-            "versionTitle": "Rashi on Pirkei Avot Test",
-            "chapter": []
-        }).save()
+        v = Version(
+            {
+                "language": "en",
+                "title": "Rashi on Pirkei Avot",
+                "versionSource": "http://foobar.com",
+                "versionTitle": "Rashi on Pirkei Avot Test",
+                "chapter": [],
+            }
+        ).save()
 
-    v = Version({
-        "language": "en",
-        "title": "Rashi on Exodus",
-        "versionSource": "http://foobar.com",
-        "versionTitle": "Rashi on Exodus Test",
-        "chapter": []
-    }).save()
+    v = Version(
+        {
+            "language": "en",
+            "title": "Rashi on Exodus",
+            "versionSource": "http://foobar.com",
+            "versionTitle": "Rashi on Exodus Test",
+            "chapter": [],
+        }
+    ).save()
     # write to new verse of new chapter
     c = LegacyTextChunk(Ref("Rashi on Exodus 2:3"), "en", "Rashi on Exodus Test")
     c.text = ["Text for 2:3:1", "Text for 2:3:2"]
@@ -789,7 +824,12 @@ def test_save():
     # write new chapter beyond created range
     # test that blank space isn't saved
     c = LegacyTextChunk(Ref("Rashi on Exodus 5"), "en", "Rashi on Exodus Test")
-    c.text = [["Text for 5:1:1"], ["Text for 5:2:1", "", ""], ["Text for 5:3:1","Text for 5:3:2", "     ", "", " "],["Text for 5:4:1", "", "  "]]
+    c.text = [
+        ["Text for 5:1:1"],
+        ["Text for 5:2:1", "", ""],
+        ["Text for 5:3:1", "Text for 5:3:2", "     ", "", " "],
+        ["Text for 5:4:1", "", "  "],
+    ]
     c.save()
 
     # write new chapter within created range
@@ -822,7 +862,7 @@ def test_save():
         [[], [], ["Text for 2:3:1", "Text for 2:3:2"]],
         [[], [], ["", "", "Text for 3:3:3"], ["", "", "Text for 3:4:3"], ["Text for 3:5:1"]],
         [["Text for 4:1:1", "New Text for 4:1:2", "Text for 4:1:3", "Text for 4:1:4"]],
-        [["Text for 5:1:1"], ["Text for 5:2:1"], ["Text for 5:3:1", "Text for 5:3:2"], ["Text for 5:4:1"]]
+        [["Text for 5:1:1"], ["Text for 5:2:1"], ["Text for 5:3:1", "Text for 5:3:2"], ["Text for 5:4:1"]],
     ]
 
     v.delete()
@@ -832,22 +872,22 @@ def test_save():
 
 def test_complex_with_depth_1():
     # There was a bug that chunks of complex texts always returned the first element of the array, even for deeper chunks
-    r = Ref('Pesach Haggadah, Kadesh 1')
+    r = Ref("Pesach Haggadah, Kadesh 1")
     c = LegacyTextChunk(r, "he")
     assert "כוס ראשון" in c.text
 
-    r = Ref('Pesach Haggadah, Kadesh 2')
+    r = Ref("Pesach Haggadah, Kadesh 2")
     c = LegacyTextChunk(r, "he")
     assert "קַדֵּשׁ" in c.text
 
-    r = Ref('Pesach Haggadah, Kadesh 2-4')
+    r = Ref("Pesach Haggadah, Kadesh 2-4")
     c = LegacyTextChunk(r, "he")
     assert len(c.text) == 3
     assert "קַדֵּשׁ" in c.text[0]
 
-    #Comparing Hebrew is hard.
-    #assert u"בְּשַׁבָּת מַתְחִילִין" in c.text[1]
-    #assert u"וַיִּשְׁבֹּת" in c.text[2]
+    # Comparing Hebrew is hard.
+    # assert u"בְּשַׁבָּת מַתְחִילִין" in c.text[1]
+    # assert u"וַיִּשְׁבֹּת" in c.text[2]
 
     c = LegacyTextChunk(r, "en")
     assert len(c.text) == 3
@@ -887,24 +927,34 @@ def test_strip_itags():
         assert mod == ori
 
     # create new version, depth 1
-    v = Version({
-        "language": "en",
-        "title": "Hadran",
-        "versionSource": "http://foobar.com",
-        "versionTitle": "Hadran Test",
-        "chapter": ['Cool text <sup class="footnote-marker">1</sup><i class="footnote yo">well, not that cool</i >',  # test </i> malformed with extra space
-                    'Silly text <sup class="footnote-marker">1</sup><i class="footnote">See <i>cool text</i></i>',
-                    'More text <i data-commentator="Boring comment" data-order="1"></i> and yet more',
-                    'Where the <i data-overlay="Other system" data-value=""></i> #$%^&*',
-                    'Obscure thing<sup class="endFootnote">1</sup> that nobody cares about except Noah.']
-    }).save()
-    modified_text = ['Cool text', 'Silly text', 'More text and yet more', 'Where the #$%^&*', 'Obscure thing that nobody cares about except Noah.']
+    v = Version(
+        {
+            "language": "en",
+            "title": "Hadran",
+            "versionSource": "http://foobar.com",
+            "versionTitle": "Hadran Test",
+            "chapter": [
+                'Cool text <sup class="footnote-marker">1</sup><i class="footnote yo">well, not that cool</i >',  # test </i> malformed with extra space
+                'Silly text <sup class="footnote-marker">1</sup><i class="footnote">See <i>cool text</i></i>',
+                'More text <i data-commentator="Boring comment" data-order="1"></i> and yet more',
+                'Where the <i data-overlay="Other system" data-value=""></i> #$%^&*',
+                'Obscure thing<sup class="endFootnote">1</sup> that nobody cares about except Noah.',
+            ],
+        }
+    ).save()
+    modified_text = [
+        "Cool text",
+        "Silly text",
+        "More text and yet more",
+        "Where the #$%^&*",
+        "Obscure thing that nobody cares about except Noah.",
+    ]
     c = LegacyTextChunk(Ref("Hadran"), "en", "Hadran Test")
-    test_modified_text = c._get_text_after_modifications([c.strip_itags, lambda x, _: ' '.join(x.split()).strip()])
+    test_modified_text = c._get_text_after_modifications([c.strip_itags, lambda x, _: " ".join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
         assert m == t
 
-    test_modified_text = v._get_text_after_modifications([v.strip_itags, lambda x, _: ' '.join(x.split()).strip()])
+    test_modified_text = v._get_text_after_modifications([v.strip_itags, lambda x, _: " ".join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
         assert t == m
 
@@ -917,6 +967,5 @@ def test_strip_itags():
     for m, t in zip(v.chapter, test_modified_text):
         assert m == t
 
-    text = '<i></i>Lo, his spirit.'
+    text = "<i></i>Lo, his spirit."
     assert LegacyTextChunk.strip_itags(text) == text
-

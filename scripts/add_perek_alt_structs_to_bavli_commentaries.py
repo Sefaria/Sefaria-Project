@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Add "Chapters" / perek alt structures to Bavli commentaries.
 
@@ -22,17 +21,18 @@ Usage:
     ./run scripts/add_perek_alt_structs_to_bavli_commentaries.py --all --dry-run --accept-all
     ./run scripts/add_perek_alt_structs_to_bavli_commentaries.py --all --accept-all
 """
+
 import argparse
 import copy
 from collections import Counter, defaultdict
 
 import django
+
 django.setup()
 
 from sefaria.model import *
-from sefaria.model.schema import deserialize_tree, TitledTreeNode
+from sefaria.model.schema import TitledTreeNode, deserialize_tree
 from sefaria.system.database import db
-
 
 ALT_STRUCT_NAME = "Chapters"
 
@@ -52,12 +52,14 @@ def _leaf_signatures(node):
         for child in node.children:
             sigs += _leaf_signatures(child)
         return sigs
-    return [(
-        node.__class__.__name__,
-        getattr(node, "depth", None),
-        tuple(getattr(node, "addressTypes", []) or []),
-        tuple(getattr(node, "sectionNames", []) or []),
-    )]
+    return [
+        (
+            node.__class__.__name__,
+            getattr(node, "depth", None),
+            tuple(getattr(node, "addressTypes", []) or []),
+            tuple(getattr(node, "sectionNames", []) or []),
+        )
+    ]
 
 
 def report_shapes():
@@ -73,8 +75,8 @@ def report_shapes():
             examples[key].append(index.title)
 
     for (base_count, sig), count in counts.most_common():
-        print("\n{} commentary index(es); {} Bavli base title(s)".format(count, base_count))
-        print("  shape: {}".format(sig))
+        print(f"\n{count} commentary index(es); {base_count} Bavli base title(s)")
+        print(f"  shape: {sig}")
         print("  examples: {}".format("; ".join(examples[(base_count, sig)])))
 
 
@@ -84,13 +86,13 @@ def classify_commentary(index, bavli_books):
 
     base_titles = [t for t in getattr(index, "base_text_titles", []) if t in bavli_books]
     if len(base_titles) != 1:
-        return None, "has {} Bavli base title(s); expected exactly 1".format(len(base_titles))
+        return None, f"has {len(base_titles)} Bavli base title(s); expected exactly 1"
 
     node = index.nodes
     if node.has_children():
         return None, "complex commentary schema is not supported yet"
     if node.__class__.__name__ != "JaggedArrayNode":
-        return None, "root node is {}, not JaggedArrayNode".format(node.__class__.__name__)
+        return None, f"root node is {node.__class__.__name__}, not JaggedArrayNode"
     if getattr(node, "depth", 0) < 2:
         return None, "root depth is {}; expected at least 2".format(getattr(node, "depth", None))
     if not getattr(node, "addressTypes", None) or node.addressTypes[0] != "Talmud":
@@ -120,42 +122,49 @@ def confirm_commentator_term_slug(commentary_index, skip_manual=False, accept_al
     if guess:
         term = NonUniqueTerm.init(guess)
         if accept_all and term is not None:
-            print("[{}] Accepted guessed commentator term: '{}' ({})".format(
-                title, guess, term.get_primary_title("en")))
+            print(
+                "[{}] Accepted guessed commentator term: '{}' ({})".format(title, guess, term.get_primary_title("en"))
+            )
             return guess
-        label = "'{}' ({})".format(guess, term.get_primary_title("en")) if term \
-            else "'{}' (WARNING: no NonUniqueTerm exists with this slug)".format(guess)
-        answer = input("[{}] Guessed commentator term: {} -- correct? [Y/n]: ".format(title, label)).strip().lower()
+        label = (
+            "'{}' ({})".format(guess, term.get_primary_title("en"))
+            if term
+            else f"'{guess}' (WARNING: no NonUniqueTerm exists with this slug)"
+        )
+        answer = input(f"[{title}] Guessed commentator term: {label} -- correct? [Y/n]: ").strip().lower()
         if answer in ("", "y", "yes") and term is not None:
             return guess
     else:
-        print("[{}] Could not guess a commentator term.".format(title))
+        print(f"[{title}] Could not guess a commentator term.")
 
     if skip_manual:
-        print("[{}] Skipping: no confirmed guess and --skip-manual-slugs is set.".format(title))
+        print(f"[{title}] Skipping: no confirmed guess and --skip-manual-slugs is set.")
         return None
 
     while True:
-        manual = input("[{}] Enter the correct NonUniqueTerm slug for this commentator "
-                       "(blank to skip this commentary): ".format(title)).strip()
+        manual = input(
+            f"[{title}] Enter the correct NonUniqueTerm slug for this commentator (blank to skip this commentary): "
+        ).strip()
         if not manual:
             return None
         term = NonUniqueTerm.init(manual)
         if term is None:
-            print("  No NonUniqueTerm found with slug '{}'. Try again.".format(manual))
+            print(f"  No NonUniqueTerm found with slug '{manual}'. Try again.")
             continue
         return manual
 
 
 def _make_ref_for_sections(index, index_node, sections, to_sections=None):
     to_sections = to_sections or sections
-    return Ref(_obj={
-        "index": index,
-        "book": index.title,
-        "index_node": index_node,
-        "sections": sections,
-        "toSections": to_sections,
-    })
+    return Ref(
+        _obj={
+            "index": index,
+            "book": index.title,
+            "index_node": index_node,
+            "sections": sections,
+            "toSections": to_sections,
+        }
+    )
 
 
 def _section_ref_for_daf(index, index_node, daf):
@@ -218,19 +227,25 @@ def _base_ref_from_link(link, base_section_ref):
 def _commentary_links_on_boundary(base_index, commentary_index, commentary_node, boundary_daf):
     base_section_ref = _section_ref_for_daf(base_index, base_index.nodes, boundary_daf)
     commentary_section_ref = _section_ref_for_daf(commentary_index, commentary_node, boundary_daf)
-    links = LinkSet({
-        "$and": [
-            {"type": "commentary"},
-            {"$or": [
-                {"refs.0": {"$regex": base_section_ref.regex()}},
-                {"refs.1": {"$regex": base_section_ref.regex()}},
-            ]},
-            {"$or": [
-                {"refs.0": {"$regex": commentary_section_ref.regex()}},
-                {"refs.1": {"$regex": commentary_section_ref.regex()}},
-            ]},
-        ]
-    })
+    links = LinkSet(
+        {
+            "$and": [
+                {"type": "commentary"},
+                {
+                    "$or": [
+                        {"refs.0": {"$regex": base_section_ref.regex()}},
+                        {"refs.1": {"$regex": base_section_ref.regex()}},
+                    ]
+                },
+                {
+                    "$or": [
+                        {"refs.0": {"$regex": commentary_section_ref.regex()}},
+                        {"refs.1": {"$regex": commentary_section_ref.regex()}},
+                    ]
+                },
+            ]
+        }
+    )
     rows = []
     for link in links:
         base_ref = _base_ref_from_link(link, base_section_ref)
@@ -240,7 +255,9 @@ def _commentary_links_on_boundary(base_index, commentary_index, commentary_node,
     return rows
 
 
-def _boundary_split_comment(all_comment_refs, base_index, commentary_index, commentary_node, old_perek_ref, new_perek_ref):
+def _boundary_split_comment(
+    all_comment_refs, base_index, commentary_index, commentary_node, old_perek_ref, new_perek_ref
+):
     boundary_daf = new_perek_ref.sections[0]
     boundary_comments = [r for r in all_comment_refs if r.sections[0] == boundary_daf]
 
@@ -250,7 +267,8 @@ def _boundary_split_comment(all_comment_refs, base_index, commentary_index, comm
     old_linked = []
     new_linked = []
     for base_ref, commentary_ref, _link in _commentary_links_on_boundary(
-            base_index, commentary_index, commentary_node, boundary_daf):
+        base_index, commentary_index, commentary_node, boundary_daf
+    ):
         if old_perek_ref.contains(base_ref):
             old_linked.append(commentary_ref)
         if new_perek_ref.contains(base_ref):
@@ -259,10 +277,10 @@ def _boundary_split_comment(all_comment_refs, base_index, commentary_index, comm
     old_linked = _sort_refs(old_linked)
     new_linked = _sort_refs(new_linked)
     if new_linked:
-        return new_linked[0], "first linked comment on new perek: {}".format(new_linked[0].normal())
+        return new_linked[0], f"first linked comment on new perek: {new_linked[0].normal()}"
     if old_linked:
         next_ref = _next_comment_ref(all_comment_refs, old_linked[-1])
-        return next_ref, "after last linked comment on old perek: {}".format(old_linked[-1].normal())
+        return next_ref, f"after last linked comment on old perek: {old_linked[-1].normal()}"
 
     return None, "comments exist on boundary daf but no boundary commentary links were found"
 
@@ -297,11 +315,11 @@ def build_perek_alt_struct(commentary_index, commentator_slug, info):
     base_index = library.get_index(info["base_title"])
     base_struct = base_index.get_alt_structures().get(ALT_STRUCT_NAME)
     if base_struct is None:
-        raise ValueError("Base Bavli text '{}' has no '{}' alt structure".format(base_index.title, ALT_STRUCT_NAME))
+        raise ValueError(f"Base Bavli text '{base_index.title}' has no '{ALT_STRUCT_NAME}' alt structure")
 
     all_comment_refs = _sort_refs(Ref(commentary_index.title).all_segment_refs())
     if not all_comment_refs:
-        raise ValueError("'{}' has no comment segments".format(commentary_index.title))
+        raise ValueError(f"'{commentary_index.title}' has no comment segments")
 
     perek_base_refs = [Ref(node.wholeRef) for node in base_struct.children]
     perek_starts = [all_comment_refs[0]]
@@ -329,15 +347,17 @@ def build_perek_alt_struct(commentary_index, commentator_slug, info):
         if end_ref is None or end_ref.precedes(start_ref):
             boundary_notes.append((i + 1, "skipped: empty commentary range"))
             continue
-        node_dicts.append(_build_alt_struct_node_dict(
-            base_node,
-            start_ref.to(end_ref).normal(),
-            commentator_slug,
-            commentary_depth=getattr(info["node"], "depth", 0),
-        ))
+        node_dicts.append(
+            _build_alt_struct_node_dict(
+                base_node,
+                start_ref.to(end_ref).normal(),
+                commentator_slug,
+                commentary_depth=getattr(info["node"], "depth", 0),
+            )
+        )
 
     if not node_dicts:
-        raise ValueError("No perek nodes could be built for '{}'".format(commentary_index.title))
+        raise ValueError(f"No perek nodes could be built for '{commentary_index.title}'")
 
     struct_obj = deserialize_tree({"nodes": node_dicts}, struct_class=TitledTreeNode)
     struct_obj.title_group = commentary_index.nodes.title_group
@@ -347,7 +367,7 @@ def build_perek_alt_struct(commentary_index, commentator_slug, info):
 
 def save_index_directly_to_mongo(index):
     if index.is_new():
-        raise ValueError("Direct index save only supports existing indexes: {}".format(index.title))
+        raise ValueError(f"Direct index save only supports existing indexes: {index.title}")
 
     index._normalize()
     index._validate()
@@ -357,7 +377,7 @@ def save_index_directly_to_mongo(index):
     props = index._saveable_attrs()
     result = db.index.replace_one({"_id": index._id}, props, upsert=True)
     if not result.matched_count and result.upserted_id:
-        raise Exception("Index '{}' inserted when expecting an update.".format(index.title))
+        raise Exception(f"Index '{index.title}' inserted when expecting an update.")
     return index
 
 
@@ -377,11 +397,10 @@ def set_alt_struct_visibility(index, visible):
 def needs_processing(index, bavli_books, force):
     info, reason = classify_commentary(index, bavli_books)
     if info is None:
-        print("Skipping '{}': {}".format(index.title, reason))
+        print(f"Skipping '{index.title}': {reason}")
         return None
     if index.get_alt_structures().get(ALT_STRUCT_NAME) is not None and not force:
-        print("Skipping '{}': already has a '{}' alt structure (use --force to overwrite)".format(
-            index.title, ALT_STRUCT_NAME))
+        print(f"Skipping '{index.title}': already has a '{ALT_STRUCT_NAME}' alt structure (use --force to overwrite)")
         return None
     return info
 
@@ -395,19 +414,20 @@ def add_perek_struct_to_commentary(title, commentator_slug, dry_run=False, force
 
     struct_obj, boundary_notes = build_perek_alt_struct(index, commentator_slug, info)
     if dry_run:
-        print("Would set '{}' alt structure on '{}':".format(ALT_STRUCT_NAME, title))
+        print(f"Would set '{ALT_STRUCT_NAME}' alt structure on '{title}':")
         print("  visibility: {}".format("visible" if debug_visible else "hidden via exclude_structs"))
         for node in struct_obj.children:
             print("  {} -> {}".format(node.get_primary_title("en"), node.wholeRef))
         for perek_num, note in boundary_notes:
-            print("  boundary before perek {}: {}".format(perek_num, note))
+            print(f"  boundary before perek {perek_num}: {note}")
         return True
 
     index.set_alt_structure(ALT_STRUCT_NAME, struct_obj)
     set_alt_struct_visibility(index, visible=debug_visible)
     save_index_directly_to_mongo(index)
-    print("Added '{}' alt structure to '{}' ({})".format(
-        ALT_STRUCT_NAME, title, "visible" if debug_visible else "hidden"))
+    print(
+        "Added '{}' alt structure to '{}' ({})".format(ALT_STRUCT_NAME, title, "visible" if debug_visible else "hidden")
+    )
     return True
 
 
@@ -419,12 +439,17 @@ if __name__ == "__main__":
     group.add_argument("--report-shapes", action="store_true", help="Report Bavli commentary schema shapes and exit")
     parser.add_argument("--dry-run", action="store_true", help="Print what would change without saving")
     parser.add_argument("--force", action="store_true", help="Overwrite an existing 'Chapters' alt structure")
-    parser.add_argument("--debug-visible", action="store_true",
-                        help="Make the generated 'Chapters' alt structure visible in navigation; default is hidden")
-    parser.add_argument("--skip-manual-slugs", action="store_true",
-                        help="Skip commentaries with no guessable commentator term instead of prompting")
-    parser.add_argument("--accept-all", action="store_true",
-                        help="Accept every guessed commentator term automatically")
+    parser.add_argument(
+        "--debug-visible",
+        action="store_true",
+        help="Make the generated 'Chapters' alt structure visible in navigation; default is hidden",
+    )
+    parser.add_argument(
+        "--skip-manual-slugs",
+        action="store_true",
+        help="Skip commentaries with no guessable commentator term instead of prompting",
+    )
+    parser.add_argument("--accept-all", action="store_true", help="Accept every guessed commentator term automatically")
     args = parser.parse_args()
 
     if args.report_shapes:
@@ -443,7 +468,7 @@ if __name__ == "__main__":
     for index in to_process:
         slug = confirm_commentator_term_slug(index, skip_manual=args.skip_manual_slugs, accept_all=args.accept_all)
         if slug is None:
-            print("Skipping '{}': no confirmed commentator term".format(index.title))
+            print(f"Skipping '{index.title}': no confirmed commentator term")
             continue
         confirmed_slugs[index.title] = slug
 
@@ -451,12 +476,13 @@ if __name__ == "__main__":
     for title, slug in confirmed_slugs.items():
         try:
             add_perek_struct_to_commentary(
-                title, slug, dry_run=args.dry_run, force=args.force, debug_visible=args.debug_visible)
+                title, slug, dry_run=args.dry_run, force=args.force, debug_visible=args.debug_visible
+            )
         except Exception as e:
-            print("FAILED '{}': {}".format(title, e))
+            print(f"FAILED '{title}': {e}")
             failures.append(title)
 
     if failures:
-        print("\n{} commentary(ies) failed and were skipped:".format(len(failures)))
+        print(f"\n{len(failures)} commentary(ies) failed and were skipped:")
         for title in failures:
-            print("  {}".format(title))
+            print(f"  {title}")

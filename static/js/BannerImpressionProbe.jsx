@@ -1,7 +1,6 @@
-
-import Sefaria from "./sefaria/sefaria";
-import { useEffect, useState } from "react";
-import { useOnceFullyVisible } from "./Misc";
+import Sefaria from './sefaria/sefaria';
+import { useEffect, useState } from 'react';
+import { useOnceFullyVisible } from './Misc';
 
 const BannerImpressionProbe = () => {
   const [shouldRender, setShouldRender] = useState(false);
@@ -31,11 +30,11 @@ const BannerImpressionProbe = () => {
   }, []);
 
   const probeRef = useOnceFullyVisible(() => {
-    sa_event("banner_probe_viewed");
-    gtag("event", "banner_probe_viewed");
+    sa_event('banner_probe_viewed');
+    gtag('event', 'banner_probe_viewed');
 
     if (Sefaria._debug) {
-      console.log("BannerImpressionProbe: Analytics events fired");
+      console.log('BannerImpressionProbe: Analytics events fired');
     }
   }, `sa.banner_probe`);
 
@@ -49,22 +48,21 @@ const BannerImpressionProbe = () => {
       ref={probeRef}
       style={{
         // Prevent from showing up in document flow
-        position: "fixed",
-        top: "50%",
-        left: "50%",
-        width: "1px",
-        height: "1px",
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        width: '1px',
+        height: '1px',
         opacity: 0.001, // Minimum opacity for IntersectionObserver to detect
-        pointerEvents: "none", // Prevent all mouse/touch interactions
-        userSelect: "none", // Prevent text selection
+        pointerEvents: 'none', // Prevent all mouse/touch interactions
+        userSelect: 'none', // Prevent text selection
         zIndex: -1,
-        overflow: "hidden",
-        border: "none",
-        contain: "layout style paint", // CSS containment - prevent layout and style outside of it from being affected
+        overflow: 'hidden',
+        border: 'none',
+        contain: 'layout style paint', // CSS containment - prevent layout and style outside of it from being affected
       }}
       aria-hidden="true" // Hide from screen readers
-    >
-    </div>
+    ></div>
   );
 };
 
