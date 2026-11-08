@@ -1,16 +1,18 @@
 # Sefaria System Infrastructure
+
 > Source: `sefaria/system/`
 
 ## Purpose
+
 The infrastructure layer: MongoDB connections, multi-tier caching, request middleware, exception handling, cross-process cache freshness via GenCache (a Redis/Sentinel-backed generation-counter primitive), and Varnish HTTP cache invalidation. This is the plumbing that keeps the app running across multiple processes and servers.
 
 ## Navigation
 
-| Doc | Covers | Load when... |
-|-----|--------|-------------|
-| [database_and_caching.md](./database_and_caching.md) | `database.py`, `cache.py`, `caches.py`, `cloudflare.py`, `serializers.py` | MongoDB connection setup, Django cache wrappers, Cloudflare CDN purges |
+| Doc                                                      | Covers                                                                                                    | Load when...                                                                                                  |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| [database_and_caching.md](./database_and_caching.md)     | `database.py`, `cache.py`, `caches.py`, `cloudflare.py`, `serializers.py`                                 | MongoDB connection setup, Django cache wrappers, Cloudflare CDN purges                                        |
 | [middleware_and_request.md](./middleware_and_request.md) | `middleware.py`, `decorators.py`, `context_processors.py`, `exceptions.py`, `validators.py`, `logging.py` | Request pipeline — language/location detection, error handling, template contexts, the `InputError` hierarchy |
-| [gencache_and_varnish.md](./gencache_and_varnish.md) | `cache.py`'s `GenCache`, `redis_sentinel.py`, `varnish/*` | Cross-process cache freshness, Varnish cache invalidation on data changes |
+| [gencache_and_varnish.md](./gencache_and_varnish.md)     | `cache.py`'s `GenCache`, `redis_sentinel.py`, `varnish/*`                                                 | Cross-process cache freshness, Varnish cache invalidation on data changes                                     |
 
 ## File Layout
 

@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
-import Sefaria from "../sefaria/sefaria";
-import { fetchUserSubscriptions, getNewsletterLists } from "./newsletterApi";
+import { useState, useEffect, useRef } from 'react';
+import Sefaria from '../sefaria/sefaria';
+import { fetchUserSubscriptions, getNewsletterLists } from './newsletterApi';
 
 function detectAuthState(sefaria) {
   const isLoggedIn = !!sefaria._uid;
@@ -65,7 +65,7 @@ export function useNewsletterFormInit() {
           }
         })
         .catch((error) => {
-          console.error("Failed to fetch newsletter lists:", error);
+          console.error('Failed to fetch newsletter lists:', error);
           if (!isMounted) return;
           setServiceUnavailable(true);
         }),
@@ -92,11 +92,11 @@ export function useNewsletterFormInit() {
             setInitialSubscriptionData(data);
           })
           .catch((error) => {
-            console.error("Failed to fetch user subscriptions:", error);
+            console.error('Failed to fetch user subscriptions:', error);
             if (!isMounted) return;
             // Same reason as above: no real subscriptions means no safe form.
             setServiceUnavailable(true);
-          }),
+          })
       );
     }
 

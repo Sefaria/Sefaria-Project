@@ -20,6 +20,7 @@ after deploying the branch the pods are replaced, so pick a fresh pod then. `loc
 
     python scripts/replay_latency.py compare --baseline baseline-1 baseline-2 --candidate branch-1 branch-2
 """
+
 import argparse
 import asyncio
 import json
@@ -45,7 +46,9 @@ def route_key(url):
     if not segments:
         return "page:home"
     if segments[0] == "api":
-        if len(segments) > 2 and (segments[1] in {"v2", "v3"} or (segments[1] == "texts" and segments[2] == "versions")):
+        if len(segments) > 2 and (
+            segments[1] in {"v2", "v3"} or (segments[1] == "texts" and segments[2] == "versions")
+        ):
             return "/".join(["api"] + segments[1:3])
         return "/".join(["api"] + segments[1:2])
     return f"page:{segments[0]}" if segments[0] in PAGE_PREFIXES else "page:ref"
@@ -103,7 +106,7 @@ async def replay_pass(urls, base_url, concurrency, host_header, timeout_s):
                 async with session.get(base_url + url, allow_redirects=False) as resp:
                     await resp.read()
                     status = resp.status
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 status = "timeout"
             except aiohttp.ClientError as e:
                 status = f"error:{type(e).__name__}"
@@ -173,7 +176,8 @@ def cmd_run(args):
         "throughput_rps": len(results) / wall,
         "summary": summary,
         "failures": sorted(
-            ((u, st, round(secs, 3)) for u, st, secs in results if not str(st).startswith(("2", "3"))), key=lambda r: -r[2]
+            ((u, st, round(secs, 3)) for u, st, secs in results if not str(st).startswith(("2", "3"))),
+            key=lambda r: -r[2],
         )[:50],
         "slowest": sorted(((u, st, round(secs, 3)) for u, st, secs in results), key=lambda r: -r[2])[:20],
     }
@@ -189,7 +193,9 @@ def print_run(run):
     print(f"{'route':32} {'n':>6} {'p50':>8} {'p95':>8} {'p99':>8}  non-200")
     for key, s in sorted(run["summary"].items(), key=lambda kv: -kv[1]["count"]):
         non_200 = {k: v for k, v in s["statuses"].items() if k != "200"}
-        print(f"{key:32} {s['count']:>6} {s['p50']*1000:>7.0f}ms {s['p95']*1000:>7.0f}ms {s['p99']*1000:>7.0f}ms  {non_200 or ''}")
+        print(
+            f"{key:32} {s['count']:>6} {s['p50'] * 1000:>7.0f}ms {s['p95'] * 1000:>7.0f}ms {s['p99'] * 1000:>7.0f}ms  {non_200 or ''}"
+        )
 
 
 def load_run(label):
@@ -220,8 +226,12 @@ def cmd_compare(args):
         sys.exit("need at least 2 baseline runs to measure the noise floor")
     base_runs, cand_runs = [load_run(l) for l in args.baseline], [load_run(l) for l in args.candidate]
     print(f"regression = worse than baseline by more than that metric's own baseline spread + {REGRESSION_MARGIN:.0%}")
-    print(f"p50 and throughput decide; p95 decides only where its baseline spread is under {MAX_P95_NOISE:.0%} (else shown as noisy)\n")
-    print(f"{'route':24} {'n':>6} | {'p50 base':>9} {'cand':>7} {'delta':>7} {'noise':>6} | {'p95 base':>9} {'cand':>7} {'delta':>7} {'noise':>6}  verdict")
+    print(
+        f"p50 and throughput decide; p95 decides only where its baseline spread is under {MAX_P95_NOISE:.0%} (else shown as noisy)\n"
+    )
+    print(
+        f"{'route':24} {'n':>6} | {'p50 base':>9} {'cand':>7} {'delta':>7} {'noise':>6} | {'p95 base':>9} {'cand':>7} {'delta':>7} {'noise':>6}  verdict"
+    )
     counts = base_runs[0]["summary"]
     failed = []
     for key in sorted(counts, key=lambda k: -counts[k]["count"]):
@@ -239,13 +249,19 @@ def cmd_compare(args):
             if n95 > MAX_P95_NOISE:
                 notes.append("p95 noisy")
             if bad50 or bad95:
-                failed.append(f"{key} ({'p50' if bad50 else ''}{'+' if bad50 and bad95 else ''}{'p95' if bad95 else ''})")
+                failed.append(
+                    f"{key} ({'p50' if bad50 else ''}{'+' if bad50 and bad95 else ''}{'p95' if bad95 else ''})"
+                )
             verdict = ("REGRESSION" if (bad50 or bad95) else "ok") + (f" [{', '.join(notes)}]" if notes else "")
-        print(f"{key:24} {count:>6} | {b50*1000:>7.0f}ms {c50*1000:>5.0f}ms {d50:>+7.1%} {n50:>6.1%} | {b95*1000:>7.0f}ms {c95*1000:>5.0f}ms {d95:>+7.1%} {n95:>6.1%}  {verdict}")
+        print(
+            f"{key:24} {count:>6} | {b50 * 1000:>7.0f}ms {c50 * 1000:>5.0f}ms {d50:>+7.1%} {n50:>6.1%} | {b95 * 1000:>7.0f}ms {c95 * 1000:>5.0f}ms {d95:>+7.1%} {n95:>6.1%}  {verdict}"
+        )
 
     bt, ct, dt, nt = judge(base_runs, cand_runs, lambda r: r["throughput_rps"], higher_is_worse=False)
     thr_bad = dt > nt + REGRESSION_MARGIN
-    print(f"\nthroughput: {bt:.1f} -> {ct:.1f} req/s ({-dt:+.1%}, baseline spread {nt:.1%})  {'REGRESSION' if thr_bad else 'ok'}")
+    print(
+        f"\nthroughput: {bt:.1f} -> {ct:.1f} req/s ({-dt:+.1%}, baseline spread {nt:.1%})  {'REGRESSION' if thr_bad else 'ok'}"
+    )
     if thr_bad:
         failed.append("throughput")
 
@@ -270,7 +286,11 @@ def main():
 
     run = sub.add_parser("run", help="warm up, then replay and record latency")
     run.add_argument("--label", required=True, help="result name, e.g. baseline-1 or branch-1")
-    run.add_argument("--base-url", default="http://localhost:8000", help="port-forwarded preprod web pod (kubectl port-forward pod/<pod> 8000:80)")
+    run.add_argument(
+        "--base-url",
+        default="http://localhost:8000",
+        help="port-forwarded preprod web pod (kubectl port-forward pod/<pod> 8000:80)",
+    )
     run.add_argument("--host-header", help="Host header to send (not needed: preprod pods accept localhost)")
     run.add_argument("--concurrency", type=int, default=20)
     run.add_argument("--timeout", type=float, default=60)

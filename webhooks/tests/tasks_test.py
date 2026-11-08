@@ -7,7 +7,7 @@ mocked at the one write boundary: sefaria.donors.donor_recording.apply_update_to
 """
 
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from unittest.mock import MagicMock
 
 import pytest
@@ -27,7 +27,7 @@ from webhooks import tasks
 from webhooks.event_serialization import serialize_event
 from webhooks.tasks import MAX_RETRIES, process_event_indicating_person_is_donor_task
 
-OCCURRED_AT = datetime(2026, 10, 22, 14, 3, 11, tzinfo=timezone.utc)
+OCCURRED_AT = datetime(2026, 10, 22, 14, 3, 11, tzinfo=UTC)
 CLASSY_EVENT_WITHOUT_ADDRESS = DonationReceivedFromClassy(
     "msg_1", OCCURRED_AT, PersonAsIdentifiedByClassy(5827, None), 99
 )
@@ -73,7 +73,6 @@ def lookup_raising(error):
 
 
 class TestProcessEventTask:
-
     def test_writes_the_exact_profile_update(self, monkeypatch, profile_writes):
         """End of the flow: the profile update sent to Mongo is exactly the decided pipeline."""
         monkeypatch.setattr(
@@ -82,9 +81,7 @@ class TestProcessEventTask:
             lambda supporter_id: NormalizedEmailAddress("donor@example.org"),
         )
 
-        process_event_indicating_person_is_donor_task.apply(
-            args=[serialize_event(CLASSY_EVENT_WITHOUT_ADDRESS)]
-        )
+        process_event_indicating_person_is_donor_task.apply(args=[serialize_event(CLASSY_EVENT_WITHOUT_ADDRESS)])
 
         assert profile_writes == [
             (
@@ -93,9 +90,7 @@ class TestProcessEventTask:
                     {
                         "$set": {
                             "donor_status": "donor",
-                            "became_donor_at": {
-                                "$min": ["$became_donor_at", OCCURRED_AT]
-                            },
+                            "became_donor_at": {"$min": ["$became_donor_at", OCCURRED_AT]},
                         }
                     }
                 ],
@@ -113,9 +108,7 @@ class TestProcessEventTask:
             tasks.DatabaseInterfaceError("postgres connection already closed"),
         ],
     )
-    def test_transient_errors_are_retried(
-        self, monkeypatch, profile_writes, transient_error
-    ):
+    def test_transient_errors_are_retried(self, monkeypatch, profile_writes, transient_error):
         """Timeouts, temporary Classy failures, and Mongo or Postgres connection loss schedule a retry with backoff."""
         monkeypatch.setattr(
             tasks,
@@ -130,14 +123,10 @@ class TestProcessEventTask:
         )
 
         with running_as_retry_number(0), pytest.raises(Retry):
-            process_event_indicating_person_is_donor_task.run(
-                serialize_event(CLASSY_EVENT_WITHOUT_ADDRESS)
-            )
+            process_event_indicating_person_is_donor_task.run(serialize_event(CLASSY_EVENT_WITHOUT_ADDRESS))
         assert scheduled == [tasks.retry_countdown_seconds(0)]
 
-    def test_gives_up_after_the_last_retry_by_raising(
-        self, monkeypatch, profile_writes
-    ):
+    def test_gives_up_after_the_last_retry_by_raising(self, monkeypatch, profile_writes):
         """After MAX_RETRIES the original error propagates, so Celery marks the task failed."""
         monkeypatch.setattr(
             tasks,
@@ -145,9 +134,7 @@ class TestProcessEventTask:
             lookup_raising(requests.Timeout("still slow")),
         )
         with running_as_retry_number(MAX_RETRIES), pytest.raises(requests.Timeout):
-            process_event_indicating_person_is_donor_task.run(
-                serialize_event(CLASSY_EVENT_WITHOUT_ADDRESS)
-            )
+            process_event_indicating_person_is_donor_task.run(serialize_event(CLASSY_EVENT_WITHOUT_ADDRESS))
 
     def test_a_non_transient_error_is_never_retried(self, monkeypatch, profile_writes):
         """Bad credentials (HTTPError) cannot be fixed by waiting, so the task fails at once."""
@@ -157,19 +144,13 @@ class TestProcessEventTask:
             lookup_raising(requests.HTTPError("401")),
         )
         retry = MagicMock()
-        monkeypatch.setattr(
-            process_event_indicating_person_is_donor_task, "retry", retry
-        )
+        monkeypatch.setattr(process_event_indicating_person_is_donor_task, "retry", retry)
 
         with running_as_retry_number(0), pytest.raises(requests.HTTPError):
-            process_event_indicating_person_is_donor_task.run(
-                serialize_event(CLASSY_EVENT_WITHOUT_ADDRESS)
-            )
+            process_event_indicating_person_is_donor_task.run(serialize_event(CLASSY_EVENT_WITHOUT_ADDRESS))
         retry.assert_not_called()
 
-    def test_called_directly_propagates_the_error_without_scheduling_a_retry(
-        self, monkeypatch, profile_writes
-    ):
+    def test_called_directly_propagates_the_error_without_scheduling_a_retry(self, monkeypatch, profile_writes):
         """Inline mode (no worker): nothing could run a retry, so the original error surfaces for a 500."""
         monkeypatch.setattr(
             tasks,
@@ -177,23 +158,15 @@ class TestProcessEventTask:
             lookup_raising(requests.Timeout("slow")),
         )
         with capture_logs() as logs, pytest.raises(requests.Timeout):
-            process_event_indicating_person_is_donor_task(
-                serialize_event(CLASSY_EVENT_WITHOUT_ADDRESS)
-            )
-        assert "donor_event_processing_retrying" not in [
-            entry["event"] for entry in logs
-        ]
+            process_event_indicating_person_is_donor_task(serialize_event(CLASSY_EVENT_WITHOUT_ADDRESS))
+        assert "donor_event_processing_retrying" not in [entry["event"] for entry in logs]
 
-    def test_unresolvable_addresses_finish_without_retrying(
-        self, monkeypatch, profile_writes
-    ):
+    def test_unresolvable_addresses_finish_without_retrying(self, monkeypatch, profile_writes):
         """Retrying can't change 'not found', so the task finishes cleanly and writes nothing."""
         monkeypatch.setattr(
             tasks,
             "look_up_classy_supporter_email_address",
-            lambda supporter_id: DonorEmailAddressCouldNotBeResolved(
-                Reason.CLASSY_SUPPORTER_NOT_FOUND
-            ),
+            lambda supporter_id: DonorEmailAddressCouldNotBeResolved(Reason.CLASSY_SUPPORTER_NOT_FOUND),
         )
         result = process_event_indicating_person_is_donor_task.apply(
             args=[serialize_event(CLASSY_EVENT_WITHOUT_ADDRESS)]
@@ -217,13 +190,8 @@ class TestProcessEventTask:
         reject_on_worker_lost puts the message back on the queue when the process running the
         task dies, instead of acknowledging it and losing the donation (see tasks.py).
         """
-        assert (
-            process_event_indicating_person_is_donor_task.name
-            == "webhooks.process_event_indicating_person_is_donor"
-        )
+        assert process_event_indicating_person_is_donor_task.name == "webhooks.process_event_indicating_person_is_donor"
         assert process_event_indicating_person_is_donor_task.ignore_result is True
         assert process_event_indicating_person_is_donor_task.max_retries == MAX_RETRIES
         assert process_event_indicating_person_is_donor_task.acks_late is True
-        assert (
-            process_event_indicating_person_is_donor_task.reject_on_worker_lost is True
-        )
+        assert process_event_indicating_person_is_donor_task.reject_on_worker_lost is True

@@ -15,7 +15,6 @@ two existing test files.
 import json
 
 import pytest
-
 import reconcile_deploy_ready as rdr
 
 STANDARD_WORKFLOW_ID = 500000005
@@ -30,8 +29,9 @@ OTHER_WORKFLOW_ID = 500000061
 OTHER_WORKFLOW_STATE_ID = 500000900
 
 
-def _pr(number, merged=True, repository_id=SEFARIA_REPO_ID, target_branch_name="master",
-        branch_name="feature/some-branch"):
+def _pr(
+    number, merged=True, repository_id=SEFARIA_REPO_ID, target_branch_name="master", branch_name="feature/some-branch"
+):
     return {
         "number": number,
         "merged": merged,
@@ -41,8 +41,17 @@ def _pr(number, merged=True, repository_id=SEFARIA_REPO_ID, target_branch_name="
     }
 
 
-def _story(story_id, name="Story", workflow_id=STANDARD_WORKFLOW_ID, workflow_state_id=DEPLOY_READY_STATE_ID,
-           pull_requests=None, branches=None, description=None, comments=None, story_type="feature"):
+def _story(
+    story_id,
+    name="Story",
+    workflow_id=STANDARD_WORKFLOW_ID,
+    workflow_state_id=DEPLOY_READY_STATE_ID,
+    pull_requests=None,
+    branches=None,
+    description=None,
+    comments=None,
+    story_type="feature",
+):
     return {
         "id": story_id,
         "name": name,
@@ -58,6 +67,7 @@ def _story(story_id, name="Story", workflow_id=STANDARD_WORKFLOW_ID, workflow_st
 
 
 # --- gather_linked_prs: dedup across pull_requests and branches[].pull_requests --
+
 
 def test_gather_linked_prs_dedups_across_both_sources():
     """Shortcut duplicates the same PR object in story.pull_requests AND
@@ -86,6 +96,7 @@ def test_gather_linked_prs_ignores_prs_with_no_number():
 
 
 # --- qualifying_prs: the four PR-level guards (shortcut_pr_guards.py) ----
+
 
 def test_qualifying_prs_wrong_repo_guard():
     """Guard: a PR linked from a DIFFERENT repo must never count as
@@ -155,12 +166,14 @@ def test_qualifying_prs_custom_repo_and_target_branch_args():
 
 # --- classify_stories: guard #4 (workflow/state) + guard-filtered triage --
 
+
 def test_classify_stories_non_standard_workflow_routes_to_triage_not_transition():
     """Guard #4: a story on a non-Standard workflow must be routed to
     triage with its actual workflow/state ids reported -- never treated as
     a shipping candidate, since 500000045/500000010 mean nothing there."""
-    story = _story(11111, workflow_id=OTHER_WORKFLOW_ID, workflow_state_id=OTHER_WORKFLOW_STATE_ID,
-                   pull_requests=[_pr(1)])
+    story = _story(
+        11111, workflow_id=OTHER_WORKFLOW_ID, workflow_state_id=OTHER_WORKFLOW_STATE_ID, pull_requests=[_pr(1)]
+    )
     triage, candidates = rdr.classify_stories([story], SEFARIA_REPO_ID, "master")
     assert candidates == []
     assert len(triage) == 1
@@ -174,8 +187,7 @@ def test_classify_stories_unexpected_state_within_standard_workflow_routes_to_tr
     """Guard #4 also keys on the NUMERIC state id, not just the workflow --
     a story on the Standard workflow but at some other state id must not
     be treated as Deploy Ready just because it matched the search by name."""
-    story = _story(11111, workflow_id=STANDARD_WORKFLOW_ID, workflow_state_id=500000099,
-                   pull_requests=[_pr(1)])
+    story = _story(11111, workflow_id=STANDARD_WORKFLOW_ID, workflow_state_id=500000099, pull_requests=[_pr(1)])
     triage, candidates = rdr.classify_stories([story], SEFARIA_REPO_ID, "master")
     assert candidates == []
     assert triage[0]["reason"] == "non_standard_workflow_or_state"
@@ -191,6 +203,7 @@ def test_classify_stories_no_qualifying_pr_routes_to_triage():
 
 # --- triage enrichment: description/comments/per-PR guard diagnostics ---
 # --- (raw material for the opt-in triage-explainer step) -----------------
+
 
 def test_diagnose_linked_pr_reports_every_failed_guard():
     pr = {"number": 1, "merged": False, "repository_id": 999, "target_branch_name": "preprod"}
@@ -222,7 +235,8 @@ def test_diagnose_linked_pr_reports_promotion_head_branch_guard():
 
 def test_triage_context_extracts_description_and_comment_text():
     story = _story(
-        11111, description="Some story description",
+        11111,
+        description="Some story description",
         comments=[{"text": "first comment"}, {"text": "second comment"}, {"author_id": "x"}],
     )
     ctx = rdr._triage_context(story)
@@ -259,8 +273,11 @@ def test_classify_stories_no_qualifying_pr_entry_carries_full_context(monkeypatc
 
 def test_classify_stories_non_standard_workflow_entry_also_carries_context():
     story = _story(
-        11111, workflow_id=500000061, workflow_state_id=500000900,
-        description="Lives on a different workflow", comments=[{"text": "not ours"}],
+        11111,
+        workflow_id=500000061,
+        workflow_state_id=500000900,
+        description="Lives on a different workflow",
+        comments=[{"text": "not ours"}],
     )
     triage, _ = rdr.classify_stories([story], SEFARIA_REPO_ID, "master")
     entry = triage[0]
@@ -303,6 +320,7 @@ def test_classify_stories_qualifying_story_becomes_a_candidate():
 
 # --- classify_candidates: ancestor true vs false, unresolved oid ---------
 
+
 def test_classify_candidates_ancestor_true_is_shipped(monkeypatch):
     monkeypatch.setattr(rdr, "is_ancestor_of_prod", lambda oid, tag: True)
     monkeypatch.setattr(rdr, "resolve_shipping_release_tag", lambda oid: None)
@@ -331,6 +349,7 @@ def test_classify_candidates_unresolved_oid_never_counts_as_shipped(monkeypatch)
     """A PR whose merge oid never resolved (gh lookup failed) must push a
     story toward pending, never toward shipped -- a resolution failure must
     never cause a wrong transition."""
+
     def _boom(oid, tag):
         raise AssertionError("is_ancestor_of_prod must not be called for an unresolved oid")
 
@@ -371,6 +390,7 @@ def test_classify_candidates_any_qualifying_pr_in_prod_is_enough(monkeypatch):
 # --- classify_candidates: shipping_release_tag / hydrated_story ----------
 # --- (the "backfilled story that shipped in THIS release" fix) -----------
 
+
 def test_classify_candidates_shipping_release_tag_equal_to_current_attaches_hydrated_story(monkeypatch):
     """When the derived TRUE shipping release equals the CURRENT prod tag,
     the entry gets a hydrated_story sub-object -- the ONLY signal
@@ -387,7 +407,7 @@ def test_classify_candidates_shipping_release_tag_equal_to_current_attaches_hydr
         "id": 11111,
         "name": "Some Story",
         "description": "A description",
-        "url": f"https://app.shortcut.com/org/story/11111",
+        "url": "https://app.shortcut.com/org/story/11111",
         "workflow_id": STANDARD_WORKFLOW_ID,
         "workflow_state_id": DEPLOY_READY_STATE_ID,
         "story_type": "feature",
@@ -442,12 +462,19 @@ def test_story_for_release_notes_matches_shipped_stories_hydrated_shape():
     story = _story(11111, name="A Story", description="Desc", story_type="bug")
     hydrated = rdr._story_for_release_notes(story)
     assert set(hydrated.keys()) == {
-        "id", "name", "description", "url", "workflow_id", "workflow_state_id", "story_type",
+        "id",
+        "name",
+        "description",
+        "url",
+        "workflow_id",
+        "workflow_state_id",
+        "story_type",
     }
     assert hydrated["url"] == story["app_url"]
 
 
 # --- is_ancestor_of_prod: exit-code interpretation -----------------------
+
 
 def test_is_ancestor_of_prod_true_on_exit_code_0(monkeypatch):
     class _Proc:
@@ -478,6 +505,7 @@ def test_is_ancestor_of_prod_none_on_other_exit_code(monkeypatch, capsys):
 
 
 # --- search_deploy_ready_stories: pagination ------------------------------
+
 
 class _FakeSearchResponse:
     def __init__(self, payload):
@@ -525,6 +553,7 @@ def test_search_deploy_ready_stories_single_page_stops_when_next_is_none(monkeyp
 
 # --- fetch_merge_oids: gh missing must not surface as a raw traceback ----
 
+
 def test_fetch_merge_oids_dies_clearly_when_gh_is_missing(monkeypatch):
     def _raise_missing_gh(*args, **kwargs):
         raise FileNotFoundError("[Errno 2] No such file or directory: 'gh'")
@@ -556,8 +585,17 @@ def test_fetch_pr_merge_oid_failed_gh_call_returns_none(monkeypatch, capsys):
 
 # --- End-to-end main(): dry-run is the default and mutates nothing -------
 
-def _make_main_env(monkeypatch, tmp_path, stories, prod_tag="prod/1.0", oid_by_pr=None,
-                    ancestor_result=True, argv_extra=None, shipping_tag=None):
+
+def _make_main_env(
+    monkeypatch,
+    tmp_path,
+    stories,
+    prod_tag="prod/1.0",
+    oid_by_pr=None,
+    ancestor_result=True,
+    argv_extra=None,
+    shipping_tag=None,
+):
     """Wire main() end-to-end with every I/O boundary mocked: Shortcut
     search, gh merge-commit lookup, git ancestry, and the git-based
     shipping-release lookup -- mirroring _run_main_with_commits in
@@ -572,7 +610,8 @@ def _make_main_env(monkeypatch, tmp_path, stories, prod_tag="prod/1.0", oid_by_p
     monkeypatch.setattr(rdr, "resolve_default_prod_tag", lambda: prod_tag)
     oid_map = oid_by_pr or {}
     monkeypatch.setattr(
-        rdr, "fetch_merge_oids",
+        rdr,
+        "fetch_merge_oids",
         lambda pr_numbers, repo, max_workers=8: {n: oid_map[n] for n in pr_numbers if n in oid_map},
     )
     monkeypatch.setattr(rdr, "is_ancestor_of_prod", lambda oid, tag: ancestor_result)
@@ -600,7 +639,11 @@ def test_main_dry_run_is_the_default_and_never_calls_transition(monkeypatch, tmp
 def test_main_apply_transitions_shipped_stories(monkeypatch, tmp_path, capsys):
     story = _story(11111, pull_requests=[_pr(3606)])
     _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        monkeypatch,
+        tmp_path,
+        [story],
+        oid_by_pr={3606: "abc"},
+        ancestor_result=True,
         argv_extra=["--apply"],
     )
 
@@ -622,7 +665,11 @@ def test_main_dry_run_flag_overrides_apply(monkeypatch, tmp_path, capsys):
     flag-typo away from firing."""
     story = _story(11111, pull_requests=[_pr(3606)])
     _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        monkeypatch,
+        tmp_path,
+        [story],
+        oid_by_pr={3606: "abc"},
+        ancestor_result=True,
         argv_extra=["--apply", "--dry-run"],
     )
 
@@ -638,8 +685,11 @@ def test_main_writes_out_json_report(monkeypatch, tmp_path):
     story_triage = _story(22222)  # no linked PRs at all
     out_path = tmp_path / "report.json"
     _make_main_env(
-        monkeypatch, tmp_path, [story_shipped, story_triage],
-        oid_by_pr={3606: "abc"}, ancestor_result=True,
+        monkeypatch,
+        tmp_path,
+        [story_shipped, story_triage],
+        oid_by_pr={3606: "abc"},
+        ancestor_result=True,
         argv_extra=["--out", str(out_path)],
     )
     rdr.main()
@@ -655,7 +705,11 @@ def test_main_pending_bucket_when_qualifying_pr_not_yet_in_prod(monkeypatch, tmp
     story = _story(11111, pull_requests=[_pr(3670)])
     out_path = tmp_path / "report.json"
     _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3670: "def"}, ancestor_result=False,
+        monkeypatch,
+        tmp_path,
+        [story],
+        oid_by_pr={3670: "def"},
+        ancestor_result=False,
         argv_extra=["--out", str(out_path)],
     )
     rdr.main()
@@ -682,10 +736,16 @@ def test_main_failed_transition_exits_non_zero_and_is_reported(monkeypatch, tmp_
     successful."""
     story = _story(11111, pull_requests=[_pr(3606)])
     _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        monkeypatch,
+        tmp_path,
+        [story],
+        oid_by_pr={3606: "abc"},
+        ancestor_result=True,
         argv_extra=["--apply"],
     )
-    monkeypatch.setattr(rdr, "transition_story", lambda sid, done, token: (sid, False, "HTTP 500 Internal Server Error"))
+    monkeypatch.setattr(
+        rdr, "transition_story", lambda sid, done, token: (sid, False, "HTTP 500 Internal Server Error")
+    )
 
     with pytest.raises(SystemExit) as exc_info:
         rdr.main()
@@ -758,9 +818,11 @@ def test_workflow_passes_prod_tag_to_reconcile_step():
 
 # --- resolve_default_prod_tag: newest by creation date -------------------
 
+
 def test_resolve_default_prod_tag_picks_newest(monkeypatch):
     monkeypatch.setattr(
-        rdr, "run_git",
+        rdr,
+        "run_git",
         lambda args: "prod/2.0+chart.1\nprod/1.0+chart.1\n",
     )
     assert rdr.resolve_default_prod_tag() == "prod/2.0+chart.1"
@@ -775,10 +837,12 @@ def test_resolve_default_prod_tag_dies_with_no_tags(monkeypatch):
 # --- resolve_shipping_release_tag: the TRUE (earliest) release, not the --
 # --- current --prod-tag -- see the module docstring for why this matters --
 
+
 def test_resolve_shipping_release_tag_picks_earliest_containing_tag(monkeypatch):
     """--sort=creatordate (ascending) here is the OPPOSITE of
     resolve_default_prod_tag's -creatordate -- this wants the FIRST release
     that ever contained the commit, not the newest tag overall."""
+
     class _Proc:
         returncode = 0
         stdout = "prod/6.100.0-prod.1+chart.0.85.8-prod.1\nprod/6.111.0-prod.2+chart.0.87.5-prod.1\n"
@@ -819,8 +883,8 @@ def test_resolve_shipping_release_tag_returns_none_and_warns_on_git_failure(monk
     assert "WARNING" in capsys.readouterr().err
 
 
-
 # --- main(): shipping_release_tag / hydrated_story end-to-end ------------
+
 
 def test_main_report_attaches_hydrated_story_when_shipping_release_matches_current(monkeypatch, tmp_path):
     """End-to-end: a shipped story whose derived release equals the
@@ -830,8 +894,13 @@ def test_main_report_attaches_hydrated_story_when_shipping_release_matches_curre
     story = _story(11111, name="Some Story", pull_requests=[_pr(3606)], description="A description")
     out_path = tmp_path / "report.json"
     _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        prod_tag="prod/1.0", shipping_tag="prod/1.0",
+        monkeypatch,
+        tmp_path,
+        [story],
+        oid_by_pr={3606: "abc"},
+        ancestor_result=True,
+        prod_tag="prod/1.0",
+        shipping_tag="prod/1.0",
         argv_extra=["--out", str(out_path)],
     )
     rdr.main()
@@ -846,8 +915,13 @@ def test_main_report_excludes_hydrated_story_for_an_earlier_release(monkeypatch,
     story = _story(11111, pull_requests=[_pr(3606)])
     out_path = tmp_path / "report.json"
     _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        prod_tag="prod/9.9.9-prod.1+chart.9.9.9-prod.1", shipping_tag="prod/6.100.0-prod.1+chart.0.85.8-prod.1",
+        monkeypatch,
+        tmp_path,
+        [story],
+        oid_by_pr={3606: "abc"},
+        ancestor_result=True,
+        prod_tag="prod/9.9.9-prod.1+chart.9.9.9-prod.1",
+        shipping_tag="prod/6.100.0-prod.1+chart.0.85.8-prod.1",
         argv_extra=["--out", str(out_path)],
     )
     rdr.main()
@@ -861,8 +935,13 @@ def test_main_report_excludes_hydrated_story_when_release_unresolvable(monkeypat
     story = _story(11111, pull_requests=[_pr(3606)])
     out_path = tmp_path / "report.json"
     _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        prod_tag="prod/9.9.9-prod.1+chart.9.9.9-prod.1", shipping_tag=None,
+        monkeypatch,
+        tmp_path,
+        [story],
+        oid_by_pr={3606: "abc"},
+        ancestor_result=True,
+        prod_tag="prod/9.9.9-prod.1+chart.9.9.9-prod.1",
+        shipping_tag=None,
         argv_extra=["--out", str(out_path)],
     )
     rdr.main()
@@ -879,12 +958,17 @@ def test_main_never_posts_to_shortcut_beyond_the_state_transition(monkeypatch, t
     out to Shortcut."""
     story = _story(11111, pull_requests=[_pr(3606)])
     _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        monkeypatch,
+        tmp_path,
+        [story],
+        oid_by_pr={3606: "abc"},
+        ancestor_result=True,
         argv_extra=["--apply"],
     )
     calls = []
     monkeypatch.setattr(
-        rdr, "transition_story",
+        rdr,
+        "transition_story",
         lambda sid, done, token: (calls.append(sid), sid, True, None)[1:],
     )
     rdr.main()

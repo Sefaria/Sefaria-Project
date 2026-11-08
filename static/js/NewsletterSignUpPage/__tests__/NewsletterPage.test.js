@@ -7,19 +7,19 @@
  * Strategy: mock NewsletterSignUpPageForm and drive onStageChange directly.
  */
 
-import React from "react";
-import ReactDOM from "react-dom";
-import { act } from "react-dom/test-utils";
-import { STAGE } from "../stateSymbols";
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { act } from 'react-dom/test-utils';
+import { STAGE } from '../stateSymbols';
 
 // ============================================================================
 // Mocks — must be declared before the component import
 // ============================================================================
 
-jest.mock("../../sefaria/sefaria", () => {
-  const { translate, keyedString } = require("../testSupport/i18nTestUtils");
+jest.mock('../../sefaria/sefaria', () => {
+  const { translate, keyedString } = require('../testSupport/i18nTestUtils');
   const mockSefaria = {
-    interfaceLang: "english",
+    interfaceLang: 'english',
     // Like the real Sefaria._: resolves keyed strings for the *current* interface language.
     _: (text) => translate(text, mockSefaria.interfaceLang),
     _keyedString: (id, lang) => keyedString(id, lang),
@@ -28,10 +28,10 @@ jest.mock("../../sefaria/sefaria", () => {
   return mockSefaria;
 });
 
-const Sefaria = require("../../sefaria/sefaria");
+const Sefaria = require('../../sefaria/sefaria');
 
-jest.mock("../../Misc", () => {
-  const React = require("react");
+jest.mock('../../Misc', () => {
+  const React = require('react');
 
   const SimpleInterfaceBlock = ({ en, he }) => (
     <>
@@ -43,19 +43,19 @@ jest.mock("../../Misc", () => {
   return {
     SimpleInterfaceBlock,
     InterfaceText: ({ text, children }) => {
-      const { translate } = require("../testSupport/i18nTestUtils");
+      const { translate } = require('../testSupport/i18nTestUtils');
       if (text) {
         return (
           <>
             <span className="int-en">{text.en || text}</span>
-            <span className="int-he">{text.he || ""}</span>
+            <span className="int-he">{text.he || ''}</span>
           </>
         );
       }
       return (
         <>
-          <span className="int-en">{translate(children, "english")}</span>
-          <span className="int-he">{translate(children, "hebrew")}</span>
+          <span className="int-en">{translate(children, 'english')}</span>
+          <span className="int-he">{translate(children, 'hebrew')}</span>
         </>
       );
     },
@@ -73,13 +73,13 @@ jest.mock("../../Misc", () => {
   };
 });
 
-jest.mock("../../NewsletterSignUpForm", () => ({
+jest.mock('../../NewsletterSignUpForm', () => ({
   NewsletterSignUpForm: () => null,
 }));
 
-jest.mock("../../NewsletterSignUpPage/NewsletterSignUpPageForm", () => {
-  const React = require("react");
-  const { STAGE } = require("../stateSymbols");
+jest.mock('../../NewsletterSignUpPage/NewsletterSignUpPageForm', () => {
+  const React = require('react');
+  const { STAGE } = require('../stateSymbols');
 
   return {
     __esModule: true,
@@ -99,7 +99,7 @@ jest.mock("../../NewsletterSignUpPage/NewsletterSignUpPageForm", () => {
 });
 
 // --- Import the component under test AFTER all mocks ---
-const { NewsletterPage } = require("../../StaticPages");
+const { NewsletterPage } = require('../../StaticPages');
 
 // ============================================================================
 // Helpers
@@ -108,9 +108,9 @@ const { NewsletterPage } = require("../../StaticPages");
 let container;
 
 beforeEach(() => {
-  container = document.createElement("div");
+  container = document.createElement('div');
   document.body.appendChild(container);
-  Sefaria.interfaceLang = "english";
+  Sefaria.interfaceLang = 'english';
 });
 
 afterEach(() => {
@@ -127,67 +127,67 @@ const renderPage = () => {
 
 const clickByTestId = (testId) => {
   act(() => {
-    container.querySelector(`[data-testid="${testId}"]`).dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    container.querySelector(`[data-testid="${testId}"]`).dispatchEvent(new MouseEvent('click', { bubbles: true }));
   });
 };
 
 const pageText = () => container.textContent;
 
 const expectSupplementalContentVisible = () => {
-  expect(pageText()).toContain("Weekly Parashah Study Companion");
-  expect(pageText()).toContain("Timeless Topics");
-  expect(pageText()).toContain("What people are saying about our emails...");
+  expect(pageText()).toContain('Weekly Parashah Study Companion');
+  expect(pageText()).toContain('Timeless Topics');
+  expect(pageText()).toContain('What people are saying about our emails...');
 };
 
 const expectSupplementalContentHidden = () => {
-  expect(pageText()).not.toContain("Weekly Parashah Study Companion");
-  expect(pageText()).not.toContain("Timeless Topics");
-  expect(pageText()).not.toContain("What people are saying about our emails...");
+  expect(pageText()).not.toContain('Weekly Parashah Study Companion');
+  expect(pageText()).not.toContain('Timeless Topics');
+  expect(pageText()).not.toContain('What people are saying about our emails...');
 };
 
 const expectHeaderVisible = () => {
-  expect(pageText()).toContain("Stay Connected");
+  expect(pageText()).toContain('Stay Connected');
 };
 
 // ============================================================================
 // Test Suites
 // ============================================================================
 
-describe("NewsletterPage", () => {
-  it("shows supplemental content and header on initial render", () => {
+describe('NewsletterPage', () => {
+  it('shows supplemental content and header on initial render', () => {
     renderPage();
 
     expectSupplementalContentVisible();
     expectHeaderVisible();
   });
 
-  it("hides supplemental content and keeps header visible on confirmation stage", () => {
+  it('hides supplemental content and keeps header visible on confirmation stage', () => {
     renderPage();
 
-    clickByTestId("set-confirmation");
+    clickByTestId('set-confirmation');
 
     expectSupplementalContentHidden();
     expectHeaderVisible();
   });
 
-  it("keeps supplemental content hidden and header visible on success stage", () => {
+  it('keeps supplemental content hidden and header visible on success stage', () => {
     renderPage();
 
-    clickByTestId("set-success");
+    clickByTestId('set-success');
 
     expectSupplementalContentHidden();
     expectHeaderVisible();
   });
 
-  it("does not render email examples in Hebrew but keeps testimonials and header visible", () => {
-    Sefaria.interfaceLang = "hebrew";
+  it('does not render email examples in Hebrew but keeps testimonials and header visible', () => {
+    Sefaria.interfaceLang = 'hebrew';
 
     renderPage();
 
-    expect(pageText()).not.toContain("Learn about our weekly study emails...");
-    expect(pageText()).not.toContain("Weekly Parashah Study Companion");
-    expect(pageText()).not.toContain("Timeless Topics");
-    expect(pageText()).toContain("מה אנשים אומרים על המיילים שלנו...");
+    expect(pageText()).not.toContain('Learn about our weekly study emails...');
+    expect(pageText()).not.toContain('Weekly Parashah Study Companion');
+    expect(pageText()).not.toContain('Timeless Topics');
+    expect(pageText()).toContain('מה אנשים אומרים על המיילים שלנו...');
     expectHeaderVisible();
   });
 });

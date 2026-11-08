@@ -71,9 +71,9 @@ import logging
 from typing import Any
 
 import requests
+from django.conf import settings
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from django.conf import settings
 
 from api.newsletter_service._errors import (
     NewsletterServiceError,
@@ -218,18 +218,12 @@ class ActiveCampaignClient:
             # JSON with a 'message' or 'errors' field. If the body is not JSON
             # (e.g. an HTML error page during an outage), fall back to the raw
             # response text so we still see what AC sent.
-            status_code: int | str = (
-                e.response.status_code if e.response is not None else "unknown"
-            )
+            status_code: int | str = e.response.status_code if e.response is not None else "unknown"
             error_msg: str | list[str] = f"ActiveCampaign API error: {status_code}"
             if e.response is not None and e.response.text:
                 try:
                     error_data: dict[str, Any] = e.response.json()
-                    error_msg = (
-                        error_data.get("message")
-                        or error_data.get("errors")
-                        or error_msg
-                    )
+                    error_msg = error_data.get("message") or error_data.get("errors") or error_msg
                 except json.JSONDecodeError:
                     error_msg = f"{error_msg} - {e.response.text}"
             raise NewsletterServiceError(error_msg)
@@ -238,9 +232,7 @@ class ActiveCampaignClient:
             # Truly unexpected (not a known requests exception). Log with the
             # full stack trace so we can diagnose the surprise after the fact.
             logger.exception(f"Unexpected error calling ActiveCampaign API: {e}")
-            raise NewsletterServiceError(
-                f"Unexpected error communicating with ActiveCampaign: {str(e)}"
-            )
+            raise NewsletterServiceError(f"Unexpected error communicating with ActiveCampaign: {str(e)}")
 
 
 # Module-level singleton instance.
@@ -270,9 +262,7 @@ _client: ActiveCampaignClient | None = (
 )
 
 
-def raise_if_ac_page_is_truncated(
-    response: dict[str, Any], collection_key: str, endpoint: str
-) -> None:
+def raise_if_ac_page_is_truncated(response: dict[str, Any], collection_key: str, endpoint: str) -> None:
     """
     Raise if AC has more items than this one response returned.
 
