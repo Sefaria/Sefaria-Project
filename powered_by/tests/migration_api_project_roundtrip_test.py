@@ -24,7 +24,7 @@ BACKFILL = importlib.import_module("powered_by.migrations.0007_api_project_backf
 class BackfillTakenIdTest(MigrationTestCase):
     def test_a_rerun_with_a_taken_id_inserts_under_another_id(self):
         apps = self.migrate(BEFORE)
-        Project, ApiProject = apps.get_model("powered_by", "Project"), apps.get_model("powered_by", "ApiProject")
+        ApiProject = apps.get_model("powered_by", "ApiProject")
         wanted = self.make_project(apps, "Wants its own id")
         other = self.make_project(apps, "Holds that id")
         # An API project of another profile already holds the id the backfill would give `wanted`.

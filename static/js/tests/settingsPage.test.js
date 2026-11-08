@@ -1,3 +1,4 @@
+/* global __dirname */
 /**
  * SettingsPage: the settings tabs and developer settings.
  *

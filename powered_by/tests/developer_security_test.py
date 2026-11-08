@@ -290,9 +290,11 @@ class SentryKeyValueTest(DeveloperApiTestCase):
         def failing_json_response(data, callback=None, status=200):
             raise RuntimeError("could not serialise the developer state")
 
-        with patch("powered_by.developer_views.jsonResponse", side_effect=failing_json_response):
-            with self.assertRaises(RuntimeError):
-                self.client.get("/api/developer/state")
+        with (
+            patch("powered_by.developer_views.jsonResponse", side_effect=failing_json_response),
+            self.assertRaises(RuntimeError),
+        ):
+            self.client.get("/api/developer/state")
         sentry_sdk.flush()
 
         events = "\n".join(self.transport.payloads)

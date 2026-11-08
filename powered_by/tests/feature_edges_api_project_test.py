@@ -244,9 +244,11 @@ class ApiProjectWriterEdgesTest(DeveloperApiTestCase):
     def test_a_failed_project_create_leaves_neither_profile_nor_api_project(self):
         profiles, api_projects = Project.objects.count(), ApiProject.objects.count()
 
-        with patch.object(ApiProject.objects, "create", side_effect=RuntimeError("boom")):
-            with self.assertRaises(RuntimeError):
-                developer.create_project(self.user, dict(PROJECT))
+        with (
+            patch.object(ApiProject.objects, "create", side_effect=RuntimeError("boom")),
+            self.assertRaises(RuntimeError),
+        ):
+            developer.create_project(self.user, dict(PROJECT))
 
         self.assertEqual(Project.objects.count(), profiles)
         self.assertEqual(ApiProject.objects.count(), api_projects)

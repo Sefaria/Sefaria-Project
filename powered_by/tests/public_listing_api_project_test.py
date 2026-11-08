@@ -12,13 +12,13 @@ from powered_by.tests.admin_test import admin_url, form_data
 
 
 def make_profile(name, source=SubmissionSource.FORMSTACK, **overrides):
-    fields = dict(
-        submission_source=source,
-        project_name=name,
-        project_link="https://example.org",
-        is_published=True,
-        request_not_to_publish=False,
-    )
+    fields = {
+        "submission_source": source,
+        "project_name": name,
+        "project_link": "https://example.org",
+        "is_published": True,
+        "request_not_to_publish": False,
+    }
     fields.update(overrides)
     return Project.objects.create(**fields)
 

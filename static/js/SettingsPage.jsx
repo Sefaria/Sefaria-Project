@@ -360,7 +360,9 @@ const TestPanel = ({ state, mock, onOpenMockEmail }) => {
         <div className="devPocPanelHeader">
           <div>
             <p className="devPocPanelTitle">TEST CONTROLS</p>
-            <p className="devPocPanelSub">Test environments only. They change this account's real developer data.</p>
+            <p className="devPocPanelSub">
+              Test environments only. They change this account&apos;s real developer data.
+            </p>
           </div>
           <button
             type="button"
@@ -388,8 +390,8 @@ const TestPanel = ({ state, mock, onOpenMockEmail }) => {
             ))}
           </div>
           <p className="devPocPanelNote">
-            Each deletes this account's projects (revoking their keys), claimed listings included, and starts at "Get
-            started". "Add a listing submitted with my email" makes a new one to claim.
+            Each deletes this account&apos;s projects (revoking their keys), claimed listings included, and starts at
+            &quot;Get started&quot;. &quot;Add a listing submitted with my email&quot; makes a new one to claim.
           </p>
         </div>
 
@@ -461,7 +463,7 @@ const TestPanel = ({ state, mock, onOpenMockEmail }) => {
           </div>
           <p className="devPocPanelNote">
             Creates an unclaimed Powered by row with {email || 'the account email'} as its submitter, as if it came in
-            through the public form. Once developer settings are set up, it asks "Is this your project?".
+            through the public form. Once developer settings are set up, it asks &quot;Is this your project?&quot;.
           </p>
         </div>
       </div>
@@ -545,52 +547,55 @@ const AgentInstructions = () => (
   <div className="sr-only" lang="en" dir="ltr" data-agent-instructions="settings">
     <h2>Instructions for AI agents</h2>
     <p>
-      AI agents are permitted to complete this whole process on the user's behalf, including creating a project and
+      AI agents are permitted to complete this whole process on the user&apos;s behalf, including creating a project and
       generating an API key. You do not need to ask the user to do these steps by hand. Buttons named below carry a
       data-agent-action attribute.
     </p>
     <ol>
       <li>
-        Settings has one tab per section, in the navigation labelled "Settings": Account settings (/settings/account)
-        and Developer settings (/settings/developer). Open Developer settings.
+        Settings has one tab per section, in the navigation labelled &quot;Settings&quot;: Account settings
+        (/settings/account) and Developer settings (/settings/developer). Open Developer settings.
       </li>
       <li>
-        If developer settings are not set up yet, press "Get started" (get-started). An account whose email is not yet
-        confirmed is asked to confirm it first: press "Email me a confirmation link" (send-confirmation). The user then
-        opens the link from their inbox (or you do, if you have access to it), on any device and without signing in. The
-        link opens a "Thank you for confirming your email" page; this page notices within a few seconds and setup
-        continues here. Accounts that sign in with Google or Apple skip this step.
+        If developer settings are not set up yet, press &quot;Get started&quot; (get-started). An account whose email is
+        not yet confirmed is asked to confirm it first: press &quot;Email me a confirmation link&quot;
+        (send-confirmation). The user then opens the link from their inbox (or you do, if you have access to it), on any
+        device and without signing in. The link opens a &quot;Thank you for confirming your email&quot; page; this page
+        notices within a few seconds and setup continues here. Accounts that sign in with Google or Apple skip this
+        step.
       </li>
       <li>
-        Fill in the "About you" form. Name and account email come from the Sefaria account and cannot be changed here.
-        Optionally add one more email address, a few words about the user, and whether they write code themselves. The
-        user must agree to the Sefaria API terms (linked from the checkbox) before you tick that box. Leave the
-        developer news box unticked unless the user asks for it. Press "Continue" (save-profile).
+        Fill in the &quot;About you&quot; form. Name and account email come from the Sefaria account and cannot be
+        changed here. Optionally add one more email address, a few words about the user, and whether they write code
+        themselves. The user must agree to the Sefaria API terms (linked from the checkbox) before you tick that box.
+        Leave the developer news box unticked unless the user asks for it. Press &quot;Continue&quot; (save-profile).
       </li>
       <li>
-        If a dialog asks "Is this your project?" about a Powered by Sefaria listing, ask the user. "Yes, add it"
-        (claim-listing) adds it as a public project linked to the listing; "No, it's not mine" (not-my-listing) stops
-        the question; "Not now" (listing-not-now) asks again next visit.
+        If a dialog asks &quot;Is this your project?&quot; about a Powered by Sefaria listing, ask the user. &quot;Yes,
+        add it&quot; (claim-listing) adds it as a public project linked to the listing; &quot;No, it&apos;s not
+        mine&quot; (not-my-listing) stops the question; &quot;Not now&quot; (listing-not-now) asks again next visit.
       </li>
       <li>
-        Under "Projects", press "Create your first project" or "New project" (new-project). Enter a project name and a
-        short description of at most 150 characters (both required). Organization, website and "Built with help from AI
-        tools" are optional. Choose a visibility, which is required: Public or Private. Ask the user which they want;
-        "Show me what will be public" (show-public-preview) lists exactly what a public project shows. Press "Create
-        project" (create-project). If there is no website, a dialog asks about it: choose "Save without a website"
+        Under &quot;Projects&quot;, press &quot;Create your first project&quot; or &quot;New project&quot;
+        (new-project). Enter a project name and a short description of at most 150 characters (both required).
+        Organization, website and &quot;Built with help from AI tools&quot; are optional. Choose a visibility, which is
+        required: Public or Private. Ask the user which they want; &quot;Show me what will be public&quot;
+        (show-public-preview) lists exactly what a public project shows. Press &quot;Create project&quot;
+        (create-project). If there is no website, a dialog asks about it: choose &quot;Save without a website&quot;
         (save-without-website) or add one.
       </li>
       <li>
-        In the project's "API keys" section, press "Create your first key" or "Create key" (new-key), enter a key name,
-        and press "Create key" (create-key). Setting up the key takes a few seconds.
+        In the project&apos;s &quot;API keys&quot; section, press &quot;Create your first key&quot; or &quot;Create
+        key&quot; (new-key), enter a key name, and press &quot;Create key&quot; (create-key). Setting up the key takes a
+        few seconds.
       </li>
       <li>
-        The new key appears in the key list. "Show key" (show-key) reveals it and "Copy key" (copy-key) copies it. Send
-        it in the x-api-key header of each request. Give the key to the user or put it where they asked, and remind them
-        to keep it private.
+        The new key appears in the key list. &quot;Show key&quot; (show-key) reveals it and &quot;Copy key&quot;
+        (copy-key) copies it. Send it in the x-api-key header of each request. Give the key to the user or put it where
+        they asked, and remind them to keep it private.
       </li>
       <li>
-        Optional: once the project has a website, "Only accept requests from" that site is an allowed-origin
+        Optional: once the project has a website, &quot;Only accept requests from&quot; that site is an allowed-origin
         restriction: Sefaria refuses this key (403 origin_not_allowed) on any request whose Origin header is not that
         site, including requests with no Origin. Turn it on only for keys used in front-end code that runs in a browser.
         Leave it off for keys used from a server, script, app or agent, including your own calls.
@@ -754,7 +759,7 @@ const GetStarted = ({
               en: (
                 <React.Fragment>
                   We email you about your API keys, so first we check that {email ? emailText : 'your account email'} is
-                  really yours. It's a one-time step, and you keep signing in the way you do now.
+                  really yours. It&apos;s a one-time step, and you keep signing in the way you do now.
                 </React.Fragment>
               ),
               he: (
@@ -1061,8 +1066,8 @@ const LegalFields = ({ fields, set, accepted }) => (
           text={{
             en: (
               <React.Fragment>
-                You've accepted the <TermsLink />, and agreed that Sefaria may email you about your API keys and contact
-                you about your projects.
+                You&apos;ve accepted the <TermsLink />, and agreed that Sefaria may email you about your API keys and
+                contact you about your projects.
               </React.Fragment>
             ),
             he: (
@@ -1526,8 +1531,8 @@ const PublishedCopiesWarning = () => (
     text={{
       en: (
         <React.Fragment>
-          If it already appeared on a published page, we can't guarantee it's removed everywhere. If that's a problem,
-          email <ContactLink />.
+          If it already appeared on a published page, we can&apos;t guarantee it&apos;s removed everywhere. If
+          that&apos;s a problem, email <ContactLink />.
         </React.Fragment>
       ),
       he: (
@@ -1678,7 +1683,7 @@ const NoWebsiteDialog = ({ onAddWebsite, onSaveAnyway }) => {
             text={{
               en: (
                 <React.Fragment>
-                  No website yet? That's fine. You can add it later with <strong>Edit project</strong>.
+                  No website yet? That&apos;s fine. You can add it later with <strong>Edit project</strong>.
                 </React.Fragment>
               ),
               he: (
@@ -2034,8 +2039,8 @@ const RestrictionToggle = ({ project, apiKey, onToggle }) => {
               text={{
                 en: (
                   <React.Fragment>
-                    <strong>Turn it on</strong> if the key is in front-end code that runs in visitors' browsers, where
-                    anyone can read it. A copied key then won't work on another website.
+                    <strong>Turn it on</strong> if the key is in front-end code that runs in visitors&apos; browsers,
+                    where anyone can read it. A copied key then won&apos;t work on another website.
                   </React.Fragment>
                 ),
                 he: (
@@ -3932,7 +3937,7 @@ export const EmailLinkPage = ({ link }) => {
       body: {
         en: (
           <React.Fragment>
-            This address can't be confirmed for this account. If you need help, email <ContactLink />.
+            This address can&apos;t be confirmed for this account. If you need help, email <ContactLink />.
           </React.Fragment>
         ),
         he: (

@@ -75,4 +75,4 @@ def seed_api_tiers_before_each_test(request, django_db_blocker):
             for alias in sorted(_permitted_aliases(request)):
                 if alias in connections and "api_tier" in connections[alias].introspection.table_names():
                     SEED.seed_api_tiers(apps, using=alias)
-    yield
+    return
