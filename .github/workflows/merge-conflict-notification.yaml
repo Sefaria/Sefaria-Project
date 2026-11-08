@@ -55,8 +55,17 @@ jobs:
               await new Promise(r => setTimeout(r, 5000));
             }
             if (pr.head.sha !== headSha) return core.info('Head moved on; a newer run will check it.');
-            if (pr.mergeable === null) return core.info('Mergeability still unknown; giving up quietly.');
-            if (pr.mergeable) return core.info('No merge conflict.');
+            if (pr.mergeable === null) return core.setFailed('GitHub did not compute mergeability within 60s; re-run this job to check again.');
+            const statusContext = 'Continuous / merge conflict';
+            if (pr.mergeable) {
+              // Same SHA can become mergeable when the base changes (e.g. on reopen); clear our earlier red status.
+              const { data: statuses } = await github.rest.repos.listCommitStatusesForRef({ owner, repo, ref: headSha, per_page: 100 });
+              const ours = statuses.find(s => s.context === statusContext); // newest first
+              if (ours && ours.state === 'failure') {
+                await github.rest.repos.createCommitStatus({ owner, repo, sha: headSha, state: 'success', context: statusContext, description: 'Merge conflict resolved.' });
+              }
+              return core.info('No merge conflict.');
+            }
 
             const base = pr.base.ref;
             const shortSha = headSha.slice(0, 7);
@@ -64,7 +73,7 @@ jobs:
             // 1. Red status on the pushed commit.
             await github.rest.repos.createCommitStatus({
               owner, repo, sha: headSha, state: 'failure',
-              context: 'Continuous / merge conflict',
+              context: statusContext,
               description: `Merge conflict with ${base}: Continuous (image build, sandbox, cauldron) was skipped. Merge ${base} to rebuild.`.slice(0, 140),
             });
 
