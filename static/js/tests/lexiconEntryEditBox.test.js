@@ -39,11 +39,15 @@ const errorResponse = (message) => ({ ok: false, json: () => Promise.resolve({ e
 function mount(el) {
   container = document.createElement('div');
   document.body.appendChild(container);
-  act(() => { ReactDOM.render(el, container); });
+  act(() => {
+    ReactDOM.render(el, container);
+  });
 }
 
 function unmount() {
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
 }
@@ -70,7 +74,11 @@ describe('resolveLexiconEntryRef', () => {
   });
 
   test('resolves lexiconName and headword for a real dictionary ref', async () => {
-    Sefaria.ref.mockReturnValue({ categories: ['Reference', 'Dictionary'], indexTitle: 'BDB', sectionRef: 'BDB, שָׁמַר' });
+    Sefaria.ref.mockReturnValue({
+      categories: ['Reference', 'Dictionary'],
+      indexTitle: 'BDB',
+      sectionRef: 'BDB, שָׁמַר',
+    });
     Sefaria.getIndexDetails.mockResolvedValue({ lexiconName: 'BDB Dictionary' });
 
     const identity = await resolveLexiconEntryRef('BDB, שָׁמַר');
@@ -91,7 +99,9 @@ describe('resolveLexiconEntryRef', () => {
     // indexTitle (the bare Index title) -- a plain String.replace would silently leave the
     // whole "Some Bigger Work, Appendix: Glossary, שָׁמַר" text as the "headword" instead.
     Sefaria.ref.mockReturnValue({
-      categories: ['Dictionary'], indexTitle: 'BDB', sectionRef: 'Some Bigger Work, Appendix: Glossary, שָׁמַר',
+      categories: ['Dictionary'],
+      indexTitle: 'BDB',
+      sectionRef: 'Some Bigger Work, Appendix: Glossary, שָׁמַר',
     });
     Sefaria.getIndexDetails.mockResolvedValue({ lexiconName: 'BDB Dictionary' });
     expect(await resolveLexiconEntryRef('some ref')).toBeNull();
@@ -114,25 +124,35 @@ describe('useLexiconEntrySave', () => {
 
   test('setValue updates value locally', () => {
     mount(React.createElement(Harness, { initialValue: 'alpha' }));
-    act(() => { hookApi.setValue('beta'); });
+    act(() => {
+      hookApi.setValue('beta');
+    });
     expect(hookApi.value).toBe('beta');
   });
 
   test('a changed initialValue resets value and clears any message', () => {
     mount(React.createElement(Harness, { initialValue: 'alpha' }));
-    act(() => { hookApi.setValue('typed but not saved'); });
+    act(() => {
+      hookApi.setValue('typed but not saved');
+    });
 
-    act(() => { ReactDOM.render(React.createElement(Harness, { initialValue: 'beta' }), container); });
+    act(() => {
+      ReactDOM.render(React.createElement(Harness, { initialValue: 'beta' }), container);
+    });
 
     expect(hookApi.value).toBe('beta');
     expect(hookApi.message).toBeNull();
   });
 
   let alertSpy;
-  beforeEach(() => { alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {}); });
-  afterEach(() => { alertSpy.mockRestore(); });
+  beforeEach(() => {
+    alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    alertSpy.mockRestore();
+  });
 
-  test('save PATCHes the given url/payload and stores formatMessage\'s result', async () => {
+  test("save PATCHes the given url/payload and stores formatMessage's result", async () => {
     Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({ headword: 'saved-value' }));
     mount(React.createElement(Harness, { initialValue: 'alpha' }));
 
@@ -152,12 +172,14 @@ describe('useLexiconEntrySave', () => {
     Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({ ok: true }));
     mount(React.createElement(Harness, { initialValue: 'alpha' }));
 
-    await act(async () => { await hookApi.save('/api/x', {}); });
+    await act(async () => {
+      await hookApi.save('/api/x', {});
+    });
 
     expect(hookApi.message).toEqual({ en: 'Saved.', he: 'נשמר.' });
   });
 
-  test('a 4xx/409 response alerts the server\'s specific message, leaves message untouched, resets saving, and does not throw', async () => {
+  test("a 4xx/409 response alerts the server's specific message, leaves message untouched, resets saving, and does not throw", async () => {
     Sefaria.apiRequestWithBody.mockResolvedValue(errorResponse('server said no'));
     mount(React.createElement(Harness, { initialValue: 'alpha' }));
 
@@ -210,7 +232,9 @@ describe('LexiconEntryEditBox', () => {
     Sefaria.ref.mockReturnValue({ categories: ['Dictionary'], indexTitle: 'BDB', sectionRef: 'BDB, שָׁמַר' });
     Sefaria.getIndexDetails.mockResolvedValue({ lexiconName: 'BDB Dictionary' });
     await act(async () => {
-      mount(React.createElement(LexiconEntryEditBox, { currentlyVisibleRef: 'BDB, שָׁמַר', children: (id) => id.headword }));
+      mount(
+        React.createElement(LexiconEntryEditBox, { currentlyVisibleRef: 'BDB, שָׁמַר', children: (id) => id.headword })
+      );
     });
     expect(container.textContent).toContain('שָׁמַר');
 
@@ -229,8 +253,12 @@ describe('LexiconEntryEditBox', () => {
     // which request was started first -- this is the exact race the stale-response guard in
     // LexiconEntryEditBox's useEffect protects against.
     let resolveA, resolveB;
-    const pendingA = new Promise((res) => { resolveA = res; });
-    const pendingB = new Promise((res) => { resolveB = res; });
+    const pendingA = new Promise((res) => {
+      resolveA = res;
+    });
+    const pendingB = new Promise((res) => {
+      resolveB = res;
+    });
 
     Sefaria.ref.mockImplementation((ref) => ({
       categories: ['Dictionary'],
@@ -252,11 +280,15 @@ describe('LexiconEntryEditBox', () => {
     expect(container.textContent).toBe('loading');
 
     // ref-b resolves first (it's the current one).
-    await act(async () => { resolveB({ lexiconName: 'Lexicon B' }); });
+    await act(async () => {
+      resolveB({ lexiconName: 'Lexicon B' });
+    });
     expect(container.textContent).toContain('HeadwordB');
 
     // ref-a's stale response finally arrives -- must not overwrite ref-b's already-applied identity.
-    await act(async () => { resolveA({ lexiconName: 'Lexicon A' }); });
+    await act(async () => {
+      resolveA({ lexiconName: 'Lexicon A' });
+    });
     expect(container.textContent).toContain('HeadwordB');
     expect(container.textContent).not.toContain('HeadwordA');
   });

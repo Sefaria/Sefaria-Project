@@ -29,9 +29,7 @@ SIGNATURE_VERSION = "v1"
 TIMESTAMP_TOLERANCE_SECONDS = 5 * 60
 
 
-def svix_signature_for(
-    secret: str, message_id: str, timestamp: int, raw_body: bytes
-) -> str:
+def svix_signature_for(secret: str, message_id: str, timestamp: int, raw_body: bytes) -> str:
     """The "v1,<base64>" signature Svix sends for this delivery. Tests use it to sign requests."""
     # The raw bytes are signed as they arrived, never decoded: decoding would raise on a
     # body that isn't UTF-8, and re-encoding could change bytes that the HMAC covers.
@@ -40,9 +38,7 @@ def svix_signature_for(
     return f"{SIGNATURE_VERSION},{base64.b64encode(digest).decode()}"
 
 
-def is_valid_svix_signature(
-    secret: str, raw_body: bytes, headers: Mapping[str, str], now: float
-) -> bool:
+def is_valid_svix_signature(secret: str, raw_body: bytes, headers: Mapping[str, str], now: float) -> bool:
     """
     True when the headers carry a valid, current signature of raw_body.
 
@@ -75,12 +71,7 @@ def is_valid_svix_signature(
     # Every entry is compared, even after a match, so the response time doesn't reveal which
     # entry matched. compare_digest on the base64 text (not on decoded bytes) means a garbled
     # entry is simply unequal; decoding it first could raise.
-    return any(
-        [
-            hmac.compare_digest(expected, candidate.encode())
-            for candidate in signatures.split(" ")
-        ]
-    )
+    return any([hmac.compare_digest(expected, candidate.encode()) for candidate in signatures.split(" ")])
 
 
 def _hmac_key(secret: str) -> bytes:
@@ -90,12 +81,8 @@ def _hmac_key(secret: str) -> bytes:
     return base64.b64decode(secret.removeprefix(SECRET_PREFIX), validate=True)
 
 
-def _svix_or_standard_header(
-    lowercased_headers: Mapping[str, str], name: str
-) -> str | None:
+def _svix_or_standard_header(lowercased_headers: Mapping[str, str], name: str) -> str | None:
     # Svix sends svix-id / svix-timestamp / svix-signature. The Standard Webhooks spec, which
     # Svix follows, names the same headers webhook-*. Each is looked up separately, preferring
     # svix-*, which is what the svix library does.
-    return lowercased_headers.get(f"svix-{name}") or lowercased_headers.get(
-        f"webhook-{name}"
-    )
+    return lowercased_headers.get(f"svix-{name}") or lowercased_headers.get(f"webhook-{name}")

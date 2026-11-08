@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Search-query auto-correction against a table of frequent corpus phrases.
 
@@ -15,13 +14,15 @@ Lifecycle: a monthly CronJob runs scripts/build_top_n_grams_for_search_autocorre
 saves the table as a datrie file and uploads it to a public GCS object. The name service
 downloads it at startup (`load_top_n_grams`) and serves /api/search-autocorrect from it.
 """
+
 import math
 import re
 import tempfile
 import time
 from collections import Counter
+from collections.abc import Hashable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import Dict, FrozenSet, Hashable, Iterable, List, Mapping, Optional, Sequence, Set, Tuple, Union
+from typing import Dict, FrozenSet, List, Optional, Set, Tuple, Union
 
 import datrie
 import requests
@@ -56,22 +57,23 @@ MAX_QUERY_CHARS = 100
 MAX_QUERY_WORDS = 10
 
 # Strips edge punctuation only, so an abbreviation's internal gershayim (רמב"ם) survives.
-_EDGE_STRIP_RE = re.compile(r'^\W+|\W+$', re.UNICODE)
-_HEBREW_RE = re.compile('[א-ת]')
-_DIGIT_RE = re.compile(r'\d')
+_EDGE_STRIP_RE = re.compile(r"^\W+|\W+$", re.UNICODE)
+_HEBREW_RE = re.compile("[א-ת]")
+_DIGIT_RE = re.compile(r"\d")
 
 
 def _linker_normalize(text: str, lang: str) -> str:
     # Same normalizer as the linker: strips cantillation/maqaf/HTML, unidecodes quote marks.
     from sefaria.model.linker.linker_entity_recognizer import get_linker_normalizer
-    return get_linker_normalizer(lang).normalize(text or '')
+
+    return get_linker_normalizer(lang).normalize(text or "")
 
 
 def normalize_word(word: str) -> str:
-    return _EDGE_STRIP_RE.sub('', word).lower()
+    return _EDGE_STRIP_RE.sub("", word).lower()
 
 
-def tokenize(text: str, lang: str) -> List[str]:
+def tokenize(text: str, lang: str) -> list[str]:
     return [w for w in (normalize_word(tok) for tok in _linker_normalize(text, lang).split()) if w]
 
 
@@ -80,40 +82,46 @@ def normalize_query(query: str) -> str:
     Normalize the query the way the table was built, up front, so the original/corrected pair
     shown in the banner differs only by the correction.
     """
-    lang = 'he' if _HEBREW_RE.search(query or '') else 'en'
+    lang = "he" if _HEBREW_RE.search(query or "") else "en"
     return " ".join(strip_apostrophes(_linker_normalize(query, lang)).split())
 
 
 # --- Build -----------------------------------------------------------------------------
 
-def thresholds_by_length(min_doc_count: Union[int, Sequence[int]]) -> List[int]:
+
+def thresholds_by_length(min_doc_count: Union[int, Sequence[int]]) -> list[int]:
     """One threshold per phrase length; a single value applies to every length."""
     values = [min_doc_count] if isinstance(min_doc_count, int) else list(min_doc_count)
     if len(values) == 1:
         values = values * MAX_PHRASE_WORDS
     if len(values) != MAX_PHRASE_WORDS:
-        raise ValueError(f"min_doc_count needs 1 or {MAX_PHRASE_WORDS} values (one per phrase length), got {len(values)}")
+        raise ValueError(
+            f"min_doc_count needs 1 or {MAX_PHRASE_WORDS} values (one per phrase length), got {len(values)}"
+        )
     return values
 
 
-def _frequent_ngrams(tokens: List[str], n: int, frequent_prev: Dict[str, int],
-                     shard: int = 0, num_shards: int = 1) -> set:
+def _frequent_ngrams(
+    tokens: list[str], n: int, frequent_prev: dict[str, int], shard: int = 0, num_shards: int = 1
+) -> set:
     """
     The distinct n-word runs in `tokens` whose two (n-1)-word sub-runs are both in
     `frequent_prev` -- a phrase can't clear a threshold its sub-phrases don't. With
     `num_shards` > 1, only runs hashing to `shard`.
     """
     phrases = set()
-    for start in range(0, len(tokens) - n + 1):
-        if " ".join(tokens[start:start + n - 1]) in frequent_prev and \
-                " ".join(tokens[start + 1:start + n]) in frequent_prev:
-            phrase = " ".join(tokens[start:start + n])
+    for start in range(len(tokens) - n + 1):
+        if (
+            " ".join(tokens[start : start + n - 1]) in frequent_prev
+            and " ".join(tokens[start + 1 : start + n]) in frequent_prev
+        ):
+            phrase = " ".join(tokens[start : start + n])
             if num_shards == 1 or hash(phrase) % num_shards == shard:
                 phrases.add(phrase)
     return phrases
 
 
-def _spool_tokenized_segments(spool, langs, categories: Optional[List[str]]) -> Counter:
+def _spool_tokenized_segments(spool, langs, categories: list[str] | None) -> Counter:
     """
     Write each tokenized segment to `spool` as one line; return single-word doc counts.
 
@@ -157,8 +165,12 @@ def _spool_tokenized_segments(spool, langs, categories: Optional[List[str]]) -> 
     return unigram_counts
 
 
-def build_top_n_grams(min_doc_count: Union[int, Sequence[int]], langs=('he', 'en'), categories: Optional[List[str]] = None,
-                      num_shards: int = _DEFAULT_NUM_SHARDS) -> Dict[str, int]:
+def build_top_n_grams(
+    min_doc_count: Union[int, Sequence[int]],
+    langs=("he", "en"),
+    categories: list[str] | None = None,
+    num_shards: int = _DEFAULT_NUM_SHARDS,
+) -> dict[str, int]:
     """
     {phrase: number of segments containing it} for every phrase whose count exceeds the
     threshold for its length (see `thresholds_by_length`).
@@ -204,10 +216,10 @@ def build_top_n_grams(min_doc_count: Union[int, Sequence[int]], langs=('he', 'en
 _TRIE_ALPHABET = frozenset(letter_scope)
 
 # Lookups only use `in` and `[]`, so tests can pass plain dicts.
-PhraseTable = Union[Dict[str, Union[int, float]], datrie.BaseTrie]
+PhraseTable = Union[dict[str, Union[int, float]], datrie.BaseTrie]
 
 
-def build_phrase_trie(items: Iterable[Tuple[str, Union[int, float]]], int_values: bool = True) -> datrie.BaseTrie:
+def build_phrase_trie(items: Iterable[tuple[str, Union[int, float]]], int_values: bool = True) -> datrie.BaseTrie:
     """
     Keys go through autospell's `normalize_chars` to fit the trie alphabet. datrie silently
     drops keys outside its alphabet, so those are skipped and counted here instead. Keys that
@@ -230,7 +242,7 @@ def build_phrase_trie(items: Iterable[Tuple[str, Union[int, float]]], int_values
     return trie
 
 
-def save_top_n_grams_trie(top_n_grams: Dict[str, int], path: str) -> int:
+def save_top_n_grams_trie(top_n_grams: dict[str, int], path: str) -> int:
     """Save as a datrie file; returns the phrase count. Sorted inserts build much faster."""
     trie = build_phrase_trie(sorted(top_n_grams.items()))
     trie.save(path)
@@ -244,9 +256,10 @@ def upload_top_n_grams_trie(path: str, num_phrases: int, min_doc_count: Union[in
     (on by default for public objects) serving the previous table for up to an hour.
     """
     from sefaria.google_storage_manager import GoogleStorageManager
+
     blob = GoogleStorageManager.get_bucket(TRIE_BUCKET).blob(TRIE_BLOB)
     blob.metadata = {
-        "generated": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+        "generated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "num-phrases": str(num_phrases),
         "min-doc-count": " ".join(str(v) for v in thresholds_by_length(min_doc_count)),
     }
@@ -256,6 +269,7 @@ def upload_top_n_grams_trie(path: str, num_phrases: int, min_doc_count: Union[in
 
 def _trie_source() -> str:
     from django.conf import settings
+
     return getattr(settings, "TOP_N_GRAMS_TRIE_SOURCE", None) or TRIE_URL
 
 
@@ -289,15 +303,16 @@ def load_top_n_grams() -> datrie.BaseTrie:
             num_phrases = len(trie)  # walks every key (~1s)
         num_phrases = int(num_phrases)
     except Exception as e:
-        logger.error("top_n_grams_for_search_autocorrect_unavailable", source=source,
-                     reason=f"{type(e).__name__}: {e}")
+        logger.error("top_n_grams_for_search_autocorrect_unavailable", source=source, reason=f"{type(e).__name__}: {e}")
         return build_phrase_trie(())
     if num_phrases == 0:
-        logger.error("top_n_grams_for_search_autocorrect_unavailable", source=source, reason="empty table",
-                     generated=generated)
+        logger.error(
+            "top_n_grams_for_search_autocorrect_unavailable", source=source, reason="empty table", generated=generated
+        )
     else:
-        logger.info("top_n_grams_for_search_autocorrect_loaded", source=source, num_phrases=num_phrases,
-                    generated=generated)
+        logger.info(
+            "top_n_grams_for_search_autocorrect_loaded", source=source, num_phrases=num_phrases, generated=generated
+        )
     return trie
 
 
@@ -305,11 +320,12 @@ def load_top_n_grams() -> datrie.BaseTrie:
 
 # Edit alphabet. No space, so a candidate only changes word boundaries by deleting one. No
 # apostrophe, since `normalize_chars` strips it from every key.
-_EDIT_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789\"" + ''.join(chr(c) for c in range(0x05d0, 0x05eb))
+_EDIT_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789"' + "".join(chr(c) for c in range(0x05D0, 0x05EB))
 
 
 class _PhraseSpellChecker(SpellChecker):
     """autospell's edit generator over a mixed Hebrew/Latin alphabet; the table isn't split by language."""
+
     def __init__(self):
         super().__init__("en")
         self.letters = _EDIT_ALPHABET
@@ -323,7 +339,7 @@ def _one_edit_candidates(phrase: str) -> set:
     return _phrase_spell_checker.single_edits(phrase, hold_first_letter=False)
 
 
-def _is_empty(table: Optional[PhraseTable]) -> bool:
+def _is_empty(table: PhraseTable | None) -> bool:
     # Not len()/bool(): datrie stores no size, so those walk every key (~1s on the corpus table).
     if table is None:
         return True
@@ -340,17 +356,17 @@ def tie_break_score(count: float) -> float:
     return math.log10(1 + max(count, 0))
 
 
-def keep_max(scores: Dict[str, float], key: str, score: float) -> None:
+def keep_max(scores: dict[str, float], key: str, score: float) -> None:
     if key not in scores or score > scores[key]:
         scores[key] = score
 
 
-def _by_score(scores: Dict[str, float]) -> List[Tuple[str, float]]:
+def _by_score(scores: dict[str, float]) -> list[tuple[str, float]]:
     """Highest first; ties A-Z so results don't depend on set iteration order."""
     return sorted(scores.items(), key=lambda pair: (-pair[1], pair[0]))
 
 
-def _keeps_numbers(phrase_words: List[str], candidate: str) -> bool:
+def _keeps_numbers(phrase_words: list[str], candidate: str) -> bool:
     """
     A word with a digit is almost always a citation ("berakhot 2a"), where a one-character
     change lands on a different valid page rather than fixing a typo.
@@ -361,14 +377,15 @@ def _keeps_numbers(phrase_words: List[str], candidate: str) -> bool:
     return all(cw == pw for pw, cw in zip(phrase_words, candidate_words) if _DIGIT_RE.search(pw))
 
 
-def _ranked_candidates(phrase: str, top_n_grams: PhraseTable,
-                        entity_alt_index: Optional[PhraseTable] = None) -> List[Tuple[str, float]]:
+def _ranked_candidates(
+    phrase: str, top_n_grams: PhraseTable, entity_alt_index: PhraseTable | None = None
+) -> list[tuple[str, float]]:
     """One-edit candidates found in either source, at the higher of their scores, best first."""
     candidates = _one_edit_candidates(phrase)
     if _DIGIT_RE.search(phrase):
         words = phrase.split()
         candidates = {c for c in candidates if _keeps_numbers(words, c)}
-    scores: Dict[str, float] = {}
+    scores: dict[str, float] = {}
     for c in candidates:
         if c in top_n_grams:
             keep_max(scores, c, tie_break_score(top_n_grams[c]))
@@ -377,7 +394,7 @@ def _ranked_candidates(phrase: str, top_n_grams: PhraseTable,
     return _by_score(scores)
 
 
-def _substitute_window(words: List[str], normalized: List[str], start: int, end: int, candidate: str) -> str:
+def _substitute_window(words: list[str], normalized: list[str], start: int, end: int, candidate: str) -> str:
     """
     The full query with `[start:end)` replaced by `candidate`. Only changed words are swapped,
     so correctly typed words keep their casing; an edit that merged or split words replaces the
@@ -394,8 +411,9 @@ def _substitute_window(words: List[str], normalized: List[str], start: int, end:
     return " ".join(corrected_words)
 
 
-def _one_title_per_entity(ranked: List[Tuple[str, float]],
-                          entity_owners: Optional[Mapping[str, FrozenSet[Hashable]]]) -> List[Tuple[str, float]]:
+def _one_title_per_entity(
+    ranked: list[tuple[str, float]], entity_owners: Mapping[str, frozenset[Hashable]] | None
+) -> list[tuple[str, float]]:
     """
     Drops a candidate whose entities are all already represented by a higher-ranked one: alt
     titles of one entity (Yaakov, Yakov) aren't competing guesses. Candidates that
@@ -403,7 +421,7 @@ def _one_title_per_entity(ranked: List[Tuple[str, float]],
     """
     if not entity_owners:
         return ranked
-    covered: Set[Hashable] = set()
+    covered: set[Hashable] = set()
     kept = []
     for candidate, score in ranked:
         owners = entity_owners.get(candidate)
@@ -417,13 +435,19 @@ def _one_title_per_entity(ranked: List[Tuple[str, float]],
 @dataclass(frozen=True)
 class AmbiguousCandidates:
     """Full queries for each competing candidate, with scores, best first."""
-    scored_queries: List[Tuple[str, float]]
+
+    scored_queries: list[tuple[str, float]]
 
 
-def _try_window(words: List[str], normalized: List[str], start: int, end: int,
-                 top_n_grams: PhraseTable,
-                 entity_alt_index: Optional[PhraseTable] = None,
-                 entity_owners: Optional[Mapping[str, FrozenSet[Hashable]]] = None) -> Union[str, AmbiguousCandidates, None]:
+def _try_window(
+    words: list[str],
+    normalized: list[str],
+    start: int,
+    end: int,
+    top_n_grams: PhraseTable,
+    entity_alt_index: PhraseTable | None = None,
+    entity_owners: Mapping[str, frozenset[Hashable]] | None = None,
+) -> Union[str, AmbiguousCandidates, None]:
     """
     Correct `normalized[start:end]` as one phrase. Returns the full corrected query,
     AmbiguousCandidates if every candidate within AMBIGUITY_LOG_GAP of the best (not just the
@@ -454,23 +478,28 @@ class AutocorrectResult:
     Exactly one of `corrected_query` (search it instead) or `suggested_queries` (search the
     original, offer these best first) is set.
     """
+
     original_query: str
-    corrected_query: Optional[str] = None
-    suggested_queries: Optional[List[str]] = None
+    corrected_query: str | None = None
+    suggested_queries: list[str] | None = None
 
 
-def _to_result(query: str, result: Union[str, AmbiguousCandidates, None]) -> Optional[AutocorrectResult]:
+def _to_result(query: str, result: Union[str, AmbiguousCandidates, None]) -> AutocorrectResult | None:
     if result is None:
         return None
     if isinstance(result, AmbiguousCandidates):
-        return AutocorrectResult(original_query=query,
-                                 suggested_queries=[q for q, _ in result.scored_queries[:MAX_SUGGESTIONS]])
+        return AutocorrectResult(
+            original_query=query, suggested_queries=[q for q, _ in result.scored_queries[:MAX_SUGGESTIONS]]
+        )
     return AutocorrectResult(original_query=query, corrected_query=result)
 
 
-def autocorrect_query(query: str, top_n_grams: PhraseTable,
-                       entity_alt_index: Optional[PhraseTable] = None,
-                       entity_owners: Optional[Mapping[str, FrozenSet[Hashable]]] = None) -> Optional[AutocorrectResult]:
+def autocorrect_query(
+    query: str,
+    top_n_grams: PhraseTable,
+    entity_alt_index: PhraseTable | None = None,
+    entity_owners: Mapping[str, frozenset[Hashable]] | None = None,
+) -> AutocorrectResult | None:
     """
     None means search `query` as typed.
 
@@ -479,7 +508,7 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
       MAX_PHRASE_WORDS), then `_correct_long_query_by_trigrams`.
     - Never corrects queries over MAX_QUERY_CHARS / MAX_QUERY_WORDS, or words with digits.
     """
-    if len(query or '') > MAX_QUERY_CHARS:
+    if len(query or "") > MAX_QUERY_CHARS:
         return None
     query = normalize_query(query)
     if entity_alt_index is not None and _is_empty(entity_alt_index):
@@ -500,14 +529,18 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
         if whole:
             return _to_result(query, whole)
 
-    return _to_result(query, _correct_long_query_by_trigrams(words, normalized, top_n_grams, entity_alt_index,
-                                                             entity_owners))
+    return _to_result(
+        query, _correct_long_query_by_trigrams(words, normalized, top_n_grams, entity_alt_index, entity_owners)
+    )
 
 
-def _correct_long_query_by_trigrams(words: List[str], normalized: List[str], top_n_grams: PhraseTable,
-                                     entity_alt_index: Optional[PhraseTable],
-                                     entity_owners: Optional[Mapping[str, FrozenSet[Hashable]]] = None
-                                     ) -> Union[str, AmbiguousCandidates, None]:
+def _correct_long_query_by_trigrams(
+    words: list[str],
+    normalized: list[str],
+    top_n_grams: PhraseTable,
+    entity_alt_index: PhraseTable | None,
+    entity_owners: Mapping[str, frozenset[Hashable]] | None = None,
+) -> Union[str, AmbiguousCandidates, None]:
     """
     Tries every MAX_PHRASE_WORDS-word window -- never shorter ones, whose one-edit "fixes" too
     often turn a rare real word into a common one -- and allows one edit in the whole query.
@@ -519,7 +552,9 @@ def _correct_long_query_by_trigrams(words: List[str], normalized: List[str], top
     """
     confident, ambiguous = set(), {}
     for start in range(len(normalized) - MAX_PHRASE_WORDS + 1):
-        result = _try_window(words, normalized, start, start + MAX_PHRASE_WORDS, top_n_grams, entity_alt_index, entity_owners)
+        result = _try_window(
+            words, normalized, start, start + MAX_PHRASE_WORDS, top_n_grams, entity_alt_index, entity_owners
+        )
         if isinstance(result, AmbiguousCandidates):
             for q, score in result.scored_queries:
                 keep_max(ambiguous, q, score)

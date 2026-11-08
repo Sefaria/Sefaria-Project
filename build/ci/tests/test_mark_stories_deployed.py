@@ -11,9 +11,8 @@ story ids, and are not covered by that placeholder rule.
 
 import json
 
-import pytest
-
 import mark_stories_deployed as msd
+import pytest
 
 WORKFLOW_ID = 500000005  # "Standard" workflow
 FROM_STATE = 500000045  # "Deploy Ready" (Standard workflow)
@@ -50,9 +49,13 @@ ALL_STORIES = [
 
 # --- classify_stories: pure state-filtering logic -----------------------
 
+
 def test_classify_stories_buckets_by_workflow_state():
     to_transition, already_done, skipped_other_state, skipped_different_workflow = msd.classify_stories(
-        ALL_STORIES, WORKFLOW_ID, FROM_STATE, DONE_STATE,
+        ALL_STORIES,
+        WORKFLOW_ID,
+        FROM_STATE,
+        DONE_STATE,
     )
     assert to_transition == [STORY_DEPLOY_READY_1, STORY_DEPLOY_READY_2]
     assert already_done == [STORY_ALREADY_DONE]
@@ -62,14 +65,20 @@ def test_classify_stories_buckets_by_workflow_state():
 
 def test_classify_stories_empty_input():
     to_transition, already_done, skipped_other_state, skipped_different_workflow = msd.classify_stories(
-        [], WORKFLOW_ID, FROM_STATE, DONE_STATE,
+        [],
+        WORKFLOW_ID,
+        FROM_STATE,
+        DONE_STATE,
     )
     assert to_transition == already_done == skipped_other_state == skipped_different_workflow == []
 
 
 def test_classify_stories_all_already_done():
     to_transition, already_done, skipped_other_state, skipped_different_workflow = msd.classify_stories(
-        [STORY_ALREADY_DONE], WORKFLOW_ID, FROM_STATE, DONE_STATE,
+        [STORY_ALREADY_DONE],
+        WORKFLOW_ID,
+        FROM_STATE,
+        DONE_STATE,
     )
     assert to_transition == []
     assert already_done == [STORY_ALREADY_DONE]
@@ -82,7 +91,10 @@ def test_classify_stories_different_workflow_at_its_own_done_state_is_not_alread
     (500000728), must be reported as skipped_different_workflow -- NOT
     already_done. Our --done-state-id only means "Done" inside --workflow-id."""
     to_transition, already_done, skipped_other_state, skipped_different_workflow = msd.classify_stories(
-        [STORY_DIFFERENT_WORKFLOW], WORKFLOW_ID, FROM_STATE, DONE_STATE,
+        [STORY_DIFFERENT_WORKFLOW],
+        WORKFLOW_ID,
+        FROM_STATE,
+        DONE_STATE,
     )
     assert already_done == []
     assert skipped_other_state == []
@@ -96,13 +108,17 @@ def test_classify_stories_missing_workflow_id_falls_through_to_state_check():
     being flagged as a workflow mismatch on every single run."""
     legacy_story = {"id": 66666, "name": "Legacy", "workflow_state_id": FROM_STATE}
     to_transition, already_done, skipped_other_state, skipped_different_workflow = msd.classify_stories(
-        [legacy_story], WORKFLOW_ID, FROM_STATE, DONE_STATE,
+        [legacy_story],
+        WORKFLOW_ID,
+        FROM_STATE,
+        DONE_STATE,
     )
     assert to_transition == [legacy_story]
     assert skipped_different_workflow == []
 
 
 # --- --dry-run: never touches urllib, mutates nothing -------------------
+
 
 def test_dry_run_never_calls_urlopen(monkeypatch, tmp_path, capsys):
     def _boom(*args, **kwargs):
@@ -116,9 +132,18 @@ def test_dry_run_never_calls_urlopen(monkeypatch, tmp_path, capsys):
 
     monkeypatch.setattr(
         "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path), "--dry-run",
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
+        [
+            "mark_stories_deployed.py",
+            "--input",
+            str(input_path),
+            "--dry-run",
+            "--workflow-id",
+            str(WORKFLOW_ID),
+            "--from-state-id",
+            str(FROM_STATE),
+            "--done-state-id",
+            str(DONE_STATE),
+        ],
     )
     msd.main()
 
@@ -152,6 +177,7 @@ def test_dry_run_does_not_require_token(monkeypatch, tmp_path):
 
 # --- Without --dry-run: missing token is a hard error before any work ---
 
+
 def test_missing_token_without_dry_run_exits_before_any_work(monkeypatch, tmp_path):
     def _boom(*args, **kwargs):
         raise AssertionError("urlopen must never be called when the token check fails")
@@ -168,6 +194,7 @@ def test_missing_token_without_dry_run_exits_before_any_work(monkeypatch, tmp_pa
 
 
 # --- Live run (mocked urllib): transitions only the Deploy Ready bucket -
+
 
 def test_live_run_transitions_only_deploy_ready_stories(monkeypatch, tmp_path):
     monkeypatch.setenv("SHORTCUT_API_TOKEN", "fake-token-for-tests")
@@ -196,9 +223,17 @@ def test_live_run_transitions_only_deploy_ready_stories(monkeypatch, tmp_path):
 
     monkeypatch.setattr(
         "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path),
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
+        [
+            "mark_stories_deployed.py",
+            "--input",
+            str(input_path),
+            "--workflow-id",
+            str(WORKFLOW_ID),
+            "--from-state-id",
+            str(FROM_STATE),
+            "--done-state-id",
+            str(DONE_STATE),
+        ],
     )
     msd.main()
 
@@ -235,9 +270,17 @@ def test_live_run_per_story_failure_does_not_abort_or_fail_process(monkeypatch, 
 
     monkeypatch.setattr(
         "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path),
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
+        [
+            "mark_stories_deployed.py",
+            "--input",
+            str(input_path),
+            "--workflow-id",
+            str(WORKFLOW_ID),
+            "--from-state-id",
+            str(FROM_STATE),
+            "--done-state-id",
+            str(DONE_STATE),
+        ],
     )
     # main() must return normally (no SystemExit) even with a per-story failure.
     msd.main()
@@ -251,6 +294,7 @@ def test_live_run_per_story_failure_does_not_abort_or_fail_process(monkeypatch, 
 
 # --- skipped_detail: human-readable workflow/state context per skip -----
 
+
 def test_skipped_detail_includes_workflow_and_state_context(monkeypatch, tmp_path, capsys):
     monkeypatch.delenv("SHORTCUT_API_TOKEN", raising=False)
 
@@ -259,19 +303,33 @@ def test_skipped_detail_includes_workflow_and_state_context(monkeypatch, tmp_pat
 
     monkeypatch.setattr(
         "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path), "--dry-run",
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
+        [
+            "mark_stories_deployed.py",
+            "--input",
+            str(input_path),
+            "--dry-run",
+            "--workflow-id",
+            str(WORKFLOW_ID),
+            "--from-state-id",
+            str(FROM_STATE),
+            "--done-state-id",
+            str(DONE_STATE),
+        ],
     )
     msd.main()
 
     out = json.loads(capsys.readouterr().out)
     detail_by_id = {d["id"]: d for d in out["skipped_detail"]}
     assert detail_by_id[44444] == {
-        "id": 44444, "workflow_id": WORKFLOW_ID, "workflow_state_id": 500000099, "reason": "other_state",
+        "id": 44444,
+        "workflow_id": WORKFLOW_ID,
+        "workflow_state_id": 500000099,
+        "reason": "other_state",
     }
     assert detail_by_id[55555] == {
-        "id": 55555, "workflow_id": OTHER_WORKFLOW_ID, "workflow_state_id": OTHER_WORKFLOW_DONE_STATE,
+        "id": 55555,
+        "workflow_id": OTHER_WORKFLOW_ID,
+        "workflow_state_id": OTHER_WORKFLOW_DONE_STATE,
         "reason": "different_workflow",
     }
     # already_done stories are not "skipped" in the sense this detail list
@@ -281,21 +339,36 @@ def test_skipped_detail_includes_workflow_and_state_context(monkeypatch, tmp_pat
 
 # --- hydrated / unresolved_story_ids are echoed from the input file -----
 
+
 def test_hydrated_and_unresolved_story_ids_are_echoed_into_summary(monkeypatch, tmp_path, capsys):
     monkeypatch.delenv("SHORTCUT_API_TOKEN", raising=False)
 
     input_path = tmp_path / "shipped-stories.json"
-    input_path.write_text(json.dumps({
-        "stories": [STORY_DEPLOY_READY_1],
-        "hydrated": True,
-        "unresolved_story_ids": ["77777"],
-    }), encoding="utf-8")
+    input_path.write_text(
+        json.dumps(
+            {
+                "stories": [STORY_DEPLOY_READY_1],
+                "hydrated": True,
+                "unresolved_story_ids": ["77777"],
+            }
+        ),
+        encoding="utf-8",
+    )
 
     monkeypatch.setattr(
         "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path), "--dry-run",
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
+        [
+            "mark_stories_deployed.py",
+            "--input",
+            str(input_path),
+            "--dry-run",
+            "--workflow-id",
+            str(WORKFLOW_ID),
+            "--from-state-id",
+            str(FROM_STATE),
+            "--done-state-id",
+            str(DONE_STATE),
+        ],
     )
     msd.main()
 
@@ -327,6 +400,7 @@ def test_missing_hydrated_and_unresolved_keys_default_sanely(monkeypatch, tmp_pa
 
 # --- Silent no-op guard: the whole point of finding #1 ------------------
 
+
 def test_silent_no_op_warns_and_exits_nonzero_when_not_dry_run(monkeypatch, tmp_path, capsys):
     """stories is non-empty, nothing gets transitioned, and the only reason
     is a skip that is NOT already_done -- this must be loud and must fail
@@ -345,9 +419,17 @@ def test_silent_no_op_warns_and_exits_nonzero_when_not_dry_run(monkeypatch, tmp_
 
     monkeypatch.setattr(
         "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path),
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
+        [
+            "mark_stories_deployed.py",
+            "--input",
+            str(input_path),
+            "--workflow-id",
+            str(WORKFLOW_ID),
+            "--from-state-id",
+            str(FROM_STATE),
+            "--done-state-id",
+            str(DONE_STATE),
+        ],
     )
     with pytest.raises(SystemExit) as exc_info:
         msd.main()
@@ -368,9 +450,18 @@ def test_silent_no_op_warns_but_does_not_exit_nonzero_in_dry_run(monkeypatch, tm
 
     monkeypatch.setattr(
         "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path), "--dry-run",
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
+        [
+            "mark_stories_deployed.py",
+            "--input",
+            str(input_path),
+            "--dry-run",
+            "--workflow-id",
+            str(WORKFLOW_ID),
+            "--from-state-id",
+            str(FROM_STATE),
+            "--done-state-id",
+            str(DONE_STATE),
+        ],
     )
     # --dry-run is a preview: it must warn (visibility) but never sys.exit.
     msd.main()
@@ -391,8 +482,7 @@ def test_empty_stories_does_not_warn_or_exit_nonzero(monkeypatch, tmp_path, caps
     monkeypatch.setattr(msd.urllib.request, "urlopen", _boom)
 
     input_path = tmp_path / "shipped-stories.json"
-    input_path.write_text(json.dumps({"stories": [], "hydrated": False, "unresolved_story_ids": []}),
-                           encoding="utf-8")
+    input_path.write_text(json.dumps({"stories": [], "hydrated": False, "unresolved_story_ids": []}), encoding="utf-8")
 
     monkeypatch.setattr("sys.argv", ["mark_stories_deployed.py", "--input", str(input_path)])
     # Should not raise / exit -- must return normally.
@@ -426,15 +516,21 @@ def test_partial_skip_in_mixed_release_warns_but_exits_zero(monkeypatch, tmp_pat
     input_path = tmp_path / "shipped-stories.json"
     # One story transitions cleanly; one is shipped but sits in a different
     # workflow entirely and can't be touched by this run's ids.
-    input_path.write_text(
-        json.dumps({"stories": [STORY_DEPLOY_READY_1, STORY_DIFFERENT_WORKFLOW]}), encoding="utf-8"
-    )
+    input_path.write_text(json.dumps({"stories": [STORY_DEPLOY_READY_1, STORY_DIFFERENT_WORKFLOW]}), encoding="utf-8")
 
     monkeypatch.setattr(
         "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path),
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
+        [
+            "mark_stories_deployed.py",
+            "--input",
+            str(input_path),
+            "--workflow-id",
+            str(WORKFLOW_ID),
+            "--from-state-id",
+            str(FROM_STATE),
+            "--done-state-id",
+            str(DONE_STATE),
+        ],
     )
     # Must return normally: a partial skip alongside a real transition is not
     # the fatal "nothing happened" case, so this must not raise SystemExit.
@@ -464,13 +560,20 @@ def test_all_already_done_does_not_warn_or_exit_nonzero(monkeypatch, tmp_path, c
 
     monkeypatch.setattr(
         "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path),
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
+        [
+            "mark_stories_deployed.py",
+            "--input",
+            str(input_path),
+            "--workflow-id",
+            str(WORKFLOW_ID),
+            "--from-state-id",
+            str(FROM_STATE),
+            "--done-state-id",
+            str(DONE_STATE),
+        ],
     )
     # Should not raise / exit -- must return normally.
     msd.main()
 
     err = capsys.readouterr().err
     assert "silent no-op" not in err
-

@@ -1,20 +1,41 @@
 import { useEffect } from 'react';
 import { makeUuid } from './utils';
-import { fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded, fireFlowEnded, AUTH_METHOD } from './authAnalytics';
+import {
+  fireFlowStarted,
+  fireMethodChosen,
+  fireProcessStarted,
+  fireProcessEnded,
+  fireFlowEnded,
+  AUTH_METHOD,
+} from './authAnalytics';
 import { getCsrfToken } from '../sefaria/csrf';
 
 const AUTH_PATHS = new Set(['/login', '/register']);
 const SESSION_KEY = 'sefaria_interruptive_ui_shown';
 
-const wasShown = () => { try { return sessionStorage.getItem(SESSION_KEY) === '1'; } catch { return true; } };
-const markShown = () => { try { sessionStorage.setItem(SESSION_KEY, '1'); } catch { } };
+const wasShown = () => {
+  try {
+    return sessionStorage.getItem(SESSION_KEY) === '1';
+  } catch {
+    return true;
+  }
+};
+const markShown = () => {
+  try {
+    sessionStorage.setItem(SESSION_KEY, '1');
+  } catch {}
+};
 const isAuthPath = () => AUTH_PATHS.has(window.location.pathname.replace(/\/$/, ''));
 // .sefaria-provider-sdk-overlay: another Google sign-in button is on the page (e.g. the Library
 // Assistant's sign-up options). GIS's initialize() is global, so One Tap's would take it over.
 const hasInterruptiveUI = () =>
-  ['.cookiesNotification', '.siteWideBanner:not(.hidden)', '.modal', '[role="dialog"][aria-modal="true"]',
-    '.sefaria-provider-sdk-overlay']
-    .some(s => !!document.querySelector(s));
+  [
+    '.cookiesNotification',
+    '.siteWideBanner:not(.hidden)',
+    '.modal',
+    '[role="dialog"][aria-modal="true"]',
+    '.sefaria-provider-sdk-overlay',
+  ].some((s) => !!document.querySelector(s));
 
 export default function GoogleOneTap({ googleClientId }) {
   useEffect(() => {
@@ -39,17 +60,22 @@ export default function GoogleOneTap({ googleClientId }) {
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
         body: JSON.stringify({ id_token: response.credential }),
       })
-        .then(r => r.json().catch(() => ({})).then(data => ({ ok: r.ok, data: data || {} })))
+        .then((r) =>
+          r
+            .json()
+            .catch(() => ({}))
+            .then((data) => ({ ok: r.ok, data: data || {} }))
+        )
         .then(({ ok, data }) => {
           const status = ok ? 'success' : 'failure';
-          const error = ok ? null : (data.error || 'unknown');
+          const error = ok ? null : data.error || 'unknown';
           const outcome = ok ? data.outcome : null;
           fireProcessEnded(flowId, attemptId, status, error, outcome);
           fireFlowEnded(flowId, status, error, outcome);
           if (!ok) console.error('Google One Tap failed', data);
           else window.location.reload();
         })
-        .catch(err => {
+        .catch((err) => {
           fireProcessEnded(flowId, attemptId, 'failure', 'network_error');
           fireFlowEnded(flowId, 'failure', 'network_error');
           console.error('Google One Tap error', err);
@@ -65,7 +91,10 @@ export default function GoogleOneTap({ googleClientId }) {
         // that. Not marking shown here (unlike the interruptive-UI case below) mirrors
         // the top-level guard above, which also doesn't mark shown on this path.
         if (isAuthPath()) return;
-        if (hasInterruptiveUI()) { markShown(); return; }
+        if (hasInterruptiveUI()) {
+          markShown();
+          return;
+        }
         const flowId = makeUuid();
         const attemptId = makeUuid();
         window.google.accounts.id.initialize({

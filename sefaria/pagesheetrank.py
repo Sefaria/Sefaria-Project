@@ -1,19 +1,22 @@
 # implementation of pagerank with low ram requirements
 # source: http://michaelnielsen.org/blog/using-your-laptop-to-compute-pagerank-for-millions-of-webpages/
 
-import re
-import math
-import numpy
-import random
 import json
+import math
+import random
+import re
 import time
-from pymongo.errors import AutoReconnect, OperationFailure
-from collections import defaultdict, OrderedDict
-from sefaria.model import *
-from sefaria.system.exceptions import InputError, NoVersionFoundError
-from sefaria.system.database import db
-from .settings import STATICFILES_DIRS
+from collections import OrderedDict, defaultdict
 from functools import reduce
+
+import numpy
+from pymongo.errors import AutoReconnect, OperationFailure
+
+from sefaria.model import *
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError, NoVersionFoundError
+
+from .settings import STATICFILES_DIRS
 
 tanach_indexes = set(library.get_indexes_in_category("Tanakh"))
 
@@ -31,28 +34,30 @@ class web:
 
 
 def paretosample(n, power=2.0):
-    '''Returns a sample from a truncated Pareto distribution
-  with probability mass function p(l) proportional to
-  1/l^power.  The distribution is truncated at l = n.'''
+    """Returns a sample from a truncated Pareto distribution
+    with probability mass function p(l) proportional to
+    1/l^power.  The distribution is truncated at l = n."""
     m = n + 1
-    while m > n: m = numpy.random.zipf(power)
+    while m > n:
+        m = numpy.random.zipf(power)
     return m
 
 
 def random_web(n=1000, power=2.0):
-    '''Returns a web object with n pages, and where each
-  page k is linked to by L_k random other pages.  The L_k
-  are independent and identically distributed random
-  variables with a shifted and truncated Pareto
-  probability mass function p(l) proportional to
-  1/(l+1)^power.'''
+    """Returns a web object with n pages, and where each
+    page k is linked to by L_k random other pages.  The L_k
+    are independent and identically distributed random
+    variables with a shifted and truncated Pareto
+    probability mass function p(l) proportional to
+    1/(l+1)^power."""
     g = web(n)
     for k in range(n):
         lk = paretosample(n + 1, power) - 1
         values = random.sample(range(n), lk)
         g.in_links[k] = values
         for j in values:
-            if g.number_out_links[j] == 0: g.dangling_pages.pop(j)
+            if g.number_out_links[j] == 0:
+                g.dangling_pages.pop(j)
             g.number_out_links[j] += 1
     return g
 
@@ -74,22 +79,22 @@ def create_web(g):
         link_inds = [(node2index[r_temp], count) for r_temp, count in list(links.items())]
         w.in_links[r_ind] = reduce(lambda a, b: a + [b[0]] * int(round(b[1])), link_inds, [])
         for j, count in link_inds:
-            if w.number_out_links[j] == 0: w.dangling_pages.pop(j)
+            if w.number_out_links[j] == 0:
+                w.dangling_pages.pop(j)
             w.number_out_links[j] += count
     return w
 
 
 def step(w, p, s=0.85):
-    '''Performs a single step in the PageRank computation,
+    """Performs a single step in the PageRank computation,
     with web g and parameter s.  Applies the corresponding M
     matrix to the vector p, and returns the resulting
-    vector.'''
+    vector."""
     n = w.size
     v = numpy.matrix(numpy.zeros((n, 1)))
     inner_product = sum(p[j] for j in w.dangling_pages.keys())
     for j in range(n):
-        v[j] = s * sum([p[k] / w.number_out_links[k]
-                        for k in w.in_links[j]]) + s * inner_product / n + (1 - s) / n
+        v[j] = s * sum([p[k] / w.number_out_links[k] for k in w.in_links[j]]) + s * inner_product / n + (1 - s) / n
     # We rescale the return vector, so it remains a
     # probability distribution even with floating point
     # roundoff.
@@ -262,12 +267,12 @@ def init_pagerank_graph(ref_list=None):
             seg_refs = ref1.all_segment_refs()
             for ref1_seg in seg_refs:
                 recursively_put_in_graph(ref1_seg, ref2, weight / len(seg_refs))
-        elif ref2.is_section_level():
+        if ref2.is_section_level():
             return  # ignore section level
             seg_refs = ref2.all_segment_refs()
             for ref2_seg in seg_refs:
                 recursively_put_in_graph(ref1, ref2_seg, weight / len(seg_refs))
-        elif ref1.is_range():
+        if ref1.is_range():
             for ref1_seg in ref1.range_list():
                 if ref2.is_range():
                     for ref2_seg in ref2.range_list():
@@ -307,7 +312,15 @@ def init_pagerank_graph(ref_list=None):
         link_list = []
         ref_list_seg_set = {rr.normal() for r in ref_list for rr in r.all_segment_refs()}
         for oref in ref_list:
-            link_list += list(filter(lambda x: has_intersection(x.expandedRefs0, ref_list_seg_set) and has_intersection(x.expandedRefs1, ref_list_seg_set), oref.linkset()))
+            link_list += list(
+                filter(
+                    lambda x: (
+                        has_intersection(x.expandedRefs0, ref_list_seg_set)
+                        and has_intersection(x.expandedRefs1, ref_list_seg_set)
+                    ),
+                    oref.linkset(),
+                )
+            )
         len_all_links = len(link_list)
         all_links = LinkSet()
         all_links.records = link_list
@@ -321,7 +334,7 @@ def init_pagerank_graph(ref_list=None):
     while len(all_links.array()) > 0:
         for link in all_links:  # raw records avoids caching the entire LinkSet into memory
             if current_link % 1000 == 0 and current_link > 0:
-                print("{}/{}".format(current_link, len_all_links))
+                print(f"{current_link}/{len_all_links}")
 
             try:
                 # TODO pagerank segments except Talmud. Talmud is pageranked by section
@@ -339,13 +352,14 @@ def init_pagerank_graph(ref_list=None):
                     if ref_list is not None:
                         continue  # looks like links at the same time span can cause a big increase in PR. I'm going to disable this right now for small graphs
                     # randomly switch refs that are equally dated
-                    older_ref, newer_ref = (older_ref, newer_ref) if random.choice([True, False]) else (
-                    newer_ref, older_ref)
+                    older_ref, newer_ref = (
+                        (older_ref, newer_ref) if random.choice([True, False]) else (newer_ref, older_ref)
+                    )
                 recursively_put_in_graph(older_ref, newer_ref)
 
             except InputError:
                 pass
-            except TypeError as e:
+            except TypeError:
                 print("TypeError")
                 print(link.refs)
             except IndexError:
@@ -355,7 +369,6 @@ def init_pagerank_graph(ref_list=None):
             except ValueError:
                 print("ValueError")
                 print(link.refs)
-                pass
             current_link += 1
         if ref_list is None:
             page += 1
@@ -393,10 +406,16 @@ def pagerank_rank_ref_list(ref_list, normalize=False, seg_ref_map=None):
     if seg_ref_map is None:
         seg_ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in ref_list}
     # TODO do we always want to choose max segment PR over the range? maybe average is better?
-    ref_list_with_pr = sorted([
-        (r, max([pr.get(rr, 0.0) for rr in seg_ref_map[r.normal()]])) if len(seg_ref_map[r.normal()]) > 0 else (r, 0.0) for r in
-        ref_list
-    ], key=lambda x: x[1], reverse=True)
+    ref_list_with_pr = sorted(
+        [
+            (r, max([pr.get(rr, 0.0) for rr in seg_ref_map[r.normal()]]))
+            if len(seg_ref_map[r.normal()]) > 0
+            else (r, 0.0)
+            for r in ref_list
+        ],
+        key=lambda x: x[1],
+        reverse=True,
+    )
     return ref_list_with_pr
 
 
@@ -410,7 +429,7 @@ def calculate_pagerank():
     while count < len(sorted_ranking) and (sorted_ranking[count][1] - smallest_pr) < 1e-30:
         count += 1
     sorted_ranking = sorted_ranking[count:]
-    print("Removing {} low pageranks".format(count))
+    print(f"Removing {count} low pageranks")
 
     pagerank_dict = {tref: pr for tref, pr in sorted_ranking}
     return pagerank_dict
@@ -444,8 +463,7 @@ def _ensure_ref_data_index():
         # a restricted database user may be unable to create indexes; that is
         # only survivable if the index is already there
         have_ref_index = any(
-            spec.get("key") and spec["key"][0][0] == "ref"
-            for spec in db.ref_data.index_information().values()
+            spec.get("key") and spec["key"][0][0] == "ref" for spec in db.ref_data.index_information().values()
         )
         if not have_ref_index:
             raise
@@ -462,6 +480,7 @@ def update_pagesheetrank():
         temp_sheetrank_scaled = (1.0 + sheetrank[tref] / 5) ** 2 if tref in sheetrank else RefData.DEFAULT_SHEETRANK
         pagesheetrank[tref] = temp_pagerank_scaled * temp_sheetrank_scaled
     from pymongo import UpdateOne
+
     _bulk_write_pagesheetranks(pagesheetrank)
 
 
@@ -487,19 +506,16 @@ def _bulk_write_pagesheetranks(pagesheetrank, batch_size=None):
     modified = upserted = 0
 
     for start in range(0, total, batch_size):
-        chunk = items[start:start + batch_size]
+        chunk = items[start : start + batch_size]
         result = db.ref_data.bulk_write(
-            [
-                UpdateOne({"ref": tref}, {"$set": {"pagesheetrank": psr}}, upsert=True)
-                for tref, psr in chunk
-            ],
+            [UpdateOne({"ref": tref}, {"$set": {"pagesheetrank": psr}}, upsert=True) for tref, psr in chunk],
             # order does not matter here; unordered lets the server parallelize
             # and keeps one bad document from aborting the rest of the batch
             ordered=False,
         )
         modified += result.modified_count
         upserted += len(result.upserted_ids or {})
-        print("ref_data upsert {}/{}".format(min(start + batch_size, total), total))
+        print(f"ref_data upsert {min(start + batch_size, total)}/{total}")
 
     return {"modified": modified, "upserted": upserted, "total": total}
 
@@ -518,15 +534,7 @@ def length_penalty(l):
 
 
 def test_pagerank(a, b):
-    g = {
-        "a": {
-            "b": 0.7
-        },
-        "b": {
-            "c": 0.1
-        },
-        "c": {}
-    }
+    g = {"a": {"b": 0.7}, "b": {"c": 0.1}, "c": {}}
     ranked = pagerank(g, a, verbose=True, tolerance=b)
     print(ranked)
 
@@ -540,7 +548,7 @@ def get_all_sheets(tries=0, page=0):
         except AutoReconnect as e:
             tries += 1
             if tries >= 200:
-                print("Tried: {} times".format(tries))
+                print(f"Tried: {tries} times")
                 raise e
             time.sleep(5)
             continue
@@ -585,7 +593,7 @@ def calculate_sheetrank():
     sources_count = 0
     for i, sheet in enumerate(sheets):
         if i % 1000 == 0:
-            print("{}/{}".format(i, len_sheets))
+            print(f"{i}/{len_sheets}")
         if "sources" not in sheet:
             continue
         sources_count += count_sources(sheet["sources"])

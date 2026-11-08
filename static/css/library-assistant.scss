@@ -11,9 +11,12 @@
 #s2.headerOnly .readerApp {
   pointer-events: none;
 }
-#s2.headerOnly .readerApp > *:not(#main), #s2.headerOnly #main lc-chatbot {
+
+#s2.headerOnly .readerApp > *:not(#main),
+#s2.headerOnly #main lc-chatbot {
   pointer-events: auto;
 }
+
 /* What Sefaria puts in <lc-chatbot>'s slots (the sign-up options) shows only inside the widget.
    Until the widget's script defines the element, or if it never loads, its children would be
    plain page content in #main. */
@@ -54,15 +57,18 @@ lc-chatbot:not(:defined) > [slot] {
 .textLink.libraryAssistantLink .libraryAssistantShortLabel {
   display: none;
 }
-@media (max-width: 1158px) {
+
+@media (width <= 1158px) {
   .textLink.libraryAssistantLink .libraryAssistantLabel {
     display: none;
   }
+
   .textLink.libraryAssistantLink .libraryAssistantShortLabel {
     display: inline;
   }
 }
-@media (max-width: 899px) {
+
+@media (width <= 899px) {
   // Same selectors as the pill's base rule, so its :hover/:focus/:active variant can't win
   .textLink.libraryAssistantLink,
   .textLink.libraryAssistantLink:is(:hover, :focus, :active) {
@@ -73,13 +79,16 @@ lc-chatbot:not(:defined) > [slot] {
 .textLink.libraryAssistantLink:is(:hover, :active) {
   background: var(--chatbot-purple-hover);
 }
+
 .libraryAssistantLink:focus-visible {
   outline: 2px solid var(--focus-blue);
   outline-offset: 2px;
 }
+
 .libraryAssistantStarIcon {
   flex-shrink: 0;
 }
+
 .libraryAssistantLink .libraryAssistantStarIcon {
   width: 16px;
   height: 16px;
@@ -91,6 +100,7 @@ lc-chatbot:not(:defined) > [slot] {
 .mobileNavMenu a.libraryAssistantMenuItem {
   color: var(--chatbot-purple);
 }
+
 .mobileNavMenu .libraryAssistantMenuStar {
   width: 16px;
   height: 16px;

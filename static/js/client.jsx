@@ -1,14 +1,13 @@
-import "core-js/stable";
-import "regenerator-runtime/runtime";
+import 'core-js/stable';
+import 'regenerator-runtime/runtime';
 import $ from './sefaria/sefariaJquery';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import DjangoCSRF from './lib/django-csrf';
 const SefariaReact = require('./ReaderApp');
-import * as Sentry from "@sentry/react";
+import * as Sentry from '@sentry/react';
 
-
-$(function() {
+$(function () {
   // no_applink (see sefaria/utils/views_utils.py) is a one-hop marker; strip it so a
   // bookmarked/shared copy of this URL doesn't keep it forever.
   const url = new URL(window.location.href);
@@ -23,10 +22,7 @@ $(function() {
     Sentry.init({
       dsn: sentryDSN,
       release: DJANGO_VARS.props?.appVersion || undefined,
-      integrations: [
-        new Sentry.BrowserTracing(),
-        new Sentry.Replay(),
-      ],
+      integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],
       tracesSampleRate: remoteConfig?.sentry?.tracesSampleRate || 0.0,
       sampleRate: remoteConfig?.sentry?.sampleRate || 0.0,
       replaysSessionSampleRate: remoteConfig?.sentry?.replaysSessionSampleRate || 0.0,
@@ -39,7 +35,7 @@ $(function() {
   let component = null;
   DjangoCSRF.init();
   var renderFunc = ReactDOM.hydrate;
-  if (loadingPlaceholder){
+  if (loadingPlaceholder) {
     renderFunc = ReactDOM.render;
   }
   if (DJANGO_VARS.inReaderApp) {
@@ -48,7 +44,6 @@ $(function() {
     component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.props);
 
     renderFunc(component, container);
-
   } else {
     // Rendering the Header only on top of a static page
     let staticProps = {
@@ -64,10 +59,9 @@ $(function() {
 
   // Handle template-specific component rendering (for pages that don't use ReaderApp)
   if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
-    // Render a specific component to a container    
+    // Render a specific component to a container
     container = document.getElementById(DJANGO_VARS.containerId);
     component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.props);
     renderFunc(component, container);
   }
-
 });

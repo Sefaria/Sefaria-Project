@@ -17,24 +17,18 @@ export const MESSAGE_TYPES = {
   SUCCESS: 'success',
   ERROR: 'error',
   WARNING: 'warning',
-  INFO: 'info'
+  INFO: 'info',
 };
 
 const StatusMessage = ({ message, className = '' }) => {
   if (!message) return null;
 
   // Support both string and object formats
-  const messageObj = typeof message === 'string'
-    ? { type: MESSAGE_TYPES.INFO, message }
-    : message;
+  const messageObj = typeof message === 'string' ? { type: MESSAGE_TYPES.INFO, message } : message;
 
   const { type = MESSAGE_TYPES.INFO, message: text } = messageObj;
 
-  return (
-    <div className={`message ${type} ${className}`.trim()}>
-      {text}
-    </div>
-  );
+  return <div className={`message ${type} ${className}`.trim()}>{text}</div>;
 };
 
 StatusMessage.propTypes = {
@@ -42,10 +36,10 @@ StatusMessage.propTypes = {
     PropTypes.string,
     PropTypes.shape({
       type: PropTypes.oneOf(Object.values(MESSAGE_TYPES)).isRequired,
-      message: PropTypes.string.isRequired
-    })
+      message: PropTypes.string.isRequired,
+    }),
   ]),
-  className: PropTypes.string
+  className: PropTypes.string,
 };
 
 export default StatusMessage;

@@ -14,7 +14,11 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from sefaria.donors.types import DonationReceivedFromClassy, EventIndicatingPersonIsDonor, UserBecameDonorAccordingToSalesforce
+from sefaria.donors.types import (
+    DonationReceivedFromClassy,
+    EventIndicatingPersonIsDonor,
+    UserBecameDonorAccordingToSalesforce,
+)
 from webhooks.adapters.classy_webhook import parse_classy_transaction_payload, verify_classy_request_signature
 from webhooks.adapters.salesforce_webhook import parse_salesforce_payload, verify_salesforce_request_secret
 from webhooks.dispatcher import EventCouldNotBeEnqueued, enqueue_event_for_processing
@@ -56,9 +60,7 @@ def receive_salesforce_webhook(request) -> HttpResponse:
     return receive_webhook(SALESFORCE_WEBHOOK_ADAPTER, request.body, request.headers)
 
 
-def receive_webhook(
-    adapter: WebhookSourceAdapter, raw_body: bytes, headers: Mapping[str, str]
-) -> HttpResponse:
+def receive_webhook(adapter: WebhookSourceAdapter, raw_body: bytes, headers: Mapping[str, str]) -> HttpResponse:
     # Logs carry only the source, event id, outcome and reason — never the body, headers,
     # secrets or email addresses.
     webhook_source = adapter.webhook_source.value
@@ -73,9 +75,7 @@ def receive_webhook(
             webhook_source=webhook_source,
             setting_name=error.setting_name,
         )
-        return JsonResponse(
-            {"error": f"{webhook_source}_webhook_not_configured"}, status=503
-        )
+        return JsonResponse({"error": f"{webhook_source}_webhook_not_configured"}, status=503)
     except SignatureRejected:
         logger.warning("webhook_signature_rejected", webhook_source=webhook_source)
         return JsonResponse({"error": "invalid_signature"}, status=401)
@@ -90,21 +90,14 @@ def receive_webhook(
                 webhook_source=webhook_source,
                 reason=reason.value,
             )
-            return JsonResponse(
-                {"status": "ignored", "reason": reason.value}, status=200
-            )
-        case (
-            DonationReceivedFromClassy()
-            | UserBecameDonorAccordingToSalesforce() as event
-        ):
+            return JsonResponse({"status": "ignored", "reason": reason.value}, status=200)
+        case DonationReceivedFromClassy() | UserBecameDonorAccordingToSalesforce() as event:
             return _accept_event(webhook_source, event)
         case unreachable:
             assert_never(unreachable)
 
 
-def _accept_event(
-    webhook_source: str, event: EventIndicatingPersonIsDonor
-) -> HttpResponse:
+def _accept_event(webhook_source: str, event: EventIndicatingPersonIsDonor) -> HttpResponse:
     try:
         processing_mode = enqueue_event_for_processing(event)
     except EventCouldNotBeEnqueued:
@@ -119,6 +112,4 @@ def _accept_event(
     # processing_mode is sent only after verification and reveals nothing sensitive.
     # e2e-tests/tests/strapi-donor-webhook-flow.spec.js reads it to know whether processing
     # was queued or inline.
-    return JsonResponse(
-        {"status": "accepted", "processing_mode": processing_mode.value}, status=202
-    )
+    return JsonResponse({"status": "accepted", "processing_mode": processing_mode.value}, status=202)
