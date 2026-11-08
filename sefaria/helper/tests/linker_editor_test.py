@@ -6,17 +6,18 @@ Pure-logic and Redis-cache tests run anywhere. DB-backed tests are read-only.
 The write round-trip is exercised by manual/E2E verification rather than here,
 to avoid mutating shared index data.
 """
+
 import pytest
 
+import sefaria.model.linker.nonuniqueterm_index as ni
 from sefaria.helper import linker_editor as le
 from sefaria.model import schema
-import sefaria.model.linker.nonuniqueterm_index as ni
 from sefaria.system.exceptions import InputError
-
 
 # ---------------------------------------------------------------------------
 # Pure logic
 # ---------------------------------------------------------------------------
+
 
 def test_parse_node_key_path():
     assert le.parse_node_key_path("Berakhot.Intro") == ["Berakhot", "Intro"]
@@ -69,12 +70,22 @@ def test_replace_match_template_saves_index_once_and_updates_usage(monkeypatch):
     monkeypatch.setattr(le, "_validate_slugs", lambda slugs: None)
     monkeypatch.setattr(schema.NonUniqueTerm, "init", staticmethod(lambda slug: type("FakeTerm", (), {"slug": slug})()))
     monkeypatch.setattr(le.library, "get_index", lambda title: index)
-    monkeypatch.setattr(le.library, "refresh_index_record_in_cache", lambda saved_index: calls.append(("refresh", saved_index.title)))
+    monkeypatch.setattr(
+        le.library, "refresh_index_record_in_cache", lambda saved_index: calls.append(("refresh", saved_index.title))
+    )
     monkeypatch.setattr(le, "get_node_by_editor_path", lambda index_arg, key_path: (node, None))
-    monkeypatch.setattr(le.nut_index, "remove_template_usage", lambda *args, **kwargs: calls.append(("remove", args[2].serialize())))
-    monkeypatch.setattr(le.nut_index, "add_template_usage", lambda *args, **kwargs: calls.append(("add", args[2].serialize())))
+    monkeypatch.setattr(
+        le.nut_index, "remove_template_usage", lambda *args, **kwargs: calls.append(("remove", args[2].serialize()))
+    )
+    monkeypatch.setattr(
+        le.nut_index, "add_template_usage", lambda *args, **kwargs: calls.append(("add", args[2].serialize()))
+    )
     monkeypatch.setattr(le, "USE_VARNISH", False)
-    monkeypatch.setattr(le, "log_linker_editor_action", lambda uid, action, params, **kwargs: calls.append(("log", uid, action, params, kwargs)))
+    monkeypatch.setattr(
+        le,
+        "log_linker_editor_action",
+        lambda uid, action, params, **kwargs: calls.append(("log", uid, action, params, kwargs)),
+    )
 
     serialized = le.replace_match_template(
         "Fake",
@@ -94,12 +105,18 @@ def test_replace_match_template_saves_index_once_and_updates_usage(monkeypatch):
         ("refresh", "Fake"),
         ("remove", {"term_slugs": ["old"]}),
         ("add", {"term_slugs": ["old", "new"]}),
-        ("log", 1, "replace_match_template", {
-            "title": "Fake",
-            "node_key_path": "Fake",
-            "old_template_data": {"term_slugs": ["old"], "scope": "combined"},
-            "new_template_data": {"term_slugs": ["old", "new"], "scope": "combined"},
-        }, {"index_title": "Fake"}),
+        (
+            "log",
+            1,
+            "replace_match_template",
+            {
+                "title": "Fake",
+                "node_key_path": "Fake",
+                "old_template_data": {"term_slugs": ["old"], "scope": "combined"},
+                "new_template_data": {"term_slugs": ["old", "new"], "scope": "combined"},
+            },
+            {"index_title": "Fake"},
+        ),
     ]
 
 
@@ -145,7 +162,9 @@ def test_save_linker_metadata_invalidates_varnish_directly(monkeypatch):
     refreshes = []
     invalidated = []
 
-    monkeypatch.setattr(le.library, "refresh_index_record_in_cache", lambda saved_index: refreshes.append(saved_index.title))
+    monkeypatch.setattr(
+        le.library, "refresh_index_record_in_cache", lambda saved_index: refreshes.append(saved_index.title)
+    )
     monkeypatch.setattr(le, "USE_VARNISH", True)
     monkeypatch.setattr("sefaria.system.varnish.wrapper.invalidate_title", lambda title: invalidated.append(title))
 
@@ -166,7 +185,7 @@ def test_alt_struct_editor_path():
 
     leaf = FakeNode()
     root = FakeNode([leaf])
-    wrapper = FakeNode([root])
+    FakeNode([root])
 
     assert ni._alt_struct_editor_path(leaf, "Parasha") == ["__alt__", "Parasha", "0", "0"]
     assert ni._alt_struct_editor_path(root, "Parasha") == ["__alt__", "Parasha", "0"]
@@ -199,24 +218,38 @@ def test_add_non_unique_term_titles(monkeypatch):
     monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
     monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: [])
     log_calls = []
-    monkeypatch.setattr(le, "log_linker_editor_action", lambda uid, action, params, **kwargs: log_calls.append((uid, action, params, kwargs)))
+    monkeypatch.setattr(
+        le,
+        "log_linker_editor_action",
+        lambda uid, action, params, **kwargs: log_calls.append((uid, action, params, kwargs)),
+    )
 
-    detail = le.add_non_unique_term_titles(term.slug, [
-        {"text": "Alt", "lang": "en"},
-        {"text": "חלופה", "lang": "he"},
-    ], 1)
+    detail = le.add_non_unique_term_titles(
+        term.slug,
+        [
+            {"text": "Alt", "lang": "en"},
+            {"text": "חלופה", "lang": "he"},
+        ],
+        1,
+    )
 
     assert term.saved
     assert {"text": "Alt", "lang": "en"} in detail["titles"]
     assert {"text": "חלופה", "lang": "he"} in detail["titles"]
     assert detail["usages"] == []
-    assert log_calls == [(1, "add_non_unique_term_titles",
-        {"slug": term.slug, "titles": [{"text": "Alt", "lang": "en"}, {"text": "חלופה", "lang": "he"}]},
-        {"slug": term.slug})]
+    assert log_calls == [
+        (
+            1,
+            "add_non_unique_term_titles",
+            {"slug": term.slug, "titles": [{"text": "Alt", "lang": "en"}, {"text": "חלופה", "lang": "he"}]},
+            {"slug": term.slug},
+        )
+    ]
 
 
 def test_add_non_unique_term_titles_normalizes_with_linker_normalizer(monkeypatch):
     """Titles are stored normalized the same way the linker normalizes input text."""
+
     class FakeTerm:
         slug = "__le_test_term__"
 
@@ -243,13 +276,17 @@ def test_add_non_unique_term_titles_normalizes_with_linker_normalizer(monkeypatc
     monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: [])
     monkeypatch.setattr(le, "log_linker_editor_action", lambda uid, action, params, **kwargs: None)
 
-    detail = le.add_non_unique_term_titles(term.slug, [
-        # unidecode diacritic + collapsed double space + surrounding whitespace
-        {"text": "  Ḥagigah   ha  ", "lang": "en"},
-        # vowel/cantillation marks stripped for Hebrew (the linker's "cantillation"
-        # normalizer range covers nikud too): בְּרֵאשִׁ֑ית -> בראשית
-        {"text": "בְּרֵאשִׁ֑ית", "lang": "he"},
-    ], 1)
+    detail = le.add_non_unique_term_titles(
+        term.slug,
+        [
+            # unidecode diacritic + collapsed double space + surrounding whitespace
+            {"text": "  Ḥagigah   ha  ", "lang": "en"},
+            # vowel/cantillation marks stripped for Hebrew (the linker's "cantillation"
+            # normalizer range covers nikud too): בְּרֵאשִׁ֑ית -> בראשית
+            {"text": "בְּרֵאשִׁ֑ית", "lang": "he"},
+        ],
+        1,
+    )
 
     stored = {t["text"] for t in detail["titles"]}
     assert "Hagigah ha" in stored
@@ -321,7 +358,11 @@ def test_delete_non_unique_term_deletes_unused_term_and_clears_usage_cache(monke
     monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
     monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: [])
     monkeypatch.setattr(le.nut_index, "set_term_usages", lambda slug, usages: calls.append(("set", slug, usages)))
-    monkeypatch.setattr(le, "log_linker_editor_action", lambda uid, action, params, **kwargs: calls.append(("log", uid, action, params, kwargs)))
+    monkeypatch.setattr(
+        le,
+        "log_linker_editor_action",
+        lambda uid, action, params, **kwargs: calls.append(("log", uid, action, params, kwargs)),
+    )
 
     le.delete_non_unique_term("__le_test_term__", 1)
 
@@ -359,9 +400,15 @@ def test_swap_non_unique_term_usages_replaces_each_usage(monkeypatch):
 
     monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
     monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: usages)
-    monkeypatch.setattr(le, "_replace_match_template_impl", lambda title, path, old, new: replacements.append((title, path, old, new)))
+    monkeypatch.setattr(
+        le, "_replace_match_template_impl", lambda title, path, old, new: replacements.append((title, path, old, new))
+    )
     monkeypatch.setattr(le, "get_non_unique_term_detail", lambda slug: {"slug": slug, "usages": []})
-    monkeypatch.setattr(le, "log_linker_editor_action", lambda uid, action, params, **kwargs: log_calls.append((uid, action, params, kwargs)))
+    monkeypatch.setattr(
+        le,
+        "log_linker_editor_action",
+        lambda uid, action, params, **kwargs: log_calls.append((uid, action, params, kwargs)),
+    )
 
     result = le.swap_non_unique_term_usages("old", "new", 1)
 
@@ -381,26 +428,33 @@ def test_swap_non_unique_term_usages_replaces_each_usage(monkeypatch):
         ),
     ]
     # A swap over multiple usages logs exactly one compound entry, not one per usage.
-    assert log_calls == [(1, "swap_non_unique_term_usages", {
-        "old_slug": "old",
-        "new_slug": "new",
-        "affected_usages": [
+    assert log_calls == [
+        (
+            1,
+            "swap_non_unique_term_usages",
             {
-                "index_title": "Fake",
-                "node_key_path": "Fake",
-                "old_term_slugs": ["old", "keep"],
-                "new_term_slugs": ["new", "keep"],
-                "scope": "combined",
+                "old_slug": "old",
+                "new_slug": "new",
+                "affected_usages": [
+                    {
+                        "index_title": "Fake",
+                        "node_key_path": "Fake",
+                        "old_term_slugs": ["old", "keep"],
+                        "new_term_slugs": ["new", "keep"],
+                        "scope": "combined",
+                    },
+                    {
+                        "index_title": "Other",
+                        "node_key_path": "__alt__.Parasha.0",
+                        "old_term_slugs": ["prefix", "old"],
+                        "new_term_slugs": ["prefix", "new"],
+                        "scope": "alone",
+                    },
+                ],
             },
-            {
-                "index_title": "Other",
-                "node_key_path": "__alt__.Parasha.0",
-                "old_term_slugs": ["prefix", "old"],
-                "new_term_slugs": ["prefix", "new"],
-                "scope": "alone",
-            },
-        ],
-    }, {})]
+            {},
+        )
+    ]
 
 
 def test_swap_non_unique_term_usages_validation(monkeypatch):
@@ -423,8 +477,10 @@ def test_swap_non_unique_term_usages_validation(monkeypatch):
 # Node property editing — pure logic (no index.save())
 # ---------------------------------------------------------------------------
 
+
 class _FakeNode:
     """Minimal stand-in for a schema node: class-level optional_param_keys + attrs."""
+
     optional_param_keys = []
 
     def __init__(self, **attrs):
@@ -433,8 +489,13 @@ class _FakeNode:
 
 
 class _FakeJaggedArrayNode(_FakeNode):
-    optional_param_keys = ["referenceable", "numeric_equivalent", "referenceableSections",
-                           "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes"]
+    optional_param_keys = [
+        "referenceable",
+        "numeric_equivalent",
+        "referenceableSections",
+        "isSegmentLevelDiburHamatchil",
+        "diburHamatchilRegexes",
+    ]
 
 
 class _FakeArrayMapNode(_FakeNode):
@@ -542,6 +603,7 @@ def test_serialize_node_properties():
 # Redis usage index — surgical add/remove (cache only)
 # ---------------------------------------------------------------------------
 
+
 def test_usage_index_surgical_add_remove():
     entry = {
         "index_title": "__LE_TEST__",
@@ -572,8 +634,10 @@ def test_usage_index_surgical_add_remove():
 # DB-backed, read-only
 # ---------------------------------------------------------------------------
 
+
 def test_get_node_by_key_path():
     from sefaria.model import library
+
     idx = library.get_index("Berakhot")
     root = le.get_node_by_key_path(idx, ["Berakhot"])
     assert root is not None and root.key == "Berakhot"
@@ -652,11 +716,13 @@ def test_search_non_unique_terms_normalizes_query(monkeypatch):
 
     monkeypatch.setattr(le, "NonUniqueTermSet", FakeNonUniqueTermSet)
 
-    assert le.search_non_unique_terms("  Ḥagigah   ha  ", 7) == [{
-        "slug": "__le_test_term__",
-        "primary_en": "Primary",
-        "primary_he": "עיקרי",
-    }]
+    assert le.search_non_unique_terms("  Ḥagigah   ha  ", 7) == [
+        {
+            "slug": "__le_test_term__",
+            "primary_en": "Primary",
+            "primary_he": "עיקרי",
+        }
+    ]
     regex = {"$regex": le.re.escape("Hagigah ha"), "$options": "i"}
     # The candidate pool fetched from Mongo is wider than `limit` — ranking happens in
     # Python afterward, over this larger pool, before truncating back down to `limit`.
@@ -718,15 +784,25 @@ def test_search_non_unique_terms_ranks_primary_title_over_unrelated_alt_title_ma
         def get_primary_title(self, lang):
             return self._en if lang == "en" else self._he
 
-    pesach = FakeTerm("pesach", "Pesach", "פסח", [
-        {"lang": "en", "text": "Pesach", "primary": True},
-        {"lang": "he", "text": "פסח", "primary": True},
-    ])
-    paschal_offering = FakeTerm("paschal-offering", "Paschal Offering", "קרבן פסח", [
-        {"lang": "en", "text": "Paschal Offering", "primary": True},
-        {"lang": "he", "text": "קרבן פסח", "primary": True},
-        {"lang": "he", "text": "פסח", "primary": False},
-    ])
+    pesach = FakeTerm(
+        "pesach",
+        "Pesach",
+        "פסח",
+        [
+            {"lang": "en", "text": "Pesach", "primary": True},
+            {"lang": "he", "text": "פסח", "primary": True},
+        ],
+    )
+    paschal_offering = FakeTerm(
+        "paschal-offering",
+        "Paschal Offering",
+        "קרבן פסח",
+        [
+            {"lang": "en", "text": "Paschal Offering", "primary": True},
+            {"lang": "he", "text": "קרבן פסח", "primary": True},
+            {"lang": "he", "text": "פסח", "primary": False},
+        ],
+    )
 
     class FakeNonUniqueTermSet:
         def __init__(self, query, limit=None):
@@ -744,12 +820,16 @@ def test_search_non_unique_terms_ranks_primary_title_over_unrelated_alt_title_ma
 
 def test_create_non_unique_term():
     from sefaria.model.schema import NonUniqueTerm
+
     detail = None
     try:
-        detail = le.create_non_unique_term([
-            {"lang": "en", "text": "Zzz Editor Test Term"},
-            {"lang": "he", "text": "זזז מונח בדיקה"},
-        ], 1)
+        detail = le.create_non_unique_term(
+            [
+                {"lang": "en", "text": "Zzz Editor Test Term"},
+                {"lang": "he", "text": "זזז מונח בדיקה"},
+            ],
+            1,
+        )
         assert detail["slug"] == "zzz-editor-test-term"
         langs = {(t["lang"], t.get("primary")) for t in detail["titles"]}
         assert ("en", True) in langs and ("he", True) in langs
@@ -761,12 +841,16 @@ def test_create_non_unique_term():
 
 def test_create_non_unique_term_normalizes_titles_with_linker_normalizer():
     from sefaria.model.schema import NonUniqueTerm
+
     detail = None
     try:
-        detail = le.create_non_unique_term([
-            {"lang": "en", "text": "  Ḥagigah   Editor Test Term  "},
-            {"lang": "he", "text": "בְּרֵאשִׁ֑ית בדיקה"},
-        ], 1)
+        detail = le.create_non_unique_term(
+            [
+                {"lang": "en", "text": "  Ḥagigah   Editor Test Term  "},
+                {"lang": "he", "text": "בְּרֵאשִׁ֑ית בדיקה"},
+            ],
+            1,
+        )
         stored = {t["text"] for t in detail["titles"]}
         assert "Hagigah Editor Test Term" in stored
         assert "בראשית בדיקה" in stored

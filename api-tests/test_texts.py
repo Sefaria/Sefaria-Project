@@ -1,7 +1,8 @@
 """Text API endpoint tests."""
-import pytest
+
 from urllib.parse import quote
 
+import pytest
 
 TEXT_CASES = [
     ("Genesis 1:1", "First verse of Torah"),

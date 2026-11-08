@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 On-demand full reindex of the entity-search indices (`topic`, `book` and/or `category`).
 
@@ -16,6 +15,7 @@ Usage:
     python scripts/reindex_entity_search.py --type book      # books only
     python scripts/reindex_entity_search.py --type category  # main TOC categories only
 """
+
 import argparse
 import os
 import sys
@@ -26,6 +26,7 @@ sys.path.insert(0, path + "/sefaria")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sefaria.settings")
 
 import django
+
 django.setup()
 
 from sefaria.search import index_entities, setup_logging
@@ -33,8 +34,12 @@ from sefaria.search import index_entities, setup_logging
 
 def main():
     parser = argparse.ArgumentParser(description="On-demand entity-search reindex")
-    parser.add_argument("--type", choices=["topic", "book", "category", "all"], default="all",
-                        help="Which entity index(es) to rebuild (default: all)")
+    parser.add_argument(
+        "--type",
+        choices=["topic", "book", "category", "all"],
+        default="all",
+        help="Which entity index(es) to rebuild (default: all)",
+    )
     parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logging")
     args = parser.parse_args()
 

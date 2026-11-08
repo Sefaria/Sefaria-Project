@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Add "Parasha" alt structures to Chumash commentaries whose schema fits one of three
 shapes:
@@ -83,14 +82,15 @@ Usage:
     ./run scripts/add_parsha_alt_structs_to_torah_commentaries.py --all --skip-manual-slugs
     ./run scripts/add_parsha_alt_structs_to_torah_commentaries.py --all --skip-manual-slugs --accept-all
 """
+
 import argparse
 
 import django
+
 django.setup()
 
 from sefaria.model import *
-from sefaria.model.schema import deserialize_tree, TitledTreeNode
-
+from sefaria.model.schema import TitledTreeNode, deserialize_tree
 
 TORAH_BOOK_ORDER = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"]
 
@@ -155,7 +155,11 @@ def classify_commentary(index, torah_books):
         candidates = [c for c in nodes.children if _is_depth3_ja(c)]
         if len(candidates) == 1:
             return "complex_single", candidates[0], None
-        return None, None, "single Torah book, complex root, but {} depth-3 candidate child(ren) (need exactly 1)".format(len(candidates))
+        return (
+            None,
+            None,
+            f"single Torah book, complex root, but {len(candidates)} depth-3 candidate child(ren) (need exactly 1)",
+        )
 
     # multi-book: every base Torah book must map to exactly one child of the root
     if not nodes.has_children():
@@ -171,8 +175,9 @@ def classify_commentary(index, torah_books):
             if body_node is None:
                 continue
         child_title = c.get_primary_title("en")
-        matched_book = next((book for book, variants in TORAH_BOOK_NAME_VARIANTS.items()
-                              if child_title in variants), None)
+        matched_book = next(
+            (book for book, variants in TORAH_BOOK_NAME_VARIANTS.items() if child_title in variants), None
+        )
         if matched_book is None or matched_book not in base_titles:
             continue
         if matched_book in book_to_node:
@@ -183,7 +188,7 @@ def classify_commentary(index, torah_books):
         return None, None, "multiple children matched to the same base Torah book"
     if sorted(book_to_node.keys()) != sorted(base_titles):
         unmatched = sorted(set(base_titles) - set(book_to_node.keys()))
-        return None, None, "could not uniquely match base Torah book(s) to a schema child: {}".format(unmatched)
+        return None, None, f"could not uniquely match base Torah book(s) to a schema child: {unmatched}"
 
     return "complex_multi", book_to_node, None
 
@@ -215,9 +220,9 @@ def report_skipped_commentaries():
         kind, _extra, reason = classify_commentary(index, torah_books)
         if kind is None:
             skipped.append((index.title, reason))
-    print("{} commentary(ies) skipped as not fitting an eligible shape:".format(len(skipped)))
+    print(f"{len(skipped)} commentary(ies) skipped as not fitting an eligible shape:")
     for title, reason in skipped:
-        print("  {}: {}".format(title, reason))
+        print(f"  {title}: {reason}")
     return skipped
 
 
@@ -255,29 +260,34 @@ def confirm_commentator_term_slug(commentary_index, skip_manual=False, accept_al
     if guess:
         term = NonUniqueTerm.init(guess)
         if accept_all and term is not None:
-            print("[{}] Accepted guessed commentator term: '{}' ({})".format(
-                title, guess, term.get_primary_title("en")))
+            print(
+                "[{}] Accepted guessed commentator term: '{}' ({})".format(title, guess, term.get_primary_title("en"))
+            )
             return guess
-        label = "'{}' ({})".format(guess, term.get_primary_title("en")) if term \
-            else "'{}' (WARNING: no NonUniqueTerm exists with this slug)".format(guess)
-        answer = input("[{}] Guessed commentator term: {} -- correct? [Y/n]: ".format(title, label)).strip().lower()
+        label = (
+            "'{}' ({})".format(guess, term.get_primary_title("en"))
+            if term
+            else f"'{guess}' (WARNING: no NonUniqueTerm exists with this slug)"
+        )
+        answer = input(f"[{title}] Guessed commentator term: {label} -- correct? [Y/n]: ").strip().lower()
         if answer in ("", "y", "yes") and term is not None:
             return guess
     else:
-        print("[{}] Could not guess a commentator term (no match_templates on root node).".format(title))
+        print(f"[{title}] Could not guess a commentator term (no match_templates on root node).")
 
     if skip_manual:
-        print("[{}] Skipping: no confirmed guess and --skip-manual-slugs is set.".format(title))
+        print(f"[{title}] Skipping: no confirmed guess and --skip-manual-slugs is set.")
         return None
 
     while True:
-        manual = input("[{}] Enter the correct NonUniqueTerm slug for this commentator "
-                        "(blank to skip this commentary): ".format(title)).strip()
+        manual = input(
+            f"[{title}] Enter the correct NonUniqueTerm slug for this commentator (blank to skip this commentary): "
+        ).strip()
         if not manual:
             return None
         term = NonUniqueTerm.init(manual)
         if term is None:
-            print("  No NonUniqueTerm found with slug '{}'. Try again.".format(manual))
+            print(f"  No NonUniqueTerm found with slug '{manual}'. Try again.")
             continue
         return manual
 
@@ -300,19 +310,22 @@ def _build_parasha_nodes_for_book(commentator_slug, base_title, ref_prefix):
     base_index = library.get_index(base_title)
     base_parasha_struct = base_index.get_alt_structures().get("Parasha")
     if base_parasha_struct is None:
-        raise ValueError("Base text '{}' has no 'Parasha' alt structure".format(base_title))
+        raise ValueError(f"Base text '{base_title}' has no 'Parasha' alt structure")
 
     node_dicts = []
     for base_node in base_parasha_struct.children:
         base_ref = Ref(base_node.wholeRef)
         start = ":".join(str(s) for s in base_ref.sections)
         end = ":".join(str(s) for s in base_ref.toSections)
-        nominal_ref = Ref("{} {}-{}".format(ref_prefix, start, end))  # validates it resolves
+        nominal_ref = Ref(f"{ref_prefix} {start}-{end}")  # validates it resolves
 
         segment_refs = nominal_ref.all_segment_refs()
         if not segment_refs:
-            print("  Skipping parasha '{}' for '{}': no actual content in {}".format(
-                base_node.get_primary_title("en"), ref_prefix, nominal_ref.normal()))
+            print(
+                "  Skipping parasha '{}' for '{}': no actual content in {}".format(
+                    base_node.get_primary_title("en"), ref_prefix, nominal_ref.normal()
+                )
+            )
             continue
         whole_ref = segment_refs[0].to(segment_refs[-1]).normal()
 
@@ -321,14 +334,16 @@ def _build_parasha_nodes_for_book(commentator_slug, base_title, ref_prefix):
             for base_template in (getattr(base_node, "match_templates", None) or [])
         ]
 
-        node_dicts.append({
-            "nodeType": "ArrayMapNode",
-            "depth": 0,
-            "wholeRef": whole_ref,
-            "includeSections": False,
-            "sharedTitle": base_node.sharedTitle,
-            "match_templates": match_templates,
-        })
+        node_dicts.append(
+            {
+                "nodeType": "ArrayMapNode",
+                "depth": 0,
+                "wholeRef": whole_ref,
+                "includeSections": False,
+                "sharedTitle": base_node.sharedTitle,
+                "match_templates": match_templates,
+            }
+        )
     return node_dicts
 
 
@@ -339,8 +354,7 @@ def build_parasha_alt_struct(commentary_index, commentator_slug, kind, extra):
     """
     if kind in ("simple", "complex_single"):
         base_title = commentary_index.base_text_titles[0]
-        node_dicts = _build_parasha_nodes_for_book(
-            commentator_slug, base_title, ref_prefix=commentary_index.title)
+        node_dicts = _build_parasha_nodes_for_book(commentator_slug, base_title, ref_prefix=commentary_index.title)
     elif kind == "complex_multi":
         book_to_node = extra
         node_dicts = []
@@ -349,11 +363,10 @@ def build_parasha_alt_struct(commentary_index, commentator_slug, kind, extra):
                 continue
             outer_node, _body_node = book_to_node[base_title]
             book_title_in_commentary = outer_node.get_primary_title("en")
-            ref_prefix = "{}, {}".format(commentary_index.title, book_title_in_commentary)
-            node_dicts.extend(
-                _build_parasha_nodes_for_book(commentator_slug, base_title, ref_prefix))
+            ref_prefix = f"{commentary_index.title}, {book_title_in_commentary}"
+            node_dicts.extend(_build_parasha_nodes_for_book(commentator_slug, base_title, ref_prefix))
     else:
-        raise ValueError("Unknown kind '{}'".format(kind))
+        raise ValueError(f"Unknown kind '{kind}'")
 
     struct_obj = deserialize_tree({"nodes": node_dicts}, struct_class=TitledTreeNode)
     struct_obj.title_group = commentary_index.nodes.title_group
@@ -367,20 +380,23 @@ def add_parsha_struct_to_commentary(title, commentator_slug, dry_run=False, forc
 
     kind, extra, reason = classify_commentary(index, torah_books)
     if kind is None:
-        print("Skipping '{}': {}".format(title, reason))
+        print(f"Skipping '{title}': {reason}")
         return False
 
     if index.get_alt_structures().get("Parasha") is not None and not force:
-        print("Skipping '{}': already has a 'Parasha' alt structure (use --force to overwrite)".format(title))
+        print(f"Skipping '{title}': already has a 'Parasha' alt structure (use --force to overwrite)")
         return False
 
     struct_obj = build_parasha_alt_struct(index, commentator_slug, kind, extra)
 
     if dry_run:
-        print("Would set 'Parasha' alt structure on '{}' [{}] (hidden from TOC nav via exclude_structs):".format(title, kind))
+        print(f"Would set 'Parasha' alt structure on '{title}' [{kind}] (hidden from TOC nav via exclude_structs):")
         for node in struct_obj.children:
-            print("  {} -> {} | match_templates={}".format(
-                node.get_primary_title("en"), node.wholeRef, node.match_templates))
+            print(
+                "  {} -> {} | match_templates={}".format(
+                    node.get_primary_title("en"), node.wholeRef, node.match_templates
+                )
+            )
         return True
 
     index.set_alt_structure("Parasha", struct_obj)
@@ -389,17 +405,17 @@ def add_parsha_struct_to_commentary(title, commentator_slug, dry_run=False, forc
         exclude_structs.append("Parasha")
     index.exclude_structs = exclude_structs
     index.save()
-    print("Added 'Parasha' alt structure to '{}' [{}] (hidden from TOC nav via exclude_structs)".format(title, kind))
+    print(f"Added 'Parasha' alt structure to '{title}' [{kind}] (hidden from TOC nav via exclude_structs)")
     return True
 
 
 def needs_processing(index, torah_books, force):
     kind, _extra, reason = classify_commentary(index, torah_books)
     if kind is None:
-        print("Skipping '{}': {}".format(index.title, reason))
+        print(f"Skipping '{index.title}': {reason}")
         return False
     if index.get_alt_structures().get("Parasha") is not None and not force:
-        print("Skipping '{}': already has a 'Parasha' alt structure (use --force to overwrite)".format(index.title))
+        print(f"Skipping '{index.title}': already has a 'Parasha' alt structure (use --force to overwrite)")
         return False
     return True
 
@@ -411,10 +427,16 @@ if __name__ == "__main__":
     group.add_argument("--all", action="store_true", help="Process all eligible Torah commentaries")
     parser.add_argument("--dry-run", action="store_true", help="Print what would change without saving")
     parser.add_argument("--force", action="store_true", help="Overwrite an existing 'Parasha' alt structure")
-    parser.add_argument("--skip-manual-slugs", action="store_true",
-                         help="Skip commentaries with no guessable commentator term instead of prompting to type one in")
-    parser.add_argument("--accept-all", action="store_true",
-                         help="Accept every guessed commentator term automatically instead of prompting to confirm each one")
+    parser.add_argument(
+        "--skip-manual-slugs",
+        action="store_true",
+        help="Skip commentaries with no guessable commentator term instead of prompting to type one in",
+    )
+    parser.add_argument(
+        "--accept-all",
+        action="store_true",
+        help="Accept every guessed commentator term automatically instead of prompting to confirm each one",
+    )
     args = parser.parse_args()
 
     torah_books = get_torah_books()
@@ -424,7 +446,7 @@ if __name__ == "__main__":
     else:
         eligible = get_eligible_commentaries()
         candidates = [index for index, _kind, _extra in eligible]
-        print("Found {} eligible Torah commentaries".format(len(candidates)))
+        print(f"Found {len(candidates)} eligible Torah commentaries")
         report_skipped_commentaries()
 
     to_process = [index for index in candidates if needs_processing(index, torah_books, args.force)]
@@ -435,7 +457,7 @@ if __name__ == "__main__":
     for index in to_process:
         slug = confirm_commentator_term_slug(index, skip_manual=args.skip_manual_slugs, accept_all=args.accept_all)
         if slug is None:
-            print("Skipping '{}': no confirmed commentator term".format(index.title))
+            print(f"Skipping '{index.title}': no confirmed commentator term")
             continue
         confirmed_slugs[index.title] = slug
 
@@ -447,10 +469,10 @@ if __name__ == "__main__":
         try:
             add_parsha_struct_to_commentary(title, slug, dry_run=args.dry_run, force=args.force)
         except Exception as e:
-            print("FAILED '{}': {}".format(title, e))
+            print(f"FAILED '{title}': {e}")
             failures.append(title)
 
     if failures:
-        print("\n{} commentary(ies) failed and were skipped:".format(len(failures)))
+        print(f"\n{len(failures)} commentary(ies) failed and were skipped:")
         for title in failures:
-            print("  {}".format(title))
+            print(f"  {title}")

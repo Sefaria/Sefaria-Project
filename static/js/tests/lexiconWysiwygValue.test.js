@@ -15,17 +15,24 @@
  */
 
 jest.mock('react-simple-wysiwyg', () => {
-  const React = require('react');  // jest.mock factories are hoisted above imports
+  const React = require('react'); // jest.mock factories are hoisted above imports
   return {
     __esModule: true,
-    default: ({ value, onChange, children }) => React.createElement('div', { className: 'fakeEditor' },
-      children,
-      React.createElement('div', { className: 'fakeEditorContent', dangerouslySetInnerHTML: { __html: value } }),
-      React.createElement('button', {
-        className: 'fakeEditorType',
-        onClick: () => onChange({ target: { value: `${value}<i>typed</i>` } }),
-      }, 'type'),
-    ),
+    default: ({ value, onChange, children }) =>
+      React.createElement(
+        'div',
+        { className: 'fakeEditor' },
+        children,
+        React.createElement('div', { className: 'fakeEditorContent', dangerouslySetInnerHTML: { __html: value } }),
+        React.createElement(
+          'button',
+          {
+            className: 'fakeEditorType',
+            onClick: () => onChange({ target: { value: `${value}<i>typed</i>` } }),
+          },
+          'type'
+        )
+      ),
     Toolbar: ({ children }) => React.createElement('div', { className: 'fakeToolbar' }, children),
     BtnBold: () => null,
     BtnItalic: () => null,
@@ -47,7 +54,8 @@ describe('sanitizeLexiconHtml', () => {
   test('keeps tags/attributes lexicon content actually uses', () => {
     // DOMPurify rebuilds the element (reordering attributes in the process), so this asserts on
     // presence/text rather than exact string equality with the input.
-    const html = '<b>1.</b> <a class="refLink" href="/Genesis.1.1" data-ref="Genesis 1:1">Gen 1:1</a>, <i>see</i> <sup>2</sup>';
+    const html =
+      '<b>1.</b> <a class="refLink" href="/Genesis.1.1" data-ref="Genesis 1:1">Gen 1:1</a>, <i>see</i> <sup>2</sup>';
     const div = document.createElement('div');
     div.innerHTML = sanitizeLexiconHtml(html);
     expect(div.querySelector('b').textContent).toBe('1.');
@@ -76,8 +84,13 @@ describe('WysiwygValueNode', () => {
   let commitDraft = null;
   let handleEdit = null;
   const NODE_PATH = ['content', 'senses', 0, 'definition'];
-  const node = (props) => React.createElement(WysiwygValueNode,
-    { nodeData: { path: NODE_PATH }, customNodeProps: { commitDraft }, handleEdit, ...props });
+  const node = (props) =>
+    React.createElement(WysiwygValueNode, {
+      nodeData: { path: NODE_PATH },
+      customNodeProps: { commitDraft },
+      handleEdit,
+      ...props,
+    });
 
   const render = (props) => {
     commitDraft = jest.fn();
@@ -88,12 +101,15 @@ describe('WysiwygValueNode', () => {
       ReactDOM.render(node(props), container);
     });
   };
-  const type = () => act(() => {
-    container.querySelector('.fakeEditorType').dispatchEvent(new MouseEvent('click', { bubbles: true }));
-  });
+  const type = () =>
+    act(() => {
+      container.querySelector('.fakeEditorType').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
   afterEach(() => {
     if (container) {
-      act(() => { ReactDOM.unmountComponentAtNode(container); });
+      act(() => {
+        ReactDOM.unmountComponentAtNode(container);
+      });
       document.body.removeChild(container);
       container = null;
     }
@@ -142,7 +158,7 @@ describe('WysiwygValueNode', () => {
     expect(container.querySelector('.fakeEditorContent').innerHTML).toBe(stored);
   });
 
-  test('a change goes into the panel draft as it is typed, keyed by this node\'s path', () => {
+  test("a change goes into the panel draft as it is typed, keyed by this node's path", () => {
     // Not waiting on any per-field confirm: that's what keeps the text when the field is closed
     // by clicking elsewhere, and what lets Save send it without the field being committed first.
     render({ value: 'text', isEditing: true });
