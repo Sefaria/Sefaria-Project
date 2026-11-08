@@ -1664,7 +1664,7 @@ $(function() {
 	}).find("#sheetSummaryInput").change();
 
 	$("#sourceSheetGroupSelect").change(function() {
-		if (!!$(this).val()) {
+		if ($(this).val()) {
 			var $el = $("#sourceSheetGroupSelect option:selected");
 			var collectionSlug = $el.attr("data-slug");
 			var collectionHeader = $el.attr("data-image");
@@ -2772,7 +2772,7 @@ function saveSheet(sheet, reload) {
 			$lastSaved.find(".lastSavedConfirmed").show().siblings().hide();
 		}
 
-		if (!!data.error) {
+		if (data.error) {
 			sjs.alert.flash(data.error);
 			$("#save").data("mode", "editing").find("#doSave").show().siblings().hide();
 			if (data.errorAction === 'loginRedirect') {

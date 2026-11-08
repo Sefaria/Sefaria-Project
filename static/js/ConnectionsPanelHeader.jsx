@@ -25,7 +25,7 @@ class ConnectionsPanelHeader extends Component {
     this.setMarginForScrollbar();
   }
   getPreviousMode() {
-      return !!this.props.previousMode ? this.props.previousMode : this.previousModes[this.props.connectionsMode];
+      return this.props.previousMode ? this.props.previousMode : this.previousModes[this.props.connectionsMode];
   }
   setMarginForScrollbar() {
     // Scrollbars take up spacing, causing the centering of ConnectsionPanel to be slightly off center

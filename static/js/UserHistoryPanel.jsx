@@ -215,7 +215,7 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
             smallfonts={true}
             key={key}
           />
-        }else if (!!item?.text) {
+        }else if (item?.text) {
           // item.versions
           return <TextPassage text={{
                 ref: item.ref,

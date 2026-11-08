@@ -467,7 +467,7 @@ class ConfirmAddToSheet extends Component {
     return (<div className="confirmAddToSheet addToSourceSheetBox">
               <div className="message">
                 <span className="int-en">
-                  <a href={sref} data-target-module={!!this.props.nodeRef ? Sefaria.VOICES_MODULE : Sefaria.LIBRARY_MODULE}>{srefTitles["en"]}</a>
+                  <a href={sref} data-target-module={this.props.nodeRef ? Sefaria.VOICES_MODULE : Sefaria.LIBRARY_MODULE}>{srefTitles["en"]}</a>
                   &nbsp;has been added to&nbsp;
                    <a href={"/sheets/" + this.props.sheet.id} data-target-module={Sefaria.VOICES_MODULE}>{this.props.sheet.title}</a>.
                 </span>

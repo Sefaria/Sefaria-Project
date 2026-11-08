@@ -28,7 +28,7 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
        data-prevent-close={preventClose}
        data-anl-event={analyticsEventName}
        data-anl-text={analyticsEventText}
-       onKeyDown={(e) => Util.handleKeyboardClick(e)}
+       onKeyDown={(e) => Util.handleKeyboardClick(e)} rel="noreferrer"
     >
       {children}
     </a>
@@ -63,7 +63,7 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
        href={url}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
-       onKeyDown={(e) => Util.handleKeyboardClick(e)}
+       onKeyDown={(e) => Util.handleKeyboardClick(e)} rel="noreferrer"
     >
       {children}
     </a>
@@ -136,7 +136,7 @@ const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
        target={newTab ? '_blank' : null}
        data-anl-event={"modswitch_item_click:click"}
-       data-anl-text={text.en}>
+       data-anl-text={text.en} rel="noreferrer">
       <div className="dropdownHeader">
         <span className="dropdownDot" style={{backgroundColor: `var(${dotColor})`}}></span>
         <span className='dropdownHeaderText'>

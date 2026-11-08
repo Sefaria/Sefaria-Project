@@ -889,7 +889,7 @@ const TopicListItem = ({ id, topic, interfaceLang, srefs }) => {
     dataSourceText = `${Sefaria._("common.this_topic_is_connected_to")}"${Sefaria._r(srefs[0])}" ${Sefaria._("common.by")} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
   return (
-      <a href={`/topics/${topic.topic}`} className="topicButton" target="_blank" id={`topicItem-${id}`}>
+      <a href={`/topics/${topic.topic}`} className="topicButton" target="_blank" id={`topicItem-${id}`} rel="noreferrer">
       <span className="topicButtonTitle">
         <span className="contentText">
           <span className="en">{topic.title.en}</span>
@@ -1600,7 +1600,7 @@ function ManuscriptImage(props) {
     ? ['int-he', 'he_description'] : ['int-en', 'description'];
   return (
     <div className={"manuscript"} >
-      <a href={manuscript['image_url']} target="_blank">
+      <a href={manuscript['image_url']} target="_blank" rel="noreferrer">
         <img className={"manuscriptImage"} src={manuscript["thumbnail_url"]} alt={"Ancient Manuscript"} />
       </a>
       {
@@ -1623,7 +1623,7 @@ function ManuscriptImage(props) {
             ? <div className="manuscriptLicense">
                 <InterfaceText>common.license</InterfaceText>
                 <InterfaceText>:</InterfaceText>
-                <a className="manuscriptLicenseLink" href={Sefaria.getLicenseMap()[manuscript.manuscript['license']]} target="_blank">
+                <a className="manuscriptLicenseLink" href={Sefaria.getLicenseMap()[manuscript.manuscript['license']]} target="_blank" rel="noreferrer">
                   {Sefaria.translateLicense(manuscript.manuscript['license'])}
                 </a>
             </div>
@@ -1633,7 +1633,7 @@ function ManuscriptImage(props) {
           manuscript.manuscript['source']
             ? <span>
               <InterfaceText text={{ en: 'Source: ', he: 'מקור: ' }} />
-              <a className="versionDetailsLink" href={manuscript.manuscript['source']} target="_blank">
+              <a className="versionDetailsLink" href={manuscript.manuscript['source']} target="_blank" rel="noreferrer">
                 { Sefaria.util.parseUrl(manuscript.manuscript['source']).host.replace("www.", "") }
               </a>
             </span>

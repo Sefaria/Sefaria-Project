@@ -39,7 +39,7 @@ class Hebrew {
 	breakIntMagnitudes(15000)
 	[10000, 5000, 0, 0, 0]
      */
-    if (!!start) {
+    if (start) {
       if (!(start % 10 === 0 || start === 1)) {
         throw new TypeError(`Argument 'start' must be 1 or divisible by 10, ${start} provided.`);
       }

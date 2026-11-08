@@ -91,7 +91,7 @@ class BookPage extends Component {
     //build full versions of current object versions
     let currObjectVersions = {en: null, he: null};
     for(let [lang,ver] of Object.entries(this.props.currVersions)){
-      if(!!ver){
+      if(ver){
         let fullVer = versions.find(version => version.versionTitle == ver.versionTitle && version.language == lang);
         currObjectVersions[lang] = fullVer ? fullVer : null;
       }

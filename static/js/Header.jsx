@@ -607,7 +607,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           </a>
         }
 
-        <a href="https://developers.sefaria.org" className="mobileModuleSwitcher" target="_blank">
+        <a href="https://developers.sefaria.org" className="mobileModuleSwitcher" target="_blank" rel="noreferrer">
           <span className="dropdownDot" style={{backgroundColor: `var(--devportal-purple)`}}></span>
           <InterfaceText>header.developers_on_sefaria</InterfaceText>
         </a>

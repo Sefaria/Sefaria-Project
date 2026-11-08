@@ -6,15 +6,15 @@ import {VersionBlockUtils} from "./VersionBlock";
 
 function VersionImage({version}) {
     function makeImageLink() {
-        return !!version.purchaseInformationURL ? version.purchaseInformationURL : version.versionSource;
+        return version.purchaseInformationURL ? version.purchaseInformationURL : version.versionSource;
     }
     function makeImageSrc(){
-        return  !!version.purchaseInformationImage ? version.purchaseInformationImage : "data:,";
+        return  version.purchaseInformationImage ? version.purchaseInformationImage : "data:,";
     }
     return (
       <div className="versionDetailsImage">
         <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionBuyImage": 1, "versionDetailsElement": 1} , "purchaseInformationImage"))}>
-          <a className="versionDetailsLink versionDetailsImageLink" href={makeImageLink()} target="_blank">
+          <a className="versionDetailsLink versionDetailsImageLink" href={makeImageLink()} target="_blank" rel="noreferrer">
             <img className="versionImage" src={makeImageSrc()} alt={Sefaria._("version_image.buy_now")} />
           </a>
         </div>

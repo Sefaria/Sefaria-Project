@@ -215,7 +215,7 @@ const SiteWideBanner = ({
           href={learnMoreUrl}
           className="bannerLearnMore"
           target="_blank"
-          onClick={() => trackBannerInteraction("learn_more")}
+          onClick={() => trackBannerInteraction("learn_more")} rel="noreferrer"
         >
           {Sefaria._(learnMoreText) || Sefaria._("common.learn_more")}
         </a>

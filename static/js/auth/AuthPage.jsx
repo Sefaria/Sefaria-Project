@@ -87,7 +87,7 @@ const AuthPage = ({
   // own effect, which starts the flow.
   useEffect(() => {
     if (initialView === 'email' && flow === 'register') onEmailClick();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   let content;

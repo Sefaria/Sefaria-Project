@@ -221,7 +221,7 @@ class VersionBlock extends Component {
 
       let licenses = [...Object.keys(Sefaria.getLicenseMap()), ""];
       licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
-      if (!!this.state.error) {
+      if (this.state.error) {
         alert(this.state.error);
       }
 
@@ -400,7 +400,7 @@ class VersionsBlocksList extends Component{
   }
   getCurrentVersionsKeys(currentVersions){
     //make an array of strings that are keys of the current versions
-    return Object.values(currentVersions).map((v) => !!v ? `${v.actualLanguage}|${v.versionTitle}` : "");
+    return Object.values(currentVersions).map((v) => v ? `${v.actualLanguage}|${v.versionTitle}` : "");
   }
   render(){
       const sortedLanguages = this.sortVersions(this.props.sortPrioritizeLanugage);

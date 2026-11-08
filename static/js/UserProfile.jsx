@@ -487,7 +487,7 @@ const UserBackground = ({profile: p, showBio, multiPanel}) => {
     }
     infoList = infoList.concat(p.jewish_education);
     if (p.website) {
-        infoList.push(<span><a href={p.website} target="_blank"><InterfaceText>common.website</InterfaceText></a></span>);
+        infoList.push(<span><a href={p.website} target="_blank" rel="noreferrer"><InterfaceText>common.website</InterfaceText></a></span>);
     }
     const socialList = social.filter(s => !!p[s]);
     if (socialList.length) {
@@ -495,7 +495,7 @@ const UserBackground = ({profile: p, showBio, multiPanel}) => {
             // we only store twitter handles so twitter needs to be hardcoded
             <span>
         {
-          socialList.map(s => (<a key={s} className="social-icon" target="_blank" href={(s === 'twitter' ? 'https://twitter.com/' : s === 'youtube' ? 'https://www.youtube.com/' : '') + p[s]}><img src={`/static/img/${s}.svg`} /></a>))
+          socialList.map(s => (<a key={s} className="social-icon" target="_blank" href={(s === 'twitter' ? 'https://twitter.com/' : s === 'youtube' ? 'https://www.youtube.com/' : '') + p[s]} rel="noreferrer"><img src={`/static/img/${s}.svg`} /></a>))
         }
       </span>
         );

@@ -53,11 +53,11 @@ const Button = ({
         onKeyDown={disabled ? null : (e) => Util.handleLinkSpaceKey(e, onClick)}
         tabIndex={0}
         role="button"
-        {...(!!target ? { target } : {})}
-        {...(!!rel ? { rel } : {})}
+        {...(target ? { target } : {})}
+        {...(rel ? { rel } : {})}
         {...(ariaLabel ? { 'aria-label': ariaLabel, title: ariaLabel } : {})}
-        {...(!!targetModule ? { 'data-target-module': targetModule } : {})}
-        {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
+        {...(targetModule ? { 'data-target-module': targetModule } : {})}
+        {...(activeModule ? { 'data-active-module': activeModule } : {})}
       >
         {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt="" aria-hidden="true" />)}
         {children}
@@ -68,7 +68,7 @@ const Button = ({
   return (
     <button
       disabled={disabled}
-      {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
+      {...(activeModule ? { 'data-active-module': activeModule } : {})}
       className={buttonClasses}
       onClick={onClick}
       {...(ariaLabel ? { 'aria-label': ariaLabel, title: ariaLabel } : {})}

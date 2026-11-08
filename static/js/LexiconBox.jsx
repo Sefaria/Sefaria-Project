@@ -107,7 +107,7 @@ class LexiconBox extends Component {
     const enEmpty = 'No definitions found for "' + this.props.selectedWords + '".';
     const heEmpty = 'לא נמצאו תוצאות "' + this.props.selectedWords + '".';
     let content = "";
-    if (!!this.props.selectedNamedEntity) {
+    if (this.props.selectedNamedEntity) {
       if (!this.state.loaded || !this.state.namedEntity) {
         // not sure why I also need to check for this.state.namedEntity but I've seen situations where loaded is true and namedEntity is null
         content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
@@ -123,7 +123,7 @@ class LexiconBox extends Component {
           const neArray = this.state.namedEntity.possibilities || [this.state.namedEntity]; 
           const namedEntityContent = neArray.map(ne => (<div key={ne.slug} className="named-entity-wrapper">
             <div className="named-entity-title-bar">
-              <a className="contentText topicLexiconTitle" href={`/topics/${ne.slug}`} target="_blank">
+              <a className="contentText topicLexiconTitle" href={`/topics/${ne.slug}`} target="_blank" rel="noreferrer">
                 <span className="en">{ne.primaryTitle.en}</span>
                 <span className="he">{ne.primaryTitle.he}</span>
               </a>
@@ -150,7 +150,7 @@ class LexiconBox extends Component {
                                         he: ne.description ? ne.description.he : `לא קיים מידע עבור '${ne.primaryTitle.he}'`}} />
             </div>
           </div>));
-          content = (!!this.state.namedEntity.possibilities ? (
+          content = (this.state.namedEntity.possibilities ? (
             <div>
               <div className="named-entity-ambiguous">
                 <i className="systemText">
@@ -320,10 +320,10 @@ class LexiconEntry extends Component {
     return (
         <div>
           {('source_url' in lexicon_dtls) ?
-            <a target="_blank" href={ lexicon_dtls['source_url'] }>{sourceContent}</a> :
+            <a target="_blank" href={ lexicon_dtls['source_url'] } rel="noreferrer">{sourceContent}</a> :
             sourceContent}
           {('attribution_url' in lexicon_dtls) ?
-            <a target="_blank" href={ lexicon_dtls['attribution_url'] }>{attributionContent}</a> :
+            <a target="_blank" href={ lexicon_dtls['attribution_url'] } rel="noreferrer">{attributionContent}</a> :
             attributionContent}
         </div>
     );

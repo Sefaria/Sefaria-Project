@@ -67,7 +67,7 @@ export class ProfilePic extends Component {
     render() {
         const { name, url, len, hideOnDefault, showButtons, outerStyle, onClick, tabIndex, onKeyDown, ...otherProps } = this.props;
         const { showDefault} = this.state;
-        const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
+        const nameArray = name.trim() ? name.trim().split(/\s/) : [];
         const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "";
         const defaultViz = showDefault ? 'flex' : 'none';
         const profileViz = showDefault ? 'none' : 'block';

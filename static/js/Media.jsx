@@ -138,8 +138,8 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
 				<span className="int-en">License: {license}</span>
 				<span className="int-he">עסק רשיון: {license}</span>
         <br/>
-				<span className="int-en">Source: <a href={source_site} target="_blank">{source}</a></span>
-				<span className="int-he">מקור: <a href={source_site} target="_blank">{source_he}</a></span>
+				<span className="int-en">Source: <a href={source_site} target="_blank" rel="noreferrer">{source}</a></span>
+				<span className="int-he">מקור: <a href={source_site} target="_blank" rel="noreferrer">{source_he}</a></span>
 			  </div>
           </div>
       );

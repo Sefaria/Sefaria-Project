@@ -80,7 +80,7 @@ const fetchBulkSheet = inSheets => {
 
 
 const refFilter = (currFilter, ref) => {
-  const n = text => !!text ? text.toLowerCase() : '';
+  const n = text => text ? text.toLowerCase() : '';
   currFilter = n(currFilter);
   ref[1].categories = Sefaria.refCategories(ref[1].ref).join(" ");
   for (let field of ['en', 'he', 'ref', 'categories']) {
@@ -90,7 +90,7 @@ const refFilter = (currFilter, ref) => {
 
 
 const sheetFilter = (currFilter, sheet) => {
-  const n = text => !!text ? text.toLowerCase() : '';
+  const n = text => text ? text.toLowerCase() : '';
   currFilter = n(currFilter);
   for (let field of ['sheet_title', 'sheet_summary', 'publisher_name', 'publisher_position', 'publisher_organization']) {
     if (n(sheet[field]).indexOf(currFilter) > -1) { return true; }
@@ -389,7 +389,7 @@ const getTopicHeaderAdminActionButtons = (topicSlug, refTopicLinks) => {
 
 const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
-  const category = !!topicData ? Sefaria.displayTopicTocCategory(topicData.slug) : null;
+  const category = topicData ? Sefaria.displayTopicTocCategory(topicData.slug) : null;
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   const actionButtons = getTopicHeaderAdminActionButtons(topic, topicData.refs?.about?.refs);
   const hasAiContentLinks = getLinksWithAiContent(topicData.refs?.about?.refs).length != 0;
@@ -436,7 +436,7 @@ return (
                href="https://learn.sefaria.org/weekly-parashah/"
                target="_blank"
                data-anl-event="select_promotion:click|view_promotion:scrollIntoView"
-               data-anl-promotion_name="Parashah Email Signup - Parashah Page"
+               data-anl-promotion_name="Parashah Email Signup - Parashah Page" rel="noreferrer"
             >
                <img src="/static/icons/email-newsletter.svg" alt={Sefaria._("Sign up for our weekly parashah study companion")}/>
                <InterfaceText>Get the Free Study Companion</InterfaceText>
@@ -854,7 +854,7 @@ const TopicPageTab = ({
 
   return (
     <div className="topicTabContents">
-      {!!data ?
+      {data ?
         <div className={classes} data-anl-feature_name="source_filter">
           <FilterableList
             pageSize={20}
@@ -1124,7 +1124,7 @@ const propKeys = [
 
 
 const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, topicImage, properties={} }) => {
-  const tpSection = !!timePeriod ? (
+  const tpSection = timePeriod ? (
     <TopicSideSection title={{en: "Lived", he: "תקופת פעילות"}}>
       <div className="systemText topicMetaData"><InterfaceText text={timePeriod.name} /></div>
       <div className="systemText topicMetaData"><InterfaceText text={timePeriod.yearRange} /></div>

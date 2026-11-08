@@ -196,7 +196,7 @@ class AboutBox extends Component {
       );
     }
     const versionSectionHe =
-      (!!sourceVersion ?
+      (sourceVersion ?
       <div className="currVersionSection">
         <h2 className="aboutHeader">
             <InterfaceText text={sourceVersionSectionTitle} />
@@ -213,7 +213,7 @@ class AboutBox extends Component {
       </div>
       : null );
     const versionSectionEn =
-      (!!translationVersion?.versionTitle ?
+      (translationVersion?.versionTitle ?
       <div className="currVersionSection">
         <h2 className="aboutHeader">
           <InterfaceText text={translationVersionSectionTitle} />

@@ -345,7 +345,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
     : null }
 
     {collection.websiteUrl ?
-      <a className="collectionWebsite" target="_blank" href={collection.websiteUrl}>{collection.websiteUrl.replace(/https?:\/\//, "")}</a>
+      <a className="collectionWebsite" target="_blank" href={collection.websiteUrl} rel="noreferrer">{collection.websiteUrl.replace(/https?:\/\//, "")}</a>
       : null }
   </div>
 );
