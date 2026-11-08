@@ -13,9 +13,12 @@ jest.mock('../../Misc.jsx', () => ({
 
 // Button.jsx imports sefaria/util, which boots the whole Sefaria singleton on import.
 // Nothing in this test depends on the submit button's markup — the form is submitted directly.
-jest.mock('../../common/Button.jsx', () => ({ children, ...rest }) => (
-  require('react').createElement('button', { type: 'submit', ...rest }, children)
-));
+jest.mock(
+  '../../common/Button.jsx',
+  () =>
+    ({ children, ...rest }) =>
+      require('react').createElement('button', { type: 'submit', ...rest }, children)
+);
 
 // AuthCard.jsx / utils.js import the Sefaria singleton; give them a minimal one.
 jest.mock('../../sefaria/sefaria', () => ({
@@ -23,32 +26,38 @@ jest.mock('../../sefaria/sefaria', () => ({
   default: { _: (key) => key, interfaceLang: 'english' },
 }));
 
-// eslint-disable-next-line import/first
 import ForgotView from '../ForgotView.jsx';
 
 let container = null;
 
 const realFetch = global.fetch;
-afterAll(() => { global.fetch = realFetch; });
+afterAll(() => {
+  global.fetch = realFetch;
+});
 
 function mount(props) {
   container = document.createElement('div');
   document.body.appendChild(container);
   act(() => {
-    ReactDOM.render(React.createElement(ForgotView, {
-      emailValue: 'sso-user@example.com',
-      setField: () => () => {},
-      csrf: 'csrf',
-      onSuccess: () => {},
-      onBack: () => {},
-      ...props,
-    }), container);
+    ReactDOM.render(
+      React.createElement(ForgotView, {
+        emailValue: 'sso-user@example.com',
+        setField: () => () => {},
+        csrf: 'csrf',
+        onSuccess: () => {},
+        onBack: () => {},
+        ...props,
+      }),
+      container
+    );
   });
 }
 
 afterEach(() => {
   if (container) {
-    act(() => { ReactDOM.unmountComponentAtNode(container); });
+    act(() => {
+      ReactDOM.unmountComponentAtNode(container);
+    });
     document.body.removeChild(container);
     container = null;
   }
@@ -59,10 +68,11 @@ afterEach(() => {
 function mockSsoOnlyReset(providers) {
   global.fetch = jest.fn().mockResolvedValue({
     ok: false,
-    json: () => Promise.resolve({
-      error: 'auth.sso_only_account',
-      _auth: { code: 'sso_only_account', providers },
-    }),
+    json: () =>
+      Promise.resolve({
+        error: 'auth.sso_only_account',
+        _auth: { code: 'sso_only_account', providers },
+      }),
   });
 }
 
@@ -97,7 +107,9 @@ describe('ForgotView sso_only_account banner', () => {
 
     const link = container.querySelector('a.sefaria-auth-provider-action');
     expect(link).not.toBeNull();
-    act(() => { link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })); });
+    act(() => {
+      link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    });
     expect(triggerApple).toHaveBeenCalled();
   });
 
@@ -108,7 +120,9 @@ describe('ForgotView sso_only_account banner', () => {
     mount({ setActiveErrorHandler });
     expect(setActiveErrorHandler).toHaveBeenCalledWith(expect.any(Function));
 
-    act(() => { ReactDOM.unmountComponentAtNode(container); });
+    act(() => {
+      ReactDOM.unmountComponentAtNode(container);
+    });
     expect(setActiveErrorHandler).toHaveBeenLastCalledWith(null);
     document.body.removeChild(container);
     container = null;

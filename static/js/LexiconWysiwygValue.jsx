@@ -8,10 +8,11 @@ import Sefaria from './sefaria/sefaria';
 const ALLOWED_TAGS = ['i', 'b', 'br', 'strong', 'em', 'big', 'sup', 'sub', 'span', 'a'];
 const ALLOWED_ATTR = ['class', 'dir', 'href', 'data-ref', 'data-scroll-link'];
 
-export const sanitizeLexiconHtml = (html) => DOMPurify.sanitize(typeof html === 'string' ? html : '', {
-  ALLOWED_TAGS,
-  ALLOWED_ATTR,
-});
+export const sanitizeLexiconHtml = (html) =>
+  DOMPurify.sanitize(typeof html === 'string' ? html : '', {
+    ALLOWED_TAGS,
+    ALLOWED_ATTR,
+  });
 
 // Only the markup stored entries actually use. Rarer tags still round-trip, just aren't creatable.
 const BtnSuperscript = createButton('Superscript', 'x²', 'superscript');
@@ -48,21 +49,37 @@ const RefLinkForm = ({ initialRef, initialLabel, canRemove, onSave, onRemove, on
   };
 
   return (
-    <div className="lexiconRefLinkForm" onMouseDown={e => e.stopPropagation()}>
+    <div className="lexiconRefLinkForm" onMouseDown={(e) => e.stopPropagation()}>
       <label>
         Reference
-        <input type="text" value={refText} placeholder="Genesis 1:1" autoFocus
-               onChange={e => { setRefText(e.target.value); setError(null); }} />
+        <input
+          type="text"
+          value={refText}
+          placeholder="Genesis 1:1"
+          autoFocus
+          onChange={(e) => {
+            setRefText(e.target.value);
+            setError(null);
+          }}
+        />
       </label>
       <label>
         Display text
-        <input type="text" value={label} onChange={e => setLabel(e.target.value)} />
+        <input type="text" value={label} onChange={(e) => setLabel(e.target.value)} />
       </label>
       {error && <div className="lexiconRefLinkFormError">{error}</div>}
       <div className="lexiconRefLinkFormActions">
-        <button type="button" onClick={save}>Save</button>
-        {canRemove && <button type="button" onClick={onRemove}>Remove Link</button>}
-        <button type="button" onClick={onClose}>Cancel</button>
+        <button type="button" onClick={save}>
+          Save
+        </button>
+        {canRemove && (
+          <button type="button" onClick={onRemove}>
+            Remove Link
+          </button>
+        )}
+        <button type="button" onClick={onClose}>
+          Cancel
+        </button>
       </div>
     </div>
   );
@@ -70,7 +87,15 @@ const RefLinkForm = ({ initialRef, initialLabel, canRemove, onSave, onRemove, on
 
 // A CustomNodeDefinition `element` for json-edit-react: renders lexicon content string values as
 // styled/rendered HTML (no visible tags) in both view and edit mode.
-export const WysiwygValueNode = ({ value, isEditing, canEdit, setIsEditing, handleEdit, nodeData, customNodeProps }) => {
+export const WysiwygValueNode = ({
+  value,
+  isEditing,
+  canEdit,
+  setIsEditing,
+  handleEdit,
+  nodeData,
+  customNodeProps,
+}) => {
   const [draftHtml, setDraftHtml] = useState('');
   // Captured when a link is clicked or the Ref button is used: which element to edit inside, and
   // (for a brand new link, wrapping a text selection) the Range to replace.
@@ -82,7 +107,9 @@ export const WysiwygValueNode = ({ value, isEditing, canEdit, setIsEditing, hand
   // reversing attribute order and dropping tags outside the display allowlist, so sanitizing here
   // would rewrite untouched markup on any edit. Sanitizing on save is LexiconEntry._sanitize()'s job.
   useEffect(() => {
-    if (!isEditing) { return; }
+    if (!isEditing) {
+      return;
+    }
     valueBeforeEdit.current = value;
     setDraftHtml(value);
   }, [isEditing]);
@@ -100,18 +127,24 @@ export const WysiwygValueNode = ({ value, isEditing, canEdit, setIsEditing, hand
 
   // Defined per-instance (not at module scope, like BtnBold etc.) so it can open a link form
   // scoped to *this* field.
-  const [BtnRefLink] = useState(() => createButton('Sefaria Ref Link', 'Ref', ({ $el }) => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0 || !$el.contains(selection.getRangeAt(0).commonAncestorContainer)) { return; }
-    const range = selection.getRangeAt(0);
-    setLinkTarget({ el: $el, existingLink: closestLink(range.commonAncestorContainer), range: range.cloneRange() });
-  }));
+  const [BtnRefLink] = useState(() =>
+    createButton('Sefaria Ref Link', 'Ref', ({ $el }) => {
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0 || !$el.contains(selection.getRangeAt(0).commonAncestorContainer)) {
+        return;
+      }
+      const range = selection.getRangeAt(0);
+      setLinkTarget({ el: $el, existingLink: closestLink(range.commonAncestorContainer), range: range.cloneRange() });
+    })
+  );
 
   // A link inside a contentEditable still navigates on click, so route it into the link form
   // instead.
   const onEditorClick = (e) => {
     const link = closestLink(e.target);
-    if (!link) { return; }
+    if (!link) {
+      return;
+    }
     e.preventDefault();
     setLinkTarget({ el: e.currentTarget, existingLink: link, range: null });
   };
@@ -140,7 +173,10 @@ export const WysiwygValueNode = ({ value, isEditing, canEdit, setIsEditing, hand
 
   const removeLink = () => {
     const { el, existingLink } = linkTarget;
-    if (existingLink) { unwrap(existingLink); updateDraft(el.innerHTML); }
+    if (existingLink) {
+      unwrap(existingLink);
+      updateDraft(el.innerHTML);
+    }
     closeLinkForm();
   };
 
@@ -148,12 +184,17 @@ export const WysiwygValueNode = ({ value, isEditing, canEdit, setIsEditing, hand
     const html = sanitizeLexiconHtml(value);
     // Rendering real HTML means a ref link in the value is a real, live <a href>: without this,
     // clicking one navigates the browser away instead of opening this field for editing.
-    const onClick = (e) => { e.preventDefault(); canEdit && setIsEditing(true); };
+    const onClick = (e) => {
+      e.preventDefault();
+      canEdit && setIsEditing(true);
+    };
     return (
       <div className="lexiconWysiwygValue" onClick={onClick}>
-        {html
-          ? <span dangerouslySetInnerHTML={{ __html: html }} />
-          : <span className="lexiconWysiwygPlaceholder">(empty)</span>}
+        {html ? (
+          <span dangerouslySetInnerHTML={{ __html: html }} />
+        ) : (
+          <span className="lexiconWysiwygPlaceholder">(empty)</span>
+        )}
       </div>
     );
   }
@@ -162,7 +203,7 @@ export const WysiwygValueNode = ({ value, isEditing, canEdit, setIsEditing, hand
     <div className="lexiconWysiwygEditWrapper">
       <Editor
         value={draftHtml}
-        onChange={e => updateDraft(e.target.value)}
+        onChange={(e) => updateDraft(e.target.value)}
         onFocus={onEditorFocus}
         onClick={onEditorClick}
         containerProps={{ className: 'lexiconWysiwygEditor' }}
@@ -175,11 +216,15 @@ export const WysiwygValueNode = ({ value, isEditing, canEdit, setIsEditing, hand
           <BtnRefLink />
         </Toolbar>
       </Editor>
-      <button type="button" className="lexiconWysiwygCancel" onClick={cancelEdit}>Cancel</button>
+      <button type="button" className="lexiconWysiwygCancel" onClick={cancelEdit}>
+        Cancel
+      </button>
       {linkTarget && (
         <RefLinkForm
           initialRef={linkTarget.existingLink?.getAttribute('data-ref') ?? ''}
-          initialLabel={linkTarget.existingLink ? linkTarget.existingLink.textContent : (linkTarget.range?.toString() ?? '')}
+          initialLabel={
+            linkTarget.existingLink ? linkTarget.existingLink.textContent : (linkTarget.range?.toString() ?? '')
+          }
           canRemove={!!linkTarget.existingLink}
           onSave={saveLink}
           onRemove={removeLink}

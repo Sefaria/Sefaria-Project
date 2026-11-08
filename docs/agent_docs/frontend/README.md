@@ -1,12 +1,15 @@
 # React Frontend Architecture
+
 > Sources: `static/js/client.jsx`, `static/js/ReaderApp.jsx`, `static/js/ReaderPanel.jsx`, `static/js/context.js`, `static/js/Hooks.jsx`, `static/js/sefaria/sefaria.js`, and ~80 `.jsx` component files in `static/js/`
 
 ## Purpose
+
 Sefaria's frontend is a React single-page application that renders a multi-panel text reader, navigation menus, search, sheets, topics, collections, user profiles, and community features. It uses server-side rendering (SSR) with client-side hydration -- Django renders initial HTML, then React hydrates the DOM and takes over routing and state management.
 
 ## Key Components
 
 ### Entry Point: `client.jsx`
+
 - Runs on DOM ready (`$(function() {...})`)
 - Reads `DJANGO_VARS.props` and `DJANGO_VARS.inReaderApp` (injected by Django templates)
 - Calls `Sefaria.unpackDataFromProps(DJANGO_VARS.props)` to populate the client-side data cache before rendering
@@ -17,6 +20,7 @@ Sefaria's frontend is a React single-page application that renders a multi-panel
 - Also handles template-specific component rendering via `DJANGO_VARS.containerId` and `DJANGO_VARS.reactComponentName`
 
 ### Root Component: `ReaderApp` (class component, ~2567 lines)
+
 - Manages an array of `panels` in `this.state.panels`, where each panel is a full state object describing what that panel displays (text, connections, menu, sheet, etc.)
 - Handles browser history (`pushState`/`popState`) -- the app is a fully client-side router
 - Orchestrates multi-panel layout: calculates panel widths (68/32 split for text+connections, 37/26/37 for three panels, etc.)
@@ -25,6 +29,7 @@ Sefaria's frontend is a React single-page application that renders a multi-panel
 - Renders `Header`, an array of `ReaderPanel` instances, sign-up modals, banners, cookies notification, and optional chatbot
 
 ### Panel Component: `ReaderPanel` (class component, ~1522 lines)
+
 - Receives its state from `ReaderApp` via `initialState` prop; uses `conditionalSetState` to either update local state or call back to `ReaderApp.setPanelState`
 - Modes: `"Text"`, `"TextAndConnections"`, `"Connections"`, `"Sheet"`, `"Menu"`
 - Menu routing via `this.state.menuOpen`: `"navigation"`, `"book toc"`, `"search"`, `"topics"`, `"allTopics"`, `"community"`, `"collection"`, `"notifications"`, `"userProfile"`, `"publicCollections"`, `"translationsPage"`, `"calendars"`, `"sheets"`, `"sheetsWithRef"`, `"homeFeed"`, `"updates"`, `"modtools"`, `"userStats"`, and others
@@ -32,9 +37,11 @@ Sefaria's frontend is a React single-page application that renders a multi-panel
 - Handles content language override logic (e.g., topics/community pages force bilingual in English interface)
 
 ### Component Inventory (~80 `.jsx` files)
+
 Grouped by function:
 
 **Text Display:**
+
 - `TextColumn.jsx` -- infinite-scroll text rendering
 - `TextRange.jsx` -- renders a single text segment
 - `ContentText.jsx` -- bilingual text content wrapper
@@ -42,23 +49,27 @@ Grouped by function:
 - `VersionsTextList.jsx` -- version comparison list
 
 **Navigation & Browse:**
+
 - `TextsPage.jsx` -- library browse / table of contents
 - `BookPage.jsx` -- individual book landing page
 - `TextCategoryPage.jsx` -- category page
 - `CalendarsPage.jsx` -- learning schedules / calendar readings
 
 **Connections & Commentary:**
+
 - `ConnectionsPanel.jsx` -- sidebar showing related texts, resources
 - `ConnectionsPanelHeader.jsx` -- header for connections panel
 - `ConnectionFilters.jsx` -- filter controls for connections
 
 **Topics:**
+
 - `TopicPage.jsx` -- individual topic page + `TopicCategory`
 - `TopicPageAll.jsx` -- all topics listing
 - `TopicsPage.jsx` -- topics landing
 - `TopicSearch.jsx` -- topic search
 
 **Search:**
+
 - `SearchPage.jsx` -- search results page
 - `SearchResultList.jsx` -- search result rendering
 - `SearchFilters.jsx` -- search filter UI
@@ -68,29 +79,34 @@ Grouped by function:
 - `DictionarySearch.jsx` -- dictionary lookup
 
 **Sheets:**
+
 - `sheets/Sheet.jsx` -- sheet display/editor
 - `sheets/SheetsHomePage.jsx` -- sheets landing
 - `sheets/SheetsWithRefPage.jsx` -- sheets referencing a text
 - `AddToSourceSheet.jsx` -- add-to-sheet widget
 
 **User:**
+
 - `UserProfile.jsx` -- user profile page
 - `UserHistoryPanel.jsx` -- reading history
 - `UserStats.jsx` -- user statistics
 - `NotificationsPanel.jsx` -- notifications
 
 **Collections:**
+
 - `CollectionPage.jsx` -- collection display
 - `EditCollectionPage.jsx` -- collection editor
 - `PublicCollectionsPage.jsx` -- public collections listing
 - `CollectionsWidget.jsx` -- collection selector widget
 
 **Header & Navigation:**
+
 - `Header.jsx` -- top navigation bar
 - `HeaderAutocomplete.jsx` -- search autocomplete in header
 - `NavSidebar.jsx` -- sidebar navigation
 
 **Admin/Editor:**
+
 - `AdminEditor.jsx` -- admin editing tools
 - `CategoryEditor.jsx` -- category editor
 - `TopicEditor.jsx` -- topic editor
@@ -99,6 +115,7 @@ Grouped by function:
 - `Editor.jsx` -- general editor
 
 **Display & UI:**
+
 - `Misc.jsx` -- shared UI components (CloseButton, MenuButton, SaveButton, SignUpModal, Banner, etc.)
 - `ReaderDisplayOptionsMenu.jsx` -- font size, layout, language settings
 - `Promotions.jsx` -- promotional banners/modals from Strapi CMS
@@ -129,6 +146,17 @@ Grouped by function:
 5. **`Sefaria.getBackgroundData()`** fires after unpacking: fetches `/api/background-data` to get additional data not included in the initial props.
 6. **`ReactDOM.hydrate`** attaches React to the server-rendered HTML in `#s2`, matching the existing DOM and adding event listeners.
 
+## Strapi Content Targeting (banners and modals)
+
+`static/js/sefaria/strapiSelection.js` decides which Strapi banner or modal a viewer sees: `isEligible` runs the `ELIGIBILITY_PREDICATES` list (locale, country, audience, donor audience, dismissal) against a viewer context from `buildViewerContext()`, then `selectContent` ranks the survivors. The GraphQL field lists that fetch the documents are in `static/js/context.js` (`bannerFields`, `modalFields`).
+
+- **Donor audience gate.** Two Strapi checkboxes, `showToDonor` and `showToNonDonor`, form an independent AND-ed filter (`matchesDonorAudience`), kept out of the existing user-kind flags so documents that never set them match and rank exactly as before. Neither or both ticked means unrestricted; one ticked restricts the document to confirmed donors or to everyone else.
+- **Combinations that match nobody.** Because every filter is AND-ed, some combinations match nobody, and the CMS does not warn about them: a confirmed donor is always logged in, so `showTo: logged_out_only` with donor-only never shows (Jest T8). Ask editors to pair donor-only with `everyone` or `logged_in_only`.
+- **`isConfirmedDonor`** (in `buildViewerContext`) is `Sefaria.donor_status === 'donor'` or a sustainer. An `unknown` status and logged-out viewers count as non-donors. `Sefaria.donor_status` comes from `base_props` in `reader/views.py` via `Sefaria.unpackBaseProps` in `sefaria/sefaria.js`; the string values are mirrored in the `DonorStatus` map and defined by `DonorStatus` in `sefaria/donors/types.py`.
+- **Ranking.** Only donor-only documents (`isDonorOnly`) gain audience specificity in `audienceSpecificity`. A non-donor-only document is an exclusion ("everyone but donors"), so it is close to everyone and gains no rank.
+- **Deploy order.** Strapi must have both fields on both content types (banner and modal) before the query ships. `context.js` requests them by name, and GraphQL rejects the whole query if either is missing, which blanks every banner and modal.
+- **Tests.** Jest: `static/js/sefaria/tests/strapiSelection.test.js`. Playwright: `e2e-tests/tests/strapi-donor-audience.spec.js` and `strapi-donor-webhook-flow.spec.js`.
+
 ## Non-Obvious Patterns
 
 - **`react-class` base**: many components extend `Component` from `react-class` (not `React.Component`). This library auto-binds methods and provides some convenience features. New code should still use this pattern for consistency, or use function components with hooks.
@@ -140,6 +168,7 @@ Grouped by function:
 - **jQuery still present**: `sefariaJquery` is used throughout for AJAX calls (`$.getJSON`, `$.ajax`), DOM manipulation, and scroll handling. Migration to fetch/native APIs is incomplete.
 
 ## Relationships
+
 - `ReaderApp` owns N `ReaderPanel` instances, each rendering one of: `TextColumn`, `Sheet`, `ConnectionsPanel`, or a menu component
 - All text/ref data flows through the `Sefaria` singleton -- components call `Sefaria.getText()`, `Sefaria.ref()`, `Sefaria.index()`, etc.
 - The `ReaderPanelContext` bridges `ReaderPanel` state to deeply nested text rendering components
@@ -148,6 +177,7 @@ Grouped by function:
 ## Common Tasks
 
 **Adding a new menu/page type:**
+
 1. Create a new `.jsx` component in `static/js/`
 2. Import it in `ReaderPanel.jsx`
 3. Add a case in `ReaderPanel.render()` for your `menuOpen` value
@@ -155,11 +185,13 @@ Grouped by function:
 5. Add URL handling in `ReaderApp.makeHistoryState()` and the Django view
 
 **Adding a new display setting:**
+
 1. Add the setting to `ReaderApp.getDefaultPanelSettings()`
 2. Add UI control in `ReaderDisplayOptionsMenu.jsx`
 3. Read the setting in the consuming component via `this.state.settings.yourSetting` or from `ReaderPanelContext`
 
 **Adding a new API data type to SSR hydration:**
+
 1. Add the data to the Django view's `props` dict
 2. Handle it in `Sefaria.unpackDataFromProps()` to cache it client-side
 3. Add a getter/cache pattern in `sefaria.js` (e.g., `Sefaria._myData = {}; Sefaria.getMyData = function(key) { ... }`)

@@ -1,12 +1,15 @@
 # WebPage & WebSite
+
 > Source: `sefaria/model/webpage.py`
 
 ## Purpose
+
 Tracks external web pages that reference Sefaria texts (discovered via the Sefaria Linker installed on partner sites). Stores URL, title, description, and the Sefaria refs found on each page. Also manages `WebSite` records that represent known partner domains with configuration for URL normalization, title branding cleanup, and whitelisting.
 
 ## Key Classes
 
 ### WebPage
+
 - **Inherits**: `AbstractMongoRecord`
 - **Collection**: `webpages`
 - **Role**: Represents a single external web page that references one or more Sefaria texts. Created/updated when the Sefaria Linker reports a page visit.
@@ -21,11 +24,13 @@ Tracks external web pages that reference Sefaria texts (discovered via the Sefar
   - `get_website(dict_only=False)` -- Returns the corresponding `WebSite` record. If `dict_only=True`, uses the in-memory cache instead of a DB load.
 
 ### WebPageSet
+
 - **Inherits**: `AbstractMongoSet`
 - **Collection**: `webpages`
 - **Role**: Standard set class for querying multiple WebPages.
 
 ### WebSite
+
 - **Inherits**: `AbstractMongoRecord`
 - **Collection**: `websites`
 - **Role**: Configuration record for a known external website/domain. Controls URL normalization rules, title branding removal, whitelisting, and URL exclusion patterns.
@@ -35,6 +40,7 @@ Tracks external web pages that reference Sefaria texts (discovered via the Sefar
 - **Note**: Implements `__hash__` and `__eq__` based on `(name, domains[0])`, so WebSite instances can be used as dict keys / set members.
 
 ### WebSiteSet
+
 - **Inherits**: `AbstractMongoSet`
 - **Collection**: `websites`
 
@@ -58,30 +64,38 @@ Tracks external web pages that reference Sefaria texts (discovered via the Sefar
 ## Common Tasks
 
 ### Look up webpages for a Sefaria ref
+
 ```python
 from sefaria.model.webpage import get_webpages_for_ref
+
 results = get_webpages_for_ref("Genesis 1:1")  # segment-level ref required
 # Returns list of client_contents dicts with anchorRef/anchorRefExpanded
 ```
 
 ### Add or update a webpage from linker data
+
 ```python
 from sefaria.model.webpage import WebPage
-status, page = WebPage.add_or_update_from_linker({
-    "url": "https://example.com/article",
-    "title": "My Article",
-    "refs": ["Genesis 1:1", "Exodus 2:3"],
-    "description": "An article about Torah"
-})
+
+status, page = WebPage.add_or_update_from_linker(
+    {
+        "url": "https://example.com/article",
+        "title": "My Article",
+        "refs": ["Genesis 1:1", "Exodus 2:3"],
+        "description": "An article about Torah",
+    }
+)
 # status is "saved" or "excluded"
 ```
 
 ### Load a webpage by URL
+
 ```python
 page = WebPage().load("https://example.com/article")  # auto-normalizes URL
 ```
 
 ### Check if a site is whitelisted
+
 ```python
 site = WebSite().load({"domains": "example.com"})
 if site and site.is_whitelisted:
@@ -89,6 +103,7 @@ if site and site.is_whitelisted:
 ```
 
 ### Maintenance functions (module-level)
+
 - `dedupe_webpages(webpages, test=True)` -- Merge pages whose URLs normalize to the same value.
 - `dedupe_identical_urls(test=True)` -- Merge pages with literally identical URLs.
 - `clean_webpages(test=True)` -- Delete pages matching exclusion patterns or with empty refs.
