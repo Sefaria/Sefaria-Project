@@ -112,11 +112,14 @@ jobs:
               return id ? `@${id}` : login;
             };
             const who = [...new Set([pusher, author])].map(slackMention).join(' ');
+            // Slack control characters (https://docs.slack.dev/messaging/formatting-message-text/#escaping-text).
+            const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const slackBase = esc(base).replace(/`/g, "'");
             const res = await fetch(webhook, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                text: `:warning: ${who} the push <${pr.html_url}/commits/${headSha}|${shortSha}> to <${pr.html_url}|PR #${pull_number}> was not built: the PR has a merge conflict with \`${base}\`. Merge \`${base}\` and push again to rebuild the images and cauldron.`,
+                text: `:warning: ${who} the push <${pr.html_url}/commits/${headSha}|${shortSha}> to <${pr.html_url}|PR #${pull_number}> was not built: the PR has a merge conflict with \`${slackBase}\`. Merge \`${slackBase}\` and push again to rebuild the images and cauldron.`,
               }),
             });
             // On failure the job goes red and a re-run retries Slack (the comment has no Slack marker yet).
