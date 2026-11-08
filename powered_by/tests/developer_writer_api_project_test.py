@@ -3,6 +3,7 @@ The developer settings writer on API projects: the state shape, the website rest
 a claimed legacy listing deleted with its account, the unpublishing of a deleted settings-made
 project, and ids that are API project ids rather than profile ids.
 """
+
 from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
@@ -10,21 +11,38 @@ from django.test import Client
 from django.utils import timezone
 
 from powered_by import developer
-
 from powered_by.models import ApiKey, ApiProject, Project, SubmissionSource
 from powered_by.tests.developer_api_test import PROFILE, PROJECT, DeveloperApiTestCase
 from reader.conftest import create_test_user, purge_test_profiles
 
-
-STATE_KEYS = {"developerEnabled", "ssoConnected", "emailVerified", "confirmationSentAt", "profile", "projects",
-              "yourListing", "maxKeysPerProject", "mock"}
-PROJECT_KEYS = {"id", "name", "description", "organization", "websiteUrl", "visibility", "aiAssisted",
-                "linkedListing", "consentWithdrawnAt", "keys", "contactEmail"}
+STATE_KEYS = {
+    "developerEnabled",
+    "ssoConnected",
+    "emailVerified",
+    "confirmationSentAt",
+    "profile",
+    "projects",
+    "yourListing",
+    "maxKeysPerProject",
+    "mock",
+}
+PROJECT_KEYS = {
+    "id",
+    "name",
+    "description",
+    "organization",
+    "websiteUrl",
+    "visibility",
+    "aiAssisted",
+    "linkedListing",
+    "consentWithdrawnAt",
+    "keys",
+    "contactEmail",
+}
 KEY_KEYS = {"id", "label", "value", "created", "restrictToWebsite"}
 
 
 class StateShapeTest(DeveloperApiTestCase):
-
     def setUp(self):
         super().setUp()
         self.set_up_developer()
@@ -45,7 +63,6 @@ class StateShapeTest(DeveloperApiTestCase):
 
 
 class WebsiteRestrictionTest(DeveloperApiTestCase):
-
     def setUp(self):
         super().setUp()
         self.set_up_developer()
@@ -60,8 +77,9 @@ class WebsiteRestrictionTest(DeveloperApiTestCase):
 
         self.assertEqual(status, 400)
         self.assertEqual(state["error"], developer.WEBSITE_IN_USE_ERROR)
-        self.assertEqual(Project.objects.get(api_projects__id=int(self.project["id"])).project_link,
-                         PROJECT["websiteUrl"])
+        self.assertEqual(
+            Project.objects.get(api_projects__id=int(self.project["id"])).project_link, PROJECT["websiteUrl"]
+        )
         self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://dafportal.org"])
 
     def test_clear_website_allowed_when_no_key_is_restricted(self):
@@ -85,21 +103,32 @@ class WebsiteRestrictionTest(DeveloperApiTestCase):
 
 
 class ClaimedListingAccountDeletionTest(DeveloperApiTestCase):
-
     def test_claimed_legacy_listing_is_unpublished_with_the_account_and_not_claimable_again(self):
         self.set_up_developer()
         email = self.user.email
         listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK, creator_email=email,
-            project_name="Tehillim Circle", project_link="https://tehillimcircle.org",
-            request_not_to_publish=False, is_published=True,
+            submission_source=SubmissionSource.FORMSTACK,
+            creator_email=email,
+            project_name="Tehillim Circle",
+            project_link="https://tehillimcircle.org",
+            request_not_to_publish=False,
+            is_published=True,
         )
-        status, state = self.call("post", "listings/{}/claim".format(listing.id))
+        status, state = self.call("post", f"listings/{listing.id}/claim")
         self.assertEqual(status, 200, state)
         api_id = state["projectId"]
-        status, state = self.call("post", "projects/" + api_id, {"project": {
-            **PROJECT, "name": "Tehillim Circle Renamed", "websiteUrl": "https://tehillimcircle.org",
-            "visibility": "public"}})
+        status, state = self.call(
+            "post",
+            "projects/" + api_id,
+            {
+                "project": {
+                    **PROJECT,
+                    "name": "Tehillim Circle Renamed",
+                    "websiteUrl": "https://tehillimcircle.org",
+                    "visibility": "public",
+                }
+            },
+        )
         self.assertEqual(status, 200, state)
         key_id = self.create_key(api_id)["keyId"]
         profile_before = Project.objects.filter(id=listing.id).values().get()
@@ -127,7 +156,7 @@ class ClaimedListingAccountDeletionTest(DeveloperApiTestCase):
             self.assertEqual(self.call("post", "enable", client=client)[0], 200)
             self.assertEqual(self.call("post", "profile", {"profile": PROFILE}, client=client)[0], 200)
 
-            status, state = self.call("post", "listings/{}/claim".format(listing.id), client=client)
+            status, state = self.call("post", f"listings/{listing.id}/claim", client=client)
 
             self.assertEqual(status, 404, state)
         finally:
@@ -135,7 +164,6 @@ class ClaimedListingAccountDeletionTest(DeveloperApiTestCase):
 
 
 class DeletedSettingsProjectTest(DeveloperApiTestCase):
-
     def setUp(self):
         super().setUp()
         self.set_up_developer()
@@ -156,7 +184,6 @@ class DeletedSettingsProjectTest(DeveloperApiTestCase):
 
 
 class ApiProjectIdTest(DeveloperApiTestCase):
-
     def setUp(self):
         super().setUp()
         self.set_up_developer()
@@ -173,15 +200,15 @@ class ApiProjectIdTest(DeveloperApiTestCase):
 
         state = self.create_key(project["id"])
         self.assertEqual(len(next(p for p in state["projects"] if p["id"] == project["id"])["keys"]), 1)
-        self.assertEqual(self.call("post", "projects/" + project["id"],
-                                   {"project": {**PROJECT, "name": "Renamed"}})[0], 200)
+        self.assertEqual(
+            self.call("post", "projects/" + project["id"], {"project": {**PROJECT, "name": "Renamed"}})[0], 200
+        )
         self.assertEqual(Project.objects.get(id=api_project.profile_id).project_name, "Renamed")
         self.assertEqual(self.call("delete", "projects/" + project["id"])[0], 200)
         self.assertIsNotNone(ApiProject.objects.get(id=api_project.id).deleted_at)
 
 
 class ContactEmailEditTest(DeveloperApiTestCase):
-
     def setUp(self):
         super().setUp()
         self.set_up_developer()
@@ -198,7 +225,9 @@ class ContactEmailEditTest(DeveloperApiTestCase):
         self.assertEqual(state["projects"][0]["contactEmail"], "dev@example.org")
 
     def test_an_edit_with_an_empty_contact_email_clears_it(self):
-        project_id = self.call("post", "projects", {"project": {**PROJECT, "contactEmail": "dev@example.org"}})[1]["projectId"]
+        project_id = self.call("post", "projects", {"project": {**PROJECT, "contactEmail": "dev@example.org"}})[1][
+            "projectId"
+        ]
 
         self.call("post", "projects/" + project_id, {"project": {**PROJECT, "contactEmail": ""}})
 
@@ -220,7 +249,6 @@ def email_of_length(length):
 
 
 class ContactEmailLengthTest(DeveloperApiTestCase):
-
     def setUp(self):
         super().setUp()
         self.set_up_developer()
@@ -232,32 +260,42 @@ class ContactEmailLengthTest(DeveloperApiTestCase):
         self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).contact_email, longest)
 
         before = ApiProject.objects.count()
-        status, state = self.call("post", "projects", {"project": {**PROJECT, "name": "Too long", "contactEmail": email_of_length(255)}})
+        status, state = self.call(
+            "post", "projects", {"project": {**PROJECT, "name": "Too long", "contactEmail": email_of_length(255)}}
+        )
 
         self.assertEqual(status, 400, state)
         self.assertIn("254", state["error"])
         self.assertEqual(ApiProject.objects.count(), before)
 
     def test_an_edit_with_a_255_character_contact_email_is_refused_and_keeps_the_stored_one(self):
-        project_id = self.call("post", "projects", {"project": {**PROJECT, "contactEmail": "dev@example.org"}})[1]["projectId"]
+        project_id = self.call("post", "projects", {"project": {**PROJECT, "contactEmail": "dev@example.org"}})[1][
+            "projectId"
+        ]
 
-        status, state = self.call("post", "projects/" + project_id, {"project": {**PROJECT, "contactEmail": email_of_length(255)}})
+        status, state = self.call(
+            "post", "projects/" + project_id, {"project": {**PROJECT, "contactEmail": email_of_length(255)}}
+        )
 
         self.assertEqual(status, 400, state)
         self.assertEqual(ApiProject.objects.get(id=int(project_id)).contact_email, "dev@example.org")
 
 
 class ClaimGuardsTest(DeveloperApiTestCase):
-
     def setUp(self):
         super().setUp()
         self.set_up_developer()
 
     def make_listing(self, **fields):
         return Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
-            project_name="Tehillim Circle", project_link="https://tehillimcircle.org",
-            request_not_to_publish=False, is_published=True, **fields)
+            submission_source=SubmissionSource.FORMSTACK,
+            creator_email=self.user.email,
+            project_name="Tehillim Circle",
+            project_link="https://tehillimcircle.org",
+            request_not_to_publish=False,
+            is_published=True,
+            **fields,
+        )
 
     def test_a_claim_that_loses_a_race_for_the_listing_is_refused_not_a_server_error(self):
         listing = self.make_listing()
@@ -266,18 +304,25 @@ class ClaimGuardsTest(DeveloperApiTestCase):
 
         class Stale:
             """The eligibility check answered before the rival's API project existed: it still finds the listing."""
+
             def get(self, **kwargs):
                 return Project.objects.get(**kwargs)
 
         try:
-            ApiProject.objects.create(profile=listing, owner=rival)   # committed by the rival after the check
+            ApiProject.objects.create(profile=listing, owner=rival)  # committed by the rival after the check
             with patch.object(developer, "unclaimed_listings", lambda user, profile: Stale()):
-                status, state = self.call("post", "listings/{}/claim".format(listing.id))
+                status, state = self.call("post", f"listings/{listing.id}/claim")
 
             self.assertEqual(status, 404, state)
-            self.assertEqual(list(ApiProject.objects.filter(profile=listing, deleted_at__isnull=True).values_list("owner_id", flat=True)),
-                             [rival.id])
-            self.assertEqual(self.call("get", "state")[0], 200)   # the request's transaction is still usable
+            self.assertEqual(
+                list(
+                    ApiProject.objects.filter(profile=listing, deleted_at__isnull=True).values_list(
+                        "owner_id", flat=True
+                    )
+                ),
+                [rival.id],
+            )
+            self.assertEqual(self.call("get", "state")[0], 200)  # the request's transaction is still usable
         finally:
             purge_test_profiles(rival)
 
@@ -285,9 +330,8 @@ class ClaimGuardsTest(DeveloperApiTestCase):
         listing = self.make_listing(deleted_at=timezone.now())
 
         state = self.call("get", "state")[1]
-        status, claimed = self.call("post", "listings/{}/claim".format(listing.id))
+        status, claimed = self.call("post", f"listings/{listing.id}/claim")
 
         self.assertIsNone(state["yourListing"])
         self.assertEqual(status, 404, claimed)
         self.assertFalse(ApiProject.objects.filter(profile=listing).exists())
-

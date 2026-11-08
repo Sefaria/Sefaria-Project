@@ -20,6 +20,7 @@ An API project gets its profile's id when no other API project holds that id yet
 sequence otherwise (0008 re-runs this, and an older image may have written rows in between). On SQLite, which has
 no sequence functions, the same rule runs through the historical models.
 """
+
 import warnings
 
 from django.db import migrations
@@ -92,7 +93,9 @@ def _forward_with_models(apps, schema_editor):
     for profile in Project.objects.using(alias).order_by("id"):
         if profile.pk in has_api_project:
             continue
-        if not (profile.owner_id is not None or profile.submission_source == "developer_settings" or profile.pk in keyed):
+        if not (
+            profile.owner_id is not None or profile.submission_source == "developer_settings" or profile.pk in keyed
+        ):
             continue
         tier = _normalised_tier(profile.tier)
         unknown += tier != profile.tier
@@ -100,7 +103,8 @@ def _forward_with_models(apps, schema_editor):
         if new_id in taken:
             new_id, fallback = fallback, fallback + 1
         ApiProject.objects.using(alias).create(
-            id=new_id, profile_id=profile.pk, owner_id=profile.owner_id, tier_id=tier, deleted_at=profile.deleted_at)
+            id=new_id, profile_id=profile.pk, owner_id=profile.owner_id, tier_id=tier, deleted_at=profile.deleted_at
+        )
         taken.add(new_id)
     _warn_unknown_tiers(unknown)
 
@@ -125,10 +129,16 @@ def _rows_backfill_cannot_rebuild(apps, alias):
     lost = []
     for row in ApiProject.objects.using(alias).select_related("profile").order_by("id"):
         profile = row.profile
-        is_api_project = (profile.owner_id is not None or profile.submission_source == "developer_settings"
-                          or profile.pk in keyed)
-        if (not is_api_project or row.owner_id != profile.owner_id or row.contact_email
-                or row.tier_id != _normalised_tier(profile.tier) or row.deleted_at != profile.deleted_at):
+        is_api_project = (
+            profile.owner_id is not None or profile.submission_source == "developer_settings" or profile.pk in keyed
+        )
+        if (
+            not is_api_project
+            or row.owner_id != profile.owner_id
+            or row.contact_email
+            or row.tier_id != _normalised_tier(profile.tier)
+            or row.deleted_at != profile.deleted_at
+        ):
             lost.append(row.pk)
     return lost
 
@@ -149,7 +159,6 @@ def reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("powered_by", "0006_api_project_schema"),
     ]

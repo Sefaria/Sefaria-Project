@@ -29,6 +29,7 @@ def delete_user_account(uid, confirm=True):
     django_user = User.objects.filter(id=uid).first()
     if django_user is not None:
         from powered_by import developer
+
         developer.release_account_projects(django_user)
 
     try:

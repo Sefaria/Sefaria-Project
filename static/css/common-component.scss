@@ -174,6 +174,7 @@ $stroke-strong: 1.5px;
   &-field.has-addon .sefaria-input-control {
     padding-inline-end: 64px;
   }
+
   &-field.has-addon .sefaria-input-control--multiline {
     padding-inline-end: $sp-4;
     padding-bottom: 28px;
@@ -189,6 +190,7 @@ $stroke-strong: 1.5px;
     font-variant-numeric: tabular-nums;
     color: $sef-text-muted; // text-muted
   }
+
   &-field.has-addon:not(:has(textarea)) .sefaria-input-fieldAddon {
     bottom: auto;
     top: 50%;
@@ -235,6 +237,7 @@ $stroke-strong: 1.5px;
     flex-wrap: wrap;
     gap: $sp-1;
   }
+
   &-label {
     font-size: $font-size-label;
     line-height: 18px;
@@ -266,10 +269,12 @@ $stroke-strong: 1.5px;
     &:hover:not(:disabled) {
       border-color: var(--medium-grey-legacy);
     }
+
     &:focus-visible {
       outline: 2px solid $sef-focus;
       outline-offset: 2px;
     }
+
     &.is-placeholder {
       color: var(--medium-grey-legacy);
       font-size: $font-size-label;
@@ -281,6 +286,7 @@ $stroke-strong: 1.5px;
       cursor: not-allowed;
     }
   }
+
   &-value {
     flex: 1;
     min-width: 0;
@@ -288,20 +294,25 @@ $stroke-strong: 1.5px;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
   &-chevron {
     flex: 0 0 16px;
     color: $sef-text-primary;
     transition: transform 0.15s;
   }
+
   &.is-open &-chevron {
     transform: rotate(180deg);
   }
+
   &--disabled &-chevron {
     color: $sef-gray-400;
   }
+
   &--disabled &-label {
     color: $sef-text-muted;
   }
+
   &--error &-control {
     border-color: $sef-error;
   }
@@ -319,6 +330,7 @@ $stroke-strong: 1.5px;
     box-shadow:
       0 10px 20px 0 rgb(0 0 0 / 8%),
       0 1px 2px 0 rgb(0 0 0 / 8%); // shadow-medium (menus)
+
     overflow: hidden;
     max-height: 320px;
     overflow-y: auto;
@@ -382,6 +394,7 @@ $stroke-strong: 1.5px;
     margin: 0;
     opacity: 0;
     cursor: pointer;
+
     &:disabled {
       cursor: not-allowed;
     }
@@ -400,6 +413,7 @@ $stroke-strong: 1.5px;
     pointer-events: none;
     color: #6f6f6f; // icon-muted (5.02:1, passes 3:1 for controls)
   }
+
   &-icon--on {
     display: none;
     color: $sef-action-primary;
@@ -407,17 +421,21 @@ $stroke-strong: 1.5px;
   .sefaria-checkbox-input:checked ~ &-icon--off {
     display: none;
   }
+
   .sefaria-checkbox-input:checked ~ &-icon--on {
     display: block;
   }
+
   .sefaria-checkbox-input:hover:not(:disabled) ~ &-icon--off {
     color: $sef-text-primary;
   }
+
   .sefaria-checkbox-input:focus-visible ~ &-icon {
     outline: 2px solid $sef-focus;
     outline-offset: 2px;
     border-radius: 4px;
   }
+
   .sefaria-checkbox-input:disabled ~ &-icon {
     color: $sef-gray-400;
   } // icon-disabled
@@ -448,9 +466,11 @@ $stroke-strong: 1.5px;
   &--error .sefaria-checkbox-icon {
     color: $sef-error;
   }
+
   &--disabled .sefaria-checkbox-row {
     cursor: not-allowed;
   }
+
   &--disabled .sefaria-checkbox-label {
     color: var(--medium-grey-legacy);
   }

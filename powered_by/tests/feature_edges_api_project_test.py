@@ -5,6 +5,7 @@ admin, public listing, Go fixture parity); the docstring of a test names the cas
 The raw SQL tests need PostgreSQL; the migration tests move the real schema and reuse the helpers of
 the trigger migration test.
 """
+
 import json
 import os
 import unittest
@@ -20,13 +21,12 @@ from django.utils import timezone
 from powered_by import developer
 from powered_by.admin import ApiKeyInline, ProjectAdmin
 from powered_by.models import ApiKey, ApiProject, Project, SubmissionSource
+from powered_by.tests import migration_api_project_triggers_test as triggers_test
 from powered_by.tests.admin_test import admin_url, form_data
 from powered_by.tests.auth_service_schema_test import FIXTURE, normalise
 from powered_by.tests.developer_api_test import PROJECT, DeveloperApiTestCase
 from powered_by.tests.migration_api_project_backfill_test import MigrationTestCase
-from powered_by.tests import migration_api_project_triggers_test as triggers_test
 from reader.conftest import create_test_user, purge_test_profiles
-
 
 POSTGRES = connection.vendor == "postgresql"
 AFTER, LATEST, TRIGGERS = triggers_test.AFTER, triggers_test.LATEST, triggers_test.TRIGGERS
@@ -77,11 +77,14 @@ def make_profile(name, source=SubmissionSource.MANUAL, **fields):
 
 
 def trigger_rows():
-    return query("""
+    return query(
+        """
         SELECT c.relname, t.tgname, pg_get_triggerdef(t.oid)
         FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid JOIN pg_namespace n ON n.oid = c.relnamespace
         WHERE NOT t.tgisinternal AND n.nspname = 'public' AND c.relname = ANY(%s)
-    """, [["powered_by_apikey", "powered_by_project", *API_TABLES]])
+    """,
+        [["powered_by_apikey", "powered_by_project", *API_TABLES]],
+    )
 
 
 class ApiProjectSchemaEdgesTest(TestCase):
@@ -101,7 +104,9 @@ class ApiProjectSchemaEdgesTest(TestCase):
         other = make_profile("Raw insert profile")
         rows = query(
             "INSERT INTO api_project (profile_id, created_at, updated_at) VALUES (%s, now(), now()) "
-            "RETURNING tier_id, contact_email, deleted_at, created_at, updated_at", [other.pk])
+            "RETURNING tier_id, contact_email, deleted_at, created_at, updated_at",
+            [other.pk],
+        )
         tier_id, contact_email, deleted_at, created_at, updated_at = rows[0]
         self.assertEqual((tier_id, contact_email, deleted_at), ("developer", "", None))
         self.assertIsNotNone(created_at)
@@ -112,24 +117,36 @@ class ApiProjectSchemaEdgesTest(TestCase):
         # The foreign key refuses a row for a profile that does not exist.
         missing = self.profile.pk + 1_000_000
         with self.assertRaises(IntegrityError), transaction.atomic():
-            query("INSERT INTO api_project (profile_id, created_at, updated_at) VALUES (%s, now(), now())"
-                  " RETURNING id", [missing])
+            query(
+                "INSERT INTO api_project (profile_id, created_at, updated_at) VALUES (%s, now(), now()) RETURNING id",
+                [missing],
+            )
             connection.check_constraints()
 
     def test_column_inventory_of_the_api_project_and_key_tables(self):
         self.assertEqual(
             table_columns("api_project"),
-            {"id", "profile_id", "owner_id", "contact_email", "tier_id", "deleted_at", "created_at", "updated_at"})
+            {"id", "profile_id", "owner_id", "contact_email", "tier_id", "deleted_at", "created_at", "updated_at"},
+        )
         key_columns = table_columns("powered_by_apikey")
         self.assertEqual(
             key_columns,
-            {"id", "key", "project_id", "label", "allowed_origins", "created_at", "revoked_at", "last_used_at"})
+            {"id", "key", "project_id", "label", "allowed_origins", "created_at", "revoked_at", "last_used_at"},
+        )
         self.assertFalse([name for name in key_columns if "tier" in name], "a key has no tier of its own")
 
     def test_profile_table_keeps_its_metadata_and_the_frozen_columns(self):
         columns = table_columns("powered_by_project")
-        for name in ("project_name", "project_link", "project_desc", "organization", "vibe_coded",
-                     "request_not_to_publish", "consent_withdrawn_at", "notes"):
+        for name in (
+            "project_name",
+            "project_link",
+            "project_desc",
+            "organization",
+            "vibe_coded",
+            "request_not_to_publish",
+            "consent_withdrawn_at",
+            "notes",
+        ):
             self.assertIn(name, columns)
         for frozen in ("tier", "owner_id", "deleted_at"):
             self.assertIn(frozen, columns, "an older image still reads and writes " + frozen)
@@ -164,8 +181,11 @@ class ApiProjectSchemaEdgesTest(TestCase):
             self.fail("powered_by has model changes that no migration holds")
 
     def test_change_tier_permission_is_declared(self):
-        self.assertTrue(Permission.objects.filter(
-            codename="change_tier", content_type__app_label="powered_by", content_type__model="apiproject").exists())
+        self.assertTrue(
+            Permission.objects.filter(
+                codename="change_tier", content_type__app_label="powered_by", content_type__model="apiproject"
+            ).exists()
+        )
 
     def test_the_key_inline_has_no_tier_and_the_profile_admin_does_not_offer_the_frozen_columns(self):
         self.assertNotIn("tier", ApiKeyInline.fields)
@@ -183,8 +203,12 @@ class ApiProjectSchemaEdgesTest(TestCase):
 
     def test_listing_responses_never_expose_tier_limits_or_keys(self):
         profile = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK, project_name="Exposure check",
-            project_link="https://exposure.example.org", is_published=True, request_not_to_publish=False)
+            submission_source=SubmissionSource.FORMSTACK,
+            project_name="Exposure check",
+            project_link="https://exposure.example.org",
+            is_published=True,
+            request_not_to_publish=False,
+        )
         api_project = ApiProject.objects.create(profile=profile, tier_id="partner")
         api_key = ApiKey.objects.create(project=api_project, label="Exposure key label")
         staff = Client()
@@ -199,13 +223,20 @@ class ApiProjectSchemaEdgesTest(TestCase):
                 self.assertNotIn("Exposure key label", body)
                 listed = [p for p in json.loads(body)["projects"] if p["id"] == profile.pk]
                 self.assertEqual(len(listed), 1)
-                for forbidden in ("tier", "tier_id", "api_projects", "api_keys", "allowed_origins", "key",
-                                  "limits", "per_minute_per_project"):
+                for forbidden in (
+                    "tier",
+                    "tier_id",
+                    "api_projects",
+                    "api_keys",
+                    "allowed_origins",
+                    "key",
+                    "limits",
+                    "per_minute_per_project",
+                ):
                     self.assertNotIn(forbidden, listed[0])
 
 
 class ApiProjectWriterEdgesTest(DeveloperApiTestCase):
-
     def setUp(self):
         super().setUp()
         self.set_up_developer()
@@ -252,18 +283,29 @@ class ApiProjectWriterEdgesTest(DeveloperApiTestCase):
     def test_the_writer_never_writes_the_frozen_profile_columns(self):
         # Tier, owner and deleted_at of the profile belong to older images.
         project = self.create_project(visibility="public")
-        self.assertEqual(self.call("post", "projects/" + project["id"],
-                                   {"project": {**PROJECT, "name": "Renamed"}})[0], 200)
+        self.assertEqual(
+            self.call("post", "projects/" + project["id"], {"project": {**PROJECT, "name": "Renamed"}})[0], 200
+        )
         self.assertEqual(self.call("delete", "projects/" + project["id"])[0], 200)
         settings_profile = ApiProject.objects.get(id=int(project["id"])).profile
         listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
-            project_name="Claimable", project_link="https://claimable.example.org",
-            request_not_to_publish=False, is_published=True)
-        status, state = self.call("post", "listings/{}/claim".format(listing.id))
+            submission_source=SubmissionSource.FORMSTACK,
+            creator_email=self.user.email,
+            project_name="Claimable",
+            project_link="https://claimable.example.org",
+            request_not_to_publish=False,
+            is_published=True,
+        )
+        status, state = self.call("post", f"listings/{listing.id}/claim")
         self.assertEqual(status, 200, state)
-        self.assertEqual(self.call("post", "projects/" + state["projectId"],
-                                   {"project": {**PROJECT, "name": "Claimed", "visibility": "public"}})[0], 200)
+        self.assertEqual(
+            self.call(
+                "post",
+                "projects/" + state["projectId"],
+                {"project": {**PROJECT, "name": "Claimed", "visibility": "public"}},
+            )[0],
+            200,
+        )
         developer.release_account_projects(self.user)
 
         for profile in (settings_profile, listing):
@@ -282,11 +324,19 @@ class ProfileAdminEdgesTest(TestCase):
         purge_test_profiles(self.staff)
         self.client.force_login(self.staff)
         self.listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK, submission_date=timezone.now().replace(microsecond=0),
-            creator="Tova Levi", creator_email="tova@example.org", project_name="Tehillim Circle",
-            project_link="https://tehillimcircle.org", project_desc="Psalms for a group.",
-            sefaria_tools_used=["API"], tags=["Liturgy"], notes="Checked by staff.", request_not_to_publish=False,
-            is_published=True)
+            submission_source=SubmissionSource.FORMSTACK,
+            submission_date=timezone.now().replace(microsecond=0),
+            creator="Tova Levi",
+            creator_email="tova@example.org",
+            project_name="Tehillim Circle",
+            project_link="https://tehillimcircle.org",
+            project_desc="Psalms for a group.",
+            sefaria_tools_used=["API"],
+            tags=["Liturgy"],
+            notes="Checked by staff.",
+            request_not_to_publish=False,
+            is_published=True,
+        )
 
     def tearDown(self):
         purge_test_profiles(self.staff)
@@ -324,8 +374,9 @@ class TriggerInventoryEdgesTest(TestCase):
         self.assertIn("for each statement", delete)
 
     def test_the_profile_triggers_stay_for_older_images(self):
-        definitions = {name: definition.lower() for table, name, definition in trigger_rows()
-                       if table == "powered_by_project"}
+        definitions = {
+            name: definition.lower() for table, name, definition in trigger_rows() if table == "powered_by_project"
+        }
 
         self.assertEqual(set(definitions), {"apikeys_notify_projects_update", "apikeys_notify_projects_delete"})
         self.assertIn("old.tier", definitions["apikeys_notify_projects_update"])
@@ -336,8 +387,10 @@ class TriggerInventoryEdgesTest(TestCase):
 class OldImageEdgesTest(TestCase):
     databases = "__all__"
 
-    OLD_LOADER = ("SELECT k.key, p.tier FROM powered_by_apikey k "
-                  "JOIN powered_by_project p ON p.id = k.project_id WHERE k.key = %s")
+    OLD_LOADER = (
+        "SELECT k.key, p.tier FROM powered_by_apikey k "
+        "JOIN powered_by_project p ON p.id = k.project_id WHERE k.key = %s"
+    )
 
     def make_key_on_a_migrated_project(self, frozen_tier):
         # The backfill gives an API project the id of its profile, so a key keeps pointing at the same number.
@@ -404,6 +457,7 @@ class FixtureApiTablesTest(TestCase):
     Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry the
     `failing` marker, so the default CI run (-m "not failing") leaves them out.
     """
+
     databases = "__all__"
     SCHEMA = "authsvc_fixture_api_tables"
 
@@ -416,14 +470,18 @@ class FixtureApiTablesTest(TestCase):
             cursor.execute("SET LOCAL search_path TO public")
 
     def columns(self, schema):
-        rows = query("""
+        rows = query(
+            """
             SELECT table_name, column_name, is_nullable FROM information_schema.columns
             WHERE table_schema = %s AND table_name = ANY(%s)
-        """, [schema, list(API_TABLES)])
+        """,
+            [schema, list(API_TABLES)],
+        )
         return {(table, column, nullable) for table, column, nullable in rows}
 
     def foreign_keys(self, schema):
-        rows = query("""
+        rows = query(
+            """
             SELECT rel.relname, att.attname, frel.relname
             FROM pg_constraint con
             JOIN pg_class rel ON rel.oid = con.conrelid
@@ -431,16 +489,21 @@ class FixtureApiTablesTest(TestCase):
             JOIN pg_class frel ON frel.oid = con.confrelid
             JOIN pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = ANY (con.conkey)
             WHERE con.contype = 'f' AND ns.nspname = %s
-        """, [schema])
+        """,
+            [schema],
+        )
         return set(rows)
 
     def triggers(self, schema):
-        rows = query("""
+        rows = query(
+            """
             SELECT tg.tgname, pg_get_triggerdef(tg.oid)
             FROM pg_trigger tg JOIN pg_class rel ON rel.oid = tg.tgrelid
             JOIN pg_namespace ns ON ns.oid = rel.relnamespace
             WHERE ns.nspname = %s AND rel.relname = ANY(%s) AND NOT tg.tgisinternal
-        """, [schema, list(API_TABLES)])
+        """,
+            [schema, list(API_TABLES)],
+        )
         return {name: normalise(definition.replace(schema + ".", "")) for name, definition in rows}
 
     def test_the_columns_the_loader_reads_match(self):
@@ -449,8 +512,10 @@ class FixtureApiTablesTest(TestCase):
 
         fixture, django = loader_columns(self.SCHEMA), loader_columns("public")
 
-        self.assertEqual({(table, column) for table, column, _ in fixture},
-                         {(table, column) for table, columns in LOADER_COLUMNS.items() for column in columns})
+        self.assertEqual(
+            {(table, column) for table, column, _ in fixture},
+            {(table, column) for table, columns in LOADER_COLUMNS.items() for column in columns},
+        )
         self.assertEqual(fixture, django)
 
     def test_the_foreign_keys_the_loader_joins_on_exist_in_both(self):

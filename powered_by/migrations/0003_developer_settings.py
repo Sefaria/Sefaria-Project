@@ -10,81 +10,123 @@ from django.db import migrations, models
 def mark_developer_settings_projects_manual(apps, schema_editor):
     """The schema before this migration has no developer_settings source, so those projects
     become manual ones. Deleted and private projects are already unpublished."""
-    Project = apps.get_model('powered_by', 'Project')
-    Project.objects.filter(submission_source='developer_settings').update(submission_source='manual')
+    Project = apps.get_model("powered_by", "Project")
+    Project.objects.filter(submission_source="developer_settings").update(submission_source="manual")
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('powered_by', '0003_request_not_to_publish'),
+        ("powered_by", "0003_request_not_to_publish"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ApiKey',
+            name="ApiKey",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('key', models.CharField(default=powered_by.models.new_key_value, max_length=100, unique=True)),
-                ('label', models.CharField(max_length=100)),
-                ('allowed_origins', models.JSONField(blank=True, db_default=[], default=list, help_text='Origins (e.g. "https://example.org") allowed to call with this key. Empty allows any.')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('revoked_at', models.DateTimeField(blank=True, null=True)),
-                ('last_used_at', models.DateTimeField(blank=True, null=True)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("key", models.CharField(default=powered_by.models.new_key_value, max_length=100, unique=True)),
+                ("label", models.CharField(max_length=100)),
+                (
+                    "allowed_origins",
+                    models.JSONField(
+                        blank=True,
+                        db_default=[],
+                        default=list,
+                        help_text='Origins (e.g. "https://example.org") allowed to call with this key. Empty allows any.',
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("revoked_at", models.DateTimeField(blank=True, null=True)),
+                ("last_used_at", models.DateTimeField(blank=True, null=True)),
             ],
             options={
-                'verbose_name': 'API key',
-                'ordering': ['-created_at'],
+                "verbose_name": "API key",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.RemoveConstraint(
-            model_name='project',
-            name='powered_by_project_submission_source_valid',
+            model_name="project",
+            name="powered_by_project_submission_source_valid",
         ),
         migrations.RunPython(migrations.RunPython.noop, mark_developer_settings_projects_manual),
         migrations.AddField(
-            model_name='project',
-            name='consent_withdrawn_at',
-            field=models.DateTimeField(blank=True, help_text='When the owner made a public project private.', null=True),
+            model_name="project",
+            name="consent_withdrawn_at",
+            field=models.DateTimeField(
+                blank=True, help_text="When the owner made a public project private.", null=True
+            ),
         ),
         migrations.AddField(
-            model_name='project',
-            name='deleted_at',
-            field=models.DateTimeField(blank=True, help_text='When the owner deleted the project. Its keys are revoked and the row stays.', null=True),
+            model_name="project",
+            name="deleted_at",
+            field=models.DateTimeField(
+                blank=True,
+                help_text="When the owner deleted the project. Its keys are revoked and the row stays.",
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='project',
-            name='organization',
-            field=models.CharField(blank=True, db_default='', default='', max_length=255),
+            model_name="project",
+            name="organization",
+            field=models.CharField(blank=True, db_default="", default="", max_length=255),
         ),
         migrations.AddField(
-            model_name='project',
-            name='owner',
-            field=models.ForeignKey(blank=True, help_text='The account that manages this project and its API keys in developer settings.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='developer_projects', to=settings.AUTH_USER_MODEL),
+            model_name="project",
+            name="owner",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="The account that manages this project and its API keys in developer settings.",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="developer_projects",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='project',
-            name='tier',
-            field=models.CharField(choices=[('developer', 'Developer')], db_default='developer', default='developer', help_text="API access tier of the project's keys.", max_length=20),
+            model_name="project",
+            name="tier",
+            field=models.CharField(
+                choices=[("developer", "Developer")],
+                db_default="developer",
+                default="developer",
+                help_text="API access tier of the project's keys.",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='project_link',
-            field=models.URLField(blank=True, help_text='Live project URL.'),
+            model_name="project",
+            name="project_link",
+            field=models.URLField(blank=True, help_text="Live project URL."),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='submission_source',
-            field=models.CharField(choices=[('formstack', 'Formstack'), ('in_the_wild', 'In the wild'), ('manual', 'Manual'), ('developer_settings', 'Developer settings')], help_text='How this record entered the system.', max_length=20),
+            model_name="project",
+            name="submission_source",
+            field=models.CharField(
+                choices=[
+                    ("formstack", "Formstack"),
+                    ("in_the_wild", "In the wild"),
+                    ("manual", "Manual"),
+                    ("developer_settings", "Developer settings"),
+                ],
+                help_text="How this record entered the system.",
+                max_length=20,
+            ),
         ),
         migrations.AddConstraint(
-            model_name='project',
-            constraint=models.CheckConstraint(condition=models.Q(('submission_source__in', ['formstack', 'in_the_wild', 'manual', 'developer_settings'])), name='powered_by_project_submission_source_valid'),
+            model_name="project",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    ("submission_source__in", ["formstack", "in_the_wild", "manual", "developer_settings"])
+                ),
+                name="powered_by_project_submission_source_valid",
+            ),
         ),
         migrations.AddField(
-            model_name='apikey',
-            name='project',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='api_keys', to='powered_by.project'),
+            model_name="apikey",
+            name="project",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT, related_name="api_keys", to="powered_by.project"
+            ),
         ),
     ]

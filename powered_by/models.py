@@ -1,6 +1,6 @@
+import re
 import secrets
 import string
-import re
 import uuid
 
 from django.conf import settings
@@ -184,20 +184,29 @@ class Project(models.Model):
     # cauldrons running older code insert rows without them.
 
     owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
         related_name="developer_projects",
         help_text="The account that manages this project and its API keys in developer settings.",
     )
     tier = models.CharField(
-        max_length=20, choices=Tier.choices, default=Tier.DEVELOPER, db_default=Tier.DEVELOPER,
+        max_length=20,
+        choices=Tier.choices,
+        default=Tier.DEVELOPER,
+        db_default=Tier.DEVELOPER,
         help_text="API access tier of the project's keys.",
     )
     organization = models.CharField(max_length=255, blank=True, default="", db_default="")
     consent_withdrawn_at = models.DateTimeField(
-        null=True, blank=True, help_text="When the owner made a public project private.",
+        null=True,
+        blank=True,
+        help_text="When the owner made a public project private.",
     )
     deleted_at = models.DateTimeField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="When the owner deleted the project. Its keys are revoked and the row stays.",
     )
 
@@ -266,6 +275,7 @@ class ApiTier(models.Model):
     An access tier for API projects. Its limits are the default for every project on the tier.
     The slug is the primary key, so a project's tier reads as a name ("developer", "partner").
     """
+
     id = models.CharField(max_length=20, primary_key=True, help_text="Slug, e.g. developer.")
     name = models.CharField(max_length=100)
     per_minute_per_project = models.PositiveIntegerField(
@@ -287,8 +297,11 @@ class ApiTierMeterLimit(models.Model):
     """
     A monthly usage limit for one meter (a kind of API usage) on one tier, per API project.
     """
+
     tier = models.ForeignKey(
-        ApiTier, on_delete=models.CASCADE, related_name="meter_limits",
+        ApiTier,
+        on_delete=models.CASCADE,
+        related_name="meter_limits",
         help_text="The tier this limit belongs to.",
     )
     meter = models.SlugField(max_length=50, help_text="Meter name, e.g. semantic.")
@@ -315,25 +328,37 @@ class ApiProject(models.Model):
     Powered by Sefaria Project (the profile). A profile has at most one live (not deleted) API
     project; a deleted one frees the profile for a new one.
     """
+
     profile = models.ForeignKey(
-        Project, on_delete=models.PROTECT, related_name="api_projects",
+        Project,
+        on_delete=models.PROTECT,
+        related_name="api_projects",
         help_text="The Powered by Sefaria profile this API project belongs to.",
     )
     owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
         related_name="api_projects",
         help_text="The account that manages this API project.",
     )
     contact_email = models.EmailField(
-        blank=True, default="", db_default="",
+        blank=True,
+        default="",
+        db_default="",
         help_text="Contact address for this API project.",
     )
     tier = models.ForeignKey(
-        ApiTier, on_delete=models.PROTECT, default="developer", db_default="developer",
+        ApiTier,
+        on_delete=models.PROTECT,
+        default="developer",
+        db_default="developer",
         help_text="API access tier of this project.",
     )
     deleted_at = models.DateTimeField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="When the API project was deleted. The row stays; a deleted project is not live.",
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -386,12 +411,16 @@ class ApiKey(models.Model):
     loads with every key. It reloads on the NOTIFY sent by the triggers in migrations 0004 and
     0008. Keys are never deleted: a revoked key keeps its row so historical logs still resolve.
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     key = models.CharField(max_length=100, unique=True, default=new_key_value)
     project = models.ForeignKey(ApiProject, on_delete=models.PROTECT, related_name="api_keys")
     label = models.CharField(max_length=100)
     allowed_origins = models.JSONField(
-        default=list, blank=True, db_default=[], validators=[validate_allowed_origins],
+        default=list,
+        blank=True,
+        db_default=[],
+        validators=[validate_allowed_origins],
         help_text='Origins (e.g. "https://example.org") allowed to call with this key. Empty allows any.',
     )
     created_at = models.DateTimeField(auto_now_add=True)

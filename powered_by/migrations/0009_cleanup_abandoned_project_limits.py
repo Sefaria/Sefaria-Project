@@ -12,6 +12,7 @@ Idempotent, and a no-op where none of that exists (production): every statement 
 Not reversible: the abandoned table is not worth rebuilding, so the reverse does nothing. Postgres only; elsewhere
 (SQLite in local development) it does nothing.
 """
+
 from django.db import migrations
 
 
@@ -33,7 +34,6 @@ def cleanup(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("powered_by", "0008_api_key_project_triggers_grants"),
     ]

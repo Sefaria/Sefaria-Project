@@ -508,11 +508,15 @@ class ApiCorsPreflightMiddleware(MiddlewareMixin):
     nginx adds Access-Control-Allow-Origin to the actual response; the auth service checks
     a key's allowed origins.
     """
+
     ALLOW_HEADERS = "Content-Type, X-API-Key"
 
     def process_request(self, request):
-        if (request.method != "OPTIONS" or not request.path.startswith("/api/")
-                or "HTTP_ACCESS_CONTROL_REQUEST_METHOD" not in request.META):
+        if (
+            request.method != "OPTIONS"
+            or not request.path.startswith("/api/")
+            or "HTTP_ACCESS_CONTROL_REQUEST_METHOD" not in request.META
+        ):
             return None
         response = HttpResponse(status=204)
         response["Access-Control-Allow-Origin"] = "*"

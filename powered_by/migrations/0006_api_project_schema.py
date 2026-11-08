@@ -7,6 +7,7 @@ the three new tables and leaves the seeded rows with them.
 
 The meter limits are placeholders. Daniel sets the real numbers.
 """
+
 import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
@@ -32,10 +33,13 @@ def seed_api_tiers(apps, using="default"):
     ApiTierMeterLimit = apps.get_model("powered_by", "ApiTierMeterLimit")
     for slug, name, per_minute, monthly in TIERS:
         tier, _ = ApiTier.objects.using(using).get_or_create(
-            id=slug, defaults={"name": name, "per_minute_per_project": per_minute},
+            id=slug,
+            defaults={"name": name, "per_minute_per_project": per_minute},
         )
         ApiTierMeterLimit.objects.using(using).get_or_create(
-            tier=tier, meter="semantic", defaults={"monthly_per_project": monthly},
+            tier=tier,
+            meter="semantic",
+            defaults={"monthly_per_project": monthly},
         )
 
 
@@ -44,7 +48,6 @@ def seed_tiers(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("powered_by", "0005_api_key_origins_strings"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -54,9 +57,19 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="ApiTier",
             fields=[
-                ("id", models.CharField(help_text="Slug, e.g. developer.", max_length=20, primary_key=True, serialize=False)),
+                (
+                    "id",
+                    models.CharField(
+                        help_text="Slug, e.g. developer.", max_length=20, primary_key=True, serialize=False
+                    ),
+                ),
                 ("name", models.CharField(max_length=100)),
-                ("per_minute_per_project", models.PositiveIntegerField(help_text="Requests per minute allowed for each API project on this tier.")),
+                (
+                    "per_minute_per_project",
+                    models.PositiveIntegerField(
+                        help_text="Requests per minute allowed for each API project on this tier."
+                    ),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
             ],
@@ -71,10 +84,21 @@ class Migration(migrations.Migration):
             fields=[
                 ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("meter", models.SlugField(help_text="Meter name, e.g. semantic.", max_length=50)),
-                ("monthly_per_project", models.BigIntegerField(help_text="Units of this meter allowed per API project per month.")),
+                (
+                    "monthly_per_project",
+                    models.BigIntegerField(help_text="Units of this meter allowed per API project per month."),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
-                ("tier", models.ForeignKey(help_text="The tier this limit belongs to.", on_delete=django.db.models.deletion.CASCADE, related_name="meter_limits", to="powered_by.apitier")),
+                (
+                    "tier",
+                    models.ForeignKey(
+                        help_text="The tier this limit belongs to.",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="meter_limits",
+                        to="powered_by.apitier",
+                    ),
+                ),
             ],
             options={
                 "verbose_name": "API tier meter limit",
@@ -85,13 +109,56 @@ class Migration(migrations.Migration):
             name="ApiProject",
             fields=[
                 ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("contact_email", models.EmailField(blank=True, db_default="", default="", help_text="Contact address for this API project.", max_length=254)),
-                ("deleted_at", models.DateTimeField(blank=True, help_text="When the API project was deleted. The row stays; a deleted project is not live.", null=True)),
+                (
+                    "contact_email",
+                    models.EmailField(
+                        blank=True,
+                        db_default="",
+                        default="",
+                        help_text="Contact address for this API project.",
+                        max_length=254,
+                    ),
+                ),
+                (
+                    "deleted_at",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="When the API project was deleted. The row stays; a deleted project is not live.",
+                        null=True,
+                    ),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
-                ("owner", models.ForeignKey(blank=True, help_text="The account that manages this API project.", null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="api_projects", to=settings.AUTH_USER_MODEL)),
-                ("profile", models.ForeignKey(help_text="The Powered by Sefaria profile this API project belongs to.", on_delete=django.db.models.deletion.PROTECT, related_name="api_projects", to="powered_by.project")),
-                ("tier", models.ForeignKey(db_default="developer", default="developer", help_text="API access tier of this project.", on_delete=django.db.models.deletion.PROTECT, to="powered_by.apitier")),
+                (
+                    "owner",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="The account that manages this API project.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="api_projects",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "profile",
+                    models.ForeignKey(
+                        help_text="The Powered by Sefaria profile this API project belongs to.",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="api_projects",
+                        to="powered_by.project",
+                    ),
+                ),
+                (
+                    "tier",
+                    models.ForeignKey(
+                        db_default="developer",
+                        default="developer",
+                        help_text="API access tier of this project.",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="powered_by.apitier",
+                    ),
+                ),
             ],
             options={
                 "verbose_name": "API project",
@@ -106,7 +173,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name="apiproject",
-            constraint=models.UniqueConstraint(condition=models.Q(("deleted_at__isnull", True)), fields=("profile",), name="api_project_one_live_per_profile"),
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("deleted_at__isnull", True)),
+                fields=("profile",),
+                name="api_project_one_live_per_profile",
+            ),
         ),
         migrations.RunPython(seed_tiers, migrations.RunPython.noop),
     ]
