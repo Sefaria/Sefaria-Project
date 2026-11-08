@@ -2,18 +2,21 @@
        authService.reloadInterval (the same value deployment.yaml passes as RELOAD_INTERVAL). A pod that never loaded
        reports 0, so it fires too. */}}
 {{- if and .Values.authService.enabled .Values.authService.monitoring.alerts.enabled }}
+{{- if not .Values.authService.monitoring.enabled }}{{ fail "authService.monitoring.alerts.enabled needs authService.monitoring.enabled: the alert reads the series the ServiceMonitor scrapes, so without it the alert never fires" }}{{ end }}
 {{- $interval := toString .Values.authService.reloadInterval }}
-{{- /* Parse a Go duration (time.ParseDuration, which main.go uses): one or more <number><unit> segments, unit h, m, s or ms, number may be fractional, e.g. 60s, 1m30s, 1.5m, 500ms. */}}
-{{- $segments := regexFindAll "[0-9]*\\.?[0-9]+(ms|s|m|h)" $interval -1 }}
-{{- if or (eq (len $segments) 0) (ne (join "" $segments) $interval) }}{{ fail (printf "authService.reloadInterval must be a Go duration made of h, m, s or ms segments (60s, 1m30s, 1.5m, 500ms), got %q" $interval) }}{{ end }}
+{{- /* Accept exactly what time.ParseDuration accepts (main.go uses it): an optional sign, then one or more <number><unit>
+       segments with unit ns, us, µs, μs, ms, s, m or h and a number such as 60, 1.5, 1. or .5. A negative or zero value is rejected below, as main.go does. */}}
+{{- if not (regexMatch "^[+-]?(([0-9]+\\.?[0-9]*|\\.[0-9]+)(ns|us|µs|μs|ms|s|m|h))+$" $interval) }}{{ fail (printf "authService.reloadInterval must be a Go duration (60s, 1m30s, 1.5m, 500ms), got %q" $interval) }}{{ end }}
+{{- if hasPrefix "-" $interval }}{{ fail (printf "authService.reloadInterval must be positive, got %q" $interval) }}{{ end }}
+{{- $segments := regexFindAll "([0-9]+\\.?[0-9]*|\\.[0-9]+)(ns|us|µs|μs|ms|s|m|h)" $interval -1 }}
 {{- $seconds := 0.0 }}
 {{- range $segments }}
-{{- $unit := regexFind "(ms|s|m|h)$" . }}
+{{- $unit := regexFind "(ns|us|µs|μs|ms|s|m|h)$" . }}
 {{- $num := float64 (trimSuffix $unit .) }}
-{{- if eq $unit "ms" }}{{ $seconds = addf $seconds (divf $num 1000.0) }}{{ else if eq $unit "s" }}{{ $seconds = addf $seconds $num }}{{ else if eq $unit "m" }}{{ $seconds = addf $seconds (mulf $num 60.0) }}{{ else }}{{ $seconds = addf $seconds (mulf $num 3600.0) }}{{ end }}
+{{- if eq $unit "ns" }}{{ $seconds = addf $seconds (divf $num 1000000000.0) }}{{ else if or (eq $unit "us") (eq $unit "µs") (eq $unit "μs") }}{{ $seconds = addf $seconds (divf $num 1000000.0) }}{{ else if eq $unit "ms" }}{{ $seconds = addf $seconds (divf $num 1000.0) }}{{ else if eq $unit "s" }}{{ $seconds = addf $seconds $num }}{{ else if eq $unit "m" }}{{ $seconds = addf $seconds (mulf $num 60.0) }}{{ else }}{{ $seconds = addf $seconds (mulf $num 3600.0) }}{{ end }}
 {{- end }}
 {{- if le $seconds 0.0 }}{{ fail (printf "authService.reloadInterval must be positive, got %q" $interval) }}{{ end }}
-{{- $threshold := int (ceil (round (mulf 10.0 $seconds) 3)) }}
+{{- $threshold := max 1 (int (ceil (round (mulf 10.0 $seconds) 3))) }}
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:

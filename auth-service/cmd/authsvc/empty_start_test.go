@@ -69,9 +69,9 @@ func TestNCR8EmptyTableAtStart(t *testing.T) {
 // A genuinely empty registry (a fresh environment) still comes up once a second empty load confirms it.
 func TestEmptyStartBecomesReadyAfterConfirmedEmpty(t *testing.T) {
 	s := startService(t, map[string]string{"PG_DSN": emptySchemaDSN(t), "GATED_PATHS": "/api/knn-search", "RELOAD_INTERVAL": "2s"})
-	if got := s.readyStatus(t); got != http.StatusServiceUnavailable {
-		t.Fatalf("/readyz=%d right after an empty first load, want 503", got)
-	}
+	// No not-ready assertion here: the confirming reload runs on a real timer, so one made after startup would race
+	// it. "Not ready until confirmed" is asserted without a race by TestNCR8EmptyTableAtStart (1h interval, so no
+	// confirming reload can arrive during the test) and by the registry's fake-clock tests.
 	deadline := time.Now().Add(5 * time.Second)
 	for time.Now().Before(deadline) {
 		if s.readyStatus(t) == http.StatusOK {
