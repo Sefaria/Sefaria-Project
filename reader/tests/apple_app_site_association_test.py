@@ -5,6 +5,7 @@ Covers the two exclusion mechanisms: the static AASA_EXCLUDED_PATHS entries
 (allauth OAuth callbacks, always excluded), and the dynamic no_applink query
 marker (WebSessionRedirectMiddleware) -- see sefaria/utils/views_utils.py.
 """
+
 import json
 
 from django.test import RequestFactory
@@ -14,7 +15,7 @@ from sefaria.utils.views_utils import AASA_EXCLUDED_PATHS, NO_APPLINK_PARAM
 
 
 def _components():
-    response = views.apple_app_site_association(RequestFactory().get('/'))
+    response = views.apple_app_site_association(RequestFactory().get("/"))
     body = json.loads(response.content)
     return body["applinks"]["details"][0]["components"]
 
@@ -33,6 +34,14 @@ class TestAppleAppSiteAssociation:
     def test_no_applink_query_excluded_before_catch_all(self):
         components = _components()
 
-        no_applink_rule = {"/": "*", "?": {NO_APPLINK_PARAM: "*"}, "exclude": True}
+        no_applink_rule = {"/": "*", "?": {NO_APPLINK_PARAM: "?*"}, "exclude": True}
         assert no_applink_rule in components
         assert components.index(no_applink_rule) < components.index({"/": "*"})
+
+    def test_no_query_rule_matches_the_empty_string(self):
+        # iOS treats an absent query item as the empty string, and a bare "*" matches the
+        # empty string, so a "*" value would make the exclude rule match every URL and
+        # disable Universal Links entirely (sc-47695). Values must require >= 1 character.
+        for component in _components():
+            for value in component.get("?", {}).values():
+                assert value not in ("*", "")

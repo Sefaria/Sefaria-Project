@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 The "Your data" page: what Sefaria stores about a signed-in user, and the controls on it.
 
@@ -16,9 +15,10 @@ history, sheets, notes, notifications, follows and the profile, but leaves this 
 ``trend`` records, ``blocking`` records and Library Assistant conversations (held by the
 separate chatbot service). A real self-serve deletion flow must cover those too.
 """
-from datetime import datetime
+
 import json
 import urllib.parse
+from datetime import datetime
 
 from sefaria.constants.model import READING_HISTORY_PAUSED_SETTING_KEY
 from sefaria.model.text import Ref
@@ -98,7 +98,7 @@ def _trait_value(trend):
     if trend.datatype == "float":
         # HebrewAbility / EnglishTolerance are 0..1 scores; the product only ever uses them
         # as thresholds (see get_session_traits), so show the reading the site acts on.
-        threshold = .5 if trend.name == "HebrewAbility" else .05
+        threshold = 0.5 if trend.name == "HebrewAbility" else 0.05
         return "Yes" if trend.value >= threshold else "No"
     if trend.datatype == "bool":
         return "Yes" if trend.value else "No"
@@ -139,7 +139,12 @@ def get_history_summary(profile):
     count = db.user_history.count_documents(reading)
     oldest = db.user_history.find_one(reading, {"time_stamp": 1}, sort=[("time_stamp", 1)])
     recent = [
-        {"ref": h.ref, "he_ref": getattr(h, "he_ref", h.ref), "url": _ref_url(h.ref), "date": _format_time(h.time_stamp)}
+        {
+            "ref": h.ref,
+            "he_ref": getattr(h, "he_ref", h.ref),
+            "url": _ref_url(h.ref),
+            "date": _format_time(h.time_stamp),
+        }
         for h in UserHistorySet(dict(reading, secondary=False), sort=[("time_stamp", -1)], limit=RECENT_HISTORY_COUNT)
     ]
     return {
@@ -213,16 +218,23 @@ def export_user_data(profile, user, cookies):
     history = list(db.user_history.find({"uid": uid}, {"_id": 0, "uid": 0}).sort("time_stamp", -1))
     traits = []
     for t in TrendSet({"uid": uid, "scope": "user"}):
-        traits.append({
-            "name": t.name,
-            "label": _trait_label(t.name),
-            "value": t.value,
-            "period": t.period,
-            "computed": _format_timestamp(t.timestamp),
-        })
+        traits.append(
+            {
+                "name": t.name,
+                "label": _trait_label(t.name),
+                "value": t.value,
+                "period": t.period,
+                "computed": _format_timestamp(t.timestamp),
+            }
+        )
     sheets = [
-        {"id": s["id"], "title": s.get("title"), "status": s.get("status"),
-         "dateCreated": s.get("dateCreated"), "dateModified": s.get("dateModified")}
+        {
+            "id": s["id"],
+            "title": s.get("title"),
+            "status": s.get("status"),
+            "dateCreated": s.get("dateCreated"),
+            "dateModified": s.get("dateModified"),
+        }
         for s in db.sheets.find({"owner": uid}, {"id": 1, "title": 1, "status": 1, "dateCreated": 1, "dateModified": 1})
     ]
     notes = [{k: v for k, v in n.items() if k != "_id"} for n in db.notes.find({"owner": uid})]

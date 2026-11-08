@@ -30,7 +30,7 @@ class RefPartAndNodeMatch:
         that weren't produced by a refiner (e.g. seed/instantiation pairings).
         """
         return self._ref
-    
+
     def set_node(self, node: ReferenceableBookNode):
         self._node = node
 

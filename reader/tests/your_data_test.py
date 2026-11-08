@@ -35,12 +35,19 @@ class YourDataTestCase(TestCase):
         return json.loads(self.client.post("/settings/your-data/history", {"action": action}).content)
 
     def add_trait(self):
-        Trend({"name": "HebrewAbility", "value": 0.9, "datatype": "float", "period": "alltime",
-               "scope": "user", "uid": self.user.id}).save()
+        Trend(
+            {
+                "name": "HebrewAbility",
+                "value": 0.9,
+                "datatype": "float",
+                "period": "alltime",
+                "scope": "user",
+                "uid": self.user.id,
+            }
+        ).save()
 
 
 class YourDataPageTest(YourDataTestCase):
-
     def test_page_shows_both_groups(self):
         self.read("Genesis 1:1")
         self.add_trait()
@@ -60,7 +67,6 @@ class YourDataPageTest(YourDataTestCase):
 
 
 class PauseHistoryTest(YourDataTestCase):
-
     def test_pause_keeps_history_and_stops_recording_reads(self):
         self.read("Genesis 1:1")
         self.post_history("pause")
@@ -85,7 +91,6 @@ class PauseHistoryTest(YourDataTestCase):
 
 
 class ClearHistoryTest(YourDataTestCase):
-
     def test_clear_removes_history_and_traits_but_keeps_saved(self):
         self.read("Genesis 1:1")
         self.read("Exodus 1:1", action="add_saved")
@@ -103,7 +108,6 @@ class ClearHistoryTest(YourDataTestCase):
 
 
 class ExportTest(YourDataTestCase):
-
     def test_export_is_a_json_download_without_credentials(self):
         self.read("Genesis 1:1")
         profile = UserProfile(id=self.user.id)

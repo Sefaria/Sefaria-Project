@@ -1,9 +1,10 @@
-from sefaria.helper.crm.crm_factory import CrmFactory
-from sefaria.helper.crm.crm_info_store import CrmInfoStore
 from django.conf import settings as sls
 
+from sefaria.helper.crm.crm_factory import CrmFactory
+from sefaria.helper.crm.crm_info_store import CrmInfoStore
 
-# todo: task queue, async
+# TODO: task queue, async
+
 
 class CrmMediator:
     def __init__(self):
@@ -15,8 +16,7 @@ class CrmMediator:
             if crm_id:
                 CrmInfoStore.save_crm_id(crm_id, email, sls.CRM_TYPE)
                 return True
-            else:
-                return False
+            return False
         except:
             return False
 
@@ -62,8 +62,7 @@ class CrmMediator:
         crm_id = CrmInfoStore.get_crm_id(uid, email, profile)
         if crm_id:
             return self._crm_connection.change_user_email(crm_id, new_email)
-        else:
-            return False
+        return False
 
     def get_and_save_crm_id(self, email=None):
         crm_id = self._crm_connection.find_crm_id(email)

@@ -25,7 +25,9 @@ function SearchLoadSkeleton() {
     if (!scrollContainer) return;
     const prevOverflowY = scrollContainer.style.overflowY;
     scrollContainer.style.overflowY = 'hidden';
-    return () => { scrollContainer.style.overflowY = prevOverflowY; };
+    return () => {
+      scrollContainer.style.overflowY = prevOverflowY;
+    };
   }, []);
 
   return (
@@ -40,7 +42,9 @@ function SearchLoadSkeleton() {
         <div className="searchLoadSkeleton-shimmer searchLoadSkeleton-sort" />
       </div>
       <div className="searchLoadSkeleton-results">
-        {Array.from({ length: 11 }, (_, i) => <SkeletonCard key={i} />)}
+        {Array.from({ length: 11 }, (_, i) => (
+          <SkeletonCard key={i} />
+        ))}
       </div>
     </div>
   );

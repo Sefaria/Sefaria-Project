@@ -38,7 +38,7 @@ def _split_long_paragraph(para: str, limit: int) -> list[str]:
         boundary = max(window.rfind("\n"), window.rfind(" "))
         if boundary > 0:
             pieces.append(remaining[:boundary])
-            remaining = remaining[boundary + 1:]  # drop the boundary char itself
+            remaining = remaining[boundary + 1 :]  # drop the boundary char itself
         else:
             pieces.append(remaining[:limit])
             remaining = remaining[limit:]
@@ -79,10 +79,7 @@ def chunk_text(text: str, limit: int) -> list[str]:
 
 def post_to_slack(webhook_url: str, text: str, limit: int) -> None:
     chunks = chunk_text(text, limit)
-    blocks = [
-        {"type": "section", "text": {"type": "mrkdwn", "text": chunk}}
-        for chunk in chunks
-    ]
+    blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": chunk}} for chunk in chunks]
     payload = json.dumps({"blocks": blocks}).encode("utf-8")
 
     req = urllib.request.Request(
@@ -109,9 +106,7 @@ def post_to_slack(webhook_url: str, text: str, limit: int) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--file", required=True, help="Path to the text file to post to Slack."
-    )
+    parser.add_argument("--file", required=True, help="Path to the text file to post to Slack.")
     parser.add_argument(
         "--limit",
         type=int,
