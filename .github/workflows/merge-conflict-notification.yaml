@@ -70,12 +70,16 @@ jobs:
 
             // 2. PR comment (GitHub emails it), once per head SHA.
             const marker = `<!-- merge-conflict-alert:${headSha} -->`;
+            const slackMarker = `<!-- merge-conflict-slack:${headSha} -->`;
             const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: pull_number });
-            if (comments.some(c => c.body && c.body.includes(marker))) return core.info('Already notified for this SHA.');
+            // Only trust markers in comments this workflow posted; anyone can paste the text.
+            let existing = comments.find(c => c.user && c.user.login === 'github-actions[bot]' && c.body && c.body.includes(marker));
+            if (existing && existing.body.includes(slackMarker)) return core.info('Already notified for this SHA.');
 
             const author = pr.user.login;
             const mentions = [...new Set([pusher, author])].map(l => `@${l}`).join(' ');
-            await github.rest.issues.createComment({
+            if (existing) core.info('Comment exists but Slack was not confirmed; retrying Slack.');
+            else ({ data: existing } = await github.rest.issues.createComment({
               owner, repo, issue_number: pull_number,
               body: [
                 marker,
@@ -83,7 +87,7 @@ jobs:
                 '',
                 `To fix: merge \`${base}\` into this branch (or rebase onto it), resolve the conflicts and push. Continuous will run on that push.`,
               ].join('\n'),
-            });
+            }));
 
             // 3. Slack mention of the pusher and the PR author, if a webhook is configured.
             const webhook = process.env.SLACK_WEBHOOK_URL;
@@ -105,4 +109,6 @@ jobs:
                 text: `:warning: ${who} the push <${pr.html_url}/commits/${headSha}|${shortSha}> to <${pr.html_url}|PR #${pull_number}> was not built: the PR has a merge conflict with \`${base}\`. Merge \`${base}\` and push again to rebuild the images and cauldron.`,
               }),
             });
-            if (!res.ok) core.warning(`Slack webhook returned ${res.status}`);
+            // On failure the job goes red and a re-run retries Slack (the comment has no Slack marker yet).
+            if (!res.ok) return core.setFailed(`Slack webhook returned ${res.status}; re-run this job to retry.`);
+            await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body: `${existing.body}\n${slackMarker}` });
