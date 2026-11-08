@@ -7,6 +7,8 @@ urlpatterns = [
     path("api/auth/google/redirect", views.google_redirect),
     # Mobile Google Sign In: RN app POSTs a native ID token here, returns JWT
     path("api/auth/google/mobile", views.google_mobile),
+    # Google Sign In popup button + One Tap, web: useSsoSignIn.jsx / GoogleOneTap.jsx POST id_token here
+    path("api/auth/google/callback", views.google_web),
     # Apple Sign In popup mode: ChooseView.jsx POSTs id_token + name here
     path("api/auth/apple/callback", views.apple_callback),
     # Mobile Apple Sign In: RN app POSTs a native ID token here, returns JWT

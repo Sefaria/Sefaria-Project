@@ -2,20 +2,24 @@
 import {
   ContentType,
   ShowTo,
+  DonorStatus,
+  CONTENT_FIELDS,
+  selectionPriorityKey,
   isEligible,
   selectContent,
   isPathExcluded,
   sortBy,
   buildViewerContext,
-} from "../strapiSelection";
+} from '../strapiSelection';
 
 // A viewer context with harmless defaults; each test overrides only what it is about.
 const viewer = (overrides = {}) => ({
-  now: new Date("2026-09-15T16:00:00.000Z"),
-  locale: "en",
-  countryCandidates: new Set(["us"]),
+  now: new Date('2026-09-15T16:00:00.000Z'),
+  locale: 'en',
+  countryCandidates: new Set(['us']),
   isLoggedIn: false,
   isSustainer: false,
+  isConfirmedDonor: false,
   isReturningVisitor: false,
   isNewVisitor: true,
   hasDismissed: () => false,
@@ -25,115 +29,119 @@ const viewer = (overrides = {}) => ({
 // A modal in the buildInterfaceTextDoc shape, in-window for the default viewer's `now`,
 // unrestricted in every dimension. Tests override single fields to flip single gates.
 const modal = (overrides = {}) => ({
-  internalModalName: "test-modal",
-  modalStartDate: "2026-09-14T00:00:00.000Z",
-  modalEndDate: "2026-09-16T23:59:59.000Z",
-  locales: ["en"],
+  internalModalName: 'test-modal',
+  modalStartDate: '2026-09-14T00:00:00.000Z',
+  modalEndDate: '2026-09-16T23:59:59.000Z',
+  locales: ['en'],
   showTo: ShowTo.EVERYONE,
   showToReturningVisitors: false,
   showToNewVisitors: false,
   showToSustainers: false,
   showToNonSustainers: false,
+  showToDonor: false,
+  showToNonDonor: false,
   countriesToTarget: { en: null, he: null },
   buttonURL: { en: null, he: null },
   ...overrides,
 });
 
 const banner = (overrides = {}) => ({
-  internalBannerName: "test-banner",
-  bannerStartDate: "2026-09-14T00:00:00.000Z",
-  bannerEndDate: "2026-09-16T23:59:59.000Z",
-  locales: ["en"],
+  internalBannerName: 'test-banner',
+  bannerStartDate: '2026-09-14T00:00:00.000Z',
+  bannerEndDate: '2026-09-16T23:59:59.000Z',
+  locales: ['en'],
   showTo: ShowTo.EVERYONE,
   showToReturningVisitors: false,
   showToNewVisitors: false,
   showToSustainers: false,
   showToNonSustainers: false,
+  showToDonor: false,
+  showToNonDonor: false,
   countriesToTarget: { en: null, he: null },
   buttonURL: { en: null, he: null },
   ...overrides,
 });
 
 const include = (...codes) => ({
-  countryMode: "include",
+  countryMode: 'include',
   countries: codes.map((code) => ({ name: code, code })),
 });
 
 const exclude = (...codes) => ({
-  countryMode: "exclude",
+  countryMode: 'exclude',
   countries: codes.map((code) => ({ name: code, code })),
 });
 
-describe("isEligible", function () {
-  it("accepts an unrestricted, in-window document", function () {
+describe('isEligible', function () {
+  it('accepts an unrestricted, in-window document', function () {
     expect(isEligible(modal(), viewer(), ContentType.MODAL)).toBe(true);
   });
 
-  it("throws on an unknown content type instead of silently gating nothing", function () {
-    expect(() => isEligible(modal(), viewer(), "modal")).toThrow(/Unknown content type/);
+  it('throws on an unknown content type instead of silently gating nothing', function () {
+    expect(() => isEligible(modal(), viewer(), 'modal')).toThrow(/Unknown content type/);
   });
 
-  describe("date window", function () {
-    it("rejects a document that has not started yet", function () {
-      const doc = modal({ modalStartDate: "2026-09-16T00:00:00.000Z" });
+  describe('date window', function () {
+    it('rejects a document that has not started yet', function () {
+      const doc = modal({ modalStartDate: '2026-09-16T00:00:00.000Z' });
       expect(isEligible(doc, viewer(), ContentType.MODAL)).toBe(false);
     });
 
-    it("rejects a document that has already ended", function () {
-      const doc = modal({ modalEndDate: "2026-09-15T00:00:00.000Z" });
+    it('rejects a document that has already ended', function () {
+      const doc = modal({ modalEndDate: '2026-09-15T00:00:00.000Z' });
       expect(isEligible(doc, viewer(), ContentType.MODAL)).toBe(false);
     });
 
-    it("reads the banner date fields for banners", function () {
-      const doc = banner({ bannerEndDate: "2026-09-15T00:00:00.000Z" });
+    it('reads the banner date fields for banners', function () {
+      const doc = banner({ bannerEndDate: '2026-09-15T00:00:00.000Z' });
       expect(isEligible(doc, viewer(), ContentType.BANNER)).toBe(false);
       expect(isEligible(banner(), viewer(), ContentType.BANNER)).toBe(true);
     });
   });
 
-  describe("locale", function () {
+  describe('locale', function () {
     it("rejects a document not published in the viewer's language", function () {
-      expect(isEligible(modal({ locales: ["he"] }), viewer({ locale: "en" }), ContentType.MODAL)).toBe(false);
+      expect(isEligible(modal({ locales: ['he'] }), viewer({ locale: 'en' }), ContentType.MODAL)).toBe(false);
     });
 
-    it("accepts a bilingual document for either language", function () {
-      const doc = modal({ locales: ["en", "he"] });
-      expect(isEligible(doc, viewer({ locale: "en" }), ContentType.MODAL)).toBe(true);
-      expect(isEligible(doc, viewer({ locale: "he" }), ContentType.MODAL)).toBe(true);
+    it('accepts a bilingual document for either language', function () {
+      const doc = modal({ locales: ['en', 'he'] });
+      expect(isEligible(doc, viewer({ locale: 'en' }), ContentType.MODAL)).toBe(true);
+      expect(isEligible(doc, viewer({ locale: 'he' }), ContentType.MODAL)).toBe(true);
     });
   });
 
-  describe("country targeting", function () {
+  describe('country targeting', function () {
     it("reads the targeting of the viewer's locale", function () {
-      const doc = modal({ countriesToTarget: { en: include("IL"), he: null } });
-      expect(isEligible(doc, viewer({ locale: "en" }), ContentType.MODAL)).toBe(false);
+      const doc = modal({ countriesToTarget: { en: include('IL'), he: null } });
+      expect(isEligible(doc, viewer({ locale: 'en' }), ContentType.MODAL)).toBe(false);
     });
 
     it("accepts when the viewer's country is on the include list", function () {
-      const doc = modal({ countriesToTarget: { en: include("US"), he: null } });
+      const doc = modal({ countriesToTarget: { en: include('US'), he: null } });
       expect(isEligible(doc, viewer(), ContentType.MODAL)).toBe(true);
     });
   });
 
-  describe("audience (showTo)", function () {
-    it("shows logged-in-only content to logged-in viewers alone", function () {
+  describe('audience (showTo)', function () {
+    it('shows logged-in-only content to logged-in viewers alone', function () {
       const doc = modal({ showTo: ShowTo.LOGGED_IN_ONLY });
       expect(isEligible(doc, viewer({ isLoggedIn: true }), ContentType.MODAL)).toBe(true);
       expect(isEligible(doc, viewer({ isLoggedIn: false }), ContentType.MODAL)).toBe(false);
     });
 
-    it("shows logged-out-only content to logged-out viewers alone", function () {
+    it('shows logged-out-only content to logged-out viewers alone', function () {
       const doc = modal({ showTo: ShowTo.LOGGED_OUT_ONLY });
       expect(isEligible(doc, viewer({ isLoggedIn: false }), ContentType.MODAL)).toBe(true);
       expect(isEligible(doc, viewer({ isLoggedIn: true }), ContentType.MODAL)).toBe(false);
     });
 
-    it("shows to everyone when no user-kind box is ticked", function () {
+    it('shows to everyone when no user-kind box is ticked', function () {
       expect(isEligible(modal(), viewer(), ContentType.MODAL)).toBe(true);
       expect(isEligible(modal(), viewer({ isLoggedIn: true }), ContentType.MODAL)).toBe(true);
     });
 
-    it("narrows to sustainers when only that box is ticked", function () {
+    it('narrows to sustainers when only that box is ticked', function () {
       const doc = modal({ showToSustainers: true });
       expect(isEligible(doc, viewer({ isLoggedIn: true, isSustainer: true }), ContentType.MODAL)).toBe(true);
       expect(isEligible(doc, viewer({ isLoggedIn: true, isSustainer: false }), ContentType.MODAL)).toBe(false);
@@ -141,13 +149,13 @@ describe("isEligible", function () {
       expect(isEligible(doc, viewer({ isLoggedIn: false }), ContentType.MODAL)).toBe(false);
     });
 
-    it("narrows to new visitors when only that box is ticked", function () {
+    it('narrows to new visitors when only that box is ticked', function () {
       const doc = modal({ showToNewVisitors: true });
       expect(isEligible(doc, viewer({ isNewVisitor: true, isReturningVisitor: false }), ContentType.MODAL)).toBe(true);
       expect(isEligible(doc, viewer({ isNewVisitor: false, isReturningVisitor: true }), ContentType.MODAL)).toBe(false);
     });
 
-    it("matches on either the account kind or the visit kind", function () {
+    it('matches on either the account kind or the visit kind', function () {
       // Ticked: non-sustainers + returning visitors. A sustainer who is a returning visitor
       // fails the account check but passes the visit check.
       const doc = modal({ showToNonSustainers: true, showToReturningVisitors: true });
@@ -160,157 +168,149 @@ describe("isEligible", function () {
       expect(isEligible(doc, sustainerWhoReturns, ContentType.MODAL)).toBe(true);
     });
 
-    it("rejects an unrecognized showTo value rather than guessing", function () {
-      const doc = modal({ showTo: "some_future_value" });
+    it('rejects an unrecognized showTo value rather than guessing', function () {
+      const doc = modal({ showTo: 'some_future_value' });
       expect(isEligible(doc, viewer(), ContentType.MODAL)).toBe(false);
     });
   });
 
-  describe("dismissal", function () {
-    it("rejects a document the viewer has already dismissed", function () {
-      const ctx = viewer({ hasDismissed: (key) => key === "modal_test-modal" });
+  describe('dismissal', function () {
+    it('rejects a document the viewer has already dismissed', function () {
+      const ctx = viewer({ hasDismissed: (key) => key === 'modal_test-modal' });
       expect(isEligible(modal(), ctx, ContentType.MODAL)).toBe(false);
     });
 
-    it("builds the banner dismissal key with the banner prefix", function () {
-      const ctx = viewer({ hasDismissed: (key) => key === "banner_test-banner" });
+    it('builds the banner dismissal key with the banner prefix', function () {
+      const ctx = viewer({ hasDismissed: (key) => key === 'banner_test-banner' });
       expect(isEligible(banner(), ctx, ContentType.BANNER)).toBe(false);
-      expect(isEligible(modal({ internalModalName: "test-banner" }), ctx, ContentType.MODAL)).toBe(true);
+      expect(isEligible(modal({ internalModalName: 'test-banner' }), ctx, ContentType.MODAL)).toBe(true);
     });
   });
 });
 
-describe("selectContent", function () {
-  it("returns null for an empty list", function () {
+describe('selectContent', function () {
+  it('returns null for an empty list', function () {
     expect(selectContent([], viewer(), ContentType.MODAL)).toBe(null);
   });
 
-  it("returns null when nothing is eligible", function () {
-    const docs = [modal({ locales: ["he"] })];
-    expect(selectContent(docs, viewer({ locale: "en" }), ContentType.MODAL)).toBe(null);
+  it('returns null when nothing is eligible', function () {
+    const docs = [modal({ locales: ['he'] })];
+    expect(selectContent(docs, viewer({ locale: 'en' }), ContentType.MODAL)).toBe(null);
   });
 
-  it("skips an ineligible document and picks the eligible one behind it", function () {
+  it('skips an ineligible document and picks the eligible one behind it', function () {
     // The sc-45891 shape: an English-only document ahead of the Hebrew-only one the viewer needs.
-    const docs = [modal({ locales: ["en"] }), modal({ internalModalName: "hebrew", locales: ["he"] })];
-    expect(selectContent(docs, viewer({ locale: "he" }), ContentType.MODAL).internalModalName).toBe("hebrew");
+    const docs = [modal({ locales: ['en'] }), modal({ internalModalName: 'hebrew', locales: ['he'] })];
+    expect(selectContent(docs, viewer({ locale: 'he' }), ContentType.MODAL).internalModalName).toBe('hebrew');
   });
 
-  it("selection is page-independent: a winner whose button URL collides with a page is still selected", function () {
+  it('selection is page-independent: a winner whose button URL collides with a page is still selected', function () {
     // The ratified render-guard boundary (2026-08-14): selectContent never consults the current
     // page — isPathExcluded is display's job. The colliding document stays the WINNER; the
     // display layer withholds it on the colliding page and renders it everywhere else. If path
     // exclusion ever became a selection gate, the runner-up would win here and this would fail.
     const docs = [
       modal({
-        internalModalName: "runner-up",
-        modalStartDate: "2026-09-12T00:00:00.000Z",
-        modalEndDate: "2026-09-19T00:00:00.000Z",
+        internalModalName: 'runner-up',
+        modalStartDate: '2026-09-12T00:00:00.000Z',
+        modalEndDate: '2026-09-19T00:00:00.000Z',
       }),
       modal({
-        internalModalName: "colliding-winner",
-        modalStartDate: "2026-09-15T00:00:00.000Z",
-        modalEndDate: "2026-09-16T00:00:00.000Z",
-        buttonURL: { en: "https://example.org/texts", he: null },
+        internalModalName: 'colliding-winner',
+        modalStartDate: '2026-09-15T00:00:00.000Z',
+        modalEndDate: '2026-09-16T00:00:00.000Z',
+        buttonURL: { en: 'https://example.org/texts', he: null },
       }),
     ];
     const winner = selectContent(docs, viewer(), ContentType.MODAL);
-    expect(winner.internalModalName).toBe("colliding-winner");
+    expect(winner.internalModalName).toBe('colliding-winner');
     // Display withholds it exactly where it collides, and nowhere else.
-    expect(isPathExcluded(winner, "/texts")).toBe(true);
-    expect(isPathExcluded(winner, "/topics")).toBe(false);
+    expect(isPathExcluded(winner, '/texts')).toBe(true);
+    expect(isPathExcluded(winner, '/topics')).toBe(false);
   });
 
-  it("falls through to the runner-up when the first choice was dismissed", function () {
-    const docs = [
-      modal({ internalModalName: "dismissed-one" }),
-      modal({ internalModalName: "runner-up" }),
-    ];
-    const ctx = viewer({ hasDismissed: (key) => key === "modal_dismissed-one" });
-    expect(selectContent(docs, ctx, ContentType.MODAL).internalModalName).toBe("runner-up");
+  it('falls through to the runner-up when the first choice was dismissed', function () {
+    const docs = [modal({ internalModalName: 'dismissed-one' }), modal({ internalModalName: 'runner-up' })];
+    const ctx = viewer({ hasDismissed: (key) => key === 'modal_dismissed-one' });
+    expect(selectContent(docs, ctx, ContentType.MODAL).internalModalName).toBe('runner-up');
   });
 
-  it("a dismissed RANKING winner falls through to a lower-ranked runner-up", function () {
+  it('a dismissed RANKING winner falls through to a lower-ranked runner-up', function () {
     // Sharper than the identical-docs case above: here the dismissed document would win the
     // ranking outright (shorter window, tier 4). Dismissal is a GATE, and gates run before
     // ranking — so the daily never reaches the sort, and the lower-ranked weekly wins as the
     // only eligible document. This is what makes "see the next promotion on your next visit"
     // work when the campaigns are not equals.
     const weekly = modal({
-      internalModalName: "bilingual-weekly",
-      locales: ["en", "he"],
-      modalStartDate: "2026-09-12T00:00:00.000Z",
-      modalEndDate: "2026-09-19T00:00:00.000Z",
+      internalModalName: 'bilingual-weekly',
+      locales: ['en', 'he'],
+      modalStartDate: '2026-09-12T00:00:00.000Z',
+      modalEndDate: '2026-09-19T00:00:00.000Z',
     });
     const daily = modal({
-      internalModalName: "bilingual-daily",
-      locales: ["en", "he"],
-      modalStartDate: "2026-09-15T00:00:00.000Z",
-      modalEndDate: "2026-09-16T00:00:00.000Z",
+      internalModalName: 'bilingual-daily',
+      locales: ['en', 'he'],
+      modalStartDate: '2026-09-15T00:00:00.000Z',
+      modalEndDate: '2026-09-16T00:00:00.000Z',
     });
     // First load: the daily wins on the shorter window.
-    expect(selectContent([weekly, daily], viewer(), ContentType.MODAL).internalModalName).toBe(
-      "bilingual-daily",
-    );
+    expect(selectContent([weekly, daily], viewer(), ContentType.MODAL).internalModalName).toBe('bilingual-daily');
     // Next load, after dismissing it: the weekly surfaces.
-    const dismissedDaily = viewer({ hasDismissed: (key) => key === "modal_bilingual-daily" });
+    const dismissedDaily = viewer({ hasDismissed: (key) => key === 'modal_bilingual-daily' });
     expect(selectContent([weekly, daily], dismissedDaily, ContentType.MODAL).internalModalName).toBe(
-      "bilingual-weekly",
+      'bilingual-weekly'
     );
   });
 
-  it("an ambiguous country viewer never falls through to the counterpart that excludes that country", function () {
+  it('an ambiguous country viewer never falls through to the counterpart that excludes that country', function () {
     const ukCampaign = modal({
-      internalModalName: "uk-campaign",
-      countriesToTarget: { en: include("GB"), he: null },
+      internalModalName: 'uk-campaign',
+      countriesToTarget: { en: include('GB'), he: null },
     });
     const everyoneExceptUk = modal({
-      internalModalName: "everyone-except-uk",
-      countriesToTarget: { en: exclude("GB"), he: null },
+      internalModalName: 'everyone-except-uk',
+      countriesToTarget: { en: exclude('GB'), he: null },
     });
-    const ambiguousViewer = viewer({ countryCandidates: new Set(["gb", "us"]) });
+    const ambiguousViewer = viewer({ countryCandidates: new Set(['gb', 'us']) });
 
     // GB is plausible, so the targeted campaign is eligible and the exclude-GB counterpart is not.
     expect(selectContent([everyoneExceptUk, ukCampaign], ambiguousViewer, ContentType.MODAL).internalModalName).toBe(
-      "uk-campaign",
+      'uk-campaign'
     );
 
     // Dismissing the UK campaign does not expose content whose Strapi audience explicitly excludes
     // UK. This is different from an ALL-country campaign, which remains a legitimate fallback.
     const afterDismissal = viewer({
-      countryCandidates: new Set(["gb", "us"]),
-      hasDismissed: (key) => key === "modal_uk-campaign",
+      countryCandidates: new Set(['gb', 'us']),
+      hasDismissed: (key) => key === 'modal_uk-campaign',
     });
     expect(selectContent([everyoneExceptUk, ukCampaign], afterDismissal, ContentType.MODAL)).toBe(null);
 
     // A viewer with no plausible UK signal still receives the counterpart.
     expect(
-      selectContent(
-        [everyoneExceptUk, ukCampaign],
-        viewer({ countryCandidates: new Set(["us"]) }),
-        ContentType.MODAL,
-      ).internalModalName,
-    ).toBe("everyone-except-uk");
+      selectContent([everyoneExceptUk, ukCampaign], viewer({ countryCandidates: new Set(['us']) }), ContentType.MODAL)
+        .internalModalName
+    ).toBe('everyone-except-uk');
   });
 
-  describe("ranking, tier by tier", function () {
-    it("tier 1: country-targeted beats untargeted", function () {
+  describe('ranking, tier by tier', function () {
+    it('tier 1: country-targeted beats untargeted', function () {
       const docs = [
-        modal({ internalModalName: "for-everyone" }),
-        modal({ internalModalName: "for-us-viewers", countriesToTarget: { en: include("US"), he: null } }),
+        modal({ internalModalName: 'for-everyone' }),
+        modal({ internalModalName: 'for-us-viewers', countriesToTarget: { en: include('US'), he: null } }),
       ];
-      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("for-us-viewers");
+      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe('for-us-viewers');
     });
 
-    it("tier 2: a restricted audience beats everyone, when country ties", function () {
+    it('tier 2: a restricted audience beats everyone, when country ties', function () {
       const docs = [
-        modal({ internalModalName: "for-everyone" }),
-        modal({ internalModalName: "for-logged-out", showTo: ShowTo.LOGGED_OUT_ONLY }),
+        modal({ internalModalName: 'for-everyone' }),
+        modal({ internalModalName: 'for-logged-out', showTo: ShowTo.LOGGED_OUT_ONLY }),
       ];
-      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("for-logged-out");
+      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe('for-logged-out');
     });
 
-    it("tier 2: ticking every user-kind box counts as no restriction", function () {
+    it('tier 2: ticking every user-kind box counts as no restriction', function () {
       const allBoxes = {
         showToReturningVisitors: true,
         showToNewVisitors: true,
@@ -318,293 +318,291 @@ describe("selectContent", function () {
         showToNonSustainers: true,
       };
       const docs = [
-        modal({ internalModalName: "all-boxes-ticked", ...allBoxes }),
-        modal({ internalModalName: "new-visitors-only", showToNewVisitors: true }),
+        modal({ internalModalName: 'all-boxes-ticked', ...allBoxes }),
+        modal({ internalModalName: 'new-visitors-only', showToNewVisitors: true }),
       ];
-      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("new-visitors-only");
+      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe('new-visitors-only');
     });
 
-    it("tier 3: a locale-exclusive document beats a bilingual one, when audience ties", function () {
+    it('tier 3: a locale-exclusive document beats a bilingual one, when audience ties', function () {
       const docs = [
-        modal({ internalModalName: "bilingual", locales: ["en", "he"] }),
-        modal({ internalModalName: "english-only", locales: ["en"] }),
+        modal({ internalModalName: 'bilingual', locales: ['en', 'he'] }),
+        modal({ internalModalName: 'english-only', locales: ['en'] }),
       ];
-      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("english-only");
+      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe('english-only');
     });
 
-    it("tier 4: a shorter window beats a longer one, when everything else ties", function () {
+    it('tier 4: a shorter window beats a longer one, when everything else ties', function () {
       const docs = [
         modal({
-          internalModalName: "week-long",
-          modalStartDate: "2026-09-10T00:00:00.000Z",
-          modalEndDate: "2026-09-17T00:00:00.000Z",
+          internalModalName: 'week-long',
+          modalStartDate: '2026-09-10T00:00:00.000Z',
+          modalEndDate: '2026-09-17T00:00:00.000Z',
         }),
         modal({
-          internalModalName: "one-day",
-          modalStartDate: "2026-09-15T00:00:00.000Z",
-          modalEndDate: "2026-09-16T00:00:00.000Z",
+          internalModalName: 'one-day',
+          modalStartDate: '2026-09-15T00:00:00.000Z',
+          modalEndDate: '2026-09-16T00:00:00.000Z',
         }),
       ];
-      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("one-day");
+      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe('one-day');
     });
 
-    it("tier 6: payload order breaks a complete tie (identical windows AND identical starts)", function () {
-      const docs = [modal({ internalModalName: "first" }), modal({ internalModalName: "second" })];
-      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("first");
+    it('tier 6: payload order breaks a complete tie (identical windows AND identical starts)', function () {
+      const docs = [modal({ internalModalName: 'first' }), modal({ internalModalName: 'second' })];
+      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe('first');
     });
 
-    it("an earlier tier outranks all later ones combined", function () {
+    it('an earlier tier outranks all later ones combined', function () {
       // The country-targeted document is bilingual with a long window; the untargeted one is
       // locale-exclusive with a short window. Country still wins.
       const docs = [
         modal({
-          internalModalName: "specific-late-tiers",
-          locales: ["en"],
-          modalStartDate: "2026-09-15T00:00:00.000Z",
-          modalEndDate: "2026-09-16T00:00:00.000Z",
+          internalModalName: 'specific-late-tiers',
+          locales: ['en'],
+          modalStartDate: '2026-09-15T00:00:00.000Z',
+          modalEndDate: '2026-09-16T00:00:00.000Z',
         }),
         modal({
-          internalModalName: "country-targeted",
-          locales: ["en", "he"],
-          countriesToTarget: { en: include("US"), he: null },
-          modalStartDate: "2026-09-10T00:00:00.000Z",
-          modalEndDate: "2026-09-17T00:00:00.000Z",
+          internalModalName: 'country-targeted',
+          locales: ['en', 'he'],
+          countriesToTarget: { en: include('US'), he: null },
+          modalStartDate: '2026-09-10T00:00:00.000Z',
+          modalEndDate: '2026-09-17T00:00:00.000Z',
         }),
       ];
-      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("country-targeted");
+      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe('country-targeted');
     });
   });
 
-  describe("ranking, editorial scenarios", function () {
+  describe('ranking, editorial scenarios', function () {
     // The shapes editors actually publish, asserted end to end through the ranking. A
     // locale-exclusive document is authored FOR that audience; a bilingual one is for everyone.
 
     const weeklyWindow = {
-      modalStartDate: "2026-09-12T00:00:00.000Z",
-      modalEndDate: "2026-09-19T00:00:00.000Z",
+      modalStartDate: '2026-09-12T00:00:00.000Z',
+      modalEndDate: '2026-09-19T00:00:00.000Z',
     };
     const dailyWindow = {
-      modalStartDate: "2026-09-15T00:00:00.000Z",
-      modalEndDate: "2026-09-16T00:00:00.000Z",
+      modalStartDate: '2026-09-15T00:00:00.000Z',
+      modalEndDate: '2026-09-16T00:00:00.000Z',
     };
 
-    it("a locale-exclusive daily outranks a bilingual weekly for the shared reader (tier 3, before window)", function () {
+    it('a locale-exclusive daily outranks a bilingual weekly for the shared reader (tier 3, before window)', function () {
       const docs = [
-        modal({ internalModalName: "bilingual-weekly", locales: ["en", "he"], ...weeklyWindow }),
-        modal({ internalModalName: "english-daily", locales: ["en"], ...dailyWindow }),
+        modal({ internalModalName: 'bilingual-weekly', locales: ['en', 'he'], ...weeklyWindow }),
+        modal({ internalModalName: 'english-daily', locales: ['en'], ...dailyWindow }),
       ];
       // The English reader can see both; the daily was written for English readers specifically.
-      expect(selectContent(docs, viewer({ locale: "en" }), ContentType.MODAL).internalModalName).toBe(
-        "english-daily",
-      );
+      expect(selectContent(docs, viewer({ locale: 'en' }), ContentType.MODAL).internalModalName).toBe('english-daily');
       // The Hebrew reader can only see the bilingual weekly — the daily fails the locale GATE,
       // so this is not a ranking outcome. The general-audience document still serves them.
-      expect(selectContent(docs, viewer({ locale: "he" }), ContentType.MODAL).internalModalName).toBe(
-        "bilingual-weekly",
+      expect(selectContent(docs, viewer({ locale: 'he' }), ContentType.MODAL).internalModalName).toBe(
+        'bilingual-weekly'
       );
     });
 
-    it("between two bilingual documents the shorter window wins, for either reader (tier 4)", function () {
+    it('between two bilingual documents the shorter window wins, for either reader (tier 4)', function () {
       const docs = [
-        modal({ internalModalName: "bilingual-weekly", locales: ["en", "he"], ...weeklyWindow }),
-        modal({ internalModalName: "bilingual-daily", locales: ["en", "he"], ...dailyWindow }),
+        modal({ internalModalName: 'bilingual-weekly', locales: ['en', 'he'], ...weeklyWindow }),
+        modal({ internalModalName: 'bilingual-daily', locales: ['en', 'he'], ...dailyWindow }),
       ];
       // Tiers 1-3 tie (untargeted, unrestricted, both bilingual); the more tightly scheduled —
       // potentially more urgent — document takes the slot for every reader.
-      expect(selectContent(docs, viewer({ locale: "en" }), ContentType.MODAL).internalModalName).toBe(
-        "bilingual-daily",
+      expect(selectContent(docs, viewer({ locale: 'en' }), ContentType.MODAL).internalModalName).toBe(
+        'bilingual-daily'
       );
-      expect(selectContent(docs, viewer({ locale: "he" }), ContentType.MODAL).internalModalName).toBe(
-        "bilingual-daily",
+      expect(selectContent(docs, viewer({ locale: 'he' }), ContentType.MODAL).internalModalName).toBe(
+        'bilingual-daily'
       );
     });
 
-    it("exclusivity beats urgency: a locale-exclusive weekly outranks a bilingual daily (tier 3 before tier 4)", function () {
+    it('exclusivity beats urgency: a locale-exclusive weekly outranks a bilingual daily (tier 3 before tier 4)', function () {
       // THE tier-ordering collision, pinned deliberately (user decision, 2026-08-13): when
       // "written for this audience specifically" (locale exclusivity) and "more tightly
       // scheduled" (shorter window) point at DIFFERENT documents, exclusivity wins — it is the
       // stronger signal of intent. This is the discriminating case the scenario above cannot
       // test, because there both tiers favor the same document.
       const docs = [
-        modal({ internalModalName: "bilingual-daily", locales: ["en", "he"], ...dailyWindow }),
-        modal({ internalModalName: "english-weekly", locales: ["en"], ...weeklyWindow }),
+        modal({ internalModalName: 'bilingual-daily', locales: ['en', 'he'], ...dailyWindow }),
+        modal({ internalModalName: 'english-weekly', locales: ['en'], ...weeklyWindow }),
       ];
       // The English reader gets the document written for English readers, even though the
       // bilingual daily is more urgent — and listed first, so order cannot explain it either.
-      expect(selectContent(docs, viewer({ locale: "en" }), ContentType.MODAL).internalModalName).toBe(
-        "english-weekly",
-      );
+      expect(selectContent(docs, viewer({ locale: 'en' }), ContentType.MODAL).internalModalName).toBe('english-weekly');
       // The Hebrew reader never sees the collision: the English-only weekly fails their locale
       // gate and the bilingual daily wins as the only eligible document.
-      expect(selectContent(docs, viewer({ locale: "he" }), ContentType.MODAL).internalModalName).toBe(
-        "bilingual-daily",
+      expect(selectContent(docs, viewer({ locale: 'he' }), ContentType.MODAL).internalModalName).toBe(
+        'bilingual-daily'
       );
     });
 
-    it("country-targeting outranks urgency: an include-targeted monthly beats an untargeted daily (tier 1 before tier 4)", function () {
+    it('country-targeting outranks urgency: an include-targeted monthly beats an untargeted daily (tier 1 before tier 4)', function () {
       // The other tier-ordering collision, ratified deliberately (user decision, 2026-08-13):
       // naming the viewer's country is a stronger signal of intent than a tighter schedule.
       // The untargeted daily is listed first AND shorter, so only tier 1 explains the winner.
       const docs = [
         modal({
-          internalModalName: "untargeted-daily",
-          modalStartDate: "2026-09-15T00:00:00.000Z",
-          modalEndDate: "2026-09-16T00:00:00.000Z",
+          internalModalName: 'untargeted-daily',
+          modalStartDate: '2026-09-15T00:00:00.000Z',
+          modalEndDate: '2026-09-16T00:00:00.000Z',
         }),
         modal({
-          internalModalName: "us-targeted-monthly",
-          countriesToTarget: { en: include("US"), he: null },
-          modalStartDate: "2026-09-01T00:00:00.000Z",
-          modalEndDate: "2026-09-29T00:00:00.000Z",
+          internalModalName: 'us-targeted-monthly',
+          countriesToTarget: { en: include('US'), he: null },
+          modalStartDate: '2026-09-01T00:00:00.000Z',
+          modalEndDate: '2026-09-29T00:00:00.000Z',
         }),
       ];
-      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe(
-        "us-targeted-monthly",
-      );
+      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe('us-targeted-monthly');
     });
 
-    it("overlapping equal-length campaigns: the earlier start wins, in either payload order (tier 5)", function () {
+    it('overlapping equal-length campaigns: the earlier start wins, in either payload order (tier 5)', function () {
       // User-ratified tiebreak (2026-08-13): when windows are the same LENGTH and every earlier
       // tier ties, the campaign that STARTED EARLIER wins. Same-length overlapping windows
       // expire in start order, so the earlier one leaves the stage first — the viewer will
       // still get to see the later one after it ends, which makes the earlier one the more
       // urgent of the two right now.
       const incumbent = modal({
-        internalModalName: "incumbent",
-        modalStartDate: "2026-09-12T00:00:00.000Z",
-        modalEndDate: "2026-09-19T00:00:00.000Z",
+        internalModalName: 'incumbent',
+        modalStartDate: '2026-09-12T00:00:00.000Z',
+        modalEndDate: '2026-09-19T00:00:00.000Z',
       });
       const newcomer = modal({
-        internalModalName: "newcomer",
-        modalStartDate: "2026-09-15T00:00:00.000Z",
-        modalEndDate: "2026-09-22T00:00:00.000Z",
+        internalModalName: 'newcomer',
+        modalStartDate: '2026-09-15T00:00:00.000Z',
+        modalEndDate: '2026-09-22T00:00:00.000Z',
       });
       // Both orders — the winner comes from the start date, not from position.
-      expect(selectContent([incumbent, newcomer], viewer(), ContentType.MODAL).internalModalName).toBe(
-        "incumbent",
-      );
-      expect(selectContent([newcomer, incumbent], viewer(), ContentType.MODAL).internalModalName).toBe(
-        "incumbent",
-      );
+      expect(selectContent([incumbent, newcomer], viewer(), ContentType.MODAL).internalModalName).toBe('incumbent');
+      expect(selectContent([newcomer, incumbent], viewer(), ContentType.MODAL).internalModalName).toBe('incumbent');
     });
 
-    it("overlapping campaigns of different lengths: the shorter wins whichever started first", function () {
+    it('overlapping campaigns of different lengths: the shorter wins whichever started first', function () {
       const longIncumbent = modal({
-        internalModalName: "long-incumbent",
-        modalStartDate: "2026-09-12T00:00:00.000Z",
-        modalEndDate: "2026-09-19T00:00:00.000Z",
+        internalModalName: 'long-incumbent',
+        modalStartDate: '2026-09-12T00:00:00.000Z',
+        modalEndDate: '2026-09-19T00:00:00.000Z',
       });
       const shortNewcomer = modal({
-        internalModalName: "short-newcomer",
-        modalStartDate: "2026-09-15T00:00:00.000Z",
-        modalEndDate: "2026-09-16T00:00:00.000Z",
+        internalModalName: 'short-newcomer',
+        modalStartDate: '2026-09-15T00:00:00.000Z',
+        modalEndDate: '2026-09-16T00:00:00.000Z',
       });
-      expect(
-        selectContent([longIncumbent, shortNewcomer], viewer(), ContentType.MODAL).internalModalName,
-      ).toBe("short-newcomer");
+      expect(selectContent([longIncumbent, shortNewcomer], viewer(), ContentType.MODAL).internalModalName).toBe(
+        'short-newcomer'
+      );
     });
   });
 });
 
-describe("sortBy", function () {
-  it("sorts by the computed key without mutating the input", function () {
+describe('sortBy', function () {
+  it('sorts by the computed key without mutating the input', function () {
     const list = [{ n: 2 }, { n: 1 }, { n: 3 }];
     expect(sortBy(list, (x) => [x.n])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
     expect(list[0]).toEqual({ n: 2 });
   });
 
-  it("keeps the original order of equal keys (stable)", function () {
-    const list = [{ n: 1, tag: "a" }, { n: 1, tag: "b" }, { n: 0, tag: "c" }];
-    expect(sortBy(list, (x) => [x.n]).map((x) => x.tag)).toEqual(["c", "a", "b"]);
+  it('keeps the original order of equal keys (stable)', function () {
+    const list = [
+      { n: 1, tag: 'a' },
+      { n: 1, tag: 'b' },
+      { n: 0, tag: 'c' },
+    ];
+    expect(sortBy(list, (x) => [x.n]).map((x) => x.tag)).toEqual(['c', 'a', 'b']);
   });
 
-  it("compares array keys element by element", function () {
+  it('compares array keys element by element', function () {
     const list = [{ key: [1, 0] }, { key: [0, 9] }, { key: [0, 2] }];
-    expect(sortBy(list, (x) => x.key).map((x) => x.key)).toEqual([[0, 2], [0, 9], [1, 0]]);
+    expect(sortBy(list, (x) => x.key).map((x) => x.key)).toEqual([
+      [0, 2],
+      [0, 9],
+      [1, 0],
+    ]);
   });
 });
 
-describe("malformed document data — skipped, never fatal", function () {
+describe('malformed document data — skipped, never fatal', function () {
   // A bad campaign from Strapi must cost only itself: the gates treat unusable values as
   // "not eligible" and selection moves on to the next document. Nothing here may throw.
 
-  it("a document with an unparseable date is skipped, and a healthy one still wins", function () {
+  it('a document with an unparseable date is skipped, and a healthy one still wins', function () {
     const docs = [
-      modal({ internalModalName: "broken-dates", modalStartDate: "not a date", modalEndDate: null }),
-      modal({ internalModalName: "healthy" }),
+      modal({ internalModalName: 'broken-dates', modalStartDate: 'not a date', modalEndDate: null }),
+      modal({ internalModalName: 'healthy' }),
     ];
     // Invalid Date comparisons are always false, so the date gate rejects quietly.
     expect(isEligible(docs[0], viewer(), ContentType.MODAL)).toBe(false);
-    expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("healthy");
+    expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe('healthy');
   });
 
-  it("a document with entirely missing dates is skipped the same way", function () {
+  it('a document with entirely missing dates is skipped the same way', function () {
     const docs = [
-      modal({ internalModalName: "no-dates", modalStartDate: undefined, modalEndDate: undefined }),
-      modal({ internalModalName: "healthy" }),
+      modal({ internalModalName: 'no-dates', modalStartDate: undefined, modalEndDate: undefined }),
+      modal({ internalModalName: 'healthy' }),
     ];
-    expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("healthy");
+    expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe('healthy');
   });
 
-  it("a malformed countriesToTarget shape matches everyone rather than throwing", function () {
+  it('a malformed countriesToTarget shape matches everyone rather than throwing', function () {
     // A locale block holding a bare string (not the {countryMode, countries} shape) has no
     // countries list and no recognized mode — matchesCountryTarget defaults to "matches".
-    const doc = modal({ countriesToTarget: { en: "garbage", he: null } });
+    const doc = modal({ countriesToTarget: { en: 'garbage', he: null } });
     expect(isEligible(doc, viewer(), ContentType.MODAL)).toBe(true);
   });
 });
 
-describe("isPathExcluded", function () {
-  it("excludes the fixed fundraising/app paths", function () {
-    ["/donate", "/mobile", "/app", "/ways-to-give"].forEach((path) => {
+describe('isPathExcluded', function () {
+  it('excludes the fixed fundraising and mobile paths', function () {
+    ['/donate', '/mobile', '/ways-to-give'].forEach((path) => {
       expect(isPathExcluded(modal(), path)).toBe(true);
     });
   });
 
-  it("allows an ordinary page", function () {
-    expect(isPathExcluded(modal(), "/texts")).toBe(false);
+  it('allows an ordinary page', function () {
+    expect(isPathExcluded(modal(), '/texts')).toBe(false);
   });
 
   it("excludes the page either locale's button links to", function () {
     const doc = modal({
       buttonURL: {
-        en: "https://donate.sefaria.org/campaign/779365/donate?c_src=web",
-        he: "https://donate.sefaria.org/give/451346#!/donation/checkout",
+        en: 'https://donate.sefaria.org/campaign/779365/donate?c_src=web',
+        he: 'https://donate.sefaria.org/give/451346#!/donation/checkout',
       },
     });
-    expect(isPathExcluded(doc, "/campaign/779365/donate")).toBe(true);
-    expect(isPathExcluded(doc, "/give/451346")).toBe(true);
-    expect(isPathExcluded(doc, "/texts")).toBe(false);
+    expect(isPathExcluded(doc, '/campaign/779365/donate')).toBe(true);
+    expect(isPathExcluded(doc, '/give/451346')).toBe(true);
+    expect(isPathExcluded(doc, '/texts')).toBe(false);
   });
 
-  it("tolerates a locale with no button URL", function () {
-    const doc = modal({ buttonURL: { en: "https://example.org/campaign", he: null } });
-    expect(isPathExcluded(doc, "/campaign")).toBe(true);
-    expect(isPathExcluded(doc, "/texts")).toBe(false);
+  it('tolerates a locale with no button URL', function () {
+    const doc = modal({ buttonURL: { en: 'https://example.org/campaign', he: null } });
+    expect(isPathExcluded(doc, '/campaign')).toBe(true);
+    expect(isPathExcluded(doc, '/texts')).toBe(false);
   });
 
-  it("an unparseable button URL contributes no excluded path — and never throws", function () {
+  it('an unparseable button URL contributes no excluded path — and never throws', function () {
     // The realistic editor mistake: a relative URL instead of an absolute one. new URL() throws
     // on it, and this runs inside shouldShow's useEffect at display time — before this guard,
     // one bad URL on the SELECTED document crashed the entire React tree, not just promotions.
-    const relative = modal({ buttonURL: { en: "give/451346", he: null } });
-    expect(() => isPathExcluded(relative, "/texts")).not.toThrow();
-    expect(isPathExcluded(relative, "/texts")).toBe(false);
+    const relative = modal({ buttonURL: { en: 'give/451346', he: null } });
+    expect(() => isPathExcluded(relative, '/texts')).not.toThrow();
+    expect(isPathExcluded(relative, '/texts')).toBe(false);
     // The fixed exclusions still apply; only the broken URL's contribution is lost.
-    expect(isPathExcluded(relative, "/donate")).toBe(true);
+    expect(isPathExcluded(relative, '/donate')).toBe(true);
 
-    const garbage = modal({ buttonURL: { en: "not a url at all", he: "" } });
-    expect(() => isPathExcluded(garbage, "/texts")).not.toThrow();
-    expect(isPathExcluded(garbage, "/texts")).toBe(false);
+    const garbage = modal({ buttonURL: { en: 'not a url at all', he: '' } });
+    expect(() => isPathExcluded(garbage, '/texts')).not.toThrow();
+    expect(isPathExcluded(garbage, '/texts')).toBe(false);
   });
 
   it("a parseable URL still excludes even when its sibling locale's URL is broken", function () {
-    const doc = modal({ buttonURL: { en: "give/451346", he: "https://example.org/trumot" } });
-    expect(isPathExcluded(doc, "/trumot")).toBe(true);
+    const doc = modal({ buttonURL: { en: 'give/451346', he: 'https://example.org/trumot' } });
+    expect(isPathExcluded(doc, '/trumot')).toBe(true);
   });
 });
 
-describe("buildViewerContext().hasDismissed — corrupted storage is not fatal", function () {
+describe('buildViewerContext().hasDismissed — corrupted storage is not fatal', function () {
   // localStorage is shared, writable ground: another feature, an extension, or an old code
   // version can leave a non-JSON value under a dismissal key. JSON.parse throwing here would
   // kill selection for every surface, so an unreadable value must read as "not dismissed".
@@ -613,17 +611,276 @@ describe("buildViewerContext().hasDismissed — corrupted storage is not fatal",
   });
 
   it('reads the normal "true" marker as dismissed', function () {
-    localStorage.setItem("modal_test", "true");
-    expect(buildViewerContext().hasDismissed("modal_test")).toBe(true);
+    localStorage.setItem('modal_test', 'true');
+    expect(buildViewerContext().hasDismissed('modal_test')).toBe(true);
   });
 
-  it("reads an absent key as not dismissed", function () {
-    expect(buildViewerContext().hasDismissed("modal_absent")).toBe(false);
+  it('reads an absent key as not dismissed', function () {
+    expect(buildViewerContext().hasDismissed('modal_absent')).toBe(false);
   });
 
-  it("reads a corrupted, non-JSON value as not dismissed rather than throwing", function () {
-    localStorage.setItem("modal_test", "yes"); // not valid JSON
-    expect(() => buildViewerContext().hasDismissed("modal_test")).not.toThrow();
-    expect(buildViewerContext().hasDismissed("modal_test")).toBe(false);
+  it('reads a corrupted, non-JSON value as not dismissed rather than throwing', function () {
+    localStorage.setItem('modal_test', 'yes'); // not valid JSON
+    expect(() => buildViewerContext().hasDismissed('modal_test')).not.toThrow();
+    expect(buildViewerContext().hasDismissed('modal_test')).toBe(false);
   });
+});
+
+// ── Donor audience ──────────────────────────────────────────────────────────
+// showToDonor / showToNonDonor are an independent AND-ed filter on top of the audience gate
+// (matchesDonorAudience), and only showToDonor adds ranking specificity (isDonorOnly). The
+// truth table below checks T1–T8 exhaustively over every input the donor gate can see: the two
+// donor boxes, showTo, the four user-kind boxes, and whether the viewer is logged in / a
+// confirmed donor. Sustainer status, locale, country and dismissal are held fixed, so this is
+// exhaustive over those inputs, not a proof over the whole viewer context.
+
+const donorOnly = { showToDonor: true, showToNonDonor: false };
+const nonDonorOnly = { showToDonor: false, showToNonDonor: true };
+const bothDonorBoxes = { showToDonor: true, showToNonDonor: true };
+
+const DONOR = { isLoggedIn: true, isReturningVisitor: true, isNewVisitor: false, isConfirmedDonor: true };
+const LOGGED_IN_NON_DONOR = {
+  isLoggedIn: true,
+  isReturningVisitor: true,
+  isNewVisitor: false,
+  isConfirmedDonor: false,
+};
+const LOGGED_OUT = { isLoggedIn: false, isConfirmedDonor: false };
+
+[
+  { label: 'modal', build: modal, contentType: ContentType.MODAL },
+  { label: 'banner', build: banner, contentType: ContentType.BANNER },
+].forEach(({ label, build, contentType }) => {
+  // internalModalName or internalBannerName — how a test tells which document won.
+  const nameField = CONTENT_FIELDS[contentType].name;
+  const named = (name, flags = {}) => build({ ...flags, [nameField]: name });
+
+  describe(`donor audience — ${label}`, function () {
+    it('shows a donor-only document to a donor', function () {
+      expect(isEligible(build(donorOnly), viewer(DONOR), contentType)).toBe(true);
+    });
+
+    it('hides a donor-only document from logged-in non-donors and logged-out viewers', function () {
+      expect(isEligible(build(donorOnly), viewer(LOGGED_IN_NON_DONOR), contentType)).toBe(false);
+      expect(isEligible(build(donorOnly), viewer(LOGGED_OUT), contentType)).toBe(false);
+    });
+
+    it('shows a non-donor-only document to non-donors, logged in or out', function () {
+      expect(isEligible(build(nonDonorOnly), viewer(LOGGED_IN_NON_DONOR), contentType)).toBe(true);
+      expect(isEligible(build(nonDonorOnly), viewer(LOGGED_OUT), contentType)).toBe(true);
+    });
+
+    it('hides a non-donor-only document from a donor', function () {
+      expect(isEligible(build(nonDonorOnly), viewer(DONOR), contentType)).toBe(false);
+    });
+
+    // T5 below proves "both" behaves like "neither"; this states the business rule directly.
+    it('shows a document with both boxes ticked to everyone', function () {
+      expect(isEligible(build(bothDonorBoxes), viewer(DONOR), contentType)).toBe(true);
+      expect(isEligible(build(bothDonorBoxes), viewer(LOGGED_IN_NON_DONOR), contentType)).toBe(true);
+      expect(isEligible(build(bothDonorBoxes), viewer(LOGGED_OUT), contentType)).toBe(true);
+    });
+
+    it('selection skips the wrong-audience document even when it is listed first', function () {
+      const winner = selectContent(
+        [named('ask', nonDonorOnly), named('thanks', donorOnly)],
+        viewer(DONOR),
+        contentType
+      );
+      expect(winner[nameField]).toBe('thanks');
+    });
+
+    it('a donor-only document outranks an otherwise identical unrestricted one, for donors', function () {
+      const winner = selectContent([named('catch-all'), named('thanks', donorOnly)], viewer(DONOR), contentType);
+      expect(winner[nameField]).toBe('thanks');
+    });
+
+    it('a non-donor-only document does NOT outrank an unrestricted one (payload order decides)', function () {
+      const winner = selectContent([named('catch-all'), named('ask', nonDonorOnly)], viewer(LOGGED_OUT), contentType);
+      expect(winner[nameField]).toBe('catch-all');
+    });
+  });
+});
+
+describe('donor audience — formal guarantees T1–T8, exhaustively', function () {
+  // [[1, 2], ["a", "b"]] -> [[1, "a"], [1, "b"], [2, "a"], [2, "b"]]. Every way of picking one
+  // element from each list, so the table below is built without nested flatMap pyramids.
+  const cartesianProduct = (...lists) =>
+    lists.reduce(
+      (combinations, list) => combinations.flatMap((combination) => list.map((element) => [...combination, element])),
+      [[]]
+    );
+
+  const booleans = [false, true];
+  const showToValues = [ShowTo.LOGGED_IN_ONLY, ShowTo.LOGGED_OUT_ONLY, ShowTo.EVERYONE];
+  const kindBoxCombinations = cartesianProduct(booleans, booleans, booleans, booleans).map(
+    ([returning, isNew, sustainers, nonSustainers]) => ({
+      showToReturningVisitors: returning,
+      showToNewVisitors: isNew,
+      showToSustainers: sustainers,
+      showToNonSustainers: nonSustainers,
+    })
+  );
+  // A confirmed donor must have an account, so "donor but logged out" is impossible and is left out.
+  const viewerKinds = [
+    { viewerIsDonor: false, viewerIsLoggedIn: false },
+    { viewerIsDonor: false, viewerIsLoggedIn: true },
+    { viewerIsDonor: true, viewerIsLoggedIn: true },
+  ].map(({ viewerIsDonor, viewerIsLoggedIn }) => ({
+    viewerIsDonor,
+    viewerIsLoggedIn,
+    viewerContext: viewer({
+      isLoggedIn: viewerIsLoggedIn,
+      isConfirmedDonor: viewerIsDonor,
+      isSustainer: false,
+      isReturningVisitor: viewerIsLoggedIn,
+      isNewVisitor: !viewerIsLoggedIn, // a logged-in user is always a returning visitor
+    }),
+  }));
+  const cases = cartesianProduct(booleans, booleans, showToValues, kindBoxCombinations, viewerKinds).map(
+    ([showToDonor, showToNonDonor, showTo, kindBoxes, viewerKind]) => ({
+      showToDonor,
+      showToNonDonor,
+      showTo,
+      kindBoxes,
+      ...viewerKind,
+    })
+  );
+
+  const documentFor = ({ showToDonor, showToNonDonor, showTo, kindBoxes }) =>
+    modal({ showTo, ...kindBoxes, showToDonor, showToNonDonor });
+  // The same document as a pre-existing one: both donor boxes unticked.
+  const documentWithoutDonorBoxes = (c) => modal({ showTo: c.showTo, ...c.kindBoxes });
+  // A document published before the donor fields existed: the fields are absent, not false.
+  const documentWithoutDonorFields = (c) => {
+    const doc = documentWithoutDonorBoxes(c);
+    delete doc.showToDonor;
+    delete doc.showToNonDonor;
+    return doc;
+  };
+  const isEligibleFor = (doc, c) => isEligible(doc, c.viewerContext, ContentType.MODAL);
+  const rankKeyFor = (doc, c) => selectionPriorityKey(doc, c.viewerContext, CONTENT_FIELDS[ContentType.MODAL]);
+
+  const isDonorOnlyCase = (c) => c.showToDonor && !c.showToNonDonor;
+  const isNonDonorOnlyCase = (c) => !c.showToDonor && c.showToNonDonor;
+
+  // The spec's three-case table, written out independently of the implementation.
+  // Neither or both boxes ticked: no restriction. Exactly one ticked: donors only, or non-donors only.
+  const donorGateAllows = ({ showToDonor, showToNonDonor, viewerIsDonor }) => {
+    if (showToDonor === showToNonDonor) return true;
+    return showToDonor ? viewerIsDonor : !viewerIsDonor;
+  };
+
+  it('covers all 576 viewer-valid combinations', function () {
+    // 2 (showToDonor) × 2 (showToNonDonor) × 3 (showTo) × 16 (kind boxes) × 3 (viewers). The spec's
+    // "about 768" counted a fourth viewer, donor-but-logged-out, which cannot exist (donor status
+    // needs an account).
+    expect(cases.length).toBe(576);
+  });
+
+  it('the donor gate is a pure AND on top of the existing eligibility', function () {
+    cases.forEach((c) =>
+      expect(isEligibleFor(documentFor(c), c)).toBe(
+        isEligibleFor(documentWithoutDonorBoxes(c), c) && donorGateAllows(c)
+      )
+    );
+  });
+
+  it('T1: documents with neither box (or without the fields at all) keep their eligibility and rank', function () {
+    cases
+      .filter((c) => !c.showToDonor && !c.showToNonDonor)
+      .forEach((c) => {
+        expect(isEligibleFor(documentFor(c), c)).toBe(isEligibleFor(documentWithoutDonorFields(c), c));
+        expect(rankKeyFor(documentFor(c), c)).toEqual(rankKeyFor(documentWithoutDonorFields(c), c));
+      });
+  });
+
+  it('T2: a donor never sees a non-donor-only document', function () {
+    cases
+      .filter((c) => c.viewerIsDonor && isNonDonorOnlyCase(c))
+      .forEach((c) => expect(isEligibleFor(documentFor(c), c)).toBe(false));
+  });
+
+  it('T3: a non-donor (logged in or out) never sees a donor-only document', function () {
+    cases
+      .filter((c) => !c.viewerIsDonor && isDonorOnlyCase(c))
+      .forEach((c) => expect(isEligibleFor(documentFor(c), c)).toBe(false));
+  });
+
+  it('T4: donor-only and non-donor-only split every viewer exactly', function () {
+    // Wherever the document is visible at all without the donor boxes, exactly one of the two
+    // single-box variants shows it to this viewer.
+    cases
+      .filter((c) => isDonorOnlyCase(c) && isEligibleFor(documentWithoutDonorBoxes(c), c))
+      .forEach((c) => {
+        const shownWhenDonorOnly = isEligibleFor(documentFor(c), c);
+        const shownWhenNonDonorOnly = isEligibleFor(documentFor({ ...c, showToDonor: false, showToNonDonor: true }), c);
+        expect(shownWhenDonorOnly).not.toBe(shownWhenNonDonorOnly);
+      });
+  });
+
+  it('T5: both boxes ticked behaves exactly like neither', function () {
+    cases
+      .filter((c) => c.showToDonor && c.showToNonDonor)
+      .forEach((c) => {
+        const withNeitherBox = { ...c, showToDonor: false, showToNonDonor: false };
+        expect(isEligibleFor(documentFor(c), c)).toBe(isEligibleFor(documentFor(withNeitherBox), c));
+        expect(rankKeyFor(documentFor(c), c)).toEqual(rankKeyFor(documentFor(withNeitherBox), c));
+      });
+  });
+
+  it('T6: for non-donors, every eligible document ranks exactly as before', function () {
+    cases
+      .filter((c) => !c.viewerIsDonor && isEligibleFor(documentFor(c), c))
+      .forEach((c) => expect(rankKeyFor(documentFor(c), c)).toEqual(rankKeyFor(documentWithoutDonorBoxes(c), c)));
+  });
+
+  it("T7: ticking donor-only never lowers a document's rank", function () {
+    // selectionPriorityKey returns [-countrySpecificity, -audienceSpecificity, -localeSpecificity,
+    // windowLength, windowStart], so index 1 is the audience tier. The values are negated, so a
+    // smaller number is a higher rank. That donor-only strictly RAISES rank is shown by the
+    // ranking example test above; this checks it is never lowered, over every combination.
+    const AUDIENCE_TIER_INDEX = 1;
+    cases.filter(isDonorOnlyCase).forEach((c) => {
+      const rankWithDonorOnly = rankKeyFor(documentFor(c), c)[AUDIENCE_TIER_INDEX];
+      const rankWithoutDonorBoxes = rankKeyFor(documentWithoutDonorBoxes(c), c)[AUDIENCE_TIER_INDEX];
+      expect(rankWithDonorOnly).toBeLessThanOrEqual(rankWithoutDonorBoxes);
+    });
+  });
+
+  it('T8: logged-out-only combined with donor-only matches nobody', function () {
+    cases
+      .filter((c) => c.showTo === ShowTo.LOGGED_OUT_ONLY && isDonorOnlyCase(c))
+      .forEach((c) => expect(isEligibleFor(documentFor(c), c)).toBe(false));
+  });
+});
+
+describe('buildViewerContext().isConfirmedDonor', function () {
+  // The ONE place "unknown" becomes "not a donor".
+  const Sefaria = require('../sefaria').default;
+  let saved;
+  beforeEach(function () {
+    saved = { donor_status: Sefaria.donor_status, is_sustainer: Sefaria.is_sustainer };
+  });
+  // A key that was absent before the test is deleted, not set to undefined, so the shared
+  // Sefaria object does not gain own keys that leak into other tests.
+  afterEach(function () {
+    Object.entries(saved).forEach(([key, value]) =>
+      value === undefined ? delete Sefaria[key] : (Sefaria[key] = value)
+    );
+  });
+
+  [
+    { donor_status: DonorStatus.DONOR, is_sustainer: false, expected: true },
+    { donor_status: DonorStatus.NON_DONOR, is_sustainer: false, expected: false },
+    { donor_status: DonorStatus.UNKNOWN, is_sustainer: false, expected: false },
+    { donor_status: undefined, is_sustainer: false, expected: false },
+    { donor_status: DonorStatus.UNKNOWN, is_sustainer: true, expected: true }, // a sustainer has donated at least once
+    { donor_status: DonorStatus.NON_DONOR, is_sustainer: true, expected: true },
+  ].forEach(({ donor_status, is_sustainer, expected }) =>
+    it(`donor_status=${donor_status}, is_sustainer=${is_sustainer} → ${expected}`, function () {
+      Object.assign(Sefaria, { donor_status, is_sustainer });
+      expect(buildViewerContext().isConfirmedDonor).toBe(expected);
+    })
+  );
 });

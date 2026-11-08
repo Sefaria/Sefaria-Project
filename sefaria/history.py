@@ -3,32 +3,44 @@ history.py - managing the revision/activity history.
 
 Writes to MongoDB collection: history
 """
-from datetime import datetime
-from diff_match_patch import diff_match_patch
-from bson.code import Code
 
+from datetime import datetime
+from urllib.parse import quote
+
+from bson.code import Code
+from diff_match_patch import diff_match_patch
+
+from sefaria.constants.model import get_direction_from_legacy_lang
 from sefaria.model import *
 from sefaria.system.database import db
-from sefaria.constants.model import get_direction_from_legacy_lang
 
 dmp = diff_match_patch()
 
 
-def get_activity(query={}, page_size=100, page=1, filter_type=None, initial_skip=0):
+def get_activity(query=None, page_size=100, page=1, filter_type=None, initial_skip=0):
     """
     Returns a list of activity items matching query,
     joins with user info on each item and sets urls.
     """
+    if query is None:
+        query = {}
     query.update(filter_type_to_query(filter_type))
     skip = initial_skip + (page - 1) * page_size
-    projection = { "revert_patch": 0 }
+    projection = {"revert_patch": 0}
     activity = list(db.history.find(query, projection).sort([["date", -1]]).skip(skip).limit(page_size))
 
     for i in range(len(activity)):
         a = activity[i]
-        if a["rev_type"].endswith("text") or a["rev_type"] == "review":
+        # rev_type is "<action> <kind>" -- "edit text", "add lexicon_entry" -- so the kind is
+        # the last word. These are the kinds whose history is browsable per ref/version.
+        kind = a["rev_type"].rsplit(" ", 1)[-1]
+        if kind in ("text", "lexicon_entry") or a["rev_type"] == "review":
             try:
-                a["history_url"] = "/activity/%s/%s/%s" % (Ref(a["ref"]).url(), a["language"], a["version"].replace(" ", "_"))
+                a["history_url"] = "/activity/%s/%s/%s" % (
+                    Ref(a["ref"]).url(),
+                    a["language"],
+                    quote(a["version"].replace(" ", "_"), safe="_"),
+                )
             except:
                 a["history_url"] = "#"
     return activity
@@ -60,7 +72,12 @@ def filter_type_to_query(filter_type):
     q = {}
 
     if filter_type == "translate":
-        q = {"$and": [dict(list(q.items()) + list({"rev_type": "add text"}.items())), {"version": "Sefaria Community Translation"}]}
+        q = {
+            "$and": [
+                dict(list(q.items()) + list({"rev_type": "add text"}.items())),
+                {"version": "Sefaria Community Translation"},
+            ]
+        }
     elif filter_type == "index_change":
         q = {"rev_type": {"$in": ["add index", "edit index"]}}
     elif filter_type == "version_metadata":
@@ -86,12 +103,13 @@ def collapse_activity(activity):
         b = streak[-1]
 
         try:
-            if a["user"] != b["user"] or \
-                a["rev_type"] not in ("edit text", "add text") or \
-                b["rev_type"] not in ("edit text", "add text") or \
-                a["version"] != b["version"] or \
-                Ref(a["ref"]).section_ref() != Ref(b["ref"]).section_ref():
-
+            if (
+                a["user"] != b["user"]
+                or a["rev_type"] not in ("edit text", "add text")
+                or b["rev_type"] not in ("edit text", "add text")
+                or a["version"] != b["version"]
+                or Ref(a["ref"]).section_ref() != Ref(b["ref"]).section_ref()
+            ):
                 return False
         except:
             return False
@@ -106,22 +124,27 @@ def collapse_activity(activity):
             return streak[0]
 
         act = streak[0]
-        act.update({
-            "summary": True,
-            #"contents": streak[1:],
-            # add the update count form first item if it exists, in case that item was a sumamry itself
-            "updates_count": len(streak) + act.get("updates_count", 1) -1,
-            "history_url": "/activity/%s/%s/%s" % (Ref(act["ref"]).section_ref().url(),
-                                                   act["language"],
-                                                   act["version"].replace(" ", "_")),
-        })
+        act.update(
+            {
+                "summary": True,
+                # "contents": streak[1:],
+                # add the update count form first item if it exists, in case that item was a sumamry itself
+                "updates_count": len(streak) + act.get("updates_count", 1) - 1,
+                "history_url": "/activity/%s/%s/%s"
+                % (
+                    Ref(act["ref"]).section_ref().url(),
+                    act["language"],
+                    quote(act["version"].replace(" ", "_"), safe="_"),
+                ),
+            }
+        )
         return act
 
     collapsed = []
     current_streak = []
 
     for a in activity:
-        if continues_streak(a, current_streak): # The current item continues
+        if continues_streak(a, current_streak):  # The current item continues
             current_streak.append(a)
         else:
             if len(current_streak):
@@ -134,7 +157,7 @@ def collapse_activity(activity):
     return collapsed
 
 
-def get_maximal_collapsed_activity(query={}, page_size=100, page=1, filter_type=None):
+def get_maximal_collapsed_activity(query=None, page_size=100, page=1, filter_type=None):
     """
     Returns (activity, page) where
     activity is the collasped set of activity items, counting multiple consecutive actions as one
@@ -154,14 +177,16 @@ def get_maximal_collapsed_activity(query={}, page_size=100, page=1, filter_type=
         enough = True
 
     while not enough:
-        new_activity = get_activity(query=query, page_size=page_size*5, page=page, filter_type=filter_type, initial_skip=page_size)
+        new_activity = get_activity(
+            query=query, page_size=page_size * 5, page=page, filter_type=filter_type, initial_skip=page_size
+        )
         if len(new_activity) < page_size:
             page = None
             enough = True
         else:
             page += 1
         activity = collapse_activity(activity + new_activity)
-        enough = enough or len(activity) >= page_size # don't set enough to False if already set to True above
+        enough = enough or len(activity) >= page_size  # don't set enough to False if already set to True above
 
     return (activity, page)
 
@@ -170,17 +195,19 @@ def text_at_revision(tref, version, lang, revision):
     """
     Returns the state of a text (identified by ref/version/lang) at revision number 'revision'
     """
-    changes = db.history.find({"ref": tref, "version": version, "language": lang}).sort([['revision', -1]])
+    changes = db.history.find({"ref": tref, "version": version, "language": lang}).sort([["revision", -1]])
     direction = get_direction_from_legacy_lang(lang)
     current = TextChunk(Ref(tref), direction=direction, vtitle=version)
     text = str(current.text)  # needed?
 
     for r in changes:
-        if r["revision"] == revision: break
+        if r["revision"] == revision:
+            break
         patch = dmp.patch_fromText(r["revert_patch"])
         text = dmp.patch_apply(patch, text)[0]
 
     return text
+
 
 '''
 def next_revision_num():
@@ -191,6 +218,7 @@ def next_revision_num():
     revision = last_rev.next()["revision"] + 1 if last_rev.count() else 1
     return revision
 '''
+
 
 def record_index_deletion(title, uid):
     """
@@ -238,11 +266,7 @@ def delete_sheet_publication(sheet_id, user_id):
     Deletes the activity feed item for a sheet publication
     (for when a user unpublishes a sheet)
     """
-    db.history.delete_many({
-            "user": user_id,
-            "sheet": sheet_id,
-            "rev_type": "publish sheet"
-        })
+    db.history.delete_many({"user": user_id, "sheet": sheet_id, "rev_type": "publish sheet"})
 
 
 def top_contributors(days=None):
@@ -261,17 +285,17 @@ def top_contributors(days=None):
     return [{"user": l["_id"], "count": l["count"]} for l in leaders]
 
 
-def make_leaderboard_condition(start=None, end=None, ref_regex=None, version=None, actions=[], api=False):
+def make_leaderboard_condition(start=None, end=None, ref_regex=None, version=None, actions=(), api=False):
 
     condition = {}
 
     # Time Conditions
     if start and end:
-        condition["date"] = { "$gt": start, "$lt": end }
+        condition["date"] = {"$gt": start, "$lt": end}
     elif start and not end:
-        condition["date"] = { "$gt": start }
+        condition["date"] = {"$gt": start}
     elif end and not start:
-        condition["date"] = { "$lt": end }
+        condition["date"] = {"$lt": end}
 
     # Regular Expression to search Ref
     if ref_regex:
@@ -377,20 +401,20 @@ def make_leaderboard(condition):
                     }
                 """)
 
-    leaders = db.history.group(['user'],
-                        condition,
-                        {
-                            'count': 0,
-                            'translateCount': 0,
-                            'addCount': 0,
-                            'editCount': 0,
-                            'linkCount': 0,
-                            'noteCount': 0,
-                            'reviewCount': 0,
-
-                            'texts': {}
-                        },
-                        reducer)
+    leaders = db.history.group(
+        ["user"],
+        condition,
+        {
+            "count": 0,
+            "translateCount": 0,
+            "addCount": 0,
+            "editCount": 0,
+            "linkCount": 0,
+            "noteCount": 0,
+            "reviewCount": 0,
+            "texts": {},
+        },
+        reducer,
+    )
 
     return sorted(leaders, key=lambda x: -x["count"])
-

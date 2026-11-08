@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Elasticsearch Reindexing Cronjob
 
@@ -16,20 +15,27 @@ visible in Kubernetes.
 """
 
 import argparse
-from datetime import datetime
 import logging
 import sys
+from datetime import datetime
 
 # Note: Logging is configured via sefaria.search.setup_logging()
 # called in main() after argparse, or automatically on import.
-
 import django
+
 django.setup()
 
-from sefaria.model import *
-from sefaria.search import index_all, get_new_and_current_index_names, index_client, es_client, TextIndexer, setup_logging
-from sefaria.pagesheetrank import update_pagesheetrank
 from scripts.scheduled.reindex_pipeline import run_sheets_catch_up
+from sefaria.model import *
+from sefaria.pagesheetrank import update_pagesheetrank
+from sefaria.search import (
+    TextIndexer,
+    es_client,
+    get_new_and_current_index_names,
+    index_all,
+    index_client,
+    setup_logging,
+)
 
 # Constants for consistent formatting
 SEPARATOR_LINE = "=" * 60
@@ -41,7 +47,7 @@ logger = logging.getLogger(__name__)
 
 class ReindexingResult:
     """Track reindexing results and failures."""
-    
+
     def __init__(self):
         self.start_time = datetime.now()
         self.end_time = None
@@ -49,11 +55,11 @@ class ReindexingResult:
         self.steps_completed = []
         self.steps_failed = []
         self.warnings = []
-        
+
         # Detailed failure tracking
         self.failed_text_versions = []
         self.skipped_text_versions = []
-    
+
     def record_step_success(self, step_name: str, details: str = None):
         """Record a step that completed successfully."""
         try:
@@ -64,20 +70,16 @@ class ReindexingResult:
             logger.debug(f"Step completed: {step_name}" + (f" - {details}" if details else ""))
         except Exception as e:
             logger.warning(f"Failed to record step success - step: {step_name}, error: {str(e)}")
-    
+
     def record_step_failure(self, step_name: str, message: str):
         """Record a step that failed."""
         try:
-            entry = {
-                "step": step_name, 
-                "time": datetime.now().isoformat(),
-                "message": message
-            }
+            entry = {"step": step_name, "time": datetime.now().isoformat(), "message": message}
             self.steps_failed.append(entry)
             logger.error(f"Step failed: {step_name} - {message}")
         except Exception as e:
             logger.warning(f"Failed to record step failure - step: {step_name}, error: {str(e)}")
-    
+
     def add_warning(self, message: str, details: str = None):
         """Add a warning (non-fatal issue)."""
         try:
@@ -88,7 +90,7 @@ class ReindexingResult:
             logger.warning(f"{message}" + (f" - {details}" if details else ""))
         except Exception as e:
             logger.warning(f"Failed to add warning - message_preview: {message[:50]}, error: {str(e)}")
-    
+
     def is_success(self) -> bool:
         """Return True if no critical failures occurred. A real per-version indexing
         failure (self.failed_text_versions) fails the run, matching this PR's fail-loud
@@ -97,7 +99,7 @@ class ReindexingResult:
         excluded from this check: it is only ever populated for the two hardcoded
         excluded_from_search() titles, a deliberate exclusion, not a failure."""
         return len(self.steps_failed) == 0 and len(self.failed_text_versions) == 0
-    
+
     def get_summary(self) -> str:
         """Generate a human-readable summary and finalize timings."""
         # Finalize timing calculations
@@ -105,7 +107,7 @@ class ReindexingResult:
             self.end_time = datetime.now()
         if self.duration is None:
             self.duration = self.end_time - self.start_time
-        
+
         try:
             lines = [
                 SEPARATOR_LINE,
@@ -120,54 +122,54 @@ class ReindexingResult:
             ]
             for step in self.steps_completed:
                 lines.append(f"  ✓ {step['step']}")
-            
+
             if self.warnings:
                 lines.append(f"\nWarnings: {len(self.warnings)}")
                 for warning in self.warnings:
                     lines.append(f"  ⚠ {warning['message']}")
-            
+
             if self.steps_failed:
                 lines.append(f"\nFailures: {len(self.steps_failed)}")
                 for failure in self.steps_failed:
                     lines.append(f"  ✗ {failure['step']}: {failure.get('message', 'No message')}")
-            
+
             lines.append(SEPARATOR_LINE)
             return "\n".join(lines)
         except Exception as e:
             return f"ERROR: Failed to generate summary - {str(e)}"
-    
+
     def detailed_failure_report(self) -> str:
         """Generate detailed report of all failures."""
         if not self.failed_text_versions and not self.skipped_text_versions:
             return ""
-        
+
         lines = [
             "\n" + SEPARATOR_LINE,
             "DETAILED FAILURE REPORT",
             SEPARATOR_LINE,
         ]
-        
+
         if self.failed_text_versions:
             lines.append(f"\nFailed Text Versions: {len(self.failed_text_versions)}")
             lines.append("-" * 40)
             for i, failure in enumerate(self.failed_text_versions, 1):
-                title = failure.get('title', 'Unknown')
-                version = failure.get('version', 'Unknown')
-                lang = failure.get('lang', 'Unknown')
-                error_type = failure.get('error_type', 'Unknown')
-                error = failure.get('error', 'Unknown error')[:100]
+                title = failure.get("title", "Unknown")
+                version = failure.get("version", "Unknown")
+                lang = failure.get("lang", "Unknown")
+                error_type = failure.get("error_type", "Unknown")
+                error = failure.get("error", "Unknown error")[:100]
                 lines.append(f"{i}. {title} ({version}, {lang})")
                 lines.append(f"   Error: {error_type}: {error}")
-        
+
         if self.skipped_text_versions:
             lines.append(f"\nSkipped Text Versions: {len(self.skipped_text_versions)}")
             lines.append("-" * 40)
             for i, skip in enumerate(self.skipped_text_versions, 1):
-                title = skip.get('title', 'Unknown')
-                version = skip.get('version', 'Unknown')
-                reason = skip.get('reason', 'Unknown')
+                title = skip.get("title", "Unknown")
+                version = skip.get("version", "Unknown")
+                reason = skip.get("reason", "Unknown")
                 lines.append(f"{i}. {title} ({version}) - {reason}")
-        
+
         lines.append(SEPARATOR_LINE)
         return "\n".join(lines)
 
@@ -176,8 +178,8 @@ def check_elasticsearch_connection() -> bool:
     """Verify Elasticsearch is reachable."""
     try:
         info = es_client.info()
-        cluster_name = info.get('cluster_name')
-        version = info.get('version', {}).get('number')
+        cluster_name = info.get("cluster_name")
+        version = info.get("version", {}).get("number")
         logger.debug(f"Elasticsearch connection verified - cluster: {cluster_name}, version: {version}")
         return True
     except Exception as e:
@@ -202,7 +204,7 @@ def get_index_doc_count(index_name: str) -> int:
         if not check_index_exists(index_name):
             return 0
         stats = index_client.stats(index=index_name)
-        doc_count = stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
+        doc_count = stats.get("_all", {}).get("primaries", {}).get("docs", {}).get("count", 0)
         return doc_count
     except Exception as e:
         logger.warning(f"Failed to get doc count - index: {index_name}, error: {str(e)}")
@@ -216,27 +218,31 @@ def log_index_state(index_type: str, result: ReindexingResult, debug: bool = Fal
         if not names:
             logger.error(f"Could not get index names for type {index_type}")
             raise ValueError(f"get_new_and_current_index_names returned None for {index_type}")
-        
-        current_index = names.get('current')
-        new_index = names.get('new')
-        alias = names.get('alias')
-        
+
+        current_index = names.get("current")
+        new_index = names.get("new")
+        alias = names.get("alias")
+
         if not all([current_index, new_index, alias]):
-            logger.error(f"Missing required index name fields - current: {current_index}, new: {new_index}, alias: {alias}")
+            logger.error(
+                f"Missing required index name fields - current: {current_index}, new: {new_index}, alias: {alias}"
+            )
             raise ValueError(f"Missing required index name fields for {index_type}")
-        
+
         current_count = get_index_doc_count(current_index)
         new_exists = check_index_exists(new_index)
         new_count = get_index_doc_count(new_index) if new_exists else 0
-        
-        logger.debug(f"Index state for {index_type} - alias: {alias}, current_index: {current_index}, "
-              f"current_doc_count: {current_count}, new_index: {new_index}, "
-              f"new_index_exists: {new_exists}, new_doc_count: {new_count}")
-        
+
+        logger.debug(
+            f"Index state for {index_type} - alias: {alias}, current_index: {current_index}, "
+            f"current_doc_count: {current_count}, new_index: {new_index}, "
+            f"new_index_exists: {new_exists}, new_doc_count: {new_count}"
+        )
+
         if new_exists and new_count > 0:
             result.add_warning(
                 f"New {index_type} index already exists with {new_count} documents",
-                f"Index {new_index} will be reused or recreated depending on phase"
+                f"Index {new_index} will be deleted and recreated by reindex_init",
             )
     except Exception as e:
         logger.error(f"Failed to get index state for {index_type} - {str(e)}")
@@ -260,21 +266,23 @@ def run_index_all(result: ReindexingResult, debug: bool = False) -> bool:
     logger.debug("Starting full index rebuild")
     try:
         index_all(debug=debug)
-        
+
         result.failed_text_versions = TextIndexer._failed_versions.copy()
         result.skipped_text_versions = TextIndexer._skipped_versions.copy()
-        
+
         text_failures = len(result.failed_text_versions)
         text_skipped = len(result.skipped_text_versions)
-        
+
         if text_failures > 0:
-            logger.warning(f"Text indexing completed with failures - "
-                  f"failed_count: {text_failures}, skipped_count: {text_skipped}")
-            result.record_step_success("index_all", 
-                               f"Completed with {text_failures} text failures, {text_skipped} skipped")
+            logger.warning(
+                f"Text indexing completed with failures - failed_count: {text_failures}, skipped_count: {text_skipped}"
+            )
+            result.record_step_success(
+                "index_all", f"Completed with {text_failures} text failures, {text_skipped} skipped"
+            )
         else:
             result.record_step_success("index_all", "Text and sheet indexes rebuilt successfully")
-        
+
         return True
     except Exception as e:
         result.record_step_failure("index_all", str(e))
@@ -321,23 +329,33 @@ def validate_shard_params(shard_index, shard_count, result: ReindexingResult) ->
 def main(argv=None):
     """Main entry point for the reindexing cronjob."""
     import os
+
     parser = argparse.ArgumentParser(description="Elasticsearch Reindexing Cronjob")
     parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logging and debug indexes")
-    parser.add_argument("--mode", choices=["monolith", "shard"], default="monolith",
-                        help="Execution mode: monolith (full run) or shard (index one text shard)")
-    parser.add_argument("--type", choices=["text", "sheet"], default="text",
-                        help="Index type (shard mode always indexes text)")
-    parser.add_argument("--shard-index", type=int, default=None,
-                        help="Zero-based shard index (overrides JOB_COMPLETION_INDEX env var)")
-    parser.add_argument("--shard-count", type=int, default=None,
-                        help="Total number of shards (overrides SHARD_COUNT env var)")
+    parser.add_argument(
+        "--mode",
+        choices=["monolith", "shard"],
+        default="monolith",
+        help="Execution mode: monolith (full run) or shard (index one text shard)",
+    )
+    parser.add_argument(
+        "--type", choices=["text", "sheet"], default="text", help="Index type (shard mode always indexes text)"
+    )
+    parser.add_argument(
+        "--shard-index", type=int, default=None, help="Zero-based shard index (overrides JOB_COMPLETION_INDEX env var)"
+    )
+    parser.add_argument(
+        "--shard-count", type=int, default=None, help="Total number of shards (overrides SHARD_COUNT env var)"
+    )
     args = parser.parse_args(argv)
 
     shard_index = args.shard_index
     if shard_index is None and os.environ.get("JOB_COMPLETION_INDEX") is not None:
         shard_index = int(os.environ["JOB_COMPLETION_INDEX"])
-    shard_count = args.shard_count if args.shard_count is not None else (
-        int(os.environ["SHARD_COUNT"]) if os.environ.get("SHARD_COUNT") else None
+    shard_count = (
+        args.shard_count
+        if args.shard_count is not None
+        else (int(os.environ["SHARD_COUNT"]) if os.environ.get("SHARD_COUNT") else None)
     )
 
     setup_logging(args.debug)
@@ -364,8 +382,8 @@ def main(argv=None):
 
     if args.mode != "shard":
         try:
-            log_index_state('text', result, debug=args.debug)
-            log_index_state('sheet', result, debug=args.debug)
+            log_index_state("text", result, debug=args.debug)
+            log_index_state("sheet", result, debug=args.debug)
             result.record_step_success("preflight_index_check", "Index states logged")
         except Exception as e:
             result.record_step_failure("preflight_index_check", str(e))
@@ -419,37 +437,39 @@ def main(argv=None):
             result.add_warning(
                 f"{len(result.failed_text_versions)} text versions failed to index in shard {shard_index}"
             )
-    
+
     if result.failed_text_versions or result.skipped_text_versions or result.steps_failed:
         logger.info("\n")
         logger.info(result.get_summary())
-        
+
         detailed_report = result.detailed_failure_report()
         if detailed_report:
             logger.info(detailed_report)
-        
+
         try:
             report_file = f"/tmp/reindex_failures_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-            with open(report_file, 'w') as f:
+            with open(report_file, "w") as f:
                 f.write(result.get_summary())
                 f.write("\n\n")
                 f.write(detailed_report)
             logger.info(f"Detailed failure report saved to: {report_file}")
         except Exception as e:
             logger.warning(f"Could not save failure report to file - error: {str(e)}")
-    
+
     if result.failed_text_versions or result.skipped_text_versions or result.steps_failed:
         logger.debug("Final index states:")
         try:
-            log_index_state('text', result, debug=args.debug)
-            log_index_state('sheet', result, debug=args.debug)
+            log_index_state("text", result, debug=args.debug)
+            log_index_state("sheet", result, debug=args.debug)
         except Exception as e:
             logger.warning(f"Failed to log final index states - error: {str(e)}")
-    
+
     if result.is_success():
         if result.skipped_text_versions:
             # failed_text_versions can't reach here - is_success() is False when it's non-empty.
-            logger.info("Reindexing completed successfully, with some intentionally-excluded versions skipped (see summary above).")
+            logger.info(
+                "Reindexing completed successfully, with some intentionally-excluded versions skipped (see summary above)."
+            )
         else:
             logger.info(SEPARATOR_LINE)
             logger.info("Reindexing completed successfully!")
