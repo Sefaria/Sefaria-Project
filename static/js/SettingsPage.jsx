@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {ProfilePic} from "./ProfilePic";
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
-import { InterfaceText } from './Misc';
+import { InterfaceText, DonateLink } from './Misc';
 import {
   CONFIRMATION_SIGNAL_KEY,
   MAX_DESCRIPTION_LENGTH,
@@ -533,6 +533,22 @@ const eCopy = (text, done) => {
 
 /* A centered step. Steps of the first setup show progress dashes; single screens opened from
    the home show a way back instead. */
+/* "Join the developer community" (2026-11-05): the newsletter and the Discord side by side; the Discord is a plain
+   link rather than a checkbox (Sarah, D83). Used in About you and at the end of the publish form (2026-11-08), where
+   the newsletter box starts from the profile, so someone already opted in sees it checked. */
+const ECommunity = ({id, checked, onChange}) => (
+  <section className="devE-note devE-community" aria-labelledby={id + "Title"}>
+    <h3 className="devE-communityTitle" id={id + "Title"}>{tE("Join the developer community", "הצטרפו לקהילת המפתחים")}</h3>
+    <Checkbox id={id} checked={checked} onChange={e => onChange(e.target.checked)}
+      label={tE("I would like to receive Sefaria's developer newsletter to hear about new features, events and opportunities.",
+        "אשמח לקבל את הניוזלטר למפתחים של ספריא כדי לשמוע על תכונות חדשות, אירועים והזדמנויות.")} />
+    <p className="devE-communityLink"><InterfaceText text={{
+      en: <React.Fragment><a className="devE-inlineLink devE-communityJoin" href={E_DISCORD_URL} target="_blank" rel="noopener noreferrer">Join our Discord</a> to talk with other developers building on Sefaria.</React.Fragment>,
+      he: <React.Fragment><a className="devE-inlineLink devE-communityJoin" href={E_DISCORD_URL} target="_blank" rel="noopener noreferrer">הצטרפו לדיסקורד שלנו</a> כדי לשוחח עם מפתחים אחרים שבונים עם ספריא.</React.Fragment>,
+    }} /></p>
+  </section>
+);
+
 const EStep = ({icon, iconOk, title, lead, dots, onBack, backLabel, children}) => {
   const inFlow = !!(onBack && backLabel);
   const titleRef = useRef(null);
@@ -722,20 +738,7 @@ const EWelcome = ({dots, onSave, initial, onCancel, edit}) => {
           placeholder="name@example.com" value={fields.additionalEmail}
           onChange={e => set("additionalEmail", e.target.value)} error={errors.additionalEmail}
           onBlur={() => setErrors(x => ({...x, additionalEmail: emailError(fields.additionalEmail)}))} />
-        {/* The two ways to join the developer community side by side (Penina, 2026-11-05): the newsletter and the
-            Discord, which is a plain link rather than a checkbox (Sarah, D83). */}
-        <section className="devE-note devE-community" aria-labelledby="devECommunityTitle">
-          <h3 className="devE-communityTitle" id="devECommunityTitle">{tE("Join the developer community", "הצטרפו לקהילת המפתחים")}</h3>
-          <Checkbox id="devENews" checked={!!fields.developerNews} onChange={e => set("developerNews", e.target.checked)}
-            label={tE("I would like to receive Sefaria's developer newsletter to hear about new features, events and opportunities.",
-              "אשמח לקבל את הניוזלטר למפתחים של ספריא כדי לשמוע על תכונות חדשות, אירועים והזדמנויות.")} />
-          {/* A second, separate option. It's a place to go, not a setting, so it gets a link instead of a
-              checkbox: an inline link, and no icon in the checkbox's column (Penina, 2026-11-05). */}
-          <p className="devE-communityLink"><InterfaceText text={{
-            en: <React.Fragment><a className="devE-inlineLink devE-communityJoin" href={E_DISCORD_URL} target="_blank" rel="noopener noreferrer">Join our Discord</a> to talk with other developers building on Sefaria.</React.Fragment>,
-            he: <React.Fragment><a className="devE-inlineLink devE-communityJoin" href={E_DISCORD_URL} target="_blank" rel="noopener noreferrer">הצטרפו לדיסקורד שלנו</a> כדי לשוחח עם מפתחים אחרים שבונים עם ספריא.</React.Fragment>,
-          }} /></p>
-        </section>
+        <ECommunity id="devENews" checked={!!fields.developerNews} onChange={v => set("developerNews", v)} />
         <div className="devE-footer">
           {onCancel ? <button type="button" className="devE-backBtn" onClick={onCancel}>{tE("Cancel", "ביטול")}</button> : null}
           <EPrimary data-agent-action="save-profile" disabled={saving}>{edit ? tE("Save", "שמירה") : tE("Continue", "המשך")}</EPrimary>
@@ -1060,11 +1063,11 @@ const EReveal = ({dots, apiKey, projectName, onContinue, continueLabel, onBack})
 
 const EFeature = ({dots, project, onFeature, onLater, onBack}) => (
   <EStep dots={dots} icon="</>" onBack={onBack} backLabel={tE("Back", "חזרה")}
-    title={<InterfaceText text={{en: "Want people to find " + project.name + "?", he: "רוצים שאנשים ימצאו את " + project.name + "?"}} />}
-    lead={<p className="devE-lead">{tE("Feature it on Powered by Sefaria, our gallery of projects built with Sefaria. You can do this any time from your project.",
-      "הציגו אותו ב־Powered by Sefaria, הגלריה של פרויקטים שנבנו עם ספריא. אפשר לעשות את זה בכל עת מהפרויקט.")}</p>}>
+    title={<InterfaceText text={{en: "Publish " + project.name + "?", he: "לפרסם את " + project.name + "?"}} />}
+    lead={<p className="devE-lead">{tE("We love seeing what people build with Sefaria's data. It's optional, and you can do it any time from your project.",
+      "אנחנו אוהבים לראות מה אנשים בונים עם הנתונים של ספריא. זה לא חובה, ואפשר לעשות את זה בכל עת מהפרויקט.")}</p>}>
     <div className="devE-form">
-      <EPrimary type="button" onClick={onFeature}>{tE("Feature my project", "הציגו את הפרויקט שלי")}</EPrimary>
+      <EPrimary type="button" onClick={onFeature}>{tE("Publish project", "פרסום הפרויקט")}</EPrimary>
       <button type="button" className="devE-textBtn" onClick={onLater}>{tE("Not now", "לא עכשיו")}</button>
     </div>
   </EStep>
@@ -1349,8 +1352,22 @@ const E_PB_CATEGORIES = [
   {en: "Extensions and API Integrations", he: "תוספים ושילובי API"},
   {en: "Other", he: "אחר"},
 ];
-const E_PB_TOOLS = ["Sefaria API", "Sefaria MCP", "Sefaria-Export", "Sefaria-Project code", "Sefaria ai-chatbot code",
-  "Sefaria Embedded code", "Sefaria ML models on HuggingFace", "Tutorials", "Documentation", "Sefaria Patot", "Other"];
+/* The tools list (Sarah, 2026-11-08): no "Sefaria" in front of each one, since the question already says so, and each
+   tool links to its repo or its page on the developer portal. `value` keeps the live form's wording for the intake.
+   MCP links to the portal page because there are two public MCP repos. */
+const E_PB_TOOLS = [
+  {value: "Sefaria API", label: "API", url: "https://developers.sefaria.org/reference"},
+  {value: "Sefaria MCP", label: "MCP", url: "https://developers.sefaria.org/docs/the-sefaria-mcp"},
+  {value: "Sefaria-Export", label: "Export", url: "https://github.com/Sefaria/Sefaria-Export"},
+  {value: "Sefaria-Project code", label: "Project code", url: "https://github.com/Sefaria/Sefaria-Project"},
+  {value: "Sefaria ai-chatbot code", label: "ai-chatbot code", url: "https://github.com/Sefaria/ai-chatbot"},
+  {value: "Sefaria Embedded code", label: "Embedded code", url: "https://github.com/Sefaria/Sefaria-Embedded"},
+  {value: "Sefaria ML models on HuggingFace", label: "ML models on HuggingFace", url: "https://huggingface.co/Sefaria"},
+  {value: "Tutorials", label: "Tutorials", url: "https://developers.sefaria.org/reference/tutorials"},
+  {value: "Documentation", label: "Documentation", url: "https://developers.sefaria.org/docs/welcome"},
+  {value: "Sefaria Patot", label: "Patot", url: "https://developers.sefaria.org/docs/patot"},
+  {value: "Other", label: "Other"},
+];
 
 const E_PB_USERS = [
   {v: "poc", en: "None, it's mostly a proof of concept", he: "אף אחד, זו בעיקר הוכחת היתכנות"},
@@ -1364,7 +1381,6 @@ const EFieldError = ({id, error}) => error ?
     {typeof error === "string" ? <InterfaceText>{error}</InterfaceText> : error}
   </div> : null;
 
-/* The Powered by form's intro, word for word from the current Formstack form (wiki: Powered by Sefaria Submission Form). */
 /* Gallery of featured projects (PBS check-in, 2026-11-02). Points at today's Powered by page until the new gallery is live. */
 /* A confirmation link works for 3 days (the server's EMAIL_CONFIRMATION_EXPIRE_DAYS). While one is out, setup waits on
    "Check your email"; once it has expired, setup starts over from the welcome screen, since a new link is needed anyway. */
@@ -1372,22 +1388,47 @@ const E_LINK_DAYS = 3;
 const eLinkLive = (sentAt) => !!sentAt && Date.now() - new Date(sentAt).getTime() < E_LINK_DAYS * 24 * 60 * 60 * 1000;
 const E_CONFIRM_TIP = () => tE("Confirm your email in the banner above to create projects and keys.",
   "אשרו את כתובת הדוא״ל בבאנר למעלה כדי ליצור פרויקטים ומפתחות.");
-const E_PB_GALLERY_URL = "https://developers.sefaria.org/docs/powered-by-sefaria";
+const E_PB_GALLERY_URL = "https://powered-by.sefaria.org/";
 const E_DISCORD_URL = "https://sefaria.formstack.com/forms/sefaria_developer_discord_community";  // a sign-up form, not a direct invite (2026-11-05)
+/* Intro rewritten for "Publish project" (2026-11-08): says what happens (our team reviews it) and where an approved
+   project appears, without promising it will be published. Replaces the Formstack form's wording. */
 const EShareLead = () => (
   <div className="devE-shareLead">
+    {/* Written for both ways in (2026-11-08): from a project in Developer Settings, and from a link (an email, the
+        Powered by site) by someone who has never opened Developer Settings. No promise that it will be published. */}
     <p className="devE-lead"><InterfaceText text={{
-      en: <React.Fragment>Have you used Sefaria’s data to build an app, visualization, website, or other digital tool? <strong>We want to know about it!</strong> We’re always excited to see the projects you’re building.</React.Fragment>,
-      he: <React.Fragment>השתמשתם בנתונים של ספריא כדי לבנות אפליקציה, ויזואליזציה, אתר או כלי דיגיטלי אחר? <strong>נשמח לשמוע!</strong> אנחנו תמיד שמחים לראות את הפרויקטים שאתם בונים.</React.Fragment>,
+      en: <React.Fragment>Built something with Sefaria’s texts, data or API? <strong>We’d love to hear about it!</strong></React.Fragment>,
+      he: <React.Fragment>בניתם משהו עם הטקסטים, הנתונים או ה־API של ספריא? <strong>נשמח לשמוע!</strong></React.Fragment>,
+    }} /></p>
+    <p className="devE-lead"><InterfaceText text={{
+      en: <React.Fragment>Tell us about your project and we will review it. If approved, it will be visible on the{" "}
+        <a className="devE-inlineLink" href={E_PB_GALLERY_URL} target="_blank" rel="noopener noreferrer">Powered by Sefaria site</a>, where learners and developers
+        around the world can discover what people are building with Sefaria.</React.Fragment>,
+      he: <React.Fragment>ספרו לנו על הפרויקט ואנחנו נבדוק אותו. אם הוא יאושר, הוא יוצג ב
+        <a className="devE-inlineLink" href={E_PB_GALLERY_URL} target="_blank" rel="noopener noreferrer">אתר Powered by Sefaria</a>, שבו לומדים ומפתחים מכל
+        העולם יוכלו לגלות מה אנשים בונים עם ספריא.</React.Fragment>,
     }} /></p>
     <p className="devE-lead"><InterfaceText text={{
       en: <React.Fragment>If you have questions about our open-source data and API, you can always reach out at <a className="devE-inlineLink" href="mailto:developers@sefaria.org"><bdi dir="ltr">developers@sefaria.org</bdi></a>.</React.Fragment>,
       he: <React.Fragment>אם יש לכם שאלות על הנתונים בקוד פתוח ועל ה־API שלנו, אפשר תמיד לפנות אלינו בכתובת <a className="devE-inlineLink" href="mailto:developers@sefaria.org"><bdi dir="ltr">developers@sefaria.org</bdi></a>.</React.Fragment>,
     }} /></p>
-    <a className="devE-inlineLink devE-galleryLink" href={E_PB_GALLERY_URL} target="_blank" rel="noopener noreferrer">
-      {tE("See the projects already featured on Powered by Sefaria", "צפו בפרויקטים שכבר מוצגים ב־Powered by Sefaria")}<ExternalIcon />
-    </a>
   </div>
+);
+
+/* After "Submit for review" (2026-11-08): no promise that it will be published. The project goes to our team, and
+   only an approved one appears on the Powered by Sefaria site. */
+const ESubmitted = ({project, onDone}) => (
+  <EStep iconOk icon={<ECheckIcon size={24} />} title={tE("Your project was submitted for review", "הפרויקט נשלח לבדיקה")}
+    lead={<p className="devE-lead"><InterfaceText text={{
+      en: <React.Fragment><bdi dir="auto">{project.name}</bdi> will be reviewed by our team. If it's approved, it will appear on the{" "}
+        <a className="devE-inlineLink" href={E_PB_GALLERY_URL} target="_blank" rel="noopener noreferrer">Powered by Sefaria site</a>.</React.Fragment>,
+      he: <React.Fragment>הצוות שלנו יבדוק את <bdi dir="auto">{project.name}</bdi>. אם הוא יאושר, הוא יופיע ב
+        <a className="devE-inlineLink" href={E_PB_GALLERY_URL} target="_blank" rel="noopener noreferrer">אתר Powered by Sefaria</a>.</React.Fragment>,
+    }} /></p>}>
+    <div className="devE-form">
+      <EPrimary type="button" onClick={onDone}>{tE("Back to Developer Settings", "חזרה להגדרות המפתחים")}</EPrimary>
+    </div>
+  </EStep>
 );
 
 const EShareProject = ({project, profile, picker, dots, onBack, onSubmit}) => {
@@ -1397,9 +1438,9 @@ const EShareProject = ({project, profile, picker, dots, onBack, onSubmit}) => {
     organization: project.organization || "", websiteUrl: project.websiteUrl || ""});
   const [person, setPerson] = useState({...emptyProfile(), ...(profile || {}),
     role: profile ? (profile.notADeveloper ? "ai" : "developer") : ""});
-  const [showName, setShowName] = useState(true);
+  const [showName, setShowName] = useState(false);   // unchecked by default (2026-11-08)
   const [currentRole, setCurrentRole] = useState("");
-  const [builtWithAi, setBuiltWithAi] = useState(project.aiAssisted ? "yes" : "");
+  const [builtWithAi, setBuiltWithAi] = useState("");   // the project doesn't store this (removed from the project form)
   const [cats, setCats] = useState([]);
   const [sourceUrl, setSourceUrl] = useState("");
   const [tools, setTools] = useState([]);
@@ -1409,6 +1450,11 @@ const EShareProject = ({project, profile, picker, dots, onBack, onSubmit}) => {
   const [usersOther, setUsersOther] = useState("");
   const [anythingElse, setAnythingElse] = useState("");
   const [logo, setLogo] = useState("");
+  const [donateLink, setDonateLink] = useState(false);   // design only: not saved anywhere yet
+  /* About you and the project start as filled-in summaries with an Edit link; a summary opens by itself when
+     something in it is missing or wrong (2026-11-08). */
+  const [editYou, setEditYou] = useState(!person.role);
+  const [editProject, setEditProject] = useState(!(project.websiteUrl || "").trim() || !(project.description || "").trim());
   const [errors, setErrors] = useState({});
   const [banner, setBanner] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -1423,12 +1469,13 @@ const EShareProject = ({project, profile, picker, dots, onBack, onSubmit}) => {
       websiteUrl: required(form.fields.websiteUrl),
       cats: cats.length ? null : <InterfaceText text={{en: "Choose at least one category.", he: "בחרו לפחות קטגוריה אחת."}} />,
       role: person.role ? null : "auth.required_field",
-      logo: logo ? null : "auth.required_field",
     };
     setErrors(next);
     const order = [["websiteUrl", "devEProjSite"], ["cats", "devEShareCat0"],
-      ["role", "devEShareRole"], ["logo", "devEShareLogoYes"]];
+      ["role", "devEShareRole"]];
     const first = order.find(([k]) => next[k]);
+    if (!projectOk || next.websiteUrl) { setEditProject(true); }
+    if (next.role) { setEditYou(true); }
     if (!projectOk) { return; }
     if (first) { const el = document.getElementById(first[1]); if (el) { el.focus(); } return; }
     if (busy) { return; }
@@ -1438,110 +1485,153 @@ const EShareProject = ({project, profile, picker, dots, onBack, onSubmit}) => {
       form.projectBody({aiAssisted: builtWithAi === "yes", visibility: "public"}),
     )).catch(err => { setBanner(saveFailure(err)); setBusy(false); });
   };
+  const role = E_ROLES.find(r => r.value === person.role);
+  const editBtn = (onClick, label) => (
+    <button type="button" className="devE-quiet devE-summaryEdit" onClick={onClick} aria-label={label}><EPencilIcon />{tE("Edit", "עריכה")}</button>);
   return (
-    <EStep onBack={onBack} backLabel={dots ? tE("Back", "חזרה") : null} dots={dots} title={tE("Share your project with Sefaria", "שתפו את הפרויקט עם ספריא")}
+    <EStep onBack={onBack} backLabel={dots ? tE("Back", "חזרה") : null} dots={dots} iconOk icon={<span className="devE-icoDev"><EMegaphoneIcon size={24} /></span>} title={tE("Publish your project", "פרסום הפרויקט שלך")}
       lead={<EShareLead />}>
       <form className="devE-form devE-shareForm" onSubmit={submit} noValidate>
         <ErrorBanner error={banner} />
 
-        <section className="devE-shareSection" aria-labelledby="devEShareProj">
-          <h3 id="devEShareProj">{tE("Your project", "הפרויקט שלך")}</h3>
-          {picker}
-          {/* Section notes follow the Formstack form's ("will be shared" / "will not be displayed"). */}
-          <p className="devE-shareNote"><InterfaceText text={{
-            en: <React.Fragment>If submitted, these details <strong>will be shared</strong> on our site. Changes here also update your project.</React.Fragment>,
-            he: <React.Fragment>אם הפרויקט יישלח, הפרטים האלה <strong>יוצגו</strong> באתר שלנו. שינויים כאן יעדכנו גם את הפרויקט.</React.Fragment>,
-          }} /></p>
-          <EProjectFields showcase fields={form.fields} set={(k, v) => { form.set(k, v); clear(k); }}
-            errors={{...form.errors, websiteUrl: form.errors.websiteUrl || errors.websiteUrl}} check={form.check} />
-          <fieldset className="devE-choices" aria-describedby={errors.cats ? "devEShareCats-error" : null}>
-            <legend>{tE("Category", "קטגוריה")} <span className="devE-hintInline">{tE("Select all that apply.", "בחרו את כל המתאימות.")}</span></legend>
-            {E_PB_CATEGORIES.map((c, i) => <Checkbox key={i} id={"devEShareCat" + i} checked={cats.includes(c.en)}
-              onChange={() => { toggle(cats, setCats, c.en); clear("cats"); }} label={<InterfaceText text={c} />} />)}
-            <EFieldError id="devEShareCats-error" error={errors.cats} />
-          </fieldset>
-          <Input id="devEShareSource" inputDir="ltr" label={tE("Link to source code", "קישור לקוד המקור")} labelAddon={EOpt}
-            placeholder="github.com/…" value={sourceUrl} onChange={e => setSourceUrl(e.target.value)} />
-          <fieldset className="devE-choices">
-            <legend>{tE("Which Sefaria data or tools did you use?", "באילו נתונים או כלים של ספריא השתמשתם?")} {EOpt}</legend>
-            {E_PB_TOOLS.map((t, i) => <Checkbox key={i} id={"devEShareTool" + i} checked={tools.includes(t)}
-              onChange={() => toggle(tools, setTools, t)} label={<span dir="ltr">{t}</span>} />)}
-            {/* Sheet: if "Sefaria API" is ticked, say whether the project has a key. */}
-            {tools.includes("Sefaria API") ?
-              <p className="devE-shareNote devE-shareNoteTight">{project.keys.length
-                ? <InterfaceText text={{en: "This project has " + project.keys.length + " API key" + (project.keys.length === 1 ? "" : "s") + ".",
-                    he: "לפרויקט הזה יש " + project.keys.length + " מפתחות API."}} />
-                : tE("This project doesn't have an API key yet. You can add one from Projects and API keys.",
-                    "לפרויקט הזה עדיין אין מפתח API. אפשר להוסיף אותו מתוך פרויקטים ומפתחות API.")}</p> : null}
-          </fieldset>
-          <fieldset className="devE-choices">
-            <legend>{tE("Was this project built with AI?", "האם הפרויקט נבנה בעזרת AI?")} {EOpt}</legend>
-            {[{v: "yes", en: "Yes", he: "כן"}, {v: "no", en: "No", he: "לא"}].map(o =>
-              <label key={o.v} className="devE-radio"><input type="radio" name="devEShareAi" checked={builtWithAi === o.v}
-                onChange={() => setBuiltWithAi(o.v)} /><InterfaceText text={{en: o.en, he: o.he}} /></label>)}
-          </fieldset>
-          <Input id="devEShareTech" dir="auto" label={tE("Which non-Sefaria technologies or tools did you use?", "באילו טכנולוגיות או כלים שאינם של ספריא השתמשתם?")} labelAddon={EOpt}
-            placeholder={vE("e.g. React, Python, Claude", "למשל: React, Python, Claude")} value={otherTech} onChange={e => setOtherTech(e.target.value)} />
-          <Input id="devEShareInspired" multiline rows={3} dir="auto" labelAddon={EOpt}
-            label={tE("What inspired you to build it? What use case does it solve?", "מה נתן לכם השראה לבנות אותו? איזה צורך הוא פותר?")}
-            value={inspired} onChange={e => setInspired(e.target.value)} />
-          <fieldset className="devE-choices">
-            <legend>{tE("About how many people use it each month?", "בערך כמה אנשים משתמשים בו בכל חודש?")} {EOpt}</legend>
-            {E_PB_USERS.map(o => <label key={o.v} className="devE-radio"><input type="radio" name="devEShareUsers" checked={users === o.v}
-              onChange={() => setUsers(o.v)} /><InterfaceText text={{en: o.en, he: o.he}} /></label>)}
-            {users === "other" ? <Input id="devEShareUsersOther" dir="auto" label={tE("How many?", "כמה?")} value={usersOther}
-              onChange={e => setUsersOther(e.target.value)} /> : null}
-          </fieldset>
-          <Input id="devEShareElse" multiline rows={3} dir="auto" label={tE("Anything else you'd like to add?", "יש עוד משהו שתרצו להוסיף?")} labelAddon={EOpt}
-            value={anythingElse} onChange={e => setAnythingElse(e.target.value)} />
-        </section>
-
+        {/* 1. About you first: already filled in from the profile, so it's a summary to check, not questions. */}
         <section className="devE-shareSection" aria-labelledby="devEShareYou">
           <h3 id="devEShareYou">{tE("About you", "קצת עליך")}</h3>
           <p className="devE-shareNote"><InterfaceText text={{
             en: <React.Fragment>These details <strong>won't be shown</strong> on our site or shared, except your name if you choose to show it.</React.Fragment>,
             he: <React.Fragment>הפרטים האלה <strong>לא יוצגו</strong> באתר שלנו ולא ישותפו, מלבד השם שלך אם תבחרו להציג אותו.</React.Fragment>,
           }} /></p>
-          {email ? <p className="devE-signed">{tE("Signed in as", "מחובר/ת בתור")} {name ? <strong dir="auto">{name}</strong> : null} <bdi dir="ltr">({email})</bdi></p> : null}
-          <Checkbox id="devEShareShowName" checked={showName} onChange={e => setShowName(e.target.checked)}
-            label={tE("Show my name with the project on Powered by Sefaria", "הצגת השם שלי עם הפרויקט ב־Powered by Sefaria")} />
-          <Select id="devEShareRole" value={person.role} onChange={v => setP("role", v)} error={errors.role}
-            label={tE("What best describes you?", "מה מתאר אותך הכי טוב?")}
-            placeholder={{en: "Choose one", he: "בחרו אחת"}}
-            options={E_ROLES.map(r => ({value: r.value, label: {en: r.en, he: r.he}}))} />
+          {editYou ?
+            <React.Fragment>
+              {email ? <p className="devE-signed">{tE("Signed in as", "מחובר/ת בתור")} {name ? <strong dir="auto">{name}</strong> : null} <bdi dir="ltr">({email})</bdi></p> : null}
+              <Select id="devEShareRole" value={person.role} onChange={v => setP("role", v)} error={errors.role}
+                label={tE("What best describes you?", "מה מתאר אותך הכי טוב?")}
+                placeholder={{en: "Choose one", he: "בחרו אחת"}}
+                options={E_ROLES.map(r => ({value: r.value, label: {en: r.en, he: r.he}}))} />
+              <Input id="devEShareAbout" multiline rows={2} dir="auto" maxLength={E_ABOUT_MAX}
+                label={tE("Tell us about yourself", "ספרו לנו על עצמכם")} labelAddon={EOpt}
+                placeholder={vE("Where you work or study, what you like to build", "איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות")}
+                aria-describedby="devEShareAboutCount" value={person.description} onChange={e => setP("description", e.target.value)}
+                fieldAddon={<span id="devEShareAboutCount" dir="ltr">{person.description.length}/{E_ABOUT_MAX}</span>} />
+            </React.Fragment> :
+            <div className="devE-summary">
+              <div className="devE-summaryBody">
+                <span className="devE-summaryTitle" dir="auto">{name || email}</span>
+                {name && email ? <bdi className="devE-summaryMeta" dir="ltr">{email}</bdi> : null}
+                {role ? <span className="devE-summaryMeta"><InterfaceText text={{en: role.en, he: role.he}} /></span> : null}
+                {person.description ? <span className="devE-summaryText" dir="auto">{person.description}</span> : null}
+              </div>
+              {editBtn(() => setEditYou(true), vE("Edit details about you", "עריכת הפרטים עליך"))}
+            </div>}
           <Input id="devEShareCurrentRole" dir="auto" label={tE("Current role", "תפקיד נוכחי")} labelAddon={EOpt}
             placeholder={vE("e.g. Teacher, student, software engineer", "למשל: מורה, סטודנט/ית, מהנדס/ת תוכנה")}
             value={currentRole} onChange={e => setCurrentRole(e.target.value)} />
-          <Input id="devEShareAbout" multiline rows={2} dir="auto" maxLength={E_ABOUT_MAX}
-            label={tE("Tell us about yourself", "ספרו לנו על עצמכם")} labelAddon={EOpt}
-            placeholder={vE("Where you work or study, what you like to build", "איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות")}
-            aria-describedby="devEShareAboutCount" value={person.description} onChange={e => setP("description", e.target.value)}
-            fieldAddon={<span id="devEShareAboutCount" dir="ltr">{person.description.length}/{E_ABOUT_MAX}</span>} />
-          {/* Same field as in About you, prefilled from the profile (field review sheet: Elise and Genevieve want it here). */}
-          <Checkbox id="devEShareNews" checked={!!person.developerNews} onChange={e => setP("developerNews", e.target.checked)}
-            label={tE("I would like to receive Sefaria's developer newsletter to hear about new features, events and opportunities.",
-              "אשמח לקבל את הניוזלטר למפתחים של ספריא כדי לשמוע על תכונות חדשות, אירועים והזדמנויות.")} />
+          <Checkbox id="devEShareShowName" checked={showName} onChange={e => setShowName(e.target.checked)}
+            label={tE("Show my name with the project if it's featured", "הצגת השם שלי עם הפרויקט אם יוצג")} />
         </section>
 
-        <section className="devE-shareSection" aria-labelledby="devEShareLogo">
-          <h3 id="devEShareLogo">{tE("Powered by Sefaria logo", "הלוגו Powered by Sefaria")}</h3>
+        {/* 2. The project: chosen (preselected when opened from a project), shown as a summary, plus its category. */}
+        <section className="devE-shareSection" aria-labelledby="devEShareProj">
+          <h3 id="devEShareProj">{tE("Your project", "הפרויקט שלך")}</h3>
           <p className="devE-shareNote"><InterfaceText text={{
-            en: <React.Fragment>To be featured, your project needs the Powered by Sefaria logo. <a className="devE-inlineLink" href="https://developers.sefaria.org/docs/usage-of-our-name-and-logo" target="_blank" rel="noopener noreferrer">How to use our name and logo</a></React.Fragment>,
-            he: <React.Fragment>כדי שהפרויקט יוצג, הוא צריך לכלול את הלוגו Powered by Sefaria. <a className="devE-inlineLink" href="https://developers.sefaria.org/docs/usage-of-our-name-and-logo" target="_blank" rel="noopener noreferrer">איך להשתמש בשם ובלוגו שלנו</a></React.Fragment>,
+            en: <React.Fragment>If we feature your project, these details <strong>will be shown</strong> on our site. Changes made here also update your project details.</React.Fragment>,
+            he: <React.Fragment>אם נציג את הפרויקט, הפרטים האלה <strong>יוצגו</strong> באתר שלנו. שינויים שתעשו כאן יעדכנו גם את פרטי הפרויקט.</React.Fragment>,
           }} /></p>
-          <fieldset className="devE-choices" aria-describedby={errors.logo ? "devEShareLogo-error" : null}>
-            <legend className="sr-only">{tE("Have you added the logo to your project?", "האם הוספתם את הלוגו לפרויקט?")}</legend>
-            {[{v: "yes", id: "devEShareLogoYes", en: "Yes, I've added the Powered by Sefaria logo to my project.", he: "כן, הוספתי את הלוגו Powered by Sefaria לפרויקט."},
-              {v: "no", id: "devEShareLogoNo", en: "I haven't added the logo yet.", he: "עדיין לא הוספתי את הלוגו."}].map(o =>
-              <label key={o.v} className="devE-radio"><input type="radio" id={o.id} name="devEShareLogoAdded" checked={logo === o.v}
-                onChange={() => { setLogo(o.v); clear("logo"); }} /><InterfaceText text={{en: o.en, he: o.he}} /></label>)}
-            <EFieldError id="devEShareLogo-error" error={errors.logo} />
+          {picker}
+          {editProject ?
+            <EProjectFields showcase fields={form.fields} set={(k, v) => { form.set(k, v); clear(k); }}
+              errors={{...form.errors, websiteUrl: form.errors.websiteUrl || errors.websiteUrl}} check={form.check} /> :
+            <div className="devE-summary">
+              <div className="devE-summaryBody">
+                <span className="devE-summaryTitle" dir="auto">{form.fields.name}
+                  {form.fields.organization ? <span className="devE-summaryMeta"> · {form.fields.organization}</span> : null}</span>
+                {form.fields.description ? <span className="devE-summaryText" dir="auto">{form.fields.description}</span> : null}
+                {form.fields.websiteUrl ? <bdi className="devE-summaryMeta" dir="ltr">{websiteHost(form.fields.websiteUrl) || form.fields.websiteUrl}</bdi> : null}
+              </div>
+              {editBtn(() => setEditProject(true), vE("Edit project details", "עריכת פרטי הפרויקט"))}
+            </div>}
+        </section>
+
+        {/* 3. More about the project (2026-11-08): the required category first, then every optional question, each
+            marked Optional. Always open, since it holds a required field. */}
+        <section className="devE-shareSection devE-shareMore" aria-labelledby="devEShareMore">
+          <h3 id="devEShareMore">{tE("Tell us more about your project", "ספרו לנו עוד על הפרויקט")}</h3>
+          {/* Order and wording follow the live Powered by form (wiki: Powered by Sefaria Submission Form, Project
+              Information), with the one required question first (2026-11-08). */}
+          <div className="devE-shareMoreBody">
+            <fieldset className="devE-choices" aria-describedby={errors.cats ? "devEShareCats-error" : null}>
+              <legend>{tE("What kind of project is it?", "איזה סוג פרויקט זה?")} <span className="devE-hintInline">{tE("Select all that apply.", "בחרו את כל המתאימות.")}</span></legend>
+              {E_PB_CATEGORIES.map((c, i) => <Checkbox key={i} id={"devEShareCat" + i} checked={cats.includes(c.en)}
+                onChange={() => { toggle(cats, setCats, c.en); clear("cats"); }} label={<InterfaceText text={c} />} />)}
+              <EFieldError id="devEShareCats-error" error={errors.cats} />
+            </fieldset>
+            <Input id="devEShareSource" inputDir="ltr" label={tE("Link to source code", "קישור לקוד המקור")} labelAddon={EOpt}
+              value={sourceUrl} onChange={e => setSourceUrl(e.target.value)} />
+            <fieldset className="devE-choices">
+              <legend>{tE("Which Sefaria data or tools did you use for your project?", "באילו נתונים או כלים של ספריא השתמשתם בפרויקט?")} {EOpt}</legend>
+              {E_PB_TOOLS.map((t, i) => <Checkbox key={i} id={"devEShareTool" + i} checked={tools.includes(t.value)}
+                onChange={() => toggle(tools, setTools, t.value)}
+                label={<span dir="ltr">{t.label}{t.url ? <React.Fragment>{" "}<a className="devE-inlineLink devE-toolLink" href={t.url} target="_blank"
+                  rel="noopener noreferrer" onClick={e => e.stopPropagation()} aria-label={t.label + " (opens in a new tab)"}><ExternalIcon /></a></React.Fragment> : null}</span>} />)}
+            </fieldset>
+            <Input id="devEShareTech" dir="auto" labelAddon={EOpt}
+              label={tE("Which non-Sefaria technologies or tools did you use for your project?", "באילו טכנולוגיות או כלים שאינם של ספריא השתמשתם בפרויקט?")}
+              placeholder={vE("e.g. React, Python, Claude", "למשל: React, Python, Claude")} value={otherTech} onChange={e => setOtherTech(e.target.value)} />
+            <Input id="devEShareInspired" multiline rows={3} dir="auto" labelAddon={EOpt}
+              label={tE("What inspired you to build this tool? What use case were you solving for?", "מה נתן לכם השראה לבנות את הכלי הזה? איזה צורך רציתם לפתור?")}
+              value={inspired} onChange={e => setInspired(e.target.value)} />
+            <fieldset className="devE-choices">
+              <legend>{tE("Was this project vibe-coded?", "האם הפרויקט נבנה ב־vibe coding?")} {EOpt}</legend>
+              {[{v: "yes", en: "Yes", he: "כן"}, {v: "no", en: "No", he: "לא"}].map(o =>
+                <label key={o.v} className="devE-radio"><input type="radio" name="devEShareAi" checked={builtWithAi === o.v}
+                  onChange={() => setBuiltWithAi(o.v)} /><InterfaceText text={{en: o.en, he: o.he}} /></label>)}
+            </fieldset>
+            <fieldset className="devE-choices">
+              <legend>{tE("How many users approximately use this project on a monthly basis?", "בערך כמה משתמשים משתמשים בפרויקט בכל חודש?")} {EOpt}</legend>
+              {E_PB_USERS.map(o => <label key={o.v} className="devE-radio"><input type="radio" name="devEShareUsers" checked={users === o.v}
+                onChange={() => setUsers(o.v)} /><InterfaceText text={{en: o.en, he: o.he}} /></label>)}
+              {users === "other" ? <Input id="devEShareUsersOther" dir="auto" label={tE("How many?", "כמה?")} value={usersOther}
+                onChange={e => setUsersOther(e.target.value)} /> : null}
+            </fieldset>
+            <Input id="devEShareElse" multiline rows={3} dir="auto" labelAddon={EOpt}
+              label={tE("Anything else you would like to add?", "יש עוד משהו שתרצו להוסיף?")}
+              value={anythingElse} onChange={e => setAnythingElse(e.target.value)} />
+          </div>
+        </section>
+
+        {/* Support Sefaria (Sarah, 2026-11-08): the logo is encouraged, not required, so nothing here blocks submitting.
+            Points to the name-and-logo guidelines and asks for a donation link. Copy is a first draft for Sarah. */}
+        <section className="devE-shareSection" aria-labelledby="devEShareLogo">
+          <h3 id="devEShareLogo">{tE("Support Sefaria", "תמכו בספריא")} {EOpt}</h3>
+          <p className="devE-shareNote">{tE("We’re grateful you’re using our resources to share Torah.", "תודה שאתם משתמשים במשאבים שלנו כדי להפיץ תורה.")}</p>
+          <p className="devE-shareNote"><InterfaceText text={{
+            en: <React.Fragment>We encourage you to add the Powered by Sefaria logo to your project. See our{" "}
+              <a className="devE-inlineLink" href="https://developers.sefaria.org/docs/usage-of-our-name-and-logo" target="_blank" rel="noopener noreferrer">copyright and trademark guidelines</a>.</React.Fragment>,
+            he: <React.Fragment>נשמח אם תוסיפו לפרויקט את הלוגו Powered by Sefaria. ראו את{" "}
+              <a className="devE-inlineLink" href="https://developers.sefaria.org/docs/usage-of-our-name-and-logo" target="_blank" rel="noopener noreferrer">ההנחיות לזכויות יוצרים וסימני מסחר</a>.</React.Fragment>,
+          }} /></p>
+          <p className="devE-shareNote"><InterfaceText text={{
+            en: <React.Fragment>Help us keep Sefaria free for everyone by adding a{" "}
+              <DonateLink classes="devE-inlineLink" source="DeveloperSettingsPublish">donation link</DonateLink> to your project.</React.Fragment>,
+            he: <React.Fragment>עזרו לנו לשמור על ספריא חינמית לכולם בהוספת{" "}
+              <DonateLink classes="devE-inlineLink" source="DeveloperSettingsPublish">קישור לתרומה</DonateLink> לפרויקט שלכם.</React.Fragment>,
+          }} /></p>
+          <fieldset className="devE-choices">
+            <legend className="sr-only">{tE("What have you added to your project?", "מה הוספתם לפרויקט?")}</legend>
+            <Checkbox id="devEShareLogoYes" checked={logo === "yes"} onChange={e => setLogo(e.target.checked ? "yes" : "")}
+              label={tE("I've added the Powered by Sefaria logo", "הוספתי את הלוגו Powered by Sefaria")} />
+            <Checkbox id="devEShareDonate" checked={donateLink} onChange={e => setDonateLink(e.target.checked)}
+              label={tE("I've added a link to donate to Sefaria", "הוספתי קישור לתרומה לספריא")} />
           </fieldset>
         </section>
 
+        {/* The developer community panel right before submitting (2026-11-08), as in About you. The newsletter box
+            starts from the profile and saves back to it (field review sheet: Elise and Genevieve want it here). */}
+        <ECommunity id="devEShareNews" checked={!!person.developerNews} onChange={v => setP("developerNews", v)} />
+
         <div className="devE-footer">
           <button type="button" className="devE-backBtn" onClick={onBack}>{tE("Cancel", "ביטול")}</button>
-          <EPrimary data-agent-action="share-project" disabled={busy}>{tE("Submit project", "שליחת הפרויקט")}</EPrimary>
+          <EPrimary data-agent-action="share-project" disabled={busy}>{tE("Submit for review", "שליחה לבדיקה")}</EPrimary>
         </div>
       </form>
     </EStep>
@@ -1556,17 +1646,18 @@ const E_SHARE_LINK = typeof window !== "undefined" && new URLSearchParams(window
 /* "Continue to Developer Settings" on the email-confirmed page adds ?continue, so setup picks up at About you
    instead of the welcome screen. */
 const E_CONTINUE = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("continue");
-const EProjectPicker = ({projects, value, onPick}) => (
+/* "+ Create a new project" only shows while the account can add one: under the project limit (2026-11-08). */
+const EProjectPicker = ({projects, value, onPick, canAddNew = true}) => (
   <Select id="devESharePick" value={value || ""} onChange={onPick}
-    label={tE("Which project do you want to share?", "איזה פרויקט תרצו לשתף?")}
+    label={tE("Which project do you want to publish?", "איזה פרויקט תרצו לפרסם?")}
     placeholder={projects.length ? {en: "Choose a project", he: "בחרו פרויקט"} : {en: "No projects yet", he: "עדיין אין פרויקטים"}}
     options={[...projects.map(p => ({value: p.id, label: {en: p.name, he: p.name}})),
-      {value: E_NEW_PROJECT, label: {en: "+ Create a new project", he: "+ יצירת פרויקט חדש"}}]} />
+      ...(canAddNew ? [{value: E_NEW_PROJECT, label: {en: "+ Create a new project", he: "+ יצירת פרויקט חדש"}}] : [])]} />
 );
-const ESharePick = ({projects, onPick, onBack}) => (
+const ESharePick = ({projects, onPick, onBack, canAddNew}) => (
   /* No project chosen yet: the page's intro and "Your project" with only the project choice. With no projects at all,
      the choice offers just "+ Create a new project". */
-  <EStep onBack={onBack} title={tE("Share your project with Sefaria", "שתפו את הפרויקט עם ספריא")} lead={<EShareLead />}>
+  <EStep onBack={onBack} iconOk icon={<span className="devE-icoDev"><EMegaphoneIcon size={24} /></span>} title={tE("Publish your project", "פרסום הפרויקט שלך")} lead={<EShareLead />}>
     <div className="devE-form devE-shareForm">
       <section className="devE-shareSection" aria-labelledby="devEShareProj">
         <h3 id="devEShareProj">{tE("Your project", "הפרויקט שלך")}</h3>
@@ -1574,7 +1665,7 @@ const ESharePick = ({projects, onPick, onBack}) => (
         {projects.length ? null : <p className="devE-shareNote">{tE(
           "To share a project with Sefaria, first create it. It only takes a minute, and you'll come straight back here to finish.",
           "כדי לשתף פרויקט עם ספריא, קודם צריך ליצור אותו. זה לוקח רק דקה, ומיד אחר כך תחזרו לכאן כדי לסיים.")}</p>}
-        <EProjectPicker projects={projects} onPick={onPick} />
+        <EProjectPicker projects={projects} onPick={onPick} canAddNew={canAddNew} />
       </section>
     </div>
   </EStep>
@@ -1591,11 +1682,6 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
   const canCreate = accountVerified(state);
   const maxProjects = state.maxProjects || 10;
   const atProjectLimit = state.projects.length >= maxProjects;
-  const feature = (project) => run(updateProject(project.id, {
-    name: project.name, description: project.description, organization: project.organization || "",
-    websiteUrl: project.websiteUrl || "", aiAssisted: !!project.aiAssisted, visibility: "public",
-  })).then(() => setToast(vE(project.name + " is submitted to Powered by Sefaria. We'll let you know if it's featured.",
-    project.name + " נשלח ל־Powered by Sefaria. נעדכן אתכם אם יוצג.")), () => {});
   const removeKey = (apiKey) => run(deleteKey(apiKey.id)).then(() => {
     setConfirmDel(null);
     setToast(vE(apiKey.label + " is deleted. Anything using it stops working.", apiKey.label + " נמחק. כל מה שמשתמש בו יפסיק לעבוד."));
@@ -1609,7 +1695,9 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
       {confirmDel ? <EDeleteKeyDialog apiKey={confirmDel} onDelete={() => removeKey(confirmDel)} onCancel={() => setConfirmDel(null)} /> : null}
       {needSite ? <ELimitKeyDialog project={needSite.project} apiKey={needSite.apiKey} run={run} onCancel={() => setNeedSite(null)}
         onDone={() => setNeedSite(null)} /> : null}   {/* no message: the switch turning on says it (Penina, 2026-11-05) */}
+      {/* Both banners can show at once, stacked: the email reconfirmation first, then the publish nudge (2026-11-08). */}
       {!canCreate ? <EReconfirmBanner sentAt={state.confirmationSentAt} run={run} /> : null}
+      <EPublishNudge projects={state.projects} usageOf={eUsageOf} onPublish={project => open({screen: "share", projectId: project.id})} />
 
       {/* The profile as a card (option B, Penina 2026-11-05): the site's ProfilePic (photo, else initials), name over
           email(s), and Edit profile, which opens the setup's About you step on its own. */}
@@ -1791,6 +1879,46 @@ const eScrollTop = () => {
 
 /* Rule 14: the account email changed (or lost confirmation) after setup. Everything stays and keeps working; only
    creating projects and keys waits. The whole confirmation happens in this banner, so the projects stay in view. */
+/* "Publish it" nudge (Sarah's first point, Penina 2026-11-08): once a project is getting real use, the same banner as
+   the email reconfirmation suggests publishing that one project, with a button straight to its form. One project at a
+   time (the one with the most use); it stays away once dismissed or published. What counts as "real use" is still
+   open: for now a share of the monthly limit, E_PUBLISH_NUDGE_PCT, to look at and tune. Kept separate from the
+   site's SiteWideBanner on purpose (Penina, 2026-11-08). */
+const E_PUBLISH_NUDGE_PCT = 25;
+const E_NUDGE_DISMISSED = "devEPublishNudgeDismissed";
+const eNudgeDismissed = () => { try { return JSON.parse(localStorage.getItem(E_NUDGE_DISMISSED) || "[]"); } catch (e) { return []; } };
+const EPublishNudge = ({projects, usageOf, onPublish}) => {
+  const [dismissed, setDismissed] = useState(eNudgeDismissed);
+  const candidates = projects.map((p, index) => ({p, pct: eUsageLevel(usageOf(p, index)).pct}))
+    .filter(({p, pct}) => p.keys.length && p.visibility !== "public" && pct >= E_PUBLISH_NUDGE_PCT && !dismissed.includes(p.id))
+    .sort((a, b) => b.pct - a.pct);
+  if (!candidates.length) { return null; }
+  const project = candidates[0].p;
+  const dismiss = () => {
+    const next = [...dismissed, project.id]; setDismissed(next);
+    try { localStorage.setItem(E_NUDGE_DISMISSED, JSON.stringify(next)); } catch (e) {}
+  };
+  return (
+    <div className="devE-banner devE-bannerPromo" role="region" aria-label={vE("Publish " + project.name, "פרסום " + project.name)}>
+      <div className="devE-bannerContent">
+        <span className="devE-bannerIcon" aria-hidden="true"><EMegaphoneIcon /></span>
+        <div className="devE-bannerText">
+          <p className="devE-bannerTitle"><InterfaceText text={{en: <React.Fragment>People are using <bdi dir="auto">{project.name}</bdi></React.Fragment>,
+            he: <React.Fragment>אנשים משתמשים ב־<bdi dir="auto">{project.name}</bdi></React.Fragment>}} /></p>
+          <p>{tE("Publish it so more learners and developers can find it.",
+            "פרסמו אותו כדי שעוד לומדים ומפתחים יוכלו למצוא אותו.")}</p>
+        </div>
+      </div>
+      <div className="devE-bannerActions">
+        <button type="button" className="devE-bannerBtn" onClick={() => onPublish(project)}><InterfaceText text={{en: <React.Fragment>Publish <bdi dir="auto">{project.name}</bdi></React.Fragment>,
+          he: <React.Fragment>פרסום <bdi dir="auto">{project.name}</bdi></React.Fragment>}} /></button>
+      </div>
+      {/* Close in the top corner, apart from the button (Penina, 2026-11-08). */}
+      <button type="button" className="devE-bannerClose" onClick={dismiss} aria-label={vE("Dismiss", "סגירה")}><EXIcon /></button>
+    </div>
+  );
+};
+
 const EReconfirmBanner = ({sentAt, run}) => {
   const [sentHere, setSentHere] = useState(false);
   const [wait, setWait] = useState(0);
@@ -1891,6 +2019,8 @@ const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessag
   const dotsOf = stepLabels.length;
   const dots = (step) => ({at: step + (confirmStep ? 1 : 0), of: dotsOf, labels: stepLabels});
   const open = (next) => { setToast(""); setView(next); eScrollTop(); };
+  /* Room for one more project: under the limit and with a confirmed email, as for New project. */
+  const canAddProject = state.projects.length < (state.maxProjects || 10) && accountVerified(state);
   const home = (message) => { setView(null); setToast(message || ""); eScrollTop(); };
   const projectById = (id) => state.projects.find(p => p.id === id);
 
@@ -1923,15 +2053,24 @@ const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessag
     });
   };
 
+  /* The developer links. Beside the title on wider screens; on phones they move to a "Resources" list at the bottom of
+     the home, so the page starts with the banners and projects (Penina, 2026-11-08). */
+  /* Publish a project first; every link has only a leading icon, no external arrow after it (Penina, 2026-11-08).
+     The two that open another site say so to screen readers. */
+  const resourceLinks = (
+    <React.Fragment>
+      <button type="button" className="devE-docsMinor devE-linkBtn" onClick={() => open({screen: "share", fromLink: true})}>
+        <EMegaphoneIcon size={12} />{tE("Publish a project", "פרסום פרויקט")}</button>
+      <a className="devE-docs" href={API_DOCS_URL} target="_blank" rel="noreferrer"><EBookIcon size={12} />{tE("Technical documentation", "תיעוד טכני")}<span className="sr-only">{tE(" (opens in a new tab)", " (נפתח בכרטיסייה חדשה)")}</span></a>
+      <a className="devE-docsMinor" href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer"><EDownloadIcon size={12} />{tE("Download the library", "הורדת הספרייה")}<span className="sr-only">{tE(" (opens in a new tab)", " (נפתח בכרטיסייה חדשה)")}</span></a>
+    </React.Fragment>
+  );
   const header = (
     <header className="devPocPageHeader devE-pageHeader">
       <h1><InterfaceText text={{en: "Developer Settings", he: "הגדרות מפתחים"}} /></h1>
       {/* D57 (2026-10-26): the library download is only a small link beside the API docs, never a callout. */}
       {developerOn && state.profile && !view ?
-        <p className="devE-headLinks">
-          <a className="devE-docs" href={API_DOCS_URL} target="_blank" rel="noreferrer">{tE("Technical documentation", "תיעוד טכני")}<ExternalIcon /></a>
-          <a className="devE-docsMinor" href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">{tE("Download the library", "הורדת הספרייה")}<ExternalIcon /></a>
-        </p> : null}
+        <p className="devE-headLinks">{resourceLinks}</p> : null}
     </header>
   );
   let body;
@@ -2088,20 +2227,21 @@ const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessag
       onFeature={() => run(updateProject(project.id, {
         name: project.name, description: project.description, organization: project.organization || "",
         websiteUrl: project.websiteUrl || "", aiAssisted: !!project.aiAssisted, visibility: "public",
-      })).then(() => home(vE("You're set up, and " + project.name + " is submitted to Powered by Sefaria.", "הכול מוכן, ו־" + project.name + " נשלח ל־Powered by Sefaria.")), () => {})} />;
+      })).then(() => setView({screen: "submitted", projectId: project.id}), () => {})} />;
   } else if (view && view.screen === "share" && view.fromLink && !projectById(view.projectId)) {
-    body = <ESharePick projects={state.projects} onBack={() => home()}
+    body = <ESharePick projects={state.projects} onBack={() => home()} canAddNew={canAddProject}
       onPick={id => id === E_NEW_PROJECT ? open({screen: "newproj", toShare: true}) : setView({screen: "share", projectId: id, fromLink: true})} />;
   } else if (view && view.screen === "share" && projectById(view.projectId)) {
     const project = projectById(view.projectId);
     body = <EShareProject key={project.id} project={project} profile={state.profile} dots={view.inSetup ? dots(2) : null}
       onBack={view.inSetup ? () => setView({screen: "setupProjectEdit", projectId: project.id, inSetup: true, withConfirm: view.withConfirm}) : () => home()}
-      picker={<EProjectPicker projects={state.projects} value={project.id}
+      picker={<EProjectPicker projects={state.projects} value={project.id} canAddNew={canAddProject}
         onPick={id => id === E_NEW_PROJECT ? open({screen: "newproj", toShare: true}) : setView({screen: "share", projectId: id, fromLink: true})} />}
       onSubmit={(profile, fields) => run(saveProfile(profile), {quiet: true})
         .then(() => run(updateProject(project.id, fields), {quiet: true}))
-        .then(() => home(vE(fields.name + " is submitted to Powered by Sefaria. We'll let you know if it's featured.",
-          fields.name + " נשלח ל־Powered by Sefaria. נעדכן אתכם אם יוצג.")))} />;
+        .then(() => setView({screen: "submitted", projectId: project.id}))} />;
+  } else if (view && view.screen === "submitted" && projectById(view.projectId)) {
+    body = <ESubmitted project={projectById(view.projectId)} onDone={() => home()} />;
   } else if (view && view.screen === "editproj" && projectById(view.projectId)) {
     const project = projectById(view.projectId);
     body = <EEditProject project={project} onBack={() => home()} focusField={view.focus}
@@ -2112,7 +2252,17 @@ const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessag
       toast={toast} setToast={setToast} freshKeyId={freshKeyId} freshProjectId={freshProjectId} open={open} />;
   }
 
-  return <div className="devPocPage devE">{header}{body}</div>;
+  const showResources = developerOn && state.profile && !view;
+  return (
+    <div className="devPocPage devE">
+      {header}{body}
+      {showResources ?
+        <section className="devE-resources" aria-labelledby="devEResourcesTitle">
+          <h2 className="devE-resourcesTitle" id="devEResourcesTitle">{tE("Resources", "משאבים")}</h2>
+          <p className="devE-resourcesLinks">{resourceLinks}</p>
+        </section> : null}
+    </div>
+  );
 };
 
 
