@@ -77,7 +77,9 @@ const getTarget = (ref) => {
         tagline: 'Add the parashah to your home screen to open it again with one tap.',
       };
     }
-  } catch (e) {}
+  } catch (e) {
+    // ignore: unknown or unreadable page, fall through to no target
+  }
   return null;
 };
 
@@ -406,7 +408,7 @@ const AddToHomeScreen = ({ currentRef }) => {
                   1
                 </span>
                 <span>
-                  Open Safari's <strong>Share</strong> menu: tap <SafariMenuIcon /> or <ShareIcon />.
+                  Open Safari&apos;s <strong>Share</strong> menu: tap <SafariMenuIcon /> or <ShareIcon />.
                 </span>
               </li>
               <li>
@@ -441,7 +443,7 @@ const AddToHomeScreen = ({ currentRef }) => {
                   1
                 </span>
                 <span>
-                  Tap <strong>⋮</strong> in your browser's menu.
+                  Tap <strong>⋮</strong> in your browser&apos;s menu.
                 </span>
               </li>
               <li>
