@@ -1,12 +1,15 @@
 # Link
+
 > Source: `sefaria/model/link.py`
 
 ## Purpose
+
 Defines the `Link` and `LinkSet` models representing bidirectional connections between two textual references (Refs) in the Sefaria corpus. Links are stored in the `links` MongoDB collection and power the connections panel, link explorer, and commentary association features.
 
 ## Key Classes
 
 ### Link
+
 - **Inherits**: `AbstractMongoRecord`
 - **Collection**: `links`
 - **Role**: Represents a single bidirectional connection between exactly two Refs. Each link has a type (e.g., "commentary", "quotation", "essay") and may be auto-generated or manually created.
@@ -28,6 +31,7 @@ Defines the `Link` and `LinkSet` models representing bidirectional connections b
   - `ref_opposite(from_ref, as_tuple=False)` — given a Ref, returns the other Ref in the link (the one on the opposite side). Uses `from_ref.regex()` for matching, so `from_ref` can be less specific than the stored ref.
 
 ### LinkSet
+
 - **Inherits**: `AbstractMongoSet`
 - **Collection**: `links`
 - **Role**: Queryable set of Link records. Can be initialized with either a query dict or a `Ref` object (uses `expandedRefs0`/`expandedRefs1` regex matching).
@@ -39,6 +43,7 @@ Defines the `Link` and `LinkSet` models representing bidirectional connections b
   - `summary(relative_ref)` — returns counts of linked texts grouped by primary category, relative to a given Ref.
 
 ## Non-Obvious Patterns
+
 - **Refs are always sorted alphabetically** before storage. This is the deduplication mechanism: two links with the same refs in different order are considered duplicates. When refs are reversed during sort, `charLevelData`, `versions`, and `displayedText` are also reversed to maintain correspondence.
 - **Duplicate saves raise `DuplicateRecordError`** (not silently ignored). The error message describes what was updated. Callers should catch this if re-saving is expected.
 - **Section-level / ranged-ref equivalence**: `_pre_save()` checks whether a ranged ref that covers an entire section is equivalent to the section ref itself, and treats them as duplicates.
@@ -47,6 +52,7 @@ Defines the `Link` and `LinkSet` models representing bidirectional connections b
 - **`expandedRefs0`/`expandedRefs1`** are denormalized fields stored for query performance. `LinkSet.__init__` queries these fields (not `refs`) when initialized with a Ref.
 
 ## Relationships
+
 - **Depends on**: `abstract` (base classes), `text` (Ref, Index, VersionSet, library), `sefaria.system.exceptions`, `sefaria.system.database`
 - **Depended on by**: `sefaria/helper/text.py`, `sefaria/views.py`, `sefaria/tracker.py`, `sefaria/client/wrapper.py`, `sefaria/search.py`, `sefaria/sheets.py`, `sefaria/helper/topic.py`, `sefaria/helper/linker/`, `sefaria/model/schema.py`, `sefaria/model/linker/`
 - **Dependency subscriptions** (from `dependencies.py`):

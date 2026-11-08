@@ -16,8 +16,8 @@ Archiving keeps the working reference around without letting it destabilize the 
 
 ## What's here
 
-| Spec | Why archived |
-| --- | --- |
+| Spec                                                             | Why archived                                                                                                                                                                                                                                                                                   |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [voices/trending-topics.spec.ts](voices/trending-topics.spec.ts) | Publishes sheets with random topics from multiple users and triggers the trending-tags recalculation via the Django admin API, then checks the Trending Topics sidebar. It **changes data and requires `PLAYWRIGHT_SUPERUSER_*` credentials**, so it should only be run locally — never in CI. |
 
 ## Running an archived test locally

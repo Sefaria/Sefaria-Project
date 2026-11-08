@@ -1,6 +1,8 @@
 import django
+
 django.setup()
 from sefaria.model import *
+
 print("Sorting refs on each link...")
 i = 0
 start = 0
@@ -22,4 +24,3 @@ for l in LinkSet():
             l.save()
         except:
             print(l.contents())
-

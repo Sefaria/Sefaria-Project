@@ -2,6 +2,7 @@
 The public Powered by listing against API projects, and the API project admin: a key's revoked_at
 cannot be cleared, and only the change_tier permission moves a project to another tier.
 """
+
 from django.contrib.auth.models import Permission, User
 from django.test import TestCase
 from django.utils import timezone
@@ -11,10 +12,13 @@ from powered_by.tests.admin_test import admin_url, form_data
 
 
 def make_profile(name, source=SubmissionSource.FORMSTACK, **overrides):
-    fields = dict(
-        submission_source=source, project_name=name, project_link="https://example.org",
-        is_published=True, consent_to_display=True,
-    )
+    fields = {
+        "submission_source": source,
+        "project_name": name,
+        "project_link": "https://example.org",
+        "is_published": True,
+        "request_not_to_publish": False,
+    }
     fields.update(overrides)
     return Project.objects.create(**fields)
 
@@ -37,7 +41,7 @@ class PublicListingApiProjectTest(TestCase):
         self.assertIn("Internal Tool", self.listed_names())
 
     def test_private_profile_with_live_project_is_not_listed(self):
-        profile = make_profile("Private Tool", SubmissionSource.DEVELOPER_SETTINGS, consent_to_display=False)
+        profile = make_profile("Private Tool", SubmissionSource.DEVELOPER_SETTINGS, request_not_to_publish=True)
         ApiProject.objects.create(profile=profile)
 
         self.assertNotIn("Private Tool", self.listed_names())

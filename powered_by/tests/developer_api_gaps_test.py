@@ -2,6 +2,7 @@
 Developer settings API edges: other accounts' objects, malformed requests, website origins,
 key slots, claiming and consent, and confirmation links for an address another account holds.
 """
+
 import json
 
 from allauth.account.models import EmailAddress
@@ -34,9 +35,11 @@ class OtherAccountTest(DeveloperApiTestCase):
         self.call("post", "enable", client=self.other_client)
         assert self.call("post", "profile", {"profile": PROFILE}, client=self.other_client)[0] == 200
         self.listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK, creator_email=self.other.email,
-            project_name="Owned by A, submitted with B's email", project_link="https://listing.example.org",
-            consent_to_display=True,
+            submission_source=SubmissionSource.FORMSTACK,
+            creator_email=self.other.email,
+            project_name="Owned by A, submitted with B's email",
+            project_link="https://listing.example.org",
+            request_not_to_publish=False,
         )
         ApiProject.objects.create(profile=self.listing, owner=self.user)
 
@@ -45,23 +48,33 @@ class OtherAccountTest(DeveloperApiTestCase):
         super().tearDown()
 
     def test_C5_every_action_on_another_accounts_objects_is_not_found_and_changes_nothing(self):
-        before = snapshot(ApiProject.objects.filter(id=int(self.project["id"])), Project.objects.filter(id=self.listing.id),
-                          ApiKey.objects.filter(project_id=int(self.project["id"])))
+        before = snapshot(
+            ApiProject.objects.filter(id=int(self.project["id"])),
+            Project.objects.filter(id=self.listing.id),
+            ApiKey.objects.filter(project_id=int(self.project["id"])),
+        )
         actions = (
-            ("post", "projects/" + self.project["id"], {"project": {**PROJECT, "name": "Hijacked", "visibility": "public"}}),
+            (
+                "post",
+                "projects/" + self.project["id"],
+                {"project": {**PROJECT, "name": "Hijacked", "visibility": "public"}},
+            ),
             ("post", "projects/{}/keys".format(self.project["id"]), {"label": "Stolen"}),
             ("post", "keys/" + self.key_id, {"restrictToWebsite": True}),
             ("delete", "keys/" + self.key_id, None),
             ("delete", "projects/" + self.project["id"], None),
-            ("post", "listings/{}/claim".format(self.listing.id), None),
-            ("post", "listings/{}/dismiss".format(self.listing.id), None),
+            ("post", f"listings/{self.listing.id}/claim", None),
+            ("post", f"listings/{self.listing.id}/dismiss", None),
         )
         for method, url, body in actions:
             status, _ = self.call(method, url, body, client=self.other_client)
             self.assertEqual(status, 404, url)
 
-        after = snapshot(ApiProject.objects.filter(id=int(self.project["id"])), Project.objects.filter(id=self.listing.id),
-                         ApiKey.objects.filter(project_id=int(self.project["id"])))
+        after = snapshot(
+            ApiProject.objects.filter(id=int(self.project["id"])),
+            Project.objects.filter(id=self.listing.id),
+            ApiKey.objects.filter(project_id=int(self.project["id"])),
+        )
         self.assertEqual(after, before)
         self.assertEqual(self.call("get", "state", client=self.other_client)[1]["projects"], [])
 
@@ -103,9 +116,11 @@ class MalformedRequestTest(DeveloperApiTestCase):
         client.force_login(self.user)
         keys_before = ApiKey.objects.filter(project_id=int(self.project["id"])).count()
 
-        for url, body in (("projects", {"project": PROJECT}),
-                          ("projects/{}/keys".format(self.project["id"]), {"label": "No token"}),
-                          ("enable", {})):
+        for url, body in (
+            ("projects", {"project": PROJECT}),
+            ("projects/{}/keys".format(self.project["id"]), {"label": "No token"}),
+            ("enable", {}),
+        ):
             response = self.post_raw(url, json.dumps(body), client=client)
             self.assertEqual(response.status_code, 403, url)
 
@@ -113,8 +128,9 @@ class MalformedRequestTest(DeveloperApiTestCase):
         self.assertEqual(ApiKey.objects.filter(project_id=int(self.project["id"])).count(), keys_before)
 
     def test_C6_a_logged_out_new_link_request_without_a_csrf_token_is_forbidden(self):
-        response = self.post_raw("confirmation/new-link", json.dumps({"key": "anything"}),
-                                 client=Client(enforce_csrf_checks=True))
+        response = self.post_raw(
+            "confirmation/new-link", json.dumps({"key": "anything"}), client=Client(enforce_csrf_checks=True)
+        )
 
         self.assertEqual(response.status_code, 403)
 
@@ -163,8 +179,9 @@ class KeySlotTest(DeveloperApiTestCase):
         self.project = self.create_project()
 
     def test_N_C4_revoking_a_key_frees_a_slot(self):
-        key_ids = [self.create_key(self.project["id"], "Key {}".format(n))["keyId"]
-                   for n in range(developer.MAX_KEYS_PER_PROJECT)]
+        key_ids = [
+            self.create_key(self.project["id"], f"Key {n}")["keyId"] for n in range(developer.MAX_KEYS_PER_PROJECT)
+        ]
         url = "projects/{}/keys".format(self.project["id"])
         self.assertEqual(self.call("post", url, {"label": "One too many"})[0], 400)
 
@@ -186,56 +203,59 @@ class ClaimConsentTest(DeveloperApiTestCase):
         super().setUp()
         self.set_up_developer()
         self.listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
-            project_name="Said no", project_link="https://saidno.example.org",
-            consent_to_display=False, is_published=False,
+            submission_source=SubmissionSource.FORMSTACK,
+            creator_email=self.user.email,
+            project_name="Said no",
+            project_link="https://saidno.example.org",
+            request_not_to_publish=True,
+            is_published=False,
         )
 
     def edit(self, visibility):
         fields = {**PROJECT, "name": "Said no", "websiteUrl": "https://saidno.example.org", "visibility": visibility}
         api_id = ApiProject.objects.get(profile_id=self.listing.id).id
-        status, state = self.call("post", "projects/{}".format(api_id), {"project": fields})
+        status, state = self.call("post", f"projects/{api_id}", {"project": fields})
         self.assertEqual(status, 200, state)
         return Project.objects.get(id=self.listing.id)
 
     def test_N_C15_claiming_a_listing_whose_submitter_said_no_keeps_it_unpublished(self):
-        status, state = self.call("post", "listings/{}/claim".format(self.listing.id))
+        status, state = self.call("post", f"listings/{self.listing.id}/claim")
 
         self.assertEqual(status, 200, state)
         row = Project.objects.get(id=self.listing.id)
         self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, self.user)
-        self.assertFalse(row.consent_to_display)
+        self.assertTrue(row.request_not_to_publish)
         self.assertFalse(row.is_published)
         self.assertEqual(state["projects"][0]["visibility"], "private")
 
     def test_N_C15_the_owner_picking_public_lists_a_claimed_listing_staff_left_published(self):
         Project.objects.filter(id=self.listing.id).update(is_published=True)
-        self.call("post", "listings/{}/claim".format(self.listing.id))
+        self.call("post", f"listings/{self.listing.id}/claim")
         self.assertNotIn(self.listing.id, gallery_ids())
 
         row = self.edit("public")
 
-        self.assertTrue(row.consent_to_display)
+        self.assertFalse(row.request_not_to_publish)
         self.assertIn(self.listing.id, gallery_ids())
 
     def test_N_C15_the_owner_picking_public_does_not_publish_an_unpublished_listing(self):
-        self.call("post", "listings/{}/claim".format(self.listing.id))
+        self.call("post", f"listings/{self.listing.id}/claim")
 
         row = self.edit("public")
 
-        self.assertTrue(row.consent_to_display)
+        self.assertFalse(row.request_not_to_publish)
         self.assertFalse(row.is_published)
         self.assertNotIn(self.listing.id, gallery_ids())
 
     def test_N_C15_a_staff_unpublish_holds_when_the_owner_toggles_private_and_public(self):
-        self.call("post", "listings/{}/claim".format(self.listing.id))
+        self.call("post", f"listings/{self.listing.id}/claim")
         self.edit("public")
         Project.objects.filter(id=self.listing.id).update(is_published=False)
 
         self.edit("private")
         row = self.edit("public")
 
-        self.assertTrue(row.consent_to_display)
+        self.assertFalse(row.request_not_to_publish)
         self.assertFalse(row.is_published)
 
 
@@ -258,7 +278,9 @@ class AddressTakenTest(DeveloperApiTestCase):
         response = Client().get("/settings/developer/confirm-email/" + key)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(page_props(response.content.decode("utf-8"))["initialDeveloperEmailLink"],
-                         {"status": "address-in-use", "key": key})
+        self.assertEqual(
+            page_props(response.content.decode("utf-8"))["initialDeveloperEmailLink"],
+            {"status": "address-in-use", "key": key},
+        )
         self.assertFalse(EmailAddress.objects.get(user=self.user).verified)
         self.assertFalse(UserProfile(id=self.user.id).settings.get(developer.ENABLED_SETTING))

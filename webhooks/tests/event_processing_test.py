@@ -2,7 +2,7 @@
 Unit tests for sefaria/donors/event_processing.py — resolution followed by recording.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from structlog.testing import capture_logs
 
@@ -14,12 +14,14 @@ from sefaria.donors.types import (
     DonorWithResolvedEmailAddress,
     NormalizedEmailAddress,
     PersonAsIdentifiedByClassy,
+)
+from sefaria.donors.types import (
     ReasonDonorEmailAddressCouldNotBeResolved as Reason,
 )
 
 EVENT = DonationReceivedFromClassy(
     event_id_assigned_by_source="msg_1",
-    occurred_at_according_to_source=datetime(2026, 10, 22, tzinfo=timezone.utc),
+    occurred_at_according_to_source=datetime(2026, 10, 22, tzinfo=UTC),
     person=PersonAsIdentifiedByClassy(classy_supporter_id=5827, email_address=None),
     classy_transaction_id=99,
 )
@@ -31,7 +33,6 @@ EVENT = DonationReceivedFromClassy(
 
 
 class TestProcessEventIndicatingPersonIsDonor:
-
     def test_marks_the_profile_when_the_address_resolves(self, monkeypatch):
         """A resolved donor is handed to the recording step together with its event."""
         recorded = []
@@ -47,9 +48,7 @@ class TestProcessEventIndicatingPersonIsDonor:
 
         assert recorded == [
             (
-                DonorWithResolvedEmailAddress(
-                    NormalizedEmailAddress("donor@example.org")
-                ),
+                DonorWithResolvedEmailAddress(NormalizedEmailAddress("donor@example.org")),
                 EVENT,
             )
         ]
@@ -66,9 +65,7 @@ class TestProcessEventIndicatingPersonIsDonor:
         with capture_logs() as logs:
             process_event_indicating_person_is_donor(
                 EVENT,
-                lambda supporter_id: DonorEmailAddressCouldNotBeResolved(
-                    Reason.CLASSY_SUPPORTER_NOT_FOUND
-                ),
+                lambda supporter_id: DonorEmailAddressCouldNotBeResolved(Reason.CLASSY_SUPPORTER_NOT_FOUND),
             )
 
         assert recorded == []

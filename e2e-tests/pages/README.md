@@ -23,46 +23,46 @@ Everything a canonical POM does is spelled out in the handbook's [Canonical page
 
 **Infrastructure (not feature page objects):**
 
-| File | Role |
-| --- | --- |
+| File                             | Role                                                                                          |
+| -------------------------------- | --------------------------------------------------------------------------------------------- |
 | [pageManager.ts](pageManager.ts) | Mounts all 22 page objects and exposes the `pm.onX()` accessors. Register every new POM here. |
-| [helperBase.ts](helperBase.ts) | Base class every page object extends — provides `this.page` and `this.language`. |
+| [helperBase.ts](helperBase.ts)   | Base class every page object extends — provides `this.page` and `this.language`.              |
 
 **Mounted page objects (22) — reached via `pm.<accessor>()`:**
 
-| File | Accessor | Owns | Status |
-| --- | --- | --- | --- |
-| [resourcePanelPage.ts](resourcePanelPage.ts) | `onResourcePanel()` | ConnectionsPanel reader sidebar (RP-*) | ⭐ **canonical model** |
-| [voicesTopicPage.ts](voicesTopicPage.ts) | `onVoicesTopic()` | Voices topic pages (TOV-*) | ⭐ **canonical model** |
-| [libraryTopicPage.ts](libraryTopicPage.ts) | `onLibraryTopic()` | Library topic pages (LIB-*) — text sources, source-language toggle, infinite scroll | ✅ TopicPage counterpart to `voicesTopicPage.ts` |
-| [moduleSidebarPage.ts](moduleSidebarPage.ts) | `onModuleSidebar()` | Sticky nav sidebar + footer links | ✅ good role-based example |
-| [libraryAssistantPage.ts](libraryAssistantPage.ts) | `onLibraryAssistant()` | LA `<lc-chatbot>` (open shadow DOM) | ✅ shadow-DOM exemplar |
-| [mobileHamburgerPage.ts](mobileHamburgerPage.ts) | `onMobileHamburger()` | Mobile hamburger drawer (HAM-*) | ✅ standard |
-| [textsPage.ts](textsPage.ts) | `onTextsPage()` | Texts browse page | ✅ standard |
-| [topicsPage.ts](topicsPage.ts) | `onTopicsPage()` | Topics pages | ✅ standard |
-| [communityPage.ts](communityPage.ts) | `onCommunityPage()` | Community page | ✅ standard |
-| [donatePage.ts](donatePage.ts) | `onDonatePage()` | Donate page | ✅ standard |
-| [loginPage.ts](loginPage.ts) | `onLoginPage()` | Login form | ✅ standard |
-| [signupPage.ts](signupPage.ts) | `onSignUpPage()` | Sign-up form | ✅ standard |
-| [searchPage.ts](searchPage.ts) | `onSearchPage()` | Search + autocomplete | ✅ standard |
-| [interfaceStringsPage.ts](interfaceStringsPage.ts) | `onInterfaceStrings()` | Keyed interface-string (i18n) assertions on any page (I18N-*) — presence of localized values + raw-ID leak detection | ✅ standard |
-| [userMenu.ts](userMenu.ts) | `onUserMenu()` | User dropdown menu | ✅ standard |
-| [sourceTextPage.ts](sourceTextPage.ts) | `onSourceTextPage()` | Reader source-text page | ✅ standard |
-| [moduleHeaderPage.ts](moduleHeaderPage.ts) | `onModuleHeader()` | Module header (logo, dropdowns, switcher) | ⚠️ not canonical — leaks selector strings to callers, carries dead code |
-| [sheetEditorPage.ts](sheetEditorPage.ts) | `onSourceSheetEditorPage()` | Sheet-editor lifecycle (publish/save/unpublish/delete) | ⚠️ legacy — `locator = () => …` arrow-fn fields |
-| [profilePage.ts](profilePage.ts) | `onProfilePage()` | Public profile page | ⚠️ public `get` getters (not canonical) |
-| [editProfilePage.ts](editProfilePage.ts) | `onEditProfilePage()` | Edit-profile form | ⚠️ public `get` getters |
-| [accountSettingsPage.ts](accountSettingsPage.ts) | `onAccountSettingsPage()` | Account settings | ⚠️ public `get` getters |
-| [banner.ts](banner.ts) | `navigateFromBannerTo()` | Banner / module-header nav shortcuts | ⚠️ legacy — does **not** extend `HelperBase` |
+| File                                               | Accessor                    | Owns                                                                                                                 | Status                                                                  |
+| -------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| [resourcePanelPage.ts](resourcePanelPage.ts)       | `onResourcePanel()`         | ConnectionsPanel reader sidebar (RP-*)                                                                               | ⭐ **canonical model**                                                  |
+| [voicesTopicPage.ts](voicesTopicPage.ts)           | `onVoicesTopic()`           | Voices topic pages (TOV-*)                                                                                           | ⭐ **canonical model**                                                  |
+| [libraryTopicPage.ts](libraryTopicPage.ts)         | `onLibraryTopic()`          | Library topic pages (LIB-*) — text sources, source-language toggle, infinite scroll                                  | ✅ TopicPage counterpart to `voicesTopicPage.ts`                        |
+| [moduleSidebarPage.ts](moduleSidebarPage.ts)       | `onModuleSidebar()`         | Sticky nav sidebar + footer links                                                                                    | ✅ good role-based example                                              |
+| [libraryAssistantPage.ts](libraryAssistantPage.ts) | `onLibraryAssistant()`      | LA `<lc-chatbot>` (open shadow DOM)                                                                                  | ✅ shadow-DOM exemplar                                                  |
+| [mobileHamburgerPage.ts](mobileHamburgerPage.ts)   | `onMobileHamburger()`       | Mobile hamburger drawer (HAM-*)                                                                                      | ✅ standard                                                             |
+| [textsPage.ts](textsPage.ts)                       | `onTextsPage()`             | Texts browse page                                                                                                    | ✅ standard                                                             |
+| [topicsPage.ts](topicsPage.ts)                     | `onTopicsPage()`            | Topics pages                                                                                                         | ✅ standard                                                             |
+| [communityPage.ts](communityPage.ts)               | `onCommunityPage()`         | Community page                                                                                                       | ✅ standard                                                             |
+| [donatePage.ts](donatePage.ts)                     | `onDonatePage()`            | Donate page                                                                                                          | ✅ standard                                                             |
+| [loginPage.ts](loginPage.ts)                       | `onLoginPage()`             | Login form                                                                                                           | ✅ standard                                                             |
+| [signupPage.ts](signupPage.ts)                     | `onSignUpPage()`            | Sign-up form                                                                                                         | ✅ standard                                                             |
+| [searchPage.ts](searchPage.ts)                     | `onSearchPage()`            | Search + autocomplete                                                                                                | ✅ standard                                                             |
+| [interfaceStringsPage.ts](interfaceStringsPage.ts) | `onInterfaceStrings()`      | Keyed interface-string (i18n) assertions on any page (I18N-*) — presence of localized values + raw-ID leak detection | ✅ standard                                                             |
+| [userMenu.ts](userMenu.ts)                         | `onUserMenu()`              | User dropdown menu                                                                                                   | ✅ standard                                                             |
+| [sourceTextPage.ts](sourceTextPage.ts)             | `onSourceTextPage()`        | Reader source-text page                                                                                              | ✅ standard                                                             |
+| [moduleHeaderPage.ts](moduleHeaderPage.ts)         | `onModuleHeader()`          | Module header (logo, dropdowns, switcher)                                                                            | ⚠️ not canonical — leaks selector strings to callers, carries dead code |
+| [sheetEditorPage.ts](sheetEditorPage.ts)           | `onSourceSheetEditorPage()` | Sheet-editor lifecycle (publish/save/unpublish/delete)                                                               | ⚠️ legacy — `locator = () => …` arrow-fn fields                         |
+| [profilePage.ts](profilePage.ts)                   | `onProfilePage()`           | Public profile page                                                                                                  | ⚠️ public `get` getters (not canonical)                                 |
+| [editProfilePage.ts](editProfilePage.ts)           | `onEditProfilePage()`       | Edit-profile form                                                                                                    | ⚠️ public `get` getters                                                 |
+| [accountSettingsPage.ts](accountSettingsPage.ts)   | `onAccountSettingsPage()`   | Account settings                                                                                                     | ⚠️ public `get` getters                                                 |
+| [banner.ts](banner.ts)                             | `navigateFromBannerTo()`    | Banner / module-header nav shortcuts                                                                                 | ⚠️ legacy — does **not** extend `HelperBase`                            |
 
 **Orphans — not registered, not imported, cleanup candidates:**
 
-| File | Note |
-| --- | --- |
-| [sheetReaderPage.ts](sheetReaderPage.ts) | Not mounted on `PageManager`; no spec imports it. |
+| File                                                   | Note                                                  |
+| ------------------------------------------------------ | ----------------------------------------------------- |
+| [sheetReaderPage.ts](sheetReaderPage.ts)               | Not mounted on `PageManager`; no spec imports it.     |
 | [sourceSheetEditor.page.ts](sourceSheetEditor.page.ts) | Not mounted; duplicates much of `sheetEditorPage.ts`. |
 
-*(2 infrastructure + 22 mounted + 2 orphans = 26 files.)*
+_(2 infrastructure + 22 mounted + 2 orphans = 26 files.)_
 
 ---
 
@@ -71,7 +71,7 @@ Everything a canonical POM does is spelled out in the handbook's [Canonical page
 1. Create `pages/<feature>Page.ts`, extending `HelperBase`, following [resourcePanelPage.ts](resourcePanelPage.ts) / [voicesTopicPage.ts](voicesTopicPage.ts) and the handbook [skeleton](../README.md#canonical-page-object-style).
 2. Use private `get` accessors for fixed elements and private parameterized methods returning a `Locator` for repeated lookups. Wrap every timeout in `t()`. Prefer `getByRole` / `data-name` over visible text.
 3. **Register it in [pageManager.ts](pageManager.ts):** import the class, add a `private readonly` field, instantiate it in the constructor, and expose an `onSomeFeaturePage()` accessor.
-4. Most of the time you'll *extend an existing* page object instead of creating one — only create a new POM when the feature area doesn't fit any existing one.
+4. Most of the time you'll _extend an existing_ page object instead of creating one — only create a new POM when the feature area doesn't fit any existing one.
 
 ## Related
 

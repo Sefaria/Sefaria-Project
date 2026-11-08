@@ -5,6 +5,7 @@ fixture) and carry no django_db marker. The sequence is controlled by
 running a separate pytest process (pytester) in which each test empties api_tier first, so the
 regression no longer depends on which test ran before it in the real suite.
 """
+
 import os
 from pathlib import Path
 from types import SimpleNamespace
@@ -90,7 +91,8 @@ def test_permitted_aliases_follow_the_marker_and_the_test_class():
     def request_for(databases=None, instance=None):
         marker = None if databases is None else SimpleNamespace(args=(), kwargs={"databases": databases})
         return SimpleNamespace(
-            node=SimpleNamespace(get_closest_marker=lambda name: marker), instance=instance, fixturenames=[])
+            node=SimpleNamespace(get_closest_marker=lambda name: marker), instance=instance, fixturenames=[]
+        )
 
     assert _permitted_aliases(request_for()) == {"default"}
     assert _permitted_aliases(request_for(["other"])) == {"other"}
@@ -102,13 +104,15 @@ def test_permitted_aliases_follow_the_marker_and_the_test_class():
 @pytest.mark.parametrize("fixture_name", ["db", "transactional_db", "django_db_reset_sequences"])
 def test_a_database_fixture_without_a_marker_counts_as_touching_the_database(fixture_name):
     request = SimpleNamespace(
-        node=SimpleNamespace(get_closest_marker=lambda name: None), instance=None,
-        fixturenames=["request", fixture_name])
+        node=SimpleNamespace(get_closest_marker=lambda name: None),
+        instance=None,
+        fixturenames=["request", fixture_name],
+    )
     assert _touches_database(request)
 
 
 def test_a_test_with_no_database_fixture_does_not_count():
     request = SimpleNamespace(
-        node=SimpleNamespace(get_closest_marker=lambda name: None), instance=None,
-        fixturenames=["request", "tmp_path"])
+        node=SimpleNamespace(get_closest_marker=lambda name: None), instance=None, fixturenames=["request", "tmp_path"]
+    )
     assert not _touches_database(request)
