@@ -10,7 +10,6 @@ from typing import Any
 
 from django.core.cache import cache
 
-from sefaria.system.exceptions import InputError
 from api.newsletter_service._ac_client import (
     get_ac_client,
     raise_if_ac_page_is_truncated,
@@ -18,6 +17,7 @@ from api.newsletter_service._ac_client import (
 )
 from api.newsletter_service._errors import NewsletterListUnavailableError, reraise_as_newsletter_service_error
 from api.newsletter_service._results import NewsletterInfo
+from sefaria.system.exceptions import InputError
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -75,9 +75,7 @@ def fetch_ac_personalization_variables() -> list[dict[str, Any]]:
     response: dict[str, Any] = get_ac_client().make_request(endpoint)
     raise_if_ac_page_is_truncated(response, collection_name, endpoint)
     variables: list[dict[str, Any]] = response.get(collection_name, [])
-    logger.info(
-        f"Retrieved {len(variables)} personalization variables from ActiveCampaign"
-    )
+    logger.info(f"Retrieved {len(variables)} personalization variables from ActiveCampaign")
     return variables
 
 
@@ -234,9 +232,7 @@ def fetch_ac_newsletters() -> list[NewsletterInfo]:
     # Each variable runs the regex exactly once. Variables whose tag doesn't
     # match `list_{N}_meta` or whose JSON content fails to parse return None
     # and get dropped by filter(None, ...).
-    variables_by_id: dict[str, dict[str, Any]] = dict(
-        filter(None, map(_parse_newsletter_variable, variables))
-    )
+    variables_by_id: dict[str, dict[str, Any]] = dict(filter(None, map(_parse_newsletter_variable, variables)))
 
     # Merge lists with metadata (only include lists with metadata)
     # Using walrus operator to check list exists while building newsletter
@@ -300,17 +296,11 @@ def resolve_valid_newsletters(
         newsletters = get_newsletters()
     except Exception as e:
         logger.exception(f"Error fetching cached newsletter list: {e}")
-        raise NewsletterListUnavailableError(
-            "Newsletter service is temporarily unavailable. Please try again later."
-        )
+        raise NewsletterListUnavailableError("Newsletter service is temporarily unavailable. Please try again later.")
 
     if not newsletters:
-        logger.error(
-            "Newsletter list is empty — ActiveCampaign may be unreachable or misconfigured"
-        )
-        raise NewsletterListUnavailableError(
-            "Newsletter service is temporarily unavailable. Please try again later."
-        )
+        logger.error("Newsletter list is empty — ActiveCampaign may be unreachable or misconfigured")
+        raise NewsletterListUnavailableError("Newsletter service is temporarily unavailable. Please try again later.")
 
     return newsletters
 
@@ -336,16 +326,10 @@ def map_stringids_to_list_ids(
         InputError: If any stringid is not found in newsletter_list
     """
     # Build the lookup once so validation and mapping use the same source of truth.
-    stringid_to_list_id: dict[str, str] = {
-        nl["stringid"]: nl["id"] for nl in newsletter_list
-    }
+    stringid_to_list_id: dict[str, str] = {nl["stringid"]: nl["id"] for nl in newsletter_list}
 
     # Validate all inputs before mapping so callers get one complete error message.
-    invalid_ids: list[str] = [
-        stringid
-        for stringid in newsletter_stringids
-        if stringid not in stringid_to_list_id
-    ]
+    invalid_ids: list[str] = [stringid for stringid in newsletter_stringids if stringid not in stringid_to_list_id]
 
     if invalid_ids:
         error_msg: str = f"Invalid newsletter IDs: {', '.join(invalid_ids)}"
@@ -353,9 +337,7 @@ def map_stringids_to_list_ids(
         raise InputError(error_msg)
 
     # Preserve the caller's ordering and duplicates in the returned AC list IDs.
-    list_ids: list[str] = [
-        stringid_to_list_id[stringid] for stringid in newsletter_stringids
-    ]
+    list_ids: list[str] = [stringid_to_list_id[stringid] for stringid in newsletter_stringids]
 
     logger.info(f"Mapped stringids {newsletter_stringids} to list IDs {list_ids}")
     return list_ids

@@ -1,8 +1,7 @@
-
 import re
 
-from structlog.processors import _figure_out_exc_info
 from structlog._frames import _format_exception
+from structlog.processors import _figure_out_exc_info
 
 # Query parameters that carry an API key: api_key or apikey, every letter and the underscore written literally (any
 # case) or percent-encoded (any hex case). A name counts only at the start of the query or right after an "&".
@@ -27,9 +26,7 @@ def log_exception_info(logger, method_name, event_dict):
     """
     exc_info = event_dict.pop("exc_info", None)
     if exc_info:
-        event_dict["message"] = _format_exception(
-            _figure_out_exc_info(exc_info)
-        )
+        event_dict["message"] = _format_exception(_figure_out_exc_info(exc_info))
 
     return event_dict
 

@@ -32,7 +32,7 @@ const IndexSelector = ({
   selectedIndices,
   onSelectionChange,
   label = 'texts',
-  maxHeight = null // Set to null to let page scroll; set value like '400px' for inner scroll
+  maxHeight = null, // Set to null to let page scroll; set value like '400px' for inner scroll
 }) => {
   const [searchFilter, setSearchFilter] = useState('');
 
@@ -40,11 +40,9 @@ const IndexSelector = ({
   const filteredIndices = useMemo(() => {
     if (!searchFilter.trim()) return indices;
     const search = searchFilter.toLowerCase();
-    return indices.filter(item => {
+    return indices.filter((item) => {
       const titleMatch = item.title.toLowerCase().includes(search);
-      const categoryMatch = item.categories?.some(cat =>
-        cat.toLowerCase().includes(search)
-      );
+      const categoryMatch = item.categories?.some((cat) => cat.toLowerCase().includes(search));
       return titleMatch || categoryMatch;
     });
   }, [indices, searchFilter]);
@@ -54,14 +52,14 @@ const IndexSelector = ({
   const selectAll = () => {
     // Select all currently filtered indices
     const toSelect = new Set(selectedIndices);
-    filteredIndices.forEach(item => toSelect.add(item.title));
+    filteredIndices.forEach((item) => toSelect.add(item.title));
     onSelectionChange(toSelect);
   };
 
   const deselectAll = () => {
     // Deselect all currently filtered indices
     const toKeep = new Set(selectedIndices);
-    filteredIndices.forEach(item => toKeep.delete(item.title));
+    filteredIndices.forEach((item) => toKeep.delete(item.title));
     onSelectionChange(toKeep);
   };
 
@@ -75,7 +73,7 @@ const IndexSelector = ({
     onSelectionChange(newSet);
   };
 
-  const allFilteredSelected = filteredIndices.every(item => selectedIndices.has(item.title));
+  const allFilteredSelected = filteredIndices.every((item) => selectedIndices.has(item.title));
 
   // Get display category for an index (first 2 categories joined)
   const getDisplayCategory = (item) => {
@@ -90,7 +88,11 @@ const IndexSelector = ({
       {/* Header with count and search */}
       <div className="indexSelectorHeader">
         <div className="indexSelectorTitle">
-          Found <span className="highlight">{indices.length} {label}</span> with this version
+          Found{' '}
+          <span className="highlight">
+            {indices.length} {label}
+          </span>{' '}
+          with this version
         </div>
         <div className="indexSelectorActions">
           <span className="selectionCount">
@@ -100,7 +102,7 @@ const IndexSelector = ({
             <input
               type="checkbox"
               checked={allFilteredSelected && filteredIndices.length > 0}
-              onChange={e => e.target.checked ? selectAll() : deselectAll()}
+              onChange={(e) => (e.target.checked ? selectAll() : deselectAll())}
             />
             Select All
           </label>
@@ -114,7 +116,7 @@ const IndexSelector = ({
           className="indexSearchInput"
           placeholder={`Search ${label}...`}
           value={searchFilter}
-          onChange={e => setSearchFilter(e.target.value)}
+          onChange={(e) => setSearchFilter(e.target.value)}
         />
         {searchFilter && (
           <button
@@ -132,10 +134,10 @@ const IndexSelector = ({
       <div className="indexList" style={maxHeight ? { maxHeight, overflowY: 'auto' } : undefined}>
         {filteredIndices.length === 0 ? (
           <div className="indexNoResults">
-            No {label} match "{searchFilter}"
+            No {label} match &quot;{searchFilter}&quot;
           </div>
         ) : (
-          filteredIndices.map(item => {
+          filteredIndices.map((item) => {
             const isSelected = selectedIndices.has(item.title);
             const category = getDisplayCategory(item);
 
@@ -148,15 +150,13 @@ const IndexSelector = ({
                 <input
                   type="checkbox"
                   checked={isSelected}
-                  onChange={e => {
+                  onChange={(e) => {
                     e.stopPropagation();
                     toggleOne(item.title, e.target.checked);
                   }}
                 />
                 <span className="indexListTitle">{item.title}</span>
-                {category && (
-                  <span className="indexListCategory">{category}</span>
-                )}
+                {category && <span className="indexListCategory">{category}</span>}
               </div>
             );
           })
@@ -167,14 +167,16 @@ const IndexSelector = ({
 };
 
 IndexSelector.propTypes = {
-  indices: PropTypes.arrayOf(PropTypes.shape({
-    title: PropTypes.string.isRequired,
-    categories: PropTypes.arrayOf(PropTypes.string)
-  })).isRequired,
+  indices: PropTypes.arrayOf(
+    PropTypes.shape({
+      title: PropTypes.string.isRequired,
+      categories: PropTypes.arrayOf(PropTypes.string),
+    })
+  ).isRequired,
   selectedIndices: PropTypes.instanceOf(Set).isRequired,
   onSelectionChange: PropTypes.func.isRequired,
   label: PropTypes.string,
-  maxHeight: PropTypes.string
+  maxHeight: PropTypes.string,
 };
 
 export default IndexSelector;

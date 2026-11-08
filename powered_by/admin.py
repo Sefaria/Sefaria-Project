@@ -55,10 +55,17 @@ class ProjectAdmin(admin.ModelAdmin):
     date_hierarchy = "created_at"
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related(Prefetch(
-            "api_projects", queryset=ApiProject.objects.filter(deleted_at__isnull=True),
-            to_attr="live_api_projects",
-        ))
+        return (
+            super()
+            .get_queryset(request)
+            .prefetch_related(
+                Prefetch(
+                    "api_projects",
+                    queryset=ApiProject.objects.filter(deleted_at__isnull=True),
+                    to_attr="live_api_projects",
+                )
+            )
+        )
 
     @admin.display(description="API project")
     def live_api_project(self, obj):
@@ -67,63 +74,81 @@ class ProjectAdmin(admin.ModelAdmin):
         live = obj.live_api_projects
         if not live:
             return "-"
-        return format_html('<a href="{}">API project {}</a>',
-                           reverse("admin:powered_by_apiproject_change", args=[live[0].pk]), live[0].pk)
+        return format_html(
+            '<a href="{}">API project {}</a>',
+            reverse("admin:powered_by_apiproject_change", args=[live[0].pk]),
+            live[0].pk,
+        )
 
     fieldsets = (
-        ("Submission", {
-            "fields": (
-                "submission_source",
-                "submission_date",
-                ("created_at", "updated_at"),
-                "salesforce_id",
-            ),
-        }),
-        ("Creator", {
-            "fields": (
-                ("creator", "creator_email"),
-                "submitter",
-                "is_developer",
-                "job_title",
-                "technical_experience",
-                "found_sefaria",
-                "sefaria_tools_used",
-                "tech_used_raw",
-            ),
-        }),
-        ("Project", {
-            "fields": (
-                "project_name",
-                "project_link",
-                "project_source_code",
-                "project_desc",
-                "project_why",
-                "project_category",
-                "project_reach",
-                "vibe_coded",
-                "image_url",
-                "has_pbs_logo",
-            ),
-        }),
-        ("Editorial & staff", {
-            "fields": (
-                "tags",
-                "status",
-                "last_checked",
-                "is_buggy",
-                "request_not_to_publish",
-                "is_published",
-                "featured",
-                "notes",
-            ),
-        }),
-        ("Developer settings", {
-            "fields": (
-                "organization",
-                "consent_withdrawn_at",
-                "live_api_project",
-            ),
-        }),
+        (
+            "Submission",
+            {
+                "fields": (
+                    "submission_source",
+                    "submission_date",
+                    ("created_at", "updated_at"),
+                    "salesforce_id",
+                ),
+            },
+        ),
+        (
+            "Creator",
+            {
+                "fields": (
+                    ("creator", "creator_email"),
+                    "submitter",
+                    "is_developer",
+                    "job_title",
+                    "technical_experience",
+                    "found_sefaria",
+                    "sefaria_tools_used",
+                    "tech_used_raw",
+                ),
+            },
+        ),
+        (
+            "Project",
+            {
+                "fields": (
+                    "project_name",
+                    "project_link",
+                    "project_source_code",
+                    "project_desc",
+                    "project_why",
+                    "project_category",
+                    "project_reach",
+                    "vibe_coded",
+                    "image_url",
+                    "has_pbs_logo",
+                ),
+            },
+        ),
+        (
+            "Editorial & staff",
+            {
+                "fields": (
+                    "tags",
+                    "status",
+                    "last_checked",
+                    "is_buggy",
+                    "request_not_to_publish",
+                    "is_published",
+                    "featured",
+                    "notes",
+                ),
+            },
+        ),
+        (
+            "Developer settings",
+            {
+                "fields": (
+                    "organization",
+                    "consent_withdrawn_at",
+                    "live_api_project",
+                ),
+            },
+        ),
     )
 
 
@@ -149,8 +174,9 @@ class ApiProjectAdmin(admin.ModelAdmin):
             for api_project in locked:
                 api_project.profile = profiles[api_project.profile_id]
                 developer.soft_delete(api_project)
-        self.message_user(request, "Soft-deleted {} API project(s) and revoked their keys.".format(queryset.count()),
-                          messages.SUCCESS)
+        self.message_user(
+            request, f"Soft-deleted {queryset.count()} API project(s) and revoked their keys.", messages.SUCCESS
+        )
 
     def get_readonly_fields(self, request, obj=None):
         readonly = super().get_readonly_fields(request, obj)

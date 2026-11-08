@@ -1,6 +1,7 @@
 """
 Unit tests for GenCache (sefaria/system/cache.py), run against an in-memory Redis stand-in.
 """
+
 import uuid
 
 import pytest
@@ -48,7 +49,9 @@ def no_sleep(monkeypatch):
 
 def make_gen_cache(redis_client, throttle=True, key_prefix=""):
     """throttle=False zeroes the check interval, so every get() re-checks Redis."""
-    return GenCache(redis_client, check_interval_seconds=2 if throttle else 0, jitter_max_seconds=3, key_prefix=key_prefix)
+    return GenCache(
+        redis_client, check_interval_seconds=2 if throttle else 0, jitter_max_seconds=3, key_prefix=key_prefix
+    )
 
 
 def make_counting_refresh_fn(return_values):
@@ -67,6 +70,7 @@ def make_counting_refresh_fn(return_values):
 # ---------------------------------------------------------------------------
 # get(): first access, hit, staleness
 # ---------------------------------------------------------------------------
+
 
 def test_first_access_calls_refresh_fn_once(fake_redis):
     gc = make_gen_cache(fake_redis)
@@ -134,6 +138,7 @@ def test_jitter_only_applied_when_redis_lost_its_keyspace(fake_redis, monkeypatc
 # ---------------------------------------------------------------------------
 # invalidate() / publish() / mark_fresh(): the write path
 # ---------------------------------------------------------------------------
+
 
 def test_invalidate_is_visible_to_a_second_gencache_instance_sharing_redis(fake_redis, no_sleep):
     """Mirrors two processes: a writer's GenCache and a peer's, sharing one Redis."""
@@ -203,6 +208,7 @@ def test_publish_then_peer_get_sees_the_bump(fake_redis, no_sleep):
 # Fail-open: Redis unreachable
 # ---------------------------------------------------------------------------
 
+
 def test_redis_down_on_recheck_serves_last_known_value(fake_redis, no_sleep):
     gc = make_gen_cache(fake_redis, throttle=False)
     refresh_fn, calls = make_counting_refresh_fn(["built"])
@@ -249,6 +255,7 @@ def test_publish_failure_to_bump_does_not_raise_and_drops_stale_local_gen(fake_r
 # ---------------------------------------------------------------------------
 # Failed bumps: retried once Redis is reachable again
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize("write", ["invalidate", "publish", "mark_fresh"])
 def test_failed_bump_reaches_peer_once_redis_returns_with_keyspace_intact(fake_redis, no_sleep, write):
@@ -304,6 +311,7 @@ def test_failed_retry_stays_pending(fake_redis, no_sleep):
 # Failover that drops the last bump: a regressed generation must not match a newer one
 # ---------------------------------------------------------------------------
 
+
 def test_generation_rolled_back_by_failover_never_matches_a_later_bump(fake_redis, no_sleep):
     writer = make_gen_cache(fake_redis, throttle=False)
     peer = make_gen_cache(fake_redis, throttle=False)
@@ -328,6 +336,7 @@ def test_generation_rolled_back_by_failover_never_matches_a_later_bump(fake_redi
 # Redis data loss: every tracked key reads back missing
 # ---------------------------------------------------------------------------
 
+
 def test_redis_keyspace_loss_triggers_rebuild_through_refresh_fn(fake_redis, no_sleep):
     """A Redis restart without persistence makes every counter read back None."""
     gc = make_gen_cache(fake_redis, throttle=False)
@@ -347,10 +356,11 @@ def test_redis_keyspace_loss_triggers_rebuild_through_refresh_fn(fake_redis, no_
 # key_prefix: multiple deployments sharing one Redis/Sentinel (e.g. cauldrons)
 # ---------------------------------------------------------------------------
 
+
 def test_key_prefix_isolates_bump_between_deployments(fake_redis):
     """Deployments sharing one Redis must not see each other's counters."""
     cauldron_a = make_gen_cache(fake_redis, key_prefix="cauldron-a")
-    cauldron_b = make_gen_cache(fake_redis, key_prefix="cauldron-b")
+    make_gen_cache(fake_redis, key_prefix="cauldron-b")
 
     cauldron_a.invalidate("index_map")
 

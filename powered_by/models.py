@@ -40,27 +40,51 @@ class Project(models.Model):
     """
 
     PUBLIC_FIELDS = (
-        "id", "submission_date", "created_at", "updated_at",
-        "submission_source", "sefaria_tools_used", "tech_used_raw",
-        "technical_experience", "vibe_coded", "project_why",
-        "project_name", "project_link", "project_source_code",
-        "project_reach", "project_desc", "project_category",
-        "image_url", "has_pbs_logo", "tags", "status",
-        "is_buggy", "last_checked",
-        "is_published", "featured",
+        "id",
+        "submission_date",
+        "created_at",
+        "updated_at",
+        "submission_source",
+        "sefaria_tools_used",
+        "tech_used_raw",
+        "technical_experience",
+        "vibe_coded",
+        "project_why",
+        "project_name",
+        "project_link",
+        "project_source_code",
+        "project_reach",
+        "project_desc",
+        "project_category",
+        "image_url",
+        "has_pbs_logo",
+        "tags",
+        "status",
+        "is_buggy",
+        "last_checked",
+        "is_published",
+        "featured",
     )
 
     # PII / internal staff metadata. Only serialized for authenticated staff;
     # see contents() and powered_by.views.powered_by_api.
     PRIVATE_FIELDS = (
-        "creator", "creator_email", "is_developer", "job_title", "found_sefaria",
-        "submitter", "salesforce_id", "notes", "request_not_to_publish",
+        "creator",
+        "creator_email",
+        "is_developer",
+        "job_title",
+        "found_sefaria",
+        "submitter",
+        "salesforce_id",
+        "notes",
+        "request_not_to_publish",
     )
 
     # --- Submission metadata ------------------------------------------------
 
     submission_date = models.DateTimeField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="Date the form was submitted (absent for in-the-wild / manual records).",
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -77,24 +101,29 @@ class Project(models.Model):
     creator_email = models.EmailField(blank=True, help_text="Creator email.")
     submitter = models.CharField(max_length=255, blank=True, help_text="Submitter name / staff.")
     salesforce_id = models.CharField(
-        max_length=255, null=True, blank=True,
+        max_length=255,
+        null=True,
+        blank=True,
         help_text="Soft FK to a Salesforce record. Nullable, no hard dependency.",
     )
 
     # --- Creator profile ----------------------------------------------------
 
     is_developer = models.BooleanField(
-        default=False, help_text='"I am a software developer professionally."',
+        default=False,
+        help_text='"I am a software developer professionally."',
     )
     job_title = models.CharField(max_length=255, blank=True, help_text="Current role / job title.")
     found_sefaria = models.TextField(blank=True, help_text="How they heard about Sefaria's data and tools.")
     sefaria_tools_used = models.JSONField(
-        default=list, blank=True,
+        default=list,
+        blank=True,
         help_text="Sefaria data, endpoints, or tools used (self-reported, includes free-text 'other').",
     )
     tech_used_raw = models.TextField(blank=True, help_text="Their self-description of the tech used.")
     technical_experience = models.CharField(
-        max_length=20, blank=True,
+        max_length=20,
+        blank=True,
         choices=TechnicalExperience.choices,
         help_text="Years of programming experience.",
     )
@@ -110,17 +139,20 @@ class Project(models.Model):
     project_desc = models.TextField(blank=True, help_text="Project description.")
     project_category = models.CharField(max_length=255, blank=True, help_text="Category / categories.")
     image_url = models.URLField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="Screenshot or thumbnail for the gallery card. Null until added.",
     )
     has_pbs_logo = models.BooleanField(
-        default=False, help_text='Project displays the "Powered by Sefaria" logo.',
+        default=False,
+        help_text='Project displays the "Powered by Sefaria" logo.',
     )
 
     # --- Staff / editorial --------------------------------------------------
 
     tags = models.JSONField(
-        default=list, blank=True,
+        default=list,
+        blank=True,
         help_text="Staff-assigned tags (e.g. MCP, AI, Chatbot, Kabbalah).",
     )
     status = models.CharField(
@@ -131,16 +163,18 @@ class Project(models.Model):
     )
     is_buggy = models.BooleanField(default=False, help_text="Admin tag for whether the project is buggy.")
     last_checked = models.DateTimeField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="When project_link was last verified by the liveness job.",
     )
     request_not_to_publish = models.BooleanField(
         default=False,
         help_text="Submitter asked not to be displayed publicly. Consent is assumed unless this is set; "
-                  "setting it forces is_published to False.",
+        "setting it forces is_published to False.",
     )
     is_published = models.BooleanField(
-        default=True, help_text="Editorial publish gate, controls visibility on the public site.",
+        default=True,
+        help_text="Editorial publish gate, controls visibility on the public site.",
     )
     featured = models.BooleanField(default=False, help_text="Pinned / featured position in the gallery.")
     notes = models.TextField(null=True, blank=True, help_text="Staff notes, anything else.")
@@ -212,6 +246,7 @@ class Project(models.Model):
         included only when `authenticated` is True, which the view sets from
         `request.user.is_staff`.
         """
+
         def iso(dt):
             return dt.isoformat() if dt else None
 

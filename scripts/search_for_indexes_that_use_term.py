@@ -1,6 +1,8 @@
 import django
+
 django.setup()
 from sefaria.model import *
+
 
 def iterateNodes(indices, searchTerm=""):
     for index in indices:
@@ -16,9 +18,9 @@ def iterateNodes(indices, searchTerm=""):
 
 def nodeSearcher(nodes, searchTerm, index_title):
     for node in nodes:
-        if getattr(node, "sharedTitle"):
+        if node.sharedTitle:
             if node.sharedTitle == searchTerm:
-                print("'{}' uses term '{}'".format(index_title, searchTerm))
+                print(f"'{index_title}' uses term '{searchTerm}'")
                 return
 
 

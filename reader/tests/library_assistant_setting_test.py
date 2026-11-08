@@ -5,12 +5,12 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 
 from reader.conftest import create_test_user, make_profile_missing_la_setting, page_props, purge_test_profiles
-from sefaria.system.context_processors import chatbot_user_token
-from reader.views import chatbot_access_props
 from reader.models import UserExperimentSettings, _set_user_experiments
+from reader.views import chatbot_access_props
 from sefaria.helper import library_assistant
 from sefaria.helper.library_assistant import SETTING_KEY
 from sefaria.model.user_profile import UserProfile
+from sefaria.system.context_processors import chatbot_user_token
 from sefaria.system.database import db
 
 
@@ -103,13 +103,17 @@ class ProfileSyncApiTest(LibraryAssistantUserTestCase):
     """
     /api/profile/sync is the mobile app's settings write path — also public.
     """
+
     url = "/api/profile/sync"
 
     def sync_settings(self, settings, time_stamp=1):
         self.client.force_login(self.user)
-        return self.client.post(self.url, {
-            "settings": json.dumps({**settings, "time_stamp": time_stamp}),
-        })
+        return self.client.post(
+            self.url,
+            {
+                "settings": json.dumps({**settings, "time_stamp": time_stamp}),
+            },
+        )
 
     def test_posted_string_false_is_not_truthy(self):
         self.sync_settings({SETTING_KEY: "false"})
@@ -172,6 +176,7 @@ class AccountSettingsPageTest(LibraryAssistantUserTestCase):
     The toggle is available to every logged-in user, and the settings page renders the
     effective value into its props.
     """
+
     url = "/settings/account"
 
     def account_props(self):

@@ -25,7 +25,8 @@ def consent_to_request_not_to_publish(apps, schema_editor):
     for project_name, project_link in EXPLICIT_REFUSALS:
         # update() bypasses Project.save(), so enforce the is_published invariant here.
         Project.objects.filter(project_name=project_name, project_link=project_link).update(
-            request_not_to_publish=True, is_published=False,
+            request_not_to_publish=True,
+            is_published=False,
         )
 
 
@@ -35,20 +36,22 @@ def request_not_to_publish_to_consent(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('powered_by', '0002_is_published_default_true'),
+        ("powered_by", "0002_is_published_default_true"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='request_not_to_publish',
-            field=models.BooleanField(default=False, help_text='Submitter asked not to be displayed publicly. Consent is assumed unless this is set; setting it forces is_published to False.'),
+            model_name="project",
+            name="request_not_to_publish",
+            field=models.BooleanField(
+                default=False,
+                help_text="Submitter asked not to be displayed publicly. Consent is assumed unless this is set; setting it forces is_published to False.",
+            ),
         ),
         migrations.RunPython(consent_to_request_not_to_publish, request_not_to_publish_to_consent),
         migrations.RemoveField(
-            model_name='project',
-            name='consent_to_display',
+            model_name="project",
+            name="consent_to_display",
         ),
     ]

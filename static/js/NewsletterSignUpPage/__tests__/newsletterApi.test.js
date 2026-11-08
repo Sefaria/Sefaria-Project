@@ -35,8 +35,7 @@ const {
 // without a headers shim the helper throws before any assertion can run.
 const jsonHeaders = { get: (name) => (name.toLowerCase() === 'content-type' ? 'application/json' : null) };
 
-const mockFetchOk = (body) =>
-  Promise.resolve({ ok: true, headers: jsonHeaders, json: () => Promise.resolve(body) });
+const mockFetchOk = (body) => Promise.resolve({ ok: true, headers: jsonHeaders, json: () => Promise.resolve(body) });
 
 const mockFetchFail = (error) =>
   Promise.resolve({ ok: false, headers: jsonHeaders, json: () => Promise.resolve({ error }) });
@@ -50,17 +49,19 @@ beforeEach(() => {
 // ============================================================================
 
 describe('subscribeNewsletter', () => {
-  const payload = { firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com', newsletters: { sefaria_news: true } };
+  const payload = {
+    firstName: 'Ada',
+    lastName: 'Lovelace',
+    email: 'ada@example.com',
+    newsletters: { sefaria_news: true },
+  };
 
   it('calls fetch with POST to /api/newsletter/subscribe', async () => {
     global.fetch.mockReturnValue(mockFetchOk({ success: true }));
 
     await subscribeNewsletter(payload);
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      '/api/newsletter/subscribe',
-      expect.objectContaining({ method: 'POST' })
-    );
+    expect(global.fetch).toHaveBeenCalledWith('/api/newsletter/subscribe', expect.objectContaining({ method: 'POST' }));
   });
 
   it('sends the full payload as JSON body', async () => {
@@ -195,10 +196,7 @@ describe('getNewsletterLists', () => {
 
     await getNewsletterLists();
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      '/api/newsletter/lists',
-      expect.objectContaining({ method: 'GET' })
-    );
+    expect(global.fetch).toHaveBeenCalledWith('/api/newsletter/lists', expect.objectContaining({ method: 'GET' }));
   });
 
   it('returns parsed newsletters list', async () => {
@@ -273,7 +271,8 @@ describe('updateLearningLevel', () => {
       Promise.resolve({
         ok: false,
         headers: jsonHeaders,
-        json: () => Promise.resolve({ error: 'This page has expired.', code: SERVER_ERROR_CODE.LEARNING_LEVEL_TOKEN_INVALID }),
+        json: () =>
+          Promise.resolve({ error: 'This page has expired.', code: SERVER_ERROR_CODE.LEARNING_LEVEL_TOKEN_INVALID }),
       })
     );
 

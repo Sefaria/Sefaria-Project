@@ -8,8 +8,8 @@ webhooks/conftest.py makes any unpatched seam fail loudly.
 """
 
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta, timezone
 from types import SimpleNamespace
-from datetime import datetime, timedelta, timezone
 
 import pytest
 from structlog.testing import capture_logs
@@ -27,7 +27,7 @@ from sefaria.donors.types import (
     UserBecameDonorAccordingToSalesforce,
 )
 
-MIDDLE = datetime(2026, 6, 1, tzinfo=timezone.utc)
+MIDDLE = datetime(2026, 6, 1, tzinfo=UTC)
 DONOR_ADDRESS = NormalizedEmailAddress("donor@example.org")
 
 
@@ -49,7 +49,6 @@ def salesforce_event(occurred_at=MIDDLE):
 
 
 class TestBuildUpdatePipelineMarkingProfileAsDonor:
-
     def test_sets_donor_status_and_keeps_the_earliest_date_with_aggregation_min(self):
         """One $set stage makes the user a donor and lets Mongo keep the earliest date atomically."""
         assert build_update_pipeline_marking_profile_as_donor(MIDDLE) == [
@@ -75,20 +74,18 @@ class TestBuildUpdatePipelineMarkingProfileAsDonor:
 
     def test_naive_event_date_is_read_as_utc(self):
         """Mongo compares dates by instant, so a naive date is made UTC-aware before it is sent."""
-        decided_date = build_update_pipeline_marking_profile_as_donor(
-            datetime(2026, 6, 1)
-        )[0]["$set"]["became_donor_at"]["$min"][1]
+        decided_date = build_update_pipeline_marking_profile_as_donor(datetime(2026, 6, 1))[0]["$set"][
+            "became_donor_at"
+        ]["$min"][1]
         assert decided_date == MIDDLE
-        assert decided_date.tzinfo is timezone.utc
+        assert decided_date.tzinfo is UTC
 
     def test_aware_non_utc_event_date_is_converted_to_utc(self):
         """An offset timestamp keeps its instant; only the zone changes."""
         eastern = datetime(2026, 5, 31, 20, 0, tzinfo=timezone(timedelta(hours=-4)))
-        decided_date = build_update_pipeline_marking_profile_as_donor(eastern)[0][
-            "$set"
-        ]["became_donor_at"]["$min"][1]
-        assert decided_date == datetime(2026, 6, 1, tzinfo=timezone.utc)
-        assert decided_date.tzinfo is timezone.utc
+        decided_date = build_update_pipeline_marking_profile_as_donor(eastern)[0]["$set"]["became_donor_at"]["$min"][1]
+        assert decided_date == datetime(2026, 6, 1, tzinfo=UTC)
+        assert decided_date.tzinfo is UTC
 
 
 # ============================================================================
@@ -123,43 +120,30 @@ def fake_profile_store(monkeypatch):
         "find_user_id_by_email_creating_profile_if_missing",
         find_user_id_by_email_creating_profile_if_missing,
     )
-    monkeypatch.setattr(
-        donor_recording, "apply_update_to_user_profile", apply_update_to_user_profile
-    )
+    monkeypatch.setattr(donor_recording, "apply_update_to_user_profile", apply_update_to_user_profile)
     return store
 
 
 class TestMarkExistingUserProfileAsDonor:
-
     def test_sends_the_decided_update_for_the_found_profile(self, fake_profile_store):
         """The seam receives exactly (user id, the pure update pipeline)."""
-        mark_existing_user_profile_as_donor(
-            DonorWithResolvedEmailAddress(DONOR_ADDRESS), salesforce_event(MIDDLE)
-        )
+        mark_existing_user_profile_as_donor(DonorWithResolvedEmailAddress(DONOR_ADDRESS), salesforce_event(MIDDLE))
 
-        assert fake_profile_store.updates == [
-            (7, build_update_pipeline_marking_profile_as_donor(MIDDLE))
-        ]
+        assert fake_profile_store.updates == [(7, build_update_pipeline_marking_profile_as_donor(MIDDLE))]
 
     def test_does_nothing_when_no_account_exists(self, fake_profile_store):
         """A donor with no Sefaria account is only logged; remembering them until they sign up isn't built yet."""
         fake_profile_store.user_id_to_find = None
 
         with capture_logs() as logs:
-            mark_existing_user_profile_as_donor(
-                DonorWithResolvedEmailAddress(DONOR_ADDRESS), salesforce_event()
-            )
+            mark_existing_user_profile_as_donor(DonorWithResolvedEmailAddress(DONOR_ADDRESS), salesforce_event())
 
         assert fake_profile_store.updates == []
         assert "donor@example.org" not in repr(logs)
 
-    def test_looks_up_the_profile_by_the_resolved_email_address(
-        self, fake_profile_store
-    ):
+    def test_looks_up_the_profile_by_the_resolved_email_address(self, fake_profile_store):
         """The seam receives the normalized address, not a raw string."""
-        mark_existing_user_profile_as_donor(
-            DonorWithResolvedEmailAddress(DONOR_ADDRESS), salesforce_event()
-        )
+        mark_existing_user_profile_as_donor(DonorWithResolvedEmailAddress(DONOR_ADDRESS), salesforce_event())
 
         assert fake_profile_store.looked_up_addresses == [DONOR_ADDRESS]
 
@@ -168,9 +152,7 @@ class TestMarkExistingUserProfileAsDonor:
         fake_profile_store.update_matches_a_document = False
 
         with capture_logs() as logs:
-            mark_existing_user_profile_as_donor(
-                DonorWithResolvedEmailAddress(DONOR_ADDRESS), salesforce_event()
-            )
+            mark_existing_user_profile_as_donor(DonorWithResolvedEmailAddress(DONOR_ADDRESS), salesforce_event())
 
         assert any(
             entry.items()
@@ -192,7 +174,6 @@ def account(user_id, last_login=None, date_joined=MIDDLE):
 
 
 class TestMostRecentlyActiveAccount:
-
     def test_a_single_account_is_chosen(self):
         """The common case: one account per address, so there is nothing to choose between."""
         assert most_recently_active_account([account(1)]).id == 1
@@ -211,10 +192,7 @@ class TestMostRecentlyActiveAccount:
         never_logged_in_but_newer = account(14, date_joined=MIDDLE + timedelta(days=30))
         logged_in = account(15, last_login=MIDDLE, date_joined=MIDDLE)
 
-        assert (
-            most_recently_active_account([never_logged_in_but_newer, logged_in]).id
-            == 15
-        )
+        assert most_recently_active_account([never_logged_in_but_newer, logged_in]).id == 15
 
     def test_among_never_logged_in_accounts_the_newest_wins(self):
         """With no login to go on, the most recently created account is the best guess."""

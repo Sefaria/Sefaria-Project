@@ -1,14 +1,16 @@
 """
 Tests for serve_static and the settings page.
 """
+
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.test import RequestFactory, TestCase, override_settings
-from django.conf import settings
-from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
-from reader.conftest import create_test_user, page_props, purge_test_profiles
+
 import reader.views as reader_views
+from reader.conftest import create_test_user, page_props, purge_test_profiles
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 
 
 @pytest.fixture
