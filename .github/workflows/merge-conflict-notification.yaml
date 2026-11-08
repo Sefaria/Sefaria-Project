@@ -56,7 +56,9 @@ jobs:
             }
             if (pr.head.sha !== headSha) return core.info('Head moved on; a newer run will check it.');
             if (pr.mergeable === null) return core.setFailed('GitHub did not compute mergeability within 60s; re-run this job to check again.');
-            const statusContext = 'Continuous / merge conflict';
+            const base = pr.base.ref;
+            // One status per target branch: two PRs can share a head SHA (e.g. into master and into a feature branch).
+            const statusContext = `Continuous / merge conflict (${base})`;
             if (pr.mergeable) {
               // Same SHA can become mergeable when the base changes (e.g. on reopen); clear our earlier red status.
               const { data: statuses } = await github.rest.repos.listCommitStatusesForRef({ owner, repo, ref: headSha, per_page: 100 });
@@ -67,7 +69,6 @@ jobs:
               return core.info('No merge conflict.');
             }
 
-            const base = pr.base.ref;
             const shortSha = headSha.slice(0, 7);
 
             // 1. Red status on the pushed commit.
