@@ -392,6 +392,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.5-chorerecord-preprod-ancestry.1.tgz
     version: 0.92.5-chorerecord-preprod-ancestry.1
   - apiVersion: v2
+    appVersion: v7.11.3
+    created: "2026-11-08T11:24:29.402405265Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 7150cee10fa6488778780521848647e894d8ff10bc5a205dbda405af2ef577e7
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.5-chorepromote-master-to-preprod-post-lint.1.tgz
+    version: 0.92.5-chorepromote-master-to-preprod-post-lint.1
+  - apiVersion: v2
     appVersion: v7.11.1
     created: "2026-11-04T11:31:20.440349604Z"
     description: Chart to deploy complete Sefaria environment
@@ -24210,4 +24225,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-08T11:23:59.822357588Z"
+generated: "2026-11-08T11:24:29.399682909Z"
