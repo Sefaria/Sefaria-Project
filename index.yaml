@@ -47,6 +47,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.93.0-sc-47260-scrub-api-key-logs.1.tgz
     version: 0.93.0-sc-47260-scrub-api-key-logs.1
   - apiVersion: v2
+    appVersion: v7.11.4
+    created: "2026-11-08T16:57:24.422591947Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 7f39bd995c5ddd35a2f2899730159931c6387a3fcb4000aa0de1cd7adcb5b24d
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.93.0-sc-47260-remove-test-controls.2.tgz
+    version: 0.93.0-sc-47260-remove-test-controls.2
+  - apiVersion: v2
     appVersion: v7.10.1
     created: "2026-11-01T15:00:38.697058438Z"
     description: Chart to deploy complete Sefaria environment
@@ -24330,4 +24345,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-08T14:56:37.415730548Z"
+generated: "2026-11-08T16:57:24.418350537Z"
