@@ -23,7 +23,7 @@ else:
     library_domains = []
     voices_domains = []
 
-    for lang in settings.DOMAIN_MODULES.keys():
+    for lang in settings.DOMAIN_MODULES:
         library_domains.append(get_domain_reg(settings.DOMAIN_MODULES[lang][LIBRARY_MODULE]))
         voices_domains.append(get_domain_reg(settings.DOMAIN_MODULES[lang][VOICES_MODULE]))
 

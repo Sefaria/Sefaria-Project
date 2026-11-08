@@ -464,13 +464,13 @@ class ConnectionsPanel extends Component {
       // add source from connections
       if (
         this.props.connectionData &&
-        this.props.connectionData.hasOwnProperty('addSource') &&
+        Object.prototype.hasOwnProperty.call(this.props.connectionData, 'addSource') &&
         this.props.connectionData['addSource'] == 'connectionsPanel'
       ) {
-        refForSheet = this.props.connectionData.hasOwnProperty('connectionRefs')
+        refForSheet = Object.prototype.hasOwnProperty.call(this.props.connectionData, 'connectionRefs')
           ? this.props.connectionData['connectionRefs']
           : this.props.srefs;
-        versionsForSheet = this.props.connectionData.hasOwnProperty('versions')
+        versionsForSheet = Object.prototype.hasOwnProperty.call(this.props.connectionData, 'versions')
           ? this.props.connectionData['versions']
           : { en: null, he: null };
         selectedWordsForSheet = null;

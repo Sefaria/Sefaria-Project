@@ -9,7 +9,7 @@ from sefaria.system.database import db
 
 sheets = db.sheets.find()
 bad_refs = 0
-bad_sheets = set([])
+bad_sheets = set()
 
 bad_book_count = {}
 

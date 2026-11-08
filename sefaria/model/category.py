@@ -371,7 +371,7 @@ class TocTree:
                 return (0.5, node.get_primary_title())
 
         for cat in self.all_category_nodes():  # iterate all categories
-            if all([hasattr(ca, "base_text_order") for ca in cat.children]):
+            if all(hasattr(ca, "base_text_order") for ca in cat.children):
                 cat.children.sort(key=lambda c: c.base_text_order)
             else:
                 cat.children.sort(key=_explicit_order_and_title)

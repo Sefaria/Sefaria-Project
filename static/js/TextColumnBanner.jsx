@@ -55,7 +55,7 @@ const TransLangPrefAcceptedBanner = () => {
   return (
     <TextColumnBanner>
       <InterfaceText>
-        <EnglishText> Thanks! We'll show you {lang} translations first when we have them. </EnglishText>
+        <EnglishText> Thanks! We&apos;ll show you {lang} translations first when we have them. </EnglishText>
         <HebrewText>
           תודה! כשנוכל, נציג לכם תרגומים בשפה ה
           <span className="bold">{Sefaria.translateISOLanguageName(translation_language_preference_suggestion)}</span>{' '}

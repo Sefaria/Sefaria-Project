@@ -58,7 +58,7 @@ const TextsPage = ({
     };
 
     return (
-      <div className="navBlock withColorLine" style={style}>
+      <div key={cat.category} className="navBlock withColorLine" style={style}>
         <a
           href={`/texts/${cat.category}`}
           className="navBlockTitle"

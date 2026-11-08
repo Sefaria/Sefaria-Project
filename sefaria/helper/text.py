@@ -1,6 +1,5 @@
 import io
 import pprint
-import re
 from functools import lru_cache, reduce
 
 import pymongo

@@ -49,7 +49,7 @@ def test_dup_index_save():
     idx = model.Index(d)
     idx.save()
     assert model.IndexSet({"title": title}).count() == 1
-    with pytest.raises(InputError) as e_info:
+    with pytest.raises(InputError):
         d2 = {
             "title": title,
             "heTitle": "פרשן ב",
@@ -57,7 +57,7 @@ def test_dup_index_save():
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Commentary"],
         }
-        idx2 = model.Index(d2).save()
+        model.Index(d2).save()
 
     assert model.IndexSet({"title": title}).count() == 1
 
@@ -429,14 +429,14 @@ def test_index_name_change():
         index = model.Index().load({"title": old})
 
         # Make sure that the test isn't passing just because we've been comparing 0 to 0
-        assert all([cnt > 0 for cnt in dep_counts(old, index)])
+        assert all(cnt > 0 for cnt in dep_counts(old, index))
 
         for cnt in list(dep_counts(new, index).values()):
             assert cnt == 0
 
         old_counts = dep_counts(old, index)
 
-        old_index = deepcopy(index)
+        deepcopy(index)
         # new_in_alt = new in index.titleVariants
         index.title = new
         index.save()

@@ -163,7 +163,7 @@ def user_sheets(user_id, sort_by="date", limit=0, skip=0, private=True):
     return response
 
 
-def public_sheets(sort=[["datePublished", -1]], limit=50, skip=0, lang=None, filtered=False):
+def public_sheets(sort=(("datePublished", -1),), limit=50, skip=0, lang=None, filtered=False):
     if filtered:
         query = {"status": "public", "sources.ref": {"$exists": True}}
     else:
@@ -278,7 +278,7 @@ def annotate_displayed_collections(sheets):
     """
     Adds `displayedCollectionName` field to each sheet in `sheets` that has `displayedCollection`.
     """
-    slugs = list(set([sheet["displayedCollection"] for sheet in sheets if sheet.get("displayedCollection", None)]))
+    slugs = list({sheet["displayedCollection"] for sheet in sheets if sheet.get("displayedCollection", None)})
     if len(slugs) == 0:
         return sheets
     displayed_collections = CollectionSet({"slug": {"$in": slugs}})
@@ -502,9 +502,9 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
         old_topics = existing.get("topics", [])
         topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
 
-        old_media_urls = set([source["media"] for source in existing.get("sources") if "media" in source])
+        old_media_urls = {source["media"] for source in existing.get("sources") if "media" in source}
         if len(old_media_urls) > 0:
-            new_media_urls = set([source["media"] for source in sheet.get("sources") if "media" in source])
+            new_media_urls = {source["media"] for source in sheet.get("sources") if "media" in source}
             if len(old_media_urls) != len(new_media_urls):
                 deleted_media = set(old_media_urls).difference(new_media_urls)
                 print(deleted_media)
@@ -1031,7 +1031,7 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
     # No hint: the planner picks the compound {expandedRefs, status/owner, ...} indexes, which filter inside the
     # index. The old hint("expandedRefs_1") dated from when this query sorted by views and walked every sheet on the passage.
     sheetsObj = db.sheets.find(query, projection)
-    sheets = [s for s in sheetsObj]
+    sheets = list(sheetsObj)
     sheets = calculate_combined_score(sheets, str(oref))
     user_ids = list({s["owner"] for s in sheets})
     django_user_profiles = User.objects.filter(id__in=user_ids).values("email", "first_name", "last_name", "id")
@@ -1124,8 +1124,8 @@ def topic_list_diff(old, new):
     Returns a dictionary with fields `removed` and `added` that describes the differences
     in topics (slug, titles pairs) between lists `old` and `new`.
     """
-    old_set = set([(t["asTyped"], t.get("slug", None)) for t in old])
-    new_set = set([(t["asTyped"], t.get("slug", None)) for t in new])
+    old_set = {(t["asTyped"], t.get("slug", None)) for t in old}
+    new_set = {(t["asTyped"], t.get("slug", None)) for t in new}
 
     return {
         "removed": list(old_set - new_set),
@@ -1522,7 +1522,7 @@ def change_tag(old_tag, new_tag_or_list):
         sheet.save()
 
 
-def get_sheet_categorization_info(find_without, skip_ids=[]):
+def get_sheet_categorization_info(find_without, skip_ids=()):
     """
     Returns a pseudorandom sheetId for categorization along with all existing categories
     :param find_without: the field that must contain no elements for the sheet to be returned
@@ -1558,7 +1558,7 @@ def get_sheet_categorization_info(find_without, skip_ids=[]):
             ]
         ).next()
     categories_all = list(
-        filter(lambda x: x != None, db.sheets.distinct("categories"))
+        filter(lambda x: x is not None, db.sheets.distinct("categories"))
     )  # this is slow; maybe add index or ...?
     categorize_props = {"doesNotContain": find_without, "sheetId": sheet["id"], "allCategories": categories_all}
     return categorize_props

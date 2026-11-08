@@ -369,9 +369,9 @@ class Test_Ref:
 
     def test_out_of_order_range(self):
         with pytest.raises(InputError):
-            r = Ref("Leviticus 15 - 13")
+            Ref("Leviticus 15 - 13")
         with pytest.raises(InputError):
-            r = Ref("Leviticus 15:3 - 15:1")
+            Ref("Leviticus 15:3 - 15:1")
 
     def test_to_section_segment(self):
         r = Ref("Leviticus 15")
@@ -1134,7 +1134,7 @@ class Test_condition_and_projection:
     def test_projection_simple_section(self):
         r = Ref("Exodus")
         p = r.part_projection()
-        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert all(k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr)
         assert Version.content_attr in p
         assert p[Version.content_attr] == 1
 
@@ -1149,7 +1149,7 @@ class Test_condition_and_projection:
     def test_projection_complex_section(self):
         r = Ref("Shelah, Torah Shebikhtav, Bereshit, Torah Ohr")
         p = r.part_projection()
-        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert all(k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr)
         assert Version.content_attr not in p
         assert "chapter.Torah Shebikhtav.Bereshit.Torah Ohr" in p
         assert p["chapter.Torah Shebikhtav.Bereshit.Torah Ohr"] == 1
@@ -1157,27 +1157,27 @@ class Test_condition_and_projection:
     def test_projection_simple_segment_slice(self):
         r = Ref("Exodus 4")
         p = r.part_projection()
-        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert all(k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr)
         assert Version.content_attr in p
         assert p[Version.content_attr] == {"$slice": [3, 1]}
 
     def test_projection_simple_segment_range_slice(self):
         r = Ref("Exodus 4-7")
         p = r.part_projection()
-        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert all(k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr)
         assert Version.content_attr in p
         assert p[Version.content_attr] == {"$slice": [3, 4]}
 
         r = Ref("Exodus 4:3-7:1")
         p = r.part_projection()
-        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert all(k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr)
         assert Version.content_attr in p
         assert p[Version.content_attr] == {"$slice": [3, 4]}
 
     def test_projection_complex_segment_slice(self):
         r = Ref("Shelah, Torah Shebikhtav, Bereshit, Torah Ohr 52")
         p = r.part_projection()
-        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert all(k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr)
         assert Version.content_attr not in p
         assert "chapter.Torah Shebikhtav.Bereshit.Torah Ohr" in p
         assert p["chapter.Torah Shebikhtav.Bereshit.Torah Ohr"] == {"$slice": [51, 1]}
@@ -1185,7 +1185,7 @@ class Test_condition_and_projection:
     def test_projection_complex_segment_range_slice(self):
         r = Ref("Shelah, Torah Shebikhtav, Bereshit, Torah Ohr 50-52")
         p = r.part_projection()
-        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert all(k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr)
         assert Version.content_attr not in p
         assert "chapter.Torah Shebikhtav.Bereshit.Torah Ohr" in p
         assert p["chapter.Torah Shebikhtav.Bereshit.Torah Ohr"] == {"$slice": [49, 3]}

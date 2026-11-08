@@ -35,7 +35,7 @@ BASE_URL_OVERRIDE = None  # e.g. "https://www.sefaria.org"
 def _normalize_input_to_ref_and_base_url(value: str):
     base_url = BASE_URL_OVERRIDE or FRONT_END_URL or "https://www.sefaria.org"
     raw = value.strip()
-    if raw.startswith("http://") or raw.startswith("https://"):
+    if raw.startswith(("http://", "https://")):
         parsed = urlparse(raw)
         base_url = f"{parsed.scheme}://{parsed.netloc}"
         path = parsed.path.strip("/")

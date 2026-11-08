@@ -97,7 +97,7 @@ class NationbuilderConnectionManager(CrmConnectionManager):
         CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, educator, lang, mailing_lists)
         return self.add_user_to_crm(email, first_name, last_name, lang, educator, signup=False)
 
-    def nationbuilder_get_all(self, endpoint_func, args=[]):
+    def nationbuilder_get_all(self, endpoint_func, args=()):
         next_endpoint = endpoint_func(*args)
         while next_endpoint:
             # print(next_endpoint)

@@ -23,7 +23,9 @@ const wasShown = () => {
 const markShown = () => {
   try {
     sessionStorage.setItem(SESSION_KEY, '1');
-  } catch {}
+  } catch {
+    // sessionStorage unavailable (e.g. private mode); ignore
+  }
 };
 const isAuthPath = () => AUTH_PATHS.has(window.location.pathname.replace(/\/$/, ''));
 // .sefaria-provider-sdk-overlay: another Google sign-in button is on the page (e.g. the Library

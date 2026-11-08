@@ -17,7 +17,7 @@ def grab_itag_commetators(segment_ref):
     soup = BeautifulSoup(f"<root>{seg_text}</root>", "xml")
     itags = soup.find_all(lambda x: x.name == "i" and x.has_attr("data-commentator"))
 
-    return set(["{}".format(i["data-commentator"]) for i in itags])
+    return {"{}".format(i["data-commentator"]) for i in itags}
 
 
 def fix_links(seg_ref, commentators, test_mode=False):

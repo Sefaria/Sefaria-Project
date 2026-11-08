@@ -31,8 +31,8 @@ rename_category("Mishna", "Mishnah")
 
 mishnahs = db.index.find({"categories": "Mishnah"})
 for m in mishnahs:
-    variants = set([v.replace("Mishna ", "Mishnah ") for v in m["titleVariants"]])
-    new_variants = set([v.replace("Mishnah ", "Mishna ") for v in variants])
+    variants = {v.replace("Mishna ", "Mishnah ") for v in m["titleVariants"]}
+    new_variants = {v.replace("Mishnah ", "Mishna ") for v in variants}
     m["titleVariants"] = list(variants.union(new_variants))
     db.index.save(m)
 

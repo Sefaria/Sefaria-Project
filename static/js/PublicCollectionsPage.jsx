@@ -49,8 +49,9 @@ const PublicCollectionsPage = ({ multiPanel, initialWidth }) => {
     enCollections = collectionsList.public.filter((c) => !Sefaria.hebrew.isHebrew(c.name));
     heCollections = collectionsList.public.filter((c) => Sefaria.hebrew.isHebrew(c.name));
 
-    [enCollBox, heCollBox] = [enCollections, heCollections].map((coll) => (
+    [enCollBox, heCollBox] = [enCollections, heCollections].map((coll, i) => (
       <ResponsiveNBox
+        key={i}
         content={coll.map((item) => (
           <CollectionBlockListing data={item} key={item.name} />
         ))}

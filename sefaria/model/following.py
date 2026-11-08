@@ -42,7 +42,6 @@ class FollowRelationship:
 class FollowSet:
     def __init__(self):
         self.uids = []
-        return self
 
     @property
     def count(self):

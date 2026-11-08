@@ -29,7 +29,7 @@ def test_itag_normalizer(input_text, output_text):
         ["""Women<sup class="itag">1</sup>""", "Women "],
     ],
 )
-def test_fn_marker_normalizer(input_text, output_text):
+def test_fn_marker_normalizer_parametrized(input_text, output_text):
     fn_marker_normalizer = NormalizerFactory.get("fn-marker")
     norm_text = fn_marker_normalizer.normalize(input_text)
     assert norm_text == output_text

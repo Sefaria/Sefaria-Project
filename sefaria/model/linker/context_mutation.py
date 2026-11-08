@@ -2,7 +2,7 @@ from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable, Sequence
 from enum import Enum
 from itertools import product
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Optional
 
 import structlog
 
@@ -12,7 +12,7 @@ from sefaria.model.linker.ref_part import RawRef, RawRefPart, TermContext
 logger = structlog.get_logger(__name__)
 
 
-class ContextMutationOp(str, Enum):
+class ContextMutationOp(str, Enum):  # noqa: UP042 -- StrEnum would change str()/format() output
     ADD = "add"
     SWAP = "swap"
 

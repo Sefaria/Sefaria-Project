@@ -1,6 +1,5 @@
 import csv
 from collections.abc import Iterable
-from typing import List
 
 import django
 import spacy

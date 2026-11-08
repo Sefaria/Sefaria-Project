@@ -1,7 +1,6 @@
 from bisect import bisect_right
 from collections.abc import Callable
 from functools import lru_cache, reduce
-from typing import Dict, List
 
 import regex as re
 from bs4 import BeautifulSoup, Tag

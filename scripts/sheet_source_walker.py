@@ -13,7 +13,7 @@ outsideBiText_sources = 0
 outsideText_sources = 0
 media_sources = 0
 unknown_sources = 0
-unknown_sheets = set([])
+unknown_sheets = set()
 
 
 for sheet in sheets:

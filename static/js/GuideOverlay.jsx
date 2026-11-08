@@ -327,6 +327,7 @@ const GuideOverlay = ({ onClose, guideType, forceShow = false, timeoutLength = 7
                   controls
                   loop
                   autoPlay
+                  // eslint-disable-next-line react/no-unknown-property -- React supports defaultMuted; needed for Safari autoplay
                   defaultMuted // Added to avoid autoplay issues with browsers - specifically Safari
                   muted // Added to avoid autoplay issues with browsers
                   playsInline // Added to avoid autoplay issues on mobile (even though we will likely not show this on mobile)

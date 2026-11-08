@@ -38,7 +38,6 @@ class DiffStore {
       } else {
         if ((seg.search(/^</) === -1) | (seg.search(/>$/) === -1)) {
           alert('Even item in filter not HTML');
-          debugger;
         }
         skipCount += seg.length;
       }
@@ -60,10 +59,6 @@ class DiffStore {
     var charCount = 0,
       validatedDiff = [];
     for (var element of proposedDiff) {
-      if (element[1] === undefined) {
-        debugger;
-      }
-
       var length = element[1].length;
       if (element[0] === 0) {
         validatedDiff.push([0, element[1]]);
@@ -424,7 +419,6 @@ class DiffRow extends Component {
     diff2 = seg2.ValidateDiff(diff2);
 
     if (diff1.length != diff2.length) {
-      debugger;
       console.log('diffs do not match in length');
     }
     for (var i = 0; i < diff1.length; i++) {

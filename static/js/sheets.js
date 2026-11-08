@@ -1,3 +1,4 @@
+/* global $target:writable, button:writable, cleanupActiveSource:writable, curTagName:writable, i:writable, isHebrew:writable, makeRef:writable, normRef:writable, options:writable, parseRef:writable, setLanguageLayoutCheckBoxes:writable, source:writable */
 sjs.flags = {
   saving: false,
   sorting: false,
@@ -113,7 +114,7 @@ $(function () {
         '<audio src="' +
         mediaURL +
         '.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
-    } else if (mediaURL.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?/i) != null) {
+    } else if (mediaURL.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-.]+\/[\w\-.]+\/?/i) != null) {
       embedHTML =
         '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=' +
         mediaURL +
@@ -1944,7 +1945,7 @@ $(function () {
       var selectedText = curHighlighterSegment.text().slice(firstSelectedCharacter, lastSelectedCharacter);
       var textAfter = curHighlighterSegment.text().slice(lastSelectedCharacter);
 
-      highlighterTag = highlighterTag.replace(/\'/g, '&#39;'); //prevents js errors from improperly escaped strings.
+      highlighterTag = highlighterTag.replace(/'/g, '&#39;'); //prevents js errors from improperly escaped strings.
       $(curHighlighterSegment.parent()).after("<div class='highlighterSegment'>" + textAfter + '</div>');
       $(curHighlighterSegment.parent()).after(
         "<div class='highlighterSegment' style='background-color: " +
@@ -2427,7 +2428,7 @@ function addSource(q, source, appendOrInsert, $target) {
     "<a class='he' href='" +
     refLink +
     "' target='_blank'><span class='ref'></span>" +
-    heRef.replace(/\d+(\-\d+)?/g, '').replace(/([0-9][b|a]| ב| א):.+/, '$1') +
+    heRef.replace(/\d+(-\d+)?/g, '').replace(/([0-9][b|a]| ב| א):.+/, '$1') +
     ' </a>' +
     '</span>' +
     "<div class='text'>" +
@@ -2539,7 +2540,7 @@ function loadSource(data, $target, optionStr) {
   var $heTitle = $target.find('.he .title a').eq(0);
   $enTitle.html(humanRef(data.ref).replace(/([0-9][b|a]| ב| א):.+/, '$1')).attr('href', '/' + normRef(data.ref));
   $heTitle
-    .html(data.heRef.replace(/\d+(\-\d+)?/g, '').replace(/([0-9][b|a]| ב| א):.+/, '$1'))
+    .html(data.heRef.replace(/\d+(-\d+)?/g, '').replace(/([0-9][b|a]| ב| א):.+/, '$1'))
     .attr('href', '/' + normRef(data.ref));
 
   var includeNumbers = $.inArray('Talmud', data.categories) == -1;
@@ -3985,18 +3986,19 @@ function deleteSheet() {
 // Regexes for identifying divine names with or without nikkud / trop
 // Currently ignores אֵל & צְבָאוֹת & שדי
 sjs.divineRE =
-  /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C2\u05C4-\u05C7]*|יְיָ|יי|יקוק|ה\')(?=[/(/[<//.,;:׃'"\-\s]|$)/g;
+  /([\s.,\u05BE;:'"-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C2\u05C4-\u05C7]*|יְיָ|יי|יקוק|ה')(?=[/(/[<//.,;:׃'"\-\s]|$)/g;
 
 // don't match אֲדֹנִי
 sjs.adoshemRE =
-  /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05B3\u05B5-\u05C7]*י[\u0591-\u05B3\u05B5-\u05C2\u05C4-\u05C7]*|אדושם)(?=[<\[\(\s.,;:׃'"\-]|$)/g;
+  /([\s.,\u05BE;:'"-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05B3\u05B5-\u05C7]*י[\u0591-\u05B3\u05B5-\u05C2\u05C4-\u05C7]*|אדושם)(?=[<[(\s.,;:׃'"-]|$)/g;
 
 // only allow segol or tzere nikkud, so doesn't match אֲלֵהֶ֖ם or the like
 sjs.elokaiRE =
-  /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו?[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)((י[\u0591-\u05C2\u05C4-\u05C7]*)?[ךיוהםן][\u0591-\u05C2\u05C4-\u05C7]*|(י[\u0591-\u05C7]*)?נ[\u0591-\u05C7]*ו[\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?כ[[\u0591-\u05C2\u05C4-\u05C7]*[םן])(?=[\s<\[\(.,;׃:'"\-]|$)/g;
+  // eslint-disable-next-line no-misleading-character-class -- explicit Unicode ranges for Hebrew points/cantillation are intentional
+  /([\s.,\u05BE;:'"-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו?[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)((י[\u0591-\u05C2\u05C4-\u05C7]*)?[ךיוהםן][\u0591-\u05C2\u05C4-\u05C7]*|(י[\u0591-\u05C7]*)?נ[\u0591-\u05C7]*ו[\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?כ[[\u0591-\u05C2\u05C4-\u05C7]*[םן])(?=[\s<[(.,;׃:'"-]|$)/g;
 
 sjs.elokaRE =
-  /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו[\u0591-\u05C7]*)([הק])([\u0591-\u05C2\u05C4-\u05C7]*)(?=[)(?=[\s<\[\(.,;:׃'"\-]|$)/g;
+  /([\s.,\u05BE;:'"-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו[\u0591-\u05C7]*)([הק])([\u0591-\u05C2\u05C4-\u05C7]*)(?=[)(?=[\s<[(.,;:׃'"-]|$)/g;
 
 //sjs.shadaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(ש[\u0591-\u05C7]*[דק][\u0591-\u05C7]*י[\u0591-\u05C7]*)(?=[\s.,;׃:'"\-]|$)/g;
 

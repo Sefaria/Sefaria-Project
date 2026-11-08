@@ -76,7 +76,7 @@ replacement_pairs += [
 for old, new in replacement_pairs:
     change_tag(old, new)
 
-replacement_dict = {a: b for (a, b) in replacement_pairs}
+replacement_dict = dict(replacement_pairs)
 
 
 # Load current terms
@@ -117,7 +117,7 @@ with open(en_file, "rb") as tfile:
             h.unescape(row[0].decode("utf-8")),
             int(row[1]),
             titlecase(row[2]),
-            list(set([titlecase(x) for x in row[3:] if x])),
+            list({titlecase(x) for x in row[3:] if x}),
         )
         if replacement_dict.get(en_primary):
             if isinstance(replacement_dict.get(en_primary), list):
@@ -168,7 +168,7 @@ with open(en_file, "rb") as tfile:
 
 # Collapse Terms to list and print / save
 
-unique_terms = list(set([o for (k, o) in list(name_to_term_map.items())]))
+unique_terms = list({o for (k, o) in list(name_to_term_map.items())})
 unique_terms.sort(key=lambda t: t.count, reverse=True)
 for term in unique_terms:
     if "-" in term.get_primary_title("en"):

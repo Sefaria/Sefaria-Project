@@ -3,7 +3,6 @@ Topic prompts task for the LLM server
 """
 
 from dataclasses import asdict
-from typing import Dict, List
 
 from celery import signature
 from sefaria_llm_interface.topic_prompt import TopicPromptGenerationOutput

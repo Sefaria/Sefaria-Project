@@ -1,3 +1,4 @@
+/* global bgColor:writable, i:writable, launchOffset:writable, marginOffset:writable, saveFlashShown:writable, toJson:writable, visibleSources:writable, zoomScale:writable */
 $('#container').css({
   width: $('body').css('width'),
   height: $('body').css('height'),
@@ -85,7 +86,6 @@ $('.sheetItem a').attr('target', '_blank');
 //set sources to be draggable & resizable
 $('.sheetItem')
   .resizable({
-    stack: '.source',
     handles: 'se',
     stack: '.sheetItem',
 

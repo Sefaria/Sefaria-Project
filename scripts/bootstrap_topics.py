@@ -43,7 +43,7 @@ django.setup()
 def autoreconnect_query(collection=None, query=None, proj=None, tries=0):
     if collection:
         try:
-            return [d for d in getattr(db, collection).find(query, proj)]
+            return list(getattr(db, collection).find(query, proj))
         except AutoReconnect:
             if tries < 10:
                 return autoreconnect_query(collection=collection, query=query, proj=proj, tries=tries + 1)
@@ -683,7 +683,7 @@ def pre_dedup_topics():
         paths = [path]
         for isa_slug in isa_set:
             if isa_slug not in path:
-                newpaths = get_all_paths(isa_slug, [p for p in path])
+                newpaths = get_all_paths(isa_slug, list(path))
                 for newpath in newpaths:
                     if newpath not in paths:
                         paths += [newpath]
@@ -1319,7 +1319,7 @@ def more_rabbi_matching_oh_boy():
                 row_dict[p] = pval
         rows += [row_dict]
     with open("data/more_rabbi_matching.csv", "w") as fout:
-        c = csv.DictWriter(fout, ["Slug", "En", "He"] + [lt for lt in unique_link_types] + props + ["Link"])
+        c = csv.DictWriter(fout, ["Slug", "En", "He"] + list(unique_link_types) + props + ["Link"])
         c.writeheader()
         c.writerows(rows)
 

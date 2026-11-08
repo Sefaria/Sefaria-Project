@@ -37,7 +37,7 @@ def client():
 
 
 @pytest.fixture(autouse=True)
-def clear_cache(cache):
+def clear_cache(cache):  # noqa: F811 -- pytest fixture param intentionally shadows the module-level `cache` import
     # Clear cache before and after each test
     from django.core.cache import cache
 

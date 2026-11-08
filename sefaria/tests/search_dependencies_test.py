@@ -403,7 +403,7 @@ class TestBookHooks:
             )
             author.save()
             try:
-                book = _make_book(authors=[author.slug])
+                _make_book(authors=[author.slug])
                 try:
                     doc = fake.get(BOOK_INDEX, TEST_BOOK)
                     assert doc is not None
@@ -503,7 +503,7 @@ class TestBookHooks:
         assert logger_spy.warning.called
         summary_calls = [c for c in logger_spy.error.call_args_list if c.kwargs.get("failed_count") == 1]
         assert summary_calls, "expected a summary error naming the one failed segment"
-        assert failing_ref in [ref for ref in summary_calls[0].kwargs["failed_refs"]]
+        assert failing_ref in list(summary_calls[0].kwargs["failed_refs"])
 
 
 @pytest.mark.django_db

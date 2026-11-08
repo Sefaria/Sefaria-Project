@@ -11,6 +11,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterUniqueTogether(
             name="topicoftheday",
-            unique_together=set([("topic", "start_date", "lang")]),
+            unique_together={("topic", "start_date", "lang")},
         ),
     ]

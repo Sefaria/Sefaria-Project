@@ -1,3 +1,4 @@
+/* global require, module, jest */
 // Shared jest.mock factories for Header tests. Header's children are stubbed so the tests cover only
 // Header's own choice of what to render (mobile vs. desktop bar, hidden on mobile text pages).
 const React = require('react');

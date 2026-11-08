@@ -360,7 +360,7 @@ def test_redis_keyspace_loss_triggers_rebuild_through_refresh_fn(fake_redis, no_
 def test_key_prefix_isolates_bump_between_deployments(fake_redis):
     """Deployments sharing one Redis must not see each other's counters."""
     cauldron_a = make_gen_cache(fake_redis, key_prefix="cauldron-a")
-    cauldron_b = make_gen_cache(fake_redis, key_prefix="cauldron-b")
+    make_gen_cache(fake_redis, key_prefix="cauldron-b")
 
     cauldron_a.invalidate("index_map")
 

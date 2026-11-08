@@ -41,7 +41,7 @@ def add_books():
             print(title)
             index = library.get_index(title)
             new_addrs = list(filter(lambda x: len(x), row["New Address Types"].split(",")))
-            if not row["To Add"].strip() == "y":
+            if row["To Add"].strip() != "y":
                 continue
             if row["Has One Title Part"].strip() == "y":
                 title_term = RTM.get_or_create_term_for_titled_obj(index.nodes)

@@ -77,9 +77,11 @@ $stroke-strong: 1.5px;
   &--choose {
     min-height: 535px;
   }
+
   &--login-email {
     min-height: 538px;
   }
+
   &--register-email {
     min-height: 823px;
   }
@@ -87,6 +89,7 @@ $stroke-strong: 1.5px;
   &--register-email.sefaria-auth-card--email-error {
     min-height: 892px;
   }
+
   &--login-email.sefaria-auth-card--email-error {
     min-height: 567px;
   }
@@ -234,6 +237,7 @@ $stroke-strong: 1.5px;
   &-icon {
     align-self: flex-start;
   }
+
   &-content {
     min-width: 0;
   }
@@ -325,6 +329,7 @@ $stroke-strong: 1.5px;
     border-color: $sef-border-default;
     cursor: not-allowed;
     color: var(--medium-grey-legacy);
+
     * {
       color: var(--medium-grey-legacy);
     }

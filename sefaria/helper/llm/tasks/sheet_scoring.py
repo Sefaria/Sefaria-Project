@@ -3,7 +3,7 @@ Sheet scoring task for the LLM server
 """
 
 from dataclasses import asdict
-from typing import Any, Dict
+from typing import Any
 
 from celery import signature
 from sefaria_llm_interface.sheet_scoring import SheetScoringOutput

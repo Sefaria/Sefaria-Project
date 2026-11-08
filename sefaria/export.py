@@ -319,7 +319,7 @@ def prepare_text_for_export(text):
     except Exception as e:
         print("Skipping %s - %s" % (text["title"], str(e)))
         return None
-    if any([n.is_virtual for n in index.nodes.get_leaf_nodes()]):  # skip virtual nodes
+    if any(n.is_virtual for n in index.nodes.get_leaf_nodes()):  # skip virtual nodes
         return None
 
     text["heTitle"] = index.nodes.primary_title("he")
@@ -731,7 +731,7 @@ def export_merged_csv(index, lang=None):
 def import_versions_from_stream(csv_stream, columns, user_id, skip_toc_refresh=False):
     csv.field_size_limit(sys.maxsize)
     reader = csv.reader(csv_stream)
-    rows = [row for row in reader]
+    rows = list(reader)
     return _import_versions_from_csv(rows, columns, user_id, skip_toc_refresh=skip_toc_refresh)
 
 
@@ -746,7 +746,7 @@ def import_versions_from_file(csv_filename, columns, user_id):
     csv.field_size_limit(sys.maxsize)
     with open(csv_filename, "rb") as csvfile:
         reader = csv.reader(csvfile)
-        rows = [row for row in reader]
+        rows = list(reader)
     return _import_versions_from_csv(rows, columns, user_id)
 
 

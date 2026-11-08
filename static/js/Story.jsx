@@ -245,10 +245,10 @@ const reviewStateToDisplayedTextMap = {
 };
 
 const ReviewStateIndicator = ({ topic, topicLink }) => {
+  const [reviewStateByLang, markReviewed] = useReviewState(topic, topicLink);
   if (!topicLink.descriptions) {
     return null;
   }
-  const [reviewStateByLang, markReviewed] = useReviewState(topic, topicLink);
   if (!Sefaria.is_moderator) {
     return null;
   }
@@ -256,7 +256,7 @@ const ReviewStateIndicator = ({ topic, topicLink }) => {
   return (
     <InterfaceText>
       {Object.entries(langComponentMap).map(([lang, LangComponent]) => (
-        <LangComponent>
+        <LangComponent key={lang}>
           <ReviewStateIndicatorLang reviewState={reviewStateByLang[lang]} markReviewed={() => markReviewed(lang)} />
         </LangComponent>
       ))}
@@ -289,7 +289,7 @@ const markReviewedPostRequest = (lang, topic, topicLink) => {
 };
 
 const useReviewState = (topic, topicLink) => {
-  const initialReviewStateByLang = Object.entries(topicLink?.descriptions).reduce((accum, [lang, desc]) => {
+  const initialReviewStateByLang = Object.entries(topicLink?.descriptions ?? {}).reduce((accum, [lang, desc]) => {
     accum[lang] = desc?.review_state;
     return accum;
   }, {});

@@ -1,4 +1,4 @@
-from sefaria.utils.hebrew import encode_hebrew_numeral, encode_small_hebrew_numeral
+from sefaria.utils.hebrew import encode_hebrew_numeral, encode_small_hebrew_numeral, sanitize
 
 
 # Overlapping with AddressTalmud.toString()

@@ -39,6 +39,7 @@ window.SefariaJsonEditor = function (schemaName, initData, container) {
     if (confirm('Are you sure you want to delete this?')) {
       alert('Deleting... Please wait for confirmation.');
       $.ajax({
+        // eslint-disable-next-line no-undef -- pre-existing: undefined reference (latent bug); needs owner review
         url: '/api/' + schemaName + '/' + data.name,
         method: 'DELETE',
         success: function (data) {

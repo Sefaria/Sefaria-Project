@@ -1,3 +1,4 @@
+/* global require, module */
 /**
  * Shared i18n helpers for the newsletter sign-up page tests.
  *

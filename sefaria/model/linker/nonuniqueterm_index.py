@@ -30,7 +30,7 @@ time the rebuild task finishes.
 
 import time
 from collections.abc import Iterator
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 from sefaria.system.cache import (
     delete_shared_cache_elem,

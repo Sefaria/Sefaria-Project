@@ -1,6 +1,6 @@
 import logging
 from collections.abc import Iterable
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from sefaria.helper.llm.tasks.sheet_scoring import generate_and_save_sheet_scoring
 from sefaria.model import Ref  # adjust import if needed

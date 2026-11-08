@@ -15,7 +15,7 @@ const ContentText = (props) => {
    * bilingualOrder is an array of short language notations (e.g. ["he", "en"]) meant to tell the component what
    * order to return the bilingual langauage elements in (as opposed to the unguaranteed order by default).
    */
-  const langAndContentItems = _filterContentTextByLang(props);
+  const langAndContentItems = useFilterContentTextByLang(props);
   return langAndContentItems.map((item) => (
     <ContentSpan key={item[0]} lang={item[0]} content={item[1]} isHTML={!!props.html} markdown={props.markdown} />
   ));
@@ -85,7 +85,7 @@ const VersionImageSpan = ({ lang, content, toFilter, imageLoadCallback }) => {
   );
 };
 
-const _filterContentTextByLang = ({
+const useFilterContentTextByLang = ({
   text,
   html,
   markdown,

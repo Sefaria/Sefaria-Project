@@ -101,7 +101,9 @@ class TestListPrompts:
         assert by_ref["Exodus 20:8"]["published"] is True
 
     def test_filters(self, prompt_topic, ai_link, human_link):
-        refs = lambda **kw: {r["ref"] for r in _list(prompt_topic, **kw)["results"]}
+        def refs(**kw):
+            return {r["ref"] for r in _list(prompt_topic, **kw)["results"]}
+
         assert refs(review_state="not reviewed") == {"Genesis 1:1"}
         assert refs(review_state="none") == {"Exodus 20:8"}
         assert refs(published="false") == {"Genesis 1:1"}
@@ -238,7 +240,10 @@ class TestUpdatePromptConcurrency:
 
     def test_concurrent_edit_to_other_language_is_preserved(self, ai_link):
         concurrent_he = {"title": "כותרת", "prompt": "הנחיה"}
-        set_he = lambda: db.topic_links.update_one({"_id": ai_link._id}, {"$set": {"descriptions.he": concurrent_he}})
+
+        def set_he():
+            return db.topic_links.update_one({"_id": ai_link._id}, {"$set": {"descriptions.he": concurrent_he}})
+
         with _during_write_window(set_he):
             tpa.update_prompt(str(ai_link._id), "en", {"prompt": "English edit"}, _version(ai_link), uid=1)
 
@@ -247,7 +252,9 @@ class TestUpdatePromptConcurrency:
         assert stored["he"] == concurrent_he
 
     def test_concurrent_publish_of_same_language_conflicts(self, ai_link):
-        publish = lambda: db.topic_links.update_one({"_id": ai_link._id}, {"$set": {"descriptions.en.published": True}})
+        def publish():
+            return db.topic_links.update_one({"_id": ai_link._id}, {"$set": {"descriptions.en.published": True}})
+
         with _during_write_window(publish), pytest.raises(tpa.TopicPromptConflict) as e:
             tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, _version(ai_link), uid=1)
 
@@ -256,7 +263,9 @@ class TestUpdatePromptConcurrency:
         assert _stored(ai_link)["en"]["published"] is True
 
     def test_link_deleted_mid_edit_is_not_found(self, ai_link):
-        delete = lambda: db.topic_links.delete_one({"_id": ai_link._id})
+        def delete():
+            return db.topic_links.delete_one({"_id": ai_link._id})
+
         with _during_write_window(delete), pytest.raises(tpa.TopicPromptNotFound):
             tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, _version(ai_link), uid=1)
         assert db.topic_links.find_one({"_id": ai_link._id}) is None
@@ -265,21 +274,25 @@ class TestUpdatePromptConcurrency:
 class TestUpdatePromptFailureSafety:
     def test_audit_insert_failure_leaves_content_unchanged(self, ai_link):
         version = _version(ai_link)
-        with patch.object(tpa.db[tpa.AUDIT_COLLECTION].__class__, "insert_one", side_effect=RuntimeError("audit down")):
-            with pytest.raises(RuntimeError):
-                tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, version, uid=1)
+        with (
+            patch.object(tpa.db[tpa.AUDIT_COLLECTION].__class__, "insert_one", side_effect=RuntimeError("audit down")),
+            pytest.raises(RuntimeError),
+        ):
+            tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, version, uid=1)
         assert _stored(ai_link)["en"]["prompt"] == "AI prompt"
 
     def test_write_failure_marks_audit_failed(self, ai_link):
         version = _version(ai_link)
-        with patch.object(
-            tpa.db[RefTopicLink.collection].__class__,
-            "update_one",
-            autospec=True,
-            side_effect=_fail_only_for(RefTopicLink.collection),
+        with (
+            patch.object(
+                tpa.db[RefTopicLink.collection].__class__,
+                "update_one",
+                autospec=True,
+                side_effect=_fail_only_for(RefTopicLink.collection),
+            ),
+            pytest.raises(RuntimeError),
         ):
-            with pytest.raises(RuntimeError):
-                tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, version, uid=1)
+            tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, version, uid=1)
         assert _stored(ai_link)["en"]["prompt"] == "AI prompt"
         assert db[tpa.AUDIT_COLLECTION].find_one({"link_id": ai_link._id})["status"] == "failed"
 

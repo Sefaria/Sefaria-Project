@@ -185,7 +185,7 @@ def test_alt_struct_editor_path():
 
     leaf = FakeNode()
     root = FakeNode([leaf])
-    wrapper = FakeNode([root])
+    FakeNode([root])
 
     assert ni._alt_struct_editor_path(leaf, "Parasha") == ["__alt__", "Parasha", "0", "0"]
     assert ni._alt_struct_editor_path(root, "Parasha") == ["__alt__", "Parasha", "0"]

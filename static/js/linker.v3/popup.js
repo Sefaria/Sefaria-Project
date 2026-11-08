@@ -243,7 +243,7 @@ export class PopupManager {
 
     // Apply any override styles
     for (let n in this.popupStyles) {
-      if (this.popupStyles.hasOwnProperty(n)) {
+      if (Object.prototype.hasOwnProperty.call(this.popupStyles, n)) {
         this.popUpElem.style[n] = this.popupStyles[n];
       }
     }
@@ -322,6 +322,7 @@ export class PopupManager {
       let enBox = document.createElement('div');
       let heBox = document.createElement('div');
       enBox.innerHTML = en[i] || '';
+      // eslint-disable-next-line no-misleading-character-class -- explicit Unicode ranges for Hebrew points/cantillation are intentional
       heBox.innerHTML = (he[i] || '').replace(/[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g, '');
       enBox.className = 'en' + (!heBox.innerHTML ? ' enOnly' : '');
       heBox.className = 'he' + (!enBox.innerHTML ? ' heOnly' : '');

@@ -26,7 +26,6 @@ jest.mock('../../sefaria/sefaria', () => ({
   default: { _: (key) => key, interfaceLang: 'english' },
 }));
 
-// eslint-disable-next-line import/first
 import ForgotView from '../ForgotView.jsx';
 
 let container = null;

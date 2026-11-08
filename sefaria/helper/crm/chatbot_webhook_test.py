@@ -221,7 +221,7 @@ def test_user():
         email=email,
         password="testpass123",
     )
-    yield user
+    return user
 
 
 @pytest.fixture

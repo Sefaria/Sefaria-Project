@@ -134,7 +134,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             "/.well-known/",
             settings.STATIC_URL,
         )
-        if any([request.path.startswith(start) for start in excluded]):
+        if any(request.path.startswith(start) for start in excluded):
             request.interfaceLang = self._interface_from_request_signals(request)
             request.LANGUAGE_CODE = request.interfaceLang[0:2]
             request.contentLang = "bilingual"
@@ -176,7 +176,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
                 "sefaria-node",
                 "Sefaria/",
             )
-            if any([bot in request.headers.get("user-agent", "") for bot in no_direct]):
+            if any(bot in request.headers.get("user-agent", "") for bot in no_direct):
                 interface = domain_lang
             else:
                 target_domain = get_redirect_domain_for_language(request, interface)

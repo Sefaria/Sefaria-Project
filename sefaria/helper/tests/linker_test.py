@@ -171,18 +171,18 @@ class TestFindRefsHelperClasses:
 
 class TestMakeFindRefsResponse:
     def test_make_find_refs_response_with_meta_data(self, mock_request: WSGIRequest, mock_webpage: Mock):
-        response = linker.make_find_refs_response(mock_request)
+        linker.make_find_refs_response(mock_request)
         mock_webpage.add_hit.assert_called_once()
         mock_webpage.save.assert_called_once()
 
     def test_make_find_refs_response_without_meta_data(self, mock_request_without_meta_data: dict, mock_webpage: Mock):
-        response = linker.make_find_refs_response(mock_request_without_meta_data)
+        linker.make_find_refs_response(mock_request_without_meta_data)
         mock_webpage.add_hit.assert_not_called()
         mock_webpage.save.assert_not_called()
 
     def test_make_find_refs_response_invalid_post_data(self, mock_request_invalid: dict, mock_webpage: Mock):
         with pytest.raises(APIInvalidInputException) as exc_info:
-            response = linker.make_find_refs_response(mock_request_invalid)
+            linker.make_find_refs_response(mock_request_invalid)
         # assert that the 'text' field had a validation error
         assert "text" in exc_info.value.args[0]
 

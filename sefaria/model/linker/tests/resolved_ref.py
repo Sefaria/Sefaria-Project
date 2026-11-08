@@ -116,6 +116,6 @@ def test_contains(
 ):
     self_oref = self_tref and Ref(self_tref)
     other_oref = other_tref and Ref(other_tref)
-    rr_a = ResolvedRef(Mock(), [RefPartAndNodeMatch(tuple(), node_a, True)], self_oref)
-    rr_b = ResolvedRef(Mock(), [RefPartAndNodeMatch(tuple(), node_b, True)], other_oref)
+    rr_a = ResolvedRef(Mock(), [RefPartAndNodeMatch((), node_a, True)], self_oref)
+    rr_b = ResolvedRef(Mock(), [RefPartAndNodeMatch((), node_b, True)], other_oref)
     assert rr_a.contains(rr_b) == is_contained

@@ -12,7 +12,6 @@ import itertools
 import math
 import re
 from collections.abc import Callable
-from typing import List
 
 import regex
 import structlog
@@ -123,7 +122,7 @@ E2H_KEYBOARD_MAP = {
     "z": "\u05d6",
 }
 KEYBOARD_SWAP_MAP = {
-    "/": "q",
+    "/": ".",
     "׳": "w",
     "ק": "e",
     "ר": "r",
@@ -143,7 +142,7 @@ KEYBOARD_SWAP_MAP = {
     "ל": "k",
     "ך": "l",
     "ף": ";",
-    ",": "'",
+    ",": "\u05ea",
     "ז": "z",
     "ס": "x",
     "ב": "c",
@@ -153,11 +152,8 @@ KEYBOARD_SWAP_MAP = {
     "צ": "m",
     "ת": ",",
     "ץ": ".",
-    ".": "/",
-    "'": ",",
-    ",": "\u05ea",
     ".": "\u05e5",
-    "/": ".",
+    "'": ",",
     ";": "\u05e3",
     "A": "\u05e9",
     "B": "\u05e0",

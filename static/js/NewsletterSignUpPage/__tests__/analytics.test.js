@@ -1,3 +1,4 @@
+/* global __dirname */
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';

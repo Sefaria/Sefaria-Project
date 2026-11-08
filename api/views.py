@@ -36,7 +36,7 @@ class Text(View):
         return super().dispatch(request, *args, **kwargs)
 
     @staticmethod
-    def split_piped_params(params_string) -> List[str]:
+    def split_piped_params(params_string) -> list[str]:
         params = params_string.split("|")
         if len(params) < 2:
             params.append("")
@@ -120,7 +120,10 @@ class RefView(View):
         }
 
         if return_object["node_type"] != "SheetNode":
-            norm = lambda r: r.normal() if r else None
+
+            def norm(r):
+                return r.normal() if r else None
+
             return_object["navigation_refs"]["first_available_section_ref"] = norm(
                 oref.first_available_section_ref(vstate=vstate)
             )

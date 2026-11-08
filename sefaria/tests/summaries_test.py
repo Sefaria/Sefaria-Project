@@ -91,7 +91,7 @@ class Test_Toc:
         # do we need to assert that the title is not equal to any category name?
 
     def verify_collection_node_integrity(self, node):
-        expected_keys = set(("name", "slug", "title", "heTitle"))
+        expected_keys = {"name", "slug", "title", "heTitle"}
         assert set(node.keys()) >= expected_keys
         assert "category" not in node
 

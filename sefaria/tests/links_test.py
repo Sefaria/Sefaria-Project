@@ -19,9 +19,9 @@ class Test_get_links:
         r34 = [l["ref"] + l["type"] for l in get_links("Exodus 2:3-4")]
 
         # All links in first segment present in range
-        assert all([r in r34 for r in r3])
+        assert all(r in r34 for r in r3)
         # All links in second segment present in range
-        assert all([r in r34 for r in r4])
+        assert all(r in r34 for r in r4)
         # No links in range absent from segments
         assert all(r in r3 or r in r4 for r in r34)
 

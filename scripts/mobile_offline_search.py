@@ -186,7 +186,7 @@ def get_words(text):
     text = text.replace(" \u05d5", " ")
 
     words = text.split()
-    words = set(words) - set([""])
+    words = set(words) - {""}
     # print('diff')
     # print(' '.join(words - set(bf_text.split(' '))))
     # print(' '.join(set(bf_text.split(' ')) - words))
@@ -256,7 +256,7 @@ def convert_to_josh_packets(words_2_ref_nums):
         # if word != TEST_WORD: continue
         packets = []
 
-        chunk_nums = set([ref_num / chunk_size for ref_num in ref_nums])
+        chunk_nums = {ref_num / chunk_size for ref_num in ref_nums}
 
         # bitstring = blank_bitstring.copy()
         ##for chunk_index in chunk_nums:
@@ -296,7 +296,7 @@ def convert_to_josh_packets(words_2_ref_nums):
 
 def store(conn, data, table_name, two_cols=None, value_type_text=None, split_tup=None, id_key_text=None):
     if value_type_text:
-        data = {i: value for i, value in enumerate(data)}
+        data = dict(enumerate(data))
         if split_tup:
             values = [(str(v[0]), str(v[1])) for k, v in data.items()]
         else:

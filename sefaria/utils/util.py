@@ -23,8 +23,11 @@ epoch = datetime.utcfromtimestamp(0)
 def epoch_time(since=None):
     if since is None:
         since = datetime.utcnow()
+
     # define total_seconds which exists in Python3
-    total_seconds = lambda delta: int(delta.days * 86400 + delta.seconds + delta.microseconds / 1e6)
+    def total_seconds(delta):
+        return int(delta.days * 86400 + delta.seconds + delta.microseconds / 1e6)
+
     return total_seconds(since - epoch)
 
 
@@ -99,7 +102,7 @@ def list_depth(x, deep=False):
     """
     if isinstance(x, int):
         return 0
-    if len(x) > 0 and (deep or all([isinstance(y, list) for y in x])):
+    if len(x) > 0 and (deep or all(isinstance(y, list) for y in x)):
         return 1 + max([list_depth(y, deep=deep) for y in x])
     return 1
 
@@ -617,7 +620,7 @@ def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_stat
         for lang_code, _ in filter(
             lambda x: (
                 x[1]["population_percent"] >= (min_pop_perc * 100)
-                and ((official_status == False) or x[1]["official_status"] == official_status)
+                and ((official_status is False) or x[1]["official_status"] == official_status)
             ),
             lang_dict.items(),
         )
@@ -686,7 +689,10 @@ def get_size(obj, seen=None):
     return size
 
 
-def graceful_exception(logger=None, logLevel="exception", return_value=[], exception_type=Exception):
+_UNSET = object()  # sentinel so an explicit `return_value=None` stays distinguishable from "not given"
+
+
+def graceful_exception(logger=None, logLevel="exception", return_value=_UNSET, exception_type=Exception):
     def argumented_decorator(func):
         @wraps(func)
         def decorated_function(*args, **kwargs):
@@ -695,7 +701,7 @@ def graceful_exception(logger=None, logLevel="exception", return_value=[], excep
             except exception_type as e:
                 if logger:
                     logger.exception(str(e)) if logLevel == "exception" else logger.warning(str(e))
-            return return_value
+            return [] if return_value is _UNSET else return_value
 
         return decorated_function
 

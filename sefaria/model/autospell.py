@@ -6,7 +6,6 @@ http://scottlobdell.me/2015/02/writing-autocomplete-engine-scratch-python/
 import math
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import List
 
 import datrie
 import re2 as re
@@ -816,7 +815,7 @@ class NGramMatcher:
                 if not token:
                     continue
                 self.token_to_titles[token].append((title, tokens))
-        for k in self.token_to_titles.keys():
+        for k in self.token_to_titles:
             self.token_trie[k] = 1
 
     def _get_real_tokens_from_possible_n_grams(self, tokens):

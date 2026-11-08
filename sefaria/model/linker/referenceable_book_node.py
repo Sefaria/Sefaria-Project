@@ -4,7 +4,7 @@ import re
 from bisect import bisect_right
 from collections import defaultdict
 from threading import Lock
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import structlog
 
@@ -13,6 +13,9 @@ from sefaria.model import schema, text
 from sefaria.model.passage import Passage, PassageSet
 from sefaria.system.exceptions import InputError
 from sefaria.utils.hebrew import hebrew_term
+
+if TYPE_CHECKING:
+    from sefaria.model.linker.ref_part import SectionContext
 
 logger = structlog.get_logger(__name__)
 

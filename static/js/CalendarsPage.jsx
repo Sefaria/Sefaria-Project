@@ -27,7 +27,9 @@ const CalendarsPage = ({ multiPanel, initialWidth }) => {
   const weeklyCalendars = ['Daf a Week'];
 
   const makeListings = (list) =>
-    calendars.filter((c) => list.indexOf(c.title.en) != -1).map((c) => <CalendarListing calendar={c} />);
+    calendars
+      .filter((c) => list.indexOf(c.title.en) != -1)
+      .map((c) => <CalendarListing key={c.title.en} calendar={c} />);
 
   const parashaListings = makeListings(parashaCalendars);
   const dailyListings = makeListings(dailyCalendars);

@@ -18,9 +18,7 @@ jest.mock('../HeaderAutocomplete', () => ({
 }));
 jest.mock('../common/Button', () => ({ __esModule: true, default: require('./headerTestMocks').stub('Button') }));
 
-// eslint-disable-next-line import/first
 import { Header } from '../Header';
-// eslint-disable-next-line import/first
 import { headerProps, textPanel } from './headerTestMocks';
 
 const render = (props) => ReactDOMServer.renderToString(<Header {...headerProps(props)} />);

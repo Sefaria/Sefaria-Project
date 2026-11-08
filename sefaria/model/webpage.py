@@ -606,7 +606,7 @@ def find_webpages_without_websites(webpages, test=True, hit_threshold=50, last_l
             )
 
     for site, hits in unactive_unacknowledged_sites.items():
-        if site not in new_active_sites.keys():  # if True, site has not been updated recently
+        if site not in new_active_sites:  # if True, site has not been updated recently
             print(f"Deleting {site} with {len(unactive_unacknowledged_sites[site])} pages")
             for webpage in unactive_unacknowledged_sites[site]:
                 if not test:

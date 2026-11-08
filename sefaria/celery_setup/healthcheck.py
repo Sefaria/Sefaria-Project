@@ -29,7 +29,7 @@ def check_worker_ping(app, timeout=5):
         # If you want to ensure *this* pod is registered:
         this_host = socket.gethostname()
         # Celery default name is "celery@<hostname>" unless overridden with -n
-        return any(this_host in k for k in res.keys())
+        return any(this_host in k for k in res)
     except Exception:
         return False
 

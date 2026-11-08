@@ -254,7 +254,7 @@ invalids = [
 @pytest.mark.parametrize("data", valids)
 def test_valid_schema(data):
     p = Portal(data)
-    assert p._validate() == True
+    assert p._validate() is True
 
 
 @pytest.mark.parametrize("invalid_case", invalids)

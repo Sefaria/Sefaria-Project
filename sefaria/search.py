@@ -1161,8 +1161,11 @@ class TextIndexer:
         if not size_map:
             logger.warning("No size map provided - falling back to uniform weights, shard memory may be unbalanced")
         size_map = size_map or {}
+
         # no versions_by_index here to fall back on for weight, so use a constant
-        weight_fn = lambda key: size_map.get(key[0], 1)
+        def weight_fn(key):
+            return size_map.get(key[0], 1)
+
         return cls._snake_assign(keys, shard_index, shard_count, weight_fn)
 
     @classmethod
@@ -1172,7 +1175,10 @@ class TextIndexer:
         if not size_map:
             logger.warning("No size map provided - falling back to uniform weights, shard memory may be unbalanced")
         size_map = size_map or {}
-        weight_fn = lambda key: size_map.get(key[0], len(versions_by_index[key]))
+
+        def weight_fn(key):
+            return size_map.get(key[0], len(versions_by_index[key]))
+
         selected_keys = cls._snake_assign(versions_by_index.keys(), shard_index, shard_count, weight_fn)
         return {key: versions_by_index[key] for key in versions_by_index if key in selected_keys}
 

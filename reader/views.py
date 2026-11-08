@@ -756,7 +756,7 @@ def make_panel_dict(oref, primaryVersion, translationVersion, filter, versionFil
             settings_override.update({"aliyotTorah": aliyotOverride})
         if settings_override:
             panel["settings"] = settings_override
-        if mode != "Connections" and oref != None:
+        if mode != "Connections" and oref is not None:
             primary_params = [primaryVersion["languageFamilyName"], primaryVersion["versionTitle"]]
             primary_params[0] = primary_params[0] or "primary"
             translation_params = [translationVersion["languageFamilyName"], translationVersion["versionTitle"]]
@@ -971,7 +971,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     """
     Handles views of ReaderApp that involve texts, connections, and text table of contents in panels.
     """
-    if sheet == None:
+    if sheet is None:
         try:
             primary_ref = oref = Ref(ref)
             if primary_ref.book == "Sheet":
@@ -996,7 +996,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     noindex = False
 
-    if sheet == None:
+    if sheet is None:
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
         kwargs = {
             "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
@@ -1022,7 +1022,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             oref, primaryVersion, translationVersion, filter, versionFilter, multi_panel, **kwargs
         )
 
-    elif sheet == True:
+    elif sheet is True:
         panels += make_sheet_panel_dict(
             ref, filter, panelDisplayLanguage=request.GET.get("lang", request.contentLang), referer=request.path
         )
@@ -1086,7 +1086,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialNavigationTopicCategory": None,
         "initialNavigationTopicTitle": None,
     }
-    if sheet == None:
+    if sheet is None:
         ref_text = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
         title = get_page_title(ref_text, module=request.active_module, page_type=PageTypes.TEXT)
         breadcrumb = ld_cat_crumbs(request, oref=primary_ref)
@@ -2187,20 +2187,20 @@ def texts_api(request, tref):
             # future deprecation.
             from sefaria.model.legacy_text import TextFamily
 
-            text_family_kwargs = dict(
-                version=versionEn,
-                lang="en",
-                version2=versionHe,
-                lang2="he",
-                commentary=commentary,
-                context=context,
-                pad=pad,
-                alts=alts,
-                wrapLinks=wrapLinks,
-                stripItags=stripItags,
-                translationLanguagePreference=translationLanguagePreference,
-                fallbackOnDefaultVersion=fallbackOnDefaultVersion,
-            )
+            text_family_kwargs = {
+                "version": versionEn,
+                "lang": "en",
+                "version2": versionHe,
+                "lang2": "he",
+                "commentary": commentary,
+                "context": context,
+                "pad": pad,
+                "alts": alts,
+                "wrapLinks": wrapLinks,
+                "stripItags": stripItags,
+                "translationLanguagePreference": translationLanguagePreference,
+                "fallbackOnDefaultVersion": fallbackOnDefaultVersion,
+            }
             try:
                 text = TextFamily(oref, **text_family_kwargs).contents()
             except AttributeError:
@@ -2420,7 +2420,7 @@ def complete_version_api(request):
         return jsonResponse({"error": "Missing title in 'json' parameter."})
 
     try:
-        index = library.get_index(title.replace("_", " "))
+        library.get_index(title.replace("_", " "))
     except BookNameError:
         return jsonResponse({"error": f"No index named: {title}"})
 
@@ -2701,7 +2701,7 @@ def counts_api(request, title):
             if not flag:
                 return jsonResponse({"error": "'flag' parameter missing."})
             val = request.GET.get("val", None)
-            val = True if val == "true" else False
+            val = val == "true"
 
             vs = VersionState(title)
             if not vs:
@@ -2799,7 +2799,7 @@ def shape_api(request, title):
         # Category
         else:
             cat_list = title.split("/")
-            depth = request.GET.get("depth", 2)
+            request.GET.get("depth", 2)
             include_dependents = bool(int(request.GET.get("dependents", False)))
             indexes = []
             if len(cat_list) == 1:
@@ -2869,7 +2869,6 @@ def links_api(request, link_id_or_ref=None):
     """
 
     def _internal_do_post(request, obj, uid, method, skip_check, override_preciselink):
-        responses = []
         if isinstance(obj, dict):
             obj = [obj]
         links = []
@@ -3080,7 +3079,7 @@ def all_notes_api(request):
                 note.contents(with_string_id=True) for note in NoteSet({"owner": request.user.id}, sort=[("_id", -1)])
             ]
     else:
-        resr = {"error": "Not implemented."}
+        pass
     return jsonResponse(res, callback=request.GET.get("callback", None))
 
 
@@ -3460,7 +3459,7 @@ def parasha_data_api(request):
     datetime_obj = timezone.localtime(timezone.now())
     if diaspora not in ["0", "1"]:
         return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
-    diaspora = True if diaspora == "1" else False
+    diaspora = diaspora == "1"
     db_parasha = get_parasha(datetime_obj, diaspora=diaspora)
     return jsonResponse(make_parashah_response_from_calendar_entry(db_parasha, include_topic_slug=True)[0])
 
@@ -3490,7 +3489,7 @@ def calendars_api(request):
 
         if diaspora not in ["0", "1"]:
             return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
-        diaspora = True if diaspora == "1" else False
+        diaspora = diaspora == "1"
         calendars = get_all_calendar_items(datetimeobj, diaspora=diaspora, custom=custom)
         return jsonResponse(
             {"date": datetimeobj.date().isoformat(), "timezone": datetimeobj.tzinfo.zone, "calendar_items": calendars},
@@ -5416,7 +5415,7 @@ def digitized_by_sefaria(request):
 
 def parashat_hashavua_redirect(request):
     """Redirects to this week's Parashah"""
-    diaspora = request.GET.get("diaspora", "1")
+    request.GET.get("diaspora", "1")
     calendars = get_keyed_calendar_items()  # TODO Support israel / customs
     parashah = calendars["Parashat Hashavua"]
     return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
@@ -5521,7 +5520,6 @@ def translations_api(request, lang=None):
                     "index.order": 1,
                     "index.collective_title": 1,
                     "index.title": 1,
-                    "index.order": 1,
                     "languageFamilyName": 1,
                     "versionTitle": 1,
                     "language": 1,
@@ -5566,16 +5564,7 @@ def translations_api(request, lang=None):
                     and my_index_info["dependence"] == "Commentary"
                     and lang in bundle_commentaries_langs
                 ):
-                    if (
-                        len(
-                            list(
-                                filter(
-                                    lambda x: True if x["title"] == my_index_info["collective_title"] else False, cur
-                                )
-                            )
-                        )
-                        > 0
-                    ):
+                    if len(list(filter(lambda x: x["title"] == my_index_info["collective_title"], cur))) > 0:
                         continue
                     try:
                         to_add["title"] = my_index_info["collective_title"]

@@ -1,6 +1,5 @@
 from functools import partial
 
-from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.urls import path, re_path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView

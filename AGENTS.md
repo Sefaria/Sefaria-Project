@@ -92,6 +92,14 @@ No Redux. State lives in React component state, a few Contexts, and the global `
 
 Linker disambiguation, LLM calls, search indexing, CRM syncs, and email are all Celery tasks. Never block an HTTP request on an LLM call.
 
+### 9. Linting & Formatting
+
+Python is linted/formatted with Ruff (`pyproject.toml`), JS/JSX with ESLint + Prettier, SCSS with Stylelint + Prettier.
+A husky pre-commit hook and the `Linting` GitHub workflow enforce it. Run `npm run lint` / `npm run lint:py` to check and
+`npm run lint:fix` to auto-fix. Don't reformat unrelated code in feature PRs. Deferred rules live in the `ignore` lists
+with explanatory comments. See [`docs/linting.md`](./docs/linting.md); the one-time bulk cleanup procedure is in
+[`docs/runbooks/linting-rollout.md`](./docs/runbooks/linting-rollout.md).
+
 ## External References
 
 - **Public API docs**: https://developers.sefaria.org/docs/welcome

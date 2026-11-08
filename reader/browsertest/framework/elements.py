@@ -258,7 +258,6 @@ class SefariaTest(AbstractTest):
         return self
 
     def load_toc(self, my_temper=None):
-        temper = my_temper or TEMPER  # This is used at startup, which can be sluggish on iPhone.
         self.load_url("/texts", ".navBlockTitle")
         return self
 
@@ -673,7 +672,7 @@ class SefariaTest(AbstractTest):
 
     def is_object_displayed(self, css_selector):
         try:
-            aliyot = self.driver.find_element_by_css_selector(css_selector)
+            self.driver.find_element_by_css_selector(css_selector)
             return True  # would through an exception otherwise, handled below
         except NoSuchElementException:
             return False
@@ -1242,7 +1241,7 @@ class Trial:
         self.build = build
         self.tests = get_every_build_tests(get_all_tests()) if tests is None else tests
         self._results = TestResultSet()
-        self.parallel = parallel if parallel is not None else False if self.is_local else True
+        self.parallel = parallel if parallel is not None else not self.is_local
         if self.parallel:
             self.thread_count = SAUCE_MAX_THREADS
 
@@ -1509,6 +1508,6 @@ class one_of_these_texts_present_in_element:
     def __call__(self, driver):
         try:
             element_text = _find_element(driver, self.locator).text
-            return any([t in element_text for t in self.text])
+            return any(t in element_text for t in self.text)
         except StaleElementReferenceException:
             return False

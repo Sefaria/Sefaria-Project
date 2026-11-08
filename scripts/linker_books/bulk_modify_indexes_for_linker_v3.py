@@ -359,7 +359,7 @@ class ReusableTermCreator:
             }
 
         # TALMUD
-        minor_tractates = {title for title in library.get_indexes_in_category("Minor Tractates")}
+        minor_tractates = set(library.get_indexes_in_category("Minor Tractates"))
         indexes = library.get_indexes_in_category("Bavli", full_records=True)
         for index in tqdm(indexes, desc="talmud", total=indexes.count()):
             if index.title in minor_tractates:
@@ -1049,7 +1049,7 @@ class SpecificConverterManager:
             return [MatchTemplate([title_slug])]
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
-            if not node.get_primary_title("en") == "Zohar Chadash":
+            if node.get_primary_title("en") != "Zohar Chadash":
                 return {"referenceableSections": [False]}
 
         converter = LinkerCategoryConverter(

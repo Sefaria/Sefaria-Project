@@ -133,7 +133,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     server = args.server
     key = args.key
-    restore = True if args.restore == "1" else False
+    restore = args.restore == "1"
     samuel_path = "orig_samuel_links.json"
     joshua_path = "orig_joshua_links.json"
     additional_samuel_path = "new_samuel_links.json"

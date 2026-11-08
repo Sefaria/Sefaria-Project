@@ -249,7 +249,7 @@ class Link(abst.AbstractMongoRecord):
 class LinkSet(abst.AbstractMongoSet):
     recordClass = Link
 
-    def __init__(self, query_or_ref={}, page=0, limit=0):
+    def __init__(self, query_or_ref=None, page=0, limit=0):
         """
         LinkSet can be initialized with a query dictionary, as any other MongoSet.
         It can also be initialized with a :py:class: `sefaria.text.Ref` object,
@@ -262,7 +262,7 @@ class LinkSet(abst.AbstractMongoSet):
             ref_clauses += [{"expandedRefs1": {"$regex": r}} for r in regex_list]
             super().__init__({"$or": ref_clauses}, page, limit)
         except AttributeError:
-            super().__init__(query_or_ref, page, limit)
+            super().__init__(query_or_ref if query_or_ref is not None else {}, page, limit)
 
     def filter(self, sources):
         """

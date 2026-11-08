@@ -35,7 +35,7 @@ cr = csv.reader(StringIO(data))
 rows = list(cr)[2:]
 indexes_handled = [row[0] for row in rows]
 
-unhandled = set([i.primary_title() for i in library.get_index_forest()]) - set(indexes_handled)
+unhandled = {i.primary_title() for i in library.get_index_forest()} - set(indexes_handled)
 if len(unhandled) > 0:
     print("Indexes not covered in the sheet:")
     for a in sorted(unhandled):
@@ -53,7 +53,7 @@ for l in rows:
         current_authors = set(getattr(i, "authors", []) or [])
     except TypeError:
         current_authors = set()
-    sheet_authors = set([a.strip() for a in l[1].split(",") if AuthorTopic.is_author(a.strip())])
+    sheet_authors = {a.strip() for a in l[1].split(",") if AuthorTopic.is_author(a.strip())}
     if sheet_authors != current_authors:
         i.authors = list(sheet_authors)
         needs_save = True

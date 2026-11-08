@@ -31,7 +31,7 @@ class Test_Link_Save:
                 "refs": ["Avi Ezer, Deuteronomy 10:16:1", "Deuteronomy 10:16"],
             }
         )
-        with pytest.raises(DuplicateRecordError) as e_info:
+        with pytest.raises(DuplicateRecordError):
             link._pre_save()
 
     def test_duplicate_links_reversed_order(self):
@@ -43,7 +43,7 @@ class Test_Link_Save:
                 "refs": ["Deuteronomy 10:16", "Avi Ezer, Deuteronomy 10:16:1"],
             }
         )
-        with pytest.raises(DuplicateRecordError) as e_info:
+        with pytest.raises(DuplicateRecordError):
             link._pre_save()
 
     def test_more_precise_links(self):
@@ -130,7 +130,7 @@ class Test_Link_Save:
                 "refs": ["Psalms 1:1-6", "Siddur Ashkenaz, Weekday, Maariv, Vehu Rachum 1"],
             }
         )
-        with pytest.raises(DuplicateRecordError) as e_info:
+        with pytest.raises(DuplicateRecordError):
             link2.save()
         l1.delete()
 
@@ -154,7 +154,7 @@ class Test_Link_Save:
                 "refs": ["Psalms 1", "Siddur Ashkenaz, Weekday, Maariv, Vehu Rachum 1"],
             }
         )
-        with pytest.raises(DuplicateRecordError) as e_info:
+        with pytest.raises(DuplicateRecordError):
             link2.save()
         l1.delete()
 
@@ -178,7 +178,7 @@ class Test_Link_Save:
                 "refs": ["Psalms 1", "Siddur Ashkenaz, Weekday, Maariv, Vehu Rachum 1"],
             }
         )
-        with pytest.raises(DuplicateRecordError) as e_info:
+        with pytest.raises(DuplicateRecordError):
             link2.save()
         l1.delete()
 
@@ -192,4 +192,4 @@ class Test_Link_Save:
                     "refs": [ref, "Ramban on Genesis 2:1"],
                 }
             )
-            assert link._pre_save() == None
+            assert link._pre_save() is None

@@ -15,11 +15,8 @@ jest.mock('../HeaderAutocomplete', () => ({
 }));
 jest.mock('../common/Button', () => ({ __esModule: true, default: require('./headerTestMocks').stub('Button') }));
 
-// eslint-disable-next-line import/first
 import Sefaria from '../sefaria/sefaria';
-// eslint-disable-next-line import/first
 import { Header } from '../Header';
-// eslint-disable-next-line import/first
 import { headerProps, textPanel } from './headerTestMocks';
 
 describe('Header in a browser', () => {

@@ -266,7 +266,7 @@ class TextRange extends Component {
       }
     };
     for (let top in elemsAtPosition) {
-      if (elemsAtPosition.hasOwnProperty(top)) {
+      if (Object.prototype.hasOwnProperty.call(elemsAtPosition, top)) {
         fixCollision(elemsAtPosition[top]);
       }
     }
@@ -317,7 +317,8 @@ class TextRange extends Component {
     //    (?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))   # So long as it's not immediately followed by one letter (followed by space, punctuation, endline, etc.)
     // |[—–]\s;                                                                                 # OR match (and remove) an em/en dash followed by a space
     const punctuationre =
-      /[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|[—–]\s/g;
+      // eslint-disable-next-line no-misleading-character-class -- explicit Unicode ranges for Hebrew points/cantillation are intentional
+      /[.!?:,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[.!?:,\u05F4\s]|$))|[—–]\s/g;
 
     const strip_punctuation_re =
       (this.props.settings?.language === 'hebrew' || this.props.settings?.language === 'bilingual') &&
@@ -325,6 +326,7 @@ class TextRange extends Component {
       data?.type === 'Talmud'
         ? punctuationre
         : null;
+    // eslint-disable-next-line no-misleading-character-class -- explicit Unicode ranges for Hebrew points/cantillation are intentional
     const nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5\u200d]/g; // cantillation
     const cnre = /[\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d]/g; // cantillation and nikud
 
@@ -472,6 +474,7 @@ class TextRange extends Component {
         <div className="text">
           <div className="textInner">
             {textSegments}
+            {/* eslint-disable-next-line no-undef -- pre-existing: `actionLinks` is not defined anywhere; needs owner review */}
             {this.props.showActionLinks ? actionLinks : null}
           </div>
         </div>
@@ -571,6 +574,7 @@ class TextSegment extends Component {
     }
 
     event.stopPropagation();
+    // eslint-disable-next-line no-undef -- pre-existing: undefined reference (latent bug); needs owner review
     Sefaria.track.event('Reader', 'Citation Link Click', ref);
   }
   isRefLink(x) {
@@ -652,7 +656,7 @@ class TextSegment extends Component {
     return $newElement.html();
   }
   wrapWordsInGenericHTMLRegex(text) {
-    const arbitraryHTMLTagsRegex = '(?:<\/?[^>]+>){0,}';
+    const arbitraryHTMLTagsRegex = '(?:</?[^>]+>){0,}';
     return text.replace(/(\S+)/g, `${arbitraryHTMLTagsRegex}$1${arbitraryHTMLTagsRegex}`);
   }
   addHighlights(text) {

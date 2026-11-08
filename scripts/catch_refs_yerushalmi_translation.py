@@ -3,7 +3,7 @@ import json
 import re
 from collections import defaultdict
 from io import StringIO
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import django
 from bs4 import BeautifulSoup

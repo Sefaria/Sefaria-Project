@@ -1,3 +1,4 @@
+/* global ReactDOM */
 import React from 'react';
 import Component from 'react-class';
 import PropTypes from 'prop-types';
@@ -174,9 +175,9 @@ class CollectionPage extends Component {
     if (filter) {
       return (
         <div className="emptyMessage sans-serif">
-          <InterfaceText>collection_page.no_sheets_matching</InterfaceText>; "
+          <InterfaceText>collection_page.no_sheets_matching</InterfaceText>; &quot;
           <InterfaceText text={{ en: filter, he: filter }} />
-          ".
+          &quot;.
         </div>
       );
     } else if (this.isMember()) {
@@ -210,8 +211,9 @@ class CollectionPage extends Component {
           this.props.searchInCollection(filter, this.state.collectionData.name);
         }}
       >
-        <InterfaceText>collection_page.search_the_full_text_of_this_collection_for</InterfaceText>"
-        <InterfaceText text={{ en: filter, he: filter }} />" »
+        <InterfaceText>collection_page.search_the_full_text_of_this_collection_for</InterfaceText>&quot;
+        <InterfaceText text={{ en: filter, he: filter }} />
+        &quot; »
       </a>
     );
   }
@@ -436,6 +438,7 @@ const CollectionContentsTab = ({ collection, setFilter }) => {
           <ResponsiveNBox
             content={tagGroup.contents.map((tag) => (
               <a
+                key={tag}
                 href={`/collections/${collection.slug}?tag=${tag}`}
                 data-target-module={Sefaria.VOICES_MODULE}
                 className="collectionContentsTag"
@@ -506,7 +509,7 @@ class CollectionInvitationBox extends Component {
   }
   validateEmail(email) {
     var re =
-      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
   }
   render() {

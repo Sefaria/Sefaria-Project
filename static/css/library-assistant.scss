@@ -2,7 +2,6 @@
 // pages: its entry points (the header pill, the phone menu item, the empty-search link) and how
 // the page makes room for it. Its colors are --chatbot-purple / --chatbot-purple-hover
 // (color-palette.css). Loaded right after s2.css (templates/base.html).
-//
 // The header's flex catch-all excludes the pill in header.scss's $exclude-flex.
 
 // --- The page around the widget ---

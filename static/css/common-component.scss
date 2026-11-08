@@ -81,7 +81,8 @@ $stroke-strong: 1.5px;
     font-size: $font-size-field;
     line-height: 1.45;
     outline: none;
-    appearance: none;
+    /* stylelint-disable-next-line property-no-vendor-prefix -- keep -webkit- fallback for older Safari */
+    -webkit-appearance: none;
     appearance: none;
 
     &::placeholder {
@@ -93,6 +94,7 @@ $stroke-strong: 1.5px;
     &:hover:not(:disabled) {
       border-color: var(--medium-grey-legacy);
     }
+
     &:focus {
       border-color: var(--light-grey);
     }

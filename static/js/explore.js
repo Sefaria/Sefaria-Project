@@ -699,9 +699,9 @@ function brushstart() {
 function brushmove() {
   //We are assuming that source is bottom and target is top
   svg.selectAll('.preciseLink').classed('selected', function (d) {
-    if (!brushes.hasOwnProperty(topCat) || brushes[topCat] == null) {
+    if (!Object.prototype.hasOwnProperty.call(brushes, topCat) || brushes[topCat] == null) {
       return brushes[bottomCat].extent()[0] <= d.sourcex && d.sourcex <= brushes[bottomCat].extent()[1];
-    } else if (!brushes.hasOwnProperty(bottomCat) || brushes[bottomCat] == null) {
+    } else if (!Object.prototype.hasOwnProperty.call(brushes, bottomCat) || brushes[bottomCat] == null) {
       return brushes[topCat].extent()[0] <= d.targetx && d.targetx <= brushes[topCat].extent()[1];
     } else {
       // 2 brushes
@@ -719,8 +719,10 @@ function brushend() {
   d3.event.target['b_active'] = false;
   svg.classed(
     'selecting',
-    (brushes.hasOwnProperty(topCat) && brushes[topCat] != null && !brushes[topCat].empty()) ||
-      (brushes.hasOwnProperty(bottomCat) && brushes[bottomCat] != null && !brushes[bottomCat].empty())
+    (Object.prototype.hasOwnProperty.call(brushes, topCat) && brushes[topCat] != null && !brushes[topCat].empty()) ||
+      (Object.prototype.hasOwnProperty.call(brushes, bottomCat) &&
+        brushes[bottomCat] != null &&
+        !brushes[bottomCat].empty())
   );
 }
 
@@ -1262,9 +1264,6 @@ function replaceAll(str, ol, nw) {
   return str.split(ol).join(nw);
 }
 function toId(title) {
-  if (!title) {
-    debugger;
-  }
   title = replaceAll(title, "'", '-aa-');
   title = replaceAll(title, ',', '-c-');
   return replaceAll(title, ' ', '-');

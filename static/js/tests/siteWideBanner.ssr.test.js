@@ -11,7 +11,6 @@ import ReactDOMServer from 'react-dom/server';
 jest.mock('../sefaria/sefaria', () => ({ __esModule: true, default: { _: (k) => k, util: {} } }));
 jest.mock('../sefaria/sefariaJquery', () => ({ __esModule: true, default: {} }));
 
-// eslint-disable-next-line import/first
 import { SiteWideBanner } from '../SiteWideBanner';
 
 describe('SiteWideBanner under Node SSR', () => {

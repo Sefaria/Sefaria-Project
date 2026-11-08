@@ -3,7 +3,7 @@ Celery tasks for the LLM server
 """
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import structlog
 from bson import ObjectId
@@ -104,7 +104,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     Returns a payload for the next task in the chain:
       {
         "ref": <str>,
-        "linked_refs": <List[str]>,
+        "linked_refs": <list[str]>,
         "text_id": <optional>,
         "user_id": <optional>,
         "tracker_kwargs": <optional dict>

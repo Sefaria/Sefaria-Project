@@ -9,7 +9,6 @@ same edit-distance comparison against the query.
 """
 
 from collections.abc import Callable, Hashable, Iterable, Sequence
-from typing import Dict, FrozenSet, Set, Tuple
 
 from sefaria.helper.top_n_grams_for_search_autocorrect import build_phrase_trie, keep_max, tie_break_score, tokenize
 

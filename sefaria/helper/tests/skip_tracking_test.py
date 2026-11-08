@@ -223,12 +223,11 @@ class TestBreakers:
         log = MagicMock()
         skip_bad_record = bad_record_guard(log)
         seen = 0
-        with thresholds(signature=3):
-            with pytest.raises(BuildDegradationError, match="signature breaker trip") as exc_info:
-                for i in range(50):
-                    with skip_bad_record("startup", "topic mapping", record=f"topic{i}"):
-                        seen += 1
-                        raise AttributeError("'Topic' object has no attribute 'slug'")
+        with thresholds(signature=3), pytest.raises(BuildDegradationError, match="signature breaker trip") as exc_info:
+            for i in range(50):
+                with skip_bad_record("startup", "topic mapping", record=f"topic{i}"):
+                    seen += 1
+                    raise AttributeError("'Topic' object has no attribute 'slug'")
 
         # Aborted ON the 3rd record, not after draining all 50.
         assert seen == 3
@@ -249,14 +248,16 @@ class TestBreakers:
         log = MagicMock()
         skip_bad_record = bad_record_guard(log)
         inner_calls = 0
-        with thresholds(signature=3), pytest.raises(BuildDegradationError):
-            # Outer guard, standing in for the parent node in a recursive walk.
-            with skip_bad_record("startup", "TocTree.serialize node", record="parent"):
-                for i in range(50):
-                    # Inner guard, standing in for the children of that node.
-                    with skip_bad_record("startup", "TocTree.serialize node", record=f"child{i}"):
-                        inner_calls += 1
-                        raise AttributeError("'Topic' object has no attribute 'slug'")
+        with (
+            thresholds(signature=3),
+            pytest.raises(BuildDegradationError),
+            skip_bad_record("startup", "TocTree.serialize node", record="parent"),
+        ):
+            for i in range(50):
+                # Inner guard, standing in for the children of that node.
+                with skip_bad_record("startup", "TocTree.serialize node", record=f"child{i}"):
+                    inner_calls += 1
+                    raise AttributeError("'Topic' object has no attribute 'slug'")
 
         # Stopped at the threshold instead of grinding through all 50 children.
         assert inner_calls == 3
@@ -279,12 +280,14 @@ class TestBreakers:
         many different ways, e.g. a half-finished migration."""
         skip_bad_record = bad_record_guard(MagicMock())
         seen = 0
-        with thresholds(signature=3, volume=10):
-            with pytest.raises(BuildDegradationError, match="volume breaker trip") as exc_info:
-                for i in range(50):
-                    with skip_bad_record("startup", "TocTree index", record=f"idx{i}"):
-                        seen += 1
-                        raise InputError(f"record {i} is broken in its own way")
+        with (
+            thresholds(signature=3, volume=10),
+            pytest.raises(BuildDegradationError, match="volume breaker trip") as exc_info,
+        ):
+            for i in range(50):
+                with skip_bad_record("startup", "TocTree index", record=f"idx{i}"):
+                    seen += 1
+                    raise InputError(f"record {i} is broken in its own way")
         assert seen == 10
         assert isinstance(exc_info.value.__cause__, InputError)
 
@@ -374,12 +377,11 @@ class TestSignatureBreakerCountsDistinctRecords:
         """The rename case is unchanged: different records, same message, abort at N."""
         skip_bad_record = bad_record_guard(MagicMock())
         seen = 0
-        with thresholds(signature=3, volume=500):
-            with pytest.raises(BuildDegradationError, match="signature breaker trip"):
-                for i in range(50):
-                    with skip_bad_record("startup", "topic mapping", record=f"topic{i}"):
-                        seen += 1
-                        raise AttributeError("'Topic' object has no attribute 'slug'")
+        with thresholds(signature=3, volume=500), pytest.raises(BuildDegradationError, match="signature breaker trip"):
+            for i in range(50):
+                with skip_bad_record("startup", "topic mapping", record=f"topic{i}"):
+                    seen += 1
+                    raise AttributeError("'Topic' object has no attribute 'slug'")
         assert seen == 3
 
     def test_repeats_of_one_record_do_not_help_distinct_ones_trip(self, mock_notify):
@@ -398,12 +400,11 @@ class TestSignatureBreakerCountsDistinctRecords:
         record keeps the old occurrence-counting behavior rather than silently never tripping."""
         skip_bad_record = bad_record_guard(MagicMock())
         seen = 0
-        with thresholds(signature=3, volume=500):
-            with pytest.raises(BuildDegradationError, match="signature breaker trip"):
-                for _ in range(50):
-                    with skip_bad_record("startup", "topic mapping"):
-                        seen += 1
-                        raise AttributeError("'Topic' object has no attribute 'slug'")
+        with thresholds(signature=3, volume=500), pytest.raises(BuildDegradationError, match="signature breaker trip"):
+            for _ in range(50):
+                with skip_bad_record("startup", "topic mapping"):
+                    seen += 1
+                    raise AttributeError("'Topic' object has no attribute 'slug'")
         assert seen == 3
 
     def test_volume_backstop_still_counts_every_skip(self, mock_notify):
@@ -411,12 +412,11 @@ class TestSignatureBreakerCountsDistinctRecords:
         record is still degradation, so the volume backstop still sees all of it."""
         skip_bad_record = bad_record_guard(MagicMock())
         seen = 0
-        with thresholds(signature=3, volume=10):
-            with pytest.raises(BuildDegradationError, match="volume breaker trip"):
-                for _ in range(50):
-                    with skip_bad_record("startup", "topic mapping", record="the-bad-topic"):
-                        seen += 1
-                        raise AttributeError("'Topic' object has no attribute 'slug'")
+        with thresholds(signature=3, volume=10), pytest.raises(BuildDegradationError, match="volume breaker trip"):
+            for _ in range(50):
+                with skip_bad_record("startup", "topic mapping", record="the-bad-topic"):
+                    seen += 1
+                    raise AttributeError("'Topic' object has no attribute 'slug'")
         assert seen == 10
 
 
@@ -437,9 +437,12 @@ class TestBuildPathway:
 
     def test_posts_the_summary_on_exit(self, mock_notify):
         skip_bad_record = bad_record_guard(MagicMock())
-        with thresholds(signature=None, volume=None), build_pathway("reset_toc"):
-            with skip_bad_record("reset_toc", "TocTree index", record="Berakhot"):
-                raise InputError("bad index")
+        with (
+            thresholds(signature=None, volume=None),
+            build_pathway("reset_toc"),
+            skip_bad_record("reset_toc", "TocTree index", record="Berakhot"),
+        ):
+            raise InputError("bad index")
         assert mock_notify.call_count == 1
         assert "[reset_toc]" in mock_notify.call_args[0][0]
         assert get_skip_counts() == {}
@@ -489,11 +492,10 @@ class TestBuildPathway:
         """_trip_breaker() posts the summary itself, then build_pathway's exit runs against
         the already-reset log — so the abort produces one message, not two."""
         skip_bad_record = bad_record_guard(MagicMock())
-        with thresholds(signature=3, volume=500), pytest.raises(BuildDegradationError):
-            with build_pathway("reset_toc"):
-                for i in range(50):
-                    with skip_bad_record("reset_toc", "topic mapping", record=f"topic{i}"):
-                        raise AttributeError("'Topic' object has no attribute 'slug'")
+        with thresholds(signature=3, volume=500), pytest.raises(BuildDegradationError), build_pathway("reset_toc"):
+            for i in range(50):
+                with skip_bad_record("reset_toc", "topic mapping", record=f"topic{i}"):
+                    raise AttributeError("'Topic' object has no attribute 'slug'")
         assert mock_notify.call_count == 1
 
 

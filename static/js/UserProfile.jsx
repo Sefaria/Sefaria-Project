@@ -62,13 +62,10 @@ class UserProfile extends Component {
     switch (currSortOption) {
       case 'Recent':
         return collectionB.lastModified > collectionA.lastModified ? 1 : -1;
-        break;
       case 'Name':
         return collectionB.name > collectionA.name ? -1 : 1;
-        break;
       case 'Sheets':
         return collectionB.sheetCount - collectionA.sheetCount;
-        break;
     }
   }
   handleCollectionsChange() {

@@ -92,7 +92,7 @@ def step(w, p, s=0.85):
     vector."""
     n = w.size
     v = numpy.matrix(numpy.zeros((n, 1)))
-    inner_product = sum(p[j] for j in w.dangling_pages.keys())
+    inner_product = sum(p[j] for j in w.dangling_pages)
     for j in range(n):
         v[j] = s * sum([p[k] / w.number_out_links[k] for k in w.in_links[j]]) + s * inner_product / n + (1 - s) / n
     # We rescale the return vector, so it remains a
@@ -219,7 +219,7 @@ def pagerank(g, s=0.85, tolerance=0.00001, maxiter=100, verbose=False, normalize
     # reshape(-1), not squeeze(): squeeze on a 1x1 matrix yields a 0-d array,
     # which list() cannot iterate. Identical for every n >= 2.
     pr_list = list(numpy.asarray(p).reshape(-1))
-    return {k: v for k, v in zip([x[0] for x in g], pr_list)}
+    return dict(zip([x[0] for x in g], pr_list))
 
 
 def _start_year(index, cache):
@@ -345,7 +345,6 @@ def init_pagerank_graph(ref_list=None):
 
                 older_ref, newer_ref = (refs[0], refs[1]) if start1 < start2 else (refs[1], refs[0])
 
-                temp_links = []
                 older_ref = older_ref.padded_ref()
                 newer_ref = newer_ref.padded_ref()
                 if start1 == start2:
@@ -401,7 +400,7 @@ def pagerank_rank_ref_list(ref_list, normalize=False, seg_ref_map=None):
             while count < len(sorted_ranking) and (sorted_ranking[count][1] - smallest_pr) < 1e-30:
                 count += 1
             if count < len(sorted_ranking) - 1:
-                pr = {r: temp_pr for r, temp_pr in sorted_ranking[count:]}
+                pr = dict(sorted_ranking[count:])
     # map pr values onto ref_list
     if seg_ref_map is None:
         seg_ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in ref_list}
@@ -431,7 +430,7 @@ def calculate_pagerank():
     sorted_ranking = sorted_ranking[count:]
     print(f"Removing {count} low pageranks")
 
-    pagerank_dict = {tref: pr for tref, pr in sorted_ranking}
+    pagerank_dict = dict(sorted_ranking)
     return pagerank_dict
 
 

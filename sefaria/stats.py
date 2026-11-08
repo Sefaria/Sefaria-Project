@@ -317,7 +317,7 @@ def account_creation_stats():
 
 
 # query = {"datetime": {"$gte": datetime(2020, 9, 1)}}
-def user_activity_stats(query={}, return_string=False):
+def user_activity_stats(query=None, return_string=False):
     """
     Metrics based on the user history collection
     - Active users in various monthly windows
@@ -330,7 +330,7 @@ def user_activity_stats(query={}, return_string=False):
 
     months = db.user_history.aggregate(
         [
-            {"$match": query},
+            {"$match": query if query is not None else {}},
             {
                 "$project": {
                     "_id": 0,

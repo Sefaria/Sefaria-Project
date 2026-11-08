@@ -790,7 +790,7 @@ def test_save():
 
     v.delete()
 
-    with pytest.raises(Exception) as e_info:
+    with pytest.raises(Exception):
         # create new version for a non existing commentary, depth 3 - should fail
         v = Version(
             {

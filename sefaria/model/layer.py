@@ -63,7 +63,7 @@ class Layer(abst.AbstractMongoRecord):
         if tref:
             query["ref"] = {"$regex": Ref(tref).section_ref().regex()}
         notes = NoteSet(query=query)
-        return [note for note in notes]
+        return list(notes)
 
     def add_note(self, note_id):
         """

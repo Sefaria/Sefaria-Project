@@ -115,10 +115,10 @@ class Test_parse_he_ref:
 
     def test_length_catching(self):
         with pytest.raises(InputError):
-            r = m.Ref("דברים שם")
+            m.Ref("דברים שם")
 
         with pytest.raises(InputError):
-            r = m.Ref("דברים שם, שם")
+            m.Ref("דברים שם, שם")
 
     def test_talmud_ayin_amud_form(self):
         r = m.Ref('סוטה דף מ"ה ע"ב')
@@ -147,25 +147,25 @@ class Test_parse_he_ref:
 
     def test_bible_word_end(self):
         with pytest.raises(InputError):
-            r = m.Ref("דברים לברק")
+            m.Ref("דברים לברק")
 
         with pytest.raises(InputError):
-            r = m.Ref("דברים א לברק")
+            m.Ref("דברים א לברק")
 
         with pytest.raises(InputError):
-            r = m.Ref("אסתר א, סי")
+            m.Ref("אסתר א, סי")
 
     def test_talmud_word_end(self):
         with pytest.raises(InputError):
-            r = m.Ref("מנחות כט בג")
+            m.Ref("מנחות כט בג")
 
         with pytest.raises(InputError):
-            r = m.Ref("מנחות כטר")
+            m.Ref("מנחות כטר")
 
     def test_midrash_word_end(self):
         # Assumes that Esther Rabbah Petichta
         with pytest.raises(InputError):
-            r = m.Ref("אסתר רבה פתיחתא")
+            m.Ref("אסתר רבה פתיחתא")
 
     def test_pehmem_form(self):
         r = m.Ref('פרה פ"ח מ"ז')
@@ -366,14 +366,14 @@ class Test_parse_he_Data_Types:
 class Test_get_titles_in_string:
     def test_bible_ref(self):
         res = m.library.get_titles_in_string(texts["bible_ref"], "he")
-        assert set(res) >= set(["שופטים"])
+        assert set(res) >= {"שופטים"}
 
         res = m.library.get_titles_in_string(texts["false_pos"], "he")
-        assert set(res) >= set(["שופטים", "דברים"])
+        assert set(res) >= {"שופטים", "דברים"}
 
     def test_positions(self):
         for a in ["bible_mid", "bible_begin", "bible_end"]:
-            assert set(["שמות"]) <= set(m.library.get_titles_in_string(texts[a], "he"))
+            assert {"שמות"} <= set(m.library.get_titles_in_string(texts[a], "he"))
 
     def test_abbreviations(self):
         t = 'ודין גזל קורה ובנאה בבירה מה יהא עליה (גיטין נה א). ודין גזל בישוב ורצה להחזיר במדבר (ב"ק קיח א). ודין גזל והקדיש'
