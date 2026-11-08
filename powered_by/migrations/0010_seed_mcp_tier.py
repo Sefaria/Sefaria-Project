@@ -6,6 +6,7 @@ seed_api_tiers, so a database that ran 0006 before the mcp row existed gets it h
 Reverse is a no-op. Deleting the tier would cascade its meter limits, and PROTECT on ApiProject.tier would
 refuse while any API project is on it, so a rollback leaves the row in place.
 """
+
 import importlib
 
 from django.db import migrations
@@ -18,7 +19,6 @@ def seed_mcp_tier(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("powered_by", "0009_cleanup_abandoned_project_limits"),
     ]

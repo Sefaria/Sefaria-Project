@@ -49,8 +49,7 @@ class ApiProjectModelTest(TestCase):
 
     def test_mcp_tier_seeded(self):
         self.assertEqual(ApiTier.objects.get(id="mcp").per_minute_per_project, 6000)
-        self.assertEqual(
-            ApiTierMeterLimit.objects.get(tier_id="mcp", meter="semantic").monthly_per_project, 1000000)
+        self.assertEqual(ApiTierMeterLimit.objects.get(tier_id="mcp", meter="semantic").monthly_per_project, 1000000)
 
     def test_seeded_tiers_have_a_semantic_meter_row(self):
         slugs = set(ApiTier.objects.values_list("id", flat=True))
