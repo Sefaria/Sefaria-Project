@@ -12,7 +12,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
       <g clipPath="url(#b)">
         <path fill="#fff" d="M0 0h2000v200H0z"></path>
         <g fontFamily="Roboto" fontSize="16" letterSpacing="0em">
-          <text xmlSpace="preserve" fill="#B8D4D3" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#B8D4D3" style={{ whiteSpace: 'pre' }}>
             <tspan x="1030.69" y="114.969">
               Compromise
             </tspan>
@@ -26,7 +26,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Honoring Parents
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#4B71B7" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#4B71B7" style={{ whiteSpace: 'pre' }}>
             <tspan x="1532.22" y="38.969">
               Maccabees
             </tspan>
@@ -37,13 +37,13 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Listening
             </tspan>
             <tspan x="892.156" y="114.969">
-              Women in Tanakh{" "}
+              Women in Tanakh{' '}
             </tspan>
             <tspan x="1413.47" y="114.969">
               Ravens
             </tspan>
             <tspan x="1745.08" y="114.969">
-              {" "}
+              {' '}
               The Matriarchs
             </tspan>
             <tspan x="1584.12" y="152.969">
@@ -59,23 +59,23 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Seder
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#D4896C" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#D4896C" style={{ whiteSpace: 'pre' }}>
             <tspan x="1440.97" y="38.969">
               Chanukkah
             </tspan>
             <tspan x="1558.55" y="57.969">
-              {" "}
-              Bar Mitzvah{" "}
+              {' '}
+              Bar Mitzvah{' '}
             </tspan>
             <tspan x="1931.31" y="57.969">
-              {" "}
-              Free Will{" "}
+              {' '}
+              Free Will{' '}
             </tspan>
             <tspan x="1636.73" y="76.969">
               Eulogies
             </tspan>
             <tspan x="986.875" y="95.969">
-              Purpose of Life{" "}
+              Purpose of Life{' '}
             </tspan>
             <tspan x="1533.73" y="133.969">
               Stars
@@ -90,9 +90,9 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Heavens
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#5D956F" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#5D956F" style={{ whiteSpace: 'pre' }}>
             <tspan x="1311.08" y="38.969">
-              {" "}
+              {' '}
               Jonathan Sacks
             </tspan>
             <tspan x="1626.47" y="38.969">
@@ -117,15 +117,15 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Sacrifice
             </tspan>
             <tspan x="1106.08" y="152.969">
-              The Nile River{" "}
+              The Nile River{' '}
             </tspan>
             <tspan x="1372" y="190.969">
               Vegetarianism
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#594176" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#594176" style={{ whiteSpace: 'pre' }}>
             <tspan x="1259.78" y="38.969">
-              {" "}
+              {' '}
               Wine
             </tspan>
             <tspan x="1868.06" y="57.969">
@@ -141,13 +141,13 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Violence
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#B2B272" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#B2B272" style={{ whiteSpace: 'pre' }}>
             <tspan x="1845.16" y="19.969">
               Joy
             </tspan>
             <tspan x="1463.22" y="57.969"></tspan>
           </text>
-          <text xmlSpace="preserve" fill="#C6A7B4" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#C6A7B4" style={{ whiteSpace: 'pre' }}>
             <tspan x="1792.39" y="19.969">
               Rams
             </tspan>
@@ -158,7 +158,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Rosh Chodesh
             </tspan>
             <tspan x="1471.16" y="57.969">
-              {" "}
+              {' '}
               King David
             </tspan>
             <tspan x="887.812" y="76.969">
@@ -186,7 +186,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Mindfulness
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#AB4E66" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#AB4E66" style={{ whiteSpace: 'pre' }}>
             <tspan x="1475.45" y="19.969">
               Commandments
             </tspan>
@@ -212,15 +212,15 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Ramban
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#7C416F" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#7C416F" style={{ whiteSpace: 'pre' }}>
             <tspan x="1402.86" y="19.969">
               Miracles
             </tspan>
             <tspan x="1882.47" y="19.969">
-              Visiting the Sick{" "}
+              Visiting the Sick{' '}
             </tspan>
             <tspan x="1072.27" y="76.969">
-              {" "}
+              {' '}
               Lashon Hara
             </tspan>
             <tspan x="1379.69" y="76.969">
@@ -239,7 +239,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Yom Tov
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#97B386" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#97B386" style={{ whiteSpace: 'pre' }}>
             <tspan x="1335" y="19.969">
               Science
             </tspan>
@@ -265,7 +265,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Pearls
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#004E5F" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#004E5F" style={{ whiteSpace: 'pre' }}>
             <tspan x="1266.8" y="19.969">
               Tekhelet
             </tspan>
@@ -309,7 +309,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Ants
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#CB6158" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#CB6158" style={{ whiteSpace: 'pre' }}>
             <tspan x="1188.75" y="19.969">
               Creativity
             </tspan>
@@ -335,7 +335,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Naomi
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#00827F" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#00827F" style={{ whiteSpace: 'pre' }}>
             <tspan x="1144.39" y="19.969">
               Birds
             </tspan>
@@ -343,7 +343,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Bread
             </tspan>
             <tspan x="1708.75" y="76.969">
-              Tikkun Olam{" "}
+              Tikkun Olam{' '}
             </tspan>
             <tspan x="1868.09" y="114.969">
               Birds
@@ -355,11 +355,11 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Elections
             </tspan>
             <tspan x="1294.58" y="171.969">
-              {" "}
+              {' '}
               Book of Life
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#7F85A9" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#7F85A9" style={{ whiteSpace: 'pre' }}>
             <tspan x="1100.5" y="19.969">
               Time
             </tspan>
@@ -385,10 +385,10 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Synagogues
             </tspan>
             <tspan x="1486.69" y="190.969">
-              Anointing Oil{" "}
+              Anointing Oil{' '}
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#802F3E" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#802F3E" style={{ whiteSpace: 'pre' }}>
             <tspan x="1043.75" y="19.969">
               Prayer
             </tspan>
@@ -417,7 +417,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Poetry
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#CCB479" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#CCB479" style={{ whiteSpace: 'pre' }}>
             <tspan x="964.672" y="19.969">
               Birthdays
             </tspan>
@@ -431,7 +431,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Jonah
             </tspan>
             <tspan x="1599.98" y="95.969">
-              {" "}
+              {' '}
               False Prophets
             </tspan>
             <tspan x="1906.5" y="95.969"></tspan>
@@ -457,11 +457,11 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Stones
             </tspan>
             <tspan x="1239.56" y="190.969">
-              {" "}
+              {' '}
               Sun
             </tspan>
           </text>
-          <text xmlSpace="preserve" fill="#fff" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#fff" style={{ whiteSpace: 'pre' }}>
             <tspan x="956.734" y="19.969"></tspan>
             <tspan x="1031.84" y="19.969"></tspan>
             <tspan x="1088.91" y="19.969"></tspan>
@@ -608,7 +608,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
             <tspan x="1808.53" y="190.969"></tspan>
             <tspan x="1859.67" y="190.969"></tspan>
           </text>
-          <text xmlSpace="preserve" fill="#5A99B7" style={{ whiteSpace: "pre" }}>
+          <text xmlSpace="preserve" fill="#5A99B7" style={{ whiteSpace: 'pre' }}>
             <tspan x="891.062" y="19.969">
               Kindness
             </tspan>
@@ -619,7 +619,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               Light
             </tspan>
             <tspan x="1969.16" y="38.969">
-              The{" "}
+              The{' '}
             </tspan>
             <tspan x="890.078" y="57.969">
               Four Rivers
@@ -659,7 +659,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
             </tspan>
           </text>
         </g>
-        <path fill="url(#a)" d="M16 5h1996v195H16z" style={{ mixBlendMode: "screen" }}></path>
+        <path fill="url(#a)" d="M16 5h1996v195H16z" style={{ mixBlendMode: 'screen' }}></path>
         <g id="caption">
           <text
             xmlSpace="preserve"
@@ -668,7 +668,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
             className="serif"
             fontSize="48"
             letterSpacing="0em"
-            style={{ whiteSpace: "pre" }}
+            style={{ whiteSpace: 'pre' }}
           >
             <tspan x="76" y="114.516">
               What are you curious about?
@@ -690,7 +690,7 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
               fontSize="20"
               fontWeight="bold"
               letterSpacing="0em"
-              style={{ whiteSpace: "pre" }}
+              style={{ whiteSpace: 'pre' }}
             >
               <tspan x="697" y="110.336">
                 EXPLORE BY TOPIC

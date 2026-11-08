@@ -54,6 +54,7 @@ def test_value_is_redacted_through_the_next_ampersand_including_a_hash():
 
 def test_hash_in_key_value_is_scrubbed_through_decompose_request_info():
     from django.test import RequestFactory
+
     from sefaria.system.logging import decompose_request_info
 
     request = RequestFactory().get("/api/texts", QUERY_STRING="api_key=prefix#sfr_secret")

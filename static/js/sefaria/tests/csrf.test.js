@@ -15,7 +15,9 @@ function setMetaToken(value) {
 
 function removeMetaToken() {
   const meta = document.querySelector(META_SELECTOR);
-  if (meta) { meta.remove(); }
+  if (meta) {
+    meta.remove();
+  }
 }
 
 describe('getCsrfToken', () => {

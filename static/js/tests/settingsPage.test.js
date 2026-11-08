@@ -1,3 +1,4 @@
+/* global __dirname */
 /**
  * SettingsPage: the settings tabs and developer settings.
  *
@@ -17,13 +18,17 @@ jest.mock('../sefaria/sefaria', () => {
   return { __esModule: true, default: sefaria };
 });
 
-jest.mock('../sefaria/sefariaJquery', () => ({ __esModule: true, default: { cookie: () => {}, post: () => {}, get: () => {} } }));
+jest.mock('../sefaria/sefariaJquery', () => ({
+  __esModule: true,
+  default: { cookie: () => {}, post: () => {}, get: () => {} },
+}));
 
 jest.mock('../Misc', () => {
   const Sefaria = require('../sefaria/sefaria').default;
   return {
     __esModule: true,
-    InterfaceText: ({ text, children }) => (text ? text[Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en'] : (children ?? null)),
+    InterfaceText: ({ text, children }) =>
+      text ? text[Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en'] : (children ?? null),
   };
 });
 
@@ -40,8 +45,12 @@ let container = null;
 
 const DEVELOPER_ON = { developerEnabled: true, ssoConnected: true };
 const PROFILE = {
-  developerName: 'Tova Levi', description: '', additionalEmail: '',
-  termsAccepted: true, developerNews: false, notADeveloper: false,
+  developerName: 'Tova Levi',
+  description: '',
+  additionalEmail: '',
+  termsAccepted: true,
+  developerNews: false,
+  notADeveloper: false,
 };
 
 /* developer is the server's developer state; null is what the server sends where developer settings are off. */
@@ -59,7 +68,7 @@ function mount(tab, developer = {}, props = {}) {
         setProjectId={() => {}}
         {...props}
       />,
-      container,
+      container
     );
   });
 }
@@ -82,11 +91,21 @@ const lastRequest = () => {
   const [url, options] = global.fetch.mock.calls[global.fetch.mock.calls.length - 1];
   return { url, method: options.method, body: options.body ? JSON.parse(options.body) : null };
 };
-const flush = async () => { for (let i = 0; i < 5; i++) { await Promise.resolve(); } };
-const clickAndSettle = async (element) => { await act(async () => { element.click(); await flush(); }); };
+const flush = async () => {
+  for (let i = 0; i < 5; i++) {
+    await Promise.resolve();
+  }
+};
+const clickAndSettle = async (element) => {
+  await act(async () => {
+    element.click();
+    await flush();
+  });
+};
 
 const developerPanel = () => container.querySelectorAll('.settingsPanel')[1];
-const buttonNamed = (root, name) => Array.from(root.querySelectorAll('button')).find(b => b.textContent.trim() === name);
+const buttonNamed = (root, name) =>
+  Array.from(root.querySelectorAll('button')).find((b) => b.textContent.trim() === name);
 
 beforeEach(() => {
   Sefaria.interfaceLang = 'english';
@@ -95,7 +114,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  if (!container) { return; }
+  if (!container) {
+    return;
+  }
   ReactDOM.unmountComponentAtNode(container);
   container.remove();
   container = null;
@@ -105,7 +126,7 @@ describe('settings tabs', () => {
   it('shows both tabs to a user who never opened developer settings', () => {
     mount('account');
     const links = Array.from(container.querySelectorAll('nav.settingsNav a'));
-    expect(links.map(a => a.getAttribute('href'))).toEqual(['/settings/account', '/settings/developer']);
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/settings/account', '/settings/developer']);
     expect(links[0].getAttribute('aria-current')).toBe('page');
   });
 
@@ -119,7 +140,7 @@ describe('settings tabs', () => {
   it('has no developer tab or agent instructions where developer settings are off', () => {
     mount('account', null);
     const links = Array.from(container.querySelectorAll('nav.settingsNav a'));
-    expect(links.map(a => a.getAttribute('href'))).toEqual(['/settings/account']);
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/settings/account']);
     expect(container.querySelectorAll('.settingsPanel').length).toBe(1);
     expect(container.querySelector('[data-agent-instructions]')).toBeNull();
   });
@@ -145,10 +166,12 @@ describe('developer onboarding', () => {
 
   it('has no info tips on the locked fields, but describes them to assistive tech', () => {
     mount('developer', DEVELOPER_ON);
-    ['#devPocName', '#devPocEmail'].forEach(selector => {
+    ['#devPocName', '#devPocEmail'].forEach((selector) => {
       const input = container.querySelector(selector);
       expect(input.closest('.devPocField').querySelector('.devPocInfoButton')).toBeNull();
-      expect(document.getElementById(input.getAttribute('aria-describedby')).textContent).toContain('From your Sefaria account');
+      expect(document.getElementById(input.getAttribute('aria-describedby')).textContent).toContain(
+        'From your Sefaria account'
+      );
     });
   });
 
@@ -156,7 +179,7 @@ describe('developer onboarding', () => {
     mount('developer', DEVELOPER_ON);
     const buttons = Array.from(container.querySelectorAll('.devPocInfoButton'));
     expect(buttons.length).toBeGreaterThan(0);
-    buttons.forEach(b => {
+    buttons.forEach((b) => {
       expect(b.tabIndex).toBe(-1);
       expect(b.getAttribute('aria-hidden')).toBe('true');
     });
@@ -165,9 +188,13 @@ describe('developer onboarding', () => {
     expect(note.textContent).toContain('Add another address');
     expect(note.hidden).toBe(true);
 
-    act(() => { extra.focus(); });
+    act(() => {
+      extra.focus();
+    });
     expect(extra.closest('.devPocField').querySelector('.devPocPopover').textContent).toContain('Add another address');
-    act(() => { extra.blur(); });
+    act(() => {
+      extra.blur();
+    });
     expect(extra.closest('.devPocField').querySelector('.devPocPopover')).toBeNull();
   });
 
@@ -175,8 +202,11 @@ describe('developer onboarding', () => {
     mount('developer', DEVELOPER_ON);
     const before = developerPanel().textContent;
     const checkbox = Array.from(container.querySelectorAll('.devPocChoice'))
-      .find(label => label.textContent.includes("I don't write code myself")).querySelector('input');
-    act(() => { checkbox.click(); });
+      .find((label) => label.textContent.includes("I don't write code myself"))
+      .querySelector('input');
+    act(() => {
+      checkbox.click();
+    });
     expect(checkbox.checked).toBe(true);
     expect(developerPanel().textContent).toBe(before);
   });
@@ -184,12 +214,17 @@ describe('developer onboarding', () => {
 
 const openNewProject = (state = {}, props = {}) => {
   mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], ...state }, props);
-  act(() => { container.querySelector('[data-agent-action="new-project"]').click(); });
+  act(() => {
+    container.querySelector('[data-agent-action="new-project"]').click();
+  });
   typeInto(container.querySelector('#devPocProjectName'), 'Daf Tracker');
 };
 
 const visibilityRadio = (value) => container.querySelector(`input[name="devPocVisibility"][value="${value}"]`);
-const submitProject = () => act(() => { container.querySelector('[data-agent-action="create-project"]').click(); });
+const submitProject = () =>
+  act(() => {
+    container.querySelector('[data-agent-action="create-project"]').click();
+  });
 
 describe('project visibility', () => {
   it('has nothing preselected, and recommends neither option', () => {
@@ -203,28 +238,36 @@ describe('project visibility', () => {
     typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
     typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
     submitProject();
-    expect(container.querySelector('[role="alert"]').textContent).toContain('Choose whether the project is public or private');
+    expect(container.querySelector('[role="alert"]').textContent).toContain(
+      'Choose whether the project is public or private'
+    );
     expect(container.querySelector('.devPocNewProject')).toBeTruthy();
   });
 
   it('chooses Public without a confirmation', () => {
     openNewProject();
-    act(() => { visibilityRadio('public').click(); });
+    act(() => {
+      visibilityRadio('public').click();
+    });
     expect(visibilityRadio('public').checked).toBe(true);
     expect(container.querySelector('[role="dialog"]')).toBeNull();
   });
 
   it('shows what will be public on request, with only a Close button', () => {
     openNewProject();
-    act(() => { buttonNamed(container, 'Show me what will be public').click(); });
+    act(() => {
+      buttonNamed(container, 'Show me what will be public').click();
+    });
     const dialog = container.querySelector('[aria-labelledby="devPocPublicTitle"]');
     expect(dialog.textContent).toContain('Daf Tracker');
     expect(dialog.textContent).not.toContain('Tova Levi');
     expect(dialog.textContent).not.toContain('Made by');
-    expect(Array.from(dialog.querySelectorAll('button')).map(b => b.textContent.trim())).toEqual(['Close']);
+    expect(Array.from(dialog.querySelectorAll('button')).map((b) => b.textContent.trim())).toEqual(['Close']);
     expect(dialog.querySelector('a')).toBeNull();
 
-    act(() => { buttonNamed(dialog, 'Close').click(); });
+    act(() => {
+      buttonNamed(dialog, 'Close').click();
+    });
     expect(container.querySelector('[aria-labelledby="devPocPublicTitle"]')).toBeNull();
     expect(container.querySelector('input[name="devPocVisibility"]:checked')).toBeNull();
   });
@@ -249,16 +292,20 @@ describe('project website', () => {
   });
 
   it('rejects input that is not a plausible address', () => {
-    ['example', 'localhost', 'my site.com', 'ftp://example.com', 'https://', 'example.c', 'exa_mple.com'].forEach(input => {
-      expect(parseWebsite(input).valid).toBe(false);
-    });
+    ['example', 'localhost', 'my site.com', 'ftp://example.com', 'https://', 'example.c', 'exa_mple.com'].forEach(
+      (input) => {
+        expect(parseWebsite(input).valid).toBe(false);
+      }
+    );
   });
 
   it('saves a bare domain as an https address', () => {
     openNewProject();
     typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
     typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
-    act(() => { visibilityRadio('private').click(); });
+    act(() => {
+      visibilityRadio('private').click();
+    });
     submitProject();
     expect(lastRequest().url).toBe('/api/developer/projects');
     expect(lastRequest().body.project.websiteUrl).toBe('https://daftracker.org');
@@ -268,7 +315,9 @@ describe('project website', () => {
     openNewProject();
     typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
     typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker');
-    act(() => { visibilityRadio('private').click(); });
+    act(() => {
+      visibilityRadio('private').click();
+    });
     submitProject();
     expect(container.querySelector('[role="alert"]').textContent).toContain('Enter a website address like example.com');
     expect(container.querySelector('.devPocNewProject')).toBeTruthy();
@@ -276,7 +325,9 @@ describe('project website', () => {
   it("doesn't promise that a website restriction makes a copied key useless", () => {
     openNewProject();
     typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    act(() => { visibilityRadio('private').click(); });
+    act(() => {
+      visibilityRadio('private').click();
+    });
     submitProject();
     const dialog = container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]');
     expect(dialog.textContent).not.toMatch(/no use anywhere else/i);
@@ -287,14 +338,21 @@ describe('project website', () => {
 const yourListingDialog = () => container.querySelector('[aria-labelledby="devPocYourListingTitle"]');
 
 const LISTING = {
-  id: '42', name: 'Mishnah Yomit Tracker', url: 'https://mishnahtracker.app',
+  id: '42',
+  name: 'Mishnah Yomit Tracker',
+  url: 'https://mishnahtracker.app',
   description: 'Track your daily two mishnayot and share progress with a study group.',
 };
 
 describe('"Is this your project?"', () => {
-  const mountWithListing = (state = {}) => mount('developer', {
-    ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING, ...state,
-  });
+  const mountWithListing = (state = {}) =>
+    mount('developer', {
+      ...DEVELOPER_ON,
+      profile: PROFILE,
+      projects: [],
+      yourListing: LISTING,
+      ...state,
+    });
 
   it('asks about a listing submitted with the account email, showing only its public fields', () => {
     mountWithListing();
@@ -319,7 +377,10 @@ describe('"Is this your project?"', () => {
     const setProjectId = jest.fn();
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING }, { setProjectId });
     respondWith({
-      ...DEVELOPER_ON, profile: PROFILE, yourListing: null, projectId: '42',
+      ...DEVELOPER_ON,
+      profile: PROFILE,
+      yourListing: null,
+      projectId: '42',
       projects: [publicProject({ id: '42', name: LISTING.name, linkedListing: true })],
     });
     await clickAndSettle(buttonNamed(yourListingDialog(), 'Yes, add it'));
@@ -340,7 +401,9 @@ describe('"Is this your project?"', () => {
 
   it('can be put off until the next visit with Not now', () => {
     mountWithListing();
-    act(() => { buttonNamed(yourListingDialog(), 'Not now').click(); });
+    act(() => {
+      buttonNamed(yourListingDialog(), 'Not now').click();
+    });
     expect(yourListingDialog()).toBeNull();
     expect(global.fetch).not.toHaveBeenCalled();
   });
@@ -357,8 +420,15 @@ describe('saving a project', () => {
   const fillProject = async (visibility) => {
     typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
     typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
-    act(() => { visibilityRadio(visibility).click(); });
-    respondWith({ ...DEVELOPER_ON, profile: PROFILE, projectId: '7', projects: [publicProject({ id: '7', visibility })] });
+    act(() => {
+      visibilityRadio(visibility).click();
+    });
+    respondWith({
+      ...DEVELOPER_ON,
+      profile: PROFILE,
+      projectId: '7',
+      projects: [publicProject({ id: '7', visibility })],
+    });
     await clickAndSettle(container.querySelector('[data-agent-action="create-project"]'));
   };
 
@@ -376,8 +446,12 @@ describe('saving a project', () => {
     openNewProject();
     typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
     typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
-    act(() => { visibilityRadio('private').click(); });
-    global.fetch = jest.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Give the project a name.' }) }));
+    act(() => {
+      visibilityRadio('private').click();
+    });
+    global.fetch = jest.fn(() =>
+      Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Give the project a name.' }) })
+    );
     await clickAndSettle(container.querySelector('[data-agent-action="create-project"]'));
     expect(container.querySelector('.devPocNewProject')).toBeTruthy();
     expect(container.querySelector('[role="alert"]').textContent).toContain('Give the project a name.');
@@ -385,12 +459,38 @@ describe('saving a project', () => {
 
   it('keeps the edit form and its empty website when the server refuses clearing the website', async () => {
     // The page is stale: a key was restricted elsewhere, so only the server knows to refuse.
-    const refusal = 'A key is restricted to this website. Turn off the restriction on every key before removing the website.';
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [{ id: 'proj01', name: 'Daf Tracker', description: 'A tracker', visibility: 'public', organization: '', websiteUrl: 'https://daftracker.org', aiAssisted: false, linkedListing: false, consentWithdrawnAt: null, keys: [{ id: 'k1', label: 'Site key', value: 'sfr_test_x', created: null, restrictToWebsite: false }] }] }, { projectId: 'proj01' });
-    act(() => { buttonNamed(container, 'Edit project').click(); });
+    const refusal =
+      'A key is restricted to this website. Turn off the restriction on every key before removing the website.';
+    mount(
+      'developer',
+      {
+        ...DEVELOPER_ON,
+        profile: PROFILE,
+        projects: [
+          {
+            id: 'proj01',
+            name: 'Daf Tracker',
+            description: 'A tracker',
+            visibility: 'public',
+            organization: '',
+            websiteUrl: 'https://daftracker.org',
+            aiAssisted: false,
+            linkedListing: false,
+            consentWithdrawnAt: null,
+            keys: [{ id: 'k1', label: 'Site key', value: 'sfr_test_x', created: null, restrictToWebsite: false }],
+          },
+        ],
+      },
+      { projectId: 'proj01' }
+    );
+    act(() => {
+      buttonNamed(container, 'Edit project').click();
+    });
     typeInto(container.querySelector('#devPocProjectUrl'), '');
     global.fetch = jest.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ error: refusal }) }));
-    act(() => { container.querySelector('[data-agent-action="save-project"]').click(); });
+    act(() => {
+      container.querySelector('[data-agent-action="save-project"]').click();
+    });
     await clickAndSettle(buttonNamed(container, 'Save without a website'));
     expect(container.querySelector('[role="alert"]').textContent).toContain(refusal);
     expect(container.querySelector('#devPocProjectUrl').value).toBe('');
@@ -399,16 +499,28 @@ describe('saving a project', () => {
 });
 
 const publicProject = (extra = {}) => ({
-  id: 'proj01', name: 'Daf Tracker', description: 'A tracker', visibility: 'public', organization: '',
-  websiteUrl: 'https://daftracker.org', aiAssisted: false, linkedListing: false,
-  consentWithdrawnAt: null, keys: [], ...extra,
+  id: 'proj01',
+  name: 'Daf Tracker',
+  description: 'A tracker',
+  visibility: 'public',
+  organization: '',
+  websiteUrl: 'https://daftracker.org',
+  aiAssisted: false,
+  linkedListing: false,
+  consentWithdrawnAt: null,
+  keys: [],
+  ...extra,
 });
 
 describe('making a public project private', () => {
   const editPublicProject = () => {
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject()] }, { projectId: 'proj01' });
-    act(() => { buttonNamed(container, 'Edit project').click(); });
-    act(() => { visibilityRadio('private').click(); });
+    act(() => {
+      buttonNamed(container, 'Edit project').click();
+    });
+    act(() => {
+      visibilityRadio('private').click();
+    });
     return container.querySelector('[aria-labelledby="devPocPrivateTitle"]');
   };
 
@@ -423,13 +535,17 @@ describe('making a public project private', () => {
 
   it('keeps the project public when dismissed', () => {
     const dialog = editPublicProject();
-    act(() => { buttonNamed(dialog, 'Keep public').click(); });
+    act(() => {
+      buttonNamed(dialog, 'Keep public').click();
+    });
     expect(visibilityRadio('public').checked).toBe(true);
   });
 
   it('saves the project as private', async () => {
     const dialog = editPublicProject();
-    act(() => { buttonNamed(dialog, 'Make private').click(); });
+    act(() => {
+      buttonNamed(dialog, 'Make private').click();
+    });
     respondWith({ ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ visibility: 'private' })] });
     await clickAndSettle(container.querySelector('[data-agent-action="save-project"]'));
     expect(lastRequest()).toMatchObject({ url: '/api/developer/projects/proj01', method: 'POST' });
@@ -440,7 +556,9 @@ describe('making a public project private', () => {
 
   it("doesn't ask for a project that was never public", () => {
     openNewProject();
-    act(() => { visibilityRadio('private').click(); });
+    act(() => {
+      visibilityRadio('private').click();
+    });
     expect(container.querySelector('[aria-labelledby="devPocPrivateTitle"]')).toBeNull();
     expect(visibilityRadio('private').checked).toBe(true);
   });
@@ -448,11 +566,19 @@ describe('making a public project private', () => {
 
 describe('removing the website', () => {
   const clearWebsite = (keys) => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ keys })] }, { projectId: 'proj01' });
-    act(() => { buttonNamed(container, 'Edit project').click(); });
+    mount(
+      'developer',
+      { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ keys })] },
+      { projectId: 'proj01' }
+    );
+    act(() => {
+      buttonNamed(container, 'Edit project').click();
+    });
     typeInto(container.querySelector('#devPocProjectUrl'), '');
     respondWith({});
-    act(() => { container.querySelector('[data-agent-action="save-project"]').click(); });
+    act(() => {
+      container.querySelector('[data-agent-action="save-project"]').click();
+    });
   };
   const restricted = { id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: true };
 
@@ -470,14 +596,19 @@ describe('removing the website', () => {
 });
 
 describe('deleting a project', () => {
-  const withKey = (extra) => publicProject({
-    keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: false }],
-    ...extra,
-  });
+  const withKey = (extra) =>
+    publicProject({
+      keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: false }],
+      ...extra,
+    });
   const deleteFromEditor = (projects) => {
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects }, { projectId: 'proj01' });
-    act(() => { buttonNamed(container, 'Edit project').click(); });
-    act(() => { buttonNamed(container, 'Delete project').click(); });
+    act(() => {
+      buttonNamed(container, 'Edit project').click();
+    });
+    act(() => {
+      buttonNamed(container, 'Delete project').click();
+    });
     return container.querySelector('[aria-labelledby="devPocConfirmTitle"]');
   };
   const other = { ...publicProject({ id: 'proj02', name: 'Other' }) };
@@ -501,9 +632,18 @@ describe('deleting a project', () => {
 });
 
 describe('key cards', () => {
-  const projectWithKey = () => publicProject({
-    keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: '2026-09-01T00:00:00Z', restrictToWebsite: false }],
-  });
+  const projectWithKey = () =>
+    publicProject({
+      keys: [
+        {
+          id: 'k1',
+          label: 'Production',
+          value: 'sfr_test_x',
+          created: '2026-09-01T00:00:00Z',
+          restrictToWebsite: false,
+        },
+      ],
+    });
 
   it('leads the website restriction with the allowed-origin rule, explained on request', () => {
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] }, { projectId: 'proj01' });
@@ -513,21 +653,27 @@ describe('key cards', () => {
     expect(summary.textContent).toContain('Origin header is https://daftracker.org');
     expect(restriction.querySelector('input').getAttribute('aria-describedby')).toBe(summary.id);
     expect(restriction.querySelector('.devPocExplainer')).toBeNull();
-    act(() => { buttonNamed(restriction, 'What does this mean?').click(); });
+    act(() => {
+      buttonNamed(restriction, 'What does this mean?').click();
+    });
     expect(restriction.querySelector('.devPocExplainer').textContent).toContain('only works on your website');
   });
 
   it('give each control a spoken name that starts with its visible text and names the key', () => {
-    const twoKeys = publicProject({ keys: [
-      { id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: false },
-      { id: 'k2', label: 'Staging', value: 'sfr_test_y', created: null, restrictToWebsite: false },
-    ] });
+    const twoKeys = publicProject({
+      keys: [
+        { id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: false },
+        { id: 'k2', label: 'Staging', value: 'sfr_test_y', created: null, restrictToWebsite: false },
+      ],
+    });
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [twoKeys] }, { projectId: 'proj01' });
     const visibleSwitchText = container.querySelector('.devPocRestrictionRow label > span').textContent;
     expect(visibleSwitchText).toBe('Only accept requests from daftracker.org');
-    const switches = Array.from(container.querySelectorAll('.devPocSwitch')).map(s => s.getAttribute('aria-label'));
+    const switches = Array.from(container.querySelectorAll('.devPocSwitch')).map((s) => s.getAttribute('aria-label'));
     expect(switches).toEqual([visibleSwitchText + ' (Production)', visibleSwitchText + ' (Staging)']);
-    const deletes = Array.from(container.querySelectorAll('.devPocKeyHeading button')).map(b => b.getAttribute('aria-label'));
+    const deletes = Array.from(container.querySelectorAll('.devPocKeyHeading button')).map((b) =>
+      b.getAttribute('aria-label')
+    );
     expect(deletes).toEqual(['Delete key Production', 'Delete key Staging']);
   });
 
@@ -550,21 +696,33 @@ describe('key cards', () => {
 });
 
 describe('keys', () => {
-  const projectWithKey = () => publicProject({
-    keys: [{ id: 'k1', label: 'Production', value: 'sfr_x', created: '2026-09-01T00:00:00Z', restrictToWebsite: false }],
-  });
-  const mountProject = (project) => mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [project] }, { projectId: 'proj01' });
+  const projectWithKey = () =>
+    publicProject({
+      keys: [
+        { id: 'k1', label: 'Production', value: 'sfr_x', created: '2026-09-01T00:00:00Z', restrictToWebsite: false },
+      ],
+    });
+  const mountProject = (project) =>
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [project] }, { projectId: 'proj01' });
 
   it('creates a key and shows it once the setup wait is over', async () => {
     jest.useFakeTimers();
     mountProject(publicProject());
-    act(() => { container.querySelector('[data-agent-action="new-key"]').click(); });
+    act(() => {
+      container.querySelector('[data-agent-action="new-key"]').click();
+    });
     typeInto(container.querySelector('#devPocKeyLabel'), 'Production');
     respondWith({ ...DEVELOPER_ON, profile: PROFILE, keyId: 'k1', projects: [projectWithKey()] });
-    await act(async () => { container.querySelector('[data-agent-action="create-key"]').click(); await flush(); });
+    await act(async () => {
+      container.querySelector('[data-agent-action="create-key"]').click();
+      await flush();
+    });
     expect(lastRequest()).toMatchObject({ url: '/api/developer/projects/proj01/keys', body: { label: 'Production' } });
     expect(developerPanel().textContent).toContain('Setting up your key');
-    await act(async () => { jest.advanceTimersByTime(4000); await flush(); });
+    await act(async () => {
+      jest.advanceTimersByTime(4000);
+      await flush();
+    });
     expect(developerPanel().textContent).toContain('Ready to use');
     jest.useRealTimers();
   });
@@ -572,15 +730,23 @@ describe('keys', () => {
   it('announces setting up and ready through a live region that was already in the page', async () => {
     jest.useFakeTimers();
     mountProject(publicProject());
-    act(() => { container.querySelector('[data-agent-action="new-key"]').click(); });
+    act(() => {
+      container.querySelector('[data-agent-action="new-key"]').click();
+    });
     const region = container.querySelector('.devPocSection p.sr-only[role="status"]');
     expect(region.textContent).toBe('');
     typeInto(container.querySelector('#devPocKeyLabel'), 'Production');
     respondWith({ ...DEVELOPER_ON, profile: PROFILE, keyId: 'k1', projects: [projectWithKey()] });
-    await act(async () => { container.querySelector('[data-agent-action="create-key"]').click(); await flush(); });
+    await act(async () => {
+      container.querySelector('[data-agent-action="create-key"]').click();
+      await flush();
+    });
     expect(container.querySelector('.devPocSection p.sr-only[role="status"]')).toBe(region);
     expect(region.textContent).toBe('Setting up your key…');
-    await act(async () => { jest.advanceTimersByTime(4000); await flush(); });
+    await act(async () => {
+      jest.advanceTimersByTime(4000);
+      await flush();
+    });
     expect(region.textContent).toBe('Ready to use. Copy it into your tool.');
     expect(container.querySelector('.devPocKeyReady').getAttribute('role')).toBeNull();
     jest.useRealTimers();
@@ -589,11 +755,19 @@ describe('keys', () => {
   it('says so when the key could not be created', async () => {
     jest.useFakeTimers();
     mountProject(publicProject());
-    act(() => { container.querySelector('[data-agent-action="new-key"]').click(); });
+    act(() => {
+      container.querySelector('[data-agent-action="new-key"]').click();
+    });
     typeInto(container.querySelector('#devPocKeyLabel'), 'Production');
     global.fetch = jest.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Nope' }) }));
-    await act(async () => { container.querySelector('[data-agent-action="create-key"]').click(); await flush(); });
-    await act(async () => { jest.advanceTimersByTime(4000); await flush(); });
+    await act(async () => {
+      container.querySelector('[data-agent-action="create-key"]').click();
+      await flush();
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(4000);
+      await flush();
+    });
     expect(developerPanel().textContent).toContain("We couldn't create your key.");
     jest.useRealTimers();
   });
@@ -602,12 +776,18 @@ describe('keys', () => {
     mountProject(projectWithKey());
     respondWith({ ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] });
     await clickAndSettle(container.querySelector('.devPocRestriction input'));
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/keys/k1', method: 'POST', body: { restrictToWebsite: true } });
+    expect(lastRequest()).toMatchObject({
+      url: '/api/developer/keys/k1',
+      method: 'POST',
+      body: { restrictToWebsite: true },
+    });
   });
 
   it('deletes a key after confirming', async () => {
     mountProject(projectWithKey());
-    act(() => { buttonNamed(container.querySelector('.devPocKey'), 'Delete key').click(); });
+    act(() => {
+      buttonNamed(container.querySelector('.devPocKey'), 'Delete key').click();
+    });
     respondWith({ ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject()] });
     await clickAndSettle(buttonNamed(container.querySelector('[aria-labelledby="devPocConfirmTitle"]'), 'Delete key'));
     expect(lastRequest()).toMatchObject({ url: '/api/developer/keys/k1', method: 'DELETE' });
@@ -616,21 +796,32 @@ describe('keys', () => {
 });
 
 describe('dialog keyboard behaviour', () => {
-  const projectWithKey = () => publicProject({
-    keys: [{ id: 'k1', label: 'Production', value: 'sfr_x', created: null, restrictToWebsite: false }],
-  });
+  const projectWithKey = () =>
+    publicProject({
+      keys: [{ id: 'k1', label: 'Production', value: 'sfr_x', created: null, restrictToWebsite: false }],
+    });
   const openDeleteKey = () => {
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] }, { projectId: 'proj01' });
     const opener = buttonNamed(container.querySelector('.devPocKey'), 'Delete key');
-    act(() => { opener.focus(); opener.click(); });
+    act(() => {
+      opener.focus();
+      opener.click();
+    });
     return { opener, dialog: container.querySelector('[aria-labelledby="devPocConfirmTitle"]') };
   };
-  const press = (key, init = {}) => act(() => {
-    document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init }));
-  });
+  const press = (key, init = {}) =>
+    act(() => {
+      document.activeElement.dispatchEvent(
+        new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init })
+      );
+    });
 
-  const description = (dialog) => dialog.getAttribute('aria-describedby').split(' ')
-    .map(id => dialog.querySelector('#' + id).textContent).join(' ');
+  const description = (dialog) =>
+    dialog
+      .getAttribute('aria-describedby')
+      .split(' ')
+      .map((id) => dialog.querySelector('#' + id).textContent)
+      .join(' ');
 
   it('read their body as the description when they open', () => {
     expect(description(openDeleteKey().dialog)).toContain('The key stops working right away');
@@ -639,10 +830,18 @@ describe('dialog keyboard behaviour', () => {
 
     openNewProject();
     typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    act(() => { visibilityRadio('public').click(); });
-    act(() => { buttonNamed(container, 'Show me what will be public').click(); });
-    expect(description(container.querySelector('[aria-labelledby="devPocPublicTitle"]'))).toContain('anyone will be able to see');
-    act(() => { buttonNamed(container, 'Close').click(); });
+    act(() => {
+      visibilityRadio('public').click();
+    });
+    act(() => {
+      buttonNamed(container, 'Show me what will be public').click();
+    });
+    expect(description(container.querySelector('[aria-labelledby="devPocPublicTitle"]'))).toContain(
+      'anyone will be able to see'
+    );
+    act(() => {
+      buttonNamed(container, 'Close').click();
+    });
     submitProject();
     const noWebsite = description(container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]'));
     expect(noWebsite).toContain('A website helps your project');
@@ -656,31 +855,48 @@ describe('dialog keyboard behaviour', () => {
 
   it('returns focus to the button that opened the new-project form when it is cancelled', () => {
     openNewProject();
-    act(() => { buttonNamed(container.querySelector('.devPocNewProject'), 'Cancel').click(); });
+    act(() => {
+      buttonNamed(container.querySelector('.devPocNewProject'), 'Cancel').click();
+    });
     expect(document.activeElement.textContent).toBe('Create your first project');
     ReactDOM.unmountComponentAtNode(container);
     container.remove();
 
     openNewProject({ projects: [publicProject()] });
-    act(() => { buttonNamed(container.querySelector('.devPocNewProject'), 'Cancel').click(); });
+    act(() => {
+      buttonNamed(container.querySelector('.devPocNewProject'), 'Cancel').click();
+    });
     expect(document.activeElement.textContent).toBe('New project');
   });
 
-  it("closes on Escape without the key reaching the panel around the page", () => {
+  it('closes on Escape without the key reaching the panel around the page', () => {
     const outer = jest.fn();
     container = document.createElement('div');
     document.body.appendChild(container);
     act(() => {
       ReactDOM.render(
-        <div onKeyDown={e => { if (e.key === 'Escape') { outer(); } }}>
-          <SettingsPage tab="developer" projectId="proj01" accountSettings={{ socialProviders: [] }}
+        <div
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              outer();
+            }
+          }}
+        >
+          <SettingsPage
+            tab="developer"
+            projectId="proj01"
+            accountSettings={{ socialProviders: [] }}
             initialDeveloper={{ ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] }}
-            setTab={() => {}} setProjectId={() => {}} />
+            setTab={() => {}}
+            setProjectId={() => {}}
+          />
         </div>,
-        container,
+        container
       );
     });
-    act(() => { buttonNamed(container.querySelector('.devPocKey'), 'Delete key').click(); });
+    act(() => {
+      buttonNamed(container.querySelector('.devPocKey'), 'Delete key').click();
+    });
     press('Escape');
     expect(container.querySelector('[aria-labelledby="devPocConfirmTitle"]')).toBeNull();
     expect(outer).not.toHaveBeenCalled();
@@ -690,12 +906,16 @@ describe('dialog keyboard behaviour', () => {
     const { opener, dialog } = openDeleteKey();
     const buttons = Array.from(dialog.querySelectorAll('button'));
     expect(document.activeElement).toBe(buttons[0]);
-    act(() => { buttons[buttons.length - 1].focus(); });
+    act(() => {
+      buttons[buttons.length - 1].focus();
+    });
     press('Tab');
     expect(document.activeElement).toBe(buttons[0]);
     press('Tab', { shiftKey: true });
     expect(document.activeElement).toBe(buttons[buttons.length - 1]);
-    act(() => { buttonNamed(dialog, 'Cancel').click(); });
+    act(() => {
+      buttonNamed(dialog, 'Cancel').click();
+    });
     expect(document.activeElement).toBe(opener);
   });
 });
@@ -708,7 +928,9 @@ describe('agent instructions', () => {
     expect(block.getAttribute('aria-hidden')).toBeNull();
     expect(block.textContent).toContain('AI agents are permitted to complete this whole process');
     expect(block.textContent).toContain('generating an API key');
-    expect(block.textContent).toContain('free to download, with no key, from https://github.com/Sefaria/Sefaria-Export');
+    expect(block.textContent).toContain(
+      'free to download, with no key, from https://github.com/Sefaria/Sefaria-Export'
+    );
   });
 
   it('point heavy users to the free library download on the page too', () => {
@@ -739,8 +961,12 @@ describe('Hebrew interface', () => {
     openNewProject();
     typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
     typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
-    act(() => { visibilityRadio('private').click(); });
-    global.fetch = jest.fn(() => Promise.resolve({ ok: false, status: 400, json: () => Promise.resolve({ error: 'Give the project a name.' }) }));
+    act(() => {
+      visibilityRadio('private').click();
+    });
+    global.fetch = jest.fn(() =>
+      Promise.resolve({ ok: false, status: 400, json: () => Promise.resolve({ error: 'Give the project a name.' }) })
+    );
     await clickAndSettle(container.querySelector('[data-agent-action="create-project"]'));
     expect(developerPanel().querySelector('[role="alert"]').textContent).toBe('נא לתת לפרויקט שם.');
   });
@@ -750,16 +976,21 @@ describe('server errors in Hebrew', () => {
   const fs = require('fs');
   const path = require('path');
   const serverSource = ['developer.py', 'developer_views.py']
-    .map(file => fs.readFileSync(path.join(__dirname, '../../../powered_by', file), 'utf8')).join('\n');
+    .map((file) => fs.readFileSync(path.join(__dirname, '../../../powered_by', file), 'utf8'))
+    .join('\n');
   const fixedMessages = Array.from(
     serverSource.matchAll(/(?:InputError|PermissionError|LookupError)\("([^"{}]+)"\)|"error": "([^"{}]+)"/g),
-    match => match[1] || match[2],
+    (match) => match[1] || match[2]
   );
-  beforeEach(() => { Sefaria.interfaceLang = 'hebrew'; });
+  beforeEach(() => {
+    Sefaria.interfaceLang = 'hebrew';
+  });
 
   it('translates every fixed message the developer API sends', () => {
     expect(fixedMessages.length).toBeGreaterThan(15);
-    fixedMessages.forEach(message => expect([message, serverErrorText(message)]).toEqual([message, expect.stringMatching(HEBREW)]));
+    fixedMessages.forEach((message) =>
+      expect([message, serverErrorText(message)]).toEqual([message, expect.stringMatching(HEBREW)])
+    );
   });
 
   it('translates messages that carry a number or a field name', () => {
@@ -771,7 +1002,7 @@ describe('server errors in Hebrew', () => {
       'The website must be text.',
       'Wait a minute before asking for another email.',
       'A key is restricted to this website. Turn off the restriction on every key before removing the website.',
-    ].forEach(message => expect(serverErrorText(message)).toMatch(HEBREW));
+    ].forEach((message) => expect(serverErrorText(message)).toMatch(HEBREW));
     expect(serverErrorText('A project can have at most 5 keys.')).toContain('5');
   });
 
@@ -788,7 +1019,9 @@ describe('confirming the email', () => {
 
   it('offers only the emailed link, never a change of sign-in method', () => {
     mount('developer', unverified);
-    act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
+    act(() => {
+      buttonNamed(developerPanel(), 'Get started').click();
+    });
     expect(buttonNamed(developerPanel(), 'Email me a confirmation link')).toBeTruthy();
     expect(developerPanel().textContent).not.toContain('Google');
     expect(developerPanel().textContent).not.toContain('Apple');
@@ -797,7 +1030,9 @@ describe('confirming the email', () => {
 
   it('asks the server to send the link, then shows the check-your-email step', async () => {
     mount('developer', unverified);
-    act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
+    act(() => {
+      buttonNamed(developerPanel(), 'Get started').click();
+    });
     respondWith(linkSent);
     await clickAndSettle(buttonNamed(developerPanel(), 'Email me a confirmation link'));
     expect(lastRequest()).toMatchObject({ url: '/api/developer/confirmation', method: 'POST' });
@@ -813,14 +1048,18 @@ describe('confirming the email', () => {
     await clickAndSettle(buttonNamed(developerPanel(), 'Get started'));
     expect(lastRequest()).toMatchObject({ url: '/api/developer/enable', method: 'POST' });
     expect(developerPanel().textContent).toContain('Setting up developer settings');
-    act(() => { jest.runAllTimers(); });
+    act(() => {
+      jest.runAllTimers();
+    });
     expect(developerPanel().textContent).toContain('About you');
     jest.useRealTimers();
   });
 
   it('saves the profile and moves on to projects', async () => {
     mount('developer', DEVELOPER_ON);
-    act(() => { container.querySelector('.devPocLegal input[type="checkbox"]').click(); });
+    act(() => {
+      container.querySelector('.devPocLegal input[type="checkbox"]').click();
+    });
     respondWith({ ...DEVELOPER_ON, profile: PROFILE, projects: [] });
     await clickAndSettle(container.querySelector('[data-agent-action="save-profile"]'));
     expect(lastRequest()).toMatchObject({ url: '/api/developer/profile', method: 'POST' });
@@ -831,19 +1070,30 @@ describe('confirming the email', () => {
 
 describe('the confirmation link', () => {
   const linkSent = {
-    developerEnabled: false, ssoConnected: false, emailVerified: false, confirmationSentAt: new Date().toISOString(),
+    developerEnabled: false,
+    ssoConnected: false,
+    emailVerified: false,
+    confirmationSentAt: new Date().toISOString(),
   };
 
   it('is noticed by the waiting tab within a few seconds', async () => {
     jest.useFakeTimers();
     mount('developer', linkSent);
     respondWith(linkSent);
-    await act(async () => { jest.advanceTimersByTime(3000); await flush(); });
+    await act(async () => {
+      jest.advanceTimersByTime(3000);
+      await flush();
+    });
     expect(developerPanel().textContent).toContain('Check your email');
 
     respondWith({ ...linkSent, emailVerified: true, developerEnabled: true, confirmationSentAt: null });
-    await act(async () => { jest.advanceTimersByTime(3000); await flush(); });
-    act(() => { jest.runOnlyPendingTimers(); });
+    await act(async () => {
+      jest.advanceTimersByTime(3000);
+      await flush();
+    });
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
     expect(developerPanel().textContent).toContain('Your email is confirmed.');
     expect(developerPanel().textContent).toContain('About you');
     jest.useRealTimers();
@@ -864,7 +1114,9 @@ describe('the confirmation link', () => {
     window.localStorage.removeItem('sefariaDeveloperEmailConfirmed');
     container = document.createElement('div');
     document.body.appendChild(container);
-    act(() => { ReactDOM.render(<EmailConfirmedPage />, container); });
+    act(() => {
+      ReactDOM.render(<EmailConfirmedPage />, container);
+    });
     expect(container.textContent).toContain('Thank you for confirming your email');
     expect(container.textContent).toContain('You can close this tab');
     const next = container.querySelector('[data-agent-action="continue-to-developer-settings"]');
@@ -878,7 +1130,9 @@ describe('a confirmation link that cannot confirm', () => {
   const renderLink = (status) => {
     container = document.createElement('div');
     document.body.appendChild(container);
-    act(() => { ReactDOM.render(<EmailLinkPage link={{ status, key: 'abc:123' }} />, container); });
+    act(() => {
+      ReactDOM.render(<EmailLinkPage link={{ status, key: 'abc:123' }} />, container);
+    });
   };
 
   it('offers a new link when it has expired', async () => {
@@ -886,16 +1140,27 @@ describe('a confirmation link that cannot confirm', () => {
     expect(container.querySelector('h1').textContent).toBe('This link has expired');
     respondWith({ sent: true });
     await clickAndSettle(buttonNamed(container, 'Send a new link'));
-    expect(lastRequest()).toEqual({ url: '/api/developer/confirmation/new-link', method: 'POST', body: { key: 'abc:123' } });
+    expect(lastRequest()).toEqual({
+      url: '/api/developer/confirmation/new-link',
+      method: 'POST',
+      body: { key: 'abc:123' },
+    });
     expect(container.textContent).toContain('We sent a new link. Check your email.');
     expect(buttonNamed(container, 'Send a new link')).toBeUndefined();
   });
 
-  it('shows the server\'s reason when a new link is refused', async () => {
+  it("shows the server's reason when a new link is refused", async () => {
     renderLink('expired');
-    global.fetch = jest.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Wait a minute before asking for another email.' }) }));
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({ error: 'Wait a minute before asking for another email.' }),
+      })
+    );
     await clickAndSettle(buttonNamed(container, 'Send a new link'));
-    expect(container.querySelector('[role="alert"]').textContent).toBe('Wait a minute before asking for another email.');
+    expect(container.querySelector('[role="alert"]').textContent).toBe(
+      'Wait a minute before asking for another email.'
+    );
   });
 
   it('says a used link is already confirmed', () => {
@@ -921,10 +1186,23 @@ describe('a confirmation link that cannot confirm', () => {
 
 describe('after the account email changes', () => {
   const changedEmail = {
-    developerEnabled: true, ssoConnected: false, emailVerified: false, profile: PROFILE,
-    projects: [publicProject({
-      keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: '2026-09-01T00:00:00Z', restrictToWebsite: false }],
-    })],
+    developerEnabled: true,
+    ssoConnected: false,
+    emailVerified: false,
+    profile: PROFILE,
+    projects: [
+      publicProject({
+        keys: [
+          {
+            id: 'k1',
+            label: 'Production',
+            value: 'sfr_test_x',
+            created: '2026-09-01T00:00:00Z',
+            restrictToWebsite: false,
+          },
+        ],
+      }),
+    ],
   };
 
   it('keeps projects and keys on show but offers no new ones', () => {
@@ -966,7 +1244,10 @@ describe('developer settings after Back', () => {
   const remount = () => {
     ReactDOM.unmountComponentAtNode(container);
     act(() => {
-      ReactDOM.render(<SettingsPage tab="developer" projectId={null} setTab={() => {}} setProjectId={() => {}} />, container);
+      ReactDOM.render(
+        <SettingsPage tab="developer" projectId={null} setTab={() => {}} setProjectId={() => {}} />,
+        container
+      );
     });
   };
 
@@ -974,25 +1255,38 @@ describe('developer settings after Back', () => {
     openNewProject();
     typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
     typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
-    act(() => { visibilityRadio('public').click(); });
+    act(() => {
+      visibilityRadio('public').click();
+    });
     respondWith({ ...DEVELOPER_ON, profile: PROFILE, projectId: 'proj01', projects: [publicProject()] });
     await clickAndSettle(container.querySelector('[data-agent-action="create-project"]'));
 
     let answer;
-    global.fetch = jest.fn(() => new Promise(resolve => { answer = resolve; }));
+    global.fetch = jest.fn(
+      () =>
+        new Promise((resolve) => {
+          answer = resolve;
+        })
+    );
     remount();
     expect(lastRequest()).toMatchObject({ url: '/api/developer/state', method: 'GET' });
     expect(container.querySelectorAll('nav.settingsNav a')).toHaveLength(2);
     expect(developerPanel().textContent).toContain('Daf Tracker');
 
     const server = { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ name: 'Mishnah Tracker' })] };
-    await act(async () => { answer({ ok: true, json: () => Promise.resolve(server) }); await flush(); });
+    await act(async () => {
+      answer({ ok: true, json: () => Promise.resolve(server) });
+      await flush();
+    });
     expect(developerPanel().textContent).toContain('Mishnah Tracker');
   });
 
   it('has no developer tab where developer settings are off', async () => {
     mount('account', null);
-    await act(async () => { remount(); await flush(); });
+    await act(async () => {
+      remount();
+      await flush();
+    });
     expect(container.querySelectorAll('nav.settingsNav a')).toHaveLength(1);
     expect(global.fetch).not.toHaveBeenCalled();
   });

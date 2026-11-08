@@ -2,6 +2,7 @@
 ApiKey.allowed_origins: the database refuses anything but an array of strings (Postgres), and
 model validation refuses anything but a list of origins.
 """
+
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, connection, transaction
 from django.test import TestCase
@@ -14,7 +15,8 @@ class AllowedOriginsTest(TestCase):
 
     def setUp(self):
         profile = Project.objects.create(
-            submission_source=SubmissionSource.MANUAL, project_name="Origins", is_published=False)
+            submission_source=SubmissionSource.MANUAL, project_name="Origins", is_published=False
+        )
         self.project = ApiProject.objects.create(profile=profile)
 
     def make(self, origins):

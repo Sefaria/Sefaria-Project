@@ -10,17 +10,17 @@ New here? Read the root [handbook](../../README.md) first.
 
 ## [login.spec.ts](login.spec.ts) — auth persistence (`XMOD-L01` – `XMOD-L09`)
 
-| ID | Scenario | `@sanity`? |
-| --- | --- | --- |
-| `XMOD-L01` | Login on Library, stay on Library | Yes |
-| `XMOD-L02` | Login on Library → switch to Voices; auth transfers | Yes |
-| `XMOD-L03` | Login on Voices → switch to Library; auth transfers | No |
-| `XMOD-L04` | Two Library tabs, login on 2nd → "already logged in" error | No |
-| `XMOD-L05` | Two Voices tabs, login on 2nd → error | No |
-| `XMOD-L06` | Login on Library, then login on open Voices tab | No |
-| `XMOD-L07` | Login on Voices, then login on open Library tab | No |
-| `XMOD-L08` | Logged-in Library user opens a sheet link in Voices | Yes |
-| `XMOD-L09` | Logged-in Voices user opens a text link in Library | Yes |
+| ID         | Scenario                                                   | `@sanity`? |
+| ---------- | ---------------------------------------------------------- | ---------- |
+| `XMOD-L01` | Login on Library, stay on Library                          | Yes        |
+| `XMOD-L02` | Login on Library → switch to Voices; auth transfers        | Yes        |
+| `XMOD-L03` | Login on Voices → switch to Library; auth transfers        | No         |
+| `XMOD-L04` | Two Library tabs, login on 2nd → "already logged in" error | No         |
+| `XMOD-L05` | Two Voices tabs, login on 2nd → error                      | No         |
+| `XMOD-L06` | Login on Library, then login on open Voices tab            | No         |
+| `XMOD-L07` | Login on Voices, then login on open Library tab            | No         |
+| `XMOD-L08` | Logged-in Library user opens a sheet link in Voices        | Yes        |
+| `XMOD-L09` | Logged-in Voices user opens a text link in Library         | Yes        |
 
 > ⚠️ **Tripwire:** `XMOD-L04` – `XMOD-L07` perform parallel UI logins as the same QA user. They pass only because Sefaria's Django config doesn't regenerate sibling sessions on fresh login; if that policy tightens upstream, this file becomes the next flake. Mitigation: switch those UI logins to `enAdmin`, or `page.route`-intercept `/login`. See [../../CLAUDE.md](../../CLAUDE.md) rule §2.21.
 

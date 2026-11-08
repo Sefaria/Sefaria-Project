@@ -46,9 +46,7 @@ def build_update_pipeline_marking_profile_as_donor(occurred_at: datetime) -> lis
         {
             "$set": {
                 "donor_status": DonorStatus.DONOR.value,
-                "became_donor_at": {
-                    "$min": ["$became_donor_at", as_utc_datetime(occurred_at)]
-                },
+                "became_donor_at": {"$min": ["$became_donor_at", as_utc_datetime(occurred_at)]},
             }
         }
     ]
@@ -65,9 +63,7 @@ def mark_existing_user_profile_as_donor(
             event_id_assigned_by_source=event.event_id_assigned_by_source,
         )
         return
-    update = build_update_pipeline_marking_profile_as_donor(
-        event.occurred_at_according_to_source
-    )
+    update = build_update_pipeline_marking_profile_as_donor(event.occurred_at_according_to_source)
     if not apply_update_to_user_profile(user_id, update):
         # The profile document was there a moment ago (the lookup makes sure of it) and is gone
         # now, for example deleted by an admin in between. Without this warning the donation
@@ -120,6 +116,7 @@ def find_user_id_by_email_creating_profile_if_missing(
     # which needs Mongo. Keeping it out of module scope lets the pure decision above be
     # imported (and tested) with no database at all.
     from django.contrib.auth.models import User
+
     from sefaria.model.user_profile import UserProfile
 
     # An address can belong to more than one account. emailusernames prevents duplicates only

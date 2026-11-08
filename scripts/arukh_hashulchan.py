@@ -1,19 +1,24 @@
-#encoding=utf-8
 import django
+
 django.setup()
-from sefaria.model import *
 from sefaria.helper.schema import migrate_to_complex_structure
+from sefaria.model import *
 
 if __name__ == "__main__":
     mapping = {
         "Aruch HaShulchan 1": "Aruch HaShulchan, Orach Chaim",
         "Aruch HaShulchan 2": "Aruch HaShulchan, Yoreh De'ah",
         "Aruch HaShulchan 3": "Aruch HaShulchan, Even HaEzer<d>",
-        "Aruch HaShulchan 4": "Aruch HaShulchan, Choshen Mishpat"
+        "Aruch HaShulchan 4": "Aruch HaShulchan, Choshen Mishpat",
     }
     root = SchemaNode()
     root.add_primary_titles("Aruch HaShulchan", "ערוך השולחן")
-    nodes = [("Orach Chaim", "אורח חיים"), ("Yoreh De'ah", "יורה דעה"), ("Even HaEzer", "אבן העזר"), ("Choshen Mishpat", "חושן משפט")]
+    nodes = [
+        ("Orach Chaim", "אורח חיים"),
+        ("Yoreh De'ah", "יורה דעה"),
+        ("Even HaEzer", "אבן העזר"),
+        ("Choshen Mishpat", "חושן משפט"),
+    ]
     for node in nodes:
         if node[0] == "Even HaEzer":
             even_haezer = SchemaNode()
@@ -27,7 +32,7 @@ if __name__ == "__main__":
             children = ["סדר הגט / Seder HaGet", "סדר חליצה / Seder Chalitza"]
             for child in children:
                 he, en = child.split(" / ")
-                he = he.decode('utf-8')
+                he = he.decode("utf-8")
                 child = JaggedArrayNode()
                 child.add_primary_titles(en, he)
                 child.add_structure(["Paragraph"])
@@ -47,4 +52,3 @@ if __name__ == "__main__":
     aruch = library.get_index("Aruch HaShulchan")
     aruch.set_title("Arukh HaShulchan", "en")
     aruch.save()
-

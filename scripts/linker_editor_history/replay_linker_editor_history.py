@@ -10,12 +10,14 @@ the linker editor, or a NonUniqueTerm that pre-existed in one environment's seed
 the other's. Any of those surface as an InputError on the affected entry, which this script
 pauses on and asks the operator to ignore or abort -- it does not guess.
 """
+
 import argparse
 import json
 import os
 import sys
 
 import django
+
 django.setup()
 
 from sefaria.helper import linker_editor
@@ -70,6 +72,7 @@ def _apply_rebuild_dibur_hamatchils_sync(params, uid):
     # Celery Task instances remain plain callables: calling one directly (instead of
     # .apply_async) runs its body synchronously in-process, no broker/worker required.
     from sefaria.helper.linker.tasks import rebuild_dibur_hamatchils_task
+
     title = params["title"]
     rebuild_dibur_hamatchils_task(title)
     # The synchronous path bypasses enqueue_rebuild_dibur_hamatchils, which normally logs this
@@ -91,7 +94,7 @@ def _apply_entry(entry, uid, slug_remap, sync_dibur_hamatchil):
         return linker_editor.enqueue_rebuild_dibur_hamatchils(title=params["title"], uid=uid)
     if action in DIRECT_ACTIONS:
         return DIRECT_ACTIONS[action](**params, uid=uid)
-    raise InputError("Unknown linker_editor_history action '{}'.".format(action))
+    raise InputError(f"Unknown linker_editor_history action '{action}'.")
 
 
 def _load_progress(progress_path):
@@ -125,15 +128,25 @@ def main():
     parser = argparse.ArgumentParser(
         description="Replay linker_editor_history entries (from export_linker_editor_history.py) against this environment."
     )
-    parser.add_argument("--input", required=True, help="Path to the JSON file produced by export_linker_editor_history.py")
-    parser.add_argument("--uid", required=True, type=int,
-                         help="Destination-environment user id to attribute every replayed action to "
-                              "(the recorded source-environment uid is never reused)")
-    parser.add_argument("--sync-dibur-hamatchil", action="store_true",
-                         help="Run dibur_hamatchil rebuilds synchronously in-process instead of enqueueing a Celery "
-                              "task -- use this if the destination has no worker consuming that queue")
-    parser.add_argument("--progress-file", default=None,
-                         help="Resume/progress sidecar file path (default: <input>.progress.json)")
+    parser.add_argument(
+        "--input", required=True, help="Path to the JSON file produced by export_linker_editor_history.py"
+    )
+    parser.add_argument(
+        "--uid",
+        required=True,
+        type=int,
+        help="Destination-environment user id to attribute every replayed action to "
+        "(the recorded source-environment uid is never reused)",
+    )
+    parser.add_argument(
+        "--sync-dibur-hamatchil",
+        action="store_true",
+        help="Run dibur_hamatchil rebuilds synchronously in-process instead of enqueueing a Celery "
+        "task -- use this if the destination has no worker consuming that queue",
+    )
+    parser.add_argument(
+        "--progress-file", default=None, help="Resume/progress sidecar file path (default: <input>.progress.json)"
+    )
     args = parser.parse_args()
 
     progress_path = args.progress_file or (args.input + ".progress.json")
@@ -158,7 +171,9 @@ def main():
                 ignored += 1
                 continue
             print(f"\nAborted. {applied} entries applied, {ignored} ignored before this point.", file=sys.stderr)
-            print("Resume by re-running with the same --input; already-applied entries will be skipped.", file=sys.stderr)
+            print(
+                "Resume by re-running with the same --input; already-applied entries will be skipped.", file=sys.stderr
+            )
             sys.exit(1)
         applied_ids.add(entry_id)
         _save_progress(progress_path, applied_ids)

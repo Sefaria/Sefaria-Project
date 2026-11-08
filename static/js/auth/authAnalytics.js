@@ -70,7 +70,9 @@ const PENDING_ATTEMPT_KEY = 'sefaria_pending_sso_attempt';
 export function persistPendingAttempt({ flowId, attemptId, method }) {
   try {
     sessionStorage.setItem(PENDING_ATTEMPT_KEY, JSON.stringify({ flowId, attemptId, method, ts: Date.now() }));
-  } catch (e) { /* sessionStorage unavailable (private mode, etc.) */ }
+  } catch (e) {
+    /* sessionStorage unavailable (private mode, etc.) */
+  }
 }
 
 function readPendingAttempt() {
@@ -86,7 +88,11 @@ function readPendingAttempt() {
 }
 
 export function clearPendingAttempt() {
-  try { sessionStorage.removeItem(PENDING_ATTEMPT_KEY); } catch (e) { /* noop */ }
+  try {
+    sessionStorage.removeItem(PENDING_ATTEMPT_KEY);
+  } catch (e) {
+    /* noop */
+  }
 }
 
 // Google: the button lives in a cross-origin iframe with no click signal at all, so
@@ -101,11 +107,17 @@ const ACTIVE_FLOW_KEY = 'sefaria_active_auth_flow';
 export function persistActiveFlow({ flowId }) {
   try {
     sessionStorage.setItem(ACTIVE_FLOW_KEY, JSON.stringify({ flowId, ts: Date.now() }));
-  } catch (e) { /* noop */ }
+  } catch (e) {
+    /* noop */
+  }
 }
 
 export function clearActiveFlow() {
-  try { sessionStorage.removeItem(ACTIVE_FLOW_KEY); } catch (e) { /* noop */ }
+  try {
+    sessionStorage.removeItem(ACTIVE_FLOW_KEY);
+  } catch (e) {
+    /* noop */
+  }
 }
 
 function readActiveFlow() {
@@ -131,7 +143,11 @@ function readAndClearOutcomeCookie() {
   const match = document.cookie.match(new RegExp(`(?:^|; )${OUTCOME_COOKIE}=([^;]*)`));
   if (!match) return null;
   document.cookie = `${OUTCOME_COOKIE}=; path=/; max-age=0; SameSite=None; Secure`;
-  try { return decodeURIComponent(match[1]) || null; } catch (e) { return null; }
+  try {
+    return decodeURIComponent(match[1]) || null;
+  } catch (e) {
+    return null;
+  }
 }
 
 // Called once per full page load (from ReaderApp), regardless of whether the page
@@ -141,8 +157,9 @@ export function resumePendingAuthAttempt() {
   if (pendingAttempt) {
     clearPendingAttempt();
     clearActiveFlow();
-    const fromProvider = document.referrer.startsWith(SSO_REFERRER_ORIGIN.APPLE)
-      || document.referrer.startsWith(SSO_REFERRER_ORIGIN.GOOGLE);
+    const fromProvider =
+      document.referrer.startsWith(SSO_REFERRER_ORIGIN.APPLE) ||
+      document.referrer.startsWith(SSO_REFERRER_ORIGIN.GOOGLE);
     const status = fromProvider ? 'success' : 'failure';
     const error = fromProvider ? null : 'unexpected_return_without_provider_referrer';
     const outcome = fromProvider ? readAndClearOutcomeCookie() : null;

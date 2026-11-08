@@ -1,6 +1,7 @@
 """
 JSON API behind the developer tab of the settings page, and the emailed confirmation link.
 """
+
 import json
 from functools import wraps
 
@@ -17,8 +18,8 @@ from django.views.decorators.http import require_http_methods
 from reader.views import menu_page
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError
-from . import developer
 
+from . import developer
 
 MAX_BODY_BYTES = 16 * 1024
 
@@ -28,11 +29,13 @@ def requires_developer_settings(view):
     The view exists only where DEVELOPER_SETTINGS_ENABLED is on, and with DEVELOPER_SETTINGS_STAFF_ONLY
     only for staff; elsewhere it is a 404.
     """
+
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         if not developer.settings_enabled(request.user):
             raise Http404
         return view(request, *args, **kwargs)
+
     return wrapper
 
 
@@ -71,6 +74,7 @@ def developer_api(func=None, login=True):
             response = jsonResponse({"error": str(e)}, status=429)
             response["Retry-After"] = str(e.retry_after)
             return response
+
     return wrapper
 
 
@@ -174,15 +178,23 @@ def confirm_email(request, key):
         return redirect("/settings/developer/email-confirmed")
     if status == developer.LinkStatus.INVALID:
         raise Http404
-    return menu_page(request, page="developerEmailLink", title=LINK_PAGE_TITLES[status],
-                     props={"initialDeveloperEmailLink": {"status": status, "key": key}})
+    return menu_page(
+        request,
+        page="developerEmailLink",
+        title=LINK_PAGE_TITLES[status],
+        props={"initialDeveloperEmailLink": {"status": status, "key": key}},
+    )
 
 
 @requires_developer_settings
 @xframe_options_deny
 def email_confirmed_page(request):
-    return menu_page(request, page="developerEmailConfirmed", title="Email confirmed",
-                     desc="Your email is confirmed for Sefaria developer settings.")
+    return menu_page(
+        request,
+        page="developerEmailConfirmed",
+        title="Email confirmed",
+        desc="Your email is confirmed for Sefaria developer settings.",
+    )
 
 
 @requires_developer_settings

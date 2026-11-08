@@ -28,6 +28,7 @@ project ids on reverse. Forward and reverse both end with a MIGRATE notification
 service reloads after the schema moves. Postgres only for the SQL; elsewhere (SQLite in local
 development) this migration only changes the foreign key.
 """
+
 import importlib
 import warnings
 
@@ -201,9 +202,15 @@ def _point_keys_with_models(apps, schema_editor):
         else:
             # A live key never goes to a deleted project; then the project with the profile's own id; then a live
             # one; then the newest.
-            chosen = sorted(candidates, key=lambda c: (
-                not (c.deleted_at is None or key.revoked_at is not None), c.id != key.project_id,
-                c.deleted_at is not None, -c.id))[0].id
+            chosen = sorted(
+                candidates,
+                key=lambda c: (
+                    not (c.deleted_at is None or key.revoked_at is not None),
+                    c.id != key.project_id,
+                    c.deleted_at is not None,
+                    -c.id,
+                ),
+            )[0].id
         if chosen != key.project_id:
             ApiKey.objects.using(alias).filter(pk=key.pk).update(project_id=chosen)
     schema_editor.execute("DROP TABLE IF EXISTS api_key_project_remap")
@@ -220,7 +227,8 @@ def _record_and_remap_with_models(apps, schema_editor):
         for key in ApiKey.objects.using(alias).all():
             cursor.execute(
                 "INSERT OR REPLACE INTO api_key_project_remap (key_id, api_project_id) VALUES (%s, %s)",
-                [key.id.hex, key.project_id])
+                [key.id.hex, key.project_id],
+            )
     for key in ApiKey.objects.using(alias).all():
         profile_id = profile_of.get(key.project_id)
         if profile_id is not None and profile_id != key.project_id:
@@ -288,7 +296,6 @@ def restore_triggers_and_revoke(apps, schema_editor, role=READER_ROLE):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("powered_by", "0007_api_project_backfill"),
     ]
