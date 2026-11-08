@@ -82,7 +82,7 @@ class RemoteConfigCacheTest(TestCase):
         cache = RemoteConfigCache()
 
         def raise_programming_error():
-            raise ProgrammingError("relation \"remote_config_remoteconfigentry\" does not exist")
+            raise ProgrammingError('relation "remote_config_remoteconfigentry" does not exist')
 
         cache._build_cache = raise_programming_error
 
@@ -112,6 +112,7 @@ class RemoteConfigAPITest(TestCase):
 
 class ChatbotAnonymousFreeAnswersMigrationTest(TestCase):
     """Migration 0002 creates the free-answers entry the chatbot server reads."""
+
     databases = "__all__"
 
     def setUp(self):
@@ -129,7 +130,9 @@ class ChatbotAnonymousFreeAnswersMigrationTest(TestCase):
 
     def test_does_not_overwrite_an_admin_value(self):
         from importlib import import_module
+
         from django.apps import apps
+
         from remote_config.keys import CHATBOT_ANONYMOUS_FREE_ANSWERS
 
         RemoteConfigEntry.objects.filter(key=CHATBOT_ANONYMOUS_FREE_ANSWERS).update(raw_value="5")

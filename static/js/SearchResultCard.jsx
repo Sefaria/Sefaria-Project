@@ -24,18 +24,24 @@ function usePressState() {
     const el = ref.current;
     if (!el) return;
 
-    let startPos  = null;   // where the finger landed; null once the gesture ends or is ruled out
-    let showTimer = null;   // fires PRESS_DELAY_MS after touchstart
-    let hideTimer = null;   // holds a quick tap's highlight on screen for PRESS_MIN_MS
-    let shownAt   = null;   // when the pressed state actually went on screen
+    let startPos = null; // where the finger landed; null once the gesture ends or is ruled out
+    let showTimer = null; // fires PRESS_DELAY_MS after touchstart
+    let hideTimer = null; // holds a quick tap's highlight on screen for PRESS_MIN_MS
+    let shownAt = null; // when the pressed state actually went on screen
 
     const clearTimers = () => {
       clearTimeout(showTimer);
       clearTimeout(hideTimer);
       showTimer = hideTimer = null;
     };
-    const show = () => { shownAt = Date.now(); setPressed(true); };
-    const hide = () => { shownAt = null; setPressed(false); };
+    const show = () => {
+      shownAt = Date.now();
+      setPressed(true);
+    };
+    const hide = () => {
+      shownAt = null;
+      setPressed(false);
+    };
 
     const onStart = (e) => {
       const t = e.touches[0];
@@ -47,8 +53,10 @@ function usePressState() {
     const onMove = (e) => {
       if (!startPos) return;
       const t = e.touches[0];
-      if (Math.abs(t.clientX - startPos.x) > PRESS_MOVE_TOLERANCE ||
-          Math.abs(t.clientY - startPos.y) > PRESS_MOVE_TOLERANCE) {
+      if (
+        Math.abs(t.clientX - startPos.x) > PRESS_MOVE_TOLERANCE ||
+        Math.abs(t.clientY - startPos.y) > PRESS_MOVE_TOLERANCE
+      ) {
         // The finger is scrolling, not tapping — abandon the gesture without ever showing it.
         startPos = null;
         clearTimers();
@@ -56,12 +64,18 @@ function usePressState() {
       }
     };
     const onEnd = () => {
-      if (!startPos) return;   // already ruled out as a scroll
+      if (!startPos) return; // already ruled out as a scroll
       startPos = null;
       clearTimers();
-      if (shownAt === null) { show(); }   // finger lifted before the delay: flash it now
+      if (shownAt === null) {
+        show();
+      } // finger lifted before the delay: flash it now
       const remaining = PRESS_MIN_MS - (Date.now() - shownAt);
-      if (remaining > 0) { hideTimer = setTimeout(hide, remaining); } else { hide(); }
+      if (remaining > 0) {
+        hideTimer = setTimeout(hide, remaining);
+      } else {
+        hide();
+      }
     };
     const onCancel = () => {
       startPos = null;
@@ -69,15 +83,15 @@ function usePressState() {
       hide();
     };
 
-    el.addEventListener('touchstart',  onStart,  { passive: true });
-    el.addEventListener('touchmove',   onMove,   { passive: true });
-    el.addEventListener('touchend',    onEnd,    { passive: true });
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: true });
+    el.addEventListener('touchend', onEnd, { passive: true });
     el.addEventListener('touchcancel', onCancel, { passive: true });
     return () => {
       clearTimers();
-      el.removeEventListener('touchstart',  onStart);
-      el.removeEventListener('touchmove',   onMove);
-      el.removeEventListener('touchend',    onEnd);
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
       el.removeEventListener('touchcancel', onCancel);
     };
   }, []);
@@ -86,19 +100,19 @@ function usePressState() {
 }
 
 const TYPE_ICONS = {
-  author:     '/static/icons/iconmonstr-pen-17.svg',
-  topic:      '/static/icons/topic.svg',
-  text:       '/static/icons/book.svg',
+  author: '/static/icons/iconmonstr-pen-17.svg',
+  topic: '/static/icons/topic.svg',
+  text: '/static/icons/book.svg',
   collection: '/static/icons/collection.svg',
 };
 
 const MODES_WITH_CATEGORY_COLOR = new Set(['books', 'sources']);
 
 // Singular and plural are separate interface strings so each language can inflect its own way.
-const versionsToggleLabel = (count) => Sefaria._bilingual(
-  count === 1 ? 'search.result_card.one_more_version' : 'search.result_card.more_versions',
-  { count }
-);
+const versionsToggleLabel = (count) =>
+  Sefaria._bilingual(count === 1 ? 'search.result_card.one_more_version' : 'search.result_card.more_versions', {
+    count,
+  });
 
 function SearchResultCard({
   mode,
@@ -170,7 +184,9 @@ function SearchResultCard({
       // the page. It returns false for a path it doesn't recognize — then fall back to a real
       // page load, which is also what happens outside the app (e.g. Storybook), where the prop
       // isn't supplied at all.
-      if (openURL && openURL(target.href)) { return; }
+      if (openURL && openURL(target.href)) {
+        return;
+      }
       window.location.href = target.href;
       return;
     }
@@ -202,7 +218,7 @@ function SearchResultCard({
   // plain click runs the in-app handler — otherwise different parts of one card behave
   // differently depending on where you click.
   const handleLinkClick = (target) => (e) => {
-    e.stopPropagation();  // the card's own onClick would fire too, opening the wrong version
+    e.stopPropagation(); // the card's own onClick would fire too, opening the wrong version
     // A modified click opens a new tab or window and leaves the user on the search page, so
     // it reports the click but must not end the flow. Inside ReaderApp these clicks never
     // get here at all (ReaderApp reports them itself, see linkAnalyticsAttrs above); the
@@ -226,11 +242,13 @@ function SearchResultCard({
   // the user on the search page, so it reports the click without ending the flow — the same
   // split handleLinkClick makes.
   const handleSubLinkClick = (elementValue, linkHref) => (e) => {
-    e.stopPropagation();  // otherwise the card's onClick opens the result instead
+    e.stopPropagation(); // otherwise the card's onClick opens the result instead
     const opensNewTab = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
     fireResultClickAnalytics(elementValue, !opensNewTab);
     if (!openURL || opensNewTab) return;
-    if (openURL(linkHref)) { e.preventDefault(); }
+    if (openURL(linkHref)) {
+      e.preventDefault();
+    }
   };
 
   // Middle-click opens the link in a new tab natively. Browsers dispatch `auxclick` rather
@@ -239,7 +257,9 @@ function SearchResultCard({
   // reported. Like a modified click it leaves the user on the search page, so it reports the
   // click WITHOUT ending the flow, and the browser is left alone to open the tab.
   const handleAuxClick = (elementValue) => (e) => {
-    if (e.button !== 1) { return; }   // 1 == middle; back/forward buttons aren't link clicks
+    if (e.button !== 1) {
+      return;
+    } // 1 == middle; back/forward buttons aren't link clicks
     fireResultClickAnalytics(elementValue, false);
   };
 
@@ -252,12 +272,12 @@ function SearchResultCard({
 
   // Books and sources derive their accent color from the Sefaria category palette.
   // An explicit accentColor prop always wins (useful for overrides / storybook).
-  const resolvedAccentColor = accentColor
-    || (MODES_WITH_CATEGORY_COLOR.has(mode) && name ? Sefaria.palette.refColor(name) : '#000');
+  const resolvedAccentColor =
+    accentColor || (MODES_WITH_CATEGORY_COLOR.has(mode) && name ? Sefaria.palette.refColor(name) : '#000');
 
   const isSourcesMode = mode === 'sources';
   // Sources cards don't show the icon circle — the colored bar and ref title are sufficient.
-  const resolvedIcon = isSourcesMode ? null : (icon || TYPE_ICONS[type.toLowerCase()] || TYPE_ICONS.text);
+  const resolvedIcon = isSourcesMode ? null : icon || TYPE_ICONS[type.toLowerCase()] || TYPE_ICONS.text;
   const hasDescription = !isSourcesMode && !!(descriptionHtml || description);
 
   return (
@@ -306,10 +326,13 @@ function SearchResultCard({
             />
           )}
           <div className="searchResultCard-header">
-            <a href={href} className="searchResultCard-titleLink"
-               {...linkAnalyticsAttrs(tref ?? name)}
-               onClick={handleLinkClick(ownResult)}
-               onAuxClick={handleAuxClick(tref ?? name)}>
+            <a
+              href={href}
+              className="searchResultCard-titleLink"
+              {...linkAnalyticsAttrs(tref ?? name)}
+              onClick={handleLinkClick(ownResult)}
+              onAuxClick={handleAuxClick(tref ?? name)}
+            >
               <div className="searchResultCard-titleRow">
                 <span className="searchResultCard-name">
                   <InterfaceText text={{ en: name, he: hebrewName }} />
@@ -329,15 +352,19 @@ function SearchResultCard({
                   </span>
                 )}
                 {secondaryDate && secondaryAuthor && (
-                  <span className="searchResultCard-secondary-dot" aria-hidden="true">·</span>
+                  <span className="searchResultCard-secondary-dot" aria-hidden="true">
+                    ·
+                  </span>
                 )}
                 {secondaryAuthor && (
                   <span className="searchResultCard-secondary-author">
                     {secondaryAuthorHref ? (
-                      <a href={secondaryAuthorHref}
-                         {...linkAnalyticsAttrs(secondaryAuthor)}
-                         onClick={handleSubLinkClick(secondaryAuthor, secondaryAuthorHref)}
-                         onAuxClick={handleAuxClick(secondaryAuthor)}>
+                      <a
+                        href={secondaryAuthorHref}
+                        {...linkAnalyticsAttrs(secondaryAuthor)}
+                        onClick={handleSubLinkClick(secondaryAuthor, secondaryAuthorHref)}
+                        onAuxClick={handleAuxClick(secondaryAuthor)}
+                      >
                         <InterfaceText text={{ en: secondaryAuthor, he: hebrewSecondaryAuthor }} />
                       </a>
                     ) : (
@@ -372,14 +399,14 @@ function SearchResultCard({
               <button
                 type="button"
                 className="searchResultCard-versionsToggle"
-                onClick={(e) => { e.stopPropagation(); setVersionsOpen(o => !o); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setVersionsOpen((o) => !o);
+                }}
                 aria-expanded={versionsOpen}
               >
                 <InterfaceText text={versionsToggleLabel(versions.length)} />
-                <span
-                  className={`searchResultCard-versionsChevron${versionsOpen ? ' open' : ''}`}
-                  aria-hidden="true"
-                />
+                <span className={`searchResultCard-versionsChevron${versionsOpen ? ' open' : ''}`} aria-hidden="true" />
               </button>
               {versionsOpen && (
                 <div className="searchResultCard-versionsList">
@@ -408,10 +435,11 @@ function SearchResultCard({
 
           {!isSourcesMode && (descriptionHtml || description) && (
             <div className="searchResultCard-description">
-              {descriptionHtml
-                ? <span dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
-                : <InterfaceText text={{ en: description, he: hebrewDescription }} />
-              }
+              {descriptionHtml ? (
+                <span dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
+              ) : (
+                <InterfaceText text={{ en: description, he: hebrewDescription }} />
+              )}
             </div>
           )}
         </div>
@@ -421,59 +449,63 @@ function SearchResultCard({
 }
 
 SearchResultCard.propTypes = {
-  mode:                 PropTypes.oneOf(['books', 'authors', 'topics', 'sources']).isRequired,
-  name:                 PropTypes.string.isRequired,
-  hebrewName:           PropTypes.string,
-  altName:              PropTypes.string,
-  hebrewAltName:        PropTypes.string,
-  crumbs:               PropTypes.arrayOf(PropTypes.shape({
-    label:       PropTypes.string.isRequired,
-    hebrewLabel: PropTypes.string,
-    href:        PropTypes.string,
-  })),
-  secondaryDate:           PropTypes.string,
-  hebrewSecondaryDate:     PropTypes.string,
-  secondaryAuthor:         PropTypes.string,
-  hebrewSecondaryAuthor:   PropTypes.string,
-  secondaryAuthorHref:     PropTypes.string,
-  secondaryAuthorAlt:      PropTypes.string,
+  mode: PropTypes.oneOf(['books', 'authors', 'topics', 'sources']).isRequired,
+  name: PropTypes.string.isRequired,
+  hebrewName: PropTypes.string,
+  altName: PropTypes.string,
+  hebrewAltName: PropTypes.string,
+  crumbs: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string.isRequired,
+      hebrewLabel: PropTypes.string,
+      href: PropTypes.string,
+    })
+  ),
+  secondaryDate: PropTypes.string,
+  hebrewSecondaryDate: PropTypes.string,
+  secondaryAuthor: PropTypes.string,
+  hebrewSecondaryAuthor: PropTypes.string,
+  secondaryAuthorHref: PropTypes.string,
+  secondaryAuthorAlt: PropTypes.string,
   hebrewSecondaryAuthorAlt: PropTypes.string,
-  description:          PropTypes.string,
-  hebrewDescription:    PropTypes.string,
-  icon:                 PropTypes.string,
-  type:                 PropTypes.oneOf(['author', 'topic', 'text', 'collection']),
-  href:                 PropTypes.string.isRequired,
-  tref:                 PropTypes.string,
-  onResultClick:        PropTypes.func,
+  description: PropTypes.string,
+  hebrewDescription: PropTypes.string,
+  icon: PropTypes.string,
+  type: PropTypes.oneOf(['author', 'topic', 'text', 'collection']),
+  href: PropTypes.string.isRequired,
+  tref: PropTypes.string,
+  onResultClick: PropTypes.func,
   // URL-based in-app navigation (ReaderApp.openURL), used by cards whose href isn't a ref:
   // books, categories, authors and topics. Returns true if it handled the path.
-  openURL:              PropTypes.func,
-  query:                PropTypes.string,
-  accentColor:          PropTypes.string,   // explicit override; skips palette lookup
-  analyticsPosition:    PropTypes.number,   // 1-based rank; presence opts the card into search analytics
+  openURL: PropTypes.func,
+  query: PropTypes.string,
+  accentColor: PropTypes.string, // explicit override; skips palette lookup
+  analyticsPosition: PropTypes.number, // 1-based rank; presence opts the card into search analytics
   // Sources mode
-  snippet:              PropTypes.string,
-  snippetLang:          PropTypes.oneOf(['en', 'he']),
-  versionName:          PropTypes.string,
-  hebrewVersionName:    PropTypes.string,
-  versions:             PropTypes.arrayOf(PropTypes.shape({
-    snippet:          PropTypes.string.isRequired,
-    snippetLang:      PropTypes.oneOf(['en', 'he']),
-    versionName:      PropTypes.string,
-    hebrewVersionName: PropTypes.string,
-    href:             PropTypes.string,
-    // Each row opens its own version, so it needs its own ref/version/highlights.
-    tref:             PropTypes.string,
-    currVersions:     PropTypes.object,
-    textHighlights:   PropTypes.arrayOf(PropTypes.string),
-  })),
+  snippet: PropTypes.string,
+  snippetLang: PropTypes.oneOf(['en', 'he']),
+  versionName: PropTypes.string,
+  hebrewVersionName: PropTypes.string,
+  versions: PropTypes.arrayOf(
+    PropTypes.shape({
+      snippet: PropTypes.string.isRequired,
+      snippetLang: PropTypes.oneOf(['en', 'he']),
+      versionName: PropTypes.string,
+      hebrewVersionName: PropTypes.string,
+      href: PropTypes.string,
+      // Each row opens its own version, so it needs its own ref/version/highlights.
+      tref: PropTypes.string,
+      currVersions: PropTypes.object,
+      textHighlights: PropTypes.arrayOf(PropTypes.string),
+    })
+  ),
   // The version that matched, keyed by reader slot: 'he' = primary text, 'en' = translation.
-  currVersions:         PropTypes.shape({
+  currVersions: PropTypes.shape({
     en: PropTypes.shape({ versionTitle: PropTypes.string, languageFamilyName: PropTypes.string }),
     he: PropTypes.shape({ versionTitle: PropTypes.string, languageFamilyName: PropTypes.string }),
   }),
   // Matched words, re-highlighted in the reader after the panel opens.
-  textHighlights:       PropTypes.arrayOf(PropTypes.string),
+  textHighlights: PropTypes.arrayOf(PropTypes.string),
 };
 
 export { BreadcrumbPath };

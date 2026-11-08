@@ -1,12 +1,15 @@
 # Content Objects
+
 > Sources: `sefaria/model/note.py`, `sefaria/model/layer.py`, `sefaria/model/passage.py`, `sefaria/model/guide.py`, `sefaria/model/story.py`
 
 ## Purpose
+
 These models represent user-created and editorial content that annotates or supplements the core text library. Notes are user annotations on specific refs; Layers group notes into collections; Passages define structural units (sugyot/mishnayot); Guides provide curated question-and-commentary experiences for sidebar display; Story is a deprecated utility class retained only for sheet/publisher metadata helpers.
 
 ## note.py
 
 ### Note (AbstractMongoRecord)
+
 - **Collection:** `notes`
 - **A user annotation on a specific text ref.** Can be public or private.
 - **Required attrs:** `owner`, `public`, `text`, `type`, `ref`
@@ -15,15 +18,18 @@ These models represent user-created and editorial content that annotates or supp
 - **`_normalize()`** canonicalizes `self.ref` via `Ref(self.ref).normal()`.
 
 ### NoteSet (AbstractMongoSet)
+
 Standard set class for Note.
 
 ### Cascade functions
+
 - **`process_index_title_change_in_notes(indx, **kwargs)`** -- Updates refs in all notes when an index title changes. Notes that fail to save after the ref update are deleted.
 - **`process_index_delete_in_notes(indx, **kwargs)`** -- Deletes all notes whose ref matches the deleted index.
 
 ## layer.py
 
 ### Layer (AbstractMongoRecord)
+
 - **Collection:** `layers`
 - **A named collection of Notes (and potentially sources).**
 - **Required attrs:** `owner`, `urlkey`, `note_ids` (list of ObjectIds), `sources_list`
@@ -37,14 +43,17 @@ Standard set class for Note.
   - `listeners()` -- Returns distinct owner UIDs across all notes in the layer (for change notifications).
 
 ### LayerSet (AbstractMongoSet)
+
 Standard set class for Layer.
 
 ### Cascade function
+
 - **`process_note_deletion_in_layer(note, **kwargs)`** -- Registered in `dependencies.py` on Note delete. Removes the deleted note's `_id` from every Layer that references it, then saves.
 
 ## passage.py
 
 ### Passage (AbstractMongoRecord, MatchTemplateMixin)
+
 - **Collection:** `passage`
 - **Represents a structural text unit: a sugya, mishnah, passage, or biblical story.**
 - **Required attrs:** `full_ref`, `type`, `ref_list` (list of segment-level ref strings)
@@ -58,11 +67,13 @@ Standard set class for Layer.
 - Mixes in `MatchTemplateMixin` from `sefaria.model.linker.has_match_template` for linker integration.
 
 ### PassageSet (AbstractMongoSet)
+
 Standard set class for Passage.
 
 ## guide.py
 
 ### Guide (AbstractMongoRecord)
+
 - **Collection:** `guide`
 - **Curated question-and-commentary content for the sidebar connection panel.**
 - **Required attrs:** `ref`, `expanded_refs` (auto-populated list of segment refs), `questions`
@@ -74,11 +85,13 @@ Standard set class for Passage.
 - Originally built for Pesach Haggadah; the model is generic.
 
 ### GuideSet (AbstractMongoSet)
+
 - **`load_set_for_client(cls, tref)`** -- Class method. Given a text ref, expands to segment refs, queries for all Guides with overlapping `expanded_refs`, and returns their `.contents()`.
 
 ## story.py
 
 ### Story (plain object -- NOT an AbstractMongoRecord)
+
 - **DEPRECATED since Nov 2022.** Not backed by MongoDB. Retained solely for static helper methods used in sheet and trend statistics.
 - **Static methods:**
   - `sheet_metadata(sheet_id, return_id=False)` -- Fetches sheet metadata and formats it.
@@ -88,12 +101,14 @@ Standard set class for Passage.
 - TODO in source: "Refactor out of existence."
 
 ## Non-Obvious Patterns
+
 - **Note HTML sanitization is defined but not enforced in `_normalize` or `_validate`.** The `ALLOWED_TAGS` / `ALLOWED_ATTRS` constants exist on Note but are consumed externally (likely in API views) rather than by the model itself.
 - **Layer.sources() is a stub** that always returns `[]`. The `sources_list` required attr and `all()` method suggest sources were planned but never implemented.
-- **Passage._normalize has a bug:** line 39 checks `if type == "Mishnah"` using the builtin `type` function instead of `self.type`. The Mishnah same_as logic is also commented out.
+- **Passage.\_normalize has a bug:** line 39 checks `if type == "Mishnah"` using the builtin `type` function instead of `self.type`. The Mishnah same_as logic is also commented out.
 - **Guide.contents() adds client-specific keys** (`anchorRef`, `anchorRefExpanded`) directly in the model, coupling it to the API response shape.
 
 ## Relationships
+
 - **Note -> Layer:** A Layer holds a list of Note `_id`s in `note_ids`. Deleting a Note cascades to remove its ID from all referencing Layers via `process_note_deletion_in_layer`, registered in `dependencies.py`.
 - **Note -> Index:** Index title changes cascade to update Note refs; index deletion cascades to delete matching Notes. Both registered in `dependencies.py`.
 - **Guide -> Ref / Commentary texts:** Guides reference primary texts via `ref` and commentary texts via `commentaryRef` inside the questions structure. These are string references, not foreign keys.
@@ -101,6 +116,7 @@ Standard set class for Passage.
 - **Story -> Sheets / UserProfile:** Story's static methods reach into `sefaria.sheets` and `user_profile` for metadata but Story itself has no persistent storage.
 
 ## Common Tasks
+
 - **Add a note to a layer:** Call `layer.add_note(note_id)` then `layer.save()`.
 - **Get all notes for a text ref within a layer:** `layer.notes(tref="Genesis 1:1")` filters by section-level regex.
 - **Find the sugya containing a segment:** `Passage.containing_segment(ref)` returns the shortest matching Passage.

@@ -13,7 +13,7 @@ and webhook adapters import it at request time, so it must never pull in sefaria
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from enum import Enum
 
 
@@ -61,9 +61,7 @@ class NormalizedEmailAddress:
         # Only a shape check, deliberately loose ("a@b@c" passes): the address is a lookup
         # key, never something we send mail to, so a stricter parser would only reject donors.
         local_part, at_sign, domain = normalized.partition("@")
-        if not (local_part and at_sign and domain) or any(
-            character.isspace() for character in normalized
-        ):
+        if not (local_part and at_sign and domain) or any(character.isspace() for character in normalized):
             return None
         return cls(normalized)
 
@@ -73,16 +71,14 @@ def as_utc_datetime(moment: datetime) -> datetime:
     # (but UTC by construction). Comparing naive with aware datetimes raises TypeError, so every
     # comparison goes through here first.
     if moment.tzinfo is None:
-        return moment.replace(tzinfo=timezone.utc)
-    return moment.astimezone(timezone.utc)
+        return moment.replace(tzinfo=UTC)
+    return moment.astimezone(UTC)
 
 
 @dataclass(frozen=True)
 class PersonAsIdentifiedByClassy:
     classy_supporter_id: int  # always present on a transaction
-    email_address: (
-        NormalizedEmailAddress | None
-    )  # member_email_address, when Classy sends it
+    email_address: NormalizedEmailAddress | None  # member_email_address, when Classy sends it
 
 
 @dataclass(frozen=True)
@@ -129,6 +125,4 @@ class DonorEmailAddressCouldNotBeResolved:
 # Returns the supporter's address, or why it couldn't be found. It RAISES on transient failures
 # (timeouts, 5xx), so the Celery task can retry them. The donor recording code receives this
 # as an argument, so it never makes the HTTP call itself (see webhooks/adapters/classy_api.py).
-type LookUpClassySupporterEmailAddress = Callable[
-    [int], NormalizedEmailAddress | DonorEmailAddressCouldNotBeResolved
-]
+type LookUpClassySupporterEmailAddress = Callable[[int], NormalizedEmailAddress | DonorEmailAddressCouldNotBeResolved]

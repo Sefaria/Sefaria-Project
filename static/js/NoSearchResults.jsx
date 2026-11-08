@@ -6,9 +6,9 @@ import { LibraryAssistantContext } from './context';
 
 const CTA_HREFS = {
   sources: '/texts',
-  books:   '/texts',
+  books: '/texts',
   authors: '/people',
-  topics:  '/topics',
+  topics: '/topics',
 };
 
 // Put the search into a translation's {query}. A function as the replacement, so `$&` and the
@@ -18,13 +18,14 @@ const fillInQuery = (text, query) => text.replace(/\{query\}/g, () => query);
 // The question the Library Assistant is asked about a search that found nothing. The floating
 // button and the link in the body must send exactly the same text, so the widget can tell
 // they're the same question and only ask it once.
-const getAssistantNoResultsQuestion = (query) => fillInQuery(Sefaria._('search.no_results.library_assistant_question'), query);
+const getAssistantNoResultsQuestion = (query) =>
+  fillInQuery(Sefaria._('search.no_results.library_assistant_question'), query);
 
 // Whether the assistant can be offered on this page
 const AssistantAvailability = Object.freeze({
-  AVAILABLE: 'available',      // ReaderApp put the widget on the page and its script defined it
-  UNAVAILABLE: 'unavailable',  // no widget on the page, or its script never loaded
-  LOADING: 'loading',          // the widget is on the page but its script hasn't defined it yet
+  AVAILABLE: 'available', // ReaderApp put the widget on the page and its script defined it
+  UNAVAILABLE: 'unavailable', // no widget on the page, or its script never loaded
+  LOADING: 'loading', // the widget is on the page but its script hasn't defined it yet
 });
 // How long to wait for a loading widget before falling back to the browse button
 const WIDGET_LOAD_TIMEOUT_MS = 3000;
@@ -33,7 +34,9 @@ const WIDGET_LOAD_TIMEOUT_MS = 3000;
 let hasHydrated = false;
 
 const getAssistantAvailability = (onPage) => {
-  if (!onPage || !window.customElements) { return AssistantAvailability.UNAVAILABLE; }
+  if (!onPage || !window.customElements) {
+    return AssistantAvailability.UNAVAILABLE;
+  }
   return window.customElements.get('lc-chatbot') ? AssistantAvailability.AVAILABLE : AssistantAvailability.LOADING;
 };
 
@@ -42,21 +45,31 @@ const getAssistantAvailability = (onPage) => {
 // after a short wait it gives up and the page shows the browse button instead.
 function useAssistantAvailability(onPage) {
   const [availability, setAvailability] = useState(() => {
-    if (!onPage) { return AssistantAvailability.UNAVAILABLE; }
+    if (!onPage) {
+      return AssistantAvailability.UNAVAILABLE;
+    }
     return hasHydrated ? getAssistantAvailability(onPage) : AssistantAvailability.LOADING;
   });
   useEffect(() => {
     hasHydrated = true;
     const current = getAssistantAvailability(onPage);
     setAvailability(current);
-    if (current !== AssistantAvailability.LOADING) { return; }
+    if (current !== AssistantAvailability.LOADING) {
+      return;
+    }
     let cancelled = false;
     let timer;
-    const timeout = new Promise(resolve => {
+    const timeout = new Promise((resolve) => {
       timer = setTimeout(() => resolve(AssistantAvailability.UNAVAILABLE), WIDGET_LOAD_TIMEOUT_MS);
     });
-    Promise.race([window.customElements.whenDefined('lc-chatbot').then(() => AssistantAvailability.AVAILABLE), timeout])
-      .then(result => { if (!cancelled) { setAvailability(result); } });
+    Promise.race([
+      window.customElements.whenDefined('lc-chatbot').then(() => AssistantAvailability.AVAILABLE),
+      timeout,
+    ]).then((result) => {
+      if (!cancelled) {
+        setAvailability(result);
+      }
+    });
     return () => {
       cancelled = true;
       clearTimeout(timer);
@@ -71,15 +84,25 @@ function useAssistantAvailability(onPage) {
 function renderAssistantBody(text, query) {
   const open = (e) => {
     e.preventDefault();
-    document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {
-      source: 'search_no_results',
-      question: getAssistantNoResultsQuestion(query),
-    }}));
+    document.dispatchEvent(
+      new CustomEvent('chatbot:open', {
+        detail: {
+          source: 'search_no_results',
+          question: getAssistantNoResultsQuestion(query),
+        },
+      })
+    );
   };
   return text.split(/(\{br\}|\{assistant\})/).map((part, i) => {
-    if (part === '{br}') { return <br key={i} />; }
+    if (part === '{br}') {
+      return <br key={i} />;
+    }
     if (part === '{assistant}') {
-      return <a key={i} href="#" onClick={open} className="noSearchResults-assistantLink">{Sefaria._('header.library_assistant')}</a>;
+      return (
+        <a key={i} href="#" onClick={open} className="noSearchResults-assistantLink">
+          {Sefaria._('header.library_assistant')}
+        </a>
+      );
     }
     return part;
   });
@@ -96,21 +119,27 @@ function NoSearchResults({ mode, query }) {
   // Turn the Library Assistant's "Ask" button into "Search with Library Assistant", which asks
   // about this search when clicked. The widget (ai-chatbot) owns the label; null puts back "Ask".
   useEffect(() => {
-    if (!hasAssistant) { return; }
+    if (!hasAssistant) {
+      return;
+    }
     const question = getAssistantNoResultsQuestion(query);
-    document.dispatchEvent(new CustomEvent('chatbot:launcher', {detail: {source: 'search_no_results', question}}));
-    return () => document.dispatchEvent(new CustomEvent('chatbot:launcher', {detail: null}));
+    document.dispatchEvent(new CustomEvent('chatbot:launcher', { detail: { source: 'search_no_results', question } }));
+    return () => document.dispatchEvent(new CustomEvent('chatbot:launcher', { detail: null }));
   }, [hasAssistant, query]);
 
   const classes = ['noSearchResults'];
-  if (hasAssistant) { classes.push('noSearchResults--withAssistant'); }
-  if (availability === AssistantAvailability.LOADING) { classes.push('noSearchResults--pending'); }
+  if (hasAssistant) {
+    classes.push('noSearchResults--withAssistant');
+  }
+  if (availability === AssistantAvailability.LOADING) {
+    classes.push('noSearchResults--pending');
+  }
 
   return (
     <div className={classes.join(' ')}>
       <img
         src={`/static/img/no-results-search-illustrations/NoResults${
-          {sources: 'Source', books: 'Books', authors: 'Authors', topics: 'Topics'}[mode]
+          { sources: 'Source', books: 'Books', authors: 'Authors', topics: 'Topics' }[mode]
         }.svg`}
         alt=""
         className="noSearchResults-image"
@@ -120,24 +149,26 @@ function NoSearchResults({ mode, query }) {
         <div className="noSearchResults-textGroup">
           <p className="noSearchResults-heading serif">{heading}</p>
           <p className="noSearchResults-body">
-            {hasAssistant
-              ? renderAssistantBody(Sefaria._(key('body.library_assistant')), query)
-              : <InterfaceText>{key('body')}</InterfaceText>}
+            {hasAssistant ? (
+              renderAssistantBody(Sefaria._(key('body.library_assistant')), query)
+            ) : (
+              <InterfaceText>{key('body')}</InterfaceText>
+            )}
           </p>
         </div>
         {/* With the assistant on, its "Search with Library Assistant" button takes this one's place */}
-        {availability === AssistantAvailability.UNAVAILABLE &&
+        {availability === AssistantAvailability.UNAVAILABLE && (
           <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
             <InterfaceText>{key('button')}</InterfaceText>
           </a>
-        }
+        )}
       </div>
     </div>
   );
 }
 
 NoSearchResults.propTypes = {
-  mode:  PropTypes.oneOf(['sources', 'books', 'authors', 'topics']).isRequired,
+  mode: PropTypes.oneOf(['sources', 'books', 'authors', 'topics']).isRequired,
   query: PropTypes.string,
 };
 

@@ -10,7 +10,7 @@ import { EMAIL_EXISTS_ERRORS } from '../emailExistsErrors.js';
 describe('EMAIL_EXISTS_ERRORS', () => {
   it('is keyed by backend error codes, not message text', () => {
     expect(Object.keys(EMAIL_EXISTS_ERRORS).sort()).toEqual(
-      ['email_exists', 'sso_apple_exists', 'sso_google_exists'].sort(),
+      ['email_exists', 'sso_apple_exists', 'sso_google_exists'].sort()
     );
   });
 
@@ -26,6 +26,9 @@ describe('EMAIL_EXISTS_ERRORS', () => {
   });
 
   it('maps email_exists to the generic message+link shape', () => {
-    expect(EMAIL_EXISTS_ERRORS.email_exists).toEqual({ message: 'auth.email_exists_generic', linkText: 'auth.log_in_link' });
+    expect(EMAIL_EXISTS_ERRORS.email_exists).toEqual({
+      message: 'auth.email_exists_generic',
+      linkText: 'auth.log_in_link',
+    });
   });
 });

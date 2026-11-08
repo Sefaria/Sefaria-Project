@@ -25,8 +25,17 @@ import LoadingSub from './LoadingSub.jsx';
  * externally rather than passed as a one-off callback at click time.
  */
 const FormView = ({
-  cardClass, onBack, heading, sub, formId,
-  registerGoogleTarget, triggerApple, setActiveErrorHandler, onLinkClick, onSubmit, children,
+  cardClass,
+  onBack,
+  heading,
+  sub,
+  formId,
+  registerGoogleTarget,
+  triggerApple,
+  setActiveErrorHandler,
+  onLinkClick,
+  onSubmit,
+  children,
 }) => {
   const [error, setError] = useProviderError(setActiveErrorHandler);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -47,13 +56,13 @@ const FormView = ({
   };
 
   return (
-    <AuthCard className={cardClass} onBack={onBack} heading={heading}
-      sub={submitting ? <LoadingSub /> : sub}
-    >
+    <AuthCard className={cardClass} onBack={onBack} heading={heading} sub={submitting ? <LoadingSub /> : sub}>
       <form id={formId} className="sefaria-auth-email-form" onSubmit={handleSubmit} noValidate>
         <ErrorBanner
-          error={error} registerGoogleTarget={registerGoogleTarget}
-          triggerApple={triggerApple} onLinkClick={onLinkClick}
+          error={error}
+          registerGoogleTarget={registerGoogleTarget}
+          triggerApple={triggerApple}
+          onLinkClick={onLinkClick}
         />
         {children({ fieldErrors, submitting, setFieldError })}
       </form>
