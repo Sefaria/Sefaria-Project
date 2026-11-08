@@ -36,17 +36,20 @@ which are recomputed on save and so would otherwise be rebuilt from the old text
 Run with:  ./run scripts/seder_olam_rabbah.py
 Set DRY_RUN = False to actually write.
 """
+
 import os
 import re
 from collections import defaultdict
 
 import django
+
 django.setup()
 
+from sefaria.helper.schema import cascade, refresh_version_state, remove_branch
 from sefaria.model import *
+
 # Not re-exported by sefaria.model's __init__, so it needs naming outright.
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
-from sefaria.helper.schema import cascade, refresh_version_state, remove_branch
 from sefaria.system.database import db
 from sefaria.utils.util import traverse_dict_tree
 
@@ -126,12 +129,14 @@ def canonical_chapter():
     if v is None:
         raise SystemExit(
             f"ABORT: no version titled {CANONICAL_VERSION!r} for {BASE_TITLE!r}.\n"
-            f"       Available: {sorted(x['versionTitle'] for x in db.texts.find({'title': BASE_TITLE}, {'versionTitle': 1}))}")
+            f"       Available: {sorted(x['versionTitle'] for x in db.texts.find({'title': BASE_TITLE}, {'versionTitle': 1}))}"
+        )
     chapter = v.get("chapter")
     if not isinstance(chapter, dict) or "default" not in chapter:
         raise SystemExit(
             f"ABORT: expected {BASE_TITLE!r} to be a complex text with a 'default' node; "
-            f"got {list(chapter) if isinstance(chapter, dict) else type(chapter).__name__}")
+            f"got {list(chapter) if isinstance(chapter, dict) else type(chapter).__name__}"
+        )
     return chapter["default"]
 
 
@@ -161,20 +166,24 @@ def preflight():
     start over, not to run this script again.
     """
     chapter = canonical_chapter()
-    already = [i for i, sec in enumerate(chapter, start=1)
-               if sec and not HEADING.match(str(sec[0])) and str(sec[0]).strip()]
+    already = [
+        i for i, sec in enumerate(chapter, start=1) if sec and not HEADING.match(str(sec[0])) and str(sec[0]).strip()
+    ]
     if already:
         raise SystemExit(
             "ABORT: this looks ALREADY MIGRATED — segment 1 is real content, not a chapter\n"
             f"       heading, in section(s) {already[:5]}{'...' if len(already) > 5 else ''}.\n"
             "       Re-running would shift the colophon refs in sections 10/20/30 down a\n"
-            "       second time.")
+            "       second time."
+        )
     print(f"preflight OK: {len(chapter)} sections, segment 1 is a heading in all of them")
     if not DRY_RUN:
-        print("    NOTE: this checks the TEXT, which is written last.  It cannot detect a\n"
-              "          run that died part-way through the reference cascade.  If this run\n"
-              "          does not reach 'Done.', restore the database before trying again —\n"
-              "          re-running on top of a partial cascade shifts refs twice.")
+        print(
+            "    NOTE: this checks the TEXT, which is written last.  It cannot detect a\n"
+            "          run that died part-way through the reference cascade.  If this run\n"
+            "          does not reach 'Done.', restore the database before trying again —\n"
+            "          re-running on top of a partial cascade shifts refs twice."
+        )
 
 
 SECTION_LEN = canonical_section_lengths()
@@ -196,12 +205,14 @@ MAX_VALID_SEGMENT = max(SECTION_LEN.values())
 # runs; this guard still matters for every other collection the cascade touches
 # (notes, history, sheets, topic links, webpages), which are not cleaned up.
 
+
 def base_rewriter_for(segment):
     def rewriter(tref, *_):
         m = BASE_SEG.match(tref)
         if not m or int(m.group(3)) != segment:
             return tref
         return f"{m.group(1)}{m.group(2)}:{segment - 1}"
+
     return rewriter
 
 
@@ -211,14 +222,15 @@ def base_needs_rewrite_for(segment):
         # they are rewritten here like everything else — the collision pre-pass
         # below has already cleared the way.
         if isinstance(record, MarkedUpTextChunk):
-            return False        # deferred to after the trim — see rewrite_marked_up_text_chunks()
+            return False  # deferred to after the trim — see rewrite_marked_up_text_chunks()
         m = BASE_SEG.match(tref)
         if not m:
             return False
         section, seg = int(m.group(2)), int(m.group(3))
         if seg != segment or seg < 2:
             return False
-        return seg <= SECTION_LEN.get(section, 0)   # skip pre-existing dangling refs
+        return seg <= SECTION_LEN.get(section, 0)  # skip pre-existing dangling refs
+
     return needs_rewrite
 
 
@@ -238,14 +250,13 @@ def base_needs_rewrite_for(segment):
 
 BASE_RANGE_SAME = re.compile(r"^(Seder Olam Rabbah )(\d+):(\d+)-(\d+)$")
 BASE_RANGE_CROSS = re.compile(r"^(Seder Olam Rabbah )(\d+):(\d+)-(\d+):(\d+)$")
-COMM_RANGE_SUB = re.compile(
-    r"^((?:Vilna Gaon|Yaakov Emden|Meir Ayin) on Seder Olam Rabbah )(\d+):(\d+):(\d+)-(\d+)$")
+COMM_RANGE_SUB = re.compile(r"^((?:Vilna Gaon|Yaakov Emden|Meir Ayin) on Seder Olam Rabbah )(\d+):(\d+):(\d+)-(\d+)$")
 
 
 def _shift_endpoint(section, seg):
     """New segment number for one endpoint, or None if it must be left alone."""
     if seg > SECTION_LEN.get(section, 0):
-        return None                      # already dangling — see delete_dangling_links
+        return None  # already dangling — see delete_dangling_links
     return max(1, seg - 1)
 
 
@@ -279,7 +290,7 @@ def range_rewriter(tref, *_):
 
 def range_needs_rewrite(tref, record=None):
     if isinstance(record, MarkedUpTextChunk):
-        return False                     # deferred, same as the per-segment passes
+        return False  # deferred, same as the per-segment passes
     return range_rewriter(tref) != tref
 
 
@@ -292,7 +303,7 @@ def comm_rewriter(tref, *_):
 
 def comm_needs_rewrite(tref, record=None):
     if isinstance(record, MarkedUpTextChunk):
-        return False            # deferred to after the trim — see rewrite_marked_up_text_chunks()
+        return False  # deferred to after the trim — see rewrite_marked_up_text_chunks()
     m = COMM_SEG.match(tref)
     return bool(m) and int(m.group(3)) == 2
 
@@ -300,6 +311,7 @@ def comm_needs_rewrite(tref, record=None):
 # ---------------------------------------------------------------------------
 # step 1 — clear link collisions
 # ---------------------------------------------------------------------------
+
 
 def find_link_collisions():
     """Links that would land on a ref pair some other link already occupies.
@@ -363,6 +375,7 @@ def clear_link_collisions():
 # step 1b — clear stale MarkedUpTextChunk records at segment 1
 # ---------------------------------------------------------------------------
 
+
 def find_stale_mutc():
     """MarkedUpTextChunk records sitting at ``X:1`` / ``<Comm> X:1:Z``.
 
@@ -377,8 +390,7 @@ def find_stale_mutc():
     """
     stale = []
     for title in [BASE_TITLE] + COMMENTARIES:
-        for d in db.marked_up_text_chunks.find({"ref": {"$regex": f"^{re.escape(title)} "}},
-                                               {"ref": 1}):
+        for d in db.marked_up_text_chunks.find({"ref": {"$regex": f"^{re.escape(title)} "}}, {"ref": 1}):
             m = BASE_SEG.match(d["ref"]) or COMM_SEG.match(d["ref"])
             if m and int(m.group(3)) == 1:
                 stale.append(d["_id"])
@@ -398,6 +410,7 @@ def clear_stale_mutc():
 # ---------------------------------------------------------------------------
 # step 1c — delete pre-existing dangling links
 # ---------------------------------------------------------------------------
+
 
 def find_dangling_links():
     """Links whose Seder Olam ref points past the end of its section.
@@ -420,8 +433,7 @@ def find_dangling_links():
                 # entry.  Guard the length anyway — malformed links do exist, and
                 # this is the last place that should raise.
                 other = [x for j, x in enumerate(l["refs"]) if j != i]
-                partners[r].append((other[0] if other else "(no partner ref)",
-                                    l.get("type") or ""))
+                partners[r].append((other[0] if other else "(no partner ref)", l.get("type") or ""))
     return ids, partners
 
 
@@ -439,13 +451,14 @@ def delete_dangling_links():
     """
     ids, partners = find_dangling_links()
     total = sum(len(v) for v in partners.values())
-    print(f"\n=== Step 1c: deleting pre-existing dangling links: "
-          f"{len(ids)} link(s) across {len(partners)} distinct dangling refs "
-          f"({total} dangling ref occurrence(s))")
-    for r in sorted(partners, key=lambda x: (int(x.split()[-1].split(':')[0]), int(x.split(':')[-1]))):
-        sec = int(r.split()[-1].split(':')[0])
-        print(f"      {r:34} in {len(partners[r]):>2} link(s)   "
-              f"[section has {SECTION_LEN.get(sec, 0)} segments]")
+    print(
+        f"\n=== Step 1c: deleting pre-existing dangling links: "
+        f"{len(ids)} link(s) across {len(partners)} distinct dangling refs "
+        f"({total} dangling ref occurrence(s))"
+    )
+    for r in sorted(partners, key=lambda x: (int(x.split()[-1].split(":")[0]), int(x.split(":")[-1]))):
+        sec = int(r.split()[-1].split(":")[0])
+        print(f"      {r:34} in {len(partners[r]):>2} link(s)   [section has {SECTION_LEN.get(sec, 0)} segments]")
         for other, ltype in sorted(partners[r]):
             print(f"          was linked to  {other}{f'  ({ltype})' if ltype else ''}")
     if not DRY_RUN and ids:
@@ -459,18 +472,16 @@ def delete_dangling_links():
 # step 2 — cascade the ref changes
 # ---------------------------------------------------------------------------
 
+
 def cascade_refs():
     print("\n=== Step 2: cascading ref changes (before the text shrinks)")
     for segment in range(2, MAX_VALID_SEGMENT + 1):
         print(f"\n--- base text: shifting :{segment} -> :{segment - 1}")
         if DRY_RUN:
-            n = db.links.count_documents(
-                {"refs": {"$regex": rf"^{BASE_TITLE} \d+:{segment}$"}})
+            n = db.links.count_documents({"refs": {"$regex": rf"^{BASE_TITLE} \d+:{segment}$"}})
             print(f"    (dry run) {n} link refs at :{segment}")
             continue
-        cascade(Ref(BASE_TITLE),
-                rewriter=base_rewriter_for(segment),
-                needs_rewrite=base_needs_rewrite_for(segment))
+        cascade(Ref(BASE_TITLE), rewriter=base_rewriter_for(segment), needs_rewrite=base_needs_rewrite_for(segment))
 
     for title in COMMENTARIES:
         print(f"\n--- {title}: shifting X:2:Z -> X:1:Z")
@@ -498,6 +509,7 @@ def cascade_refs():
 # ---------------------------------------------------------------------------
 # step 3 — drop segment 1 from the text
 # ---------------------------------------------------------------------------
+
 
 def default_node(index):
     return index.nodes.get_default_child() if index.nodes.has_children() else index.nodes
@@ -590,6 +602,7 @@ def drop_first_segments():
 # step 4 — rebuild caches and derived state
 # ---------------------------------------------------------------------------
 
+
 def refresh():
     print("\n=== Step 4: rebuilding library / version state")
     if DRY_RUN:
@@ -612,6 +625,7 @@ def refresh():
 # ---------------------------------------------------------------------------
 # step 4b — rewrite MarkedUpTextChunk refs (deferred until AFTER the trim)
 # ---------------------------------------------------------------------------
+
 
 def rewrite_marked_up_text_chunks():
     """Move each MarkedUpTextChunk down a segment, once the text underneath is correct.
@@ -641,17 +655,17 @@ def rewrite_marked_up_text_chunks():
         is_comm = title in COMMENTARIES
         pattern = COMM_SEG if is_comm else BASE_SEG
         docs = []
-        for d in db.marked_up_text_chunks.find({"ref": {"$regex": f"^{re.escape(title)} "}},
-                                               {"ref": 1}):
+        for d in db.marked_up_text_chunks.find({"ref": {"$regex": f"^{re.escape(title)} "}}, {"ref": 1}):
             m = pattern.match(d["ref"])
             if m and int(m.group(3)) >= 2:
                 docs.append((int(m.group(3)), d["_id"], d["ref"], m))
-        docs.sort(key=lambda t: t[0])           # ascending segment
+        docs.sort(key=lambda t: t[0])  # ascending segment
 
         moved, failed = 0, []
         for seg, _id, tref, m in docs:
-            new_ref = (f"{m.group(1)}{m.group(2)}:{seg - 1}:{m.group(4)}" if is_comm
-                       else f"{m.group(1)}{m.group(2)}:{seg - 1}")
+            new_ref = (
+                f"{m.group(1)}{m.group(2)}:{seg - 1}:{m.group(4)}" if is_comm else f"{m.group(1)}{m.group(2)}:{seg - 1}"
+            )
             mutc = MarkedUpTextChunk().load({"_id": _id})
             if mutc is None:
                 failed.append((tref, "record vanished between query and load"))
@@ -676,6 +690,7 @@ def rewrite_marked_up_text_chunks():
 # ---------------------------------------------------------------------------
 # step 4c — recompute derived expandedRefs (must follow the trim AND the rebuild)
 # ---------------------------------------------------------------------------
+
 
 def recompute_expanded_refs():
     """Re-save WebPage and RefTopicLink records so their expandedRefs are rebuilt.
@@ -727,6 +742,7 @@ def recompute_expanded_refs():
 # step 5 — rewrite the Elasticsearch text index
 # ---------------------------------------------------------------------------
 
+
 def reindex_search():
     """Rewrite the ES `text` index for the books we just renumbered.
 
@@ -757,22 +773,25 @@ def reindex_search():
     # performs a live get_alias() call against SEARCH_URL, so merely asking for the
     # index name reaches the cluster.  A dry run must not talk to search at all.
     if DRY_RUN or not REINDEX_SEARCH:
-        why = ("DRY_RUN is on, so the text never changed — re-indexing it would delete "
-               "every doc and rewrite identical content"
-               if DRY_RUN and REINDEX_SEARCH else
-               f"DRY_RUN={DRY_RUN}, REINDEX_SEARCH={REINDEX_SEARCH}")
+        why = (
+            "DRY_RUN is on, so the text never changed — re-indexing it would delete "
+            "every doc and rewrite identical content"
+            if DRY_RUN and REINDEX_SEARCH
+            else f"DRY_RUN={DRY_RUN}, REINDEX_SEARCH={REINDEX_SEARCH}"
+        )
         print(f"\n=== Step 5: Elasticsearch — SKIPPED ({why}); no request sent")
         for title in [BASE_TITLE] + COMMENTARIES:
             old_refs = OLD_SEGMENT_REFS.get(title) or []
             versions = VersionSet({"title": title}).count()
-            print(f"    {title}: would clear {len(old_refs)} old refs per version, "
-                  f"then re-index every surviving ref, across {versions} version(s)")
+            print(
+                f"    {title}: would clear {len(old_refs)} old refs per version, "
+                f"then re-index every surviving ref, across {versions} version(s)"
+            )
         return
 
-    from sefaria.search import (TextIndexer, delete_text_by_ref_string,
-                                get_new_and_current_index_names)
+    from sefaria.search import TextIndexer, delete_text_by_ref_string, get_new_and_current_index_names
 
-    index_name = get_new_and_current_index_names('text')['current']
+    index_name = get_new_and_current_index_names("text")["current"]
     print(f"\n=== Step 5: Elasticsearch — index {index_name!r}")
 
     for title in [BASE_TITLE] + COMMENTARIES:
@@ -782,8 +801,10 @@ def reindex_search():
             continue
         new_refs = library.get_index(title).all_segment_refs()
         versions = list(VersionSet({"title": title}))
-        print(f"\n--- {title}: clearing {len(old_refs)} old refs, indexing {len(new_refs)}, "
-              f"across {len(versions)} version(s)")
+        print(
+            f"\n--- {title}: clearing {len(old_refs)} old refs, indexing {len(new_refs)}, "
+            f"across {len(versions)} version(s)"
+        )
 
         for v in versions:
             for tref in old_refs:
@@ -793,13 +814,20 @@ def reindex_search():
             failed = []
             for oref in new_refs:
                 try:
-                    TextIndexer.index_ref(index_name, oref, v.versionTitle, v.language,
-                                          getattr(v, "languageFamilyName", None),
-                                          getattr(v, "isPrimary", False))
+                    TextIndexer.index_ref(
+                        index_name,
+                        oref,
+                        v.versionTitle,
+                        v.language,
+                        getattr(v, "languageFamilyName", None),
+                        getattr(v, "isPrimary", False),
+                    )
                 except Exception as e:
                     failed.append((oref.normal(), str(e)))
-            print(f"    {v.versionTitle[:44]:46} lang={v.language:3} "
-                  f"indexed={len(new_refs) - len(failed)} failed={len(failed)}")
+            print(
+                f"    {v.versionTitle[:44]:46} lang={v.language:3} "
+                f"indexed={len(new_refs) - len(failed)} failed={len(failed)}"
+            )
             for tref, err in failed[:5]:
                 print(f"        FAILED {tref}: {err}")
             if len(failed) > 5:
@@ -813,10 +841,18 @@ def reindex_search():
 # collections the cascade rewrites, as (collection, field) — used by the ranged-ref
 # report below to look in exactly the places cascade() touches.
 CASCADED_FIELDS = [
-    ("links", "refs"), ("notes", "ref"), ("history", "ref"), ("ref_topic_links", "ref"),
-    ("ref_topic_links", "expandedRefs"), ("user_history", "ref"), ("ref_data", "ref"),
-    ("webpages", "refs"), ("webpages", "expandedRefs"), ("sheets", "sources.ref"),
-    ("manuscript_pages", "contained_refs"), ("manuscript_pages", "expanded_refs"),
+    ("links", "refs"),
+    ("notes", "ref"),
+    ("history", "ref"),
+    ("ref_topic_links", "ref"),
+    ("ref_topic_links", "expandedRefs"),
+    ("user_history", "ref"),
+    ("ref_data", "ref"),
+    ("webpages", "refs"),
+    ("webpages", "expandedRefs"),
+    ("sheets", "sources.ref"),
+    ("manuscript_pages", "contained_refs"),
+    ("manuscript_pages", "expanded_refs"),
 ]
 
 
@@ -882,14 +918,17 @@ def report_ranged_refs():
                 print(f"        {r:44}    NOT REWRITTEN")
                 unhandled.append(r)
     if unhandled:
-        print("\n    WARNING: the range rewriter did not recognise the segment range(s) above.\n"
-              "             They point at segments being renumbered and would be left stale.\n"
-              "             Fix them by hand, or extend range_rewriter(), before running live.")
+        print(
+            "\n    WARNING: the range rewriter did not recognise the segment range(s) above.\n"
+            "             They point at segments being renumbered and would be left stale.\n"
+            "             Fix them by hand, or extend range_rewriter(), before running live."
+        )
 
 
 # ---------------------------------------------------------------------------
 # report only — MarkedUpTextChunk records (the citation linker's per-segment data)
 # ---------------------------------------------------------------------------
+
 
 def _text_at(tref, vtitle, lang):
     """Plain text of one segment in one version, or '' if the ref no longer resolves."""
@@ -931,7 +970,7 @@ def report_marked_up_text_chunks():
             elif seg >= 2:
                 movers[title] += 1
 
-    print(f"    records that would be MOVED down one segment (after the text is trimmed):")
+    print("    records that would be MOVED down one segment (after the text is trimmed):")
     for title in titles:
         print(f"      {title:40} {movers[title]:>4}")
 
@@ -960,8 +999,10 @@ def report_marked_up_text_chunks():
         for sp in spans[:3]:
             a, b = sp["charRange"]
             in_content = there[a:b] == sp["text"]
-            print(f"        span [{a}:{b}] {sp['type']:12} {sp['text'][:40]!r:44} "
-                  f"{'matches the :2 text' if in_content else 'does NOT match the :2 text either'}")
+            print(
+                f"        span [{a}:{b}] {sp['type']:12} {sp['text'][:40]!r:44} "
+                f"{'matches the :2 text' if in_content else 'does NOT match the :2 text either'}"
+            )
         if len(spans) > 3:
             print(f"        ... and {len(spans) - 3} more span(s)")
     if len(stale) > 8:
@@ -1040,8 +1081,10 @@ def set_commentary_toc_zoom():
         if current == TOC_ZOOM_SECTION_LEVEL:
             print(f"    {title:44} already toc_zoom={current} — nothing to do")
             continue
-        print(f"    {title:44} toc_zoom {current!r} -> {TOC_ZOOM_SECTION_LEVEL}"
-              f"   (depth={node.depth}, sectionNames={node.sectionNames})")
+        print(
+            f"    {title:44} toc_zoom {current!r} -> {TOC_ZOOM_SECTION_LEVEL}"
+            f"   (depth={node.depth}, sectionNames={node.sectionNames})"
+        )
         if not DRY_RUN:
             node.toc_zoom = TOC_ZOOM_SECTION_LEVEL
             index.save()
@@ -1062,8 +1105,7 @@ def verify_commentary_linking():
         except Exception as e:
             print(f"    {title}: could not load index ({e})")
             continue
-        print(f"    {title:44} base_text_mapping={mapping!r}"
-              f"{'   <-- LOST' if not mapping else ''}")
+        print(f"    {title:44} base_text_mapping={mapping!r}{'   <-- LOST' if not mapping else ''}")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 The choice between the legacy reader and the new one (reader-next), in one place.
 
@@ -14,6 +13,7 @@ reader exactly when the request carries the cookie ``reader_version=next``
 
 Absent means the legacy reader, as before: nothing changes for anyone who never chose.
 """
+
 from django.conf import settings
 
 SETTING_KEY = "reader_version"
@@ -43,6 +43,7 @@ def chose_next(profile):
 def _cookie_domain(request):
     # the same domain the interface-language cookie uses, so library and Voices pages agree
     from sefaria.utils.domains_and_languages import current_domain_lang, get_cookie_domain
+
     try:
         return get_cookie_domain(current_domain_lang(request))
     except Exception:
@@ -53,7 +54,9 @@ def apply_cookie(response, request, choice):
     """Set (new reader) or clear (legacy reader) the routing cookie on ``response``."""
     domain = _cookie_domain(request)
     if choice == NEXT:
-        response.set_cookie(COOKIE_NAME, NEXT, max_age=COOKIE_MAX_AGE, domain=domain, secure=request.is_secure(), samesite="Lax")
+        response.set_cookie(
+            COOKIE_NAME, NEXT, max_age=COOKIE_MAX_AGE, domain=domain, secure=request.is_secure(), samesite="Lax"
+        )
     else:
         response.delete_cookie(COOKIE_NAME, domain=domain, samesite="Lax")
     return response
@@ -76,6 +79,7 @@ class ReaderChoiceMiddleware:
         if session is None or session.get(SESSION_SYNCED_KEY):
             return response
         from sefaria.model.user_profile import UserProfile
+
         profile = UserProfile(id=request.user.id)
         choice = (profile.settings or {}).get(SETTING_KEY)
         if choice in (NEXT, CLASSIC) and (request.COOKIES.get(COOKIE_NAME) == NEXT) != (choice == NEXT):

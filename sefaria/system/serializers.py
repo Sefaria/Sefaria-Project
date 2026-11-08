@@ -20,5 +20,3 @@ class JSONSerializer(BaseSerializer):
 
     def loads(self, value):
         return json.loads(value.decode())
-
-

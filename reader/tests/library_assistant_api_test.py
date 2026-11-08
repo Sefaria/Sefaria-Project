@@ -2,11 +2,12 @@
 GET /api/library-assistant (reader/views.py library_assistant_api): the new reader's source for the Library Assistant's token
 and eligibility, the same rule and token as base_props.
 """
+
 from django.test import TestCase
 
 from reader.conftest import create_test_user, purge_test_profiles
-from sefaria.helper import library_assistant
 from reader.views import CHATBOT_USER_ID_SECRET as SECRET  # the value the view signs with (imported at module load)
+from sefaria.helper import library_assistant
 from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token
 
 
