@@ -922,12 +922,14 @@ def calculate_combined_score(
         return sheets
 
 
-def get_sheets_for_ref(tref, uid=None, in_collection=None):
+def get_sheets_for_ref(tref, uid=None, in_collection=None, sheet_ids=None, slim=False):
     """
     Returns a list of sheets that include ref,
     formating as need for the Client Sidebar.
     If `uid` is present return user sheets, otherwise return public sheets.
     If `in_collection` (list of slugs) is present, only return sheets in one of the listed collections.
+    If `sheet_ids` is present, only return sheets with these ids.
+    If `slim`, return only what's needed to count sheets per ref: id, owner and anchor refs.
     """
     oref = model.Ref(tref)
     segment_refs = [r.normal() for r in oref.all_segment_refs()]
@@ -938,7 +940,11 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
         query["status"] = "public"
     if in_collection:
         query["id"] = {"$in": list(CollectionSet({"slug": {"$in": in_collection}}).sheet_ids())}
+    if sheet_ids is not None:
+        query["id"] = {"$in": list(sheet_ids)}
 
+    if slim:
+        return _slim_sheets_for_ref(oref, segment_refs, query)
     projection = {"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1,
          "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1,
          "displayedCollection":1, "options":1, "llm_scoring":1}
@@ -1015,6 +1021,23 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
             }
             results.append(sheet_data)
     return results
+
+def _slim_sheets_for_ref(oref, segment_refs, query):
+    # Not just a count: the client counts per selected segment(s) from one response for the whole section.
+    # It needs the anchor refs to split sheets by segment, the id to count a sheet on several selected segments once,
+    # and the owner to not count the user's own public sheets twice (they also come from the private request).
+    results = []
+    for sheet in db.sheets.find(query, {"id": 1, "owner": 1, "includedRefs": 1, "expandedRefs": 1}):
+        anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, sheet.get("includedRefs", []), sheet.get("expandedRefs", []))
+        for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
+            results.append({
+                "id":                str(sheet["id"]),
+                "owner":             sheet["owner"],
+                "anchorRef":         anchor_ref.normal(),
+                "anchorRefExpanded": [r.normal() for r in anchor_ref_expanded],
+            })
+    return results
+
 
 def topic_list_diff(old, new):
     """

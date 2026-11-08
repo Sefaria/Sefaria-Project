@@ -2667,7 +2667,8 @@ def related_api(request, tref):
     elif bool(int(request.GET.get("private", False))) and not request.user.is_authenticated:
         response = {"error": "You must be logged in to access private content."}
     else:
-        sheets = get_sheets_for_ref(tref)
+        # slim_sheets: the web client only counts the public sheets, so it doesn't need them formatted.
+        sheets = get_sheets_for_ref(tref, slim=bool(int(request.GET.get("slim_sheets", False))))
         response = {
             "links": get_links(tref, with_text=False, with_sheet_links=bool(int(request.GET.get("with_sheet_links", False))), public_sheets=sheets),
             "sheets": sheets,

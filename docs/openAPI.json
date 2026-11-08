@@ -11776,6 +11776,20 @@
         "tags": [
           "Related"
         ],
+        "parameters": [
+          {
+            "name": "slim_sheets",
+            "description": "`slim_sheets` is an optional parameter. When `1`, each item in `sheets` only has `id`, `owner`, `anchorRef` and `anchorRefExpanded` - enough to count the public sheets on each segment - instead of the full sheet details. Defaults to `0`",
+            "schema": {
+              "enum": [
+                "0",
+                "1"
+              ],
+              "type": "string"
+            },
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "content": {

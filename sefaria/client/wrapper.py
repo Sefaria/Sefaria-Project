@@ -168,8 +168,8 @@ def get_links(tref, with_text=True, with_sheet_links=False, categories=None, pub
     Return a list of links tied to 'ref' in client format.
     If `with_text`, retrieve texts for each link.
     If `with_sheet_links` include sheet results for sheets in collections which are listed in the TOC.
-    If `public_sheets` (the result of get_sheets_for_ref(tref)) is given, those sheet results are taken from it
-    instead of querying again - they are its subset.
+    If `public_sheets` (the result of get_sheets_for_ref(tref), full or slim) is given, those sheet results are taken
+    from it instead of querying again - they are its subset.
     If `categories` is provided, only include links whose derived client-facing category matches.
     """
     links = []
@@ -337,6 +337,9 @@ def get_links(tref, with_text=True, with_sheet_links=False, categories=None, pub
             collection_sheet_ids = CollectionSet({"slug": {"$in": collections}}).sheet_ids()
             # Copy, since format_sheet_as_link mutates and public_sheets is also returned as is.
             sheet_links = [dict(sheet) for sheet in public_sheets if int(sheet["id"]) in collection_sheet_ids]
+            if sheet_links and "title" not in sheet_links[0]:
+                # Slim sheets lack the fields links are made of, so these few are loaded in full.
+                sheet_links = get_sheets_for_ref(tref, sheet_ids={int(sheet["id"]) for sheet in sheet_links})
         else:
             sheet_links = get_sheets_for_ref(tref, in_collection=collections)
         formatted_sheet_links = [format_sheet_as_link(sheet) for sheet in sheet_links]
