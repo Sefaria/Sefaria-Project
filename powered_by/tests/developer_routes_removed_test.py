@@ -3,9 +3,9 @@ The developer test controls and the Powered by proof-of-concept form have no rou
 site's catch-all pattern still matches any path, so the check is that no path resolves to a view
 in the powered_by package.
 """
+
 import pytest
 from django.urls import Resolver404, resolve
-
 
 URLCONF = "sefaria.urls_library"
 
