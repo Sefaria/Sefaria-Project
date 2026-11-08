@@ -3,6 +3,7 @@ The public Powered by Sefaria form for the developer settings proof of concept. 
 a mock: answers are kept in the visitor's session and never reach Salesforce or the Project
 table.
 """
+
 import json
 
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -10,8 +11,8 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from reader.views import menu_page
 from sefaria.client.util import jsonResponse
 from sefaria.system.decorators import catch_error_as_json
-from .developer_views import requires_developer_settings
 
+from .developer_views import requires_developer_settings
 
 POWERED_BY_POC_SESSION_KEY = "powered_by_poc_submissions"
 POWERED_BY_POC_MAX_BYTES = 32 * 1024

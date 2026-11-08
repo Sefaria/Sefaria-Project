@@ -3,6 +3,7 @@ Migration 0008 points each key at its API project and adds the NOTIFY triggers f
 and api_tier_meter_limit, plus the auth service reader's column grants. These tests move the real schema
 between migrations and assert on the NOTIFY traffic, the grants and the key foreign key.
 """
+
 import importlib
 import json
 import os
@@ -12,7 +13,6 @@ from unittest import skipUnless
 from django.db import connection
 
 from powered_by.tests.migration_api_project_backfill_test import MigrationTestCase
-
 
 AFTER = ("powered_by", "0007_api_project_backfill")
 LATEST = ("powered_by", "0008_api_key_project_triggers_grants")
@@ -31,13 +31,17 @@ WHERE c.conrelid = 'powered_by_apikey'::regclass AND c.contype = 'f'
 
 @skipUnless(connection.vendor == "postgresql", "migration 0008 triggers, grants and FK need PostgreSQL")
 class ApiProjectTriggersMigrationTest(MigrationTestCase):
-
     def listen(self):
         import psycopg2
+
         settings = connection.settings_dict
         listener = psycopg2.connect(
-            host=settings["HOST"], port=settings["PORT"], user=settings["USER"],
-            password=settings["PASSWORD"], dbname=settings["NAME"])
+            host=settings["HOST"],
+            port=settings["PORT"],
+            user=settings["USER"],
+            password=settings["PASSWORD"],
+            dbname=settings["NAME"],
+        )
         listener.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
         with listener.cursor() as cursor:
             cursor.execute(f"LISTEN {NOTIFY_CHANNEL}")
@@ -128,7 +132,8 @@ class ApiProjectTriggersMigrationTest(MigrationTestCase):
         self.execute(
             "UPDATE api_project SET contact_email = 'after@example.invalid', owner_id = NULL, "
             "profile_id = %s, updated_at = now() WHERE id = %s",
-            [other_profile.pk, api_project.pk])
+            [other_profile.pk, api_project.pk],
+        )
         self.execute("UPDATE api_tier SET name = 'Renamed' WHERE id = 'developer'")
         self.execute("UPDATE api_tier_meter_limit SET updated_at = now() WHERE id = %s", [limit.pk])
 

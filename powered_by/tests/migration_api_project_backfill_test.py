@@ -3,6 +3,7 @@ Migration 0007 creates one powered_by api_project row per existing API project p
 equal to the profile id. These tests move the real schema between 0006 and 0007 and assert on the rows,
 the profile and key counts, and the reverse.
 """
+
 import importlib
 import warnings
 from unittest import skipUnless
@@ -11,7 +12,6 @@ from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 from django.test import TransactionTestCase
 from django.utils import timezone
-
 
 BEFORE = ("powered_by", "0006_api_project_schema")
 AFTER = ("powered_by", "0007_api_project_backfill")
@@ -53,7 +53,9 @@ class MigrationTestCase(TransactionTestCase):
 
     def make_user(self, apps):
         User = apps.get_model("auth", "User")
-        return User.objects.create(username=f"owner-{User.objects.count()}", password="!", email="owner@example.invalid")
+        return User.objects.create(
+            username=f"owner-{User.objects.count()}", password="!", email="owner@example.invalid"
+        )
 
     def make_project(self, apps, name, tier="developer", owner=None, **fields):
         Project = apps.get_model("powered_by", "Project")
@@ -66,8 +68,9 @@ class MigrationTestCase(TransactionTestCase):
 
     def api_project_rows(self):
         with connection.cursor() as cursor:
-            cursor.execute("SELECT id, profile_id, owner_id, tier_id, deleted_at IS NOT NULL "
-                           "FROM api_project ORDER BY id")
+            cursor.execute(
+                "SELECT id, profile_id, owner_id, tier_id, deleted_at IS NOT NULL FROM api_project ORDER BY id"
+            )
             return cursor.fetchall()
 
     def api_project_by_profile(self):
@@ -90,14 +93,12 @@ class MigrationTestCase(TransactionTestCase):
 
 @skipUnless(connection.vendor == "postgresql", "migration 0007 SQL needs PostgreSQL")
 class ApiProjectBackfillMigrationTest(MigrationTestCase):
-
     def test_prod_shape_creates_none(self):
         # Prod has 152 ownerless keyless Formstack listings and no key rows at all.
         apps = self.migrate(BEFORE)
         Project = apps.get_model("powered_by", "Project")
         Project.objects.bulk_create(
-            [Project(project_name=f"Listing {i}", submission_source="formstack", tier="developer")
-             for i in range(152)]
+            [Project(project_name=f"Listing {i}", submission_source="formstack", tier="developer") for i in range(152)]
         )
 
         with warnings.catch_warnings(record=True) as caught:
@@ -200,18 +201,24 @@ class ApiProjectBackfillMigrationTest(MigrationTestCase):
         ApiProject = apps.get_model("powered_by", "ApiProject")
         # What new code writes only on api_project: an owner, a contact email, a tier, a soft-delete.
         ApiProject.objects.filter(profile_id=created.pk).update(
-            owner=self.make_user(apps), contact_email="dev@example.invalid", tier="partner", deleted_at=timezone.now())
+            owner=self.make_user(apps), contact_email="dev@example.invalid", tier="partner", deleted_at=timezone.now()
+        )
         rows_before = self.api_project_rows()
 
-        with self.assertRaisesRegex(Exception, r"1 api_project row\(s\) \(ids \[%d\]\)" % self.api_project_by_profile()[created.pk][0]):
+        with self.assertRaisesRegex(
+            Exception, r"1 api_project row\(s\) \(ids \[%d\]\)" % self.api_project_by_profile()[created.pk][0]
+        ):
             self.migrate(BEFORE)
 
         self.assertEqual(self.api_project_rows(), rows_before)
         self.assertIn(rebuilt.pk, self.api_project_by_profile())
 
     def test_reverse_refuses_each_field_the_backfill_does_not_copy(self):
-        for field, value in (("contact_email", "dev@example.invalid"), ("tier_id", "partner"),
-                             ("deleted_at", timezone.now())):
+        for field, value in (
+            ("contact_email", "dev@example.invalid"),
+            ("tier_id", "partner"),
+            ("deleted_at", timezone.now()),
+        ):
             with self.subTest(field=field):
                 apps = self.migrate(BEFORE)
                 profile = self.make_project(apps, "Project " + field, owner=self.make_user(apps))

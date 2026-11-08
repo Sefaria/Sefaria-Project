@@ -1,4 +1,5 @@
 # Linker, Disambiguator & LLM Helpers
+
 > Sources: `sefaria/helper/linker/linker.py`, `sefaria/helper/linker/disambiguator.py`, `sefaria/helper/linker/tasks.py`, `sefaria/helper/llm/topic_prompt.py`, `sefaria/helper/llm/sheet_scoring.py`, `sefaria/helper/llm/sheet_scoring_single.py`, `sefaria/helper/llm/sheet_scoring_tools.py`, `sefaria/helper/llm/tasks/`, `sefaria/helper/marked_up_text_chunk_generator.py`
 
 ## Purpose
@@ -20,10 +21,12 @@ These modules power Sefaria's automated reference detection, disambiguation, and
 ### disambiguator.py (~1770 lines) -- LLM-Powered Citation Disambiguation
 
 This module resolves two types of problematic references:
+
 1. **Ambiguous refs** -- where the linker found multiple possible target refs for a citation.
 2. **Non-segment refs** -- where the linker resolved to a section/chapter level but the citation likely refers to a specific segment.
 
 **Core strategy (multi-stage pipeline):**
+
 1. **Prior formation** (`_llm_form_prior`) -- LLM generates expectations about what the target text should contain, based only on the citing passage.
 2. **Keyword extraction** (`_llm_form_search_query`) -- LLM generates 5-6 lexical search queries from surrounding context (NOT from the citation span itself).
 3. **Candidate retrieval** -- Queries Dicta Parallels API (`_query_dicta`) and Sefaria Search API (`_query_sefaria_search`) for matching segments within the target ref range.
@@ -32,10 +35,12 @@ This module resolves two types of problematic references:
 6. **Base vs. commentary** (`_llm_choose_base_vs_commentary`) -- For ambiguous refs where one option is a base text and another is commentary, LLM chooses.
 
 **Key dataclasses:**
+
 - `AmbiguousResolutionPayload` / `AmbiguousResolutionResult`
 - `NonSegmentResolutionPayload` / `NonSegmentResolutionResult`
 
 **External services used:**
+
 - **Dicta Parallels API** (`parallels-3-0a.loadbalancer.dicta.org.il`) -- Finds textual parallels in the Sefaria corpus.
 - **Sefaria Search (Elasticsearch)** -- `naive_lemmatizer` field with `match_phrase` + slop for fuzzy matching.
 - **Anthropic Claude** (primary LLM, via `langchain_anthropic.ChatAnthropic`)
@@ -43,6 +48,7 @@ This module resolves two types of problematic references:
 - **LangSmith** -- Tracing enabled for all LLM calls (project: `citation-disambiguator`).
 
 **Helper functions:**
+
 - `_window_around_span(text, span, window_words)` -- Extracts a context window around a citation span.
 - `_mark_citation(text, span)` -- Wraps citation text in `<citation ref="...">` XML tags for LLM prompts.
 - `_normalize_dicta_url_to_ref(url)` -- Converts Dicta URL format to Sefaria ref.

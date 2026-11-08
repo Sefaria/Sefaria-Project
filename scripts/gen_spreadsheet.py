@@ -1,7 +1,9 @@
-__author__ = 'stevenkaplan'
-from sefaria.model import *
+__author__ = "stevenkaplan"
 import csv
 import sys
+
+from sefaria.model import *
+
 
 class MetaDataCommentary:
     def __init__(self, comm_title, lang):
@@ -9,7 +11,7 @@ class MetaDataCommentary:
         self.comm = library.get_index(comm_title)
         self.comm.versionState().refresh()
         temp = self.comm.base_text_titles
-        assert len(temp) is 1, "Unclear which text is base text {}".format(str(temp))
+        assert len(temp) == 1, f"Unclear which text is base text {str(temp)}"
         self.base = library.get_index(temp[0])
         self.base_title = self.base.title
         self.results = {}
@@ -17,10 +19,9 @@ class MetaDataCommentary:
         self.tc = Ref(self.comm_title).text(self.lang)
         self.base_tc = Ref(self.base_title).text(self.lang)
 
-
     def set_word_count(self):
-        self.results['word count'] = self.tc.word_count()
-        return self.results['word count']
+        self.results["word count"] = self.tc.word_count()
+        return self.results["word count"]
 
     def set_segment_count(self):
         self.results["segment count"] = len(self.comm.all_segment_refs())
@@ -38,7 +39,7 @@ class MetaDataCommentary:
         if "link count" not in self.results:
             self.set_link_count()
         temp = 100 * float(self.results["link count"]) / float(self.results["segment count"])
-        self.results["link %"] = "{0:.2f}%".format(temp)
+        self.results["link %"] = f"{temp:.2f}%"
         return self.results["link %"]
 
     def set_comm_section_count(self):
@@ -55,9 +56,8 @@ class MetaDataCommentary:
         if "base section count" not in self.results:
             self.set_base_section_count()
         temp = 100 * float(self.results["comm section count"]) / float(self.results["base section count"])
-        self.results["sections %"] = "{0:.2f}%".format(temp)
+        self.results["sections %"] = f"{temp:.2f}%"
         return self.results["sections %"]
-
 
     def calc(self):
         wc = self.set_word_count()
@@ -71,14 +71,13 @@ class MetaDataCommentary:
 
 
 def spreadsheet(file, results, columns_order):
-    with open(file, 'wb') as sheet:
+    with open(file, "wb") as sheet:
         writer = csv.DictWriter(sheet, fieldnames=columns_order)
         writer.writeheader()
         for title in sorted(results.keys()):
             this_result = results[title]
             this_result["title"] = title
             writer.writerow(this_result)
-
 
 
 if __name__ == "__main__":
@@ -88,13 +87,21 @@ if __name__ == "__main__":
     titles = library.get_indexes_in_category(collective_title, include_dependant=True)
     file = "spread.csv"
     results = {}
-    columns_order = ["title", "word count", "link count", "segment count", "link %", "comm section count", "base section count", "sections %"]
+    columns_order = [
+        "title",
+        "word count",
+        "link count",
+        "segment count",
+        "link %",
+        "comm section count",
+        "base section count",
+        "sections %",
+    ]
     count = 0
     for title in titles:
         print(title)
-        mdc = MetaDataCommentary(title, lang='he')
+        mdc = MetaDataCommentary(title, lang="he")
         mdc.calc()
         results[title] = mdc.results
 
     spreadsheet(file, results, columns_order)
-

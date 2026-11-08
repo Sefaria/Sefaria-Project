@@ -6,6 +6,7 @@ The whole class is `deep`: delete_user_account updates every sheet that lists th
 `likes`, a scan of the full sheets collection that can outlast pymongo's socket timeout on a
 loaded Mongo.
 """
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -40,9 +41,12 @@ class DeleteAccountTest(TestCase):
 
     def developer_project(self):
         profile = Project.objects.create(
-            submission_source=SubmissionSource.DEVELOPER_SETTINGS, submission_date=timezone.now(),
-            project_name="Daf Portal", project_link="https://dafportal.example.org",
-            consent_to_display=True, is_published=True,
+            submission_source=SubmissionSource.DEVELOPER_SETTINGS,
+            submission_date=timezone.now(),
+            project_name="Daf Portal",
+            project_link="https://dafportal.example.org",
+            request_not_to_publish=False,
+            is_published=True,
         )
         project = ApiProject.objects.create(profile=profile, owner=self.user)
         keys = [ApiKey.objects.create(project=project, label=label) for label in ("Production", "Staging")]
@@ -50,9 +54,12 @@ class DeleteAccountTest(TestCase):
 
     def claimed_listing(self):
         listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
-            project_name="Tehillim Circle", project_link="https://tehillimcircle.example.org",
-            consent_to_display=True, is_published=True,
+            submission_source=SubmissionSource.FORMSTACK,
+            creator_email=self.user.email,
+            project_name="Tehillim Circle",
+            project_link="https://tehillimcircle.example.org",
+            request_not_to_publish=False,
+            is_published=True,
         )
         project = ApiProject.objects.create(profile=listing, owner=self.user)
         return listing, ApiKey.objects.create(project=project, label="Claimed")
@@ -78,7 +85,7 @@ class DeleteAccountTest(TestCase):
         self.assertIsNone(project.owner_id)
         profile = Project.objects.get(id=project.profile_id)
         self.assertFalse(profile.is_published)
-        self.assertFalse(profile.consent_to_display)
+        self.assertTrue(profile.request_not_to_publish)
         self.assertTrue(all(k.revoked_at for k in ApiKey.objects.filter(id__in=[k.id for k in keys])))
 
     def test_N_M5_a_claimed_listing_is_deleted_with_the_account_and_its_keys_revoked(self):
@@ -92,7 +99,7 @@ class DeleteAccountTest(TestCase):
         self.assertIsNotNone(project.deleted_at)
         listing.refresh_from_db()
         self.assertIsNone(listing.deleted_at)
-        self.assertFalse(listing.consent_to_display or listing.is_published)
+        self.assertTrue(listing.request_not_to_publish and not listing.is_published)
         self.assertIsNotNone(ApiKey.objects.get(id=key.id).revoked_at)
 
     def test_N_M5_a_failing_deletion_hook_leaves_no_half_deleted_account(self):

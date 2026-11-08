@@ -4,12 +4,11 @@ Unit tests for sefaria/donors/types.py — the value types every other donor mod
 No database, no Django models: types.py imports only the standard library.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 
 from sefaria.donors.types import DonorStatus, NormalizedEmailAddress, as_utc_datetime
-
 
 # ============================================================================
 # NormalizedEmailAddress.parse
@@ -17,7 +16,6 @@ from sefaria.donors.types import DonorStatus, NormalizedEmailAddress, as_utc_dat
 
 
 class TestNormalizedEmailAddressParse:
-
     @pytest.mark.parametrize(
         "raw, expected",
         [
@@ -55,7 +53,6 @@ class TestNormalizedEmailAddressParse:
 
 
 class TestDonorStatusFromStoredValue:
-
     @pytest.mark.parametrize(
         "stored, expected",
         [
@@ -80,20 +77,13 @@ class TestDonorStatusFromStoredValue:
 
 
 class TestAsUtcDatetime:
-
     def test_naive_datetimes_are_read_as_utc(self):
         """pymongo here returns naive datetimes that are UTC by construction."""
         naive = datetime(2026, 10, 22, 14, 3, 11)
-        assert as_utc_datetime(naive) == datetime(
-            2026, 10, 22, 14, 3, 11, tzinfo=timezone.utc
-        )
+        assert as_utc_datetime(naive) == datetime(2026, 10, 22, 14, 3, 11, tzinfo=UTC)
 
     def test_aware_datetimes_are_converted_to_utc(self):
         """An offset timestamp keeps its instant; only the zone changes."""
-        eastern = datetime(
-            2026, 10, 22, 10, 3, 11, tzinfo=timezone(timedelta(hours=-4))
-        )
-        assert as_utc_datetime(eastern) == datetime(
-            2026, 10, 22, 14, 3, 11, tzinfo=timezone.utc
-        )
-        assert as_utc_datetime(eastern).tzinfo is timezone.utc
+        eastern = datetime(2026, 10, 22, 10, 3, 11, tzinfo=timezone(timedelta(hours=-4)))
+        assert as_utc_datetime(eastern) == datetime(2026, 10, 22, 14, 3, 11, tzinfo=UTC)
+        assert as_utc_datetime(eastern).tzinfo is UTC

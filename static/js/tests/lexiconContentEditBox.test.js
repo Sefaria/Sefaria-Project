@@ -26,7 +26,7 @@ jest.mock('../Misc', () => ({
 }));
 
 jest.mock('json-edit-react', () => {
-  const React = require('react');  // jest.mock factories are hoisted above imports
+  const React = require('react'); // jest.mock factories are hoisted above imports
   return {
     __esModule: true,
     // Stands in for the library's own immutable set-at-path helper.
@@ -36,20 +36,34 @@ jest.mock('json-edit-react', () => {
       parent[path[path.length - 1]] = newValue;
       return copy;
     },
-    JsonEditor: ({ data, setData, customNodeDefinitions }) => React.createElement('div', { className: 'fakeJsonEditor' },
-      React.createElement('div', { className: 'fakeJsonEditorData' }, JSON.stringify(data)),
-      React.createElement('button', {
-        className: 'fakeJsonEditorMutate',
-        onClick: () => setData({ ...data, notes: 'edited via fake editor' }),
-      }, 'mutate'),
-      // A field open mid-edit: WysiwygValueNode pushes each change through this same callback
-      // (see LexiconWysiwygValue), with no per-field confirm in between.
-      React.createElement('button', {
-        className: 'fakeJsonEditorTypeInField',
-        onClick: () => customNodeDefinitions[0].customNodeProps
-          .commitDraft(['content', 'senses', 0, 'definition'], 'still being typed'),
-      }, 'type in field'),
-    ),
+    JsonEditor: ({ data, setData, customNodeDefinitions }) =>
+      React.createElement(
+        'div',
+        { className: 'fakeJsonEditor' },
+        React.createElement('div', { className: 'fakeJsonEditorData' }, JSON.stringify(data)),
+        React.createElement(
+          'button',
+          {
+            className: 'fakeJsonEditorMutate',
+            onClick: () => setData({ ...data, notes: 'edited via fake editor' }),
+          },
+          'mutate'
+        ),
+        // A field open mid-edit: WysiwygValueNode pushes each change through this same callback
+        // (see LexiconWysiwygValue), with no per-field confirm in between.
+        React.createElement(
+          'button',
+          {
+            className: 'fakeJsonEditorTypeInField',
+            onClick: () =>
+              customNodeDefinitions[0].customNodeProps.commitDraft(
+                ['content', 'senses', 0, 'definition'],
+                'still being typed'
+              ),
+          },
+          'type in field'
+        )
+      ),
   };
 });
 
@@ -57,15 +71,26 @@ jest.mock('json-edit-react', () => {
 // prop value on the (mocked, above) JsonEditor -- never actually rendered here) injects its
 // stylesheet at import time via insertAdjacentElement, which jsdom doesn't support. Stubbing it
 // avoids ever evaluating the real package, same reasoning as the json-edit-react mock above.
-jest.mock('react-simple-wysiwyg', () => new Proxy({}, {
-  // createButton(...) is called at module-load time (LexiconWysiwygValue's BtnSuperscript etc.)
-  // and must itself return a component, not null, or JSX like <BtnSuperscript /> is invalid.
-  get: (_t, prop) => {
-    if (prop === '__esModule') { return true; }
-    if (prop === 'createButton') { return () => (() => null); }
-    return () => null;
-  },
-}));
+jest.mock(
+  'react-simple-wysiwyg',
+  () =>
+    new Proxy(
+      {},
+      {
+        // createButton(...) is called at module-load time (LexiconWysiwygValue's BtnSuperscript etc.)
+        // and must itself return a component, not null, or JSX like <BtnSuperscript /> is invalid.
+        get: (_t, prop) => {
+          if (prop === '__esModule') {
+            return true;
+          }
+          if (prop === 'createButton') {
+            return () => () => null;
+          }
+          return () => null;
+        },
+      }
+    )
+);
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -84,20 +109,27 @@ async function mount(currentlyVisibleRef) {
 }
 
 function unmount() {
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
 }
 
 const editorData = () => JSON.parse(container.querySelector('.fakeJsonEditorData').textContent);
-const mutate = () => act(() => {
-  container.querySelector('.fakeJsonEditorMutate').dispatchEvent(new MouseEvent('click', { bubbles: true }));
-});
-const typeInField = () => act(() => {
-  container.querySelector('.fakeJsonEditorTypeInField').dispatchEvent(new MouseEvent('click', { bubbles: true }));
-});
+const mutate = () =>
+  act(() => {
+    container.querySelector('.fakeJsonEditorMutate').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
+const typeInField = () =>
+  act(() => {
+    container.querySelector('.fakeJsonEditorTypeInField').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
 const saveButton = () => container.querySelector('button.button');
-const clickSave = async () => act(async () => { saveButton().dispatchEvent(new MouseEvent('click', { bubbles: true })); });
+const clickSave = async () =>
+  act(async () => {
+    saveButton().dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
 
 const ENTRY_URL = `/api/lexicon-entry/${encodeURIComponent('BDB Dictionary')}/${encodeURIComponent('שָׁמַר')}`;
 
@@ -117,11 +149,13 @@ afterEach(() => {
 });
 
 describe('loading the entry', () => {
-  test('GETs the resolved entry\'s content', async () => {
-    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({
-      entry: { headword: 'שָׁמַר', content: { senses: [] } },
-      content_attr_names: ['content'],
-    }));
+  test("GETs the resolved entry's content", async () => {
+    Sefaria.apiRequestWithBody.mockResolvedValue(
+      okResponse({
+        entry: { headword: 'שָׁמַר', content: { senses: [] } },
+        content_attr_names: ['content'],
+      })
+    );
 
     await mount('BDB, שָׁמַר');
 
@@ -129,12 +163,14 @@ describe('loading the entry', () => {
   });
 
   test('the draft includes only content_attr_names keys, skipping ones absent from entry', async () => {
-    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({
-      // 'notes' is content-patchable per content_attr_names but this entry doesn't have one --
-      // it must not appear in the draft as e.g. undefined.
-      entry: { headword: 'שָׁמַר', content: { senses: [] }, parent_lexicon: 'BDB Dictionary' },
-      content_attr_names: ['content', 'notes'],
-    }));
+    Sefaria.apiRequestWithBody.mockResolvedValue(
+      okResponse({
+        // 'notes' is content-patchable per content_attr_names but this entry doesn't have one --
+        // it must not appear in the draft as e.g. undefined.
+        entry: { headword: 'שָׁמַר', content: { senses: [] }, parent_lexicon: 'BDB Dictionary' },
+        content_attr_names: ['content', 'notes'],
+      })
+    );
 
     await mount('BDB, שָׁמַר');
 
@@ -152,7 +188,7 @@ describe('loading the entry', () => {
     expect(container.textContent).toContain('Entry not found.');
   });
 
-  test('an earlier-started but later-resolving GET does not overwrite a newer entry\'s content', async () => {
+  test("an earlier-started but later-resolving GET does not overwrite a newer entry's content", async () => {
     // Renders ContentEditor directly (not through LexiconContentEditBox/LexiconEntryEditBox):
     // that wrapper resets its own identity state to undefined -- and therefore unmounts
     // ContentEditor -- on every currentlyVisibleRef change, which would mask whether
@@ -161,34 +197,49 @@ describe('loading the entry', () => {
     // Rendering ContentEditor directly with a changing `identity` prop, with no unmount in
     // between, is what actually exercises its guard.
     let resolveFirst, resolveSecond;
-    const pendingFirst = new Promise((res) => { resolveFirst = res; });
-    const pendingSecond = new Promise((res) => { resolveSecond = res; });
-    const urlFor = (headword) => `/api/lexicon-entry/${encodeURIComponent('BDB Dictionary')}/${encodeURIComponent(headword)}`;
+    const pendingFirst = new Promise((res) => {
+      resolveFirst = res;
+    });
+    const pendingSecond = new Promise((res) => {
+      resolveSecond = res;
+    });
+    const urlFor = (headword) =>
+      `/api/lexicon-entry/${encodeURIComponent('BDB Dictionary')}/${encodeURIComponent(headword)}`;
     Sefaria.apiRequestWithBody.mockImplementation((url) => (url === urlFor('שָׁמַר') ? pendingFirst : pendingSecond));
 
     container = document.createElement('div');
     document.body.appendChild(container);
     await act(async () => {
-      ReactDOM.render(React.createElement(ContentEditor, { identity: { lexiconName: 'BDB Dictionary', headword: 'שָׁמַר' } }), container);
+      ReactDOM.render(
+        React.createElement(ContentEditor, { identity: { lexiconName: 'BDB Dictionary', headword: 'שָׁמַר' } }),
+        container
+      );
     });
     expect(container.textContent).toBe('loading');
 
     // Same component instance, new identity prop -- no unmount, unlike going through the
     // full LexiconContentEditBox tree.
     await act(async () => {
-      ReactDOM.render(React.createElement(ContentEditor, { identity: { lexiconName: 'BDB Dictionary', headword: 'אָב' } }), container);
+      ReactDOM.render(
+        React.createElement(ContentEditor, { identity: { lexiconName: 'BDB Dictionary', headword: 'אָב' } }),
+        container
+      );
     });
     expect(container.textContent).toBe('loading');
 
     // The second (current) entry's GET resolves first.
     await act(async () => {
-      resolveSecond(okResponse({ entry: { headword: 'אָב', content: { senses: ['second'] } }, content_attr_names: ['content'] }));
+      resolveSecond(
+        okResponse({ entry: { headword: 'אָב', content: { senses: ['second'] } }, content_attr_names: ['content'] })
+      );
     });
     expect(editorData()).toEqual({ content: { senses: ['second'] } });
 
     // The first (stale) entry's GET finally resolves -- must not overwrite the current draft.
     await act(async () => {
-      resolveFirst(okResponse({ entry: { headword: 'שָׁמַר', content: { senses: ['first'] } }, content_attr_names: ['content'] }));
+      resolveFirst(
+        okResponse({ entry: { headword: 'שָׁמַר', content: { senses: ['first'] } }, content_attr_names: ['content'] })
+      );
     });
     expect(editorData()).toEqual({ content: { senses: ['second'] } });
   });
@@ -207,12 +258,16 @@ describe('editing and saving', () => {
     alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
     Sefaria.apiRequestWithBody.mockImplementation((url, params, payload, method) => {
       if (method === 'GET') {
-        return Promise.resolve(okResponse({ entry: { headword: 'שָׁמַר', content: { senses: [] } }, content_attr_names: ['content'] }));
+        return Promise.resolve(
+          okResponse({ entry: { headword: 'שָׁמַר', content: { senses: [] } }, content_attr_names: ['content'] })
+        );
       }
       return Promise.resolve(patchResponse());
     });
   });
-  afterEach(() => { alertSpy.mockRestore(); });
+  afterEach(() => {
+    alertSpy.mockRestore();
+  });
 
   test('editing via the JSON editor updates the value that would be saved', async () => {
     await mount('BDB, שָׁמַר');
@@ -227,34 +282,59 @@ describe('editing and saving', () => {
     await clickSave();
 
     expect(Sefaria.apiRequestWithBody).toHaveBeenCalledWith(
-      ENTRY_URL, null, { content: { content: { senses: [] }, notes: 'edited via fake editor' } }, 'PATCH', false
+      ENTRY_URL,
+      null,
+      { content: { content: { senses: [] }, notes: 'edited via fake editor' } },
+      'PATCH',
+      false
     );
   });
 
-  test('typing in a field updates the draft at that field\'s path, with no per-field confirm', async () => {
+  test("typing in a field updates the draft at that field's path, with no per-field confirm", async () => {
     Sefaria.apiRequestWithBody.mockImplementation((url, params, payload, method) =>
-      Promise.resolve(method === 'GET'
-        ? okResponse({ entry: { headword: 'שָׁמַר', content: { senses: [{ definition: 'stored' }, { definition: 'untouched' }] } }, content_attr_names: ['content'] })
-        : patchResponse()));
+      Promise.resolve(
+        method === 'GET'
+          ? okResponse({
+              entry: {
+                headword: 'שָׁמַר',
+                content: { senses: [{ definition: 'stored' }, { definition: 'untouched' }] },
+              },
+              content_attr_names: ['content'],
+            })
+          : patchResponse()
+      )
+    );
     await mount('BDB, שָׁמַר');
 
     typeInField();
 
-    expect(editorData()).toEqual({ content: { senses: [{ definition: 'still being typed' }, { definition: 'untouched' }] } });
+    expect(editorData()).toEqual({
+      content: { senses: [{ definition: 'still being typed' }, { definition: 'untouched' }] },
+    });
   });
 
   test('Save sends a field that is still open, with no per-field confirm', async () => {
     Sefaria.apiRequestWithBody.mockImplementation((url, params, payload, method) =>
-      Promise.resolve(method === 'GET'
-        ? okResponse({ entry: { headword: 'שָׁמַר', content: { senses: [{ definition: 'stored' }] } }, content_attr_names: ['content'] })
-        : patchResponse()));
+      Promise.resolve(
+        method === 'GET'
+          ? okResponse({
+              entry: { headword: 'שָׁמַר', content: { senses: [{ definition: 'stored' }] } },
+              content_attr_names: ['content'],
+            })
+          : patchResponse()
+      )
+    );
     await mount('BDB, שָׁמַר');
     typeInField();
 
     await clickSave();
 
     expect(Sefaria.apiRequestWithBody).toHaveBeenCalledWith(
-      ENTRY_URL, null, { content: { content: { senses: [{ definition: 'still being typed' }] } } }, 'PATCH', false
+      ENTRY_URL,
+      null,
+      { content: { content: { senses: [{ definition: 'still being typed' }] } } },
+      'PATCH',
+      false
     );
   });
 
@@ -266,11 +346,14 @@ describe('editing and saving', () => {
     expect(container.textContent).toContain('Saved.');
   });
 
-  test('a 4xx/409 response alerts the server\'s specific message and does not show a success message', async () => {
+  test("a 4xx/409 response alerts the server's specific message and does not show a success message", async () => {
     Sefaria.apiRequestWithBody.mockImplementation((url, params, payload, method) =>
-      Promise.resolve(method === 'GET'
-        ? okResponse({ entry: { headword: 'שָׁמַר', content: { senses: [] } }, content_attr_names: ['content'] })
-        : errorResponse('nope')));
+      Promise.resolve(
+        method === 'GET'
+          ? okResponse({ entry: { headword: 'שָׁמַר', content: { senses: [] } }, content_attr_names: ['content'] })
+          : errorResponse('nope')
+      )
+    );
     await mount('BDB, שָׁמַר');
 
     await clickSave();

@@ -6,7 +6,6 @@ from django.urls import resolve
 from powered_by import poc_views
 from powered_by.models import Project
 
-
 SUBMISSIONS_URL = "/api/developer-poc/powered-by-submissions"
 
 

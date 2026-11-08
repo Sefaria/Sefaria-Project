@@ -10,7 +10,8 @@ from sefaria.system.exceptions import InputError
 
 def test_save_and_query_round_trip():
     entry = log_linker_editor_action(
-        1, "add_match_template",
+        1,
+        "add_match_template",
         {"title": "Berakhot", "node_key_path": "Berakhot", "term_slugs": ["bavli"], "scope": "combined"},
         index_title="Berakhot",
     )

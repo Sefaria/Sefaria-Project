@@ -9,15 +9,50 @@ symbols are then accessed directly as, e.g.:
     library
 """
 
+# isort: skip_file
+# Import order matters here (circular dependencies between submodules); do not let the import sorter reorder.
 from . import abstract
 
 # not sure why we have to do this now - it wasn't previously required
-from . import history, schema, text, link, note, layer, notification, queue, lock, following, blocking, user_profile, \
-    version_state, lexicon, place, timeperiod, garden, collection, topic, manuscript, guide
+from . import (
+    history,
+    schema,
+    text,
+    link,
+    note,
+    layer,
+    notification,
+    queue,
+    lock,
+    following,
+    blocking,
+    user_profile,
+    version_state,
+    lexicon,
+    place,
+    timeperiod,
+    garden,
+    collection,
+    topic,
+    manuscript,
+    guide,
+)
 
 from .history import History, HistorySet, log_add, log_delete, log_update, log_text, log_version_metadata, diff_strings
-from .schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode, SchemaNode, \
-    ArrayMapNode, JaggedArrayNode, NumberedTitledTreeNode, NonUniqueTerm, NonUniqueTermSet
+from .schema import (
+    deserialize_tree,
+    Term,
+    TermSet,
+    TermScheme,
+    TermSchemeSet,
+    TitledTreeNode,
+    SchemaNode,
+    ArrayMapNode,
+    JaggedArrayNode,
+    NumberedTitledTreeNode,
+    NonUniqueTerm,
+    NonUniqueTermSet,
+)
 from .text import library, Index, IndexSet, Version, VersionSet, TextChunk, Ref, merge_texts
 from .link import Link, LinkSet, get_link_counts, get_book_link_collection, get_book_category_linkset
 from .note import Note, NoteSet
@@ -32,7 +67,20 @@ from .user_profile import UserWrapper, UserProfile, UserHistory, UserHistorySet,
 from .collection import Collection, CollectionSet
 from .version_state import VersionState, VersionStateSet, StateNode, refresh_all_states
 from .timeperiod import TimePeriod, TimePeriodSet
-from .lexicon import Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, DictionaryEntry, StrongsDictionaryEntry, RashiDictionaryEntry, JastrowDictionaryEntry, KleinDictionaryEntry, WordForm, WordFormSet, LexiconLookupAggregator
+from .lexicon import (
+    Lexicon,
+    LexiconEntry,
+    LexiconEntrySet,
+    Dictionary,
+    DictionaryEntry,
+    StrongsDictionaryEntry,
+    RashiDictionaryEntry,
+    JastrowDictionaryEntry,
+    KleinDictionaryEntry,
+    WordForm,
+    WordFormSet,
+    LexiconLookupAggregator,
+)
 from .place import Place, PlaceSet
 from .garden import Garden, GardenStop, GardenStopRelation, GardenSet, GardenStopSet, GardenStopRelationSet
 from .category import Category, CategorySet
@@ -44,7 +92,22 @@ from .webpage import WebPage, WebPageSet
 from .webpage_text import WebPageText, WebPageTextSet
 from .media import Media, MediaSet
 from .guide import Guide, GuideSet
-from .topic import Topic, PersonTopic, AuthorTopic, TopicLinkType, IntraTopicLink, RefTopicLink, TopicLinkType, TopicDataSource, TopicSet, PersonTopicSet, AuthorTopicSet, TopicLinkTypeSet, RefTopicLinkSet, IntraTopicLinkSet, TopicLinkSetHelper
+from .topic import (
+    Topic,
+    PersonTopic,
+    AuthorTopic,
+    IntraTopicLink,
+    RefTopicLink,
+    TopicLinkType,
+    TopicDataSource,
+    TopicSet,
+    PersonTopicSet,
+    AuthorTopicSet,
+    TopicLinkTypeSet,
+    RefTopicLinkSet,
+    IntraTopicLinkSet,
+    TopicLinkSetHelper,
+)
 from .portal import Portal
 from .manuscript import Manuscript, ManuscriptSet, ManuscriptPage, ManuscriptPageSet
 from .linker.ref_part import RawRef
