@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Route } from "@playwright/test";
 import { focused, open, scrollTop, sectionRefs, segmentTop, setScrollTop, wheel } from "./helpers";
 
 const sections = (page: import("@playwright/test").Page) => page.locator("[data-language] section[data-ref]");
@@ -315,18 +315,58 @@ test("reading far forward lets the opening section go, and the column stays boun
 // stops: the verse being read stays put while sections arrive below and go above.
 test("windowing on a slow connection never moves the verse being read", async ({ page }) => {
   test.setTimeout(90_000);
+  // Texts arrive slowly; while `hold` is set they do not arrive at all until released
+  let hold = false;
+  const held: Route[] = [];
   await page.route("**/api/v3/texts/**", async (r) => {
+    if (hold) return void held.push(r);
     await new Promise((x) => setTimeout(x, 800));
     await r.continue();
   });
   await page.setViewportSize({ width: 1280, height: 900 });
   await open(page, "/Psalms.1.1?lang=bi&with=all");
-  for (let i = 0; i < 25; i++) {
-    await wheel(page, 900, 2);
-    await page.waitForTimeout(120);
+  const below = () =>
+    page.evaluate(() => {
+      const s = document.querySelector("[data-reader-scroller]")!.getBoundingClientRect();
+      return [...document.querySelectorAll("section[data-ref]")].at(-1)!.getBoundingClientRect().bottom - Math.min(s.bottom, innerHeight);
+    });
+  // The case to catch, the same on every machine: the reader stops near the end of what is loaded, with sections far above that
+  // scrolling kept from being trimmed (the column trims only after 400 ms without a scroll), and the next section on its way.
+  // Left to timing, a fast machine (Linux CI) outran the texts, sat at the end of the column where a wheel scrolls nothing, so the
+  // column counted as idle and trimmed then; nothing was left to happen once the reader stopped. So the reader reads on steadily,
+  // never reaching the end, until well past three screens (2,700 px here)...
+  let travelled = 0;
+  for (let i = 0; i < 400 && travelled < 9000; i++) {
+    const before = await scrollTop(page);
+    await wheel(page, (await below()) > 1500 ? 300 : 40);
+    await page.waitForTimeout(100);
+    travelled += Math.max(0, (await scrollTop(page)) - before);
   }
-  await page.waitForTimeout(500); // the reader has stopped; from here on nothing they see may move
-  const moves = await page.evaluate(
+  // ...then the next texts are held, and the reader goes on to near the end of the column and stops
+  hold = true;
+  for (let i = 0; i < 60 && (await below()) > 450; i++) {
+    await wheel(page, Math.min(300, (await below()) - 300));
+    await page.waitForTimeout(100);
+  }
+  expect(await below(), "the reader stopped near the end of the loaded text").toBeLessThanOrEqual(450);
+  // Once the last wheel's scrolling has settled (100 ms without a scroll event) the reader has stopped: nothing they see may move
+  await page.evaluate(
+    () =>
+      new Promise<void>((settled) => {
+        let last = performance.now();
+        const onScroll = () => void (last = performance.now());
+        document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+        const check = () => {
+          if (performance.now() - last < 100) return void requestAnimationFrame(check);
+          document.removeEventListener("scroll", onScroll, { capture: true });
+          settled();
+        };
+        requestAnimationFrame(check);
+      }),
+  );
+  expect(held.length, "the next section was asked for and is held").toBeGreaterThan(0);
+  // The watch starts (it reads the verse's place at once), then the held texts arrive: a section below, and with it the trim above
+  const watch = page.evaluate(
     () =>
       new Promise<string[]>((resolve) => {
         const out: string[] = [];
@@ -357,5 +397,7 @@ test("windowing on a slow connection never moves the verse being read", async ({
         requestAnimationFrame(tick);
       }),
   );
-  expect(moves).toEqual([]);
+  hold = false;
+  await Promise.all(held.splice(0).map((r) => r.continue()));
+  expect(await watch).toEqual([]);
 });

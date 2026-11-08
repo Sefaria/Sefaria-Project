@@ -76,3 +76,38 @@ export function nextToLoad(loaded: readonly { ref: string; prev: string | null; 
 export function scrollCompensation(heightBefore: number, heightAfter: number): number {
   return Math.max(0, heightAfter - heightBefore);
 }
+
+/**
+ * Windowing (CODE_REVIEW R-25): which sections to let go. From each end, the run of sections lying wholly more than `reach` px
+ * beyond the view (stopping at the first one that is kept or not measured); then, if that would leave fewer than `minKept`, the
+ * ones nearest the reader are given back until it does not. All-or-nothing was the bug: after a long read with no pause, every
+ * section above qualified at once, taking them all would leave too few, so none went and the column only grew.
+ */
+export function sectionsToTrim(
+  refs: readonly string[],
+  box: (ref: string) => { top: number; bottom: number } | undefined,
+  view: { top: number; bottom: number },
+  reach: number,
+  keep: (ref: string) => boolean,
+  minKept: number,
+): Set<string> {
+  const above: string[] = [];
+  for (const ref of refs) {
+    const b = box(ref);
+    if (!b || keep(ref) || b.bottom > view.top - reach) break;
+    above.push(ref);
+  }
+  const below: string[] = [];
+  for (const ref of [...refs].reverse()) {
+    if (above.includes(ref)) break;
+    const b = box(ref);
+    if (!b || keep(ref) || b.top < view.bottom + reach) break;
+    below.push(ref);
+  }
+  // `above` and `below` are each ordered from the column's end inward, so their last entries are the nearest the reader
+  while (above.length + below.length > 0 && refs.length - above.length - below.length < minKept) {
+    if (above.length >= below.length) above.pop();
+    else below.pop();
+  }
+  return new Set([...above, ...below]);
+}

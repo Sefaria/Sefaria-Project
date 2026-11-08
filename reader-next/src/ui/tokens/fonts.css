@@ -23,6 +23,12 @@
 @font-face { font-family: "Taamey Frank"; src: url("/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf") format("truetype"); font-style: italic; font-weight: 400 500; font-display: swap; unicode-range: U+0000-0040, U+005B-0060, U+007B-FB4F; }
 @font-face { font-family: "Taamey Frank"; src: url("/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf") format("truetype"); font-style: italic; font-weight: 600 900; font-display: swap; unicode-range: U+0000-0040, U+005B-0060, U+007B-FB4F; }
 
+/* Noto Color Emoji leads the Hebrew text stack, as on sefaria.org (static/css/font-faces.css), for flag emoji only: the face covers
+   the regional indicators alone (a subset of the old site's NotoColorEmoji.ttf, SIL OFL: flags and their ligatures, 0.8 MB not 9.8 MB).
+   Declaring it also matters where no flag is drawn: an installed "Noto Color Emoji" (Linux, Android) would otherwise be the stack's
+   first available font, and its ascent and descent set the height of every Hebrew line (a 14px Hebrew line box: 18px, not 21px). */
+@font-face { font-family: "Noto Color Emoji"; src: url("/fonts/NotoColorEmoji-flags.ttf") format("truetype"); font-display: swap; unicode-range: U+1F1E6-1F1FF; }
+
 /* Cardo covers ONLY Greek and combining marks, exactly as on sefaria.org (static/css/font-faces.css): it comes first in the text
    stacks for Greek, and everything Latin falls through to Adobe Garamond Pro. Giving Cardo the whole Latin range (as Fontsource does)
    made every English text Cardo — the visible face difference against the live site. */

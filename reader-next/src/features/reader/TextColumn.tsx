@@ -4,7 +4,7 @@ import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { makeIndexLookup } from "~/lib/connections/links";
 import { linkCountsBySegment, linksQueryOptions } from "~/lib/connections/queries";
-import { nextToLoad } from "~/lib/reader/column";
+import { nextToLoad, sectionsToTrim } from "~/lib/reader/column";
 import type { ReaderSettings } from "~/lib/reader/settings";
 import { cleanCopy } from "~/lib/reader/copy";
 import { spreadNumbers } from "~/lib/reader/spread-numbers";
@@ -317,18 +317,8 @@ export function TextColumn(props: TextColumnProps) {
     const reading = focusRef.current ? passageOf(focusRef.current)?.ref : undefined;
     const keep = (ref: string) => ref === reading || pinnedRefs.has(ref);
     const box = (ref: string) => content.querySelector(`section[data-ref="${CSS.escape(ref)}"]`)?.getBoundingClientRect();
-    const drop = new Set<string>();
-    for (const p of sections) {
-      const b = box(p.ref);
-      if (!b || keep(p.ref) || b.bottom > view.top - reach) break;
-      drop.add(p.ref);
-    }
-    for (const p of [...sections].reverse()) {
-      const b = box(p.ref);
-      if (!b || keep(p.ref) || b.top < view.bottom + reach) break;
-      drop.add(p.ref);
-    }
-    if (drop.size && sections.length - drop.size >= MIN_SECTIONS_KEPT) setSections((prev) => prev.filter((p) => !drop.has(p.ref)));
+    const drop = sectionsToTrim(sections.map((p) => p.ref), box, view, reach, keep, MIN_SECTIONS_KEPT);
+    if (drop.size) setSections((prev) => prev.filter((p) => !drop.has(p.ref)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sections, trimTick]);
 

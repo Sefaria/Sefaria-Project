@@ -72,11 +72,16 @@ test.describe("the page", () => {
     expect(s).toEqual({ font: browserFont, bodyFont: browserFont, size: "16px", margin: "8px", x: 8 });
     const ref = await page.getByLabel("Ref:").boundingBox();
     expect(Math.round(ref!.width)).toBe(308); // style="width: 300px" plus the input's own border and padding (live 308)
-    // direction: rtl, as live: the first checkbox (י) at the right edge, the last ")" leftmost, Update at the right
-    const edges = async (l: ReturnType<Page["locator"]>) => l.boundingBox().then((b) => [Math.round(b!.x), Math.round(b!.x + b!.width)]);
-    expect(await edges(page.locator("#filters label").first())).toEqual([1248, 1272]);
-    expect(await edges(page.locator("#filters label").last())).toEqual([1075, 1100]);
-    expect(await edges(page.getByRole("button", { name: "Update" }))).toEqual([1213, 1272]);
+    // direction: rtl, as live: the first checkbox (י) at the right edge, the last ")" leftmost, Update at the right. Measured on a Mac;
+    // the labels are in the browser's default serif, whose widths differ a little by platform (Linux CI: 1101, not 1100), so within 2px
+    const edges = async (l: ReturnType<Page["locator"]>, expected: [number, number]) => {
+      const b = (await l.boundingBox())!;
+      const got = [b.x, b.x + b.width];
+      expect(got.every((v, i) => Math.abs(v - expected[i]!) <= 2), `edges ${got.map(Math.round)} ≈ ${expected}`).toBe(true);
+    };
+    await edges(page.locator("#filters label").first(), [1248, 1272]);
+    await edges(page.locator("#filters label").last(), [1075, 1100]);
+    await edges(page.getByRole("button", { name: "Update" }), [1213, 1272]);
   });
 
   test("/compare/Genesis.1 without the slash is an empty form; with it, the ref and its versions", async ({ page }) => {

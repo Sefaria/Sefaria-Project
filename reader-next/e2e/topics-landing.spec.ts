@@ -264,7 +264,8 @@ test.describe("the landing page in the Hebrew interface on a phone", () => {
     expect(await fontOf(page, 'main [role="combobox"]')).toMatch(/^Roboto/);
     const explore = main(page).getByRole("button", { name: "לדפדוף בכל הנושאים ›" });
     expect(await explore.locator("span").first().evaluate((e) => getComputedStyle(e).fontFamily)).toMatch(/Taamey Frank/);
-    // The heights below are Taamey Frank's (font-display: swap): measured before it arrived, CI got the fallback serif's 18px
+    // The heights below are Taamey Frank's (font-display: swap), so measure once it is in. On Linux CI this was 18px because an
+    // installed Noto Color Emoji, first in the stack, set the line's metrics: fonts.css now declares that family for flags only.
     await page.evaluate(() => document.fonts.ready);
     expect(Math.round((await explore.boundingBox())!.height)).toBe(21);
     const featured = main(page).locator('[data-anl-feature_name="Featured Topic"]');
