@@ -78,6 +78,21 @@ entries:
     version: 0.93.0-sc-47260-registry-reload-age.1
   - apiVersion: v2
     appVersion: v7.11.4
+    created: "2026-11-08T14:06:01.5831479Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 72606d28e17ff14c446dfa016454e8719f874ee90f186a9351d4de21b9cac8b2
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.93.0-sc-47260-mask-admin-keys.1.tgz
+    version: 0.93.0-sc-47260-mask-admin-keys.1
+  - apiVersion: v2
+    appVersion: v7.11.4
     created: "2026-11-08T11:47:40.724347221Z"
     description: Chart to deploy complete Sefaria environment
     digest: f3f9d0d0ae4e9051f01a5eba908b7491637eeb7f0a049e2335062752e5fc2f34
@@ -24285,4 +24300,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-08T13:53:28.94697139Z"
+generated: "2026-11-08T14:06:01.580386689Z"
