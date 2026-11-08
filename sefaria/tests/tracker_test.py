@@ -10,10 +10,11 @@ migration, both only reachable via a real (non-en/he) language save:
    non-en/he version's title (e.g. "Foo" -> "Foo [de]") left both rows pointing at a version
    title that was never actually saved.
 """
+
 from unittest.mock import patch
 
-from sefaria.model import Index, IndexSet, Ref, Version, VersionSet
 import sefaria.tracker as tracker
+from sefaria.model import Index, IndexSet, Ref, Version, VersionSet
 from sefaria.system.database import db
 
 
@@ -22,21 +23,23 @@ def _make_synthetic_index(title, he_title):
         Index().load({"title": title}).delete()
     except Exception:
         pass
-    idx = Index({
-        "title": title,
-        "categories": ["Liturgy"],
-        "schema": {
-            "titles": [
-                {"lang": "en", "text": title, "primary": True},
-                {"lang": "he", "text": he_title, "primary": True},
-            ],
-            "nodeType": "JaggedArrayNode",
-            "depth": 2,
-            "sectionNames": ["Chapter", "Paragraph"],
-            "addressTypes": ["Integer", "Integer"],
-            "key": title,
-        },
-    })
+    idx = Index(
+        {
+            "title": title,
+            "categories": ["Liturgy"],
+            "schema": {
+                "titles": [
+                    {"lang": "en", "text": title, "primary": True},
+                    {"lang": "he", "text": he_title, "primary": True},
+                ],
+                "nodeType": "JaggedArrayNode",
+                "depth": 2,
+                "sectionNames": ["Chapter", "Paragraph"],
+                "addressTypes": ["Integer", "Integer"],
+                "key": title,
+            },
+        }
+    )
     idx.save()
     return idx
 

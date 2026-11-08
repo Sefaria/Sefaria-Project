@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types';
-import {InterfaceText} from "./Misc";
-import Sefaria from "./sefaria/sefaria";
-import React from "react";
-
+import { InterfaceText } from './Misc';
+import Sefaria from './sefaria/sefaria';
+import React from 'react';
 
 function arrangeAuthorName(authorName) {
   return authorName.split(', ').reverse().join(' ');
@@ -19,40 +18,45 @@ function getAuthorsAsString(isHebrew, authors) {
   return authors?.reduce((...reduceArgs) => addAuthorToString(finalJoiner, ...reduceArgs), '');
 }
 
-const AuthorString = ({authors, isHebrew}) => {
+const AuthorString = ({ authors, isHebrew }) => {
   const authorsNum = authors?.length;
   const author = authorsNum > 1 ? 'common.authors' : 'nav_sidebar.author';
   const authorsNames = getAuthorsAsString(isHebrew, authors);
-  return (
-     authorsNames ? <div className="authors">
-             <InterfaceText>{author}</InterfaceText>: {authorsNames}
-         </div> : null
-  );
-}
+  return authorsNames ? (
+    <div className="authors">
+      <InterfaceText>{author}</InterfaceText>: {authorsNames}
+    </div>
+  ) : null;
+};
 AuthorString.propTypes = {
   authors: PropTypes.array, //array of strings
   isHebrew: PropTypes.bool,
 };
 
-const WebPage = ({authors, isHebrew, favicon, url, domain, title, description, articleSource, anchorRef}) => {
+const WebPage = ({ authors, isHebrew, favicon, url, domain, title, description, articleSource, anchorRef }) => {
   return (
-    <div className={"webpage" + (isHebrew ? " hebrew" : "")} key={url}>
-      <img className="icon" src={favicon} alt={Sefaria._("common.website_icon")} />
-      <a className="title" href={url} target="_blank">{title}</a>
+    <div className={'webpage' + (isHebrew ? ' hebrew' : '')} key={url}>
+      <img className="icon" src={favicon} alt={Sefaria._('common.website_icon')} />
+      <a className="title" href={url} target="_blank" rel="noreferrer">
+        {title}
+      </a>
       <div className="domain">{domain}</div>
       {description ? <div className="description">{description}</div> : null}
       <div className="webpageMetadata">
         <AuthorString authors={authors} isHebrew={isHebrew} />
-        {articleSource ? <div className="articleSource">
-          <InterfaceText>common.source</InterfaceText>: {articleSource.title}{articleSource.related_parts ? ` ${articleSource.related_parts}`: ''}
-        </div> : null}
+        {articleSource ? (
+          <div className="articleSource">
+            <InterfaceText>common.source</InterfaceText>: {articleSource.title}
+            {articleSource.related_parts ? ` ${articleSource.related_parts}` : ''}
+          </div>
+        ) : null}
         <div className="citing">
           <InterfaceText>web_page.citing</InterfaceText>: {Sefaria._r(anchorRef)}
         </div>
       </div>
     </div>
   );
-}
+};
 WebPage.propTypes = {
   authors: PropTypes.array, //array of strings
   isHebrew: PropTypes.bool,

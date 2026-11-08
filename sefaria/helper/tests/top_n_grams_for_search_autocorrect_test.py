@@ -1,29 +1,29 @@
-# -*- coding: utf-8 -*-
 """
 Tables are plain dicts and segments pre-tokenized, so no library, Mongo or network is needed.
 The linker normalizer that `tokenize` wraps has its own tests.
 """
+
 import pytest
 
+import sefaria.helper.top_n_grams_for_search_autocorrect as top_n_grams_for_search_autocorrect
 from sefaria.helper.top_n_grams_for_search_autocorrect import (
-    MAX_PHRASE_WORDS,
     AMBIGUITY_LOG_GAP,
-    normalize_word,
-    _one_edit_candidates,
-    _ranked_candidates,
-    tie_break_score,
-    _try_window,
-    _one_title_per_entity,
-    AmbiguousCandidates,
-    AutocorrectResult,
-    autocorrect_query,
-    save_top_n_grams_trie,
-    build_phrase_trie,
-    load_top_n_grams,
+    MAX_PHRASE_WORDS,
     MAX_QUERY_CHARS,
     MAX_QUERY_WORDS,
+    AmbiguousCandidates,
+    AutocorrectResult,
+    _one_edit_candidates,
+    _one_title_per_entity,
+    _ranked_candidates,
+    _try_window,
+    autocorrect_query,
+    build_phrase_trie,
+    load_top_n_grams,
+    normalize_word,
+    save_top_n_grams_trie,
+    tie_break_score,
 )
-import sefaria.helper.top_n_grams_for_search_autocorrect as top_n_grams_for_search_autocorrect
 
 
 def _best_match(phrase, *tables):
@@ -33,12 +33,13 @@ def _best_match(phrase, *tables):
 
 def _segment_phrases(tokens, max_n=MAX_PHRASE_WORDS):
     """Brute-force oracle: every distinct 1..max_n-word run."""
-    return {" ".join(tokens[i:i + n]) for n in range(1, max_n + 1) for i in range(len(tokens) - n + 1)}
+    return {" ".join(tokens[i : i + n]) for n in range(1, max_n + 1) for i in range(len(tokens) - n + 1)}
 
 
 # --------------------------------------------------------------------------- #
 #  normalize_word                                                             #
 # --------------------------------------------------------------------------- #
+
 
 def test_normalize_word_strips_edge_punctuation_and_lowercases():
     assert normalize_word("Bereishit,") == "bereishit"
@@ -55,12 +56,13 @@ def test_normalize_word_keeps_internal_punctuation():
 #  _one_edit_candidates / best candidate                                     #
 # --------------------------------------------------------------------------- #
 
+
 def test_one_edit_candidates_includes_known_single_edits():
     candidates = _one_edit_candidates("cat")
-    assert "at" in candidates     # delete
-    assert "cats" in candidates   # insert
-    assert "cot" in candidates    # replace
-    assert "act" in candidates    # transpose
+    assert "at" in candidates  # delete
+    assert "cats" in candidates  # insert
+    assert "cot" in candidates  # replace
+    assert "act" in candidates  # transpose
 
 
 def test_best_match_picks_higher_doc_count_on_tie_distance():
@@ -92,8 +94,8 @@ def test_best_match_considers_entity_alt_index_and_picks_the_higher_score():
 
 
 def test_best_match_prefers_the_higher_scoring_source_when_a_candidate_is_in_both():
-    top_n_grams = {"cot": 100000}           # huge raw count, but still log-damped
-    entity_alt_index = {"cot": 1000.0}      # deliberately-inflated score, wins anyway
+    top_n_grams = {"cot": 100000}  # huge raw count, but still log-damped
+    entity_alt_index = {"cot": 1000.0}  # deliberately-inflated score, wins anyway
     assert _best_match("cat", top_n_grams, entity_alt_index) == "cot"
     assert entity_alt_index["cot"] > tie_break_score(top_n_grams["cot"])
 
@@ -101,6 +103,7 @@ def test_best_match_prefers_the_higher_scoring_source_when_a_candidate_is_in_bot
 # --------------------------------------------------------------------------- #
 #  _ranked_candidates                                                        #
 # --------------------------------------------------------------------------- #
+
 
 def test_ranked_candidates_sorted_by_score_descending():
     top_n_grams = {"cap": 5, "cot": 50}
@@ -130,6 +133,7 @@ def test_ranked_candidates_empty_when_nothing_matches():
 # --------------------------------------------------------------------------- #
 #  _try_window                                                                #
 # --------------------------------------------------------------------------- #
+
 
 def test_try_window_returns_none_for_an_already_attested_phrase():
     top_n_grams = {"bereishit rabbah": 10}
@@ -251,18 +255,22 @@ def test_try_window_ambiguous_preserves_surrounding_words_per_suggestion():
 #  autocorrect_query                                                          #
 # --------------------------------------------------------------------------- #
 
+
 def test_autocorrect_query_short_phrase_one_off_match():
     top_n_grams = {"bereishit rabbah": 10}
     assert autocorrect_query("bereshit rabbah", top_n_grams) == AutocorrectResult(
-        original_query="bereshit rabbah", corrected_query="bereishit rabbah")
+        original_query="bereshit rabbah", corrected_query="bereishit rabbah"
+    )
 
 
 def test_autocorrect_query_cleans_whitespace_and_apostrophes_in_both_queries():
     top_n_grams = {"bereishit rabbah": 10}
     assert autocorrect_query("  bere\u05f3shit \u2019 rabbah  ", top_n_grams) == AutocorrectResult(
-        original_query="bereshit rabbah", corrected_query="bereishit rabbah")
+        original_query="bereshit rabbah", corrected_query="bereishit rabbah"
+    )
     assert autocorrect_query("bereshit   rabbah", top_n_grams) == AutocorrectResult(
-        original_query="bereshit rabbah", corrected_query="bereishit rabbah")
+        original_query="bereshit rabbah", corrected_query="bereishit rabbah"
+    )
 
 
 def test_autocorrect_query_short_phrase_already_attested_is_noop():
@@ -279,7 +287,8 @@ def test_autocorrect_query_does_not_correct_a_lone_word_into_an_unattested_phras
 def test_autocorrect_query_three_word_phrase():
     top_n_grams = {"shir hashirim rabbah": 8}
     assert autocorrect_query("shir hashirim rabah", top_n_grams) == AutocorrectResult(
-        original_query="shir hashirim rabah", corrected_query="shir hashirim rabbah")
+        original_query="shir hashirim rabah", corrected_query="shir hashirim rabbah"
+    )
 
 
 def test_autocorrect_query_long_query_fixes_one_typo_seen_by_overlapping_trigrams():
@@ -288,8 +297,8 @@ def test_autocorrect_query_long_query_fixes_one_typo_seen_by_overlapping_trigram
     top_n_grams = {"the quick bereishit": 10, "quick bereishit rabbah": 10, "bereishit rabbah fox": 10}
     result = autocorrect_query("The quick bereshit rabbah fox jumps", top_n_grams)
     assert result == AutocorrectResult(
-        original_query="The quick bereshit rabbah fox jumps",
-        corrected_query="The quick bereishit rabbah fox jumps")
+        original_query="The quick bereshit rabbah fox jumps", corrected_query="The quick bereishit rabbah fox jumps"
+    )
 
 
 def test_autocorrect_query_long_query_never_falls_back_to_shorter_windows():
@@ -308,7 +317,8 @@ def test_autocorrect_query_long_query_ambiguous_trigrams_return_suggestions():
     top_n_grams = {"the cot sat": 50, "the cap sat": 40}
     result = autocorrect_query("the cat sat down", top_n_grams)
     assert result == AutocorrectResult(
-        original_query="the cat sat down", suggested_queries=["the cot sat down", "the cap sat down"])
+        original_query="the cat sat down", suggested_queries=["the cot sat down", "the cap sat down"]
+    )
 
 
 def test_autocorrect_query_long_query_unfixable_returns_none():
@@ -331,9 +341,11 @@ def test_max_phrase_words_is_three():
 #  autocorrect_query + entity_alt_index                                       #
 # --------------------------------------------------------------------------- #
 
+
 def test_autocorrect_query_short_query_corrects_from_entity_alt_index():
     assert autocorrect_query("rasih", {}, {"rashi": 4.0}) == AutocorrectResult(
-        original_query="rasih", corrected_query="rashi")
+        original_query="rasih", corrected_query="rashi"
+    )
 
 
 def test_autocorrect_query_short_query_already_attested_in_entity_alt_index_is_noop():
@@ -345,7 +357,8 @@ def test_autocorrect_query_short_query_picks_higher_scoring_source():
     top_n_grams = {"cap": 1}
     entity_alt_index = {"cot": 100.0}
     assert autocorrect_query("cat", top_n_grams, entity_alt_index) == AutocorrectResult(
-        original_query="cat", corrected_query="cot")
+        original_query="cat", corrected_query="cot"
+    )
 
 
 def test_autocorrect_query_long_query_whole_phrase_entity_match_beats_windowed_top_n_grams():
@@ -355,8 +368,7 @@ def test_autocorrect_query_long_query_whole_phrase_entity_match_beats_windowed_t
     # whole-query entity pass must fire and win outright.
     entity_alt_index = {"the mishneh torah book": 0.0}
     result = autocorrect_query("the mishne torah book", {}, entity_alt_index)
-    assert result == AutocorrectResult(
-        original_query="the mishne torah book", corrected_query="the mishneh torah book")
+    assert result == AutocorrectResult(original_query="the mishne torah book", corrected_query="the mishneh torah book")
 
 
 def test_autocorrect_query_long_query_falls_through_to_windowed_scan_when_no_whole_match():
@@ -364,7 +376,8 @@ def test_autocorrect_query_long_query_falls_through_to_windowed_scan_when_no_who
     entity_alt_index = {"some unrelated title": 5.0}
     result = autocorrect_query("a quick brown fax jumps", top_n_grams, entity_alt_index)
     assert result == AutocorrectResult(
-        original_query="a quick brown fax jumps", corrected_query="a quick brown fox jumps")
+        original_query="a quick brown fax jumps", corrected_query="a quick brown fox jumps"
+    )
 
 
 def test_autocorrect_query_entity_alt_index_is_optional():
@@ -372,26 +385,26 @@ def test_autocorrect_query_entity_alt_index_is_optional():
     # like the top-n-grams-only signature this replaced.
     top_n_grams = {"bereishit rabbah": 10}
     assert autocorrect_query("bereshit rabbah", top_n_grams) == AutocorrectResult(
-        original_query="bereshit rabbah", corrected_query="bereishit rabbah")
+        original_query="bereshit rabbah", corrected_query="bereishit rabbah"
+    )
 
 
 # --------------------------------------------------------------------------- #
 #  autocorrect_query + ambiguity (AMBIGUITY_LOG_GAP)                          #
 # --------------------------------------------------------------------------- #
 
+
 def test_autocorrect_query_ambiguous_returns_suggestions_not_a_correction():
     top_n_grams = {"cot": 50, "cap": 40}
     result = autocorrect_query("cat", top_n_grams)
-    assert result == AutocorrectResult(
-        original_query="cat", corrected_query=None, suggested_queries=["cot", "cap"])
+    assert result == AutocorrectResult(original_query="cat", corrected_query=None, suggested_queries=["cot", "cap"])
 
 
 def test_autocorrect_query_confident_when_disparity_is_large():
     # Same pair, but one dominates by orders of magnitude -- not competing, so the dominant
     # one auto-corrects.
     top_n_grams = {"cot": 100000, "cap": 2}
-    assert autocorrect_query("cat", top_n_grams) == AutocorrectResult(
-        original_query="cat", corrected_query="cot")
+    assert autocorrect_query("cat", top_n_grams) == AutocorrectResult(original_query="cat", corrected_query="cot")
 
 
 def test_autocorrect_query_ambiguous_in_a_long_query_keeps_surrounding_words():
@@ -400,7 +413,8 @@ def test_autocorrect_query_ambiguous_in_a_long_query_keeps_surrounding_words():
     assert result == AutocorrectResult(
         original_query="The cat sat down",
         corrected_query=None,
-        suggested_queries=["The cot sat down", "The cap sat down"])
+        suggested_queries=["The cot sat down", "The cap sat down"],
+    )
 
 
 def test_autocorrect_query_ambiguous_between_top_n_grams_and_entity_alt_candidates():
@@ -409,8 +423,7 @@ def test_autocorrect_query_ambiguous_between_top_n_grams_and_entity_alt_candidat
     top_n_grams = {"cap": 40}
     entity_alt_index = {"cot": 1.7}
     result = autocorrect_query("cat", top_n_grams, entity_alt_index)
-    assert result == AutocorrectResult(
-        original_query="cat", corrected_query=None, suggested_queries=["cot", "cap"])
+    assert result == AutocorrectResult(original_query="cat", corrected_query=None, suggested_queries=["cot", "cap"])
 
 
 def test_ambiguity_log_gap_is_one_order_of_magnitude():
@@ -427,6 +440,7 @@ def test_ambiguous_suggestions_equal_scores_fall_back_to_a_z():
 #  Numbers are never edited                                                   #
 # --------------------------------------------------------------------------- #
 
+
 def test_autocorrect_query_never_edits_a_number():
     # "berakhot 2a" is a citation, not a typo of a neighboring daf.
     top_n_grams = {"berakhot 22a": 50, "berakhot 5a": 40, "berakhot 8a": 30}
@@ -436,7 +450,8 @@ def test_autocorrect_query_never_edits_a_number():
 def test_autocorrect_query_still_fixes_words_next_to_a_number():
     top_n_grams = {"berakhot 2a": 50}
     assert autocorrect_query("berakhto 2a", top_n_grams) == AutocorrectResult(
-        original_query="berakhto 2a", corrected_query="berakhot 2a")
+        original_query="berakhto 2a", corrected_query="berakhot 2a"
+    )
 
 
 def test_autocorrect_query_never_merges_a_word_into_a_number():
@@ -447,6 +462,7 @@ def test_autocorrect_query_never_merges_a_word_into_a_number():
 # --------------------------------------------------------------------------- #
 #  Query length caps                                                          #
 # --------------------------------------------------------------------------- #
+
 
 def test_autocorrect_query_skips_queries_over_the_char_cap():
     top_n_grams = {"bereishit": 100}
@@ -465,10 +481,12 @@ def test_autocorrect_query_skips_queries_over_the_word_cap():
 #  save_top_n_grams_trie / load_top_n_grams                                   #
 # --------------------------------------------------------------------------- #
 
+
 @pytest.fixture
 def trie_source(monkeypatch):
     def point_at(source):
         monkeypatch.setattr(top_n_grams_for_search_autocorrect, "_trie_source", lambda: source)
+
     return point_at
 
 
@@ -516,12 +534,22 @@ def test_load_trie_logs_error_when_table_is_empty(tmp_path, trie_source, monkeyp
 #  build_top_n_grams: level-wise (low-memory) counting                        #
 # --------------------------------------------------------------------------- #
 
+
 # One int for every length, or one per phrase length (falling, rising and mixed).
 @pytest.mark.parametrize("min_doc_count", [0, 1, 2, 3, [3, 2, 1], [1, 2, 3], [2, 0, 2], [3], (2, 1, 0)])
 def test_build_top_n_grams_matches_brute_force_count(monkeypatch, min_doc_count):
     from collections import Counter
+
     segments = [
-        "a b c a b", "a b c d", "b c d", "a b", "x y z", "x y", "a b c", "c d a b", "q",
+        "a b c a b",
+        "a b c d",
+        "b c d",
+        "a b",
+        "x y z",
+        "x y",
+        "a b c",
+        "c d a b",
+        "q",
     ]
 
     def fake_spool(spool, langs, categories):
@@ -549,6 +577,7 @@ def test_lower_threshold_for_longer_phrases_keeps_a_trigram_whose_words_are_belo
     # must still be counted (not pruned) for the trigram to survive, yet not appear in the
     # output at the higher word/bigram threshold.
     from collections import Counter
+
     segments = ["x y z", "x y z", "m", "m", "m"]
 
     def fake_spool(spool, langs, categories):
@@ -579,6 +608,7 @@ def test_thresholds_by_length_rejects_the_wrong_number_of_values():
 #  build_phrase_trie / trie-backed autocorrect                                #
 # --------------------------------------------------------------------------- #
 
+
 def test_build_phrase_trie_normalizes_keys_and_keeps_the_higher_value_on_collision():
     # "moshé" and "moshe" collide once accents are unidecoded; apostrophes are dropped.
     trie = build_phrase_trie([("moshé", 3), ("moshe", 9), ("don't", 4)])
@@ -603,8 +633,9 @@ def test_autocorrect_query_against_tries_matches_dicts():
     entities = {"shulchan arukh": 3.0}
     for query in ["bereshit rabbah", "mishne torah", "moshé", "shulchan aruch", "unrelated words here"]:
         expected = autocorrect_query(query, table, entities)
-        actual = autocorrect_query(query, build_phrase_trie(table.items()),
-                                   build_phrase_trie(entities.items(), int_values=False))
+        actual = autocorrect_query(
+            query, build_phrase_trie(table.items()), build_phrase_trie(entities.items(), int_values=False)
+        )
         assert actual == expected, query
 
 
@@ -621,12 +652,14 @@ def test_autocorrect_query_normalizes_the_query_like_the_table_keys():
 #  Never call len()/bool() on a table: a datrie trie's len() walks every key   #
 # --------------------------------------------------------------------------- #
 
+
 class _NoLenTable:
     """
     Stands in for a `datrie` trie, whose `len()` -- and so truthiness -- is O(number of keys)
     (~1s for the corpus table). Lookups work; any `len()`/`bool()` raises, so a regression
     that checks a table's truthiness fails loudly instead of just getting slow.
     """
+
     def __init__(self, data):
         self._data = dict(data)
 
@@ -647,15 +680,18 @@ _NO_LEN_TOP_N_GRAMS = {"shabbat": 500, "mourning": 400, "talmud": 900, "bereishi
 _NO_LEN_ENTITIES = {"rambam": 3.0, "rashi on bereishit": 2.5}
 
 
-@pytest.mark.parametrize("query", [
-    "shabat",                                              # one word, corpus table
-    "bereshit rabbah",                                     # phrase
-    "rambam",                                              # already attested in the entity index
-    "rashi on bereshit",                                   # short phrase, entity candidate
-    "what does the talmud say about mourning on shabat",   # long: windowed scan, one fix
-    "nothing here is close to anything at all",            # long: no window fixable
-    "",
-])
+@pytest.mark.parametrize(
+    "query",
+    [
+        "shabat",  # one word, corpus table
+        "bereshit rabbah",  # phrase
+        "rambam",  # already attested in the entity index
+        "rashi on bereshit",  # short phrase, entity candidate
+        "what does the talmud say about mourning on shabat",  # long: windowed scan, one fix
+        "nothing here is close to anything at all",  # long: no window fixable
+        "",
+    ],
+)
 def test_autocorrect_query_never_takes_len_or_truthiness_of_a_table(query):
     expected = autocorrect_query(query, _NO_LEN_TOP_N_GRAMS, _NO_LEN_ENTITIES)
     assert autocorrect_query(query, _NoLenTable(_NO_LEN_TOP_N_GRAMS), _NoLenTable(_NO_LEN_ENTITIES)) == expected
@@ -670,6 +706,7 @@ def test_autocorrect_query_with_a_long_query_corrects_whole_from_entities_withou
 
 def test_is_empty_agrees_for_dicts_and_real_tries():
     from sefaria.helper.top_n_grams_for_search_autocorrect import _is_empty, build_phrase_trie
+
     assert _is_empty(None) and _is_empty({}) and _is_empty(build_phrase_trie(()))
     assert not _is_empty({"a": 1}) and not _is_empty(build_phrase_trie([("a", 1)]))
     assert not _is_empty(build_phrase_trie([("a", 1.5)], int_values=False))
@@ -678,7 +715,10 @@ def test_is_empty_agrees_for_dicts_and_real_tries():
 
 def test_autocorrect_query_treats_an_empty_entity_index_as_absent():
     from sefaria.helper.top_n_grams_for_search_autocorrect import build_phrase_trie
+
     for empty in ({}, build_phrase_trie((), int_values=False), None):
-        assert autocorrect_query("shabat", _NO_LEN_TOP_N_GRAMS, empty) == autocorrect_query("shabat", _NO_LEN_TOP_N_GRAMS)
+        assert autocorrect_query("shabat", _NO_LEN_TOP_N_GRAMS, empty) == autocorrect_query(
+            "shabat", _NO_LEN_TOP_N_GRAMS
+        )
     # Both tables empty: nothing to correct against.
     assert autocorrect_query("shabat", {}, build_phrase_trie((), int_values=False)) is None

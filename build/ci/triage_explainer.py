@@ -46,13 +46,14 @@ def resolve_enabled(event_name, explain_triage_input, enable_var):
 def build_arg_parser():
     parser = argparse.ArgumentParser(
         description="Extract the triage bucket from a reconcile_deploy_ready.py report, or "
-                     "resolve whether the opt-in triage explainer should run -- for the "
-                     "opt-in triage-explainer workflow step.",
+        "resolve whether the opt-in triage explainer should run -- for the "
+        "opt-in triage-explainer workflow step.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     extract_parser = subparsers.add_parser(
-        "extract", help="Write the triage-only document for a reconcile report to --out.",
+        "extract",
+        help="Write the triage-only document for a reconcile report to --out.",
     )
     extract_parser.add_argument("--report", required=True, help="Path to a reconcile_deploy_ready.py --out report JSON")
     extract_parser.add_argument("--out", required=True, help="Output path for the triage-only document")
@@ -62,7 +63,9 @@ def build_arg_parser():
         help="Print 'true' or 'false' to stdout: should the explainer run for this trigger?",
     )
     enabled_parser.add_argument("--event-name", required=True, help="github.event_name, e.g. workflow_dispatch")
-    enabled_parser.add_argument("--explain-triage-input", default="", help="inputs.explain_triage (workflow_dispatch only)")
+    enabled_parser.add_argument(
+        "--explain-triage-input", default="", help="inputs.explain_triage (workflow_dispatch only)"
+    )
     enabled_parser.add_argument("--enable-var", default="", help="vars.ENABLE_TRIAGE_EXPLAINER")
 
     return parser

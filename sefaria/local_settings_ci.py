@@ -1,25 +1,25 @@
-
-from datetime import timedelta
-import structlog
-import os
 import json
+import os
+from datetime import timedelta
+
+import structlog
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sefaria_auth',
-        'USER': 'sefaria',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "sefaria_auth",
+        "USER": "sefaria",
+        "PASSWORD": "",
+        "HOST": "localhost",
+        "PORT": "",
     },
-    'vector_db': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('PGVECTOR_DB', 'pgvector'),
-        'USER': os.environ.get('PGVECTOR_USER', os.environ.get('POSTGRES_USER', 'sefaria')),
-        'PASSWORD': os.environ.get('PGVECTOR_PASSWORD', os.environ.get('POSTGRES_PASSWORD', '')),
-        'HOST': os.environ.get('PGVECTOR_HOST', 'localhost'),
-        'PORT': os.environ.get('PGVECTOR_DB_PORT', '5432'),
+    "vector_db": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("PGVECTOR_DB", "pgvector"),
+        "USER": os.environ.get("PGVECTOR_USER", os.environ.get("POSTGRES_USER", "sefaria")),
+        "PASSWORD": os.environ.get("PGVECTOR_PASSWORD", os.environ.get("POSTGRES_PASSWORD", "")),
+        "HOST": os.environ.get("PGVECTOR_HOST", "localhost"),
+        "PORT": os.environ.get("PGVECTOR_DB_PORT", "5432"),
     },
 }
 
@@ -31,21 +31,19 @@ DOMAIN_MODULES = {
     "he": {
         "library": "http://localhost:8000",
         "voices": "http://voices.localhost:8000",
-    }
+    },
 }
-ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
-#SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+ALLOWED_HOSTS = ["127.0.0.1", "0.0.0.0", "[::1]", "localhost", "voices.localhost"]
+# SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 CSRF_TRUSTED_ORIGINS = ["https://*.sefaria.org"]
-ADMINS = (
-     'you@example.com',
-)
+ADMINS = ("you@example.com",)
 MANAGERS = ADMINS
 
-PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
+PINNED_IPCOUNTRY = "IL"  # change if you want parashat hashavua to be diaspora.
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    "default": {
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
     }
 }
 
@@ -59,45 +57,45 @@ GLOBAL_WARNING = False
 GLOBAL_WARNING_MESSAGE = ""
 
 
-SECRET_KEY = 'insert your long random secret key here !'
+SECRET_KEY = "insert your long random secret key here !"
 
 
-EMAIL_HOST = 'localhost'
+EMAIL_HOST = "localhost"
 EMAIL_PORT = 1025
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 
 # Name of the MongoDB database to use.
-SEFARIA_DB = os.getenv('MONGO_DB_NAME')
+SEFARIA_DB = os.getenv("MONGO_DB_NAME")
 
 # Leave user and password blank if not using Mongo Auth
-SEFARIA_DB_USER = ''
-SEFARIA_DB_PASSWORD = ''
+SEFARIA_DB_USER = ""
+SEFARIA_DB_PASSWORD = ""
 APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
 SEARCH_URL = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
-SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
-SEARCH_INDEX_NAME_SHEET = 'sheet'
-SEARCH_INDEX_NAME_TOPIC = 'topic'  # topics and authors (authors are a subtype of topic)
-SEARCH_INDEX_NAME_BOOK = 'book'  # Index (book) records
-SEARCH_INDEX_NAME_CATEGORY = 'category'  # searchable TOC categories (see sefaria.model.autospell.get_search_categories)
+SEARCH_INDEX_NAME_TEXT = "text"  # name of the ElasticSearch index to use
+SEARCH_INDEX_NAME_SHEET = "sheet"
+SEARCH_INDEX_NAME_TOPIC = "topic"  # topics and authors (authors are a subtype of topic)
+SEARCH_INDEX_NAME_BOOK = "book"  # Index (book) records
+SEARCH_INDEX_NAME_CATEGORY = "category"  # searchable TOC categories (see sefaria.model.autospell.get_search_categories)
 
 # Node Server
 USE_NODE = False
 NODE_HOST = "http://localhost:4040"
 NODE_TIMEOUT = 10
-FAIL_IF_NODE_SSR_UNAVAILABLE = False   # set to True for debugging purposes only if USE_NODE
+FAIL_IF_NODE_SSR_UNAVAILABLE = False  # set to True for debugging purposes only if USE_NODE
 # NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
 
-SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
-SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
+SEFARIA_DATA_PATH = "/path/to/your/Sefaria-Data"  # used for Data
+SEFARIA_EXPORT_PATH = "/path/to/your/Sefaria-Data/export"  # used for exporting texts
 
 
-GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
+GOOGLE_TAG_MANAGER_CODE = "you tag manager code here"
 
 # Determine which CRM connection implementations to use
 CRM_TYPE = "NONE"  # "SALESFORCE" || "NATIONBUILDER" || "NONE"
@@ -115,8 +113,8 @@ SALESFORCE_CLIENT_SECRET = ""
 
 # Issue bans to Varnish on update.
 USE_VARNISH = False
-FRONT_END_URL = "http://localhost:8000"      # This one wants the http://
-VARNISH_ADM_ADDR = "localhost:6082"          # And this one doesn't
+FRONT_END_URL = "http://localhost:8000"  # This one wants the http://
+VARNISH_ADM_ADDR = "localhost:6082"  # And this one doesn't
 VARNISH_HOST = "localhost"
 VARNISH_FRNT_PORT = 8040
 VARNISH_SECRET = "/etc/varnish/secret"
@@ -139,17 +137,17 @@ GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = ""
 
 GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = ""
 
-GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
-GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
+GEOIP_DATABASE = "data/geoip/GeoLiteCity.dat"
+GEOIPV6_DATABASE = "data/geoip/GeoLiteCityv6.dat"
 
 PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = None
 
 # Simple JWT
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
-    'ROTATE_REFRESH_TOKENS': True,
-    'SIGNING_KEY': 'a signing key: at least 256 bits',
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=90),
+    "ROTATE_REFRESH_TOKENS": True,
+    "SIGNING_KEY": "a signing key: at least 256 bits",
 }
 
 # Celery
@@ -174,42 +172,51 @@ DEPLOY_ENV = ""
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
+# Donor-status webhooks: off in CI (see local_settings_example.py).
+CLASSY_WEBHOOK_SECRET = None
+SALESFORCE_WEBHOOK_SECRET = None
+CLASSY_API_CLIENT_ID = None
+CLASSY_API_CLIENT_SECRET = None
+
 ENABLE_LINKER = False
 GPU_SERVER_URL = "http://localhost:5000"
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
         "json_formatter": {
             "()": structlog.stdlib.ProcessorFormatter,
             "processor": structlog.processors.JSONRenderer(),
         },
     },
-    'handlers': {
-        'default': {
+    "handlers": {
+        "default": {
             "class": "logging.StreamHandler",
             "formatter": "json_formatter",
         },
     },
-    'loggers': {
-        '': {
-            'handlers': ['default'],
-            'propagate': False,
+    "loggers": {
+        "": {
+            "handlers": ["default"],
+            "propagate": False,
         },
-        'django': {
-            'handlers': ['default'],
-            'propagate': False,
+        "django": {
+            "handlers": ["default"],
+            "propagate": False,
         },
-        'django.request': {
-            'handlers': ['default'],
-            'propagate': False,
+        "django.request": {
+            "handlers": ["default"],
+            "propagate": False,
         },
-    }
+    },
 }
 
 STRAPI_LOCATION = None
 STRAPI_PORT = None
+
+ACTIVECAMPAIGN_API_TOKEN = None
+ACTIVECAMPAIGN_ACCOUNT_NAME = None
 
 structlog.configure(
     processors=[
@@ -237,3 +244,6 @@ POWERED_BY_FORMSTACK_HMAC_SECRET = os.getenv("POWERED_BY_FORMSTACK_HMAC_SECRET")
 
 GEMINI_API_KEY = ""
 SEMANTIC_SEARCH_API_TOKEN = ""
+
+# Where the ai-chatbot repo is checked out. Not read by Django; used by the Playwright e2e tests.
+AI_CHATBOT_REPO_PATH = os.getenv("AI_CHATBOT_REPO_PATH", "../ai-chatbot")

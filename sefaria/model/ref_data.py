@@ -1,11 +1,13 @@
 import math
 
+import structlog
+
+from sefaria.system.exceptions import InputError
+from sefaria.system.progress_context import report_progress
+
 from . import abstract as abst
 from . import text
-from sefaria.system.exceptions import InputError
 
-import structlog
-from sefaria.system.progress_context import report_progress
 logger = structlog.get_logger(__name__)
 
 
@@ -13,13 +15,14 @@ class RefData(abst.AbstractMongoRecord):
     """
     A segment ref with stats
     """
-    collection = 'ref_data'
+
+    collection = "ref_data"
     DEFAULT_PAGERANK = 1.0
     DEFAULT_SHEETRANK = (1.0 / 5) ** 2
     DEFAULT_PAGESHEETRANK = DEFAULT_PAGERANK * DEFAULT_SHEETRANK
     required_attrs = [
-        "ref",           # segment ref
-        "pagesheetrank", # pagesheetrank value for segment ref
+        "ref",  # segment ref
+        "pagesheetrank",  # pagesheetrank value for segment ref
     ]
 
     def inverse_pagesheetrank(self):
@@ -48,23 +51,27 @@ class RefDataSet(abst.AbstractMongoSet):
 
 
 def process_index_title_change_in_ref_data(indx, **kwargs):
-    report_progress("Cascading Ref Data from {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Ref Data from {} to {}".format(kwargs["old"], kwargs["new"]))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
     from .text import re as reg_reg
-    patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
-                for pattern in text.Ref(indx.title).regex(as_list=True)]
-    queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
+
+    patterns = [
+        pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
+        for pattern in text.Ref(indx.title).regex(as_list=True)
+    ]
+    queries = [{"ref": {"$regex": pattern}} for pattern in patterns]
     objs = RefDataSet({"$or": queries})
     for o in objs:
         o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
         try:
             o.save()
         except InputError:
-            logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
+            logger.warning("Failed to convert ref data from: {} to {}".format(kwargs["old"], kwargs["new"]))
 
 
 def process_index_delete_in_ref_data(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
+
     pattern = prepare_index_regex_for_dependency_process(indx)
     RefDataSet({"ref": {"$regex": pattern}}).delete()
