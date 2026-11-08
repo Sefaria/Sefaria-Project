@@ -10,3 +10,8 @@
 
 # fix(linter): fix ruff cid/cd issue (re-sorted imports in 16 scripts/tests after adding isort known-first-party)
 f33d9322ce2afb24c4a12c1082ca8849404bed7b
+
+# chore(linting): add linting & formatting configuration (#3943)
+# Squash-merge commit on master that landed the repo-wide reformat (1205 files). The two SHAs above
+# were pre-squash branch commits and do not exist on master; this is the one that takes effect.
+981e6461a9d7a7466940099d6ba83863ae1e9443
