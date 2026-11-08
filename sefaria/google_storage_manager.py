@@ -56,7 +56,7 @@ class GoogleStorageManager:
     def duplicate_file(cls, from_file, to_filename, bucket_name):
         bucket = cls.get_bucket(bucket_name)
         source_blob = bucket.blob(from_file)
-        blob_copy = bucket.copy_blob(source_blob, bucket, to_filename)
+        bucket.copy_blob(source_blob, bucket, to_filename)
         return cls.get_url(to_filename, bucket_name)
 
     @classmethod

@@ -88,6 +88,7 @@ const ReaderDisplayOptionsMenu = () => {
 
   const [HE, TEXT, PARTIAL, ALL, NONE] = ['he', 'text', 'partial', 'all', 'none'];
   const showVowelsToggle = () => {
+    // eslint-disable-next-line no-misleading-character-class -- explicit Unicode ranges for Hebrew points/cantillation are intentional
     const vowels_re = /[\u05b0-\u05c3\u05c7]/g;
     return (showPrimary && sampleHas(vowels_re, HE)) || (showTranslation && sampleHas(vowels_re, TEXT));
   };

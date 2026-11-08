@@ -68,7 +68,7 @@ def count_bad_tags():
     for sheet in sheets:
         for tag in sheet.get("tags", []):
             chars = (",", "#", "@")
-            if any([char in tag for char in chars]):
+            if any(char in tag for char in chars):
                 tags[tag] += 1
                 tag_owners[tag].add(sheet["owner"])
 

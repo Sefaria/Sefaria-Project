@@ -1,6 +1,5 @@
 from copy import deepcopy
 from functools import reduce
-from typing import List
 
 import pytest
 from ne_span import NEDoc, RefPartType

@@ -1,4 +1,8 @@
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from sefaria.model.linker.ref_part import RawNamedEntity
 
 
 class AbstractResolvedEntity(ABC):

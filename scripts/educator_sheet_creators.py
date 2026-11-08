@@ -85,7 +85,7 @@ def write_sheet_makers_csv(query={}):
                     if row[0] in profile.position or row[0] in profile.organization or row[0] in profile.bio:
                         add_author = True
 
-        if add_author == True:
+        if add_author is True:
             author_list_for_csv.append(
                 [
                     author,

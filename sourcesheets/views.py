@@ -69,7 +69,7 @@ def sheets_home_page(request):
 @login_required
 @ensure_csrf_cookie
 def new_sheet(request):
-    profile = UserProfile(id=request.user.id)
+    UserProfile(id=request.user.id)
     sheet = {
         "status": "unlisted",
         "title": "",
@@ -205,7 +205,6 @@ def view_sheet(request, sheet_id, editorMode=False):
     displayed_collection = (
         Collection().load({"slug": sheet["displayedCollection"]}) if sheet.get("displayedCollection", None) else None
     )
-    embed_flag = "embed" in request.GET
     likes = sheet.get("likes", [])
     like_count = len(likes)
     if request.user.is_authenticated:

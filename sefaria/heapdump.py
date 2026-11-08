@@ -22,7 +22,7 @@ import tracemalloc
 import zipfile
 from collections.abc import Sequence
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponse, JsonResponse

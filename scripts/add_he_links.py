@@ -38,7 +38,7 @@ for text in texts:
         continue
     if "Tanach" in index.categories:
         continue
-    talmud = True if "Talmud" in index.categories else False
+    talmud = "Talmud" in index.categories
 
     for i in range(len(text["chapter"])):
         if talmud:

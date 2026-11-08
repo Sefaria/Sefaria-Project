@@ -37,19 +37,19 @@ const HELP_CONTENT = (
   <>
     <h3>What This Tool Does</h3>
     <p>
-      This tool edits <strong>node titles</strong> within a text's schema structure. Every text in Sefaria has a schema
-      that defines its structure (chapters, sections, etc.). Each structural unit is a "node" with English and Hebrew
-      titles.
+      This tool edits <strong>node titles</strong> within a text&apos;s schema structure. Every text in Sefaria has a
+      schema that defines its structure (chapters, sections, etc.). Each structural unit is a &quot;node&quot; with
+      English and Hebrew titles.
     </p>
     <p>
-      Use this tool when you need to fix typos in section names, add missing Hebrew titles, or update how a text's
+      Use this tool when you need to fix typos in section names, add missing Hebrew titles, or update how a text&apos;s
       internal structure is displayed.
     </p>
 
     <h3>How It Works</h3>
     <ol>
       <li>
-        <strong>Load:</strong> Enter the exact index title (e.g., "Mishneh Torah, Laws of Kings").
+        <strong>Load:</strong> Enter the exact index title (e.g., &quot;Mishneh Torah, Laws of Kings&quot;).
       </li>
       <li>
         <strong>Review:</strong> All nodes in the schema are displayed with their current titles.
@@ -63,26 +63,28 @@ const HELP_CONTENT = (
     </ol>
 
     <h3>What Are Nodes?</h3>
-    <p>Nodes are the structural building blocks of a text's schema. For example:</p>
+    <p>Nodes are the structural building blocks of a text&apos;s schema. For example:</p>
     <ul>
       <li>
-        <strong>Mishneh Torah</strong> has nodes for each "Laws of X" section
+        <strong>Mishneh Torah</strong> has nodes for each &quot;Laws of X&quot; section
       </li>
       <li>
-        <strong>Shulchan Arukh</strong> has nodes for Orach Chaim, Yoreh De'ah, etc.
+        <strong>Shulchan Arukh</strong> has nodes for Orach Chaim, Yoreh De&apos;ah, etc.
       </li>
       <li>
         <strong>Complex texts</strong> may have nested nodes (sections within sections)
       </li>
     </ul>
     <p>
-      The "Path" shown for each node (e.g., <code>nodes[0][1][2]</code>) indicates its position in the nested structure.
+      The &quot;Path&quot; shown for each node (e.g., <code>nodes[0][1][2]</code>) indicates its position in the nested
+      structure.
     </p>
 
     <h3>Shared Titles</h3>
     <p>
-      Some nodes use a "shared title" (Term) instead of direct title strings. This allows the same title to be reused
-      across different texts. If a node has a shared title, you'll see it displayed with an option to remove it.
+      Some nodes use a &quot;shared title&quot; (Term) instead of direct title strings. This allows the same title to be
+      reused across different texts. If a node has a shared title, you&apos;ll see it displayed with an option to remove
+      it.
     </p>
     <p>
       When you remove a shared title, the node will use its direct <code>title</code>
@@ -168,12 +170,12 @@ const HELP_CONTENT = (
     <h3>Troubleshooting</h3>
     <ul>
       <li>
-        <strong>"Invalid: ASCII only"</strong> - English title contains non-ASCII characters. Remove accents or special
-        characters.
+        <strong>&quot;Invalid: ASCII only&quot;</strong> - English title contains non-ASCII characters. Remove accents
+        or special characters.
       </li>
       <li>
-        <strong>"contains forbidden characters"</strong> - Title has periods, hyphens, colons, or slashes. Use spaces or
-        other characters instead.
+        <strong>&quot;contains forbidden characters&quot;</strong> - Title has periods, hyphens, colons, or slashes. Use
+        spaces or other characters instead.
       </li>
       <li>
         <strong>Changes not visible</strong> - Clear your browser cache or wait a few minutes for the cache reset to
@@ -280,7 +282,7 @@ const NodeTitleEditor = () => {
         ...prev[pathStr],
         [field]: value,
         // Add validation for English titles
-        [`${field}_valid`]: field === 'title' ? value.match(/^[\x00-\x7F]*$/) && !value.match(/[:.\\/-]/) : true,
+        [`${field}_valid`]: field === 'title' ? value.match(/^[^\u0080-\uFFFF]*$/) && !value.match(/[:.\\/-]/) : true,
       },
     }));
   };
@@ -302,7 +304,7 @@ const NodeTitleEditor = () => {
       const validationErrors = [];
       Object.entries(editingNodes).forEach(([, edits]) => {
         if (edits.title !== undefined) {
-          if (!edits.title.match(/^[\x00-\x7F]*$/)) {
+          if (!edits.title.match(/^[^\u0080-\uFFFF]*$/)) {
             validationErrors.push(`English title "${edits.title}" contains non-ASCII characters`);
           }
           if (edits.title.match(/[:.\\/-]/)) {
@@ -438,7 +440,7 @@ const NodeTitleEditor = () => {
           {/* Dependency warning */}
           {dependencies?.has_dependencies && (
             <div className="dangerBox">
-              <strong>Dependency Warning for "{indexTitle}":</strong>
+              <strong>Dependency Warning for &quot;{indexTitle}&quot;:</strong>
               <ul>
                 {dependencies.dependent_count > 0 && (
                   <li>
@@ -474,7 +476,7 @@ const NodeTitleEditor = () => {
                 <div key={pathStr} className={`nodeItem ${nodeHasChanges ? 'modified' : ''}`}>
                   {sharedTitle && (
                     <div className="nodeSharedTitle">
-                      Shared Title: "{sharedTitle}"
+                      Shared Title: &quot;{sharedTitle}&quot;
                       <label>
                         <input
                           type="checkbox"

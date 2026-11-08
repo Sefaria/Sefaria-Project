@@ -1,7 +1,7 @@
 from collections import defaultdict
 from collections.abc import Iterable
 from functools import reduce
-from typing import List, Optional
+from typing import Optional
 
 import structlog
 

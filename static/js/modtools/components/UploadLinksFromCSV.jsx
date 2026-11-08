@@ -21,7 +21,7 @@ const HELP_CONTENT = (
     <h3>What This Tool Does</h3>
     <p>
       This tool creates <strong>links between text references</strong> by uploading a CSV file. Links connect related
-      passages across Sefaria's library, enabling cross-references and the connections panel that users see when
+      passages across Sefaria&apos;s library, enabling cross-references and the connections panel that users see when
       reading.
     </p>
 
@@ -48,10 +48,10 @@ const HELP_CONTENT = (
         <strong>First row:</strong> Column headers (any text, will be skipped)
       </li>
       <li>
-        <strong>Column 1:</strong> Source reference (e.g., "Genesis 1:1")
+        <strong>Column 1:</strong> Source reference (e.g., &quot;Genesis 1:1&quot;)
       </li>
       <li>
-        <strong>Column 2:</strong> Target reference (e.g., "Rashi on Genesis 1:1:1")
+        <strong>Column 2:</strong> Target reference (e.g., &quot;Rashi on Genesis 1:1:1&quot;)
       </li>
     </ul>
     <p>Example:</p>
@@ -112,8 +112,9 @@ Exodus 20:1,Mekhilta d'Rabbi Yishmael 20:1`}
 
     <h3>Project Name</h3>
     <p>
-      The project name is stored with each link for tracking purposes. Use a descriptive name like "Rashi-Torah Links
-      2024" or "Mekhilta Cross-References". This helps identify links if they need to be removed or audited later.
+      The project name is stored with each link for tracking purposes. Use a descriptive name like &quot;Rashi-Torah
+      Links 2024&quot; or &quot;Mekhilta Cross-References&quot;. This helps identify links if they need to be removed or
+      audited later.
     </p>
 
     <div className="warning">
@@ -123,7 +124,7 @@ Exodus 20:1,Mekhilta d'Rabbi Yishmael 20:1`}
           Both references must be <strong>valid refs</strong> that exist in Sefaria.
         </li>
         <li>Invalid refs will be reported in an errors file download.</li>
-        <li>Duplicate links are typically ignored (won't create duplicates).</li>
+        <li>Duplicate links are typically ignored (won&apos;t create duplicates).</li>
         <li>Links are bidirectional - viewing either text shows the connection.</li>
         <li>Large files may take time to process.</li>
       </ul>
@@ -140,7 +141,7 @@ Exodus 20:1,Mekhilta d'Rabbi Yishmael 20:1`}
     <h3>Troubleshooting</h3>
     <ul>
       <li>
-        <strong>"Not a valid ref"</strong> - Check spelling and format. Use Sefaria's reference format.
+        <strong>&quot;Not a valid ref&quot;</strong> - Check spelling and format. Use Sefaria&apos;s reference format.
       </li>
       <li>
         <strong>Errors CSV downloaded</strong> - Review failed refs and fix in source file.

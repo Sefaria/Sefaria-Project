@@ -73,7 +73,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     com["commentaryNum"] = (
         lsections[-1]
         if len(lsections) == 1
-        else float("{0}.{1:04d}".format(*lsections[-2:]))
+        else float("{}.{:04d}".format(*lsections[-2:]))
         if len(lsections) > 1
         else 0
     )

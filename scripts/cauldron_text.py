@@ -7,7 +7,7 @@ def load_text(title, path):
     text = []
     for i in range(24):
         temp = get_text(f"{title} {i + 1}", "en", versionTitle=vtitle, server=server)
-        assert isinstance(temp, dict) and "text" in temp.keys(), temp
+        assert isinstance(temp, dict) and "text" in temp, temp
         text.append(temp["text"])
     json.dump(text, open(path, "w"))
     return text
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     server = args.server
     key = args.key
-    restore = True if args.restore == "1" else False
+    restore = args.restore == "1"
     samuel_path = "orig_samuel_text.json"
     joshua_path = "orig_joshua_text.json"
     vtitle = "Tanakh: The Holy Scriptures, published by JPS"

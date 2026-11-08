@@ -13,7 +13,7 @@ class Test_VirtualRefs:
         assert Ref("Jastrow,_אַבִּיר.1").url() == "Jastrow,_אַבִּיר.1"
 
     def test_parse_of_base(self):
-        r = Ref("Jastrow")
+        Ref("Jastrow")
 
     def test_parse_of_section(self):
         r = Ref("Jastrow, אֱגוּזָא")

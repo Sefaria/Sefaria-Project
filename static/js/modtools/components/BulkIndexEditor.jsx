@@ -36,8 +36,8 @@ const HELP_CONTENT = (
   <>
     <h3>What This Tool Does</h3>
     <p>
-      This tool edits <strong>Index metadata</strong> (text catalog records) across multiple texts. An "Index" in
-      Sefaria is the master record for a text, containing its title, category, authorship, composition date, and
+      This tool edits <strong>Index metadata</strong> (text catalog records) across multiple texts. An &quot;Index&quot;
+      in Sefaria is the master record for a text, containing its title, category, authorship, composition date, and
       structural information.
     </p>
     <p>
@@ -99,7 +99,7 @@ const HELP_CONTENT = (
           <td>
             <code>categories</code>
           </td>
-          <td>Category path in the table of contents (e.g., "Mishnah, Seder Zeraim")</td>
+          <td>Category path in the table of contents (e.g., &quot;Mishnah, Seder Zeraim&quot;)</td>
         </tr>
         <tr>
           <td>
@@ -135,7 +135,7 @@ const HELP_CONTENT = (
           <td>
             <code>dependence</code>
           </td>
-          <td>"Commentary" or "Targum" - marks text as dependent on another</td>
+          <td>&quot;Commentary&quot; or &quot;Targum&quot; - marks text as dependent on another</td>
         </tr>
         <tr>
           <td>
@@ -147,28 +147,28 @@ const HELP_CONTENT = (
           <td>
             <code>collective_title</code>
           </td>
-          <td>For commentaries: the commentary name (e.g., "Rashi")</td>
+          <td>For commentaries: the commentary name (e.g., &quot;Rashi&quot;)</td>
         </tr>
       </tbody>
     </table>
 
     <h3>Auto-Detection Feature</h3>
     <p>
-      For texts with "X on Y" naming pattern (e.g., "Rashi on Genesis"), you can use
-      <code>'auto'</code> as a value for certain fields:
+      For texts with &quot;X on Y&quot; naming pattern (e.g., &quot;Rashi on Genesis&quot;), you can use
+      <code>&apos;auto&apos;</code> as a value for certain fields:
     </p>
     <ul>
       <li>
-        <code>dependence: 'auto'</code> - Sets to "Commentary" if pattern detected
+        <code>dependence: &apos;auto&apos;</code> - Sets to &quot;Commentary&quot; if pattern detected
       </li>
       <li>
-        <code>base_text_titles: 'auto'</code> - Extracts the base text name (e.g., "Genesis")
+        <code>base_text_titles: &apos;auto&apos;</code> - Extracts the base text name (e.g., &quot;Genesis&quot;)
       </li>
       <li>
-        <code>collective_title: 'auto'</code> - Extracts the commentary name (e.g., "Rashi")
+        <code>collective_title: &apos;auto&apos;</code> - Extracts the commentary name (e.g., &quot;Rashi&quot;)
       </li>
       <li>
-        <code>authors: 'auto'</code> - Looks up the commentary name as an AuthorTopic
+        <code>authors: &apos;auto&apos;</code> - Looks up the commentary name as an AuthorTopic
       </li>
     </ul>
 
@@ -179,7 +179,8 @@ const HELP_CONTENT = (
           <strong>Authors must exist</strong> in the AuthorTopic database. Invalid author names will fail validation.
         </li>
         <li>
-          <strong>Base text titles must be exact</strong> index titles (e.g., "Mishnah Berakhot", not "Mishnah").
+          <strong>Base text titles must be exact</strong> index titles (e.g., &quot;Mishnah Berakhot&quot;, not
+          &quot;Mishnah&quot;).
         </li>
         <li>
           <strong>Categories</strong> must match existing category paths in the Sefaria table of contents.
@@ -408,7 +409,7 @@ const BulkIndexEditor = () => {
             }
           }
           break;
-        case 'number':
+        case 'number': {
           const numValue = parseInt(value);
           if (isNaN(numValue)) {
             setMsg(`Invalid number format for ${field}`);
@@ -417,6 +418,7 @@ const BulkIndexEditor = () => {
           }
           processedUpdates[field] = numValue;
           break;
+        }
         default:
           processedUpdates[field] = value;
       }
@@ -625,8 +627,8 @@ const BulkIndexEditor = () => {
 
         {fieldMeta.auto && (
           <div className="autoWarning">
-            ⚠ <code>'auto'</code> only works for titles using the "X on Y" naming pattern (e.g., "Rashi on Genesis"). It
-            is skipped for any selected index whose title doesn't match.
+            ⚠ <code>&apos;auto&apos;</code> only works for titles using the &quot;X on Y&quot; naming pattern (e.g.,
+            &quot;Rashi on Genesis&quot;). It is skipped for any selected index whose title doesn&apos;t match.
           </div>
         )}
 
@@ -669,10 +671,10 @@ const BulkIndexEditor = () => {
             <strong>Authors:</strong> Must exist in the Authors topic. Use exact names or slugs.
           </li>
           <li>
-            <strong>Base Text Titles:</strong> Must be exact index titles (e.g., "Mishnah Berakhot").
+            <strong>Base Text Titles:</strong> Must be exact index titles (e.g., &quot;Mishnah Berakhot&quot;).
           </li>
           <li>
-            <strong>Auto-detection:</strong> Works for commentary texts with "X on Y" format.
+            <strong>Auto-detection:</strong> Works for commentary texts with &quot;X on Y&quot; format.
           </li>
         </ul>
       </div>
@@ -721,9 +723,9 @@ const BulkIndexEditor = () => {
       {/* No results message */}
       {searched && !loading && indices.length === 0 && (
         <div className="noResults">
-          <strong>No indices found with version "{vtitle}"</strong>
-          Please verify the exact version title. Version titles are case-sensitive and must match exactly (e.g., "Torat
-          Emet 357" not "torat emet").
+          <strong>No indices found with version &quot;{vtitle}&quot;</strong>
+          Please verify the exact version title. Version titles are case-sensitive and must match exactly (e.g.,
+          &quot;Torat Emet 357&quot; not &quot;torat emet&quot;).
         </div>
       )}
 
@@ -749,7 +751,7 @@ const BulkIndexEditor = () => {
                   .filter(([k, v]) => v)
                   .map(([k, v]) => (
                     <li key={k}>
-                      {INDEX_FIELD_METADATA[k]?.label || k}: "{v}"
+                      {INDEX_FIELD_METADATA[k]?.label || k}: &quot;{v}&quot;
                     </li>
                   ))}
               </ul>

@@ -147,7 +147,7 @@ class AppleCallbackTest(TestCase):
             mock_get_adapter.return_value.get_provider.return_value = provider
             mock_complete.side_effect = lambda req, s: None
 
-            res = self._post({"id_token": "valid", "first_name": "Other", "last_name": "Name"})
+            self._post({"id_token": "valid", "first_name": "Other", "last_name": "Name"})
 
         self.assertEqual(sl.user.first_name, "Bob")
         self.assertEqual(sl.user.last_name, "Jones")

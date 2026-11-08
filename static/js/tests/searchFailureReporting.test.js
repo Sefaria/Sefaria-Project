@@ -1,3 +1,4 @@
+/* global setImmediate */
 /**
  * The two consumers of a failed search, tested against the real code.
  *

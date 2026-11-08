@@ -74,9 +74,7 @@ class TestMongoRecordModels:
         def get_slug(base, slug_field):
             return abstract.SluggedAbstractMongoRecord.normalize_slug(f"{base}{slug_field}")
 
-        attrs = {  # fill in requirements
-            attr: None for attr in sub.required_attrs
-        }
+        attrs = dict.fromkeys(sub.required_attrs)
         attrs.update({slug_field: get_slug(test_slug, slug_field) for slug_field in sub.slug_fields})
         inst = sub(attrs)
         for slug_field in sub.slug_fields:
@@ -392,10 +390,13 @@ def zz_topics():
     over `TopicSet({"subclass": "author"})` would pass vacuously wherever that data is absent.
     """
     good, bad = "zzabstract-author", "zzabstract-bad-subclass"
-    titles = lambda text: [
-        {"text": text, "lang": "en", "primary": True},
-        {"text": "א" + text, "lang": "he", "primary": True},
-    ]
+
+    def titles(text):
+        return [
+            {"text": text, "lang": "en", "primary": True},
+            {"text": "א" + text, "lang": "he", "primary": True},
+        ]
+
     db.topics.delete_many({"slug": {"$in": [good, bad]}})
     db.topics.insert_many(
         [

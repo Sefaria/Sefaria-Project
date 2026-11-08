@@ -58,8 +58,8 @@ const HELP_CONTENT = (
             <strong>Create Index Record</strong>
           </td>
           <td>
-            Creates the text's schema structure (hierarchy of chapters, sections, etc.) based on the outline's nesting
-            structure.
+            Creates the text&apos;s schema structure (hierarchy of chapters, sections, etc.) based on the outline&apos;s
+            nesting structure.
           </td>
         </tr>
         <tr>
@@ -82,7 +82,7 @@ const HELP_CONTENT = (
               <li>Alt Titles delimiter (separates primary, alt1, alt2)</li>
               <li>Categories delimiter (separates Category, Subcategory)</li>
             </ol>
-            Example: using "|" lets you write "Genesis | בראשית" in one item.
+            Example: using &quot;|&quot; lets you write &quot;Genesis | בראשית&quot; in one item.
           </td>
         </tr>
         <tr>
@@ -90,8 +90,8 @@ const HELP_CONTENT = (
             <strong>Term Scheme Name</strong>
           </td>
           <td>
-            Optional. If sections use standardized Terms (like "Chapter", "Verse"), specify the Term Scheme name to
-            automatically link sections to those Terms.
+            Optional. If sections use standardized Terms (like &quot;Chapter&quot;, &quot;Verse&quot;), specify the Term
+            Scheme name to automatically link sections to those Terms.
           </td>
         </tr>
       </tbody>
@@ -134,19 +134,20 @@ const HELP_CONTENT = (
     <ul>
       <li>Creating new text structures from outlines prepared in Workflowy</li>
       <li>Bulk uploading texts where structure was planned in an outliner</li>
-      <li>Converting hierarchical documents into Sefaria's nested schema format</li>
+      <li>Converting hierarchical documents into Sefaria&apos;s nested schema format</li>
     </ul>
 
     <h3>Troubleshooting</h3>
     <ul>
       <li>
-        <strong>"Invalid OPML"</strong> - File may be corrupted or not valid XML. Re-export from Workflowy.
+        <strong>&quot;Invalid OPML&quot;</strong> - File may be corrupted or not valid XML. Re-export from Workflowy.
       </li>
       <li>
-        <strong>"Index already exists"</strong> - Delete or rename the existing Index first.
+        <strong>&quot;Index already exists&quot;</strong> - Delete or rename the existing Index first.
       </li>
       <li>
-        <strong>No content created</strong> - Make sure "Create Version From Notes" is checked and notes exist.
+        <strong>No content created</strong> - Make sure &quot;Create Version From Notes&quot; is checked and notes
+        exist.
       </li>
     </ul>
   </>

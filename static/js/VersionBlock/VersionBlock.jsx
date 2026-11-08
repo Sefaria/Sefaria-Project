@@ -658,6 +658,7 @@ class VersionsBlocksList extends Component {
             {this.props.versionsByLanguages[lang].map((v) =>
               this.props.inTranslationBox ? (
                 <VersionBlockWithPreview
+                  key={`${this.isVersionCurrent(v) ? 'current' : ''}|${v.versionTitle}|${v.actualLanguage}`}
                   currentRef={this.props.currentRef}
                   version={v}
                   currObjectVersions={this.props.currObjectVersions}

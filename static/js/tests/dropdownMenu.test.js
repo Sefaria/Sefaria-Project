@@ -11,7 +11,6 @@ jest.mock('../sefaria/util', () => ({
 }));
 jest.mock('../Misc', () => ({ InterfaceText: ({ children }) => children }));
 
-// eslint-disable-next-line import/first
 import { DropdownMenu } from '../common/DropdownMenu';
 
 describe('DropdownMenu onClose', () => {

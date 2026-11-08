@@ -235,7 +235,7 @@ class Garden(abst.AbstractMongoRecord):
 
         for rgx in regexes:
             print(f"Garden.get_links() - {rgx}")
-            links += [l for l in link.LinkSet({"$and": [{"refs.0": {"$regex": rgx}}, {"$or": refClauses}]})]
+            links += list(link.LinkSet({"$and": [{"refs.0": {"$regex": rgx}}, {"$or": refClauses}]}))
 
         return links
 

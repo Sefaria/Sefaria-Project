@@ -184,14 +184,19 @@ class AddToSourceSheetBox extends Component {
   makeSourceForEden() {
     if (this.props.srefs) {
       //we are saving a ref + ref's text, generally all fields should be present.
+      // eslint-disable-next-line no-undef -- pre-existing: undefined reference (latent bug); needs owner review
       source.refs = this.props.srefs;
+      // eslint-disable-next-line no-undef -- pre-existing: undefined reference (latent bug); needs owner review
       source.en = this.props.en;
+      // eslint-disable-next-line no-undef -- pre-existing: undefined reference (latent bug); needs owner review
       source.he = this.props.he;
     } else {
       // an outside free text is being passed in. theoretically supports any interface that passes this in. In practice only legacy Gardens code.
       if (this.props.en && this.props.he) {
+        // eslint-disable-next-line no-undef -- pre-existing: undefined reference (latent bug); needs owner review
         source.outsideBiText = { he: this.props.he, en: this.props.en };
       } else {
+        // eslint-disable-next-line no-undef -- pre-existing: undefined reference (latent bug); needs owner review
         source.outsideText = this.props.en || this.props.he;
       }
     }

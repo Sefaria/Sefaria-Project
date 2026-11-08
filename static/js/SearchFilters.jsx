@@ -140,19 +140,22 @@ const SearchFilterGroup = ({
     Topics: 'common.topics',
     Collections: 'search_filters.collections',
   };
-  if (!filters || !filters.length) {
-    return null;
-  }
+  const [displayedFilters, setFilters] = useState(filters);
+  const [showClearInputButton, setShowClearInputButton] = useState(false);
 
   useEffect(() => {
+    if (!filters || !filters.length) {
+      return;
+    }
     const filterValue = document.getElementById(`filter${name}`)?.value
       ? document.getElementById(`filter${name}`)?.value
       : '';
     updateFilters(filterValue);
   }, [filters]);
 
-  const [displayedFilters, setFilters] = useState(filters);
-  const [showClearInputButton, setShowClearInputButton] = useState(false);
+  if (!filters || !filters.length) {
+    return null;
+  }
 
   let content = displayedFilters.map((filter) => (
     <SearchFilter
@@ -178,8 +181,8 @@ const SearchFilterGroup = ({
   }
 
   const hasWordStartingWithOrSelected = (item, filterValue) => {
-    let escapedFilterValue = filterValue.replace('-', '\-');
-    escapedFilterValue = escapedFilterValue.replace(/[^\w\s\-]/g, '');
+    let escapedFilterValue = filterValue.replace('-', '-');
+    escapedFilterValue = escapedFilterValue.replace(/[^\w\s-]/g, '');
     if (
       item.selected ||
       item.title.match(new RegExp(`(?:^|.+\\s)${escapedFilterValue}.*`, 'i')) ||

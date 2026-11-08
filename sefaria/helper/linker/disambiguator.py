@@ -9,7 +9,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from functools import lru_cache
 from html import unescape
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 import Levenshtein
 import requests
@@ -109,7 +109,7 @@ _LLM_CONFIGS: dict[str, tuple[str, str, str]] = {
 
 
 # ---------------------------------------------------------------------------
-# Candidate dataclass — replaces loose Dict[str, Any] throughout
+# Candidate dataclass — replaces loose dict[str, Any] throughout
 # ---------------------------------------------------------------------------
 
 

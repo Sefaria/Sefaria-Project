@@ -37,7 +37,7 @@ export const RandomTopicCardWithDescriptionRow = () => {
     <>
       <div className="topic-card-with-description-row" data-anl-feature_name="Multi-Cards">
         {deck.map((topic) => (
-          <div className="topic-card-with-description" data-anl-link_type="topic">
+          <div key={topic.slug} className="topic-card-with-description" data-anl-link_type="topic">
             <Card
               cardTitleHref={`topics/${topic.slug}`}
               cardTitle={topic.title}

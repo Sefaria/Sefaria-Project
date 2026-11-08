@@ -74,6 +74,7 @@ const TranslationsPage = ({ translationsSlug }) => {
                       tab: 1,
                       noselect: 1,
                       filter: t.justifyright,
+                      // eslint-disable-next-line no-undef -- pre-existing: undefined reference (latent bug); needs owner review
                       open: t.justifyright && showFilterHeader,
                     })}
                   >

@@ -9,9 +9,9 @@ from sefaria.system.exceptions import InputError
 
 
 class Test_AutoLinker:
-    link_set_lambda = lambda x: LinkSet(
-        {"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"}
-    )
+    def link_set_lambda(x):
+        return LinkSet({"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"})
+
     rashi_on_genesis_links = link_set_lambda("Rashi on Genesis")
     kos_eliyahu_links = link_set_lambda("Kos Eliyahu on Pesach Haggadah")
     desired_link_counts = {
@@ -63,7 +63,7 @@ class Test_AutoLinker:
         index.save()
 
         # add some text
-        v = Version(
+        Version(
             {
                 "language": "en",
                 "title": "Many to One on Genesis",
@@ -182,7 +182,7 @@ class Test_AutoLinker:
         index.save()
 
         # add some text
-        v = Version(
+        Version(
             {
                 "language": "en",
                 "title": "One to One on Genesis",
@@ -270,9 +270,9 @@ class Test_AutoLinker:
 
         VersionState("One to One on Genesis").refresh()
 
-        link_set_lambda = lambda x: LinkSet(
-            {"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"}
-        )
+        def link_set_lambda(x):
+            return LinkSet({"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"})
+
         cls.desired_link_counts["Many to One on Genesis"] = link_set_lambda("Many to One on Genesis").count()
         cls.desired_link_counts["One to One on Genesis"] = link_set_lambda("One to One on Genesis").count()
 
@@ -366,7 +366,7 @@ class Test_AutoLinker:
         existing_link.delete()
 
         # rebuild links and assert old link successfully rebuilt
-        found = linker.rebuild_links()
+        linker.rebuild_links()
         new_link = Link().load(query)
         assert new_link
 
@@ -384,7 +384,7 @@ class Test_AutoLinker:
         existing_link.delete()
 
         # rebuild links and assert old link successfully rebuilt
-        found = linker.rebuild_links()
+        linker.rebuild_links()
         new_link = Link().load(query)
         assert new_link
 
@@ -499,7 +499,7 @@ class Test_AutoLinker:
     def test_refresh_links_with_text_save_many_to_one_default_node(self):
         title_ref = "Many to One on Genesis 1:9"
         title = Ref(title_ref).index.title
-        base = Ref(title_ref).index.base_text_titles[0]
+        Ref(title_ref).index.base_text_titles[0]
         desired_link_count = self.desired_link_counts[title]
         rf = Ref(title)
         regex = rf.regex()
@@ -540,7 +540,7 @@ class Test_AutoLinker:
     def test_refresh_links_with_text_save_one_to_one_default_node(self):
         title_ref = "One to One on Genesis 1"
         title = Ref(title_ref).index.title
-        base = Ref(title_ref).index.base_text_titles[0]
+        Ref(title_ref).index.base_text_titles[0]
         desired_link_count = self.desired_link_counts[title]
         rf = Ref(title)
         regex = rf.regex()

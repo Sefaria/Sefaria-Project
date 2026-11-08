@@ -34,7 +34,6 @@ class BlockRelationship:
 class BlockSet:
     def __init__(self):
         self.uids = []
-        return self
 
     @property
     def count(self):

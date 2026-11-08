@@ -216,7 +216,7 @@ class JaggedArray:
         if isinstance(_cur, list):
             if not len(_cur):
                 return True
-            return all([self.is_empty(a) for a in _cur])
+            return all(self.is_empty(a) for a in _cur)
         return not bool(_cur)
 
     def sections(self, _cur=None):
@@ -343,7 +343,7 @@ class JaggedArray:
             return self.depth(_cur=self._store, deep=deep)
         if not isinstance(_cur, list):
             return 0
-        if len(_cur) > 0 and (deep or all([isinstance(y, list) for y in _cur])):
+        if len(_cur) > 0 and (deep or all(isinstance(y, list) for y in _cur)):
             return 1 + max([self.depth(y, deep=deep) for y in _cur])
         return 1
 

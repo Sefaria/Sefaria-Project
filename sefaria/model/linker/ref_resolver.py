@@ -2,7 +2,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from enum import Enum, IntEnum
 from functools import reduce
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Optional, Union
 
 import structlog
 from ne_span import NESpan
@@ -272,10 +272,10 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
                     return self.node.is_ancestor_of(other.node)
                 # other is alt struct and self has a ref
                 # check that every leaf node is contained by self's ref
-                return all([self.ref.contains(leaf_ref) for leaf_ref in other.node.leaf_refs()])
+                return all(self.ref.contains(leaf_ref) for leaf_ref in other.node.leaf_refs())
             # self is alt struct and other has a ref
             # check if any leaf node contains other's ref
-            return any([leaf_ref.contains(other.ref) for leaf_ref in self.node.leaf_refs()])
+            return any(leaf_ref.contains(other.ref) for leaf_ref in self.node.leaf_refs())
         except NotImplementedError:
             return False
 
@@ -882,7 +882,7 @@ class RefResolver:
             return []
 
         containing_node = self._get_containing_named_node(match.ref)
-        node_seed = RefPartAndNodeMatch(tuple(), containing_node, True)
+        node_seed = RefPartAndNodeMatch((), containing_node, True)
         node_match = match.clone(
             ref_part_and_node_matches=match.ref_part_and_node_matches + [node_seed],
             ref=containing_node.ref(),

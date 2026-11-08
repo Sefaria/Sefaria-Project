@@ -31,10 +31,10 @@ from semantic_search.search import semantic_search, semantic_search_by_embedding
 
 
 def make_chunk(**overrides):
-    defaults = dict(
-        ref="Genesis 1:1",
-        chunked_from_ref="Genesis 1",
-    )
+    defaults = {
+        "ref": "Genesis 1:1",
+        "chunked_from_ref": "Genesis 1",
+    }
     defaults.update(overrides)
     return SimpleNamespace(**defaults)
 

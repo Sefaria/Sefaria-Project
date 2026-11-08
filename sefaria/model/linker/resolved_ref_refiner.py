@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from itertools import product
-from typing import List
-
-from ne_span import RefPartType
+from typing import TYPE_CHECKING
 
 from sefaria.model.linker.ref_part import RawRefPart, RawRefPartPair, RefPartType, SectionContext
 from sefaria.model.linker.ref_part_and_node_match import RefPartAndNodeMatch
@@ -17,6 +15,9 @@ from sefaria.model.schema import AddressInteger
 from sefaria.model.text import Ref
 from sefaria.system.exceptions import InputError
 from sefaria.utils.hebrew import decode_hebrew_numeral
+
+if TYPE_CHECKING:
+    from sefaria.model.linker.ref_resolver import ResolvedRef
 
 
 class ResolvedRefRefiner(ABC):
@@ -82,7 +83,7 @@ class ResolvedRefRefiner(ABC):
 
 class ResolvedRefRefinerForDefaultNode(ResolvedRefRefiner):
     def refine(self, lang: str, **kwargs) -> list["ResolvedRef"]:
-        return [self._clone_resolved_ref(resolved_parts=tuple(), ref=self.node.ref())]
+        return [self._clone_resolved_ref(resolved_parts=(), ref=self.node.ref())]
 
 
 class ResolvedRefRefinerForNumberedPart(ResolvedRefRefiner):

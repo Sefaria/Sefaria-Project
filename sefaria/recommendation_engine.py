@@ -194,7 +194,6 @@ class RecommendationEngine:
             commentary_links = []
             commentary_author_set = set()
             # set is used b/c sometimes there are duplicate links
-            temp_direct_links = set()
             initial_links = get_links(section_ref.normal(), with_text=False)
             filtered_links = [
                 l for l in initial_links if len(range_set & {r.normal() for r in Ref(l["anchorRef"]).range_list()}) > 0
@@ -233,7 +232,7 @@ class RecommendationEngine:
             Recommendation(Ref(x), relevance=DIRECT_LINK_SCORE, sources=[RecommendationSource("direct", anchor_ref)])
             for x, anchor_ref in zip(direct_links, anchor_ref_list)
         ] + commentary_links
-        commentary_ref_set = set([x[0] for x in [x for x in zip(direct_links, is_comment_list) if x[1]]])
+        commentary_ref_set = {x[0] for x in [x for x in zip(direct_links, is_comment_list) if x[1]]}
         return final_rex, commentary_ref_set, direct_ref_set
 
     @staticmethod

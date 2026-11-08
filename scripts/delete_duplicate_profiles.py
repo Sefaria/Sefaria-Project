@@ -25,7 +25,7 @@ def dedupe(profile_id, dry_run):
     Therefore, we too make the "assumption" that the first profile pulled is the "main" profile.
     """
     duplicates = db.profiles.find({"id": profile_id})
-    profiles = [profile for profile in duplicates]
+    profiles = list(duplicates)
     if len(profiles) < 2:
         return {"id": profile_id, "notes": "2 profiles not found: database change error", "dry_run": dry_run}
     try:
@@ -33,9 +33,8 @@ def dedupe(profile_id, dry_run):
         output_log = {
             "id": to_keep["id"],
             "_id_deleted": "",
-            "_id_remaining": "",
-            "dry_run": dry_run,
             "_id_remaining": to_keep["_id"],
+            "dry_run": dry_run,
         }
         deleted = []
         for profile in profiles[1:]:

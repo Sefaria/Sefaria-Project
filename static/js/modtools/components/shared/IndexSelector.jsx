@@ -134,7 +134,7 @@ const IndexSelector = ({
       <div className="indexList" style={maxHeight ? { maxHeight, overflowY: 'auto' } : undefined}>
         {filteredIndices.length === 0 ? (
           <div className="indexNoResults">
-            No {label} match "{searchFilter}"
+            No {label} match &quot;{searchFilter}&quot;
           </div>
         ) : (
           filteredIndices.map((item) => {

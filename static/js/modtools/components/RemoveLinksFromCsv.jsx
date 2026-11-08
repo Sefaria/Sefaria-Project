@@ -32,7 +32,7 @@ const HELP_CONTENT = (
         <strong>Upload:</strong> Submit the file to delete all matching link records.
       </li>
       <li>
-        <strong>Review:</strong> Any refs that couldn't be deleted are reported in an errors file.
+        <strong>Review:</strong> Any refs that couldn&apos;t be deleted are reported in an errors file.
       </li>
     </ol>
 
@@ -66,15 +66,15 @@ const HELP_CONTENT = (
         <li>Refs are case-sensitive and space-sensitive</li>
       </ul>
       <p>
-        If you're unsure of the exact format, use the <strong>Download Links</strong> tool first to export existing
+        If you&apos;re unsure of the exact format, use the <strong>Download Links</strong> tool first to export existing
         links, then use those exact refs in your deletion file.
       </p>
     </div>
 
     <h3>Error Handling</h3>
     <p>
-      If some links couldn't be deleted (refs not found, no matching link exists), the tool downloads an error report
-      CSV file listing the failed deletions. Review this file and correct the refs if needed.
+      If some links couldn&apos;t be deleted (refs not found, no matching link exists), the tool downloads an error
+      report CSV file listing the failed deletions. Review this file and correct the refs if needed.
     </p>
 
     <div className="warning">
@@ -83,8 +83,8 @@ const HELP_CONTENT = (
         <li>
           Link deletion is <strong>permanent</strong>. There is no undo.
         </li>
-        <li>The order of refs in the CSV doesn't matter (links are bidirectional).</li>
-        <li>Non-existent links are reported as errors but don't cause failure.</li>
+        <li>The order of refs in the CSV doesn&apos;t matter (links are bidirectional).</li>
+        <li>Non-existent links are reported as errors but don&apos;t cause failure.</li>
         <li>Consider exporting links first to verify what exists before bulk deletion.</li>
       </ul>
     </div>
@@ -166,7 +166,8 @@ const RemoveLinksFromCsv = () => {
             <br />
             Choose a csv file with two columns. First row should include titles, and the others valid refs to delete.
             <br />
-            Please note that it should be the exact ref, so 'Genesis 1' is different than 'Genesis 1:1-31'
+            Please note that it should be the exact ref, so &apos;Genesis 1&apos; is different than &apos;Genesis
+            1:1-31&apos;
           </label>
           <br />
           <input type="submit" value="Submit" disabled={!fileName} />

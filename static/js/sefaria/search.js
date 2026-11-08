@@ -260,7 +260,7 @@ class Search {
       this.buckets = newBuckets;
     }
     if (filters.length) {
-      const expression = new RegExp(`^(${filters.join('|')})(\/.*|$)`);
+      const expression = new RegExp(`^(${filters.join('|')})(/.*|$)`);
       const accumulatedTotal = this.buckets.reduce((total, currentBook) => {
         if (expression.test(currentBook.key)) {
           total += currentBook.doc_count;

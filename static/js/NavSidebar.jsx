@@ -250,7 +250,7 @@ const AboutSefaria = ({ hideTitle }) => (
         <HebrewText>
           <a className="button get-start" href="https://youtu.be/rCADxtqPqnw">
             <img src="/static/icons/vector.svg" alt={Sefaria._('nav_sidebar.play_video')} />
-            <div className="get-start">הכירו את ספריא (2 דק')</div>
+            <div className="get-start">הכירו את ספריא (2 דק&apos;)</div>
           </a>
         </HebrewText>
       </InterfaceText>
@@ -400,7 +400,7 @@ const SidebarFooter = () => {
       <h1 />
       <div className="footerContainer">
         {data.map((footerLink) => (
-          <a href={footerLink.url} onKeyDown={(e) => Util.handleKeyboardClick(e)}>
+          <a key={footerLink.url} href={footerLink.url} onKeyDown={(e) => Util.handleKeyboardClick(e)}>
             <InterfaceText text={{ en: footerLink.en, he: footerLink.he }} />
           </a>
         ))}
@@ -489,7 +489,7 @@ const AboutText = ({ index, hideTitle }) => {
         <InterfaceText>{a[lang]}</InterfaceText>
       </a>
     ));
-  authors = [].concat(...authors.map((x) => [<span>, </span>, x])).slice(1); // Like a join for an array of React elements
+  authors = [].concat(...authors.map((x, i) => [<span key={`sep-${i}`}>, </span>, x])).slice(1); // Like a join for an array of React elements
   const heDesc = index.heDesc || index.heShortDesc;
   const enDesc = index.enDesc || index.enShortDesc;
   const description = lang === 'he' ? heDesc : enDesc;

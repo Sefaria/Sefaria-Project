@@ -636,7 +636,7 @@ class ScheduleManager:
         """
         self.name = name
         self.segmentHits = segmentHits
-        if dateRangeEnd == None:
+        if dateRangeEnd is None:
             self.dateRangeEnd = datetime.today()
         else:
             self.dateRangeEnd = dateRangeEnd
@@ -661,7 +661,7 @@ class ScheduleManager:
             refsInRangeCount = 0
             for history in user["history"]:
                 keepCheckingRefAgainstBuckets = True
-                while index < dateRefRangesTotal and keepCheckingRefAgainstBuckets == True:
+                while index < dateRefRangesTotal and keepCheckingRefAgainstBuckets is True:
                     inRange, keepCheckingRefAgainstBuckets = self.dateRefRanges[index].refIsInRange(
                         history["ref"], history["datetime"]
                     )
@@ -753,7 +753,7 @@ def setScheduleTraits():
         scheduleManager.getUsersWhoAreLearningSchedule()
 
 
-def setAllTrends(skip=[]):
+def setAllTrends(skip=()):
     print("setAllTrends")
     if "userSheet" not in skip:
         print("setUserSheetTraits")

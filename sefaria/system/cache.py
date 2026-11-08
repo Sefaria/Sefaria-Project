@@ -200,15 +200,14 @@ def delete_shared_cache_elem(key):
 def get_template_cache(fragment_name="", *args):
     cache_key = "template.cache.%s.%s" % (
         fragment_name,
-        hashlib.md5(":".join([arg for arg in args]).encode("utf-8")).hexdigest(),
+        hashlib.md5(":".join(list(args)).encode("utf-8")).hexdigest(),
     )
     return get_cache_elem(cache_key)
 
 
 def delete_template_cache(fragment_name="", *args):
     delete_cache_elem(
-        "template.cache.%s.%s"
-        % (fragment_name, hashlib.md5(":".join([arg for arg in args]).encode("utf-8")).hexdigest())
+        "template.cache.%s.%s" % (fragment_name, hashlib.md5(":".join(list(args)).encode("utf-8")).hexdigest())
     )
 
 

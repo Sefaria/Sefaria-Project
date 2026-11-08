@@ -125,7 +125,7 @@ def test_add_bad_title_from_linker():
 
 def test_add_webpage_without_website(create_web_page_wout_site):
     # this should be possible even though no corresponding domain exists in a WebSite object
-    result, webpage, data = (
+    result, _webpage, _data = (
         create_web_page_wout_site["result"],
         create_web_page_wout_site["webpage"],
         create_web_page_wout_site["data"],
@@ -149,13 +149,13 @@ def test_add_and_update_good_url_from_linker(create_good_web_page):
 
     result, webpage = WebPage().add_or_update_from_linker(data, add_hit=True)
     assert result == "saved"
-    assert set(WebPage().load(data["url"]).refs) == set(["Genesis 3:3", "Exodus 3:10"])
+    assert set(WebPage().load(data["url"]).refs) == {"Genesis 3:3", "Exodus 3:10"}
     assert WebPage().load(data["url"]).linkerHits == linker_hits + 1
 
 
 def test_add_and_update_with_same_data(create_good_web_page):
     # create a page and then try to add_or_update it with same data and assert it fails
-    result, webpage, data = (
+    result, _webpage, data = (
         create_good_web_page["result"],
         create_good_web_page["webpage"],
         create_good_web_page["data"],
@@ -206,7 +206,7 @@ def test_add_search_URL():
 
 
 def test_page_wout_description(create_web_page_wout_desc):
-    result, webpage, data = (
+    result, _webpage, data = (
         create_web_page_wout_desc["result"],
         create_web_page_wout_desc["webpage"],
         create_web_page_wout_desc["data"],

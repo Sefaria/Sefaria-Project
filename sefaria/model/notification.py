@@ -144,7 +144,7 @@ class GlobalNotification(abst.AbstractMongoRecord):
 class GlobalNotificationSet(abst.AbstractMongoSet):
     recordClass = GlobalNotification
 
-    def __init__(self, query=None, page=0, limit=0, sort=[["_id", -1]]):
+    def __init__(self, query=None, page=0, limit=0, sort=(("_id", -1),)):
         super().__init__(query=query, page=page, limit=limit, sort=sort)
 
     def register_for_user(self, uid):
@@ -331,7 +331,7 @@ class Notification(abst.AbstractMongoRecord):
 class NotificationSet(abst.AbstractMongoSet):
     recordClass = Notification
 
-    def __init__(self, query=None, page=0, limit=0, sort=[["date", -1]]):
+    def __init__(self, query=None, page=0, limit=0, sort=(("date", -1),)):
         super().__init__(query=query, page=page, limit=limit, sort=sort)
 
     def _add_global_messages(self, uid):
@@ -399,7 +399,7 @@ class NotificationSet(abst.AbstractMongoSet):
 
     def actors_list(self):
         """Returns a unique list of user ids who acted in this notification set excluding likes"""
-        return list(set([n.actor_id for n in self if not n.type == "sheet like"]))
+        return list({n.actor_id for n in self if n.type != "sheet like"})
 
     def actors_string(self):
         """

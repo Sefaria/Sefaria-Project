@@ -71,7 +71,7 @@ def is_valid_svix_signature(secret: str, raw_body: bytes, headers: Mapping[str, 
     # Every entry is compared, even after a match, so the response time doesn't reveal which
     # entry matched. compare_digest on the base64 text (not on decoded bytes) means a garbled
     # entry is simply unequal; decoding it first could raise.
-    return any([hmac.compare_digest(expected, candidate.encode()) for candidate in signatures.split(" ")])
+    return any(hmac.compare_digest(expected, candidate.encode()) for candidate in signatures.split(" "))
 
 
 def _hmac_key(secret: str) -> bytes:

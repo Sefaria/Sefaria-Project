@@ -409,19 +409,19 @@ def case(
     reason; the test reports it via pytest.skip() rather than dropping it silently.
     """
     docs = [(collection, doc)] + list(extra_docs or [])
-    return dict(
-        site=site,
-        operation=operation,
-        corruption=corruption,
-        collection=collection,
-        docs=docs,
-        trigger=trigger,
-        expect=expect,
-        error_type=error_type,
-        outside_guard=outside_guard,
-        note=note,
-        skip=skip,
-    )
+    return {
+        "site": site,
+        "operation": operation,
+        "corruption": corruption,
+        "collection": collection,
+        "docs": docs,
+        "trigger": trigger,
+        "expect": expect,
+        "error_type": error_type,
+        "outside_guard": outside_guard,
+        "note": note,
+        "skip": skip,
+    }
 
 
 def _index_doc(title, **overrides):
@@ -1051,39 +1051,39 @@ def _broken_children_of_one_parent(parent_slug, child_prefix):
 # BAD_RECORD_EXCEPTIONS and the guards nest, so re-raising it would let an enclosing guard
 # swallow the abort. The original is chained as __cause__ so the diagnosis is not lost.
 BREAKER_CASES = [
-    dict(
-        site="B1",
-        corruption=f"{SIGNATURE_BREAKER_THRESHOLD + 2} top-level topics all missing `slug`",
-        detail=(
+    {
+        "site": "B1",
+        "corruption": f"{SIGNATURE_BREAKER_THRESHOLD + 2} top-level topics all missing `slug`",
+        "detail": (
             "one identical AttributeError per record, the shape a renamed attribute "
             "produces. Guard site is NOT nested — see B2"
         ),
-        collections=("topics",),
-        seed=_repeat_doc(
+        "collections": ("topics",),
+        "seed": _repeat_doc(
             "topics", {"isTopLevelDisplay": True, "titles": [{"text": "ZZAuditBreaker", "lang": "en", "primary": True}]}
         ),
-        count=SIGNATURE_BREAKER_THRESHOLD + 2,
-        trigger=_topic_toc,
-        operation="get_topic_toc_json_recursive top-level topic",
-        error_type="BuildDegradationError",
-        cause_type="AttributeError",
-    ),
-    dict(
-        site="B2",
-        corruption=f"{SIGNATURE_BREAKER_THRESHOLD + 2} sibling child topics all with a string `titles`, one level down",
-        detail=(
+        "count": SIGNATURE_BREAKER_THRESHOLD + 2,
+        "trigger": _topic_toc,
+        "operation": "get_topic_toc_json_recursive top-level topic",
+        "error_type": "BuildDegradationError",
+        "cause_type": "AttributeError",
+    },
+    {
+        "site": "B2",
+        "corruption": f"{SIGNATURE_BREAKER_THRESHOLD + 2} sibling child topics all with a string `titles`, one level down",
+        "detail": (
             "the trip happens INSIDE a `topic TOC child` guard and must escape the "
             "identical guard wrapping the recursion into the parent. A bare re-raise "
             "is swallowed here and the build completes with a truncated ToC"
         ),
-        collections=("topics", "topic_links"),
-        seed=_broken_children_of_one_parent("zzaudit-breaker-parent", "zzaudit-breaker-child-"),
-        count=SIGNATURE_BREAKER_THRESHOLD + 2,
-        trigger=_topic_toc,
-        operation="topic TOC child",
-        error_type="BuildDegradationError",
-        cause_type="AttributeError",
-    ),
+        "collections": ("topics", "topic_links"),
+        "seed": _broken_children_of_one_parent("zzaudit-breaker-parent", "zzaudit-breaker-child-"),
+        "count": SIGNATURE_BREAKER_THRESHOLD + 2,
+        "trigger": _topic_toc,
+        "operation": "topic TOC child",
+        "error_type": "BuildDegradationError",
+        "cause_type": "AttributeError",
+    },
 ]
 
 
@@ -1139,20 +1139,20 @@ def run_breaker_case(c, notify):
     outcome = NO_BREAK if problems else BROKE
     detail = "; ".join(problems) if problems else f"aborted at {SIGNATURE_BREAKER_THRESHOLD} skips, summary posted"
     logger.log(logging.WARNING if problems else logging.INFO, "      -> %s (%s)", outcome, detail)
-    return dict(
-        site=c["site"],
-        operation=c["operation"],
-        corruption=c["corruption"],
-        outcome=outcome,
-        detail=detail,
-        matched=not problems,
-        expect=BROKE,
-        error_type=c["error_type"],
-        outside_guard=False,
-        note=c["detail"],
-        skip=None,
-        escaped_at="",
-    )
+    return {
+        "site": c["site"],
+        "operation": c["operation"],
+        "corruption": c["corruption"],
+        "outcome": outcome,
+        "detail": detail,
+        "matched": not problems,
+        "expect": BROKE,
+        "error_type": c["error_type"],
+        "outside_guard": False,
+        "note": c["detail"],
+        "skip": None,
+        "escaped_at": "",
+    }
 
 
 ALL_CASES = CASES + LOG_SKIP_CASES

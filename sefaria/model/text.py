@@ -670,7 +670,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         self.nodes.add_title(primary_title, "he", True, True)
         index_titles = [primary_title]
         for title in self.schema["titles"]:
-            if title["lang"] == "he" and title.get("primary", False) == False:
+            if title["lang"] == "he" and title.get("primary", False) is False:
                 index_titles.append(title["text"])
 
         for title in index_titles:
@@ -681,7 +681,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     self.nodes.add_title(new_title, "he")
 
         for node in self.nodes.children:
-            if getattr(node, "default", False) == False and getattr(node, "sharedTitle", "") == "":
+            if getattr(node, "default", False) is False and getattr(node, "sharedTitle", "") == "":
                 primary_title = node.get_primary_title("he")
                 primary_title = primary_title.replace("״", '"').replace("”", '"')
                 node.add_title(primary_title, "he", True, True)
@@ -803,7 +803,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         for date_key in ["compDate", "pubDate"]:
             if hasattr(self, date_key):
                 val = getattr(self, date_key)
-                if not isinstance(val, list) or not all([isinstance(x, int) for x in val]):
+                if not isinstance(val, list) or not all(isinstance(x, int) for x in val):
                     raise InputError(f"Optional attribute '{date_key}' must be list of integers.")
 
         """
@@ -876,9 +876,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def get_base_text_order(self):
         if getattr(self, "base_text_titles", None):
-            base_orders = [
-                a for a in filter(None, [library.get_index(x).get_toc_index_order() for x in self.base_text_titles])
-            ]
+            base_orders = list(
+                filter(None, [library.get_index(x).get_toc_index_order() for x in self.base_text_titles])
+            )
             if len(base_orders) > 0:
                 return min(base_orders) or 10000
         return 10000
@@ -1237,7 +1237,9 @@ class AbstractTextRecord:
         :param max_char:
         :return:
         """
-        balance = lambda doc: str(BeautifulSoup(doc, "html.parser"))
+
+        def balance(doc):
+            return str(BeautifulSoup(doc, "html.parser"))
 
         as_array = self.ja().flatten_to_array()
 
@@ -1737,8 +1739,8 @@ class VersionSet(abst.AbstractMongoSet):
 
     recordClass = Version
 
-    def __init__(self, query={}, page=0, limit=0, sort=[["priority", -1], ["_id", 1]], proj=None):
-        super().__init__(query, page, limit, sort, proj)
+    def __init__(self, query=None, page=0, limit=0, sort=(("priority", -1), ("_id", 1)), proj=None):
+        super().__init__(query if query is not None else {}, page, limit, sort, proj)
 
     def word_count(self):
         return sum([v.word_count() for v in self])
@@ -1790,8 +1792,11 @@ def merge_texts(text, sources):
         results = []
         result_sources = []
         for x in range(max(list(map(len, text)))):  # Let longest text determine how many times to iterate
-            translations = [_ for _ in itertools.zip_longest(*text)][x]  # transpose, and take section x
-            remove_nones = lambda x: x or []
+            translations = list(itertools.zip_longest(*text))[x]  # transpose, and take section x
+
+            def remove_nones(x):
+                return x or []
+
             result, source = merge_texts(list(map(remove_nones, translations)), sources)
             results.append(result)
             result_sources.append(source)
@@ -2569,7 +2574,7 @@ class Ref(metaclass=RefCacheType):
         parts = [s.strip() for s in re.split("[-\u2010-\u2015]", self.tref)]
         if len(parts) > 2:
             raise InputError(f"Couldn't understand ref '{self.tref}' (too many -'s).")
-        if any([not p for p in parts]):
+        if any(not p for p in parts):
             raise InputError(f"Couldn't understand ref '{self.tref}' (beginning or ending -)")
 
         base = parts[0]
@@ -2985,7 +2990,7 @@ class Ref(metaclass=RefCacheType):
                 if self.index_node.is_virtual:
                     sub_refs = temp_ref.all_subrefs()
                     ref_list_list = [sub_ref.all_segment_refs() for sub_ref in sub_refs]
-                    ref_list += [refs for refs in ref_list_list]
+                    ref_list += list(ref_list_list)
                 else:
                     state_ja = self.get_state_ja("all")
                     sub_ja = state_ja.subarray_with_ref(temp_ref)
@@ -3646,7 +3651,7 @@ class Ref(metaclass=RefCacheType):
 
         d = self._core_dict()
 
-        if any([sec < 0 for sec in subsections]):
+        if any(sec < 0 for sec in subsections):
             # only load state_ja when a negative index exists
             ja = self.get_state_ja()
             ja_inds = [sec - 1 for sec in self.sections + subsections]
@@ -4034,12 +4039,12 @@ class Ref(metaclass=RefCacheType):
         :return bool:
         """
         assert isinstance(other, Ref)
-        if not self.index_node == other.index_node:
+        if self.index_node != other.index_node:
             return self.index_node.is_ancestor_of(other.index_node)
 
         if len(self.sections) > len(other.sections):  # other is less specific than self
             if len(other.sections) == 0:  # other is a whole book
-                if any([x != 1 for x in self.sections]):  # self is not a whole book
+                if any(x != 1 for x in self.sections):  # self is not a whole book
                     return False  # performance optimization to avoid call to as_ranged_segment_ref
             # we need to get the true extent of other
             other = other.as_ranged_segment_ref()
@@ -4076,7 +4081,7 @@ class Ref(metaclass=RefCacheType):
         :return bool:
         """
         assert isinstance(other, Ref)
-        if not self.index_node == other.index_node:
+        if self.index_node != other.index_node:
             return self.index_node.is_ancestor_of(other.index_node)
 
         smallest_section_len = min([len(self.sections), len(other.sections)])
@@ -4110,7 +4115,7 @@ class Ref(metaclass=RefCacheType):
         :return bool:
         """
         assert isinstance(other, Ref)
-        if not self.index_node == other.index_node:
+        if self.index_node != other.index_node:
             return False
 
         my_end = self.ending_ref()
@@ -4143,7 +4148,7 @@ class Ref(metaclass=RefCacheType):
         :return bool:
         """
         assert isinstance(other, Ref)
-        if not self.index_node == other.index_node:
+        if self.index_node != other.index_node:
             return False
 
         my_start = self.starting_ref()
@@ -4194,7 +4199,7 @@ class Ref(metaclass=RefCacheType):
 
         # What's best behavior for these cases?
         assert isinstance(other, Ref)
-        if not self.index_node == other.index_node:
+        if self.index_node != other.index_node:
             return None
 
         if self.is_range():
@@ -4425,7 +4430,7 @@ class Ref(metaclass=RefCacheType):
         normal += ":".join([self.normal_section(i, lang) for i in range(len(self.sections))])
 
         for i in range(len(self.sections)):
-            if not self.sections[i] == self.toSections[i]:
+            if self.sections[i] != self.toSections[i]:
                 normal += "-{}".format(
                     ":".join([self.normal_section(i + j, lang, "toSections") for j in range(len(self.toSections[i:]))])
                 )
@@ -5182,7 +5187,7 @@ class Library:
         topic_toc_category_mapping = {}
         topic_toc = self.get_topic_toc()
         discovered_slugs = set()
-        topic_stack = [t for t in topic_toc]
+        topic_stack = list(topic_toc)
         while len(topic_stack) > 0:
             curr_topic = topic_stack.pop()
             # A topic-toc node missing 'slug' must not abort the mapping build.

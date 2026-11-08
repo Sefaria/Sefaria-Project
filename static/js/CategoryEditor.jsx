@@ -41,7 +41,7 @@ const Reorder = ({ subcategoriesAndBooks, updateOrder, displayType, updateParent
 
   return subcategoriesAndBooks.map((child, i) => {
     return (
-      <div id={`reorder-${i}`} className="reorderTool">
+      <div key={`reorder-${i}`} id={`reorder-${i}`} className="reorderTool">
         <div id="title">{displayOptions[displayType](child)}</div>
         <img
           src="/static/img/arrow-up.png"
@@ -257,7 +257,7 @@ const CategoryEditor = ({ origData = {}, close, origPath = [] }) => {
               displayType="cats"
             />
           ),
-          <div className="section">
+          <div key="primary-status" className="section">
             <br />
             <label>
               <InterfaceText>

@@ -85,10 +85,10 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name="topicoftheday",
-            unique_together=set([("topic", "start_date")]),
+            unique_together={("topic", "start_date")},
         ),
         migrations.AlterUniqueTogether(
             name="seasonaltopic",
-            unique_together=set([("topic", "start_date")]),
+            unique_together={("topic", "start_date")},
         ),
     ]

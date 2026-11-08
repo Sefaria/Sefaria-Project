@@ -120,6 +120,7 @@ const AnalyticsEventTracker = (function () {
     return Array.from(element.attributes).reduce((attrsAggregated, currAttr) => {
       const attrName = currAttr.name;
       if (attrName === EVENT_ATTR) {
+        // event name attribute is handled separately; nothing to aggregate
       } else if (attrName.startsWith(FIELD_ATTR_PREFIX)) {
         if (attrName === BATCH_ATTR) {
           attrsAggregated = { ...attrsAggregated, ...JSON.parse(currAttr.value) };

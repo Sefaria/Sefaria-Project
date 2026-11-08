@@ -14,16 +14,16 @@ spec.loader.exec_module(checker)
 
 def result(**changes):
     return dict(
-        dict(
-            ref="Genesis 1:1",
-            url="Genesis.1.1",
-            index_title="Genesis",
-            language="en",
-            version_title="Test",
-            text="Test text",
-            primary_category="Tanakh",
-            all_categories=["Tanakh"],
-        ),
+        {
+            "ref": "Genesis 1:1",
+            "url": "Genesis.1.1",
+            "index_title": "Genesis",
+            "language": "en",
+            "version_title": "Test",
+            "text": "Test text",
+            "primary_category": "Tanakh",
+            "all_categories": ["Tanakh"],
+        },
         **changes,
     )
 
@@ -91,14 +91,14 @@ class CheckerTests(unittest.TestCase):
                 {
                     "results": [result()],
                     "linked_refs": [
-                        dict(
-                            ref="Avot 1:1",
-                            text="text",
-                            text_source="linked_ref_semantic_chunk",
-                            linked_ref_parent="Avot 1",
-                            linked_ref_chunk_number=3,
-                            linked_ref_chunk_count=2,
-                        )
+                        {
+                            "ref": "Avot 1:1",
+                            "text": "text",
+                            "text_source": "linked_ref_semantic_chunk",
+                            "linked_ref_parent": "Avot 1",
+                            "linked_ref_chunk_number": 3,
+                            "linked_ref_chunk_count": 2,
+                        }
                     ],
                 },
                 checker.payload_for({"query": "x", "include_linked_refs": True}),

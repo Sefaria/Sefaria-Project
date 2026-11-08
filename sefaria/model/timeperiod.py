@@ -202,11 +202,11 @@ class TimePeriod(abst.AbstractMongoRecord):
     def determine_year_estimate(self):
         start = getattr(self, "start", None)
         end = getattr(self, "end", None)
-        if start != None and end != None:
+        if start is not None and end is not None:
             return round((int(start) + int(end)) / 2)
-        if start != None:
+        if start is not None:
             return int(start)
-        if end != None:
+        if end is not None:
             return int(end)
 
 
@@ -230,7 +230,7 @@ class TimePeriodSet(abst.AbstractMongoSet):
 class LifePeriod(TimePeriod):
     def period_string(self, lang):
 
-        if getattr(self, "start", None) == None and getattr(self, "end", None) == None:
+        if getattr(self, "start", None) is None and getattr(self, "end", None) is None:
             return ""
 
         labels = self.getYearLabels(lang)
@@ -240,11 +240,15 @@ class LifePeriod(TimePeriod):
         if lang == "en":
             birth = "b."
             death = "d."
-            order_vars_by_lang = lambda year, label, approx: (approx, "", year, label)
+
+            def order_vars_by_lang(year, label, approx):
+                return (approx, "", year, label)
         else:
             birth = "נו׳"
             death = "נפ׳"
-            order_vars_by_lang = lambda year, label, approx: (year, " ", label, approx)
+
+            def order_vars_by_lang(year, label, approx):
+                return (year, " ", label, approx)
 
         if getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
             name = "{} {}{}{} {}".format(birth, *order_vars_by_lang(abs_birth, labels[1], approxMarker[0]))

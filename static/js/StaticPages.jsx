@@ -181,9 +181,9 @@ const ContestLandingPage = () => (
         <a href="https://sefaria.nationbuilder.com/contest2021">Registered participants</a> will receive a form to
         submit their projects. The contest deliverable must be in the form of a URL where our judges can directly access
         your work. For many projects, this will be a running demo of an app on the web. For other projects, your URL may
-        point to a description and summary of the work you've done, much like a poster for a research project presented
-        at a conference. For desktop or mobile apps, you will need to host your app on a web-based emulator (like{' '}
-        <a href="https://appetize.io/">Appetize.io</a>) so our judges can interact with it without downloading
+        point to a description and summary of the work you&apos;ve done, much like a poster for a research project
+        presented at a conference. For desktop or mobile apps, you will need to host your app on a web-based emulator
+        (like <a href="https://appetize.io/">Appetize.io</a>) so our judges can interact with it without downloading
         executables.
       </p>
       <p>
@@ -290,7 +290,7 @@ const ContestLandingPage = () => (
     <EnBlock padded={true}>
       <p>
         Interested in participating in the contest? <a href="#">Sign up</a> for updates and resources, including office
-        hours with the Sefaria engineering team. We'll share a link for project submissions with you in the coming
+        hours with the Sefaria engineering team. We&apos;ll share a link for project submissions with you in the coming
         weeks!
       </p>
     </EnBlock>
@@ -415,7 +415,7 @@ const RambanLandingPage = () => {
               '/Genesis.47.28?with=Ramban',
             ],
           ].map((i) => (
-            <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]} link={i[3]} />
+            <ParashaSponsorship key={i[0]} title={i[0]} sponsorNames={i[1]} message={i[2]} link={i[3]} />
           ))}
         />
       </div>
@@ -467,7 +467,7 @@ const RambanLandingPage = () => {
             ],
             ['Pekudei', 'The Hiltzik Family', '', '/Exodus.38.21?with=Ramban'],
           ].map((i) => (
-            <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]} link={i[3]} />
+            <ParashaSponsorship key={i[0]} title={i[0]} sponsorNames={i[1]} message={i[2]} link={i[3]} />
           ))}
         />
       </div>
@@ -498,7 +498,7 @@ const RambanLandingPage = () => {
             ['Behar ', 'Tamar and Eric Goldstein', 'In honor of Aryeh’s aufruf', '/Leviticus.25.1?with=Ramban'],
             ['Bechukotai ', 'Tamar and Eric Goldstein', 'In honor of Aryeh’s aufruf', '/Leviticus.26.3?with=Ramban'],
           ].map((i) => (
-            <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]} link={i[3]} />
+            <ParashaSponsorship key={i[0]} title={i[0]} sponsorNames={i[1]} message={i[2]} link={i[3]} />
           ))}
         />
       </div>
@@ -540,7 +540,7 @@ const RambanLandingPage = () => {
             ],
             ['Masei', 'Nadine and Beni Gesundheit', '', '/Numbers.33.1?with=Ramban'],
           ].map((i) => (
-            <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]} link={i[3]} />
+            <ParashaSponsorship key={i[0]} title={i[0]} sponsorNames={i[1]} message={i[2]} link={i[3]} />
           ))}
         />
       </div>
@@ -582,7 +582,7 @@ const RambanLandingPage = () => {
             ],
             ["V'Zot HaBerachah", 'Elisha Wiesel', 'In memory of Elie Wiesel', '/Deuteronomy.33.1?with=Ramban'],
           ].map((i) => (
-            <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]} link={i[3]} />
+            <ParashaSponsorship key={i[0]} title={i[0]} sponsorNames={i[1]} message={i[2]} link={i[3]} />
           ))}
         />
       </div>
@@ -799,6 +799,7 @@ const EducatorsPage = () => (
         ],
       ].map((i) => (
         <SimpleButton
+          key={i[0]}
           white={true}
           rounded={false}
           tall={true}
@@ -846,6 +847,7 @@ const EducatorsPage = () => (
         ],
       ].map((i) => (
         <SimpleButton
+          key={i[0]}
           white={true}
           rounded={false}
           tall={true}
@@ -891,6 +893,7 @@ const EducatorsPage = () => (
         ],
       ].map((i) => (
         <SimpleButton
+          key={i[0]}
           white={true}
           rounded={false}
           tall={true}
@@ -1076,7 +1079,7 @@ const PBSC2020LandingPage = () => (
           הגישה לחיים יהודיים וללימוד תורה באמצעות טכנולוגיה מעסיקה את דב זה זמן רב, ועוד בשנת 1999 הוא הקים את האתר
           המוכר onlysimchas.com, מעין לוח שמחות אינטרנטי. בקיץ האחרון יצר את תוסף סרגל הכלים של התלמוד כדי לענות על
           צרכים דיגיטליים חדשים בשיעור הדף היומי שלו שהפך מקוון. בזכות התשוקה של דב לשכלול דרכי גישה דיגיטליות הוא נהיה
-          תומך נלהב בקוד פתוח וכיום משמש יו"ר הדירקטוריון של קרן הקוד הפתוח של Fintech.
+          תומך נלהב בקוד פתוח וכיום משמש יו&quot;ר הדירקטוריון של קרן הקוד הפתוח של Fintech.
         </p>
       </HeBlock>
       <Spacer />
@@ -1116,10 +1119,10 @@ const PBSC2020LandingPage = () => (
         <p>
           מזמור שיר נוצר בידי שלושה סטודנטים – סיימון לנדאו, סטודנט בשנה השלישית למדעי המחשב באוניברסיטת דרום קליפורניה;
           עמנואל ביסל, סטודנט בשנה השנייה למדעי כדור הארץ וכוכבי הלכת באוניברסיטת ייל; ובן קוטון, סטודנט בשנה השנייה
-          למתמטיקה שימושית באוניברסיטת ייל. שלושתם חברי ילדות מלוס אנג'לס ואוהבי מוזיקה נלהבים: סיימון הוא נגן קונטרבס
-          וגיטריסט בשלישייה מוזיקלית, עמנואל מנגן גם הוא בגיטרה, ובן מנגן במנדולינה. האהבה הזו היא שדרבנה אותם לנסות
-          להתמודד עם האתגר של ספריא בעזרת רעיון ששילב מוזיקה ותורה ורתם את כוחה של הטכנולוגיה לחשוף את היופי שבכל אחת
-          מהן בדרכים חדשות.
+          למתמטיקה שימושית באוניברסיטת ייל. שלושתם חברי ילדות מלוס אנג&apos;לס ואוהבי מוזיקה נלהבים: סיימון הוא נגן
+          קונטרבס וגיטריסט בשלישייה מוזיקלית, עמנואל מנגן גם הוא בגיטרה, ובן מנגן במנדולינה. האהבה הזו היא שדרבנה אותם
+          לנסות להתמודד עם האתגר של ספריא בעזרת רעיון ששילב מוזיקה ותורה ורתם את כוחה של הטכנולוגיה לחשוף את היופי שבכל
+          אחת מהן בדרכים חדשות.
         </p>
       </HeBlock>
       <Spacer />
@@ -1409,6 +1412,7 @@ const PBSC2020LandingPage = () => (
         ['Yomyomishna', '', 'https://yomyomishna.web.app/'],
       ].map((i) => (
         <SimpleButton
+          key={i[0]}
           white={true}
           rounded={false}
           tall={true}
@@ -1434,6 +1438,7 @@ const DonatePage = () => (
         gap="30px"
         content={[
           <FeatureBox
+            key="item-1"
             enTitle="Make a One-Time Gift"
             heTitle=""
             enText="Whether you give $1.80, $18, or $1,800, every gift made to Sefaria supports the future of Torah."
@@ -1445,6 +1450,7 @@ const DonatePage = () => (
             borderColor="#004E5F"
           />,
           <FeatureBox
+            key="item-2"
             enTitle="Become a Sustainer"
             heTitle=""
             enText="Multiply the power of your impact by signing up for a monthly donation with hundreds of other users, supporting a vision of <em>Torah for all.</em>"
@@ -1456,6 +1462,7 @@ const DonatePage = () => (
             borderColor="#97B386"
           />,
           <FeatureBox
+            key="item-3"
             enTitle="Sponsor a Day of Learning"
             heTitle=""
             enText="Fuel a day of study on Sefaria by celebrating a special occasion, commemorating a yahrzeit, or honoring a legacy — with a gift of $360 or more."
@@ -1467,6 +1474,7 @@ const DonatePage = () => (
             borderColor="#4B71B7"
           />,
           <FeatureBox
+            key="item-4"
             enTitle="Join a Giving Circle"
             heTitle=""
             enText="Become a lead supporter of Sefaria and ensure a vibrant future for the Jewish textual tradition."
@@ -1492,6 +1500,7 @@ const DonatePage = () => (
           stretch={true}
           content={[
             <HeaderWithColorAccentBlockAndText
+              key="item-1"
               enTitle="Donate Online"
               heTitle=""
               enText="<p>Make a donation by <strong>credit card, PayPal, GooglePay, ApplePay, Venmo, or bank transfer</strong> on our <a href='https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=waystogive'>main donation page</a>.</p>"
@@ -1499,6 +1508,7 @@ const DonatePage = () => (
               colorBar="#AB4E66"
             />,
             <HeaderWithColorAccentBlockAndText
+              key="item-2"
               enTitle="Donate by Mail"
               heTitle=""
               enText="<p><strong>Personal checks</strong> should be made payable to “Sefaria” and mailed to:</p>
@@ -1510,6 +1520,7 @@ const DonatePage = () => (
               colorBar="#D4896C"
             />,
             <HeaderWithColorAccentBlockAndText
+              key="item-3"
               enTitle="Donor-Advised Fund"
               heTitle=""
               enText="<p>Sefaria accepts donations from donor-advised funds; our <strong>EIN is 46-4406454</strong>. If you need additional information to make a DAF donation, please contact Caitlyn Cushing, Development Operations Associate, at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>.</p>"
@@ -1517,6 +1528,7 @@ const DonatePage = () => (
               colorBar="#CCB479"
             />,
             <HeaderWithColorAccentBlockAndText
+              key="item-4"
               enTitle="Additional Ways to Give"
               heTitle=""
               enText="<p>Sefaria also accepts donations via <strong>wire transfer</strong> and <strong>stock</strong>. For more information, please email <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a></p>"
@@ -1704,7 +1716,7 @@ const DonatePage = () => (
             gap="10px"
             stretch={true}
             content={[
-              <div className="finStewardBox">
+              <div key="item-1" className="finStewardBox">
                 <h2 className="serif">GuideStar Platinum</h2>
                 <p>
                   Sefaria is proud to have received a Platinum Seal of Transparency from Guidestar, which indicates that
@@ -1723,7 +1735,7 @@ const DonatePage = () => (
                 />
               </div>,
 
-              <div className="finStewardBox">
+              <div key="item-2" className="finStewardBox">
                 <h2 className="serif">Sefaria’s 990 </h2>
                 <p>
                   Nonprofit organizations are required to file a Form 990 each year that provides the public with
@@ -1742,7 +1754,7 @@ const DonatePage = () => (
                 />
               </div>,
 
-              <div className="finStewardBox">
+              <div key="item-3" className="finStewardBox">
                 <h2 className="serif">Annual Report </h2>
                 <p>
                   Each year, our annual report gives an up-to-date account of our achievements, challenges, innovations,
@@ -1823,8 +1835,8 @@ const WordByWordPage = () => {
             </h1>
             <div className="staticPageHeaderText">
               <em>
-                "...I am grateful to God for this gift, this possibility of developing myself and of writing, of
-                expressing all that is in me."
+                &quot;...I am grateful to God for this gift, this possibility of developing myself and of writing, of
+                expressing all that is in me.&quot;
               </em>
               <br />- Anne Frank
             </div>
@@ -1836,8 +1848,8 @@ const WordByWordPage = () => {
         <div className="staticPageBlockInner flexContainer light">
           <div className="msgToSupportersEven">
             <p>
-              Word-by-Word: A Jewish Women's Writing Circle supports a group of 20 talented Jewish women writers with
-              resources, guidance, community, and a yearly stipend as they work toward the completion of a book of
+              Word-by-Word: A Jewish Women&apos;s Writing Circle supports a group of 20 talented Jewish women writers
+              with resources, guidance, community, and a yearly stipend as they work toward the completion of a book of
               textual analysis that will be a significant contribution to any Jewish library. Led and created by Dr.
               Erica Brown and Sara Wolkenfeld, Word-by-Word offers its writers expert coaching, peer workshopping, and
               other opportunities that enrich and enable their writing process.
@@ -1862,6 +1874,7 @@ const WordByWordPage = () => {
             stretch={true}
             content={[
               <HeaderWithColorAccentBlockAndText
+                key="item-1"
                 enTitle={benefitsTitleText}
                 heTitle={benefitsTitleText}
                 enText={benefitsText}
@@ -1869,6 +1882,7 @@ const WordByWordPage = () => {
                 colorBar="#AB4E66"
               />,
               <HeaderWithColorAccentBlockAndText
+                key="item-2"
                 enTitle={fellowsTitleText}
                 heTitle={fellowsTitleText}
                 enText={fellowsText}
@@ -1876,6 +1890,7 @@ const WordByWordPage = () => {
                 colorBar="#D4896C"
               />,
               <HeaderWithColorAccentBlockAndText
+                key="item-3"
                 enTitle={speakersTitleText}
                 heTitle={speakersTitleText}
                 enText={speakersText}
@@ -2075,7 +2090,16 @@ const PoweredByPage = () => (
         ['Kindle Seforim', 'https://kindleseforim.paritcher.com/'],
         ['The Jewish Story Through Books', 'https://joshcooper417.github.io/'],
       ].map(([enText, hrefURL]) => (
-        <SimpleButton white={true} rounded={false} tall={true} newTab={true} href={hrefURL} en={enText} he={enText} />
+        <SimpleButton
+          key={enText}
+          white={true}
+          rounded={false}
+          tall={true}
+          newTab={true}
+          href={hrefURL}
+          en={enText}
+          he={enText}
+        />
       ))}
     </ButtonRow>
   </StaticPage>
@@ -2149,8 +2173,9 @@ const PBSC2021LandingPage = () => (
       </EnBlock>
       <HeBlock padded={true}>
         <p>
-          גרשון בינדר מהנטינגטון שבלונג איילנד במדינת ניו יורק הוא סטודנט למדעי המחשב בשנתו האחרונה בקולג' לנדר לגברים.
-          בינדר הוא מעצב אתרים ומעצב גרפי ועובד עם מודלים תלת-ממדיים ועם מנוע Unreal. כיום מתגורר בקווינס שבניו יורק.
+          גרשון בינדר מהנטינגטון שבלונג איילנד במדינת ניו יורק הוא סטודנט למדעי המחשב בשנתו האחרונה בקולג&apos; לנדר
+          לגברים. בינדר הוא מעצב אתרים ומעצב גרפי ועובד עם מודלים תלת-ממדיים ועם מנוע Unreal. כיום מתגורר בקווינס שבניו
+          יורק.
         </p>
       </HeBlock>
       <H2Block en="What Our Team Had to Say" he="מה יש לצוות שלנו להגיד על זה" />
@@ -2197,11 +2222,12 @@ const PBSC2021LandingPage = () => (
       </EnBlock>
       <HeBlock padded={true}>
         <p>
-          "מחולל דפי המקורות לקריאה בתורה" נוצר על ידי ולרי מונקו, שהתגיירה בשנת 2013. נוסף על חברותן בקהילת "רודף שלום"
-          בפיטסבורג שבפנסילבניה, היא ובת זוגה הן גם שותפות נלהבות בקהילת "בית תקווה". ולרי היא אנליסטית דאטה בכירה
-          בעיריית פיטסבורג ובעלת תואר ראשון בפסיכולוגיה ובקשרי אדם־מחשב. כאשר למדה לקרוא בתורה גילתה ולרי שקשה לעשות זאת
-          ללא דף מקורות ויזואלי משותף, ושהכנת דף שימושי כזה באופן ידני תיארך זמן רב ויהיו לה מגבלות. "מחולל דפי המקורות
-          לקריאה בתורה" מקל על תהליך יצירת דפי המקורות ומאפשר להקדיש יותר זמן ללימוד.
+          &quot;מחולל דפי המקורות לקריאה בתורה&quot; נוצר על ידי ולרי מונקו, שהתגיירה בשנת 2013. נוסף על חברותן בקהילת
+          &quot;רודף שלום&quot; בפיטסבורג שבפנסילבניה, היא ובת זוגה הן גם שותפות נלהבות בקהילת &quot;בית תקווה&quot;.
+          ולרי היא אנליסטית דאטה בכירה בעיריית פיטסבורג ובעלת תואר ראשון בפסיכולוגיה ובקשרי אדם־מחשב. כאשר למדה לקרוא
+          בתורה גילתה ולרי שקשה לעשות זאת ללא דף מקורות ויזואלי משותף, ושהכנת דף שימושי כזה באופן ידני תיארך זמן רב
+          ויהיו לה מגבלות. &quot;מחולל דפי המקורות לקריאה בתורה&quot; מקל על תהליך יצירת דפי המקורות ומאפשר להקדיש יותר
+          זמן ללימוד.
         </p>
       </HeBlock>
       <H2Block en="What Our Team Had to Say" he="מה יש לצוות שלנו להגיד על זה" />
@@ -2319,6 +2345,7 @@ const PBSC2021LandingPage = () => (
         ['SefariAcrostic', 'ספריאקרוסטיכון', 'https://20gordone.github.io/SefariaContest'],
       ].map((i) => (
         <SimpleButton
+          key={i[0]}
           white={true}
           rounded={false}
           tall={true}
@@ -2434,10 +2461,10 @@ const SubscribeButton = ({ enAction, heAction, heLists, enLists, redirectURL }) 
             });
           } else {
             response.json().then((resp_json) => {
-              if (resp_json.hasOwnProperty('status') && resp_json['status'] == 'ok') {
+              if (Object.prototype.hasOwnProperty.call(resp_json, 'status') && resp_json['status'] == 'ok') {
                 setMessage('Subscribed! Welcome to our list.');
                 setMessageStyle('');
-              } else if (resp_json.hasOwnProperty('error')) {
+              } else if (Object.prototype.hasOwnProperty.call(resp_json, 'error')) {
                 setMessage(resp_json['error']);
                 setMessageStyle('');
               }
@@ -2950,27 +2977,23 @@ const TeamMembersPage = memo(() => {
                 }
             }
             `;
-    try {
-      const response = await fetch(STRAPI_INSTANCE + '/graphql', {
-        method: 'POST',
-        mode: 'cors',
-        cache: 'no-cache',
-        credentials: 'omit',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        redirect: 'follow',
-        referrerPolicy: 'no-referrer',
-        body: JSON.stringify({ query }),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP Error: ${response.statusText}`);
-      }
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      throw error;
+    const response = await fetch(STRAPI_INSTANCE + '/graphql', {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'omit',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      redirect: 'follow',
+      referrerPolicy: 'no-referrer',
+      body: JSON.stringify({ query }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP Error: ${response.statusText}`);
     }
+    const data = await response.json();
+    return data;
   };
 
   const loadTeamMembers = async () => {
@@ -3157,8 +3180,8 @@ const JobsPage = memo(() => {
                 jobPostings(
                     pagination: { limit: -1 }
                     filters: {
-                        jobPostingStartDate: { lte: \"${currentDateTime}\" }
-                        jobPostingEndDate: { gte: \"${currentDateTime}\" }
+                        jobPostingStartDate: { lte: "${currentDateTime}" }
+                        jobPostingEndDate: { gte: "${currentDateTime}" }
                     }
                 ) {
                     documentId
@@ -3169,27 +3192,23 @@ const JobsPage = memo(() => {
             }
         `;
 
-    try {
-      const response = await fetch(STRAPI_INSTANCE + '/graphql', {
-        method: 'POST',
-        mode: 'cors',
-        cache: 'no-cache',
-        credentials: 'omit',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        redirect: 'follow',
-        referrerPolicy: 'no-referrer',
-        body: JSON.stringify({ query }),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP Error: ${response.statusText}`);
-      }
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      throw error;
+    const response = await fetch(STRAPI_INSTANCE + '/graphql', {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'omit',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      redirect: 'follow',
+      referrerPolicy: 'no-referrer',
+      body: JSON.stringify({ query }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP Error: ${response.statusText}`);
     }
+    const data = await response.json();
+    return data;
   };
 
   const loadJobPostings = async () => {
@@ -3463,27 +3482,23 @@ const ProductsPage = memo(() => {
                 }
             }`;
 
-    try {
-      const response = await fetch(STRAPI_INSTANCE + '/graphql', {
-        method: 'POST',
-        mode: 'cors',
-        cache: 'no-cache',
-        credentials: 'omit',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        redirect: 'follow',
-        referrerPolicy: 'no-referrer',
-        body: JSON.stringify({ query }),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP Error: ${response.statusText}`);
-      }
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      throw error;
+    const response = await fetch(STRAPI_INSTANCE + '/graphql', {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'omit',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      redirect: 'follow',
+      referrerPolicy: 'no-referrer',
+      body: JSON.stringify({ query }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP Error: ${response.statusText}`);
     }
+    const data = await response.json();
+    return data;
   };
 
   const normalizeProduct = (p) => {
@@ -3557,7 +3572,7 @@ const ProductsPage = memo(() => {
   ) : (
     <>
       <h1 className="aboutHeader">
-        <span className="int-en">Sefaria's Products</span>
+        <span className="int-en">Sefaria&apos;s Products</span>
         <span className="int-he">המוצרים של ספריא</span>
       </h1>
       <div className="productsFlexWrapper">
@@ -3674,24 +3689,28 @@ const NewsletterPage = () => {
                 threshold3={Number.POSITIVE_INFINITY}
                 content={[
                   <EnhancedUserQuote
+                    key="item-1"
                     enText="I want to thank you for the great new resource! While I am excited to utilize Sefaria for all my teaching, this new newsletter helped me directly create my latest d’var Torah blog entry, focused on the need for silence. Deeply appreciate all the work y’all do."
                     heText="תודה על כל השפע, החידושים וההתחדשות!"
                     enImage="/static/img/newsletter-signup-page/quote-en.svg"
                     heImage="/static/img/newsletter-signup-page/quote-he.svg"
                   />,
                   <EnhancedUserQuote
+                    key="item-2"
                     enText="The Sefaria Parashah weekly series has been an invaluable resource to ground me in the weekly rhythm of the Torah cycle and to prepare me for the weekly Torah study at my synagogue. I look forward to receiving the email every Monday, so that I know I am on track in the Torah cycle. The summary, the commentaries, and the reflection questions are super helpful for letting me deepen my thoughts for the group study."
                     heText="הדף מהקישור המצורף הוא יפה וודאי שניתן לקחת משם גם לימינו שלנו. אשמח להשתמש בחומרים אילו בכיתה שלי."
                     enImage="/static/img/newsletter-signup-page/quote-en.svg"
                     heImage="/static/img/newsletter-signup-page/quote-he.svg"
                   />,
                   <EnhancedUserQuote
+                    key="item-3"
                     enText="Finding time to study and learn can be very difficult when time is limited and direction difficult. I have found the material sent out each week very helpful in both getting me to study/learn and giving my learning direction by sending topics and useful links to materials and sources"
                     heText="ממש מרגש ונוגע, הבאתם עם הרבה מגוון ונגיעות, תודה רבה."
                     enImage="/static/img/newsletter-signup-page/quote-en.svg"
                     heImage="/static/img/newsletter-signup-page/quote-he.svg"
                   />,
                   <EnhancedUserQuote
+                    key="item-4"
                     enText="I look forward to receiving these emails each week to kick off my Torah study and explore new and refreshing topics"
                     heText="תודה על המייל המתומצת, והעיון בתוב"
                     enImage="/static/img/newsletter-signup-page/quote-en.svg"
@@ -3855,9 +3874,9 @@ const MobileAppPage = () => {
       <HeBlock padded={true}>
         <p className="staticPageAboutText" style={{ fontSize: '18px', lineHeight: '1.7', margin: '50px 0' }}>
           היישומון מאפשר גישה חופשית למאגר נרחב של כותרים בשפות המקור ובמגוון תרגומים. ספריית ספריא כוללת מקורות
-          בקטגוריות שונות: תנ"ך, תלמוד, משנה, קבלה, תפילה ועוד. יישומון ספריית ספריא מאפשר לכם להעמיק במקורות ללא גבולות
-          זמן ומקום. המקורות כולם מקושרים ביניהם ובכך הלמידה רחבה יותר ועשירה. בנוסף, ניתן להוריד את מרבית הכותרים
-          למכשיר האישי על מנת ללמוד בכל מקום - גם ללא חיבור לאינטרנט.
+          בקטגוריות שונות: תנ&quot;ך, תלמוד, משנה, קבלה, תפילה ועוד. יישומון ספריית ספריא מאפשר לכם להעמיק במקורות ללא
+          גבולות זמן ומקום. המקורות כולם מקושרים ביניהם ובכך הלמידה רחבה יותר ועשירה. בנוסף, ניתן להוריד את מרבית
+          הכותרים למכשיר האישי על מנת ללמוד בכל מקום - גם ללא חיבור לאינטרנט.
         </p>
       </HeBlock>
       <div className="colorLine" />

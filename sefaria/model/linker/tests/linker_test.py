@@ -344,8 +344,8 @@ def test_multiple_ambiguities():
         [crrd(["@Job", "#ix", "#5"], lang="en"), ("Job 9:5",)],
         [crrd(["@Job", "#IV .", "#5"], lang="en"), ("Job 4:5",)],
         [crrd(["@Job", "#xli.", "#5"], lang="en"), ("Job 41:5",)],
-        [crrd(["@Job", "#CIV", "#5"], lang="en"), tuple()],  # too high
-        [crrd(["@Job", "#iiii", "#5"], lang="en"), tuple()],  # invalid roman numeral
+        [crrd(["@Job", "#CIV", "#5"], lang="en"), ()],  # too high
+        [crrd(["@Job", "#iiii", "#5"], lang="en"), ()],  # invalid roman numeral
         # Amud split into two parts
         [crrd(["@בבלי", "@יבמות", "#סא", "#א"]), ("Yevamot 61a",)],
         [crrd(["@תוספות", "@פסחים", "#קו", "#א"]), ("Tosafot on Pesachim 106a",)],  # amud for commentary that has DH
@@ -355,17 +355,17 @@ def test_multiple_ambiguities():
         ],  # amud for commentary that has DH
         [crrd(["@בבלי", "#דף ב", "#עמוד א", "@במכות"]), ("Makkot 2a",)],
         [crrd(["@בבלי", "#עמוד א", "#דף ב", "@במכות"]), ("Makkot 2a",)],  # out of order daf and amud
-        [crrd(["@בבלי", "#דף ב", "#עמוד ג", "@במכות"]), tuple()],
+        [crrd(["@בבלי", "#דף ב", "#עמוד ג", "@במכות"]), ()],
         [crrd(["@בבלי", "#דף ב", "#עמוד א", "^עד", "#עמוד ב", "@במכות"]), ("Makkot 2",)],
         [crrd(["@בבלי", "#דף ב", "#עמוד א", "^עד", "#דף ג", "#עמוד ב", "@במכות"]), ("Makkot 2a-3b",)],
         [crrd(["@שבת", "#א", "#ב"]), ["Mishnah Shabbat 1:2"]],  # shouldn't match Shabbat 2a by reversing order of parts
         [crrd(["@שבת", "#ב", "#א"]), ["Shabbat 2a", "Mishnah Shabbat 2:1"]],  # ambiguous case
         # Parsha -> sections
         [crrd(["@Parshat Vayikra", "#2", "#3"], lang="en"), ("Leviticus 2:3",)],
-        [crrd(["@Parshat Tzav", "#2", "#3"], lang="en"), tuple()],  # validate that sections fall within parsha
+        [crrd(["@Parshat Tzav", "#2", "#3"], lang="en"), ()],  # validate that sections fall within parsha
         pytest.param(
             crrd(["@Parshat Noach", "#6", "#3"], lang="en"),
-            tuple(),
+            (),
             marks=pytest.mark.xfail(reason="currently dont check if pasuk/perek pair fall in parsha, only perek"),
         ),
         # Aliases for perakim
@@ -427,7 +427,7 @@ def test_multiple_ambiguities():
         [crrd(["@JT", "@Peah", "#15c"], lang="en"), ("Jerusalem Talmud Peah 1:1:20-30",)],  # Folio address
         [
             crrd(["@Chapter 1"], lang="en"),
-            tuple(),
+            (),
         ],  # It used to be that Bavli perakim where Chapter N which causes problems for global scope
         # Dibur hamatchils
         [crrd(['@רש"י', "@יום טוב", '*ד"ה שמא יפשע']), ("Rashi on Beitzah 15b:8:1",)],
@@ -477,7 +477,7 @@ def test_multiple_ambiguities():
         [crrd(["@בראשית", "&שם", "#ז"], prev_trefs=["Exodus 1:3", "Genesis 1:3"]), ["Genesis 1:7"]],
         [crrd(["&שם", "#ב", "#ז"], prev_trefs=["Genesis 1"]), ["Genesis 2:7"]],
         [crrd(["#פרק ד"], prev_trefs=["Genesis 1"]), ("Genesis 4",)],
-        [crrd(["#פרק ד"], prev_trefs=["Genesis 1", None]), tuple()],
+        [crrd(["#פרק ד"], prev_trefs=["Genesis 1", None]), ()],
         [crrd(["@תוספות", '*ד"ה והלכתא'], prev_trefs=["Berakhot 27b"]), ("Tosafot on Berakhot 27b:14:2",)],
         [
             crrd(["#דף כ"], "Berakhot 2a", prev_trefs=["Shabbat 2a"]),
@@ -521,24 +521,24 @@ def test_multiple_ambiguities():
             crrd(["@Job"], lang="en", prev_trefs=["Job 1:1"]),
             ("Job",),
         ],  # don't use ibid context if there's a match that uses all input
-        [crrd(["@Mishneh Torah"], lang="en", context_tref="Mishneh Torah, Torah Study 1:1"), tuple()],
+        [crrd(["@Mishneh Torah"], lang="en", context_tref="Mishneh Torah, Torah Study 1:1"), ()],
         [crrd(["#28", "^-", "#30"], lang="en", context_tref="Leviticus 15:13"), ("Leviticus 15:28-30",)],  # ibid range
         [
             crrd(["&ibid", "#30"], lang="en", prev_trefs=["Leviticus 15:13-17"]),
             ("Leviticus 15:30",),
         ],  # range in context ref
-        [crrd(["@Mishneh Torah"], lang="en", context_tref="Mishneh Torah, Torah Study 1:1"), tuple()],
+        [crrd(["@Mishneh Torah"], lang="en", context_tref="Mishneh Torah, Torah Study 1:1"), ()],
         [
             crrd(["#סימן תצ״ג"], lang="he", context_tref="Mishnah Berurah 494:1"),
             ("Mishnah Berurah 493", "Shulchan Arukh, Orach Chayim 493"),
         ],  # use base_titles to infer possible links from book_ref context
         [
             crrd(["#2"], lang="en", context_tref="Genesis"),
-            tuple(),
+            (),
         ],  # single gematria shouldn't be considered a match due to false positives
         [
             crrd(["#13"], lang="en", context_tref="Zevachim 55b:3"),
-            tuple(),
+            (),
         ],  # single gematria that can match talmud perek but shouldn't
         [crrd(["@Yoma", "&ibid"], lang="en", prev_trefs=["Yoma 86"]), ("Yoma 86",)],  # respect the amud-less ibid
         [
@@ -549,7 +549,7 @@ def test_multiple_ambiguities():
             crrd(["#verse 2"], lang="en", context_tref="Rashi on Genesis 1:1:1"),
             ("Rashi on Genesis 1:2", "Genesis 1:2"),
         ],  # ibid that can refer to either commentary or base text
-        [crrd(["@משנה ברורה", "&שם", "#א"]), tuple()],  # no ibid context, shouldn't match MB 340
+        [crrd(["@משנה ברורה", "&שם", "#א"]), ()],  # no ibid context, shouldn't match MB 340
         # Relative (e.g. Lekaman)
         [
             crrd(["@תוס'", "<לקמן", '#ד ע"ב', '*ד"ה דאר"י'], "Gilyon HaShas on Berakhot 2a:2"),
@@ -569,10 +569,10 @@ def test_multiple_ambiguities():
         # Superfluous information
         [crrd(["@Vayikra", "@Leviticus", "#1"], lang="en"), ("Leviticus 1",)],
         [crrd(["@תוספות", "#פרק קמא", "@דברכות", "#דף ב"]), ["Tosafot on Berakhot 2"]],
-        [crrd(['#ובפ"ק', "@דסוטה", "#ה'", "#א'"]), tuple()],  # used to match Mishneh Torah Sotah instead of Bavli
+        [crrd(['#ובפ"ק', "@דסוטה", "#ה'", "#א'"]), ()],  # used to match Mishneh Torah Sotah instead of Bavli
         [
             crrd(['#ובפ"ק', "@דסוטה", "@ה'", "#א'"]),
-            tuple(),
+            (),
         ],  # used to match Mishneh Torah Sotah. Hey is marked as named part so it won't match anything including Bavli
         # Passage nodes
         [crrd(["@משנה", "@ביצה", "#יד:"]), ("Beitzah 14b:4", "Beitzah 14b:12", "Beitzah 14b:9")],
@@ -608,7 +608,7 @@ def test_multiple_ambiguities():
         ],
         [
             crrd(["@Unknown book", "#2"], "Jerusalem Talmud Pesachim 1:1:3", "en"),
-            tuple(),
+            (),
         ],  # make sure title context doesn't match this
         [
             crrd(["@Tosafot", "@Megillah", "#21b", "*s. v . כנגד"], "Jerusalem Talmud Pesachim 1:1:3", "en"),
@@ -620,7 +620,7 @@ def test_multiple_ambiguities():
         ],
         [
             crrd(["@Sifra", "@Saw", "#Parashah 2(9–10"], "Jerusalem Talmud Pesachim 1:1:3", "en"),
-            tuple(),
+            (),
         ],  # if raw ref gets broken into incorrect parts, make sure it handles it correctly
         # gilyon hashas
         [
@@ -810,17 +810,17 @@ def _mock_full_pipeline_ner_response(input_str, expected_pretty_texts, expected_
             "Berakhot 2a",
             "It says in the Talmud, \"Don't steal\" which implies it's bad to steal.",
             "en",
-            tuple(),
-            tuple(),
-            tuple(),
+            (),
+            (),
+            (),
         ],  # Don't match Talmud using Berakhot 2a as ibid context
         [
             None,
             "It says in the Torah, \"Don't steal\" which implies it's bad to steal.",
             "en",
-            tuple(),
-            tuple(),
-            tuple(),
+            (),
+            (),
+            (),
         ],
         [
             None,

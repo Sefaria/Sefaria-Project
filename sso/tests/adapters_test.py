@@ -316,13 +316,13 @@ class SaveUserAtomicityTest(TestCase):
 
     def test_profile_failure_rolls_back_the_django_user(self):
         adapter = SefariaSocialAccountAdapter()
-        with patch.object(
-            SefariaSocialAccountAdapter.__bases__[0], "save_user", side_effect=self._real_super_save_user
+        with (
+            patch.object(SefariaSocialAccountAdapter.__bases__[0], "save_user", side_effect=self._real_super_save_user),
+            patch("sso.adapters.UserProfile") as mock_profile_cls,
         ):
-            with patch("sso.adapters.UserProfile") as mock_profile_cls:
-                mock_profile_cls.return_value.assign_slug.side_effect = Exception("mongo is down")
-                with self.assertRaisesMessage(Exception, "mongo is down"):
-                    adapter.save_user(MagicMock(), MagicMock(spec=SocialLogin))
+            mock_profile_cls.return_value.assign_slug.side_effect = Exception("mongo is down")
+            with self.assertRaisesMessage(Exception, "mongo is down"):
+                adapter.save_user(MagicMock(), MagicMock(spec=SocialLogin))
 
         self.assertFalse(User.objects.filter(email="atomic@test.com").exists())
         self.assertFalse(SocialAccount.objects.filter(uid="uid-atomic-1").exists())

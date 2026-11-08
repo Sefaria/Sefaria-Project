@@ -357,7 +357,7 @@ const SubCategoryToggle = ({ categories, setCategories }) => {
     let oClasses = classNames({ navToggle: 1, active: categories[1] === element });
     let toggleFunc = () => setCategories([categories[0], element]); //this may need some adjustment if there ever was another toggle not at dpeth 2
     return (
-      <span className={oClasses} onClick={toggleFunc}>
+      <span key={index} className={oClasses} onClick={toggleFunc}>
         <ContentText text={toggleEnableMap[categories[0]]['subCategoriesDisplay'][index]} />
       </span>
     );

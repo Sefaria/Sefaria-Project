@@ -909,7 +909,10 @@ class NearDuplicateIndex:
 
     def __init__(self, num_perm=NUM_PERM, bands=LSH_BANDS, threshold=NEAR_DUP_THRESHOLD):
         rng = np.random.default_rng(0)
-        odd = lambda size: rng.integers(1, 2**63, size=size, dtype=np.uint64) | np.uint64(1)
+
+        def odd(size):
+            return rng.integers(1, 2**63, size=size, dtype=np.uint64) | np.uint64(1)
+
         self.shingle_multipliers = odd(SHINGLE_SIZE)
         self.multipliers = odd(num_perm)
         self.offsets = rng.integers(0, 2**63, size=num_perm, dtype=np.uint64)

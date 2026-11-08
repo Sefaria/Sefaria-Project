@@ -46,7 +46,9 @@ def narrow_search_by_orig_word(text_rows, orig_word):
 
 
 def narrow_search_by_word_existence(text_rows, keywords):
-    kwfilter = lambda w: any(x in w[1] for x in keywords)
+    def kwfilter(w):
+        return any(x in w[1] for x in keywords)
+
     return list(filter(kwfilter, text_rows))
 
 

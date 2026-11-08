@@ -41,7 +41,7 @@ def test_catch_error():
 
 def test_pass_exception():
     with pytest.raises(Exception):
-        r = call_exception()
+        call_exception()
 
 
 ### Test Decorator for Webhook Auth ###

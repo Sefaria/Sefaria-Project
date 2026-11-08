@@ -141,7 +141,7 @@ class AboutBox extends Component {
         for (let lang of ['en', 'he']) {
           const authorArray = d.authors.filter((elem) => !!elem[lang]);
           authorsElems[lang] = authorArray.map((author, iauthor) => (
-            <span>
+            <span key={iauthor}>
               {iauthor > 0 ? ', ' : ''}
               <a key={author.slug} href={`/topics/${author.slug}`}>
                 {author[lang]}

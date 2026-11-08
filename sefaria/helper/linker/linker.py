@@ -1,6 +1,6 @@
 import dataclasses
 import json
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import structlog
 from cerberus import Validator

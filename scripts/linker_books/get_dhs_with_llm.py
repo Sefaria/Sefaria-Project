@@ -4,7 +4,7 @@ import csv
 import json
 from collections import Counter
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 from langchain.globals import set_llm_cache
 from langchain_community.cache import SQLiteCache
@@ -21,7 +21,7 @@ set_llm_cache(SQLiteCache(database_path=".langchain.db"))
 # ---------------- Pydantic validation models ----------------
 
 
-class Delimiter(str, Enum):
+class Delimiter(str, Enum):  # noqa: UP042 -- StrEnum would change str()/format() output
     NO_DELIM = "no delimiter"
     BOLD = "bold"
     DASH = "dash"

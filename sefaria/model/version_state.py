@@ -120,7 +120,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
 
     def _load_versions(self):
         for lang in self.langs:
-            self._versions[lang] = [v for v in VersionSet({"title": self.index.title, "language": lang})]
+            self._versions[lang] = list(VersionSet({"title": self.index.title, "language": lang}))
 
     def versions(self, lang):
         if not self._versions.get(lang):
@@ -195,10 +195,10 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         for lkey in self.lang_keys:
             contents[lkey] = {
                 "percentAvailable": sum([contents[ckey][lkey]["percentAvailable"] for ckey in ckeys]) / len(ckeys),
-                "textComplete": all([contents[ckey][lkey]["textComplete"] for ckey in ckeys]),
+                "textComplete": all(contents[ckey][lkey]["textComplete"] for ckey in ckeys),
                 "completenessPercent": sum([contents[ckey][lkey]["completenessPercent"] for ckey in ckeys])
                 / len(ckeys),
-                "percentAvailableInvalid": any([contents[ckey][lkey]["percentAvailableInvalid"] for ckey in ckeys]),
+                "percentAvailableInvalid": any(contents[ckey][lkey]["percentAvailableInvalid"] for ckey in ckeys),
             }
 
     # TODO: do we want to use an object here?
@@ -302,7 +302,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         return float(result["full"]) / result["total"] * 100
 
     @classmethod
-    def _rec_calc_text_structure_completeness(cls, depth, text, result):
+    def _rec_calc_text_structure_completeness(cls, depth, text, result):  # noqa: F811 -- `text` param intentionally shadows the module import (kept for load order)
         """
         Recursive sub-utility function of the above function. Carries out the actual calculation recursively.
         :param depth: the depth of the current structure

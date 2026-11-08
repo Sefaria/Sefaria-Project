@@ -82,17 +82,17 @@ def main():
             email_sefaria = profile.email if profile.id else "No Sefaria Profile"
 
             csv_writer.writerow(
-                dict(
-                    id=profile.id,
-                    nationbuilder_id=row["nationbuilder_id"],
-                    email_nb=row["email"],
-                    email_sefaria=email_sefaria,
-                    tag_list=row["tag_list"],
-                    nationbuilder_id_in_mongo=nb_id_mongo,
-                    email_in_mongo=email_sefaria,
-                    deleted_status=status,
-                    dry_run=dry_run,
-                )
+                {
+                    "id": profile.id,
+                    "nationbuilder_id": row["nationbuilder_id"],
+                    "email_nb": row["email"],
+                    "email_sefaria": email_sefaria,
+                    "tag_list": row["tag_list"],
+                    "nationbuilder_id_in_mongo": nb_id_mongo,
+                    "email_in_mongo": email_sefaria,
+                    "deleted_status": status,
+                    "dry_run": dry_run,
+                }
             )
             if not dry_run:
                 if profile.id and mongo_profile:

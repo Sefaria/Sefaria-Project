@@ -1,3 +1,4 @@
+/* global setImmediate */
 /**
  * Sefaria.search.execute_query error plumbing.
  *

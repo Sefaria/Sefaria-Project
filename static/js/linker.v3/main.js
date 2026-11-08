@@ -606,9 +606,7 @@ import pRetry, { AbortError } from 'p-retry';
     ns.versionPreferencesByCorpus = options.versionPreferencesByCorpus;
     ns.maxParagraphs = 20;
     // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
-    if (options.debug || true) {
-      removeExistingSefariaLinks();
-    }
+    removeExistingSefariaLinks();
     ns.mode = getMode(options);
     ns.popupManager = new PopupManager({ mode: ns.mode, reportCitation, ...options });
     ns.popupManager.setupPopup();

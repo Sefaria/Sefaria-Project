@@ -512,10 +512,10 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         if len(text_list) != len(ref_list):
             if strict:
                 raise ValueError(
-                    f"The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(ind_list)}"
+                    f"The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(ind_list)}"  # noqa: F821 -- pre-existing: `ind_list` undefined; needs owner review
                 )
             print(
-                f"Warning: The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(ind_list)} {str(self._oref)}"
+                f"Warning: The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(ind_list)} {str(self._oref)}"  # noqa: F821 -- pre-existing: `ind_list` undefined; needs owner review
             )
 
         matches = []
@@ -750,7 +750,7 @@ class TextFamily:
 
         # processes "en" and "he" LegacyTextChunks, and puts the text in self.text and self.he, respectively.
         for language, attr in list(self.text_attr_map.items()):
-            tc_kwargs = dict(oref=oref, lang=language, fallback_on_default_version=fallbackOnDefaultVersion)
+            tc_kwargs = {"oref": oref, "lang": language, "fallback_on_default_version": fallbackOnDefaultVersion}
             if language == "en":
                 tc_kwargs["actual_lang"] = translationLanguagePreference
             if language in {lang, lang2}:

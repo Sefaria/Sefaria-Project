@@ -178,7 +178,7 @@ class TestResponses:
         """Redis down → 503 → sender retries, so nothing is lost."""
 
         def failing_enqueue(event):
-            raise EventCouldNotBeEnqueued()
+            raise EventCouldNotBeEnqueued
 
         monkeypatch.setattr(views, "enqueue_event_for_processing", failing_enqueue)
         response = post_salesforce()

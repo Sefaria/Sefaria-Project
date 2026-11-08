@@ -69,7 +69,7 @@ def attach_branch(new_node, parent_node, place=0):
     index = parent_node.index
 
     # Add node to versions & commentary versions
-    vs = [v for v in index.versionSet()]
+    vs = list(index.versionSet())
     for v in vs:
         pc = v.content_node(parent_node)
         pc[new_node.key] = new_node.create_skeleton()
@@ -106,7 +106,7 @@ def remove_branch(node, handle_dependencies=True):
     node.ref().linkset().delete()
     # TODO: commentary linkset
 
-    vs = [v for v in index.versionSet()]
+    vs = list(index.versionSet())
     for v in vs:
         assert isinstance(v, Version)
         pc = v.content_node(parent)
@@ -160,7 +160,7 @@ def merge_default_into_parent(parent_node):
     index = parent_node.index
 
     # Repair all versions
-    vs = [v for v in index.versionSet()]
+    vs = list(index.versionSet())
     for v in vs:
         assert isinstance(v, Version)
         if is_root:
@@ -201,7 +201,7 @@ def convert_jagged_array_to_schema_with_default(ja_node):
     assert isinstance(parent, SchemaNode)
     index = ja_node.index
 
-    vs = [v for v in index.versionSet()]
+    vs = list(index.versionSet())
     for v in vs:
         assert isinstance(v, Version)
         old_parent_content = v.content_node(parent)
@@ -246,7 +246,7 @@ def convert_simple_index_to_complex(index):
     assert isinstance(ja_node, JaggedArrayNode)
 
     # Repair all version
-    vs = [v for v in index.versionSet()]
+    vs = list(index.versionSet())
     for v in vs:
         assert isinstance(v, Version)
         v.chapter = {"default": v.chapter}
@@ -277,7 +277,7 @@ def prepare_ja_for_children(ja):
     the content_node corresponding to the JA in each Version will be an empty array. We need this to a dict so we can add children.
     """
     assert isinstance(ja, JaggedArrayNode)
-    vs = [v for v in ja.index.versionSet()]
+    vs = list(ja.index.versionSet())
     for v in vs:
         assert isinstance(v, Version)
         content_node = v.content_node(ja)
@@ -308,9 +308,9 @@ def change_parent(node, new_parent, place=0, exact_match=False):
     index = new_parent.index
 
     old_normal_form = node.ref().normal()
-    linkset = [l for l in node.ref().linkset()]
+    linkset = list(node.ref().linkset())
 
-    vs = [v for v in index.versionSet()]
+    vs = list(index.versionSet())
     for v in vs:
         assert isinstance(v, Version)
         old_parent_content = v.content_node(old_parent)
@@ -538,7 +538,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     # ensure the index on the ja_node object is updated with the library refresh
     ja_node.index = library.get_index(ja_node.index.title)
 
-    vs = [v for v in index.versionSet()]
+    vs = list(index.versionSet())
     print("Updating Versions")
     for v in vs:
         assert isinstance(v, Version)
@@ -1155,8 +1155,13 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword, rebuild_
         node_ref = get_dictionary_node(index.nodes).ref().normal()
         ref = f"{node_ref}, {old_headword}"
         old_ref_reg = rf"^{re.escape(ref)} ?\d*$"
-        rewriter = lambda x: x.replace(old_headword, new_headword)
-        needs_rewrite = lambda x, *args: bool(re.search(old_ref_reg, x))
+
+        def rewriter(x):
+            return x.replace(old_headword, new_headword)
+
+        def needs_rewrite(x, *args):
+            return bool(re.search(old_ref_reg, x))
+
         cascade(index.title, rewriter, needs_rewrite)
 
     # word forms

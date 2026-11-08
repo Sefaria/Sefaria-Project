@@ -53,8 +53,8 @@ const HELP_CONTENT = (
             <strong>Index Title Pattern</strong>
           </td>
           <td>
-            Matches against the text name (e.g., "Genesis", "Mishnah Berakhot"). Partial matches work - "Genesis"
-            matches "Genesis", "Genesis Rabbah", etc.
+            Matches against the text name (e.g., &quot;Genesis&quot;, &quot;Mishnah Berakhot&quot;). Partial matches
+            work - &quot;Genesis&quot; matches &quot;Genesis&quot;, &quot;Genesis Rabbah&quot;, etc.
           </td>
         </tr>
         <tr>
@@ -62,8 +62,8 @@ const HELP_CONTENT = (
             <strong>Version Title Pattern</strong>
           </td>
           <td>
-            Matches against the version title (e.g., "William Davidson Edition", "Tanakh: The Holy Scriptures"). Use
-            this to export specific translations.
+            Matches against the version title (e.g., &quot;William Davidson Edition&quot;, &quot;Tanakh: The Holy
+            Scriptures&quot;). Use this to export specific translations.
           </td>
         </tr>
       </tbody>

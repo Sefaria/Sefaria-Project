@@ -214,7 +214,7 @@ def setup_module():
     index.save()
 
     # add some text
-    v = Version(
+    Version(
         {
             "language": "en",
             "title": "Delete Me",
@@ -225,7 +225,7 @@ def setup_module():
     ).save()
 
     # an empty version
-    v = Version(
+    Version(
         {
             "language": "en",
             "title": "Delete Me",
@@ -426,11 +426,11 @@ def test_change_node_title():
     schema.change_node_title(node, "Partone", "en", "Part One")
     node = library.get_index("Delete Me").nodes.children[0]
     assert len(node.get_titles_object()) == 3
-    assert any([title["text"] == "Part One" for title in node.get_titles_object()])
+    assert any(title["text"] == "Part One" for title in node.get_titles_object())
 
     schema.change_node_title(node, "Part One", "en", "Partone")
     assert len(node.get_titles_object()) == 3
-    assert any([title["text"] == "Partone" for title in node.get_titles_object()])
+    assert any(title["text"] == "Partone" for title in node.get_titles_object())
 
     sheet_refs = get_sheet_refs(TEST_SHEET_ID)
     assert any("Delete Me, Part1" in s for s in sheet_refs)

@@ -283,7 +283,7 @@ class Parser:
         for record in self.records:
             wp = WebPage().load({"url": record.url})
             if wp:
-                refs = {ref for ref in list(record.refs) + wp.refs}
+                refs = set(list(record.refs) + wp.refs)
                 wp.refs = [ref for ref in refs if not any(Ref(ref).contains(Ref(r)) for r in refs - {ref})]
                 for attr in ["url", "title", "description", "authors", "articleSource"]:
                     setattr(wp, attr, getattr(record, attr))

@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from ne_span import RefPartType
 
 from sefaria.model.linker.ref_part import RawRefPart
@@ -18,6 +20,9 @@ from sefaria.model.linker.resolved_ref_refiner import (
     ResolvedRefRefinerForPassage,
     ResolvedRefRefinerForRangedPart,
 )
+
+if TYPE_CHECKING:
+    from sefaria.model.linker.ref_resolver import ResolvedRef
 
 
 class ResolvedRefRefinerFactoryKey:

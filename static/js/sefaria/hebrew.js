@@ -119,7 +119,7 @@ class Hebrew {
   static encodeHebrewNumeral(n, punctuation = true) {
     n = parseInt(n);
     if (n >= 1300) {
-      return this.encodeLargeHebrewNumeral(n, (punctuation = punctuation));
+      return this.encodeLargeHebrewNumeral(n, punctuation);
     }
 
     const values = this.hebrewNumerals;

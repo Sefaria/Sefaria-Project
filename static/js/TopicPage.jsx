@@ -871,6 +871,7 @@ const TopicPageTabView = ({
     let tabs = [];
     for (let tabObj of allPossibleTabsWithSources) {
       const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
+      // eslint-disable-next-line react-hooks/rules-of-hooks -- allPossibleTabsWithSources is a fixed-length list, so hook order is stable
       useIncrementalLoad(
         tabObj.fetcher,
         refsToFetchByTab[key] || false,
@@ -1330,7 +1331,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
       {parashaData.haftarah ? (
         <div className="haftarot">
           {parashaData.haftarah.map((h) => (
-            <div className="navSidebarLink ref serif">
+            <div key={h.url} className="navSidebarLink ref serif">
               <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._('common.book_icon')} />
               <a
                 href={Sefaria.util.fullURL('/' + h.url, Sefaria.LIBRARY_MODULE)}

@@ -9,7 +9,7 @@ from dataclasses import asdict
 from datetime import datetime, timedelta
 from functools import wraps
 from random import choice
-from typing import Any, List, Optional, Union
+from typing import Any, Optional, Union
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import bleach
@@ -252,7 +252,7 @@ def process_register_form(request, auth_method="session"):
     token_dict = None
     if form.is_valid():
         with transaction.atomic():
-            new_user = form.save()
+            form.save()
             user = authenticate(email=form.cleaned_data["email"], password=form.cleaned_data["password1"])
             p = UserProfile(id=user.id, user_registration=True)
             p.assign_slug()
@@ -786,10 +786,13 @@ def bulktext_api(request, refs):
     if request.method == "GET":
         cb = request.GET.get("callback", None)
         refs = set(refs.split("|"))
-        g = lambda x: request.GET.get(x, None)
+
+        def g(x):
+            return request.GET.get(x, None)
+
         min_char = int(g("minChar")) if g("minChar") else None
         max_char = int(g("maxChar")) if g("maxChar") else None
-        use_text_family = True if g("useTextFamily") == "1" else False
+        use_text_family = g("useTextFamily") == "1"
         res = bundle_many_texts(
             refs, use_text_family, g("asSizedString"), min_char, max_char, g("transLangPref"), g("ven"), g("vhe")
         )
@@ -971,10 +974,10 @@ def reset_cached_api(request, apiurl):
 
     except Resolver404:
         logger.warn("Attempted to reset invalid url")
-        raise Http404()
+        raise Http404
     except Exception:
         logger.warn(f"Unable to reset cache for {apiurl}")
-        raise Http404()
+        raise Http404
 
 
 @staff_member_required
@@ -1200,10 +1203,9 @@ def cause_error(request):
     resp = {}
     logger.error("This is a simple error")
     try:
-        erorr = excepting
+        pass
     except Exception:
         logger.exception("An Exception has ocurred in the code")
-    erorr = error
     return jsonResponse(resp)
 
 
@@ -2360,7 +2362,7 @@ def links_upload_api(request):
 
 def get_csv_links_by_refs_api(request, tref1, tref2, by_segment=False):
     try:
-        file = get_csv_links_by_refs([tref1, tref2], by_segment=by_segment, **{k: v for k, v in request.GET.items()})
+        file = get_csv_links_by_refs([tref1, tref2], by_segment=by_segment, **dict(request.GET.items()))
     except Exception as e:
         return HttpResponseBadRequest(e)
     response = HttpResponse(file, content_type="text/csv; charset=utf-8")

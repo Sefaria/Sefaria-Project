@@ -31,14 +31,14 @@ const HELP_CONTENT = (
   <>
     <h3>What This Tool Does</h3>
     <p>
-      This tool edits <strong>Version metadata</strong> across multiple texts simultaneously. A "Version" in Sefaria
-      represents a specific translation or edition of a text (e.g., "Kehati" commentary on Mishnah, or "JPS 1917"
-      translation of Tanakh).
+      This tool edits <strong>Version metadata</strong> across multiple texts simultaneously. A &quot;Version&quot; in
+      Sefaria represents a specific translation or edition of a text (e.g., &quot;Kehati&quot; commentary on Mishnah, or
+      &quot;JPS 1917&quot; translation of Tanakh).
     </p>
     <p>
       Use this tool when you need to update the same metadata fields across many versions that share a common version
-      title. For example, updating the license information for all "Kehati" versions, or adding source URLs for all
-      "Torat Emet 357" texts.
+      title. For example, updating the license information for all &quot;Kehati&quot; versions, or adding source URLs
+      for all &quot;Torat Emet 357&quot; texts.
     </p>
 
     <h3>How It Works</h3>
@@ -54,7 +54,7 @@ const HELP_CONTENT = (
         <strong>Edit:</strong> Fill in only the fields you want to change. Empty fields are ignored.
       </li>
       <li>
-        <strong>Save:</strong> Click "Update" to apply changes to all selected versions.
+        <strong>Save:</strong> Click &quot;Update&quot; to apply changes to all selected versions.
       </li>
     </ol>
 
@@ -87,13 +87,13 @@ const HELP_CONTENT = (
           <td>
             <code>license</code>
           </td>
-          <td>Copyright/license type (e.g., "Public Domain", "CC-BY")</td>
+          <td>Copyright/license type (e.g., &quot;Public Domain&quot;, &quot;CC-BY&quot;)</td>
         </tr>
         <tr>
           <td>
             <code>status</code>
           </td>
-          <td>"locked" prevents non-staff from editing; empty/unset allows edits</td>
+          <td>&quot;locked&quot; prevents non-staff from editing; empty/unset allows edits</td>
         </tr>
         <tr>
           <td>
@@ -123,7 +123,7 @@ const HELP_CONTENT = (
           <td>
             <code>direction</code>
           </td>
-          <td>Text direction: "rtl" or "ltr"</td>
+          <td>Text direction: &quot;rtl&quot; or &quot;ltr&quot;</td>
         </tr>
         <tr>
           <td>
@@ -154,8 +154,8 @@ const HELP_CONTENT = (
 
     <h3>Clearing Fields</h3>
     <p>
-      Each field has a "Clear this field" checkbox below it. When checked, that field will be completely removed from
-      all selected versions (not set to empty string).
+      Each field has a &quot;Clear this field&quot; checkbox below it. When checked, that field will be completely
+      removed from all selected versions (not set to empty string).
     </p>
     <p>
       <strong>Use this when:</strong> You want to remove a field entirely from multiple versions. For example, removing
@@ -168,9 +168,9 @@ const HELP_CONTENT = (
 
     <h3>Delete Versions</h3>
     <p>
-      The "Delete Versions" button <strong>permanently deletes</strong> the selected versions from the database. The
-      underlying text content, version metadata, and associated records (notifications, search index entries, etc.) are
-      all removed. <strong>This action cannot be undone.</strong>
+      The &quot;Delete Versions&quot; button <strong>permanently deletes</strong> the selected versions from the
+      database. The underlying text content, version metadata, and associated records (notifications, search index
+      entries, etc.) are all removed. <strong>This action cannot be undone.</strong>
     </p>
     <p>
       To protect against accidental deletion, a confirmation dialog requires you to retype the exact version title
@@ -181,12 +181,12 @@ const HELP_CONTENT = (
       <strong>Important Notes:</strong>
       <ul>
         <li>
-          Version titles are <strong>case-sensitive</strong>. "Kehati" and "kehati" are different.
+          Version titles are <strong>case-sensitive</strong>. &quot;Kehati&quot; and &quot;kehati&quot; are different.
         </li>
         <li>URL fields are validated. Invalid URLs will prevent saving.</li>
         <li>Clearing a field removes it entirely from the database (not set to empty string).</li>
         <li>
-          Setting <code>status: "locked"</code> prevents non-staff users from editing the version.
+          Setting <code>status: &quot;locked&quot;</code> prevents non-staff users from editing the version.
         </li>
         <li>Changes are applied immediately to production data. There is no undo.</li>
       </ul>
@@ -194,7 +194,7 @@ const HELP_CONTENT = (
 
     <h3>Common Use Cases</h3>
     <ul>
-      <li>Adding license information to a publisher's versions</li>
+      <li>Adding license information to a publisher&apos;s versions</li>
       <li>Setting source URLs for versions missing attribution</li>
       <li>Deleting outdated or duplicate versions in bulk</li>
       <li>Updating priority to control which version displays first</li>
@@ -702,7 +702,7 @@ const BulkVersionEditor = () => {
 
         {isRequired ? (
           <div className="clearFieldOption requiredFieldNote">
-            This field is required on every Version and cannot be cleared. However, you don't need to specify a new
+            This field is required on every Version and cannot be cleared. However, you don&apos;t need to specify a new
             value.
           </div>
         ) : (
@@ -805,9 +805,9 @@ const BulkVersionEditor = () => {
       {/* No results message */}
       {searched && !loading && indices.length === 0 && (
         <div className="noResults">
-          <strong>No texts found with version "{vtitle}"</strong>
-          Please verify the exact version title. Version titles are case-sensitive and must match exactly (e.g., "Torat
-          Emet 357" not "torat emet").
+          <strong>No texts found with version &quot;{vtitle}&quot;</strong>
+          Please verify the exact version title. Version titles are case-sensitive and must match exactly (e.g.,
+          &quot;Torat Emet 357&quot; not &quot;torat emet&quot;).
         </div>
       )}
 
@@ -837,7 +837,7 @@ const BulkVersionEditor = () => {
               <ul>
                 {Object.entries(updates).map(([k, v]) => (
                   <li key={k}>
-                    <strong>{VERSION_FIELD_METADATA[k]?.label || k}:</strong> "{v}"
+                    <strong>{VERSION_FIELD_METADATA[k]?.label || k}:</strong> &quot;{v}&quot;
                   </li>
                 ))}
                 {Array.from(fieldsToClear).map((field) => (

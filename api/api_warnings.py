@@ -2,7 +2,6 @@ import django
 
 django.setup()
 from enum import Enum
-from typing import List
 
 from sefaria.model import *
 

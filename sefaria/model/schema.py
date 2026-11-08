@@ -1,7 +1,7 @@
 import copy
 import dataclasses
 from functools import reduce
-from typing import List, Optional
+from typing import Optional
 
 import re2 as re
 import structlog
@@ -148,7 +148,7 @@ class TitleGroup:
             "both" - this node is addressable both in a combined and a alone form.
         :return: the object
         """
-        if any([t for t in self.titles if t["text"] == text and t["lang"] == lang]):  # already there
+        if any(t for t in self.titles if t["text"] == text and t["lang"] == lang):  # already there
             if not replace_primary:
                 return None
             # update this title as primary: remove it, then re-add below
@@ -161,7 +161,7 @@ class TitleGroup:
         if presentation == "alone" or presentation == "both":
             d["presentation"] = presentation
 
-        has_primary = any([x for x in self.titles if x["lang"] == lang and x.get("primary")])
+        has_primary = any(x for x in self.titles if x["lang"] == lang and x.get("primary"))
         if has_primary and primary:
             if not replace_primary:
                 raise IndexSchemaError(f"Node {self.primary_title()} already has a primary title.")
@@ -341,7 +341,7 @@ class NonUniqueTerm(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         return f"non_unique_term:{slug}"
 
     @classmethod
-    def init(cls, slug: str, slug_field_idx: int = None) -> "AbstractMongoRecord":
+    def init(cls, slug: str, slug_field_idx: int = None) -> "abst.AbstractMongoRecord":
         """
         Checks this slug's GenCache counter before the cached `.init()`, so a peer's edit
         drops the stale cached term the next time this slug is looked up.
@@ -811,7 +811,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
         return self.default
 
     def has_default_child(self):
-        return any([c for c in self.children if c.is_default()])
+        return any(c for c in self.children if c.is_default())
 
     def get_default_child(self):
         for child in self.children:
@@ -828,7 +828,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
         """
         :return: True if any normal forms of this node continue with a title.  Used in regex building.
         """
-        return any([c for c in self.children if not c.is_default()])
+        return any(c for c in self.children if not c.is_default())
 
     def has_numeric_continuation(self):
         """
@@ -896,7 +896,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
             raise IndexSchemaError(f"Schema node {self} with sharedTitle can not have explicit titles")
 
         # disable this check while data is still not conforming to validation
-        if not self.sharedTitle and False:
+        if False:
             special_book_cases = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Judges"]
             for title in self.title_group.titles:
                 title = title["text"]
@@ -1225,7 +1225,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 from . import text
 
                 refs = text.Ref(self.wholeRef).split_spanning_ref()
-                first, last = refs[0], refs[-1]
+                first, _last = refs[0], refs[-1]
                 offset = first.sections[-2] - 1 if first.is_segment_level() else first.sections[-1] - 1
 
                 d["refs"] = [r.normal() for r in refs]
@@ -1567,7 +1567,7 @@ class SchemaNode(TitledTreeNode):
 
         # If all my children are empty nodes, I am an empty node. Since I am the root of an empty tree, I add myself
         # to the list of empty nodes instead of my children
-        if all([result[0] for result in children_results]):
+        if all(result[0] for result in children_results):
             return True, [self]
         return False, reduce(lambda x, y: x + y, [result[1] for result in children_results])
 
@@ -1657,7 +1657,7 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
         index_offsets_by_depth = copy.deepcopy(getattr(self, "index_offsets_by_depth", {}))
         if index_offsets_by_depth and sections:
             if not depths:
-                depths = sorted([int(x) for x in index_offsets_by_depth.keys()])
+                depths = sorted([int(x) for x in index_offsets_by_depth])
             for depth in depths:
                 if depth == 1:
                     continue
@@ -2479,7 +2479,7 @@ class AddressTalmud(AddressType):
                 ref.toSections[-1] -= 1
 
     def _core_regex(self, lang, group_id=None, **kwargs):
-        if group_id and kwargs.get("for_js", False) == False:
+        if group_id and kwargs.get("for_js", False) is False:
             reg = r"(?P<" + group_id + r">"
         else:
             reg = r"("

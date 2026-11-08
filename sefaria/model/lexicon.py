@@ -683,7 +683,9 @@ class KrupnikEntry(DictionaryEntry):
         return f"<small>{pos}</small>"
 
     def format_headword(self, hw, is_primary):
-        getter = lambda x, y: getattr(x, y, None) if is_primary else x.get(y)
+        def getter(x, y):
+            return getattr(x, y, None) if is_primary else x.get(y)
+
         hw_string = ""
         attrs_to_funcs_map = {
             "headword" if is_primary else "word": lambda x: re.sub("[²³⁴]", "", x),
@@ -789,7 +791,7 @@ class LexiconEntrySubClassMapping:
 class LexiconEntrySet(abst.AbstractMongoSet):
     recordClass = LexiconEntry
 
-    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None, primary_tuples=None):
+    def __init__(self, query=None, page=0, limit=0, sort=(("_id", 1),), proj=None, hint=None, primary_tuples=None):
         super().__init__(query, page, limit, sort, proj, hint)
         self._primary_tuples = primary_tuples
 
@@ -876,9 +878,6 @@ class LexiconLookupAggregator:
             results += ngram_results
         if len(results):
             primary_tuples = set()
-            query = (
-                set()
-            )  # TODO: optimize number of word form lookups? there can be a lot of duplicates... is it needed?
             for r in results:
                 # extract the lookups with "primary" field so it can be used for sorting lookup in the LexiconEntrySet,
                 # but also delete it, because its not part of the query obj

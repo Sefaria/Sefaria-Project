@@ -116,7 +116,7 @@ const SourceEditor = ({ topic, close, origData = {} }) => {
         updateData={updateData}
         isNew={isNew}
         extras={[
-          <div>
+          <div key="source-ref">
             <label>
               <InterfaceText>source_editor.enter_source_ref_for_example_yevamot_62b_9</InterfaceText>
             </label>

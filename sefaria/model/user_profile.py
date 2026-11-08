@@ -606,11 +606,11 @@ class UserProfile:
         if any(k in obj and (obj[k] or "") != (getattr(self, k, None) or "") for k in self.public_data_fields):
             self._public_data_updated = True
 
-        if "reading_history" in self.settings and self.settings["reading_history"] == True:
+        if "reading_history" in self.settings and self.settings["reading_history"] is True:
             if (
                 "settings" in obj
                 and "reading_history" in obj["settings"]
-                and obj["settings"]["reading_history"] == False
+                and obj["settings"]["reading_history"] is False
             ):
                 self._process_remove_history = True
 
@@ -959,7 +959,6 @@ class UserProfile:
             "full_name": self.full_name,
             "followers": self.followers.uids,
             "followees": self.followees.uids,
-            "profile_pic_url": self.profile_pic_url,
             "jewish_education": self.jewish_education,
             "bio": self.bio,
             "website": self.website,
@@ -1161,7 +1160,7 @@ def is_user_staff(uid):
     """
     Returns True if the user with uid is staff.
     """
-    data = public_user_data(uid)  # needed?
+    public_user_data(uid)  # needed?
     try:
         uid = int(uid)
         user = User.objects.get(id=uid)

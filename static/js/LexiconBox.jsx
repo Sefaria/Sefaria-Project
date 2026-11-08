@@ -246,7 +246,7 @@ class LexiconEntry extends Component {
             const ahw = <span dir="rtl">{alt['word']}</span>;
             const aocc = 'occurrences' in alt ? <sub>{alt['occurrences']}</sub> : '';
             return (
-              <span>
+              <span key={alt['word']}>
                 , {ahw}
                 {aocc}
               </span>
@@ -336,7 +336,7 @@ class LexiconEntry extends Component {
     const sensesElems = content.senses
       ? content.senses.map((sense, i) => {
           return (
-            <div>
+            <div key={i}>
               {i == 0 && pre}
               {i == 0 && (
                 <b>

@@ -1,7 +1,7 @@
 import re
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 from sefaria_llm_interface import Topic as LLMTopic
 from sefaria_llm_interface.topic_prompt import (

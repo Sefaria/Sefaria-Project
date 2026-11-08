@@ -399,7 +399,7 @@ class TextTableOfContents extends Component {
     }
   }
   getDefaultActiveTab(indexDetails) {
-    return 'default_struct' in indexDetails && indexDetails.default_struct in indexDetails?.alts
+    return 'default_struct' in indexDetails && indexDetails.default_struct in (indexDetails?.alts ?? {})
       ? indexDetails.default_struct
       : 'schema';
   }
@@ -440,14 +440,14 @@ class TextTableOfContents extends Component {
       structTabOptions.push({
         name: 'schema',
         text:
-          'sectionNames' in this.state.indexDetails?.schema
+          'sectionNames' in (this.state.indexDetails?.schema ?? {})
             ? this.state.indexDetails.schema.sectionNames[0]
             : Sefaria._('common.contents'),
         onPress: this.setTab.bind(null, 'schema'),
       });
     }
     for (let alt in alts) {
-      if (alts.hasOwnProperty(alt) && !excludedStructs.includes(alt)) {
+      if (Object.prototype.hasOwnProperty.call(alts, alt) && !excludedStructs.includes(alt)) {
         structTabOptions.push({
           name: alt,
           text: alt,
@@ -1166,10 +1166,10 @@ const SectionTypesBox = function ({ sections, canEdit, updateParent }) {
     <div id="sBox" ref={box}>
       {sections.map(function (section, i) {
         if (i === 0) {
-          return <input onChange={updateSelfAndParent} className={'sectionType'} defaultValue={section} />;
+          return <input key={i} onChange={updateSelfAndParent} className={'sectionType'} defaultValue={section} />;
         } else if (canEdit) {
           return (
-            <span>
+            <span key={i}>
               <input onChange={updateSelfAndParent} className={'sectionType'} defaultValue={section} />
               <span className="remove" onClick={(i) => remove(i)}>
                 X
@@ -1177,7 +1177,7 @@ const SectionTypesBox = function ({ sections, canEdit, updateParent }) {
             </span>
           );
         } else {
-          return <input onChange={updateSelfAndParent} className={'sectionType'} defaultValue={section} />;
+          return <input key={i} onChange={updateSelfAndParent} className={'sectionType'} defaultValue={section} />;
         }
       })}
       {canEdit ? (
@@ -1251,7 +1251,7 @@ const EditTextInfo = function ({ initTitle, close }) {
       return false;
     }
 
-    if (/[.\-\\\/]/.test(enTitle)) {
+    if (/[.\-\\/]/.test(enTitle)) {
       alert('Text titles may not contain periods, hyphens or slashes.');
       return false;
     }
@@ -1269,7 +1269,7 @@ const EditTextInfo = function ({ initTitle, close }) {
     }
 
     for (let i = 0; i < categories.length; i++) {
-      if (/[.\-\\\/]/.test(categories[i])) {
+      if (/[.\-\\/]/.test(categories[i])) {
         alert('Categories may not contain periods, hyphens or slashes.');
         return false;
       }
@@ -1490,9 +1490,9 @@ const EditTextInfo = function ({ initTitle, close }) {
           <label>
             <div className="optional">
               <InterfaceText>
-                Optional. For example, for "Rashi on Genesis", the English Collective Title is "Rashi". You should
-                create a new collective title if the collective title has never been created before and is not used by
-                any texts in our system.)
+                Optional. For example, for &quot;Rashi on Genesis&quot;, the English Collective Title is
+                &quot;Rashi&quot;. You should create a new collective title if the collective title has never been
+                created before and is not used by any texts in our system.)
               </InterfaceText>
             </div>
           </label>
@@ -1550,8 +1550,8 @@ const EditTextInfo = function ({ initTitle, close }) {
         <label>
           <span className="optional">
             <InterfaceText>
-              Optional. What text(s) is this book dependent on? For example, for "Rashi on Genesis", the value for this
-              field is "Genesis".
+              Optional. What text(s) is this book dependent on? For example, for &quot;Rashi on Genesis&quot;, the value
+              for this field is &quot;Genesis&quot;.
             </InterfaceText>
           </span>
         </label>
@@ -1788,14 +1788,14 @@ const EditTextInfo = function ({ initTitle, close }) {
             </div>
             {dependence.length > 0 && renderBaseTextTitles()}
             {dependence.length > 0 && renderCollectiveTitle()}
-            {index.current.hasOwnProperty('sectionNames') ? (
+            {Object.prototype.hasOwnProperty.call(index.current, 'sectionNames') ? (
               <div className="section">
                 <div>
                   <label>
                     <InterfaceText>book_page.text_structure</InterfaceText>
                   </label>
                 </div>
-                <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}} />
+                <SectionTypesBox updateParent={setSections} sections={sections} canEdit={false} />
               </div>
             ) : null}
             <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">

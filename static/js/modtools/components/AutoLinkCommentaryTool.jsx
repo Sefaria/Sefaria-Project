@@ -42,18 +42,18 @@ const HELP_CONTENT = (
     <h3>What This Tool Does</h3>
     <p>
       This tool automatically creates <strong>links between commentaries and their base texts</strong>. When a user
-      views "Genesis 1:1", they see connections to "Rashi on Genesis 1:1:1" and other commentaries. This tool generates
-      those connections automatically.
+      views &quot;Genesis 1:1&quot;, they see connections to &quot;Rashi on Genesis 1:1:1&quot; and other commentaries.
+      This tool generates those connections automatically.
     </p>
     <p>
-      The tool works by setting up commentary metadata on the Index record and then triggering Sefaria's auto-linking
-      system to generate the actual link records.
+      The tool works by setting up commentary metadata on the Index record and then triggering Sefaria&apos;s
+      auto-linking system to generate the actual link records.
     </p>
 
     <h3>How It Works</h3>
     <ol>
       <li>
-        <strong>Search:</strong> Enter a version title to find commentary texts (texts with "X on Y" pattern).
+        <strong>Search:</strong> Enter a version title to find commentary texts (texts with &quot;X on Y&quot; pattern).
       </li>
       <li>
         <strong>Select:</strong> Choose which commentaries to link.
@@ -71,7 +71,7 @@ const HELP_CONTENT = (
     <p>For each selected commentary, the tool sets:</p>
     <ul>
       <li>
-        <code>dependence: "Commentary"</code> - Marks the text as a commentary
+        <code>dependence: &quot;Commentary&quot;</code> - Marks the text as a commentary
       </li>
       <li>
         <code>base_text_titles</code> - The text(s) being commented on (extracted from title pattern)
@@ -133,15 +133,17 @@ const HELP_CONTENT = (
       multiple comment segments.
     </div>
 
-    <h3>What "X on Y" Pattern Means</h3>
-    <p>The tool only works with texts that follow the "X on Y" naming pattern:</p>
+    <h3>What &quot;X on Y&quot; Pattern Means</h3>
+    <p>The tool only works with texts that follow the &quot;X on Y&quot; naming pattern:</p>
     <ul>
-      <li>"Rashi on Genesis" - Commentary name is "Rashi", base text is "Genesis"</li>
-      <li>"Kehati on Mishnah Berakhot" - Commentary is "Kehati", base is "Mishnah Berakhot"</li>
-      <li>"Ibn Ezra on Psalms" - Commentary is "Ibn Ezra", base is "Psalms"</li>
+      <li>&quot;Rashi on Genesis&quot; - Commentary name is &quot;Rashi&quot;, base text is &quot;Genesis&quot;</li>
+      <li>
+        &quot;Kehati on Mishnah Berakhot&quot; - Commentary is &quot;Kehati&quot;, base is &quot;Mishnah Berakhot&quot;
+      </li>
+      <li>&quot;Ibn Ezra on Psalms&quot; - Commentary is &quot;Ibn Ezra&quot;, base is &quot;Psalms&quot;</li>
     </ul>
     <p>
-      The tool extracts the base text name from after " on " in the title and uses that to set{' '}
+      The tool extracts the base text name from after &quot; on &quot; in the title and uses that to set{' '}
       <code>base_text_titles</code>.
     </p>
 
@@ -151,8 +153,8 @@ const HELP_CONTENT = (
         <li>
           This tool is <strong>idempotent</strong> - running it multiple times is safe.
         </li>
-        <li>Only texts with " on " in their title are shown (non-commentaries are filtered out).</li>
-        <li>The base text (e.g., "Genesis") must already exist in Sefaria for links to work.</li>
+        <li>Only texts with &quot; on &quot; in their title are shown (non-commentaries are filtered out).</li>
+        <li>The base text (e.g., &quot;Genesis&quot;) must already exist in Sefaria for links to work.</li>
         <li>Link building may take a few seconds per text.</li>
         <li>Links update automatically when text content changes.</li>
       </ul>
@@ -168,15 +170,15 @@ const HELP_CONTENT = (
     <h3>Troubleshooting</h3>
     <ul>
       <li>
-        <strong>"Title pattern didn't reveal base text"</strong> - The index title doesn't match "X on Y" pattern.
-        Rename the index first.
+        <strong>&quot;Title pattern didn&apos;t reveal base text&quot;</strong> - The index title doesn&apos;t match
+        &quot;X on Y&quot; pattern. Rename the index first.
       </li>
       <li>
         <strong>Links not appearing</strong> - Make sure the base text exists and the ref structure matches.
       </li>
       <li>
-        <strong>Wrong links</strong> - Try a different mapping algorithm. "many_to_one" vs "one_to_one" depends on
-        commentary structure.
+        <strong>Wrong links</strong> - Try a different mapping algorithm. &quot;many_to_one&quot; vs
+        &quot;one_to_one&quot; depends on commentary structure.
       </li>
     </ul>
   </>
@@ -339,8 +341,8 @@ const AutoLinkCommentaryTool = () => {
       {/* Info box */}
       <div className="infoBox">
         <strong>How it works:</strong> This tool automatically creates links between commentaries and their base texts.
-        For example, "Rashi on Genesis 1:1:1" will be linked to "Genesis 1:1". Links update dynamically when text
-        changes.
+        For example, &quot;Rashi on Genesis 1:1:1&quot; will be linked to &quot;Genesis 1:1&quot;. Links update
+        dynamically when text changes.
       </div>
 
       {/* Search bar */}
@@ -387,9 +389,9 @@ const AutoLinkCommentaryTool = () => {
       {/* No results message */}
       {searched && !loading && indices.length === 0 && (
         <div className="noResults">
-          <strong>No commentaries found with version "{vtitle}"</strong>
-          This tool only finds texts with " on " in their title (e.g., "Rashi on Genesis"). Verify the version title is
-          correct and contains commentary texts.
+          <strong>No commentaries found with version &quot;{vtitle}&quot;</strong>
+          This tool only finds texts with &quot; on &quot; in their title (e.g., &quot;Rashi on Genesis&quot;). Verify
+          the version title is correct and contains commentary texts.
         </div>
       )}
 

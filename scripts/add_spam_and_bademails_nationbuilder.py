@@ -39,10 +39,10 @@ with open("spam_emails.csv") as spam_emails, open("spam_outf.csv", "w+") as outf
                     status = f"Failed - post failure. {res_put}. {res_put.text}"
             except Exception as e:
                 status = f"Failed - exception: {e}"
-            csv_writer.writerow(dict(email=email, status=status))
+            csv_writer.writerow({"email": email, "status": status})
         else:
             status = "Could not find email in nationbuilder"
-            csv_writer.writerow(dict(email=email, status=status))
+            csv_writer.writerow({"email": email, "status": status})
 # corrected emails
 with open("corrected_emails.csv") as corrected_emails, open("spam_bademails_outf.csv", "w+") as outf:
     csv_reader = csv.DictReader(corrected_emails, delimiter=",")
@@ -103,15 +103,15 @@ with open("corrected_emails.csv") as corrected_emails, open("spam_bademails_outf
                                 status = "Success - Added to list"
                                 for bad_email in bad_emails:
                                     csv_writer.writerow(
-                                        dict(
-                                            correct_email=email,
-                                            first=first_name,
-                                            last=last_name,
-                                            incorrect_email=bad_email["email"],
-                                            nb_id=bad_email["nb_id"],
-                                            status=status,
-                                            name_retrieved_from=name_retrieved_from,
-                                        )
+                                        {
+                                            "correct_email": email,
+                                            "first": first_name,
+                                            "last": last_name,
+                                            "incorrect_email": bad_email["email"],
+                                            "nb_id": bad_email["nb_id"],
+                                            "status": status,
+                                            "name_retrieved_from": name_retrieved_from,
+                                        }
                                     )
                             else:
                                 status = f"Failed - post failure. {res_put.request}"
@@ -123,12 +123,12 @@ with open("corrected_emails.csv") as corrected_emails, open("spam_bademails_outf
         if "Failed" in status:
             incorrect_email = "See Status" if "Bad Emails:" in status else "N/A"
             csv_writer.writerow(
-                dict(
-                    correct_email=email,
-                    first=first_name,
-                    last=last_name,
-                    incorrect_email=incorrect_email,
-                    status=status,
-                    name_retrieved_from=name_retrieved_from,
-                )
+                {
+                    "correct_email": email,
+                    "first": first_name,
+                    "last": last_name,
+                    "incorrect_email": incorrect_email,
+                    "status": status,
+                    "name_retrieved_from": name_retrieved_from,
+                }
             )

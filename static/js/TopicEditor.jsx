@@ -153,7 +153,7 @@ const TopicPictureCropper = ({ slug, callback, old_filename, image_uri }) => {
         <InterfaceText>Secondary Picture</InterfaceText>
       </label>
       <div>
-        <InterfaceText>This version of the topic's image will be shown on Topics Landing.</InterfaceText>
+        <InterfaceText>This version of the topic&apos;s image will be shown on Topics Landing.</InterfaceText>
       </div>
       <Button onClick={() => setImageToCrop(image_uri)}>Edit Secondary Picture</Button>
       <ImageCropper

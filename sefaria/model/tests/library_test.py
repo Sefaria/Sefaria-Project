@@ -363,7 +363,7 @@ class Test_he_get_refs_in_text:
 
     def test_ranged_talmud_wrap_refs(self):
         st = "(סוכה מ' א' – ב')"
-        wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=True)
+        library.get_wrapped_refs_string(st, lang="he", citing_only=True)
 
     def test_bad_refs(self):
         # We want to make sure that bad refs don't get wrapped in a tags nor error out

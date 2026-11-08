@@ -190,7 +190,7 @@ const AdminEditor = ({
 }) => {
   const [validatingLinks, setValidatingLinks] = useState(false);
   const setInputValue = (e) => {
-    if (data.hasOwnProperty(e.target.id)) {
+    if (Object.prototype.hasOwnProperty.call(data, e.target.id)) {
       data[e.target.id] = sanitizeHtml(e.target.value, { allowedTags: [], disallowedTagsMode: 'discard' });
     }
     updateData({ ...data });
@@ -240,12 +240,13 @@ const AdminEditor = ({
       case 'dropdown':
         obj = getDropdown(field, dropdown_data, placeholder);
         break;
-      case 'title variants':
+      case 'title variants': {
         const titles = data[field];
         obj = (
           <TitleVariants update={(newTitles) => handleTitleVariants(newTitles, field)} titles={titles} id={field} />
         );
         break;
+      }
       case 'textarea':
         obj = (
           <textarea
@@ -258,7 +259,7 @@ const AdminEditor = ({
           />
         );
         break;
-      default:
+      default: {
         const inputType = field.includes('Year') ? 'number' : 'text';
         obj = (
           <input
@@ -270,6 +271,7 @@ const AdminEditor = ({
             placeholder={Sefaria._(placeholder)}
           />
         );
+      }
     }
 
     return (

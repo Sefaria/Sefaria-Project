@@ -53,14 +53,14 @@ def verify_classy_request_signature(raw_body: bytes, headers: Mapping[str, str])
     if not CLASSY_WEBHOOK_SECRET:
         raise WebhookSecretNotConfigured("CLASSY_WEBHOOK_SECRET")
     if not is_valid_svix_signature(CLASSY_WEBHOOK_SECRET, raw_body, headers, now=time.time()):
-        raise SignatureRejected()
+        raise SignatureRejected
 
 
 def parse_classy_transaction_payload(raw_body: bytes, headers: Mapping[str, str]) -> ParsedWebhookEvent:
     try:
         payload = json.loads(raw_body)
     except (ValueError, UnicodeDecodeError):
-        raise MalformedWebhookPayload()
+        raise MalformedWebhookPayload
     match payload:
         case {
             "eventType": "transaction.created" | "transaction.updated",
@@ -73,11 +73,11 @@ def parse_classy_transaction_payload(raw_body: bytes, headers: Mapping[str, str]
         case {"eventType": "transaction.created" | "transaction.updated"}:
             # A transaction event whose `data` isn't an object is a broken payload (400), not
             # an unrelated event type to ignore (200).
-            raise MalformedWebhookPayload()
+            raise MalformedWebhookPayload
         case {"eventType": str()}:
             return WebhookEventIgnored(ReasonWebhookEventWasIgnored.UNHANDLED_EVENT_TYPE)
         case _:
-            raise MalformedWebhookPayload()
+            raise MalformedWebhookPayload
 
 
 def _donation_event_from_transaction(transaction: dict, message_id: str | None) -> ParsedWebhookEvent:
@@ -91,7 +91,7 @@ def _donation_event_from_transaction(transaction: dict, message_id: str | None) 
                 return WebhookEventIgnored(ReasonWebhookEventWasIgnored.NOT_A_SUCCESSFUL_NONZERO_DONATION)
             return _donation_event_from_successful_transaction(transaction, message_id)
         case _:
-            raise MalformedWebhookPayload()
+            raise MalformedWebhookPayload
 
 
 def _donation_event_from_successful_transaction(transaction: dict, message_id: str | None) -> ParsedWebhookEvent:
@@ -104,7 +104,7 @@ def _donation_event_from_successful_transaction(transaction: dict, message_id: s
             # `message_id` is required: without the svix id there is no idempotency key for the event.
             occurred_at = parse_timestamp_assuming_utc(updated_at)
             if occurred_at is None:
-                raise MalformedWebhookPayload()
+                raise MalformedWebhookPayload
             return DonationReceivedFromClassy(
                 # svix-id is reused only for retries of the same message, so it names one occurrence.
                 event_id_assigned_by_source=message_id,
@@ -118,7 +118,7 @@ def _donation_event_from_successful_transaction(transaction: dict, message_id: s
         case _:
             # Money arrived but we can't identify the transaction or the person: that is a
             # broken payload (400), not an event to ignore (200).
-            raise MalformedWebhookPayload()
+            raise MalformedWebhookPayload
 
 
 def _svix_message_id(headers: Mapping[str, str]) -> str | None:

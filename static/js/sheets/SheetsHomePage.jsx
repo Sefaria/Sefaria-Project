@@ -14,7 +14,7 @@ const SheetsHeroBanner = ({ title, message, videoOptions, posterImg }) => {
     <div id="aboutCover">
       <video id="aboutVideo" poster={posterImg} preload="auto" autoPlay={true} loop muted>
         {videoOptions.map((video) => {
-          return <source src={video} />;
+          return <source key={video} src={video} />;
         })}
       </video>
       <div className="overlayTextOnSheetsHero">

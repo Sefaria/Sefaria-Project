@@ -3,7 +3,6 @@ import re
 from collections import defaultdict
 from functools import reduce
 from queue import Empty, Queue
-from typing import List
 
 import django
 
@@ -115,15 +114,26 @@ class TextRequestAdapter:
 
     def _append_required_versions(self, lang: str, vtitle: str) -> None:
         if lang == self.PRIMARY:
-            lang_condition = lambda v: getattr(v, "isPrimary", False)
+
+            def lang_condition(v):
+                return getattr(v, "isPrimary", False)
         elif lang == self.SOURCE:
-            lang_condition = lambda v: getattr(v, "isSource", False)
+
+            def lang_condition(v):
+                return getattr(v, "isSource", False)
         elif lang == self.TRANSLATION:
-            lang_condition = lambda v: not getattr(v, "isSource", False)
+
+            def lang_condition(v):
+                return not getattr(v, "isSource", False)
         elif lang:
-            lang_condition = lambda v: v.languageFamilyName.lower() == lang
+
+            def lang_condition(v):
+                return v.languageFamilyName.lower() == lang
         else:
-            lang_condition = lambda v: True
+
+            def lang_condition(v):
+                return True
+
         if vtitle and vtitle != self.ALL:
             # Exact vtitle requested: strict match only, no fallback -- an unmatched vtitle is
             # reported as missing below, not silently substituted.
@@ -288,7 +298,9 @@ class TextRequestAdapter:
             return
 
         # Process each version
-        composed_func = lambda string, sections: reduce(lambda s, f: f(s, sections), text_modification_funcs, string)
+        def composed_func(string, sections):
+            return reduce(lambda s, f: f(s, sections), text_modification_funcs, string)
+
         for version in self.return_obj["versions"]:
             if self.return_format == "wrap_all_entities":
                 language = "he" if version["direction"] == "rtl" else "en"

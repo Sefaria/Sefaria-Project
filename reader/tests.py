@@ -719,7 +719,7 @@ class PostTextNameChange(SefariaTestCase):
         self.assertTrue("Name Change Test" not in data["books"])
 
         # toc changed
-        toc = json.loads(c.get("/api/index").content)
+        json.loads(c.get("/api/index").content)
         tutils.verify_title_existence_in_toc(new["title"], expected_toc_location=orig["categories"])
 
         self.assertEqual(2, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
@@ -878,7 +878,7 @@ class PostTextTest(SefariaTestCase):
         self.assertIn("Sefer Test", data["books"])
 
         # test the toc is updated
-        toc = json.loads(c.get("/api/index").content)
+        json.loads(c.get("/api/index").content)
         tutils.verify_title_existence_in_toc(index["title"], expected_toc_location=index["categories"])
 
         # Post Text (with English citation)

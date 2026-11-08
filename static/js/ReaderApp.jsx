@@ -1,3 +1,4 @@
+/* global ReactDOM */
 import React from 'react';
 import classNames from 'classnames';
 import extend from 'extend';
@@ -104,7 +105,7 @@ class ReaderApp extends Component {
 
     panels = panels
       .map((panel) => {
-        if (!panel.hasOwnProperty('settings') && !!panel.currVersions) {
+        if (!Object.prototype.hasOwnProperty.call(panel, 'settings') && !!panel.currVersions) {
           // If a panel doesn't have its own settings, but it does have a text version set
           // make sure the settings show the language of the version set.
           if (panel.currVersions.he && panel.currVersions.en) {
@@ -586,28 +587,26 @@ class ReaderApp extends Component {
     };
     for (var i = 0; i < states.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
-      if (!states[i]) {
-        debugger;
-      }
       var state = states[i];
       var hist = { url: '' };
 
       if (state.menuOpen) {
         hist.menuPage = true;
         switch (state.menuOpen) {
-          case 'navigation':
+          case 'navigation': {
             var cats = state.navigationCategories ? state.navigationCategories.join('/') : '';
             const navTitle = cats ? state.navigationCategories.map(Sefaria._).join(', ') : '';
             hist.title = Sefaria.getPageTitle(navTitle, cats ? '' : 'home');
             hist.url = 'texts' + (cats ? '/' + cats : '');
             hist.mode = 'navigation';
             break;
+          }
           case 'voices':
             hist.title = Sefaria.getPageTitle('', 'home');
             hist.url = '';
             hist.mode = 'voices';
             break;
-          case 'sheetsWithRef':
+          case 'sheetsWithRef': {
             const sheetsWithTitle = 'Sheets with ' + state.sheetsWithRef[shortLang];
             hist.title = Sefaria.getPageTitle(sheetsWithTitle);
             const encodedSheetsWithRef = state.sheetsWithRef.en ? encodeURIComponent(state.sheetsWithRef.en) : '';
@@ -618,6 +617,7 @@ class ReaderApp extends Component {
                 : '');
             hist.mode = 'sheetsWithRef';
             break;
+          }
           case 'book toc':
             var bookTitle = state.bookRef;
             hist.title = Sefaria.getPageTitle(bookTitle);
@@ -631,7 +631,7 @@ class ReaderApp extends Component {
             hist.url = `${Sefaria.util.encodeTitleForUrl(bookTitle)}&notes${i > 1 ? i : ''}=1`;
             hist.mode = 'extended notes';
             break;
-          case 'search':
+          case 'search': {
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : '';
             const searchTitle = state.searchQuery ? state.searchQuery.stripHtml() : 'common.search';
             hist.title = Sefaria.getPageTitle(searchTitle);
@@ -650,6 +650,7 @@ class ReaderApp extends Component {
                 : '');
             hist.mode = 'search';
             break;
+          }
           case 'topics':
             if (state.navigationTopic) {
               hist.url = state.topicTestVersion
@@ -668,13 +669,14 @@ class ReaderApp extends Component {
               hist.mode = 'topics';
             }
             break;
-          case 'allTopics':
+          case 'allTopics': {
             hist.url = 'topics/all/' + state.navigationTopicLetter;
             const allTopicsTitle =
               Sefaria._('reader_app.explore_jewish_texts_by_topic') + ' - ' + state.navigationTopicLetter;
             hist.title = Sefaria.getPageTitle(allTopicsTitle);
             hist.mode = 'topics';
             break;
+          }
           case 'profile':
             hist.title = Sefaria.getPageTitle(state.profile.full_name);
             hist.url = `profile/${state.profile.slug}`;
@@ -875,9 +877,6 @@ class ReaderApp extends Component {
         hist.mode = 'Sheet';
       }
 
-      if (!state.settings) {
-        debugger;
-      }
       if (!hist.menuPage) {
         hist.lang = state.settings.language ? state.settings.language.substring(0, 2) : 'bi';
       }
@@ -1545,11 +1544,11 @@ class ReaderApp extends Component {
       openPanel('Sheet ' + path.replace(/^\/sheets\//, ''));
     } else if (path === '/topics') {
       this.showTopics();
-    } else if (path.match(/^\/topics\/category\/[^\/]/)) {
+    } else if (path.match(/^\/topics\/category\/[^/]/)) {
       this.openTopicCategory(path.replace(/^\/topics\/category\//, ''));
-    } else if (path.match(/^\/topics\/all\/[^\/]/)) {
+    } else if (path.match(/^\/topics\/all\/[^/]/)) {
       this.openAllTopics(path.replace(/^\/topics\/all\//, ''));
-    } else if (path.match(/^\/topics\/[^\/]+/)) {
+    } else if (path.match(/^\/topics\/[^/]+/)) {
       this.openTopic(path.replace(/^\/topics\//, ''), params.get('tab'));
     } else if (path.match(/^\/profile\/.+/)) {
       this.openProfile(path.replace(/^\/profile\//, ''), params.get('tab'));
@@ -1669,9 +1668,6 @@ class ReaderApp extends Component {
     //console.log(state)
     // When the driving panel changes language, carry that to the dependent panel
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
-    if (!this.state.panels[n]) {
-      debugger;
-    }
     // state is not always a full panel state. make sure it has necessary fields needed to run saveLastPlace()
     state = {
       ...this.state.panels[n],
@@ -2335,9 +2331,6 @@ class ReaderApp extends Component {
     }
     const currVersions = panel.currVersions;
     const parsedRef = Sefaria.parseRef(ref);
-    if (!ref) {
-      debugger;
-    }
     return {
       ref,
       versions: currVersions,
@@ -2680,9 +2673,6 @@ class ReaderApp extends Component {
 
     for (var i = 0; i < panelStates.length; i++) {
       const panel = this.clonePanel(panelStates[i]);
-      if (!('settings' in panel)) {
-        debugger;
-      }
       var offset = widths.reduce(function (prev, curr, index, arr) {
         return index < i ? prev + curr : prev;
       }, 0);

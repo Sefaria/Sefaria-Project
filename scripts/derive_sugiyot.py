@@ -23,7 +23,7 @@ class SugyaDeriver:
         self.sugya_range_refs = [d["ref"] for d in self.all_ranges if d["type"] == "Sugya"]
 
     def get_sugyah_start_refs(self):
-        segs = [s for s in self.index.all_segment_refs()]
+        segs = list(self.index.all_segment_refs())
         return [ref for ref in segs if self.sugya_symbol in ref.text("en").text]
 
     def get_mishnah_pairs(self):

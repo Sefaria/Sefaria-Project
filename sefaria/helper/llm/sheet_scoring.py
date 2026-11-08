@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from sefaria_llm_interface.sheet_scoring import SheetScoringInput, SheetScoringOutput
 

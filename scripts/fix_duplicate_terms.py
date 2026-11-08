@@ -178,8 +178,8 @@ for term in termset:
 
 assert all(len(v["unique_obj_ids"]) >= 1 and v["count"] >= 1 for v in list(results.values()))
 
-duplicates_he = {k: v for k, v in list(results.items()) if v["count"] > 1 and v["lang"] == set(["he"])}
-duplicates_en = {k: v for k, v in list(results.items()) if v["count"] > 1 and v["lang"] == set(["en"])}
+duplicates_he = {k: v for k, v in list(results.items()) if v["count"] > 1 and v["lang"] == {"he"}}
+duplicates_en = {k: v for k, v in list(results.items()) if v["count"] > 1 and v["lang"] == {"en"}}
 
 remove_duplicates(duplicates_he)
 remove_duplicates(duplicates_en)

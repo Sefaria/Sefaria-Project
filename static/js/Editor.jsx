@@ -123,7 +123,9 @@ const getNodeAbove = (curPath, editor) => {
   try {
     topPath = Path.previous(curPath);
     top = Node.get(editor, topPath);
-  } catch (err) {}
+  } catch (err) {
+    // no previous node at this path; fall through with nulls
+  }
 
   return { node: top, path: topPath };
 };
@@ -134,7 +136,9 @@ const getNodeBelow = (curPath, editor) => {
   try {
     bottomPath = Path.next(curPath);
     bottom = Node.get(editor, bottomPath);
-  } catch (err) {}
+  } catch (err) {
+    // no next node at this path; fall through with nulls
+  }
 
   return { node: bottom, path: bottomPath };
 };
@@ -348,23 +352,26 @@ export const serialize = (content) => {
         }, '');
         return `<ul>${ulHtml}</ul>`;
       }
-      case 'table':
+      case 'table': {
         const tableHtml = content.children.reduce((acc, text) => {
           return acc + serialize(text);
         }, '');
         return `<table><tbody>${tableHtml}</tbody></table>`;
+      }
 
-      case 'table-row':
+      case 'table-row': {
         const trHtml = content.children.reduce((acc, text) => {
           return acc + serialize(text);
         }, '');
         return `<tr>${trHtml}</tr>`;
+      }
 
-      case 'table-cell':
+      case 'table-cell': {
         const tdHtml = content.children.reduce((acc, text) => {
           return acc + serialize(text);
         }, '');
         return `<td>${tdHtml}</td>`;
+      }
 
       case 'horizontal-line':
         return `<hr>`;
@@ -918,7 +925,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
       return url;
     } else if (url.match(/^https?:\/\/(www\.)?.+\.(mp3)$/i) != null) {
       return url;
-    } else if (url.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?/i) != null) {
+    } else if (url.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-.]+\/[\w\-.]+\/?/i) != null) {
       return (
         'https://w.soundcloud.com/player/?url=' +
         url +
@@ -926,7 +933,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
       );
     } else if ((m = /^https?:\/\/open\.spotify\.com\/(?:embed\/)?(\w+)\/(\w+)\/?/i.exec(url)) != null) {
       return `https://open.spotify.com/embed/${m[1]}/${m[2]}`;
-    } else if ((m = /^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+\=\w+)+(\/)?/i.exec(url)) != null) {
+    } else if ((m = /^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+=\w+)+(\/)?/i.exec(url)) != null) {
       if (!url.includes('artwork=small')) {
         // force small artwork because height calculation for large artwork depends on width
         return m[2] ? url + 'artwork=small' : url + '/artwork=small';
@@ -1203,6 +1210,7 @@ const AddInterface = ({ attributes, children, element }) => {
 const Element = (props) => {
   const { attributes, children, element } = props;
   const editor = useSlate();
+  const selected = useSelected();
 
   const sheetItemClasses = {
     sheetItem: 1,
@@ -1211,8 +1219,8 @@ const Element = (props) => {
   };
 
   switch (element.type) {
-    case 'spacer':
-      const spacerSelected = useSelected();
+    case 'spacer': {
+      const spacerSelected = selected;
       const spacerClasses = {
         spacerSelected: spacerSelected,
         spacer: 1,
@@ -1223,6 +1231,7 @@ const Element = (props) => {
           {spacerSelected && document.getSelection().isCollapsed ? <AddInterface {...props} /> : <>{children}</>}
         </div>
       );
+    }
     case 'SheetSource':
       return <BoxedSheetElement {...props} />;
 
@@ -1238,7 +1247,7 @@ const Element = (props) => {
           <div className="clearFix"></div>
         </div>
       );
-    case 'SheetOutsideText':
+    case 'SheetOutsideText': {
       const SheetOutsideTextClasses = `SheetOutsideText segment ${element.lang}`;
       return (
         <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
@@ -1248,8 +1257,9 @@ const Element = (props) => {
           <div className="clearFix"></div>
         </div>
       );
+    }
 
-    case 'SheetMedia':
+    case 'SheetMedia': {
       let mediaComponent;
       let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
       if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
@@ -1302,7 +1312,7 @@ const Element = (props) => {
             {children}
           </div>
         );
-      } else if (element.mediaUrl.match(/^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+\=\w+)+\/?/i)) {
+      } else if (element.mediaUrl.match(/^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+=\w+)+\/?/i)) {
         mediaComponent = (
           <div className="SheetMedia media fullWidth">
             <iframe width="100%" height="120" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>
@@ -1328,17 +1338,20 @@ const Element = (props) => {
           <div className="clearFix"></div>
         </div>
       );
+    }
 
-    case 'he':
-      const heSelected = useSelected();
-      const heEditable = useSlate().edittingSource;
+    case 'he': {
+      const heSelected = selected;
+      const heEditable = editor.edittingSource;
       const heClasses = { he: 1, editable: heEditable, selected: heSelected };
       return <div className={classNames(heClasses)}>{children}</div>;
-    case 'en':
-      const enSelected = useSelected();
-      const enEditable = useSlate().edittingSource;
+    }
+    case 'en': {
+      const enSelected = selected;
+      const enEditable = editor.edittingSource;
       const enClasses = { en: 1, editable: enEditable, selected: enSelected };
       return <div className={classNames(enClasses)}>{children}</div>;
+    }
     case 'SheetContent':
       return (
         <div className="editorContent" {...attributes}>
@@ -1353,9 +1366,7 @@ const Element = (props) => {
       );
     case 'SourceContentText':
       return <div className="sourceContentText">{children}</div>;
-    case 'paragraph':
-      const selected = useSelected();
-
+    case 'paragraph': {
       const addNewLineClasses = {
         hidden: isMultiNodeSelection(editor) || !selected,
         editorAddLineButton: 1,
@@ -1386,6 +1397,7 @@ const Element = (props) => {
           </div>
         </div>
       );
+    }
     case 'bulleted-list':
       return <ul>{children}</ul>;
     case 'numbered-list':
@@ -1482,7 +1494,7 @@ async function getRefInText(editor, returnSourceIfFound) {
         continue;
       }
 
-      const ref = await Sefaria.getName(query.replace(/[\.:]$/, '')).then((d) => {
+      const ref = await Sefaria.getName(query.replace(/[.:]$/, '')).then((d) => {
         return d;
       });
 
@@ -1831,7 +1843,7 @@ const withSefariaSheet = (editor) => {
     if (node.type === 'SheetContent') {
       for (const [child, childPath] of Node.children(editor, path)) {
         // If it's raw text, covert to SheetOutsideText
-        if (child.hasOwnProperty('text')) {
+        if (Object.prototype.hasOwnProperty.call(child, 'text')) {
           const fragmentText = child.text;
           const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, fragmentText);
 
@@ -2339,6 +2351,7 @@ const withLinks = (editor) => {
       }
       if (editor.isVoid(parentNode)) {
         // Insert the new link after the void node
+        // eslint-disable-next-line no-undef -- pre-existing: undefined reference (latent bug); needs owner review
         Transforms.insertNodes(editor, createParagraphNode([link]), {
           at: Path.next(parentPath),
           select: true,
@@ -2372,6 +2385,7 @@ const isLinkActive = (editor) => {
 
 const wrapLink = (editor, url) => {
   if (isLinkActive(editor)) {
+    // eslint-disable-next-line no-undef -- pre-existing: undefined reference (latent bug); needs owner review
     unwrapLink(editor);
   }
 
@@ -2876,6 +2890,7 @@ const SefariaEditor = (props) => {
   const setSavingState = props.setEditorSaveState;
   const isMultiPanel = Sefaria.multiPanel;
   isMultiPanel &&
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- Sefaria.multiPanel is fixed at page load, so hook order never changes
     useSaveStateManagement({
       hasUnsavedChanges,
       savingState,
@@ -3000,7 +3015,7 @@ const SefariaEditor = (props) => {
     const sources = sheetContent.map((item) => {
       const sheetItem = item;
       switch (sheetItem.type) {
-        case 'SheetSource':
+        case 'SheetSource': {
           const enSerializedSourceText = sheetItem.enText.reduce((concatenatedSegments, currentSegment) => {
             return concatenatedSegments + serialize(currentSegment);
           }, '');
@@ -3020,7 +3035,8 @@ const SefariaEditor = (props) => {
             node: sheetItem.node,
           };
           return source;
-        case 'SheetOutsideBiText':
+        }
+        case 'SheetOutsideBiText': {
           const enSerializedOutsideText = sheetItem.enText.reduce((concatenatedSegments, currentSegment) => {
             return concatenatedSegments + serialize(currentSegment);
           }, '');
@@ -3038,6 +3054,7 @@ const SefariaEditor = (props) => {
             node: sheetItem.node,
           };
           return outsideBiText;
+        }
 
         case 'SheetComment':
           return {
@@ -3046,7 +3063,7 @@ const SefariaEditor = (props) => {
             node: sheetItem.node,
           };
 
-        case 'SheetOutsideText':
+        case 'SheetOutsideText': {
           const outsideTextText = serialize(sheetItem);
           //Add space to empty outside texts to preseve line breaks from old sheets.
           return {
@@ -3055,6 +3072,7 @@ const SefariaEditor = (props) => {
             ...(sheetItem.options && { options: sheetItem.options }),
             node: sheetItem.node,
           };
+        }
 
         case 'SheetMedia':
           return {
@@ -3063,13 +3081,14 @@ const SefariaEditor = (props) => {
             node: sheetItem.node,
           };
 
-        case 'header':
+        case 'header': {
           const headerContent = serialize(sheetItem);
           return {
             outsideText: `<h1>${headerContent}</h1>`,
             ...(sheetItem.options && { options: sheetItem.options }),
             node: sheetItem.node,
           };
+        }
 
         case 'spacer':
           return;

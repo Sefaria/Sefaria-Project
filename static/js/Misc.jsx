@@ -302,11 +302,11 @@ const FilterableList = ({
     initialRenderSize || pageSize
   );
 
-  if (onDisplayedDataChange) {
-    useEffect(() => {
+  useEffect(() => {
+    if (onDisplayedDataChange) {
       onDisplayedDataChange(dataUpToPage);
-    }, [dataUpToPage]);
-  }
+    }
+  }, [dataUpToPage]);
 
   const setSort = (newSortOption) => {
     if (newSortOption === sortOption) {
@@ -1076,7 +1076,7 @@ const TopicToCategorySlug = function (topic, category = null) {
   }
   let initCatSlug = category ? category.slug : 'Main Menu'; //category topics won't be found using topicTocCategory,
   // so all category topics initialized to "Main Menu"
-  if ('displays-under' in topic?.links && 'displays-above' in topic?.links) {
+  if ('displays-under' in (topic?.links ?? {}) && 'displays-above' in (topic?.links ?? {})) {
     // this case handles categories that are not top level but have children under them
     const displayUnderLinks = topic.links['displays-under']?.links;
     if (displayUnderLinks && displayUnderLinks.length === 1) {
@@ -1293,7 +1293,7 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     origSecondaryImageUri: data?.secondary_image_uri,
   };
 
-  const origWasCat = 'displays-above' in data?.links;
+  const origWasCat = 'displays-above' in (data?.links ?? {});
 
   return <TopicEditor origData={origData} origWasCat={origWasCat} close={toggle} />;
 };
@@ -1317,9 +1317,10 @@ const CategoryEditorWrapper = ({ toggle, data, type }) => {
   switch (type) {
     case 'books':
       return <EditTextInfo initTitle={data} close={toggle} />;
-    case 'sources':
+    case 'sources': {
       const [topicSlug, refData] = data;
       return <SourceEditor topic={topicSlug} origData={refData} close={toggle} />;
+    }
     case 'cats':
       return <EditorForExistingCategory toggle={toggle} data={data} />;
     case 'topics':
@@ -2898,6 +2899,7 @@ SheetTopicLink.propTypes = {
 class SheetAccessIcon extends Component {
   render() {
     var sheet = this.props.sheet;
+    // eslint-disable-next-line no-undef -- pre-existing: undefined reference (latent bug); needs owner review
     return sheet.status == 'unlisted' ? <i className="fa fa-lock" title={msg}></i> : null;
   }
 }
@@ -2957,7 +2959,7 @@ class FeedbackBox extends Component {
   }
   validateEmail(email) {
     const re =
-      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
   }
   setType(event) {
@@ -3131,7 +3133,7 @@ class CookiesNotification extends Component {
         </span>
         <span className="int-he">
           <span>
-            אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
+            אנחנו משתמשים ב&quot;עוגיות&quot; כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
             <a href={privacyPolicyLink} data-target-module={Sefaria.LIBRARY_MODULE}>
               קראו עוד בנושא
             </a>
@@ -3303,7 +3305,9 @@ const CategoryChooser = function ({ categories, update }) {
   for (let i = 0; i < categories.length; i++) {
     let options = [];
     const tocObject = Sefaria.tocObjectByCategories(categories.slice(0, i + 1));
-    const subcats = !tocObject?.contents ? [] : tocObject.contents.filter((x) => x.hasOwnProperty('category')); //Indices have 'categories' field and Categories have 'category' field which is their lastPath
+    const subcats = !tocObject?.contents
+      ? []
+      : tocObject.contents.filter((x) => Object.prototype.hasOwnProperty.call(x, 'category')); //Indices have 'categories' field and Categories have 'category' field which is their lastPath
     for (let j = 0; j < subcats.length; j++) {
       const selected = categories.length >= i && categories[i + 1] === subcats[j].category;
       options.push(
@@ -3319,7 +3323,7 @@ const CategoryChooser = function ({ categories, update }) {
   return (
     <div ref={categoryMenu}>
       {menus.map((menu, index) => (
-        <div className="categoryChooserMenu">
+        <div key={index} className="categoryChooserMenu">
           <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
             <option key="chooseCategory" value="Choose a category">
               Table of Contents

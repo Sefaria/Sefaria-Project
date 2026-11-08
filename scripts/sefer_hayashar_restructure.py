@@ -96,7 +96,7 @@ def rewriter(ref):
 
 def needs_rewrite(str, *kwargs):
     try:
-        needsRewrite = str.startswith("Sefer HaYashar, CHAPTER") or str.startswith("Sefer HaYashar, Addendum I")
+        needsRewrite = str.startswith(("Sefer HaYashar, CHAPTER", "Sefer HaYashar, Addendum I"))
         if needsRewrite:
             print(f"NEEDS REWRITER: {str}")
         return needsRewrite

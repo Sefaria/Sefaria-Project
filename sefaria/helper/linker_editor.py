@@ -7,7 +7,7 @@ api/views.py. See docs / Shortcut epic 44935.
 """
 
 import re
-from typing import List, Optional
+from typing import Optional
 
 import sefaria.model.linker.nonuniqueterm_index as nut_index
 from sefaria.model import library
@@ -666,8 +666,8 @@ def delete_non_unique_term(slug: str, uid: int) -> None:
 
 def swap_non_unique_term_usages(slug: str, new_slug: str, uid: int) -> dict:
     """Replace every MatchTemplate usage of `slug` with `new_slug`."""
-    old_term = _require_term(slug)
-    new_term = _require_term(new_slug)
+    _require_term(slug)
+    _require_term(new_slug)
     if slug == new_slug:
         raise InputError("Choose a different NonUniqueTerm to swap with.")
 

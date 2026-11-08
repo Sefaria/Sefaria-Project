@@ -242,7 +242,7 @@ def iterate_and_merge(new_ref_links, new_link, subset_ref_map, temp_subset_refs)
         for index in subset_ref_map[seg_ref]:
             new_ref_links[index]["similarRefs"] += [new_link]
             curr_link_learning_team = any(
-                [is_learning_team(dataSource) for dataSource in new_ref_links[index]["dataSources"]]
+                is_learning_team(dataSource) for dataSource in new_ref_links[index]["dataSources"]
             )
             if not curr_link_learning_team:  # if learning team, ignore source with overlapping refs
                 new_ref_links[index] = merge_props_for_similar_refs(new_ref_links[index], new_link)
@@ -526,7 +526,7 @@ def recommend_topics(refs: list) -> list:
         topic_count[link.toTopic] += 1
 
     recommend_topics = []
-    for slug in topic_count.keys():
+    for slug in topic_count:
         topic = Topic.init(slug)
         recommend_topics.append(
             {
@@ -919,7 +919,6 @@ def calculate_mean_tfidf(ref_topic_links):
 
     # tf-idf
     topic_tref_score_map = {}
-    top_words_map = {}
     for topic, ref_list in ref_topic_map.items():
         total_tf = defaultdict(int)
         tref_tf = defaultdict(lambda: defaultdict(int))
@@ -1184,7 +1183,7 @@ def get_top_topic(sheet):
         for t in topics:
             topic_dict[t.get("slug")][1] += 1
             topic_dict[t.get("slug")][0] = topic_score(t)
-        scores = dict([(k, v[0][1] * v[1]) for k, v in topic_dict.items()])
+        scores = {k: v[0][1] * v[1] for k, v in topic_dict.items()}
         max_topic_slug = max(scores, key=scores.get)
     else:
         return None
@@ -1285,7 +1284,7 @@ def set_all_slugs_to_primary_title():
 
 def get_path_for_topic_slug(slug):
     path = []
-    while slug in library.get_topic_toc_category_mapping().keys():
+    while slug in library.get_topic_toc_category_mapping():
         if library.get_topic_toc_category_mapping()[slug] == slug:
             break  # this case occurs when we are at a top level node which has a child with the same name
         path.append(slug)

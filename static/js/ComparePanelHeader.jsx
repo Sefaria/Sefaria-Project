@@ -18,8 +18,8 @@ const ComparePanelHeader = ({
   onBack,
   openSearch,
 }) => {
+  const [query, setQuery] = React.useState('');
   if (search) {
-    const [query, setQuery] = React.useState('');
     const handleSearchKeyUp = (event) => {
       if (event.keyCode === 13 && query) {
         openSearch(query);

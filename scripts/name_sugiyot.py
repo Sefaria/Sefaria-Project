@@ -140,5 +140,5 @@ if __name__ == "__main__":
         print(m)
         with open(f"../data/sugyot/{m}.csv") as csvfile:
             reader = csv.DictReader(csvfile)
-            rows += [row for row in reader]
+            rows += list(reader)
     derive_names(rows)

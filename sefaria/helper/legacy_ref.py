@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Union
+from typing import Union
 
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.text import Ref

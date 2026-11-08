@@ -2,44 +2,47 @@
 Custom Sefaria Tags for Django Templates
 """
 
+# isort: skip_file
+# Import order matters: loading `sefaria.sheets` first brings in `sefaria.model` in a safe order;
+# sorting these imports caused a circular-import failure at `runserver` startup.
 import hashlib
 import json
-import math
 import os
 import re
-import urllib.error
-import urllib.parse
-import urllib.request
-from datetime import datetime
-from urllib.parse import urlparse
-
 import dateutil.parser
-import structlog
+import urllib.request
+import urllib.parse
+import urllib.error
+import math
+from urllib.parse import urlparse
+from datetime import datetime
 from django import template
 from django.conf import settings
-from django.contrib.sites.models import Site
-from django.contrib.staticfiles import finders
+from django.template.defaultfilters import stringfilter
+from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
-from django.template.defaultfilters import stringfilter
-from django.templatetags.static import static as django_static
-from django.urls import NoReverseMatch, reverse
-from django.utils.functional import SimpleLazyObject
-from django.utils.html import conditional_escape
-from django.utils.safestring import mark_safe
+from django.contrib.sites.models import Site
 from django.utils.translation import gettext as _
+from django.templatetags.static import static as django_static
+from django.contrib.staticfiles import finders
+from django.utils.functional import SimpleLazyObject
 
-import sefaria.model as m
-import sefaria.model.text
-from sefaria.model.collection import Collection
-from sefaria.model.text import AbstractIndex, Ref, Version, library
-from sefaria.model.user_profile import public_user_data
-from sefaria.model.user_profile import user_link as ulink
-from sefaria.model.user_profile import user_name as uname
 from sefaria.sheets import get_sheet
-from sefaria.utils.hebrew import hebrew_parasha_name, hebrew_plural, hebrew_term
-from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
+from django.urls import reverse, NoReverseMatch
+from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
+from sefaria.model.text import Ref, Version
+from sefaria.model.collection import Collection
 from sefaria.utils.util import strip_tags as strip_tags_func
+from sefaria.utils.hebrew import hebrew_plural, hebrew_parasha_name
+from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
+
+import sefaria.model.text
+import sefaria.model as m
+from sefaria.model.text import library, AbstractIndex
+
+import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -584,7 +587,7 @@ def partition_into(thelist, n):
     except (ValueError, TypeError):
         return [thelist]
     p = len(thelist) / n
-    return [thelist[p * i : p * (i + 1)] for i in range(n - 1)] + [thelist[p * (i + 1) :]]
+    return [thelist[p * i : p * (i + 1)] for i in range(n - 1)] + [thelist[p * (i + 1) :]]  # noqa: F821 -- pre-existing: `i` leaked from py2 list-comprehension scope; filter needs owner review
 
 
 @register.filter
@@ -627,7 +630,7 @@ def partition_vertical(thelist, n):
         thelist = list(thelist)
     except (ValueError, TypeError):
         return [thelist]
-    newlists = [list() for i in range(n)]
+    newlists = [[] for i in range(n)]
     for i, val in enumerate(thelist):
         newlists[i % n].append(val)
     return newlists

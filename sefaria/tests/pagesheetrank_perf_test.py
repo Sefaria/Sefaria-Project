@@ -33,7 +33,7 @@ def _legacy_pagerank(g, s=0.85, tolerance=0.00005, maxiter=100):
         p = new_p
         iteration += 1
     pr_list = list(numpy.squeeze(numpy.asarray(p)))
-    return {k: v for k, v in zip([x[0] for x in g], pr_list)}
+    return dict(zip([x[0] for x in g], pr_list))
 
 
 def _graph(d):
