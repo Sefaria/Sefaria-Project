@@ -20,8 +20,6 @@ spec:
               image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
               args: [ "yes | pip3 install numpy && touch /log/sefaria_book_errors.log && python3 /app/scripts/scheduled/recalculate_secondary_topic_data.py" ]
               env:
-              - name: REDIS_HOST
-                value: "redis-{{ .Values.deployEnv }}"
               - name: NODEJS_HOST
                 value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
               - name: VARNISH_HOST
@@ -30,6 +28,7 @@ spec:
               - secretRef:
                   name: {{ .Values.secrets.localSettings.ref }}
                   optional: true
+              {{- include "sefaria.secrets.redisSentinel" . | nindent 14 }}
               - configMapRef:
                   name: local-settings-{{ .Values.deployEnv }}
               - secretRef:

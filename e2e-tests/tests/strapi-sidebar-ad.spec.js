@@ -32,11 +32,11 @@
  *   The standard entry helpers (goToPageWithLang / goToPageWithUser) call
  *   installOverlaySuppression(), which short-circuits /api/strapi/graphql-cache with an empty
  *   payload — i.e. it suppresses exactly what these specs assert on (see e2e-tests/CLAUDE.md §3).
- *   So they intentionally use a bare page.goto plus routeFromHAR, keeping Strapi ON.
+ *   So they intentionally use a bare page.goto plus a synthetic Strapi route, keeping Strapi ON.
  */
 
 import { test, expect } from '@playwright/test';
-import { routeWithStrapiHarFixture, expectStrapiServedFromHar } from '../support/strapi-har-fixture.js';
+import { routeWithStrapiPayload, expectStrapiServed } from '../support/strapi-payload-fixture.js';
 import {
   SCENARIOS,
   prepareStrapiPage,
@@ -53,10 +53,10 @@ const expected = scenario.expected.sidebarAd;
 const sidebarAd = (page) => page.locator('.sidebarPromo', { hasText: expected.title });
 
 test.describe('Strapi Sidebar Ad — keyword targeting', () => {
-  let har;
+  let served;
 
   test.beforeEach(async ({ page, context }) => {
-    har = await routeWithStrapiHarFixture(context, scenario.har);
+    served = await routeWithStrapiPayload(context, scenario.payload);
     await prepareStrapiPage(page, scenario);
     // The ad's locale is 'en', and Promotions requires trigger.interfaceLang === context
     // .interfaceLang. Set it explicitly so that dependency is visible rather than inherited.
@@ -64,7 +64,7 @@ test.describe('Strapi Sidebar Ad — keyword targeting', () => {
   });
 
   test.afterEach(() => {
-    expectStrapiServedFromHar(har);
+    expectStrapiServed(served);
   });
 
   for (const topic of expected.showsOnTopicCategories) {

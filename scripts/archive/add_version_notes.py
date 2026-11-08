@@ -1,6 +1,7 @@
 """
 Add versions notes to certain text versions.
 """
+
 from sefaria.model import *
 
 versions = VersionSet({"versionTitle": "The Holy Scriptures: A New Translation (JPS 1917)"})

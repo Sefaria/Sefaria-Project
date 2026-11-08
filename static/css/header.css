@@ -8,7 +8,7 @@
 }
 
 .headerInner,
-.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *):not(.keyboardInputInitiator):not(.keyboardInputInitiator *):not(.readerNavMenuSearchButton):not(.readerNavMenuSearchButton *) {
+.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *):not(.keyboardInputInitiator):not(.keyboardInputInitiator *):not(.readerNavMenuSearchButton):not(.readerNavMenuSearchButton *):not(.libraryAssistantLink):not(.libraryAssistantLink *) {
   display: flex;
   align-items: center;
 }
@@ -85,10 +85,12 @@
   .home {
     height: 25px;
     width: 19px;
+    /* stylelint-disable property-no-vendor-prefix -- keep -webkit- fallbacks for older Safari */
     -webkit-mask: url("/static/img/samech-logo.svg") no-repeat;
     mask: url("/static/img/samech-logo.svg") no-repeat;
     -webkit-mask-size: cover;
     mask-size: cover;
+    /* stylelint-enable property-no-vendor-prefix */
     background-color: var(--theme-primary);
   }
 }
@@ -160,7 +162,7 @@
   }
 }
 
-.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *):not(.keyboardInputInitiator):not(.keyboardInputInitiator *):not(.readerNavMenuSearchButton):not(.readerNavMenuSearchButton *) {
+.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *):not(.keyboardInputInitiator):not(.keyboardInputInitiator *):not(.readerNavMenuSearchButton):not(.readerNavMenuSearchButton *):not(.libraryAssistantLink):not(.libraryAssistantLink *) {
   cursor: pointer;
 }
 
@@ -171,6 +173,25 @@
   padding: 0;
   font-size: 24px;
   cursor: pointer;
+}
+
+@media (max-width: 842px) {
+  .header .headerInner.desktopHeaderInner,
+  .header.hiddenOnMobile {
+    display: none;
+  }
+}
+@media (min-width: 843px) and (max-width: 1086px) {
+  .header .headerInner.mobile,
+  .header .mobileNavMenu {
+    display: none;
+  }
+}
+@media (min-width: 1087px) {
+  .header .headerInner.mobile,
+  .header .mobileNavMenu {
+    display: none;
+  }
 }
 
 /*# sourceMappingURL=header.css.map */

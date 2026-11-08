@@ -18,6 +18,24 @@ jobs:
         export DEBIAN_FRONTEND=noninteractive
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends curl unzip
+    - id: auth
+      name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        token_format: 'access_token'
+        workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+        service_account: '${{ secrets.DEV_GKE_SA }}'
+    - name: Setup GCloud
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: ${{ secrets.DEV_PROJECT }}
+        install_components: 'gke-gcloud-auth-plugin'
+    - name: Authenticate GHA Runner To Target Cluster
+      uses: google-github-actions/get-gke-credentials@v3
+      with:
+        cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
+        location: ${{secrets.DEV_GKE_REGION}}
+        project_id: ${{secrets.DEV_GCP_PROJECT}}
     - name: setup helm
       uses: azure/setup-helm@v3
     - name: cleanup
@@ -39,10 +57,24 @@ jobs:
         curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O
         sudo mv yq_linux_amd64 /usr/bin/yq
         chmod +x /usr/bin/yq
-    - name: 'Set up Cloud SDK'
-      uses: 'google-github-actions/setup-gcloud@v1'
+    - id: auth
+      name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
       with:
-        version: '>= 363.0.0'
+        token_format: 'access_token'
+        workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+        service_account: '${{ secrets.DEV_GKE_SA }}'
+    - name: Setup GCloud
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: ${{ secrets.DEV_PROJECT }}
+        install_components: 'gke-gcloud-auth-plugin'
+    - name: Authenticate GHA Runner To Target Cluster
+      uses: google-github-actions/get-gke-credentials@v3
+      with:
+        cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
+        location: ${{secrets.DEV_GKE_REGION}}
+        project_id: ${{secrets.DEV_GCP_PROJECT}}
     - name: Setup kubectl
       uses: azure/setup-kubectl@v3
     - name: Setup mongodb-tools
@@ -53,7 +85,7 @@ jobs:
       env:
         MONGO_DEB: mongodb-database-tools-ubuntu2204-x86_64-100.6.1.deb
     - name: Get latest Backup
-      run: gsutil -q cp gs://sefaria-mongo-backup/dump.tar.gz dump.tar.gz
+      run: gcloud storage cp gs://sefaria-mongo-backup/dump.tar.gz dump.tar.gz
     - name: Extract Backup
       run: tar xzvf dump.tar.gz -C .
     - name: Restore Backup

@@ -19,10 +19,10 @@
  * local_settings.py) whenever the header is absent, so every viewer looks British by default and
  * timezone alone cannot produce a negative case. Sending the header overrides it per test.
  *
- * Varying `timezoneId` instead would break the fixture: the client converts to LOCAL midnight when
- * deriving start_date/end_date, so another timezone yields a different query string and the
- * recorded HAR stops matching. Holding the config's America/New_York default lets ONE recording
- * serve every case here.
+ * Varying `timezoneId` instead was never an option in the recording era (the client converts to
+ * LOCAL midnight when deriving start_date/end_date, so another timezone changed the query string
+ * and the recorded HAR stopped matching). The synthetic route matches the URL glob alone, but the
+ * header lever remains the right one: it varies exactly the signal under test and nothing else.
  *
  * TARGETING IS PER LOCALE. `countriesToTarget` is in LOCALIZED_FIELDS, so each locale keeps its own
  * value through the per-document merge and `shouldShow()` reads the active locale's entry. That is
@@ -39,11 +39,11 @@
  *   installOverlaySuppression(), which short-circuits /api/strapi/graphql-cache with an empty
  *   payload and marks every modal_/banner_ localStorage key as already-seen — i.e. it suppresses
  *   exactly what these specs assert on (see e2e-tests/CLAUDE.md §3). So they intentionally use a
- *   bare page.goto plus routeFromHAR, keeping Strapi ON.
+ *   bare page.goto plus a synthetic Strapi route, keeping Strapi ON.
  */
 
 import { test, expect } from '@playwright/test';
-import { routeWithStrapiHarFixture, expectStrapiServedFromHar } from '../support/strapi-har-fixture.js';
+import { routeWithStrapiPayload, expectStrapiServed } from '../support/strapi-payload-fixture.js';
 import {
   SCENARIOS,
   prepareStrapiPage,
@@ -62,7 +62,7 @@ const { matching, nonMatching } = scenario.viewerCountries;
 
 const modal = (page) => page.locator('#interruptingMessageBox');
 
-/** Load the scenario page in `lang`, having proved this navigation received its HAR payload. */
+/** Load the scenario page in `lang`, having proved this navigation received its Strapi payload. */
 async function open(page, lang) {
   await useInterfaceLanguage(page, lang);
   const responsesBeforeNavigation = strapiResponseCount(page);
@@ -80,15 +80,15 @@ async function expectModalAbsent(page) {
 test.describe(`Strapi Modal — country targeting, viewer in ${matching} (matches include-list)`, () => {
   test.use({ extraHTTPHeaders: { 'cf-ipcountry': matching } });
 
-  let har;
+  let served;
 
   test.beforeEach(async ({ page, context }) => {
-    har = await routeWithStrapiHarFixture(context, scenario.har);
+    served = await routeWithStrapiPayload(context, scenario.payload);
     await prepareStrapiPage(page, scenario);
   });
 
   test.afterEach(() => {
-    expectStrapiServedFromHar(har);
+    expectStrapiServed(served);
   });
 
   for (const lang of [LANGUAGES.EN, LANGUAGES.HE]) {
@@ -104,15 +104,15 @@ test.describe(`Strapi Modal — country targeting, viewer in ${matching} (matche
 test.describe(`Strapi Modal — country targeting, viewer in ${nonMatching} (outside include-list)`, () => {
   test.use({ extraHTTPHeaders: { 'cf-ipcountry': nonMatching } });
 
-  let har;
+  let served;
 
   test.beforeEach(async ({ page, context }) => {
-    har = await routeWithStrapiHarFixture(context, scenario.har);
+    served = await routeWithStrapiPayload(context, scenario.payload);
     await prepareStrapiPage(page, scenario);
   });
 
   test.afterEach(() => {
-    expectStrapiServedFromHar(har);
+    expectStrapiServed(served);
   });
 
   test('is hidden from an english viewer', async ({ page }) => {

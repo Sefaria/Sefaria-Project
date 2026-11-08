@@ -8,7 +8,6 @@ from sefaria.helper.linker.disambiguator import (
     disambiguate_non_segment_ref,
 )
 
-
 TEST_CASES = [
     {
         "id": "jt_ketubot_2_siftei_kohen_cm_46_12_1",
@@ -44,7 +43,10 @@ TEST_CASES = [
             "text": "מכות ג:",
             "versionTitle": "Senlake edition 2019 based on Ben Yehoyada, Jerusalem, 1897",
         },
-        "expected_resolutions": ["Makkot 3b:11", "Makkot 3b:12"] ## discuss noah - both are possible even though Makkot 3b:11 is better
+        "expected_resolutions": [
+            "Makkot 3b:11",
+            "Makkot 3b:12",
+        ],  ## discuss noah - both are possible even though Makkot 3b:11 is better
     },
     {
         "id": "berakhot_19b_masoret_hatosefta_2_11_2",
@@ -56,7 +58,7 @@ TEST_CASES = [
             "text": "בבלי כאן י\"ט ב'",
             "versionTitle": "The Tosefta according to to codex Vienna. Third Augmented Edition, JTS 2001",
         },
-        "expected_resolutions": ["Berakhot 19b:1", None], ## discuss noah - search fails so none is the least evil
+        "expected_resolutions": ["Berakhot 19b:1", None],  ## discuss noah - search fails so none is the least evil
     },
     {
         "id": "jt_berakhot_3_2_masoret_hatosefta_2_11_2",
@@ -65,7 +67,7 @@ TEST_CASES = [
             "language": "he",
             "ref": "Masoret HaTosefta on Berakhot 2:11:2",
             "resolved_non_segment_ref": "Jerusalem Talmud Berakhot 3:2",
-            "text": "ירוש' פ\"ג ה\"ב, ו' ע\"ב",
+            "text": 'ירוש\' פ"ג ה"ב, ו\' ע"ב',
             "versionTitle": "The Tosefta according to to codex Vienna. Third Augmented Edition, JTS 2001",
         },
         "expected_resolutions": ["Jerusalem Talmud Berakhot 3:2:5"],
@@ -77,7 +79,7 @@ TEST_CASES = [
             "language": "he",
             "ref": "Petach Einayim on Mishnah Sheviit 10:1:2",
             "resolved_non_segment_ref": "Gittin 37",
-            "text": "גיטין דף ל\"ז",
+            "text": 'גיטין דף ל"ז',
             "versionTitle": "Petach Einayim, Jerusalem 1959",
         },
         "expected_resolutions": ["Gittin 37a:12"],
@@ -101,7 +103,7 @@ TEST_CASES = [
             "language": "he",
             "ref": "Ketzot HaChoshen on Shulchan Arukh, Choshen Mishpat 252:1:1",
             "resolved_non_segment_ref": "Mishneh Torah, Ownerless Property and Gifts 8",
-            "text": "הרמב\"ם פ\"ח מזכיה",
+            "text": 'הרמב"ם פ"ח מזכיה',
             "versionTitle": "Shulhan Arukh, Hoshen ha-Mishpat; Lemberg, 1898",
         },
         "expected_resolutions": ["Mishneh Torah, Ownerless Property and Gifts 8:9"],
@@ -135,12 +137,9 @@ def test_non_segment_disambiguator_integration(case):
         return
 
     if result is None:
-        assert None in expected, (
-            f"Expected one of {expected} for case {case['id']}, got None"
-        )
+        assert None in expected, f"Expected one of {expected} for case {case['id']}, got None"
         return
 
     assert result.resolved_ref in expected, (
-        f"Unexpected resolution for case {case['id']}: {result.resolved_ref} "
-        f"(expected one of {expected})"
+        f"Unexpected resolution for case {case['id']}: {result.resolved_ref} (expected one of {expected})"
     )
