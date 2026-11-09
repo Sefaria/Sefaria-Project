@@ -92,6 +92,16 @@ def settings_enabled(user):
     return not getattr(settings, "DEVELOPER_SETTINGS_STAFF_ONLY", False) or bool(getattr(user, "is_staff", False))
 
 
+def login_may_enable_settings(request):
+    """True when developer settings are on for staff only and the visitor, being logged out, may be staff."""
+    return (
+        getattr(settings, "DEVELOPER_SETTINGS_ENABLED", False)
+        and getattr(settings, "DEVELOPER_SETTINGS_STAFF_ONLY", False)
+        and not request.user.is_authenticated
+        and request.method == "GET"
+    )
+
+
 def iso(dt):
     return dt.isoformat() if dt else None
 

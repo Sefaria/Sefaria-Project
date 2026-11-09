@@ -6,6 +6,7 @@ import json
 from functools import wraps
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.core.mail import send_mail
 from django.http import Http404
 from django.shortcuts import redirect
@@ -27,12 +28,15 @@ MAX_BODY_BYTES = 16 * 1024
 def requires_developer_settings(view):
     """
     The view exists only where DEVELOPER_SETTINGS_ENABLED is on, and with DEVELOPER_SETTINGS_STAFF_ONLY
-    only for staff; elsewhere it is a 404.
+    only for staff; elsewhere it is a 404. In staff-only mode a logged-out visitor opening a page is sent
+    to log in first, since they may be staff; the API stays a 404.
     """
 
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         if not developer.settings_enabled(request.user):
+            if developer.login_may_enable_settings(request) and not request.path.startswith("/api/"):
+                return redirect_to_login(request.get_full_path())
             raise Http404
         return view(request, *args, **kwargs)
 

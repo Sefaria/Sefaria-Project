@@ -744,6 +744,23 @@ class DeveloperSettingsStaffOnlyTest(DeveloperApiTestCase):
     def test_the_developer_api_is_not_found_logged_out(self):
         self.assertEqual(Client().get("/api/developer/state").status_code, 404)
 
+    def test_a_logged_out_visitor_is_sent_to_log_in_from_a_developer_page(self):
+        for url in ("/settings/developer", "/settings/developer/projects/1"):
+            response = Client().get(url)
+            self.assertEqual(response.status_code, 302, url)
+            self.assertEqual(response["Location"], "/login?next=" + url, url)
+
+    def test_a_logged_out_post_to_a_developer_page_is_not_found(self):
+        self.assertEqual(Client().post("/settings/developer").status_code, 404)
+
+    @override_settings(DEVELOPER_SETTINGS_ENABLED=False)
+    def test_a_logged_out_visitor_gets_a_404_with_the_flag_off(self):
+        self.assertEqual(Client().get("/settings/developer").status_code, 404)
+
+    def test_staff_get_the_developer_page_after_logging_in(self):
+        self.make_staff()
+        self.assertEqual(self.client.get("/settings/developer").status_code, 200)
+
     def test_staff_can_set_up_and_create_a_key(self):
         self.make_staff()
         self.set_up_developer()
