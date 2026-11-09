@@ -1,6 +1,7 @@
 """Unit tests for pure-logic functions in reindex_orchestrator.
 Uses importlib to exec_module so heavy imports (kubernetes, django) are never triggered
 — they live inside main() only."""
+
 import importlib.util
 import itertools
 import pathlib
@@ -8,7 +9,6 @@ import sys
 import types
 
 import pytest
-
 
 spec = importlib.util.spec_from_file_location(
     "reindex_orchestrator",
@@ -90,18 +90,10 @@ def test_build_shard_job_manifest():
 
     # envFrom is propagated
     assert "envFrom" in container
-    env_from_secret_names = [
-        ef["secretRef"]["name"]
-        for ef in container["envFrom"]
-        if "secretRef" in ef
-    ]
+    env_from_secret_names = [ef["secretRef"]["name"] for ef in container["envFrom"] if "secretRef" in ef]
     assert "elastic-admin-secret" in env_from_secret_names
 
-    env_from_configmap_names = [
-        ef["configMapRef"]["name"]
-        for ef in container["envFrom"]
-        if "configMapRef" in ef
-    ]
+    env_from_configmap_names = [ef["configMapRef"]["name"] for ef in container["envFrom"] if "configMapRef" in ef]
     assert "local-settings-staging" in env_from_configmap_names
 
     # volumes are propagated to pod spec
@@ -148,10 +140,8 @@ def test_main_rebuilds_entities_after_the_text_sheet_cutover():
     import pathlib as _pathlib
 
     src = _pathlib.Path("scripts/scheduled/reindex_orchestrator.py").read_text()
-    fn = next(n for n in ast.parse(src).body
-              if isinstance(n, ast.FunctionDef) and n.name == "main")
-    called = [n.func.id for n in ast.walk(fn)
-              if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)]
+    fn = next(n for n in ast.parse(src).body if isinstance(n, ast.FunctionDef) and n.name == "main")
+    called = [n.func.id for n in ast.walk(fn) if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)]
 
     assert "run_reindex_entities" in called, (
         "orchestrator main() must rebuild the entity indices; without it topic/book/"
@@ -173,8 +163,7 @@ def test_main_cleans_failed_reindex_targets_on_failed_barrier_and_timeout():
     import pathlib as _pathlib
 
     src = _pathlib.Path("scripts/scheduled/reindex_orchestrator.py").read_text()
-    fn = next(n for n in ast.parse(src).body
-              if isinstance(n, ast.FunctionDef) and n.name == "main")
+    fn = next(n for n in ast.parse(src).body if isinstance(n, ast.FunctionDef) and n.name == "main")
     branches = {
         compare.comparators[0].value: node
         for node in ast.walk(fn)
@@ -189,11 +178,11 @@ def test_main_cleans_failed_reindex_targets_on_failed_barrier_and_timeout():
     }
     for state in ("failed", "timeout"):
         branch_calls = [
-            n.func.id for n in ast.walk(branches[state])
-            if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
+            n.func.id for n in ast.walk(branches[state]) if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
         ]
         branch_attr_calls = [
-            n.func.attr for n in ast.walk(branches[state])
+            n.func.attr
+            for n in ast.walk(branches[state])
             if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
         ]
         assert "cleanup_after_init_failure" in branch_calls
@@ -374,10 +363,12 @@ class _FakeJobStatus:
 
 def test_run_barrier_loop_returns_complete_when_all_shards_succeed():
     spec.loader.exec_module(orch)
-    statuses = iter([
-        _FakeJobStatus(succeeded=6, failed=0, completed_indexes="0-5"),
-        _FakeJobStatus(succeeded=8, failed=0, completed_indexes="0-7"),
-    ])
+    statuses = iter(
+        [
+            _FakeJobStatus(succeeded=6, failed=0, completed_indexes="0-5"),
+            _FakeJobStatus(succeeded=8, failed=0, completed_indexes="0-7"),
+        ]
+    )
     sleeps = []
     state, incomplete = orch.run_barrier_loop(
         read_job_status=lambda: next(statuses),
@@ -399,9 +390,11 @@ def test_run_barrier_loop_returns_failed_on_backoff_exhaustion():
         type = "Failed"
         status = "True"
 
-    statuses = iter([
-        _FakeJobStatus(succeeded=5, failed=3, conditions=[_FailedCondition()], completed_indexes="0-4"),
-    ])
+    statuses = iter(
+        [
+            _FakeJobStatus(succeeded=5, failed=3, conditions=[_FailedCondition()], completed_indexes="0-4"),
+        ]
+    )
     state, incomplete = orch.run_barrier_loop(
         read_job_status=lambda: next(statuses),
         shard_count=8,
@@ -483,11 +476,12 @@ class _FakeIndexClient:
         return (index, name) in self.live_alias_pairs
 
 
-_GIB = 1024 ** 3
+_GIB = 1024**3
 
 
 class _FakeEsClient:
     """Stands in for search.es_client: canned _cluster/health and _cat/allocation responses."""
+
     def __init__(self, health, allocation):
         self.cluster = types.SimpleNamespace(health=lambda: health)
         self.cat = types.SimpleNamespace(allocation=lambda **kwargs: allocation)
@@ -526,8 +520,16 @@ def test_cleanup_failed_reindex_targets_deletes_only_unaliased_targets(monkeypat
     spec.loader.exec_module(orch)
     search = _FakeSearchModule(
         {
-            "text": {"new": "sefariastaging_text-a", "current": "sefariastaging_text-b", "alias": "sefariastaging_text"},
-            "sheet": {"new": "sefariastaging_sheet-a", "current": "sefariastaging_sheet-b", "alias": "sefariastaging_sheet"},
+            "text": {
+                "new": "sefariastaging_text-a",
+                "current": "sefariastaging_text-b",
+                "alias": "sefariastaging_text",
+            },
+            "sheet": {
+                "new": "sefariastaging_sheet-a",
+                "current": "sefariastaging_sheet-b",
+                "alias": "sefariastaging_sheet",
+            },
         }
     )
 
@@ -545,7 +547,11 @@ def test_cleanup_failed_reindex_targets_never_deletes_live_alias_target():
     spec.loader.exec_module(orch)
     search = _FakeSearchModule(
         {
-            "text": {"new": "sefariastaging_text-a", "current": "sefariastaging_text-b", "alias": "sefariastaging_text"},
+            "text": {
+                "new": "sefariastaging_text-a",
+                "current": "sefariastaging_text-b",
+                "alias": "sefariastaging_text",
+            },
         },
         live_alias_pairs={("sefariastaging_text-a", "sefariastaging_text")},
     )
@@ -588,6 +594,7 @@ def _fake_sefaria_search(monkeypatch, search):
     once any earlier test has imported the real module, patching sys.modules alone isn't enough.
     """
     import sefaria
+
     monkeypatch.setitem(sys.modules, "sefaria.search", search)
     monkeypatch.setattr(sefaria, "search", search, raising=False)
 
@@ -717,15 +724,19 @@ def test_main_preserves_live_text_when_sheet_finalize_fails(monkeypatch):
         def create_namespaced_job(self, namespace, manifest):
             events.append(("create_job",))
 
-    search = _FakeSearchModule({
-        "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
-        "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
-    })
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        }
+    )
 
     def finalize(**kwargs):
         # Text's alias has moved to its target before sheet finalization raises.
         search.names_by_type["text"] = {
-            "new": "text-old", "current": "text-target", "alias": "isolated-text",
+            "new": "text-old",
+            "current": "text-target",
+            "alias": "isolated-text",
         }
         search.index_client.live_alias_pairs.add(("text-target", "isolated-text"))
         raise RuntimeError("sheet finalize failed")
@@ -760,10 +771,12 @@ def test_main_timeout_cleans_only_after_confirmed_job_stop(monkeypatch, job_stop
             events.append(("clear_index", index_name))
             super().clear_index(index_name)
 
-    search = FakeSearch({
-        "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
-        "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
-    })
+    search = FakeSearch(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        }
+    )
     batch = FakeBatch()
     fake_api_exception = _mock_main_services(monkeypatch, search, batch, lambda **kwargs: None)
     monkeypatch.setattr(orch, "run_barrier_loop", lambda **kwargs: ("timeout", [0]))
@@ -791,6 +804,7 @@ class _FakeApiException(Exception):
 
 class _FakeBatch:
     """Records calls; raises per-method from a script of outcomes."""
+
     def __init__(self, delete_outcome=None, status_outcomes=()):
         self.calls = []
         self._delete_outcome = delete_outcome
@@ -815,8 +829,10 @@ def test_delete_stale_shard_job_returns_true_when_no_prior_job():
     spec.loader.exec_module(orch)
     batch = _FakeBatch(delete_outcome=_FakeApiException(404))
     logged = []
-    assert orch.delete_stale_shard_job(batch, "j", "ns", _FakeApiException,
-                                       sleep_fn=lambda s: None, log_fn=logged.append) is True
+    assert (
+        orch.delete_stale_shard_job(batch, "j", "ns", _FakeApiException, sleep_fn=lambda s: None, log_fn=logged.append)
+        is True
+    )
     assert batch.calls == ["delete"]
     assert "No stale shard job to delete" in logged[0]
 
@@ -833,8 +849,9 @@ def test_delete_stale_shard_job_gives_up_without_raising():
     spec.loader.exec_module(orch)
     batch = _FakeBatch(status_outcomes=[None] * 3)
     logged = []
-    result = orch.delete_stale_shard_job(batch, "j", "ns", _FakeApiException, attempts=3,
-                                         sleep_fn=lambda s: None, log_fn=logged.append)
+    result = orch.delete_stale_shard_job(
+        batch, "j", "ns", _FakeApiException, attempts=3, sleep_fn=lambda s: None, log_fn=logged.append
+    )
     assert result is False
     assert "did not confirm" in logged[0]
 
@@ -849,6 +866,7 @@ def test_delete_stale_shard_job_propagates_forbidden():
 def test_orchestrator_only_reads_jobs_through_granted_rbac_verbs():
     """The Role grants `get` on jobs/status only; a bare jobs read 403s in-cluster."""
     import re as _re
+
     src = pathlib.Path("scripts/scheduled/reindex_orchestrator.py").read_text()
     code = "\n".join(line for line in src.splitlines() if not line.lstrip().startswith("#"))
     assert not _re.search(r"\.read_namespaced_job\(", code)
@@ -875,7 +893,10 @@ def test_preflight_flags_non_green_cluster_status():
     spec.loader.exec_module(orch)
     for status in ("yellow", "red"):
         problems = orch.check_reindex_preflight(
-            {"status": status}, [_data_node_row()], min_free_bytes=20 * _GIB, max_disk_percent=75,
+            {"status": status},
+            [_data_node_row()],
+            min_free_bytes=20 * _GIB,
+            max_disk_percent=75,
         )
         assert len(problems) == 1
         assert status in problems[0]
@@ -884,7 +905,10 @@ def test_preflight_flags_non_green_cluster_status():
 def test_preflight_flags_missing_cluster_status():
     spec.loader.exec_module(orch)
     problems = orch.check_reindex_preflight(
-        {}, [_data_node_row()], min_free_bytes=20 * _GIB, max_disk_percent=75,
+        {},
+        [_data_node_row()],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
     )
     assert len(problems) == 1
     assert "status" in problems[0]
@@ -936,7 +960,10 @@ def test_preflight_ignores_unassigned_and_nodeless_rows():
         _data_node_row(),
     ]
     problems = orch.check_reindex_preflight(
-        {"status": "green"}, rows, min_free_bytes=20 * _GIB, max_disk_percent=75,
+        {"status": "green"},
+        rows,
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
     )
     assert problems == []
 
@@ -945,7 +972,10 @@ def test_preflight_ignores_unassigned_and_nodeless_rows():
 def test_preflight_fails_closed_when_no_data_node_is_reported(rows):
     spec.loader.exec_module(orch)
     problems = orch.check_reindex_preflight(
-        {"status": "green"}, rows, min_free_bytes=20 * _GIB, max_disk_percent=75,
+        {"status": "green"},
+        rows,
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
     )
     assert len(problems) == 1
     assert "no data nodes" in problems[0]
@@ -1037,6 +1067,7 @@ def test_main_preflight_skip_env_lets_reindex_proceed(monkeypatch):
 
 # --- in-flight disk abort ---------------------------------------------------------------
 
+
 def _alloc(node, percent):
     return {"node": node, "disk.percent": str(percent), "disk.avail": "1000"}
 
@@ -1058,10 +1089,12 @@ def test_disk_abort_reasons_ignores_unknown_numbers():
 
 def test_run_barrier_loop_aborts_when_disk_check_reports_a_problem():
     spec.loader.exec_module(orch)
-    statuses = iter([
-        _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
-        _FakeJobStatus(succeeded=2, failed=0, completed_indexes="0-1"),
-    ])
+    statuses = iter(
+        [
+            _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
+            _FakeJobStatus(succeeded=2, failed=0, completed_indexes="0-1"),
+        ]
+    )
     checks = iter([[], ["node es-2 disk is 88% full"]])
     logs = []
     state, incomplete = orch.run_barrier_loop(
@@ -1081,10 +1114,12 @@ def test_run_barrier_loop_aborts_when_disk_check_reports_a_problem():
 def test_run_barrier_loop_keeps_waiting_when_disk_check_errors():
     # ES briefly unreachable is not a reason to throw away the build; the shard deadline still bounds it.
     spec.loader.exec_module(orch)
-    statuses = iter([
-        _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
-        _FakeJobStatus(succeeded=8, failed=0, completed_indexes="0-7"),
-    ])
+    statuses = iter(
+        [
+            _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
+            _FakeJobStatus(succeeded=8, failed=0, completed_indexes="0-7"),
+        ]
+    )
 
     def flaky():
         raise ConnectionError("refused")
@@ -1149,6 +1184,7 @@ def test_run_barrier_loop_aborts_when_disk_checks_keep_failing_past_the_grace_pe
 
 # --- per-node freshness (DiskGuard) -------------------------------------------------------
 
+
 def test_disk_abort_reasons_treats_nan_and_out_of_range_as_missing():
     spec.loader.exec_module(orch)
     rows = [{"node": "es-0", "disk.percent": "NaN"}, {"node": "es-1", "disk.percent": "150"}]
@@ -1160,8 +1196,9 @@ def test_disk_guard_aborts_when_one_node_stays_unobserved_past_grace():
     # Two healthy nodes must not hide a third that stopped reporting.
     spec.loader.exec_module(orch)
     clock = iter([0.0, 300.0, 601.0])
-    guard = orch.DiskGuard(max_disk_percent=85, grace_seconds=600, now_fn=clock.__next__,
-                           expected_nodes=["es-0", "es-1", "es-2"])
+    guard = orch.DiskGuard(
+        max_disk_percent=85, grace_seconds=600, now_fn=clock.__next__, expected_nodes=["es-0", "es-1", "es-2"]
+    )
     partial = [_alloc("es-0", 40), _alloc("es-1", 41), {"node": "es-2", "disk.percent": None}]
     assert guard.check(partial) == []
     reasons = guard.check(partial)
@@ -1173,9 +1210,9 @@ def test_disk_guard_tolerates_a_short_gap_and_watches_nodes_that_vanish():
     clock = iter([0.0, 100.0, 200.0, 900.0])
     guard = orch.DiskGuard(max_disk_percent=85, grace_seconds=600, now_fn=clock.__next__)
     full = [_alloc("es-0", 40), _alloc("es-1", 41)]
-    assert guard.check(full) == []                      # learns es-0, es-1 at t=100
-    assert guard.check([_alloc("es-0", 42)]) == []      # es-1 missing for 100 s: fine
-    reasons = guard.check([_alloc("es-0", 43)])         # es-1 missing since t=100: 800 s
+    assert guard.check(full) == []  # learns es-0, es-1 at t=100
+    assert guard.check([_alloc("es-0", 42)]) == []  # es-1 missing for 100 s: fine
+    reasons = guard.check([_alloc("es-0", 43)])  # es-1 missing since t=100: 800 s
     assert len(reasons) == 1 and "es-1" in reasons[0]
 
 

@@ -1,12 +1,15 @@
 # Trend
+
 > Source: `sefaria/model/trend.py`
 
 ## Purpose
+
 Computes and stores per-user and site-wide behavioral traits (language preference, category reading counts, sheet usage, schedule adherence) derived from `user_history` aggregation pipelines. These traits power the story/notification targeting system by providing session-level trait checks (e.g. "readsHebrew", "usesSheets") and the user-stats / site-stats API responses.
 
 ## Key Classes
 
 ### DateRange
+
 - **Inherits**: `object`
 - **Collection**: N/A (pure helper)
 - **Role**: Represents a time window used to scope MongoDB aggregation queries. Provides factory methods for common periods and generates `$gte`/`$lte` clauses.
@@ -17,6 +20,7 @@ Computes and stores per-user and site-wide behavioral traits (language preferenc
   - `this_hebrew_year()` / `previous_hebrew_year()` -- use a hardcoded Rosh Hashana lookup table (`new_years_dict`); will KeyError if the current year is outside the table range (currently covers 2020-2028)
 
 ### Trend
+
 - **Inherits**: `AbstractMongoRecord`
 - **Collection**: `trend`
 - **Role**: Single computed trait value for a user or for the whole site, within a given period.
@@ -25,21 +29,25 @@ Computes and stores per-user and site-wide behavioral traits (language preferenc
   - `get_user_trend_value(uid, name, period="alltime", default=0)` -- classmethod; loads a single trend or returns default
 
 ### TrendSet
+
 - **Inherits**: `AbstractMongoSet`
 - **Collection**: `trend`
 - **Role**: Query wrapper over multiple `Trend` records. Heavily used with `.delete()` to clear stale trends before recomputation.
 
 ### TrendFactory / EnglishToleranceFactory / HebrewAbilityFactory
+
 - **Inherits**: `object`
 - **Collection**: N/A
 - **Role**: Stub/skeleton for a planned factory pattern. Currently unused -- actual trait computation lives in the module-level `set*Traits()` functions. Marked with "Needs thought / refactor" comment.
 
 ### DateRefRange
+
 - **Inherits**: `object`
 - **Collection**: N/A
 - **Role**: Pairs a `Ref` range with a `DateRange` to check whether a user's reading history entry falls within a schedule window (e.g. weekly parasha).
 
 ### ScheduleManager / ParashaScheduleManager
+
 - **Inherits**: `object` / `ScheduleManager`
 - **Collection**: N/A
 - **Role**: Determines if a user is following a learning schedule (currently only Parasha) by checking whether enough of their `user_history` entries land in the correct ref+date buckets. Saves a boolean `Trend` when a match is found.

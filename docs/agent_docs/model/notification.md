@@ -1,12 +1,15 @@
 # Notification
+
 > Source: `sefaria/model/notification.py`
 
 ## Purpose
+
 Manages user-facing notifications for events like sheet likes, follows, collection additions, and sheet publishes, as well as site-wide "global" notifications (new indexes, versions, general announcements). Per-user `Notification` records can be standalone or linked to a `GlobalNotification` via `global_id`, in which case the global record's content/type is loaded at read time.
 
 ## Key Classes
 
 ### GlobalNotification
+
 - **Inherits**: `AbstractMongoRecord`
 - **Collection**: `global_notification`
 - **Role**: Site-wide announcements. Three types: `"index"` (new index), `"version"` (new version), `"general"` (free-text he/en).
@@ -18,10 +21,12 @@ Manages user-facing notifications for events like sheet likes, follows, collecti
   - `_validate()` -- asserts the referenced Index or Version actually exists in the library
 
 ### GlobalNotificationSet
+
 - **Inherits**: `AbstractMongoSet`
 - **Role**: Query wrapper; importantly has `register_for_user(uid)` which creates per-user `Notification` records for each global notification in the set.
 
 ### Notification
+
 - **Inherits**: `AbstractMongoRecord`
 - **Collection**: `notifications`
 - **Role**: Per-user notification record. Either standalone (sheet like, follow, etc.) or a user-specific reference to a GlobalNotification.
@@ -36,6 +41,7 @@ Manages user-facing notifications for events like sheet likes, follows, collecti
 - **`sheets_notification_types`** -- class-level list used to split notifications into "library" vs "voices" scopes
 
 ### NotificationSet
+
 - **Inherits**: `AbstractMongoSet`
 - **Role**: Query/batch operations on per-user notifications.
 - **Key methods**:
@@ -46,6 +52,7 @@ Manages user-facing notifications for events like sheet likes, follows, collecti
   - `_build_query_with_scope(uid, ...)` -- splits notification types into `library` or `VOICES_MODULE` scope using `$in`/`$nin` on `sheets_notification_types`
 
 ## Non-Obvious Patterns
+
 - **Builder pattern everywhere**: `make_*`, `set_*`, and `mark_read` all return `self`, enabling chaining like `Notification().make_follow(uid).save()`.
 - **Lazy global sync**: Global notifications are not pushed to users on creation. Instead, `_add_global_messages` is called lazily when a user fetches their notifications, creating up to 10 missing per-user copies at that time.
 - **Derived attributes on global notifications**: `_set_derived_attributes` overwrites `content` and `type` from the linked GlobalNotification on every load, so edits to the global propagate automatically.
@@ -53,6 +60,7 @@ Manages user-facing notifications for events like sheet likes, follows, collecti
 - **Sheet deletion is not wired through dependencies.py**: `process_sheet_deletion_in_notifications(sheet_id)` is called directly from `sourcesheets/views.py`, not via the dependency subscription system.
 
 ## Relationships
+
 - **GlobalNotification -> Notification**: One-to-many via `global_id`. When a GlobalNotification is deleted, `NotificationSet` records referencing it via `global_id` are cascade-deleted (via `dependencies.py`).
 - **Index title changes**: Cascade to `GlobalNotificationSet` updating `content.index`.
 - **Version title changes**: Cascade to `GlobalNotificationSet` updating `content.version`.
@@ -65,6 +73,7 @@ Manages user-facing notifications for events like sheet likes, follows, collecti
 ## Common Tasks
 
 **Create a notification for a user:**
+
 ```python
 Notification(uid=user_id).make_sheet_like(liker_id=actor_id, sheet_id=sid).save()
 Notification(uid=user_id).make_follow(follower_id=actor_id).save()
@@ -72,22 +81,26 @@ Notification(uid=user_id).make_collection_add(adder_id=actor_id, collection_slug
 ```
 
 **Create a global notification:**
+
 ```python
 GlobalNotification().make_version(version_obj).set_en("New translation").set_he("...").save()
 ```
 
 **Fetch recent notifications for a user (with global sync):**
+
 ```python
-ns = NotificationSet().recent_for_user(uid, page=0, limit=10, scope='library')
+ns = NotificationSet().recent_for_user(uid, page=0, limit=10, scope="library")
 client_data = ns.client_contents()
 ```
 
 **Mark notifications as read:**
+
 ```python
 NotificationSet().unread_for_user(uid).mark_read(via="site")
 ```
 
 **Delete notifications when a sheet is removed:**
+
 ```python
 process_sheet_deletion_in_notifications(sheet_id)
 ```

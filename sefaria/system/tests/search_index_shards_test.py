@@ -1,11 +1,13 @@
 """Primary shard count for new search indexes. Loaded with importlib so no Django/Mongo is needed."""
+
 import importlib.util
 import pathlib
 
 import pytest
 
 spec = importlib.util.spec_from_file_location(
-    "search_index_shards", pathlib.Path("sefaria/search_index_shards.py"),
+    "search_index_shards",
+    pathlib.Path("sefaria/search_index_shards.py"),
 )
 shards = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(shards)

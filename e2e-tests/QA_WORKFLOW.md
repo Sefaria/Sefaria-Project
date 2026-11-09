@@ -15,11 +15,11 @@ and the affected components' source.
 
 **Output:** a test plan table with one row per case:
 
-| Column | Rule |
-| --- | --- |
-| TC ID | `<surface>-###` (e.g. `MW-001` mobile web, `DW-001` desktop web). IDs are permanent — automated tests reference them 1:1. |
-| Type | `New Feature` (tests the change itself) vs `Regression` (tests what the change must not break). This distinction drives Stage 3 validation. |
-| Priority | P0 = core acceptance criteria + highest-risk regressions; P1 = secondary. |
+| Column           | Rule                                                                                                                                                                                     |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TC ID            | `<surface>-###` (e.g. `MW-001` mobile web, `DW-001` desktop web). IDs are permanent — automated tests reference them 1:1.                                                                |
+| Type             | `New Feature` (tests the change itself) vs `Regression` (tests what the change must not break). This distinction drives Stage 3 validation.                                              |
+| Priority         | P0 = core acceptance criteria + highest-risk regressions; P1 = secondary.                                                                                                                |
 | Steps / Expected | Concrete refs and URLs (e.g. `sefaria.org/Genesis.3.5`), observable outcomes. Note the implementation detail under test when known (e.g. "getLocalScrollTop() must read window scroll"). |
 
 **Regression rows come from the diff, not the feature description.** SC-30249
@@ -27,7 +27,7 @@ changed shared TextColumn plumbing, so the plan needed a full desktop (DW)
 regression section even though the story is mobile-only. Ask: "what code paths
 does this diff touch that existing behavior depends on?"
 
-**Human gate #1:** the developer + one peer review the *plan* before any test
+**Human gate #1:** the developer + one peer review the _plan_ before any test
 is written. Reviewing 28 table rows takes minutes; reviewing 28 generated
 tests without an agreed plan takes hours.
 
@@ -43,10 +43,10 @@ Generate Playwright specs from the plan with Claude Code, under the rules in
 entry, locator priority, read-the-React-source-first).
 
 - **Test IDs match plan TC IDs 1:1** — `test('MW-004: …')`. The spec file
-  header lists every plan case that is *not* automated and why.
+  header lists every plan case that is _not_ automated and why.
 - **Classify honestly.** A case emulation cannot observe stays manual. For
   SC-30249, the actual URL-bar collapse (MW-001/002) is real browser chrome —
-  invisible to Playwright — so the spec automates the *mechanism* browsers key
+  invisible to Playwright — so the spec automates the _mechanism_ browsers key
   off (MW-003: document-level scroll + clean overflow on html/body) and the
   collapse itself is checked once on a physical phone.
 - **Ground every locator in the component source** before writing it
@@ -57,7 +57,7 @@ entry, locator priority, read-the-React-source-first).
 ## Stage 3 — Validate that the tests test the right thing
 
 This replaces the departed QA team's judgment and is **not optional**. A
-generated test that passes proves nothing until it has been shown to *fail*
+generated test that passes proves nothing until it has been shown to _fail_
 in the right circumstances.
 
 **3a. Negative control — run against an environment WITHOUT the change**
@@ -109,17 +109,17 @@ see CLAUDE.md §2A.
 - Throwaway `__research__` specs and scratchpad validation scripts are never
   committed.
 - When a POM method's locator breaks, fix the page object — specs don't change
-  unless the *plan* changes.
+  unless the _plan_ changes.
 
 ---
 
 ## Worked example — SC-30249
 
-| Artifact | Location |
-| --- | --- |
-| Story / spec | https://app.shortcut.com/sefaria/story/30249 |
-| Test plan (28 cases) | Google Sheet linked from the story |
-| Mobile spec (10 automated MW cases) | [mobile web/reader-scroll.spec.ts](mobile%20web/reader-scroll.spec.ts) |
-| Desktop regression spec (7 DW cases) | [library/reader-scroll-desktop.spec.ts](library/reader-scroll-desktop.spec.ts) |
-| Shared POM | [pages/readerScrollPage.ts](pages/readerScrollPage.ts) (`pm.onReaderScroll()`) |
-| Validation result | DW 7/7 pass on preprod (3a); MW mechanism tests fail on preprod (3a); 18/20 checks pass on local fixed build (3b); MW-004/006 caught a real infinite-scroll-down regression (3b) |
+| Artifact                             | Location                                                                                                                                                                         |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Story / spec                         | https://app.shortcut.com/sefaria/story/30249                                                                                                                                     |
+| Test plan (28 cases)                 | Google Sheet linked from the story                                                                                                                                               |
+| Mobile spec (10 automated MW cases)  | [mobile web/reader-scroll.spec.ts](mobile%20web/reader-scroll.spec.ts)                                                                                                           |
+| Desktop regression spec (7 DW cases) | [library/reader-scroll-desktop.spec.ts](library/reader-scroll-desktop.spec.ts)                                                                                                   |
+| Shared POM                           | [pages/readerScrollPage.ts](pages/readerScrollPage.ts) (`pm.onReaderScroll()`)                                                                                                   |
+| Validation result                    | DW 7/7 pass on preprod (3a); MW mechanism tests fail on preprod (3a); 18/20 checks pass on local fixed build (3b); MW-004/006 caught a real infinite-scroll-down regression (3b) |

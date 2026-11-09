@@ -23,7 +23,5 @@ def primary_shard_count(index_type, environ):
         return DEFAULT_TEXT_PRIMARY_SHARDS
     count = int(raw)
     if not 1 <= count <= MAX_TEXT_PRIMARY_SHARDS:
-        raise ValueError(
-            f"SEARCH_TEXT_PRIMARY_SHARDS must be between 1 and {MAX_TEXT_PRIMARY_SHARDS}, got {raw!r}"
-        )
+        raise ValueError(f"SEARCH_TEXT_PRIMARY_SHARDS must be between 1 and {MAX_TEXT_PRIMARY_SHARDS}, got {raw!r}")
     return count

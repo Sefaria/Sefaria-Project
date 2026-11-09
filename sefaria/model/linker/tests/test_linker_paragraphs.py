@@ -1,4 +1,5 @@
 import pytest
+
 from sefaria.model.linker.linker import Linker
 
 
@@ -11,9 +12,9 @@ from sefaria.model.linker.linker import Linker
         ("First\nSecond\nThird", ["First", "Second", "Third"], [(5, 6), (12, 13)]),
         ("  Leading\n\nTrailing  ", ["  Leading", "Trailing  "], [(9, 11)]),
         ("Para1\n\nPara2\n\nPara3", ["Para1", "Para2", "Para3"], [(5, 7), (12, 14)]),
-        ("\nStart with break", ['', "Start with break"], [(0, 1)]),
-        ("End with break\n", ["End with break", ''], [(14, 15)]),
-    ]
+        ("\nStart with break", ["", "Start with break"], [(0, 1)]),
+        ("End with break\n", ["End with break", ""], [(14, 15)]),
+    ],
 )
 def test_break_input_into_paragraphs(input_str, expected_paragraphs, expected_spans):
     linker = Linker.__new__(Linker)  # bypass __init__
