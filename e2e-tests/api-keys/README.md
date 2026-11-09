@@ -66,6 +66,14 @@ APIKEYS_CAULDRON=apisplit APIKEYS_ALLOW_SEEDING=apisplit e2e-tests/api-keys/run-
 # Owner-approved cauldron drills, outside the entrypoint:
 APIKEYS_CAULDRON=apisplit APIKEYS_ALLOW_MUTATING_ON=apisplit e2e-tests/api-keys/cauldron/run.sh drill-f1   # F1 on the cluster
 APIKEYS_CAULDRON=apisplit e2e-tests/api-keys/cauldron/run.sh verify-off   # E4, after authService.enabled=false is applied
+
+# 5. Local perf numbers (about 12 min, Docker only, no cluster): added latency with and without ext_authz, the auth
+#    service's own p99, revoke-to-deny with NOTIFY and with LISTEN broken, one versus two replicas. See "Performance".
+e2e-tests/api-keys/run-release-checks.sh perf
+
+# 6. The perf cauldron (release plan D6: a dedicated cauldron Brendan approved; never apisplit or a shared one):
+APIKEYS_CAULDRON=<perf-name> APIKEYS_PERF_CAULDRON=<perf-name> APIKEYS_PERF_BASE=http://<envoy service> \
+  APIKEYS_PERF_KEY_FILE=<file> e2e-tests/api-keys/run-release-checks.sh perf-cauldron
 ```
 
 What a pass looks like:
@@ -80,6 +88,8 @@ What a pass looks like:
 | drills                                                                                 | 0 FAIL each; the GAP lines are the known gaps listed in the release plan (N-CR8 readiness, F4, N-E4, N-E5, N-F1, D-2, N-M14) |
 | `playwright apikeys (local)`                                                           | `0 failed`; failures titled `@known-gap` are counted separately                                                              |
 | `seed: --teardown leaves 0 rows`                                                       | `leftovers: 0`                                                                                                               |
+| `perf cauldron runner guard tests` (static, perf)                                      | every `ok:`: each refusal makes no cluster call; every call past the guards names the dev context                            |
+| `drill perf-latency` / `perf-revoke` / `perf-replicas` (perf)                          | 0 FAIL each; the added p50/p99, the auth service's p99 and the revoke times are printed under the row                        |
 
 The cluster-side gates, run by hand at each promotion (all read-only except the provisioning create path):
 
@@ -88,6 +98,47 @@ CTX=<cluster context> NS=preprod ENV=preprod auth-service/scripts/policy-gate.sh
 auth-service/scripts/crd-gate.sh <cluster context>                                     # once per cluster before the first enabled: true
 CTX=<cluster context> auth-service/scripts/provision-cluster-registry.sh --verify      # the reader role's grants, before enabled: true
 ```
+
+## Performance
+
+The release plan's "Performance measured" items, with the k6 scripts in `auth-service/k6/` (ported from the POC to
+the phase 1 contract: ext_authz over gRPC, `x-api-key`, the gated path `/api/knn-search`, observe and enforce). Local
+numbers come from one host and never replace the perf-cauldron run (D6); they show the shape and catch regressions.
+
+| Script (in `auth-service/dev/local-stack/scenarios/`) | Measures                                                                                                                                                                                                                     | Gate                                                                                                                                                         |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `perf-latency.sh` (PERF-L)                            | `arms.js` at 20/s per arm for 120 s per mode, enforce then observe: the drill Envoy with ext_authz (:20080) against its listener without it (:20083), echo upstream; then `authsvc-direct.js` (gRPC Check, 200/s, 1000 keys) | every status as the contract says; no ext_authz error or fail-open; Check p99 under the 200 ms ext_authz timeout; added p99 under a loose 25 ms local budget |
+| `perf-revoke.sh` (PERF-R)                             | `revoke_timing.py`, 1000 keys loaded: 20 trials create, 200, revoke, 401 with 5 ms polling; then `PG_NOTIFY_CHANNEL` empty and 3 revokes on the 60 s periodic reload                                                         | NOTIFY p50 <= 250 ms, max <= 2 s, code `api_key_invalid`; fallback: no LISTEN backend, every revoke within 65 s, none fast                                   |
+| `perf-replicas.sh` (PERF-N)                           | `replicas.js`, 300 sequential pairs (valid key, unknown key) with one replica, then two                                                                                                                                      | same decisions on both replicas, no 429 (rate limiting is off), both replicas take Checks, circuit-breaker thresholds 1024 and never open                    |
+
+Each prints its numbers as `info` lines next to the targets: the cluster baseline from the POC (+1.30 ms p50 / +3.02 ms
+p99 on a Varnish hit), the ~50 ms NOTIFY target and the 60 s periodic reload. JSON results go to the run's
+`results/release-checks/<run>/perf-*/` (or `.claude/scratch/apikeys-d11/perf/` when a script runs alone). "hit" means a
+key found in the auth service's in-memory registry: phase 1 has no response cache, so every request is a Check call.
+In enforce, "miss" is Envoy's local 401, so it has no "added" figure there. Envoy's own histogram
+(`cluster.authsvc.upstream_rq_time`) records whole milliseconds.
+
+First full run (`run-release-checks.sh perf`, 2026-11-09, this repo's dev server, phase 1 head): in enforce, ext_authz
+added p50 +0.64 ms / p99 +2.68 ms (no key) and +0.73 / +2.87 ms (found key); in observe +0.82 / +3.32 ms and +1.05 /
++4.03 ms. The auth service's own gRPC p99 was 0.79 ms at 200/s with 1000 keys (Envoy's view of the Check: p99 1.09 ms).
+Revoke-to-deny over 20 trials: p50 58.8 ms, max 63.0 ms (reload 3.5 ms at 1033 keys); with LISTEN broken, 60.0 s each.
+Two replicas split the Checks 301/300 with the same decisions and no 429.
+
+**On the perf cauldron** (`perf/run-perf-cauldron.sh`, not yet run: it needs the cauldron D6 asks for). It refuses
+before any cluster call unless `APIKEYS_CAULDRON` names a cauldron whose name contains `perf` and is not apisplit,
+authpoc, api-keys-poc or apikeys-pipeline, `APIKEYS_PERF_CAULDRON` repeats it, and the kube context is the dev
+cluster; rate is capped at 50/s per arm and 3 arms, duration at 180 s, trials at 20. `test-perf-guards.sh` proves the
+guards with a fake `kubectl`.
+
+1. `plan`: prints the Job it would create, with no cluster call.
+2. `latency` with the flag off (the baseline), then, after the cauldron owner switches `authService.enabled` on in the
+   cauldrons repo, `latency` again. Each run is a k6 Job (ConfigMap, Secret with the key, Job; all three deleted by
+   label on exit) against the gateway's in-cluster Envoy Service on `/api/texts/Genesis.1` (a Varnish hit), like the
+   POC. Then `compare results/perf-runs/<off>/latency-flag-off.json results/perf-runs/<on>/latency-flag-on.json`.
+3. `revoke` (flag on, enforce): the seeder resets the e2e fixtures in a web pod, `revoke_trials_pod.py` times create,
+   allow, revoke, 401 on the pod's own clock (the key never leaves the pod), and the seeder tears down to 0 leftovers.
+   The fixture rows show on every cauldron that shares the cauldron's `sefaria_auth` while the run lasts, as with
+   `cauldron/run.sh seeded`.
 
 ## What the scaffold gives a spec
 
@@ -161,5 +212,6 @@ and module functions. Edge cases that only a new test can prove go in `powered_b
 ## Files
 
 `env.ts` (targets, manifest, masking), `fixtures.ts`, `session.ts` (login, contexts), `gateway.ts`, `registry.ts`,
-`mail.ts`, `infra.ts`, `auth.setup.ts`, `_smoke.spec.ts`. Git-ignored: `.auth*/`, `results/`, and the manifest
+`mail.ts`, `infra.ts`, `auth.setup.ts`, `_smoke.spec.ts`; `perf/` (the perf-cauldron runner, its guard tests and
+the in-pod revoke trials). Git-ignored: `.auth*/`, `results/`, and the manifest
 `e2e-tests/.apikeys-e2e.json`.

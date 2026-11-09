@@ -2100,6 +2100,10 @@
             {
               "kind": "demo",
               "ref": "auth-service/scripts/demo.sh::section_propagation"
+            },
+            {
+              "kind": "drill",
+              "ref": "auth-service/dev/local-stack/scenarios/perf-revoke.sh#PERF-R 1: NOTIFY on"
             }
           ]
         },
@@ -2148,6 +2152,22 @@
             {
               "kind": "demo",
               "ref": "auth-service/scripts/demo.sh::section_registry"
+            },
+            {
+              "kind": "drill",
+              "ref": "auth-service/dev/local-stack/scenarios/perf-replicas.sh#both replicas answered Checks"
+            }
+          ]
+        },
+        {
+          "id": "F-REG-06.e5",
+          "scenario": "LISTEN broken (PG_NOTIFY_CHANNEL empty)",
+          "expected": "a revoke still applies on the next periodic reload, within RELOAD_INTERVAL (60 s)",
+          "severity": "P1",
+          "checks": [
+            {
+              "kind": "drill",
+              "ref": "auth-service/dev/local-stack/scenarios/perf-revoke.sh#PERF-R 2: LISTEN broken"
             }
           ]
         }
@@ -4134,6 +4154,10 @@
             {
               "kind": "drill",
               "ref": "auth-service/dev/local-stack/scenarios/f5-latency.sh#no request at or over 200 ms"
+            },
+            {
+              "kind": "drill",
+              "ref": "auth-service/dev/local-stack/scenarios/perf-latency.sh#200 ms ext_authz timeout"
             }
           ]
         },
