@@ -32,6 +32,7 @@ import urllib.request
 
 # build/ci is not a package (see tests/conftest.py); a plain sibling-module
 # import works both run directly and under pytest.
+import post_deploy
 import shortcut_pr_guards
 
 LONG_LIVED_ENV_BRANCHES = shortcut_pr_guards.LONG_LIVED_ENV_BRANCHES
@@ -245,6 +246,7 @@ def fetch_story(story_id, token):
         "workflow_id": data.get("workflow_id"),
         "workflow_state_id": data.get("workflow_state_id"),
         "story_type": data.get("story_type"),
+        "post_deploy_items": post_deploy.open_items(data),
     }
 
 

@@ -29,6 +29,7 @@ import urllib.request
 
 # build/ci is not a package (see tests/conftest.py); a plain sibling-module
 # import works both run directly and under pytest.
+import post_deploy
 import shortcut_pr_guards
 
 SHORTCUT_API_BASE = "https://api.app.shortcut.com/api/v3"
@@ -271,6 +272,7 @@ def _story_for_release_notes(story):
         "workflow_id": story.get("workflow_id"),
         "workflow_state_id": story.get("workflow_state_id"),
         "story_type": story.get("story_type"),
+        "post_deploy_items": post_deploy.open_items(story),
     }
 
 
@@ -294,6 +296,8 @@ def classify_candidates(candidates, oid_by_pr, prod_tag):
 
         entry = _story_summary(story)
         entry["qualifying_prs"] = sorted(pr["number"] for pr in prs)
+        # Open "Post-deploy:" checklist items keep a shipped story out of Done until they're ticked.
+        entry["held_post_deploy"] = bool(post_deploy.open_items(story))
         if shipped_via:
             shipped_via_sorted = sorted(shipped_via)
             entry["shipped_via_prs"] = shipped_via_sorted
@@ -320,7 +324,9 @@ def print_summary(report):
 
     print(f"--- shipped ({len(report['shipped'])}) ---")
     for s in report["shipped"]:
-        if not report["applied"]:
+        if s.get("held_post_deploy"):
+            status = "held: open post-deploy items"
+        elif not report["applied"]:
             status = "would transition"
         elif s.get("transitioned"):
             status = "transitioned"
@@ -423,7 +429,7 @@ def main():
     failed_transitions = []
     if apply_mutations:
         transitioned_ids, failed_transitions = transition_stories(
-            [s["id"] for s in shipped], DONE_STATE_ID, token, args.max_workers
+            [s["id"] for s in shipped if not s["held_post_deploy"]], DONE_STATE_ID, token, args.max_workers
         )
         transitioned_set = set(transitioned_ids)
         failed_by_id = dict(failed_transitions)
