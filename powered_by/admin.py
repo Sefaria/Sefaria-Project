@@ -1,7 +1,9 @@
 from django import forms
 from django.contrib import admin, messages
+from django.contrib.admin.views.main import SEARCH_VAR
 from django.db import transaction
 from django.db.models import Prefetch
+from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -172,6 +174,16 @@ class ApiProjectAdmin(admin.ModelAdmin):
     readonly_fields = ("deleted_at", "created_at", "updated_at")
     inlines = (ApiKeyInline,)
     actions = ("soft_delete_and_revoke_keys",)
+
+    def changelist_view(self, request, extra_context=None):
+        # The changelist echoes the query into the search box, the result links and every later request. A pasted full
+        # key would be rendered back and logged again, so cut the query to the shown prefix before anything renders.
+        query = request.GET.get(SEARCH_VAR, "")
+        if len(query.strip()) > KEY_DISPLAY_PREFIX:
+            params = request.GET.copy()
+            params[SEARCH_VAR] = query.strip()[:KEY_DISPLAY_PREFIX]
+            return HttpResponseRedirect(f"{request.path}?{params.urlencode()}")
+        return super().changelist_view(request, extra_context)
 
     def get_search_results(self, request, queryset, search_term):
         # Match only the prefix the admin already shows. Searching further into the key would let staff recover it a

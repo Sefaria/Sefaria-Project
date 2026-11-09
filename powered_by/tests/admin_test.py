@@ -198,11 +198,30 @@ class ProjectAdminTest(TestCase):
         other = ApiProject.objects.create(profile=other_profile)
         ApiKey.objects.create(project=other, label="Other")
 
-        response = self.client.get(admin_url("changelist", model="apiproject"), {"q": self.key.key[:12]})
+        response = self.client.get(admin_url("changelist", model="apiproject"), {"q": self.key.key[:10]})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual([p.pk for p in response.context["cl"].result_list], [self.api_project.pk])
         self.assertNotIn(self.key.key, response.content.decode())
+
+    def test_api_project_search_with_a_full_key_never_echoes_the_hidden_part(self):
+        # Staff paste a whole key from a support request. The changelist would render the query back into the search
+        # box and its links, so the request is redirected to the shown prefix before anything renders.
+        url = admin_url("changelist", model="apiproject")
+        hidden = self.key.key[10:]
+
+        response = self.client.get(url, {"q": self.key.key, "o": "1"})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn(hidden, response["Location"])
+        self.assertIn("q=" + self.key.key[:10], response["Location"])
+        self.assertIn("o=1", response["Location"])
+
+        followed = self.client.get(url, {"q": self.key.key}, follow=True)
+
+        self.assertEqual(followed.status_code, 200)
+        self.assertEqual([p.pk for p in followed.context["cl"].result_list], [self.api_project.pk])
+        self.assertNotIn(hidden, followed.content.decode())
 
     def test_api_project_search_cannot_probe_past_the_shown_prefix(self):
         # Two keys share the 10 characters the admin shows and differ after them. A query that reaches into the hidden
@@ -220,7 +239,7 @@ class ProjectAdminTest(TestCase):
         url = admin_url("changelist", model="apiproject")
 
         def found(query):
-            return sorted(p.pk for p in self.client.get(url, {"q": query}).context["cl"].result_list)
+            return sorted(p.pk for p in self.client.get(url, {"q": query}, follow=True).context["cl"].result_list)
 
         both = sorted([a.pk, b.pk])
         self.assertEqual(found("sfr_qz7wx1"), both)
