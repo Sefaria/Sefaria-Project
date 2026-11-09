@@ -50,8 +50,8 @@ rec() {
 }
 infra_or() { case "$1" in 000|502|503|504) echo blocked ;; *) echo "$2" ;; esac; }
 
-cleanup() {
-  local rc=$?
+cleanup() {  # cleanup [RC]: RC is the status to keep when a mode's own trap ran first
+  local rc=${1:-$?}
   [ -n "$PF_PID" ] && kill "$PF_PID" 2>/dev/null
   rm -f "$MANIFEST" "$RUN_DIR"/tmp.*
   # Any failed case fails the run, whatever the last command returned.
@@ -181,6 +181,7 @@ PY
   failed="$(awk -F'\t' '$4 == "unexpected" && $3 !~ /@known-gap/' "$RUN_DIR/playwright-$label.tsv" | wc -l | tr -d ' ')"
   known="$(awk -F'\t' '$4 == "unexpected" && $3 ~ /@known-gap/' "$RUN_DIR/playwright-$label.tsv" | wc -l | tr -d ' ')"
   if [ ! -s "$RUN_DIR/playwright-$label.tsv" ]; then rec "playwright-$label" fail-harness "no results (exit $rc); see playwright-$label.log"
+  elif [ "$rc" != 0 ] && [ "$failed" = 0 ] && [ "$known" = 0 ]; then rec "playwright-$label" fail-harness "exit $rc with no failing test (a setup or report error); see playwright-$label.log"
   elif [ "$failed" = 0 ]; then rec "playwright-$label" pass "$(wc -l <"$RUN_DIR/playwright-$label.tsv" | tr -d ' ') cases, $known known-gap failure(s)"
   else rec "playwright-$label" fail-product-bug "$failed failed: $(awk -F'\t' '$4 == "unexpected" && $3 !~ /@known-gap/ {print $3}' "$RUN_DIR/playwright-$label.tsv" | head -3 | cut -c1-80 | paste -sd'|' -)"; fi
 }
@@ -189,8 +190,11 @@ PY
 api_tests() {
   ( cd "$REPO/api-tests" && API_BASE_URL="$BASE" python3 -m pytest -q -p no:cacheprovider -p no:django -c /dev/null --rootdir . \
       -k 'not register and not create_sheet and not login_refresh' . ) 2>&1 | mask > "$RUN_DIR/api-tests.log"
+  local prc=${PIPESTATUS[0]}
   local summary; summary="$(grep -E '(passed|failed|error)' "$RUN_DIR/api-tests.log" | tail -1)"
-  if grep -qE '[0-9]+ (failed|error)' <<<"$summary"; then
+  if [ "$prc" != 0 ] || ! grep -qE '[0-9]+ passed' <<<"$summary"; then
+    rec N-B3 fail-harness "api-tests exit $prc, summary '${summary:-none}'; see api-tests.log"
+  elif grep -qE '[0-9]+ (failed|error)' <<<"$summary"; then
     rec N-B3 fail-product-bug "api-tests GET-only subset on the cauldron: $summary; see api-tests.log"
   else
     rec N-B3 pass "api-tests GET-only subset (3 POST tests deselected: register, create_sheet, login_refresh; sequential) on the cauldron: $summary. Staging comparison not run (cauldron-only host rule)"

@@ -19,10 +19,13 @@ cauldron_auth_mode() {
 }
 
 # A-series against the cauldron. Unkeyed checks only unless the manifest was seeded for the cauldron.
-probe_aseries() {
+probe_aseries() {  # probe_aseries [MANIFEST]: keyed checks only with a manifest seeded for the cauldron
   local mode log="$RUN_DIR/a-series.log"
+  # Without one, point at a file that does not exist, so the A-series stays unkeyed (the free run's empty manifest
+  # names the cauldron as its target but holds no keys).
+  local manifest="${1:-$RUN_DIR/no-manifest-unkeyed.json}"
   mode="$(cauldron_auth_mode)"
-  APIKEYS_CAULDRON="$CAULDRON" APIKEYS_MANIFEST="${1:-$MANIFEST}" \
+  APIKEYS_CAULDRON="$CAULDRON" APIKEYS_MANIFEST="$manifest" \
     bash "$REPO/auth-service/dev/local-stack/scenarios/a-series.sh" --target cauldron --mode "$mode" 2>&1 | mask >"$log"
   local rc=${PIPESTATUS[0]}
   local counts; counts="$(awk '{print $2}' "$log" | sort | uniq -c | tr -s ' ' | tr '\n' ' ')"
@@ -126,7 +129,7 @@ seeded_run() {
   seed_exec --leftovers 2>&1 | mask >"$RUN_DIR/leftovers-before.txt" || die "--leftovers is not 0 before seeding: $(tail -1 "$RUN_DIR/leftovers-before.txt")"
   git -C "$REPO" check-ignore -q "$MANIFEST_REL" || die "$MANIFEST_REL is not git-ignored"
   SEEDED=1
-  trap 'seeded_teardown; cleanup' EXIT INT TERM
+  trap 'trap_rc=$?; seeded_teardown; cleanup "$trap_rc"' EXIT INT TERM
   ( umask 077; seed_exec --reset --manifest-stdout >"$MANIFEST" 2>"$RUN_DIR/seed.err" ) || die "seeding failed: $(mask <"$RUN_DIR/seed.err" | tail -3)"
   rec seeded pass "seeded $(python3 -c 'import json,sys; m=json.load(open(sys.argv[1])); print(len(m["accounts"]), "accounts,", len(m["keys"]), "keys")' "$MANIFEST")"
 
@@ -157,6 +160,10 @@ def walk(s):
                 revoke.extend(a.get("description", "") for a in t.get("annotations", []) if a.get("description"))
 for s in d.get("suites", []):
     walk(s)
+# Report-level errors (a broken config, a crashed worker) and an empty run are failures too.
+errors = len(d.get("errors") or [])
+if errors or not (n["passed"] + n["known_gap"] + n["failed"] + n["flaky"]):
+    n["failed"] += max(errors, 1)
 print("%(failed)d\t%(passed)d passed, %(skipped)d skipped, %(known_gap)d known-gap, %(flaky)d flaky, %(failed)d failed" % n
       + ("; revoke-to-deny: " + " | ".join(revoke)[:300] if revoke else ""))
 PY
@@ -198,6 +205,11 @@ verify_off() {
 # --- drill-f1 -------------------------------------------------------------------------------------------------------
 
 F1_REPLICAS=""
+F1_LOOP=""
+f1_stop_probe() {
+  [ -n "$F1_LOOP" ] || return 0
+  touch "$RUN_DIR/f1.stop"; sleep 2; kill "$F1_LOOP" 2>/dev/null; wait "$F1_LOOP" 2>/dev/null; F1_LOOP=""
+}
 # Restores the recorded replica count; the record is cleared only once the scale call succeeded, so the exit trap
 # retries a failed restore.
 f1_restore() {
@@ -221,7 +233,7 @@ drill_f1() {
   preflight
   F1_REPLICAS="$(kc get "$AUTH_DEPLOY" -o jsonpath='{.spec.replicas}')"
   [ -n "$F1_REPLICAS" ] || die "cannot read the replicas of $AUTH_DEPLOY"
-  trap 'f1_restore; cleanup' EXIT INT TERM
+  trap 'trap_rc=$?; f1_stop_probe; f1_restore; cleanup "$trap_rc"' EXIT INT TERM
   local probe="$RUN_DIR/f1-probe.tsv"; : >"$probe"
   ( while [ ! -f "$RUN_DIR/f1.stop" ]; do
       printf '%s\t%s\n' "$(date +%s.%N)" "$(curl -s -o "$RUN_DIR/tmp.f1" -m 5 -w '%{http_code}' -A "$UA_TAG/$RUN_ID" "$BASE/api/knn-search" || echo 000)$(python3 -c 'import json,sys
@@ -229,7 +241,7 @@ try: print(" " + (json.load(open(sys.argv[1])).get("code") or "-"))
 except Exception: print(" -")' "$RUN_DIR/tmp.f1")" >>"$probe"
       sleep 1
     done ) &
-  local loop=$!
+  F1_LOOP=$!
   sleep 10
   local t_down; t_down="$(date +%s.%N)"
   kubectl --context "$KCTX" -n "$NS" scale "$AUTH_DEPLOY" --replicas=0 >/dev/null || die "scale to 0 failed"
@@ -237,13 +249,13 @@ except Exception: print(" -")' "$RUN_DIR/tmp.f1")" >>"$probe"
   for _ in $(seq 1 60); do [ -z "$(kc get pods -l "app=auth-service-$CAULDRON" -o name 2>/dev/null)" ] && break; sleep 2; done
   sleep 20
   local t_up; t_up="$(date +%s.%N)"
-  f1_restore || { touch "$RUN_DIR/f1.stop"; die "could not restore the auth service; scale it back by hand"; }
+  f1_restore || { f1_stop_probe; die "could not restore the auth service; scale it back by hand"; }
   for _ in $(seq 1 90); do
     [ "$(kc get "$AUTH_DEPLOY" -o jsonpath='{.status.readyReplicas}' 2>/dev/null)" -ge 1 ] 2>/dev/null && break; sleep 2
   done
   local t_ready; t_ready="$(date +%s.%N)"
   sleep 15
-  touch "$RUN_DIR/f1.stop"; wait "$loop" 2>/dev/null
+  f1_stop_probe
   local verdict
   verdict="$(python3 - "$probe" "$t_down" "$t_up" "$t_ready" <<'PY'
 import sys

@@ -89,7 +89,7 @@ playwright_suite() {
   local log="$OUT/playwright.log" json="$OUT/playwright.json"
   (cd "$REPO" && env -u APIKEYS_TRACE APIKEYS_TARGET=local PLAYWRIGHT_JSON_OUTPUT_NAME="$json" \
     npx playwright test --project=apikeys --workers="$WORKERS" --reporter=line,json) 2>&1 | mask >"$log"
-  local counts
+  local prc=${PIPESTATUS[0]} counts
   counts="$("$PY" - "$json" <<'PY'
 import json, sys
 data = json.load(open(sys.argv[1]))
@@ -114,12 +114,19 @@ def walk(suite):
                 failed.append(spec["title"][:70])
 for s in data.get("suites", []):
     walk(s)
+# Report-level errors (a broken config, a crashed worker) and an empty run are failures too.
+errors = data.get("errors") or []
+if errors or not (n["passed"] + n["known_gap"] + n["failed"] + n["flaky"]):
+    n["failed"] += max(len(errors), 1)
+    failed.append("report errors: %d, tests run: %d" % (len(errors), n["passed"] + n["known_gap"] + n["flaky"]))
 print("%(failed)d\t%(passed)d passed, %(skipped)d skipped, %(known_gap)d known-gap failures, %(flaky)d flaky, %(failed)d failed" % n
       + ("; failed: " + " | ".join(failed[:5]) if failed else ""))
 PY
 )"
   if [ -z "$counts" ]; then row "playwright apikeys (local)" FAIL "no JSON report; see the log" "$log"
-  elif [ "${counts%%$'\t'*}" = 0 ]; then row "playwright apikeys (local)" PASS "${counts#*$'\t'}" "$log"
+  elif [ "${counts%%$'\t'*}" = 0 ] && { [ "$prc" = 0 ] || [[ ${counts#*$'\t'} != *" 0 known-gap"* ]]; }; then
+    row "playwright apikeys (local)" PASS "${counts#*$'\t'}" "$log"
+  elif [ "${counts%%$'\t'*}" = 0 ]; then row "playwright apikeys (local)" FAIL "exit $prc with no failing test: ${counts#*$'\t'}" "$log"
   else row "playwright apikeys (local)" FAIL "${counts#*$'\t'}" "$log"; fi
 }
 
