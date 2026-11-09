@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # E3: the chart rendered with authService off and on. Desired: off renders no gateway-auth objects and is
 # byte-identical to master; on is sane (render-check.sh, helm-matrix); DEVELOPER_SETTINGS_MOCKS, _ENABLED and _STAFF_ONLY are off
-# outside cauldrons. Uses the chart's own values per deployEnv; the infrastructure repo's per-environment values are
-# a manual check. Helm runs in the alpine/helm image; yq is local.
+# outside cauldrons. The off/on render checks use each env file's HelmRelease values (render-check.sh); the base
+# comparison uses the chart's own values per deployEnv. Helm is the local one, or the alpine/helm image when there is
+# none; YAML is read with Python (PyYAML), and `make helm-matrix` runs only when yq is installed.
 #   e3-helm.sh [BASE_REF]   compare against BASE_REF (default: the merge base with origin/master), and report the
 #                           drift from origin/master's chart as info
 set -uo pipefail
@@ -27,10 +28,11 @@ for env in staging preprod prod; do
   helm_tpl "$BRANCH_CHART" --set deployEnv=$env >"$OUT/$env.off.yaml" 2>"$OUT/$env.err" || { fail "E3 $env: branch chart does not render with authService off"; continue; }
   helm_tpl "$OUT/base/helm-chart/sefaria" --set deployEnv=$env >"$OUT/$env.base.yaml" 2>/dev/null
   helm_tpl "$OUT/master/helm-chart/sefaria" --set deployEnv=$env >"$OUT/$env.master.yaml" 2>/dev/null
-  n="$(yq -N 'select(.kind == "SecurityPolicy" or (.metadata.name | test("auth-service"))) | .kind' "$OUT/$env.off.yaml" | grep -c . || true)"
-  check E3 "$env off: no auth-service objects and no SecurityPolicy" "$n" 0
-  strip="$(yq -N 'select(.kind == "ClientTrafficPolicy") | .spec.headers.earlyRequestHeaders.remove' "$OUT/$env.off.yaml" | grep -c 'x-sefaria' || true)"
-  check E3 "$env off: the ClientTrafficPolicy strips no x-sefaria-* headers" "$strip" 0
+  if "$PYTHON" "$REPO/auth-service/scripts/render_check.py" --off "$OUT/$env.off.yaml" >"$OUT/$env.off.check" 2>&1; then
+    pass "E3 $env off: no auth-service objects, no SecurityPolicy, no x-sefaria-* header strip"
+  else
+    fail "E3 $env off: $(grep -m1 FAIL "$OUT/$env.off.check")"
+  fi
   diff <(normalize <"$OUT/$env.base.yaml") <(normalize <"$OUT/$env.off.yaml") >"$OUT/$env.base.diff"
   other="$(grep '^[<>]' "$OUT/$env.base.diff" | grep -vcE '^> +DEVELOPER_SETTINGS_(MOCKS|ENABLED|STAFF_ONLY)(: "False"| = os.getenv\("DEVELOPER_SETTINGS_(MOCKS|ENABLED|STAFF_ONLY)", "False"\))' || true)"
   if [ "$other" = 0 ]; then
@@ -44,31 +46,40 @@ for env in staging preprod prod; do
     diff <(normalize <"$OUT/$env.master.yaml") <(normalize <"$OUT/$env.off.yaml") >"$OUT/$env.master.diff"
     info "E3 $env off: $(grep -c '^[<>]' "$OUT/$env.master.diff") lines differ from origin/master's chart (master has moved on; see $OUT/$env.master.diff)"
   fi
-  flags="$(yq -N 'select(.kind == "ConfigMap") | .data | with_entries(select(.key | test("^DEVELOPER_SETTINGS_"))) | to_entries | .[] | .key + "=" + .value' "$OUT/$env.off.yaml" | sort -u | paste -sd, -)"
+  flags="$("$PYTHON" -c "
+import sys, yaml
+seen = set()
+for d in yaml.safe_load_all(open(sys.argv[1])):
+    if d and d.get('kind') == 'ConfigMap':
+        seen.update(k + '=' + str(v) for k, v in (d.get('data') or {}).items() if k.startswith('DEVELOPER_SETTINGS_'))
+print(','.join(sorted(seen)))" "$OUT/$env.off.yaml")"
   check E3 "$env: developer settings flags off by default" "$flags" "DEVELOPER_SETTINGS_ENABLED=False,DEVELOPER_SETTINGS_MOCKS=False,DEVELOPER_SETTINGS_STAFF_ONLY=False"
 done
 
-# On: render-check.sh and the helm-matrix assertions, through a helm shim that runs the container.
+# On (and off again) with each env file's values: render-check.sh. Without a local helm, a shim runs the container
+# with the checkout and the temporary directory mounted.
 SHIM="$OUT/bin"; mkdir -p "$SHIM"
-cat >"$SHIM/helm" <<EOF
-#!/usr/bin/env bash
-exec docker run --rm -v "$REPO:$REPO:ro" -w "\$PWD" $HELM_IMAGE "\$@"
-EOF
-chmod +x "$SHIM/helm"
+if ! command -v helm >/dev/null 2>&1; then
+  tmpdir="${TMPDIR:-/tmp}"
+  printf '#!/usr/bin/env bash\nexec docker run --rm -v "%s:%s:ro" -v "%s:%s" -w "$PWD" %s "$@"\n' \
+    "$REPO" "$REPO" "${tmpdir%/}" "${tmpdir%/}" "$HELM_IMAGE" >"$SHIM/helm"
+  chmod +x "$SHIM/helm"
+fi
 for env in staging preprod prod; do
-  PATH="$SHIM:$PATH" helm template "$env" "$BRANCH_CHART" --set deployEnv=$env --set gateway.enabled=true \
-    --set authService.enabled=true --set authService.image.tag=sha-test >"$OUT/$env.on.yaml" 2>"$OUT/$env.on.err" \
-    || { fail "E3 $env on: does not render ($(head -c 200 "$OUT/$env.on.err"))"; continue; }
-  if ENV=$env bash "$REPO/auth-service/scripts/render-check.sh" "$OUT/$env.on.yaml" >"$OUT/$env.render-check.log" 2>&1; then
-    pass "E3 $env on: render-check.sh ($(grep -c '^ok:' "$OUT/$env.render-check.log") assertions)"
+  if PATH="$SHIM:$PATH" PY="$PYTHON" bash "$REPO/auth-service/scripts/render-check.sh" "$env" >"$OUT/$env.render-check.log" 2>&1; then
+    pass "E3 $env off and on: render-check.sh ($(grep -c '^ok:' "$OUT/$env.render-check.log") assertions)"
   else
-    fail "E3 $env on: render-check.sh: $(grep -m1 FAIL "$OUT/$env.render-check.log")"
+    fail "E3 $env: render-check.sh: $(grep -m1 FAIL "$OUT/$env.render-check.log")"
   fi
 done
-if (cd "$REPO/auth-service" && PATH="$SHIM:$PATH" make -s helm-matrix) >"$OUT/helm-matrix.log" 2>&1; then
-  pass "E3 make helm-matrix ($(grep -c '^==' "$OUT/helm-matrix.log") checks)"
+if command -v yq >/dev/null 2>&1; then
+  if (cd "$REPO/auth-service" && PATH="$SHIM:$PATH" make -s helm-matrix) >"$OUT/helm-matrix.log" 2>&1; then
+    pass "E3 make helm-matrix ($(grep -c '^==' "$OUT/helm-matrix.log") checks)"
+  else
+    fail "E3 make helm-matrix: $(tail -2 "$OUT/helm-matrix.log" | tr '\n' ' ')"
+  fi
 else
-  fail "E3 make helm-matrix: $(tail -2 "$OUT/helm-matrix.log" | tr '\n' ' ')"
+  info "E3 make helm-matrix skipped: yq is not installed"
 fi
 info "E3 the infrastructure repo's staging/preprod/prod values were not rendered here (manual-only)"
 finish

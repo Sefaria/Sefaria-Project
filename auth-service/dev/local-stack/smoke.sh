@@ -4,7 +4,8 @@
 #   S1 anonymous page view through Envoy -> 200
 #   S2 gated path without a key -> 401 api_key_required
 #   S3 a key inserted through the ORM is accepted (echo shows the project's api_project tier: developer by default; gated path not denied)
-#   S4 revoking the key through the ORM -> 401 api_key_invalid within 2 s
+#   S4 revoking the key through the ORM -> 401 api_key_invalid on the gated path within 2 s (the revoke-to-deny time is
+#      printed). An ungated path lets a revoked key through as anonymous by design (decide.go), so it is not the probe.
 set -uo pipefail
 source "$(dirname "$0")/lib.sh"
 
@@ -71,13 +72,13 @@ PY
 denied=""
 while :; do
   elapsed="$(python3 -c "import time; print('%.2f' % (time.time() - $t0))")"
-  body="$(gw www /texts -H "x-api-key: $key" -o - -w ' HTTP=%{http_code}' | tail -c 400)"
+  body="$(gw www /api/knn-search -H "x-api-key: $key" -o - -w ' HTTP=%{http_code}' | tail -c 400)"
   case "$body" in *'"code":"api_key_invalid"'*'HTTP=401') denied=1; break ;; esac
   python3 -c "import sys; sys.exit(0 if $elapsed < 5 else 1)" || break
   sleep 0.05
 done
 if [ -n "$denied" ] && python3 -c "import sys; sys.exit(0 if $elapsed <= 2 else 1)"; then
-  result S4 pass "revoked via ORM; www /texts with key -> 401 api_key_invalid ${elapsed}s after the revoke committed"
+  result S4 pass "revoked via ORM; www /api/knn-search with key -> 401 api_key_invalid ${elapsed}s after the revoke committed (revoke-to-deny)"
 else
   result S4 fail "after ${elapsed}s: $body"
 fi

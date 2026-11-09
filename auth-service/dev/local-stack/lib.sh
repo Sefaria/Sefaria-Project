@@ -19,8 +19,14 @@ if [ -z "${APIKEYS_STACK_DJANGO_BIND:-}" ] && [ "$(uname -s)" = Linux ] \
   APIKEYS_STACK_DJANGO_BIND="$(docker network inspect bridge -f '{{(index .IPAM.Config 0).Gateway}}' 2>/dev/null || true)"
 fi
 DJANGO_BIND="${APIKEYS_STACK_DJANGO_BIND:-127.0.0.1}"
+export APIKEYS_STACK_DJANGO_BIND="$DJANGO_BIND"  # django_settings.py allows it as a Host (health checks)
 if [ "$DJANGO_BIND" = 127.0.0.1 ]; then STACK_HOST_GATEWAY=host-gateway; else STACK_HOST_GATEWAY="$DJANGO_BIND"; fi
 export STACK_HOST_GATEWAY
+
+# psql: the host's client, or the postgres:18 image's on the host network when the host has none (a Linux dev box).
+if ! command -v psql >/dev/null 2>&1; then
+  psql() { docker run --rm -i --network host -e PGPASSWORD -e PGOPTIONS postgres:18 psql "$@"; }
+fi
 
 compose() { docker compose -p "$PROJECT" -f "$STACK_DIR/docker-compose.yml" "$@"; }
 

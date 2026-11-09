@@ -24,7 +24,7 @@ err1="$(metric 'authsvc_reload_total{result="error"}')"
 dcompose logs --no-log-prefix --since 30s authsvc 2>&1 | grep -q 'permission denied' \
   && pass "N-E4 running: 'permission denied' is logged" || fail "N-E4 running: no permission error logged"
 s="$(gw $GW_HC $GATED ne4)"
-[ "$s" = 401 ] && pass "N-E4 running: the revoke applied" || gap N-E4 "running: a key revoked after the grant was lost stays valid ($s); /readyz $(readyz), no alert rule"
+[ "$s" = 401 ] && pass "N-E4 running: the revoke applied" || gap N-E4 "running: a key revoked after the grant was lost stays valid ($s); /readyz $(readyz) (fail open by design; AuthServiceRegistryStale alerts after 10 reload intervals)"
 
 # A fresh start: the initial load fails, the pod stays not ready, and Envoy fails the whole host open.
 WAIT_READY=0 authsvc_recreate RELOAD_INTERVAL=5s

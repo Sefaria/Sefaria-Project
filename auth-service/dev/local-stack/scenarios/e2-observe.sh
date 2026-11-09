@@ -33,7 +33,8 @@ expect() {  # expect ID WHAT GOT WANT
   check "$1" "$2" "$3" "$4"
 }
 expect E2 "A2a unknown key, gated" "$(seen $GATED e2-unknown)" '200 anonymous "" observed:api_key_invalid'
-expect E2 "A2b unknown key, ungated" "$(seen /api/v3/texts/Genesis.1.1 e2-unknown)" '200 anonymous "" observed:api_key_invalid'
+# Ungated, an unknown key is let through as anonymous in both modes (decide.go), so observe has nothing to mark.
+expect E2 "A2b unknown key, ungated" "$(seen /api/v3/texts/Genesis.1.1 e2-unknown)" '200 anonymous "" api_key_invalid'
 expect E2 "A2b revoked key, gated" "$(seen $GATED e2-revoked)" '200 anonymous "" observed:api_key_invalid'
 expect E2 "A3b restricted key, wrong Origin" "$(seen $GATED e2-restricted https://evil.example)" '200 anonymous "" observed:origin_not_allowed'
 expect E2 "A3b restricted key, no Origin" "$(seen $GATED e2-restricted)" '200 anonymous "" observed:origin_not_allowed'
@@ -41,8 +42,10 @@ expect E2 "A4a no key, gated, GET" "$(seen $GATED)" '200 anonymous "" observed:a
 expect E2 "A4a no key, gated, POST" "$(seen $GATED '' '' POST)" '200 anonymous "" observed:api_key_required'
 expect E2 "A5b OPTIONS without Origin, gated" "$(seen $GATED '' '' OPTIONS)" '200 anonymous "" observed:api_key_required'
 expect E2 "A5a OPTIONS with Origin, gated" "$(seen $GATED '' https://good.example OPTIONS)" '200 embed "" preflight'
-expect E2 "A3a restricted key, right Origin" "$(seen $GATED e2-restricted https://good.example)" "200 developer $PROJECT_ID ok"
-expect E2 "A1 open key" "$(seen $GATED e2-open)" "200 developer $PROJECT_ID ok"
+# x-sefaria-project is the key's api_project id, not the profile id.
+API_PROJECT_ID="$(psql_su -c "SELECT id FROM api_project WHERE profile_id = $PROJECT_ID AND deleted_at IS NULL")"
+expect E2 "A3a restricted key, right Origin" "$(seen $GATED e2-restricted https://good.example)" "200 developer $API_PROJECT_ID ok"
+expect E2 "A1 open key" "$(seen $GATED e2-open)" "200 developer $API_PROJECT_ID ok"
 check E2 "envoy denied nothing" "$(envoy_stat hc denied)" "$denied0"
 
 for code in api_key_invalid origin_not_allowed api_key_required; do

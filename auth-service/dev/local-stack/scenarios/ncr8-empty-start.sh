@@ -18,14 +18,23 @@ if [ "$(psql_su -c "SELECT count(*) FROM pg_database WHERE datname = 'sefaria_au
 fi
 check N-CR8 "the empty database has no keys" "$(PGDB=sefaria_auth_empty psql_su -c 'SELECT count(*) FROM powered_by_apikey')" 0
 
-# 1. Reachable but empty: the first load succeeds with 0 keys and the pod reports ready.
-authsvc_recreate "PG_DSN=postgres://auth_service_reader:reader@pg:5432/sefaria_auth_empty?sslmode=disable"
-check N-CR8 "empty start: registry len" "$(registry_field len)" 0
+# 1. Reachable but empty. Either outcome is acceptable as long as no valid key is denied: the pod reports ready with
+# 0 keys and the key fails open, or the pod stays not ready (an empty first load is not trusted) and Envoy fails open.
+WAIT_READY=0 authsvc_recreate "PG_DSN=postgres://auth_service_reader:reader@pg:5432/sefaria_auth_empty?sslmode=disable"
+wait_for 10 'test "$(readyz)" = 200 || test "$(readyz)" = 503' >/dev/null
+sleep 2
+ready="$(readyz)"
+if [ "$ready" = 200 ]; then
+  check N-CR8 "empty start: ready, registry len" "$(registry_field len)" 0
+else
+  info "N-CR8 empty start: the pod stays not ready (/readyz $ready) on an empty first load"
+  wait_for 15 '! authsvc_endpoint_healthy' >/dev/null
+fi
 s="$(gw $GW_HC $GATED ncr8)"; c="$(gw_code $GW_HC $GATED ncr8)"
 if [ "$s" = 200 ]; then
-  pass "N-CR8 empty start: a valid key fails open"
+  pass "N-CR8 empty start (/readyz $ready): a valid key fails open"
 else
-  gap N-CR8 "empty start: the pod is ready (/readyz $(readyz)) with 0 keys and a valid key gets $s $c through Envoy"
+  gap N-CR8 "empty start: /readyz $ready with 0 keys and a valid key gets $s $c through Envoy"
 fi
 
 # 2. The first load fails: the pod stays not ready. Through the health-checked listener Envoy fails open; through

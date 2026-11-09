@@ -31,6 +31,9 @@ GATEWAY_HOSTS = ("www", "voices", "direct", "flagoff")
 GATEWAY_PORTS = (10080, 10081)
 
 ALLOWED_HOSTS = list(globals().get("ALLOWED_HOSTS", [])) + [".gateway.test"]
+# The address host Django listens on (lib.sh), so the stack's health checks can call it directly.
+if os.environ.get("APIKEYS_STACK_DJANGO_BIND"):
+    ALLOWED_HOSTS.append(os.environ["APIKEYS_STACK_DJANGO_BIND"])
 CSRF_TRUSTED_ORIGINS = list(globals().get("CSRF_TRUSTED_ORIGINS", [])) + [
     "http://%s.gateway.test:%d" % (host, port) for host in GATEWAY_HOSTS for port in GATEWAY_PORTS
 ]
@@ -65,5 +68,5 @@ DOMAIN_MODULES = {
     for lang in ("en", "he")
 }
 
-# harness drift workaround (api-keys-lint trial): same silencing as checks/testenv/test_settings.py
+# The test reCAPTCHA keys of local settings; same silencing as checks/testenv/test_settings.py.
 SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]

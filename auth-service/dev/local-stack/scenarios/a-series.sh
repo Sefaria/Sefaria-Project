@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Curl twin of the gateway Playwright suite (e2e-tests/api-keys/gateway/), for quick reruns by hand.
 #
-#   a-series.sh [--target local|cauldron]       run the checks; prints one line per check
+#   a-series.sh [--target local|cauldron] [--mode enforce|observe]
+#                                               run the checks; prints one line per check. The mode is what the
+#                                               auth service runs: read from /internal/registry on the local stack,
+#                                               --mode (default enforce) on the cauldron. In observe every expected
+#                                               gateway denial must pass through instead, and on the local stack the
+#                                               echo upstream must see x-sefaria-auth-result observed:<code>.
 #   a-series.sh keepunchanged-envoy start|stop  a private Envoy on 127.0.0.1:10090 with KEEP_UNCHANGED for escaped
 #                                               slashes (N-A1), beside the stack's own Envoy, which it never touches
 #
@@ -30,7 +35,7 @@ keepunchanged_envoy() {
       "$PYTHON" "$STACK_DIR/render_configs.py" "$D1_DIR" --only envoy --envoy-variant keepunchanged || die "render failed"
       docker rm -f "$D1_ENVOY" >/dev/null 2>&1 || true
       docker run -d --rm --name "$D1_ENVOY" --label sefaria-apikeys-d1=1 \
-        --network "${PROJECT}_default" --add-host host.docker.internal:host-gateway \
+        --network "${PROJECT}_default" --add-host "host.docker.internal:$STACK_HOST_GATEWAY" \
         -p "127.0.0.1:$D1_PORT:10080" -p "127.0.0.1:$D1_ADMIN:19000" \
         -v "$D1_DIR/envoy.yaml:/etc/envoy/envoy.yaml:ro" \
         envoyproxy/envoy:v1.39.1 envoy -c /etc/envoy/envoy.yaml --log-level warn >/dev/null || die "docker run failed"
@@ -49,8 +54,24 @@ keepunchanged_envoy() {
 if [ "${1:-}" = keepunchanged-envoy ]; then keepunchanged_envoy "${2:-}"; exit $?; fi
 
 TARGET=local
-[ "${1:-}" = --target ] && TARGET="${2:-}"
+MODE=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --target) TARGET="${2:-}"; shift 2 ;;
+    --mode) MODE="${2:-}"; shift 2 ;;
+    *) die "unknown argument $1" ;;
+  esac
+done
 case "$TARGET" in local|cauldron) ;; *) die "--target must be local or cauldron" ;; esac
+if [ -z "$MODE" ]; then
+  if [ "$TARGET" = local ]; then
+    MODE="$(curl -s -m 3 http://127.0.0.1:18080/internal/registry | python3 -c 'import json,sys; print(json.load(sys.stdin)["mode"])' 2>/dev/null)"
+    [ -n "$MODE" ] || die "cannot read the auth service mode from http://127.0.0.1:18080/internal/registry (is the stack up?)"
+  else
+    MODE=enforce
+  fi
+fi
+case "$MODE" in enforce|observe) ;; *) die "--mode must be enforce or observe (got '$MODE')" ;; esac
 
 MANIFEST="${APIKEYS_MANIFEST:-$REPO/e2e-tests/.apikeys-e2e.json}"
 manifest_target="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['target'])" "$MANIFEST" 2>/dev/null || true)"
@@ -96,9 +117,16 @@ print(h.get('x-sefaria-tier'), repr(h.get('x-sefaria-project')), h.get('x-sefari
 }
 
 fails=0
+GATEWAY_CODES=" api_key_required api_key_invalid origin_not_allowed "
 line() { printf '%-6s %-4s %s\n' "$1" "$2" "$3"; [ "$2" = FAIL ] && fails=$((fails + 1)); return 0; }
 expect() {  # expect ID WANT_STATUS WANT_CODE GAP_TAG DESCRIPTION
   local id="$1" ws="$2" wc="$3" gap="$4" what="$5"
+  if [ "$MODE" = observe ] && [ -n "$wc" ] && [[ $GATEWAY_CODES == *" $wc "* ]]; then
+    # Observe never denies: the request goes on to the route, whatever answers it there.
+    if [[ $GATEWAY_CODES == *" $CODE "* ]]; then line "$id" FAIL "observe: $what -> $STATUS $CODE, a gateway denial (observe never denies)"
+    else line "$id" pass "observe: $what -> $STATUS, not denied (enforce: $ws $wc)"; fi
+    return 0
+  fi
   if [ "$STATUS" = "$ws" ] && { [ -z "$wc" ] || [ "$CODE" = "$wc" ]; }; then line "$id" pass "$what -> $STATUS $CODE"
   elif [ -n "$gap" ]; then line "$id" GAP "$what -> $STATUS $CODE (want $ws $wc; $gap)"
   else line "$id" FAIL "$what -> $STATUS $CODE (want $ws $wc) $BODY"; fi
@@ -106,6 +134,14 @@ expect() {  # expect ID WANT_STATUS WANT_CODE GAP_TAG DESCRIPTION
 
 G=/api/knn-search
 U=/api/v3/texts/Genesis.1.1
+line MODE info "auth service mode: $MODE (target $TARGET)"
+
+# Enforce applies to the gated path only: no key on any other path is never a gateway denial, in either mode.
+for p in "$U" /texts /api/knn /api/search-wrapper /api/name/Genesis; do
+  req www "$p"
+  if [[ $GATEWAY_CODES == *" $CODE "* ]]; then line A-UNG FAIL "ungated $p, no key -> $STATUS $CODE (only $G is gated)"
+  else line A-UNG pass "ungated $p, no key -> $STATUS, not a gateway denial"; fi
+done
 
 # Unkeyed: both targets.
 req www $G;                          expect A4a 401 api_key_required "" "GET gated, no key"
@@ -170,6 +206,28 @@ if [ "$KEYED" = 1 ]; then
     req echo "$U?api_key=$(cat "$OPEN")&a=1"
     url="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['http']['originalUrl'])" "$SECRETS/body")"
     case "$url" in *api_key*) line N-A6 FAIL "upstream URL kept api_key" ;; *) line N-A6 pass "upstream URL: $url" ;; esac
+  fi
+fi
+
+if [ "$TARGET" = local ]; then
+  # What the route sees for each would-be denial: observe stamps observed:<code>, enforce denies before the route.
+  observed() {  # observed ID WANT_CODE DESCRIPTION curl-args...
+    local id="$1" want="$2" what="$3"; shift 3
+    req echo "$G" "$@"
+    if [ "$MODE" = observe ]; then
+      local got; got="$(stamp)"
+      [ "${got##* }" = "observed:$want" ] && line "$id" pass "observe: echo saw $got for $what" \
+        || line "$id" FAIL "observe: echo saw '$got' for $what (want x-sefaria-auth-result observed:$want)"
+    else
+      [ "$STATUS" = 401 ] || [ "$STATUS" = 403 ] && [ "$CODE" = "$want" ] && line "$id" pass "enforce: $what -> $STATUS $CODE before the route" \
+        || line "$id" FAIL "enforce: $what -> $STATUS $CODE (want the gateway's $want)"
+    fi
+  }
+  observed A4a api_key_required "gated, no key"
+  observed A2a api_key_invalid "gated, unknown sfr_ key" -H "x-api-key: $(unknown_key)"
+  if [ "$KEYED" = 1 ]; then
+    observed A2b api_key_invalid "gated, revoked key" -H "x-api-key: $(cat "$REV")"
+    observed A3b origin_not_allowed "restricted key, wrong Origin" -H "x-api-key: $(cat "$RESTR")" -H 'Origin: https://site-b.example.com'
   fi
 fi
 

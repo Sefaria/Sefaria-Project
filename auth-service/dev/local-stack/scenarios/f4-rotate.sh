@@ -34,10 +34,23 @@ else
   gap F4 "a key revoked after the rotation stays valid ($status) while every reload fails"
 fi
 r="$(readyz)"
-if [ "$r" = 200 ]; then
-  gap F4 "/readyz stays 200 while reloads fail; no last-reload-age metric, so only a rate on reload_total{error} could alert, and the chart has no alert rule"
-else
+if [ "$r" != 200 ]; then
   pass "F4 readiness reflects failing reloads ($r)"
+else
+  # Ready stays 200 by design (fail open); the failure must then be visible as a stale last-success timestamp that the
+  # chart's AuthServiceRegistryStale alert reads.
+  last="$(metric authsvc_registry_last_reload_success_timestamp_seconds)"
+  age="$(python3 -c "import time; print(int(time.time() - float('$last')))" 2>/dev/null || echo -1)"
+  if [ "$last" != 0 ] && [ "$age" -ge 10 ]; then
+    pass "F4 /readyz stays 200, and authsvc_registry_last_reload_success_timestamp_seconds is ${age}s old while reloads fail"
+  else
+    gap F4 "/readyz stays 200 while reloads fail and the last-success timestamp does not show it (value $last, age ${age}s)"
+  fi
+  if grep -q 'alert: AuthServiceRegistryStale' "$REPO/helm-chart/sefaria/templates/authservice/prometheusrule.yaml" 2>/dev/null; then
+    pass "F4 the chart has an alert on that timestamp (AuthServiceRegistryStale)"
+  else
+    gap F4 "the chart has no alert rule on a stale registry"
+  fi
 fi
 dcompose logs --no-log-prefix --since 1m authsvc 2>&1 | grep -q 'reload skipped' && pass "F4 'reload skipped' is logged" || fail "F4 no reload warning logged"
 
