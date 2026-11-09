@@ -118,11 +118,11 @@ key found in the auth service's in-memory registry: phase 1 has no response cach
 In enforce, "miss" is Envoy's local 401, so it has no "added" figure there. Envoy's own histogram
 (`cluster.authsvc.upstream_rq_time`) records whole milliseconds.
 
-First full run (`run-release-checks.sh perf`, 2026-11-09, this repo's dev server, phase 1 head): in enforce, ext_authz
-added p50 +0.64 ms / p99 +2.68 ms (no key) and +0.73 / +2.87 ms (found key); in observe +0.82 / +3.32 ms and +1.05 /
-+4.03 ms. The auth service's own gRPC p99 was 0.79 ms at 200/s with 1000 keys (Envoy's view of the Check: p99 1.09 ms).
-Revoke-to-deny over 20 trials: p50 58.8 ms, max 63.0 ms (reload 3.5 ms at 1033 keys); with LISTEN broken, 60.0 s each.
-Two replicas split the Checks 301/300 with the same decisions and no 429.
+Last full run (`run-release-checks.sh perf`, 2026-11-09, this repo's dev server, phase 1 head): in enforce, ext_authz
+added p50 +0.63 ms / p99 +2.31 ms (no key) and +0.72 / +2.59 ms (found key); in observe +0.78 / +3.00 ms and +0.85 /
++3.76 ms. The auth service's own gRPC p99 was 0.79 ms at 200/s with 1000 keys (Envoy's view of the Check: p99 1.08 ms).
+Revoke-to-deny over 20 trials: p50 57.7 ms, max 61.0 ms (reload 3.1 ms at 1029 keys); with LISTEN broken, 60.0 s each.
+Two replicas split the Checks 300/301 with the same decisions and no 429.
 
 **On the perf cauldron** (`perf/run-perf-cauldron.sh`, not yet run: it needs the cauldron D6 asks for). It refuses
 before any cluster call unless `APIKEYS_CAULDRON` names a cauldron whose name contains `perf` and is not apisplit,
@@ -135,6 +135,10 @@ guards with a fake `kubectl`.
    cauldrons repo, `latency` again. Each run is a k6 Job (ConfigMap, Secret with the key, Job; all three deleted by
    label on exit) against the gateway's in-cluster Envoy Service on `/api/texts/Genesis.1` (a Varnish hit), like the
    POC. Then `compare results/perf-runs/<off>/latency-flag-off.json results/perf-runs/<on>/latency-flag-on.json`.
+   A run's file is `latency-flag-<flag>.json` only when it is complete (every arm sampled, only expected statuses, the
+   Job succeeded); otherwise `.failed.json`, which `compare` refuses, as it refuses runs on different cauldrons, rates,
+   durations or arm sets. With the flag on, the hit arm must come back without `x-sefaria-key-status: not_accepted`
+   (on the ungated path a stale key would still get 200).
 3. `revoke` (flag on, enforce): the seeder resets the e2e fixtures in a web pod, `revoke_trials_pod.py` times create,
    allow, revoke, 401 on the pod's own clock (the key never leaves the pod), and the seeder tears down to 0 leftovers.
    The fixture rows show on every cauldron that shares the cauldron's `sefaria_auth` while the run lasts, as with
