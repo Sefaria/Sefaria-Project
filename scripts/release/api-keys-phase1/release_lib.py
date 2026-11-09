@@ -82,6 +82,36 @@ def pod_images(_args):
         )
 
 
+def image_repository(ref):
+    """The repository of an image reference: without @digest, and without :tag when the colon follows the last slash
+    (a registry port such as host:5000/name is kept)."""
+    ref = ref.split("@", 1)[0]
+    slash, colon = ref.rfind("/"), ref.rfind(":")
+    return ref[:colon] if colon > slash else ref
+
+
+def image_guard(args):
+    """Prints every Running or Pending pod that runs an image outside the allowed set: any container of a pod labelled
+    app=<web label>, and any container whose repository is one of the allowed images' repositories (tasks, cron).
+    Exit 1 when there is one."""
+    allowed = set(args.allowed.split())
+    repos = {image_repository(i) for i in allowed}
+    bad = 0
+    for pod in _items(_stdin_json()):
+        if pod.get("status", {}).get("phase") not in ("Running", "Pending"):
+            continue
+        is_web = pod.get("metadata", {}).get("labels", {}).get("app") == args.web_label
+        containers = pod.get("spec", {}).get("containers", []) + pod.get("spec", {}).get("initContainers", [])
+        for c in containers:
+            image = c.get("image", "")
+            if image in allowed:
+                continue
+            if (is_web and c.get("name") == "web") or image_repository(image) in repos:
+                print(f"{pod['metadata']['name']}\t{image}")
+                bad = 1
+    return bad
+
+
 def rollout_images(_args):
     """name<TAB>revision annotation<TAB>status phase<TAB>container images, comma separated."""
     for ro in _items(_stdin_json()):
@@ -369,6 +399,10 @@ def main():
     sub.add_parser("roles-from-sql").set_defaults(func=roles_from_sql)
     sub.add_parser("pod-images").set_defaults(func=pod_images)
     sub.add_parser("rollout-images").set_defaults(func=rollout_images)
+    p = sub.add_parser("image-guard")
+    p.add_argument("--allowed", required=True)
+    p.add_argument("--web-label", required=True)
+    p.set_defaults(func=image_guard)
     sub.add_parser("secret-refs").set_defaults(func=secret_refs)
     sub.add_parser("hr-summary").set_defaults(func=hr_summary)
     sub.add_parser("helm-release-revision").set_defaults(func=helm_release)

@@ -149,24 +149,32 @@ elif [[ -z "$envfile" ]]; then
 elif ! command -v gcloud >/dev/null 2>&1; then
   skip "image tags: gcloud is not installed"
 else
+  images="$(printf '%s\n' "$envfile" | "$PYTHON" -c '
+import re, sys
+text = sys.stdin.read()
+for m in re.finditer(r"(?:imageRegistry|repository):\s*(\S+)\s*\n\s*tag:\s*\"?([^\"\s]+)\"?", text):
+    print(f"{m.group(1)}:{m.group(2)}")')" || images=""
+  [[ -n "$images" ]] || fail "no image tags found in envs/$ENV/helmrelease.yaml"
   while read -r image; do
+    [[ -n "$image" ]] || continue
     if gcloud artifacts docker images describe "$image" --format='value(image_summary.digest)' >/dev/null 2>&1; then
       pass "image $image exists"
     else
       fail "image $image not found in Artifact Registry"
     fi
-  done < <(printf '%s\n' "$envfile" | "$PYTHON" -c '
-import re, sys
-text = sys.stdin.read()
-for m in re.finditer(r"(?:imageRegistry|repository):\s*(\S+)\s*\n\s*tag:\s*\"?([^\"\s]+)\"?", text):
-    print(f"{m.group(1)}:{m.group(2)}")')
+  done <<<"$images"
 fi
 
-# 6. Rollouts healthy, HelmRelease ready.
-while IFS="$TAB" read -r name _ phase _; do
-  [[ -n "$name" ]] || continue
-  if [[ "$phase" == Healthy ]]; then pass "Rollout $NS/$name is Healthy"; else fail "Rollout $NS/$name is '${phase:-unknown}'"; fi
-done < <(kc -n "$NS" get rollouts.argoproj.io -o json | "$PYTHON" "$RELEASE_PY" rollout-images)
+# 6. Rollouts healthy (the web Rollout must exist), HelmRelease ready.
+if rollouts="$(kc -n "$NS" get rollouts.argoproj.io -o json | "$PYTHON" "$RELEASE_PY" rollout-images)"; then
+  grep -q "^$(env_hr "$ENV")-web$TAB" <<<"$rollouts" || fail "Rollout $NS/$(env_hr "$ENV")-web not found"
+  while IFS="$TAB" read -r name _ phase _; do
+    [[ -n "$name" ]] || continue
+    if [[ "$phase" == Healthy ]]; then pass "Rollout $NS/$name is Healthy"; else fail "Rollout $NS/$name is '${phase:-unknown}'"; fi
+  done <<<"$rollouts"
+else
+  fail "could not list the Rollouts of namespace $NS"
+fi
 ready="$(kc -n "$NS" get helmreleases.helm.toolkit.fluxcd.io "$(env_hr "$ENV")" -o json 2>/dev/null | "$PYTHON" -c '
 import json, sys
 try:

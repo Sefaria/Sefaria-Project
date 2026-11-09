@@ -302,6 +302,11 @@ refuses "preflight fails without the reader grant on powered_by_apikey" "lacks S
   "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --infra-repo "$WORK/infra"
 psql_pod -c "GRANT SELECT (id, key, project_id, label, allowed_origins, revoked_at) ON powered_by_apikey TO auth_service_reader" >/dev/null
 check "preflight preprod passes once the grant exists" "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --infra-repo "$WORK/infra"
+k -n default delete rollouts.argoproj.io production-web >/dev/null
+refuses "preflight fails when the web Rollout is missing" "Rollout default/production-web not found" \
+  "$REL/preflight.sh" --env prod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
+helm upgrade production "$HERE/fixtures/standin-chart" -n default --kube-context "$CTX" --reuse-values >/dev/null
+mark_healthy default production
 check "preflight prod passes (nothing pending, Secret in default)" "$REL/preflight.sh" --env prod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
 # A migration outside phase 1 pending at the code ref fails the preprod preflight unless it is named.
 git -C "$FIX" checkout -q master && mkdir -p "$FIX/reader/migrations" && touch "$FIX/reader/migrations/0099_release_test.py" \
@@ -330,6 +335,24 @@ m = json.load(open(sys.argv[1])); m["envs"]["prod"]["web_pods"] = []; json.dump(
 PY
 refuses "restore db --scoped refuses when the snapshot recorded no running web pod" "recorded no running web pod" \
   "$REL/restore.sh" db --snapshot "$WORK/snap-nopods" --env preprod --context "$CTX" --scoped
+# A web pod pinned by digest is still not the snapshot's image.
+"$PY" - "$REL/release_lib.py" <<'PY' && ok "the image guard parses digests, tags and registry ports" || notok "image guard parsing"
+import json, subprocess, sys
+def pod(name, image, app="web-preprod", phase="Running", cname="web"):
+    return {"metadata": {"name": name, "labels": {"app": app}}, "status": {"phase": phase},
+            "spec": {"containers": [{"name": cname, "image": image}]}}
+def guard(pods):
+    doc = json.dumps({"kind": "PodList", "items": pods})
+    r = subprocess.run([sys.executable, sys.argv[1], "image-guard", "--allowed", "reg.io:5000/sefaria-web:v1", "--web-label", "web-preprod"],
+                       input=doc, capture_output=True, text=True)
+    return r.returncode, r.stdout
+assert guard([pod("a", "reg.io:5000/sefaria-web:v1")]) == (0, "")
+assert guard([pod("b", "reg.io:5000/sefaria-web@sha256:" + "0" * 64)])[0] == 1
+assert guard([pod("c", "reg.io:5000/sefaria-web:v2", app="tasks-preprod", cname="task")])[0] == 1
+assert guard([pod("d", "other.io/thing:v9", app="web-preprod")])[0] == 1
+assert guard([pod("e", "other.io/thing:v9", app="redis")])[0] == 0
+assert guard([pod("f", "reg.io:5000/sefaria-web:v2", phase="Succeeded")])[0] == 0
+PY
 refuses "restore db --full refuses and prints the procedure" "refusing to run a full-database restore" \
   "$REL/restore.sh" db --snapshot "$SNAP" --env preprod --full
 

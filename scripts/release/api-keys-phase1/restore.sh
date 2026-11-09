@@ -221,8 +221,9 @@ TEXT
 # db --scoped
 # ---------------------------------------------------------------------------------------------------------------
 # Fails closed: a pod list that cannot be read, or a snapshot without a running web pod for an env, refuses the restore.
+# Every web container must run one of the snapshot's web images, and so must every container from the same repository.
 image_guard() {
-  local e ns bad=0 want repo pods img pod phase images i
+  local e ns bad=0 want pods offenders
   for e in $SHARING; do
     ns="$(env_namespace "$e")"
     want="$(mget "envs.$e.web_pods" | "$PYTHON" -c 'import json,sys; imgs=sorted({p["image"] for p in json.load(sys.stdin) if p["phase"]=="Running"}); print(" ".join(imgs))')" || want=""
@@ -231,24 +232,20 @@ image_guard() {
       bad=1
       continue
     fi
-    if ! pods="$(kc -n "$ns" get pods -o json | "$PYTHON" "$RELEASE_PY" pod-images)"; then
+    if ! pods="$(kc -n "$ns" get pods -o json)"; then
       log "  $e: could not list the pods of namespace $ns"
       bad=1
       continue
     fi
-    for img in $want; do
-      repo="${img%:*}"
-      while IFS="$TAB" read -r pod phase _ images; do
-        [[ -n "$pod" ]] || continue
-        [[ "$phase" == Running || "$phase" == Pending ]] || continue
-        for i in ${images//,/ }; do
-          if [[ "${i%:*}" == "$repo" && " $want " != *" $i "* ]]; then
-            log "  $e: pod $pod runs $i, the snapshot ran $want"
-            bad=1
-          fi
-        done
-      done <<<"$pods"
-    done
+    if ! offenders="$("$PYTHON" "$RELEASE_PY" image-guard --allowed "$want" --web-label "web-$(env_hr "$e")" <<<"$pods")"; then
+      if [[ -z "$offenders" ]]; then
+        log "  $e: could not check the pods of namespace $ns"
+      fi
+      while IFS="$TAB" read -r pod img; do
+        [[ -n "$pod" ]] && log "  $e: pod $pod runs $img; the snapshot ran $want"
+      done <<<"$offenders"
+      bad=1
+    fi
   done
   return "$bad"
 }
