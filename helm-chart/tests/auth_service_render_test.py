@@ -99,10 +99,38 @@ def check_on(env, objects):
     (policy,) = find(objects, "ClientTrafficPolicy")
     removed = set(policy["spec"].get("headers", {}).get("earlyRequestHeaders", {}).get("remove", []))
     check(removed >= SEFARIA_HEADERS, f"{where}: the listener strips client-sent {sorted(SEFARIA_HEADERS)}")
+    # The strip covers a listener only if the policy names it, and Envoy Gateway rejects a policy on the shared port-80
+    # listeners or the whole Gateway. So it must name exactly the Gateway's HTTPS listeners, the site must be served on
+    # those alone, and port 80 must serve nothing but the redirect to HTTPS.
+    (gateway,) = find(objects, "Gateway")
+    https = {
+        (gateway["metadata"]["name"], li["name"]) for li in gateway["spec"]["listeners"] if li["protocol"] == "HTTPS"
+    }
+    http = {(gateway["metadata"]["name"], li["name"]) for li in gateway["spec"]["listeners"] if li["port"] == 80}
     targets = policy["spec"].get("targetRefs") or []
     check(
-        bool(targets) and all(t.get("sectionName") for t in targets),
-        f"{where}: the header strip targets named listeners (a Gateway-wide policy is rejected whole)",
+        bool(https)
+        and all(t.get("kind") == "Gateway" for t in targets)
+        and {(t["name"], t.get("sectionName")) for t in targets} == https,
+        f"{where}: the header strip targets exactly the Gateway's HTTPS listeners",
+    )
+
+    def parents(route):
+        return {(ref["name"], ref.get("sectionName")) for ref in route["spec"]["parentRefs"]}
+
+    (site,) = find(objects, "HTTPRoute", f"^{re.escape(gateway['metadata']['name'])}$")
+    check(parents(site) == https, f"{where}: the site route is served on the HTTPS listeners only")
+    redirects = find(objects, "HTTPRoute", r"-http-redirect$")
+    check(
+        len(redirects) == 1
+        and parents(redirects[0]) == http
+        and [r.get("filters") for r in redirects[0]["spec"]["rules"]]
+        == [[{"type": "RequestRedirect", "requestRedirect": {"scheme": "https", "statusCode": 301}}]],
+        f"{where}: port 80 serves only a redirect to HTTPS",
+    )
+    check(
+        all(parents(route).isdisjoint(http) for route in find(objects, "HTTPRoute") if route not in redirects),
+        f"{where}: no other route is served on port 80",
     )
 
     (security,) = find(objects, "SecurityPolicy")
