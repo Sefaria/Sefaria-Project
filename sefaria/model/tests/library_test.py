@@ -627,7 +627,7 @@ def test_get_he_text_titles():
 
 
 # ---------------------------------------------------------------------------
-# Index-map rebuild is atomic; truncated TOCs are not published (sc-48341)
+# Index-map rebuild is atomic; truncated TOCs are not published
 # ---------------------------------------------------------------------------
 
 
@@ -684,6 +684,29 @@ def test_truncated_toc_is_not_published(monkeypatch):
         return [{"category": "Tanakh", "contents": [{"title": f"Book {i}"} for i in range(n)]}]
 
     library._check_toc_plausible("toc", toc_with(1000))  # complete: fine
-    library._check_toc_plausible("toc", toc_with(900))  # exactly at the floor: fine
+    library._check_toc_plausible("toc", toc_with(800))  # exactly at the floor: fine
     with pytest.raises(BuildDegradationError):
-        library._check_toc_plausible("toc", toc_with(150))  # the Nov 8 shape (~1k of ~6.6k)
+        library._check_toc_plausible("toc", toc_with(799))  # just under the floor
+    with pytest.raises(BuildDegradationError):
+        library._check_toc_plausible("toc", toc_with(150))  # badly truncated
+
+
+def test_refused_toc_leaves_shared_copies_in_place(monkeypatch):
+    import sefaria.system.cache as scache
+    from sefaria.system.exceptions import BuildDegradationError
+
+    library.get_toc()
+    library.get_toc_with_authors()
+    toc_before = scache.get_shared_cache_elem("toc")
+    with_authors_before = scache.get_shared_cache_elem("toc_with_authors")
+    assert toc_before and with_authors_before
+
+    def refuse(key, value):
+        raise BuildDegradationError(f"refusing {key} for test")
+
+    monkeypatch.setitem(library._shared_cache_validators, "toc", refuse)
+    with pytest.raises(BuildDegradationError):
+        library.rebuild_toc(skip_toc_tree=True)
+
+    assert scache.get_shared_cache_elem("toc") == toc_before
+    assert scache.get_shared_cache_elem("toc_with_authors") == with_authors_before
