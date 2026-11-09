@@ -131,8 +131,8 @@ def check_on(env, objects):
     # and the gRPC (20 s) and HTTP (5 s) shutdown timeouts are over.
     deployments = find(objects, "Deployment", r"-auth-service$")
     pod = deployments[0]["spec"]["template"]["spec"] if deployments else {}
-    env = {e["name"]: e.get("value") for e in pod.get("containers", [{}])[0].get("env", [])}
-    drain = env.get("SHUTDOWN_DRAIN", "")
+    container_env = {e["name"]: e.get("value") for e in pod.get("containers", [{}])[0].get("env", [])}
+    drain = container_env.get("SHUTDOWN_DRAIN", "")
     seconds = int(drain[:-1]) if re.fullmatch(r"\d+s", drain) else None
     check(
         seconds is not None and seconds > 0,
