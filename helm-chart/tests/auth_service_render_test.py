@@ -79,8 +79,11 @@ def check_log_format_never_logs_a_key(where, log_format):
     check('"requestUrl": "$request_uri_scrubbed"' in log_format, f"{where}: nginx logs the scrubbed request URI")
     check('"referer": "$referer_scrubbed"' in log_format, f"{where}: nginx logs the scrubbed referer")
     check(
-        not re.search(r"\$(request_uri|http_referer|args|query_string|arg_api_?key|http_x_api_key)\b", log_format),
-        f"{where}: nginx logs no raw URI, query string, referer or key header",
+        not re.search(
+            r"\$(request_uri|http_referer|args|query_string|arg_\w+|http_x_api_key|http_authorization|http_cookie)\b",
+            log_format,
+        ),
+        f"{where}: nginx logs no raw URI, query string, referer, key, Authorization or cookie header",
     )
 
 
