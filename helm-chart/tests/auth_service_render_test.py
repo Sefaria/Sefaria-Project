@@ -180,12 +180,41 @@ def check_on(env, objects):
     check_log_format_never_logs_a_key(where, log_format, allowed)
 
 
+def check_release_rules(env, release, on):
+    values = release["spec"]["values"]
+    # Phase 1 ships no 429s (D3): prod has no rate-limit backend, and the templates are untested on a cluster.
+    check(
+        values["authService"].get("rateLimit", {}).get("enabled") is False,
+        f"{env}: authService.rateLimit.enabled is false (no rate limiting in phase 1)",
+    )
+    check(not any("rateLimit" in o.get("spec", {}) for o in on), f"{env} on: no object renders a rateLimit block")
+    if env == "prod":
+        # D4: a lone pod that is drained or evicted leaves the gated path unprotected, since ext_authz fails open.
+        budgets = find(on, "PodDisruptionBudget", r"^auth-service-disruption-budget-")
+        check(values["authService"].get("replicaCount", 1) >= 2, f"{env}: the auth service runs at least 2 replicas")
+        check(
+            len(budgets) == 1 and budgets[0]["spec"].get("minAvailable") == 1,
+            f"{env} on: a PodDisruptionBudget keeps one auth-service pod up",
+        )
+    if env == "preprod":
+        # preprod migrates prod's shared database. A developer project created there before prod runs this release
+        # cannot be deleted by prod's older code, so the flag stays off on preprod until prod runs the release. Turn it
+        # on (and relax this check) only then.
+        (local_settings,) = find(on, "ConfigMap", r"^local-settings-preprod$")
+        check(
+            str(local_settings["data"].get("DEVELOPER_SETTINGS_ENABLED")) == "False",
+            f"{env}: developer settings stay off until prod runs the same release",
+        )
+
+
 def main():
     for env in ENVS:
         release = helm_release(env)
         check(release["spec"]["values"]["authService"]["enabled"] is False, f"{env}: ships authService.enabled false")
         check_off(env, render(release, enabled=False))
-        check_on(env, render(release, enabled=True))
+        on = render(release, enabled=True)
+        check_on(env, on)
+        check_release_rules(env, release, on)
     if failures:
         sys.exit(f"{len(failures)} check(s) failed")
 
