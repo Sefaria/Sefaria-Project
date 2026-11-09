@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# [KG] N-F1: a rolling restart of the auth service under a steady loop. Two replicas behind Envoy, as the chart's
+# N-F1: a rolling restart of the auth service under a steady loop. Two replicas behind Envoy, as the chart's
 # RollingUpdate (maxSurge 1, maxUnavailable 0) leaves them: the new one is ready, then the old one gets SIGTERM.
-# Desired: no request fails open (needs a preStop delay so the endpoint leaves before the server stops).
+# No request fails open: on SIGTERM the auth service reports not ready and keeps answering for SHUTDOWN_DRAIN.
 # Low fidelity: Envoy drops the old endpoint through its own health check here, not through EDS.
 set -uo pipefail
 source "$(dirname "$0")/lib.sh"
@@ -32,7 +32,7 @@ if [ "$open" = 0 ] && [ "$fma1" = "$fma0" ]; then
   pass "N-F1 no request failed open during the rolling restart"
 else
   first="$(probe_first_after nf1-gated 200 "$t_term")"
-  gap N-F1 "$open gated requests without a key were let through (fail-open) during the rolling restart, the first $(fsub "${first:-$t_term}" "$t_term")s after SIGTERM; the chart has no preStop delay"
+  gap N-F1 "$open gated requests without a key were let through (fail-open) during the rolling restart, the first $(fsub "${first:-$t_term}" "$t_term")s after SIGTERM; is SHUTDOWN_DRAIN set and longer than Envoy takes to drop the endpoint?"
 fi
 check N-F1 "valid key never denied" "$(probe_count nf1-keyed 401)" 0
 other="$(cat "$D11_DIR"/probe/nf1-*.log | awk '$2 != 200 && $2 != 401' | wc -l | tr -d ' ')"

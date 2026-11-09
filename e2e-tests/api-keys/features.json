@@ -3489,13 +3489,13 @@
         {
           "id": "F-QUOTA-01.e19",
           "scenario": "Q-EDGE-14 [M] Auth-service pod termination (rollout, scale-in)",
-          "expected": "`preStop` sleep 5-10 s, `terminationGracePeriodSeconds` > 20 s shutdown cap, gRPC health NOT_SERVING on SIGTERM",
+          "expected": "on SIGTERM the pod reports not ready and keeps answering for SHUTDOWN_DRAIN (chart 10 s), and terminationGracePeriodSeconds covers the drain plus the 20 s and 5 s shutdown timeouts",
           "severity": "P1",
-          "known_gap": true,
+          "known_gap": false,
           "checks": [
             {
               "kind": "drill",
-              "ref": "auth-service/dev/local-stack/scenarios/nf1-sigterm.sh#gap N-F1"
+              "ref": "auth-service/dev/local-stack/scenarios/nf1-sigterm.sh#N-F1 no request failed open during the rolling restart"
             }
           ],
           "status": "on_branch"
@@ -4164,13 +4164,13 @@
         {
           "id": "F-OUT-01.e4",
           "scenario": "rolling restart",
-          "expected": "lets gated requests through for about a second (gap N-F1; harmless under fail-open, kept as a tracked gap)",
+          "expected": "no gated request fails open and no valid key is denied while a replica drains and exits",
           "severity": "P2",
-          "known_gap": true,
+          "known_gap": false,
           "checks": [
             {
               "kind": "drill",
-              "ref": "auth-service/dev/local-stack/scenarios/nf1-sigterm.sh#gap N-F1"
+              "ref": "auth-service/dev/local-stack/scenarios/nf1-sigterm.sh#N-F1 no request failed open during the rolling restart"
             }
           ]
         },

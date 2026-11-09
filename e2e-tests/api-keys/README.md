@@ -78,18 +78,18 @@ APIKEYS_CAULDRON=<perf-name> APIKEYS_PERF_CAULDRON=<perf-name> APIKEYS_PERF_BASE
 
 What a pass looks like:
 
-| Step                                                                                   | Expected                                                                                                                     |
-| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `render-check (staging, preprod, prod)`                                                | each env renders with the flag off (no auth objects, no header strip) and on (32 assertions each)                            |
-| `policy-gate tests`, `provision-cluster-registry tests`, `render-check negative tests` | every `ok:`; the scripts themselves run against a cluster later (below)                                                      |
-| `feature matrix --strict`                                                              | `0 error(s)` (it resolves against phase 1 with the merged sub-PRs)                                                           |
-| `smoke`                                                                                | S1-S4 pass; S4 prints the revoke-to-deny time (well under 2 s)                                                               |
-| `a-series (enforce)` / `(observe)`                                                     | 0 FAIL: enforce denies only `/api/knn-search`; observe never denies and stamps `observed:<code>`                             |
-| drills                                                                                 | 0 FAIL each; the GAP lines are the known gaps listed in the release plan (N-CR8 readiness, F4, N-E4, N-E5, N-F1, D-2, N-M14) |
-| `playwright apikeys (local)`                                                           | `0 failed`; failures titled `@known-gap` are counted separately                                                              |
-| `seed: --teardown leaves 0 rows`                                                       | `leftovers: 0`                                                                                                               |
-| `perf cauldron runner guard tests` (static, perf)                                      | every `ok:`: each refusal makes no cluster call; every call past the guards names the dev context                            |
-| `drill perf-latency` / `perf-revoke` / `perf-replicas` (perf)                          | 0 FAIL each; the added p50/p99, the auth service's p99 and the revoke times are printed under the row                        |
+| Step                                                                                   | Expected                                                                                                               |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `render-check (staging, preprod, prod)`                                                | each env renders with the flag off (no auth objects, no header strip) and on (32 assertions each)                      |
+| `policy-gate tests`, `provision-cluster-registry tests`, `render-check negative tests` | every `ok:`; the scripts themselves run against a cluster later (below)                                                |
+| `feature matrix --strict`                                                              | `0 error(s)` (it resolves against phase 1 with the merged sub-PRs)                                                     |
+| `smoke`                                                                                | S1-S4 pass; S4 prints the revoke-to-deny time (well under 2 s)                                                         |
+| `a-series (enforce)` / `(observe)`                                                     | 0 FAIL: enforce denies only `/api/knn-search`; observe never denies and stamps `observed:<code>`                       |
+| drills                                                                                 | 0 FAIL each; the GAP lines are the known gaps listed in the release plan (N-CR8 readiness, F4, N-E4, N-E5, D-2, N-M14) |
+| `playwright apikeys (local)`                                                           | `0 failed`; failures titled `@known-gap` are counted separately                                                        |
+| `seed: --teardown leaves 0 rows`                                                       | `leftovers: 0`                                                                                                         |
+| `perf cauldron runner guard tests` (static, perf)                                      | every `ok:`: each refusal makes no cluster call; every call past the guards names the dev context                      |
+| `drill perf-latency` / `perf-revoke` / `perf-replicas` (perf)                          | 0 FAIL each; the added p50/p99, the auth service's p99 and the revoke times are printed under the row                  |
 
 The cluster-side gates, run by hand at each promotion (all read-only except the provisioning create path):
 
