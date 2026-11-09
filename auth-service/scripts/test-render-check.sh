@@ -55,6 +55,6 @@ mutate "the Service targets an undeclared container port" 'one("Service", "auth-
 mutate "the Service grpc port aimed at the HTTP server" 'one("Service", "auth-service-production")["spec"]["ports"][1]["targetPort"] = "http"'
 mutate "the Service ports swapped" 'ps = one("Service", "auth-service-production")["spec"]["ports"]; ps[0]["targetPort"], ps[1]["targetPort"] = "grpc", "http"'
 # Prod runs two replicas, so its render has a PDB: drop it, and separately keep it with one replica.
-mutate "two replicas without a PDB" 'one("Deployment", "-auth-service")["spec"]["replicas"] = 2; docs[:] = [d for d in docs if d["kind"] != "PodDisruptionBudget"]'
+mutate "two replicas without a PDB" 'one("Deployment", "-auth-service")["spec"]["replicas"] = 2; docs[:] = [d for d in docs if not (d["kind"] == "PodDisruptionBudget" and "auth-service" in d["metadata"]["name"])]'
 mutate "one replica with a PDB" 'one("Deployment", "-auth-service")["spec"]["replicas"] = 1'
 exit $fail
