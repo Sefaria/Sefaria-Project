@@ -21,7 +21,7 @@ run() {  # run ENV... -- ARGS -> exit status; output in $tmp/out, cluster calls 
   local envs=()
   while [ "$1" != -- ]; do envs+=("$1"); shift; done; shift
   : >"$tmp/calls"
-  env -u APIKEYS_CAULDRON -u APIKEYS_PERF_CAULDRON -u APIKEYS_KUBE_CONTEXT -u APIKEYS_PERF_BASE -u APIKEYS_PERF_KEY_FILE \
+  env -u APIKEYS_CAULDRON -u APIKEYS_PERF_CAULDRON -u APIKEYS_KUBE_CONTEXT -u APIKEYS_PERF_BASE -u APIKEYS_PERF_KEY_FILE -u APIKEYS_E2E_PASSWORD_FILE \
     -u RATE -u DURATION -u ARMS -u TRIALS -u POLL PATH="$tmp:$PATH" "${envs[@]}" bash "$runner" "$@" >"$tmp/out" 2>&1
 }
 expect_refusal() {  # expect_refusal LABEL ENV... -- ARGS
