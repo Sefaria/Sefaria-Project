@@ -117,6 +117,8 @@ case "\$*" in
   *" get job/"*) echo 1/ ;;
   *" logs job/"*) echo 'SUMMARY_JSON {"mode": "enforce", "arms": {"anon": {"n": 10, "p50": 1.0, "p99": 2.0, "max": 3.0, "checks_rate": 1}}}' ;;
   *" create -f -"*) cat >>"$tmp/created" ;;
+  *" delete "*) exit "\${FAKE_DELETE_RC:-0}" ;;
+  *" --reset"*) cat >/dev/null; case "\$*" in *--manifest-stdout*) echo '{"keys": [{"value": "sfr_fakemanifestkey000000000000"}]}' ;; *) echo "On the cauldron the manifest goes to stdout only" >&2; exit 1 ;; esac ;;
   *"manage.py shell"*) cat >/dev/null; echo 'PERF_JSON {"trials": [{"label": "t", "create_to_allow_ms": 50.0, "revoke_to_deny_ms": 55.0}], "errors": [], "poll_ms": 20.0}' ;;
   *" --teardown"*) cat >/dev/null; exit "\${FAKE_TEARDOWN_RC:-0}" ;;
   *" exec "*) cat >/dev/null ;;
@@ -140,6 +142,10 @@ latest="$(ls -td "$results"/*-perf-guardtest-revoke 2>/dev/null | head -1)"
 if [ $rc = 0 ] && [ -f "$latest/revoke.json" ] && grep -q -- '--teardown' "$tmp/calls" && grep -q -- '--reset' "$tmp/calls"; then
   echo "ok: revoke on a fake cluster seeds, times the trials and tears down"
 else echo "FAIL: revoke happy path (exit $rc)"; tail -5 "$tmp/out" | sed 's/^/    /'; fail=1; fi
+grep -rq sfr_fakemanifest "$latest" && { echo "FAIL: the seeder's manifest reached the results"; fail=1; } || echo "ok: the seeder's manifest (key values) never reaches the results"
+run_fake "${happy_env[@]}" FAKE_DELETE_RC=1 APIKEYS_PERF_KEY_FILE="$tmp/key" bash "$runner" latency; rc=$?
+[ $rc = 4 ] && grep -q "CLEANUP FAILED" "$tmp/out" && echo "ok: a failed cleanup fails the latency run (exit 4)" \
+  || { echo "FAIL: failed cleanup gave exit $rc"; fail=1; }
 run_fake "${happy_env[@]}" FAKE_TEARDOWN_RC=1 bash "$runner" revoke; rc=$?
 [ $rc = 3 ] && grep -q "TEARDOWN FAILED" "$tmp/out" && echo "ok: a failed teardown fails the revoke run (exit 3)" \
   || { echo "FAIL: failed teardown gave exit $rc"; fail=1; }

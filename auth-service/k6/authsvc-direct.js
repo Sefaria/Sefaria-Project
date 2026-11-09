@@ -7,6 +7,10 @@
 //      stripped), PATH_GATED (default /api/knn-search), UNKNOWN_EVERY (every Nth call sends an unknown key, default
 //      10; 0 never), RATE (default 200/s), DURATION (default 30s), SUMMARY_FILE.
 // No key value reaches the output: the summary carries counts and timings only.
+//
+// One VU: k6 registers the reflected descriptors process-wide, and several VUs reflecting at once can panic with
+// "proto: message ... is already registered" (seen on this stack). A Check takes well under a millisecond, so one VU
+// keeps up with a few hundred calls a second; any call it cannot start on time is counted as dropped_iterations.
 import grpc from 'k6/net/grpc';
 import { check } from 'k6';
 import exec from 'k6/execution';
@@ -29,7 +33,7 @@ if (!keys.length) throw new Error('KEYS_FILE has no keys');
 
 export const options = {
   scenarios: {
-    direct: { executor: 'constant-arrival-rate', rate: RATE, timeUnit: '1s', duration: DURATION, preAllocatedVUs: 10, maxVUs: 100 },
+    direct: { executor: 'constant-arrival-rate', rate: RATE, timeUnit: '1s', duration: DURATION, preAllocatedVUs: 1, maxVUs: 1 },
   },
   thresholds: { 'checks': ['rate==1'], 'grpc_req_duration': ['p(99)<200'] },
   summaryTrendStats: ['avg', 'min', 'med', 'p(90)', 'p(99)', 'p(99.9)', 'max', 'count'],
@@ -58,9 +62,10 @@ export function handleSummary(data) {
     addr: ADDR, rate: RATE, duration: DURATION, keys: keys.length,
     grpc: v ? { n: v.count, p50: v.med, p90: v['p(90)'], p99: v['p(99)'], p999: v['p(99.9)'], max: v.max } : null,
     checks_rate: data.metrics.checks ? data.metrics.checks.values.rate : null,
+    dropped: data.metrics.dropped_iterations ? data.metrics.dropped_iterations.values.count : 0,
   };
   const line = v
-    ? `authsvc direct (${RATE}/s, ${DURATION}, ${keys.length} keys): n=${v.count} p50=${v.med.toFixed(3)} p99=${v['p(99)'].toFixed(3)} max=${v.max.toFixed(3)} ms checks=${out.checks_rate}\n`
+    ? `authsvc direct (${RATE}/s, ${DURATION}, ${keys.length} keys): n=${v.count} p50=${v.med.toFixed(3)} p99=${v['p(99)'].toFixed(3)} max=${v.max.toFixed(3)} ms checks=${out.checks_rate} dropped=${out.dropped}\n`
     : 'authsvc direct: no gRPC samples\n';
   const res = { stdout: line };
   if (SUMMARY_FILE) res[SUMMARY_FILE] = JSON.stringify(out, null, 2) + '\n';

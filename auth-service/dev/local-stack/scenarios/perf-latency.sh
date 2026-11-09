@@ -50,7 +50,7 @@ for mode in enforce observe; do
   info "PERF-L $mode: k6 arms"
   k6_run arms.js "arms-$mode" BASE=http://127.0.0.1:$GW_HC BASE_NOAUTHZ=http://127.0.0.1:$GW_NOAUTHZ \
     PATH_GATED=$GATED ANON_PATH=/api/texts/Genesis.1 AUTH_MODE="$mode" KEY_FILE=/keys/perf_hit.hdr \
-    RATE="$RATE" DURATION="$DURATION" || info "PERF-L $mode: k6 reported a crossed threshold (see the checks below)"
+    RATE="$RATE" DURATION="$DURATION" || fail "PERF-L $mode: k6 thresholds crossed (status checks or p99 >= 200 ms; $PERF_OUT/arms-$mode.txt)"
   err1="$(envoy_stat hc error)"; fma1="$(envoy_stat hc failure_mode_allowed)"
   if [ -s "$PERF_OUT/arms-$mode.json" ]; then merge "modes.$mode.arms" "$PERF_OUT/arms-$mode.json"
   else fail "PERF-L $mode: k6 wrote no summary ($PERF_OUT/arms-$mode.txt)"; fi
@@ -64,7 +64,7 @@ done
 authsvc_recreate
 info "PERF-L auth service direct (gRPC Check, $DIRECT_RATE/s for $DIRECT_DURATION)"
 k6_run authsvc-direct.js direct ADDR=127.0.0.1:29090 KEYS_FILE=/keys/perf-bulk.keys PATH_GATED=$GATED \
-  RATE="$DIRECT_RATE" DURATION="$DIRECT_DURATION" || info "PERF-L direct: k6 reported a crossed threshold (see below)"
+  RATE="$DIRECT_RATE" DURATION="$DIRECT_DURATION" || fail "PERF-L direct: k6 thresholds crossed (gRPC errors or p99 >= 200 ms; $PERF_OUT/direct.txt)"
 if [ -s "$PERF_OUT/direct.json" ]; then merge direct "$PERF_OUT/direct.json"; else echo '{}' | merge direct -; fi
 
 report_lines "$result" latency

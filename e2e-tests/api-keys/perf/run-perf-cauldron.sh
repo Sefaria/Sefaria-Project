@@ -237,8 +237,12 @@ log "cauldron $CAULDRON: authService.enabled=$FLAG, AUTH_MODE=${AUTH_MODE_SEEN:-
 # to_file FILE COMMAND... -> runs it with its output masked into FILE; returns the command's exit status
 to_file() { local f="$1"; shift; "$@" 2>&1 | mask >"$f"; return "${PIPESTATUS[0]}"; }
 
+# The exit trap of latency: a failed delete fails the run (exit 4) and names what may be left, the key Secret included.
 delete_perf_objects() {
-  kubectl --context "$KCTX" -n "$NS" delete job,configmap,secret -l "$JOB_LABEL" --ignore-not-found --wait=false >/dev/null 2>&1
+  if ! kubectl --context "$KCTX" -n "$NS" delete job,configmap,secret -l "$JOB_LABEL" --ignore-not-found --wait=false >/dev/null 2>&1; then
+    log "CLEANUP FAILED: delete the Job, ConfigMap and Secret labelled $JOB_LABEL in $NS by hand (the Secret holds the key)"
+    exit 4
+  fi
 }
 
 latency() {
@@ -278,6 +282,9 @@ seed_exec() {
       env APIKEYS_CAULDRON="$CAULDRON" APIKEYS_ALLOW_MUTATING_ON="$CAULDRON" sh -c 'cd /app && python - --target cauldron "$@"' seed "$@"
 }
 
+# On the cauldron the seeder prints its manifest (with key values) to stdout only; the trials need none of it.
+seed_reset() { seed_exec --reset --manifest-stdout >/dev/null; }
+
 # The exit trap of revoke: a failed teardown or any leftover row fails the run (exit 3), whatever happened before.
 seeded_teardown() {
   local bad=0
@@ -300,7 +307,7 @@ revoke() {
   [ "$AUTH_MODE_SEEN" = enforce ] || die "revoke timing needs AUTH_MODE=enforce (got ${AUTH_MODE_SEEN:-none}): observe never denies"
   to_file "$OUT/leftovers-before.txt" seed_exec --leftovers || die "--leftovers is not 0 before seeding ($OUT/leftovers-before.txt)"
   trap seeded_teardown EXIT
-  to_file "$OUT/seed.txt" seed_exec --reset || die "seeding failed ($OUT/seed.txt)"
+  to_file "$OUT/seed.txt" seed_reset || die "seeding failed ($OUT/seed.txt)"
   local pod args; pod="$(web_pod)"
   args="$(python3 -c 'import json,sys; print(json.dumps({"user_id": 2098000001, "base": sys.argv[1], "host": sys.argv[2], "path": "/api/knn-search", "poll": sys.argv[3], "timeout": 10, "trials": int(sys.argv[4])}))' \
     "${APIKEYS_PERF_BASE:-https://$HOST}" "$HOST" "$POLL" "$TRIALS")"
