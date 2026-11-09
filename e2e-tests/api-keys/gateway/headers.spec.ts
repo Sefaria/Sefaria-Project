@@ -66,9 +66,11 @@ test.describe('gateway request headers', () => {
     expect(inner.code).toBe('api_key_invalid');
   });
 
-  test('A10: oversized headers get 431 from Envoy; a 50 KB key gets a prompt 401 api_key_invalid', async ({ target }) => {
+  test('A10: oversized headers get 431 from Envoy; a 50 KB key on the gated path gets a prompt 401 api_key_invalid', async ({ target }) => {
     const bigKey = unknownKey() + 'a'.repeat(50 * 1024);
-    const big = await rawRequest({ target: target.name, path: UNGATED, headers: { 'x-api-key': bigKey }, timeoutMs: 10000 });
+    // On the gated path: an unknown key on an ungated path is let through as anonymous by design, and then nginx answers
+    // its own 400 for the oversized header.
+    const big = await rawRequest({ target: target.name, path: GATED, headers: { 'x-api-key': bigKey }, timeoutMs: 10000 });
     expect(big.status, summary(big)).toBe(401);
     expect(big.code).toBe('api_key_invalid');
     expect(big.elapsedMs).toBeLessThan(5000);

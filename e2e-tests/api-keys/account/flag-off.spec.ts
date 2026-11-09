@@ -44,10 +44,11 @@ test.describe('flag off: the old account page, nothing of developer settings', (
     expect(developerCalls, 'no /api/developer/* requests').toEqual([]);
   });
 
-  test('N-C5: developer routes are 404, logged in and out, and /api-terms still loads', async ({ account, browser, target }) => {
+  test('N-C5: developer routes and /api-terms are 404, logged in and out', async ({ account, browser, target }) => {
     const { page } = await openAs(account, browser, target, ROLE, { host: FLAG_OFF_HOST });
     await openSettings(page);
-    for (const path of ['/settings/developer', '/settings/developer/projects/1', '/powered-by/form', '/api/developer/state']) {
+    // /api-terms is linked only from developer settings and exists only where they do (reader/tests/api_terms_test.py).
+    for (const path of ['/settings/developer', '/settings/developer/projects/1', '/powered-by/form', '/api/developer/state', '/api-terms']) {
       expect(await statusFromPage(page, path), `${path} logged in`).toBe(404);
     }
 
@@ -55,7 +56,7 @@ test.describe('flag off: the old account page, nothing of developer settings', (
     try {
       const anonPage = await anonymous.newPage();
       const terms = await anonPage.goto('/api-terms', { waitUntil: 'domcontentloaded', timeout: t(60000) });
-      expect(terms?.status(), '/api-terms logged out').toBe(200);
+      expect(terms?.status(), '/api-terms logged out').toBe(404);
       for (const path of ['/settings/developer', '/api/developer/state', '/powered-by/form']) {
         expect(await statusFromPage(anonPage, path), `${path} logged out`).toBe(404);
       }

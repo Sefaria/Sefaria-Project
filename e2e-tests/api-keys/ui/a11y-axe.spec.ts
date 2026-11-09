@@ -8,7 +8,7 @@ import { contextAs, prepareContext } from '../session';
 import { t } from '../../globals';
 
 /**
- * Accessibility audit of developer settings, the React Account tab and the Powered by form:
+ * Accessibility audit of developer settings and the React Account tab:
  * axe-core with the WCAG 2.1 A/AA rules in every reachable state, in English and Hebrew, at
  * desktop and phone width, plus keyboard, live-region, naming and zoom checks axe cannot make.
  *
@@ -474,16 +474,7 @@ const STATES: State[] = [
       await expect(page.locator('.settingsPanel:not([hidden]) .section').first()).toBeVisible({ timeout: t(30000) });
     },
   },
-  {
-    id: 'powered-by-form', what: 'Powered by form, after Submit with nothing filled in', anonymous: true,
-    open: async ({ page }) => {
-      await gotoSettings(page, '/powered-by/form');
-      const form = page.locator('form.pbfForm');
-      await expect(form).toBeVisible({ timeout: t(30000) });
-      await form.locator('button[type="submit"]').last().click();
-      await expect(page.locator('.pbfPageError, .pbfErrorNote').first()).toBeVisible();
-    },
-  },
+  // The Powered by POC form (/powered-by/form) was removed with the test controls in phase 1, so it is not audited.
 ];
 
 /** Opens the project and answers key creation with a made-up key, so nothing is created. */
@@ -740,7 +731,7 @@ test.describe('developer settings: keyboard, names, live regions and zoom (C10)'
     });
   }
 
-  test('C10 (keyboard): every Tab stop on the Account tab and the Powered by form shows focus', async ({ browser, target }) => {
+  test('C10 (keyboard): every Tab stop on the Account tab shows focus', async ({ browser, target }) => {
     const context = await openContext(browser, target.name, 'english', 'desktop');
     try {
       const page = await context.newPage();
@@ -748,12 +739,9 @@ test.describe('developer settings: keyboard, names, live regions and zoom (C10)'
       await gotoSettings(page, '/settings/account');
       await expect(page.locator('.settingsPanel:not([hidden]) .section').first()).toBeVisible({ timeout: t(30000) });
       const account = await tabStopsWithoutFocusIndicator(page);
-      await gotoSettings(page, '/powered-by/form');
-      await expect(page.locator('form.pbfForm')).toBeVisible({ timeout: t(30000) });
-      const form = await tabStopsWithoutFocusIndicator(page, 80);
-      test.info().annotations.push({ type: 'tab order', description: `account: ${account.stops.join(' → ')}\nform: ${form.stops.join(' → ')}` });
-      expect([...account.offscreen, ...form.offscreen], 'Tab stops with no size on screen').toEqual([]);
-      expect([...account.invisible, ...form.invisible], 'Tab stops whose look does not change on focus').toEqual([]);
+      test.info().annotations.push({ type: 'tab order', description: `account: ${account.stops.join(' → ')}` });
+      expect(account.offscreen, 'Tab stops with no size on screen').toEqual([]);
+      expect(account.invisible, 'Tab stops whose look does not change on focus').toEqual([]);
     } finally {
       await closeQuietly(context);
     }
@@ -957,7 +945,7 @@ test.describe('developer settings: keyboard, names, live regions and zoom (C10)'
   });
 
   for (const { label, viewport } of [{ label: '200% zoom (640 px)', viewport: { width: 640, height: 450 } }, { label: 'reflow at 320 px (400% zoom)', viewport: { width: 320, height: 256 } }]) {
-    test(`C10 (zoom): ${label}: project page, dialogs, Account tab and Powered by form fit without horizontal scrolling`, async ({ browser, target }) => {
+    test(`C10 (zoom): ${label}: project page, dialogs and Account tab fit without horizontal scrolling`, async ({ browser, target }) => {
       const context = await openContext(browser, target.name, 'english', 'desktop', { viewport });
       try {
         const page = await context.newPage();
@@ -983,9 +971,6 @@ test.describe('developer settings: keyboard, names, live regions and zoom (C10)'
         await gotoSettings(page, '/settings/account');
         await expect(page.locator('.settingsPanel:not([hidden]) .section').first()).toBeVisible({ timeout: t(30000) });
         await check('account tab');
-        await gotoSettings(page, '/powered-by/form');
-        await expect(page.locator('form.pbfForm')).toBeVisible({ timeout: t(30000) });
-        await check('powered by form');
         expect(problems).toEqual([]);
       } finally {
         await closeQuietly(context);

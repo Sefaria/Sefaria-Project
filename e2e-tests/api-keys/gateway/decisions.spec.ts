@@ -57,7 +57,9 @@ test.describe('gateway decisions', () => {
     expect(r.headers['content-type']).toBe('application/json');
     expect(answeredByGateway(r)).toBe(true);
 
-    await expect.poll(() => authsvcLogContains(since, `key_prefix=${key.slice(0, 12)} `, target.name), { timeout: 5000 }).toBe(true);
+    // A log line keeps sfr_ and six characters (authz.Prefix), never more.
+    await expect.poll(() => authsvcLogContains(since, `key_prefix=${key.slice(0, 10)} `, target.name), { timeout: 5000 }).toBe(true);
+    expect(authsvcLogContains(since, key.slice(0, 11), target.name), 'more than sfr_ + 6 characters of the key are in the log').toBe(false);
     expect(authsvcLogContains(since, key, target.name), 'the full key value is in the auth-service log').toBe(false);
   });
 

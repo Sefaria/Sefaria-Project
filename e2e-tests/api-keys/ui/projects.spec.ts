@@ -142,15 +142,19 @@ test.describe('developer settings: projects', () => {
     let row = (await state(page)).projects.find((p: any) => p.id === id).keys.find((k: any) => k.id === keyId);
     expect(row.restrictToWebsite).toBe(true);
 
-    const refusal = 'Turn off the website restriction on your keys before removing the website.';
+    // The form refuses before anything is sent while a key is restricted to the website (the server refuses too,
+    // for a stale page: settingsPage.test.js and developer_writer_api_project_test.py cover that path).
+    const refusal = 'Turn off the restriction on every key';
     await card.getByRole('button', { name: 'Edit project' }).click();
     await card.locator('#devPocProjectUrl').fill('');
-    save = dev.waitForApi(`projects/${id}`);
+    const sent: string[] = [];
+    const onRequest = (r: any) => { if (r.method() !== 'GET' && r.url().includes(`/api/developer/projects/${id}`)) sent.push(r.url()); };
+    page.on('request', onRequest);
     await dev.action('save-project', card).click();
-    await dev.action('save-without-website').click();
-    expect((await save).status()).toBe(400);
-
-    await expect(card.locator('.devPocWarning[role="alert"]')).toContainText(refusal);
+    await expect(card.locator('[role="alert"]')).toContainText(refusal);
+    await expect(page.locator('[aria-labelledby="devPocNoWebsiteTitle"]')).toHaveCount(0);
+    page.off('request', onRequest);
+    expect(sent, 'clearing a restricted website sent a request').toEqual([]);
     await expect(card.locator('#devPocProjectUrl')).toHaveValue('');
     let after = (await state(page)).projects.find((p: any) => p.id === id);
     expect(after.websiteUrl).toBe('https://c4-new.example.com');

@@ -38,7 +38,8 @@ failed.
 
 Prerequisites: Docker, `helm`, Node with the repo's `node_modules`, Chromium for Playwright (`npx playwright install
 chromium`), a Python with the repo's requirements and PyYAML in `APIKEYS_STACK_PYTHON` (default: the checkout's
-`.venv`), and Mongo with the Sefaria text data where `sefaria/local_settings.py` points (pages need it). On Linux the
+`.venv`), Mongo with the Sefaria text data where `sefaria/local_settings.py` points (pages need it), and Redis on
+127.0.0.1:6379 (`/api/find-refs` queues a Celery task; B3 and N-B4 answer 500 without a broker). On Linux the
 stack binds Django to the docker0 address so its containers can reach it (`APIKEYS_STACK_DJANGO_BIND` overrides); `psql`
 falls back to the `postgres:18` image when the host has none.
 
