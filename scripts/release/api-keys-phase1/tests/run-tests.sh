@@ -429,6 +429,15 @@ for t in ticks:
     assert t["nginx"]["requests"] > 0 and t["nginx"]["5xx"] == 0, t["nginx"]
 print(len(ticks), "ticks")
 PY
+# Stopped early (Ctrl-C, or here TERM, which a background job can trap), it still prints the summary and exits 0.
+"$REL/watch-promotion.sh" --env preprod --context "$CTX" --interval 2 --duration 300 --out "$WORK/watch-stop" >"$LOGS/watch-stop.log" 2>&1 &
+STOP_PID=$!
+sleep 7
+kill -TERM "$STOP_PID"
+rc=0
+wait "$STOP_PID" || rc=$?
+[[ "$rc" == 0 ]] && grep -q "no threshold crossed" "$LOGS/watch-stop.log" && [[ "$(wc -l <"$WORK/watch-stop/watch.jsonl")" -ge 2 ]] \
+  && ok "watch-promotion stopped by a signal prints its summary and exits 0" || { notok "watch-promotion stop (exit $rc, log: $LOGS/watch-stop.log)"; tail -n 10 "$LOGS/watch-stop.log"; }
 # A transaction holding ACCESS EXCLUSIVE on powered_by_project, and a reader queued behind it whose query carries a
 # literal that must never reach the watch's output.
 MARKER="sfr_watchmarker$(od -An -N6 -tx1 /dev/urandom | tr -d ' \n')"
@@ -438,7 +447,7 @@ for _ in $(seq 1 30); do
   [[ "$(psql_pod -At -c "SELECT count(*) FROM pg_locks l JOIN pg_class c ON c.oid = l.relation WHERE c.relname = 'powered_by_project' AND l.mode = 'AccessExclusiveLock' AND l.granted")" == 1 ]] && break
   sleep 1
 done
-psql_pod -c "SET application_name = 'release-test-waiter'; SELECT count(*) FROM powered_by_project WHERE name = '$MARKER'" </dev/null >/dev/null 2>&1 &
+psql_pod -c "SET application_name = 'release-test-waiter'; SELECT count(*) FROM powered_by_project WHERE name = 'x' /* it's */ OR name = '$MARKER'" </dev/null >/dev/null 2>&1 &
 WAIT_PID=$!
 exits 2 "watch-promotion: the lock-wait alarm fires while a transaction holds ACCESS EXCLUSIVE on powered_by_project" "ALARM: lock wait [0-9.]+s > 2s" \
   "$REL/watch-promotion.sh" --env preprod --context "$CTX" --interval 2 --duration 30 --max-lock-wait 2 --long-query 1 --stop-on-alarm --out "$WORK/watch-lock"
@@ -467,7 +476,9 @@ exits 2 "watch-promotion: the 5xx alarm fires when prod nginx answers 503" "ALAR
 k -n default exec deploy/production-nginx-standin -c nginx -- rm -f /tmp/status
 # An unreadable database is an incomplete watch (exit 1), not a clean one.
 exits 1 "watch-promotion: a tick that cannot read the database exits 1" "could not read: db, migrations" \
-  env PG_POD=postgres-18-9 "$REL/watch-promotion.sh" --env preprod --context "$CTX" --interval 1 --duration 2 --out "$WORK/watch-nodb"
+  env PG_POD=postgres-18-9 "$REL/watch-promotion.sh" --env preprod --context "$CTX" --interval 1 --duration 1 --out "$WORK/watch-nodb"
+exits 2 "watch-promotion: three ticks in a row without the database raise an alarm" "ALARM: the database could not be read for 3 ticks in a row" \
+  env PG_POD=postgres-18-9 "$REL/watch-promotion.sh" --env preprod --context "$CTX" --interval 1 --duration 30 --stop-on-alarm --out "$WORK/watch-nodb3"
 
 # ---------------------------------------------------------------------------------------------------------------
 echo "# restore db refused while phase 1 runs"

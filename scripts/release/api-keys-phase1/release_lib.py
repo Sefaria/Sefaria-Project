@@ -616,9 +616,13 @@ def _pods_summary(path, state):
     }
 
 
+DB_ERROR_ALARM_TICKS = 3
+
+
 def watch_tick(args):
     """One tick of watch-promotion.sh: reads what the shell collected (database JSON, web pods JSON, nginx log lines),
-    appends one JSON line to --jsonl, prints the live line, and exits 2 when a threshold is crossed."""
+    appends one JSON line to --jsonl, prints the live line, and exits 10 when a threshold is crossed (not 2,
+    which argparse uses for a usage error)."""
     state_path = Path(args.state)
     state = json.loads(state_path.read_text()) if state_path.exists() else {}
     errors = [e for e in (args.errors or "").split(",") if e]
@@ -645,6 +649,9 @@ def watch_tick(args):
     record["web_pods"] = pods
     nginx = None if "nginx" in errors else _nginx_counts(args.nginx)
     if nginx is None and "nginx" not in errors:
+        errors.append("nginx")
+    if nginx is not None and not nginx["requests"] and nginx["unparsed_lines"]:
+        # Lines arrived but none parsed as an access log entry: the 5xx check would be blind, so the tick is incomplete.
         errors.append("nginx")
     record["nginx"] = nginx
 
@@ -673,6 +680,10 @@ def watch_tick(args):
             )
     else:
         parts.append("db: ERROR")
+    # A database that cannot be read for several ticks in a row during the migration is itself an alarm.
+    state["db_error_streak"] = 0 if db is not None else state.get("db_error_streak", 0) + 1
+    if state["db_error_streak"] >= DB_ERROR_ALARM_TICKS and state["db_error_streak"] % DB_ERROR_ALARM_TICKS == 0:
+        alarms.append(f"the database could not be read for {state['db_error_streak']} ticks in a row")
     if pods is not None:
         parts.append(f"prod web: {pods['ready']}/{pods['total']} ready, restarts +{pods['restarts_since_start']}")
         if pods["restarts_since_start"] > state.get("restarts_seen", 0):
@@ -685,7 +696,12 @@ def watch_tick(args):
         parts.append(
             f"nginx: {nginx['requests']} req, 5xx {nginx['5xx']} ({nginx['5xx_pct']:.2f}%)"
             + (f", p95 {p95:.3f}s" if p95 is not None else "")
-            + (" (no access log line: no nginx pod matched, or no traffic)" if not nginx["requests"] else "")
+            + (f", {nginx['unparsed_lines']} unparsed lines" if nginx["unparsed_lines"] else "")
+            + (
+                " (no access log line: no nginx pod matched, no traffic, or the log format changed)"
+                if not nginx["requests"]
+                else ""
+            )
         )
         if nginx["requests"] >= args.min_requests:
             state["max_5xx_pct"] = max(state.get("max_5xx_pct", 0.0), nginx["5xx_pct"])
@@ -716,7 +732,7 @@ def watch_tick(args):
     for alarm in alarms:
         bar = "!" * 100
         print(f"{bar}\n!!! ALARM: {alarm}\n{bar}", flush=True)
-    return 2 if alarms else 0
+    return 10 if alarms else 0
 
 
 def watch_summary(args):

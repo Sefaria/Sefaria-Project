@@ -9,8 +9,9 @@
 # Every --interval seconds, for --duration seconds (or until Ctrl-C), it records:
 #   - sessions on sefaria_auth waiting on a lock (pid, what they wait for, for how long, the pids blocking them) and
 #     queries running or transactions idle longer than --long-query seconds, from pg_stat_activity and pg_locks, in a
-#     default_transaction_read_only session (SELECT only). Query text is shown with every string literal replaced by '?'
-#     and cut at 120 characters, so no value a query carries (a key, a hash, a session) is printed;
+#     default_transaction_read_only session (SELECT only). Query text is cut at its first comment, every string literal
+#     is replaced by '?', and it is cut at 120 characters, so no value a query carries (a key, a hash, a session) is
+#     printed;
 #   - the newest powered_by row of django_migrations (so the migration's progress shows as it happens);
 #   - prod web pods (namespace default, app=web-production): ready count and restarts since the watch started;
 #   - prod nginx (app=nginx-production, container nginx): requests, 5xx and latency in the access log lines written
@@ -19,13 +20,14 @@
 # It prints one line per tick and appends one JSON object per tick to DIR/watch.jsonl
 # (default DIR: ./watch-promotion-<env>-<UTC time>). An ALARM is printed when a session has waited on a lock longer
 # than --max-lock-wait seconds, or when prod's 5xx rate in a tick is above --max-5xx-pct percent over at least
-# --min-requests requests. It keeps watching after an alarm unless --stop-on-alarm.
+# --min-requests requests, or when the database could not be read for 3 ticks in a row. It keeps watching after an
+# alarm unless --stop-on-alarm.
 # Exit status: 2 after any alarm, 1 when a tick could not read something (the watch is incomplete), else 0.
 # It never changes anything: kubectl get and logs, and SELECTs in a read-only session.
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 usage() {
-  sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit "${1:-0}"
 }
 
@@ -74,14 +76,16 @@ trap 'rm -rf "$TICKDIR"' EXIT
 STOP=0
 trap 'STOP=1' INT TERM
 
-# One read-only query per tick. String literals are replaced by '?' before the text leaves the database, and an
-# unterminated one (a query cut at track_activity_query_size) to the end. A query whose quoting the pattern cannot follow
-# (a backslash, which may escape a quote, or a single quote inside a double-quoted name) is cut at its first quote, and a
+# One read-only query per tick. The query text is cut at its first comment (an apostrophe in a comment would throw the
+# quote pairing off). String literals are then replaced by '?' before the text leaves the database, and an unterminated
+# one (a query cut at track_activity_query_size) to the end. A query whose quoting the pattern cannot follow (a
+# backslash, which may escape a quote, or a single quote inside a double-quoted name) is cut at its first quote, and a
 # dollar-quoted body is cut too.
 REDACT="left(regexp_replace(regexp_replace(
-    CASE WHEN a.query ~ '[\\\\]|\"[^\"]*''[^\"]*\"' THEN regexp_replace(a.query, '''.*\$', '''?')
-         ELSE regexp_replace(a.query, '''([^'']|'''')*(''|\$)', '''?''', 'g') END,
+    CASE WHEN q.t ~ '[\\\\]|\"[^\"]*''[^\"]*\"' THEN regexp_replace(q.t, '''.*\$', '''?')
+         ELSE regexp_replace(q.t, '''([^'']|'''')*(''|\$)', '''?''', 'g') END,
     '\\\$[A-Za-z0-9_]*\\\$.*\$', '\$?\$'), '\\s+', ' ', 'g'), 120)"
+UNCOMMENT="regexp_replace(a.query, '(--|/\\*).*\$', '')"
 # The session never waits long on a lock itself: a watcher queued behind the migration would stop reporting.
 TIMEOUTS="SET lock_timeout = '2s'; SET statement_timeout = '15s';"
 SQL_ACTIVITY="$TIMEOUTS SELECT json_build_object(
@@ -94,13 +98,13 @@ SQL_ACTIVITY="$TIMEOUTS SELECT json_build_object(
                                                       a.state_change))::numeric, 1) AS seconds,
              pg_blocking_pids(a.pid) AS blocked_by,
              $REDACT AS query
-        FROM pg_stat_activity a
+        FROM pg_stat_activity a CROSS JOIN LATERAL (SELECT $UNCOMMENT AS t) q
        WHERE a.datname = current_database() AND a.wait_event_type = 'Lock' AND a.pid <> pg_backend_pid()) w), '[]'::json),
   'long_running', coalesce((SELECT json_agg(r ORDER BY r.seconds DESC) FROM (
       SELECT a.pid, a.usename, a.application_name, a.state, a.wait_event_type,
              round(extract(epoch FROM now() - CASE WHEN a.state = 'active' THEN a.query_start ELSE a.xact_start END)::numeric, 1) AS seconds,
              $REDACT AS query
-        FROM pg_stat_activity a
+        FROM pg_stat_activity a CROSS JOIN LATERAL (SELECT $UNCOMMENT AS t) q
        WHERE a.datname = current_database() AND a.pid <> pg_backend_pid() AND a.backend_type = 'client backend'
          AND a.wait_event_type IS DISTINCT FROM 'Lock'
          AND ((a.state = 'active' AND a.query_start < now() - interval '$LONG_QUERY seconds')
@@ -134,27 +138,32 @@ while [[ "$STOP" == 0 ]]; do
     errors+="pods,"
     { echo "$now tick $TICK pods:"; cat "$TICKDIR/pods.err"; } >>"$ERRLOG"
   fi
-  # The window: since the previous tick's fetch (second resolution, so windows may overlap by under a second).
+  # The window: from the previous tick's log fetch to this one's, both stamped right before kubectl logs (second
+  # resolution, so consecutive windows overlap by under a second plus the fetch's own latency).
+  fetch_time="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  fetch_epoch="$(date +%s)"
   if [[ -n "$SINCE" ]]; then
     since_args=(--since-time="$SINCE")
-    window=$((t0 - SINCE_EPOCH))
+    window=$((fetch_epoch - SINCE_EPOCH))
   else
     since_args=(--since="${INTERVAL}s")
     window="$INTERVAL"
   fi
-  SINCE="$now"
-  SINCE_EPOCH="$t0"
+  SINCE="$fetch_time"
+  SINCE_EPOCH="$fetch_epoch"
   if ! kc -n "$NS" logs -l "$NGINX_LABEL" -c nginx "${since_args[@]}" --tail=-1 --prefix=false --max-log-requests=50 \
     >"$TICKDIR/nginx.log" 2>"$TICKDIR/nginx.err"; then
     errors+="nginx,"
     { echo "$now tick $TICK nginx:"; cat "$TICKDIR/nginx.err"; } >>"$ERRLOG"
   fi
+  # A tick cut short by Ctrl-C is not recorded (its reads may have been interrupted).
+  [[ "$STOP" == 0 ]] || break
   rc=0
   "$PYTHON" "$RELEASE_PY" watch-tick --state "$STATE" --jsonl "$JSONL" --tick "$TICK" --time "$now" --window "$window" \
     --db "$TICKDIR/db.json" --migrations "$TICKDIR/migrations.json" --pods "$TICKDIR/pods.json" --nginx "$TICKDIR/nginx.log" --errors "${errors%,}" \
     --max-lock-wait "$MAX_LOCK_WAIT" --max-5xx-pct "$MAX_5XX_PCT" --min-requests "$MIN_REQUESTS" || rc=$?
-  [[ "$rc" == 0 || "$rc" == 2 ]] || die "watch-tick failed (exit $rc)"
-  if [[ "$rc" == 2 && "$STOP_ON_ALARM" == 1 ]]; then
+  [[ "$rc" == 0 || "$rc" == 10 || "$STOP" == 1 ]] || die "watch-tick failed (exit $rc)"
+  if [[ "$rc" == 10 && "$STOP_ON_ALARM" == 1 ]]; then
     echo "stopping on the alarm (--stop-on-alarm)"
     break
   fi
@@ -162,7 +171,7 @@ while [[ "$STOP" == 0 ]]; do
   [[ "$elapsed" -lt "$DURATION" ]] || break
   # Sleep out the rest of the interval in 1 s steps, so Ctrl-C stops promptly.
   while [[ "$STOP" == 0 && $(($(date +%s) - t0)) -lt "$INTERVAL" && $(($(date +%s) - START)) -lt "$DURATION" ]]; do
-    sleep 1
+    sleep 1 || true # Ctrl-C interrupts the sleep; the trap has set STOP
   done
   [[ $(($(date +%s) - START)) -lt "$DURATION" ]] || break
 done

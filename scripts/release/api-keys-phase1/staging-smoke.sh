@@ -95,7 +95,9 @@ else
   fail "GET /settings/account logged out: $CODE ${loc}"
 fi
 if [[ -n "$COOKIE_FILE" ]]; then
-  http GET /settings/account -H "Cookie: sessionid=$(tr -d '\n' <"$COOKIE_FILE")"
+  # The cookie goes in a private header file (curl -H @file), not on curl's command line.
+  (umask 077 && printf 'Cookie: sessionid=%s\n' "$(tr -d '\r\n' <"$COOKIE_FILE")" >"$tmp/cookie-header")
+  http GET /settings/account -H "@$tmp/cookie-header"
   if [[ "$CODE" == 200 ]]; then pass "GET /settings/account signed in renders (200)"; else fail "GET /settings/account signed in: $CODE"; fi
   manual "save a field on /settings/account and reload: the value persists"
 else
@@ -173,8 +175,8 @@ if [[ -n "$LEGACY_KEY_FILE" ]]; then
   if [[ -n "$slug" ]]; then
     pass "legacy apikey write: POST /api/collections with the key in the body created collection $slug"
     csrf="$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')"
-    http DELETE "/api/collections/$slug" -H "Cookie: sessionid=$(tr -d '\r\n' <"$COOKIE_FILE"); csrftoken=$csrf" \
-      -H "X-CSRFToken: $csrf" -H "Origin: $BASE" -H "Referer: $BASE/"
+    printf 'Cookie: sessionid=%s; csrftoken=%s\nX-CSRFToken: %s\n' "$(tr -d '\r\n' <"$COOKIE_FILE")" "$csrf" "$csrf" >"$tmp/delete-headers"
+    http DELETE "/api/collections/$slug" -H "@$tmp/delete-headers" -H "Origin: $BASE" -H "Referer: $BASE/"
     deleted="$CODE $(json_field "$tmp/b" status) $(json_field "$tmp/b" error)"
     http GET "/api/collections/$slug"
     if [[ "$deleted" == "200 ok "* && "$(json_field "$tmp/b" error)" == "No collection with slug"* ]]; then
@@ -183,7 +185,7 @@ if [[ -n "$LEGACY_KEY_FILE" ]]; then
       fail "could not delete collection $slug ($deleted); delete it by hand: sign in as the key's account, $BASE/collections/$slug/settings"
     fi
   else
-    fail "legacy apikey write: POST /api/collections returned $CODE, status '$(json_field "$tmp/b" status)', error '$(json_field "$tmp/b" error)'"
+    fail "legacy apikey write: POST /api/collections returned $CODE, status '$(json_field "$tmp/b" status)', error '$(json_field "$tmp/b" error)' (if a collection named '$name' was created anyway, delete it by hand as the key's account)"
   fi
   rm -f "$tmp/legacy-key"
 else

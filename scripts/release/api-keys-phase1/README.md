@@ -184,12 +184,13 @@ helm and PyYAML for `APIKEYS_RELEASE_PYTHON3`, and are SKIPped without them.
 `watch-promotion.sh --env preprod|prod --context C [--interval 10] [--duration 1800] [--out DIR]` changes nothing. Each
 tick it reads, in a read-only session with a 2 s lock timeout (so the watcher never queues behind the migration), the
 sessions on `sefaria_auth` waiting on a lock (what they wait for, for how long, the blocking pids) and the queries or idle
-transactions older than `--long-query` (30 s), with every string literal replaced by `?` in the query text; the newest
+transactions older than `--long-query` (30 s), with the query text cut at its first comment and every string literal replaced by `?`; the newest
 `powered_by` row of `django_migrations`; prod web pods' readiness and restarts since the start; and the prod nginx
 access log lines since the previous tick (`kubectl logs --since-time`, counts of `httpRequest.status` >= 500 and latency
 percentiles; no line is printed). It prints a line per tick and appends a JSON object per tick to `DIR/watch.jsonl`.
 `--max-lock-wait` (5 s), `--max-5xx-pct` (2%) and `--min-requests` (50) set the alarms; `--stop-on-alarm` stops at the
-first. Exit 2 after an alarm, 1 when a tick could not read something, else 0.
+first. Three ticks in a row without the database are also an ALARM. Exit 2 after an alarm, 1 when a tick could not
+read something (or nginx lines arrived but none parsed), else 0.
 
 ## The test suite
 
