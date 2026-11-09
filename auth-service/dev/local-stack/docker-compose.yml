@@ -32,6 +32,10 @@ services:
       RELOAD_INTERVAL: ${RELOAD_INTERVAL:-60s}
       PG_NOTIFY_CHANNEL: ${PG_NOTIFY_CHANNEL-sefaria_apikeys}
       PG_DSN: ${PG_DSN:-postgres://auth_service_reader:reader@pg:5432/sefaria_auth?sslmode=disable}
+      # Longer than the chart's 10: the local Envoy drops the endpoint only after its /readyz health check fails 3 times
+      # 3 s apart, where Kubernetes takes a terminating pod out of the endpoints at once.
+      SHUTDOWN_DRAIN: ${SHUTDOWN_DRAIN:-12s}
+    stop_grace_period: 50s
     ports: ["127.0.0.1:18080:8080", "127.0.0.1:19090:9090"]
     read_only: true
     depends_on:

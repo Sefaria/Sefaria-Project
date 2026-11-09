@@ -209,6 +209,10 @@ authService:
     failOpen: true
     timeout: 200ms  # Envoy Gateway's default is 10s
   reloadInterval: 60s       # full reload from Postgres; also the revocation SLA when LISTEN/NOTIFY is down
+  # After SIGTERM the auth service reports not ready but keeps answering this many seconds, so Envoy stops routing
+  # checks to the pod before it closes; without it, checks in flight during a rollout fail open (N-F1). The pod's
+  # terminationGracePeriodSeconds is this plus 35 (the gRPC and HTTP shutdown timeouts and a margin).
+  shutdownDrainSeconds: 10
   push:
     # Key changes reach every auth service in the cluster through Postgres LISTEN/NOTIFY on the key registry:
     # triggers from the Django powered_by migrations NOTIFY on this channel whatever the writer. The name is fixed there.
