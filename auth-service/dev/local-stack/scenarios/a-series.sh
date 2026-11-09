@@ -160,7 +160,15 @@ for p in '/api/%6bnn-search' '//api/knn-search' '/api/./knn-search' '/api/knn%2D
          '/api/knn-search-v2' '/api/knn-search?x=1' '/api/../api/knn-search'; do
   req www "$p";                      expect A6a 401 api_key_required "" "gated variant $p"
 done
-req www '/api%2Fknn-search';         expect A6a 307 "" "" "/api%2Fknn-search redirects (UNESCAPE_AND_REDIRECT)"
+# An escaped slash either redirects (Envoy's default UNESCAPE_AND_REDIRECT, as on the local stack) or, where the
+# ClientTrafficPolicy keeps it unchanged (the chart's escapedSlashesAction: KeepUnchanged, on the cluster), reaches
+# the gate as written and is denied there. Both keep the gated path closed.
+req www '/api%2Fknn-search'
+if [ "$MODE" = enforce ] && [ "$STATUS" = 401 ] && [ "$CODE" = api_key_required ]; then
+  line A6a pass "/api%2Fknn-search -> 401 api_key_required (escaped slash kept and gated directly)"
+else
+  expect A6a 307 "" "" "/api%2Fknn-search redirects (UNESCAPE_AND_REDIRECT)"
+fi
 req www '/API/knn-search';           expect A6c 404 "" "" "/API/knn-search is Django's 404, not a bypass"
 for p in '/api/knn-search%zz' '/api/%6bnn-search%' '/api/knn-search;x'; do
   req www "$p";                      expect N-CR9 401 api_key_required "" "malformed $p"

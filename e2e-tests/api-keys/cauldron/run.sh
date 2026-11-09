@@ -138,7 +138,8 @@ fixture_counts_zero() {
 }
 
 # --- Playwright, fixture-free selection -----------------------------------------------------------
-FREE_GREP='(A4a: |A4b: |A5b: |A6a: |A6c: |N-CR9: |N-CR10: |N-A2: |B1: logged out|C8 control|A8: a gateway denial|N-A4: |B6: sefaria-mcp|N-B2: |N-LOG2: |N-LOG3: )'
+# N-CR10 needs a seeded key (gateway.restricted), so it runs in the seeded mode, not here.
+FREE_GREP='(A4a: |A4b: |A5b: |A6a: |A6c: |N-CR9: |N-A2: |B1: logged out|C8 control|A8: a gateway denial|N-A4: |B6: sefaria-mcp|N-B2: |N-LOG2: |N-LOG3: )'
 FREE_FILES="e2e-tests/api-keys/_smoke.spec.ts e2e-tests/api-keys/gateway/decisions.spec.ts e2e-tests/api-keys/gateway/paths.spec.ts e2e-tests/api-keys/gateway/cauldron-only.spec.ts e2e-tests/api-keys/gateway/nginx-log.spec.ts e2e-tests/api-keys/callers/website-smoke.spec.ts e2e-tests/api-keys/callers/browser-key-cors.spec.ts e2e-tests/api-keys/callers/replays.spec.ts"
 
 write_empty_manifest() {
@@ -196,7 +197,7 @@ PY
 
 # --- api-tests (N-B3), GET-only subset ------------------------------------------------------------
 api_tests() {
-  ( cd "$REPO/api-tests" && API_BASE_URL="$BASE" python3 -m pytest -q -p no:cacheprovider -p no:django -c /dev/null --rootdir . \
+  ( cd "$REPO/api-tests" && API_BASE_URL="$BASE" "${APIKEYS_STACK_PYTHON:-python3}" -m pytest -q -p no:cacheprovider -p no:django -c /dev/null --rootdir . \
       -k 'not register and not create_sheet and not login_refresh' . ) 2>&1 | mask > "$RUN_DIR/api-tests.log"
   local prc=${PIPESTATUS[0]}
   local summary; summary="$(grep -E '(passed|failed|error)' "$RUN_DIR/api-tests.log" | tail -1)"
