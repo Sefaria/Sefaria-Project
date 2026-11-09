@@ -85,6 +85,10 @@ describe("selecting a segment", () => {
     render(<Segment {...base} />);
     expect(screen.getByRole("group")).not.toHaveAttribute("tabindex");
   });
+  it("is a tab stop when it can be chosen, as every verse on sefaria.org is", () => {
+    render(<Segment {...base} onSelect={vi.fn()} />);
+    expect(screen.getByRole("group")).toHaveAttribute("tabindex", "0");
+  });
   it("selects on click", async () => {
     const onSelect = vi.fn();
     render(<Segment {...base} onSelect={onSelect} />);

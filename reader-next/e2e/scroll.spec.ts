@@ -275,9 +275,9 @@ test("windowing in a bilingual column with the sidebar open keeps the reader's v
   const top = await segmentTop(page, ref!);
   await page.waitForTimeout(1500);
   expect(Math.abs((await segmentTop(page, ref!)) - top)).toBeLessThan(2);
-  // the text keeps exactly one tab stop, on the verse being read, after sections were trimmed (R-31)
-  await expect(page.locator('[role="group"][data-selectable="true"][tabindex="0"]')).toHaveCount(1);
-  await expect(page.locator('[role="group"][data-selectable="true"][tabindex="0"]')).toHaveAttribute("data-ref", ref!);
+  // after sections were trimmed every verse still on the page is a tab stop, the one being read among them
+  await expect(page.locator('[role="group"][data-selectable="true"]:not([tabindex="0"])')).toHaveCount(0);
+  await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toHaveAttribute("tabindex", "0");
 });
 
 // CODE_REVIEW low: a commentary range across chapters showed refs like "Rashi on Genesis 1:31:1:1" and lost its range (so the reader

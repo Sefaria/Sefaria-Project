@@ -123,41 +123,38 @@ export function TextColumn(props: TextColumnProps) {
     // with the sidebar open the highlighted verse is the selected one: say so to assistive technology too (R-31)
     if (showFocusRef.current) el?.setAttribute("aria-current", "true");
     focusedEl.current = el;
-    moveTabStop(el as HTMLElement | null);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // One tab stop in the column: the verse being read (R-31). DOM attributes, like the focus highlight: no re-render per verse.
-  const tabStop = useRef<HTMLElement | null>(null);
-  const moveTabStop = (el: HTMLElement | null) => {
-    if (!el || el === tabStop.current) return;
-    if (tabStop.current?.isConnected) tabStop.current.tabIndex = -1;
-    el.tabIndex = 0;
-    tabStop.current = el;
-  };
   const showFocusRef = useRef(showFocus);
   showFocusRef.current = showFocus;
-  // until the reading position is known the first verse is the tab stop; and when its verse leaves the page (windowing trimmed its
-  // section, a version swap re-rendered it), the verse being read takes it, so the text never loses its only tab stop
-  useEffect(() => {
-    if (tabStop.current?.isConnected) return;
-    const reading = focusedEl.current?.isConnected ? (focusedEl.current as HTMLElement) : null;
-    moveTabStop(reading ?? contentRef.current?.querySelector<HTMLElement>('[role="group"][data-selectable="true"]') ?? null);
-  }); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (showFocus) focusedEl.current?.setAttribute("aria-current", "true");
     else focusedEl.current?.removeAttribute("aria-current");
   }, [showFocus]);
-  // Arrow keys move between verses (the tab stop goes with them); Enter or Space chooses the verse, as before.
+  // Every verse is a tab stop (Segment); its links and note markers are not, so Tab reads down the text verse by verse.
+  // On a verse: Down/Up move to the next/previous verse, Right/Left (mirrored in a right-to-left verse and interface) step through
+  // the links and markers inside it, and Esc goes from one of those back to its verse. Enter or Space chooses the verse, as before.
   const onSegmentKeys = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
-    const here = (e.target as HTMLElement).closest<HTMLElement>('[role="group"][data-selectable="true"]');
-    if (!here || here !== e.target) return;
-    const all = [...(contentRef.current?.querySelectorAll<HTMLElement>('[role="group"][data-selectable="true"]') ?? [])];
-    const next = all[all.indexOf(here) + (e.key === "ArrowDown" ? 1 : -1)];
-    if (!next) return;
-    e.preventDefault();
-    moveTabStop(next);
-    next.focus();
+    const target = e.target as HTMLElement;
+    const here = target.closest<HTMLElement>('[role="group"][data-selectable="true"]');
+    if (!here) return;
+    const go = (el: HTMLElement | undefined) => {
+      if (!el) return;
+      e.preventDefault();
+      el.focus();
+    };
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      const all = [...(contentRef.current?.querySelectorAll<HTMLElement>('[role="group"][data-selectable="true"]') ?? [])];
+      return go(all[all.indexOf(here) + (e.key === "ArrowDown" ? 1 : -1)]);
+    }
+    if (e.key === "Escape" && target !== here) return go(here);
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    const inner = [...here.querySelectorAll<HTMLElement>('a[href], [data-note][role="button"]')].filter((el) => el.getClientRects().length > 0);
+    if (!inner.length) return;
+    const forward = (e.key === "ArrowRight") !== (getComputedStyle(here).direction === "rtl" && document.documentElement.dir === "rtl");
+    const at = inner.indexOf(target);
+    // from the verse itself: the first (or last) one; past either end: back to the verse
+    go(at === -1 ? (forward ? inner[0] : inner.at(-1)) : (inner[at + (forward ? 1 : -1)] ?? here));
   };
 
   // A different translation or source: swap every loaded section in place (the reader stays on their verse —

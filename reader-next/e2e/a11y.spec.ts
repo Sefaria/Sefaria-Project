@@ -51,21 +51,36 @@ test.describe("accessibility of the key pages (axe, WCAG 2.1 AA)", () => {
   });
 });
 
-// CODE_REVIEW R-31: every verse was a tab stop (Genesis 1: 31 before anything after the text), and the selected verse was not exposed
+// As on sefaria.org, Tab reads down the text verse by verse: the links and note markers inside a verse are not tab stops (R-31 had
+// made the whole text one stop, so Tab left it after the first verse, by way of every note marker in the chapter). The arrow keys
+// still move between verses and into a verse's links and markers; the selected verse is announced as current.
 test.describe("keyboard in the reading column", () => {
-  test("one tab stop for the text; arrow keys move between verses; the selected verse is announced as current", async ({ page }) => {
-    await open(page, "/Genesis.1?lang=en");
-    const stops = await page.locator('[role="group"][data-selectable="true"][tabindex="0"]').count();
-    expect(stops).toBe(1);
-    const first = page.locator('[role="group"][data-selectable="true"][tabindex="0"]');
-    await first.focus();
-    const startRef = await first.getAttribute("data-ref");
+  const active = (page: Page) => page.evaluate(() => document.activeElement?.closest("[data-ref]")?.getAttribute("data-ref") + "|" + document.activeElement?.tagName);
+  test("Tab goes verse by verse, past the note markers in them", async ({ page }) => {
+    await open(page, "/Genesis.1?lang=bi"); // Genesis 1:1-2 carry note markers (a, b, c)
+    await page.locator('[role="group"][data-ref="Genesis 1:1"]').focus();
+    const seen: string[] = [];
+    for (let i = 0; i < 5; i++) {
+      await page.keyboard.press("Tab");
+      seen.push(await active(page));
+    }
+    expect(seen).toEqual(["Genesis 1:2|DIV", "Genesis 1:3|DIV", "Genesis 1:4|DIV", "Genesis 1:5|DIV", "Genesis 1:6|DIV"]);
+    await page.keyboard.press("Shift+Tab");
+    expect(await active(page)).toBe("Genesis 1:5|DIV");
+  });
+  test("arrow keys: down to the next verse, right into its note markers, Esc back to the verse; Enter chooses it", async ({ page }) => {
+    await open(page, "/Genesis.1?lang=bi");
+    await page.locator('[role="group"][data-ref="Genesis 1:1"]').focus();
     await page.keyboard.press("ArrowDown");
-    const nowRef = await page.evaluate(() => document.activeElement?.getAttribute("data-ref"));
-    expect(nowRef).not.toBe(startRef);
-    expect(await page.locator('[role="group"][data-selectable="true"][tabindex="0"]').count()).toBe(1);
+    expect(await active(page)).toBe("Genesis 1:2|DIV");
+    await page.keyboard.press("ArrowRight");
+    expect(await active(page)).toBe("Genesis 1:2|SUP");
+    await page.keyboard.press("Enter"); // the marker opens its note
+    await expect(page.locator('[role="group"][data-ref="Genesis 1:2"] [data-note][aria-expanded="true"]')).toHaveCount(1);
+    await page.keyboard.press("Escape");
+    expect(await active(page)).toBe("Genesis 1:2|DIV");
     await page.keyboard.press("Enter"); // choose it: the sidebar opens on it
     await expect(page.getByRole("complementary")).toBeVisible();
-    await expect(page.locator('[role="group"][aria-current="true"]')).toHaveCount(1);
+    await expect(page.locator('[role="group"][aria-current="true"]')).toHaveAttribute("data-ref", "Genesis 1:2");
   });
 });

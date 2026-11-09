@@ -92,9 +92,9 @@ function SegmentImpl({
       className={styles.segment}
       role="group"
       aria-label={segmentRef}
-      // focusable, but not a tab stop each: the column keeps one stop (the verse being read) and moves between verses with the
-      // arrow keys (CODE_REVIEW R-31: Genesis 1 alone was 31 stops before anything after the text could be reached)
-      tabIndex={onSelect ? -1 : undefined}
+      // every verse is a tab stop, as on sefaria.org: Tab reads down the text verse by verse (the links and note markers inside it
+      // are not stops; the column reaches them with the arrow keys). The skip link and the panel's own controls come before the text.
+      tabIndex={onSelect ? 0 : undefined}
       data-ref={segmentRef}
       data-highlighted={highlighted ? "true" : undefined}
       data-scroll-target={isScrollTarget ? "true" : undefined}

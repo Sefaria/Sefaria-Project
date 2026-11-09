@@ -15,7 +15,7 @@ describe("citations become real links", () => {
   it("links a citation to the canonical path", () => {
     const html = seg("rashi-on-genesis-1", "primary", (h) => h.includes("Psalms 111:6"));
     const out = prepareSegmentHtml(html).html;
-    expect(out).toContain('<a class="ref-link" data-sefaria-ref="Psalms 111:6" href="/Psalms.111.6">');
+    expect(out).toContain('<a class="ref-link" data-sefaria-ref="Psalms 111:6" href="/Psalms.111.6" tabindex="-1">');
   });
   it("links named entities to their topic", () => {
     const out = prepareSegmentHtml(seg("jt-berakhot-1-1", "primary", (h) => h.includes("namedEntityLink"))).html;
@@ -32,7 +32,7 @@ describe("footnotes", () => {
   it("replaces footnote bodies with accessible markers and returns the notes", () => {
     const html = seg("genesis-1", "translation", (h) => h.includes("footnote-marker"));
     const { html: out, notes } = prepareSegmentHtml(html);
-    expect(out).toContain('<sup aria-expanded="false" class="note-marker" data-note="0" role="button" tabindex="0">a</sup>');
+    expect(out).toContain('<sup aria-expanded="false" class="note-marker" data-note="0" role="button" tabindex="-1">a</sup>');
     expect(out).not.toContain("In contrast to others");
     expect(notes[0]).toMatchObject({ key: 0, markerHtml: "a" });
     expect(notes[0]!.contentHtml).toContain("In contrast to others");
