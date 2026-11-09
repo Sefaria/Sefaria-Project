@@ -11778,8 +11778,8 @@
         ],
         "parameters": [
           {
-            "name": "slim_sheets",
-            "description": "`slim_sheets` is an optional parameter. When `1`, each item in `sheets` only has `id`, `owner`, `anchorRef` and `anchorRefExpanded` - enough to count the public sheets on each segment - instead of the full sheet details. Defaults to `0`",
+            "name": "with_sheet_links",
+            "description": "`with_sheet_links` is an optional parameter. When `1`, `links` also include sheets in collections listed in the library, and each item in `sheets` only has `id`, `owner`, `anchorRef` and `anchorRefExpanded` - enough to count the public sheets on each segment - instead of the full sheet details. Defaults to `0`",
             "schema": {
               "enum": [
                 "0",

@@ -2631,8 +2631,7 @@ Sefaria = extend(Sefaria, {
     return guides;
   },
   relatedApi: function (ref, callback) {
-    // slim_sheets: public sheets come back as {id, owner, anchorRef, anchorRefExpanded}, enough for the sheets count.
-    const url = Sefaria.apiHost + '/api/related/' + Sefaria.normRef(ref) + '?with_sheet_links=1&slim_sheets=1';
+    var url = Sefaria.apiHost + '/api/related/' + Sefaria.normRef(ref) + '?with_sheet_links=1';
     return this._api(url, (data) => {
       if ('error' in data) {
         return;
