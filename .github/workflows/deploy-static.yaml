@@ -87,11 +87,15 @@ jobs:
         id: semantic
         with:
           working_directory: ./helm-chart
-          semantic_version: 18.0.1
+          # semantic-release 24 writes release notes to one ref per tag (refs/notes/semantic-release-<tag>) and still
+          # reads the old shared refs/notes/semantic-release. 18.x wrote every release's note to that one shared ref, so
+          # two concurrent chart releases raced on it: the loser pushed its tag but its notes push was rejected, and every
+          # later run recomputed that version and failed with "tag already exists" (seen 2026-10-26).
+          semantic_version: 24.2.9
           extra_plugins: |
-            conventional-changelog-conventionalcommits@6.1.0
-            semantic-release-monorepo@7.0.5
-            @semantic-release/commit-analyzer@9.0.2
+            conventional-changelog-conventionalcommits@8.0.0
+            semantic-release-monorepo@8.0.2
+            @semantic-release/commit-analyzer@10.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Get chart version
