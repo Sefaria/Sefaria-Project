@@ -4,9 +4,10 @@ title: Linker & embeds
 domain: Platform
 document: architecture
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-21
 ---
+
 # Linker & embeds — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -31,10 +32,10 @@ _Not discussed yet._
 ## Target architecture
 
 - Embeds on other sites are built on the toolkit's elements, not on the reader's React components; the reader's components
-  stay React and server-rendered. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792570626028769)
+  stay React and server-rendered. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792570626028769)
 - The reader and the toolkit share one text pipeline (`text-transform`, which `reader-next` already vendors) and one token
   vocabulary, so an embedded passage matches sefaria.org; see
-  [Cross-cutting → Design system](../CROSS_CUTTING.md#design-system-and-components). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792570626028769)
+  [Cross-cutting → Design system](../CROSS_CUTTING.md#design-system-and-components). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792570626028769)
 
 ## Dependencies on other areas
 
@@ -86,19 +87,19 @@ Rebuild status of this area's features: not started 14.
 
 ### Gaps: core and standard features not done (11)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| LNK-003 | core | Embeddable citation linker plugin (v3) | not started |
-| LNK-004 | core | Linker options (mode, language, whitelist, versions) | not started |
-| LNK-005 | core | Linker page-scan and wrapping pipeline | not started |
-| LNK-006 | core | Linker popup UI | not started |
-| LNK-010 | core | Linker CORS and remote-config version switch | not started |
-| LNK-001 | standard | Share image URL (/api/img-gen) | not started |
-| LNK-002 | standard | Public JS library and linker scripts | not started |
-| LNK-008 | standard | Linker web-page tracking (feeds Web Pages sidebar) | not started |
-| LNK-011 | standard | Linker install page and bookmarklet | not started |
-| LNK-013 | standard | Embedded sheets (iframe) | not started |
-| LNK-014 | standard | Social share image generator (img-gen) | not started |
+| ID      | Tier     | Feature                                              | Rebuild status |
+| ------- | -------- | ---------------------------------------------------- | -------------- |
+| LNK-003 | core     | Embeddable citation linker plugin (v3)               | not started    |
+| LNK-004 | core     | Linker options (mode, language, whitelist, versions) | not started    |
+| LNK-005 | core     | Linker page-scan and wrapping pipeline               | not started    |
+| LNK-006 | core     | Linker popup UI                                      | not started    |
+| LNK-010 | core     | Linker CORS and remote-config version switch         | not started    |
+| LNK-001 | standard | Share image URL (/api/img-gen)                       | not started    |
+| LNK-002 | standard | Public JS library and linker scripts                 | not started    |
+| LNK-008 | standard | Linker web-page tracking (feeds Web Pages sidebar)   | not started    |
+| LNK-011 | standard | Linker install page and bookmarklet                  | not started    |
+| LNK-013 | standard | Embedded sheets (iframe)                             | not started    |
+| LNK-014 | standard | Social share image generator (img-gen)               | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

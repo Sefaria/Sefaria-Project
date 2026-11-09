@@ -37,8 +37,8 @@ point at the wrong verse, or need to be told that its panel changed.
 
 ```ts
 type LayoutNode<Id> =
-  | { type: "leaf"; id: Id }
-  | { type: "split"; direction: "row" | "column"; children: LayoutNode<Id>[]; sizes?: number[] };
+  | { type: 'leaf'; id: Id }
+  | { type: 'split'; direction: 'row' | 'column'; children: LayoutNode<Id>[]; sizes?: number[] };
 ```
 
 - The **workspace** arranges panels: `Workspace = { panels: Record<PanelId, PanelState>; layout: LayoutNode<PanelId> }`.
@@ -58,14 +58,14 @@ overflow did — handled entirely in CSS, so it also works in the server-rendere
 `src/lib/layout/tree.ts` (generic) and `src/lib/workspace/ops.ts` are pure functions with unit tests. Nothing
 in them knows about React, the router or the DOM.
 
-| Operation | Old reader | Here |
-|---|---|---|
-| open a text, replacing everything | `openPanel` (SHL-043) | `openOnly(ws, panel)` |
-| open a panel after another | `openPanelAt(n)` (SHL-044) | `openAfter(ws, id, panel)` |
-| replace a panel | `replacePanel` | `replace(ws, id, panel)` |
-| close a panel (last one → home) | `closePanel` + cascade (SHL-048) | `close(ws, id)` — asides go with it |
-| open / change / close the sidebar | `openTextListAt`, `setConnectionsMode`, `closePanel` | `openAside`, `updateAside`, `closeAside` |
-| move a panel (future: drag) | — | `move(ws, id, targetId, "before" \| "after" \| "above" \| "below")` |
+| Operation                         | Old reader                                           | Here                                                                |
+| --------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------- |
+| open a text, replacing everything | `openPanel` (SHL-043)                                | `openOnly(ws, panel)`                                               |
+| open a panel after another        | `openPanelAt(n)` (SHL-044)                           | `openAfter(ws, id, panel)`                                          |
+| replace a panel                   | `replacePanel`                                       | `replace(ws, id, panel)`                                            |
+| close a panel (last one → home)   | `closePanel` + cascade (SHL-048)                     | `close(ws, id)` — asides go with it                                 |
+| open / change / close the sidebar | `openTextListAt`, `setConnectionsMode`, `closePanel` | `openAside`, `updateAside`, `closeAside`                            |
+| move a panel (future: drag)       | —                                                    | `move(ws, id, targetId, "before" \| "after" \| "above" \| "below")` |
 
 Operations are what the UI calls. A panel never knows its position: it gets its own state and callbacks scoped
 to itself through `PanelContext`.
@@ -80,7 +80,7 @@ view and every new link works on the old site:
 └ panel 1 ┘ └ its aside ┘ └─ panel 2 ─┘          └─ panel 3, its aside, its versions ─┘
 ```
 
-- Panel *n* ≥ 2: `p{n}` (ref), `w{n}` (its aside), `lang{n}`, `aliyot{n}`, `ven{n}`, `vhe{n}`.
+- Panel _n_ ≥ 2: `p{n}` (ref), `w{n}` (its aside), `lang{n}`, `aliyot{n}`, `ven{n}`, `vhe{n}`.
 - Numbers follow sefaria.org's flat list exactly, a sidebar taking a slot of its own (decided 2026-10-06, MULTIPANEL_PLAN §3):
   `[A + sidebar, B]` writes B as `p3`, its sidebar's language as `lang2`. Its own server stops reading at the first missing `p<n>`
   (atlas SHL-066); reading here accepts the gaps. (This section said "sequential" until 2026-10-29; the codec never was.)

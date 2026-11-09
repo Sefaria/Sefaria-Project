@@ -4,9 +4,10 @@ title: Public API & data exports
 domain: Platform
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Public API & data exports — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -51,30 +52,30 @@ Feature groups: Texts API (3); Index & Metadata API (2); Data Downloads (2); Cli
 
 ### Core (5)
 
-| ID | Feature | What it does |
-|---|---|---|
-| API-001 | Endpoints the client calls (index) | A catalogue of API route families the React client depends on, listed for completeness. |
-| API-002 | Texts API v3 (/api/v3/texts) | The canonical text endpoint returns one or more versions of a ref with metadata and warnings. |
-| API-005 | Index, shape, counts and terms API | Endpoints expose the table of contents, an index record, a text's shape, counts, previews, terms and categories. |
+| ID      | Feature                            | What it does                                                                                                               |
+| ------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| API-001 | Endpoints the client calls (index) | A catalogue of API route families the React client depends on, listed for completeness.                                    |
+| API-002 | Texts API v3 (/api/v3/texts)       | The canonical text endpoint returns one or more versions of a ref with metadata and warnings.                              |
+| API-005 | Index, shape, counts and terms API | Endpoints expose the table of contents, an index record, a text's shape, counts, previews, terms and categories.           |
 | API-007 | Links, related and connections API | Endpoints return the bundle of links, sheets, notes, web pages, media, topics and manuscripts for a ref, and manage links. |
-| API-013 | Linker and find-refs API | Endpoints power the linker: finding refs in text, polling tasks, site data and reports. |
+| API-013 | Linker and find-refs API           | Endpoints power the linker: finding refs in text, polling tasks, site data and reports.                                    |
 
 ### Standard (12)
 
-| ID | Feature | What it does |
-|---|---|---|
-| API-003 | Legacy texts API and related text endpoints | Older text endpoints remain for external consumers and for reading, saving and bulk-fetching text. |
-| API-004 | Ref validation and navigation API | Given a ref the API validates it and returns normalized forms, navigation to neighbours and structural info. |
-| API-006 | Version admin and editing APIs | Staff APIs support version search, bulk edit, rename, delete, upload and dependency checks. |
-| API-008 | Search endpoints | Endpoints power text, sheet and entity search, including a semantic (vector) search for internal AI tooling. |
-| API-009 | Calendars API | Endpoints return today's learning schedule, next reading of a parasha and seasonal topics. |
-| API-010 | Topics API | Endpoints list topics, return topic details and graphs, pools, featured topic, and manage topics and their sources. |
-| API-011 | Sheets and collections API | Endpoints create, read, update and delete sheets and collections and list sheets by user, tag or ref. |
-| API-012 | Users, profile and social API | Endpoints cover profiles, history, follows, blocks, notifications, stats, registration and login. |
-| API-014 | Miscellaneous public endpoints | Utility endpoints for remote config, guides, powered-by projects, feedback, newsletter, stats and health. |
-| API-015 | OpenAPI docs and llms.txt | Public API documentation is published externally and an llms.txt guides AI agents to the bulk-export bucket. |
-| API-016 | Single version download | Users download a single text version as JSON, CSV, or text with or without tags. |
-| API-017 | Full data export (cron and on demand) | The whole library can be exported on a schedule to a cloud bucket in several formats. |
+| ID      | Feature                                     | What it does                                                                                                        |
+| ------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| API-003 | Legacy texts API and related text endpoints | Older text endpoints remain for external consumers and for reading, saving and bulk-fetching text.                  |
+| API-004 | Ref validation and navigation API           | Given a ref the API validates it and returns normalized forms, navigation to neighbours and structural info.        |
+| API-006 | Version admin and editing APIs              | Staff APIs support version search, bulk edit, rename, delete, upload and dependency checks.                         |
+| API-008 | Search endpoints                            | Endpoints power text, sheet and entity search, including a semantic (vector) search for internal AI tooling.        |
+| API-009 | Calendars API                               | Endpoints return today's learning schedule, next reading of a parasha and seasonal topics.                          |
+| API-010 | Topics API                                  | Endpoints list topics, return topic details and graphs, pools, featured topic, and manage topics and their sources. |
+| API-011 | Sheets and collections API                  | Endpoints create, read, update and delete sheets and collections and list sheets by user, tag or ref.               |
+| API-012 | Users, profile and social API               | Endpoints cover profiles, history, follows, blocks, notifications, stats, registration and login.                   |
+| API-014 | Miscellaneous public endpoints              | Utility endpoints for remote config, guides, powered-by projects, feedback, newsletter, stats and health.           |
+| API-015 | OpenAPI docs and llms.txt                   | Public API documentation is published externally and an llms.txt guides AI agents to the bulk-export bucket.        |
+| API-016 | Single version download                     | Users download a single text version as JSON, CSV, or text with or without tags.                                    |
+| API-017 | Full data export (cron and on demand)       | The whole library can be exported on a schedule to a cloud bucket in several formats.                               |
 
 _Generated 2026-10-14. Full behaviour for every ID: `reader-next/docs/features/FEATURES.md` and the atlas page._
 

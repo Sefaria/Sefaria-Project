@@ -4,9 +4,10 @@ title: Profiles & social
 domain: Voices (sheets & community)
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Profiles & social — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -65,18 +66,18 @@ Rebuild status of this area's features: not started 12.
 
 ### Gaps: core and standard features not done (10)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| PRO-001 | core | User profile page | not started |
-| PRO-002 | core | Profile sheets tab | not started |
-| PRO-008 | core | Follow and unfollow users | not started |
-| PRO-003 | standard | Profile collections tab | not started |
-| PRO-004 | standard | Followers and following lists | not started |
-| PRO-005 | standard | Edit profile (legacy page) | not started |
-| PRO-006 | standard | Profile picture upload and crop | not started |
-| PRO-007 | standard | Profile and social API surface | not started |
-| PRO-011 | standard | Follow / unfollow button | not started |
-| PRO-012 | standard | Profile, follow and messaging client APIs | not started |
+| ID      | Tier     | Feature                                   | Rebuild status |
+| ------- | -------- | ----------------------------------------- | -------------- |
+| PRO-001 | core     | User profile page                         | not started    |
+| PRO-002 | core     | Profile sheets tab                        | not started    |
+| PRO-008 | core     | Follow and unfollow users                 | not started    |
+| PRO-003 | standard | Profile collections tab                   | not started    |
+| PRO-004 | standard | Followers and following lists             | not started    |
+| PRO-005 | standard | Edit profile (legacy page)                | not started    |
+| PRO-006 | standard | Profile picture upload and crop           | not started    |
+| PRO-007 | standard | Profile and social API surface            | not started    |
+| PRO-011 | standard | Follow / unfollow button                  | not started    |
+| PRO-012 | standard | Profile, follow and messaging client APIs | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

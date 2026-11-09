@@ -4,13 +4,14 @@ title: Versions & translations
 domain: Reader
 document: architecture
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-16
 
 updated: 2026-10-19
 
 updated: 2026-10-28
 ---
+
 # Versions & translations — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -21,11 +22,12 @@ updated: 2026-10-28
 
 No target architecture yet. Research in the thread mapped version URL parameters, how each client resolves the source and
 translation, where preferences are stored, and the gaps in `reader-next`. Interface and content language are in
-[Language & accessibility](../i18n-a11y/architecture.md). Everything under not-to-port and open questions is an *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+[Language & accessibility](../i18n-a11y/architecture.md). Everything under not-to-port and open questions is an _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
 
 ## Legacy approach vs new approach
 
 **URL parameters.**
+
 - Legacy (`master` @ 121350b): `ven` / `vhe` (and `ven<n>` / `vhe<n>`) as `family|Version_Title`; the old path
   `/<ref>/<lang>/<vtitle>` is redirected to `?v<lang>=` ([`reader/views.py:544-553`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/reader/views.py#L544-L553)). Every parameter is matched against the
   ref's versions (title and family, then family, then title), filtered by direction (left-to-right for `ven`, right-to-left for
@@ -35,6 +37,7 @@ translation, where preferences are stored, and the gaps in `reader-next`. Interf
   unknown value stays in the URL (RTE-028).
 
 **Resolution order.**
+
 - Legacy client ([`static/js/sefaria/sefaria.js:790-822`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/static/js/sefaria/sefaria.js#L790-L822)): source = the URL's version if it is a primary, else the API default.
   Translation = the URL's version if it exists → the corpus preference (by title) → the highest-priority version in the
   translation-language preference → the API default. Server rendering ignores preferences
@@ -45,6 +48,7 @@ translation, where preferences are stored, and the gaps in `reader-next`. Interf
   preference exists, with a second fetch only when the choice differs ([`src/features/reader/reader-route.ts:41-67`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/reader-route.ts#L41-L67)). No flash.
 
 **Stored preferences.**
+
 - Legacy: `version_preferences_by_corpus` (`{corpus: {en: title}}`) and `translation_language_preference` are read from the
   profile first, then the cookie ([`sefaria/system/middleware.py:164-165`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/sefaria/system/middleware.py#L164-L165), [`sefaria/system/middleware.py:179-182`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/sefaria/system/middleware.py#L179-L182)). Choosing a
   translation in the main panel writes the cookie and POSTs the profile ([`static/js/VersionBlock/VersionBlock.jsx:69-75`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/static/js/VersionBlock/VersionBlock.jsx#L69-L75),
@@ -60,6 +64,7 @@ visitor's country (`cf-ipcountry`) in the supported list (en, es, fr, de), never
 ([`static/js/TextColumnBanner.jsx:13-16`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/static/js/TextColumnBanner.jsx#L13-L16)). Not built in `reader-next` (VER-004 todo).
 
 **Gaps in `reader-next`, found on the way** (likely bugs, read from the code, not tested).
+
 - A URL with only `vhe`: the loader resolves a preferred translation, but the panel uses the URL's versions whenever either side
   is set ([`src/features/reader/TextPanel.tsx:84`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L84)), so the column swaps back to the default translation.
 - An unknown explicit `ven` is never dropped: with no preferences, or none that match, the API returns the source only and no
@@ -68,7 +73,8 @@ visitor's country (`cf-ipcountry`) in the supported list (en, es, fr, de), never
 
 ## Legacy behaviour not to port
 
-Each is an *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+Each is an _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+
 - `override_version_with_preference` is a no-op: `versionEn` / `versionHe` are always non-empty dicts, so `not versionEn` is
   never true ([`reader/views.py:1120-1131`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/reader/views.py#L1120-L1131)).
 - Direction-filtered correction: the client writes `ven` for any translation and `vhe` for primaries
@@ -79,7 +85,7 @@ Each is an *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p179
 
 - Version choice stays behind `src/lib/versions` and `src/lib/text` (paths under `reader-next/`): screens see `VersionMeta` and a
   version selection, never how the backend stores editions, so editions stored apart from text (as in [Rethinking Sefaria's text data model](https://github.com/YishaiGlasner/textual-systems-notes/blob/main/papers/rethinking-sefarias-text-data-model.md)) change only those
-  modules. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  modules. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - Forward compatibility with that model: [Cross-cutting → Assessment: a new backend text model](../CROSS_CUTTING.md#assessment-a-new-backend-text-model).
   Today a segment carries one primary and one translation string, and a version is chosen per side as
   `languageFamilyName|versionTitle` (`reader-next/src/lib/text/model.ts:100-101`, `reader-next/src/lib/versions/preferences.ts:64`).
@@ -90,7 +96,7 @@ _Items carry a status: idea · proposed · agreed · decided._
   translation to request, where each came from (`url`, `profile` / `cookie` corpus preference, translation language, `text`
   default), and a `fallback` reason when the preferred one is missing. It is the current `resolveTranslation`
   (`reader-next/src/lib/versions/preferences.ts:86-103`) plus the source side. Stores stay `version_preferences_by_corpus`
-  (profile field and cookie) and `translation_language_preference`. — *proposed* (Claude Tag draft) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629) ·
+  (profile field and cookie) and `translation_language_preference`. — _proposed_ (Claude Tag draft) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629) ·
   inventory and gaps in [Language & accessibility → Preference defaults](../i18n-a11y/architecture.md#preference-defaults-inventory)
 
 ## Dependencies on other areas
@@ -104,7 +110,7 @@ _Items carry a status: idea · proposed · agreed · decided._
 
 ## Risks and open questions
 
-All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+All _ideas_, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
 
 - Sync version and translation-language preferences to the profile for signed-in readers: read the profile first and POST on
   each choice, as legacy does? Legacy reads a cookie for a signed-in reader with empty profile preferences but never saves it
@@ -114,7 +120,7 @@ All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGT
 - Version and translation-language preferences as entries in the proposed settings registry ("Settings → display model
   (proposal)" in Text display, PR #3822), with a per-corpus scope?
 
-Read from the code; *ideas* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629). Full list: [i18n-a11y Risks](../i18n-a11y/architecture.md#risks-and-open-questions).
+Read from the code; _ideas_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629). Full list: [i18n-a11y Risks](../i18n-a11y/architecture.md#risks-and-open-questions).
 
 - `reader-next` reads version and translation-language preferences from cookies only, and writes neither to the profile
   (`reader-next/src/lib/versions/prefs-source.ts:10-25`). No JSON GET returns a signed-in reader's `version_preferences_by_corpus`
@@ -174,15 +180,15 @@ Implemented in (most features first):
 
 ### Gaps: core and standard features not done (7)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| VER-001 | standard | Translation language preference (shell handling) | partial |
-| VER-002 | standard | Version preferences by corpus cookie | partial |
-| VER-004 | standard | Translation suggestion and 'change translation' banners | not started |
-| VER-010 | standard | Translation preview with truncation | partial |
-| VER-013 | standard | Translation Open sub-mode | partial |
-| VER-016 | standard | Version block display | partial |
-| VER-019 | standard | Edit version metadata (moderator) | not started |
+| ID      | Tier     | Feature                                                 | Rebuild status |
+| ------- | -------- | ------------------------------------------------------- | -------------- |
+| VER-001 | standard | Translation language preference (shell handling)        | partial        |
+| VER-002 | standard | Version preferences by corpus cookie                    | partial        |
+| VER-004 | standard | Translation suggestion and 'change translation' banners | not started    |
+| VER-010 | standard | Translation preview with truncation                     | partial        |
+| VER-013 | standard | Translation Open sub-mode                               | partial        |
+| VER-016 | standard | Version block display                                   | partial        |
+| VER-019 | standard | Edit version metadata (moderator)                       | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

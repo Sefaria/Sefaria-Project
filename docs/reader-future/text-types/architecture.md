@@ -4,9 +4,10 @@ title: Text types & special cases
 domain: Reader
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Text types & special cases — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -74,20 +75,20 @@ Implemented in (most features first):
 
 ### Gaps: core and standard features not done (12)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| TXT-001 | core | Tanakh text treatment | not started |
-| TXT-016 | core | Commentary rendered as base text | not started |
-| TXT-026 | core | Sheet opened inside a reader panel | not started |
-| TXT-010 | standard | Open-translation banner for Bavli | not started |
-| TXT-011 | standard | Talmud commentary opens in main panel | not started |
-| TXT-014 | standard | Mishnah and Tosefta (Tanaitic) treatment | not started |
-| TXT-017 | standard | Commentary markers and link dots with filter | not started |
-| TXT-018 | standard | Commentary number labels in connections list | not started |
-| TXT-019 | standard | Dictionary and lexicon text display (Reference category) | not started |
-| TXT-020 | standard | Liturgy (Siddur) text treatment | not started |
-| TXT-024 | standard | Address types and non-1 numbering | not started |
-| TXT-027 | standard | Search result click highlights query terms | not started |
+| ID      | Tier     | Feature                                                  | Rebuild status |
+| ------- | -------- | -------------------------------------------------------- | -------------- |
+| TXT-001 | core     | Tanakh text treatment                                    | not started    |
+| TXT-016 | core     | Commentary rendered as base text                         | not started    |
+| TXT-026 | core     | Sheet opened inside a reader panel                       | not started    |
+| TXT-010 | standard | Open-translation banner for Bavli                        | not started    |
+| TXT-011 | standard | Talmud commentary opens in main panel                    | not started    |
+| TXT-014 | standard | Mishnah and Tosefta (Tanaitic) treatment                 | not started    |
+| TXT-017 | standard | Commentary markers and link dots with filter             | not started    |
+| TXT-018 | standard | Commentary number labels in connections list             | not started    |
+| TXT-019 | standard | Dictionary and lexicon text display (Reference category) | not started    |
+| TXT-020 | standard | Liturgy (Siddur) text treatment                          | not started    |
+| TXT-024 | standard | Address types and non-1 numbering                        | not started    |
+| TXT-027 | standard | Search result click highlights query terms               | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

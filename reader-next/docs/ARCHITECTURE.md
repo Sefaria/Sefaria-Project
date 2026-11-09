@@ -8,7 +8,7 @@ extracted from a full read of the current client in `Sefaria-Project`.
 
 1. **The local library cache is the product's backbone.** Anything already fetched is never fetched again
    unless it might have changed, and it survives reloads. Reading must feel instant on revisit and work offline for
-   anything seen before. See *Library cache* below.
+   anything seen before. See _Library cache_ below.
 2. **No clever client/server sync.** The server (Sefaria API) is the source of truth. Reads are cached;
    writes are plain requests followed by invalidating the affected cache entries. No optimistic CRDTs, no live sync.
 3. **The URL is the reader state.** Every panel, ref, version, language and sidebar mode is encoded in the URL using
@@ -49,29 +49,29 @@ fixtures/api/        Recorded real API responses per book type (tests never hit 
 
 The cache engine is TanStack Query. On top of it sits a small domain layer (`src/lib/cache`).
 
-| Layer | What | Notes |
-|---|---|---|
-| L0 in-flight | Query deduplication | Two components asking for the same section share one request |
-| L1 memory | Query cache | `gcTime` long (hours) so navigating back is instant |
-| L2 disk | IndexedDB, **per-query** persister | Survives reloads; each entry stored separately so large libraries don't serialise one blob |
-| L3 network | Sefaria public API | `fetch` via the vendored, validated client (its own memory cache disabled) |
-| SSR seed | Dehydrated queries | Server-render fills L1 on the client; no refetch on hydrate |
+| Layer        | What                               | Notes                                                                                      |
+| ------------ | ---------------------------------- | ------------------------------------------------------------------------------------------ |
+| L0 in-flight | Query deduplication                | Two components asking for the same section share one request                               |
+| L1 memory    | Query cache                        | `gcTime` long (hours) so navigating back is instant                                        |
+| L2 disk      | IndexedDB, **per-query** persister | Survives reloads; each entry stored separately so large libraries don't serialise one blob |
+| L3 network   | Sefaria public API                 | `fetch` via the vendored, validated client (its own memory cache disabled)                 |
+| SSR seed     | Dehydrated queries                 | Server-render fills L1 on the client; no refetch on hydrate                                |
 
 **Data classes and policies** (`src/lib/cache/policies.ts`):
 
-| Class | Examples | staleTime | Kept on disk |
-|---|---|---|---|
-| catalog | TOC, index, shape, versions list | 1 day | 30 days |
-| text | v3 texts by section + version selection | 7 days | 30 days |
-| connections | related, links, link counts | 1 hour | 7 days |
-| reference | lexicon, dictionary entries | 30 days | 90 days |
-| search | search results, autocomplete | 5 min | not persisted |
-| user | profile, saved, history, notes | 0 | not persisted |
+| Class       | Examples                                | staleTime | Kept on disk  |
+| ----------- | --------------------------------------- | --------- | ------------- |
+| catalog     | TOC, index, shape, versions list        | 1 day     | 30 days       |
+| text        | v3 texts by section + version selection | 7 days    | 30 days       |
+| connections | related, links, link counts             | 1 hour    | 7 days        |
+| reference   | lexicon, dictionary entries             | 30 days   | 90 days       |
+| search      | search results, autocomplete            | 5 min     | not persisted |
+| user        | profile, saved, history, notes          | 0         | not persisted |
 
-Stale data is shown immediately and revalidated in the background (stale-while-revalidate). A cache *buster*
+Stale data is shown immediately and revalidated in the background (stale-while-revalidate). A cache _buster_
 (app schema version) invalidates disk entries when response shapes change.
 
-**Section granularity.** Texts are always fetched and cached by *section* (e.g. `Genesis 1`, `Berakhot 2a`), never
+**Section granularity.** Texts are always fetched and cached by _section_ (e.g. `Genesis 1`, `Berakhot 2a`), never
 by segment. A request for `Genesis 1:3` or `Genesis 1:3-5` resolves to its section and the segments are derived
 locally. A ranged ref that spans sections is assembled from the section entries. An alias table (requested ref → section key)
 is cached too, so a ref string seen once never needs the network to resolve again.
@@ -81,11 +81,11 @@ priority. Hovering a table-of-contents entry prefetches that section.
 
 ## Testing
 
-| Level | Tool | Scope |
-|---|---|---|
-| Unit | Vitest (jsdom) | `lib/*` pure logic: refs, numerals, cache policies, section derivation |
-| Component | Storybook stories run as Vitest browser tests (Chromium) + a11y addon | every `ui` component's states |
-| Integration | Vitest + Testing Library + MSW serving `fixtures/api` | routes/features against every book type |
-| E2E | Playwright (later) | critical journeys against the dev server |
+| Level       | Tool                                                                  | Scope                                                                  |
+| ----------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Unit        | Vitest (jsdom)                                                        | `lib/*` pure logic: refs, numerals, cache policies, section derivation |
+| Component   | Storybook stories run as Vitest browser tests (Chromium) + a11y addon | every `ui` component's states                                          |
+| Integration | Vitest + Testing Library + MSW serving `fixtures/api`                 | routes/features against every book type                                |
+| E2E         | Playwright (later)                                                    | critical journeys against the dev server                               |
 
 Every book type in `fixtures/api/manifest.json` must render through the reader without errors (book-type matrix test).

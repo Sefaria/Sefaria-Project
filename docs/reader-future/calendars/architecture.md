@@ -4,9 +4,10 @@ title: Calendars
 domain: Library & discovery
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-28
 ---
+
 # Calendars — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -27,7 +28,7 @@ _Not discussed yet. Items carry a status: idea · proposed · agreed · decided.
 
 ## Dependencies on other areas
 
-- [Language & accessibility](../i18n-a11y/architecture.md): textual custom and Israel / diaspora are fields of the *proposed*
+- [Language & accessibility](../i18n-a11y/architecture.md): textual custom and Israel / diaspora are fields of the _proposed_
   effective-preferences object · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629). Today legacy takes custom from the profile (default `sephardi`)
   or `ashkenazi` when signed out, and diaspora from `cf-ipcountry` only (`reader/views.py:1334-1340`, `sefaria/system/middleware.py:66-83`).
   `reader-next` always asks for diaspora and sends no custom (`reader-next/src/lib/library/calendars.ts:31`).
@@ -60,11 +61,11 @@ Rebuild status of this area's features: not started 3.
 
 ### Gaps: core and standard features not done (3)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| CAL-001 | core | Learning Schedules page | not started |
-| CAL-002 | standard | Calendar listing cards | not started |
-| CAL-003 | standard | Calendar APIs and quick redirects | not started |
+| ID      | Tier     | Feature                           | Rebuild status |
+| ------- | -------- | --------------------------------- | -------------- |
+| CAL-001 | core     | Learning Schedules page           | not started    |
+| CAL-002 | standard | Calendar listing cards            | not started    |
+| CAL-003 | standard | Calendar APIs and quick redirects | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

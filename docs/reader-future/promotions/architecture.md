@@ -4,9 +4,10 @@ title: Promotions & CMS
 domain: Site & accounts
 document: architecture
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-16
 ---
+
 # Promotions & CMS — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -46,7 +47,7 @@ added in one place rather than in each feature. Nothing of this is built yet; th
 ## Target architecture
 
 - One notice manager for every pop-up and banner, mounted once in the app shell. Features and the CMS do not render notices
-  themselves; they register a notice and the manager decides whether and when it shows. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  themselves; they register a notice and the manager decides whether and when it shows. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
   - **Notice descriptor** (declarative): `id`; `slot` (modal · top banner · column strip · bottom bar · toast); `priority`;
     `audience` (interface language, country, signed in or not, dates: PRM-013); `cap` (at most N per session / day / ever, and a
     snooze back-off as in PRM-014); `autoClose` (after N seconds, or on navigation); `dismissible` and "don't show again";
@@ -61,7 +62,7 @@ added in one place rather than in each feature. Nothing of this is built yet; th
   - **Sources:** notices built into the client are registered in code; CMS (Strapi) modals, banners and sidebar promos map to the
     same descriptor; the CMS can switch a notice or a category off remotely.
   - **Reader control:** a settings entry with on/off per category (announcements, donation asks, tips), reading the same store. —
-    *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+    _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
   - **Analytics:** impression, click and close events come from the manager, not from each notice (ANL-004, ANL-006).
 
 ## Dependencies on other areas
@@ -117,23 +118,23 @@ Rebuild status of this area's features: not started 17.
 
 ### Gaps: core and standard features not done (15)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| PRM-005 | core | Donate links with source attribution | not started |
-| PRM-010 | core | Interrupting modal (Strapi) | not started |
-| PRM-011 | core | Top banner (Strapi) | not started |
-| PRM-012 | core | Strapi CMS content pipeline | not started |
-| PRM-013 | core | Promo eligibility, ranking and country targeting | not started |
-| PRM-001 | standard | Interrupting modal message (CMS) | not started |
-| PRM-002 | standard | Top banner message (CMS) | not started |
-| PRM-003 | standard | Strapi data provider and content selection | not started |
-| PRM-004 | standard | Donate link variants | not started |
-| PRM-006 | standard | Ad keyword targeting context | not started |
-| PRM-007 | standard | Sidebar ads (not in connections panel) | not started |
-| PRM-008 | standard | Sidebar ads | not started |
-| PRM-014 | standard | Site-wide banner with maybe-later back-off | not started |
-| PRM-016 | standard | Newsletter signup form | not started |
-| PRM-017 | standard | NavSidebar promo and donation modules | not started |
+| ID      | Tier     | Feature                                          | Rebuild status |
+| ------- | -------- | ------------------------------------------------ | -------------- |
+| PRM-005 | core     | Donate links with source attribution             | not started    |
+| PRM-010 | core     | Interrupting modal (Strapi)                      | not started    |
+| PRM-011 | core     | Top banner (Strapi)                              | not started    |
+| PRM-012 | core     | Strapi CMS content pipeline                      | not started    |
+| PRM-013 | core     | Promo eligibility, ranking and country targeting | not started    |
+| PRM-001 | standard | Interrupting modal message (CMS)                 | not started    |
+| PRM-002 | standard | Top banner message (CMS)                         | not started    |
+| PRM-003 | standard | Strapi data provider and content selection       | not started    |
+| PRM-004 | standard | Donate link variants                             | not started    |
+| PRM-006 | standard | Ad keyword targeting context                     | not started    |
+| PRM-007 | standard | Sidebar ads (not in connections panel)           | not started    |
+| PRM-008 | standard | Sidebar ads                                      | not started    |
+| PRM-014 | standard | Site-wide banner with maybe-later back-off       | not started    |
+| PRM-016 | standard | Newsletter signup form                           | not started    |
+| PRM-017 | standard | NavSidebar promo and donation modules            | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

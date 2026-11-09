@@ -4,9 +4,10 @@ title: Profiles & social
 domain: Voices (sheets & community)
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Profiles & social — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -51,34 +52,34 @@ Feature groups: Profile (7); Follow (2); Stats (1); Following (1); Profile API (
 
 ### Core (3)
 
-| ID | Feature | What it does |
-|---|---|---|
-| PRO-001 | User profile page | Each user has a public profile showing their identity, bio, sheets, collections and follower counts. |
-| PRO-002 | Profile sheets tab | The Sheets tab lists a user's sheets with filter and sort, and owners see their private sheets and manage them. |
-| PRO-008 | Follow and unfollow users | Signed-in users follow other users and get notified of their sheets. |
+| ID      | Feature                   | What it does                                                                                                    |
+| ------- | ------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| PRO-001 | User profile page         | Each user has a public profile showing their identity, bio, sheets, collections and follower counts.            |
+| PRO-002 | Profile sheets tab        | The Sheets tab lists a user's sheets with filter and sort, and owners see their private sheets and manage them. |
+| PRO-008 | Follow and unfollow users | Signed-in users follow other users and get notified of their sheets.                                            |
 
 ### Standard (7)
 
-| ID | Feature | What it does |
-|---|---|---|
-| PRO-003 | Profile collections tab | The Collections tab lists a user's collections. |
-| PRO-004 | Followers and following lists | Profile tabs list who follows a user and who they follow, with follow buttons. |
-| PRO-005 | Edit profile (legacy page) | Users edit their name, position, bio, links and profile URL on an old-style Django form. |
-| PRO-006 | Profile picture upload and crop | Users upload a profile photo, crop it square, and default avatars show initials. |
-| PRO-007 | Profile and social API surface | Endpoints power profiles, follows, photos, history sync and stats. |
-| PRO-011 | Follow / unfollow button | Users can follow other users from profiles and sheet bylines; hovering a followed user shows Unfollow. |
-| PRO-012 | Profile, follow and messaging client APIs | Client-side calls for editing profiles, following, uploading photos and messaging. |
+| ID      | Feature                                   | What it does                                                                                           |
+| ------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| PRO-003 | Profile collections tab                   | The Collections tab lists a user's collections.                                                        |
+| PRO-004 | Followers and following lists             | Profile tabs list who follows a user and who they follow, with follow buttons.                         |
+| PRO-005 | Edit profile (legacy page)                | Users edit their name, position, bio, links and profile URL on an old-style Django form.               |
+| PRO-006 | Profile picture upload and crop           | Users upload a profile photo, crop it square, and default avatars show initials.                       |
+| PRO-007 | Profile and social API surface            | Endpoints power profiles, follows, photos, history sync and stats.                                     |
+| PRO-011 | Follow / unfollow button                  | Users can follow other users from profiles and sheet bylines; hovering a followed user shows Unfollow. |
+| PRO-012 | Profile, follow and messaging client APIs | Client-side calls for editing profiles, following, uploading photos and messaging.                     |
 
 ### Optional (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                  | What it does                                                                                         |
+| ------- | ------------------------ | ---------------------------------------------------------------------------------------------------- |
 | PRO-010 | Torah Tracker user stats | Users see their reading activity compared with the average Sefaria user; moderators can view others. |
 
 ### Retire (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                            | What it does                                                        |
+| ------- | ---------------------------------- | ------------------------------------------------------------------- |
 | PRO-009 | Block and unblock users (API only) | Users can be blocked through an API, but there is no web UI for it. |
 
 ### Flags from the audit (not to port as-is)

@@ -21,19 +21,19 @@ the code disagree, the code wins — fix this file.
 
 ## Where search lives
 
-| Piece | File |
-|---|---|
-| Header combobox (autocomplete, keyboard, debounce) | `src/ui/SiteHeader/HeaderSearch.tsx` |
-| Header submit logic (ref / topic / category / search) | `src/features/shell/useHeaderSearch.ts` |
-| Name API, suggestion grouping | `src/lib/search/autocomplete.ts` |
-| Search page params, ES body, filter tree, counts | `src/lib/search/search-page.ts` |
-| Entity search (books/authors/topics) | `src/lib/search/entity-search.ts` |
-| Hits, merging versions, snippets, `highlightsOf` | `src/lib/search/text-search.ts` |
-| Page UI pieces (SearchBar, SearchTabs, ExactToggle, SortMenu, SearchResultCard, SearchFilters, EntityResults, NoResults) | `src/ui/SearchPage/SearchPage.tsx` |
-| Page container + route | `src/features/search/SearchRoute.tsx`, `src/routes/search.tsx` |
-| Sidebar "search in this text" | `src/ui/SidebarSearch/`, wired in `src/features/reader/ConnectionsPane.tsx` |
-| Fixtures (MSW) | `fixtures/api/search/*`, `fixtures/api/requests.json`, `search-requests.json`; re-record with `scripts/record-search-fixtures.mjs` |
-| e2e | `e2e/search-page.spec.ts`, `e2e/header.spec.ts`, `e2e/sidebar-search.spec.ts` |
+| Piece                                                                                                                    | File                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Header combobox (autocomplete, keyboard, debounce)                                                                       | `src/ui/SiteHeader/HeaderSearch.tsx`                                                                                               |
+| Header submit logic (ref / topic / category / search)                                                                    | `src/features/shell/useHeaderSearch.ts`                                                                                            |
+| Name API, suggestion grouping                                                                                            | `src/lib/search/autocomplete.ts`                                                                                                   |
+| Search page params, ES body, filter tree, counts                                                                         | `src/lib/search/search-page.ts`                                                                                                    |
+| Entity search (books/authors/topics)                                                                                     | `src/lib/search/entity-search.ts`                                                                                                  |
+| Hits, merging versions, snippets, `highlightsOf`                                                                         | `src/lib/search/text-search.ts`                                                                                                    |
+| Page UI pieces (SearchBar, SearchTabs, ExactToggle, SortMenu, SearchResultCard, SearchFilters, EntityResults, NoResults) | `src/ui/SearchPage/SearchPage.tsx`                                                                                                 |
+| Page container + route                                                                                                   | `src/features/search/SearchRoute.tsx`, `src/routes/search.tsx`                                                                     |
+| Sidebar "search in this text"                                                                                            | `src/ui/SidebarSearch/`, wired in `src/features/reader/ConnectionsPane.tsx`                                                        |
+| Fixtures (MSW)                                                                                                           | `fixtures/api/search/*`, `fixtures/api/requests.json`, `search-requests.json`; re-record with `scripts/record-search-fixtures.mjs` |
+| e2e                                                                                                                      | `e2e/search-page.spec.ts`, `e2e/header.spec.ts`, `e2e/sidebar-search.spec.ts`                                                      |
 
 Live request facts already verified (don't re-derive): POST `/api/search-wrapper/es8` sent as `text/plain` (CORS);
 100 hits/page; the filter tree comes from a separate unfiltered size-0 request with the `path` aggregation; entity
@@ -43,6 +43,7 @@ counts from GET `/api/entity-search?q&type&start&sort`; autocomplete GET
 ## Tasks, in order
 
 ### 0. Bookkeeping (do first, small commit)
+
 `apply_2026_10_05x.py` marked only the results page done. These are built but still read "todo" in
 `rebuild-status.json`. For each one, read the atlas details, check the code honours them, and mark it `done` (or
 `partial` with a note saying what's missing): SRC-001…SRC-016 (autocomplete/smart submit; SRC-014 is a crash in
@@ -58,6 +59,7 @@ Hebrew interface) using the fixtures above; the storybook project runs axe, so f
 label problems it reports. The first storybook run after new deps can fail from Vite re-optimisation — just rerun it.
 
 ### 1. Matched words highlighted in the reader after opening a result — SRC-058, TXT-027 (most important)
+
 Atlas: clicking a result highlights the searched words inside the highlighted segment, wrapping matches in a span
 (old class `queryTextHighlight`) even across inline HTML tags between words, and clears it when the highlighted segment
 changes. It only applies to in-app clicks (the `qh` URL parameter is dead — SRC-059), so **don't put it in the
@@ -71,6 +73,7 @@ highlighted segment(s). Verify on live: search "let there be light", click Genes
 e2e: result click → spans present; scroll to another verse/select another segment → spans gone; reload → none.
 
 ### 2. Phone layout — SRC-049, SRC-062, SRC-063, SRC-024
+
 Live switches to the mobile layout at `window.innerWidth <= 985` (re-measured on resize) — note this differs from the
 header breakpoint. Mobile: horizontally scrollable `role=tablist` tab strip with counts and edge fades, active tab
 scrolled into view; a "Sort & filter results" icon button opening a full-screen panel (Sources: Close X +
@@ -82,25 +85,30 @@ cookie `interfaceLang=english`), screenshot both sides with `scripts/parity-shot
 mobile project cases to `e2e/search-page.spec.ts`.
 
 ### 3. Entity tabs — SRC-068, SRC-069
+
 Sorting on Books/Authors/Topics (read the atlas for the option list and API `sort` values) and the category filter
 sidebar on the Books tab. `entitySearchInfiniteOptions` already takes `sort`.
 
 ### 4. Hebrew on-screen keyboard — SRC-017
+
 English interface only, not on mobile; launcher icon visible only while the input is focused; typed text must survive
 blur. Before building, check whether the old `lib/keyboard.js` layout can be expressed as a small data table + a
 toolkit popover (`src/ui/Popover`). Applies to the header box and the search page box — one shared component.
 
 ### 5. Dictionary search — SRC-020, SRC-021, SRC-022, and finish SRC-094
+
 Dictionary word search box with autocomplete in the sidebar for dictionary books, and the headword box on dictionary
 book pages (API in SRC-036). Reuse `SidebarSearch`/`LexiconView` pieces; read what is `partial` in
 `rebuild-status.json` for SRC-020/094 first.
 
 ### 6. Small items
+
 SRC-050 loading skeleton (use `src/ui/Skeleton`), SRC-065 error states (the old site had gaps — record what live
 does, then do better and note it), SRC-018/019 focus/blur and input limits/labels, SRC-060 touch pressed state,
 SRC-109 caches (check our `search` cache policy matches what the atlas says; note differences), SRC-110 accessibility.
 
 ### Out of scope for Phase 6 — record, don't build
+
 - SRC-025/026 Compare-panel search: needs Compare Text (not built). Mark `todo` with that note.
 - SRC-027, SRC-088…SRC-093, SRC-098…SRC-100: collections / Voices / topics — Phase 7, owner decides.
 - SRC-104…SRC-108 analytics: sends data to Sefaria — ask the owner.
@@ -121,6 +129,7 @@ SRC-109 caches (check our `search` cache policy matches what the atlas says; not
 python3 docs/features/tools/apply_<new>.py
 ATLAS_HTML=<scratchpad>/sefaria-feature-atlas.html python3 docs/features/tools/build.py
 ```
+
 Then republish that file to https://claude.ai/artifact/Hwe1LNomGobeZ4tseqEf51 with the Artifact tool (pass `url`;
 read it first if this is a new conversation). The current version is 21.
 

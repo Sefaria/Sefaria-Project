@@ -4,9 +4,10 @@ title: Legacy pages
 domain: Internal & legacy
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Legacy pages — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -51,48 +52,48 @@ Feature groups: Standalone Pages (8); Visualizations (5); Dead Legacy (5); Legac
 
 ### Standard (3)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                                   | What it does                                                                                                    |
+| ------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | LEG-008 | Legacy Edit Text Info (Index editor) page | Staff add or edit a text's Index record (titles, categories, schema, authors, dates) in a legacy template page. |
-| LEG-018 | Legacy edit-profile page | The classic edit-profile form on the Voices host lets users change name, bio, links and profile URL. |
-| LEG-025 | Error and maintenance pages | Custom 404, 500, maintenance and Cloudflare-down pages are rendered from templates. |
+| LEG-018 | Legacy edit-profile page                  | The classic edit-profile form on the Voices host lets users change name, bio, links and profile URL.            |
+| LEG-025 | Error and maintenance pages               | Custom 404, 500, maintenance and Cloudflare-down pages are rendered from templates.                             |
 
 ### Optional (10)
 
-| ID | Feature | What it does |
-|---|---|---|
-| LEG-009 | Terms editor (JSON editor) | Staff add or edit a Term (name and titles) with a JSON-schema form. |
+| ID      | Feature                                   | What it does                                                                                                                               |
+| ------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| LEG-009 | Terms editor (JSON editor)                | Staff add or edit a Term (name and titles) with a JSON-schema form.                                                                        |
 | LEG-010 | Text version diff/compare tool (/compare) | A public page compares two versions of a text segment by segment with inline diffs, and lets users click a change to apply it to the text. |
-| LEG-011 | Link Explorer (/explore) | An interactive D3 chart shows how two categories of texts (e.g. Tanakh and Talmud) link to each other, down to individual segments. |
-| LEG-013 | Library sunburst and TOC visualizations | Public pages visualize library word counts by category and a visual table of contents. |
-| LEG-019 | Text edit activity feed (/activity) | A public feed of recent text edits, filterable by type, by user, or by segment, with revert links for logged-in users. |
-| LEG-020 | Contributor leaderboard | A page ranks top contributors over all time, 30 days, 7 days and 1 day. |
-| LEG-021 | Texts dashboard (/dashboard) | A public table of every text with link counts, English/Hebrew completeness and flags; staff can toggle flags. |
-| LEG-022 | Library metrics charts (/metrics) | A public page charts growth of words, links and sheets since 2013. |
-| LEG-023 | Random text page and redirect | /random shows a random text passage and /random/link redirects to a random ref. |
-| LEG-024 | Digitized by Sefaria list | A page lists all versions digitized by Sefaria. |
+| LEG-011 | Link Explorer (/explore)                  | An interactive D3 chart shows how two categories of texts (e.g. Tanakh and Talmud) link to each other, down to individual segments.        |
+| LEG-013 | Library sunburst and TOC visualizations   | Public pages visualize library word counts by category and a visual table of contents.                                                     |
+| LEG-019 | Text edit activity feed (/activity)       | A public feed of recent text edits, filterable by type, by user, or by segment, with revert links for logged-in users.                     |
+| LEG-020 | Contributor leaderboard                   | A page ranks top contributors over all time, 30 days, 7 days and 1 day.                                                                    |
+| LEG-021 | Texts dashboard (/dashboard)              | A public table of every text with link counts, English/Hebrew completeness and flags; staff can toggle flags.                              |
+| LEG-022 | Library metrics charts (/metrics)         | A public page charts growth of words, links and sheets since 2013.                                                                         |
+| LEG-023 | Random text page and redirect             | /random shows a random text passage and /random/link redirects to a random ref.                                                            |
+| LEG-024 | Digitized by Sefaria list                 | A page lists all versions digitized by Sefaria.                                                                                            |
 
 ### Retire (17)
 
-| ID | Feature | What it does |
-|---|---|---|
-| LEG-001 | Legacy D3 explorer URLs | The old interactive Explorer shows link density between two books/categories. |
-| LEG-002 | Visualization pages URLs | Several experimental visualizations live under /visualize and are separate templates. |
-| LEG-003 | Visual garden URLs | Visual gardens render custom data visualizations; two of three routes are unreachable. |
-| LEG-004 | Orphan unrouted views | Several view functions exist with no URL pointing to them. |
-| LEG-005 | Legacy CKEditor sheet editor (embed mode) | The old sheet editor is still served at /sheets/<id>?embed=1 and gives owners a different, older editing experience. |
-| LEG-006 | Visual sheet view | A graph-style visual view of a sheet with draggable nodes is still served on the old stack. |
-| LEG-007 | Legacy text add/edit/translate editor | A jQuery-era page for adding a new text, editing a section or adding a translation, still served at /add, /edit and /translate. |
-| LEG-012 | Timeline visualization (staff, /visualize/timeline) | An experimental staff-only chart places a passage's linked texts on a timeline of past, future and contemporaneous works. |
-| LEG-014 | Torah and Talmud data visualizations | A set of static D3 pages show Torah by parasha, Rashi-to-verse chords, Talmudic relationships, Sefer HaChinukh mitzvot and commentator vocabulary. |
-| LEG-015 | Gardens (visual garden pages) | Curated 'gardens' of stops with time, place, author and tag are shown as maps and charts, including auto-built gardens from a sheet tag or search query. |
-| LEG-016 | Legacy Django-rendered sheet page (embed) | The old jQuery sheet viewer still renders sheets for embed mode, with print option, collection header, likes and assignments. |
-| LEG-017 | Visual (freeform) sheet view | A legacy canvas view lets users position and zoom sheet sources freely and save the layout. |
-| LEG-026 | Discussions (Layers) feature | Discussion threads code remains but is unreachable. |
-| LEG-027 | Old People/Person/profile templates | Templates from the old People and profile pages remain unrouted; people URLs redirect to topics. |
-| LEG-028 | Legacy message snippets and base template partials | Old interrupting-message HTML snippets and legacy include partials remain, superseded by the CMS. |
-| LEG-029 | Unused legacy JS (s1/search.js, plugin.js, hebrew.js) | Several old jQuery scripts are unreferenced or abandoned. |
-| LEG-030 | Translation QA page missing | No translation-QA page exists on master. |
+| ID      | Feature                                               | What it does                                                                                                                                             |
+| ------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LEG-001 | Legacy D3 explorer URLs                               | The old interactive Explorer shows link density between two books/categories.                                                                            |
+| LEG-002 | Visualization pages URLs                              | Several experimental visualizations live under /visualize and are separate templates.                                                                    |
+| LEG-003 | Visual garden URLs                                    | Visual gardens render custom data visualizations; two of three routes are unreachable.                                                                   |
+| LEG-004 | Orphan unrouted views                                 | Several view functions exist with no URL pointing to them.                                                                                               |
+| LEG-005 | Legacy CKEditor sheet editor (embed mode)             | The old sheet editor is still served at /sheets/<id>?embed=1 and gives owners a different, older editing experience.                                     |
+| LEG-006 | Visual sheet view                                     | A graph-style visual view of a sheet with draggable nodes is still served on the old stack.                                                              |
+| LEG-007 | Legacy text add/edit/translate editor                 | A jQuery-era page for adding a new text, editing a section or adding a translation, still served at /add, /edit and /translate.                          |
+| LEG-012 | Timeline visualization (staff, /visualize/timeline)   | An experimental staff-only chart places a passage's linked texts on a timeline of past, future and contemporaneous works.                                |
+| LEG-014 | Torah and Talmud data visualizations                  | A set of static D3 pages show Torah by parasha, Rashi-to-verse chords, Talmudic relationships, Sefer HaChinukh mitzvot and commentator vocabulary.       |
+| LEG-015 | Gardens (visual garden pages)                         | Curated 'gardens' of stops with time, place, author and tag are shown as maps and charts, including auto-built gardens from a sheet tag or search query. |
+| LEG-016 | Legacy Django-rendered sheet page (embed)             | The old jQuery sheet viewer still renders sheets for embed mode, with print option, collection header, likes and assignments.                            |
+| LEG-017 | Visual (freeform) sheet view                          | A legacy canvas view lets users position and zoom sheet sources freely and save the layout.                                                              |
+| LEG-026 | Discussions (Layers) feature                          | Discussion threads code remains but is unreachable.                                                                                                      |
+| LEG-027 | Old People/Person/profile templates                   | Templates from the old People and profile pages remain unrouted; people URLs redirect to topics.                                                         |
+| LEG-028 | Legacy message snippets and base template partials    | Old interrupting-message HTML snippets and legacy include partials remain, superseded by the CMS.                                                        |
+| LEG-029 | Unused legacy JS (s1/search.js, plugin.js, hebrew.js) | Several old jQuery scripts are unreferenced or abandoned.                                                                                                |
+| LEG-030 | Translation QA page missing                           | No translation-QA page exists on master.                                                                                                                 |
 
 ### Flags from the audit (not to port as-is)
 

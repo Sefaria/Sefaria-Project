@@ -4,9 +4,10 @@ title: Calendars
 domain: Library & discovery
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Calendars — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -51,15 +52,15 @@ Feature groups: Learning schedules (3).
 
 ### Core (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                 | What it does                                                                                                                        |
+| ------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | CAL-001 | Learning Schedules page | One page lists today's and this week's learning schedules (portion, Daf Yomi, Mishnah, Rambam and more) with links to the readings. |
 
 ### Standard (2)
 
-| ID | Feature | What it does |
-|---|---|---|
-| CAL-002 | Calendar listing cards | Each schedule is a card colored by category with a title, subtitle, description and links to each assigned reading. |
+| ID      | Feature                           | What it does                                                                                                        |
+| ------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| CAL-002 | Calendar listing cards            | Each schedule is a card colored by category with a title, subtitle, description and links to each assigned reading. |
 | CAL-003 | Calendar APIs and quick redirects | Server endpoints supply calendar data, the next reading of a portion, and shortcuts to today's portion or Daf Yomi. |
 
 _Generated 2026-10-14. Full behaviour for every ID: `reader-next/docs/features/FEATURES.md` and the atlas page._

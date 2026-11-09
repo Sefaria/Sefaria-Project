@@ -14,8 +14,8 @@ reader at www.sefaria.org, built section by section, always tested, always check
 **Non-negotiables** (these come from the product owner; do not relax them):
 
 1. **The Feature Atlas is the source of truth.** `docs/features/features.json` (945 features). When you find that
-   an entry is wrong, incomplete or missing — or that the rebuild differs on purpose — fix the atlas *in the same
-   commit* and log it in `docs/features/CHANGELOG.md`. Details in §4.
+   an entry is wrong, incomplete or missing — or that the rebuild differs on purpose — fix the atlas _in the same
+   commit_ and log it in `docs/features/CHANGELOG.md`. Details in §4.
 2. **Verify against the live site, never from memory.** Before building a feature, look at what sefaria.org does
    (Playwright, §5) and read the legacy code it cites (`/Users/akiva/Sefaria/dev/Sefaria-Project`). Mark checked
    claims `VERIFIED <date>:` in the atlas. Earlier work found several atlas claims that were wrong on the live site.
@@ -69,21 +69,21 @@ change a request's query string, add the new key to `requests.json` pointing at 
 
 ## 3. Where things are
 
-| Need | Look at |
-|---|---|
-| Reader route, loader, canonical redirects | `src/routes/$.tsx`, `src/features/reader/reader-route.ts` |
-| Workspace (panels, sizing, URL codec) | `src/lib/workspace/*`, `src/lib/layout/tree.ts`, `src/features/workspace/*` |
-| A text panel (header, column, its sidebar) | `src/features/reader/TextPanel.tsx` |
-| Scroll engine (focus, anchors, URL sync) | `src/features/reader/use-reading-scroll.ts`, `TextColumn.tsx`, `src/lib/reader/column.ts` |
-| Sidebar container and views | `src/features/reader/ConnectionsPane.tsx`, `src/ui/ConnectionsPanel/*`, `src/ui/TranslationsView/*` |
-| Sidebar data | `src/lib/connections/*` (links, summary, related resources, `with=` grammar) |
-| Text model and pipeline | `src/lib/text/*` (`model.ts`, `prepare.ts`, `queries.ts`, `commentary.ts`) |
-| Versions | `src/lib/versions/translations.ts` |
-| Settings (cookies, display menu rules) | `src/lib/reader/settings.ts`, `src/features/reader/settings-context.tsx` |
-| Query-string format (old site's) | `src/lib/reader/search-serializer.ts` (`+` is a space; no JSON quoting) |
-| API client (vendored, GPL-3.0) | `vendor/sefaria-toolkit/client` — use its namespaces (`text`, `related`, `index`, `lexicon`, `topic`, …) |
-| Atlas tools | `docs/features/tools/` (`build.py`, `apply_<date>.py`, template) |
-| Old client | `/Users/akiva/Sefaria/dev/Sefaria-Project/static/js` (the atlas cites file:line for every feature) |
+| Need                                       | Look at                                                                                                  |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| Reader route, loader, canonical redirects  | `src/routes/$.tsx`, `src/features/reader/reader-route.ts`                                                |
+| Workspace (panels, sizing, URL codec)      | `src/lib/workspace/*`, `src/lib/layout/tree.ts`, `src/features/workspace/*`                              |
+| A text panel (header, column, its sidebar) | `src/features/reader/TextPanel.tsx`                                                                      |
+| Scroll engine (focus, anchors, URL sync)   | `src/features/reader/use-reading-scroll.ts`, `TextColumn.tsx`, `src/lib/reader/column.ts`                |
+| Sidebar container and views                | `src/features/reader/ConnectionsPane.tsx`, `src/ui/ConnectionsPanel/*`, `src/ui/TranslationsView/*`      |
+| Sidebar data                               | `src/lib/connections/*` (links, summary, related resources, `with=` grammar)                             |
+| Text model and pipeline                    | `src/lib/text/*` (`model.ts`, `prepare.ts`, `queries.ts`, `commentary.ts`)                               |
+| Versions                                   | `src/lib/versions/translations.ts`                                                                       |
+| Settings (cookies, display menu rules)     | `src/lib/reader/settings.ts`, `src/features/reader/settings-context.tsx`                                 |
+| Query-string format (old site's)           | `src/lib/reader/search-serializer.ts` (`+` is a space; no JSON quoting)                                  |
+| API client (vendored, GPL-3.0)             | `vendor/sefaria-toolkit/client` — use its namespaces (`text`, `related`, `index`, `lexicon`, `topic`, …) |
+| Atlas tools                                | `docs/features/tools/` (`build.py`, `apply_<date>.py`, template)                                         |
+| Old client                                 | `/Users/akiva/Sefaria/dev/Sefaria-Project/static/js` (the atlas cites file:line for every feature)       |
 
 ---
 
@@ -95,7 +95,7 @@ For every correction or addition:
    `apply_2026_10_05.py`): `add_details(id, [...])` for verified facts, summary rewrites for wrong summaries,
    `add({...})` for new features (next free number in the area; `status: "rebuild-only"` for things only the
    rebuild has). Run it twice — the second run must change nothing.
-2. Append a dated section to `docs/features/CHANGELOG.md`: *Corrected*, *Added*, *Bugs recorded*, *Test tags fixed*.
+2. Append a dated section to `docs/features/CHANGELOG.md`: _Corrected_, _Added_, _Bugs recorded_, _Test tags fixed_.
 3. Rebuild and publish:
    ```bash
    ATLAS_HTML=<scratchpad>/sefaria-feature-atlas.html python3 docs/features/tools/build.py
@@ -117,7 +117,7 @@ For each feature (or tight group):
 2. **Look at the live site** with a throwaway Playwright script in your scratchpad (or `scripts/_x.mjs`, deleted
    before commit). Set the English interface for comparisons:
    ```js
-   await ctx.addCookies([{ name: "interfaceLang", value: "english", domain: "www.sefaria.org", path: "/" }]);
+   await ctx.addCookies([{ name: 'interfaceLang', value: 'english', domain: 'www.sefaria.org', path: '/' }]);
    ```
    Capture: visible text (`innerText`), the requests it makes (`page.on("request")`), the URL before/after, and a
    screenshot of the region. Compare ours the same way. Differences go in the atlas (step 1 of §4).

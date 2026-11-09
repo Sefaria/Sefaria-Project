@@ -4,9 +4,10 @@ title: Collections
 domain: Voices (sheets & community)
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Collections — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -64,17 +65,17 @@ Rebuild status of this area's features: not started 10.
 
 ### Gaps: core and standard features not done (9)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| COL-001 | core | Collection page | not started |
-| COL-003 | standard | Collection sheet list: sort, filter, pin | not started |
-| COL-004 | standard | Collection members and roles | not started |
-| COL-005 | standard | Invite people to a collection | not started |
-| COL-006 | standard | Add sheet to collections widget | not started |
-| COL-007 | standard | Create and edit collection | not started |
-| COL-008 | standard | Collection model rules | not started |
-| COL-009 | standard | Public collections page | not started |
-| COL-010 | standard | Collections API surface | not started |
+| ID      | Tier     | Feature                                  | Rebuild status |
+| ------- | -------- | ---------------------------------------- | -------------- |
+| COL-001 | core     | Collection page                          | not started    |
+| COL-003 | standard | Collection sheet list: sort, filter, pin | not started    |
+| COL-004 | standard | Collection members and roles             | not started    |
+| COL-005 | standard | Invite people to a collection            | not started    |
+| COL-006 | standard | Add sheet to collections widget          | not started    |
+| COL-007 | standard | Create and edit collection               | not started    |
+| COL-008 | standard | Collection model rules                   | not started    |
+| COL-009 | standard | Public collections page                  | not started    |
+| COL-010 | standard | Collections API surface                  | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

@@ -11,10 +11,10 @@ input; the files are the memory. Never rely on your own recollection of earlier 
 
 ## What is compared
 
-| | Branch | Paths |
-|---|---|---|
-| Legacy client (www.sefaria.org today) | `master` | `static/js/` (React 16 client), `reader/views.py`, `templates/`, `sefaria/` |
-| New client (the rebuild) | `reader-next` | `reader-next/src/` (React 19, TanStack Start/Router/Query), `reader-next/server/` |
+|                                       | Branch        | Paths                                                                             |
+| ------------------------------------- | ------------- | --------------------------------------------------------------------------------- |
+| Legacy client (www.sefaria.org today) | `master`      | `static/js/` (React 16 client), `reader/views.py`, `templates/`, `sefaria/`       |
+| New client (the rebuild)              | `reader-next` | `reader-next/src/` (React 19, TanStack Start/Router/Query), `reader-next/server/` |
 
 Facts about what sefaria.org does come from the **Feature Atlas**, `reader-next/docs/features/features.json` (945 features; field
 `area` is one of the 29 areas; `refs` are legacy file:line). What the rebuild has built is in
@@ -59,19 +59,24 @@ Section templates and writing rules: `references/writing.md`.
 ## Procedures
 
 ### On `@Claude capture` (in a thread or with a message)
+
 1. Read the thread (or the linked messages). Place each point in its area(s).
 2. Read those areas' files on `reader-next`; update the channel sections; add decisions to `DECISIONS.md`.
 3. Open a pull request (rule 6). Reply in the thread: the areas changed, the decisions recorded, the open questions added, the PR.
 
 ### On a `Decision:` message
+
 Treat it as a capture of that one message. Confirm in the thread what was recorded and where. If it contradicts an earlier
 decision, say so and quote it; record the new one and mark the old row superseded (do not delete it).
 
 ### Daily digest (routine)
+
 Follow `references/digest.md` → "Daily".
 
 ### Weekly consistency pass (routine)
+
 Follow `references/digest.md` → "Weekly".
 
 ### Questions ("what does the spec say about X?", "how do legacy and new differ on Y?")
+
 Answer from the files and the code, with links. Do not change files unless asked to capture.
