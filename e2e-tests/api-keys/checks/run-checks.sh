@@ -100,6 +100,18 @@ ensure_up() {
     || { fail "seeding the Mongo 'sefaria' database"; return 1; }
 }
 
+# The powered_by tests write Mongo profiles through sefaria.system.database, which reads Mongo from
+# sefaria/local_settings.py (test_settings cannot redirect it). Refuse unless that is the throwaway container's port.
+mongo_is_throwaway() {
+  local target
+  target="$(django_env; cd "$ROOT" && "$PY" -c 'from sefaria import settings as s; print(s.MONGO_HOST, s.MONGO_PORT)' 2>/dev/null | tail -1)"
+  case "$target" in
+    "localhost $MONGO_PORT"|"127.0.0.1 $MONGO_PORT") container_running "$MONGO_NAME" && return 0 ;;
+  esac
+  fail "Mongo per sefaria/local_settings.py is '${target:-unreadable}', not $MONGO_NAME on 127.0.0.1:$MONGO_PORT; refusing to run tests that write Mongo profiles"
+  return 1
+}
+
 cmd_up() { ensure_up && echo "up: $PG_NAME on 127.0.0.1:$PG_PORT, $MONGO_NAME on 127.0.0.1:$MONGO_PORT"; }
 
 cmd_down() {
@@ -143,6 +155,7 @@ cmd_unit() {
 # ---------------------------------------------------------------- pytest
 cmd_pytest() {
   ensure_up || return 1
+  mongo_is_throwaway || return 1
   django_env
   local has_marker=0 has_target=0 value_next=0 arg
   for arg in "${SUBCOMMAND_ARGS[@]}"; do
@@ -246,6 +259,7 @@ seeded_round_trip() { # load the dev-shape seed at 0005, migrate forward and bac
 
 cmd_migrations() {
   ensure_up || return 1
+  mongo_is_throwaway || return 1
   django_env
   step "2. migrations on $DJANGO_DB"
   if [ "${SUBCOMMAND_ARGS[0]:-}" = --seed ]; then

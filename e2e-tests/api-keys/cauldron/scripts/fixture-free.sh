@@ -111,20 +111,21 @@ probe_nb4_b3() {
 }
 
 probe_d4() {
-  local mocks r leak
-  mocks="$(kc_psql_ro "select id||':'||is_published::text||':'||consent_to_display::text from powered_by_project where notes = 'Created by the developer settings test controls.' and deleted_at is null order by id" | tr '\n' ' ')"
+  # The public listing never shows fixture rows. (The test controls' mock rows are gone with the controls.) A pass
+  # needs a 200, a parseable listing and a successful read-only count of the fixture rows that exist.
+  local r rows fixture_rows fixture_shown
   r="$(c "$BASE/api/powered-by")"
-  local names
-  names="$(kc_psql_ro "select project_name from powered_by_project where notes = 'Created by the developer settings test controls.' and deleted_at is null and is_published and consent_to_display" )"
-  leak=0; local shown=""
-  while IFS= read -r n; do [ -z "$n" ] && continue; body_has "$r" "\"$n\"" && { leak=$((leak+1)); shown="$shown '$n'"; }; done <<<"$names"
-  local fixture; fixture="$(grep -c 'apikeys-e2e-\|E2E api-keys' "$(cut -f2 <<<"$r")" || true)"
-  local ev; ev="GET /api/powered-by -> $(status_of "$r"), $(body_of "$r" | python3 -c 'import json,sys
-try:
-  d=json.load(sys.stdin); d=d.get("projects", d) if isinstance(d, dict) else d; print(len(d), "rows")
-except Exception as e: print("unparsed", e)'); mock rows (id:published:consent)=[$mocks]; mock rows visible in public API=$leak$shown; fixture rows visible=$fixture"
-  if [ "$leak" = 0 ] && [ "$fixture" = 0 ]; then rec D-4 pass "$ev"
-  else rec D-4 fail-known-gap "@known-gap D6: $ev"; fi
+  rows="$(body_of "$r" | python3 -c 'import json,sys
+d=json.load(sys.stdin); d=d.get("projects", d) if isinstance(d, dict) else d
+assert isinstance(d, list); print(len(d))' 2>/dev/null)"
+  fixture_rows="$(kc_psql_ro "select count(*) from powered_by_project where notes ~ '^E2E api-keys ' or creator_email like 'apikeys-e2e-%@example.com'" 2>/dev/null)"
+  if [ "$(status_of "$r")" != 200 ] || [ -z "$rows" ] || ! [[ $fixture_rows =~ ^[0-9]+$ ]]; then
+    rec D-4 "$(infra_or "$(status_of "$r")" fail-harness)" "GET /api/powered-by -> $(status_of "$r"), listing rows='${rows:-unparsed}', fixture count='${fixture_rows:-query failed}'"
+    return
+  fi
+  fixture_shown="$(grep -c 'apikeys-e2e-\|E2E api-keys' "$(cut -f2 <<<"$r")" || true)"
+  local ev="GET /api/powered-by -> 200, $rows rows; fixture rows in the database=$fixture_rows, visible in the listing=$fixture_shown"
+  if [ "$fixture_shown" = 0 ]; then rec D-4 pass "$ev"; else rec D-4 fail-product-bug "$ev"; fi
 }
 
 probe_nm4() {

@@ -26,8 +26,9 @@ docs = [d for d in yaml.safe_load_all(open(sys.argv[1])) if d]
 release = next(d for d in docs if d.get("kind") == "HelmRelease")
 yaml.safe_dump(release["spec"].get("values", {}), open(sys.argv[2], "w"))
 PY
-  echo "== $env: authService off (as shipped)"
-  if helm template "$env" "$ROOT/helm-chart/sefaria" -f "$OUT/$env.values.yaml" >"$OUT/$env.off.yaml" 2>"$OUT/$env.off.err"; then
+  echo "== $env: authService off (forced off, whatever the env file says)"
+  if helm template "$env" "$ROOT/helm-chart/sefaria" -f "$OUT/$env.values.yaml" --set authService.enabled=false \
+      >"$OUT/$env.off.yaml" 2>"$OUT/$env.off.err"; then
     "$PY" "$HERE/render_check.py" --off "$OUT/$env.off.yaml" || rc=1
   else
     echo "FAIL: helm template ($env, off)"; cat "$OUT/$env.off.err"; rc=1

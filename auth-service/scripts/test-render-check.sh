@@ -14,7 +14,7 @@ yaml.safe_dump(next(d for d in docs if d.get("kind") == "HelmRelease")["spec"]["
 PY
 helm template prod "$root/helm-chart/sefaria" -f "$tmp/values.yaml" --set authService.enabled=true \
   --set authService.image.tag=t >"$tmp/on.yaml" || { echo "FAIL: helm template"; exit 1; }
-helm template prod "$root/helm-chart/sefaria" -f "$tmp/values.yaml" >"$tmp/off.yaml" || { echo "FAIL: helm template off"; exit 1; }
+helm template prod "$root/helm-chart/sefaria" -f "$tmp/values.yaml" --set authService.enabled=false >"$tmp/off.yaml" || { echo "FAIL: helm template off"; exit 1; }
 
 "$PY" "$here/render_check.py" "$tmp/on.yaml" >/dev/null && echo "ok: the real flag-on render passes" || { echo "FAIL: the real render fails"; fail=1; }
 "$PY" "$here/render_check.py" --off "$tmp/off.yaml" >/dev/null && echo "ok: the real flag-off render passes" || { echo "FAIL: the real off render fails"; fail=1; }

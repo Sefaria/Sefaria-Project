@@ -361,7 +361,8 @@ test.describe('developer settings: Hebrew, phone width and keyboard (C10)', () =
     });
 
     test('C10 (keyboard): the mock confirmation email dialog starts on its link and traps Tab', async ({ target }) => {
-      test.skip(!target.mocks, 'The mock confirmation email exists only with DEVELOPER_SETTINGS_MOCKS on; the local stack runs with it off.');
+      // No assertions were ever written for this case; it must not pass as if it had run.
+      test.skip(true, `not implemented: the mock confirmation email belonged to the test controls removed in phase 1 (mocks=${target.mocks})`);
     });
   });
 

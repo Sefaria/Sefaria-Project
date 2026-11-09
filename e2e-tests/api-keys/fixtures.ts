@@ -32,7 +32,9 @@ export function capabilities(name: TargetName): Target {
     hasFlagOffServer: local,
     hasRegistry: registryUrl(name) !== undefined,
     hasMailbox: mailpitUrl(name) !== undefined,
-    mocks: local ? process.env.DEVELOPER_SETTINGS_MOCKS === 'true' : true,
+    // The developer-settings test controls (mocks) were removed in phase 1, on the cauldron too; the local stack can
+    // still say otherwise for an older checkout.
+    mocks: local ? process.env.DEVELOPER_SETTINGS_MOCKS === 'true' : false,
     canReadNginxLog: true,
     canSwapEnvoyConfig: false,
   };

@@ -17,6 +17,8 @@ ln -sf "$(readlink "$REPO/sefaria/local_settings.py" || echo "$REPO/sefaria/loca
 
 (cd "$WT" && APIKEYS_STACK_PG_PORT=$D11_PG_PORT django_env "$PYTHON" manage.py shell <"$SCEN_DIR/d_old_code.py") \
   >"$D11_DIR/d-old-code.out" 2>&1
+driver_rc=$?
+[ "$driver_rc" = 0 ] || fail "D the driver exited $driver_rc ($D11_DIR/d-old-code.out)"
 grep '^D11RESULT' "$D11_DIR/d-old-code.out" >"$D11_DIR/d-old-code.results" || true
 [ -s "$D11_DIR/d-old-code.results" ] || { tail -20 "$D11_DIR/d-old-code.out"; die "the driver printed no results"; }
 while read -r _ status case text; do
@@ -26,5 +28,9 @@ while read -r _ status case text; do
     *) fail "$case $text" ;;
   esac
 done <"$D11_DIR/d-old-code.results"
+# Every case must have reported, and the cleanup last: a driver that died part-way must not pass on its early lines.
+for case in D-1 D-1b D-1c D-2 D-3 'D-\*'; do
+  grep -qE "^D11RESULT [A-Za-z]+ $case " "$D11_DIR/d-old-code.results" || fail "D the driver never reported ${case//\\/} ($D11_DIR/d-old-code.out)"
+done
 grep -q 'Traceback' "$D11_DIR/d-old-code.out" && info "D the driver logged tracebacks (expected for the failing cases): $D11_DIR/d-old-code.out"
 finish

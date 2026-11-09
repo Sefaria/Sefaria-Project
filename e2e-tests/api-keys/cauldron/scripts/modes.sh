@@ -98,9 +98,20 @@ if not head:
 users = [u.strip() for u in head.group(1).split(",") if u.strip() and u.strip() != "none"]
 if any(not (2098000001 <= int(u) <= 2098000999) for u in users):
     sys.exit(1)
+# Each project must be a fixture for a reason the guard can check: the run marker, an owner in the band, or an
+# unclaimed listing with a fixture email (UI tests create projects without the marker; they are owned by band users).
 for line in text.splitlines():
-    if line.startswith("  project ") and not re.search(r"notes='E2E api-keys \S+ \(temporary\)'", line):
-        sys.exit(1)
+    if not line.startswith("  project "):
+        continue
+    why = re.search(r" why=(\S+)$", line)
+    why = why.group(1) if why else ""
+    if why == "marker" and re.search(r"notes='E2E api-keys \S+ \(temporary\)'", line):
+        continue
+    if why.startswith("owner=") and 2098000001 <= int(why[6:]) <= 2098000999:
+        continue
+    if re.fullmatch(r"email=apikeys-e2e-[a-z0-9-]+@example\.com", why):
+        continue
+    sys.exit(1)
 PY
   then
     rec seeded-teardown fail-product-bug "the dry run names rows outside the band or marker; teardown NOT run, clean up by hand ($dry)"

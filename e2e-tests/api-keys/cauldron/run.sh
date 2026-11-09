@@ -151,6 +151,8 @@ print(json.dumps({"schemaVersion":1,"target":"cauldron","baseURL":sys.argv[1],"r
 
 playwright_run() {  # $1 label, rest: extra args. --no-deps: the setup project would wipe the local suites' .auth/.
   local label="$1"; shift
+  # A reused run directory must not lend an earlier report to a run that produced none.
+  rm -f "$RUN_DIR/playwright-$label.json" "$RUN_DIR/playwright-$label.tsv" "$RUN_DIR/playwright-$label.tsv.meta"
   ( cd "$REPO" && env -u APIKEYS_TRACE APIKEYS_TARGET=cauldron APIKEYS_CAULDRON="$CAULDRON" APIKEYS_MANIFEST="$MANIFEST_REL" APIKEYS_RUN_ID="$RUN_ID" \
       PLAYWRIGHT_JSON_OUTPUT_NAME="$RUN_DIR/playwright-$label.json" \
       npx playwright test --project=apikeys --no-deps --workers=2 --reporter=list,json "$@" ) 2>&1 | mask > "$RUN_DIR/playwright-$label.log"

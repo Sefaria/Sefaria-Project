@@ -153,7 +153,18 @@ grep -q '^sops:' "$TMP" && ! grep -qF -f <(printf '%s\n' "$PW") "$TMP" || { unse
     printf 'GRANT SELECT (%s) ON %s TO %s;\n' "${entry#*:}" "${entry%%:*}" "$ROLE"
   done
   printf 'COMMIT;\n'
-} | pg -d "$DB" >/dev/null || { unset PW; echo "FAIL: creating the role failed and was rolled back; nothing changed"; exit 1; }
+} | pg -d "$DB" >/dev/null || {
+  unset PW
+  # The transaction may have committed with its answer lost (a dropped exec): then the role exists and the encrypted
+  # file is the only copy of its password, so it is kept.
+  if [ "$(pg -c "SELECT count(*) FROM pg_roles WHERE rolname = '$ROLE'" 2>/dev/null)" != 0 ]; then
+    trap - EXIT INT TERM
+    echo "FAIL: the role creation reported an error, but role $ROLE exists (or its state is unknown); the encrypted Secret is kept at $TMP (rename it to $OUT after checking with --verify)"
+  else
+    echo "FAIL: creating the role failed and was rolled back; nothing changed"
+  fi
+  exit 1
+}
 unset PW
 # The role exists now, so the encrypted file must survive whatever happens next: no cleanup trap from here on.
 trap - EXIT INT TERM

@@ -91,7 +91,8 @@ test.describe('keys', () => {
     await devA.goto();
     try {
       const { project } = await extraKeys();
-      expect(project.keys, 'the seeded project starts with 4 keys').toHaveLength(4);
+      // The length only: a failing toHaveLength on the array would print the key objects, values included.
+      expect(project.keys.length, 'the seeded project starts with 4 keys').toBe(4);
 
       const tabs = [
         { dev: devA, label: 'N-C12 tab A' },

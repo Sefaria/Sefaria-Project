@@ -250,8 +250,8 @@ def guard_target(target):
     host = str(db.get("HOST") or "")
     port = str(db.get("PORT") or "")
     if target == "local":
-        allowed_ports = LOCAL_PG_PORTS | set(filter(None, [os.environ.get("APIKEYS_SEED_LOCAL_PG_PORT")]))
-        if host not in LOOPBACK_HOSTS or port not in allowed_ports:
+        # The stack's own Postgres only: no override, so a reset or teardown can never reach another local database.
+        if host not in LOOPBACK_HOSTS or port not in LOCAL_PG_PORTS:
             raise SystemExit(
                 f"Refusing: --target local needs the local stack's Postgres on 127.0.0.1:55432, not {host}:{port}."
             )
@@ -469,7 +469,21 @@ def teardown_plan(include_sentinel=False, base=None):
     from powered_by.models import ApiKey
 
     ids = fixture_ids(include_sentinel, base)
-    projects = list(_fixture_projects(include_sentinel, base).order_by("id").values_list("id", "project_name", "notes"))
+    emails = set(fixture_emails(include_sentinel))
+    projects = []
+    for profile in _fixture_projects(include_sentinel, base).order_by("id").prefetch_related("api_projects"):
+        # Why each profile is a fixture, so a caller can check it: the run marker, an owner in the id band, or an
+        # unclaimed listing with a fixture email.
+        owners = sorted({a.owner_id for a in profile.api_projects.all() if a.owner_id in ids})
+        if MARKER_RE.match(profile.notes or ""):
+            why = "marker"
+        elif owners:
+            why = f"owner={owners[0]}"
+        elif profile.creator_email in emails:
+            why = f"email={profile.creator_email}"
+        else:
+            why = "sentinel" if include_sentinel else "unknown"
+        projects.append((profile.id, profile.project_name, profile.notes, why))
     return {
         "users": list(User.objects.filter(id__in=ids).order_by("id").values_list("id", flat=True)),
         "projects": projects,
@@ -856,8 +870,8 @@ def main(argv, password_preamble=None):
             ),
             file=out,
         )
-        for project_id, name, notes in plan["projects"]:
-            print(f"  project {project_id} {name!r} notes={notes!r}", file=out)
+        for project_id, name, notes, why in plan["projects"]:
+            print(f"  project {project_id} {name!r} notes={notes!r} why={why}", file=out)
         return 0
     if args.teardown:
         removed = teardown(include_sentinel=args.include_sentinel)

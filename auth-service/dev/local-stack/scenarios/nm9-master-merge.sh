@@ -109,8 +109,11 @@ PYFILES="powered_by/tests reader/tests/api_terms_test.py reader/tests/test_catch
 (cd "$WT" && env -u FRONT_END_URL -u CI_RUN PYTHONPATH="$WT/auth-service/dev/local-stack" APIKEYS_STACK_PG_PORT=$D11_PG_PORT \
   DEVELOPER_SETTINGS_ENABLED=false "$PYTHON" -m pytest $PYFILES -m "not deep and not failing" -p no:cacheprovider --ds=django_settings -q \
   --junitxml="$OUT/pytest.xml") >"$OUT/pytest.log" 2>&1
+pytest_rc=$?
 summary="$(tail -1 "$OUT/pytest.log")"
-if grep -qE '(failed|error)' <<<"$summary"; then
+if [ "$pytest_rc" != 0 ] || ! grep -qE '[0-9]+ passed' <<<"$summary"; then
+  fail "N-M9 pytest on the merged tree exited $pytest_rc: $summary ($OUT/pytest.log)"
+elif grep -qE '(failed|error)' <<<"$summary"; then
   fail "N-M9 pytest on the merged tree: $summary ($OUT/pytest.log)"
 else
   pass "N-M9 pytest on the merged tree ($PYFILES): $summary"
