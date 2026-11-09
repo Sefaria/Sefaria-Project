@@ -317,7 +317,7 @@ def powered_by_api(request):
     if authenticated:
         queryset = Project.objects.all()
     else:
-        # A profile with an internal-tier live API project is never listed. A settings-created profile
+        # A profile with an internal- or mcp-tier (staff-only system tiers) live API project is never listed. A settings-created profile
         # is listed only while it has a live API project; a legacy listing needs none.
         live_api_projects = ApiProject.objects.filter(profile=OuterRef("pk"), deleted_at__isnull=True)
         queryset = (
@@ -327,7 +327,7 @@ def powered_by_api(request):
                 deleted_at__isnull=True,
             )
             .filter(
-                ~Exists(live_api_projects.filter(tier_id="internal")),
+                ~Exists(live_api_projects.filter(tier_id__in=("internal", "mcp"))),
             )
             .filter(
                 ~Q(submission_source=SubmissionSource.DEVELOPER_SETTINGS) | Exists(live_api_projects),

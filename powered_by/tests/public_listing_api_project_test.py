@@ -40,6 +40,20 @@ class PublicListingApiProjectTest(TestCase):
         self.client.force_login(User.objects.create_user(username="listingstaff", password="pw", is_staff=True))
         self.assertIn("Internal Tool", self.listed_names())
 
+    def test_mcp_project_never_listed_but_developer_project_is(self):
+        mcp_profile = make_profile("MCP Server Tool", SubmissionSource.MANUAL)
+        ApiProject.objects.create(profile=mcp_profile, tier_id="mcp")
+        developer_profile = make_profile("Developer Tool", SubmissionSource.MANUAL)
+        ApiProject.objects.create(profile=developer_profile, tier_id="developer")
+
+        names = self.listed_names()
+
+        self.assertNotIn("MCP Server Tool", names)
+        self.assertIn("Developer Tool", names)
+
+        self.client.force_login(User.objects.create_user(username="mcpstaff", password="pw", is_staff=True))
+        self.assertIn("MCP Server Tool", self.listed_names())
+
     def test_private_profile_with_live_project_is_not_listed(self):
         profile = make_profile("Private Tool", SubmissionSource.DEVELOPER_SETTINGS, request_not_to_publish=True)
         ApiProject.objects.create(profile=profile)

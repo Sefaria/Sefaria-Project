@@ -1,21 +1,31 @@
 """
-Seeds the mcp API tier for databases that already ran 0006, which seeds its tiers only once. The row
-lives in 0006's TIERS list (the tests reseed from it), and this migration runs the same idempotent
-seed_api_tiers, so a database that ran 0006 before the mcp row existed gets it here.
+Seeds the mcp API tier for databases that already ran 0006, which seeds its tiers only once. The row is
+inlined here, not imported from 0006's TIERS list, so this migration stays frozen if a tier is added later.
+It uses get_or_create, so a row someone has customised is never overwritten.
 
 Reverse is a no-op. Deleting the tier would cascade its meter limits, and PROTECT on ApiProject.tier would
 refuse while any API project is on it, so a rollback leaves the row in place.
 """
 
-import importlib
-
 from django.db import migrations
 
-SEED = importlib.import_module("powered_by.migrations.0006_api_project_schema")
+MCP_TIER = {"id": "mcp", "name": "MCP server", "per_minute_per_project": 6000}
+MCP_SEMANTIC_MONTHLY_PER_PROJECT = 1000000
 
 
 def seed_mcp_tier(apps, schema_editor):
-    SEED.seed_api_tiers(apps, using=schema_editor.connection.alias)
+    using = schema_editor.connection.alias
+    ApiTier = apps.get_model("powered_by", "ApiTier")
+    ApiTierMeterLimit = apps.get_model("powered_by", "ApiTierMeterLimit")
+    tier, _ = ApiTier.objects.using(using).get_or_create(
+        id=MCP_TIER["id"],
+        defaults={"name": MCP_TIER["name"], "per_minute_per_project": MCP_TIER["per_minute_per_project"]},
+    )
+    ApiTierMeterLimit.objects.using(using).get_or_create(
+        tier=tier,
+        meter="semantic",
+        defaults={"monthly_per_project": MCP_SEMANTIC_MONTHLY_PER_PROJECT},
+    )
 
 
 class Migration(migrations.Migration):
