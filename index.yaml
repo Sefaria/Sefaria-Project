@@ -77,6 +77,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.93.0-sc-47260-remove-test-controls.1.tgz
     version: 0.93.0-sc-47260-remove-test-controls.1
   - apiVersion: v2
+    appVersion: v7.11.5
+    created: "2026-11-09T11:06:14.331775349Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 184c1fc9504a9eb2a80368794b085d57b0bfe0205455b77dbb8c4bfe1faf3669
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.93.0-sc-47260-release-scripts.1.tgz
+    version: 0.93.0-sc-47260-release-scripts.1
+  - apiVersion: v2
     appVersion: v7.11.4
     created: "2026-11-08T14:46:30.539142688Z"
     description: Chart to deploy complete Sefaria environment
@@ -24420,4 +24435,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-09T10:43:54.715462128Z"
+generated: "2026-11-09T11:06:14.327471214Z"
