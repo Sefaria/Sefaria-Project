@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Helpers for the API keys phase 1 release scripts (standard library only).
+"""Helpers for the API keys phase 1 release scripts (standard library only, except hr-values and chart-prod-paths,
+which need PyYAML and exit 3 without it).
 
 Each subcommand reads files or stdin and prints plain text or JSON for the shell scripts. Nothing here talks to a
 cluster or a database, and nothing prints a Secret value: Secrets are only ever handled by name.
@@ -424,6 +425,343 @@ def rehearse_summary(args):
             print(f"  {h['relation']:50} {h['seconds']:.3f}")
 
 
+# --- preflight: the prod-only paths the chart renders --------------------------------------------------------------
+
+
+def _yaml():
+    try:
+        import yaml
+    except ImportError:
+        print(
+            "PyYAML is not installed for this Python (set APIKEYS_RELEASE_PYTHON3 to one that has it)", file=sys.stderr
+        )
+        sys.exit(3)
+    return yaml
+
+
+def hr_values(_args):
+    """The spec.values of the HelmRelease in an env file (stdin), as YAML for helm template -f."""
+    yaml = _yaml()
+    releases = [d for d in yaml.safe_load_all(sys.stdin) if isinstance(d, dict) and d.get("kind") == "HelmRelease"]
+    if len(releases) != 1:
+        sys.exit(f"expected one HelmRelease in the env file, found {len(releases)}")
+    yaml.safe_dump(releases[0].get("spec", {}).get("values", {}) or {}, sys.stdout)
+
+
+DATADOG_KEY = re.compile(r"(^|\.)datadoghq\.com/")
+
+
+def chart_prod_paths(args):
+    """From `helm template` output (stdin): JSON {cronjobs: {name: {schedule, suspend}}, datadog: {labels, annotations}}
+    with the CronJobs the chart renders and the Datadog labels and annotations of the web Rollout's pod template."""
+    yaml = _yaml()
+    cronjobs, datadog = {}, {"labels": {}, "annotations": {}}
+    for doc in yaml.safe_load_all(sys.stdin):
+        if not isinstance(doc, dict):
+            continue
+        meta = doc.get("metadata", {}) or {}
+        if doc.get("kind") == "CronJob":
+            spec = doc.get("spec", {}) or {}
+            cronjobs[meta.get("name")] = {"schedule": spec.get("schedule"), "suspend": bool(spec.get("suspend"))}
+        elif doc.get("kind") == "Rollout" and meta.get("name") == args.web_rollout:
+            tmeta = (doc.get("spec", {}).get("template", {}) or {}).get("metadata", {}) or {}
+            for field in ("labels", "annotations"):
+                datadog[field] = {k: str(v) for k, v in (tmeta.get(field) or {}).items() if DATADOG_KEY.search(k)}
+    json.dump({"cronjobs": cronjobs, "datadog": datadog}, sys.stdout, sort_keys=True)
+
+
+def check_cronjobs(args):
+    """STATUS<TAB>message lines: every CronJob the chart renders (--rendered, from chart-prod-paths) exists in the cluster
+    (stdin: kubectl get cronjobs -o json) with the same schedule and not suspended; CronJobs of the release that the chart
+    no longer renders are reported."""
+    rendered = _read_json(args.rendered)["cronjobs"]
+    live = {c["metadata"]["name"]: c for c in _items(_stdin_json())}
+    if not rendered:
+        print(f"SKIP\tthe chart renders no CronJob for {args.instance}")
+        return
+    present = []
+    for name, want in sorted(rendered.items()):
+        got = live.get(name)
+        if got is None:
+            print(
+                f"FAIL\tCronJob {name} (schedule '{want['schedule']}') is rendered by the chart but missing in the cluster"
+            )
+            continue
+        present.append(name)
+        spec = got.get("spec", {})
+        if spec.get("schedule") != want["schedule"]:
+            print(
+                f"WARN\tCronJob {name}: schedule '{spec.get('schedule')}' in the cluster, '{want['schedule']}' in the chart"
+            )
+        if spec.get("suspend") and not want["suspend"]:
+            print(f"WARN\tCronJob {name} is suspended in the cluster; the chart renders it active")
+    if present:
+        print(
+            f"PASS\t{len(present)} of {len(rendered)} CronJobs the chart renders for {args.instance} exist in the cluster"
+        )
+    stale = sorted(
+        n
+        for n, c in live.items()
+        if n not in rendered and (c["metadata"].get("labels") or {}).get("app.kubernetes.io/instance") == args.instance
+    )
+    if stale:
+        print(f"WARN\tCronJobs of release {args.instance} that the chart no longer renders: {', '.join(stale)}")
+
+
+def check_datadog(args):
+    """STATUS<TAB>message lines: every Running web pod (stdin: kubectl get pods -o json) carries the Datadog labels and
+    annotations the chart renders on the web pod template (--rendered, from chart-prod-paths)."""
+    want = _read_json(args.rendered)["datadog"]
+    if not want["labels"] and not want["annotations"]:
+        print("SKIP\tthe chart renders no Datadog labels or annotations on the web pods (datadog.enabled is off)")
+        return
+    pods = [p for p in _items(_stdin_json()) if p.get("status", {}).get("phase") == "Running"]
+    if not pods:
+        print("FAIL\tno Running web pod to check the Datadog labels and annotations on")
+        return
+    bad = 0
+    for pod in pods:
+        meta = pod.get("metadata", {})
+        missing, differ = [], []
+        for field in ("labels", "annotations"):
+            have = meta.get(field) or {}
+            for key, value in sorted(want[field].items()):
+                if key not in have:
+                    missing.append(key)
+                elif str(have[key]) != value:
+                    differ.append(f"{key}={have[key]!r} (chart {value!r})")
+        if missing:
+            bad += 1
+            print(f"FAIL\tweb pod {meta.get('name')} lacks Datadog {', '.join(missing)}")
+        if differ:
+            print(f"WARN\tweb pod {meta.get('name')}: Datadog values differ: {'; '.join(differ)}")
+    if not bad:
+        n = len(want["labels"]) + len(want["annotations"])
+        print(f"PASS\tall {len(pods)} Running web pods carry the {n} Datadog labels and annotations the chart renders")
+
+
+# --- watch-promotion ------------------------------------------------------------------------------------------------
+
+
+def _percentile(values, q):
+    if not values:
+        return None
+    ordered = sorted(values)
+    return ordered[min(len(ordered) - 1, int(round(q * (len(ordered) - 1))))]
+
+
+def _nginx_counts(path):
+    """Counts of nginx structured access log lines (one JSON object per line, httpRequest.status). Other lines (error
+    log, startup notices) are counted as unparsed. No line is ever printed."""
+    total = errors = unparsed = 0
+    latencies = []
+    try:
+        lines = Path(path).read_text(errors="replace").splitlines()
+    except OSError:
+        return None
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            doc = json.loads(line)
+            status = int(doc["httpRequest"]["status"])
+        except (ValueError, KeyError, TypeError):
+            unparsed += 1
+            continue
+        total += 1
+        if status >= 500:
+            errors += 1
+        latency = doc["httpRequest"].get("latency")
+        if isinstance(latency, (int, float)):
+            latencies.append(float(latency))
+    return {
+        "requests": total,
+        "5xx": errors,
+        "5xx_pct": round(100.0 * errors / total, 3) if total else 0.0,
+        "unparsed_lines": unparsed,
+        "latency_p50": _percentile(latencies, 0.5),
+        "latency_p95": _percentile(latencies, 0.95),
+    }
+
+
+def _pods_summary(path, state):
+    try:
+        doc = _read_json(path)
+    except (OSError, ValueError):
+        return None
+    baseline = state.setdefault("restarts", {})
+    pods = []
+    for pod in _items(doc):
+        name = pod["metadata"]["name"]
+        status = pod.get("status", {})
+        conds = {c.get("type"): c.get("status") for c in status.get("conditions", []) or []}
+        restarts = sum(int(c.get("restartCount", 0)) for c in status.get("containerStatuses", []) or [])
+        baseline.setdefault(name, restarts)
+        pods.append(
+            {
+                "name": name,
+                "phase": status.get("phase"),
+                "ready": conds.get("Ready") == "True",
+                "terminating": bool(pod["metadata"].get("deletionTimestamp")),
+                "restarts": restarts,
+                "restarts_since_start": restarts - baseline[name],
+            }
+        )
+    return {
+        "total": len(pods),
+        "ready": sum(1 for p in pods if p["ready"]),
+        "restarts_since_start": sum(p["restarts_since_start"] for p in pods),
+        "pods": pods,
+    }
+
+
+DB_ERROR_ALARM_TICKS = 3
+
+
+def watch_tick(args):
+    """One tick of watch-promotion.sh: reads what the shell collected (database JSON, web pods JSON, nginx log lines),
+    appends one JSON line to --jsonl, prints the live line, and exits 10 when a threshold is crossed (not 2,
+    which argparse uses for a usage error)."""
+    state_path = Path(args.state)
+    state = json.loads(state_path.read_text()) if state_path.exists() else {}
+    errors = [e for e in (args.errors or "").split(",") if e]
+    record = {"tick": args.tick, "time": args.time, "window_seconds": args.window, "errors": errors}
+
+    db = None
+    if "db" not in errors:
+        try:
+            db = json.loads(Path(args.db).read_text())
+        except (OSError, ValueError):
+            errors.append("db")
+    migrations = None
+    if "migrations" not in errors:
+        try:
+            migrations = json.loads(Path(args.migrations).read_text())
+        except (OSError, ValueError):
+            errors.append("migrations")
+    if db is not None:
+        db.update(migrations or {"newest_powered_by": None, "powered_by_migrations": None})
+    record["db"] = db
+    pods = None if "pods" in errors else _pods_summary(args.pods, state)
+    if pods is None and "pods" not in errors:
+        errors.append("pods")
+    record["web_pods"] = pods
+    nginx = None if "nginx" in errors else _nginx_counts(args.nginx)
+    if nginx is None and "nginx" not in errors:
+        errors.append("nginx")
+    if nginx is not None and not nginx["requests"] and nginx["unparsed_lines"]:
+        # Lines arrived but none parsed as an access log entry: the 5xx check would be blind, so the tick is incomplete.
+        errors.append("nginx")
+    record["nginx"] = nginx
+
+    alarms, events = [], []
+    parts = [f"{args.time} #{args.tick}"]
+    if db is not None:
+        waits = db.get("lock_waits") or []
+        longest = max((float(w.get("seconds") or 0) for w in waits), default=0.0)
+        state["max_lock_wait"] = max(state.get("max_lock_wait", 0.0), longest)
+        if migrations is None:
+            newest = "unread"
+        else:
+            newest = (migrations.get("newest_powered_by") or {}).get("name") or "-"
+            if state.get("newest_powered_by") not in (None, newest):
+                events.append(f"powered_by migration applied: {newest}")
+            state["newest_powered_by"] = newest
+        parts.append(
+            f"db: lock waits {len(waits)} (longest {longest:.1f}s), long-running {len(db.get('long_running') or [])},"
+            f" newest powered_by {newest}"
+        )
+        if waits and longest > args.max_lock_wait:
+            worst = max(waits, key=lambda w: float(w.get("seconds") or 0))
+            alarms.append(
+                f"lock wait {longest:.1f}s > {args.max_lock_wait:g}s: pid {worst.get('pid')} waiting for"
+                f" {worst.get('waiting_for') or worst.get('wait_event')}, blocked by {worst.get('blocked_by')}"
+            )
+    else:
+        parts.append("db: ERROR")
+    # A database that cannot be read for several ticks in a row during the migration is itself an alarm.
+    state["db_error_streak"] = 0 if db is not None else state.get("db_error_streak", 0) + 1
+    if state["db_error_streak"] >= DB_ERROR_ALARM_TICKS and state["db_error_streak"] % DB_ERROR_ALARM_TICKS == 0:
+        alarms.append(f"the database could not be read for {state['db_error_streak']} ticks in a row")
+    if pods is not None:
+        parts.append(f"prod web: {pods['ready']}/{pods['total']} ready, restarts +{pods['restarts_since_start']}")
+        if pods["restarts_since_start"] > state.get("restarts_seen", 0):
+            events.append(f"prod web pod restarts since start: {pods['restarts_since_start']}")
+        state["restarts_seen"] = max(state.get("restarts_seen", 0), pods["restarts_since_start"])
+    else:
+        parts.append("prod web: ERROR")
+    if nginx is not None:
+        p95 = nginx["latency_p95"]
+        parts.append(
+            f"nginx: {nginx['requests']} req, 5xx {nginx['5xx']} ({nginx['5xx_pct']:.2f}%)"
+            + (f", p95 {p95:.3f}s" if p95 is not None else "")
+            + (f", {nginx['unparsed_lines']} unparsed lines" if nginx["unparsed_lines"] else "")
+            + (
+                " (no access log line: no nginx pod matched, no traffic, or the log format changed)"
+                if not nginx["requests"]
+                else ""
+            )
+        )
+        if nginx["requests"] >= args.min_requests:
+            state["max_5xx_pct"] = max(state.get("max_5xx_pct", 0.0), nginx["5xx_pct"])
+            if nginx["5xx_pct"] > args.max_5xx_pct:
+                alarms.append(
+                    f"prod 5xx {nginx['5xx_pct']:.2f}% > {args.max_5xx_pct:g}%"
+                    f" ({nginx['5xx']} of {nginx['requests']} requests in {args.window}s)"
+                )
+    else:
+        parts.append("nginx: ERROR")
+
+    record["errors"] = errors
+    record["alarms"] = alarms
+    record["events"] = events
+    with open(args.jsonl, "a") as out:
+        out.write(json.dumps(record, sort_keys=True, default=str) + "\n")
+    state["ticks"] = state.get("ticks", 0) + 1
+    state["alarm_ticks"] = state.get("alarm_ticks", 0) + (1 if alarms else 0)
+    state.setdefault("alarms", []).extend(f"{args.time} {a}" for a in alarms)
+    state["error_ticks"] = state.get("error_ticks", 0) + (1 if errors else 0)
+    state_path.write_text(json.dumps(state, sort_keys=True))
+
+    print(" | ".join(parts), flush=True)
+    for event in events:
+        print(f"    event: {event}", flush=True)
+    if errors:
+        print(f"    could not read: {', '.join(errors)} (see {Path(args.jsonl).parent}/errors.log)", flush=True)
+    for alarm in alarms:
+        bar = "!" * 100
+        print(f"{bar}\n!!! ALARM: {alarm}\n{bar}", flush=True)
+    return 10 if alarms else 0
+
+
+def watch_summary(args):
+    """The end of watch-promotion.sh: prints what the watch saw and exits 2 after any alarm, 1 after a tick that could
+    not read everything, else 0."""
+    state = _read_json(args.state) if Path(args.state).exists() else {}
+    print(f"\nwatch-promotion: {state.get('ticks', 0)} ticks; JSON lines in {args.jsonl}")
+    print(f"  longest lock wait: {state.get('max_lock_wait', 0.0):.1f}s (threshold {args.max_lock_wait:g}s)")
+    print(f"  highest prod 5xx rate: {state.get('max_5xx_pct', 0.0):.2f}% (threshold {args.max_5xx_pct:g}%)")
+    print(f"  newest powered_by migration at the end: {state.get('newest_powered_by', '-')}")
+    print(f"  prod web pod restarts since start: {state.get('restarts_seen', 0)}")
+    if state.get("ticks", 0) == 0:
+        print("watch-promotion: no tick completed")
+        return 1
+    if state.get("alarm_ticks"):
+        bar = "!" * 100
+        print(bar)
+        print(f"!!! watch-promotion: ALARM on {state['alarm_ticks']} tick(s):")
+        for alarm in state.get("alarms", [])[:20]:
+            print(f"!!!   {alarm}")
+        print(bar)
+        return 2
+    if state.get("error_ticks"):
+        print(f"watch-promotion: {state['error_ticks']} tick(s) could not read everything; the watch is incomplete")
+        return 1
+    print("watch-promotion: no threshold crossed")
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -467,6 +805,34 @@ def main():
     p.add_argument("--samples", required=True)
     p.add_argument("--out", required=True)
     p.set_defaults(func=rehearse_summary)
+    sub.add_parser("hr-values").set_defaults(func=hr_values)
+    p = sub.add_parser("chart-prod-paths")
+    p.add_argument("--web-rollout", required=True)
+    p.set_defaults(func=chart_prod_paths)
+    p = sub.add_parser("check-cronjobs")
+    p.add_argument("--rendered", required=True)
+    p.add_argument("--instance", required=True)
+    p.set_defaults(func=check_cronjobs)
+    p = sub.add_parser("check-datadog")
+    p.add_argument("--rendered", required=True)
+    p.set_defaults(func=check_datadog)
+    for name, func in (("watch-tick", watch_tick), ("watch-summary", watch_summary)):
+        p = sub.add_parser(name)
+        p.add_argument("--state", required=True)
+        p.add_argument("--jsonl", required=True)
+        p.add_argument("--max-lock-wait", type=float, required=True)
+        p.add_argument("--max-5xx-pct", type=float, required=True)
+        p.set_defaults(func=func)
+        if name == "watch-tick":
+            p.add_argument("--tick", type=int, required=True)
+            p.add_argument("--time", required=True)
+            p.add_argument("--window", type=int, required=True)
+            p.add_argument("--db", required=True)
+            p.add_argument("--migrations", required=True)
+            p.add_argument("--pods", required=True)
+            p.add_argument("--nginx", required=True)
+            p.add_argument("--errors", default="")
+            p.add_argument("--min-requests", type=int, required=True)
     args = parser.parse_args()
     return args.func(args) or 0
 

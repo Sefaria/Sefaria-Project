@@ -13,8 +13,11 @@
 # phase 1's migrations and rows; the preprod release flipped to a phase 1 image; restore chart (dry run, normal, then
 # --emergency --execute); restore db --scoped (refused while phase 1 runs, then done); schema and rows equal to the
 # snapshot; master's code creates, lists and deletes a listing on the restored database; phase 1 migrates forward again;
-# rehearse-migration on the snapshot dump. Negative tests: wrong context, dry runs change nothing, db --full refuses,
-# preflight fails without the reader grant on powered_by_apikey. Uses ports 56441 (port-forward) and 56445 (rehearsal).
+# rehearse-migration on the snapshot dump; watch-promotion on a short window, with its lock-wait and 5xx alarms; the
+# preflight's prod-only checks (CronJobs, Datadog labels) and namespace check; staging-smoke's legacy apikey write against
+# a stub server. Negative tests: wrong context, dry runs change nothing, db --full refuses, preflight fails without the
+# reader grant on powered_by_apikey. Uses ports 56441 (port-forward) and 56445 (rehearsal); the stub server takes an
+# ephemeral port.
 # The cluster and the work directory are deleted at the end unless --keep-cluster / --keep-work.
 set -uo pipefail
 
@@ -73,6 +76,19 @@ refuses() {
     tail -n 15 "$log" | sed 's/^/    /'
   fi
 }
+# exits CODE DESC PATTERN CMD...: the command must exit with CODE and print PATTERN.
+exits() {
+  local want="$1" desc="$2" pattern="$3" rc=0
+  shift 3
+  local log="$LOGS/$((N + 1)).log"
+  "$@" >"$log" 2>&1 || rc=$?
+  if [[ "$rc" == "$want" ]] && grep -qE "$pattern" "$log"; then
+    ok "$desc"
+  else
+    notok "$desc (exit $rc, wanted $want and /$pattern/; log: $log)"
+    tail -n 15 "$log" | sed 's/^/    /'
+  fi
+}
 fatal() {
   FAILED=$((FAILED + 1))
   echo "Bail out! $*"
@@ -81,6 +97,7 @@ fatal() {
 
 cleanup() {
   [[ -n "$PF_PID" ]] && kill "$PF_PID" 2>/dev/null
+  [[ -n "${STUB_PID:-}" ]] && kill "$STUB_PID" 2>/dev/null
   docker rm -f "apikeys-rehearsal-$REHEARSAL_PORT" >/dev/null 2>&1
   if [[ "$KEEP_CLUSTER" == 1 ]]; then echo "# kept kind cluster $CLUSTER"; else kind delete cluster --name "$CLUSTER" >/dev/null 2>&1; fi
   if [[ "$KEEP_WORK" == 1 || "$FAILED" -gt 0 ]]; then echo "# work directory kept: $WORK"; else rm -rf "$WORK"; fi
@@ -190,7 +207,7 @@ mkdir -p "$FIX/envs"
 for e in staging preprod prod; do mkdir -p "$FIX/envs/$e"; cp "$PHASE1_CODE/envs/$e/helmrelease.yaml" "$FIX/envs/$e/"; done
 set_tags "$FIX/envs/preprod/helmrelease.yaml" "$MASTER_TAG_PREPROD" "$CHART_PREPROD"
 set_tags "$FIX/envs/prod/helmrelease.yaml" "$MASTER_TAG_PROD" "$CHART_PROD"
-(cd "$PHASE1_CODE" && git ls-files '*/migrations/*.py') | while read -r f; do mkdir -p "$FIX/$(dirname "$f")"; cp "$PHASE1_CODE/$f" "$FIX/$f"; done
+(cd "$PHASE1_CODE" && git ls-files '*/migrations/*.py' helm-chart/sefaria) | while read -r f; do mkdir -p "$FIX/$(dirname "$f")"; cp "$PHASE1_CODE/$f" "$FIX/$f"; done
 git -C "$FIX" add -A && git -C "$FIX" commit -q -m "fixture: master state"
 git -C "$FIX" branch preprod && git -C "$FIX" branch prod
 TAG_PREPROD="preprod/${MASTER_TAG_PREPROD#v}+chart.$CHART_PREPROD"
@@ -214,7 +231,38 @@ k apply -f "$FIX/envs/prod/helmrelease.yaml" >/dev/null
 apply_gitrepo preprod sefaria-project-preprod "$TAG_PREPROD"
 apply_gitrepo default sefaria-project-prod "$TAG_PROD"
 helm install preprod "$HERE/fixtures/standin-chart" -n preprod --kube-context "$CTX" --set deployEnv=preprod --set "web.image=$IMG:$MASTER_TAG_PREPROD" >/dev/null
-helm install production "$HERE/fixtures/standin-chart" -n default --kube-context "$CTX" --set deployEnv=production --set "web.image=$IMG:$MASTER_TAG_PROD" >/dev/null
+# What the real chart renders for prod at the fixture's origin/prod (read here with PyYAML, independently of the scripts):
+# the web pods' Datadog labels and annotations go onto the stand-in pods, and each CronJob gets a stand-in with its name,
+# schedule and release label (a no-op container), as Flux would have applied them.
+helm template production "$FIX/helm-chart/sefaria" -n default \
+  -f <("$PY" -c 'import sys, yaml; d = next(x for x in yaml.safe_load_all(open(sys.argv[1])) if x and x.get("kind") == "HelmRelease"); yaml.safe_dump(d["spec"]["values"], sys.stdout)' "$FIX/envs/prod/helmrelease.yaml") \
+  >"$WORK/prod-render.yaml" || fatal "helm template of the fixture's prod chart failed"
+"$PY" - "$WORK/prod-render.yaml" "$WORK/standin-production.yaml" "$WORK/cronjobs.yaml" <<'PY' || fatal "reading the rendered prod chart"
+import json, re, sys, yaml
+docs = [d for d in yaml.safe_load_all(open(sys.argv[1])) if d]
+web = next(d for d in docs if d["kind"] == "Rollout" and d["metadata"]["name"] == "production-web")
+meta = web["spec"]["template"]["metadata"]
+dd = lambda m: {k: str(v) for k, v in (m or {}).items() if "datadoghq.com/" in k}
+values = {"nginx": {"enabled": True}, "web": {"podLabels": dd(meta.get("labels")), "podAnnotations": dd(meta.get("annotations"))}}
+assert values["web"]["podLabels"] and values["web"]["podAnnotations"], "prod renders no Datadog metadata"
+yaml.safe_dump(values, open(sys.argv[2], "w"))
+cronjobs = [d for d in docs if d["kind"] == "CronJob"]
+assert cronjobs, "prod renders no CronJob"
+out = []
+for c in cronjobs:
+    out.append({"apiVersion": "batch/v1", "kind": "CronJob",
+                "metadata": {"name": c["metadata"]["name"], "namespace": "default",
+                             "labels": {"app.kubernetes.io/instance": "production"}},
+                "spec": {"schedule": c["spec"]["schedule"], "jobTemplate": {"spec": {"template": {"spec": {
+                    "restartPolicy": "Never",
+                    "containers": [{"name": "noop", "image": "kind.local/postgres:18", "imagePullPolicy": "Never",
+                                    "command": ["true"]}]}}}}}})
+open(sys.argv[3], "w").write("---\n".join(yaml.safe_dump(o) for o in out))
+print(len(out))
+PY
+helm install production "$HERE/fixtures/standin-chart" -n default --kube-context "$CTX" --set deployEnv=production --set "web.image=$IMG:$MASTER_TAG_PROD" \
+  -f "$WORK/standin-production.yaml" >/dev/null
+k apply -f "$WORK/cronjobs.yaml" >/dev/null || fatal "stand-in CronJobs"
 for ns in preprod default; do
   for s in $(k -n "$ns" get helmreleases.helm.toolkit.fluxcd.io -o json | "$PY" "$REL/release_lib.py" secret-refs); do
     k -n "$ns" create secret generic "$s" --from-literal=placeholder=not-a-secret --dry-run=client -o yaml | k apply -f - >/dev/null
@@ -224,6 +272,7 @@ mark_healthy preprod preprod
 mark_healthy default production
 wait_web preprod preprod "$IMG:$MASTER_TAG_PREPROD" && wait_web default production "$IMG:$MASTER_TAG_PROD" \
   && ok "stand-in releases preprod and production run master images" || fatal "stand-in web pods did not start"
+k -n default rollout status deployment/production-nginx-standin --timeout=120s >/dev/null || fatal "stand-in nginx did not start"
 
 # ---------------------------------------------------------------------------------------------------------------
 echo "# negative: wrong context"
@@ -302,12 +351,40 @@ refuses "preflight fails without the reader grant on powered_by_apikey" "lacks S
   "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --infra-repo "$WORK/infra"
 psql_pod -c "GRANT SELECT (id, key, project_id, label, allowed_origins, revoked_at) ON powered_by_apikey TO auth_service_reader" >/dev/null
 check "preflight preprod passes once the grant exists" "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --infra-repo "$WORK/infra"
+PREPROD_PASS_N="$N"
 k -n default delete rollouts.argoproj.io production-web >/dev/null
 refuses "preflight fails when the web Rollout is missing" "Rollout default/production-web not found" \
   "$REL/preflight.sh" --env prod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
 helm upgrade production "$HERE/fixtures/standin-chart" -n default --kube-context "$CTX" --reuse-values >/dev/null
 mark_healthy default production
 check "preflight prod passes (nothing pending, Secret in default)" "$REL/preflight.sh" --env prod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
+PROD_LOG="$LOGS/$N.log"
+NCRON="$(grep -c '^kind: CronJob' "$WORK/prod-render.yaml")"
+grep -qE "^PASS +$NCRON of $NCRON CronJobs the chart renders for production exist" "$PROD_LOG" \
+  && grep -qE "^PASS +all 1 Running web pods carry the [0-9]+ Datadog labels and annotations" "$PROD_LOG" \
+  && ok "preflight prod: the chart's $NCRON CronJobs and its Datadog labels and annotations are found" || notok "prod-only checks not reported (log: $PROD_LOG)"
+CRON1="$(k -n default get cronjobs.batch -o jsonpath='{.items[0].metadata.name}')"
+k -n default get cronjob "$CRON1" -o json >"$WORK/cron1.json"
+k -n default delete cronjob "$CRON1" >/dev/null
+refuses "preflight prod fails when a CronJob the chart renders is missing" "FAIL +CronJob $CRON1 .*missing in the cluster" \
+  "$REL/preflight.sh" --env prod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
+k apply -f "$WORK/cron1.json" >/dev/null
+WEBPOD="$(k -n default get pods -l app=web-production -o jsonpath='{.items[0].metadata.name}')"
+k -n default annotate pod "$WEBPOD" ad.datadoghq.com/web.logs_exclude- >/dev/null
+refuses "preflight prod fails when a prod web pod lacks a Datadog annotation" "FAIL +web pod $WEBPOD lacks Datadog ad.datadoghq.com/web.logs_exclude" \
+  "$REL/preflight.sh" --env prod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
+k -n default annotate pod "$WEBPOD" ad.datadoghq.com/web.logs_exclude=true >/dev/null
+check "preflight prod passes again with the CronJob and the annotation back" "$REL/preflight.sh" --env prod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
+# Where the registry Secret's namespace must be declared: namespaces.yaml, another Namespace manifest, or a MANUAL line.
+grep -qE "^PASS +namespace preprod .*declared in prod/cluster-1/spec/preprod/namespace.yaml" "$LOGS/$PREPROD_PASS_N.log" \
+  && ok "preflight preprod: namespace preprod found in its own namespace.yaml" || notok "namespace check (log: $LOGS/$PREPROD_PASS_N.log)"
+mkdir -p "$WORK/infra-nsfile/prod/cluster-1/spec" "$WORK/infra-missing/prod/cluster-1/spec"
+printf 'apiVersion: v1\nkind: Namespace\nmetadata:\n  name: monitoring\n---\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: preprod\n' >"$WORK/infra-nsfile/prod/cluster-1/spec/namespaces.yaml"
+printf 'apiVersion: v1\nkind: Namespace\nmetadata:\n  name: monitoring\n---\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: preprod-other\n' >"$WORK/infra-missing/prod/cluster-1/spec/namespaces.yaml"
+check "preflight preprod: namespace preprod listed in namespaces.yaml" bash -c "'$REL/preflight.sh' --env preprod --context '$CTX' --repo '$FIX' --no-fetch --skip-image-check --infra-repo '$WORK/infra-nsfile' | grep -E '^PASS +namespace preprod .*is listed in prod/cluster-1/spec/namespaces.yaml'"
+refuses "preflight preprod fails when no manifest declares namespace preprod" "FAIL +namespace preprod .*is not declared" \
+  "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --infra-repo "$WORK/infra-missing"
+check "preflight preprod without --infra-repo passes and prints the namespace check as MANUAL" bash -c "'$REL/preflight.sh' --env preprod --context '$CTX' --repo '$FIX' --no-fetch --skip-image-check | grep -E '^MANUAL namespace preprod .*prod/cluster-1/spec/namespaces.yaml'"
 # A migration outside phase 1 pending at the code ref fails the preprod preflight unless it is named.
 git -C "$FIX" checkout -q master && mkdir -p "$FIX/reader/migrations" && touch "$FIX/reader/migrations/0099_release_test.py" \
   && git -C "$FIX" add -A && git -C "$FIX" commit -qm "fixture: an extra migration" && git -C "$FIX" push -q origin master
@@ -329,6 +406,79 @@ k -n preprod delete secret auth-service-registry >/dev/null
 refuses "preflight fails when the registry Secret is missing" "auth-service-registry is missing" \
   "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
 k -n preprod create secret generic auth-service-registry --from-literal=placeholder=not-a-secret >/dev/null
+
+# ---------------------------------------------------------------------------------------------------------------
+echo "# watch-promotion"
+refuses "watch-promotion refuses a context that is not the env's cluster" "not the cluster of preprod" \
+  "$REL/watch-promotion.sh" --env preprod --context kind-some-other-cluster --interval 1 --duration 1
+NEWEST="$(psql_pod -At -c "SELECT name FROM django_migrations WHERE app = 'powered_by' ORDER BY id DESC LIMIT 1")"
+before="$(db_state)"
+exits 0 "watch-promotion: a clean short window exits 0" "no threshold crossed" \
+  "$REL/watch-promotion.sh" --env preprod --context "$CTX" --interval 2 --duration 8 --out "$WORK/watch-clean"
+"$PY" - "$WORK/watch-clean/watch.jsonl" "$NEWEST" <<'PY' >"$LOGS/watch-clean.log" 2>&1 \
+  && ok "each tick recorded no lock wait, the newest powered_by migration ($NEWEST), 1/1 prod web pod ready, nginx requests and no 5xx" \
+  || { notok "watch-promotion JSON lines (log: $LOGS/watch-clean.log)"; tail -n 15 "$LOGS/watch-clean.log"; }
+import json, sys
+ticks = [json.loads(l) for l in open(sys.argv[1])]
+assert len(ticks) >= 3, len(ticks)
+for t in ticks:
+    assert not t["alarms"] and not t["errors"], t
+    assert t["db"]["lock_waits"] == [], t["db"]
+    assert t["db"]["newest_powered_by"]["name"] == sys.argv[2], t["db"]
+    assert t["web_pods"]["total"] == t["web_pods"]["ready"] == 1, t["web_pods"]
+    assert t["nginx"]["requests"] > 0 and t["nginx"]["5xx"] == 0, t["nginx"]
+print(len(ticks), "ticks")
+PY
+# Stopped early (Ctrl-C, or here TERM, which a background job can trap), it still prints the summary and exits 0.
+"$REL/watch-promotion.sh" --env preprod --context "$CTX" --interval 2 --duration 300 --out "$WORK/watch-stop" >"$LOGS/watch-stop.log" 2>&1 &
+STOP_PID=$!
+sleep 7
+kill -TERM "$STOP_PID"
+rc=0
+wait "$STOP_PID" || rc=$?
+[[ "$rc" == 0 ]] && grep -q "no threshold crossed" "$LOGS/watch-stop.log" && [[ "$(wc -l <"$WORK/watch-stop/watch.jsonl")" -ge 2 ]] \
+  && ok "watch-promotion stopped by a signal prints its summary and exits 0" || { notok "watch-promotion stop (exit $rc, log: $LOGS/watch-stop.log)"; tail -n 10 "$LOGS/watch-stop.log"; }
+# A transaction holding ACCESS EXCLUSIVE on powered_by_project, and a reader queued behind it whose query carries a
+# literal that must never reach the watch's output.
+MARKER="sfr_watchmarker$(od -An -N6 -tx1 /dev/urandom | tr -d ' \n')"
+psql_pod -c "SET application_name = 'release-test-lock'; BEGIN; LOCK TABLE powered_by_project IN ACCESS EXCLUSIVE MODE; SELECT pg_sleep(120); COMMIT;" </dev/null >/dev/null 2>&1 &
+HOLD_PID=$!
+for _ in $(seq 1 30); do
+  [[ "$(psql_pod -At -c "SELECT count(*) FROM pg_locks l JOIN pg_class c ON c.oid = l.relation WHERE c.relname = 'powered_by_project' AND l.mode = 'AccessExclusiveLock' AND l.granted")" == 1 ]] && break
+  sleep 1
+done
+psql_pod -c "SET application_name = 'release-test-waiter'; SELECT count(*) FROM powered_by_project WHERE name = 'x' /* it's */ OR name = '$MARKER'" </dev/null >/dev/null 2>&1 &
+WAIT_PID=$!
+exits 2 "watch-promotion: the lock-wait alarm fires while a transaction holds ACCESS EXCLUSIVE on powered_by_project" "ALARM: lock wait [0-9.]+s > 2s" \
+  "$REL/watch-promotion.sh" --env preprod --context "$CTX" --interval 2 --duration 30 --max-lock-wait 2 --long-query 1 --stop-on-alarm --out "$WORK/watch-lock"
+WATCH_LOCK_LOG="$LOGS/$N.log"
+"$PY" - "$WORK/watch-lock/watch.jsonl" <<'PY' >"$LOGS/watch-lock.log" 2>&1 \
+  && ok "the alarm tick names the waiter, its lock on powered_by_project, the blocking pid and the holder as long-running" \
+  || { notok "watch-promotion lock record (log: $LOGS/watch-lock.log)"; tail -n 15 "$LOGS/watch-lock.log"; }
+import json, sys
+last = [json.loads(l) for l in open(sys.argv[1])][-1]
+assert last["alarms"], last
+w = last["db"]["lock_waits"][0]
+assert w["application_name"] == "release-test-waiter" and w["waiting_for"].startswith("powered_by_project:"), w
+assert w["blocked_by"] and "'?'" in w["query"], w
+holder = [r for r in last["db"]["long_running"] if r["application_name"] == "release-test-lock"]
+assert holder and holder[0]["pid"] in w["blocked_by"], last["db"]["long_running"]
+PY
+! grep -rq "$MARKER" "$WORK/watch-lock" "$WATCH_LOCK_LOG" && ok "the query literal never reaches the watch output or its JSON lines" || notok "the query literal leaked"
+psql_pod -At -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE application_name LIKE 'release-test-%'" >/dev/null
+wait "$HOLD_PID" "$WAIT_PID" 2>/dev/null
+[[ "$(db_state)" == "$before" ]] && ok "the watches changed nothing in the database" || notok "the database changed during the watches"
+# prod nginx answering 503: the 5xx alarm.
+k -n default exec deploy/production-nginx-standin -c nginx -- sh -c 'echo 503 >/tmp/status'
+sleep 3
+exits 2 "watch-promotion: the 5xx alarm fires when prod nginx answers 503" "ALARM: prod 5xx [0-9.]+% > 5%" \
+  "$REL/watch-promotion.sh" --env preprod --context "$CTX" --interval 2 --duration 20 --max-5xx-pct 5 --min-requests 10 --stop-on-alarm --out "$WORK/watch-5xx"
+k -n default exec deploy/production-nginx-standin -c nginx -- rm -f /tmp/status
+# An unreadable database is an incomplete watch (exit 1), not a clean one.
+exits 1 "watch-promotion: a tick that cannot read the database exits 1" "could not read: db, migrations" \
+  env PG_POD=postgres-18-9 "$REL/watch-promotion.sh" --env preprod --context "$CTX" --interval 1 --duration 1 --out "$WORK/watch-nodb"
+exits 2 "watch-promotion: three ticks in a row without the database raise an alarm" "ALARM: the database could not be read for 3 ticks in a row" \
+  env PG_POD=postgres-18-9 "$REL/watch-promotion.sh" --env preprod --context "$CTX" --interval 1 --duration 30 --stop-on-alarm --out "$WORK/watch-nodb3"
 
 # ---------------------------------------------------------------------------------------------------------------
 echo "# restore db refused while phase 1 runs"
@@ -479,6 +629,40 @@ sed 's/^/    /' "$WORK/rehearsal/report.txt"
 : >"$WORK/empty-samples.tsv"
 refuses "a rehearsal summary with no sampler output is an error, not 'no lock waits'" "recorded nothing" \
   "$PY" "$REL/release_lib.py" rehearse-summary --timings "$WORK/rehearsal/timings.jsonl" --samples "$WORK/empty-samples.tsv" --out "$WORK/empty-report.json"
+
+# ---------------------------------------------------------------------------------------------------------------
+echo "# staging-smoke: the legacy apikey write, against a stub of the two endpoints"
+LEG="$WORK/legacy"
+mkdir -p "$LEG"
+LEGACY_KEY="legacy-smoke-$(od -An -N12 -tx1 /dev/urandom | tr -d ' \n')"
+printf '%s\n' "$LEGACY_KEY" >"$LEG/key"
+printf 'session-%s\n' "$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')" >"$LEG/session"
+"$PY" "$HERE/fixtures/legacy_api_stub.py" --key-file "$LEG/key" --session-file "$LEG/session" --port-file "$LEG/port" --log "$LEG/requests.jsonl" &
+STUB_PID=$!
+for _ in $(seq 1 20); do [[ -s "$LEG/port" ]] && break; sleep 0.5; done
+STUB="http://127.0.0.1:$(cat "$LEG/port")"
+"$REL/staging-smoke.sh" --base-url "$STUB" --no-gh >"$LEG/without.log" 2>&1
+grep -q "^MANUAL legacy apikey write" "$LEG/without.log" && ! grep -qi "^PASS.*legacy" "$LEG/without.log" \
+  && ok "staging-smoke without --legacy-apikey-file lists the legacy write as MANUAL, not PASS" || notok "legacy write without the flag ($LEG/without.log)"
+refuses "staging-smoke refuses --legacy-apikey-file without --session-cookie-file (nothing would delete the collection)" "needs --session-cookie-file" \
+  "$REL/staging-smoke.sh" --base-url "$STUB" --no-gh --legacy-apikey-file "$LEG/key"
+"$REL/staging-smoke.sh" --base-url "$STUB" --no-gh --legacy-apikey-file "$LEG/key" --session-cookie-file "$LEG/session" >"$LEG/with.log" 2>&1
+grep -q "^PASS  POST /api/collections with an unknown legacy key is refused" "$LEG/with.log" \
+  && grep -q "^PASS  legacy apikey write: POST /api/collections with the key in the body created collection" "$LEG/with.log" \
+  && grep -q "^PASS  the collection the legacy write created was deleted" "$LEG/with.log" \
+  && ! grep -q "^MANUAL legacy" "$LEG/with.log" \
+  && ok "staging-smoke --legacy-apikey-file: unknown key refused, write created a collection, the collection deleted" || { notok "legacy write checks ($LEG/with.log)"; grep -i legacy "$LEG/with.log" | sed 's/^/    /'; }
+"$PY" - "$LEG/requests.jsonl" <<'PY' && ok "the stub saw the key in the POST body and a CSRF-checked DELETE of the collection it created" || notok "stub request log ($LEG/requests.jsonl)"
+import json, sys
+reqs = [json.loads(l) for l in open(sys.argv[1])]
+created = [r["created"] for r in reqs if r.get("created")]
+deleted = [r["deleted"] for r in reqs if r.get("deleted")]
+assert len(created) == 1 and deleted == created, reqs
+assert any(r.get("key") == "unknown" for r in reqs), reqs
+PY
+! grep -rqF "$LEGACY_KEY" "$LEG/with.log" "$LEG/without.log" && ok "the legacy key never appears in staging-smoke's output" || notok "the legacy key was printed"
+kill "$STUB_PID" 2>/dev/null
+STUB_PID=""
 
 echo
 echo "1..$N"
