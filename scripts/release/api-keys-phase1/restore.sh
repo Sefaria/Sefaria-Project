@@ -259,7 +259,7 @@ snapshot_fn_state() {
 
 db_scoped() {
   local work stamp snap_fn
-  [[ -f "$SNAP/db/apikeys_notify.state" ]] \
+  [[ -s "$SNAP/db/apikeys_notify.state" ]] \
     || die "the snapshot has no db/apikeys_notify.state, so a restore could not be verified; take a new snapshot with snapshot.sh"
   snap_fn="$(snapshot_fn_state)"
   stamp="$(date -u +%Y%m%dT%H%M%SZ)"
