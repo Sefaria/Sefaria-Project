@@ -1,0 +1,47 @@
+# The Rollout as the sefaria chart renders it (name, labels, revision annotation, image); no Argo controller runs, so
+# the Deployment below provides the running web pods (label app=web-<deployEnv>, container web) for the scripts.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ .Values.deployEnv }}-web
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    app: web-{{ .Values.deployEnv }}
+  annotations:
+    rollout.argoproj.io/revision: "{{ .Release.Revision }}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: web-{{ .Values.deployEnv }}}
+  template:
+    metadata:
+      labels: {app: web-{{ .Values.deployEnv }}}
+    spec:
+      containers:
+        - name: web
+          image: {{ .Values.web.image }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.deployEnv }}-web-standin
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: web-{{ .Values.deployEnv }}}
+  template:
+    metadata:
+      labels: {app: web-{{ .Values.deployEnv }}}
+    spec:
+      terminationGracePeriodSeconds: 1
+      containers:
+        - name: web
+          image: {{ .Values.web.image }}
+          imagePullPolicy: Never
+          command: ["sleep", "infinity"]
+          env:
+            - {name: PGHOST, value: postgres-18.default.svc.cluster.local}
+            - {name: PGDATABASE, value: sefaria_auth}
+            - {name: PGUSER, value: postgres}
+            - {name: PGPASSWORD, value: postgres}
