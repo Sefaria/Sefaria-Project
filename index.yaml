@@ -182,6 +182,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.93.0-sc-47260-mask-admin-keys.1.tgz
     version: 0.93.0-sc-47260-mask-admin-keys.1
   - apiVersion: v2
+    appVersion: v7.11.5
+    created: "2026-11-09T13:54:35.460156374Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 923485d3cc0716f1e3f03f370a7ab23134e4a1af30f79374920d5078adee6379
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.93.0-sc-47260-latency-benchmark.1.tgz
+    version: 0.93.0-sc-47260-latency-benchmark.1
+  - apiVersion: v2
     appVersion: v7.11.4
     created: "2026-11-09T08:44:22.697615144Z"
     description: Chart to deploy complete Sefaria environment
@@ -24495,4 +24510,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-09T13:04:01.76876925Z"
+generated: "2026-11-09T13:54:35.455449274Z"
