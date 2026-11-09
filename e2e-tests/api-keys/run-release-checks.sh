@@ -10,6 +10,12 @@
 #   run-release-checks.sh cauldron          the read-only cauldron run (cauldron/run.sh free): no cluster writes
 #   run-release-checks.sh cauldron-seeded   cauldron/run.sh seeded: refuses to start without
 #                                           APIKEYS_ALLOW_SEEDING=<cauldron> (Yotam's go-ahead, cauldron/SAFETY.md)
+#   run-release-checks.sh perf              local numbers on the drill copy of the stack (~12 min): the perf runner's
+#                                           guard tests, then latency with and without ext_authz (k6), revoke-to-deny
+#                                           with NOTIFY and with LISTEN broken, one versus two replicas
+#   run-release-checks.sh perf-cauldron     perf/run-perf-cauldron.sh latency (and revoke with APIKEYS_PERF_REVOKE=1)
+#                                           on a dedicated perf cauldron: refuses unless APIKEYS_PERF_CAULDRON equals
+#                                           APIKEYS_CAULDRON, and never on apisplit or a shared cauldron (D6)
 #
 # Env: APIKEYS_STACK_PYTHON  a Python with the repo's requirements and PyYAML (default: the checkout's .venv)
 #      PLAYWRIGHT_WORKERS    default 2 (local); the cauldron is clamped to 2 by the config
@@ -22,7 +28,7 @@ REPO="$(cd "$HERE/../.." && pwd)"
 STACK="$REPO/auth-service/dev/local-stack"
 SCRIPTS="$REPO/auth-service/scripts"
 MODE="${1:-}"
-case "$MODE" in static|local|cauldron|cauldron-seeded) ;; *) sed -n 2,20p "$0"; exit 2 ;; esac
+case "$MODE" in static|local|cauldron|cauldron-seeded|perf|perf-cauldron) ;; *) sed -n 2,24p "$0"; exit 2 ;; esac
 
 if [ -z "${APIKEYS_STACK_PYTHON:-}" ] && [ -x "$REPO/.venv/bin/python" ]; then APIKEYS_STACK_PYTHON="$REPO/.venv/bin/python"; fi
 PY="${APIKEYS_STACK_PYTHON:-python3}"
@@ -72,6 +78,30 @@ static_checks() {
   step "provision-cluster-registry tests" bash "$SCRIPTS/test-provision-cluster-registry.sh"
   step "feature matrix --strict" "$PY" "$HERE/check_features.py" --strict
   step "feature matrix unit tests" "$PY" -m unittest discover -s "$HERE/tests" -t "$REPO"
+  step "perf cauldron runner guard tests (fake kubectl)" bash "$HERE/perf/test-perf-guards.sh"
+}
+
+# Local perf numbers (they never replace the perf-cauldron run): the drills build on the stack's auth service image,
+# rebuilt here from this checkout so the numbers are this code's. Each drill's JSON results go under $OUT/perf-*/.
+perf_checks() {
+  [ -x "$PY" ] || command -v "$PY" >/dev/null || { row "perf: python" FAIL "no Python at $PY (set APIKEYS_STACK_PYTHON)"; return; }
+  step "perf cauldron runner guard tests (fake kubectl)" bash "$HERE/perf/test-perf-guards.sh"
+  step "auth service image from this checkout" docker build -q -f "$REPO/build/auth-service/Dockerfile" --target runtime \
+    -t "${D11_AUTHSVC_IMAGE:-sefaria-apikeys-stack-authsvc:local}" "$REPO" || { row "perf" FAIL "no auth service image; drills skipped"; return; }
+  local d
+  for d in perf-latency perf-revoke perf-replicas; do
+    export PERF_OUT="$OUT/$d"
+    drill "$d"
+    grep -E '^(info|pass|FAIL) +PERF-[LRN] .*(added by|p99|revoke-to-deny|create-to-allow|reload cost|Checks per)' "$OUT/drill-$d.log" \
+      | sed 's/^/    /'
+  done
+  unset PERF_OUT
+}
+
+perf_cauldron() {
+  step "perf cauldron: latency (k6 Job)" bash "$HERE/perf/run-perf-cauldron.sh" latency
+  if [ "${APIKEYS_PERF_REVOKE:-}" = 1 ]; then step "perf cauldron: revoke-to-deny" bash "$HERE/perf/run-perf-cauldron.sh" revoke
+  else row "perf cauldron: revoke-to-deny" SKIP "APIKEYS_PERF_REVOKE=1 runs it (seeds and tears down fixtures)"; fi
 }
 
 seed() {  # seed ARGS... with the stack's settings wrapper
@@ -171,6 +201,8 @@ case "$MODE" in
   local) static_checks; local_checks ;;
   cauldron) step "cauldron run (read-only)" bash "$HERE/cauldron/run.sh" free ;;
   cauldron-seeded) step "cauldron run (seeded)" bash "$HERE/cauldron/run.sh" seeded ;;
+  perf) perf_checks ;;
+  perf-cauldron) perf_cauldron ;;
 esac
 
 echo
