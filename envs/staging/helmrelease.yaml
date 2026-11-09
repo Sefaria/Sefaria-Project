@@ -81,8 +81,11 @@ spec:
       # Flip to true only after staging is deliberately included in the rollout. Before flipping, two things must be true:
       #  1. A release has run first: deploy-static.yaml writes authService.image.tag, and that tag must exist in the registry.
       #     Flipping enabled alone fails rendering (image.tag is empty and required).
-      #  2. The Secret auth-service-registry (key AUTH_PG_DSN) exists in this release's namespace. This HelmRelease sets no
-      #     targetNamespace, so that is its own namespace (default); not verified against the cluster.
+      #  2. The Secret auth-service-registry (key AUTH_PG_DSN) in this release's namespace (default; no targetNamespace) names
+      #     staging's database. Infrastructure has one in dev/cluster-1/spec/default. Its DSN is encrypted, but infrastructure
+      #     #694 titled its last change "point auth-service-registry at Django's sefaria_auth registry", while staging's Django
+      #     writes to sefariastaging (postgres.db below). If the DSN does name sefaria_auth, the auth service would load another
+      #     database's keys: decrypt and check it, then repoint it or give staging its own Secret, before enabling.
       enabled: false
       # observe: never denies; records what would be rejected in x-sefaria-auth-result.
       mode: observe
@@ -98,8 +101,7 @@ spec:
       postgres:
         secrets:
           dsn:
-            # Name only. This Secret is not provisioned yet: before enabling, create auth-service-registry (key AUTH_PG_DSN)
-            # via infrastructure in the namespace this release deploys to.
+            # Name only. See step 2 above: the Secret exists in default, but which database it names is unverified.
             ref: auth-service-registry
             key: AUTH_PG_DSN
       rateLimit:
