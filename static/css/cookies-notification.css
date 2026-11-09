@@ -6,9 +6,9 @@
 .cookiesNotification {
   position: fixed;
   z-index: 9999;
-  color: white;
+  color: var(--white);
   background-color: #212e50;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid var(--light-grey);
   bottom: 0;
   box-sizing: border-box;
   width: 100%;
@@ -27,16 +27,18 @@
 }
 
 @media (max-width: 842px) {
-  body {
-    padding-bottom: var(--bottom-bar-height, 0px);
+  body:has(#s2.headerOnly) {
+    padding-bottom: var(--bottom-bar-height, 0);
   }
+  /* stylelint-disable selector-id-pattern -- existing ids from the React app */
   #s2:not(.headerOnly) #readerAppWrap,
   .mobileNavMenu {
-    padding-bottom: var(--bottom-bar-height, 0px);
+    padding-bottom: var(--bottom-bar-height, 0);
   }
   #s2:not(.headerOnly) #readerAppWrap {
     box-sizing: border-box;
   }
+  /* stylelint-enable selector-id-pattern */
 }
 @media (min-width: 843px) {
   :root {
@@ -52,7 +54,7 @@
   }
   .cookiesNotification .button {
     display: block;
-    margin: 10px 0 0 0;
+    margin: 10px 0 0;
   }
 }
 
