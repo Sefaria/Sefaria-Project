@@ -8,7 +8,7 @@ Master list of every feature in the current Sefaria web client, extracted from a
 - **Rebuild status** (new reader): done 391 · partial 57 · todo 385 · replaced 19 · deferred 22 · n/a 87; 390 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
-- `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's _Source_ points to.
+- `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
 
 ## Contents
 
@@ -23,14 +23,14 @@ Master list of every feature in the current Sefaria web client, extracted from a
 
 # Reader
 
-<a id="reader-shell"></a>
 
+<a id="reader-shell"></a>
 ## Reader shell & panels
+
 
 ### Dead code and latent bugs
 
 #### SHL-001 · Dead handleAppClick analytics handler
-
 `retire` `unused` · rebuild: **n/a** `system`
 
 An old root click handler for analytics exists but nothing calls it.
@@ -42,7 +42,6 @@ Code: [`static/js/ReaderApp.jsx:1173`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#0`
 
 #### SHL-002 · Vestigial Beit Midrash / chat remnants
-
 `retire` `unused` · rebuild: **n/a** `system`
 
 Leftover code from the retired Beit Midrash presence/chat feature remains in the shell.
@@ -56,7 +55,6 @@ Code: [`static/js/ReaderApp.jsx:40`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_02_reader_shell.md#0`
 
 #### SHL-003 · Unused rerender and undefined panel props
-
 `retire` `unused` · rebuild: **n/a** `system`
 
 Several props passed to the reader panel point at functions that do not exist.
@@ -73,7 +71,6 @@ Code: [`static/js/ReaderPanel.jsx:1186`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_02_reader_shell.md#0`
 
 #### SHL-004 · History-state bugs (URL building)
-
 `optional` `broken` · rebuild: **todo** `system`
 
 Several defects in how panel state is serialized to URLs would be copied by a literal port.
@@ -88,7 +85,6 @@ Code: [`static/js/ReaderApp.jsx:447`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_02_reader_shell.md#0`
 
 #### SHL-005 · Missing/phantom hooks and events
-
 `retire` `unused` · rebuild: **n/a** `system`
 
 Some documented hooks have no counterpart in the repo.
@@ -103,10 +99,10 @@ Code: [`static/js/ReaderApp.jsx:230`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_02_reader_shell.md#0`
 
+
 ### Reading settings menu
 
 #### SHL-006 · Color theme (light/dark/sepia) hooks
-
 `optional` `unused` · rebuild: **n/a**
 
 Panels carry a color theme class read from a cookie, but no UI lets readers change it.
@@ -119,8 +115,7 @@ Code: [`static/js/ReaderPanel.jsx:1159`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_02_reader_shell.md#0`
 
 #### SHL-007 · Reading settings defaults
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Reading preferences start from sensible defaults, overridden by the user's saved cookies.
 
@@ -133,8 +128,7 @@ Code: [`static/js/ReaderApp.jsx:975`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_02_reader_shell.md#6`
 
 #### SHL-008 · Settings persistence in cookies
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Reading choices are remembered across visits.
 
@@ -148,8 +142,7 @@ Code: [`static/js/ReaderPanel.jsx:530`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#6`
 
 #### SHL-009 · Font size stepping
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Readers can enlarge or shrink text in geometric steps.
 
@@ -160,7 +153,6 @@ Code: [`static/js/ReaderPanel.jsx:530`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#6`
 
 #### SHL-010 · New panels inherit display settings
-
 `standard` `live` · rebuild: **done** — New panels take the reader's default language, as sefaria.org
 
 Opening another panel keeps the reader's current display choices.
@@ -173,8 +165,7 @@ Code: [`static/js/ReaderApp.jsx:1559`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#6`
 
 #### SHL-011 · Effective layout resolution
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The layout actually used depends on language, panel width, panel type and category.
 
@@ -185,7 +176,6 @@ Code: [`static/js/ReaderPanel.jsx:637`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#6`
 
 #### SHL-012 · Auto bilingual layout flip for same-direction texts
-
 `standard` `live` · rebuild: **todo**
 
 When both languages run the same direction, side-by-side layout flips automatically.
@@ -197,7 +187,6 @@ Code: [`static/js/ReaderPanel.jsx:113`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#6`
 
 #### SHL-013 · Content-language override by context
-
 `standard` `live` · rebuild: **todo**
 
 Menus and sidebars show content in a language suited to the interface, not the text setting.
@@ -211,8 +200,7 @@ Code: [`static/js/ReaderPanel.jsx:145`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#6`
 
 #### SHL-014 · Sidebar panels never bilingual
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Connections panels show a single language even if the text is bilingual.
 
@@ -224,7 +212,6 @@ Code: [`static/js/ReaderApp.jsx:1861`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#6`
 
 #### SHL-015 · Non-Torah site forces English in library menu
-
 `optional` `live` · rebuild: **todo**
 
 On white-label deployments without Torah-specific mode, the Library menu opens in English.
@@ -236,7 +223,6 @@ Code: [`static/js/ReaderApp.jsx:2010`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#6`
 
 #### SHL-016 · Link language override when following links
-
 `optional` `live` · rebuild: **todo**
 
 Links inside translation pages carry their own language into the opened text.
@@ -248,8 +234,7 @@ Code: [`static/js/ReaderApp.jsx:1368`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#6`
 
 #### SHL-017 · Display options dropdown container
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 A text-display options button in the panel header opens a dropdown of reading settings.
 
@@ -263,8 +248,7 @@ Code: [`static/js/ReaderDisplayOptionsMenu.jsx:122`](https://github.com/Sefaria/
 Source: `inv_02_reader_shell.md#7`
 
 #### SHL-018 · Source / Translation / Both language toggle
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The settings menu lets readers choose source only, translation only, or both.
 
@@ -277,8 +261,7 @@ Code: [`static/js/SourceTranslationsButtons.jsx:9`](https://github.com/Sefaria/S
 Source: `inv_02_reader_shell.md#7`
 
 #### SHL-019 · Side-panel settings reduced to language only
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 In sidebar panels the settings menu only offers the language toggle.
 
@@ -289,8 +272,7 @@ Code: [`static/js/ReaderDisplayOptionsMenu.jsx:24`](https://github.com/Sefaria/S
 Source: `inv_02_reader_shell.md#7`
 
 #### SHL-020 · Settings menu show/hide rules per option
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Each option in the menu appears only when it applies to the text being read.
 
@@ -305,7 +287,6 @@ Code: [`static/js/ReaderDisplayOptionsMenu.jsx:43`](https://github.com/Sefaria/S
 Source: `inv_02_reader_shell.md#7`
 
 #### SHL-021 · Layout buttons by language-direction state
-
 `standard` `live` · rebuild: **todo**
 
 Layout choices offered depend on whether the text is mono- or bilingual and the text directions.
@@ -319,10 +300,10 @@ Code: [`static/js/LayoutButtons.jsx:19`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_02_reader_shell.md#7`
 
+
 ### App bootstrap
 
 #### SHL-022 · Client entry and hydration
-
 `core` `live` · rebuild: **replaced** — TanStack Start entry, providers in src/routes/__root.tsx; no global props object
 
 The client app boots from server-rendered HTML and takes over the page.
@@ -336,7 +317,6 @@ Code: [`static/js/client.jsx:14`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_02_reader_shell.md#1`
 
 #### SHL-023 · Header-only mode over static pages
-
 `core` `live` · rebuild: **n/a** — Header-only mode over Django static pages exists only because the old app bolts onto server-rendered pages
 
 Static Django pages get the live header and nav; clicking into the app turns the page into the reader.
@@ -352,7 +332,6 @@ Code: [`static/js/client.jsx:52`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_02_reader_shell.md#1`
 
 #### SHL-024 · Render arbitrary components into containers
-
 `standard` `live` · rebuild: **todo**
 
 The same bundle can render exported static-page components into designated containers.
@@ -365,7 +344,6 @@ Code: [`static/js/client.jsx:66`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_02_reader_shell.md#1`
 
 #### SHL-025 · Server-side single vs multi-panel decision
-
 `core` `live` · rebuild: **replaced** — No user-agent sniffing: one responsive layout, the single-panel breakpoint is a CSS media query (max-width: 842px)
 
 Mobile user agents get the single-panel reader; desktop gets multi-panel; ?mobile forces mobile.
@@ -379,7 +357,6 @@ Code: [`reader/views.py:347`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 Source: `inv_02_reader_shell.md#1`
 
 #### SHL-026 · Reader app render tree and providers
-
 `core` `live` · rebuild: **replaced** — TanStack Start entry, providers in src/routes/__root.tsx; no global props object
 
 The shell wraps everything in providers and mounts header, panels, modals and notices in a fixed order.
@@ -394,7 +371,6 @@ Code: [`static/js/ReaderApp.jsx:2577`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#1`
 
 #### SHL-027 · Reader app props and defaults
-
 `core` `live` · rebuild: **replaced** — TanStack Start entry, providers in src/routes/__root.tsx; no global props object
 
 The shell is configured by server-supplied initial props describing what to open first.
@@ -407,10 +383,10 @@ Code: [`static/js/ReaderApp.jsx:2633`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_02_reader_shell.md#1`
 
+
 ### Panel system
 
 #### SHL-028 · App-level reader state
-
 `core` `live` · rebuild: **done**
 
 The shell tracks all open panels plus shared state such as default versions and settings.
@@ -425,7 +401,6 @@ Code: [`static/js/ReaderApp.jsx:121`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_02_reader_shell.md#2`
 
 #### SHL-029 · Panel state model
-
 `core` `live` · rebuild: **partial** — Text panels only; sheet, menu and search panels are not modelled yet
 
 Every panel carries a standard set of fields describing what it shows and how.
@@ -444,8 +419,7 @@ Code: [`static/js/ReaderApp.jsx:148`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_02_reader_shell.md#3`
 
 #### SHL-030 · Initial panel construction from server props
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 On load, the shell reconstructs the full set of open panels from what the server sends.
 
@@ -467,11 +441,11 @@ Code: [`static/js/ReaderApp.jsx:59`](https://github.com/Sefaria/Sefaria-Project/
 
 Source: `inv_02_reader_shell.md#4; inv_01_urls_routing.md#4.1`
 
+
 ### Panel modes
 
 #### SHL-031 · Text panel (reading column)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The main reading mode: a scrolling text column for the current ref.
 
@@ -483,7 +457,6 @@ Code: [`static/js/ReaderPanel.jsx:752`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#5`
 
 #### SHL-032 · Sheet panel
-
 `core` `live` · rebuild: **todo** — Sheet and menu panel kinds plug into PanelHost in src/features/workspace/Workspace.tsx
 
 Source sheets open inside a reader panel.
@@ -495,8 +468,7 @@ Code: [`static/js/ReaderPanel.jsx:797`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#5`
 
 #### SHL-033 · Connections sidebar panel (shell wiring)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The resources sidebar opens as its own panel next to the text.
 
@@ -509,7 +481,6 @@ Code: [`static/js/ReaderPanel.jsx:820`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#5`
 
 #### SHL-034 · Menu panels (page-type routing in panel)
-
 `core` `live` · rebuild: **todo** — Sheet and menu panel kinds plug into PanelHost in src/features/workspace/Workspace.tsx
 
 The panel can show a full page (library, topics, collections, profile, etc.) instead of text; a menu replaces content.
@@ -530,8 +501,7 @@ Code: [`static/js/ReaderPanel.jsx:889`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#5`
 
 #### SHL-035 · Panel error state
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 If a panel fails, it shows a bilingual 'Something went wrong' message with the error text.
 
@@ -543,7 +513,6 @@ Code: [`static/js/ReaderPanel.jsx:715`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#5`
 
 #### SHL-036 · Panel root element, classes and landmarks
-
 `core` `live` · rebuild: **partial** — Each panel is a labelled <section>; no class state hooks beyond data attributes
 
 Each panel is an accessible region carrying classes that drive its look.
@@ -556,10 +525,10 @@ Code: [`static/js/ReaderPanel.jsx:1156`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_02_reader_shell.md#5`
 
+
 ### Compare panel
 
 #### SHL-037 · Compare panel header
-
 `standard` `live` · rebuild: **todo**
 
 Panels used to pick a second text have their own header with search and settings.
@@ -573,7 +542,6 @@ Code: [`static/js/ComparePanelHeader.jsx:19`](https://github.com/Sefaria/Sefaria
 Source: `inv_02_reader_shell.md#7`
 
 #### SHL-038 · Compare / 'other text' panel
-
 `standard` `live` · rebuild: **todo** `desktop only`
 
 Readers can open a second text beside the first by picking it through a library browse flow.
@@ -588,11 +556,11 @@ Code: [`static/js/ReaderApp.jsx:1830`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_02_reader_shell.md#9`
 
+
 ### Multi-panel layout
 
 #### SHL-039 · Panel cap and widths
-
-`core` `live` · rebuild: **done** · _tested_ `desktop only`
+`core` `live` · rebuild: **done** · *tested* `desktop only`
 
 The number of visible side-by-side panels depends on window width; special ratios give text more room.
 
@@ -608,8 +576,7 @@ Code: [`static/js/ReaderApp.jsx:2389`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#8`
 
 #### SHL-040 · Auto-scroll to newly added panel
-
-`standard` `live` · rebuild: **done** · _tested_ `desktop only`
+`standard` `live` · rebuild: **done** · *tested* `desktop only`
 
 When panels overflow, the view scrolls horizontally to reveal a new panel.
 
@@ -621,7 +588,6 @@ Code: [`static/js/ReaderApp.jsx:280`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_02_reader_shell.md#8`
 
 #### SHL-041 · Scrollbar-compensating padding
-
 `optional` `live` · rebuild: **todo**
 
 Single-panel text stays centered under the header despite a scrollbar.
@@ -634,7 +600,6 @@ Code: [`static/js/ReaderApp.jsx:1025`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#8`
 
 #### SHL-042 · Panel width measurement
-
 `standard` `live` · rebuild: **todo**
 
 Each panel measures itself so layout controls respond to its actual width.
@@ -645,11 +610,11 @@ Code: [`static/js/ReaderPanel.jsx:77`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_02_reader_shell.md#8`
 
+
 ### Panel operations
 
 #### SHL-043 · Open text (replace all panels)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Navigating from the header or a top-level link replaces the whole panel set with the new text.
 
@@ -660,8 +625,7 @@ Code: [`static/js/ReaderApp.jsx:1722`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-044 · Open panel at position
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 A ref can open as a new panel after, or replace, an existing panel.
 
@@ -677,8 +641,7 @@ Code: [`static/js/ReaderApp.jsx:1730`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-045 · Commentary ref opens as base text plus commentary
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Opening 'Rashi on Genesis 1:1:4' shows Genesis 1:1 with Rashi alongside.
 
@@ -692,8 +655,7 @@ Code: [`static/js/ReaderApp.jsx:1809`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-046 · Segment click opens connections sidebar
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Clicking a text segment opens the resources sidebar for it.
 
@@ -707,8 +669,7 @@ Code: [`static/js/ReaderApp.jsx:1052`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-047 · Open connections list at panel
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The sidebar panel is created or updated, inheriting filters and versions from its parent text.
 
@@ -722,8 +683,7 @@ Code: [`static/js/ReaderApp.jsx:1840`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-048 · Close panel
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Closing panels cascades sensibly and the last close returns home.
 
@@ -736,8 +696,7 @@ Code: [`static/js/ReaderApp.jsx:1955`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-049 · Citation click opens cited text
-
-`core` `live` · rebuild: **done** — Citation closes what is next and opens there, as sefaria.org (owner decision) · _tested_
+`core` `live` · rebuild: **done** — Citation closes what is next and opens there, as sefaria.org (owner decision) · *tested*
 
 Clicking a citation opens the cited text in an adjacent panel (or replaces in mobile).
 
@@ -750,7 +709,6 @@ Code: [`static/js/ReaderApp.jsx:1077`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-050 · Search/sidebar result navigation in panels
-
 `standard` `live` · rebuild: **todo**
 
 Search results clicked inside side panels land in the right panel.
@@ -763,7 +721,6 @@ Code: [`static/js/ReaderApp.jsx:1102`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-051 · Connection filter state management
-
 `standard` `live` · rebuild: **todo**
 
 Selecting a commentator/category filter updates sidebar mode and remembers recent filters.
@@ -777,8 +734,7 @@ Code: [`static/js/ReaderApp.jsx:1887`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-052 · Version filter state in sidebar
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Choosing a translation/version in the sidebar tracks recent version filters.
 
@@ -790,8 +746,7 @@ Code: [`static/js/ReaderApp.jsx:1916`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-053 · Selected words routed to dictionary lookup
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Selecting words in text feeds the Lexicon sidebar.
 
@@ -803,7 +758,6 @@ Code: [`static/js/ReaderApp.jsx:1935`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-054 · Navigate panel to ref with cascade
-
 `standard` `live` · rebuild: **todo**
 
 Moving a panel to a new ref keeps its linked panel in sync.
@@ -815,7 +769,6 @@ Code: [`static/js/ReaderApp.jsx:1663`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-055 · Extended notes view
-
 `optional` `live` · rebuild: **todo**
 
 Books with extended notes can open them from the book page or the sidebar.
@@ -827,7 +780,6 @@ Code: [`static/js/ReaderApp.jsx:1687`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-056 · Show base text / open sheet from panel
-
 `core` `live` · rebuild: **partial** — Opening a base text in place works; opening a sheet in a panel waits for Voices
 
 Panels can switch to a text or a sheet in place.
@@ -841,7 +793,6 @@ Code: [`static/js/ReaderPanel.jsx:259`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-057 · Panel menu helpers
-
 `standard` `live` · rebuild: **todo**
 
 Small panel actions for menus: close menus, open a menu, set categories/topic/tab etc.
@@ -855,7 +806,6 @@ Code: [`static/js/ReaderPanel.jsx:357`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-058 · Connections mode switching and login gating
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Sidebar tools that require an account prompt anonymous users to log in.
@@ -868,7 +818,6 @@ Code: [`static/js/ReaderPanel.jsx:550`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-059 · Panel text data loading and current book/category
-
 `core` `live` · rebuild: **done**
 
 Each panel loads the text for its visible ref and versions.
@@ -881,7 +830,6 @@ Code: [`static/js/ReaderPanel.jsx:66`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-060 · Open library, voices, root, search and user pages
-
 `core` `live` · rebuild: **todo** — Open library, Voices, search and user pages from a panel
 
 Header/nav actions open the right home or page panel.
@@ -896,11 +844,11 @@ Code: [`static/js/ReaderApp.jsx:2007`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_02_reader_shell.md#12`
 
+
 ### Single vs multi-panel
 
 #### SHL-061 · Single-panel (mobile) behavior differences
-
-`core` `live` · rebuild: **done** · _tested_ `mobile only`
+`core` `live` · rebuild: **done** · *tested* `mobile only`
 
 Mobile shows one panel at a time; many interactions change rather than add panels.
 
@@ -914,8 +862,7 @@ Code: [`static/js/ReaderApp.jsx:1215`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#10`
 
 #### SHL-062 · Mobile reader controls as header
-
-`core` `live` · rebuild: **done** · _tested_ `mobile only`
+`core` `live` · rebuild: **done** · *tested* `mobile only`
 
 On mobile, the in-panel text header replaces the site header while reading.
 
@@ -928,10 +875,10 @@ Code: [`static/js/ReaderPanel.jsx:1399`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_02_reader_shell.md#10`
 
+
 ### History and navigation
 
 #### SHL-063 · Browser history sync for panel state
-
 `core` `live` · rebuild: **done** — History entries record why they changed (scroll/stay/select/go) and which panel
 
 The reader pushes or replaces browser history as panel state changes so back/forward and URL sharing work.
@@ -946,8 +893,7 @@ Code: [`static/js/ReaderApp.jsx:893`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_02_reader_shell.md#11`
 
 #### SHL-064 · Back/forward (popstate) restoration
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Back and forward restore panel state and scroll position.
 
@@ -960,8 +906,7 @@ Code: [`static/js/ReaderApp.jsx:316`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_02_reader_shell.md#11`
 
 #### SHL-065 · Scroll position persistence in history
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Scroll position is saved so returning to a page restores your place.
 
@@ -972,8 +917,7 @@ Code: [`static/js/ReaderApp.jsx:965`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_02_reader_shell.md#11`
 
 #### SHL-066 · Panel state to URL serialization (shell-specific rules)
-
-`core` `live` · rebuild: **done** — URLs read and written exactly as sefaria.org (owner decision); corpus round-trips · _tested_
+`core` `live` · rebuild: **done** — URLs read and written exactly as sefaria.org (owner decision); corpus round-trips · *tested*
 
 Multiple panels are encoded into a single URL, with short forms for the common text+sidebar case.
 
@@ -992,7 +936,6 @@ Code: [`static/js/ReaderApp.jsx:515`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_02_reader_shell.md#11`
 
 #### SHL-067 · In-app link routing (openURL)
-
 `core` `live` · rebuild: **partial** — Links in the text and sidebar navigate in-app; no global interception for arbitrary hrefs yet
 
 Clicking internal links navigates within the app without a page reload when possible.
@@ -1008,7 +951,6 @@ Code: [`static/js/ReaderApp.jsx:1330`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#11`
 
 #### SHL-068 · External bootstrap-url event
-
 `optional` `unused` · rebuild: **n/a**
 
 An external script can ask the app to navigate to a ref or URL.
@@ -1021,7 +963,6 @@ Code: [`static/js/ReaderApp.jsx:1272`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#11`
 
 #### SHL-069 · In-app link interception and modifier keys
-
 `core` `live` · rebuild: **partial** — Real anchors honour modifier clicks inside FilterRow; text links and others not audited
 
 Plain clicks stay in the app; modified clicks and right-click open normally, even across module subdomains.
@@ -1034,10 +975,10 @@ Code: [`static/js/ReaderApp.jsx:1182`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_02_reader_shell.md#11`
 
+
 ### Search state plumbing
 
 #### SHL-070 · Per-panel search state management
-
 `standard` `live` · rebuild: **todo**
 
 Search filters and sort are tracked per panel and survive history navigation.
@@ -1049,11 +990,11 @@ Code: [`static/js/ReaderApp.jsx:1469`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_02_reader_shell.md#12`
 
+
 ### Keyboard
 
 #### SHL-071 · Escape closes panel
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Pressing Escape inside a panel closes it.
 
@@ -1064,10 +1005,10 @@ Code: [`static/js/ReaderPanel.jsx:646`](https://github.com/Sefaria/Sefaria-Proje
 
 Source: `inv_02_reader_shell.md#15`
 
+
 ### Contexts and hooks
 
 #### SHL-072 · Reader panel context
-
 `core` `live` · rebuild: **replaced** — Panels get their own state and callbacks through TextPanel props and useWorkspaceNav, not a context
 
 Per-panel display state is shared with child components through a context.
@@ -1079,7 +1020,6 @@ Code: [`static/js/context.js:16`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_02_reader_shell.md#18`
 
 #### SHL-073 · Shared React hooks
-
 `standard` `live` · rebuild: **todo**
 
 Utility hooks for language resolution, debouncing and incremental loading.
@@ -1091,11 +1031,11 @@ Code: [`static/js/Hooks.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 
 Source: `inv_02_reader_shell.md#18`
 
+
 ### Reader controls
 
 #### SHL-074 · In-panel text header (ReaderControls)
-
-`core` `live` · rebuild: **partial** — Title, attribution, version label, display settings; no save button; title does not open the sidebar yet; hidden-on-phone-with-sidebar not done · _tested_
+`core` `live` · rebuild: **partial** — Title, attribution, version label, display settings; no save button; title does not open the sidebar yet; hidden-on-phone-with-sidebar not done · *tested*
 
 Each text panel has a header with title, subtitle, save and display settings.
 
@@ -1113,10 +1053,10 @@ Code: [`static/js/ReaderPanel.jsx:1172`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_02_reader_shell.md#19`
 
+
 ### Unsaved changes
 
 #### SHL-075 · Unsaved sheet-editor change protection
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Leaving the editor with unsaved changes prompts for confirmation (in-app navigation only).
@@ -1129,15 +1069,15 @@ Code: [`static/js/ReaderApp.jsx:1947`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_02_reader_shell.md#22`
 
-<a id="text-display"></a>
 
+<a id="text-display"></a>
 ## Text display & reading settings
+
 
 ### Copy and paste
 
 #### TXD-001 · Custom copy formatting for selected text
-
-`core` `live` · rebuild: **done** — Clean copy; markup simpler than the old · _tested_
+`core` `live` · rebuild: **done** — Clean copy; markup simpler than the old · *tested*
 
 Copied text is cleaned of numbers and UI chrome so it pastes nicely.
 
@@ -1153,11 +1093,11 @@ Code: [`static/js/ReaderApp.jsx:2239`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_02_reader_shell.md#21`
 
+
 ### Rendering pipeline
 
 #### TXD-002 · Reader text column renders sections of text
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The reader shows a scrolling column of text sections, each made of numbered segments, in the main panel and side panels.
 
@@ -1172,8 +1112,7 @@ Code: [`static/js/ReaderPanel.jsx:735-795`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_03_text_rendering.md#1`
 
 #### TXD-003 · TextRange load, redirect and prefetch
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 When a section loads, the reader normalizes odd refs and prefetches neighbors and links.
 
@@ -1188,7 +1127,6 @@ Code: [`static/js/TextRange.jsx:34-187`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_03_text_rendering.md#5.2, 0.2, 0.3`
 
 #### TXD-004 · Dead actionLinks and prefetchMultiple props
-
 `retire` `unused` · rebuild: **n/a**
 
 Two reader options exist in code that do nothing or would break.
@@ -1200,10 +1138,10 @@ Code: [`static/js/TextRange.jsx:393`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_03_text_rendering.md#0.2, 0.3`
 
+
 ### Data fetching
 
 #### TXD-005 · Fetch text via v3 texts API with versions
-
 `core` `live` · rebuild: **done**
 
 Text for a section is loaded with the user's chosen source and translation versions, with gaps filled in.
@@ -1219,8 +1157,7 @@ Code: [`static/js/sefaria/sefaria.js:632-647`](https://github.com/Sefaria/Sefari
 Source: `inv_03_text_rendering.md#2.1, 2.3, 0.5`
 
 #### TXD-006 · Client picks source and translation versions
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The reader decides which Hebrew/primary and translation versions to show using the user's selection, per-corpus preference and language preference.
 
@@ -1235,7 +1172,6 @@ Code: [`static/js/sefaria/sefaria.js:790-822`](https://github.com/Sefaria/Sefari
 Source: `inv_03_text_rendering.md#2.2, 3.7`
 
 #### TXD-007 · Adapt v3 API response to legacy text shape
-
 `core` `live` · rebuild: **replaced** — The legacy text shape, per-segment cache and request adapter are replaced by the normalised model and the section-level library cache
 
 The newer text API response is converted into the older field layout the reader components expect.
@@ -1250,7 +1186,6 @@ Code: [`static/js/sefaria/sefaria.js:750-777`](https://github.com/Sefaria/Sefari
 Source: `inv_03_text_rendering.md#2.4, 0.6`
 
 #### TXD-008 · Legacy text cache with per-segment entries
-
 `core` `live` · rebuild: **replaced** — The legacy text shape, per-segment cache and request adapter are replaced by the normalised model and the section-level library cache
 
 Fetched text is cached per segment and section so neighbors, context and spanning refs load instantly.
@@ -1267,8 +1202,7 @@ Code: [`static/js/sefaria/sefaria.js:1207-1333`](https://github.com/Sefaria/Sefa
 Source: `inv_03_text_rendering.md#2.5, 6.9`
 
 #### TXD-009 · Server-rendered panel text seeded into client
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The first text panel arrives already rendered from the server and is then refreshed by the client.
 
@@ -1283,8 +1217,7 @@ Code: [`static/js/sefaria/sefaria.js:3953-3970`](https://github.com/Sefaria/Sefa
 Source: `inv_03_text_rendering.md#2.5, 3.7`
 
 #### TXD-010 · Build numbered segments from text data
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Raw text arrays are turned into numbered, addressable segments with highlight and alt-structure markers.
 
@@ -1298,11 +1231,11 @@ Code: [`static/js/sefaria/sefaria.js:2481-2555`](https://github.com/Sefaria/Sefa
 
 Source: `inv_03_text_rendering.md#2.6`
 
+
 ### Titles
 
 #### TXD-011 · Section title strings (named vs numbered)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Each section gets a title such as 'Chapter 4' or '2a' in English and Hebrew.
 
@@ -1315,8 +1248,7 @@ Code: [`static/js/sefaria/sefaria.js:2556-2602`](https://github.com/Sefaria/Sefa
 Source: `inv_03_text_rendering.md#2.7`
 
 #### TXD-012 · Section title in text column
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Each section shows a title like 'Chapter 4' or '2a' above its text.
 
@@ -1329,8 +1261,7 @@ Code: [`static/js/TextRange.jsx:239-253`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.2, 5.6`
 
 #### TXD-013 · Reader header title and version label
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The reader header shows the book and current section with the active translation's name.
 
@@ -1346,11 +1277,11 @@ Code: [`static/js/ReaderPanel.jsx:1310-1510`](https://github.com/Sefaria/Sefaria
 
 Source: `inv_03_text_rendering.md#9`
 
+
 ### Ref handling
 
 #### TXD-014 · Client ref parsing and helpers for text addressing
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The client parses, normalizes and compares refs, including dafs, ranges and dictionary entries.
 
@@ -1364,7 +1295,6 @@ Code: [`static/js/sefaria/sefaria.js:35-114`](https://github.com/Sefaria/Sefaria
 Source: `inv_03_text_rendering.md#2.8, 0.8`
 
 #### TXD-015 · Section label by address type for TOC
-
 `standard` `live` · rebuild: **todo**
 
 Table-of-contents section labels follow each text's addressing scheme (daf, year, folio, number).
@@ -1376,10 +1306,10 @@ Code: [`static/js/sefaria/sefaria.js:355-373`](https://github.com/Sefaria/Sefari
 
 Source: `inv_03_text_rendering.md#2.8, 6.9`
 
+
 ### Backend shaping
 
 #### TXD-016 · v3 texts API parameters and warnings
-
 `standard` `live` · rebuild: **todo** `system`
 
 The text API accepts version selectors and return formats and reports missing versions.
@@ -1394,7 +1324,6 @@ Code: [`api/views.py:28-87`](https://github.com/Sefaria/Sefaria-Project/blob/bb4
 Source: `inv_03_text_rendering.md#3.1, 0.13`
 
 #### TXD-017 · TextRequestAdapter version resolution and payload
-
 `core` `live` · rebuild: **replaced** — The legacy text shape, per-segment cache and request adapter are replaced by the normalised model and the section-level library cache `system`
 
 The server resolves requested versions, merges gaps and returns text plus ref, index and node metadata.
@@ -1412,7 +1341,6 @@ Code: [`sefaria/model/text_request_adapter.py:68-187`](https://github.com/Sefari
 Source: `inv_03_text_rendering.md#3.2`
 
 #### TXD-018 · Return formats and text cleaning
-
 `standard` `live` · rebuild: **todo** `system`
 
 The API can return text with inline links, plain text, or footnote-stripped text.
@@ -1426,7 +1354,6 @@ Code: [`sefaria/model/text_request_adapter.py:240-337`](https://github.com/Sefar
 Source: `inv_03_text_rendering.md#3.2, 3.5`
 
 #### TXD-019 · Merge versions segment by segment
-
 `standard` `live` · rebuild: **todo** `system`
 
 When the chosen version has gaps, missing segments are filled from the next-best version of the same language.
@@ -1438,10 +1365,10 @@ Code: [`sefaria/model/text.py:1674-1716`](https://github.com/Sefaria/Sefaria-Pro
 
 Source: `inv_03_text_rendering.md#3.6`
 
+
 ### Inline markup
 
 #### TXD-020 · Allowed inline HTML in stored text
-
 `standard` `live` · rebuild: **todo** `system`
 
 Stored texts may contain a fixed set of formatting tags, footnotes, images, and overlay markers.
@@ -1456,8 +1383,7 @@ Code: [`sefaria/constants/model.py:1-12`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#3.5, 5.5`
 
 #### TXD-021 · Inline citation links in text (refLink)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Citations inside a text are clickable links that open the cited source.
 
@@ -1471,8 +1397,7 @@ Code: [`sefaria/model/marked_up_text_chunk.py:319-339`](https://github.com/Sefar
 Source: `inv_03_text_rendering.md#3.4, 5.3, 7.2`
 
 #### TXD-022 · Inline named-entity (topic) links in text
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 People and concepts named in the text are underlined links that open the topic/lexicon sidebar.
 
@@ -1489,7 +1414,6 @@ Code: [`sefaria/model/marked_up_text_chunk.py:342-351`](https://github.com/Sefar
 Source: `inv_03_text_rendering.md#3.4, 5.3, 7.3`
 
 #### TXD-023 · Inline category links in text
-
 `optional` `live` · rebuild: **todo**
 
 Mentions of a category name in the text can link to that category in the library.
@@ -1501,7 +1425,6 @@ Code: [`sefaria/model/marked_up_text_chunk.py:354-363`](https://github.com/Sefar
 Source: `inv_03_text_rendering.md#3.4`
 
 #### TXD-024 · Entity span safety rules
-
 `standard` `live` · rebuild: **todo** `system`
 
 Stale or invalid link annotations are skipped so edited text never shows broken links.
@@ -1514,8 +1437,7 @@ Code: [`sefaria/model/marked_up_text_chunk.py:160-191`](https://github.com/Sefar
 Source: `inv_03_text_rendering.md#3.4`
 
 #### TXD-025 · Footnotes toggle inline
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Footnote markers in the text expand and collapse the footnote text in place.
 
@@ -1529,12 +1451,11 @@ Code: [`static/js/TextRange.jsx:227-231`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.3, 5.5`
 
 #### TXD-026 · Inline images in text
-
 `standard` `live` · rebuild: **todo**
 
 Texts can contain whole-segment images with captions and inline images in running text.
 
-- Full-segment image (segment is exactly one <img>, isFullSegmentImage regex /^\s*<img\b[^>]_>\s_$/i): VersionImageSpan renders .image-in-text > img + p.image-in-text-title (alt as caption); onLoad re-places segment numbers.
+- Full-segment image (segment is exactly one <img>, isFullSegmentImage regex /^\s*<img\b[^>]*>\s*$/i): VersionImageSpan renders .image-in-text > img + p.image-in-text-title (alt as caption); onLoad re-places segment numbers.
 - In bilingual mode, if both sides are images the primary image is suppressed (translation preferred).
 - CSS: centered flex, responsive widths, aspect-ratio rules. Inline images stay in HTML with .segment img {max-width:100%}.
 
@@ -1543,8 +1464,7 @@ Code: [`static/js/ContentText.jsx:32-100`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_03_text_rendering.md#5.4`
 
 #### TXD-027 · Inline commentary markers (itags)
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 When a commentary is selected in connections, numbered markers appear in the base text where that commentator comments.
 
@@ -1557,8 +1477,7 @@ Code: [`static/js/TextRange.jsx:528-553`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.3, 6.4`
 
 #### TXD-028 · Page-transition overlay markers
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Page and column breaks of printed editions appear as small markers inside the text.
 
@@ -1570,8 +1489,7 @@ Code: [`static/css/s2.css:7726-7744`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_03_text_rendering.md#5.5, 6.2`
 
 #### TXD-029 · Search-term highlighting in text
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 When arriving from search, the matched words are highlighted inside the opened segment.
 
@@ -1583,7 +1501,6 @@ Code: [`static/js/TextRange.jsx:454-458`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.3, 7.1`
 
 #### TXD-030 · Linker debug mode spans
-
 `optional` `live` · rebuild: **todo** `moderator`
 
 In debug mode, auto-detected citations are color-coded by status for moderators.
@@ -1596,11 +1513,11 @@ Code: [`static/js/TextRange.jsx:485-527`](https://github.com/Sefaria/Sefaria-Pro
 
 Source: `inv_03_text_rendering.md#3.4, 5.3, 7.5`
 
+
 ### Reading settings
 
 #### TXD-031 · Language display: Source / Translation / Bilingual
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Readers choose to see the source text, a translation, or both together.
 
@@ -1617,7 +1534,6 @@ Code: [`static/js/ReaderPanel.jsx:145-161`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_03_text_rendering.md#3, 4`
 
 #### TXD-032 · Language toggle visibility rule in display menu
-
 `standard` `live` · rebuild: **todo**
 
 The Source/Translation buttons only appear under certain conditions.
@@ -1630,8 +1546,7 @@ Code: [`static/js/ReaderDisplayOptionsMenu.jsx:27-33`](https://github.com/Sefari
 Source: `inv_03_text_rendering.md#0.10, 4.1`
 
 #### TXD-033 · Layout: segmented vs continuous
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Readers can show text as one verse/segment per line or as a flowing paragraph.
 
@@ -1647,8 +1562,7 @@ Code: [`static/js/ReaderPanel.jsx:526-529`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_03_text_rendering.md#4, 4.1, 5.6`
 
 #### TXD-034 · Bilingual layout: stacked / side by side
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 In bilingual mode the translation can sit under the source or beside it, with either side on the left.
 
@@ -1664,8 +1578,7 @@ Code: [`static/js/ReaderPanel.jsx:637-645`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_03_text_rendering.md#4, 4.1, 5.6`
 
 #### TXD-035 · Auto side-by-side direction correction
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 When source and translation read in the same direction, side-by-side layout flips to the sensible order automatically.
 
@@ -1676,8 +1589,7 @@ Code: [`static/js/ReaderPanel.jsx:113-128`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_03_text_rendering.md#4`
 
 #### TXD-036 · Font size controls
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Readers can make text smaller or larger.
 
@@ -1690,8 +1602,7 @@ Code: [`static/js/ReaderPanel.jsx:735`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_03_text_rendering.md#4, 4.1, 5.6`
 
 #### TXD-037 · Vowels (nikkud) toggle
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Readers can hide Hebrew vowel points.
 
@@ -1705,8 +1616,7 @@ Code: [`static/js/ReaderDisplayOptionsMenu.jsx:71-79`](https://github.com/Sefari
 Source: `inv_03_text_rendering.md#4.1, 5.7, 0.11`
 
 #### TXD-038 · Cantillation (te'amim) toggle
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Readers can hide Hebrew cantillation marks while keeping vowels.
 
@@ -1720,7 +1630,6 @@ Code: [`static/js/ReaderDisplayOptionsMenu.jsx:81-90`](https://github.com/Sefari
 Source: `inv_03_text_rendering.md#4.1, 5.7, 0.7`
 
 #### TXD-039 · Color theme (light / sepia / dark)
-
 `optional` `live` · rebuild: **todo**
 
 Reader panels are fully styled for light, sepia and dark themes.
@@ -1733,7 +1642,6 @@ Code: [`static/js/ReaderApp.jsx:990`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_03_text_rendering.md#4, 0.4`
 
 #### TXD-040 · Reader panel CSS state classes
-
 `core` `live` · rebuild: **replaced** — CSS state classes on the panel are data attributes on the rebuild's components
 
 The panel carries classes that drive language, layout, direction and narrow-width styling.
@@ -1748,8 +1656,7 @@ Code: [`static/js/ReaderPanel.jsx:1156-1166`](https://github.com/Sefaria/Sefaria
 Source: `inv_03_text_rendering.md#4, 5.6`
 
 #### TXD-041 · Display options menu
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 One menu groups language, layout, aliyot, font size, vowels, cantillation and punctuation controls.
 
@@ -1765,7 +1672,6 @@ Code: [`static/js/ReaderDisplayOptionsMenu.jsx`](https://github.com/Sefaria/Sefa
 Source: `inv_03_text_rendering.md#4.1`
 
 #### TXD-042 · Initial settings defaults from cookies
-
 `core` `live` · rebuild: **done**
 
 New visitors and returning readers get sensible default reading settings.
@@ -1777,11 +1683,11 @@ Code: [`reader/views.py:353-364`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_03_text_rendering.md#3.7, 4`
 
+
 ### Segment rendering
 
 #### TXD-043 · Primary vs translation visibility per segment
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Each segment shows the source, the translation, or both depending on language setting and what exists.
 
@@ -1795,7 +1701,6 @@ Code: [`static/js/TextRange.jsx:629-650`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.3, 6.10, 0.13`
 
 #### TXD-044 · RTL translations rendered with Hebrew styling
-
 `core` `live` · rebuild: **partial** — RTL translations get direction; Hebrew styling not verified for every language
 
 Right-to-left translations (Arabic, Persian, Yiddish, Judeo-Arabic) and LTR sources display correctly.
@@ -1811,8 +1716,7 @@ Code: [`static/js/ContentText.jsx:22-45`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.3, 6.10, 5.5`
 
 #### TXD-045 · Segment numbers
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Each verse/segment shows its number in the margin, in Hebrew numerals for Hebrew.
 
@@ -1829,8 +1733,7 @@ Code: [`static/js/TextRange.jsx:256-260`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.2, 5.3, 5.6`
 
 #### TXD-046 · Segment number and dot positioning in continuous mode
-
-`core` `live` · rebuild: **done** — Gutter placement matches; collisions step apart (live's fix misplaces them) · _tested_
+`core` `live` · rebuild: **done** — Gutter placement matches; collisions step apart (live's fix misplaces them) · *tested*
 
 In continuous layout, numbers and link dots are positioned at their segment's start line without overlapping.
 
@@ -1845,8 +1748,7 @@ Code: [`static/js/TextRange.jsx:188-226`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.2`
 
 #### TXD-047 · Link-count dot per segment
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 A faint dot next to each segment shows how many connections it has.
 
@@ -1860,8 +1762,7 @@ Code: [`static/js/TextRange.jsx:604-616`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.3`
 
 #### TXD-048 · Segment click routing
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Clicking different parts of a segment does different things: follow a citation, toggle a footnote, open a topic, or open connections.
 
@@ -1874,8 +1775,7 @@ Code: [`static/js/TextRange.jsx:485-527`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.3, 5.2`
 
 #### TXD-049 · Segment keyboard accessibility
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Segments are keyboard focusable and openable with Enter or Space.
 
@@ -1887,8 +1787,7 @@ Code: [`static/js/TextRange.jsx:485-527`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.3`
 
 #### TXD-050 · Highlighting of selected segment(s)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The segment being studied is marked with a light-blue background — but only while the connections sidebar is open. A plain verse or range link scrolls to the verse without a visible highlight.
 
@@ -1904,7 +1803,6 @@ Code: [`static/js/TextRange.jsx:282-285`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#7.1, 5.6`
 
 #### TXD-051 · Poetry line formatting
-
 `retire` `unused` · rebuild: **n/a**
 
 Poetic texts can show each line with hanging indent.
@@ -1916,11 +1814,11 @@ Code: [`static/js/TextRange.jsx:254-255`](https://github.com/Sefaria/Sefaria-Pro
 
 Source: `inv_03_text_rendering.md#5.3, 0.1`
 
+
 ### Scrolling
 
 #### TXD-052 · Infinite scroll up and down in the reader
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Readers scroll continuously through neighboring sections without page reloads.
 
@@ -1935,8 +1833,7 @@ Code: [`static/js/TextColumn.jsx:241-269`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_03_text_rendering.md#5.1, 0.12`
 
 #### TXD-053 · Scroll container differs by device
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 On phones the whole page scrolls; on desktop the text column scrolls.
 
@@ -1949,8 +1846,7 @@ Code: [`static/js/TextColumn.jsx:49-74`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_03_text_rendering.md#5.1`
 
 #### TXD-054 · Initial and highlight scroll positioning
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 On opening, the reader scrolls to the cited segment, leaving room above to scroll up.
 
@@ -1964,8 +1860,7 @@ Code: [`static/js/TextColumn.jsx:75-112`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.1`
 
 #### TXD-055 · Visible-ref tracking drives URL and header
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 As you scroll, the URL follows the segment you are reading (segment level, e.g. /Genesis.1.8), the header follows the section, and — with the sidebar open — the blue highlight and the sidebar's connections follow too (TXD-067).
 
@@ -1981,8 +1876,7 @@ Code: [`static/js/TextColumn.jsx:404-445`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_03_text_rendering.md#5.1`
 
 #### TXD-056 · Loading placeholders and book title header
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Above and below the loaded text the column shows a book title at the start of a book or loading indicators.
 
@@ -1996,8 +1890,7 @@ Code: [`static/js/TextColumn.jsx:33-35`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_03_text_rendering.md#5.1, 11`
 
 #### TXD-067 · Current-segment highlight follows the reader
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 With the connections sidebar open, the light-blue highlight moves from segment to segment as you scroll, and the sidebar's content follows the highlighted segment.
 
@@ -2011,8 +1904,7 @@ Code: [`static/js/TextColumn.jsx`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_03_text_rendering.md#5.3`
 
 #### TXD-068 · Jump-free reading: place keeping and pre-paint placement (rebuild)
-
-`core` `rebuild-only` · rebuild: **done** · _tested_
+`core` `rebuild-only` · rebuild: **done** · *tested*
 
 In the rebuild, nothing you are reading ever moves unless you scroll: sections added above, fonts arriving, the sidebar opening, font-size and layout changes all keep the current segment still, and a linked verse is in place from the first visible frame.
 
@@ -2025,8 +1917,7 @@ In the rebuild, nothing you are reading ever moves unless you scroll: sections a
 Source: `sefaria-reader: src/features/reader/use-reading-scroll.ts`
 
 #### TXD-069 · Neighbouring sections preloaded with the page (rebuild)
-
-`standard` `rebuild-only` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `rebuild-only` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 The server tells the browser to fetch the previous and next sections while the app is still loading, so scrolling past an edge right after arrival is instant.
 
@@ -2034,11 +1925,11 @@ The server tells the browser to fetch the previous and next sections while the a
 
 Source: `sefaria-reader: src/features/reader/reader-route.ts`
 
+
 ### Interaction
 
 #### TXD-057 · Text selection and double-click guard
-
-`standard` `live` · rebuild: **partial** — Selection read and click-after-selection guard done; selected segments are not highlighted; double-click guard not ported · _tested_
+`standard` `live` · rebuild: **partial** — Selection read and click-after-selection guard done; selected segments are not highlighted; double-click guard not ported · *tested*
 
 Selecting text highlights its segments and can trigger dictionary lookup.
 
@@ -2052,8 +1943,7 @@ Code: [`static/js/TextColumn.jsx:128-170`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_03_text_rendering.md#5.1`
 
 #### TXD-058 · Copy text with clean formatting
-
-`standard` `live` · rebuild: **done** — Clean copy; markup simpler than the old · _tested_
+`standard` `live` · rebuild: **done** — Clean copy; markup simpler than the old · *tested*
 
 Copying text from the reader yields clean text without numbers, links or hidden-language spans.
 
@@ -2070,8 +1960,7 @@ Code: [`static/js/ReaderApp.jsx:2239-2333`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_03_text_rendering.md#5.9, 0.14`
 
 #### TXD-059 · Select words to look up in lexicon
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Selecting a Hebrew/Aramaic word (up to a few words) opens a dictionary lookup.
 
@@ -2084,11 +1973,11 @@ Code: [`static/js/ReaderApp.jsx:1935-1942`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_03_text_rendering.md#7.4, 0.9`
 
+
 ### Fonts and CSS
 
 #### TXD-060 · Fonts for Hebrew, English and special scripts
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Text renders with fonts supporting cantillation and other scripts.
 
@@ -2107,7 +1996,6 @@ Code: [`static/css/fonts.css`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_03_text_rendering.md#5.5`
 
 #### TXD-061 · Basetext layout box and bilingual CSS
-
 `core` `live` · rebuild: **done**
 
 The text column has a standard width, line height and justified text, with bilingual alignment rules.
@@ -2125,7 +2013,6 @@ Code: [`static/css/s2.css:6839-7351`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_03_text_rendering.md#5.6`
 
 #### TXD-062 · Print stylesheet for text
-
 `optional` `live` · rebuild: **todo**
 
 Printing a text hides interface chrome and keeps clean reading layout.
@@ -2137,10 +2024,10 @@ Code: [`static/css/s2-print.css`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_03_text_rendering.md#5.6`
 
+
 ### Banners
 
 #### TXD-063 · Translation-language preference suggestion banner
-
 `standard` `live` · rebuild: **deferred** — Needs country header + accounts
 
 Readers from certain countries are asked if they prefer translations in their local language.
@@ -2155,8 +2042,7 @@ Code: [`static/js/TextColumnBanner.jsx`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_03_text_rendering.md#8`
 
 #### TXD-064 · Open translations banner
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Readers of English text in major corpora are offered a shortcut to change the translation.
 
@@ -2169,11 +2055,11 @@ Code: [`static/js/TextColumnBanner.jsx`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_03_text_rendering.md#8, 6.1, 6.2, 6.3`
 
+
 ### Hebrew utilities
 
 #### TXD-065 · Hebrew numeral and daf encoding
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Numbers and dafs display as Hebrew letters in Hebrew UI.
 
@@ -2186,10 +2072,10 @@ Code: [`static/js/sefaria/hebrew.js:155-264`](https://github.com/Sefaria/Sefaria
 
 Source: `inv_03_text_rendering.md#10`
 
+
 ### Language selection
 
 #### TXD-066 · Source/translation language popover
-
 `standard` `live` · rebuild: **todo**
 
 A small popover lets users choose Source, Translation, or Source with Translation.
@@ -2200,15 +2086,15 @@ Code: [`static/js/Misc.jsx:3421`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.12`
 
-<a id="text-types"></a>
 
+<a id="text-types"></a>
 ## Text types & special cases
+
 
 ### Tanakh
 
 #### TXT-001 · Tanakh text treatment
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Tanakh books use their own layout setting and short numeric chapter/verse titles.
 
@@ -2221,11 +2107,11 @@ Code: [`static/js/ReaderPanel.jsx:526-529`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_03_text_rendering.md#6.1`
 
+
 ### Torah
 
 #### TXT-002 · Parashah and aliyah headers in Torah text
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Torah text shows parashah and aliyah headings inline, which readers can toggle.
 
@@ -2241,8 +2127,7 @@ Code: [`static/js/sefaria/util.js:23-42`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.8, 6.1, 3.3, 3.7`
 
 #### TXT-003 · Aliyot toggle and URL param (Torah and Onkelos only)
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Readers can turn aliyah headings on or off, only for the five books of Moses and their Onkelos targum.
 
@@ -2254,11 +2139,11 @@ Code: [`static/js/ReaderDisplayOptionsMenu.jsx:49-55`](https://github.com/Sefari
 
 Source: `inv_03_text_rendering.md#4.1, 4, 6.1`
 
+
 ### Targum
 
 #### TXT-004 · Targum Onkelos parashah headers
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Onkelos targum shows the same parashah/aliyah headers as the Torah.
 
@@ -2268,11 +2153,11 @@ Code: [`static/js/sefaria/util.js:23-42`](https://github.com/Sefaria/Sefaria-Pro
 
 Source: `inv_03_text_rendering.md#6.1, 6.8`
 
+
 ### Talmud
 
 #### TXT-005 · Talmud continuous layout default
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Talmud text opens as a flowing paragraph by default, with each daf side (amud) as its own labelled section.
 
@@ -2283,8 +2168,7 @@ Code: [`static/js/ReaderPanel.jsx:526-529`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_03_text_rendering.md#6.2`
 
 #### TXT-006 · Talmud punctuation toggle and stripping
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Readers can hide the added punctuation in Hebrew/Aramaic Talmud text.
 
@@ -2297,8 +2181,7 @@ Code: [`static/js/ReaderDisplayOptionsMenu.jsx:91-98`](https://github.com/Sefari
 Source: `inv_03_text_rendering.md#5.7, 6.2, 4.1`
 
 #### TXT-007 · Talmud daf addressing (a/b, Hebrew dafs)
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Talmud sections are addressed by daf and amud and shown in Hebrew-letter form.
 
@@ -2312,8 +2195,7 @@ Code: [`static/js/sefaria/hebrew.js:155-168`](https://github.com/Sefaria/Sefaria
 Source: `inv_03_text_rendering.md#6.2, 2.6, 2.8`
 
 #### TXT-008 · Vilna page and Venice column markers
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Talmud text shows markers where printed-edition pages or columns change.
 
@@ -2324,8 +2206,7 @@ Code: [`static/css/s2.css:7726-7744`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_03_text_rendering.md#6.2, 5.5`
 
 #### TXT-009 · William Davidson Talmud attribution in header
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 The reader header credits the William Davidson Talmud edition for the Babylonian Talmud.
 
@@ -2337,7 +2218,6 @@ Code: [`static/js/sefaria/sefaria.js:2743-2763`](https://github.com/Sefaria/Sefa
 Source: `inv_03_text_rendering.md#6.2, 9`
 
 #### TXT-010 · Open-translation banner for Bavli
-
 `standard` `live` · rebuild: **todo**
 
 Bavli readers see the 'change translation' prompt.
@@ -2349,7 +2229,6 @@ Code: [`static/js/sefaria/sefaria.js:1507-1516`](https://github.com/Sefaria/Sefa
 Source: `inv_03_text_rendering.md#6.2, 8`
 
 #### TXT-011 · Talmud commentary opens in main panel
-
 `standard` `live` · rebuild: **todo**
 
 Talmud commentaries shallower than segment depth open as the main text rather than in the sidebar.
@@ -2361,7 +2240,6 @@ Code: [`static/js/sefaria/sefaria.js:2618-2625`](https://github.com/Sefaria/Sefa
 Source: `inv_03_text_rendering.md#6.2`
 
 #### TXT-012 · Jerusalem Talmud named-entity attribution
-
 `optional` `live` · rebuild: **todo**
 
 Named entities in the Yerushalmi carry a different data-source credit.
@@ -2372,11 +2250,11 @@ Code: [`static/js/LexiconBox.jsx:114-119`](https://github.com/Sefaria/Sefaria-Pr
 
 Source: `inv_03_text_rendering.md#6.2`
 
+
 ### Folio
 
 #### TXT-013 · Folio address type (four-sided pages)
-
-`optional` `broken` · rebuild: **partial** — Only the supporting helper/colour is built (tested); the page/address UI is not · _tested_
+`optional` `broken` · rebuild: **partial** — Only the supporting helper/colour is built (tested); the page/address UI is not · *tested*
 
 Texts addressed by folio (sides a-d) have display helpers but incomplete parsing.
 
@@ -2387,11 +2265,11 @@ Code: [`static/js/sefaria/sefaria.js:355-373`](https://github.com/Sefaria/Sefari
 
 Source: `inv_03_text_rendering.md#6.2, 0.8`
 
+
 ### Mishnah
 
 #### TXT-014 · Mishnah and Tosefta (Tanaitic) treatment
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Mishnah and Tosefta use short numeric section titles and the translation prompt.
 
@@ -2401,11 +2279,11 @@ Code: [`static/js/TextRange.jsx:244`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_03_text_rendering.md#6.3`
 
+
 ### Commentary
 
 #### TXT-015 · Commentary opens as base text with connection (base-text conversion)
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Opening a commentary ref shows the underlying base text with that commentary selected in the sidebar.
 
@@ -2418,8 +2296,7 @@ Code: [`static/js/ReaderApp.jsx:1757-1765`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_03_text_rendering.md#6.4`
 
 #### TXT-016 · Commentary rendered as base text
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 When conversion does not apply, a commentary is read as its own text with numbered segments and short titles.
 
@@ -2433,7 +2310,6 @@ Code: [`static/js/TextRange.jsx:127-131`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#6.4, 2.5`
 
 #### TXT-017 · Commentary markers and link dots with filter
-
 `standard` `live` · rebuild: **todo**
 
 With a commentator filter, base text shows that commentator's footnote-style markers and matching link counts.
@@ -2445,7 +2321,6 @@ Code: [`static/js/TextRange.jsx:528-553`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#6.4, 5.3`
 
 #### TXT-018 · Commentary number labels in connections list
-
 `standard` `live` · rebuild: **todo**
 
 In the connections list, commentary entries show the anchor verse or marker number.
@@ -2457,11 +2332,11 @@ Code: [`static/js/TextRange.jsx:351-379`](https://github.com/Sefaria/Sefaria-Pro
 
 Source: `inv_03_text_rendering.md#5.2, 1`
 
+
 ### Dictionaries
 
 #### TXT-019 · Dictionary and lexicon text display (Reference category)
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Dictionary and lexicon entries (Jastrow, BDB, Klein, etc.) display without section titles or segment numbers.
 
@@ -2475,11 +2350,11 @@ Code: [`static/js/TextColumn.jsx:448-466`](https://github.com/Sefaria/Sefaria-Pr
 
 Source: `inv_03_text_rendering.md#6.5`
 
+
 ### Liturgy
 
 #### TXT-020 · Liturgy (Siddur) text treatment
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Prayer texts omit segment numbers and use named section titles.
 
@@ -2489,10 +2364,10 @@ Code: [`static/js/TextRange.jsx:257`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_03_text_rendering.md#6.6`
 
+
 ### Philosophy
 
 #### TXT-021 · Guide for the Perplexed: no segment numbers
-
 `optional` `live` · rebuild: **todo**
 
 This single title hides segment numbers.
@@ -2503,11 +2378,11 @@ Code: [`static/js/TextRange.jsx:256`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_03_text_rendering.md#6.7`
 
+
 ### Other categories
 
 #### TXT-022 · Default treatment for other categories
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Midrash, Halakhah, Kabbalah, Responsa and similar categories use the standard segmented layout with named section titles.
 
@@ -2520,10 +2395,10 @@ Code: [`static/js/TextRange.jsx:244`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_03_text_rendering.md#6.8`
 
+
 ### Complex texts
 
 #### TXT-023 · Complex texts, default nodes and book-level refs
-
 `core` `live` · rebuild: **done**
 
 Texts with multiple sections or intros resolve to their first readable section, and bare book names open the table of contents.
@@ -2540,7 +2415,6 @@ Code: [`sefaria/model/text_request_adapter.py:340`](https://github.com/Sefaria/S
 Source: `inv_03_text_rendering.md#6.9`
 
 #### TXT-024 · Address types and non-1 numbering
-
 `standard` `live` · rebuild: **todo**
 
 Texts can be addressed by many schemes and may start numbering at an offset.
@@ -2554,11 +2428,11 @@ Code: [`sefaria/model/schema.py:2031-2790`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_03_text_rendering.md#6.9`
 
+
 ### Translation-only texts
 
 #### TXT-025 · Hebrew-only and translation-only texts
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Texts lacking a translation or source still display sensibly.
 
@@ -2574,10 +2448,10 @@ Code: [`static/js/TextRange.jsx:629-650`](https://github.com/Sefaria/Sefaria-Pro
 
 Source: `inv_03_text_rendering.md#6.10`
 
+
 ### Sheets in panels
 
 #### TXT-026 · Sheet opened inside a reader panel
-
 `core` `live` · rebuild: **todo**
 
 A source sheet opens in a reader panel with its own renderer and bilingual layout rules.
@@ -2590,11 +2464,11 @@ Code: [`static/js/ReaderPanel.jsx:274-310`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_03_text_rendering.md#6.11`
 
+
 ### Searching text
 
 #### TXT-027 · Search result click highlights query terms
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Opening a text from a search result highlights the searched words in the verse.
 
@@ -2605,14 +2479,14 @@ Code: [`static/js/TextRange.jsx:286`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_03_text_rendering.md#7.1, 5.3`
 
-<a id="connections"></a>
 
+<a id="connections"></a>
 ## Connections & resources sidebar
+
 
 ### Linker admin
 
 #### CON-001 · Linker admin citation click
-
 `optional` `live` · rebuild: **todo** `staff`
 
 Staff can inspect a linker-detected citation span in the sidebar.
@@ -2623,10 +2497,10 @@ Code: [`static/js/ReaderPanel.jsx:194`](https://github.com/Sefaria/Sefaria-Proje
 
 Source: `inv_02_reader_shell.md#9`
 
+
 ### Connections panel header
 
 #### CON-002 · Connections header mobile variant
-
 `standard` `live` · rebuild: **todo** `mobile only`
 
 On mobile the connections header uses a category-colored border and recent-commentator chips.
@@ -2638,8 +2512,7 @@ Code: [`static/js/ConnectionsPanelHeader.jsx:158`](https://github.com/Sefaria/Se
 Source: `inv_02_reader_shell.md#10`
 
 #### CON-003 · Connections panel header (back/title/close)
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 The sidebar header shows context-aware back navigation, language toggle and close.
 
@@ -2651,11 +2524,11 @@ Code: [`static/js/ConnectionsPanelHeader.jsx`](https://github.com/Sefaria/Sefari
 
 Source: `inv_02_reader_shell.md#19`
 
+
 ### Sidebar architecture
 
 #### CON-004 · Resources sidebar panel placement (desktop/mobile)
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 The resources sidebar opens beside the text on desktop and inside the same panel on mobile, inheriting the text panel's current filters and versions.
 
@@ -2676,7 +2549,6 @@ Code: [`static/js/ReaderApp.jsx:1870`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_04_connections.md#1`
 
 #### CON-005 · Sidebar panel state fields
-
 `core` `live` · rebuild: **todo** `system`
 
 Sidebar state (mode, filters, recent filters, version filters, search query, selected words) lives on the panel so it can be restored, shared and mirrored.
@@ -2693,8 +2565,7 @@ Code: [`static/js/ReaderApp.jsx:150`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_04_connections.md#1.2`
 
 #### CON-006 · Sidebar mode switching and gating rules
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Switching sidebar tools is centralized: it tracks the click, enforces sign-in for some modes, and resets filters when returning to Resources.
 
@@ -2713,7 +2584,6 @@ Code: [`static/js/ReaderPanel.jsx:550`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_04_connections.md#1.3`
 
 #### CON-007 · Complete sidebar mode inventory
-
 `core` `live` · rebuild: **todo**
 
 The sidebar has about 25 modes, each rendering one tool or view.
@@ -2729,8 +2599,7 @@ Code: [`static/js/ConnectionsPanel.jsx:268`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#1.4`
 
 #### CON-008 · Opening and closing the sidebar
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Users open the sidebar by clicking a segment, the text title, or the translations shortcut, and close it with the X or by tapping back on mobile.
 
@@ -2745,8 +2614,7 @@ Code: [`static/js/ReaderPanel.jsx:1308`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_04_connections.md#22`
 
 #### CON-009 · Mobile sidebar behavior summary
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_ `mobile only`
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested* `mobile only`
 
 On mobile the sidebar is in-panel with simplified header and behaviors.
 
@@ -2759,7 +2627,6 @@ Code: [`reader/views.py:820`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 Source: `inv_04_connections.md#26`
 
 #### CON-010 · Sheets and AboutSheet sidebar modes (no render)
-
 `retire` `broken` · rebuild: **n/a**
 
 URL modes that no longer render anything.
@@ -2771,8 +2638,7 @@ Code: [`static/js/ReaderApp.jsx:500`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_04_connections.md#0`
 
 #### CON-011 · Sign-in gating across sidebar tools
-
-`core` `live` · rebuild: **done** — Signed out gated; signed in gets the tools · _tested_
+`core` `live` · rebuild: **done** — Signed out gated; signed in gets the tools · *tested*
 
 Several sidebar tools require sign-in or moderator rights.
 
@@ -2789,11 +2655,11 @@ Code: [`static/js/ConnectionsPanel.jsx:687`](https://github.com/Sefaria/Sefaria-
 
 Source: `inv_04_connections.md#24`
 
+
 ### Resources view
 
 #### CON-012 · Resources home view
-
-`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · _tested_
+`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
 The top-level sidebar view lists top tools, a Related Texts summary, Resources (sheets, web pages, topics, etc.) and Tools.
 
@@ -2809,8 +2675,7 @@ Code: [`static/js/ConnectionsPanel.jsx:272`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#2`
 
 #### CON-013 · Top tool buttons
-
-`core` `live` · rebuild: **done** — About, Translations, Table of Contents and Search in this Text work · _tested_
+`core` `live` · rebuild: **done** — About, Translations, Table of Contents and Search in this Text work · *tested*
 
 The top of the Resources view offers About this Text, Table of Contents, Search in this Text, Translations and (when available) Guided Learning.
 
@@ -2826,8 +2691,7 @@ Code: [`static/js/ConnectionsPanel.jsx:292`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#2.2`
 
 #### CON-014 · Resources list (sheets, web pages, topics, manuscripts, readings)
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 A list of resource types for the selected text with counts, each opening its own view.
 
@@ -2842,8 +2706,7 @@ Code: [`static/js/ConnectionsPanel.jsx:662`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#2.4`
 
 #### CON-015 · Tools list
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 A list of tools on the selected text: Add to Sheet, Dictionaries, Compare Text, Notes, Share, Feedback, Advanced.
 
@@ -2857,7 +2720,6 @@ Code: [`static/js/ConnectionsPanel.jsx:687`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#2.5`
 
 #### CON-016 · Tools button component behavior
-
 `standard` `live` · rebuild: **todo**
 
 Every sidebar tool button is a consistent control with count, icon, keyboard support and analytics.
@@ -2874,8 +2736,7 @@ Code: [`static/js/ConnectionsPanel.jsx:1095`](https://github.com/Sefaria/Sefaria
 Source: `inv_04_connections.md#2.7`
 
 #### CON-017 · Sheets resource opens Voices in new tab
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 The Sheets resource no longer shows sheets in the sidebar; it opens the sheets-with-ref page on the Voices module in a new tab.
 
@@ -2887,7 +2748,6 @@ Code: [`static/js/ConnectionsPanel.jsx:662`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#2.4`
 
 #### CON-018 · Chavruta video chat (removed)
-
 `retire` `unused` · rebuild: **n/a**
 
 Chavruta has been removed entirely from the client and server.
@@ -2896,11 +2756,11 @@ Chavruta has been removed entirely from the client and server.
 
 Source: `inv_04_connections.md#0`
 
+
 ### Related texts summary
 
 #### CON-019 · Connection categories summary
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 The Related Texts summary lists categories of linked texts (Commentary, Talmud, Midrash...) with counts, ordered sensibly for the text being read.
 
@@ -2915,8 +2775,7 @@ Code: [`static/js/sefaria/sefaria.js:1768`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_04_connections.md#3.1`
 
 #### CON-020 · Zero-count commentators shown greyed out
-
-`standard` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · _tested_
+`standard` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
 When a narrower ref is selected, every commentator available elsewhere in the section is still listed, greyed out and without a count.
 
@@ -2930,8 +2789,7 @@ Code: [`static/js/sefaria/sefaria.js:1872`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_04_connections.md#3.1`
 
 #### CON-021 · Commentator ordering rules
-
-`standard` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · _tested_
+`standard` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
 Within a category, well-known commentators are pinned first, then alphabetical.
 
@@ -2945,7 +2803,6 @@ Code: [`static/js/sefaria/sefaria.js:1953`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_04_connections.md#3.1`
 
 #### CON-022 · Link category assignment (server)
-
 `standard` `live` · rebuild: **todo** `system`
 
 The server decides which category each link belongs to, which drives the summary and filters.
@@ -2961,8 +2818,7 @@ Code: [`sefaria/client/wrapper.py:41`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_04_connections.md#3.1`
 
 #### CON-023 · Top-level summary: Quoting Commentary merged, collapse to 4
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 At top level, Quoting Commentary is folded into the Commentary row and only the first four categories show with a More button.
 
@@ -2974,8 +2830,7 @@ Code: [`static/js/ConnectionsPanel.jsx:740`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#3.2`
 
 #### CON-024 · Essay links in summary
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Essays that discuss the displayed text appear as green entries at the top of the connections summary.
 
@@ -2986,11 +2841,11 @@ Code: [`static/js/sefaria/sefaria.js:1714`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_04_connections.md#3.2`
 
+
 ### Filters
 
 #### CON-025 · Category view with per-book filters
-
-`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · _tested_
+`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
 Clicking a category shows its books with counts, descriptions and an 'All <Category>' row.
 
@@ -3009,8 +2864,7 @@ Code: [`static/js/ConnectionFilters.jsx:10`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#3.3`
 
 #### CON-026 · Text (book) filter chip
-
-`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · _tested_
+`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
 Each book/commentator in the list is a filter that narrows connections to just that source.
 
@@ -3023,8 +2877,7 @@ Code: [`static/js/ConnectionFilters.jsx:93`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#3.3`
 
 #### CON-027 · Link filter matching semantics
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_ `system`
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested* `system`
 
 Defines exactly which links a filter keeps.
 
@@ -3039,7 +2892,6 @@ Code: [`static/js/sefaria/sefaria.js:1676`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_04_connections.md#3.4`
 
 #### CON-028 · Recent filters chips
-
 `standard` `live` · rebuild: **todo**
 
 A strip of recently used filters lets users hop between sources quickly.
@@ -3056,8 +2908,7 @@ Code: [`static/js/ConnectionFilters.jsx:165`](https://github.com/Sefaria/Sefaria
 Source: `inv_04_connections.md#3.5`
 
 #### CON-029 · Sidebar filter mirrored to base text link dots
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 The base text shows link markers matching the sidebar's chosen category or filter.
 
@@ -3067,11 +2918,11 @@ Code: [`static/js/ReaderApp.jsx:1906`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_04_connections.md#16.5`
 
+
 ### Text list
 
 #### CON-030 · Connected texts list (TextList)
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Shows the actual connected passages (commentary, quotations, sheets) for the selected segment(s), filtered by the chosen source.
 
@@ -3088,7 +2939,6 @@ Code: [`static/js/TextList.jsx:36`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_04_connections.md#4`
 
 #### CON-031 · Commentary text preload before display
-
 `standard` `live` · rebuild: **todo**
 
 When filtered to a single commentator, the list waits until the commentary texts load so it renders without jumping.
@@ -3100,8 +2950,7 @@ Code: [`static/js/TextList.jsx:73`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_04_connections.md#4`
 
 #### CON-032 · Connection item rendering
-
-`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · _tested_
+`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
 Each connection shows the linked text with highlights, a number label for commentary, and quick actions.
 
@@ -3117,8 +2966,7 @@ Code: [`static/js/TextList.jsx:149`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_04_connections.md#4`
 
 #### CON-033 · Open connected text in main panel
-
-`core` `live` · rebuild: **done** — Open replaces the sidebar with a new panel, as sefaria.org (parity equal) · _tested_
+`core` `live` · rebuild: **done** — Open replaces the sidebar with a new panel, as sefaria.org (parity equal) · *tested*
 
 Each connection has an Open button that jumps the main panel to that source.
 
@@ -3131,8 +2979,7 @@ Code: [`static/js/TextList.jsx:255`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_04_connections.md#4`
 
 #### CON-034 · Add connection to sheet button
-
-`standard` `live` · rebuild: **partial** — Add to Sheet works; partial-selection trimming (CON-056) to do · _tested_ `signed-in`
+`standard` `live` · rebuild: **partial** — Add to Sheet works; partial-selection trimming (CON-056) to do · *tested* `signed-in`
 
 Signed-in users can add a connected passage straight to a source sheet.
 
@@ -3144,7 +2991,6 @@ Code: [`static/js/TextList.jsx:282`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_04_connections.md#4`
 
 #### CON-035 · Remove connection (moderator)
-
 `standard` `live` · rebuild: **todo** `moderator`
 
 Moderators can delete a bad link from the list.
@@ -3157,8 +3003,7 @@ Code: [`static/js/TextList.jsx:222`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_04_connections.md#4`
 
 #### CON-036 · Sidebar reading history (secondary views)
-
-`optional` `live` · rebuild: **done** · _tested_ `signed-in`
+`optional` `live` · rebuild: **done** · *tested* `signed-in`
 
 Passages a user dwells on in the sidebar are recorded in reading history as secondary views.
 
@@ -3172,7 +3017,6 @@ Code: [`static/js/ConnectionsPanel.jsx:131`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#4`
 
 #### CON-037 · Sidebar scroll position restore
-
 `optional` `live` · rebuild: **todo**
 
 Returning to a list view restores where the user was scrolled.
@@ -3184,7 +3028,6 @@ Code: [`static/js/ConnectionsPanel.jsx:99`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_04_connections.md#4`
 
 #### CON-038 · Citation clicks inside sidebar text
-
 `standard` `live` · rebuild: **done**
 
 Clicking a citation inside a sidebar passage opens the cited text as a new panel.
@@ -3198,11 +3041,11 @@ Code: [`static/js/ReaderApp.jsx:1077`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_04_connections.md#4`
 
+
 ### About this text
 
 #### CON-039 · About this text box
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The About view shows title, category, authors, description and composition info for the current text.
 
@@ -3221,7 +3064,6 @@ Code: [`static/js/AboutBox.jsx:54`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_04_connections.md#6`
 
 #### CON-040 · About box for a sheet
-
 `optional` `broken` · rebuild: **todo**
 
 When the selected source is a sheet, About shows the sheet's title, owner and summary.
@@ -3234,7 +3076,6 @@ Code: [`static/js/AboutBox.jsx:75`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_04_connections.md#6`
 
 #### CON-041 · Related topics module in About
-
 `optional` `live` · rebuild: **todo**
 
 About appends the book's related topics with a More expander.
@@ -3245,11 +3086,11 @@ Code: [`static/js/NavSidebar.jsx:719`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_04_connections.md#6`
 
+
 ### Lexicon
 
 #### CON-042 · Lexicon auto-activation on word selection
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Selecting one or two Hebrew words in the text automatically shows dictionary definitions in the sidebar.
 
@@ -3268,8 +3109,7 @@ Code: [`static/js/TextColumn.jsx:142`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_04_connections.md#9.1`
 
 #### CON-043 · Lexicon lookup and filtering
-
-`core` `live` · rebuild: **partial** — Lookup, filter and typed search done; no Hebrew keyboard or autocomplete in the box (search phase) · _tested_
+`core` `live` · rebuild: **partial** — Lookup, filter and typed search done; no Hebrew keyboard or autocomplete in the box (search phase) · *tested*
 
 Looks up selected words in applicable dictionaries based on the text being read.
 
@@ -3288,8 +3128,7 @@ Code: [`static/js/LexiconBox.jsx:83`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_04_connections.md#9.2`
 
 #### CON-044 · Dictionary entry rendering
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Dictionary entries render headwords, morphology, nested senses, notes and attribution, with special BDB formatting.
 
@@ -3308,8 +3147,7 @@ Code: [`static/js/LexiconBox.jsx:209`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_04_connections.md#9.3`
 
 #### CON-045 · Named entity popup in sidebar
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Clicking a highlighted person/place name in the text shows who or what it refers to.
 
@@ -3330,11 +3168,11 @@ Code: [`static/js/TextRange.jsx:500`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_04_connections.md#9.4; inv_02_reader_shell.md#9`
 
+
 ### Topics
 
 #### CON-046 · Topics for this ref
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Lists topics related to the selected passage with a short description and why it is connected.
 
@@ -3354,8 +3192,7 @@ Code: [`static/js/ConnectionsPanel.jsx:841`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#10`
 
 #### CON-047 · Add topic to ref (moderator)
-
-`optional` `live` · rebuild: **partial** — Search and add a topic: done (moderators). Creating a topic (TopicEditor) links to sefaria.org · _tested_ `moderator`
+`optional` `live` · rebuild: **partial** — Search and add a topic: done (moderators). Creating a topic (TopicEditor) links to sefaria.org · *tested* `moderator`
 
 Moderators can tag a text reference with a topic, or create a new topic, from the sidebar.
 
@@ -3379,11 +3216,11 @@ Code: [`static/js/TopicSearch.jsx:67`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_04_connections.md#10; inv_06_search.md#12`
 
+
 ### Notes
 
 #### CON-048 · Add private note on a ref
-
-`standard` `live` · rebuild: **partial** — Signed-out modal only; the tool itself needs accounts (Phase 7) · _tested_ `signed-in`
+`standard` `live` · rebuild: **partial** — Signed-out modal only; the tool itself needs accounts (Phase 7) · *tested* `signed-in`
 
 Signed-in users can write a private note attached to the selected passage.
 
@@ -3398,8 +3235,7 @@ Code: [`static/js/ConnectionsPanel.jsx:1258`](https://github.com/Sefaria/Sefaria
 Source: `inv_04_connections.md#11`
 
 #### CON-049 · My notes for these refs
-
-`standard` `live` · rebuild: **done** — Signed-in notes on the selection: add, edit, delete · _tested_ `signed-in`
+`standard` `live` · rebuild: **done** — Signed-in notes on the selection: add, edit, delete · *tested* `signed-in`
 
 Shows the user's existing notes on the selected passage with a link to all notes.
 
@@ -3412,7 +3248,6 @@ Code: [`static/js/sefaria/sefaria.js:2054`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_04_connections.md#11`
 
 #### CON-050 · Edit and delete note
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Users can edit or delete a note from the sidebar.
@@ -3425,7 +3260,6 @@ Code: [`static/js/ConnectionsPanel.jsx:1316`](https://github.com/Sefaria/Sefaria
 Source: `inv_04_connections.md#11`
 
 #### CON-051 · Public notes (disabled)
-
 `retire` `unused` · rebuild: **n/a**
 
 Sharing notes publicly is switched off; all notes are private.
@@ -3438,11 +3272,11 @@ Code: [`reader/views.py:2632`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_04_connections.md#0`
 
+
 ### Web pages
 
 #### CON-052 · Web pages citing this text
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Lists external websites that cite the selected passage, grouped by site.
 
@@ -3457,8 +3291,7 @@ Code: [`static/js/ConnectionsPanel.jsx:905`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#12`
 
 #### CON-053 · Web page list items
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Each web page shows its title, source, authors and the passage it cites.
 
@@ -3471,8 +3304,7 @@ Code: [`static/js/WebPage.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/
 Source: `inv_04_connections.md#12`
 
 #### CON-054 · Linker promo in web pages view
-
-`optional` `live` · rebuild: **done** · _tested_
+`optional` `live` · rebuild: **done** · *tested*
 
 A footer invites sites to use the Sefaria Linker.
 
@@ -3483,11 +3315,11 @@ Code: [`static/js/ConnectionsPanel.jsx:905`](https://github.com/Sefaria/Sefaria-
 
 Source: `inv_04_connections.md#12`
 
+
 ### Add to sheet
 
 #### CON-055 · Add selected source to a sheet
-
-`core` `live` · rebuild: **partial** — Signed-out modal only; the tool itself needs accounts (Phase 7) · _tested_ `signed-in`
+`core` `live` · rebuild: **partial** — Signed-out modal only; the tool itself needs accounts (Phase 7) · *tested* `signed-in`
 
 Users can add the selected passage (or a connected passage) to one of their sheets or a new sheet from the sidebar.
 
@@ -3505,7 +3337,6 @@ Code: [`static/js/AddToSourceSheet.jsx`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_04_connections.md#13`
 
 #### CON-056 · Add to sheet: version and partial-selection handling
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 When adding to a sheet, the right version text is used and a highlighted portion is trimmed precisely.
@@ -3519,7 +3350,6 @@ Code: [`static/js/AddToSourceSheet.jsx:194`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#13`
 
 #### CON-057 · Google Docs extension promo in Add to Sheet
-
 `optional` `live` · rebuild: **todo** `signed-in`
 
 A promo box in Add to Sheet advertises the Sefaria Google Docs extension.
@@ -3531,7 +3361,6 @@ Code: [`static/js/Promotions.jsx:114`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_04_connections.md#13`
 
 #### CON-058 · Legacy Gardens add-to-sheet path
-
 `retire` `unused` · rebuild: **n/a**
 
 Old Gardens hook that no longer works.
@@ -3542,11 +3371,11 @@ Code: [`static/js/AddToSourceSheet.jsx:180`](https://github.com/Sefaria/Sefaria-
 
 Source: `inv_04_connections.md#13`
 
+
 ### Media
 
 #### CON-059 · Torah Readings (audio clips)
-
-`optional` `broken` · rebuild: **done** · _tested_
+`optional` `broken` · rebuild: **done** · *tested*
 
 Plays recorded audio readings of the selected passage with a custom player.
 
@@ -3563,8 +3392,7 @@ Code: [`static/js/Media.jsx:32`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_04_connections.md#14.1`
 
 #### CON-060 · Manuscripts for this ref
-
-`optional` `live` · rebuild: **done** · _tested_
+`optional` `live` · rebuild: **done** · *tested*
 
 Shows thumbnails of manuscript pages that contain the selected passage.
 
@@ -3576,11 +3404,11 @@ Code: [`static/js/ConnectionsPanel.jsx:1574`](https://github.com/Sefaria/Sefaria
 
 Source: `inv_04_connections.md#14.2`
 
+
 ### Share
 
 #### CON-061 · Share link and social options
-
-`standard` `live` · rebuild: **done** — Link box, copy, Facebook/X/email; deep-linkable unlike the old site · _tested_
+`standard` `live` · rebuild: **done** — Link box, copy, Facebook/X/email; deep-linkable unlike the old site · *tested*
 
 Users can copy a link to the current view or share it by Facebook, X or email.
 
@@ -3595,11 +3423,11 @@ Code: [`static/js/ConnectionsPanel.jsx:1165`](https://github.com/Sefaria/Sefaria
 
 Source: `inv_04_connections.md#15`
 
+
 ### Advanced tools
 
 #### CON-062 · Add translation
-
-`optional` `live` · rebuild: **done** — Signed in → Django's /translate page · _tested_ `signed-in`
+`optional` `live` · rebuild: **done** — Signed in → Django's /translate page · *tested* `signed-in`
 
 Starts the flow to contribute a translation for the selected text.
 
@@ -3612,7 +3440,6 @@ Code: [`static/js/ConnectionsPanel.jsx:1036`](https://github.com/Sefaria/Sefaria
 Source: `inv_04_connections.md#16.1`
 
 #### CON-063 · Edit text
-
 `optional` `live` · rebuild: **todo** `signed-in`
 
 Allows editing the version of the text currently shown.
@@ -3625,7 +3452,6 @@ Code: [`static/js/ConnectionsPanel.jsx:1036`](https://github.com/Sefaria/Sefaria
 Source: `inv_04_connections.md#16.1`
 
 #### CON-064 · Linker Admin tools entry (moderator)
-
 `optional` `live` · rebuild: **todo** `moderator`
 
 Moderators get an Advanced entry that turns on linker debug mode.
@@ -3636,11 +3462,11 @@ Code: [`static/js/ConnectionsPanel.jsx:1036`](https://github.com/Sefaria/Sefaria
 
 Source: `inv_04_connections.md#16.1`
 
+
 ### Add connection
 
 #### CON-065 · Create connection between two texts
-
-`standard` `live` · rebuild: **partial** — Two texts: done; one text's Browse waits for Compare Text · _tested_ `signed-in`
+`standard` `live` · rebuild: **partial** — Two texts: done; one text's Browse waits for Compare Text · *tested* `signed-in`
 
 Signed-in users can link two open texts together with a relationship type.
 
@@ -3656,10 +3482,10 @@ Code: [`static/js/ConnectionsPanel.jsx:1451`](https://github.com/Sefaria/Sefaria
 
 Source: `inv_04_connections.md#16.3`
 
+
 ### Compare
 
 #### CON-066 · Compare text from sidebar
-
 `standard` `live` · rebuild: **todo** `desktop only`
 
 The Compare Text tool replaces the sidebar with a text chooser to open a second text side-by-side.
@@ -3673,11 +3499,11 @@ Code: [`static/js/ReaderApp.jsx:1830`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_04_connections.md#16.4`
 
+
 ### Feedback
 
 #### CON-067 · Feedback / report an issue
-
-`standard` `live` · rebuild: **done** — Form, validation, request; never exercised against production · _tested_
+`standard` `live` · rebuild: **done** — Form, validation, request; never exercised against production · *tested*
 
 Users can report text issues, request translations, report bugs or send thanks from the sidebar.
 
@@ -3695,10 +3521,10 @@ Code: [`static/js/Misc.jsx:2662`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_04_connections.md#17`
 
+
 ### Guided Learning
 
 #### CON-068 · Guided Learning (Key Questions)
-
 `optional` `live` · rebuild: **todo**
 
 An experimental AI-generated study guide for a passage with key questions, answer summaries and the related commentary.
@@ -3716,7 +3542,6 @@ Code: [`static/js/GuideBox.jsx:22`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_04_connections.md#18`
 
 #### CON-069 · Quick-start guide overlay for sheet editor
-
 `optional` `live` · rebuild: **todo** `signed-in` `desktop only`
 
 A one-time onboarding overlay with video cards teaches new users the sheet editor.
@@ -3731,11 +3556,11 @@ Code: [`static/js/GuideOverlay.jsx`](https://github.com/Sefaria/Sefaria-Project/
 
 Source: `inv_04_connections.md#18.1`
 
+
 ### Sidebar header
 
 #### CON-070 · Sidebar header title, back and close
-
-`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · _tested_
+`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
 The sidebar header shows the current section, a context-aware back link, a language toggle and a close button.
 
@@ -3752,11 +3577,11 @@ Code: [`static/js/ConnectionsPanelHeader.jsx:30`](https://github.com/Sefaria/Sef
 
 Source: `inv_04_connections.md#22`
 
+
 ### Data layer
 
 #### CON-071 · Related data API and caching
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_ `system`
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested* `system`
 
 One call bundles links, sheets, topics, manuscripts, media and guides for a ref and is split per segment into caches.
 
@@ -3770,11 +3595,11 @@ Code: [`static/js/sefaria/sefaria.js:2301`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_04_connections.md#23`
 
+
 ### Moderator tools
 
 #### CON-072 · Edit a dictionary entry (moderator)
-
-`extended` `live` · rebuild: **done** · _tested_ `moderator`
+`extended` `live` · rebuild: **done** · *tested* `moderator`
 
 On a dictionary entry, moderators get Advanced → Change Lexicon Headword and Edit Lexicon Content (#3730).
 
@@ -3788,15 +3613,15 @@ Code: [`static/js/LexiconHeadwordEditBox.jsx:7`](https://github.com/Sefaria/Sefa
 
 Source: `admin inventory 2026-10-29`
 
-<a id="versions"></a>
 
+<a id="versions"></a>
 ## Versions & translations
+
 
 ### Translation preferences
 
 #### VER-001 · Translation language preference (shell handling)
-
-`standard` `live` · rebuild: **partial** — Cookie read; no setter UI or suggestion banner yet · _tested_
+`standard` `live` · rebuild: **partial** — Cookie read; no setter UI or suggestion banner yet · *tested*
 
 Readers can set a preferred translation language, saved to cookie and profile.
 
@@ -3811,8 +3636,7 @@ Code: [`static/js/ReaderApp.jsx:2144`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#6`
 
 #### VER-002 · Version preferences by corpus cookie
-
-`standard` `live` · rebuild: **partial** — Cookie read and written (a year); profile storage waits for auth · _tested_
+`standard` `live` · rebuild: **partial** — Cookie read and written (a year); profile storage waits for auth · *tested*
 
 The app remembers preferred versions per corpus.
 
@@ -3826,11 +3650,11 @@ Code: [`static/js/sefaria/VersionPreferences.js`](https://github.com/Sefaria/Sef
 
 Source: `inv_02_reader_shell.md#6`
 
+
 ### Version selection
 
 #### VER-003 · Select version from panel (shell logic)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Choosing a version updates the panel and its linked sidebar/text and remembers it per book.
 
@@ -3843,10 +3667,10 @@ Code: [`static/js/ReaderApp.jsx:1639`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_02_reader_shell.md#9`
 
+
 ### Translation prompts
 
 #### VER-004 · Translation suggestion and 'change translation' banners
-
 `standard` `live` · rebuild: **todo**
 
 Above the text, the site may suggest showing translations in the user's likely language, or offer to change the translation.
@@ -3864,11 +3688,11 @@ Code: [`static/js/TextColumnBanner.jsx`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_02_reader_shell.md#14; inv_08_other.md#4.4`
 
+
 ### Version display
 
 #### VER-005 · Version title subtitle in text header
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 The header shows which translation is being read.
 
@@ -3879,11 +3703,11 @@ Code: [`static/js/ReaderPanel.jsx:1319`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_02_reader_shell.md#19`
 
+
 ### Source versions
 
 #### VER-006 · Current and alternate source versions in About
-
-`standard` `broken` · rebuild: **done** · _tested_
+`standard` `broken` · rebuild: **done** · *tested*
 
 About lists the current source version, current translation and other available source versions.
 
@@ -3901,7 +3725,6 @@ Code: [`static/js/AboutBox.jsx:66`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_04_connections.md#6`
 
 #### VER-007 · Version Open preview in sidebar
-
 `standard` `broken` · rebuild: **done**
 
 Previewing an alternate source version's text for the selected passage without leaving the sidebar.
@@ -3913,11 +3736,11 @@ Code: [`static/js/VersionsTextList.jsx:28`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_04_connections.md#6`
 
+
 ### Downloads
 
 #### VER-008 · Download versions from About
-
-`standard` `live` · rebuild: **done** — Downloads are served by sefaria.org · _tested_
+`standard` `live` · rebuild: **done** — Downloads are served by sefaria.org · *tested*
 
 Users can download any public-domain version in several formats.
 
@@ -3930,11 +3753,11 @@ Code: [`static/js/NavSidebar.jsx:957`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_04_connections.md#6`
 
+
 ### Translations
 
 #### VER-009 · Translations sidebar list
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 The Translations view lists all available translations by language with a preview of each for the current passage.
 
@@ -3952,8 +3775,7 @@ Code: [`static/js/TranslationsBox.jsx:39`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_04_connections.md#7`
 
 #### VER-010 · Translation preview with truncation
-
-`standard` `live` · rebuild: **partial** — Preview opens the sidebar; truncation is CSS max-height without the clickable ellipsis · _tested_
+`standard` `live` · rebuild: **partial** — Preview opens the sidebar; truncation is CSS max-height without the clickable ellipsis · *tested*
 
 Each translation shows a snippet of its text for the selected passage that expands on click.
 
@@ -3967,8 +3789,7 @@ Code: [`static/js/VersionBlock/VersionBlockWithPreview.jsx`](https://github.com/
 Source: `inv_04_connections.md#7`
 
 #### VER-011 · Translation details disclosure and Open Text
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Each translation can expand to show metadata, with a button to open the text with that translation.
 
@@ -3982,8 +3803,7 @@ Code: [`static/js/VersionBlock/VersionBlockWithPreview.jsx`](https://github.com/
 Source: `inv_04_connections.md#7`
 
 #### VER-012 · Select translation as primary in reader
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Selecting a translation switches the reader to it and remembers the preference for that corpus.
 
@@ -3999,8 +3819,7 @@ Code: [`static/js/VersionBlock/VersionBlock.jsx:56`](https://github.com/Sefaria/
 Source: `inv_04_connections.md#7`
 
 #### VER-013 · Translation Open sub-mode
-
-`standard` `live` · rebuild: **partial** — Preview, Open and back done; Add to Sheet needs sign-in · _tested_
+`standard` `live` · rebuild: **partial** — Preview, Open and back done; Add to Sheet needs sign-in · *tested*
 
 Previewing one translation in the sidebar with options to open it or add it to a sheet.
 
@@ -4017,8 +3836,7 @@ Code: [`static/js/VersionsTextList.jsx`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_04_connections.md#7`
 
 #### VER-014 · Version resolution order
-
-`core` `live` · rebuild: **done** · _tested_ `system`
+`core` `live` · rebuild: **done** · *tested* `system`
 
 Defines which version a passage is shown in when none is explicitly chosen.
 
@@ -4033,7 +3851,6 @@ Code: [`static/js/sefaria/sefaria.js:790`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_04_connections.md#23`
 
 #### VER-015 · In-sidebar Versions mode (removed)
-
 `retire` `unused` · rebuild: **n/a**
 
 The old standalone Versions sidebar mode is gone; browsing happens in About and Translations.
@@ -4044,11 +3861,11 @@ Code: [`static/js/constants.js:23`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_04_connections.md#0`
 
+
 ### Version blocks
 
 #### VER-016 · Version block display
-
-`standard` `live` · rebuild: **partial** — About-box mode only; book-page and Translations-box modes pending · _tested_
+`standard` `live` · rebuild: **partial** — About-box mode only; book-page and Translations-box modes pending · *tested*
 
 A reusable block presenting a version's title, language, notes and info in About, Translations and book page.
 
@@ -4064,8 +3881,7 @@ Code: [`static/js/VersionBlock/VersionBlock.jsx:79`](https://github.com/Sefaria/
 Source: `inv_04_connections.md#8.1`
 
 #### VER-017 · Version information rows
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Version metadata: source, digitization, license, revision history and where to buy.
 
@@ -4080,7 +3896,6 @@ Code: [`static/js/VersionBlock/VersionInformation.jsx`](https://github.com/Sefar
 Source: `inv_04_connections.md#8.2`
 
 #### VER-018 · Version link builder (main vs sidebar)
-
 `optional` `live` · rebuild: **todo** `system`
 
 Version links preserve the right set of current versions depending on where they open.
@@ -4093,7 +3908,6 @@ Code: [`static/js/VersionBlock/VersionBlock.jsx:25`](https://github.com/Sefaria/
 Source: `inv_04_connections.md#8.5`
 
 #### VER-019 · Edit version metadata (moderator)
-
 `standard` `live` · rebuild: **todo** `moderator`
 
 Moderators can edit a version's metadata from the book page version block.
@@ -4108,7 +3922,6 @@ Code: [`static/js/VersionBlock/VersionBlock.jsx:120`](https://github.com/Sefaria
 Source: `inv_04_connections.md#8.1`
 
 #### VER-020 · Delete version (moderator)
-
 `optional` `live` · rebuild: **todo** `moderator`
 
 Moderators can delete an entire version from the book page.
@@ -4120,7 +3933,6 @@ Code: [`reader/views.py:2027`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_04_connections.md#8.1`
 
 #### VER-021 · Extended version notes
-
 `optional` `broken` · rebuild: **todo**
 
 Long-form notes about a version can be read in the sidebar, in English or Hebrew.
@@ -4134,11 +3946,11 @@ Code: [`static/js/ExtendedNotes.jsx:30`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_04_connections.md#8.6`
 
+
 ### Moderator tools
 
 #### VER-030 · Moderator edits or deletes a version
-
-`extended` `live` · rebuild: **done** · _tested_ `moderator`
+`extended` `live` · rebuild: **done** · *tested* `moderator`
 
 On the book page's Versions tab, moderators get a pencil on each version that opens the version editor (VersionBlock).
 
@@ -4151,19 +3963,20 @@ Code: [`static/js/VersionBlock/VersionBlock.jsx:115`](https://github.com/Sefaria
 
 Source: `admin inventory 2026-10-29`
 
+
 ---
 
 # Library & discovery
 
-<a id="library-nav"></a>
 
+<a id="library-nav"></a>
 ## Library navigation
+
 
 ### Library home
 
 #### LIB-001 · Browse the Library category grid
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The texts home page shows every top-level category as a colored card with a short description. Clicking opens that category without a page reload.
 
@@ -4182,8 +3995,7 @@ Code: [`static/js/TextsPage.jsx:42-67`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_05_library_topics.md#1.1`
 
 #### LIB-002 · Library home header and edit buttons
-
-`standard` `live` · rebuild: **partial** — Heading done; language toggle and editor buttons not · _tested_
+`standard` `live` · rebuild: **partial** — Heading done; language toggle and editor buttons not · *tested*
 
 The home page has a 'Browse the Library' heading and a language toggle. Editors also see add-subcategory and reorder buttons beside the heading.
 
@@ -4198,7 +4010,6 @@ Code: [`static/js/TextsPage.jsx:76-83`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_05_library_topics.md#1.2`
 
 #### LIB-003 · Library home in compare panel
-
 `standard` `live` · rebuild: **todo**
 
 When the library is opened as a second 'compare' panel it shows a compact header with search and back instead of the title and extras.
@@ -4212,8 +4023,7 @@ Code: [`static/js/TextsPage.jsx:69-74`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_05_library_topics.md#1.2`
 
 #### LIB-004 · Mobile library home extras
-
-`standard` `live` · rebuild: **done** · _tested_ `mobile only`
+`standard` `live` · rebuild: **done** · *tested* `mobile only`
 
 On phones the home page shows an inline About Sefaria blurb and a Recently Viewed list above the categories, since the sidebar is not present.
 
@@ -4227,7 +4037,6 @@ Code: [`static/js/TextsPage.jsx:85-86`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_05_library_topics.md#1.3`
 
 #### LIB-005 · Daily dedication banner
-
 `standard` `live` · rebuild: **todo** — Not built
 
 A dedication message for the day appears at the top of the library home page and changes each evening.
@@ -4243,7 +4052,6 @@ Code: [`static/js/TextsPage.jsx:134-181`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_05_library_topics.md#1.4`
 
 #### LIB-006 · Site-wide library message
-
 `optional` `live` · rebuild: **todo**
 
 Staff can post a site message that shows on the library home page.
@@ -4255,7 +4063,6 @@ Code: [`static/js/TextsPage.jsx:90-92`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_05_library_topics.md#1.5`
 
 #### LIB-007 · Library home sidebar composition
-
 `standard` `live` · rebuild: **todo**
 
 The desktop home sidebar stacks About, promo, recently viewed, translations, learning schedules and resources, ending with the footer links.
@@ -4267,11 +4074,11 @@ Code: [`static/js/TextsPage.jsx:94-101`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_05_library_topics.md#1.6`
 
+
 ### Category pages
 
 #### LIB-008 · Category page contents list
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Each category page lists its sub-categories and texts, with a colored top line, title, description and edition attribution.
 
@@ -4284,15 +4091,14 @@ Each category page lists its sub-categories and texts, with a colored top line, 
 - FOUND with a phone UA: category pages show the category's long description inline (and no 'About <category>' module); on a Talmud page the live text is the longer 'The Talmud (literally, “study”) is the textual record…', ours is the shorter sidebar text. Not yet rebuilt (phone only).
 - VERIFIED geometry (1280px): page title 30px/500 black upper-case; part headings ('TORAH (The Five Books of Moses)') 18px grey serif, the parenthetical in the same style; block titles 24px on a 31.2px line; descriptions 14px on an 18px line; the About text in the sidebar 16px on its natural ~19px line (was 23px). Note: the live face for these is Adobe Garamond Pro (computed font-family 'adobe-garamond-pro'), Cardo here — owner decision pending, which is also why 'TANAKH' is 138px wide against 123px on the live page. Rebuilt for sizes and weights.
 - Geometry (1280px): title row (.navTitle) 40px over the contents; the h1 is 30px/500 uppercase serif, black. Items are .navBlock: a 1px #EDEDEC top line, 24px/1.3 title (15px over, 8px under, 20px end margin), 14px/18px #666 description, 12px under; two 327.5px columns 10px apart, rows 6px apart. A grid NOT inside a section (e.g. /texts/Tanakh/Torah, the top of /texts/Kabbalah) keeps the old .gridBoxItem's 5px top/bottom padding — the zero-padding override only targeted .readerNavCategories and .category grids — so its rows are 16px apart and its first block starts 5px down; the last row's 6px margin collapses into the grid's 40px. Verified on www.sefaria.org with Playwright, 2026-10-29.
-- Phone (singlePanel): the category's long description shows under the title (.categoryDescription.top: 14px #666, margin -26px 0 40px) and the sidebar has no About module. The description is the page category's (tocObjectByCategories(cats), so Talmud → Bavli's), rendered as plain text by ContentText text={…}: Markdown is NOT rendered there (live shows '_masekhtot_' with its asterisks on /texts/Mishnah) — a live bug, reproduced for parity. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- Phone (singlePanel): the category's long description shows under the title (.categoryDescription.top: 14px #666, margin -26px 0 40px) and the sidebar has no About module. The description is the page category's (tocObjectByCategories(cats), so Talmud → Bavli's), rendered as plain text by ContentText text={…}: Markdown is NOT rendered there (live shows '*masekhtot*' with its asterisks on /texts/Mishnah) — a live bug, reproduced for parity. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/TextCategoryPage.jsx:59-99`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextCategoryPage.jsx#L59-L99)
 
 Source: `inv_05_library_topics.md#2.2`
 
 #### LIB-009 · Talmud and Tosefta default sub-corpus
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Opening Talmud shows the Babylonian Talmud, and opening Tosefta shows the Vilna edition, by default.
 
@@ -4306,8 +4112,7 @@ Code: [`static/js/TextCategoryPage.jsx:24-37`](https://github.com/Sefaria/Sefari
 Source: `inv_05_library_topics.md#2.1`
 
 #### LIB-010 · Commentary category titling
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A Commentary category is titled '<parent> Commentary' and its sub-categories show as links rather than expanded sections.
 
@@ -4319,8 +4124,7 @@ Code: [`static/js/TextCategoryPage.jsx:39-51`](https://github.com/Sefaria/Sefari
 Source: `inv_05_library_topics.md#2.1`
 
 #### LIB-011 · Talmud and Tosefta edition toggle
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Talmud and Tosefta category pages have a toggle to switch between Bavli/Yerushalmi and Vilna/Lieberman editions.
 
@@ -4336,8 +4140,7 @@ Code: [`static/js/TextCategoryPage.jsx:307-337`](https://github.com/Sefaria/Sefa
 Source: `inv_05_library_topics.md#2.3`
 
 #### LIB-012 · Nested category sections and single-text collapse
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Within a category page, primary sub-categories become links, other sub-categories expand inline with their own heading, and a category containing one text shows that text directly.
 
@@ -4353,7 +4156,6 @@ Code: [`static/js/TextCategoryPage.jsx:117-255`](https://github.com/Sefaria/Sefa
 Source: `inv_05_library_topics.md#2.4`
 
 #### LIB-013 · Collections listed inside categories
-
 `standard` `live` · rebuild: **todo**
 
 Categories can list public collections as items that link out to the collection page in the Voices site.
@@ -4366,8 +4168,7 @@ Code: [`static/js/TextCategoryPage.jsx:200-211`](https://github.com/Sefaria/Sefa
 Source: `inv_05_library_topics.md#2.4`
 
 #### LIB-014 · Text items open book page
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Clicking a text in a category opens its table-of-contents page; hidden texts are not listed.
 
@@ -4380,8 +4181,7 @@ Code: [`static/js/TextCategoryPage.jsx:214-231`](https://github.com/Sefaria/Sefa
 Source: `inv_05_library_topics.md#2.5`
 
 #### LIB-015 · Short title rendering in category lists
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Text titles in a category list drop the redundant category prefix (e.g. 'Rashi on Genesis' shows as 'Genesis'), with a list of exceptions.
 
@@ -4396,8 +4196,7 @@ Code: [`static/js/TextCategoryPage.jsx:340-382`](https://github.com/Sefaria/Sefa
 Source: `inv_05_library_topics.md#2.6`
 
 #### LIB-016 · Hebrew ordering of category contents
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 When reading in Hebrew, category contents are sorted by explicit order, then alphabetically by Hebrew title.
 
@@ -4411,7 +4210,6 @@ Code: [`static/js/TextCategoryPage.jsx:385-418`](https://github.com/Sefaria/Sefa
 Source: `inv_05_library_topics.md#2.7`
 
 #### LIB-017 · Category page sidebar
-
 `standard` `live` · rebuild: **done**
 
 The category page sidebar describes the category and shows contextual modules; Tanakh gets the weekly portion and Bavli gets Daf Yomi.
@@ -4426,7 +4224,6 @@ Code: [`static/js/TextCategoryPage.jsx:421-442`](https://github.com/Sefaria/Sefa
 Source: `inv_05_library_topics.md#2.8`
 
 #### LIB-018 · Category page in compare panel
-
 `standard` `live` · rebuild: **todo**
 
 In a compare panel a category page shows a compact header with back navigation up one category level.
@@ -4440,8 +4237,7 @@ Code: [`static/js/TextCategoryPage.jsx:58`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_05_library_topics.md#2.2`
 
 #### LIB-019 · Category and text color coding
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Categories and text entries carry a consistent color derived from their category across navigation and lists.
 
@@ -4453,11 +4249,11 @@ Code: [`static/js/sefaria/sefaria.js:4078-4087`](https://github.com/Sefaria/Sefa
 
 Source: `inv_05_library_topics.md#17`
 
+
 ### Translations
 
 #### LIB-020 · Translations by language page
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A page per language lists all texts available in that language's translation, grouped by corpus and category with links straight to the translation.
 
@@ -4483,8 +4279,7 @@ Code: [`static/js/TranslationsPage.jsx:13`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_05_library_topics.md#6`
 
 #### LIB-021 · Translations page backend and SEO
-
-`standard` `broken` · rebuild: **done** — Head tags as live, tag for tag (review fix 2026-11-04) · _tested_
+`standard` `broken` · rebuild: **done** — Head tags as live, tag for tag (review fix 2026-11-04) · *tested*
 
 The server supplies translation lists and per-language page titles; some linked languages return not found.
 
@@ -4501,10 +4296,10 @@ Code: [`reader/views.py:1257-1294`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_05_library_topics.md#19`
 
+
 ### Orphaned pages
 
 #### LIB-022 · New Additions to the Library page
-
 `retire` `unused` · rebuild: **n/a**
 
 A feed of newly added texts, versions and announcements with infinite scroll; moderators can post and delete updates.
@@ -4520,11 +4315,11 @@ Code: [`static/js/UpdatesPanel.jsx`](https://github.com/Sefaria/Sefaria-Project/
 
 Source: `inv_05_library_topics.md#14`
 
+
 ### Sidebar framework
 
 #### LIB-023 · Nav sidebar container and module registry
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Navigation pages share a right-hand sidebar built from a configurable list of modules, followed by a footer.
 
@@ -4537,10 +4332,10 @@ Code: [`static/js/NavSidebar.jsx:14-84`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_05_library_topics.md#4.1`
 
+
 ### Sidebar modules
 
 #### LIB-024 · Sidebar module: Titled text
-
 `standard` `live` · rebuild: **done**
 
 A generic sidebar block with a title, markdown body and optional children.
@@ -4552,7 +4347,6 @@ Code: [`static/js/NavSidebar.jsx:100-108`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-025 · Sidebar module: Recently viewed
-
 `standard` `live` · rebuild: **todo**
 
 Shows the reader's last few texts with an All history link.
@@ -4567,7 +4361,6 @@ Code: [`static/js/NavSidebar.jsx:109-169`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-026 · Sidebar module: Promotions slot
-
 `standard` `live` · rebuild: **partial** — Empty slot kept for spacing; CMS promotions not built
 
 A CMS-driven sidebar advertisement slot.
@@ -4581,7 +4374,6 @@ Code: [`static/js/NavSidebar.jsx:171-175`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-027 · Sidebar module: Study Companion
-
 `standard` `live` · rebuild: **todo**
 
 Promotes the weekly study companion with a sign-up button.
@@ -4593,7 +4385,6 @@ Code: [`static/js/NavSidebar.jsx:177-189`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-028 · Sidebar module: About Sefaria
-
 `standard` `live` · rebuild: **done**
 
 A short blurb about Sefaria with Learn More and a Getting Started video.
@@ -4607,8 +4398,7 @@ Code: [`static/js/NavSidebar.jsx:192-233`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-029 · Sidebar module: About translated text
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Translation-language pages show a localized blurb about the library in that language.
 
@@ -4622,7 +4412,6 @@ Code: [`static/js/NavSidebar.jsx:236-272`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-030 · Sidebar module: Resources
-
 `standard` `live` · rebuild: **done**
 
 Quick links to apps, educator info, visualizations, Torah Tab and help.
@@ -4635,8 +4424,7 @@ Code: [`static/js/NavSidebar.jsx:275-286`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-031 · Sidebar module: Footer links
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A sticky footer lists About, Help, Contact, Newsletter, social, Shop, legal and donation links.
 
@@ -4649,7 +4437,6 @@ Code: [`static/js/NavSidebar.jsx:289-322`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-032 · Sidebar module: The Jewish Library
-
 `optional` `live` · rebuild: **todo**
 
 A static text block about the Jewish library.
@@ -4661,8 +4448,7 @@ Code: [`static/js/NavSidebar.jsx:326-332`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-033 · Sidebar module: Support Sefaria
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A donation appeal with a Donate button.
 
@@ -4676,7 +4462,6 @@ Code: [`static/js/NavSidebar.jsx:335-345`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-034 · Sidebar module: Sponsor a Day
-
 `standard` `live` · rebuild: **todo**
 
 A prompt to sponsor a day of learning via donation.
@@ -4688,8 +4473,7 @@ Code: [`static/js/NavSidebar.jsx:348-358`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-035 · Sidebar module: About text category
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Shows the category's description in the sidebar.
 
@@ -4701,8 +4485,7 @@ Code: [`static/js/NavSidebar.jsx:361-377`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-036 · Sidebar module: About this text
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Shows book metadata: authors, composition place and date, and description.
 
@@ -4716,8 +4499,7 @@ Code: [`static/js/NavSidebar.jsx:380-430`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-037 · Sidebar module: Translations languages list
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A list of languages linking to each translation-language page.
 
@@ -4731,8 +4513,7 @@ Code: [`static/js/NavSidebar.jsx:433-441`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-038 · Sidebar module: Learning schedules
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Shows this week's Torah portion, haftarah and Daf Yomi with a link to all schedules.
 
@@ -4744,7 +4525,6 @@ Code: [`static/js/NavSidebar.jsx:444-533`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-039 · Sidebar module: Weekly Torah portion
-
 `standard` `live` · rebuild: **done**
 
 Shows the current portion and haftarot with a link to all portions.
@@ -4756,7 +4536,6 @@ Code: [`static/js/NavSidebar.jsx:536-560`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-040 · Sidebar module: Daf Yomi
-
 `standard` `live` · rebuild: **done**
 
 Shows today's Daf Yomi with a link.
@@ -4768,8 +4547,7 @@ Code: [`static/js/NavSidebar.jsx:563-575`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-041 · Sidebar module: Visualizations links
-
-`optional` `live` · rebuild: **done** · _tested_
+`optional` `live` · rebuild: **done** · *tested*
 
 Suggests relevant visualizations for the current category.
 
@@ -4780,7 +4558,6 @@ Code: [`static/js/NavSidebar.jsx:578-627`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-042 · Sidebar module: About topics
-
 `standard` `live` · rebuild: **todo**
 
 A static blurb explaining topics.
@@ -4792,7 +4569,6 @@ Code: [`static/js/NavSidebar.jsx:630-643`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-043 · Sidebar module: Trending topics
-
 `standard` `live` · rebuild: **done**
 
 Lists the currently trending topics (or trending sheet tags in Voices).
@@ -4807,7 +4583,6 @@ Code: [`static/js/NavSidebar.jsx:645-672`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-044 · Sidebar module: Browse Topics categories
-
 `standard` `live` · rebuild: **todo**
 
 A list of top-level topic categories on the topics landing page, which the Explore all topics prompt scrolls to.
@@ -4819,7 +4594,6 @@ Code: [`static/js/NavSidebar.jsx:673-699`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-045 · Sidebar module: All Topics A-Z link
-
 `standard` `live` · rebuild: **todo**
 
 A link to the alphabetical topic index.
@@ -4831,8 +4605,7 @@ Code: [`static/js/NavSidebar.jsx:700-716`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-046 · Sidebar module: Related topics
-
-`standard` `live` · rebuild: **partial** — Component exists; library pages not built · _tested_
+`standard` `live` · rebuild: **partial** — Component exists; library pages not built · *tested*
 
 Lists topics related to the current book.
 
@@ -4843,7 +4616,6 @@ Code: [`static/js/NavSidebar.jsx:719-739`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-047 · Sidebar module: Join the Community
-
 `standard` `live` · rebuild: **todo**
 
 A call to explore the community in the Voices site.
@@ -4855,7 +4627,6 @@ Code: [`static/js/NavSidebar.jsx:741-756`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-048 · Sidebar module: Join the Conversation
-
 `standard` `live` · rebuild: **todo**
 
 A call to create a source sheet.
@@ -4867,7 +4638,6 @@ Code: [`static/js/NavSidebar.jsx:758-768`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-049 · Sidebar module: Get the App
-
 `standard` `live` · rebuild: **todo**
 
 A mobile app promo with store buttons.
@@ -4879,8 +4649,7 @@ Code: [`static/js/NavSidebar.jsx:771-787`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-050 · Sidebar module: Stay Connected
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A newsletter sign-up and social links block.
 
@@ -4893,7 +4662,6 @@ Code: [`static/js/NavSidebar.jsx:790-824`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-051 · Sidebar module: Create a Sheet
-
 `standard` `live` · rebuild: **todo**
 
 A prompt to create a source sheet, worded differently on desktop and mobile.
@@ -4905,7 +4673,6 @@ Code: [`static/js/NavSidebar.jsx:845-858`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-052 · Sidebar module: What is Sefaria Voices
-
 `standard` `live` · rebuild: **todo**
 
 Explains the Voices site with a Learn More button.
@@ -4917,7 +4684,6 @@ Code: [`static/js/NavSidebar.jsx:860-866`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-053 · Sidebar module: Voices newsletter sign-up
-
 `standard` `live` · rebuild: **todo**
 
 A subscribe button for the Voices newsletter.
@@ -4929,8 +4695,7 @@ Code: [`static/js/NavSidebar.jsx:868-874`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-054 · Sidebar module: About learning schedules
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A static explanation of learning schedules.
 
@@ -4943,7 +4708,6 @@ Code: [`static/js/NavSidebar.jsx:875-889`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-055 · Sidebar module: About collections
-
 `standard` `live` · rebuild: **todo**
 
 Explains collections and offers to create one.
@@ -4955,7 +4719,6 @@ Code: [`static/js/NavSidebar.jsx:892-908`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-056 · Sidebar module: Explore collections
-
 `standard` `live` · rebuild: **todo**
 
 Invites the reader to browse collections.
@@ -4967,7 +4730,6 @@ Code: [`static/js/NavSidebar.jsx:911-922`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-057 · Sidebar module: Who to follow
-
 `standard` `live` · rebuild: **todo**
 
 Recommends people to follow.
@@ -4979,7 +4741,6 @@ Code: [`static/js/NavSidebar.jsx:925-931`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-058 · Sidebar module: Image
-
 `optional` `live` · rebuild: **todo**
 
 A single image block.
@@ -4991,7 +4752,6 @@ Code: [`static/js/NavSidebar.jsx:934-938`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-059 · Sidebar module: Wrapper
-
 `optional` `live` · rebuild: **todo**
 
 A generic titled container for arbitrary content.
@@ -5003,8 +4763,7 @@ Code: [`static/js/NavSidebar.jsx:941-946`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-060 · Sidebar module: Download text versions
-
-`standard` `live` · rebuild: **partial** — Component exists; library pages not built · _tested_
+`standard` `live` · rebuild: **partial** — Component exists; library pages not built · *tested*
 
 Lets the reader download a text version in several formats from the book page.
 
@@ -5020,7 +4779,6 @@ Code: [`static/js/NavSidebar.jsx:957-1055`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_05_library_topics.md#4.3`
 
 #### LIB-061 · Sidebar module: Portal about
-
 `optional` `live` · rebuild: **todo**
 
 A portal topic's about block with image and description.
@@ -5032,7 +4790,6 @@ Code: [`static/js/NavSidebar.jsx:1058-1068`](https://github.com/Sefaria/Sefaria-
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-062 · Sidebar module: Portal mobile app
-
 `optional` `live` · rebuild: **todo**
 
 A portal's mobile app block with store buttons.
@@ -5044,7 +4801,6 @@ Code: [`static/js/NavSidebar.jsx:1071-1082`](https://github.com/Sefaria/Sefaria-
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-063 · Sidebar module: Portal organization
-
 `optional` `live` · rebuild: **todo**
 
 A portal's organization description.
@@ -5056,7 +4812,6 @@ Code: [`static/js/NavSidebar.jsx:1083-1090`](https://github.com/Sefaria/Sefaria-
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-064 · Sidebar module: Portal newsletter
-
 `optional` `live` · rebuild: **todo**
 
 A portal's newsletter sign-up.
@@ -5067,10 +4822,10 @@ Code: [`static/js/NavSidebar.jsx:1093-1107`](https://github.com/Sefaria/Sefaria-
 
 Source: `inv_05_library_topics.md#4.2`
 
+
 ### Shared navigation components
 
 #### LIB-065 · Tab view component
-
 `core` `live` · rebuild: **todo**
 
 Tabbed pages (book page, topics) share an accessible tab control with keyboard navigation and pseudo-tabs.
@@ -5082,7 +4837,6 @@ Code: [`static/js/Misc.jsx:400-504`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_05_library_topics.md#17`
 
 #### LIB-066 · Filterable, sortable list component
-
 `standard` `live` · rebuild: **todo**
 
 A reusable list with filter input, sort options and scroll pagination, used by topic pages.
@@ -5094,7 +4848,6 @@ Code: [`static/js/Misc.jsx:226-397`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_05_library_topics.md#17`
 
 #### LIB-067 · Category attribution (William Davidson Talmud)
-
 `standard` `live` · rebuild: **done**
 
 The Talmud/Bavli category and book pages credit the William Davidson Talmud edition with a link.
@@ -5106,7 +4859,6 @@ Code: [`static/js/sefaria/sefaria.js:2743-2763`](https://github.com/Sefaria/Sefa
 Source: `inv_05_library_topics.md#17`
 
 #### LIB-068 · Library navigation support utilities
-
 `core` `live` · rebuild: **todo** `system`
 
 Navigation depends on cached TOC helpers, Hebrew term lookup and server-provided props.
@@ -5121,8 +4873,7 @@ Code: [`static/js/sefaria/sefaria.js:1390-1419`](https://github.com/Sefaria/Sefa
 Source: `inv_05_library_topics.md#18`
 
 #### LIB-069 · Library category URL handling (server)
-
-`core` `live` · rebuild: **done** · _tested_ `system`
+`core` `live` · rebuild: **done** · *tested* `system`
 
 Server routes for /texts and category paths handle redirects, fallbacks and SEO.
 
@@ -5135,11 +4886,11 @@ Code: [`reader/views.py:977-1010`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_05_library_topics.md#19`
 
+
 ### Translations
 
 #### LIB-070 · Translations page link targets open the reader in that version
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Each text on a translations page opens the reader at its first section in that language's translation, side by side with the Hebrew.
 
@@ -5152,15 +4903,15 @@ Code: [`static/js/ReaderApp.jsx:1242`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `lane translations 2026-11-04`
 
-<a id="book-pages"></a>
 
+<a id="book-pages"></a>
 ## Book pages
+
 
 ### Book page shell
 
 #### BOK-001 · Book page (text table of contents)
-
-`core` `live` · rebuild: **partial** — Page, contents, versions, sidebar; compare-panel mode and extended notes not built · _tested_
+`core` `live` · rebuild: **partial** — Page, contents, versions, sidebar; compare-panel mode and extended notes not built · *tested*
 
 Each text has a landing page with title, category, reading button, contents and versions, reached from the library or the reader's header.
 
@@ -5179,8 +4930,7 @@ Code: [`static/js/BookPage.jsx:62-145`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_05_library_topics.md#3.1`
 
 #### BOK-002 · Book page header and category link
-
-`core` `live` · rebuild: **done** — Done; dedication unverified live · _tested_
+`core` `live` · rebuild: **done** — Done; dedication unverified live · *tested*
 
 The header shows the book title, a link to its category, edition attribution and any dedication.
 
@@ -5197,8 +4947,7 @@ Code: [`static/js/BookPage.jsx:244-267`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.2`
 
 #### BOK-003 · Start / Continue Reading button
-
-`core` `live` · rebuild: **done** — Start/Continue (continue from this browser) · _tested_
+`core` `live` · rebuild: **done** — Start/Continue (continue from this browser) · *tested*
 
 A prominent button starts the text from the beginning, or resumes at the reader's last place if they have read it before.
 
@@ -5212,7 +4961,6 @@ Code: [`static/js/BookPage.jsx:171-187`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.4`
 
 #### BOK-004 · Book page in compare panel
-
 `standard` `live` · rebuild: **todo**
 
 Opening a book in a compare panel shows a compact reader-style control bar with back, title and display settings.
@@ -5227,8 +4975,7 @@ Code: [`static/js/BookPage.jsx:220-239`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.3`
 
 #### BOK-005 · Contents and Versions tabs
-
-`core` `live` · rebuild: **done** — Done · _tested_
+`core` `live` · rebuild: **done** — Done · *tested*
 
 The book page has a Contents tab and a Versions tab, driven by the URL.
 
@@ -5243,8 +4990,7 @@ Code: [`static/js/BookPage.jsx:189-198`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.5`
 
 #### BOK-006 · Book page sidebar
-
-`standard` `live` · rebuild: **partial** — About, related topics, downloads; the promo module is not built · _tested_
+`standard` `live` · rebuild: **partial** — About, related topics, downloads; the promo module is not built · *tested*
 
 The desktop book page sidebar shows About this text, a promo, related topics and a download module.
 
@@ -5257,8 +5003,7 @@ Code: [`static/js/BookPage.jsx:200-206`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.6`
 
 #### BOK-007 · Versions list tab
-
-`core` `live` · rebuild: **done** — Done · _tested_
+`core` `live` · rebuild: **done** — Done · *tested*
 
 The Versions tab lists every available version of the text with its details, and lets the reader select one.
 
@@ -5270,11 +5015,11 @@ Code: [`static/js/BookPage.jsx:990-1040`](https://github.com/Sefaria/Sefaria-Pro
 
 Source: `inv_05_library_topics.md#3.9`
 
+
 ### Table of contents rendering
 
 #### BOK-008 · TOC click navigation
-
-`core` `live` · rebuild: **done** — Sidebar links go in place; the book page will reuse TocView · _tested_
+`core` `live` · rebuild: **done** — Sidebar links go in place; the book page will reuse TocView · *tested*
 
 Clicking any section in the contents opens the text at that spot, while links stay real so they can open in new tabs.
 
@@ -5288,8 +5033,7 @@ Code: [`static/js/BookPage.jsx:363-387`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.7`
 
 #### BOK-009 · TOC reused in reader Connections panel
-
-`core` `live` · rebuild: **done** — Sidebar view done, text identical to sefaria.org for six books · _tested_
+`core` `live` · rebuild: **done** — Sidebar view done, text identical to sefaria.org for six books · *tested*
 
 The same table of contents appears inside the reader's sidebar and highlights the reader's current location.
 
@@ -5303,8 +5047,7 @@ Code: [`static/js/ConnectionsPanel.jsx:37`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_05_library_topics.md#3.12`
 
 #### BOK-010 · Schema node: collapsible complex sections
-
-`core` `live` · rebuild: **done** — Done in TocView; the book-page overlay not built · _tested_
+`core` `live` · rebuild: **done** — Done in TocView; the book-page overlay not built · *tested*
 
 Complex books show nested, collapsible sections in the contents; the section that holds the reader's place opens automatically.
 
@@ -5322,8 +5065,7 @@ Code: [`static/js/BookPage.jsx:562-723`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.8`
 
 #### BOK-011 · Simple section grid (jagged array)
-
-`core` `live` · rebuild: **done** — Done in TocView · _tested_
+`core` `live` · rebuild: **done** — Done in TocView · *tested*
 
 A simple text shows a grid of its chapters/sections, listing only those that have content.
 
@@ -5338,8 +5080,7 @@ Code: [`static/js/BookPage.jsx:726-849`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.8`
 
 #### BOK-012 · Deep-nested text headings
-
-`standard` `live` · rebuild: **partial** — Ported, synthetic tests only · _tested_
+`standard` `live` · rebuild: **partial** — Ported, synthetic tests only · *tested*
 
 Texts with three or more levels (e.g. volume/chapter) show a heading per top-level unit with its sections beneath.
 
@@ -5352,8 +5093,7 @@ Code: [`static/js/BookPage.jsx:776-849`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.8`
 
 #### BOK-013 · Zoomed-out TOC levels
-
-`standard` `live` · rebuild: **partial** — Ported, synthetic tests only · _tested_
+`standard` `live` · rebuild: **partial** — Ported, synthetic tests only · *tested*
 
 Some texts' contents are shown at a coarser level than their full depth so links land on sections rather than segments.
 
@@ -5366,8 +5106,7 @@ Code: [`static/js/BookPage.jsx:729-742`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.8`
 
 #### BOK-014 · Section numbering by address type
-
-`core` `live` · rebuild: **done** — Done · _tested_
+`core` `live` · rebuild: **done** — Done · *tested*
 
 Section labels follow each text's own addressing: Talmud pages (2a, 2b), folios, years and Hebrew letters.
 
@@ -5380,8 +5119,7 @@ Code: [`static/js/sefaria/sefaria.js:355-373`](https://github.com/Sefaria/Sefari
 Source: `inv_05_library_topics.md#3.8`
 
 #### BOK-015 · Alternate structure nodes (ArrayMap)
-
-`standard` `live` · rebuild: **done** — Done (Genesis portions, Berakhot chapters, Zohar essay verified) · _tested_
+`standard` `live` · rebuild: **done** — Done (Genesis portions, Berakhot chapters, Zohar essay verified) · *tested*
 
 Alternate tables of contents (e.g. Parasha, Talmud chapters) list their sections or link to whole spans.
 
@@ -5396,8 +5134,7 @@ Code: [`static/js/BookPage.jsx:852-938`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.8`
 
 #### BOK-016 · Dictionary node letter browse
-
-`standard` `live` · rebuild: **partial** — Letters done; the dictionary search box is not · _tested_
+`standard` `live` · rebuild: **partial** — Letters done; the dictionary search box is not · *tested*
 
 Dictionary-type texts show a Browse by Letter list linking to each letter's entries.
 
@@ -5409,8 +5146,7 @@ Code: [`static/js/BookPage.jsx:941-987`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.8`
 
 #### BOK-017 · Alternate structure tabs toggle
-
-`standard` `live` · rebuild: **done** — Done; matches the old click-only (no URL) behaviour · _tested_
+`standard` `live` · rebuild: **done** — Done; matches the old click-only (no URL) behaviour · *tested*
 
 Books with alternative tables of contents (e.g. by topic or portion) get a toggle to switch between structures, which is reflected in the URL.
 
@@ -5426,8 +5162,7 @@ Code: [`static/js/BookPage.jsx:369-429`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.7`
 
 #### BOK-018 · Torah books: Chapters plus Torah Portions
-
-`core` `live` · rebuild: **done** — Done · _tested_
+`core` `live` · rebuild: **done** — Done · *tested*
 
 Genesis through Deuteronomy show the chapter list and, below it, the weekly portions with their aliyot, with no structure toggle.
 
@@ -5443,8 +5178,7 @@ Code: [`static/js/BookPage.jsx:392-401`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.7`
 
 #### BOK-019 · Dictionary search on book page
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Dictionary books show a search box above their contents to look up headwords.
 
@@ -5456,7 +5190,6 @@ Code: [`static/js/BookPage.jsx:431-438`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.7`
 
 #### BOK-020 · Current version attribution (legacy)
-
 `retire` `unused` · rebuild: **n/a**
 
 Code exists to assemble the attribution of the currently open version for the book page, but the render does not use it.
@@ -5469,7 +5202,6 @@ Code: [`static/js/BookPage.jsx:101-136`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.1`
 
 #### BOK-021 · Read More text truncation (legacy)
-
 `retire` `unused` · rebuild: **n/a**
 
 A helper truncates long descriptions to 30 words with 'Read More', apparently no longer used; extended notes mode in BookPage is commented out.
@@ -5482,8 +5214,7 @@ Code: [`static/js/BookPage.jsx:1514-1555`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#3.11`
 
 #### BOK-022 · Related topics of a book
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 The book page sidebar suggests topics connected to the text, expandable beyond the first five.
 
@@ -5496,7 +5227,6 @@ Code: [`static/js/NavSidebar.jsx:719-739`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#19.1`
 
 #### BOK-023 · Book index details data
-
 `core` `live` · rebuild: **done**
 
 The book page depends on a detailed index record: structure, content counts, authors, dates, dedication and related topics.
@@ -5508,15 +5238,15 @@ Code: [`static/js/sefaria/sefaria.js:1439-1449`](https://github.com/Sefaria/Sefa
 
 Source: `inv_05_library_topics.md#18`
 
-<a id="topics"></a>
 
+<a id="topics"></a>
 ## Topics
+
 
 ### Topics routing
 
 #### TOP-001 · Topic URLs and legacy redirects
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Topics have landing, category, A-Z and individual topic URLs, and old sheet-tag URLs redirect to topics.
 
@@ -5538,8 +5268,7 @@ Code: [`sefaria/urls_shared.py:53-61`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_05_library_topics.md#7`
 
 #### TOP-002 · Module-specific topics home
-
-`standard` `live` · rebuild: **partial** — Library landing page built; the Voices host's /topics stays Django's (Q-E1) · _tested_
+`standard` `live` · rebuild: **partial** — Library landing page built; the Voices host's /topics stays Django's (Q-E1) · *tested*
 
 The library shows the new topics landing page, while the Voices site shows the older grid of topic categories.
 
@@ -5551,11 +5280,11 @@ Code: [`static/js/ReaderPanel.jsx:983-1048`](https://github.com/Sefaria/Sefaria-
 
 Source: `inv_05_library_topics.md#7`
 
+
 ### Topics landing page
 
 #### TOP-003 · Topics landing page layout
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The library's topics home presents search, a word cloud of topics, a featured topic, a newsletter, sample topics and this week's seasonal content.
 
@@ -5572,8 +5301,7 @@ Code: [`static/js/TopicLandingPage/TopicsLandingPage.jsx:14-57`](https://github.
 Source: `inv_05_library_topics.md#8`
 
 #### TOP-004 · Topic search with autocomplete
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A search box on the topics landing page suggests topics as you type, showing each topic's category path.
 
@@ -5591,8 +5319,7 @@ Code: [`static/js/TopicLandingPage/TopicLandingSearch.jsx:126-159`](https://gith
 Source: `inv_05_library_topics.md#8.1`
 
 #### TOP-005 · Topic word cloud (salad)
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A colorful cloud of randomly chosen topic names links straight into topics.
 
@@ -5609,8 +5336,7 @@ Code: [`static/js/TopicLandingPage/TopicSalad.jsx`](https://github.com/Sefaria/S
 Source: `inv_05_library_topics.md#8.2`
 
 #### TOP-006 · Featured topic of the day
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 The landing page highlights a featured topic with image, description and a link.
 
@@ -5624,8 +5350,7 @@ Code: [`static/js/TopicLandingPage/FeaturedTopic.jsx`](https://github.com/Sefari
 Source: `inv_05_library_topics.md#8.3`
 
 #### TOP-007 · Topics newsletter sign-up
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Visitors can subscribe to the weekly topics newsletter from the landing page.
 
@@ -5642,8 +5367,7 @@ Code: [`static/js/TopicLandingPage/TopicLandingNewsletter.jsx`](https://github.c
 Source: `inv_05_library_topics.md#8.4`
 
 #### TOP-008 · Random topic cards with descriptions
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A row of randomly picked topics, each with a short description and an Explore link.
 
@@ -5656,8 +5380,7 @@ Code: [`static/js/TopicLandingPage/RandomTopicCardWithDescriptionRow.jsx`](https
 Source: `inv_05_library_topics.md#8.5`
 
 #### TOP-009 · This week's Torah portion card
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 The landing page features this week's Torah portion with a topic link and a Read the Portion button.
 
@@ -5670,8 +5393,7 @@ Code: [`static/js/TopicLandingPage/TopicLandingParasha.jsx`](https://github.com/
 Source: `inv_05_library_topics.md#8.6`
 
 #### TOP-010 · Seasonal Jewish calendar topic card
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 The landing page features a topic tied to the current time of the Jewish year with dates and a link to the Jewish calendar topics.
 
@@ -5685,10 +5407,10 @@ Code: [`static/js/TopicLandingPage/TopicLandingSeasonal.jsx`](https://github.com
 
 Source: `inv_05_library_topics.md#8.7`
 
+
 ### Topic categories and A-Z
 
 #### TOP-011 · Topics category grid (Voices)
-
 `standard` `live` · rebuild: **todo**
 
 The Voices site's topics home is a grid of topic category cards plus an All Topics A-Z card.
@@ -5704,8 +5426,7 @@ Code: [`static/js/TopicsPage.jsx:17-27`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#9`
 
 #### TOP-012 · Topic card
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A card represents a topic or category with title, description and link.
 
@@ -5721,8 +5442,7 @@ Code: [`static/js/common/TopicTOCCard.jsx`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_05_library_topics.md#9.1`
 
 #### TOP-013 · Topic category page
-
-`core` `live` · rebuild: **partial** — Page, cards, sidebar built; moderators' category buttons (add/edit/reorder) not built · _tested_
+`core` `live` · rebuild: **partial** — Page, cards, sidebar built; moderators' category buttons (add/edit/reorder) not built · *tested*
 
 A topic category page lists its subtopics as cards, sorted and filtered for the current site.
 
@@ -5740,8 +5460,7 @@ Code: [`static/js/TopicPage.jsx:225-273`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_05_library_topics.md#10`
 
 #### TOP-014 · All Topics A-Z index
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 An alphabetical index of every topic with letter navigation and a filter box.
 
@@ -5759,11 +5478,11 @@ Code: [`static/js/TopicPageAll.jsx`](https://github.com/Sefaria/Sefaria-Project/
 
 Source: `inv_05_library_topics.md#12`
 
+
 ### Topic page
 
 #### TOP-015 · Topic page data loading
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 A topic page fetches the topic's details, sources, sheets and related links, sorted into tabs.
 
@@ -5783,7 +5502,6 @@ Code: [`static/js/TopicPage.jsx:543-624`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_05_library_topics.md#11.1`
 
 #### TOP-016 · Topic source tab bucketing
-
 `core` `live` · rebuild: **done**
 
 Sources linked to a topic are sorted into Notable Sources, Sources, Top Citations and Sheets tabs depending on site and annotation.
@@ -5800,8 +5518,7 @@ Code: [`static/js/sefaria/sefaria.js:3093-3185`](https://github.com/Sefaria/Sefa
 Source: `inv_05_library_topics.md#11.1`
 
 #### TOP-017 · Topic page header
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The topic header shows the title, category link, description, image on mobile and sponsorship dedication, with an AI disclosure marker when relevant.
 
@@ -5819,8 +5536,7 @@ Code: [`static/js/TopicPage.jsx:389-446`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_05_library_topics.md#11.2`
 
 #### TOP-018 · Parasha topic sponsorship text
-
-`optional` `live` · rebuild: **done** · _tested_
+`optional` `live` · rebuild: **done** · *tested*
 
 Certain Torah portion topic pages show a hard-coded sponsorship dedication.
 
@@ -5833,8 +5549,7 @@ Code: [`static/js/TopicPage.jsx:275-316`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_05_library_topics.md#11.2`
 
 #### TOP-019 · Read the portion and Study Companion buttons
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Topics with a text reference (portions, holidays) show a button to read it, and English portion pages offer the free Study Companion.
 
@@ -5847,8 +5562,7 @@ Code: [`static/js/TopicPage.jsx:389-446`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_05_library_topics.md#11.2`
 
 #### TOP-020 · Topic page tabs
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Topic pages have tabs for notable sources, all sources, top citations, sheets and (for authors) Works on Sefaria, plus filter and language controls.
 
@@ -5868,8 +5582,7 @@ Code: [`static/js/TopicPage.jsx:464-509`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_05_library_topics.md#11.3`
 
 #### TOP-021 · Topic source incremental loading
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Topic source lists load in batches as the reader scrolls and remember how far they were scrolled on return.
 
@@ -5882,8 +5595,7 @@ Code: [`static/js/TopicPage.jsx:638-830`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_05_library_topics.md#11.3`
 
 #### TOP-022 · Topic source filter and sort
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Readers can filter a topic's sources by text and sort by relevance, date or views.
 
@@ -5901,8 +5613,7 @@ Code: [`static/js/TopicPage.jsx:81-159`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#11.4`
 
 #### TOP-023 · Topic source cards
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Each source on a topic page shows the text excerpt with its citation, and curated sources show a title and learning prompt.
 
@@ -5921,7 +5632,6 @@ Code: [`static/js/Story.jsx:167-212`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_05_library_topics.md#11.5`
 
 #### TOP-024 · Topic sheet cards
-
 `standard` `live` · rebuild: **partial** — No Sheets tab on the Library (as before); the Voices host's topic pages stay Django's
 
 Sheets tagged with a topic appear as cards with title, summary, author and save/follow actions.
@@ -5935,8 +5645,7 @@ Code: [`static/js/Story.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 Source: `inv_05_library_topics.md#11.5`
 
 #### TOP-025 · Topic side column: metadata and links
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 The side column shows the topic image, lifespan, external reference links and related-topic groups.
 
@@ -5955,8 +5664,7 @@ Code: [`static/js/TopicPage.jsx:975-1009`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#11.6`
 
 #### TOP-026 · Parasha readings panel
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A Torah portion topic shows the next reading date, aliyot, and haftarah links.
 
@@ -5969,8 +5677,7 @@ Code: [`static/js/TopicPage.jsx:1058-1105`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_05_library_topics.md#11.6`
 
 #### TOP-027 · Portal topic pages
-
-`optional` `live` · rebuild: **partial** — Modules built; the newsletter module uses the topics form, not the old NewsletterSignUpForm layout · _tested_
+`optional` `live` · rebuild: **partial** — Modules built; the newsletter module uses the topics form, not the old NewsletterSignUpForm layout · *tested*
 
 Some topics are partner portals whose side column shows partner about, app, organization and newsletter modules instead of the usual links.
 
@@ -5985,8 +5692,7 @@ Code: [`static/js/TopicPage.jsx:576-580`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_05_library_topics.md#11.7`
 
 #### TOP-028 · AI-generated topic text disclosure and admin prompt tools
-
-`optional` `live` · rebuild: **partial** — AI marker (always in the page, as live), Admin tab, review, Generate, Publish built but never run in a moderator session; Add a source / Edit / Reorder open the old page (?editor=1 → Django via the 404 hand-off) · _tested_ `moderator`
+`optional` `live` · rebuild: **partial** — AI marker (always in the page, as live), Admin tab, review, Generate, Publish built but never run in a moderator session; Add a source / Edit / Reorder open the old page (?editor=1 → Django via the 404 hand-off) · *tested* `moderator`
 
 Topic pages flag AI-generated source titles, and moderators can generate and publish AI prompts for sources.
 
@@ -6001,8 +5707,7 @@ Code: [`static/js/TopicPage.jsx:329-387`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_05_library_topics.md#11.2`
 
 #### TOP-029 · Topic page analytics batch
-
-`optional` `live` · rebuild: **done** · _tested_ `system`
+`optional` `live` · rebuild: **done** · *tested* `system`
 
 Topic pages tag their root with analytics context for impressions.
 
@@ -6015,8 +5720,7 @@ Code: [`static/js/TopicPage.jsx:543-624`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_05_library_topics.md#11.8`
 
 #### TOP-030 · Topic data model behaviors
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 The client relies on topic fields for display gating, ordering, images and link groupings.
 
@@ -6034,8 +5738,7 @@ Code: [`sefaria/model/topic.py:205-216`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#19.1`
 
 #### TOP-031 · Topic pool and trending endpoints
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Server endpoints provide pooled random topics, trending topics and topic lists per site.
 
@@ -6049,7 +5752,6 @@ Code: [`reader/views.py:3764-3807`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_05_library_topics.md#19`
 
 #### TOP-032 · Topics launch banner (unused)
-
 `retire` `unused` · rebuild: **n/a**
 
 A 2025 topics launch banner with a word-cloud graphic exists but is not mounted anywhere.
@@ -6061,10 +5763,10 @@ Code: [`static/js/TopicsLaunchBanner.jsx`](https://github.com/Sefaria/Sefaria-Pr
 
 Source: `inv_05_library_topics.md#16; inv_08_other.md#4.5`
 
+
 ### Topic categories and A-Z
 
 #### TOP-033 · Topics TOC delivery
-
 `core` `live` · rebuild: **done**
 
 The topics pages read the topics table of contents, which the old site put in every page's data.js; the new reader keeps it on the server and sends each page its slice.
@@ -6077,10 +5779,10 @@ Code: [`templates/js/data.js:8`](https://github.com/Sefaria/Sefaria-Project/blob
 
 Source: `inv_05_library_topics.md`
 
+
 ### Topics landing page
 
 #### TOP-034 · Library topic count
-
 `standard` `live` · rebuild: **done**
 
 The landing search says how many topics the library has.
@@ -6092,11 +5794,11 @@ Code: [`reader/views.py:369`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 
 Source: `inv_05_library_topics.md`
 
+
 ### Topic categories and A-Z
 
 #### TOP-035 · Topics pages' sidebar modules
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Each topics page has its own list of sidebar modules: Browse Topics, Trending Topics, All Topics A-Z, About Topics, Sponsor a Day, the Study Companion and Get the App.
 
@@ -6109,11 +5811,11 @@ Code: `static/js/NavSidebar.jsx:181-195,339-363,634-722,775-792`
 
 Source: `inv_05_library_topics.md`
 
+
 ### Topic page
 
 #### TOP-036 · Topic page Library pool check
-
-`core` `live` · rebuild: **done** — Every Library-pool topic rendered (pools from the API, else the name completer's topic_pool filter); only ?editor=1 goes to Django · _tested_
+`core` `live` · rebuild: **done** — Every Library-pool topic rendered (pools from the API, else the name completer's topic_pool filter); only ?editor=1 goes to Django · *tested*
 
 A topic page exists on the Library only for topics in the Library's pool; the new reader decides it from the A–Z list or the topic's pools, and otherwise lets Django answer.
 
@@ -6129,15 +5831,15 @@ Code: [`reader/views.py:3592-3640`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_05_library_topics.md`
 
-<a id="calendars"></a>
 
+<a id="calendars"></a>
 ## Calendars
+
 
 ### Learning schedules
 
 #### CAL-001 · Learning Schedules page
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 One page lists today's and this week's learning schedules (portion, Daf Yomi, Mishnah, Rambam and more) with links to the readings.
 
@@ -6163,8 +5865,7 @@ Code: [`static/js/CalendarsPage.jsx:17-27`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_05_library_topics.md#5`
 
 #### CAL-002 · Calendar listing cards
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Each schedule is a card colored by category with a title, subtitle, description and links to each assigned reading.
 
@@ -6183,8 +5884,7 @@ Code: [`static/js/CalendarsPage.jsx:70-136`](https://github.com/Sefaria/Sefaria-
 Source: `inv_05_library_topics.md#5`
 
 #### CAL-003 · Calendar APIs and quick redirects
-
-`standard` `live` · rebuild: **done** — Redirects answered by the node server; the calendar APIs are Django's · _tested_
+`standard` `live` · rebuild: **done** — Redirects answered by the node server; the calendar APIs are Django's · *tested*
 
 Server endpoints supply calendar data, the next reading of a portion, and shortcuts to today's portion or Daf Yomi.
 
@@ -6200,8 +5900,7 @@ Code: [`reader/views.py:3004-3048`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_05_library_topics.md#19`
 
 #### CAL-004 · Learning Schedules follow the reader's location and custom
-
-`standard` `live` · rebuild: **done** — On /calendars; the library sidebar still sends no custom · _tested_
+`standard` `live` · rebuild: **done** — On /calendars; the library sidebar still sends no custom · *tested*
 
 The page shows Israel's or the diaspora's weekly portion by the reader's country, and the haftarah of the reader's textual custom.
 
@@ -6214,8 +5913,7 @@ Code: [`reader/views.py:1340-1346`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `2026-11-04 calendars lane`
 
 #### CAL-005 · Calendars refresh after a settings change
-
-`optional` `live` · rebuild: **partial** — Refetch through the user-query invalidation (unit-tested); the event's diaspora is ignored · _tested_ `signed-in`
+`optional` `live` · rebuild: **partial** — Refetch through the user-query invalidation (unit-tested); the event's diaspora is ignored · *tested* `signed-in`
 
 When the account settings page changes the textual custom, the open page asks for the calendars again.
 
@@ -6226,15 +5924,15 @@ Code: [`static/js/ReaderApp.jsx:1266-1278`](https://github.com/Sefaria/Sefaria-P
 
 Source: `2026-11-04 calendars lane`
 
-<a id="search"></a>
 
+<a id="search"></a>
 ## Search & autocomplete
+
 
 ### Header autocomplete
 
 #### SRC-001 · Header search suggestions
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Typing in the header search box suggests books, topics, categories, collections, users and more.
 
@@ -6251,8 +5949,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:404`](https://github.com/Sefaria/Sefari
 Source: `inv_02_reader_shell.md#17`
 
 #### SRC-002 · Header search submit logic
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Pressing Enter either jumps straight to a recognized object or runs a full-text search.
 
@@ -6267,8 +5964,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:195`](https://github.com/Sefaria/Sefari
 Source: `inv_02_reader_shell.md#17`
 
 #### SRC-003 · Typeahead suggestions in header
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 As users type, the header shows grouped suggestions for books, categories, topics, authors, collections and users.
 
@@ -6283,8 +5979,7 @@ Code: [`static/js/GeneralAutocomplete.jsx:29`](https://github.com/Sefaria/Sefari
 Source: `inv_06_search.md#2.1`
 
 #### SRC-004 · Minimum 3 characters for suggestions
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Suggestions only appear once at least three characters are typed.
 
@@ -6297,8 +5992,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:403`](https://github.com/Sefaria/Sefari
 Source: `inv_06_search.md#2.2, 17`
 
 #### SRC-005 · Suggestion types differ by module
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The Library header suggests texts, categories and topics; the Voices header suggests topics, users and collections.
 
@@ -6311,8 +6005,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:42`](https://github.com/Sefaria/Sefaria
 Source: `inv_06_search.md#2.2, 17`
 
 #### SRC-006 · Suggestion destination URLs
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Each suggestion links to its page: topic, category, book/ref, collection or profile.
 
@@ -6326,8 +6019,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:104`](https://github.com/Sefaria/Sefari
 Source: `inv_06_search.md#2.2, 2.3, 0`
 
 #### SRC-007 · Suggestion grouping, headers and icons
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Suggestions are grouped under headers (Books, Topics, Authors, Categories, Collections, Terms, Users) with a type icon on each row.
 
@@ -6342,8 +6034,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:7`](https://github.com/Sefaria/Sefaria-
 Source: `inv_06_search.md#2.4`
 
 #### SRC-008 · Suggestion group ordering (reversed)
-
-`optional` `broken` · rebuild: **done** · _tested_
+`optional` `broken` · rebuild: **done** · *tested*
 
 Suggestion groups render in an order that is the reverse of what the configured order list suggests.
 
@@ -6355,8 +6046,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:75`](https://github.com/Sefaria/Sefaria
 Source: `inv_06_search.md#0, 2.4`
 
 #### SRC-009 · 'Search for' row
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The first suggestion row lets users run a full-text search for exactly what they typed.
 
@@ -6369,8 +6059,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:143`](https://github.com/Sefaria/Sefari
 Source: `inv_06_search.md#2.2, 2.4, 2.5`
 
 #### SRC-010 · Submit search with Enter or button
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Pressing Enter or the magnifier either jumps to a highlighted suggestion or submits the typed query.
 
@@ -6384,8 +6073,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:210`](https://github.com/Sefaria/Sefari
 Source: `inv_06_search.md#2.1, 2.5`
 
 #### SRC-011 · Smart submit: ref, topic or search
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Submitting a query opens a text if it is a citation, otherwise runs a full-text search.
 
@@ -6400,8 +6088,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:118`](https://github.com/Sefaria/Sefari
 Source: `inv_06_search.md#2.5, 17`
 
 #### SRC-012 · Case and gershayim query repair
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Queries typed with the wrong capitalization or with a gershayim character still resolve to the intended book or topic.
 
@@ -6414,8 +6101,7 @@ Code: [`static/js/sefaria.js:2436`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_06_search.md#2.5, 17`
 
 #### SRC-013 · Hash-prefix topic navigation
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Typing # plus a topic name and pressing Enter opens that topic page.
 
@@ -6427,7 +6113,6 @@ Code: [`static/js/HeaderAutocomplete.jsx:133`](https://github.com/Sefaria/Sefari
 Source: `inv_06_search.md#0.5, 3.1`
 
 #### SRC-014 · Latent crash on exact Collection/Category Enter
-
 `retire` `broken` · rebuild: **replaced** — Old-site crash on exact Collection/Category Enter; the rebuild navigates to the category/collection normally.
 
 Pressing Enter on an exact Collection name in Library, or TocCategory in Voices, throws an error.
@@ -6440,8 +6125,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:477`](https://github.com/Sefaria/Sefari
 Source: `inv_06_search.md#0.7`
 
 #### SRC-015 · Navigate to suggestion (redirectToObject)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Choosing a suggestion navigates in-app, falling back to a full page load.
 
@@ -6452,8 +6136,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:517`](https://github.com/Sefaria/Sefari
 Source: `inv_06_search.md#2.5`
 
 #### SRC-016 · Show search results panel
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Submitting a search opens the search results page, collapsing other panels into a single panel.
 
@@ -6466,8 +6149,7 @@ Code: [`static/js/ReaderApp.jsx:2027`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_06_search.md#2.5`
 
 #### SRC-017 · Virtual Hebrew keyboard in search box
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 In the English interface, users can type Hebrew in the search box with an on-screen keyboard.
 
@@ -6485,8 +6167,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:205`](https://github.com/Sefaria/Sefari
 Source: `inv_06_search.md#2.6; inv_02_reader_shell.md#17`
 
 #### SRC-018 · Search box focus/blur behavior
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Focusing the search box highlights it; blur hides suggestions and tracks defocus.
 
@@ -6498,8 +6179,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:250`](https://github.com/Sefaria/Sefari
 Source: `inv_06_search.md#2.6`
 
 #### SRC-019 · Search input limits and labels
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 The search input has a 75-character limit and accessibility labels.
 
@@ -6510,11 +6190,11 @@ Code: [`static/js/HeaderAutocomplete.jsx:287`](https://github.com/Sefaria/Sefari
 
 Source: `inv_06_search.md#2.6, 17`
 
+
 ### In-book search
 
 #### SRC-020 · Dictionary search in sidebar for dictionary books
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 For dictionary books the sidebar search becomes a dictionary word search that navigates to the entry.
 
@@ -6526,11 +6206,11 @@ Code: [`static/js/SidebarSearch.jsx`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_04_connections.md#5`
 
+
 ### Dictionary search
 
 #### SRC-021 · Dictionary word search box with autocomplete
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A search box in the Lexicon view finds dictionary entries by typing a Hebrew word.
 
@@ -6538,20 +6218,19 @@ A search box in the Lexicon view finds dictionary entries by typing a Hebrew wor
 - jQuery-UI autocomplete: input polled every 330ms; dropdown repositioned below keyboard; English input shows 'Invalid entry. Please type a Hebrew word.'.
 - Sefaria.lexiconCompletion GET /api/words/completion/<word>[/<lexicon>] limit 10; server cross-lexicon or per-lexicon autocompleter (reader/views.py:3202-3224).
 - Enter/search button resolves word to dotted form or nearest match via completion, then shows word list in sidebar (LexiconBox.searchWord) or navigates to entry for dictionary books.
-- VERIFIED 2026-10-05: GET /api/words/completion/אור → [[headword, form], …] (10): across dictionaries form == headword ('אור','אורא','אורב'…); in Jastrow ('/api/words/completion/אור/Jastrow Dictionary') forms are vowelled ('אוֹר','אוּר I','אוֹר I','אור II'…). Choosing a completion or pressing Enter sends the FORM (Enter: the first completion's form, else the raw text). Rebuild: DictionarySearch (combobox + listbox, 100ms debounce, cached through the library cache), Latin letters → 'Invalid entry. Please type a Hebrew word.', Hebrew keyboard icon in the English interface. The old box polled the input every 330 ms for keyboard typing; the rebuild reacts to input directly.
+- VERIFIED 2026-10-05: GET /api/words/completion/אור → [[headword, form], …] (10): across dictionaries form == headword ('אור','אורא','אורב'…); in Jastrow ('/api/words/completion/אור/Jastrow Dictionary') forms are vowelled ('אוֹר','אוּר I','אוֹר I','אור II'…). Choosing a completion or pressing Enter sends the FORM (Enter: the first completion's form, else the raw text). Rebuild: DictionarySearch (combobox + listbox, 100ms debounce, cached through the library cache), Latin letters → 'Invalid entry.  Please type a Hebrew word.', Hebrew keyboard icon in the English interface. The old box polled the input every 330 ms for keyboard typing; the rebuild reacts to input directly.
 
 Code: [`static/js/DictionarySearch.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/DictionarySearch.jsx), [`static/js/sefaria/sefaria.js:1546`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L1546), [`reader/views.py:3202`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3202)
 
 Source: `inv_04_connections.md#9.5`
 
 #### SRC-022 · Dictionary headword search box
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Dictionary books and the lexicon sidebar offer a Hebrew-only headword autocomplete to look up entries.
 
 - jQuery UI autocomplete on input.search, minLength 1, menu class dictionary-toc-autocomplete.
-- Hebrew only: input containing English shows non-selectable row 'Invalid entry. Please type a Hebrew word.'
+- Hebrew only: input containing English shows non-selectable row 'Invalid entry.  Please type a Hebrew word.'
 - Source Sefaria.lexiconCompletion(term, lexiconName); label = form with vowels (e[1]), value e[0].
 - Polls every 330 ms for value changes (virtual-keyboard typing) and retriggers search; menu position/width adapts when #keyboardInputMaster open.
 - Select -> submitSearch(label); Enter or magnifier -> submitSearch(query, needsResolution=true) resolving to first completion's form or raw word.
@@ -6564,11 +6243,11 @@ Code: [`static/js/DictionarySearch.jsx:67`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_06_search.md#10, 9.2`
 
+
 ### Entry points
 
 #### SRC-023 · Desktop header search box
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Users search from the site header box with autocomplete suggestions and a submit button.
 
@@ -6580,8 +6259,7 @@ Code: [`static/js/Header.jsx:292`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_06_search.md#1`
 
 #### SRC-024 · Mobile nav-menu search box
-
-`core` `live` · rebuild: **done** · _tested_ `mobile only`
+`core` `live` · rebuild: **done** · *tested* `mobile only`
 
 The mobile menu contains the same autocomplete search box and closes the menu after navigating.
 
@@ -6592,7 +6270,6 @@ Code: [`static/js/Header.jsx:434`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_06_search.md#1`
 
 #### SRC-025 · Compare-panel search box
-
 `standard` `live` · rebuild: **deferred** — Needs Compare Text, which is not built.
 
 A compare panel has its own plain search box that opens search results inside that panel.
@@ -6608,7 +6285,6 @@ Code: [`static/js/ComparePanelHeader.jsx:19`](https://github.com/Sefaria/Sefaria
 Source: `inv_06_search.md#1, 5.13`
 
 #### SRC-026 · Compare-panel search limitations
-
 `optional` `broken` · rebuild: **deferred** — Needs Compare Text, which is not built.
 
 In compare mode, entity-tab Book category filters cannot be reached.
@@ -6621,7 +6297,6 @@ Code: [`static/js/SearchPage.jsx:774`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_06_search.md#5.13`
 
 #### SRC-027 · Collection full-text search link
-
 `standard` `live` · rebuild: **deferred** — Collections / Voices / topics: Phase 7, owner decides.
 
 On a collection page, typing a filter offers to search the full text of the collection's sheets.
@@ -6634,7 +6309,6 @@ Code: [`static/js/CollectionPage.jsx:180`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_06_search.md#1, 8.4`
 
 #### SRC-028 · Browser omnibox search (OpenSearch)
-
 `optional` `live` · rebuild: **deferred** — OpenSearch / sitelinks / legacy s1 handoff need server or deploy decisions: ask the owner.
 
 Users can add Sefaria as a browser search engine and get suggestions in the address bar.
@@ -6647,7 +6321,6 @@ Code: [`templates/base.html:19`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_06_search.md#1, 13.6`
 
 #### SRC-029 · Google sitelinks search box
-
 `optional` `live` · rebuild: **deferred** — OpenSearch / sitelinks / legacy s1 handoff need server or deploy decisions: ask the owner. `third-party`
 
 Google can show a Sefaria search box in results and send queries to the search page.
@@ -6659,7 +6332,6 @@ Code: [`templates/static/home.html:21`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_06_search.md#1`
 
 #### SRC-030 · Legacy s1 page search handoff
-
 `retire` `legacy` · rebuild: **deferred** — OpenSearch / sitelinks / legacy s1 handoff need server or deploy decisions: ask the owner.
 
 On legacy pages the header search does a full page load to /search.
@@ -6670,10 +6342,10 @@ Code: [`static/js/HeaderAutocomplete.jsx:505`](https://github.com/Sefaria/Sefari
 
 Source: `inv_06_search.md#1`
 
+
 ### Autocomplete backend
 
 #### SRC-031 · Name completion API
-
 `core` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch).
 
 A single endpoint resolves typed text into a citation, topic override, exact object, or list of completions.
@@ -6690,7 +6362,6 @@ Code: [`reader/views.py:3143`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_06_search.md#3.1`
 
 #### SRC-032 · Completion candidate pipeline
-
 `standard` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch). `system`
 
 Suggestions come from prefix matches first, then later-in-string matches, then spelling corrections.
@@ -6705,7 +6376,6 @@ Code: [`reader/views.py:3084`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_06_search.md#3.2, 3.3`
 
 #### SRC-033 · Autocomplete ranking and eligibility rules
-
 `standard` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch). `system`
 
 Which books, categories, topics, collections and users can appear in suggestions, and how they rank.
@@ -6721,7 +6391,6 @@ Code: [`sefaria/model/autospell.py:182`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_06_search.md#3.3`
 
 #### SRC-034 · Type and topic-pool filtering of completions
-
 `standard` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch). `system`
 
 Completions can be restricted by object type and topic pool.
@@ -6733,7 +6402,6 @@ Code: [`sefaria/model/autospell.py:453`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_06_search.md#3.3`
 
 #### SRC-035 · Wrong-keyboard auto correction
-
 `standard` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch).
 
 If a query returns nothing, the system retries as if typed on the other-language keyboard layout.
@@ -6746,7 +6414,6 @@ Code: [`sefaria/model/autospell.py:309`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_06_search.md#3.3`
 
 #### SRC-036 · Dictionary headword completion API
-
 `standard` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch).
 
 An API returns dictionary headword completions for a typed Hebrew word.
@@ -6760,7 +6427,6 @@ Code: [`reader/views.py:3202`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_06_search.md#3.1, 3.2`
 
 #### SRC-037 · Search-autocomplete redirecter
-
 `standard` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch).
 
 A search-box submission can be resolved server-side into a ref, topic, category or text search.
@@ -6777,7 +6443,6 @@ Code: [`reader/views.py:2058`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_06_search.md#13.6; inv_01_urls_routing.md#1.3`
 
 #### SRC-038 · OpenSearch suggestions API
-
 `optional` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch). `third-party`
 
 Returns up to 5 completions in OpenSearch format for browser address bars.
@@ -6788,11 +6453,11 @@ Code: [`reader/views.py:2077`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_06_search.md#13.6`
 
+
 ### Search page URL and state
 
 #### SRC-039 · Search page URL and server render
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 /search?q=... renders the search page with the query, tab, filters and sort restored from the URL.
 
@@ -6805,8 +6470,7 @@ Code: [`reader/views.py:1112`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_06_search.md#4.1`
 
 #### SRC-040 · Search URL parameters
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Search state is encoded in URL params so results are shareable and survive reload.
 
@@ -6822,8 +6486,7 @@ Code: [`reader/views.py:1054`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_06_search.md#4.1, 0.11`
 
 #### SRC-041 · Search type determined by module
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Library searches texts; Voices searches sheets, regardless of the URL's tab param.
 
@@ -6834,7 +6497,6 @@ Code: [`static/js/ReaderApp.jsx:58`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_06_search.md#4.2`
 
 #### SRC-042 · Search history and back/forward
-
 `core` `live` · rebuild: **done**
 
 Search queries, tabs, filters and sort are pushed to browser history and restored on back/forward.
@@ -6853,8 +6515,7 @@ Code: [`static/js/ReaderApp.jsx:550`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_06_search.md#4.2, 0.10`
 
 #### SRC-043 · Search panel rendering rules
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The search body renders only when a query exists; /search with no query shows nothing.
 
@@ -6868,8 +6529,7 @@ Code: [`static/js/ReaderPanel.jsx:964`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_06_search.md#4.2, 17`
 
 #### SRC-044 · Search state mutators
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Query, filter, field and sort changes flow through dedicated state updates that drive re-querying.
 
@@ -6881,8 +6541,7 @@ Code: [`static/js/ReaderApp.jsx:1471`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_06_search.md#4.2`
 
 #### SRC-045 · SearchState model
-
-`core` `live` · rebuild: **done** · _tested_ `system`
+`core` `live` · rebuild: **done** · *tested* `system`
 
 A state object holds search type, applied filters, available filter tree, field and sort.
 
@@ -6896,11 +6555,11 @@ Code: [`static/js/sefaria/searchState.js:80`](https://github.com/Sefaria/Sefaria
 
 Source: `inv_06_search.md#4.3`
 
+
 ### Search page (Library)
 
 #### SRC-046 · Sources full-text search results
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The Sources tab shows full-text matches across the library, paged with infinite scroll.
 
@@ -6910,7 +6569,7 @@ The Sources tab shows full-text matches across the library, paged with infinite 
 - Success: recordApiResult('sources', total); first page sets moreToLoad = total > pageSize; builds filter tree from aggregations.
 - Aborts in-flight query on new query/unmount via HackyQueryAborter (multiple jQuery XHRs).
 - Renders SearchInVoicesPage in Voices, otherwise SearchPage.
-- VERIFIED /search?q=light&tab=text&search_tab=sources&tvar=1&tsort=relevance: tabs 'Sources 10,000+ | Books 1 | Authors 1 | Topics 21', toggle 'All Results | Exact Phrase', sort 'Relevance', cards 'Genesis 1:3 … 12 more versions', Filters module with 'Find a filter' and Tanakh (824), Mishnah (175)…
+- VERIFIED /search?q=light&tab=text&search_tab=sources&tvar=1&tsort=relevance: tabs 'Sources 10,000+ | Books 1 | Authors 1 | Topics 21', toggle 'All Results | Exact Phrase', sort 'Relevance', cards 'Genesis 1:3 … 12 more versions', Filters module with 'Find a filter' and Tanakh (824), Mishnah (175)… 
 - Request: POST /api/search-wrapper/es8 (sent as text/plain to avoid a CORS preflight), 100 hits a page; body fields naive_lemmatizer (all) / exact (exact phrase), slop 10 / 0; relevance sort = score + pagesheetrank (missing 0.04), chronological = comp_date,order. A second unfiltered size-0 request carries the 'path' aggregation for the filter tree; entity counts come from GET /api/entity-search?type=book|author|topic.
 
 Code: [`static/js/ElasticSearchQuerier.jsx:97`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ElasticSearchQuerier.jsx#L97), [`static/js/ElasticSearchQuerier.jsx:209`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ElasticSearchQuerier.jsx#L209), [`static/js/ElasticSearchQuerier.jsx:314`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ElasticSearchQuerier.jsx#L314), [`static/js/sefaria/search.js:625`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/search.js#L625)
@@ -6918,8 +6577,7 @@ Code: [`static/js/ElasticSearchQuerier.jsx:97`](https://github.com/Sefaria/Sefar
 Source: `inv_06_search.md#5.1`
 
 #### SRC-047 · Two-phase filtered query
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 A deep link with filters first runs an unfiltered query to get the filter list, then the filtered query.
 
@@ -6932,8 +6590,7 @@ Code: [`static/js/ElasticSearchQuerier.jsx:305`](https://github.com/Sefaria/Sefa
 Source: `inv_06_search.md#5.1, 17`
 
 #### SRC-048 · Search tabs: Sources, Books, Authors, Topics
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The Library search page offers four result tabs with counts.
 
@@ -6949,8 +6606,7 @@ Code: [`static/js/SearchPage.jsx:101`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_06_search.md#0.1, 5.3`
 
 #### SRC-049 · Desktop vs mobile search layout
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Search adapts between a two-column desktop layout and a mobile layout with a tab strip and filter overlay.
 
@@ -6964,8 +6620,7 @@ Code: [`static/js/SearchPage.jsx:89`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_06_search.md#5.3`
 
 #### SRC-050 · Search loading skeleton
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A shimmer placeholder replaces the results area while the first query runs.
 
@@ -6978,7 +6633,6 @@ Code: [`static/js/SearchLoadSkeleton.jsx:20`](https://github.com/Sefaria/Sefaria
 Source: `inv_06_search.md#5.3`
 
 #### SRC-051 · In-page search bar
-
 `core` `live` · rebuild: **done**
 
 A search box on the results page lets users refine their query without autocomplete.
@@ -6993,8 +6647,7 @@ Code: [`static/js/SearchPage.jsx:30`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_06_search.md#5.2`
 
 #### SRC-052 · Exact phrase vs all results toggle
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Users can switch between lemmatized 'All Results' and 'Exact Phrase' matching for text search.
 
@@ -7008,7 +6661,6 @@ Code: [`static/js/SearchToggle.jsx`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_06_search.md#5.4, 5.11`
 
 #### SRC-053 · Sources sort dropdown
-
 `core` `live` · rebuild: **done**
 
 Users can sort source results by relevance or chronologically (sheets: relevance, date created, views).
@@ -7022,8 +6674,7 @@ Code: [`static/js/SearchResultList.jsx:195`](https://github.com/Sefaria/Sefaria-
 Source: `inv_06_search.md#5.4, 5.5`
 
 #### SRC-054 · Source result list and version grouping
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Results show one card per ref, with other matching versions folded under it.
 
@@ -7037,7 +6688,6 @@ Code: [`static/js/sefaria/search.js:430`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_06_search.md#5.6`
 
 #### SRC-055 · Source result card
-
 `core` `live` · rebuild: **done**
 
 Each result shows the matching snippet with highlights, the ref title, category color and version.
@@ -7052,8 +6702,7 @@ Code: [`static/js/SearchResultCard.jsx:253`](https://github.com/Sefaria/Sefaria-
 Source: `inv_06_search.md#5.7`
 
 #### SRC-056 · 'N more versions' expansion
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Result cards can expand to show other versions that also match, each opening that version.
 
@@ -7065,7 +6714,6 @@ Code: [`static/js/SearchResultCard.jsx:97`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_06_search.md#5.7`
 
 #### SRC-057 · Open a search result in the reader
-
 `core` `live` · rebuild: **done**
 
 Clicking a result opens that text at the matching segment with the matched words highlighted.
@@ -7083,8 +6731,7 @@ Code: [`static/js/SearchResultCard.jsx:150`](https://github.com/Sefaria/Sefaria-
 Source: `inv_06_search.md#5.7`
 
 #### SRC-058 · Matched-word highlighting in reader
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 After clicking a result, the matched words are highlighted in the text until the user moves on.
 
@@ -7099,7 +6746,6 @@ Code: [`static/js/TextRange.jsx:554`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_06_search.md#5.7`
 
 #### SRC-059 · qh query-highlight URL param (dead)
-
 `retire` `unused` · rebuild: **n/a** — Dead in the old site (qh param, topic cards query) or a list of things search never had; not rebuilt.
 
 Result links carry a qh param that the modern reader ignores, so new-tab/deep-link opens get no highlight.
@@ -7113,7 +6759,6 @@ Code: [`static/js/SearchResultList.jsx:64`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_06_search.md#0.4`
 
 #### SRC-060 · Touch pressed state on result cards
-
 `optional` `live` · rebuild: **done** — :active on touch devices `mobile only`
 
 Result cards show a pressed visual on touch without flashing during scroll.
@@ -7126,7 +6771,6 @@ Code: [`static/js/SearchResultCard.jsx:8`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_06_search.md#5.7`
 
 #### SRC-061 · Infinite scroll for results
-
 `core` `live` · rebuild: **done**
 
 More results load automatically as the user scrolls near the bottom.
@@ -7143,8 +6787,7 @@ Code: [`static/js/InfiniteScroll.jsx:30`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_06_search.md#5.9, 0.13, 0.14`
 
 #### SRC-062 · Mobile search tab strip
-
-`standard` `live` · rebuild: **done** · _tested_ `mobile only`
+`standard` `live` · rebuild: **done** · *tested* `mobile only`
 
 On mobile the result tabs are a horizontally scrollable strip with counts and edge fades.
 
@@ -7157,8 +6800,7 @@ Code: [`static/js/SearchTabsMobileWeb.jsx:11`](https://github.com/Sefaria/Sefari
 Source: `inv_06_search.md#5.10`
 
 #### SRC-063 · Mobile filter and sort panels
-
-`standard` `live` · rebuild: **done** · _tested_ `mobile only`
+`standard` `live` · rebuild: **done** · *tested* `mobile only`
 
 On mobile, filters and sort open in a full-screen panel with a Show Results button.
 
@@ -7173,8 +6815,7 @@ Code: [`static/js/SearchFilters.jsx:68`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_06_search.md#5.4, 5.11`
 
 #### SRC-064 · No-results empty state
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 When nothing matches, an illustration, message and call-to-action help users recover.
 
@@ -7189,8 +6830,7 @@ Code: [`static/js/NoSearchResults.jsx:6`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_06_search.md#5.12`
 
 #### SRC-065 · Search error handling gaps
-
-`retire` `broken` · rebuild: **done** · _tested_
+`retire` `broken` · rebuild: **done** · *tested*
 
 Search failures are shown as 'no results' rather than as an error.
 
@@ -7203,11 +6843,11 @@ Code: [`static/js/ElasticSearchQuerier.jsx:409`](https://github.com/Sefaria/Sefa
 
 Source: `inv_06_search.md#0.13, 17`
 
+
 ### Entity tabs (Books/Authors/Topics)
 
 #### SRC-066 · Books, Authors and Topics result tabs
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Besides full text, users can search for books, authors and topics by name.
 
@@ -7223,8 +6863,7 @@ Code: [`static/js/SearchPage.jsx:467`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_06_search.md#0.1, 5.8`
 
 #### SRC-067 · Entity search client and paging
-
-`core` `live` · rebuild: **done** · _tested_ `system`
+`core` `live` · rebuild: **done** · *tested* `system`
 
 The client fetches entity results page by page with caching and a 10,000-result window.
 
@@ -7236,8 +6875,7 @@ Code: [`static/js/sefaria/search.js:586`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_06_search.md#5.8`
 
 #### SRC-068 · Entity tab sorting
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Books, authors and topics can be sorted by relevance, A-Z or date.
 
@@ -7253,8 +6891,7 @@ Code: [`static/js/SearchSortDropdown.jsx:16`](https://github.com/Sefaria/Sefaria
 Source: `inv_06_search.md#5.8`
 
 #### SRC-069 · Books category filter sidebar
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Book results can be narrowed by category with counts for the whole match set.
 
@@ -7271,8 +6908,7 @@ Code: [`static/js/SearchPage.jsx:290`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_06_search.md#5.8`
 
 #### SRC-070 · Topic result card
-
-`standard` `live` · rebuild: **done** — Parent-category crumb from /api/topics-toc (cauldron reader-next; absent where the endpoint is not deployed) · _tested_
+`standard` `live` · rebuild: **done** — Parent-category crumb from /api/topics-toc (cauldron reader-next; absent where the endpoint is not deployed) · *tested*
 
 Topic results show name, description, parent category crumb and topic icon.
 
@@ -7287,8 +6923,7 @@ Code: [`static/js/SearchPage.jsx:137`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_06_search.md#5.8`
 
 #### SRC-071 · Author result card
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Author results show lifespan and a pen icon.
 
@@ -7300,8 +6935,7 @@ Code: [`static/js/SearchPage.jsx:115`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_06_search.md#5.8`
 
 #### SRC-072 · Book result card
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Book results show composition date, author link, description and category breadcrumbs.
 
@@ -7317,7 +6951,6 @@ Code: [`static/js/SearchPage.jsx:174`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_06_search.md#5.8`
 
 #### SRC-073 · Entity search API
-
 `core` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch). `system`
 
 A single endpoint serves topic, author and book name search with sort, category filter and paging.
@@ -7330,7 +6963,6 @@ Code: [`reader/views.py:4953`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_06_search.md#13.1`
 
 #### SRC-074 · Entity relevance ranking
-
 `standard` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch). `system`
 
 Name search ranks exact title matches first, then phrase, all-words, prefix and any-word matches.
@@ -7346,7 +6978,6 @@ Code: [`sefaria/helper/search.py:258`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_06_search.md#13.2, 13.3`
 
 #### SRC-075 · Author and category resolution for books
-
 `standard` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch). `system`
 
 Searching an author's exact name returns that author's works; naming a category returns its books and a category row.
@@ -7361,7 +6992,6 @@ Code: [`sefaria/helper/search.py:855`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_06_search.md#13.4`
 
 #### SRC-076 · Topic search index
-
 `standard` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch). `system`
 
 Only library-pool topics with titles are searchable; authors carry era and years.
@@ -7375,7 +7005,6 @@ Code: [`sefaria/search.py:1666`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_06_search.md#13.5`
 
 #### SRC-077 · Topic cards query (dead)
-
 `retire` `unused` · rebuild: **n/a** — Dead in the old site (qh param, topic cards query) or a list of things search never had; not rebuilt.
 
 Every search still runs topic lookups whose results are never displayed.
@@ -7386,10 +7015,10 @@ Code: [`static/js/ElasticSearchQuerier.jsx:234`](https://github.com/Sefaria/Sefa
 
 Source: `inv_06_search.md#0.3`
 
+
 ### Sources search backend
 
 #### SRC-078 · Search wrapper API
-
 `core` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch). `system`
 
 The client posts search queries to a wrapper that queries Elasticsearch.
@@ -7403,8 +7032,7 @@ Code: [`reader/views.py:4927`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_06_search.md#6.1`
 
 #### SRC-079 · Search request body and caching
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 The client builds a structured query with field, slop, filters, aggregations and sort, and caches results.
 
@@ -7416,8 +7044,7 @@ Code: [`static/js/sefaria/search.js:399`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_06_search.md#6.2, 15`
 
 #### SRC-080 · Query construction and ranking
-
-`core` `live` · rebuild: **done** · _tested_ `system`
+`core` `live` · rebuild: **done** · *tested* `system`
 
 Text queries match phrases with lemmatized or exact fields, ranked by relevance or chronology.
 
@@ -7433,7 +7060,6 @@ Code: [`sefaria/helper/search.py:73`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_06_search.md#6.3`
 
 #### SRC-081 · Text index document fields
-
 `standard` `live` · rebuild: **n/a** — Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch). `system`
 
 The text search index stores ref, version, categories, ranking and lemmatized fields per segment/version.
@@ -7446,8 +7072,7 @@ Code: [`sefaria/search.py:1543`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_06_search.md#6.4`
 
 #### SRC-082 · Dicta Hebrew Tanakh search merge
-
-`standard` `live` · rebuild: **done** · _tested_ `third-party`
+`standard` `live` · rebuild: **done** · *tested* `third-party`
 
 Hebrew all-results queries also search Dicta's Tanakh index and replace Sefaria's own Tanakh hits.
 
@@ -7467,8 +7092,7 @@ Code: [`static/js/sefaria/search.js:20`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_06_search.md#0.2, 6.5`
 
 #### SRC-083 · Filter tree construction
-
-`core` `live` · rebuild: **done** · _tested_ `system`
+`core` `live` · rebuild: **done** · *tested* `system`
 
 Aggregation results become a hierarchical category/book filter tree ordered like the library TOC.
 
@@ -7483,8 +7107,7 @@ Code: [`static/js/sefaria/search.js:466`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_06_search.md#6.6, 17`
 
 #### SRC-084 · FilterNode selection model
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Filter nodes support none/selected/partial states with parent-child propagation.
 
@@ -7497,11 +7120,11 @@ Code: [`static/js/sefaria/FilterNode.js:19`](https://github.com/Sefaria/Sefaria-
 
 Source: `inv_06_search.md#6.6, 0.12`
 
+
 ### Sources filter UI
 
 #### SRC-085 · Text filter panel (category/book tree)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Users filter source results by category and book from a searchable, expandable list.
 
@@ -7514,8 +7137,7 @@ Code: [`static/js/SearchFilters.jsx:111`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_06_search.md#7`
 
 #### SRC-086 · Filter row interactions
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Each filter row is a tri-state checkbox with count; categories expand to show books.
 
@@ -7529,8 +7151,7 @@ Code: [`static/js/SearchFilters.jsx:226`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_06_search.md#7, 16`
 
 #### SRC-087 · Filter box ignores Hebrew
-
-`standard` `broken` · rebuild: **done** — Hebrew titles match; old bug not ported · _tested_
+`standard` `broken` · rebuild: **done** — Hebrew titles match; old bug not ported · *tested*
 
 Typing Hebrew into 'Find a filter' matches everything instead of filtering.
 
@@ -7542,7 +7163,6 @@ Code: [`static/js/SearchFilters.jsx:167`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_06_search.md#0.12`
 
 #### SRC-088 · Sheet filters (Topics and Collections)
-
 `standard` `live` · rebuild: **deferred** — Collections / Voices / topics: Phase 7, owner decides.
 
 In Voices, sheet results can be filtered by topic tag and collection.
@@ -7555,10 +7175,10 @@ Code: [`static/js/SearchFilters.jsx:383`](https://github.com/Sefaria/Sefaria-Pro
 
 Source: `inv_06_search.md#7`
 
+
 ### Voices sheet search
 
 #### SRC-089 · Voices search results page
-
 `core` `live` · rebuild: **deferred** — Collections / Voices / topics: Phase 7, owner decides.
 
 In Voices, search returns source sheets with sort and topic/collection filters.
@@ -7575,7 +7195,6 @@ Code: [`static/js/SearchInVoicesPage.jsx:41`](https://github.com/Sefaria/Sefaria
 Source: `inv_06_search.md#8.1, 8.2, 0.1`
 
 #### SRC-090 · Sheet result card
-
 `core` `live` · rebuild: **deferred** — Collections / Voices / topics: Phase 7, owner decides.
 
 Sheet results show title, highlighted snippet, owner and creation date.
@@ -7591,7 +7210,6 @@ Code: [`static/js/SearchSheetResult.jsx:28`](https://github.com/Sefaria/Sefaria-
 Source: `inv_06_search.md#8.3, 5.1`
 
 #### SRC-091 · Sheet search index document
-
 `standard` `live` · rebuild: **deferred** — Collections / Voices / topics: Phase 7, owner decides. `system`
 
 Sheets are indexed with title, content, owner, topics, collections and views.
@@ -7603,7 +7221,6 @@ Code: [`sefaria/search.py:201`](https://github.com/Sefaria/Sefaria-Project/blob/
 Source: `inv_06_search.md#8.5`
 
 #### SRC-092 · Sheets-with-ref client filtering
-
 `standard` `live` · rebuild: **deferred** — Collections / Voices / topics: Phase 7, owner decides.
 
 The 'Sheets with <ref>' page reuses the search filter and sort components for client-side filtering.
@@ -7615,7 +7232,6 @@ Code: [`static/js/sheets/SheetsWithRefPage.jsx:37`](https://github.com/Sefaria/S
 Source: `inv_06_search.md#8.6`
 
 #### SRC-093 · Library has no sheet full-text search
-
 `optional` `live` · rebuild: **deferred** — Collections / Voices / topics: Phase 7, owner decides.
 
 Sheet full-text search is only available in Voices, not in Library's Sources tab.
@@ -7626,11 +7242,11 @@ Code: [`static/js/ElasticSearchQuerier.jsx:433`](https://github.com/Sefaria/Sefa
 
 Source: `inv_06_search.md#0.1`
 
+
 ### Search in this text
 
 #### SRC-094 · Search in this text (sidebar)
-
-`core` `live` · rebuild: **done** — Box, results, paging, query in URL, Hebrew keyboard, dictionary box for dictionary books. Not copied: remembering the query in memory after leaving the view (the address carries it). · _tested_
+`core` `live` · rebuild: **done** — Box, results, paging, query in URL, Hebrew keyboard, dictionary box for dictionary books. Not copied: remembering the query in memory after leaving the view (the address carries it). · *tested*
 
 Users can search within the current book from the connections sidebar and jump to matches.
 
@@ -7659,8 +7275,7 @@ Code: [`static/js/SidebarSearch.jsx:17`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_06_search.md#9.1, 9.2, 0.8; inv_04_connections.md#5`
 
 #### SRC-095 · Sidebar search URL persistence
-
-`standard` `broken` · rebuild: **done** — sbsq / sbsqN read and written · _tested_
+`standard` `broken` · rebuild: **done** — sbsq / sbsqN read and written · *tested*
 
 The sidebar search query is stored in the URL and restored on reload.
 
@@ -7673,8 +7288,7 @@ Code: [`static/js/ReaderApp.jsx:857`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_06_search.md#9.1, 0.9`
 
 #### SRC-096 · Sidebar search result display and click
-
-`core` `live` · rebuild: **done** — Results and click verified; qh dead and not ported · _tested_
+`core` `live` · rebuild: **done** — Results and click verified; qh dead and not ported · *tested*
 
 Sidebar results show ref, snippet, version and nested more-versions; clicking opens the text to the left.
 
@@ -7690,8 +7304,7 @@ Code: [`static/js/SearchTextResult.jsx:95`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_06_search.md#9.3`
 
 #### SRC-097 · Search path filter API
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Returns the search path for a book so searches can be limited to it.
 
@@ -7702,10 +7315,10 @@ Code: [`reader/views.py:5039`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_06_search.md#9.2, 15`
 
+
 ### Topic and ref autocomplete elsewhere
 
 #### SRC-098 · Topics landing page search
-
 `standard` `live` · rebuild: **done**
 
 The Topics landing page has a topic-only search with category paths shown for disambiguation.
@@ -7723,7 +7336,6 @@ Code: [`static/js/TopicLandingPage/TopicLandingSearch.jsx:7`](https://github.com
 Source: `inv_06_search.md#11, 14.4`
 
 #### SRC-099 · Shared Autocompleter component
-
 `standard` `live` · rebuild: **deferred** — Collections / Voices / topics: Phase 7, owner decides. `signed-in`
 
 A reusable input with option list is used by editors to pick refs and topics.
@@ -7737,7 +7349,6 @@ Code: [`static/js/Misc.jsx:3082`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_06_search.md#12`
 
 #### SRC-100 · Other getName autocomplete consumers
-
 `optional` `live` · rebuild: **deferred** — Collections / Voices / topics: Phase 7, owner decides. `staff`
 
 Several editor and admin tools reuse the name autocomplete.
@@ -7748,10 +7359,10 @@ Code: [`static/js/sheets/PublishMenu.jsx:117`](https://github.com/Sefaria/Sefari
 
 Source: `inv_06_search.md#12`
 
+
 ### Other search endpoints
 
 #### SRC-101 · Garden search visualization
-
 `retire` `legacy` · rebuild: **n/a** — Garden visualization / kNN API: not part of the reader.
 
 A separate 'garden' page visualizes search results but is not linked from the search UI.
@@ -7763,7 +7374,6 @@ Code: [`sefaria/urls_library.py:80`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_06_search.md#13.6`
 
 #### SRC-102 · Semantic (kNN) search API
-
 `optional` `unused` · rebuild: **n/a** — Garden visualization / kNN API: not part of the reader. `third-party`
 
 A semantic search API exists but the web client does not call it.
@@ -7775,7 +7385,6 @@ Code: [`api/views.py:191`](https://github.com/Sefaria/Sefaria-Project/blob/bb47d
 Source: `inv_06_search.md#0.15, 13.6`
 
 #### SRC-103 · Features not implemented in search
-
 `optional` `unused` · rebuild: **n/a** — Dead in the old site (qh param, topic cards query) or a list of things search never had; not rebuilt.
 
 No search history, gematria search, or date/version/language filters exist on the search page.
@@ -7786,11 +7395,11 @@ Code: [`static/js/SearchPage.jsx`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_06_search.md#0.15`
 
+
 ### Search analytics
 
 #### SRC-104 · GA4 search funnel events
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 The main search page emits a structured funnel (flow started, query executed, element clicked, flow ended) to GA4.
 
@@ -7807,8 +7416,7 @@ Code: [`static/js/sefaria/searchAnalytics.js:181`](https://github.com/Sefaria/Se
 Source: `inv_06_search.md#14.1`
 
 #### SRC-105 · Search flow lifecycle tracking
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Flow start/end is tied to mount, unmount, page hide, bfcache restore and new queries.
 
@@ -7822,8 +7430,7 @@ Code: [`static/js/ElasticSearchQuerier.jsx:129`](https://github.com/Sefaria/Sefa
 Source: `inv_06_search.md#14.1`
 
 #### SRC-106 · Search result click analytics
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Result clicks, including modified and middle clicks, are reported with position.
 
@@ -7837,8 +7444,7 @@ Code: [`static/js/sefaria/searchAnalytics.js:93`](https://github.com/Sefaria/Sef
 Source: `inv_06_search.md#14.1`
 
 #### SRC-107 · Header search gtag events
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Header search interactions send gtag events under 'Global Search'.
 
@@ -7850,8 +7456,7 @@ Code: [`static/js/HeaderAutocomplete.jsx:210`](https://github.com/Sefaria/Sefari
 Source: `inv_06_search.md#14.2`
 
 #### SRC-108 · Legacy search event tracking
-
-`optional` `legacy` · rebuild: **done** · _tested_ `system`
+`optional` `legacy` · rebuild: **done** · *tested* `system`
 
 Older Sefaria.track.event 'Search' events are still emitted.
 
@@ -7862,11 +7467,11 @@ Code: [`static/js/HeaderAutocomplete.jsx:442`](https://github.com/Sefaria/Sefari
 
 Source: `inv_06_search.md#14.3`
 
+
 ### Caching and accessibility
 
 #### SRC-109 · Search caches
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Search, name lookup, lexicon and path-filter results are cached in memory for the session.
 
@@ -7878,8 +7483,7 @@ Code: [`static/js/sefaria/search.js:22`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_06_search.md#15`
 
 #### SRC-110 · Search accessibility behaviors
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Search controls expose roles, labels and keyboard support.
 
@@ -7890,11 +7494,11 @@ Code: [`static/js/SearchPage.jsx`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_06_search.md#16`
 
+
 ### Query handling
 
 #### SRC-111 · Search auto-correction and suggestions
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A misspelt query that finds nothing anywhere is searched as corrected, with a banner to search the original instead; suggestions show as 'Did you mean'.
 
@@ -7908,8 +7512,7 @@ Code: [`static/js/sefaria/search.js`](https://github.com/Sefaria/Sefaria-Project
 Source: `master #3724`
 
 #### SRC-112 · Auto-switch away from an empty tab
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 When the tab on screen has no results for the query, the page moves to the first tab (Sources, Books, Authors, Topics) that has some.
 
@@ -7920,18 +7523,19 @@ Code: `static/js/SearchPage.jsx maybeAutoSwitchFromEmptyTab`
 
 Source: `master #3724`
 
+
 ---
 
 # Voices (sheets & community)
 
-<a id="sheets-view"></a>
 
+<a id="sheets-view"></a>
 ## Sheets: viewing
+
 
 ### Entry points
 
 #### SHV-001 · Voices sheets home page
-
 `core` `live` · rebuild: **todo**
 
 The Voices home page shows a hero video banner, user-created content browsable by topic, and sidebar promos for creating a sheet.
@@ -7947,7 +7551,6 @@ Code: [`static/js/sheets/SheetsHomePage.jsx:8-77`](https://github.com/Sefaria/Se
 Source: `inv_07_sheets_users.md#7`
 
 #### SHV-002 · Sheet URL routes and legacy redirects
-
 `core` `live` · rebuild: **todo**
 
 Sheets, collections and profiles have stable URLs on the Voices site, with old URLs redirecting to their current homes.
@@ -7964,7 +7567,6 @@ Code: [`sefaria/urls_sheets.py`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_07_sheets_users.md#1`
 
 #### SHV-003 · Sheet page server rendering and indexing
-
 `core` `live` · rebuild: **todo** `system`
 
 Sheet pages are rendered server-side with title, description and breadcrumbs, and are hidden from search engines unless public.
@@ -7979,7 +7581,6 @@ Code: [`reader/views.py:658-707`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_07_sheets_users.md#1`
 
 #### SHV-004 · Sheet panel client routing and history
-
 `core` `live` · rebuild: **todo**
 
 A sheet opens as a reader panel with its own URL, title and history entry, and warns before closing with unsaved edits.
@@ -7993,10 +7594,10 @@ Code: [`static/js/ReaderApp.jsx:752-761`](https://github.com/Sefaria/Sefaria-Pro
 
 Source: `inv_07_sheets_users.md#1`
 
+
 ### Sheet viewer
 
 #### SHV-005 · Read a source sheet
-
 `core` `live` · rebuild: **todo**
 
 Anyone can read a source sheet in the reader with its sources, comments, headers and media, plus an author sidebar.
@@ -8012,7 +7613,6 @@ Code: [`static/js/sheets/Sheet.jsx:23-138`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_07_sheets_users.md#2`
 
 #### SHV-006 · Link handling inside sheets
-
 `standard` `live` · rebuild: **todo**
 
 Links inside a sheet open sensibly: Sefaria sheet links stay in the app, other links open in a new tab.
@@ -8026,7 +7626,6 @@ Code: [`static/js/sheets/Sheet.jsx:46-74`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_07_sheets_users.md#2`
 
 #### SHV-007 · Source blocks in sheets
-
 `core` `live` · rebuild: **todo**
 
 Sheet sources show Hebrew and English text with a category-colored border, optional custom title and a link to the source in the library.
@@ -8042,7 +7641,6 @@ Code: [`static/js/sheets/SheetContentSegments.jsx:6-61`](https://github.com/Sefa
 Source: `inv_07_sheets_users.md#2`
 
 #### SHV-008 · Comments, headers and outside text
-
 `core` `live` · rebuild: **todo**
 
 Sheets can include the author's own text: comments, section headers, free text, and two-column bilingual text.
@@ -8057,7 +7655,6 @@ Code: [`static/js/sheets/SheetContentSegments.jsx:62-200`](https://github.com/Se
 Source: `inv_07_sheets_users.md#2`
 
 #### SHV-009 · Embedded media in sheets
-
 `standard` `live` · rebuild: **todo**
 
 Sheets can display images, YouTube, Vimeo, SoundCloud, Spotify and mp3 audio with optional bilingual captions.
@@ -8073,7 +7670,6 @@ Code: [`static/js/sheets/SheetContentSegments.jsx:201-289`](https://github.com/S
 Source: `inv_07_sheets_users.md#2`
 
 #### SHV-010 · Highlight and scroll tracking in sheets
-
 `standard` `live` · rebuild: **todo**
 
 The current sheet segment is highlighted and scroll position updates the highlight and connections sidebar.
@@ -8088,7 +7684,6 @@ Code: [`static/js/sheets/SheetContent.jsx:23-109`](https://github.com/Sefaria/Se
 Source: `inv_07_sheets_users.md#2`
 
 #### SHV-011 · Add sheet node to my sheet
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Readers can copy any sheet node into one of their own sheets from the highlighted node.
@@ -8102,7 +7697,6 @@ Code: [`static/js/sheets/SheetContent.jsx:116-120`](https://github.com/Sefaria/S
 Source: `inv_07_sheets_users.md#2`
 
 #### SHV-012 · Sheet sidebar: author and topics
-
 `standard` `live` · rebuild: **todo**
 
 The sheet sidebar shows the author with follow button, bio, followers, topics and collections the sheet belongs to.
@@ -8118,7 +7712,6 @@ Code: [`static/js/sheets/SheetSidebar.jsx:9-76`](https://github.com/Sefaria/Sefa
 Source: `inv_07_sheets_users.md#2`
 
 #### SHV-013 · Sheet display settings (language, layout, size)
-
 `standard` `live` · rebuild: **todo**
 
 Readers set sheet language and font size through the reader display menu; layout only applies when bilingual.
@@ -8132,7 +7725,6 @@ Code: [`static/js/ReaderDisplayOptionsMenu.jsx:23-54`](https://github.com/Sefari
 Source: `inv_07_sheets_users.md#2`
 
 #### SHV-014 · Sheet display options ignored by React viewer
-
 `optional` `broken` · rebuild: **todo**
 
 Per-sheet display options saved with a sheet (numbering, boxing, layout, language, divine names, BS"D) are not honored by the React viewer.
@@ -8146,7 +7738,6 @@ Code: [`sourcesheets/views.py:76-92`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_07_sheets_users.md#0`
 
 #### SHV-015 · Print footer (no print button)
-
 `retire` `unused` · rebuild: **n/a** `desktop only`
 
 A hidden 'Created with Sefaria' footer exists for print CSS, but the React viewer has no print button.
@@ -8159,7 +7750,6 @@ Code: [`static/js/sheets/SheetContent.jsx:173-176`](https://github.com/Sefaria/S
 Source: `inv_07_sheets_users.md#0`
 
 #### SHV-016 · Sheet likes (API only)
-
 `optional` `unused` · rebuild: **n/a** `signed-in`
 
 Sheet likes exist in the backend and trigger notifications to the owner, but the React viewer has no like button.
@@ -8173,7 +7763,6 @@ Code: [`sourcesheets/views.py:837-868`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_07_sheets_users.md#6`
 
 #### SHV-017 · Sheet view counts
-
 `standard` `live` · rebuild: **todo**
 
 Each sheet tracks how many times it was viewed and shows the count (or a lock for private sheets) in listings.
@@ -8185,10 +7774,10 @@ Code: [`reader/views.py:669`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 
 Source: `inv_07_sheets_users.md#6`
 
+
 ### Sheet options menu
 
 #### SHV-018 · Sheet options (...) menu
-
 `core` `live` · rebuild: **todo**
 
 A '...' menu on each sheet offers Save, Copy, Add to Collection, Export to Google Docs, Share, and owner actions.
@@ -8203,7 +7792,6 @@ Code: [`static/js/sheets/SheetOptions.jsx:17-160`](https://github.com/Sefaria/Se
 Source: `inv_07_sheets_users.md#3`
 
 #### SHV-019 · Share sheet
-
 `standard` `live` · rebuild: **todo**
 
 Users can copy a sheet link or share it on Facebook, X or email.
@@ -8216,7 +7804,6 @@ Code: [`static/js/sheets/SheetModals.jsx:13-20`](https://github.com/Sefaria/Sefa
 Source: `inv_07_sheets_users.md#3`
 
 #### SHV-020 · Copy sheet
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Users can make their own unlisted copy of any sheet.
@@ -8231,7 +7818,6 @@ Code: [`static/js/sheets/SheetModals.jsx:35-107`](https://github.com/Sefaria/Sef
 Source: `inv_07_sheets_users.md#3`
 
 #### SHV-021 · Save sheet to my saved items
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Users can bookmark a sheet to their Saved list from the options menu.
@@ -8244,7 +7830,6 @@ Code: [`static/js/sheets/SheetModals.jsx:116-140`](https://github.com/Sefaria/Se
 Source: `inv_07_sheets_users.md#3`
 
 #### SHV-022 · Export sheet to Google Docs
-
 `optional` `live` · rebuild: **todo** `signed-in`
 
 Owners and readers can export a sheet to their Google Drive as a Google Doc.
@@ -8262,7 +7847,6 @@ Code: [`static/js/sheets/SheetModals.jsx:142-225`](https://github.com/Sefaria/Se
 Source: `inv_07_sheets_users.md#3; inv_08b_admin_linker_apps.md#3.8`
 
 #### SHV-023 · Delete sheet
-
 `standard` `live` · rebuild: **todo** `owner`
 
 Owners can delete a sheet after confirming; they are returned to their profile.
@@ -8275,10 +7859,10 @@ Code: [`static/js/sheets/SheetModals.jsx:227-234`](https://github.com/Sefaria/Se
 
 Source: `inv_07_sheets_users.md#3`
 
+
 ### Sheets with ref
 
 #### SHV-024 · Sheets-with-ref page
-
 `standard` `live` · rebuild: **todo**
 
 A page lists community sheets that cite a given text reference, with filters and sorting.
@@ -8294,10 +7878,10 @@ Code: [`static/js/sheets/SheetsWithRefPage.jsx:9-284`](https://github.com/Sefari
 
 Source: `inv_07_sheets_users.md#8`
 
+
 ### Sheet topics
 
 #### SHV-025 · Sheet topic and tag lists
-
 `optional` `live` · rebuild: **todo**
 
 Public APIs list sheet topics alphabetically, by count, and trending.
@@ -8310,10 +7894,10 @@ Code: [`sourcesheets/views.py:871-906`](https://github.com/Sefaria/Sefaria-Proje
 
 Source: `inv_07_sheets_users.md#6`
 
+
 ### Shared components
 
 #### SHV-026 · Sheet and collection listing components
-
 `core` `live` · rebuild: **todo**
 
 Reusable list rows show sheets, collections and people consistently across profile, collections, saved and search.
@@ -8333,7 +7917,6 @@ Code: [`static/js/Misc.jsx:234-389`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_07_sheets_users.md#18; inv_08_other.md#1.10`
 
 #### SHV-027 · Sheet Google auth routes
-
 `optional` `live` · rebuild: **todo** `signed-in`
 
 Google OAuth endpoints connect and disconnect a user's Google account for sheet export.
@@ -8344,14 +7927,14 @@ Code: [`sefaria/urls_shared.py:256-258`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_07_sheets_users.md#1`
 
-<a id="sheets-editor"></a>
 
+<a id="sheets-editor"></a>
 ## Sheets: editing & publishing
+
 
 ### Editor
 
 #### SHE-001 · Rich-text sheet editor (owner)
-
 `core` `live` · rebuild: **todo** `owner`
 
 Sheet owners edit their sheet inline in a Slate-based editor that saves automatically.
@@ -8368,7 +7951,6 @@ Code: [`static/js/Editor.jsx:25-40`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_07_sheets_users.md#4.1`
 
 #### SHE-002 · Sheet HTML import and export mapping
-
 `core` `live` · rebuild: **todo** `owner`
 
 Existing sheet text is converted in and out of the editor, preserving formatting from older sheets.
@@ -8384,7 +7966,6 @@ Code: [`static/js/Editor.jsx:206-394`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_07_sheets_users.md#4.1`
 
 #### SHE-003 · Editor element rendering
-
 `core` `live` · rebuild: **todo** `owner`
 
 The editor renders each sheet block type (sources, comments, media, lists, tables, headers) with in-place editing styles.
@@ -8399,7 +7980,6 @@ Code: [`static/js/Editor.jsx:1129-1316`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_07_sheets_users.md#4.2`
 
 #### SHE-004 · Boxed source editing
-
 `core` `live` · rebuild: **todo** `owner` `desktop only`
 
 Each source in the editor is a box where Hebrew and English text can be edited separately and the box can be dragged.
@@ -8415,7 +7995,6 @@ Code: [`static/js/Editor.jsx:657-870`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_07_sheets_users.md#4.3`
 
 #### SHE-005 · Editor guide
-
 `optional` `live` · rebuild: **todo** `owner` `desktop only`
 
 A bulb button opens a how-to guide for the sheet editor to owners.
@@ -8428,7 +8007,6 @@ Code: [`static/js/ReaderPanel.jsx:477-520`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_07_sheets_users.md#4.10`
 
 #### SHE-006 · Open sheet at highlighted node
-
 `standard` `live` · rebuild: **todo**
 
 Opening a sheet with a node in the URL scrolls to that node.
@@ -8440,7 +8018,6 @@ Code: [`static/js/Editor.jsx:2865-2876`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_07_sheets_users.md#4.11`
 
 #### SHE-007 · Create new sheet
-
 `core` `live` · rebuild: **todo** `signed-in`
 
 Signed-in users create a new empty sheet and land directly in the editor.
@@ -8453,10 +8030,10 @@ Code: [`sourcesheets/views.py:73-95`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_07_sheets_users.md#1`
 
+
 ### Adding content
 
 #### SHE-008 · Add source by citation
-
 `core` `live` · rebuild: **todo** `owner`
 
 Owners add a text source by typing a reference with autocomplete and a live preview.
@@ -8471,7 +8048,6 @@ Code: [`static/js/Editor.jsx:872-1011`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_07_sheets_users.md#4.4`
 
 #### SHE-009 · Add image to sheet
-
 `standard` `live` · rebuild: **todo** `owner`
 
 Owners upload an image (jpg, png, gif) and insert it into the sheet.
@@ -8485,7 +8061,6 @@ Code: [`static/js/Editor.jsx:1058-1105`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_07_sheets_users.md#4.4`
 
 #### SHE-010 · Add media by URL
-
 `standard` `live` · rebuild: **todo** `owner`
 
 Owners paste a media link (YouTube, Vimeo, SoundCloud, Spotify, Bandcamp, mp3, image) and it is embedded.
@@ -8500,7 +8075,6 @@ Code: [`static/js/Editor.jsx:877-918`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_07_sheets_users.md#4.4`
 
 #### SHE-011 · Typed citation auto-conversion
-
 `standard` `live` · rebuild: **todo** `owner`
 
 Typing a reference on its own line and pressing Enter turns it into a source block.
@@ -8513,7 +8087,6 @@ Code: [`static/js/Editor.jsx:1348-1396`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_07_sheets_users.md#4.4`
 
 #### SHE-012 · Smart paste and drop
-
 `standard` `live` · rebuild: **todo** `owner`
 
 Pasting Sefaria links inserts titled links, and pasted or dropped content is cleaned and numbered.
@@ -8526,10 +8099,10 @@ Code: [`static/js/Editor.jsx:1535-1588`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_07_sheets_users.md#4.4`
 
+
 ### Formatting
 
 #### SHE-013 · Formatting toolbar and shortcuts
-
 `standard` `live` · rebuild: **todo** `owner`
 
 Selecting text shows a floating toolbar for bold, italic, underline, highlight, links, headers and lists.
@@ -8545,7 +8118,6 @@ Code: [`static/js/Editor.jsx:2318-2559`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_07_sheets_users.md#4.5`
 
 #### SHE-014 · Inline link editing
-
 `standard` `live` · rebuild: **todo** `owner`
 
 Owners add and edit hyperlinks in sheet text through a hover popover.
@@ -8558,10 +8130,10 @@ Code: [`static/js/Editor.jsx:2090-2258`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_07_sheets_users.md#4.5`
 
+
 ### Editing behavior
 
 #### SHE-015 · Editor Enter/Backspace and structure rules
-
 `standard` `live` · rebuild: **todo** `owner`
 
 The editor has custom rules for Enter, Backspace, cut/copy and tables so sources and spacers behave predictably.
@@ -8577,7 +8149,6 @@ Code: [`static/js/Editor.jsx:1418-1532`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_07_sheets_users.md#4.6`
 
 #### SHE-016 · Editor document normalization
-
 `core` `live` · rebuild: **todo** `owner`
 
 Behind the scenes the editor keeps the document well-formed: merging text, adding spacers and numbering every item.
@@ -8592,7 +8163,6 @@ Code: [`static/js/Editor.jsx:1594-1958`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_07_sheets_users.md#4.6`
 
 #### SHE-017 · Inline title and summary editing
-
 `core` `live` · rebuild: **todo** `owner`
 
 Owners edit the sheet title and summary directly on the page.
@@ -8604,10 +8174,10 @@ Code: [`static/js/Misc.jsx:2876-2896`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_07_sheets_users.md#4.7`
 
+
 ### Saving
 
 #### SHE-018 · Sheet autosave
-
 `core` `live` · rebuild: **todo** `owner`
 
 Changes to a sheet save automatically shortly after typing.
@@ -8622,7 +8192,6 @@ Code: [`static/js/Editor.jsx:2782-2802`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_07_sheets_users.md#4.8`
 
 #### SHE-019 · Save-state indicator and input lock
-
 `core` `live` · rebuild: **todo** `owner` `desktop only`
 
 The editor shows saved/saving/error state and blocks editing when saving fails so no work is silently lost.
@@ -8639,7 +8208,6 @@ Code: [`static/js/sefaria/sheetsUtils.js:71-126`](https://github.com/Sefaria/Sef
 Source: `inv_07_sheets_users.md#4.8`
 
 #### SHE-020 · Cross-tab editor refresh
-
 `standard` `live` · rebuild: **todo** `owner`
 
 When a source is added to a sheet from another tab or panel, open editors reload the sheet.
@@ -8652,10 +8220,10 @@ Code: [`static/js/AddToSourceSheet.jsx:299`](https://github.com/Sefaria/Sefaria-
 
 Source: `inv_07_sheets_users.md#4.9`
 
+
 ### Publishing
 
 #### SHE-021 · Publish sheet to Voices
-
 `core` `live` · rebuild: **todo** `owner`
 
 Owners publish an unlisted sheet by adding a title, short description and at least one topic.
@@ -8670,7 +8238,6 @@ Code: [`static/js/sheets/PublishMenu.jsx:9-215`](https://github.com/Sefaria/Sefa
 Source: `inv_07_sheets_users.md#5`
 
 #### SHE-022 · Publish side effects (backend)
-
 `core` `live` · rebuild: **todo** `system`
 
 Publishing a sheet notifies followers, scores it, links it to topics and queues it for search.
@@ -8685,7 +8252,6 @@ Code: [`sefaria/sheets.py:551-620`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_07_sheets_users.md#5`
 
 #### SHE-023 · Sheet save permissions and sanitization
-
 `core` `live` · rebuild: **todo** `system`
 
 The server controls who may edit a sheet and cleans submitted HTML.
@@ -8700,10 +8266,10 @@ Code: [`sourcesheets/views.py:564-631`](https://github.com/Sefaria/Sefaria-Proje
 
 Source: `inv_07_sheets_users.md#5`
 
+
 ### Collaboration
 
 #### SHE-024 · Sheet collaboration (no React UI)
-
 `retire` `unused` · rebuild: **n/a**
 
 Backend supports 'anyone can edit' and 'anyone can add' sheets, but the React app has no control for it and collaborators cannot edit.
@@ -8715,10 +8281,10 @@ Code: [`sourcesheets/views.py:97-128`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_07_sheets_users.md#0`
 
+
 ### Sheet data API
 
 #### SHE-025 · Sheet content API surface
-
 `standard` `live` · rebuild: **todo** `third-party`
 
 A set of endpoints creates, reads, appends to and queries sheets for the app and API clients.
@@ -8731,10 +8297,10 @@ Code: [`sourcesheets/views.py:634-806`](https://github.com/Sefaria/Sefaria-Proje
 
 Source: `inv_07_sheets_users.md#16`
 
+
 ### Legacy sheets
 
 #### SHE-026 · Legacy highlighter mode and tag editor
-
 `retire` `legacy` · rebuild: **n/a** `owner` `desktop only`
 
 The old editor can highlight sheet segments with named colored tags and edit sheet tags with suggestions.
@@ -8747,7 +8313,6 @@ Code: [`static/js/sheets.js:1707-1925`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_07_sheets_users.md#15`
 
 #### SHE-027 · Legacy assignments, embed and print
-
 `retire` `legacy` · rebuild: **n/a** `owner` `desktop only`
 
 The old editor supports assignments for students, an embed-code dialog and printing; none exist in React.
@@ -8761,7 +8326,6 @@ Code: [`templates/sheets.html:101-104`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_07_sheets_users.md#15`
 
 #### SHE-028 · Legacy sheet actions and parasha-to-sheet
-
 `retire` `legacy` · rebuild: **n/a** `owner` `desktop only`
 
 The old editor has its own copy, Drive export, delete, likes list, publish prompt and a modal to add a parasha's aliyot to a sheet.
@@ -8774,10 +8338,10 @@ Code: [`static/js/sheets.js:3469`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_07_sheets_users.md#15`
 
+
 ### Sheet header
 
 #### SHE-029 · Sheet title and metadata box
-
 `core` `live` · rebuild: **todo** `owner`
 
 Editable sheet title, summary and author info at the top of a sheet.
@@ -8789,14 +8353,14 @@ Code: [`static/js/Misc.jsx:2860`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.10`
 
-<a id="collections"></a>
 
+<a id="collections"></a>
 ## Collections
+
 
 ### Collection page
 
 #### COL-001 · Collection page
-
 `core` `live` · rebuild: **todo**
 
 A collection page shows description, editors, an optional pinned-tag contents tab, and a filterable list of its sheets.
@@ -8812,7 +8376,6 @@ Code: [`static/js/CollectionPage.jsx:42-348`](https://github.com/Sefaria/Sefaria
 Source: `inv_07_sheets_users.md#9.1`
 
 #### COL-002 · Collection contents by pinned tags
-
 `optional` `live` · rebuild: **todo**
 
 Collections can show a Contents tab grouping their sheets by pinned tags.
@@ -8825,7 +8388,6 @@ Code: [`static/js/CollectionPage.jsx:119-133`](https://github.com/Sefaria/Sefari
 Source: `inv_07_sheets_users.md#9.1`
 
 #### COL-003 · Collection sheet list: sort, filter, pin
-
 `standard` `live` · rebuild: **todo**
 
 Visitors filter and sort a collection's sheets; members can pin sheets to the top.
@@ -8840,10 +8402,10 @@ Code: [`static/js/CollectionPage.jsx:87-191`](https://github.com/Sefaria/Sefaria
 
 Source: `inv_07_sheets_users.md#9.1`
 
+
 ### Collection membership
 
 #### COL-004 · Collection members and roles
-
 `standard` `live` · rebuild: **todo** `moderator`
 
 Collection admins manage editors and owners, and members can leave.
@@ -8858,7 +8420,6 @@ Code: [`static/js/CollectionPage.jsx:476-681`](https://github.com/Sefaria/Sefari
 Source: `inv_07_sheets_users.md#9.1`
 
 #### COL-005 · Invite people to a collection
-
 `standard` `live` · rebuild: **todo** `moderator`
 
 Collection admins invite editors by email.
@@ -8872,7 +8433,6 @@ Code: [`static/js/CollectionPage.jsx:402-473`](https://github.com/Sefaria/Sefari
 Source: `inv_07_sheets_users.md#9.1`
 
 #### COL-006 · Add sheet to collections widget
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 From any sheet, users tick which of their collections it belongs to or create a new collection inline.
@@ -8887,10 +8447,10 @@ Code: [`static/js/CollectionsWidget.jsx:25-109`](https://github.com/Sefaria/Sefa
 
 Source: `inv_07_sheets_users.md#9.4`
 
+
 ### Collection editing
 
 #### COL-007 · Create and edit collection
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Users create a collection with name, website, description and image, and can list it publicly or delete it.
@@ -8907,7 +8467,6 @@ Code: [`static/js/EditCollectionPage.jsx:22-241`](https://github.com/Sefaria/Sef
 Source: `inv_07_sheets_users.md#9.2`
 
 #### COL-008 · Collection model rules
-
 `standard` `live` · rebuild: **todo** `system`
 
 The backend enforces slug, publishing and cleanup rules for collections.
@@ -8921,10 +8480,10 @@ Code: [`sefaria/model/collection.py:63-131`](https://github.com/Sefaria/Sefaria-
 
 Source: `inv_07_sheets_users.md#9.2`
 
+
 ### Collection browse
 
 #### COL-009 · Public collections page
-
 `standard` `live` · rebuild: **todo**
 
 A directory lists all public collections in English and Hebrew grids.
@@ -8938,10 +8497,10 @@ Code: [`static/js/PublicCollectionsPage.jsx:13-114`](https://github.com/Sefaria/
 
 Source: `inv_07_sheets_users.md#9.3`
 
+
 ### Collection API
 
 #### COL-010 · Collections API surface
-
 `standard` `live` · rebuild: **todo** `third-party`
 
 Endpoints for listing, creating, membership, invites and pinning collections.
@@ -8953,14 +8512,14 @@ Code: [`sefaria/urls_shared.py:180-189`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_07_sheets_users.md#16`
 
-<a id="profile-social"></a>
 
+<a id="profile-social"></a>
 ## Profiles & social
+
 
 ### Profile
 
 #### PRO-001 · User profile page
-
 `core` `live` · rebuild: **todo**
 
 Each user has a public profile showing their identity, bio, sheets, collections and follower counts.
@@ -8975,7 +8534,6 @@ Code: [`static/js/UserProfile.jsx:29-44`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_07_sheets_users.md#10`
 
 #### PRO-002 · Profile sheets tab
-
 `core` `live` · rebuild: **todo**
 
 The Sheets tab lists a user's sheets with filter and sort, and owners see their private sheets and manage them.
@@ -8989,7 +8547,6 @@ Code: [`static/js/UserProfile.jsx:97-172`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_07_sheets_users.md#10`
 
 #### PRO-003 · Profile collections tab
-
 `standard` `live` · rebuild: **todo**
 
 The Collections tab lists a user's collections.
@@ -9003,7 +8560,6 @@ Code: [`static/js/UserProfile.jsx:339-364`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_07_sheets_users.md#10`
 
 #### PRO-004 · Followers and following lists
-
 `standard` `live` · rebuild: **todo**
 
 Profile tabs list who follows a user and who they follow, with follow buttons.
@@ -9016,7 +8572,6 @@ Code: [`static/js/UserProfile.jsx:173-229`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_07_sheets_users.md#10`
 
 #### PRO-005 · Edit profile (legacy page)
-
 `standard` `legacy` · rebuild: **todo** `owner`
 
 Users edit their name, position, bio, links and profile URL on an old-style Django form.
@@ -9031,7 +8586,6 @@ Code: [`templates/edit_profile.html:27-232`](https://github.com/Sefaria/Sefaria-
 Source: `inv_07_sheets_users.md#10.1`
 
 #### PRO-006 · Profile picture upload and crop
-
 `standard` `live` · rebuild: **todo** `owner`
 
 Users upload a profile photo, crop it square, and default avatars show initials.
@@ -9045,7 +8599,6 @@ Code: [`static/js/ProfilePic.jsx:9-97`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_07_sheets_users.md#10.2`
 
 #### PRO-007 · Profile and social API surface
-
 `standard` `live` · rebuild: **todo** `third-party`
 
 Endpoints power profiles, follows, photos, history sync and stats.
@@ -9058,10 +8611,10 @@ Code: [`static/js/sefaria/sefaria.js:2769-2981`](https://github.com/Sefaria/Sefa
 
 Source: `inv_07_sheets_users.md#16`
 
+
 ### Follow
 
 #### PRO-008 · Follow and unfollow users
-
 `core` `live` · rebuild: **todo** `signed-in`
 
 Signed-in users follow other users and get notified of their sheets.
@@ -9075,7 +8628,6 @@ Code: [`static/js/Misc.jsx:1550-1622`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_07_sheets_users.md#10.3`
 
 #### PRO-009 · Block and unblock users (API only)
-
 `retire` `unused` · rebuild: **n/a** `signed-in`
 
 Users can be blocked through an API, but there is no web UI for it.
@@ -9086,10 +8638,10 @@ Code: [`reader/views.py:3428-3445`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_07_sheets_users.md#10.3`
 
+
 ### Stats
 
 #### PRO-010 · Torah Tracker user stats
-
 `optional` `live` · rebuild: **todo** `signed-in`
 
 Users see their reading activity compared with the average Sefaria user; moderators can view others.
@@ -9103,10 +8655,10 @@ Code: [`static/js/UserStats.jsx:21-363`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_07_sheets_users.md#14`
 
+
 ### Following
 
 #### PRO-011 · Follow / unfollow button
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Users can follow other users from profiles and sheet bylines; hovering a followed user shows Unfollow.
@@ -9120,10 +8672,10 @@ Code: [`static/js/Misc.jsx:1550`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.6`
 
+
 ### Profile API
 
 #### PRO-012 · Profile, follow and messaging client APIs
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Client-side calls for editing profiles, following, uploading photos and messaging.
@@ -9137,15 +8689,15 @@ Code: [`static/js/sefaria/sefaria.js:2822`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_08_other.md#5.2`
 
-<a id="user-library"></a>
 
+<a id="user-library"></a>
 ## Saved, history & notes
+
 
 ### Saved items
 
 #### USL-001 · Save (bookmark) button in text header
-
-`core` `live` · rebuild: **done** — Save/remove on the server, state from the saved list; sheets wait for Voices · _tested_
+`core` `live` · rebuild: **done** — Save/remove on the server, state from the saved list; sheets wait for Voices · *tested*
 
 Signed-in readers can save the current text or sheet; anonymous users are invited to sign up.
 
@@ -9156,10 +8708,10 @@ Code: [`static/js/Misc.jsx:1352`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_02_reader_shell.md#19`
 
+
 ### Reading history
 
 #### USL-002 · Recently viewed / last place tracking
-
 `standard` `live` · rebuild: **done** — Primary and sidebar (secondary) history; signed out in the cookie `signed-in`
 
 The app records what you are reading so it appears in history.
@@ -9174,11 +8726,11 @@ Code: [`static/js/ReaderApp.jsx:2161`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_02_reader_shell.md#20`
 
+
 ### Notes
 
 #### USL-003 · My Notes page
-
-`standard` `live` · rebuild: **done** — /texts/notes: the Notes tab · _tested_ `signed-in`
+`standard` `live` · rebuild: **done** — /texts/notes: the Notes tab · *tested* `signed-in`
 
 A page listing all of the user's notes with add-to-sheet and links back to the text.
 
@@ -9192,8 +8744,7 @@ Code: [`static/js/MyNotesPanel.jsx`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_04_connections.md#11`
 
 #### USL-004 · Note listing with delete and sheet-aware links
-
-`optional` `live` · rebuild: **partial** — Listing with delete and sheet-aware links; Add to Sheet on a note not built · _tested_ `signed-in`
+`optional` `live` · rebuild: **partial** — Listing with delete and sheet-aware links; Add to Sheet on a note not built · *tested* `signed-in`
 
 Compact note entries on profile/note lists with delete and a link to the source.
 
@@ -9205,8 +8756,7 @@ Code: [`static/js/NoteListing.jsx`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_04_connections.md#11`
 
 #### USL-005 · Private notes list
-
-`optional` `live` · rebuild: **done** — Signed-in notes on the selection: add, edit, delete · _tested_ `signed-in`
+`optional` `live` · rebuild: **done** — Signed-in notes on the selection: add, edit, delete · *tested* `signed-in`
 
 Library users see their private notes with links back to the text and a delete action.
 
@@ -9221,7 +8771,6 @@ Code: [`static/js/UserHistoryPanel.jsx:44-70`](https://github.com/Sefaria/Sefari
 Source: `inv_07_sheets_users.md#13`
 
 #### USL-006 · Orphaned notes panel and Story remnants
-
 `retire` `unused` · rebuild: **n/a**
 
 Old notes and stories components remain in code but are not reachable.
@@ -9234,8 +8783,7 @@ Code: [`static/js/MyNotesPanel.jsx`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_07_sheets_users.md#0`
 
 #### USL-007 · Note display
-
-`standard` `live` · rebuild: **done** — Signed-in notes on the selection: add, edit, delete · _tested_ `signed-in`
+`standard` `live` · rebuild: **done** — Signed-in notes on the selection: add, edit, delete · *tested* `signed-in`
 
 Shows a public or private note on a text, with an edit pencil on the user's own notes.
 
@@ -9246,11 +8794,11 @@ Code: [`static/js/Misc.jsx:1918`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.6`
 
+
 ### Saved and history
 
 #### USL-008 · Saved items and reading history pages
-
-`core` `live` · rebuild: **partial** — Saved and History pages built; per-item save button and language toggle not · _tested_ `signed-in`
+`core` `live` · rebuild: **partial** — Saved and History pages built; per-item save button and language toggle not · *tested* `signed-in`
 
 Users see saved items and reading history, split by Library texts and Voices sheets.
 
@@ -9267,7 +8815,6 @@ Code: [`static/js/UserHistoryPanel.jsx:44-179`](https://github.com/Sefaria/Sefar
 Source: `inv_07_sheets_users.md#13`
 
 #### USL-009 · Save and unsave texts and sheets
-
 `core` `live` · rebuild: **done** — Save/remove on the server, state from the saved list; sheets wait for Voices `signed-in`
 
 A bookmark button saves texts and sheets for later.
@@ -9283,8 +8830,7 @@ Code: [`static/js/sefaria/sefaria.js:2769-2821`](https://github.com/Sefaria/Sefa
 Source: `inv_07_sheets_users.md#13`
 
 #### USL-010 · Reading history logging
-
-`standard` `live` · rebuild: **done** — Primary and sidebar (secondary) history; signed out in the cookie · _tested_
+`standard` `live` · rebuild: **done** — Primary and sidebar (secondary) history; signed out in the cookie · *tested*
 
 Texts and sheets read are recorded to history for signed-in users and in a cookie for anonymous users.
 
@@ -9297,11 +8843,11 @@ Code: [`static/js/sefaria/sefaria.js:2880-2950`](https://github.com/Sefaria/Sefa
 
 Source: `inv_07_sheets_users.md#13`
 
+
 ### Saving
 
 #### USL-011 · Save (bookmark) button
-
-`core` `live` · rebuild: **done** — Save/remove on the server, state from the saved list; sheets wait for Voices · _tested_
+`core` `live` · rebuild: **done** — Save/remove on the server, state from the saved list; sheets wait for Voices · *tested*
 
 Users can save texts and sheets to their saved list with a bookmark button; anonymous users are prompted to sign up.
 
@@ -9315,10 +8861,10 @@ Code: [`static/js/Misc.jsx:1352`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.6 and #5.2`
 
+
 ### History
 
 #### USL-012 · Reading history and last place
-
 `core` `live` · rebuild: **done** — Primary and sidebar (secondary) history; signed out in the cookie
 
 The site remembers what a user read, for signed-in users on the server and for anonymous users in a cookie.
@@ -9333,14 +8879,14 @@ Code: [`static/js/sefaria/sefaria.js:2861`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_08_other.md#5.2`
 
-<a id="notifications"></a>
 
+<a id="notifications"></a>
 ## Notifications & email
+
 
 ### Panel
 
 #### NTF-001 · Notifications page
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Users see a feed of activity such as new sheets from people they follow, likes, new followers and collection invitations.
@@ -9355,7 +8901,6 @@ Code: [`static/js/NotificationsPanel.jsx:33-146`](https://github.com/Sefaria/Sef
 Source: `inv_07_sheets_users.md#11`
 
 #### NTF-002 · Notification types and rendering
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Each notification type has its own wording, image and links.
@@ -9369,7 +8914,6 @@ Code: [`static/js/NotificationsPanel.jsx:117-131`](https://github.com/Sefaria/Se
 Source: `inv_07_sheets_users.md#11`
 
 #### NTF-003 · Mark notifications read
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Notifications are marked read automatically as they load, and the unread badge updates.
@@ -9381,10 +8925,10 @@ Code: [`static/js/NotificationsPanel.jsx:43-61`](https://github.com/Sefaria/Sefa
 
 Source: `inv_07_sheets_users.md#11`
 
+
 ### Global
 
 #### NTF-004 · Global notifications and site updates
-
 `optional` `live` · rebuild: **todo** `staff`
 
 Staff post site-wide announcements that appear in each user's notifications and in an updates panel.
@@ -9396,10 +8940,10 @@ Code: [`sefaria/model/notification.py:340-350`](https://github.com/Sefaria/Sefar
 
 Source: `inv_07_sheets_users.md#11`
 
+
 ### Email
 
 #### NTF-005 · Email notification digest
-
 `standard` `live` · rebuild: **todo** `system`
 
 Users receive a daily or weekly email summarizing unread activity.
@@ -9412,10 +8956,10 @@ Code: [`sefaria/model/user_profile.py:815-863`](https://github.com/Sefaria/Sefar
 
 Source: `inv_07_sheets_users.md#11`
 
+
 ### Emails
 
 #### NTF-006 · Notification digest emails
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Users receive a daily or weekly email summarizing new activity such as messages, likes, follows and collection additions.
@@ -9433,7 +8977,6 @@ Code: [`sefaria/model/user_profile.py:815`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_08b_admin_linker_apps.md#4.9 / 4.10`
 
 #### NTF-007 · Collection invitation email
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Inviting someone by email to a collection sends them an invitation with a sign-up link.
@@ -9446,7 +8989,6 @@ Code: [`sefaria/model/collection.py:265`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_08b_admin_linker_apps.md#4.9`
 
 #### NTF-008 · Password reset email
-
 `core` `live` · rebuild: **todo**
 
 Users get a password reset email from web or mobile/SSO flows.
@@ -9460,7 +9002,6 @@ Code: [`templates/registration/password_reset_email.html:1`](https://github.com/
 Source: `inv_08b_admin_linker_apps.md#4.9`
 
 #### NTF-009 · Feedback and corrections email
-
 `standard` `live` · rebuild: **todo**
 
 Feedback, content corrections and user-testing sign-ups from the site are emailed to the right team.
@@ -9473,7 +9014,6 @@ Code: [`sefaria/views.py:387`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#4.9`
 
 #### NTF-010 · Account deletion follow-up email
-
 `standard` `live` · rebuild: **todo** `system`
 
 An internal email is sent to support when an account is deleted.
@@ -9485,7 +9025,6 @@ Code: [`reader/views.py:4443`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#4.9`
 
 #### NTF-011 · CRM-driven emails and sync
-
 `standard` `live` · rebuild: **todo** `system`
 
 Newsletter subscription, welcome flows and chatbot opt-ins are handled by the external CRM, not Django.
@@ -9497,19 +9036,20 @@ Code: [`sefaria/helper/crm/tasks.py:26`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_08b_admin_linker_apps.md#4.9 / 4.10`
 
+
 ---
 
 # Site & accounts
 
-<a id="global-ui"></a>
 
+<a id="global-ui"></a>
 ## Global UI
+
 
 ### Header
 
 #### GUI-001 · Mobile header bar
-
-`standard` `live` · rebuild: **done** — Pixel parity with a phone User-Agent (scripts/parity-page.mjs) · _tested_ `mobile only`
+`standard` `live` · rebuild: **done** — Pixel parity with a phone User-Agent (scripts/parity-page.mjs) · *tested* `mobile only`
 
 The mobile header shows hamburger, logo and a context-specific language toggle.
 
@@ -9521,8 +9061,7 @@ Code: [`static/js/Header.jsx:323`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_02_reader_shell.md#10`
 
 #### GUI-002 · Desktop site header
-
-`core` `live` · rebuild: **done** — Pixel parity at 1280px incl. focus state and drop-downs (scripts/parity-page.mjs, parity-header-states.mjs); links point to the old site's pages until built · _tested_ `desktop only`
+`core` `live` · rebuild: **done** — Pixel parity at 1280px incl. focus state and drop-downs (scripts/parity-page.mjs, parity-header-states.mjs); links point to the old site's pages until built · *tested* `desktop only`
 
 The header gives access to main sections, search, donate, account and module switching.
 
@@ -9538,8 +9077,7 @@ Code: [`static/js/Header.jsx:236`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_02_reader_shell.md#16`
 
 #### GUI-003 · Header right-side controls
-
-`core` `live` · rebuild: **partial** — No autocomplete (Phase 6), no keyboard, no accounts · _tested_ `desktop only`
+`core` `live` · rebuild: **partial** — No autocomplete (Phase 6), no keyboard, no accounts · *tested* `desktop only`
 
 Search box plus account/auth buttons, help, language and module switching.
 
@@ -9555,11 +9093,11 @@ Code: [`static/js/Header.jsx:291`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_02_reader_shell.md#16`
 
+
 ### Modals and banners
 
 #### GUI-004 · Sign-up modal for anonymous users
-
-`core` `live` · rebuild: **done** — Modal, all eight kinds; links to the client's own auth page · _tested_
+`core` `live` · rebuild: **done** — Modal, all eight kinds; links to the client's own auth page · *tested*
 
 When anonymous users try an account-only action, a modal explains the benefits and offers sign up or log in.
 
@@ -9575,10 +9113,10 @@ Code: [`static/js/Misc.jsx:2004`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_02_reader_shell.md#14`
 
+
 ### Notices
 
 #### GUI-005 · Reader feedback message component
-
 `retire` `unused` · rebuild: **n/a**
 
 A generic like/dislike feedback prompt exists but is not mounted by the shell.
@@ -9590,7 +9128,6 @@ Code: [`static/js/Misc.jsx:2770`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_02_reader_shell.md#14`
 
 #### GUI-006 · Global warning message
-
 `optional` `live` · rebuild: **todo**
 
 A site-wide warning set by the server can be shown to all users with a close button.
@@ -9603,8 +9140,7 @@ Code: [`static/js/Misc.jsx:615`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_08_other.md#1.8; inv_02_reader_shell.md#14`
 
 #### GUI-007 · Cookie notice
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 A bar tells new visitors the site uses cookies and lets them accept with one click.
 
@@ -9619,10 +9155,10 @@ Code: [`static/js/Misc.jsx:2816`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.8 and #5.7; inv_02_reader_shell.md#14`
 
+
 ### Shared dropdowns
 
 #### GUI-008 · Accessible dropdown menu
-
 `core` `live` · rebuild: **todo**
 
 Header and settings dropdowns are keyboard accessible.
@@ -9635,11 +9171,11 @@ Code: [`static/js/common/DropdownMenu.jsx:160`](https://github.com/Sefaria/Sefar
 
 Source: `inv_02_reader_shell.md#15`
 
+
 ### Module switcher
 
 #### GUI-009 · Module switcher (Library / Voices / Developers)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 A grid-icon menu switches between Sefaria products.
 
@@ -9652,11 +9188,11 @@ Code: [`static/js/Header.jsx:150`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_02_reader_shell.md#16`
 
+
 ### Profile menu
 
 #### GUI-010 · Profile / account dropdown
-
-`core` `live` · rebuild: **done** — Signed-out and signed-in menus (signed-in not checked live) · _tested_
+`core` `live` · rebuild: **done** — Signed-out and signed-in menus (signed-in not checked live) · *tested*
 
 The profile icon opens account links that differ by login state and module.
 
@@ -9670,11 +9206,11 @@ Code: [`static/js/Header.jsx:43`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_02_reader_shell.md#16`
 
+
 ### Mobile nav
 
 #### GUI-011 · Mobile navigation menu
-
-`core` `live` · rebuild: **done** — Legacy layout, pixel parity signed out · _tested_ `mobile only`
+`core` `live` · rebuild: **done** — Legacy layout, pixel parity signed out · *tested* `mobile only`
 
 A slide-out menu holds search, sections, account and cross-product links on mobile.
 
@@ -9690,11 +9226,11 @@ Code: [`static/js/Header.jsx:425`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_02_reader_shell.md#16`
 
+
 ### Shared components
 
 #### GUI-012 · InterfaceText bilingual text component
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Interface strings render in English or Hebrew by interface language with fallback.
 
@@ -9707,8 +9243,7 @@ Code: [`static/js/Misc.jsx:100`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_02_reader_shell.md#23`
 
 #### GUI-013 · Category color line
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 A colored line indicates the category of the content.
 
@@ -9719,7 +9254,6 @@ Code: [`static/js/Misc.jsx:1633`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_02_reader_shell.md#23`
 
 #### GUI-014 · Menu, search, close and display-settings buttons
-
 `standard` `live` · rebuild: **todo**
 
 Common icon buttons used across the shell.
@@ -9733,7 +9267,6 @@ Code: [`static/js/Misc.jsx:1233`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_02_reader_shell.md#23`
 
 #### GUI-015 · Tabs, dropdowns, loading indicators
-
 `standard` `live` · rebuild: **todo**
 
 Shared layout components used by many pages.
@@ -9745,7 +9278,6 @@ Code: [`static/js/Misc.jsx:400`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_02_reader_shell.md#23`
 
 #### GUI-016 · Popover
-
 `optional` `live` · rebuild: **todo**
 
 A floating popover positions itself differently on desktop and mobile.
@@ -9757,7 +9289,6 @@ Code: [`static/js/common/Popover.jsx`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#23`
 
 #### GUI-017 · Auth design-system inputs and cards
-
 `standard` `live` · rebuild: **todo**
 
 Form input, captcha wrapper and topic card components.
@@ -9769,7 +9300,6 @@ Code: [`static/js/common/Input.jsx`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_02_reader_shell.md#23`
 
 #### GUI-018 · Source / Translation language popover (non-reader)
-
 `optional` `live` · rebuild: **todo**
 
 A Source/Translation/Both popover used on sheets and topics outside the reader.
@@ -9780,11 +9310,11 @@ Code: [`static/js/Misc.jsx:3398`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_02_reader_shell.md#23`
 
+
 ### Interface text
 
 #### GUI-019 · Bilingual interface text rendering
-
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Every label and message in the app shows in the user's interface language (English or Hebrew), with fallbacks when a translation is missing.
 
@@ -9799,10 +9329,10 @@ Code: [`static/js/Misc.jsx:100`](https://github.com/Sefaria/Sefaria-Project/blob
 
 Source: `inv_08_other.md#1.2`
 
+
 ### Loading states
 
 #### GUI-020 · Loading messages and spinner
-
 `core` `live` · rebuild: **todo**
 
 Pages and panels show a bilingual loading message or a spinner while content loads.
@@ -9814,10 +9344,10 @@ Code: [`static/js/Misc.jsx:2588`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.2`
 
+
 ### Lists and layout
 
 #### GUI-021 · Filterable, sortable, paginated lists
-
 `standard` `live` · rebuild: **todo**
 
 Long lists (topics, sheets, collections) can be filtered by typing, sorted, and scrolled with infinite loading.
@@ -9832,7 +9362,6 @@ Code: [`static/js/Misc.jsx:234`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_08_other.md#1.4`
 
 #### GUI-022 · Accessible tabs
-
 `standard` `live` · rebuild: **todo**
 
 Tabbed views that can be used with keyboard and screen readers.
@@ -9844,10 +9373,10 @@ Code: [`static/js/Misc.jsx:400`](https://github.com/Sefaria/Sefaria-Project/blob
 
 Source: `inv_08_other.md#1.4`
 
+
 ### Shared UI primitives
 
 #### GUI-023 · Responsive grid and layout boxes
-
 `core` `live` · rebuild: **todo**
 
 Navigation cards flow into one, two or three columns depending on available width.
@@ -9863,7 +9392,6 @@ Code: [`static/js/Misc.jsx:2395`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_08_other.md#1.4; inv_05_library_topics.md#17`
 
 #### GUI-024 · Text and sheet link cards
-
 `standard` `live` · rebuild: **todo**
 
 Reusable cards and links for texts and sheets, colored by category, used in saved, history and recommendation lists.
@@ -9882,7 +9410,6 @@ Code: [`static/js/Misc.jsx:631`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_08_other.md#1.4, #1.12`
 
 #### GUI-025 · Shared UI primitives (Misc.jsx helpers)
-
 `standard` `live` · rebuild: **todo** `system`
 
 Internal helper functions and small components shared across the client.
@@ -9897,10 +9424,10 @@ Code: [`static/js/Misc.jsx:2107`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.1`
 
+
 ### Header controls
 
 #### GUI-026 · Header and panel chrome buttons
-
 `standard` `live` · rebuild: **todo**
 
 Small icon buttons used in headers and panels: search, menu, close, display settings, language toggle, guide, app store.
@@ -9916,10 +9443,10 @@ Code: [`static/js/Misc.jsx:1207`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.5`
 
+
 ### Feedback
 
 #### GUI-027 · Feedback form in sidebar
-
 `standard` `live` · rebuild: **todo**
 
 Users can send feedback about a text (content issue, translation request, bug, feature idea, etc.) from the resources sidebar.
@@ -9933,7 +9460,6 @@ Code: [`static/js/Misc.jsx:2662`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_08_other.md#1.6`
 
 #### GUI-028 · Like/dislike UI feedback prompt
-
 `optional` `live` · rebuild: **todo**
 
 A small in-reader prompt asks users whether they like a new UI change.
@@ -9945,15 +9471,15 @@ Code: [`static/js/Misc.jsx:2770`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.6`
 
-<a id="accounts"></a>
 
+<a id="accounts"></a>
 ## Accounts & sign-in
+
 
 ### In-app auth page
 
 #### ACC-001 · In-app login/register page integration
-
-`core` `live` · rebuild: **done** — Auth page is a route; in-app links with signup source · _tested_
+`core` `live` · rebuild: **done** — Auth page is a route; in-app links with signup source · *tested*
 
 Login and registration render inside the reader app instead of a separate page.
 
@@ -9967,11 +9493,11 @@ Code: [`static/js/auth/utils.js:61`](https://github.com/Sefaria/Sefaria-Project/
 
 Source: `inv_02_reader_shell.md#13`
 
+
 ### Google One Tap
 
 #### ACC-002 · Google One Tap sign-in
-
-`standard` `live` · rebuild: **done** — One Tap ported (needs GOOGLE_SSO_CLIENT_ID and same-origin Django) · _tested_
+`standard` `live` · rebuild: **done** — One Tap ported (needs GOOGLE_SSO_CLIENT_ID and same-origin Django) · *tested*
 
 Anonymous visitors may see a Google sign-in prompt, at most once per session.
 
@@ -9985,10 +9511,10 @@ Code: [`static/js/auth/GoogleOneTap.jsx`](https://github.com/Sefaria/Sefaria-Pro
 
 Source: `inv_02_reader_shell.md#13`
 
+
 ### Account settings
 
 #### ACC-003 · Account settings page
-
 `standard` `legacy` · rebuild: **todo** `signed-in`
 
 The classic server-rendered account settings page lets users set notification frequency, languages, reading history, customs, assistant, experiments, email and Google Drive.
@@ -10010,7 +9536,6 @@ Code: [`templates/account_settings.html:24-150`](https://github.com/Sefaria/Sefa
 Source: `inv_07_sheets_users.md#12; inv_08b_admin_linker_apps.md#3.9`
 
 #### ACC-004 · Change email and connected accounts
-
 `standard` `legacy` · rebuild: **todo** `signed-in`
 
 Users change their login email or disconnect Google Drive from settings.
@@ -10023,7 +9548,6 @@ Code: [`templates/account_settings.html:151-210`](https://github.com/Sefaria/Sef
 Source: `inv_07_sheets_users.md#12`
 
 #### ACC-005 · Delete account (API only)
-
 `optional` `unused` · rebuild: **n/a** `signed-in` `mobile only`
 
 An account-deletion endpoint exists but nothing in the web UI calls it.
@@ -10034,10 +9558,10 @@ Code: [`reader/views.py:4443-4471`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_07_sheets_users.md#12`
 
+
 ### Prompts
 
 #### ACC-006 · Login prompt and sign-up modal
-
 `core` `live` · rebuild: **done** — Sign-up modal links to the client's own auth page
 
 When an anonymous user tries a signed-in feature (save, follow, notes, add to sheet...), a prompt explains the benefits and invites them to sign up or log in.
@@ -10053,11 +9577,11 @@ Code: [`static/js/Misc.jsx:1964`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.7 and #2.6`
 
+
 ### Routing
 
 #### ACC-007 · Auth routes and in-app auth page mounting
-
-`core` `live` · rebuild: **done** — /login, /register, reset link rendered here; logout Django's · _tested_
+`core` `live` · rebuild: **done** — /login, /register, reset link rendered here; logout Django's · *tested*
 
 Login, register and password reset are one in-app page inside the reader app rather than separate server pages.
 
@@ -10075,11 +9599,11 @@ Code: [`sefaria/urls_shared.py:24`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_08_other.md#2.1`
 
+
 ### Login
 
 #### ACC-008 · Auth page with choose / email views
-
-`core` `live` · rebuild: **done** — Ported; geometry matched to sefaria.org at 1280 and on a phone · _tested_
+`core` `live` · rebuild: **done** — Ported; geometry matched to sefaria.org at 1280 and on a phone · *tested*
 
 A single card guides users through log in or sign up, offering Google, Apple or email.
 
@@ -10103,8 +9627,7 @@ Code: [`static/js/auth/AuthPage.jsx:18`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_08_other.md#2.2`
 
 #### ACC-009 · Email and password login
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Users log in with email and password, with a Forgot password link.
 
@@ -10116,11 +9639,11 @@ Code: [`static/js/auth/LoginView.jsx`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_08_other.md#2.2`
 
+
 ### Registration
 
 #### ACC-010 · Email registration with reCAPTCHA
-
-`core` `live` · rebuild: **done** — reCAPTCHA when RECAPTCHA_PUBLIC_KEY is configured · _tested_
+`core` `live` · rebuild: **done** — reCAPTCHA when RECAPTCHA_PUBLIC_KEY is configured · *tested*
 
 New users create an account with email, password and name, protected by a captcha.
 
@@ -10137,11 +9660,11 @@ Code: [`static/js/auth/RegisterView.jsx:101`](https://github.com/Sefaria/Sefaria
 
 Source: `inv_08_other.md#2.2 and #2.6`
 
+
 ### Password reset
 
 #### ACC-011 · Forgot and reset password
-
-`core` `live` · rebuild: **done** — Reset validity asked with a side-effect-free probe; token link handed to Django first · _tested_
+`core` `live` · rebuild: **done** — Reset validity asked with a side-effect-free probe; token link handed to Django first · *tested*
 
 Users who forget their password can request a reset link, set a new password, and request a fresh link if the old one expired.
 
@@ -10157,11 +9680,11 @@ Code: [`static/js/auth/ForgotView.jsx`](https://github.com/Sefaria/Sefaria-Proje
 
 Source: `inv_08_other.md#2.2 and #2.6`
 
+
 ### SSO
 
 #### ACC-012 · Sign in with Google and Apple
-
-`core` `live` · rebuild: **done** — Needs the client IDs in the runtime config and same-origin Django · _tested_
+`core` `live` · rebuild: **done** — Needs the client IDs in the runtime config and same-origin Django · *tested*
 
 Users can log in or register with Google or Apple; the same email always links to one account.
 
@@ -10181,8 +9704,7 @@ Code: [`static/js/auth/useSsoSignIn.jsx:114`](https://github.com/Sefaria/Sefaria
 Source: `inv_08_other.md#2.3`
 
 #### ACC-013 · Google One Tap
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Logged-out visitors may see a Google One Tap prompt to sign in with one click.
 
@@ -10196,10 +9718,10 @@ Code: [`static/js/auth/GoogleOneTap.jsx:6`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_08_other.md#2.4`
 
+
 ### Mobile app
 
 #### ACC-014 · Mobile app auth endpoints (JWT)
-
 `standard` `live` · rebuild: **n/a** — Mobile-app JWT endpoints; not used by the web client `third-party` `mobile only`
 
 The native mobile apps log in and register through token-based endpoints.
@@ -10212,10 +9734,10 @@ Code: [`sso/views.py:65`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd
 
 Source: `inv_08_other.md#2.1, #2.3, #5.8`
 
+
 ### Library Assistant
 
 #### ACC-015 · Enable Library Assistant after login
-
 `optional` `live` · rebuild: **todo** `signed-in`
 
 A link can switch on the Library Assistant for a signed-in user and return them to the page they came from.
@@ -10227,11 +9749,11 @@ Code: [`reader/views.py:4204`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08_other.md#2.6; inv_01_urls_routing.md#1.3`
 
+
 ### Session
 
 #### ACC-016 · Who is signed in, at first paint (rebuild)
-
-`core` `rebuild-only` · rebuild: **done** · _tested_
+`core` `rebuild-only` · rebuild: **done** · *tested*
 
 The new client learns who is signed in from Django's session cookie while rendering on the server, so the header is right from the first frame.
 
@@ -10240,14 +9762,14 @@ The new client learns who is signed in from Django's session cookie while render
 
 Source: `sefaria-reader: src/lib/auth/session.ts, src/features/auth/viewer.ts`
 
-<a id="promotions"></a>
 
+<a id="promotions"></a>
 ## Promotions & CMS
+
 
 ### CMS modals and banners
 
 #### PRM-001 · Interrupting modal message (CMS)
-
 `standard` `live` · rebuild: **todo**
 
 A CMS-managed popup message appears after a delay to eligible visitors.
@@ -10261,7 +9783,6 @@ Code: [`static/js/Misc.jsx:2128`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_02_reader_shell.md#14`
 
 #### PRM-002 · Top banner message (CMS)
-
 `standard` `live` · rebuild: **todo**
 
 A CMS-managed banner appears above the header for eligible visitors.
@@ -10273,10 +9794,10 @@ Code: [`static/js/Misc.jsx:2272`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_02_reader_shell.md#14`
 
+
 ### CMS data loading
 
 #### PRM-003 · Strapi data provider and content selection
-
 `standard` `live` · rebuild: **todo** `system`
 
 The app fetches banners, modals and sidebar ads from the CMS and picks one of each for the viewer.
@@ -10289,10 +9810,10 @@ Code: [`static/js/context.js:134`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_02_reader_shell.md#14`
 
+
 ### Donate
 
 #### PRM-004 · Donate link variants
-
 `standard` `live` · rebuild: **todo**
 
 The Donate link points to a campaign page by donor type.
@@ -10304,7 +9825,6 @@ Code: [`static/js/Misc.jsx:173`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_02_reader_shell.md#16`
 
 #### PRM-005 · Donate links with source attribution
-
 `core` `live` · rebuild: **todo**
 
 Donate buttons across the site send users to the external donation site, in the right language and with the right campaign.
@@ -10319,10 +9839,10 @@ Code: [`static/js/Misc.jsx:173`](https://github.com/Sefaria/Sefaria-Project/blob
 
 Source: `inv_08_other.md#1.3 and #4.6`
 
+
 ### Sidebar ads
 
 #### PRM-006 · Ad keyword targeting context
-
 `standard` `live` · rebuild: **todo** `system`
 
 What the reader is viewing is summarized for sidebar ad targeting.
@@ -10335,7 +9855,6 @@ Code: [`static/js/ReaderApp.jsx:2342`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#18`
 
 #### PRM-007 · Sidebar ads (not in connections panel)
-
 `standard` `live` · rebuild: **todo**
 
 Targeted Strapi ads and newsletter signups render in the navigation sidebar and topic pages, not in the resources panel.
@@ -10353,7 +9872,6 @@ Code: [`static/js/sefaria/sidebarAds.js:6`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_04_connections.md#20`
 
 #### PRM-008 · Sidebar ads
-
 `standard` `live` · rebuild: **todo**
 
 Targeted promotional cards appear in the navigation sidebar and topic pages, matched to what the user is reading.
@@ -10369,7 +9887,6 @@ Code: [`static/js/Promotions.jsx:57`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_08_other.md#4.2`
 
 #### PRM-009 · Google Docs add-on promo
-
 `optional` `live` · rebuild: **todo**
 
 The Add to sheet panel advertises the Sefaria Google Docs add-on until a user installs it.
@@ -10381,10 +9898,10 @@ Code: [`static/js/Promotions.jsx:99`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_08_other.md#4.2`
 
+
 ### CMS promos
 
 #### PRM-010 · Interrupting modal (Strapi)
-
 `core` `live` · rebuild: **todo**
 
 A CMS-managed popup message appears after a delay to eligible visitors with a header, text and call-to-action button.
@@ -10399,7 +9916,6 @@ Code: [`static/js/Misc.jsx:2128`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_08_other.md#1.8 and #4.1`
 
 #### PRM-011 · Top banner (Strapi)
-
 `core` `live` · rebuild: **todo**
 
 A CMS-managed banner appears at the top of the page with text and a call-to-action.
@@ -10412,17 +9928,17 @@ Code: [`static/js/Misc.jsx:2272`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.8`
 
+
 ### CMS pipeline
 
 #### PRM-012 · Strapi CMS content pipeline
-
 `core` `live` · rebuild: **todo** `system`
 
 Banners, modals and sidebar ads are authored in a CMS and delivered to the site through a cached proxy.
 
 - StrapiDataProvider wraps app (ReaderApp.jsx:2580); if STRAPI_INSTANCE set, one GraphQL query with per-locale aliases (en_banners, he_banners, en_modals ... he_sidebarAds) for docs whose date window is within +-14 days
 - POST /api/strapi/graphql-cache?start_date=&end_date= (text/plain) to Django cache proxy (views.py:1513-1630) cached per date range
-- Webhook POST /api/strapi/cache-invalidate clears _strapi_graphql_ (views.py:1633-1669)
+- Webhook POST /api/strapi/cache-invalidate clears *strapi_graphql* (views.py:1633-1669)
 - Banner fields: internal name, dates, markdown text, button text/URL, showDelay, background color, shouldDeployOnMobile, audience flags (showTo, new/returning, sustainer), countriesToTarget
 - Modal fields similar plus header/text; sidebar ad fields: title, body, button text/URL/icon, button above/below, blue background, campaign id, comma keywords with ! exclusions, showTo, dates, debug flag, newsletter-form flag + mailing lists
 - Per-locale rows merged by documentId (strapiLocalization.js); bad rows dropped loudly
@@ -10434,7 +9950,6 @@ Code: [`static/js/context.js:116`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_08_other.md#4.1 and #5.8`
 
 #### PRM-013 · Promo eligibility, ranking and country targeting
-
 `core` `live` · rebuild: **todo** `system`
 
 The site chooses which banner or modal to show each visitor based on dates, language, location, audience and what they have already dismissed.
@@ -10449,11 +9964,11 @@ Code: [`static/js/sefaria/strapiSelection.js:376`](https://github.com/Sefaria/Se
 
 Source: `inv_08_other.md#4.1`
 
+
 ### Site banners
 
 #### PRM-014 · Site-wide banner with maybe-later back-off
-
-`standard` `live` · rebuild: **partial** — Library Assistant promo with the old back-off; generic SiteWideBanner (Strapi) not built · _tested_
+`standard` `live` · rebuild: **partial** — Library Assistant promo with the old back-off; generic SiteWideBanner (Strapi) not built · *tested*
 
 A generic promotional banner can be dismissed permanently or snoozed so it returns later, up to three times.
 
@@ -10469,10 +9984,10 @@ Code: [`static/js/SiteWideBanner.jsx:5`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_08_other.md#4.3 and #5.6`
 
+
 ### Retired promos
 
 #### PRM-015 · Server-rendered interrupting message templates
-
 `retire` `unused` · rebuild: **n/a**
 
 Old dated donation, survey and holiday message templates replaced by the CMS.
@@ -10483,11 +9998,11 @@ Code: [`templates/messages`](https://github.com/Sefaria/Sefaria-Project/blob/bb4
 
 Source: `inv_08_other.md#4.5`
 
+
 ### Newsletter
 
 #### PRM-016 · Newsletter signup form
-
-`standard` `live` · rebuild: **partial** — The topics landing newsletter only · _tested_
+`standard` `live` · rebuild: **partial** — The topics landing newsletter only · *tested*
 
 Visitors can subscribe to Sefaria newsletters, optionally as educators, from sidebars, static pages, ads and topic pages.
 
@@ -10504,10 +10019,10 @@ Code: [`static/js/NewsletterSignUpForm.jsx`](https://github.com/Sefaria/Sefaria-
 
 Source: `inv_08_other.md#4.5`
 
+
 ### Sidebar modules
 
 #### PRM-017 · NavSidebar promo and donation modules
-
 `standard` `live` · rebuild: **partial** — SponsorADay, GetTheApp, StudyCompanion for the topics pages
 
 The navigation sidebar hosts modules that promote donating, the apps, newsletters and community.
@@ -10520,14 +10035,14 @@ Code: [`static/js/NavSidebar.jsx:40`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_08_other.md#4.5`
 
-<a id="static-pages"></a>
 
+<a id="static-pages"></a>
 ## Static pages
+
 
 ### Site package pages
 
 #### STA-001 · Static content pages
-
 `standard` `live` · rebuild: **todo**
 
 Many informational pages (about, team, jobs, terms, etc.) are served as static templates under the header-only React shell.
@@ -10546,7 +10061,6 @@ Code: [`sites/sefaria/urls.py:11-77`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_01_urls_routing.md#1.4`
 
 #### STA-002 · Voices sends About pages to Library
-
 `standard` `live` · rebuild: **todo**
 
 Informational pages requested on the Voices host are redirected to the Library host.
@@ -10560,7 +10074,6 @@ Code: [`reader/views.py:5053-5054`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.4`
 
 #### STA-003 · Metrics and digitized-by-Sefaria pages
-
 `optional` `live` · rebuild: **todo**
 
 Two data-oriented pages show site metrics and Sefaria-digitized texts.
@@ -10573,7 +10086,6 @@ Code: [`sites/sefaria/urls.py:67`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_01_urls_routing.md#1.4`
 
 #### STA-004 · Annual report and 990 PDF URLs
-
 `optional` `live` · rebuild: **todo**
 
 Annual reports and legal PDFs have stable URLs and old PDF addresses redirect to static files.
@@ -10587,10 +10099,10 @@ Code: [`reader/views.py:5061-5098`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_01_urls_routing.md#1.4`
 
+
 ### Serving
 
 #### STA-005 · Static page serving and About sidebar
-
 `core` `live` · rebuild: **todo**
 
 Informational pages are served as server templates with the site header, plus an About sidebar linking them together.
@@ -10607,10 +10119,10 @@ Code: [`sites/sefaria/urls.py:10`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_08_other.md#3.1`
 
+
 ### Organization pages
 
 #### STA-006 · About, strategy, story and supporters pages
-
 `standard` `live` · rebuild: **todo**
 
 Pages about Sefaria's mission, story, strategy and supporters.
@@ -10624,11 +10136,11 @@ Code: [`sites/sefaria/urls.py:10`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_08_other.md#3.2`
 
+
 ### Legal
 
 #### STA-007 · Terms and privacy policy
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Terms of use and privacy policy pages, linked from sign-up and the cookie notice.
 
@@ -10639,10 +10151,10 @@ Code: [`sites/sefaria/urls.py:10`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_08_other.md#3.2`
 
+
 ### Product pages
 
 #### STA-008 · Product, tool and edition pages
-
 `optional` `live` · rebuild: **todo**
 
 Marketing pages for Sefaria's apps, tools and special editions and projects.
@@ -10655,10 +10167,10 @@ Code: [`sites/sefaria/urls.py:10`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_08_other.md#3.2`
 
+
 ### React static pages
 
 #### STA-009 · Jobs page
-
 `optional` `live` · rebuild: **todo**
 
 Lists current open positions grouped by department from the CMS.
@@ -10670,7 +10182,6 @@ Code: [`static/js/StaticPages.jsx:2654`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_08_other.md#3.2`
 
 #### STA-010 · Team page
-
 `optional` `live` · rebuild: **todo**
 
 Shows staff and board members from the CMS.
@@ -10682,7 +10193,6 @@ Code: [`static/js/StaticPages.jsx:2419`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_08_other.md#3.2`
 
 #### STA-011 · Products page
-
 `optional` `live` · rebuild: **todo**
 
 Lists Sefaria products from the CMS with links and images.
@@ -10696,7 +10206,6 @@ Code: [`static/js/StaticPages.jsx:2880`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_08_other.md#3.2`
 
 #### STA-012 · Educators, Word-by-Word, newsletter and sponsorship pages
-
 `optional` `live` · rebuild: **todo**
 
 Landing pages for educators, a writing fellowship, newsletter signup and parasha sponsorship.
@@ -10713,7 +10222,6 @@ Code: [`static/js/StaticPages.jsx:521`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_08_other.md#3.2`
 
 #### STA-013 · Ways to give / donate page
-
 `standard` `live` · rebuild: **todo**
 
 Explains ways to donate with feature boxes and a detailed FAQ.
@@ -10729,7 +10237,6 @@ Code: [`static/js/StaticPages.jsx:1107`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_08_other.md#3.2`
 
 #### STA-014 · Contest landing pages
-
 `retire` `legacy` · rebuild: **n/a**
 
 Old landing pages for the Powered by Sefaria contests.
@@ -10742,7 +10249,6 @@ Code: [`static/js/StaticPages.jsx`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_08_other.md#3.2`
 
 #### STA-015 · Powered by page (moved)
-
 `retire` `unused` · rebuild: **n/a**
 
 The former Powered by Sefaria page now redirects to the developer site.
@@ -10753,10 +10259,10 @@ Code: [`static/js/StaticPages.jsx:1606`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_08_other.md#3.2`
 
+
 ### Shared blocks
 
 #### STA-016 · Static page building blocks
-
 `optional` `live` · rebuild: **todo**
 
 Reusable layout components used to compose static pages.
@@ -10768,10 +10274,10 @@ Code: [`static/js/StaticPages.jsx:1943`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_08_other.md#3.2`
 
+
 ### Data pages
 
 #### STA-017 · Metrics, digitized versions, annual report, 990, llms.txt
-
 `optional` `live` · rebuild: **todo**
 
 Pages publishing usage metrics, digitized-by-Sefaria versions, annual reports and financial filings, plus an LLM-friendly API doc.
@@ -10786,10 +10292,10 @@ Code: [`reader/views.py:4658`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08_other.md#3.2`
 
+
 ### Redirects
 
 #### STA-018 · Short links and external redirects
-
 `standard` `live` · rebuild: **todo**
 
 Short, memorable URLs redirect to donation, help, community and other external pages.
@@ -10800,16 +10306,16 @@ Short, memorable URLs redirect to donation, help, community and other external p
 - /nechama (collection), /contest, /dayoflearningcalendar, /rabbis -> /educators, /connect -> /newsletter
 - PDF links /textmap, /workshop, /ideasforteaching, /strategicplan
 - /parashat-hashavua, /todays-daf-yomi calendar redirects (reader/views.py:4680-4691)
-- /community -> voices, /new-home, /account, /my/notes, /sheets/tags, /groups, /contributors/<uid>, /person/_, /people/_, /settings/profile redirects
+- /community -> voices, /new-home, /account, /my/notes, /sheets/tags, /groups, /contributors/<uid>, /person/*, /people/*, /settings/profile redirects
 
 Code: [`sites/sefaria/urls.py:79`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sites/sefaria/urls.py#L79), [`reader/views.py:4680`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4680), [`sefaria/urls_shared.py`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_shared.py)
 
 Source: `inv_08_other.md#3.3`
 
+
 ### Help center
 
 #### STA-019 · Legacy help sheets redirect to Help Center
-
 `optional` `live` · rebuild: **todo**
 
 Old help source sheets redirect to the matching Zendesk Help Center articles.
@@ -10821,14 +10327,14 @@ Code: [`sites/sefaria/site_settings.py:50`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_08_other.md#3.3`
 
-<a id="i18n-a11y"></a>
 
+<a id="i18n-a11y"></a>
 ## Language & accessibility
+
 
 ### Language domains
 
 #### I18-001 · Content, translation and version preferences
-
 `core` `live` · rebuild: **partial** — Translation and version preferences from cookies; content-language and country suggestion not yet
 
 Reading language, translation language and per-corpus version choices are resolved from cookies, profile and country.
@@ -10843,10 +10349,10 @@ Code: [`sefaria/system/middleware.py:151-182`](https://github.com/Sefaria/Sefari
 
 Source: `inv_01_urls_routing.md#3.6`
 
+
 ### Keyboard and focus
 
 #### I18-002 · Skip link and main landmark
-
 `core` `live` · rebuild: **done**
 
 Keyboard users can skip to main content.
@@ -10859,7 +10365,6 @@ Code: [`static/js/ReaderApp.jsx:2583`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#15`
 
 #### I18-003 · Tabbing detection and panel focus management
-
 `core` `live` · rebuild: **partial** — New-panel focus done; sidebar focus on verse click intentionally not
 
 Focus moves sensibly into new panels, and tab users get visible focus styling.
@@ -10874,7 +10379,6 @@ Code: [`static/js/Header.jsx:206`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_02_reader_shell.md#15`
 
 #### I18-004 · Legacy toggle sets, tab view, radio, button a11y
-
 `standard` `live` · rebuild: **todo**
 
 Shared controls follow ARIA keyboard patterns.
@@ -10889,10 +10393,10 @@ Code: [`static/js/Misc.jsx:400`](https://github.com/Sefaria/Sefaria-Project/blob
 
 Source: `inv_02_reader_shell.md#15`
 
+
 ### Landmarks and labels
 
 #### I18-005 · ARIA landmarks and headings in shell
-
 `standard` `live` · rebuild: **todo**
 
 Header, nav, search and panel title carry ARIA roles/labels.
@@ -10904,10 +10408,10 @@ Code: [`static/js/ReaderPanel.jsx:1424`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_02_reader_shell.md#15`
 
+
 ### Interface language
 
 #### I18-006 · Interface language menu (anonymous)
-
 `standard` `live` · rebuild: **todo**
 
 Anonymous users on Torah sites can switch site language from a globe menu.
@@ -10919,7 +10423,6 @@ Code: [`static/js/Misc.jsx:1300`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_02_reader_shell.md#16`
 
 #### I18-007 · Site language toggle in dropdowns
-
 `core` `live` · rebuild: **done**
 
 Changing interface language is a server round trip, not client state.
@@ -10931,7 +10434,6 @@ Code: [`static/js/common/DropdownMenu.jsx:292`](https://github.com/Sefaria/Sefar
 Source: `inv_02_reader_shell.md#16`
 
 #### I18-008 · Interface language switcher
-
 `core` `live` · rebuild: **partial** — Language switch done; the preferred-translation reset is not
 
 Users can switch the whole interface between English and Hebrew from a globe menu, and reset their preferred translation language.
@@ -10945,7 +10447,6 @@ Code: [`static/js/Misc.jsx:1300`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_08_other.md#1.5 and #5.3`
 
 #### I18-009 · Interface string translation system
-
 `core` `live` · rebuild: **todo** `system`
 
 All interface strings are translated through keyed JSON files managed in Weblate, with Hebrew term fallbacks.
@@ -10961,7 +10462,6 @@ Code: [`static/js/sefaria/strings.js`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_08_other.md#5.2 and #5.3`
 
 #### I18-010 · Interface and content language resolution
-
 `core` `live` · rebuild: **todo**
 
 The site picks interface and content language automatically from the user's profile, cookies, location and browser, and keeps Hebrew domains in Hebrew.
@@ -10980,10 +10480,10 @@ Code: [`sefaria/system/middleware.py:85`](https://github.com/Sefaria/Sefaria-Pro
 
 Source: `inv_08_other.md#5.3; inv_01_urls_routing.md#3.6`
 
+
 ### Accessibility
 
 #### I18-011 · Accessible custom dropdown and toggles
-
 `core` `live` · rebuild: **todo**
 
 Custom select menus and segmented toggles are operable by keyboard and announced correctly to assistive tech.
@@ -10998,10 +10498,10 @@ Code: [`static/js/Misc.jsx:2469`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.4`
 
+
 ### Site settings
 
 #### I18-012 · Site settings and white-label sites
-
 `optional` `live` · rebuild: **todo** `system`
 
 Site-level configuration controls branding and features, enabling alternative non-Torah sites.
@@ -11015,10 +10515,10 @@ Code: [`sites/sefaria/site_settings.py:28`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_08_other.md#3.3 and #5.3`
 
+
 ### RTL
 
 #### I18-013 · Right-to-left layout and Hebrew numerals
-
 `core` `live` · rebuild: **todo**
 
 The interface mirrors for Hebrew, with Hebrew numerals and dates.
@@ -11034,15 +10534,15 @@ Code: [`static/js/ReaderApp.jsx:118`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_08_other.md#5.3`
 
-<a id="ai"></a>
 
+<a id="ai"></a>
 ## AI features
+
 
 ### Library Assistant
 
 #### AI-001 · Chatbot experiment banner (shell mount)
-
-`standard` `live` · rebuild: **partial** — Signed-out banner done; signed-in 'Try It' (not in the experiment) not shown yet · _tested_
+`standard` `live` · rebuild: **partial** — Signed-out banner done; signed-in 'Try It' (not in the experiment) not shown yet · *tested*
 
 A site-wide banner invites eligible users to try the Library Assistant.
 
@@ -11054,7 +10554,6 @@ Code: [`static/js/ReaderApp.jsx:2574`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#1`
 
 #### AI-002 · Library Assistant promo banner
-
 `optional` `live` · rebuild: **todo** `desktop only`
 
 A banner invites users to try the Library Assistant, with a polite 'maybe later' backoff.
@@ -11073,8 +10572,7 @@ Code: [`static/js/SiteWideBanner.jsx:244`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_08_other.md#4.3; inv_02_reader_shell.md#14`
 
 #### AI-003 · Chatbot user token and props
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 The server issues a short-lived encrypted token identifying the user to the assistant service.
 
@@ -11087,7 +10585,6 @@ Code: [`reader/views.py:365`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 Source: `inv_08b_admin_linker_apps.md#4.4`
 
 #### AI-004 · Library Assistant opt-in, setting and promo banner
-
 `standard` `live` · rebuild: **todo** `signed-in` `desktop only`
 
 Users opt in to the assistant from a banner, signup flow or account settings; the setting falls back to the old experiments flag.
@@ -11105,8 +10602,7 @@ Code: [`sefaria/helper/library_assistant.py:1`](https://github.com/Sefaria/Sefar
 Source: `inv_08b_admin_linker_apps.md#4.4`
 
 #### AI-005 · Chatbot preview build selection (?chatbot_version)
-
-`optional` `live` · rebuild: **done** · _tested_ `staff` `desktop only`
+`optional` `live` · rebuild: **done** · *tested* `staff` `desktop only`
 
 Developers can load a preview build of the assistant by URL parameter, remembered for the session.
 
@@ -11119,7 +10615,6 @@ Code: [`sefaria/system/context_processors.py:1`](https://github.com/Sefaria/Sefa
 Source: `inv_08b_admin_linker_apps.md#4.4`
 
 #### AI-006 · Experiments opt-in plumbing and admin
-
 `optional` `live` · rebuild: **todo** `staff`
 
 Users can be enrolled in experiments by self opt-in or by staff CSV upload, and opt-ins notify the CRM.
@@ -11134,10 +10629,10 @@ Code: [`reader/models.py:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb4
 
 Source: `inv_08b_admin_linker_apps.md#4.4`
 
+
 ### Guide overlay
 
 #### AI-007 · Guide overlay and guide button
-
 `optional` `live` · rebuild: **todo** `desktop only`
 
 A bulb button opens an in-product guide for the sheet editor.
@@ -11149,10 +10644,10 @@ Code: [`static/js/ReaderPanel.jsx:477`](https://github.com/Sefaria/Sefaria-Proje
 
 Source: `inv_02_reader_shell.md#14`
 
+
 ### Guided Learning
 
 #### AI-008 · AI disclosure tooltip on Guided Learning
-
 `standard` `live` · rebuild: **todo**
 
 A tooltip tells readers that guide questions and answers were AI-generated.
@@ -11164,7 +10659,6 @@ Code: [`static/js/GuideBox.jsx`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_04_connections.md#18`
 
 #### AI-009 · Quick Start guide overlay (guides app)
-
 `optional` `live` · rebuild: **todo** `signed-in` `desktop only`
 
 First-time users of the sheet editor see a carousel of tip cards with text and video; they can reopen it later.
@@ -11185,7 +10679,6 @@ Code: [`guides/models.py:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb4
 Source: `inv_08b_admin_linker_apps.md#4.3`
 
 #### AI-010 · Guided Learning box (experiment)
-
 `optional` `live` · rebuild: **todo**
 
 An experimental connections-panel mode shows key questions, summaries and commentary prompts for a ref.
@@ -11197,11 +10690,11 @@ Code: [`static/js/GuideBox.jsx:1`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_08b_admin_linker_apps.md#4.3`
 
+
 ### Chatbot
 
 #### AI-011 · Library Assistant chatbot widget
-
-`standard` `live` · rebuild: **done** · _tested_ `signed-in` `desktop only`
+`standard` `live` · rebuild: **done** · *tested* `signed-in` `desktop only`
 
 Eligible users on the Library module get a floating AI assistant chat widget embedded in the reader.
 
@@ -11226,8 +10719,7 @@ Code: [`static/js/ReaderApp.jsx:2609`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_04_connections.md#21.1; inv_08b_admin_linker_apps.md#4.4; inv_02_reader_shell.md#1`
 
 #### AI-012 · Chatbot version override via query param (POC)
-
-`optional` `branch-only` · rebuild: **done** · _tested_ `staff`
+`optional` `branch-only` · rebuild: **done** · *tested* `staff`
 
 Developers can pin the chatbot preview server version with a URL param.
 
@@ -11238,10 +10730,10 @@ Code: [`sefaria/utils/chatbot.py`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_04_connections.md#21.2`
 
+
 ### Linker disambiguation
 
 #### AI-013 · Linker LLM disambiguation visibility
-
 `optional` `live` · rebuild: **todo** `moderator`
 
 LLM-based citation disambiguation results are visible to moderators in Linker Admin.
@@ -11252,10 +10744,10 @@ Code: [`static/js/LinkerAdminBox.jsx`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_04_connections.md#21.1`
 
+
 ### AI translation POC
 
 #### AI-014 · Per-segment AI translation QA controls
-
 `optional` `branch-only` · rebuild: **n/a**
 
 On a branch-only proof of concept, readers can mark an AI translation as reading well or report a problem on each segment.
@@ -11271,7 +10763,6 @@ Code: [`static/js/translationQA.js`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_04_connections.md#21.2`
 
 #### AI-015 · Reader feedback on AI translations (branch)
-
 `optional` `branch-only` · rebuild: **n/a**
 
 Readers can double-click a word in an AI translation to suggest a correction, reviewed by staff.
@@ -11284,10 +10775,10 @@ Code: [`static/js/TextRange.jsx`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_04_connections.md#21.3`
 
+
 ### Assistant
 
 #### AI-016 · Try Assistant button in Resources (branch)
-
 `optional` `branch-only` · rebuild: **n/a**
 
 A highlighted 'Try Assistant' button in the Resources panel opens the Library Assistant modal.
@@ -11299,10 +10790,10 @@ Code: [`static/js/ConnectionsPanel.jsx`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_04_connections.md#21.3`
 
+
 ### AI disclosure
 
 #### AI-017 · AI info tooltip
-
 `standard` `live` · rebuild: **todo**
 
 AI-generated content is marked with a star icon whose tooltip explains it and links to learn more and give feedback.
@@ -11314,10 +10805,10 @@ Code: [`static/js/Misc.jsx:1487`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.9`
 
+
 ### AI Translation POC
 
 #### AI-018 · Community QA for AI translation (poc-translation)
-
 `optional` `branch-only` · rebuild: **n/a**
 
 On a non-merged branch, machine-translated text gets 'Reads well' and 'Report a problem' controls so readers can flag AI translation quality.
@@ -11338,7 +10829,6 @@ Code: [`static/js/translationQA.js:1`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_08b_admin_linker_apps.md#4.4 POC`
 
 #### AI-019 · Shared chatbot version resolution (poc-translation)
-
 `optional` `branch-only` · rebuild: **n/a** `staff`
 
 A fix on the branch makes the preview chatbot version apply consistently to script URL and API base.
@@ -11352,7 +10842,6 @@ Code: [`sefaria/utils/chatbot.py:1`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_08b_admin_linker_apps.md#4.4 POC`
 
 #### AI-020 · Other POC branches (names only)
-
 `optional` `branch-only` · rebuild: **n/a** `staff`
 
 The repo has other unmerged proof-of-concept branches not inspected.
@@ -11364,18 +10853,19 @@ Code: [`static/js/ReaderApp.jsx:2573`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_08b_admin_linker_apps.md#4.4 POC`
 
+
 ---
 
 # Platform
 
-<a id="routing"></a>
 
+<a id="routing"></a>
 ## URLs & routing
+
 
 ### Architecture
 
 #### RTE-001 · Library and Voices hosts split by domain
-
 `core` `live` · rebuild: **deferred** — Depends on the owner's decisions on Voices, auth and hosting
 
 The site is two products on separate hostnames: Library (texts) and Voices (sheets/community, called chiburim in Hebrew). The host decides which pages exist.
@@ -11392,7 +10882,6 @@ Code: [`sefaria/hosts.py:17-30`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_01_urls_routing.md#0.1`
 
 #### RTE-002 · URLconf composition and catchall order
-
 `core` `live` · rebuild: **replaced** — Django URL composition, middleware and global JS payloads have no equivalent in a TanStack Start app
 
 Pages are matched in a fixed order, ending in a catchall that treats any single path segment as a text reference.
@@ -11407,7 +10896,6 @@ Code: [`sefaria/urls_library.py:17-100`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_01_urls_routing.md#0.2`
 
 #### RTE-003 · Maintenance mode
-
 `standard` `live` · rebuild: **todo** `system`
 
 When the site is flagged down for maintenance, every page returns a 503 maintenance message except health and admin-cache endpoints.
@@ -11420,10 +10908,10 @@ Code: [`sefaria/urls_shared.py:324-335`](https://github.com/Sefaria/Sefaria-Proj
 
 Source: `inv_01_urls_routing.md#0.2; inv_08b_admin_linker_apps.md#intro / 5.8`
 
+
 ### Edge redirects
 
 #### RTE-004 · Edge redirects to Voices for sheets, collections, profile
-
 `core` `live` · rebuild: **deferred** — Depends on the owner's decisions on Voices, auth and hosting
 
 On the library host, any /sheets, /collections or /profile path is bounced to the same path on the Voices host before it reaches Django.
@@ -11437,7 +10925,6 @@ Code: [`helm-chart/sefaria/conf/nginx.template.conf.tpl:172-181`](https://github
 Source: `inv_01_urls_routing.md#0.3`
 
 #### RTE-005 · Bare root domain redirects to www
-
 `standard` `live` · rebuild: **todo** `system`
 
 Visiting sefaria.org without www sends the user to www.sefaria.org, except for iOS app-link verification files.
@@ -11450,7 +10937,6 @@ Code: [`helm-chart/sefaria/conf/nginx.template.conf.tpl:69-96`](https://github.c
 Source: `inv_01_urls_routing.md#0.3`
 
 #### RTE-006 · Mobile message and sitemap passthrough at edge
-
 `standard` `live` · rebuild: **todo** `system`
 
 The app's in-app message files and the sitemaps are served by nginx rather than Django.
@@ -11464,21 +10950,20 @@ Code: [`helm-chart/sefaria/conf/nginx.template.conf.tpl:113-169`](https://github
 Source: `inv_01_urls_routing.md#0.3`
 
 #### RTE-007 · robots.txt rules
-
 `standard` `live` · rebuild: **todo** `system`
 
 Crawlers are told to skip activity pages and login/register next-links.
 
-- Served from configmap robots-txt.yaml: Disallow /activity/, /login?next=_, /register?next=_; or Disallow: / when disableScraping is set.
+- Served from configmap robots-txt.yaml: Disallow /activity/, /login?next=*, /register?next=*; or Disallow: / when disableScraping is set.
 
 Code: [`helm-chart/sefaria/templates/configmap/robots-txt.yaml`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/helm-chart/sefaria/templates/configmap/robots-txt.yaml)
 
 Source: `inv_01_urls_routing.md#0.3`
 
+
 ### Middleware
 
 #### RTE-008 · Request middleware affecting URL behavior
-
 `core` `live` · rebuild: **replaced** — Django URL composition, middleware and global JS payloads have no equivalent in a TanStack Start app `system`
 
 A fixed middleware chain decides module, language, location, cookies and redirects before any view runs.
@@ -11498,11 +10983,11 @@ Code: [`sefaria/settings.py:119-147`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_01_urls_routing.md#0.4`
 
+
 ### Library page URLs
 
 #### RTE-009 · Library home and texts navigation URLs
-
-`core` `live` · rebuild: **todo** · _tested_
+`core` `live` · rebuild: **todo** · *tested*
 
 Library has no separate home page: / sends visitors to /texts, and /texts/<category path> browses the table of contents.
 
@@ -11520,8 +11005,7 @@ Code: [`sefaria/urls_library.py:17-89`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-010 · Learning schedules and calendar URLs
-
-`standard` `live` · rebuild: **partial** — /calendars, /calendars/ and the two shortcuts ported; /dayoflearningcalendar stays Django's · _tested_
+`standard` `live` · rebuild: **partial** — /calendars, /calendars/ and the two shortcuts ported; /dayoflearningcalendar stays Django's · *tested*
 
 /calendars opens the Learning Schedules page; daily shortcuts jump straight to today's reading.
 
@@ -11537,8 +11021,7 @@ Code: [`reader/views.py:1326-1329`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-011 · Translations page URLs
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 /translations/<language> lists texts available in a given translation language.
 
@@ -11553,7 +11036,6 @@ Code: [`reader/views.py:1256-1289`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-012 · Random text URLs
-
 `optional` `live` · rebuild: **todo**
 
 Random links send readers to a random segment or a random-text page.
@@ -11567,7 +11049,6 @@ Code: [`reader/views.py:4718-4730`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-013 · Account settings URL
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Signed-in users manage account preferences at /settings/account, a server-rendered page under the React header.
@@ -11583,7 +11064,6 @@ Code: [`reader/views.py:4556-4578`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-014 · Library-side legacy redirects to Voices
-
 `retire` `live` · rebuild: **n/a**
 
 Old community and profile-settings addresses on the library host forward to Voices.
@@ -11596,8 +11076,7 @@ Code: [`reader/views.py:5267-5271`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-015 · Torah tracker and notes URLs
-
-`optional` `live` · rebuild: **partial** — /texts/notes routed to the client; /torahtracker still Django's · _tested_ `signed-in`
+`optional` `live` · rebuild: **partial** — /texts/notes routed to the client; /torahtracker still Django's · *tested* `signed-in`
 
 /torahtracker shows a user's learning stats and /texts/notes shows 'My Notes'; both need login.
 
@@ -11610,7 +11089,6 @@ Code: [`reader/views.py:1373-1382`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-016 · Staff tool URLs (modtools, linker editor)
-
 `optional` `live` · rebuild: **todo** `staff`
 
 Moderators and staff reach their tools at fixed URLs that load dedicated CSS.
@@ -11627,7 +11105,6 @@ Code: [`reader/views.py:1397-1410`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-017 · Legacy S1 text editor URLs
-
 `retire` `legacy` · rebuild: **n/a** `staff`
 
 Old add/edit/translate text pages still exist on the original Django-template editor.
@@ -11645,8 +11122,7 @@ Code: [`reader/views.py:1523-1660`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-018 · Activity feed and leaderboard URLs
-
-`optional` `legacy` · rebuild: **partial** — Segment history routed to the client; the other activity URLs Django's · _tested_
+`optional` `legacy` · rebuild: **partial** — Segment history routed to the client; the other activity URLs Django's · *tested*
 
 Contribution history pages show recent edits globally, per user, and per text segment.
 
@@ -11662,8 +11138,7 @@ Code: [`reader/views.py:3961-4107`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-019 · Version compare tool URL
-
-`optional` `legacy` · rebuild: **done** · _tested_ `staff`
+`optional` `legacy` · rebuild: **done** · *tested* `staff`
 
 A separate page diffs two versions of a text.
 
@@ -11679,7 +11154,6 @@ Code: [`sefaria/views.py:2191-2217`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-020 · Download URLs
-
 `standard` `live` · rebuild: **todo**
 
 Text versions can be downloaded as files from stable URLs.
@@ -11691,10 +11165,10 @@ Code: [`sefaria/urls_library.py:17-89`](https://github.com/Sefaria/Sefaria-Proje
 
 Source: `inv_01_urls_routing.md#1.1`
 
+
 ### Voices page URLs
 
 #### RTE-021 · Voices home and sheets-with-ref URLs
-
 `core` `live` · rebuild: **deferred** — Depends on the owner's decisions on Voices, auth and hosting
 
 The Voices host's root is the Voices home; sheets that cite a given source are listed at /sheets-with-ref/<ref>.
@@ -11708,7 +11182,6 @@ Code: [`sourcesheets/views.py:67-71`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_01_urls_routing.md#1.2`
 
 #### RTE-022 · Sheet URLs
-
 `core` `live` · rebuild: **deferred** — Depends on the owner's decisions on Voices, auth and hosting
 
 Source sheets open at /sheets/<id>, optionally with a highlighted node, or /sheets/new to start a fresh one.
@@ -11729,7 +11202,6 @@ Code: [`sourcesheets/views.py:73-278`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_01_urls_routing.md#1.2`
 
 #### RTE-023 · Collections URLs
-
 `standard` `live` · rebuild: **todo**
 
 Collections have a public list, per-collection pages, and creation/settings pages.
@@ -11746,7 +11218,6 @@ Code: [`reader/views.py:1136-1239`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.2`
 
 #### RTE-024 · Profile URLs
-
 `standard` `live` · rebuild: **todo**
 
 Public user profiles live at /profile/<username>; own-profile shortcuts redirect there.
@@ -11763,7 +11234,6 @@ Code: [`reader/views.py:4110-4135`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.2`
 
 #### RTE-025 · Voices getting-started and sheets redirects
-
 `retire` `live` · rebuild: **n/a**
 
 The Voices marketing page is /getstarted and /sheets itself redirects there.
@@ -11777,11 +11247,11 @@ Code: [`reader/views.py:1151-1253`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_01_urls_routing.md#1.2`
 
+
 ### Shared page URLs
 
 #### RTE-026 · Text reader URL (catchall)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Any single-segment path that is not another route is treated as a text reference and opens the reader, book page, or a sheet.
 
@@ -11799,8 +11269,7 @@ Code: [`reader/views.py:488-522`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_01_urls_routing.md#3.1`
 
 #### RTE-027 · Ref URL normalization to canonical form
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Any variant of a citation (case, alt title, Hebrew title, 'Genesis 1:1', 'Gen.1.1') redirects to one canonical URL.
 
@@ -11818,8 +11287,7 @@ Code: [`reader/views.py:488-531`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_01_urls_routing.md#3.1`
 
 #### RTE-028 · Version parameter normalization redirect
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Version choices in the URL are checked against the text's real versions; stale or legacy values are rewritten or dropped.
 
@@ -11835,8 +11303,7 @@ Code: [`reader/views.py:424-485`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_01_urls_routing.md#3.2`
 
 #### RTE-029 · Search URL
-
-`core` `live` · rebuild: **todo** · _tested_
+`core` `live` · rebuild: **todo** · *tested*
 
 /search runs a query; query, tabs, filters and sort are all in the URL so results are shareable.
 
@@ -11854,7 +11321,6 @@ Code: [`reader/views.py:1054-1134`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#2.2`
 
 #### RTE-030 · Topics URLs
-
 `core` `live` · rebuild: **done**
 
 Topics are browsed at /topics, by category, by letter, and individual topic pages.
@@ -11876,8 +11342,7 @@ Code: [`reader/views.py:1013-1051`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.3`
 
 #### RTE-031 · Saved, history and notifications URLs
-
-`standard` `live` · rebuild: **partial** — /saved and /history routed to the client; notifications still Django's · _tested_ `signed-in`
+`standard` `live` · rebuild: **partial** — /saved and /history routed to the client; notifications still Django's · *tested* `signed-in`
 
 Signed-in users have URLs for saved items, reading history and notifications.
 
@@ -11891,8 +11356,7 @@ Code: [`reader/views.py:1334-1394`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.3`
 
 #### RTE-032 · Login, register and logout URLs
-
-`core` `live` · rebuild: **done** — Login/register/reset routes here; logout Django's · _tested_
+`core` `live` · rebuild: **done** — Login/register/reset routes here; logout Django's · *tested*
 
 Sign-in, sign-up and logout have their own addresses and open the in-app auth page.
 
@@ -11914,7 +11378,6 @@ Code: [`sefaria/views.py:95-197`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_01_urls_routing.md#1.3`
 
 #### RTE-033 · SSO and auth API endpoints
-
 `core` `live` · rebuild: **done** — Endpoints called same-origin; stay Django's in the pass-through
 
 Social and email login use dedicated endpoints under /accounts, /_allauth and /api/auth.
@@ -11930,8 +11393,7 @@ Code: [`sefaria/urls_shared.py:21-23`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_01_urls_routing.md#1.3`
 
 #### RTE-034 · Language switch URL (/interface)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 /interface/english and /interface/hebrew switch interface language and then return to the page.
 
@@ -11945,7 +11407,6 @@ Code: [`reader/views.py:1663-1697`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.3`
 
 #### RTE-035 · Global JS data and plugin file URLs
-
 `core` `live` · rebuild: **replaced** — Django URL composition, middleware and global JS payloads have no equivalent in a TanStack Start app `third-party`
 
 Several JS files are served by Django for the app, third parties, and caching.
@@ -11960,7 +11421,6 @@ Code: [`sefaria/views.py:422-431`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_01_urls_routing.md#1.3`
 
 #### RTE-036 · Admin and ops URLs
-
 `optional` `live` · rebuild: **todo** `staff`
 
 Django admin and staff operational endpoints are mounted under ADMIN_PATH and /admin/*.
@@ -11973,7 +11433,6 @@ Code: [`sefaria/urls_shared.py:274-311`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_01_urls_routing.md#1.3`
 
 #### RTE-037 · Legacy redirects (complete list)
-
 `standard` `live` · rebuild: **todo**
 
 A single reference list of every legacy URL that is redirected.
@@ -11990,7 +11449,6 @@ Code: [`reader/views.py:525-531`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_01_urls_routing.md#3.4`
 
 #### RTE-038 · Help-center redirects for specific sheets
-
 `optional` `live` · rebuild: **todo**
 
 A set of sheets that were turned into help articles redirect to the Zendesk help center.
@@ -12002,10 +11460,10 @@ Code: [`sefaria/utils/util.py:642-659`](https://github.com/Sefaria/Sefaria-Proje
 
 Source: `inv_01_urls_routing.md#3.5`
 
+
 ### Redirects
 
 #### RTE-039 · Cross-module redirect rules
-
 `core` `live` · rebuild: **deferred** — Depends on the owner's decisions on Voices, auth and hosting
 
 Moving between Library and Voices is done with permanent redirects from Django and temporary redirects from nginx.
@@ -12020,7 +11478,6 @@ Code: [`reader/views.py:5250-5257`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#3.3`
 
 #### RTE-040 · 404 and error pages
-
 `core` `live` · rebuild: **partial** — Unknown book is a real 404 page; error pages for server failures not designed
 
 Missing pages show a bilingual, header-only 404; server errors show a 500 page.
@@ -12034,10 +11491,10 @@ Code: [`reader/views.py:5386-5408`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_01_urls_routing.md#3.7`
 
+
 ### Site package pages
 
 #### RTE-041 · External and donation redirects
-
 `optional` `live` · rebuild: **todo**
 
 Memorable short URLs forward to donation, help, docs and campaign destinations.
@@ -12055,10 +11512,10 @@ Code: [`sites/sefaria/urls.py:85-106`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_01_urls_routing.md#1.4`
 
+
 ### Reader query parameters
 
 #### RTE-042 · Version selection params (ven, vhe)
-
 `core` `live` · rebuild: **done**
 
 The URL records which English-side/translation and Hebrew/primary version is displayed.
@@ -12075,8 +11532,7 @@ Code: [`reader/views.py:731-735`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_01_urls_routing.md#2.1`
 
 #### RTE-043 · Display language param (lang, lang2)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The URL records bilingual/Hebrew/English display for the text panel and a separate language for the connections panel.
 
@@ -12092,8 +11548,7 @@ Code: [`reader/views.py:836`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 Source: `inv_01_urls_routing.md#2.1`
 
 #### RTE-044 · Connections sidebar param (with)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 The URL records which sidebar view or commentary filter is open next to the text.
 
@@ -12109,8 +11564,7 @@ Code: [`reader/views.py:713-728`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_01_urls_routing.md#2.1`
 
 #### RTE-045 · Sidebar sub-state params (vside, lookup, sbsq, namedEntity)
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Sidebar details like version filter, looked-up words, in-book search query and selected named entity are stored in the URL.
 
@@ -12124,8 +11578,7 @@ Code: [`reader/views.py:834`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 Source: `inv_01_urls_routing.md#2.1`
 
 #### RTE-046 · Aliyot param
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Torah books record whether aliyot (Torah portion divisions) are shown.
 
@@ -12140,7 +11593,6 @@ Code: [`reader/views.py:847-848`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_01_urls_routing.md#2.1`
 
 #### RTE-047 · Version notes param (notes)
-
 `optional` `live` · rebuild: **todo**
 
 A book-level URL with notes=1 opens the 'extended notes' page for a version.
@@ -12153,8 +11605,7 @@ Code: [`reader/views.py:553-561`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_01_urls_routing.md#2.1`
 
 #### RTE-048 · Menu tab param (tab)
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Pages with tabs (book TOC, topics, profile, collections) record the open tab in the URL.
 
@@ -12168,8 +11619,7 @@ Code: [`reader/views.py:905`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 Source: `inv_01_urls_routing.md#2.1`
 
 #### RTE-049 · Multiple panels in the URL (p<N> params)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Side-by-side panels are encoded in the URL as numbered params so a multi-panel session can be shared.
 
@@ -12188,7 +11638,6 @@ Code: [`reader/views.py:859-897`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_01_urls_routing.md#2.1`
 
 #### RTE-050 · Layout and debug params (mobile, embed, debug_mode)
-
 `optional` `live` · rebuild: **todo**
 
 A few params force layout or developer modes.
@@ -12203,7 +11652,6 @@ Code: [`reader/views.py:347`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 Source: `inv_01_urls_routing.md#2.1`
 
 #### RTE-051 · Cookie, tracking and chatbot params
-
 `optional` `live` · rebuild: **todo** `staff`
 
 Utility params change cookies, applink behavior, chatbot version or profile output.
@@ -12218,8 +11666,7 @@ Code: [`sefaria/system/context_processors.py:148-172`](https://github.com/Sefari
 Source: `inv_01_urls_routing.md#2.2`
 
 #### RTE-052 · Other page params (login/next, activity, topic, profile)
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Non-reader pages have small param conventions.
 
@@ -12234,7 +11681,6 @@ Code: [`reader/views.py:1203-1204`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#2.2`
 
 #### RTE-064 · Query parameters rewritten on load (aliyot=0, lang2)
-
 `retire` `live` · rebuild: **n/a**
 
 After load the old reader rewrites the address bar's query string: Torah pages gain aliyot=0, and opening the sidebar adds lang2 (the sidebar's language).
@@ -12246,10 +11692,10 @@ Code: [`static/js/ReaderApp.jsx`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_01_urls_routing.md`
 
+
 ### Client history and URL state
 
 #### RTE-053 · URL generation per panel type (makeHistoryState)
-
 `core` `live` · rebuild: **done**
 
 Every panel state is turned into a URL and title, so each screen is addressable.
@@ -12272,8 +11718,7 @@ Code: [`static/js/ReaderApp.jsx:488-892`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_01_urls_routing.md#4.2`
 
 #### RTE-054 · Push vs replace history behavior
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Browser history only gets a new entry for meaningful navigation; scrolling and refinements quietly update the current entry.
 
@@ -12294,8 +11739,7 @@ Code: [`static/js/ReaderApp.jsx:414-483`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_01_urls_routing.md#4.3`
 
 #### RTE-055 · Back/forward and scroll restoration
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Using the browser back button restores previous panels, search state and scroll position.
 
@@ -12309,8 +11753,7 @@ Code: [`static/js/ReaderApp.jsx:316-354`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_01_urls_routing.md#4.3`
 
 #### RTE-056 · In-app link interception (openURL)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Clicking a link inside the app navigates within the app instead of reloading, for known internal paths.
 
@@ -12329,7 +11772,6 @@ Code: [`static/js/ReaderApp.jsx:1330-1456`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_01_urls_routing.md#4.4`
 
 #### RTE-057 · Bootstrap URL event and settings-updated event
-
 `optional` `live` · rebuild: **todo**
 
 External code like the chatbot can steer the app through DOM events.
@@ -12343,8 +11785,7 @@ Code: [`static/js/ReaderApp.jsx:1246-1303`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_01_urls_routing.md#4.4`
 
 #### RTE-058 · Panel open/close operations and widths
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Opening and closing panels follows rules that change the URL and layout.
 
@@ -12357,10 +11798,10 @@ Code: [`static/js/ReaderApp.jsx:1722-1875`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_01_urls_routing.md#4.5`
 
+
 ### Language domains
 
 #### RTE-059 · Language-domain redirect
-
 `core` `live` · rebuild: **deferred** — Depends on the owner's decisions on Voices, auth and hosting
 
 A user whose language does not match the language-specific domain is bounced to the other-language domain.
@@ -12376,10 +11817,10 @@ Code: [`sefaria/system/middleware.py:129-149`](https://github.com/Sefaria/Sefari
 
 Source: `inv_01_urls_routing.md#3.6`
 
+
 ### Known bugs
 
 #### RTE-060 · Regex anchoring quirks in URL patterns
-
 `retire` `broken` · rebuild: **n/a** `system`
 
 Several URL patterns accept typos or lack end anchors.
@@ -12392,7 +11833,6 @@ Code: [`sefaria/urls_library.py:17-89`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_01_urls_routing.md#6`
 
 #### RTE-061 · Reader URL parsing gaps (client/server mismatch)
-
 `retire` `broken` · rebuild: **n/a** `system`
 
 Some URL params the client writes are never read by the server, so they are lost on reload.
@@ -12405,11 +11845,11 @@ Code: [`static/js/ReaderApp.jsx:816-858`](https://github.com/Sefaria/Sefaria-Pro
 
 Source: `inv_01_urls_routing.md#6`
 
+
 ### Sidebar deep links
 
 #### RTE-062 · Sidebar mode in URL (with= param)
-
-`core` `live` · rebuild: **done** · _tested_
+`core` `live` · rebuild: **done** · *tested*
 
 Sidebar state is encoded in the URL so a specific tool, filter or category can be shared or opened in a new tab.
 
@@ -12429,8 +11869,7 @@ Code: [`static/js/ReaderApp.jsx:495`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_04_connections.md#1.5`
 
 #### RTE-063 · Commentary URL converts to base text plus filter
-
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · _tested_
+`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
 
 Opening a commentary ref from inside the app (a link, a citation, search) — e.g. Rashi on Genesis 1:1:4 — shows the base text with that commentator selected in the sidebar. Loading the commentary's URL directly does not convert.
 
@@ -12444,11 +11883,11 @@ Code: [`static/js/ReaderApp.jsx:1760`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_04_connections.md#22`
 
+
 ### Library page URLs
 
 #### RTE-065 · Library-only pages stay Django's on the Voices host
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 A page the new reader renders for the Library (sefaria.org) is still passed to Django when it is requested on the Voices host, until the Library/Voices host model is decided.
 
@@ -12459,14 +11898,14 @@ Code: [`sefaria/urls_library.py:24`](https://github.com/Sefaria/Sefaria-Project/
 
 Source: `lane translations 2026-11-04`
 
-<a id="platform-seo"></a>
 
+<a id="platform-seo"></a>
 ## SSR, SEO & platform
+
 
 ### Manifests and app links
 
 #### PLT-001 · Favicons, manifest and app-link files
-
 `standard` `live` · rebuild: **todo** `system`
 
 Per-module icons, PWA manifest and app deep-link verification files are served dynamically.
@@ -12474,7 +11913,7 @@ Per-module icons, PWA manifest and app deep-link verification files are served d
 - /favicon.ico, /apple-touch-icon.png, /favicon.svg -> module_favicon: per-module icon from static/icons/<module>/, Cache-Control max-age=2592000.
 - /site.webmanifest, /manifest.json -> dynamic_manifest: module+language specific PWA manifest, Vary: Accept-Language, Host.
 - /apple-app-site-association and /.well-known/apple-app-site-association: appID 2626EW4BML.org.sefaria.sefariaApp;
-- excludes /accounts/_, /\_allauth/_, /api/auth/google/redirect and any URL with no_applink.
+- excludes /accounts/*, /_allauth/*, /api/auth/google/redirect and any URL with no_applink.
 - /.well-known/assetlinks.json: Android app links (org.sefaria.sefaria).
 - /llms.txt -> static/llms.txt, 1-day cache.
 
@@ -12482,10 +11921,10 @@ Code: [`reader/views.py:5417-5493`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_01_urls_routing.md#1.4`
 
+
 ### Health checks
 
 #### PLT-002 · Health and readiness endpoints
-
 `core` `live` · rebuild: **done** — /healthz-reader + node rollout probes; Django health URLs pass through `system`
 
 Infrastructure probes check that the app and its dependencies are up.
@@ -12498,10 +11937,10 @@ Code: [`sites/sefaria/urls.py:78-80`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_01_urls_routing.md#1.4`
 
+
 ### SSR
 
 #### PLT-003 · Server-side rendering pipeline
-
 `core` `live` · rebuild: **done** — Server-rendered text, canonical redirects, prev/next links; in the cluster the client answers first and passes Django's pages through (docs/DEPLOYMENT.md) `system`
 
 Pages are rendered on a Node server for fast first paint and SEO, then hydrated in the browser.
@@ -12519,7 +11958,6 @@ Code: [`reader/views.py:206-285`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_01_urls_routing.md#5.1`
 
 #### PLT-004 · Client hydration and bootstrapping
-
 `core` `live` · rebuild: **replaced** — Hydration and bootstrap are TanStack Start's; dehydrated query cache replaces serialized props `system`
 
 The browser takes over server HTML and seeds its caches from the page props.
@@ -12535,7 +11973,6 @@ Code: [`static/js/client.jsx:11-73`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_01_urls_routing.md#5.1`
 
 #### PLT-005 · Base props delivered to every page
-
 `core` `live` · rebuild: **replaced** — Hydration and bootstrap are TanStack Start's; dehydrated query cache replaces serialized props `system`
 
 Every page ships a standard bundle of user, locale, calendar and chatbot context.
@@ -12553,10 +11990,10 @@ Code: [`reader/views.py:288-405`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_01_urls_routing.md#5.1`
 
+
 ### Meta and SEO
 
 #### PLT-006 · Page titles and meta descriptions
-
 `core` `live` · rebuild: **partial** — Page titles done; meta descriptions not `system`
 
 Each page gets a title and description tailored to its type and module.
@@ -12573,7 +12010,6 @@ Code: [`reader/views.py:137-195`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_01_urls_routing.md#5.2`
 
 #### PLT-007 · Noindex rules
-
 `core` `live` · rebuild: **todo** `system`
 
 Some pages are hidden from search engines.
@@ -12586,7 +12022,6 @@ Code: [`templates/base.html:15-17`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#5.2`
 
 #### PLT-008 · Canonical URLs and hreflang
-
 `core` `live` · rebuild: **todo** `system`
 
 Pages declare a canonical address and language alternates so search engines pick the right version.
@@ -12601,7 +12036,6 @@ Code: [`reader/views.py:1413-1428`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#5.2`
 
 #### PLT-009 · Social sharing tags and JSON-LD
-
 `standard` `live` · rebuild: **todo** `system`
 
 Shared links show a generated image and rich breadcrumbs.
@@ -12615,7 +12049,6 @@ Code: [`sefaria/templatetags/sefaria_tags.py:49-61`](https://github.com/Sefaria/
 Source: `inv_01_urls_routing.md#5.2`
 
 #### PLT-010 · Other head and third-party script items
-
 `standard` `live` · rebuild: **todo** `system`
 
 The base template adds app banner, icons, theme color and conditional third-party scripts.
@@ -12629,10 +12062,10 @@ Code: [`templates/base.html:15-273`](https://github.com/Sefaria/Sefaria-Project/
 
 Source: `inv_01_urls_routing.md#5.2`
 
+
 ### Bootstrap
 
 #### PLT-011 · Page bootstrap template (base.html)
-
 `core` `live` · rebuild: **replaced** — Hydration and bootstrap are TanStack Start's; dehydrated query cache replaces serialized props `system`
 
 Every page shares one HTML shell that sets metadata, fonts, social cards and loads the app.
@@ -12650,7 +12083,6 @@ Code: [`templates/base.html`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 Source: `inv_08_other.md#5.1`
 
 #### PLT-012 · Client hydration, maintenance mode, health and error pages
-
 `core` `live` · rebuild: **replaced** — Hydration and bootstrap are TanStack Start's; dehydrated query cache replaces serialized props `system`
 
 The browser app hydrates server-rendered pages; special modes and error pages are handled.
@@ -12665,10 +12097,10 @@ Code: [`static/js/client.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08_other.md#5.1 and #5.5`
 
+
 ### Sefaria singleton
 
 #### PLT-013 · Sefaria singleton bootstrap and server props
-
 `core` `live` · rebuild: **replaced** — Hydration and bootstrap are TanStack Start's; dehydrated query cache replaces serialized props `system`
 
 A global client object is seeded from server-rendered data so the app starts with user and site context.
@@ -12684,10 +12116,10 @@ Code: [`static/js/sefaria/sefaria.js:4096`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_08_other.md#5.2, #5.9`
 
+
 ### Modules and domains
 
 #### PLT-014 · Library and Voices module / domain helpers
-
 `core` `live` · rebuild: **deferred** — Library/Voices module helpers wait for the Voices decision `system`
 
 The site is two modules, Library and Voices, on separate domains, with helpers that build the right cross-module links and cookies.
@@ -12701,10 +12133,10 @@ Code: [`static/js/sefaria/sefaria.js:536`](https://github.com/Sefaria/Sefaria-Pr
 
 Source: `inv_08_other.md#5.2 and #5.6`
 
+
 ### Client helpers
 
 #### PLT-015 · API helpers, breakpoints and page titles
-
 `standard` `live` · rebuild: **todo** `system`
 
 Shared client helpers for network calls, responsive breakpoints and page titles.
@@ -12720,10 +12152,10 @@ Code: [`static/js/sefaria/sefaria.js:3871`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_08_other.md#5.2`
 
+
 ### Cookies and storage
 
 #### PLT-016 · Cookie and browser storage inventory
-
 `standard` `live` · rebuild: **todo** `system`
 
 A catalog of the cookies and browser storage the client relies on.
@@ -12736,10 +12168,10 @@ Code: [`static/js/Misc.jsx:2816`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#5.6`
 
+
 ### PWA and app
 
 #### PLT-017 · Web manifest and favicons
-
 `optional` `live` · rebuild: **todo** `system`
 
 The site can be installed as a web app with module-specific name, icons and colors; no offline support.
@@ -12753,7 +12185,6 @@ Code: [`reader/views.py:5575`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08_other.md#5.8`
 
 #### PLT-018 · Universal links, app links and app promotion
-
 `standard` `live` · rebuild: **todo** `third-party` `mobile only`
 
 Links to the site open in the native apps when installed, and the site promotes the apps.
@@ -12768,10 +12199,10 @@ Code: [`reader/views.py:5420`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08_other.md#5.8`
 
+
 ### Mobile web
 
 #### PLT-019 · Mobile web specifics
-
 `core` `live` · rebuild: **partial** — Phone layout done; other mobile-web specifics not audited `mobile only`
 
 On phones the site uses a single-panel layout and disables some desktop-only promos.
@@ -12786,10 +12217,10 @@ Code: [`static/js/ReaderApp.jsx:2573`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_08_other.md#5.8`
 
+
 ### PWA
 
 #### PLT-020 · Per-module web manifest
-
 `standard` `live` · rebuild: **todo** `mobile only`
 
 The site serves a web app manifest tailored to the active module (Library or Voices) and language.
@@ -12804,7 +12235,6 @@ Code: [`reader/views.py:5575`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#5.1`
 
 #### PLT-021 · Module-specific favicons and app icons
-
 `standard` `live` · rebuild: **todo**
 
 Favicon, Apple touch icon and SVG icon vary by whether the user is on Library or Voices.
@@ -12818,7 +12248,6 @@ Code: [`reader/views.py:5446`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#5.1`
 
 #### PLT-022 · No service worker (manifest-only PWA)
-
 `optional` `unused` · rebuild: **n/a** `mobile only`
 
 The site has a manifest and icons but no offline caching, push notifications or install prompt.
@@ -12832,16 +12261,16 @@ Code: [`helm-chart/sefaria/templates/configmap/nginx.yaml:150`](https://github.c
 
 Source: `inv_08b_admin_linker_apps.md#5.1`
 
+
 ### App Deep Links
 
 #### PLT-023 · iOS universal links (apple-app-site-association)
-
 `standard` `live` · rebuild: **todo** `mobile only`
 
 Links to the website open in the Sefaria iOS app except for sign-in flows and URLs marked to stay in the browser.
 
 - /apple-app-site-association and /.well-known/apple-app-site-association -> reader/views.py:5420-5443: appID 2626EW4BML.org.sefaria.sefariaApp;
-- paths ['NOT /accounts/_','NOT /\_allauth/_','NOT /api/auth/google/redirect','_']; components exclude same paths, exclude '/_' with query no_applink=_, then '/_' (first match wins;
+- paths ['NOT /accounts/*','NOT /_allauth/*','NOT /api/auth/google/redirect','*']; components exclude same paths, exclude '/*' with query no_applink=*, then '/*' (first match wins;
 - pre-iOS-13 paths + current components).
 - Constants sefaria/utils/views_utils.py:31-44 (AASA_EXCLUDED_PATHS, NO_APPLINK_PARAM='no_applink', mark_no_applink).
 - WebSessionRedirectMiddleware (middleware.py:195-206) appends no_applink=1 to redirects continuing a web session (OAuth callbacks or sefaria referer) so iOS does not hand them to the app;
@@ -12852,7 +12281,6 @@ Code: [`reader/views.py:5420`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#5.2`
 
 #### PLT-024 · Android asset links
-
 `standard` `live` · rebuild: **todo** `mobile only`
 
 Android app verification file lets links open in the Sefaria Android app.
@@ -12864,16 +12292,16 @@ Code: [`reader/views.py:5482`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08b_admin_linker_apps.md#5.2`
 
+
 ### Crawling & Indexing
 
 #### PLT-025 · robots.txt
-
 `standard` `live` · rebuild: **todo** `system`
 
 Crawling rules are served by nginx from deployment config and block everything on non-production.
 
 - Not a Django view: Helm ConfigMap robots-txt-<env> (templates/configmap/robots-txt.yaml) mounted in nginx rollout (rollout/nginx.yaml:101,141); nginx location /robots.txt alias /app/robots.txt.
-- Content: User-agent: * then Disallow: / when nginx.disableScraping (non-prod), else Disallow: /activity/, /login?next=_, /register?next=_.
+- Content: User-agent: * then Disallow: / when nginx.disableScraping (non-prod), else Disallow: /activity/, /login?next=*, /register?next=*.
 - Varnish bans spiders violating crawl delay (403 'Your spider is not honoring our robots.txt crawl-delay. Banning.').
 
 Code: [`helm-chart/sefaria/templates/configmap/robots-txt.yaml:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/helm-chart/sefaria/templates/configmap/robots-txt.yaml#L1), [`helm-chart/sefaria/templates/rollout/nginx.yaml:101`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/helm-chart/sefaria/templates/rollout/nginx.yaml#L101)
@@ -12881,7 +12309,6 @@ Code: [`helm-chart/sefaria/templates/configmap/robots-txt.yaml:1`](https://githu
 Source: `inv_08b_admin_linker_apps.md#5.3`
 
 #### PLT-026 · Sitemaps
-
 `core` `live` · rebuild: **todo** `system`
 
 Daily-generated sitemaps list texts, topics, sheets, categories and static pages in English and Hebrew sites.
@@ -12900,7 +12327,6 @@ Code: [`sefaria/sitemap.py:1`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#5.3 / 4.10; inv_01_urls_routing.md#5.2`
 
 #### PLT-027 · Canonical, hreflang, Open Graph and JSON-LD
-
 `core` `live` · rebuild: **todo** `system`
 
 Every server-rendered page carries canonical, language-alternate and social metadata plus structured breadcrumbs.
@@ -12914,7 +12340,6 @@ Code: [`templates/base.html:22`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_08b_admin_linker_apps.md#5.3`
 
 #### PLT-028 · OpenSearch browser search integration
-
 `optional` `live` · rebuild: **todo** `desktop only`
 
 Browsers can add Sefaria as a search engine with suggestions.
@@ -12928,7 +12353,6 @@ Code: [`static/files/opensearch.xml:1`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_08b_admin_linker_apps.md#5.3`
 
 #### PLT-029 · No RSS or Atom feeds
-
 `optional` `unused` · rebuild: **n/a**
 
 The site offers no syndication feeds.
@@ -12939,10 +12363,10 @@ Code: [`sefaria/sitemap.py:1`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08b_admin_linker_apps.md#5.3`
 
+
 ### Print
 
 #### PLT-030 · Print stylesheets
-
 `standard` `live` · rebuild: **todo** `desktop only`
 
 Printing a page hides interface chrome and lays text out in a clean flow with a Sefaria footer.
@@ -12956,10 +12380,10 @@ Code: [`static/css/s2-print.css:1`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_08b_admin_linker_apps.md#5.7`
 
+
 ### Operations
 
 #### PLT-031 · Health checks and operational endpoints
-
 `standard` `live` · rebuild: **todo** `system`
 
 Health endpoints report readiness of database, Redis, Node SSR and the library for load balancers and rollouts.
@@ -12972,10 +12396,10 @@ Code: [`sefaria/views.py:293`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08b_admin_linker_apps.md#5.8 / intro`
 
+
 ### Scheduled Jobs
 
 #### PLT-032 · Scheduled jobs (cron) overview
-
 `standard` `live` · rebuild: **todo** `system`
 
 Background jobs refresh sitemaps, metrics, trends, caches, search indexes, topic data, web pages and embeddings on a schedule.
@@ -12995,19 +12419,19 @@ Code: [`helm-chart/sefaria/templates/cronjob/sitemaps.yaml:1`](https://github.co
 
 Source: `inv_08b_admin_linker_apps.md#4.10`
 
-<a id="api-data"></a>
 
+<a id="api-data"></a>
 ## Public API & data exports
+
 
 ### Client API surface
 
 #### API-001 · Endpoints the client calls (index)
-
 `core` `live` · rebuild: **todo** `system`
 
 A catalogue of API route families the React client depends on, listed for completeness.
 
-- Families (sefaria/urls_shared.py:44-315): api/profile*, api/user_history/saved, api/texts/* (v1), api/v3/texts/_, api/versions, api/index_, api/v2/index, api/links*, api/link-summary, api/notes*,
+- Families (sefaria/urls_shared.py:44-315): api/profile*, api/user_history/saved, api/texts/* (v1), api/v3/texts/*, api/versions, api/index*, api/v2/index, api/links*, api/link-summary, api/notes*,
 - api/related/<tref>[/websites], api/counts*, api/shape, api/preview, api/terms, api/calendars*, api/name/<name>, api/ref/<tref>, api/category, api/tag-category, api/words*, api/notifications*,
 - api/updates, api/user_stats, api/site_stats, api/manuscripts, api/background-data.
 - Sheets/collections: api/sheets* (save/delete/add/like/visualize/user lists/tags/by-ref/export_to_drive/upload-image), api/collections*;
@@ -13016,7 +12440,7 @@ A catalogue of API route families the React client depends on, listed for comple
 - Social: api/follow|unfollow, api/followers|followees, api/block|unblock, api/authors/<slug>/indexes.
 - Topics: api/topics*, api/topics-graph, api/topics/pools, _api/topics/featured-topic, api/topics/trending, api/ref-topic-links*, api/v2/topics, api/topic/new|delete|reorder, api/source/reorder,
 - api/bulktopics, api/recommend/topics.
-- Other: api/portals, api/history*, api/locks/_, api/locktext, api/version/flags, api/revert, api/passages, api/send_feedback, api/subscribe_, api/newsletter_mailing_lists, api/strapi/_, api/stats/_,
+- Other: api/portals, api/history*, api/locks/*, api/locktext, api/version/flags, api/revert, api/passages, api/send_feedback, api/subscribe*, api/newsletter_mailing_lists, api/strapi/*, api/stats/*,
 - api/register/, api/account/delete, api/find-refs*, api/regexs, api/websites, api/linker-data, api/bulktext, api/text-upload, api/linker-track, api/guides/<key>, api/powered-by, api/remote-config,
 - api/async/<task_id>, api/index/titles, api/texts/version-status*, api/texts/random-by-topic.
 - Admin/linker: _api/* linker-editor endpoints; version admin APIs.
@@ -13027,10 +12451,10 @@ Code: [`sefaria/urls_shared.py:44-315`](https://github.com/Sefaria/Sefaria-Proje
 
 Source: `inv_01_urls_routing.md#1.5`
 
+
 ### Texts API
 
 #### API-002 · Texts API v3 (/api/v3/texts)
-
 `core` `live` · rebuild: **todo** `third-party`
 
 The canonical text endpoint returns one or more versions of a ref with metadata and warnings.
@@ -13046,7 +12470,6 @@ Code: [`api/views.py:28`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd
 Source: `inv_08b_admin_linker_apps.md#4.1`
 
 #### API-003 · Legacy texts API and related text endpoints
-
 `standard` `live` · rebuild: **todo** `third-party`
 
 Older text endpoints remain for external consumers and for reading, saving and bulk-fetching text.
@@ -13062,7 +12485,6 @@ Code: [`sefaria/urls_shared.py:1`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_08b_admin_linker_apps.md#4.2 Texts`
 
 #### API-004 · Ref validation and navigation API
-
 `standard` `live` · rebuild: **todo** `third-party`
 
 Given a ref the API validates it and returns normalized forms, navigation to neighbours and structural info.
@@ -13075,10 +12497,10 @@ Code: [`api/views.py:91`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd
 
 Source: `inv_08b_admin_linker_apps.md#4.1`
 
+
 ### Index & Metadata API
 
 #### API-005 · Index, shape, counts and terms API
-
 `core` `live` · rebuild: **todo** `third-party`
 
 Endpoints expose the table of contents, an index record, a text's shape, counts, previews, terms and categories.
@@ -13095,7 +12517,6 @@ Code: [`sefaria/urls_shared.py:1`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_08b_admin_linker_apps.md#4.2 Texts`
 
 #### API-006 · Version admin and editing APIs
-
 `standard` `live` · rebuild: **todo** `staff`
 
 Staff APIs support version search, bulk edit, rename, delete, upload and dependency checks.
@@ -13107,10 +12528,10 @@ Code: [`sefaria/views.py:1818`](https://github.com/Sefaria/Sefaria-Project/blob/
 
 Source: `inv_08b_admin_linker_apps.md#4.2 Versions admin`
 
+
 ### Links & Related API
 
 #### API-007 · Links, related and connections API
-
 `core` `live` · rebuild: **todo** `third-party`
 
 Endpoints return the bundle of links, sheets, notes, web pages, media, topics and manuscripts for a ref, and manage links.
@@ -13123,10 +12544,10 @@ Code: [`sefaria/urls_shared.py:1`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_08b_admin_linker_apps.md#4.2 Links`
 
+
 ### Search API
 
 #### API-008 · Search endpoints
-
 `standard` `live` · rebuild: **todo** `third-party`
 
 Endpoints power text, sheet and entity search, including a semantic (vector) search for internal AI tooling.
@@ -13144,10 +12565,10 @@ Code: [`api/views.py:191`](https://github.com/Sefaria/Sefaria-Project/blob/bb47d
 
 Source: `inv_08b_admin_linker_apps.md#4.1 / 4.2 Search`
 
+
 ### Calendars API
 
 #### API-009 · Calendars API
-
 `standard` `live` · rebuild: **todo** `third-party`
 
 Endpoints return today's learning schedule, next reading of a parasha and seasonal topics.
@@ -13161,10 +12582,10 @@ Code: [`sefaria/urls_shared.py:1`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_08b_admin_linker_apps.md#4.2 Calendars`
 
+
 ### Topics API
 
 #### API-010 · Topics API
-
 `standard` `live` · rebuild: **todo** `third-party`
 
 Endpoints list topics, return topic details and graphs, pools, featured topic, and manage topics and their sources.
@@ -13178,10 +12599,10 @@ Code: [`sefaria/urls_shared.py:1`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_08b_admin_linker_apps.md#4.2 Topics`
 
+
 ### Sheets & Collections API
 
 #### API-011 · Sheets and collections API
-
 `standard` `live` · rebuild: **todo** `third-party`
 
 Endpoints create, read, update and delete sheets and collections and list sheets by user, tag or ref.
@@ -13197,10 +12618,10 @@ Code: [`sourcesheets/views.py:1`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08b_admin_linker_apps.md#4.2 Sheets`
 
+
 ### Users & Social API
 
 #### API-012 · Users, profile and social API
-
 `standard` `live` · rebuild: **todo** `signed-in`
 
 Endpoints cover profiles, history, follows, blocks, notifications, stats, registration and login.
@@ -13209,7 +12630,7 @@ Endpoints cover profiles, history, follows, blocks, notifications, stats, regist
 - settings, experiments), /api/profile/<slug>, /api/profile/<slug>/(followers|following), /api/profile/user_history, /api/profile/sync, /api/profile/upload-photo, /api/profile/experiments/opt-in,
 - /api/user_history/saved?ref=.
 - /api/(follow|unfollow)/<uid>, /api/(followers|followees)/<uid>, /api/(block|unblock)/<uid>, /api/notifications + /read, /api/updates[/<gid>] (staff POST), /api/user_stats/<uid>, /api/site_stats,
-- DELETE /api/account/delete (emails support), /api/register, /api/login + /api/login/refresh (JWT for mobile), /_allauth/_, /accounts/_, SSO endpoints (inv_08).
+- DELETE /api/account/delete (emails support), /api/register, /api/login + /api/login/refresh (JWT for mobile), /_allauth/*, /accounts/*, SSO endpoints (inv_08).
 - CORRECTION (VERIFIED 2026-10-06): GET /api/profile with no slug is NOT 'self' — profile_api raises Http404 when slug is missing (reader/views.py), so the anonymous request gets the HTML 404 page (checked live) and a signed-in one does too (code). The old client never asks: who is signed in arrives in DJANGO_VARS.
 - Who-am-I for the new client: GET /_allauth/browser/v1/auth/session (VERIFIED 2026-10-06 anonymous: 401 JSON, meta.is_authenticated false; 200 with data.user.id when signed in) plus GET /api/user_stats/<id>?quick=1 (public_user_data: name, profileUrl, imageUrl = profile_pic_url_small; login_required and only for oneself). Neither is cached by Varnish.
 
@@ -13217,25 +12638,25 @@ Code: [`sefaria/urls_shared.py:1`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_08b_admin_linker_apps.md#4.2 Users`
 
+
 ### Linker API
 
 #### API-013 · Linker and find-refs API
-
 `core` `live` · rebuild: **todo** `third-party`
 
 Endpoints power the linker: finding refs in text, polling tasks, site data and reports.
 
 - /api/find-refs (POST, CORS), /api/find-refs/report, /api/async/<task_id> (CORS), /api/websites/<domain>, /api/linker-data/<titles>, /api/regexs/<titles>, /api/bulktext/<refs>, /api/linker-track,
-- /api/linker/non-unique-terms, /_api/linker-editor/_, /\_api/linker-admin/_.
+- /api/linker/non-unique-terms, /_api/linker-editor/*, /_api/linker-admin/*.
 
 Code: [`sefaria/views.py:480`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L480), [`sefaria/urls_shared.py:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_shared.py#L1)
 
 Source: `inv_08b_admin_linker_apps.md#4.2 Linker`
 
+
 ### Misc Public API
 
 #### API-014 · Miscellaneous public endpoints
-
 `standard` `live` · rebuild: **todo** `third-party`
 
 Utility endpoints for remote config, guides, powered-by projects, feedback, newsletter, stats and health.
@@ -13249,10 +12670,10 @@ Code: [`sefaria/urls_shared.py:1`](https://github.com/Sefaria/Sefaria-Project/bl
 
 Source: `inv_08b_admin_linker_apps.md#4.2 / 1.5`
 
+
 ### API Documentation
 
 #### API-015 · OpenAPI docs and llms.txt
-
 `standard` `live` · rebuild: **todo** `third-party`
 
 Public API documentation is published externally and an llms.txt guides AI agents to the bulk-export bucket.
@@ -13265,10 +12686,10 @@ Code: [`docs/openAPI.json:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 
 Source: `inv_08b_admin_linker_apps.md#4.1 / 5.5`
 
+
 ### Data Downloads
 
 #### API-016 · Single version download
-
 `standard` `live` · rebuild: **todo**
 
 Users download a single text version as JSON, CSV, or text with or without tags.
@@ -13283,7 +12704,6 @@ Code: [`sefaria/views.py:1689`](https://github.com/Sefaria/Sefaria-Project/blob/
 Source: `inv_08b_admin_linker_apps.md#5.6`
 
 #### API-017 · Full data export (cron and on demand)
-
 `standard` `live` · rebuild: **todo** `third-party`
 
 The whole library can be exported on a schedule to a cloud bucket in several formats.
@@ -13297,14 +12717,14 @@ Code: [`sefaria/export.py:595`](https://github.com/Sefaria/Sefaria-Project/blob/
 
 Source: `inv_08b_admin_linker_apps.md#5.6`
 
-<a id="analytics"></a>
 
+<a id="analytics"></a>
 ## Analytics
+
 
 ### URL-change analytics
 
 #### ANL-001 · Page-view tracking on URL change
-
 `standard` `live` · rebuild: **done** — Page views come from GTM / gtag as on the old site `system`
 
 Each navigation reports a page view with rich context, and the last place read is saved for signed-in users.
@@ -13317,11 +12737,11 @@ Code: [`static/js/ReaderApp.jsx:355-413`](https://github.com/Sefaria/Sefaria-Pro
 
 Source: `inv_01_urls_routing.md#4.3`
 
+
 ### Signup funnel
 
 #### ANL-002 · Sign-up source attribution
-
-`standard` `live` · rebuild: **done** · _tested_
+`standard` `live` · rebuild: **done** · *tested*
 
 Where a person clicked 'sign up' is recorded for funnel analysis.
 
@@ -13332,11 +12752,11 @@ Code: [`static/js/Header.jsx:26`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_02_reader_shell.md#13`
 
+
 ### Impressions
 
 #### ANL-003 · Header and category line impression events
-
-`optional` `live` · rebuild: **done** · _tested_ `system`
+`optional` `live` · rebuild: **done** · *tested* `system`
 
 Header visibility is reported once per session.
 
@@ -13349,8 +12769,7 @@ Code: [`static/js/Header.jsx:257`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_02_reader_shell.md#16`
 
 #### ANL-004 · Banner visibility probe
-
-`optional` `live` · rebuild: **done** · _tested_ `system`
+`optional` `live` · rebuild: **done** · *tested* `system`
 
 An invisible element measures whether banners can be seen (ad-blocking baseline).
 
@@ -13362,7 +12781,6 @@ Code: [`static/js/BannerImpressionProbe.jsx`](https://github.com/Sefaria/Sefaria
 Source: `inv_02_reader_shell.md#20`
 
 #### ANL-005 · Visibility-based impression tracking
-
 `standard` `live` · rebuild: **done** `system`
 
 The app records when promos and key elements are actually seen.
@@ -13378,7 +12796,6 @@ Code: [`static/js/Misc.jsx:2063`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_08_other.md#1.1 and #1.8; inv_02_reader_shell.md#18`
 
 #### ANL-006 · Banner impression probe
-
 `optional` `live` · rebuild: **done** `system`
 
 An invisible control element measures how reliably banner impressions are recorded.
@@ -13391,11 +12808,11 @@ Code: [`static/js/BannerImpressionProbe.jsx`](https://github.com/Sefaria/Sefaria
 
 Source: `inv_08_other.md#4.5`
 
+
 ### Search box events
 
 #### ANL-007 · Search box analytics and input constraints
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Search box interactions are tracked.
 
@@ -13407,11 +12824,11 @@ Code: [`static/js/HeaderAutocomplete.jsx:567`](https://github.com/Sefaria/Sefari
 
 Source: `inv_02_reader_shell.md#17`
 
+
 ### Shell events
 
 #### ANL-008 · App mount and visitor marking events
-
-`standard` `live` · rebuild: **done** · _tested_ `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 App start is tracked once per session and visitors are marked new/returning for targeting.
 
@@ -13424,8 +12841,7 @@ Code: [`static/js/ReaderApp.jsx:237`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_02_reader_shell.md#20`
 
 #### ANL-009 · Reader interaction event names
-
-`standard` `live` · rebuild: **partial** — Built for the reader; Display Option Click is dead on the old site; translation preference setting not in this client · _tested_ `system`
+`standard` `live` · rebuild: **partial** — Built for the reader; Display Option Click is dead on the old site; translation preference setting not in this client · *tested* `system`
 
 Named events from the shell used by analytics.
 
@@ -13439,10 +12855,10 @@ Code: [`static/js/ReaderPanel.jsx:684`](https://github.com/Sefaria/Sefaria-Proje
 
 Source: `inv_02_reader_shell.md#20`
 
+
 ### Pageview tracking
 
 #### ANL-010 · Pageview dimensions
-
 `retire` `unused` · rebuild: **n/a** — Dead on the old site `system`
 
 Custom dimensions describing the page are computed for each navigation.
@@ -13455,11 +12871,11 @@ Code: [`static/js/ReaderApp.jsx:355`](https://github.com/Sefaria/Sefaria-Project
 
 Source: `inv_02_reader_shell.md#20`
 
+
 ### Content events
 
 #### ANL-011 · Copy and print events
-
-`optional` `live` · rebuild: **done** · _tested_ `system`
+`optional` `live` · rebuild: **done** · *tested* `system`
 
 Copying text and printing are tracked.
 
@@ -13471,11 +12887,11 @@ Code: [`static/js/ReaderApp.jsx:2208`](https://github.com/Sefaria/Sefaria-Projec
 
 Source: `inv_02_reader_shell.md#20`
 
+
 ### Sidebar analytics
 
 #### ANL-012 · Sidebar analytics events
-
-`standard` `live` · rebuild: **partial** — Built for the sidebar views this client has; Guide, notes and sheet events wait for those features · _tested_ `system`
+`standard` `live` · rebuild: **partial** — Built for the sidebar views this client has; Guide, notes and sheet events wait for those features · *tested* `system`
 
 Sidebar interactions are tracked through Sefaria.track and gtag events.
 
@@ -13487,11 +12903,11 @@ Code: [`static/js/ConnectionsPanel.jsx:1095`](https://github.com/Sefaria/Sefaria
 
 Source: `inv_04_connections.md#25`
 
+
 ### Sign-up funnel
 
 #### ANL-013 · Sign-up funnel analytics
-
-`standard` `live` · rebuild: **done** — Through trackAuthEvent → gtag until the shared analytics module · _tested_ `system`
+`standard` `live` · rebuild: **done** — Through trackAuthEvent → gtag until the shared analytics module · *tested* `system`
 
 The sign-up journey is measured from first arrival to completion, by method and by the button that started it.
 
@@ -13505,11 +12921,11 @@ Code: [`static/js/auth/signupAnalytics.js`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_08_other.md#2.5`
 
+
 ### Third-party tools
 
 #### ANL-014 · Third-party analytics and testing scripts
-
-`standard` `live` · rebuild: **partial** — GTM, gtag, Simple Analytics, Sentry built; VWO / Hotjar / Unbounce need an owner decision · _tested_ `system`
+`standard` `live` · rebuild: **partial** — GTM, gtag, Simple Analytics, Sentry built; VWO / Hotjar / Unbounce need an owner decision · *tested* `system`
 
 The site loads several external tools for tag management, A/B testing, behavior analytics and promo popups.
 
@@ -13527,11 +12943,11 @@ Code: [`templates/base.html`](https://github.com/Sefaria/Sefaria-Project/blob/bb
 
 Source: `inv_08_other.md#5.1 and #5.4`
 
+
 ### Declarative events
 
 #### ANL-015 · Declarative data-anl event tracking
-
-`core` `live` · rebuild: **done** · _tested_ `system`
+`core` `live` · rebuild: **done** · *tested* `system`
 
 Analytics events are declared directly on page elements and collected automatically.
 
@@ -13546,11 +12962,11 @@ Code: [`static/js/analyticsEventTracker.js`](https://github.com/Sefaria/Sefaria-
 
 Source: `inv_08_other.md#5.4`
 
+
 ### Legacy tracking
 
 #### ANL-016 · Legacy Universal Analytics wrapper and TrackG4
-
-`standard` `legacy` · rebuild: **done** · _tested_ `system`
+`standard` `legacy` · rebuild: **done** · *tested* `system`
 
 Older event tracking helpers still used by many components.
 
@@ -13558,7 +12974,7 @@ Older event tracking helpers still used by many components.
 - promoView/promoClick (enhanced ecommerce), pageview, content groups (primary/secondary category, book, content language), custom dimensions 1-7 and 10, sheets(), uiFeedback(), exploreUrl/Book/Brush, setInterfaceLanguage
 - window.onerror -> GA Javascript Errors event when GA tracker present (track.js:5-9)
 - TrackG4.gtagClick(e,onClick,comp_name,params,AdContext) -> onclick_<comp> with keywordTargets + interfaceLang
-- Direct gtag/sa_event: banner_viewed, modal_viewed, _*interacted_with*_, promo_viewed/promo_clicked, header_viewed, banner_probe_viewed, products_*
+- Direct gtag/sa_event: banner_viewed, modal_viewed, *_interacted_with_*, promo_viewed/promo_clicked, header_viewed, banner_probe_viewed, products_*
 - Server: api/linker-track, /api/send_feedback
 - Rebuild: uaEvent(category, action, label, value) sends through GTM's ga shim with the tracker name (as track.js), only when the shim is present. TrackG4.gtagClick (onclick_ToolTipped) belongs to promotions/AdContext — not built.
 
@@ -13566,10 +12982,10 @@ Code: [`static/js/sefaria/track.js`](https://github.com/Sefaria/Sefaria-Project/
 
 Source: `inv_08_other.md#5.4`
 
+
 ### Error reporting
 
 #### ANL-017 · Browser error reporting (Sentry)
-
 `retire` `live` · rebuild: **replaced** — Not ported: Sentry is no longer used (owner, 2026-11-04) `system`
 
 Front-end errors and performance traces are reported to Sentry.
@@ -13582,14 +12998,14 @@ Code: [`static/js/client.jsx:21`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#5.5`
 
-<a id="linker-embeds"></a>
 
+<a id="linker-embeds"></a>
 ## Linker & embeds
+
 
 ### Image generation
 
 #### LNK-001 · Share image URL (/api/img-gen)
-
 `standard` `live` · rebuild: **todo**
 
 Social share images are generated on demand from a text URL.
@@ -13604,10 +13020,10 @@ Code: [`reader/views.py:1979-2022`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_01_urls_routing.md#2.2`
 
+
 ### Public JS
 
 #### LNK-002 · Public JS library and linker scripts
-
 `standard` `live` · rebuild: **todo** `third-party`
 
 Third parties can embed the Sefaria JS library and the citation linker script on their own sites.
@@ -13622,10 +13038,10 @@ Code: [`sefaria/views.py:434`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08_other.md#5.9`
 
+
 ### Linker Plugin v3
 
 #### LNK-003 · Embeddable citation linker plugin (v3)
-
 `core` `live` · rebuild: **todo** `third-party`
 
 Third-party sites add one script and call sefaria.link(); citations of Jewish texts on their pages become links or hover/click popups showing the text.
@@ -13642,7 +13058,6 @@ Code: [`static/js/linker.v3/main.js:518`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_08b_admin_linker_apps.md#2.3`
 
 #### LNK-004 · Linker options (mode, language, whitelist, versions)
-
 `core` `live` · rebuild: **todo** `third-party`
 
 Site owners configure link mode, languages, text selectors to include/exclude, popup styling and preferred text versions.
@@ -13659,7 +13074,6 @@ Code: [`static/js/linker.v3/main.js:493`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_08b_admin_linker_apps.md#2.3`
 
 #### LNK-005 · Linker page-scan and wrapping pipeline
-
 `core` `live` · rebuild: **todo** `third-party`
 
 The plugin reads the page's main text, asks Sefaria to find citations, and wraps each found citation in a link in the page.
@@ -13679,7 +13093,6 @@ Code: [`static/js/linker.v3/main.js:388`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_08b_admin_linker_apps.md#2.3`
 
 #### LNK-006 · Linker popup UI
-
 `core` `live` · rebuild: **todo** `third-party`
 
 Hovering or clicking a linked citation opens a draggable, accessible popup showing the text in Hebrew and/or English with a link to read more.
@@ -13698,7 +13111,6 @@ Code: [`static/js/linker.v3/popup.js:22`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_08b_admin_linker_apps.md#2.3`
 
 #### LNK-007 · Linker citation problem report
-
 `optional` `live` · rebuild: **todo** `third-party`
 
 In debug mode, site owners can report a wrongly linked citation back to Sefaria.
@@ -13711,7 +13123,6 @@ Code: [`static/js/linker.v3/main.js:335`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_08b_admin_linker_apps.md#2.3`
 
 #### LNK-008 · Linker web-page tracking (feeds Web Pages sidebar)
-
 `standard` `live` · rebuild: **todo** `system`
 
 Pages that use the linker are recorded server-side so they appear in the Web Pages resource for the cited texts.
@@ -13724,10 +13135,10 @@ Code: [`sefaria/helper/linker/linker.py:1`](https://github.com/Sefaria/Sefaria-P
 
 Source: `inv_08b_admin_linker_apps.md#2.3`
 
+
 ### Linker Legacy Versions
 
 #### LNK-009 · Linker v1 and v2 (legacy)
-
 `retire` `legacy` · rebuild: **n/a** `third-party`
 
 Older linker generations are still served for existing site integrations, using regex matching instead of the server-side find-refs flow.
@@ -13745,7 +13156,6 @@ Code: [`templates/js/linker.v2.js:388`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_08b_admin_linker_apps.md#2.3`
 
 #### LNK-010 · Linker CORS and remote-config version switch
-
 `core` `live` · rebuild: **todo** `system`
 
 The cross-origin linker endpoints and the setting that decides which linker version /linker.js delivers.
@@ -13757,10 +13167,10 @@ Code: [`sefaria/views.py:480`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08b_admin_linker_apps.md#2.3`
 
+
 ### Linker Install
 
 #### LNK-011 · Linker install page and bookmarklet
-
 `standard` `live` · rebuild: **todo**
 
 A public page explains how to install the linker and offers a bookmarklet to try it on any site.
@@ -13773,10 +13183,10 @@ Code: [`templates/static/linker.html:100`](https://github.com/Sefaria/Sefaria-Pr
 
 Source: `inv_08b_admin_linker_apps.md#2.3 Related pages`
 
+
 ### Embeds
 
 #### LNK-012 · Sefaria JS client SDK (/sefaria.js)
-
 `optional` `live` · rebuild: **todo** `third-party`
 
 A packaged client SDK lets third-party pages call Sefaria data and text helpers.
@@ -13789,7 +13199,6 @@ Code: [`sefaria/views.py:434`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#5.4`
 
 #### LNK-013 · Embedded sheets (iframe)
-
 `standard` `legacy` · rebuild: **todo**
 
 A sheet can be embedded in another page via an iframe using the embed parameter, rendering a stripped-down page.
@@ -13803,10 +13212,10 @@ Code: [`sourcesheets/views.py:169`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_08b_admin_linker_apps.md#5.4 / 3.8`
 
+
 ### Share Images
 
 #### LNK-014 · Social share image generator (img-gen)
-
 `standard` `live` · rebuild: **todo** `system`
 
 Sharing a text link produces a branded image of the passage for social previews.
@@ -13819,18 +13228,19 @@ Code: [`reader/views.py:1981`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08b_admin_linker_apps.md#5.3 / 5.4`
 
+
 ---
 
 # Internal & legacy
 
-<a id="admin-tools"></a>
 
+<a id="admin-tools"></a>
 ## Admin & moderator tools
+
 
 ### Linker admin
 
 #### ADM-001 · Linker Admin sidebar
-
 `optional` `live` · rebuild: **todo** `moderator`
 
 A moderator debugging panel for inspecting and fixing how the linker resolved a citation.
@@ -13849,7 +13259,6 @@ Code: [`static/js/LinkerAdminBox.jsx`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_04_connections.md#19`
 
 #### ADM-002 · Linker admin actions (rerun, delete/recreate, dataset)
-
 `optional` `live` · rebuild: **todo** `moderator`
 
 Moderator actions to rerun the linker, delete or recreate a link, reparse parts and add training dataset entries.
@@ -13859,16 +13268,16 @@ Moderator actions to rerun the linker, delete or recreate a link, reparse parts 
 - Delete/Recreate Link: POST /_api/linker-admin/citation/delete|recreate {ref,versionTitle,lang,text,charRange,targetRef}; delete confirms (permanent, prevents re-creation); a.mutc elements restyled live (spanSucceeded, spanFailed, spanAmbiguous, spanDisambiguated, spanDeleted); warning if no linker link found.
 - Linker editor opens /linker-editor in new tab.
 - Re-parse: POST /_api/linker-admin/citation/parse {parts,lang,contextRef,prevRefs}; ranged parts flattened into NUMBERED, RANGE_SYMBOL, NUMBERED; ibid context passed as prevRefs.
-- - Ref Dataset POST /_api/linker-admin/dataset/ref (reports number of labels); + Ref Part Dataset POST /_api/linker-admin/dataset/ref-part.
+- + Ref Dataset POST /_api/linker-admin/dataset/ref (reports number of labels); + Ref Part Dataset POST /_api/linker-admin/dataset/ref-part.
 
 Code: [`static/js/LinkerAdminBox.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/LinkerAdminBox.jsx), [`static/js/sefaria/sefaria.js:3599`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3599)
 
 Source: `inv_04_connections.md#19`
 
+
 ### Inline admin editors
 
 #### ADM-003 · Admin edit buttons on headings (CategoryHeader)
-
 `standard` `live` · rebuild: **todo** `moderator`
 
 Moderators see small add/edit/reorder buttons next to page headings across library and topic pages.
@@ -13885,7 +13294,6 @@ Code: [`static/js/Misc.jsx:997-1047`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_05_library_topics.md#13.1`
 
 #### ADM-004 · Generic admin editor form shell
-
 `standard` `live` · rebuild: **todo** `moderator`
 
 A reusable admin form with save/cancel, validation and sanitized inputs powers the category, topic, source and index editors.
@@ -13900,7 +13308,6 @@ Code: [`static/js/AdminEditor.jsx:6-135`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_05_library_topics.md#13.2`
 
 #### ADM-005 · Topic editor
-
 `standard` `live` · rebuild: **todo** `moderator`
 
 Moderators can create, edit, re-parent, illustrate and delete topics and topic categories.
@@ -13919,7 +13326,6 @@ Code: [`static/js/TopicEditor.jsx`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_05_library_topics.md#13.3`
 
 #### ADM-006 · Category editor and reorder
-
 `standard` `live` · rebuild: **todo** `moderator`
 
 Moderators can create, rename, move, describe, reorder and delete library categories.
@@ -13936,7 +13342,6 @@ Code: [`static/js/CategoryEditor.jsx`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_05_library_topics.md#13.4`
 
 #### ADM-007 · Topic source (link) editor
-
 `standard` `live` · rebuild: **todo** `moderator`
 
 Moderators can add, change or delete a source linked to a topic, including its title and learning prompt.
@@ -13951,7 +13356,6 @@ Code: [`static/js/SourceEditor.jsx`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_05_library_topics.md#13.5`
 
 #### ADM-008 · Index (book info) editor
-
 `standard` `live` · rebuild: **todo** `moderator`
 
 Moderators can edit a book's titles, descriptions, authors, dates, category and dependence, and rename or delete the book.
@@ -13969,7 +13373,6 @@ Code: [`static/js/BookPage.jsx:1073-1508`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#3.10`
 
 #### ADM-009 · Version editor (book page)
-
 `standard` `live` · rebuild: **todo** `moderator`
 
 Moderators can edit or delete a text version's metadata from the book page Versions tab.
@@ -13981,10 +13384,10 @@ Code: [`static/js/VersionBlock/VersionBlock.jsx:120-292`](https://github.com/Sef
 
 Source: `inv_05_library_topics.md#13.6`
 
+
 ### Inline editors
 
 #### ADM-010 · Moderator admin buttons on category headers
-
 `optional` `live` · rebuild: **todo** `moderator` `desktop only`
 
 Moderators see hover-revealed buttons on category, topic and source headings to add, edit or reorder content.
@@ -14000,7 +13403,6 @@ Code: [`static/js/Misc.jsx:997`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_08_other.md#1.1 and #1.11`
 
 #### ADM-011 · Reorder editor for topics, categories, sources
-
 `optional` `live` · rebuild: **todo** `moderator` `desktop only`
 
 Moderators can drag to reorder topics, TOC categories, and the top sources on a topic.
@@ -14012,7 +13414,6 @@ Code: [`static/js/Misc.jsx:1066`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_08_other.md#1.11`
 
 #### ADM-012 · Topic and category edit forms (prefill and routing)
-
 `optional` `live` · rebuild: **todo** `moderator` `desktop only`
 
 Editing an existing topic or category opens a pre-filled editor; adders route to the right editor by type.
@@ -14025,10 +13426,10 @@ Code: [`static/js/Misc.jsx:1117`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.11`
 
+
 ### Editor components
 
 #### ADM-013 · Admin editor form components
-
 `optional` `live` · rebuild: **todo** `moderator` `desktop only`
 
 Shared form pieces for moderator editors: header with save/cancel, category chooser, alternate-title editor, autocomplete.
@@ -14042,10 +13443,10 @@ Code: [`static/js/Misc.jsx:2926`](https://github.com/Sefaria/Sefaria-Project/blo
 
 Source: `inv_08_other.md#1.11`
 
+
 ### Moderator Tools Page
 
 #### ADM-014 · Moderator Tools page (/modtools)
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Staff get a single page hosting the live bulk-editing and link-management tools; non-moderators see a notice that tools are moderator-only.
@@ -14062,7 +13463,6 @@ Code: [`static/js/ModeratorToolsPanel.jsx:55`](https://github.com/Sefaria/Sefari
 Source: `inv_08b_admin_linker_apps.md#1.1`
 
 #### ADM-015 · Collapsible tool sections with help panels
-
 `optional` `live` · rebuild: **todo** `staff` `desktop only`
 
 Each moderator tool sits in a collapsible section with an expandable help explanation and consistent status messages.
@@ -14078,7 +13478,6 @@ Code: [`static/js/modtools/components/shared/ModToolsSection.jsx:1`](https://git
 Source: `inv_08b_admin_linker_apps.md#1.1`
 
 #### ADM-016 · Index and version field metadata catalog
-
 `optional` `live` · rebuild: **todo** `staff` `desktop only`
 
 A shared catalog describes which Index and Version fields moderators can edit, with descriptions, validation and allowed values.
@@ -14095,10 +13494,10 @@ Code: [`static/js/modtools/constants/fieldMetadata.js:21`](https://github.com/Se
 
 Source: `inv_08b_admin_linker_apps.md#1.1`
 
+
 ### Bulk Text Tools
 
 #### ADM-017 · Bulk download texts as zip
-
 `optional` `live` · rebuild: **todo** `staff` `desktop only`
 
 Moderators download many text versions at once, chosen by title and version-title patterns, as a zip in txt, plain txt, CSV or JSON.
@@ -14115,7 +13514,6 @@ Code: [`static/js/modtools/components/BulkDownloadText.jsx:112`](https://github.
 Source: `inv_08b_admin_linker_apps.md#1.1 Tool 1`
 
 #### ADM-018 · Bulk upload text versions from CSV
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Moderators upload one or many CSV files of text; the tool splits multi-book files, uploads each book in turn with progress, then rebuilds the table of contents once.
@@ -14132,7 +13530,6 @@ Code: [`static/js/modtools/components/BulkUploadCSV.jsx:118`](https://github.com
 Source: `inv_08b_admin_linker_apps.md#1.1 Tool 2`
 
 #### ADM-019 · Workflowy outline upload to create texts
-
 `optional` `live` · rebuild: **todo** `staff` `desktop only`
 
 Moderators upload Workflowy OPML outlines to create Index records and optionally text versions from outline notes.
@@ -14146,10 +13543,10 @@ Code: [`static/js/modtools/components/WorkflowyModeratorTool.jsx:1`](https://git
 
 Source: `inv_08b_admin_linker_apps.md#1.1 Tool 3`
 
+
 ### Link Tools
 
 #### ADM-020 · Upload links from CSV
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Moderators bulk-create links between refs from a two-column CSV, choosing link type and project name; errors come back as a downloadable file.
@@ -14164,7 +13561,6 @@ Code: [`static/js/modtools/components/UploadLinksFromCSV.jsx:1`](https://github.
 Source: `inv_08b_admin_linker_apps.md#1.1 Tool 4`
 
 #### ADM-021 · Download links as CSV
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Moderators export links between two refs (or from one ref to the whole library) as a CSV, optionally filtered by type and generator.
@@ -14179,7 +13575,6 @@ Code: [`static/js/modtools/components/DownloadLinks.jsx:222`](https://github.com
 Source: `inv_08b_admin_linker_apps.md#1.1 Tool 5`
 
 #### ADM-022 · Remove links from CSV
-
 `optional` `live` · rebuild: **todo** `staff` `desktop only`
 
 Moderators delete links in bulk by uploading a two-column CSV of exact ref pairs.
@@ -14191,10 +13586,10 @@ Code: [`static/js/modtools/components/RemoveLinksFromCsv.jsx:1`](https://github.
 
 Source: `inv_08b_admin_linker_apps.md#1.1 Tool 6`
 
+
 ### Version Tools
 
 #### ADM-023 · Bulk edit version metadata
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Moderators find every text that carries a given version title and update that version's metadata (license, source, flags, notes) across all of them in one go.
@@ -14213,7 +13608,6 @@ Code: [`static/js/modtools/components/BulkVersionEditor.jsx:1`](https://github.c
 Source: `inv_08b_admin_linker_apps.md#1.1 Tool 7`
 
 #### ADM-024 · Rename version title across texts
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Moderators rename a version title across all selected texts with a typed confirmation; large renames run in the background.
@@ -14227,7 +13621,6 @@ Code: [`static/js/modtools/components/BulkVersionEditor.jsx:1`](https://github.c
 Source: `inv_08b_admin_linker_apps.md#1.1 Tool 7`
 
 #### ADM-025 · Bulk delete versions (hard delete)
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Moderators permanently delete a version from all selected texts after typing a confirmation.
@@ -14239,10 +13632,10 @@ Code: [`sefaria/views.py:1994`](https://github.com/Sefaria/Sefaria-Project/blob/
 
 Source: `inv_08b_admin_linker_apps.md#1.1 Tool 7`
 
+
 ### Disabled Tools
 
 #### ADM-026 · Bulk Index Editor (disabled)
-
 `retire` `unused` · rebuild: **n/a** `staff` `desktop only`
 
 A former tool for editing Index metadata across many texts at once, with auto-detection of authors and base texts; currently commented out.
@@ -14257,7 +13650,6 @@ Code: [`static/js/modtools/components/BulkIndexEditor.jsx:153`](https://github.c
 Source: `inv_08b_admin_linker_apps.md#1.1 DISABLED`
 
 #### ADM-027 · Auto-link commentary tool (disabled)
-
 `retire` `unused` · rebuild: **n/a** `staff` `desktop only`
 
 A former tool to mark texts as commentary on a base text and regenerate their automatic links; currently commented out.
@@ -14271,7 +13663,6 @@ Code: [`static/js/modtools/components/AutoLinkCommentaryTool.jsx:260`](https://g
 Source: `inv_08b_admin_linker_apps.md#1.1 DISABLED`
 
 #### ADM-028 · Node title editor (disabled)
-
 `retire` `unused` · rebuild: **n/a** `staff` `desktop only`
 
 A former tool for editing the titles of nodes in a text's schema; currently commented out.
@@ -14284,10 +13675,10 @@ Code: [`static/js/modtools/components/NodeTitleEditor.jsx:326`](https://github.c
 
 Source: `inv_08b_admin_linker_apps.md#1.1 DISABLED`
 
+
 ### Inline Editors
 
 #### ADM-029 · Shared admin edit form (AdminEditor)
-
 `core` `live` · rebuild: **todo** `staff` `desktop only`
 
 A reusable editorial form used by the topic, category, collection and source editors, with standard fields, markdown link checking and delete.
@@ -14309,7 +13700,6 @@ Code: [`static/js/AdminEditor.jsx:6`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_08b_admin_linker_apps.md#1.2`
 
 #### ADM-030 · Moderator-only edit buttons in reader
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Moderators see edit buttons for topics, categories, collections, sources and index records directly in the reader.
@@ -14320,10 +13710,10 @@ Code: [`static/js/AdminEditor.jsx:238`](https://github.com/Sefaria/Sefaria-Proje
 
 Source: `inv_08b_admin_linker_apps.md#1.2`
 
+
 ### Editing Support APIs
 
 #### ADM-031 · Editing support endpoints (locks, flags, revert, bulk modify)
-
 `standard` `live` · rebuild: **todo** `staff`
 
 Behind the editors sit APIs for locking texts, flagging versions, reverting edits, reading history and bulk segment edits.
@@ -14335,10 +13725,10 @@ Code: [`reader/views.py:1702`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08b_admin_linker_apps.md#1.4`
 
+
 ### Ops Endpoints
 
 #### ADM-032 · Cache and rebuild admin URLs
-
 `standard` `live` · rebuild: **todo** `staff`
 
 Staff trigger cache resets and rebuilds (library, one text, counts, table of contents, autocompleter, Varnish) by visiting admin URLs, usually landing back on the homepage with a flash message.
@@ -14357,7 +13747,6 @@ Code: [`sefaria/views.py:773`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#1.5`
 
 #### ADM-033 · Link rebuild admin URLs
-
 `standard` `live` · rebuild: **todo** `staff`
 
 Staff regenerate commentary links or citation links for a text, or delete citation links.
@@ -14370,7 +13759,6 @@ Code: [`sefaria/views.py:982`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#1.5`
 
 #### ADM-034 · Cache and memory diagnostics
-
 `optional` `live` · rebuild: **todo** `staff`
 
 Staff can inspect cache sizes, memory, and force a heap dump or deliberate error for debugging.
@@ -14385,7 +13773,6 @@ Code: [`sefaria/views.py:1011`](https://github.com/Sefaria/Sefaria-Project/blob/
 Source: `inv_08b_admin_linker_apps.md#1.5`
 
 #### ADM-035 · Full data export and versions CSV
-
 `optional` `live` · rebuild: **todo** `staff`
 
 Staff can start a full export of all texts and metadata or download a CSV of every version.
@@ -14397,7 +13784,6 @@ Code: [`sefaria/views.py:1098`](https://github.com/Sefaria/Sefaria-Project/blob/
 Source: `inv_08b_admin_linker_apps.md#1.5`
 
 #### ADM-036 · Index sheets by timestamp (API key)
-
 `optional` `live` · rebuild: **todo** `system`
 
 An external caller with a staff API key can trigger search indexing of sheets modified since a timestamp.
@@ -14409,7 +13795,6 @@ Code: [`sefaria/views.py:1485`](https://github.com/Sefaria/Sefaria-Project/blob/
 Source: `inv_08b_admin_linker_apps.md#1.5`
 
 #### ADM-037 · Update descriptions from Google Sheet
-
 `optional` `live` · rebuild: **todo** `staff`
 
 Staff pull author, category and text descriptions from a Google Sheet into the database.
@@ -14421,7 +13806,6 @@ Code: [`sefaria/views.py:2104`](https://github.com/Sefaria/Sefaria-Project/blob/
 Source: `inv_08b_admin_linker_apps.md#1.5`
 
 #### ADM-038 · Django admin site
-
 `standard` `live` · rebuild: **todo** `staff`
 
 Stock Django admin hosts editors for guides, remote config, topic pools, user experiments and other admin-managed models.
@@ -14434,22 +13818,21 @@ Code: [`sefaria/urls_shared.py:1`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_08b_admin_linker_apps.md#1.5`
 
 #### ADM-039 · Strapi webhooks (CMS cache)
-
 `standard` `live` · rebuild: **todo** `system`
 
 CMS content is cached and invalidated through two webhook endpoints.
 
 - POST /api/strapi/graphql-cache csrf-exempt: caches Strapi GraphQL by start_date/end_date query params, schema version 'v5' (views.py:1512-1630).
-- POST /api/strapi/cache-invalidate: @webhook_auth_or_staff_required; invalidates _strapi_graphql_ keys (views.py:1633-1668). Detail in inv_08.
+- POST /api/strapi/cache-invalidate: @webhook_auth_or_staff_required; invalidates *strapi_graphql* keys (views.py:1633-1668). Detail in inv_08.
 
 Code: [`sefaria/views.py:1512`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L1512), [`sefaria/views.py:1633`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L1633)
 
 Source: `inv_08b_admin_linker_apps.md#1.5`
 
+
 ### Stats & Moderation
 
 #### ADM-040 · Account and sheet stats pages
-
 `optional` `live` · rebuild: **todo** `staff`
 
 Staff view plain-text statistics on account creation, sheets, contributors, and a list of public sheets lacking tags.
@@ -14462,7 +13845,6 @@ Code: [`sefaria/views.py:1121`](https://github.com/Sefaria/Sefaria-Project/blob/
 Source: `inv_08b_admin_linker_apps.md#1.5`
 
 #### ADM-041 · Categorize sheets tool
-
 `optional` `live` · rebuild: **todo** `staff` `desktop only`
 
 Staff step through public sheets one at a time assigning topics and categories, or marking them as having no tags.
@@ -14480,7 +13862,6 @@ Code: [`sefaria/views.py:1207`](https://github.com/Sefaria/Sefaria-Project/blob/
 Source: `inv_08b_admin_linker_apps.md#1.5 / 3.7; inv_07_sheets_users.md#6`
 
 #### ADM-042 · Spam review dashboards (sheets and profiles)
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Staff review lists of suspected spam sheets and profiles and bulk mark them reviewed or purge them and their owners.
@@ -14496,7 +13877,6 @@ Code: [`sefaria/views.py:1220`](https://github.com/Sefaria/Sefaria-Project/blob/
 Source: `inv_08b_admin_linker_apps.md#1.5`
 
 #### ADM-043 · Purge spammer account data
-
 `standard` `live` · rebuild: **todo** `staff`
 
 When marking spam, the system quarantines or removes everything the spammer owns and deactivates the account.
@@ -14508,7 +13888,6 @@ Code: [`sefaria/views.py:1385`](https://github.com/Sefaria/Sefaria-Project/blob/
 Source: `inv_08b_admin_linker_apps.md#1.5`
 
 #### ADM-044 · Staff delete user account / sheet by id
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Staff can delete a user account by email or a sheet by id via password-confirmed forms.
@@ -14520,10 +13899,10 @@ Code: [`sefaria/views.py:1307`](https://github.com/Sefaria/Sefaria-Project/blob/
 
 Source: `inv_08b_admin_linker_apps.md#1.5`
 
+
 ### Linker Admin
 
 #### ADM-045 · Linker editor page (/linker-editor)
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Staff edit per-text linker metadata (match templates, address types, node properties, non-unique terms) in a dedicated editor page.
@@ -14541,7 +13920,6 @@ Code: [`static/js/LinkerEditorPage.jsx:1`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_08b_admin_linker_apps.md#2.1`
 
 #### ADM-046 · Edit MatchTemplates per node
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Staff add, remove or extend the match templates that tell the linker how a text node can be cited.
@@ -14556,7 +13934,6 @@ Code: [`static/js/LinkerEditorPage.jsx:273`](https://github.com/Sefaria/Sefaria-
 Source: `inv_08b_admin_linker_apps.md#2.1`
 
 #### ADM-047 · Edit AddressTypes per node level
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Staff choose how each level of a text is addressed (e.g. chapter, verse, daf) for the linker.
@@ -14568,7 +13945,6 @@ Code: [`static/js/LinkerEditorPage.jsx:116`](https://github.com/Sefaria/Sefaria-
 Source: `inv_08b_admin_linker_apps.md#2.1`
 
 #### ADM-048 · Edit linker node properties
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Staff set per-node linker flags such as referenceable, numeric equivalent, dibur hamatchil patterns and skipped addresses.
@@ -14584,7 +13960,6 @@ Code: [`static/js/LinkerEditorPage.jsx:371`](https://github.com/Sefaria/Sefaria-
 Source: `inv_08b_admin_linker_apps.md#2.1`
 
 #### ADM-049 · Manage NonUniqueTerms
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Staff view, create, rename, swap and delete the shared terms used in match templates, seeing where each is used.
@@ -14599,7 +13974,6 @@ Code: [`static/js/LinkerEditorPage.jsx:869`](https://github.com/Sefaria/Sefaria-
 Source: `inv_08b_admin_linker_apps.md#2.1`
 
 #### ADM-050 · Rebuild RefResolver and Dibur Hamatchils
-
 `standard` `live` · rebuild: **todo** `staff` `desktop only`
 
 Staff trigger rebuilds of the linker's resolver (Hebrew, English or both) and of dibur hamatchil data, with progress polling.
@@ -14613,7 +13987,6 @@ Code: [`static/js/LinkerEditorPage.jsx:1262`](https://github.com/Sefaria/Sefaria
 Source: `inv_08b_admin_linker_apps.md#2.1`
 
 #### ADM-051 · In-reader Linker Admin panel
-
 `optional` `live` · rebuild: **todo** `staff` `desktop only`
 
 Moderators open a panel in the reader's tools that shows how the linker resolved a citation and lets them re-run, delete/recreate or reparse it and add training examples.
@@ -14623,7 +13996,7 @@ Moderators open a panel in the reader's tools that shows how the linker resolved
 - Moderator click on linker citation a.mutc -> ReaderPanel.handleLinkerAdminCitationClick; non-moderators get Sefaria._makeLinkerDebugAlert instead (TextRange.jsx:480-500).
 - Buttons: Re-run linker (POST /_api/linker-admin/segment/rerun per visible version, pollTask, alert, reload); Delete/Recreate Link (POST /_api/linker-admin/citation/delete|recreate;
 - deletion prevents recreation even on re-run); Linker editor (new tab); Re-parse (POST .../citation/parse {parts,lang,contextRef,prevRefs}); + Ref Dataset (POST .../dataset/ref saves NER example);
-- - Ref Part Dataset (.../dataset/ref-part).
+- + Ref Part Dataset (.../dataset/ref-part).
 - Display: Linker resolution vs Disambiguator (LLM)
 - arrow, ambiguity options (rejected greyed), ref-part chips by type (NAMED, NUMBERED, DH, RANGE, RANGE_SYMBOL, IBID, RELATIVE, NON_CTS), 'Options considered' sorted valid-first, collapsible 'Ref Part /
 - Node Pairings', copy-to-clipboard 'CRRD Test String' for linker_test.py.
@@ -14634,7 +14007,6 @@ Code: [`static/js/LinkerAdminBox.jsx:127`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_08b_admin_linker_apps.md#2.2`
 
 #### ADM-052 · Linker debug mode (debug_mode=linker)
-
 `optional` `live` · rebuild: **todo** `staff` `desktop only`
 
 A debug URL parameter makes the text API return linker output and colors each citation by outcome so moderators can see failures and ambiguities.
@@ -14648,10 +14020,10 @@ Code: [`static/js/sefaria/sefaria.js:643`](https://github.com/Sefaria/Sefaria-Pr
 
 Source: `inv_08b_admin_linker_apps.md#2.2`
 
+
 ### Config & Curation Apps
 
 #### ADM-053 · Remote config feature flags
-
 `core` `live` · rebuild: **todo** `staff`
 
 Admins change runtime settings and feature flags without redeploying, and the client reads active ones.
@@ -14669,7 +14041,6 @@ Code: [`remote_config/keys.py:1`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_08b_admin_linker_apps.md#4.5`
 
 #### ADM-054 · Topic pool and schedule curation (django_topics)
-
 `standard` `live` · rebuild: **todo** `staff`
 
 Product staff curate which topics belong to which pools and schedule the topic of the day and seasonal topics in Django admin.
@@ -14686,7 +14057,6 @@ Code: [`django_topics/models.py:1`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_08b_admin_linker_apps.md#4.6`
 
 #### ADM-055 · Powered-by-Sefaria showcase
-
 `optional` `live` · rebuild: **todo** `third-party`
 
 Community projects built on Sefaria are submitted via form and listed publicly after review.
@@ -14700,7 +14070,6 @@ Code: [`powered_by/models.py:1`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_08b_admin_linker_apps.md#4.8`
 
 #### ADM-056 · Dedications
-
 `optional` `live` · rebuild: **todo**
 
 Dedication pages are editable in admin and rendered at /dedication/<slug>.
@@ -14712,12 +14081,11 @@ Code: [`dedications/models.py:1`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_08b_admin_linker_apps.md#4.8`
 
 #### ADM-057 · Email-as-username authentication
-
 `core` `live` · rebuild: **todo** `system`
 
 Users log in with email; the underlying username is a hash.
 
-- emailusernames app monkey-patches User.**init**/save so username shows as email but is stored as hash (_email_to_username); EmailAuthBackend; EmailAdminAuthenticationForm for admin login;
+- emailusernames app monkey-patches User.__init__/save so username shows as email but is stored as hash (_email_to_username); EmailAuthBackend; EmailAdminAuthenticationForm for admin login;
 - overrides createsuperuser, dumpdata, loaddata; template email_usernames/login.html.
 - AUTHENTICATION_BACKENDS = emailusernames + allauth.
 
@@ -14726,7 +14094,6 @@ Code: [`emailusernames/backends.py:1`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_08b_admin_linker_apps.md#4.7`
 
 #### ADM-058 · Deploy promotion tracking files
-
 `optional` `live` · rebuild: **todo** `system`
 
 Plain text files record the version promoted to each environment for deploy automation.
@@ -14737,14 +14104,14 @@ Code: [`promotions/prod:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47
 
 Source: `inv_08b_admin_linker_apps.md#4.8`
 
-<a id="legacy-pages"></a>
 
+<a id="legacy-pages"></a>
 ## Legacy pages
+
 
 ### Legacy standalone pages
 
 #### LEG-001 · Legacy D3 explorer URLs
-
 `retire` `legacy` · rebuild: **n/a**
 
 The old interactive Explorer shows link density between two books/categories.
@@ -14759,7 +14126,6 @@ Code: [`reader/views.py:5101-5200`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### LEG-002 · Visualization pages URLs
-
 `retire` `legacy` · rebuild: **n/a**
 
 Several experimental visualizations live under /visualize and are separate templates.
@@ -14775,7 +14141,6 @@ Code: [`reader/views.py:2693-2723`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### LEG-003 · Visual garden URLs
-
 `retire` `legacy` · rebuild: **n/a**
 
 Visual gardens render custom data visualizations; two of three routes are unreachable.
@@ -14789,7 +14154,6 @@ Code: [`reader/views.py:5333-5337`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### LEG-004 · Orphan unrouted views
-
 `retire` `unused` · rebuild: **n/a** `system`
 
 Several view functions exist with no URL pointing to them.
@@ -14800,10 +14164,10 @@ Code: [`reader/views.py:4594-4630`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_01_urls_routing.md#1.6`
 
+
 ### Legacy sheets
 
 #### LEG-005 · Legacy CKEditor sheet editor (embed mode)
-
 `retire` `legacy` · rebuild: **n/a** `owner` `desktop only`
 
 The old sheet editor is still served at /sheets/<id>?embed=1 and gives owners a different, older editing experience.
@@ -14818,7 +14182,6 @@ Code: [`sourcesheets/views.py:170-233`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_07_sheets_users.md#15`
 
 #### LEG-006 · Visual sheet view
-
 `retire` `legacy` · rebuild: **n/a** `desktop only`
 
 A graph-style visual view of a sheet with draggable nodes is still served on the old stack.
@@ -14831,10 +14194,10 @@ Code: [`sourcesheets/views.py:244-278`](https://github.com/Sefaria/Sefaria-Proje
 
 Source: `inv_07_sheets_users.md#15`
 
+
 ### Legacy Text Editor
 
 #### LEG-007 · Legacy text add/edit/translate editor
-
 `retire` `legacy` · rebuild: **n/a** `signed-in` `desktop only`
 
 A jQuery-era page for adding a new text, editing a section or adding a translation, still served at /add, /edit and /translate.
@@ -14854,7 +14217,6 @@ Code: [`reader/views.py:1525`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#1.4 / 3.5`
 
 #### LEG-008 · Legacy Edit Text Info (Index editor) page
-
 `standard` `legacy` · rebuild: **todo** `staff` `desktop only`
 
 Staff add or edit a text's Index record (titles, categories, schema, authors, dates) in a legacy template page.
@@ -14868,7 +14230,6 @@ Code: [`reader/views.py:1603`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#1.4 / 3.5`
 
 #### LEG-009 · Terms editor (JSON editor)
-
 `optional` `legacy` · rebuild: **todo** `staff` `desktop only`
 
 Staff add or edit a Term (name and titles) with a JSON-schema form.
@@ -14881,11 +14242,11 @@ Code: [`reader/views.py:1642`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08b_admin_linker_apps.md#1.4 / 3.6`
 
+
 ### Version Compare
 
 #### LEG-010 · Text version diff/compare tool (/compare)
-
-`optional` `legacy` · rebuild: **partial** — Page, form, diff tables, filters, Apply Change ported at pixel parity; the Editors group (non-staff editors) is not recognised · _tested_ `desktop only`
+`optional` `legacy` · rebuild: **partial** — Page, form, diff tables, filters, Apply Change ported at pixel parity; the Editors group (non-staff editors) is not recognised · *tested* `desktop only`
 
 A public page compares two versions of a text segment by segment with inline diffs, and lets users click a change to apply it to the text.
 
@@ -14911,10 +14272,10 @@ Code: [`sefaria/views.py:2191`](https://github.com/Sefaria/Sefaria-Project/blob/
 
 Source: `inv_08b_admin_linker_apps.md#3.1`
 
+
 ### Visualizations
 
 #### LEG-011 · Link Explorer (/explore)
-
 `optional` `legacy` · rebuild: **todo** `desktop only`
 
 An interactive D3 chart shows how two categories of texts (e.g. Tanakh and Talmud) link to each other, down to individual segments.
@@ -14934,7 +14295,6 @@ Code: [`reader/views.py:5102`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.2`
 
 #### LEG-012 · Timeline visualization (staff, /visualize/timeline)
-
 `retire` `legacy` · rebuild: **n/a** `staff` `desktop only`
 
 An experimental staff-only chart places a passage's linked texts on a timeline of past, future and contemporaneous works.
@@ -14948,7 +14308,6 @@ Code: [`reader/views.py:5203`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.3`
 
 #### LEG-013 · Library sunburst and TOC visualizations
-
 `optional` `legacy` · rebuild: **todo** `desktop only`
 
 Public pages visualize library word counts by category and a visual table of contents.
@@ -14961,7 +14320,6 @@ Code: [`reader/views.py:2694`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.4`
 
 #### LEG-014 · Torah and Talmud data visualizations
-
 `retire` `legacy` · rebuild: **n/a** `desktop only`
 
 A set of static D3 pages show Torah by parasha, Rashi-to-verse chords, Talmudic relationships, Sefer HaChinukh mitzvot and commentator vocabulary.
@@ -14978,7 +14336,6 @@ Code: [`reader/views.py:2706`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.4`
 
 #### LEG-015 · Gardens (visual garden pages)
-
 `retire` `legacy` · rebuild: **n/a** `desktop only`
 
 Curated 'gardens' of stops with time, place, author and tag are shown as maps and charts, including auto-built gardens from a sheet tag or search query.
@@ -14992,10 +14349,10 @@ Code: [`reader/views.py:5313`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08b_admin_linker_apps.md#3.4`
 
+
 ### Legacy Sheet Views
 
 #### LEG-016 · Legacy Django-rendered sheet page (embed)
-
 `retire` `legacy` · rebuild: **n/a** `desktop only`
 
 The old jQuery sheet viewer still renders sheets for embed mode, with print option, collection header, likes and assignments.
@@ -15011,7 +14368,6 @@ Code: [`sourcesheets/views.py:169`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_08b_admin_linker_apps.md#3.8`
 
 #### LEG-017 · Visual (freeform) sheet view
-
 `retire` `legacy` · rebuild: **n/a** `owner` `desktop only`
 
 A legacy canvas view lets users position and zoom sheet sources freely and save the layout.
@@ -15024,10 +14380,10 @@ Code: [`sourcesheets/views.py:231`](https://github.com/Sefaria/Sefaria-Project/b
 
 Source: `inv_08b_admin_linker_apps.md#3.8`
 
+
 ### Standalone Pages
 
 #### LEG-018 · Legacy edit-profile page
-
 `standard` `legacy` · rebuild: **todo** `signed-in`
 
 The classic edit-profile form on the Voices host lets users change name, bio, links and profile URL.
@@ -15041,8 +14397,7 @@ Code: [`reader/views.py:4543`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-019 · Text edit activity feed (/activity)
-
-`optional` `legacy` · rebuild: **partial** — A text's revision history ported (needs this branch's /api/activity); global, user and leaderboard pages still Django's · _tested_ `desktop only`
+`optional` `legacy` · rebuild: **partial** — A text's revision history ported (needs this branch's /api/activity); global, user and leaderboard pages still Django's · *tested* `desktop only`
 
 A public feed of recent text edits, filterable by type, by user, or by segment, with revert links for logged-in users.
 
@@ -15057,7 +14412,6 @@ Code: [`reader/views.py:3963`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-020 · Contributor leaderboard
-
 `optional` `legacy` · rebuild: **todo** `desktop only`
 
 A page ranks top contributors over all time, 30 days, 7 days and 1 day.
@@ -15070,7 +14424,6 @@ Code: [`reader/views.py:4101`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-021 · Texts dashboard (/dashboard)
-
 `optional` `legacy` · rebuild: **todo** `desktop only`
 
 A public table of every text with link counts, English/Hebrew completeness and flags; staff can toggle flags.
@@ -15083,7 +14436,6 @@ Code: [`reader/views.py:4634`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-022 · Library metrics charts (/metrics)
-
 `optional` `legacy` · rebuild: **todo** `desktop only`
 
 A public page charts growth of words, links and sheets since 2013.
@@ -15095,7 +14447,6 @@ Code: [`reader/views.py:4658`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-023 · Random text page and redirect
-
 `optional` `live` · rebuild: **todo**
 
 /random shows a random text passage and /random/link redirects to a random ref.
@@ -15107,7 +14458,6 @@ Code: [`reader/views.py:4726`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-024 · Digitized by Sefaria list
-
 `optional` `legacy` · rebuild: **todo**
 
 A page lists all versions digitized by Sefaria.
@@ -15119,7 +14469,6 @@ Code: [`reader/views.py:4670`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-025 · Error and maintenance pages
-
 `standard` `live` · rebuild: **todo**
 
 Custom 404, 500, maintenance and Cloudflare-down pages are rendered from templates.
@@ -15131,10 +14480,10 @@ Code: [`reader/views.py:5387`](https://github.com/Sefaria/Sefaria-Project/blob/b
 
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
+
 ### Dead Legacy
 
 #### LEG-026 · Discussions (Layers) feature
-
 `retire` `unused` · rebuild: **n/a**
 
 Discussion threads code remains but is unreachable.
@@ -15146,7 +14495,6 @@ Code: [`reader/views.py:4595`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-027 · Old People/Person/profile templates
-
 `retire` `unused` · rebuild: **n/a**
 
 Templates from the old People and profile pages remain unrouted; people URLs redirect to topics.
@@ -15159,7 +14507,6 @@ Code: [`reader/views.py:4595`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-028 · Legacy message snippets and base template partials
-
 `retire` `legacy` · rebuild: **n/a**
 
 Old interrupting-message HTML snippets and legacy include partials remain, superseded by the CMS.
@@ -15173,7 +14520,6 @@ Code: [`templates/base.html:1`](https://github.com/Sefaria/Sefaria-Project/blob/
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-029 · Unused legacy JS (s1/search.js, plugin.js, hebrew.js)
-
 `retire` `unused` · rebuild: **n/a**
 
 Several old jQuery scripts are unreferenced or abandoned.
@@ -15190,7 +14536,6 @@ Code: [`static/js/s1/search.js:1`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_08b_admin_linker_apps.md#3.5 / 5.8`
 
 #### LEG-030 · Translation QA page missing
-
 `retire` `unused` · rebuild: **n/a**
 
 No translation-QA page exists on master.
@@ -15201,11 +14546,11 @@ Code: [`node/webpack.config.js:150`](https://github.com/Sefaria/Sefaria-Project/
 
 Source: `inv_08b_admin_linker_apps.md#3 intro`
 
+
 ### Version Compare
 
 #### LEG-031 · Version diff page frame (standalone document)
-
-`optional` `legacy` · rebuild: **done** · _tested_ `staff`
+`optional` `legacy` · rebuild: **done** · *tested* `staff`
 
 The version-diff page is a document of its own: no site header or stylesheet, the browser's default styles, English words in both interface languages.
 
@@ -15221,8 +14566,7 @@ Code: [`templates/compare.html`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `survey 2026-11-04`
 
 #### LEG-032 · Version diff: which sections a ref shows
-
-`optional` `legacy` · rebuild: **done** — segment ranges and section ranges handled sensibly (legacy 500 / endless loading) · _tested_ `staff`
+`optional` `legacy` · rebuild: **done** — segment ranges and section ranges handled sensibly (legacy 500 / endless loading) · *tested* `staff`
 
 The ref in a /compare address is turned into the section(s) diffed: a book its first section, a segment its section, a ref above section level one table per section below it.
 
