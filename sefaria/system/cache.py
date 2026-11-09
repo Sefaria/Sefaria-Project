@@ -280,20 +280,23 @@ class GenCache:
     def is_registered(self, key: str) -> bool:
         return key in self._refreshers
 
+    def _is_fresh(self, key: str) -> bool:
+        """True if key has been refreshed and was checked against Redis within the check interval."""
+        return key in self._gens and time.monotonic() - self._last_checked.get(key, 0) < self.check_interval_seconds
+
     def get(self, key: str):
         refresh_fn = self._refreshers[key]
-        is_first_access = key not in self._gens
-
-        now = time.monotonic()
-        if not is_first_access and now - self._last_checked.get(key, 0) < self.check_interval_seconds:
+        if self._is_fresh(key):
             return self._data.get(key)
 
-        # One thread refreshes a key at a time. Without this, concurrent threads each run refresh_fn,
-        # and for in-place objects (e.g. Library's index maps) one thread reads another's half-built
-        # state. Waiters serve the current value rather than block, except on first access when
-        # there is none. RLock: a refresh_fn may re-enter get() for its own key on the same thread.
+        # One thread checks and refreshes a key at a time, so concurrent callers don't each run
+        # refresh_fn. Callers that find the lock held serve the current value rather than wait,
+        # except on first access, when there is none. This does not protect code that reads an
+        # owner's state directly (e.g. Library's index maps after get("index_map") returns): such a
+        # refresh_fn must swap in its new state whole, never mutate it in place.
+        # RLock: a refresh_fn may re-enter get() for its own key on the same thread.
         lock = self._locks.setdefault(key, threading.RLock())
-        if not lock.acquire(blocking=is_first_access):
+        if not lock.acquire(blocking=key not in self._gens):
             return self._data.get(key)
         try:
             return self._get_locked(key, refresh_fn)
@@ -301,11 +304,10 @@ class GenCache:
             lock.release()
 
     def _get_locked(self, key: str, refresh_fn: Callable[[], Any]):
-        is_first_access = key not in self._gens  # re-read: another thread may have finished the first refresh
-        now = time.monotonic()
-        if not is_first_access and now - self._last_checked.get(key, 0) < self.check_interval_seconds:
+        if self._is_fresh(key):  # the thread that held the lock may have just refreshed it
             return self._data.get(key)
-        self._last_checked[key] = now
+        is_first_access = key not in self._gens
+        self._last_checked[key] = time.monotonic()
 
         try:
             redis_gen = self.redis.get(self._redis_key(key))

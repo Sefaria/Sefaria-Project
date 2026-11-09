@@ -425,9 +425,11 @@ def test_concurrent_first_access_runs_refresh_fn_once_and_waiters_get_the_value(
         results.append(gc.get("toc"))
 
     def second():
-        started.wait(5)  # the first thread is now inside refresh_fn
-        threading.Timer(0.05, release.set).start()
-        results.append(gc.get("toc"))  # no value yet, so this must wait for the first refresh
+        started.wait(5)  # the first thread is now inside refresh_fn, holding the lock
+        # release it shortly, by which time this thread is almost certainly waiting on the lock;
+        # either way, calls == 1 below fails if this thread runs refresh_fn itself
+        threading.Timer(0.2, release.set).start()
+        results.append(gc.get("toc"))
 
     _run_in_threads([first, second])
     assert results == ["built", "built"]
@@ -450,10 +452,11 @@ def test_thread_arriving_mid_refresh_serves_current_value_without_refreshing(fak
 
     gc.register("toc", slow_refresh)
     simulate_peer_bump(fake_redis, "gen:toc")
-    seen_by_other = []
+    seen_by_refresher, seen_by_other = [], []
 
+    # assert in the main thread: a failed assert inside a worker thread doesn't fail the test
     def refresher():
-        assert gc.get("toc") == "v2"
+        seen_by_refresher.append(gc.get("toc"))
 
     def other():
         started.wait(5)
@@ -461,6 +464,7 @@ def test_thread_arriving_mid_refresh_serves_current_value_without_refreshing(fak
         release.set()
 
     _run_in_threads([refresher, other])
+    assert seen_by_refresher == ["v2"]
     assert seen_by_other == ["v1"]
     assert len(calls) == 1
     assert gc.get("toc") == "v2"

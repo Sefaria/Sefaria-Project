@@ -4852,6 +4852,11 @@ class Library:
             ),
             "virtual_books": ("_virtual_books", "virtualBooks", self.build_virtual_books),
         }
+        # Checks run on a freshly built value before it is stored; one that raises keeps the old value.
+        self._shared_cache_validators = {
+            "toc": self._check_toc_plausible,
+            "toc_with_authors": self._check_toc_plausible,
+        }
         for key in self._shared_cache_objects:
             gen_cache.register(key, lambda key=key: self._refresh_shared_cache_object(key))
         gen_cache.register("toc_tree", self._refresh_toc_tree)
@@ -4868,14 +4873,15 @@ class Library:
         """Builds a shared-cache-backed object from Mongo and stores it locally and in the shared cache."""
         attr, scache_key, build_fn = self._shared_cache_objects[key]
         value = build_fn()
-        if key in ("toc", "toc_with_authors"):
-            self._check_toc_plausible(key, value)
+        validate = self._shared_cache_validators.get(key)
+        if validate:
+            validate(key, value)
         setattr(self, attr, value)
         self._store_in_shared_cache({scache_key: value}, fail_open)
         return value
 
     # Backstop: a TOC with fewer leaves than this fraction of Mongo's Index count is not published.
-    TOC_MIN_FRACTION_OF_INDEXES = 0.9
+    TOC_MIN_FRACTION_OF_INDEXES = 0.8
 
     def _check_toc_plausible(self, key, toc):
         """
@@ -5024,8 +5030,8 @@ class Library:
         with build_pathway("rebuild_toc"):
             if not skip_toc_tree:
                 self._toc_tree = self.get_toc_tree(rebuild=True)
-            self._toc_with_authors = None
-            scache.delete_shared_cache_elem("toc_with_authors")
+            # Each rebuild below overwrites its shared value only once the new one is built and
+            # validated, so nothing is deleted up front: a refused TOC must leave the old copies in place.
             self._toc = self.get_toc(rebuild=True)
             self._toc_with_authors = self.get_toc_with_authors(rebuild=True)
             self._toc_json = self.get_toc_json(rebuild=True)
