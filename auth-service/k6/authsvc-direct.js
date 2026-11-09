@@ -35,7 +35,8 @@ export const options = {
   scenarios: {
     direct: { executor: 'constant-arrival-rate', rate: RATE, timeUnit: '1s', duration: DURATION, preAllocatedVUs: 1, maxVUs: 1 },
   },
-  thresholds: { 'checks': ['rate==1'], 'grpc_req_duration': ['p(99)<200'] },
+  // A run that could not keep its rate is not a measurement at that rate: at most 1% of the calls may be dropped.
+  thresholds: { 'checks': ['rate==1'], 'grpc_req_duration': ['p(99)<200'], 'dropped_iterations': [`rate<=${RATE * 0.01}`] },
   summaryTrendStats: ['avg', 'min', 'med', 'p(90)', 'p(99)', 'p(99.9)', 'max', 'count'],
 };
 

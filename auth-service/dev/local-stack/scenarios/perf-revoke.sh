@@ -24,6 +24,8 @@ keys="$(registry_field len)"
 info "PERF-R registry: $keys keys; results in ${PERF_OUT#"$REPO"/}"
 
 result="$PERF_OUT/revoke.json"
+# A reused PERF_OUT must never let the report read an earlier run's files.
+rm -f "$result" "$PERF_OUT"/{notify,notify-reload,fallback}.json
 timing() { "$PYTHON" "$SCEN_DIR/revoke_timing.py" --pg-port "$D11_PG_PORT" --gw-port "$GW_HC" --path "$GATED" "$@"; }
 
 info "PERF-R 1: NOTIFY on, $TRIALS trials"
@@ -55,6 +57,7 @@ if os.path.exists(fb):
     doc["fallback"]["listener_backends"] = int(backends) if backends else None
 json.dump(doc, open(path, "w"), indent=2)
 PY
+[ $? = 0 ] || fail "PERF-R could not aggregate the timing results (see $PERF_OUT)"
 export RELOAD_INTERVAL_S="$RELOAD_S"
 report_lines "$result" revoke
 info "PERF-R results: ${result#"$REPO"/}"

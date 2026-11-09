@@ -191,6 +191,13 @@ def latency(res):
             "pass" if direct.get("checks_rate") == 1 else "fail",
             "PERF-L every direct Check returned gRPC OK (rate %s)" % direct.get("checks_rate"),
         )
+        dropped = direct.get("dropped") or 0
+        share = dropped / float(g["n"] + dropped) if g["n"] + dropped else 1.0
+        say(
+            "pass" if share <= 0.01 else "fail",
+            "PERF-L direct: %d calls dropped (%.1f%%; at most 1%% keeps it a measurement at its rate)"
+            % (dropped, share * 100),
+        )
     elif "direct" in res:
         say("fail", "PERF-L the direct gRPC run produced no samples")
 

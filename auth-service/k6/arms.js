@@ -68,6 +68,8 @@ for (const a of arms) {
   // The ext_authz timeout is 200 ms; a p99 near it would mean Envoy fails open under this load.
   thresholds[`http_req_duration{arm:${a}}`] = ['p(99)<200'];
 }
+// A run that could not keep its rate is not a measurement at that rate: at most 1% of the requests may be dropped.
+thresholds.dropped_iterations = [`rate<=${RATE * arms.length * 0.01}`];
 export const options = {
   scenarios, thresholds,
   summaryTrendStats: ['avg', 'min', 'med', 'p(90)', 'p(99)', 'p(99.9)', 'max', 'count'],
