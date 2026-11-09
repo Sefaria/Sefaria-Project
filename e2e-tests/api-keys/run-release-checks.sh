@@ -68,7 +68,7 @@ static_checks() {
   command -v helm >/dev/null || row "static: helm" FAIL "helm is not on PATH (render checks need it)"
   step "render-check (staging, preprod, prod)" env PY="$PY" bash "$SCRIPTS/render-check.sh"
   step "render-check negative tests" env PY="$PY" bash "$SCRIPTS/test-render-check.sh"
-  step "policy-gate tests (fake kubectl)" bash "$SCRIPTS/test-policy-gate.sh"
+  step "policy-gate tests (fake kubectl, each env's render)" env PY="$PY" bash "$SCRIPTS/test-policy-gate.sh"
   step "provision-cluster-registry tests" bash "$SCRIPTS/test-provision-cluster-registry.sh"
   step "feature matrix --strict" "$PY" "$HERE/check_features.py" --strict
   step "feature matrix unit tests" "$PY" -m unittest discover -s "$HERE/tests" -t "$REPO"

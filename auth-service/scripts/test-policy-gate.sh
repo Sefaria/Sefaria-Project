@@ -95,6 +95,54 @@ expect fail "security policy condition without observedGeneration" 'obj security
 expect fail "an optional policy the gate may not read (forbidden) is not skipped" 'echo "Error from server (Forbidden): envoyextensionpolicies is forbidden" >"$FAKE_DIR/error_envoyextensionpolicy"'
 expect fail "a required policy that cannot be read (timeout)" 'echo "Unable to connect to the server: i/o timeout" >"$FAKE_DIR/error_securitypolicy"'
 expect fail "redirect route missing" 'rm "$FAKE_DIR/httproute_authpoc-http-redirect.json"'
+
+# The gate against each environment's real render: the chart's own objects (names, parentRefs) with the statuses a
+# controller would write, so the gate is proven to look up exactly what staging, preprod and prod deploy.
+# Needs helm and a Python with PyYAML (PY=...); skipped otherwise.
+PY="${PY:-python3}"
+root=$(cd "$here/../.." && pwd)
+if command -v helm >/dev/null && "$PY" -c 'import yaml' 2>/dev/null; then
+  for env in staging preprod prod; do
+    rm -rf "$FAKE_DIR"; mkdir -p "$FAKE_DIR"
+    deploy_env="$("$PY" - "$root/envs/$env/helmrelease.yaml" "$tmp/values.yaml" <<'PY'
+import sys, yaml
+docs = [d for d in yaml.safe_load_all(open(sys.argv[1])) if d]
+values = next(d for d in docs if d.get("kind") == "HelmRelease")["spec"]["values"]
+yaml.safe_dump(values, open(sys.argv[2], "w"))
+print(values["deployEnv"])
+PY
+)"
+    helm template "$env" "$root/helm-chart/sefaria" -f "$tmp/values.yaml" --set authService.enabled=true \
+      --set authService.image.tag=t >"$tmp/render.yaml" || { echo "FAIL: helm template $env"; fail=1; continue; }
+    "$PY" - "$tmp/render.yaml" "$FAKE_DIR" <<'PY'
+import json, sys, yaml
+kinds = {"SecurityPolicy": "securitypolicy", "ClientTrafficPolicy": "clienttrafficpolicy",
+         "EnvoyExtensionPolicy": "envoyextensionpolicy", "BackendTrafficPolicy": "backendtrafficpolicy", "HTTPRoute": "httproute"}
+for d in yaml.safe_load_all(open(sys.argv[1])):
+    if not d or d.get("kind") not in kinds:
+        continue
+    d["metadata"]["generation"] = 1
+    ok = lambda t: {"type": t, "status": "True", "observedGeneration": 1}
+    if d["kind"] == "HTTPRoute":
+        d["status"] = {"parents": [{"parentRef": ref, "conditions": [ok("Accepted"), ok("ResolvedRefs")]} for ref in d["spec"]["parentRefs"]]}
+    else:
+        d["status"] = {"ancestors": [{"ancestorRef": {"kind": "Gateway", "name": d["metadata"]["name"]}, "conditions": [ok("Accepted")]}]}
+    json.dump(d, open("%s/%s_%s.json" % (sys.argv[2], kinds[d["kind"]], d["metadata"]["name"]), "w"))
+PY
+    if PATH="$tmp:$PATH" CTX=fake NS=x ENV="$deploy_env" bash "$here/policy-gate.sh" >"$tmp/out" 2>&1 \
+        && [ "$(grep -c '^ok ' "$tmp/out")" -ge 4 ]; then
+      echo "ok: $env: the gate finds and passes the render's objects (ENV=$deploy_env, $(grep -c '^ok ' "$tmp/out") accepted)"
+    else
+      echo "FAIL: $env: the gate does not pass the accepted render"; sed 's/^/    /' "$tmp/out"; fail=1
+    fi
+    "$PY" -c 'import json,sys; p=sys.argv[1]; d=json.load(open(p)); d["status"]["ancestors"][0]["conditions"][0]["status"]="False"; json.dump(d,open(p,"w"))' \
+      "$FAKE_DIR/clienttrafficpolicy_$deploy_env.json"
+    PATH="$tmp:$PATH" CTX=fake NS=x ENV="$deploy_env" bash "$here/policy-gate.sh" >/dev/null 2>&1 \
+      && { echo "FAIL: $env: a rejected header strip passes"; fail=1; } || echo "ok: $env: a rejected header strip fails the gate"
+  done
+else
+  echo "skip: the per-environment render cases need helm and PyYAML (PY=$PY)"
+fi
 ( unset CTX; PATH="$tmp:$PATH" NS=default ENV=authpoc bash "$here/policy-gate.sh" >/dev/null 2>&1 ) \
   && { echo "FAIL: runs without CTX"; fail=1; } || echo "ok: refuses to run without an explicit CTX"
 exit $fail
