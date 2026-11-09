@@ -138,6 +138,21 @@ entries:
     version: 0.93.0-sc-47260-chart-render-checks.1
   - apiVersion: v2
     appVersion: v7.11.4
+    created: "2026-11-09T10:36:01.662178716Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 0adec7ac5c90dd5ce73ea4ba09387a98f9f58c4ae0e5f598fd3f5b9838c911d1
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.93.0-sc-47260-auth-service-phase1.6.tgz
+    version: 0.93.0-sc-47260-auth-service-phase1.6
+  - apiVersion: v2
+    appVersion: v7.11.4
     created: "2026-11-08T11:47:40.724347221Z"
     description: Chart to deploy complete Sefaria environment
     digest: f3f9d0d0ae4e9051f01a5eba908b7491637eeb7f0a049e2335062752e5fc2f34
@@ -24390,4 +24405,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-09T08:44:22.692918797Z"
+generated: "2026-11-09T10:36:01.659400122Z"
