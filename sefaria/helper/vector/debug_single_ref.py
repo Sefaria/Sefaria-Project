@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Debug script: chunk and embed a single section ref, write output to a JSON file.
 
@@ -17,22 +16,22 @@ import sys
 from datetime import datetime
 
 import django
-django.setup()
 
-from sefaria.model import *
-from sefaria.search import setup_logging
+django.setup()
 
 from patot import ChunkerConfig, PatotChunker
 from patot.analytics import ChunkingRuntimeAnalytics
 
-from semantic_search.embedder import GeminiEmbedder
-from semantic_search.models import DEFAULT_EMBEDDING_MODEL_ID
 from sefaria.helper.vector.embed_library_to_pgvector import (
+    build_chunk_data,
     collect_segment_records_by_section,
     get_index_context,
     get_version_context,
-    build_chunk_data,
 )
+from sefaria.model import *
+from sefaria.search import setup_logging
+from semantic_search.embedder import GeminiEmbedder
+from semantic_search.models import DEFAULT_EMBEDDING_MODEL_ID
 
 
 def chunk_to_dict(built) -> dict:
@@ -138,8 +137,14 @@ def main():
             continue
 
         chunks = build_chunk_data(
-            section_ref, version_context["language"], version.versionTitle, index.title,
-            embedder, chunk_result, index_context, version_context,
+            section_ref,
+            version_context["language"],
+            version.versionTitle,
+            index.title,
+            embedder,
+            chunk_result,
+            index_context,
+            version_context,
         )
         output["rows"].extend(chunk_to_dict(c) for c in chunks)
 

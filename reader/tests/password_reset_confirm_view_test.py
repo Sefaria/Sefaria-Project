@@ -20,6 +20,7 @@ same setup already proven by password_reset_urls_test.py in this directory —
 sefaria.urls_library pulls in urls_shared.shared_patterns, where both
 "password_reset_confirm" and "register" are defined.
 """
+
 import json
 
 from django.contrib.auth.models import User
@@ -37,7 +38,9 @@ INTERNAL_RESET_SESSION_TOKEN = "set-password"
 class CustomPasswordResetConfirmViewTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            username="reset-confirm@test.com", email="reset-confirm@test.com", password="OldPassw0rd!",
+            username="reset-confirm@test.com",
+            email="reset-confirm@test.com",
+            password="OldPassw0rd!",
         )
         self.uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
         self.real_token = default_token_generator.make_token(self.user)
@@ -98,7 +101,9 @@ class CustomPasswordResetConfirmViewTest(TestCase):
     def _visit(self, url):
         """GET the link as a reader's browser does; the page itself is rendered by the node server, so it is stubbed here."""
         from unittest import mock
+
         from django.http import HttpResponse
+
         with mock.patch("sefaria.views.render_template", return_value=HttpResponse("page")):
             return self.client.get(url)
 
@@ -106,6 +111,7 @@ class CustomPasswordResetConfirmViewTest(TestCase):
     # the resend no longer carries the token. Opening the real expired link leaves proof in the session for the resend that follows.
     def test_resend_from_the_set_password_address_after_opening_a_real_expired_link(self):
         from django.core.cache import cache
+
         cache.clear()
         mail.outbox = []
         self.assertEqual(self._visit(self._url(self._expired_token())).status_code, 200)
@@ -123,6 +129,7 @@ class CustomPasswordResetConfirmViewTest(TestCase):
 
     def test_resend_is_rate_limited_per_account(self):
         from django.core.cache import cache
+
         cache.clear()
         mail.outbox = []
         url = self._url(self._expired_token())
@@ -135,10 +142,13 @@ class CustomPasswordResetConfirmViewTest(TestCase):
     def test_valid_link_sets_new_password_and_clears_session_token(self):
         sentinel_url = self._reach_validlink_state()
 
-        res = self._post_json(sentinel_url, {
-            "new_password1": "Xk7mQ9zLp2!",
-            "new_password2": "Xk7mQ9zLp2!",
-        })
+        res = self._post_json(
+            sentinel_url,
+            {
+                "new_password1": "Xk7mQ9zLp2!",
+                "new_password2": "Xk7mQ9zLp2!",
+            },
+        )
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.json(), {})
@@ -149,10 +159,13 @@ class CustomPasswordResetConfirmViewTest(TestCase):
     def test_valid_link_mismatched_passwords_returns_field_errors(self):
         sentinel_url = self._reach_validlink_state()
 
-        res = self._post_json(sentinel_url, {
-            "new_password1": "Xk7mQ9zLp2!",
-            "new_password2": "SomethingElse9!",
-        })
+        res = self._post_json(
+            sentinel_url,
+            {
+                "new_password1": "Xk7mQ9zLp2!",
+                "new_password2": "SomethingElse9!",
+            },
+        )
 
         self.assertEqual(res.status_code, 400)
         self.assertIn("new_password2", res.json())

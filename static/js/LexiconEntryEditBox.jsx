@@ -4,10 +4,11 @@ import classNames from 'classnames';
 import Sefaria from './sefaria/sefaria';
 import { LoadingMessage, InterfaceText } from './Misc';
 
-
 export const resolveLexiconEntryRef = async (ref) => {
   const oref = Sefaria.ref(ref);
-  if (!oref?.categories?.includes("Dictionary")) { return null; }
+  if (!oref?.categories?.includes('Dictionary')) {
+    return null;
+  }
   const indexData = await Sefaria.getIndexDetails(oref.indexTitle);
   const lexiconName = indexData?.lexiconName;
   // oref.indexTitle is the Index's own title (server-side: self._inode.index.title), while
@@ -20,9 +21,11 @@ export const resolveLexiconEntryRef = async (ref) => {
   // explicitly means an unexpected shape fails safely (null, same as "not a dictionary
   // entry") instead of silently corrupting the returned headword.
   const prefix = `${oref.indexTitle}, `;
-  if (!oref.sectionRef?.startsWith(prefix)) { return null; }
+  if (!oref.sectionRef?.startsWith(prefix)) {
+    return null;
+  }
   const headword = oref.sectionRef.slice(prefix.length);
-  return (lexiconName && headword) ? { lexiconName, headword } : null;
+  return lexiconName && headword ? { lexiconName, headword } : null;
 };
 
 // Shared by LexiconHeadwordEditBox and LexiconContentEditBox. Sefaria.apiRequestWithBody
@@ -37,7 +40,7 @@ export const fetchLexiconApi = async (url, payload, method) => {
   const response = await Sefaria.apiRequestWithBody(url, null, payload, method, false);
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.error || Sefaria._("sefaria.something_went_wrong_sorry"));
+    throw new Error(data.error || Sefaria._('sefaria.something_went_wrong_sorry'));
   }
   return data;
 };
@@ -57,8 +60,8 @@ export const useLexiconEntrySave = (initialValue) => {
   const save = async (url, payload, formatMessage) => {
     setSaving(true);
     try {
-      const data = await fetchLexiconApi(url, payload, "PATCH");
-      setMessage(formatMessage ? formatMessage(data) : {en: "Saved.", he: "נשמר."});
+      const data = await fetchLexiconApi(url, payload, 'PATCH');
+      setMessage(formatMessage ? formatMessage(data) : { en: 'Saved.', he: 'נשמר.' });
       return data;
     } catch (e) {
       alert(e.message);
@@ -71,9 +74,7 @@ export const useLexiconEntrySave = (initialValue) => {
   return { value, setValue, saving, message, save };
 };
 
-export const CurrentHeadwordDisplay = ({ headword }) => (
-  <div className="lexiconEditCurrentHeadword">{headword}</div>
-);
+export const CurrentHeadwordDisplay = ({ headword }) => <div className="lexiconEditCurrentHeadword">{headword}</div>;
 CurrentHeadwordDisplay.propTypes = {
   headword: PropTypes.string.isRequired,
 };
@@ -84,10 +85,18 @@ export const SaveButton = ({ onSave, saving, disabled, message }) => {
     <>
       {/* .button's disabled look (s2.css) is keyed off a literal "disabled" class, not the
           disabled attribute -- both are needed, one for the visual, one to actually block clicks. */}
-      <button className={classNames({button: true, small: true, disabled: isDisabled})} onClick={onSave} disabled={isDisabled}>
-        <InterfaceText text={{en: "Save", he: "שמירה"}} />
+      <button
+        className={classNames({ button: true, small: true, disabled: isDisabled })}
+        onClick={onSave}
+        disabled={isDisabled}
+      >
+        <InterfaceText text={{ en: 'Save', he: 'שמירה' }} />
       </button>
-      {message && <div className="lexiconEditSavedMessage"><InterfaceText text={message} /></div>}
+      {message && (
+        <div className="lexiconEditSavedMessage">
+          <InterfaceText text={message} />
+        </div>
+      )}
     </>
   );
 };
@@ -102,18 +111,22 @@ SaveButton.propTypes = {
 // common loading/unavailable states so neither caller has to. children is a render-prop
 // receiving the resolved identity ({lexiconName, headword}).
 const LexiconEntryEditBox = ({ currentlyVisibleRef, children }) => {
-  const [identity, setIdentity] = useState(undefined);  // undefined: loading, null: not a dictionary entry
+  const [identity, setIdentity] = useState(undefined); // undefined: loading, null: not a dictionary entry
 
   useEffect(() => {
     let stale = false;
     setIdentity(undefined);
-    resolveLexiconEntryRef(currentlyVisibleRef).then(resolved => {
+    resolveLexiconEntryRef(currentlyVisibleRef).then((resolved) => {
       // currentlyVisibleRef can change again before this resolves (e.g. the user navigates
       // through several entries quickly) -- an earlier-started but later-resolving call must
       // not overwrite the identity a more recent call already set.
-      if (!stale) { setIdentity(resolved); }
+      if (!stale) {
+        setIdentity(resolved);
+      }
     });
-    return () => { stale = true; };
+    return () => {
+      stale = true;
+    };
   }, [currentlyVisibleRef]);
 
   if (identity === undefined) {
@@ -123,8 +136,12 @@ const LexiconEntryEditBox = ({ currentlyVisibleRef, children }) => {
   if (identity === null) {
     return (
       <div className="lexiconEditBox">
-        <InterfaceText text={{en: "This tool is only available while viewing a lexicon entry.",
-                               he: "כלי זה זמין רק בעת צפייה בערך מילוני."}} />
+        <InterfaceText
+          text={{
+            en: 'This tool is only available while viewing a lexicon entry.',
+            he: 'כלי זה זמין רק בעת צפייה בערך מילוני.',
+          }}
+        />
       </div>
     );
   }
