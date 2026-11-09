@@ -372,6 +372,7 @@ def rehearse_summary(args):
     timings = [json.loads(line) for line in Path(args.timings).read_text().splitlines() if line.strip()]
     waits = {}
     exclusive = {}
+    ticks = 0
     for line in Path(args.samples).read_text().splitlines() if Path(args.samples).exists() else []:
         parts = line.split("\t")
         if len(parts) < 6:
@@ -381,7 +382,9 @@ def rehearse_summary(args):
             seconds = float(seconds or 0)
         except ValueError:
             continue
-        if kind == "wait":
+        if kind == "tick":
+            ticks += 1
+        elif kind == "wait":
             key = (relation or "?", mode or "?")
             waits[key] = max(waits.get(key, 0.0), seconds)
         elif kind == "hold":
@@ -389,6 +392,7 @@ def rehearse_summary(args):
             label = f"oid {relation} (created by the running migration)" if relation.isdigit() else relation or "?"
             exclusive[label] = max(exclusive.get(label, 0.0), seconds)
     report = {
+        "sampler_ticks": ticks,
         "migrations": timings,
         "total_seconds": round(sum(t["seconds"] for t in timings), 3),
         "max_lock_wait_seconds": [
@@ -404,6 +408,10 @@ def rehearse_summary(args):
     for t in timings:
         print(f"{t['app'] + '.' + t['name']:60} {t['seconds']:9.3f}")
     print(f"{'total':60} {report['total_seconds']:9.3f}")
+    print(f"\nLock sampler: {ticks} samples (every 0.2 s)")
+    if ticks == 0:
+        print("ERROR: the lock sampler recorded nothing, so no lock result can be reported", file=sys.stderr)
+        return 1
     if report["max_lock_wait_seconds"]:
         print("\nLongest lock waits seen (relation, mode, seconds):")
         for w in report["max_lock_wait_seconds"][:15]:

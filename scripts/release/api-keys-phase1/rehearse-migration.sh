@@ -84,7 +84,9 @@ psql_c -d "$DBN" -At -c "SELECT name FROM django_migrations WHERE app = 'powered
 log "  powered_by migrations before: $(tr '\n' ' ' <"$OUT/powered_by-before.txt")"
 psql_c -d "$DBN" -c 'ANALYZE' >/dev/null
 
-SAMPLE_SQL="SELECT 'wait', now()::text, a.pid, coalesce(c.relname, l.locktype), l.mode,
+SAMPLE_SQL="SELECT 'tick', now()::text, pg_backend_pid(), '', '', 0
+UNION ALL
+SELECT 'wait', now()::text, a.pid, coalesce(c.relname, l.locktype), l.mode,
        round(extract(epoch FROM now() - a.query_start)::numeric, 3)
 FROM pg_locks l JOIN pg_stat_activity a ON a.pid = l.pid LEFT JOIN pg_class c ON c.oid = l.relation
 WHERE NOT l.granted AND a.datname = current_database()
@@ -95,14 +97,23 @@ FROM pg_locks l JOIN pg_stat_activity a ON a.pid = l.pid LEFT JOIN pg_class c ON
 WHERE l.granted AND l.locktype = 'relation' AND l.mode = 'AccessExclusiveLock'
   AND a.datname = current_database() AND a.pid <> pg_backend_pid()"
 step "lock sampler (every 0.2 s)$([[ "$READS" == 1 ]] && echo ' and a concurrent powered_by_project reader')"
-printf '%s \\watch 0.2\n' "$SAMPLE_SQL" | docker exec -i "$NAME" psql -X -q -At -F "$(printf '\t')" -U postgres -d "$DBN" >"$OUT/samples.tsv" 2>/dev/null &
-PIDS+=($!)
+printf '%s \\watch 0.2\n' "$SAMPLE_SQL" | docker exec -i "$NAME" psql -X -q -At -F "$(printf '\t')" -U postgres -d "$DBN" >"$OUT/samples.tsv" 2>"$OUT/sampler.err" &
+SAMPLER=$!
+PIDS+=("$SAMPLER")
+READER=""
 if [[ "$READS" == 1 ]]; then
   printf '%s \\watch 0.1\n' "SELECT count(*) FROM powered_by_project WHERE is_published" \
-    | docker exec -i "$NAME" psql -X -q -At -U postgres -d "$DBN" >/dev/null 2>&1 &
-  PIDS+=($!)
+    | docker exec -i "$NAME" psql -X -q -At -U postgres -d "$DBN" >"$OUT/reader.out" 2>"$OUT/reader.err" &
+  READER=$!
+  PIDS+=("$READER")
 fi
 sleep 1
+# The report means nothing if the sampler (or the reader) is not running: check before and after the migrations.
+alive() {
+  kill -0 "$SAMPLER" 2>/dev/null || die "the lock sampler stopped: $(cat "$OUT/sampler.err")"
+  [[ -z "$READER" ]] || kill -0 "$READER" 2>/dev/null || die "the concurrent reader stopped: $(cat "$OUT/reader.err")"
+}
+alive
 
 step "migrations of $CODE, one at a time"
 (
@@ -111,7 +122,11 @@ step "migrations of $CODE, one at a time"
     "$PY" "$RELEASE_DIR/django/rehearse_migrate.py"
 ) >"$OUT/timings.jsonl" 2>"$OUT/migrate.log" || { cat "$OUT/migrate.log" >&2; die "a migration failed (log: $OUT/migrate.log)"; }
 sleep 1
+alive
 for p in "${PIDS[@]}"; do kill "$p" 2>/dev/null || true; done
+if [[ -n "$READER" ]]; then
+  log "  concurrent reader ran $(grep -c . "$OUT/reader.out" || true) queries"
+fi
 
 psql_c -d "$DBN" -At -c "SELECT name FROM django_migrations WHERE app = 'powered_by' ORDER BY id" >"$OUT/powered_by-after.txt"
 psql_c -d "$DBN" -At -F "$(printf '\t')" -c "SELECT relname, n_live_tup FROM pg_stat_user_tables WHERE relname LIKE 'powered\_by\_%' OR relname LIKE 'api\_%' ORDER BY 1" >"$OUT/tables-after.tsv"

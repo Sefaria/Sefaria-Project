@@ -465,6 +465,9 @@ assert names[0] == "0003_developer_settings" and names[-1] == "0010_seed_mcp_tie
 print(r["total_seconds"])
 PY
 sed 's/^/    /' "$WORK/rehearsal/report.txt"
+: >"$WORK/empty-samples.tsv"
+refuses "a rehearsal summary with no sampler output is an error, not 'no lock waits'" "recorded nothing" \
+  "$PY" "$REL/release_lib.py" rehearse-summary --timings "$WORK/rehearsal/timings.jsonl" --samples "$WORK/empty-samples.tsv" --out "$WORK/empty-report.json"
 
 echo
 echo "1..$N"
