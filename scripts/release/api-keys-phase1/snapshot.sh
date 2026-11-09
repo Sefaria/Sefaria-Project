@@ -166,6 +166,7 @@ pg_ro "$DB" -At -F "$TAB" -c "SELECT table_name, (xpath('/row/c/text()', query_t
 pg_ro "$DB" -At -c "SELECT EXISTS (SELECT FROM pg_roles WHERE rolname = '$READER_ROLE')" >"$SNAP/db/reader-role.txt"
 fn="$(pg_ro "$DB" -At -c "SELECT pg_get_functiondef(p.oid) FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'apikeys_notify'")"
 if [[ -n "$fn" ]]; then printf '%s;\n' "$fn" >"$SNAP/db/apikeys_notify.sql"; fi
+notify_fn_sql | pg_ro "$DB" -At >"$SNAP/db/apikeys_notify.state"
 
 step "dumps"
 scoped_args=()

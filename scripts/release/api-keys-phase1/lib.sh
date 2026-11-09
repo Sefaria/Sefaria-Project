@@ -197,6 +197,13 @@ checksums_sql() {
   printf '%s\n' "$sql"
 }
 
+# SQL: md5 of apikeys_notify()'s definition, or "absent". The function is not part of any table, so the table schema
+# comparison does not see it.
+notify_fn_sql() {
+  echo "SELECT coalesce((SELECT md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public' AND p.proname = 'apikeys_notify'), 'absent');"
+}
+
 # Normalised schema of the named tables (pg_dump --schema-only), comparable across dump and restore.
 scoped_schema() {
   local db="$1"

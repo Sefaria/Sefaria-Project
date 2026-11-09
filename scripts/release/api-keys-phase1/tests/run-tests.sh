@@ -449,6 +449,12 @@ diff <("$PY" "$REL/release_lib.py" canonical-schema <"$SNAP/db/scoped-schema.sql
 ls "$SNAP"/restore-*/pre-restore.dump >/dev/null 2>&1 && ok "a fresh dump was taken before the restore" || notok "no pre-restore dump"
 check "master's code: no unapplied migrations on the restored database" manage "$MASTER_CODE" migrate --check
 check "master's code creates, lists and deletes a listing" django "$MASTER_CODE" "$HERE/django/master_listing_check.py"
+# A leftover apikeys_notify() alone means the database does not match the snapshot.
+psql_pod -c "CREATE FUNCTION apikeys_notify() RETURNS trigger LANGUAGE plpgsql AS \$\$ BEGIN RETURN NULL; END \$\$" >/dev/null
+"$REL/restore.sh" db --snapshot "$SNAP" --env preprod --context "$CTX" --scoped >"$LOGS/fn-only.log" 2>&1
+! grep -q "already matches" "$LOGS/fn-only.log" && grep -q "DRY RUN" "$LOGS/fn-only.log" \
+  && ok "a leftover apikeys_notify() is not 'already matches'" || notok "function-only difference ($LOGS/fn-only.log)"
+psql_pod -c "DROP FUNCTION apikeys_notify()" >/dev/null
 check "restore db --scoped again is a no-op" bash -c "'$REL/restore.sh' db --snapshot '$SNAP' --env preprod --context '$CTX' --scoped 2>&1 | grep 'already matches'"
 check "phase 1 migrates forward again after the restore" manage "$PHASE1_CODE" migrate --noinput
 check "master's code still lists after phase 1 re-migrated (old code on the new schema)" django "$MASTER_CODE" "$HERE/django/master_listing_check.py"
