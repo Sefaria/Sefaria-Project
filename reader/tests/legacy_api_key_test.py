@@ -63,3 +63,32 @@ def test_a_write_without_a_key_or_session_is_refused(legacy_key):
 
     assert "error" in post_collection(name)
     assert db.groups.find_one({"name": name}) is None
+
+
+@pytest.mark.django_db
+def test_a_legacy_key_in_the_x_api_key_header_identifies_its_user(legacy_key):
+    # GET /api/notes reads the caller through user_credentials(), which takes the key from the POST body or the
+    # x-api-key header; the auth service passes legacy keys through untouched.
+    from django.contrib.auth.models import AnonymousUser
+    from django.test import RequestFactory
+
+    from reader.views import user_credentials
+
+    user, key, _ = legacy_key
+    request = RequestFactory().get("/api/notes/Genesis.1.5", HTTP_X_API_KEY=key)
+    request.user = AnonymousUser()
+
+    assert user_credentials(request) == {"user_type": "API", "user_id": user.id}
+
+
+@pytest.mark.django_db
+def test_an_unknown_key_in_the_x_api_key_header_is_refused(legacy_key):
+    from django.contrib.auth.models import AnonymousUser
+    from django.test import RequestFactory
+
+    from reader.views import user_credentials
+
+    request = RequestFactory().get("/api/notes/Genesis.1.5", HTTP_X_API_KEY="legacy-test-unknown")
+    request.user = AnonymousUser()
+
+    assert user_credentials(request) == {"user_type": "API", "user_id": None, "error": "Unrecognized API key."}

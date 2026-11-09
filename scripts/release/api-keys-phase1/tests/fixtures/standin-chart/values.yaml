@@ -1,0 +1,3 @@
+deployEnv: preprod
+web:
+  image: kind.local/sefaria-web:master
