@@ -207,17 +207,23 @@ deploy_env() {  # deploy_env VAR -> the auth-service container's env value
   kubectl --context "$KCTX" -n "$NS" get "deploy/$CAULDRON-auth-service" \
     -o jsonpath="{.spec.template.spec.containers[0].env[?(@.name==\"$1\")].value}" 2>/dev/null
 }
+# The HelmRelease's inline value when it has one; without it (values from a ConfigMap, say), whether the
+# auth-service Deployment exists.
 flag_state() {
   local v; v="$(kubectl --context "$KCTX" -n "$NS" get "helmrelease/$CAULDRON" -o jsonpath='{.spec.values.authService.enabled}' 2>/dev/null)"
-  [ "$v" = true ] && echo on || echo off
+  case "$v" in
+    true) echo on ;;
+    false) echo off ;;
+    *) [ -n "$AUTH_MODE_SEEN" ] && echo on || echo off ;;
+  esac
 }
 web_pod() {
   kubectl --context "$KCTX" -n "$NS" get pods -l "app=web-$CAULDRON" --field-selector=status.phase=Running \
     -o jsonpath='{.items[0].metadata.name}'
 }
 
-FLAG="$(flag_state)"
 AUTH_MODE_SEEN="$(deploy_env AUTH_MODE)"
+FLAG="$(flag_state)"
 log "cauldron $CAULDRON: authService.enabled=$FLAG, AUTH_MODE=${AUTH_MODE_SEEN:-<no auth service>}"
 
 # to_file FILE COMMAND... -> runs it with its output masked into FILE; returns the command's exit status
