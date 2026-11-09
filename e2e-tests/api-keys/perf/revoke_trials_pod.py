@@ -46,8 +46,18 @@ def connect():
     return http.client.HTTPConnection(base.hostname, port, timeout=5)
 
 
+# The gateway's own denial codes (the auth service's JSON body). Any of them means the key was not accepted.
+GATEWAY_CODES = {"api_key_required", "api_key_invalid", "origin_not_allowed"}
+
+
+def passed_gateway(status, code):
+    """Passed the gateway: a 2xx, or a 4xx from Django itself (knn-search may refuse a bare GET), never a 401, a
+    gateway denial code, a redirect or a 5xx."""
+    return (200 <= status < 300 or 400 <= status < 500) and status != 401 and code not in GATEWAY_CODES
+
+
 def poll(key, want_deny):
-    """Seconds until the gateway's answer matches (denied: 401 api_key_invalid; allowed: below 500 and not 401)."""
+    """Seconds until the gateway's answer matches (denied: 401 api_key_invalid; allowed: see passed_gateway())."""
     t0 = time.monotonic()
     conn = None
     while time.monotonic() - t0 < timeout_s:
@@ -60,16 +70,16 @@ def poll(key, want_deny):
             resp = conn.getresponse()
             body = resp.read()
             status = resp.status
-            if status == 401:
+            if 400 <= status < 500:
                 try:
                     code = json.loads(body).get("code") or "-"
-                except ValueError:
+                except (ValueError, AttributeError):
                     code = "-"
         except (OSError, http.client.HTTPException):
             conn = None
         if status and (
             (want_deny and status == 401 and code == "api_key_invalid")
-            or (not want_deny and status != 401 and status < 500)
+            or (not want_deny and passed_gateway(status, code))
         ):
             return time.monotonic() - t0, status
         time.sleep(poll_s)

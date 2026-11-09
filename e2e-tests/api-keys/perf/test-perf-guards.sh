@@ -135,7 +135,7 @@ happy_env=(APIKEYS_CAULDRON=perf-guardtest APIKEYS_PERF_CAULDRON=perf-guardtest 
            APIKEYS_PERF_BASE=http://envoy-default-eg-0a1b2c3d.envoy-gateway-system.svc.cluster.local)
 results="$here/../results/perf-runs"
 run_fake() { : >"$tmp/calls"; : >"$tmp/created"; env PATH="$tmp/fake:$tmp:$PATH" "$@" >"$tmp/out" 2>&1; }
-run_fake "${happy_env[@]}" APIKEYS_PERF_KEY_FILE="$tmp/key" bash "$runner" latency; rc=$?
+run_fake "${happy_env[@]}" APIKEYS_PERF_KEY_FILE="$tmp/key" ARMS=anon bash "$runner" latency; rc=$?
 latest="$(ls -td "$results"/*-perf-guardtest-latency 2>/dev/null | head -1)"
 if [ $rc = 0 ] && [ -f "$latest/latency-flag-on.json" ] && grep -q '"apikeys-perf/run"' "$tmp/created" && grep -q 'kind: Job' "$tmp/created" \
     && grep -qE ' delete job,configmap,secret -l app.kubernetes.io/name=apikeys-perf,apikeys-perf/run=apikeys-perf-' "$tmp/calls" \
@@ -148,8 +148,25 @@ if [ $rc = 0 ] && [ -f "$latest/revoke.json" ] && grep -q -- '--teardown' "$tmp/
   echo "ok: revoke on a fake cluster seeds, times the trials and tears down"
 else echo "FAIL: revoke happy path (exit $rc)"; tail -5 "$tmp/out" | sed 's/^/    /'; fail=1; fi
 grep -rq sfr_fakemanifest "$latest" && { echo "FAIL: the seeder's manifest reached the results"; fail=1; } || echo "ok: the seeder's manifest (key values) never reaches the results"
-run_fake "${happy_env[@]}" FAKE_EMPTY_SUMMARY=1 bash "$runner" latency; rc=$?
+run_fake "${happy_env[@]}" FAKE_EMPTY_SUMMARY=1 ARMS=anon bash "$runner" latency; rc=$?
 [ $rc != 0 ] && echo "ok: a k6 summary with no samples fails the latency run" || { echo "FAIL: empty summary passed"; fail=1; }
+run_fake "${happy_env[@]}" APIKEYS_PERF_KEY_FILE="$tmp/key" bash "$runner" latency; rc=$?
+[ $rc != 0 ] && grep -q "lacks the requested arm(s) hit,miss" "$tmp/out" && echo "ok: a summary missing requested arms fails the latency run" \
+  || { echo "FAIL: missing arms passed (exit $rc)"; fail=1; }
+# The in-pod allow predicate: a gateway denial (403 origin_not_allowed), a redirect or a 5xx never counts as allowed.
+if python3 - "$here/revoke_trials_pod.py" <<'PY'
+import ast, sys
+tree = ast.parse(open(sys.argv[1]).read())
+ns = {}
+for node in tree.body:
+    if (isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id == "GATEWAY_CODES") \
+            or (isinstance(node, ast.FunctionDef) and node.name == "passed_gateway"):
+        exec(compile(ast.Module([node], []), "x", "exec"), ns)
+a = ns["passed_gateway"]
+assert a(200, "-") and a(405, "-") and a(400, "-")
+assert not a(401, "-") and not a(403, "origin_not_allowed") and not a(302, "-") and not a(502, "-") and not a(0, "-")
+PY
+then echo "ok: the in-pod allow predicate refuses gateway denials, redirects and 5xx"; else echo "FAIL: allow predicate"; fail=1; fi
 run_fake "${happy_env[@]}" FAKE_DELETE_RC=1 APIKEYS_PERF_KEY_FILE="$tmp/key" bash "$runner" latency; rc=$?
 [ $rc = 4 ] && grep -q "CLEANUP FAILED" "$tmp/out" && echo "ok: a failed cleanup fails the latency run (exit 4)" \
   || { echo "FAIL: failed cleanup gave exit $rc"; fail=1; }

@@ -269,15 +269,20 @@ latency() {
   to_file "$OUT/k6.log" kubectl --context "$KCTX" -n "$NS" logs "job/$NAME"
   local summary; summary="$(grep -m1 '^SUMMARY_JSON ' "$OUT/k6.log" | sed 's/^SUMMARY_JSON //')"
   [ -n "$summary" ] || die "no k6 summary in the job log (state $state; $OUT/k6.log)"
-  python3 - "$OUT/latency-flag-$FLAG.json" "$CAULDRON" "$FLAG" "${AUTH_MODE_SEEN:-}" "$summary" <<'PY'
+  python3 - "$OUT/latency-flag-$FLAG.json" "$CAULDRON" "$FLAG" "${AUTH_MODE_SEEN:-}" "$summary" "$ARMS" <<'PY'
 import json, sys
-path, cauldron, flag, mode, summary = sys.argv[1:6]
+path, cauldron, flag, mode, summary, wanted = sys.argv[1:7]
 doc = {"cauldron": cauldron, "flag": flag, "auth_mode": mode or None, "k6": json.loads(summary)}
 json.dump(doc, open(path, "w"), indent=2)
 for arm, v in doc["k6"]["arms"].items():
     print("%-4s n=%d p50=%.3f p99=%.3f max=%.3f ms checks=%s" % (arm, v["n"], v["p50"], v["p99"], v["max"], v["checks_rate"]))
-if not doc["k6"].get("arms") or any(not v.get("n") for v in doc["k6"]["arms"].values()):
-    sys.exit("the k6 summary has an arm with no samples")
+arms = doc["k6"].get("arms") or {}
+missing = [a for a in wanted.split(",") if a not in arms]
+if missing:
+    sys.exit("the k6 summary lacks the requested arm(s) %s" % ",".join(missing))
+bad = [a for a, v in arms.items() if not v.get("n") or v.get("checks_rate") != 1]
+if bad:
+    sys.exit("arm(s) %s have no samples or unexpected statuses" % ",".join(bad))
 PY
   [ "${PIPESTATUS[0]}" = 0 ] || { log "could not record the k6 summary"; return 1; }
   log "results: ${OUT#"$REPO"/}/latency-flag-$FLAG.json; with both runs: $0 compare <off.json> <on.json>"

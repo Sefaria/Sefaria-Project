@@ -130,8 +130,9 @@ def latency(res):
                     "fail",
                     "PERF-L %s %s added p99 %+.2f ms, over the local %.0f ms budget" % (mode, arm, v["p99"], budget),
                 )
-        if not arms:
-            say("fail", "PERF-L %s no k6 arms summary" % mode)
+        missing = [a for a in ("base", "anon", "hit", "miss") if a not in arms or not arms[a].get("n")]
+        if missing:
+            say("fail", "PERF-L %s arm(s) with no samples: %s" % (mode, ",".join(missing)))
         env = run.get("envoy_authsvc_rq_ms")
         if not env or env.get("p99") is None:
             say("fail", "PERF-L %s no Envoy upstream_rq_time histogram for the auth service" % mode)
@@ -163,8 +164,9 @@ def latency(res):
                     "pass" if delta == 0 else "fail",
                     "PERF-L %s Envoy %s during the run: %d (want 0)" % (mode, name, delta),
                 )
-    if not res.get("modes"):
-        say("fail", "PERF-L no mode was measured")
+    for mode in ("enforce", "observe"):
+        if mode not in res.get("modes", {}):
+            say("fail", "PERF-L %s was not measured" % mode)
     direct = res.get("direct", {})
     g = direct.get("grpc")
     if g:
