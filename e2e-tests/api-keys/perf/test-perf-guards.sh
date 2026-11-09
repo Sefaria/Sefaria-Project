@@ -84,8 +84,8 @@ else echo "FAIL: the Job manifest"; fail=1; fi
 
 # compare: added p50/p99 between a flag-off and a flag-on file, and it refuses swapped files.
 mk() {  # mk NAME FLAG P50 P99 [CAULDRON] [RATE] [ARM]
-  printf '{"cauldron": "%s", "flag": "%s", "k6": {"rate_per_arm": %s, "duration": "120s", "arms": {"%s": {"p50": %s, "p99": %s}}}}\n' \
-    "${5:-perf-x}" "$2" "${6:-25}" "${7:-anon}" "$3" "$4" >"$tmp/$1.json"
+  printf '{"cauldron": "%s", "flag": "%s", "ok": %s, "k6": {"rate_per_arm": %s, "duration": "120s", "arms": {"%s": {"n": 100, "checks_rate": 1, "p50": %s, "p99": %s}}}}\n' \
+    "${5:-perf-x}" "$2" "${8:-true}" "${6:-25}" "${7:-anon}" "$3" "$4" >"$tmp/$1.json"
 }
 mk off off 1.0 2.0; mk on on 2.5 5.5
 out="$(bash "$runner" compare "$tmp/off.json" "$tmp/on.json")"
@@ -94,7 +94,9 @@ echo "$out" | grep -q 'added p50 +1.500 ms (baseline +1.30), p99 +3.500 ms (base
 bash "$runner" compare "$tmp/on.json" "$tmp/off.json" >/dev/null 2>&1 && { echo "FAIL: compare accepted swapped files"; fail=1; } \
   || echo "ok: compare refuses a flag-on file as the baseline"
 mk other on 2.5 5.5 perf-y; mk fast on 2.5 5.5 perf-x 50; mk disjoint on 2.5 5.5 perf-x 25 hit
-for bad in other fast disjoint; do
+mk failed on 2.5 5.5 perf-x 25 anon false
+python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["k6"]["arms"]["hit"]=d["k6"]["arms"]["anon"]; json.dump(d,open(sys.argv[2],"w"))' "$tmp/on.json" "$tmp/morearms.json"
+for bad in other fast disjoint failed morearms; do
   bash "$runner" compare "$tmp/off.json" "$tmp/$bad.json" >/dev/null 2>&1 && { echo "FAIL: compare accepted $bad"; fail=1; } \
     || echo "ok: compare refuses runs that are not comparable ($bad)"
 done
@@ -156,8 +158,11 @@ if [ $rc = 0 ] && [ -f "$latest/revoke.json" ] && grep -q -- '--teardown' "$tmp/
   echo "ok: revoke on a fake cluster seeds, times the trials and tears down"
 else echo "FAIL: revoke happy path (exit $rc)"; tail -5 "$tmp/out" | sed 's/^/    /'; fail=1; fi
 grep -rq sfr_fakemanifest "$latest" && { echo "FAIL: the seeder's manifest reached the results"; fail=1; } || echo "ok: the seeder's manifest (key values) never reaches the results"
+rm -rf "$results"/*-perf-guardtest-latency   # a run in the same second would share the directory
 run_fake "${happy_env[@]}" FAKE_EMPTY_SUMMARY=1 ARMS=anon bash "$runner" latency; rc=$?
-[ $rc != 0 ] && echo "ok: a k6 summary with no samples fails the latency run" || { echo "FAIL: empty summary passed"; fail=1; }
+latest="$(ls -td "$results"/*-perf-guardtest-latency 2>/dev/null | head -1)"
+[ $rc != 0 ] && [ -f "$latest/latency-flag-on.failed.json" ] && [ ! -f "$latest/latency-flag-on.json" ] \
+  && echo "ok: a k6 summary with no samples fails the run and is kept only as .failed.json" || { echo "FAIL: empty summary (exit $rc)"; fail=1; }
 run_fake "${happy_env[@]}" APIKEYS_PERF_KEY_FILE="$tmp/key" bash "$runner" latency; rc=$?
 [ $rc != 0 ] && grep -q "lacks the requested arm(s) hit,miss" "$tmp/out" && echo "ok: a summary missing requested arms fails the latency run" \
   || { echo "FAIL: missing arms passed (exit $rc)"; fail=1; }

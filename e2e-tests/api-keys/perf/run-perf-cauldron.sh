@@ -64,7 +64,14 @@ if off.get("cauldron") != on.get("cauldron"):
 for field in ("rate_per_arm", "duration"):
     if off["k6"].get(field) != on["k6"].get(field):
         sys.exit("compare: the runs differ in %s (%s, %s)" % (field, off["k6"].get(field), on["k6"].get(field)))
-common = [a for a in ("anon", "hit", "miss") if a in off["k6"].get("arms", {}) and a in on["k6"].get("arms", {})]
+for name, doc in (("flag-off", off), ("flag-on", on)):
+    if doc.get("ok") is not True:
+        sys.exit("compare: the %s run is not a successful measurement (%s)" % (name, "; ".join(doc.get("problems") or ["no ok field"])))
+    if any(not v.get("n") or v.get("checks_rate") != 1 for v in doc["k6"].get("arms", {}).values()):
+        sys.exit("compare: the %s run has an arm with no samples or unexpected statuses" % name)
+if set(off["k6"].get("arms", {})) != set(on["k6"].get("arms", {})):
+    sys.exit("compare: the runs have different arms (%s, %s): the total load differs" % (",".join(off["k6"]["arms"]), ",".join(on["k6"]["arms"])))
+common = [a for a in ("anon", "hit", "miss") if a in off["k6"]["arms"]]
 if not common:
     sys.exit("compare: the runs share no arm")
 for arm in common:
@@ -277,24 +284,33 @@ latency() {
   to_file "$OUT/k6.log" kubectl --context "$KCTX" -n "$NS" logs "job/$NAME"
   local summary; summary="$(grep -m1 '^SUMMARY_JSON ' "$OUT/k6.log" | sed 's/^SUMMARY_JSON //')"
   [ -n "$summary" ] || die "no k6 summary in the job log (state $state; $OUT/k6.log)"
-  python3 - "$OUT/latency-flag-$FLAG.json" "$CAULDRON" "$FLAG" "${AUTH_MODE_SEEN:-}" "$summary" "$ARMS" <<'PY'
+  # The result file is written only for a complete, successful run ("ok": true); anything else goes to
+  # latency-flag-<flag>.failed.json, which compare refuses.
+  python3 - "$OUT/latency-flag-$FLAG" "$CAULDRON" "$FLAG" "${AUTH_MODE_SEEN:-}" "$summary" "$ARMS" "$state" <<'PY'
 import json, sys
-path, cauldron, flag, mode, summary, wanted = sys.argv[1:7]
-doc = {"cauldron": cauldron, "flag": flag, "auth_mode": mode or None, "k6": json.loads(summary)}
-json.dump(doc, open(path, "w"), indent=2)
-for arm, v in doc["k6"]["arms"].items():
-    print("%-4s n=%d p50=%.3f p99=%.3f max=%.3f ms checks=%s" % (arm, v["n"], v["p50"], v["p99"], v["max"], v["checks_rate"]))
+stem, cauldron, flag, mode, summary, wanted, state = sys.argv[1:8]
+doc = {"cauldron": cauldron, "flag": flag, "auth_mode": mode or None, "job_state": state, "k6": json.loads(summary)}
 arms = doc["k6"].get("arms") or {}
+for arm, v in arms.items():
+    print("%-4s n=%d p50=%.3f p99=%.3f max=%.3f ms checks=%s" % (arm, v["n"], v["p50"], v["p99"], v["max"], v["checks_rate"]))
+problems = []
+if state != "1/":
+    problems.append("the k6 job did not succeed (%s): a threshold crossed, see k6.log" % state)
 missing = [a for a in wanted.split(",") if a not in arms]
 if missing:
-    sys.exit("the k6 summary lacks the requested arm(s) %s" % ",".join(missing))
+    problems.append("the k6 summary lacks the requested arm(s) %s" % ",".join(missing))
 bad = [a for a, v in arms.items() if not v.get("n") or v.get("checks_rate") != 1]
 if bad:
-    sys.exit("arm(s) %s have no samples or unexpected statuses" % ",".join(bad))
+    problems.append("arm(s) %s have no samples or unexpected statuses" % ",".join(bad))
+doc["ok"] = not problems
+doc["problems"] = problems
+path = stem + (".json" if doc["ok"] else ".failed.json")
+json.dump(doc, open(path, "w"), indent=2)
+print("results: " + path)
+sys.exit("; ".join(problems) if problems else 0)
 PY
-  [ "${PIPESTATUS[0]}" = 0 ] || { log "could not record the k6 summary"; return 1; }
-  log "results: ${OUT#"$REPO"/}/latency-flag-$FLAG.json; with both runs: $0 compare <off.json> <on.json>"
-  [ "$state" = "1/" ] || { log "the k6 job did not succeed ($state): a threshold crossed (see k6.log)"; return 1; }
+  [ "${PIPESTATUS[0]}" = 0 ] || { log "the latency run is not a valid measurement (see above)"; return 1; }
+  log "with both runs: $0 compare <off.json> <on.json>"
 }
 
 seed_exec() {
