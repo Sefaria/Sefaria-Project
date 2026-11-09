@@ -1,7 +1,1 @@
-{
-  "success": true,
-  "message": "Preferences updated successfully",
-  "email": "test@example.com",
-  "subscribedNewsletters": ["sefaria-news-resources-english"],
-  "marketingOptOut": false
-}
+{"success": true, "message": "Preferences updated successfully", "email": "test@example.com", "subscribedNewsletters": ["sefaria-news-resources-english"], "marketingOptOut": false}
