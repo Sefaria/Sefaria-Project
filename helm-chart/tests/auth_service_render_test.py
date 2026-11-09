@@ -22,7 +22,14 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 CHART = ROOT / "helm-chart" / "sefaria"
 ENVS = ("staging", "preprod", "prod")
-SEFARIA_HEADERS = {"x-sefaria-tier", "x-sefaria-project", "x-sefaria-auth-result", "x-sefaria-meter"}
+SEFARIA_HEADERS = {
+    "x-sefaria-tier",
+    "x-sefaria-project",
+    "x-sefaria-auth-result",
+    "x-sefaria-meter",
+    # nginx echoes this one to the caller, so a forged copy would be shown as the auth service's answer.
+    "x-sefaria-key-status",
+}
 NGINX_LOG_FIELDS = {
     "sefariaProject": "$http_x_sefaria_project",
     "sefariaTier": "$http_x_sefaria_tier",
