@@ -8,7 +8,6 @@ import {
   accountVerified,
   cancelConfirmation,
   claimListing,
-  confirmationLink,
   createKey,
   createProject,
   deleteKey,
@@ -16,7 +15,6 @@ import {
   dismissListing,
   emptyState,
   enableDeveloper,
-  mockAction,
   parseWebsite,
   readState,
   requestNewLink,
@@ -287,188 +285,6 @@ const useDialogKeys = (focusRef, onEscape) => {
       }
     };
   }, []);
-};
-
-const PANEL_OPEN_KEY = 'sefariaDeveloperPocPanelOpen';
-
-const readPanelOpen = () => {
-  try {
-    return window.localStorage.getItem(PANEL_OPEN_KEY) === '1';
-  } catch (e) {
-    return false;
-  }
-};
-
-const writePanelOpen = (open) => {
-  try {
-    window.localStorage.setItem(PANEL_OPEN_KEY, open ? '1' : '0');
-  } catch (e) {
-    /* ignore */
-  }
-};
-
-/* Test controls, shown only where the server has DEVELOPER_SETTINGS_MOCKS on. Deliberately
-   unlike the product: a floating panel pinned to the corner of the viewport, in colours the
-   site never uses, and English only. They change the real data of the logged-in account. */
-/* Starting points for a walkthrough; each one clears developer settings back to "Get started". */
-const ACCOUNT_SCENARIOS = [
-  { id: 'sso', label: 'Google or Apple account', ssoOverride: true },
-  { id: 'email', label: 'Email account, unconfirmed', ssoOverride: false },
-  { id: 'email-confirmed', label: 'Email account, confirmed', ssoOverride: false, emailVerified: true },
-];
-
-const accountStatus = (state) => {
-  const kind = state.ssoConnected ? 'Google or Apple account' : 'Email account';
-  const email = state.emailVerified
-    ? 'email confirmed'
-    : state.confirmationSentAt
-      ? 'confirmation link sent'
-      : 'email not confirmed';
-  const dev = !state.developerEnabled
-    ? 'developer settings not started'
-    : !state.profile
-      ? 'at About you'
-      : state.projects.length + ' project' + (state.projects.length === 1 ? '' : 's');
-  return 'Now: ' + kind + ' · ' + email + ' · ' + dev;
-};
-
-const TestPanel = ({ state, mock, onOpenMockEmail }) => {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    setOpen(readPanelOpen());
-  }, []);
-
-  const toggle = (next) => {
-    setOpen(next);
-    writePanelOpen(next);
-  };
-
-  const realProviders = state.mock.realSsoProviders || [];
-  const realLabel = realProviders.length
-    ? 'Real account: ' + realProviders.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(' + ') + ' connected'
-    : 'Real account: no Google or Apple connection';
-  const pretending = state.mock.ssoOverride !== null;
-  const email = accountEmail();
-
-  return (
-    <div className="devPocPanel" data-open={open ? 'true' : 'false'} lang="en">
-      <button type="button" className="devPocPanelPill" aria-expanded={open} onClick={() => toggle(true)}>
-        🧪 Test controls
-      </button>
-      <div className="devPocPanelBody">
-        <div className="devPocPanelHeader">
-          <div>
-            <p className="devPocPanelTitle">TEST CONTROLS</p>
-            <p className="devPocPanelSub">
-              Test environments only. They change this account&apos;s real developer data.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="devPocPanelClose"
-            aria-label="Collapse test controls"
-            onClick={() => toggle(false)}
-          >
-            Hide
-          </button>
-        </div>
-
-        <div className="devPocPanelGroup">
-          <div className="devPocPanelGroupLabel">Start over as</div>
-          <div className="devPocPanelRow devPocPanelScenarios">
-            {ACCOUNT_SCENARIOS.map((sc) => (
-              <button
-                key={sc.id}
-                type="button"
-                className="devPocPanelButton"
-                data-scenario={sc.id}
-                onClick={() => mock('start-over', { ssoOverride: sc.ssoOverride, emailVerified: !!sc.emailVerified })}
-              >
-                {sc.label}
-              </button>
-            ))}
-          </div>
-          <p className="devPocPanelNote">
-            Each deletes this account&apos;s projects (revoking their keys), claimed listings included, and starts at
-            &quot;Get started&quot;. &quot;Add a listing submitted with my email&quot; makes a new one to claim.
-          </p>
-        </div>
-
-        <div className="devPocPanelGroup">
-          <div className="devPocPanelGroupLabel">Account state now</div>
-          <p className="devPocPanelNote devPocPanelStatus" role="status">
-            {accountStatus(state)}
-          </p>
-          <label className="devPocPanelChoice">
-            <input
-              type="checkbox"
-              className="devPocSwitch"
-              checked={!!state.ssoConnected}
-              onChange={(e) => mock('sso', { ssoOverride: e.target.checked })}
-              aria-label="Simulate Google or Apple connected"
-            />
-            <span>Google or Apple {state.ssoConnected ? 'connected' : 'not connected'}</span>
-          </label>
-          <label className="devPocPanelChoice">
-            <input
-              type="checkbox"
-              className="devPocSwitch"
-              checked={!!state.emailVerified}
-              onChange={(e) => mock('email-verified', { emailVerified: e.target.checked })}
-              aria-label="Email confirmed"
-            />
-            <span>Email {state.emailVerified ? 'confirmed' : 'not confirmed'}</span>
-          </label>
-          <p className="devPocPanelNote">
-            {realLabel}
-            {pretending ? ' (simulated value in use)' : ''}
-          </p>
-          {pretending ? (
-            <div className="devPocPanelRow">
-              <button type="button" className="devPocPanelButton" onClick={() => mock('sso', { ssoOverride: null })}>
-                Use real Google or Apple status
-              </button>
-            </div>
-          ) : null}
-          <div className="devPocPanelRow">
-            <button
-              type="button"
-              className="devPocPanelButton"
-              disabled={!state.mock.confirmationKey}
-              data-agent-action="mock-open-email"
-              onClick={onOpenMockEmail}
-            >
-              Open the confirmation email
-            </button>
-          </div>
-          <p className="devPocPanelNote">
-            {state.mock.confirmationKey
-              ? 'A link was "sent" (no email goes out here). Open the email: its button is the real link, and this tab moves on within a few seconds.'
-              : 'Enabled after "Email me a confirmation link".'}
-          </p>
-        </div>
-
-        <div className="devPocPanelGroup">
-          <div className="devPocPanelGroupLabel">Powered by listings</div>
-          <div className="devPocPanelRow">
-            <button
-              type="button"
-              className="devPocPanelButton"
-              data-poc-control="create-listing"
-              onClick={() => mock('create-listing')}
-            >
-              Add a listing submitted with my email
-            </button>
-          </div>
-          <p className="devPocPanelNote">
-            Creates an unclaimed Powered by row with {email || 'the account email'} as its submitter, as if it came in
-            through the public form. Once developer settings are set up, it asks &quot;Is this your project?&quot;.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 /* One entry per settings section. A new section is an entry here, a panel in
@@ -2931,69 +2747,6 @@ const DeveloperTab = ({
   );
 };
 
-/* The confirmation email as the user would get it, in the interface language, for copy
-   review. Its button is the emailed link, and opens in a new tab as a mail client would. */
-const MockEmailDialog = ({ confirmationKey, onCancel }) => {
-  const confirmRef = useRef(null);
-  const email = accountEmail() || 'you@example.org';
-  useDialogKeys(confirmRef, onCancel);
-  return (
-    <div className="devPocMockSso" role="dialog" aria-modal="true" aria-label="Confirmation email">
-      <div className="devPocMockSsoBackdrop" onClick={onCancel} />
-      <div className="devPocMockSsoDialog devPocMockEmail">
-        <p className="devPocMockSsoBanner" lang="en" dir="ltr">
-          MOCK &mdash; the email the user receives; no email is sent
-        </p>
-        <div className="devPocMockSsoBody">
-          <p className="devPocMockEmailMeta" dir="ltr">
-            Sefaria &lt;hello@sefaria.org&gt; → {email}
-          </p>
-          <h2>
-            <InterfaceText
-              text={{
-                en: 'Confirm your email for Sefaria developer settings',
-                he: 'אישור כתובת הדוא״ל להגדרות המפתחים בספריא',
-              }}
-            />
-          </h2>
-          <p>
-            <InterfaceText
-              text={{
-                en: 'Someone, hopefully you, asked to set up developer settings on the Sefaria account that uses this address. Confirm it to continue. The link works for 3 days.',
-                he: 'מישהו, כנראה את/ה, ביקש להגדיר הגדרות מפתחים בחשבון ספריא שמשתמש בכתובת הזו. אשרו אותה כדי להמשיך. הקישור בתוקף 3 ימים.',
-              }}
-            />
-          </p>
-          <div className="devPocMockSsoActions">
-            <button type="button" className="devPocMockSsoCancel" onClick={onCancel}>
-              Close
-            </button>
-            <a
-              className="devPocMockSsoContinue"
-              href={confirmationLink(confirmationKey)}
-              target="_blank"
-              rel="noopener noreferrer"
-              ref={confirmRef}
-              data-agent-action="mock-confirm-email"
-              onClick={onCancel}
-            >
-              <InterfaceText text={{ en: 'Confirm my email', he: 'אישור כתובת הדוא״ל' }} />
-            </a>
-          </div>
-          <p className="devPocMockEmailFoot">
-            <InterfaceText
-              text={{
-                en: "Didn't ask for this? Ignore this email and nothing changes.",
-                he: 'לא ביקשת? אפשר להתעלם מההודעה, ושום דבר לא ישתנה.',
-              }}
-            />
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 /* ---- Account settings tab ---- */
 
 /* The settings this page last showed or saved. ReaderApp leaves them out of browser history, so
@@ -3497,7 +3250,6 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
   const [editingProfile, setEditingProfile] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const [notice, setNotice] = useState('');
-  const [mockEmailOpen, setMockEmailOpen] = useState(false);
   const [connectedMessage, setConnectedMessage] = useState('');
   const [settingUp, setSettingUp] = useState(false);
   const [arrivalHighlight, setArrivalHighlight] = useState(false);
@@ -3717,7 +3469,6 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
   }, [confirmationSentAt]);
 
   const emailConfirmed = (server) => {
-    setMockEmailOpen(false);
     showDeveloper(() => {
       if (pageMounted.current) {
         setDeveloperState(server);
@@ -3742,20 +3493,6 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
       () => {}
     );
   };
-
-  const mock = (action, fields) =>
-    run(mockAction(action, fields)).then(
-      () => {
-        if (action === 'start-over') {
-          setShowNewProject(false);
-          setEditingProfile(false);
-          setConfirm(null);
-          setNotice('');
-          expandProject(null);
-        }
-      },
-      () => {}
-    );
 
   if (!settings) {
     return null;
@@ -3821,18 +3558,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
           {hasDeveloper ? <AgentInstructions /> : null}
         </div>
       </div>
-      <div className="devPocPage">
-        {confirm ? <ConfirmDialog confirm={confirm} onClose={closeConfirm} /> : null}
-        {mockEmailOpen && developerState.mock && developerState.mock.confirmationKey ? (
-          <MockEmailDialog
-            confirmationKey={developerState.mock.confirmationKey}
-            onCancel={() => setMockEmailOpen(false)}
-          />
-        ) : null}
-        {developerState.mock ? (
-          <TestPanel state={developerState} mock={mock} onOpenMockEmail={() => setMockEmailOpen(true)} />
-        ) : null}
-      </div>
+      <div className="devPocPage">{confirm ? <ConfirmDialog confirm={confirm} onClose={closeConfirm} /> : null}</div>
     </div>
   );
 };
