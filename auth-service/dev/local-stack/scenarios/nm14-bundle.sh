@@ -10,7 +10,7 @@ LIMIT_KB="${LIMIT_KB:-60}"
 BRANCH_REF="$(git -C "$REPO" rev-parse "${1:-HEAD}")"
 MASTER_REF="$(git -C "$REPO" rev-parse "${2:-$(git -C "$REPO" merge-base HEAD origin/master)}")"
 OUT="$D11_DIR/nm14"; mkdir -p "$OUT"
-trap 'drop_worktree /private/tmp/apikeys-d11-nm14-branch; drop_worktree /private/tmp/apikeys-d11-nm14-master' EXIT
+trap 'drop_worktree "${D11_TMP%/}/apikeys-d11-nm14-branch"; drop_worktree "${D11_TMP%/}/apikeys-d11-nm14-master"' EXIT
 
 build() {  # build NAME REF -> prints "raw gzip" bytes of the client bundle
   local wt; wt="$(tmp_worktree "nm14-$1" "$2")"

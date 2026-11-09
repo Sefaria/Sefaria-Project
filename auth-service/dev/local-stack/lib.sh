@@ -4,7 +4,9 @@ REPO="$(cd "$STACK_DIR/../../.." && pwd)"
 PROJECT=sefaria-apikeys-stack
 STATE_DIR="${APIKEYS_STACK_STATE_DIR:-$REPO/.claude/scratch/apikeys-stack}"
 export STACK_RUN_DIR="$STATE_DIR/run"
+if [ -z "${APIKEYS_STACK_PYTHON:-}" ] && [ -x "$REPO/.venv/bin/python" ]; then APIKEYS_STACK_PYTHON="$REPO/.venv/bin/python"; fi
 PYTHON="${APIKEYS_STACK_PYTHON:-$HOME/.pyenv/versions/senv/bin/python}"
+export APIKEYS_STACK_PYTHON="$PYTHON"
 DJANGO_PORTS=(8100 8101)
 
 # Where host Django listens, and what containers resolve host.docker.internal to. Docker Desktop forwards

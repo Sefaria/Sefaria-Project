@@ -7,7 +7,7 @@ set -uo pipefail
 source "$(dirname "$0")/lib.sh"
 
 REF="${1:-origin/master}"
-WT="${D11_MASTER_WT:-/private/tmp/apikeys-d11-master}"
+WT="${D11_MASTER_WT:-${D11_TMP%/}/apikeys-d11-master}"
 drill_up
 git -C "$REPO" worktree remove --force "$WT" >/dev/null 2>&1 || true
 git -C "$REPO" worktree add --detach "$WT" "$REF" >/dev/null 2>&1 || die "worktree add $REF failed"

@@ -17,6 +17,8 @@ D11_PROJECT=sefaria-apikeys-d11
 D11_DIR="${APIKEYS_D11_DIR:-$REPO/.claude/scratch/apikeys-d11}"
 export D11_RUN_DIR="$D11_DIR/run"
 D11_PG_PORT=55439
+# Temporary worktrees of other refs (D-series, N-M9, N-M14). macOS' /private/tmp is not on Linux.
+D11_TMP="${APIKEYS_D11_TMP:-${TMPDIR:-/tmp}}"
 D11_HTTP=http://127.0.0.1:28080
 D11_ADMIN=http://127.0.0.1:29000
 export GW_HC=20080 GW_NOHC=20082 GW_NOAUTHZ=20083 GATED=/api/knn-search
@@ -117,9 +119,9 @@ seed_project() {
   psql_su -c "INSERT INTO powered_by_project (id, created_at, updated_at, submission_source, creator, creator_email,
       submitter, is_developer, job_title, found_sefaria, sefaria_tools_used, tech_used_raw, technical_experience,
       vibe_coded, project_why, project_name, project_link, project_reach, project_desc, project_category,
-      has_pbs_logo, tags, status, is_buggy, consent_to_display, is_published, featured, notes)
+      has_pbs_logo, tags, status, is_buggy, request_not_to_publish, is_published, featured, notes)
     VALUES ($PROJECT_ID, now(), now(), 'developer_settings', 'Drill', 'apikeys-e2e-d11-drill@example.com', '', true,
-      '', '', '[]', '', '', false, '', 'Stack drill', '', '', '', '', false, '[]', 'unknown', false, false, false,
+      '', '', '[]', '', '', false, '', 'Stack drill', '', '', '', '', false, '[]', 'unknown', false, true, false,
       false, 'E2E api-keys d11 drill (local only)')
     ON CONFLICT (id) DO UPDATE SET deleted_at = NULL" >/dev/null
   # the profile's live api_project row (tier developer), created once; set_project_tier moves it between tiers
@@ -198,10 +200,10 @@ fsub() { python3 -c "print('%.1f' % ($1 - $2))"; }
 
 # --- temporary worktrees (removed by the caller's trap) -----------------------------------------------------------
 
-# tmp_worktree NAME REF [BRANCH] -> prints the path of a fresh worktree of REF under /private/tmp; with BRANCH, on
+# tmp_worktree NAME REF [BRANCH] -> prints the path of a fresh worktree of REF under $D11_TMP; with BRANCH, on
 # that local branch (reset to REF), otherwise detached
 tmp_worktree() {
-  local wt="/private/tmp/apikeys-d11-$1"
+  local wt="${D11_TMP%/}/apikeys-d11-$1"
   git -C "$REPO" worktree remove --force "$wt" >/dev/null 2>&1 || rm -rf "$wt"
   git -C "$REPO" worktree prune
   if [ -n "${3:-}" ]; then

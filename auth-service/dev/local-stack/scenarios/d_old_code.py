@@ -63,9 +63,9 @@ def project_row(name, owner=None, source="developer_settings"):
         INSERT INTO powered_by_project (created_at, updated_at, submission_source, creator, creator_email, submitter,
           is_developer, job_title, found_sefaria, sefaria_tools_used, tech_used_raw, technical_experience, vibe_coded,
           project_why, project_name, project_link, project_reach, project_desc, project_category, has_pbs_logo, tags,
-          status, is_buggy, consent_to_display, is_published, featured, notes, owner_id)
+          status, is_buggy, request_not_to_publish, is_published, featured, notes, owner_id)
         VALUES (now(), now(), %s, 'D11', 'apikeys-e2e-d11-old@example.com', '', true, '', '', '[]', '', '', false, '',
-          %s, '', '', '', '', false, '[]', 'unknown', false, false, false, false, %s, %s)
+          %s, '', '', '', '', false, '[]', 'unknown', false, true, false, false, %s, %s)
         RETURNING id""",
         [source, name, MARK, owner],
     )[0][0]
