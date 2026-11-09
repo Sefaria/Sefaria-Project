@@ -140,8 +140,10 @@ print(spec.get("releaseName") or (f"{target}-{name}" if target else name))' "$di
   fi
   # Default table output is printed server side, so no Secret data reaches this machine.
   # shellcheck disable=SC2046
-  kc -n "$ns" get secret $(cat "$dir/secrets-expected.txt") --ignore-not-found --no-headers 2>/dev/null \
-    | awk '{print $1}' >"$dir/secrets-present.txt" || true
+  if ! present="$(kc -n "$ns" get secret $(cat "$dir/secrets-expected.txt") --ignore-not-found --no-headers)"; then
+    die "could not read the Secrets of namespace $ns (names only); check your access"
+  fi
+  awk '{print $1}' <<<"$present" | sed '/^$/d' >"$dir/secrets-present.txt"
   pod="$(awk -F'\t' '$2 == "Running" {print $1; exit}' "$dir/web-pods.tsv")"
   if [[ -n "$pod" ]]; then
     web_current_database "$ns" "$pod" >"$dir/current-database.txt" || log "WARNING: current_database() failed on $ns/$pod"
