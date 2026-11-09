@@ -1,0 +1,46 @@
+# The shared database: a postgres:18 StatefulSet named postgres-18 in default (pod postgres-18-0, container
+# postgres-18), as in the infrastructure repo's prod/cluster-1/spec/postgres-18. Test credentials only.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-18-secret
+  namespace: default
+stringData:
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: sefaria_auth
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-18
+  namespace: default
+spec:
+  selector: {app: postgres-18}
+  ports: [{port: 5432, targetPort: 5432}]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-18
+  namespace: default
+spec:
+  replicas: 1
+  serviceName: postgres-18
+  selector:
+    matchLabels: {app: postgres-18}
+  template:
+    metadata:
+      labels: {app: postgres-18}
+    spec:
+      containers:
+        - name: postgres-18
+          image: kind.local/postgres:18
+          imagePullPolicy: Never
+          args: ["-c", "max_connections=300", "-c", "shared_buffers=300MB", "-c", "timezone=UTC"]
+          envFrom:
+            - secretRef: {name: postgres-18-secret}
+          ports: [{containerPort: 5432}]
+          readinessProbe:
+            exec: {command: ["pg_isready", "-U", "postgres"]}
+            periodSeconds: 2
