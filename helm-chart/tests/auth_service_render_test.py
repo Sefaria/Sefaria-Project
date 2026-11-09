@@ -75,16 +75,38 @@ def nginx_log_format(objects):
     return match.group(1)
 
 
-def check_log_format_never_logs_a_key(where, log_format):
+# Every variable the access log may record. A credential can arrive in the query string, the referer, a cookie or any
+# request header, so a new variable fails the test until someone has checked it cannot carry a key. The URI and referer
+# appear only in their scrubbed form, and the x-sefaria-* fields only with the flag on.
+LOGGED_VARIABLES = {
+    "ENV_NAME",
+    "body_bytes_sent",
+    "credential_transport",
+    "hostname",
+    "http_origin",
+    "http_user_agent",
+    "http_x_forwarded_proto",
+    "http_x_original_forwarded_for",
+    "referer_scrubbed",
+    "remote_user",
+    "request_length",
+    "request_method",
+    "request_time",
+    "request_uri_scrubbed",
+    "sec_fetch",
+    "server_protocol",
+    "session_cookie",
+    "status",
+    "time_local",
+    "varnish_cache",
+}
+
+
+def check_log_format_never_logs_a_key(where, log_format, allowed):
     check('"requestUrl": "$request_uri_scrubbed"' in log_format, f"{where}: nginx logs the scrubbed request URI")
     check('"referer": "$referer_scrubbed"' in log_format, f"{where}: nginx logs the scrubbed referer")
-    check(
-        not re.search(
-            r"\$(request_uri|http_referer|args|query_string|arg_\w+|http_x_api_key|http_authorization|http_cookie)\b",
-            log_format,
-        ),
-        f"{where}: nginx logs no raw URI, query string, referer, key, Authorization or cookie header",
-    )
+    unexpected = set(re.findall(r"\$\{?(\w+)", log_format)) - allowed
+    check(not unexpected, f"{where}: nginx logs only reviewed variables (unexpected: {sorted(unexpected)})")
 
 
 def check_off(env, objects):
@@ -99,7 +121,7 @@ def check_off(env, objects):
     )
     log_format = nginx_log_format(objects)
     check(not any(field in log_format for field in NGINX_LOG_FIELDS), f"{where}: no x-sefaria-* nginx log fields")
-    check_log_format_never_logs_a_key(where, log_format)
+    check_log_format_never_logs_a_key(where, log_format, LOGGED_VARIABLES)
 
 
 def check_on(env, objects):
@@ -154,7 +176,8 @@ def check_on(env, objects):
         all(f'"{field}": "{variable}"' in log_format for field, variable in NGINX_LOG_FIELDS.items()),
         f"{where}: nginx logs {sorted(NGINX_LOG_FIELDS)} from the ext_authz headers",
     )
-    check_log_format_never_logs_a_key(where, log_format)
+    allowed = LOGGED_VARIABLES | {variable.lstrip("$") for variable in NGINX_LOG_FIELDS.values()}
+    check_log_format_never_logs_a_key(where, log_format, allowed)
 
 
 def main():
