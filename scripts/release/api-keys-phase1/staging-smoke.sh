@@ -98,7 +98,10 @@ else
 fi
 
 http GET /api/powered-by
-count="$("$PYTHON" -c 'import json,sys; print(len(json.load(open(sys.argv[1])).get("projects", [])))' "$tmp/b" 2>/dev/null || echo "")"
+count=""
+if [[ "$CODE" == 200 ]]; then
+  count="$("$PYTHON" -c 'import json,sys; p=json.load(open(sys.argv[1])).get("projects"); assert isinstance(p, list); print(len(p))' "$tmp/b" 2>/dev/null || echo "")"
+fi
 if [[ -n "$RECORD" ]]; then
   EXPECT="$("$PYTHON" -c 'import json,sys; print(json.load(open(sys.argv[1]))["listed_after_merge"])' "$RECORD")"
 fi

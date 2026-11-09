@@ -149,18 +149,19 @@ elif [[ -z "$envfile" ]]; then
 elif ! command -v gcloud >/dev/null 2>&1; then
   skip "image tags: gcloud is not installed"
 else
-  images="$(printf '%s\n' "$envfile" | "$PYTHON" -c '
-import re, sys
-text = sys.stdin.read()
-for m in re.finditer(r"(?:imageRegistry|repository):\s*(\S+)\s*\n\s*tag:\s*\"?([^\"\s]+)\"?", text):
-    print(f"{m.group(1)}:{m.group(2)}")')" || images=""
-  [[ -n "$images" ]] || fail "no image tags found in envs/$ENV/helmrelease.yaml"
-  while read -r image; do
-    [[ -n "$image" ]] || continue
-    if gcloud artifacts docker images describe "$image" --format='value(image_summary.digest)' >/dev/null 2>&1; then
-      pass "image $image exists"
+  images="$(printf '%s\n' "$envfile" | "$PYTHON" "$RELEASE_PY" env-images)" || images=""
+  [[ -n "$images" ]] || fail "could not read the image tags of envs/$ENV/helmrelease.yaml"
+  while IFS="$TAB" read -r component repo tag; do
+    [[ -n "$component" ]] || continue
+    if [[ -z "$repo" || -z "$tag" ]]; then
+      # authService ships with an empty tag until a release writes one; every other component must have both.
+      if [[ "$component" == authService ]]; then skip "authService image: no tag in the env file yet"; else fail "$component image: repository '$repo', tag '$tag' in envs/$ENV/helmrelease.yaml"; fi
+      continue
+    fi
+    if gcloud artifacts docker images describe "$repo:$tag" --format='value(image_summary.digest)' >/dev/null 2>&1; then
+      pass "$component image $repo:$tag exists"
     else
-      fail "image $image not found in Artifact Registry"
+      fail "$component image $repo:$tag not found in Artifact Registry"
     fi
   done <<<"$images"
 fi

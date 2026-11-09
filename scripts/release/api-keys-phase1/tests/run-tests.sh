@@ -316,6 +316,15 @@ refuses "preflight fails when a migration outside phase 1 is pending" "outside p
 check "preflight passes when that migration is acknowledged with --allow-pending" \
   "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --allow-pending reader/0099_release_test
 git -C "$FIX" reset -q --hard HEAD~1 && git -C "$FIX" push -q -f origin master
+# The Artifact Registry check, with a stand-in gcloud that knows only the prod env file's tag.
+mkdir -p "$WORK/bin"
+printf '#!/bin/sh\necho "$@" >>"%s/gcloud.calls"\ncase "$*" in *":%s "*) exit 0 ;; esac\nexit 1\n' "$WORK" "$MASTER_TAG_PROD" >"$WORK/bin/gcloud"
+chmod +x "$WORK/bin/gcloud"
+check "preflight prod checks web, nodejs and nginx images in the registry" env PATH="$WORK/bin:$PATH" "$REL/preflight.sh" --env prod --context "$CTX" --repo "$FIX" --no-fetch
+[[ "$(grep -c "artifacts docker images describe" "$WORK/gcloud.calls")" == 3 ]] && ok "three image lookups, authService (no tag yet) skipped" || notok "image lookups: $(cat "$WORK/gcloud.calls")"
+printf '#!/bin/sh\nexit 1\n' >"$WORK/bin/gcloud"
+refuses "preflight fails when an image tag is not in the registry" "not found in Artifact Registry" \
+  env PATH="$WORK/bin:$PATH" "$REL/preflight.sh" --env prod --context "$CTX" --repo "$FIX" --no-fetch
 k -n preprod delete secret auth-service-registry >/dev/null
 refuses "preflight fails when the registry Secret is missing" "auth-service-registry is missing" \
   "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
@@ -335,6 +344,20 @@ m = json.load(open(sys.argv[1])); m["envs"]["prod"]["web_pods"] = []; json.dump(
 PY
 refuses "restore db --scoped refuses when the snapshot recorded no running web pod" "recorded no running web pod" \
   "$REL/restore.sh" db --snapshot "$WORK/snap-nopods" --env preprod --context "$CTX" --scoped
+# The env file image parser reports a missing web tag instead of dropping it.
+"$PY" - "$REL/release_lib.py" "$PHASE1_CODE/envs/prod/helmrelease.yaml" <<'PY' && ok "env-images reads every component and reports a missing tag" || notok "env-images parsing"
+import subprocess, sys
+text = open(sys.argv[2]).read()
+def parse(t):
+    out = subprocess.run([sys.executable, sys.argv[1], "env-images"], input=t, capture_output=True, text=True, check=True).stdout
+    return {l.split("\t")[0]: l.split("\t")[1:] for l in out.splitlines()}
+full = parse(text)
+assert all(full[c][0] and full[c][1] for c in ("web", "nodejs", "nginx")), full
+import re
+broken = re.sub(r'(web:\s*\n\s*containerImage:\s*\n\s*imageRegistry: [^\n]+\n\s*)tag: "[^"]*"', r'\1tag: ""', text, count=1)
+assert broken != text
+assert parse(broken)["web"][1] == "" and parse(broken)["nodejs"][1], parse(broken)
+PY
 # A web pod pinned by digest is still not the snapshot's image.
 "$PY" - "$REL/release_lib.py" <<'PY' && ok "the image guard parses digests, tags and registry ports" || notok "image guard parsing"
 import json, subprocess, sys

@@ -112,6 +112,31 @@ def image_guard(args):
     return bad
 
 
+def env_images(_args):
+    """component<TAB>repository<TAB>tag for web, nodejs, nginx and authService of an env file (stdin), read by section
+    (the keys under spec.values at four spaces), so a missing tag shows up as an empty field instead of vanishing."""
+    sections, current = {}, None
+    for line in sys.stdin.read().splitlines():
+        header = re.match(r"^    ([A-Za-z]\w*):\s*$", line)
+        if header:
+            current = header.group(1)
+            sections[current] = []
+        elif re.match(r"^    \S", line) or re.match(r"^\S", line):
+            current = None
+        elif current:
+            sections[current].append(line)
+    for component, repo_key in (
+        ("web", "imageRegistry"),
+        ("nodejs", "imageRegistry"),
+        ("nginx", "imageRegistry"),
+        ("authService", "repository"),
+    ):
+        body = "\n".join(sections.get(component, []))
+        repo = re.search(rf"^\s+{repo_key}:\s*\"?([^\"\s]*)\"?\s*$", body, re.M)
+        tag = re.search(r"^\s+tag:\s*\"?([^\"\s]*)\"?\s*$", body, re.M)
+        print(f"{component}\t{repo.group(1) if repo else ''}\t{tag.group(1) if tag else ''}")
+
+
 def rollout_images(_args):
     """name<TAB>revision annotation<TAB>status phase<TAB>container images, comma separated."""
     for ro in _items(_stdin_json()):
@@ -399,6 +424,7 @@ def main():
     sub.add_parser("roles-from-sql").set_defaults(func=roles_from_sql)
     sub.add_parser("pod-images").set_defaults(func=pod_images)
     sub.add_parser("rollout-images").set_defaults(func=rollout_images)
+    sub.add_parser("env-images").set_defaults(func=env_images)
     p = sub.add_parser("image-guard")
     p.add_argument("--allowed", required=True)
     p.add_argument("--web-label", required=True)
