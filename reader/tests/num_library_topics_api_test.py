@@ -3,6 +3,7 @@ GET /api/topics/library-count (reader/views.py num_library_topics_api): the new 
 "Search N Topics A-Z" (the old pages read numLibraryTopics from base_props). Placed before api/topics/<slug>, which would
 otherwise read "library-count" as a topic.
 """
+
 from unittest.mock import patch
 
 from django.test import TestCase

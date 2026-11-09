@@ -4,9 +4,10 @@ title: Topics
 domain: Library & discovery
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Topics — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -69,35 +70,35 @@ Rebuild status of this area's features: not started 32.
 
 ### Gaps: core and standard features not done (27)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| TOP-001 | core | Topic URLs and legacy redirects | not started |
-| TOP-003 | core | Topics landing page layout | not started |
-| TOP-013 | core | Topic category page | not started |
-| TOP-015 | core | Topic page data loading | not started |
-| TOP-016 | core | Topic source tab bucketing | not started |
-| TOP-017 | core | Topic page header | not started |
-| TOP-020 | core | Topic page tabs | not started |
-| TOP-022 | core | Topic source filter and sort | not started |
-| TOP-023 | core | Topic source cards | not started |
-| TOP-002 | standard | Module-specific topics home | not started |
-| TOP-004 | standard | Topic search with autocomplete | not started |
-| TOP-005 | standard | Topic word cloud (salad) | not started |
-| TOP-006 | standard | Featured topic of the day | not started |
-| TOP-007 | standard | Topics newsletter sign-up | not started |
-| TOP-008 | standard | Random topic cards with descriptions | not started |
-| TOP-009 | standard | This week's Torah portion card | not started |
-| TOP-010 | standard | Seasonal Jewish calendar topic card | not started |
-| TOP-011 | standard | Topics category grid (Voices) | not started |
-| TOP-012 | standard | Topic card | not started |
-| TOP-014 | standard | All Topics A-Z index | not started |
-| TOP-019 | standard | Read the portion and Study Companion buttons | not started |
-| TOP-021 | standard | Topic source incremental loading | not started |
-| TOP-024 | standard | Topic sheet cards | not started |
-| TOP-025 | standard | Topic side column: metadata and links | not started |
-| TOP-026 | standard | Parasha readings panel | not started |
-| TOP-030 | standard | Topic data model behaviors | not started |
-| TOP-031 | standard | Topic pool and trending endpoints | not started |
+| ID      | Tier     | Feature                                      | Rebuild status |
+| ------- | -------- | -------------------------------------------- | -------------- |
+| TOP-001 | core     | Topic URLs and legacy redirects              | not started    |
+| TOP-003 | core     | Topics landing page layout                   | not started    |
+| TOP-013 | core     | Topic category page                          | not started    |
+| TOP-015 | core     | Topic page data loading                      | not started    |
+| TOP-016 | core     | Topic source tab bucketing                   | not started    |
+| TOP-017 | core     | Topic page header                            | not started    |
+| TOP-020 | core     | Topic page tabs                              | not started    |
+| TOP-022 | core     | Topic source filter and sort                 | not started    |
+| TOP-023 | core     | Topic source cards                           | not started    |
+| TOP-002 | standard | Module-specific topics home                  | not started    |
+| TOP-004 | standard | Topic search with autocomplete               | not started    |
+| TOP-005 | standard | Topic word cloud (salad)                     | not started    |
+| TOP-006 | standard | Featured topic of the day                    | not started    |
+| TOP-007 | standard | Topics newsletter sign-up                    | not started    |
+| TOP-008 | standard | Random topic cards with descriptions         | not started    |
+| TOP-009 | standard | This week's Torah portion card               | not started    |
+| TOP-010 | standard | Seasonal Jewish calendar topic card          | not started    |
+| TOP-011 | standard | Topics category grid (Voices)                | not started    |
+| TOP-012 | standard | Topic card                                   | not started    |
+| TOP-014 | standard | All Topics A-Z index                         | not started    |
+| TOP-019 | standard | Read the portion and Study Companion buttons | not started    |
+| TOP-021 | standard | Topic source incremental loading             | not started    |
+| TOP-024 | standard | Topic sheet cards                            | not started    |
+| TOP-025 | standard | Topic side column: metadata and links        | not started    |
+| TOP-026 | standard | Parasha readings panel                       | not started    |
+| TOP-030 | standard | Topic data model behaviors                   | not started    |
+| TOP-031 | standard | Topic pool and trending endpoints            | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

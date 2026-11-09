@@ -4,9 +4,10 @@ title: Search & autocomplete
 domain: Library & discovery
 document: architecture
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-28
 ---
+
 # Search & autocomplete — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -84,64 +85,64 @@ Implemented in (most features first):
 
 ### Gaps: core and standard features not done (56)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| SRC-001 | core | Header search suggestions | not started |
-| SRC-002 | core | Header search submit logic | not started |
-| SRC-003 | core | Typeahead suggestions in header | not started |
-| SRC-004 | core | Minimum 3 characters for suggestions | not started |
-| SRC-005 | core | Suggestion types differ by module | not started |
-| SRC-006 | core | Suggestion destination URLs | not started |
-| SRC-009 | core | 'Search for' row | not started |
-| SRC-010 | core | Submit search with Enter or button | not started |
-| SRC-011 | core | Smart submit: ref, topic or search | not started |
-| SRC-015 | core | Navigate to suggestion (redirectToObject) | not started |
-| SRC-016 | core | Show search results panel | not started |
-| SRC-023 | core | Desktop header search box | not started |
-| SRC-024 | core | Mobile nav-menu search box | not started |
-| SRC-041 | core | Search type determined by module | not started |
-| SRC-043 | core | Search panel rendering rules | not started |
-| SRC-045 | core | SearchState model | not started |
-| SRC-049 | core | Desktop vs mobile search layout | not started |
-| SRC-067 | core | Entity search client and paging | not started |
-| SRC-080 | core | Query construction and ranking | not started |
-| SRC-083 | core | Filter tree construction | not started |
-| SRC-089 | core | Voices search results page | deferred |
-| SRC-090 | core | Sheet result card | deferred |
-| SRC-007 | standard | Suggestion grouping, headers and icons | not started |
-| SRC-012 | standard | Case and gershayim query repair | not started |
-| SRC-013 | standard | Hash-prefix topic navigation | not started |
-| SRC-017 | standard | Virtual Hebrew keyboard in search box | not started |
-| SRC-018 | standard | Search box focus/blur behavior | not started |
-| SRC-019 | standard | Search input limits and labels | not started |
-| SRC-020 | standard | Dictionary search in sidebar for dictionary books | not started |
-| SRC-021 | standard | Dictionary word search box with autocomplete | not started |
-| SRC-022 | standard | Dictionary headword search box | not started |
-| SRC-025 | standard | Compare-panel search box | deferred |
-| SRC-027 | standard | Collection full-text search link | deferred |
-| SRC-044 | standard | Search state mutators | not started |
-| SRC-047 | standard | Two-phase filtered query | not started |
-| SRC-050 | standard | Search loading skeleton | not started |
-| SRC-056 | standard | 'N more versions' expansion | not started |
-| SRC-058 | standard | Matched-word highlighting in reader | not started |
-| SRC-062 | standard | Mobile search tab strip | not started |
-| SRC-063 | standard | Mobile filter and sort panels | not started |
-| SRC-064 | standard | No-results empty state | not started |
-| SRC-068 | standard | Entity tab sorting | not started |
-| SRC-069 | standard | Books category filter sidebar | not started |
-| SRC-071 | standard | Author result card | not started |
-| SRC-072 | standard | Book result card | not started |
-| SRC-079 | standard | Search request body and caching | not started |
-| SRC-082 | standard | Dicta Hebrew Tanakh search merge | not started |
-| SRC-084 | standard | FilterNode selection model | not started |
-| SRC-086 | standard | Filter row interactions | not started |
-| SRC-088 | standard | Sheet filters (Topics and Collections) | deferred |
-| SRC-091 | standard | Sheet search index document | deferred |
-| SRC-092 | standard | Sheets-with-ref client filtering | deferred |
-| SRC-098 | standard | Topics landing page search | deferred |
-| SRC-099 | standard | Shared Autocompleter component | deferred |
-| SRC-109 | standard | Search caches | not started |
-| SRC-110 | standard | Search accessibility behaviors | not started |
+| ID      | Tier     | Feature                                           | Rebuild status |
+| ------- | -------- | ------------------------------------------------- | -------------- |
+| SRC-001 | core     | Header search suggestions                         | not started    |
+| SRC-002 | core     | Header search submit logic                        | not started    |
+| SRC-003 | core     | Typeahead suggestions in header                   | not started    |
+| SRC-004 | core     | Minimum 3 characters for suggestions              | not started    |
+| SRC-005 | core     | Suggestion types differ by module                 | not started    |
+| SRC-006 | core     | Suggestion destination URLs                       | not started    |
+| SRC-009 | core     | 'Search for' row                                  | not started    |
+| SRC-010 | core     | Submit search with Enter or button                | not started    |
+| SRC-011 | core     | Smart submit: ref, topic or search                | not started    |
+| SRC-015 | core     | Navigate to suggestion (redirectToObject)         | not started    |
+| SRC-016 | core     | Show search results panel                         | not started    |
+| SRC-023 | core     | Desktop header search box                         | not started    |
+| SRC-024 | core     | Mobile nav-menu search box                        | not started    |
+| SRC-041 | core     | Search type determined by module                  | not started    |
+| SRC-043 | core     | Search panel rendering rules                      | not started    |
+| SRC-045 | core     | SearchState model                                 | not started    |
+| SRC-049 | core     | Desktop vs mobile search layout                   | not started    |
+| SRC-067 | core     | Entity search client and paging                   | not started    |
+| SRC-080 | core     | Query construction and ranking                    | not started    |
+| SRC-083 | core     | Filter tree construction                          | not started    |
+| SRC-089 | core     | Voices search results page                        | deferred       |
+| SRC-090 | core     | Sheet result card                                 | deferred       |
+| SRC-007 | standard | Suggestion grouping, headers and icons            | not started    |
+| SRC-012 | standard | Case and gershayim query repair                   | not started    |
+| SRC-013 | standard | Hash-prefix topic navigation                      | not started    |
+| SRC-017 | standard | Virtual Hebrew keyboard in search box             | not started    |
+| SRC-018 | standard | Search box focus/blur behavior                    | not started    |
+| SRC-019 | standard | Search input limits and labels                    | not started    |
+| SRC-020 | standard | Dictionary search in sidebar for dictionary books | not started    |
+| SRC-021 | standard | Dictionary word search box with autocomplete      | not started    |
+| SRC-022 | standard | Dictionary headword search box                    | not started    |
+| SRC-025 | standard | Compare-panel search box                          | deferred       |
+| SRC-027 | standard | Collection full-text search link                  | deferred       |
+| SRC-044 | standard | Search state mutators                             | not started    |
+| SRC-047 | standard | Two-phase filtered query                          | not started    |
+| SRC-050 | standard | Search loading skeleton                           | not started    |
+| SRC-056 | standard | 'N more versions' expansion                       | not started    |
+| SRC-058 | standard | Matched-word highlighting in reader               | not started    |
+| SRC-062 | standard | Mobile search tab strip                           | not started    |
+| SRC-063 | standard | Mobile filter and sort panels                     | not started    |
+| SRC-064 | standard | No-results empty state                            | not started    |
+| SRC-068 | standard | Entity tab sorting                                | not started    |
+| SRC-069 | standard | Books category filter sidebar                     | not started    |
+| SRC-071 | standard | Author result card                                | not started    |
+| SRC-072 | standard | Book result card                                  | not started    |
+| SRC-079 | standard | Search request body and caching                   | not started    |
+| SRC-082 | standard | Dicta Hebrew Tanakh search merge                  | not started    |
+| SRC-084 | standard | FilterNode selection model                        | not started    |
+| SRC-086 | standard | Filter row interactions                           | not started    |
+| SRC-088 | standard | Sheet filters (Topics and Collections)            | deferred       |
+| SRC-091 | standard | Sheet search index document                       | deferred       |
+| SRC-092 | standard | Sheets-with-ref client filtering                  | deferred       |
+| SRC-098 | standard | Topics landing page search                        | deferred       |
+| SRC-099 | standard | Shared Autocompleter component                    | deferred       |
+| SRC-109 | standard | Search caches                                     | not started    |
+| SRC-110 | standard | Search accessibility behaviors                    | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

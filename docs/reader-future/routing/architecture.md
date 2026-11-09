@@ -4,11 +4,12 @@ title: URLs & routing
 domain: Platform
 document: architecture
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-19
 
 updated: 2026-10-28
 ---
+
 # URLs & routing — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -28,15 +29,15 @@ state; the proposed shape is a small command layer over the router, a legacy-eve
 **Integrations: events other applications use to drive or observe the reader.** Legacy `master` @ `e18dacc0d`; chatbot `Sefaria/ai-chatbot` @ `b2d3c8a`; new client
 `reader-next` (code identical on `reader-future/daily-2026-10-28`).
 
-| Event or channel | Direction | Sent by → handled by | Payload | Effect on the reader (sefaria.org) | Legacy source | `reader-next` |
-|---|---|---|---|---|---|---|
-| `sefaria:bootstrap-url` (CustomEvent on `document`) | in | `<lc-chatbot>`: links in answers, location pin, topic suggestion → `ReaderApp` | `detail`: a URL string, or `{url, replaceHistory?}`; relative or absolute | URL must parse and its host be the page's or contain `sefaria.org`; unsaved-editor confirm first. A ref closes every panel and opens it alone; any other path goes through `openURL` (topics, search, sheets…). `replaceHistory` has no effect for refs (passed as panel options). | `static/js/ReaderApp.jsx:235`, `:270`, `:1253-1265`, `:1279-1310`, `:1056-1058`, `:1730-1737`; sent at `src/components/LCChatbot.svelte:1487` (`{url: path, replaceHistory: true}`), `:1694` (`{url}`, absolute), `:1708` (`{url: "/topics/<slug>"}`) | **missing**: no listener in `reader-next/src` |
-| `sefaria:settings-updated` (CustomEvent on `document`) | in | account settings page after save → `ReaderApp` | `{translationLanguagePreference, readingHistory, textualCustom?, diaspora?}` | Sets the translation-language preference, `Sefaria.is_history_enabled`, and refetches calendars. An interface-language or assistant change reloads the page instead. | `ReaderApp.jsx:236`, `:1266-1278`; `templates/account_settings.html:300-318` | **missing**: settings are React state + cookies (`src/features/reader/settings-context.tsx:27-37`); translation preference cookie is read only (VER-001 partial); account settings page not in the new client |
-| `BroadcastChannel('refresh-editor')`, message `"refresh"` | cross-tab | add to sheet (sidebar) → open sheet editors | `"refresh"` | Open sheet editors reload the sheet from the server. | `static/js/AddToSourceSheet.jsx:299-300`; `static/js/Editor.jsx:2827-2830` | **missing**: no `BroadcastChannel` in `reader-next/src` (sheet editor not built) |
-| `<lc-chatbot>` attributes | out (reader → assistant) | `ReaderApp` → assistant | `user-id` (token), `api-base-url`, `origin`, `is-moderator`, `placement`, `default-open`, `mode`, `max-input-chars`, `max-prompts`, `interface-lang` | Mounts the assistant on desktop Library pages when enabled; script from `chatbot_script_url`. | `ReaderApp.jsx:2586-2588`, `:2621-2633`; `templates/base.html:75-76`; `sefaria/system/context_processors.py:125-172` | **missing** (AI-011 not started) |
-| Reader location, read by the assistant | out (pulled) | assistant reads `window.location.href` when a message is sent | the page URL | Labels the message with the ref being read. | `LCChatbot.svelte:1064`, `:1104`, `:1618-1640`; `src/lib/api.js:70` | **done** while URLs match sefaria.org's (SHL-066 done, `src/lib/workspace/url.ts`) |
-| `chatbot:opened` · `chatbot:closed` · `chatbot:message_sent` · `chatbot:error` (on `document`); `appetizer_click` (on the element) | out (assistant → page) | assistant → nobody in the reader | per event | None in the reader (no listener on `master`). | `LCChatbot.svelte:426-432`, `:516`, `:529`, `:1215`, `:1264`, `:1718` | n/a (none either) |
-| `window.Sefaria` | global | `sefaria.js` → any script | the client object | Any script can read and call the client's internals. | `static/js/sefaria/sefaria.js:30` | **replaced, no equivalent**: only `window.__SEFARIA_CONFIG__` (`src/lib/config.ts:91`) and the analytics log `window.__SEFARIA_ANALYTICS__` (`src/lib/analytics/core.ts:40`) |
+| Event or channel                                                                                                                   | Direction                | Sent by → handled by                                                           | Payload                                                                                                                                              | Effect on the reader (sefaria.org)                                                                                                                                                                                                                                                 | Legacy source                                                                                                                                                                                                                                         | `reader-next`                                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sefaria:bootstrap-url` (CustomEvent on `document`)                                                                                | in                       | `<lc-chatbot>`: links in answers, location pin, topic suggestion → `ReaderApp` | `detail`: a URL string, or `{url, replaceHistory?}`; relative or absolute                                                                            | URL must parse and its host be the page's or contain `sefaria.org`; unsaved-editor confirm first. A ref closes every panel and opens it alone; any other path goes through `openURL` (topics, search, sheets…). `replaceHistory` has no effect for refs (passed as panel options). | `static/js/ReaderApp.jsx:235`, `:270`, `:1253-1265`, `:1279-1310`, `:1056-1058`, `:1730-1737`; sent at `src/components/LCChatbot.svelte:1487` (`{url: path, replaceHistory: true}`), `:1694` (`{url}`, absolute), `:1708` (`{url: "/topics/<slug>"}`) | **missing**: no listener in `reader-next/src`                                                                                                                                                                 |
+| `sefaria:settings-updated` (CustomEvent on `document`)                                                                             | in                       | account settings page after save → `ReaderApp`                                 | `{translationLanguagePreference, readingHistory, textualCustom?, diaspora?}`                                                                         | Sets the translation-language preference, `Sefaria.is_history_enabled`, and refetches calendars. An interface-language or assistant change reloads the page instead.                                                                                                               | `ReaderApp.jsx:236`, `:1266-1278`; `templates/account_settings.html:300-318`                                                                                                                                                                          | **missing**: settings are React state + cookies (`src/features/reader/settings-context.tsx:27-37`); translation preference cookie is read only (VER-001 partial); account settings page not in the new client |
+| `BroadcastChannel('refresh-editor')`, message `"refresh"`                                                                          | cross-tab                | add to sheet (sidebar) → open sheet editors                                    | `"refresh"`                                                                                                                                          | Open sheet editors reload the sheet from the server.                                                                                                                                                                                                                               | `static/js/AddToSourceSheet.jsx:299-300`; `static/js/Editor.jsx:2827-2830`                                                                                                                                                                            | **missing**: no `BroadcastChannel` in `reader-next/src` (sheet editor not built)                                                                                                                              |
+| `<lc-chatbot>` attributes                                                                                                          | out (reader → assistant) | `ReaderApp` → assistant                                                        | `user-id` (token), `api-base-url`, `origin`, `is-moderator`, `placement`, `default-open`, `mode`, `max-input-chars`, `max-prompts`, `interface-lang` | Mounts the assistant on desktop Library pages when enabled; script from `chatbot_script_url`.                                                                                                                                                                                      | `ReaderApp.jsx:2586-2588`, `:2621-2633`; `templates/base.html:75-76`; `sefaria/system/context_processors.py:125-172`                                                                                                                                  | **missing** (AI-011 not started)                                                                                                                                                                              |
+| Reader location, read by the assistant                                                                                             | out (pulled)             | assistant reads `window.location.href` when a message is sent                  | the page URL                                                                                                                                         | Labels the message with the ref being read.                                                                                                                                                                                                                                        | `LCChatbot.svelte:1064`, `:1104`, `:1618-1640`; `src/lib/api.js:70`                                                                                                                                                                                   | **done** while URLs match sefaria.org's (SHL-066 done, `src/lib/workspace/url.ts`)                                                                                                                            |
+| `chatbot:opened` · `chatbot:closed` · `chatbot:message_sent` · `chatbot:error` (on `document`); `appetizer_click` (on the element) | out (assistant → page)   | assistant → nobody in the reader                                               | per event                                                                                                                                            | None in the reader (no listener on `master`).                                                                                                                                                                                                                                      | `LCChatbot.svelte:426-432`, `:516`, `:529`, `:1215`, `:1264`, `:1718`                                                                                                                                                                                 | n/a (none either)                                                                                                                                                                                             |
+| `window.Sefaria`                                                                                                                   | global                   | `sefaria.js` → any script                                                      | the client object                                                                                                                                    | Any script can read and call the client's internals.                                                                                                                                                                                                                               | `static/js/sefaria/sefaria.js:30`                                                                                                                                                                                                                     | **replaced, no equivalent**: only `window.__SEFARIA_CONFIG__` (`src/lib/config.ts:91`) and the analytics log `window.__SEFARIA_ANALYTICS__` (`src/lib/analytics/core.ts:40`)                                  |
 
 Not found on `master`: no `window.postMessage` handler, no mobile-app webview bridge, no reader API on `window` besides `Sefaria`. The
 linker (`static/js/linker.v3/`) runs on other sites and reaches the reader only through URLs. The assistant's Chrome extension
@@ -68,27 +69,27 @@ linker (`static/js/linker.v3/`) runs on other sites and reaches the reader only 
   [`src/features/reader/use-reading-scroll.ts:402`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/use-reading-scroll.ts#L402)) and client-side ([`src/features/reader/TextColumn.tsx:167-170`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextColumn.tsx#L167-L170)), and the
   address bar keeps naming the verse being read ([`src/features/reader/TextPanel.tsx:168-175`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L168-L175)). No new URL grammar is needed
   unless works get several structures (open in the data-model assessment, `../CROSS_CUTTING.md`). See
-  [Saved, history & notes](../user-library/architecture.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  [Saved, history & notes](../user-library/architecture.md). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - **Purposeful entry is decided where the link is built, not by the reader.** Following the 2026-10-25 decision (below), the
   links on the bookmark card, the bookshelf, `/bookmarks` and search results write the saved layout into the URL itself; table of
   contents, citations and typed or shared URLs stay plain. The POC does exactly this ([`src/features/bookmarks/my-layout.ts:50-56`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/bookmarks/my-layout.ts#L50-L56),
   [`src/features/search/SearchRoute.tsx:144-151`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/search/SearchRoute.tsx#L144-L151)), so a new tab, a reload or a link opened before hydration behaves the same, and
   "a shared link opens exactly what it says" is just F1. If the reader needs to know how it was entered (analytics, offering "Open my
   saved layout"), add an `entry` field to `NavState` ([`src/features/workspace/navigation.tsx:24-32`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/workspace/navigation.tsx#L24-L32)); it never changes what a URL
-  shows. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  shows. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - **New parameters stay additive.** `layout=` is written only when the arrangement is more than a plain row with default widths
   ([`src/lib/workspace/layout-param.ts:10-14`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/workspace/layout-param.ts#L10-L14)), so legacy URLs are byte-identical; the POC's `bk=1` ("this is my layout") must be
   dropped from every share and copy-link path (risk noted in [Saved, history & notes](../user-library/architecture.md)). "Open my
-  saved layout" is one more command for the command layer below (`openSavedLayout(work, {panel})`). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  saved layout" is one more command for the command layer below (`openSavedLayout(work, {panel})`). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 _Items carry a status: idea · proposed · agreed · decided._
 
 **Integrations.**
 
-- TanStack Router is the reader's state layer, and the URL it holds is the source of truth for reader state. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) ·
+- TanStack Router is the reader's state layer, and the URL it holds is the source of truth for reader state. — _decided_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) ·
   `reader-next/docs/WORKSPACE.md`
-- Every legacy integration event in the inventory above keeps its effect in the new client. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) · RTE-057 · SHL-068
-- Any integration can update reader state easily, through one documented interface. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339)
+- Every legacy integration event in the inventory above keeps its effect in the new client. — _decided_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) · RTE-057 · SHL-068
+- Any integration can update reader state easily, through one documented interface. — _decided_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339)
 
 The interface's shape is a **proposal** (Claude Tag draft, from the code; not discussed yet):
 
@@ -97,23 +98,23 @@ The interface's shape is a **proposal** (Claude Tag draft, from the code; not di
   `openTopic(slug)`, `search(query)`. Each builds the next `Workspace` with `lib/workspace/ops.ts`, checks it with the same validators
   as the route (`validateReaderSearch`, ref resolution), and navigates through the router like `go()`. It resolves when the router
   reports `onResolved`, with the new URL or a typed error. No second store: a command is only a navigation, so history, back/forward,
-  SSR and sharing behave as for a click. — *proposed* (Claude Tag draft)
+  SSR and sharing behave as for a click. — _proposed_ (Claude Tag draft)
 - **Router outside React**: commands take the router instance (`getRouter()`, `src/router.tsx`) instead of `useWorkspaceNav()`, and
   the URL defaults now read from settings context (`navigation.tsx:72-73`) move to something code outside React can read. Commands
-  that arrive before hydration are queued. — *proposed* (Claude Tag draft)
+  that arrive before hydration are queued. — _proposed_ (Claude Tag draft)
 - **Legacy adapter**: one client-only listener mounted from `src/routes/__root.tsx` maps `sefaria:bootstrap-url` → `openUrl` (same host
   check and unsaved-changes guard as `ReaderApp.jsx:1279-1300`) and `sefaria:settings-updated` → settings update; `refresh-editor`
-  is wired when the sheet editor lands. Names and payloads unchanged. — *proposed* (Claude Tag draft)
+  is wired when the sheet editor lands. Names and payloads unchanged. — _proposed_ (Claude Tag draft)
 - **State out**: on `router.subscribe("onResolved")`, dispatch one event (name to agree, e.g. `sefaria:state-changed`) with
   `{version, url, panels: [{ref, versions, lang, sidebar}], interfaceLang}` derived from `decodeWorkspace`, plus a `getState()` to
-  read it on demand. — *proposed* (Claude Tag draft)
+  read it on demand. — _proposed_ (Claude Tag draft)
 - **Window global** (optional): `window.sefariaReader = {version, getState, subscribe, …commands}` for scripts that prefer calls to
-  events. — *idea* (Claude Tag draft)
+  events. — _idea_ (Claude Tag draft)
 - **Cross-origin** (optional): a `postMessage` channel with an origin allowlist and a reduced command set, for iframes and embeds;
-  same-page events stay the default. — *idea* (Claude Tag draft)
+  same-page events stay the default. — _idea_ (Claude Tag draft)
 - **Versioning and tests**: a `version` field in every payload, additive changes only; the legacy events are version 0. A contract
   test replays every inbound row of the inventory (payloads copied from the `Sefaria/ai-chatbot` call sites) and checks that the
-  resulting URL equals what sefaria.org produces, and checks the outbound event's shape. — *proposed* (Claude Tag draft)
+  resulting URL equals what sefaria.org produces, and checks the outbound event's shape. — _proposed_ (Claude Tag draft)
 
 ## Dependencies on other areas
 
@@ -188,33 +189,33 @@ Implemented in (most features first):
 
 ### Gaps: core and standard features not done (25)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| RTE-001 | core | Library and Voices hosts split by domain | deferred |
-| RTE-004 | core | Edge redirects to Voices for sheets, collections, profile | deferred |
-| RTE-009 | core | Library home and texts navigation URLs | todo |
-| RTE-021 | core | Voices home and sheets-with-ref URLs | deferred |
-| RTE-022 | core | Sheet URLs | deferred |
-| RTE-029 | core | Search URL | todo |
-| RTE-030 | core | Topics URLs | todo |
-| RTE-039 | core | Cross-module redirect rules | deferred |
-| RTE-040 | core | 404 and error pages | partial |
-| RTE-059 | core | Language-domain redirect | deferred |
-| RTE-003 | standard | Maintenance mode | not started |
-| RTE-005 | standard | Bare root domain redirects to www | not started |
-| RTE-006 | standard | Mobile message and sitemap passthrough at edge | not started |
-| RTE-007 | standard | robots.txt rules | not started |
-| RTE-010 | standard | Learning schedules and calendar URLs | not started |
-| RTE-011 | standard | Translations page URLs | not started |
-| RTE-013 | standard | Account settings URL | not started |
-| RTE-020 | standard | Download URLs | not started |
-| RTE-023 | standard | Collections URLs | not started |
-| RTE-024 | standard | Profile URLs | not started |
-| RTE-031 | standard | Saved, history and notifications URLs | not started |
-| RTE-037 | standard | Legacy redirects (complete list) | not started |
-| RTE-045 | standard | Sidebar sub-state params (vside, lookup, sbsq, namedEntity) | not started |
-| RTE-048 | standard | Menu tab param (tab) | not started |
-| RTE-052 | standard | Other page params (login/next, activity, topic, profile) | not started |
+| ID      | Tier     | Feature                                                     | Rebuild status |
+| ------- | -------- | ----------------------------------------------------------- | -------------- |
+| RTE-001 | core     | Library and Voices hosts split by domain                    | deferred       |
+| RTE-004 | core     | Edge redirects to Voices for sheets, collections, profile   | deferred       |
+| RTE-009 | core     | Library home and texts navigation URLs                      | todo           |
+| RTE-021 | core     | Voices home and sheets-with-ref URLs                        | deferred       |
+| RTE-022 | core     | Sheet URLs                                                  | deferred       |
+| RTE-029 | core     | Search URL                                                  | todo           |
+| RTE-030 | core     | Topics URLs                                                 | todo           |
+| RTE-039 | core     | Cross-module redirect rules                                 | deferred       |
+| RTE-040 | core     | 404 and error pages                                         | partial        |
+| RTE-059 | core     | Language-domain redirect                                    | deferred       |
+| RTE-003 | standard | Maintenance mode                                            | not started    |
+| RTE-005 | standard | Bare root domain redirects to www                           | not started    |
+| RTE-006 | standard | Mobile message and sitemap passthrough at edge              | not started    |
+| RTE-007 | standard | robots.txt rules                                            | not started    |
+| RTE-010 | standard | Learning schedules and calendar URLs                        | not started    |
+| RTE-011 | standard | Translations page URLs                                      | not started    |
+| RTE-013 | standard | Account settings URL                                        | not started    |
+| RTE-020 | standard | Download URLs                                               | not started    |
+| RTE-023 | standard | Collections URLs                                            | not started    |
+| RTE-024 | standard | Profile URLs                                                | not started    |
+| RTE-031 | standard | Saved, history and notifications URLs                       | not started    |
+| RTE-037 | standard | Legacy redirects (complete list)                            | not started    |
+| RTE-045 | standard | Sidebar sub-state params (vside, lookup, sbsq, namedEntity) | not started    |
+| RTE-048 | standard | Menu tab param (tab)                                        | not started    |
+| RTE-052 | standard | Other page params (login/next, activity, topic, profile)    | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

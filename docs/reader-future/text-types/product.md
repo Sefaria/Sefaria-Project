@@ -4,9 +4,10 @@ title: Text types & special cases
 domain: Reader
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Text types & special cases — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -51,45 +52,45 @@ Feature groups: Talmud (8); Commentary (4); Torah (2); Complex texts (2); Tanakh
 
 ### Core (10)
 
-| ID | Feature | What it does |
-|---|---|---|
-| TXT-001 | Tanakh text treatment | Tanakh books use their own layout setting and short numeric chapter/verse titles. |
-| TXT-002 | Parashah and aliyah headers in Torah text | Torah text shows parashah and aliyah headings inline, which readers can toggle. |
-| TXT-005 | Talmud continuous layout default | Talmud text opens as a flowing paragraph by default, with each daf side (amud) as its own labelled section. |
-| TXT-007 | Talmud daf addressing (a/b, Hebrew dafs) | Talmud sections are addressed by daf and amud and shown in Hebrew-letter form. |
-| TXT-015 | Commentary opens as base text with connection (base-text conversion) | Opening a commentary ref shows the underlying base text with that commentary selected in the sidebar. |
-| TXT-016 | Commentary rendered as base text | When conversion does not apply, a commentary is read as its own text with numbered segments and short titles. |
-| TXT-022 | Default treatment for other categories | Midrash, Halakhah, Kabbalah, Responsa and similar categories use the standard segmented layout with named section titles. |
-| TXT-023 | Complex texts, default nodes and book-level refs | Texts with multiple sections or intros resolve to their first readable section, and bare book names open the table of contents. |
-| TXT-025 | Hebrew-only and translation-only texts | Texts lacking a translation or source still display sensibly. |
-| TXT-026 | Sheet opened inside a reader panel | A source sheet opens in a reader panel with its own renderer and bilingual layout rules. |
+| ID      | Feature                                                              | What it does                                                                                                                    |
+| ------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| TXT-001 | Tanakh text treatment                                                | Tanakh books use their own layout setting and short numeric chapter/verse titles.                                               |
+| TXT-002 | Parashah and aliyah headers in Torah text                            | Torah text shows parashah and aliyah headings inline, which readers can toggle.                                                 |
+| TXT-005 | Talmud continuous layout default                                     | Talmud text opens as a flowing paragraph by default, with each daf side (amud) as its own labelled section.                     |
+| TXT-007 | Talmud daf addressing (a/b, Hebrew dafs)                             | Talmud sections are addressed by daf and amud and shown in Hebrew-letter form.                                                  |
+| TXT-015 | Commentary opens as base text with connection (base-text conversion) | Opening a commentary ref shows the underlying base text with that commentary selected in the sidebar.                           |
+| TXT-016 | Commentary rendered as base text                                     | When conversion does not apply, a commentary is read as its own text with numbered segments and short titles.                   |
+| TXT-022 | Default treatment for other categories                               | Midrash, Halakhah, Kabbalah, Responsa and similar categories use the standard segmented layout with named section titles.       |
+| TXT-023 | Complex texts, default nodes and book-level refs                     | Texts with multiple sections or intros resolve to their first readable section, and bare book names open the table of contents. |
+| TXT-025 | Hebrew-only and translation-only texts                               | Texts lacking a translation or source still display sensibly.                                                                   |
+| TXT-026 | Sheet opened inside a reader panel                                   | A source sheet opens in a reader panel with its own renderer and bilingual layout rules.                                        |
 
 ### Standard (14)
 
-| ID | Feature | What it does |
-|---|---|---|
-| TXT-003 | Aliyot toggle and URL param (Torah and Onkelos only) | Readers can turn aliyah headings on or off, only for the five books of Moses and their Onkelos targum. |
-| TXT-004 | Targum Onkelos parashah headers | Onkelos targum shows the same parashah/aliyah headers as the Torah. |
-| TXT-006 | Talmud punctuation toggle and stripping | Readers can hide the added punctuation in Hebrew/Aramaic Talmud text. |
-| TXT-008 | Vilna page and Venice column markers | Talmud text shows markers where printed-edition pages or columns change. |
-| TXT-009 | William Davidson Talmud attribution in header | The reader header credits the William Davidson Talmud edition for the Babylonian Talmud. |
-| TXT-010 | Open-translation banner for Bavli | Bavli readers see the 'change translation' prompt. |
-| TXT-011 | Talmud commentary opens in main panel | Talmud commentaries shallower than segment depth open as the main text rather than in the sidebar. |
-| TXT-014 | Mishnah and Tosefta (Tanaitic) treatment | Mishnah and Tosefta use short numeric section titles and the translation prompt. |
-| TXT-017 | Commentary markers and link dots with filter | With a commentator filter, base text shows that commentator's footnote-style markers and matching link counts. |
-| TXT-018 | Commentary number labels in connections list | In the connections list, commentary entries show the anchor verse or marker number. |
-| TXT-019 | Dictionary and lexicon text display (Reference category) | Dictionary and lexicon entries (Jastrow, BDB, Klein, etc.) display without section titles or segment numbers. |
-| TXT-020 | Liturgy (Siddur) text treatment | Prayer texts omit segment numbers and use named section titles. |
-| TXT-024 | Address types and non-1 numbering | Texts can be addressed by many schemes and may start numbering at an offset. |
-| TXT-027 | Search result click highlights query terms | Opening a text from a search result highlights the searched words in the verse. |
+| ID      | Feature                                                  | What it does                                                                                                   |
+| ------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| TXT-003 | Aliyot toggle and URL param (Torah and Onkelos only)     | Readers can turn aliyah headings on or off, only for the five books of Moses and their Onkelos targum.         |
+| TXT-004 | Targum Onkelos parashah headers                          | Onkelos targum shows the same parashah/aliyah headers as the Torah.                                            |
+| TXT-006 | Talmud punctuation toggle and stripping                  | Readers can hide the added punctuation in Hebrew/Aramaic Talmud text.                                          |
+| TXT-008 | Vilna page and Venice column markers                     | Talmud text shows markers where printed-edition pages or columns change.                                       |
+| TXT-009 | William Davidson Talmud attribution in header            | The reader header credits the William Davidson Talmud edition for the Babylonian Talmud.                       |
+| TXT-010 | Open-translation banner for Bavli                        | Bavli readers see the 'change translation' prompt.                                                             |
+| TXT-011 | Talmud commentary opens in main panel                    | Talmud commentaries shallower than segment depth open as the main text rather than in the sidebar.             |
+| TXT-014 | Mishnah and Tosefta (Tanaitic) treatment                 | Mishnah and Tosefta use short numeric section titles and the translation prompt.                               |
+| TXT-017 | Commentary markers and link dots with filter             | With a commentator filter, base text shows that commentator's footnote-style markers and matching link counts. |
+| TXT-018 | Commentary number labels in connections list             | In the connections list, commentary entries show the anchor verse or marker number.                            |
+| TXT-019 | Dictionary and lexicon text display (Reference category) | Dictionary and lexicon entries (Jastrow, BDB, Klein, etc.) display without section titles or segment numbers.  |
+| TXT-020 | Liturgy (Siddur) text treatment                          | Prayer texts omit segment numbers and use named section titles.                                                |
+| TXT-024 | Address types and non-1 numbering                        | Texts can be addressed by many schemes and may start numbering at an offset.                                   |
+| TXT-027 | Search result click highlights query terms               | Opening a text from a search result highlights the searched words in the verse.                                |
 
 ### Optional (3)
 
-| ID | Feature | What it does |
-|---|---|---|
-| TXT-012 | Jerusalem Talmud named-entity attribution | Named entities in the Yerushalmi carry a different data-source credit. |
-| TXT-013 | Folio address type (four-sided pages) | Texts addressed by folio (sides a-d) have display helpers but incomplete parsing. |
-| TXT-021 | Guide for the Perplexed: no segment numbers | This single title hides segment numbers. |
+| ID      | Feature                                     | What it does                                                                      |
+| ------- | ------------------------------------------- | --------------------------------------------------------------------------------- |
+| TXT-012 | Jerusalem Talmud named-entity attribution   | Named entities in the Yerushalmi carry a different data-source credit.            |
+| TXT-013 | Folio address type (four-sided pages)       | Texts addressed by folio (sides a-d) have display helpers but incomplete parsing. |
+| TXT-021 | Guide for the Perplexed: no segment numbers | This single title hides segment numbers.                                          |
 
 ### Flags from the audit (not to port as-is)
 

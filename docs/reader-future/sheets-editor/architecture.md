@@ -7,6 +7,7 @@ owner: unassigned
 status: baseline  # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Sheets: editing & publishing — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -67,32 +68,32 @@ Rebuild status of this area's features: not started 29.
 
 ### Gaps: core and standard features not done (24)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| SHE-001 | core | Rich-text sheet editor (owner) | not started |
-| SHE-002 | core | Sheet HTML import and export mapping | not started |
-| SHE-003 | core | Editor element rendering | not started |
-| SHE-004 | core | Boxed source editing | not started |
-| SHE-007 | core | Create new sheet | not started |
-| SHE-008 | core | Add source by citation | not started |
-| SHE-016 | core | Editor document normalization | not started |
-| SHE-017 | core | Inline title and summary editing | not started |
-| SHE-018 | core | Sheet autosave | not started |
-| SHE-019 | core | Save-state indicator and input lock | not started |
-| SHE-021 | core | Publish sheet to Voices | not started |
-| SHE-022 | core | Publish side effects (backend) | not started |
-| SHE-023 | core | Sheet save permissions and sanitization | not started |
-| SHE-029 | core | Sheet title and metadata box | not started |
-| SHE-006 | standard | Open sheet at highlighted node | not started |
-| SHE-009 | standard | Add image to sheet | not started |
-| SHE-010 | standard | Add media by URL | not started |
-| SHE-011 | standard | Typed citation auto-conversion | not started |
-| SHE-012 | standard | Smart paste and drop | not started |
-| SHE-013 | standard | Formatting toolbar and shortcuts | not started |
-| SHE-014 | standard | Inline link editing | not started |
-| SHE-015 | standard | Editor Enter/Backspace and structure rules | not started |
-| SHE-020 | standard | Cross-tab editor refresh | not started |
-| SHE-025 | standard | Sheet content API surface | not started |
+| ID      | Tier     | Feature                                    | Rebuild status |
+| ------- | -------- | ------------------------------------------ | -------------- |
+| SHE-001 | core     | Rich-text sheet editor (owner)             | not started    |
+| SHE-002 | core     | Sheet HTML import and export mapping       | not started    |
+| SHE-003 | core     | Editor element rendering                   | not started    |
+| SHE-004 | core     | Boxed source editing                       | not started    |
+| SHE-007 | core     | Create new sheet                           | not started    |
+| SHE-008 | core     | Add source by citation                     | not started    |
+| SHE-016 | core     | Editor document normalization              | not started    |
+| SHE-017 | core     | Inline title and summary editing           | not started    |
+| SHE-018 | core     | Sheet autosave                             | not started    |
+| SHE-019 | core     | Save-state indicator and input lock        | not started    |
+| SHE-021 | core     | Publish sheet to Voices                    | not started    |
+| SHE-022 | core     | Publish side effects (backend)             | not started    |
+| SHE-023 | core     | Sheet save permissions and sanitization    | not started    |
+| SHE-029 | core     | Sheet title and metadata box               | not started    |
+| SHE-006 | standard | Open sheet at highlighted node             | not started    |
+| SHE-009 | standard | Add image to sheet                         | not started    |
+| SHE-010 | standard | Add media by URL                           | not started    |
+| SHE-011 | standard | Typed citation auto-conversion             | not started    |
+| SHE-012 | standard | Smart paste and drop                       | not started    |
+| SHE-013 | standard | Formatting toolbar and shortcuts           | not started    |
+| SHE-014 | standard | Inline link editing                        | not started    |
+| SHE-015 | standard | Editor Enter/Backspace and structure rules | not started    |
+| SHE-020 | standard | Cross-tab editor refresh                   | not started    |
+| SHE-025 | standard | Sheet content API surface                  | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

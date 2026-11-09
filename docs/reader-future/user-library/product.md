@@ -4,13 +4,14 @@ title: Saved, history & notes
 domain: Voices (sheets & community)
 document: product
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-15
 
 updated: 2026-10-19
 
 updated: 2026-10-28
 ---
+
 # Saved, history & notes — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -20,7 +21,7 @@ updated: 2026-10-28
 ## Summary
 
 Bookmarking is to be rebuilt, and the reader should know where each reader is up to in a text. Neither is in the first
-iteration; the architecture should leave room for both. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+iteration; the architecture should leave room for both. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Who it is for and what they need
 
@@ -28,29 +29,29 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-- Signed-in readers can save panel layouts (study sessions) and reopen them. See [Reader shell & panels](../reader-shell/product.md). — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
+- Signed-in readers can save panel layouts (study sessions) and reopen them. See [Reader shell & panels](../reader-shell/product.md). — _idea_ · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
 - **Where I'm up to.** For each text, the reader remembers the last verse (segment) read and offers to resume there, on the
   book page's Continue Reading and wherever else it helps. Signed in: across devices; signed out: on this device. Not in the
-  first iteration. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  first iteration. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - **Bookmarks, rebuilt.** Places a reader saves on purpose, kept apart from the automatic "where I'm up to" but pointing at the
-  same kind of place (a verse in a text, in the versions read). Not in the first iteration. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  same kind of place (a verse in a text, in the versions read). Not in the first iteration. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - **One bookmark per book, carrying position and layout** (learning-workspace experiment, PR #3892). Each book has at most one
-  bookmark: where you are in it, in a *manual* mode (right-click → "Move bookmark here") or an *automatic* one (it follows your
-  reading). It keeps a *last read* and a *furthest read* you can reset, so reviewing (chazara) doesn't lose progress. It also
+  bookmark: where you are in it, in a _manual_ mode (right-click → "Move bookmark here") or an _automatic_ one (it follows your
+  reading). It keeps a _last read_ and a _furthest read_ you can reset, so reviewing (chazara) doesn't lose progress. It also
   carries your layout: which commentaries are open, how they are stacked and their sizes, mapped to the place you are at now.
-  Position and layout change separately. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  Position and layout change separately. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - **Bookmarks page and Continue learning.** `/bookmarks` lists every book with its place and a Continue link; a "Continue
   learning" shelf of the books you're in the middle of sits above Browse the Library (builds on Penina's Bookshelf POC, #3837).
-  — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - **Later:** several named layouts per book (Daf Yomi vs deep dive); suggested setups by genre that start from your favourite
-  commentaries; "catch me up" and streaks. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  commentaries; "catch me up" and streaks. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Changes from today (keep · change · drop · new)
 
 - **change** · Continue Reading follows the account when signed in. sefaria.org does; `reader-next` keeps it on this device
-  only. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  only. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - **change** · Resume to the verse read, not the section (sefaria.org resumes to the section, or to the verse chosen in the
-  sidebar). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  sidebar). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Open questions
 
@@ -84,34 +85,34 @@ Feature groups: Notes (5); Saved and history (3); Saved items (1); Reading histo
 
 ### Core (5)
 
-| ID | Feature | What it does |
-|---|---|---|
-| USL-001 | Save (bookmark) button in text header | Signed-in readers can save the current text or sheet; anonymous users are invited to sign up. |
-| USL-008 | Saved items and reading history pages | Users see saved items and reading history, split by Library texts and Voices sheets. |
-| USL-009 | Save and unsave texts and sheets | A bookmark button saves texts and sheets for later. |
-| USL-011 | Save (bookmark) button | Users can save texts and sheets to their saved list with a bookmark button; anonymous users are prompted to sign up. |
-| USL-012 | Reading history and last place | The site remembers what a user read, for signed-in users on the server and for anonymous users in a cookie. |
+| ID      | Feature                               | What it does                                                                                                         |
+| ------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| USL-001 | Save (bookmark) button in text header | Signed-in readers can save the current text or sheet; anonymous users are invited to sign up.                        |
+| USL-008 | Saved items and reading history pages | Users see saved items and reading history, split by Library texts and Voices sheets.                                 |
+| USL-009 | Save and unsave texts and sheets      | A bookmark button saves texts and sheets for later.                                                                  |
+| USL-011 | Save (bookmark) button                | Users can save texts and sheets to their saved list with a bookmark button; anonymous users are prompted to sign up. |
+| USL-012 | Reading history and last place        | The site remembers what a user read, for signed-in users on the server and for anonymous users in a cookie.          |
 
 ### Standard (4)
 
-| ID | Feature | What it does |
-|---|---|---|
-| USL-002 | Recently viewed / last place tracking | The app records what you are reading so it appears in history. |
-| USL-003 | My Notes page | A page listing all of the user's notes with add-to-sheet and links back to the text. |
-| USL-007 | Note display | Shows a public or private note on a text, with an edit pencil on the user's own notes. |
-| USL-010 | Reading history logging | Texts and sheets read are recorded to history for signed-in users and in a cookie for anonymous users. |
+| ID      | Feature                               | What it does                                                                                           |
+| ------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| USL-002 | Recently viewed / last place tracking | The app records what you are reading so it appears in history.                                         |
+| USL-003 | My Notes page                         | A page listing all of the user's notes with add-to-sheet and links back to the text.                   |
+| USL-007 | Note display                          | Shows a public or private note on a text, with an edit pencil on the user's own notes.                 |
+| USL-010 | Reading history logging               | Texts and sheets read are recorded to history for signed-in users and in a cookie for anonymous users. |
 
 ### Optional (2)
 
-| ID | Feature | What it does |
-|---|---|---|
-| USL-004 | Note listing with delete and sheet-aware links | Compact note entries on profile/note lists with delete and a link to the source. |
-| USL-005 | Private notes list | Library users see their private notes with links back to the text and a delete action. |
+| ID      | Feature                                        | What it does                                                                           |
+| ------- | ---------------------------------------------- | -------------------------------------------------------------------------------------- |
+| USL-004 | Note listing with delete and sheet-aware links | Compact note entries on profile/note lists with delete and a link to the source.       |
+| USL-005 | Private notes list                             | Library users see their private notes with links back to the text and a delete action. |
 
 ### Retire (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                                 | What it does                                                           |
+| ------- | --------------------------------------- | ---------------------------------------------------------------------- |
 | USL-006 | Orphaned notes panel and Story remnants | Old notes and stories components remain in code but are not reachable. |
 
 ### Flags from the audit (not to port as-is)

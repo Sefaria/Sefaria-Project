@@ -447,7 +447,7 @@ Every field and its default:
   - Sets `justPopped` (skips the next history write) and rehydrates `SearchState` objects (history drops class instances).
   - Clones panels to avoid aliasing history.state.
   - Restores the `.content` scrollTop from `state.scrollPosition` and triggers scroll.
-  - Labels the search analytics flow source as `back_click` when returning *into* search.
+  - Labels the search analytics flow source as `back_click` when returning _into_ search.
 - **Scroll restoration:** a scroll handler on `.content` (re-bound after each update) debounces 300ms and writes `scrollPosition` into the current history state through `replaceState` (270, 965-974).
 - **Deep-link `openURL(href, replace, overrideContentLang, moduleTarget, signupSource)`** (1330-1456):
   - Confirms unsaved sheet-editor changes first; cancel → "handled" with no navigation.

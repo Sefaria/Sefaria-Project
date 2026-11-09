@@ -4,13 +4,14 @@ title: Connections & resources sidebar
 domain: Reader
 document: architecture
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-15
 
 updated: 2026-10-18
 
 updated: 2026-10-28
 ---
+
 # Connections & resources sidebar — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -28,19 +29,21 @@ dots and the sidebar summary stop downloading every link of the section. [Slack]
 ## Legacy approach vs new approach
 
 **Opening and closing the sidebar.**
+
 - Legacy (`master`): on desktop the sidebar is a separate panel spliced in after the text panel; a segment click opens it
   ([`static/js/ReaderApp.jsx:1059`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/ReaderApp.jsx#L1059), [`static/js/ReaderApp.jsx:1841`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/ReaderApp.jsx#L1841); CON-004, CON-008). In the text panel, a segment click
   in mode `Text` opens it; on phones, in mode `TextAndConnections`, a segment click closes it again
   ([`static/js/ReaderPanel.jsx:170-182`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/ReaderPanel.jsx#L170-L182)). The segment click handler has no check for a selection in progress
   ([`static/js/TextRange.jsx:485-527`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/TextRange.jsx#L485-L527)); the check exists only in `TextRange.handleClick`, used for text in the sidebar's lists
   ([`static/js/TextRange.jsx:90-94`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/TextRange.jsx#L90-L94)).
-- New (`reader-next`): the sidebar is an *aside* of its panel in the workspace state ([`src/lib/workspace/types.ts:33`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/workspace/types.ts#L33)), carried in the
+- New (`reader-next`): the sidebar is an _aside_ of its panel in the workspace state ([`src/lib/workspace/types.ts:33`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/workspace/types.ts#L33)), carried in the
   URL ([`src/lib/workspace/url.ts:47`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/workspace/url.ts#L47)), opened and closed with `openAside` / `closeAside` ([`src/lib/workspace/ops.ts:117`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/workspace/ops.ts#L117),
   [`src/lib/workspace/ops.ts:139`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/workspace/ops.ts#L139)). A segment click opens it, or closes it when the clicked verse is already the current one
   ([`src/features/reader/TextPanel.tsx:228-247`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/features/reader/TextPanel.tsx#L228-L247)); the click that ends a drag-selection is ignored ([`src/ui/Segment/Segment.tsx:77-82`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/ui/Segment/Segment.tsx#L77-L82)).
   While the sidebar is open, the selected verse follows scrolling ([`src/features/reader/TextPanel.tsx:168-175`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/features/reader/TextPanel.tsx#L168-L175); TXD-055, TXD-067).
 
 **Dictionary lookup.**
+
 - Legacy: selected words go to the sidebar panel only if it already exists ([`static/js/ReaderApp.jsx:1936-1942`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/ReaderApp.jsx#L1936-L1942); on phones to
   the same panel, [`static/js/ReaderPanel.jsx:339-348`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/ReaderPanel.jsx#L339-L348)). The sidebar switches to the dictionaries for fewer than three words in
   one segment ([`static/js/ConnectionsPanel.jsx:82-88`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/ConnectionsPanel.jsx#L82-L88)) and renders `LexiconBox` there ([`static/js/ConnectionsPanel.jsx:437-438`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/ConnectionsPanel.jsx#L437-L438)).
@@ -51,6 +54,7 @@ dots and the sidebar summary stop downloading every link of the section. [Slack]
 - In both clients the dictionary has no surface outside the sidebar.
 
 **Related data (links, sheets, resources).** Akiva Berger asked what the reader needs from `/api/related` in each state — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322132117529).
+
 - Legacy: every base-text section entered calls the full `/api/related/<section>?with_sheet_links=1` for that section and for the
   next and previous ones, sidebar open or not, plus `?private=1` for each when signed in ([`static/js/TextRange.jsx:146-186`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/TextRange.jsx#L146-L186));
   the response is split per segment into memory caches ([`static/js/sefaria/sefaria.js:2336-2373`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/sefaria/sefaria.js#L2336-L2373)). With the sidebar closed
@@ -69,30 +73,30 @@ dots and the sidebar summary stop downloading every link of the section. [Slack]
 
 ## Target architecture
 
-- The sidebar is a subcomponent of its main reader panel, not a separate top-level panel; see [Reader shell & panels](../reader-shell/architecture.md). — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
+- The sidebar is a subcomponent of its main reader panel, not a separate top-level panel; see [Reader shell & panels](../reader-shell/architecture.md). — _proposed_ · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
 
 Implications of ideas, not decisions.
 
 - Whether the sidebar is open, closed or docked becomes panel state changed only by its own control (and a default, if it starts
   open), not by choosing a segment. `reader-next` already keeps the sidebar as an aside separate from the panel's verse; segment
   selection would stop calling `openAside`, and a docked state would need a representation (and a decision on whether it goes
-  in the URL). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+  in the URL). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 - If the sidebar starts open, the selected-verse tracking that today runs only while it is open would run by default
-  ([`src/features/reader/TextPanel.tsx:168-175`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/features/reader/TextPanel.tsx#L168-L175); TXD-050, TXD-067). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+  ([`src/features/reader/TextPanel.tsx:168-175`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/features/reader/TextPanel.tsx#L168-L175); TXD-050, TXD-067). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 - A lightweight lookup surface (pop-up or tooltip) anchored to the word, outside the sidebar, reusing the lexicon lookup and
-  entry rendering, with a call-to-action that opens the sidebar on the dictionaries for the same words. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792111854572059?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792315304773969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+  entry rendering, with a call-to-action that opens the sidebar on the dictionaries for the same words. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792111854572059?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792315304773969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 - Lookups start from an explicit click or double-click on a word (tap or tap-and-hold on phones), not from mouse-up on a
-  selection; see [Text display](../text-display/architecture.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+  selection; see [Text display](../text-display/architecture.md). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 - Each state loads only what it shows. Sidebar closed, no dots: nothing. Dots: one count per segment (the dot's opacity stops
   changing at 50, [`src/lib/reader/labels.ts:79-81`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/reader/labels.ts#L79-L81)). Dots that follow a filter (CON-029) and the sidebar summary: per-segment
   counts by category and book, plus counts of sheets, topics, manuscripts, media and guides. A commentary or category open: the
   link rows for the selection and that filter, fetched then. Counts come from a stored per-section document
-  ([Public API](../api-data/architecture.md#target-architecture)). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322132117529) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
+  ([Public API](../api-data/architecture.md#target-architecture)). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322132117529) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
 - With the dots off and the sidebar closed, the reader makes no connection requests at all. If the counts arrive with the text,
   the dots need no request of their own either; they could be a reading setting whose data is the counts, loaded per section
-  as in the [settings proposal](../text-display/architecture.md#settings--display-model-proposal). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322132117529) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
+  as in the [settings proposal](../text-display/architecture.md#settings--display-model-proposal). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322132117529) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
 - Keep `reader-next`'s single links request per section shared by dots and sidebar, and its lack of neighbour prefetch for
-  connections; stop persisting multi-MB link arrays to IndexedDB (counts can stay on disk long, link rows in memory). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
+  connections; stop persisting multi-MB link arrays to IndexedDB (counts can stay on disk long, link rows in memory). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
 
 Learning workspace (experiment on `learning-workspace-poc`, PR #3892, never merged):
 
@@ -101,25 +105,25 @@ Learning workspace (experiment on `learning-workspace-poc`, PR #3892, never merg
   menu. `reader-next` already maps segments to their links ([`src/lib/connections/links.ts:45-48`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/lib/connections/links.ts#L45-L48)); the POC adds
   `linkedSegmentsIn` in both directions on `anchorRefExpanded` ([`src/lib/workspace/linked-verses.ts:15-23`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/workspace/linked-verses.ts#L15-L23)). Keep it in
   `src/lib/connections`, taking and returning refs only: `anchorRefExpanded` is the field a new backend text model drops
-  (`../CROSS_CUTTING.md`). It reuses the one links request per section. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  (`../CROSS_CUTTING.md`). It reuses the one links request per section. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - **Ranked favourite commentaries.** Ranked once, by collective title ("Rashi"), not per book; "show my commentaries" falls back to
   the next one down. The POC keeps the list in localStorage (default Rashi, Tosafot, Ramban, [`src/lib/study/favourite-commentaries.ts:5`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/study/favourite-commentaries.ts#L5)),
   ranks and falls back in one pure function ([`src/lib/study/favourite-commentaries.ts:19-29`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/study/favourite-commentaries.ts#L19-L29)), and stars from the commentary list,
   which gets the list as props ([`src/ui/ConnectionsPanel/CategoryView.tsx:76-80`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/ui/ConnectionsPanel/CategoryView.tsx#L76-L80)). Target: a user-scoped list setting in the
   settings registry ([Text display](../text-display/architecture.md)), saved through `savePreference` (profile when signed in,
-  local storage otherwise: a list does not belong in a cookie). D5 limits new profile keys at launch, so this is a later key. — *idea* ·
+  local storage otherwise: a list does not belong in a cookie). D5 limits new profile keys at launch, so this is a later key. — _idea_ ·
   [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - **Link hover cards.** Today a citation in the text closes what is next to its panel and opens there (F9,
   [`src/features/reader/TextPanel.tsx:317-340`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L317-L340)), and a ref link in a comment opens beside it ([`src/features/reader/TextPanel.tsx:298-311`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L298-L311)).
   The POC's cards listen on the panel and take plain clicks in the capture phase ([`src/features/study/RefPreview.tsx:132-148`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/study/RefPreview.tsx#L132-L148)),
   so a plain click opens a pinned card instead. A hover preview is additive; changing what a plain click does changes the decided F9.
   Pinned, draggable cards are a floating layer outside the layout tree, ephemeral and not in the URL (the same layer floating panels
-  need). "Open as new column" is `openNextToWithId`; "Open in new page" is a plain link. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  need). "Open as new column" is `openNextToWithId`; "Open in new page" is a plain link. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - **The language a link opens in.** `reader-next` follows sefaria.org: Open from the sidebar is bilingual when the panel is, else the
   sidebar's language ([`src/features/reader/TextPanel.tsx:264`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L264)); citations and comment links set no language
   ([`src/features/workspace/open-ref.ts:16-17`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/workspace/open-ref.ts#L16-L17)). The POC uses the source panel's language for all of them
   ([`src/features/reader/TextPanel.tsx:132`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/reader/TextPanel.tsx#L132)). `NewPanel.lang` already carries it; make it one policy function. Keeping parity or
-  taking the new rule is a product choice. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  taking the new rule is a product choice. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Dependencies on other areas
 
@@ -197,24 +201,24 @@ Implemented in (most features first):
 
 ### Gaps: core and standard features not done (16)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| CON-005 | core | Sidebar panel state fields | not started |
-| CON-007 | core | Complete sidebar mode inventory | not started |
-| CON-043 | core | Lexicon lookup and filtering | partial |
-| CON-055 | core | Add selected source to a sheet | partial |
-| CON-002 | standard | Connections header mobile variant | not started |
-| CON-016 | standard | Tools button component behavior | not started |
-| CON-022 | standard | Link category assignment (server) | not started |
-| CON-028 | standard | Recent filters chips | not started |
-| CON-031 | standard | Commentary text preload before display | not started |
-| CON-034 | standard | Add connection to sheet button | partial |
-| CON-035 | standard | Remove connection (moderator) | not started |
-| CON-048 | standard | Add private note on a ref | partial |
-| CON-050 | standard | Edit and delete note | not started |
-| CON-056 | standard | Add to sheet: version and partial-selection handling | not started |
-| CON-065 | standard | Create connection between two texts | partial |
-| CON-066 | standard | Compare text from sidebar | not started |
+| ID      | Tier     | Feature                                              | Rebuild status |
+| ------- | -------- | ---------------------------------------------------- | -------------- |
+| CON-005 | core     | Sidebar panel state fields                           | not started    |
+| CON-007 | core     | Complete sidebar mode inventory                      | not started    |
+| CON-043 | core     | Lexicon lookup and filtering                         | partial        |
+| CON-055 | core     | Add selected source to a sheet                       | partial        |
+| CON-002 | standard | Connections header mobile variant                    | not started    |
+| CON-016 | standard | Tools button component behavior                      | not started    |
+| CON-022 | standard | Link category assignment (server)                    | not started    |
+| CON-028 | standard | Recent filters chips                                 | not started    |
+| CON-031 | standard | Commentary text preload before display               | not started    |
+| CON-034 | standard | Add connection to sheet button                       | partial        |
+| CON-035 | standard | Remove connection (moderator)                        | not started    |
+| CON-048 | standard | Add private note on a ref                            | partial        |
+| CON-050 | standard | Edit and delete note                                 | not started    |
+| CON-056 | standard | Add to sheet: version and partial-selection handling | not started    |
+| CON-065 | standard | Create connection between two texts                  | partial        |
+| CON-066 | standard | Compare text from sidebar                            | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

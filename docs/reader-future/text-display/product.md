@@ -4,13 +4,14 @@ title: Text display & reading settings
 domain: Reader
 document: product
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-15
 
 updated: 2026-10-18
 
 updated: 2026-10-28
 ---
+
 # Text display & reading settings — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -32,30 +33,30 @@ Also proposed: reading settings reach the text in one uniform way, so a new sett
 
 ## Target behaviour in the future reader
 
-- Text the reader asked for is on screen fast, especially on phones; mobile sessions today end before it loads. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489)
-- Inline commentaries shown with the text and translation inside one panel. See [Reader shell & panels](../reader-shell/product.md). — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
-- Scrolling and clicking in the text never cause a visible repaint, flicker or jump. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · TXD-052 · TXD-068
-- Clicking a segment does not open the sidebar; the sidebar has its own open/close control. See [Connections](../connections/product.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · CON-008
+- Text the reader asked for is on screen fast, especially on phones; mobile sessions today end before it loads. — _proposed_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489)
+- Inline commentaries shown with the text and translation inside one panel. See [Reader shell & panels](../reader-shell/product.md). — _idea_ · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
+- Scrolling and clicking in the text never cause a visible repaint, flicker or jump. — _proposed_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · TXD-052 · TXD-068
+- Clicking a segment does not open the sidebar; the sidebar has its own open/close control. See [Connections](../connections/product.md). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · CON-008
 - Clicking or double-clicking a word shows a lightweight lookup at the word (pop-up or tooltip), with a call-to-action to open
-  the full sidebar. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792111854572059?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792315304773969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · TXD-059
-- Selecting (highlighting) text triggers nothing; selection is for copying or keeping one's place. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468) · TXD-057 · TXD-059
-- On phones, tap and tap-and-hold could do different things. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+  the full sidebar. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792111854572059?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792315304773969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · TXD-059
+- Selecting (highlighting) text triggers nothing; selection is for copying or keeping one's place. — _proposed_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468) · TXD-057 · TXD-059
+- On phones, tap and tap-and-hold could do different things. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 
 _Items carry a status: idea · proposed · agreed · decided._
 
-- Dark mode is a supported reading theme: readers can read in dark mode, and the reader is designed and tested for it. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · TXD-039 · SHL-006
-- Dark mode covers mobile: the phone (single-panel, responsive) reader is themed as fully as desktop. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468) · PLT-019
+- Dark mode is a supported reading theme: readers can read in dark mode, and the reader is designed and tested for it. — _decided_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · TXD-039 · SHL-006
+- Dark mode covers mobile: the phone (single-panel, responsive) reader is themed as fully as desktop. — _decided_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468) · PLT-019
 
 ## Changes from today (keep · change · drop · new)
 
 - **Change:** on load sefaria.org paints the top of the chapter, then jumps to the linked segment; the new reader places it
   before first paint. — TXD-054 · TXD-068 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 - **Keep:** _None recorded yet._
-- **Change:** a click on a segment stops opening the sidebar (CON-008). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
-- **Change:** a word lookup starts from a click or double-click on the word, not from a selection (TXD-059). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
-- **Drop:** dictionary lookup on text selection (TXD-057, TXD-059). — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Change:** a click on a segment stops opening the sidebar (CON-008). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Change:** a word lookup starts from a click or double-click on the word, not from a selection (TXD-059). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Drop:** dictionary lookup on text selection (TXD-057, TXD-059). — _proposed_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 - **New:** _None recorded yet._
-- **Change**: dark mode goes from a hidden hook to a supported feature. On sefaria.org the reader has light, sepia and dark styles but no control to choose them; only a pre-existing `color` cookie turns them on (TXD-039, SHL-006, both tiered *optional* by the audit). In the future reader it is a supported feature with a control. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949)
+- **Change**: dark mode goes from a hidden hook to a supported feature. On sefaria.org the reader has light, sepia and dark styles but no control to choose them; only a pre-existing `color` cookie turns them on (TXD-039, SHL-006, both tiered _optional_ by the audit). In the future reader it is a supported feature with a control. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949)
 
 ## Open questions
 
@@ -78,10 +79,10 @@ Inline commentary is the test case. The idea itself is recorded in the list abov
 be built is in [architecture](architecture.md#settings--display-model-proposal).
 
 - Every reading setting (source and translation, layout, alternative structures such as parashot and aliyot, and those to come)
-  changes the display in the same way, wherever it is set. — *proposed* · stated by Akiva Berger, 2026-10-18 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792321200408119) · TXD-041
+  changes the display in the same way, wherever it is set. — _proposed_ · stated by Akiva Berger, 2026-10-18 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792321200408119) · TXD-041
 - Adding a setting is one declaration: it then appears in the display menu, the URL and saved preferences, and the text updates,
-  with no edits to each part of the reader. Turning on inline commentary puts each comment in place under its verse. — *proposed* · stated by Akiva Berger, 2026-10-18 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792321200408119) · TXD-027 · TXD-042
-- A setting that does not apply to the text being read is not offered, as aliyot appear only for the Torah today. — *proposed* · stated by Akiva Berger, 2026-10-18 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792321200408119) · TXD-032 · TXD-041
+  with no edits to each part of the reader. Turning on inline commentary puts each comment in place under its verse. — _proposed_ · stated by Akiva Berger, 2026-10-18 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792321200408119) · TXD-027 · TXD-042
+- A setting that does not apply to the text being read is not offered, as aliyot appear only for the Torah today. — _proposed_ · stated by Akiva Berger, 2026-10-18 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792321200408119) · TXD-032 · TXD-041
 
 ## Decisions
 
@@ -103,92 +104,92 @@ Feature groups: Reading settings (12); Inline markup (11); Segment rendering (9)
 
 ### Core (42)
 
-| ID | Feature | What it does |
-|---|---|---|
-| TXD-001 | Custom copy formatting for selected text | Copied text is cleaned of numbers and UI chrome so it pastes nicely. |
-| TXD-002 | Reader text column renders sections of text | The reader shows a scrolling column of text sections, each made of numbered segments, in the main panel and side panels. |
-| TXD-003 | TextRange load, redirect and prefetch | When a section loads, the reader normalizes odd refs and prefetches neighbors and links. |
-| TXD-005 | Fetch text via v3 texts API with versions | Text for a section is loaded with the user's chosen source and translation versions, with gaps filled in. |
-| TXD-006 | Client picks source and translation versions | The reader decides which Hebrew/primary and translation versions to show using the user's selection, per-corpus preference and language preference. |
-| TXD-007 | Adapt v3 API response to legacy text shape | The newer text API response is converted into the older field layout the reader components expect. |
-| TXD-008 | Legacy text cache with per-segment entries | Fetched text is cached per segment and section so neighbors, context and spanning refs load instantly. |
-| TXD-009 | Server-rendered panel text seeded into client | The first text panel arrives already rendered from the server and is then refreshed by the client. |
-| TXD-010 | Build numbered segments from text data | Raw text arrays are turned into numbered, addressable segments with highlight and alt-structure markers. |
-| TXD-011 | Section title strings (named vs numbered) | Each section gets a title such as 'Chapter 4' or '2a' in English and Hebrew. |
-| TXD-012 | Section title in text column | Each section shows a title like 'Chapter 4' or '2a' above its text. |
-| TXD-013 | Reader header title and version label | The reader header shows the book and current section with the active translation's name. |
-| TXD-014 | Client ref parsing and helpers for text addressing | The client parses, normalizes and compares refs, including dafs, ranges and dictionary entries. |
-| TXD-017 | TextRequestAdapter version resolution and payload | The server resolves requested versions, merges gaps and returns text plus ref, index and node metadata. |
-| TXD-021 | Inline citation links in text (refLink) | Citations inside a text are clickable links that open the cited source. |
-| TXD-025 | Footnotes toggle inline | Footnote markers in the text expand and collapse the footnote text in place. |
-| TXD-031 | Language display: Source / Translation / Bilingual | Readers choose to see the source text, a translation, or both together. |
-| TXD-033 | Layout: segmented vs continuous | Readers can show text as one verse/segment per line or as a flowing paragraph. |
-| TXD-034 | Bilingual layout: stacked / side by side | In bilingual mode the translation can sit under the source or beside it, with either side on the left. |
-| TXD-036 | Font size controls | Readers can make text smaller or larger. |
-| TXD-037 | Vowels (nikkud) toggle | Readers can hide Hebrew vowel points. |
-| TXD-038 | Cantillation (te'amim) toggle | Readers can hide Hebrew cantillation marks while keeping vowels. |
-| TXD-040 | Reader panel CSS state classes | The panel carries classes that drive language, layout, direction and narrow-width styling. |
-| TXD-041 | Display options menu | One menu groups language, layout, aliyot, font size, vowels, cantillation and punctuation controls. |
-| TXD-042 | Initial settings defaults from cookies | New visitors and returning readers get sensible default reading settings. |
-| TXD-043 | Primary vs translation visibility per segment | Each segment shows the source, the translation, or both depending on language setting and what exists. |
-| TXD-044 | RTL translations rendered with Hebrew styling | Right-to-left translations (Arabic, Persian, Yiddish, Judeo-Arabic) and LTR sources display correctly. |
-| TXD-045 | Segment numbers | Each verse/segment shows its number in the margin, in Hebrew numerals for Hebrew. |
-| TXD-046 | Segment number and dot positioning in continuous mode | In continuous layout, numbers and link dots are positioned at their segment's start line without overlapping. |
-| TXD-047 | Link-count dot per segment | A faint dot next to each segment shows how many connections it has. |
-| TXD-048 | Segment click routing | Clicking different parts of a segment does different things: follow a citation, toggle a footnote, open a topic, or open connections. |
-| TXD-049 | Segment keyboard accessibility | Segments are keyboard focusable and openable with Enter or Space. |
-| TXD-050 | Highlighting of selected segment(s) | The segment being studied is marked with a light-blue background — but only while the connections sidebar is open. A plain verse or range link scrolls to the verse without a visible highlight. |
-| TXD-052 | Infinite scroll up and down in the reader | Readers scroll continuously through neighboring sections without page reloads. |
-| TXD-053 | Scroll container differs by device | On phones the whole page scrolls; on desktop the text column scrolls. |
-| TXD-054 | Initial and highlight scroll positioning | On opening, the reader scrolls to the cited segment, leaving room above to scroll up. |
-| TXD-055 | Visible-ref tracking drives URL and header | As you scroll, the URL follows the segment you are reading (segment level, e.g. /Genesis.1.8), the header follows the section, and — with the sidebar open — the blue highlight and the sidebar's connections follow too (TXD-067). |
-| TXD-056 | Loading placeholders and book title header | Above and below the loaded text the column shows a book title at the start of a book or loading indicators. |
-| TXD-061 | Basetext layout box and bilingual CSS | The text column has a standard width, line height and justified text, with bilingual alignment rules. |
-| TXD-065 | Hebrew numeral and daf encoding | Numbers and dafs display as Hebrew letters in Hebrew UI. |
-| TXD-067 | Current-segment highlight follows the reader | With the connections sidebar open, the light-blue highlight moves from segment to segment as you scroll, and the sidebar's content follows the highlighted segment. |
+| ID      | Feature                                                            | What it does                                                                                                                                                                                                                                                   |
+| ------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TXD-001 | Custom copy formatting for selected text                           | Copied text is cleaned of numbers and UI chrome so it pastes nicely.                                                                                                                                                                                           |
+| TXD-002 | Reader text column renders sections of text                        | The reader shows a scrolling column of text sections, each made of numbered segments, in the main panel and side panels.                                                                                                                                       |
+| TXD-003 | TextRange load, redirect and prefetch                              | When a section loads, the reader normalizes odd refs and prefetches neighbors and links.                                                                                                                                                                       |
+| TXD-005 | Fetch text via v3 texts API with versions                          | Text for a section is loaded with the user's chosen source and translation versions, with gaps filled in.                                                                                                                                                      |
+| TXD-006 | Client picks source and translation versions                       | The reader decides which Hebrew/primary and translation versions to show using the user's selection, per-corpus preference and language preference.                                                                                                            |
+| TXD-007 | Adapt v3 API response to legacy text shape                         | The newer text API response is converted into the older field layout the reader components expect.                                                                                                                                                             |
+| TXD-008 | Legacy text cache with per-segment entries                         | Fetched text is cached per segment and section so neighbors, context and spanning refs load instantly.                                                                                                                                                         |
+| TXD-009 | Server-rendered panel text seeded into client                      | The first text panel arrives already rendered from the server and is then refreshed by the client.                                                                                                                                                             |
+| TXD-010 | Build numbered segments from text data                             | Raw text arrays are turned into numbered, addressable segments with highlight and alt-structure markers.                                                                                                                                                       |
+| TXD-011 | Section title strings (named vs numbered)                          | Each section gets a title such as 'Chapter 4' or '2a' in English and Hebrew.                                                                                                                                                                                   |
+| TXD-012 | Section title in text column                                       | Each section shows a title like 'Chapter 4' or '2a' above its text.                                                                                                                                                                                            |
+| TXD-013 | Reader header title and version label                              | The reader header shows the book and current section with the active translation's name.                                                                                                                                                                       |
+| TXD-014 | Client ref parsing and helpers for text addressing                 | The client parses, normalizes and compares refs, including dafs, ranges and dictionary entries.                                                                                                                                                                |
+| TXD-017 | TextRequestAdapter version resolution and payload                  | The server resolves requested versions, merges gaps and returns text plus ref, index and node metadata.                                                                                                                                                        |
+| TXD-021 | Inline citation links in text (refLink)                            | Citations inside a text are clickable links that open the cited source.                                                                                                                                                                                        |
+| TXD-025 | Footnotes toggle inline                                            | Footnote markers in the text expand and collapse the footnote text in place.                                                                                                                                                                                   |
+| TXD-031 | Language display: Source / Translation / Bilingual                 | Readers choose to see the source text, a translation, or both together.                                                                                                                                                                                        |
+| TXD-033 | Layout: segmented vs continuous                                    | Readers can show text as one verse/segment per line or as a flowing paragraph.                                                                                                                                                                                 |
+| TXD-034 | Bilingual layout: stacked / side by side                           | In bilingual mode the translation can sit under the source or beside it, with either side on the left.                                                                                                                                                         |
+| TXD-036 | Font size controls                                                 | Readers can make text smaller or larger.                                                                                                                                                                                                                       |
+| TXD-037 | Vowels (nikkud) toggle                                             | Readers can hide Hebrew vowel points.                                                                                                                                                                                                                          |
+| TXD-038 | Cantillation (te'amim) toggle                                      | Readers can hide Hebrew cantillation marks while keeping vowels.                                                                                                                                                                                               |
+| TXD-040 | Reader panel CSS state classes                                     | The panel carries classes that drive language, layout, direction and narrow-width styling.                                                                                                                                                                     |
+| TXD-041 | Display options menu                                               | One menu groups language, layout, aliyot, font size, vowels, cantillation and punctuation controls.                                                                                                                                                            |
+| TXD-042 | Initial settings defaults from cookies                             | New visitors and returning readers get sensible default reading settings.                                                                                                                                                                                      |
+| TXD-043 | Primary vs translation visibility per segment                      | Each segment shows the source, the translation, or both depending on language setting and what exists.                                                                                                                                                         |
+| TXD-044 | RTL translations rendered with Hebrew styling                      | Right-to-left translations (Arabic, Persian, Yiddish, Judeo-Arabic) and LTR sources display correctly.                                                                                                                                                         |
+| TXD-045 | Segment numbers                                                    | Each verse/segment shows its number in the margin, in Hebrew numerals for Hebrew.                                                                                                                                                                              |
+| TXD-046 | Segment number and dot positioning in continuous mode              | In continuous layout, numbers and link dots are positioned at their segment's start line without overlapping.                                                                                                                                                  |
+| TXD-047 | Link-count dot per segment                                         | A faint dot next to each segment shows how many connections it has.                                                                                                                                                                                            |
+| TXD-048 | Segment click routing                                              | Clicking different parts of a segment does different things: follow a citation, toggle a footnote, open a topic, or open connections.                                                                                                                          |
+| TXD-049 | Segment keyboard accessibility                                     | Segments are keyboard focusable and openable with Enter or Space.                                                                                                                                                                                              |
+| TXD-050 | Highlighting of selected segment(s)                                | The segment being studied is marked with a light-blue background — but only while the connections sidebar is open. A plain verse or range link scrolls to the verse without a visible highlight.                                                               |
+| TXD-052 | Infinite scroll up and down in the reader                          | Readers scroll continuously through neighboring sections without page reloads.                                                                                                                                                                                 |
+| TXD-053 | Scroll container differs by device                                 | On phones the whole page scrolls; on desktop the text column scrolls.                                                                                                                                                                                          |
+| TXD-054 | Initial and highlight scroll positioning                           | On opening, the reader scrolls to the cited segment, leaving room above to scroll up.                                                                                                                                                                          |
+| TXD-055 | Visible-ref tracking drives URL and header                         | As you scroll, the URL follows the segment you are reading (segment level, e.g. /Genesis.1.8), the header follows the section, and — with the sidebar open — the blue highlight and the sidebar's connections follow too (TXD-067).                            |
+| TXD-056 | Loading placeholders and book title header                         | Above and below the loaded text the column shows a book title at the start of a book or loading indicators.                                                                                                                                                    |
+| TXD-061 | Basetext layout box and bilingual CSS                              | The text column has a standard width, line height and justified text, with bilingual alignment rules.                                                                                                                                                          |
+| TXD-065 | Hebrew numeral and daf encoding                                    | Numbers and dafs display as Hebrew letters in Hebrew UI.                                                                                                                                                                                                       |
+| TXD-067 | Current-segment highlight follows the reader                       | With the connections sidebar open, the light-blue highlight moves from segment to segment as you scroll, and the sidebar's content follows the highlighted segment.                                                                                            |
 | TXD-068 | Jump-free reading: place keeping and pre-paint placement (rebuild) | In the rebuild, nothing you are reading ever moves unless you scroll: sections added above, fonts arriving, the sidebar opening, font-size and layout changes all keep the current segment still, and a linked verse is in place from the first visible frame. |
 
 ### Standard (21)
 
-| ID | Feature | What it does |
-|---|---|---|
-| TXD-015 | Section label by address type for TOC | Table-of-contents section labels follow each text's addressing scheme (daf, year, folio, number). |
-| TXD-016 | v3 texts API parameters and warnings | The text API accepts version selectors and return formats and reports missing versions. |
-| TXD-018 | Return formats and text cleaning | The API can return text with inline links, plain text, or footnote-stripped text. |
-| TXD-019 | Merge versions segment by segment | When the chosen version has gaps, missing segments are filled from the next-best version of the same language. |
-| TXD-020 | Allowed inline HTML in stored text | Stored texts may contain a fixed set of formatting tags, footnotes, images, and overlay markers. |
-| TXD-022 | Inline named-entity (topic) links in text | People and concepts named in the text are underlined links that open the topic/lexicon sidebar. |
-| TXD-024 | Entity span safety rules | Stale or invalid link annotations are skipped so edited text never shows broken links. |
-| TXD-026 | Inline images in text | Texts can contain whole-segment images with captions and inline images in running text. |
-| TXD-027 | Inline commentary markers (itags) | When a commentary is selected in connections, numbered markers appear in the base text where that commentator comments. |
-| TXD-028 | Page-transition overlay markers | Page and column breaks of printed editions appear as small markers inside the text. |
-| TXD-029 | Search-term highlighting in text | When arriving from search, the matched words are highlighted inside the opened segment. |
-| TXD-032 | Language toggle visibility rule in display menu | The Source/Translation buttons only appear under certain conditions. |
-| TXD-035 | Auto side-by-side direction correction | When source and translation read in the same direction, side-by-side layout flips to the sensible order automatically. |
-| TXD-057 | Text selection and double-click guard | Selecting text highlights its segments and can trigger dictionary lookup. |
-| TXD-058 | Copy text with clean formatting | Copying text from the reader yields clean text without numbers, links or hidden-language spans. |
-| TXD-059 | Select words to look up in lexicon | Selecting a Hebrew/Aramaic word (up to a few words) opens a dictionary lookup. |
-| TXD-060 | Fonts for Hebrew, English and special scripts | Text renders with fonts supporting cantillation and other scripts. |
-| TXD-063 | Translation-language preference suggestion banner | Readers from certain countries are asked if they prefer translations in their local language. |
-| TXD-064 | Open translations banner | Readers of English text in major corpora are offered a shortcut to change the translation. |
-| TXD-066 | Source/translation language popover | A small popover lets users choose Source, Translation, or Source with Translation. |
+| ID      | Feature                                                 | What it does                                                                                                                                                   |
+| ------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TXD-015 | Section label by address type for TOC                   | Table-of-contents section labels follow each text's addressing scheme (daf, year, folio, number).                                                              |
+| TXD-016 | v3 texts API parameters and warnings                    | The text API accepts version selectors and return formats and reports missing versions.                                                                        |
+| TXD-018 | Return formats and text cleaning                        | The API can return text with inline links, plain text, or footnote-stripped text.                                                                              |
+| TXD-019 | Merge versions segment by segment                       | When the chosen version has gaps, missing segments are filled from the next-best version of the same language.                                                 |
+| TXD-020 | Allowed inline HTML in stored text                      | Stored texts may contain a fixed set of formatting tags, footnotes, images, and overlay markers.                                                               |
+| TXD-022 | Inline named-entity (topic) links in text               | People and concepts named in the text are underlined links that open the topic/lexicon sidebar.                                                                |
+| TXD-024 | Entity span safety rules                                | Stale or invalid link annotations are skipped so edited text never shows broken links.                                                                         |
+| TXD-026 | Inline images in text                                   | Texts can contain whole-segment images with captions and inline images in running text.                                                                        |
+| TXD-027 | Inline commentary markers (itags)                       | When a commentary is selected in connections, numbered markers appear in the base text where that commentator comments.                                        |
+| TXD-028 | Page-transition overlay markers                         | Page and column breaks of printed editions appear as small markers inside the text.                                                                            |
+| TXD-029 | Search-term highlighting in text                        | When arriving from search, the matched words are highlighted inside the opened segment.                                                                        |
+| TXD-032 | Language toggle visibility rule in display menu         | The Source/Translation buttons only appear under certain conditions.                                                                                           |
+| TXD-035 | Auto side-by-side direction correction                  | When source and translation read in the same direction, side-by-side layout flips to the sensible order automatically.                                         |
+| TXD-057 | Text selection and double-click guard                   | Selecting text highlights its segments and can trigger dictionary lookup.                                                                                      |
+| TXD-058 | Copy text with clean formatting                         | Copying text from the reader yields clean text without numbers, links or hidden-language spans.                                                                |
+| TXD-059 | Select words to look up in lexicon                      | Selecting a Hebrew/Aramaic word (up to a few words) opens a dictionary lookup.                                                                                 |
+| TXD-060 | Fonts for Hebrew, English and special scripts           | Text renders with fonts supporting cantillation and other scripts.                                                                                             |
+| TXD-063 | Translation-language preference suggestion banner       | Readers from certain countries are asked if they prefer translations in their local language.                                                                  |
+| TXD-064 | Open translations banner                                | Readers of English text in major corpora are offered a shortcut to change the translation.                                                                     |
+| TXD-066 | Source/translation language popover                     | A small popover lets users choose Source, Translation, or Source with Translation.                                                                             |
 | TXD-069 | Neighbouring sections preloaded with the page (rebuild) | The server tells the browser to fetch the previous and next sections while the app is still loading, so scrolling past an edge right after arrival is instant. |
 
 ### Optional (4)
 
-| ID | Feature | What it does |
-|---|---|---|
-| TXD-023 | Inline category links in text | Mentions of a category name in the text can link to that category in the library. |
-| TXD-030 | Linker debug mode spans | In debug mode, auto-detected citations are color-coded by status for moderators. |
-| TXD-039 | Color theme (light / sepia / dark) | Reader panels are fully styled for light, sepia and dark themes. |
-| TXD-062 | Print stylesheet for text | Printing a text hides interface chrome and keeps clean reading layout. |
+| ID      | Feature                            | What it does                                                                      |
+| ------- | ---------------------------------- | --------------------------------------------------------------------------------- |
+| TXD-023 | Inline category links in text      | Mentions of a category name in the text can link to that category in the library. |
+| TXD-030 | Linker debug mode spans            | In debug mode, auto-detected citations are color-coded by status for moderators.  |
+| TXD-039 | Color theme (light / sepia / dark) | Reader panels are fully styled for light, sepia and dark themes.                  |
+| TXD-062 | Print stylesheet for text          | Printing a text hides interface chrome and keeps clean reading layout.            |
 
 ### Retire (2)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                                     | What it does                                                     |
+| ------- | ------------------------------------------- | ---------------------------------------------------------------- |
 | TXD-004 | Dead actionLinks and prefetchMultiple props | Two reader options exist in code that do nothing or would break. |
-| TXD-051 | Poetry line formatting | Poetic texts can show each line with hanging indent. |
+| TXD-051 | Poetry line formatting                      | Poetic texts can show each line with hanging indent.             |
 
 ### Flags from the audit (not to port as-is)
 

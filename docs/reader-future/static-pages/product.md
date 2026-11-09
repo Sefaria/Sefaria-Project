@@ -4,9 +4,10 @@ title: Static pages
 domain: Site & accounts
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Static pages — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -51,41 +52,41 @@ Feature groups: React static pages (7); Site package pages (4); Serving (1); Org
 
 ### Core (2)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                               | What it does                                                                                                          |
+| ------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | STA-005 | Static page serving and About sidebar | Informational pages are served as server templates with the site header, plus an About sidebar linking them together. |
-| STA-007 | Terms and privacy policy | Terms of use and privacy policy pages, linked from sign-up and the cookie notice. |
+| STA-007 | Terms and privacy policy              | Terms of use and privacy policy pages, linked from sign-up and the cookie notice.                                     |
 
 ### Standard (5)
 
-| ID | Feature | What it does |
-|---|---|---|
-| STA-001 | Static content pages | Many informational pages (about, team, jobs, terms, etc.) are served as static templates under the header-only React shell. |
-| STA-002 | Voices sends About pages to Library | Informational pages requested on the Voices host are redirected to the Library host. |
-| STA-006 | About, strategy, story and supporters pages | Pages about Sefaria's mission, story, strategy and supporters. |
-| STA-013 | Ways to give / donate page | Explains ways to donate with feature boxes and a detailed FAQ. |
-| STA-018 | Short links and external redirects | Short, memorable URLs redirect to donation, help, community and other external pages. |
+| ID      | Feature                                     | What it does                                                                                                                |
+| ------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| STA-001 | Static content pages                        | Many informational pages (about, team, jobs, terms, etc.) are served as static templates under the header-only React shell. |
+| STA-002 | Voices sends About pages to Library         | Informational pages requested on the Voices host are redirected to the Library host.                                        |
+| STA-006 | About, strategy, story and supporters pages | Pages about Sefaria's mission, story, strategy and supporters.                                                              |
+| STA-013 | Ways to give / donate page                  | Explains ways to donate with feature boxes and a detailed FAQ.                                                              |
+| STA-018 | Short links and external redirects          | Short, memorable URLs redirect to donation, help, community and other external pages.                                       |
 
 ### Optional (10)
 
-| ID | Feature | What it does |
-|---|---|---|
-| STA-003 | Metrics and digitized-by-Sefaria pages | Two data-oriented pages show site metrics and Sefaria-digitized texts. |
-| STA-004 | Annual report and 990 PDF URLs | Annual reports and legal PDFs have stable URLs and old PDF addresses redirect to static files. |
-| STA-008 | Product, tool and edition pages | Marketing pages for Sefaria's apps, tools and special editions and projects. |
-| STA-009 | Jobs page | Lists current open positions grouped by department from the CMS. |
-| STA-010 | Team page | Shows staff and board members from the CMS. |
-| STA-011 | Products page | Lists Sefaria products from the CMS with links and images. |
-| STA-012 | Educators, Word-by-Word, newsletter and sponsorship pages | Landing pages for educators, a writing fellowship, newsletter signup and parasha sponsorship. |
-| STA-016 | Static page building blocks | Reusable layout components used to compose static pages. |
+| ID      | Feature                                                   | What it does                                                                                                                       |
+| ------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| STA-003 | Metrics and digitized-by-Sefaria pages                    | Two data-oriented pages show site metrics and Sefaria-digitized texts.                                                             |
+| STA-004 | Annual report and 990 PDF URLs                            | Annual reports and legal PDFs have stable URLs and old PDF addresses redirect to static files.                                     |
+| STA-008 | Product, tool and edition pages                           | Marketing pages for Sefaria's apps, tools and special editions and projects.                                                       |
+| STA-009 | Jobs page                                                 | Lists current open positions grouped by department from the CMS.                                                                   |
+| STA-010 | Team page                                                 | Shows staff and board members from the CMS.                                                                                        |
+| STA-011 | Products page                                             | Lists Sefaria products from the CMS with links and images.                                                                         |
+| STA-012 | Educators, Word-by-Word, newsletter and sponsorship pages | Landing pages for educators, a writing fellowship, newsletter signup and parasha sponsorship.                                      |
+| STA-016 | Static page building blocks                               | Reusable layout components used to compose static pages.                                                                           |
 | STA-017 | Metrics, digitized versions, annual report, 990, llms.txt | Pages publishing usage metrics, digitized-by-Sefaria versions, annual reports and financial filings, plus an LLM-friendly API doc. |
-| STA-019 | Legacy help sheets redirect to Help Center | Old help source sheets redirect to the matching Zendesk Help Center articles. |
+| STA-019 | Legacy help sheets redirect to Help Center                | Old help source sheets redirect to the matching Zendesk Help Center articles.                                                      |
 
 ### Retire (2)
 
-| ID | Feature | What it does |
-|---|---|---|
-| STA-014 | Contest landing pages | Old landing pages for the Powered by Sefaria contests. |
+| ID      | Feature                 | What it does                                                            |
+| ------- | ----------------------- | ----------------------------------------------------------------------- |
+| STA-014 | Contest landing pages   | Old landing pages for the Powered by Sefaria contests.                  |
 | STA-015 | Powered by page (moved) | The former Powered by Sefaria page now redirects to the developer site. |
 
 ### Flags from the audit (not to port as-is)

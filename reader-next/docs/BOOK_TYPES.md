@@ -46,6 +46,7 @@ Verified Genesis 1 version header (trimmed):
 "warnings":[{"translation":{"warning_code":104,"message":"We do not have a translation for Peri Megadim on Orach Chayim, Mishbezot Zahav 1"}}]
 "warnings":[{"primary":{"warning_code":102,"message":"We do not have the language you asked for Teshuvot haRashba part I 98. Available languages are ['english']"}}]
 ```
+
 The key (`translation` / `primary`) names the slot that could not be filled. Everything else returned `warnings: []`. With `version=primary&version=translation`, a slot with no version is simply absent from `versions` (Peri Megadim returns 1 version; Teshuvot returns 1 version, the English one).
 
 Inline-markup totals per book are in section 12.
@@ -101,11 +102,19 @@ Inline-markup totals per book are in section 12.
 - **Segment (Line) numbers** are `array index + 1`; refs are `Berakhot 2a:N`. Segment range: `Berakhot 2a:1-5` returned `ref "Berakhot 2a:1-5"`, `sections ["2a","1"]`, `toSections ["2a","5"]`, `sectionRef "Berakhot 2a"`, `firstAvailableSectionRef "Berakhot 2a:1-5"`, `next "Berakhot 2b"`, 5 strings.
 - **Spanning range across amudim** (`Berakhot 2a-3b`). Verified:
   ```json
-  {"ref":"Berakhot 2-3","heRef":"ברכות ב׳-ג׳","sectionRef":"Berakhot 2-3","firstAvailableSectionRef":"Berakhot 2-3",
-   "isSpanning":true,"sections":["2a"],"toSections":["3b"],
-   "spanningRefs":["Berakhot 2a","Berakhot 2b","Berakhot 3a","Berakhot 3b"],
-   "next":"Berakhot 4a","prev":null,
-   "alts":[[{"en":["Chapter 1; MeEimatai"],"he":["מאימתי"],"whole":true}]]}
+  {
+    "ref": "Berakhot 2-3",
+    "heRef": "ברכות ב׳-ג׳",
+    "sectionRef": "Berakhot 2-3",
+    "firstAvailableSectionRef": "Berakhot 2-3",
+    "isSpanning": true,
+    "sections": ["2a"],
+    "toSections": ["3b"],
+    "spanningRefs": ["Berakhot 2a", "Berakhot 2b", "Berakhot 3a", "Berakhot 3b"],
+    "next": "Berakhot 4a",
+    "prev": null,
+    "alts": [[{ "en": ["Chapter 1; MeEimatai"], "he": ["מאימתי"], "whole": true }]]
+  }
   ```
   `text` is nested: `[[14 strings],[19],[15],[32]]` (80 segments) for each version, one inner array per entry of `spanningRefs`. **The request `Berakhot 2a-3b` is normalized to `Berakhot 2-3` (whole-daf range) in `ref`; do not use `ref` to rebuild the URL or match the requested string.** Segment numbers restart at 1 per inner array, so the reader needs `spanningRefs[i]` to label each block. `alts` is also nested one level deeper (`[[...]]`) in the spanning response, versus flat (`[...]`) in the single-amud response. `next` is the amud after the range (`4a`), `prev` is null.
 - **Alt structure (Chapters)**: `alt_structs.Chapters.nodes[]` are `ArrayMapNode depth:1 wholeRef "Berakhot 2a:1-13a:15" includeSections:true`, with `match_templates` for "Perek"/"Chapter 1" names. `index.json` also has `default_struct` and `exclude_structs` keys. v3 `alts` for 2a: `[{"en":["Chapter 1; MeEimatai"],"he":["מאימתי"],"whole":true}]` (no `aliyah_*`). The chapter boundary only appears on the segment where it starts (here the first line).
@@ -179,16 +188,17 @@ Inline-markup totals per book are in section 12.
 
 ## 6. Codes of law and halakhah
 
-| slug | depth | sectionNames | addressTypes | isComplex | notes |
-|---|---|---|---|---|---|
-| `mishneh-torah-foundations-1` | 2 | Chapter, Halakhah | Perek, Halakhah | no | each Mishneh Torah book is its own index (title `Mishneh Torah, Foundations of the Torah`) so there is no single book root; `lengths [10,88]`; no alts |
-| `shulchan-arukh-oc-1` | 2 | Siman, Seif | Siman, Seif | no | `lengths [697,4171]`; alt struct (1st entry `Laws Upon Awakening in the Morning`) |
-| `kitzur-shulchan-arukh-1` | 2 | Siman, Seif | Siman, Seif | no | `lengths [221,2765]`; alt title text contains a trailing `\n` and bracketed text: `"[סימן א] דיני השכמת הבקר\n"` |
-| `arukh-hashulchan-oc-1` | 2 | Siman, Paragraph | Siman, Integer | **yes** | `prev "Arukh HaShulchan, Introduction"`; no `lengths`; he 29 segments / en 12 (empty at #11) |
-| `sefer-hachinukh-1` | 2 | Mitzvah, Paragraph | Siman, Integer | **yes** | sections named "Mitzvah" but address type is `Siman`; `default` node plus `Author's Introduction`/`Opening Letter by the Author`; `Parasha` alt struct is **one AltStructNode per mitzvah** (wholeRef `Sefer HaChinukh 1`, titles `"1; The commandment of procreation"`); `prev "Sefer HaChinukh, Opening Letter by the Author"` |
-| `teshuvot-harashba-1-98` | 2 | Teshuva, Paragraph | **Siman, Seif** | no | section name `Teshuva` but addressTypes `Siman, Seif`; `lengths [413,11]` yet only a few teshuvot have text; `next "Teshuvot haRashba part I 150"` (jumps); warning 102 |
+| slug                          | depth | sectionNames       | addressTypes    | isComplex | notes                                                                                                                                                                                                                                                                                                                            |
+| ----------------------------- | ----- | ------------------ | --------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mishneh-torah-foundations-1` | 2     | Chapter, Halakhah  | Perek, Halakhah | no        | each Mishneh Torah book is its own index (title `Mishneh Torah, Foundations of the Torah`) so there is no single book root; `lengths [10,88]`; no alts                                                                                                                                                                           |
+| `shulchan-arukh-oc-1`         | 2     | Siman, Seif        | Siman, Seif     | no        | `lengths [697,4171]`; alt struct (1st entry `Laws Upon Awakening in the Morning`)                                                                                                                                                                                                                                                |
+| `kitzur-shulchan-arukh-1`     | 2     | Siman, Seif        | Siman, Seif     | no        | `lengths [221,2765]`; alt title text contains a trailing `\n` and bracketed text: `"[סימן א] דיני השכמת הבקר\n"`                                                                                                                                                                                                                 |
+| `arukh-hashulchan-oc-1`       | 2     | Siman, Paragraph   | Siman, Integer  | **yes**   | `prev "Arukh HaShulchan, Introduction"`; no `lengths`; he 29 segments / en 12 (empty at #11)                                                                                                                                                                                                                                     |
+| `sefer-hachinukh-1`           | 2     | Mitzvah, Paragraph | Siman, Integer  | **yes**   | sections named "Mitzvah" but address type is `Siman`; `default` node plus `Author's Introduction`/`Opening Letter by the Author`; `Parasha` alt struct is **one AltStructNode per mitzvah** (wholeRef `Sefer HaChinukh 1`, titles `"1; The commandment of procreation"`); `prev "Sefer HaChinukh, Opening Letter by the Author"` |
+| `teshuvot-harashba-1-98`      | 2     | Teshuva, Paragraph | **Siman, Seif** | no        | section name `Teshuva` but addressTypes `Siman, Seif`; `lengths [413,11]` yet only a few teshuvot have text; `next "Teshuvot haRashba part I 150"` (jumps); warning 102                                                                                                                                                          |
 
 Details:
+
 - `shulchan-arukh-oc-1` Hebrew carries **itags** `<i data-commentator="Be'er HaGolah" data-label="א" data-order="1"></i>` (85 `data-commentator`, 40 `data-label`, 65 `data-order`). They are empty elements marking where a named commentator attaches (a superscript when a commentator filter is active, hidden otherwise; inv_03 6.4). English translation has no markup. The base-text-with-commentator view relies on these.
 - `kitzur-shulchan-arukh-1` English has 16 footnotes and `<span>` ×2.
 - `mishneh-torah-foundations-1` Hebrew has `<small>` ×20 (source attributions in parentheses) and refLinks ×45 total.
@@ -200,9 +210,11 @@ Details:
 ## 7. Midrash, Kabbalah, Jewish thought, Second Temple
 
 ### 7.1 Midrash: `bereshit-rabbah-1`
+
 Depth 2 `Chapter/Paragraph`, `["Perek","Integer"]`, `lengths [100,1036]`, `order [1]`, no alts. English "The Sefaria Midrash Rabbah, 2022" has footnotes (63) and 213 `<i>`; Hebrew has `<small>` ×97 (parenthetical source tags) and anchors; contains the broken `<In …>` element (see 0.5).
 
 ### 7.2 Zohar: `zohar-bereshit-1`
+
 - `isComplex true`, `["Chapter","Paragraph"]`, `["Integer","Integer"]`, **no `lengths`**. Schema is `SchemaNode` of named `JaggedArrayNode`s each with `index_offsets_by_depth`: the Introduction has `{"2":[0,3,6,10,15,...]}` and the response has `"index_offsets_by_depth":{"2":[0]}` for `Zohar, Bereshit 1` (this chapter starts at paragraph offset 0). Zohar paragraphs are numbered **continuously across chapters of a parasha**; the displayed number is `offset + index + 1`.
 - Two alt structs: `Daf` (`addressTypes ["Talmud"]`, `sectionNames ["Daf"]`, refs such as `Zohar, Introduction 1:1-2:4`) and `Essay` (`["Integer"]`, `["Paragraph"]`). The v3 `alts` is 2 entries and the titles are in the Zohar's own language (first entry `en ["", "1"]`, `he ["", " גליף גלופי בטהירו עילאה"]`, `aliyah_en "1"`, `aliyah_he "א׳"`; empty-string titles exist). Sanitize empty strings; the Hebrew `parasha_he` has a leading space.
 - `prev "Zohar, Introduction 34"` (end of the previous node), `next "Zohar, Bereshit 2"`.
@@ -210,13 +222,16 @@ Depth 2 `Chapter/Paragraph`, `["Perek","Integer"]`, `lengths [100,1036]`, `order
 - Versions: he "Vocalized Zohar, Israel 2013" (isSource) and he "Hebrew Translation" (not source). 4 versions available.
 
 ### 7.3 Sefer Yetzirah: `sefer-yetzirah-1`
+
 Depth 2 `Chapter/Mishnah`, `["Perek","Mishnah"]` (uses the Mishnah address type even though it's Kabbalah), `lengths [6,48]`. English has 22 footnotes; 139 `<i>`.
 
 ### 7.4 Jewish thought
+
 - `guide-perplexed-1-1`: `isComplex true`, `["Chapter","Paragraph"]`, `["Perek","Integer"]`, `lengths [76]` (Part 1 only), `book "Guide for the Perplexed"` vs `indexTitle "Guide for the Perplexed, Part 1"` vs `ref "Guide for the Perplexed, Part 1 1"` (the node title contains a number: "Part 1" then chapter 1). `prev "Guide for the Perplexed, Part 1, Introduction"`. Old client hard-codes the title to hide segment numbers. Hebrew is Makbili (isSource false, isPrimary true). Inline: `<span class="mediumGrey">` (4, a heading-ish grey line), `<sup>1</sup>` plain superscripts without class (8; **not** footnote-marker), `<b>` (37), `<br>` (6).
 - `kuzari-1-1`: requested a **segment** ref `Kuzari 1:1`. Response: `ref "Kuzari 1:1"`, `sections ["1","1"]`, `toSections ["1","1"]`, `sectionRef "Kuzari 1"`, `firstAvailableSectionRef "Kuzari 1:1"`, `next "Kuzari 2"`. **`text` is a bare string** (`"text":"..."`), not an array, for each version (one segment, depth collapsed). Handle `string | string[] | string[][]`. `["Essay","Statement"]`, `["Perek","Integer"]`, `lengths [5,350]`; both versions are `isSource:false` (the Ben-Yehuda Hebrew is a translation from Arabic).
 
 ### 7.5 Second Temple: `ben-sira-1`, `philo-creation-1`
+
 - `ben-sira-1`: `Chapter/Verse` `lengths [51,1018]`; Hebrew segments wrapped in brackets (`[כָּל חָכְמָה ...]`) where reconstructed; **empty segments #9 and #10 in both versions** (filled by `fill_in_missing_segments`, returned as `""`). Render as gaps, not crashes.
 - `philo-creation-1`: `isComplex true`, `["Chapter","Paragraph"]`, `["Integer","Integer"]`, no lengths; **English only**: 1 version in `versions`, `isPrimary true, isSource false`, `available_versions` 1; warnings `[]` (no warning, because only one language exists and a `primary` was found). Reader must not render a blank Hebrew column; the "primary" slot may be a translation.
 
@@ -225,9 +240,10 @@ Depth 2 `Chapter/Mishnah`, `["Perek","Mishnah"]` (uses the Mishnah address type 
 ## 8. Liturgy
 
 ### `siddur-ashkenaz-modeh-ani`, `pesach-haggadah-kadesh`
-- `textDepth 1`, `sectionNames ["Paragraph"]`, `addressTypes ["Integer"]`, `isComplex true`, **`sections []` and `toSections []`**: the requested ref is a *named node* (a leaf of a deep SchemaNode tree), so there are no numeric sections. `sectionRef == ref`, `lengths` absent.
+
+- `textDepth 1`, `sectionNames ["Paragraph"]`, `addressTypes ["Integer"]`, `isComplex true`, **`sections []` and `toSections []`**: the requested ref is a _named node_ (a leaf of a deep SchemaNode tree), so there are no numeric sections. `sectionRef == ref`, `lengths` absent.
 - Long, comma-joined refs and heRefs are the node path: `Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani`; `heRef "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, מודה אני"`. `book`/`indexTitle` is `Siddur Ashkenaz` for `Siddur`, and `Pesach Haggadah` for the Haggadah.
-- `next` is the next *named node*, not a number: `Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Netilat Yadayim`, `Pesach Haggadah, Urchatz`. `prev null` at the start of the node list.
+- `next` is the next _named node_, not a number: `Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Netilat Yadayim`, `Pesach Haggadah, Urchatz`. `prev null` at the start of the node list.
 - No segment numbers shown in the old client (inv_03 6.6). Text is array of paragraphs (2 and 13).
 - Inline: Haggadah he `<small>` ×11 (rubrics/instructions), en `<small>` ×8, `<i>` ×8, and **`<br>` ×52** (line breaks within paragraphs). Siddur he `<b>` ×2. No refLinks.
 - Haggadah has a TOC page with nested named nodes (see `docs/reference/haggadah-toc.png`).
@@ -248,40 +264,41 @@ Depth 2 `Chapter/Mishnah`, `["Perek","Mishnah"]` (uses the Mishnah address type 
 
 ## 10. Response shape cheat sheet (distinct `text` shapes seen)
 
-| shape | where | example |
-|---|---|---|
-| `string[]` (depth 2 section) | Genesis 1 (31), Mishnah, Midrash, codes, Ben Sira (35 incl. 2 empty) | `["...","..."]` |
-| `string[]` partial range | Genesis 1:1-5, Berakhot 2a:1-5 | 5 items; offset = `sections[last]` |
-| `string` (segment ref) | Kuzari 1:1 | `"text":"..."` |
-| `string[][]` (depth 3 at verse/line axis) | Rashi, Tosafot, Ramban, Peri Megadim | `[[a,b,c],[],[d]]`; inner empty arrays |
-| `string[][]` spanning | Berakhot 2a-3b | `[[14],[19],[15],[32]]` with `spanningRefs` |
-| `string[]` depth-1 node | Siddur, Haggadah | `["...","..."]`, `sections []` |
-| `string[]` with `sources[]` | Tosefta en | `sources` same length |
+| shape                                     | where                                                                | example                                     |
+| ----------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------- |
+| `string[]` (depth 2 section)              | Genesis 1 (31), Mishnah, Midrash, codes, Ben Sira (35 incl. 2 empty) | `["...","..."]`                             |
+| `string[]` partial range                  | Genesis 1:1-5, Berakhot 2a:1-5                                       | 5 items; offset = `sections[last]`          |
+| `string` (segment ref)                    | Kuzari 1:1                                                           | `"text":"..."`                              |
+| `string[][]` (depth 3 at verse/line axis) | Rashi, Tosafot, Ramban, Peri Megadim                                 | `[[a,b,c],[],[d]]`; inner empty arrays      |
+| `string[][]` spanning                     | Berakhot 2a-3b                                                       | `[[14],[19],[15],[32]]` with `spanningRefs` |
+| `string[]` depth-1 node                   | Siddur, Haggadah                                                     | `["...","..."]`, `sections []`              |
+| `string[]` with `sources[]`               | Tosefta en                                                           | `sources` same length                       |
 
 ---
 
 ## 11. next / prev / ref normalization gotchas (verified)
 
-| request | `ref` | `sectionRef` | `firstAvailableSectionRef` | `next` | `prev` |
-|---|---|---|---|---|---|
-| Genesis 1 | Genesis 1 | Genesis 1 | Genesis 1 | Genesis 2 | null |
-| Genesis 1:1-5 | Genesis 1:1-5 | Genesis 1 | **Genesis 1:1-5** | Genesis 2 | null |
-| Berakhot 2a | Berakhot 2a | Berakhot 2a | Berakhot 2a | Berakhot 2b | null |
-| Berakhot 2a-3b | **Berakhot 2-3** | Berakhot 2-3 | Berakhot 2-3 | Berakhot 4a | null |
-| Rashi on Genesis 1 | Rashi on Genesis 1 | Rashi on Genesis 1 | **Rashi on Genesis 1:1** | **Rashi on Genesis 2:2** | null |
-| Rashi on Berakhot 2a | same | same | **Rashi on Berakhot 2a:1** | **Rashi on Berakhot 2b:1** | null |
-| Ramban on Genesis 1 | same | same | Ramban on Genesis 1:1 | Ramban on Genesis 2:1 | **Ramban on Genesis, Foreword** |
-| Mishnah Berurah 1 | same | same | same | Mishnah Berurah 2 | **Mishnah Berurah, Introduction to the Laws of Shabbat** |
-| Zohar, Bereshit 1 | same | same | same | Zohar, Bereshit 2 | **Zohar, Introduction 34** |
-| Kuzari 1:1 | Kuzari 1:1 | **Kuzari 1** | Kuzari 1:1 | **Kuzari 2** | null |
-| Jastrow, אַבָּא I 1 | same | **Jastrow, אַבָּא I** | same | Jastrow, אַבָּא II | Jastrow, אֵב |
-| Teshuvot haRashba part I 98 | same | same | same | **...part I 150** | null |
-| Siddur ... Modeh Ani | same | same | same | ...Netilat Yadayim | null |
+| request                     | `ref`              | `sectionRef`          | `firstAvailableSectionRef` | `next`                     | `prev`                                                   |
+| --------------------------- | ------------------ | --------------------- | -------------------------- | -------------------------- | -------------------------------------------------------- |
+| Genesis 1                   | Genesis 1          | Genesis 1             | Genesis 1                  | Genesis 2                  | null                                                     |
+| Genesis 1:1-5               | Genesis 1:1-5      | Genesis 1             | **Genesis 1:1-5**          | Genesis 2                  | null                                                     |
+| Berakhot 2a                 | Berakhot 2a        | Berakhot 2a           | Berakhot 2a                | Berakhot 2b                | null                                                     |
+| Berakhot 2a-3b              | **Berakhot 2-3**   | Berakhot 2-3          | Berakhot 2-3               | Berakhot 4a                | null                                                     |
+| Rashi on Genesis 1          | Rashi on Genesis 1 | Rashi on Genesis 1    | **Rashi on Genesis 1:1**   | **Rashi on Genesis 2:2**   | null                                                     |
+| Rashi on Berakhot 2a        | same               | same                  | **Rashi on Berakhot 2a:1** | **Rashi on Berakhot 2b:1** | null                                                     |
+| Ramban on Genesis 1         | same               | same                  | Ramban on Genesis 1:1      | Ramban on Genesis 2:1      | **Ramban on Genesis, Foreword**                          |
+| Mishnah Berurah 1           | same               | same                  | same                       | Mishnah Berurah 2          | **Mishnah Berurah, Introduction to the Laws of Shabbat** |
+| Zohar, Bereshit 1           | same               | same                  | same                       | Zohar, Bereshit 2          | **Zohar, Introduction 34**                               |
+| Kuzari 1:1                  | Kuzari 1:1         | **Kuzari 1**          | Kuzari 1:1                 | **Kuzari 2**               | null                                                     |
+| Jastrow, אַבָּא I 1         | same               | **Jastrow, אַבָּא I** | same                       | Jastrow, אַבָּא II         | Jastrow, אֵב                                             |
+| Teshuvot haRashba part I 98 | same               | same                  | same                       | **...part I 150**          | null                                                     |
+| Siddur ... Modeh Ani        | same               | same                  | same                       | ...Netilat Yadayim         | null                                                     |
 
 Rules for the new client:
+
 - Navigation arrows use `next`/`prev` verbatim; never compute `n+1`.
 - A `next`/`prev` of `null` means start/end of that node (for complex books the next node may be reachable only through the TOC).
-- `firstAvailableSectionRef` is where to *land*; `sectionRef` is the container used to fetch text and keys for caching; a range request keeps `ref` as the range.
+- `firstAvailableSectionRef` is where to _land_; `sectionRef` is the container used to fetch text and keys for caching; a range request keeps `ref` as the range.
 - Normalized `ref` may differ from the request (spanning daf ranges, Hebrew refs, trailing `.`). Cache under both the requested and the returned refs.
 - Section-level `next` for depth-3 commentary points to **verse/line level** (`2:2`, `2b:1`), so the destination's `textDepth` stays 3 but its `ref` is one level deeper; the next fetch returns a verse-level section with its own `prev`/`next` (verified in `section-first.json` / `section-next.json` for Rashi).
 
@@ -291,46 +308,47 @@ Rules for the new client:
 
 Counts are total occurrences across both versions in `v3-texts.json` (wrap_all_entities). `a.refLink` and `a.namedEntityLink` are mostly generated by the wrap option (section 0.3).
 
-| slug | tags | classes / data attrs |
-|---|---|---|
-| genesis-1 | big 1, small 4, span 9, br 8, b 5, sup 3, i 3 | `span.mam-spi-pe` 6, `sup.footnote-marker` 3, `i.footnote` 3, `span.poetry indentAll` 3 |
-| genesis-1-1-5 | big, small, span, br; sup/i/b 3 each | `mam-spi-pe` 1, `sup.footnote-marker` 3, `i.footnote` 3 |
-| psalms-23 | b 4, span 18, br 13, small 2, sup 2, i 2 | `span.poetry indentAll` 5, `span.poetry indentAllDouble` 12, `mam-spi-pe` 1, footnotes 2 |
-| isaiah-40 | span 126, br 88, small 13, sup 8, i 11, b 8, a 2 | `mam-spi-samekh` 7, `mam-spi-pe` 2, `poetry indentAll` 116, `poetry indentAllDouble` 1, `a.refLink` 2 (`data-ref`,`data-range`), footnotes 8 |
-| song-of-songs-1 | big 1, span 54, br 34, small 2, sup 7, i 10, b 7 | `mam-spi-pe` 2, `mam-spi-samekh` 1, `mam-kq` 1, `mam-kq-k` 1, `mam-kq-q` 1, `poetry indentAll` 48, footnotes 7 |
-| onkelos-genesis-1 | b 13 | none |
-| berakhot-2a | big 2, strong 4, a 14, i 69, br 2, b 88 | `a.namedEntityLink` 8 (`data-slug`), `a.refLink` 6 |
-| berakhot-2a-1-5 | big 1, strong 2, a 11, i 17, br 2, b 25 | `namedEntityLink` 8, `refLink` 3 |
-| berakhot-2a-3b | big 2, strong 4, a 219, i 168, br 15, b 454 | `namedEntityLink` 200, `refLink` 19 |
-| jt-berakhot-1-1 | strong 4, big 2, i 516, a 359, sup 140, br 30, b 2 | `namedEntityLink` 80, `sup.footnote-marker` 139, `i.footnote` 139, `a.refLink` (no trailing space, stored) 142 + `a.refLink ` 137, `i[data-overlay="Vilna Pages"][data-value]` 22 |
-| mishnah-berakhot-1 | a 46, i 42, br 5, b 91 | `namedEntityLink` 39, `refLink` 7 |
-| tosefta-berakhot-1 | a 20 | `refLink` 20 |
-| pirkei-avot-1 | a 59 | `namedEntityLink` 57, `refLink` 2 |
-| rashi-on-genesis-1 | b 55, a 76, i 1 | `refLink` 76 |
-| rashi-on-berakhot-2a | a 6 | `refLink` 6 |
-| tosafot-on-berakhot-2a | a 11, b 132, small 5, br 31, sup 7, i 7 | `refLink` 11, footnotes 7 |
-| ramban-on-genesis-1 | b 48, a 333, br 73, i 733, sup 261 | `refLink` 333, footnotes 261 |
-| mishneh-torah-foundations-1 | small 20, a 45, br 15, i 1 | `refLink` 45 |
-| shulchan-arukh-oc-1 | b 1, br 1, i 85, small 3, a 1 | `i[data-commentator]` 85 (+`data-label` 40, `data-order` 65), `refLink` 1 |
-| mishnah-berurah-1 | a 20 | `refLink` 20 |
-| kitzur-shulchan-arukh-1 | a 15, sup 16, i 45, span 2 | `refLink` 15, footnotes 16 |
-| arukh-hashulchan-oc-1 | a 53, b 4, br 3 | `refLink` 53 |
-| siddur-ashkenaz-modeh-ani | b 2 | none |
-| pesach-haggadah-kadesh | small 19, b 1, i 8, br 52 | none |
-| zohar-bereshit-1 | i 1, a 1 | `i[data-overlay="Vilna Pages"][data-value="15a"]` 1 |
-| sefer-yetzirah-1 | small 2, sup 22, i 139, a 37 | `refLink` 37, footnotes 22 |
-| bereshit-rabbah-1 | small 97, a 211, sup 63, i 213, br 27, b 1, `In` 1 | `refLink` 211, footnotes 63 |
-| sefer-hachinukh-1 | b 2, a 20, i 3 | `refLink` 20 |
-| guide-perplexed-1-1 | b 37, a 33, br 6, span 4, sup 8 | `refLink` 33, `span.mediumGrey` 4, bare `<sup>` 8 |
-| kuzari-1-1 | none | none |
-| jastrow-abba-1 | strong 2, a 21, span 11, i 4 | `a.refLink` (stored, no trailing space) 21, `span[dir=rtl]` |
-| klein-av-1 | strong 1, a 5, b 10, i 3 | `a.refLink` 5 |
-| teshuvot-harashba-1-98 | none | none |
-| ben-sira-1 | br 2 | none |
-| philo-creation-1 | none | none |
-| peri-megadim-oc-mz-1 | a 11, b 1 | `refLink` 11 |
+| slug                        | tags                                               | classes / data attrs                                                                                                                                                              |
+| --------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| genesis-1                   | big 1, small 4, span 9, br 8, b 5, sup 3, i 3      | `span.mam-spi-pe` 6, `sup.footnote-marker` 3, `i.footnote` 3, `span.poetry indentAll` 3                                                                                           |
+| genesis-1-1-5               | big, small, span, br; sup/i/b 3 each               | `mam-spi-pe` 1, `sup.footnote-marker` 3, `i.footnote` 3                                                                                                                           |
+| psalms-23                   | b 4, span 18, br 13, small 2, sup 2, i 2           | `span.poetry indentAll` 5, `span.poetry indentAllDouble` 12, `mam-spi-pe` 1, footnotes 2                                                                                          |
+| isaiah-40                   | span 126, br 88, small 13, sup 8, i 11, b 8, a 2   | `mam-spi-samekh` 7, `mam-spi-pe` 2, `poetry indentAll` 116, `poetry indentAllDouble` 1, `a.refLink` 2 (`data-ref`,`data-range`), footnotes 8                                      |
+| song-of-songs-1             | big 1, span 54, br 34, small 2, sup 7, i 10, b 7   | `mam-spi-pe` 2, `mam-spi-samekh` 1, `mam-kq` 1, `mam-kq-k` 1, `mam-kq-q` 1, `poetry indentAll` 48, footnotes 7                                                                    |
+| onkelos-genesis-1           | b 13                                               | none                                                                                                                                                                              |
+| berakhot-2a                 | big 2, strong 4, a 14, i 69, br 2, b 88            | `a.namedEntityLink` 8 (`data-slug`), `a.refLink` 6                                                                                                                                |
+| berakhot-2a-1-5             | big 1, strong 2, a 11, i 17, br 2, b 25            | `namedEntityLink` 8, `refLink` 3                                                                                                                                                  |
+| berakhot-2a-3b              | big 2, strong 4, a 219, i 168, br 15, b 454        | `namedEntityLink` 200, `refLink` 19                                                                                                                                               |
+| jt-berakhot-1-1             | strong 4, big 2, i 516, a 359, sup 140, br 30, b 2 | `namedEntityLink` 80, `sup.footnote-marker` 139, `i.footnote` 139, `a.refLink` (no trailing space, stored) 142 + `a.refLink ` 137, `i[data-overlay="Vilna Pages"][data-value]` 22 |
+| mishnah-berakhot-1          | a 46, i 42, br 5, b 91                             | `namedEntityLink` 39, `refLink` 7                                                                                                                                                 |
+| tosefta-berakhot-1          | a 20                                               | `refLink` 20                                                                                                                                                                      |
+| pirkei-avot-1               | a 59                                               | `namedEntityLink` 57, `refLink` 2                                                                                                                                                 |
+| rashi-on-genesis-1          | b 55, a 76, i 1                                    | `refLink` 76                                                                                                                                                                      |
+| rashi-on-berakhot-2a        | a 6                                                | `refLink` 6                                                                                                                                                                       |
+| tosafot-on-berakhot-2a      | a 11, b 132, small 5, br 31, sup 7, i 7            | `refLink` 11, footnotes 7                                                                                                                                                         |
+| ramban-on-genesis-1         | b 48, a 333, br 73, i 733, sup 261                 | `refLink` 333, footnotes 261                                                                                                                                                      |
+| mishneh-torah-foundations-1 | small 20, a 45, br 15, i 1                         | `refLink` 45                                                                                                                                                                      |
+| shulchan-arukh-oc-1         | b 1, br 1, i 85, small 3, a 1                      | `i[data-commentator]` 85 (+`data-label` 40, `data-order` 65), `refLink` 1                                                                                                         |
+| mishnah-berurah-1           | a 20                                               | `refLink` 20                                                                                                                                                                      |
+| kitzur-shulchan-arukh-1     | a 15, sup 16, i 45, span 2                         | `refLink` 15, footnotes 16                                                                                                                                                        |
+| arukh-hashulchan-oc-1       | a 53, b 4, br 3                                    | `refLink` 53                                                                                                                                                                      |
+| siddur-ashkenaz-modeh-ani   | b 2                                                | none                                                                                                                                                                              |
+| pesach-haggadah-kadesh      | small 19, b 1, i 8, br 52                          | none                                                                                                                                                                              |
+| zohar-bereshit-1            | i 1, a 1                                           | `i[data-overlay="Vilna Pages"][data-value="15a"]` 1                                                                                                                               |
+| sefer-yetzirah-1            | small 2, sup 22, i 139, a 37                       | `refLink` 37, footnotes 22                                                                                                                                                        |
+| bereshit-rabbah-1           | small 97, a 211, sup 63, i 213, br 27, b 1, `In` 1 | `refLink` 211, footnotes 63                                                                                                                                                       |
+| sefer-hachinukh-1           | b 2, a 20, i 3                                     | `refLink` 20                                                                                                                                                                      |
+| guide-perplexed-1-1         | b 37, a 33, br 6, span 4, sup 8                    | `refLink` 33, `span.mediumGrey` 4, bare `<sup>` 8                                                                                                                                 |
+| kuzari-1-1                  | none                                               | none                                                                                                                                                                              |
+| jastrow-abba-1              | strong 2, a 21, span 11, i 4                       | `a.refLink` (stored, no trailing space) 21, `span[dir=rtl]`                                                                                                                       |
+| klein-av-1                  | strong 1, a 5, b 10, i 3                           | `a.refLink` 5                                                                                                                                                                     |
+| teshuvot-harashba-1-98      | none                                               | none                                                                                                                                                                              |
+| ben-sira-1                  | br 2                                               | none                                                                                                                                                                              |
+| philo-creation-1            | none                                               | none                                                                                                                                                                              |
+| peri-megadim-oc-mz-1        | a 11, b 1                                          | `refLink` 11                                                                                                                                                                      |
 
 Totals of distinct constructs observed anywhere:
+
 - Tags: `a, b, big, br, i, small, span, strong, sup` (+ the bogus `In`). Not observed in text: `img, u, em, sub`.
 - `sup.footnote-marker` (content: letter `a` or number) is always immediately followed by `i.footnote` containing the footnote body (an `<i class="footnote">` whose own content can contain `<b>`, `<i>`, `<a class="refLink">`). The reader must pair marker and body and render the body in a popover or footnote area, not inline.
 - `i[data-commentator][data-order][data-label]`: empty itag, only Shulchan Arukh in this sample.
@@ -344,37 +362,38 @@ Totals of distinct constructs observed anywhere:
 
 ## 13. Per-book-type summary and special handling
 
-| type (slug) | depth / sectionNames | addressTypes | complex | alts | segment number display | what to do differently |
-|---|---|---|---|---|---|---|
-| Torah (genesis-1) | 2 Chapter, Verse | Perek, Pasuk | no | Parasha: aliyah+parasha keys | Hebrew numerals (א, ב, ... ט״ו, ט״ז) | aliyah/parasha headers, nikkud/te'amim toggles, footnotes, many translation languages, poetry spans in English |
-| Targum (onkelos) | 2 | Perek, Pasuk | no | same Parasha | verse numbers | treat as Torah for aliyot; dependent but not shown in sidebar |
-| Writings poetry (psalms) | 2 | Perek, Pasuk | no | Day-of-month (no aliyah keys) | verse numbers | poetry line indents; alt without aliyah fields |
-| Prophets (isaiah) | 2 | Perek, Pasuk | no | `[]` | verse numbers | haftarah must come from calendar, not alts; samekh/pe markers |
-| Megillah (song-of-songs) | 2 | Perek, Pasuk | no | `[]` | verse numbers | ketiv/qere spans |
-| Bavli (berakhot) | 2 Daf, Line | **Talmud**, Integer | no | Chapters | section = `2a`, lines 1..N | daf/amud conversion, William Davidson attribution, spanning ranges as nested arrays, manuscripts, entity links |
-| Yerushalmi (jt) | 3 Chapter, Halakhah, Segment | Perek, Halakhah, Integer | no | Venice (**Folio**) + Vilna (Talmud) merged | halakhah:segment | Folio a-d, Vilna overlay `<i>`, merged alt labels |
-| Mishnah | 2 Chapter, Mishnah | Perek, Mishnah | no | none | mishnah numbers | decide by primary_category (Avot) |
-| Tosefta | 2 Chapter, Tosefta | Perek, Integer | no | none | numbers | merged translation (`sources[]`) |
-| Commentary on Tanakh (rashi, ramban) | 3 Chapter, Verse, Comment | Perek, Pasuk, Integer | Ramban yes | Parasha (nested) | verse:comment | super-section redirect, ragged/empty arrays, next = verse-level ref, dibbur hamatchil `<b>` |
-| Commentary on Talmud (rashi/tosafot berakhot) | 3 Daf, Line, Comment | Talmud, Integer, Integer | no | Chapters (nested) | 2a:line:comment | he/en outer length mismatch; next = `2b:1` |
-| Halakhic commentary (mishnah-berurah, peri-megadim) | 2 / 3 | Siman, SeifKatan / Integer×3 | yes | none | seif katan / paragraph | named intro nodes as `prev`; no base mapping for MB; he-only for PM |
-| Mishneh Torah | 2 Chapter, Halakhah | Perek, Halakhah | no | none | halakhah numbers | one index per book; nested TOC |
-| Shulchan Arukh / Kitzur | 2 Siman, Seif | Siman, Seif | no | Siman titles | seif numbers (Hebrew letters) | itags (SA), commentator markers |
-| Arukh HaShulchan | 2 Siman, Paragraph | Siman, Integer | yes | has alt | paragraph numbers | complex nodes, partial English |
-| Sefer HaChinukh | 2 Mitzvah, Paragraph | Siman, Integer | yes | per-mitzvah AltStruct | paragraph numbers | section name Mitzvah but address Siman; opening nodes |
-| Responsa | 2 Teshuva, Paragraph | Siman, Seif | no | none | paragraph | sparse content; he missing (warning 102) |
-| Midrash | 2 Chapter, Paragraph | Perek, Integer | no | none | paragraph numbers | footnotes, stray `<In>` |
-| Zohar | 2 Chapter, Paragraph | Integer, Integer | yes | Daf + Essay | continuous paragraph numbers via offsets | `index_offsets_by_depth`, he translation as 2nd version |
-| Sefer Yetzirah | 2 Chapter, Mishnah | Perek, Mishnah | no | none | numbers | -- |
-| Jewish thought (guide) | 2 Chapter, Paragraph | Perek, Integer | yes | none | **hidden in old client** | hide numbers; he is not source; grey heading span |
-| Jewish thought (kuzari) | 2 Essay, Statement | Perek, Integer | no | none | numbers | segment ref returns scalar string; neither language isSource |
-| Liturgy (siddur, haggadah) | 1 Paragraph | Integer | yes | none | **hidden** | named-node refs, `sections []`, next is next node, `<br>`/`<small>` rubrics |
-| Dictionary (jastrow, klein) | 1 Line | Integer | yes (virtual) | none | hidden | headword refs, no shape, he lookup via words endpoint, `dir=rtl` spans, warning 104 |
-| Second Temple (ben-sira) | 2 Chapter, Verse | Perek, Pasuk | no | none | verse numbers | empty segments |
-| Translation-only (philo) | 2 Chapter, Paragraph | Integer, Integer | yes | none | numbers | no Hebrew; primary is English translation |
-| Hebrew-only (peri-megadim) | 3 | Integer×3 | yes | none | numbers | no translation; warning 104 |
+| type (slug)                                         | depth / sectionNames         | addressTypes                 | complex       | alts                                       | segment number display                   | what to do differently                                                                                         |
+| --------------------------------------------------- | ---------------------------- | ---------------------------- | ------------- | ------------------------------------------ | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Torah (genesis-1)                                   | 2 Chapter, Verse             | Perek, Pasuk                 | no            | Parasha: aliyah+parasha keys               | Hebrew numerals (א, ב, ... ט״ו, ט״ז)     | aliyah/parasha headers, nikkud/te'amim toggles, footnotes, many translation languages, poetry spans in English |
+| Targum (onkelos)                                    | 2                            | Perek, Pasuk                 | no            | same Parasha                               | verse numbers                            | treat as Torah for aliyot; dependent but not shown in sidebar                                                  |
+| Writings poetry (psalms)                            | 2                            | Perek, Pasuk                 | no            | Day-of-month (no aliyah keys)              | verse numbers                            | poetry line indents; alt without aliyah fields                                                                 |
+| Prophets (isaiah)                                   | 2                            | Perek, Pasuk                 | no            | `[]`                                       | verse numbers                            | haftarah must come from calendar, not alts; samekh/pe markers                                                  |
+| Megillah (song-of-songs)                            | 2                            | Perek, Pasuk                 | no            | `[]`                                       | verse numbers                            | ketiv/qere spans                                                                                               |
+| Bavli (berakhot)                                    | 2 Daf, Line                  | **Talmud**, Integer          | no            | Chapters                                   | section = `2a`, lines 1..N               | daf/amud conversion, William Davidson attribution, spanning ranges as nested arrays, manuscripts, entity links |
+| Yerushalmi (jt)                                     | 3 Chapter, Halakhah, Segment | Perek, Halakhah, Integer     | no            | Venice (**Folio**) + Vilna (Talmud) merged | halakhah:segment                         | Folio a-d, Vilna overlay `<i>`, merged alt labels                                                              |
+| Mishnah                                             | 2 Chapter, Mishnah           | Perek, Mishnah               | no            | none                                       | mishnah numbers                          | decide by primary_category (Avot)                                                                              |
+| Tosefta                                             | 2 Chapter, Tosefta           | Perek, Integer               | no            | none                                       | numbers                                  | merged translation (`sources[]`)                                                                               |
+| Commentary on Tanakh (rashi, ramban)                | 3 Chapter, Verse, Comment    | Perek, Pasuk, Integer        | Ramban yes    | Parasha (nested)                           | verse:comment                            | super-section redirect, ragged/empty arrays, next = verse-level ref, dibbur hamatchil `<b>`                    |
+| Commentary on Talmud (rashi/tosafot berakhot)       | 3 Daf, Line, Comment         | Talmud, Integer, Integer     | no            | Chapters (nested)                          | 2a:line:comment                          | he/en outer length mismatch; next = `2b:1`                                                                     |
+| Halakhic commentary (mishnah-berurah, peri-megadim) | 2 / 3                        | Siman, SeifKatan / Integer×3 | yes           | none                                       | seif katan / paragraph                   | named intro nodes as `prev`; no base mapping for MB; he-only for PM                                            |
+| Mishneh Torah                                       | 2 Chapter, Halakhah          | Perek, Halakhah              | no            | none                                       | halakhah numbers                         | one index per book; nested TOC                                                                                 |
+| Shulchan Arukh / Kitzur                             | 2 Siman, Seif                | Siman, Seif                  | no            | Siman titles                               | seif numbers (Hebrew letters)            | itags (SA), commentator markers                                                                                |
+| Arukh HaShulchan                                    | 2 Siman, Paragraph           | Siman, Integer               | yes           | has alt                                    | paragraph numbers                        | complex nodes, partial English                                                                                 |
+| Sefer HaChinukh                                     | 2 Mitzvah, Paragraph         | Siman, Integer               | yes           | per-mitzvah AltStruct                      | paragraph numbers                        | section name Mitzvah but address Siman; opening nodes                                                          |
+| Responsa                                            | 2 Teshuva, Paragraph         | Siman, Seif                  | no            | none                                       | paragraph                                | sparse content; he missing (warning 102)                                                                       |
+| Midrash                                             | 2 Chapter, Paragraph         | Perek, Integer               | no            | none                                       | paragraph numbers                        | footnotes, stray `<In>`                                                                                        |
+| Zohar                                               | 2 Chapter, Paragraph         | Integer, Integer             | yes           | Daf + Essay                                | continuous paragraph numbers via offsets | `index_offsets_by_depth`, he translation as 2nd version                                                        |
+| Sefer Yetzirah                                      | 2 Chapter, Mishnah           | Perek, Mishnah               | no            | none                                       | numbers                                  | --                                                                                                             |
+| Jewish thought (guide)                              | 2 Chapter, Paragraph         | Perek, Integer               | yes           | none                                       | **hidden in old client**                 | hide numbers; he is not source; grey heading span                                                              |
+| Jewish thought (kuzari)                             | 2 Essay, Statement           | Perek, Integer               | no            | none                                       | numbers                                  | segment ref returns scalar string; neither language isSource                                                   |
+| Liturgy (siddur, haggadah)                          | 1 Paragraph                  | Integer                      | yes           | none                                       | **hidden**                               | named-node refs, `sections []`, next is next node, `<br>`/`<small>` rubrics                                    |
+| Dictionary (jastrow, klein)                         | 1 Line                       | Integer                      | yes (virtual) | none                                       | hidden                                   | headword refs, no shape, he lookup via words endpoint, `dir=rtl` spans, warning 104                            |
+| Second Temple (ben-sira)                            | 2 Chapter, Verse             | Perek, Pasuk                 | no            | none                                       | verse numbers                            | empty segments                                                                                                 |
+| Translation-only (philo)                            | 2 Chapter, Paragraph         | Integer, Integer             | yes           | none                                       | numbers                                  | no Hebrew; primary is English translation                                                                      |
+| Hebrew-only (peri-megadim)                          | 3                            | Integer×3                    | yes           | none                                       | numbers                                  | no translation; warning 104                                                                                    |
 
 ### Segment-number rendering rules (derived)
+
 - English UI: ASCII integers; Talmud sections `2a`/`2b`; Yerushalmi `1:1`; Zohar continuous.
 - Hebrew UI: Hebrew numerals via gematria (1-9 = `א׳..ט׳`, 10 = `י׳`, 15 = `ט״ו`, 16 = `ט״ז`, 23 = `כ״ג`); a lone letter gets geresh, 2+ letters get gershayim before the last letter. Talmud: daf as numeral plus `.` (a) / `:` (b) for short form or `א`/`ב` for long form as in `heRef "ברכות ב׳ א"`.
 - Hide numbers for: Liturgy, Reference (dictionaries), Guide for the Perplexed (old client), commentaries when shown in the sidebar (they are indexed by link, not by number).
@@ -386,31 +405,32 @@ Totals of distinct constructs observed anywhere:
 
 Legend: `Y` required/used, `n` not needed, `~` partially / conditionally. "Folio" = 4-sided daf a-d.
 
-| book type | daf numbering | aliyot / parasha | poetry lines | complex TOC / nodes | commentary-base linking | dictionary lookup | alt structs | footnotes | folio | images / manuscripts | translation-only / he-only | itags / overlays | merged versions | many languages |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Torah (Genesis) | n | Y | Y (en) | n | Y (target of Rashi etc.) | n | Y | Y | n | ~ (related manuscripts: 2) | n | n | n | Y (50 versions) |
-| Onkelos | n | Y | n | n | ~ (dependent, targum) | n | Y | n | n | n | n | n | n | n |
-| Psalms | n | n (day alt) | Y | n | Y | n | Y (day) | Y | n | n | n | n | n | ~ |
-| Prophets / Megillah | n | n | Y | n | Y | n | n (`[]`) | Y | n | ~ | n | n (ketiv/qere span) | n | ~ |
-| Bavli | Y | n | n | n | Y (Rashi/Tosafot) | n | Y (chapters) | n | n | Y (manuscripts) | n | n | n | n |
-| Yerushalmi | ~ (Vilna daf) | n | n | n | ~ | n | Y (Venice+Vilna) | Y | Y | n | n | Y (Vilna overlay) | n | n |
-| Mishnah | n | n | n | n | Y | n | n | n | n | n | n | n | n | n |
-| Tosefta | n | n | n | n | ~ | n | n | n | n | n | n | n | Y | n |
-| Commentary on Tanakh | n | ~ (alts nested; hidden) | n | ~ (Ramban intro/foreword) | Y (it is the commentary) | n | ~ | Y (Ramban en) | n | n | n | n | n | n |
-| Commentary on Talmud | Y | n | n | n | Y | n | ~ | ~ | n | n | n | n | n | n |
-| Mishnah Berurah / Peri Megadim | n | n | n | Y | ~ (MB: no mapping) | n | n | n | n | n | ~ (PM he-only) | n | n | n |
-| Mishneh Torah | n | n | n | ~ (nested TOC) | n | n | n | n | n | n | n | n | n | n |
-| Shulchan Arukh / Kitzur | n | n | n | n | Y (commentators attach) | n | Y (Siman titles) | ~ (Kitzur) | n | n | n | Y (SA itags) | n | n |
-| Arukh HaShulchan / Sefer HaChinukh | n | ~ (Chinukh Parasha) | n | Y | n | n | Y | n | n | n | ~ | n | n | n |
-| Responsa | n | n | n | n | n | n | n | n | n | n | ~ (sparse, he missing) | n | n | n |
-| Midrash | n | n | n | n | ~ | n | n | Y | n | n | n | n | n | n |
-| Zohar | ~ (daf alt) | n | n | Y | n | n | Y (Daf, Essay) | n | n | n | n | Y (Vilna overlay) | n | n |
-| Jewish thought (Guide/Kuzari) | n | n | n | ~ (Guide parts) | n | n | n | ~ | n | n | ~ (non-source primary) | n | n | n |
-| Liturgy | n | n | ~ (`<br>` lines) | Y (deep nodes) | n | n | n | n | n | n | n | n | n | n |
-| Dictionary | n | n | n | Y (virtual headword nodes) | n | Y | n | n | n | n | Y (en source only) | n | n | n |
-| Second Temple | n | n | n | n | n | n | n | n | n | n | ~ (Philo en-only) | n | n | n |
+| book type                          | daf numbering | aliyot / parasha        | poetry lines     | complex TOC / nodes        | commentary-base linking  | dictionary lookup | alt structs      | footnotes     | folio | images / manuscripts       | translation-only / he-only | itags / overlays    | merged versions | many languages  |
+| ---------------------------------- | ------------- | ----------------------- | ---------------- | -------------------------- | ------------------------ | ----------------- | ---------------- | ------------- | ----- | -------------------------- | -------------------------- | ------------------- | --------------- | --------------- |
+| Torah (Genesis)                    | n             | Y                       | Y (en)           | n                          | Y (target of Rashi etc.) | n                 | Y                | Y             | n     | ~ (related manuscripts: 2) | n                          | n                   | n               | Y (50 versions) |
+| Onkelos                            | n             | Y                       | n                | n                          | ~ (dependent, targum)    | n                 | Y                | n             | n     | n                          | n                          | n                   | n               | n               |
+| Psalms                             | n             | n (day alt)             | Y                | n                          | Y                        | n                 | Y (day)          | Y             | n     | n                          | n                          | n                   | n               | ~               |
+| Prophets / Megillah                | n             | n                       | Y                | n                          | Y                        | n                 | n (`[]`)         | Y             | n     | ~                          | n                          | n (ketiv/qere span) | n               | ~               |
+| Bavli                              | Y             | n                       | n                | n                          | Y (Rashi/Tosafot)        | n                 | Y (chapters)     | n             | n     | Y (manuscripts)            | n                          | n                   | n               | n               |
+| Yerushalmi                         | ~ (Vilna daf) | n                       | n                | n                          | ~                        | n                 | Y (Venice+Vilna) | Y             | Y     | n                          | n                          | Y (Vilna overlay)   | n               | n               |
+| Mishnah                            | n             | n                       | n                | n                          | Y                        | n                 | n                | n             | n     | n                          | n                          | n                   | n               | n               |
+| Tosefta                            | n             | n                       | n                | n                          | ~                        | n                 | n                | n             | n     | n                          | n                          | n                   | Y               | n               |
+| Commentary on Tanakh               | n             | ~ (alts nested; hidden) | n                | ~ (Ramban intro/foreword)  | Y (it is the commentary) | n                 | ~                | Y (Ramban en) | n     | n                          | n                          | n                   | n               | n               |
+| Commentary on Talmud               | Y             | n                       | n                | n                          | Y                        | n                 | ~                | ~             | n     | n                          | n                          | n                   | n               | n               |
+| Mishnah Berurah / Peri Megadim     | n             | n                       | n                | Y                          | ~ (MB: no mapping)       | n                 | n                | n             | n     | n                          | ~ (PM he-only)             | n                   | n               | n               |
+| Mishneh Torah                      | n             | n                       | n                | ~ (nested TOC)             | n                        | n                 | n                | n             | n     | n                          | n                          | n                   | n               | n               |
+| Shulchan Arukh / Kitzur            | n             | n                       | n                | n                          | Y (commentators attach)  | n                 | Y (Siman titles) | ~ (Kitzur)    | n     | n                          | n                          | Y (SA itags)        | n               | n               |
+| Arukh HaShulchan / Sefer HaChinukh | n             | ~ (Chinukh Parasha)     | n                | Y                          | n                        | n                 | Y                | n             | n     | n                          | ~                          | n                   | n               | n               |
+| Responsa                           | n             | n                       | n                | n                          | n                        | n                 | n                | n             | n     | n                          | ~ (sparse, he missing)     | n                   | n               | n               |
+| Midrash                            | n             | n                       | n                | n                          | ~                        | n                 | n                | Y             | n     | n                          | n                          | n                   | n               | n               |
+| Zohar                              | ~ (daf alt)   | n                       | n                | Y                          | n                        | n                 | Y (Daf, Essay)   | n             | n     | n                          | n                          | Y (Vilna overlay)   | n               | n               |
+| Jewish thought (Guide/Kuzari)      | n             | n                       | n                | ~ (Guide parts)            | n                        | n                 | n                | ~             | n     | n                          | ~ (non-source primary)     | n                   | n               | n               |
+| Liturgy                            | n             | n                       | ~ (`<br>` lines) | Y (deep nodes)             | n                        | n                 | n                | n             | n     | n                          | n                          | n                   | n               | n               |
+| Dictionary                         | n             | n                       | n                | Y (virtual headword nodes) | n                        | Y                 | n                | n             | n     | n                          | Y (en source only)         | n                   | n               | n               |
+| Second Temple                      | n             | n                       | n                | n                          | n                        | n                 | n                | n             | n     | n                          | ~ (Philo en-only)          | n                   | n               | n               |
 
 Minimum feature list implied by the matrix:
+
 1. Segment-array renderer that handles `string`, `string[]`, `string[][]`, and ranges, with per-version length alignment and empty-segment tolerance.
 2. Ref-address helper set: Hebrew numeral formatter, daf int<->`2a` converter, Folio a-d, offsets, spanning label from `spanningRefs`.
 3. `alts` consumer (aliyah/parasha, chapter, day, Venice/Vilna) keyed by segment index, tolerant of `null`, nesting, and missing aliyah fields.
@@ -426,7 +446,7 @@ Minimum feature list implied by the matrix:
 - **Truncated payloads** (manifest `truncated: true`; JSON still parses but arrays are cut): `related.json` for genesis-1 (484 KB of 16.1 MB), psalms-23, isaiah-40, song-of-songs-1, berakhot-2a, berakhot-2a-3b, jt-berakhot-1-1, mishnah-berakhot-1, pirkei-avot-1, rashi-on-genesis-1, ramban-on-genesis-1, mishneh-torah-foundations-1, shulchan-arukh-oc-1, sefer-yetzirah-1, bereshit-rabbah-1, kuzari-1-1; `links.json` for genesis-1 (480 KB of 7.4 MB), isaiah-40, song-of-songs-1, berakhot-2a-3b, jt-berakhot-1-1, mishnah-berakhot-1, pirkei-avot-1, rashi-on-genesis-1, bereshit-rabbah-1; and `berakhot-2a/book-ref.json` (2.05 of 4.0 MB; the file was present when first listed and later missing from the directory, so re-check). Counts of links/sheets/topics derived from these (e.g. Genesis links 681, related links 86) are therefore lower bounds. In `genesis-1/related.json` the keys are `links 86, sheets 141, notes 0, topics 86, manuscripts 2, media 31, guides 0`, while `links.json` has 681 entries; the two endpoints are not directly comparable.
 - **`genesis-1/v3-texts.json` is byte-identical to `v3-texts-default.json`** (and likewise for jastrow-abba-1 and most one-language sections without entities). Where they differ (Berakhot, Mishnah, Rashi, etc.), the difference is only entity/ref wrapping (section 0.3). The "default" fixtures do not exercise `fill_in_missing_segments`.
 - **Dictionary entries (Jastrow, Klein) have only `v3-texts*`, `index*`, `related`, `links`, `versions`, `name` valid; no `shape`.** `klein-av-1` has `sections []` and an entry-level `ref` (no line number), whereas `jastrow-abba-1` has `sections ["1"]`; the two dictionaries are not shaped alike.
-- **`kuzari-1-1`** records a *segment ref*, so `text` is a scalar string; the manifest's `textDepth 2` is the book depth, not the text nesting. Same for `genesis-1-1-5`/`berakhot-2a-1-5` (arrays are flat, not depth 2).
+- **`kuzari-1-1`** records a _segment ref_, so `text` is a scalar string; the manifest's `textDepth 2` is the book depth, not the text nesting. Same for `genesis-1-1-5`/`berakhot-2a-1-5` (arrays are flat, not depth 2).
 - **`teshuvot-harashba-1-98`**: the requested language is not available; `versions` has only the English community translation (`isPrimary false`), so the "primary Hebrew" fixture is actually missing; `lengths [413,11]` suggests 413 teshuvot but the manifest note says very few have text.
 - **`zohar-bereshit-1`**: both returned versions are Hebrew; no English at all, so it does not cover a "translation slot returns English" case. Its `index_offsets_by_depth` is `{"2":[0]}` (offset 0), so non-zero offsets (the offset case) are only visible in `index.json`, not exercised in `v3`.
 - **`song-of-songs-1`, `tosefta-berakhot-1`, `pirkei-avot-1`, `sefer-yetzirah-1`, `kuzari-1-1`, `mishnah-berakhot-1` `shape.json`**: valid but small (< 400 bytes; list of one book object with `chapters` as int array); not a problem, but note it differs from Genesis/Berakhot where `chapters` is an array of per-chapter arrays/objects (`[..50]`).

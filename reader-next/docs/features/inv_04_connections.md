@@ -15,26 +15,27 @@ I read the sidebar files in full. I read the supporting code (ReaderApp / Reader
 6. **Latent temporal-dead-zone (TDZ) bugs.** These only work because Babel probably transpiles `let`/`const` to `var`:
    - `AboutBox.jsx:78,95` assigns to and reads `detailSection` before its `let` declaration at line 130. Note the misspelt `detailsSection` declared at line 75. This is the About box for a **sheet**.
    - `VersionsTextList.jsx:34` reads `currSelectedVersions` inside `useEffect`, but it is declared later at line 60, after an early return. Under var semantics it is `undefined`, so `getRef` falls back to the default versions. The local `enVersion`/`heVersion` (l.28-33) are computed and never used.
-7. **The "Version Open" recent-filter binding looks wrong.** `AboutBox.jsx:112` passes `setFilter={this.props.setFilter.bind(null,'About')}`, which makes `'About'` the *filter* argument of `setVersionFilter(filter, prevMode)`. Clicking a chip in the RecentFilterSet while in "Version Open" therefore calls `setVersionFilter('About', '<key>')`.
+7. **The "Version Open" recent-filter binding looks wrong.** `AboutBox.jsx:112` passes `setFilter={this.props.setFilter.bind(null,'About')}`, which makes `'About'` the _filter_ argument of `setVersionFilter(filter, prevMode)`. Clicking a chip in the RecentFilterSet while in "Version Open" therefore calls `setVersionFilter('About', '<key>')`.
 8. **`ExtendedNotes` in the sidebar can crash.** It calls `this.props.backFromExtendedNotes()` when the version has no extended notes (`ExtendedNotes.jsx:30`), but ConnectionsPanel never passes that prop (`ConnectionsPanel.jsx:570-572`).
-9. **Clicking the *current* version's title in About throws.** `openVersionInSidebar` is not passed to the "Current Version" / "Current Translation" `VersionBlock`s (`AboutBox.jsx:204-230`), and `VersionBlockUtils.openVersionInSidebar` calls it unconditionally (`VersionBlock.jsx:54`). Their Select buttons are hidden with CSS (`s2.css:3695`).
+9. **Clicking the _current_ version's title in About throws.** `openVersionInSidebar` is not passed to the "Current Version" / "Current Translation" `VersionBlock`s (`AboutBox.jsx:204-230`), and `VersionBlockUtils.openVersionInSidebar` calls it unconditionally (`VersionBlock.jsx:54`). Their Select buttons are hidden with CSS (`s2.css:3695`).
 10. **The URL builder has a typo for multi-panel sidebar search.** It writes `` `&sbsq{i}=` `` with the `$` missing (`ReaderApp.jsx:858`), so the sidebar search query is lost for any panel after the first. Separately, the server reads `vside` instead of `vside{i}` for panels 2+ (`reader/views.py:881`).
 11. **`AddToSourceSheetBox.makeSourceForEden` references an undeclared `source`** (`AddToSourceSheet.jsx:180-192`). This is the legacy Gardens path only.
 12. **Pluralisation bug in GuideBox.** It renders "1 Answers" / "0 Answer" because the condition is `length > 0 ? 'Answers' : 'Answer'` (`GuideBox.jsx:22`).
 13. **The Torah Readings (Media) empty state shows a "Loading…" spinner forever** instead of an empty message (`Media.jsx:32-35`). The play/pause icons use a relative path `static/img/play.svg` (`Media.jsx:129`), which breaks on nested URLs.
-14. **Unused imports in ConnectionsPanel**: `Ad`, `CollectionsModal`, `event` (jquery), `LanguageToggleButton`, `CloseButton`, `SheetListing`, `EnglishText`, `HebrewText`. Sidebar *ads* (`sidebarAds.js`) are **not** rendered in the connections panel. They render through `Promotions` in `NavSidebar` and `TopicPage` (section 20).
+14. **Unused imports in ConnectionsPanel**: `Ad`, `CollectionsModal`, `event` (jquery), `LanguageToggleButton`, `CloseButton`, `SheetListing`, `EnglishText`, `HebrewText`. Sidebar _ads_ (`sidebarAds.js`) are **not** rendered in the connections panel. They render through `Promotions` in `NavSidebar` and `TopicPage` (section 20).
 
 ---
 
 ## 1. Architecture / state model
 
 ### 1.1 Where the sidebar lives
+
 - **Desktop (multiPanel):** a separate ReaderPanel with `mode: "Connections"` sits to the right of the text panel. `ReaderApp.openTextListAt(n, refs, textListState)` (`ReaderApp.jsx:1870-1902`) does the following:
   - It splices in a new panel, or reuses one if it already has `mode: "Connections"`.
   - It forces the panel's language to `hebrew` or `english`: "Don't let connections panels be bilingual".
   - It inherits `filter`, `versionFilter`, `recentFilters`, `recentVersionFilters` and `currVersions` from the parent Text/Sheet panel.
   - If the parent has `openSidebarAsConnect`, it opens in `"Add Connection"` mode.
-- **Mobile (single panel):** the same ReaderPanel switches to `mode: "TextAndConnections"`, with the connections shown in-panel (`ReaderPanel.openConnectionsInPanel`, `ReaderPanel.jsx:220-228`). History is *replaced* rather than pushed while already in TextAndConnections.
+- **Mobile (single panel):** the same ReaderPanel switches to `mode: "TextAndConnections"`, with the connections shown in-panel (`ReaderPanel.openConnectionsInPanel`, `ReaderPanel.jsx:220-228`). History is _replaced_ rather than pushed while already in TextAndConnections.
 - `ReaderPanel.openConnectionsPanel(ref, additionalState)` picks the desktop or mobile route (`ReaderPanel.jsx:211-219`).
 - ReaderPanel renders `<ConnectionsPanel>` with about 60 props (`ReaderPanel.jsx:821-887`). Notable ones:
   - `srefs` is `refs` in Connections mode and `highlightedRefs` in TextAndConnections mode.
@@ -45,7 +46,9 @@ I read the sidebar files in full. I read the supporting code (ReaderApp / Reader
   - Mobile: the normal ReaderControls header is hidden for Connections (`hideHeader`), and ConnectionsPanel renders its own header in the non-multiPanel style (`ConnectionsPanel.jsx:593-609`, `ConnectionsPanelHeader.jsx:158-180`).
 
 ### 1.2 Panel state fields that drive the sidebar
+
 These are defined in `ReaderApp.makePanelState` (`ReaderApp.jsx:150-200`):
+
 - `connectionsMode`: defaults to `"Resources"`.
 - `connectionsCategory`: used with `"ConnectionsList"`.
 - `filter`: an array with zero or one element. A filter string can carry a suffix, `"Rashi"`, `"Rashi|Quoting"` or `"<displayedText>|Essay"`.
@@ -62,6 +65,7 @@ These are defined in `ReaderApp.makePanelState` (`ReaderApp.jsx:150-200`):
 Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`ReaderPanel.jsx:256-258`).
 
 ### 1.3 Mode setters
+
 - **`ReaderPanel.setConnectionsMode(mode, connectionData=null)`** (`ReaderPanel.jsx:550-569`):
   - `"Add Connection"` with only one open text ref goes to `openComparePanel(true)` instead of the mode.
   - It fires `Sefaria.track.event("Tools", mode+" Click")` on every call, including programmatic ones (there is a TODO about this).
@@ -86,38 +90,39 @@ Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`Re
 
 ### 1.4 Full list of sidebar modes (`ConnectionsPanel.render`, `ConnectionsPanel.jsx:268-587`)
 
-| mode | Renders | Notes |
-|---|---|---|
-| (links not loaded) | `LoadingMessage` | shown until `Sefaria.related(srefs[0])` resolves (l.270) |
-| `Resources` | top tools + Related Texts summary + Resources list + Tools list | §2 |
-| `Navigation` | `TextTableOfContents` (BookPage) | Table of Contents; uses `currentlyVisibleSectionRef` |
-| `ConnectionsList` | `ConnectionsSummary` with `category` + `showBooks` | §3 |
-| `TextList` / `EssayList` | `TextList` | §4 |
-| `Add To Sheet` | `AddToSourceSheetBox` | §13 |
-| `Notes` | `AddNoteBox` + "Go to My Notes" + `MyNotes` | §11 |
-| `Edit Note` | `AddNoteBox` with the note prefilled | §11 |
-| `Lexicon` | `LexiconBox` | §9 |
-| `Topics` | `TopicList` | §10 |
-| `WebPages` / `WebPagesList` | `WebPagesList` (filter null vs. site name) | §12 |
-| `Torah Readings` | `MediaList` | §14 |
-| `LinkerAdmin` | `LinkerAdminBox` | §19 |
-| `Advanced Tools` | `AdvancedToolsList` | §16 |
-| `Share` | `ShareBox` | §15 |
-| `Feedback` | `FeedbackBox` (Misc) | §17 |
-| `Add Connection` | `AddConnectionBox` | §16.3 |
-| `Login` | `LoginPrompt` | |
-| `About` / `Version Open` | `AboutBox` | §6 |
-| `Guide` | `GuideBox` | §18 |
-| `Translations` / `Translation Open` | `TranslationsBox` | §7 |
-| `extended notes` | `ExtendedNotes` | §8.6 |
-| `manuscripts` | `ManuscriptImageList` | §14.2 |
-| `SidebarSearch` | `SidebarSearch` | §5 |
-| `Sheets`, `AboutSheet` | **nothing** (no branch) | see §0.3 |
+| mode                                | Renders                                                         | Notes                                                    |
+| ----------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------- |
+| (links not loaded)                  | `LoadingMessage`                                                | shown until `Sefaria.related(srefs[0])` resolves (l.270) |
+| `Resources`                         | top tools + Related Texts summary + Resources list + Tools list | §2                                                       |
+| `Navigation`                        | `TextTableOfContents` (BookPage)                                | Table of Contents; uses `currentlyVisibleSectionRef`     |
+| `ConnectionsList`                   | `ConnectionsSummary` with `category` + `showBooks`              | §3                                                       |
+| `TextList` / `EssayList`            | `TextList`                                                      | §4                                                       |
+| `Add To Sheet`                      | `AddToSourceSheetBox`                                           | §13                                                      |
+| `Notes`                             | `AddNoteBox` + "Go to My Notes" + `MyNotes`                     | §11                                                      |
+| `Edit Note`                         | `AddNoteBox` with the note prefilled                            | §11                                                      |
+| `Lexicon`                           | `LexiconBox`                                                    | §9                                                       |
+| `Topics`                            | `TopicList`                                                     | §10                                                      |
+| `WebPages` / `WebPagesList`         | `WebPagesList` (filter null vs. site name)                      | §12                                                      |
+| `Torah Readings`                    | `MediaList`                                                     | §14                                                      |
+| `LinkerAdmin`                       | `LinkerAdminBox`                                                | §19                                                      |
+| `Advanced Tools`                    | `AdvancedToolsList`                                             | §16                                                      |
+| `Share`                             | `ShareBox`                                                      | §15                                                      |
+| `Feedback`                          | `FeedbackBox` (Misc)                                            | §17                                                      |
+| `Add Connection`                    | `AddConnectionBox`                                              | §16.3                                                    |
+| `Login`                             | `LoginPrompt`                                                   |                                                          |
+| `About` / `Version Open`            | `AboutBox`                                                      | §6                                                       |
+| `Guide`                             | `GuideBox`                                                      | §18                                                      |
+| `Translations` / `Translation Open` | `TranslationsBox`                                               | §7                                                       |
+| `extended notes`                    | `ExtendedNotes`                                                 | §8.6                                                     |
+| `manuscripts`                       | `ManuscriptImageList`                                           | §14.2                                                    |
+| `SidebarSearch`                     | `SidebarSearch`                                                 | §5                                                       |
+| `Sheets`, `AboutSheet`              | **nothing** (no branch)                                         | see §0.3                                                 |
 
 - "Marginless" CSS modes: Resources, ConnectionsList, Advanced Tools, Share, WebPages, Topics, manuscripts (l.589).
 - The outer div is keyed by `mode`, so every mode change remounts the content (l.592).
 
 ### 1.5 URL representation (deep-linking into sidebar modes)
+
 - **Client, `ReaderApp.makeHistoryState`** (`ReaderApp.jsx:495-870`):
   - URL-representable modes (`sidebarModes`, l.500-501): Sheets, Notes, Translations, Translation Open, Version Open, About, AboutSheet, Navigation, WebPages, extended notes, Topics, Torah Readings, manuscripts, Lexicon, SidebarSearch, Guide, LinkerAdmin.
   - `with=` takes the joined filter (`+`-separated); the mode name if it is a sidebar mode; or `all`. ConnectionsList appends `" ConnectionsList"` to each category (l.698-702). WebPagesList is written as `WebPage:<site>` (l.695-696).
@@ -144,10 +149,11 @@ Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`Re
 ## 2. Resources (top-level) view — `ConnectionsPanel.jsx:272-340`
 
 ### 2.1 Data computed
+
 - `summary = Sefaria.linkSummary(srefs, nodeRef sheetId)`. The connection summary shows if the summary is non-empty **or** there are essay links (`hasEssayLinks`).
 - Resource counts (l.276-284):
   - `sheets`: `Sefaria.sheets.sheetsTotalCount(srefs)`, i.e. public sheets plus my sheets with no double counting (`sefaria.js` sheets l.3520-3528).
-  - `webpages`: the count, **or `null` if webpages are not loaded yet**. A null count still *shows* the button, without a number.
+  - `webpages`: the count, **or `null` if webpages are not loaded yet**. A null count still _shows_ the button, without a number.
   - `audio`: `mediaByRef`
   - `topics`: `topicsByRefCount`
   - `manuscripts`
@@ -157,6 +163,7 @@ Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`Re
 - Tools counts: `notes = Sefaria.notesTotalCount(srefs)`.
 
 ### 2.2 Top tool buttons (`topToolsButtons`, l.292-298)
+
 1. **About this Text**: mode About (URL-able)
 2. **Table of Contents**: mode Navigation
 3. **Search in this Text**: mode SidebarSearch
@@ -164,9 +171,11 @@ Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`Re
 5. **Guided Learning**: only if guides exist for the ref. It is `highlighted` and carries an "Experiment" label; mode Guide.
 
 ### 2.3 "Related Texts" section (`connection_panel_section.related_texts`)
+
 `ConnectionsSummary` is rendered with `showBooks=false`, collapsible (§3).
 
 ### 2.4 "Resources" section — `ResourcesList` (l.668-681)
+
 - **Sheets** (count) has a secondary "open-panel" icon and opens `sheets-with-ref` in a new window via `window.open` on the voices module origin (l.662-666).
 - **Web Pages** (count or null): mode WebPages.
 - **Topics** (count): mode Topics. Shown **always for moderators** (`alwaysShow`), so they can add topics.
@@ -174,6 +183,7 @@ Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`Re
 - **Torah Readings** (audio count): mode "Torah Readings".
 
 ### 2.5 "Tools" section — `ToolsList` (l.687-700)
+
 - **Add to Sheet**: logged out, it opens the sign-up modal `SignUpModalKind.AddToSheet`. Otherwise it sets mode `"Add To Sheet"` with `{addSource:"mainPanel"}`.
 - **Dictionaries**: mode Lexicon.
 - **Compare Text**: only when multiPanel. Runs `openComparePanel` (§16.4).
@@ -183,12 +193,15 @@ Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`Re
 - **Advanced**: mode "Advanced Tools".
 
 ### 2.6 Flash message
+
 `onSave` after Add Connection does the following (l.217-227):
+
 - clears the links cache (`Sefaria.clearLinks()`) and reloads,
 - returns to Resources,
 - shows "Success! You've created a new connection." for 3 s.
 
 ### 2.7 `ToolsButton` component (l.1095-1163)
+
 - Props: `en`, `he`, `onClick`, `urlConnectionsMode`, `icon` (font-awesome `fa-*`), `image` (`/static/img/*`), `count`, `control` (interface or content text), `typeface`, `alwaysShow`, `greyColor`, `highlighted`, `experiment`, `children`.
 - Visibility: rendered only if `count == null || count > 0 || alwaysShow`.
 - Every click: `gtag("event","feature_clicked",{name:"tools_button_<en>"})`, `preventDefault`, then onClick.
@@ -201,6 +214,7 @@ Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`Re
 ## 3. Connections summary & category filtering — `ConnectionsSummary` (`ConnectionsPanel.jsx:707-839`), `ConnectionFilters.jsx`
 
 ### 3.1 Category summary computation — `Sefaria.linkSummary(ref, excludedSheet)` (`sefaria.js:1768-1951`)
+
 - It returns `[]` until links are loaded for every ref.
 - Links come from the cache and are de-duplicated (anchorRef|sourceRef|type) across refs. Links from the excluded sheet are dropped, and **essay links are excluded** (`getLinksFromCacheAndPreprocess`, l.1753-1766).
 - Per category: `count` and `hasEnglish` (any `sourceHasEn`). Per book, keyed by `collectiveTitle.en`: `count`, `hasEnglish`, `categoryList` and `fullTitle`.
@@ -227,6 +241,7 @@ Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`Re
   - "Steinsaltz on X" also inherits X's links (l.315-330).
 
 ### 3.2 Top-level summary (Resources view, `isTopLevel`)
+
 - **Quoting Commentary is hidden** at the top level, but its count and the English mark are **added into the Commentary row**. If only Modern/Quoting Commentary exists, a synthetic "Commentary" row is created (l.740-758).
 - **Essay links** come first, in an `essayGroup` (l.759-780). `Sefaria.essayLinks(refs, currObjectVersions)` (`sefaria.js:1714-1733`) shows an essay link only if its `anchorVersion.title` is `"ALL"` or matches the **currently displayed version** in that language. Each one renders as a `TextFilter` with these settings:
   - label `displayedText.en/he`
@@ -237,6 +252,7 @@ Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`Re
 - **Collapse.** Only the first **4** categories show, followed by a "More" button (`more.svg`). Expanded, the button reads "See Less". State lives in `connectionSummaryCollapsed`, which defaults to true (l.56, 60-62, 804-816).
 
 ### 3.3 Category view (`ConnectionsList` mode, `category` set, `showBooks=true`)
+
 - `category === "Commentary"` shows **Commentary and Quoting Commentary together**, Commentary first (l.723-731).
 - Any other category is filtered to that category. If nothing matches, it renders a zero-count placeholder, "All X (0)" (l.733-738).
 - **`CategoryFilter`** (`ConnectionFilters.jsx:10-90`):
@@ -260,6 +276,7 @@ Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`Re
   - **The active recent filter renders as a non-link `<div>`** so right-click does not offer "Open in new tab" (l.119-121, 140-142).
 
 ### 3.4 Filter semantics — `Sefaria._filterLinks` (`sefaria.js:1676-1698`)
+
 - An empty filter returns all links.
 - `X|Quoting` means only Quoting Commentary links whose category or collectiveTitle matches.
 - `X|Essay` means only essay links whose `displayedText.en` matches.
@@ -267,6 +284,7 @@ Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`Re
 - Otherwise a link matches when its category **or** `collectiveTitle.en` is in the filter.
 
 ### 3.5 Recent filters — `RecentFilterSet` (`ConnectionFilters.jsx:165-241`)
+
 - A horizontal set of chips: the current filter plus recently used filters.
 - Each recent entry is annotated with its index's heTitle and primary_category; the suffix is preserved.
 - If the current filter is not in the list, it is prepended with up to 5 entries. **The loop logic is buggy**: it iterates over `topLinks.length`, which is 0, so the current filter is always prepended and the list is replaced by `[annotated]` (l.189-209).
@@ -449,6 +467,7 @@ Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`Re
 ## 8. Version blocks (shared) — `VersionBlock/*`
 
 ### 8.1 `VersionBlock` (`VersionBlock.jsx:79-357`), render modes `about-box`, `versions-box`, `book-page`
+
 - **Title:**
   - a merged version shows "Merged from <sources>";
   - otherwise `versionTitle`, or `versionTitleInHebrew` when the interface is Hebrew.
@@ -466,7 +485,9 @@ Component-local state in ReaderPanel: `backButtonSettings`, set by GuideBox (`Re
 - `VersionsBlocksList` (l.359-480) computes "current" by the key `actualLanguage|versionTitle`.
 
 ### 8.2 `VersionInformation` (`VersionInformation.jsx`)
+
 Each row is hidden (`n-a`) when its attribute is missing.
+
 - **Source:** the link host with `www.` stripped.
 - **Digitization:** "Sefaria", linking to `/digitized-by-sefaria`.
 - **License:** the translated license name (`translateLicense`, `sefaria.js:1123-1137`), linking to `getLicenseMap` (Public Domain, CC0, CC-BY, CC-BY-SA, CC-BY-NC, CC-BY-NC-ND, unknown→#).
@@ -474,18 +495,22 @@ Each row is hidden (`n-a`) when its attribute is missing.
 - **Buy in print:** a link to `purchaseInformationURL`.
 
 ### 8.3 `VersionImage`
+
 The buy image (`purchaseInformationImage`) links to the purchase URL, or to `versionSource` when there is none. It is hidden when there is no image; its `src` is then `data:,`. Alt text: "Buy now".
 
 ### 8.4 `VersionMetadata`
+
 Used inside the preview disclosure: title + information + image.
 
 ### 8.5 Version link builder — `VersionBlockUtils.makeVersionLink`
+
 - **Main panel** (`v<lang>=`): keeps only the same-language current-version param.
 - **Sidebar** (`vside=`): keeps **all** current-version params and adds `&with=Translation Open`.
 - Spaces become `_`.
 - Returns null when there are no other params. **Edge case:** with no current versions the link is null.
 
 ### 8.6 Extended notes — `ExtendedNotes.jsx` (mode `"extended notes"`)
+
 - Loads all versions of the **title** (`getVersions(title)`) and finds the current en (or he) versionTitle.
 - Shows the `extendedNotes` / `extendedNotesHebrew` HTML.
 - With both languages present there is a toggle link, "עברית" / "English".
@@ -498,6 +523,7 @@ Used inside the preview disclosure: title + information + image.
 ## 9. Dictionary / Lexicon — `LexiconBox.jsx`, `DictionarySearch.jsx`
 
 ### 9.1 Auto-activation on text selection
+
 1. `TextColumn.handleTextSelection` (`TextColumn.jsx:142-170`) does two things:
    - It highlights the segments covered by the selection, which feeds `setTextListHighlight` and updates the sidebar refs.
    - It sets `selectedWords` from `getNormalizedSelectionString`.
@@ -510,6 +536,7 @@ Used inside the preview disclosure: title + information + image.
 5. The URL keeps the words in `lookup=`.
 
 ### 9.2 Lookup
+
 - `shouldActivate` is true when the user searched a word explicitly, or when the selected words contain Hebrew/space/colon and number **≤ 3 words**. The split regex covers whitespace, colon, sof pasuq `\u05c3`, maqaf `\u05be`, paseq `\u05c0` and period (l.83-94).
 - `Sefaria.getLexiconWords(words, ref)` normalizes to NFC and calls `GET /api/words/<words>?always_consonants=1&never_split=1&lookup_ref=<ref>`, cached by `words|ref` (`sefaria.js:1563-1572`).
 - Server: `LexiconLookupAggregator.lexicon_lookup` with the options `lookup_ref`, `never_split`, `always_split`, `always_consonants` (`reader/views.py:3227-3248`).
@@ -517,9 +544,10 @@ Used inside the preview disclosure: title + information + image.
 - **Tracking:** `Lexicon / "Open"` or `"Open No Result"`, with `"/ categories/book"`.
 - **States:**
   - "Looking up words..." / "מחפש מילים..."
-  - `No definitions found for "<words>".` Note that for a manual search this shows the *selected* words, not the searched word.
+  - `No definitions found for "<words>".` Note that for a manual search this shows the _selected_ words, not the searched word.
 
 ### 9.3 Entry rendering — `LexiconEntry` (l.209-373)
+
 - **Headword:**
   - Default: `headword` plus `alt_headwords`, comma-separated, RTL.
   - **BDB** (`parent_lexicon` matches `/^BDB.*?Dict/`) has its own markers:
@@ -548,6 +576,7 @@ Used inside the preview disclosure: title + information + image.
 - Dictionaries such as Jastrow, Klein and BDB are not hard-coded in the client except BDB's special formatting. Which lexicons apply is decided by the server through `lookup_ref` and `text_categories`.
 
 ### 9.4 Named entities in the Lexicon pane
+
 - Clicking an `a.namedEntityLink` in the text (`TextRange.jsx:500-509`):
   - selects the element's text;
   - calls `onNamedEntityClick(slug, sref, text)`, which opens connections with `{connectionsMode:"Lexicon", selectedNamedEntity, selectedNamedEntityText}`. Desktop uses a new or the next panel; mobile stays in-panel (`ReaderPanel.jsx:229-240`);
@@ -564,6 +593,7 @@ Used inside the preview disclosure: title + information + image.
 - `ReaderApp.closeNamedEntityInConnectionPanel` resets to Resources (`ReaderApp.jsx:1071-1076`).
 
 ### 9.5 `DictionarySearch` (search box at top of Lexicon, and SidebarSearch for dictionaries)
+
 - A magnifier button plus an input. Max length 75. Placeholder "Search dictionary".
 - **Virtual keyboard** when the interface is English. Its icon shows on focus.
 - **jQuery-UI autocomplete:**
@@ -713,6 +743,7 @@ Used inside the preview disclosure: title + information + image.
 ## 14. Media & Manuscripts
 
 ### 14.1 Torah Readings (audio) — `Media.jsx`
+
 - Data: `Sefaria.mediaByRef(srefs)` from `/api/related` `media` (server `get_media_for_ref`).
 - Title "Torah Reading" / "קריאה בתורה".
 - **Per clip `Audio`:**
@@ -725,6 +756,7 @@ Used inside the preview disclosure: title + information + image.
 - The empty state is a perpetual loading message (§0.13).
 
 ### 14.2 Manuscripts — `ManuscriptImageList` / `ManuscriptImage` (`ConnectionsPanel.jsx:1574-1640`)
+
 - Data comes from `/api/related` `manuscripts` (`ManuscriptPageSet.load_set_for_client`). There is also `GET /api/manuscripts/<ref>` (`reader/views.py:5392-5398`), but the client does not use it.
 - **Each item:**
   - Thumbnail linking to the full image (new tab).
@@ -737,6 +769,7 @@ Used inside the preview disclosure: title + information + image.
 ---
 
 ## 15. Share — `ShareBox` (`ConnectionsPanel.jsx:1165-1256`)
+
 - **"Share Link":**
   - A read-only-style input with `window.location.href`.
   - A copy button using `navigator.clipboard`, falling back to `execCommand('copy')`.
@@ -753,6 +786,7 @@ Used inside the preview disclosure: title + information + image.
 ## 16. Advanced tools / editing / connections / compare
 
 ### 16.1 `AdvancedToolsList` (`ConnectionsPanel.jsx:1036-1092`)
+
 - **Add Translation.**
   - Logged out: sign-up modal `AddTranslation`.
   - Logged in: tracks "Add Translation Click", then navigates to `/translate/<ref>?next=<path>`, which is the `edit_text` view.
@@ -766,9 +800,11 @@ Used inside the preview disclosure: title + information + image.
   - If linker debug mode is already on server-side, it only switches the mode in place with `replaceState`; otherwise it reloads.
 
 ### 16.2 Login
+
 The "Login" mode renders `LoginPrompt`: "Please log in to use this feature", with Log In / Sign Up links carrying `?next=` (Misc l.1964-1984).
 
 ### 16.3 Add Connection — `AddConnectionBox` (`ConnectionsPanel.jsx:1451-1572`)
+
 - Uses `srefs = allOpenRefs`, i.e. every open Text panel's ref (`ReaderApp.jsx:2438`).
 - **1 ref:** "Choose a text to connect." plus a **Browse** button that opens the compare panel. `setConnectionsMode` already redirects to the compare panel when only one ref is open.
 - **More than 2 refs:** "We currently only understand connections between two texts."
@@ -780,17 +816,20 @@ The "Login" mode renders `LoginPrompt`: "Please log in to use this feature", wit
 - While an "Add Connection" panel is open, clicking segments does **not** open text lists (`currentlyConnecting`, `ReaderApp.jsx:1057, 2168-2177`).
 
 ### 16.4 Compare Text
+
 - `ReaderApp.openComparePanel(n, connectAfter)` **replaces the connections panel** with a navigation menu panel, `compare: true` and `openSidebarAsConnect` (`ReaderApp.jsx:1830-1839`). It tracks "Other Text Click".
 - Choosing a text there opens it.
 - If `openSidebarAsConnect` is set, its sidebar opens in "Add Connection" mode (`ReaderApp.jsx:1865`).
 - The compare panel has its own header (`ComparePanelHeader.jsx`; another area) and its own book TOC (`openCompareTextTOC`).
 
 ### 16.5 Edit link dots in base text
+
 Covered elsewhere. The filter and category are mirrored to the base panel so link dots and highlights reflect the sidebar filter (`ReaderApp.jsx:1906-1909`).
 
 ---
 
 ## 17. Feedback / report error — `FeedbackBox` (`Misc.jsx:2662-2760`)
+
 - Intro: "Have some feedback? We would love to hear it."
 - **Type dropdown:** content_issue ("Report an issue with the text"), translation_request, bug_report, help_request, feature_request, good_vibes ("Give thanks"), other.
 - Textarea "Describe the issue".
@@ -817,6 +856,7 @@ Covered elsewhere. The filter and category are mirrored to the base panel so lin
   - Answer position is `Q.A` as a decimal.
 
 ### 18.1 GuideOverlay (not sidebar; page onboarding overlay) — `GuideOverlay.jsx`
+
 - Used for the **sheet editor quick-start guide**. Mapping in `ReaderPanel.getGuideType`: desktop, first panel only, `mode==="Sheet"` and `shouldUseEditor` (`ReaderPanel.jsx:477-526`).
 - **Auto-show and manual show:**
   - Shown automatically once per user through the cookie `guide_overlay_seen_<type>` (20-year expiry).
@@ -894,6 +934,7 @@ Covered elsewhere. The filter and category are mirrored to the base panel so lin
 ## 21. AI / chatbot / translation features
 
 ### 21.1 On master
+
 - **Library Assistant chatbot.** A floating web component `<lc-chatbot>`, mounted once at the ReaderApp level, not in the sidebar (`ReaderApp.jsx:2609-2621`).
   - Shown when: `chatbot_enabled && chatbot_user_token`, not mobile, library module, and remoteConfig `chatbot.hide !== 1`.
   - Attributes: `user-id` (encrypted user token), `api-base-url`, `origin`, `is-moderator`, `placement="right"`, `default-open`, `mode="floating"`, `max-input-chars`, `max-prompts`, `interface-lang`.
@@ -905,8 +946,9 @@ Covered elsewhere. The filter and category are mirrored to the base panel so lin
 - **Linker LLM disambiguation:** visible in Linker Admin (§19).
 
 ### 21.2 `poc-translation` branch (NOT on master)
+
 - **`fe3d9f5ed0` "poc for AI translation in app".** Adds `static/js/translationQA.js` and changes `TextRange.jsx`, `s2.css`, tests and a design doc (`2026-09-16-community-translation-qa-poc.md`).
-  - **Per-segment `TranslationQAControls`** appear under each base-text segment *only* when the rendered English version is in a hard-coded allowlist (`AI_QA_VERSION_TITLES = ["Sefaria AI Translation (POC)"]`):
+  - **Per-segment `TranslationQAControls`** appear under each base-text segment _only_ when the rendered English version is in a hard-coded allowlist (`AI_QA_VERSION_TITLES = ["Sefaria AI Translation (POC)"]`):
     - an "AI translation" label;
     - a **"Reads well" checkbox**, persisted in `localStorage` key `sefaria.translationQA.ok:<vtitle>|<ref>`, firing gtag `translation_marked_good`;
     - a **"Report a problem"** button, shown only if the chatbot is available (`Sefaria.chatbot_enabled && chatbot_user_token`). It dispatches the DOM event `chatbot:start-flow` `{flow:"report_issue", ref, en, he}` for the `<lc-chatbot>` widget to open a seeded chat, and fires gtag `translation_issue_reported`.
@@ -917,6 +959,7 @@ Covered elsewhere. The filter and category are mirrored to the base panel so lin
   - both `base_props` (API base URL) and the context processor (script URL) use it so they stay in sync.
 
 ### 21.3 Other branches touching the sidebar (NOT on master)
+
 - **`origin/mf1-assistant-modal` (`f4ef16cd6b`).** A **"✦ Try Assistant"** first button in the Resources top tools (`LibraryAssistantToolsButton`), plus a mobile-menu item. Shown to logged-out users in the library module only. It opens the Library Assistant modal through a document event (`openLibraryAssistant`). `ToolsButton` gains a `glyph` prop.
 - **`origin/mf2` (`33c4599d42`) "reader feedback on AI translations".**
   - Double-clicking a word in the translation column opens a "Translation Feedback" modal (ref, version, word, suggested change, comment).
@@ -962,48 +1005,48 @@ Covered elsewhere. The filter and category are mirrored to the base panel so lin
 
 ## 23. Sefaria.js data layer summary (sidebar-related)
 
-| Function | Endpoint | Notes |
-|---|---|---|
-| `related(ref, cb)` / `relatedApi` (`sefaria.js:2301-2373`) | `GET /api/related/<ref>?with_sheet_links=1` | Bundles links, sheets, notes ([]), topics, manuscripts, media and guides. Each is split per segment through `_saveItemsByRef`, which keeps the larger cached list. `_related[ref]` = original data |
-| `relatedPrivate` (l.2375-2429) | `GET /api/related/<ref>?private=1` | My sheets and notes. Marks empty subrefs as loaded |
-| `getLinks` (l.1574-1591) | `GET /api/links/<ref>?with_text=0` | Caches index stubs from the links' collectiveTitle and essay displayedText terms |
-| `clearLinks` (l.2430-2434) | — | Resets `_related`, `_links`, `_linkSummaries` |
-| `linkSummary`, `_filterLinks`, `essayLinks`, `hasEssayLinks`, `linkCount`, `linksLoaded` | — | §3 |
-| `getVersions` (l.931-945) | `GET /api/texts/versions/<ref>` | Buckets by `actualLanguage`; fills `_translateVersions` |
-| `getSourceVersions` / `getTranslations` / `filterVersionsByAttr` | — | isPrimary / isSource:false |
-| `getAllTranslationsWithText` | `GET /api/v3/texts/<ref>?version=translation\|all&fill_in_missing_segments=0` | Translations box |
-| `getTextFromCurrVersions` / `_getVersionObjects` (l.790-847) | v3 texts | Version resolution: explicit choice, then the user's **corpus translation preference**, then the translationLanguagePreference language, then the default. withContext refetches the section |
-| `setVersionPreference` | profile API | translations only |
-| `getIndexDetails` | `GET /api/v2/index/<title>?with_content_counts=1&with_related_topics=1` | About, TOC, sidebar search lexicon detection |
-| `getLexiconWords`, `lexiconCompletion` | `/api/words/...` | §9 |
-| `privateNotes`, `notes`, `addPrivateNote`, `clearPrivateNotes`, `allPrivateNotes`, `notesTotalCount`, `deleteNote` | `/api/notes/...` | §11 |
-| `webpagesApi`, `webpagesLoaded`, `webPagesByRef` | `/api/related/<ref>/websites` | §12 |
-| `topicsByRef`, `topicsByRefCount`, `postRefTopicLink` | `/api/ref-topic-links/<ref>` | §10 |
-| `mediaByRef`, `manuscriptsByRef`, `guidesByRef` | from related | |
-| `sheets.sheetsByRef`, `userSheetsByRef`, `sheetsTotalCount`, `getSheetsByRef` (`/api/sheets/ref/<ref>?include_collections=1`, used by sheets-with-ref) | | |
-| `bookSearchPathFilterAPI` | `/api/search-path-filter/<title>` | |
-| `getGuide` | `/api/guides/<key>` | overlay |
-| `pollTask` | `/api/async/<id>` | linker rerun |
-| `getTopic(slug,{annotated:false})` | `/api/v2/topics/<slug>?...` | named entity |
-| `saveUserHistory({..., secondary:true})` | user history | sidebar reading history |
+| Function                                                                                                                                               | Endpoint                                                                      | Notes                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `related(ref, cb)` / `relatedApi` (`sefaria.js:2301-2373`)                                                                                             | `GET /api/related/<ref>?with_sheet_links=1`                                   | Bundles links, sheets, notes ([]), topics, manuscripts, media and guides. Each is split per segment through `_saveItemsByRef`, which keeps the larger cached list. `_related[ref]` = original data |
+| `relatedPrivate` (l.2375-2429)                                                                                                                         | `GET /api/related/<ref>?private=1`                                            | My sheets and notes. Marks empty subrefs as loaded                                                                                                                                                 |
+| `getLinks` (l.1574-1591)                                                                                                                               | `GET /api/links/<ref>?with_text=0`                                            | Caches index stubs from the links' collectiveTitle and essay displayedText terms                                                                                                                   |
+| `clearLinks` (l.2430-2434)                                                                                                                             | —                                                                             | Resets `_related`, `_links`, `_linkSummaries`                                                                                                                                                      |
+| `linkSummary`, `_filterLinks`, `essayLinks`, `hasEssayLinks`, `linkCount`, `linksLoaded`                                                               | —                                                                             | §3                                                                                                                                                                                                 |
+| `getVersions` (l.931-945)                                                                                                                              | `GET /api/texts/versions/<ref>`                                               | Buckets by `actualLanguage`; fills `_translateVersions`                                                                                                                                            |
+| `getSourceVersions` / `getTranslations` / `filterVersionsByAttr`                                                                                       | —                                                                             | isPrimary / isSource:false                                                                                                                                                                         |
+| `getAllTranslationsWithText`                                                                                                                           | `GET /api/v3/texts/<ref>?version=translation\|all&fill_in_missing_segments=0` | Translations box                                                                                                                                                                                   |
+| `getTextFromCurrVersions` / `_getVersionObjects` (l.790-847)                                                                                           | v3 texts                                                                      | Version resolution: explicit choice, then the user's **corpus translation preference**, then the translationLanguagePreference language, then the default. withContext refetches the section       |
+| `setVersionPreference`                                                                                                                                 | profile API                                                                   | translations only                                                                                                                                                                                  |
+| `getIndexDetails`                                                                                                                                      | `GET /api/v2/index/<title>?with_content_counts=1&with_related_topics=1`       | About, TOC, sidebar search lexicon detection                                                                                                                                                       |
+| `getLexiconWords`, `lexiconCompletion`                                                                                                                 | `/api/words/...`                                                              | §9                                                                                                                                                                                                 |
+| `privateNotes`, `notes`, `addPrivateNote`, `clearPrivateNotes`, `allPrivateNotes`, `notesTotalCount`, `deleteNote`                                     | `/api/notes/...`                                                              | §11                                                                                                                                                                                                |
+| `webpagesApi`, `webpagesLoaded`, `webPagesByRef`                                                                                                       | `/api/related/<ref>/websites`                                                 | §12                                                                                                                                                                                                |
+| `topicsByRef`, `topicsByRefCount`, `postRefTopicLink`                                                                                                  | `/api/ref-topic-links/<ref>`                                                  | §10                                                                                                                                                                                                |
+| `mediaByRef`, `manuscriptsByRef`, `guidesByRef`                                                                                                        | from related                                                                  |                                                                                                                                                                                                    |
+| `sheets.sheetsByRef`, `userSheetsByRef`, `sheetsTotalCount`, `getSheetsByRef` (`/api/sheets/ref/<ref>?include_collections=1`, used by sheets-with-ref) |                                                                               |                                                                                                                                                                                                    |
+| `bookSearchPathFilterAPI`                                                                                                                              | `/api/search-path-filter/<title>`                                             |                                                                                                                                                                                                    |
+| `getGuide`                                                                                                                                             | `/api/guides/<key>`                                                           | overlay                                                                                                                                                                                            |
+| `pollTask`                                                                                                                                             | `/api/async/<id>`                                                             | linker rerun                                                                                                                                                                                       |
+| `getTopic(slug,{annotated:false})`                                                                                                                     | `/api/v2/topics/<slug>?...`                                                   | named entity                                                                                                                                                                                       |
+| `saveUserHistory({..., secondary:true})`                                                                                                               | user history                                                                  | sidebar reading history                                                                                                                                                                            |
 
 ---
 
 ## 24. Sign-in gating summary
 
-| Feature | Logged-out behaviour |
-|---|---|
-| Add to Sheet (Tools) | SignUpModal `AddToSheet` |
-| Add to Sheet (per-link button) | button hidden |
-| Add-to-sheet dropdown / submit | SignUpModal |
-| Notes | SignUpModal `Notes`; AddNoteBox shows LoginPrompt |
-| Add Translation | SignUpModal `AddTranslation` |
-| Add Connection | SignUpModal `AddConnection` (Advanced); `setConnectionsMode` also forces mode `Login` |
-| Feedback | allowed, but requires an email |
-| Edit Text | requires `canEditText`; the server enforces auth |
-| Topics add, link delete, version edit/delete, Linker Admin | moderators only |
-| Topics button always visible | moderators only |
-| Library Assistant | token-gated (§21) |
+| Feature                                                    | Logged-out behaviour                                                                  |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Add to Sheet (Tools)                                       | SignUpModal `AddToSheet`                                                              |
+| Add to Sheet (per-link button)                             | button hidden                                                                         |
+| Add-to-sheet dropdown / submit                             | SignUpModal                                                                           |
+| Notes                                                      | SignUpModal `Notes`; AddNoteBox shows LoginPrompt                                     |
+| Add Translation                                            | SignUpModal `AddTranslation`                                                          |
+| Add Connection                                             | SignUpModal `AddConnection` (Advanced); `setConnectionsMode` also forces mode `Login` |
+| Feedback                                                   | allowed, but requires an email                                                        |
+| Edit Text                                                  | requires `canEditText`; the server enforces auth                                      |
+| Topics add, link delete, version edit/delete, Linker Admin | moderators only                                                                       |
+| Topics button always visible                               | moderators only                                                                       |
+| Library Assistant                                          | token-gated (§21)                                                                     |
 
 ## 25. Analytics events (sidebar)
 
@@ -1033,6 +1076,7 @@ Covered elsewhere. The filter and category are mirrored to the base panel so lin
 - **Reading history:** `saveUserHistory` with `secondary:true` for segments viewed in the sidebar (§4).
 
 ## 26. Mobile-specific handling (summary)
+
 - The sidebar is in-panel (`TextAndConnections`). The connections header is rendered by ConnectionsPanel itself, with the RecentFilterSet in the header and a category-coloured border.
 - No Compare Text button.
 - No language toggle or close button in the sidebar header.

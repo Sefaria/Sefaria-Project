@@ -19,12 +19,12 @@ Most of the reader is already a function of the URL. `src/lib/workspace/url.ts` 
 (docs/WORKSPACE.md): panels, their side panels, versions, `lang`, `aliyot`, the side panel's view, `lookup`, `sbsq`,
 the named entity. Four kinds of state are not in it:
 
-| Kind | Lives in | Examples |
-|---|---|---|
-| History-entry state | router history state, `NavState` (`lib/workspace/commands.ts`) | `nav` kind, stable `panelKeys`, search `terms` to highlight |
-| Reader settings | cookies, through `ReaderSettingsProvider` (`lib/reader/settings.ts`) | font size, layouts, vowels, colour, bilingual layout |
-| Position inside a section | the DOM's scroll (`features/reader/use-reading-scroll.ts`) | the URL tracks the segment, not where in it |
-| Open UI over the text | component `useState` | display settings menu, share/feedback modals, popovers, header drop-downs, Library Assistant |
+| Kind                      | Lives in                                                             | Examples                                                                                     |
+| ------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| History-entry state       | router history state, `NavState` (`lib/workspace/commands.ts`)       | `nav` kind, stable `panelKeys`, search `terms` to highlight                                  |
+| Reader settings           | cookies, through `ReaderSettingsProvider` (`lib/reader/settings.ts`) | font size, layouts, vowels, colour, bilingual layout                                         |
+| Position inside a section | the DOM's scroll (`features/reader/use-reading-scroll.ts`)           | the URL tracks the segment, not where in it                                                  |
+| Open UI over the text     | component `useState`                                                 | display settings menu, share/feedback modals, popovers, header drop-downs, Library Assistant |
 
 ## Three options, and the choice
 
@@ -37,7 +37,7 @@ the named entity. Four kinds of state are not in it:
 3. **A separate state layer beside the URL.** Chosen, with one constraint: **the URL stays the source of truth for
    the workspace.** The layer does not copy the workspace; it adds what the URL does not hold.
 
-The test for whether something new belongs in the URL: *would I want it if someone sent me this link?* If yes, add
+The test for whether something new belongs in the URL: _would I want it if someone sent me this link?_ If yes, add
 it to the URL codec (and to sefaria.org's grammar if it has a counterpart). If not, it is a slice (below).
 
 ## Layers
@@ -70,19 +70,19 @@ Every piece of non-URL state that changes what is on screen registers a slice:
 
 ```ts
 interface StateSlice<T> {
-  id: SliceId;                  // namespaced: "sefaria.settings", "sefaria.scroll"; third parties use their own prefix
-  version: number;              // bumped when T changes shape; old recordings and older peers still decode
+  id: SliceId; // namespaced: "sefaria.settings", "sefaria.scroll"; third parties use their own prefix
+  version: number; // bumped when T changes shape; old recordings and older peers still decode
   get(): T;
   apply(value: T, ctx: ApplyContext): void;
   subscribe(onChange: () => void): () => void;
   /** Turn an older version's value into the current shape, or return undefined (restored with a warning). */
   migrate?(value: unknown, fromVersion: number): T | undefined;
   /** Whether this slice is personal (the reader's own preference) or about the moment. Consumers decide what to send by it. */
-  scope: "personal" | "moment";
+  scope: 'personal' | 'moment';
 }
 interface ApplyContext {
   /** Who is applying: a replay, a leader being followed, an embedding page. Never "local". */
-  origin: "playback" | "follow" | "external";
+  origin: 'playback' | 'follow' | 'external';
   /** Persist the value (cookies, preferences)? False for every origin today. */
   persist: boolean;
 }
@@ -94,12 +94,12 @@ owner reaches into its internals.
 
 ### First slices
 
-| Slice | Scope | Value | Notes |
-|---|---|---|---|
-| `sefaria.settings` | personal | `ReaderSettings` | With `persist: false`, `apply` sets an override and writes **no cookie** (`ReaderSettingsProvider.update` writes cookies today; it gets a non-persisting path). |
-| `sefaria.scroll` | moment | `Record<panelKey, { ref: string; fraction: number }>` | An anchor, not pixels: the segment at the top of the column and how far into it. Survives other fonts, widths and phone vs desktop. Applied with the existing scroll-to-segment machinery, as a `"stay"`. |
-| `sefaria.focus` | moment | `{ panelKey: string } \| null` | The panel last interacted with. A phone shows one panel; a phone replaying or following a desktop shows this one. |
-| `sefaria.overlay` | moment | `{ kind: "displaySettings" \| …; panelKey?: string } \| null` | Only overlays chosen to be in scope. Components move their `open` state into the slice (`useOverlaySlice(kind)`). Overlays that carry the person's own data (share, feedback, sign-in) are never registered. |
+| Slice              | Scope    | Value                                                         | Notes                                                                                                                                                                                                        |
+| ------------------ | -------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `sefaria.settings` | personal | `ReaderSettings`                                              | With `persist: false`, `apply` sets an override and writes **no cookie** (`ReaderSettingsProvider.update` writes cookies today; it gets a non-persisting path).                                              |
+| `sefaria.scroll`   | moment   | `Record<panelKey, { ref: string; fraction: number }>`         | An anchor, not pixels: the segment at the top of the column and how far into it. Survives other fonts, widths and phone vs desktop. Applied with the existing scroll-to-segment machinery, as a `"stay"`.    |
+| `sefaria.focus`    | moment   | `{ panelKey: string } \| null`                                | The panel last interacted with. A phone shows one panel; a phone replaying or following a desktop shows this one.                                                                                            |
+| `sefaria.overlay`  | moment   | `{ kind: "displaySettings" \| …; panelKey?: string } \| null` | Only overlays chosen to be in scope. Components move their `open` state into the slice (`useOverlaySlice(kind)`). Overlays that carry the person's own data (share, feedback, sign-in) are never registered. |
 
 ### Not captured
 
@@ -112,8 +112,8 @@ layout on a desktop, with the same panels, text and anchors.
 ```ts
 interface ReaderSnapshot {
   v: 1;
-  url: string;                       // host-defined location; for this reader, pathname + search in the old grammar
-  nav: NavState;                     // host-defined history-entry state (panel keys, terms…)
+  url: string; // host-defined location; for this reader, pathname + search in the old grammar
+  nav: NavState; // host-defined history-entry state (panel keys, terms…)
   slices: Record<SliceId, { v: number; value: unknown }>;
 }
 
@@ -121,7 +121,7 @@ interface ReaderSnapshot {
 interface SnapshotChange {
   url?: string;
   nav?: NavState;
-  slices?: Record<SliceId, { v: number; value: unknown } | null>;   // null: slice removed
+  slices?: Record<SliceId, { v: number; value: unknown } | null>; // null: slice removed
 }
 
 interface ReaderStateApi {
@@ -131,9 +131,15 @@ interface ReaderStateApi {
   subscribe(onChange: (change: SnapshotChange, snapshot: ReaderSnapshot) => void, filter?: SliceFilter): () => void;
 }
 
-type SliceFilter = { scope?: "moment" | "all"; include?: SliceId[]; exclude?: SliceId[] };
-interface ApplyResult { warnings: RestoreWarning[] }
-interface RestoreWarning { code: number; slice?: SliceId; detail?: string }
+type SliceFilter = { scope?: 'moment' | 'all'; include?: SliceId[]; exclude?: SliceId[] };
+interface ApplyResult {
+  warnings: RestoreWarning[];
+}
+interface RestoreWarning {
+  code: number;
+  slice?: SliceId;
+  detail?: string;
+}
 ```
 
 - `getSnapshot` reads the location, history state and every slice's `get`.
@@ -154,10 +160,10 @@ What a reader implements to use the core:
 interface ReaderHost {
   getLocation(): { url: string; nav: unknown };
   /** Go to a location. "replace" for follow and playback, so the person's history is not filled with someone else's moves. */
-  navigate(url: string, nav: unknown, mode: "push" | "replace"): Promise<void>;
+  navigate(url: string, nav: unknown, mode: 'push' | 'replace'): Promise<void>;
   /** Resolves once the location's data is on screen (slices like scroll apply after). */
   settled(): Promise<void>;
-  onLocationChange(cb: (cause: "local" | "applied") => void): () => void;
+  onLocationChange(cb: (cause: 'local' | 'applied') => void): () => void;
   slices: SliceRegistry;
 }
 ```
@@ -191,14 +197,14 @@ queued when playback pauses (a seek's follow-up is kept).
 `applySnapshot` restores what it can and reports the rest; it never throws on a stale or foreign snapshot. Warnings
 carry stable numeric codes that callers branch on (the same contract as the v3 API's `warnings`):
 
-| Code | Meaning |
-|---|---|
-| 100 | A ref no longer resolves (book renamed or removed); the panel shows what the router shows for that URL |
-| 101 | A version is gone; the panel falls back to the default version |
-| 102 | The location is not visible to this person (a private sheet, a moderator view) |
-| 200 | A slice in the snapshot is not registered in this build |
-| 201 | A slice's version is newer than this build, or `migrate` declined it |
-| 300 | The scroll anchor's segment is not in the loaded section |
+| Code | Meaning                                                                                                |
+| ---- | ------------------------------------------------------------------------------------------------------ |
+| 100  | A ref no longer resolves (book renamed or removed); the panel shows what the router shows for that URL |
+| 101  | A version is gone; the panel falls back to the default version                                         |
+| 102  | The location is not visible to this person (a private sheet, a moderator view)                         |
+| 200  | A slice in the snapshot is not registered in this build                                                |
+| 201  | A slice's version is newer than this build, or `migrate` declined it                                   |
+| 300  | The scroll anchor's segment is not in the loaded section                                               |
 
 Snapshots refer to text by ref and version and never embed it: the text comes from the API (cached by TanStack
 Query, IndexedDB and Varnish), so snapshots stay small and a replay months later shows today's text at the recorded
@@ -210,8 +216,8 @@ Recording and following move the same thing: a full snapshot, then changes.
 
 ```ts
 type StreamMessage =
-  | { type: "keyframe"; seq: number; t: number; snapshot: ReaderSnapshot }
-  | { type: "change"; seq: number; t: number; change: SnapshotChange };
+  | { type: 'keyframe'; seq: number; t: number; snapshot: ReaderSnapshot }
+  | { type: 'change'; seq: number; t: number; change: SnapshotChange };
 ```
 
 `seq` increases by one per message; `t` is milliseconds since the stream started. A reader of the stream folds
@@ -225,11 +231,11 @@ The **stream reader** (`createStreamReader(api, ctx)`) takes messages and applie
 `applySnapshot`, a change by folding it onto the current state and applying the result. Consecutive changes within
 the same section apply as `"stay"`/`"scroll"` so the column does not restart.
 
-| | Writer sends to | Reader receives from | Applies to |
-|---|---|---|---|
-| Record / replay | a `Recording` (array) | the `Recording`, by time | the person's own reader, restored on exit |
-| Follow | a transport | a transport, live | the follower's own reader |
-| Embed | — | a `postMessage` transport | the embedded reader |
+|                 | Writer sends to       | Reader receives from      | Applies to                                |
+| --------------- | --------------------- | ------------------------- | ----------------------------------------- |
+| Record / replay | a `Recording` (array) | the `Recording`, by time  | the person's own reader, restored on exit |
+| Follow          | a transport           | a transport, live         | the follower's own reader                 |
+| Embed           | —                     | a `postMessage` transport | the embedded reader                       |
 
 ## Transports
 
@@ -237,7 +243,7 @@ the same section apply as `"stay"`/`"scroll"` so the column does not restart.
 interface StateTransport {
   send(msg: ProtocolMessage): void;
   onMessage(cb: (msg: ProtocolMessage) => void): () => void;
-  onStatus(cb: (s: "connecting" | "open" | "closed") => void): () => void;
+  onStatus(cb: (s: 'connecting' | 'open' | 'closed') => void): () => void;
   close(): void;
 }
 ```
@@ -250,7 +256,11 @@ its followers fits.
 ## Recording and replay
 
 ```ts
-interface Recording { v: 1; startedAt: string; messages: StreamMessage[] }
+interface Recording {
+  v: 1;
+  startedAt: string;
+  messages: StreamMessage[];
+}
 ```
 
 A recording is a stream written to an array: a keyframe at the start and every 10 s / 50 changes, changes in
@@ -282,7 +292,7 @@ its slices a second time, against a second registry).
   `follow` link, or a session kept in sessionStorage (`follow/FollowUi.tsx`, `follow/lazy.ts`).
 - **Labs, off by default.** The API (`window.sefariaReaderState`) is on every page; recording and follow me are labs (`lib/labs.ts`):
   their UIs mount, and the menu entry and Share's "Follow me" appear, only when switched on — by the deployment (`PUBLIC_LABS=
-  follow_me,recording`) or by remote config (`feature.reader.labs.follow_me`, `feature.reader.labs.recording`, bool), which overrides
+follow_me,recording`) or by remote config (`feature.reader.labs.follow_me`, `feature.reader.labs.recording`, bool), which overrides
   the deployment either way and is the kill switch. A `follow` link opened where follow me is off is an ordinary link.
 
 The UI (`features/reader-state/recording/`): "Record session" and "Load recording…" in the display settings menu; a floating dock with
@@ -348,16 +358,16 @@ nobody who has not chosen to follow them.
 
 ### Connection states
 
-| State | Follower sees | What happens |
-|---|---|---|
-| connecting | "Joining…" | the server-rendered page is already showing the link's URL |
-| live | "Following …" | messages applied as they come |
-| paused | "… is reading X · Follow again" | the follower broke away; messages folded, not applied |
-| leader away | "Waiting for … to come back" | the leader's tab is hidden or disconnected; the reader stays put |
-| no leader | "Waiting for a leader" | the spotlight was cleared; the reader stays put |
-| leader changed | "Now following Sarah" (brief) | the spotlight moved; Sarah's last keyframe is applied |
-| reconnecting | small spinner on the bar | transport back-off; on reopen, a `resync` gets a fresh keyframe |
-| ended | "… stopped sharing" | the leader stopped or the session expired; the token is cleared |
+| State          | Follower sees                   | What happens                                                     |
+| -------------- | ------------------------------- | ---------------------------------------------------------------- |
+| connecting     | "Joining…"                      | the server-rendered page is already showing the link's URL       |
+| live           | "Following …"                   | messages applied as they come                                    |
+| paused         | "… is reading X · Follow again" | the follower broke away; messages folded, not applied            |
+| leader away    | "Waiting for … to come back"    | the leader's tab is hidden or disconnected; the reader stays put |
+| no leader      | "Waiting for a leader"          | the spotlight was cleared; the reader stays put                  |
+| leader changed | "Now following Sarah" (brief)   | the spotlight moved; Sarah's last keyframe is applied            |
+| reconnecting   | small spinner on the bar        | transport back-off; on reopen, a `resync` gets a fresh keyframe  |
+| ended          | "… stopped sharing"             | the leader stopped or the session expired; the token is cleared  |
 
 ### Protocol
 
@@ -366,9 +376,9 @@ under "The room protocol" below):
 
 ```ts
 type StateChannelMessage =
-  | { type: "hello"; protocol: 1; slices: { id: SliceId; v: number }[]; client: string }
-  | { type: "resync"; of: ParticipantId }               // send me a keyframe of this participant (join, gap, reconnect)
-  | StreamMessage;                                       // keyframe | change, from the sender's own stream
+  | { type: 'hello'; protocol: 1; slices: { id: SliceId; v: number }[]; client: string }
+  | { type: 'resync'; of: ParticipantId } // send me a keyframe of this participant (join, gap, reconnect)
+  | StreamMessage; // keyframe | change, from the sender's own stream
 ```
 
 - `hello` carries the protocol version and the slices each side knows, so a newer leader and an older follower
@@ -474,20 +484,20 @@ One connection carries several channels:
 
 ```ts
 interface Envelope<C extends Channel = Channel> {
-  ch: C;                       // "state" | "control" | "presence" | "chat"
-  from: ParticipantId;         // stamped by the room, never trusted from the client
-  seq?: number;                // stamped by the room for "chat" and "control"
-  t?: number;                  // server time, stamped by the room
+  ch: C; // "state" | "control" | "presence" | "chat"
+  from: ParticipantId; // stamped by the room, never trusted from the client
+  seq?: number; // stamped by the room for "chat" and "control"
+  t?: number; // server time, stamped by the room
   body: ChannelBody[C];
 }
 ```
 
-| Channel | Carries | Kept by the room |
-|---|---|---|
-| `state` | each participant's reader stream (`StateChannelMessage`, above) | the last keyframe + later changes per participant |
-| `control` | spotlight, roles, mute, end | current spotlight, `term`, roles |
-| `presence` | joined/left, following whom, wandered off, typing | nothing (ephemeral) |
-| `chat` | messages, edits, deletions | the log, per the retention policy |
+| Channel    | Carries                                                         | Kept by the room                                  |
+| ---------- | --------------------------------------------------------------- | ------------------------------------------------- |
+| `state`    | each participant's reader stream (`StateChannelMessage`, above) | the last keyframe + later changes per participant |
+| `control`  | spotlight, roles, mute, end                                     | current spotlight, `term`, roles                  |
+| `presence` | joined/left, following whom, wandered off, typing               | nothing (ephemeral)                               |
+| `chat`     | messages, edits, deletions                                      | the log, per the retention policy                 |
 
 `@sefaria/reader-state` knows only the `state` channel's body. The envelope, `control`, `presence` and `chat` belong
 to the session layer (`src/lib/session/`, later its own package), so the reader-state core stays the same whether
@@ -516,11 +526,11 @@ no tokens change.
 
 Who may move it:
 
-| Mode | Rule |
-|---|---|
-| Presenter (default) | The host gives and takes the spotlight. |
-| Hand raise | A participant asks; the host or the current leader approves. |
-| Open (a study pair) | Anyone with `canLead` takes it. |
+| Mode                | Rule                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| Presenter (default) | The host gives and takes the spotlight.                      |
+| Hand raise          | A participant asks; the host or the current leader approves. |
+| Open (a study pair) | Anyone with `canLead` takes it.                              |
 
 - **Terms.** Every spotlight change increments `term`; the room stamps it on what it relays and followers drop
   spotlight-stream messages from an older term, so a lagging message from the previous leader cannot pull everyone
@@ -536,12 +546,12 @@ Who may move it:
 
 Chat differs from reader state in what matters:
 
-| | Reader state | Chat |
-|---|---|---|
-| What matters | only the latest | every message |
-| A late joiner needs | the last keyframe | the history |
-| Reconnect | `resync` → a fresh keyframe | "everything after `seq` N" |
-| Who writes | each participant, own stream | everyone, one shared log |
+|                     | Reader state                 | Chat                       |
+| ------------------- | ---------------------------- | -------------------------- |
+| What matters        | only the latest              | every message              |
+| A late joiner needs | the last keyframe            | the history                |
+| Reconnect           | `resync` → a fresh keyframe  | "everything after `seq` N" |
+| Who writes          | each participant, own stream | everyone, one shared log   |
 
 - **Order and replay.** The room stamps `seq`. On reconnect the client sends `{ type: "since", seq }` and gets what
   it missed. The client sends a `clientMsgId`; the room drops duplicates from resends after a dropped connection.

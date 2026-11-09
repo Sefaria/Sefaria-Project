@@ -4,9 +4,10 @@ title: Promotions & CMS
 domain: Site & accounts
 document: product
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-16
 ---
+
 # Promotions & CMS — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -23,9 +24,9 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-- The number of pop-ups and banners a reader sees is limited, across all kinds (CMS messages, donation asks, prompts). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468) · PRM-013, PRM-014
-- Pop-ups and banners can close on their own after a time. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468) · PRM-010, PRM-011
-- Readers may get a place to control which pop-ups and banners they see. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- The number of pop-ups and banners a reader sees is limited, across all kinds (CMS messages, donation asks, prompts). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468) · PRM-013, PRM-014
+- Pop-ups and banners can close on their own after a time. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468) · PRM-010, PRM-011
+- Readers may get a place to control which pop-ups and banners they see. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - How this could be built: [architecture → Target architecture](architecture.md#target-architecture) (one notice manager).
 
 ## Changes from today (keep · change · drop · new)
@@ -54,39 +55,39 @@ Feature groups: Sidebar ads (4); CMS modals and banners (2); Donate (2); CMS pro
 
 ### Core (5)
 
-| ID | Feature | What it does |
-|---|---|---|
-| PRM-005 | Donate links with source attribution | Donate buttons across the site send users to the external donation site, in the right language and with the right campaign. |
-| PRM-010 | Interrupting modal (Strapi) | A CMS-managed popup message appears after a delay to eligible visitors with a header, text and call-to-action button. |
-| PRM-011 | Top banner (Strapi) | A CMS-managed banner appears at the top of the page with text and a call-to-action. |
-| PRM-012 | Strapi CMS content pipeline | Banners, modals and sidebar ads are authored in a CMS and delivered to the site through a cached proxy. |
+| ID      | Feature                                          | What it does                                                                                                                                   |
+| ------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| PRM-005 | Donate links with source attribution             | Donate buttons across the site send users to the external donation site, in the right language and with the right campaign.                    |
+| PRM-010 | Interrupting modal (Strapi)                      | A CMS-managed popup message appears after a delay to eligible visitors with a header, text and call-to-action button.                          |
+| PRM-011 | Top banner (Strapi)                              | A CMS-managed banner appears at the top of the page with text and a call-to-action.                                                            |
+| PRM-012 | Strapi CMS content pipeline                      | Banners, modals and sidebar ads are authored in a CMS and delivered to the site through a cached proxy.                                        |
 | PRM-013 | Promo eligibility, ranking and country targeting | The site chooses which banner or modal to show each visitor based on dates, language, location, audience and what they have already dismissed. |
 
 ### Standard (10)
 
-| ID | Feature | What it does |
-|---|---|---|
-| PRM-001 | Interrupting modal message (CMS) | A CMS-managed popup message appears after a delay to eligible visitors. |
-| PRM-002 | Top banner message (CMS) | A CMS-managed banner appears above the header for eligible visitors. |
-| PRM-003 | Strapi data provider and content selection | The app fetches banners, modals and sidebar ads from the CMS and picks one of each for the viewer. |
-| PRM-004 | Donate link variants | The Donate link points to a campaign page by donor type. |
-| PRM-006 | Ad keyword targeting context | What the reader is viewing is summarized for sidebar ad targeting. |
-| PRM-007 | Sidebar ads (not in connections panel) | Targeted Strapi ads and newsletter signups render in the navigation sidebar and topic pages, not in the resources panel. |
-| PRM-008 | Sidebar ads | Targeted promotional cards appear in the navigation sidebar and topic pages, matched to what the user is reading. |
-| PRM-014 | Site-wide banner with maybe-later back-off | A generic promotional banner can be dismissed permanently or snoozed so it returns later, up to three times. |
-| PRM-016 | Newsletter signup form | Visitors can subscribe to Sefaria newsletters, optionally as educators, from sidebars, static pages, ads and topic pages. |
-| PRM-017 | NavSidebar promo and donation modules | The navigation sidebar hosts modules that promote donating, the apps, newsletters and community. |
+| ID      | Feature                                    | What it does                                                                                                              |
+| ------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| PRM-001 | Interrupting modal message (CMS)           | A CMS-managed popup message appears after a delay to eligible visitors.                                                   |
+| PRM-002 | Top banner message (CMS)                   | A CMS-managed banner appears above the header for eligible visitors.                                                      |
+| PRM-003 | Strapi data provider and content selection | The app fetches banners, modals and sidebar ads from the CMS and picks one of each for the viewer.                        |
+| PRM-004 | Donate link variants                       | The Donate link points to a campaign page by donor type.                                                                  |
+| PRM-006 | Ad keyword targeting context               | What the reader is viewing is summarized for sidebar ad targeting.                                                        |
+| PRM-007 | Sidebar ads (not in connections panel)     | Targeted Strapi ads and newsletter signups render in the navigation sidebar and topic pages, not in the resources panel.  |
+| PRM-008 | Sidebar ads                                | Targeted promotional cards appear in the navigation sidebar and topic pages, matched to what the user is reading.         |
+| PRM-014 | Site-wide banner with maybe-later back-off | A generic promotional banner can be dismissed permanently or snoozed so it returns later, up to three times.              |
+| PRM-016 | Newsletter signup form                     | Visitors can subscribe to Sefaria newsletters, optionally as educators, from sidebars, static pages, ads and topic pages. |
+| PRM-017 | NavSidebar promo and donation modules      | The navigation sidebar hosts modules that promote donating, the apps, newsletters and community.                          |
 
 ### Optional (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                  | What it does                                                                               |
+| ------- | ------------------------ | ------------------------------------------------------------------------------------------ |
 | PRM-009 | Google Docs add-on promo | The Add to sheet panel advertises the Sefaria Google Docs add-on until a user installs it. |
 
 ### Retire (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                                        | What it does                                                                  |
+| ------- | ---------------------------------------------- | ----------------------------------------------------------------------------- |
 | PRM-015 | Server-rendered interrupting message templates | Old dated donation, survey and holiday message templates replaced by the CMS. |
 
 ### Flags from the audit (not to port as-is)

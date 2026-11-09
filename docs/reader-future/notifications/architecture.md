@@ -4,9 +4,10 @@ title: Notifications & email
 domain: Voices (sheets & community)
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Notifications & email — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -67,18 +68,18 @@ Rebuild status of this area's features: not started 11.
 
 ### Gaps: core and standard features not done (10)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| NTF-008 | core | Password reset email | not started |
-| NTF-001 | standard | Notifications page | not started |
-| NTF-002 | standard | Notification types and rendering | not started |
-| NTF-003 | standard | Mark notifications read | not started |
-| NTF-005 | standard | Email notification digest | not started |
-| NTF-006 | standard | Notification digest emails | not started |
-| NTF-007 | standard | Collection invitation email | not started |
-| NTF-009 | standard | Feedback and corrections email | not started |
-| NTF-010 | standard | Account deletion follow-up email | not started |
-| NTF-011 | standard | CRM-driven emails and sync | not started |
+| ID      | Tier     | Feature                          | Rebuild status |
+| ------- | -------- | -------------------------------- | -------------- |
+| NTF-008 | core     | Password reset email             | not started    |
+| NTF-001 | standard | Notifications page               | not started    |
+| NTF-002 | standard | Notification types and rendering | not started    |
+| NTF-003 | standard | Mark notifications read          | not started    |
+| NTF-005 | standard | Email notification digest        | not started    |
+| NTF-006 | standard | Notification digest emails       | not started    |
+| NTF-007 | standard | Collection invitation email      | not started    |
+| NTF-009 | standard | Feedback and corrections email   | not started    |
+| NTF-010 | standard | Account deletion follow-up email | not started    |
+| NTF-011 | standard | CRM-driven emails and sync       | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

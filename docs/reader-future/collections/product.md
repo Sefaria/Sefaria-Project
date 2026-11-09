@@ -4,9 +4,10 @@ title: Collections
 domain: Voices (sheets & community)
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Collections — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -51,27 +52,27 @@ Feature groups: Collection page (3); Collection membership (3); Collection editi
 
 ### Core (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature         | What it does                                                                                                            |
+| ------- | --------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | COL-001 | Collection page | A collection page shows description, editors, an optional pinned-tag contents tab, and a filterable list of its sheets. |
 
 ### Standard (8)
 
-| ID | Feature | What it does |
-|---|---|---|
-| COL-003 | Collection sheet list: sort, filter, pin | Visitors filter and sort a collection's sheets; members can pin sheets to the top. |
-| COL-004 | Collection members and roles | Collection admins manage editors and owners, and members can leave. |
-| COL-005 | Invite people to a collection | Collection admins invite editors by email. |
-| COL-006 | Add sheet to collections widget | From any sheet, users tick which of their collections it belongs to or create a new collection inline. |
-| COL-007 | Create and edit collection | Users create a collection with name, website, description and image, and can list it publicly or delete it. |
-| COL-008 | Collection model rules | The backend enforces slug, publishing and cleanup rules for collections. |
-| COL-009 | Public collections page | A directory lists all public collections in English and Hebrew grids. |
-| COL-010 | Collections API surface | Endpoints for listing, creating, membership, invites and pinning collections. |
+| ID      | Feature                                  | What it does                                                                                                |
+| ------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| COL-003 | Collection sheet list: sort, filter, pin | Visitors filter and sort a collection's sheets; members can pin sheets to the top.                          |
+| COL-004 | Collection members and roles             | Collection admins manage editors and owners, and members can leave.                                         |
+| COL-005 | Invite people to a collection            | Collection admins invite editors by email.                                                                  |
+| COL-006 | Add sheet to collections widget          | From any sheet, users tick which of their collections it belongs to or create a new collection inline.      |
+| COL-007 | Create and edit collection               | Users create a collection with name, website, description and image, and can list it publicly or delete it. |
+| COL-008 | Collection model rules                   | The backend enforces slug, publishing and cleanup rules for collections.                                    |
+| COL-009 | Public collections page                  | A directory lists all public collections in English and Hebrew grids.                                       |
+| COL-010 | Collections API surface                  | Endpoints for listing, creating, membership, invites and pinning collections.                               |
 
 ### Optional (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                            | What it does                                                              |
+| ------- | ---------------------------------- | ------------------------------------------------------------------------- |
 | COL-002 | Collection contents by pinned tags | Collections can show a Contents tab grouping their sheets by pinned tags. |
 
 _Generated 2026-10-14. Full behaviour for every ID: `reader-next/docs/features/FEATURES.md` and the atlas page._

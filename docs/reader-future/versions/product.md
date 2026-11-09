@@ -4,9 +4,10 @@ title: Versions & translations
 domain: Reader
 document: product
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-19
 ---
+
 # Versions & translations — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -17,7 +18,7 @@ updated: 2026-10-19
 
 Nothing decided. Research in the thread mapped how each client picks the source and translation a reader sees, how a choice
 sticks across books and visits, and where the new client differs; the rules are in the
-[architecture](architecture.md#legacy-approach-vs-new-approach). The items below are *ideas* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+[architecture](architecture.md#legacy-approach-vs-new-approach). The items below are _ideas_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
 
 ## Who it is for and what they need
 
@@ -30,25 +31,29 @@ _Not discussed yet. Items carry a status: idea · proposed · agreed · decided.
 ## Changes from today (keep · change · drop · new)
 
 **Keep**
-- A chosen translation sticks for its corpus (pick one in Genesis, get it in Isaiah). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · VER-002, VER-012
-- A translation-language preference (es, fr, de…) picks the best translation in that language when none is named. — *idea* ·
+
+- A chosen translation sticks for its corpus (pick one in Genesis, get it in Isaiah). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · VER-002, VER-012
+- A translation-language preference (es, fr, de…) picks the best translation in that language when none is named. — _idea_ ·
   [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · VER-014
 - The page arrives with the preferred translation already shown; on sefaria.org the default can flash first and then be
-  swapped. The new client already does this. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · VER-014
+  swapped. The new client already does this. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · VER-014
 
 **Change**
+
 - A signed-in reader's version and translation-language preferences are saved to the profile, as on sefaria.org; the new client
-  keeps them in cookies only. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · VER-002
+  keeps them in cookies only. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · VER-002
 - A link naming a version the text lacks, or only a title, falls back to the default translation or is corrected, instead of
-  being dropped or showing no translation. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · RTE-028, VER-014
+  being dropped or showing no translation. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · RTE-028, VER-014
 
 **Drop**
+
 - Legacy URL correction that strips a right-to-left translation or a left-to-right source on reload
-  ([Legacy behaviour not to port](architecture.md#legacy-behaviour-not-to-port)). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639)
+  ([Legacy behaviour not to port](architecture.md#legacy-behaviour-not-to-port)). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639)
 
 ## Open questions
 
-All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+All _ideas_, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+
 - Sync version and translation-language preferences to the profile for signed-in readers?
 - What should a link with an unknown or title-only version do: redirect to the corrected link, or quietly show the default?
 - Keep the location-based "read in your language" suggestion (VER-004)? sefaria.org offers the first supported language of the
@@ -72,43 +77,43 @@ Feature groups: Translations (7); Version blocks (6); Translation preferences (2
 
 ### Core (4)
 
-| ID | Feature | What it does |
-|---|---|---|
-| VER-003 | Select version from panel (shell logic) | Choosing a version updates the panel and its linked sidebar/text and remembers it per book. |
-| VER-009 | Translations sidebar list | The Translations view lists all available translations by language with a preview of each for the current passage. |
-| VER-012 | Select translation as primary in reader | Selecting a translation switches the reader to it and remembers the preference for that corpus. |
-| VER-014 | Version resolution order | Defines which version a passage is shown in when none is explicitly chosen. |
+| ID      | Feature                                 | What it does                                                                                                       |
+| ------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| VER-003 | Select version from panel (shell logic) | Choosing a version updates the panel and its linked sidebar/text and remembers it per book.                        |
+| VER-009 | Translations sidebar list               | The Translations view lists all available translations by language with a preview of each for the current passage. |
+| VER-012 | Select translation as primary in reader | Selecting a translation switches the reader to it and remembers the preference for that corpus.                    |
+| VER-014 | Version resolution order                | Defines which version a passage is shown in when none is explicitly chosen.                                        |
 
 ### Standard (13)
 
-| ID | Feature | What it does |
-|---|---|---|
-| VER-001 | Translation language preference (shell handling) | Readers can set a preferred translation language, saved to cookie and profile. |
-| VER-002 | Version preferences by corpus cookie | The app remembers preferred versions per corpus. |
+| ID      | Feature                                                 | What it does                                                                                                                 |
+| ------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| VER-001 | Translation language preference (shell handling)        | Readers can set a preferred translation language, saved to cookie and profile.                                               |
+| VER-002 | Version preferences by corpus cookie                    | The app remembers preferred versions per corpus.                                                                             |
 | VER-004 | Translation suggestion and 'change translation' banners | Above the text, the site may suggest showing translations in the user's likely language, or offer to change the translation. |
-| VER-005 | Version title subtitle in text header | The header shows which translation is being read. |
-| VER-006 | Current and alternate source versions in About | About lists the current source version, current translation and other available source versions. |
-| VER-007 | Version Open preview in sidebar | Previewing an alternate source version's text for the selected passage without leaving the sidebar. |
-| VER-008 | Download versions from About | Users can download any public-domain version in several formats. |
-| VER-010 | Translation preview with truncation | Each translation shows a snippet of its text for the selected passage that expands on click. |
-| VER-011 | Translation details disclosure and Open Text | Each translation can expand to show metadata, with a button to open the text with that translation. |
-| VER-013 | Translation Open sub-mode | Previewing one translation in the sidebar with options to open it or add it to a sheet. |
-| VER-016 | Version block display | A reusable block presenting a version's title, language, notes and info in About, Translations and book page. |
-| VER-017 | Version information rows | Version metadata: source, digitization, license, revision history and where to buy. |
-| VER-019 | Edit version metadata (moderator) | Moderators can edit a version's metadata from the book page version block. |
+| VER-005 | Version title subtitle in text header                   | The header shows which translation is being read.                                                                            |
+| VER-006 | Current and alternate source versions in About          | About lists the current source version, current translation and other available source versions.                             |
+| VER-007 | Version Open preview in sidebar                         | Previewing an alternate source version's text for the selected passage without leaving the sidebar.                          |
+| VER-008 | Download versions from About                            | Users can download any public-domain version in several formats.                                                             |
+| VER-010 | Translation preview with truncation                     | Each translation shows a snippet of its text for the selected passage that expands on click.                                 |
+| VER-011 | Translation details disclosure and Open Text            | Each translation can expand to show metadata, with a button to open the text with that translation.                          |
+| VER-013 | Translation Open sub-mode                               | Previewing one translation in the sidebar with options to open it or add it to a sheet.                                      |
+| VER-016 | Version block display                                   | A reusable block presenting a version's title, language, notes and info in About, Translations and book page.                |
+| VER-017 | Version information rows                                | Version metadata: source, digitization, license, revision history and where to buy.                                          |
+| VER-019 | Edit version metadata (moderator)                       | Moderators can edit a version's metadata from the book page version block.                                                   |
 
 ### Optional (3)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                                | What it does                                                                           |
+| ------- | -------------------------------------- | -------------------------------------------------------------------------------------- |
 | VER-018 | Version link builder (main vs sidebar) | Version links preserve the right set of current versions depending on where they open. |
-| VER-020 | Delete version (moderator) | Moderators can delete an entire version from the book page. |
-| VER-021 | Extended version notes | Long-form notes about a version can be read in the sidebar, in English or Hebrew. |
+| VER-020 | Delete version (moderator)             | Moderators can delete an entire version from the book page.                            |
+| VER-021 | Extended version notes                 | Long-form notes about a version can be read in the sidebar, in English or Hebrew.      |
 
 ### Retire (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                            | What it does                                                                                  |
+| ------- | ---------------------------------- | --------------------------------------------------------------------------------------------- |
 | VER-015 | In-sidebar Versions mode (removed) | The old standalone Versions sidebar mode is gone; browsing happens in About and Translations. |
 
 ### Flags from the audit (not to port as-is)

@@ -4,9 +4,10 @@ title: Book pages
 domain: Library & discovery
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Book pages — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -51,41 +52,41 @@ Feature groups: Table of contents rendering (16); Book page shell (7).
 
 ### Core (12)
 
-| ID | Feature | What it does |
-|---|---|---|
-| BOK-001 | Book page (text table of contents) | Each text has a landing page with title, category, reading button, contents and versions, reached from the library or the reader's header. |
-| BOK-002 | Book page header and category link | The header shows the book title, a link to its category, edition attribution and any dedication. |
-| BOK-003 | Start / Continue Reading button | A prominent button starts the text from the beginning, or resumes at the reader's last place if they have read it before. |
-| BOK-005 | Contents and Versions tabs | The book page has a Contents tab and a Versions tab, driven by the URL. |
-| BOK-007 | Versions list tab | The Versions tab lists every available version of the text with its details, and lets the reader select one. |
-| BOK-008 | TOC click navigation | Clicking any section in the contents opens the text at that spot, while links stay real so they can open in new tabs. |
-| BOK-009 | TOC reused in reader Connections panel | The same table of contents appears inside the reader's sidebar and highlights the reader's current location. |
-| BOK-010 | Schema node: collapsible complex sections | Complex books show nested, collapsible sections in the contents; the section that holds the reader's place opens automatically. |
-| BOK-011 | Simple section grid (jagged array) | A simple text shows a grid of its chapters/sections, listing only those that have content. |
-| BOK-014 | Section numbering by address type | Section labels follow each text's own addressing: Talmud pages (2a, 2b), folios, years and Hebrew letters. |
-| BOK-018 | Torah books: Chapters plus Torah Portions | Genesis through Deuteronomy show the chapter list and, below it, the weekly portions with their aliyot, with no structure toggle. |
-| BOK-023 | Book index details data | The book page depends on a detailed index record: structure, content counts, authors, dates, dedication and related topics. |
+| ID      | Feature                                   | What it does                                                                                                                               |
+| ------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| BOK-001 | Book page (text table of contents)        | Each text has a landing page with title, category, reading button, contents and versions, reached from the library or the reader's header. |
+| BOK-002 | Book page header and category link        | The header shows the book title, a link to its category, edition attribution and any dedication.                                           |
+| BOK-003 | Start / Continue Reading button           | A prominent button starts the text from the beginning, or resumes at the reader's last place if they have read it before.                  |
+| BOK-005 | Contents and Versions tabs                | The book page has a Contents tab and a Versions tab, driven by the URL.                                                                    |
+| BOK-007 | Versions list tab                         | The Versions tab lists every available version of the text with its details, and lets the reader select one.                               |
+| BOK-008 | TOC click navigation                      | Clicking any section in the contents opens the text at that spot, while links stay real so they can open in new tabs.                      |
+| BOK-009 | TOC reused in reader Connections panel    | The same table of contents appears inside the reader's sidebar and highlights the reader's current location.                               |
+| BOK-010 | Schema node: collapsible complex sections | Complex books show nested, collapsible sections in the contents; the section that holds the reader's place opens automatically.            |
+| BOK-011 | Simple section grid (jagged array)        | A simple text shows a grid of its chapters/sections, listing only those that have content.                                                 |
+| BOK-014 | Section numbering by address type         | Section labels follow each text's own addressing: Talmud pages (2a, 2b), folios, years and Hebrew letters.                                 |
+| BOK-018 | Torah books: Chapters plus Torah Portions | Genesis through Deuteronomy show the chapter list and, below it, the weekly portions with their aliyot, with no structure toggle.          |
+| BOK-023 | Book index details data                   | The book page depends on a detailed index record: structure, content counts, authors, dates, dedication and related topics.                |
 
 ### Standard (9)
 
-| ID | Feature | What it does |
-|---|---|---|
-| BOK-004 | Book page in compare panel | Opening a book in a compare panel shows a compact reader-style control bar with back, title and display settings. |
-| BOK-006 | Book page sidebar | The desktop book page sidebar shows About this text, a promo, related topics and a download module. |
-| BOK-012 | Deep-nested text headings | Texts with three or more levels (e.g. volume/chapter) show a heading per top-level unit with its sections beneath. |
-| BOK-013 | Zoomed-out TOC levels | Some texts' contents are shown at a coarser level than their full depth so links land on sections rather than segments. |
-| BOK-015 | Alternate structure nodes (ArrayMap) | Alternate tables of contents (e.g. Parasha, Talmud chapters) list their sections or link to whole spans. |
-| BOK-016 | Dictionary node letter browse | Dictionary-type texts show a Browse by Letter list linking to each letter's entries. |
-| BOK-017 | Alternate structure tabs toggle | Books with alternative tables of contents (e.g. by topic or portion) get a toggle to switch between structures, which is reflected in the URL. |
-| BOK-019 | Dictionary search on book page | Dictionary books show a search box above their contents to look up headwords. |
-| BOK-022 | Related topics of a book | The book page sidebar suggests topics connected to the text, expandable beyond the first five. |
+| ID      | Feature                              | What it does                                                                                                                                   |
+| ------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| BOK-004 | Book page in compare panel           | Opening a book in a compare panel shows a compact reader-style control bar with back, title and display settings.                              |
+| BOK-006 | Book page sidebar                    | The desktop book page sidebar shows About this text, a promo, related topics and a download module.                                            |
+| BOK-012 | Deep-nested text headings            | Texts with three or more levels (e.g. volume/chapter) show a heading per top-level unit with its sections beneath.                             |
+| BOK-013 | Zoomed-out TOC levels                | Some texts' contents are shown at a coarser level than their full depth so links land on sections rather than segments.                        |
+| BOK-015 | Alternate structure nodes (ArrayMap) | Alternate tables of contents (e.g. Parasha, Talmud chapters) list their sections or link to whole spans.                                       |
+| BOK-016 | Dictionary node letter browse        | Dictionary-type texts show a Browse by Letter list linking to each letter's entries.                                                           |
+| BOK-017 | Alternate structure tabs toggle      | Books with alternative tables of contents (e.g. by topic or portion) get a toggle to switch between structures, which is reflected in the URL. |
+| BOK-019 | Dictionary search on book page       | Dictionary books show a search box above their contents to look up headwords.                                                                  |
+| BOK-022 | Related topics of a book             | The book page sidebar suggests topics connected to the text, expandable beyond the first five.                                                 |
 
 ### Retire (2)
 
-| ID | Feature | What it does |
-|---|---|---|
-| BOK-020 | Current version attribution (legacy) | Code exists to assemble the attribution of the currently open version for the book page, but the render does not use it. |
-| BOK-021 | Read More text truncation (legacy) | A helper truncates long descriptions to 30 words with 'Read More', apparently no longer used; extended notes mode in BookPage is commented out. |
+| ID      | Feature                              | What it does                                                                                                                                    |
+| ------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| BOK-020 | Current version attribution (legacy) | Code exists to assemble the attribution of the currently open version for the book page, but the render does not use it.                        |
+| BOK-021 | Read More text truncation (legacy)   | A helper truncates long descriptions to 30 words with 'Read More', apparently no longer used; extended notes mode in BookPage is commented out. |
 
 ### Flags from the audit (not to port as-is)
 

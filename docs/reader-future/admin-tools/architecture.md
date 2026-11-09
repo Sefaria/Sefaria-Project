@@ -4,9 +4,10 @@ title: Admin & moderator tools
 domain: Internal & legacy
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Admin & moderator tools — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -69,41 +70,41 @@ Rebuild status of this area's features: not started 58.
 
 ### Gaps: core and standard features not done (33)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| ADM-029 | core | Shared admin edit form (AdminEditor) | not started |
-| ADM-053 | core | Remote config feature flags | not started |
-| ADM-057 | core | Email-as-username authentication | not started |
-| ADM-003 | standard | Admin edit buttons on headings (CategoryHeader) | not started |
-| ADM-004 | standard | Generic admin editor form shell | not started |
-| ADM-005 | standard | Topic editor | not started |
-| ADM-006 | standard | Category editor and reorder | not started |
-| ADM-007 | standard | Topic source (link) editor | not started |
-| ADM-008 | standard | Index (book info) editor | not started |
-| ADM-009 | standard | Version editor (book page) | not started |
-| ADM-014 | standard | Moderator Tools page (/modtools) | not started |
-| ADM-018 | standard | Bulk upload text versions from CSV | not started |
-| ADM-020 | standard | Upload links from CSV | not started |
-| ADM-021 | standard | Download links as CSV | not started |
-| ADM-023 | standard | Bulk edit version metadata | not started |
-| ADM-024 | standard | Rename version title across texts | not started |
-| ADM-025 | standard | Bulk delete versions (hard delete) | not started |
-| ADM-030 | standard | Moderator-only edit buttons in reader | not started |
-| ADM-031 | standard | Editing support endpoints (locks, flags, revert, bulk modify) | not started |
-| ADM-032 | standard | Cache and rebuild admin URLs | not started |
-| ADM-033 | standard | Link rebuild admin URLs | not started |
-| ADM-038 | standard | Django admin site | not started |
-| ADM-039 | standard | Strapi webhooks (CMS cache) | not started |
-| ADM-042 | standard | Spam review dashboards (sheets and profiles) | not started |
-| ADM-043 | standard | Purge spammer account data | not started |
-| ADM-044 | standard | Staff delete user account / sheet by id | not started |
-| ADM-045 | standard | Linker editor page (/linker-editor) | not started |
-| ADM-046 | standard | Edit MatchTemplates per node | not started |
-| ADM-047 | standard | Edit AddressTypes per node level | not started |
-| ADM-048 | standard | Edit linker node properties | not started |
-| ADM-049 | standard | Manage NonUniqueTerms | not started |
-| ADM-050 | standard | Rebuild RefResolver and Dibur Hamatchils | not started |
-| ADM-054 | standard | Topic pool and schedule curation (django_topics) | not started |
+| ID      | Tier     | Feature                                                       | Rebuild status |
+| ------- | -------- | ------------------------------------------------------------- | -------------- |
+| ADM-029 | core     | Shared admin edit form (AdminEditor)                          | not started    |
+| ADM-053 | core     | Remote config feature flags                                   | not started    |
+| ADM-057 | core     | Email-as-username authentication                              | not started    |
+| ADM-003 | standard | Admin edit buttons on headings (CategoryHeader)               | not started    |
+| ADM-004 | standard | Generic admin editor form shell                               | not started    |
+| ADM-005 | standard | Topic editor                                                  | not started    |
+| ADM-006 | standard | Category editor and reorder                                   | not started    |
+| ADM-007 | standard | Topic source (link) editor                                    | not started    |
+| ADM-008 | standard | Index (book info) editor                                      | not started    |
+| ADM-009 | standard | Version editor (book page)                                    | not started    |
+| ADM-014 | standard | Moderator Tools page (/modtools)                              | not started    |
+| ADM-018 | standard | Bulk upload text versions from CSV                            | not started    |
+| ADM-020 | standard | Upload links from CSV                                         | not started    |
+| ADM-021 | standard | Download links as CSV                                         | not started    |
+| ADM-023 | standard | Bulk edit version metadata                                    | not started    |
+| ADM-024 | standard | Rename version title across texts                             | not started    |
+| ADM-025 | standard | Bulk delete versions (hard delete)                            | not started    |
+| ADM-030 | standard | Moderator-only edit buttons in reader                         | not started    |
+| ADM-031 | standard | Editing support endpoints (locks, flags, revert, bulk modify) | not started    |
+| ADM-032 | standard | Cache and rebuild admin URLs                                  | not started    |
+| ADM-033 | standard | Link rebuild admin URLs                                       | not started    |
+| ADM-038 | standard | Django admin site                                             | not started    |
+| ADM-039 | standard | Strapi webhooks (CMS cache)                                   | not started    |
+| ADM-042 | standard | Spam review dashboards (sheets and profiles)                  | not started    |
+| ADM-043 | standard | Purge spammer account data                                    | not started    |
+| ADM-044 | standard | Staff delete user account / sheet by id                       | not started    |
+| ADM-045 | standard | Linker editor page (/linker-editor)                           | not started    |
+| ADM-046 | standard | Edit MatchTemplates per node                                  | not started    |
+| ADM-047 | standard | Edit AddressTypes per node level                              | not started    |
+| ADM-048 | standard | Edit linker node properties                                   | not started    |
+| ADM-049 | standard | Manage NonUniqueTerms                                         | not started    |
+| ADM-050 | standard | Rebuild RefResolver and Dibur Hamatchils                      | not started    |
+| ADM-054 | standard | Topic pool and schedule curation (django_topics)              | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

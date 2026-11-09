@@ -27,15 +27,15 @@ Cloudflare → nginx (www server)
 
 ## Pieces
 
-| Piece | Where |
-|---|---|
-| Runtime config (env → server, `window.__SEFARIA_CONFIG__` → browser) | `src/lib/config.ts` |
-| Pass-through to Django, `/healthz-reader` | `src/start.ts`, `src/server/pass-through.ts` |
-| Host header on internal API reads (Node's `fetch` ignores `Host`; `node:http` is used for the plain-http Varnish origin) | `src/server/internal-fetch.ts` |
-| Production server (srvx: static files with long-lived cache headers, then SSR) | `server/index.mjs`, `npm start` |
-| Image | `Dockerfile` here; `build/node/Dockerfile` in Sefaria-Project (context = repository root) |
-| Helm switch | `nodejs.mode` in `helm-chart/sefaria/values.yaml`: `reader` (default on the branch) or `legacy` |
-| Helm changes | `conf/nginx.template.conf.tpl` (node upstream, `/api/`, `@varnish`), `templates/rollout/nodejs.yaml` (env, probes), `templates/configmap/local-settings-file.yaml` (`USE_NODE`) |
+| Piece                                                                                                                    | Where                                                                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime config (env → server, `window.__SEFARIA_CONFIG__` → browser)                                                     | `src/lib/config.ts`                                                                                                                                                             |
+| Pass-through to Django, `/healthz-reader`                                                                                | `src/start.ts`, `src/server/pass-through.ts`                                                                                                                                    |
+| Host header on internal API reads (Node's `fetch` ignores `Host`; `node:http` is used for the plain-http Varnish origin) | `src/server/internal-fetch.ts`                                                                                                                                                  |
+| Production server (srvx: static files with long-lived cache headers, then SSR)                                           | `server/index.mjs`, `npm start`                                                                                                                                                 |
+| Image                                                                                                                    | `Dockerfile` here; `build/node/Dockerfile` in Sefaria-Project (context = repository root)                                                                                       |
+| Helm switch                                                                                                              | `nodejs.mode` in `helm-chart/sefaria/values.yaml`: `reader` (default on the branch) or `legacy`                                                                                 |
+| Helm changes                                                                                                             | `conf/nginx.template.conf.tpl` (node upstream, `/api/`, `@varnish`), `templates/rollout/nodejs.yaml` (env, probes), `templates/configmap/local-settings-file.yaml` (`USE_NODE`) |
 
 Environment variables of the node container in reader mode: `SEFARIA_API_ORIGIN`, `SEFARIA_API_HOST`, `PUBLIC_API_ORIGIN=""`,
 `PUBLIC_SITE_ORIGIN=""`, `SEFARIA_PASS_THROUGH=1`, `PORT=3000`, and for sign-in the same public keys Django uses:

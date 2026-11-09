@@ -58,12 +58,15 @@ Send each as a message to @Claude in the channel:
 ```
 @Claude remember for this channel: the specification lives in Sefaria/Sefaria-Project, branch reader-next, folder docs/reader-future/. Its README has the area index.
 ```
+
 ```
 @Claude remember for this channel: we compare the legacy reader on master (static/js, reader/, templates/) with the new reader on reader-next (reader-next/). The Feature Atlas is reader-next/docs/features/features.json.
 ```
+
 ```
 @Claude remember for this channel: "Decision:" at the start of a message records a decision; "@Claude capture" records a thread now; [area] tags like [search] are optional hints.
 ```
+
 ```
 @Claude remember for this channel: area owners are listed in the owner: field of each area's product.md. When someone says they own an area, update it in the next pull request.
 ```

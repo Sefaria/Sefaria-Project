@@ -7,7 +7,7 @@ Citations are `file:line`. "JSX" = React client; "legacy" = jQuery/CKEditor code
 
 ## 0. Surprising findings / things a rebuild must decide on (read first)
 
-1. **The React sheet *viewer* ignores most sheet display options.** `options.numbered`, `options.boxed`, `options.layout`, `options.language`, `options.langLayout`, `options.divineNames`, `options.bsd`, `options.highlightMode` are written by `new_sheet` (`sourcesheets/views.py:76-92`) and honored by the legacy template/`sheets.js`, but the React viewer only reads `options.indented`, `options.sourcePrefix`, `options.PrependRefWithHe/En`, `options.refDisplayPosition` (`static/js/sheets/SheetContentSegments.jsx:10,18,34-36,45`). Language/layout come from the reader panel's display-settings menu instead (`static/js/ReaderDisplayOptionsMenu.jsx:23-46`).
+1. **The React sheet _viewer_ ignores most sheet display options.** `options.numbered`, `options.boxed`, `options.layout`, `options.language`, `options.langLayout`, `options.divineNames`, `options.bsd`, `options.highlightMode` are written by `new_sheet` (`sourcesheets/views.py:76-92`) and honored by the legacy template/`sheets.js`, but the React viewer only reads `options.indented`, `options.sourcePrefix`, `options.PrependRefWithHe/En`, `options.refDisplayPosition` (`static/js/sheets/SheetContentSegments.jsx:10,18,34-36,45`). Language/layout come from the reader panel's display-settings menu instead (`static/js/ReaderDisplayOptionsMenu.jsx:23-46`).
 2. **No "Like" UI in React.** Likes API exists (`sourcesheets/views.py:837-868`, `sefaria/sheets.py:1263-1288`) and like notifications render (`NotificationsPanel.jsx:209-231`), but nothing in `static/js/**/*.jsx` calls `/like`. Only legacy `sheets.js` (`static/js/sheets.js:879` likers list) uses it.
 3. **No Print / Embed / Assignment / "via" attribution UI in React.** `SheetContent` renders a hidden `#printFooter` ("Created with Sefaria" logo) for print CSS only (`sheets/SheetContent.jsx:173-176`); there is no print button. Embed and assignments exist only in legacy `templates/sheets.html` (`:70`, `:101-104`, `:981-1013`, `:1140-1150`) + `static/js/sheets.js` (`:286-288` print, `showEmebed` `:3564`). `/sheets/new` no longer processes `?assignment=` (`sourcesheets/views.py:73-95`). `assignerName`/`viaOwnerName` are computed server-side (`sefaria/sheets.py:121-126`, `reader/views.py:676-684`) but never rendered in JSX.
 4. **Legacy CKEditor sheet editor is still reachable** via `/sheets/<id>?embed=1` → `view_sheet` renders `templates/sheets.html` + `static/js/sheets.js` with `can_edit`/`can_add` flags (`sourcesheets/views.py:170-233`, `templates/sheets.html:1512`). So an owner hitting `?embed=1` gets the old editor.
@@ -23,23 +23,24 @@ Citations are `file:line`. "JSX" = React client; "legacy" = jQuery/CKEditor code
 ## 1. Routing & entry points (Voices module = sheets subdomain)
 
 Voices URLconf `sefaria/urls_sheets.py`:
-| Path | View | Notes |
-|---|---|---|
-| `/` | `sheets_views.sheets_home_page` (`sourcesheets/views.py:67-71`) | `menu_page(page="voices")` → `SheetsHomePage` |
-| `/sheets-with-ref/<tref>` | `sheets_with_ref` (`sourcesheets/views.py:983-999`) | props `sheetsWithRef:{en,he}`, initial search filters/sort from GET |
-| `/collections` | `reader_views.public_collections` (`reader/views.py:1137-1144`) | `collectionsPublic` menu |
-| `/collections/new` | `edit_collection_page` (`reader/views.py:1218-1239`) | login_required, noindex |
-| `/collections/<slug>/settings` | `edit_collection_page` | 404 if missing |
-| `/collections/<slug>` | `collection_page` (`reader/views.py:1185-1215`) | accepts old `privateSlug` and redirects to current slug; `?tag=`, `?tab=`; `noindex` if not listed |
-| `/getstarted` | static page `sheets` | |
-| `/sheets` | redirect → `/getstarted/` (permanent) (`reader/views.py:1176-1180`) | |
-| `/sheets/new` | `new_sheet` (`sourcesheets/views.py:73-95`) | login_required; creates empty unlisted sheet with default options then renders it via `catchall` |
-| `/sheets/<int>` | `view_sheet` (`sourcesheets/views.py:170-233`) | help-center redirect for configured ids (`sefaria/utils/util.py:642+`); non-embed → `catchall(..., sheet=True)` (React); `?embed=1` → legacy `sheets.html` |
-| `/sheets/visual/<int>` | `view_visual_sheet` (`sourcesheets/views.py:244-278`) | legacy `sheets_visual.html` + `static/js/sheets-visual.js` |
-| `/sheets/<id>.<node>` | `catchall(sheet=True)` | highlighted node deep link |
-| `/my/profile`, `/profile` | `my_profile` (`reader/views.py:4531-4540`) | redirect to `/profile/<slug>` preserving `?tab=` |
-| `/profile/<username>` | `user_profile` (`reader/views.py:4112-4136`) | 404 if no user / inactive; default tab `sheets`; full profile dict only for owner |
-| `/settings/profile` | `edit_profile` (`reader/views.py:4542-4555`) | legacy Django template `edit_profile.html` |
+
+| Path                           | View                                                                | Notes                                                                                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                            | `sheets_views.sheets_home_page` (`sourcesheets/views.py:67-71`)     | `menu_page(page="voices")` → `SheetsHomePage`                                                                                                              |
+| `/sheets-with-ref/<tref>`      | `sheets_with_ref` (`sourcesheets/views.py:983-999`)                 | props `sheetsWithRef:{en,he}`, initial search filters/sort from GET                                                                                        |
+| `/collections`                 | `reader_views.public_collections` (`reader/views.py:1137-1144`)     | `collectionsPublic` menu                                                                                                                                   |
+| `/collections/new`             | `edit_collection_page` (`reader/views.py:1218-1239`)                | login_required, noindex                                                                                                                                    |
+| `/collections/<slug>/settings` | `edit_collection_page`                                              | 404 if missing                                                                                                                                             |
+| `/collections/<slug>`          | `collection_page` (`reader/views.py:1185-1215`)                     | accepts old `privateSlug` and redirects to current slug; `?tag=`, `?tab=`; `noindex` if not listed                                                         |
+| `/getstarted`                  | static page `sheets`                                                |                                                                                                                                                            |
+| `/sheets`                      | redirect → `/getstarted/` (permanent) (`reader/views.py:1176-1180`) |                                                                                                                                                            |
+| `/sheets/new`                  | `new_sheet` (`sourcesheets/views.py:73-95`)                         | login_required; creates empty unlisted sheet with default options then renders it via `catchall`                                                           |
+| `/sheets/<int>`                | `view_sheet` (`sourcesheets/views.py:170-233`)                      | help-center redirect for configured ids (`sefaria/utils/util.py:642+`); non-embed → `catchall(..., sheet=True)` (React); `?embed=1` → legacy `sheets.html` |
+| `/sheets/visual/<int>`         | `view_visual_sheet` (`sourcesheets/views.py:244-278`)               | legacy `sheets_visual.html` + `static/js/sheets-visual.js`                                                                                                 |
+| `/sheets/<id>.<node>`          | `catchall(sheet=True)`                                              | highlighted node deep link                                                                                                                                 |
+| `/my/profile`, `/profile`      | `my_profile` (`reader/views.py:4531-4540`)                          | redirect to `/profile/<slug>` preserving `?tab=`                                                                                                           |
+| `/profile/<username>`          | `user_profile` (`reader/views.py:4112-4136`)                        | 404 if no user / inactive; default tab `sheets`; full profile dict only for owner                                                                          |
+| `/settings/profile`            | `edit_profile` (`reader/views.py:4542-4555`)                        | legacy Django template `edit_profile.html`                                                                                                                 |
 
 Shared (both modules) `sefaria/urls_shared.py`: `/saved` (`:35`), `/history` (`:36`), `/notifications` (`:39`), `/account` → my_profile (`:60`), `/my/notes` (`:61`), legacy redirects `/sheets/tags[/<tag>]` → topics (`:62-63`), `/sheets/public|private` (`:64`), `/groups/<g>` → collections (`:65`, `reader/views.py:1241-1253`), `/contributors/<uid>` → profile (`:66`), `/gauth`, `/gauth/callback`, `/unlink-gauth` (`:256-258`).
 Library-only `sefaria/urls_library.py`: `/texts/notes` (`:20`), `/torahtracker` user stats (`:32`), `/settings/account` (`:46`), `/settings/account/user` (`:47`), `/settings/profile` → redirect to voices (`:48`), `/community` → voices redirect (`:50`), `/garden/sheets/<key>` (`:79`). Library `/sheets*` and `/profile*` redirect to Voices (`reader/views.py:5287-5310`).
@@ -53,6 +54,7 @@ Client routing: panel `mode: "Sheet"` with `sheetID`, `highlightedNode` (`Reader
 ## 2. Sheet viewing (React reader, non-owner)
 
 Container `static/js/sheets/Sheet.jsx`:
+
 - Loads sheet from `Sefaria.sheets.loadSheetByID` cache or API `/api/sheets/<id>?more_data=1` (`Sheet.jsx:30-45`, `sefaria/sefaria.js:3359-3377`); on load re-opens state so history gets the title (`Sheet.jsx:36-40`).
 - GA event `select_content` {content_type:"Sheet"} on mount (`Sheet.jsx:23-27`).
 - **Owner → editor, everyone else → reader** via `shouldUseEditor` (`Sheet.jsx:147-148`, `sheetsUtils.js:127-130`).
@@ -60,6 +62,7 @@ Container `static/js/sheets/Sheet.jsx`:
 - Layout = content + `SheetSidebar` (`Sheet.jsx:103-138`).
 
 `SheetContent.jsx` (reader):
+
 - Header `SheetMetaDataBox`: title, summary, author pic/name (mobile only), display-settings dropdown (language/layout/font-size), Guide button (if provided), `SheetOptions` "…" menu (`SheetContent.jsx:155-168`, `Misc.jsx:3047-3082`).
 - Renders each source by type (`SheetContent.jsx:110-152`): `ref` → `SheetSource`; `comment` → `SheetComment`; `outsideText` starting with `<h1>` → `SheetHeader`, else `SheetOutsideText`; `outsideBiText` → `SheetOutsideBiText`; `media` → `SheetMedia`; malformed node (e.g. `null`) → empty fragment.
 - Highlighting: `highlightedNode` highlights a node; if none, `highlightedRefsInSheet` highlights all ref sources contained in those refs (used when a sheet is opened in the ConnectionsPanel next to a text) (`:121-128`).
@@ -69,6 +72,7 @@ Container `static/js/sheets/Sheet.jsx`:
 - Print footer hidden div (`:173-176`).
 
 `SheetContentSegments.jsx` per-type rendering:
+
 - **SheetSource** (`:6-61`): left border color by ref category (`Sefaria.palette.refColor`); `heOnly`/`enOnly` class when one side empty or `"..."`; optional custom `title` heading (`:28-31`); `options.sourcePrefix` superscript; `PrependRefWithHe/En` prefix; ref link (he: `heRef`, en: `ref`) to library module; HTML text cleaned via `Sefaria.util.cleanHTML`; `options.refDisplayPosition` → class `ref-display-<pos>`; `options.indented` class; "Added by <userLink>" when `addedBy` (collaborator attribution); aria-label, tabIndex, Enter/Space keyboard click.
 - **SheetComment** (`:62-96`): auto-detect lang via Hebrew detection; indented class; addedBy.
 - **SheetHeader** (`:97-115`): `<h1>` text stripped of HTML.
@@ -77,6 +81,7 @@ Container `static/js/sheets/Sheet.jsx`:
 - **SheetMedia** (`:201-289`): image (`jpeg|jpg|gif|png`); YouTube `/embed/` iframe; Vimeo player iframe; SoundCloud `w.soundcloud.com/player` iframe (166px); **Spotify** (episode 152px / track 80px fixed heights, "DO NOT change", `:230-246`); `.mp3` `<audio controls>`; otherwise "Error loading media..."; bilingual `caption {en,he}`; Add-to-sheet only for images. (Bandcamp is supported in the editor but not in this reader renderer.)
 
 `SheetSidebar.jsx` (both reader & editor):
+
 - Editor save-state indicator (multipanel only, editor only) (`:21`).
 - Author ProfilePic (100px), author name link, profile fetched by `Sefaria.profileAPI(slug)` (note: effect has no dep array → re-fetches every render; cached) (`:9-16`).
 - Followers count, `UserBackground` (bio, position @ organization), **Follow button** unless self (`:34-48`).
@@ -91,12 +96,14 @@ SEO/sharing on server: `noindex` unless public (see §1).
 ## 3. Sheet options menu ("…") — `static/js/sheets/SheetOptions.jsx`
 
 Props: `editable` (owner), `status`, `postSheet`, `historyObject`. History object ref is truncated to the sheet (`"Sheet 3"` not `"Sheet 3:4"`) (`:17-24`).
+
 - **Publish** button shown inline only when `editable && status==='unlisted'` (`:104,107`).
 - Menu items (`:108-140`): **Save / Remove** (bookmark; `SaveButtonWithText`), **Copy**, **Add to Collection** (non-owner label) / **Edit Collections** (owner label) (`:157-160`), **Export to Google Docs**, **Share**; owner & public → separator + **Unpublish**; owner → separator + **Delete Sheet** (confirm dialog `common.are_you_sure_you_want_to_delete_this_sheet_there`).
 - Logged-out user choosing Save / Collections / Copy / Export → sign-up modal of kind Save / AddToSheet / AddToSheet / Default and resets mode (`:46-75`).
 - Export is auto-opened when URL hash contains `afterLoading=exportToDrive` (post-OAuth return) (`:26-33, 41`).
 
 Modals (`static/js/sheets/SheetModals.jsx`):
+
 - **ShareModal** → `ShareBox` (`:13-20`; `ConnectionsPanel.jsx:1165-1256`): copy-link input + copy button (clipboard API with `execCommand` fallback), Share on Facebook / X (twitter.com/share) / Email (mailto). (Dormant collaboration-setting re-post logic; see §0.5.)
 - **CollectionsModal** → `CollectionsWidget` (§9.4).
 - **CopyModal** (`:35-107`): clones the cached sheet, forces `status: "unlisted"`, title + " (Copy)", if copier ≠ owner sets `via=<orig id>`, `viaOwner=<orig owner>`, `owner=me`; strips id, owner image/url/org/name, views, dates, displayedCollection, collection name/image, likes, promptedToPublish, `_id`; POSTs `/api/sheets/`; shows "Copying…" (non-closable while copying) then "View your Copy" link (new tab) or error. Backend duplicates GCS-hosted images for new sheets (`sefaria/sheets.py:540-547`).
@@ -112,6 +119,7 @@ Backend export (`sourcesheets/views.py:1026-1094`): `@gauth_required` scopes dri
 ## 4. Sheet editing — `static/js/Editor.jsx` (Slate; owner only)
 
 ### 4.1 Document model
+
 - Sheet JSON → Slate: root `Sheet` element carrying metadata (`status`, views, tags, includedRefs, owner, summary, id, dates, `promptedToPublish`, options, `nextNode`, author info, title, displayedCollection, collection name/image, likes) with child `SheetContent` (`Editor.jsx:560-647`).
 - Source-type → element map: `ref→SheetSource`, `comment→SheetOutsideText`, `outsideText→SheetOutsideText`, `outsideBiText→SheetOutsideBiText`, `media→SheetMedia` (`:25-32`). Headers are stored as `outsideText` beginning with `<h1>` and become `header` elements; a source's custom `title` becomes a preceding `header` node (`:576-596`).
 - **Spacers** inserted between non-outside-text items (and between consecutive non-header outside texts) and at bottom so there's always somewhere to type (`:567-612`).
@@ -121,9 +129,11 @@ Backend export (`sourcesheets/views.py:1026-1094`): `@gauth_required` scopes dri
 - Save mapping (`saveSheetContent`, `:2878-2988`): SheetSource → `{ref, heRef, text:{en,he} ("..." if empty), options?, node}`; OutsideBiText similarly; SheetComment → `comment`; SheetOutsideText → `outsideText` (empty → `"<p> </p>"` to preserve old-sheet spacing); SheetMedia → `media`; header → `outsideText: "<h1>...</h1>"`; spacers dropped. Sheet payload: `status, id, promptedToPublish, lastModified, summary, options, tags, displayedCollection, title, sources, nextNode`.
 
 ### 4.2 Block/inline element rendering (`Element`, `:1129-1316`)
+
 spacer (shows Add interface when selected & caret collapsed), SheetSource & SheetOutsideBiText (boxed, `BoxedSheetElement`), SheetComment, SheetOutsideText (lang class auto-detected), SheetMedia (image; YouTube embed with `rel=0&showinfo=0`; Vimeo 315px; Spotify embed 380px; SoundCloud 120px; **Bandcamp** 120px; mp3 audio; else empty), he/en, SheetContent, TextRef, SourceContentText, paragraph (with "add new line" ::before button, centered if `text-align:center`, loading spinner while a source loads), bulleted/numbered list, list-item, header (`h1.serif`), link, table/tr/td, horizontal-line. Highlight class when `editor.highlightedNode` matches.
 
 ### 4.3 Boxed source editing (`BoxedSheetElement`, `:657-870`)
+
 - Each SheetSource/OutsideBiText has two nested Slate editors (he and en, both `withLinks(withHistory(withReact))`) synced back into parent node (`:660-686`).
 - Click activates the box; clicking the he/en text area makes that language editable (read-only otherwise); blur deactivates; Chrome hack toggles parent `contenteditable` so Ctrl+A / Alt+Up work inside (`:715-747`).
 - English editable always rendered `dir=ltr` (`:813-820`).
@@ -133,7 +143,9 @@ spacer (shows Add interface when selected & caret collapsed), SheetSource & Shee
 - Mouse-down anti-jump hack positions children container (`:701-712`).
 
 ### 4.4 Adding content (`AddInterface` / `AddInterfaceInput`, `:872-1127`)
+
 On an empty selected spacer a "+" button opens: **Add Source**, **Add Image**, **Add Media**.
+
 - **Add Source**: `Autocompleter` over `Sefaria.getName(input, 5, ['ref'])`; shows suggestions with category border color, book address examples helper text (`d.addressExamples[0]`), live preview of section/segment text; "Add Source" button / Enter when the input is a section/segment ref (`:938-1011`, `Misc.jsx:3084-3330`). Insertion (`insertSource`, `:1973-2014`): sets paragraph `loading`; resolves normal en/he refs (`sheetsUtils.getNormalRef`), fetches segments (`getSegmentObjs`) and builds HTML (`segmentsToSourceText`): segment numbers `<small>(n)</small>` (Hebrew numerals in he) except Talmud / Pesach Haggadah; each segment its own `<p>` except Tanakh/Talmud (`sheetsUtils.js:24-69`); adds trailing spacer when needed; fixes duplicate node numbers; deletes the empty line above.
 - **Add Image**: file picker (jpg/jpeg/png/gif only else alert "not an image"); base64 POST to `/api/sheets/upload-image` → inserts SheetMedia with returned URL (`:1058-1105`). Backend: login required; GIFs stored as-is, other images thumbnailed to max 1024×1024, uploaded to GCS UGC bucket as `<uid>-<uuid>.<fmt>` (`sourcesheets/views.py:1096-1125`). Deleted media (GCS-hosted) is removed from storage on save (`sefaria/sheets.py:489-497`).
 - **Add Media**: URL input; "Add Media" button appears only when URL is recognized (`isMediaLink`, `:877-918`): YouTube (any watch/short/youtu.be form → `/embed/<id>?rel=0&showinfo=0`), Vimeo (→ player URL), direct image URLs, `.mp3`, SoundCloud (→ widget URL with color/auto_play/hide_related params), Spotify (`open.spotify.com/<type>/<id>` → `/embed/...`), Bandcamp EmbeddedPlayer (forces `artwork=small`). Tooltip: "We can process YouTube and SoundCloud links, and hosted mp3's and images".
@@ -141,11 +153,14 @@ On an empty selected spacer a "+" button opens: **Add Source**, **Add Image**, *
 - **Paste** (`insertData`, `:1535-1588`): if pasting a URL whose host starts with `www.sefaria.org`, fetches the page and inserts a link titled with the page `<title>`; other URLs pasted as-is; drag data into spacer handled with insert/delete "dance"; always de-dupes node numbers afterwards. HTML paste uses Slate default + `deserialize` rules.
 
 ### 4.5 Formatting toolbar (hover menu, `HoverMenu`, `:2385-2439`)
+
 Appears above a non-empty, non-collapsed, non-link selection while focused (portal into `#s2`). Buttons: **Bold**, **Italic**, **Underline**, **Highlight** (5 colors `#E6DABC #EAC4B6 #D5A7B3 #AECAB7 #ADCCDB` + "ban"/clear; click outside closes; `:2484-2540`); full menu also **Link** (`AddLinkButton`, `:2441-2463`), **Header** (h1), **Numbered list**, **Bulleted list** (`BlockButton`/`toggleBlock`, `:2318-2347, 2542-2559`). Leaf marks also render `big`, `small`, `superscript`, `color`, `text-align` (`Leaf`, `:2350-2383`) though no buttons for them (preserved from imported HTML).
+
 - **Links** (`Link`, `withLinks`, `:2090-2258`): hover 500ms shows URL popover input; editing URL normalizes (`new URL`, email → `mailto:`, else prepends `http://`); empty URL on blur removes link; ✕ removes link; new link inserted as "New Link" or wraps selection; links inside list items get a trailing space on Enter to stop link continuation.
 - **Keyboard shortcuts**: `mod+b`, `mod+i`, `mod+u` (`:43-47, 3114-3120`); native `formatBold/Italic/Underline` beforeinput events (`:3043-3052`); manual Backspace/Delete handling (`:3129-3133`).
 
 ### 4.6 Structural/normalization rules (`withSefariaSheet`, `:1399-1931`)
+
 - Enter in middle of an outside text → soft break; Enter in a header → new line becomes outside text; Enter on empty list item exits list (inserts spacer); Enter otherwise inserts a spacer (new block) (`:1476-1532`).
 - Backspace: never past document start; if selection is a SheetSource it deletes the source; avoids accidentally deleting a source when backspacing from a spacer (selects instead); special end-of-doc spacer handling (`:1418-1464`).
 - Cut/copy of a source selects surrounding characters so the void is cut (`:3081-3091`, `:1466-1474`).
@@ -155,9 +170,11 @@ Appears above a non-empty, non-collapsed, non-link selection while focused (port
 - Scroll-into-view of caret when typing near viewport bottom (`ensureInView`, `:3054-3079`).
 
 ### 4.7 Title & summary
+
 Editable inline `contentEditable` title and summary in `SheetMetaDataBox` (save on blur; empty content cleared) (`Misc.jsx:2876-2896, 3047-3064`, `Editor.jsx:3187-3196`). Summary box shown when editable even if empty.
 
 ### 4.8 Autosave & save-state machine
+
 - Debounced save 500ms after any change to content, title, or summary (`Editor.jsx:2782-2802`); POST `/api/sheets/` form field `json` (`:3021-3032`); response updates status/title/summary and cache.
 - Optimistic concurrency: payload includes `lastModified` = cached `dateModified`; server rejects if it differs (`"Sheet updated."`, `rebuild:true`) (`sefaria/sheets.py:476-481`).
 - States (`sheetsUtils.js:71-78`): `saved`, `saving`, `unsaved`, `connectionLost` (HTTP 0), `userUnauthenticated` (401), `unknownError` (other errors, or still "saving" after 20s) (`Editor.jsx:3009-3019, 2611-2639`).
@@ -168,17 +185,21 @@ Editable inline `contentEditable` title and summary in `SheetMetaDataBox` (save 
 - Hotjar `using_new_editor` event (`:2833`).
 
 ### 4.9 Cross-tab refresh ("collaborative" sync)
+
 There is **no edit locking**. Only: `BroadcastChannel('refresh-editor')` — when a source is added to a sheet from another tab/panel via AddToSourceSheet (`AddToSourceSheet.jsx:299`), open editors reload the sheet from DB (`Editor.jsx:2827-2830, 3164-3169`). Legacy `sheets.js` polled `/api/sheets/modified/<id>/<ts>` every 3s and replayed last edit (`static/js/sheets.js:3239-3369`; API `sourcesheets/views.py:677-697`).
 
 ### 4.10 Editor guide
+
 `GuideButton` (bulb) in metadata box when guide available; guide type "editor" shown only on multipanel, panel 0, `mode === "Sheet"` and user is owner (`ReaderPanel.jsx:477-520`); content from `/api/guides/editor` (`sefaria.js` `getGuide`), `GuideOverlay.jsx`.
 
 ### 4.11 Highlighted node
+
 On load scrolls `.sheetsInPanel` so the `data-sheet-node` element is 200px (multipanel) / 70px from top (`Editor.jsx:2865-2876`).
 
 ---
 
 ## 5. Publishing — `static/js/sheets/PublishMenu.jsx`
+
 - Unlisted → modal with **Title** (prefilled, "Untitled" placeholder), **Description** textarea (max 140 chars, live validation message), **Topics** tag input (`react-tag-autocomplete`, suggestions from `Sefaria.getName(input, 5, ["Topic"])`, delimiters Enter/comma, only suggestion topics accepted, no duplicates) (`:66-215`).
 - Validation: requires description AND ≥1 topic (messages for both/either) with red highlighting (`:83-114`).
 - Publish → sets title/summary/topics on cached sheet and posts with `status:"public"`; Public → "Unpublish" immediately posts `status:"unlisted"` (`:9-64`). Modal non-closable while posting; error text shown.
@@ -194,6 +215,7 @@ Permissions on save (`sourcesheets/views.py:564-631`): logged in or `apikey`; ow
 ---
 
 ## 6. Likes, views, sheet topics
+
 - Like/unlike: `POST /api/sheets/<id>/like|unlike` (`sourcesheets/views.py:837-860`); `$addToSet`/`$pull` likes; like creates `sheet like` notification for owner (`sefaria/sheets.py:1263-1280`); `GET /api/sheets/<id>/likers` returns annotated user list (`:863-868`). No React UI (§0.2).
 - Views: `$inc` on each load (§0.10); displayed in `SheetListing` (eye icon/count or lock for private) and profile/collection lists (`Misc.jsx:1747-1754`).
 - Sheet topics: `POST /api/sheets/<id>/topics` owner-only update (`sourcesheets/views.py:809-819`); tag lists: `/api/sheets/tag-list[/<sort>]` (alpha, count, alpha-hebrew; cached 1h) (`:871-878`, `sefaria/sheets.py:1212-1236`), `/api/sheets/tag-list/user/<uid>` (`:881-892`), `/api/sheets/trending-tags?n=` (last 30 days, public, excluding copies/assignments, ≥2 authors; 6h cache) (`:894-906`, `sefaria/sheets.py:356-394`); `/api/sheets/tag/<tag>` and `/api/v2/sheets/tag/<tag>` (story form) (`:948-970`).
@@ -202,6 +224,7 @@ Permissions on save (`sourcesheets/views.py:564-631`): logged in or `apikey`; ow
 ---
 
 ## 7. Sheets home page (Voices `/`) — `static/js/sheets/SheetsHomePage.jsx`
+
 - Hero video banner (webm/mp4, poster, autoplay loop muted) with title "Community-powered Jewish learning" + message (`:8-24, 50-53`).
 - H1 "Explore user-created content by topic".
 - **Calendar cards**: "This week's Torah portion" (`Sefaria.getUpcomingDay('parasha')` → TopicTOCCard with description) and "On the Jewish Calendar" (`getUpcomingDay('holiday')`) (`SheetsHomePageTopicsTOC.jsx:24-57`); click → topic page.
@@ -209,6 +232,7 @@ Permissions on save (`sourcesheets/views.py:564-631`): logged in or `apikey`; ow
 - Sidebar modules: `WhatIsSefariaVoices`, `CreateASheet`, `VoicesNewsletterSignUp`; footer in sidebar on desktop, in content on mobile (`SheetsHomePage.jsx:33-40, 71-77`).
 
 ## 8. Sheets-with-ref page (`/sheets-with-ref/<tref>`) — `static/js/sheets/SheetsWithRefPage.jsx`
+
 - Data: `Sefaria.sheets.getSheetsByRef` → `/api/sheets/ref/<ref>?include_collections=1`, de-duplicated by sheet id (`:259-269`, `sefaria.js:3309-3316`). Backend `get_sheets_for_ref` (`sefaria/sheets.py:925-1019`): public sheets whose `expandedRefs` include any segment; returns one row per anchor ref; owner/assigner/via names & URLs, collection TOC, topics, likes, summary, attribution, `combined_score` (LLM title interest 0.3 + percentile-normalized ref score 0.3 + creativity 0.4).
 - Frozen copy of search layout (`:9-98`): title "Sheets with “<ref>”" (Hebrew quote marks), result count, **AI badge tooltip** when sorted by relevance (`:284-285`), sort box (desktop) / filter button (mobile), filters sidebar/mobile overlay.
 - Filters: client-side by **topics** (`topics_en`) and **collections**, doc counts recomputed, empty filters hidden, original filter list preserved (`:105-206`; filter nodes `sefaria.js` `sheetsWithRefFilterNodes`).
@@ -220,6 +244,7 @@ Permissions on save (`sourcesheets/views.py:564-631`): logged in or `apikey`; ow
 ## 9. Collections
 
 ### 9.1 Collection page — `static/js/CollectionPage.jsx` (`/collections/<slug>`)
+
 - Data from SSR props / `Sefaria.getCollection(slug)` (`/api/collections/<slug>`), resets on slug change (`:42-66`).
 - Header (`CollectionAbout`, `:316-348`): TOC-backed collections show bilingual `toc.title/heTitle` + language toggle (multipanel, non-Hebrew UI); otherwise name; **Edit** button for admins → `/collections/<slug>/settings`; "Collection" label → `/collections`; description (TOC bilingual HTML or raw HTML); website link (protocol stripped).
 - Sidebar: collection image module; "Editors" block with **invite box** (admins only) and member list (`:204-224`).
@@ -236,13 +261,16 @@ Permissions on save (`sourcesheets/views.py:564-631`): logged in or `apikey`; ow
 - Collection visibility: listed collections show only public sheets to non-members; members/private show unlisted+public (`collection.py:202-209`); invitations only returned to members.
 
 ### 9.2 Create / edit collection — `static/js/EditCollectionPage.jsx`
+
 Fields: Name, Website, Description (textarea), **Collection Image** upload (≤2MB, `accept=image/*`, `POST /api/collections/upload`, loading gif placeholder, recommended 350×350), legacy **Default Sheet Header** image (only shown if already set), **List on Sefaria** toggle (only when editing; replaced by moderator-rejection message if `moderationStatus === "nolist"`), **Delete Collection** (confirm; `DELETE /api/collections/<slug>` → `/my/profile`). Save → `POST /api/collections` json → navigate to Voices `/collections/<slug>`; Cancel → collection or `/my/profile`; `beforeunload` warning on unsaved changes (`:22-28`).
 Backend model rules (`sefaria/model/collection.py:63-131`): website forced to https; private collections get random 6-char URL-safe slug, publishing assigns name-based slug and saves `privateSlug` (old links redirect), unpublishing restores it; **publishing requires unique public name, an image, and ≥3 public sheets**; old GCS images deleted on change; TOC description bleached; deleting collection clears `displayedCollection` on sheets; slug change updates sheets (`:364-381`). Create via API: creator becomes admin (`sourcesheets/views.py:381-384`); only admins can edit/delete.
 
 ### 9.3 Public collections — `static/js/PublicCollectionsPage.jsx` (`/collections`)
+
 `/api/collections` → `{private, public}` (public = listed and not `nolist`, sorted) (`collection.py:355-361`). Sorted ignoring punctuation, numbers last, interface-language collections first; split into English and Hebrew grids (order by UI lang); each card: image, name, 5-line clamped description (`:13-114`). Sidebar "AboutCollections" (in-content on mobile) + "StayConnected". (Effect has no deps → refetch each render; cached.)
 
 ### 9.4 Collections widget (sheet ↔ my collections) — `static/js/CollectionsWidget.jsx`
+
 - Loads my collections (`/api/collections/user-collections/<uid>`) and this sheet's collections for me (`/api/collections/for-sheet/<id>`); initial sort: checked first then most recently modified (no reshuffle while open) (`:25-59`).
 - Checkbox add/remove → `POST /api/collections/<slug>/add|remove/<sheetId>`; updates caches (collection, user collections order, sheet, user sheets list) (`:61-91`).
 - Inline **Create new collection** (name input; Create button appears when non-empty) → creates and auto-adds sheet (`:93-109`).
@@ -252,6 +280,7 @@ Backend model rules (`sefaria/model/collection.py:63-131`): website forced to ht
 ---
 
 ## 10. User profile — `static/js/UserProfile.jsx` (`/profile/<slug>`)
+
 - `ProfileSummary` (`:527-607`): full name; `UserBackground` (position "at" organization; info list on multipanel: location, Jewish education lines, Website link, social icons Facebook/Twitter(handle → twitter.com)/YouTube(→youtube.com/)/LinkedIn) (`:480-524`); followers • following counts (click opens hidden tabs); owner: **Create Sheet** (`/sheets/new`) & **Create Collection** (`/collections/new`) buttons (multipanel), **Edit Profile** (`/settings/profile`); others: **Follow** button; profile pic 175px with **upload/crop** for owner (§10.2), hidden default initials for others' default pic.
 - Tabs (`:29-44`): **Sheets**, **Collections**, hidden **Followers**/**Following**, **About** (only if bio; renders bio HTML).
 - Sheets tab (`:97-172, 283-295`): `/api/sheets/user/<uid>/date/0/0` (owner gets private sheets + their collections; others get public only with displayed collection name, `sefaria/sheets.py:143-164`); filter by title/topics/collections; sort Recent (server order) / Views; listing: editable/deletable (owner; delete confirm → refresh sheets & collections caches), saveable (others), collectable, info underneath.
@@ -261,14 +290,17 @@ Backend model rules (`sefaria/model/collection.py:63-131`): website forced to ht
 - SSR: owner gets full profile dict (pinned_sheets, is_sustainer, experiments), visitors basic (`reader/views.py:4126-4129`, `user_profile.py:730-764`).
 
 ### 10.1 Edit profile (legacy Django page `templates/edit_profile.html`, Voices `/settings/profile`)
+
 Fields: first/last name, position, organization, website, location, Jewish education (multi-line list: Enter adds line, empty line removed on blur, ✕ remove, "Add a line"), **About me (bio) via CKEditor** (rich text: bold/italic/underline/strike/sub/sup, justify, bidi, lists, font, size, colors, links, image, table, HR), public email, **Profile URL (slug)**, Twitter, LinkedIn, Facebook, YouTube (`edit_profile.html:27-142, 151-232`). Client normalization: strip full URL from YouTube/Twitter → handle; prepend `http://` to facebook/linkedin/website. Save → `POST /api/profile` → redirect to Voices profile. Server validation (`user_profile.py:571-603`): slug `[a-z0-9-]` and unique; facebook/linkedin/website URL valid; email valid. Name change triggers cascades (`_name_updated`).
 
 ### 10.2 Profile picture — `ProfilePic.jsx` + `ImageCropper.jsx`
+
 - Default avatar = initials (first+last word) in a circle sized `len`; gravatar/default URLs start as default and swap to image if it loads; `profile-default.png` forced to 404 to show initials (`ProfilePic.jsx:9-35, 68-97`).
 - Owner buttons "Add Picture" / "Upload New"; non-image file error; read as data URL → crop modal (`react-image-crop`, square 1:1, initial centered square, keepSelection, aspect-ratio sanity error) → Save uploads JPEG blob to `/api/profile/upload-photo` → full reload to profile; error message with hello@sefaria.org (`ProfilePic.jsx:36-66`, `ImageCropper.jsx:7-138`).
 - Server: resize to 250×250 and 80×80 PNG, upload to GCS profiles bucket, delete old, update `profile_pic_url[_small]`, bust public user cache (`reader/views.py:4325-4344`).
 
 ### 10.3 Follow / unfollow / block
+
 - `FollowButton` (`Misc.jsx:1550-1622`): states Follow / Following / hover "Unfollow" / "Follow Back" (notification), optional icon; logged out → sign-up modal (Follow); `POST /api/follow|unfollow/<uid>`; keeps `Sefaria.following` in sync; analytics events. `disableUnfollow` prop in listings.
 - Follow creates `follow` notification (FollowRelationship); lists: `/api/followers|followees/<uid>` (`reader/views.py:3396-3425`).
 - Block/unblock API `/api/block|unblock/<uid>` (`reader/views.py:3428-3445`) — no web UI found.
@@ -276,6 +308,7 @@ Fields: first/last name, position, organization, website, location, Jewish educa
 ---
 
 ## 11. Notifications — `static/js/NotificationsPanel.jsx` (`/notifications`)
+
 - SSR initial notifications scoped to active module (`reader/views.py:1386-1394`); infinite scroll (600px margin) `GET /api/notifications?page=&scope=<module>` (page_size 10; stop when count < page_size), de-dup by `_id` (`:33-80`).
 - **Mark as read** automatically for all loaded notifications on mount, scroll, and load (`POST /api/notifications/read` with ids JSON + scope) and update header unread count (`:43-61`). API also accepts `notifications=all` (`reader/views.py:3358-3393`); only own notifications are marked.
 - Logged out → `LoginPrompt` (Log In / Sign Up with `?next=`) (`:99`, `Misc.jsx:1964-1987`). Empty state message suggests following sheet creators (`:133-146`).
@@ -285,6 +318,7 @@ Fields: first/last name, position, organization, website, location, Jewish educa
 - Sheet deletion deletes its notifications (`notification.py:429-436`).
 
 ## 12. Account settings (Library `/settings/account`, Django template `templates/account_settings.html`)
+
 - **Notification Frequency (email)**: Daily / Weekly / Never (`:24-43`).
 - **Site Language** English/עברית (Torah-specific sites) (`:44-58`); reload on change.
 - **Preferred Translation Language** (from `SUPPORTED_TRANSLATION_LANGUAGES`) (`:59-72`); also stored in cookies.
@@ -299,6 +333,7 @@ Fields: first/last name, position, organization, website, location, Jewish educa
 - Delete account: API only (§0.6); deletes user and emails hello@sefaria.org.
 
 ## 13. Saved items, reading history, notes — `static/js/UserHistoryPanel.jsx` (`/saved`, `/history`, `/texts/notes`)
+
 - Header tabs: Saved (bookmark), History (clock), Notes (library only) with module-aware links (`:44-70`); language toggle on multipanel (Torah sites).
 - Saved/History lists via `useScrollToLoad` `/api/profile/user_history?saved=&sheets_only=<voices>&secondary=0&annotate=1` (`:137-164`); SSR first 20 (`reader/views.py:1335-1371`).
 - History **de-dupes consecutive items** of same book (library) or same sheet (voices) (`:117-134`); Saved isn't deduped and has no timestamps; history shows relative time.
@@ -310,23 +345,28 @@ Fields: first/last name, position, organization, website, location, Jewish educa
 - **Notes** tab (library): `Sefaria.allPrivateNotes` → `/api/notes/all?private=1`; `NotesList`/`NoteListing` shows ref link (sheet refs link to Voices `/sheets/<id>.<node>`, text refs `?with=Notes`), note text (linkified, newlines), **delete** (confirm, `DELETE /api/notes/<id>`) (`NoteListing.jsx:9-93`). (An Add-to-Sheet modal path exists in NoteListing state but no button triggers it.)
 
 ## 14. User stats ("Torah Tracker", `/torahtracker`) — `static/js/UserStats.jsx`
+
 - Modes Previous Year / All Time (`:21-27, 69-88`); `/api/site_stats` (login required) and `/api/user_stats/<uid>` (self or staff) (`:31-41`, `reader/views.py:3253-3267`).
 - **Moderators** get a User ID chooser (debounced 500ms) to view others (`:59, 90-98`).
 - Active users (textsRead > 2): Overall Activity stat card (texts read), donut charts "Your Reading" vs "Average Sefaria User" by category (categories <4% grouped into "Etc"), top-5 category bar chart user vs site (RTL-aware), "Your Favorite Texts" (top refs, 3-column `TextBlockLink`) (`:136-363`, d3).
 - Inactive users: "Looks like we haven't seen you in a while" + site-wide donut and bars (`:100-135`).
 
 ## 15. Legacy `static/js/sheets.js` (3,896 lines) — what it still serves
+
 Loaded only by `templates/sheets.html` (`:1512`) → `/sheets/<id>?embed=1` (and the dormant `editorMode`). Features present there but absent in React:
 CKEditor rich-text with continuous autosave (`:633-800`); drag-sort of sources (`:918-1000`); add source/comment/outside text (mono & bilingual)/media/connections (`:1026-1340, 1941-2000` "Add all connections from…"); per-source language/layout overrides and "reset to sheet defaults" (`:1352`, `sheets.html` `sourceLayoutLanguageMenuItems`, `resetSourceTogglesToSheetGroup`); sheet-level layout (stacked/side-by-side, heRight/heLeft), language, **numbered sources**, **boxed sources**, **BS"D header**, **divine-name substitution** (YHVH/Adonai/Elokim variants → ה'/ד'/etc., `:3610-3680`, options `yy`/`ykvk`/`h`); **highlighter mode** with named, colored tags and segment splitting (`:1707-1925, 3524-3870`); tag editor with suggestions (`sjs.sheetTagger`, `:2103-2215`); assignments (make assignable, assignment link `/sheets/new?assignment=<id>`, view students' copies, stop collecting) (`sheets.html:101-104, 981-1013`); **embed code modal** `<iframe src=...?embed=1>` (`sheets.html:1140-1150`, `showEmebed` `:3564`); **print** (`:286-288`); copy sheet (`:3469`), export to Drive (`:3495`), delete (`:3586`), likes + likers list (`:879`), publish prompt (`:3681`), polling for concurrent edits every 3s with rebuild/replay (`:3239-3369`), parasha-to-sheet modal (`addParashaToSheetModal`; API `/api/sheets/<parasha>/get_aliyot` `sourcesheets/views.py:1001-1013`), "via"/assignment attribution, Hebrew nikkud removal (`removeNikkudot`).
 Also legacy: `/sheets/visual/<id>` (`sheets-visual.js`, `/api/sheets/<id>/visualize` saves node positions & zoom, `sefaria/sheets.py:1255-1260`); `gdocs_sheet.html` (Drive export rendering).
 
 ## 16. Sheet & collection-related API surface (for parity)
+
 `POST /api/sheets` (save/create; also apikey), `GET /api/sheets/<id>[?more_data=1]`, `GET /api/sheets/<id>.<node>`, `POST /api/sheets/<id>/delete` (owner or owner's apikey; also removes from collections, notifications, ES) (`sourcesheets/views.py:280-322`), `POST /api/sheets/<id>/add` (add formatted source: `ref|refs|outsideText|outsideBiText|comment|media`, optional versions/text override, footnotes stripped, optional `note` appended as indented outside text; owner only) (`:700-774`, `sefaria/sheets.py:681-706`), `POST /api/sheets/<id>/add_ref` (`:798-806`), `POST /api/sheets/<id>/copy_source` (`sheetID`,`nodeID`) (`:776-795`), `/api/sheets/<id>/topics`, like/unlike/likers, visualize, `/api/sheets/user/<uid>[/<sort>/<limit>/<offset>]` (`:643-649`), `/api/sheets/modified/<id>/<ts>`, `/api/sheets/create/<ref>[/<sources>]` (make sheet from text, redirects) (`:1016-1023`, `sefaria/sheets.py:1303-1336`), tag APIs, `/api/v2/sheets/bulk/<id|id>` (story metadata, `?public=`) (`:634-640`; `Sefaria.getBulkSheets`), `/api/sheets/ref/<ref>`, `/api/sheets/all-sheets/<limit>/<offset>?lang=&filtered=` (`:909-916`), `/api/sheets/<id>/export_to_drive`, `/api/sheets/upload-image`.
 Collections: `GET /api/collections` (listing), `GET/POST/DELETE /api/collections[/<slug>]`, `/api/collections/user-collections/<uid>`, `/api/collections/for-sheet/<id>`, `/api/collections/upload`, `set-role`, `invite[/uninvite]`, `add|remove`, `pin-sheet` (`sefaria/urls_shared.py:180-189`).
 Profile/social: `/api/profile[/<slug>]` GET/POST, `/api/profile/<slug>/followers|following`, `/api/profile/upload-photo`, `/api/profile/sync`, `/api/profile/user_history`, `/api/user_history/saved`, `/api/follow|unfollow/<uid>`, `/api/followers|followees/<uid>`, `/api/block|unblock/<uid>`, `/api/notifications`, `/api/notifications/read`, `/api/updates`, `/api/user_stats/<uid>`, `/api/site_stats`, `/api/account/delete`, `/settings/account/user`.
 
 ## 17. Client caches / singleton functions (`static/js/sefaria/sefaria.js`)
+
 `sheets.loadSheetByID/_loadSheetByID` (`:3359-3377`), `deleteSheetById`, `userSheets` (keyed `uid|sort offset count`), `updateUserSheets`, `clearUserSheets`, `publicSheets`, `sheetsByRef`/`userSheetsByRef`/`sheetsTotalCount` (sidebar counts), `getSheetsByRef`, `sheetsWithRefFilterNodes`, `getSheetTitle` (strip HTML, "Untitled") (`:3308-3536`); `getCollection`, `getCollectionsList`, `getUserCollections`, `getUserCollectionsForSheet` (+FromCache variants) (`:3544-3585`); `getTrendingSheetsTopics` (`:3214-3221`); `getBulkSheets` (`:848-856`); `saved`, `getSavedItem/removeSavedItem/toggleSavedItem`, `userHistory`, `loadUserHistory`, `saveUserHistory`, `profileAPI`, `followAPI`, `editProfileAPI`, `uploadProfilePhoto`, `getRefSavedHistory`, `messageAPI`/`chatMessageAPI` (no UI found), `experimentsOptInAPI` (no callers) (`:2769-2981`); notes `privateNotes`/`allPrivateNotes`/`deleteNote` (`:2027-2160`); `following`, `notifications`, `is_history_enabled`, `is_moderator`, `slug`, `_uid` globals.
 
 ## 18. Shared sheet-list components (`static/js/Misc.jsx`)
+
 `SheetListing` (`:1698-1873`): author pic/name (unless hidden), title link (analytics), summary, info row (unpublished, author, views, created date, collections incl. displayed collection) or topics row, right-side actions collect/delete/save/pin, collections modal; `CollectionListing` (`:1875-1919`); `ProfileListing` (`:1649-1696`); `FilterableList` (`:234-389`: text filter, sort dropdown (old design) or "Sort by" pills (new design), paginated infinite scroll, header/footer/empty renderers, analytics attrs); `SheetMetaDataBox`, `SheetTitle`, `CollectionStatement`, `SheetAuthorStatement` (`:2860-2926, 3047-3082`); `LoginPrompt`; `SignUpModal` kinds AddToSheet / Save / Follow / Default etc. (`:1989-2004`).

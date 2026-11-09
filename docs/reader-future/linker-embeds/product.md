@@ -4,9 +4,10 @@ title: Linker & embeds
 domain: Platform
 document: product
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-21
 ---
+
 # Linker & embeds — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -26,10 +27,10 @@ _Not discussed yet._
 - Other sites show Sefaria texts with the [Sefaria frontend toolkit](https://sefaria.github.io/sefaria-frontend-toolkit/)'s
   elements (a passage, a passage with its translation, a source card, a connections panel, a small reader), added with one
   script tag or an npm package. The sefaria.org reader itself does not use them; see
-  [Cross-cutting → Design system](../CROSS_CUTTING.md#design-system-and-components). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792570626028769)
+  [Cross-cutting → Design system](../CROSS_CUTTING.md#design-system-and-components). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792570626028769)
 - The toolkit's linked-article example, where a click on a hand-written citation opens the passage in a small dialog and the
   text is fetched only then, is a starting point for the linker popup (LNK-006)
-  ([`docs/examples/linked-article.md`](https://github.com/Sefaria/sefaria-frontend-toolkit/blob/03443b78014f9cda9a2fead89c624d0118496535/docs/examples/linked-article.md)). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792570626028769) · LNK-006
+  ([`docs/examples/linked-article.md`](https://github.com/Sefaria/sefaria-frontend-toolkit/blob/03443b78014f9cda9a2fead89c624d0118496535/docs/examples/linked-article.md)). — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792570626028769) · LNK-006
 
 ## Changes from today (keep · change · drop · new)
 
@@ -59,36 +60,36 @@ Feature groups: Linker Plugin v3 (6); Linker Legacy Versions (2); Embeds (2); Im
 
 ### Core (5)
 
-| ID | Feature | What it does |
-|---|---|---|
-| LNK-003 | Embeddable citation linker plugin (v3) | Third-party sites add one script and call sefaria.link(); citations of Jewish texts on their pages become links or hover/click popups showing the text. |
-| LNK-004 | Linker options (mode, language, whitelist, versions) | Site owners configure link mode, languages, text selectors to include/exclude, popup styling and preferred text versions. |
-| LNK-005 | Linker page-scan and wrapping pipeline | The plugin reads the page's main text, asks Sefaria to find citations, and wraps each found citation in a link in the page. |
-| LNK-006 | Linker popup UI | Hovering or clicking a linked citation opens a draggable, accessible popup showing the text in Hebrew and/or English with a link to read more. |
-| LNK-010 | Linker CORS and remote-config version switch | The cross-origin linker endpoints and the setting that decides which linker version /linker.js delivers. |
+| ID      | Feature                                              | What it does                                                                                                                                            |
+| ------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LNK-003 | Embeddable citation linker plugin (v3)               | Third-party sites add one script and call sefaria.link(); citations of Jewish texts on their pages become links or hover/click popups showing the text. |
+| LNK-004 | Linker options (mode, language, whitelist, versions) | Site owners configure link mode, languages, text selectors to include/exclude, popup styling and preferred text versions.                               |
+| LNK-005 | Linker page-scan and wrapping pipeline               | The plugin reads the page's main text, asks Sefaria to find citations, and wraps each found citation in a link in the page.                             |
+| LNK-006 | Linker popup UI                                      | Hovering or clicking a linked citation opens a draggable, accessible popup showing the text in Hebrew and/or English with a link to read more.          |
+| LNK-010 | Linker CORS and remote-config version switch         | The cross-origin linker endpoints and the setting that decides which linker version /linker.js delivers.                                                |
 
 ### Standard (6)
 
-| ID | Feature | What it does |
-|---|---|---|
-| LNK-001 | Share image URL (/api/img-gen) | Social share images are generated on demand from a text URL. |
-| LNK-002 | Public JS library and linker scripts | Third parties can embed the Sefaria JS library and the citation linker script on their own sites. |
+| ID      | Feature                                            | What it does                                                                                                     |
+| ------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| LNK-001 | Share image URL (/api/img-gen)                     | Social share images are generated on demand from a text URL.                                                     |
+| LNK-002 | Public JS library and linker scripts               | Third parties can embed the Sefaria JS library and the citation linker script on their own sites.                |
 | LNK-008 | Linker web-page tracking (feeds Web Pages sidebar) | Pages that use the linker are recorded server-side so they appear in the Web Pages resource for the cited texts. |
-| LNK-011 | Linker install page and bookmarklet | A public page explains how to install the linker and offers a bookmarklet to try it on any site. |
-| LNK-013 | Embedded sheets (iframe) | A sheet can be embedded in another page via an iframe using the embed parameter, rendering a stripped-down page. |
-| LNK-014 | Social share image generator (img-gen) | Sharing a text link produces a branded image of the passage for social previews. |
+| LNK-011 | Linker install page and bookmarklet                | A public page explains how to install the linker and offers a bookmarklet to try it on any site.                 |
+| LNK-013 | Embedded sheets (iframe)                           | A sheet can be embedded in another page via an iframe using the embed parameter, rendering a stripped-down page. |
+| LNK-014 | Social share image generator (img-gen)             | Sharing a text link produces a branded image of the passage for social previews.                                 |
 
 ### Optional (2)
 
-| ID | Feature | What it does |
-|---|---|---|
-| LNK-007 | Linker citation problem report | In debug mode, site owners can report a wrongly linked citation back to Sefaria. |
+| ID      | Feature                             | What it does                                                                     |
+| ------- | ----------------------------------- | -------------------------------------------------------------------------------- |
+| LNK-007 | Linker citation problem report      | In debug mode, site owners can report a wrongly linked citation back to Sefaria. |
 | LNK-012 | Sefaria JS client SDK (/sefaria.js) | A packaged client SDK lets third-party pages call Sefaria data and text helpers. |
 
 ### Retire (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                   | What it does                                                                                                                              |
+| ------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | LNK-009 | Linker v1 and v2 (legacy) | Older linker generations are still served for existing site integrations, using regex matching instead of the server-side find-refs flow. |
 
 ### Flags from the audit (not to port as-is)

@@ -4,9 +4,10 @@ title: Legacy pages
 domain: Internal & legacy
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Legacy pages — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -69,11 +70,11 @@ Rebuild status of this area's features: not started 30.
 
 ### Gaps: core and standard features not done (3)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| LEG-008 | standard | Legacy Edit Text Info (Index editor) page | not started |
-| LEG-018 | standard | Legacy edit-profile page | not started |
-| LEG-025 | standard | Error and maintenance pages | not started |
+| ID      | Tier     | Feature                                   | Rebuild status |
+| ------- | -------- | ----------------------------------------- | -------------- |
+| LEG-008 | standard | Legacy Edit Text Info (Index editor) page | not started    |
+| LEG-018 | standard | Legacy edit-profile page                  | not started    |
+| LEG-025 | standard | Error and maintenance pages               | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

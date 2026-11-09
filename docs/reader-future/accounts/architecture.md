@@ -4,9 +4,10 @@ title: Accounts & sign-in
 domain: Site & accounts
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-28
 ---
+
 # Accounts & sign-in — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -27,7 +28,7 @@ _Not discussed yet. Items carry a status: idea · proposed · agreed · decided.
 
 ## Dependencies on other areas
 
-- [Language & accessibility](../i18n-a11y/architecture.md): preferences and defaults (*proposed* effective-preferences object ·
+- [Language & accessibility](../i18n-a11y/architecture.md): preferences and defaults (_proposed_ effective-preferences object ·
   [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629)). The account settings page (ACC-003) is still Django (`/settings` is in
   `reader-next/src/server/pass-through.ts:17-23`). It writes `settings.interface_language`, `textual_custom` and
   `translation_language_preference` to the profile (`templates/account_settings.html:268-292`). The new client needs a way to read
@@ -86,10 +87,10 @@ Implemented in (most features first):
 
 ### Gaps: core and standard features not done (2)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| ACC-003 | standard | Account settings page | not started |
-| ACC-004 | standard | Change email and connected accounts | not started |
+| ID      | Tier     | Feature                             | Rebuild status |
+| ------- | -------- | ----------------------------------- | -------------- |
+| ACC-003 | standard | Account settings page               | not started    |
+| ACC-004 | standard | Change email and connected accounts | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

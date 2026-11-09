@@ -4,9 +4,10 @@ title: Analytics
 domain: Platform
 document: product
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-28
 ---
+
 # Analytics — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -28,8 +29,8 @@ _Not discussed yet._
 _Items carry a status: idea · proposed · agreed · decided._
 
 - Every analytics event and dimension the current reader sends is kept, captured the same way, through the same vanilla JS data
-  tag (`data-anl-*`). — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999) · ANL-001…017
-- Parity is checked against the event inventory before the new reader replaces a sefaria.org page. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)
+  tag (`data-anl-*`). — _decided_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999) · ANL-001…017
+- Parity is checked against the event inventory before the new reader replaces a sefaria.org page. — _proposed_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)
 
 ## Changes from today (keep · change · drop · new)
 
@@ -64,39 +65,39 @@ Feature groups: Impressions (4); Shell events (2); URL-change analytics (1); Sig
 
 ### Core (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                             | What it does                                                                         |
+| ------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
 | ANL-015 | Declarative data-anl event tracking | Analytics events are declared directly on page elements and collected automatically. |
 
 ### Standard (11)
 
-| ID | Feature | What it does |
-|---|---|---|
-| ANL-001 | Page-view tracking on URL change | Each navigation reports a page view with rich context, and the last place read is saved for signed-in users. |
-| ANL-002 | Sign-up source attribution | Where a person clicked 'sign up' is recorded for funnel analysis. |
-| ANL-005 | Visibility-based impression tracking | The app records when promos and key elements are actually seen. |
-| ANL-007 | Search box analytics and input constraints | Search box interactions are tracked. |
-| ANL-008 | App mount and visitor marking events | App start is tracked once per session and visitors are marked new/returning for targeting. |
-| ANL-009 | Reader interaction event names | Named events from the shell used by analytics. |
-| ANL-012 | Sidebar analytics events | Sidebar interactions are tracked through Sefaria.track and gtag events. |
-| ANL-013 | Sign-up funnel analytics | The sign-up journey is measured from first arrival to completion, by method and by the button that started it. |
-| ANL-014 | Third-party analytics and testing scripts | The site loads several external tools for tag management, A/B testing, behavior analytics and promo popups. |
-| ANL-016 | Legacy Universal Analytics wrapper and TrackG4 | Older event tracking helpers still used by many components. |
-| ANL-017 | Browser error reporting (Sentry) | Front-end errors and performance traces are reported to Sentry. |
+| ID      | Feature                                        | What it does                                                                                                   |
+| ------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| ANL-001 | Page-view tracking on URL change               | Each navigation reports a page view with rich context, and the last place read is saved for signed-in users.   |
+| ANL-002 | Sign-up source attribution                     | Where a person clicked 'sign up' is recorded for funnel analysis.                                              |
+| ANL-005 | Visibility-based impression tracking           | The app records when promos and key elements are actually seen.                                                |
+| ANL-007 | Search box analytics and input constraints     | Search box interactions are tracked.                                                                           |
+| ANL-008 | App mount and visitor marking events           | App start is tracked once per session and visitors are marked new/returning for targeting.                     |
+| ANL-009 | Reader interaction event names                 | Named events from the shell used by analytics.                                                                 |
+| ANL-012 | Sidebar analytics events                       | Sidebar interactions are tracked through Sefaria.track and gtag events.                                        |
+| ANL-013 | Sign-up funnel analytics                       | The sign-up journey is measured from first arrival to completion, by method and by the button that started it. |
+| ANL-014 | Third-party analytics and testing scripts      | The site loads several external tools for tag management, A/B testing, behavior analytics and promo popups.    |
+| ANL-016 | Legacy Universal Analytics wrapper and TrackG4 | Older event tracking helpers still used by many components.                                                    |
+| ANL-017 | Browser error reporting (Sentry)               | Front-end errors and performance traces are reported to Sentry.                                                |
 
 ### Optional (4)
 
-| ID | Feature | What it does |
-|---|---|---|
-| ANL-003 | Header and category line impression events | Header visibility is reported once per session. |
-| ANL-004 | Banner visibility probe | An invisible element measures whether banners can be seen (ad-blocking baseline). |
-| ANL-006 | Banner impression probe | An invisible control element measures how reliably banner impressions are recorded. |
-| ANL-011 | Copy and print events | Copying text and printing are tracked. |
+| ID      | Feature                                    | What it does                                                                        |
+| ------- | ------------------------------------------ | ----------------------------------------------------------------------------------- |
+| ANL-003 | Header and category line impression events | Header visibility is reported once per session.                                     |
+| ANL-004 | Banner visibility probe                    | An invisible element measures whether banners can be seen (ad-blocking baseline).   |
+| ANL-006 | Banner impression probe                    | An invisible control element measures how reliably banner impressions are recorded. |
+| ANL-011 | Copy and print events                      | Copying text and printing are tracked.                                              |
 
 ### Retire (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature             | What it does                                                            |
+| ------- | ------------------- | ----------------------------------------------------------------------- |
 | ANL-010 | Pageview dimensions | Custom dimensions describing the page are computed for each navigation. |
 
 ### Flags from the audit (not to port as-is)
