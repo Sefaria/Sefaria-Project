@@ -1824,14 +1824,15 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
                           <span className="devE-keyCell">
                             <code className="devE-keyText" dir="ltr">{shownIds.includes(apiKey.id) ? apiKey.value : apiKey.value.slice(0, 4) + "••••" + apiKey.value.slice(-4)}</code>
                             {/* Show or hide the whole key: the eye from the sign-in password field. */}
-                            {/* ARIA labels "Show key" / "Hide key" / "Copy key", no tooltips (Penina, 2026-11-08). The label changes
+                            {/* ARIA labels "Show key, [name]" / "Hide key, [name]" / "Copy key, [name]" (action first, then which key; Penina,
+                                2026-11-09), no tooltips. The label changes
                                 with the state, so the button has no aria-pressed. */}
                             <button type="button" className="devE-ico"
-                              aria-label={shownIds.includes(apiKey.id) ? vE("Hide key", "הסתרת המפתח") : vE("Show key", "הצגת המפתח")}
+                              aria-label={shownIds.includes(apiKey.id) ? vE("Hide key, " + apiKey.label, "הסתרת המפתח, " + apiKey.label) : vE("Show key, " + apiKey.label, "הצגת המפתח, " + apiKey.label)}
                               onClick={() => toggleShown(apiKey.id)}>
                               <span className={"devE-eye" + (shownIds.includes(apiKey.id) ? " is-off" : "")} aria-hidden="true" />
                             </button>
-                            <button type="button" className="devE-ico" aria-label={vE("Copy key", "העתקת המפתח")}
+                            <button type="button" className="devE-ico" aria-label={vE("Copy key, " + apiKey.label, "העתקת המפתח, " + apiKey.label)}
                               onClick={() => eCopy(apiKey.value, () => { setCopiedId(apiKey.id); setTimeout(() => setCopiedId(null), 2000); })}>
                               <ECopyIcon />
                             </button>
@@ -1851,7 +1852,7 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
                           </span>
                         </td>
                         <td className="devE-end">
-                          <button type="button" className="devE-ico devE-icoDanger" aria-label={vE("Delete key", "מחיקת המפתח")}
+                          <button type="button" className="devE-ico devE-icoDanger" aria-label={vE("Delete key, " + apiKey.label, "מחיקת המפתח, " + apiKey.label)}
                             aria-haspopup="dialog" onClick={() => setConfirmDel(apiKey)}><ETrashIcon /></button>
                         </td>
                       </tr>
