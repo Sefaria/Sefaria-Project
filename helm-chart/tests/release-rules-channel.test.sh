@@ -38,4 +38,10 @@ for n in feature/sc-1/api.01 12345 ___ release/v1.2.3 feature/sc.1/name "$l1"; d
   c=$(channel_for "$n")
   if [[ "$c" =~ ^[0-9a-z-]+$ && ! "$c" =~ ^[0-9]+$ ]]; then echo "ok   valid identifier for $n"; else echo "FAIL invalid identifier '$c' for $n"; fail=1; fi
 done
+# master releases the chart itself: its only branch is master, with no prerelease channel.
+if (cd "$tmp" && rm -rf repo && git init -q -b master repo && cd repo && mkdir helm-chart && bash "$script" \
+    && grep -q '^tagFormat: helm-chart-' helm-chart/.releaserc && ! grep -q prerelease helm-chart/.releaserc \
+    && [ "$(sed -n '/^branches:/,/]/p' helm-chart/.releaserc | grep -c '"name"')" = 1 ]); then
+  echo "ok   master: releases on master only, no prerelease channel"
+else echo "FAIL master: the release config adds a prerelease channel or another branch, or the script failed"; fail=1; fi
 exit $fail
