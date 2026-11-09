@@ -34,8 +34,8 @@ def database_through_another_fixture(transactional_db):
 
 
 def test_b_fixture_only_test_finds_the_tiers_after_the_flush(database_through_another_fixture):
-    assert set(ApiTier.objects.values_list("id", flat=True)) == {"developer", "partner", "internal"}
-    assert ApiTierMeterLimit.objects.filter(meter="semantic").count() == 3
+    assert set(ApiTier.objects.values_list("id", flat=True)) == {"developer", "partner", "internal", "mcp"}
+    assert ApiTierMeterLimit.objects.filter(meter="semantic").count() == 4
 
 
 def test_c_flush_again(transactional_db):

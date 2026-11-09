@@ -80,7 +80,8 @@ const activeJobKeys = [];
     const badge = x => succeeded(x) ? ":large_green_circle:" : (skipped(x) ? ":large_yellow_circle:" : ":large_red_circle:");
     console.log(jobsResults);
 
-    const commitMsg =`${slackName?"@" + slackName:""} • \`${branch}\` • <${commitUrl}|${githubSha.slice(0,6)}>`;
+    const slackMention = slackName ? (/^[UW][A-Z0-9]+$/.test(slackName) ? "<@" + slackName + ">" : "@" + slackName) : "";
+    const commitMsg =`${slackMention} • \`${branch}\` • <${commitUrl}|${githubSha.slice(0,6)}>`;
     const testsMsg = jobKeys.filter(k=>jobsResults[k]).map(k => `${badge(jobsResults[k])} <${jobsResults[k].url}|${k}>`).join("     ");
 
     const slackMsg = {

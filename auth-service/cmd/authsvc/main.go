@@ -76,6 +76,15 @@ func main() {
 	}
 
 	reg := registry.New()
+	// Unix time of the last accepted registry load; 0 until the first one. Its alert fires on a stale or never-set value.
+	promReg.MustRegister(prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{Name: "authsvc_registry_last_reload_success_timestamp_seconds"},
+		func() float64 {
+			// One atomic read: loadedAt is written only with each accepted load (and stays 0 before the first),
+			// so a scrape can't mix two loads the way separate Version() and LoadedAt() reads could.
+			return float64(reg.LoadedAt().UnixNano()) / 1e9
+		},
+	))
 	// A pending empty is confirmed only by an empty load about one reload interval later. The gap is 90% of
 	// the interval because firstEmptyAt is stamped after a load finishes, so the next tick can land just
 	// under a full interval later; an exact-interval gap would then slip confirmation by a whole extra tick.
@@ -106,7 +115,7 @@ func main() {
 		}
 		gauges()
 		reloads.WithLabelValues("ok").Inc()
-		ready.Store(true)
+		ready.Store(reg.Settled())
 		return nil
 	}
 	reloadLoad := func(ctx context.Context) ([]registry.Key, error) {
@@ -122,11 +131,10 @@ func main() {
 	if keys, err := load(ctx); err != nil {
 		slog.Error("initial load failed; serving empty set until a reload succeeds", "err", err)
 		reloads.WithLabelValues("error").Inc()
-	} else {
-		reg.Replace(keys)
-		gauges()
-		reloads.WithLabelValues("ok").Inc()
-		ready.Store(true)
+	} else if err := replace(keys); err != nil {
+		// A first load with zero keys is only an observation: the pod stays not ready (Envoy fails open) until a
+		// non-empty load or a confirming empty load, so an empty table never makes it deny every valid key.
+		slog.Warn("initial load returned no keys; not ready until a non-empty load or a confirming empty reload", "err", err)
 	}
 	startup.Set(time.Since(t0).Seconds())
 	slog.Info("registry loaded", "keys", reg.Len(), "took", time.Since(t0), "mode", cfg.Mode)

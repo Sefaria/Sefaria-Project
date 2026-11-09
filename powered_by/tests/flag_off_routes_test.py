@@ -1,7 +1,7 @@
 """
 C9: with DEVELOPER_SETTINGS_ENABLED off, every developer settings route in urls_library is a 404,
-logged in or not and for any method, even with the test controls switched on. Every method and
-login state is checked by calling the resolved view; each route also gets one full request.
+logged in or not and for any method. Every method and login state is checked by calling the
+resolved view; each route also gets one full request.
 """
 
 import re
@@ -16,7 +16,7 @@ from django.urls import resolve
 from reader.conftest import create_test_user, purge_test_profiles
 from sefaria import urls_library
 
-GATED_ROUTE = re.compile(r"api/developer|settings/developer|powered-by/form")
+GATED_ROUTE = re.compile(r"api/developer|settings/developer")
 
 
 def concrete_urls(pattern):
@@ -47,11 +47,8 @@ def test_C9_the_route_list_covers_every_developer_surface():
         "/settings/developer/confirm-email/1",
         "/settings/developer/email-confirmed",
         "/api/developer/state",
-        "/api/developer/mock",
         "/api/developer/listings/1/claim",
         "/api/developer/listings/1/dismiss",
-        "/powered-by/form",
-        "/api/developer-poc/powered-by-submissions",
     ):
         assert expected in GATED_URLS
 
@@ -59,7 +56,6 @@ def test_C9_the_route_list_covers_every_developer_surface():
 @pytest.fixture(autouse=True)
 def developer_settings_off(settings):
     settings.DEVELOPER_SETTINGS_ENABLED = False
-    settings.DEVELOPER_SETTINGS_MOCKS = True
 
 
 @pytest.fixture

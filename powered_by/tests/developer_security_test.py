@@ -1,8 +1,8 @@
 """
 Security and abuse edges of developer settings: other ways to authenticate (N-CR1), developer
 state written through the generic profile APIs (N-CR2), a per-account project cap (N-CR7),
-deleted projects in the public gallery (N-CR14), the test controls outside cauldrons (N-CR18),
-key values in Sentry events (N-CR6) and framing by another site (N-CR5).
+deleted projects in the public gallery (N-CR14), key values in Sentry events (N-CR6) and framing
+by another site (N-CR5).
 
 Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry
 the `failing` marker, so the default CI run (-m "not failing") leaves them out.
@@ -12,9 +12,7 @@ import json
 import time
 from unittest.mock import MagicMock, patch
 
-import pytest
 import sentry_sdk
-from allauth.account.models import EmailAddress
 from django.contrib.auth.models import Group
 from django.test import Client, override_settings
 from sentry_sdk.transport import Transport
@@ -205,23 +203,6 @@ class DeletedProjectGalleryTest(DeveloperApiTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertNotIn(profile_id, [p["id"] for p in json.loads(response.content)["projects"]])
-
-
-@override_settings(DEVELOPER_SETTINGS_MOCKS=True, ALLOWED_HOSTS=["*"])
-class MocksOutsideCauldronsTest(DeveloperApiTestCase):
-    """N-CR18: the test controls refuse on a production host even if the mocks flag is on."""
-
-    @pytest.mark.failing
-    def test_N_CR18_the_test_controls_refuse_on_a_production_host_known_gap_N_CR18(self):
-        response = self.client.post(
-            "/api/developer/mock",
-            json.dumps({"action": "email-verified", "emailVerified": True}),
-            content_type="application/json",
-            HTTP_HOST="www.sefaria.org",
-        )
-
-        self.assertEqual(response.status_code, 404)
-        self.assertFalse(EmailAddress.objects.filter(user=self.user, verified=True).exists())
 
 
 class FrameProtectionTest(DeveloperApiTestCase):

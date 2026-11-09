@@ -1,5 +1,5 @@
 """
-Expand-only: adds the API tier and API project tables, and seeds the three tiers.
+Expand-only: adds the API tier and API project tables, and seeds the four tiers.
 
 Nothing existing changes here. ApiKey.project still points at Project, and Project keeps its
 tier and owner columns; moving keys onto api_project is a later migration. Reversing this drops
@@ -13,12 +13,14 @@ from django.conf import settings
 from django.db import migrations, models
 
 
-# Placeholder limits. Daniel sets the real numbers; edit these rows, not this migration.
+# Placeholder limits. Daniel sets the real numbers. This list is also the test reseed source.
+# A tier change for databases that already ran 0006 goes in a new migration, as 0010 does for mcp.
 TIERS = [
     # (slug, name, per_minute_per_project, semantic-meter monthly_per_project)
     ("developer", "Developer", 600, 100000),
     ("partner", "Partner", 6000, 1000000),
     ("internal", "Internal", 60000, 100000000),
+    ("mcp", "MCP server", 6000, 1000000),
 ]
 
 
