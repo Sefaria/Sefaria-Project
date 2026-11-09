@@ -258,8 +258,10 @@ def guard_target(target):
     elif target == "cauldron":
         if host in LOOPBACK_HOSTS:
             raise SystemExit("Refusing: --target cauldron but the database is on this machine.")
-        if not getattr(settings, "DEVELOPER_SETTINGS_MOCKS", False):
-            raise SystemExit("Refusing: --target cauldron needs DEVELOPER_SETTINGS_MOCKS on.")
+        # Cauldrons ran with mocks on; once the test controls are gone the setting no longer exists, and the
+        # DOMAIN_MODULES check below is what tells a cauldron from any other environment. An explicit False refuses.
+        if getattr(settings, "DEVELOPER_SETTINGS_MOCKS", None) is False:
+            raise SystemExit("Refusing: --target cauldron with DEVELOPER_SETTINGS_MOCKS off.")
         name = cauldron_name()
         wanted = {f"www.{name}.cauldron.sefaria.org", f"{name}.cauldron.sefaria.org"}
         if not wanted & _domain_hosts(getattr(settings, "DOMAIN_MODULES", None)):

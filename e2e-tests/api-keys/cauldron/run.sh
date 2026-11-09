@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
-# Cauldron runner for the api-keys suites, fixture-free. Read SAFETY.md first; this script prints it.
+# Cauldron runner for the api-keys suites. Read SAFETY.md first; this script prints it.
 #
-#   run.sh free    preflight, warm-up, read-only snapshot, fixture-free probes and Playwright cases,
-#                  api-tests (GET-only subset), snapshot again. Writes nothing to the cluster.
-#   run.sh check   the G1 self-check only.
-#
-# Seeding the cauldron is not part of this runner: see SAFETY.md "Seeded runs".
+#   run.sh free        preflight, warm-up, read-only snapshot, fixture-free probes and Playwright cases (gateway
+#                      decisions, paths, the nginx log, the spoofed stamp), the unkeyed A-series in the cauldron's
+#                      auth mode, a passive latency sample (F5), api-tests (GET-only subset), snapshot again.
+#                      Writes nothing to the cluster.
+#   run.sh seeded      SAFETY.md "Seeded runs": seed, the Playwright suite with sessions (revoke-to-deny A9a/A9b, the
+#                      keyed nginx log check), the keyed A-series, teardown from a trap, snapshot equal to before.
+#                      Refuses to start without APIKEYS_ALLOW_SEEDING=<cauldron> (the owner's go-ahead).
+#   run.sh verify-off  read-only: the gate is off (E4), after authService.enabled=false is applied.
+#   run.sh drill-f1    F1: scale the auth service to 0 and back under a 1 request/s probe; needs
+#                      APIKEYS_ALLOW_MUTATING_ON=<cauldron> (the owner's go-ahead).
+#   run.sh check       the G1 self-check only.
 # Results go to e2e-tests/api-keys/results/cauldron-runs/<runId>/ (Playwright empties results/cauldron/ itself) (git-ignored). cases.tsv there holds
 # one line per case: id, status, evidence. Every line is masked before it is written.
 set -uo pipefail
@@ -13,12 +19,16 @@ set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/lib.sh"
 source "$HERE/scripts/fixture-free.sh"
+source "$HERE/scripts/modes.sh"
 
 MODE="${1:-}"
-case "$MODE" in free|check) ;; *) die "usage: run.sh free|check" ;; esac
+case "$MODE" in free|seeded|verify-off|drill-f1|check) ;; *) die "usage: run.sh free|seeded|verify-off|drill-f1|check" ;; esac
 
 g1_check "$HERE/run.sh" "$HERE/lib.sh" "$HERE"/scripts/*.sh "$REPO/auth-service/dev/local-stack/scenarios/a-series.sh"
 [ "$MODE" = check ] && { log "G1 check passed"; exit 0; }
+# The go-ahead guards run before anything touches the cluster.
+[ "$MODE" = seeded ] && seeded_guard
+[ "$MODE" = drill-f1 ] && { [ "${APIKEYS_ALLOW_MUTATING_ON:-}" = "$CAULDRON" ] || die "drill-f1 needs APIKEYS_ALLOW_MUTATING_ON=$CAULDRON (the owner's go-ahead, SAFETY.md)"; }
 
 cat "$HERE/SAFETY.md" >&2
 
@@ -121,8 +131,8 @@ fixture_counts_zero() {
 }
 
 # --- Playwright, fixture-free selection -----------------------------------------------------------
-FREE_GREP='(A4a: |A4b: |A5b: |A6a: |A6c: |N-CR9: |N-CR10: |N-A2: |B1: logged out|C8 control|A8: a gateway denial|N-A4: |B6: sefaria-mcp|N-B2: )'
-FREE_FILES="e2e-tests/api-keys/_smoke.spec.ts e2e-tests/api-keys/gateway/decisions.spec.ts e2e-tests/api-keys/gateway/paths.spec.ts e2e-tests/api-keys/gateway/cauldron-only.spec.ts e2e-tests/api-keys/callers/website-smoke.spec.ts e2e-tests/api-keys/callers/browser-key-cors.spec.ts e2e-tests/api-keys/callers/replays.spec.ts"
+FREE_GREP='(A4a: |A4b: |A5b: |A6a: |A6c: |N-CR9: |N-CR10: |N-A2: |B1: logged out|C8 control|A8: a gateway denial|N-A4: |B6: sefaria-mcp|N-B2: |N-LOG2: |N-LOG3: )'
+FREE_FILES="e2e-tests/api-keys/_smoke.spec.ts e2e-tests/api-keys/gateway/decisions.spec.ts e2e-tests/api-keys/gateway/paths.spec.ts e2e-tests/api-keys/gateway/cauldron-only.spec.ts e2e-tests/api-keys/gateway/nginx-log.spec.ts e2e-tests/api-keys/callers/website-smoke.spec.ts e2e-tests/api-keys/callers/browser-key-cors.spec.ts e2e-tests/api-keys/callers/replays.spec.ts"
 
 write_empty_manifest() {
   git -C "$REPO" check-ignore -q "$MANIFEST_REL" || die "$MANIFEST_REL is not git-ignored"
@@ -175,6 +185,11 @@ api_tests() {
 
 # --- main -----------------------------------------------------------------------------------------
 log "run $RUN_ID ($MODE) against $BASE, context $KCTX"
+case "$MODE" in
+  seeded) seeded_run; log "done: $CASES"; exit 0 ;;
+  verify-off) verify_off; log "done: $CASES"; exit 0 ;;
+  drill-f1) drill_f1; log "done: $CASES"; exit 0 ;;
+esac
 preflight
 warmup
 snapshot before
@@ -186,6 +201,7 @@ playwright_run free --grep "$FREE_GREP" --grep-invert '(N-A8|logged in|SMOKE-1)'
 
 probe_a2a; probe_a2b_ungated; probe_a2c; probe_na8; probe_ncr5; probe_b11; probe_nb4_b3
 probe_d4; probe_nm4; probe_b8_strapi; probe_ne4; probe_e1; probe_e2
+probe_aseries; probe_f5_passive
 api_tests
 probe_ne1
 

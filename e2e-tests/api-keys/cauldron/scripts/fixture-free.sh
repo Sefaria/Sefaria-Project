@@ -185,7 +185,8 @@ probe_e1() {
   reg="$(curl -s -m 10 "http://127.0.0.1:$PF_PORT/internal/registry" | python3 -c 'import json,sys
 d=json.load(sys.stdin); print(json.dumps({k: d.get(k) for k in ("len","version","loaded_at","mode")}))' 2>/dev/null || echo '{}')"
   met="$(curl -s -m 10 "http://127.0.0.1:$PF_PORT/metrics" | grep -E '^authsvc_(reload|registry|notify|decisions)' | mask | head -12 | tr '\n' ' ')"
-  rows="$(kc_psql_ro 'select count(*) from powered_by_apikey k join powered_by_project p on p.id = k.project_id')"
+  # The loader's own join (internal/registry/pgload.go): keys of live and soft-deleted API projects, revoked included.
+  rows="$(kc_psql_ro 'select count(*) from powered_by_apikey k join api_project p on p.id = k.project_id join api_tier t on t.id = p.tier_id')"
   printf '%s\n' "$reg" > "$RUN_DIR/registry.json"
   printf '%s\n' "$met" > "$RUN_DIR/metrics-registry.txt"
   local len; len="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1]).get("len"))' "$reg" 2>/dev/null)"

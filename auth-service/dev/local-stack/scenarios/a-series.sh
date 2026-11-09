@@ -91,7 +91,7 @@ if [ "$TARGET" = local ]; then
   hosthdr() { if [ "$1" = bare ]; then echo "Host: gateway.test:${PORT:-10080}"; else echo "Host: $1.gateway.test:${PORT:-10080}"; fi; }
   ROOT=gateway.test
 else
-  CAULDRON="${APIKEYS_CAULDRON:-apikeys-pipeline}"
+  CAULDRON="${APIKEYS_CAULDRON:-apisplit}"  # apikeys-pipeline was deleted on 2026-10-26
   [[ $CAULDRON =~ ^[a-z0-9-]+$ ]] || { echo "APIKEYS_CAULDRON=$CAULDRON is not a cauldron name" >&2; exit 1; }
   base() { echo "https://$( [ "$1" = bare ] && echo "$CAULDRON" || echo "$1.$CAULDRON").cauldron.sefaria.org"; }
   hosthdr() { echo "X-Noop: 1"; }

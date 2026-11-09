@@ -50,7 +50,13 @@ name the cauldron.
   cluster.
 - Cluster verbs are limited to `get`, `describe` and `logs`, one read-only `psql` exec on `postgres-18-0`
   (`default_transaction_read_only=on`, SELECT or `\dp` only), and a port-forward to the auth service on
-  `127.0.0.1:18081`, which the exit trap kills.
+  `127.0.0.1:18081`, which the exit trap kills. Two modes go further, each only behind its go-ahead variable, which is
+  checked before the first cluster call (`test-guards.sh` proves it with a fake `kubectl`):
+  - `run.sh seeded` (`APIKEYS_ALLOW_SEEDING=<cauldron>`): the seed script, piped on stdin into one web pod
+    (`kubectl exec -i ... -c web`), and nothing else.
+  - `run.sh drill-f1` (`APIKEYS_ALLOW_MUTATING_ON=<cauldron>`): one `scale --replicas=0` of the auth-service Deployment
+    and its restore to the recorded replica count, from the exit trap as well.
+    Neither ever runs on `apikeys-pipeline`, `authpoc` or `api-keys-poc`.
 - No seeding: the run uses an empty, git-ignored manifest (`e2e-tests/.apikeys-e2e-cauldron.json`, deleted on exit), so
   only the cases that need no fixture account or key run. Playwright runs with `--no-deps`, so the setup project
   never clears the local suites' `.auth/`, at most 2 workers and 1 retry, with traces off.
@@ -64,10 +70,19 @@ name the cauldron.
 ## Seeded runs
 
 Seeding the cauldron (fixture accounts, projects and keys written through the ORM in the web pod) is a cluster write.
-The seeder also refuses any cauldron write unless `APIKEYS_ALLOW_MUTATING_ON` equals `APIKEYS_CAULDRON`. It needs the cauldron owner's go-ahead (Yotam on `apisplit`). Every cauldron's auth service reads the one shared `sefaria_auth` registry, so seeded rows show on all of them. The go-ahead is not recorded, so this runner has no seeded mode. When it is approved, the
-seeded flow is: the same preflight and snapshot; require the script's `--leftovers` to print 0; seed once with the
-script and password on stdin (`python - --target cauldron --reset --manifest-stdout`) into the manifest above;
-run `--project=apikeys` with the setup project, but only when no local suite is running, because the setup project
-deletes the shared `.auth/` folder; leave out account deletion, listing claims, the test panel's "create listing",
-`/register`, B7 and B9; tear down from a trap after a `--teardown --dry-run` whose rows are all in band or marked
-`E2E `; then repeat the snapshot and `--leftovers`. At most two seed and teardown cycles a night.
+The seeder also refuses any cauldron write unless `APIKEYS_ALLOW_MUTATING_ON` equals `APIKEYS_CAULDRON`. It needs the
+cauldron owner's go-ahead (Yotam on `apisplit`). Every cauldron's auth service reads the one shared `sefaria_auth`
+registry, so seeded rows show on all of them. The go-ahead is given per run as `APIKEYS_ALLOW_SEEDING=<cauldron>`;
+`run.sh seeded` refuses to start without it. The seeded flow it runs:
+
+1. The same preflight and snapshot; the script's `--leftovers` must print 0.
+2. Seed once, with the script and the password on stdin (`python - --target cauldron --reset --manifest-stdout`), into
+   the git-ignored manifest above (written with umask 077, deleted on exit).
+3. Run `--project=apikeys` with the setup project, with its sessions in `e2e-tests/api-keys/.auth-cauldron` so the
+   local suites' `.auth/` is never touched, at most 2 workers. Left out: account deletion (N-M6), listing claims
+   (N-C9, N-C14, `ui/listing-claim.spec.ts`), the test panel's confirmation (N-C1), `/register`, B7 and B9.
+4. The keyed A-series and the nginx log check.
+5. Tear down from a trap, after a `--teardown --dry-run` whose rows are all in band or marked `E2E `; then
+   `--leftovers` must print 0 and the snapshot's key and project id checksums must equal the ones taken before.
+
+At most two seed and teardown cycles a night.
