@@ -225,7 +225,10 @@ fi
 
 mkdir -p "$(dirname "$OUT")" && mkdir "$OUT" || die "cannot create a fresh results directory $OUT"
 git -C "$REPO" check-ignore -q "$OUT" || die "$OUT is not git-ignored"
+# Keep the terminal's descriptors so the masked log can be closed and drained before the leak check below.
+exec 3>&1 4>&2
 exec > >(mask | tee -a "$OUT/run.log") 2>&1
+LOG_PID=$!
 
 # --- cluster reads -------------------------------------------------------------------------------------------------
 # kc_read ARGS... -> prints the read's output; an object that is not found prints nothing, and any other failure
@@ -376,5 +379,8 @@ case "$MODE" in
   latency) latency || rc=1 ;;
   revoke) revoke || rc=1 ;;
 esac
-if grep -rEq 'sfr_[A-Za-z0-9]{5,}' "$OUT"; then log "UNMASKED KEY MATERIAL under $OUT"; rc=1; fi
+# Close the masked pipe and wait for it, so run.log is complete before it is searched; same class as mask().
+exec 1>&3 2>&4 3>&- 4>&-
+wait "$LOG_PID" 2>/dev/null || true
+if grep -rEq 'sfr_[A-Za-z0-9_-]{5,}' "$OUT"; then echo "UNMASKED KEY MATERIAL under $OUT" >&2; rc=1; fi
 exit $rc

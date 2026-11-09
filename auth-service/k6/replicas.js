@@ -14,6 +14,7 @@ if (!BASE) throw new Error('BASE is required');
 const HOST = __ENV.HOST || '';
 const PATH = __ENV.PATH_GATED || '/api/knn-search';
 const MODE = __ENV.AUTH_MODE || 'enforce';
+if (!['enforce', 'observe'].includes(MODE)) throw new Error(`AUTH_MODE must be enforce or observe, got ${MODE}`);
 const ITERATIONS = Number(__ENV.ITERATIONS || 300);
 const SUMMARY_FILE = __ENV.SUMMARY_FILE || '';
 const UNKNOWN = 'sfr_k6unknown0000000000000000000000000';
