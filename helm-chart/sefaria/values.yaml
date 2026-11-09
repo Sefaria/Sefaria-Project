@@ -666,8 +666,6 @@ localSettings:
   SERVER_EMAIL: "dev@sefaria.org"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
-  # Developer settings test controls; for branch cauldrons only.
-  DEVELOPER_SETTINGS_MOCKS: "False"
   # The developer tab in settings and its routes; off means they return 404.
   DEVELOPER_SETTINGS_ENABLED: "False"
   # With DEVELOPER_SETTINGS_ENABLED on, limits the developer tab and its routes to staff.

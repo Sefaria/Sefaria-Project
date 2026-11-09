@@ -692,7 +692,6 @@ class DeveloperSettingsOffTest(TestCase):
             ("post", "projects/1/keys"),
             ("delete", "keys/1"),
             ("post", "listings/1/claim"),
-            ("post", "mock"),
         ):
             response = self.client.generic(
                 method.upper(), "/api/developer/" + url, "{}", content_type="application/json"
@@ -706,10 +705,6 @@ class DeveloperSettingsOffTest(TestCase):
         self.assertEqual(Client().get("/settings/developer/confirm-email/" + key).status_code, 404)
         self.assertEqual(Client().get("/settings/developer/email-confirmed").status_code, 404)
         self.assertFalse(EmailAddress.objects.get(user=self.user).verified)
-
-    def test_the_powered_by_form_is_not_found(self):
-        self.assertEqual(Client().get("/powered-by/form").status_code, 404)
-        self.assertEqual(Client().get("/api/developer-poc/powered-by-submissions").status_code, 404)
 
 
 @override_settings(DEVELOPER_SETTINGS_STAFF_ONLY=True)
@@ -732,20 +727,18 @@ class DeveloperSettingsStaffOnlyTest(DeveloperApiTestCase):
             ("post", "projects/1/keys"),
             ("delete", "keys/1"),
             ("post", "listings/1/claim"),
-            ("post", "mock"),
         ):
             response = self.client.generic(
                 method.upper(), "/api/developer/" + url, "{}", content_type="application/json"
             )
             self.assertEqual(response.status_code, 404, url)
 
-    def test_the_confirmation_link_and_the_powered_by_form_are_not_found_for_non_staff(self):
+    def test_the_confirmation_link_is_not_found_for_non_staff(self):
         EmailAddress.objects.create(user=self.user, email=self.user.email, primary=True, verified=False)
         key = developer.confirmation_for(self.user).key
 
         self.assertEqual(self.client.get("/settings/developer/confirm-email/" + key).status_code, 404)
         self.assertEqual(self.client.get("/settings/developer/email-confirmed").status_code, 404)
-        self.assertEqual(self.client.get("/powered-by/form").status_code, 404)
         self.assertFalse(EmailAddress.objects.get(user=self.user).verified)
 
     def test_the_developer_api_is_not_found_logged_out(self):
@@ -784,48 +777,6 @@ class DeveloperSettingsStaffOnlyTest(DeveloperApiTestCase):
 
         self.assertEqual(self.client.get("/settings/developer/confirm-email/" + key).status_code, 302)
         self.assertTrue(EmailAddress.objects.get(user=self.user).verified)
-
-
-class MockTest(DeveloperApiTestCase):
-    def test_the_test_controls_are_off_by_default(self):
-        self.assertIsNone(self.call("get", "state")[1]["mock"])
-        self.assertEqual(
-            self.client.post("/api/developer/mock", "{}", content_type="application/json").status_code, 404
-        )
-
-    @override_settings(DEVELOPER_SETTINGS_MOCKS=True)
-    def test_with_mocks_on_the_confirmation_is_not_emailed_and_its_key_is_in_the_state(self):
-        state = self.call("post", "confirmation")[1]
-
-        self.assertEqual(len(mail.outbox), 0)
-        key = state["mock"]["confirmationKey"]
-        self.assertEqual(Client().get("/settings/developer/confirm-email/" + key).status_code, 302)
-        self.assertTrue(self.call("get", "state")[1]["emailVerified"])
-
-    @override_settings(DEVELOPER_SETTINGS_MOCKS=True)
-    def test_the_sso_override_verifies_the_account(self):
-        state = self.call("post", "mock", {"action": "sso", "ssoOverride": True})[1]
-
-        self.assertTrue(state["ssoConnected"])
-        self.assertEqual(self.call("post", "enable")[0], 200)
-
-    @override_settings(DEVELOPER_SETTINGS_MOCKS=True)
-    def test_a_mock_listing_is_offered_and_starting_over_deletes_it(self):
-        self.set_up_developer()
-        state = self.call("post", "mock", {"action": "create-listing"})[1]
-        listing_id = state["yourListing"]["id"]
-        claimed = self.call("post", f"listings/{listing_id}/claim")[1]["projectId"]
-        own = self.create_project()
-
-        state = self.call("post", "mock", {"action": "start-over", "ssoOverride": False, "emailVerified": False})[1]
-
-        self.assertEqual(state["projects"], [])
-        self.assertIsNone(state["profile"])
-        self.assertFalse(state["emailVerified"])
-        self.assertIsNotNone(ApiProject.objects.get(id=int(claimed)).deleted_at)
-        self.assertIsNotNone(ApiProject.objects.get(id=int(own["id"])).deleted_at)
-        self.assertFalse(ApiProject.objects.filter(profile_id=int(listing_id), deleted_at__isnull=True).exists())
-        self.assertTrue(Project.objects.get(id=int(listing_id)).request_not_to_publish)
 
 
 def test_origin_of_is_the_browser_origin():

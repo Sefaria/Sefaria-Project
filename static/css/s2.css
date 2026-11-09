@@ -81,7 +81,6 @@ a, a:hover {
   border: 0;
 }
 
-
 .he {
   font-size: 122%;
 }
@@ -257,7 +256,6 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   height: 100%;
   z-index: 1000;
 }
-
 
 #s2.headerOnly {
   z-index: 1000;
@@ -1513,7 +1511,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   padding: 30px 0 0 0;
   border: none;
 }
-
 
 .navSidebarModule {
   font-size: 16px;
@@ -4291,7 +4288,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: var(--dark-grey);
 }
 
-
 .searchContent .searchFilters h2 {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -5989,7 +5985,6 @@ h1.topic-landing-header {
   size-adjust: 0%;
 }
 
-
 .salad-container{
   overflow: hidden;
   display: -webkit-box;
@@ -6204,7 +6199,6 @@ h1.topic-landing-header {
 .interface-hebrew .topic-card-with-description .cardDescription{
   -webkit-line-clamp: 8;
 }
-
 
 .topic-card-with-description .bottomCardLink {
   font-size: 14px;
@@ -9192,7 +9186,6 @@ But not to use a display block directive that might break continuous mode for ot
   margin-bottom: 10px
 }
 
-
 .connectionsPanel .noteSharingToggle {
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -9281,7 +9274,6 @@ But not to use a display block directive that might break continuous mode for ot
   margin-top: 15px;
   text-align: center;
 }
-
 
 .addConnectionBox {
   font-size: 18px;
@@ -10531,7 +10523,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   left: 30px;
   right: auto;
 }
-
 
 .editorSidebarToggle:active {
   box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.25);
@@ -12254,7 +12245,6 @@ span.purim-emoji img{
   pointer-events: auto;
 }
 
-
 .sheetContent .editorContent .sheetItem.noPointer .element-link,
 .sheetContent .editorContent .sheetItem.noPointer .element-link a {
     cursor: pointer;
@@ -12263,8 +12253,6 @@ span.purim-emoji img{
 .sheetContent .sheetItem.segment .addedBy {
   margin-top: -20px;
 }
-
-
 
 .sheetContent .element-link {
   display: inline;
@@ -12490,7 +12478,6 @@ background-color: white;
     display: none;
 }
 
-
 .addInterfaceInput .textPreview {
   border-inline-start: 4px solid;
   padding-inline-start: 36px;
@@ -12552,7 +12539,6 @@ background-color: white;
 .addInterfaceInput select.suggestionBox {
   font-size: 22px;
 }
-
 
 .addInterfaceInput select.suggestionBox:focus > option:checked {
   background: var(--light-grey) !important;
@@ -12961,7 +12947,6 @@ cursor: pointer;
   padding-bottom: 15px;
 }
 
-
 .sheetItem .SheetSource .he.editable.selected .sourceContentText,
 .sheetItem .SheetSource .en.editable.selected .sourceContentText,
 .sheetItem .SheetOutsideBiText .he.editable.selected .sourceContentText,
@@ -13195,7 +13180,6 @@ cursor: pointer;
   position: relative;
   display: inline-block;
 }
-
 
 .tab-view .tab-list .tab.filter.open {
   background-color: inherit;
@@ -14175,7 +14159,6 @@ body .homeFeedWrapper .content {
   flex: 1
 }
 
-
 .story details > summary .storyTitleBlock {
   background: url('/static/icons/arrow-down-bold.svg') no-repeat transparent;
   background-size: 14px;
@@ -15126,8 +15109,6 @@ span.ref-link-color-3 {color: blue}
   height: 20px;
 }
 
-
-
 .beitMidrashContainer summary {
   list-style: none;
 }
@@ -15246,7 +15227,6 @@ span.ref-link-color-3 {color: blue}
   float: inline-end;
 }
 
-
 .beitMidrashUser.unreadMessages::after {
   content: '';
   display: inline-block;
@@ -15256,7 +15236,6 @@ span.ref-link-color-3 {color: blue}
   background-color: var(--halakhah-red);
   flex-shrink: 0;
 }
-
 
 #beitMidrashProfilePic {
   margin-right: 10px;
@@ -15288,7 +15267,6 @@ span.ref-link-color-3 {color: blue}
   margin-top: 8px;
   margin-bottom: 8px;
 }
-
 
 .beitMidrashUserHeader {
   display: flex;
@@ -15375,7 +15353,6 @@ span.ref-link-color-3 {color: blue}
 .chatBoxName {
   margin-inline-start: 10px;
 }
-
 
 .chats-container {
   overflow-y: auto;
@@ -16236,7 +16213,6 @@ span.ref-link-color-3 {color: blue}
   display: block;
 }
 
-
 .productsFlexWrapper {
   display: flex;
   flex-direction: column;
@@ -16337,7 +16313,6 @@ span.ref-link-color-3 {color: blue}
   margin-inline-end: 10px;
 }
 
-
 .productsHeader .cta .productsCTAIcon {
   height: 12px;
   top: 646px;
@@ -16397,7 +16372,6 @@ span.ref-link-color-3 {color: blue}
   content: " ›";
   color: var(--commentary-blue);
 }
-
 
 .image-in-text-title {
     margin: auto; /* English System Small */
@@ -17334,148 +17308,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   overflow-wrap: anywhere;
 }
 
-/* POC test controls. A floating panel, pinned to the viewport and deliberately foreign
-   to the Sefaria palette so nobody reads it as product UI. The settings page renders it
-   once, for both tabs. */
-.devPocPanel {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 100001;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  direction: ltr;
-  text-align: left;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
-  font-size: 13px;
-}
-.devPocPanel *, .devPocPanel *::before, .devPocPanel *::after { box-sizing: border-box; }
 /* the container is wider than what it shows, so only its own surfaces take clicks */
-.devPocPanel { pointer-events: none; }
-.devPocPanelPill, .devPocPanelBody { pointer-events: auto; }
-/* fonts.css names a font on every element through a universal rule, so the panel has to
-   name its own on its descendants instead of relying on inheritance. */
-.devPocPanel, .devPocPanel * { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace; }
-.devPocPanelPill {
-  appearance: none;
-  -webkit-appearance: none;
-  width: auto;
-  margin: 0;
-  padding: 9px 16px;
-  border: 2px solid #ff2d95;
-  border-radius: 999px;
-  background: #1f2430;
-  color: #ff2d95;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  cursor: pointer;
-  box-shadow: 0 6px 18px #0000004d;
-}
-.devPocPanelPill:hover { background: #2b3242; color: #ff2d95; }
-.devPocPanelBody {
-  width: 340px;
-  max-width: calc(100vw - 32px);
-  max-height: min(70vh, 560px);
-  overflow-y: auto;
-  padding: 14px 16px 16px;
-  background: #1f2430;
-  border: 2px solid #ff2d95;
-  border-radius: 10px;
-  color: #e6e8ee;
-  box-shadow: 0 12px 34px #00000059;
-}
-.devPocPanel[data-open="false"] .devPocPanelBody { display: none; }
-.devPocPanel[data-open="true"] .devPocPanelPill { display: none; }
-.devPocPanelHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.devPocPanel .devPocPanelTitle {
-  margin: 0;
-  color: #ff2d95;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .12em;
-}
-.devPocPanel .devPocPanelSub { margin: 6px 0 0; color: #9aa1b1; font-size: 11px; line-height: 1.5; }
-.devPocPanelClose {
-  appearance: none;
-  -webkit-appearance: none;
-  flex-shrink: 0;
-  width: auto;
-  margin: 0;
-  padding: 4px 8px;
-  border: 1px solid #ff2d95;
-  border-radius: 4px;
-  background: transparent;
-  color: #ff2d95;
-  font-size: 11px;
-  line-height: 1.3;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  cursor: pointer;
-}
-.devPocPanelClose:hover { background: #ff2d95; color: #1f2430; }
-.devPocPanelGroup { margin-top: 14px; padding-top: 12px; border-top: 1px solid #ff2d9540; }
-.devPocPanel .devPocPanelGroupLabel {
-  margin-bottom: 8px;
-  color: #ff2d95;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-}
-.devPocPanelRow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.devPocPanelRow + .devPocPanelRow { margin-top: 8px; }
-.devPocPanel .devPocPanelNote { margin: 8px 0 0; color: #9aa1b1; font-size: 11px; line-height: 1.5; }
-.devPocPanel .devPocPanelChoice {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: auto;
-  height: auto;
-  min-height: 0;
-  margin: 0;
-  color: #e6e8ee;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.4;
-  cursor: pointer;
-}
-.devPocPanelButton {
-  appearance: none;
-  -webkit-appearance: none;
-  width: auto;
-  margin: 0;
-  padding: 6px 10px;
-  border: 1px solid #ff2d9580;
-  border-radius: 4px;
-  background: #2b3242;
-  color: #e6e8ee;
-  font-size: 12px;
-  line-height: 1.3;
-  cursor: pointer;
-}
-.devPocPanelButton:hover { background: #ff2d95; border-color: #ff2d95; color: #1f2430; }
-.devPocPanel input.devPocSwitch { width: 34px; min-width: 34px; height: 20px; background: #4a5162; }
-.devPocPanel input.devPocSwitch::after { width: 14px; height: 14px; }
-.devPocPanel input.devPocSwitch:checked { background: #ff2d95; }
-.devPocPanel input.devPocSwitch:checked::after { transform: translateX(14px); }
-.devPocPanel input[type="checkbox"]:not(.devPocSwitch) {
-  appearance: auto;
-  -webkit-appearance: checkbox;
-  flex-shrink: 0;
-  width: 14px;
-  min-width: 14px;
-  height: 14px;
-  margin: 0;
-  padding: 0;
-  border-radius: 0;
-  box-shadow: none;
-  accent-color: #ff2d95;
-  cursor: pointer;
-}
 
 /* The settings tabs: one vertical list in a left column, present on every settings tab,
    beside the panel of the tab that is open. */
@@ -17939,8 +17772,6 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocListingSummary { padding-inline-start: var(--devPoc-s2); border-inline-start: 3px solid #d4dfea; }
 .devPocListingSummary .devPocHelp { margin: 2px 0 0; }
 .devPocLinked { margin: 0; }
-.devPocPanel .devPocPanelSelect { flex-direction: column; align-items: stretch; }
-.devPocPanel .devPocPanelSelect select { margin-top: 4px; max-width: 100%; }
 
 /* One button grid everywhere: primary first, secondary beside it, destructive at the end. */
 .devPocActions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--devPoc-s2); }
@@ -18016,64 +17847,5 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   .devPocPreviewRow { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .devPocHeading { flex-wrap: wrap; }
   .devPocKeyValue { flex-wrap: wrap; }
-  .devPocPanel { right: 0; left: 0; bottom: 0; }
-  .devPocPanel[data-open="false"] { padding: 0 12px 12px; }
-  .devPocPanelBody {
-    width: 100%;
-    max-width: none;
-    max-height: 60vh;
-    border-width: 2px 0 0;
-    border-radius: 0;
-  }
 }
 
-/* The mock confirmation email. The magenta banner is the POC test panel's colour so nobody
-   mistakes it for a real message. */
-.devPocMockSso {
-  position: fixed;
-  inset: 0;
-  z-index: 100002;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
-}
-.devPocMockSso *, .devPocMockSso *::before, .devPocMockSso *::after { box-sizing: border-box; }
-.devPocMockSsoBackdrop { position: absolute; inset: 0; background: rgba(32, 38, 46, 0.55); }
-.devPocMockSsoDialog {
-  position: relative;
-  width: 400px;
-  max-width: 100%;
-  background: #fff;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
-  text-align: left;
-}
-.devPocMockSsoBanner {
-  margin: 0;
-  padding: 10px 16px;
-  background: #ff2d95;
-  color: #fff;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-align: center;
-  text-transform: uppercase;
-}
-.devPocMockSsoBody { padding: 28px 28px 22px; color: #252b32; }
-.devPocMockSso h2 { margin: 0; font-size: 22px; font-weight: 400; text-align: left; text-transform: none; }
-.devPocMockSsoActions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 26px; }
-.devPocMockSsoCancel, .devPocMockSsoContinue {
-  padding: 9px 20px;
-  border-radius: 6px;
-  font-size: 15px;
-  cursor: pointer;
-}
-.devPocMockSsoCancel { background: transparent; border: none; color: #18345d; }
-.devPocMockSsoContinue { background: #18345d; border: 1px solid #18345d; color: #fff; }
-.devPocMockEmail h2 { font-size: 20px; margin: 8px 0 12px; }
-.devPocMockEmailMeta { font-size: 12px; color: #626971; margin: 0; }
-.devPocMockEmailFoot { font-size: 12px; color: #626971; margin-top: 16px; }
