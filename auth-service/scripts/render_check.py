@@ -17,7 +17,14 @@ import sys
 import yaml
 
 GATEWAY_API = "gateway.networking.k8s.io"
-SEFARIA_HEADERS = {"x-sefaria-tier", "x-sefaria-project", "x-sefaria-auth-result", "x-sefaria-meter"}
+# nginx echoes x-sefaria-key-status to the caller, so a forged copy would read as the auth service's answer.
+SEFARIA_HEADERS = {
+    "x-sefaria-tier",
+    "x-sefaria-project",
+    "x-sefaria-auth-result",
+    "x-sefaria-meter",
+    "x-sefaria-key-status",
+}
 AUTH_KINDS = ("SecurityPolicy",)
 
 failures = []

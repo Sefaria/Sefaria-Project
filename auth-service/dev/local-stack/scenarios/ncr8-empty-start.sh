@@ -30,7 +30,16 @@ if [ "$ready" != 200 ] && [ "$ready" != 503 ]; then
 elif [ "$ready" = 200 ]; then
   check N-CR8 "empty start: ready, registry len" "$(registry_field len)" 0
 else
-  info "N-CR8 empty start: the pod stays not ready (/readyz $ready) on an empty first load"
+  # Not ready must come from an empty load, not from a load that failed (a bad password or a missing grant also
+  # gives 503 and a fail-open pass): the fresh process must have loaded without error and rejected the empty set.
+  errs="$(metric 'authsvc_reload_total{result="error"}')"
+  empties="$(metric 'authsvc_reload_total{result="rejected_empty"}')"
+  if [ "$errs" = 0 ] && [ "$empties" -ge 1 ]; then
+    pass "N-CR8 empty start: the first load succeeded with 0 keys and the pod stays not ready (/readyz $ready, rejected_empty=$empties)"
+  else
+    fail "N-CR8 empty start: /readyz $ready but the loads were not an empty success (reload errors=$errs, rejected_empty=$empties)"
+    ready=error
+  fi
   wait_for 15 '! authsvc_endpoint_healthy' >/dev/null
 fi
 s="$(gw $GW_HC $GATED ncr8)"; c="$(gw_code $GW_HC $GATED ncr8)"

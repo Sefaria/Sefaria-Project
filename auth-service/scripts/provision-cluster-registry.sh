@@ -155,8 +155,9 @@ grep -q '^sops:' "$TMP" && ! grep -qF -f <(printf '%s\n' "$PW") "$TMP" || { unse
   printf 'COMMIT;\n'
 } | pg -d "$DB" >/dev/null || { unset PW; echo "FAIL: creating the role failed and was rolled back; nothing changed"; exit 1; }
 unset PW
-mv "$TMP" "$OUT"
+# The role exists now, so the encrypted file must survive whatever happens next: no cleanup trap from here on.
 trap - EXIT INT TERM
+mv "$TMP" "$OUT" || { echo "FAIL: the role exists but the Secret could not be moved into place; the encrypted file is $TMP (rename it to $OUT)"; exit 1; }
 echo "ok: role $ROLE, read-only on the registry columns in $DB"
 echo "ok: wrote encrypted $OUT (namespace $SECRET_NS)"
 verify

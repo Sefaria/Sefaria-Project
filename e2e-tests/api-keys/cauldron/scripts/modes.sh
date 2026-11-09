@@ -86,7 +86,8 @@ SEEDED=0
 seeded_teardown() {
   [ "$SEEDED" = 1 ] || return 0
   local dry="$RUN_DIR/teardown-dry-run.txt"
-  seed_exec --teardown --dry-run 2>&1 | mask >"$dry"
+  seed_exec --teardown --dry-run 2>&1 | mask >"$dry" \
+    || { rec seeded-teardown fail-harness "the teardown dry run failed; teardown NOT run, clean up by hand ($dry)"; return 1; }
   # Every user the dry run names must be in the fixture band, and every project must carry the run marker.
   if ! python3 - "$dry" <<'PY'
 import re, sys
@@ -105,13 +106,17 @@ PY
     rec seeded-teardown fail-product-bug "the dry run names rows outside the band or marker; teardown NOT run, clean up by hand ($dry)"
     return 1
   fi
-  seed_exec --teardown 2>&1 | mask >"$RUN_DIR/teardown.txt"
+  # SEEDED stays 1 unless the teardown itself succeeded, so the exit trap tries again.
+  if ! seed_exec --teardown 2>&1 | mask >"$RUN_DIR/teardown.txt"; then
+    rec seeded-teardown fail-harness "--teardown failed: $(tail -1 "$RUN_DIR/teardown.txt")"
+    return 1
+  fi
+  SEEDED=0
   if seed_exec --leftovers 2>&1 | mask >"$RUN_DIR/leftovers-after.txt"; then
     rec seeded-teardown pass "teardown done; $(tail -1 "$RUN_DIR/leftovers-after.txt")"
   else
     rec seeded-teardown fail-product-bug "leftovers after teardown: $(tail -1 "$RUN_DIR/leftovers-after.txt")"
   fi
-  SEEDED=0
 }
 
 # Leaves out what SAFETY.md excludes from a seeded cauldron run: account deletion, listing claims, the test panel's
@@ -134,12 +139,15 @@ seeded_run() {
   rec seeded pass "seeded $(python3 -c 'import json,sys; m=json.load(open(sys.argv[1])); print(len(m["accounts"]), "accounts,", len(m["keys"]), "keys")' "$MANIFEST")"
 
   # The setup project logs the seeded accounts in; a separate session directory keeps the local suites' .auth/ intact.
-  local specs
+  local specs prc
+  rm -f "$RUN_DIR/playwright-seeded.json"
   specs="$(git -C "$REPO" ls-files 'e2e-tests/api-keys/*.spec.ts' | grep -vxF "$SEEDED_IGNORE_FILES" | tr '\n' ' ')"
   ( cd "$REPO" && env -u APIKEYS_TRACE APIKEYS_TARGET=cauldron APIKEYS_CAULDRON="$CAULDRON" APIKEYS_MANIFEST="$MANIFEST_REL" \
       APIKEYS_RUN_ID="$RUN_ID" APIKEYS_AUTH_DIR=e2e-tests/api-keys/.auth-cauldron PLAYWRIGHT_JSON_OUTPUT_NAME="$RUN_DIR/playwright-seeded.json" \
       npx playwright test --project=apikeys --workers=2 --reporter=list,json --grep-invert "$SEEDED_GREP_INVERT" $specs \
   ) 2>&1 | mask >"$RUN_DIR/playwright-seeded.log"
+  prc=${PIPESTATUS[0]}
+  [ -f "$RUN_DIR/playwright-seeded.json" ] || echo '{"suites": [], "errors": [{"message": "no report"}]}' >"$RUN_DIR/playwright-seeded.json"
   mask <"$RUN_DIR/playwright-seeded.json" >"$RUN_DIR/playwright-seeded.json.m" && mv "$RUN_DIR/playwright-seeded.json.m" "$RUN_DIR/playwright-seeded.json"
   local pw; pw="$(python3 - "$RUN_DIR/playwright-seeded.json" <<'PY'
 import json, sys
@@ -169,6 +177,8 @@ print("%(failed)d\t%(passed)d passed, %(skipped)d skipped, %(known_gap)d known-g
 PY
 )"
   if [ -z "$pw" ]; then rec playwright-seeded fail-harness "no Playwright report; see playwright-seeded.log"
+  elif [ "${pw%%$'\t'*}" = 0 ] && [ "$prc" != 0 ] && [[ ${pw#*$'\t'} == *" 0 known-gap"* ]]; then
+    rec playwright-seeded fail-harness "exit $prc with no failing test: ${pw#*$'\t'}"
   elif [ "${pw%%$'\t'*}" = 0 ]; then rec playwright-seeded pass "${pw#*$'\t'}"
   else rec playwright-seeded fail-product-bug "${pw#*$'\t'}"; fi
 

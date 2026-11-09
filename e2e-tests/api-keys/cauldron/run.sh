@@ -172,6 +172,9 @@ def walk(suite):
 for s in data.get("suites", []): walk(s)
 with open(sys.argv[2], "w") as f:
     for r in rows: f.write("\t".join(str(x) for x in r) + "\n")
+executed = sum(1 for r in rows if r[3] != "skipped")
+with open(sys.argv[2] + ".meta", "w") as f:
+    f.write("%d %d\n" % (len(data.get("errors") or []), executed))
 PY
   mask < "$RUN_DIR/playwright-$label.json" > "$RUN_DIR/playwright-$label.json.m" && mv "$RUN_DIR/playwright-$label.json.m" "$RUN_DIR/playwright-$label.json"
   mask < "$RUN_DIR/playwright-$label.tsv" > "$RUN_DIR/playwright-$label.tsv.m" && mv "$RUN_DIR/playwright-$label.tsv.m" "$RUN_DIR/playwright-$label.tsv"
@@ -180,7 +183,10 @@ PY
   local failed known
   failed="$(awk -F'\t' '$4 == "unexpected" && $3 !~ /@known-gap/' "$RUN_DIR/playwright-$label.tsv" | wc -l | tr -d ' ')"
   known="$(awk -F'\t' '$4 == "unexpected" && $3 ~ /@known-gap/' "$RUN_DIR/playwright-$label.tsv" | wc -l | tr -d ' ')"
+  local report_errors executed
+  read -r report_errors executed <"$RUN_DIR/playwright-$label.tsv.meta" 2>/dev/null || { report_errors=1; executed=0; }
   if [ ! -s "$RUN_DIR/playwright-$label.tsv" ]; then rec "playwright-$label" fail-harness "no results (exit $rc); see playwright-$label.log"
+  elif [ "$report_errors" != 0 ] || [ "$executed" = 0 ]; then rec "playwright-$label" fail-harness "report errors=$report_errors, tests run=$executed; see playwright-$label.log"
   elif [ "$rc" != 0 ] && [ "$failed" = 0 ] && [ "$known" = 0 ]; then rec "playwright-$label" fail-harness "exit $rc with no failing test (a setup or report error); see playwright-$label.log"
   elif [ "$failed" = 0 ]; then rec "playwright-$label" pass "$(wc -l <"$RUN_DIR/playwright-$label.tsv" | tr -d ' ') cases, $known known-gap failure(s)"
   else rec "playwright-$label" fail-product-bug "$failed failed: $(awk -F'\t' '$4 == "unexpected" && $3 !~ /@known-gap/ {print $3}' "$RUN_DIR/playwright-$label.tsv" | head -3 | cut -c1-80 | paste -sd'|' -)"; fi

@@ -33,6 +33,7 @@ PY
   if "$PY" "$here/render_check.py" "$tmp/bad.yaml" >"$tmp/out" 2>&1; then echo "FAIL: not caught: $1"; fail=1; else echo "ok: caught: $1"; fi
 }
 mutate "the header strip loses x-sefaria-tier" 'one("ClientTrafficPolicy")["spec"]["headers"]["earlyRequestHeaders"]["remove"].remove("x-sefaria-tier")'
+mutate "the header strip loses x-sefaria-key-status" 'one("ClientTrafficPolicy")["spec"]["headers"]["earlyRequestHeaders"]["remove"].remove("x-sefaria-key-status")'
 mutate "the ClientTrafficPolicy targets a port-80 listener" 'one("ClientTrafficPolicy")["spec"]["targetRefs"][0]["sectionName"] = "http-en"'
 mutate "the ClientTrafficPolicy targets the whole Gateway" 'one("ClientTrafficPolicy")["spec"]["targetRefs"][0].pop("sectionName")'
 mutate "ext_authz fails closed" 'one("SecurityPolicy")["spec"]["extAuth"]["failOpen"] = False'
