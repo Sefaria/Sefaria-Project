@@ -274,7 +274,9 @@ for rel, sha in m["files"].items():
 assert "db/sefaria_auth.dump" in m["files"] and "db/scoped.dump" in m["files"]
 print("manifest ok")
 PY
-grep -rqE "sfr_[A-Za-z0-9]{8}|placeholder=|not-a-secret" "$SNAP" && notok "the snapshot contains a key or Secret value" || ok "the snapshot holds no Secret value"
+grep -rqE "placeholder|not-a-secret" "$SNAP" && notok "the snapshot contains a Secret value" || ok "the snapshot holds no Secret value"
+[[ "$(stat -c %a "$SNAP" 2>/dev/null || stat -f %Lp "$SNAP")" == 700 && "$(stat -c %a "$SNAP/db/sefaria_auth.dump" 2>/dev/null || stat -f %Lp "$SNAP/db/sefaria_auth.dump")" == 600 ]] \
+  && ok "the snapshot directory and dumps are private (700/600)" || notok "snapshot permissions"
 
 # ---------------------------------------------------------------------------------------------------------------
 echo "# phase 1"
@@ -372,6 +374,15 @@ echo "# restore db"
 before="$(db_state)"
 check "restore db --scoped dry run" "$REL/restore.sh" db --snapshot "$SNAP" --env preprod --context "$CTX" --scoped
 grep -q "DRY RUN" "$LOGS/$N.log" && [[ "$(db_state)" == "$before" ]] && ok "the db dry run changed nothing" || notok "the db dry run changed the database"
+# A failure at the last statement (the django_migrations rows) must roll back the drops and the table restore.
+psql_pod -c "CREATE FUNCTION release_test_block() RETURNS trigger LANGUAGE plpgsql AS \$\$ BEGIN RAISE EXCEPTION 'release test: blocked'; END \$\$;
+  CREATE TRIGGER release_test_block BEFORE INSERT ON django_migrations FOR EACH ROW WHEN (NEW.app = 'powered_by') EXECUTE FUNCTION release_test_block();" >/dev/null
+before="$(db_state)"
+refuses "a restore that fails at its last statement reports the rollback" "failed and was rolled back" \
+  bash -c "echo preprod | '$REL/restore.sh' db --snapshot '$SNAP' --env preprod --context '$CTX' --scoped --execute"
+[[ "$(db_state)" == "$before" && "$(psql_pod -At -c "SELECT count(*) FROM pg_proc WHERE proname = 'apikeys_notify'")" == 1 ]] \
+  && ok "the failed restore left the database as it was (one transaction)" || notok "the failed restore changed the database"
+psql_pod -c "DROP TRIGGER release_test_block ON django_migrations; DROP FUNCTION release_test_block();" >/dev/null
 check "restore db --scoped --execute" bash -c "echo preprod | '$REL/restore.sh' db --snapshot '$SNAP' --env preprod --context '$CTX' --scoped --execute"
 tables="$(libcall scoped_tables_sql | psql_pod -At | tr '\n' ' ')"
 [[ "$tables" == "powered_by_project " ]] && ok "only powered_by_project remains of the scoped tables" || notok "tables after restore: $tables"

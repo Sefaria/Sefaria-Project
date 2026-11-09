@@ -73,7 +73,10 @@ PLAN
   exit 0
 fi
 
+# The dumps hold database content (password hashes, sessions, API keys once phase 1 has run): private files only.
+umask 077
 mkdir -p "$SNAP/k8s" "$SNAP/envfiles" "$SNAP/db"
+chmod 700 "$SNAP"
 step "snapshot of $ENV (database $DB, shared by: $SHARING) into $SNAP"
 kc get namespace "$(env_namespace "$ENV")" -o name >/dev/null || die "namespace $(env_namespace "$ENV") not found on $CTX"
 kc -n "$PG_NS" get pod "$PG_POD" -o name >/dev/null || die "Postgres pod $PG_NS/$PG_POD not found on $CTX"

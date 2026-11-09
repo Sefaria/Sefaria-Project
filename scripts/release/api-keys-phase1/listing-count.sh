@@ -42,13 +42,13 @@ if [[ -n "$DSN" ]]; then
   # Never echo or record a password from the DSN.
   where="$("$PYTHON" - "$DSN" <<'PY'
 import re, sys
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlsplit
 dsn = sys.argv[1]
 if "://" in dsn:
     u = urlsplit(dsn)
     host = u.hostname or ""
     netloc = (f"{u.username}@" if u.username else "") + host + (f":{u.port}" if u.port else "")
-    print(urlunsplit((u.scheme, netloc, u.path, "", "")))
+    print(f"{u.scheme}://{netloc}{u.path}")
 else:
     print(re.sub(r"password\s*=\s*('[^']*'|\S+)", "password=***", dsn))
 PY

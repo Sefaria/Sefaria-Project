@@ -27,9 +27,12 @@ again), so the default after a problem is: roll the code back, keep the schema, 
 - **Read-only where it says so.** `snapshot.sh`, `preflight.sh` and `listing-count.sh` read only: their SQL runs in a
   `default_transaction_read_only` session, and dumps are `pg_dump`. The backup CronJob is not triggered (it deletes old
   dumps and posts to Slack); `snapshot.sh` uses the same `pg_dump --format=c` approach without either.
-- **No secrets.** Secrets are checked by name with server-side table output, so no Secret data reaches the machine.
-  Raw Rollout and pod objects are not saved, only names, images and revisions. The test seeds a key and checks that no
-  key or Secret value lands in the snapshot. Keys are only ever printed as a 4-character prefix.
+- **No Secret values; the dumps are sensitive.** Secrets are checked by name with server-side table output, so no
+  Secret data reaches the machine, and raw Rollout and pod objects are not saved (only names, images and revisions). The
+  database dumps are a different matter: they are copies of `sefaria_auth`, with password hashes, sessions and (once
+  phase 1 has run) API key values. The scripts write them under `umask 077` (directory 700, files 600); keep them on an
+  encrypted disk or upload them only to the backup bucket, and delete local copies after the release. Keys are only ever
+  printed as a 4-character prefix.
 
 ## Files
 
@@ -137,7 +140,7 @@ scripts/release/api-keys-phase1/snapshot.sh --env prod --context $C --execute --
    - refuses if a foreign key from outside the scoped tables points into them;
    - shows the `powered_by_project` rows added, changed or removed since the snapshot (they are not kept);
    - takes a fresh full dump and a scoped dump first;
-   - in one transaction (`psql -1`, `lock_timeout` 15 s): drops the scoped tables in one `DROP TABLE` without CASCADE, drops
+   - checks the pods again right before the change, then in one transaction (`BEGIN` ... `COMMIT`, `lock_timeout` 15 s): drops the scoped tables in one `DROP TABLE` without CASCADE, drops
      `apikeys_notify()` unless the snapshot had it, restores the scoped tables from the snapshot's scoped dump (schema,
      data, sequences, constraints, indexes, grants), and puts the `powered_by` `django_migrations` rows back;
    - verifies the scoped tables' schema (`pg_dump --schema-only`, normalised) and per-table row checksums against the

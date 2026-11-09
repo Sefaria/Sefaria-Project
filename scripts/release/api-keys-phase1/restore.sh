@@ -69,6 +69,8 @@ TEXT
 fi
 
 need kubectl git "$PYTHON"
+# Dumps and restore SQL hold database content (password hashes, sessions, API keys): private files only.
+umask 077
 [[ -z "$ENV" ]] || check_context "$ENV" "$CTX"
 [[ -n "$SNAP" && -f "$SNAP/manifest.json" ]] || die "--snapshot must be a snapshot directory with manifest.json"
 MANIFEST="$SNAP/manifest.json"
@@ -307,8 +309,10 @@ PY
   mkdir -p "$work"
   local sql="$work/restore.sql"
   {
-    echo "SET lock_timeout = '15s';"
-    echo "SET statement_timeout = '10min';"
+    # An explicit transaction: psql's -1 does not apply to a script read from stdin.
+    echo "BEGIN;"
+    echo "SET LOCAL lock_timeout = '15s';"
+    echo "SET LOCAL statement_timeout = '10min';"
     # One DROP for every scoped table: references between them are fine, a dependent outside the scope fails it.
     # shellcheck disable=SC2086
     [[ -n "${current_tables// /}" ]] && echo "DROP TABLE $(printf 'public."%s", ' $current_tables | sed 's/, $//');"
@@ -320,13 +324,14 @@ PY
     pg_restore_local "$SNAP/db/scoped.dump" --file=-
     echo "SET search_path = public;"
     "$PYTHON" "$RELEASE_PY" migrations-insert-sql "$MANIFEST"
+    echo "COMMIT;"
   } >"$sql"
   log "  restore SQL: $sql ($(wc -l <"$sql" | tr -d ' ') lines)"
 
   if [[ "$EXECUTE" != 1 ]]; then
     log "  DRY RUN; with --execute this would:"
     log "    1. pg_dump --format=c $DB > $work/pre-restore.dump (and a scoped dump), with sha256"
-    log "    2. run $sql in one transaction (psql -1) on $PG_NS/$PG_POD"
+    log "    2. check the pods again, then run $sql (BEGIN ... COMMIT) on $PG_NS/$PG_POD"
     log "    3. compare the scoped schema, row checksums and powered_by migrations with the snapshot"
     return 0
   fi
@@ -341,8 +346,10 @@ PY
   [[ ${#targs[@]} -gt 0 ]] && pg_dump_pod "$DB" --format=c "${targs[@]}" >"$work/pre-restore-scoped.dump"
   log "  $work/pre-restore.dump ($(wc -c <"$work/pre-restore.dump" | tr -d ' ') bytes)"
 
+  step "guard again, right before the change"
+  image_guard || die "refusing: a pod sharing $DB now runs an image other than the snapshot's; nothing was changed"
   step "restore (one transaction)"
-  pg_rw "$DB" -1 <"$sql" >"$work/restore.log" 2>&1 || { cat "$work/restore.log" >&2; die "the restore failed and was rolled back"; }
+  pg_rw "$DB" -f - <"$sql" >"$work/restore.log" 2>&1 || { cat "$work/restore.log" >&2; die "the restore failed and was rolled back"; }
 
   step "verify against the snapshot"
   local now_tables ok=1
