@@ -2,7 +2,7 @@
 # preflight.sh: read-only checks before the preprod promotion (which migrates prod's database) and before the prod one.
 #
 #   preflight.sh --env preprod|prod --context C [--code-ref REF] [--repo DIR] [--infra-repo DIR] [--no-fetch]
-#                [--skip-image-check] [--allow-pending app/name,...]
+#                [--skip-image-check] [--allow-pending app/name,...] [--chart-ref REF]
 #
 # Checks (from the release plan's Preprod and Prod lists), each printed as PASS, FAIL, WARN or SKIP:
 #   - current_database() on a preprod web pod and on a prod web pod is sefaria_auth (they share it)
@@ -15,16 +15,21 @@
 #   - every Rollout in the namespace is Healthy and the HelmRelease is Ready
 #   - long transactions on the database (a migration would queue behind them)
 #   - DEVELOPER_SETTINGS_ENABLED is off in preprod's env file at --code-ref
-#   - with --infra-repo: the Secret's namespace is declared in the prod cluster's Namespace manifests
-# Exits 1 when any check FAILs.
+#   - the Secret's namespace is declared for the prod cluster: with --infra-repo, in prod/cluster-1/spec/namespaces.yaml
+#     or another Namespace manifest there; without it, a MANUAL line says what to look for (the file is not in this repo)
+#   - prod only: the chart and env file at --chart-ref (default origin/prod, what is deployed; after the promotion that
+#     is the new release) rendered with helm template: every CronJob it renders exists in namespace default, and the
+#     Datadog labels and annotations it renders on the web pod template are on every Running prod web pod
+#     (needs helm and PyYAML; SKIP without them)
+# Exits 1 when any check FAILs. WARN, SKIP and MANUAL lines do not fail the run.
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 usage() {
-  sed -n '2,21p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit "${1:-0}"
 }
 
-ENV="" CTX="" CODE_REF="" REPO="" INFRA="" FETCH=1 IMAGE_CHECK=1 ALLOW_PENDING=""
+ENV="" CTX="" CODE_REF="" REPO="" INFRA="" FETCH=1 IMAGE_CHECK=1 ALLOW_PENDING="" CHART_REF=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --env) ENV="$2"; shift 2 ;;
@@ -35,6 +40,7 @@ while [[ $# -gt 0 ]]; do
     --no-fetch) FETCH=0; shift ;;
     --skip-image-check) IMAGE_CHECK=0; shift ;;
     --allow-pending) ALLOW_PENDING="$2"; shift 2 ;;
+    --chart-ref) CHART_REF="$2"; shift 2 ;;
     --pg-user) PG_USER="$2"; shift 2 ;;
     -h | --help) usage 0 ;;
     *) log "unknown argument: $1"; usage 1 ;;
@@ -58,6 +64,21 @@ pass() { printf 'PASS  %s\n' "$*"; }
 fail() { printf 'FAIL  %s\n' "$*"; FAILS=$((FAILS + 1)); }
 warn() { printf 'WARN  %s\n' "$*"; }
 skip() { printf 'SKIP  %s\n' "$*"; }
+manual() { printf 'MANUAL %s\n' "$*"; }
+# Prints the STATUS<TAB>message lines of a release_lib.py check through the functions above (in this shell, so FAILS
+# counts them).
+report() {
+  local status msg
+  while IFS="$TAB" read -r status msg; do
+    case "$status" in
+      PASS) pass "$msg" ;;
+      FAIL) fail "$msg" ;;
+      WARN) warn "$msg" ;;
+      SKIP) skip "$msg" ;;
+      *) if [[ -n "$status$msg" ]]; then fail "unexpected check output: $status $msg"; fi ;;
+    esac
+  done
+}
 
 echo "preflight for $ENV on $CTX (database $DB, code $CODE_REF)"
 
@@ -203,22 +224,87 @@ if [[ "$ENV" == preprod ]]; then
   esac
 fi
 
-# 9. The Secret's namespace is declared in the infrastructure repo (a missing namespace stalls every Flux apply).
-if [[ -n "$INFRA" ]]; then
-  if grep -rlsE "^[[:space:]]*kind:[[:space:]]*Namespace" "$INFRA/prod/cluster-1/spec" | xargs -r grep -lE "^[[:space:]]+name:[[:space:]]*$NS[[:space:]]*$" | grep -q .; then
-    pass "namespace $NS is declared under $INFRA/prod/cluster-1/spec"
-  elif [[ "$NS" == default ]]; then
-    pass "namespace default needs no declaration"
+# 9. The Secret's namespace is declared for the prod cluster (a missing namespace stalls every Flux apply). The release
+# plan names prod/cluster-1/spec/namespaces.yaml of the infrastructure repo; preprod's own namespace.yaml there counts too.
+NSFILE="prod/cluster-1/spec/namespaces.yaml"
+ns_declared_in() { # file: does it hold a kind: Namespace document named $NS?
+  "$PYTHON" - "$1" "$NS" <<'PY'
+import re, sys
+text = open(sys.argv[1], errors="replace").read()
+for doc in re.split(r"(?m)^---\s*$", text):
+    if re.search(r"(?m)^kind:\s*Namespace\s*$", doc) and re.search(r"(?m)^metadata:\s*\n(?:[ \t]+.*\n)*?[ \t]+name:\s*['\"]?" + re.escape(sys.argv[2]) + r"['\"]?\s*$", doc):
+        sys.exit(0)
+sys.exit(1)
+PY
+}
+if [[ "$NS" == default ]]; then
+  pass "namespace default (Secret auth-service-registry) needs no declaration"
+elif [[ -n "$INFRA" ]]; then
+  declared=""
+  if [[ -f "$INFRA/$NSFILE" ]] && ns_declared_in "$INFRA/$NSFILE"; then
+    declared="$NSFILE"
   else
-    fail "namespace $NS is not declared under $INFRA/prod/cluster-1/spec"
+    while IFS= read -r f; do
+      if ns_declared_in "$f"; then declared="${f#"$INFRA"/}"; break; fi
+    done < <(grep -rlsE "^kind:[[:space:]]*Namespace[[:space:]]*$" "$INFRA/prod/cluster-1/spec" --include='*.yaml' --include='*.yml' | sort)
   fi
+  if [[ "$declared" == "$NSFILE" ]]; then
+    pass "namespace $NS (Secret auth-service-registry) is listed in $NSFILE"
+  elif [[ -n "$declared" ]]; then
+    pass "namespace $NS (Secret auth-service-registry) is declared in $declared (not in $NSFILE; Flux applies both)"
+  else
+    fail "namespace $NS (Secret auth-service-registry) is not declared in $INFRA/$NSFILE or any Namespace manifest under prod/cluster-1/spec"
+  fi
+else
+  manual "namespace $NS (Secret auth-service-registry): the Namespace manifests live in the infrastructure repo, not here. In Sefaria/infrastructure, check that $NSFILE (or another kind: Namespace manifest under prod/cluster-1/spec, such as prod/cluster-1/spec/$NS/namespace.yaml) declares 'kind: Namespace' with 'metadata.name: $NS', or re-run with --infra-repo DIR"
+fi
+if [[ -n "$INFRA" ]]; then
   if grep -rlsq "auth-service-registry" "$INFRA/prod/cluster-1/spec"; then
     pass "the infrastructure repo has an auth-service-registry manifest for the prod cluster"
   else
     warn "no auth-service-registry manifest under $INFRA/prod/cluster-1/spec (needed before authService.enabled: true)"
   fi
-else
-  skip "infrastructure checks (pass --infra-repo DIR)"
+fi
+
+# 10. Prod-only paths: the CronJobs and the Datadog labels and annotations the chart renders for prod, compared with the
+# cluster. The chart and env file come from --chart-ref (default origin/prod: what is deployed).
+if [[ "$ENV" == prod ]]; then
+  CHART_REF="${CHART_REF:-origin/$(env_branch prod)}"
+  if ! command -v helm >/dev/null 2>&1; then
+    skip "CronJobs and Datadog annotations: helm is not installed"
+  elif ! git -C "$REPO" cat-file -e "$CHART_REF:helm-chart/sefaria/Chart.yaml" 2>/dev/null \
+    || ! git -C "$REPO" cat-file -e "$CHART_REF:envs/prod/helmrelease.yaml" 2>/dev/null; then
+    fail "helm-chart/sefaria or envs/prod/helmrelease.yaml not found at $CHART_REF"
+  else
+    mkdir -p "$tmp/chart"
+    git -C "$REPO" archive "$CHART_REF" helm-chart/sefaria | tar -x -C "$tmp/chart"
+    rc=0
+    git -C "$REPO" show "$CHART_REF:envs/prod/helmrelease.yaml" | "$PYTHON" "$RELEASE_PY" hr-values >"$tmp/prod-values.yaml" 2>"$tmp/hr-values.err" || rc=$?
+    if [[ "$rc" == 3 ]]; then
+      skip "CronJobs and Datadog annotations: $(cat "$tmp/hr-values.err")"
+    elif [[ "$rc" != 0 ]]; then
+      fail "could not read the values of envs/prod/helmrelease.yaml at $CHART_REF: $(tail -n 1 "$tmp/hr-values.err")"
+    elif ! helm template "$(env_hr prod)" "$tmp/chart/helm-chart/sefaria" --namespace "$NS" -f "$tmp/prod-values.yaml" >"$tmp/render.yaml" 2>"$tmp/render.err"; then
+      fail "helm template of the chart at $CHART_REF with envs/prod values failed: $(tail -n 3 "$tmp/render.err" | tr '\n' ' ')"
+    elif ! "$PYTHON" "$RELEASE_PY" chart-prod-paths --web-rollout "$(env_hr prod)-web" <"$tmp/render.yaml" >"$tmp/paths.json"; then
+      fail "could not read the rendered chart"
+    else
+      if ! kc -n "$NS" get cronjobs.batch -o json >"$tmp/cronjobs.json"; then
+        fail "could not list the CronJobs of namespace $NS"
+      elif out="$("$PYTHON" "$RELEASE_PY" check-cronjobs --rendered "$tmp/paths.json" --instance "$(env_hr prod)" <"$tmp/cronjobs.json")"; then
+        report <<<"$out"
+      else
+        fail "the CronJob comparison failed"
+      fi
+      if ! kc -n "$NS" get pods -l "app=web-$(env_hr prod)" -o json >"$tmp/webpods.json"; then
+        fail "could not list the web pods of namespace $NS"
+      elif out="$("$PYTHON" "$RELEASE_PY" check-datadog --rendered "$tmp/paths.json" <"$tmp/webpods.json")"; then
+        report <<<"$out"
+      else
+        fail "the Datadog label and annotation comparison failed"
+      fi
+    fi
+  fi
 fi
 
 echo

@@ -4,6 +4,7 @@
 #   staging-smoke.sh --base-url https://www.sefariastaging.org [--listing-record FILE | --listing-expect N]
 #                    [--session-cookie-file FILE] [--knn-token-file FILE [--knn-query TEXT]]
 #                    [--gh-repo Sefaria/Sefaria-Project] [--no-gh] [--context C [--repo DIR]]
+#                    [--legacy-apikey-file FILE --session-cookie-file FILE]
 #
 # HTTP checks (read-only GETs and OPTIONS; one POST to /api/knn-search with an empty query, which does no search):
 #   - the site loads
@@ -17,15 +18,22 @@
 #   - the release produced a chart version and a release tag (gh api; --no-gh skips)
 # With --context (the dev cluster): no migration of origin/master is pending on sefariastaging (read-only SQL), web
 # pods run the env file's tag, and an api_key sent in a query string reaches the web and nginx logs only as [REDACTED].
-# Legacy apikey writes stay a manual check (they write data). Exits 1 when any check FAILs.
+# --legacy-apikey-file (a file holding a legacy, non-sfr_ API key of a staging test account) opts in to the one write:
+# POST /api/collections with the key in the form body (CSRF-exempt, as reader/tests/legacy_api_key_test.py does) must
+# create a private collection, and an unknown key must be refused. A legacy key cannot delete, so it also needs
+# --session-cookie-file for the same account: the collection is then deleted with DELETE /api/collections/<slug> (with
+# a CSRF token, as the browser sends it) and checked gone. The key is read from the file, sent only in the POST body
+# (curl reads it from a private temporary file, so it is not on any command line) and never printed; responses are
+# reported by status and error field only. Without the flag, the legacy write is listed as MANUAL.
+# Exits 1 when any check FAILs.
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 usage() {
-  sed -n '2,22p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,28p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit "${1:-0}"
 }
 
-BASE="" RECORD="" EXPECT="" COOKIE_FILE="" KNN_TOKEN_FILE="" KNN_QUERY="" GH_REPO="Sefaria/Sefaria-Project" GH=1 CTX="" REPO=""
+BASE="" RECORD="" EXPECT="" COOKIE_FILE="" KNN_TOKEN_FILE="" KNN_QUERY="" GH_REPO="Sefaria/Sefaria-Project" GH=1 CTX="" REPO="" LEGACY_KEY_FILE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --base-url) BASE="${2%/}"; shift 2 ;;
@@ -34,6 +42,7 @@ while [[ $# -gt 0 ]]; do
     --session-cookie-file) COOKIE_FILE="$2"; shift 2 ;;
     --knn-token-file) KNN_TOKEN_FILE="$2"; shift 2 ;;
     --knn-query) KNN_QUERY="$2"; shift 2 ;;
+    --legacy-apikey-file) LEGACY_KEY_FILE="$2"; shift 2 ;;
     --gh-repo) GH_REPO="$2"; shift 2 ;;
     --no-gh) GH=0; shift ;;
     --context) CTX="$2"; shift 2 ;;
@@ -45,6 +54,10 @@ while [[ $# -gt 0 ]]; do
 done
 [[ -n "$BASE" ]] || usage 1
 need curl "$PYTHON"
+if [[ -n "$LEGACY_KEY_FILE" ]]; then
+  [[ -r "$LEGACY_KEY_FILE" ]] || die "--legacy-apikey-file $LEGACY_KEY_FILE is not readable"
+  [[ -n "$COOKIE_FILE" ]] || die "--legacy-apikey-file needs --session-cookie-file for the same account: a legacy key cannot delete the collection the check creates, the session does"
+fi
 
 FAILS=0
 pass() { printf 'PASS  %s\n' "$*"; }
@@ -131,7 +144,51 @@ if [[ -n "$KNN_TOKEN_FILE" ]]; then
 else
   skip "Library Assistant token on knn-search (pass --knn-token-file)"
 fi
-manual "legacy apikey write (for example POST /api/notes with the apikey of a test account), then delete what it wrote"
+# json_field FILE KEY: a top-level string field of a JSON response body, or "" (never the body itself).
+json_field() { "$PYTHON" -c 'import json,sys
+try:
+    v = json.load(open(sys.argv[1])).get(sys.argv[2], "")
+except Exception:
+    v = ""
+print(v if isinstance(v, str) else json.dumps(v))' "$1" "$2"; }
+if [[ -n "$LEGACY_KEY_FILE" ]]; then
+  umask 077
+  tr -d '\r\n' <"$LEGACY_KEY_FILE" >"$tmp/legacy-key"
+  [[ -s "$tmp/legacy-key" ]] || die "--legacy-apikey-file $LEGACY_KEY_FILE is empty"
+  [[ "$(head -c 4 "$tmp/legacy-key")" != sfr_ ]] || die "--legacy-apikey-file holds an sfr_ key; the legacy check needs a legacy (Mongo) key"
+  name="Release smoke test $(od -An -N6 -tx1 /dev/urandom | tr -d ' \n')"
+  body="$("$PYTHON" -c 'import json,sys; print(json.dumps({"name": sys.argv[1]}))' "$name")"
+  # An unknown key is refused (nothing is written).
+  http POST /api/collections --data-urlencode "json=$body" --data-urlencode "apikey=release-smoke-unknown-key"
+  if [[ "$CODE" == 200 && "$(json_field "$tmp/b" error)" == "Unrecognized API key." ]]; then
+    pass "POST /api/collections with an unknown legacy key is refused (Unrecognized API key.)"
+  else
+    fail "POST /api/collections with an unknown legacy key: $CODE, error '$(json_field "$tmp/b" error)'"
+  fi
+  http POST /api/collections --data-urlencode "json=$body" --data-urlencode "apikey@$tmp/legacy-key"
+  slug=""
+  if [[ "$CODE" == 200 && "$(json_field "$tmp/b" status)" == ok ]]; then
+    slug="$("$PYTHON" -c 'import json,sys; print(json.load(open(sys.argv[1]))["collection"]["slug"])' "$tmp/b" 2>/dev/null || true)"
+  fi
+  if [[ -n "$slug" ]]; then
+    pass "legacy apikey write: POST /api/collections with the key in the body created collection $slug"
+    csrf="$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')"
+    http DELETE "/api/collections/$slug" -H "Cookie: sessionid=$(tr -d '\r\n' <"$COOKIE_FILE"); csrftoken=$csrf" \
+      -H "X-CSRFToken: $csrf" -H "Origin: $BASE" -H "Referer: $BASE/"
+    deleted="$CODE $(json_field "$tmp/b" status) $(json_field "$tmp/b" error)"
+    http GET "/api/collections/$slug"
+    if [[ "$deleted" == "200 ok "* && "$(json_field "$tmp/b" error)" == "No collection with slug"* ]]; then
+      pass "the collection the legacy write created was deleted (DELETE /api/collections/$slug, then not found)"
+    else
+      fail "could not delete collection $slug ($deleted); delete it by hand: sign in as the key's account, $BASE/collections/$slug/settings"
+    fi
+  else
+    fail "legacy apikey write: POST /api/collections returned $CODE, status '$(json_field "$tmp/b" status)', error '$(json_field "$tmp/b" error)'"
+  fi
+  rm -f "$tmp/legacy-key"
+else
+  manual "legacy apikey write: POST /api/collections with a legacy apikey in the body, then delete the collection (or pass --legacy-apikey-file F --session-cookie-file F)"
+fi
 
 envfile=""
 if [[ "$GH" == 1 ]] && command -v gh >/dev/null 2>&1; then

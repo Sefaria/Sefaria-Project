@@ -32,7 +32,17 @@ spec:
     matchLabels: {app: web-{{ .Values.deployEnv }}}
   template:
     metadata:
-      labels: {app: web-{{ .Values.deployEnv }}}
+      labels:
+        app: web-{{ .Values.deployEnv }}
+        {{- range $k, $v := .Values.web.podLabels }}
+        {{ $k }}: {{ $v | quote }}
+        {{- end }}
+      {{- with .Values.web.podAnnotations }}
+      annotations:
+        {{- range $k, $v := . }}
+        {{ $k }}: {{ $v | quote }}
+        {{- end }}
+      {{- end }}
     spec:
       terminationGracePeriodSeconds: 1
       containers:
@@ -45,3 +55,35 @@ spec:
             - {name: PGDATABASE, value: sefaria_auth}
             - {name: PGUSER, value: postgres}
             - {name: PGPASSWORD, value: postgres}
+{{- if .Values.nginx.enabled }}
+---
+# nginx as watch-promotion.sh reads it: pods app=nginx-<deployEnv>, container nginx, one structured JSON access log line
+# per request on stdout. Each line's status is the content of /tmp/status (default 200), so a test can turn on 5xx.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.deployEnv }}-nginx-standin
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: nginx-{{ .Values.deployEnv }}}
+  template:
+    metadata:
+      labels: {app: nginx-{{ .Values.deployEnv }}}
+    spec:
+      terminationGracePeriodSeconds: 1
+      containers:
+        - name: nginx
+          image: {{ .Values.nginx.image }}
+          imagePullPolicy: Never
+          command:
+            - sh
+            - -c
+            - |
+              echo "nginx stand-in: starting (not an access log line)"
+              while :; do
+                s="$(cat /tmp/status 2>/dev/null || echo 200)"
+                echo "{\"stackComponent\": \"nginx\", \"httpRequest\": {\"requestMethod\": \"GET\", \"requestUrl\": \"/api/texts/Genesis.1\", \"status\": $s, \"latency\": 0.012}}"
+                sleep 0.05
+              done
+{{- end }}

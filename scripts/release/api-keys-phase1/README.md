@@ -2,7 +2,8 @@
 
 Scripts for taking #3774 (API key program, phase 1) from master to staging, preprod and prod: a snapshot before each
 promotion, a rollback of the chart and of the database to that snapshot, preflight checks, a staging smoke test, the
-Powered by listing count, and a timed rehearsal of the migrations on a copy of the database (N-M8).
+Powered by listing count, a timed rehearsal of the migrations on a copy of the database (N-M8), and a read-only watch of
+prod while preprod's promotion migrates the shared database.
 
 A person runs them. Nothing here deploys, merges, pushes or posts anything.
 
@@ -24,7 +25,7 @@ again), so the default after a problem is: roll the code back, keep the schema, 
   context. The test suite stands in with `APIKEYS_RELEASE_TEST_CONTEXT`, which accepts only a `kind-` context.
 - **Dry run by default.** `snapshot.sh` and `restore.sh` print what they would do. `--execute` runs them; the emergency
   chart rollback and the database restore also need the env name typed back.
-- **Read-only where it says so.** `snapshot.sh`, `preflight.sh` and `listing-count.sh` read only: their SQL runs in a
+- **Read-only where it says so.** `snapshot.sh`, `preflight.sh`, `listing-count.sh` and `watch-promotion.sh` read only: their SQL runs in a
   `default_transaction_read_only` session, and dumps are `pg_dump`. The backup CronJob is not triggered (it deletes old
   dumps and posts to Slack); `snapshot.sh` uses the same `pg_dump --format=c` approach without either.
 - **No Secret values; the dumps are sensitive.** Secrets are checked by name with server-side table output, so no
@@ -44,7 +45,8 @@ again), so the default after a problem is: roll the code back, keep the schema, 
 | `restore.sh db --full`                  | Prints the manual procedure and refuses to run.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `preflight.sh`                          | Read-only checks before the preprod and prod promotions (list below). Exits 1 on a failure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `listing-count.sql`, `listing-count.sh` | Powered by projects listed now, hidden by the merge, listed after. `--record FILE` for the staging smoke test.                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `staging-smoke.sh`                      | HTTP checks of the Staging list after the merge; with `--context`, the cluster-side ones.                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `staging-smoke.sh`                      | HTTP checks of the Staging list after the merge; with `--context`, the cluster-side ones; with `--legacy-apikey-file` and `--session-cookie-file`, the legacy apikey write (creates and deletes a collection).                                                                                                                                                                                                                                                                                                                                                        |
+| `watch-promotion.sh`                    | Read-only watch while preprod is promoted: lock waits and long queries on `sefaria_auth`, the newest `powered_by` migration, prod web pods' readiness and restarts, prod nginx 5xx rate and latency; one line per tick, JSON lines on disk, an ALARM and exit 2 past the thresholds.                                                                                                                                                                                                                                                                                  |
 | `rehearse-migration.sh`                 | Restores a dump into a scratch local Postgres (docker), runs the checkout's pending migrations one at a time with their durations, samples `pg_locks`/`pg_stat_activity` every 0.2 s. Never a cluster.                                                                                                                                                                                                                                                                                                                                                                |
 | `release_lib.py`, `lib.sh`, `django/`   | Shared helpers; the Django settings overlay for running a checkout's migrations against a local port.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `tests/run-tests.sh`                    | The end-to-end test on a kind cluster (below).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -89,6 +91,11 @@ scripts/release/api-keys-phase1/staging-smoke.sh --base-url https://www.sefarias
   --listing-record listing-staging.json --context $D [--session-cookie-file F] [--knn-token-file F]
 ```
 
+The legacy apikey write is MANUAL unless `--legacy-apikey-file F --session-cookie-file F` name a legacy (non-`sfr_`) key
+of a staging test account and a session of the same account: the script then posts a private collection with the key in
+the body, checks that an unknown key is refused, and deletes the collection with the session (a legacy key cannot
+delete). The key is read from the file and never printed.
+
 On master before the merge, the smoke test fails exactly the phase 1 checks (X-Frame-Options on `/login`,
 `/register` and the password-reset page; the `OPTIONS /api/*` preflight). After the merge every automated check must pass.
 
@@ -99,9 +106,9 @@ C=gke_production-deployment_us-east1-b_cluster-1
 scripts/release/api-keys-phase1/preflight.sh --env preprod --context $C --infra-repo ~/sefaria/infrastructure
 scripts/release/api-keys-phase1/snapshot.sh --env preprod --context $C --execute --upload gs://<bucket>/api-keys-phase1/
 scripts/release/api-keys-phase1/restore.sh chart --snapshot <snapshot> --env preprod --context $C   # rollback ready?
-# promote at low traffic; while the first preprod pod migrates, watch for lock waits:
-kubectl --context $C -n default exec postgres-18-0 -c postgres-18 -- psql -U postgres -d sefaria_auth -c \
-  "SELECT pid, wait_event_type, state, now() - query_start AS waiting, left(query, 80) FROM pg_stat_activity WHERE wait_event_type = 'Lock'"
+# promote at low traffic; start the watch first and keep it running while the first preprod pod migrates
+# (exit 2 and an ALARM banner: a session waited on a lock over 5 s, or prod 5xx went over 2% of >= 50 requests a tick):
+scripts/release/api-keys-phase1/watch-promotion.sh --env preprod --context $C --interval 10 --duration 1800
 scripts/release/api-keys-phase1/preflight.sh --env prod --context $C      # afterwards: nothing pending for prod
 ```
 
@@ -116,7 +123,12 @@ is run. That must happen before `authService.enabled: true`.
 ```bash
 scripts/release/api-keys-phase1/preflight.sh --env prod --context $C --infra-repo ~/sefaria/infrastructure
 scripts/release/api-keys-phase1/snapshot.sh --env prod --context $C --execute --upload gs://<bucket>/api-keys-phase1/
+scripts/release/api-keys-phase1/watch-promotion.sh --env prod --context $C --duration 1800   # during the promotion
+scripts/release/api-keys-phase1/preflight.sh --env prod --context $C --infra-repo ~/sefaria/infrastructure   # after: CronJobs, Datadog
 ```
+
+The prod preflight renders the chart and env file at `origin/prod` (`--chart-ref`), so before the promotion it compares
+the cluster with what is deployed, and after it with the new release.
 
 ## Rolling back
 
@@ -159,7 +171,25 @@ scripts/release/api-keys-phase1/snapshot.sh --env prod --context $C --execute --
 column `auth-service/internal/registry/pgload.go` reads (`powered_by_apikey` included); Secret `auth-service-registry` in
 the env's namespace; pending migrations of the code ref (preprod: only phase 1 may be pending; prod: nothing); the env
 file's image tags in Artifact Registry; Rollouts Healthy and the HelmRelease Ready; transactions older than 60 s; for
-preprod, `DEVELOPER_SETTINGS_ENABLED` off; with `--infra-repo`, the Secret's namespace declared in the prod cluster.
+preprod, `DEVELOPER_SETTINGS_ENABLED` off; the Secret's namespace declared in the prod cluster (with `--infra-repo`,
+in `prod/cluster-1/spec/namespaces.yaml` or another Namespace manifest there; without it, a MANUAL line naming what to
+look for). For prod only, the chart and `envs/prod` values at `--chart-ref` (default `origin/prod`) are rendered with
+`helm template`: every CronJob it renders must exist in `default` (a missing one FAILs; a different schedule, a suspended
+one, or a release CronJob the chart no longer renders is a WARN), and every Running prod web pod must carry the Datadog
+labels and annotations the chart renders on the web pod template (skipped when `datadog.enabled` is off). Those two need
+helm and PyYAML for `APIKEYS_RELEASE_PYTHON3`, and are SKIPped without them.
+
+## Watching the preprod promotion
+
+`watch-promotion.sh --env preprod|prod --context C [--interval 10] [--duration 1800] [--out DIR]` changes nothing. Each
+tick it reads, in a read-only session with a 2 s lock timeout (so the watcher never queues behind the migration), the
+sessions on `sefaria_auth` waiting on a lock (what they wait for, for how long, the blocking pids) and the queries or idle
+transactions older than `--long-query` (30 s), with every string literal replaced by `?` in the query text; the newest
+`powered_by` row of `django_migrations`; prod web pods' readiness and restarts since the start; and the prod nginx
+access log lines since the previous tick (`kubectl logs --since-time`, counts of `httpRequest.status` >= 500 and latency
+percentiles; no line is printed). It prints a line per tick and appends a JSON object per tick to `DIR/watch.jsonl`.
+`--max-lock-wait` (5 s), `--max-5xx-pct` (2%) and `--min-requests` (50) set the alarms; `--stop-on-alarm` stops at the
+first. Exit 2 after an alarm, 1 when a tick could not read something, else 0.
 
 ## The test suite
 
@@ -183,9 +213,22 @@ Secrets by name. Then, in order:
    to the snapshot; `apikeys_notify()` and the triggers gone; a fresh dump taken; master's code has no unapplied
    migration and creates, lists and deletes a listing; a second restore is a no-op; phase 1 migrates forward again and
    master's code still works on that schema;
-7. `rehearse-migration.sh` on the snapshot dump with a concurrent reader.
+7. `rehearse-migration.sh` on the snapshot dump with a concurrent reader;
+8. staging-smoke's legacy apikey write against a stub of the two endpoints (MANUAL without the flag, refused without a
+   session to delete with, then create, refuse an unknown key, delete; the key never printed).
 
-Not covered by the kind suite: the Django branch of the `current_database()` probe (stand-in pods answer through
+The preflight step (3) also covers the prod-only checks against stand-ins built from the real chart's prod render
+(CronJobs with the same names and schedules, the Datadog labels and annotations on the production web pods): they
+pass, then fail with a CronJob deleted and with an annotation removed; and the namespace check (its own
+`namespace.yaml`, `namespaces.yaml`, neither, and MANUAL without `--infra-repo`). Between steps 3 and 4,
+`watch-promotion.sh` runs a clean short window (exit 0, every tick's JSON checked), then fires its lock-wait alarm
+while a transaction holds ACCESS EXCLUSIVE on `powered_by_project` and a reader waits (the reader's query literal must
+not reach the output), its 5xx alarm while a stand-in nginx (`app=nginx-production`) logs 503s, and exits 1 when it
+cannot read the database; the database is unchanged by the watches.
+
+Not covered by the kind suite: real nginx log volume and real Argo-managed web pods for the watch, the real Django
+`/api/collections` endpoints for the legacy write (the stub follows `sourcesheets/views.py`; the POST path is covered by
+`reader/tests/legacy_api_key_test.py`), the Django branch of the `current_database()` probe (stand-in pods answer through
 psql), real Flux and Argo controllers, `gcloud storage cp` and the Artifact Registry check, the `trigger-infra-deploy.yml`
 dispatch, and the rehearsal on a real copy of prod (it needs a prod snapshot). `pg_dump` runs inside the `postgres-18`
 container, under its 4 GiB memory limit; the dump of `sefaria_auth` (hundreds of MB) streams out through `kubectl exec`.
