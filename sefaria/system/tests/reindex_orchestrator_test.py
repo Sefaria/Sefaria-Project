@@ -1003,6 +1003,31 @@ def test_preflight_accepts_string_numbers_and_reports_null_disk_values():
     assert "es-1" in unknown[0]
 
 
+@pytest.mark.parametrize(
+    "avail, percent",
+    [
+        ("nan", "50"),
+        ("inf", "50"),
+        ("-1", "50"),
+        ("21474836480", "nan"),
+        ("21474836480", "inf"),
+        ("21474836480", "101"),
+    ],
+)
+def test_preflight_treats_non_finite_or_impossible_disk_values_as_unknown(avail, percent):
+    """float() accepts 'nan' and 'inf', and NaN compares False against every limit, so these
+    readings would pass silently unless they are treated as unknown."""
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green"},
+        [{"node": "es-0", "disk.avail": avail, "disk.percent": percent}],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "unknown" in problems[0]
+
+
 def test_main_preflight_failure_raises_before_any_job_or_index_change(monkeypatch):
     spec.loader.exec_module(orch)
     events = []
@@ -1141,6 +1166,12 @@ def test_parse_abort_disk_percent_rejects_values_that_disable_the_guard(raw):
     spec.loader.exec_module(orch)
     with pytest.raises(ValueError):
         orch.parse_abort_disk_percent(raw)
+
+
+def test_parse_disk_percent_names_the_env_var_it_rejects():
+    spec.loader.exec_module(orch)
+    with pytest.raises(ValueError, match="REINDEX_PREFLIGHT_MAX_DISK_PERCENT"):
+        orch.parse_abort_disk_percent("nan", name="REINDEX_PREFLIGHT_MAX_DISK_PERCENT")
 
 
 def test_parse_abort_disk_percent_accepts_a_real_percentage():

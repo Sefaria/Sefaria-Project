@@ -227,13 +227,13 @@ def incomplete_shard_indexes(completed_indexes_str, shard_count):
     return sorted(set(range(shard_count)) - completed)
 
 
-def parse_abort_disk_percent(raw):
-    """Parse REINDEX_ABORT_DISK_PERCENT. Anything that is not a finite number in (0, 100]
-    raises ValueError: float() accepts 'nan', 'inf' and '101', and each would silently turn
-    the disk guard off."""
+def parse_abort_disk_percent(raw, name="REINDEX_ABORT_DISK_PERCENT"):
+    """Parse a disk-percent limit env var (`name`). Anything that is not a finite number in
+    (0, 100] raises ValueError: float() accepts 'nan', 'inf' and '101', and each would
+    silently turn the disk guard off."""
     value = float(str(raw).strip())
     if not math.isfinite(value) or not 0 < value <= 100:
-        raise ValueError(f"REINDEX_ABORT_DISK_PERCENT must be a number in (0, 100], got {raw!r}")
+        raise ValueError(f"{name} must be a number in (0, 100], got {raw!r}")
     return value
 
 
@@ -487,7 +487,9 @@ def check_reindex_preflight(health, allocation_rows, min_free_bytes, max_disk_pe
             continue
         checked_nodes += 1
         avail = _as_number(row.get("disk.avail"))
-        percent = _as_number(row.get("disk.percent"))
+        if avail is not None and (not math.isfinite(avail) or avail < 0):
+            avail = None  # 'nan'/'inf' parse as floats but compare False, which would pass silently
+        percent = _disk_percent(row)
         if avail is None or percent is None:
             problems.append(
                 f"node {node} disk usage is unknown (disk.avail={row.get('disk.avail')!r}, "
@@ -671,7 +673,9 @@ def main():
         )
     else:
         min_free_gb = float(os.environ.get("REINDEX_PREFLIGHT_MIN_FREE_GB", "12"))
-        max_disk_percent = float(os.environ.get("REINDEX_PREFLIGHT_MAX_DISK_PERCENT", "75"))
+        max_disk_percent = parse_abort_disk_percent(
+            os.environ.get("REINDEX_PREFLIGHT_MAX_DISK_PERCENT", "75"), name="REINDEX_PREFLIGHT_MAX_DISK_PERCENT"
+        )
         health, allocation_rows = read_reindex_preflight_inputs(search_module.es_client)
         problems = check_reindex_preflight(
             health,
