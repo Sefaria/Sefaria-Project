@@ -624,3 +624,66 @@ def test_get_he_text_titles():
     titles = library.full_title_list(lang="he")
     for txt in txts:
         assert txt in titles
+
+
+# ---------------------------------------------------------------------------
+# Index-map rebuild is atomic; truncated TOCs are not published (sc-48341)
+# ---------------------------------------------------------------------------
+
+
+def test_build_index_maps_never_exposes_partial_maps(monkeypatch):
+    import threading
+
+    from sefaria.model import text as text_module
+
+    library.get_index("Genesis")  # make sure the maps are built
+    full_index_count = len(library._index_map)
+    full_title_keys = len(library._index_title_maps["en"])
+    assert full_index_count > 100
+
+    paused, resume = threading.Event(), threading.Event()
+    real_index_set = text_module.IndexSet
+
+    class PausingIndexSet:
+        def with_skip_guard(self, *args, **kwargs):
+            for n, index in enumerate(real_index_set().with_skip_guard(*args, **kwargs)):
+                if n == 50:
+                    paused.set()
+                    resume.wait(10)
+                yield index
+
+    monkeypatch.setattr(text_module, "IndexSet", PausingIndexSet)
+    builder = threading.Thread(target=library._build_index_maps)
+    builder.start()
+    try:
+        assert paused.wait(10), "rebuild never reached the pause point"
+        # mid-rebuild, other threads must still see the previous, complete maps
+        assert len(library._index_map) == full_index_count
+        assert len(library._index_title_maps["en"]) == full_title_keys
+    finally:
+        resume.set()
+        builder.join(30)
+    assert len(library._index_map) == full_index_count
+
+
+def test_truncated_toc_is_not_published(monkeypatch):
+    from sefaria.model import text as text_module
+    from sefaria.system.exceptions import BuildDegradationError
+
+    class FakeIndexCollection:
+        @staticmethod
+        def estimated_document_count():
+            return 1000
+
+    class FakeDb:
+        index = FakeIndexCollection()
+
+    monkeypatch.setattr(text_module, "db", FakeDb())
+
+    def toc_with(n):
+        return [{"category": "Tanakh", "contents": [{"title": f"Book {i}"} for i in range(n)]}]
+
+    library._check_toc_plausible("toc", toc_with(1000))  # complete: fine
+    library._check_toc_plausible("toc", toc_with(900))  # exactly at the floor: fine
+    with pytest.raises(BuildDegradationError):
+        library._check_toc_plausible("toc", toc_with(150))  # the Nov 8 shape (~1k of ~6.6k)

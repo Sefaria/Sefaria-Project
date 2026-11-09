@@ -1,6 +1,7 @@
 import hashlib
 import random
 import sys
+import threading
 import time
 import uuid
 from collections.abc import Callable
@@ -265,6 +266,7 @@ class GenCache:
         self._last_checked = {}  # key -> monotonic time of last check
         self._refreshers = {}  # key -> refresh_fn
         self._pending_bumps = set()  # keys whose bump failed; retried after the next successful Redis call
+        self._locks = {}  # key -> RLock serializing that key's refresh
         self.redis = redis_client
         # namespaces the counters when several deployments share one Redis (e.g. cauldrons)
         self._key_prefix = f"{key_prefix}:" if key_prefix else ""
@@ -282,6 +284,24 @@ class GenCache:
         refresh_fn = self._refreshers[key]
         is_first_access = key not in self._gens
 
+        now = time.monotonic()
+        if not is_first_access and now - self._last_checked.get(key, 0) < self.check_interval_seconds:
+            return self._data.get(key)
+
+        # One thread refreshes a key at a time. Without this, concurrent threads each run refresh_fn,
+        # and for in-place objects (e.g. Library's index maps) one thread reads another's half-built
+        # state. Waiters serve the current value rather than block, except on first access when
+        # there is none. RLock: a refresh_fn may re-enter get() for its own key on the same thread.
+        lock = self._locks.setdefault(key, threading.RLock())
+        if not lock.acquire(blocking=is_first_access):
+            return self._data.get(key)
+        try:
+            return self._get_locked(key, refresh_fn)
+        finally:
+            lock.release()
+
+    def _get_locked(self, key: str, refresh_fn: Callable[[], Any]):
+        is_first_access = key not in self._gens  # re-read: another thread may have finished the first refresh
         now = time.monotonic()
         if not is_first_access and now - self._last_checked.get(key, 0) < self.check_interval_seconds:
             return self._data.get(key)
