@@ -32,7 +32,7 @@ else
 fi
 s="$(gw $GW_HC $GATED ncr8)"; c="$(gw_code $GW_HC $GATED ncr8)"
 if [ "$s" = 200 ]; then
-  pass "N-CR8 empty start (/readyz $ready): a valid key fails open"
+  pass "N-CR8 empty start: a valid key fails open (/readyz $ready)"
 else
   gap N-CR8 "empty start: /readyz $ready with 0 keys and a valid key gets $s $c through Envoy"
 fi

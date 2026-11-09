@@ -244,10 +244,15 @@ def render_nginx(run_dir):
     (chart / "conf").mkdir()
     shutil.copy(CHART / "conf" / "nginx.template.conf.tpl", chart / "conf")
     (chart / "Chart.yaml").write_text("apiVersion: v2\nname: nginx-local\nversion: 0.0.0\n")
+    # The stack runs the auth service, so nginx renders as with authService.enabled, with the chart's default for the
+    # x-sefaria-* log fields (authService.nginxLogFields).
+    chart_values = yaml.safe_load((CHART / "values.yaml").read_text())
+    log_fields = bool(chart_values.get("authService", {}).get("nginxLogFields", False))
     values = (
         NGINX_VALUES
         + _modules_yaml()
-        + "instrumentation:\n  enabled: false\nauthService:\n  enabled: true\ngateway:\n  enabled: true\n"
+        + "instrumentation:\n  enabled: false\ngateway:\n  enabled: true\n"
+        + "authService:\n  enabled: true\n  nginxLogFields: %s\n" % ("true" if log_fields else "false")
     )
     (chart / "values.yaml").write_text(values)
     (chart / "templates" / "configmap.yaml").write_text(NGINX_TEMPLATE_WRAPPER)
@@ -258,6 +263,8 @@ def render_nginx(run_dir):
         text=True,
     ).stdout
     rendered = yaml.safe_load(out)["data"]["nginx.template.conf"]
+    if log_fields and '"sefariaTier": "$http_x_sefaria_tier"' not in rendered:
+        sys.exit("render: authService.nginxLogFields is on but the nginx log format has no sefariaTier field")
     for why, old, new in LOCAL_NGINX_DEVIATIONS:
         if old not in rendered:
             sys.exit("render: nginx deviation no longer applies (%s): %r not found" % (why, old))

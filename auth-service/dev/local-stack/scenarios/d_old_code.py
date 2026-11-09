@@ -143,6 +143,12 @@ say(
 
 # D-1b: a profile written by SQL with no api_project row cannot take a key: the key FK targets api_project, so an
 # old image's key write for such a profile is refused.
+# The profile id must not also be an api_project id (api_project ids come from profile ids or the sequence), or the
+# key would land on that other api_project row and the FK would have nothing to refuse.
+sql(
+    "SELECT setval(pg_get_serial_sequence('powered_by_project', 'id'), GREATEST("
+    "(SELECT COALESCE(max(id), 1) FROM powered_by_project), (SELECT COALESCE(max(id), 1) FROM api_project)))"
+)
 no_api = project_row("D11 no-api-project")
 error = None
 try:

@@ -34,11 +34,23 @@ for env in staging preprod prod; do
     fail "E3 $env off: $(grep -m1 FAIL "$OUT/$env.off.check")"
   fi
   diff <(normalize <"$OUT/$env.base.yaml") <(normalize <"$OUT/$env.off.yaml") >"$OUT/$env.base.diff"
-  other="$(grep '^[<>]' "$OUT/$env.base.diff" | grep -vcE '^> +DEVELOPER_SETTINGS_(MOCKS|ENABLED|STAFF_ONLY)(: "False"| = os.getenv\("DEVELOPER_SETTINGS_(MOCKS|ENABLED|STAFF_ONLY)", "False"\))' || true)"
+  # What phase 1 changes with the flag off, by design (release plan, "These still go live on merge"): the
+  # DEVELOPER_SETTINGS_* flags, all False; api_key scrubbing in gunicorn's access log and nginx's (the scrub maps and
+  # the structured log_format, whose fields helm-chart/tests/auth_service_render_test.py checks); comments.
+  grep '^[<>]' "$OUT/$env.base.diff" | grep -vE \
+    -e '^> +DEVELOPER_SETTINGS_(MOCKS|ENABLED|STAFF_ONLY)(: "False"| = os.getenv\("DEVELOPER_SETTINGS_(MOCKS|ENABLED|STAFF_ONLY)", "False"\)\.lower\(\) == "true"| = os.getenv\("DEVELOPER_SETTINGS_(MOCKS|ENABLED|STAFF_ONLY)", "False"\))$' \
+    -e '^> +logger_class = "sefaria\.system\.gunicorn_logger\.ScrubbingLogger"$' \
+    -e '^> +map \$[a-z_0-9]+ \$(uri_scrub_[0-9]|request_uri_scrubbed|referer_scrub_[0-9]|referer_scrubbed) \{$' \
+    -e '^> +"~\*\^.*(a\|%61\|%41).*" "(\$pre\[REDACTED\]\$post|\[REDACTED-URI\]|\[REDACTED-REFERER\])";$' \
+    -e '^> +default \$(request_uri|http_referer|uri_scrub_[0-9]|referer_scrub_[0-9]);$' \
+    -e '^> +\}$' \
+    -e '^[<>] +log_format structured escape=json ' \
+    -e '^> *(#.*)?$' >"$OUT/$env.base.unexpected"
+  other="$(grep -c . "$OUT/$env.base.unexpected" || true)"
   if [ "$other" = 0 ]; then
-    pass "E3 $env off: identical to the merge base's chart except the DEVELOPER_SETTINGS_* flags, all False ($(grep -c '^>' "$OUT/$env.base.diff") added lines)"
+    pass "E3 $env off: differs from the merge base's chart only by the DEVELOPER_SETTINGS_* flags (all False) and api_key log scrubbing ($(grep -c '^>' "$OUT/$env.base.diff") added lines)"
   else
-    fail "E3 $env off: $other unexpected lines differ from the merge base's chart ($OUT/$env.base.diff)"
+    fail "E3 $env off: $other unexpected lines differ from the merge base's chart ($OUT/$env.base.unexpected; full diff $OUT/$env.base.diff)"
   fi
   if diff -q <(normalize <"$OUT/$env.master.yaml") <(normalize <"$OUT/$env.off.yaml") >/dev/null; then
     info "E3 $env off: identical to origin/master's chart too"
@@ -53,7 +65,13 @@ for d in yaml.safe_load_all(open(sys.argv[1])):
     if d and d.get('kind') == 'ConfigMap':
         seen.update(k + '=' + str(v) for k, v in (d.get('data') or {}).items() if k.startswith('DEVELOPER_SETTINGS_'))
 print(','.join(sorted(seen)))" "$OUT/$env.off.yaml")"
-  check E3 "$env: developer settings flags off by default" "$flags" "DEVELOPER_SETTINGS_ENABLED=False,DEVELOPER_SETTINGS_MOCKS=False,DEVELOPER_SETTINGS_STAFF_ONLY=False"
+  # MOCKS is gone once the test controls are removed; whichever flags render must all be False.
+  case ",$flags," in
+    *DEVELOPER_SETTINGS_ENABLED=False*DEVELOPER_SETTINGS_STAFF_ONLY=False*)
+      if [[ ",$flags," == *=True* ]]; then fail "E3 $env: a developer settings flag is on by default ($flags)"
+      else pass "E3 $env: developer settings flags off by default ($flags)"; fi ;;
+    *) fail "E3 $env: developer settings flags missing or on ($flags)" ;;
+  esac
 done
 
 # On (and off again) with each env file's values: render-check.sh. Without a local helm, a shim runs the container

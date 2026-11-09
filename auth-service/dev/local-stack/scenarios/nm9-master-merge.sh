@@ -23,11 +23,16 @@ trap cleanup EXIT
 g() { git -C "$WT" -c core.hooksPath=/dev/null "$@"; }
 info "N-M9 scratch branch $BRANCH at $(g rev-parse --short HEAD) + $MASTER_REF $(g rev-parse --short "$MASTER_REF")"
 
-# 1. Merge, expecting exactly the ClientTrafficPolicy conflict.
+# 1. Merge. The one expected conflict is the ClientTrafficPolicy (both sides add a block under spec); once master's
+# change is in the branch the merge is clean.
 g merge --no-edit --no-ff "$MASTER_REF" >"$OUT/merge.log" 2>&1
+merge_rc=$?
 conflicts="$(g diff --name-only --diff-filter=U | paste -sd, -)"
-check N-M9 "the only conflict" "$conflicts" helm-chart/sefaria/templates/gateway/clienttrafficpolicy.yaml
 CTP="$WT/helm-chart/sefaria/templates/gateway/clienttrafficpolicy.yaml"
+if [ -z "$conflicts" ] && [ "$merge_rc" = 0 ]; then
+  pass "N-M9 master merges cleanly ($(g rev-parse --short HEAD))"
+else
+check N-M9 "the only conflict" "$conflicts" helm-chart/sefaria/templates/gateway/clienttrafficpolicy.yaml
 g show "$MASTER_REF:helm-chart/sefaria/templates/gateway/clienttrafficpolicy.yaml" >"$OUT/ctp.master.yaml"
 g show "HEAD:helm-chart/sefaria/templates/gateway/clienttrafficpolicy.yaml" >"$OUT/ctp.branch.yaml"
 python3 - "$OUT/ctp.master.yaml" "$OUT/ctp.branch.yaml" "$CTP" <<'PY'
@@ -41,22 +46,40 @@ open(sys.argv[3], "w").write(master[:tail] + auth_block + master[tail:])
 PY
 g add "$CTP" && g commit -q --no-verify -m "chore: scratch merge of master (local test only)" \
   && pass "N-M9 merge committed on the local scratch branch ($(g rev-parse --short HEAD))" || fail "N-M9 merge commit failed"
+fi
 
 # 2. Chart: both blocks under spec with auth on; the path block alone with auth off.
 helm_tpl() { docker run --rm -v "$WT/helm-chart/sefaria:/chart:ro" alpine/helm:3.16.4 template x /chart --set deployEnv=x --set gateway.enabled=true "$@"; }
 helm_tpl --set authService.enabled=true --set authService.image.tag=test >"$OUT/on.yaml" 2>"$OUT/on.err" || fail "N-M9 chart does not render with auth on"
 helm_tpl >"$OUT/off.yaml" 2>"$OUT/off.err" || fail "N-M9 chart does not render with auth off"
-ctp() { yq -N "select(.kind == \"ClientTrafficPolicy\") | $2" "$OUT/$1.yaml"; }
-check N-M9 "auth on: spec.path.escapedSlashesAction" "$(ctp on .spec.path.escapedSlashesAction)" KeepUnchanged
-check N-M9 "auth on: spec.headers.earlyRequestHeaders.remove" "$(ctp on '.spec.headers.earlyRequestHeaders.remove | join(",")')" x-sefaria-tier,x-sefaria-project,x-sefaria-auth-result
-check N-M9 "auth off: spec.path.escapedSlashesAction" "$(ctp off .spec.path.escapedSlashesAction)" KeepUnchanged
-check N-M9 "auth off: no spec.headers" "$(ctp off .spec.headers)" null
-ENV=x bash "$WT/auth-service/scripts/render-check.sh" "$OUT/on.yaml" >"$OUT/render-check.log" 2>&1 \
-  && pass "N-M9 render-check.sh on the merged chart" || fail "N-M9 render-check.sh: $(grep -m1 FAIL "$OUT/render-check.log")"
-SHIM="$OUT/bin"; mkdir -p "$SHIM"
-printf '#!/usr/bin/env bash\nexec docker run --rm -v "%s:%s:ro" -w "$PWD" alpine/helm:3.16.4 "$@"\n' "$WT" "$WT" >"$SHIM/helm"; chmod +x "$SHIM/helm"
-(cd "$WT/auth-service" && PATH="$SHIM:$PATH" make -s helm-matrix) >"$OUT/helm-matrix.log" 2>&1 \
-  && pass "N-M9 make helm-matrix on the merged chart" || fail "N-M9 helm-matrix: $(tail -2 "$OUT/helm-matrix.log" | tr '\n' ' ')"
+# ctp RENDER FIELD -> a ClientTrafficPolicy field (dotted path) as text: lists joined with commas, a missing one "null".
+ctp() {
+  "$PYTHON" - "$OUT/$1.yaml" "$2" <<'PY'
+import sys, yaml
+doc = next(d for d in yaml.safe_load_all(open(sys.argv[1])) if d and d.get("kind") == "ClientTrafficPolicy")
+for part in sys.argv[2].split("."):
+    doc = doc.get(part) if isinstance(doc, dict) else None
+print("null" if doc is None else ",".join(doc) if isinstance(doc, list) else doc)
+PY
+}
+check N-M9 "auth on: spec.path.escapedSlashesAction" "$(ctp on spec.path.escapedSlashesAction)" KeepUnchanged
+removed="$(ctp on spec.headers.earlyRequestHeaders.remove)"
+case ",$removed," in
+  *,x-sefaria-tier,*x-sefaria-project,*x-sefaria-auth-result,*) pass "N-M9 auth on: the listener strips the x-sefaria-* stamp ($removed)" ;;
+  *) fail "N-M9 auth on: spec.headers.earlyRequestHeaders.remove is '$removed'" ;;
+esac
+check N-M9 "auth off: spec.path.escapedSlashesAction" "$(ctp off spec.path.escapedSlashesAction)" KeepUnchanged
+check N-M9 "auth off: no spec.headers" "$(ctp off spec.headers)" null
+"$PYTHON" "$WT/auth-service/scripts/render_check.py" "$OUT/on.yaml" >"$OUT/render-check.log" 2>&1 \
+  && pass "N-M9 render_check.py on the merged chart ($(grep -c '^ok:' "$OUT/render-check.log") checks)" || fail "N-M9 render_check.py: $(grep -m1 FAIL "$OUT/render-check.log")"
+if command -v yq >/dev/null 2>&1; then
+  SHIM="$OUT/bin"; mkdir -p "$SHIM"
+  printf '#!/usr/bin/env bash\nexec docker run --rm -v "%s:%s:ro" -w "$PWD" alpine/helm:3.16.4 "$@"\n' "$WT" "$WT" >"$SHIM/helm"; chmod +x "$SHIM/helm"
+  (cd "$WT/auth-service" && PATH="$SHIM:$PATH" make -s helm-matrix) >"$OUT/helm-matrix.log" 2>&1 \
+    && pass "N-M9 make helm-matrix on the merged chart" || fail "N-M9 helm-matrix: $(tail -2 "$OUT/helm-matrix.log" | tr '\n' ' ')"
+else
+  info "N-M9 make helm-matrix skipped: yq is not installed"
+fi
 
 # 3. Jest on the merged tree, with a fresh install from the merged lockfile.
 if npm_ci "$WT"; then
@@ -100,7 +123,8 @@ elif [ "$BUNDLE_OK" = 1 ]; then
   (cd "$WT" && exec env -u FRONT_END_URL -u CI_RUN PYTHONPATH="$WT/auth-service/dev/local-stack" APIKEYS_STACK_PG_PORT=$D11_PG_PORT \
     DJANGO_SETTINGS_MODULE=django_settings DEVELOPER_SETTINGS_ENABLED=true "$PYTHON" manage.py runserver --noreload 127.0.0.1:$SMOKE_PORT) >"$OUT/runserver.log" 2>&1 &
   SERVER_PID=$!
-  wait_for 120 'test "$(http_code http://127.0.0.1:'$SMOKE_PORT'/api/texts/Genesis.1.1 20)" = 200' >/dev/null
+  # Startup builds the autocomplete tables first: minutes on a loaded box.
+  wait_for "${NM9_STARTUP_WAIT:-420}" 'test "$(http_code http://127.0.0.1:'$SMOKE_PORT'/api/texts/Genesis.1.1 20)" = 200' >/dev/null
   for path in / /texts /Genesis.1 /api/texts/Genesis.1.1 /api/v3/texts/Genesis.1.1 /api-terms /settings/account /api/developer/state; do
     st="$(curl -s -o /dev/null -m 60 -w '%{http_code}' "http://127.0.0.1:$SMOKE_PORT$path")"
     case "$st" in 2??|3??|401|403) pass "N-M9 smoke $path -> $st" ;; *) fail "N-M9 smoke $path -> $st" ;; esac
