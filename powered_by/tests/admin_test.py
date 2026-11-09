@@ -9,6 +9,7 @@ from datetime import timedelta
 from html.parser import HTMLParser
 
 import pytest
+from django.contrib import admin
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -177,6 +178,37 @@ class ProjectAdminTest(TestCase):
         self.assertEqual(delete_response.status_code, 200)
         self.assertContains(delete_response, "Masked")
         self.assertNotIn("sfr_abcdef1234567890", delete)
+
+    def test_masked_key_of_an_unsaved_key_is_a_dash(self):
+        from powered_by.admin import ApiKeyInline
+
+        inline = ApiKeyInline(ApiProject, admin.site)
+
+        self.assertEqual(inline.masked_key(ApiKey(project=self.api_project)), "-")
+        self.assertEqual(inline.masked_key(None), "-")
+        self.assertEqual(inline.masked_key(self.key), self.key.key[:10] + "\u2026")
+
+    def test_api_project_changelist_search_by_key_prefix_never_shows_the_key(self):
+        other_profile = Project.objects.create(
+            submission_source=SubmissionSource.DEVELOPER_SETTINGS,
+            project_name="Other project",
+            request_not_to_publish=False,
+            is_published=True,
+        )
+        other = ApiProject.objects.create(profile=other_profile)
+        ApiKey.objects.create(project=other, label="Other")
+
+        response = self.client.get(admin_url("changelist", model="apiproject"), {"q": self.key.key[:12]})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([p.pk for p in response.context["cl"].result_list], [self.api_project.pk])
+        self.assertNotIn(self.key.key, response.content.decode())
+
+    def test_api_project_history_page_never_shows_the_key(self):
+        response = self.client.get(admin_url("history", self.api_project.pk, model="apiproject"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(self.key.key, response.content.decode())
 
     def test_N_M11_deleting_a_project_with_keys_is_refused_with_a_page(self):
         url = admin_url("delete", self.listing.pk)

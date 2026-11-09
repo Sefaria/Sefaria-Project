@@ -26,6 +26,9 @@ class ApiKeyInline(admin.TabularInline):
 
     @admin.display(description="Key")
     def masked_key(self, obj):
+        # An unsaved "Add another" row holds the default's freshly generated key, which will never exist.
+        if obj is None or obj._state.adding:
+            return "-"
         # The prefix and 6 characters, enough to tell keys apart in a log or a support request, never the secret.
         return obj.key[:10] + "\u2026"
 
@@ -160,6 +163,8 @@ class ProjectAdmin(admin.ModelAdmin):
 @admin.register(ApiProject)
 class ApiProjectAdmin(admin.ModelAdmin):
     list_display = ("id", "profile", "owner", "tier", "deleted_at")
+    # Finds a project from a key prefix quoted in a support request; the key itself is never displayed.
+    search_fields = ("api_keys__key__startswith",)
     raw_id_fields = ("profile", "owner")
     readonly_fields = ("deleted_at", "created_at", "updated_at")
     inlines = (ApiKeyInline,)
