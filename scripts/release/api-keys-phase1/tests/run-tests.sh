@@ -455,6 +455,11 @@ psql_pod -c "CREATE FUNCTION apikeys_notify() RETURNS trigger LANGUAGE plpgsql A
 ! grep -q "already matches" "$LOGS/fn-only.log" && grep -q "DRY RUN" "$LOGS/fn-only.log" \
   && ok "a leftover apikeys_notify() is not 'already matches'" || notok "function-only difference ($LOGS/fn-only.log)"
 psql_pod -c "DROP FUNCTION apikeys_notify()" >/dev/null
+# A snapshot without apikeys_notify.state could not be verified after a restore: refused before anything changes.
+mv "$SNAP/db/apikeys_notify.state" "$SNAP/db/apikeys_notify.state.hidden"
+refuses "restore db --scoped refuses a snapshot without apikeys_notify.state" "no db/apikeys_notify.state" \
+  "$REL/restore.sh" db --snapshot "$SNAP" --env preprod --context "$CTX" --scoped
+mv "$SNAP/db/apikeys_notify.state.hidden" "$SNAP/db/apikeys_notify.state"
 check "restore db --scoped again is a no-op" bash -c "'$REL/restore.sh' db --snapshot '$SNAP' --env preprod --context '$CTX' --scoped 2>&1 | grep 'already matches'"
 check "phase 1 migrates forward again after the restore" manage "$PHASE1_CODE" migrate --noinput
 check "master's code still lists after phase 1 re-migrated (old code on the new schema)" django "$MASTER_CODE" "$HERE/django/master_listing_check.py"

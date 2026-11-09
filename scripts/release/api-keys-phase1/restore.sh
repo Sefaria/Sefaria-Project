@@ -251,18 +251,17 @@ image_guard() {
 }
 
 # The snapshot's apikeys_notify() state: md5 of its definition, or "absent".
+# The function's state as the snapshot recorded it. snapshot.sh always writes apikeys_notify.state; a snapshot without it
+# cannot be verified after a restore, so db_scoped refuses it before changing anything.
 snapshot_fn_state() {
-  if [[ -f "$SNAP/db/apikeys_notify.state" ]]; then
-    cat "$SNAP/db/apikeys_notify.state"
-  elif [[ -f "$SNAP/db/apikeys_notify.sql" ]]; then
-    echo "unknown"
-  else
-    echo absent
-  fi
+  cat "$SNAP/db/apikeys_notify.state"
 }
 
 db_scoped() {
-  local work stamp
+  local work stamp snap_fn
+  [[ -f "$SNAP/db/apikeys_notify.state" ]] \
+    || die "the snapshot has no db/apikeys_notify.state, so a restore could not be verified; take a new snapshot with snapshot.sh"
+  snap_fn="$(snapshot_fn_state)"
   stamp="$(date -u +%Y%m%dT%H%M%SZ)"
   work="$SNAP/restore-$stamp"
   step "scoped restore of $DB (powered_by and phase 1 tables) to the snapshot of $(mget created_at)"
@@ -279,7 +278,7 @@ db_scoped() {
   log "  snapshot tables: $snap_tables"
   log "  current tables:  $current_tables"
   # shellcheck disable=SC2086
-  if [[ "$snap_tables" == "$current_tables" ]] && [[ "$(notify_fn_sql | pg_ro "$DB" -At)" == "$(snapshot_fn_state)" ]] && checksums_sql $current_tables | pg_ro "$DB" -At -F "$TAB" | cmp -s - "$SNAP/db/scoped-checksums.tsv" \
+  if [[ "$snap_tables" == "$current_tables" ]] && [[ "$(notify_fn_sql | pg_ro "$DB" -At)" == "$snap_fn" ]] && checksums_sql $current_tables | pg_ro "$DB" -At -F "$TAB" | cmp -s - "$SNAP/db/scoped-checksums.tsv" \
     && scoped_schema "$DB" $current_tables >"${TMPDIR:-/tmp}/apikeys-schema.$$" && schema_matches "$SNAP" "${TMPDIR:-/tmp}/apikeys-schema.$$" 2>/dev/null; then
     rm -f "${TMPDIR:-/tmp}/apikeys-schema.$$"
     log "  the database already matches the snapshot; nothing to do"
@@ -371,7 +370,7 @@ PY
   diff -u "$SNAP/db/scoped-checksums.tsv" "$work/checksums-after.tsv" >&2 || { log "  row checksums differ"; ok=0; }
   local fn_now
   fn_now="$(notify_fn_sql | pg_ro "$DB" -At)"
-  [[ "$fn_now" == "$(snapshot_fn_state)" ]] || { log "  apikeys_notify(): now '$fn_now', snapshot '$(snapshot_fn_state)'"; ok=0; }
+  [[ "$fn_now" == "$snap_fn" ]] || { log "  apikeys_notify(): now '$fn_now', snapshot '$snap_fn'"; ok=0; }
   [[ "$ok" == 1 ]] || die "the database does not match the snapshot after the restore (see above; fresh dump in $work)"
   log "  schema, row checksums, powered_by migrations and apikeys_notify() equal the snapshot"
 }
