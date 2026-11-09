@@ -74,6 +74,12 @@ func main() {
 	if err != nil || interval <= 0 {
 		panic(fmt.Sprintf("RELOAD_INTERVAL must be a positive Go duration such as 60s, got %q", os.Getenv("RELOAD_INTERVAL")))
 	}
+	// After SIGTERM the pod reports not ready but keeps answering for this long, so Envoy stops sending it checks before
+	// the servers close. Stopping at once lets the checks still in flight to this address fail open.
+	drain, err := time.ParseDuration(envOr("SHUTDOWN_DRAIN", "5s"))
+	if err != nil || drain < 0 {
+		panic(fmt.Sprintf("SHUTDOWN_DRAIN must be a Go duration of zero or more such as 5s, got %q", os.Getenv("SHUTDOWN_DRAIN")))
+	}
 
 	reg := registry.New()
 	// Unix time of the last accepted registry load; 0 until the first one. Its alert fires on a stale or never-set value.
@@ -214,8 +220,9 @@ func main() {
 	}()
 
 	<-ctx.Done()
-	slog.Info("shutting down")
+	slog.Info("shutting down", "drain", drain)
 	ready.Store(false)
+	time.Sleep(drain)
 	done := make(chan struct{})
 	go func() { gs.GracefulStop(); close(done) }()
 	select {
