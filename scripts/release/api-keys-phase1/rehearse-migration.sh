@@ -107,7 +107,7 @@ sleep 1
 step "migrations of $CODE, one at a time"
 (
   cd "$CODE"
-  RELEASE_PG_PORT="$PORT" RELEASE_PG_DB="$DBN" PYTHONPATH="$CODE:$RELEASE_DIR/django" DJANGO_SETTINGS_MODULE=release_settings \
+  RELEASE_PG_HOST=127.0.0.1 RELEASE_PG_PORT="$PORT" RELEASE_PG_DB="$DBN" RELEASE_PG_USER=postgres RELEASE_PG_PASSWORD=postgres PYTHONPATH="$CODE:$RELEASE_DIR/django" DJANGO_SETTINGS_MODULE=release_settings \
     "$PY" "$RELEASE_DIR/django/rehearse_migrate.py"
 ) >"$OUT/timings.jsonl" 2>"$OUT/migrate.log" || { cat "$OUT/migrate.log" >&2; die "a migration failed (log: $OUT/migrate.log)"; }
 sleep 1

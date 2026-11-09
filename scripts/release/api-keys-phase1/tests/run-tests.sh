@@ -92,7 +92,7 @@ psql_pod() { k -n default exec -i postgres-18-0 -c postgres-18 -- psql -X -q -v 
 django() {
   local code="$1"
   shift
-  (cd "$code" && RELEASE_PG_PORT="$PF_PORT" PYTHONPATH="$code:$REL/django" DJANGO_SETTINGS_MODULE=release_settings "$PY" "$@")
+  (cd "$code" && RELEASE_PG_HOST=127.0.0.1 RELEASE_PG_PORT="$PF_PORT" RELEASE_PG_DB=sefaria_auth RELEASE_PG_USER=postgres RELEASE_PG_PASSWORD=postgres PYTHONPATH="$code:$REL/django" DJANGO_SETTINGS_MODULE=release_settings "$PY" "$@")
 }
 manage() {
   local code="$1"
@@ -301,6 +301,14 @@ refuses "preflight fails without the reader grant on powered_by_apikey" "lacks S
 psql_pod -c "GRANT SELECT (id, key, project_id, label, allowed_origins, revoked_at) ON powered_by_apikey TO auth_service_reader" >/dev/null
 check "preflight preprod passes once the grant exists" "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --infra-repo "$WORK/infra"
 check "preflight prod passes (nothing pending, Secret in default)" "$REL/preflight.sh" --env prod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
+# A migration outside phase 1 pending at the code ref fails the preprod preflight unless it is named.
+git -C "$FIX" checkout -q master && mkdir -p "$FIX/reader/migrations" && touch "$FIX/reader/migrations/0099_release_test.py" \
+  && git -C "$FIX" add -A && git -C "$FIX" commit -qm "fixture: an extra migration" && git -C "$FIX" push -q origin master
+refuses "preflight fails when a migration outside phase 1 is pending" "outside phase 1 would also run" \
+  "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
+check "preflight passes when that migration is acknowledged with --allow-pending" \
+  "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --allow-pending reader/0099_release_test
+git -C "$FIX" reset -q --hard HEAD~1 && git -C "$FIX" push -q -f origin master
 k -n preprod delete secret auth-service-registry >/dev/null
 refuses "preflight fails when the registry Secret is missing" "auth-service-registry is missing" \
   "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
@@ -312,6 +320,14 @@ before="$(db_state)"
 refuses "restore db --scoped refuses while a preprod pod runs the phase 1 image" "runs an image other than the snapshot" \
   bash -c "echo preprod | '$REL/restore.sh' db --snapshot '$SNAP' --env preprod --context '$CTX' --scoped --execute"
 [[ "$(db_state)" == "$before" ]] && ok "the refused restore changed nothing" || notok "the refused restore changed the database"
+# A snapshot that recorded no running web pod for an env cannot prove the pods are safe: refuse.
+cp -r "$SNAP" "$WORK/snap-nopods"
+"$PY" - "$WORK/snap-nopods/manifest.json" <<'PY'
+import json, sys
+m = json.load(open(sys.argv[1])); m["envs"]["prod"]["web_pods"] = []; json.dump(m, open(sys.argv[1], "w"))
+PY
+refuses "restore db --scoped refuses when the snapshot recorded no running web pod" "recorded no running web pod" \
+  "$REL/restore.sh" db --snapshot "$WORK/snap-nopods" --env preprod --context "$CTX" --scoped
 refuses "restore db --full refuses and prints the procedure" "refusing to run a full-database restore" \
   "$REL/restore.sh" db --snapshot "$SNAP" --env preprod --full
 

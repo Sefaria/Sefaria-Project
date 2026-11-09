@@ -39,7 +39,20 @@ REFUSALS="$("$PYTHON" "$RELEASE_PY" listing-refusals "$migration")"
 if [[ -n "$DSN" ]]; then
   need psql
   out="$(PGOPTIONS="-c default_transaction_read_only=on" psql -X -q -v ON_ERROR_STOP=1 -At -F "$TAB" -v refusals="$REFUSALS" "$DSN" <"$RELEASE_DIR/listing-count.sql")"
-  where="$DSN"
+  # Never echo or record a password from the DSN.
+  where="$("$PYTHON" - "$DSN" <<'PY'
+import re, sys
+from urllib.parse import urlsplit, urlunsplit
+dsn = sys.argv[1]
+if "://" in dsn:
+    u = urlsplit(dsn)
+    host = u.hostname or ""
+    netloc = (f"{u.username}@" if u.username else "") + host + (f":{u.port}" if u.port else "")
+    print(urlunsplit((u.scheme, netloc, u.path, "", "")))
+else:
+    print(re.sub(r"password\s*=\s*('[^']*'|\S+)", "password=***", dsn))
+PY
+)"
 else
   need kubectl
   check_context "$ENV" "$CTX"

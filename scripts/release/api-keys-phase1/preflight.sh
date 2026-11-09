@@ -2,15 +2,15 @@
 # preflight.sh: read-only checks before the preprod promotion (which migrates prod's database) and before the prod one.
 #
 #   preflight.sh --env preprod|prod --context C [--code-ref REF] [--repo DIR] [--infra-repo DIR] [--no-fetch]
-#                [--skip-image-check]
+#                [--skip-image-check] [--allow-pending app/name,...]
 #
 # Checks (from the release plan's Preprod and Prod lists), each printed as PASS, FAIL, WARN or SKIP:
 #   - current_database() on a preprod web pod and on a prod web pod is sefaria_auth (they share it)
 #   - role auth_service_reader exists, may CONNECT, and has SELECT on every column the auth service loader reads
 #     (powered_by_apikey included); tables not created yet are WARN, a missing grant on an existing table is FAIL
 #   - Secret auth-service-registry exists in the env's namespace (name only)
-#   - pending migrations: the code at --code-ref against django_migrations. preprod: only phase 1 migrations may be
-#     pending; prod: nothing may be pending (the preprod promotion migrated the shared database)
+#   - pending migrations: the code at --code-ref against django_migrations. preprod: only phase 1 migrations (and those
+#     named in --allow-pending) may be pending; prod: nothing may be pending (the preprod promotion migrated the database)
 #   - the image tags of the env file on origin/<env branch> exist in Artifact Registry (gcloud; SKIP without it)
 #   - every Rollout in the namespace is Healthy and the HelmRelease is Ready
 #   - long transactions on the database (a migration would queue behind them)
@@ -24,7 +24,7 @@ usage() {
   exit "${1:-0}"
 }
 
-ENV="" CTX="" CODE_REF="" REPO="" INFRA="" FETCH=1 IMAGE_CHECK=1
+ENV="" CTX="" CODE_REF="" REPO="" INFRA="" FETCH=1 IMAGE_CHECK=1 ALLOW_PENDING=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --env) ENV="$2"; shift 2 ;;
@@ -34,6 +34,7 @@ while [[ $# -gt 0 ]]; do
     --infra-repo) INFRA="$2"; shift 2 ;;
     --no-fetch) FETCH=0; shift ;;
     --skip-image-check) IMAGE_CHECK=0; shift ;;
+    --allow-pending) ALLOW_PENDING="$2"; shift 2 ;;
     --pg-user) PG_USER="$2"; shift 2 ;;
     -h | --help) usage 0 ;;
     *) log "unknown argument: $1"; usage 1 ;;
@@ -128,10 +129,12 @@ if git -C "$REPO" rev-parse -q --verify "$CODE_REF^{commit}" >/dev/null; then
     for m in $PHASE1_MIGRATIONS; do allowed+="powered_by/$m "; done
     other=""
     for m in $pending; do [[ "$allowed" == *" $m "* ]] || other+="$m "; done
-    if [[ -n "$other" ]]; then
-      warn "pending migrations outside phase 1 (they also run at the promotion): $other"
+    for m in ${ALLOW_PENDING//,/ }; do other="${other//$m /}"; done
+    if [[ -n "${other// /}" ]]; then
+      fail "pending migrations outside phase 1 would also run against the shared database: $other(review them; --allow-pending app/name,... once they are understood)"
+    else
+      pass "pending at $CODE_REF: ${pending:-none} (the first preprod pod applies them to the shared database)"
     fi
-    pass "pending at $CODE_REF: ${pending:-none} (the first preprod pod applies them to the shared database)"
   fi
 else
   fail "code ref $CODE_REF not found in $REPO"

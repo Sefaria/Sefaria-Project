@@ -218,18 +218,26 @@ TEXT
 # ---------------------------------------------------------------------------------------------------------------
 # db --scoped
 # ---------------------------------------------------------------------------------------------------------------
+# Fails closed: a pod list that cannot be read, or a snapshot without a running web pod for an env, refuses the restore.
 image_guard() {
-  local e ns bad=0 want repo
+  local e ns bad=0 want repo pods img pod phase images i
   for e in $SHARING; do
     ns="$(env_namespace "$e")"
-    want="$(mget "envs.$e.web_pods" | "$PYTHON" -c 'import json,sys; imgs=sorted({p["image"] for p in json.load(sys.stdin) if p["phase"]=="Running"}); print(" ".join(imgs))')"
+    want="$(mget "envs.$e.web_pods" | "$PYTHON" -c 'import json,sys; imgs=sorted({p["image"] for p in json.load(sys.stdin) if p["phase"]=="Running"}); print(" ".join(imgs))')" || want=""
     if [[ -z "$want" ]]; then
-      log "WARNING: the snapshot recorded no running web pod for $e; nothing to compare its pods with"
+      log "  $e: the snapshot recorded no running web pod, so there is nothing to compare its pods with"
+      bad=1
+      continue
+    fi
+    if ! pods="$(kc -n "$ns" get pods -o json | "$PYTHON" "$RELEASE_PY" pod-images)"; then
+      log "  $e: could not list the pods of namespace $ns"
+      bad=1
       continue
     fi
     for img in $want; do
       repo="${img%:*}"
       while IFS="$TAB" read -r pod phase _ images; do
+        [[ -n "$pod" ]] || continue
         [[ "$phase" == Running || "$phase" == Pending ]] || continue
         for i in ${images//,/ }; do
           if [[ "${i%:*}" == "$repo" && " $want " != *" $i "* ]]; then
@@ -237,7 +245,7 @@ image_guard() {
             bad=1
           fi
         done
-      done < <(kc -n "$ns" get pods -o json | "$PYTHON" "$RELEASE_PY" pod-images)
+      done <<<"$pods"
     done
   done
   return "$bad"
@@ -252,7 +260,7 @@ db_scoped() {
   [[ "$(sha256_of "$SNAP/db/scoped.dump")" == "$(cut -d' ' -f1 <"$SNAP/db/scoped.dump.sha256")" ]] || die "db/scoped.dump does not match its sha256"
 
   step "guard: every pod of ${SHARING// / and } runs the snapshot's image"
-  image_guard || die "refusing: a pod sharing $DB runs an image other than the snapshot's. Roll the chart back first (restore.sh chart)."
+  image_guard || die "refusing: a pod sharing $DB runs an image other than the snapshot's, or the pods could not be compared. Roll the chart back first (restore.sh chart)."
   log "  ok"
 
   local snap_tables current_tables
