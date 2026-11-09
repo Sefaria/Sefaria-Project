@@ -276,10 +276,13 @@ def revoke(res):
                 % (interval, slack, fmt(r["max"], 1)),
             )
             # With LISTEN off, nothing can apply a revoke before the next periodic reload; a fast deny means NOTIFY was still on.
+            # Every trial, not the median: one fast deny is enough to show NOTIFY was still applying changes.
+            times = [t["revoke_to_deny_ms"] for t in f.get("trials", []) if t.get("revoke_to_deny_ms") is not None]
+            fastest = min(times) if times else None
             say(
-                "pass" if r["p50"] >= 1000 else "fail",
-                "PERF-R fallback: revoke-to-deny p50 %s ms is far above the NOTIFY figure (proves LISTEN was off)"
-                % fmt(r["p50"], 1),
+                "pass" if fastest is not None and fastest >= 1000 else "fail",
+                "PERF-R fallback: the fastest revoke-to-deny, %s ms, is far above the NOTIFY figure (proves LISTEN was off)"
+                % fmt(fastest, 1),
             )
         else:
             say("fail", "PERF-R fallback: no revoke was timed")

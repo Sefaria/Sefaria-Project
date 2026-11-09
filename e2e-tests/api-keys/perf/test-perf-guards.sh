@@ -83,13 +83,21 @@ then echo "ok: the Job manifest parses (namespace default, backoffLimit 0, deadl
 else echo "FAIL: the Job manifest"; fail=1; fi
 
 # compare: added p50/p99 between a flag-off and a flag-on file, and it refuses swapped files.
-mk() { printf '{"flag": "%s", "k6": {"arms": {"anon": {"p50": %s, "p99": %s}}}}\n' "$1" "$2" "$3" >"$tmp/$1.json"; }
-mk off 1.0 2.0; mk on 2.5 5.5
+mk() {  # mk NAME FLAG P50 P99 [CAULDRON] [RATE] [ARM]
+  printf '{"cauldron": "%s", "flag": "%s", "k6": {"rate_per_arm": %s, "duration": "120s", "arms": {"%s": {"p50": %s, "p99": %s}}}}\n' \
+    "${5:-perf-x}" "$2" "${6:-25}" "${7:-anon}" "$3" "$4" >"$tmp/$1.json"
+}
+mk off off 1.0 2.0; mk on on 2.5 5.5
 out="$(bash "$runner" compare "$tmp/off.json" "$tmp/on.json")"
 echo "$out" | grep -q 'added p50 +1.500 ms (baseline +1.30), p99 +3.500 ms (baseline +3.02)' && echo "ok: compare computes the added p50/p99" \
   || { echo "FAIL: compare: $out"; fail=1; }
 bash "$runner" compare "$tmp/on.json" "$tmp/off.json" >/dev/null 2>&1 && { echo "FAIL: compare accepted swapped files"; fail=1; } \
   || echo "ok: compare refuses a flag-on file as the baseline"
+mk other on 2.5 5.5 perf-y; mk fast on 2.5 5.5 perf-x 50; mk disjoint on 2.5 5.5 perf-x 25 hit
+for bad in other fast disjoint; do
+  bash "$runner" compare "$tmp/off.json" "$tmp/$bad.json" >/dev/null 2>&1 && { echo "FAIL: compare accepted $bad"; fail=1; } \
+    || echo "ok: compare refuses runs that are not comparable ($bad)"
+done
 python3 -c "import ast, sys; ast.parse(open(sys.argv[1]).read())" "$here/revoke_trials_pod.py" && echo "ok: revoke_trials_pod.py compiles" || { echo "FAIL: revoke_trials_pod.py"; fail=1; }
 
 # Past the guards, every cluster call names the dev context and the default namespace (the fake kubectl fails, so

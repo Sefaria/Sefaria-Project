@@ -59,7 +59,15 @@ off, on = (json.load(open(p)) for p in sys.argv[1:3])
 b50, b99 = float(sys.argv[3]), float(sys.argv[4])
 if off.get("flag") != "off" or on.get("flag") != "on":
     sys.exit("compare: the first file must be a flag-off run and the second a flag-on run (got %s, %s)" % (off.get("flag"), on.get("flag")))
-for arm in ("anon", "hit", "miss"):
+if off.get("cauldron") != on.get("cauldron"):
+    sys.exit("compare: the runs are on different cauldrons (%s, %s)" % (off.get("cauldron"), on.get("cauldron")))
+for field in ("rate_per_arm", "duration"):
+    if off["k6"].get(field) != on["k6"].get(field):
+        sys.exit("compare: the runs differ in %s (%s, %s)" % (field, off["k6"].get(field), on["k6"].get(field)))
+common = [a for a in ("anon", "hit", "miss") if a in off["k6"].get("arms", {}) and a in on["k6"].get("arms", {})]
+if not common:
+    sys.exit("compare: the runs share no arm")
+for arm in common:
     a, b = off["k6"]["arms"].get(arm), on["k6"]["arms"].get(arm)
     if not a or not b:
         continue
