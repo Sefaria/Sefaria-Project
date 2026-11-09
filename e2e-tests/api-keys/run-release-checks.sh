@@ -114,13 +114,13 @@ def walk(suite):
                 failed.append(spec["title"][:70])
 for s in data.get("suites", []):
     walk(s)
-print("%(passed)d passed, %(skipped)d skipped, %(known_gap)d known-gap failures, %(flaky)d flaky, %(failed)d failed" % n
+print("%(failed)d\t%(passed)d passed, %(skipped)d skipped, %(known_gap)d known-gap failures, %(flaky)d flaky, %(failed)d failed" % n
       + ("; failed: " + " | ".join(failed[:5]) if failed else ""))
 PY
 )"
   if [ -z "$counts" ]; then row "playwright apikeys (local)" FAIL "no JSON report; see the log" "$log"
-  elif [[ $counts == *" 0 failed"* ]]; then row "playwright apikeys (local)" PASS "$counts" "$log"
-  else row "playwright apikeys (local)" FAIL "$counts" "$log"; fi
+  elif [ "${counts%%$'\t'*}" = 0 ]; then row "playwright apikeys (local)" PASS "${counts#*$'\t'}" "$log"
+  else row "playwright apikeys (local)" FAIL "${counts#*$'\t'}" "$log"; fi
 }
 
 local_checks() {

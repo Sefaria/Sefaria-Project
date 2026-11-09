@@ -154,14 +154,16 @@ def walk(s):
                 key = "known_gap" if "@known-gap" in spec["title"] else "failed"
             n[key] += 1
             if spec["title"].startswith(("A9a", "A9b")):
-                revoke += [a.get("description", "") for a in t.get("annotations", []) if a.get("description")]
+                revoke.extend(a.get("description", "") for a in t.get("annotations", []) if a.get("description"))
 for s in d.get("suites", []):
     walk(s)
-print("%(passed)d passed, %(skipped)d skipped, %(known_gap)d known-gap, %(flaky)d flaky, %(failed)d failed" % n
+print("%(failed)d\t%(passed)d passed, %(skipped)d skipped, %(known_gap)d known-gap, %(flaky)d flaky, %(failed)d failed" % n
       + ("; revoke-to-deny: " + " | ".join(revoke)[:300] if revoke else ""))
 PY
 )"
-  case "$pw" in *" 0 failed"*) rec playwright-seeded pass "$pw" ;; *) rec playwright-seeded fail-product-bug "$pw" ;; esac
+  if [ -z "$pw" ]; then rec playwright-seeded fail-harness "no Playwright report; see playwright-seeded.log"
+  elif [ "${pw%%$'\t'*}" = 0 ]; then rec playwright-seeded pass "${pw#*$'\t'}"
+  else rec playwright-seeded fail-product-bug "${pw#*$'\t'}"; fi
 
   probe_aseries "$MANIFEST"
   probe_ne1
@@ -196,11 +198,20 @@ verify_off() {
 # --- drill-f1 -------------------------------------------------------------------------------------------------------
 
 F1_REPLICAS=""
+# Restores the recorded replica count; the record is cleared only once the scale call succeeded, so the exit trap
+# retries a failed restore.
 f1_restore() {
   [ -n "$F1_REPLICAS" ] || return 0
-  kubectl --context "$KCTX" -n "$NS" scale "$AUTH_DEPLOY" --replicas="$F1_REPLICAS" >/dev/null 2>&1 \
-    && log "auth service scaled back to $F1_REPLICAS" || log "RESTORE FAILED: scale $AUTH_DEPLOY back to $F1_REPLICAS by hand"
-  F1_REPLICAS=""
+  local try
+  for try in 1 2 3; do
+    if kubectl --context "$KCTX" -n "$NS" scale "$AUTH_DEPLOY" --replicas="$F1_REPLICAS" >/dev/null 2>&1; then
+      log "auth service scaled back to $F1_REPLICAS"; F1_REPLICAS=""; return 0
+    fi
+    sleep 5
+  done
+  log "RESTORE FAILED: run kubectl --context $KCTX -n $NS scale $AUTH_DEPLOY --replicas=$F1_REPLICAS by hand"
+  rec F1-restore fail-harness "the auth service could not be scaled back to $F1_REPLICAS"
+  return 1
 }
 
 drill_f1() {
@@ -226,7 +237,7 @@ except Exception: print(" -")' "$RUN_DIR/tmp.f1")" >>"$probe"
   for _ in $(seq 1 60); do [ -z "$(kc get pods -l "app=auth-service-$CAULDRON" -o name 2>/dev/null)" ] && break; sleep 2; done
   sleep 20
   local t_up; t_up="$(date +%s.%N)"
-  f1_restore
+  f1_restore || { touch "$RUN_DIR/f1.stop"; die "could not restore the auth service; scale it back by hand"; }
   for _ in $(seq 1 90); do
     [ "$(kc get "$AUTH_DEPLOY" -o jsonpath='{.status.readyReplicas}' 2>/dev/null)" -ge 1 ] 2>/dev/null && break; sleep 2
   done

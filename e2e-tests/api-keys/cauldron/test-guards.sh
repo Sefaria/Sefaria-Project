@@ -32,7 +32,7 @@ expect_refusal "an unknown mode" -- bogus
 if grep -nE 'kubectl[^|]*\b(apply|patch|delete|edit|replace|annotate|label|create|rollout|cordon|drain)\b' "$here/run.sh" "$here/lib.sh" "$here"/scripts/*.sh; then
   echo "FAIL: a cluster write verb appears in the runner"; fail=1
 else echo "ok: no apply/patch/delete/edit/create/rollout in the runner"; fi
-scales="$(grep -cE 'kubectl .* scale ' "$here"/scripts/*.sh "$here/run.sh" "$here/lib.sh" | awk -F: '{s+=$2} END {print s}')"
+scales="$(grep -hE 'kubectl .* scale ' "$here"/scripts/*.sh "$here/run.sh" "$here/lib.sh" | grep -vc 'log "' || true)"
 [ "$scales" = 2 ] && echo "ok: the only scale calls are drill-f1's scale-down and its restore" || { echo "FAIL: $scales scale calls"; fail=1; }
 execs="$(grep -nE 'kubectl .* exec ' "$here"/scripts/*.sh "$here/run.sh" "$here/lib.sh" | grep -vc 'postgres\|PG_POD\|seed_exec\|"\$pod" -c web' || true)"
 [ "$execs" = 0 ] && echo "ok: exec only into Postgres (read-only) and the seeder's web pod" || { echo "FAIL: other exec calls"; fail=1; }

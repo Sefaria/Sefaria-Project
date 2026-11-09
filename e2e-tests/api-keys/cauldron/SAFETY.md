@@ -19,7 +19,7 @@ name the cauldron.
   through psql.
 - Never touch any of these:
   - authpoc
-  - api-keys-poc / sc-47185
+  - api-keys-poc (the POC cauldron)
   - other cauldrons
   - the `auth-service-registry` Secret
   - the `auth_service_reader` role

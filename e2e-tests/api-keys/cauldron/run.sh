@@ -42,13 +42,20 @@ MANIFEST="$REPO/$MANIFEST_REL"
 PF_PID=""
 AUTH_POD_START=""
 
-rec() { printf '%s\t%s\t%s\n' "$1" "$2" "$3" | mask >> "$CASES"; printf '%-14s %-16s %s\n' "$1" "$2" "$3" | mask >&2; }
+# rec ID STATUS EVIDENCE. A status starting with "fail" fails the run, except fail-known-gap (counted, not failing).
+FAILS=0
+rec() {
+  printf '%s\t%s\t%s\n' "$1" "$2" "$3" | mask >> "$CASES"; printf '%-14s %-16s %s\n' "$1" "$2" "$3" | mask >&2
+  case "$2" in fail-known-gap) ;; fail*) FAILS=$((FAILS + 1)) ;; esac
+}
 infra_or() { case "$1" in 000|502|503|504) echo blocked ;; *) echo "$2" ;; esac; }
 
 cleanup() {
   local rc=$?
   [ -n "$PF_PID" ] && kill "$PF_PID" 2>/dev/null
   rm -f "$MANIFEST" "$RUN_DIR"/tmp.*
+  # Any failed case fails the run, whatever the last command returned.
+  [ "$rc" = 0 ] && [ "$FAILS" -gt 0 ] && rc=1
   exit $rc
 }
 trap cleanup EXIT INT TERM
@@ -169,6 +176,13 @@ PY
   mask < "$RUN_DIR/playwright-$label.json" > "$RUN_DIR/playwright-$label.json.m" && mv "$RUN_DIR/playwright-$label.json.m" "$RUN_DIR/playwright-$label.json"
   mask < "$RUN_DIR/playwright-$label.tsv" > "$RUN_DIR/playwright-$label.tsv.m" && mv "$RUN_DIR/playwright-$label.tsv.m" "$RUN_DIR/playwright-$label.tsv"
   log "playwright $label exit $rc: $(cut -f5 "$RUN_DIR/playwright-$label.tsv" | sort | uniq -c | tr '\n' ' ')"
+  # Column 4 is the test outcome; a failure whose title carries @known-gap is a known gap, any other fails the run.
+  local failed known
+  failed="$(awk -F'\t' '$4 == "unexpected" && $3 !~ /@known-gap/' "$RUN_DIR/playwright-$label.tsv" | wc -l | tr -d ' ')"
+  known="$(awk -F'\t' '$4 == "unexpected" && $3 ~ /@known-gap/' "$RUN_DIR/playwright-$label.tsv" | wc -l | tr -d ' ')"
+  if [ ! -s "$RUN_DIR/playwright-$label.tsv" ]; then rec "playwright-$label" fail-harness "no results (exit $rc); see playwright-$label.log"
+  elif [ "$failed" = 0 ]; then rec "playwright-$label" pass "$(wc -l <"$RUN_DIR/playwright-$label.tsv" | tr -d ' ') cases, $known known-gap failure(s)"
+  else rec "playwright-$label" fail-product-bug "$failed failed: $(awk -F'\t' '$4 == "unexpected" && $3 !~ /@known-gap/ {print $3}' "$RUN_DIR/playwright-$label.tsv" | head -3 | cut -c1-80 | paste -sd'|' -)"; fi
 }
 
 # --- api-tests (N-B3), GET-only subset ------------------------------------------------------------
@@ -222,4 +236,4 @@ fi
 hits="$(grep -rEl 'sfr_[A-Za-z0-9]{5,}' "$RUN_DIR" || true)"
 [ -z "$hits" ] || { rec N-CR4-harness fail-product-bug "unmasked key-shaped values in: $hits"; exit 1; }
 log "N-CR4 grep over $RUN_DIR: clean"
-log "done: $CASES"
+log "done: $CASES ($FAILS failed case(s))"
