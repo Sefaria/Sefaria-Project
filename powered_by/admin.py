@@ -178,10 +178,11 @@ class ApiProjectAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         # The changelist echoes the query into the search box, the result links and every later request. A pasted full
         # key would be rendered back and logged again, so cut the query to the shown prefix before anything renders.
-        query = request.GET.get(SEARCH_VAR, "")
-        if len(query.strip()) > KEY_DISPLAY_PREFIX:
+        # Every value counts: with a repeated q, Django searches the last one but keeps all of them in its links.
+        queries = request.GET.getlist(SEARCH_VAR)
+        if len(queries) > 1 or any(len(query.strip()) > KEY_DISPLAY_PREFIX for query in queries):
             params = request.GET.copy()
-            params[SEARCH_VAR] = query.strip()[:KEY_DISPLAY_PREFIX]
+            params[SEARCH_VAR] = queries[-1].strip()[:KEY_DISPLAY_PREFIX]
             return HttpResponseRedirect(f"{request.path}?{params.urlencode()}")
         return super().changelist_view(request, extra_context)
 

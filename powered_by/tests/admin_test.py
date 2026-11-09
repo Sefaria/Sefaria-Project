@@ -223,6 +223,24 @@ class ProjectAdminTest(TestCase):
         self.assertEqual([p.pk for p in followed.context["cl"].result_list], [self.api_project.pk])
         self.assertNotIn(hidden, followed.content.decode())
 
+    def test_api_project_search_with_a_repeated_query_never_echoes_the_hidden_part(self):
+        # Django searches the last q but keeps every q in the changelist's links, so a full key placed before a short
+        # one must not slip past the redirect.
+        url = admin_url("changelist", model="apiproject")
+        hidden = self.key.key[10:]
+        query = f"q={self.key.key}&q={self.key.key[:10]}"
+
+        response = self.client.get(f"{url}?{query}")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn(hidden, response["Location"])
+        self.assertEqual(response["Location"].count("q="), 1)
+
+        followed = self.client.get(f"{url}?{query}", follow=True)
+
+        self.assertEqual(followed.status_code, 200)
+        self.assertNotIn(hidden, followed.content.decode())
+
     def test_api_project_search_cannot_probe_past_the_shown_prefix(self):
         # Two keys share the 10 characters the admin shows and differ after them. A query that reaches into the hidden
         # part must not tell them apart, or staff could recover a key one character at a time.
