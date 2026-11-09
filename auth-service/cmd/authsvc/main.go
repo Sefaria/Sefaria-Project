@@ -80,9 +80,8 @@ func main() {
 	promReg.MustRegister(prometheus.NewGaugeFunc(
 		prometheus.GaugeOpts{Name: "authsvc_registry_last_reload_success_timestamp_seconds"},
 		func() float64 {
-			if reg.Version() == 0 {
-				return 0
-			}
+			// One atomic read: loadedAt is written only with each accepted load (and stays 0 before the first),
+			// so a scrape can't mix two loads the way separate Version() and LoadedAt() reads could.
 			return float64(reg.LoadedAt().UnixNano()) / 1e9
 		},
 	))
