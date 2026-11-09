@@ -7,6 +7,10 @@ from django.utils.html import format_html
 
 from .models import ApiKey, ApiProject, Project
 
+# How much of a key the admin may show or search on: the "sfr_" prefix and 6 characters. Enough to tell keys apart in a
+# log or a support request; everything after it is the secret.
+KEY_DISPLAY_PREFIX = 10
+
 
 class ApiKeyForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -29,8 +33,7 @@ class ApiKeyInline(admin.TabularInline):
         # An unsaved "Add another" row holds the default's freshly generated key, which will never exist.
         if obj is None or obj._state.adding:
             return "-"
-        # The prefix and 6 characters, enough to tell keys apart in a log or a support request, never the secret.
-        return obj.key[:10] + "\u2026"
+        return obj.key[:KEY_DISPLAY_PREFIX] + "\u2026"
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -169,6 +172,11 @@ class ApiProjectAdmin(admin.ModelAdmin):
     readonly_fields = ("deleted_at", "created_at", "updated_at")
     inlines = (ApiKeyInline,)
     actions = ("soft_delete_and_revoke_keys",)
+
+    def get_search_results(self, request, queryset, search_term):
+        # Match only the prefix the admin already shows. Searching further into the key would let staff recover it a
+        # character at a time by watching whether a project stays in the results.
+        return super().get_search_results(request, queryset, search_term.strip()[:KEY_DISPLAY_PREFIX])
 
     @admin.action(description="Soft-delete and revoke keys", permissions=("change",))
     def soft_delete_and_revoke_keys(self, request, queryset):

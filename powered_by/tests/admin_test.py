@@ -204,10 +204,40 @@ class ProjectAdminTest(TestCase):
         self.assertEqual([p.pk for p in response.context["cl"].result_list], [self.api_project.pk])
         self.assertNotIn(self.key.key, response.content.decode())
 
+    def test_api_project_search_cannot_probe_past_the_shown_prefix(self):
+        # Two keys share the 10 characters the admin shows and differ after them. A query that reaches into the hidden
+        # part must not tell them apart, or staff could recover a key one character at a time.
+        a_profile = Project.objects.create(
+            submission_source=SubmissionSource.DEVELOPER_SETTINGS, project_name="Probe A", request_not_to_publish=False
+        )
+        b_profile = Project.objects.create(
+            submission_source=SubmissionSource.DEVELOPER_SETTINGS, project_name="Probe B", request_not_to_publish=False
+        )
+        a = ApiProject.objects.create(profile=a_profile)
+        b = ApiProject.objects.create(profile=b_profile)
+        ApiKey.objects.create(project=a, label="A", key="sfr_qz7wx1AAAAAAAAAAAA")
+        ApiKey.objects.create(project=b, label="B", key="sfr_qz7wx1BBBBBBBBBBBB")
+        url = admin_url("changelist", model="apiproject")
+
+        def found(query):
+            return sorted(p.pk for p in self.client.get(url, {"q": query}).context["cl"].result_list)
+
+        both = sorted([a.pk, b.pk])
+        self.assertEqual(found("sfr_qz7wx1"), both)
+        self.assertEqual(found("sfr_qz7wx1A"), both)
+        self.assertEqual(found("sfr_qz7wx1B"), both)
+        self.assertEqual(found("sfr_qz7wx1ZZZZ"), both)
+
     def test_api_project_history_page_never_shows_the_key(self):
+        # Rename the key through the admin form, so the history page has a real entry naming the key.
+        data = self.api_change_form()
+        data["api_keys-0-label"] = "Renamed"
+        self.assertEqual(self.api_save(data).status_code, 302)
+
         response = self.client.get(admin_url("history", self.api_project.pk, model="apiproject"))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Renamed")
         self.assertNotIn(self.key.key, response.content.decode())
 
     def test_N_M11_deleting_a_project_with_keys_is_refused_with_a_page(self):
