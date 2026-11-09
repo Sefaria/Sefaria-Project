@@ -9,6 +9,7 @@ chatbot's callback. A form, not a redirect, so the token never appears in a URL 
 The chatbot binds each flow to the browser that started it and asks the user to approve access on
 its own consent page, so landing here from someone else's link cannot grant them anything.
 """
+
 import html
 import re
 
@@ -18,7 +19,7 @@ from django.contrib.auth.views import redirect_to_login
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.views.decorators.http import require_GET
 
-from sefaria.utils.chatbot import build_chatbot_user_token, MCP_LOGIN_TOKEN_AUDIENCE, MCP_LOGIN_TOKEN_TTL_MINUTES
+from sefaria.utils.chatbot import MCP_LOGIN_TOKEN_AUDIENCE, MCP_LOGIN_TOKEN_TTL_MINUTES, build_chatbot_user_token
 
 STATE_RE = re.compile(r"^[A-Za-z0-9_-]{16,128}$")
 
@@ -58,11 +59,13 @@ def mcp_authorize(request):
         aud=MCP_LOGIN_TOKEN_AUDIENCE,
         state=state,
     )
-    response = HttpResponse(HANDOFF_PAGE.format(
-        action=html.escape(redirect_uri),
-        state=html.escape(state),
-        token=html.escape(token),
-    ))
+    response = HttpResponse(
+        HANDOFF_PAGE.format(
+            action=html.escape(redirect_uri),
+            state=html.escape(state),
+            token=html.escape(token),
+        )
+    )
     response["Cache-Control"] = "no-store"
     response["Referrer-Policy"] = "no-referrer"
     return response

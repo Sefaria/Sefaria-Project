@@ -11,13 +11,15 @@ const PROPERTIES = [BOTTOM_BAR_HEIGHT, LAUNCHER_OFFSET];
 
 export function reserveBottomBar(el) {
   const root = document.documentElement;
-  if (!el || typeof ResizeObserver === 'undefined') { return () => {}; }
+  if (!el || typeof ResizeObserver === 'undefined') {
+    return () => {};
+  }
   const observer = new ResizeObserver(() => {
-    PROPERTIES.forEach(property => root.style.setProperty(property, `${el.offsetHeight}px`));
+    PROPERTIES.forEach((property) => root.style.setProperty(property, `${el.offsetHeight}px`));
   });
   observer.observe(el);
   return () => {
     observer.disconnect();
-    PROPERTIES.forEach(property => root.style.removeProperty(property));
+    PROPERTIES.forEach((property) => root.style.removeProperty(property));
   };
 }

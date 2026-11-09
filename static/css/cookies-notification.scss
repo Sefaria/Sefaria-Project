@@ -1,13 +1,13 @@
 // The cookie banner (CookiesNotification in Misc.jsx). It hides when printing (see s2-print.css
 // and sheets-print.css).
 
-@import "breakpoints";
+@import 'breakpoints';
 
 .cookiesNotification {
   position: fixed;
   z-index: 9999;
   color: white;
-  background-color: #212E50;
+  background-color: #212e50;
   border-top: 1px solid #ccc;
   bottom: 0;
   box-sizing: border-box;
