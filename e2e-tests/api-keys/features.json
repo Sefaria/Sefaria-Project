@@ -154,6 +154,18 @@
               "ref": "powered_by/tests/public_listing_api_project_test.py::AdminApiProjectTest::test_admin_tier_editable_only_with_change_tier"
             }
           ]
+        },
+        {
+          "id": "F-MODEL-01.e11",
+          "scenario": "the mcp tier (migration 0010)",
+          "expected": "seeded with its limits next to developer, partner and internal",
+          "severity": "P1",
+          "checks": [
+            {
+              "kind": "pytest",
+              "ref": "powered_by/tests/api_project_model_test.py::ApiProjectModelTest::test_mcp_tier_seeded"
+            }
+          ]
         }
       ]
     },
@@ -399,6 +411,26 @@
               "ref": "powered_by/tests/migration_api_project_roundtrip_test.py::SqliteBackfillTest::test_keys_come_back_to_their_own_api_project_after_a_rollback_on_sqlite"
             }
           ]
+        },
+        {
+          "id": "F-MODEL-02.e18",
+          "scenario": "rolling 0007 back while an api_project row holds an owner, contact email, tier or deletion its forward cannot rebuild",
+          "expected": "the reverse refuses (IrreversibleError) and names the rows; nothing is lost. Rows the backfill can rebuild roll back and forward cleanly",
+          "severity": "P0",
+          "checks": [
+            {
+              "kind": "pytest",
+              "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_reverse_refuses_rows_the_backfill_cannot_rebuild"
+            },
+            {
+              "kind": "pytest",
+              "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_reverse_refuses_each_field_the_backfill_does_not_copy"
+            },
+            {
+              "kind": "drill",
+              "ref": "auth-service/dev/local-stack/scenarios/nm7-migrate-roundtrip.sh#0007's reverse refuses while an api_project row holds a contact email"
+            }
+          ]
         }
       ]
     },
@@ -579,12 +611,12 @@
         {
           "id": "F-MODEL-04.e2",
           "scenario": "reader role absent",
-          "expected": "the migration still succeeds",
+          "expected": "the migration still succeeds, and warns that the role is missing",
           "severity": "P1",
           "checks": [
             {
               "kind": "pytest",
-              "ref": "powered_by/tests/feature_edges_api_project_test.py::MigrationEdgesTest::test_a_missing_reader_role_is_not_an_error"
+              "ref": "powered_by/tests/feature_edges_api_project_test.py::MigrationEdgesTest::test_a_missing_reader_role_is_not_an_error_but_warns"
             }
           ]
         },
@@ -613,17 +645,21 @@
             {
               "kind": "file",
               "ref": "auth-service/scripts/provision-cluster-registry.sh",
-              "contains": "GRANT SELECT \\(id, tier_id, deleted_at\\) ON api_project"
+              "contains": "api_project:id,tier_id,deleted_at"
             },
             {
               "kind": "file",
               "ref": "auth-service/scripts/provision-cluster-registry.sh",
-              "contains": "'api_project', 'api_tier', 'api_tier_meter_limit'"
+              "contains": "api_project:id,tier_id,deleted_at"
             },
             {
               "kind": "file",
               "ref": "auth-service/dev/local-stack/provision.sql",
               "contains": "GRANT SELECT \\(id, tier_id, deleted_at\\) ON api_project"
+            },
+            {
+              "kind": "shell",
+              "ref": "auth-service/scripts/test-provision-cluster-registry.sh"
             }
           ]
         }
@@ -924,6 +960,22 @@
               "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectWriterEdgesTest::test_revoking_every_key_keeps_the_api_project_and_its_tier"
             }
           ]
+        },
+        {
+          "id": "F-WRITE-01.e8",
+          "scenario": "a contact email of 254 and of 255 characters, on create and on edit",
+          "expected": "254 is stored; 255 is refused, and an edit with 255 keeps the stored address",
+          "severity": "P2",
+          "checks": [
+            {
+              "kind": "pytest",
+              "ref": "powered_by/tests/developer_writer_api_project_test.py::ContactEmailLengthTest::test_contact_email_of_254_characters_is_stored_and_255_is_refused"
+            },
+            {
+              "kind": "pytest",
+              "ref": "powered_by/tests/developer_writer_api_project_test.py::ContactEmailLengthTest::test_an_edit_with_a_255_character_contact_email_is_refused_and_keeps_the_stored_one"
+            }
+          ]
         }
       ]
     },
@@ -961,7 +1013,15 @@
           "checks": [
             {
               "kind": "pytest",
-              "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_a_new_website_moves_restricted_keys_and_no_website_is_refused_while_a_key_is_restricted"
+              "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_a_new_website_moves_restricted_keys"
+            },
+            {
+              "kind": "pytest",
+              "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_the_website_cannot_be_removed_while_a_key_is_restricted_to_it"
+            },
+            {
+              "kind": "pytest",
+              "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_the_website_can_be_removed_once_no_live_key_is_restricted"
             },
             {
               "kind": "pytest",
@@ -1141,6 +1201,18 @@
               "ref": "e2e-tests/api-keys/ui/listing-claim.spec.ts::N-C9: double-clicking"
             }
           ]
+        },
+        {
+          "id": "F-WRITE-03.e6",
+          "scenario": "two accounts claim the same listing at once",
+          "expected": "the loser is refused with a message, not a server error",
+          "severity": "P1",
+          "checks": [
+            {
+              "kind": "pytest",
+              "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimGuardsTest::test_a_claim_that_loses_a_race_for_the_listing_is_refused_not_a_server_error"
+            }
+          ]
         }
       ]
     },
@@ -1227,7 +1299,7 @@
         {
           "id": "F-WRITE-05.e1",
           "scenario": "account deletion",
-          "expected": "the owner's keys are revoked, created projects soft-deleted with owner NULL, a claimed listing released; an account with no projects deletes cleanly",
+          "expected": "the owner's keys are revoked, created projects soft-deleted with owner NULL, a claimed listing deleted with the account (unpublished) and its keys revoked; an account with no projects deletes cleanly",
           "severity": "P0",
           "checks": [
             {
@@ -1236,7 +1308,7 @@
             },
             {
               "kind": "pytest",
-              "ref": "powered_by/tests/account_deletion_test.py::DeleteAccountTest::test_N_M5_a_claimed_listing_is_released_and_its_keys_revoked"
+              "ref": "powered_by/tests/account_deletion_test.py::DeleteAccountTest::test_N_M5_a_claimed_listing_is_deleted_with_the_account_and_its_keys_revoked"
             },
             {
               "kind": "pytest",
@@ -1247,13 +1319,12 @@
         {
           "id": "F-WRITE-05.e2",
           "scenario": "a failing deletion hook",
-          "expected": "should leave no half-deleted account (known gap)",
+          "expected": "leaves no half-deleted account: the deletion rolls back as a whole",
           "severity": "P0",
-          "known_gap": true,
           "checks": [
             {
               "kind": "pytest",
-              "ref": "powered_by/tests/account_deletion_test.py::DeleteAccountTest::test_N_M5_a_failing_deletion_hook_leaves_no_half_deleted_account_known_gap_N_M5"
+              "ref": "powered_by/tests/account_deletion_test.py::DeleteAccountTest::test_N_M5_a_failing_deletion_hook_leaves_no_half_deleted_account"
             }
           ]
         },
@@ -1335,25 +1406,22 @@
         },
         {
           "id": "F-WRITE-06.e3",
-          "scenario": "mock listing and the seed script",
-          "expected": "a mock is offered and starting over releases it; the seed script resets and tears down cleanly, API projects and keys included",
+          "scenario": "the e2e seed script (scripts/dev/seed_api_keys_e2e.py) on the local stack",
+          "expected": "--reset writes the CONTRACT.md accounts, projects and keys inside the id band and the run marker; --teardown removes them and --leftovers then prints 0; ids outside the band are refused",
           "severity": "P1",
           "checks": [
             {
-              "kind": "pytest",
-              "ref": "powered_by/tests/developer_api_test.py::MockTest::test_a_mock_listing_is_offered_and_starting_over_releases_it"
+              "kind": "drill",
+              "ref": "e2e-tests/api-keys/run-release-checks.sh#seed: --reset and the manifest"
             },
             {
-              "kind": "pytest",
-              "ref": "powered_by/tests/seed_api_keys_e2e_test.py::SeedApiKeysE2eTest::test_reset_then_teardown_leaves_no_rows"
+              "kind": "drill",
+              "ref": "e2e-tests/api-keys/run-release-checks.sh#seed: --teardown leaves 0 rows"
             },
             {
-              "kind": "pytest",
-              "ref": "powered_by/tests/seed_api_keys_e2e_test.py::SeedApiKeysE2eTest::test_gateway_keys_have_their_restrictions_and_revocations"
-            },
-            {
-              "kind": "pytest",
-              "ref": "powered_by/tests/seed_api_keys_e2e_test.py::SeedGuardTest::test_ids_outside_the_band_are_refused"
+              "kind": "file",
+              "ref": "scripts/dev/seed_api_keys_e2e.py",
+              "contains": "ID_FLOOR = ID_BASE \\+ 1"
             }
           ]
         }
@@ -1579,7 +1647,7 @@
         {
           "id": "F-LIST-02.e1",
           "scenario": "webhook with missing, wrong or unconfigured HMAC; consent rule; envelope translation; field cleaning",
-          "expected": "401 for bad signatures, consent sets is_published, translation and cleaning unchanged",
+          "expected": "401 for bad signatures; a request not to publish keeps the row unpublished and a missing answer publishes it; translation and cleaning unchanged",
           "severity": "P1",
           "checks": [
             {
@@ -1592,7 +1660,11 @@
             },
             {
               "kind": "pytest",
-              "ref": "powered_by/tests/powered_by_api_test.py::test_post_without_consent_is_not_published"
+              "ref": "powered_by/tests/powered_by_api_test.py::test_post_request_not_to_publish_is_not_published"
+            },
+            {
+              "kind": "pytest",
+              "ref": "powered_by/tests/powered_by_api_test.py::test_post_without_consent_answer_is_published"
             },
             {
               "kind": "pytest",
@@ -1880,13 +1952,20 @@
         {
           "id": "F-REG-04.e2",
           "scenario": "empty first load",
-          "expected": "should be ready (gap)",
+          "expected": "not ready on an empty first load, so Envoy fails open and no valid key is denied; ready once a second empty load confirms a genuinely empty registry",
           "severity": "P0",
-          "known_gap": true,
           "checks": [
             {
               "kind": "gotest",
-              "ref": "auth-service/cmd/authsvc::TestKnownGapNCR8EmptyTableAtStart"
+              "ref": "auth-service/cmd/authsvc::TestNCR8EmptyTableAtStart"
+            },
+            {
+              "kind": "gotest",
+              "ref": "auth-service/cmd/authsvc::TestEmptyStartBecomesReadyAfterConfirmedEmpty"
+            },
+            {
+              "kind": "drill",
+              "ref": "auth-service/dev/local-stack/scenarios/ncr8-empty-start.sh#empty start: a valid key fails open"
             }
           ]
         },
@@ -2153,13 +2232,12 @@
         {
           "id": "F-DEC-02.e3",
           "scenario": "invalid key on an ungated path",
-          "expected": "should be anonymous, gets 401 today (known gap)",
+          "expected": "anonymous: the request goes through and x-sefaria-auth-result says api_key_invalid (no 401 on an ungated path)",
           "severity": "P1",
-          "known_gap": true,
           "checks": [
             {
               "kind": "gotest",
-              "ref": "auth-service/internal/authz::TestKnownGapA2bInvalidKeyUngated"
+              "ref": "auth-service/internal/authz::TestBadKeyUngatedIsAnonymousNotAccepted"
             },
             {
               "kind": "playwright",
@@ -2384,13 +2462,16 @@
         {
           "id": "F-DEC-07.e2",
           "scenario": "duplicate x-api-key on an ungated path",
-          "expected": "should be anonymous (known gap)",
+          "expected": "anonymous, like any bad key on an ungated path; on the gated path it is 401 api_key_invalid",
           "severity": "P1",
-          "known_gap": true,
           "checks": [
             {
               "kind": "gotest",
-              "ref": "auth-service/internal/authz::TestKnownGapA2dDuplicateKeyHeaderUngated"
+              "ref": "auth-service/internal/authz::TestCommaJoinedValueIsBadKeyLegacyOrSfrFirst"
+            },
+            {
+              "kind": "drill",
+              "ref": "auth-service/dev/local-stack/scenarios/a-series.sh#ungated, the key twice"
             }
           ]
         }
@@ -2435,6 +2516,22 @@
               "ref": "auth-service/dev/local-stack/scenarios/ne5-badmode.sh#gap N-E5"
             }
           ]
+        },
+        {
+          "id": "F-DEC-08.e3",
+          "scenario": "the A-series (A1-A6, N-CR9, N-A6-A8) against the whole local stack in observe and in enforce",
+          "expected": "observe never answers with a gateway denial and stamps observed:<code>; enforce denies only on /api/knn-search, every other path is never a gateway denial",
+          "severity": "P0",
+          "checks": [
+            {
+              "kind": "drill",
+              "ref": "auth-service/dev/local-stack/scenarios/a-series.sh#observe never denies"
+            },
+            {
+              "kind": "drill",
+              "ref": "auth-service/dev/local-stack/scenarios/a-series.sh#only $G is gated"
+            }
+          ]
         }
       ]
     },
@@ -2473,18 +2570,9 @@
         {
           "id": "F-DEC-10.e1",
           "scenario": "key in a request",
-          "expected": "only a key prefix is logged; 12 characters is too many (target sfr_ + 4)",
+          "expected": "a log line keeps at most sfr_ plus 6 characters of a key; a legacy key logs no prefix",
           "severity": "P1",
-          "known_gap": true,
           "checks": [
-            {
-              "kind": "gotest",
-              "ref": "auth-service/internal/authz::TestKnownGapNE2LegacyKeyPrefix"
-            },
-            {
-              "kind": "gotest",
-              "ref": "auth-service/internal/authz::TestKnownGapNCR4dValidKeyPrefix"
-            },
             {
               "kind": "playwright",
               "ref": "e2e-tests/api-keys/gateway/decisions.spec.ts::A2a"
@@ -2492,6 +2580,18 @@
             {
               "kind": "demo",
               "ref": "auth-service/scripts/demo.sh::section_safe"
+            },
+            {
+              "kind": "gotest",
+              "ref": "auth-service/internal/authz::TestPrefixCapsAtSfrPlus6"
+            },
+            {
+              "kind": "gotest",
+              "ref": "auth-service/internal/authz::TestDenyLogLegacyKeyPrefix"
+            },
+            {
+              "kind": "gotest",
+              "ref": "auth-service/internal/authz::TestDenyLogSfrKeyPrefix"
             }
           ]
         }
@@ -2589,6 +2689,26 @@
               "ref": "e2e-tests/api-keys/gateway/decisions.spec.ts::A1: a valid open key"
             }
           ]
+        },
+        {
+          "id": "F-HDR-01.e2",
+          "scenario": "a keyed request on the local stack or the cauldron (seeded)",
+          "expected": "nginx logs sefariaProject, sefariaTier and sefariaAuthResult from the stamp; the key value and any 12-character prefix of it appear in no nginx log line",
+          "severity": "P0",
+          "checks": [
+            {
+              "kind": "playwright",
+              "ref": "e2e-tests/api-keys/gateway/nginx-log.spec.ts::N-LOG1:"
+            },
+            {
+              "kind": "playwright",
+              "ref": "e2e-tests/api-keys/gateway/nginx-log.spec.ts::N-LOG3:"
+            },
+            {
+              "kind": "playwright",
+              "ref": "e2e-tests/api-keys/gateway/nginx-log.spec.ts::N-LOG4:"
+            }
+          ]
         }
       ]
     },
@@ -2665,28 +2785,39 @@
           "checks": [
             {
               "kind": "file",
-              "ref": "auth-service/scripts/render-check.sh",
+              "ref": "auth-service/scripts/render_check.py",
               "contains": "the ClientTrafficPolicy targets exactly the HTTPS"
             },
             {
               "kind": "file",
-              "ref": "auth-service/scripts/render-check.sh",
-              "contains": "no ClientTrafficPolicy targetRef is a port-80 listener"
+              "ref": "auth-service/scripts/render_check.py",
+              "contains": "every ClientTrafficPolicy targetRef names a listener"
             },
             {
               "kind": "file",
-              "ref": "auth-service/scripts/render-check.sh",
+              "ref": "auth-service/scripts/render_check.py",
               "contains": "the app HTTPRoute is served on the HTTPS listeners only"
             },
             {
               "kind": "file",
-              "ref": "auth-service/scripts/render-check.sh",
+              "ref": "auth-service/scripts/render_check.py",
               "contains": "port 80 serves only the redirect route"
             },
             {
-              "kind": "file",
-              "ref": "auth-service/Makefile",
-              "contains": "ClientTrafficPolicy targets HTTPS listeners only, with the auth service off"
+              "kind": "shell",
+              "ref": "auth-service/scripts/test-render-check.sh"
+            }
+          ]
+        },
+        {
+          "id": "F-HDR-02.e6",
+          "scenario": "client-sent x-sefaria-tier, x-sefaria-project and x-sefaria-auth-result on an allowed request through Envoy and nginx",
+          "expected": "nginx's access log carries the gateway's stamp (anonymous, empty project), never the client's values (3b)",
+          "severity": "P0",
+          "checks": [
+            {
+              "kind": "playwright",
+              "ref": "e2e-tests/api-keys/gateway/nginx-log.spec.ts::N-LOG2:"
             }
           ]
         }
@@ -3236,28 +3367,18 @@
           "scenario": "Q-EDGE-03 [L] Fixed-window boundary burst",
           "expected": "Acceptable for month; for per-minute only if limits are near real capacity",
           "severity": "P2",
-          "checks": [
-            {
-              "kind": "file",
-              "ref": "auth-service/docs/monthly-quota.md",
-              "contains": "Q\\-EDGE\\-03\\ \\|\\ Fixed\\-window\\ boundary\\ burst"
-            }
-          ],
-          "status": "on_branch"
+          "status": "planned",
+          "tracking": "D3",
+          "planned_check": "the monthly-quota design doc (auth-service/docs/monthly-quota.md on tooling/api-keys-e2e) lands with the quota work; phase 1 ships without quotas (release plan D3)"
         },
         {
           "id": "F-QUOTA-01.e9",
           "scenario": "Q-EDGE-04 [L] Clock skew between ratelimit replicas",
           "expected": "Accept; NTP on nodes",
           "severity": "P2",
-          "checks": [
-            {
-              "kind": "file",
-              "ref": "auth-service/docs/monthly-quota.md",
-              "contains": "Q\\-EDGE\\-04\\ \\|\\ Clock\\ skew\\ between\\ ratelimit\\ replicas"
-            }
-          ],
-          "status": "on_branch"
+          "status": "planned",
+          "tracking": "D3",
+          "planned_check": "the monthly-quota design doc (auth-service/docs/monthly-quota.md on tooling/api-keys-e2e) lands with the quota work; phase 1 ships without quotas (release plan D3)"
         },
         {
           "id": "F-QUOTA-01.e10",
@@ -3323,14 +3444,9 @@
           "scenario": "Q-EDGE-11 [L] Redis HA failover (if Sentinel/replica is added later)",
           "expected": "Prefer single durable instance; if HA, set that env (corrected: the env exists only in image `8fe6ea42`, `settings.go:210`; prod's `ff287602` (EG v1.8.0) lacks it)",
           "severity": "P2",
-          "checks": [
-            {
-              "kind": "file",
-              "ref": "auth-service/docs/monthly-quota.md",
-              "contains": "Q\\-EDGE\\-11\\ \\|\\ Redis\\ HA\\ failover\\ \\(if\\ Sentinel/replica\\ is\\ added\\ later\\)"
-            }
-          ],
-          "status": "on_branch"
+          "status": "planned",
+          "tracking": "D3",
+          "planned_check": "the monthly-quota design doc (auth-service/docs/monthly-quota.md on tooling/api-keys-e2e) lands with the quota work; phase 1 ships without quotas (release plan D3)"
         },
         {
           "id": "F-QUOTA-01.e17",
@@ -3369,11 +3485,10 @@
           "scenario": "Q-EDGE-15 [H] Registry empty at first load",
           "expected": "Not Ready on empty first load unless an explicit allow-empty flag",
           "severity": "P1",
-          "known_gap": true,
           "checks": [
             {
               "kind": "gotest",
-              "ref": "auth-service/cmd/authsvc::TestKnownGapNCR8EmptyTableAtStart"
+              "ref": "auth-service/cmd/authsvc::TestNCR8EmptyTableAtStart"
             }
           ],
           "status": "on_branch"
@@ -3392,14 +3507,9 @@
           "scenario": "Q-EDGE-17 [L] Replicas disagree during reload window",
           "expected": "Accept (documented SLA 60 s)",
           "severity": "P2",
-          "checks": [
-            {
-              "kind": "file",
-              "ref": "auth-service/docs/monthly-quota.md",
-              "contains": "Q\\-EDGE\\-17\\ \\|\\ Replicas\\ disagree\\ during\\ reload\\ window"
-            }
-          ],
-          "status": "on_branch"
+          "status": "planned",
+          "tracking": "D3",
+          "planned_check": "the monthly-quota design doc (auth-service/docs/monthly-quota.md on tooling/api-keys-e2e) lands with the quota work; phase 1 ships without quotas (release plan D3)"
         },
         {
           "id": "F-QUOTA-01.e23",
@@ -3599,28 +3709,18 @@
           "scenario": "Q-EDGE-36 [L] Client retries after a 5xx",
           "expected": "Same counting; document; consider `cost.request.number: 0` for idempotent retries only if a header proves it (not planned)",
           "severity": "P2",
-          "checks": [
-            {
-              "kind": "file",
-              "ref": "auth-service/docs/monthly-quota.md",
-              "contains": "Q\\-EDGE\\-36\\ \\|\\ Client\\ retries\\ after\\ a\\ 5xx"
-            }
-          ],
-          "status": "on_branch"
+          "status": "planned",
+          "tracking": "D3",
+          "planned_check": "the monthly-quota design doc (auth-service/docs/monthly-quota.md on tooling/api-keys-e2e) lands with the quota work; phase 1 ships without quotas (release plan D3)"
         },
         {
           "id": "F-QUOTA-01.e42",
           "scenario": "Q-EDGE-37 [L] Request cancelled by the client mid-flight",
           "expected": "Accept",
           "severity": "P2",
-          "checks": [
-            {
-              "kind": "file",
-              "ref": "auth-service/docs/monthly-quota.md",
-              "contains": "Q\\-EDGE\\-37\\ \\|\\ Request\\ cancelled\\ by\\ the\\ client\\ mid\\-flight"
-            }
-          ],
-          "status": "on_branch"
+          "status": "planned",
+          "tracking": "D3",
+          "planned_check": "the monthly-quota design doc (auth-service/docs/monthly-quota.md on tooling/api-keys-e2e) lands with the quota work; phase 1 ships without quotas (release plan D3)"
         },
         {
           "id": "F-QUOTA-01.e43",
@@ -3654,14 +3754,9 @@
           "scenario": "Q-EDGE-41 [L] CDN / Varnish cached responses",
           "expected": "Same; if a response cache is ever added, describe the quota as \"requests\"",
           "severity": "P2",
-          "checks": [
-            {
-              "kind": "file",
-              "ref": "auth-service/docs/monthly-quota.md",
-              "contains": "Q\\-EDGE\\-41\\ \\|\\ CDN\\ /\\ Varnish\\ cached\\ responses"
-            }
-          ],
-          "status": "on_branch"
+          "status": "planned",
+          "tracking": "D3",
+          "planned_check": "the monthly-quota design doc (auth-service/docs/monthly-quota.md on tooling/api-keys-e2e) lands with the quota work; phase 1 ships without quotas (release plan D3)"
         },
         {
           "id": "F-QUOTA-01.e47",
@@ -3904,14 +3999,9 @@
           "scenario": "Q-EDGE-65 [H] Gemini project spend cap hit",
           "expected": "Accepted risk (decided 2026-10-20, section 8): auth service down plus a flood on semantic search can exhaust the shared Gemini quota, and the Library Assistant's semantic tool stops until the quota resets or the service recovers. Cap set at a catastrophic level only, alert well before it; runbook, no cauldron test.",
           "severity": "P1",
-          "checks": [
-            {
-              "kind": "file",
-              "ref": "auth-service/docs/monthly-quota.md",
-              "contains": "Q\\-EDGE\\-65\\ \\|\\ Gemini\\ project\\ spend\\ cap\\ hit"
-            }
-          ],
-          "status": "on_branch"
+          "status": "planned",
+          "tracking": "D3",
+          "planned_check": "the monthly-quota design doc (auth-service/docs/monthly-quota.md on tooling/api-keys-e2e) lands with the quota work; phase 1 ships without quotas (release plan D3)"
         },
         {
           "id": "F-QUOTA-01.e71",
@@ -3936,14 +4026,9 @@
           "scenario": "Q-EDGE-68 [L] Non-POST method on `/api/knn-search`",
           "expected": "Accept and document, or make the meter method-aware",
           "severity": "P2",
-          "checks": [
-            {
-              "kind": "file",
-              "ref": "auth-service/docs/monthly-quota.md",
-              "contains": "Q\\-EDGE\\-68\\ \\|\\ Non\\-POST\\ method\\ on\\ `/api/knn\\-search`"
-            }
-          ],
-          "status": "on_branch"
+          "status": "planned",
+          "tracking": "D3",
+          "planned_check": "the monthly-quota design doc (auth-service/docs/monthly-quota.md on tooling/api-keys-e2e) lands with the quota work; phase 1 ships without quotas (release plan D3)"
         },
         {
           "id": "F-QUOTA-01.e74",
@@ -3954,11 +4039,6 @@
             {
               "kind": "pytest",
               "ref": "powered_by/tests/feature_edges_api_project_test.py::TriggerInventoryEdgesTest::test_api_project_update_notifies_on_tier_or_deletion_and_delete_is_a_statement_trigger"
-            },
-            {
-              "kind": "file",
-              "ref": "auth-service/docs/monthly-quota.md",
-              "contains": "Q\\-EDGE\\-69\\ \\|\\ Soft\\-delete\\ a\\ project\\ without\\ revoking\\ its\\ keys"
             }
           ],
           "status": "on_branch"
@@ -4086,6 +4166,22 @@
               "contains": "helm-matrix"
             }
           ]
+        },
+        {
+          "id": "F-OUT-01.e6",
+          "scenario": "a SecurityPolicy, ClientTrafficPolicy or HTTPRoute Envoy Gateway does not accept, after a rollout or a flag flip",
+          "expected": "policy-gate.sh fails (a rejected SecurityPolicy turns the route into a 500 and fail-open does not cover it); it is read-only and needs an explicit context",
+          "severity": "P0",
+          "checks": [
+            {
+              "kind": "shell",
+              "ref": "auth-service/scripts/policy-gate.sh"
+            },
+            {
+              "kind": "shell",
+              "ref": "auth-service/scripts/test-policy-gate.sh"
+            }
+          ]
         }
       ]
     },
@@ -4193,18 +4289,9 @@
           "scenario": "auth service down and a flood on semantic search",
           "expected": "accepted risk: the shared Gemini quota can be exhausted and the LA semantic tool stops until the quota resets or the service recovers",
           "severity": "P1",
-          "checks": [
-            {
-              "kind": "file",
-              "ref": "auth-service/docs/monthly-quota.md",
-              "contains": "Q-EDGE-65"
-            },
-            {
-              "kind": "file",
-              "ref": "auth-service/docs/monthly-quota.md",
-              "contains": "Accepted risks"
-            }
-          ]
+          "status": "planned",
+          "tracking": "D3",
+          "planned_check": "the monthly-quota design doc (auth-service/docs/monthly-quota.md on tooling/api-keys-e2e) lands with the quota work; phase 1 ships without quotas (release plan D3)"
         },
         {
           "id": "F-OUT-03.e4",
@@ -4235,8 +4322,8 @@
               "ref": "auth-service/internal/authz::TestKnownGapNCR8NeverLoadedRegistry"
             },
             {
-              "kind": "gotest",
-              "ref": "auth-service/cmd/authsvc::TestKnownGapNCR8EmptyTableAtStart"
+              "kind": "drill",
+              "ref": "auth-service/dev/local-stack/scenarios/ncr8-empty-start.sh#Check ignores readiness"
             }
           ]
         },
@@ -4391,16 +4478,16 @@
         {
           "id": "F-CLAIM-01.e1",
           "scenario": "an account that claimed a legacy listing is deleted",
-          "expected": "the listing profile is untouched: still public, published and claimable, every field as before",
+          "expected": "the listing is unpublished with the account (request_not_to_publish set, is_published cleared); every other field stays",
           "severity": "P0",
           "checks": [
             {
               "kind": "pytest",
-              "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimedListingAccountDeletionTest::test_claimed_legacy_listing_after_account_deletion_is_public_claimable_and_keeps_edits"
+              "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimedListingAccountDeletionTest::test_claimed_legacy_listing_is_unpublished_with_the_account_and_not_claimable_again"
             },
             {
               "kind": "pytest",
-              "ref": "powered_by/tests/developer_api_test.py::ListingTest::test_deleting_the_account_revokes_keys_deletes_projects_and_releases_listings"
+              "ref": "powered_by/tests/developer_api_test.py::ListingTest::test_deleting_the_account_revokes_keys_and_deletes_projects_and_claimed_listings"
             }
           ]
         },
@@ -4412,35 +4499,43 @@
           "checks": [
             {
               "kind": "pytest",
-              "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimedListingAccountDeletionTest::test_claimed_legacy_listing_after_account_deletion_is_public_claimable_and_keeps_edits"
+              "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimedListingAccountDeletionTest::test_claimed_legacy_listing_is_unpublished_with_the_account_and_not_claimable_again"
             },
             {
               "kind": "pytest",
-              "ref": "powered_by/tests/account_deletion_test.py::DeleteAccountTest::test_N_M5_a_claimed_listing_is_released_and_its_keys_revoked"
+              "ref": "powered_by/tests/account_deletion_test.py::DeleteAccountTest::test_N_M5_a_claimed_listing_is_deleted_with_the_account_and_its_keys_revoked"
             }
           ]
         },
         {
           "id": "F-CLAIM-01.e3",
           "scenario": "another verified account with the listing's submission email claims it afterwards",
-          "expected": "the claim works and creates a new API project owned by that account",
+          "expected": "the listing is not offered and the claim is refused (404): a listing deleted with its owner is not claimable again",
           "severity": "P1",
           "checks": [
             {
               "kind": "pytest",
-              "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimedListingAccountDeletionTest::test_claimed_legacy_listing_after_account_deletion_is_public_claimable_and_keeps_edits"
+              "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimedListingAccountDeletionTest::test_claimed_legacy_listing_is_unpublished_with_the_account_and_not_claimable_again"
+            },
+            {
+              "kind": "pytest",
+              "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimGuardsTest::test_a_soft_deleted_legacy_listing_is_not_offered_and_a_claim_of_it_is_refused"
             }
           ]
         },
         {
           "id": "F-CLAIM-01.e4",
           "scenario": "edits the first owner made to the claimed listing",
-          "expected": "survive the deletion and show for the second owner",
+          "expected": "they stay on the unpublished listing row (nothing is reverted), and the listing stays out of the public listing",
           "severity": "P1",
           "checks": [
             {
               "kind": "pytest",
-              "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimedListingAccountDeletionTest::test_claimed_legacy_listing_after_account_deletion_is_public_claimable_and_keeps_edits"
+              "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimedListingAccountDeletionTest::test_claimed_legacy_listing_is_unpublished_with_the_account_and_not_claimable_again"
+            },
+            {
+              "kind": "pytest",
+              "ref": "powered_by/tests/developer_api_test.py::ListingTest::test_deleting_a_claimed_listing_unpublishes_it_and_it_is_not_offered_again"
             }
           ]
         },
@@ -4480,7 +4575,7 @@
             },
             {
               "kind": "pytest",
-              "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_a_new_website_moves_restricted_keys_and_no_website_is_refused_while_a_key_is_restricted"
+              "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_the_website_cannot_be_removed_while_a_key_is_restricted_to_it"
             }
           ]
         },
@@ -4541,7 +4636,7 @@
             {
               "kind": "file",
               "ref": "static/js/tests/settingsPage.test.js",
-              "contains": "keeps the edit form and its empty website when clearing the website is refused"
+              "contains": "keeps the edit form and its empty website when the server refuses clearing the website"
             },
             {
               "kind": "file",
@@ -4637,6 +4732,18 @@
               "ref": "powered_by/tests/powered_by_api_test.py::test_non_staff_user_sees_only_published_without_private_fields"
             }
           ]
+        },
+        {
+          "id": "F-PRIV-01.e7",
+          "scenario": "an API project on the mcp tier",
+          "expected": "never in the public listing, while a developer project with the same flags is",
+          "severity": "P1",
+          "checks": [
+            {
+              "kind": "pytest",
+              "ref": "powered_by/tests/public_listing_api_project_test.py::PublicListingApiProjectTest::test_mcp_project_never_listed_but_developer_project_is"
+            }
+          ]
         }
       ]
     },
@@ -4651,35 +4758,18 @@
           "scenario": "chart rendered with rate limiting on",
           "expected": "every rule has a static numeric limit, so with no limit metadata from the auth service the static default applies",
           "severity": "P0",
-          "checks": [
-            {
-              "kind": "shell",
-              "ref": "auth-service/scripts/ratelimit-check.sh"
-            },
-            {
-              "kind": "file",
-              "ref": "auth-service/scripts/ratelimit-check.sh",
-              "contains": "every rule has a static numeric limit \\(fail-open\\)"
-            }
-          ]
+          "status": "planned",
+          "tracking": "D3",
+          "planned_check": "auth-service/scripts/ratelimit-check.sh (tooling/api-keys-e2e) comes back with rate limiting; it is off in every environment in phase 1 (release plan D3)"
         },
         {
           "id": "F-OUTAGE-01.e2",
           "scenario": "a request with no tier metadata (what an unreachable auth service yields)",
           "expected": "falls into rule 4, the inverted-tier catch-all, counted per client IP rather than in one shared bucket; nothing is left unlimited",
           "severity": "P0",
-          "checks": [
-            {
-              "kind": "file",
-              "ref": "auth-service/scripts/ratelimit-check.sh",
-              "contains": "rule 4 is the inverted-tier catch-all"
-            },
-            {
-              "kind": "file",
-              "ref": "auth-service/scripts/ratelimit-check.sh",
-              "contains": "rule 4 splits per client IP"
-            }
-          ]
+          "status": "planned",
+          "tracking": "D3",
+          "planned_check": "auth-service/scripts/ratelimit-check.sh (tooling/api-keys-e2e) comes back with rate limiting; it is off in every environment in phase 1 (release plan D3)"
         },
         {
           "id": "F-OUTAGE-01.e3",
@@ -4695,23 +4785,9 @@
           "scenario": "a logged-out browser loads a page: the HTML, /static/ files and data scripts go through the same HTTPRoute as the API",
           "expected": "rules 3 and 4 (per client IP) select only the API path prefix, so pages and static assets are never counted or limited, in normal operation or during an auth outage; rules 1 and 2 are unchanged",
           "severity": "P0",
-          "checks": [
-            {
-              "kind": "file",
-              "ref": "auth-service/scripts/ratelimit-check.sh",
-              "contains": "rules 3-4 count API requests only"
-            },
-            {
-              "kind": "file",
-              "ref": "auth-service/scripts/ratelimit-check.sh",
-              "contains": "rule 3 keeps its tier and per-IP selectors next to the path"
-            },
-            {
-              "kind": "file",
-              "ref": "auth-service/scripts/ratelimit-check.sh",
-              "contains": "rule 4 keeps its tier and per-IP selectors next to the path"
-            }
-          ]
+          "status": "planned",
+          "tracking": "D3",
+          "planned_check": "auth-service/scripts/ratelimit-check.sh (tooling/api-keys-e2e) comes back with rate limiting; it is off in every environment in phase 1 (release plan D3)"
         }
       ]
     },
