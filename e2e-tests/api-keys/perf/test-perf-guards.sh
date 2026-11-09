@@ -101,6 +101,11 @@ for mode in latency revoke; do
   else echo "FAIL: $mode made a call without the dev context: $(tr '\n' ';' <"$tmp/calls")"; fail=1; fi
 done
 
+# A cluster read that fails (not a NotFound) stops the run: it is never taken for "the flag is off".
+run "${ok_env[@]}" -- latency; rc=$?
+[ $rc != 0 ] && grep -q "cluster read failed" "$tmp/out" && ! grep -q " create " "$tmp/calls" \
+  && echo "ok: a failed cluster read stops the run before any create" || { echo "FAIL: failed read (exit $rc)"; fail=1; }
+
 # Two runs never share a resource name (the exit trap deletes by the name's label).
 run "${ok_env[@]}" -- plan; n1="$(grep -m1 -oE 'apikeys-perf-[0-9]{6}-[0-9a-f]{8}' "$tmp/out")"
 run "${ok_env[@]}" -- plan; n2="$(grep -m1 -oE 'apikeys-perf-[0-9]{6}-[0-9a-f]{8}' "$tmp/out")"
@@ -115,7 +120,7 @@ case "\$*" in
   *" get deploy/"*) echo enforce ;;
   *" get pods "*) echo web-0 ;;
   *" get job/"*) echo 1/ ;;
-  *" logs job/"*) echo 'SUMMARY_JSON {"mode": "enforce", "arms": {"anon": {"n": 10, "p50": 1.0, "p99": 2.0, "max": 3.0, "checks_rate": 1}}}' ;;
+  *" logs job/"*) [ -n "\${FAKE_EMPTY_SUMMARY:-}" ] && { echo 'SUMMARY_JSON {"arms": {}}'; exit 0; }; echo 'SUMMARY_JSON {"mode": "enforce", "arms": {"anon": {"n": 10, "p50": 1.0, "p99": 2.0, "max": 3.0, "checks_rate": 1}}}' ;;
   *" create -f -"*) cat >>"$tmp/created" ;;
   *" delete "*) exit "\${FAKE_DELETE_RC:-0}" ;;
   *" --reset"*) cat >/dev/null; case "\$*" in *--manifest-stdout*) echo '{"keys": [{"value": "sfr_fakemanifestkey000000000000"}]}' ;; *) echo "On the cauldron the manifest goes to stdout only" >&2; exit 1 ;; esac ;;
@@ -143,6 +148,8 @@ if [ $rc = 0 ] && [ -f "$latest/revoke.json" ] && grep -q -- '--teardown' "$tmp/
   echo "ok: revoke on a fake cluster seeds, times the trials and tears down"
 else echo "FAIL: revoke happy path (exit $rc)"; tail -5 "$tmp/out" | sed 's/^/    /'; fail=1; fi
 grep -rq sfr_fakemanifest "$latest" && { echo "FAIL: the seeder's manifest reached the results"; fail=1; } || echo "ok: the seeder's manifest (key values) never reaches the results"
+run_fake "${happy_env[@]}" FAKE_EMPTY_SUMMARY=1 bash "$runner" latency; rc=$?
+[ $rc != 0 ] && echo "ok: a k6 summary with no samples fails the latency run" || { echo "FAIL: empty summary passed"; fail=1; }
 run_fake "${happy_env[@]}" FAKE_DELETE_RC=1 APIKEYS_PERF_KEY_FILE="$tmp/key" bash "$runner" latency; rc=$?
 [ $rc = 4 ] && grep -q "CLEANUP FAILED" "$tmp/out" && echo "ok: a failed cleanup fails the latency run (exit 4)" \
   || { echo "FAIL: failed cleanup gave exit $rc"; fail=1; }

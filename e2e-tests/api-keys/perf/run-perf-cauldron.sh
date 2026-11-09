@@ -211,14 +211,21 @@ git -C "$REPO" check-ignore -q "$OUT" || die "$OUT is not git-ignored"
 exec > >(mask | tee -a "$OUT/run.log") 2>&1
 
 # --- cluster reads -------------------------------------------------------------------------------------------------
-deploy_env() {  # deploy_env VAR -> the auth-service container's env value
-  kubectl --context "$KCTX" -n "$NS" get "deploy/$CAULDRON-auth-service" \
-    -o jsonpath="{.spec.template.spec.containers[0].env[?(@.name==\"$1\")].value}" 2>/dev/null
+# kc_read ARGS... -> prints the read's output; an object that is not found prints nothing, and any other failure
+# (no access, wrong context, API down) stops the run, so a failed read is never taken for "the flag is off".
+kc_read() {
+  local out
+  if out="$(kubectl --context "$KCTX" -n "$NS" get "$@" 2>&1)"; then printf '%s' "$out"; return 0; fi
+  case "$out" in *NotFound*|*"not found"*) return 0 ;; esac
+  die "cluster read failed (get $1): $(printf '%s' "$out" | mask | tail -1)"
+}
+deploy_env() {  # deploy_env VAR -> the auth-service container's env value, empty when there is no such Deployment
+  kc_read "deploy/$CAULDRON-auth-service" -o jsonpath="{.spec.template.spec.containers[0].env[?(@.name==\"$1\")].value}"
 }
 # The HelmRelease's inline value when it has one; without it (values from a ConfigMap, say), whether the
 # auth-service Deployment exists.
 flag_state() {
-  local v; v="$(kubectl --context "$KCTX" -n "$NS" get "helmrelease/$CAULDRON" -o jsonpath='{.spec.values.authService.enabled}' 2>/dev/null)"
+  local v; v="$(kc_read "helmrelease/$CAULDRON" -o jsonpath='{.spec.values.authService.enabled}')" || exit 2
   case "$v" in
     true) echo on ;;
     false) echo off ;;
@@ -230,8 +237,8 @@ web_pod() {
     -o jsonpath='{.items[0].metadata.name}'
 }
 
-AUTH_MODE_SEEN="$(deploy_env AUTH_MODE)"
-FLAG="$(flag_state)"
+AUTH_MODE_SEEN="$(deploy_env AUTH_MODE)" || exit 2
+FLAG="$(flag_state)" || exit 2
 log "cauldron $CAULDRON: authService.enabled=$FLAG, AUTH_MODE=${AUTH_MODE_SEEN:-<no auth service>}"
 
 # to_file FILE COMMAND... -> runs it with its output masked into FILE; returns the command's exit status
@@ -269,7 +276,10 @@ doc = {"cauldron": cauldron, "flag": flag, "auth_mode": mode or None, "k6": json
 json.dump(doc, open(path, "w"), indent=2)
 for arm, v in doc["k6"]["arms"].items():
     print("%-4s n=%d p50=%.3f p99=%.3f max=%.3f ms checks=%s" % (arm, v["n"], v["p50"], v["p99"], v["max"], v["checks_rate"]))
+if not doc["k6"].get("arms") or any(not v.get("n") for v in doc["k6"]["arms"].values()):
+    sys.exit("the k6 summary has an arm with no samples")
 PY
+  [ "${PIPESTATUS[0]}" = 0 ] || { log "could not record the k6 summary"; return 1; }
   log "results: ${OUT#"$REPO"/}/latency-flag-$FLAG.json; with both runs: $0 compare <off.json> <on.json>"
   [ "$state" = "1/" ] || { log "the k6 job did not succeed ($state): a threshold crossed (see k6.log)"; return 1; }
 }

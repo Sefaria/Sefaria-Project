@@ -41,9 +41,10 @@ perf_bulk_keys() {
   wait_for 30 "test \"\$(registry_field len)\" -ge $want" >/dev/null || die "the auth service never loaded the $want live keys"
 }
 
-# perf_cleanup -> removes every row the perf scripts wrote (labels perf-*) from the drill's private database.
+# perf_cleanup -> removes every row the perf scripts wrote (labels perf-*, perf_hit, perf_rep) from the drill's
+# private database.
 perf_cleanup() {
-  psql_su -c "DELETE FROM powered_by_apikey WHERE label LIKE 'perf-%'" >/dev/null 2>&1 || true
+  psql_su -c "DELETE FROM powered_by_apikey WHERE label LIKE 'perf%'" >/dev/null 2>&1 || true
   rm -f "$KEYS_DIR"/perf-*.keys "$KEYS_DIR"/perf_*.hdr
 }
 
