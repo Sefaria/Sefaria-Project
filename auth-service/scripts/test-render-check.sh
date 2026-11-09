@@ -48,5 +48,8 @@ mutate "the ClientTrafficPolicy target is not a Gateway" 'one("ClientTrafficPoli
 mutate "the SecurityPolicy targets a route of another environment" 'one("SecurityPolicy")["spec"]["targetRefs"][0]["name"] = "staging"'
 mutate "the app route attaches to another Gateway" 'one("HTTPRoute", "production")["spec"]["parentRefs"][0]["name"] = "staging"'
 mutate "every listener and attachment removed" 'g = one("Gateway"); g["spec"]["listeners"] = []; one("ClientTrafficPolicy")["spec"]["targetRefs"] = []; one("HTTPRoute", "production")["spec"]["parentRefs"] = []; one("HTTPRoute", "-http-redirect")["spec"]["parentRefs"] = []'
+mutate "the Service selects no auth-service pod" 'one("Service", "auth-service-production")["spec"]["selector"] = {"app": "nothing"}'
+mutate "the Service grpc port moves away from ext_authz" 'one("Service", "auth-service-production")["spec"]["ports"][1]["port"] = 9999'
+mutate "the Service targets an undeclared container port" 'one("Service", "auth-service-production")["spec"]["ports"][1]["targetPort"] = "grpc-x"'
 mutate "two replicas without a PDB" 'one("Deployment", "-auth-service")["spec"]["replicas"] = 2'
 exit $fail

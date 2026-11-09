@@ -22,7 +22,11 @@
 #              PG_EXEC="docker exec -i sefaria-apikeys-stack-pg-1"
 set -euo pipefail
 MODE=create
-[ "${1:-}" = --verify ] && MODE=verify
+case "$#:${1:-}" in
+  0:) ;;
+  1:--verify) MODE=verify ;;
+  *) echo "usage: provision-cluster-registry.sh [--verify]   (got: $*)"; exit 2 ;;
+esac
 DB=${DB:-sefaria_auth}
 ROLE=${ROLE:-auth_service_reader}
 SECRET=${SECRET:-auth-service-registry}

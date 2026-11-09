@@ -47,6 +47,8 @@ run() { PATH="$tmp/bin:$PATH" PG_EXEC="docker exec -i $name" OUT_DIR="$tmp/out" 
   SECRET_NS="${SECRET_NS:-default}" bash "$here/provision-cluster-registry.sh" "$@" >"$tmp/log" 2>&1; }
 
 run --verify && bad "--verify passes before the role exists" || ok "--verify fails before the role exists"
+run --verfy; [ $? = 2 ] && [ "$(psql_ -c "SELECT count(*) FROM pg_roles WHERE rolname = 'auth_service_reader'")" = 0 ] \
+  && ok "a mistyped flag is refused (exit 2) and creates nothing" || bad "a mistyped flag was not refused"
 # A grant that fails (a loader column renamed away) rolls the whole creation back: no role, no file, no temp file.
 psql_ -d sefaria_auth -c "ALTER TABLE powered_by_apikey RENAME COLUMN label TO label_gone"
 run && bad "create succeeded with a missing column" || ok "create fails when a grant fails"

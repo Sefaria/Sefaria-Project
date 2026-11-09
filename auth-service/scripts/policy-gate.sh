@@ -20,6 +20,7 @@ CTX=${CTX:?set CTX to the kube context (no default, so a gate never reads the wr
 NS=${NS:?set NS to the namespace}
 ENV=${ENV:?set ENV to the deployEnv (the Gateway and HTTPRoute name)}
 rc=0
+ERR="$(mktemp)"; trap 'rm -f "$ERR"' EXIT
 
 # judge KIND NAME policy|route JSON: prints ok/FAIL lines for the object; exit 1 on any FAIL.
 judge() {
@@ -33,8 +34,9 @@ fails = []
 
 
 def current(cond):
+    # Freshness needs proof: a condition without observedGeneration on an object with a generation is not current.
     seen = cond.get("observedGeneration")
-    return gen is None or seen is None or seen >= gen
+    return gen is None or (seen is not None and seen >= gen)
 
 
 def need(conds, ctype, where):
@@ -86,9 +88,15 @@ PY
 }
 
 # check KIND NAME policy|route required|optional
+# Absence is only ever concluded from --ignore-not-found's empty answer; any other kubectl error (forbidden, timeout,
+# no such resource type) fails the gate.
 check() {
-  local json
-  if ! json=$(kubectl --context "$CTX" -n "$NS" get "$1" "$2" -o json 2>/dev/null); then
+  local json err
+  if ! json=$(kubectl --context "$CTX" -n "$NS" get "$1" "$2" -o json --ignore-not-found 2>"$ERR"); then
+    err="$(head -c 300 "$ERR" | tr '\n' ' ')"
+    echo "FAIL $1/$2: kubectl get failed: $err"; rc=1; return
+  fi
+  if [ -z "$json" ]; then
     if [[ $4 == required ]]; then echo "FAIL $1/$2: not found"; rc=1; else echo "skip $1/$2: not deployed"; fi
     return
   fi

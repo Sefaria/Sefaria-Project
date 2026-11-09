@@ -8,18 +8,23 @@ fail=0
 # verb but get is refused, so the gate is proven read-only.
 cat >"$tmp/kubectl" <<'FAKE'
 #!/usr/bin/env bash
-args=("$@"); verb="" kind="" name=""
+args=("$@"); verb="" kind="" name="" ignore=""
 for ((i = 0; i < ${#args[@]}; i++)); do
   a=${args[$i]}
   case "$a" in
     --context|-n|-o) i=$((i + 1)) ;;
+    --ignore-not-found) ignore=1 ;;
     get|apply|patch|delete|scale|edit|exec|create|replace|annotate|label) [ -z "$verb" ] && verb=$a ;;
     *) if [ -z "$kind" ]; then kind=$a; elif [ -z "$name" ]; then name=$a; fi ;;
   esac
 done
 [ "$verb" = get ] || { echo "fake kubectl: refused verb '$verb'" >&2; exit 99; }
+[ -f "$FAKE_DIR/error_$kind" ] && { cat "$FAKE_DIR/error_$kind" >&2; exit 1; }
 f="$FAKE_DIR/${kind}_${name}.json"
-[ -f "$f" ] || { echo "Error from server (NotFound): $kind \"$name\" not found" >&2; exit 1; }
+if [ ! -f "$f" ]; then
+  [ -n "$ignore" ] && exit 0
+  echo "Error from server (NotFound): $kind \"$name\" not found" >&2; exit 1
+fi
 cat "$f"
 FAKE
 chmod +x "$tmp/kubectl"
@@ -34,7 +39,7 @@ out, kind, name = sys.argv[1:4]
 o = dict(kv.split("=", 1) for kv in sys.argv[4:])
 gen = int(o.get("gen", 3))
 statuses = o.get("statuses", "True").split(",") if o.get("statuses", "True") else []
-observed = [int(x) for x in o.get("observed", "").split(",")] if o.get("observed") else [gen] * len(statuses)
+observed = [None if x == "none" else int(x) for x in o.get("observed", "").split(",")] if o.get("observed") else [gen] * len(statuses)
 doc = {"kind": kind, "metadata": {"name": name, "generation": gen}, "spec": {}, "status": {}}
 if kind == "httproute":
     refs = o.get("refs", "https-en,https-he").split(",")
@@ -86,6 +91,9 @@ expect fail "app route not accepted on one listener" 'obj httproute authpoc stat
 expect fail "app route backend unresolved" 'obj httproute authpoc resolved=False,True'
 expect fail "app route: a parentRef with no status at all" 'obj httproute authpoc refs=https-en,https-he status_refs=https-en'
 expect fail "app route accepted only for an older generation" 'obj httproute authpoc gen=5 observed=4'
+expect fail "security policy condition without observedGeneration" 'obj securitypolicy authpoc-auth observed=none'
+expect fail "an optional policy the gate may not read (forbidden) is not skipped" 'echo "Error from server (Forbidden): envoyextensionpolicies is forbidden" >"$FAKE_DIR/error_envoyextensionpolicy"'
+expect fail "a required policy that cannot be read (timeout)" 'echo "Unable to connect to the server: i/o timeout" >"$FAKE_DIR/error_securitypolicy"'
 expect fail "redirect route missing" 'rm "$FAKE_DIR/httproute_authpoc-http-redirect.json"'
 ( unset CTX; PATH="$tmp:$PATH" NS=default ENV=authpoc bash "$here/policy-gate.sh" >/dev/null 2>&1 ) \
   && { echo "FAIL: runs without CTX"; fail=1; } || echo "ok: refuses to run without an explicit CTX"

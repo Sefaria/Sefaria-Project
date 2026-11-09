@@ -107,6 +107,34 @@ def check_on(docs, dsn_secret):
     if services:
         ports = [p.get("name") for p in services[0]["spec"]["ports"]]
         check(ports == ["http", "grpc"], "named service ports http,grpc (got {})".format(",".join(map(str, ports))))
+        if deployments:
+            # The Service must reach the pods: its selector matches the pod labels, and each port's targetPort is a
+            # port the container declares (by name or number).
+            pod = deployments[0]["spec"]["template"]
+            labels = (pod.get("metadata") or {}).get("labels") or {}
+            selector = services[0]["spec"].get("selector") or {}
+            check(
+                bool(selector) and all(labels.get(k) == v for k, v in selector.items()),
+                f"the Service selector {selector} matches the auth-service pod labels",
+            )
+            declared = pod["spec"]["containers"][0].get("ports") or []
+            names = {cp.get("name") for cp in declared}
+            numbers = {cp.get("containerPort") for cp in declared}
+            for sp in services[0]["spec"]["ports"]:
+                target = sp.get("targetPort", sp.get("port"))
+                check(
+                    target in names or target in numbers,
+                    f"Service port {sp.get('name')} targets a declared container port ({target})",
+                )
+            grpc = [sp.get("port") for sp in services[0]["spec"]["ports"] if sp.get("name") == "grpc"]
+            for p in objects(docs, "SecurityPolicy"):
+                ports_used = [
+                    b.get("port") for b in ((p["spec"].get("extAuth") or {}).get("grpc") or {}).get("backendRefs") or []
+                ]
+                check(
+                    bool(grpc) and ports_used == grpc,
+                    f"ext_authz calls the Service's grpc port ({ports_used} vs {grpc})",
+                )
 
     policies = objects(docs, "SecurityPolicy")
     check([p["metadata"]["name"] for p in policies] == [env + "-auth"], f"one SecurityPolicy, {env}-auth")
