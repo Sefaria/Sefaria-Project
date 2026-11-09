@@ -87,6 +87,8 @@ check N-M7 "[no-dev-rows] no developer_settings projects" "$(psql_su -c "SELECT 
 roundtrip no-dev-rows
 psql_su -c "UPDATE powered_by_project SET submission_source = 'developer_settings' WHERE id = $PROJECT_ID" >/dev/null
 roundtrip with-dev-row
+check N-M7 "[with-dev-row] the rollback past 0003 made the developer_settings row a manual one (0003's reverse)" \
+  "$(psql_su -c "SELECT submission_source FROM powered_by_project WHERE id = $PROJECT_ID")" manual
 
 # A tier changed on api_project lives only there (the frozen powered_by_project.tier column is never written by the
 # new model), so 0007's reverse refuses to drop it. Once the tier matches the frozen column again, a rollback past 0006
@@ -104,6 +106,9 @@ tier_rollback() {
   fi
   d11_manage migrate powered_by --noinput >/dev/null 2>&1
   set_project_tier "$(psql_su -c "SELECT tier FROM powered_by_project WHERE id = $PROJECT_ID")"
+  # A rollback past 0003 turned the developer_settings row into a manual one (0003's reverse) and dropped the keys, so
+  # the profile is no longer an API project by 0007's definition; make it one again so its row is rebuildable.
+  psql_su -c "UPDATE powered_by_project SET submission_source = 'developer_settings' WHERE id = $PROJECT_ID" >/dev/null
   local keys_before; keys_before="$(psql_su -c "SELECT count(*) FROM powered_by_apikey")"
   local frozen_before; frozen_before="$(psql_su -c "SELECT tier FROM powered_by_project WHERE id = $PROJECT_ID")"
   schema >"$OUT/tier.schema.before.sql"

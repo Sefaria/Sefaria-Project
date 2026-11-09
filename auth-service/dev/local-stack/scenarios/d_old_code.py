@@ -228,7 +228,11 @@ with override_settings(ALLOWED_HOSTS=["*"]):
     page = client.get("/admin/powered_by/project/%d/delete/" % keyed)
     resp = client.post("/admin/powered_by/project/%d/delete/" % keyed, {"post": "yes"})
 still = sql("SELECT count(*) FROM powered_by_project WHERE id = %s", [keyed])[0][0]
-keys = sql("SELECT count(*) FROM powered_by_apikey WHERE project_id = %s", [keyed])[0][0]
+# Keys point at the profile's api_project row, whose id need not be the profile's.
+keys = sql(
+    "SELECT count(*) FROM powered_by_apikey k JOIN api_project a ON a.id = k.project_id WHERE a.profile_id = %s",
+    [keyed],
+)[0][0]
 # Accepted: master's admin may answer 500 here, as long as it changes no rows.
 if (still, keys) in ((1, 1), (0, 0)):
     say(

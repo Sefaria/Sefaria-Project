@@ -57,8 +57,8 @@ TARGET=local
 MODE=""
 while [ $# -gt 0 ]; do
   case "$1" in
-    --target) TARGET="${2:-}"; shift 2 ;;
-    --mode) MODE="${2:-}"; shift 2 ;;
+    --target|--mode) [ $# -ge 2 ] || die "$1 needs a value"
+      if [ "$1" = --target ]; then TARGET="$2"; else MODE="$2"; fi; shift 2 ;;
     *) die "unknown argument $1" ;;
   esac
 done
@@ -118,12 +118,16 @@ print(h.get('x-sefaria-tier'), repr(h.get('x-sefaria-project')), h.get('x-sefari
 
 fails=0
 GATEWAY_CODES=" api_key_required api_key_invalid origin_not_allowed "
+# An answer from the route: a real HTTP status that is not a transport failure or a gateway 5xx. "Not denied" is only a
+# pass when the request got such an answer.
+answered() { [[ $STATUS =~ ^[1-5][0-9][0-9]$ ]] && [[ ! $STATUS =~ ^(502|503|504)$ ]]; }
 line() { printf '%-6s %-4s %s\n' "$1" "$2" "$3"; [ "$2" = FAIL ] && fails=$((fails + 1)); return 0; }
 expect() {  # expect ID WANT_STATUS WANT_CODE GAP_TAG DESCRIPTION
   local id="$1" ws="$2" wc="$3" gap="$4" what="$5"
   if [ "$MODE" = observe ] && [ -n "$wc" ] && [[ $GATEWAY_CODES == *" $wc "* ]]; then
     # Observe never denies: the request goes on to the route, whatever answers it there.
     if [[ $GATEWAY_CODES == *" $CODE "* ]]; then line "$id" FAIL "observe: $what -> $STATUS $CODE, a gateway denial (observe never denies)"
+    elif ! answered; then line "$id" FAIL "observe: $what -> $STATUS, no answer from the route"
     else line "$id" pass "observe: $what -> $STATUS, not denied (enforce: $ws $wc)"; fi
     return 0
   fi
@@ -140,6 +144,7 @@ line MODE info "auth service mode: $MODE (target $TARGET)"
 for p in "$U" /texts /api/knn /api/search-wrapper /api/name/Genesis; do
   req www "$p"
   if [[ $GATEWAY_CODES == *" $CODE "* ]]; then line A-UNG FAIL "ungated $p, no key -> $STATUS $CODE (only $G is gated)"
+  elif ! answered; then line A-UNG FAIL "ungated $p, no key -> $STATUS, no answer from the route"
   else line A-UNG pass "ungated $p, no key -> $STATUS, not a gateway denial"; fi
 done
 
