@@ -127,6 +127,21 @@ def check_off(env, objects):
 def check_on(env, objects):
     where = f"{env} on"
     check(len(find(objects, "Deployment", r"-auth-service$")) == 1, f"{where}: one auth-service Deployment")
+    # N-F1: the pod keeps answering for SHUTDOWN_DRAIN after SIGTERM, and Kubernetes must not kill it before the drain
+    # and the gRPC (20 s) and HTTP (5 s) shutdown timeouts are over.
+    deployments = find(objects, "Deployment", r"-auth-service$")
+    pod = deployments[0]["spec"]["template"]["spec"] if deployments else {}
+    container_env = {e["name"]: e.get("value") for e in pod.get("containers", [{}])[0].get("env", [])}
+    drain = container_env.get("SHUTDOWN_DRAIN", "")
+    seconds = int(drain[:-1]) if re.fullmatch(r"\d+s", drain) else None
+    check(
+        seconds is not None and seconds > 0,
+        f"{where}: the auth service drains after SIGTERM (SHUTDOWN_DRAIN={drain!r})",
+    )
+    check(
+        seconds is not None and pod.get("terminationGracePeriodSeconds", 30) >= seconds + 25,
+        f"{where}: terminationGracePeriodSeconds covers the drain plus the shutdown timeouts",
+    )
 
     (policy,) = find(objects, "ClientTrafficPolicy")
     removed = set(policy["spec"].get("headers", {}).get("earlyRequestHeaders", {}).get("remove", []))

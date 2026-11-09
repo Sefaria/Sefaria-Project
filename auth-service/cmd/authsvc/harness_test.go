@@ -36,6 +36,7 @@ func TestMain(m *testing.M) {
 type service struct {
 	httpURL string
 	client  authv3.AuthorizationClient
+	cmd     *exec.Cmd
 }
 
 func freePort(t *testing.T) string {
@@ -53,7 +54,8 @@ func startService(t *testing.T, env map[string]string) *service {
 	t.Helper()
 	grpcAddr, httpAddr := freePort(t), freePort(t)
 	cmd := exec.Command(os.Args[0], "-test.run=^$")
-	cmd.Env = append(os.Environ(), runMainEnv+"=1", "GRPC_ADDR="+grpcAddr, "HTTP_ADDR="+httpAddr)
+	// No shutdown drain unless a test asks for one, so each test's teardown is quick. Later entries win.
+	cmd.Env = append(os.Environ(), runMainEnv+"=1", "GRPC_ADDR="+grpcAddr, "HTTP_ADDR="+httpAddr, "SHUTDOWN_DRAIN=0s")
 	for k, v := range env {
 		cmd.Env = append(cmd.Env, k+"="+v)
 	}
@@ -75,7 +77,7 @@ func startService(t *testing.T, env map[string]string) *service {
 			t.Logf("service output:\n%s", out.String())
 		}
 	})
-	s := &service{httpURL: "http://" + httpAddr}
+	s := &service{httpURL: "http://" + httpAddr, cmd: cmd}
 	deadline := time.Now().Add(20 * time.Second)
 	for {
 		if resp, err := http.Get(s.httpURL + "/healthz"); err == nil {

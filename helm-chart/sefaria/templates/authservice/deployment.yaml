@@ -26,6 +26,7 @@ spec:
         stackRole: auth-service
         {{- include "sefaria.selectorLabels" . | nindent 8 }}
     spec:
+      terminationGracePeriodSeconds: {{ add (int .Values.authService.shutdownDrainSeconds) 35 }}
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532
@@ -57,6 +58,7 @@ spec:
             - { name: HELP_URL, value: {{ .Values.authService.helpURL | quote }} }
             - { name: RELOAD_INTERVAL, value: {{ .Values.authService.reloadInterval | quote }} }
             - { name: PG_NOTIFY_CHANNEL, value: {{ .Values.authService.push.pgChannel | quote }} }
+            - { name: SHUTDOWN_DRAIN, value: {{ printf "%ds" (int .Values.authService.shutdownDrainSeconds) | quote }} }
             - name: PG_DSN
               valueFrom:
                 secretKeyRef:
