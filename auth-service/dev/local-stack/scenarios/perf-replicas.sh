@@ -13,7 +13,7 @@ source "$SCEN_DIR/perf_lib.sh"
 ITERATIONS="${ITERATIONS:-300}"
 drill_up
 trap 'perf_cleanup; drill_reset >/dev/null 2>&1 || true' EXIT
-new_key perf_rep
+perf_key perf_rep
 wait_for 10 'test "$(gw $GW_HC $GATED perf_rep)" = 200' >/dev/null || die "the perf key is never accepted"
 
 per_host() { curl -s -m 3 "$D11_ADMIN/clusters" | awk -F'::' '$1 == "authsvc" && $3 == "rq_total" {print $2 "=" $4}' | sort | tr '\n' ' '; }

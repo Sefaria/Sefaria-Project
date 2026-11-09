@@ -132,10 +132,11 @@ if [ "$MODE" = revoke ] || [ "$MODE" = plan ]; then
   if [ "$MODE" = revoke ]; then [ -f "${APIKEYS_E2E_PASSWORD_FILE:-}" ] || die "APIKEYS_E2E_PASSWORD_FILE must name the fixture password file"; fi
 fi
 
-RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-$CAULDRON-$MODE"
+# A random suffix, so two runs never share a resource name (or the label the exit trap deletes by) or a results dir.
+SUFFIX="$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n')"
+RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-$SUFFIX-$CAULDRON-$MODE"
 OUT="$REPO/e2e-tests/api-keys/results/perf-runs/$RUN_ID"
-# A random suffix, so two runs never share a name (or the label the exit trap deletes by).
-NAME="apikeys-perf-$(date -u +%H%M%S)-$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n')"
+NAME="apikeys-perf-$(date -u +%H%M%S)-$SUFFIX"
 JOB_LABEL="app.kubernetes.io/name=apikeys-perf,apikeys-perf/run=$NAME"
 
 job_manifest() {
@@ -221,7 +222,7 @@ print(json.dumps(doc, indent=1))'
   exit 0
 fi
 
-mkdir -p "$OUT"
+mkdir -p "$(dirname "$OUT")" && mkdir "$OUT" || die "cannot create a fresh results directory $OUT"
 git -C "$REPO" check-ignore -q "$OUT" || die "$OUT is not git-ignored"
 exec > >(mask | tee -a "$OUT/run.log") 2>&1
 

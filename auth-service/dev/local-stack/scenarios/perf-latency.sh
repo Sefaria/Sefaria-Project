@@ -20,7 +20,7 @@ DIRECT_RATE="${DIRECT_RATE:-200}"; DIRECT_DURATION="${DIRECT_DURATION:-30s}"
 drill_up
 trap 'perf_cleanup; authsvc_recreate >/dev/null 2>&1 || true' EXIT
 perf_bulk_keys
-new_key perf_hit
+perf_key perf_hit
 wait_for 10 'test "$(gw $GW_HC $GATED perf_hit)" = 200' >/dev/null || die "the perf key is never accepted"
 info "PERF-L registry: $(registry_field len) keys; RATE=$RATE/s per arm, DURATION=$DURATION per mode; results in ${PERF_OUT#"$REPO"/}"
 

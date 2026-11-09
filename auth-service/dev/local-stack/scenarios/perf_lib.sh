@@ -41,6 +41,17 @@ perf_bulk_keys() {
   wait_for 30 "test \"\$(registry_field len)\" -ge $want" >/dev/null || die "the auth service never loaded the $want live keys"
 }
 
+# perf_key NAME -> a live key on the drill project, like lib.sh's new_key but with the SQL on stdin, so the value
+# never appears in a process's arguments; its header file is $KEYS_DIR/NAME.hdr (0600).
+perf_key() {
+  local value; value="sfr_d11$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32)"
+  psql_su >/dev/null <<SQL
+INSERT INTO powered_by_apikey (id, key, label, allowed_origins, created_at, project_id)
+VALUES (gen_random_uuid(), '$value', '$1', '[]'::jsonb, now(), $DRILL_API_PROJECT) ON CONFLICT (key) DO NOTHING;
+SQL
+  ( umask 077; printf 'x-api-key: %s\n' "$value" >"$KEYS_DIR/$1.hdr" )
+}
+
 # perf_cleanup -> removes every row the perf scripts wrote (labels perf-*, perf_hit, perf_rep) from the drill's
 # private database.
 perf_cleanup() {
