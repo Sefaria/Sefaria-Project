@@ -66,8 +66,15 @@ verify() {
   [ "$(pg -c "SELECT count(*) FROM pg_roles WHERE rolname = '$ROLE' AND rolcanlogin")" = 1 ] && ok "$ROLE can log in" || bad "$ROLE cannot log in"
   [ "$(pg -c "SELECT count(*) FROM pg_roles WHERE rolname = '$ROLE' AND (rolsuper OR rolcreaterole OR rolcreatedb OR rolbypassrls)")" = 0 ] \
     && ok "$ROLE has no superuser, createrole, createdb or bypassrls" || bad "$ROLE has an admin attribute"
-  pg -c "SELECT coalesce(array_to_string(setconfig, ','), '') FROM pg_db_role_setting s JOIN pg_roles r ON r.oid = s.setrole WHERE r.rolname = '$ROLE'" \
-    | grep -q 'default_transaction_read_only=on' && ok "$ROLE sessions are read-only" || bad "$ROLE sessions are not read-only (ALTER ROLE ... SET default_transaction_read_only = on)"
+  # The value a session of ROLE in DB gets: role-in-database, then role, then database settings, then off.
+  local ro
+  ro="$(pg -c "SELECT coalesce(
+      (SELECT split_part(c, '=', 2) FROM pg_db_role_setting s, unnest(s.setconfig) c WHERE s.setrole = r.oid AND s.setdatabase = d.oid AND c LIKE 'default\_transaction\_read\_only=%'),
+      (SELECT split_part(c, '=', 2) FROM pg_db_role_setting s, unnest(s.setconfig) c WHERE s.setrole = r.oid AND s.setdatabase = 0 AND c LIKE 'default\_transaction\_read\_only=%'),
+      (SELECT split_part(c, '=', 2) FROM pg_db_role_setting s, unnest(s.setconfig) c WHERE s.setrole = 0 AND s.setdatabase = d.oid AND c LIKE 'default\_transaction\_read\_only=%'),
+      'off') FROM pg_roles r, pg_database d WHERE r.rolname = '$ROLE' AND d.datname = '$DB'")"
+  case "$ro" in on|true|yes|1) ok "$ROLE sessions in $DB are read-only" ;;
+    *) bad "$ROLE sessions in $DB are not read-only (effective default_transaction_read_only=$ro)" ;; esac
   [ "$(pg -c "SELECT has_database_privilege('$ROLE', '$DB', 'CONNECT')")" = t ] && ok "$ROLE may connect to $DB" || bad "$ROLE may not connect to $DB"
   for entry in "${GRANTS[@]}"; do
     table=${entry%%:*}; cols=${entry#*:}

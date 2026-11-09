@@ -50,18 +50,26 @@ def need(conds, ctype, where):
                      % (where, ctype, c.get("observedGeneration"), gen))
 
 
+# Only Envoy Gateway's own status entries count: another controller's True must not mask Envoy Gateway's False.
+CONTROLLER = os.environ.get("EG_CONTROLLER_PREFIX", "gateway.envoyproxy.io/")
+
+
+def ours(entries):
+    return [e for e in entries if str(e.get("controllerName", "")).startswith(CONTROLLER)]
+
+
 status = obj.get("status") or {}
 if shape == "policy":
-    ancestors = status.get("ancestors") or []
+    ancestors = ours(status.get("ancestors") or [])
     if not ancestors:
-        fails.append("no ancestor status yet")
+        fails.append("no ancestor status from Envoy Gateway (%s*) yet" % CONTROLLER)
     for a in ancestors:
         ref = a.get("ancestorRef") or {}
         where = "ancestor " + "/".join(str(ref.get(k)) for k in ("kind", "name", "sectionName") if ref.get(k))
         need(a.get("conditions") or [], "Accepted", where)
     count, what = len(ancestors), "ancestors"
 else:
-    parents = status.get("parents") or []
+    parents = ours(status.get("parents") or [])
     refs = (obj.get("spec") or {}).get("parentRefs") or []
     if not refs:
         fails.append("no parentRefs in spec")
@@ -73,11 +81,11 @@ else:
         where = "parent %s/%s" % (ref.get("name"), ref.get("sectionName") or "*")
         match = [p for p in parents if key(p.get("parentRef") or {}) == key(ref)]
         if not match:
-            fails.append(where + ": no status for this parentRef")
+            fails.append(where + ": no Envoy Gateway status for this parentRef")
             continue
-        conds = [c for p in match for c in (p.get("conditions") or [])]
-        need(conds, "Accepted", where)
-        need(conds, "ResolvedRefs", where)
+        for p in match:  # each status entry on its own, never merged
+            need(p.get("conditions") or [], "Accepted", where)
+            need(p.get("conditions") or [], "ResolvedRefs", where)
     count, what = len(refs), "parents"
 for f in fails:
     print("FAIL %s: %s" % (label, f))

@@ -51,5 +51,7 @@ mutate "every listener and attachment removed" 'g = one("Gateway"); g["spec"]["l
 mutate "the Service selects no auth-service pod" 'one("Service", "auth-service-production")["spec"]["selector"] = {"app": "nothing"}'
 mutate "the Service grpc port moves away from ext_authz" 'one("Service", "auth-service-production")["spec"]["ports"][1]["port"] = 9999'
 mutate "the Service targets an undeclared container port" 'one("Service", "auth-service-production")["spec"]["ports"][1]["targetPort"] = "grpc-x"'
+mutate "the Service grpc port aimed at the HTTP server" 'one("Service", "auth-service-production")["spec"]["ports"][1]["targetPort"] = "http"'
+mutate "the Service ports swapped" 'ps = one("Service", "auth-service-production")["spec"]["ports"]; ps[0]["targetPort"], ps[1]["targetPort"] = "grpc", "http"'
 mutate "two replicas without a PDB" 'one("Deployment", "-auth-service")["spec"]["replicas"] = 2'
 exit $fail

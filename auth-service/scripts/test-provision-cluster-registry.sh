@@ -93,6 +93,9 @@ psql_ -c "GRANT apikeys_test_writer TO auth_service_reader"
 run --verify && bad "--verify passes with an inherited write grant" || ok "--verify fails on a write privilege inherited from another role"
 psql_ -c "REVOKE apikeys_test_writer FROM auth_service_reader"
 run --verify && ok "--verify passes again once the extra privileges are gone" || { bad "--verify still fails"; sed 's/^/    /' "$tmp/log"; }
+psql_ -c "ALTER ROLE auth_service_reader IN DATABASE sefaria_auth SET default_transaction_read_only = off"
+run --verify && bad "--verify passes when a database-specific setting turns read-only off" || ok "--verify fails on a per-database read-only override"
+psql_ -c "ALTER ROLE auth_service_reader IN DATABASE sefaria_auth RESET default_transaction_read_only"
 psql_ -c "ALTER ROLE auth_service_reader RESET default_transaction_read_only"
 run --verify && bad "--verify passes with read-write sessions" || ok "--verify fails when sessions are not read-only"
 exit $fail

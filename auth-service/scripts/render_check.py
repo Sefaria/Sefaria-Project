@@ -126,6 +126,19 @@ def check_on(docs, dsn_secret):
                     target in names or target in numbers,
                     f"Service port {sp.get('name')} targets a declared container port ({target})",
                 )
+            # Each Service port must land on the container port its server listens on (HTTP_ADDR, GRPC_ADDR): a grpc
+            # port aimed at the HTTP server would make every ext_authz call fail, and fail open.
+            env_vars = {e["name"]: e.get("value", "") for e in pod["spec"]["containers"][0].get("env", [])}
+            listen = {"http": env_vars.get("HTTP_ADDR", ""), "grpc": env_vars.get("GRPC_ADDR", "")}
+            by_name = {cp.get("name"): cp.get("containerPort") for cp in declared}
+            for sp in services[0]["spec"]["ports"]:
+                target = sp.get("targetPort", sp.get("port"))
+                resolved = by_name.get(target, target)
+                want = listen.get(sp.get("name"), "")
+                check(
+                    bool(want) and want.rsplit(":", 1)[-1] == str(resolved),
+                    f"Service port {sp.get('name')} reaches the {sp.get('name')} server (container port {resolved}, listens on {want or '?'})",
+                )
             grpc = [sp.get("port") for sp in services[0]["spec"]["ports"] if sp.get("name") == "grpc"]
             for p in objects(docs, "SecurityPolicy"):
                 ports_used = [
