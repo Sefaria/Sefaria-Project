@@ -47,16 +47,20 @@ perf_cleanup() {
   rm -f "$KEYS_DIR"/perf-*.keys "$KEYS_DIR"/perf_*.hdr
 }
 
-# report_lines FILE KIND -> feeds perf_report.py's result lines to lib.sh's pass/fail/info.
+# report_lines FILE KIND -> feeds perf_report.py's result lines to lib.sh's pass/fail/info; a report that crashes
+# or prints no pass line is a FAIL.
 report_lines() {
-  local kind rest
+  local out rc kind rest passes=0
+  out="$("${REPORT[@]}" "$2" "$1" 2>&1)"; rc=$?
   while read -r kind rest; do
     case "$kind" in
-      pass) pass "$rest" ;;
+      pass) pass "$rest"; passes=$((passes + 1)) ;;
       fail) fail "$rest" ;;
       info) info "$rest" ;;
     esac
-  done < <("${REPORT[@]}" "$2" "$1")
+  done <<<"$out"
+  [ "$rc" = 0 ] || fail "PERF $2 report failed (exit $rc): $(printf '%s' "$out" | tail -1)"
+  [ "$passes" -gt 0 ] || fail "PERF $2 report produced no passing check"
 }
 
 envoy_restart() {

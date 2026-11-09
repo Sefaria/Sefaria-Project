@@ -15,13 +15,14 @@
 #   APIKEYS_CAULDRON=<name>        the perf cauldron; its name must contain "perf" and must not be a shared cauldron
 #   APIKEYS_PERF_CAULDRON=<name>   the same name again: the go-ahead for this run
 #   APIKEYS_KUBE_CONTEXT           unset, or the dev cluster's context (nothing else is accepted)
-# latency:  APIKEYS_PERF_BASE      the gateway's in-cluster URL (the Envoy Service in envoy-gateway-system, plain
-#                                  http), so the numbers leave out Cloudflare as the POC's did; the Host header is
+# latency:  APIKEYS_PERF_BASE      the gateway's in-cluster URL, http://envoy-<name>.envoy-gateway-system.svc.cluster.local
+#                                  (nothing else is accepted), so the numbers leave out Cloudflare as the POC's did; the Host header is
 #                                  www.<cauldron>.cauldron.sefaria.org
 #           APIKEYS_PERF_KEY_FILE  a valid key of the cauldron (bare value or "x-api-key: <value>", made in its
 #                                  settings page); without it the hit arm is left out
 #           RATE (per arm, default 25, cap 50), DURATION (default 120s, cap 180s), ARMS (anon,hit,miss)
-# revoke:   APIKEYS_E2E_PASSWORD_FILE (the fixture password, as for cauldron/run.sh seeded), TRIALS (10, cap 20),
+# revoke:   APIKEYS_PERF_BASE optional (the same Envoy Service URL, or https://www.<cauldron>.cauldron.sefaria.org,
+#           the default), APIKEYS_E2E_PASSWORD_FILE (the fixture password, as for cauldron/run.sh seeded), TRIALS (10, cap 20),
 #           POLL (seconds, default 0.02, floor 0.02); the cauldron's auth service must be on and in enforce.
 #           The fixtures land in sefaria_auth, which every cauldron sharing that database sees (as with
 #           cauldron/run.sh seeded); they are torn down on exit and --leftovers must print 0.
@@ -97,11 +98,17 @@ DURATION_S="${BASH_REMATCH[1]}"
 python3 -c "import sys; sys.exit(0 if float(sys.argv[1]) >= $POLL_FLOOR else 1)" "$POLL" 2>/dev/null || die "POLL=$POLL: at least $POLL_FLOOR s"
 g1_check "$0"
 HOST="www.$CAULDRON.cauldron.sefaria.org"
+# Where the k6 Job (latency) and the in-pod trials (revoke) send requests: only the Envoy Gateway's in-cluster Service
+# or the cauldron's own public host, never an arbitrary URL. The Host header is always the cauldron's www host.
+ENVOY_SVC_RE='^http://envoy-[a-z0-9-]+\.envoy-gateway-system\.svc\.cluster\.local(:[0-9]+)?$'
+BASE="${APIKEYS_PERF_BASE:-}"
+if [ "$MODE" = latency ]; then
+  [[ $BASE =~ $ENVOY_SVC_RE ]] || die "APIKEYS_PERF_BASE must be the Envoy Gateway Service's in-cluster URL, http://envoy-<name>.envoy-gateway-system.svc.cluster.local"
+elif [ "$MODE" = revoke ] && [ -n "$BASE" ]; then
+  [[ $BASE =~ $ENVOY_SVC_RE ]] || [ "$BASE" = "https://$HOST" ] \
+    || die "APIKEYS_PERF_BASE for revoke must be the Envoy Gateway Service's in-cluster URL or https://$HOST"
+fi
 if [ "$MODE" = latency ] || [ "$MODE" = plan ]; then
-  BASE="${APIKEYS_PERF_BASE:-}"
-  if [ "$MODE" = latency ]; then
-    [[ $BASE =~ ^http://[a-z0-9.-]+(:[0-9]+)?$ ]] || die "APIKEYS_PERF_BASE must be the gateway's in-cluster http URL, like http://envoy-<hash>.envoy-gateway-system.svc.cluster.local"
-  fi
   KEY_FILE="${APIKEYS_PERF_KEY_FILE:-}"
   if [ -z "$KEY_FILE" ]; then ARMS="$(echo "$ARMS" | tr ',' '\n' | grep -vx hit | paste -sd, -)"; [ -n "$ARMS" ] || die "no arm left without APIKEYS_PERF_KEY_FILE"
   elif [ ! -f "$KEY_FILE" ]; then die "APIKEYS_PERF_KEY_FILE=$KEY_FILE does not exist"; fi
@@ -112,7 +119,8 @@ fi
 
 RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-$CAULDRON-$MODE"
 OUT="$REPO/e2e-tests/api-keys/results/perf-runs/$RUN_ID"
-NAME="apikeys-perf-$(date -u +%H%M%S)"
+# A random suffix, so two runs never share a name (or the label the exit trap deletes by).
+NAME="apikeys-perf-$(date -u +%H%M%S)-$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n')"
 JOB_LABEL="app.kubernetes.io/name=apikeys-perf,apikeys-perf/run=$NAME"
 
 job_manifest() {
@@ -270,9 +278,15 @@ seed_exec() {
       env APIKEYS_CAULDRON="$CAULDRON" APIKEYS_ALLOW_MUTATING_ON="$CAULDRON" sh -c 'cd /app && python - --target cauldron "$@"' seed "$@"
 }
 
+# The exit trap of revoke: a failed teardown or any leftover row fails the run (exit 3), whatever happened before.
 seeded_teardown() {
-  to_file "$OUT/teardown.txt" seed_exec --teardown
-  to_file "$OUT/leftovers-after.txt" seed_exec --leftovers || log "LEFTOVERS: clean up by hand ($OUT/leftovers-after.txt)"
+  local bad=0
+  to_file "$OUT/teardown.txt" seed_exec --teardown || bad=1
+  to_file "$OUT/leftovers-after.txt" seed_exec --leftovers || bad=1
+  if [ "$bad" = 1 ]; then
+    log "TEARDOWN FAILED or rows are left: clean up by hand ($OUT/teardown.txt, $OUT/leftovers-after.txt)"
+    exit 3
+  fi
 }
 
 # trials_exec POD ARGS_JSON -> revoke_trials_pod.py in the pod, script and arguments on stdin

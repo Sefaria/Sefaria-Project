@@ -205,6 +205,8 @@ def revoke(res):
         "PERF-R local numbers; the cluster figure comes from the perf-cauldron run (registry at %s keys here)" % keys,
     )
     n = res.get("notify")
+    if not n:
+        say("fail", "PERF-R no NOTIFY run recorded")
     if n:
         for err in n.get("errors", []):
             say("fail", "PERF-R notify: %s" % err)
