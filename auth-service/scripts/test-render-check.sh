@@ -43,5 +43,10 @@ mutate "PG_DSN is a literal" '[e for e in one("Deployment", "-auth-service")["sp
 mutate "the image is :latest" 'one("Deployment", "-auth-service")["spec"]["template"]["spec"]["containers"][0]["image"] = "x/auth:latest"'
 mutate "the app route listens on port 80" 'one("HTTPRoute", "production")["spec"]["parentRefs"][0]["sectionName"] = "http-en"'
 mutate "the redirect route redirects to http" 'one("HTTPRoute", "-http-redirect")["spec"]["rules"][0]["filters"][0]["requestRedirect"]["scheme"] = "http"'
+mutate "the ClientTrafficPolicy targets another Gateway" 'one("ClientTrafficPolicy")["spec"]["targetRefs"][0]["name"] = "staging"'
+mutate "the ClientTrafficPolicy target is not a Gateway" 'one("ClientTrafficPolicy")["spec"]["targetRefs"][0]["kind"] = "HTTPRoute"'
+mutate "the SecurityPolicy targets a route of another environment" 'one("SecurityPolicy")["spec"]["targetRefs"][0]["name"] = "staging"'
+mutate "the app route attaches to another Gateway" 'one("HTTPRoute", "production")["spec"]["parentRefs"][0]["name"] = "staging"'
+mutate "every listener and attachment removed" 'g = one("Gateway"); g["spec"]["listeners"] = []; one("ClientTrafficPolicy")["spec"]["targetRefs"] = []; one("HTTPRoute", "production")["spec"]["parentRefs"] = []; one("HTTPRoute", "-http-redirect")["spec"]["parentRefs"] = []'
 mutate "two replicas without a PDB" 'one("Deployment", "-auth-service")["spec"]["replicas"] = 2'
 exit $fail

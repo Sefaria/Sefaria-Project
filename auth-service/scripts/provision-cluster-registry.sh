@@ -73,9 +73,24 @@ verify() {
     done
     ok "$ROLE checked for SELECT ($cols) ON $table"
   done
-  local extra
-  extra="$(pg -d "$DB" -c "SELECT string_agg(DISTINCT table_name || '.' || privilege_type, ', ') FROM information_schema.role_table_grants WHERE grantee = '$ROLE' AND privilege_type <> 'SELECT'")"
-  [ -z "$extra" ] && ok "$ROLE holds no write privilege" || bad "$ROLE holds write privileges: $extra"
+  # Effective privileges (has_*_privilege counts inherited roles and PUBLIC): SELECT on exactly the allowlisted
+  # columns of the public schema, and no write privilege at all, table- or column-level.
+  local allowed="" extra writes
+  for entry in "${GRANTS[@]}"; do
+    for col in $(echo "${entry#*:}" | tr ',' ' '); do allowed="$allowed${allowed:+,}('${entry%%:*}','$col')"; done
+  done
+  extra="$(pg -d "$DB" -c "WITH allowed(t, c) AS (VALUES $allowed)
+    SELECT string_agg(table_name || '.' || column_name, ', ' ORDER BY table_name, column_name)
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND has_column_privilege('$ROLE', format('%I.%I', table_schema, table_name), column_name, 'SELECT')
+      AND (table_name, column_name) NOT IN (SELECT t, c FROM allowed)")"
+  [ -z "$extra" ] && ok "$ROLE reads no column beyond the loader's" || bad "$ROLE can read columns the loader does not: $extra"
+  writes="$(pg -d "$DB" -c "SELECT string_agg(c.relname, ', ' ORDER BY c.relname) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p', 'v', 'm')
+      AND (has_table_privilege('$ROLE', c.oid, 'INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+           OR has_any_column_privilege('$ROLE', c.oid, 'INSERT, UPDATE, REFERENCES'))")"
+  [ -z "$writes" ] && ok "$ROLE holds no write privilege (table- or column-level, inherited included)" || bad "$ROLE can write to: $writes"
   # The loader's own statements, as the role, in a read-only transaction that is rolled back.
   if pg -d "$DB" >/dev/null 2>&1 <<SQL
 BEGIN READ ONLY;
@@ -107,22 +122,30 @@ OUT="$OUT_DIR/$SECRET.yaml"
 printf 'probe: x\n' | sops --encrypt --gcp-kms "$KMS" --input-type yaml --output-type yaml /dev/stdin >/dev/null \
   || { echo "refusing: sops cannot encrypt with $KMS (gcloud auth application-default login?)"; exit 1; }
 
+# The password is encrypted into a temporary file next to the output before the role exists, and the role, its
+# setting and every grant are one transaction: a failure at any point leaves neither a role nor a plaintext file.
+umask 077
+TMP="$(mktemp "$OUT_DIR/.$SECRET.tmp.XXXXXX")"
+trap 'rm -f "$TMP"' EXIT INT TERM
 PW=$(openssl rand -hex 24)
-printf "CREATE ROLE %s LOGIN PASSWORD '%s';\nALTER ROLE %s SET default_transaction_read_only = on;\nGRANT CONNECT ON DATABASE %s TO %s;\n" \
-  "$ROLE" "$PW" "$ROLE" "$DB" "$ROLE" | pg
+printf 'apiVersion: v1\nkind: Secret\nmetadata:\n  name: %s\n  namespace: %s\ntype: Opaque\nstringData:\n  AUTH_PG_DSN: postgres://%s:%s@postgres-18.%s.svc.cluster.local:5432/%s?sslmode=disable\n' \
+  "$SECRET" "$SECRET_NS" "$ROLE" "$PW" "$PG_NS" "$DB" >"$TMP"
+sops --encrypt --gcp-kms "$KMS" --input-type yaml --output-type yaml --encrypted-regex '^(data|stringData)$' --in-place "$TMP" \
+  || { unset PW; echo "FAIL: sops encryption failed; nothing created, the temporary file is removed"; exit 1; }
+grep -q '^sops:' "$TMP" && ! grep -qF -f <(printf '%s\n' "$PW") "$TMP" || { unset PW; echo "FAIL: the Secret file is not encrypted; nothing created"; exit 1; }
 {
-  printf 'GRANT USAGE ON SCHEMA public TO %s;\n' "$ROLE"
+  printf 'BEGIN;\n'
+  printf "CREATE ROLE %s LOGIN PASSWORD '%s';\n" "$ROLE" "$PW"
+  printf 'ALTER ROLE %s SET default_transaction_read_only = on;\n' "$ROLE"
+  printf 'GRANT CONNECT ON DATABASE %s TO %s;\nGRANT USAGE ON SCHEMA public TO %s;\n' "$DB" "$ROLE" "$ROLE"
   for entry in "${GRANTS[@]}"; do
     printf 'GRANT SELECT (%s) ON %s TO %s;\n' "${entry#*:}" "${entry%%:*}" "$ROLE"
   done
-} | pg -d "$DB"
-echo "ok: role $ROLE, read-only on the registry columns in $DB"
-
-umask 077
-printf 'apiVersion: v1\nkind: Secret\nmetadata:\n  name: %s\n  namespace: %s\ntype: Opaque\nstringData:\n  AUTH_PG_DSN: postgres://%s:%s@postgres-18.%s.svc.cluster.local:5432/%s?sslmode=disable\n' \
-  "$SECRET" "$SECRET_NS" "$ROLE" "$PW" "$PG_NS" "$DB" > "$OUT"
+  printf 'COMMIT;\n'
+} | pg -d "$DB" >/dev/null || { unset PW; echo "FAIL: creating the role failed and was rolled back; nothing changed"; exit 1; }
 unset PW
-sops --encrypt --gcp-kms "$KMS" --encrypted-regex '^(data|stringData)$' --in-place "$OUT" || { rm -f "$OUT"; echo "FAIL: sops encryption failed; plaintext removed"; exit 1; }
-grep -q '^sops:' "$OUT" || { rm -f "$OUT"; echo "FAIL: $OUT not encrypted; removed"; exit 1; }
+mv "$TMP" "$OUT"
+trap - EXIT INT TERM
+echo "ok: role $ROLE, read-only on the registry columns in $DB"
 echo "ok: wrote encrypted $OUT (namespace $SECRET_NS)"
 verify

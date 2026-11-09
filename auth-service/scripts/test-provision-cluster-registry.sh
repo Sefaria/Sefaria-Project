@@ -47,6 +47,12 @@ run() { PATH="$tmp/bin:$PATH" PG_EXEC="docker exec -i $name" OUT_DIR="$tmp/out" 
   SECRET_NS="${SECRET_NS:-default}" bash "$here/provision-cluster-registry.sh" "$@" >"$tmp/log" 2>&1; }
 
 run --verify && bad "--verify passes before the role exists" || ok "--verify fails before the role exists"
+# A grant that fails (a loader column renamed away) rolls the whole creation back: no role, no file, no temp file.
+psql_ -d sefaria_auth -c "ALTER TABLE powered_by_apikey RENAME COLUMN label TO label_gone"
+run && bad "create succeeded with a missing column" || ok "create fails when a grant fails"
+[ "$(psql_ -c "SELECT count(*) FROM pg_roles WHERE rolname = 'auth_service_reader'")" = 0 ] && ok "the failed create left no role (one transaction)" || bad "a role was left behind"
+[ -z "$(ls -A "$tmp/out")" ] && ok "the failed create left no Secret file and no temporary file" || bad "files left in OUT_DIR: $(ls -A "$tmp/out")"
+psql_ -d sefaria_auth -c "ALTER TABLE powered_by_apikey RENAME COLUMN label_gone TO label"
 FAKE_SOPS_FAIL=1 run && bad "create ran with a broken sops" || ok "create refuses when sops cannot encrypt"
 [ "$(psql_ -c "SELECT count(*) FROM pg_roles WHERE rolname = 'auth_service_reader'")" = 0 ] && ok "no role is left behind after a sops failure" || bad "a role was created despite the sops failure"
 SECRET_NS=preprod run && ok "create succeeds" || { bad "create failed"; sed 's/^/    /' "$tmp/log"; }
@@ -72,6 +78,19 @@ psql_ -d sefaria_auth -c "GRANT SELECT (allowed_origins) ON powered_by_apikey TO
 psql_ -d sefaria_auth -c "GRANT UPDATE ON api_project TO auth_service_reader"
 run --verify && bad "--verify passes with a write grant" || ok "--verify fails when the role can write"
 psql_ -d sefaria_auth -c "REVOKE UPDATE ON api_project FROM auth_service_reader"
+psql_ -d sefaria_auth -c "GRANT UPDATE (contact_email) ON api_project TO auth_service_reader"
+run --verify && bad "--verify passes with a column-level write grant" || ok "--verify fails on a column-level write grant"
+psql_ -d sefaria_auth -c "REVOKE UPDATE (contact_email) ON api_project FROM auth_service_reader"
+psql_ -d sefaria_auth -c "GRANT SELECT (last_used_at) ON powered_by_apikey TO auth_service_reader"
+run --verify && bad "--verify passes with an extra readable column" || ok "--verify fails on a column the loader does not read"
+grep -q 'powered_by_apikey.last_used_at' "$tmp/log" && ok "it names the extra column" || bad "extra column not named"
+psql_ -d sefaria_auth -c "REVOKE SELECT (last_used_at) ON powered_by_apikey FROM auth_service_reader"
+psql_ -c "CREATE ROLE apikeys_test_writer NOLOGIN" >/dev/null
+psql_ -d sefaria_auth -c "GRANT INSERT ON powered_by_project TO apikeys_test_writer"
+psql_ -c "GRANT apikeys_test_writer TO auth_service_reader"
+run --verify && bad "--verify passes with an inherited write grant" || ok "--verify fails on a write privilege inherited from another role"
+psql_ -c "REVOKE apikeys_test_writer FROM auth_service_reader"
+run --verify && ok "--verify passes again once the extra privileges are gone" || { bad "--verify still fails"; sed 's/^/    /' "$tmp/log"; }
 psql_ -c "ALTER ROLE auth_service_reader RESET default_transaction_read_only"
 run --verify && bad "--verify passes with read-write sessions" || ok "--verify fails when sessions are not read-only"
 exit $fail

@@ -16,6 +16,7 @@ import sys
 
 import yaml
 
+GATEWAY_API = "gateway.networking.k8s.io"
 SEFARIA_HEADERS = {"x-sefaria-tier", "x-sefaria-project", "x-sefaria-auth-result", "x-sefaria-meter"}
 AUTH_KINDS = ("SecurityPolicy",)
 
@@ -68,6 +69,8 @@ def check_on(docs, dsn_secret):
     https = sorted(lst["name"] for lst in listeners if lst["protocol"] == "HTTPS" and lst["port"] == 443)
     http = sorted(lst["name"] for lst in listeners if lst["port"] == 80)
     print(f"info: environment {env}: {len(https)} HTTPS listeners, {len(http)} port-80 listeners")
+    # An empty listener set would make every attachment comparison below pass vacuously.
+    check(bool(https) and bool(http), f"the Gateway has HTTPS (443) and port-80 listeners ({len(https)}, {len(http)})")
 
     deployments = objects(docs, "Deployment", env + "-auth-service")
     check(len(deployments) == 1, f"Deployment {env}-auth-service")
@@ -109,8 +112,11 @@ def check_on(docs, dsn_secret):
     check([p["metadata"]["name"] for p in policies] == [env + "-auth"], f"one SecurityPolicy, {env}-auth")
     for p in policies:
         spec = p["spec"]
-        targets = [(t.get("kind"), t.get("name")) for t in spec.get("targetRefs") or []]
-        check(targets == [("HTTPRoute", env)], f"SecurityPolicy targets HTTPRoute {env} only (got {targets})")
+        targets = [(t.get("group"), t.get("kind"), t.get("name")) for t in spec.get("targetRefs") or []]
+        check(
+            targets == [(GATEWAY_API, "HTTPRoute", env)],
+            f"SecurityPolicy targets HTTPRoute {env} only (got {targets})",
+        )
         check("targetRef" not in spec, "SecurityPolicy uses targetRefs, not the deprecated targetRef")
         ext = spec.get("extAuth") or {}
         check(ext.get("failOpen") is True, "ext_authz fails open")
@@ -143,7 +149,10 @@ def check_on(docs, dsn_secret):
             "client-sent {} stripped at the listener".format(",".join(sorted(SEFARIA_HEADERS))),
         )
         check("targetRef" not in spec, "ClientTrafficPolicy uses targetRefs, not the deprecated targetRef")
-        sections = [t.get("sectionName") for t in spec.get("targetRefs") or []]
+        refs = spec.get("targetRefs") or []
+        sections = [t.get("sectionName") for t in refs]
+        others = [t for t in refs if (t.get("group"), t.get("kind"), t.get("name")) != (GATEWAY_API, "Gateway", env)]
+        check(not others and bool(refs), f"every ClientTrafficPolicy targetRef is this environment's Gateway {env}")
         # Envoy Gateway rejects a policy on the shared port-80 listeners or on the whole Gateway; then neither the header
         # strip nor the client IP detection applies.
         check(None not in sections, "every ClientTrafficPolicy targetRef names a listener (sectionName)")
@@ -157,12 +166,20 @@ def check_on(docs, dsn_secret):
     check(app is not None, f"HTTPRoute {env}")
     if app:
         check(
+            {p.get("name") for p in app["spec"]["parentRefs"]} == {env},
+            f"the app HTTPRoute attaches to Gateway {env} only",
+        )
+        check(
             sorted(p.get("sectionName") for p in app["spec"]["parentRefs"]) == https,
             "the app HTTPRoute is served on the HTTPS listeners only",
         )
     redirect = routes.get(env + "-http-redirect")
     check(redirect is not None, f"HTTPRoute {env}-http-redirect")
     if redirect:
+        check(
+            {p.get("name") for p in redirect["spec"]["parentRefs"]} == {env},
+            f"the redirect HTTPRoute attaches to Gateway {env} only",
+        )
         check(
             sorted(p.get("sectionName") for p in redirect["spec"]["parentRefs"]) == http,
             "port 80 serves only the redirect route",
