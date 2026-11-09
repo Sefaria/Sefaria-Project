@@ -3,7 +3,7 @@
 Playwright suites for the API key gateway (Envoy ext_authz + the Go auth service) and the developer settings UI.
 They run against exactly two targets: the local Docker stack (`auth-service/dev/local-stack/`) or the
 default cauldron (`apisplit`, or `$APIKEYS_CAULDRON`). Names, ports, accounts and the manifest format are fixed in [CONTRACT.md](CONTRACT.md);
-the case list is [`../test-plans/sc-47260-api-keys.md`](../test-plans/sc-47260-api-keys.md).
+the case list and the release gates are on the Sefaria wiki (`projects/api-key-program/release-plan-phase1`).
 
 The projects `apikeys-setup` and `apikeys` exist only when `APIKEYS_TARGET` is set **and** the manifest exists, so
 CI and a plain `npx playwright test` never run them.
@@ -28,6 +28,65 @@ preflights, snapshots and runs the fixture-free cases with at most 2 workers. Se
 "Seeded runs" section of `cauldron/SAFETY.md`. `APIKEYS_CAULDRON` names the target cauldron (default `apisplit`)
 and `APIKEYS_PR` the pull request whose merge commit the images must match (default 3774); both runner and `demo.sh` derive every host and
 resource name from them.
+
+## Before the master merge
+
+One entrypoint runs everything the phase 1 release plan asks of this suite before #3774 merges, and prints one summary
+table (step, PASS/FAIL/SKIP, counts, log). Logs go to the git-ignored `e2e-tests/api-keys/results/release-checks/<run>/`.
+Known gaps (`@known-gap` Playwright titles, `GAP` drill lines) are counted, never failures. Exit status 0 means no step
+failed.
+
+Prerequisites: Docker, `helm`, Node with the repo's `node_modules`, Chromium for Playwright (`npx playwright install
+chromium`), a Python with the repo's requirements and PyYAML in `APIKEYS_STACK_PYTHON` (default: the checkout's
+`.venv`), and Mongo with the Sefaria text data where `sefaria/local_settings.py` points (pages need it). On Linux the
+stack binds Django to the docker0 address so its containers can reach it (`APIKEYS_STACK_DJANGO_BIND` overrides); `psql`
+falls back to the `postgres:18` image when the host has none.
+
+```bash
+# 1. No stack, no cluster (about 2 min): per-env renders, gate-script tests, provisioning test, feature matrix.
+e2e-tests/api-keys/run-release-checks.sh static
+
+# 2. Everything that runs on this machine (about 60-90 min on a dev box): static, then the local stack up, smoke
+#    (revoke-to-deny time), seed, the A-series in enforce and in observe, every stack drill (F1-F5, E1-E3, N-CR8,
+#    N-E3-N-E5, N-F1-N-F2, B9, D-1-D-3, N-M7, N-M9, N-M14), the Playwright api-keys suite, demo.sh, teardown to 0 rows.
+#    SKIP_SLOW_DRILLS=1 leaves out N-M9 and N-M14; PLAYWRIGHT_WORKERS (default 2).
+e2e-tests/api-keys/run-release-checks.sh local
+
+# 3. The cauldron, read-only (no go-ahead needed; kubectl context gke_development-205018_us-east1-b_cluster-1 and
+#    `gh` logged in): preflight that the images are #3774's merge commit, the fixture-free Playwright cases (gateway,
+#    paths, nginx log, spoofed stamp), the unkeyed A-series in the cauldron's auth mode, passive latency (F5),
+#    a snapshot before and after that must not change.
+APIKEYS_CAULDRON=apisplit e2e-tests/api-keys/run-release-checks.sh cauldron
+
+# 4. The cauldron, seeded: only with Yotam's go-ahead (cauldron/SAFETY.md). Adds the keyed suite: revoke-to-deny on
+#    the cluster (A9a, A9b), the keyed nginx log check (N-LOG1), the keyed A-series; teardown leaves 0 rows.
+APIKEYS_CAULDRON=apisplit APIKEYS_ALLOW_SEEDING=apisplit e2e-tests/api-keys/run-release-checks.sh cauldron-seeded
+
+# Owner-approved cauldron drills, outside the entrypoint:
+APIKEYS_CAULDRON=apisplit APIKEYS_ALLOW_MUTATING_ON=apisplit e2e-tests/api-keys/cauldron/run.sh drill-f1   # F1 on the cluster
+APIKEYS_CAULDRON=apisplit e2e-tests/api-keys/cauldron/run.sh verify-off   # E4, after authService.enabled=false is applied
+```
+
+What a pass looks like:
+
+| Step                                                                                   | Expected                                                                                                                     |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `render-check (staging, preprod, prod)`                                                | each env renders with the flag off (no auth objects, no header strip) and on (32 assertions each)                            |
+| `policy-gate tests`, `provision-cluster-registry tests`, `render-check negative tests` | every `ok:`; the scripts themselves run against a cluster later (below)                                                      |
+| `feature matrix --strict`                                                              | `0 error(s)` (it resolves against phase 1 with the merged sub-PRs)                                                           |
+| `smoke`                                                                                | S1-S4 pass; S4 prints the revoke-to-deny time (well under 2 s)                                                               |
+| `a-series (enforce)` / `(observe)`                                                     | 0 FAIL: enforce denies only `/api/knn-search`; observe never denies and stamps `observed:<code>`                             |
+| drills                                                                                 | 0 FAIL each; the GAP lines are the known gaps listed in the release plan (N-CR8 readiness, F4, N-E4, N-E5, N-F1, D-2, N-M14) |
+| `playwright apikeys (local)`                                                           | `0 failed`; failures titled `@known-gap` are counted separately                                                              |
+| `seed: --teardown leaves 0 rows`                                                       | `leftovers: 0`                                                                                                               |
+
+The cluster-side gates, run by hand at each promotion (all read-only except the provisioning create path):
+
+```bash
+CTX=<cluster context> NS=preprod ENV=preprod auth-service/scripts/policy-gate.sh       # after every flag flip; also NS=default ENV=production on prod
+auth-service/scripts/crd-gate.sh <cluster context>                                     # once per cluster before the first enabled: true
+CTX=<cluster context> auth-service/scripts/provision-cluster-registry.sh --verify      # the reader role's grants, before enabled: true
+```
 
 ## What the scaffold gives a spec
 

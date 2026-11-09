@@ -47,7 +47,7 @@ check E1 "after restart reload_total{ok} equals version" "$(metric 'authsvc_relo
 ok=0
 for _ in 1 2 3 4 5; do
   a="$(curl -s -m 3 http://127.0.0.1:18080/internal/registry | python3 -c 'import json,sys; print(json.load(sys.stdin)["len"])')"
-  b="$(psql_stack_ro -c "SELECT count(*) FROM powered_by_apikey k JOIN powered_by_project p ON p.id = k.project_id")"
+  b="$(psql_stack_ro -c "SELECT count(*) FROM powered_by_apikey k JOIN api_project p ON p.id = k.project_id JOIN api_tier t ON t.id = p.tier_id")"
   [ "$a" = "$b" ] && { ok=1; break; }
   sleep 1
 done
