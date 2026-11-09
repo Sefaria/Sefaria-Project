@@ -20,6 +20,8 @@
 //      gated path), KEY_FILE (the valid key, either the bare value or an "x-api-key: <value>" line), ARMS (default
 //      all four), RATE (requests/s per arm, default 20), DURATION (default 60s), SUMMARY_FILE (JSON written by
 //      handleSummary), SUMMARY_STDOUT=1 (also print it as one "SUMMARY_JSON {...}" line, for a cluster Job's log).
+//      KEY_STATUS_CHECK=1: hit must come back without x-sefaria-key-status and miss with "not_accepted" (the chart's
+//      nginx echoes the gateway's verdict; set it on a cluster with the auth service on, where the path is ungated).
 // The key is read from a file so it never appears in argv or in the k6 output; the summary holds no key material.
 import http from 'k6/http';
 import { check } from 'k6';
@@ -34,6 +36,7 @@ const RATE = Number(__ENV.RATE || 20);
 const DURATION = __ENV.DURATION || '60s';
 const SUMMARY_FILE = __ENV.SUMMARY_FILE || '';
 const UNKNOWN = 'sfr_k6unknown0000000000000000000000000';
+const KEY_STATUS_CHECK = __ENV.KEY_STATUS_CHECK === '1';
 
 if (!BASE) throw new Error('BASE is required');
 if (!['enforce', 'observe'].includes(MODE)) throw new Error(`AUTH_MODE must be enforce or observe, got ${MODE}`);
@@ -81,7 +84,12 @@ function send(arm, base, path, key) {
   if (HOST) headers.Host = HOST;
   if (key) headers['x-api-key'] = key;
   const r = http.get(`${base}${path}`, { headers, tags: { arm } });
-  check(r, { [`${arm} status ${EXPECT[arm]}`]: (x) => x.status === EXPECT[arm] }, { arm });
+  const checks = { [`${arm} status ${EXPECT[arm]}`]: (x) => x.status === EXPECT[arm] };
+  // On an ungated path a bad key still gets 200, so the status alone cannot prove the hit arm's key was accepted.
+  // Through the chart's nginx the gateway's verdict comes back as x-sefaria-key-status: not_accepted.
+  if (KEY_STATUS_CHECK && arm === 'hit') checks['hit key accepted (no x-sefaria-key-status)'] = (x) => !x.headers['X-Sefaria-Key-Status'];
+  if (KEY_STATUS_CHECK && arm === 'miss') checks['miss key not accepted'] = (x) => x.headers['X-Sefaria-Key-Status'] === 'not_accepted';
+  check(r, checks, { arm });
 }
 export function base() { send('base', BASE_NOAUTHZ, PATH, KEY); }
 export function anon() { send('anon', BASE, ANON_PATH, ''); }

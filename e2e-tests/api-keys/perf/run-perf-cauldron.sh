@@ -172,6 +172,7 @@ spec:
             - {name: DURATION, value: "$DURATION"}
             - {name: KEY_FILE, value: "${KEY_FILE:+/keys/key}"}
             - {name: SUMMARY_STDOUT, value: "1"}
+            - {name: KEY_STATUS_CHECK, value: "$([ "${FLAG:-off}" = on ] && echo 1 || echo 0)"}
           volumeMounts:
             - {name: scripts, mountPath: /scripts}
             - {name: keys, mountPath: /keys}

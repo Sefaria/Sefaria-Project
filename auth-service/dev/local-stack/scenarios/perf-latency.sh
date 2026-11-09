@@ -40,6 +40,12 @@ json.dump(doc, open(path, "w"), indent=2)
 '
 merge() { "$PYTHON" -c "$MERGE_PY" "$result" "$1" "$2" || fail "PERF-L could not record $1"; }
 
+# Self-test of arms.js's KEY_STATUS_CHECK, which the perf-cauldron run relies on (a bad key on an ungated path still
+# gets 200 there): the echo upstream sends back the "not accepted" header, and the hit arm must then fail.
+k6_run arms.js selftest-key-status BASE=http://127.0.0.1:$GW_NOAUTHZ "PATH_GATED=/x?echo_header=x-sefaria-key-status:not_accepted" \
+  KEY_FILE=/keys/perf_hit.hdr ARMS=hit KEY_STATUS_CHECK=1 RATE=5 DURATION=2s >/dev/null
+check PERF-L "a hit answered with x-sefaria-key-status: not_accepted fails the run (KEY_STATUS_CHECK)" "$([ $? != 0 ] && echo refused || echo accepted)" refused
+
 for mode in enforce observe; do
   authsvc_recreate AUTH_MODE="$mode"
   wait_for 30 "test \"\$(registry_field len)\" -ge $PERF_KEYS_N" >/dev/null || die "registry not loaded after the restart"
