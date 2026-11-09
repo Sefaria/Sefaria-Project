@@ -1,15 +1,18 @@
-from typing import Iterable
-from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
-from sefaria.model.text import Ref
-from sefaria.system.exceptions import InputError, DuplicateRecordError
-from sefaria.system.database import db
-from html import escape
-from enum import Enum
 from abc import ABC, abstractmethod
 from bisect import bisect_right
+from collections.abc import Iterable
+from enum import Enum
+from html import escape
+
 import structlog
-from sefaria.system.progress_context import report_progress
+
 from sefaria.constants.model import get_direction_from_legacy_lang
+from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
+from sefaria.model.text import Ref
+from sefaria.system.database import db
+from sefaria.system.exceptions import DuplicateRecordError, InputError
+from sefaria.system.progress_context import report_progress
+
 logger = structlog.get_logger(__name__)
 
 
@@ -25,17 +28,13 @@ class MarkedUpTextChunk(AbstractMongoRecord):
     MarkedUpTextChunk objects define the quotations and links inside Sefaria texts
     Probably, every Quoting Commentary will have a MarkedUpTextChunk object
     """
+
     collection = "marked_up_text_chunks"
     criteria_field = "ref"
     track_pkeys = True
     pkeys = ["ref", "versionTitle", "language"]
 
-    required_attrs = [
-        "ref",
-        "versionTitle",
-        "language",
-        "spans"
-    ]
+    required_attrs = ["ref", "versionTitle", "language", "spans"]
 
     attr_schemas = {
         "ref": {"type": "string", "required": True},
@@ -52,24 +51,20 @@ class MarkedUpTextChunk(AbstractMongoRecord):
                         "schema": {"type": "integer"},
                         "minlength": 2,
                         "maxlength": 2,
-                        "required": True
+                        "required": True,
                     },
                     "text": {"type": "string", "required": True},
-                    "type": {
-                        "type": "string",
-                        "allowed": [x.value for x in MUTCSpanType],
-                        "required": True
-                    },
+                    "type": {"type": "string", "allowed": [x.value for x in MUTCSpanType], "required": True},
                     "ref": {"type": "string", "required": False},
                     "topicSlug": {"type": "string", "required": False},
                     "categoryPath": {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True},
                     "deleted": {"type": "boolean", "required": False},
-                }
+                },
             },
-            "required": True
-        }
+            "required": True,
+        },
     }
-    
+
     def _validate(self):
         super()._validate()
         oref = Ref(self.ref)
@@ -86,8 +81,9 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
         existing = self.__class__().load(pkey_query)
         if existing and existing._id != getattr(self, "_id", None):
-            raise DuplicateRecordError(f"{type(self).__name__}._validate(): Duplicate primary key {self.pkeys}, found {pkey_query} to already exist in the database.")
-
+            raise DuplicateRecordError(
+                f"{type(self).__name__}._validate(): Duplicate primary key {self.pkeys}, found {pkey_query} to already exist in the database."
+            )
 
         # Some indexes (e.g. Encyclopedia Talmudit) return TextChunk.text as a
         # list of paragraph strings even for a segment-level ref. Index by
@@ -101,14 +97,20 @@ class MarkedUpTextChunk(AbstractMongoRecord):
         for span in self.spans:
             if span.get("deleted"):
                 continue
-            if span['type'] == MUTCSpanType.CITATION.value and 'ref' not in span:
-                raise InputError(f'{type(self).__name__}._validate(): Span must have "ref" attribute if type is "citation".')
-            if span['type'] == MUTCSpanType.NAMED_ENTITY.value and 'topicSlug' not in span:
-                raise InputError(f'{type(self).__name__}._validate(): Span must have "topicSlug" attribute if type is "named_entity".')
-            citation_text = text[span['charRange'][0]:span['charRange'][1]]
-            if citation_text != span['text']:
-                raise InputError(f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span.get('ref', span.get('topicSlug'))}"
-                                 f": expected '{span['text']}', found '{citation_text}'.")
+            if span["type"] == MUTCSpanType.CITATION.value and "ref" not in span:
+                raise InputError(
+                    f'{type(self).__name__}._validate(): Span must have "ref" attribute if type is "citation".'
+                )
+            if span["type"] == MUTCSpanType.NAMED_ENTITY.value and "topicSlug" not in span:
+                raise InputError(
+                    f'{type(self).__name__}._validate(): Span must have "topicSlug" attribute if type is "named_entity".'
+                )
+            citation_text = text[span["charRange"][0] : span["charRange"][1]]
+            if citation_text != span["text"]:
+                raise InputError(
+                    f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span.get('ref', span.get('topicSlug'))}"
+                    f": expected '{span['text']}', found '{citation_text}'."
+                )
 
         return True
 
@@ -117,11 +119,11 @@ class MarkedUpTextChunk(AbstractMongoRecord):
         # which has already been sanitized. Other fields (ref, versionTitle, language)
         # are metadata and should not be HTML-escaped.
         pass
-    
+
     def __str__(self):
-        return "TextSpan: {}".format(self.ref)
-    
-    def get_span_objects(self, reverse=False) -> Iterable['MUTCSpan']:
+        return f"TextSpan: {self.ref}"
+
+    def get_span_objects(self, reverse=False) -> Iterable["MUTCSpan"]:
         """
         Returns the spans as MUTCSpan objects.
         :param reverse: If True, returns spans in reverse order (by start index). Default is to return in normal order.
@@ -155,9 +157,12 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
             # Only possible overlaps are with A[idx-1] and A[idx] (since A is disjoint and sorted)
             o = False
-            if idx - 1 >= 0 and overlaps(self_spans[idx - 1], b):
-                o = True
-            elif idx < len(self_spans) and overlaps(self_spans[idx], b):
+            if (
+                idx - 1 >= 0
+                and overlaps(self_spans[idx - 1], b)
+                or idx < len(self_spans)
+                and overlaps(self_spans[idx], b)
+            ):
                 o = True
 
             if not o:
@@ -200,7 +205,9 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
     @classmethod
     def process_version_title_change(cls, ver, **kwargs):
-        report_progress("Cascading Marked Up Text Chunk version title from {} to {}".format(kwargs['old'], kwargs['new']))
+        report_progress(
+            "Cascading Marked Up Text Chunk version title from {} to {}".format(kwargs["old"], kwargs["new"])
+        )
         query = _version_title_change_query(ver, **kwargs)
         update = _version_title_change_update(**kwargs)
         db.marked_up_text_chunks.update_many(query, update)
@@ -216,21 +223,25 @@ class LinkerOutput(MarkedUpTextChunk):
     failed, ambiguous, and successful resolutions. Used by linker debug mode and
     downstream workflows such as disambiguation and admin review.
     """
+
     collection = "linker_output"
     criteria_field = "ref"
     track_pkeys = True
     pkeys = ["ref", "versionTitle", "language"]
 
-    required_attrs = [
-        "ref",
-        "versionTitle",
-        "language",
-        "spans"
-    ]
-    optional_list_str_schema_keys = ('categoryPath', 'inputRefParts', 'inputRefPartTypes',
-                                     'inputRefPartClasses', 'refPartsToMatch', 'resolvedRefParts',
-                                     'resolvedRefPartTypes', 'resolvedRefPartClasses', 'inputRangeSections',
-                                     'inputRangeToSections')
+    required_attrs = ["ref", "versionTitle", "language", "spans"]
+    optional_list_str_schema_keys = (
+        "categoryPath",
+        "inputRefParts",
+        "inputRefPartTypes",
+        "inputRefPartClasses",
+        "refPartsToMatch",
+        "resolvedRefParts",
+        "resolvedRefPartTypes",
+        "resolvedRefPartClasses",
+        "inputRangeSections",
+        "inputRangeToSections",
+    )
 
     attr_schemas = {
         "ref": {"type": "string", "required": True},
@@ -247,14 +258,10 @@ class LinkerOutput(MarkedUpTextChunk):
                         "schema": {"type": "integer"},
                         "minlength": 2,
                         "maxlength": 2,
-                        "required": True
+                        "required": True,
                     },
                     "text": {"type": "string", "required": True},
-                    "type": {
-                        "type": "string",
-                        "allowed": [x.value for x in MUTCSpanType],
-                        "required": True
-                    },
+                    "type": {"type": "string", "allowed": [x.value for x in MUTCSpanType], "required": True},
                     "ref": {"type": "string", "required": False, "nullable": True},
                     "topicSlug": {"type": "string", "required": False, "nullable": True},
                     "contextRef": {"type": "string", "required": False, "nullable": True},
@@ -270,16 +277,19 @@ class LinkerOutput(MarkedUpTextChunk):
                     "failed": {"type": "boolean", "required": True},
                     "ambiguous": {"type": "boolean", "required": True},
                     "deleted": {"type": "boolean", "required": False},
-                    **{k: {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True} for k in optional_list_str_schema_keys}
-                }
+                    **{
+                        k: {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True}
+                        for k in optional_list_str_schema_keys
+                    },
+                },
             },
-            "required": True
-        }
+            "required": True,
+        },
     }
 
     @classmethod
     def process_version_title_change(cls, ver, **kwargs):
-        report_progress("Cascading Linker Output version title from {} to {}".format(kwargs['old'], kwargs['new']))
+        report_progress("Cascading Linker Output version title from {} to {}".format(kwargs["old"], kwargs["new"]))
         query = _version_title_change_query(ver, **kwargs)
         update = _version_title_change_update(**kwargs)
         db.linker_output.update_many(query, update)
@@ -291,16 +301,18 @@ class LinkerOutputSet(AbstractMongoSet):
 
 class MUTCSpan(ABC):
     def __init__(self, raw_span: dict):
-        self.char_range = raw_span['charRange']
-        self.text = raw_span['text']
-        self.failed = raw_span.get('failed', False)
-        self.ambiguous = raw_span.get('ambiguous', False)
-        self.deleted = raw_span.get('deleted', False)
+        self.char_range = raw_span["charRange"]
+        self.text = raw_span["text"]
+        self.failed = raw_span.get("failed", False)
+        self.ambiguous = raw_span.get("ambiguous", False)
+        self.deleted = raw_span.get("deleted", False)
         # The LLM disambiguator writes one of these when it resolves an ambiguous or non-segment
         # citation to a concrete ref. Only citation spans ever carry them, so .get() is None otherwise.
-        self.disambiguated_ref = raw_span.get('llm_resolved_ref_non_segment') or raw_span.get('llm_resolved_ref_ambiguous')
+        self.disambiguated_ref = raw_span.get("llm_resolved_ref_non_segment") or raw_span.get(
+            "llm_resolved_ref_ambiguous"
+        )
         # these fields only appear for LinkerOutput and not MUTC and therefore indicate we are debugging
-        self._debug = 'failed' in raw_span or 'ambiguous' in raw_span
+        self._debug = "failed" in raw_span or "ambiguous" in raw_span
 
     @property
     def char_range_str(self) -> str:
@@ -325,10 +337,9 @@ class MUTCSpan(ABC):
 
 
 class CitationMUTCSpan(MUTCSpan):
-
     def __init__(self, raw_span: dict):
         super().__init__(raw_span)
-        tref = raw_span.get('ref')
+        tref = raw_span.get("ref")
         self.ref = Ref(tref) if tref else None
         # When the disambiguator resolved this citation, the link should target the resolved ref
         # rather than the (ambiguous / non-segment) ref the linker originally caught.
@@ -342,40 +353,45 @@ class CitationMUTCSpan(MUTCSpan):
             tref = link_ref.normal()
             if not self._debug and link_ref.is_book_level():
                 return self.text  # don't link book-level refs in non-debug mode
-        return (f'<a class="refLink {self.get_debug_css_classes()}"'
-                f' href="{href}" data-ref="{escape(tref)}"'
-                f' data-range={self.char_range_str}>{self.text}</a>')
-    
-    
+        return (
+            f'<a class="refLink {self.get_debug_css_classes()}"'
+            f' href="{href}" data-ref="{escape(tref)}"'
+            f" data-range={self.char_range_str}>{self.text}</a>"
+        )
+
+
 class NamedEntityMUTCSpan(MUTCSpan):
     def __init__(self, raw_span: dict):
         super().__init__(raw_span)
-        self.topic_slug = raw_span.get('topicSlug')
-        
+        self.topic_slug = raw_span.get("topicSlug")
+
     def wrap_span_in_a_tag(self) -> str:
         href = self.topic_slug or ""
-        return (f'<a class="namedEntityLink {self.get_debug_css_classes()}"'
-                f' href="/topics/{href}" data-slug="{self.topic_slug}"'
-                f' data-range={self.char_range_str}>{self.text}</a>')
-    
+        return (
+            f'<a class="namedEntityLink {self.get_debug_css_classes()}"'
+            f' href="/topics/{href}" data-slug="{self.topic_slug}"'
+            f" data-range={self.char_range_str}>{self.text}</a>"
+        )
+
 
 class CategoryMUTCSpan(MUTCSpan):
     def __init__(self, raw_span: dict):
         super().__init__(raw_span)
-        self.category_path = raw_span.get('categoryPath')
-        
+        self.category_path = raw_span.get("categoryPath")
+
     def wrap_span_in_a_tag(self) -> str:
         href = "/".join(self.category_path)
-        return (f'<a class="categoryLink {self.get_debug_css_classes()}"'
-                f' href="/texts/{href}" data-category-path="{href}"'
-                f' data-range={self.char_range_str}>{self.text}</a>')
-    
-    
-class MUTCSpanFactory:
+        return (
+            f'<a class="categoryLink {self.get_debug_css_classes()}"'
+            f' href="/texts/{href}" data-category-path="{href}"'
+            f" data-range={self.char_range_str}>{self.text}</a>"
+        )
 
+
+class MUTCSpanFactory:
     @staticmethod
-    def create(raw_span: dict) -> 'MUTCSpan':
-        typ = MUTCSpanType(raw_span['type'])
+    def create(raw_span: dict) -> "MUTCSpan":
+        typ = MUTCSpanType(raw_span["type"])
         if typ == MUTCSpanType.CITATION:
             return CitationMUTCSpan(raw_span)
         if typ == MUTCSpanType.NAMED_ENTITY:
@@ -389,21 +405,24 @@ def get_mutc_class(debug=False) -> type[MarkedUpTextChunk]:
     """
     Returns the appropriate MarkedUpTextChunk class based on debug flag.
     If debug is True, returns LinkerOutput class; otherwise, returns MarkedUpText
-    :param debug: 
-    :return: 
+    :param debug:
+    :return:
     """
     return LinkerOutput if debug else MarkedUpTextChunk
 
 
 def process_index_title_change(indx, **kwargs):
-    report_progress("Cascading Marked Up Text Chunks from {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Marked Up Text Chunks from {} to {}".format(kwargs["old"], kwargs["new"]))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
     from .text import re as reg_reg
-    patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
-                for pattern in Ref(indx.title).regex(as_list=True)]
-    queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
-    queries.extend([{'spans.ref': {'$regex': pattern}} for pattern in patterns])
+
+    patterns = [
+        pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
+        for pattern in Ref(indx.title).regex(as_list=True)
+    ]
+    queries = [{"ref": {"$regex": pattern}} for pattern in patterns]
+    queries.extend([{"spans.ref": {"$regex": pattern}} for pattern in patterns])
     for Klass in [MarkedUpTextChunkSet, LinkerOutputSet]:
         objs = Klass({"$or": queries})
         for o in objs:
@@ -411,11 +430,12 @@ def process_index_title_change(indx, **kwargs):
             try:
                 o.save()
             except InputError:
-                logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
+                logger.warning("Failed to convert ref data from: {} to {}".format(kwargs["old"], kwargs["new"]))
 
 
 def process_index_delete(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
+
     pattern = prepare_index_regex_for_dependency_process(indx)
     MarkedUpTextChunkSet({"ref": {"$regex": pattern}}).delete()
     LinkerOutputSet({"ref": {"$regex": pattern}}).delete()
@@ -437,13 +457,28 @@ def _version_title_change_update(**kwargs):
 
 
 def process_category_path_change(category, **kwargs):
-    report_progress("Cascading Marked Up Text Chunk category path from {} to {}".format(kwargs['old'], kwargs['new']))
-    db.marked_up_text_chunks.update_many({'spans.categoryPath': kwargs['old']}, {"$set": {'spans.$[element].categoryPath': kwargs['new']}}, array_filters=[{"element.categoryPath": kwargs['old']}])
-    db.linker_output.update_many({'spans.categoryPath': kwargs['old']}, {"$set": {'spans.$[element].categoryPath': kwargs['new']}}, array_filters=[{"element.categoryPath": kwargs['old']}])
+    report_progress("Cascading Marked Up Text Chunk category path from {} to {}".format(kwargs["old"], kwargs["new"]))
+    db.marked_up_text_chunks.update_many(
+        {"spans.categoryPath": kwargs["old"]},
+        {"$set": {"spans.$[element].categoryPath": kwargs["new"]}},
+        array_filters=[{"element.categoryPath": kwargs["old"]}],
+    )
+    db.linker_output.update_many(
+        {"spans.categoryPath": kwargs["old"]},
+        {"$set": {"spans.$[element].categoryPath": kwargs["new"]}},
+        array_filters=[{"element.categoryPath": kwargs["old"]}],
+    )
 
 
 def process_topic_slug_change(topic, **kwargs):
-    report_progress("Cascading Marked Up Text Chunk topic slug from {} to {}".format(kwargs['old'], kwargs['new']))
-    db.marked_up_text_chunks.update_many({'spans.topicSlug': kwargs['old']}, {"$set": {'spans.$[element].topicSlug': kwargs['new']}}, array_filters=[{"element.topicSlug": kwargs['old']}])
-    db.linker_output.update_many({'spans.topicSlug': kwargs['old']}, {"$set": {'spans.$[element].topicSlug': kwargs['new']}}, array_filters=[{"element.topicSlug": kwargs['old']}])
-    
+    report_progress("Cascading Marked Up Text Chunk topic slug from {} to {}".format(kwargs["old"], kwargs["new"]))
+    db.marked_up_text_chunks.update_many(
+        {"spans.topicSlug": kwargs["old"]},
+        {"$set": {"spans.$[element].topicSlug": kwargs["new"]}},
+        array_filters=[{"element.topicSlug": kwargs["old"]}],
+    )
+    db.linker_output.update_many(
+        {"spans.topicSlug": kwargs["old"]},
+        {"$set": {"spans.$[element].topicSlug": kwargs["new"]}},
+        array_filters=[{"element.topicSlug": kwargs["old"]}],
+    )

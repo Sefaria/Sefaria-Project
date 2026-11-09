@@ -4,7 +4,8 @@
   pointer-events: none;
 }
 
-#s2.headerOnly .readerApp > *:not(#main), #s2.headerOnly #main lc-chatbot {
+#s2.headerOnly .readerApp > *:not(#main),
+#s2.headerOnly #main lc-chatbot {
   pointer-events: auto;
 }
 
@@ -47,7 +48,7 @@ lc-chatbot:not(:defined) > [slot] {
   display: none;
 }
 
-@media (max-width: 1158px) {
+@media (width <= 1158px) {
   .textLink.libraryAssistantLink .libraryAssistantLabel {
     display: none;
   }
@@ -55,7 +56,7 @@ lc-chatbot:not(:defined) > [slot] {
     display: inline;
   }
 }
-@media (max-width: 899px) {
+@media (width <= 899px) {
   .textLink.libraryAssistantLink,
   .textLink.libraryAssistantLink:is(:hover, :focus, :active) {
     display: none;

@@ -1,4 +1,5 @@
 # Text, Schema, Link, Normalization, Category & Legacy Ref Helpers
+
 > Sources: `sefaria/helper/text.py`, `sefaria/helper/schema.py`, `sefaria/helper/link.py`, `sefaria/helper/normalization.py`, `sefaria/helper/category.py`, `sefaria/helper/legacy_ref.py`
 
 ## Purpose
@@ -8,6 +9,7 @@ These helpers form the core "librarian toolbox" for restructuring, renaming, mer
 ## Key Functions/Classes
 
 ### text.py (~910 lines)
+
 - **`add_spelling(category, old, new, lang)`** -- Batch-adds alternate title spellings across all indexes in a category.
 - **`rename_category(old, new)`** -- Walks all IndexSet records to rename a category. (Note: a separate, richer `rename_category` exists in `category.py`.)
 - **`resize_text(title, new_structure, upsize_in_place)`** -- Changes depth of a simple text (e.g., 2-depth to 3-depth), reshaping stored text arrays. Uses raw pymongo, not model objects.
@@ -26,6 +28,7 @@ These helpers form the core "librarian toolbox" for restructuring, renaming, mer
 - **`change_lexicon_headword(parent_lexicon, old, new)`** -- Renames a dictionary entry headword, cascading through adjacent entries, the index's DictionaryNode, word forms, and all refs.
 
 ### schema.py (~1121 lines)
+
 - **`attach_branch(new_node, parent_node, place)`** -- Inserts a new SchemaNode into a parent at a given position. Updates all Versions (adding skeleton content), saves Index, rebuilds library, refreshes VersionState, and handles dependent commentaries.
 - **`insert_first_child` / `insert_last_child`** -- Convenience wrappers around `attach_branch`.
 - **`remove_branch(node)`** -- Deletes a schema node and its text content from all versions, plus its linkset.
@@ -40,6 +43,7 @@ These helpers form the core "librarian toolbox" for restructuring, renaming, mer
 - **`generate_segment_mapping(title, mapping)` / `migrate_to_complex_structure(title, schema, mappings)`** -- Converts a simple-structure text to a complex structure using a user-provided mapping of old refs to new refs. Creates a temporary index, migrates versions, cascades all refs, then renames.
 
 ### link.py (~636 lines)
+
 - **`AbstractAutoLinker`** -- Base class defining the autolinker interface: `build_links`, `refresh_links`, `delete_links`, `rebuild_links`. Stores link metadata (`generated_by`, `auto`, `link_type`).
 - **`AbstractStructureAutoLinker`** -- Links two structurally identical texts. Recursively walks content nodes to create one-to-one or many-to-one link mappings.
 - **`CommentaryAutoLinker` (class_key `'many_to_one'`)** -- The classic commentary linker: each terminal segment group in the commentary links to the corresponding section-level segment in the base text (e.g., Rashi on Genesis 1:1:1 links to Genesis 1:1).
@@ -51,6 +55,7 @@ These helpers form the core "librarian toolbox" for restructuring, renaming, mer
 - **`create_link_cluster(refs, user, ...)`** -- Creates links between all pairs in a list of refs, with support for exception pairs/ranges.
 
 ### normalization.py (~588 lines)
+
 - **`AbstractNormalizer`** -- Base class with `normalize(s)` and `find_text_to_remove(s)`. The two-method design allows normalizers to both transform text AND report exactly which character ranges were changed, enabling index mapping between normalized and unnormalized strings.
 - **`get_mapping_after_normalization(text)` / `norm_to_unnorm_indices(text, normalized_indices)`** -- Core index-mapping methods. Given a normalized string and positions within it, map back to positions in the original unnormalized string. Critical for the linker.
 - **`RegexNormalizer` / `ReplaceNormalizer` / `TableReplaceNormalizer` / `FootnoteNormalizer` / `FunctionNormalizer`** -- Concrete normalizer implementations for regex, string replacement, lookup tables, footnote stripping, and custom functions.
@@ -62,6 +67,7 @@ These helpers form the core "librarian toolbox" for restructuring, renaming, mer
 - **`UNIDECODE_TABLE`** -- Mapping of special Unicode characters (accented Latin, Hebrew geresh/gershayim, smart quotes) to ASCII equivalents.
 
 ### category.py (~228 lines)
+
 - **`move_index_into(index, cat)`** -- Moves an Index into a different category.
 - **`rename_category(cat, en, he)`** -- Renames a category, creating a Term if needed. Cascades to all child categories and indexes.
 - **`move_category_into(cat, parent)`** -- Moves an entire category subtree under a new parent (or to root).
@@ -71,6 +77,7 @@ These helpers form the core "librarian toolbox" for restructuring, renaming, mer
 - **`get_category_paths(path)`** -- Returns all child category paths one level below a given path.
 
 ### legacy_ref.py (~196 lines)
+
 - **`LegacyRefParsingData`** -- Mongo-backed storage for old-ref-to-new-ref mappings. Keyed by `index_title`.
 - **`MappingLegacyRefParser`** -- Parses legacy refs using a stored mapping dict. Handles both segment-level and ranged refs (within a single section). Converts trefs to URL form before lookup.
 - **`LegacyRefParserHandler`** -- Singleton-like handler (pattern from Django's CacheHandler) that lazily loads and caches parsers by index title. Raises `NoLegacyRefParserError` when no mapping exists.

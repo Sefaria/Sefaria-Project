@@ -42,7 +42,9 @@ async function mount(currentlyVisibleRef, panelPosition = 0) {
 }
 
 function unmount() {
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
 }
@@ -54,13 +56,17 @@ const errorResponse = (message) => ({ ok: false, json: () => Promise.resolve({ e
 
 const input = () => container.querySelector('.lexiconEditHeadwordInput');
 const saveButton = () => container.querySelector('button.button');
-const typeHeadword = (text) => act(() => {
-  const el = input();
-  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-  setter.call(el, text);
-  el.dispatchEvent(new Event('input', { bubbles: true }));
-});
-const clickSave = async () => act(async () => { saveButton().dispatchEvent(new MouseEvent('click', { bubbles: true })); });
+const typeHeadword = (text) =>
+  act(() => {
+    const el = input();
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    setter.call(el, text);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+const clickSave = async () =>
+  act(async () => {
+    saveButton().dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -130,8 +136,12 @@ describe('enabling Save', () => {
 
 describe('saving', () => {
   let alertSpy;
-  beforeEach(() => { alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {}); });
-  afterEach(() => { alertSpy.mockRestore(); });
+  beforeEach(() => {
+    alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    alertSpy.mockRestore();
+  });
 
   test('PATCHes headword/{lexicon}/{current headword} with the typed value', async () => {
     Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({ headword: 'שָׁמוּר' }));
@@ -142,7 +152,10 @@ describe('saving', () => {
 
     expect(Sefaria.apiRequestWithBody).toHaveBeenCalledWith(
       `/api/lexicon-entry/headword/${encodeURIComponent('BDB Dictionary')}/${encodeURIComponent('שָׁמַר')}`,
-      null, { new_headword: 'שָׁמוּר' }, 'PATCH', false
+      null,
+      { new_headword: 'שָׁמוּר' },
+      'PATCH',
+      false
     );
   });
 
@@ -182,7 +195,7 @@ describe('saving', () => {
     expect(saveButton().disabled).toBe(true);
   });
 
-  test('a 409 response alerts the server\'s specific message and leaves the headword unchanged', async () => {
+  test("a 409 response alerts the server's specific message and leaves the headword unchanged", async () => {
     Sefaria.apiRequestWithBody.mockResolvedValue(errorResponse('collision'));
     await mount('BDB, שָׁמַר');
     typeHeadword('שָׁמוּר');

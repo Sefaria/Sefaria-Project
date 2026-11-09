@@ -2,19 +2,22 @@
 layer.py
 Writes to MongoDB Collection: layers
 """
+
 from bson.objectid import ObjectId
 
-from . import abstract as abst
-from sefaria.model.text import Ref
 from sefaria.model.note import Note, NoteSet
+from sefaria.model.text import Ref
+
+from . import abstract as abst
 
 
 class Layer(abst.AbstractMongoRecord):
     """
     A collection of notes and sources.
     """
-    collection   = 'layers'
-    history_noun = 'layer'
+
+    collection = "layers"
+    history_noun = "layer"
 
     required_attrs = [
         "owner",
@@ -25,17 +28,17 @@ class Layer(abst.AbstractMongoRecord):
     optional_attrs = [
         "name",
         "first_ref",
-        "all_refs", # list of all include refs and the refs of any note points to
+        "all_refs",  # list of all include refs and the refs of any note points to
     ]
 
     def _init_defaults(self):
-        self.note_ids     = []
+        self.note_ids = []
         self.sources_list = []
 
     def save(self):
         if not getattr(self, "first_ref", None):
             self.set_first_ref()
-        super(Layer, self).save()
+        super().save()
 
     def all(self, tref=None):
         """
@@ -56,11 +59,11 @@ class Layer(abst.AbstractMongoRecord):
         Returns notes for this layer,
         optionally filtered by notes on ref.
         """
-        query   = {"_id": {"$in": self.note_ids}}
+        query = {"_id": {"$in": self.note_ids}}
         if tref:
             query["ref"] = {"$regex": Ref(tref).section_ref().regex()}
-        notes  = NoteSet(query=query)
-        return [note for note in notes]
+        notes = NoteSet(query=query)
+        return list(notes)
 
     def add_note(self, note_id):
         """
