@@ -13,6 +13,7 @@ app.autodiscover_tasks(
         "sefaria.helper.llm",
         "sefaria.helper.linker",
         "sefaria.helper.crm",
+        "sefaria.helper.users",
         "sefaria.helper.texts",
         "api",
         "webhooks",

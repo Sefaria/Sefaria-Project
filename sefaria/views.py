@@ -1444,27 +1444,45 @@ def profile_spam_dashboard(request):
 def delete_user_by_email(request):
     from django.contrib.auth.models import User
 
-    from sefaria.utils.user import delete_user_account
+    from sefaria.helper.users.tasks import queue_user_account_deletion
 
     if request.method == "GET":
         form = SefariaDeleteUserForm()
         return render_template(request, "registration/delete_user_account.html", None, {"form": form, "next": next})
     if request.method == "POST":
         user = User.objects.get(id=request.user.id)
-        email = request.POST.get("email")
+        email = (request.POST.get("email") or "").strip()
         password = request.POST.get("password")
         try:
             if not user.check_password(password):
                 return jsonResponse({"failure": "incorrect password"})
         except:
             return jsonResponse({"failure": "incorrect password"})
+        # Look the user up directly. UserProfile(email=...) leaves id as None for an
+        # unknown email; the old code only stopped short of deleting with uid None
+        # because delete_user_history() happened to raise first.
+        matches = list(User.objects.filter(email__iexact=email).values_list("id", flat=True)[:2]) if email else []
+        if not matches:
+            return jsonResponse({"failure": f"no user with email {email}"})
+        if len(matches) > 1:
+            return jsonResponse({"failure": f"more than one user has email {email}; contact a developer"})
+        uid = matches[0]
         try:
-            id_to_delete = UserProfile(email=email)
-            if delete_user_account(id_to_delete.id, False):
-                return jsonResponse({"success": f"deleted user {email}"})
+            async_result = queue_user_account_deletion(uid)
+        except Exception as e:
+            logger.error("delete_user_by_email:failed", uid=uid, error=f"{type(e).__name__}: {e}")
             return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
-        except:
-            return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
+        if async_result is None:
+            return jsonResponse({"success": f"deleted user {email}"})
+        logger.info("delete_user_by_email:queued", uid=uid, task_id=async_result.id, by=request.user.id)
+        return jsonResponse(
+            {
+                "success": f"deletion of user {email} (id {uid}) queued; it finishes in the background",
+                "task_id": async_result.id,
+                "status_url": f"/api/async/{async_result.id}",
+            },
+            status=202,
+        )
 
 
 @staff_member_required

@@ -17,7 +17,23 @@ logger = structlog.get_logger(__name__)
 def delete_user_account(uid, confirm=True):
     """Deletes the account of `uid` as well as all owned data
     Returns True if user is successfully deleted from Mongo & User DB
+
+    Safe to run more than once for the same uid. It runs as a Celery task
+    (sefaria.helper.users.tasks), which can be delivered twice, and admins have
+    re-submitted deletions that looked stuck. The Django User row is deleted
+    last, so if it is gone every earlier step already finished; if it is still
+    there, every step is re-run, and each one is a no-op for data already removed.
     """
+    if not uid:
+        # Every query below filters on this id. With None, delete_many({"owner": None})
+        # would match every sheet and note that has no owner. Fail before any step runs.
+        raise ValueError(f"delete_user_account needs a user id, got {uid!r}")
+    if not User.objects.filter(id=uid).exists():
+        # Checked before UserProfile(), which falls back to placeholder values
+        # (email "test@sefaria.org") when the User row is missing, so the CRM step
+        # would act on the wrong contact.
+        logger.info("delete_user_account: user already deleted", uid=uid)
+        return True
     user = model.UserProfile(id=uid)
     if confirm:
         print("Are you sure you want to delete the account of '%s' (%s)?" % (user.full_name, user.email))
@@ -55,11 +71,10 @@ def delete_user_account(uid, confirm=True):
     db.following.delete_many({"followee": uid})
     # Delete Sheet Likes
     db.sheets.update_many({"likes": uid}, {"$pull": {"likes": uid}})
-    # Delete Profile
-    db.profiles.delete_one({"id": uid})
+    # Delete Profile (delete_many: some ids have more than one profile document)
+    db.profiles.delete_many({"id": uid})
     # Delete User Object
-    user = User.objects.get(id=uid)
-    user.delete()
+    User.objects.filter(id=uid).delete()
 
     # History is left for posterity, but will no longer be tied to a user profile
 
