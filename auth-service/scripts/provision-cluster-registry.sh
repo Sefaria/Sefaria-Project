@@ -137,13 +137,19 @@ printf 'probe: x\n' | sops --encrypt --gcp-kms "$KMS" --input-type yaml --output
 # setting and every grant are one transaction: a failure at any point leaves neither a role nor a plaintext file.
 umask 077
 TMP="$(mktemp "$OUT_DIR/.$SECRET.tmp.XXXXXX")"
-trap 'rm -f "$TMP"' EXIT INT TERM
+# Phase 1, before anything can have been created: an interruption or failure removes the temporary file.
+trap 'rm -f "$TMP"' EXIT
+trap 'rm -f "$TMP"; exit 130' INT TERM HUP
 PW=$(openssl rand -hex 24)
 printf 'apiVersion: v1\nkind: Secret\nmetadata:\n  name: %s\n  namespace: %s\ntype: Opaque\nstringData:\n  AUTH_PG_DSN: postgres://%s:%s@postgres-18.%s.svc.cluster.local:5432/%s?sslmode=disable\n' \
   "$SECRET" "$SECRET_NS" "$ROLE" "$PW" "$PG_NS" "$DB" >"$TMP"
 sops --encrypt --gcp-kms "$KMS" --input-type yaml --output-type yaml --encrypted-regex '^(data|stringData)$' --in-place "$TMP" \
   || { unset PW; echo "FAIL: sops encryption failed; nothing created, the temporary file is removed"; exit 1; }
 grep -q '^sops:' "$TMP" && ! grep -qF -f <(printf '%s\n' "$PW") "$TMP" || { unset PW; echo "FAIL: the Secret file is not encrypted; nothing created"; exit 1; }
+# Phase 2, from here until the file is in place: the role may be created (and committed) at any moment, so the encrypted
+# file is the only copy of its password and no signal or exit may delete it. An interruption keeps it and says so.
+trap - EXIT INT TERM HUP
+trap 'echo "INTERRUPTED while the role was being created: role $ROLE may exist now; the encrypted Secret is kept at $TMP (check with --verify, then rename it to $OUT, or drop the role and delete the file)"; exit 130' INT TERM HUP
 {
   printf 'BEGIN;\n'
   printf "CREATE ROLE %s LOGIN PASSWORD '%s';\n" "$ROLE" "$PW"
@@ -158,17 +164,18 @@ grep -q '^sops:' "$TMP" && ! grep -qF -f <(printf '%s\n' "$PW") "$TMP" || { unse
   # The transaction may have committed with its answer lost (a dropped exec): then the role exists and the encrypted
   # file is the only copy of its password, so it is kept.
   if [ "$(pg -c "SELECT count(*) FROM pg_roles WHERE rolname = '$ROLE'" 2>/dev/null)" != 0 ]; then
-    trap - EXIT INT TERM
     echo "FAIL: the role creation reported an error, but role $ROLE exists (or its state is unknown); the encrypted Secret is kept at $TMP (rename it to $OUT after checking with --verify)"
   else
+    rm -f "$TMP"
     echo "FAIL: creating the role failed and was rolled back; nothing changed"
   fi
+  trap - INT TERM HUP
   exit 1
 }
 unset PW
-# The role exists now, so the encrypted file must survive whatever happens next: no cleanup trap from here on.
-trap - EXIT INT TERM
+# The role exists now, so the encrypted file must survive whatever happens next: the phase 2 trap only keeps it.
 mv "$TMP" "$OUT" || { echo "FAIL: the role exists but the Secret could not be moved into place; the encrypted file is $TMP (rename it to $OUT)"; exit 1; }
+trap - INT TERM HUP
 echo "ok: role $ROLE, read-only on the registry columns in $DB"
 echo "ok: wrote encrypted $OUT (namespace $SECRET_NS)"
 verify

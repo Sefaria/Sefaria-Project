@@ -32,6 +32,9 @@ chmod +x "$tmp/kubectl"
 # obj KIND NAME [key=value ...] -> writes the fake object. Keys: gen (metadata.generation), statuses (one Accepted status
 # per ancestor/parent, comma-separated), resolved (ResolvedRefs per parent), observed (observedGeneration per condition),
 # refs (spec.parentRefs sectionNames, comma-separated; routes only), status_refs (parentRef sectionNames in status).
+# Policies only: ancestors (comma-separated Gateway[:listener] of the status entries, default one entry for Gateway
+# authpoc), target_route (the HTTPRoute a route-targeting policy names, default authpoc), notargets=1 (no targetRefs).
+# A policy targets HTTPRoute authpoc, except the client traffic policy: Gateway authpoc, listeners https-en and https-he.
 obj() {
   python3 - "$FAKE_DIR" "$@" <<'PY'
 import json, sys
@@ -53,10 +56,22 @@ if kind == "httproute":
             {"type": "ResolvedRefs", "status": resolved[i], "observedGeneration": (observed * 9)[i]}]}
         for i, r in enumerate(status_refs)]
 else:
+    anc = [a.split(":") for a in o["ancestors"].split(",")] if o.get("ancestors") else [["authpoc"]] * len(statuses)
+    if len(statuses) == 1 and len(anc) > 1:
+        statuses = statuses * len(anc)
+    if len(observed) == 1 and len(anc) > 1:
+        observed = observed * len(anc)
+    if not o.get("notargets"):
+        if kind == "clienttrafficpolicy":
+            doc["spec"]["targetRefs"] = [{"group": "gateway.networking.k8s.io", "kind": "Gateway", "name": "authpoc", "sectionName": sec}
+                                         for sec in ("https-en", "https-he")]
+        else:
+            doc["spec"]["targetRefs"] = [{"group": "gateway.networking.k8s.io", "kind": "HTTPRoute", "name": o.get("target_route", "authpoc")}]
     doc["status"]["ancestors"] = [
-        {"ancestorRef": {"kind": "Gateway", "name": "authpoc"}, "controllerName": "gateway.envoyproxy.io/gatewayclass-controller", "conditions": [
-            {"type": "Accepted", "status": s, "observedGeneration": observed[i], "reason": "Test", "message": "fake"}]}
-        for i, s in enumerate(statuses)]
+        {"ancestorRef": dict({"kind": "Gateway", "name": a[0]}, **({"sectionName": a[1]} if len(a) > 1 else {})),
+         "controllerName": "gateway.envoyproxy.io/gatewayclass-controller", "conditions": [
+            {"type": "Accepted", "status": statuses[i], "observedGeneration": observed[i], "reason": "Test", "message": "fake"}]}
+        for i, a in enumerate(anc)]
 json.dump(doc, open("%s/%s_%s.json" % (out, kind, name), "w"))
 PY
 }
@@ -104,6 +119,17 @@ import json,sys; p=sys.argv[1]; d=json.load(open(p))
 for a in d[\"status\"][\"ancestors\"]: a[\"controllerName\"] = \"example.com/other\"
 json.dump(d, open(p, \"w\"))" "$FAKE_DIR/securitypolicy_authpoc-auth.json"'
 expect fail "redirect route missing" 'rm "$FAKE_DIR/httproute_authpoc-http-redirect.json"'
+# Coverage of the policy's own targets (the status must show an accepted ancestor for every target it names).
+expect pass "client traffic policy accepted on each listener it targets" 'obj clienttrafficpolicy authpoc ancestors=authpoc:https-en,authpoc:https-he'
+expect fail "client traffic policy targets two listeners but only one has a status (one unrelated ancestor accepted)" 'obj clienttrafficpolicy authpoc ancestors=authpoc:https-en'
+expect fail "client traffic policy: a listener's status is rejected while the other is accepted" 'obj clienttrafficpolicy authpoc ancestors=authpoc:https-en,authpoc:https-he statuses=True,False'
+expect fail "security policy accepted only on a Gateway its route is not attached to" 'obj securitypolicy authpoc-auth ancestors=other'
+expect fail "security policy accepted on an unrelated Gateway besides the right one with a rejected status" 'obj securitypolicy authpoc-auth ancestors=other,authpoc statuses=True,False'
+expect pass "security policy accepted on its route's Gateway (plus an unrelated accepted one)" 'obj securitypolicy authpoc-auth ancestors=other,authpoc'
+expect fail "security policy targets a route that does not exist" 'obj securitypolicy authpoc-auth target_route=ghost'
+expect fail "security policy with no targetRefs at all" 'obj securitypolicy authpoc-auth notargets=1'
+expect fail "the route a policy targets cannot be read (forbidden)" 'echo "Error from server (Forbidden): httproutes is forbidden" >"$FAKE_DIR/error_httproute"'
+expect fail "client traffic policy with no targetRefs" 'obj clienttrafficpolicy authpoc notargets=1'
 
 # The gate against each environment's real render: the chart's own objects (names, parentRefs) with the statuses a
 # controller would write, so the gate is proven to look up exactly what staging, preprod and prod deploy.
@@ -128,15 +154,25 @@ import json, sys, yaml
 EG = "gateway.envoyproxy.io/gatewayclass-controller"
 kinds = {"SecurityPolicy": "securitypolicy", "ClientTrafficPolicy": "clienttrafficpolicy",
          "EnvoyExtensionPolicy": "envoyextensionpolicy", "BackendTrafficPolicy": "backendtrafficpolicy", "HTTPRoute": "httproute"}
-for d in yaml.safe_load_all(open(sys.argv[1])):
-    if not d or d.get("kind") not in kinds:
-        continue
+docs = [d for d in yaml.safe_load_all(open(sys.argv[1])) if d and d.get("kind") in kinds]
+routes = {d["metadata"]["name"]: d for d in docs if d["kind"] == "HTTPRoute"}
+for d in docs:
     d["metadata"]["generation"] = 1
     ok = lambda t: {"type": t, "status": "True", "observedGeneration": 1}
     if d["kind"] == "HTTPRoute":
         d["status"] = {"parents": [{"parentRef": ref, "controllerName": EG, "conditions": [ok("Accepted"), ok("ResolvedRefs")]} for ref in d["spec"]["parentRefs"]]}
     else:
-        d["status"] = {"ancestors": [{"ancestorRef": {"kind": "Gateway", "name": d["metadata"]["name"]}, "controllerName": EG, "conditions": [ok("Accepted")]}]}
+        # The ancestors a controller writes: a Gateway target (with its listener) is its own ancestor, a route target's
+        # ancestors are the Gateways in the route's parentRefs.
+        targets = list(d["spec"].get("targetRefs") or []) + ([d["spec"]["targetRef"]] if d["spec"].get("targetRef") else [])
+        ancestors = []
+        for t in targets:
+            if t["kind"] == "Gateway":
+                ancestors.append({"kind": "Gateway", "name": t["name"], **({"sectionName": t["sectionName"]} if t.get("sectionName") else {})})
+            else:
+                ancestors += [{"kind": "Gateway", "name": r["name"]} for r in routes[t["name"]]["spec"]["parentRefs"]]
+        assert ancestors, d["metadata"]["name"]
+        d["status"] = {"ancestors": [{"ancestorRef": a, "controllerName": EG, "conditions": [ok("Accepted")]} for a in ancestors]}
     json.dump(d, open("%s/%s_%s.json" % (sys.argv[2], kinds[d["kind"]], d["metadata"]["name"]), "w"))
 PY
     if PATH="$tmp:$PATH" CTX=fake NS=x ENV="$deploy_env" bash "$here/policy-gate.sh" >"$tmp/out" 2>&1 \
