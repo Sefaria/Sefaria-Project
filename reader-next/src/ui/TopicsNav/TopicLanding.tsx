@@ -413,7 +413,10 @@ export function TopicLandingSearch({
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(-1);
   const listId = useId();
-  useEffect(() => setHighlight(-1), [suggestions]);
+  // reset when the topics listed change, not when the same list is filled in (category paths arrive after the names: a reset then
+  // dropped the reader's place mid-arrowing)
+  const listedSlugs = suggestions.map((s) => s.slug).join("\n");
+  useEffect(() => setHighlight(-1), [listedSlugs]);
   // en-US grouping, as the old toLocaleString in an English browser
   const placeholder = he ? "חיפוש לפי נושא" : numOfTopics ? `Search ${numOfTopics.toLocaleString("en-US")} Topics A-Z` : "Search Topics A-Z";
   const shown = open && value.trim().length > 1 ? suggestions : [];
