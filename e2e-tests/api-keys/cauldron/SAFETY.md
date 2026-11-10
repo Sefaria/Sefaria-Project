@@ -6,10 +6,10 @@
 match, default 3774) and the dev cluster context
 `gke_development-205018_us-east1-b_cluster-1` (the default context on some machines is production).
 
-`auth-service/scripts/demo.sh --target cauldron --allow-mutating` needs `APIKEYS_CAULDRON=<name>` and
-`APIKEYS_ALLOW_MUTATING_ON=<same name>`, never runs on `apikeys-pipeline`, `authpoc` or `api-keys-poc`, and refuses
-(exit 2) any kube context other than the dev one, a namespace other than `default`, or a `DEMO_HOST` that does not
-name the cauldron.
+The mutating steps (`run.sh seeded`, `run.sh drill-f1`) need `APIKEYS_CAULDRON=<name>` and
+`APIKEYS_ALLOW_MUTATING_ON=<same name>` (seeding also needs `APIKEYS_ALLOW_SEEDING=<name>`), never run on
+`apikeys-pipeline`, `authpoc` or `api-keys-poc`, and go through `lib.sh`, which pins the dev kube context and the
+`default` namespace.
 
 ## Rulebook
 
@@ -26,7 +26,8 @@ name the cauldron.
   - Envoy Gateway or KEDA objects
   - the infrastructure repo
 - No pod deletes, restarts, scale/patch/apply/edit, or `flux reconcile` without the cauldron owner's explicit go-ahead
-  (Yotam's on `apisplit`; Daniel's on any shared cauldron). F-series drills also need Yotam.
+  (the cauldron owner's on `apisplit`; the go-ahead of the owner of any other shared cauldron). F-series drills also
+  need the cauldron owner.
 - Never use `create-cauldron.sh` or `repoint-cauldron.sh`. Never force-push the cauldrons repo. Edit only
   `apisplit.yaml` there, and only on a go-ahead: all five tags plus the chart version, keeping `pinned`,
   `authService` and the flags. Pin the tag CI actually built (read it from the Continuous Image Build log), not the
@@ -71,7 +72,7 @@ name the cauldron.
 
 Seeding the cauldron (fixture accounts, projects and keys written through the ORM in the web pod) is a cluster write.
 The seeder also refuses any cauldron write unless `APIKEYS_ALLOW_MUTATING_ON` equals `APIKEYS_CAULDRON`. It needs the
-cauldron owner's go-ahead (Yotam on `apisplit`). Every cauldron's auth service reads the one shared `sefaria_auth`
+cauldron owner's go-ahead (the cauldron owner on `apisplit`). Every cauldron's auth service reads the one shared `sefaria_auth`
 registry, so seeded rows show on all of them. The go-ahead is given per run as `APIKEYS_ALLOW_SEEDING=<cauldron>`;
 `run.sh seeded` refuses to start without it. The seeded flow it runs:
 

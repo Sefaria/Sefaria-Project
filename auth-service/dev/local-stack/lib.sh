@@ -5,7 +5,7 @@ PROJECT=sefaria-apikeys-stack
 STATE_DIR="${APIKEYS_STACK_STATE_DIR:-$REPO/.claude/scratch/apikeys-stack}"
 export STACK_RUN_DIR="$STATE_DIR/run"
 if [ -z "${APIKEYS_STACK_PYTHON:-}" ] && [ -x "$REPO/.venv/bin/python" ]; then APIKEYS_STACK_PYTHON="$REPO/.venv/bin/python"; fi
-PYTHON="${APIKEYS_STACK_PYTHON:-$HOME/.pyenv/versions/senv/bin/python}"
+PYTHON="${APIKEYS_STACK_PYTHON:-python3}"
 export APIKEYS_STACK_PYTHON="$PYTHON"
 DJANGO_PORTS=(8100 8101)
 

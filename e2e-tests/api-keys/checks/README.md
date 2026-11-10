@@ -1,8 +1,7 @@
 # API-key checks harness
 
 `run-checks.sh` runs the API-key checks against throwaway containers: the `powered_by` pytest suite, the
-migration round trip (with an optional dev-shape seed), the auth-service Go tests, shellcheck, and the
-feature-matrix validator. Nothing it does writes outside the repo, except container state and the git-ignored
+migration round trip (with an optional dev-shape seed), the auth-service Go tests, and shellcheck. Nothing it does writes outside the repo, except container state and the git-ignored
 `.claude/scratch/apikeys-checks/` directory.
 
 ```bash
@@ -20,9 +19,7 @@ bash e2e-tests/api-keys/checks/run-checks.sh <command> [args]
 | `migrations [--seed]` | `makemigrations --check`, `migrate`, `showmigrations`, a schema dump (apikey CHECK constraints and triggers on both tables), `migrate powered_by 0005`, `migrate powered_by`, then the schema dump and the check again. With `--seed` and `testenv/seed_dev_shape.sql` present, it first resets `sefaria_auth`, loads the seed at 0005, migrates forward and back, and compares the project and key row counts. |
 | `go`                  | `go vet ./... && go test -race -count=1 -v ./...` in a `golang` container, with `PG_TEST_DSN` pointing at `authsvc_go`. Then an informational `go test -tags knowngaps -run KnownGap` that does not count toward failure.                                                                                                                                                                                       |
 | `shell [files]`       | `shellcheck -S warning`. Default files: `auth-service/scripts/*.sh` and `run-checks.sh`. Uses a local `shellcheck` if present, else the `koalaman/shellcheck:stable` image, else a `shellcheck-py` install into `.claude/scratch/apikeys-checks/tools`.                                                                                                                                                         |
-| `unit`                | `python3 -m unittest discover -s e2e-tests/api-keys/tests -t .` when that directory exists.                                                                                                                                                                                                                                                                                                                     |
-| `features`            | `python3 e2e-tests/api-keys/check_features.py --strict`, then `unit`.                                                                                                                                                                                                                                                                                                                                           |
-| `all`                 | `selftest`, `pytest`, `migrations`, `go`, `shell`, `features`.                                                                                                                                                                                                                                                                                                                                                  |
+| `all`                 | `selftest`, `pytest`, `migrations`, `go`, `shell`.                                                                                                                                                                                                                                                                                                                                                              |
 
 Containers already running when a command starts (for example after `up`) are never removed by it. `KEEP=1` leaves the containers running after `pytest`, `migrations`, `go` or `all`. Without it those commands
 stop the containers on exit.

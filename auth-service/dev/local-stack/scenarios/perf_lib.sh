@@ -1,28 +1,11 @@
 # shellcheck shell=bash
-# Shared by the perf scenario scripts (perf-latency.sh, perf-revoke.sh, perf-replicas.sh), after lib.sh. Sourced.
-# k6 runs from the pinned grafana/k6 image on the host network, as this user, so it reads the 0700 keys directory.
+# Shared by the perf scenario scripts (perf-revoke.sh), after lib.sh. Sourced.
 # Results land in $PERF_OUT (default $D11_DIR/perf/<script>-<UTC time>), which holds no key values.
 
-K6_IMAGE="${K6_IMAGE:-grafana/k6:1.0.0}"
-K6_DIR="$REPO/auth-service/k6"
 PERF_OUT="${PERF_OUT:-$D11_DIR/perf/$SCRIPT_NAME-$(date -u +%Y%m%dT%H%M%SZ)}"
 mkdir -p "$PERF_OUT"
 PERF_KEYS_N="${PERF_KEYS_N:-1000}"
 REPORT=("$PYTHON" "$SCEN_DIR/perf_report.py")
-
-# k6_run SCRIPT OUT_NAME [VAR=value ...] -> runs auth-service/k6/SCRIPT; its summary JSON is $PERF_OUT/OUT_NAME.json
-# and its text output $PERF_OUT/OUT_NAME.txt. Returns k6's exit status (non-zero when a threshold failed).
-k6_run() {
-  local script="$1" name="$2"; shift 2
-  local envs=(-e "SUMMARY_FILE=/out/$name.json")
-  local kv; for kv in "$@"; do envs+=(-e "$kv"); done
-  docker run --rm --network host -u "$(id -u):$(id -g)" \
-    -v "$K6_DIR:/scripts:ro" -v "$KEYS_DIR:/keys:ro" -v "$PERF_OUT:/out" \
-    "${envs[@]}" "$K6_IMAGE" run --quiet --no-color "/scripts/$script" >"$PERF_OUT/$name.txt" 2>&1
-  local rc=$?
-  mask <"$PERF_OUT/$name.txt" | grep -vE '^\s*$' | sed 's/^/      /'
-  return $rc
-}
 
 # perf_bulk_keys -> PERF_KEYS_N live keys on the drill project (label perf-bulk), their values in
 # $KEYS_DIR/perf-bulk.keys (0600), and waits until the auth service has loaded them. Idempotent.

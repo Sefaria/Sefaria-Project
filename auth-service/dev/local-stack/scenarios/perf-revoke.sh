@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PERF-R: create-to-allow and revoke-to-deny timing on the drill copy of the stack, with PERF_KEYS_N keys in the
-# registry (local numbers only; the cluster figure is the perf-cauldron run's). revoke_timing.py commits a key,
+# registry (local numbers only; the cluster figure comes from a run on a cluster). revoke_timing.py commits a key,
 # polls the gated path through Envoy until 200, revokes it, and polls until 401 api_key_invalid.
 #   1. NOTIFY on (the chart's default channel): TRIALS trials, 5 ms polling. Target: ~50 ms (the coalescing window
 #      plus one reload); gates: p50 <= REVOKE_P50_BUDGET_MS (250), max <= REVOKE_MAX_MS (2000, smoke S4's bound).

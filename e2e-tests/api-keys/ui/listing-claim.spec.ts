@@ -1,9 +1,8 @@
 import { spawnSync } from 'child_process';
-import os from 'os';
 import path from 'path';
 import { Page } from '@playwright/test';
 import { test, expect, pageFetch } from '../fixtures';
-import { REPO_ROOT, findAccount, loadManifest } from '../env';
+import { REPO_ROOT, findAccount, loadManifest, stackPython } from '../env';
 import { DeveloperSettingsPage } from '../../pages/developerSettingsPage';
 import { openAccount } from './session-wait';
 import { t } from '../../globals';
@@ -15,7 +14,7 @@ type Listing = { id: number; name: string; ownerId: number | null; apiProjectId:
 
 /** Runs listing_fixtures.py with the local stack's Django settings and returns its JSON line. */
 function listingFixture(...args: string[]): Listing {
-  const python = process.env.APIKEYS_STACK_PYTHON || path.join(os.homedir(), '.pyenv/versions/senv/bin/python');
+  const python = stackPython();
   const env = { ...process.env, PYTHONPATH: path.join(REPO_ROOT, 'auth-service/dev/local-stack'), DJANGO_SETTINGS_MODULE: 'django_settings' };
   delete env.FRONT_END_URL;
   delete env.CI_RUN;

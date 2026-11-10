@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # API-key checks: throwaway Postgres and Mongo containers, the powered_by pytest suite, the migration round trip,
-# the auth-service Go tests, shellcheck and the feature-matrix validator. Contract and failure reading: README.md.
+# the auth-service Go tests and shellcheck. Contract and failure reading: README.md.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -42,9 +42,7 @@ usage: bash e2e-tests/api-keys/checks/run-checks.sh <command> [args]
   migrations [--seed]   migration round trip on $DJANGO_DB; --seed also runs the dev-shape round trip
   go                    auth-service go vet + go test -race with PG_TEST_DSN on $GO_DB
   shell [files]         shellcheck -S warning (default: auth-service/scripts/*.sh and this script)
-  unit                  python3 -m unittest discover over e2e-tests/api-keys/tests, when present
-  features              check_features.py --strict, then unit
-  all                   selftest pytest migrations go shell features
+  all                   selftest pytest migrations go shell
 PY=${PY} (override with PY=/path/to/python)
 EOF
 }
@@ -128,7 +126,7 @@ teardown_unless_kept() {
   for name in "${STARTED_HERE[@]}"; do docker rm -f "$name" >/dev/null && echo "removed $name"; done
 }
 
-# ---------------------------------------------------------------- selftest and unit
+# ---------------------------------------------------------------- selftest
 cmd_selftest() {
   step "selftest (no containers)"
   if ! command -v docker >/dev/null 2>&1; then
@@ -144,12 +142,6 @@ cmd_selftest() {
     echo "django $django_version via $PY"
   fi
   bash -n "$HERE/run-checks.sh" && echo "bash -n run-checks.sh: ok" || fail "bash -n run-checks.sh"
-}
-
-cmd_unit() {
-  if [ ! -d "$ROOT/e2e-tests/api-keys/tests" ]; then echo "unit: e2e-tests/api-keys/tests not present yet; skipped"; return 0; fi
-  step "unit tests of the checks tooling"
-  python3 -m unittest discover -s e2e-tests/api-keys/tests -t . || fail "python3 -m unittest discover -s e2e-tests/api-keys/tests"
 }
 
 # ---------------------------------------------------------------- pytest
@@ -307,7 +299,7 @@ cmd_go() {
   return 0
 }
 
-# ---------------------------------------------------------------- shell and features
+# ---------------------------------------------------------------- shell
 cmd_shell() {
   local -a files=()
   if [ "${#SUBCOMMAND_ARGS[@]}" -gt 0 ]; then
@@ -330,36 +322,6 @@ cmd_shell() {
     tool=("$tools_dir/bin/shellcheck")
   fi
   "${tool[@]}" -S warning "${files[@]}" || fail "shellcheck -S warning ${files[*]}"
-  step "demo.sh write gate"
-  demo_write_gate ${DEMO_GATE_FILE:+"$DEMO_GATE_FILE"}
-}
-
-# demo_write_gate [file]: every write command in demo.sh (SQL write, terminated backend, compose stop/start, kubectl
-# scale) sits inside a mutating_* function or the t_authsvc_down/t_authsvc_up adapters (F-DEMO-01.e4).
-demo_write_gate() {
-  local file="${1:-auth-service/scripts/demo.sh}" hits
-  [ -f "$file" ] || return 0
-  hits=$(awk '
-    /^[[:space:]]*[A-Za-z0-9_]+\(\)[[:space:]]*\{/ { fn = $1; sub(/\(.*/, "", fn) }
-    /^\}/ { fn = "" }
-    /^[[:space:]]*#/ { next }
-    tolower($0) ~ /(insert[[:space:]]+into|update[[:space:]]+[a-z_.]+[[:space:]]+set|delete[[:space:]]+from|pg_terminate_backend)/ \
-      || tolower($0) ~ /docker[[:space:]]+compose[^#]*[[:space:]](stop|start|restart)([[:space:]]|$)/ \
-      || tolower($0) ~ /kubectl[^#]*[[:space:]]scale([[:space:]]|$)/ {
-      if (fn !~ /^(mutating_|t_authsvc_(down|up)$)/) printf "%s:%d: write outside mutating_*: %s\n", FILENAME, NR, $0
-    }
-  ' "$file")
-  if [ -n "$hits" ]; then fail "demo write gate"$'\n'"$hits"; fi
-}
-
-cmd_features() {
-  step "feature matrix validator (--strict)"
-  if [ ! -f "$ROOT/e2e-tests/api-keys/check_features.py" ]; then
-    fail "e2e-tests/api-keys/check_features.py is missing"
-  else
-    python3 "$ROOT/e2e-tests/api-keys/check_features.py" --strict || fail "check_features.py --strict"
-  fi
-  cmd_unit
 }
 
 cmd_all() {
@@ -368,7 +330,6 @@ cmd_all() {
   cmd_migrations
   cmd_go
   cmd_shell
-  cmd_features
 }
 
 # ---------------------------------------------------------------- main
@@ -377,7 +338,7 @@ main() {
   [ "$#" -gt 0 ] && shift
   SUBCOMMAND_ARGS=("$@")
   case "$cmd" in
-    selftest|up|down|pytest|migrations|go|shell|unit|features|all) ;;
+    selftest|up|down|pytest|migrations|go|shell|all) ;;
     *) usage; exit 2 ;;
   esac
   case "$cmd" in

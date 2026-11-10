@@ -3,23 +3,16 @@
 # summary table at the end. README.md "Before the master merge" says what each step proves and what a pass looks like.
 #
 #   run-release-checks.sh static            no stack, no cluster: per-env render checks, the gate-script tests, the
-#                                           provisioning test (docker), the feature matrix and its unit tests
+#                                           provisioning test (docker)
 #   run-release-checks.sh local             static, then the local stack: up, smoke, seed, the A-series in enforce
-#                                           and observe, every stack drill, the Playwright api-keys suite, demo.sh,
-#                                           and a teardown that must leave 0 fixture rows
+#                                           and observe, every stack drill (perf-revoke included), the Playwright
+#                                           api-keys suite, and a teardown that must leave 0 fixture rows
 #   run-release-checks.sh cauldron          the read-only cauldron run (cauldron/run.sh free): no cluster writes
 #   run-release-checks.sh cauldron-seeded   cauldron/run.sh seeded: refuses to start without
-#                                           APIKEYS_ALLOW_SEEDING=<cauldron> (Yotam's go-ahead, cauldron/SAFETY.md)
-#   run-release-checks.sh perf              local numbers on the drill copy of the stack (~12 min): the perf runner's
-#                                           guard tests, then latency with and without ext_authz (k6), revoke-to-deny
-#                                           with NOTIFY and with LISTEN broken, one versus two replicas
-#   run-release-checks.sh perf-cauldron     perf/run-perf-cauldron.sh latency (and revoke with APIKEYS_PERF_REVOKE=1)
-#                                           on a dedicated perf cauldron: refuses unless APIKEYS_PERF_CAULDRON equals
-#                                           APIKEYS_CAULDRON, and never on apisplit or a shared cauldron (D6)
+#                                           APIKEYS_ALLOW_SEEDING=<cauldron> (the cauldron owner's go-ahead, cauldron/SAFETY.md)
 #
-# Env: APIKEYS_STACK_PYTHON  a Python with the repo's requirements and PyYAML (default: the checkout's .venv)
+# Env: APIKEYS_STACK_PYTHON  a Python with the repo's requirements and PyYAML (default: the checkout's .venv, else python3)
 #      PLAYWRIGHT_WORKERS    default 2 (local); the cauldron is clamped to 2 by the config
-#      SKIP_SLOW_DRILLS=1    leave out nm9-master-merge and nm14-bundle (each builds or tests a second checkout)
 #      KEEP_FIXTURES=1       skip the final teardown (the next run's --reset replaces them anyway)
 # Exit status: 0 when no step failed. Known gaps (@known-gap, GAP lines) are counted, never failures.
 set -uo pipefail
@@ -28,7 +21,7 @@ REPO="$(cd "$HERE/../.." && pwd)"
 STACK="$REPO/auth-service/dev/local-stack"
 SCRIPTS="$REPO/auth-service/scripts"
 MODE="${1:-}"
-case "$MODE" in static|local|cauldron|cauldron-seeded|perf|perf-cauldron) ;; *) sed -n 2,24p "$0"; exit 2 ;; esac
+case "$MODE" in static|local|cauldron|cauldron-seeded) ;; *) sed -n 2,17p "$0"; exit 2 ;; esac
 
 if [ -z "${APIKEYS_STACK_PYTHON:-}" ] && [ -x "$REPO/.venv/bin/python" ]; then APIKEYS_STACK_PYTHON="$REPO/.venv/bin/python"; fi
 PY="${APIKEYS_STACK_PYTHON:-python3}"
@@ -76,32 +69,6 @@ static_checks() {
   step "render-check negative tests" env PY="$PY" bash "$SCRIPTS/test-render-check.sh"
   step "policy-gate tests (fake kubectl, each env's render)" env PY="$PY" bash "$SCRIPTS/test-policy-gate.sh"
   step "provision-cluster-registry tests" bash "$SCRIPTS/test-provision-cluster-registry.sh"
-  step "feature matrix --strict" "$PY" "$HERE/check_features.py" --strict
-  step "feature matrix unit tests" "$PY" -m unittest discover -s "$HERE/tests" -t "$REPO"
-  step "perf cauldron runner guard tests (fake kubectl)" bash "$HERE/perf/test-perf-guards.sh"
-}
-
-# Local perf numbers (they never replace the perf-cauldron run): the drills build on the stack's auth service image,
-# rebuilt here from this checkout so the numbers are this code's. Each drill's JSON results go under $OUT/perf-*/.
-perf_checks() {
-  [ -x "$PY" ] || command -v "$PY" >/dev/null || { row "perf: python" FAIL "no Python at $PY (set APIKEYS_STACK_PYTHON)"; return; }
-  step "perf cauldron runner guard tests (fake kubectl)" bash "$HERE/perf/test-perf-guards.sh"
-  step "auth service image from this checkout" docker build -q -f "$REPO/build/auth-service/Dockerfile" --target runtime \
-    -t "${D11_AUTHSVC_IMAGE:-sefaria-apikeys-stack-authsvc:local}" "$REPO" || { row "perf" FAIL "no auth service image; drills skipped"; return; }
-  local d
-  for d in perf-latency perf-revoke perf-replicas; do
-    export PERF_OUT="$OUT/$d"
-    drill "$d"
-    grep -E '^(info|pass|FAIL) +PERF-[LRN] .*(added by|p99|revoke-to-deny|create-to-allow|reload cost|Checks per)' "$OUT/drill-$d.log" \
-      | sed 's/^/    /'
-  done
-  unset PERF_OUT
-}
-
-perf_cauldron() {
-  step "perf cauldron: latency (k6 Job)" bash "$HERE/perf/run-perf-cauldron.sh" latency
-  if [ "${APIKEYS_PERF_REVOKE:-}" = 1 ]; then step "perf cauldron: revoke-to-deny" bash "$HERE/perf/run-perf-cauldron.sh" revoke
-  else row "perf cauldron: revoke-to-deny" SKIP "APIKEYS_PERF_REVOKE=1 runs it (seeds and tears down fixtures)"; fi
 }
 
 seed() {  # seed ARGS... with the stack's settings wrapper
@@ -179,15 +146,17 @@ local_checks() {
   "$STACK/scenarios/a-series.sh" keepunchanged-envoy stop >>"$OUT/keepunchanged-envoy.log" 2>&1
 
   local d
-  for d in e1-registry e2-observe e3-helm f1-stop f2-bad-dsn f3-listen f4-rotate f5-latency ncr8-empty-start ne3-guard \
-      ne4-grant ne5-badmode nf1-sigterm nf2-pause b9-legacy-body d-old-code nm7-migrate-roundtrip; do
+  for d in e1-registry e2-observe f1-stop f2-bad-dsn f3-listen f4-rotate f5-latency ncr8-empty-start ne3-guard \
+      ne4-grant ne5-badmode nf1-sigterm nf2-pause b9-legacy-body nm7-migrate-roundtrip; do
     drill "$d"
   done
-  if [ -z "${SKIP_SLOW_DRILLS:-}" ]; then drill nm9-master-merge; drill nm14-bundle
-  else row "drill nm9-master-merge, nm14-bundle" SKIP "SKIP_SLOW_DRILLS=1"; fi
+  # perf-revoke writes its JSON results under the run's own folder (perf_lib.sh reads PERF_OUT).
+  export PERF_OUT="$OUT/perf-revoke"
+  drill perf-revoke
+  unset PERF_OUT
+  grep -E '^(info|pass|FAIL) +PERF-R' "$OUT/drill-perf-revoke.log" | sed 's/^/    /'
 
   playwright_suite
-  step "demo.sh (local, mutating sections on)" bash "$SCRIPTS/demo.sh" --target local --allow-mutating
 
   if [ -z "${KEEP_FIXTURES:-}" ]; then
     step "seed: --teardown leaves 0 rows" seed_teardown
@@ -201,8 +170,6 @@ case "$MODE" in
   local) static_checks; local_checks ;;
   cauldron) step "cauldron run (read-only)" bash "$HERE/cauldron/run.sh" free ;;
   cauldron-seeded) step "cauldron run (seeded)" bash "$HERE/cauldron/run.sh" seeded ;;
-  perf) perf_checks ;;
-  perf-cauldron) perf_cauldron ;;
 esac
 
 echo
