@@ -22,7 +22,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 
 	"github.com/Sefaria/Sefaria-Project/auth-service/internal/authz"
 	"github.com/Sefaria/Sefaria-Project/auth-service/internal/registry"
@@ -38,6 +37,24 @@ func envOr(k, d string) string {
 		return v
 	}
 	return d
+}
+
+// parseGatedPaths parses GATED_PATHS, a comma-separated list of path prefixes. Each entry is trimmed and empty entries
+// are dropped, so "/api/a, /api/b" gates both. Empty or blank input gates nothing. An entry that does not start with
+// "/" can never match a request path, so it is an error: a typo must not silently leave a path ungated.
+func parseGatedPaths(spec string) ([]string, error) {
+	var out []string
+	for _, entry := range strings.Split(spec, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+		if !strings.HasPrefix(entry, "/") {
+			return nil, fmt.Errorf("GATED_PATHS entry %q must start with /", entry)
+		}
+		out = append(out, entry)
+	}
+	return out, nil
 }
 
 func main() {
@@ -59,9 +76,11 @@ func main() {
 		Mode:    authz.Mode(envOr("AUTH_MODE", "enforce")),
 		HelpURL: envOr("HELP_URL", "https://developers.sefaria.org/#"),
 	}
-	if gp := os.Getenv("GATED_PATHS"); gp != "" {
-		cfg.GatedPaths = strings.Split(gp, ",")
+	gatedPaths, err := parseGatedPaths(os.Getenv("GATED_PATHS"))
+	if err != nil {
+		panic(err)
 	}
+	cfg.GatedPaths = gatedPaths
 	meters, err := authz.ParseMeters(os.Getenv("METERED_PATHS"))
 	if err != nil {
 		panic(err)
@@ -203,7 +222,6 @@ func main() {
 	}
 	gs := grpc.NewServer()
 	authv3.RegisterAuthorizationServer(gs, authz.NewGRPCServer(reg, opts, rec))
-	reflection.Register(gs)
 	go func() {
 		slog.Info("grpc listening", "addr", lis.Addr().String())
 		if err := gs.Serve(lis); err != nil {
