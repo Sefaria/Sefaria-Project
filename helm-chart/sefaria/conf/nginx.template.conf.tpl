@@ -208,6 +208,8 @@ http {
     # client sends itself is passed on as it is (no proxy_intercept_errors): its 503 means the API behind both readers is unavailable,
     # which Django could not help with, and a write must never be replayed.
     location / {
+      # a reader that cannot be reached (scaled to zero, no endpoints) falls back to Varnish within seconds, not nginx's default 60
+      proxy_connect_timeout 5s;
       proxy_send_timeout  300;
       proxy_read_timeout  300;
       proxy_set_header Host $host;
@@ -232,6 +234,7 @@ http {
     # already open keeps loading its lazy chunks after its reader left the opt-in or the kill switch was thrown (it lands on the
     # legacy reader at its next full page load). If the reader is down, Varnish/Django answers (a 404).
     location /assets/ {
+      proxy_connect_timeout 5s;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
