@@ -26,9 +26,9 @@ probe_a2a() {
   sleep 3
   logs="$(kc logs "$AUTH_DEPLOY" --since-time="$since" 2>/dev/null || true)"
   local has_prefix=no has_full=no
-  grep -q "key_prefix=${key:0:12} " <<<"$logs" && has_prefix=yes
+  grep -q "key_prefix=${key:0:10} " <<<"$logs" && has_prefix=yes
   grep -qF "$key" <<<"$logs" && has_full=yes
-  local ev; ev="GET $GATED with a random sfr_ key -> $(status_of "$r") code=$code www-authenticate='$www'; deny log line with a 12-character prefix: $has_prefix; full value in the log: $has_full"
+  local ev; ev="GET $GATED with a random sfr_ key -> $(status_of "$r") code=$code www-authenticate='$www'; deny log line with a 10-character prefix (sfr_ and 6, as the auth service logs it): $has_prefix; full value in the log: $has_full"
   if [ "$(status_of "$r")" = 401 ] && [ "$code" = api_key_invalid ] && [ -n "$www" ] && [ "$has_prefix" = yes ] && [ "$has_full" = no ]; then
     rec A2a pass "$ev"
   else
