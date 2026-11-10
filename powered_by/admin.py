@@ -14,23 +14,37 @@ from .models import ApiKey, ApiProject, Project
 KEY_DISPLAY_PREFIX = 10
 
 
+# The fields an admin may edit inline. The admin form carries each one's value as it was when the page rendered
+# (a hidden "initial-" input), so a save can tell what the admin changed from what merely went stale.
+ADMIN_EDITABLE_KEY_FIELDS = ("label", "allowed_origins", "revoked_at")
+
+
 class ApiKeyForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # A revoked key stays revoked: a disabled field ignores whatever the form posts.
         if self.instance.revoked_at is not None:
             self.fields["revoked_at"].disabled = True
+        for name in ADMIN_EDITABLE_KEY_FIELDS:
+            if not self.fields[name].disabled:
+                self.fields[name].show_hidden_initial = True
 
 
 class ApiKeyFormSet(forms.BaseInlineFormSet):
     def save_existing(self, form, obj, commit=True):
-        # The form was built from the key as it was when the page loaded. A revoke since then must stand: re-read the
-        # row under its lock and keep a revocation that is already there, whatever the form carries.
+        # The form was built from the key as it was when the page loaded, and the row is written whole. Re-read it
+        # under its lock: a revoke since then must stand, and so must every other field this form did not change (an
+        # owner may have restricted allowed_origins meanwhile; writing the old list back would widen the key).
         if commit:
             with transaction.atomic():
-                revoked_at = ApiKey.objects.select_for_update().values_list("revoked_at", flat=True).get(pk=obj.pk)
-                if revoked_at is not None:
-                    obj.revoked_at = revoked_at
+                current = ApiKey.objects.select_for_update().get(pk=obj.pk)
+                for name in ADMIN_EDITABLE_KEY_FIELDS:
+                    if name == "revoked_at":
+                        # A revocation that is already there stands whatever the form carries.
+                        if current.revoked_at is not None or name not in form.changed_data:
+                            obj.revoked_at = current.revoked_at
+                    elif name not in form.changed_data:
+                        setattr(obj, name, getattr(current, name))
                 return super().save_existing(form, obj, commit)
         return super().save_existing(form, obj, commit)
 
