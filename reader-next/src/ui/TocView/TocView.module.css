@@ -46,3 +46,18 @@ a.groupTitle { text-decoration: none; }
 .view:not([data-variant="page"]) .sectionLink[data-current] { background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); font-weight: 400; border: 0; }
 .view:not([data-variant="page"]) .heading { font-size: 16px; color: var(--sefaria-color-text-dark-grey); }
 .view:not([data-variant="page"]) .group[data-fixed-group="heading"] > .groupTitle { font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 400; color: var(--sefaria-color-text-dark-grey); }
+
+/* The sidebar's Torah portions (with=Navigation; parity S10), VERIFIED on sefaria.org 2026-11-10 at 1280px (Genesis 1:1): as the
+   book page, not tiles — "Torah Portions" 16px #666 sans 30px below the chapters and 10px above two 50% columns; each portion its
+   24px black serif name over its aliyot as inline 14px/30px sans numbers 4px apart in #6f6f6f, the reader's in the brand blue */
+.view:not([data-variant="page"]) .group[data-fixed-group="heading"] { border: 0; padding-block-start: 0; margin-block-start: calc(30px - var(--sefaria-space-3)); }
+.view:not([data-variant="page"]) .group[data-fixed-group="heading"] > .groupTitle { margin: 0 0 10px; line-height: 18.75px; }
+.view:not([data-variant="page"]) .group[data-fixed-group="heading"] > .level { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; }
+.view:not([data-variant="page"]) .group[data-fixed-group="part"] { border: 0; padding-block-start: 0; }
+.view:not([data-variant="page"]) .group[data-fixed-group="part"] > .groupTitle { margin: 0; font-size: 24px; line-height: normal; color: var(--sefaria-color-text-strong); }
+.view:not([data-variant="page"]) .group[data-fixed-group="part"] .level { gap: 0; }
+.view:not([data-variant="page"]) .group[data-fixed-group="part"] .grid { display: block; }
+.view:not([data-variant="page"]) .group[data-fixed-group="part"] .grid > li { display: inline; }
+.view:not([data-variant="page"]) .group[data-fixed-group="part"] .sectionLink { display: inline; min-width: 0; min-height: 0; padding: 0 4px; background: none; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 30px; color: light-dark(#6f6f6f, var(--sefaria-color-text-muted)); }
+.view:not([data-variant="page"]) .group[data-fixed-group="part"] .sectionLink[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.view:not([data-variant="page"]) .group[data-fixed-group="part"] .sectionLink[data-current] { background: none; color: var(--sefaria-color-brand); }
