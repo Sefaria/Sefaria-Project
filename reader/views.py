@@ -2526,8 +2526,15 @@ def table_of_contents_api(request):
     return jsonResponse(toc, callback=request.GET.get("callback", None))
 
 
+@catch_error_as_json
 def topics_toc_api(request):
-    """The topics table of contents (the tree the topics pages and search's topic crumbs are built from)."""
+    """
+    The topics table of contents (the tree the topics pages and search's topic crumbs are built from): the same JSON every page
+    of the old client carries in its data.js (topic_toc_json), so nothing in it is new to the public. The same for every
+    visitor. Not in Varnish's cached list, deliberately: it would not be purged when a topic is edited.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
     return http.HttpResponse(library.get_topic_toc_json(), content_type="application/json; charset=utf-8")
 
 
@@ -2535,8 +2542,10 @@ def topics_toc_api(request):
 def num_library_topics_api(request):
     """
     How many topics the library's pool has: the topics landing page's "Search N Topics A-Z" (the old pages read it from their props,
-    base_props' numLibraryTopics; the new reader asks for it).
+    base_props' numLibraryTopics; the new reader asks for it). The same for every visitor.
     """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
     return jsonResponse({"count": get_num_library_topics()})
 
 
@@ -4716,6 +4725,9 @@ def segment_history(request, tref, lang, version, page=1):
     )
 
 
+SEGMENT_HISTORY_MAX_PAGE = 10_000
+
+
 @catch_error_as_json
 def segment_history_api(request, tref, lang, version):
     """
@@ -4726,6 +4738,18 @@ def segment_history_api(request, tref, lang, version):
     """
     from sefaria.model.user_profile import public_user_data
 
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+    # `page` counts from 1, in pages of 100 (text_history); the bound keeps Mongo's skip in range
+    try:
+        page = int(request.GET.get("page", 1))
+    except ValueError:
+        page = 0
+    if not 1 <= page <= SEGMENT_HISTORY_MAX_PAGE:
+        return jsonResponse({"error": f"page must be a whole number from 1 to {SEGMENT_HISTORY_MAX_PAGE}."}, status=400)
+    # An unknown ref or version is a 404, as on the page (segment_history raises Http404), so the new reader hands the address
+    # to Django like any other 404 (reader-next/src/lib/activity/segment-history.ts), rather than the 200 {"error"} that
+    # catch_error_as_json gives other InputErrors.
     try:
         oref = Ref(tref)
     except InputError:
@@ -4737,10 +4761,6 @@ def segment_history_api(request, tref, lang, version):
             {"error": f"We do not have a version of {oref.index.title} called '{version}'."}, status=404
         )
     filter_type = request.GET.get("type") or None
-    try:
-        page = max(1, int(request.GET.get("page", 1)))
-    except ValueError:
-        page = 1
     history = text_history(oref, version, lang, filter_type=filter_type, page=page)
 
     he_versions = {}
