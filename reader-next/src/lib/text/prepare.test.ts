@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFixture } from "../../../test/msw/fixtures";
 import { normaliseTexts, type RawTextsResponse } from "./model";
-import { prepareSegmentHtml, stripTalmudPunctuation } from "./prepare";
+import { isFullSegmentImage, prepareSegmentHtml, stripTalmudPunctuation } from "./prepare";
 
 const seg = (slug: string, side: "primary" | "translation", pred: (h: string) => boolean) => {
   const p = normaliseTexts(readFixture<RawTextsResponse>(`${slug}/v3-texts.json`));
@@ -133,5 +133,48 @@ describe("Talmud punctuation", () => {
     expect(plain.length).toBeLessThan(prepareSegmentHtml(he).html.length);
     const visible = plain.replace(/<[^>]*>/g, "");
     expect(visible).not.toMatch(/[:,]/);
+  });
+});
+
+// @feature TXD-026 Inline images in text
+describe("images", () => {
+  const SRC = "https://textimages.sefaria.org/et/diagram.png";
+  it("a segment that is only an image becomes the image with its alt text as the caption", () => {
+    const p = prepareSegmentHtml(`  <img src="${SRC}" alt="The courtyard">  `);
+    expect(p.fullImage).toBe(true);
+    expect(p.html.trim()).toBe(`<span class="image-in-text"><img alt="" decoding="async" loading="eager" src="${SRC}"><span class="image-in-text-title">The courtyard</span></span>`);
+  });
+  it("an image in running text stays inline", () => {
+    const p = prepareSegmentHtml(`see <img src="${SRC}" alt="fig. 1"> here`);
+    expect(p.fullImage).toBe(false);
+    expect(p.html).toBe(`see <img alt="fig. 1" decoding="async" loading="lazy" src="${SRC}"> here`);
+  });
+  it("keeps a base64 image (legacy's data:image sources) and drops any other source to its alt text", () => {
+    expect(prepareSegmentHtml('<img src="data:image/png;base64,iVBORw0KGgo=" alt="x">').html).toContain('src="data:image/png;base64,iVBORw0KGgo="');
+    expect(prepareSegmentHtml('a <img src="javascript:alert(1)" alt="bad"> b').html).toBe("a bad b");
+    expect(prepareSegmentHtml('a <img src="data:text/html;base64,PHNjcmlwdD4=" alt="bad"> b').html).toBe("a bad b");
+    expect(prepareSegmentHtml('a <img src="https://x.org/a.png" onerror="alert(1)" alt="ok"> b').html).not.toContain("onerror");
+  });
+  it("isFullSegmentImage is legacy's regex", () => {
+    expect(isFullSegmentImage(`<img src="${SRC}">`)).toBe(true);
+    expect(isFullSegmentImage(`text <img src="${SRC}">`)).toBe(false);
+    expect(isFullSegmentImage(undefined)).toBe(false);
+  });
+});
+
+// @feature TXD-023 Inline category links in text
+describe("category mentions and plain links", () => {
+  it("a category mention links to its library page", () => {
+    const out = prepareSegmentHtml('In the <a class="categoryLink " href="/texts/Tanakh/Torah" data-category-path="Tanakh/Torah" data-range=3-8>Torah</a> we read').html;
+    expect(out).toBe('In the <a class="category-link" data-category-path="Tanakh/Torah" href="/texts/Tanakh/Torah" tabindex="-1">Torah</a> we read');
+    const voices = prepareSegmentHtml('<a class="categoryLink" data-category-path="Second Temple">x</a>', { categoryHref: (p) => `https://www.sefaria.org/texts/${p}` }).html;
+    expect(voices).toContain('href="https://www.sefaria.org/texts/Second%20Temple"');
+  });
+  // @feature TXD-020
+  it("a plain link keeps an http(s) or site address; any other is unwrapped", () => {
+    expect(prepareSegmentHtml('see <a href="https://example.org/x">this</a>').html).toBe('see <a href="https://example.org/x" rel="noopener noreferrer" tabindex="-1">this</a>');
+    expect(prepareSegmentHtml('see <a href="/Genesis.1.1">this</a>').html).toBe('see <a href="/Genesis.1.1" tabindex="-1">this</a>');
+    expect(prepareSegmentHtml('see <a href="javascript:alert(1)">this</a>').html).toBe("see this");
+    expect(prepareSegmentHtml('see <a href="//evil.org">this</a>').html).toBe("see this");
   });
 });

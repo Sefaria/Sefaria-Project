@@ -39,7 +39,7 @@ const isPlainClick = (e: MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlK
 export function SegmentText({ html, lang, dir, vocalization, stripPunctuation, itagCommentator, refHref, terms, onRefClick, onEntityClick, className }: SegmentTextProps) {
   const libHref = useLibraryHref();
   const prepared = useMemo(() => {
-    const p = prepareSegmentHtml(html, { vocalization, stripPunctuation, lang, itagCommentator, refHref, topicHref: (slug) => libHref(`/topics/${slug}`) });
+    const p = prepareSegmentHtml(html, { vocalization, stripPunctuation, lang, itagCommentator, refHref, topicHref: (slug) => libHref(`/topics/${slug}`), categoryHref: (path) => libHref(`/texts/${path}`) });
     return terms?.length ? { ...p, html: highlightTerms(p.html, terms) } : p;
   }, [html, lang, vocalization, stripPunctuation, itagCommentator, refHref, terms, libHref]);
   const [open, setOpen] = useState<ReadonlySet<number>>(new Set());

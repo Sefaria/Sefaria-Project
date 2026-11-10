@@ -72,3 +72,26 @@ export const RashiOnGenesis: Story = { args: { passage: PASSAGES.rashiGenesis1_1
 export const ShulchanArukhItagsShownForFilteredCommentator: Story = { args: { passage: PASSAGES.shulchanArukh, settings: s({ language: "hebrew" }), itagCommentator: "Turei Zahav" } };
 export const HaggadahKadeshNoNumbers: Story = { args: { passage: PASSAGES.haggadahKadesh }, parameters: { docs: { description: { story: "Liturgy shows no segment numbers (TXD-011)." } } } };
 export const JastrowDictionaryEntry: Story = { args: { passage: PASSAGES.jastrowAbba, settings: s({ language: "english" }) }, parameters: { docs: { description: { story: "Reference works hide the section title and segment numbers." } } } };
+
+/* ── Images (TXD-026) ───────────────────────────────────────── */
+const svg = (label: string, fill: string) =>
+  `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200"><rect width="400" height="200" fill="${fill}"/><text x="200" y="110" font-size="28" text-anchor="middle" fill="#fff">${label}</text></svg>`)}`;
+const withImages = {
+  ...PASSAGES.genesis1,
+  segments: PASSAGES.genesis1.segments.slice(0, 4).map((seg, i) =>
+    i === 1
+      ? { ...seg, primary: `<img src="${svg("he", "#7c98b6")}" alt="תרשים">`, translation: `<img src="${svg("en", "#4b71b7")}" alt="Diagram of the firmament">` }
+      : i === 2
+        ? { ...seg, translation: `${seg.translation} <img src="${svg("inline", "#999")}" alt="inline figure" width="80">` }
+        : seg,
+  ),
+};
+export const ImagesInText: Story = {
+  args: { passage: withImages },
+  parameters: { docs: { description: { story: "Verse 2 is an image on both sides: bilingual shows only the translation's, centred with its alt text as the caption (legacy VersionContent). Verse 3 has an inline image in running text." } } },
+  play: async ({ canvasElement }) => {
+    const imgs = [...canvasElement.querySelectorAll("img")];
+    await expect(imgs).toHaveLength(2);
+    await expect(within(canvasElement).getByText("Diagram of the firmament")).toBeInTheDocument();
+  },
+};

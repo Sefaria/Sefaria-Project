@@ -3,7 +3,8 @@ import { hasChildren, isTag, isText } from "domhandler";
 import { escapeAttribute, escapeText } from "entities";
 import { parseDocument } from "htmlparser2";
 
-const VOID_TAGS = new Set(["br"]);
+// SEFARIA-READER EXTENSION: img is void too (the reader turns the sanitiser's image markers into <img>, TXD-026)
+const VOID_TAGS = new Set(["br", "img"]);
 
 /**
  * Parses an HTML fragment using browser-style recovery and decoded entities.

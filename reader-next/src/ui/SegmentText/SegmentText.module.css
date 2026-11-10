@@ -40,3 +40,15 @@
 
 /* Words a search matched (SRC-058): the old reader's pale blue (s2.css .segment .queryTextHighlight) */
 .text :global(.queryTextHighlight) { background-color: #d2dcff; box-shadow: 0 0 0 2px #d2dcff; } /* a shadow, not padding: removing the highlight must not re-wrap the line */
+
+/* Images (TXD-026; legacy s2.css .segment img, .image-in-text, .image-in-text-title). A segment that is only an image is the image,
+   centred, two-thirds of the column on a wide screen, with its alt text as a caption under it. */
+.text img { max-width: 100%; height: auto; vertical-align: middle; }
+.text :global(.image-in-text) { display: flex; flex-direction: column; align-items: center; margin-inline: auto; padding-top: 20px; max-width: 100%; }
+@container reader (min-width: 540px) { .text :global(.image-in-text) { width: 67%; } }
+.text :global(.image-in-text) img { width: 100%; }
+.text :global(.image-in-text-title) { display: block; margin-top: 15px; text-align: center; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-dark-grey); }
+.text :global(.image-in-text-title):lang(he) { font-family: var(--sefaria-font-ui-he); }
+[data-layout="continuous"] .text :global(.image-in-text) { display: inline-flex; }
+/* A category mention (TXD-023) reads as text, as a citation does */
+.text a:global(.category-link):hover { text-decoration: underline; }
