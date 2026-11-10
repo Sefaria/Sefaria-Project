@@ -156,13 +156,13 @@ class ReaderErrorsApiTestCase(TestCase):
         self.assertEqual(res["Allow"], "POST")
 
     def test_rate_limited_per_client_address(self):
-        # the address nginx sets (X-Real-IP); which headers count, and the global cap: reader_errors_rate_limit_test.py
-        a = {"HTTP_X_REAL_IP": "203.0.113.7"}
+        # the visitor's address as the gateway sets it; the whole chain, spoofing and the global cap: reader_errors_rate_limit_test.py
+        a = {"HTTP_X_ORIGINAL_FORWARDED_FOR": "203.0.113.7"}
         for _ in range(browser_errors.RATE_LIMIT):
             self.assertEqual(self.post(REPORT, **a).status_code, 204)
         self.assertEqual(self.post(REPORT, **a).status_code, 429)
         # another address is not affected
-        self.assertEqual(self.post(REPORT, HTTP_X_REAL_IP="203.0.113.8").status_code, 204)
+        self.assertEqual(self.post(REPORT, HTTP_X_ORIGINAL_FORWARDED_FOR="203.0.113.8").status_code, 204)
         self.assertEqual(self.logger.warning.call_count, browser_errors.RATE_LIMIT + 1)
 
 

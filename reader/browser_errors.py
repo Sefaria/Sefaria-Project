@@ -6,9 +6,10 @@ A beacon (`navigator.sendBeacon`) cannot carry a CSRF header and is often sent w
   - is CSRF-exempt and needs no session: it writes nothing but one log line, so there is nothing to forge;
   - answers 204 with no body, or 400 (not the schema) / 405 / 413 (over 16 KB) / 429 (rate limit) / 415 (not JSON);
   - accepts at most RATE_LIMIT beacons per client address, and RATE_LIMIT_GLOBAL from everyone together, per RATE_WINDOW seconds
-    (Django's default cache: Redis in the cluster). The client address is the one nginx sets (X-Real-IP, which nginx overwrites with
-    the address it was connected from; REMOTE_ADDR without it), never a header the client can choose: CF-Connecting-IP is trusted only
-    when settings.ORIGIN_LOCKED_TO_CLOUDFLARE says nothing but Cloudflare can reach the origin, and X-Forwarded-For never;
+    (Django's default cache: Redis in the cluster). The client address is the visitor's as the Envoy Gateway in front of nginx
+    resolved it (X-Original-Forwarded-For, which the gateway overwrites; see _client_address), never a header the client can append
+    to: CF-Connecting-IP is read directly only when settings.ORIGIN_LOCKED_TO_CLOUDFLARE says nothing but Cloudflare can reach the
+    origin, and X-Forwarded-For never;
   - validates the agreed fields and drops every other one, re-scrubs query strings and e-mail addresses (the client already does),
     and logs one structured line on the `reader-browser` logger (JSON in the cluster, for Datadog). No database write.
 Never logged: cookies, headers, the request's own query string, the client address.
@@ -16,6 +17,7 @@ Never logged: cookies, headers, the request's own query string, the client addre
 Routed on the Library host only (sefaria/urls_library.py); the Voices host does not have it.
 """
 
+import ipaddress
 import json
 import re
 
@@ -49,17 +51,42 @@ def _scrub(text, limit):
     return EMAIL_RE.sub("[email]", QUERY_RE.sub("", text[: limit + SCRUB_MARGIN]))[:limit]
 
 
+def _address(value):
+    """One IP address from a header value, or None. A list keeps its last entry: the one added nearest to us, which a client cannot
+    put there by sending its own (the gateway sends a single address; a list means something upstream appended)."""
+    candidate = (value or "").split(",")[-1].strip()
+    try:
+        return str(ipaddress.ip_address(candidate))
+    except ValueError:
+        return None
+
+
 def _client_address(request):
     """
-    The rate limit's key. nginx (helm-chart conf/nginx.template.conf.tpl, every proxied location) sets X-Real-IP to $remote_addr,
-    replacing whatever the client sent, and Varnish passes it on; REMOTE_ADDR is the hop before Django (Varnish), the fallback when
-    there is no nginx (local runs). CF-Connecting-IP is set by Cloudflare, but anyone who reaches the origin some other way can send
-    their own, so it is used only when settings.ORIGIN_LOCKED_TO_CLOUDFLARE is true. X-Forwarded-For's first entry is client-chosen.
+    The rate limit's key: the visitor's address, as the chart's chain delivers it (helm-chart/sefaria):
+      Cloudflare → Envoy Gateway (gateway.enabled, the default) → nginx → Varnish → Django.
+    - The gateway's Lua (templates/gateway/extensionpolicy.yaml) *replaces* X-Original-Forwarded-For with CF-Connecting-IP, or else
+      Envoy's resolved client address (ClientTrafficPolicy numTrustedHops 1); a value the client sent is overwritten. nginx and Varnish
+      pass it through unchanged, and nginx's access log uses it as remoteIp (conf/nginx.template.conf.tpl, log_format structured).
+    - nginx's X-Real-IP is its $remote_addr: behind the gateway that is the gateway pod, the same for every visitor, so it is used
+      only when X-Original-Forwarded-For is missing (gateway off: nginx is then the edge and $remote_addr is the visitor).
+    - REMOTE_ADDR (the hop before Django) when neither is there: local runs.
+    Django cannot tell who set a header: with the gateway off a client could send its own X-Original-Forwarded-For through nginx. The
+    gateway is on in every chart deployment, and RATE_LIMIT_GLOBAL bounds what any key rotation can write. Likewise the gateway's Lua
+    trusts CF-Connecting-IP, so a client that bypasses Cloudflare can choose its key through the gateway: the global cap is the backstop.
+    CF-Connecting-IP is read here directly only when settings.ORIGIN_LOCKED_TO_CLOUDFLARE is true. X-Forwarded-For never (its first
+    entry is client-chosen).
     """
     meta = request.META
-    if getattr(settings, "ORIGIN_LOCKED_TO_CLOUDFLARE", False) and meta.get("HTTP_CF_CONNECTING_IP"):
-        return meta["HTTP_CF_CONNECTING_IP"].strip()
-    return meta.get("HTTP_X_REAL_IP", "").strip() or meta.get("REMOTE_ADDR", "")
+    if getattr(settings, "ORIGIN_LOCKED_TO_CLOUDFLARE", False):
+        cf = _address(meta.get("HTTP_CF_CONNECTING_IP"))
+        if cf:
+            return cf
+    for header in ("HTTP_X_ORIGINAL_FORWARDED_FOR", "HTTP_X_REAL_IP"):
+        found = _address(meta.get(header))
+        if found:
+            return found
+    return meta.get("REMOTE_ADDR", "")
 
 
 def _counted_over(key, limit):

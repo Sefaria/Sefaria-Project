@@ -24,7 +24,7 @@ add(
     "ANL-017",
     "Browser error reporting (Sentry)",
     [
-        "2026-11-10 (security S-4): /api/reader-errors' rate limit is keyed on the address nginx sets (X-Real-IP, which nginx overwrites; REMOTE_ADDR without it), not on CF-Connecting-IP or X-Forwarded-For, which a client reaching the origin directly can choose per beacon. CF-Connecting-IP is trusted only with the Django setting ORIGIN_LOCKED_TO_CLOUDFLARE = True (off by default). A beacon within its own limit also counts against a cap for everyone together (600 a minute). Tests: reader/tests/reader_errors_rate_limit_test.py.",
+        "2026-11-10 (security S-4): /api/reader-errors' rate limit is keyed on the visitor's address as the Envoy Gateway sets it (X-Original-Forwarded-For, which the gateway overwrites and nginx and Varnish pass on; nginx's X-Real-IP only without the gateway, as behind it that is the gateway pod; REMOTE_ADDR locally), not on CF-Connecting-IP or X-Forwarded-For as sent by the client. CF-Connecting-IP is read directly only with the Django setting ORIGIN_LOCKED_TO_CLOUDFLARE = True (off by default). A beacon within its own limit also counts against a cap for everyone together (600 a minute). Tests: reader/tests/reader_errors_rate_limit_test.py.",
     ],
 )
 

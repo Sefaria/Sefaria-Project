@@ -111,7 +111,9 @@ def literal_block(manifest, key):
 
 
 def render(args, work):
-    out = subprocess.run(["helm", "template", "t", CHART, "--set", f"deployEnv={ENV}", "--show-only", "templates/configmap/nginx.yaml", *args],
+    out = subprocess.run(["helm", "template", "t", CHART, "--set", f"deployEnv={ENV}", "--show-only", "templates/configmap/nginx.yaml",
+                          # optin/reader refuse the default mutable reader image tag (sefaria.readerImage); this check is about nginx
+                          "--set", "reader.allowMutableImage=true", *args],
                          check=True, capture_output=True, text=True).stdout
     conf = literal_block(out, "nginx.template.conf")
     subst = {"ENV_NAME": ENV, "VARNISH_HOST": "127.0.0.1", "SEARCH_HOST": "127.0.0.1", "RELEASE_TAG": "1",
