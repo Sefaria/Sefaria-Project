@@ -190,15 +190,17 @@ def mask(value):
 
 
 def read_password(preamble=None):
+    """The shared password from the preamble (cauldron pods) or the file; every source gets the same strip and length check."""
     if preamble:
-        return preamble
-    path = os.environ.get("APIKEYS_E2E_PASSWORD_FILE")
-    if not path:
-        raise SystemExit("Set APIKEYS_E2E_PASSWORD_FILE to a file holding the shared password.")
-    try:
-        password = Path(path).read_text().strip()
-    except OSError as error:
-        raise SystemExit(f"Cannot read the password file named by APIKEYS_E2E_PASSWORD_FILE ({error}).")
+        password = preamble.strip()
+    else:
+        path = os.environ.get("APIKEYS_E2E_PASSWORD_FILE")
+        if not path:
+            raise SystemExit("Set APIKEYS_E2E_PASSWORD_FILE to a file holding the shared password.")
+        try:
+            password = Path(path).read_text().strip()
+        except OSError as error:
+            raise SystemExit(f"Cannot read the password file named by APIKEYS_E2E_PASSWORD_FILE ({error}).")
     if len(password) < 12:
         raise SystemExit("The e2e password must be at least 12 characters.")
     return password
@@ -658,28 +660,22 @@ def purge_profiles(ids, base=None):
 
 
 def leftovers(include_sentinel=False, base=None):
+    """What a teardown with the same arguments would delete and has not: the same selection, so 0 means it is gone."""
     from django.contrib.auth.models import User
-    from django.db.models import Q
 
-    from powered_by.models import ApiKey, Project
+    from powered_by import developer
+    from powered_by.models import ApiKey
 
-    base = ID_BASE if base is None else base
-    in_band = Q(id__gte=base + 1, id__lte=base + 999)
-    owned = Q(api_projects__owner_id__gte=base + 1, api_projects__owner_id__lte=base + 999)
-    mongo_band = {"$gte": base + 1, "$lte": base + 999}
-    if not include_sentinel:
-        sentinel_id = account_id(SENTINEL[0], base)
-        in_band &= ~Q(id=sentinel_id)
-        owned &= ~Q(api_projects__owner_id=sentinel_id)
-        mongo_band["$ne"] = sentinel_id
-    projects = Project.objects.filter(Q(notes__regex=MARKER_RE.pattern) | owned).distinct()
+    ids = fixture_ids(include_sentinel, base)
+    projects = _fixture_projects(include_sentinel, base)
     db = _legacy_db()
     return {
-        "users": User.objects.filter(in_band).count(),
+        "users": User.objects.filter(id__in=ids).count(),
         "projects": projects.count(),
         "keys": ApiKey.objects.filter(project__profile__in=projects).count(),
-        "profiles": db.profiles.count_documents({"id": mongo_band}),
-        "legacyKeys": db.apikeys.count_documents({"uid": mongo_band}),
+        "profiles": db.profiles.count_documents({"id": {"$in": ids}}),
+        "legacyKeys": db.apikeys.count_documents({"uid": {"$in": ids}}),
+        "throttle": db[developer.THROTTLE_COLLECTION].count_documents({"uid": {"$in": ids}}),
     }
 
 
