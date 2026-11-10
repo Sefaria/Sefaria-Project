@@ -437,19 +437,35 @@ export function TextColumn(props: TextColumnProps) {
   );
 }
 
-/** How long a selection made without a mouse (keyboard, touch handles) must rest before it counts. */
+/** How long a selection made by keyboard must rest before it counts. */
 export const SELECTION_SETTLE_MS = 300;
+/** The same for touch or a pen: longer, as a reader pauses while dragging a handle. */
+export const TOUCH_SELECTION_SETTLE_MS = 700;
+/** How long after a selecting key a selection change is the reader's. */
+const KEY_GESTURE_MS = 1000;
+/** How long after a touch or pen goes down a selection change is the reader's (a long press, then the handles). */
+const TOUCH_GESTURE_MS = 10_000;
+
+/** Keys that extend a selection: Shift with an arrow, Page Up/Down or Home/End. */
+function selectsByKey(e: KeyboardEvent): boolean {
+  return e.shiftKey && /^(Arrow(Up|Down|Left|Right)|Page(Up|Down)|Home|End)$/.test(e.key);
+}
 
 /**
  * Report text selected inside `root()`: the words and the segments they touch (the old handleTextSelection, which listened to mouseup
- * only). A mouse selection is reported on mouseup; one made by keyboard or touch, when `selectionchange` has been quiet for
- * `settleMs`. While a mouse button is down the changes of a drag are not reported; a selection already reported (by either path) is
- * not reported again, and a selection outside the column is never reported. Returns the cleanup.
+ * only). A mouse selection is reported on mouseup. One made by keyboard (Shift+arrows) or touch (a long press and its handles) ends in
+ * no mouseup: it is reported when `selectionchange` has been quiet for a while, but only soon after such a gesture, so a selection
+ * made by script or by the browser (find in page moves it to each match, Chrome sets it when the find bar closes) changes nothing.
+ * While a mouse button is down the changes of a drag are not reported; a selection already reported (by either path) is not reported
+ * again, and a selection outside the column is never reported. Returns the cleanup.
  */
-export function listenForSelections(root: () => Element | null, report: (words: string, refs: string[]) => void, settleMs = SELECTION_SETTLE_MS, doc: Document = document): () => void {
+export function listenForSelections(root: () => Element | null, report: (words: string, refs: string[]) => void, doc: Document = document): () => void {
   let last = "";
   let mouseDown = false;
+  let keyAt = -Infinity;
+  let touchAt = -Infinity;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  const now = () => performance.now();
   const check = () => {
     timer = undefined;
     const sel = doc.getSelection();
@@ -469,28 +485,58 @@ export function listenForSelections(root: () => Element | null, report: (words: 
     report(words, refs);
   };
   const onDown = (e: PointerEvent) => {
+    if (e.pointerType === "touch" || e.pointerType === "pen") {
+      touchAt = now();
+      return;
+    }
     if (e.pointerType !== "mouse" || e.button !== 0) return;
     mouseDown = true;
     clearTimeout(timer);
   };
   const onUp = (e: MouseEvent) => {
-    if (e.button !== 0 || !mouseDown) return;
+    // (pointerup, which comes first, has already released the button: see `release`)
+    if (e.button !== 0) return;
     mouseDown = false;
     clearTimeout(timer);
     check();
   };
+  // a mouseup that never comes (Ctrl+click's context menu on a Mac, the button released outside the window) must not leave the
+  // listener deaf
+  const release = () => void (mouseDown = false);
+  const onKey = (e: KeyboardEvent) => {
+    if (selectsByKey(e)) keyAt = now();
+  };
   const onChange = () => {
     if (mouseDown) return;
+    const t = now();
+    const byKey = t - keyAt < KEY_GESTURE_MS;
+    const byTouch = t - touchAt < TOUCH_GESTURE_MS;
     clearTimeout(timer);
-    timer = setTimeout(check, settleMs);
+    if (!byKey && !byTouch) {
+      // not the reader's doing; a collapse still forgets what was reported, so the same text selected again counts
+      if (doc.getSelection()?.isCollapsed) last = "";
+      return;
+    }
+    timer = setTimeout(check, byKey ? SELECTION_SETTLE_MS : TOUCH_SELECTION_SETTLE_MS);
   };
+  const view = doc.defaultView;
   doc.addEventListener("pointerdown", onDown, true);
   doc.addEventListener("mouseup", onUp, true);
+  doc.addEventListener("pointerup", release, true);
+  doc.addEventListener("pointercancel", release, true);
+  doc.addEventListener("contextmenu", release, true);
+  view?.addEventListener("blur", release);
+  doc.addEventListener("keydown", onKey, true);
   doc.addEventListener("selectionchange", onChange);
   return () => {
     clearTimeout(timer);
     doc.removeEventListener("pointerdown", onDown, true);
     doc.removeEventListener("mouseup", onUp, true);
+    doc.removeEventListener("pointerup", release, true);
+    doc.removeEventListener("pointercancel", release, true);
+    doc.removeEventListener("contextmenu", release, true);
+    view?.removeEventListener("blur", release);
+    doc.removeEventListener("keydown", onKey, true);
     doc.removeEventListener("selectionchange", onChange);
   };
 }
