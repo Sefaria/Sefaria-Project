@@ -1,9 +1,8 @@
 import { spawnSync } from 'child_process';
-import os from 'os';
 import path from 'path';
 import { Browser, BrowserContext, Page } from '@playwright/test';
 import { AccountSession, Target, expect, pageFetch } from '../fixtures';
-import { REPO_ROOT, baseURLFor, findAccount, loadManifest, readPassword } from '../env';
+import { REPO_ROOT, baseURLFor, findAccount, loadManifest, readPassword, stackPython } from '../env';
 import { InterfaceLang, logIn, prepareContext } from '../session';
 import { t } from '../../globals';
 
@@ -22,7 +21,7 @@ export type SavedSettings = {
 
 /** Runs account_fixtures.py with the local stack's Django settings and returns its JSON line. */
 export function accountFixture<T = any>(...args: string[]): T {
-  const python = process.env.APIKEYS_STACK_PYTHON || path.join(os.homedir(), '.pyenv/versions/senv/bin/python');
+  const python = stackPython();
   const env = { ...process.env, PYTHONPATH: path.join(REPO_ROOT, 'auth-service/dev/local-stack'), DJANGO_SETTINGS_MODULE: 'django_settings' };
   delete env.FRONT_END_URL;
   delete env.CI_RUN;

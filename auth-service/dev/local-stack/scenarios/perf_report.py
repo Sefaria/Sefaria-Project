@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Helpers for the perf scenario scripts (perf-latency.sh, perf-revoke.sh, perf-replicas.sh). Each subcommand prints
+Helpers for the perf scenario scripts (perf-revoke.sh). Each subcommand prints
 result lines "pass <text>", "fail <text>" or "info <text>" that the script hands to lib.sh's pass/fail/info, or a
 single value.
 
@@ -101,7 +101,7 @@ def latency(res):
     base50, base99 = env_f("CLUSTER_ADDED_P50_MS", 1.30), env_f("CLUSTER_ADDED_P99_MS", 3.02)
     budget = env_f("LOCAL_ADDED_P99_BUDGET_MS", 25)
     timeout = env_f("AUTHZ_TIMEOUT_MS", 200)
-    say("info", "PERF-L local numbers on one host; they do not replace the perf-cauldron run (release plan D6)")
+    say("info", "PERF-L local numbers on one host; they do not replace a run on a cluster (release plan D6)")
     for mode, run in sorted(res.get("modes", {}).items()):
         arms = run.get("arms", {}).get("arms", {})
         for arm, v in arms.items():
@@ -211,7 +211,7 @@ def revoke(res):
     keys = res.get("keys_in_registry")
     say(
         "info",
-        "PERF-R local numbers; the cluster figure comes from the perf-cauldron run (registry at %s keys here)" % keys,
+        "PERF-R local numbers; the cluster figure comes from a run on a cluster (registry at %s keys here)" % keys,
     )
     n = res.get("notify")
     if not n:

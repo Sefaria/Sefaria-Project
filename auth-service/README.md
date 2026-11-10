@@ -20,25 +20,31 @@ In:
 - Helm (`helm-chart/sefaria/templates/authservice/*`, `templates/gateway/securitypolicy.yaml`):
   Deployment, Services, PDB, ServiceMonitor, and a SecurityPolicy with `extAuth` only (no `jwt`),
   all behind `authService.enabled` (default `false`). When enabled, the gateway's ClientTrafficPolicy
-  strips client-sent `x-sefaria-tier`, `x-sefaria-project` and `x-sefaria-auth-result` at the listener,
+  strips client-sent `x-sefaria-tier`, `x-sefaria-project`, `x-sefaria-auth-result`, `x-sefaria-meter` and
+  `x-sefaria-key-status` at the listener,
   so a fail-open pass cannot carry spoofed identity upstream. Enabling requires
   `authService.image.tag` (an immutable `sha-...` tag pushed by the Continuous workflow).
 
-Out (later phases): first-party JWT minting and verification, rate limiting
-(BackendTrafficPolicy), the legacy body-borne `apikey`, the HTTP ext_authz transport, Redis/HTTP
-push, the HTTPRoute and nginx log-field changes, load tests and drill scripts. A bearer token is
-not verified in Phase 1: it rides the anonymous tier with `x-sefaria-auth-result: jwt_pending`.
+What ships in Phase 1 besides the service:
 
-Later phases are specified in the Sefaria wiki page
-`wiki/meta/spec-2026-09-30-api-auth-phase1-and-later.md`. The full POC implementation, including
-everything listed as out, is in PR #3736.
+- Helm: the gateway templates under `templates/gateway/` (the ClientTrafficPolicy header strip, and the
+  BackendTrafficPolicy rate limit, which renders only when `authService.rateLimit.enabled` is set and is off by
+  default), and the nginx log fields.
+- `dev/local-stack/`: a local stack of Envoy, nginx, Django and this service, with its smoke script, the scenario
+  drills and the revoke timing drill (`scenarios/perf-revoke.sh`).
+
+Out (later phases): first-party JWT minting and verification, the legacy body-borne `apikey`, the HTTP ext_authz
+transport, Redis/HTTP push, and the HTTPRoute changes. A bearer token is not verified in Phase 1: it rides the
+anonymous tier with `x-sefaria-auth-result: jwt_pending`.
+
+Later phases are specified in the Sefaria wiki page `wiki/meta/spec-2026-09-30-api-auth-phase1-and-later.md`.
 
 ## Configuration
 
 Env vars (cmd/authsvc): HTTP_ADDR=:8080 GRPC_ADDR=:9090 AUTH_MODE=enforce|observe
-GATED_PATHS=/api/knn-search PG_DSN PG_NOTIFY_CHANNEL=sefaria_apikeys RELOAD_INTERVAL=60s
-HELP_URL=https://developers.sefaria.org/#. An empty PG_NOTIFY_CHANNEL disables the listener and
-leaves only the periodic reload.
+GATED_PATHS=/api/knn-search METERED_PATHS PG_DSN PG_NOTIFY_CHANNEL=sefaria_apikeys RELOAD_INTERVAL=60s
+SHUTDOWN_DRAIN=5s HELP_URL=https://developers.sefaria.org/#. An empty PG_NOTIFY_CHANNEL disables the listener and
+leaves only the periodic reload. The chart sets METERED_PATHS and SHUTDOWN_DRAIN from its values.
 
 PG_DSN comes from the cluster Secret `auth-service-registry` (key `AUTH_PG_DSN`): a read-only role
 on `sefaria_auth` that can connect, LISTEN, and SELECT the columns the loader reads.
@@ -49,5 +55,5 @@ Sefaria wiki page `projects/api-key-program/tooling`. A new column in the load q
 
 `make test` (Go vet and race tests; the Postgres tests run when `PG_TEST_DSN` is set, as they do in
 the Continuous workflow's auth-service job),
-`make helm-matrix`. The local stack, the demo script, the drills and the end-to-end suites are in the Sefaria wiki page
-`projects/api-key-program/tooling`.
+`make helm-matrix`. The local stack and its drills are in `dev/local-stack/`; the end-to-end suites are in
+`e2e-tests/api-keys/`. The Sefaria wiki page `projects/api-key-program/tooling` covers the cluster steps.

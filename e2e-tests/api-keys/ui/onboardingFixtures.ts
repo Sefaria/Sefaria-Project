@@ -1,10 +1,9 @@
 import { execFile } from 'child_process';
 import fs from 'fs';
-import os from 'os';
 import { promisify } from 'util';
 import path from 'path';
 import { Browser, BrowserContext, Page, Response, expect } from '@playwright/test';
-import { REPO_ROOT, TargetName, authFile, baseURLFor } from '../env';
+import { REPO_ROOT, TargetName, authFile, baseURLFor, stackPython } from '../env';
 import { prepareContext } from '../session';
 import type { AccountSession } from '../fixtures';
 import { latestConfirmationLink, linkPath } from '../mail';
@@ -31,7 +30,7 @@ export type AccountFacts = {
   sends: number;
 };
 
-const PYTHON = process.env.APIKEYS_STACK_PYTHON || path.join(os.homedir(), '.pyenv', 'versions', 'senv', 'bin', 'python');
+const PYTHON = stackPython();
 const SCRIPT = path.join(__dirname, 'onboarding_fixtures.py');
 
 async function runFixture(args: string[]): Promise<any> {

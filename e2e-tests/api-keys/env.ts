@@ -12,6 +12,13 @@ import path from 'path';
 export type TargetName = 'local' | 'cauldron';
 
 export const REPO_ROOT = path.resolve(__dirname, '..', '..');
+
+/** The Python for the fixture scripts: APIKEYS_STACK_PYTHON, else the checkout's .venv, else python3 (as run-release-checks.sh). */
+export function stackPython(): string {
+  if (process.env.APIKEYS_STACK_PYTHON) return process.env.APIKEYS_STACK_PYTHON;
+  const venv = path.join(REPO_ROOT, '.venv', 'bin', 'python');
+  return fs.existsSync(venv) ? venv : 'python3';
+}
 export const SUITE_DIR = __dirname;
 /** Logged-in storage states. APIKEYS_AUTH_DIR gives a run its own directory, so runs against different targets never share one. */
 export const AUTH_DIR = process.env.APIKEYS_AUTH_DIR

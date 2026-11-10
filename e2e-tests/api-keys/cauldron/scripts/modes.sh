@@ -68,7 +68,7 @@ PY
 
 seeded_guard() {
   [ "${APIKEYS_ALLOW_SEEDING:-}" = "$CAULDRON" ] \
-    || die "seeded mode writes fixture rows to the shared sefaria_auth registry: it needs the cauldron owner's go-ahead (SAFETY.md, Yotam on apisplit), given as APIKEYS_ALLOW_SEEDING=$CAULDRON"
+    || die "seeded mode writes fixture rows to the shared sefaria_auth registry: it needs the cauldron owner's go-ahead (SAFETY.md, the cauldron owner on apisplit), given as APIKEYS_ALLOW_SEEDING=$CAULDRON"
   [[ $SHARED_CAULDRONS != *" $CAULDRON "* ]] || die "$CAULDRON is a shared cauldron; seeding it is never allowed"
   [ -f "${APIKEYS_E2E_PASSWORD_FILE:-}" ] || die "APIKEYS_E2E_PASSWORD_FILE must name the fixture password file"
 }

@@ -81,9 +81,8 @@ Rendering needs the `alpine/helm:3.16.4` image; everything runs in Docker except
   both Django servers to the bridge gateway address (172.17.0.1 by default: reachable from this host and its
   containers, not from the network) and maps `host.docker.internal` to it in the nginx and Envoy containers. Override
   with `APIKEYS_STACK_DJANGO_BIND`. The health checks call that address, which `django_settings.py` allows as a Host.
-- **Python.** `APIKEYS_STACK_PYTHON`, else the checkout's `.venv/bin/python`, else `~/.pyenv/versions/senv/bin/python`.
-  The choice is exported, so the Playwright fixtures use the same interpreter.
+- **Python.** `APIKEYS_STACK_PYTHON`, else the checkout's `.venv/bin/python`, else `python3` on the PATH. `lib.sh`
+  exports the choice, and the Playwright fixtures (`stackPython()` in `e2e-tests/api-keys/env.ts`) use the same order.
 - **psql.** The drills fall back to the `postgres:18` image's client on the host network when the host has none.
 - **Mongo.** Pages need the Sefaria text data in the Mongo that `sefaria/local_settings.py` names; an empty `sefaria`
   database starts Django but S1 and the page checks fail.
-- Temporary worktrees for the D-series, N-M9 and N-M14 go under `$TMPDIR` (or `/tmp`), `APIKEYS_D11_TMP` to override.
