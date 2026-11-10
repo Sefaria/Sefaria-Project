@@ -7,6 +7,7 @@ import { topicsOwner } from "./server/topics-owner";
 import { domainLang, domainModulesFromEnv } from "./server/language-domain";
 import { siteRoute, type RoutingDeps } from "./server/site-routing";
 import { passThrough, passThroughEnabled, requestHost, upstreamUnavailable } from "./server/pass-through";
+import { beginRequestLog } from "~/lib/monitoring/server-log";
 
 // A misconfigured server fails at start, loudly, instead of answering every request with a broken page (CODE_REVIEW R-35)
 if (typeof window === "undefined" && typeof process !== "undefined") {
@@ -48,6 +49,23 @@ const upstreamStatus = createMiddleware({ type: "request" }).server(async ({ req
   return upstreamUnavailable(request);
 });
 
+/**
+ * One structured log line per request, with its X-Request-Id answered (src/lib/monitoring/server-log.ts, LAUNCH_PLAN T-D02): the
+ * outermost middleware, so it records the status the reader actually got. The cluster's health probes are not logged (one every few
+ * seconds per pod, nothing to learn from them).
+ */
+const requestLog = createMiddleware({ type: "request" }).server(async ({ request, pathname, next }) => {
+  if (pathname.startsWith("/healthz")) return next();
+  const log = beginRequestLog(request);
+  try {
+    const result = await next();
+    return log.finish(result.response);
+  } catch (err) {
+    log.finish(new Response(null, { status: 500 }));
+    throw err;
+  }
+});
+
 /** Every page's cache headers (src/server/cache-policy.ts). */
 const cachePolicy = createMiddleware({ type: "request" }).server(async ({ request, next }) => {
   const result = await next();
@@ -58,4 +76,4 @@ const cachePolicy = createMiddleware({ type: "request" }).server(async ({ reques
   return headers === res.headers ? result : new Response(res.body, { status: res.status, statusText: res.statusText, headers });
 });
 
-export const startInstance = createStart(() => ({ requestMiddleware: [cachePolicy, upstreamStatus, siteRouting] }));
+export const startInstance = createStart(() => ({ requestMiddleware: [requestLog, cachePolicy, upstreamStatus, siteRouting] }));

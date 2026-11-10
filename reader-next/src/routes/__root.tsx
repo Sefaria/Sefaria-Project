@@ -262,7 +262,10 @@ function Shell() {
 const simpleAnalytics = simpleAnalyticsScript(PUBLIC_CONFIG.analytics);
 
 function RootDocument({ children, lang, dir, standalone }: Readonly<{ children: ReactNode; lang: string; dir?: string; standalone?: boolean }>) {
-  const viewer = Route.useLoaderData()?.viewer;
+  // On the forced 404 the root loader does not run; the viewer beforeLoad put in the query cache is the same answer (signed-in
+  // readers were reported as signed out on 404 pages)
+  const cachedViewer = useViewer();
+  const viewer = Route.useLoaderData()?.viewer ?? cachedViewer;
   const { interfaceLang, diaspora } = useRootPrefs();
   const saMetadata = saMetadataScript(PUBLIC_CONFIG.analytics, { loggedIn: !!viewer, staff: !!viewer?.email?.includes("sefaria.org") });
   // The runtime config (before any module runs: src/lib/config.ts), then the analytics vendors, each only when configured. Plain

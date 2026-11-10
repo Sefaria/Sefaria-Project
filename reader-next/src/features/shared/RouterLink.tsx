@@ -1,6 +1,23 @@
 import { Link as TanstackLink, useNavigate } from "@tanstack/react-router";
-import { forwardRef } from "react";
+import { forwardRef, type MouseEvent } from "react";
+import { PUBLIC_CONFIG } from "~/lib/config";
+import { browserHost, leavesClient } from "~/lib/routing/django-paths";
 import type { LinkProps } from "~/lib/ui-link";
+
+/**
+ * Must a plain click on this internal href load the page from the server rather than navigate in the app? When the path is one this
+ * client does not serve on the current host: Django's pages, and on the Voices host the Library-only pages (/topics…), which Django
+ * answers there. Decided at click time, so the server-rendered markup is the same on every host (no hydration mismatch).
+ */
+export function fullLoadOnClick(href: string, onClick?: (e: MouseEvent<HTMLAnchorElement>) => void) {
+  return (e: MouseEvent<HTMLAnchorElement>) => {
+    onClick?.(e);
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (!leavesClient(new URL(href, "http://x").pathname, browserHost(), PUBLIC_CONFIG.voicesOrigin)) return;
+    e.preventDefault();
+    window.location.assign(href);
+  };
+}
 
 const isExternal = (href: string) => /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(href) || href.startsWith("mailto:");
 
@@ -28,8 +45,9 @@ export const RouterLink = forwardRef<HTMLAnchorElement, LinkProps>(function Rout
     );
   }
   const loc = toRouterLocation(href);
+  const { onClick, ...others } = rest;
   return (
-    <TanstackLink ref={ref} to={loc.to as never} search={loc.search as never} preload="intent" {...(rest as object)}>
+    <TanstackLink ref={ref} to={loc.to as never} search={loc.search as never} preload="intent" {...(others as object)} onClick={fullLoadOnClick(href, onClick)}>
       {children}
     </TanstackLink>
   );
