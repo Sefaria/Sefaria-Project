@@ -103,9 +103,8 @@ export async function startKeyInUi(dev: DeveloperSettingsPage, card: Locator, la
   const respondedAt = Date.now();
   expect(response.status(), `create key ${label}`).toBe(200);
   const body = await response.json();
-  const project = body.projects.find((p: any) => p.keys.some((k: any) => k.id === body.keyId));
-  const key = project.keys.find((k: any) => k.id === body.keyId);
-  return { id: String(body.keyId), value: key.value, label, respondedAt, response };
+  // The creation answer is the one state response that carries the value; the keys in the state have a prefix only.
+  return { id: String(body.keyId), value: body.keyValue, label, respondedAt, response };
 }
 
 export function readyMessage(card: Locator): Locator {

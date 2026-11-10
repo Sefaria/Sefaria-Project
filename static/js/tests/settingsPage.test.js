@@ -424,7 +424,7 @@ describe('saving a project', () => {
             aiAssisted: false,
             linkedListing: false,
             consentWithdrawnAt: null,
-            keys: [{ id: 'k1', label: 'Site key', value: 'sfr_test_x', created: null, restrictToWebsite: false }],
+            keys: [{ id: 'k1', label: 'Site key', prefix: 'sfr_test_x', created: null, restrictToWebsite: false }],
           },
         ],
       },
@@ -527,7 +527,7 @@ describe('removing the website', () => {
       container.querySelector('[data-agent-action="save-project"]').click();
     });
   };
-  const restricted = { id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: true };
+  const restricted = { id: 'k1', label: 'Production', prefix: 'sfr_test_x', created: null, restrictToWebsite: true };
 
   it('is refused while a key is restricted to it, before anything is sent', () => {
     clearWebsite([restricted]);
@@ -545,7 +545,7 @@ describe('removing the website', () => {
 describe('deleting a project', () => {
   const withKey = (extra) =>
     publicProject({
-      keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: false }],
+      keys: [{ id: 'k1', label: 'Production', prefix: 'sfr_test_x', created: null, restrictToWebsite: false }],
       ...extra,
     });
   const deleteFromEditor = (projects) => {
@@ -585,7 +585,7 @@ describe('key cards', () => {
         {
           id: 'k1',
           label: 'Production',
-          value: 'sfr_test_x',
+          prefix: 'sfr_test_x',
           created: '2026-09-01T00:00:00Z',
           restrictToWebsite: false,
         },
@@ -609,8 +609,8 @@ describe('key cards', () => {
   it('give each control a spoken name that starts with its visible text and names the key', () => {
     const twoKeys = publicProject({
       keys: [
-        { id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: false },
-        { id: 'k2', label: 'Staging', value: 'sfr_test_y', created: null, restrictToWebsite: false },
+        { id: 'k1', label: 'Production', prefix: 'sfr_test_x', created: null, restrictToWebsite: false },
+        { id: 'k2', label: 'Staging', prefix: 'sfr_test_y', created: null, restrictToWebsite: false },
       ],
     });
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [twoKeys] }, { projectId: 'proj01' });
@@ -646,7 +646,7 @@ describe('keys', () => {
   const projectWithKey = () =>
     publicProject({
       keys: [
-        { id: 'k1', label: 'Production', value: 'sfr_x', created: '2026-09-01T00:00:00Z', restrictToWebsite: false },
+        { id: 'k1', label: 'Production', prefix: 'sfr_x', created: '2026-09-01T00:00:00Z', restrictToWebsite: false },
       ],
     });
   const mountProject = (project) =>
@@ -745,7 +745,7 @@ describe('keys', () => {
 describe('dialog keyboard behaviour', () => {
   const projectWithKey = () =>
     publicProject({
-      keys: [{ id: 'k1', label: 'Production', value: 'sfr_x', created: null, restrictToWebsite: false }],
+      keys: [{ id: 'k1', label: 'Production', prefix: 'sfr_x', created: null, restrictToWebsite: false }],
     });
   const openDeleteKey = () => {
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] }, { projectId: 'proj01' });
@@ -1132,7 +1132,7 @@ describe('after the account email changes', () => {
           {
             id: 'k1',
             label: 'Production',
-            value: 'sfr_test_x',
+            prefix: 'sfr_test_x',
             created: '2026-09-01T00:00:00Z',
             restrictToWebsite: false,
           },
@@ -1236,13 +1236,16 @@ describe('developer settings after the session changes', () => {
     ...DEVELOPER_ON,
     profile: PROFILE,
     projects: [
-      publicProject({ keys: [{ id: 'k1', label: 'Site key', value: KEY, created: null, restrictToWebsite: false }] }),
+      publicProject({
+        keys: [{ id: 'k1', label: 'Site key', prefix: KEY.slice(0, 10), created: null, restrictToWebsite: false }],
+      }),
     ],
   });
-  const reveal = () => {
-    act(() => {
-      developerPanel().querySelector('[data-agent-action="show-key"]').click();
-    });
+  const reveal = async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ value: KEY }) })
+    );
+    await clickAndSettle(developerPanel().querySelector('[data-agent-action="show-key"]'));
     expect(container.textContent).toContain(KEY);
   };
   const remount = () => {
@@ -1262,9 +1265,9 @@ describe('developer settings after the session changes', () => {
       await flush();
     });
   };
-  const mountWithRevealedKey = () => {
+  const mountWithRevealedKey = async () => {
     mount('developer', withKey(), { projectId: 'proj01' });
-    reveal();
+    await reveal();
   };
   const answerAs = (status, body) => {
     global.fetch = jest.fn(() => Promise.resolve({ ok: status === 200, status, json: () => Promise.resolve(body) }));
@@ -1283,8 +1286,8 @@ describe('developer settings after the session changes', () => {
     window.location = originalLocation;
   });
 
-  it('removes the keys from the page when it leaves for the back/forward cache', () => {
-    mountWithRevealedKey();
+  it('removes the keys from the page when it leaves for the back/forward cache', async () => {
+    await mountWithRevealedKey();
     act(() => {
       const event = new Event('pagehide');
       event.persisted = true;
@@ -1295,7 +1298,7 @@ describe('developer settings after the session changes', () => {
   });
 
   it('on a restored page after logout shows no key, clears the cache and goes to log in', async () => {
-    mountWithRevealedKey();
+    await mountWithRevealedKey();
     answerAs(401, { error: 'Log in to use developer settings.' });
     await persistedPageshow();
     expect(container.textContent).not.toContain(KEY);
@@ -1309,7 +1312,7 @@ describe('developer settings after the session changes', () => {
   });
 
   it('treats a 403 the same as a 401', async () => {
-    mountWithRevealedKey();
+    await mountWithRevealedKey();
     answerAs(403, { error: 'Forbidden' });
     await persistedPageshow();
     expect(container.textContent).not.toContain(KEY);
@@ -1317,13 +1320,13 @@ describe('developer settings after the session changes', () => {
   });
 
   it('on a restored page with a live session renders the fresh state from the server', async () => {
-    mountWithRevealedKey();
+    await mountWithRevealedKey();
     answerAs(200, {
       ...withKey(),
       projects: [
         publicProject({
           name: 'Fresh Name',
-          keys: [{ id: 'k9', label: 'New', value: 'sfr_live_NEWKEY', created: null, restrictToWebsite: false }],
+          keys: [{ id: 'k9', label: 'New', prefix: 'sfr_live_N', created: null, restrictToWebsite: false }],
         }),
       ],
     });
@@ -1335,7 +1338,7 @@ describe('developer settings after the session changes', () => {
   });
 
   it('shows no keys from a remount while the session check is pending, or when it fails', async () => {
-    mountWithRevealedKey();
+    await mountWithRevealedKey();
     answerAs(500, { error: 'boom' });
     await act(async () => {
       remount();
@@ -1348,7 +1351,7 @@ describe('developer settings after the session changes', () => {
   });
 
   it('ignores a pageshow that is not from the cache', async () => {
-    mountWithRevealedKey();
+    await mountWithRevealedKey();
     global.fetch = jest.fn();
     await act(async () => {
       window.dispatchEvent(new Event('pageshow'));

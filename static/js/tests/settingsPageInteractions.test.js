@@ -65,7 +65,7 @@ const project = (extra = {}) => ({
 const key = (n, extra = {}) => ({
   id: 'k' + n,
   label: 'Key ' + n,
-  value: 'sfr_test_' + n,
+  prefix: 'sfr_test_' + n,
   created: null,
   restrictToWebsite: false,
   ...extra,

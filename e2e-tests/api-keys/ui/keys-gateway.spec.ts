@@ -35,8 +35,7 @@ test.describe('keys x gateway', () => {
           const label = `A9a-${String(batch * 4 + i).padStart(2, '0')}`;
           const made = await pageFetch(page, `/api/developer/projects/${projectId}/keys`, { method: 'POST', body: { label } });
           expect(made.status, `create ${label}`).toBe(200);
-          const project = made.json.projects.find((p: any) => p.id === projectId);
-          values.set(label, project.keys.find((k: any) => k.id === made.json.keyId).value);
+          values.set(label, made.json.keyValue);
         }
         await page.reload({ waitUntil: 'domcontentloaded' });
         await dev.expandProject(name);

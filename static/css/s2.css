@@ -17506,22 +17506,10 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocKeyHeading strong { font-size: 15px; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
 .devPocKeyValue { display: flex; align-items: center; gap: var(--devPoc-s1); margin-bottom: var(--devPoc-s2); min-width: 0; }
 .devPocKeyValue code { flex: 1; min-width: 0; }
-.devPocIconButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid var(--devPoc-line);
-  border-radius: 5px;
-  background: #fff;
-  color: var(--devPoc-muted);
-  cursor: pointer;
-}
-.devPocIconButton:hover { border-color: var(--devPoc-blue); color: var(--devPoc-blue); }
-.devPocCopied { font-size: 12px; color: #2a6b45; min-width: 52px; }
+.devPocKeyValue .button { flex-shrink: 0; }
+.devPocCopied { display: inline-flex; align-items: center; gap: var(--devPoc-s1); font-size: 13px; color: #2a6b45; }
+.devPocCopied:empty { display: none; }
+.devPocKeyError { flex-basis: 100%; font-size: 13px; color: #a43632; }
 .devPocKeyMeta { display: flex; flex-wrap: wrap; gap: 2px var(--devPoc-s3); font-size: 12px; color: #626971; }
 .devPocKeyReady { margin-top: var(--devPoc-s1); font-size: 13px; color: #2a6b45; animation: devPocFade 4s ease-out forwards; }
 .devPocKey.devPocKeyNew { animation: devPocKeyPulse 4s ease-out forwards; }

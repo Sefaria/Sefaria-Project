@@ -258,13 +258,14 @@ test.describe('account settings: developer', () => {
 
     const baseline = await pageFetch(page, `/api/developer/projects/${project.id}/keys`, { method: 'POST', body: { label: 'N-C7 loaded with the page' } });
     expect(baseline.status, 'baseline key created').toBe(200);
-    const baselineKey = baseline.json.projects.find((p: any) => p.id === project.id).keys.find((k: any) => k.id === baseline.json.keyId);
+    const baselineKey = { id: baseline.json.keyId, value: baseline.json.keyValue };
 
     const dev = new DeveloperSettingsPage(page, 'english');
     await dev.goto();
     await dev.expandProject(project.name);
     const label = `N-C7 ${Date.now().toString(36)}`;
-    await dev.createKey(dev.projectCard(project.name), label);
+    const madeResponse = await dev.createKey(dev.projectCard(project.name), label);
+    const madeValue = (await madeResponse.json()).keyValue;
     const madeKey = (await developerState(page)).projects.find((p: any) => p.id === project.id).keys.find((k: any) => k.label === label);
     expect(!!madeKey, 'the key exists on the server').toBe(true);
 
@@ -281,7 +282,7 @@ test.describe('account settings: developer', () => {
       // After Back the page shows developer content only once the server has confirmed the session, so wait for it.
       await dev.keyRow(dev.projectCard(project.name), label).first().waitFor({ state: 'attached', timeout: t(15000) }).catch(() => {});
       const keyListed = await dev.keyRow(dev.projectCard(project.name), label).count();
-      const valueKept = [stateWhileAway, stateAfterBack].some(s => s.includes(madeKey.value) || s.includes(baselineKey.value));
+      const valueKept = [stateWhileAway, stateAfterBack].some(s => s.includes(madeValue) || s.includes(baselineKey.value));
       const anyValueKept = /sfr_[A-Za-z0-9]{8,}/.test(stateAfterBack);
       test.info().annotations.push({ type: 'evidence', description: `after Back: key row listed=${keyListed > 0}; new key value in history.state=${valueKept}; any sfr_ value in history.state=${anyValueKept}` });
 
