@@ -20,9 +20,9 @@ from django.utils import timezone
 
 from powered_by import developer
 from powered_by.models import ApiKey, ApiProject, ApiTier, Project, SubmissionSource
+from reader.conftest import create_test_user, page_props, purge_test_profiles
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
-from reader.conftest import create_test_user, page_props, purge_test_profiles
 
 PROFILE = {"developerName": "Tova Levi", "description": "Daily study tools.", "termsAccepted": True}
 PROJECT = {

@@ -9,7 +9,7 @@ confirmed; existing keys keep working, but no new project or key can be created.
 """
 
 import ipaddress
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from datetime import timezone as dt_timezone
 from urllib.parse import urlsplit
 
@@ -455,7 +455,7 @@ def _seconds(delta):
 
 def _aware(moment):
     """Mongo returns UTC datetimes without a zone."""
-    return moment if moment.tzinfo else moment.replace(tzinfo=dt_timezone.utc)
+    return moment if moment.tzinfo else moment.replace(tzinfo=UTC)
 
 
 def _ceil_to_millisecond(moment):
