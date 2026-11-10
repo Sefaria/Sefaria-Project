@@ -30,6 +30,12 @@ test.describe("the library (verified against sefaria.org)", () => {
     expect(r.headers().location).toMatch(/\/texts\/Tanakh\/Torah$/);
     await open(page, "/texts/Nope");
     await expect(page.getByRole("heading", { level: 1, name: "Browse the Library" })).toBeVisible();
+    // /texts/history (where Django's /texts/recent goes) is the library home with its own title, as on sefaria.org (not "history | …")
+    await open(page, "/texts/history");
+    await expect(page.getByRole("heading", { level: 1, name: "Browse the Library" })).toBeVisible();
+    await expect(page).toHaveTitle("Browse the Library | Sefaria Reader");
+    await open(page, "/texts/Tanakh");
+    await expect(page).toHaveTitle("Tanakh | Sefaria Reader");
   });
 });
 

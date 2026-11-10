@@ -36,6 +36,9 @@ export const tocItemsByCategories = (tree: readonly TocNode[], cats: readonly st
   cats.length ? (tocObjectByCategories(tree, cats)?.contents ?? []) : [...tree];
 
 /** Talmud alone is the Bavli; Tosefta alone is the Vilna edition (the page shows those with a toggle). */
+/** The title of the library's home (/texts, and any /texts/… path that names no category). */
+export const LIBRARY_HOME_TITLE = "Browse the Library | Sefaria Reader";
+
 export function withDefaultCorpus(cats: readonly string[]): string[] {
   if (cats.length === 1 && cats[0] === "Talmud") return ["Talmud", "Bavli"];
   if (cats.length === 1 && cats[0] === "Tosefta") return ["Tosefta", "Vilna Edition"];
