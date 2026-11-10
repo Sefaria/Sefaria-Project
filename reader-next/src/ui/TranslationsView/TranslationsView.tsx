@@ -164,6 +164,7 @@ export function TranslationsView({ languages, currentTitle, selectHref, onSelect
  * @feature VER-010
  */
 function TruncatedPreview({ dir, preview, children }: { dir: string; preview: (cut: boolean) => ReactNode; children?: ReactNode }) {
+  const more = useInterfaceLang() === "hebrew" ? "הצגת הקטע כולו" : "Show the whole passage";
   const box = useRef<HTMLDivElement>(null);
   const [whole, setWhole] = useState(false);
   const [overflows, setOverflows] = useState(false);
@@ -184,7 +185,7 @@ function TruncatedPreview({ dir, preview, children }: { dir: string; preview: (c
         {children}
       </div>
       {overflows && !whole ? (
-        <button type="button" className={styles.ellipsis} onClick={() => setWhole(true)} aria-label="Show the whole passage" title="Show the whole passage">
+        <button type="button" className={styles.ellipsis} onClick={() => setWhole(true)} aria-label={more} title={more}>
           …
         </button>
       ) : null}

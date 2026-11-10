@@ -52,3 +52,6 @@
 [data-layout="continuous"] .text :global(.image-in-text) { display: inline-flex; }
 /* A category mention (TXD-023) reads as text, as a citation does */
 .text a:global(.category-link):hover { text-decoration: underline; }
+
+/* Print (legacy s2-print.css .segment sup): footnote markers and itags are not printed */
+@media print { .text sup { display: none; } }

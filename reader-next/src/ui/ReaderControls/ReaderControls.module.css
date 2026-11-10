@@ -28,3 +28,6 @@
 :global([dir="rtl"]) .tooltip::before { left: auto; right: -50px; }
 /* No tooltip where nothing hovers (phones): a tap would leave it showing over the opened menu. */
 @media (hover: none) { .tooltip::before { display: none; } }
+
+/* Print (legacy s2-print.css .leftButtons, .rightButtons): the header's buttons are not printed */
+@media print { .close, .save, .options { display: none !important; } }

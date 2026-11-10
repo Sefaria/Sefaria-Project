@@ -22,3 +22,15 @@ test("the filters used in the sidebar show above the list, newest first; a recen
   await expect(set).toHaveText(/^Ramban\s*Rashi$/);
   await expect(set.locator('[aria-current="true"]')).toHaveText("Rashi");
 });
+
+// @feature CON-002 Phone header: Resources' title is centred (VERIFIED on sefaria.org 2026-11-10, Pixel 7: justify-content center on
+// Resources, flex-start elsewhere); at desktop width it starts the bar
+test("on a phone-width screen the Resources title is centred; on desktop it is not", async ({ page }) => {
+  await page.setViewportSize({ width: 412, height: 860 });
+  await open(page, "/Genesis.1.1?lang=bi&with=all");
+  const title = page.locator("aside h2").first();
+  await expect(title).toHaveText(/Resources/i, { timeout: 25_000 });
+  await expect(title).toHaveCSS("text-align", "center");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(title).not.toHaveCSS("text-align", "center");
+});

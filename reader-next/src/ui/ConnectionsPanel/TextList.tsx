@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import type { VocalizationMode } from "@vendor/sefaria-toolkit/text-transform/index";
 import { visibleSides } from "~/lib/reader/labels";
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { Icon } from "../Icon/Icon";
 import { LoadingState } from "../Feedback/Feedback";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
@@ -133,10 +134,11 @@ export function TextList({ recent, onRecent, title, categoryTitle, color, items,
       timers.forEach((t) => clearTimeout(t));
     };
   }, [items]);
+  const recentLabel = useInterfaceLang() === "hebrew" ? "מסננים אחרונים" : "Recent filters";
   return (
     <div>
       {recent && recent.length > 1 ? (
-        <nav className={styles.recent} aria-label="Recent filters" data-recent-filters="">
+        <nav className={styles.recent} aria-label={recentLabel} data-recent-filters="">
           {recent.map((r) =>
             r.current ? (
               <h3 key={r.key} className={styles.title} data-upper={r.category || undefined} style={{ ["--_color" as string]: r.color }} aria-current="true">

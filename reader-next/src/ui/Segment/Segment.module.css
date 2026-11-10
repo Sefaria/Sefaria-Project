@@ -64,7 +64,9 @@
 [data-bilayout="heLeft"] .dot, [data-bilayout="heRight"] .dot { visibility: hidden; }
 .dotInner { display: inline-block; width: var(--sefaria-link-dot-size); height: var(--sefaria-link-dot-size); border-radius: var(--sefaria-radius-round); background: var(--sefaria-color-text-muted); vertical-align: middle; }
 
-@media print { .number, .dot { display: none; } }
+/* Print (legacy s2-print.css, linked media=print on every reader page): segment numbers stay, at the top of their segment; the
+   connection dots do not. */
+@media print { .dot { display: none; } .number { top: 0; } }
 
 /* VERIFIED on sefaria.org (2026-10-06, desktop and phone UA): a translation shown ALONE is black and justified; beside the source it
    is #666 and left-aligned. */
