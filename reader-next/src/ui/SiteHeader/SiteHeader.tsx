@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { bothEvent, gtagEvent, useOnceFullyVisible } from "~/lib/analytics";
 import { DEVELOPERS, HELP, LIBRARY, VOICES, donateHref, interfaceHref } from "~/lib/shell/links";
 import { HeaderSearch, type HeaderSearchProps } from "./HeaderSearch";
@@ -6,6 +6,7 @@ import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { isAuthPath, nextFromPath, withNext } from "~/lib/auth/utils";
 import { Link } from "../Link/Link";
+import { leavesClient } from "~/lib/routing/django-paths";
 import { Popover } from "../Popover/Popover";
 import { ProfilePic } from "../ProfilePic/ProfilePic";
 import { HEADER_PAGE_ACTION_ID } from "./slots";
@@ -30,6 +31,19 @@ export interface HeaderViewer {
   imageUrl?: string;
   profileUrl?: string;
 }
+
+/**
+ * A header link to one of this client's pages (Texts, Topics) navigates in the app — except where that page is not this client's on
+ * this host (the Voices host keeps the Library-only pages on Django: leavesClient), where the browser loads it in full.
+ */
+export const leavesFrom = (href: string, here: string): boolean => leavesClient(new URL(href, here).pathname, new URL(here).host);
+const fullLoadWhereNotOurs = (e: ReactMouseEvent<HTMLAnchorElement>) => {
+  if (typeof window === "undefined" || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  const href = e.currentTarget.getAttribute("href") ?? "";
+  if (!leavesFrom(href, window.location.href)) return;
+  e.preventDefault();
+  window.location.assign(href);
+};
 
 /** Where Log Out goes (Sefaria.getLogoutUrl() in the Library module). */
 export const LOGOUT_HREF = "/logout?next=/texts";
@@ -166,8 +180,8 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
         <nav className={styles.nav} aria-label={t("Primary navigation", "ניווט ראשי")}>
           <A href="/" className={styles.logo}><img src={logo} alt={logoLabel} /><span className={styles.samech} role="img" aria-label={logoLabel} /></A>
           <div className={styles.links}>
-            <Link href="/texts" className={styles.link}><InterfaceText en="Texts" he="מקורות" /></Link>
-            <Link href="/topics" className={styles.link}><InterfaceText en="Topics" he="נושאים" /></Link>
+            <Link href="/texts" className={styles.link} onClick={fullLoadWhereNotOurs}><InterfaceText en="Texts" he="מקורות" /></Link>
+            <Link href="/topics" className={styles.link} onClick={fullLoadWhereNotOurs}><InterfaceText en="Topics" he="נושאים" /></Link>
             <A href={donateHref("Header")} className={styles.link} target="_blank"><InterfaceText en="Donate" he="תרומה" /></A>
           </div>
         </nav>
@@ -240,8 +254,8 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
         <div className={mn.searchLine}>
           <HeaderSearch mobile {...search} onSearch={(q) => { setMobileOpen(false); search.onSearch(q); }} onSmartSubmit={(q) => { setMobileOpen(false); search.onSmartSubmit(q); }} onChoose={(x) => { setMobileOpen(false); search.onChoose(x); }} />
         </div>
-        <Link href="/texts"><img src="/icons/book.svg" alt="" /><InterfaceText en="Texts" he="מקורות" /></Link>
-        <Link href="/topics"><img src="/icons/topic.svg" alt="" /><InterfaceText en="Topics" he="נושאים" /></Link>
+        <Link href="/texts" onClick={fullLoadWhereNotOurs}><img src="/icons/book.svg" alt="" /><InterfaceText en="Texts" he="מקורות" /></Link>
+        <Link href="/topics" onClick={fullLoadWhereNotOurs}><img src="/icons/topic.svg" alt="" /><InterfaceText en="Topics" he="נושאים" /></Link>
         <A href="/calendars"><img src="/icons/calendar.svg" alt="" /><InterfaceText en="Learning Schedules" he="לוח לימוד יומי" /></A>
         <A href={donateHref("MobileNavMenu")} className={mn.blue} target="_blank"><img src="/icons/heart.png" alt="" /><InterfaceText en="Donate" he="תרומה" /></A>
         <div className={mn.accountLinks}>

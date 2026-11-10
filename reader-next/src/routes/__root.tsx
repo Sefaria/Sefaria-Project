@@ -69,15 +69,16 @@ const pageDiaspora = () => (window as unknown as { __SEFARIA_REQUEST__?: { diasp
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   // Every navigation runs this: in the browser the cookies are right here (a server function was an HTTP round trip per navigation,
   // scroll-driven address updates included: CODE_REVIEW R-09)
-  // (neither this client nor Django has a page here: the server asks for the reader's own 404 page, src/lib/routing/not-found.ts)
-  beforeLoad: async (opts) => {
-    if (isForcedNotFound(opts)) throw notFound();
-    return typeof document === "undefined" ? getRequestPrefs() : prefsFromCookies(document.cookie, pageDiaspora());
-  },
+  beforeLoad: async () => (typeof document === "undefined" ? getRequestPrefs() : prefsFromCookies(document.cookie, pageDiaspora())),
   // who is signed in, in the first paint (the query forwards the request's cookie on the server: src/features/auth/viewer.ts)
   // and the remote-config switches (the promo banner is in the first paint, so it cannot push the page down later)
-  loader: async ({ context }) => {
+  loader: async (opts) => {
+    const { context } = opts;
     const [viewer] = await Promise.all([context.queryClient.ensureQueryData(viewerQuery), context.queryClient.ensureQueryData(remoteConfigQueryOptions()).catch(() => undefined)]);
+    // neither this client nor Django has a page here: the server asks for the reader's own 404 page (src/lib/routing/not-found.ts).
+    // Thrown here, after the interface language (beforeLoad) and the signed-in reader are known, so the 404 page is drawn in the
+    // reader's language and with their header.
+    if (isForcedNotFound(opts)) throw notFound();
     return { viewer };
   },
   notFoundComponent: NotFoundPage,

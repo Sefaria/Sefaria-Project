@@ -4,6 +4,7 @@
 // in scripts/exits-allowlist.json fail the run (exit 1), unless --report-only.
 //
 //   node scripts/exits-crawl.mjs [--report-only] [--quick] [--out exits.json] [--md exits.md]
+//   node scripts/exits-crawl.mjs --serve   only start the stand-in Django and the reader's server (for e2e/routing-pass-through.spec.ts)
 //
 // It starts what it needs and stops it after:
 //   - a read-only proxy in front of the live site (EXITS_UPSTREAM, default https://www.sefaria.org) that plays Django for the
@@ -192,6 +193,22 @@ async function main() {
     const env = { ...process.env, PORT: String(PORT), SEFARIA_PASS_THROUGH: "1", SEFARIA_API_ORIGIN: `http://localhost:${PROXY_PORT}`, PUBLIC_API_ORIGIN: "", PUBLIC_SITE_ORIGIN: "" };
     dev = spawn("npx", ["vite", "dev", "--port", String(PORT), "--strictPort"], { cwd: ROOT, env, stdio: ["ignore", "ignore", "inherit"], detached: true });
     await waitFor(`${base}/texts`);
+    if (flag("--serve")) {
+      // only the stand-in Django and the reader's server, for e2e/routing-pass-through.spec.ts (signed in with sessionid=exits-crawl)
+      console.log(`serving ${base} (stand-in Django on :${PROXY_PORT}); Ctrl-C stops`);
+      const stop = () => {
+        try {
+          process.kill(-dev.pid);
+        } catch {
+          dev.kill();
+        }
+        proxy.close();
+        process.exit(0);
+      };
+      process.on("SIGINT", stop);
+      process.on("SIGTERM", stop);
+      return new Promise(() => undefined);
+    }
   }
   const host = new URL(base).host;
   const siteHosts = new Set([host, "www.sefaria.org", "sefaria.org"]);

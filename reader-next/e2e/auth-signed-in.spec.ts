@@ -121,7 +121,7 @@ const PASSWORD_B = process.env.PLAYWRIGHT_LA_USER_HE_PASSWORD || env.PLAYWRIGHT_
 
 // @feature ACC-007 @feature GUI-010 @feature USL-001
 test.describe("signed-in state across the new and the legacy client (optin deployment)", () => {
-  test.skip(!BASE || !EMAIL || !PASSWORD || !EMAIL_B || !PASSWORD_B, "needs READER_E2E_BASE_URL (an optin deployment) and two e2e accounts");
+  test.skip(!BASE || !EMAIL || !PASSWORD || !EMAIL_B || !PASSWORD_B, "needs READER_E2E_BASE_URL = an optin deployment (nodejs.mode optin, same origin as Django) and two accounts: PLAYWRIGHT_USER_EMAIL/PASSWORD and PLAYWRIGHT_LA_USER_HE_EMAIL/PASSWORD (or PLAYWRIGHT_SUPERUSER_*) in e2e-tests/.env");
   test.use({ baseURL: BASE });
 
   const host = () => new URL(BASE!).hostname;

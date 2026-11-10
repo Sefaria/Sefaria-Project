@@ -39,6 +39,6 @@ export function asNotFound(res: Response): Response {
 }
 
 /** Is a router match the not-found page (thrown by its loader or beforeLoad, or no route matched)? For the head and the shell. */
-export function isNotFoundMatch(m: { status?: string; error?: unknown; globalNotFound?: boolean }): boolean {
-  return m.status === "notFound" || !!m.globalNotFound || (!!m.error && typeof m.error === "object" && (m.error as { isNotFound?: unknown }).isNotFound === true);
+export function isNotFoundMatch(m: { status?: string; error?: unknown; globalNotFound?: boolean; _notFound?: boolean }): boolean {
+  return m.status === "notFound" || !!m.globalNotFound || !!m._notFound || (!!m.error && typeof m.error === "object" && (m.error as { isNotFound?: unknown }).isNotFound === true);
 }

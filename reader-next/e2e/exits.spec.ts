@@ -12,7 +12,7 @@ import { expect, test } from "@playwright/test";
  * EXITS_REPORT_ONLY=1 (CI until wave 2 has ported what the list names) records the list as an annotation instead of failing.
  */
 test.describe("ways out to the legacy client", () => {
-  test.skip(!process.env.EXITS_CRAWL, "set EXITS_CRAWL=1 (reads the live site, several minutes)");
+  test.skip(!process.env.EXITS_CRAWL, "needs EXITS_CRAWL=1: starts its own stand-in Django in front of www.sefaria.org (read only) and a dev server on EXITS_PORT (3366), ~45 min; EXITS_REPORT_ONLY=1 to list instead of fail");
   test.setTimeout(30 * 60_000);
 
   test("every same-site link Django answers is an accepted exit", async () => {

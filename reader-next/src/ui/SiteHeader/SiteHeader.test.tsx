@@ -2,11 +2,17 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { InterfaceLangProvider } from "~/lib/i18n/interface-lang";
-import { SiteHeader } from "./SiteHeader";
+import { SiteHeader, leavesFrom } from "./SiteHeader";
 import { STUB_SEARCH } from "./story-data";
 
 // @feature GUI-002 @feature GUI-003 @feature GUI-009 @feature GUI-010 @feature GUI-011 @feature I18-008
 describe("SiteHeader", () => {
+  it("Texts and Topics stay in the app on the Library host; on the Voices host Topics is Django's and loads in full", () => {
+    expect(leavesFrom("/topics", "https://www.sefaria.org/Genesis.1")).toBe(false);
+    expect(leavesFrom("/texts", "https://www.sefaria.org/Genesis.1")).toBe(false);
+    expect(leavesFrom("/topics", "https://voices.sefaria.org/sheets/1")).toBe(true);
+    expect(leavesFrom("/topics", "https://chiburim.sefaria.org.il/sheets/1")).toBe(true);
+  });
   it("primary links go to the library's pages", () => {
     render(<SiteHeader next="/Genesis.1" search={STUB_SEARCH} />);
     const nav = screen.getByRole("navigation", { name: "Primary navigation" });

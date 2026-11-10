@@ -34,6 +34,7 @@ describe("the reader's own 404 (T-F28)", () => {
     expect(isNotFoundMatch({ status: "notFound" })).toBe(true);
     expect(isNotFoundMatch({ status: "success", error: { isNotFound: true } })).toBe(true);
     expect(isNotFoundMatch({ status: "success", globalNotFound: true })).toBe(true);
+    expect(isNotFoundMatch({ status: "success", _notFound: true })).toBe(true); // this router version's boundary mark
     expect(isNotFoundMatch({ status: "success" })).toBe(false);
     expect(isNotFoundMatch({ status: "error", error: new Error("x") })).toBe(false);
   });
