@@ -1,11 +1,14 @@
 """
 user.py - helper functions related to users
 
-Uses MongoDB collections: apikeys, sheets, notes, profiles, notifications
+Uses MongoDB collections: apikeys, sheets, notes, profiles, notifications, user_deletions
 """
+
+from datetime import datetime
 
 import structlog
 from django.contrib.auth.models import User
+from pymongo import ReturnDocument
 
 import sefaria.model as model
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -23,6 +26,11 @@ def delete_user_account(uid, confirm=True):
     re-submitted deletions that looked stuck. The Django User row is deleted
     last, so if it is gone every earlier step already finished; if it is still
     there, every step is re-run, and each one is a no-op for data already removed.
+
+    The one step whose input a re-run cannot rebuild is search cleanup: once the
+    sheets are deleted from Mongo, their ids are gone. So the ids are saved in
+    db.user_deletions before the sheets are deleted, and a re-run queues every
+    id saved there. That record is removed after the User row.
     """
     if not uid:
         # Every query below filters on this id. With None, delete_many({"owner": None})
@@ -50,18 +58,24 @@ def delete_user_account(uid, confirm=True):
 
     # Delete user's reading history
     user.delete_user_history(exclude_saved=False, exclude_last_place=False)
-    # Delete Sheets, and queue their removal from search (web pods cannot write to ES)
+    # Delete Sheets, and queue their removal from search (web pods cannot write to ES).
+    # Save the ids first: after delete_many a re-run could no longer find them.
     owned_sheet_ids = db.sheets.find({"owner": uid}, {"id": 1}).distinct("id")
+    deletion_record = db.user_deletions.find_one_and_update(
+        {"uid": uid},
+        {"$addToSet": {"sheet_ids": {"$each": owned_sheet_ids}}, "$setOnInsert": {"started": datetime.utcnow()}},
+        upsert=True,
+        return_document=ReturnDocument.AFTER,
+    )
     db.sheets.delete_many({"owner": uid})
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
 
     if SEARCH_INDEX_ON_SAVE:
         from sefaria.search import queue_sheets_sync
 
-        try:
-            queue_sheets_sync(owned_sheet_ids)
-        except Exception as e:
-            logger.error("Failed to queue purged sheets for search removal", uid=uid, error=f"{type(e).__name__}: {e}")
+        # Not caught: a failure here must stop the deletion before the User row goes,
+        # so the task retries and queues the saved ids again.
+        queue_sheets_sync(deletion_record.get("sheet_ids", []))
     # Delete Notes
     db.notes.delete_many({"owner": uid})
     # Delete Notifcations
@@ -75,6 +89,8 @@ def delete_user_account(uid, confirm=True):
     db.profiles.delete_many({"id": uid})
     # Delete User Object
     User.objects.filter(id=uid).delete()
+    # Only after the User row: while it exists, a re-run still needs the saved sheet ids.
+    db.user_deletions.delete_one({"uid": uid})
 
     # History is left for posterity, but will no longer be tied to a user profile
 

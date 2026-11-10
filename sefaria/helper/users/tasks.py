@@ -22,15 +22,21 @@ DELETE_USER_MAX_RETRIES = 3
     bind=True,
     name="web.delete_user_account",
     acks_late=True,
+    # acks_late alone does not cover a killed worker process: Celery still acks the
+    # message when the child running it dies (SIGKILL, OOM), so the task would never
+    # run again. This puts the message back on the queue instead.
+    reject_on_worker_lost=True,
     max_retries=DELETE_USER_MAX_RETRIES,
 )
 def delete_user_account_task(self, uid: int) -> dict:
     """Delete `uid` and everything they own.
 
     Retries are safe because delete_user_account() can be re-run for the same uid
-    (see its docstring). acks_late means a worker killed mid-run hands the task
-    back to the queue, and the next run finishes the job instead of leaving a
-    user whose content is gone but who can still log in.
+    (see its docstring). acks_late plus reject_on_worker_lost means a worker killed
+    mid-run hands the task back to the queue, and the next run finishes the job
+    instead of leaving a user whose content is gone but who can still log in. If
+    the whole pod dies, the Redis broker redelivers the unacked message after its
+    visibility timeout (1 hour by default).
     """
     from sefaria.utils.user import delete_user_account
 
