@@ -26,3 +26,8 @@ CHATBOT_ANONYMOUS_FREE_ANSWERS = "feature.chatbot.anonymous_free_answers"
 # "staff" (default: only is_staff users see the switch and get the cookie) or "all" (every signed-in user).
 # Read by sefaria/helper/reader_choice.py.
 READER_OPTIN_AUDIENCE = "feature.reader.optin.audience"
+
+# Kill switch for the new reader: when true, nobody is sent to it. The client (reader-next) clears reader_version and reloads
+# into the legacy reader; Django never sets the cookie, clears it on Library responses and refuses the switch to it
+# (sefaria/helper/reader_choice.py). Bool; missing or anything but true = false.
+READER_NEXT_DISABLED = "feature.reader.next.disabled"

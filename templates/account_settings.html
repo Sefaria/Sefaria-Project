@@ -142,6 +142,17 @@
             </div>
 		</div>
 	</div>
+    {% elif new_reader_paused %}
+    <div id="newReaderSetting" class="section">
+		<label class="control-elem">
+            <span class="int-en">New Reader (beta)</span>
+			<span class="int-he">הקורא החדש (בטא)</span>
+        </label>
+		<div class="control-elem newReaderPaused">
+            <span class="int-en">The new reader is switched off for now; you are reading with the classic reader.</span>
+            <span class="int-he">הקורא החדש מושבת כרגע; אתם קוראים בקורא הקלאסי.</span>
+		</div>
+	</div>
     {% endif %}
 
 	{# TEMPORARY (goes with the experiments framework): the generic "Experiments" toggle,  #}

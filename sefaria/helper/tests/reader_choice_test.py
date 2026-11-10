@@ -68,7 +68,14 @@ class _Anonymous:
 
 
 def _middleware_response(
-    profile_choice, cookie=None, synced=False, user=None, audience="staff", view_sets_cookie=False, module="library"
+    profile_choice,
+    cookie=None,
+    synced=False,
+    user=None,
+    audience="staff",
+    view_sets_cookie=False,
+    module="library",
+    disabled=False,
 ):
     request = _request({"reader_version": cookie} if cookie else {}, module=module)
     request.user = user or _User()
@@ -86,6 +93,7 @@ def _middleware_response(
         mock.patch("sefaria.model.user_profile.UserProfile", return_value=profile),
         mock.patch.object(reader_choice, "_cookie_domain", return_value=None),
         mock.patch.object(reader_choice, "audience", return_value=audience),
+        mock.patch.object(reader_choice, "next_disabled", return_value=disabled),
     ):
         response = reader_choice.ReaderChoiceMiddleware(view)(request)
     return request, response
@@ -174,7 +182,11 @@ def test_audience_reads_remote_config_and_defaults_to_staff(stored, expected):
     ],
 )
 def test_may_use_next(user, audience, optin, expected):
-    with override_settings(READER_OPTIN=optin), mock.patch.object(reader_choice, "audience", return_value=audience):
+    with (
+        override_settings(READER_OPTIN=optin),
+        mock.patch.object(reader_choice, "audience", return_value=audience),
+        mock.patch.object(reader_choice, "next_disabled", return_value=False),
+    ):
         assert reader_choice.may_use_next(user) is expected
 
 
@@ -195,3 +207,46 @@ def test_middleware_never_touches_a_voices_response():
     request, response = _middleware_response("next", user=_User(), module="voices")
     assert "reader_version" not in response.cookies
     assert reader_choice.SESSION_SYNCED_KEY not in request.session
+
+
+# The kill switch: remote config feature.reader.next.disabled
+
+
+@pytest.mark.parametrize(
+    "stored,expected",
+    [(None, False), (False, False), (True, True), ("true", True), (" TRUE ", True), ("yes", False), (1, False)],
+)
+def test_next_disabled_reads_remote_config_and_defaults_to_false(stored, expected):
+    from remote_config import remoteConfigCache
+    from remote_config.keys import READER_NEXT_DISABLED
+
+    values = {READER_NEXT_DISABLED: stored} if stored is not None else {}
+    with mock.patch.object(remoteConfigCache, "get", side_effect=lambda k, d=None: values.get(k, d)):
+        assert reader_choice.next_disabled() is expected
+
+
+def test_the_kill_switch_closes_the_new_reader_to_everyone():
+    with (
+        override_settings(READER_OPTIN=True),
+        mock.patch.object(reader_choice, "audience", return_value="all"),
+        mock.patch.object(reader_choice, "next_disabled", return_value=True),
+    ):
+        assert reader_choice.in_audience(_User())
+        assert not reader_choice.may_use_next(_User())
+        assert not reader_choice.may_use_next(_Member())
+
+
+def test_middleware_under_the_kill_switch_clears_next_and_never_sets_it():
+    # staff with a next cookie, even after this session synced
+    _, response = _middleware_response("next", cookie="next", synced=True, disabled=True)
+    assert _cleared(response)
+    # the once-per-session sync does not hand out next
+    request, response = _middleware_response("next", disabled=True)
+    assert "reader_version" not in response.cookies
+    assert request.session[reader_choice.SESSION_SYNCED_KEY]
+    # signed out, even with the audience "all"
+    _, response = _middleware_response(None, cookie="next", user=_Anonymous(), audience="all", disabled=True)
+    assert _cleared(response)
+    # Voices: untouched
+    _, response = _middleware_response("next", cookie="next", disabled=True, module="voices")
+    assert "reader_version" not in response.cookies
