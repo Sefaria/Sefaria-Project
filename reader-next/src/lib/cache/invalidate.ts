@@ -14,6 +14,7 @@
  * client never takes a ref apart beyond its title to decide what is "the same text" (wiki ref-resolution.md).
  */
 import { partialMatchKey, type QueryClient, type QueryKey } from "@tanstack/react-query";
+import { SITE_ORIGIN } from "~/lib/config";
 import { parseHumanRef, urlToRef } from "~/lib/ref/url";
 import { removeDiskKeysWhere } from "./storage";
 
@@ -28,6 +29,8 @@ export type Write =
   | { kind: "topic"; slug?: string }
   /** A dictionary entry was edited. */
   | { kind: "lexicon" }
+  /** The library's table of contents or every index (admin resets of the TOC, the whole cache, all counts). */
+  | { kind: "catalog" }
   /** The reader's notes changed. */
   | { kind: "notes" };
 
@@ -72,6 +75,8 @@ export function matchersFor(write: Write): KeyMatch[] {
       // the sidebar's own Topics list is patched in place by the caller (addLinkToResources): refetching /api/related for it would
       // download the section's links again (SB-03)
       return write.slug ? [prefix(["topics", "topic", write.slug]), prefix(["topics", "page", write.slug])] : [prefix(["topics"])];
+    case "catalog":
+      return [prefix(["catalog"]), prefix(["versions"])];
     case "lexicon":
       return [prefix(["lexicon"]), prefix(["lexicon-completion"]), prefix(["user", "lexicon-entry"])];
     case "notes":
@@ -93,9 +98,14 @@ export function keyOfDiskEntry(diskKey: string): unknown[] | undefined {
 
 const anyOf = (matchers: KeyMatch[]): KeyMatch => (key) => matchers.some((m) => m(key));
 
-/** Delete the stored copies a write made wrong. Never throws. */
+/** Writes whose queries are all memory-only (connections, user): nothing on disk to scan for. */
+const MEMORY_ONLY: ReadonlySet<Write["kind"]> = new Set(["links", "notes"]);
+
+/** Delete the stored copies a write made wrong. Never throws, never waits past the disk timeout (storage.ts onDisk). */
 export async function forgetOnDisk(write: Write | Write[]): Promise<number> {
-  const match = anyOf([write].flat().flatMap(matchersFor));
+  const writes = [write].flat().filter((w) => !MEMORY_ONLY.has(w.kind));
+  if (!writes.length) return 0;
+  const match = anyOf(writes.flatMap(matchersFor));
   return removeDiskKeysWhere((diskKey) => {
     const key = keyOfDiskEntry(diskKey);
     return !!key && match(key);
@@ -109,43 +119,86 @@ export async function forgetOnDisk(write: Write | Write[]): Promise<number> {
 let pending: Promise<unknown> = Promise.resolve();
 export const pendingDiskInvalidation = (): Promise<unknown> => pending;
 
-/** Invalidate in memory (active queries refetch now, the rest when next used) and delete from disk. */
+/**
+ * Invalidate in memory first (active queries refetch now, the rest when next used), then delete from disk behind it: a slow or
+ * hanging disk never holds up the write's caller (review: a hanging IndexedDB froze link edits).
+ */
 export async function invalidateAfterWrite(qc: QueryClient, write: Write | Write[]): Promise<void> {
   const match = anyOf([write].flat().flatMap(matchersFor));
   const disk = forgetOnDisk(write);
   pending = Promise.all([pending, disk]);
-  await disk;
   await qc.invalidateQueries({ predicate: (q) => match(q.queryKey as readonly unknown[]) });
 }
 
-/** Call right before sending the reader to a Django editor that will come back with `?next=` (a full page load). */
-export async function forgetBeforeEditor(write: Write | Write[]): Promise<void> {
-  await forgetOnDisk(write);
+/** How long leaving for an editor may wait for the disk. */
+export const EDITOR_LEAVE_WAIT_MS = 300;
+
+/**
+ * Call right before sending the reader to a Django editor that will come back with `?next=` (a full page load): resolves when the
+ * stored copies are gone, or after EDITOR_LEAVE_WAIT_MS, whichever is first (the referrer check on return covers the rest).
+ */
+export function forgetBeforeEditor(write: Write | Write[]): Promise<void> {
+  return Promise.race([forgetOnDisk(write).then(() => undefined), new Promise<void>((r) => setTimeout(r, EDITOR_LEAVE_WAIT_MS))]);
 }
 
-/** Django's editors, which return to the reader through `?next=`, and what each one changes. */
-export function writeFromEditorUrl(url: string, origin: string): Write | undefined {
+/**
+ * Django's editors and admin resets, which return to the reader through `?next=`, and what each one changes
+ * (sefaria/urls_library.py: add/textinfo, add, translate, edit; sefaria/urls_shared.py: admin/reset/…). `origins`: where Django
+ * serves them (the site origin and this page's own). Limit: a cross-origin referrer arrives as its origin only (the browsers' default
+ * strict-origin-when-cross-origin policy), so a return from an editor on another origin cannot be recognised here; the client's own
+ * editor links cover that case (forgetBeforeEditor).
+ */
+export function writeFromEditorUrl(url: string, origins: string | readonly string[]): Write | undefined {
   let u: URL;
   try {
     u = new URL(url);
   } catch {
     return undefined;
   }
-  if (u.origin !== origin) return undefined;
-  const [, kind, target] = /^\/(edit|translate|add|admin\/reset)\/([^/?#]+)/.exec(u.pathname) ?? [];
-  if (!kind || !target) return undefined;
-  const ref = urlToRef(target);
-  if (!ref) return undefined;
-  return kind === "admin/reset" ? { kind: "book", title: ref } : { kind: "text", ref };
+  if (![origins].flat().filter(Boolean).includes(u.origin)) return undefined;
+  const path = u.pathname;
+  const book = (m: RegExpExecArray | null): Write | undefined => {
+    const title = m?.[1] && urlToRef(m[1]);
+    return title ? { kind: "book", title } : undefined;
+  };
+  const text = (m: RegExpExecArray | null): Write | undefined => {
+    const ref = m?.[1] && urlToRef(m[1]);
+    return ref ? { kind: "text", ref } : undefined;
+  };
+  if (/^\/admin\/reset\/(toc|cache|counts\/all)\/?$/.test(path)) return { kind: "catalog" };
+  if (/^\/admin\/reset\/(ac|linker-resolvers|api\/)/.test(path)) return undefined;
+  if (/^\/(edit|add)\/terms\//.test(path) || /^\/add\/new\/?$/.test(path)) return undefined;
+  return (
+    book(/^\/add\/textinfo\/([^?#]+)$/.exec(path)) ??
+    book(/^\/admin\/reset\/(?:cache|counts)\/([^/?#]+)$/.exec(path)) ??
+    text(/^\/admin\/reset\/varnish\/([^/?#]+)$/.exec(path)) ??
+    text(/^\/admin\/reset\/([^/?#]+)$/.exec(path)) ??
+    text(/^\/(?:edit|translate|add)\/([^/?#]+)/.exec(path))
+  );
 }
 
 /**
  * Once, at start-up in the browser: a page reached from a Django editor forgets on disk what the editor changed. Memory is empty on
- * a full page load, and what the server rendered was fetched after the edit, so the disk is all there is to correct.
+ * a full page load, and what the server rendered was fetched after the edit, so the disk is all there is to correct. Only on a
+ * navigation: a reload or Back keeps the same referrer, and must not repeat the deletion.
  */
-export function invalidateAfterEditorReturn(doc: { referrer: string; location: { origin: string } } | undefined = typeof document === "undefined" ? undefined : document): Write | undefined {
+export function invalidateAfterEditorReturn(
+  doc: { referrer: string; location: { origin: string } } | undefined = typeof document === "undefined" ? undefined : document,
+  o: { siteOrigin?: string; navigationType?: string } = {},
+): Write | undefined {
   if (!doc?.referrer) return undefined;
-  const write = writeFromEditorUrl(doc.referrer, doc.location.origin);
+  const navigationType = o.navigationType ?? currentNavigationType();
+  if (navigationType && navigationType !== "navigate") return undefined;
+  const write = writeFromEditorUrl(doc.referrer, [o.siteOrigin ?? SITE_ORIGIN, doc.location.origin]);
   if (write) pending = Promise.all([pending, forgetOnDisk(write)]);
   return write;
+}
+
+/** "navigate", "reload", "back_forward" (Navigation Timing), or undefined where the browser does not say. */
+function currentNavigationType(): string | undefined {
+  try {
+    return (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined)?.type;
+  } catch {
+    return undefined;
+  }
 }

@@ -16,7 +16,7 @@ import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
  * "/<two letters>/" would be read the same way; Django checks the joined string against its catalog first, and no such title exists.
  */
 export function oldVersionsRedirect(splat: string): { ref: string; lang: string; version: string } | null {
-  const m = /^([^/]+)\/(\w\w)\/(.+)$/.exec(splat);
+  const m = /^([^/]+)\/(en|he)\/(.+)$/.exec(splat);
   return m ? { ref: m[1]!, lang: m[2]!, version: m[3]! } : null;
 }
 
@@ -41,9 +41,12 @@ export const Route = createFileRoute("/$")({
       // the old form names a version by title only; this reader's `ven`/`vhe` carry its language family too (`english|Title`), which
       // the versions of the ref say (sefaria.org's client fills it in the same way after the redirect)
       const title = decodeVtitle(old.version);
-      const versions = await context.queryClient.fetchQuery(versionsQueryOptions(urlToRef(old.ref))).catch(() => [] as VersionMeta[]);
-      const family = versions.find((v) => v.versionTitle === title)?.languageFamilyName ?? (old.lang === "he" ? "hebrew" : "english");
-      throw redirect({ to: "/$", params: { _splat: old.ref }, search: { ...(location.search as Record<string, unknown>), [`v${old.lang}`]: `${family}|${encodeVtitle(title)}` } as never, statusCode: 301 });
+      // only for a ref the server knows (junk under this shape is left to the not-found page, not sent on with a 301)
+      const versions = await context.queryClient.fetchQuery(versionsQueryOptions(urlToRef(old.ref))).catch(() => null as VersionMeta[] | null);
+      if (versions?.length) {
+        const family = versions.find((v) => v.versionTitle === title)?.languageFamilyName ?? (old.lang === "he" ? "hebrew" : "english");
+        throw redirect({ to: "/$", params: { _splat: old.ref }, search: { ...(location.search as Record<string, unknown>), [`v${old.lang}`]: `${family}|${encodeVtitle(title)}` } as never, statusCode: 301 });
+      }
     }
     // `/Genesis` (a book, no section) is the book's page; anything with a section or a node is the reader
     const book = !Object.keys(deps).some((k) => /^p\d+$/.test(k)) ? await loadBookRoute(context.queryClient, splat, location.searchStr ?? "") : null;

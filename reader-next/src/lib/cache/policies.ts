@@ -35,7 +35,7 @@ export const POLICIES: Record<DataClass, CachePolicy> = {
 export const CACHE_BUSTER = "2026-10-29.2"; // R-18 and its follow-up: spanning ranges (commentary ones too) were cached with wrong segment refs
 
 /**
- * Staff and moderators edit texts and check the result: for them text is never fresh (D-7: "staff always revalidate"). Known in the
+ * Staff and moderators edit texts and indexes and check the result: for them text and catalog are never fresh (D-7: "staff always revalidate"). Known in the
  * browser once the viewer query answers (query-client.ts watches it); a page holds one reader, so this is module state.
  */
 let staffFreshness = false;
@@ -45,6 +45,6 @@ export function setStaffFreshness(staff: boolean): void {
 
 /** The fresh window for a class, for the reader in this page. */
 export function staleTimeFor(dataClass: DataClass): number {
-  if (staffFreshness && dataClass === "text") return 0;
+  if (staffFreshness && (dataClass === "text" || dataClass === "catalog")) return 0; // D-7: staff always revalidate (never block: loaders show the cache)
   return POLICIES[dataClass].staleTime;
 }

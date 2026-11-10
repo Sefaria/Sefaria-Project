@@ -10,18 +10,14 @@ import { createStore, del, entries, get, set, type UseStore } from "idb-keyval";
 import { LRUCache } from "lru-cache";
 import type { BookMeta } from "~/lib/text/plan";
 import { CACHE_BUSTER } from "./policies";
-import { DISK_READ_TIMEOUT_MS, within } from "./storage";
+import { onDisk } from "./storage";
 
 /**
  * A disk call that can neither throw (idb-keyval throws synchronously when `indexedDB.open` does: a blocked or broken IndexedDB) nor
  * hang the reader (T-E04): undefined instead.
  */
 async function disk<T>(op: () => Promise<T>): Promise<T | undefined> {
-  try {
-    return await within(op(), DISK_READ_TIMEOUT_MS, undefined);
-  } catch {
-    return undefined;
-  }
+  return onDisk<T | undefined>(op, undefined); // one timeout and the disk is skipped for the rest of the visit (storage.ts)
 }
 
 const DB = "sefaria-reader-refs";

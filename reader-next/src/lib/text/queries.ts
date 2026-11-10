@@ -117,7 +117,7 @@ export async function loadReaderPassage(
   if (plan.kind === "resolve" && isRangedRef(ref)) {
     const asked = parseHumanRef(ref);
     const startRef = toHumanRef({ title: asked.title, sections: asked.sections, toSections: asked.sections });
-    const start = asked.sections.length ? await qc.fetchQuery(textQueryOptions(startRef, sel)).catch(() => undefined) : undefined;
+    const start = asked.sections.length ? await qc.ensureQueryData({ ...textQueryOptions(startRef, sel), revalidateIfStale: true }).catch(() => undefined) : undefined;
     if (start) {
       const meta = metaFromPassage(start);
       await refIndex.setMeta(meta);
@@ -136,7 +136,8 @@ export async function loadReaderPassage(
 
   /** Ask the server what `ref` shows: it names the canonical ref and its sections, or says there is no such text (an error). */
   const askServer = async (): Promise<Extract<DisplayPlan, { kind: "sections" }>> => {
-    const passage = await qc.fetchQuery(textQueryOptions(ref, sel));
+    // what is cached shows at once, a stale copy is asked for again behind it (a navigation never waits on the network for it)
+    const passage = await qc.ensureQueryData({ ...textQueryOptions(ref, sel), revalidateIfStale: true });
     await refIndex.setMeta(metaFromPassage(passage));
     // A super-section request comes back as its first section; a misspelt title comes back canonical.
     canonicalRef = passage.ref;
@@ -169,7 +170,7 @@ export async function loadReaderPassage(
   // A long range (Psalms 1-150, Shabbat 2a-157b: hundreds of sections) loads only its first sections; the column loads the rest as
   // the reader scrolls, and the range's highlight is by address, so it carries on (CODE_REVIEW R-05).
   const load = (p: Extract<DisplayPlan, { kind: "sections" }>) =>
-    Promise.all(p.sectionRefs.slice(0, MAX_INITIAL_SECTIONS).map((r) => qc.ensureQueryData(textQueryOptions(r, sel))));
+    Promise.all(p.sectionRefs.slice(0, MAX_INITIAL_SECTIONS).map((r) => qc.ensureQueryData({ ...textQueryOptions(r, sel), revalidateIfStale: true })));
   let sections = await load(plan);
   // The book's shape says which section a segment would be in, not that the segment exists (Genesis 1:35: chapter 1 has 31 verses,
   // and the server answers "We have no text"). When the first highlighted segment is not in what loaded, the server decides.
@@ -188,7 +189,8 @@ export const MAX_INITIAL_SECTIONS = 4;
 
 /** Warm the cache for neighbouring sections so paging is instant. */
 export function prefetchNeighbours(qc: QueryClient, passage: TextPassage, sel: VersionSelection = {}): void {
-  for (const r of [passage.next, passage.prev]) if (r) void qc.prefetchQuery(textQueryOptions(r, sel));
+  // only what is not in memory (prefetchQuery would refetch a stale neighbour at every section crossing; staff's every time)
+  for (const r of [passage.next, passage.prev]) if (r && qc.getQueryData(textQueryOptions(r, sel).queryKey) === undefined) void qc.prefetchQuery(textQueryOptions(r, sel));
 }
 
 /**

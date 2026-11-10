@@ -6,7 +6,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { CACHE_BUSTER, POLICIES, staleTimeFor, type DataClass } from "./policies";
 import { pendingDiskInvalidation } from "./invalidate";
 import { sweepRefIndexDisk } from "./ref-index";
-import { createIdbStorage, DISK_READ_TIMEOUT_MS, resetIdbStore, storedDataUpdatedAt, sweepOnce, within, type SweepResult } from "./storage";
+import { createIdbStorage, DISK_READ_TIMEOUT_MS, isDiskDead, resetIdbStore, storedDataUpdatedAt, sweepOnce, within, type SweepResult } from "./storage";
 
 type QueryPersister = ReturnType<typeof experimental_createQueryPersister<PersistedQuery>> & {
   /** `persisterFn`, plus a refresh of what it restored from disk once that is past its class's fresh window (see `revalidating`). */
@@ -47,7 +47,7 @@ export function getPersister(dataClass: DataClass): QueryPersister | undefined {
         ...storage,
         // a read waits for deletions an edit started (invalidate.ts), and notes when what it restores was fetched (revalidating)
         getItem: async (key) => {
-          await within(pendingDiskInvalidation(), DISK_READ_TIMEOUT_MS, undefined);
+          if (!isDiskDead()) await within(pendingDiskInvalidation(), DISK_READ_TIMEOUT_MS, undefined);
           const value = await storage.getItem(key);
           if (value && value.buster === CACHE_BUSTER) restoredAt.set(key.slice(prefix.length + 1), value.state.dataUpdatedAt);
           return value;

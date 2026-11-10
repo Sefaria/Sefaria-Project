@@ -46,7 +46,10 @@ const throwing = {
 } as unknown as IDBFactory;
 
 beforeEach(() => install(new IDBFactory()));
-afterEach(() => install(realIdb));
+afterEach(() => {
+  vi.restoreAllMocks(); // a Date.now mock must not leak into the next test
+  install(realIdb);
+});
 
 describe("reading works whatever IndexedDB does", () => {
   it("missing: memory only", async () => {
@@ -72,14 +75,18 @@ describe("reading works whatever IndexedDB does", () => {
     await expect(forgetOnDisk({ kind: "links" })).resolves.toBe(0);
   });
 
-  it("hangs: the text does not wait for the disk past its timeout", async () => {
+  it("hangs: the first read gives up after the timeout, and the disk is skipped for the rest of the visit", async () => {
     install(hanging);
     const t0 = Date.now();
-    const { data } = await readText();
-    expect(data.ref).toBe("Genesis 1");
-    expect(Date.now() - t0).toBeLessThan(5_000);
+    const first = await readText();
+    const second = await readText(new QueryClient()); // a second page's read: the disk is not waited for again
+    expect(first.data.ref).toBe("Genesis 1");
+    expect(second.data.ref).toBe("Genesis 1");
+    expect(Date.now() - t0).toBeLessThan(2_000);
     const idx = new RefIndex(true);
+    const t1 = Date.now();
     await expect(idx.resolveAlias("Gen. 1")).resolves.toBeUndefined();
+    expect(Date.now() - t1).toBeLessThan(100);
   }, 10_000);
 
   it("fails mid-session (quota): reads keep working from memory and the network", async () => {
@@ -140,10 +147,9 @@ describe("a copy restored from disk past the hour", () => {
 
     resetPersisters();
     const later = Date.now() + 61 * 60_000;
-    const now = vi.spyOn(Date, "now").mockReturnValue(later);
+    vi.spyOn(Date, "now").mockReturnValue(later);
     const stale = await readText(new QueryClient());
     expect(stale.data.ref).toBe("Genesis 1"); // the stored copy, at once
     await vi.waitFor(() => expect(stale.fetched).toHaveBeenCalledTimes(1));
-    now.mockRestore();
   });
 });

@@ -182,7 +182,7 @@ export function TextColumn(props: TextColumnProps) {
     };
     void Promise.allSettled(
       sectionsRef.current.map((p) =>
-        qc.ensureQueryData(textQueryOptions(p.ref, versions)).then(
+        qc.ensureQueryData({ ...textQueryOptions(p.ref, versions), revalidateIfStale: true }).then(
           (next) => {
             if (cancelled) return; // a later choice (or a remount) takes over
             arrived.set(next.ref, next);
@@ -210,7 +210,7 @@ export function TextColumn(props: TextColumnProps) {
       setLoading((l) => ({ ...l, [direction]: true }));
       try {
         // in the versions wanted when it arrives (a version change meanwhile swapped only what the column held: review F04)
-        const passage = await fetchInWantedVersions((sel) => qc.ensureQueryData(textQueryOptions(ref, sel)), () => propsRef.current.versions);
+        const passage = await fetchInWantedVersions((sel) => qc.ensureQueryData({ ...textQueryOptions(ref, sel), revalidateIfStale: true }), () => propsRef.current.versions);
         // Adding above is safe: the engine puts the reader back before the next paint.
         setSections((prev) => (prev.some((p) => p.ref === passage.ref) ? prev : direction === "up" ? [passage, ...prev] : [...prev, passage]));
       } catch {

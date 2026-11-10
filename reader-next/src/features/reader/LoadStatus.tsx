@@ -5,7 +5,7 @@
  */
 import { useEffect, useState } from "react";
 import { Button } from "~/ui/Button/Button";
-import { ErrorState, LoadingState } from "~/ui/Feedback/Feedback";
+import { EmptyState, ErrorState, LoadingState } from "~/ui/Feedback/Feedback";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import styles from "./LoadStatus.module.css";
 
@@ -40,7 +40,17 @@ const retryButton = (q: QueryLike) => (
 export function ViewLoad({ q, what }: { q: QueryLike; what: { en: string; he: string } }) {
   const loading = (q.isPending || q.isError) && q.isFetching; // a retry after a failure is loading again
   const slow = useSlow(loading);
-  if (loading || (q.isPending && !q.isError)) {
+  // pending but not fetching: paused (offline) or not started; a message and a retry, never a spinner that waits for nothing
+  if (q.isPending && !q.isFetching && !q.isError) {
+    return (
+      <EmptyState title={<InterfaceText en={`${what.en[0]!.toUpperCase()}${what.en.slice(1)} not loaded yet`} he={`${what.he} עדיין לא נטענו`} />} action={retryButton(q)}>
+        <span data-testid="sidebar-not-loaded">
+          <InterfaceText en="Check your connection and try again." he="בדקו את החיבור ונסו שוב." />
+        </span>
+      </EmptyState>
+    );
+  }
+  if (loading) {
     return (
       <LoadingState>
         {slow ? (

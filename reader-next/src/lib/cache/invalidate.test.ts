@@ -3,7 +3,7 @@ import { IDBFactory } from "fake-indexeddb";
 import { createStore, keys } from "idb-keyval";
 import { hashKey, QueryClient } from "@tanstack/react-query";
 import { createIdbStorage, resetIdbStore } from "./storage";
-import { bookOf, forgetOnDisk, invalidateAfterEditorReturn, invalidateAfterWrite, keyOfDiskEntry, matchersFor, pendingDiskInvalidation, writeFromEditorUrl, type Write } from "./invalidate";
+import { bookOf, EDITOR_LEAVE_WAIT_MS, forgetBeforeEditor, forgetOnDisk, invalidateAfterEditorReturn, invalidateAfterWrite, keyOfDiskEntry, matchersFor, pendingDiskInvalidation, writeFromEditorUrl, type Write } from "./invalidate";
 import { POLICIES, setStaffFreshness, staleTimeFor } from "./policies";
 
 const HOUR = 3_600_000;
@@ -25,10 +25,11 @@ describe("freshness", () => {
     expect(POLICIES.text.maxAge).toBe(30 * 24 * HOUR);
     expect(staleTimeFor("text")).toBe(HOUR);
   });
-  it("staff always revalidate text (only text)", () => {
+  it("staff always revalidate text and catalog (D-7)", () => {
     setStaffFreshness(true);
     expect(staleTimeFor("text")).toBe(0);
-    expect(staleTimeFor("catalog")).toBe(HOUR);
+    expect(staleTimeFor("catalog")).toBe(0);
+    expect(staleTimeFor("connections")).toBe(HOUR);
   });
   it("the query client learns who is staff from the viewer query", async () => {
     const { makeQueryClient } = await import("./query-client");
@@ -105,23 +106,66 @@ describe("invalidation reaches the disk", () => {
 
 describe("a return from a Django editor", () => {
   const origin = "https://www.sefaria.org";
-  it("knows the editors and what each one changes", () => {
-    expect(writeFromEditorUrl(`${origin}/edit/Genesis.1.3/en/The_Contemporary_Torah`, origin)).toEqual({ kind: "text", ref: "Genesis 1:3" });
-    expect(writeFromEditorUrl(`${origin}/translate/Berakhot.2a.3?next=%2FBerakhot.2a`, origin)).toEqual({ kind: "text", ref: "Berakhot 2a:3" });
-    expect(writeFromEditorUrl(`${origin}/add/Rashi_on_Genesis.1.1`, origin)).toEqual({ kind: "text", ref: "Rashi on Genesis 1:1" });
-    expect(writeFromEditorUrl(`${origin}/admin/reset/Genesis`, origin)).toEqual({ kind: "book", title: "Genesis" });
-    expect(writeFromEditorUrl(`${origin}/Genesis.1`, origin)).toBeUndefined();
+  it("knows the editors and admin resets and what each one changes (sefaria/urls_library.py, urls_shared.py)", () => {
+    const w = (path: string) => writeFromEditorUrl(`${origin}${path}`, origin);
+    expect(w("/edit/Genesis.1.3/en/The_Contemporary_Torah")).toEqual({ kind: "text", ref: "Genesis 1:3" });
+    expect(w("/translate/Berakhot.2a.3?next=%2FBerakhot.2a")).toEqual({ kind: "text", ref: "Berakhot 2a:3" });
+    expect(w("/add/Rashi_on_Genesis.1.1")).toEqual({ kind: "text", ref: "Rashi on Genesis 1:1" });
+    expect(w("/add/textinfo/Genesis")).toEqual({ kind: "book", title: "Genesis" });
+    expect(w("/add/textinfo/Pesach_Haggadah")).toEqual({ kind: "book", title: "Pesach Haggadah" });
+    expect(w("/admin/reset/cache/Genesis")).toEqual({ kind: "book", title: "Genesis" });
+    expect(w("/admin/reset/counts/Genesis")).toEqual({ kind: "book", title: "Genesis" });
+    expect(w("/admin/reset/toc")).toEqual({ kind: "catalog" });
+    expect(w("/admin/reset/cache")).toEqual({ kind: "catalog" });
+    expect(w("/admin/reset/counts/all")).toEqual({ kind: "catalog" });
+    expect(w("/admin/reset/varnish/Genesis.1")).toEqual({ kind: "text", ref: "Genesis 1" });
+    expect(w("/admin/reset/Genesis.1")).toEqual({ kind: "text", ref: "Genesis 1" });
+    for (const none of ["/admin/reset/ac", "/admin/reset/api/texts", "/edit/terms/Bereshit", "/add/terms/x", "/add/new", "/Genesis.1"]) expect(w(none)).toBeUndefined();
     expect(writeFromEditorUrl(`https://evil.example/edit/Genesis.1`, origin)).toBeUndefined(); // another site's referrer is no edit
     expect(writeFromEditorUrl("not a url", origin)).toBeUndefined();
+    // the site origin or the page's own
+    expect(writeFromEditorUrl("http://localhost:3000/edit/Genesis.1", [origin, "http://localhost:3000"])).toEqual({ kind: "text", ref: "Genesis 1" });
   });
-  it("forgets the edited book on disk before any disk read", async () => {
+  it("a TOC reset makes the whole catalog wrong", () => {
+    expect(matches({ kind: "catalog" }, ["catalog", "toc"])).toBe(true);
+    expect(matches({ kind: "catalog" }, ["catalog", "index-details", "Genesis"])).toBe(true);
+    expect(matches({ kind: "catalog" }, ["text", "Genesis 1", "~"])).toBe(false);
+  });
+  it("forgets the edited book on disk before any disk read; only on a navigation, not a reload or Back", async () => {
     const s = createIdbStorage()!;
     for (const k of [["text", "Genesis 1", "~"], ["text", "Exodus 1", "~"]]) await s.setItem(`sr-text-${hashKey(k)}`, entry(k));
-    const w = invalidateAfterEditorReturn({ referrer: `${origin}/edit/Genesis.1.3/en/JPS`, location: { origin } });
-    expect(w).toEqual({ kind: "text", ref: "Genesis 1:3" });
+    const doc = { referrer: `${origin}/edit/Genesis.1.3/en/JPS`, location: { origin: "http://localhost" } };
+    expect(invalidateAfterEditorReturn(doc, { siteOrigin: origin, navigationType: "reload" })).toBeUndefined();
+    expect(invalidateAfterEditorReturn(doc, { siteOrigin: origin, navigationType: "back_forward" })).toBeUndefined();
+    expect((await queries()).length).toBe(2);
+    expect(invalidateAfterEditorReturn(doc, { siteOrigin: origin, navigationType: "navigate" })).toEqual({ kind: "text", ref: "Genesis 1:3" });
     await pendingDiskInvalidation();
     expect((await queries()).map((k) => keyOfDiskEntry(k)?.[1])).toEqual(["Exodus 1"]);
-    expect(invalidateAfterEditorReturn({ referrer: `${origin}/Genesis.1`, location: { origin } })).toBeUndefined();
+    expect(invalidateAfterEditorReturn({ referrer: `${origin}/Genesis.1`, location: { origin } }, { navigationType: "navigate" })).toBeUndefined();
     expect(invalidateAfterEditorReturn({ referrer: "", location: { origin } })).toBeUndefined();
+  });
+});
+
+describe("a hanging IndexedDB never holds up a write (review)", () => {
+  const hanging = { open: () => ({}) as IDBOpenDBRequest } as unknown as IDBFactory;
+  it("the memory is invalidated at once; leaving for an editor waits at most a moment", async () => {
+    globalThis.indexedDB = hanging;
+    resetIdbStore();
+    const qc = new QueryClient();
+    qc.setQueryData(["text", "Genesis 1", "~"], "old");
+    const t0 = Date.now();
+    await invalidateAfterWrite(qc, { kind: "text", ref: "Genesis 1:1" });
+    expect(Date.now() - t0).toBeLessThan(200);
+    expect(qc.getQueryState(["text", "Genesis 1", "~"])?.isInvalidated).toBe(true);
+    const t1 = Date.now();
+    await forgetBeforeEditor({ kind: "text", ref: "Genesis 1:1" });
+    expect(Date.now() - t1).toBeLessThan(EDITOR_LEAVE_WAIT_MS + 200);
+  });
+  it("links and notes live in memory only: no disk scan at all", async () => {
+    let opened = 0;
+    globalThis.indexedDB = { open: () => (opened++, {}) as IDBOpenDBRequest } as unknown as IDBFactory;
+    resetIdbStore();
+    expect(await forgetOnDisk([{ kind: "links" }, { kind: "notes" }])).toBe(0);
+    expect(opened).toBe(0);
   });
 });

@@ -27,13 +27,20 @@ export interface DiskEntryMeta {
 let store: UseStore | undefined;
 let metaStore: UseStore | undefined;
 
+/**
+ * Set once a disk call has timed out (T-E04): IndexedDB that hangs once in a session hangs again, so for the rest of the visit the
+ * cache is memory-only and nothing waits on the disk again.
+ */
+let diskDead = false;
+export const isDiskDead = (): boolean => diskDead;
+
 function getStore(): UseStore | undefined {
-  if (typeof indexedDB === "undefined") return undefined;
+  if (typeof indexedDB === "undefined" || diskDead) return undefined;
   store ??= createStore(DB_NAME, STORE_NAME);
   return store;
 }
 function getMetaStore(): UseStore | undefined {
-  if (typeof indexedDB === "undefined") return undefined;
+  if (typeof indexedDB === "undefined" || diskDead) return undefined;
   metaStore ??= createStore(META_DB, META_STORE);
   return metaStore;
 }
@@ -66,6 +73,27 @@ export function within<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
   });
 }
 
+/**
+ * A disk call: never waits past the timeout (and then the disk is dead for the session), never throws (idb-keyval throws
+ * synchronously when indexedDB.open does), answers `fallback` at once when the disk is already dead.
+ */
+export async function onDisk<T>(op: () => Promise<T>, fallback: T): Promise<T> {
+  if (diskDead) return fallback;
+  let timedOut = false;
+  try {
+    const p = op();
+    return await new Promise<T>((resolve) => {
+      const t = setTimeout(() => ((timedOut = true), (diskDead = true), resolve(fallback)), DISK_READ_TIMEOUT_MS);
+      p.then(
+        (v) => (clearTimeout(t), resolve(timedOut ? fallback : v)),
+        () => (clearTimeout(t), resolve(fallback)),
+      );
+    });
+  } catch {
+    return fallback;
+  }
+}
+
 /** A read refreshes an entry's last use at most once an hour (no write per read). */
 const TOUCH_EVERY = 60 * 60_000;
 let quotaWarned = false;
@@ -77,8 +105,9 @@ export function createIdbStorage(): AsyncStorage<PersistedQuery> | undefined {
   // Every operation tolerates failure (quota, blocked storage): the cache must never break reading.
   return {
     getItem: async (key) => {
+      if (diskDead) return null;
       try {
-        const value = (await within(get<PersistedQuery>(key, s), DISK_READ_TIMEOUT_MS, undefined)) ?? null;
+        const value = (await onDisk(() => get<PersistedQuery>(key, s), undefined)) ?? null;
         if (value) {
           void get<DiskEntryMeta>(key, m)
             .then((meta) => (meta && Date.now() - meta.at > TOUCH_EVERY ? set(key, { ...meta, at: Date.now() }, m) : undefined))
@@ -90,6 +119,7 @@ export function createIdbStorage(): AsyncStorage<PersistedQuery> | undefined {
       }
     },
     setItem: async (key, value) => {
+      if (diskDead) return;
       try {
         await set(key, value, s);
         await set(key, { size: sizeOf(value), at: Date.now(), updated: value.state.dataUpdatedAt } satisfies DiskEntryMeta, m);
@@ -175,10 +205,10 @@ export async function removeDiskKeysWhere(pred: (key: string) => boolean): Promi
   const m = getMetaStore();
   if (!s || !m) return 0;
   let n = 0;
-  for (const key of await keys<string>(s).catch(() => [] as string[])) {
+  for (const key of await onDisk(() => keys<string>(s), [] as string[])) {
     if (typeof key !== "string" || !pred(key)) continue;
-    await del(key, s).catch(() => undefined);
-    await del(key, m).catch(() => undefined);
+    await onDisk(() => del(key, s), undefined);
+    await onDisk(() => del(key, m), undefined);
     n++;
   }
   return n;
@@ -189,7 +219,7 @@ export async function storedDataUpdatedAt(key: string): Promise<number | undefin
   const m = getMetaStore();
   if (!m) return undefined;
   try {
-    return (await within(get<DiskEntryMeta>(key, m), DISK_READ_TIMEOUT_MS, undefined))?.updated;
+    return (await onDisk(() => get<DiskEntryMeta>(key, m), undefined))?.updated;
   } catch {
     return undefined; // idb-keyval throws synchronously when indexedDB.open does
   }
@@ -204,6 +234,7 @@ export function sweepOnce(opts?: Parameters<typeof sweepDisk>[0]): Promise<Sweep
 
 /** Test helper: forget the store handles (e.g. after replacing the global IndexedDB factory). */
 export function resetIdbStore(): void {
+  diskDead = false;
   store = undefined;
   metaStore = undefined;
   quotaWarned = false;
