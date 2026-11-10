@@ -4,10 +4,14 @@ import (
 	"context"
 	"reflect"
 	"testing"
+	"time"
 
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"github.com/Sefaria/Sefaria-Project/auth-service/internal/registry"
 )
 
 func checkReq(path string, headers map[string]string) *authv3.CheckRequest {
@@ -296,6 +300,51 @@ func TestGRPCKeyStatusHeaderRemovedUnlessSet(t *testing.T) {
 			}
 			if set != c.set || removed == c.set {
 				t.Fatalf("set=%v removed=%v want set=%v (remove=%v)", set, removed, c.set, ok.HeadersToRemove)
+			}
+		})
+	}
+}
+
+// Before the registry's first accepted load, a keyed request must answer UNAVAILABLE (Envoy fails open) instead of
+// treating every valid key as unknown. A settled empty registry is different: there an unknown key is invalid.
+func TestCheckUnavailableBeforeFirstLoad(t *testing.T) {
+	s := NewGRPCServer(registry.New(), Options{Cfg: enforce}, NopRecorder{})
+	for name, path := range map[string]string{"gated": "/api/knn-search", "ungated": "/api/texts/Genesis.1"} {
+		t.Run(name, func(t *testing.T) {
+			t0 := time.Now()
+			resp, err := s.Check(context.Background(), checkReqMethod("POST", path, map[string]string{"x-api-key": "sfr_whatever_000000000000000000000001"}))
+			if status.Code(err) != codes.Unavailable {
+				t.Fatalf("want gRPC UNAVAILABLE, got err=%v resp=%v", err, resp)
+			}
+			if d := time.Since(t0); d > 200*time.Millisecond {
+				t.Fatalf("took %s, want under 200ms", d)
+			}
+		})
+	}
+	t.Run("no key is unaffected", func(t *testing.T) {
+		resp, err := s.Check(context.Background(), checkReqMethod("POST", "/api/knn-search", nil))
+		if err != nil || resp.GetDeniedResponse().GetStatus().GetCode() != 401 {
+			t.Fatalf("want 401 api_key_required, got err=%v resp=%v", err, resp)
+		}
+	})
+	t.Run("settled empty registry denies an unknown key", func(t *testing.T) {
+		reg := registry.New()
+		reg.Replace(nil)
+		s := NewGRPCServer(reg, Options{Cfg: enforce}, NopRecorder{})
+		resp, err := s.Check(context.Background(), checkReqMethod("POST", "/api/knn-search", map[string]string{"x-api-key": "sfr_whatever_000000000000000000000001"}))
+		if err != nil || resp.GetDeniedResponse().GetStatus().GetCode() != 401 {
+			t.Fatalf("want 401 api_key_invalid, got err=%v resp=%v", err, resp)
+		}
+	})
+}
+
+func TestNCR8NeverLoadedRegistry(t *testing.T) {
+	s := NewGRPCServer(registry.New(), Options{Cfg: enforce}, NopRecorder{})
+	for name, path := range map[string]string{"gated": "/api/knn-search", "ungated": "/api/texts/Genesis.1"} {
+		t.Run("N-CR8 keyed request, "+name, func(t *testing.T) {
+			resp, err := s.Check(context.Background(), checkReqMethod("POST", path, map[string]string{"x-api-key": alpha}))
+			if status.Code(err) != codes.Unavailable {
+				t.Fatalf("want gRPC UNAVAILABLE so Envoy fails open, got err=%v status=%v body=%s", err, resp.GetStatus(), resp.GetDeniedResponse().GetBody())
 			}
 		})
 	}
