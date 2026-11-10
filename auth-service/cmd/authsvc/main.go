@@ -22,7 +22,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 
 	"github.com/Sefaria/Sefaria-Project/auth-service/internal/authz"
 	"github.com/Sefaria/Sefaria-Project/auth-service/internal/registry"
@@ -223,7 +222,6 @@ func main() {
 	}
 	gs := grpc.NewServer()
 	authv3.RegisterAuthorizationServer(gs, authz.NewGRPCServer(reg, opts, rec))
-	reflection.Register(gs)
 	go func() {
 		slog.Info("grpc listening", "addr", lis.Addr().String())
 		if err := gs.Serve(lis); err != nil {
