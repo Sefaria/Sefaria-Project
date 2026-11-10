@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { langCode, useInterfaceLang } from "~/lib/i18n/interface-lang";
-import { segmentHistoryHref, segmentHistoryQueryOptions, type SegmentHistoryAddress } from "~/lib/activity/segment-history";
+import { isSignedOut, segmentHistoryHref, segmentHistoryQueryOptions, type SegmentHistoryAddress } from "~/lib/activity/segment-history";
 import { LoadingState } from "~/ui/Feedback/Feedback";
 import { LinkProvider } from "~/ui/Link/Link";
 import { RevisionHistory } from "~/ui/RevisionHistory/RevisionHistory";
@@ -17,7 +17,8 @@ export function RevisionHistoryRoute({ address, type }: { address: SegmentHistor
   const lang = langCode(useInterfaceLang());
   const router = useRouter();
   const history = useQuery(segmentHistoryQueryOptions(address, type)).data;
-  if (!history) return <LoadingState />;
+  // signed out the route's loader has already sent the reader to log in (src/routes/activity.$.tsx)
+  if (!history || isSignedOut(history)) return <LoadingState />;
   return (
     <LinkProvider value={VerbatimRouterLink}>
       <RevisionHistory history={history} lang={lang} onFilter={(t) => router.history.push(segmentHistoryHref(history, 1, t || null))} />
