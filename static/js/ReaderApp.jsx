@@ -264,6 +264,7 @@ class ReaderApp extends Component {
     document.addEventListener('click', this.handleInAppClickWithModifiers, { capture: true });
     document.addEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.addEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
+    document.addEventListener('chatbot:launcher_visibility', this.handleChatbotLauncherVisibility);
 
     // Handle right-clicks on links with data-target-module to ensure correct domain
     document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
@@ -299,6 +300,7 @@ class ReaderApp extends Component {
     document.removeEventListener('copy', this.handleCopyEvent);
     document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
+    document.removeEventListener('chatbot:launcher_visibility', this.handleChatbotLauncherVisibility);
     document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
@@ -1388,6 +1390,13 @@ class ReaderApp extends Component {
     }
     const replaceHistory = typeof detail === 'object' ? detail.replaceHistory : false;
     this.bootstrapUrl(url, { replaceHistory: replaceHistory });
+  }
+  // The Library Assistant's "Hide Ask button" switch: save a logged-in user's choice to their
+  // account, so every device starts with it (passed back as <lc-chatbot hide-launcher>).
+  // Logged out, the assistant keeps it in that browser on its own.
+  handleChatbotLauncherVisibility(event) {
+    if (!Sefaria._uid || typeof event?.detail?.hidden !== 'boolean') return;
+    Sefaria.editProfileAPI({ settings: { library_assistant_ask_button_hidden: event.detail.hidden } });
   }
   handleSettingsUpdatedEvent(event) {
     const detail = event?.detail;
@@ -2854,6 +2863,8 @@ class ReaderApp extends Component {
                       max-prompts={this.props.chatbot_max_prompts}
                       interface-lang={Sefaria._getShortInterfaceLang()}
                       anon-free-answers={this.props.chatbot_anon_free_answers ?? undefined}
+                      // A logged-in user's saved "Hide Ask button" choice; absent when logged out
+                      hide-launcher={this.props.chatbot_hide_launcher == null ? undefined : String(this.props.chatbot_hide_launcher)}
                     >
                       {!Sefaria._uid && (
                         // Shown in the assistant's login prompt (its signup-options slot). They stay in

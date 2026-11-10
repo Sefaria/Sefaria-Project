@@ -265,3 +265,55 @@ class LoggedInFreeAnswerLimitTest(LibraryAssistantUserTestCase):
         with mock.patch("sefaria.helper.library_assistant.remoteConfigCache", cache):
             props = chatbot_access_props(request, UserProfile(id=self.user.id))
         self.assertNotIn("chatbot_anon_free_answers", props)
+
+
+class AskButtonHiddenTest(LibraryAssistantUserTestCase):
+    """
+    The assistant's "Hide Ask button" switch, saved to the account through /api/profile
+    and passed back to the widget as `chatbot_hide_launcher`.
+    """
+
+    KEY = library_assistant.ASK_BUTTON_HIDDEN_KEY
+
+    def access_props(self):
+        request = mock.Mock()
+        request.user = self.user
+        return chatbot_access_props(request, UserProfile(id=self.user.id))
+
+    def post_hidden(self, value):
+        return self.post_profile({"settings": {self.KEY: value}})
+
+    def test_not_hidden_until_the_user_hides_it(self):
+        self.post_setting(True)
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], False)
+
+    def test_hiding_is_saved_and_passed_to_the_assistant(self):
+        self.post_setting(True)
+        self.post_hidden(True)
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], True)
+
+    def test_showing_again(self):
+        self.post_setting(True)
+        self.post_hidden(True)
+        self.post_hidden(False)
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], False)
+
+    def test_posted_string_false_is_not_truthy(self):
+        self.post_setting(True)
+        self.post_hidden("false")
+
+        self.assertIs(UserProfile(id=self.user.id).settings.get(self.KEY), False)
+
+    def test_hiding_the_button_leaves_the_assistant_on(self):
+        self.post_setting(True)
+        self.post_hidden(True)
+
+        self.assertIs(self.stored_setting(), True)
+
+    def test_not_passed_when_the_assistant_is_off(self):
+        self.post_setting(False)
+
+        self.assertNotIn("chatbot_hide_launcher", self.access_props())

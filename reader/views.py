@@ -367,6 +367,7 @@ def chatbot_access_props(request, profile):
         if library_assistant.is_enabled(profile):
             props["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
             props["chatbot_enabled"] = True
+            props["chatbot_hide_launcher"] = library_assistant.is_ask_button_hidden(profile)
         # TEMPORARY (goes with the experiments framework): `in_chatbot_experiment`
         # suppresses the "try the Library Assistant" promo banner for users who have
         # already made a choice about the assistant — whether they are using it or
@@ -4807,10 +4808,10 @@ def profile_api(request, slug=None):
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
 
-        la_key = library_assistant.SETTING_KEY
-        if la_key in profileUpdate.get("settings", {}):
-            # Public endpoint — coerce so a posted "false" can't read as truthy.
-            profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
+        for la_key in (library_assistant.SETTING_KEY, library_assistant.ASK_BUTTON_HIDDEN_KEY):
+            if la_key in profileUpdate.get("settings", {}):
+                # Public endpoint — coerce so a posted "false" can't read as truthy.
+                profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
 
         profile = UserProfile(id=request.user.id)
         profile.update(profileUpdate)
