@@ -4,8 +4,10 @@ POST /api/reader-errors (reader/browser_errors.py): the new reader's browser err
 """
 
 import json
+import time
 from unittest.mock import patch
 
+import pytest
 from django.core.cache import cache
 from django.test import Client, TestCase, override_settings
 from django.urls import Resolver404, resolve
@@ -131,6 +133,15 @@ class ReaderErrorsApiTestCase(TestCase):
                 self.assertEqual(self.post(body).status_code, 400)
         self.logger.warning.assert_not_called()
 
+    def test_release_left_out_when_null(self):
+        self.assertEqual(self.post(dict(REPORT, release=None)).status_code, 204)
+        self.assertNotIn("release", self.logged())
+
+    def test_an_address_cut_by_the_cap_is_still_scrubbed(self):
+        message = "m" * 490 + " reader@example.com"
+        self.assertEqual(self.post(dict(REPORT, message=message)).status_code, 204)
+        self.assertNotIn("reader@ex", self.logged()["message"])
+
     def test_over_16_kb_is_413(self):
         body = json.dumps(dict(REPORT, stack="s" * (17 * 1024)))
         self.assertEqual(self.post(body).status_code, 413)
@@ -161,3 +172,25 @@ def test_library_host_only():
     except Resolver404:
         return
     assert match.func is not browser_errors.reader_errors_api
+
+
+ADVERSARIAL = {
+    "letters": "a" * 16000,
+    "dotted": "a." * 8000,
+    "at then dotted": "x@" + "a." * 8000,
+    "many ats": "a@" * 8000,
+    "address-like runs": "a.b-c@" * 2700,
+    "query marks": "?" * 16000,
+}
+
+
+@pytest.mark.parametrize("name", list(ADVERSARIAL))
+def test_scrubbing_an_adversarial_16_kb_body_is_fast(name):
+    """B1: the scrub patterns are bounded and run on the capped text, so no field of a 16 KB beacon backtracks for seconds."""
+    text = ADVERSARIAL[name]
+    report = dict(REPORT, message=text, stack=text, source=text, path="/" + text)
+    started = time.perf_counter()
+    out = browser_errors.validate(report)
+    elapsed = time.perf_counter() - started
+    assert out is not None
+    assert elapsed < 0.05, f"{name}: {elapsed * 1000:.0f} ms"

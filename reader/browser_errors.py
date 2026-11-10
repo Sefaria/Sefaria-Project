@@ -31,12 +31,16 @@ KINDS = {"error", "unhandledrejection", "boundary", "hydration"}
 BOUNDARIES = {"root", "route", "panel"}
 TOKEN_RE = re.compile(r"^[a-z0-9-]{1,40}$")  # route kind, ua class
 RELEASE_RE = re.compile(r"^[A-Za-z0-9._+-]{1,80}$")
-QUERY_RE = re.compile(r"\?[^\s\"'`<>)]*")
-EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+# Bounded patterns only (a beacon is untrusted input up to 16 KB): no unbounded repeat that can backtrack across the whole field.
+QUERY_RE = re.compile(r"\?[^\s\"'`<>)]{0,5000}")
+EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]{1,64}@(?:[A-Za-z0-9-]{1,63}\.){1,8}[A-Za-z]{2,24}")
+# scrubbed with this much past the cap first, so an address or query the cap would cut through is still recognised and removed
+SCRUB_MARGIN = 400
 
 
 def _scrub(text, limit):
-    return EMAIL_RE.sub("[email]", QUERY_RE.sub("", text))[:limit]
+    """Cut to the cap (plus a margin) first, then remove query strings and e-mail addresses, then cut to the cap."""
+    return EMAIL_RE.sub("[email]", QUERY_RE.sub("", text[: limit + SCRUB_MARGIN]))[:limit]
 
 
 def _client_address(request):
@@ -73,7 +77,7 @@ def validate(report):
         "kind": report["kind"],
         "message": _scrub(message, 500),
         # the path only: never its query or fragment
-        "path": EMAIL_RE.sub("[email]", path.split("?", 1)[0].split("#", 1)[0])[:300],
+        "path": _scrub(path[: 300 + SCRUB_MARGIN].split("?", 1)[0].split("#", 1)[0], 300),
     }
     boundary = report.get("boundary")
     if boundary is not None:
@@ -89,7 +93,8 @@ def validate(report):
     release = report.get("release")
     if release is not None and not (isinstance(release, str) and RELEASE_RE.match(release)):
         return None
-    out["release"] = release
+    if release is not None:
+        out["release"] = release
     for field in ("route", "ua"):
         value = report.get(field)
         if value is not None:
