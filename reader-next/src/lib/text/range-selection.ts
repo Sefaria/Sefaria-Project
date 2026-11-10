@@ -6,9 +6,10 @@
  *    and every segment in it is highlighted (blue), with the sidebar open or closed.
  *  - A pasted range inside one section (Genesis 1:3-5, Berakhot 5a:3-6) stays and is highlighted too (owner 2026-11-10: the old
  *    reader's occasional collapse of such a range is a race, not ported).
- *  - A range of whole sections (Genesis 6-8; a daf without its amud, Berakhot 2 = 2a-2b) highlights all of it; without the sidebar
- *    the address is rewritten to its segments (Genesis.6.1-8.22, Berakhot.2a.1-2b.19), with the sidebar it is left as the range of
- *    sections (Berakhot.2a-2b). A range longer than the sections loaded with the page keeps its address and is not highlighted.
+ *  - A range of whole sections (Genesis 6-8; a daf without its amud, Berakhot 2 = 2a-2b; Genesis 1-50) highlights all of it at once;
+ *    without the sidebar the address is rewritten to its segments (Genesis.6.1-8.22, Berakhot.2a.1-2b.19, Genesis.1.1-50.26) once the
+ *    last section's length is known (one request when it is not among the sections loaded with the page); with the sidebar it is left
+ *    as the range of sections (Berakhot.2a-2b).
  *  - Selecting text across several segments highlights them (blue) whether or not the sidebar is open, and never opens it. With the
  *    sidebar open the address becomes the range; with it closed, the address becomes the range only when the range lies in the
  *    section being read (the old history rule: the highlighted ref when it and the currently visible section contain one another),
@@ -57,22 +58,31 @@ export function keepsRange(a: { segments: number }): boolean {
 }
 
 /**
- * A range of whole sections (no segment named: "Genesis 6-8", "Berakhot 2a-2b", "Rashi on Exodus 3:1-4:10"): the highlight over all its
- * segments and the same range written by its segments, when the whole range is among the sections loaded with the page. A longer one
- * (Genesis 1-50: only its first sections load) keeps its address as asked and is not highlighted: blue over whole books is what the
- * old reader never effectively shows (atlas TXD-070). Null when the address names segments.
+ * A range of whole sections (no segment named: "Genesis 6-8", "Berakhot 2a-2b", "Genesis 1-50"): highlighted from its first segment to
+ * the end of its last section at once (by address: `isHighlighted` compares only as deep as `to`, so the sections the column loads
+ * later are blue as they arrive), and written by its segments ("Genesis 1:1-50:26") once its last section's length is known, as
+ * sefaria.org does (VERIFIED 2026-11-10: /Genesis.1-50 → /Genesis.1.1-50.26 with every verse blue; it writes the address before any
+ * text shows, from the server, then loads all fifty chapters). Here the last section is one request (`lastSection`), fetched by the
+ * panel when the address is to be rewritten; until it arrives the address stays as typed (`ref` undefined). `passages` are what is
+ * loaded: the first section, and the last when it is in hand. Null when the address names segments or is not a range.
  */
-export function wholeSectionRange(rangeRef: string, sectionRefs: readonly string[], passages: readonly TextPassage[]): { highlight: Highlight; ref: string } | null {
+export function wholeSectionRange(
+  rangeRef: string,
+  firstSectionRef: string | undefined,
+  passages: readonly (TextPassage | undefined)[],
+): { highlight: Highlight; lastSection: string; ref?: string } | null {
   if (!isRangedRef(rangeRef)) return null;
-  const end = parseHumanRef(rangeRef).toSections;
-  const first = passages.find((p) => p.ref === sectionRefs[0]);
+  const asked = parseHumanRef(rangeRef);
+  const end = asked.toSections;
+  const first = passages.find((p) => p?.ref === firstSectionRef);
   const firstSeg = first?.segments[0];
-  if (!firstSeg || !end.length || firstSeg.address.length !== end.length + 1) return null;
-  const last = passages.find((p) => p.ref === sectionRefs[sectionRefs.length - 1]);
-  const lastSeg = last?.segments.at(-1);
-  if (!lastSeg || lastSeg.address.slice(0, -1).join(":") !== end.join(":")) return null;
-  const ref = rangeOf([firstSeg.ref, lastSeg.ref]);
-  return ref ? { highlight: { from: firstSeg.address, to: lastSeg.address }, ref } : null;
+  if (!first || !firstSeg || !end.length || firstSeg.address.length !== end.length + 1) return null;
+  const lastSection = `${first.book} ${end.join(":")}`;
+  const lastSeg = passages.find((p) => p?.ref === lastSection)?.segments.at(-1);
+  const lastKnown = !!lastSeg && lastSeg.address.slice(0, -1).join(":") === end.join(":");
+  const highlight = { from: firstSeg.address, to: lastKnown ? lastSeg.address : end };
+  const ref = lastKnown ? rangeOf([firstSeg.ref, lastSeg.ref]) : undefined;
+  return { highlight, lastSection, ...(ref ? { ref } : {}) };
 }
 
 /**
