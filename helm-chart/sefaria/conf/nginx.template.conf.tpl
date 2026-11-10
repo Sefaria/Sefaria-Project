@@ -94,10 +94,18 @@ http {
     server reader-{{ .Values.deployEnv }}:3000;
     keepalive 32;
   }
+  {{- if .Values.reader.optin.enabled }}
   map $cookie_reader_version $page_upstream {
     default varnishupstream;
     next    readerupstream;
   }
+  {{- else }}
+  # reader.optin.enabled is false (the kill switch): the cookie is ignored and every page goes to Varnish/Django, as in legacy mode.
+  # The reader rollout keeps running (reader-next/docs/DEPLOYMENT.md, "Kill switch and rollback").
+  map $cookie_reader_version $page_upstream {
+    default varnishupstream;
+  }
+  {{- end }}
   {{- end }}
 
   upstream elasticsearch_upstream {
@@ -253,6 +261,7 @@ http {
     }
 
     {{- else }}
+
     location / {
       {{- if $.Values.instrumentation.enabled }}
       opentracing on;
@@ -300,6 +309,28 @@ http {
     }
     {{- end }}
     {{- end }}
+    {{- end }}
+    {{- if or (eq $.Values.nodejs.mode "reader") (eq $.Values.nodejs.mode "optin") }}
+
+    # Django's own pages (DJANGO_PREFIXES in reader-next/src/lib/routing/django-paths.ts, except /api/ and /static/, which have their
+    # own locations) and the site's well-known files go straight to Varnish: the reader client would only pass them on (or first try
+    # to render a favicon). Generated: templates/_reader-django-paths.tpl (build/ci/reader-nginx-paths.mjs; CI checks it is current).
+    # After the module redirects above on purpose: regex locations are tried in order, so those keep their 307s.
+    location ~ "{{ include "sefaria.readerDjangoPathRegex" $ }}" {
+      {{- if $.Values.instrumentation.enabled }}
+      opentracing on;
+      opentracing_propagate_context;
+      {{- end }}
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnishupstream;
+    }
     {{- end }}
   }
 

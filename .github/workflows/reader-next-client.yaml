@@ -6,10 +6,10 @@ name: reader-next client
 on:
   pull_request:
     branches: [reader-next]
-    paths: ["reader-next/**", ".github/workflows/reader-next-client.yaml"]
+    paths: ["reader-next/**", ".github/workflows/reader-next-client.yaml", "build/ci/reader-nginx-paths.mjs", "build/ci/reader-budgets*", "helm-chart/sefaria/templates/_reader-django-paths.tpl"]
   push:
     branches: [reader-next]
-    paths: ["reader-next/**", ".github/workflows/reader-next-client.yaml"]
+    paths: ["reader-next/**", ".github/workflows/reader-next-client.yaml", "build/ci/reader-nginx-paths.mjs", "build/ci/reader-budgets*", "helm-chart/sefaria/templates/_reader-django-paths.tpl"]
 
 concurrency:
   group: reader-next-client-${{ github.ref }}
@@ -38,6 +38,8 @@ jobs:
         run: npm test
       - name: Atlas tags exist
         run: npm run features:coverage -- --unknown
+      - name: nginx's Django paths match DJANGO_PREFIXES (helm-chart/sefaria/templates/_reader-django-paths.tpl)
+        run: node --experimental-strip-types ../build/ci/reader-nginx-paths.mjs --check
       - name: Component tests (English, LTR)
         run: npm run test:stories
       - name: Component tests (Hebrew, RTL)
