@@ -4,7 +4,7 @@ import { baseURLFor } from '../env';
 import { InterfaceLang, contextAs, prepareContext } from '../session';
 import { t } from '../../globals';
 import { rawRequest, stamped, summary } from '../gateway/util';
-import { voicesBase, watchRefusals } from './browser';
+import { settleRefusals, voicesBase, watchRefusals } from './browser';
 
 /**
  * The website's own traffic through the gateway: page views, XHRs and static files must never be
@@ -40,6 +40,7 @@ test.describe('website through the gateway', () => {
       try {
         for (const path of LIBRARY_PAGES) await visit(page, path);
         await visit(page, `${voicesBase(target.name)}/`);
+        await settleRefusals(refusals);
       } finally {
         await context.close();
       }
@@ -52,6 +53,7 @@ test.describe('website through the gateway', () => {
       for (const path of [...LIBRARY_PAGES, ...SETTINGS_PAGES]) await visit(page, path);
       expect(await page.evaluate(() => (window as any).Sefaria._uid)).toBe(who.id);
       await visit(page, `${voicesBase(target.name)}/`);
+      await settleRefusals(refusals);
       expect(refusals, JSON.stringify(refusals)).toEqual([]);
     });
   }

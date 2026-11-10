@@ -29,7 +29,7 @@ probe_a2a() {
   grep -q "key_prefix=${key:0:12} " <<<"$logs" && has_prefix=yes
   grep -qF "$key" <<<"$logs" && has_full=yes
   local ev; ev="GET $GATED with a random sfr_ key -> $(status_of "$r") code=$code www-authenticate='$www'; deny log line with a 12-character prefix: $has_prefix; full value in the log: $has_full"
-  if [ "$(status_of "$r")" = 401 ] && [ "$code" = api_key_invalid ] && [ -n "$www" ] && [ "$has_full" = no ]; then
+  if [ "$(status_of "$r")" = 401 ] && [ "$code" = api_key_invalid ] && [ -n "$www" ] && [ "$has_prefix" = yes ] && [ "$has_full" = no ]; then
     rec A2a pass "$ev"
   else
     rec A2a "$(infra_or "$(status_of "$r")" fail-product-bug)" "$ev"

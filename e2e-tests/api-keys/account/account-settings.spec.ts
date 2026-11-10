@@ -267,6 +267,9 @@ test.describe('account settings: developer', () => {
     await dev.createKey(dev.projectCard(project.name), label);
     const madeKey = (await developerState(page)).projects.find((p: any) => p.id === project.id).keys.find((k: any) => k.label === label);
     expect(!!madeKey, 'the key exists on the server').toBe(true);
+    // Both values must be real strings, or the history.state check below would search for "undefined" and never fail.
+    expect(typeof madeKey.value === 'string' && madeKey.value.length > 0, 'state returns the made key value').toBe(true);
+    expect(typeof baselineKey?.value === 'string' && baselineKey.value.length > 0, 'the baseline key response carries its value').toBe(true);
 
     try {
       await markDocument(page);
