@@ -12,12 +12,22 @@ const path = (page: Page) => decodeURIComponent(new URL(page.url()).pathname);
 const sidebar = (page: Page) => page.getByRole("complementary");
 const seg = (page: Page, ref: string) => page.locator(`[role="group"][data-ref="${ref}"]`);
 
+/**
+ * The page has gone quiet: no request outstanding (sections, links), then two frames and a little more than the scroll engine's settle
+ * time (SETTLE_MS, 100 ms), by which anything that would collapse a range or rewrite the address has happened. A positive signal to wait
+ * for before checking that something did not change.
+ */
+async function quiet(page: Page) {
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 150)))));
+}
+
 /** Select text from the start of one segment's words to inside another's, as a reader drags. */
 async function dragSelect(page: Page, from: string, to: string) {
   // the first segment just under the reader's header, so the last one is on screen too
   await seg(page, from).evaluate((el) => el.scrollIntoView({ block: "start" }));
   await seg(page, from).evaluate((el) => (el.closest("[data-reader-scroller]") as HTMLElement).scrollBy(0, -120));
-  await page.waitForTimeout(500);
+  await quiet(page);
   // a point on the first and on the fifth word of each segment's text (not its number, which cannot be selected)
   const wordAt = (ref: string, n: number) =>
     seg(page, ref).evaluate((el, n) => {
@@ -47,7 +57,7 @@ test.describe("a pasted range across sections stays and is highlighted", () => {
     test(`Genesis 1:30-2:3, sidebar ${withSidebar ? "open" : "closed"}`, async ({ page }) => {
       await open(page, `/Genesis.1.30-2.3${q}`);
       await expect.poll(() => highlighted(page)).toEqual(G130_23);
-      await page.waitForTimeout(800); // past the moment a range inside one section collapses
+      await quiet(page); // past the moment a range inside one section collapses
       expect(path(page)).toBe("/Genesis.1.30-2.3");
       expect(await highlighted(page)).toEqual(G130_23);
       await expect(sidebar(page)).toHaveCount(withSidebar ? 1 : 0);
@@ -58,14 +68,14 @@ test.describe("a pasted range across sections stays and is highlighted", () => {
       await expect.poll(async () => (await highlighted(page)).length).toBe(17);
       const hl = await highlighted(page);
       expect([hl[0], hl.at(-1)]).toEqual(["Berakhot 2b:5", "Berakhot 3a:2"]);
-      await page.waitForTimeout(800);
+      await quiet(page);
       expect(path(page)).toBe("/Berakhot.2b.5-3a.2");
     });
 
     test(`a commentary range across chapters, sidebar ${withSidebar ? "open" : "closed"}`, async ({ page }) => {
       await open(page, `/Rashi_on_Genesis.1.31.1-2.2.1${q}`);
       await expect.poll(() => highlighted(page)).toEqual(["Rashi on Genesis 1:31:1", "Rashi on Genesis 2:2:1"]);
-      await page.waitForTimeout(800);
+      await quiet(page);
       expect(path(page)).toBe("/Rashi_on_Genesis.1.31.1-2.2.1");
     });
   }
@@ -79,7 +89,7 @@ test.describe("a pasted range across sections stays and is highlighted", () => {
   test("a range of whole chapters keeps its address with the sidebar open, all highlighted", async ({ page }) => {
     await open(page, "/Genesis.6-8?lang=en&with=all");
     await expect.poll(async () => (await highlighted(page)).length).toBe(68);
-    await page.waitForTimeout(800);
+    await quiet(page);
     expect(path(page)).toBe("/Genesis.6-8");
   });
 
@@ -107,7 +117,7 @@ test.describe("a pasted range inside one section stays and is highlighted", () =
         await expect.poll(() => highlighted(page)).toEqual([...refs]);
         await expect(sidebar(page)).toHaveCount(withSidebar ? 1 : 0);
         // the column has settled (the moment the old code collapsed a range) and nothing changed
-        await page.waitForTimeout(1000);
+        await quiet(page);
         expect(path(page)).toBe(path_);
         expect(await highlighted(page)).toEqual([...refs]);
         if (withSidebar) await expect(page.locator('[data-focused="true"]')).toHaveAttribute("data-ref", refs[0]);
@@ -153,7 +163,7 @@ test.describe("a range of whole sections longer than what loads with the page", 
     });
     await open(page, "/Genesis.1-50?lang=en");
     await expect(page).toHaveURL(/\/Genesis\.1\.1-50\.26\?/);
-    await page.waitForTimeout(500);
+    await quiet(page);
     const tops = await page.evaluate(() => (window as unknown as { __tops: [string, number][] }).__tops);
     // the text was on screen before the address changed, and it did not move when it changed (from the last frame at the typed
     // address on; how the page settles before that, fonts and styles arriving, is e2e/smoothness.spec.ts's)
@@ -166,15 +176,18 @@ test.describe("a range of whole sections longer than what loads with the page", 
     const all = await page.locator("[data-reader-scroller] [role='group'][data-ref]").evaluateAll((els) => els.map((e) => e.getAttribute("data-ref")));
     expect(hl[0]).toBe("Genesis 1:1");
     expect(hl).toEqual([...new Set(all)]);
-    await page.waitForTimeout(800);
     expect(path(page)).toBe("/Genesis.1.1-50.26");
   });
 
-  test("with the sidebar open keeps its address, all highlighted", async ({ page }) => {
+  test("with the sidebar open keeps its address, all highlighted (its last chapter is not even asked for)", async ({ page }) => {
+    const asked: string[] = [];
+    page.on("request", (r) => asked.push(decodeURIComponent(r.url())));
     await open(page, "/Genesis.1-50?lang=en&with=all");
     await expect.poll(async () => (await highlighted(page))[0]).toBe("Genesis 1:1");
-    await page.waitForTimeout(800);
+    await quiet(page); // every request answered: a rewrite would have been written by now
     expect(path(page)).toBe("/Genesis.1-50");
+    expect(asked.filter((u) => /\/texts\/Genesis[ .]50\b/.test(u))).toEqual([]);
+    expect(asked.some((u) => /\/texts\/Genesis[ .]1\b/.test(u)) || (await highlighted(page)).length > 0).toBe(true);
   });
 
   test("a later chapter is blue when the column loads it", async ({ page }) => {
@@ -292,12 +305,12 @@ test.describe("keys that do not scroll leave a selected range alone", () => {
       await expect.poll(() => path(page)).toBe(address);
       // a drag that reaches the column's edge scrolls it (the browser's, not the reader's wheel): the verse on the reading line changes
       await page.locator("[data-reader-scroller]").evaluate((el) => el.scrollBy(0, 250));
-      await page.waitForTimeout(500);
+      await quiet(page);
       await page.keyboard.press("ControlOrMeta+c");
       await page.keyboard.press("Shift");
       await page.keyboard.press("Meta");
       await page.setViewportSize({ width: 760, height: 1300 }); // the window narrowed to the phone layout: everything reflows
-      await page.waitForTimeout(1500); // well past the moment a scroll settles
+      await quiet(page); // the reflow has loaded what it needs and the scroll engine has had its settle time
       expect(await highlighted(page)).toEqual([...refs]);
       expect(path(page)).toBe(address);
     });
@@ -334,13 +347,26 @@ test.describe("a selection made by keyboard or touch makes a range, as a mouse s
     await expect(sidebar(page)).toHaveCount(0);
   });
 
-  test("a selection outside the text (the header) makes no range", async ({ page }) => {
+  test("a selection made by script (as find in page moves it), with no gesture, changes nothing; Shift+Down then still does", async ({ page }) => {
     await open(page, "/Genesis.1.3?lang=en");
-    await expect(seg(page, "Genesis 1:5")).toBeAttached();
-    await page.evaluate(() => getSelection()!.selectAllChildren(document.querySelector("header") ?? document.body.firstElementChild!));
-    await page.waitForTimeout(800);
+    await expect(seg(page, "Genesis 1:8")).toBeAttached();
+    const seen: string[] = [];
+    page.on("framenavigated", (f) => f === page.mainFrame() && seen.push(decodeURIComponent(new URL(f.url()).pathname)));
+    await selectByScript(page, "Genesis 1:6", "Genesis 1:8");
+    // past the touch debounce (700 ms), the longest a reported selection waits
+    await page.evaluate(() => new Promise((r) => setTimeout(r, 900)));
     expect(await highlighted(page)).toEqual([]);
     expect(path(page)).toBe("/Genesis.1.3");
+    // the listener is alive: a keyboard selection from 1:3 makes its range
+    await selectByScript(page, "Genesis 1:3");
+    await expect
+      .poll(async () => {
+        await page.keyboard.press("Shift+ArrowDown");
+        return (await page.evaluate(() => String(getSelection()))).length > 0 && (await highlighted(page)).length > 1;
+      })
+      .toBe(true);
+    expect((await highlighted(page))[0]).toBe("Genesis 1:3");
+    expect(seen.filter((p) => p.startsWith("/Genesis.1.6"))).toEqual([]);
   });
 });
 
@@ -349,7 +375,14 @@ test.describe("on a phone, a selection made by touch (no mouseup) makes a range"
   test("1:3 to 1:4 selected (as a long press and its handles leave it): highlighted, the address follows", async ({ page }) => {
     await open(page, "/Genesis.1.3?lang=en");
     await expect(seg(page, "Genesis 1:4")).toBeAttached();
-    // Playwright cannot long-press to select; the selection it leaves is made here, with no mouse event at all
+    // Playwright cannot long-press to select: a finger is pressed on 1:3 for 800 ms (a long press, through CDP), and the selection it
+    // leaves is made here, with no mouse event at all
+    const box = (await seg(page, "Genesis 1:3").boundingBox())!;
+    const cdp = await page.context().newCDPSession(page);
+    const point = { x: box.x + box.width / 2, y: box.y + 10 };
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point] });
+    await page.waitForTimeout(800); // the press itself (an action, not a wait for something to happen)
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     await selectByScript(page, "Genesis 1:3", "Genesis 1:4");
     await expect.poll(() => highlighted(page)).toEqual(["Genesis 1:3", "Genesis 1:4"]);
     await expect(page).toHaveURL(/\/Genesis\.1\.3-4\?/);
