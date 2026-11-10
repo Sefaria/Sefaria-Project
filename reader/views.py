@@ -138,7 +138,7 @@ from sefaria.settings import (
     USE_NODE,
     USE_VARNISH,
 )
-from sefaria.sheets import annotate_user_links, get_sheet_for_panel, get_sheets_for_ref
+from sefaria.sheets import annotate_user_links, get_sheet_anchors_for_ref, get_sheet_for_panel, get_sheets_for_ref
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.cache import django_cache, gen_cache
 from sefaria.system.database import db
@@ -3122,14 +3122,21 @@ def related_api(request, tref):
     elif bool(int(request.GET.get("private", False))) and not request.user.is_authenticated:
         response = {"error": "You must be logged in to access private content."}
     else:
-        sheets = get_sheets_for_ref(tref)
-        response = {
-            "links": get_links(
+        # `with_links=0` leaves out the links (a client that already has them from /api/links); `sheets=count` gives only each
+        # sheet's id and anchors, enough to count the sheets on the verses shown. Both are new URLs, so new Varnish keys:
+        # every other caller gets the same answer as before.
+        with_links = request.GET.get("with_links", "1") != "0"
+        sheets_count_only = request.GET.get("sheets") == "count"
+        sheets = get_sheet_anchors_for_ref(tref) if sheets_count_only else get_sheets_for_ref(tref)
+        response = {}
+        if with_links:
+            response["links"] = get_links(
                 tref,
                 with_text=False,
                 with_sheet_links=bool(int(request.GET.get("with_sheet_links", False))),
-                public_sheets=sheets,
-            ),
+                public_sheets=None if sheets_count_only else sheets,
+            )
+        response |= {
             "sheets": sheets,
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "topics": get_topics_for_ref(tref, request.interfaceLang, annotate=True),

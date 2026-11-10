@@ -52,6 +52,7 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
         purge_url(f"{FRONT_END_URL}/api/related/{oref.url()}")
         purge_url(f"{FRONT_END_URL}/api/related/{oref.url()}?with_sheet_links=1")
         purge_url(f"{FRONT_END_URL}/api/related/{oref.url()}?with_sheet_links=0")
+        purge_url(f"{FRONT_END_URL}/api/related/{oref.url()}?with_links=0&sheets=count")  # the new reader's Resources
 
     # Ban anything underneath this section
     ban_url(f"/api/texts/{url_regex(oref)}")
