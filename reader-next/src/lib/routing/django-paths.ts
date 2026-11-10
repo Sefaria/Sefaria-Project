@@ -10,6 +10,8 @@
  */
 
 /** First path segments that are always Django's (sefaria/urls*.py, plus the pages the old site serves under them). */
+import { rendersStaticPage, STATIC_PAGE_NAMES } from "~/lib/static-page/pages";
+
 export const DJANGO_PREFIXES = [
   "api", "_api", "static", "admin", "logout", "account", "accounts", "_allauth", "gauth", "unlink-gauth", "sso",
   "sheets", "sheets-with-ref", "collections", "groups", "profile", "people", "person", "settings", "notifications",
@@ -18,7 +20,8 @@ export const DJANGO_PREFIXES = [
   "add", "new-home", "getstarted", "healthz", "healthz-rollout", "health-check", "sefaria.js", "search-autocomplete-redirecter", "embed", "edit_text",
   "enable-library-assistant",
 ];
-const PREFIX_RE = new RegExp(`^/(?:${DJANGO_PREFIXES.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?:[/.]|$)`);
+const escapeRe = (p: string) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const PREFIX_RE = new RegExp(`^/(?:${DJANGO_PREFIXES.map(escapeRe).join("|")})(?:[/.]|$)`);
 
 /**
  * First path segments this client renders on the Library host only. On the Voices host (voices.sefaria.org, chiburim.sefaria.org.il)
@@ -31,7 +34,17 @@ export const LIBRARY_HOST_ONLY = LIBRARY_ONLY_PREFIXES;
 export const LIBRARY_HOST_ONLY_PREFIXES = LIBRARY_ONLY_PREFIXES;
 export const VOICES_DJANGO_PREFIXES = LIBRARY_ONLY_PREFIXES;
 const LIBRARY_ONLY_RE = new RegExp(`^/(?:${LIBRARY_ONLY_PREFIXES.join("|")})(?:[/.]|$)`);
-export const isLibraryOnlyPage = (pathname: string): boolean => LIBRARY_ONLY_RE.test(pathname);
+
+/**
+ * The static information pages this client renders (lib/static-page/pages.ts: Django's content block in this shell, or a port), by
+ * their exact address (`/about`, `/about/`): Library-only like the prefixes above, so on the Voices host they stay Django's as before.
+ */
+const CLIENT_STATIC_RE = new RegExp(`^/(?:${STATIC_PAGE_NAMES.filter(rendersStaticPage).map(escapeRe).join("|")})/?$`);
+/** The static pages that stay Django's on every host (a legacy React or CMS page not ported yet, a standalone document): pages.ts. */
+const DJANGO_STATIC_RE = new RegExp(`^/(?:${STATIC_PAGE_NAMES.filter((n) => !rendersStaticPage(n)).map(escapeRe).join("|")})/?$`);
+export const isClientStaticPage = (pathname: string): boolean => CLIENT_STATIC_RE.test(pathname);
+
+export const isLibraryOnlyPage = (pathname: string): boolean => LIBRARY_ONLY_RE.test(pathname) || CLIENT_STATIC_RE.test(pathname);
 
 /**
  * Library-only paths that stay Django's with a trailing slash: Django's translations pattern takes "de/" as the slug and answers 404,
@@ -45,6 +58,8 @@ const DJANGO_WITH_SLASH_RE = /^\/translations(?:\/.*)?\/$/;
  * user's activity, the leaderboard: one or two segments) stays Django's.
  */
 const CLIENT_UNDER_DJANGO_PREFIX_RE = /^\/activity\/[^/]+\/[^/]{2}\/[^/]/;
+/** And the Linker's information page, `/linker` itself (static-page; /linker.js and the rest of /linker… stay Django's). */
+const CLIENT_LINKER_RE = /^\/linker\/?$/;
 
 /**
  * Is this request's host the Voices site? Its host is the configured Voices origin's (PUBLIC_VOICES_ORIGIN), or any host whose first
@@ -69,7 +84,8 @@ export function isVoicesHost(host: string | null | undefined, voicesOrigin?: str
  * Django's on the Voices host, and a translations path with a trailing slash is Django's everywhere.
  */
 export const isDjangoPage = (pathname: string, host?: string | null, voicesOrigin?: string): boolean =>
-  (PREFIX_RE.test(pathname) && !(CLIENT_UNDER_DJANGO_PREFIX_RE.test(pathname) && !isVoicesHost(host, voicesOrigin))) ||
+  (PREFIX_RE.test(pathname) && !((CLIENT_UNDER_DJANGO_PREFIX_RE.test(pathname) || CLIENT_LINKER_RE.test(pathname)) && !isVoicesHost(host, voicesOrigin))) ||
+  DJANGO_STATIC_RE.test(pathname) ||
   DJANGO_WITH_SLASH_RE.test(pathname) ||
   (isLibraryOnlyPage(pathname) && isVoicesHost(host, voicesOrigin));
 

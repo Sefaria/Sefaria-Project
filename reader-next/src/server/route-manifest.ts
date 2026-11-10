@@ -2,7 +2,7 @@
  * Which server answers a path, decided before rendering (CODE_REVIEW R-36: every path this client did not know was rendered in full —
  * its API calls made and thrown away — and only its 404 sent it on to Django).
  *
- *  - this client's own pages (the library, search, sign-in, assets…) render here;
+ *  - this client's own pages (the library, search, sign-in, assets…, the static information pages it renders) render here;
  *  - every other path is a ref: rendered here when its title is a text — a title of the catalog (kept once on the server), else one the
  *    name API calls a ref ("Gen.1.1", a complex text's node) — and handed to Django when it is not ("/about", "/Tanakh", a page of the
  *    old site this client does not have). The name check is cached.
@@ -11,9 +11,10 @@
 import { SEFARIA_API_ORIGIN } from "~/lib/api/client";
 import { serverCatalogTree, type TocNode } from "~/lib/catalog/toc";
 import { parseUrlRef } from "~/lib/ref/url";
+import { isClientStaticPage } from "~/lib/routing/django-paths";
 
 const CLIENT_EXACT = new Set(["/", "/search", "/login", "/register", "/texts", "/calendars", "/calendars/", "/compare", "/topics", "/saved", "/history"]);
-const CLIENT_PREFIXES = ["/texts/", "/activity/", "/translations/", "/compare/", "/topics/", "/interface/", "/password/reset/confirm/", "/_serverFn/", "/assets/", "/auth/", "/brand/", "/fonts/", "/img/", "/@", "/__"];
+const CLIENT_PREFIXES = ["/texts/", "/activity/", "/translations/", "/compare/", "/topics/", "/interface/", "/password/reset/confirm/", "/_serverFn/", "/assets/", "/auth/", "/static-page-styles/", "/brand/", "/fonts/", "/img/", "/@", "/__"];
 
 export type RouteOwner = "client" | "django";
 
@@ -64,6 +65,8 @@ async function nameIsRef(title: string, now: number, fetcher: typeof fetch): Pro
 
 export async function routeOwner(pathname: string, opts: { now?: number; fetcher?: typeof fetch } = {}): Promise<RouteOwner> {
   if (CLIENT_EXACT.has(pathname) || CLIENT_PREFIXES.some((p) => pathname.startsWith(p))) return "client";
+  // the static information pages this client renders (lib/static-page/pages.ts); the Voices host never asks (site-routing.ts)
+  if (isClientStaticPage(pathname)) return "client";
   const first = pathname.slice(1).split("/")[0] ?? "";
   if (!first) return "client";
   const title = parseUrlRef(first).title;
