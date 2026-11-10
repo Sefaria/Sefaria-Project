@@ -287,8 +287,8 @@ def window(a, b): return [r[1] for r in rows if a <= float(r[0]) < b]
 before, outage, after = window(0, down), window(down + 15, up), window(ready + 5, 9e12)
 denied_in_outage = sum(1 for r in outage if r.endswith("api_key_required") or r.endswith("api_key_invalid"))
 # Failing open means the request reached Django, so every outage row must be the answer Django gives the probe
-# (F1_EXPECT_OUTAGE, default "405 -": the keyless probe's method is not allowed on the gated path, and no gateway
-# code is attached). A 5xx or a transport error is an outage, not fail-open, and fails the drill.
+# (F1_EXPECT_OUTAGE, default "405 -": the method of the keyless probe is not allowed on the gated path, and no
+# gateway code is attached). A 5xx or a transport error is an outage, not fail-open, and fails the drill.
 other_in_outage = sorted({r for r in outage if r != expected})
 ok_before = all(r.endswith("api_key_required") for r in before) and before
 ok_after = after and all(r.endswith("api_key_required") for r in after)
