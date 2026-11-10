@@ -11,11 +11,19 @@ export function spreadNumbers(root: HTMLElement): void {
   const nums = [...root.querySelectorAll<HTMLElement>('[data-layout="continuous"] [data-number]')];
   if (!nums.length) return;
   for (const n of nums) n.style.translate = "";
-  const tops = nums.map((n) => n.getBoundingClientRect().top);
+  const boxes = nums.map((n) => n.getBoundingClientRect());
+  const tops = boxes.map((b) => b.top);
+  // the surface each number is placed against: a step that would leave it (a phone, where the gutter is the screen's edge) goes
+  // inwards instead, so the page never scrolls sideways (parity S6)
+  const edges = nums.map((n) => n.closest("[data-layout]")?.getBoundingClientRect());
   const sign = getComputedStyle(nums[0]!).direction === "rtl" ? 1 : -1; // outwards: right in Hebrew, left otherwise
   let run = 0;
   nums.forEach((n, i) => {
     run = i > 0 && Math.abs(tops[i]! - tops[i - 1]!) < 2 ? run + 1 : 0;
-    if (run) n.style.translate = `${sign * run * STEP}px 0`;
+    if (!run) return;
+    const out = sign * run * STEP;
+    const b = boxes[i]!, edge = edges[i];
+    const fits = !edge || (out > 0 ? b.right + out <= edge.right + 0.5 : b.left + out >= edge.left - 0.5);
+    n.style.translate = `${fits ? out : -out}px 0`;
   });
 }

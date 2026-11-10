@@ -245,8 +245,48 @@ export function TextColumn(props: TextColumnProps) {
     onNearEdge: (direction) => void load(direction),
   });
 
+  // The first screen of a section opened with no verse to bring to the reading line (parity S4): as on sefaria.org, the column opens
+  // scrolled past its top edge (the book's title, or the strip where the previous section loads), the section's title at the top of
+  // the text (Psalms 23 opens on "23", not on the end of Psalm 22). It stays so through what arrives before the reader moves — the
+  // previous section loading above, a short chapter that could not scroll that far until the next one came — and stands down the
+  // moment they scroll, press a key or touch the page. The inline script does the same on a server-rendered load, before first paint.
+  const atStart = useRef(!target && !props.restore);
+  const startSection = initial[0]?.sectionRefs[0] ?? initial[0]?.ref;
+  const startGap = useRef(0);
+  const placeAtStart = useCallback(() => {
+    const sc = scrollerRef.current, content = contentRef.current;
+    if (!atStart.current || !sc || !content || !startSection) return;
+    const sec = content.querySelector<HTMLElement>(`section[data-ref="${CSS.escape(startSection)}"]`);
+    const seg = sec?.querySelector<HTMLElement>('[role="group"][data-ref]');
+    if (!sec || !seg) return;
+    // the space above the section's title (its margin, outside the section's box) stays above it, as the edge's end
+    const edge = content.firstElementChild;
+    if (edge && edge.nextElementSibling?.querySelector("section[data-ref]") === sec) startGap.current = sec.getBoundingClientRect().top - edge.getBoundingClientRect().bottom;
+    const offset = textStartLine(sc) + startGap.current + seg.getBoundingClientRect().top - sec.getBoundingClientRect().top;
+    engine.restorePosition({ ref: seg.dataset.ref!, offset });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startSection]);
+  useLayoutEffect(() => {
+    if (!atStart.current) return;
+    placeAtStart();
+    const unlisten = () => {
+      for (const e of STOP_EVENTS) window.removeEventListener(e, stop, true);
+    };
+    const stop = () => {
+      atStart.current = false;
+      unlisten();
+    };
+    for (const e of STOP_EVENTS) window.addEventListener(e, stop, { capture: true, passive: true });
+    // the text's own face arriving reflows the section's title above its first verse
+    void document.fonts?.ready.then(placeAtStart);
+    // (an unmount only stops listening: StrictMode's second mount must still place)
+    return unlisten;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Arriving at a linked segment (client-side navigation; the inline script handles the server-rendered load).
   useLayoutEffect(() => {
+    if (target) atStart.current = false;
     if (target) engine.scrollToSegment(target);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target]);
@@ -264,6 +304,7 @@ export function TextColumn(props: TextColumnProps) {
 
   // A clicked segment becomes current without moving the page.
   useEffect(() => {
+    if (selected) atStart.current = false;
     if (selected) engine.setFocus(selected);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected]);
@@ -271,6 +312,7 @@ export function TextColumn(props: TextColumnProps) {
   // Back/forward: put the reader back at the saved place (layout effect: before paint, so nothing flashes).
   const restoreToken = props.restore?.token;
   useLayoutEffect(() => {
+    if (props.restore) atStart.current = false;
     if (props.restore) engine.restorePosition(props.restore.position);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restoreToken]);
@@ -326,6 +368,7 @@ export function TextColumn(props: TextColumnProps) {
   // Sections were added: put the reader back in the same task (before any paint), then look at the edges again.
   useLayoutEffect(() => {
     engine.restore();
+    placeAtStart();
     engine.check();
     // Sections were replaced (another translation): the current verse's passage object changed, so tell the
     // panel (its header names the version; its sidebar marks the current one).
@@ -404,7 +447,7 @@ export function TextColumn(props: TextColumnProps) {
           e.preventDefault();
         }}
       >
-        <div className={styles.edge} aria-hidden={!loading.up}>
+        <div className={styles.edge} aria-hidden={!loading.up} data-column-start={atStart.current ? "" : undefined}>
           {first.prev ? (
             loading.up ? <Spinner /> : null
           ) : (
@@ -435,6 +478,21 @@ export function TextColumn(props: TextColumnProps) {
       <script dangerouslySetInnerHTML={{ __html: INITIAL_POSITION_SCRIPT }} />
     </div>
   );
+}
+
+/** The reader's own input: any of these ends the column's opening placement. */
+const STOP_EVENTS = ["wheel", "touchmove", "keydown", "pointerdown"] as const;
+
+/**
+ * Where the text starts on screen, as the reading engine measures it (from the top of whatever scrolls): 0 for the column on desktop;
+ * on a phone, where the page scrolls, below the panel's sticky header. The inline script computes the same.
+ */
+function textStartLine(scroller: HTMLElement): number {
+  const o = getComputedStyle(scroller).overflowY;
+  if (o === "auto" || o === "scroll") return 0;
+  const header = scroller.parentElement?.querySelector("header");
+  const hs = header ? getComputedStyle(header) : null;
+  return header && hs?.position === "sticky" ? (parseFloat(hs.top) || 0) + header.offsetHeight : 0;
 }
 
 /** How long a selection made by keyboard must rest before it counts. */
