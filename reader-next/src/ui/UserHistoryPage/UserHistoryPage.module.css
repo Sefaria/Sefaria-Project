@@ -15,6 +15,12 @@
 .storyTitle { font-size: 18px; color: var(--sefaria-color-text-strong); text-decoration: none; }
 .storyTitle [lang="he"] { font-family: var(--sefaria-font-text-he); font-size: 122%; }
 .storyTitle:hover { text-decoration: underline; }
+/* The item's Save button (old .story .saveLine: the title takes the line, the bookmark at its end, the time stamp after it; the old
+   .savedHistoryList .saveButton is hidden until the item is hovered — kept visible while focused, for the keyboard). */
+.save { display: inline-flex; margin-inline-start: auto; padding-inline-start: 10px; visibility: hidden; }
+.story:hover .save, .save:focus-within { visibility: visible; }
+@media (hover: none) { .save { visibility: visible; } }
+.save > button { width: 30px; height: 24px; justify-content: flex-end; }
 .timeStamp { margin-inline-start: 10px; font-family: var(--sefaria-font-ui-en); font-size: 14px; color: var(--sefaria-color-text-muted); }
 .colorBar { clear: both; border-inline-start: 4px solid transparent; padding-inline-start: 20px; }
 .body { display: block; color: var(--sefaria-color-text-dark-grey); text-decoration: none; }
