@@ -7,14 +7,25 @@ B9 fixtures, run through `manage.py shell` with the stack's settings (b9-legacy-
 Mongo is the shared local database: every write here is keyed by the synthetic uid or the link marker.
 """
 
+import importlib.util
 import os
+from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.models import User
 
-from sefaria.system.database import db
-
 assert settings.DATABASES["default"]["HOST"] == "127.0.0.1", "local stack only"
+# This script writes Mongo (links, history, apikeys), so check the Mongo host and database as well as Postgres,
+# with the seed script's own guard, before the Mongo client is imported. The runner cd's to the repo root.
+_spec = importlib.util.spec_from_file_location(
+    "seed_api_keys_e2e", Path.cwd() / "scripts" / "dev" / "seed_api_keys_e2e.py"
+)
+_seed = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_seed)
+_seed.guard_target("local")
+
+from sefaria.system.database import db  # noqa: E402
+
 UID = 2_098_000_971
 MARKER = "apikeys-e2e-d11-b9"
 REFS = ["Obadiah 1:21", "Song of Songs 8:14"]

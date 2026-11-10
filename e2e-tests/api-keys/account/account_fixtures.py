@@ -43,6 +43,8 @@ def guard():
     db = settings.DATABASES["default"]
     if not (db.get("NAME") == "sefaria_auth" and str(db.get("HOST")) == "127.0.0.1" and str(db.get("PORT")) == "55432"):
         raise SystemExit("Refusing: account fixtures are for the local stack's Postgres on 127.0.0.1:55432 only.")
+    # UserProfile.save() also writes the Mongo profiles collection, so the Mongo target is checked as well.
+    seed.guard_target("local")
 
 
 def fixture_user(role):
