@@ -217,3 +217,46 @@ describe("a stale cached section never blocks a navigation", () => {
     }
   });
 });
+
+// v-exits F-4: a complex text's node address (/Arukh_HaShulchan,_Orach_Chaim) answered 503: the whole node (5.9 MB) was asked for
+describe("a node address with no section", () => {
+  // @feature TXT-023
+  it("opens the node's first available section from /api/ref, never downloading the node", async () => {
+    const { HttpResponse } = await import("msw");
+    const { readFixture } = await import("../../../test/msw/fixtures");
+    const raw = readFixture<Record<string, unknown>>("genesis-1/v3-texts.json");
+    const node = "Arukh HaShulchan, Orach Chaim";
+    const section = { ...raw, ref: `${node} 1`, sectionRef: `${node} 1`, heRef: "ערוך השולחן, אורח חיים א׳", title: `${node} 1`, book: node, indexTitle: "Arukh HaShulchan", firstAvailableSectionRef: `${node} 1`, prev: null, next: `${node} 2` };
+    server.use(
+      http.get("*/api/ref/*", ({ request }) =>
+        decodeURIComponent(new URL(request.url).pathname).endsWith(`/api/ref/${node}`)
+          ? HttpResponse.json({ is_ref: true, normalized: node, node_type: "JaggedArrayNode", navigation_refs: { first_available_section_ref: `${node} 1` } })
+          : HttpResponse.json({ is_ref: false }),
+      ),
+      http.get("*/api/v3/texts/*", ({ request }) =>
+        decodeURIComponent(new URL(request.url).pathname).endsWith(`${node} 1`) ? HttpResponse.json(section) : HttpResponse.json({ error: "the whole node" }, { status: 500 }),
+      ),
+    );
+    const qc = makeQueryClient();
+    const idx = new RefIndex();
+    const r = await loadReaderPassage(qc, idx, node);
+    expect(r.canonicalRef).toBe(`${node} 1`);
+    expect(r.sections.map((s) => s.ref)).toEqual([`${node} 1`]);
+    expect(requests).toContain(`/api/ref/${node}`);
+    expect(requests).not.toContain(`/api/v3/texts/${node}`);
+    // remembered: the next visit asks nothing
+    requests = [];
+    expect((await loadReaderPassage(qc, idx, node)).canonicalRef).toBe(`${node} 1`);
+    expect(requests).toEqual([]);
+  });
+
+  it("a ref the API does not know still goes the old way (the texts API says there is no such text)", async () => {
+    const { HttpResponse } = await import("msw");
+    server.use(
+      http.get("*/api/ref/*", () => HttpResponse.json({ is_ref: false })),
+      http.get("*/api/v3/texts/*", () => HttpResponse.json({ error: "We have no text for Nonsense." }, { status: 404 })),
+    );
+    await expect(loadReaderPassage(makeQueryClient(), new RefIndex(), "Nonsense")).rejects.toThrow();
+    expect(requests).toContain("/api/v3/texts/Nonsense");
+  });
+});
