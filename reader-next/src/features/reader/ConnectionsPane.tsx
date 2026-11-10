@@ -214,14 +214,16 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const listLinks = useMemo(() => {
     if (!filter) return [] as RelatedLink[];
     const filtered = filterLinks(filter.endsWith("|Essay") ? selected : withoutEssays(selected), [filter], lookup);
-    return sortLinks(filtered, hebrew);
-  }, [filter, selected, lookup, hebrew]);
+    // in the sidebar's language, as the books (the old TextList sorts by its contentLang: VERIFIED on sefaria.org.il 2026-11-10,
+    // Genesis 1:1 with=Commentary: lang2=en starts "Abarbanel on Torah", lang2=he "Avi Ezer"; parity S11)
+    return sortLinks(filtered, sidebarHebrew);
+  }, [filter, selected, lookup, sidebarHebrew]);
 
   // Each link's text needs its whole section: load them a page at a time, the next page as the list nears its end (CODE_REVIEW
   // R-22: Genesis 1:1's commentary list started 235 section requests at once, and showed nothing until the last one came back)
   // back to the first page only when the list itself changes (another filter, verse or language) — not when a re-render merely
   // rebuilds the same list, which would shrink it under the reader
-  const listKey = `${filter ?? ""}|${selectedRefs.join(",")}|${hebrew}`;
+  const listKey = `${filter ?? ""}|${selectedRefs.join(",")}|${sidebarHebrew}`;
   const [page, setPage] = useState({ key: listKey, shown: LINKED_TEXTS_PAGE });
   const shown = page.key === listKey ? page.shown : LINKED_TEXTS_PAGE;
   const showMore = () => setPage({ key: listKey, shown: shown + LINKED_TEXTS_PAGE });

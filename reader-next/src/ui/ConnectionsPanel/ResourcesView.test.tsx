@@ -69,7 +69,12 @@ describe("ResourcesView", () => {
     view(topLevelSummary([cat("Commentary", 2), cat("Talmud", 1)]), "hebrew");
     expect(screen.getByRole("link", { name: /מפרשים/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /תלמוד/ })).toBeInTheDocument();
-    expect(screen.getByText("טקסטים קשורים")).toBeInTheDocument();
+    // legacy's connection_panel_section strings (parity S11), and the sections named in Hebrew (a11y S5)
+    expect(screen.getByRole("heading", { name: "מקורות לעיון" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "מקורות לעיון" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "כלים" })).toBeInTheDocument();
+    expect(screen.queryByText("טקסטים קשורים")).toBeNull();
+    expect(screen.queryByRole("region", { name: "Related Texts" })).toBeNull();
   });
 
   it("renders a summary built from real Genesis 1:1 links", () => {

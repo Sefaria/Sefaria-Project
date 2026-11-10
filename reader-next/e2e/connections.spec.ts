@@ -314,3 +314,25 @@ test.describe("a slow or failing server (SB-02)", () => {
     await expect(side.getByRole("region", { name: "Related Texts" }).getByRole("link").first()).toContainText("Commentary", { timeout: 30_000 });
   });
 });
+
+// @feature CON-030 @feature CON-032
+test.describe("connected texts in the Hebrew interface (verified against sefaria.org.il 2026-11-10)", () => {
+  test.beforeEach(async ({ context }) => context.addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]));
+
+  // parity S11: the list is ordered in the sidebar's language, not the interface's
+  test("an English sidebar lists the commentary in English order (Abarbanel first), a Hebrew one in Hebrew order (Avi Ezer)", async ({ page }) => {
+    const first = () => page.getByRole("complementary").locator("li[data-ref]").first();
+    await open(page, "/Genesis.1.1?lang=bi&with=Commentary&lang2=en");
+    await expect(first()).toHaveAttribute("data-ref", /^Abarbanel on Torah/, { timeout: 30_000 });
+    await open(page, "/Genesis.1.1?lang=bi&with=Commentary&lang2=he");
+    await expect(first()).toHaveAttribute("data-ref", /^Avi Ezer/, { timeout: 30_000 });
+  });
+
+  // parity S8: "Abarbanel on Torah, Genesis 1:1" is 1:1:1-3, three paragraphs on sefaria.org
+  test("a ranged connected text shows its segments as separate paragraphs", async ({ page }) => {
+    await open(page, "/Genesis.1.1?lang=bi&with=Commentary&lang2=en");
+    const item = page.getByRole("complementary").locator('li[data-ref="Abarbanel on Torah, Genesis 1:1"]');
+    await expect(item.locator("p").first()).toContainText("questions", { timeout: 30_000 });
+    expect(await item.locator("[data-parts] > p").count()).toBe(3);
+  });
+});
