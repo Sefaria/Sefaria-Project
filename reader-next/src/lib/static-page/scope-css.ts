@@ -3,20 +3,32 @@
  * static-page CSS (static/css/static.css, common.css…) styles the content block in this client's shell and nothing else (T-F31). Rules
  * for the document (`html`, `body`, `:root`) apply to the wrapper itself (`body.interface-hebrew .x` → `#staticContentWrapper.interface-hebrew .x`).
  *
- * Every legacy rule gains the same one id of specificity, so the legacy rules keep their order among themselves; inside @media,
- * @supports, @layer and @container the rules are scoped the same way; @font-face, @keyframes and the like are kept as they are.
+ * Every legacy rule gains the same one id of specificity, so the legacy rules keep their order among themselves; inside @media and
+ * @supports the rules are scoped the same way; @font-face and @keyframes are kept; every other at-rule, @import included, is dropped.
  * A small parser for the site's own, well-formed stylesheets: comments are dropped, strings and parentheses respected.
  */
 
-/** The selector, put under `scope`. */
+/**
+ * The selector, put under `scope`; "" (the selector is dropped) when it would still reach outside it: a sibling combinator straight
+ * after the document or the wrapper (`:root ~ *`, `body + div`, `html ~ footer`, `#staticContentWrapper ~ footer`).
+ */
 export function scopeSelector(selector: string, scope: string): string {
   let s = selector.trim();
   if (!s) return s;
-  if (s === scope || s.startsWith(`${scope} `) || s.startsWith(`${scope}.`) || s.startsWith(`${scope}:`) || s.startsWith(`${scope}[`) || s.startsWith(`${scope}>`)) return s;
+  const outward = (rest: string) => /^\s*[~+]/.test(rest);
+  if (s === scope || s.startsWith(`${scope} `) || s.startsWith(`${scope}.`) || s.startsWith(`${scope}:`) || s.startsWith(`${scope}[`) || s.startsWith(`${scope}>`) || s.startsWith(`${scope}~`) || s.startsWith(`${scope}+`)) {
+    return outward(s.slice(scope.length).replace(/^(?:[.:[#][^\s>+~]*)*/, "")) ? "" : s;
+  }
+  if (/^html(?=$|[\s>+~])\s*[~+]/i.test(s)) return "";
   s = s.replace(/^html(?=$|[\s>+~])\s*(?:>\s*)?/i, "");
   if (!s) return scope;
   const doc = /^(?:body|:root|html)(?=$|[.#:[\s>+~])/i.exec(s);
-  if (doc) return `${scope}${s.slice(doc[0].length)}`;
+  if (doc) {
+    const rest = s.slice(doc[0].length);
+    // the document's own classes/states (`body.interface-hebrew`) stay on the wrapper; a sibling of it is outside
+    if (outward(rest.replace(/^(?:[.:[#][^\s>+~]*)*/, ""))) return "";
+    return `${scope}${rest}`;
+  }
   return `${scope} ${s}`;
 }
 
@@ -80,7 +92,6 @@ function blockEnd(css: string, from: number): number {
   return -1;
 }
 
-const GROUPING = /^@(?:-[a-z]+-)?(?:media|supports|layer|container|document)\b/i;
 
 /**
  * Relative `url(…)`s made absolute paths against the stylesheet's own address (`baseUrl`, e.g. "/static/font-awesome/css/x.css"), as
@@ -106,6 +117,18 @@ export interface ScopeOptions {
    */
   dropFontFaces?: ReadonlySet<string>;
 }
+
+/**
+ * The at-rules kept (explicitly allowed): grouping rules, scoped inside (@media, @supports), and @keyframes and @font-face (filtered by
+ * `dropFontFaces`). Everything else — @import, @charset, @scope, @starting-style, @layer, @container, @property, @page, anything new —
+ * is dropped with its block: a rule this scoper does not understand could style outside the wrapper.
+ */
+const SCOPED_GROUPS = /^@(?:media|supports)\b/i;
+const KEPT_AS_IS = /^@(?:-[a-z]+-)?keyframes\b/i;
+
+/** A declaration that runs or binds code (old IE expressions and behaviours, XBL bindings, script addresses): removed. */
+const UNSAFE_DECLARATION = /[^;{}]*(?:url\(\s*['"]?\s*(?:javascript|vbscript):|expression\s*\(|behavior\s*:|-moz-binding)[^;{}]*;?/gi;
+export const stripUnsafeDeclarations = (body: string) => body.replace(UNSAFE_DECLARATION, "");
 
 export function scopeCss(input: string, scope: string, options: string | ScopeOptions = {}): string {
   const { baseUrl, dropFontFaces } = typeof options === "string" ? { baseUrl: options, dropFontFaces: undefined } : options;
@@ -136,8 +159,7 @@ export function scopeCss(input: string, scope: string, options: string | ScopeOp
       continue;
     }
     if (c === ";") {
-      // @import, @charset, @namespace: only @import is worth keeping (none in the site's static CSS)
-      if (/^@import\b/i.test(prelude)) out += `${prelude};\n`;
+      // @import, @charset, @namespace, @layer a;: never kept
       i = j + 1;
       continue;
     }
@@ -146,12 +168,16 @@ export function scopeCss(input: string, scope: string, options: string | ScopeOp
     i = end < 0 ? css.length : end + 1;
     if (!prelude) continue;
     if (prelude.startsWith("@")) {
-      if (/^@font-face\b/i.test(prelude) && dropFontFaces?.has(fontFaceFamily(body))) continue;
-      out += GROUPING.test(prelude) ? `${prelude} {\n${scopeCss(body, scope, { dropFontFaces })}}\n` : `${prelude} {${body}}\n`;
+      if (/^@font-face\b/i.test(prelude)) {
+        if (!dropFontFaces?.has(fontFaceFamily(body))) out += `${prelude} {${stripUnsafeDeclarations(body)}}\n`;
+      } else if (SCOPED_GROUPS.test(prelude)) out += `${prelude} {\n${scopeCss(body, scope, { dropFontFaces })}}\n`;
+      else if (KEPT_AS_IS.test(prelude)) out += `${prelude} {${stripUnsafeDeclarations(body)}}\n`;
       continue;
     }
     const selectors = splitSelectors(prelude).map((s) => scopeSelector(s, scope)).filter(Boolean);
-    if (selectors.length) out += `${selectors.join(",\n")} {${body}}\n`;
+    // a rule's block is declarations only: a nested rule (CSS nesting) would not be scoped, so such a block is dropped
+    const nested = body.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, "").includes("{");
+    if (selectors.length && !nested) out += `${selectors.join(",\n")} {${stripUnsafeDeclarations(body)}}\n`;
   }
   return out;
 }

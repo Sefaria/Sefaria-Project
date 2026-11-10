@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { buildLegacyStaticCss, cssHash, declaredFontFamilies } from "./legacy-css";
+import { buildLegacyStaticCss, cssHash, declaredFontFamilies, SHELL_FONT_FAMILIES } from "./legacy-css";
 import { LEGACY_STATIC_CSS } from "./legacy-css.gen";
 import { LEGACY_STATIC_CSS_HASH } from "./legacy-css-hash.gen";
 
@@ -47,6 +47,7 @@ describe("the static pages' legacy stylesheet (legacy-css.gen.ts)", () => {
 
   it("declares no font face the shell declares itself (Taamey Frank, Cardo, Noto Color Emoji): the shell's files stay in use", () => {
     expect([...SHELL_FONTS].sort()).toEqual(["cardo", "noto color emoji", "taamey frank"]);
+    expect([...SHELL_FONT_FAMILIES].sort()).toEqual([...SHELL_FONTS].sort()); // the runtime list (page CSS) is the shell's
     const faces = [...LEGACY_STATIC_CSS.matchAll(/@font-face\s*\{([^}]*)\}/g)].map((m) => /font-family\s*:\s*['"]?([^;'"]+)/.exec(m[1]!)?.[1]?.toLowerCase());
     expect(faces.length).toBeGreaterThan(0); // the others (FontAwesome, Meltho, Rashi Script…) are still there
     for (const f of faces) expect(SHELL_FONTS.has(f ?? ""), f).toBe(false);

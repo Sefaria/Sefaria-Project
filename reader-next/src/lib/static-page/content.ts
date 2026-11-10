@@ -9,7 +9,7 @@
  * @feature STA-001 Static content pages
  * @feature STA-005 Static page serving and About sidebar
  */
-import { LEGACY_SOURCES, STATIC_SCOPE } from "./legacy-css";
+import { LEGACY_SOURCES, SHELL_FONT_FAMILIES, STATIC_SCOPE } from "./legacy-css";
 import { sanitizeStaticHtml } from "./sanitize";
 import { scopeCss } from "./scope-css";
 
@@ -78,7 +78,7 @@ export const safeInlineCss = (css: string) => css.replace(/</g, "\\3c ");
  * The page's `{% block css %}`, scoped like the legacy stylesheets (legacy-css.ts): on the old page it came after them at the same
  * specificity and won; scoped, it keeps doing so (it is rendered after the head's stylesheets).
  */
-export const pageInlineCss = (css: string) => (css.trim() ? safeInlineCss(scopeCss(remToPx(css), STATIC_SCOPE)) : "");
+export const pageInlineCss = (css: string) => (css.trim() ? safeInlineCss(scopeCss(remToPx(css), STATIC_SCOPE, { dropFontFaces: SHELL_FONT_FAMILIES })) : "");
 
 /**
  * A page that sets the document's font size (pioneers.html: `html { font-size: 10px }`) and sizes its content in rem: in this shell

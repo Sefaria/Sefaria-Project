@@ -104,6 +104,36 @@ describe("scopeCss: the legacy stylesheets under the static page's wrapper", () 
 @charset "UTF-8";`;
     expect(scopeCss(css, S)).toBe(`#w a,\n#w p:not(.x, .y) { color: red; content: "}{"; }\n@media (max-width: 480px) {\n#w .a { b: c }\n}\n@font-face { font-family: X; src: url(x.woff); }\n@keyframes k { from { opacity: 0 } to { opacity: 1 } }\n`);
   });
+  it("nothing reaches outside the wrapper: sibling combinators from the document or the wrapper are dropped (review round 2)", () => {
+    for (const sel of [":root ~ *", "body + div", "html ~ footer", "html + body", "body.interface-hebrew ~ main", ":root:not(.x) ~ *", "#w ~ footer", "#w.x + nav", "html body + div"])
+      expect(scopeSelector(sel, S), sel).toBe("");
+    expect(scopeCss(":root ~ *, .a { color: red }", S)).toBe("#w .a { color: red }\n");
+    expect(scopeSelector("body > .a ~ .b", S)).toBe("#w > .a ~ .b"); // siblings inside the wrapper are fine
+  });
+
+  it("only @media, @supports (scoped), @keyframes and @font-face are kept; @import, @scope, @starting-style… are dropped", () => {
+    const css = `@import url(https://evil.example/x.css);
+@import "y.css" screen;
+@scope (body) to (main) { div { color: red } }
+@starting-style { body { opacity: 0 } }
+@layer base { body ~ * { color: red } }
+@container (min-width: 1px) { .a { color: red } }
+@property --x { syntax: "*"; inherits: true; }
+@media print { .a { b: c } }
+@supports (display: grid) { :root ~ * { x: y } .b { c: d } }`;
+    expect(scopeCss(css, S)).toBe("@media print {\n#w .a { b: c }\n}\n@supports (display: grid) {\n#w .b { c: d }\n}\n");
+    expect(scopeCss(".a { color: red; .b { color: blue } }", S)).toBe(""); // a nested rule would escape the scoping
+  });
+
+  it("strips declarations that run or bind code", () => {
+    expect(scopeCss(".a { color: red; background: url( 'javascript:alert(1)' ); width: expression(alert(1)); behavior: url(x.htc); -moz-binding: url(x.xml#y); top: 0 }", S)).toBe("#w .a { color: red; top: 0 }\n");
+    expect(scopeCss(".a { background: url(data:image/svg+xml,abc) }", S)).toContain("url(data:image/svg+xml,abc)"); // images are fine
+  });
+
+  it("a page's own CSS drops the shell's font faces too", () => {
+    expect(pageInlineCss('@font-face { font-family: "Taamey Frank"; src: url(/static/fonts/x.ttf) } @font-face { font-family: Other; src: url(/x.woff) }')).toBe("@font-face { font-family: Other; src: url(/x.woff) }\n");
+  });
+
   it("addresses relative url()s from the stylesheet's own folder", () => {
     expect(absoluteUrls("a{src:url('../fonts/f.woff?v=1') url(/static/x.png) url(data:image/png;base64,x)}", "/static/font-awesome/css/fa.css")).toBe(
       "a{src:url('/static/font-awesome/fonts/f.woff?v=1') url(/static/x.png) url(data:image/png;base64,x)}",

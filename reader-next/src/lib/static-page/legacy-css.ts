@@ -67,6 +67,12 @@ export const LEGACY_BODY_DEFAULTS = `#staticContentWrapper,
 }
 `;
 
+/**
+ * The font families the shell declares itself (src/ui/tokens/fonts.css; legacy-css.test.ts checks the list against that file): their
+ * legacy @font-face rules are dropped, from the legacy stylesheets and from a page's own CSS.
+ */
+export const SHELL_FONT_FAMILIES: ReadonlySet<string> = new Set(["cardo", "noto color emoji", "taamey frank"]);
+
 /** The font families a stylesheet declares with @font-face (lower case): for the shell's own src/ui/tokens/fonts.css. */
 export function declaredFontFamilies(css: string): Set<string> {
   return new Set([...css.matchAll(/@font-face\s*\{([^}]*)\}/gi)].map((m) => fontFaceFamily(m[1]!)).filter(Boolean));
@@ -77,7 +83,7 @@ export function declaredFontFamilies(css: string): Set<string> {
  * without the @font-face rules of the families the shell declares itself (`shellFonts`: src/ui/tokens/fonts.css — Taamey Frank,
  * Cardo, Noto Color Emoji), which on a static page would otherwise replace the shell's faces with the old files.
  */
-export function buildLegacyStaticCss(read: (path: string) => string, shellFonts: ReadonlySet<string> = new Set()): string {
+export function buildLegacyStaticCss(read: (path: string) => string, shellFonts: ReadonlySet<string> = SHELL_FONT_FAMILIES): string {
   return [
     LEGACY_BODY_DEFAULTS,
     ...LEGACY_SOURCES.map((path) => `/* static/${path} */\n${scopeCss(read(path), STATIC_SCOPE, { baseUrl: `/static/${path}`, dropFontFaces: shellFonts })}`),

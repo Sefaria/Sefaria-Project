@@ -92,32 +92,48 @@ export function staticAsset(url: string, siteOrigin = ""): string {
 }
 
 /**
- * An address as a browser reads its scheme: the parser has decoded the entities already (`java&#9;script:` is "java\tscript:"), and
- * the browser ignores ASCII tabs and newlines anywhere and control characters and spaces at the start — so the scheme is judged with
- * every C0 control, space and DEL removed.
+ * Every character a browser may skip or treat as space around (or, for tab and newline, inside) an address: C0 controls, space, DEL,
+ * and Unicode whitespace and invisible marks (NBSP, ogham space, the U+2000 spaces and zero-widths, line and paragraph separators,
+ * narrow NBSP, medium math space, ideographic space, BOM, word joiner).
  */
-const schemeProbe = (url: string) => url.replace(/[\u0000-\u0020\u007f]/g, "");
+const EDGE_CHARS = "\\u0000-\\u0020\\u007f\\u0085\\u00a0\\u1680\\u180e\\u2000-\\u200f\\u2028-\\u202f\\u205f-\\u2064\\u3000\\ufeff";
+const EDGES = new RegExp(`^[${EDGE_CHARS}]+|[${EDGE_CHARS}]+$`, "g");
+const ANY_EDGE_CHAR = new RegExp(`[${EDGE_CHARS}]`);
+
+/**
+ * The address, normalised once — the entities are already decoded by the parser — as a browser reads it: edge whitespace and controls
+ * (ASCII and Unicode) stripped, ASCII tab and newlines removed anywhere. The scheme is judged on this string, and this string is what
+ * the page gets: never a different spelling of it.
+ */
+export function normaliseUrl(raw: string): string {
+  return raw.replace(EDGES, "").replace(/[\t\n\r]/g, "");
+}
+
+const SCHEME = /^([a-z][a-z0-9+.-]*):/i;
+const ALLOWED_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);
+const BASE = "https://base.invalid/";
 
 function safeUrl(raw: string, attr: string, tag: string, opts: StaticSanitizeOptions): string | undefined {
-  const url = raw.trim();
-  const probe = schemeProbe(raw);
-  if (!probe) return undefined;
-  if (/^javascript:/i.test(probe)) return tag === "a" && attr === "href" && opts.page === "linker" && url.replace(/\s+/g, " ") === LINKER_BOOKMARKLET ? url : undefined;
-  if (probe.startsWith("//") || /^[\\/][\\/]/.test(probe)) return undefined;
-  // only http(s), mailto and tel; anything else with a scheme (data:, vbscript:, …) goes; a relative path or anchor stays
-  if (/^[a-z][a-z0-9+.-]*:/i.test(probe) && !/^(https?|mailto|tel):/i.test(probe)) return undefined;
+  const url = normaliseUrl(raw);
+  if (!url) return undefined;
+  const scheme = SCHEME.exec(url)?.[1]?.toLowerCase();
+  if (scheme === "javascript")
+    return tag === "a" && attr === "href" && opts.page === "linker" && url.replace(/\s+/g, " ") === LINKER_BOOKMARKLET ? url : undefined;
+  // before the first / ? #: either a valid scheme or no colon at all, and nothing a browser might skip (java\u00a0script:)
+  const head = url.split(/[/?#]/, 1)[0]!;
+  if (!scheme && head.includes(":")) return undefined;
+  if (ANY_EDGE_CHAR.test(head) && (scheme || head.includes(":"))) return undefined;
   if (/[\u0000-\u001f\u007f]/.test(url)) return undefined; // a control character left inside is never one of the templates' addresses
-  if (tag === "iframe") {
-    let host: string;
-    try {
-      const u = new URL(url);
-      if (u.protocol !== "https:") return undefined;
-      host = u.hostname.toLowerCase();
-    } catch {
-      return undefined;
-    }
-    return FRAME_HOSTS.has(host) ? url : undefined;
+  let parsed: URL;
+  try {
+    parsed = new URL(url, BASE);
+  } catch {
+    return undefined;
   }
+  if (!ALLOWED_PROTOCOLS.has(parsed.protocol)) return undefined;
+  // a relative address stays on this site: never protocol-relative (//evil.com, /\\evil.com)
+  if (!scheme && parsed.origin !== new URL(BASE).origin) return undefined;
+  if (tag === "iframe") return scheme === "https" && FRAME_HOSTS.has(parsed.hostname.toLowerCase()) ? url : undefined;
   return staticAsset(url, opts.siteOrigin);
 }
 

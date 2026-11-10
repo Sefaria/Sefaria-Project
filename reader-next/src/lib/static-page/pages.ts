@@ -99,15 +99,18 @@ export function staticPageName(pathname: string): string | null {
 /** Is this path one of the static information pages (whoever renders it)? */
 export const isStaticPagePath = (pathname: string): boolean => STATIC_PATH_RE.test(pathname);
 
+/** A page of the list by its name: own entries only ("constructor", "toString", "__proto__" are not pages). */
+export const staticPageEntry = (name: string): StaticPageEntry | undefined => (Object.hasOwn(STATIC_PAGES, name) ? STATIC_PAGES[name] : undefined);
+
 /** Who renders this page in this interface language. */
 export function staticPageOwner(name: string, lang: "en" | "he"): StaticPageOwner | null {
-  const entry = STATIC_PAGES[name];
+  const entry = staticPageEntry(name);
   if (!entry) return null;
   return lang === "en" && entry.enOwner ? entry.enOwner : entry.owner;
 }
 
 /** Does this client render the page (content or its own port) in at least one language? Else it is Django's on every host. */
 export const rendersStaticPage = (name: string): boolean => {
-  const e = STATIC_PAGES[name];
+  const e = staticPageEntry(name);
   return !!e && (e.owner !== "django" || (e.enOwner !== undefined && e.enOwner !== "django"));
 };

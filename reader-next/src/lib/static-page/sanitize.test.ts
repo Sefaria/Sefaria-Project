@@ -30,6 +30,33 @@ describe("sanitizeStaticHtml: the static page's content block", () => {
     expect(clean(fine)).toBe(fine);
   });
 
+  // review round 2: the address is judged and returned as ONE normalised string (trim() also removes Unicode whitespace)
+  const UNICODE_PREFIXES = ["&nbsp;", "&#xA0;", "&#x2028;", "&#x2029;", "&#xFEFF;", "&#x3000;", "&#x1680;"];
+  const PLACES: [string, (u: string) => string, string][] = [
+    ["a href", (u) => `<a href="${u}">x</a>`, "<a>x</a>"],
+    ["img src", (u) => `<img src="${u}">`, "<img>"],
+    ["video poster", (u) => `<video poster="${u}"></video>`, "<video></video>"],
+    ["q cite", (u) => `<q cite="${u}">x</q>`, "<q>x</q>"],
+  ];
+  for (const prefix of UNICODE_PREFIXES) {
+    for (const [where, html, empty] of PLACES) {
+      it(`${prefix} before javascript:, //evil.com and data: in ${where} is dropped`, () => {
+        for (const bad of ["javascript:alert(1)", "//evil.com/x", "data:text/html,<script>alert(1)</script>".replace(/</g, "&lt;"), "/\\evil.com/x"]) {
+          expect(clean(html(prefix + bad)), prefix + bad).toBe(empty);
+          expect(clean(html(prefix + bad + prefix)), `${prefix}${bad}${prefix}`).toBe(empty);
+        }
+        // inside the scheme too
+        expect(clean(html(`java${prefix}script:alert(1)`))).toBe(empty);
+      });
+    }
+  }
+
+  it("what is kept is the normalised address, the one that was judged", () => {
+    expect(clean('<a href="&nbsp;https://www.sefaria.org/texts&#x3000;">t</a>')).toBe('<a href="https://www.sefaria.org/texts">t</a>');
+    expect(clean('<img src="&#xFEFF;/static/img/a.png">', "terms", "https://www.sefaria.org")).toBe('<img src="https://www.sefaria.org/static/img/a.png">');
+    expect(clean('<a href="/about">a</a><a href="#top">t</a><a href="?x=1">q</a>')).toBe('<a href="/about">a</a><a href="#top">t</a><a href="?x=1">q</a>');
+  });
+
   it("frames only from the hosts the pages embed (Google Docs, YouTube), over https", () => {
     // Google's documents are sandboxed (their scripts, their own origin, links opening new windows)
     expect(clean('<iframe src="https://docs.google.com/document/d/e/x/pub?embedded=true"></iframe>')).toBe(`<iframe src="https://docs.google.com/document/d/e/x/pub?embedded=true" sandbox="${DOCS_SANDBOX}"></iframe>`);
