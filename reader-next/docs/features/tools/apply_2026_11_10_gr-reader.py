@@ -35,7 +35,7 @@ def mark(fid, name, st, note, by_paths):
 # --- Text display -------------------------------------------------------------------------------------------------------------
 
 add("TXD-026", "Inline images in text", [
-    "BUILT 2026-11-10 (lane GR): the vendored sanitiser keeps an <img> whose source is http(s) or a base64 data:image (a marked local change, docs/VENDOR.md; any other source is still its alt text); src/lib/text/prepare.ts makes a segment that is only an image the image centred, 67% of a column wider than 540px, with its alt text as a 14px caption under it (the image itself alt=\"\": axe image-redundant-alt); an inline image stays in the line, max 100% wide. Bilingual with an image on both sides shows the translation's only, the source column left empty (src/ui/Segment/Segment.tsx). Images load lazily (eager for a full-segment image). No live text with a full-segment image was found to compare against (Mishnat Eretz Yisrael, the original use, has none in the sections checked); built from static/js/ContentText.jsx and s2.css. Tests: src/lib/text/prepare.test.ts, src/ui/Segment/Segment.test.tsx, story Reader/TextSection ImagesInText.",
+    "BUILT 2026-11-10 (lane GR): the vendored sanitiser keeps an <img> whose source is http(s) or a base64 data:image (a marked local change, docs/VENDOR.md; any other source is still its alt text); src/lib/text/prepare.ts makes a segment that is only an image the image centred, 67% of a column wider than 540px, with its alt text as a 14px caption under it (the image itself alt=\"\": axe image-redundant-alt); an inline image stays in the line, max 100% wide. Bilingual with an image on both sides shows the translation's only, the source column left empty (src/ui/Segment/Segment.tsx). Images load lazily (eager for a full-segment image); a stored width/height is kept so the box is reserved before the image loads (e2e/image-reserve.spec.ts: an image arriving above the reading place does not move the verse read). An image with no stored size cannot be reserved. No live text with a full-segment image was found to compare against (Mishnat Eretz Yisrael, the original use, has none in the sections checked); built from static/js/ContentText.jsx and s2.css. Tests: src/lib/text/prepare.test.ts, src/ui/Segment/Segment.test.tsx, story Reader/TextSection ImagesInText.",
 ])
 mark("TXD-026", "Inline images in text", "done", "Full-segment image with caption, inline images, the bilingual one-image rule (from legacy code; no live sample found)", "src/lib/text/prepare.ts, src/ui/Segment/Segment.tsx, src/ui/SegmentText/SegmentText.module.css, vendor/sefaria-toolkit/text-transform/normalize.ts")
 
@@ -45,12 +45,12 @@ add("TXD-023", "Inline category links in text", [
 mark("TXD-023", "Inline category links in text", "done", "Category mentions link to /texts/<path> (libraryHref)", "src/lib/text/prepare.ts, vendor/sefaria-toolkit/text-transform/normalize.ts")
 
 add("TXD-020", "Allowed inline HTML in stored text", [
-    "2026-11-10 (lane GR): images (TXD-026) and plain links are kept. A plain <a> with an http(s) or site-relative (/…, not //…) href stays a link (external ones rel=noopener noreferrer, same tab as legacy); javascript:, protocol-relative and other addresses are unwrapped. Tests: src/lib/text/prepare.test.ts.",
+    "2026-11-10 (lane GR): images (TXD-026) and plain links are kept. A plain <a> with an http(s) or site-relative href stays a link (external ones rel=noopener noreferrer, same tab as legacy; a site path through libraryHref); javascript:, protocol-relative (//…), a backslash or %5C anywhere (/\\evil.org is //evil.org to a browser) and other addresses are unwrapped. Tests: src/lib/text/prepare.test.ts.",
 ])
 mark("TXD-020", "Allowed inline HTML in stored text", "done", "Formatting tags, footnotes, itags, overlays, images and plain links render", "src/lib/text/prepare.ts, src/ui/SegmentText/SegmentText.tsx, vendor/sefaria-toolkit/text-transform/normalize.ts")
 
 add("TXD-045", "Segment numbers", [
-    V + " (Genesis 1, Berakhot 2a; desktop 1280 and Pixel 7; English and Hebrew interface): the number is 12px whatever the reader's font size, Hebrew numerals in Heebo (.segmentNumberInner .he), Arabic in Roboto, weight 'lighter' (100). Here: 12px, Hebrew numerals now in Heebo (they fell back to a system face), weight 400 on purpose (the thin face is what support's most common complaint is about: verse numbers too small to read). A larger size is proposed in reports/gr-reader.md, not changed. Tests: e2e/verse-numbers.spec.ts.",
+    V + " (Genesis 1, Berakhot 2a; desktop 1280 and Pixel 7; English and Hebrew interface): the number is 12px whatever the reader's font size, Hebrew numerals in Heebo (.segmentNumberInner .he), Arabic in Roboto, weight 'lighter' (100). Here: 12px, Hebrew numerals now in Heebo (they fell back to a system face), weight 400 on purpose (the thin face is what support's most common complaint is about: verse numbers too small to read). Owner decision 2026-11-10: the size stays 12px (parity). Heebo 400 (Hebrew) is preloaded with the page. Tests: e2e/verse-numbers.spec.ts.",
 ])
 
 add("TXD-010", "Build numbered segments from text data", [
@@ -99,10 +99,11 @@ add("CON-014", "Resources list (sheets, web pages, topics, manuscripts, readings
 ])
 
 add("CON-056", "Add to sheet: version and partial-selection handling", [
-    "BUILT 2026-11-10 (lane GR, T-G04): words selected in the text (one language shown) cut the source's text: the first verse from the selection, the last to it, '...' where cut, formatted as the old segmentsToSourceText (numbers except Talmud and the Haggadah, paragraphs except Tanakh and Talmud), posted as the side's text with the refs and versions. Deliberate difference: inside one verse both ends are cut (the old code's end branch is an `else if` after the first segment's, and its start match needs the selection to run to the verse's end, so it added the whole verse). The image guard: a verse that is only an image is not added ('We do not currently support adding images to source sheets.' in the view instead of an alert; old checkContentForImages). Signed-in only: not checkable on sefaria.org without an account; built from static/js/AddToSourceSheet.jsx and sheetsUtils.js. Tests: src/lib/text/sheet-source.test.ts, src/features/reader/use-last-selection.test.tsx.",
+    "Owner decision 2026-11-10: Add to Sheet adds the WHOLE verses whatever words are selected in them, as sefaria.org effectively does. Legacy's handleSelectedWords trimming (English- or Hebrew-only panels) is not ported; its quirks (a single verse is never cut at its end; the start is found only when the selection runs to the verse's end) are moot.",
+    "BUILT 2026-11-10 (lane GR, T-G04): the image guard (old checkContentForImages, run before every add): a verse that is only an image is not added ('We do not currently support adding images to source sheets.' in the view instead of an alert), for the selected verses, a previewed translation (VER-013) and a connected text. Signed-in only: not checkable on sefaria.org without an account; built from static/js/AddToSourceSheet.jsx. Tests: src/lib/text/sheet-source.test.ts.",
 ])
-mark("CON-056", "Add to sheet: version and partial-selection handling", "done", "Versions, selected-words trimming and the image guard built (unit-tested)", "src/lib/text/sheet-source.ts, src/features/reader/use-last-selection.ts, src/features/reader/ConnectionsPane.tsx, src/lib/user/sheets.ts")
-mark("CON-034", "Add connection to sheet button", "done", "Add to Sheet (with selected-words trimming, CON-056) and on each connected text", "src/ui/AddToSheetView, src/features/reader/ConnectionsPane.tsx")
+mark("CON-056", "Add to sheet: version and partial-selection handling", "done", "Versions and the image guard built; whole verses added whatever is selected (owner decision 2026-11-10, legacy parity)", "src/lib/text/sheet-source.ts, src/features/reader/ConnectionsPane.tsx, src/lib/user/sheets.ts")
+mark("CON-034", "Add connection to sheet button", "done", "Add to Sheet for the selected verses and on each connected text", "src/ui/AddToSheetView, src/features/reader/ConnectionsPane.tsx")
 
 add("CON-057", "Google Docs extension promo in Add to Sheet", [
     "BUILT 2026-11-10 (lane GR): the box under Add to Sheet's button (old GDocAdvertBox: 'Add texts directly to your Google Docs with our new extension! Learn more' and Install Now with the old utm parameters), promo_viewed once on screen and promo_clicked for campaign GDocs_Promo_AddToSheet, adType sidebar; Install Now sets gdoc_installed, which hides it. Signed-in only. Tests: src/ui/AddToSheetView/AddToSheetView.test.tsx; story WithGoogleDocsPromo.",
@@ -133,6 +134,12 @@ add("USL-004", "Note listing with delete and sheet-aware links", [
     "2026-11-10 (lane GR, T-G04): 'Add to Sheet on a note' has no way in on sefaria.org: static/js/NoteListing.jsx (the live /texts/notes list) keeps the modal state but renders no button that opens it; the button exists only in static/js/MyNotesPanel.jsx, which nothing imports. Parity is none; not built.",
 ])
 mark("USL-004", "Note listing with delete and sheet-aware links", "done", "Listing with delete and sheet-aware links; legacy's note Add to Sheet is unreachable (dead code), not ported", "src/ui/UserHistoryPage, src/features/user-history")
+
+# --- Extended notes: deferred (owner decision 2026-11-10, LAUNCH_PLAN §8) ---------------------------------------------------
+
+for fid, name in [("SHL-055", "Extended notes view"), ("VER-021", "Extended version notes"), ("RTE-047", "Version notes param (notes)")]:
+    add(fid, name, ["Deferred 2026-11-10 (owner, LAUNCH_PLAN §8): no version on www.sefaria.org with extendedNotes/extendedNotesHebrew was found among 26 titles checked through /api/texts/versions/<title> (lane GR)."])
+    mark(fid, name, "deferred", "Deferred after L1 (owner 2026-11-10); no live version found using extended notes", "")
 
 # --- T-G05 checks that needed no change ---------------------------------------------------------------------------------------
 
