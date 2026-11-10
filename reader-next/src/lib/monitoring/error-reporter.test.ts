@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ErrorReporter, MAX_PER_PAGE, reportError, scrub, setPageReporter, uaClass, type ErrorReport } from "./error-reporter";
+import { ErrorReporter, MAX_PER_PAGE, MAX_PER_SESSION, reportError, scrub, setPageReporter, uaClass, type ErrorReport } from "./error-reporter";
 import { routeKind } from "./route-kind";
 
 const make = (o: Partial<ConstructorParameters<typeof ErrorReporter>[0]> = {}) => {
   const sent: ErrorReport[] = [];
-  const r = new ErrorReporter({ endpoint: "/__errors", release: "v7.12.0", random: () => 0, signedIn: () => true, send: (_u, b) => (sent.push(JSON.parse(b)), true), ...o });
+  const r = new ErrorReporter({ endpoint: "/__errors", release: "v7.12.0", random: () => 0, signedIn: () => true, userAgent: "Mozilla/5.0 Chrome/126.0 Safari/537.36", session: null, send: (_u, b) => (sent.push(JSON.parse(b)), true), ...o });
   return { r, sent };
 };
 
@@ -75,6 +75,64 @@ describe("ErrorReporter", () => {
     expect(sent).toHaveLength(1);
     const failing = make({ send: vi.fn(() => false) });
     expect(failing.r.report("error", new Error("q"))).toBeNull();
+  });
+});
+
+describe("ErrorReporter: what is never sent", () => {
+  it("a token in the path is collapsed", () => {
+    window.history.pushState({}, "", "/password/reset/confirm/MTIz/c4k2j8-3f9a1b2c3d4e5f6a7b8c/");
+    const { r, sent } = make();
+    r.report("error", new Error("x"));
+    expect(sent[0]!.path).toBe("/password/reset/confirm/:uid/:token/");
+    window.history.pushState({}, "", "/");
+  });
+  it("a thrown non-Error value is reported by its type only", () => {
+    const { r, sent } = make();
+    r.report("unhandledrejection", { email: "ada@example.com", secret: "s3cr3t" });
+    r.report("unhandledrejection", 42);
+    r.report("unhandledrejection", null);
+    r.report("unhandledrejection", new (class Oops {})());
+    expect(sent.map((s) => s.message)).toEqual(["Non-Error thrown: Object", "Non-Error thrown: number", "Non-Error thrown: null", "Non-Error thrown: Oops"]);
+  });
+  it("a huge message is clipped before it is scrubbed (fast) ", () => {
+    const { r, sent } = make();
+    const t = performance.now();
+    r.report("error", new Error(`/${"a".repeat(2_000_000)}`));
+    expect(performance.now() - t).toBeLessThan(200);
+    expect(sent[0]!.message.length).toBeLessThanOrEqual(500);
+  });
+  it("bots, 4xx API answers and a session over its cap are not reported", () => {
+    expect(make({ userAgent: "Mozilla/5.0 (compatible; Googlebot/2.1)" }).r.enabled).toBe(false);
+    const { r, sent } = make();
+    const notFound = Object.assign(new Error("Text Genesis 99: HTTP 404"), { name: "SefariaApiError", status: 404 });
+    const serverError = Object.assign(new Error("Text: HTTP 502"), { name: "SefariaApiError", status: 502 });
+    expect(r.report("error", notFound)).toBeNull();
+    expect(r.report("error", serverError)).not.toBeNull();
+    const store = new Map<string, string>();
+    const session = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v) };
+    for (let page = 0; page < 5; page++) {
+      const p = make({ session });
+      for (let i = 0; i < 10; i++) p.r.report("error", new Error(`p${page}e${i}`));
+      sent.push(...p.sent);
+    }
+    expect(sent.length).toBe(1 + MAX_PER_SESSION);
+  });
+  it("production React's minified hydration errors are labelled hydration", () => {
+    const { r, sent } = make();
+    const off = r.install(Object.assign(new EventTarget(), {}) as unknown as Window);
+    off();
+    for (const m of [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message",
+      "Minified React error #423; visit https://react.dev/errors/423",
+      "Minified React error #31; visit https://react.dev/errors/31",
+    ]) {
+      const win = new EventTarget() as unknown as Window;
+      const uninstall = r.install(win);
+      win.dispatchEvent(new ErrorEvent("error", { error: new Error(m) }));
+      uninstall();
+    }
+    expect(sent.map((s) => s.kind)).toEqual(["hydration", "hydration", "error"]);
+    expect(sent[0]!.message).toBe("Error: Minified React error #418; visit https://react.dev/errors/418 for the full message");
   });
 });
 

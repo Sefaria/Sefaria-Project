@@ -14,10 +14,12 @@
  *
  * `withRequestId(headers, id)` adds the id to an upstream request's headers.
  *
- * Never logged: query strings, cookies, user ids, any header but the request id. The path is logged without its query.
+ * Never logged: query strings, cookies, user ids, any header but the request id. The path is logged without its query and with its
+ * secrets collapsed (redact-path.ts: password-reset tokens, allauth keys, profile slugs, e-mail addresses).
  *
  * @feature PLT-031 Health checks and operational endpoints (request logs)
  */
+import { redactPath } from "./redact-path";
 import { routeKind, type RouteKind } from "./route-kind";
 
 export const REQUEST_ID_HEADER = "x-request-id";
@@ -92,7 +94,8 @@ export interface RequestLog {
 export function beginRequestLog(request: Request, release: string | null = (typeof process !== "undefined" ? process.env.APP_VERSION : undefined) ?? null): RequestLog {
   const started = now();
   const id = requestIdOf(request.headers);
-  const path = new URL(request.url).pathname;
+  const rawPath = new URL(request.url).pathname;
+  const path = redactPath(rawPath);
   return {
     id,
     finish(response, info = {}) {
@@ -103,7 +106,7 @@ export function beginRequestLog(request: Request, release: string | null = (type
         logger: "reader",
         message: `${request.method} ${path} ${status}`,
         request_id: id,
-        http: { method: request.method, url_details: { path }, status_code: status, route_kind: routeKind(path) },
+        http: { method: request.method, url_details: { path }, status_code: status, route_kind: routeKind(rawPath) },
         duration: Math.round((now() - started) * 1e6),
         ...(info.upstreamStatus !== undefined ? { upstream_status: info.upstreamStatus } : {}),
         pass_through: !!info.passThrough || response.headers.get("x-served-by") === "django",

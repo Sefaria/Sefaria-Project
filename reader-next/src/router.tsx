@@ -6,6 +6,8 @@ import { routeTree } from "./routeTree.gen";
 import { isReaderPath } from "./lib/reader/paths";
 import { parseSearch, stringifySearch } from "./lib/reader/search-serializer";
 import { RouteError } from "./features/shared/RouteError";
+// the browser error reporter, installed now, before hydration (its own module guards the server)
+import "./lib/monitoring/browser";
 
 export function getRouter() {
   const queryClient = makeQueryClient();
