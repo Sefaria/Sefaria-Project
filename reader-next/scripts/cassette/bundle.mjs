@@ -26,7 +26,12 @@ const REPO = process.env.E2E_CASSETTE_REPO || "Sefaria/Sefaria-Project";
 const RELEASE = "reader-next-e2e-cassette";
 
 const sha256 = (buf) => createHash("sha256").update(buf).digest("hex");
-const recordings = (dir) => (existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith(".gz")).sort() : []);
+// macOS tar stores each file's extended attributes as a hidden AppleDouble entry "._<name>" (its own listing hides them); GNU tar on
+// Linux unpacks them as ordinary files, which end in .gz too. They are never recordings: without this a bundle packed on a Mac failed
+// its hash check in CI.
+const recordings = (dir) => (existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith(".gz") && !f.startsWith("._")).sort() : []);
+/** Pack without macOS metadata entries (COPYFILE_DISABLE is read by macOS tar and ignored elsewhere). */
+const TAR_ENV = { ...process.env, COPYFILE_DISABLE: "1" };
 
 /** The content hash of a cassette directory, and its size. */
 export function hashDir(dir = DIR) {
@@ -58,7 +63,7 @@ function pack(outDir) {
   const out = join(outDir, assetName(hash));
   const list = join(mkdtempSync(join(tmpdir(), "cassette-")), "files");
   writeFileSync(list, recordings(DIR).join("\n") + "\n");
-  execFileSync("tar", ["-czf", out, "-C", DIR, "-T", list]);
+  execFileSync("tar", ["-czf", out, "-C", DIR, "-T", list], { env: TAR_ENV });
   const lock = { format: 1, hash, files, bytes, asset: assetName(hash), release: RELEASE, url: assetUrl(hash) };
   writeFileSync(LOCK, JSON.stringify(lock, null, 2) + "\n");
   console.log(`packed ${files} recordings (${(bytes / 1e6).toFixed(1)} MB) into ${out} (${(statSync(out).size / 1e6).toFixed(1)} MB)`);

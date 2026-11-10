@@ -54,6 +54,25 @@ test("pack pins the content hash; unpack restores exactly that and refuses anyth
   assert.deepEqual(readdirSync(dir).sort(), ["a1.gz", "b2.gz"]);
 });
 
+// CI 2026-11-10: a bundle packed by macOS tar carries a hidden "._<name>.gz" AppleDouble entry per file; GNU tar unpacks them as files
+// (macOS tar itself treats a "._" file as metadata when extracting, so this checks the directory Linux ends up with directly.)
+test("macOS metadata entries (._*.gz) unpacked on Linux are not recordings: the pinned hash still matches", async () => {
+  const { root, dir, env } = fixture();
+  assert.equal(run(env, "pack", "--out", join(root, "out")).status, 0);
+  const lock = JSON.parse(readFileSync(env.E2E_CASSETTE_LOCK, "utf8"));
+  // what GNU tar leaves from a Mac-packed bundle: the two recordings plus their AppleDouble entries as ordinary files
+  const linux = join(root, "linux");
+  mkdirSync(linux);
+  for (const f of ["a1.gz", "b2.gz"]) {
+    writeFileSync(join(linux, f), readFileSync(join(dir, f)));
+    writeFileSync(join(linux, `._${f}`), Buffer.from("\x00\x05\x16\x07 AppleDouble"));
+  }
+  const { hashDir } = await import(SCRIPT);
+  const got = hashDir(linux);
+  assert.equal(got.files, 2);
+  assert.equal(got.hash, lock.hash);
+});
+
 test("fetch replays the pinned bundle, and falls back to auto when it is missing or not the pinned one", async () => {
   const { root, dir, env } = fixture();
   assert.equal(run(env, "pack", "--out", join(root, "out")).status, 0);
