@@ -214,6 +214,7 @@ describe('the Account tab of a developer', () => {
     mountAccountOfDeveloper();
     expect(developerPanel().contains(document.activeElement)).toBe(false);
   });
+});
 
 describe('double clicks', () => {
   const never = () => {
@@ -233,6 +234,7 @@ describe('double clicks', () => {
     });
     expect(calls('POST projects')).toBe(1);
   });
+});
 
 describe('Back from a project URL', () => {
   it('collapses the project card when the URL no longer names it', () => {
