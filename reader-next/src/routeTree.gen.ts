@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SplatRouteImport } from './routes/$'
+import { Route as PageRouteImport } from './routes/$page'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as CalendarsRouteImport } from './routes/calendars'
 import { Route as HistoryRouteImport } from './routes/history'
@@ -22,6 +23,7 @@ import { Route as ActivitySplatRouteImport } from './routes/activity.$'
 import { Route as CompareIndexRouteImport } from './routes/compare.index'
 import { Route as CompareSplatRouteImport } from './routes/compare.$'
 import { Route as InterfaceLangRouteImport } from './routes/interface.$lang'
+import { Route as StaticPageStylesSplatRouteImport } from './routes/static-page-styles.$'
 import { Route as TextsIndexRouteImport } from './routes/texts.index'
 import { Route as TextsSplatRouteImport } from './routes/texts.$'
 import { Route as TextsNotesRouteImport } from './routes/texts.notes'
@@ -41,6 +43,11 @@ const IndexRoute = IndexRouteImport.update({
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
   path: '/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PageRoute = PageRouteImport.update({
+  id: '/$page',
+  path: '/$page',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -95,6 +102,11 @@ const CompareSplatRoute = CompareSplatRouteImport.update({
 const InterfaceLangRoute = InterfaceLangRouteImport.update({
   id: '/interface/$lang',
   path: '/interface/$lang',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StaticPageStylesSplatRoute = StaticPageStylesSplatRouteImport.update({
+  id: '/static-page-styles/$',
+  path: '/static-page-styles/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TextsIndexRoute = TextsIndexRouteImport.update({
@@ -152,6 +164,7 @@ const AuthPasswordResetConfirmUidb64TokenRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/$page': typeof PageRoute
   '/calendars': typeof CalendarsRoute
   '/history': typeof HistoryRoute
   '/saved': typeof SavedRoute
@@ -161,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/activity/$': typeof ActivitySplatRoute
   '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
+  '/static-page-styles/$': typeof StaticPageStylesSplatRoute
   '/texts/$': typeof TextsSplatRoute
   '/texts/notes': typeof TextsNotesRoute
   '/topics/$': typeof TopicsSplatRoute
@@ -176,6 +190,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/$page': typeof PageRoute
   '/calendars': typeof CalendarsRoute
   '/history': typeof HistoryRoute
   '/saved': typeof SavedRoute
@@ -185,6 +200,7 @@ export interface FileRoutesByTo {
   '/activity/$': typeof ActivitySplatRoute
   '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
+  '/static-page-styles/$': typeof StaticPageStylesSplatRoute
   '/texts/$': typeof TextsSplatRoute
   '/texts/notes': typeof TextsNotesRoute
   '/topics/$': typeof TopicsSplatRoute
@@ -201,6 +217,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/$page': typeof PageRoute
   '/_auth': typeof AuthRouteWithChildren
   '/calendars': typeof CalendarsRoute
   '/history': typeof HistoryRoute
@@ -211,6 +228,7 @@ export interface FileRoutesById {
   '/activity/$': typeof ActivitySplatRoute
   '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
+  '/static-page-styles/$': typeof StaticPageStylesSplatRoute
   '/texts/$': typeof TextsSplatRoute
   '/texts/notes': typeof TextsNotesRoute
   '/topics/$': typeof TopicsSplatRoute
@@ -228,6 +246,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$'
+    | '/$page'
     | '/calendars'
     | '/history'
     | '/saved'
@@ -237,6 +256,7 @@ export interface FileRouteTypes {
     | '/activity/$'
     | '/compare/$'
     | '/interface/$lang'
+    | '/static-page-styles/$'
     | '/texts/$'
     | '/texts/notes'
     | '/topics/$'
@@ -252,6 +272,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$'
+    | '/$page'
     | '/calendars'
     | '/history'
     | '/saved'
@@ -261,6 +282,7 @@ export interface FileRouteTypes {
     | '/activity/$'
     | '/compare/$'
     | '/interface/$lang'
+    | '/static-page-styles/$'
     | '/texts/$'
     | '/texts/notes'
     | '/topics/$'
@@ -276,6 +298,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$'
+    | '/$page'
     | '/_auth'
     | '/calendars'
     | '/history'
@@ -286,6 +309,7 @@ export interface FileRouteTypes {
     | '/activity/$'
     | '/compare/$'
     | '/interface/$lang'
+    | '/static-page-styles/$'
     | '/texts/$'
     | '/texts/notes'
     | '/topics/$'
@@ -302,6 +326,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
+  PageRoute: typeof PageRoute
   AuthRoute: typeof AuthRouteWithChildren
   CalendarsRoute: typeof CalendarsRoute
   HistoryRoute: typeof HistoryRoute
@@ -310,6 +335,7 @@ export interface RootRouteChildren {
   ActivitySplatRoute: typeof ActivitySplatRoute
   CompareSplatRoute: typeof CompareSplatRoute
   InterfaceLangRoute: typeof InterfaceLangRoute
+  StaticPageStylesSplatRoute: typeof StaticPageStylesSplatRoute
   TextsSplatRoute: typeof TextsSplatRoute
   TextsNotesRoute: typeof TextsNotesRoute
   TopicsSplatRoute: typeof TopicsSplatRoute
@@ -336,6 +362,13 @@ declare module '@tanstack/react-router' {
       path: '/$'
       fullPath: '/$'
       preLoaderRoute: typeof SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$page': {
+      id: '/$page'
+      path: '/$page'
+      fullPath: '/$page'
+      preLoaderRoute: typeof PageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth': {
@@ -413,6 +446,13 @@ declare module '@tanstack/react-router' {
       path: '/interface/$lang'
       fullPath: '/interface/$lang'
       preLoaderRoute: typeof InterfaceLangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/static-page-styles/$': {
+      id: '/static-page-styles/$'
+      path: '/static-page-styles/$'
+      fullPath: '/static-page-styles/$'
+      preLoaderRoute: typeof StaticPageStylesSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/texts/': {
@@ -506,6 +546,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
+  PageRoute: PageRoute,
   AuthRoute: AuthRouteWithChildren,
   CalendarsRoute: CalendarsRoute,
   HistoryRoute: HistoryRoute,
@@ -514,6 +555,7 @@ const rootRouteChildren: RootRouteChildren = {
   ActivitySplatRoute: ActivitySplatRoute,
   CompareSplatRoute: CompareSplatRoute,
   InterfaceLangRoute: InterfaceLangRoute,
+  StaticPageStylesSplatRoute: StaticPageStylesSplatRoute,
   TextsSplatRoute: TextsSplatRoute,
   TextsNotesRoute: TextsNotesRoute,
   TopicsSplatRoute: TopicsSplatRoute,
