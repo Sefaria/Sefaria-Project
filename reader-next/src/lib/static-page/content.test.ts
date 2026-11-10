@@ -50,14 +50,13 @@ describe("a static page's content from Django (?format=json&lang=…)", () => {
     await expect(fetchStaticPage("terms", "en", "", "", answer("", 502))).rejects.toThrow(/502/);
   });
 
-  it("the inline CSS cannot close its <style>, and is scoped like the legacy sheets (so it still wins over them, as on the old page)", () => {
+  it("the CSS Django sends with the page is never used (owner, 2026-11-10): page CSS is built from the templates instead", () => {
     expect(safeInlineCss("a{}</style><script>x</script>")).toBe("a{}\\3c /style>\\3c script>x\\3c /script>");
-    // a comment inside the tag names is gone after scoping: the escaping comes after it, so nothing can close the <style>
-    const sneaky = pageInlineCss(".a { color: red; x: </sty/**/le><scr/**/ipt>alert(1)</scr/**/ipt> }");
-    expect(sneaky).not.toMatch(/<\/?(style|script)/i);
-    expect(sneaky).not.toContain("<");
-    expect(pageInlineCss(".static h2 { text-transform: none; }")).toBe("#staticContentWrapper .static h2 { text-transform: none; }\n");
-    expect(pageInlineCss("  ")).toBe("");
+    for (const css of [".a { color: red; x: </sty/**/le><scr/**/ipt>alert(1)</scr/**/ipt> }", "~ footer{color:red}", ".a { content: \"x\n} footer { color: red } .b { content: \"y }\n}", ".static h2 { text-transform: none; }"])
+      expect(pageInlineCss(css)).toBe("");
+    // and the model built from Django's answer carries none of it
+    const model = staticPageModel("about", parseStaticContent({ title: "About", html: "<p>x</p>", css: [], inlineCss: "~ footer{color:red}", lang: "en" })!, "");
+    expect(model.inlineCss).toBe("");
   });
 
   it("a page that sets the document's font size (pioneers) has its rems made pixels of that size", () => {
@@ -130,8 +129,10 @@ describe("scopeCss: the legacy stylesheets under the static page's wrapper", () 
     expect(scopeCss(".a { background: url(data:image/svg+xml,abc) }", S)).toContain("url(data:image/svg+xml,abc)"); // images are fine
   });
 
-  it("a page's own CSS drops the shell's font faces too", () => {
-    expect(pageInlineCss('@font-face { font-family: "Taamey Frank"; src: url(/static/fonts/x.ttf) } @font-face { font-family: Other; src: url(/x.woff) }')).toBe("@font-face { font-family: Other; src: url(/x.woff) }\n");
+  it("a stylesheet scoped with the shell's font list drops those font faces", () => {
+    expect(scopeCss('@font-face { font-family: "Taamey Frank"; src: url(/static/fonts/x.ttf) } @font-face { font-family: Other; src: url(/x.woff) }', S, { dropFontFaces: new Set(["taamey frank"]) })).toBe(
+      "@font-face { font-family: Other; src: url(/x.woff) }\n",
+    );
   });
 
   it("addresses relative url()s from the stylesheet's own folder", () => {

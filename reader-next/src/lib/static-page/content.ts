@@ -75,22 +75,14 @@ export function parseStaticContent(body: unknown): StaticContentAnswer | null {
 export const safeInlineCss = (css: string) => css.replace(/</g, "\\3c ");
 
 /**
- * The page's `{% block css %}`, scoped like the legacy stylesheets (legacy-css.ts): on the old page it came after them at the same
- * specificity and won; scoped, it keeps doing so (it is rendered after the head's stylesheets).
+ * The page's `{% block css %}` as Django sends it is NOT used (owner, 2026-11-10): scoping CSS at request time could not be made
+ * safe (a crafted block restyled the whole shell, twice past review). Each rendered page's block is instead built from the
+ * repository's templates into the scoped static stylesheet (legacy-css.ts buildStaticPageCss), checked by legacy-css.test.ts.
+ * Kept for the tests of the scoper and for callers that still pass Django's field: it always answers "".
  */
-export const pageInlineCss = (css: string) => (css.trim() ? safeInlineCss(scopeCss(remToPx(css), STATIC_SCOPE, { dropFontFaces: SHELL_FONT_FAMILIES })) : "");
+export const pageInlineCss = (_css: string) => "";
 
-/**
- * A page that sets the document's font size (pioneers.html: `html { font-size: 10px }`) and sizes its content in rem: in this shell
- * the document is not the page's, so its rems are made pixels of that size. A page that does not set it keeps its rems (the old
- * document's 16px is this client's too).
- */
-export function remToPx(css: string): string {
-  const root = /(?:^|[}\s])html\s*\{[^}]*?font-size:\s*([\d.]+)px/i.exec(css);
-  if (!root) return css;
-  const px = Number(root[1]);
-  return css.replace(/(-?\d*\.?\d+)rem\b/g, (_, n: string) => `${Math.round(Number(n) * px * 1000) / 1000}px`);
-}
+export { remToPx } from "./rem-to-px";
 
 /** The legacy stylesheets this client serves scoped to the page (lib/static-page/legacy-css.ts LEGACY_SOURCES). */
 const SCOPED_HERE = new Set(LEGACY_SOURCES.map((p) => `/static/${p}`));

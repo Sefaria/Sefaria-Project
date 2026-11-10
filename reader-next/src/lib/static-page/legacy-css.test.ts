@@ -5,6 +5,8 @@ import { LEGACY_STATIC_CSS } from "./legacy-css.gen";
 import { LEGACY_STATIC_CSS_HASH } from "./legacy-css-hash.gen";
 
 const STATIC_DIR = join(__dirname, "..", "..", "..", "..", "static");
+const TEMPLATES_DIR = join(__dirname, "..", "..", "..", "..", "templates");
+const readTemplate = (path: string) => (existsSync(join(TEMPLATES_DIR, path)) ? readFileSync(join(TEMPLATES_DIR, path), "utf8") : null);
 const GEN = join(__dirname, "legacy-css.gen.ts");
 const SHELL_FONTS = declaredFontFamilies(readFileSync(join(__dirname, "..", "..", "ui", "tokens", "fonts.css"), "utf8"));
 const GEN_HASH = join(__dirname, "legacy-css-hash.gen.ts");
@@ -23,12 +25,12 @@ describe("the static pages' legacy stylesheet (legacy-css.gen.ts)", () => {
   const haveSources = existsSync(join(STATIC_DIR, "css", "static.css"));
 
   it.runIf(haveSources)("is the scoped copy of today's static/css (regenerate with UPDATE_LEGACY_CSS=1)", () => {
-    const css = buildLegacyStaticCss((name) => readFileSync(join(STATIC_DIR, name), "utf8"), SHELL_FONTS);
+    const css = buildLegacyStaticCss((name) => readFileSync(join(STATIC_DIR, name), "utf8"), SHELL_FONTS, readTemplate);
     if (process.env.UPDATE_LEGACY_CSS) {
       writeFileSync(GEN, genModule(css));
       writeFileSync(GEN_HASH, genHashModule(css));
     }
-    expect(LEGACY_STATIC_CSS === css, "static/css changed: run UPDATE_LEGACY_CSS=1 npm test -- legacy-css").toBe(true);
+    expect(LEGACY_STATIC_CSS === css, "static/css or a static template's {% block css %} changed: run UPDATE_LEGACY_CSS=1 npm test -- legacy-css").toBe(true);
     expect(LEGACY_STATIC_CSS_HASH).toBe(cssHash(css));
   });
 
@@ -43,6 +45,24 @@ describe("the static pages' legacy stylesheet (legacy-css.gen.ts)", () => {
       }
     }
     expect(selectors).toBeGreaterThan(500);
+  });
+
+  it("no selector reaches past the wrapper: no sibling combinator or leading combinator right after the scope", () => {
+    const rules = LEGACY_STATIC_CSS.replace(/\/\*[\s\S]*?\*\//g, "").replace(/@(?:font-face|(?:-[a-z]+-)?keyframes)[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g, "");
+    for (const m of rules.matchAll(/(?:^|[{}])\s*([^{}@;]+)\{/g))
+      for (const sel of m[1]!.split(/,(?![^()]*\))/).map((s) => s.trim()).filter(Boolean)) {
+        // the scope, with any attribute or pseudo-class parts of its own, must be followed by a descendant/child step or nothing
+        const rest = sel.replace(/^#staticContentWrapper(?:\[[^\]]*\]|:[a-z-]+(?:\([^)]*\))?|\.[\w-]+)*/, "");
+        expect(/^\s*[~+]/.test(rest), sel).toBe(false);
+      }
+  });
+
+  it("carries the rendered pages' own CSS from their templates, each scoped to its page alone", () => {
+    expect(LEGACY_STATIC_CSS).toContain('/* templates/static/en/about.html */');
+    expect(LEGACY_STATIC_CSS).toContain('#staticContentWrapper[data-static-page="about"][dir="ltr"] #aboutPage a');
+    expect(LEGACY_STATIC_CSS).toContain('#staticContentWrapper[data-static-page="pioneers"]');
+    // pioneers sizes in rem against its own html font-size: made pixels
+    expect(/#staticContentWrapper\[data-static-page="pioneers"\][^{]*\{[^}]*\d+px/.test(LEGACY_STATIC_CSS)).toBe(true);
   });
 
   it("declares no font face the shell declares itself (Taamey Frank, Cardo, Noto Color Emoji): the shell's files stay in use", () => {

@@ -63,6 +63,9 @@ describe("sanitizeStaticHtml: the static page's content block", () => {
     expect(clean('<iframe src="https://www.youtube-nocookie.com/embed/5PmBolxgXBY" allowfullscreen></iframe>')).toContain("youtube-nocookie");
     expect(clean('<iframe src="https://evil.example/x"><p>inside</p></iframe><p>after</p>')).toBe("<p>after</p>");
     expect(clean('<iframe src="http://www.youtube.com/embed/x"></iframe>')).toBe("");
+    // the sandbox follows the src the frame keeps, not the raw one: leading Unicode whitespace still gets it
+    for (const ws of ["&nbsp;", "&#x2028;", "&#xFEFF;", "&#x3000;"])
+      expect(clean(`<iframe src="${ws}https://docs.google.com/x"></iframe>`)).toBe(`<iframe src="https://docs.google.com/x" sandbox="${DOCS_SANDBOX}"></iframe>`);
   });
 
   it("drops an inline style that does more than style", () => {

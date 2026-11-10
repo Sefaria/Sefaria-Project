@@ -212,11 +212,13 @@ export function sanitizeStaticHtml(html: string, opts: StaticSanitizeOptions): S
         }
         if (name === "textarea") setAttr(attrs, "readonly", "");
         if (name === "iframe") {
+          // judged on the src this element will carry (already cleaned by safeUrl), never the raw attribute: a leading &nbsp; on the raw
+          // value made the host unparseable here while the cleaned src still pointed at docs.google.com (final review, 2026-11-10)
           let host = "";
           try {
-            host = new URL(attribs.src ?? "").hostname.toLowerCase();
+            host = new URL(attrs.find(([k]) => k === "src")?.[1] ?? "").hostname.toLowerCase();
           } catch {
-            /* dropped above */
+            /* no src left: nothing to frame */
           }
           if (SANDBOXED_FRAME_HOSTS.has(host)) setAttr(attrs, "sandbox", DOCS_SANDBOX);
         }

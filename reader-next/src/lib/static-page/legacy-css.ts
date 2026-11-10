@@ -10,6 +10,8 @@
  * The reader's image is built from reader-next/ alone, so the copy is generated into legacy-css.gen.ts and checked against
  * static/ by legacy-css.test.ts (UPDATE_LEGACY_CSS=1 rewrites it). Served by src/routes/static-page-styles.$.ts.
  */
+import { STATIC_PAGES, type StaticPageOwner } from "./pages";
+import { remToPx } from "./rem-to-px";
 import { fontFaceFamily, scopeCss } from "./scope-css";
 
 export const STATIC_SCOPE = "#staticContentWrapper";
@@ -83,11 +85,54 @@ export function declaredFontFamilies(css: string): Set<string> {
  * without the @font-face rules of the families the shell declares itself (`shellFonts`: src/ui/tokens/fonts.css — Taamey Frank,
  * Cardo, Noto Color Emoji), which on a static page would otherwise replace the shell's faces with the old files.
  */
-export function buildLegacyStaticCss(read: (path: string) => string, shellFonts: ReadonlySet<string> = SHELL_FONT_FAMILIES): string {
+export function buildLegacyStaticCss(read: (path: string) => string, shellFonts: ReadonlySet<string> = SHELL_FONT_FAMILIES, readTemplate?: (path: string) => string | null): string {
   return [
     LEGACY_BODY_DEFAULTS,
     ...LEGACY_SOURCES.map((path) => `/* static/${path} */\n${scopeCss(read(path), STATIC_SCOPE, { baseUrl: `/static/${path}`, dropFontFaces: shellFonts })}`),
-  ].join("\n");
+    ...(readTemplate ? [buildStaticPageCss(readTemplate, shellFonts)] : []),
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+/** A template's `{% block css %}…{% endblock %}` (plain CSS in every static template today), or "" when it has none. */
+export function templateCssBlock(template: string): string {
+  const m = /\{%\s*block\s+css\s*%\}([\s\S]*?)\{%\s*endblock(?:\s+css)?\s*%\}/.exec(template);
+  const css = (m?.[1] ?? "").trim();
+  if (/\{[%{]/.test(css)) throw new Error("a static page's {% block css %} uses template tags: build it by hand");
+  return css;
+}
+
+/** The template each rendered static page comes from, and the scope its CSS applies to (only that page, in that language). */
+export function staticPageCssSources(pages: Readonly<Record<string, { owner: StaticPageOwner; byLang?: boolean; enOwner?: StaticPageOwner }>> = STATIC_PAGES) {
+  const out: { template: string; scope: string }[] = [];
+  for (const [page, e] of Object.entries(pages)) {
+    const scope = `${STATIC_SCOPE}[data-static-page="${page}"]`;
+    if (!e.byLang) {
+      if (e.owner === "content" || (e.enOwner === "content")) out.push({ template: `static/${page}.html`, scope });
+      continue;
+    }
+    if ((e.enOwner ?? e.owner) === "content") out.push({ template: `static/en/${page}.html`, scope: `${scope}[dir="ltr"]` });
+    if (e.owner === "content") out.push({ template: `static/he/${page}.html`, scope: `${scope}[dir="rtl"]` });
+  }
+  return out;
+}
+
+/**
+ * The rendered static pages' own `{% block css %}`, from the repository's templates (`readTemplate` gives a file under templates/, or
+ * null when there is none), each scoped to its page alone. Built here, at build time, into the static stylesheet: the CSS Django
+ * sends with a page at request time is never used (owner, 2026-11-10; content.ts pageInlineCss). On the old page these came after the
+ * shared stylesheets and won; appended after them here, with a more specific scope, they still do.
+ */
+export function buildStaticPageCss(readTemplate: (path: string) => string | null, shellFonts: ReadonlySet<string> = SHELL_FONT_FAMILIES): string {
+  return staticPageCssSources()
+    .map(({ template, scope }) => {
+      const source = readTemplate(template);
+      const css = source === null ? "" : templateCssBlock(source);
+      return css ? `/* templates/${template} */\n${scopeCss(remToPx(css), scope, { dropFontFaces: shellFonts })}` : "";
+    })
+    .filter(Boolean)
+    .join("\n");
 }
 
 /** A short content hash (FNV-1a), for the stylesheet's address. */
