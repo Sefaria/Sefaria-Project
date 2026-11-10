@@ -40,3 +40,12 @@ button.open { padding: 0; border: 0; background: none; cursor: pointer; }
 .number { display: none; }
 @media (max-width: 842px) { .number { display: inline-block; } }
 .ref[lang="he"] { font-family: var(--sefaria-font-text-he); }
+
+/* Recent filters (the old RecentFilterSet, VERIFIED on sefaria.org 2026-11-10 at 1280px: Genesis 1:1, Commentary → Rashi → back →
+   Ramban shows "Ramban Rashi"): inline 18px serif names, 6px 14px 6px 0 apart, the current one with its 4px category-coloured rule;
+   the set 12px above the list. */
+.recent { display: flex; flex-wrap: wrap; align-items: baseline; margin-block-end: 12px; }
+.recent .title { margin: 6px 14px 6px 0; margin-inline: 0 14px; }
+.recentChip { margin-block: 6px; margin-inline: 0 14px; padding-block-end: 9px; border-block-end: 4px solid transparent; font-size: 18px; line-height: 21.6px; color: var(--sefaria-color-text-strong); text-decoration: none; }
+.recentChip[data-upper] { text-transform: uppercase; }
+.recentChip:hover { text-decoration: none; border-block-end-color: var(--sefaria-color-border); }

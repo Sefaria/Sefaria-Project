@@ -30,9 +30,26 @@ export interface LinkedTextItem {
   loading?: boolean;
 }
 
+/** A recently used filter (the old RecentFilterSet's TextFilter): its name, colour, link and whether it is the one shown. */
+export interface RecentFilter {
+  key: string;
+  label: { en: string; he: string };
+  /** A whole category ("Commentary"): shown upper-case. */
+  category?: boolean;
+  color: string;
+  href: string;
+  current: boolean;
+}
+
 export interface TextListProps {
   /** Heading: the filter ("Rashi"). */
   title: { en: string; he: string };
+  /**
+   * The filters used in this sidebar, newest first, the current one marked (the old RecentFilterSet): shown in place of the title,
+   * each a link to its list. One filter shows as the title alone.
+   */
+  recent?: readonly RecentFilter[];
+  onRecent?: (href: string, event: MouseEvent) => void;
   /** The list is a whole category ("Commentary"), whose title shows upper-case; a book's keeps its case. */
   categoryTitle?: boolean;
   /** Underline colour (the category's). */
@@ -69,7 +86,7 @@ export interface TextListProps {
  * @feature CON-034 Add connection to sheet button
  * @feature CON-035 Remove connection (moderator)
  */
-export function TextList({ title, categoryTitle, color, items, language, vocalization, hideItemTitles, loading, emptyMessage, onRefClick, onOpen, onAddToSheet, onRemove, onDwell, onNearEnd }: TextListProps) {
+export function TextList({ recent, onRecent, title, categoryTitle, color, items, language, vocalization, hideItemTitles, loading, emptyMessage, onRefClick, onOpen, onAddToSheet, onRemove, onDwell, onNearEnd }: TextListProps) {
   const endRef = useRef<HTMLDivElement>(null);
   const nearEnd = useRef(onNearEnd);
   nearEnd.current = onNearEnd;
@@ -118,10 +135,37 @@ export function TextList({ title, categoryTitle, color, items, language, vocaliz
   }, [items]);
   return (
     <div>
-      <h3 className={styles.title} data-upper={categoryTitle || undefined} style={{ ["--_color" as string]: color }}>
-        <InterfaceText en={title.en} he={title.he} />
-        <span className={styles.titleBar} aria-hidden="true" />
-      </h3>
+      {recent && recent.length > 1 ? (
+        <nav className={styles.recent} aria-label="Recent filters" data-recent-filters="">
+          {recent.map((r) =>
+            r.current ? (
+              <h3 key={r.key} className={styles.title} data-upper={r.category || undefined} style={{ ["--_color" as string]: r.color }} aria-current="true">
+                <InterfaceText en={r.label.en} he={r.label.he} />
+              </h3>
+            ) : (
+              <Link
+                key={r.key}
+                href={r.href}
+                className={styles.recentChip}
+                data-upper={r.category || undefined}
+                onClick={(e) => {
+                  if (onRecent && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+                    e.preventDefault();
+                    onRecent(r.href, e);
+                  }
+                }}
+              >
+                <InterfaceText en={r.label.en} he={r.label.he} />
+              </Link>
+            ),
+          )}
+        </nav>
+      ) : (
+        <h3 className={styles.title} data-upper={categoryTitle || undefined} style={{ ["--_color" as string]: color }}>
+          <InterfaceText en={title.en} he={title.he} />
+          <span className={styles.titleBar} aria-hidden="true" />
+        </h3>
+      )}
       {loading ? <LoadingState /> : null}
       {!loading && items.length === 0 ? (
         <p className={styles.notice}>{emptyMessage ?? <InterfaceText en="No connections known." he="אין קישורים ידועים." />}</p>

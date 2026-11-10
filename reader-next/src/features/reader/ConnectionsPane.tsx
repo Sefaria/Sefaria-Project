@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { tocQueryOptions } from "~/lib/catalog/toc";
 import { filterLinks, linksForRefs, makeIndexLookup, sortLinks, withoutEssays, type RelatedLink } from "~/lib/connections/links";
 import { linksQueryOptions } from "~/lib/connections/queries";
@@ -68,6 +68,7 @@ import { autocorrectQueryOptions, decideAutocorrect, NO_AUTOCORRECT } from "~/li
 import { useLocation } from "@tanstack/react-router";
 import { useLibraryHref } from "~/lib/routing/library-href";
 import { useLastTextSelection } from "./use-last-selection";
+import { useSidebarScroll } from "./use-sidebar-scroll";
 import { GDocAdvert } from "~/ui/AddToSheetView/GDocAdvert";
 
 import { IMAGE_NOT_SUPPORTED, sheetExtras, type SheetExtras } from "~/lib/text/sheet-source";
@@ -152,7 +153,7 @@ const textOf = (segs: Segment[], side: "primary" | "translation") => segs.map((s
  *
  * @feature CON-012 @feature CON-019 @feature CON-025 @feature CON-030 @feature CON-032 @feature CON-071
  */
-function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: SignUpKind) => void }) {
+function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: SignUpKind) => void; recentFilters: readonly string[]; onRecentChip: () => void }) {
   const { view, hrefFor, sectionRef, selectedRefs, settings, onNavigate, onOpenText, onClose } = props;
   // signed in: the reader's notes on the selection (the Notes tool and its count in Tools)
   const viewer = useViewer();
@@ -808,6 +809,22 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   return (
     <ConnectionsPanel label={title.en} back={{ href: link(backView), label: <InterfaceText en={backLabel.en} he={backLabel.he} /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
       <TextList
+        recent={props.recentFilters.map((f) => {
+          // a commentator or book as the links name it (collective title), else a book of the catalog, else a category (upper-case)
+          const fname = f.split("|")[0]!;
+          const named = sectionLinks?.find((l) => l.collectiveTitle.en === fname);
+          const book = named ? undefined : catalog?.books.get(fname);
+          const fcat = named?.category ?? (book ? (book.primary_category ?? book.categories[0]) : undefined) ?? fname;
+          return {
+            key: f,
+            label: named ? { en: named.collectiveTitle.en, he: named.collectiveTitle.he } : book ? { en: fname, he: book.heTitle ?? fname } : categoryLabel(fname, catalog),
+            category: !named && !book,
+            color: categoryColor(fcat === "Quoting Commentary" ? "Commentary" : fcat),
+            href: link({ view: "texts", filter: f }),
+            current: f === filter,
+          };
+        })}
+        onRecent={(href) => (props.onRecentChip(), nav(href))}
         title={title}
         categoryTitle={isCategoryFilter}
         color={categoryColor(category)}
@@ -877,9 +894,26 @@ export function ConnectionsPane(props: ConnectionsPaneProps) {
     setAsked(undefined);
     if (gated) props.onNavigate(props.hrefFor(resources));
   };
+  const root = useRef<HTMLDivElement>(null);
+  useSidebarScroll(root, gated ? resources : props.view);
+  // The filters used in this sidebar, newest first (the old panel's recentFilters: set from the address on load, each new filter put
+  // in front; a recent filter's own link keeps the order: setConnectionsFilter with updateRecent false)
+  const filterNow = props.view.view === "texts" ? props.view.filter : undefined;
+  const [recent, setRecent] = useState<string[]>(filterNow ? [filterNow] : []);
+  const fromChip = useRef(false);
+  useEffect(() => {
+    if (!filterNow) return;
+    const chip = fromChip.current;
+    fromChip.current = false;
+    setRecent((prev) => (chip && prev.includes(filterNow) ? prev : [filterNow, ...prev.filter((f) => f !== filterNow)]));
+  }, [filterNow]);
+  const recentShown = filterNow && !recent.includes(filterNow) ? [filterNow, ...recent] : recent;
   return (
     <>
-      <ConnectionsPaneInner {...props} view={gated ? resources : props.view} onSignUp={setAsked} />
+      {/* display: contents: the panel stays the flex child it was; this only gives the scroll memory its element */}
+      <div ref={root} style={{ display: "contents" }}>
+        <ConnectionsPaneInner {...props} view={gated ? resources : props.view} onSignUp={setAsked} recentFilters={recentShown} onRecentChip={() => (fromChip.current = true)} />
+      </div>
       <SignUpModal kind={kind} onClose={close} next={location.href} />
     </>
   );
