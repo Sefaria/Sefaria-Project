@@ -1,4 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useLibraryHref } from "~/lib/routing/library-href";
 import { sanitizeHtml } from "~/lib/html/sanitize";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { entityHref, type EntityHit, type EntityType } from "~/lib/search/entity-search";
@@ -357,6 +358,7 @@ function Crumbs({ items }: { items: { label: string; href?: string }[] }) {
 /** One Books / Authors / Topics result: a round icon, the crumbs above the name, a date or author line, the description. */
 export function EntityCard({ type, hit, topicParent, liProps }: { type: EntityType; hit: EntityHit; topicParent?: TopicCategory; liProps?: Record<string, unknown> }) {
   const he = useInterfaceLang() === "hebrew";
+  const lib = useLibraryHref();
   const name = he ? hit.title_he || hit.title_en : hit.title_en || hit.title_he;
   const desc = he ? hit.description_he || hit.description_en : hit.description_en || hit.description_he;
   const lang = he ? "he" : "en";
@@ -369,7 +371,7 @@ export function EntityCard({ type, hit, topicParent, liProps }: { type: EntityTy
   const crumbs = cats.length
     ? cats.map((c, i) => ({ label: c, href: `/texts/${cats.slice(0, i + 1).join("/")}` }))
     : hit.categoryLabel_en ? [{ label: he ? hit.categoryLabel_he ?? hit.categoryLabel_en : hit.categoryLabel_en }]
-    : topicParent ? [{ label: he ? topicParent.he : topicParent.en, href: `/topics/category/${topicParent.slug}` }] : [];
+    : topicParent ? [{ label: he ? topicParent.he : topicParent.en, href: lib(`/topics/category/${topicParent.slug}`) }] : [];
   const accent = type === "book" ? categoryColor(cats[0] ?? "") : "#000";
   const href = hit.url ?? entityHref(type, hit);
   const icon = type === "book" ? (hit.isCategory ? "layers" : "book") : type === "author" ? "pen" : "hash";
@@ -385,7 +387,7 @@ export function EntityCard({ type, hit, topicParent, liProps }: { type: EntityTy
           <div className={styles.entityMeta} lang={lang} dir={dirFor(lang)}>
             {date ? (he ? date.he : date.en) : null}
             {date && authorName ? " · " : null}
-            {authorName ? (hit.authors?.[0] ? <Link href={`/topics/${hit.authors[0]}?tab=author-works-on-sefaria`}>{authorName}</Link> : authorName) : null}
+            {authorName ? (hit.authors?.[0] ? <Link href={lib(`/topics/${hit.authors[0]}?tab=author-works-on-sefaria`)}>{authorName}</Link> : authorName) : null}
           </div>
         ) : null}
         {desc ? <p className={`${styles.entityDesc} ${type === "book" ? styles.bookDesc : ""}`} lang={lang} dir={dirFor(lang)}>{desc}</p> : null}
@@ -479,12 +481,15 @@ export function AutocorrectBanner({ corrected, original, suggested, onSearchOrig
 export function NoResults({ tab, query }: { tab: SearchTab; query: string }) {
   const he = useInterfaceLang() === "hebrew";
   const n = NONE[tab];
+  const lib = useLibraryHref();
+  // the authors' and topics' pages are the Library's (their address from a Voices page: lib/routing/library-href.ts)
+  const ctaHref = tab === "authors" || tab === "topics" ? lib(n.href) : n.href;
   return (
     <div className={styles.empty} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
       <img className={styles.emptyImg} src={`/img/no-results/NoResults${n.img}.svg`} alt="" aria-hidden="true" width={140} height={140} />
       <p className={styles.emptyHeading}>{he ? `${n.h[1]} ״${query}״` : `${n.h[0]} “${query}”`}</p>
       <p className={styles.emptyBody}>{he ? n.body[1] : n.body[0]}</p>
-      <Link className={styles.emptyCta} href={n.href}>{he ? n.cta[1] : n.cta[0]}</Link>
+      <Link className={styles.emptyCta} href={ctaHref}>{he ? n.cta[1] : n.cta[0]}</Link>
       <p className={styles.emptyCaption}>
         {he ? <>נתקלתם בבעיה? אפשר <a href="https://sefaria.formstack.com/forms/hebrew_bugs">לדווח על תקלה</a> או <a href="mailto:hello@sefaria.org">ליצור איתנו קשר</a>.</> : <>Something seems wrong? <a href="https://sefaria.formstack.com/forms/bug_report">Report a bug</a> or <a href="mailto:hello@sefaria.org">contact us</a>.</>}
       </p>

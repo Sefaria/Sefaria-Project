@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
+import { useLibraryHref } from "~/lib/routing/library-href";
 import { bothEvent, gtagEvent, useOnceFullyVisible } from "~/lib/analytics";
 import { DEVELOPERS, HELP, LIBRARY, VOICES, donateHref, interfaceHref } from "~/lib/shell/links";
 import { HeaderSearch, type HeaderSearchProps } from "./HeaderSearch";
@@ -141,6 +142,8 @@ const DropdownLanguageToggle = ({ next, lang, globe }: { next: string; lang: "en
  */
 export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }: SiteHeaderProps) {
   const lang = useInterfaceLang();
+  // relative on the Library host (in-app), the Library's own address on a Voices host (lib/routing/library-href.ts)
+  const lib = useLibraryHref();
   const he = lang === "hebrew";
   const [ownOpen, setOwnOpen] = useState(false);
   const mobileOpen = menuOpen ?? ownOpen;
@@ -178,10 +181,10 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
     <header ref={seen} className={styles.header} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
       <div className={`${styles.inner} ${styles.desktop}`}>
         <nav className={styles.nav} aria-label={t("Primary navigation", "ניווט ראשי")}>
-          <A href="/" className={styles.logo}><img src={logo} alt={logoLabel} /><span className={styles.samech} role="img" aria-label={logoLabel} /></A>
+          <A href={lib("/")} className={styles.logo}><img src={logo} alt={logoLabel} /><span className={styles.samech} role="img" aria-label={logoLabel} /></A>
           <div className={styles.links}>
-            <Link href="/texts" className={styles.link} onClick={fullLoadWhereNotOurs}><InterfaceText en="Texts" he="מקורות" /></Link>
-            <Link href="/topics" className={styles.link} onClick={fullLoadWhereNotOurs}><InterfaceText en="Topics" he="נושאים" /></Link>
+            <Link href={lib("/texts")} className={styles.link} onClick={fullLoadWhereNotOurs}><InterfaceText en="Texts" he="מקורות" /></Link>
+            <Link href={lib("/topics")} className={styles.link} onClick={fullLoadWhereNotOurs}><InterfaceText en="Topics" he="נושאים" /></Link>
             <A href={donateHref("Header")} className={styles.link} target="_blank"><InterfaceText en="Donate" he="תרומה" /></A>
           </div>
         </nav>
@@ -200,7 +203,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
             <Menu icon="moduleswitcher_mdl" label={t("Library", "ספריה")} anlFeature="module_switcher" optionsClassName={dd.modules}>
               <A href={`${LIBRARY}/about`} className={`${dd.item} ${dd.logoItem}`} data-anl-event={SWITCH} data-anl-text="About Sefaria"><img src={he ? "/brand/sefaria-logo-hebrew.png" : "/brand/sefaria-logo.svg"} alt={t("Sefaria", "ספריא")} /></A>
               <div className={dd.separator} />
-              <ModuleItem href="/" dot="#18345d" text={t("Library", "ספריה")} anl="Library" />
+              <ModuleItem href={lib("/")} dot="#18345d" text={t("Library", "ספריה")} anl="Library" />
               <div className={dd.separator} />
               <ModuleItem href={`${VOICES}/`} dot="#518159" text={t("Voices", "חיבורים")} anl="Voices" newTab />
               <div className={dd.separator} />
@@ -245,7 +248,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
           </button>
         </div>
         <div className={styles.mobileCenter}>
-          <A href="/" className={styles.logo}><img src={logo} alt={logoLabel} /></A>
+          <A href={lib("/")} className={styles.logo}><img src={logo} alt={logoLabel} /></A>
         </div>
         {/* a library page puts its content-language toggle here (ContentLanguage, through a portal), as the old mobile header did */}
         <div id={HEADER_PAGE_ACTION_ID} className={styles.mobileAction} />
@@ -254,8 +257,8 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
         <div className={mn.searchLine}>
           <HeaderSearch mobile {...search} onSearch={(q) => { setMobileOpen(false); search.onSearch(q); }} onSmartSubmit={(q) => { setMobileOpen(false); search.onSmartSubmit(q); }} onChoose={(x) => { setMobileOpen(false); search.onChoose(x); }} />
         </div>
-        <Link href="/texts" onClick={fullLoadWhereNotOurs}><img src="/icons/book.svg" alt="" /><InterfaceText en="Texts" he="מקורות" /></Link>
-        <Link href="/topics" onClick={fullLoadWhereNotOurs}><img src="/icons/topic.svg" alt="" /><InterfaceText en="Topics" he="נושאים" /></Link>
+        <Link href={lib("/texts")} onClick={fullLoadWhereNotOurs}><img src="/icons/book.svg" alt="" /><InterfaceText en="Texts" he="מקורות" /></Link>
+        <Link href={lib("/topics")} onClick={fullLoadWhereNotOurs}><img src="/icons/topic.svg" alt="" /><InterfaceText en="Topics" he="נושאים" /></Link>
         <A href="/calendars"><img src="/icons/calendar.svg" alt="" /><InterfaceText en="Learning Schedules" he="לוח לימוד יומי" /></A>
         <A href={donateHref("MobileNavMenu")} className={mn.blue} target="_blank"><img src="/icons/heart.png" alt="" /><InterfaceText en="Donate" he="תרומה" /></A>
         <div className={mn.accountLinks}>

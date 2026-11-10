@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { useLibraryHref } from "~/lib/routing/library-href";
 import { markdownToHtml } from "~/lib/html/markdown";
 import { sanitizeHtml } from "~/lib/html/sanitize";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
@@ -71,6 +72,7 @@ const plain = (e: React.MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlKe
 export function BookPage({ title, category, attribution, dedication, readHref, continueReading, tab, tabHref, onTab, contents, versions, versionHref, meta, description, sidebar, colorCategory, editVersion, admin }: BookPageProps) {
   const lang = useInterfaceLang();
   const he = lang === "hebrew";
+  const lib = useLibraryHref();
   const code = he ? "he" : "en";
   const about = he ? description?.he || description?.en : description?.en || description?.he;
   const hasAbout = Boolean(about || meta?.authors.length || meta?.composed);
@@ -82,7 +84,7 @@ export function BookPage({ title, category, attribution, dedication, readHref, c
                   <div>
                     <span className={styles.metaLabel}><InterfaceText en={meta.authors.length === 1 ? "Author" : "Authors"} he={meta.authors.length === 1 ? "מחבר" : "מחברים"} />:</span>{" "}
                     {meta.authors.filter((a) => (he ? a.he : a.en)).map((a, i) => (
-                      <span key={a.slug || a.en}>{i ? ", " : ""}<Link href={`/topics/${a.slug}`}>{he ? a.he : a.en}</Link></span>
+                      <span key={a.slug || a.en}>{i ? ", " : ""}<Link href={lib(`/topics/${a.slug}`)}>{he ? a.he : a.en}</Link></span>
                     ))}
                   </div>
                 ) : null}
