@@ -101,9 +101,14 @@ class SegmentHistoryApiTest(TestCase):
         res = self.get(type="edit_text", page="2")
         self.assertEqual(res.status_code, 200)
         body = res.json()
-        self.assertEqual(self.calls[-1], {"version": "Test Version", "lang": "en", "filter_type": "edit_text", "page": 2})
         self.assertEqual(
-            {k: body[k] for k in ("ref", "heRef", "url", "lang", "version", "versionTitleInHebrew", "filterType", "page")},
+            self.calls[-1], {"version": "Test Version", "lang": "en", "filter_type": "edit_text", "page": 2}
+        )
+        self.assertEqual(
+            {
+                k: body[k]
+                for k in ("ref", "heRef", "url", "lang", "version", "versionTitleInHebrew", "filterType", "page")
+            },
             {
                 "ref": "Genesis 1:1",
                 "heRef": "בראשית א׳:א׳",

@@ -70,7 +70,9 @@ class StaticContentTest(TestCase):
         cache_control = anonymous["Cache-Control"]
         self.assertIn("public", cache_control)
         self.assertIn(f"max-age={static_content.PUBLIC_MAX_AGE}", cache_control)
-        self.assertEqual(dict(anonymous.cookies), {})  # no csrftoken (the page's @ensure_csrf_cookie is not in this path)
+        self.assertEqual(
+            dict(anonymous.cookies), {}
+        )  # no csrftoken (the page's @ensure_csrf_cookie is not in this path)
 
     def test_without_lang_it_follows_the_request_and_is_private(self):
         res = self.get("/terms")

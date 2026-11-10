@@ -27,7 +27,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--check", action="store_true", help="list the missing indexes; create nothing")
-        parser.add_argument("--collection", action="append", dest="collections", help="only this collection (repeatable)")
+        parser.add_argument(
+            "--collection", action="append", dest="collections", help="only this collection (repeatable)"
+        )
 
     def handle(self, *args, check=False, collections=None, **options):
         missing = database.missing_indices(collections=collections)

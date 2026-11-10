@@ -46,7 +46,10 @@ def _default_name(args):
 
 # Every index the code names in a hint (a hint that names a missing index fails the whole query).
 HINTED = [
-    ("sheets", "expandedRefs_1"),  # sefaria/sheets.py get_sheets_for_ref until #3936; still what cauldrons lacked (T-B07)
+    (
+        "sheets",
+        "expandedRefs_1",
+    ),  # sefaria/sheets.py get_sheets_for_ref until #3936; still what cauldrons lacked (T-B07)
     ("topic_links", "expandedRefs_1"),  # sefaria/sheets.py update_sheet_topic_links
     ("webpages", "expandedRefs_1"),  # sefaria/model/webpage.py
     ("manuscript_pages", "expanded_refs_1"),  # sefaria/model/manuscript.py
@@ -57,7 +60,9 @@ HINTED = [
 
 @pytest.mark.parametrize("collection,name", HINTED)
 def test_every_hinted_index_is_registered(collection, name):
-    registered = {_default_name(args) for col, args, _ in database.ensure_indices(_Db(), dry_run=True) if col == collection}
+    registered = {
+        _default_name(args) for col, args, _ in database.ensure_indices(_Db(), dry_run=True) if col == collection
+    }
     assert name in registered
 
 

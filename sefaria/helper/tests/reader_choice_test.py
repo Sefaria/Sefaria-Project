@@ -66,7 +66,9 @@ class _Anonymous:
     is_staff = False
 
 
-def _middleware_response(profile_choice, cookie=None, synced=False, user=None, audience="staff", view_sets_cookie=False):
+def _middleware_response(
+    profile_choice, cookie=None, synced=False, user=None, audience="staff", view_sets_cookie=False
+):
     request = _request({"reader_version": cookie} if cookie else {})
     request.user = user or _User()
     request.session = {reader_choice.SESSION_SYNCED_KEY: True} if synced else {}
@@ -176,7 +178,8 @@ def test_may_use_next(user, audience, optin, expected):
 
 
 @pytest.mark.parametrize(
-    "posted,choice", [("next", "next"), ("classic", "classic"), ("legacy", "classic"), (" Next ", "next"), ("on", None), (None, None)]
+    "posted,choice",
+    [("next", "next"), ("classic", "classic"), ("legacy", "classic"), (" Next ", "next"), ("on", None), (None, None)],
 )
 def test_parse_choice_is_strict(posted, choice):
     assert reader_choice.parse_choice(posted) == choice

@@ -103,7 +103,9 @@ class _Visitor:
         self.interfaceLang = interface_lang
         self.LANGUAGE_CODE = lang_code
         self.user = AnonymousUser()
-        self.user_agent = SimpleNamespace(is_mobile=False, is_tablet=False, is_touch_capable=False, is_pc=True, is_bot=False)
+        self.user_agent = SimpleNamespace(
+            is_mobile=False, is_tablet=False, is_touch_capable=False, is_pc=True, is_bot=False
+        )
         self.COOKIES = {}
 
     def __getattr__(self, name):
@@ -148,7 +150,10 @@ def respond(request, template_for_lang, extra_context=None):
     if "content" not in blocks:
         # a whole document of its own (e.g. /random-walk-through-torah, /cloudflare_site_is_down_en): nothing to put in a shell
         response = jsonResponse(
-            {"error": "This page is a standalone document with no content block; load the page itself.", "standalone": True},
+            {
+                "error": "This page is a standalone document with no content block; load the page itself.",
+                "standalone": True,
+            },
             status=404,
         )
         patch_cache_control(response, public=True, max_age=PUBLIC_MAX_AGE)

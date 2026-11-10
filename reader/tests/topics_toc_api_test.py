@@ -10,7 +10,9 @@ from django.test import TestCase
 
 from reader.conftest import create_test_user, purge_test_profiles
 
-TOC = [{"slug": "holidays", "en": "Holidays", "he": "חגים", "children": [{"slug": "purim", "en": "Purim", "he": "פורים"}]}]
+TOC = [
+    {"slug": "holidays", "en": "Holidays", "he": "חגים", "children": [{"slug": "purim", "en": "Purim", "he": "פורים"}]}
+]
 
 
 class TopicsTocApiTest(TestCase):
