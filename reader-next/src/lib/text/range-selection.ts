@@ -77,7 +77,9 @@ export function wholeSectionRange(
   const first = passages.find((p) => p?.ref === firstSectionRef);
   const firstSeg = first?.segments[0];
   if (!first || !firstSeg || !end.length || firstSeg.address.length !== end.length + 1) return null;
-  const lastSection = `${first.book} ${end.join(":")}`;
+  // the section's ref by the codec's title (a complex text's node, "Pesach Haggadah, Kadesh"), as the planner names sections, not the
+  // passage's book ("Pesach Haggadah")
+  const lastSection = `${asked.title} ${end.join(":")}`;
   const lastSeg = passages.find((p) => p?.ref === lastSection)?.segments.at(-1);
   const lastKnown = !!lastSeg && lastSeg.address.slice(0, -1).join(":") === end.join(":");
   const highlight = { from: firstSeg.address, to: lastKnown ? lastSeg.address : end };

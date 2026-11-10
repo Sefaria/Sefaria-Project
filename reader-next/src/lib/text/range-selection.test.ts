@@ -62,6 +62,12 @@ describe("ranges and selection (legacy parity)", () => {
     expect(shabbat.lastSection).toBe("Shabbat 157b");
     expect(isHighlighted(["157b", "5"], shabbat.highlight, ["Talmud", "Integer"])).toBe(true);
     expect(isHighlighted(["158a", "1"], shabbat.highlight, ["Talmud", "Integer"])).toBe(false);
+    // a complex text: the section is named by its node, as the planner names it, not by the passage's book
+    const node = (ref: string, n: number) =>
+      ({ ref, book: "Pesach Haggadah", segments: Array.from({ length: n }, (_, i) => ({ ref: `${ref}:${i + 1}`, address: [ref.split(" ").at(-1)!, String(i + 1)] })) }) as unknown as TextPassage;
+    const complex = wholeSectionRange("Pesach Haggadah, Magid 2-9", "Pesach Haggadah, Magid 2", [node("Pesach Haggadah, Magid 2", 3)])!;
+    expect(complex.lastSection).toBe("Pesach Haggadah, Magid 9");
+    expect(wholeSectionRange("Pesach Haggadah, Magid 2-9", "Pesach Haggadah, Magid 2", [node("Pesach Haggadah, Magid 2", 3), node("Pesach Haggadah, Magid 9", 4)])?.ref).toBe("Pesach Haggadah, Magid 2:1-9:4");
     expect(wholeSectionRange("Genesis 6", "Genesis 6", all)).toBeNull();
     expect(wholeSectionRange("Genesis 6:3-8:2", "Genesis 6", all)).toBeNull(); // names segments: the planner's highlight
   });
