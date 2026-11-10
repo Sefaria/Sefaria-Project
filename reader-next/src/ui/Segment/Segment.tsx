@@ -113,7 +113,7 @@ function SegmentImpl({
       }
     >
       {address !== undefined ? (
-        <span className={styles.number} aria-hidden="true" data-number="true">
+        <span className={styles.number} aria-hidden="true" data-number="true" data-lang={numLang}>
           {segmentNumber(address, numLang)}
         </span>
       ) : null}
