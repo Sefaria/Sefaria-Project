@@ -14,7 +14,7 @@ import { PUBLIC_CONFIG } from "~/lib/config";
 import { withPolicy } from "~/lib/cache/query-options";
 import { RefIndex } from "~/lib/cache/ref-index";
 import { getRefIndex } from "~/lib/cache/ref-index-singleton";
-import { parseHumanRef, isRangedRef, toHumanRef } from "~/lib/ref/url";
+import { formatSections, parseHumanRef, isRangedRef, toHumanRef } from "~/lib/ref/url";
 import { normaliseTexts, type RawTextsResponse, type TextPassage } from "./model";
 import { isHighlighted, planDisplay, type BookMeta, type DisplayPlan, type Highlight } from "./plan";
 
@@ -141,7 +141,12 @@ export async function loadReaderPassage(
     await refIndex.setMeta(metaFromPassage(passage));
     // A super-section request comes back as its first section; a misspelt title comes back canonical.
     canonicalRef = passage.ref;
-    await refIndex.setAlias(requestedRef, canonicalRef);
+    const sp = spannedPlan(passage);
+    if (sp) {
+      canonicalRef = sp.canonicalRef;
+      await refIndex.setAlias(requestedRef, canonicalRef);
+      return sp;
+    }
     const meta = metaFromPassage(passage);
     let p = planDisplay(canonicalRef, meta);
     const asked = parseHumanRef(canonicalRef);
@@ -180,8 +185,28 @@ export async function loadReaderPassage(
     plan = await askServer();
     sections = await load(plan);
   }
+  // planned offline as one section, the server answered with a span (a daf without its amud): show that range of sections
+  const sp = sections.length === 1 ? spannedPlan(sections[0]!) : null;
+  if (sp) {
+    canonicalRef = sp.canonicalRef;
+    await refIndex.setAlias(requestedRef, canonicalRef);
+    plan = sp;
+    sections = await load(plan);
+  }
   for (const s of sections) await refIndex.setMeta(metaFromPassage(s));
   return { canonicalRef, sections, highlight: plan.highlight };
+}
+
+/**
+ * A daf without its amud ("Berakhot 2") comes back spanning both amudim under the address as asked: it is that range of whole sections,
+ * as on sefaria.org (/Berakhot.2 → Berakhot 2a-2b, all highlighted). Written from the server's own sections/toSections; null otherwise.
+ */
+function spannedPlan(passage: TextPassage): Extract<DisplayPlan, { kind: "sections" }> | null {
+  if (!passage.isSpanning || isRangedRef(passage.ref) || !passage.sections.length || passage.sections.join(":") === passage.toSections.join(":")) return null;
+  const meta = metaFromPassage(passage);
+  const spanned = `${meta.book} ${formatSections(passage.sections, passage.toSections)}`;
+  const p = planDisplay(spanned, meta);
+  return p.kind === "sections" ? { ...p, canonicalRef: spanned } : null;
 }
 
 /** The most sections a page loads up front for one panel (a range's first sections). */

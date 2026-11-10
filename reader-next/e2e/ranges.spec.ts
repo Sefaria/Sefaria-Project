@@ -4,7 +4,7 @@ import { open, wheel } from "./helpers";
 /**
  * Ranges and multi-segment selection with legacy parity (owner decision 2026-11-10). Every case was VERIFIED on www.sefaria.org on
  * 2026-11-10 with the same steps (lane-D report: legacy-ranges probe); the expected address and highlighted segments are what it did.
- * lib/text/range-selection.ts has the rules.
+ * lib/text/range-selection.ts has the rules. Owner decision 2026-11-10: every range of several segments is kept and highlighted.
  */
 const highlighted = (page: Page) =>
   page.locator('[data-reader-scroller] [data-highlighted="true"][data-ref]').evaluateAll((els) => [...new Set(els.map((e) => e.getAttribute("data-ref")))]);
@@ -92,18 +92,54 @@ test.describe("a pasted range across sections stays and is highlighted", () => {
   });
 });
 
-test.describe("a pasted range inside one section collapses, as on sefaria.org", () => {
-  test("Genesis 1:3-5, sidebar closed: the first verse, nothing highlighted", async ({ page }) => {
-    await open(page, "/Genesis.1.3-5?lang=en");
-    await expect(page).toHaveURL(/\/Genesis\.1\.3\?/);
-    expect(await highlighted(page)).toEqual([]);
+// Owner decision 2026-11-10: a range inside one section stays and is highlighted too. Probed on sefaria.org (sidebar closed):
+// /Genesis.1.1-3, /Genesis.1.4-6, /Genesis.1.20-25, /Exodus.3.1-4, /Psalms.23.1-4, /Berakhot.5a.3-6 stay highlighted;
+// /Genesis.1.20-25?with=all stays with 6 highlighted; /Genesis.1.3-5 showed 3 blue at 3.5 s and collapsed by 8 s (a race, not ported).
+test.describe("a pasted range inside one section stays and is highlighted", () => {
+  for (const [path_, refs] of [
+    ["/Genesis.1.3-5", ["Genesis 1:3", "Genesis 1:4", "Genesis 1:5"]],
+    ["/Genesis.1.20-25", ["Genesis 1:20", "Genesis 1:21", "Genesis 1:22", "Genesis 1:23", "Genesis 1:24", "Genesis 1:25"]],
+    ["/Berakhot.5a.3-6", ["Berakhot 5a:3", "Berakhot 5a:4", "Berakhot 5a:5", "Berakhot 5a:6"]],
+  ] as const) {
+    for (const withSidebar of [false, true]) {
+      test(`${path_}, sidebar ${withSidebar ? "open" : "closed"}`, async ({ page }) => {
+        await open(page, `${path_}?lang=en${withSidebar ? "&with=all" : ""}`);
+        await expect.poll(() => highlighted(page)).toEqual([...refs]);
+        await expect(sidebar(page)).toHaveCount(withSidebar ? 1 : 0);
+        // the column has settled (the moment the old code collapsed a range) and nothing changed
+        await page.waitForTimeout(1000);
+        expect(path(page)).toBe(path_);
+        expect(await highlighted(page)).toEqual([...refs]);
+        if (withSidebar) await expect(page.locator('[data-focused="true"]')).toHaveAttribute("data-ref", refs[0]);
+      });
+    }
+  }
+});
+
+test.describe("a daf without its amud is both amudim, all highlighted (sefaria.org, 2026-11-10)", () => {
+  test("/Berakhot.2, sidebar closed: written as /Berakhot.2a.1-2b.19, in place", async ({ page }) => {
+    await open(page, "/Exodus.1?lang=en");
+    const length = await page.evaluate(() => history.length);
+    await open(page, "/Berakhot.2?lang=en");
+    await expect(page).toHaveURL(/\/Berakhot\.2a\.1-2b\.19\?/);
+    await expect.poll(async () => (await highlighted(page)).length).toBe(33);
+    const hl = await highlighted(page);
+    expect([hl[0], hl.at(-1)]).toEqual(["Berakhot 2a:1", "Berakhot 2b:19"]);
+    expect(await page.evaluate(() => history.length)).toBe(length + 1); // the rewrite replaced its entry
   });
-  test("Genesis 1:3-5, sidebar open: the first verse, the current one", async ({ page }) => {
-    await open(page, "/Genesis.1.3-5?lang=en&with=all");
-    await expect(page).toHaveURL(/\/Genesis\.1\.3\?.*with=all/);
-    await expect(page.locator('[data-focused="true"]')).toHaveAttribute("data-ref", "Genesis 1:3");
-    expect(await highlighted(page)).toEqual([]);
+  test("/Berakhot.2, sidebar open: written as /Berakhot.2a-2b", async ({ page }) => {
+    await open(page, "/Berakhot.2?lang=en&with=all");
+    await expect(page).toHaveURL(/\/Berakhot\.2a-2b\?.*with=all/);
+    await expect.poll(async () => (await highlighted(page)).length).toBe(33);
   });
+});
+
+test("a range of whole sections longer than what loads with the page keeps its address, with no blue over it", async ({ page }) => {
+  await open(page, "/Genesis.1-50?lang=en");
+  await expect(seg(page, "Genesis 1:1")).toBeVisible();
+  await page.waitForTimeout(1000);
+  expect(path(page)).toBe("/Genesis.1-50");
+  expect(await highlighted(page)).toEqual([]);
 });
 
 test.describe("selecting text across segments highlights them, as on sefaria.org", () => {
@@ -137,6 +173,27 @@ test.describe("selecting text across segments highlights them, as on sefaria.org
     await expect.poll(() => highlighted(page)).toEqual(["Genesis 1:30", "Genesis 1:31", "Genesis 2:1", "Genesis 2:2"]);
     await expect(page).toHaveURL(/\/Genesis\.1\.30-2\.2\?.*with=all/);
     await expect(sidebar(page)).toHaveCount(1);
+  });
+
+  test("inside one section, sidebar open: the address becomes the range and the sidebar shows it", async ({ page }) => {
+    await open(page, "/Genesis.1.3?lang=en&with=all");
+    const length = await page.evaluate(() => history.length);
+    await dragSelect(page, "Genesis 1:3", "Genesis 1:5");
+    await expect.poll(() => highlighted(page)).toEqual(["Genesis 1:3", "Genesis 1:4", "Genesis 1:5"]);
+    await expect(page).toHaveURL(/\/Genesis\.1\.3-5\?.*with=all/);
+    expect(await page.evaluate(() => history.length)).toBe(length);
+    await expect(sidebar(page)).toHaveCount(1);
+  });
+
+  test("a navigation ends a selection at once (it does not wait for a scroll)", async ({ page }) => {
+    await open(page, "/Genesis.1.29?lang=en");
+    await expect(seg(page, "Genesis 2:2")).toBeAttached();
+    await dragSelect(page, "Genesis 1:30", "Genesis 2:2"); // across chapters: the address stays, the selection is the only blue
+    await expect.poll(async () => (await highlighted(page)).length).toBe(4);
+    await page.evaluate(() => window.getSelection()?.removeAllRanges());
+    await page.evaluate(() => document.dispatchEvent(new CustomEvent("sefaria:bootstrap-url", { detail: { url: "/Genesis.1.10?lang=en" } })));
+    await expect(page).toHaveURL(/\/Genesis\.1\.10\?/);
+    await expect.poll(() => highlighted(page), { timeout: 1500 }).toEqual([]);
   });
 
   test("choosing a verse after a selection drops it", async ({ page }) => {

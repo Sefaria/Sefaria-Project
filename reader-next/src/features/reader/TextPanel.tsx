@@ -14,7 +14,6 @@ import { highlightsOf, type SearchHit } from "~/lib/search/text-search";
 import { versionKey, type TranslationVersion } from "~/lib/versions/translations";
 import { isHighlighted } from "~/lib/text/plan";
 import { highlightOf, keepsRange as rangeIsKept, selectionAddress, wholeSectionRange } from "~/lib/text/range-selection";
-import { startsParashahOrAliyah } from "~/lib/reader/parashah";
 import { prefetchNeighbours, selectionKey, textQueryOptions } from "~/lib/text/queries";
 import { close, closeAside, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
 import type { AsideId, PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
@@ -44,7 +43,6 @@ import { setMobileMenuOpen } from "../shell/mobile-menu";
 import { SignUpModal } from "~/ui/SignUpModal/SignUpModal";
 import { shownVersions as panelVersionsShown, type ReaderRouteData } from "./reader-route";
 import { useReaderSettings } from "./settings-context";
-import { SETTLE_MS } from "./use-reading-scroll";
 import { placeSegment, scrollSegmentToLine } from "~/lib/reader-state/sefaria/slices/dom-position";
 import { TextColumn } from "./TextColumn";
 import { readerAnalytics } from "~/lib/analytics";
@@ -223,6 +221,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // Segments the reader selected (text selected across several of them): highlighted, sidebar open or closed (legacy parity,
   // lib/text/range-selection.ts). Reading on, or choosing a verse, drops it.
   const [picked, setPicked] = useState<string[] | null>(null);
+  // a navigation (a link, Back/Forward to another entry) ends a selection at once, not when the next scroll settles
+  useEffect(() => {
+    if (kind === undefined || kind === "go") setPicked(null);
+  }, [thisEntry, kind]);
   const onSettled = useCallback(
     (ref: string) => {
       setPicked(null);
@@ -234,25 +236,13 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [apply, id, nav],
   );
 
-  // A range URL ("Genesis 1:3-5") collapses to its first verse once the column settles, as in the old reader. A Torah
-  // portion or aliyah range (the book TOC's links, /Parashat_X) stays in the URL and highlighted, as sefaria.org keeps it.
-  // A range across sections stays in the address and highlighted, as on sefaria.org (owner decision 2026-11-10, VERIFIED); so does
-  // a Torah portion or aliyah. A short range inside one section collapses to its first verse once the column settles, as there.
-  const keepsRange = useMemo(() => {
-    const p = initial[0]!;
-    const sections = new Set(initial.filter((x) => x.segments.some((s) => urlSegments.includes(s.ref))).map((x) => x.ref)).size;
-    return rangeIsKept({ segments: urlSegments.length, sections, portion: startsParashahOrAliyah(p, p.segments.find((s) => s.ref === urlSegments[0])) });
-  }, [initial, urlSegments]);
-  const isRangeArrival = (kind === undefined || kind === "go") && urlSegments.length > 1 && !keepsRange;
-  // A range of whole sections ("Genesis 6-8", a commentary's verses "Rashi on Exodus 3:1-4:10") is all highlighted; without the
-  // sidebar its address is written by its segments (Genesis.6.1-8.22), in place, as sefaria.org does.
+  // Every range of several segments stays in the address and highlighted, inside one section or across sections, sidebar open or
+  // closed (owner decision 2026-11-10; the old reader's occasional collapse is a race, not ported: lib/text/range-selection.ts).
+  const keepsRange = rangeIsKept({ segments: urlSegments.length });
+  // A range of whole sections ("Genesis 6-8", "Berakhot 2a-2b") is all highlighted when it is all loaded; without the sidebar its
+  // address is written by its segments (Genesis.6.1-8.22), in place, as sefaria.org does.
   const sectionRange = useMemo(() => (data.highlight ? null : wholeSectionRange(data.ref, data.sectionRefs, initial)), [data.highlight, data.ref, data.sectionRefs, initial]);
   const rangeHighlight = keepsRange ? data.highlight : (sectionRange?.highlight ?? null);
-  useEffect(() => {
-    if (!isRangeArrival) return;
-    const t = setTimeout(() => onSettled(urlSegments[0]!), SETTLE_MS);
-    return () => clearTimeout(t);
-  }, [isRangeArrival, urlSegments, onSettled]);
   const writeSectionRange = (kind === undefined || kind === "go") && !!sectionRange?.ref && !panel.asides.length && sectionRange.ref !== data.ref;
   useEffect(() => {
     const ref = sectionRange?.ref;

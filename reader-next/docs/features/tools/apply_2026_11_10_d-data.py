@@ -65,16 +65,21 @@ add(
 # --- Rework 1 (2026-11-10): ranges and selection with legacy parity (owner decision), and the review's data-layer fixes ---
 
 V = "VERIFIED 2026-11-10 on www.sefaria.org (Playwright, interfaceLang=english; lane-D report, legacy-ranges probe)"
+RANGE_SUMMARY = "Every ranged address of several segments stays in the address and every segment in it is highlighted light blue, sidebar open or closed, inside one section or across sections; a daf without its amud is both amudim."
+RANGE_DETAILS = [
+    V + ": /Genesis.1.30-2.3, /Berakhot.2b.5-3a.2, /Rashi_on_Genesis.1.31.1-2.2.1 keep their address and highlight every segment (sidebar closed and with=all); /Genesis.6-8 is rewritten to /Genesis.6.1-8.22 (68 verses highlighted) without the sidebar and kept with it; /Berakhot.2 opens 2a and 2b, all highlighted, written /Berakhot.2a.1-2b.19 (sidebar closed) or /Berakhot.2a-2b (open), replacing the entry. Inside one section (integrator's probe, sidebar closed): /Genesis.1.1-3, /Genesis.1.4-6, /Genesis.1.20-25, /Exodus.3.1-4, /Psalms.23.1-4, /Berakhot.5a.3-6 stay highlighted; /Genesis.1.20-25?with=all keeps 6 highlighted.",
+    "Kept and highlighted; legacy's occasional collapse is a race, not ported (owner 2026-11-10): /Genesis.1.3-5 showed 3 blue segments at 3.5 s and one by 8 s, because a stray scroll event runs adjustHighlightedAndVisible (static/js/TextColumn.jsx) and the history writes the segment (ReaderApp.jsx).",
+    "A range of whole sections longer than the sections loaded with the page (Genesis 1-50) keeps its address as asked and is not highlighted (choice recorded 2026-11-10: blue over whole books is not what legacy effectively shows; only the requested range up to what loads would be).",
+    "Reading on drops the highlight and the address follows the verse (/Berakhot.2b.17), as legacy. A navigation (a link, Back/Forward to another entry) drops a selection at once.",
+    "Owner decision 2026-11-10: legacy parity. Built: src/lib/text/range-selection.ts, src/lib/text/queries.ts (spannedPlan), src/features/reader/TextPanel.tsx. Tests: src/lib/text/range-selection.test.ts, e2e/ranges.spec.ts, e2e/history.spec.ts, e2e/routing.spec.ts, e2e/scroll.spec.ts.",
+]
 RANGE = {
     "id": "TXD-070",
     "area": "text-display",
     "group": "Scrolling",
     "name": "Ranged address kept and highlighted across sections",
-    "summary": "A pasted range that crosses chapters or dapim stays in the address and every segment in it is highlighted light blue, sidebar open or closed; a range inside one section collapses to its first segment.",
-    "details": [
-        V + ": /Genesis.1.30-2.3 keeps its address and highlights 1:30-2:3 (sidebar closed and with=all); /Berakhot.2b.5-3a.2 the same (17 segments); /Rashi_on_Genesis.1.31.1-2.2.1 the same; /Genesis.1.3-5 collapses to /Genesis.1.3 (no highlight; with the sidebar, 1:3 is the current verse); /Genesis.6-8 is rewritten to /Genesis.6.1-8.22 and all 68 verses highlighted without the sidebar, and keeps /Genesis.6-8 (all highlighted) with it. Reading on drops the highlight and the address follows the verse (/Berakhot.2b.17).",
-        "Owner decision 2026-11-10: legacy parity; the new reader had collapsed every range. Built: src/lib/text/range-selection.ts, src/features/reader/TextPanel.tsx. Tests: src/lib/text/range-selection.test.ts, e2e/ranges.spec.ts, e2e/history.spec.ts.",
-    ],
+    "summary": RANGE_SUMMARY,
+    "details": list(RANGE_DETAILS),
     "audience": "all",
     "platform": "all",
     "status": "core",
@@ -85,6 +90,10 @@ RANGE = {
 if "TXD-070" not in by:
     atlas.append(RANGE)
     by["TXD-070"] = RANGE
+# round 2 (2026-11-10) replaces round 1's text, so the entry is the same however many times this runs
+by["TXD-070"]["name"] = "Ranged address kept and highlighted"
+by["TXD-070"]["summary"] = RANGE_SUMMARY
+by["TXD-070"]["details"] = list(RANGE_DETAILS)
 print("TXD-070", by["TXD-070"]["name"])
 status["TXD-070"] = {"status": "done", "note": "Kept and highlighted across sections, sidebar open or closed (legacy parity, verified 2026-11-10)", "by": "src/lib/text/range-selection.ts, src/features/reader/TextPanel.tsx"}
 
@@ -98,7 +107,7 @@ add(
 add(
     "TXD-055",
     [
-        "Corrected 2026-11-10: only a range inside one section is replaced by its first segment; a range across sections stays (TXD-070). " + V + ".",
+        "Corrected 2026-11-10: a range is not replaced by its first segment, inside one section or across sections (TXD-070; owner decision: legacy's occasional collapse is a race, not ported). " + V + ".",
     ],
 )
 add(

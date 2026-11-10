@@ -14,13 +14,14 @@
   SB-03 measured: Resources downloads Genesis 1's links a second time inside `/api/related` (633 KB gzip); needs a server parameter.
 
 - **TXD-050 / TXD-055** Corrected (owner decision 2026-11-10, _verified_): several highlighted segments show blue with the sidebar
-  closed; only a range inside one section collapses.
+  closed; no range collapses (owner decision: legacy's occasional collapse inside one section is a race, not ported).
 - **TXD-057** Text selected across segments is highlighted and written to the address as on sefaria.org (_verified_ 2026-11-10).
 
 ### Added
 
-- **TXD-070** Ranged address kept and highlighted across sections (chapters, dapim, commentary), sidebar open or closed; a range of
-  whole chapters written by its verses. _Verified_ 2026-11-10.
+- **TXD-070** Ranged address kept and highlighted, inside one section or across sections, sidebar open or closed; a range of whole
+  chapters written by its verses; a daf without its amud is both amudim; a range longer than what loads keeps its address with no
+  blue. _Verified_ 2026-11-10.
 
 - **RTE-027** The ref torture corpus (`scripts/ref-corpus.mjs`, 63 addresses compared with www.sefaria.org; 43 the same, 20 recorded
   with their reason) and its e2e replay. _Verified_ 2026-11-10.

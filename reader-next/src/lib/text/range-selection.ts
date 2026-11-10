@@ -4,10 +4,11 @@
  *
  *  - A pasted range that crosses sections (Genesis 1:30-2:3, Berakhot 2b:5-3a:2, Rashi on Genesis 1:31:1-2:2:1) stays in the address
  *    and every segment in it is highlighted (blue), with the sidebar open or closed.
- *  - A pasted range inside one section (Genesis 1:3-5) collapses to its first segment, unhighlighted unless the sidebar is open
- *    (unchanged; a Torah portion or aliyah is kept and highlighted).
- *  - A range of whole sections (Genesis 6-8; a commentary's verses, Rashi on Exodus 3:1-4:10) highlights all of it; without the
- *    sidebar the address is rewritten to its segments (Genesis.6.1-8.22), with the sidebar it is left as asked.
+ *  - A pasted range inside one section (Genesis 1:3-5, Berakhot 5a:3-6) stays and is highlighted too (owner 2026-11-10: the old
+ *    reader's occasional collapse of such a range is a race, not ported).
+ *  - A range of whole sections (Genesis 6-8; a daf without its amud, Berakhot 2 = 2a-2b) highlights all of it; without the sidebar
+ *    the address is rewritten to its segments (Genesis.6.1-8.22, Berakhot.2a.1-2b.19), with the sidebar it is left as the range of
+ *    sections (Berakhot.2a-2b). A range longer than the sections loaded with the page keeps its address and is not highlighted.
  *  - Selecting text across several segments highlights them (blue) whether or not the sidebar is open, and never opens it. With the
  *    sidebar open the address becomes the range; with it closed, the address becomes the range only when the range lies in the
  *    section being read (the old history rule: the highlighted ref when it and the currently visible section contain one another),
@@ -45,17 +46,23 @@ export function highlightOf(refs: readonly string[], book: string): Highlight | 
   return from && to ? { from, to } : null;
 }
 
-/** Does a range arriving in the address stay there (highlighted), rather than collapse to its first segment? */
-export function keepsRange(a: { segments: number; sections: number; portion: boolean }): boolean {
-  return a.segments > 1 && (a.portion || a.sections > 1);
+/**
+ * Does a range arriving in the address stay there, highlighted? Every range of several segments does, within one section or across
+ * sections, sidebar open or closed (owner 2026-11-10). The old reader sometimes collapses one inside a section (/Genesis.1.3-5: three
+ * blue segments at 3.5 s, one by 8 s): a stray scroll event runs adjustHighlightedAndVisible (static/js/TextColumn.jsx) and the
+ * history writes the segment (ReaderApp.jsx). A race, not ported.
+ */
+export function keepsRange(a: { segments: number }): boolean {
+  return a.segments > 1;
 }
 
 /**
- * A range of whole sections (no segment named: "Genesis 6-8", "Rashi on Exodus 3:1-4:10"): the highlight over all its segments, and
- * the same range written by its segments when its last section is loaded (a long range loads only its first sections; then the
- * address is left as asked and the highlight still reaches the end by address). Null when the address names segments.
+ * A range of whole sections (no segment named: "Genesis 6-8", "Berakhot 2a-2b", "Rashi on Exodus 3:1-4:10"): the highlight over all its
+ * segments and the same range written by its segments, when the whole range is among the sections loaded with the page. A longer one
+ * (Genesis 1-50: only its first sections load) keeps its address as asked and is not highlighted: blue over whole books is what the
+ * old reader never effectively shows (atlas TXD-070). Null when the address names segments.
  */
-export function wholeSectionRange(rangeRef: string, sectionRefs: readonly string[], passages: readonly TextPassage[]): { highlight: Highlight; ref?: string } | null {
+export function wholeSectionRange(rangeRef: string, sectionRefs: readonly string[], passages: readonly TextPassage[]): { highlight: Highlight; ref: string } | null {
   if (!isRangedRef(rangeRef)) return null;
   const end = parseHumanRef(rangeRef).toSections;
   const first = passages.find((p) => p.ref === sectionRefs[0]);
@@ -63,9 +70,9 @@ export function wholeSectionRange(rangeRef: string, sectionRefs: readonly string
   if (!firstSeg || !end.length || firstSeg.address.length !== end.length + 1) return null;
   const last = passages.find((p) => p.ref === sectionRefs[sectionRefs.length - 1]);
   const lastSeg = last?.segments.at(-1);
-  const complete = !!lastSeg && lastSeg.address.slice(0, -1).join(":") === end.join(":");
-  // "the end of the last section" by address: a segment number past any real one
-  return { highlight: { from: firstSeg.address, to: [...end, "999999"] }, ...(complete ? { ref: rangeOf([firstSeg.ref, lastSeg!.ref]) } : {}) };
+  if (!lastSeg || lastSeg.address.slice(0, -1).join(":") !== end.join(":")) return null;
+  const ref = rangeOf([firstSeg.ref, lastSeg.ref]);
+  return ref ? { highlight: { from: firstSeg.address, to: lastSeg.address }, ref } : null;
 }
 
 /**

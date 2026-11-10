@@ -30,8 +30,8 @@ test.describe("ref corpus: lands where sefaria.org lands", () => {
       await open(page, c.path);
       await expect.poll(() => normalize(page.url()), { timeout: 15_000 }).toBe(c.url);
       if (c.kind === "text") {
-        await page.waitForTimeout(400); // a range collapsing to its first verse has happened
-        expect(normalize(page.url())).toBe(c.url);
+        // the address is final (a range of whole sections is rewritten to its segments in place) and the text in
+        await expect.poll(() => normalize(page.url())).toBe(c.url);
         const highlighted = await page.locator('[data-reader-scroller] [data-highlighted="true"][data-ref]').evaluateAll((els) => [...new Set(els.map((e) => e.getAttribute("data-ref")))]);
         expect(highlighted).toEqual(c.highlighted);
       }

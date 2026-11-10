@@ -104,6 +104,10 @@ export const KNOWN_DIFFERENCES = {
   // machine) sometimes catches it before its client has written the address, and reports a collapse or the top of the chapter. These
   // cases are therefore asserted by e2e/ranges.spec.ts against the probe's results; here they are listed as known when the live side
   // raced.
+  // Inside one section: kept and highlighted here (owner 2026-11-10); sefaria.org sometimes collapses such a range a few seconds after
+  // load (a stray scroll event runs adjustHighlightedAndVisible, static/js/TextColumn.jsx): a race, not ported
+  "/Genesis.1.3-5": "kept and highlighted (e2e/ranges.spec.ts); sefaria.org's collapse of it is a race, not ported",
+  "/Mishnah_Peah.4.2-4": "as /Genesis.1.3-5",
   "/Genesis.1.30-2.3": "kept and highlighted here (e2e/ranges.spec.ts); this run's live look raced",
   "/Exodus.4.30-6.2": "range across sections: kept here; this run's live look raced",
   "/Leviticus.15.3-17.12": "range across sections: kept here; this run's live look raced",
@@ -112,10 +116,8 @@ export const KNOWN_DIFFERENCES = {
   "/Berakhot.2a-3b": "range of whole amudim: written by its segments here (Berakhot.2a.1-3b.32); this run's live look raced",
   "/Rashi_on_Berakhot.3a.2.1-4a.3.1": "kept here; sefaria.org's quick look lands on Rashi on Berakhot 3b:1 (neither end)",
   "/Genesis.1.1-6.8": "a Torah portion: kept and highlighted; this reader puts only the first loaded sections in the page (the highlight carries on by address as the reader scrolls), sefaria.org all six chapters",
-  "/Rashi_on_Exodus.3.1-4.10": "a long range of whole sections: highlighted to its end by address, but only its first sections are loaded, so the address is left as asked; sefaria.org writes Rashi_on_Exodus.3.1.1-4.10.2",
+  "/Rashi_on_Exodus.3.1-4.10": "a range of whole sections longer than what loads with the page: the address is left as asked and not highlighted (TXD-070); sefaria.org writes Rashi_on_Exodus.3.1.1-4.10.2 and highlights it",
   "/Rashi_on_Exodus.5.3-6.7": "as /Rashi_on_Exodus.3.1-4.10",
-  "/Berakhot.2": "a daf without an amud: this reader opens 2a only; sefaria.org varies by load (Berakhot.2a.1 or 2a.1-2b.19)",
-  "/Zohar.1.15a.1": "Zohar's paragraph maps to a two-segment range of the alt structure (Zohar, Bereshit 1:1-2), one section: collapses to its first segment, as any range inside one section; sefaria.org keeps it",
   // Addresses that do not exist
   "/Genesis.1.35": "no such verse: not found here (decided 2026-11-02, wiki ref-resolution.md); sefaria.org shows Genesis 2",
   "/Rashi_on_Genesis.2.3.4": "no such comment: not found here (as above); sefaria.org shows the next verse's comments",

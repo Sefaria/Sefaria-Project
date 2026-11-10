@@ -121,11 +121,15 @@ export function createSefariaClient(
   client.interceptors.response.use(
     async (response, request, requestOptions) => {
       if (validate) {
+        // SEFARIA-READER EXTENSION: the validator reads a copy taken now, before the module load below yields. Upstream validates
+        // synchronously from here; the lazy import (above) opened a gap in which the response's body could be read or released (an
+        // in-flight request at a test server's teardown failed with "Response.clone: Body has already been consumed").
+        const copy = response.clone();
         const { validateResponse } = await import("./validation.js");
         await validateResponse({
           method: request.method,
           path: requestOptions.url,
-          response,
+          response: copy,
         });
       }
       await responseCache?.admit(response, request, requestOptions.url);

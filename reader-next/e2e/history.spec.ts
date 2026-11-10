@@ -99,7 +99,7 @@ test.describe("history rules (T-E03)", () => {
     ["a non-canonical spelling", "/Gen.1.3?lang=en", /\/Genesis\.1\.3\?/],
     ["a range across sections (kept, as on sefaria.org)", "/Genesis.1.30-2.3?lang=en", /\/Genesis\.1\.30-2\.3\?/],
     ["a commentary's whole chapter", "/Rashi_on_Genesis.1?lang=en", /\/Rashi_on_Genesis\.1\.1(\?|$)/],
-    ["a range within a section", "/Genesis.1.3-5?lang=en", /\/Genesis\.1\.3\?/],
+    ["a range within a section (kept, owner decision 2026-11-10)", "/Genesis.1.3-5?lang=en", /\/Genesis\.1\.3-5\?/],
     ["a range of whole chapters (written by its verses, as on sefaria.org)", "/Genesis.6-8?lang=en", /\/Genesis\.6\.1-8\.22\?/],
   ] as const) {
     test(`${label}, opened inside the app, is rewritten in place: one entry, and Back leaves`, async ({ page }) => {
@@ -115,11 +115,12 @@ test.describe("history rules (T-E03)", () => {
     });
   }
 
-  test("a range inside a section, loaded as a page, collapses without an entry of its own", async ({ page }) => {
+  test("a range inside a section, loaded as a page, stays and is highlighted, with no entry of its own", async ({ page }) => {
     await open(page, "/Exodus.1?lang=en");
     await open(page, "/Genesis.1.3-5?lang=en");
-    await expect(page).toHaveURL(/\/Genesis\.1\.3\?/);
-    await expect.poll(() => historyLength(page)).toBe(3); // about:blank, Exodus 1, the range (rewritten in place)
+    await expect(page.locator('[data-highlighted="true"]')).toHaveCount(3);
+    await expect(page).toHaveURL(/\/Genesis\.1\.3-5\?/);
+    expect(await historyLength(page)).toBe(3); // about:blank, Exodus 1, the range
     await page.goBack();
     await expect(page).toHaveURL(/\/Exodus\.1\?lang=en(&aliyot=0)?$/);
   });

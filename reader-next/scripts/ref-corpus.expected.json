@@ -17,10 +17,14 @@
   },
   {
     "path": "/Genesis.1.3-5",
-    "why": "a range within a section",
+    "why": "a range within a section — kept and highlighted (owner decision 2026-11-10; sefaria.org's collapse of it is a race)",
     "status": 200,
-    "url": "/Genesis.1.3",
-    "highlighted": [],
+    "url": "/Genesis.1.3-5",
+    "highlighted": [
+      "Genesis 1:3",
+      "Genesis 1:4",
+      "Genesis 1:5"
+    ],
     "kind": "text"
   },
   {
@@ -320,10 +324,14 @@
   },
   {
     "path": "/Mishnah_Peah.4.2-4",
-    "why": "a mishnah range (ref_test)",
+    "why": "a mishnah range (ref_test) — kept and highlighted (owner decision 2026-11-10; sefaria.org's collapse of it is a race)",
     "status": 200,
-    "url": "/Mishnah_Peah.4.2",
-    "highlighted": [],
+    "url": "/Mishnah_Peah.4.2-4",
+    "highlighted": [
+      "Mishnah Peah 4:2",
+      "Mishnah Peah 4:3",
+      "Mishnah Peah 4:4"
+    ],
     "kind": "text"
   },
   {
