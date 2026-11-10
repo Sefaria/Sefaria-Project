@@ -253,7 +253,9 @@ expected_scoped_schema() {
 build_scoped_schema_roundtrip() {
   local snap="$1" out="$2" name="apikeys-schema-check-$$" t r full roles dump_err role_err
   local args=() tables=()
-  trap 'docker rm -f "$name" >/dev/null 2>&1 || true; rm -f "$out.tmp" "$out.raw"' EXIT
+  # The values are expanded here, not when the trap runs: after a normal return the function's locals are gone.
+  # shellcheck disable=SC2064
+  trap "$(printf 'docker rm -f %q >/dev/null 2>&1 || true; rm -f %q %q' "$name" "$out.tmp" "$out.raw")" EXIT
   trap 'exit 130' INT
   trap 'exit 143' TERM
   full="$(ls "$snap"/db/*.dump 2>/dev/null | grep -v '/scoped\.dump$' | head -n 1)" || true
@@ -293,6 +295,7 @@ build_scoped_schema_roundtrip() {
     : >"$out.tmp" || exit 1
   fi
   mv "$out.tmp" "$out" || exit 1
+  exit 0
 }
 
 # Compares the live scoped schema (file $2) with the snapshot ($1): exact against the round-tripped reference, or, without
