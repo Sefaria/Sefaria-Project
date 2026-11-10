@@ -112,9 +112,26 @@ status["GUI-007"] = {"status": "done", "by": "src/ui/CookieNotice"}
 add(
     "PRM-014",
     [
-        "2026-11-10: www.sefaria.org no longer shows the 'Ask the Library Assistant' site-wide banner (ChatbotExperimentBanner unmounted in #3934, 2026-11-03), so it sends no promo_viewed for it. The new reader still shows the banner but no longer sends promo_viewed (parity diff); whether to keep the banner is open (lane-C report).",
+        "2026-11-10 (master port, sefaria.org #3934 of 2026-11-03): the old client no longer mounts the 'Ask the Library Assistant' stand-alone promo banner (ChatbotExperimentBanner), and sends no promo_viewed for it (parity diff). The new reader's banner (src/features/shell/SiteWideBanner) is removed with its tests; the maybe-later back-off (src/lib/shell/promo-backoff.ts) stays for the generic SiteWideBanner, not built yet. Tests: e2e/texts-home.spec.ts (no banner).",
     ],
 )
+status["PRM-014"] = {
+    "status": "partial",
+    "note": "The Library Assistant promo banner is gone, as on sefaria.org (#3934); the generic SiteWideBanner (Strapi) is not built",
+    "by": "src/lib/shell/promo-backoff.ts",
+}
+
+add(
+    "AI-001",
+    [
+        "2026-11-10 (master port, #3934): what replaced the banner on sefaria.org is the header's '✦ Library Assistant' pill before the search box (Header.jsx LibraryAssistantHeaderLink, static/css/library-assistant.scss): shown while the widget is on the page, 'Ask' below 1159px, hidden below 900px, a click dispatches document `chatbot:open {source: 'header'}`. Ported: src/ui/SiteHeader (onOpenAssistant), src/features/shell/assistant-pill.ts, LibraryAssistant publishes whether it shows. Not ported here: #3934's other entry points (the phone menu item, signed-out and phone access), which follow the widget's own rules in src/features/assistant. Tests: src/ui/SiteHeader/SiteHeader.test.tsx, src/features/shell/assistant-pill.test.ts.",
+    ],
+)
+status["AI-001"] = {
+    "status": "replaced",
+    "note": "The banner is gone on sefaria.org (#3934); its replacement, the header's Library Assistant pill, is ported",
+    "by": "src/ui/SiteHeader, src/features/shell/assistant-pill.ts",
+}
 
 json.dump(atlas, open(T / "features.json", "w"), ensure_ascii=False, indent=1)
 json.dump(status, open(T / "rebuild-status.json", "w"), ensure_ascii=False, indent=1)
