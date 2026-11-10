@@ -17,8 +17,9 @@ IGNORED_EXCEPTIONS = (
     SuspiciousOperation,
 )
 
-# The prefix may be percent-encoded, as in a URL.
-API_KEY_RE = re.compile(r"(?i)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)[A-Za-z0-9]+")
+# The prefix may be percent-encoded, as in a URL, and so may any byte of the body: the body is a run of letters, digits
+# and percent-encoded bytes (% and two hex digits).
+API_KEY_RE = re.compile(r"(?i)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)(?:[A-Za-z0-9]|%[0-9A-Fa-f]{2})+")
 API_KEY_REPLACEMENT = "sfr_[Filtered]"
 
 

@@ -323,3 +323,19 @@ def test_a_sentry_transaction_event_carries_no_key_value():
 
     assert key[:8] not in json.dumps(scrubbed)
     assert scrubbed["request"]["headers"]["x-api-key"] == "sfr_[Filtered]"
+
+
+def test_scrub_api_keys_replaces_a_key_whose_body_is_percent_encoded():
+    cases = {
+        "/?q=sfr_%41" + "A" * 31: "/?q=sfr_[Filtered]",
+        "/?q=sfr_Ab%31Cd2Ef3Gh4Ij5": "/?q=sfr_[Filtered]",
+        "/?q=sfr_" + "%41" * 32 + "&x=1": "/?q=sfr_[Filtered]&x=1",
+        "/?q=sfr_%2541b12Cd34Ef56Gh78": "/?q=sfr_[Filtered]",
+        "/?q=%73fr%5f%41b12Cd34": "/?q=sfr_[Filtered]",
+    }
+    for raw, want in cases.items():
+        assert scrub_api_keys(raw) == want, raw
+    assert scrub_api_keys({"url": "/?q=sfr_%41" + "A" * 31}) == {"url": "/?q=sfr_[Filtered]"}
+    # Sentry keeps its any-length threshold (it over-redacts rather than risk a leak); a bare prefix has no body to redact.
+    assert scrub_api_keys("sfr_ alone and transfr") == "sfr_ alone and transfr"
+
