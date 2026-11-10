@@ -35,6 +35,11 @@ export function hebrewAddress(part: string, addressType?: string): string {
   return /^\d+$/.test(part) && Number(part) > 0 ? encodeHebrewNumeral(Number(part)) : part;
 }
 
+/** A segment's ref in Hebrew, as the API writes refs: its section's Hebrew ref and its own number ("בראשית א׳:ג׳", "ברכות ב׳ א:ה׳"). */
+export function hebrewSegmentRef(heSectionRef: string, address: string | undefined, addressType?: string): string {
+  return address ? `${heSectionRef}:${hebrewAddress(address, addressType)}` : heSectionRef;
+}
+
 const after = (s: string, prefix: string) => (s.startsWith(prefix) ? s.slice(prefix.length) : s).replace(/^[,\s]+/, "").trim();
 const squash = (s: string) => s.replace(/\s+/g, " ").trim();
 

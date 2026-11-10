@@ -41,6 +41,7 @@ import { ConnectionsPane } from "./ConnectionsPane";
 import styles from "./TextPanel.module.css";
 import { setMobileMenuOpen } from "../shell/mobile-menu";
 import { SignUpModal } from "~/ui/SignUpModal/SignUpModal";
+import { VisuallyHidden } from "~/ui/VisuallyHidden/VisuallyHidden";
 import { shownVersions as panelVersionsShown, type ReaderRouteData } from "./reader-route";
 import { useReaderSettings } from "./settings-context";
 import { placeSegment, scrollSegmentToLine } from "~/lib/reader-state/sefaria/slices/dom-position";
@@ -303,9 +304,16 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     },
     [router, id, nav],
   );
+  // Keyboard focus that was in the sidebar goes back to the verse it was open on (the one marked current) when the sidebar closes,
+  // so Tab carries on from there; legacy left it on <body> or the panel's Close link (a11y S2).
+  const asideBox = useRef<HTMLDivElement>(null);
   const closeSidebar = useCallback(() => {
     const ref = current.ref ?? data.ref;
-    apply((ws) => closeAside(updatePanel(ws, id, { ref }), id), { state: { nav: "select", panel: id, ref } });
+    const active = document.activeElement;
+    const focusWasThere = !!active && !!asideBox.current?.contains(active);
+    void Promise.resolve(apply((ws) => closeAside(updatePanel(ws, id, { ref }), id), { state: { nav: "select", panel: id, ref } })).then(() => {
+      if (focusWasThere) focusVerseAfterClose(rootEl.current, ref);
+    });
   }, [apply, id, current.ref, data.ref]);
 
   // ── the text ───────────────────────────────────────────────────────────────────────────────────────
@@ -527,7 +535,16 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   );
 
   // The header's close button closes this panel; closing the only panel goes back to the library (SHL-048).
-  const closePanel = useCallback(() => apply((ws) => close(ws, id)), [apply, id]);
+  // Closing one of several panels leaves keyboard focus on the panel beside it (its current verse), not on <body> (a11y S2).
+  const closePanel = useCallback(() => {
+    const panels = [...document.querySelectorAll<HTMLElement>("section[data-panel-id]")];
+    const at = rootEl.current ? panels.indexOf(rootEl.current) : -1;
+    const beside = at < 0 ? undefined : (panels[at - 1] ?? panels[at + 1]);
+    const hadFocus = !!rootEl.current?.contains(document.activeElement);
+    return Promise.resolve(apply((ws) => close(ws, id))).then(() => {
+      if (hadFocus && beside) focusVerseAfterClose(beside);
+    });
+  }, [apply, id]);
 
   // "Want to change the translation?" (TXD-064): after mount, so the server render and the first client render agree
   const [bannerGone, setBannerGone] = useState(Boolean(data.bannerDismissed));
@@ -552,6 +569,23 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const sample = section.segments.find((s) => s.primary && hasNikud(s.primary))?.primary ?? section.segments[0]?.primary ?? "";
   const availability = displayMenuAvailability({ settings, book: section.book, primaryCategory: section.primaryCategory, hebrewSample: sample, showsSource });
   const interfaceLang = useInterfaceLang();
+  const he = interfaceLang === "hebrew";
+  // the bar's accessible names in the interface's language (a11y S5; strings from legacy's interface/he.json where it has them)
+  const displayOptionsLabel = he ? "אפשרויות תצוגת טקסט" : "Text display options";
+
+  // A polite live region names the section the reader has moved into, once it is settled (legacy's header was aria-live: a11y S3).
+  // Once per section, never per verse, and not on arrival (the page's title and heading say where the reader is).
+  const sectionName = he ? section.heSectionRef : section.sectionRef;
+  const [announced, setAnnounced] = useState("");
+  const announcedFor = useRef(sectionName);
+  useEffect(() => {
+    if (sectionName === announcedFor.current) return;
+    const t = setTimeout(() => {
+      announcedFor.current = sectionName;
+      setAnnounced(sectionName);
+    }, ANNOUNCE_SETTLE_MS);
+    return () => clearTimeout(t);
+  }, [sectionName]);
 
   // ── signed-in: reading history and Save (USL-010, USL-011) ──────────────────────────────────────────────
   const viewer = useViewer();
@@ -621,15 +655,15 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
         start={
           <>
-            <span className={styles.notPhone}><CloseTextButton label={alone ? "Back to the library" : "Close this text"} onClick={closePanel} /></span>
-            <span className={styles.onlyPhone}><IconButton icon="menu" label="Menu" onClick={() => setMobileMenuOpen(true)} /></span>
+            <span className={styles.notPhone}><CloseTextButton label={alone ? (he ? "חזרה לספריה" : "Back to the library") : he ? "סגירת הטקסט" : "Close this text"} onClick={() => void closePanel()} /></span>
+            <span className={styles.onlyPhone}><IconButton icon="menu" label={he ? "תפריט" : "Menu"} onClick={() => setMobileMenuOpen(true)} /></span>
           </>
         }
         end={
           <>
           <SaveTextButton
             saved={viewer ? save.isSaved : undefined}
-            label={save.isSaved ? `Remove "${place?.ref ?? section.ref}"` : `Save "${place?.ref ?? section.ref}"`}
+            label={saveLabel(save.isSaved, he, place?.ref ?? section.ref, place ? place.heRef : section.heSectionRef)}
             onClick={save.click}
           />
           <Popover
@@ -639,10 +673,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
               if (o && !menuOpen) readerAnalytics.displayOptionsClicked({ categories: section.categories, book: section.book, refs: view && selectedRefs.length === 1 ? [section.ref, selectedRefs[0]!] : [section.ref], interfaceLang });
               setMenuOpen(o);
             }}
-            label="Text display options"
+            label={displayOptionsLabel}
             flush
             panelClassName={styles.displayMenu}
-            trigger={(p) => <DisplayOptionsButton {...p} label="Text display options" />}
+            trigger={(p) => <DisplayOptionsButton {...p} label={displayOptionsLabel} />}
           >
             <DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKeyFor(section.primaryCategory)} onChange={onChange} directions={{ primary: section.primaryVersion?.direction, translation: section.translationVersion?.direction }}
               onRecordSession={sessionEntry ? () => (setMenuOpen(false), sessionEntry.onRecordSession()) : undefined}
@@ -651,6 +685,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           </>
         }
       />
+      <VisuallyHidden role="status" aria-live="polite" aria-atomic="true" data-testid="reader-announcer">{announced}</VisuallyHidden>
       <SignUpModal kind={saveAsked ? "save" : undefined} onClose={() => setSaveAsked(false)} next={typeof window === "undefined" ? "/" : window.location.href} />
       <div ref={bannerBox}>
       {transBanner ? (
@@ -697,11 +732,22 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       data-has-aside={view ? "true" : "false"}
       // a name of its own: the sections inside are regions named by their refs, and two landmarks may not share a name
       aria-label={interfaceLang === "hebrew" ? `חלון קריאה: ${section.heSectionRef}` : `Reading panel: ${section.sectionRef}`}
-      // Escape inside a panel closes it (SHL-071) — unless something inside already used the key (a menu, a dialog, a box)
+      // Escape inside a panel closes it (SHL-071) — unless something inside already used the key (a menu, a dialog, a box). With the
+      // sidebar open it closes the sidebar only, wherever the focus is (in legacy the sidebar is a panel of its own, so Escape there
+      // closed just it): Escape never throws a reader with the sidebar open out to the library (a11y S1).
       onKeyDown={(e) => {
         if (e.key !== "Escape" || e.defaultPrevented || e.isPropagationStopped()) return;
         if ((e.target as Element).closest("input, textarea, select, [role=dialog], dialog, [aria-expanded=true]")) return;
-        closePanel();
+        e.preventDefault();
+        if (view) {
+          const ref = current.ref ?? data.ref;
+          const fromAside = !!asideBox.current?.contains(e.target as Node);
+          void Promise.resolve(apply((ws) => closeAside(updatePanel(ws, id, { ref }), id), { state: { nav: "select", panel: id, ref } })).then(() => {
+            if (fromAside) focusVerseAfterClose(rootEl.current, ref);
+          });
+          return;
+        }
+        void closePanel();
       }}
     >
       <SplitView
@@ -710,7 +756,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           leafId === MAIN ? (
             main
           ) : view ? (
-            <div className={styles.aside}>
+            <div className={styles.aside} ref={asideBox}>
               <ConnectionsPane
                 view={view}
                 hrefFor={hrefFor}
@@ -752,4 +798,28 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       />
     </section>
   );
+}
+
+/** How long the reader stays in a new section before the live region names it (a fling through several says only the last). */
+const ANNOUNCE_SETTLE_MS = 700;
+
+/** The bookmark button's name: Save "Genesis 1" / Remove "Genesis 1", in Hebrew שמירת "בראשית א׳" / הסרת "בראשית א׳". */
+function saveLabel(saved: boolean, he: boolean, ref: string, heRef: string | undefined): string {
+  if (he) return `${saved ? "הסרת" : "שמירת"} "${heRef ?? ref}"`;
+  return `${saved ? "Remove" : "Save"} "${ref}"`;
+}
+
+/**
+ * After the sidebar or a panel closed: keyboard focus to `panel`'s verse `ref` (else its current or reading verse), without moving the
+ * text — once React has drawn the change, and only if focus was left with nowhere to be (on <body>, or on a control now removed).
+ */
+function focusVerseAfterClose(panel: HTMLElement | null, ref?: string) {
+  requestAnimationFrame(() => {
+    const active = document.activeElement;
+    if (!panel?.isConnected || (active && active !== document.body && active.isConnected)) return;
+    const verse =
+      (ref ? panel.querySelector<HTMLElement>(`[role="group"][data-ref="${CSS.escape(ref)}"]`) : null) ??
+      panel.querySelector<HTMLElement>('[role="group"][aria-current="true"], [role="group"][data-focused="true"]');
+    verse?.focus({ preventScroll: true });
+  });
 }

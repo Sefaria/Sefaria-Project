@@ -13,7 +13,8 @@ import { parseHumanRef } from "~/lib/ref/url";
 import { ReaderSurface } from "../ReaderSurface/ReaderSurface";
 import { Segment, type SegmentProps, type SegmentSide } from "../Segment/Segment";
 import { ParashahHeader, SectionTitle } from "../SectionTitle/SectionTitle";
-import { sectionHeading } from "./section-heading";
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
+import { hebrewAddress, hebrewSegmentRef, sectionHeading } from "./section-heading";
 
 export interface TextSectionProps {
   passage: TextPassage;
@@ -55,6 +56,8 @@ function TextSectionImpl({
   const stripPunctuation = passage.primaryCategory === "Talmud" && !settings.punctuationTalmud && settings.language !== "english";
   const numbered = showsSegmentNumbers(passage.book, passage.categories);
   const isDictionary = passage.categories[0] === "Reference";
+  // the regions and verse groups are named in the interface's language (a11y S5): "בראשית א׳", "בראשית א׳:ג׳"
+  const he = useInterfaceLang() === "hebrew";
 
   const bySection = useMemo(() => {
     const m = new Map<string, SegmentModel[]>();
@@ -94,8 +97,10 @@ function TextSectionImpl({
           sections: parsed.sections,
           addressTypes: passage.addressTypes,
         });
+        const heSectionRef = idx === 0 ? passage.heSectionRef : `${passage.heIndexTitle} ${parsed.sections.map((p, n) => hebrewAddress(p, passage.addressTypes[n])).join(":")}`;
+        const segDepth = parsed.sections.length;
         return (
-          <section key={sectionRef} data-ref={sectionRef} aria-label={sectionRef}>
+          <section key={sectionRef} data-ref={sectionRef} aria-label={he ? heSectionRef : sectionRef}>
             {hideTitle || isDictionary || (!title.en && !title.he) ? null : <SectionTitle en={title.en} he={title.he} language={settings.language} />}
             {(bySection.get(sectionRef) ?? []).map((seg) => {
               const header = parashahHeader(passage, seg, settings.aliyotTorah);
@@ -106,6 +111,7 @@ function TextSectionImpl({
                   ) : null}
                   <Segment
                     segmentRef={seg.ref}
+                    label={he ? hebrewSegmentRef(heSectionRef, seg.address[segDepth], passage.addressTypes[segDepth]) : undefined}
                     address={numbered ? seg.address.at(-1) : undefined}
                     primary={sides.get(seg.ref)?.primary}
                     translation={sides.get(seg.ref)?.translation}
