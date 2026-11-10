@@ -131,10 +131,14 @@ start_nginx() { # start_nginx <conf>; sets PORT
 }
 
 cat > "$TMP/analyse.py" <<'PY'
-import json, sys
+import json, re, sys
 log_path, secret, expected, known_gaps = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4].split(",")
 text = open(log_path).read()
-lines = [l for l in text.splitlines() if l.strip()]
+# The container's stdout also carries the image entrypoint's own start-up lines ("/docker-entrypoint.sh: ...",
+# "10-listen-on-ipv6-by-default.sh: info: ..."). They are not access-log lines, so they are dropped by name; any other
+# non-JSON line still fails the JSON check below.
+lines = [l for l in text.splitlines()
+         if l.strip() and not l.startswith("/docker-entrypoint.sh:") and not re.match(r"^\d+-[\w-]+\.sh: ", l)]
 bad = []
 def check(cond, msg):
     print(("ok: " if cond else "FAIL: ") + msg)
