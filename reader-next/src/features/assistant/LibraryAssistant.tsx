@@ -17,7 +17,7 @@ declare module "react" {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
-      "lc-chatbot": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & Record<string, string | undefined>;
+      "lc-chatbot": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & { children?: React.ReactNode } & Record<string, string | React.ReactNode | undefined>;
     }
   }
 }
