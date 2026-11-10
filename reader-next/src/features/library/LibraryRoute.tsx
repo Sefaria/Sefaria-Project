@@ -6,6 +6,7 @@ import { childTitle, deleteCategory, saveCategory, saveTopLevelOrder, type Categ
 import { CategoryEditor, ReorderEditor } from "~/ui/CategoryEditor/CategoryEditor";
 import type { PageAdmin } from "~/ui/AdminButtons/AdminButtons";
 import { tocQueryOptions } from "~/lib/catalog/toc";
+import { leaveAfterWrite } from "~/lib/book/book-writes";
 import { catalogSliceQueryOptions } from "~/lib/library/catalog-slice";
 import { calendarsQueryOptions } from "~/lib/library/calendars";
 import { hebrewCategoryNames, tocItemsByCategories, tocObjectByCategories, withDefaultCorpus } from "~/lib/library/category-model";
@@ -46,8 +47,8 @@ export function LibraryRoute({ path }: { path: string[] }) {
   if (!catalog) return <LoadingState />;
   // after a change the catalog everyone caches is stale: drop it, then go where the old editors went
   const done = async (to: string) => {
-    await queryClient.invalidateQueries({ queryKey: ["catalog"] });
-    window.location.assign(to);
+    // a full load follows: the stored copies on disk go too, or the next page would paint the old catalog from IndexedDB
+    await leaveAfterWrite(queryClient, [{ kind: "catalog" }], to);
   };
   const categoryEditor = (draft: CategoryDraft, isNew: boolean, origTitle: string, origPath: string[]) =>
     fullTree ? (

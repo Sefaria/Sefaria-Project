@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, type MouseEvent, type ReactNode } from "react";
 import { useLibraryHref } from "~/lib/routing/library-href";
 import { markdownToHtml } from "~/lib/html/markdown";
 import { sanitizeHtml } from "~/lib/html/sanitize";
@@ -53,7 +53,7 @@ export interface BookPageProps {
    * Moderators: the book's admin buttons beside the title (the old CategoryHeader type="books": "Add Section" opens Django's
    * text adder, "Edit" the Index Editor), and the editor itself, shown in place of the page while open.
    */
-  admin?: { addSectionHref: string; onEdit: () => void; editor?: ReactNode };
+  admin?: { addSectionHref: string; onAddSection?: (e: MouseEvent<HTMLAnchorElement>) => void; onEdit: () => void; editor?: ReactNode };
 }
 
 const plain = (e: React.MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
@@ -133,7 +133,7 @@ function BookMain({ aboutInline, title, category, attribution, dedication, readH
         <h1 className={styles.title} lang={code} dir={dirFor(code)}>{he ? title.he : title.en}</h1>
         {admin ? (
           <div className={styles.adminButtons} role="group" aria-label="Admin">
-            <a className={styles.adminButton} href={admin.addSectionHref}><InterfaceText en="Add Section" he="הוספת קטע" /></a>
+            <a className={styles.adminButton} href={admin.addSectionHref} onClick={admin.onAddSection}><InterfaceText en="Add Section" he="הוספת קטע" /></a>
             <button type="button" className={styles.adminButton} onClick={admin.onEdit}><InterfaceText en="Edit" he="עריכה" /></button>
           </div>
         ) : null}

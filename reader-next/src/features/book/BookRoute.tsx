@@ -28,6 +28,8 @@ import { VersionEditForm } from "~/ui/VersionEditForm/VersionEditForm";
 import { IndexEditor } from "~/ui/IndexEditor/IndexEditor";
 import { deleteIndex, ensureCollectiveTerm, indexDraft, markdownLinkTargets, pollTask, saveIndex, type EditableIndex } from "~/lib/book/index-editor";
 import { nameQueryOptions } from "~/lib/search/autocomplete";
+import { useLibraryHref } from "~/lib/routing/library-href";
+import { afterVersionWrite, indexWrites, leaveAfterWrite } from "~/lib/book/book-writes";
 
 type Details = NonNullable<ReturnType<typeof indexDetailsQueryOptions>["queryFn"]> extends never ? never : Awaited<ReturnType<NonNullable<ReturnType<typeof indexDetailsQueryOptions>["queryFn"]>>>;
 
@@ -49,6 +51,7 @@ export function BookRoute({ title }: { title: string }) {
   const viewerId = viewer?.id ?? null;
   const qc = useQueryClient();
   const [editingIndex, setEditingIndex] = useState(false);
+  const lib = useLibraryHref();
   const catalogTree = useQuery({ ...tocQueryOptions(), select: (tree) => tree }).data;
   useEffect(() => setResume(lastPlace(title, viewerId)), [title, viewerId]);
   const structures = useMemo(() => (details?.schema ? tocStructures({ ...(details as unknown as TocIndexRecord), title: details.title }) : []), [details]);
@@ -90,14 +93,14 @@ export function BookRoute({ title }: { title: string }) {
                 onClose={close}
                 onSave={async (draft) => {
                   await saveVersionFlags(details.title, v, versionFlagsPayload(v, draft));
-                  // the old editor reloaded the page; the versions list is read again instead
-                  await qc.invalidateQueries({ queryKey: bookVersionsQueryOptions(details.title).queryKey });
+                  // the old editor reloaded the page; the book's versions, texts and page are read again instead, in memory and on disk
+                  await afterVersionWrite(qc, details.title);
                   close();
                 }}
                 onDelete={async () => {
                   await deleteVersion(details.title, v);
                   window.alert("Text Version Deleted.");
-                  await qc.invalidateQueries({ queryKey: bookVersionsQueryOptions(details.title).queryKey });
+                  await afterVersionWrite(qc, details.title);
                   close();
                 }}
               />
@@ -108,6 +111,13 @@ export function BookRoute({ title }: { title: string }) {
         viewer?.isStaff
           ? {
               addSectionHref: `${SITE_ORIGIN}/add/${refToUrl(details.title)}`,
+              // Django's add-text editor comes back with a full page load: the stored copies of this book go first
+              onAddSection: (e) => {
+                if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                e.preventDefault();
+                const href = e.currentTarget.href;
+                void leaveAfterWrite(null, [{ kind: "book", title: details.title }], href);
+              },
               onEdit: () => setEditingIndex(true),
               editor:
                 editingIndex && catalogTree ? (
@@ -152,12 +162,12 @@ export function BookRoute({ title }: { title: string }) {
                       } else {
                         window.alert("Text information saved.");
                       }
-                      // Django's reset refreshes the caches, then comes back to the book
-                      window.location.assign(`${SITE_ORIGIN}/admin/reset/${encodeURIComponent(finalTitle)}`);
+                      // Django's reset refreshes the caches, then comes back to the book (a full load: the stored copies go first)
+                      await leaveAfterWrite(qc, indexWrites(details.title, finalTitle), `${SITE_ORIGIN}/admin/reset/${encodeURIComponent(finalTitle)}`);
                     }}
                     onDelete={async () => {
                       await deleteIndex(details.title);
-                      window.location.assign("/texts");
+                      await leaveAfterWrite(qc, [{ kind: "book", title: details.title }, { kind: "catalog" }], "/texts");
                     }}
                   />
                 ) : undefined,
@@ -168,7 +178,7 @@ export function BookRoute({ title }: { title: string }) {
       description={{ en: details.enDesc, he: details.heDesc }}
       sidebar={
         <>
-          <RelatedTopics topics={details.relatedTopics ?? []} topicHref={(slug) => `${SITE_ORIGIN}/topics/${slug}`} />
+          <RelatedTopics topics={details.relatedTopics ?? []} topicHref={(slug) => lib(`/topics/${slug}`)} />
           {details.lexiconName ? null : <DownloadVersions title={details.title} versions={(versions ?? []) as never} />}
         </>
       }

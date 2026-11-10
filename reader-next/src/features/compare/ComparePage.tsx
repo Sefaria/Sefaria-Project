@@ -11,6 +11,7 @@ import { keepPreviousData, useQueries, useQuery, useQueryClient } from "@tanstac
 import { useRouter } from "@tanstack/react-router";
 import { viewerQuery } from "~/features/auth/viewer";
 import { applyChange, diffSegments } from "~/lib/compare/diff";
+import { invalidateAfterWrite } from "~/lib/cache/invalidate";
 import { compareSetupQueryOptions, postSegmentText, sectionTextQueryOptions, versionTitlesFor } from "~/lib/compare/queries";
 import { comparePath, type CompareAddress, type CompareLang } from "~/lib/compare/url";
 import { versionsQueryOptions } from "~/lib/versions/book-versions";
@@ -118,7 +119,8 @@ function CompareTable({ secRef, lang, v1, v2, filters }: { secRef: string; lang:
       const result = await postSegmentText(segRef, side === "v1" ? v1 : v2, lang, text);
       if (result.status === "ok") {
         setReloading((r) => new Set(r).add(segRef));
-        await Promise.all([v1, v2].map((v) => queryClient.refetchQueries({ queryKey: sectionTextQueryOptions(secRef, lang, v).queryKey, exact: true })));
+        // both tables refetch (they are active), and the book's texts elsewhere in memory and on disk are forgotten
+        await invalidateAfterWrite(queryClient, { kind: "text", ref: segRef });
         setReloading((r) => {
           const n = new Set(r);
           n.delete(segRef);
