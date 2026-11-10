@@ -169,6 +169,8 @@ async function resolve(base, href, cookie) {
     if (r.status >= 300 && r.status < 400 && loc) {
       const next = new URL(loc, url);
       if (next.origin !== new URL(base).origin) return { chain, final: { status: r.status, by, offsite: next.href, host: next.host } };
+      // Django asking for a sign-in: the stand-in session is not Django's, so for a signed-in reader this is Django's own page
+      if (by === "django" && /^\/login(?:\/|$)/.test(next.pathname)) return { chain: [...chain, `→ ${next.pathname}`], final: { status: r.status, by, loginRequired: true, path: url.pathname + url.search } };
       chain.push(`→ ${next.pathname}${next.search}`);
       url = next;
       continue;
@@ -264,6 +266,7 @@ async function main() {
         const f = r.final;
         let exit = null;
         if (f.offsite) exit = isVoices(f.host) ? "voices" : "offsite";
+        else if (f.loginRequired) exit = [...e.contexts].some((c) => c.endsWith("signed in")) ? "django-page (signed in)" : null;
         else if (f.by === "django" && f.status >= 200 && f.status < 300) exit = "django-page";
         else if (f.by === "django" && f.status === 404) exit = "django-404";
         else if (f.by === "django" && f.status >= 400) exit = `django-${f.status}`;
