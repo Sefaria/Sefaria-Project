@@ -192,12 +192,18 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
   const menuButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!mobileOpen) return;
-    // Escape closes the menu; focus that was inside it goes back to the button (CODE_REVIEW R-31: it was lost to <body>)
+    // Opened from elsewhere (the text panel's own Menu button while reading, whose button comes after the menu in the page): focus goes
+    // into the menu, so Tab reaches its items and not the page behind it (v-a11y S6). The menu itself takes focus, not its search box,
+    // so a phone's keyboard does not open. The header's own button stays focused: the menu follows it.
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const nav = document.getElementById("mobile-nav");
+    if (nav && opener !== menuButton.current && !nav.contains(opener)) nav.focus({ preventScroll: true });
+    // Escape closes the menu; focus that was inside it goes back to the button that opened it (CODE_REVIEW R-31: it was lost to <body>)
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       const inside = document.getElementById("mobile-nav")?.contains(document.activeElement);
       setMobileOpen(false);
-      if (inside) menuButton.current?.focus();
+      if (inside) (opener && opener !== document.body && opener.isConnected ? opener : menuButton.current)?.focus();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -300,7 +306,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
         {/* a library page puts its content-language toggle here (ContentLanguage, through a portal), as the old mobile header did */}
         <div id={HEADER_PAGE_ACTION_ID} className={styles.mobileAction} />
       </div>
-      <nav id="mobile-nav" className={mn.menu} hidden={!mobileOpen} lang={he ? "he" : "en"} aria-label={t("Mobile navigation menu", "תפריט ניווט במובייל")}>
+      <nav id="mobile-nav" tabIndex={-1} className={mn.menu} hidden={!mobileOpen} lang={he ? "he" : "en"} aria-label={t("Mobile navigation menu", "תפריט ניווט במובייל")}>
         <div className={mn.searchLine}>
           <HeaderSearch mobile {...search} onSearch={(q) => { setMobileOpen(false); search.onSearch(q); }} onSmartSubmit={(q) => { setMobileOpen(false); search.onSmartSubmit(q); }} onChoose={(x) => { setMobileOpen(false); search.onChoose(x); }} />
         </div>

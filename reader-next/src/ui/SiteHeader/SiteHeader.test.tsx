@@ -78,6 +78,35 @@ describe("SiteHeader", () => {
     await userEvent.keyboard("{Escape}");
     expect(menu).toHaveAttribute("hidden");
   });
+  // v-a11y S6: the text panel's Menu button (after the menu in the page) opens it; focus goes into the menu and Escape brings it back
+  it("opened from another button, focus goes into the menu; Escape returns it to that button", async () => {
+    function Panel({ open, onChange }: { open: boolean; onChange: (v: boolean) => void }) {
+      return (
+        <>
+          <SiteHeader next="/" search={STUB_SEARCH} menuOpen={open} onMenuOpenChange={onChange} />
+          <button type="button" onClick={() => onChange(true)}>Panel menu</button>
+        </>
+      );
+    }
+    const onChange = vi.fn();
+    const { rerender } = render(<Panel open={false} onChange={onChange} />);
+    const opener = screen.getByRole("button", { name: "Panel menu" });
+    opener.focus();
+    rerender(<Panel open onChange={onChange} />);
+    const menu = document.getElementById("mobile-nav")!;
+    expect(menu).toHaveFocus();
+    await userEvent.tab();
+    expect(menu.contains(document.activeElement)).toBe(true);
+    await userEvent.keyboard("{Escape}");
+    expect(onChange).toHaveBeenLastCalledWith(false);
+    expect(opener).toHaveFocus();
+  });
+  it("opened with the header's own Menu button, focus stays on it (the menu follows it)", async () => {
+    render(<SiteHeader next="/" search={STUB_SEARCH} />);
+    const button = screen.getByRole("button", { name: "Menu" });
+    await userEvent.click(button);
+    expect(button).toHaveFocus();
+  });
   // @feature SRC-024
   it("the phone menu has its own search box, and a search closes the menu", async () => {
     const onSearch = vi.fn();
