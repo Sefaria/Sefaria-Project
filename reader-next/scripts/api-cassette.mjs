@@ -9,8 +9,13 @@
 // The user agent names "sefaria-node" (the old Node server's), which Django's language middleware never redirects to the other
 // language's domain: page paths outside /api/ (the topics TOC in /data.js, /topics) are recorded as answered, not as a 302 to .org.il.
 //
-// Recordings live in e2e/.cassette/ (not in git: tens of MB). CI restores them from its cache; a fresh checkout records on the first
-// run.  E2E_API_PORT (default 3998), E2E_API_UPSTREAM (default https://www.sefaria.org).
+// Dicta (the Hebrew search's Tanakh hits, src/lib/search/dicta.ts) is recorded too, under the prefix /__dicta/: a request for
+// /__dicta/search is https://sefaria.loadbalancer.dicta.org.il/search (E2E_DICTA_UPSTREAM). The browser calls Dicta directly, so the
+// e2e suite routes it here (scripts/cassette/dicta-route.mjs).
+//
+// Recordings live in e2e/.cassette/ (not in git: tens of MB). CI downloads the bundle pinned by e2e/cassette.lock and replays it
+// (scripts/cassette/bundle.mjs); without a bundle it restores them from its cache and records what is missing.
+// E2E_API_PORT (default 3998), E2E_API_UPSTREAM (default https://www.sefaria.org).
 import { createServer } from "node:http";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -19,8 +24,10 @@ import { join } from "node:path";
 
 const PORT = Number(process.env.E2E_API_PORT) || 3998;
 const UPSTREAM = process.env.E2E_API_UPSTREAM || "https://www.sefaria.org";
+const DICTA_PREFIX = "/__dicta";
+const DICTA_UPSTREAM = process.env.E2E_DICTA_UPSTREAM || "https://sefaria.loadbalancer.dicta.org.il";
 const MODE = process.env.E2E_API_MODE || "auto";
-const DIR = new URL("../e2e/.cassette/", import.meta.url).pathname;
+const DIR = process.env.E2E_CASSETTE_DIR || new URL("../e2e/.cassette/", import.meta.url).pathname;
 mkdirSync(DIR, { recursive: true });
 
 const KEEP_HEADERS = ["content-type", "location"];
@@ -37,10 +44,17 @@ function cors(req, headers) {
   return headers;
 }
 
-async function record(method, url, body, file) {
-  const res = await fetch(`${UPSTREAM}${url}`, {
+/** Where a request is recorded from: Dicta for /__dicta/…, else the Sefaria API. */
+const upstreamFor = (url) =>
+  url.startsWith(`${DICTA_PREFIX}/`) ? { target: `${DICTA_UPSTREAM}${url.slice(DICTA_PREFIX.length)}`, dicta: true } : { target: `${UPSTREAM}${url}`, dicta: false };
+
+async function record(method, url, body, file, contentType) {
+  const { target, dicta } = upstreamFor(url);
+  // Dicta reads a JSON body; Sefaria's API is asked as before (the recordings' keys do not depend on it)
+  const type = body ? (dicta ? contentType || "application/json; charset=UTF-8" : "text/plain;charset=UTF-8") : null;
+  const res = await fetch(target, {
     method,
-    headers: { "accept-encoding": "identity", ...(body ? { "content-type": "text/plain;charset=UTF-8" } : {}), "user-agent": "sefaria-reader-e2e-cassette (sefaria-node)" },
+    headers: { "accept-encoding": "identity", ...(type ? { "content-type": type } : {}), "user-agent": "sefaria-reader-e2e-cassette (sefaria-node)" },
     body: body ?? undefined,
     redirect: "manual",
   });
@@ -78,11 +92,11 @@ createServer(async (req, res) => {
       misses.add(`${req.method} ${req.url}`);
       console.error(`[cassette] MISS ${req.method} ${req.url}`);
       return res.writeHead(504, cors(req, { "content-type": "application/json" })).end(JSON.stringify({ error: "not in the e2e cassette" }));
-    } else entry = await record(req.method, req.url, body, file);
+    } else entry = await record(req.method, req.url, body, file, req.headers["content-type"]);
     res.writeHead(entry.status, cors(req, { ...localize(entry.headers, req), "content-length": String(entry.body.length) })).end(entry.body);
   } catch (e) {
     console.error(`[cassette] ${req.method} ${req.url}: ${e}`);
     if (!res.headersSent) res.writeHead(502, cors(req, { "content-type": "text/plain" }));
     res.end(String(e));
   }
-}).listen(PORT, () => console.log(`[cassette] ${MODE} on :${PORT} → ${UPSTREAM}, recordings in ${DIR}`));
+}).listen(PORT, () => console.log(`[cassette] ${MODE} on :${PORT} → ${UPSTREAM} (and ${DICTA_PREFIX}/ → ${DICTA_UPSTREAM}), recordings in ${DIR}`));

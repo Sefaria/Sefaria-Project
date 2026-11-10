@@ -1,15 +1,16 @@
 # The new reader client (reader-next/): every change is type-checked and tested before it lands (CODE_REVIEW §3.1).
 # Unit, architecture and component (Storybook) tests, in English/LTR and Hebrew/RTL; then the end-to-end suite against the API
-# cassette (scripts/api-cassette.mjs: recorded answers from the CI cache; anything missing is recorded from the live API).
+# cassette (scripts/api-cassette.mjs): the bundle pinned by e2e/cassette.lock, replayed (scripts/cassette/bundle.mjs); without one, the
+# CI cache, recording anything missing from the live API. A budgets job holds the reader page's initial JS/CSS (scripts/budgets/).
 name: reader-next client
 
 on:
   pull_request:
     branches: [reader-next]
-    paths: ["reader-next/**", ".github/workflows/reader-next-client.yaml", "build/ci/reader-nginx-paths.mjs", "build/ci/reader-budgets*", "helm-chart/sefaria/templates/_reader-django-paths.tpl"]
+    paths: ["reader-next/**", ".github/workflows/reader-next-client.yaml", "build/ci/reader-nginx-paths.mjs", "helm-chart/sefaria/templates/_reader-django-paths.tpl"]
   push:
     branches: [reader-next]
-    paths: ["reader-next/**", ".github/workflows/reader-next-client.yaml", "build/ci/reader-nginx-paths.mjs", "build/ci/reader-budgets*", "helm-chart/sefaria/templates/_reader-django-paths.tpl"]
+    paths: ["reader-next/**", ".github/workflows/reader-next-client.yaml", "build/ci/reader-nginx-paths.mjs", "helm-chart/sefaria/templates/_reader-django-paths.tpl"]
 
 concurrency:
   group: reader-next-client-${{ github.ref }}
@@ -40,12 +41,31 @@ jobs:
         run: npm run features:coverage -- --unknown
       - name: nginx's Django paths match DJANGO_PREFIXES (helm-chart/sefaria/templates/_reader-django-paths.tpl)
         run: node --experimental-strip-types ../build/ci/reader-nginx-paths.mjs --check
+      - name: Cassette bundle and budget scripts
+        run: node --test scripts/cassette/*.test.mjs scripts/budgets/*.test.mjs
       - name: Component tests (English, LTR)
         run: npm run test:stories
       - name: Component tests (Hebrew, RTL)
         run: npm run test:stories:hebrew
       - name: Component tests (dark theme)
         run: npm run test:stories:dark
+
+  # LAUNCH_PLAN T-H04: the reader page's initial JS and CSS (scripts/budgets/measure.mjs) against scripts/budgets/baseline.json
+  budgets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: reader-next/package-lock.json
+      - run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Initial JS/CSS of the reader page within the baseline
+        run: node scripts/budgets/measure.mjs
 
   e2e:
     runs-on: ubuntu-latest
@@ -60,17 +80,23 @@ jobs:
           cache-dependency-path: reader-next/package-lock.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: Restore the API cassette
+      # The pinned recordings (e2e/cassette.lock → a release asset, scripts/cassette/bundle.mjs): replayed, never the network. Until
+      # that bundle exists (or when it cannot be fetched) the step warns and CI keeps the cache + auto behaviour below.
+      - name: Fetch the pinned API cassette
+        id: cassette
+        run: node scripts/cassette/bundle.mjs fetch
+      - name: Restore the API cassette (fallback)
+        if: steps.cassette.outputs.mode != 'replay'
         uses: actions/cache@v4
         with:
           path: reader-next/e2e/.cassette
           key: e2e-cassette-${{ hashFiles('reader-next/e2e/**/*.ts') }}
           restore-keys: e2e-cassette-
-      - name: End-to-end (desktop)
+      - name: End-to-end (desktop, API cassette ${{ steps.cassette.outputs.mode }})
         run: npx playwright test --project=desktop
         env:
           CI: "1"
-          E2E_API_MODE: auto
+          E2E_API_MODE: ${{ steps.cassette.outputs.mode }}
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
