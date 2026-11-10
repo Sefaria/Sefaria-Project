@@ -17,7 +17,14 @@ jest.mock('../sefaria/sefaria', () => {
 
 jest.mock('../sefaria/sefariaJquery', () => ({
   __esModule: true,
-  default: { cookie: jest.fn(), post: jest.fn(), get: jest.fn() },
+  // a request returns an object like jQuery's, which keeps the callbacks given to .fail()
+  default: (() => {
+    const request = () => {
+      const xhr = { failHandlers: [], fail: (fn) => (xhr.failHandlers.push(fn), xhr) };
+      return xhr;
+    };
+    return { cookie: jest.fn(), post: jest.fn(request), get: jest.fn(request) };
+  })(),
 }));
 
 jest.mock('../Misc', () => {
@@ -180,7 +187,7 @@ beforeEach(() => {
   Sefaria._email = 'tova@example.org';
   respondWith({});
   window.scrollTo = jest.fn();
-  $.post.mockReset();
+  $.post.mockClear();
 });
 
 /* Unmounted before the real timers return, so the page clears the fake timers it set. */

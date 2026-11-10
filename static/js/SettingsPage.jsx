@@ -2743,8 +2743,10 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
 
   const [gauthEmail, setGauthEmail] = useState((settings.sheetsExport && settings.sheetsExport.gauthEmail) || '');
   const [gauthError, setGauthError] = useState('');
+  const [saveError, setSaveError] = useState('');
 
   const save = () => {
+    setSaveError('');
     const transPref = translationLanguages.length ? translationLanguage : undefined;
     const profile = {
       settings: {
@@ -2813,7 +2815,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
         saved.current.textualCustom = newTextualCustom;
       }
       document.dispatchEvent(new CustomEvent('sefaria:settings-updated', { detail }));
-    });
+    }).fail(() => setSaveError(Sefaria._v(SAVE_FAILED)));
   };
 
   const updateEmail = () => {
@@ -2831,6 +2833,9 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
       }
       setEmailOk(Sefaria._('Email was successfully changed!'));
       setEditingEmail(false);
+    }).fail(() => {
+      setEmailOk('');
+      setEmailError(Sefaria._v(SAVE_FAILED));
     });
   };
 
@@ -2843,7 +2848,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
         setGauthError('');
         setGauthEmail('');
       }
-    });
+    }).fail(() => setGauthError(Sefaria._v(SAVE_FAILED)));
   };
 
   const saveButton = (
@@ -2869,6 +2874,11 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
             {saveButton}
           </div>
         </div>
+        {saveError ? (
+          <p id="account-save-error" role="alert">
+            {saveError}
+          </p>
+        ) : null}
         <SettingSection
           id="emailNotifications"
           label={
@@ -3038,7 +3048,9 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
                 <button id="update-email" type="button" className="button blue fillWidth" onClick={updateEmail}>
                   <InterfaceText text={{ en: 'Update Email', he: 'עדכון כתובת דוא"ל' }} />
                 </button>
-                <span id="email-edit-errors">{emailError}</span>
+                <span id="email-edit-errors" role={emailError ? 'alert' : undefined}>
+                  {emailError}
+                </span>
               </div>
             </React.Fragment>
           )}
@@ -3060,7 +3072,9 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
             >
               <InterfaceText text={{ en: 'Disconnect', he: 'ניתוק' }} />
             </button>
-            <span id="gauth-disconnect-messages">{gauthError}</span>
+            <span id="gauth-disconnect-messages" role={gauthError ? 'alert' : undefined}>
+              {gauthError}
+            </span>
           </div>
         </div>
         <div id="gauth-email-disconnected" className="section" style={gauthEmail ? { display: 'none' } : null}>

@@ -17189,7 +17189,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
 }
-.settingsPage #accountSettingsPage #email-edit-errors, .settingsPage #accountSettingsPage #reading-history-warning {
+.settingsPage #accountSettingsPage #email-edit-errors, .settingsPage #accountSettingsPage #reading-history-warning, .settingsPage #accountSettingsPage #account-save-error {
   color: #CB6158;
 }
 .settingsPage #accountSettingsPage #email-edit-ok{
