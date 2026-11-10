@@ -91,8 +91,14 @@ describe("SiteHeader", () => {
   it("Hebrew interface: Hebrew labels, right-to-left, and the phone menu's language row goes to English", () => {
     render(<InterfaceLangProvider lang="hebrew"><SiteHeader next="/" search={STUB_SEARCH} /></InterfaceLangProvider>);
     expect(screen.getAllByRole("banner")[0]).toHaveAttribute("dir", "rtl");
-    expect(within(screen.getByRole("navigation", { name: "ניווט ראשי" })).getByRole("link", { name: "מקורות" })).toBeInTheDocument();
+    // T-G02, VERIFIED on sefaria.org 2026-11-10 (Playwright, /interface/hebrew): the desktop bar says טקסטים, the phone menu מקורות,
+    // and Donate goes to the Hebrew campaign (468442) from both
+    const nav = within(screen.getByRole("navigation", { name: "ניווט ראשי" }));
+    expect(nav.getByRole("link", { name: "טקסטים" })).toBeInTheDocument();
+    expect(nav.getByRole("link", { name: "תרומה" })).toHaveAttribute("href", "https://donate.sefaria.org/give/468442/#!/donation/checkout?c_src=Header");
     const mobile = document.getElementById("mobile-nav")!;
+    expect(within(mobile).getByRole("link", { name: "מקורות", hidden: true })).toHaveAttribute("href", "/texts");
+    expect(within(mobile).getByRole("link", { name: "תרומה", hidden: true })).toHaveAttribute("href", "https://donate.sefaria.org/give/468442/#!/donation/checkout?c_src=MobileNavMenu");
     expect(within(mobile).getByRole("link", { name: "English", hidden: true })).toHaveAttribute("href", "/interface/english?next=%2F");
   });
   // @feature GUI-001 Mobile header bar

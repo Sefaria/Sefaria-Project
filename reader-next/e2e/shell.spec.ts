@@ -37,6 +37,25 @@ test.describe("the page around the reader (verified against sefaria.org)", () =>
     await expect(page.getByRole("banner").getByRole("link", { name: "להרשמה" })).toBeVisible();
   });
 
+  // @feature I18-002 T-G02: VERIFIED on sefaria.org 2026-11-10 with Playwright at 1280px (/interface/hebrew?next=/texts): the bar's
+  // links say טקסטים, נושאים, תרומה (the Hebrew campaign); the search box is Heebo 18px, right to left, 216×28.5 at y=15.25
+  test("the Hebrew interface's bar: its labels, the Hebrew donation campaign and the search box as sefaria.org's", async ({ page }) => {
+    await page.context().addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
+    await open(page, "/texts");
+    const nav = page.getByRole("banner").getByRole("navigation", { name: "ניווט ראשי" });
+    await expect(nav.getByRole("link")).toHaveText(["", "טקסטים", "נושאים", "תרומה"]);
+    await expect(nav.getByRole("link", { name: "תרומה" })).toHaveAttribute("href", /\/give\/468442\/.*c_src=Header$/);
+    const box = page.getByRole("banner").getByRole("combobox").first();
+    await expect(box).toHaveAttribute("placeholder", "חיפוש");
+    const style = await box.evaluate((i) => ({ font: getComputedStyle(i).fontFamily, dir: getComputedStyle(i).direction, ...i.getBoundingClientRect().toJSON() }));
+    expect(style.font).toMatch(/^"?Heebo/);
+    expect(style.dir).toBe("rtl");
+    expect(style.width).toBe(216);
+    // the content height is Heebo's line box: within a pixel, whether the web font or a local fallback is drawn here
+    expect(Math.abs(style.height - 28.5)).toBeLessThanOrEqual(1);
+    expect(Math.abs(style.y - 15.25)).toBeLessThanOrEqual(1);
+  });
+
   test("a new visitor sees the cookie notice once", async ({ page }) => {
     await open(page, "/Genesis.1?lang=en", { cookieNotice: true });
     const notice = page.getByRole("region", { name: "Cookie notice" });
