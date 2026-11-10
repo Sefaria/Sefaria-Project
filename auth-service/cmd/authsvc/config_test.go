@@ -54,8 +54,9 @@ func TestParseGatedPathsRejectsEntryWithoutLeadingSlash(t *testing.T) {
 // A malformed GATED_PATHS stops the process at startup instead of leaving a path ungated.
 func TestStartupFailsOnMalformedGatedPaths(t *testing.T) {
 	cmd := exec.Command(os.Args[0], "-test.run=^$")
+	addrs := freePorts(t, 2)
 	cmd.Env = append(os.Environ(), runMainEnv+"=1", "PG_DSN="+unreachableDSN, "GATED_PATHS=/api/a,api/b",
-		"GRPC_ADDR="+freePort(t), "HTTP_ADDR="+freePort(t))
+		"GRPC_ADDR="+addrs[0], "HTTP_ADDR="+addrs[1])
 	var out strings.Builder
 	cmd.Stdout, cmd.Stderr = &out, &out
 	if err := cmd.Start(); err != nil {
