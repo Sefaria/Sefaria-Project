@@ -268,9 +268,10 @@ test.describe('account settings: developer', () => {
     const madeValue = (await madeResponse.json()).keyValue;
     const madeKey = (await developerState(page)).projects.find((p: any) => p.id === project.id).keys.find((k: any) => k.label === label);
     expect(!!madeKey, 'the key exists on the server').toBe(true);
-    // Both values must be real strings, or the history.state check below would search for "undefined" and never fail.
-    expect(typeof madeKey.value === 'string' && madeKey.value.length > 0, 'state returns the made key value').toBe(true);
-    expect(typeof baselineKey?.value === 'string' && baselineKey.value.length > 0, 'the baseline key response carries its value').toBe(true);
+    // Both values must be real keys, or the history.state check below would search for "undefined" and never fail.
+    // The state response carries only a prefix; a key's value comes from its creation response.
+    expect(typeof madeValue === 'string' && /^sfr_[A-Za-z0-9]{8,}/.test(madeValue), 'the creation response of the made key carries its value').toBe(true);
+    expect(typeof baselineKey.value === 'string' && /^sfr_[A-Za-z0-9]{8,}/.test(baselineKey.value), 'the baseline key creation response carries its value').toBe(true);
 
     try {
       await markDocument(page);
