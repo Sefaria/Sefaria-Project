@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fetchStaticPage, pageInlineCss, remToPx, parseStaticContent, safeInlineCss, staticContentPath, staticPageModel } from "./content";
@@ -21,15 +21,18 @@ describe("a static page's content from Django (?format=json&lang=…)", () => {
     expect(asked).toEqual(["http://varnish:8040/terms?format=json&lang=en"]);
   });
 
-  it("a page: its title, description, sanitised content; static.css is served scoped by this client, other sheets kept", async () => {
+  it("a page: its title, description, sanitised content; no unscoped stylesheet (static.css is served scoped; others are left out, logged)", async () => {
     const res = await fetchStaticPage("terms", "en", "", "https://www.sefaria.org", answer(raw("terms.en")));
     expect(res.kind).toBe("page");
     if (res.kind !== "page") return;
     expect(res.model.title).toBe("Terms of Use | Sefaria");
     expect(res.model.html).not.toContain("<script");
     expect(res.model.css).toEqual([]);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const about = staticPageModel("mobile-about-menu", parseStaticContent(JSON.parse(raw("mobile-about-menu.en")))!, "https://www.sefaria.org");
-    expect(about.css).toEqual(["https://www.sefaria.org/static/css/about.css"]);
+    expect(about.css).toEqual([]);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("/static/css/about.css"));
+    warn.mockRestore();
   });
 
   it("Hebrew: the Hebrew answer, Hebrew body class", async () => {
@@ -48,7 +51,11 @@ describe("a static page's content from Django (?format=json&lang=…)", () => {
   });
 
   it("the inline CSS cannot close its <style>, and is scoped like the legacy sheets (so it still wins over them, as on the old page)", () => {
-    expect(safeInlineCss("a{}</style><script>x</script>")).toBe("a{}><script>x</script>");
+    expect(safeInlineCss("a{}</style><script>x</script>")).toBe("a{}\\3c /style>\\3c script>x\\3c /script>");
+    // a comment inside the tag names is gone after scoping: the escaping comes after it, so nothing can close the <style>
+    const sneaky = pageInlineCss(".a { color: red; x: </sty/**/le><scr/**/ipt>alert(1)</scr/**/ipt> }");
+    expect(sneaky).not.toMatch(/<\/?(style|script)/i);
+    expect(sneaky).not.toContain("<");
     expect(pageInlineCss(".static h2 { text-transform: none; }")).toBe("#staticContentWrapper .static h2 { text-transform: none; }\n");
     expect(pageInlineCss("  ")).toBe("");
   });

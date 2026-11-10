@@ -9,8 +9,8 @@
  * @feature STA-001 Static content pages
  * @feature STA-005 Static page serving and About sidebar
  */
-import { STATIC_SCOPE } from "./legacy-css";
-import { sanitizeStaticHtml, staticAsset } from "./sanitize";
+import { LEGACY_SOURCES, STATIC_SCOPE } from "./legacy-css";
+import { sanitizeStaticHtml } from "./sanitize";
 import { scopeCss } from "./scope-css";
 
 /** Django's answer, as reader/static_content.py documents it. */
@@ -68,14 +68,17 @@ export function parseStaticContent(body: unknown): StaticContentAnswer | null {
   };
 }
 
-/** An inline stylesheet from the page's `{% block css %}`, with nothing that could close the <style> it goes in. */
-export const safeInlineCss = (css: string) => css.replace(/<\/?style/gi, "").replace(/<!--|-->/g, "");
+/**
+ * An inline stylesheet with nothing that could end the <style> it goes in or open markup: every `<` becomes the CSS escape `\3c `
+ * (inside a string or a selector it means the same; outside one it was never valid CSS). Applied last, to the finished text.
+ */
+export const safeInlineCss = (css: string) => css.replace(/</g, "\\3c ");
 
 /**
  * The page's `{% block css %}`, scoped like the legacy stylesheets (legacy-css.ts): on the old page it came after them at the same
  * specificity and won; scoped, it keeps doing so (it is rendered after the head's stylesheets).
  */
-export const pageInlineCss = (css: string) => (css.trim() ? scopeCss(remToPx(safeInlineCss(css)), STATIC_SCOPE) : "");
+export const pageInlineCss = (css: string) => (css.trim() ? safeInlineCss(scopeCss(remToPx(css), STATIC_SCOPE)) : "");
 
 /**
  * A page that sets the document's font size (pioneers.html: `html { font-size: 10px }`) and sizes its content in rem: in this shell
@@ -89,17 +92,19 @@ export function remToPx(css: string): string {
   return css.replace(/(-?\d*\.?\d+)rem\b/g, (_, n: string) => `${Math.round(Number(n) * px * 1000) / 1000}px`);
 }
 
-/** The legacy stylesheets this client serves scoped to the page (lib/static-page/legacy-css.ts) rather than as Django lists them. */
-const SCOPED_HERE = /^\/static\/css\/(?:static|common|common-components?|color-palette|fonts)\.css(?:\?|$)/;
+/** The legacy stylesheets this client serves scoped to the page (lib/static-page/legacy-css.ts LEGACY_SOURCES). */
+const SCOPED_HERE = new Set(LEGACY_SOURCES.map((p) => `/static/${p}`));
 
 /**
- * The model for Django's answer: sanitised content; the page's stylesheets that are not in the scoped legacy stylesheet, on the site's
- * origin (no duplicates).
+ * The model for Django's answer: sanitised content, and no unscoped stylesheet: the ones Django lists are served scoped by this client
+ * (legacy-css.ts); any other a page asks for (in its head or its content) would restyle the shell, so it is left out and logged —
+ * today only mobile-about-menu's /static/css/about.css, which does not exist (404 on sefaria.org too).
  */
 export function staticPageModel(page: string, answer: StaticContentAnswer, siteOrigin = ""): StaticPageModel {
   const { html, stylesheets } = sanitizeStaticHtml(answer.html, { page, siteOrigin });
-  const own = [...answer.css, ...stylesheets].filter((h) => h.startsWith("/") && !h.startsWith("//") && !SCOPED_HERE.test(h));
-  const css = [...new Set(own.map((h) => staticAsset(h, siteOrigin)))];
+  const unscoped = [...answer.css, ...stylesheets].filter((h) => !SCOPED_HERE.has(h.split("?")[0]!));
+  if (unscoped.length) console.warn(`[static-page] ${page}: stylesheets not loaded (not in the scoped legacy CSS): ${unscoped.join(", ")}`);
+  const css: string[] = [];
   return { page, lang: answer.lang, title: answer.title, description: answer.description, html, css, inlineCss: pageInlineCss(answer.inlineCss), bodyClass: answer.bodyClass };
 }
 

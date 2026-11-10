@@ -37,33 +37,37 @@ async function route(url: string, d: ReturnType<typeof django>) {
 
 // @feature STA-001 @feature STA-005 @feature RTE-040
 describe("the static pages' routing (T-F31)", () => {
-  it("knows every page of sites/sefaria/urls.py, the pages by language and /digitized-by-sefaria", () => {
-    expect(STATIC_PAGE_NAMES).toHaveLength(44 + 2 + 1);
+  it("knows every page of sites/sefaria/urls.py (but /updates, the new reader's own page), the pages by language and /digitized-by-sefaria", () => {
+    expect(STATIC_PAGE_NAMES).toHaveLength(43 + 2 + 1);
     for (const p of ["about", "ways-to-give", "digitized-by-sefaria", "terms", "linker", "metrics", "cloudflare_site_is_down_he"]) expect(STATIC_PAGE_NAMES).toContain(p);
     expect(staticPageName("/about/")).toBe("about");
     expect(staticPageName("/about/team")).toBeNull();
     expect(isStaticPagePath("/Genesis")).toBe(false);
   });
 
-  it("who renders what: content pages and ports here, the English /ways-to-give and the unported pages Django's", () => {
+  it("who renders what: content pages and ports here (the English /ways-to-give is a port, the Hebrew one content), the unported pages Django's", () => {
     expect(staticPageOwner("terms", "en")).toBe("content");
     expect(staticPageOwner("mobile", "he")).toBe("port");
     expect(staticPageOwner("ways-to-give", "he")).toBe("content");
-    expect(staticPageOwner("ways-to-give", "en")).toBe("django");
+    expect(staticPageOwner("ways-to-give", "en")).toBe("port");
+    expect(staticPageOwner("educators", "en")).toBe("port");
     expect(staticPageOwner("team", "en")).toBe("django");
     expect(rendersStaticPage("ways-to-give")).toBe(true);
     expect(rendersStaticPage("metrics")).toBe(false);
   });
 
   it("on the Library host this client's pages are its own; the unported ones are Django's (full loads from the app)", () => {
-    for (const p of ["/about", "/about/", "/terms", "/privacy-policy", "/linker", "/mobile", "/ways-to-give", "/digitized-by-sefaria"]) {
+    for (const p of ["/about", "/about/", "/terms", "/privacy-policy", "/linker", "/mobile", "/educators", "/ways-to-give", "/digitized-by-sefaria"]) {
       expect(isDjangoPage(p, "www.sefaria.org"), p).toBe(false);
       expect(leavesClient(p, "www.sefaria.org"), p).toBe(false);
     }
-    for (const p of ["/team", "/jobs", "/products", "/newsletter", "/educators", "/metrics", "/random-walk-through-torah", "/updates/"]) {
+    for (const p of ["/team", "/jobs", "/products", "/newsletter", "/word-by-word", "/metrics", "/random-walk-through-torah", "/contest/"]) {
       expect(isDjangoPage(p, "www.sefaria.org"), p).toBe(true);
       expect(leavesClient(p, "www.sefaria.org"), p).toBe(true);
     }
+    // /updates is the new reader's own page (lane P), not a static page here, and not Django's on the Library host
+    expect(isStaticPagePath("/updates")).toBe(false);
+    expect(isDjangoPage("/updates", "www.sefaria.org")).toBe(false);
     // the rest of /linker… stays Django's
     expect(isDjangoPage("/linker.js")).toBe(true);
     expect(isDjangoPage("/linker-editor")).toBe(true);

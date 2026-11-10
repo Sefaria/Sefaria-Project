@@ -94,7 +94,21 @@ export function absoluteUrls(css: string, baseUrl: string): string {
   });
 }
 
-export function scopeCss(input: string, scope: string, baseUrl?: string): string {
+/** The family an @font-face block declares, lower-cased and unquoted ("" when none). */
+export const fontFaceFamily = (body: string) => (/font-family\s*:\s*(['"]?)([^;'"]+)\1/i.exec(body)?.[2] ?? "").trim().toLowerCase();
+
+export interface ScopeOptions {
+  /** The stylesheet's own address, for its relative url()s. */
+  baseUrl?: string;
+  /**
+   * Font families whose @font-face rules are dropped (lower case): the ones this client's shell declares itself
+   * (src/ui/tokens/fonts.css). Font faces are global; the legacy ones would win on a static page and load the old files again.
+   */
+  dropFontFaces?: ReadonlySet<string>;
+}
+
+export function scopeCss(input: string, scope: string, options: string | ScopeOptions = {}): string {
+  const { baseUrl, dropFontFaces } = typeof options === "string" ? { baseUrl: options, dropFontFaces: undefined } : options;
   const css = baseUrl ? absoluteUrls(stripComments(input), baseUrl) : stripComments(input);
   let out = "";
   let i = 0;
@@ -132,7 +146,8 @@ export function scopeCss(input: string, scope: string, baseUrl?: string): string
     i = end < 0 ? css.length : end + 1;
     if (!prelude) continue;
     if (prelude.startsWith("@")) {
-      out += GROUPING.test(prelude) ? `${prelude} {\n${scopeCss(body, scope)}}\n` : `${prelude} {${body}}\n`;
+      if (/^@font-face\b/i.test(prelude) && dropFontFaces?.has(fontFaceFamily(body))) continue;
+      out += GROUPING.test(prelude) ? `${prelude} {\n${scopeCss(body, scope, { dropFontFaces })}}\n` : `${prelude} {${body}}\n`;
       continue;
     }
     const selectors = splitSelectors(prelude).map((s) => scopeSelector(s, scope)).filter(Boolean);

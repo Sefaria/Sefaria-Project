@@ -14,8 +14,8 @@ import { LEGACY_STATIC_CSS_HREF } from "~/lib/static-page/styles-response";
  * `/Genesis` is still the reader's); the router ranks this above the reader's `$` catch-all.
  *
  * Django's content block, title, description and stylesheets are fetched on the server, in the interface language, and rendered in this
- * client's shell (features/static-page). A page Django does not have is this client's 404; a page still Django's in this language (a
- * legacy React page not ported yet: the English /ways-to-give) and a Django without the content mode are handed to Django: from the
+ * client's shell (features/static-page); the ports (/mobile, /educators, the English /ways-to-give) render their own markup in the same
+ * frame. A page Django does not have is this client's 404; a Django without the content mode (an older deploy) is handed to Django: from the
  * server by answering 404 (src/server/site-routing.ts then serves Django's page), in the app by loading the page in full.
  *
  * @feature STA-001 Static content pages

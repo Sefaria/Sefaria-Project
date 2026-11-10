@@ -62,10 +62,16 @@ const FRAME_HOSTS = new Set(["docs.google.com", "drive.google.com", "www.youtube
 const UNSAFE_STYLE = /expression\s*\(|javascript:|vbscript:|url\s*\(\s*['"]?\s*(?:data|javascript|vbscript):|@import|behavior\s*:|-moz-binding|<\//i;
 
 /**
- * The Linker page's bookmarklet ("drag this to your bookmarks bar"): a `javascript:` address that only loads the site's own linker.js.
- * Kept on the Linker page, as the page exists to hand it out; every other `javascript:` address is dropped.
+ * The Linker page's bookmarklet ("drag this to your bookmarks bar"), exactly as templates/static/linker.html writes it (whitespace
+ * collapsed): a `javascript:` address that only loads the site's own linker.js. Kept on the Linker page, as the page exists to hand
+ * it out; every other `javascript:` address is dropped.
  */
-const LINKER_BOOKMARKLET = /^javascript:\s*\(function\s*\(\)\s*\{[^<>"]*?'https:\/\/www\.sefaria\.org\/linker\.js'[^<>"]*\}\(\)\);?$/;
+export const LINKER_BOOKMARKLET =
+  "javascript: (function () { var linkerScript = document.createElement('script'); linkerScript.setAttribute('charset','utf-8'); linkerScript.setAttribute('src', 'https://www.sefaria.org/linker.js'); linkerScript.onload = function() { sefaria.link({mode: 'popup-click'}); }; document.body.appendChild(linkerScript); }());";
+
+/** Hosts whose embedded documents get a sandbox (Google Docs and Drive need only their scripts, their own origin and new windows). */
+const SANDBOXED_FRAME_HOSTS = new Set(["docs.google.com", "drive.google.com"]);
+export const DOCS_SANDBOX = "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox";
 
 export interface StaticSanitizeOptions {
   /** The page's name ("terms"): the About sidebar's selected item, and the Linker page's bookmarklet. */
@@ -85,12 +91,22 @@ export function staticAsset(url: string, siteOrigin = ""): string {
   return siteOrigin && /^\/static\//.test(url) ? `${siteOrigin.replace(/\/$/, "")}${url}` : url;
 }
 
+/**
+ * An address as a browser reads its scheme: the parser has decoded the entities already (`java&#9;script:` is "java\tscript:"), and
+ * the browser ignores ASCII tabs and newlines anywhere and control characters and spaces at the start — so the scheme is judged with
+ * every C0 control, space and DEL removed.
+ */
+const schemeProbe = (url: string) => url.replace(/[\u0000-\u0020\u007f]/g, "");
+
 function safeUrl(raw: string, attr: string, tag: string, opts: StaticSanitizeOptions): string | undefined {
   const url = raw.trim();
-  if (!url) return undefined;
-  if (/^javascript:/i.test(url)) return tag === "a" && attr === "href" && opts.page === "linker" && LINKER_BOOKMARKLET.test(url.replace(/\s+/g, " ")) ? url : undefined;
-  if (url.startsWith("//")) return undefined;
-  if (/^[a-z][a-z0-9+.-]*:/i.test(url) && !/^(https?|mailto|tel):/i.test(url)) return undefined;
+  const probe = schemeProbe(raw);
+  if (!probe) return undefined;
+  if (/^javascript:/i.test(probe)) return tag === "a" && attr === "href" && opts.page === "linker" && url.replace(/\s+/g, " ") === LINKER_BOOKMARKLET ? url : undefined;
+  if (probe.startsWith("//") || /^[\\/][\\/]/.test(probe)) return undefined;
+  // only http(s), mailto and tel; anything else with a scheme (data:, vbscript:, …) goes; a relative path or anchor stays
+  if (/^[a-z][a-z0-9+.-]*:/i.test(probe) && !/^(https?|mailto|tel):/i.test(probe)) return undefined;
+  if (/[\u0000-\u001f\u007f]/.test(url)) return undefined; // a control character left inside is never one of the templates' addresses
   if (tag === "iframe") {
     let host: string;
     try {
@@ -179,6 +195,15 @@ export function sanitizeStaticHtml(html: string, opts: StaticSanitizeOptions): S
           setAttr(attrs, "rel", [...rel].join(" "));
         }
         if (name === "textarea") setAttr(attrs, "readonly", "");
+        if (name === "iframe") {
+          let host = "";
+          try {
+            host = new URL(attribs.src ?? "").hostname.toLowerCase();
+          } catch {
+            /* dropped above */
+          }
+          if (SANDBOXED_FRAME_HOSTS.has(host)) setAttr(attrs, "sandbox", DOCS_SANDBOX);
+        }
         out += `<${name}${attrs.map(([k, v]) => ` ${k}="${escapeAttribute(v)}"`).join("")}>`;
         if (!VOID.has(name)) open.push(name);
       },

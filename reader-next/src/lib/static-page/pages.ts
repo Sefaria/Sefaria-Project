@@ -28,6 +28,7 @@ export interface StaticPageEntry {
 }
 
 const LEGACY_REACT = "Django's content block is only a mount point for a legacy React component (StaticPages.jsx); not ported yet";
+const CONTEST = "a finished contest's landing page (legacy React, StaticPages.jsx), not linked from the reader; not ported";
 const CMS = "a legacy React page filled from the CMS (Strapi) or an API; Django's content block has no data; not ported yet";
 
 export const STATIC_PAGES: Readonly<Record<string, StaticPageEntry>> = {
@@ -51,7 +52,7 @@ export const STATIC_PAGES: Readonly<Record<string, StaticPageEntry>> = {
   "sefaria-community-translation": { owner: "content" },
   "contributed-to-sefaria": { owner: "content" },
   "random-walk-through-torah": { owner: "django", reason: "a whole document of its own (no content block: Django answers standalone)" },
-  educators: { owner: "django", reason: LEGACY_REACT },
+  educators: { owner: "port" },
   "the-sefaria-story": { owner: "content" },
   "aramaic-translation-contest": { owner: "django", reason: "a 2019 contest page whose mailing-list form runs on jQuery; not ported" },
   newsletter: { owner: "django", reason: "the newsletter sign-up page is a 1,700-line legacy React flow (static/js/NewsletterSignUpPage): its own task" },
@@ -59,10 +60,10 @@ export const STATIC_PAGES: Readonly<Record<string, StaticPageEntry>> = {
   "torah-tab": { owner: "content" },
   "dicta-thanks": { owner: "content" },
   "daf-yomi": { owner: "content" },
-  "powered-by-sefaria-contest-2020": { owner: "django", reason: LEGACY_REACT },
-  "powered-by-sefaria-contest-2021": { owner: "django", reason: LEGACY_REACT },
+  "powered-by-sefaria-contest-2020": { owner: "django", reason: CONTEST },
+  "powered-by-sefaria-contest-2021": { owner: "django", reason: CONTEST },
   "ramban-sponsorships": { owner: "django", reason: LEGACY_REACT },
-  contest: { owner: "django", reason: LEGACY_REACT },
+  contest: { owner: "django", reason: CONTEST },
   "design-system": { owner: "content" },
   "word-by-word": { owner: "django", reason: LEGACY_REACT },
   cloudflare_site_is_down_en: { owner: "django", reason: "a whole document of its own (Cloudflare's outage page)" },
@@ -71,15 +72,15 @@ export const STATIC_PAGES: Readonly<Record<string, StaticPageEntry>> = {
   products: { owner: "django", reason: CMS },
   "link-to-annual-report": { owner: "content" },
   "mobile-about-menu": { owner: "content" },
-  updates: { owner: "django", reason: CMS },
+  // "updates" (/updates, New Additions) is a page of the new reader of its own (lane P), not one of these
   pioneers: { owner: "content" },
   ai: { owner: "content" },
   metrics: { owner: "django", reason: "its own view (reader/views.py metrics: charts from the database), no content answer" },
   "fleishman-hirsch-on-torah-in-english": { owner: "content" },
   // static_pages_by_lang: templates/static/en/ and he/
   about: { owner: "content", byLang: true },
-  // the Hebrew page is plain content; the English one mounts the legacy DonatePage component
-  "ways-to-give": { owner: "content", byLang: true, enOwner: "django", enReason: LEGACY_REACT },
+  // the Hebrew page is plain content; the English one mounts the legacy DonatePage component: ported
+  "ways-to-give": { owner: "content", byLang: true, enOwner: "port" },
   // its own view (reader/views.py digitized_by_sefaria), with a content answer
   "digitized-by-sefaria": { owner: "content" },
 };

@@ -10,7 +10,7 @@
  * The reader's image is built from reader-next/ alone, so the copy is generated into legacy-css.gen.ts and checked against
  * static/ by legacy-css.test.ts (UPDATE_LEGACY_CSS=1 rewrites it). Served by src/routes/static-page-styles.$.ts.
  */
-import { scopeCss } from "./scope-css";
+import { fontFaceFamily, scopeCss } from "./scope-css";
 
 export const STATIC_SCOPE = "#staticContentWrapper";
 
@@ -67,9 +67,21 @@ export const LEGACY_BODY_DEFAULTS = `#staticContentWrapper,
 }
 `;
 
-/** The whole stylesheet: the body defaults, then each legacy stylesheet scoped (`read` gives a file's text by its path under static/). */
-export function buildLegacyStaticCss(read: (path: string) => string): string {
-  return [LEGACY_BODY_DEFAULTS, ...LEGACY_SOURCES.map((path) => `/* static/${path} */\n${scopeCss(read(path), STATIC_SCOPE, `/static/${path}`)}`)].join("\n");
+/** The font families a stylesheet declares with @font-face (lower case): for the shell's own src/ui/tokens/fonts.css. */
+export function declaredFontFamilies(css: string): Set<string> {
+  return new Set([...css.matchAll(/@font-face\s*\{([^}]*)\}/gi)].map((m) => fontFaceFamily(m[1]!)).filter(Boolean));
+}
+
+/**
+ * The whole stylesheet: the body defaults, then each legacy stylesheet scoped (`read` gives a file's text by its path under static/),
+ * without the @font-face rules of the families the shell declares itself (`shellFonts`: src/ui/tokens/fonts.css — Taamey Frank,
+ * Cardo, Noto Color Emoji), which on a static page would otherwise replace the shell's faces with the old files.
+ */
+export function buildLegacyStaticCss(read: (path: string) => string, shellFonts: ReadonlySet<string> = new Set()): string {
+  return [
+    LEGACY_BODY_DEFAULTS,
+    ...LEGACY_SOURCES.map((path) => `/* static/${path} */\n${scopeCss(read(path), STATIC_SCOPE, { baseUrl: `/static/${path}`, dropFontFaces: shellFonts })}`),
+  ].join("\n");
 }
 
 /** A short content hash (FNV-1a), for the stylesheet's address. */
