@@ -2,17 +2,17 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**961 features**, 3965 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
+**962 features**, 3984 documented behaviors. Proposed tiers: core 323, standard 419, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 429 · partial 102 · todo 51 · replaced 47 · deferred 197 · n/a 135; 397 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 430 · partial 102 · todo 51 · replaced 47 · deferred 197 · n/a 135; 397 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
 
 ## Contents
 
-- **Reader**: [Reader shell & panels](#reader-shell) (75) · [Text display & reading settings](#text-display) (69) · [Text types & special cases](#text-types) (27) · [Connections & resources sidebar](#connections) (72) · [Versions & translations](#versions) (22)
+- **Reader**: [Reader shell & panels](#reader-shell) (75) · [Text display & reading settings](#text-display) (70) · [Text types & special cases](#text-types) (27) · [Connections & resources sidebar](#connections) (72) · [Versions & translations](#versions) (22)
 - **Library & discovery**: [Library navigation](#library-nav) (70) · [Book pages](#book-pages) (23) · [Topics](#topics) (36) · [Calendars](#calendars) (5) · [Search & autocomplete](#search) (112)
 - **Voices (sheets & community)**: [Sheets: viewing](#sheets-view) (27) · [Sheets: editing & publishing](#sheets-editor) (29) · [Collections](#collections) (10) · [Profiles & social](#profile-social) (12) · [Saved, history & notes](#user-library) (12) · [Notifications & email](#notifications) (11)
 - **Site & accounts**: [Global UI](#global-ui) (28) · [Accounts & sign-in](#accounts) (16) · [Promotions & CMS](#promotions) (17) · [Static pages](#static-pages) (19) · [Language & accessibility](#i18n-a11y) (13) · [AI features](#ai) (20)
@@ -1121,6 +1121,9 @@ When a section loads, the reader normalizes odd refs and prefetches neighbors an
 - If filterRef set, matching [data-ref] element in connections panel is scrolled into view.
 - shouldComponentUpdate re-renders on sref, filter, highlight, versions, translation pref, language, layouts, aliyot, vowels, biLayout, fontSize, punctuation, layoutWidth, data.
 - **DEAD:** prefetchMultiple (20 for dictionaries) passed but never read; showActionLinks renders undefined actionLinks (would throw).
+- Freshness (D-7, LAUNCH_PLAN T-E01, 2026-11-10): text and catalog are fresh for 1 hour (were 7 days and 1 day); the disk keeps them 30 days, so a page still paints from IndexedDB and refreshes behind. Staff and moderators: text is never fresh (learned from the viewer query). A copy restored from disk past its hour is refetched behind what shows (TanStack only did that for an observer, and the reader reads text through loaders: a stored copy was used as is for 30 days). Tests: src/lib/cache/invalidate.test.ts, storage-failure.test.ts, e2e/freshness.spec.ts (faked clock: 50 min no request, 61 min a request).
+- Writes forget what they changed (T-E01): src/lib/cache/invalidate.ts maps each write (links, topic links, lexicon, notes, a text edit, a book change) to its queries, invalidates them in memory and deletes their IndexedDB entries. A page reached from a Django editor (/edit, /translate, /add, /admin/reset, by document.referrer) forgets the edited book on disk before any disk read; the sidebar's Edit Text and Add Translation forget it before leaving. Tests: e2e/freshness.spec.ts ('back from a Django editor').
+- Review fix 2026-11-10: loaders read text and catalog with ensureQueryData(revalidateIfStale): a stale cached copy shows at once and is refetched behind it, so Back and section navigation never wait on the network (staff's 0 applies to revalidation only); neighbours are prefetched only when not in memory.
 
 Code: [`static/js/TextRange.jsx:34-187`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L34-L187), [`static/js/TextColumn.jsx:466`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextColumn.jsx#L466), [`static/js/TextRange.jsx:393`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L393)
 
@@ -1789,7 +1792,7 @@ Source: `inv_03_text_rendering.md#5.3`
 #### TXD-050 · Highlighting of selected segment(s)
 `core` `live` · rebuild: **done** · *tested*
 
-The segment being studied is marked with a light-blue background — but only while the connections sidebar is open. A plain verse or range link scrolls to the verse without a visible highlight.
+The segment being studied is marked light blue while the sidebar is open; several segments (a pasted range across sections, or text selected across segments) are marked whether or not the sidebar is open.
 
 - highlightedRefs explicit -> highlight those segments or all if list contains section ref/first spanning ref; otherwise basetext highlights segments flagged by makeSegments.
 - showHighlight toggles visible .highlight; .invisibleHighlight always set as scroll anchor. ReaderPanel showHighlight = state.showHighlight || highlightedRefs.length > 1.
@@ -1797,6 +1800,7 @@ The segment being studied is marked with a light-blue background — but only wh
 - SSR highlights segment/range URLs.
 - VERIFIED 2026-10-04: /Genesis.1.3 and /Genesis.1.3-5 with the sidebar closed show no .segment.highlight; with=all shows it (rgb(240,247,255)).
 - VERIFIED 2026-10-04: the `highlightedRefs.length > 1` branch never shows a whole range in practice — the range URL collapses to its first segment about 1s after load (TXD-055), so with the sidebar open only that first segment is highlighted.
+- Corrected 2026-11-10: the blue highlight also shows with the sidebar closed when more than one segment is highlighted (the old ReaderPanel showHighlight = showHighlight || highlightedRefs.length > 1). VERIFIED 2026-11-10 on www.sefaria.org (Playwright, interfaceLang=english; lane-D report, legacy-ranges probe): dragging a selection from Genesis 1:30 to 2:2 with the sidebar closed highlights the four verses; the sidebar does not open. Tests: e2e/ranges.spec.ts.
 
 Code: [`static/js/TextRange.jsx:282-285`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L282-L285), [`static/js/ReaderPanel.jsx:754`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L754), [`reader/views.py:635-636`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L635-L636)
 
@@ -1870,6 +1874,7 @@ As you scroll, the URL follows the segment you are reading (segment level, e.g. 
 - VERIFIED 2026-10-04: the URL tracks to SEGMENT level while scrolling, with or without the sidebar (/Genesis.1.3 → /Genesis.1.8). Earlier atlas wording ('the section and segment') under-stated this.
 - VERIFIED 2026-10-04: a section URL (/Genesis.1) stays section-level after load until the reader scrolls; a range URL (/Genesis.1.3-5) is replaced by its first segment (/Genesis.1.3) once the initial scroll settles (~1s), sidebar open or not.
 - Focus rule detail: positions are measured from the top of the scrolling element; threshold 140 (multi-panel) / 70 (single panel); windowMiddle = window height / 2 (or /4 in mobile TextAndConnections).
+- Corrected 2026-11-10: a range is not replaced by its first segment, inside one section or across sections (TXD-070; owner decision: legacy's occasional collapse is a race, not ported). VERIFIED 2026-11-10 on www.sefaria.org (Playwright, interfaceLang=english; lane-D report, legacy-ranges probe).
 
 Code: [`static/js/TextColumn.jsx:404-445`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextColumn.jsx#L404-L445)
 
@@ -1913,6 +1918,7 @@ In the rebuild, nothing you are reading ever moves unless you scroll: sections a
 - The focus only moves when the reader moves, in the direction of travel (no backwards URL step near the end of a chapter).
 - Tested by e2e/smoothness.spec.ts (per-step jump analysis) and scripts/jank-probe.mjs.
 - FOUND 2026-10-07: scrolling moves in whole device pixels but text heights are fractional (22px at line-height 1.6 is 35.2px a line), so compensating a prepended section (Genesis 1 above Genesis 2:3: 3074.36px) left the verse 0.36px lower, which can paint a pixel off (e2e 'in place from the first visible frame' saw 326 → 327 at 1280px). FIXED: the engine scrolls the whole pixels and puts the remaining fraction in a sub-pixel padding above the content (kept in [0, 1)), so the verse's position is unchanged to the layout unit.
+- Fixed 2026-11-10 (T-E03): below ~1075px the column rewraps when the sidebar narrows it, and the chosen verse moved (35px at 1000px, 105px at 900px): React runs a click's effects before the ResizeObserver, and the column's selected-segment effect re-recorded the anchor after the reflow. setFocus keeps an anchor already on that verse. Tests: e2e/history.spec.ts ('opening the sidebar at 1280/1000/900px does not move the chosen verse').
 
 Source: `sefaria-reader: src/features/reader/use-reading-scroll.ts`
 
@@ -1929,7 +1935,7 @@ Source: `sefaria-reader: src/features/reader/reader-route.ts`
 ### Interaction
 
 #### TXD-057 · Text selection and double-click guard
-`standard` `live` · rebuild: **partial** — Selection read and click-after-selection guard done; selected segments are not highlighted; double-click guard not ported · *tested*
+`standard` `live` · rebuild: **partial** — Multi-segment selection highlighted and written to the address as legacy (verified 2026-11-10); double-click guard not ported · *tested*
 
 Selecting text highlights its segments and can trigger dictionary lookup.
 
@@ -1937,6 +1943,7 @@ Selecting text highlights its segments and can trigger dictionary lookup.
 - Mousedown with detail > 1 at a different position than last click is prevented (avoids accidental multi-click selection).
 - Selection color #D2DCFF.
 - The click that ends a drag-selection is ignored (old TextRange.handleClick: window.getSelection().type === 'Range'); the rebuild does the same in Segment. Selection text excludes segment numbers, link dots, footnote markers and bodies.
+- BUILT 2026-11-10 (legacy parity, VERIFIED 2026-11-10 on www.sefaria.org (Playwright, interfaceLang=english; lane-D report, legacy-ranges probe)): text selected across several segments highlights them (blue) with the sidebar open or closed and never opens it; with the sidebar open the address becomes the range (/Genesis.1.30-2.2?with=all) and the sidebar shows it; closed, the address becomes the range only when it lies in the section being read (/Genesis.1.3-5), otherwise it stays (/Genesis.1.29); the entry is replaced, not added. Choosing a verse or reading on drops it. Tests: e2e/ranges.spec.ts ('selecting text across segments').
 
 Code: [`static/js/TextColumn.jsx:128-170`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextColumn.jsx#L128-L170), [`static/js/sefaria/util.js:1202-1236`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/util.js#L1202-L1236), [`static/css/s2.css:6-8`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/css/s2.css#L6-L8)
 
@@ -2085,6 +2092,22 @@ A small popover lets users choose Source, Translation, or Source with Translatio
 Code: [`static/js/Misc.jsx:3421`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L3421), [`static/js/Misc.jsx:3398`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L3398)
 
 Source: `inv_08_other.md#1.12`
+
+
+### Scrolling
+
+#### TXD-070 · Ranged address kept and highlighted
+`standard` `core` · rebuild: **done** — Kept and highlighted across sections, sidebar open or closed (legacy parity, verified 2026-11-10)
+
+Every ranged address of several segments stays in the address and every segment in it is highlighted light blue, sidebar open or closed, inside one section or across sections; a daf without its amud is both amudim.
+
+- VERIFIED 2026-11-10 on www.sefaria.org (Playwright, interfaceLang=english; lane-D report, legacy-ranges probe): /Genesis.1.30-2.3, /Berakhot.2b.5-3a.2, /Rashi_on_Genesis.1.31.1-2.2.1 keep their address and highlight every segment (sidebar closed and with=all); /Genesis.6-8 is rewritten to /Genesis.6.1-8.22 (68 verses highlighted) without the sidebar and kept with it; /Berakhot.2 opens 2a and 2b, all highlighted, written /Berakhot.2a.1-2b.19 (sidebar closed) or /Berakhot.2a-2b (open), replacing the entry. Inside one section (integrator's probe, sidebar closed): /Genesis.1.1-3, /Genesis.1.4-6, /Genesis.1.20-25, /Exodus.3.1-4, /Psalms.23.1-4, /Berakhot.5a.3-6 stay highlighted; /Genesis.1.20-25?with=all keeps 6 highlighted.
+- Kept and highlighted; legacy's occasional collapse is a race, not ported (owner 2026-11-10): /Genesis.1.3-5 showed 3 blue segments at 3.5 s and one by 8 s, because a stray scroll event runs adjustHighlightedAndVisible (static/js/TextColumn.jsx) and the history writes the segment (ReaderApp.jsx).
+- A range of whole sections longer than the sections loaded with the page (Genesis 1-50) keeps its address as asked and is not highlighted (choice recorded 2026-11-10: blue over whole books is not what legacy effectively shows; only the requested range up to what loads would be).
+- Reading on drops the highlight and the address follows the verse (/Berakhot.2b.17), as legacy. A navigation (a link, Back/Forward to another entry) drops a selection at once.
+- Owner decision 2026-11-10: legacy parity. Built: src/lib/text/range-selection.ts, src/lib/text/queries.ts (spannedPlan), src/features/reader/TextPanel.tsx. Tests: src/lib/text/range-selection.test.ts, e2e/ranges.spec.ts, e2e/history.spec.ts, e2e/routing.spec.ts, e2e/scroll.spec.ts.
+
+Source: `static/js/ReaderApp.jsx (history from highlightedRefs), static/js/TextRange.jsx (highlight), static/js/ReaderPanel.jsx (showHighlight)`
 
 
 <a id="text-types"></a>
@@ -3590,6 +3613,8 @@ One call bundles links, sheets, topics, manuscripts, media and guides for a ref 
 - getLinks GET /api/links/<ref>?with_text=0 caches index stubs from collectiveTitle and essay displayedText terms; clearLinks resets _related, _links, _linkSummaries.
 - getIndexDetails, getLexiconWords, privateNotes, webpagesApi, topicsByRef/postRefTopicLink, mediaByRef/manuscriptsByRef/guidesByRef, sheets.*, bookSearchPathFilterAPI, getGuide, pollTask, getTopic, saveUserHistory(secondary:true) support sidebar tools.
 - VERIFIED 2026-10-05: connection counts include sheets from collections listed in the library, served as links when `with_sheet_links=1` (old client: /api/related?with_sheet_links=1). Genesis 1:1 Commentary = 958 with them, 957 without (/api/links?with_text=0 omits them; add with_sheet_links=1).
+- SB-02 (T-H02, 2026-11-10): a slow or failing /api/related (a cold one is a 504 after ~15 s) or /api/links never leaves an endless spinner: Resources shows the connections /api/links gave at once, says the rest is still loading after 3 s, and on failure says what is missing with Try again; views that need the failed data show the same in place. Tests: e2e/connections.spec.ts ('a slow or failing server (SB-02)').
+- SB-03 (measured 2026-11-10 through the cassette, Genesis 1:1): the page's /api/links is 6.19 MB raw / 638 KB gzip; opening the sidebar and Resources adds /api/related 12.09 MB / 1.27 MB gzip, of which its links are 8.2 MB / 633 KB gzip already loaded and its sheets 6.1 MB / 613 KB gzip used only for a count. No URL is fetched twice. The links cannot be dropped from the client side: related_api has no parameter to omit them (request: with_links=0, and a count-only sheets mode).
 
 Code: [`static/js/sefaria/sefaria.js:2301`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2301), [`static/js/sefaria/sefaria.js:2375`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2375), [`static/js/sefaria/sefaria.js:1574`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L1574)
 
@@ -11294,6 +11319,7 @@ Any variant of a citation (case, alt title, Hebrew title, 'Genesis 1:1', 'Gen.1.
 - Client TextRange replaces history (no new entry) when loaded data's normalized ref differs, ref is spanning (split refs) or super-section (firstAvailableSectionRef).
 - Client-only: commentary refs with a single base text and depth >=3 (Rashi on Genesis 1:1:1) open as base text Genesis 1:1 + sidebar filter Rashi; server does NOT do this for direct URL loads.
 - VERIFIED 2026-10-06 on sefaria.org (scripts/probes/multipanel-probe*.mjs, scripts/parity-panels.mjs): a redirect to the canonical ref keeps the request's query as it was (/Gen.1.1?lang=en → 301 /Genesis.1.1?lang=en; /Gen.1.1 → /Genesis.1.1). The rebuild had re-encoded the query; fixed.
+- Ref torture corpus (T-E02, 2026-11-10): scripts/ref-corpus.cases.mjs (63 addresses: complex schemas, default nodes, alt structures, commentary and Talmud ranges across sections, Hebrew refs, titles with / and \, Zohar, dictionaries, old version URLs, category titles); scripts/ref-corpus.mjs compares the final address and highlighted segments with www.sefaria.org: 43 the same, 20 recorded in KNOWN_DIFFERENCES (ranges across sections: sefaria.org's answer varies from load to load; out-of-range refs are not found here by decision; book pages without ?tab=contents; one bug: a title with a backslash). e2e/ref-corpus.spec.ts replays the 43 through the cassette.
 
 Code: [`reader/views.py:488-531`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L488-L531), [`sefaria/model/text.py:4310-4333`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/text.py#L4310-L4333), [`sefaria/model/text.py:4452-4482`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/text.py#L4452-L4482), [`static/js/TextRange.jsx:113-130`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L113-L130)
 
@@ -11310,6 +11336,7 @@ Version choices in the URL are checked against the text's real versions; stale o
 - **BUG:** redirect uses the raw tref and inserts '/' before '?' (reader/views.py:435).
 - Only extra panels (p2...) apply corpus version preferences server-side; panel 1 does not (reader/views.py:878).
 - **BUG:** extra-panel version validation uses legacy 'language: en/he' field, so versions in other languages can cause the panel to be skipped (:893-897).
+- BUILT 2026-11-10 (T-E08): the old /<ref>/<lang>/<version> address (Django old_versions_redirect) redirects 301 to /<ref>?v<lang>=<family>|<Version>, the family from the ref's versions list, as sefaria.org's client ends up. Was a 404 here. Tests: e2e/ref-corpus.spec.ts (three old-version addresses).
 
 Code: [`reader/views.py:424-485`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L424-L485), [`reader/views.py:497-498`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L497-L498), [`reader/views.py:878`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L878)
 
@@ -11750,6 +11777,7 @@ Browser history only gets a new entry for meaningful navigation; scrolling and r
 - On replace with changed URL, delayed (3s) intent analytics.
 - Client preserves location.hash on push/replace.
 - BUG (VERIFIED 2026-10-05): selecting a verse adds TWO history entries — /Genesis.1.2?lang=en&with=all, then the same URL with &lang2=en appended (a second push). One Back press therefore lands on the same view with the sidebar still open. Loading a Torah page likewise rewrites the URL (&aliyot=0, RTE-064), costing another entry. The rebuild adds one entry per choice and never rewrites the URL after load.
+- T-E03 (2026-11-10): a non-canonical spelling, a range across sections, a range of whole chapters (now rewritten to its first section) and a commentary's whole chapter, opened inside the app, are rewritten by replacing the entry (one entry; Back leaves); a range loaded as a page collapses in place; Back after reading many verses leaves the page instead of walking verses. Tests: e2e/history.spec.ts ('history rules (T-E03)').
 
 Code: [`static/js/ReaderApp.jsx:414-483`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L414-L483), [`static/js/ReaderApp.jsx:893-931`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L893-L931), [`static/js/ReaderPanel.jsx:196-207`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L196-L207), [`static/js/SearchPage.jsx:567-583`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SearchPage.jsx#L567-L583)
 
@@ -12183,6 +12211,8 @@ A catalog of the cookies and browser storage the client relies on.
 - Cookies: cookiesNotificationAccepted (20y, parent domain), interfaceLang, contentLang, _user (2y), user_history (anon history up to 3KB), translation_language_preference, translation_language_preference_suggested, open_trans_banner_shown, version_preferences_by_corpus, gdoc_installed, <messageName>Accepted, SiteWideBanner cookieNames, sefaria_sso_next, Django sessionid/csrftoken
 - localStorage: modal_<name>, banner_<name>, promo_backoff_<cookie>_{state,session_counter,last_session_at_sec}, isReturningVisitor, sa_id
 - sessionStorage: isNewVisitor, sa.header_viewed, sa.banner_probe, promo_viewed_<cookie>, sefaria_interruptive_ui_shown, sefaria_pending_sso_attempt, sefaria_active_signup_flow, sa_custom_session_id
+- IndexedDB robustness (T-E04, 2026-11-10): reading works with IndexedDB missing, throwing on open (idb-keyval throws synchronously then: the ref index used to reject and fail the loader), hanging (disk reads give up after 1.5 s), failing mid-session (quota) and emptied (iOS evicts script-written storage after 7 days). Tests: src/lib/cache/storage-failure.test.ts. No WebKit run: Playwright 1.63's WebKit (revision 2359) is not installed on the build machine.
+- Review fix 2026-11-10: every disk call (reads, key scans, deletions) is bounded; after one timeout the disk is skipped for the rest of the visit; writes invalidate memory first and never wait on the disk; leaving for a Django editor waits at most 300 ms. Editor returns recognised: /edit, /translate, /add, /add/textinfo/<title>, /admin/reset/cache|counts/<title>, /admin/reset/toc (whole catalog), on the site origin or the page's own, on a navigation only (not a reload or Back).
 
 Code: [`static/js/Misc.jsx:2816`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L2816), [`static/js/SiteWideBanner.jsx:5`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SiteWideBanner.jsx#L5)
 

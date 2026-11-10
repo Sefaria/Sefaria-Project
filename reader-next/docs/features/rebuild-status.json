@@ -578,8 +578,8 @@
  },
  "TXD-057": {
   "status": "partial",
-  "note": "Selection read and click-after-selection guard done; selected segments are not highlighted; double-click guard not ported",
-  "by": "src/lib/reader/selection.ts"
+  "note": "Multi-segment selection highlighted and written to the address as legacy (verified 2026-11-10); double-click guard not ported",
+  "by": "src/lib/text/range-selection.ts, src/features/reader/TextPanel.tsx"
  },
  "TXD-059": {
   "status": "done",
@@ -4157,5 +4157,10 @@
   "status": "done",
   "note": "Moderator version editor and delete on the book page Versions tab",
   "by": "src/ui/VersionEditForm, src/lib/versions/admin.ts, src/features/book/BookRoute.tsx"
+ },
+ "TXD-070": {
+  "status": "done",
+  "note": "Kept and highlighted across sections, sidebar open or closed (legacy parity, verified 2026-11-10)",
+  "by": "src/lib/text/range-selection.ts, src/features/reader/TextPanel.tsx"
  }
 }
