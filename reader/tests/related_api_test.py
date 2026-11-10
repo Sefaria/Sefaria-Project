@@ -10,11 +10,15 @@ The library lookups are replaced by stubs: the test Mongo has no library data. N
 """
 
 import json
+import re
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
 from django.test import Client, TestCase
 
 URL = "/api/related/Genesis.1"
+VOICES_HOST = "voices.localhost:8000"
 FULL_SHEET = {
     "id": "7",
     "title": "A sheet",
@@ -88,6 +92,15 @@ class RelatedApiModesTestCase(TestCase):
         self.assertEqual(body["links"], [LINK])
         self.assertIsNone(self.stubs["get_links"].call_args.kwargs["public_sheets"])
 
+    def test_voices_host_ignores_both_and_answers_as_before(self):
+        response = self.client.get(URL + "?with_links=0&sheets=count", HTTP_HOST=VOICES_HOST)
+        self.assertEqual(response.status_code, 200)
+        body = json.loads(response.content)
+        self.assertEqual(list(body), ["links", "sheets", "notes", "topics", "manuscripts", "media", "guides"])
+        self.assertEqual(body["sheets"], [FULL_SHEET])
+        self.stubs["get_sheet_anchors_for_ref"].assert_not_called()
+        self.assertEqual(self.stubs["get_links"].call_args.kwargs["public_sheets"], [FULL_SHEET])
+
     def test_unknown_sheets_value_is_the_default(self):
         self.assertEqual(self.get("?sheets=all")["sheets"], [FULL_SHEET])
 
@@ -135,3 +148,88 @@ class SheetAnchorsTestCase(TestCase):
             ["Genesis 1:1", "Genesis 1:2-3"],
             ["Genesis 1:1", "Genesis 1:2"],
         )
+
+    def test_same_ids_and_anchors_as_the_full_answer(self):
+        """S2: one stub sheets collection and one stub Ref through both functions give the same (id, anchor, expanded) items."""
+        from sefaria import sheets as sheets_module
+
+        def ref(name):
+            r = MagicMock()
+            r.normal.return_value = name
+            return r
+
+        oref = MagicMock()
+        oref.all_segment_refs.return_value = [ref("Genesis 1:1"), ref("Genesis 1:2"), ref("Genesis 1:3")]
+        anchors = {
+            42: (
+                [ref("Genesis 1:1"), ref("Genesis 1:2-3")],
+                [[ref("Genesis 1:1")], [ref("Genesis 1:2"), ref("Genesis 1:3")]],
+            ),
+            43: ([ref("Genesis 1:3")], [[ref("Genesis 1:3")]]),
+            44: ([], []),
+        }
+        docs = [
+            {
+                "_id": f"oid{n}",
+                "id": n,
+                "title": f"<b>Sheet {n}</b>",
+                "owner": 7,
+                "status": "public",
+                "views": 1,
+                "options": {},
+                "includedRefs": [f"inc{n}"],
+                "expandedRefs": [f"exp{n}"],
+            }
+            for n in anchors
+        ]
+        oref.get_all_anchor_refs.side_effect = lambda segs, included, expanded: anchors[int(included[0][3:])]
+        fake_db = MagicMock()
+        fake_db.sheets.find.side_effect = lambda query, projection: [dict(d) for d in docs]
+        fake_db.profiles.find.return_value = []
+        with (
+            patch.object(sheets_module.model, "Ref", return_value=oref),
+            patch.object(sheets_module, "db", fake_db),
+            patch.object(sheets_module, "add_langs_to_topics", return_value=[]),
+        ):
+            full = sheets_module.get_sheets_for_ref("Genesis 1")
+            light = sheets_module.get_sheet_anchors_for_ref("Genesis 1")
+
+        key = lambda s: (s["id"], s["anchorRef"], tuple(s["anchorRefExpanded"]))  # noqa: E731
+        self.assertEqual(len(full), 3)
+        self.assertEqual([key(s) for s in full], [key(s) for s in light])
+        self.assertEqual({s["id"] for s in full}, {"42", "43"})
+
+
+CLIENT_URLS = json.loads(
+    (Path(__file__).resolve().parents[2] / "reader-next/fixtures/varnish/related-client-urls.json").read_text(
+        encoding="utf-8"
+    )
+)["urls"]
+
+
+def _ban_pattern(section_ref):
+    """What invalidate_ref bans for an edit of `section_ref`, as Varnish reads it (the hyper-slashing undone)."""
+    from sefaria.system.varnish.wrapper import client_url_regex
+
+    return re.compile("/api/related/" + client_url_regex([section_ref]).replace("\\\\", "\\"))
+
+
+@pytest.mark.parametrize("section_ref", list(CLIENT_URLS))
+def test_varnish_ban_matches_exactly_the_url_the_new_reader_sends(section_ref):
+    """S1: the URL comes from reader-next/fixtures/varnish/related-client-urls.json, which src/lib/connections/related.test.ts
+    checks against the request the client really makes."""
+    pattern = _ban_pattern(section_ref)
+    assert pattern.search(CLIENT_URLS[section_ref])
+    for other, url in CLIENT_URLS.items():
+        if other != section_ref:
+            assert not pattern.search(url), f"an edit of {section_ref} must not ban {url}"
+
+
+def test_varnish_ban_covers_more_specific_refs_and_the_purged_url():
+    from sefaria.system.varnish.wrapper import encode_uri_component
+
+    pattern = _ban_pattern("Genesis 1")
+    assert pattern.search("/api/related/Genesis%201%3A3?with_links=0&sheets=count")
+    assert pattern.search(f"/api/related/{encode_uri_component('Genesis 1')}?with_links=0&sheets=count")
+    assert not pattern.search("/api/related/Genesis%2010")
+    assert not pattern.search("/api/related/Exodus%201")

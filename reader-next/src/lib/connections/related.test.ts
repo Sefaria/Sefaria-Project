@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { http, HttpResponse } from "msw";
 import { makeQueryClient } from "~/lib/cache/query-client";
-import { expandRange, groupByRef, resourceCounts, resourcesQueryOptions } from "./related";
+import { server } from "../../../test/msw/server";
+import clientUrls from "../../../fixtures/varnish/related-client-urls.json";
+import { expandRange, fetchSectionResources, groupByRef, resourceCounts, resourcesQueryOptions } from "./related";
 
 // @feature CON-014 @feature CON-071
 describe("related resources", () => {
@@ -42,5 +45,24 @@ describe("related resources", () => {
     expect(c.sheets).toBeGreaterThan(0);
     expect(c.manuscripts).toBeGreaterThan(0);
     expect(c.audio).toBeGreaterThan(0);
+  });
+});
+
+// The exact /api/related URLs this client requests, pinned in fixtures/varnish/related-client-urls.json: Django's Varnish
+// invalidation (sefaria/system/varnish/wrapper.py client_url_regex) is tested against the same file (reader/tests/related_api_test.py),
+// so a change to the URL the client builds fails here until the file, and with it Django's test, is updated.
+// @feature CON-071
+describe("the /api/related URL Django's Varnish invalidation must match", () => {
+  it.each(Object.entries(clientUrls.urls))("%s → %s", async (sectionRef, expected) => {
+    const seen: string[] = [];
+    server.use(
+      http.get(/\/api\/related\//, ({ request }) => {
+        const u = new URL(request.url);
+        seen.push(u.pathname + u.search);
+        return HttpResponse.json({ sheets: [], topics: [], manuscripts: [], media: [], guides: [] });
+      }),
+    );
+    await fetchSectionResources(sectionRef);
+    expect(seen).toEqual([expected]);
   });
 });
