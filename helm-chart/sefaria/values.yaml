@@ -182,16 +182,16 @@ nameService:
 
 
 nodejs:
-  # What the node pods run; it must match the image.
-  #  legacy: the old SSR server (build/node/Dockerfile.legacy) that Django calls for its first paint (USE_NODE).
-  #  reader: the new reader client (reader-next/, build/node/Dockerfile). nginx sends page requests to it first; it renders the
-  #          reader and library pages, reads the API through Varnish, and hands Django's pages, our 404s and every write to Varnish.
-  #          Django's own SSR is switched off (USE_NODE = False).
-  #          Runbook: reader-next/docs/DEPLOYMENT.md.
-  #  optin:  both. The node pods run the legacy SSR server (this image is Dockerfile.legacy's) and a second rollout runs the new
-  #          reader (values `reader` below). A visitor who chose the new reader in account settings has the `reader_version=next`
-  #          cookie, and nginx sends their page requests to it; everyone else stays on the legacy reader (USE_NODE = True).
-  mode: reader
+  # Which reader the site serves (runbook: reader-next/docs/DEPLOYMENT.md).
+  #  legacy: (default) the node pods run the old SSR server (build/node/Dockerfile, sefaria-node) that Django calls for its first
+  #          paint (USE_NODE). Nothing of the new reader is rendered.
+  #  optin:  the launch topology. The node pods stay legacy, and a second rollout (reader-<env>, values `reader` below) runs the new
+  #          reader client (reader-next/Dockerfile, sefaria-reader). A visitor who chose it in account settings carries the cookie
+  #          `reader_version=next`, and nginx sends their page requests to it; everyone else is served as in legacy.
+  #          `reader.optin.enabled: false` is the kill switch: nginx ignores the cookie and the switch is hidden.
+  #  reader: replace (not deployed anywhere shared, LAUNCH_PLAN D-1): the node pods run the new reader image (`reader.containerImage`),
+  #          nginx sends every page request to it first, and Django's own SSR is switched off (USE_NODE = False).
+  mode: legacy
   containerImage:
     # Full path of the image registry inclusive of the image name
     imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
@@ -216,11 +216,22 @@ nodejs:
   # container is OOMKilled before V8 reports anything. prod/preprod override this (1250/1500Mi).
   heapSize: 300
 
-# nodejs.mode "optin" only: the new reader client's own rollout (reader-<env>), beside the legacy node pods.
+# The new reader client (reader-next/). Its image is used by the reader-<env> rollout (nodejs.mode "optin") and by the node pods in
+# nodejs.mode "reader"; the rest of this block is the optin rollout's.
 reader:
   containerImage:
-    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
+    # The image .github/workflows/continuous.yaml pushes for master (sefaria-reader-<branch> in the development project, built from
+    # reader-next/Dockerfile when reader-next/ changes). Nothing builds a production-registry reader image yet: an environment that
+    # runs the reader sets this to its own image (reader-next/docs/DEPLOYMENT.md, "Images").
+    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-reader-master
     tag: latest
+  # Absolute origin of the reader's canonical and og:url links (PUBLIC_CANONICAL_ORIGIN); templated. A cauldron or staging keeps
+  # production's, so search engines are pointed at www.sefaria.org.
+  canonicalOrigin: "https://www.sefaria.org"
+  optin:
+    # Kill switch (nodejs.mode "optin"): false makes nginx ignore the reader_version cookie, so everyone gets the legacy reader, and
+    # hides the account-settings switch (READER_OPTIN). The reader rollout keeps running. Rollback steps: reader-next/docs/DEPLOYMENT.md.
+    enabled: true
   replicaCount: 1
   resources:
     requests:

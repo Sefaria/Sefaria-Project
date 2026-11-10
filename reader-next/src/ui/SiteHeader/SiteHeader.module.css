@@ -62,3 +62,11 @@
   .desktop .logo img { display: none; }
   .desktop .samech { display: block; width: 19px; height: 25px; background-color: var(--sefaria-color-brand); -webkit-mask: url("/brand/samech-logo.svg") no-repeat; mask: url("/brand/samech-logo.svg") no-repeat; -webkit-mask-size: cover; mask-size: cover; }
 }
+/* The "✦ Library Assistant" pill before the search box (static/css/library-assistant.scss, sefaria.org #3934): white on the assistant's
+   purple, as tall as the search box, darker on hover; the full label, then "Ask" below 1159px, hidden below 900px */
+.assistantPill { display: inline-flex; flex: none; align-items: center; gap: 6px; height: 30px; padding: 0 14px; border-radius: 250px; background: var(--sefaria-color-purple); color: var(--sefaria-color-on-brand); font-size: 14px; font-weight: 500; white-space: nowrap; text-decoration: none; }
+.assistantPill:hover, .assistantPill:active { background: var(--sefaria-color-promo); color: var(--sefaria-color-on-brand); text-decoration: none; }
+.assistantPill:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
+.assistantShort { display: none; }
+@media (width <= 1158px) { .assistantLabel { display: none; } .assistantShort { display: inline; } }
+@media (width <= 899px) { .assistantPill { display: none; } }

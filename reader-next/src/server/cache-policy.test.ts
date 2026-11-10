@@ -21,6 +21,9 @@ describe("pageCacheHeaders", () => {
     expect(pageCacheHeaders(null, html(), 404).get("cache-control")).toBeNull();
     expect(pageCacheHeaders("sessionid=1", html(), 301).get("cache-control")).toBe("private, no-store");
   });
+  it("on a host pinned to a language the page also varies on Accept-Language (the bounce, T-E07)", () => {
+    expect(pageCacheHeaders(null, html(), 200, true).get("vary")).toBe("Origin, Cookie, CF-IPCountry, Accept-Language");
+  });
   it("a cookie merely named like the session one does not count", () => {
     expect(pageCacheHeaders("xsessionid=1", html()).get("cache-control")).toBe("no-cache");
   });

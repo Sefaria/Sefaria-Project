@@ -89,8 +89,9 @@
   "by": "src/features/topics/topic-page-route.ts, src/routes/activity.$.tsx"
  },
  "PLT-008": {
-  "status": "deferred",
-  "note": "Default-on/SEO head builder waits (LAUNCH_PLAN §8): canonical only on /calendars and /translations, no hreflang; origin is T-C08"
+  "status": "partial",
+  "note": "Absolute canonical + hreflang on /calendars and /translations/<lang> (PUBLIC_CANONICAL_ORIGIN); reader, library and topic pages have none yet",
+  "by": "src/lib/config.ts (canonicalUrl), src/lib/routing/canonical.ts, src/routes/calendars.tsx, src/routes/translations.$slug.tsx"
  },
  "PLT-011": {
   "status": "replaced",
@@ -1534,12 +1535,14 @@
   "by": "src/lib/analytics/declarative.ts"
  },
  "ANL-016": {
-  "status": "done",
+  "status": "replaced",
+  "note": "UA calls logged only, never sent (owner decision 2026-11-10: legacy's never fire, the property is shut down)",
   "by": "src/lib/analytics/core.ts"
  },
  "ANL-017": {
-  "status": "replaced",
-  "note": "Not ported: Sentry is no longer used (owner, 2026-11-04)"
+  "status": "partial",
+  "note": "First-party beacon reporter built (no Sentry); needs the receiving endpoint and PUBLIC_ERROR_ENDPOINT in the chart",
+  "by": "src/lib/monitoring/error-reporter.ts, src/lib/monitoring/ErrorBoundary.tsx, src/features/shell/Monitoring.tsx"
  },
  "ANL-009": {
   "status": "partial",
@@ -1640,13 +1643,13 @@
  },
  "PRM-014": {
   "status": "partial",
-  "note": "Library Assistant promo with the old back-off; generic SiteWideBanner (Strapi) not built",
-  "by": "src/features/shell/SiteWideBanner, src/lib/shell/promo-backoff.ts"
+  "note": "The Library Assistant promo banner is gone, as on sefaria.org (#3934); the generic SiteWideBanner (Strapi) is not built",
+  "by": "src/lib/shell/promo-backoff.ts"
  },
  "AI-001": {
-  "status": "partial",
-  "note": "Signed-out banner done; signed-in 'Try It' (not in the experiment) not shown yet",
-  "by": "src/features/shell/SiteWideBanner"
+  "status": "replaced",
+  "note": "The banner is gone on sefaria.org (#3934); its replacement, the header's Library Assistant pill, is ported",
+  "by": "src/ui/SiteHeader, src/features/shell/assistant-pill.ts"
  },
  "LIB-020": {
   "status": "done",
@@ -1918,8 +1921,9 @@
   "by": "src/routes/texts.notes.tsx"
  },
  "ACC-003": {
-  "status": "todo",
-  "note": "/settings/account stays a Django form at L1: record it as an accepted exit with a way back; the opt-in switch also in the new menu (T-F23, T-D05)"
+  "status": "partial",
+  "note": "The way back and the kill switch built in the new reader; the endpoint (lane B) and the settings page itself are Django's",
+  "by": "src/features/shell/reader-choice.ts, src/features/shell/ReaderChoice.tsx"
  },
  "ACC-004": {
   "status": "todo",
@@ -3058,9 +3062,9 @@
   "by": "src/ui/Segment/Segment.module.css"
  },
  "PLT-031": {
-  "status": "done",
-  "note": "/healthz-reader for the reader's probes; Django's health URLs pass through.",
-  "by": "src/start.ts, src/lib/routing/django-paths.ts"
+  "status": "partial",
+  "note": "Request log module built; start.ts wiring and the Django side of the request id pending",
+  "by": "src/lib/monitoring/server-log.ts"
  },
  "PLT-032": {
   "status": "n/a",

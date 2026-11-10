@@ -131,7 +131,7 @@ test.describe("phones", () => {
 test.describe("nothing found", () => {
   test.use({ viewport: { width: 1280, height: 900 } });
 
-  for (const [tab, heading, cta, href] of [["sources", "No sources found for “zzzxqkw”", "Browse Library", "/texts"], ["books", "No books found for “zzzxqkw”", "Browse Library", "/texts"], ["authors", "No authors found for “zzzxqkw”", "Browse Authors", "https://www.sefaria.org/people"], ["topics", "No topics found for “zzzxqkw”", "Browse Topics", "https://www.sefaria.org/topics"]] as const) {
+  for (const [tab, heading, cta, href] of [["sources", "No sources found for “zzzxqkw”", "Browse Library", "/texts"], ["books", "No books found for “zzzxqkw”", "Browse Library", "/texts"], ["authors", "No authors found for “zzzxqkw”", "Browse Authors", "/topics/category/authors"], ["topics", "No topics found for “zzzxqkw”", "Browse Topics", "/topics"]] as const) {
     test(`${tab}: heading, a way on, and where to report a problem`, async ({ page }) => {
       await open(page, `/search?q=zzzxqkw&tab=text&search_tab=${tab}`);
       await expect(page.getByText(heading)).toBeVisible();

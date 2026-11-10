@@ -2,15 +2,49 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { InterfaceLangProvider } from "~/lib/i18n/interface-lang";
-import { SiteHeader } from "./SiteHeader";
+import { SiteHeader, leavesFrom } from "./SiteHeader";
+import { SiteHostProvider, libraryHref } from "~/lib/routing/library-href";
 import { STUB_SEARCH } from "./story-data";
 
 // @feature GUI-002 @feature GUI-003 @feature GUI-009 @feature GUI-010 @feature GUI-011 @feature I18-008
 describe("SiteHeader", () => {
+  it("Texts and Topics stay in the app on the Library host; on the Voices host Topics is Django's and loads in full", () => {
+    expect(leavesFrom("/topics", "https://www.sefaria.org/Genesis.1")).toBe(false);
+    expect(leavesFrom("/texts", "https://www.sefaria.org/Genesis.1")).toBe(false);
+    expect(leavesFrom("/topics", "https://voices.sefaria.org/sheets/1")).toBe(true);
+    expect(leavesFrom("/topics", "https://chiburim.sefaria.org.il/sheets/1")).toBe(true);
+  });
+  it("on the Library host the logo, Texts, Topics and the switcher's Library are relative; on a Voices host they keep the Library's address", async () => {
+    const links = (host: string) => {
+      const { unmount } = render(<SiteHostProvider value={host}><SiteHeader next="/" search={STUB_SEARCH} /></SiteHostProvider>);
+      const nav = screen.getByRole("navigation", { name: "Primary navigation" });
+      const out = {
+        logo: within(nav).getAllByRole("link")[0]!.getAttribute("href"),
+        texts: within(nav).getByRole("link", { name: "Texts" }).getAttribute("href"),
+        topics: within(nav).getByRole("link", { name: "Topics" }).getAttribute("href"),
+        mobile: [...document.querySelectorAll("#mobile-nav a")].map((a) => a.getAttribute("href")).filter((h) => /\/(texts|topics)$/.test(h ?? "")),
+      };
+      unmount();
+      return out;
+    };
+    expect(links("www.sefaria.org")).toEqual({ logo: "/", texts: "/texts", topics: "/topics", mobile: ["/texts", "/topics"] });
+    const lib = libraryHref("/", "voices.sefaria.org").replace(/\/$/, "");
+    expect(lib).toMatch(/^https?:\/\//); // the Library's origin in this environment (SITE_ORIGIN)
+    for (const host of ["voices.sefaria.org", "chiburim.sefaria.org.il"])
+      expect(links(host)).toEqual({ logo: `${lib}/`, texts: `${lib}/texts`, topics: `${lib}/topics`, mobile: [`${lib}/texts`, `${lib}/topics`] });
+  });
+  it("libraryHref: relative on the Library host (or unknown), the Library's address on Voices", () => {
+    expect(libraryHref("/topics", "www.sefaria.org", "https://www.sefaria.org", "https://voices.sefaria.org")).toBe("/topics");
+    expect(libraryHref("/topics", undefined, "https://www.sefaria.org", "https://voices.sefaria.org")).toBe("/topics");
+    expect(libraryHref("/topics", "voices.sefaria.org", "https://www.sefaria.org", "https://voices.sefaria.org")).toBe("https://www.sefaria.org/topics");
+    expect(libraryHref("/topics", "voices.x.cauldron.sefaria.org", "", "https://voices.x.cauldron.sefaria.org")).toBe("/topics"); // SITE_ORIGIN "" (production): as before, relative
+  });
   it("primary links go to the library's pages", () => {
     render(<SiteHeader next="/Genesis.1" search={STUB_SEARCH} />);
     const nav = screen.getByRole("navigation", { name: "Primary navigation" });
-    expect(within(nav).getByRole("link", { name: "Texts" })).toHaveAttribute("href", "https://www.sefaria.org/texts");
+    // relative: this client's own pages, navigated in the app (T-F02)
+    expect(within(nav).getByRole("link", { name: "Texts" })).toHaveAttribute("href", "/texts");
+    expect(within(nav).getByRole("link", { name: "Topics" })).toHaveAttribute("href", "/topics");
     expect(within(nav).getByRole("link", { name: "Donate" })).toHaveAttribute("href", expect.stringContaining("c_src=Header"));
   });
   it("Enter in the search box runs the smart submit with the trimmed words", async () => {
@@ -98,5 +132,39 @@ describe("SiteHeader", () => {
     const mobile = document.getElementById("mobile-nav")!;
     expect(within(mobile).getByRole("link", { name: "Logout", hidden: true })).toBeInTheDocument();
     expect(within(mobile).queryByRole("link", { name: "Log in", hidden: true })).toBeNull();
+  });
+});
+
+// @feature ACC-003
+describe("SiteHeader opt-in items", () => {
+  it("absent without the opt-in; with it, both menus offer Report a problem and Back to the classic reader", async () => {
+    const { rerender } = render(<SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada" }} />);
+    expect(screen.queryByTestId("back-to-classic-mobile")).toBeNull();
+    const seen: string[] = [];
+    const optIn = { onBackToClassic: (s: string) => seen.push(`back:${s}`), onReportProblem: (s: string) => seen.push(`report:${s}`) };
+    rerender(<SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada" }} optIn={optIn} />);
+    await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    const dialog = screen.getByRole("dialog", { name: "Account menu" });
+    await userEvent.click(within(dialog).getByRole("button", { name: "Report a problem" }));
+    expect(screen.queryByRole("dialog", { name: "Account menu" })).toBeNull(); // the menu closed
+    await userEvent.click(screen.getByRole("button", { name: "Menu" }));
+    await userEvent.click(screen.getByTestId("back-to-classic-mobile"));
+    expect(seen).toEqual(["report:account_menu", "back:mobile_menu"]);
+    expect(document.getElementById("mobile-nav")).toHaveAttribute("hidden");
+  });
+});
+
+// @feature AI-001 (sefaria.org #3934: the header pill replaced the stand-alone banner)
+describe("SiteHeader Library Assistant pill", () => {
+  it("only while the assistant is on the page; a click asks it to open", async () => {
+    const { rerender } = render(<SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada" }} />);
+    expect(screen.queryByTestId("assistant-pill")).toBeNull();
+    const opened = vi.fn();
+    rerender(<SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada" }} onOpenAssistant={opened} />);
+    const pill = screen.getByTestId("assistant-pill");
+    expect(pill).toHaveAttribute("role", "button");
+    expect(pill).toHaveTextContent("Library Assistant");
+    await userEvent.click(pill);
+    expect(opened).toHaveBeenCalledTimes(1);
   });
 });

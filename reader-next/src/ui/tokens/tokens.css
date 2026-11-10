@@ -60,8 +60,10 @@
   --sefaria-color-key-active: light-dark(#e4e4e2, #3d3d3a);
   --sefaria-color-key-pressed: light-dark(#d2dcff, #3b4a78);
   --sefaria-color-key-pressed-border: light-dark(#9aaee8, #6b7fbf);
-  /* the cookie notice: a grey card with white text (the old #666-ish card; #707070 is what rendered) */
-  --sefaria-color-notice: light-dark(#707070, #3a3a38);
+  /* the cookie notice: a navy bar/card with white text, a 1px #ccc top rule on phones (static/css/cookies-notification.scss; VERIFIED
+     on www.sefaria.org v7.11.4, 2026-11-10: background rgb(33, 46, 80)) */
+  --sefaria-color-notice: light-dark(#212e50, #212e50);
+  --sefaria-color-notice-rule: light-dark(#cccccc, #55554f);
   --sefaria-color-on-notice: #ffffff;
 
   /* ── Colour: semantic ─────────────────────────────── */

@@ -8,6 +8,10 @@
  *  - SEFARIA_API_HOST     the Host header those internal requests carry (Django routes by host: "www.<env>.cauldron.sefaria.org").
  *  - PUBLIC_API_ORIGIN    the API as the BROWSER reaches it; "" means the page's own origin (nginx sends /api/* to Varnish).
  *  - PUBLIC_SITE_ORIGIN   where links to the pages this client does not render (topics, sheets, login…) go; "" = same origin.
+ *  - PUBLIC_CANONICAL_ORIGIN  the absolute origin of canonical and Open Graph URLs (`<link rel="canonical">`, og:url), which must
+ *                         never be relative, so not PUBLIC_SITE_ORIGIN (empty in the cluster on purpose). Default (and when unset,
+ *                         empty or not an http(s) origin) "https://www.sefaria.org"; the chart sets it (reader.canonicalOrigin). On
+ *                         the Hebrew site's host a page names its Hebrew twin (www.sefaria.org.il), as Django: src/lib/routing/canonical.ts.
  *  - PUBLIC_ROOM_URL      the follow-me room server as the browser reaches it ("ws://<lan-ip>:3199" for scripts/dev-room-server.mjs);
  *                         unset = follow runs in an in-browser room shared over BroadcastChannel (tabs of one browser only).
  *  - PUBLIC_LABS          the labs on by default in this deployment, comma-separated ("follow_me,recording"); remote config
@@ -15,6 +19,8 @@
  *  - Analytics (src/lib/analytics), the same settings Django's templates/base.html reads; each is off when unset, so development and
  *    tests send nothing: GOOGLE_TAG_MANAGER_CODE, GOOGLE_GTAG, SIMPLE_ANALYTICS_HOSTNAME ("sefaria.org" in
  *    production), APP_VERSION (gtag's site_version).
+ *  - PUBLIC_ERROR_ENDPOINT  where the browser beacons its error reports (src/lib/monitoring/error-reporter.ts); unset = no reports.
+ *    PUBLIC_ERROR_SAMPLE_RATE (0..1, default 1) the share of page loads that report.
  *  - GOOGLE_SSO_CLIENT_ID, APPLE_SSO_CLIENT_ID, RECAPTCHA_PUBLIC_KEY   the sign-in providers' public client IDs and the reCAPTCHA site
  *                         key — the same values Django hands its own pages (reader/views.py user_data). Empty = that provider's
  *                         button is not shown / no captcha, as on the old site.
@@ -31,6 +37,8 @@ export interface AnalyticsConfig {
 export interface PublicConfig {
   apiOrigin: string;
   siteOrigin: string;
+  /** Absolute origin for canonical and Open Graph URLs (PUBLIC_CANONICAL_ORIGIN): see {@link canonicalUrl}. */
+  canonicalOrigin: string;
   analytics: AnalyticsConfig;
   /** The Voices site (sheets, collections, profiles): PUBLIC_VOICES_ORIGIN, "https://voices.<root domain>" in a deployment. */
   voicesOrigin: string;
@@ -41,6 +49,9 @@ export interface PublicConfig {
   roomUrl?: string;
   /** The labs this deployment turns on by default (PUBLIC_LABS); remote config can override each (src/lib/labs.ts). */
   labs?: LabName[];
+  /** Browser error reports (PUBLIC_ERROR_ENDPOINT, PUBLIC_ERROR_SAMPLE_RATE); absent = off. */
+  errorEndpoint?: string;
+  errorSampleRate?: number;
   /** The Library Assistant (`<lc-chatbot>`): which build to load and which server it talks to (src/lib/assistant/config.ts). */
   assistant: AssistantEnv;
 }
@@ -59,6 +70,16 @@ export interface AssistantEnv {
 
 const DEFAULT_ORIGIN = "https://www.sefaria.org";
 const DEFAULT_VOICES = "https://voices.sefaria.org";
+const DEFAULT_CANONICAL = "https://www.sefaria.org";
+
+/** The canonical origin for a configured value: an absolute http(s) origin without its trailing slash, else sefaria.org's. */
+export function canonicalOriginFrom(value: string | null | undefined): string {
+  const v = (value ?? "").trim().replace(/\/+$/, "");
+  return isOrigin(v) ? v : DEFAULT_CANONICAL;
+}
+
+/** An absolute http(s) origin and nothing more (no path, query or fragment): what canonicalOriginFrom accepts once a trailing "/" is gone. */
+export const isOrigin = (v: string): boolean => /^https?:\/\/[^/?#]+$/.test(v.trim().replace(/\/+$/, ""));
 /** Django's CHATBOT_API_BASE_URL default (sefaria/local_settings_example.py, the helm chart). */
 const DEFAULT_ASSISTANT_API = "https://chat-dev.sefaria.org/api";
 const isServer = typeof window === "undefined";
@@ -77,6 +98,7 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
   ? {
       apiOrigin: env("PUBLIC_API_ORIGIN") ?? DEFAULT_ORIGIN,
       siteOrigin: env("PUBLIC_SITE_ORIGIN") ?? DEFAULT_ORIGIN,
+      canonicalOrigin: canonicalOriginFrom(env("PUBLIC_CANONICAL_ORIGIN")),
       voicesOrigin: env("PUBLIC_VOICES_ORIGIN") || DEFAULT_VOICES,
       analytics: {
         gtm: env("GOOGLE_TAG_MANAGER_CODE") || null,
@@ -89,6 +111,9 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
       recaptchaSiteKey: env("RECAPTCHA_PUBLIC_KEY") ?? "",
       roomUrl: env("PUBLIC_ROOM_URL") || "",
       labs: parseLabs(env("PUBLIC_LABS")),
+      // undefined (not null) when unset, so the key is left out of the page's config
+      errorEndpoint: env("PUBLIC_ERROR_ENDPOINT") || undefined,
+      errorSampleRate: env("PUBLIC_ERROR_SAMPLE_RATE") ? Number(env("PUBLIC_ERROR_SAMPLE_RATE")) : undefined,
       assistant: {
         apiBaseUrl: env("CHATBOT_API_BASE_URL") || DEFAULT_ASSISTANT_API,
         version: env("CHATBOT_VERSION") || null,
@@ -99,6 +124,7 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
   : {
       apiOrigin: window.__SEFARIA_CONFIG__?.apiOrigin ?? DEFAULT_ORIGIN,
       siteOrigin: window.__SEFARIA_CONFIG__?.siteOrigin ?? DEFAULT_ORIGIN,
+      canonicalOrigin: canonicalOriginFrom(window.__SEFARIA_CONFIG__?.canonicalOrigin),
       voicesOrigin: window.__SEFARIA_CONFIG__?.voicesOrigin || DEFAULT_VOICES,
       analytics: { ...NO_ANALYTICS, ...window.__SEFARIA_CONFIG__?.analytics },
       googleClientId: window.__SEFARIA_CONFIG__?.googleClientId ?? "",
@@ -106,6 +132,8 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
       recaptchaSiteKey: window.__SEFARIA_CONFIG__?.recaptchaSiteKey ?? "",
       roomUrl: window.__SEFARIA_CONFIG__?.roomUrl || "",
       labs: window.__SEFARIA_CONFIG__?.labs ?? [],
+      errorEndpoint: window.__SEFARIA_CONFIG__?.errorEndpoint || undefined,
+      errorSampleRate: window.__SEFARIA_CONFIG__?.errorSampleRate,
       assistant: { apiBaseUrl: DEFAULT_ASSISTANT_API, version: null, useLocalScript: false, origin: "sefaria-local", ...window.__SEFARIA_CONFIG__?.assistant },
     };
 
@@ -114,6 +142,12 @@ export const API_ORIGIN: string = isServer ? (env("SEFARIA_API_ORIGIN") ?? PUBLI
 
 /** Origin of the old site's pages (topics, sheets, login…): "" when this client is served on the same site. */
 export const SITE_ORIGIN: string = PUBLIC_CONFIG.siteOrigin;
+
+/** Absolute origin of canonical and Open Graph URLs (never ""): PUBLIC_CANONICAL_ORIGIN. */
+export const CANONICAL_ORIGIN: string = PUBLIC_CONFIG.canonicalOrigin;
+
+/** The absolute URL a page names as its canonical and og:url: `path` (with its leading "/") on the canonical origin. */
+export const canonicalUrl = (path: string, origin: string = CANONICAL_ORIGIN): string => `${origin}${path.startsWith("/") ? path : `/${path}`}`;
 
 /** The sign-in providers' public keys (empty when not configured). */
 export const SSO_CONFIG = {
@@ -139,6 +173,10 @@ export function serverConfigProblems(e: Record<string, string | undefined>): str
     const v = e[k];
     if (v !== undefined && v !== "" && !absolute(v)) problems.push(`${k} must be "" (this site) or an absolute http(s) origin, not ${JSON.stringify(v)}`);
   }
+  // the same test canonicalOriginFrom applies (which would otherwise fall back to sefaria.org's without a word)
+  const canonical = e.PUBLIC_CANONICAL_ORIGIN;
+  if (canonical !== undefined && canonical !== "" && !isOrigin(canonical))
+    problems.push(`PUBLIC_CANONICAL_ORIGIN must be an http(s) origin without a path, not ${JSON.stringify(canonical)}`);
   if (e.SEFARIA_API_HOST !== undefined && !e.SEFARIA_API_ORIGIN) problems.push("SEFARIA_API_HOST is set but SEFARIA_API_ORIGIN is not: the Host rewrite would never apply");
   for (const k of ["SEFARIA_API_TIMEOUT_MS", "SEFARIA_PASS_THROUGH_TIMEOUT_MS"] as const) {
     const v = e[k];

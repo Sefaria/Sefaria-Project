@@ -62,7 +62,12 @@ spec:
           {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       containers:
       - name: node
+        {{- if eq .Values.nodejs.mode "reader" }}
+        # nodejs.mode "reader": the node pods are the new reader client
+        image: "{{ .Values.reader.containerImage.imageRegistry }}:{{ .Values.reader.containerImage.tag }}"
+        {{- else }}
         image: "{{ .Values.nodejs.containerImage.imageRegistry }}:{{ .Values.nodejs.containerImage.tag }}"
+        {{- end }}
         imagePullPolicy: Always
         env:
           - name: randomstringtoforceredeployments
@@ -80,7 +85,7 @@ spec:
             value: "true"
           {{- end }}
           {{- if eq .Values.nodejs.mode "reader" }}
-          {{- include "sefaria.readerEnv" (list . .Values.nodejs.containerImage.tag) | nindent 10 }}
+          {{- include "sefaria.readerEnv" (list . .Values.reader.containerImage.tag) | nindent 10 }}
           {{- end }}
           {{- if .Values.mongo.enabled }}
           - name: MONGO_HOST

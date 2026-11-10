@@ -6,7 +6,7 @@ test.describe("the page around the reader (verified against sefaria.org)", () =>
   test("header: logo, Texts, Topics, Donate, search, Sign Up and the four icons; skip link is the first tab stop", async ({ page }) => {
     await open(page, "/Genesis.1?lang=en");
     const nav = page.getByRole("navigation", { name: "Primary navigation" });
-    await expect(nav.getByRole("link", { name: "Texts" })).toHaveAttribute("href", "https://www.sefaria.org/texts");
+    await expect(nav.getByRole("link", { name: "Texts" })).toHaveAttribute("href", "/texts"); // this client's page: relative (T-F02)
     await expect(nav.getByRole("link", { name: "Topics" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Donate" })).toHaveAttribute("target", "_blank");
     const header = page.getByRole("banner");

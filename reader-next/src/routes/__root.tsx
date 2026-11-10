@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useLocation, useMatches, useRouter } from "@tanstack/react-router";
-import { useQuery, type QueryClient } from "@tanstack/react-query";
+import { type QueryClient } from "@tanstack/react-query";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { createServerFn } from "@tanstack/react-start";
 import { InterfaceLangProvider } from "~/lib/i18n/interface-lang";
@@ -13,6 +13,9 @@ import { ReaderStateProvider } from "~/features/reader-state/ReaderStateProvider
 import { isReaderPath } from "~/lib/reader/paths";
 import { isStandalonePage } from "~/lib/routing/standalone";
 import { markLoadEntry } from "~/lib/routing/load-entry";
+import { isNotFoundMatch, prefsOfForcedNotFound, throwIfForcedNotFound } from "~/lib/routing/not-found";
+import { SiteHostProvider } from "~/lib/routing/library-href";
+import { NotFoundPage } from "~/features/routing/NotFoundPage";
 import { forgetTopicSortOff } from "~/lib/topics/topic-sort-carry";
 import { useHeaderSearch } from "~/features/shell/useHeaderSearch";
 import { SiteHeader } from "~/ui/SiteHeader/SiteHeader";
@@ -20,11 +23,14 @@ import { setMobileMenuOpen, useMobileMenuOpen } from "~/features/shell/mobile-me
 import { SkipLink } from "~/ui/SkipLink/SkipLink";
 import { CookieNotice } from "~/ui/CookieNotice/CookieNotice";
 import { BannerImpressionProbe } from "~/features/shell/BannerImpressionProbe";
-import { LibraryAssistantBanner } from "~/features/shell/SiteWideBanner/SiteWideBanner";
+import { Monitoring } from "~/features/shell/Monitoring";
+import { useReaderOptIn } from "~/features/shell/ReaderChoice";
+import { ReportingBoundary } from "~/lib/monitoring/ErrorBoundary";
+import { RouteError } from "~/features/shared/RouteError";
+import { openAssistantFromHeader, useAssistantShown } from "~/features/shell/assistant-pill";
 import { LibraryAssistant } from "~/features/assistant/LibraryAssistant";
 import { installLegacyEvents } from "~/lib/integration/legacy-events";
 import { remoteConfigQueryOptions } from "~/lib/shell/remote-config";
-import type { NudgeSchedule } from "~/lib/shell/promo-backoff";
 import { useViewer, viewerQuery } from "~/features/auth/viewer";
 import { installSignupSourceCapture } from "~/features/auth/signup-source";
 import { useGoogleOneTap } from "~/features/auth/use-google-one-tap";
@@ -43,14 +49,17 @@ import robotoLatin from "@fontsource/roboto/files/roboto-latin-400-normal.woff2?
 import heeboHebrewBold from "@fontsource/heebo/files/heebo-hebrew-700-normal.woff2?url";
 
 /** Reader settings and interface language from a cookie string (same names as the old site); `diaspora` as decided for this visit. */
-const prefsFromCookies = (header: string, diaspora: boolean) => {
+const prefsFromCookies = (header: string, diaspora: boolean, host?: string) => {
   const cookies = parseCookieHeader(header);
   return {
     settings: parseCookieSettings(cookies),
     interfaceLang: cookies.interfaceLang === "hebrew" ? ("hebrew" as const) : ("english" as const),
     diaspora,
+    /** The host the page was asked for (links to Library pages stay on the Library host from a Voices page: lib/routing/library-href.ts). */
+    host,
   };
 };
+type RootPrefs = ReturnType<typeof prefsFromCookies>;
 /**
  * The old LocationSettingsMiddleware: a reader in Israel (Cloudflare's cf-ipcountry "IL") is not in the diaspora; an unknown country
  * ("XX" or none) is PINNED_IPCOUNTRY, else the diaspora (CODE_REVIEW R-21).
@@ -60,25 +69,42 @@ export function diasporaFor(country: string | undefined, pinned = typeof process
   return c !== "il";
 }
 /** On the server: from the request. */
-const getRequestPrefs = createServerFn({ method: "GET" }).handler(async () => prefsFromCookies(getRequestHeader("cookie") ?? "", diasporaFor(getRequestHeader("cf-ipcountry"))));
+const getRequestPrefs = createServerFn({ method: "GET" }).handler(async () =>
+  prefsFromCookies(getRequestHeader("cookie") ?? "", diasporaFor(getRequestHeader("cf-ipcountry")), getRequestHeader("x-forwarded-host")?.split(",")[0]?.trim() || getRequestHeader("host") || undefined),
+);
 /** In the browser: what the server decided for this page (written into it by RootDocument). */
 const pageDiaspora = () => (window as unknown as { __SEFARIA_REQUEST__?: { diaspora?: boolean } }).__SEFARIA_REQUEST__?.diaspora ?? true;
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   // Every navigation runs this: in the browser the cookies are right here (a server function was an HTTP round trip per navigation,
   // scroll-driven address updates included: CODE_REVIEW R-09)
-  beforeLoad: async () => (typeof document === "undefined" ? getRequestPrefs() : prefsFromCookies(document.cookie, pageDiaspora())),
+  beforeLoad: async (opts): Promise<RootPrefs> => {
+    const prefs = typeof document === "undefined" ? await getRequestPrefs() : prefsFromCookies(document.cookie, pageDiaspora(), window.location.host);
+    // Neither this client nor Django has a page here: the server asks for the reader's own 404 page (src/lib/routing/not-found.ts).
+    // Thrown from beforeLoad so no page loader runs (none can fetch, or redirect instead of the 404); the reader's language rides on
+    // the not-found's data and the signed-in reader is loaded first, so the 404 page is drawn in their language with their header.
+    await throwIfForcedNotFound(opts, prefs, () =>
+      Promise.all([opts.context.queryClient.ensureQueryData(viewerQuery).catch(() => null), opts.context.queryClient.ensureQueryData(remoteConfigQueryOptions()).catch(() => undefined)]),
+    );
+    return prefs;
+  },
   // who is signed in, in the first paint (the query forwards the request's cookie on the server: src/features/auth/viewer.ts)
   // and the remote-config switches (the promo banner is in the first paint, so it cannot push the page down later)
   loader: async ({ context }) => {
     const [viewer] = await Promise.all([context.queryClient.ensureQueryData(viewerQuery), context.queryClient.ensureQueryData(remoteConfigQueryOptions()).catch(() => undefined)]);
     return { viewer };
   },
+  notFoundComponent: NotFoundPage,
   head: ({ matches }) => {
     // a standalone page (compare.html) has no viewport meta and loads no site fonts: the browser's own Times, laid out 980px wide on a phone
     if (isStandalonePage(matches[matches.length - 1]?.pathname ?? "")) return { meta: [{ charSet: "utf-8" }, { title: "Sefaria Reader" }], links: [{ rel: "stylesheet", href: tokens }, { rel: "stylesheet", href: base }] };
     return {
-    meta: [{ charSet: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1" }, { title: "Sefaria Reader" }],
+    meta: [
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      // a page nobody has (the reader's 404, T-F28): titled as the old site's 404 and kept out of search engines
+      ...(matches.some(isNotFoundMatch) ? [{ title: "Page Not Found | Sefaria" }, { name: "robots", content: "noindex" }] : [{ title: "Sefaria Reader" }]),
+    ],
     links: [
       // The faces on screen at first paint, preloaded with the page: a face that arrives later reflows the
       // text under the reader (see TXD-054). Everything else in fonts.css loads on demand.
@@ -99,8 +125,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   component: RootComponent,
 });
 
+/**
+ * The root's preferences: its context — or, when the server asked for the 404 page (the root threw notFound before returning a
+ * context), the same preferences carried on that not-found's data.
+ */
+function useRootPrefs(): RootPrefs {
+  const ctx = Route.useRouteContext() as Partial<RootPrefs>;
+  const error = Route.useMatch({ select: (m) => m.error });
+  return (ctx.interfaceLang ? ctx : (prefsOfForcedNotFound(error) as RootPrefs | null) ?? prefsFromCookies("", true)) as RootPrefs;
+}
+
 function RootComponent() {
-  const { interfaceLang, settings } = Route.useRouteContext();
+  const { interfaceLang, settings, host } = useRootPrefs();
   // the entry the browser loaded, noted before any page's effect runs (src/lib/routing/load-entry.ts)
   const router = useRouter();
   useState(() => markLoadEntry(router.history.location.state));
@@ -115,15 +151,22 @@ function RootComponent() {
   useEffect(() => forgetTopicSortOff(pathname), [pathname]);
   return (
     <RootDocument lang={interfaceLang === "hebrew" ? "he" : "en"} dir={standalone ? undefined : interfaceLang === "hebrew" ? "rtl" : "ltr"} standalone={standalone}>
+      <SiteHostProvider value={host}>
       <InterfaceLangProvider lang={interfaceLang}>
         <LinkProvider value={RouterLink}>
           <ReaderStateProvider>
             <ReaderSettingsProvider initial={settings}>
-              {standalone ? <Outlet /> : <Shell />}
+              {standalone ? <Outlet /> : (
+                // a render error outside a route's own boundary (the header, the shell) is reported and shows the error page
+                <ReportingBoundary name="root" resetKey={pathname} fallback={(error) => <RouteError error={error} reported />}>
+                  <Shell />
+                </ReportingBoundary>
+              )}
             </ReaderSettingsProvider>
           </ReaderStateProvider>
         </LinkProvider>
       </InterfaceLangProvider>
+      </SiteHostProvider>
     </RootDocument>
   );
 }
@@ -137,7 +180,8 @@ function Shell() {
   // a book's own page is a library page: it keeps the site header on a phone (a text hides it, the panel has its own)
   const matches = useMatches();
   const book = (matches.find((m) => m.routeId === "/$")?.loaderData as { kind?: string } | undefined)?.kind === "book";
-  const reading = isReaderPath(loc.pathname) && !book;
+  // the not-found page is a site page, not a text (the header stays on a phone)
+  const reading = isReaderPath(loc.pathname) && !book && !matches.some(isNotFoundMatch);
   const search = useHeaderSearch();
   const menuOpen = useMobileMenuOpen();
   const viewer = useViewer();
@@ -193,23 +237,24 @@ function Shell() {
       }),
     [router, queryClient],
   );
-  // the old server's show_join_chatbot_banner switch (remote config), read by the root loader; only a signed-out reader sees the
-  // banner, so a signed-in one never refetches it
-  const remoteConfig = useQuery({ ...remoteConfigQueryOptions(), enabled: !viewer }).data;
-  const showAssistantBanner = remoteConfig?.["feature.client.show_join_chatbot_banner"] === true;
+  // the "✦ Library Assistant" pill, while the widget is on the page (sefaria.org #3934 replaced the stand-alone promo banner with it)
+  const assistantShown = useAssistantShown();
+  // "Back to the classic reader" / "Report a problem" while the reader has opted in (src/features/shell/ReaderChoice.tsx)
+  const optIn = useReaderOptIn(viewer);
   return (
     <div ref={appRef} className={appCss.app} data-reading={reading ? "true" : undefined} data-menu={menuOpen ? "open" : undefined}>
       <SkipLink />
       <div className={appCss.header}>
-        <SiteHeader next={loc.pathname + (loc.searchStr ?? "")} search={search} viewer={viewer} menuOpen={menuOpen} onMenuOpenChange={setMobileMenuOpen} />
+        <SiteHeader next={loc.pathname + (loc.searchStr ?? "")} search={search} viewer={viewer} menuOpen={menuOpen} onMenuOpenChange={setMobileMenuOpen} optIn={optIn.actions} onOpenAssistant={assistantShown ? openAssistantFromHeader : undefined} />
       </div>
-      {!viewer && showAssistantBanner ? <LibraryAssistantBanner path={loc.pathname + (loc.searchStr ?? "")} schedule={remoteConfig?.["feature.chatbot.promoMaybeLaterJSON"] as NudgeSchedule | undefined} sessionSeconds={remoteConfig?.["feature.chatbot.promoSessionLengthSeconds"] as number | undefined} /> : null}
       <main id="main" className={appCss.main} tabIndex={-1} data-scroll-restoration-id="main">
         <Outlet />
       </main>
       <LibraryAssistant search={loc.searchStr ?? ""} />
       <CookieNotice />
       <BannerImpressionProbe />
+      {optIn.dialog}
+      <Monitoring signedIn={!!viewer} />
     </div>
   );
 }
@@ -218,7 +263,7 @@ const simpleAnalytics = simpleAnalyticsScript(PUBLIC_CONFIG.analytics);
 
 function RootDocument({ children, lang, dir, standalone }: Readonly<{ children: ReactNode; lang: string; dir?: string; standalone?: boolean }>) {
   const viewer = Route.useLoaderData()?.viewer;
-  const { interfaceLang, diaspora } = Route.useRouteContext();
+  const { interfaceLang, diaspora } = useRootPrefs();
   const saMetadata = saMetadataScript(PUBLIC_CONFIG.analytics, { loggedIn: !!viewer, staff: !!viewer?.email?.includes("sefaria.org") });
   // The runtime config (before any module runs: src/lib/config.ts), then the analytics vendors, each only when configured. Plain
   // <script> tags here run once per document; the router's head() would re-inject them on every navigation (CODE_REVIEW R-01).

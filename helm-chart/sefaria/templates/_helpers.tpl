@@ -296,6 +296,9 @@ pods are the reader) or "optin" (a separate reader rollout beside the legacy nod
   value: ""
 - name: PUBLIC_SITE_ORIGIN
   value: ""
+# canonical and og:url must be absolute (PUBLIC_SITE_ORIGIN is "" on purpose): reader.canonicalOrigin, www.sefaria.org by default
+- name: PUBLIC_CANONICAL_ORIGIN
+  value: {{ tpl $ctx.Values.reader.canonicalOrigin $ctx | quote }}
 # this deployment's Voices (sheets made here live there)
 - name: PUBLIC_VOICES_ORIGIN
   value: {{ printf "https://voices.%s" (tpl (index $ctx.Values.domains.root 0).url $ctx) | quote }}
@@ -308,8 +311,14 @@ pods are the reader) or "optin" (a separate reader rollout beside the legacy nod
   value: {{ $tag | quote }}
 - name: SIMPLE_ANALYTICS_HOSTNAME
   value: {{ if eq (toString $ctx.Values.localSettings.DEBUG) "true" }}"sa-dev.sefaria.org"{{ else }}"sefaria.org"{{ end }}
-{{- /* CHATBOT_API_BASE_URL: the Library Assistant's server, the value Django reads too (reader-next/src/lib/assistant/config.ts) */}}
-{{- range list "GOOGLE_TAG_MANAGER_CODE" "GOOGLE_GTAG" "GOOGLE_SSO_CLIENT_ID" "APPLE_SSO_CLIENT_ID" "RECAPTCHA_PUBLIC_KEY" "CHATBOT_API_BASE_URL" }}
+# the Library Assistant's `origin` ("sefaria-<env>"), as Django's pages send it (configmap local-settings: SENTRY_ENVIRONMENT)
+- name: SENTRY_ENVIRONMENT
+  value: {{ $ctx.Values.deployEnv | quote }}
+{{- /* From the secret the web pods read their settings from (envFrom secrets.localSettings.ref), key by key rather than the whole
+       secret, which also holds database and API credentials the reader has no use for. GOOGLE_GTAG is the GA4 id, GOOGLE_TAG_MANAGER_CODE
+       the GTM container; CHATBOT_API_BASE_URL the Library Assistant's server (reader-next/src/lib/assistant/config.ts); PINNED_IPCOUNTRY
+       the country Django pins the diaspora/Israel choice to (reader-next/src/routes/__root.tsx diasporaFor). */}}
+{{- range list "GOOGLE_TAG_MANAGER_CODE" "GOOGLE_GTAG" "GOOGLE_SSO_CLIENT_ID" "APPLE_SSO_CLIENT_ID" "RECAPTCHA_PUBLIC_KEY" "CHATBOT_API_BASE_URL" "PINNED_IPCOUNTRY" }}
 - name: {{ . }}
   valueFrom:
     secretKeyRef:

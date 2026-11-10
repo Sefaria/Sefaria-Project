@@ -37,3 +37,6 @@
 .moduleHeader { display: block; font-size: 16px; font-weight: 400; line-height: 18.75px; color: var(--sefaria-color-text-strong); }
 .dot { display: inline-block; flex-shrink: 0; width: 12px; height: 12px; border-radius: 50%; }
 .moduleText { padding-inline-start: 10px; }
+/* an action row (a button, not a link: "Report a problem", "Back to the classic reader") looks like the link rows */
+.item.actionItem { box-sizing: border-box; width: 100%; border: none; background: none; font: inherit; text-align: start; cursor: pointer; }
+.item.actionItem:hover { background-color: var(--sefaria-color-highlight); }

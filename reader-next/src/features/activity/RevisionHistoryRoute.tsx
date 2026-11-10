@@ -1,7 +1,8 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { langCode, useInterfaceLang } from "~/lib/i18n/interface-lang";
-import { segmentHistoryHref, segmentHistoryQueryOptions, type SegmentHistoryAddress } from "~/lib/activity/segment-history";
+import { isSignedOut, segmentHistoryHref, segmentHistoryQueryOptions, type SegmentHistoryAddress } from "~/lib/activity/segment-history";
 import { LoadingState } from "~/ui/Feedback/Feedback";
 import { LinkProvider } from "~/ui/Link/Link";
 import { RevisionHistory } from "~/ui/RevisionHistory/RevisionHistory";
@@ -17,7 +18,13 @@ export function RevisionHistoryRoute({ address, type }: { address: SegmentHistor
   const lang = langCode(useInterfaceLang());
   const router = useRouter();
   const history = useQuery(segmentHistoryQueryOptions(address, type)).data;
-  if (!history) return <LoadingState />;
+  // signed out at load, the route's loader sent the reader to log in (src/routes/activity.$.tsx); a session that expires later shows up
+  // here, when a refetch answers 401: to the login page and back, rather than a spinner forever
+  const signedOut = isSignedOut(history);
+  useEffect(() => {
+    if (signedOut) void router.navigate({ href: `/login?next=${encodeURIComponent(router.state.location.href)}`, replace: true });
+  }, [signedOut, router]);
+  if (!history || signedOut) return <LoadingState />;
   return (
     <LinkProvider value={VerbatimRouterLink}>
       <RevisionHistory history={history} lang={lang} onFilter={(t) => router.history.push(segmentHistoryHref(history, 1, t || null))} />
