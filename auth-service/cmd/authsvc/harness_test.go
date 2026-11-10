@@ -39,20 +39,34 @@ type service struct {
 	cmd     *exec.Cmd
 }
 
-func freePort(t *testing.T) string {
+// freePorts returns n distinct free loopback addresses. All n listeners are held open until every address is known:
+// asking for one port at a time and closing it lets the kernel hand the same port out twice, and the service then
+// fails to bind its second listener.
+func freePorts(t *testing.T, n int) []string {
 	t.Helper()
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
+	addrs := make([]string, 0, n)
+	listeners := make([]net.Listener, 0, n)
+	defer func() {
+		for _, l := range listeners {
+			_ = l.Close()
+		}
+	}()
+	for i := 0; i < n; i++ {
+		l, err := net.Listen("tcp", "127.0.0.1:0")
+		if err != nil {
+			t.Fatal(err)
+		}
+		listeners = append(listeners, l)
+		addrs = append(addrs, l.Addr().String())
 	}
-	defer l.Close()
-	return l.Addr().String()
+	return addrs
 }
 
 // startService runs the real main() in a child process with the given environment and waits until it serves.
 func startService(t *testing.T, env map[string]string) *service {
 	t.Helper()
-	grpcAddr, httpAddr := freePort(t), freePort(t)
+	addrs := freePorts(t, 2)
+	grpcAddr, httpAddr := addrs[0], addrs[1]
 	cmd := exec.Command(os.Args[0], "-test.run=^$")
 	// No shutdown drain unless a test asks for one, so each test's teardown is quick. Later entries win.
 	cmd.Env = append(os.Environ(), runMainEnv+"=1", "GRPC_ADDR="+grpcAddr, "HTTP_ADDR="+httpAddr, "SHUTDOWN_DRAIN=0s")

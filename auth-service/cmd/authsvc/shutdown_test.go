@@ -64,8 +64,9 @@ func TestNF1DrainKeepsAnsweringAfterSigterm(t *testing.T) {
 func TestShutdownDrainMustBeADuration(t *testing.T) {
 	for _, v := range []string{"5", "-1s", "soon"} {
 		cmd := exec.Command(os.Args[0], "-test.run=^$")
+		addrs := freePorts(t, 2)
 		cmd.Env = append(os.Environ(), runMainEnv+"=1", "SHUTDOWN_DRAIN="+v, "PG_DSN="+unreachableDSN,
-			"GRPC_ADDR="+freePort(t), "HTTP_ADDR="+freePort(t))
+			"GRPC_ADDR="+addrs[0], "HTTP_ADDR="+addrs[1])
 		out, err := cmd.CombinedOutput()
 		if err == nil {
 			t.Errorf("SHUTDOWN_DRAIN=%q: the service started, want a refusal", v)
