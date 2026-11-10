@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { categoryAttribution, categoryHref, primaryCategory } from "~/lib/book/book-page";
 import { indexDetailsQueryOptions } from "~/lib/catalog/index-details";
 import { tocQueryOptions } from "~/lib/catalog/toc";
+import { bookDescription } from "./book-route";
 import { categoryLabel } from "~/lib/connections/terms";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { lastPlace } from "~/lib/reader/last-place";
@@ -175,7 +176,7 @@ export function BookRoute({ title }: { title: string }) {
           : undefined
       }
       meta={aboutTextMeta(details)}
-      description={{ en: details.enDesc, he: details.heDesc }}
+      description={bookDescription(details)}
       sidebar={
         <>
           <RelatedTopics topics={details.relatedTopics ?? []} topicHref={(slug) => lib(`/topics/${slug}`)} />
