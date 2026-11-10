@@ -253,17 +253,25 @@ export function TextColumn(props: TextColumnProps) {
   const atStart = useRef(!target && !props.restore);
   const startSection = initial[0]?.sectionRefs[0] ?? initial[0]?.ref;
   const startGap = useRef(0);
+  const placedAt = useRef<{ ref: string; top: number } | null>(null);
   const placeAtStart = useCallback(() => {
     const sc = scrollerRef.current, content = contentRef.current;
     if (!atStart.current || !sc || !content || !startSection) return;
     const sec = content.querySelector<HTMLElement>(`section[data-ref="${CSS.escape(startSection)}"]`);
     const seg = sec?.querySelector<HTMLElement>('[role="group"][data-ref]');
     if (!sec || !seg) return;
+    // Someone else moved the text since we placed it (the reader state API putting the reader somewhere, a script's scroll): that
+    // place wins. Only content changing around it (which the engine's anchor keeping undoes) leaves it where we left it.
+    if (placedAt.current && (placedAt.current.ref !== seg.dataset.ref || Math.abs(seg.getBoundingClientRect().top - placedAt.current.top) > 1)) {
+      atStart.current = false;
+      return;
+    }
     // the space above the section's title (its margin, outside the section's box) stays above it, as the edge's end
     const edge = content.firstElementChild;
     if (edge && edge.nextElementSibling?.querySelector("section[data-ref]") === sec) startGap.current = sec.getBoundingClientRect().top - edge.getBoundingClientRect().bottom;
     const offset = textStartLine(sc) + startGap.current + seg.getBoundingClientRect().top - sec.getBoundingClientRect().top;
     engine.restorePosition({ ref: seg.dataset.ref!, offset });
+    placedAt.current = { ref: seg.dataset.ref!, top: seg.getBoundingClientRect().top };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startSection]);
   useLayoutEffect(() => {

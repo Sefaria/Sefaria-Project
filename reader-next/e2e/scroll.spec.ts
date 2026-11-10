@@ -91,7 +91,8 @@ test.describe("the reader's place is tracked to the verse", () => {
     await wheel(page, 300, 3);
     await expect.poll(() => new URL(page.url()).pathname).not.toBe("/Genesis.1");
     expect(await length()).toBe(start);
-    const box = await page.locator('[role="group"][data-ref="Genesis 1:9"]').boundingBox();
+    // the verse being read (in view whatever the opening position; a fixed verse could sit under the reader bar)
+    const box = await page.locator(`[role="group"][data-ref="${await focused(page)}"]`).boundingBox();
     await page.mouse.click(box!.x + 80, box!.y + 10);
     await expect(page).toHaveURL(/with=all/);
     expect(await length()).toBe(start + 1);

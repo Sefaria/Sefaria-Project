@@ -87,7 +87,7 @@ test("Hebrew interface: the panel's controls and its verses have Hebrew accessib
   await expect(page.getByRole("button", { name: "אפשרויות תצוגת טקסט" })).toBeVisible();
   await expect(page.getByRole("button", { name: "חזרה לספריה" })).toBeAttached();
   await expect(page.getByRole("button", { name: 'שמירת "בראשית א׳"' })).toBeAttached();
-  await expect(page.getByRole("region", { name: "בראשית א׳" })).toBeAttached();
-  await expect(page.getByRole("group", { name: "בראשית א׳:ג׳" })).toBeAttached();
+  await expect(page.getByRole("region", { name: "בראשית א׳", exact: true })).toBeAttached();
+  await expect(page.getByRole("group", { name: "בראשית א׳:ג׳", exact: true })).toBeAttached();
   await expect(page.getByRole("button", { name: "Text display options" })).toHaveCount(0);
 });
