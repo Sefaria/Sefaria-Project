@@ -105,7 +105,7 @@ export async function fetchFirstSection(ref: string, signal?: AbortSignal): Prom
 }
 
 export const firstSectionQueryOptions = (ref: string) =>
-  queryOptions({ ...withPolicy("text", { queryKey: ["first-section", ref] as const, queryFn: ({ signal }: { signal: AbortSignal }) => fetchFirstSection(ref, signal) }) });
+  queryOptions<string | null>({ ...withPolicy("text", { queryKey: ["first-section", ref] as const, queryFn: ({ signal }: { signal: AbortSignal }) => fetchFirstSection(ref, signal) }) });
 
 export interface ReaderPassage {
   /** The ref the reader should show in the URL (canonical spelling). */
