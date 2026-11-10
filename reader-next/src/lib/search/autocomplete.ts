@@ -117,6 +117,23 @@ export function suggestionsFrom(query: string, d: NameResponse, host?: string): 
 
 // (A miscapitalised citation — "genesis 1" — is repaired by the API itself: it answers is_ref with the canonical ref.)
 
+/**
+ * Sefaria.isACaseVariant / repairCaseVariant: a query that is only a miscapitalised completion ("pirkei avot" → "Pirkei Avot", which
+ * the name API does not take as a ref, VERIFIED 2026-11-10) is replaced by the longest completion it contains, the rest kept as typed.
+ * Like the old code, only the first ״ is normalised.
+ * @feature SRC-012 Case and gershayim query repair
+ */
+export function repairCaseVariant(query: string, d: NameResponse): string {
+  const first = d.completions?.[0];
+  const norm = (s: string) => s.toLowerCase().replace("״", '"');
+  const isVariant = !d.is_ref && !!first && first !== query && norm(first) === norm(query.slice(0, first.length)) && first !== query.slice(0, first.length);
+  if (!isVariant) return query;
+  const q = query.toLowerCase();
+  let best = "";
+  for (const c of (d.completion_objects ?? []).map((x) => x.title)) if (q.includes(c.toLowerCase()) && c.length > best.length) best = c;
+  return best + query.slice(best.length);
+}
+
 /** Hebrew abbreviations typed with ״ (gershayim) match the stored ". */
 export function repairGershayimVariant(query: string, d: NameResponse): string {
   if (!d.is_ref && d.completions && !d.completions.includes(query)) {

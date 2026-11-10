@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { nameQueryOptions, outcomeOf, repairGershayimVariant, suggestionsFrom } from "~/lib/search/autocomplete";
+import { nameQueryOptions, outcomeOf, repairCaseVariant, repairGershayimVariant, suggestionsFrom } from "~/lib/search/autocomplete";
 import { refToUrl } from "~/lib/ref/url";
 import { toRouterLocation } from "../shared/RouterLink";
 import type { HeaderSearchProps } from "~/ui/SiteHeader/HeaderSearch";
@@ -36,9 +36,14 @@ export function useHeaderSearch(): Omit<HeaderSearchProps, "mobile"> {
       onSearch: search,
       onChoose: (s) => s.url && go(s.url),
       onSmartSubmit: async (query) => {
-        // a name typed with the wrong quote mark is repaired before it is judged
+        // a miscapitalised name, then one typed with the wrong quote mark, is repaired before it is judged (the old getQueryObj)
         let q = query;
         let d = await qc.fetchQuery(nameQueryOptions(q));
+        const recased = repairCaseVariant(q, d);
+        if (recased !== q) {
+          q = recased;
+          d = await qc.fetchQuery(nameQueryOptions(q));
+        }
         const repaired = repairGershayimVariant(q, d);
         if (repaired !== q) {
           q = repaired;

@@ -212,3 +212,13 @@ test.describe("auto-switch from an empty tab", () => {
     expect(await page.evaluate(() => history.length)).toBe(length + 1);
   });
 });
+
+// @feature SRC-012: the old getQueryObj repairs a miscapitalised name before judging it; "pirkei avot" is not a ref to the name API
+// (VERIFIED 2026-11-10), so without the repair Enter searched the words instead of opening the book
+test("Enter on a miscapitalised book name in the header opens the book", async ({ page }) => {
+  await open(page, "/texts");
+  const box = page.getByRole("combobox").first();
+  await box.fill("pirkei avot");
+  await box.press("Enter");
+  await expect(page).toHaveURL(/\/Pirkei_Avot(\?|$)/);
+});
