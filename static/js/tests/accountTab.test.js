@@ -1,3 +1,4 @@
+/* global __dirname */
 /**
  * The Account tab of SettingsPage: saving, email change and Google Drive disconnect.
  * Expectations follow the behaviour of the Django account settings template it replaced.
