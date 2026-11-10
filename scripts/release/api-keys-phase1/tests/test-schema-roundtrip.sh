@@ -85,10 +85,9 @@ for mode in run-fail never-ready createdb-fail dump-fail dump-missing-table; do
   if [[ "$out" == rc=2 && ! -e "$snap/db/scoped-schema.roundtrip.sql" && ! -e "$snap/db/scoped-schema.roundtrip.sql.tmp" && ! -e "$snap/db/scoped-schema.roundtrip.sql.raw" ]]; then
     ok "$mode: returns 2 and leaves no cached reference or temp file"
   else
-    bad "$mode: $out; files: $(ls "$snap/db" | tr '\n' ' ')"
+    bad "$mode: $out; files: $(printf "%s " "$snap"/db/*)"
   fi
-  if [[ "$mode" == run-fail ]]; then n=1; else n=1; fi
-  if [[ "$(removed)" -ge "$n" ]]; then ok "$mode: the scratch container is removed"; else bad "$mode: no docker rm -f in $(tr '\n' ';' <"$WORK/docker.log")"; fi
+  if [[ "$(removed)" -ge 1 ]]; then ok "$mode: the scratch container is removed"; else bad "$mode: no docker rm -f in $(tr '\n' ';' <"$WORK/docker.log")"; fi
 done
 
 # success
@@ -99,7 +98,7 @@ out="$(attempt ok "$snap")"
 if [[ "$out" == rc=0 && -s "$snap/db/scoped-schema.roundtrip.sql" && ! -e "$snap/db/scoped-schema.roundtrip.sql.tmp" ]] && grep -q 'CREATE TABLE public.t1' "$snap/printed.sql" && cmp -s "$snap/printed.sql" "$snap/db/scoped-schema.roundtrip.sql"; then
   ok "success: the reference is cached, printed and equal; no temp file left"
 else
-  bad "success: $out; $(ls "$snap/db" | tr '\n' ' ')"
+  bad "success: $out; $(printf "%s " "$snap"/db/*)"
 fi
 if [[ "$(removed)" -ge 1 ]]; then ok "success: the scratch container is removed"; else bad "success: container not removed"; fi
 : >"$WORK/docker.log"
@@ -135,5 +134,5 @@ new_snap "$snap"
   kill -TERM -- "-$pid" 2>/dev/null
   wait "$pid" 2>/dev/null
 )
-if [[ "$(removed)" -ge 1 && ! -e "$snap/db/scoped-schema.roundtrip.sql" ]]; then ok "SIGTERM mid-build: the scratch container is removed and nothing is cached"; else bad "SIGTERM: $(tr '\n' ';' <"$WORK/docker.log"); $(ls "$snap/db" | tr '\n' ' ')"; fi
+if [[ "$(removed)" -ge 1 && ! -e "$snap/db/scoped-schema.roundtrip.sql" ]]; then ok "SIGTERM mid-build: the scratch container is removed and nothing is cached"; else bad "SIGTERM: $(tr '\n' ';' <"$WORK/docker.log"); $(printf "%s " "$snap"/db/*)"; fi
 exit "$fail"
