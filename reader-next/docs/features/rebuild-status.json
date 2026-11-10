@@ -89,8 +89,9 @@
   "by": "src/features/topics/topic-page-route.ts, src/routes/activity.$.tsx"
  },
  "PLT-008": {
-  "status": "deferred",
-  "note": "Default-on/SEO head builder waits (LAUNCH_PLAN §8): canonical only on /calendars and /translations, no hreflang; origin is T-C08"
+  "status": "partial",
+  "note": "Absolute canonical + hreflang on /calendars and /translations/<lang> (PUBLIC_CANONICAL_ORIGIN); reader, library and topic pages have none yet",
+  "by": "src/lib/config.ts (canonicalUrl), src/lib/routing/canonical.ts, src/routes/calendars.tsx, src/routes/translations.$slug.tsx"
  },
  "PLT-011": {
   "status": "replaced",

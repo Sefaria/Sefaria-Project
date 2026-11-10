@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**961 features**, 3937 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
+**961 features**, 3943 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 429 · partial 99 · todo 54 · replaced 46 · deferred 198 · n/a 135; 390 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 429 · partial 100 · todo 54 · replaced 46 · deferred 197 · n/a 135; 390 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -7087,6 +7087,7 @@ Hebrew all-results queries also search Dicta's Tanakh index and replace Sefaria'
 - VERIFIED 2026-10-05 (scripts/parity-search.mjs): for the Hebrew query אור with 'All Results' sefaria.org shows 10,182+ sources, Tanakh (182) and Genesis 1:14 first — Dicta's Tanakh hits replace Sefaria's (the Sefaria API alone gives 10,000+, Tanakh (233), Genesis 1:3 first). The page's single search-wrapper POST (aggs ['path'] + 100 hits together) is unchanged; the Dicta calls go to another host.
 - Rebuild: NOT built — it would send the user's Hebrew query to dicta.org.il, a third party. Owner decision needed. Until then Hebrew 'All Results' is Sefaria's own Tanakh hits (the old client's fallback when Dicta fails). Exact Phrase is identical to live.
 - OWNER DECISION 2026-10-06: merge with Dicta as sefaria.org does. BUILT (src/lib/search/dicta.ts, a port of search.js dictaQuery/dictaBooksQuery/mergeQueries): Hebrew 'All Results' sends /search and /books to sefaria.loadbalancer.dicta.org.il beside Sefaria's own query (CORS: any origin, content-type allowed); Sefaria's Tanakh hits are dropped and Dicta's verses ('Tanach with Ta'amei Hamikra') merged; relevance rescales Dicta's -pagerank to Sefaria's mean/spread — the old quirk of dividing both means by the Sefaria count is KEPT so the order equals sefaria.org's; chronological puts Dicta first; filter-tree Tanakh counts are Dicta's; the total is the sum ('10,182+'), or under filters the merged buckets' sum; a failed /books (3 s timeout) or /search falls back to Sefaria's results. Every page re-sorts all hits loaded so far. VERIFIED with scripts/parity-search.mjs: 'אור' and 'שמע ישראל' (relevance), 'אור' chronological, filtered to Tanakh and to Talmud — tabs, first 2,500 characters of results and the filter list identical to sefaria.org.
+- E2E 2026-11-10 (T-A04): the API cassette records Dicta under its /__dicta/ prefix (scripts/api-cassette.mjs, E2E_DICTA_UPSTREAM); scripts/cassette/dicta-route.mjs routes the browser's calls to sefaria.loadbalancer.dicta.org.il there, keeping their URLs, so the search-page spec replays Dicta once a fixture calls it.
 
 Code: [`static/js/sefaria/search.js:20`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/search.js#L20), [`static/js/sefaria/search.js:92`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/search.js#L92), [`static/js/sefaria/search.js:190`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/search.js#L190), [`static/js/sefaria/search.js:245`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/search.js#L245)
 
@@ -12026,7 +12027,7 @@ Code: [`templates/base.html:15-17`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#5.2`
 
 #### PLT-008 · Canonical URLs and hreflang
-`core` `live` · rebuild: **deferred** — Default-on/SEO head builder waits (LAUNCH_PLAN §8): canonical only on /calendars and /translations, no hreflang; origin is T-C08 `system`
+`core` `live` · rebuild: **partial** — Absolute canonical + hreflang on /calendars and /translations/<lang> (PUBLIC_CANONICAL_ORIGIN); reader, library and topic pages have none yet `system`
 
 Pages declare a canonical address and language alternates so search engines pick the right version.
 
@@ -12034,6 +12035,7 @@ Pages declare a canonical address and language alternates so search engines pick
 - strips exactly ?lang=he[&aliyot=0] (he) or ?lang=bi[&aliyot=0] (en); '/' -> bare host. Emitted for text panels, category pages, menu_page pages.
 - hreflang alternates: https://www.sefaria.org<path> (en) and https://www.sefaria.org.il<path> (he) on every page, path only,
 - hard-coded www hosts even for voices (BUG-ish: voices pages point to library hosts).
+- REBUILD 2026-11-10 (T-C08): canonical and hreflang alternates are absolute, from PUBLIC_CANONICAL_ORIGIN (src/lib/config.ts canonicalUrl; default and fallback https://www.sefaria.org; chart value reader.canonicalOrigin), not PUBLIC_SITE_ORIGIN, which is empty in the cluster on purpose. Per request, as Django's canonical_url: on the Hebrew site's host (*.org.il, *-il.org) canonical and og:url name www.sefaria.org.il (src/lib/routing/canonical.ts); the alternates stay one per language. Pages with a canonical today: /calendars and /translations/<lang>; the reader, library and topic pages have none yet. Tests: src/lib/config.test.ts, src/lib/routing/canonical.test.ts.
 
 Code: [`reader/views.py:1413-1428`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1413-L1428), [`templates/base.html:21-24`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/base.html#L21-L24)
 
@@ -12260,6 +12262,7 @@ The site has a manifest and icons but no offline caching, push notifications or 
 - Mobile web variant is only a Playwright config (playwright.mobileweb.config.ts).
 - nginx 301-redirects /static/mobile/message-en.json and message-he.json to ${STRAPI_LOCATION}/api/mobile-message[-he] (nginx tpl:150-158, 258-266);
 - legacy copies in static/mobile/message-{en,he}.json (2023 donation message schema {title,text[],buttonLink,buttonText,name,schemaVersion}).
+- DEPLOY 2026-11-10 (T-C04): with nodejs.mode optin/reader, nginx sends /favicon.ico, /site.webmanifest, /manifest.json, /llms.txt and /.well-known/* straight to Varnish whatever the reader_version cookie (helm-chart/sefaria/templates/_reader-django-paths.tpl, generated by build/ci/reader-nginx-paths.mjs), instead of a failed render in the reader first.
 
 Code: [`helm-chart/sefaria/templates/configmap/nginx.yaml:150`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/helm-chart/sefaria/templates/configmap/nginx.yaml#L150), [`static/mobile/message-en.json:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/mobile/message-en.json#L1)
 
@@ -12307,6 +12310,7 @@ Crawling rules are served by nginx from deployment config and block everything o
 - Not a Django view: Helm ConfigMap robots-txt-<env> (templates/configmap/robots-txt.yaml) mounted in nginx rollout (rollout/nginx.yaml:101,141); nginx location /robots.txt alias /app/robots.txt.
 - Content: User-agent: * then Disallow: / when nginx.disableScraping (non-prod), else Disallow: /activity/, /login?next=*, /register?next=*.
 - Varnish bans spiders violating crawl delay (403 'Your spider is not honoring our robots.txt crawl-delay. Banning.').
+- DEPLOY 2026-11-10 (T-C05): /robots.txt stays nginx's own location in every nodejs.mode; the reader_version cookie is never consulted for it (build/ci/reader-nginx-routing.py checks it).
 
 Code: [`helm-chart/sefaria/templates/configmap/robots-txt.yaml:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/helm-chart/sefaria/templates/configmap/robots-txt.yaml#L1), [`helm-chart/sefaria/templates/rollout/nginx.yaml:101`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/helm-chart/sefaria/templates/rollout/nginx.yaml#L101)
 
@@ -12338,6 +12342,7 @@ Every server-rendered page carries canonical, language-alternate and social meta
 - base.html: hreflang en -> www.sefaria.org{{path}}, hreflang he -> sefaria.org.il (:22-23); canonical_url block (:26-28; set by reader/views.py canonical_url for texts/sheets);
 - og:type/image/image:type/width 1200/height 630/url (:31-41) with image from {% social_image_url request 'facebook' %}; per-page meta_title/meta_description blocks.
 - JSON-LD breadcrumbs: ld_cat_crumbs, sheet_crumbs (reader/views.py:1433-1520) and ref-level ld. Server-side rendered HTML via Node SSR (render_react_component) so crawlers see content.
+- REBUILD 2026-11-10 (T-C08): og:url uses the same absolute canonical origin as the canonical link (PUBLIC_CANONICAL_ORIGIN). og:image is still built on PUBLIC_SITE_ORIGIN (relative in the cluster).
 
 Code: [`templates/base.html:22`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/base.html#L22), [`reader/views.py:1433`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1433)
 
@@ -12395,6 +12400,7 @@ Health endpoints report readiness of database, Redis, Node SSR and the library f
 - /healthz and /health-check (application_health_api: redis ping, Node SSR /healthz, db; JSON {allReady, dbConnected, multiserverReady, redisReady, nodejsReady, revisionNumber}; 503 on failure);
 - /healthz-rollout (200 once library.is_initialized()); standalone name-service /healthz always 200; /nginx-health in nginx.
 - urls_name.py standalone autocomplete pod (NAME_SERVICE=true).
+- DEPLOY 2026-11-10: in optin/reader modes nginx gives the reader 5 s to accept a connection (proxy_connect_timeout) before falling back to Varnish/Django (@reader_down: GET/HEAD only; a write gets the 502, never replayed), so a reader scaled to zero (the emergency rollback, reader-next/docs/DEPLOYMENT.md) costs an opted-in visitor seconds, not a minute.
 
 Code: [`sefaria/views.py:293`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L293), [`sefaria/urls_name.py:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_name.py#L1)
 

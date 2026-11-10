@@ -504,3 +504,15 @@ Script: `tools/apply_2026_11_10_f-atlas.py` (rebuild-status.json only; idempoten
 - **TOP-033** Topics TOC delivery: `/api/topics-toc` and `/api/topics/library-count` GET only and the same for everyone; the v2 topic answer's `pools` (already on the branch, unchanged) is now covered by a test.
 - **LEG-019** Text edit activity feed: `/api/activity/...` now requires sign-in as the legacy page does (401 signed out), bounds `page` to 1..100, GET only, private, 404 for an unknown ref or version, parity with the page's data.
 - **STA-005** Static page serving: `?format=json[&lang=en|he]` answers a static page's content block, title and CSS for the new reader's shell, on the Library host only (T-B06, D-5).
+
+## 2026-11-10 — platform (wave 1, lane A)
+
+### Updated
+
+- **PLT-008** Canonical URLs and hreflang: absolute, from `PUBLIC_CANONICAL_ORIGIN` (default `https://www.sefaria.org`; the Hebrew
+  site's host names `www.sefaria.org.il`, as Django), on the two pages that have them (`/calendars`, `/translations/<lang>`); status `partial` (reader, library and topic pages have none yet).
+- **PLT-027** Canonical, hreflang, Open Graph and JSON-LD: `og:url` from the same origin; `og:image` still relative in the cluster.
+- **SRC-082** Dicta Hebrew Tanakh search merge: the e2e cassette can record and replay Dicta (`/__dicta/`), once a fixture routes it.
+- **PLT-022** No service worker (manifest-only PWA), **PLT-025** robots.txt: with the opt-in, nginx serves the favicon, manifests,
+  `llms.txt`, `.well-known` and `robots.txt` without consulting the `reader_version` cookie.
+- **PLT-031** Health checks and operational endpoints: nginx falls back to Varnish within 5 s when the reader cannot be reached.
