@@ -5,7 +5,7 @@ Script: `tools/apply_2026_11_10_f-atlas.py` (rebuild-status.json only; idempoten
 ### Statused
 
 - **All 514 entries that had no rebuild status** now have one, decided from `reader-next/src` and its tests (each `done`/`partial`
-  names the source files; each `partial` says what is missing). After the script: 426 done, 102 partial, 62 todo, 190 deferred,
+  names the source files; each `partial` says what is missing). After the script: 429 done, 99 partial, 62 todo, 190 deferred,
   135 n/a, 46 replaced; 961 of 961 statused.
 - **Voices** (sheets-view, sheets-editor, collections, profile-social, Voices search, Voices-only sidebar modules and host features):
   `deferred`, "Voices out of scope (owner 2026-11-10)". PRO-010 (Torah Tracker stats) is a Library page: `todo` (T-F21).
@@ -37,5 +37,7 @@ Script: `tools/apply_2026_11_10_f-atlas.py` (rebuild-status.json only; idempoten
   BOK-004, LIB-003, LIB-018). Compare Text is not built and is not in LAUNCH_PLAN §8: the owner should confirm whether it is in scope.
 - Stale `partial` notes found on the way: **GUI-003** (autocomplete, keyboard and account menu are built; only the notifications link is
   missing), **BOK-016** → done (the dictionary search box is on the book page), **ANL-014** (Sentry is removed, not built), **TOP-002**
-  → done and **TOP-024** → deferred (their open part was the Voices host).
+  → done and **TOP-024** → deferred (their open part was the Voices host); **CON-047, CON-048, CON-055** → done (topic creation, notes
+  and Add to Sheet are built for signed-in readers; the notes said "signed-out modal only"); **VER-013** note (only Add to Sheet beside
+  Open is missing).
 - GUI-012, TXT-002, TXT-005: `by` filled in (spot-check of 30 random `done` entries: all 30 confirmed).

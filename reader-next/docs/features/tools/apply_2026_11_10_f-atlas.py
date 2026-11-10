@@ -534,6 +534,9 @@ UPDATES = [
     # --- existing entries re-checked: the 10 todo, Voices notes, stale entries, spot-check by fields ---
     ("ANL-014", "Third-party analytics and testing scripts", "partial", "GTM, gtag and Simple Analytics built; Sentry removed (2026-11-04); VWO/Hotjar by remote config and Unbounce per page (decided 2026-10-28) not built", "src/lib/analytics/scripts.ts"),
     ("BOK-016", "Dictionary node letter browse", "done", "Browse by Letter and the dictionary search box on the book page", "src/features/book/BookRoute.tsx, src/ui/DictionarySearch, src/ui/TocView"),
+    ("CON-047", "Add topic to ref (moderator)", "done", "Moderators search and add a topic to the ref, or create one in the sidebar (POST /api/topic/new, then the link)", "src/ui/TopicsView/TopicSearch.tsx, src/ui/TopicsView/TopicCreateForm.tsx"),
+    ("CON-048", "Add private note on a ref", "done", "Signed in: write, edit and delete private notes on the selected verses; signed out: the sign-up modal", "src/ui/NotesView, src/lib/user/notes.ts"),
+    ("CON-055", "Add selected source to a sheet", "done", "Signed in: Add to Sheet (choose or create a sheet); signed out: the sign-up modal. Partial-selection trimming is CON-056", "src/ui/AddToSheetView, src/lib/user/sheets.ts"),
     ("GUI-003", "Header right-side controls", "partial", "Search with autocomplete and Hebrew keyboard, account menu, help, language and module switcher built; no notifications link or unread count (T-F20)", "src/ui/SiteHeader"),
     ("GUI-012", "InterfaceText bilingual text component", "done", "Tagged tests; checked against sefaria.org in the parity runs", "src/ui/InterfaceText, src/ui/LangText, src/ui/TopicsNav/TopicCard.tsx (InterfaceMarkdown)"),
     ("LIB-002", "Library home header and edit buttons", "done", "Heading, aleph/ayin content-language toggle and moderator buttons (Add Category, Reorder) built", "src/ui/LibraryHome, src/ui/ContentLanguage, src/ui/AdminButtons, src/ui/CategoryEditor"),
@@ -569,6 +572,7 @@ UPDATES = [
     ("TOP-024", "Topic sheet cards", "deferred", "Voices out of scope (owner 2026-11-10) (no Sheets tab on Library topic pages, as live)", ""),
     ("TXT-002", "Parashah and aliyah headers in Torah text", "done", "Tagged tests; checked against sefaria.org in the parity runs", "src/lib/reader/parashah.ts, src/ui/TextSection/TextSection.tsx, src/ui/SectionTitle/SectionTitle.tsx"),
     ("TXT-005", "Talmud continuous layout default", "done", "Tagged tests; checked against sefaria.org in the parity runs", "src/lib/reader/settings.ts"),
+    ("VER-013", "Translation Open sub-mode", "partial", "Preview, Open and back done; the Add to Sheet button beside Open is not built", "src/ui/TranslationsView/TranslationOpenView.tsx"),
 ]
 
 
