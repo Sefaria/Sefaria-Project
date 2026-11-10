@@ -1,4 +1,3 @@
-
 from sefaria.model import *
 
 titles = library.get_indexes_in_category("Bavli")
@@ -9,4 +8,4 @@ for title in titles:
         indx.nodes.checkFirst["en"] = "Mishnah " + title
         indx.save()
     except Exception as e:
-        print("Caught exception: {}".format(e))
+        print(f"Caught exception: {e}")

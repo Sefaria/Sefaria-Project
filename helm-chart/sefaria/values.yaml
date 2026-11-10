@@ -268,12 +268,15 @@ tasks:
   openaiSecretRef: openai-api-key
   langsmithSecretRef: langsmith-api-key
   redis:
-    url: "redis://127.0.0.1"
-    port: "6397"
+    # Defaults point at the dev cluster's shared Redis Sentinel so cauldrons work with no
+    # redis overrides. Prod/preprod override these in their own values.
+    url: ""
+    port: "26379"
     brokerDBNumber: "0"
     resultBackendDBNumber: "1"
-    sentinelURL: ""
-    transportOptions: {}
+    sentinelURL: "redis-headless.redis.svc.cluster.local"
+    transportOptions:
+      master_name: mymaster
     # the Bitnami redis chart's sentinel.masterSet
     masterSet: "mymaster"
     # DB numbers for Django's CACHES and GenCache on the same Redis. Must differ from
