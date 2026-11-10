@@ -84,10 +84,13 @@
   "note": "Page titles done; meta descriptions not"
  },
  "PLT-007": {
-  "status": "todo"
+  "status": "partial",
+  "note": "noindex on sparse topic pages and revision history; /search lacks it (sheets, collections are Voices)",
+  "by": "src/features/topics/topic-page-route.ts, src/routes/activity.$.tsx"
  },
  "PLT-008": {
-  "status": "todo"
+  "status": "deferred",
+  "note": "Default-on/SEO head builder waits (LAUNCH_PLAN §8): canonical only on /calendars and /translations, no hreflang; origin is T-C08"
  },
  "PLT-011": {
   "status": "replaced",
@@ -106,21 +109,23 @@
  },
  "PLT-014": {
   "status": "deferred",
-  "note": "Library/Voices module helpers wait for the Voices decision"
+  "note": "Voices out of scope (owner 2026-11-10)"
  },
  "PLT-019": {
   "status": "partial",
   "note": "Phone layout done; other mobile-web specifics not audited"
  },
  "PLT-026": {
-  "status": "todo"
+  "status": "deferred",
+  "note": "Default-on/SEO head builder/sitemaps wait (LAUNCH_PLAN §8); sitemaps stay Django's"
  },
  "PLT-027": {
-  "status": "todo"
+  "status": "deferred",
+  "note": "Default-on/SEO head builder waits (LAUNCH_PLAN §8); see PLT-008, PLT-009"
  },
  "RTE-001": {
   "status": "deferred",
-  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+  "note": "Voices out of scope (owner 2026-11-10)"
  },
  "RTE-002": {
   "status": "replaced",
@@ -128,22 +133,24 @@
  },
  "RTE-004": {
   "status": "deferred",
-  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+  "note": "Voices out of scope (owner 2026-11-10)"
  },
  "RTE-008": {
   "status": "replaced",
   "note": "Django URL composition, middleware and global JS payloads have no equivalent in a TanStack Start app"
  },
  "RTE-009": {
-  "status": "todo"
+  "status": "done",
+  "note": "/ 302 to /texts, /texts/<category path>, Tanach to Tanakh 301; /texts/recent is T-F26",
+  "by": "src/routes/index.tsx, src/routes/texts.$.tsx, src/routes/texts.index.tsx"
  },
  "RTE-021": {
   "status": "deferred",
-  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+  "note": "Voices out of scope (owner 2026-11-10)"
  },
  "RTE-022": {
   "status": "deferred",
-  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+  "note": "Voices out of scope (owner 2026-11-10)"
  },
  "RTE-026": {
   "status": "done",
@@ -158,7 +165,9 @@
   "by": "src/lib/workspace/url.ts"
  },
  "RTE-029": {
-  "status": "todo"
+  "status": "partial",
+  "note": "q, tab, filters, exact and sort in the URL (e2e/search-page); /search has no robots noindex; sheet params are Voices",
+  "by": "src/routes/search.tsx, src/lib/search/search-page.ts"
  },
  "RTE-030": {
   "status": "done",
@@ -184,7 +193,7 @@
  },
  "RTE-039": {
   "status": "deferred",
-  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+  "note": "Voices out of scope (owner 2026-11-10)"
  },
  "RTE-040": {
   "status": "partial",
@@ -227,8 +236,8 @@
   "by": "src/lib/workspace/url.ts"
  },
  "RTE-059": {
-  "status": "deferred",
-  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+  "status": "todo",
+  "note": "sefaria.org / sefaria.org.il bounce by interface language not reproduced by the reader's server (T-E07)"
  },
  "RTE-062": {
   "status": "done",
@@ -299,16 +308,17 @@
   "by": "src/features/reader/TextPanel.tsx"
  },
  "SHL-032": {
-  "status": "todo",
-  "note": "Sheet and menu panel kinds plug into PanelHost in src/features/workspace/Workspace.tsx"
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10) (sheets do not open in reader panels)"
  },
  "SHL-033": {
   "status": "done",
   "by": "src/features/reader/TextPanel.tsx"
  },
  "SHL-034": {
-  "status": "todo",
-  "note": "Sheet and menu panel kinds plug into PanelHost in src/features/workspace/Workspace.tsx"
+  "status": "partial",
+  "note": "Pages are their own routes, not panel menus; the compare panel's library, category and book menus are not built (Compare Text)",
+  "by": "src/routes"
  },
  "SHL-036": {
   "status": "partial",
@@ -364,8 +374,9 @@
   "by": "src/lib/workspace/"
  },
  "SHL-060": {
-  "status": "todo",
-  "note": "Open library, Voices, search and user pages from a panel"
+  "status": "partial",
+  "note": "Header opens /texts, /topics, /search, /saved, /history, /calendars as routes; notifications and Torah Tracker are Django's (T-F20, T-F21)",
+  "by": "src/ui/SiteHeader/SiteHeader.tsx"
  },
  "SHL-061": {
   "status": "done",
@@ -627,7 +638,7 @@
  },
  "VER-013": {
   "status": "partial",
-  "note": "Preview, Open and back done; Add to Sheet needs sign-in",
+  "note": "Preview, Open and back done; the Add to Sheet button beside Open is not built",
   "by": "src/ui/TranslationsView/TranslationOpenView.tsx"
  },
  "VER-014": {
@@ -673,9 +684,9 @@
   "by": "src/ui/TocView/TocView.tsx, src/lib/toc/"
  },
  "BOK-016": {
-  "status": "partial",
-  "note": "Letters done; the dictionary search box is not",
-  "by": "src/ui/TocView/TocView.tsx, src/lib/toc/"
+  "status": "done",
+  "note": "Browse by Letter and the dictionary search box on the book page",
+  "by": "src/features/book/BookRoute.tsx, src/ui/DictionarySearch, src/ui/TocView"
  },
  "BOK-017": {
   "status": "done",
@@ -737,14 +748,14 @@
   "by": "src/features/reader/ConnectionsPane.tsx"
  },
  "CON-048": {
-  "status": "partial",
-  "note": "Signed-out modal only; the tool itself needs accounts (Phase 7)",
-  "by": "src/features/reader/ConnectionsPane.tsx"
+  "status": "done",
+  "note": "Signed in: write, edit and delete private notes on the selected verses; signed out: the sign-up modal",
+  "by": "src/ui/NotesView, src/lib/user/notes.ts"
  },
  "CON-055": {
-  "status": "partial",
-  "note": "Signed-out modal only; the tool itself needs accounts (Phase 7)",
-  "by": "src/features/reader/ConnectionsPane.tsx"
+  "status": "done",
+  "note": "Signed in: Add to Sheet (choose or create a sheet); signed out: the sign-up modal. Partial-selection trimming is CON-056",
+  "by": "src/ui/AddToSheetView, src/lib/user/sheets.ts"
  },
  "CON-062": {
   "status": "done",
@@ -794,7 +805,8 @@
  },
  "TXT-002": {
   "status": "done",
-  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+  "note": "Tagged tests; checked against sefaria.org in the parity runs",
+  "by": "src/lib/reader/parashah.ts, src/ui/TextSection/TextSection.tsx, src/ui/SectionTitle/SectionTitle.tsx"
  },
  "TXT-003": {
   "status": "done",
@@ -806,7 +818,8 @@
  },
  "TXT-005": {
   "status": "done",
-  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+  "note": "Tagged tests; checked against sefaria.org in the parity runs",
+  "by": "src/lib/reader/settings.ts"
  },
  "TXT-006": {
   "status": "done",
@@ -958,7 +971,8 @@
  },
  "GUI-012": {
   "status": "done",
-  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+  "note": "Tagged tests; checked against sefaria.org in the parity runs",
+  "by": "src/ui/InterfaceText, src/ui/LangText, src/ui/TopicsNav/TopicCard.tsx (InterfaceMarkdown)"
  },
  "GUI-013": {
   "status": "done",
@@ -988,7 +1002,7 @@
  },
  "GUI-003": {
   "status": "partial",
-  "note": "No autocomplete (Phase 6), no keyboard, no accounts",
+  "note": "Search with autocomplete and Hebrew keyboard, account menu, help, language and module switcher built; no notifications link or unread count (T-F20)",
   "by": "src/ui/SiteHeader"
  },
  "GUI-009": {
@@ -1178,12 +1192,13 @@
   "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
  },
  "LIB-002": {
-  "status": "partial",
-  "note": "Heading done; language toggle and editor buttons not"
+  "status": "done",
+  "note": "Heading, aleph/ayin content-language toggle and moderator buttons (Add Category, Reorder) built",
+  "by": "src/ui/LibraryHome, src/ui/ContentLanguage, src/ui/AdminButtons, src/ui/CategoryEditor"
  },
  "LIB-005": {
   "status": "todo",
-  "note": "Not built"
+  "note": "Daily dedication banner (live Google Sheet) not built (T-G03)"
  },
  "LIB-026": {
   "status": "partial",
@@ -1332,40 +1347,40 @@
   "by": "src/lib/search/search-page.ts"
  },
  "SRC-025": {
-  "status": "deferred",
-  "note": "Needs Compare Text, which is not built."
+  "status": "todo",
+  "note": "In-reader Compare Text panel not built (MULTIPANEL_PLAN step 4); not in LAUNCH_PLAN §8: owner to confirm scope"
  },
  "SRC-026": {
-  "status": "deferred",
-  "note": "Needs Compare Text, which is not built."
+  "status": "todo",
+  "note": "In-reader Compare Text panel not built (MULTIPANEL_PLAN step 4); not in LAUNCH_PLAN §8: owner to confirm scope"
  },
  "SRC-027": {
   "status": "deferred",
-  "note": "Collections / Voices / topics: Phase 7, owner decides."
+  "note": "Voices out of scope (owner 2026-11-10)"
  },
  "SRC-088": {
   "status": "deferred",
-  "note": "Collections / Voices / topics: Phase 7, owner decides."
+  "note": "Voices out of scope (owner 2026-11-10)"
  },
  "SRC-089": {
   "status": "deferred",
-  "note": "Collections / Voices / topics: Phase 7, owner decides."
+  "note": "Voices out of scope (owner 2026-11-10)"
  },
  "SRC-090": {
   "status": "deferred",
-  "note": "Collections / Voices / topics: Phase 7, owner decides."
+  "note": "Voices out of scope (owner 2026-11-10)"
  },
  "SRC-091": {
   "status": "deferred",
-  "note": "Collections / Voices / topics: Phase 7, owner decides."
+  "note": "Voices out of scope (owner 2026-11-10)"
  },
  "SRC-092": {
   "status": "deferred",
-  "note": "Collections / Voices / topics: Phase 7, owner decides."
+  "note": "Voices out of scope (owner 2026-11-10)"
  },
  "SRC-093": {
   "status": "deferred",
-  "note": "Collections / Voices / topics: Phase 7, owner decides."
+  "note": "Voices out of scope (owner 2026-11-10)"
  },
  "SRC-098": {
   "status": "done",
@@ -1373,11 +1388,11 @@
  },
  "SRC-099": {
   "status": "deferred",
-  "note": "Collections / Voices / topics: Phase 7, owner decides."
+  "note": "Its users are the sheet editor (Voices out of scope, owner 2026-11-10) and Django admin editors (LAUNCH_PLAN §8)"
  },
  "SRC-100": {
   "status": "deferred",
-  "note": "Collections / Voices / topics: Phase 7, owner decides."
+  "note": "Its users are the sheet editor (Voices out of scope, owner 2026-11-10) and Django admin editors (LAUNCH_PLAN §8)"
  },
  "SRC-104": {
   "status": "done",
@@ -1538,7 +1553,7 @@
  },
  "ANL-014": {
   "status": "partial",
-  "note": "GTM, gtag, Simple Analytics, Sentry built; VWO / Hotjar / Unbounce need an owner decision",
+  "note": "GTM, gtag and Simple Analytics built; Sentry removed (2026-11-04); VWO/Hotjar by remote config and Unbounce per page (decided 2026-10-28) not built",
   "by": "src/lib/analytics/scripts.ts"
  },
  "ANL-001": {
@@ -1614,9 +1629,9 @@
   "by": "src/features/reader/ConnectionsPane.tsx"
  },
  "CON-047": {
-  "status": "partial",
-  "note": "Search and add a topic: done (moderators). Creating a topic (TopicEditor) links to sefaria.org",
-  "by": "src/ui/TopicsView/TopicSearch.tsx"
+  "status": "done",
+  "note": "Moderators search and add a topic to the ref, or create one in the sidebar (POST /api/topic/new, then the link)",
+  "by": "src/ui/TopicsView/TopicSearch.tsx, src/ui/TopicsView/TopicCreateForm.tsx"
  },
  "GUI-001": {
   "status": "done",
@@ -1722,9 +1737,9 @@
   "by": "src/routes/topics.*, src/features/topics/topic-page-route.ts, src/lib/routing/django-paths.ts"
  },
  "TOP-002": {
-  "status": "partial",
-  "note": "Library landing page built; the Voices host's /topics stays Django's (Q-E1)",
-  "by": "src/server/pass-through.ts, src/lib/routing/django-paths.ts"
+  "status": "done",
+  "note": "Library topics landing built; the Voices host's /topics is Django's (Voices out of scope, owner 2026-11-10)",
+  "by": "src/features/topics/TopicsLandingRoute.tsx"
  },
  "TOP-003": {
   "status": "done",
@@ -1837,9 +1852,8 @@
   "by": "src/ui/TopicPage/SourceCard.tsx"
  },
  "TOP-024": {
-  "status": "partial",
-  "note": "No Sheets tab on the Library (as before); the Voices host's topic pages stay Django's",
-  "by": "src/lib/routing/django-paths.ts"
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10) (no Sheets tab on Library topic pages, as live)"
  },
  "TOP-025": {
   "status": "done",
@@ -1902,5 +1916,2239 @@
   "status": "partial",
   "note": "/texts/notes routed to the client; /torahtracker still Django's",
   "by": "src/routes/texts.notes.tsx"
+ },
+ "ACC-003": {
+  "status": "todo",
+  "note": "/settings/account stays a Django form at L1: record it as an accepted exit with a way back; the opt-in switch also in the new menu (T-F23, T-D05)"
+ },
+ "ACC-004": {
+  "status": "todo",
+  "note": "Part of /settings/account (T-F23); stays Django"
+ },
+ "ACC-005": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild (no web caller)"
+ },
+ "ACC-015": {
+  "status": "done",
+  "note": "The banner's Log in to try goes to /login?next=/enable-library-assistant (Django sets the flag and returns)",
+  "by": "src/features/shell/SiteWideBanner/SiteWideBanner.tsx"
+ },
+ "ADM-001": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+ },
+ "ADM-002": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+ },
+ "ADM-003": {
+  "status": "partial",
+  "note": "Moderator buttons on library home, category and book pages open the new editors; topic/source editors hand off to Django ?editor=1 (§8)",
+  "by": "src/ui/AdminButtons, src/ui/CategoryEditor, src/features/library/LibraryRoute.tsx, src/ui/IndexEditor, src/features/book/BookRoute.tsx, src/features/topics/TopicPageRoute.tsx"
+ },
+ "ADM-004": {
+  "status": "partial",
+  "note": "Category and index editors have their own forms (save/cancel, validation); topic, source and collection editors not built (§8 / Voices)",
+  "by": "src/ui/CategoryEditor, src/ui/IndexEditor"
+ },
+ "ADM-005": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); topic editor stays Django (?editor=1)"
+ },
+ "ADM-006": {
+  "status": "done",
+  "note": "Category editor (titles, descriptions, parent, primary, reorder children, delete) and top-level Reorder Editor",
+  "by": "src/ui/CategoryEditor, src/lib/catalog/category-editor.ts, src/features/library/LibraryRoute.tsx"
+ },
+ "ADM-007": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); topic source editor stays Django (?editor=1)"
+ },
+ "ADM-008": {
+  "status": "done",
+  "note": "Index Editor on the book page (save, async rename, reset, delete); legacy section-types bug not ported",
+  "by": "src/ui/IndexEditor, src/lib/book/index-editor.ts, src/features/book/BookRoute.tsx"
+ },
+ "ADM-009": {
+  "status": "done",
+  "note": "Version editor and delete on the book page's Versions tab",
+  "by": "src/ui/VersionEditForm, src/lib/versions/admin.ts, src/features/book/BookRoute.tsx"
+ },
+ "ADM-010": {
+  "status": "partial",
+  "note": "Same as ADM-003: library/category/book buttons built; topic and source heading buttons open Django's ?editor=1",
+  "by": "src/ui/AdminButtons, src/ui/CategoryEditor, src/features/library/LibraryRoute.tsx, src/ui/IndexEditor, src/features/book/BookRoute.tsx"
+ },
+ "ADM-011": {
+  "status": "partial",
+  "note": "Category reorder (library top level and a category's children) built; topic and topic-source reorder stay Django (?editor=1)",
+  "by": "src/ui/CategoryEditor/CategoryEditor.tsx"
+ },
+ "ADM-012": {
+  "status": "partial",
+  "note": "Category editor opens pre-filled; topic editors stay Django (?editor=1)",
+  "by": "src/features/library/LibraryRoute.tsx"
+ },
+ "ADM-013": {
+  "status": "partial",
+  "note": "Category chooser and reorder list built for the category/index editors; alternate-title and topic pieces stay Django",
+  "by": "src/ui/CategoryChooser, src/ui/CategoryEditor"
+ },
+ "ADM-014": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+ },
+ "ADM-015": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+ },
+ "ADM-016": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+ },
+ "ADM-017": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+ },
+ "ADM-018": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+ },
+ "ADM-019": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+ },
+ "ADM-020": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+ },
+ "ADM-021": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+ },
+ "ADM-022": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+ },
+ "ADM-023": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+ },
+ "ADM-024": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+ },
+ "ADM-025": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+ },
+ "ADM-026": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild (tool disabled)"
+ },
+ "ADM-027": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild (tool disabled)"
+ },
+ "ADM-028": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild (tool disabled)"
+ },
+ "ADM-029": {
+  "status": "partial",
+  "note": "Category and index editor forms built; the topic and source editors stay Django (?editor=1, §8); collection editor is Voices",
+  "by": "src/ui/CategoryEditor, src/ui/IndexEditor"
+ },
+ "ADM-030": {
+  "status": "partial",
+  "note": "Moderator edit buttons for categories, index records, versions and links built; topics and sources go to Django ?editor=1; collections are Voices",
+  "by": "src/ui/AdminButtons, src/ui/CategoryEditor, src/features/library/LibraryRoute.tsx, src/ui/IndexEditor, src/features/book/BookRoute.tsx"
+ },
+ "ADM-031": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the new editors call these endpoints)"
+ },
+ "ADM-032": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+ },
+ "ADM-033": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+ },
+ "ADM-034": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+ },
+ "ADM-035": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+ },
+ "ADM-036": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it"
+ },
+ "ADM-037": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+ },
+ "ADM-038": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+ },
+ "ADM-039": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it"
+ },
+ "ADM-040": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+ },
+ "ADM-041": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+ },
+ "ADM-042": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+ },
+ "ADM-043": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+ },
+ "ADM-044": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+ },
+ "ADM-045": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+ },
+ "ADM-046": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+ },
+ "ADM-047": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+ },
+ "ADM-048": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+ },
+ "ADM-049": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+ },
+ "ADM-050": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+ },
+ "ADM-051": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+ },
+ "ADM-052": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+ },
+ "ADM-053": {
+  "status": "done",
+  "note": "The client reads remote-config flags (banner, assistant, labs); editing them stays in Django admin",
+  "by": "src/lib/shell/remote-config.ts"
+ },
+ "ADM-054": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+ },
+ "ADM-055": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it"
+ },
+ "ADM-056": {
+  "status": "todo",
+  "note": "/dedication/<slug> reaches Django through the pass-through; render it with the static-page mechanism (T-F31) or record it as an exit"
+ },
+ "ADM-057": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it"
+ },
+ "ADM-058": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it"
+ },
+ "AI-002": {
+  "status": "partial",
+  "note": "Library Assistant promo banner built (Log in to try, maybe-later backoff); signed-in 'Try it' not shown (AI-001)",
+  "by": "src/features/shell/SiteWideBanner, src/lib/shell/promo-backoff.ts"
+ },
+ "AI-003": {
+  "status": "done",
+  "note": "Eligibility and the encrypted user token read for the widget",
+  "by": "src/lib/assistant/access.ts"
+ },
+ "AI-004": {
+  "status": "partial",
+  "note": "Banner and /enable-library-assistant link built; the Account Settings toggle stays Django (T-F23)",
+  "by": "src/features/shell/SiteWideBanner, src/lib/assistant/config.ts"
+ },
+ "AI-005": {
+  "status": "done",
+  "note": "?chatbot_version= picks the preview build, remembered in a session cookie; clear forgets it",
+  "by": "src/lib/assistant/config.ts, src/features/assistant/LibraryAssistant.tsx"
+ },
+ "AI-006": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (experiments rule read through the assistant access check)"
+ },
+ "AI-007": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10) (sheet-editor guide)"
+ },
+ "AI-008": {
+  "status": "todo",
+  "note": "AI disclosure tooltip comes with the Guided Learning view, not built (CON-068, T-G03)"
+ },
+ "AI-009": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10) (sheet-editor quick start)"
+ },
+ "AI-010": {
+  "status": "todo",
+  "note": "Guided Learning sidebar view not built: the Resources row opens a 'not built yet' placeholder (CON-068, T-G03)"
+ },
+ "AI-011": {
+  "status": "done",
+  "note": "Library Assistant widget (<lc-chatbot>) on Library pages for eligible users",
+  "by": "src/features/assistant/LibraryAssistant.tsx, src/lib/assistant"
+ },
+ "AI-012": {
+  "status": "done",
+  "note": "Same as AI-005: ?chatbot_version= override",
+  "by": "src/lib/assistant/config.ts"
+ },
+ "AI-013": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+ },
+ "AI-014": {
+  "status": "n/a",
+  "note": "Branch-only proof of concept, not on master; nothing to port"
+ },
+ "AI-015": {
+  "status": "n/a",
+  "note": "Branch-only proof of concept, not on master; nothing to port"
+ },
+ "AI-016": {
+  "status": "n/a",
+  "note": "Branch-only proof of concept, not on master; nothing to port"
+ },
+ "AI-017": {
+  "status": "partial",
+  "note": "AI star tooltip built on topic pages; Guided Learning's use not built (CON-068)",
+  "by": "src/ui/TopicPage/TopicPage.tsx"
+ },
+ "AI-018": {
+  "status": "n/a",
+  "note": "Branch-only proof of concept, not on master; nothing to port"
+ },
+ "AI-019": {
+  "status": "n/a",
+  "note": "Branch-only proof of concept, not on master; nothing to port"
+ },
+ "AI-020": {
+  "status": "n/a",
+  "note": "Branch-only proof of concept, not on master; nothing to port"
+ },
+ "API-001": {
+  "status": "n/a",
+  "note": "Catalogue of the API families the legacy client calls; the new client's calls are in src/lib/api and vendor/sefaria-toolkit"
+ },
+ "API-002": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-003": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-004": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-005": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-006": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-007": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-008": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-009": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-010": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-011": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-012": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-013": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-014": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-015": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "API-016": {
+  "status": "done",
+  "note": "Download Text panel links each version's Django download URL",
+  "by": "src/ui/DownloadVersions"
+ },
+ "API-017": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client calls it)"
+ },
+ "BOK-004": {
+  "status": "todo",
+  "note": "Book page in a compare panel (compact control bar) not built; compare panels do not exist yet"
+ },
+ "BOK-019": {
+  "status": "done",
+  "note": "Dictionary books show a word search box above their contents",
+  "by": "src/features/book/BookRoute.tsx, src/ui/DictionarySearch"
+ },
+ "BOK-020": {
+  "status": "n/a",
+  "note": "Dead in legacy: getCurrentVersion is unused in render"
+ },
+ "BOK-021": {
+  "status": "n/a",
+  "note": "Dead in legacy: ReadMoreText and book-page extended notes are unused"
+ },
+ "BOK-030": {
+  "status": "done",
+  "note": "Add Section (Django /add) and Edit (Index Editor) for moderators",
+  "by": "src/ui/IndexEditor, src/lib/book/index-editor.ts, src/features/book/BookRoute.tsx"
+ },
+ "COL-001": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "COL-002": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "COL-003": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "COL-004": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "COL-005": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "COL-006": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "COL-007": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "COL-008": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "COL-009": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "COL-010": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "CON-001": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool, linker admin (LAUNCH_PLAN §8)"
+ },
+ "CON-002": {
+  "status": "todo",
+  "note": "Phone sidebar header variant (category-colour top border, centred Resources, recent-commentator chips) not built"
+ },
+ "CON-005": {
+  "status": "replaced",
+  "note": "Sidebar state lives in the workspace aside state and the URL (with=, vside, lang2, sbsq) instead of panel fields",
+  "by": "src/lib/connections/url.ts, src/lib/workspace/types.ts, src/lib/workspace/url.ts"
+ },
+ "CON-007": {
+  "status": "partial",
+  "note": "Most modes render; Guide, extended notes, LinkerAdmin and compare fall to a 'not built yet' placeholder",
+  "by": "src/features/reader/ConnectionsPane.tsx, src/lib/connections/url.ts"
+ },
+ "CON-010": {
+  "status": "n/a",
+  "note": "Legacy bug, not ported: Sheets/AboutSheet modes rendered nothing"
+ },
+ "CON-016": {
+  "status": "done",
+  "note": "Tool rows rebuilt as FilterRow `tool` with icon, count, hide-when-zero and analytics",
+  "by": "src/ui/ConnectionsPanel/FilterRow.tsx, src/ui/ConnectionsPanel/ResourcesView.tsx"
+ },
+ "CON-018": {
+  "status": "n/a",
+  "note": "Dead in legacy: Chavruta was removed"
+ },
+ "CON-022": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (the client reads category from /api/links)"
+ },
+ "CON-028": {
+  "status": "todo",
+  "note": "Recent-filter chips (phone header and full-panel list) not built; legacy loop bug means only the current filter shows"
+ },
+ "CON-031": {
+  "status": "replaced",
+  "note": "The list waits for the first page of linked sections to load for every filter, then pages in the rest",
+  "by": "src/features/reader/ConnectionsPane.tsx"
+ },
+ "CON-035": {
+  "status": "done",
+  "note": "Moderators get a remove button: confirm, DELETE /api/links/<id>, refresh links, 'Connection deleted.'",
+  "by": "src/ui/ConnectionsPanel/TextList.tsx, src/features/reader/ConnectionsPane.tsx, src/lib/user/sheets.ts"
+ },
+ "CON-037": {
+  "status": "todo",
+  "note": "Sidebar scroll position is not saved or restored when returning to a list view"
+ },
+ "CON-040": {
+  "status": "n/a",
+  "note": "Legacy-broken sheet About box (AboutBox.jsx:75,130); sheets are Voices, out of scope"
+ },
+ "CON-041": {
+  "status": "done",
+  "note": "About shows the book's related topics, five then More",
+  "by": "src/ui/RelatedTopics/RelatedTopics.tsx, src/ui/AboutView/AboutView.tsx"
+ },
+ "CON-050": {
+  "status": "done",
+  "note": "Edit a note (Save, Cancel, Delete Note with confirm, DELETE /api/notes/<id>)",
+  "by": "src/ui/NotesView/NotesView.tsx, src/lib/user/notes.ts"
+ },
+ "CON-051": {
+  "status": "n/a",
+  "note": "Dead in legacy: public notes are switched off"
+ },
+ "CON-056": {
+  "status": "partial",
+  "note": "Version handling (per-direction versions, same-direction split) done; partial-selection trimming and the image guard not built",
+  "by": "src/lib/user/sheets.ts, src/ui/AddToSheetView"
+ },
+ "CON-057": {
+  "status": "todo",
+  "note": "Google Docs extension promo box in Add to Sheet not built"
+ },
+ "CON-058": {
+  "status": "n/a",
+  "note": "Dead in legacy: broken Gardens path"
+ },
+ "CON-063": {
+  "status": "done",
+  "note": "Edit Text in Advanced goes to Django's /edit/<ref>/<lang>/<version>?next= back to the reader",
+  "by": "src/ui/AdvancedToolsView/AdvancedToolsView.tsx, src/features/reader/ConnectionsPane.tsx"
+ },
+ "CON-064": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool, linker admin (LAUNCH_PLAN §8)"
+ },
+ "CON-066": {
+  "status": "todo",
+  "note": "In-reader Compare Text panel not built; showCompare is never passed so the row is hidden"
+ },
+ "CON-068": {
+  "status": "partial",
+  "note": "Guided Learning row and guide counts from /api/related exist; the Key Questions/summaries view is not built (T-G03)",
+  "by": "src/ui/ConnectionsPanel/ResourcesView.tsx, src/lib/connections/related.ts"
+ },
+ "CON-069": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10): sheet-editor onboarding overlay"
+ },
+ "CON-072": {
+  "status": "done",
+  "note": "Moderators on a dictionary get Change Lexicon Headword and Edit Lexicon Content in Advanced",
+  "by": "src/ui/LexiconEditView, src/lib/lexicon/admin.ts, src/ui/AdvancedToolsView/AdvancedToolsView.tsx"
+ },
+ "GUI-005": {
+  "status": "n/a",
+  "note": "Dead in legacy: ReaderMessage is not mounted by the shell."
+ },
+ "GUI-006": {
+  "status": "todo",
+  "note": "Show the server's GLOBAL_WARNING_MESSAGE (e.g. read-only maintenance) with a close button in the new shell."
+ },
+ "GUI-008": {
+  "status": "replaced",
+  "note": "Header drop-downs use the Popover: focus moves in, Escape returns focus to the trigger, outside click closes; legacy tab-trap bug not ported.",
+  "by": "src/ui/Popover/Popover.tsx, src/ui/SiteHeader/SiteHeader.tsx"
+ },
+ "GUI-014": {
+  "status": "replaced",
+  "note": "Icon buttons are rebuilt as IconButton, the panel header and reader controls, and the aleph/ayin ContentLanguage toggle.",
+  "by": "src/ui/IconButton, src/ui/PanelHeader, src/ui/ReaderControls, src/ui/ContentLanguage"
+ },
+ "GUI-015": {
+  "status": "replaced",
+  "note": "Spinner, LoadingState, SegmentedControl and per-page sort controls replace TabView/Dropdown*/LoadingRing/ToggleSet.",
+  "by": "src/ui/Spinner, src/ui/Feedback, src/ui/SegmentedControl, src/ui/Popover"
+ },
+ "GUI-016": {
+  "status": "n/a",
+  "note": "Dead in legacy: common/Popover.jsx is not imported anywhere."
+ },
+ "GUI-017": {
+  "status": "done",
+  "note": "Auth text field (password reveal, inline role=alert error), captcha wrapper and topic cards are built.",
+  "by": "src/ui/TextField, src/ui/Captcha, src/ui/AuthCard, src/ui/TopicsNav/TopicCard.tsx"
+ },
+ "GUI-018": {
+  "status": "done",
+  "note": "Topic pages have the Source/Translation/both 'A' menu with lang_toggle analytics; the sheet use is Voices.",
+  "by": "src/ui/TopicPage/TopicPage.tsx"
+ },
+ "GUI-020": {
+  "status": "done",
+  "note": "Bilingual LoadingState and an accessible Spinner (role=status, bilingual hidden label).",
+  "by": "src/ui/Feedback/Feedback.tsx, src/ui/Spinner/Spinner.tsx"
+ },
+ "GUI-021": {
+  "status": "replaced",
+  "note": "Topic pages filter and sort their sources in their own bar; collections and profile lists are Voices.",
+  "by": "src/ui/TopicPage/TopicPage.tsx (SourceFilterBar), src/lib/topics/topic-page.ts"
+ },
+ "GUI-022": {
+  "status": "replaced",
+  "note": "Per-page tabs: topic page ARIA tablist with arrow/Home/End; book and search tabs as aria-current links.",
+  "by": "src/ui/TopicPage/TopicPage.tsx, src/ui/BookPage/BookPage.tsx, src/ui/SearchPage/SearchPage.tsx"
+ },
+ "GUI-023": {
+  "status": "replaced",
+  "note": "Card grids are CSS grids with media queries instead of measured NBox/ResponsiveNBox.",
+  "by": "src/ui/LibraryHome/LibraryHome.module.css, src/ui/CategoryPage/CategoryPage.module.css, src/ui/CalendarsPage/CalendarsPage.module.css"
+ },
+ "GUI-024": {
+  "status": "replaced",
+  "note": "Saved/history items, category attribution and block links are rendered by the pages themselves; sheet cards are Voices.",
+  "by": "src/ui/UserHistoryPage, src/ui/CategoryPage/CategoryPage.tsx, src/ui/CategoryColorLine"
+ },
+ "GUI-025": {
+  "status": "n/a",
+  "note": "Legacy-internal helpers with no user-visible behaviour of their own; the rebuild has its own utilities."
+ },
+ "GUI-026": {
+  "status": "replaced",
+  "note": "Search, menu, close, display-settings, aleph/ayin and app-store buttons rebuilt; Guide button serves only the sheet editor (Voices).",
+  "by": "src/ui/IconButton, src/ui/PanelHeader, src/ui/ContentLanguage, src/ui/NavSidebar/TopicModules.tsx"
+ },
+ "GUI-027": {
+  "status": "done",
+  "note": "Feedback form with types, email validation and POST /api/send_feedback; never run against production (T-E06).",
+  "by": "src/ui/FeedbackView, src/lib/feedback/feedback.ts"
+ },
+ "GUI-028": {
+  "status": "n/a",
+  "note": "Dead in legacy: the ReaderMessage like/dislike prompt is not mounted."
+ },
+ "I18-004": {
+  "status": "done",
+  "note": "Rebuilt controls follow ARIA patterns: radio-group SegmentedControl with arrows, native-dialog Modal, tablists; axe-checked.",
+  "by": "src/ui/SegmentedControl/SegmentedControl.tsx, src/ui/Modal/Modal.tsx, src/ui/Button"
+ },
+ "I18-005": {
+  "status": "done",
+  "note": "Header banner, 'Primary navigation' and mobile nav labels, role=search, panel title as a real h1; axe-checked.",
+  "by": "src/ui/SiteHeader/SiteHeader.tsx, src/ui/SiteHeader/HeaderSearch.tsx, src/ui/PanelHeader/PanelHeader.tsx"
+ },
+ "I18-006": {
+  "status": "partial",
+  "note": "Globe menu switches the interface language via /interface/<lang>?next=; the preferred-translation display and reset are not built.",
+  "by": "src/ui/SiteHeader/SiteHeader.tsx, src/routes/interface.$lang.tsx"
+ },
+ "I18-009": {
+  "status": "replaced",
+  "note": "Interface strings are inline {en, he} pairs (InterfaceText) instead of keyed Weblate JSON; auth strings copied with their old keys.",
+  "by": "src/ui/InterfaceText, src/lib/auth/strings.ts"
+ },
+ "I18-010": {
+  "status": "partial",
+  "note": "Interface language from the interfaceLang cookie only; no profile, Israel-country or Accept-Language fallback, no Hebrew-domain redirect.",
+  "by": "src/routes/__root.tsx, src/lib/i18n/content-lang.tsx, src/lib/versions/preferences.ts"
+ },
+ "I18-011": {
+  "status": "done",
+  "note": "Keyboard-operable radio groups, listbox autocomplete, native dialogs, role=alert/status messages.",
+  "by": "src/ui/SegmentedControl/SegmentedControl.tsx, src/ui/SiteHeader/HeaderSearch.tsx, src/ui/AuthErrorBanner/AuthErrorBanner.tsx"
+ },
+ "I18-012": {
+  "status": "n/a",
+  "note": "Sefaria-only client; white-label site packages and TORAH_SPECIFIC switches are not supported (Django keeps them)."
+ },
+ "I18-013": {
+  "status": "done",
+  "note": "LangText sets lang and dir from data; Hebrew interface sets dir=rtl on <html>; Hebrew numerals and dates in labels.",
+  "by": "src/ui/LangText/LangText.tsx, src/lib/i18n/direction.ts, src/routes/__root.tsx, src/lib/reader/labels.ts"
+ },
+ "LEG-001": {
+  "status": "deferred",
+  "note": "Stays Django, new tab (D-6)"
+ },
+ "LEG-002": {
+  "status": "deferred",
+  "note": "Stays Django, new tab (D-6)"
+ },
+ "LEG-003": {
+  "status": "n/a",
+  "note": "Retired gardens, not linked from the new reader; Django keeps them"
+ },
+ "LEG-004": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild"
+ },
+ "LEG-005": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "LEG-006": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "LEG-007": {
+  "status": "deferred",
+  "note": "Stays Django (LAUNCH_PLAN §8); /edit, /add, /translate must return into the new reader with ?next= (T-F27)"
+ },
+ "LEG-008": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); the book page's Index Editor is ported (BOK-030)"
+ },
+ "LEG-009": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+ },
+ "LEG-011": {
+  "status": "deferred",
+  "note": "Stays Django, new tab (D-6)"
+ },
+ "LEG-012": {
+  "status": "deferred",
+  "note": "Stays Django, new tab (D-6); retired visualizations, not linked from the new reader"
+ },
+ "LEG-013": {
+  "status": "deferred",
+  "note": "Stays Django, new tab (D-6)"
+ },
+ "LEG-014": {
+  "status": "deferred",
+  "note": "Stays Django, new tab (D-6); retired visualizations, not linked from the new reader"
+ },
+ "LEG-015": {
+  "status": "n/a",
+  "note": "Retired gardens, not linked from the new reader; Django keeps them"
+ },
+ "LEG-016": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "LEG-017": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "LEG-018": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "LEG-020": {
+  "status": "todo",
+  "note": "Contributor leaderboard is Django's; remove the links or port the list (T-F25)"
+ },
+ "LEG-021": {
+  "status": "deferred",
+  "note": "Stays Django: /dashboard is a standalone legacy page, not linked from the new reader"
+ },
+ "LEG-022": {
+  "status": "todo",
+  "note": "/metrics is an About-sidebar page; Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+ },
+ "LEG-023": {
+  "status": "todo",
+  "note": "/random and /random/link are Django's; answer the redirect in the reader's server (T-F26)"
+ },
+ "LEG-024": {
+  "status": "todo",
+  "note": "/digitized-by-sefaria is linked from the new reader; Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+ },
+ "LEG-025": {
+  "status": "todo",
+  "note": "The reader's own 404 and error pages: every miss and a 503 still reach Django or plain text (T-F28)"
+ },
+ "LEG-026": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild"
+ },
+ "LEG-027": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild"
+ },
+ "LEG-028": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild (superseded by the CMS)"
+ },
+ "LEG-029": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild"
+ },
+ "LEG-030": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild"
+ },
+ "LIB-003": {
+  "status": "todo",
+  "note": "Library browsing inside the in-reader Compare Text panel is not built; ResourcesView's Compare Text opens Add Connection instead."
+ },
+ "LIB-004": {
+  "status": "partial",
+  "note": "Phone About blurb is built; the inline Recently Viewed list above the categories is not (T-G03).",
+  "by": "src/ui/LibraryHome/LibraryHome.tsx, src/ui/NavSidebar/NavSidebar.tsx (AboutBlurb)"
+ },
+ "LIB-006": {
+  "status": "n/a",
+  "note": "LIBRARY_MESSAGE is set only in the s4d site settings, never for sefaria.org; nothing to rebuild."
+ },
+ "LIB-007": {
+  "status": "partial",
+  "note": "About, promo slot, Translations, Learning Schedules, Resources and footer in order; Recently Viewed and promo content missing (T-G03).",
+  "by": "src/features/library/LibraryRoute.tsx, src/ui/NavSidebar/NavSidebar.tsx"
+ },
+ "LIB-013": {
+  "status": "done",
+  "note": "Collections in a category render as blocks linking to the Voices collection page.",
+  "by": "src/ui/CategoryPage/CategoryPage.tsx, src/lib/library/category-model.ts"
+ },
+ "LIB-018": {
+  "status": "todo",
+  "note": "Category pages inside the in-reader Compare Text panel (compact header, back up one level) are not built."
+ },
+ "LIB-022": {
+  "status": "todo",
+  "note": "/updates (New Additions) is linked from the new header and stays Django; launch plan T-F22 (wave 2)."
+ },
+ "LIB-025": {
+  "status": "todo",
+  "note": "Recently Viewed module (3 books, no sheets, All history link or sign-up modal) not built; T-G03."
+ },
+ "LIB-027": {
+  "status": "done",
+  "note": "Study Companion module with sign-up button and promotion analytics, on the torah-portions topic category page.",
+  "by": "src/ui/NavSidebar/TopicModules.tsx"
+ },
+ "LIB-032": {
+  "status": "n/a",
+  "note": "The Jewish Library module is registered but used by no page; dead in legacy."
+ },
+ "LIB-034": {
+  "status": "done",
+  "note": "Sponsor a Day of Learning module linking to the day-of-learning donate page with c_src.",
+  "by": "src/ui/NavSidebar/TopicModules.tsx"
+ },
+ "LIB-036": {
+  "status": "done",
+  "note": "About this text is built for the book page and the reader sidebar's About view.",
+  "by": "src/ui/BookPage/BookPage.tsx, src/lib/book/about-text.ts, src/ui/AboutView/AboutView.tsx"
+ },
+ "LIB-042": {
+  "status": "done",
+  "note": "About Topics module with the static blurb, on topic category pages.",
+  "by": "src/ui/NavSidebar/TopicModules.tsx"
+ },
+ "LIB-044": {
+  "status": "done",
+  "note": "Browse Topics list with the browseTopics anchor that Explore all Topics scrolls to.",
+  "by": "src/ui/NavSidebar/TopicModules.tsx, src/features/topics/TopicsLandingRoute.tsx"
+ },
+ "LIB-045": {
+  "status": "done",
+  "note": "All Topics A-Z link to /topics/all/a on the topics landing sidebar.",
+  "by": "src/ui/NavSidebar/TopicModules.tsx"
+ },
+ "LIB-047": {
+  "status": "n/a",
+  "note": "Join the Community is registered but no page uses it; dead in legacy."
+ },
+ "LIB-048": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10): Join the Conversation appears only on the Voices topics page."
+ },
+ "LIB-049": {
+  "status": "done",
+  "note": "Get the App module with /mobile link and store buttons, on All Topics and Saved/History.",
+  "by": "src/ui/NavSidebar/TopicModules.tsx"
+ },
+ "LIB-051": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10): Create a Sheet appears only on the Voices sheets home page."
+ },
+ "LIB-052": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10): What is Sefaria Voices appears only on the Voices sheets home page."
+ },
+ "LIB-053": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10): Voices newsletter sign-up appears only on the Voices sheets home page."
+ },
+ "LIB-055": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10): About collections appears only on the public collections page."
+ },
+ "LIB-056": {
+  "status": "n/a",
+  "note": "Explore collections is registered but no page uses it; dead in legacy."
+ },
+ "LIB-057": {
+  "status": "n/a",
+  "note": "Who to follow is registered but no page uses it; dead in legacy."
+ },
+ "LIB-058": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10): the Image module is used only on collection pages."
+ },
+ "LIB-059": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10): the Wrapper module is used only on collection pages."
+ },
+ "LIB-061": {
+  "status": "done",
+  "note": "Portal About module with image and markdown description on portal topic pages.",
+  "by": "src/ui/TopicPage/TopicSide.tsx (PortalModules)"
+ },
+ "LIB-062": {
+  "status": "done",
+  "note": "Portal mobile app module with iOS/Android buttons (Steinsaltz alt text kept).",
+  "by": "src/ui/TopicPage/TopicSide.tsx (PortalModules)"
+ },
+ "LIB-063": {
+  "status": "done",
+  "note": "Portal organization module with markdown description.",
+  "by": "src/ui/TopicPage/TopicSide.tsx (PortalModules)"
+ },
+ "LIB-064": {
+  "status": "partial",
+  "note": "Subscribes to Sefaria and Steinsaltz lists without educator option; the form uses the topics layout, not NewsletterSignUpForm's.",
+  "by": "src/ui/TopicPage/TopicSide.tsx, src/features/topics/TopicPageRoute.tsx"
+ },
+ "LIB-065": {
+  "status": "replaced",
+  "note": "Each page has its own tabs: topic page ARIA tabs with arrow/Home/End keys; book and search tabs are links with aria-current.",
+  "by": "src/ui/TopicPage/TopicPage.tsx, src/ui/BookPage/BookPage.tsx, src/ui/SearchPage/SearchPage.tsx, src/ui/TranslationsPage/TranslationsPage.tsx"
+ },
+ "LIB-066": {
+  "status": "replaced",
+  "note": "Topic pages have their own source filter and sort bar; the other FilterableList users are Voices pages.",
+  "by": "src/ui/TopicPage/TopicPage.tsx (SourceFilterBar), src/lib/topics/topic-page.ts"
+ },
+ "LIB-068": {
+  "status": "replaced",
+  "note": "Catalog tree, category lookups and Hebrew category names come from typed catalog modules instead of the Sefaria singleton.",
+  "by": "src/lib/catalog/toc.ts, src/lib/library/category-model.ts"
+ },
+ "LNK-001": {
+  "status": "deferred",
+  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+ },
+ "LNK-002": {
+  "status": "deferred",
+  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+ },
+ "LNK-003": {
+  "status": "deferred",
+  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+ },
+ "LNK-004": {
+  "status": "deferred",
+  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+ },
+ "LNK-005": {
+  "status": "deferred",
+  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+ },
+ "LNK-006": {
+  "status": "deferred",
+  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+ },
+ "LNK-007": {
+  "status": "deferred",
+  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+ },
+ "LNK-008": {
+  "status": "deferred",
+  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+ },
+ "LNK-009": {
+  "status": "n/a",
+  "note": "Retired linker v1/v2; Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+ },
+ "LNK-010": {
+  "status": "deferred",
+  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+ },
+ "LNK-011": {
+  "status": "deferred",
+  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+ },
+ "LNK-012": {
+  "status": "deferred",
+  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+ },
+ "LNK-013": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10) (embedded sheets)"
+ },
+ "LNK-014": {
+  "status": "deferred",
+  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+ },
+ "NTF-001": {
+  "status": "todo",
+  "note": "/notifications is Django's and the new header has no notifications link or unread count (T-F20)"
+ },
+ "NTF-002": {
+  "status": "todo",
+  "note": "Per-type notification rendering comes with the notifications page (T-F20)"
+ },
+ "NTF-003": {
+  "status": "todo",
+  "note": "Mark-read on load and the header's unread badge come with the notifications page (T-F20)"
+ },
+ "NTF-004": {
+  "status": "todo",
+  "note": "Global notifications show in the notifications feed and /updates; both still Django's (T-F20, T-F22)"
+ },
+ "NTF-005": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (email/CRM, no client part)"
+ },
+ "NTF-006": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (email/CRM, no client part)"
+ },
+ "NTF-007": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (email/CRM, no client part)"
+ },
+ "NTF-008": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (email/CRM, no client part)"
+ },
+ "NTF-009": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (email/CRM, no client part)"
+ },
+ "NTF-010": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (email/CRM, no client part)"
+ },
+ "NTF-011": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (email/CRM, no client part)"
+ },
+ "PLT-001": {
+  "status": "partial",
+  "note": "Django still serves favicon, manifest, app-link and llms.txt files via pass-through; the reader's head links no manifest, SVG icon or apple-touch-icon.",
+  "by": "src/server/route-manifest.ts, src/start.ts"
+ },
+ "PLT-009": {
+  "status": "deferred",
+  "note": "Default-on/SEO head builder/sitemaps wait (LAUNCH_PLAN §8); OG/Twitter tags exist only on /calendars and /translations, no JSON-LD.",
+  "by": "src/routes/calendars.tsx, src/routes/translations.$slug.tsx"
+ },
+ "PLT-010": {
+  "status": "partial",
+  "note": "GTM, gtag, Simple Analytics, Google Identity, reCAPTCHA, chatbot, html lang done; VWO/Hotjar/Unbounce, OpenSearch, iTunes banner, icons and theme-color missing.",
+  "by": "src/routes/__root.tsx, src/lib/analytics/scripts.ts"
+ },
+ "PLT-015": {
+  "status": "replaced",
+  "note": "Replaced by the API client, TanStack Query caching, CSS breakpoints, per-route head titles and the calendars module.",
+  "by": "src/lib/api/client.ts, src/lib/cache/query-client.ts, src/lib/library/calendars.ts"
+ },
+ "PLT-016": {
+  "status": "partial",
+  "note": "Same cookie and storage names kept; translation_language_preference_suggested and sefaria_active_signup_flow are not used.",
+  "by": "src/lib/versions/preferences.ts, src/ui/CookieNotice/CookieNotice.tsx, src/lib/analytics/session.ts"
+ },
+ "PLT-017": {
+  "status": "partial",
+  "note": "Django serves the manifest and favicons via pass-through, but the reader's head does not link the manifest, so its pages are not installable.",
+  "by": "src/server/route-manifest.ts"
+ },
+ "PLT-018": {
+  "status": "partial",
+  "note": "Get-the-app sidebar module built and app-link files served by Django; apple-itunes-app meta missing and no_applink not stripped.",
+  "by": "src/ui/NavSidebar/TopicModules.tsx, src/server/route-manifest.ts"
+ },
+ "PLT-020": {
+  "status": "partial",
+  "note": "Django still serves the per-module manifest (pass-through); the reader's head does not link it.",
+  "by": "src/server/route-manifest.ts"
+ },
+ "PLT-021": {
+  "status": "partial",
+  "note": "Default /favicon.ico and /apple-touch-icon.png reach Django via pass-through; the head links no icons (no SVG favicon, sized touch icon).",
+  "by": "src/server/route-manifest.ts"
+ },
+ "PLT-022": {
+  "status": "n/a",
+  "note": "Nothing to rebuild: legacy has no service worker; none added."
+ },
+ "PLT-023": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps apple-app-site-association (passed through); client no_applink stripping not ported."
+ },
+ "PLT-024": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps assetlinks.json (passed through)."
+ },
+ "PLT-025": {
+  "status": "n/a",
+  "note": "Server behaviour; nginx serves robots.txt from deployment config, unchanged."
+ },
+ "PLT-028": {
+  "status": "todo",
+  "note": "Add the OpenSearch <link rel=search> to the reader's head; the descriptor and suggestion endpoints stay Django's."
+ },
+ "PLT-029": {
+  "status": "n/a",
+  "note": "Nothing to rebuild: the legacy site has no feeds."
+ },
+ "PLT-030": {
+  "status": "partial",
+  "note": "Only verse numbers are hidden in print; header, sidebar, banners and cookie notice still print and there is no Sefaria print footer.",
+  "by": "src/ui/Segment/Segment.module.css"
+ },
+ "PLT-031": {
+  "status": "done",
+  "note": "/healthz-reader for the reader's probes; Django's health URLs pass through.",
+  "by": "src/start.ts, src/lib/routing/django-paths.ts"
+ },
+ "PLT-032": {
+  "status": "n/a",
+  "note": "Server behaviour; Django/Helm cron jobs keep running."
+ },
+ "PRM-001": {
+  "status": "todo",
+  "note": "CMS interrupting modal (delay, eligibility, dismissal in localStorage, analytics) not built; T-G03 minimal CMS reader."
+ },
+ "PRM-002": {
+  "status": "todo",
+  "note": "CMS top banner above the header not built; T-G03."
+ },
+ "PRM-003": {
+  "status": "todo",
+  "note": "Strapi GraphQL fetch via /api/strapi/graphql-cache and per-viewer content selection not built; T-G03."
+ },
+ "PRM-004": {
+  "status": "partial",
+  "note": "Default and day-of-learning links built; header and phone menu always use the English campaign (no Hebrew 468442); sustainer variant unused.",
+  "by": "src/lib/shell/links.ts, src/ui/NavSidebar/NavSidebar.tsx, src/ui/NavSidebar/TopicModules.tsx"
+ },
+ "PRM-005": {
+  "status": "partial",
+  "note": "c_src attribution on header, phone menu, Support/Sponsor modules and footer; header/menu ignore the Hebrew campaign; Strapi CTAs not built.",
+  "by": "src/lib/shell/links.ts, src/ui/SiteHeader/SiteHeader.tsx, src/ui/NavSidebar/NavSidebar.tsx"
+ },
+ "PRM-006": {
+  "status": "todo",
+  "note": "Keyword-targeting context (categories, books, refs, topics of open panels) for sidebar ads not built; T-G03."
+ },
+ "PRM-007": {
+  "status": "todo",
+  "note": "Strapi sidebar ads (and ad newsletter forms) in nav sidebars and topic pages not built; PromoSlot is empty; T-G03."
+ },
+ "PRM-008": {
+  "status": "todo",
+  "note": "Targeted sidebar ad cards (matching, impressions, blue/newsletter variants) not built; T-G03."
+ },
+ "PRM-009": {
+  "status": "todo",
+  "note": "Google Docs add-on advert in Add to Sheet not ported."
+ },
+ "PRM-010": {
+  "status": "todo",
+  "note": "Strapi interrupting modal not built; T-G03 minimal CMS reader."
+ },
+ "PRM-011": {
+  "status": "todo",
+  "note": "Strapi top banner not built; T-G03."
+ },
+ "PRM-012": {
+  "status": "todo",
+  "note": "Client side of the Strapi pipeline (one cached GraphQL query per locale) not built; Django proxy and webhook stay as they are."
+ },
+ "PRM-013": {
+  "status": "todo",
+  "note": "Promo eligibility, ranking, country targeting and path exclusions not built; T-G03."
+ },
+ "PRM-015": {
+  "status": "n/a",
+  "note": "Dead in legacy: dated message templates with no Python references, superseded by Strapi."
+ },
+ "PRO-001": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "PRO-002": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "PRO-003": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "PRO-004": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "PRO-005": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "PRO-006": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "PRO-007": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "PRO-008": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "PRO-009": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "PRO-010": {
+  "status": "todo",
+  "note": "/torahtracker (user stats) is still Django's, reached from the account menu; port it (T-F21)"
+ },
+ "PRO-011": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "PRO-012": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "RTE-003": {
+  "status": "partial",
+  "note": "API failures answer 503 with Retry-After; the maintenance page itself is not shown on reader-rendered pages (plain-text 503 until T-F28).",
+  "by": "src/start.ts, src/server/pass-through.ts"
+ },
+ "RTE-005": {
+  "status": "n/a",
+  "note": "Server behaviour; nginx keeps the bare-domain redirect."
+ },
+ "RTE-006": {
+  "status": "n/a",
+  "note": "Server behaviour; nginx keeps the mobile message, sitemap and search proxies."
+ },
+ "RTE-007": {
+  "status": "n/a",
+  "note": "Server behaviour; nginx serves robots.txt from its ConfigMap, unchanged."
+ },
+ "RTE-012": {
+  "status": "todo",
+  "note": "/random and /random/link still Django's; answer the redirects in the reader's server (T-F26)."
+ },
+ "RTE-013": {
+  "status": "todo",
+  "note": "/settings/account stays a Django form; record it as an accepted exit with a way back (T-F23)."
+ },
+ "RTE-014": {
+  "status": "n/a",
+  "note": "Retired legacy redirects to Voices; Django keeps them via pass-through (community, settings prefixes). T-F26 may answer /community."
+ },
+ "RTE-016": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)."
+ },
+ "RTE-017": {
+  "status": "n/a",
+  "note": "Retired S1 editor; /edit, /add, /translate stay Django and return with ?next= (T-F27)."
+ },
+ "RTE-020": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps /download (pass-through); the reader's download panel links to it."
+ },
+ "RTE-023": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)."
+ },
+ "RTE-024": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10); /my/notes and /contributors redirects are T-F26."
+ },
+ "RTE-025": {
+  "status": "n/a",
+  "note": "Retired Voices redirects; Django keeps them (sheets, getstarted, groups pass through). Voices out of scope (owner 2026-11-10)."
+ },
+ "RTE-036": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)."
+ },
+ "RTE-037": {
+  "status": "partial",
+  "note": "Tanach->Tanakh, / -> /texts and canonical-ref 301s are the reader's; the rest still go to Django (people, person, my/notes, texts/recent, community, contributors: T-F26).",
+  "by": "src/routes/texts.$.tsx, src/routes/index.tsx, src/features/reader/reader-route.ts"
+ },
+ "RTE-038": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps the sheet-to-help-center redirects (sheets pass through)."
+ },
+ "RTE-041": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps the short-URL redirects: unknown non-ref paths are handed to Django."
+ },
+ "RTE-045": {
+  "status": "done",
+  "note": "vside, lookup, sbsq, namedEntity read and written per panel (vside<N>, sbsq<N>); legacy bugs not ported.",
+  "by": "src/lib/workspace/url.ts, src/features/reader/TextPanel.tsx"
+ },
+ "RTE-047": {
+  "status": "todo",
+  "note": "?notes=1 extended-notes page for a version is not built (BOK-001 also lists extended notes as missing)."
+ },
+ "RTE-048": {
+  "status": "done",
+  "note": "?tab= read and written for book contents/versions and topic pages; profile and collection tabs are Voices (out of scope).",
+  "by": "src/features/book/BookRoute.tsx, src/features/topics/topic-page-route.ts"
+ },
+ "RTE-050": {
+  "status": "n/a",
+  "note": "Legacy override/debug params: layout follows the viewport, embed is sheets (Voices), debug_mode=linker is the linker (stays Django)."
+ },
+ "RTE-051": {
+  "status": "partial",
+  "note": "?chatbot_version= built; no_applink is not stripped and ?set-language-cookie is not handled on reader pages; prof is DEBUG-only.",
+  "by": "src/features/assistant/LibraryAssistant.tsx, src/lib/assistant/config.ts"
+ },
+ "RTE-052": {
+  "status": "done",
+  "note": "next on login/register and topic tab/sort and activity type are handled; collection/profile/sheets-with-ref params are Voices (Django).",
+  "by": "src/lib/auth/utils.ts, src/features/topics/topic-page-route.ts, src/lib/activity/segment-history.ts"
+ },
+ "RTE-057": {
+  "status": "done",
+  "note": "sefaria:bootstrap-url navigates in the app (or loads Django pages); sefaria:settings-updated refreshes the reader's user data.",
+  "by": "src/lib/integration/legacy-events.ts, src/routes/__root.tsx"
+ },
+ "RTE-060": {
+  "status": "n/a",
+  "note": "Legacy bug, not ported."
+ },
+ "RTE-061": {
+  "status": "n/a",
+  "note": "Legacy bug, not ported; the rebuild reads back every per-panel param it writes."
+ },
+ "RTE-064": {
+  "status": "n/a",
+  "note": "Legacy URL noise, not ported as such; note the rebuild does write aliyot=0 and lang2 in sefaria.org's grammar when it rewrites the address."
+ },
+ "SHE-001": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-002": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-003": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-004": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-005": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-006": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-007": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-008": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-009": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-010": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-011": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-012": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-013": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-014": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-015": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-016": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-017": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-018": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-019": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-020": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-021": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-022": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-023": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-024": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-025": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-026": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-027": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-028": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHE-029": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHL-001": {
+  "status": "n/a",
+  "note": "Dead in legacy: handler never called; not ported"
+ },
+ "SHL-002": {
+  "status": "n/a",
+  "note": "Dead in legacy: Beit Midrash/chat remnants; not ported"
+ },
+ "SHL-003": {
+  "status": "n/a",
+  "note": "Dead code and legacy prop bugs; not ported"
+ },
+ "SHL-004": {
+  "status": "n/a",
+  "note": "Legacy URL-building bugs, not ported; URLs are written by src/lib/workspace/url.ts"
+ },
+ "SHL-005": {
+  "status": "n/a",
+  "note": "Inventory of hooks that do not exist in legacy; nothing to rebuild"
+ },
+ "SHL-006": {
+  "status": "n/a",
+  "note": "Dead in legacy: no UI sets color; rebuild parses the cookie but pins light (dark mode off, D-9)"
+ },
+ "SHL-012": {
+  "status": "partial",
+  "note": "Rule exists as biLayoutForDirections but nothing calls it, so same-direction texts are not flipped automatically",
+  "by": "src/lib/reader/settings.ts"
+ },
+ "SHL-013": {
+  "status": "replaced",
+  "note": "Menus are their own routes; library/topic pages take content language from the interface language or their own toggle, not the text setting",
+  "by": "src/lib/i18n/content-lang.tsx, src/ui/ContentLanguage/ContentLanguage.tsx, src/features/topics/TopicPageRoute.tsx"
+ },
+ "SHL-014": {
+  "status": "done",
+  "note": "Sidebar has its own lang2 (never bilingual); the text panel's language is untouched",
+  "by": "src/features/reader/ConnectionsPane.tsx, src/features/reader/TextPanel.tsx, src/lib/workspace/types.ts"
+ },
+ "SHL-015": {
+  "status": "n/a",
+  "note": "White-label (non-TORAH_SPECIFIC) deployments only; the new reader serves sefaria.org, which is TORAH_SPECIFIC"
+ },
+ "SHL-016": {
+  "status": "replaced",
+  "note": "Every link's ?lang= sets the opened panel's language (URL state), not only links on the translations page",
+  "by": "src/lib/reader/url-state.ts, src/features/reader/TextPanel.tsx"
+ },
+ "SHL-021": {
+  "status": "done",
+  "note": "Layout options and icons by mono/mixed/bi-rtl/bi-ltr state, from the shown versions' directions",
+  "by": "src/ui/DisplaySettingsMenu/DisplaySettingsMenu.tsx"
+ },
+ "SHL-024": {
+  "status": "deferred",
+  "note": "Static pages via one mechanism, T-F31 (D-5)"
+ },
+ "SHL-037": {
+  "status": "todo",
+  "note": "Compare panel header (back, search, display settings) not built; build with the compare panel kind"
+ },
+ "SHL-038": {
+  "status": "todo",
+  "note": "In-reader Compare Text panel not built: ResourcesView showCompare is never passed and Add Connection has no Browse"
+ },
+ "SHL-041": {
+  "status": "partial",
+  "note": "scrollbar-gutter: stable keeps the gutter but on one side only; single-panel text is not re-centred under the header",
+  "by": "src/features/reader/TextColumn.module.css"
+ },
+ "SHL-042": {
+  "status": "partial",
+  "note": "Narrow-column padding uses a container query; panel width is never passed, so <=500px side-by-side fallback and <=600px layout hiding do not run",
+  "by": "src/ui/ReaderSurface/ReaderSurface.module.css, src/lib/reader/settings.ts"
+ },
+ "SHL-050": {
+  "status": "partial",
+  "note": "Sidebar search results open in the panel with highlighted terms; compare-panel search results wait for the compare panel",
+  "by": "src/features/reader/TextPanel.tsx, src/features/reader/ConnectionsPane.tsx"
+ },
+ "SHL-051": {
+  "status": "partial",
+  "note": "Filter and list/essay/web-pages views are in the with= URL and mirrored to link dots; recent-filter chips and sidebar scroll memory missing",
+  "by": "src/lib/connections/url.ts, src/features/reader/ConnectionsPane.tsx"
+ },
+ "SHL-054": {
+  "status": "replaced",
+  "note": "Side panels read their ref from the panel they belong to, so moving the panel moves them; no cascade step",
+  "by": "src/lib/workspace/types.ts"
+ },
+ "SHL-055": {
+  "status": "todo",
+  "note": "Extended version notes view (from book page and sidebar) not built"
+ },
+ "SHL-057": {
+  "status": "replaced",
+  "note": "Menus are routes; categories, topic and tab live in the address, not panel helper methods",
+  "by": "src/routes/"
+ },
+ "SHL-058": {
+  "status": "partial",
+  "note": "Account tools open a sign-up modal for anonymous readers; Add Connection with one text open does not open a compare panel",
+  "by": "src/features/reader/ConnectionsPane.tsx"
+ },
+ "SHL-068": {
+  "status": "n/a",
+  "note": "Dead in legacy: no dispatcher for sefaria:bootstrap-url"
+ },
+ "SHL-070": {
+  "status": "replaced",
+  "note": "Search state (query, tab, sort, exact, filters) lives in the /search URL, so it survives history",
+  "by": "src/lib/search/search-page.ts"
+ },
+ "SHL-073": {
+  "status": "replaced",
+  "note": "Content language via ContentLangProvider; paging via TanStack Query infinite queries; no shared Hooks module",
+  "by": "src/lib/i18n/content-lang.tsx, src/features/reader/ConnectionsPane.tsx"
+ },
+ "SHL-075": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10): sheet editor stays outside the new reader"
+ },
+ "SHV-001": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-002": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-003": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-004": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-005": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-006": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-007": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-008": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-009": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-010": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-011": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-012": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-013": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-014": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-015": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-016": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-017": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-018": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-019": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-020": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-021": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-022": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-023": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-024": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-025": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-026": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SHV-027": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "SRC-001": {
+  "status": "done",
+  "note": "Header combobox with 3-char minimum, debounce, abort, grouped Library suggestions and 'Search for' row.",
+  "by": "src/ui/SiteHeader/HeaderSearch.tsx, src/lib/search/autocomplete.ts, src/features/shell/useHeaderSearch.ts"
+ },
+ "SRC-002": {
+  "status": "done",
+  "note": "Enter goes to a highlighted suggestion or resolves ref/topic/category, else opens /search.",
+  "by": "src/features/shell/useHeaderSearch.ts, src/lib/search/autocomplete.ts, src/ui/SiteHeader/HeaderSearch.tsx"
+ },
+ "SRC-003": {
+  "status": "done",
+  "note": "Suggestions as you type; a slower answer never replaces a newer one (legacy stale-response bug not ported).",
+  "by": "src/ui/SiteHeader/HeaderSearch.tsx, src/lib/search/autocomplete.ts"
+ },
+ "SRC-004": {
+  "status": "done",
+  "note": "Suggestions start at three characters.",
+  "by": "src/lib/search/autocomplete.ts, src/ui/SiteHeader/HeaderSearch.tsx"
+ },
+ "SRC-005": {
+  "status": "done",
+  "note": "Library types (Topic, ref, TocCategory, Term, topic_pool=library) built; Voices types out of scope (owner 2026-11-10).",
+  "by": "src/lib/search/autocomplete.ts"
+ },
+ "SRC-006": {
+  "status": "done",
+  "note": "Category, topic and ref URLs built; Voices collection/user URLs out of scope; Term rows dropped (legacy undefined-url bug not ported).",
+  "by": "src/lib/search/autocomplete.ts"
+ },
+ "SRC-007": {
+  "status": "done",
+  "note": "Group headings, type icons and highlighted row built.",
+  "by": "src/ui/SiteHeader/HeaderSearch.tsx, src/lib/search/autocomplete.ts"
+ },
+ "SRC-008": {
+  "status": "n/a",
+  "note": "Legacy comparator bug; the rebuild deliberately keeps the same effective group order (autocomplete.ts TYPE_ORDER)."
+ },
+ "SRC-009": {
+  "status": "done",
+  "note": "'Search for' row first, only when completions exist; click runs full-text search.",
+  "by": "src/ui/SiteHeader/HeaderSearch.tsx, src/lib/search/autocomplete.ts"
+ },
+ "SRC-010": {
+  "status": "done",
+  "note": "Enter/magnifier submit or jump to highlighted suggestion; empty submit focuses.",
+  "by": "src/ui/SiteHeader/HeaderSearch.tsx"
+ },
+ "SRC-011": {
+  "status": "done",
+  "note": "Smart submit opens ref, topic or category, else search page.",
+  "by": "src/features/shell/useHeaderSearch.ts, src/lib/search/autocomplete.ts"
+ },
+ "SRC-012": {
+  "status": "partial",
+  "note": "Gershayim repair built; client-side case repair (repairCaseVariant) not ported, relying on the name API for miscapitalised refs only.",
+  "by": "src/lib/search/autocomplete.ts, src/features/shell/useHeaderSearch.ts"
+ },
+ "SRC-013": {
+  "status": "done",
+  "note": "'#topic' Enter opens the topic page via the API's topic_slug.",
+  "by": "src/lib/search/autocomplete.ts, src/features/shell/useHeaderSearch.ts"
+ },
+ "SRC-015": {
+  "status": "done",
+  "note": "Choosing a suggestion navigates in-app or by full page load for external URLs.",
+  "by": "src/features/shell/useHeaderSearch.ts, src/ui/SiteHeader/HeaderSearch.tsx"
+ },
+ "SRC-016": {
+  "status": "replaced",
+  "note": "Submitting navigates to the /search route instead of switching a panel into search mode.",
+  "by": "src/features/shell/useHeaderSearch.ts, src/features/search/SearchRoute.tsx"
+ },
+ "SRC-017": {
+  "status": "done",
+  "note": "Hebrew on-screen keyboard on the header box (English UI, not phones); the ~90-layout menu deliberately not built.",
+  "by": "src/ui/VirtualKeyboard/VirtualKeyboard.tsx, src/ui/VirtualKeyboard/KeyboardLauncher.tsx, src/ui/SiteHeader/HeaderSearch.tsx"
+ },
+ "SRC-018": {
+  "status": "done",
+  "note": "Focus/blur state, keyboard-only focus ring and dropdown hiding built.",
+  "by": "src/ui/SiteHeader/HeaderSearch.tsx"
+ },
+ "SRC-019": {
+  "status": "done",
+  "note": "maxLength 75, placeholder and aria-label built.",
+  "by": "src/ui/SiteHeader/HeaderSearch.tsx"
+ },
+ "SRC-020": {
+  "status": "done",
+  "note": "Dictionary books' contents sidebar shows the dictionary box as their in-text search.",
+  "by": "src/features/reader/ConnectionsPane.tsx, src/ui/DictionarySearch"
+ },
+ "SRC-021": {
+  "status": "done",
+  "note": "Dictionary combobox with completion API, Hebrew-only check and keyboard icon.",
+  "by": "src/ui/DictionarySearch/DictionarySearch.tsx, src/lib/lexicon/completion.ts"
+ },
+ "SRC-022": {
+  "status": "done",
+  "note": "Headword box on dictionary book page and lexicon sidebar; opens entry only after it loads.",
+  "by": "src/ui/DictionarySearch/DictionarySearch.tsx, src/lib/lexicon/completion.ts"
+ },
+ "SRC-023": {
+  "status": "done",
+  "note": "Header search box with role=search 'Site search'.",
+  "by": "src/ui/SiteHeader/HeaderSearch.tsx, src/ui/SiteHeader/SiteHeader.tsx"
+ },
+ "SRC-024": {
+  "status": "done",
+  "note": "Mobile menu search box without keyboard launcher; closes menu on navigate/search.",
+  "by": "src/ui/SiteHeader/SiteHeader.tsx, src/ui/SiteHeader/HeaderSearch.tsx"
+ },
+ "SRC-041": {
+  "status": "done",
+  "note": "Library search is always the text search; sheet (Voices) search out of scope (owner 2026-11-10).",
+  "by": "src/routes/search.tsx, src/lib/search/search-page.ts"
+ },
+ "SRC-043": {
+  "status": "done",
+  "note": "Search page renders results only with a query; no footer under filters.",
+  "by": "src/features/search/SearchRoute.tsx, src/ui/SearchPage/SearchPage.tsx"
+ },
+ "SRC-044": {
+  "status": "replaced",
+  "note": "No mutators: the URL is the state; each change is a new history entry.",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts"
+ },
+ "SRC-045": {
+  "status": "replaced",
+  "note": "SearchState replaced by URL-derived SearchParams and query options; sheet fields are Voices, out of scope.",
+  "by": "src/lib/search/search-page.ts"
+ },
+ "SRC-047": {
+  "status": "replaced",
+  "note": "Aggregations come from their own query (search tree), so no unfiltered-then-filtered two-phase run.",
+  "by": "src/lib/search/search-page.ts, src/features/search/SearchRoute.tsx"
+ },
+ "SRC-049": {
+  "status": "done",
+  "note": "Phone layout at <=985px with tab strip and filter overlay; decided by width only.",
+  "by": "src/ui/SearchPage/SearchPage.tsx, src/features/search/SearchRoute.tsx"
+ },
+ "SRC-050": {
+  "status": "done",
+  "note": "Shimmer skeleton with hidden 'Searching...' status.",
+  "by": "src/ui/SearchPage/SearchPage.tsx"
+ },
+ "SRC-056": {
+  "status": "done",
+  "note": "'N more versions' expansion with aria-expanded and per-version links.",
+  "by": "src/ui/SearchPage/SearchPage.tsx, src/features/search/SearchRoute.tsx"
+ },
+ "SRC-058": {
+  "status": "done",
+  "note": "Matched words highlighted in the reader via history state, cleared on next navigation.",
+  "by": "src/lib/text/highlight-terms.ts, src/ui/SegmentText/SegmentText.tsx, src/lib/workspace/commands.ts"
+ },
+ "SRC-062": {
+  "status": "done",
+  "note": "Scrollable mobile tablist with edge fades.",
+  "by": "src/ui/SearchPage/SearchPage.tsx"
+ },
+ "SRC-063": {
+  "status": "done",
+  "note": "Mobile Filters/Filter/Sort panels with Show Results.",
+  "by": "src/ui/SearchPage/SearchPage.tsx"
+ },
+ "SRC-064": {
+  "status": "done",
+  "note": "Per-tab illustration, heading, CTA and bug-report line.",
+  "by": "src/ui/SearchPage/SearchPage.tsx, src/features/search/SearchRoute.tsx"
+ },
+ "SRC-065": {
+  "status": "n/a",
+  "note": "Legacy bug (errors shown as no results); not ported, the rebuild shows an error with Try again."
+ },
+ "SRC-067": {
+  "status": "done",
+  "note": "Entity search client with paging, cached through TanStack Query.",
+  "by": "src/lib/search/entity-search.ts"
+ },
+ "SRC-068": {
+  "status": "done",
+  "note": "Per-tab server-side sort dropdown/radios (relevance, year, A-Z).",
+  "by": "src/lib/search/search-page.ts, src/ui/SearchPage/SearchPage.tsx"
+ },
+ "SRC-069": {
+  "status": "done",
+  "note": "Books category filter tree from the catalog with categoryCounts.",
+  "by": "src/lib/search/search-page.ts, src/features/search/SearchRoute.tsx, src/ui/SearchPage/SearchPage.tsx"
+ },
+ "SRC-071": {
+  "status": "done",
+  "note": "Author card with pen icon and CE/BCE lifespan.",
+  "by": "src/lib/search/search-page.ts, src/ui/SearchPage/SearchPage.tsx"
+ },
+ "SRC-072": {
+  "status": "done",
+  "note": "Book card with crumbs, date, author link, description and crumb collapse.",
+  "by": "src/ui/SearchPage/SearchPage.tsx"
+ },
+ "SRC-079": {
+  "status": "done",
+  "note": "Client builds the search-wrapper body (field, slop, filters, aggs, sort) and caches via TanStack Query.",
+  "by": "src/lib/search/search-page.ts"
+ },
+ "SRC-080": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (client only sends field/slop/sort from search-page.ts)."
+ },
+ "SRC-082": {
+  "status": "done",
+  "note": "Dicta Tanakh merge for Hebrew All Results, with fallback (owner decision 2026-10-06).",
+  "by": "src/lib/search/dicta.ts, src/lib/search/search-page.ts, src/features/search/SearchRoute.tsx"
+ },
+ "SRC-083": {
+  "status": "done",
+  "note": "Filter tree from aggregations in catalog order incl. searchRoot categories.",
+  "by": "src/lib/search/search-page.ts"
+ },
+ "SRC-084": {
+  "status": "done",
+  "note": "Tri-state filter selection with propagation; dead getSelectedTitles not ported.",
+  "by": "src/lib/search/search-page.ts"
+ },
+ "SRC-086": {
+  "status": "done",
+  "note": "Tri-state checkbox rows with counts, expand chevron and filter box.",
+  "by": "src/ui/SearchPage/SearchPage.tsx"
+ },
+ "SRC-109": {
+  "status": "replaced",
+  "note": "Session caches replaced by TanStack Query 'search' policy (memory only).",
+  "by": "src/lib/cache/query-options.ts, src/lib/search/autocomplete.ts, src/lib/search/search-page.ts, src/lib/search/entity-search.ts"
+ },
+ "SRC-110": {
+  "status": "done",
+  "note": "Roles, labels and keyboard support on header box, tabs, filters and cards.",
+  "by": "src/ui/SiteHeader/HeaderSearch.tsx, src/ui/SearchPage/SearchPage.tsx"
+ },
+ "SRC-111": {
+  "status": "done",
+  "note": "Autocorrect banner ('These are results for' / 'Search instead for' / 'Did you mean') on search page and sidebar.",
+  "by": "src/lib/search/autocorrect.ts, src/features/search/SearchRoute.tsx, src/ui/SearchPage/SearchPage.tsx, src/ui/SidebarSearch/SidebarSearch.tsx"
+ },
+ "SRC-112": {
+  "status": "done",
+  "note": "Auto-switch to first non-empty tab, replacing the history entry.",
+  "by": "src/features/search/SearchRoute.tsx"
+ },
+ "STA-001": {
+  "status": "todo",
+  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+ },
+ "STA-002": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10)"
+ },
+ "STA-003": {
+  "status": "todo",
+  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+ },
+ "STA-004": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (PDF redirects reach Django through the pass-through)"
+ },
+ "STA-005": {
+  "status": "todo",
+  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+ },
+ "STA-006": {
+  "status": "todo",
+  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+ },
+ "STA-007": {
+  "status": "partial",
+  "note": "Links to /terms and /privacy-policy from sign-up and the cookie notice built; the pages themselves are Django's until T-F31 (D-5)",
+  "by": "src/ui/LegalText, src/ui/CookieNotice"
+ },
+ "STA-008": {
+  "status": "todo",
+  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+ },
+ "STA-009": {
+  "status": "todo",
+  "note": "CMS-driven React page inside a static template: T-F31/T-F32 must render it (Django's content block alone has no data)"
+ },
+ "STA-010": {
+  "status": "todo",
+  "note": "CMS-driven React page inside a static template: T-F31/T-F32 must render it (Django's content block alone has no data)"
+ },
+ "STA-011": {
+  "status": "todo",
+  "note": "CMS-driven React page inside a static template: T-F31/T-F32 must render it (Django's content block alone has no data)"
+ },
+ "STA-012": {
+  "status": "todo",
+  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+ },
+ "STA-013": {
+  "status": "todo",
+  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+ },
+ "STA-014": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild (old contest pages)"
+ },
+ "STA-015": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild (page moved to the developer site)"
+ },
+ "STA-016": {
+  "status": "n/a",
+  "note": "Page bodies stay Django-rendered (D-5); no client port of the building blocks"
+ },
+ "STA-017": {
+  "status": "todo",
+  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+ },
+ "STA-018": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (short links reach Django through the pass-through)"
+ },
+ "STA-019": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (help-sheet redirects are under /sheets, Django's)"
+ },
+ "TOP-011": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10) (Voices topics home)"
+ },
+ "TOP-032": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild (banner never mounted)"
+ },
+ "TXD-004": {
+  "status": "n/a",
+  "note": "Dead in legacy: actionLinks and prefetchMultiple do nothing"
+ },
+ "TXD-015": {
+  "status": "done",
+  "note": "TOC labels by address type (daf, folio, year, integer)",
+  "by": "src/lib/toc/labels.ts, src/lib/toc/model.ts"
+ },
+ "TXD-016": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (client calls v3 and does not cache answers with warnings)"
+ },
+ "TXD-018": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it (client asks for wrap_all_entities)"
+ },
+ "TXD-019": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it"
+ },
+ "TXD-020": {
+  "status": "partial",
+  "note": "Formatting tags, footnotes, itags and overlays render; img becomes its alt text and plain <a href> links are unwrapped",
+  "by": "src/ui/SegmentText/SegmentText.tsx, src/lib/text/prepare.ts"
+ },
+ "TXD-023": {
+  "status": "todo",
+  "note": "Category links are dropped: normalizeText unwraps a.categoryLink; render them as /texts/<path> links"
+ },
+ "TXD-024": {
+  "status": "n/a",
+  "note": "Server behaviour; Django keeps it"
+ },
+ "TXD-026": {
+  "status": "todo",
+  "note": "Images render as alt text only; build full-segment image with caption, inline images and the bilingual image rule"
+ },
+ "TXD-029": {
+  "status": "done",
+  "note": "Search terms from a result are highlighted in the opened segment",
+  "by": "src/lib/text/highlight-terms.ts, src/ui/SegmentText/SegmentText.tsx"
+ },
+ "TXD-030": {
+  "status": "deferred",
+  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8), linker admin"
+ },
+ "TXD-032": {
+  "status": "done",
+  "note": "Source/Translation/Both always offered (sefaria.org is TORAH_SPECIFIC); sidebar uses its own non-bilingual toggle",
+  "by": "src/lib/reader/settings.ts, src/ui/DisplaySettingsMenu/DisplaySettingsMenu.tsx"
+ },
+ "TXD-039": {
+  "status": "deferred",
+  "note": "Not in launch: dark mode flag off (D-9); themes exist as tokens, html pinned light"
+ },
+ "TXD-051": {
+  "status": "n/a",
+  "note": "Dead in legacy under v3 (formatEnAsPoetry never set); rebuild keeps stored indentAll markers"
+ },
+ "TXD-060": {
+  "status": "done",
+  "note": "Taamey Frank/Cardo (legacy range)/Adobe Garamond kit stacks as sefaria.org",
+  "by": "src/lib/fonts/typekit.ts"
+ },
+ "TXD-062": {
+  "status": "partial",
+  "note": "Print hides only segment numbers and link dots; header, sidebar, footnote markers and controls still print",
+  "by": "src/ui/Segment/Segment.module.css"
+ },
+ "TXD-066": {
+  "status": "done",
+  "note": "Topic page 'A' popover with Source/Translation/Both radios, closes on blur",
+  "by": "src/ui/TopicPage/TopicPage.tsx"
+ },
+ "TXT-001": {
+  "status": "done",
+  "note": "layoutTanakh setting, short numeric titles, vowel/cantillation options and the Tanakh translation banner are built",
+  "by": "src/lib/reader/settings.ts, src/lib/reader/labels.ts, src/lib/reader/translations-banner.ts"
+ },
+ "TXT-010": {
+  "status": "done",
+  "note": "The 'Want to change the translation?' banner applies to corpus Bavli (and Tanakh, Mishnah)",
+  "by": "src/lib/reader/translations-banner.ts, src/ui/TextColumnBanner, src/features/reader/TextPanel.tsx"
+ },
+ "TXT-011": {
+  "status": "done",
+  "note": "Same rule ported: commentary refs above depth 3 are not converted, so they open as the main text",
+  "by": "src/lib/text/commentary.ts"
+ },
+ "TXT-012": {
+  "status": "done",
+  "note": "Named-entity attribution says 'by Sefaria' for the Jerusalem Talmud, Dr. Michael Sperling otherwise",
+  "by": "src/lib/connections/entity.ts"
+ },
+ "TXT-014": {
+  "status": "done",
+  "note": "Short numeric section titles for Mishnah/Tanaitic and the translation banner for corpus Mishnah",
+  "by": "src/lib/reader/labels.ts, src/lib/reader/translations-banner.ts"
+ },
+ "TXT-016": {
+  "status": "done",
+  "note": "A commentary URL loaded directly reads as its own text; super-section refs open the first available section",
+  "by": "src/lib/text/commentary.ts, src/lib/text/plan.ts, src/lib/reader/labels.ts"
+ },
+ "TXT-017": {
+  "status": "partial",
+  "note": "Sidebar filter narrows the link-dot counts; itag superscripts are supported in TextSection but the reader never passes the filtered commentator",
+  "by": "src/features/reader/TextColumn.tsx, src/lib/text/prepare.ts, src/ui/TextSection"
+ },
+ "TXT-018": {
+  "status": "partial",
+  "note": "Commentary items show the anchor verse number; the itag label/order variant and Hebrew numerals are not built",
+  "by": "src/features/reader/ConnectionsPane.tsx, src/ui/ConnectionsPanel/TextList.tsx"
+ },
+ "TXT-019": {
+  "status": "done",
+  "note": "Reference books hide segment numbers and section titles; dictionary entries open as virtual books",
+  "by": "src/lib/reader/labels.ts, src/ui/TextSection"
+ },
+ "TXT-020": {
+  "status": "done",
+  "note": "Liturgy hides segment numbers and prints the full named section title",
+  "by": "src/lib/reader/labels.ts"
+ },
+ "TXT-021": {
+  "status": "done",
+  "note": "Guide for the Perplexed hides segment numbers",
+  "by": "src/lib/reader/labels.ts"
+ },
+ "TXT-024": {
+  "status": "done",
+  "note": "Talmud/Folio/Year labels and index offsets ported for the TOC; other address strings come from the server",
+  "by": "src/lib/toc/labels.ts, src/lib/ref/address.ts, src/lib/toc/model.ts"
+ },
+ "TXT-026": {
+  "status": "deferred",
+  "note": "Voices out of scope (owner 2026-11-10): sheets stay on Voices, so sheets do not open in reader panels"
+ },
+ "TXT-027": {
+  "status": "done",
+  "note": "Search results open with the query terms highlighted, from the search page and the sidebar search",
+  "by": "src/lib/text/highlight-terms.ts"
+ },
+ "USL-006": {
+  "status": "n/a",
+  "note": "Dead in legacy; nothing to rebuild"
+ },
+ "VER-004": {
+  "status": "partial",
+  "note": "'Want to change the translation?' banner done; the translation-language-preference suggestion banner is not built",
+  "by": "src/ui/TextColumnBanner, src/lib/reader/translations-banner.ts, src/features/reader/TextPanel.tsx"
+ },
+ "VER-015": {
+  "status": "n/a",
+  "note": "Dead in legacy: the Versions sidebar mode is unused"
+ },
+ "VER-018": {
+  "status": "replaced",
+  "note": "The workspace URL builder writes ven/vhe for the main panel and vside with with=Translation Open for the sidebar",
+  "by": "src/lib/workspace/url.ts, src/lib/reader/url-state.ts"
+ },
+ "VER-019": {
+  "status": "done",
+  "note": "Moderators' pencil on the book page opens the version editor with the same fields; saves to /api/version/flags",
+  "by": "src/ui/VersionEditForm, src/lib/versions/admin.ts, src/features/book/BookRoute.tsx"
+ },
+ "VER-020": {
+  "status": "done",
+  "note": "Delete Version with confirm from the book-page editor, then the versions list reloads",
+  "by": "src/ui/VersionEditForm, src/lib/versions/admin.ts, src/features/book/BookRoute.tsx"
+ },
+ "VER-021": {
+  "status": "todo",
+  "note": "Extended version notes (sidebar mode and book page ?notes=1) not built; legacy crash bug not to be ported"
+ },
+ "VER-030": {
+  "status": "done",
+  "note": "Moderator version editor and delete on the book page Versions tab",
+  "by": "src/ui/VersionEditForm, src/lib/versions/admin.ts, src/features/book/BookRoute.tsx"
  }
 }
