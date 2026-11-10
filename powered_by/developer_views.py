@@ -12,6 +12,7 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.cache import patch_cache_control
 from django.views.decorators.clickjacking import xframe_options_deny
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
@@ -47,13 +48,19 @@ def developer_api(func=None, login=True):
     """
     JSON endpoints, logged in through the browser session unless login=False: parses a JSON body into request.json, and maps
     input errors to 400, missing setup to 403, unknown or unowned objects to 404 and a repeated
-    request to 429.
+    request to 429. Every response, errors included, is "private, no-store": developer state carries full key values,
+    which no HTTP cache may keep.
     """
     if func is None:
         return lambda f: developer_api(f, login=login)
 
     @wraps(func)
     def wrapper(request, *args, **kwargs):
+        response = handle(request, *args, **kwargs)
+        patch_cache_control(response, private=True, no_store=True)
+        return response
+
+    def handle(request, *args, **kwargs):
         if login and not developer.session_login(request):
             return jsonResponse({"error": "Log in to use developer settings."}, status=401)
         request.json = {}

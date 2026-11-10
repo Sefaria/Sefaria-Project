@@ -339,3 +339,56 @@ def test_scrub_api_keys_replaces_a_key_whose_body_is_percent_encoded():
     # Sentry keeps its any-length threshold (it over-redacts rather than risk a leak); a bare prefix has no body to redact.
     assert scrub_api_keys("sfr_ alone and transfr") == "sfr_ alone and transfr"
 
+
+class NoStoreTest(DeveloperApiTestCase):
+    """Responses that carry full key values are never kept by an HTTP cache."""
+
+    def assert_no_store(self, response):
+        directives = {d.strip() for d in response["Cache-Control"].split(",")}
+        self.assertIn("no-store", directives)
+        self.assertIn("private", directives)
+
+    def test_a_developer_state_response_is_private_and_no_store(self):
+        self.set_up_developer()
+        response = self.client.get("/api/developer/state")
+
+        self.assertEqual(response.status_code, 200)
+        self.assert_no_store(response)
+
+    def test_a_key_creation_response_and_an_error_response_are_private_and_no_store(self):
+        self.set_up_developer()
+        project = self.create_project()
+        created = self.client.post(
+            "/api/developer/projects/{}/keys".format(project["id"]),
+            json.dumps({"label": "Cache check"}),
+            content_type="application/json",
+        )
+        self.assertEqual(created.status_code, 200)
+        self.assert_no_store(created)
+        self.assert_no_store(Client().get("/api/developer/state"))
+
+    def test_the_settings_page_of_a_developer_is_private_and_no_store(self):
+        self.set_up_developer()
+        response = self.client.get("/settings/developer")
+
+        self.assertEqual(response.status_code, 200)
+        self.assert_no_store(response)
+
+    def test_the_account_settings_page_embeds_the_developer_state_and_is_no_store_too(self):
+        response = self.client.get("/settings/account")
+
+        self.assertEqual(response.status_code, 200)
+        self.assert_no_store(response)
+
+    def test_a_reader_page_is_unchanged(self):
+        response = Client().get("/texts")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("no-store", response.get("Cache-Control", ""))
+
+    @override_settings(DEVELOPER_SETTINGS_ENABLED=False)
+    def test_the_account_settings_page_with_developer_settings_off_carries_no_developer_state_and_is_unchanged(self):
+        response = self.client.get("/settings/account")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("no-store", response.get("Cache-Control", ""))

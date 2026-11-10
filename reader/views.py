@@ -31,6 +31,7 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import Resolver404, resolve
 from django.utils import timezone
+from django.utils.cache import patch_cache_control
 from django.utils.encoding import iri_to_uri
 from django.utils.html import strip_tags
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -5303,7 +5304,11 @@ def settings_page(request, tab="account", project_id=None):
         "account": "Manage your Sefaria account settings.",
         "developer": "Register your projects and manage keys for the Sefaria API.",
     }
-    return menu_page(request, props=props, page="settings", title=titles[tab], desc=descs[tab])
+    response = menu_page(request, props=props, page="settings", title=titles[tab], desc=descs[tab])
+    if props["initialDeveloper"] is not None:
+        # The page embeds the developer state, which carries full key values: no HTTP cache may keep it.
+        patch_cache_control(response, private=True, no_store=True)
+    return response
 
 
 @ensure_csrf_cookie
