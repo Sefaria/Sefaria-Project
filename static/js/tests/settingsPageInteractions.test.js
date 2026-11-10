@@ -150,13 +150,13 @@ const openNewProject = (developer = {}) => {
   });
 };
 const fillProject = ({ website = '' } = {}) => {
-  typeInto(container.querySelector('#devPocProjectName'), 'Daf Tracker');
-  typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+  typeInto(container.querySelector('[id$="-devPocProjectName"]'), 'Daf Tracker');
+  typeInto(container.querySelector('[id$="-devPocProjectDescription"]'), 'A tracker');
   if (website) {
-    typeInto(container.querySelector('#devPocProjectUrl'), website);
+    typeInto(container.querySelector('[id$="-devPocProjectUrl"]'), website);
   }
   act(() => {
-    container.querySelector('#devPocVisibilityPublic').click();
+    container.querySelector('[id$="-devPocVisibilityPublic"]').click();
   });
 };
 const submitProject = () => {

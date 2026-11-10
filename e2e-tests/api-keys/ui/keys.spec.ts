@@ -103,7 +103,7 @@ test.describe('keys', () => {
         const card = tab.dev.projectCard(TWO_TABS_PROJECT);
         await expect(counter(card)).toHaveText('4 of 5 keys');
         await tab.dev.action('new-key', card).first().click();
-        await card.locator('#devPocKeyLabel').fill(tab.label);
+        await card.locator('[id$="-devPocKeyLabel"]').fill(tab.label);
       }
       const responses = tabs.map(tab => waitForDeveloperApi(tab.dev.page, /\/api\/developer\/projects\/[^/]+\/keys$/));
       await Promise.all(tabs.map(tab => tab.dev.action('create-key', tab.dev.projectCard(TWO_TABS_PROJECT)).click()));
@@ -137,7 +137,7 @@ test.describe('keys', () => {
       projectId = await createProjectInUi(dev, name, SITE_A);
       const card = dev.projectCard(name);
       await dev.action('new-key', card).first().click();
-      const input = card.locator('#devPocKeyLabel');
+      const input = card.locator('[id$="-devPocKeyLabel"]');
       await input.fill('x'.repeat(101));
       const maxLength = await input.getAttribute('maxlength');
       if (maxLength !== null) {
@@ -175,26 +175,30 @@ test.describe('keys', () => {
         const show = row.getByRole('button', { name: 'Reveal', exact: true });
         const copy = row.getByRole('button', { name: 'Copy', exact: true });
 
-        await expect(code).toHaveText(/^sfr_(test_)?•{12}$/);
+        // Masked: the 10-character display prefix the server sends ("sfr_" plus 6 characters), then 12 bullets.
+        const masked = key.value.slice(0, 10) + '•'.repeat(12);
+        await expect(code).toHaveText(masked);
         await expect(show).toHaveAttribute('aria-pressed', 'false');
 
-        // The value is fetched on click: the label stays "Reveal" and aria-pressed carries the state.
-        const revealed = waitForDeveloperApi(page, /\/api\/developer\/keys\/[^/]+\/value$/);
+        // A key just created still has its value in memory, so the first Reveal makes no request. The label stays
+        // "Reveal" and aria-pressed carries the state.
         await show.click();
-        expect((await revealed).status()).toBe(200);
         await expect(show).toHaveAttribute('aria-pressed', 'true');
         await expect(show).toHaveAccessibleName('Reveal');
         expect((await code.textContent()) === key.value, 'the shown value is the key').toBe(true);
 
         await show.click();
-        await expect(code).toHaveText(/^sfr_(test_)?•{12}$/);
+        await expect(code).toHaveText(masked);
         await expect(show).toHaveAttribute('aria-pressed', 'false');
 
+        // Hiding dropped the value, so Copy asks the server for it by POST, then re-masks.
+        const fetched = waitForDeveloperApi(page, /\/api\/developer\/keys\/[^/]+\/value$/, 'POST');
         await copy.click();
+        expect((await fetched).status()).toBe(200);
         await expect(row.locator('.devPocCopied')).toHaveText('Copied');
         const copied = await page.evaluate(() => navigator.clipboard.readText());
         expect(copied === key.value, 'the clipboard holds the key').toBe(true);
-        await expect(code).toHaveText(/^sfr_(test_)?•{12}$/);
+        await expect(code).toHaveText(masked);
 
         const works = await poll(() => probeKey(gw, target, copied), isAllowed, { timeoutMs: 10000 });
         expect(works.elapsedMs, `the copied key works at the gateway: ${probeSummary(works.last)}`).toBeDefined();
@@ -214,7 +218,7 @@ test.describe('keys', () => {
         projectId = await createProjectInUi(dev, name, SITE_A);
         const card = dev.projectCard(name);
         await dev.action('new-key', card).first().click();
-        await card.locator('#devPocKeyLabel').fill(label);
+        await card.locator('[id$="-devPocKeyLabel"]').fill(label);
         const pending = waitForDeveloperApi(dev.page, /\/api\/developer\/projects\/[^/]+\/keys$/);
         await dev.action('create-key', card).click();
         const settingUp = card.getByRole('status').filter({ hasText: 'Setting up your key…' });

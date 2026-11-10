@@ -84,10 +84,10 @@ const submitWithoutWebsite = () => {
   act(() => {
     container.querySelector('[data-agent-action="new-project"]').click();
   });
-  typeInto(container.querySelector('#devPocProjectName'), 'Daf Tracker');
-  typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+  typeInto(container.querySelector('[id$="-devPocProjectName"]'), 'Daf Tracker');
+  typeInto(container.querySelector('[id$="-devPocProjectDescription"]'), 'A tracker');
   act(() => {
-    container.querySelector('#devPocVisibilityPublic').click();
+    container.querySelector('[id$="-devPocVisibilityPublic"]').click();
   });
   const submit = container.querySelector('[data-agent-action="create-project"]');
   act(() => {
@@ -113,7 +113,7 @@ describe('"Add a website" in the no-website dialog', () => {
       buttonNamed(noWebsiteDialog(), 'Add a website').click();
     });
     expect(noWebsiteDialog()).toBeNull();
-    expect(document.activeElement.id).toBe('devPocProjectUrl');
+    expect(document.activeElement.id).toMatch(/-devPocProjectUrl$/);
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
@@ -125,7 +125,7 @@ describe('"Add a website" in the no-website dialog', () => {
       );
     });
     expect(noWebsiteDialog()).toBeNull();
-    expect(document.activeElement.id).toBe('devPocProjectUrl');
+    expect(document.activeElement.id).toMatch(/-devPocProjectUrl$/);
   });
 });
 

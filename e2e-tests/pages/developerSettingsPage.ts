@@ -101,12 +101,12 @@ export class DeveloperSettingsPage extends HelperBase {
     async fillNewProject({ name, description, organization, website, visibility, aiAssisted }:
         { name: string; description: string; organization?: string; website?: string; visibility: 'public' | 'private'; aiAssisted?: boolean }) {
         const panel = this.newProjectPanel();
-        await panel.locator('#devPocProjectName').fill(name);
-        await panel.locator('#devPocProjectDescription').fill(description);
-        if (organization !== undefined) await panel.locator('#devPocProjectOrg').fill(organization);
-        if (website !== undefined) await panel.locator('#devPocProjectUrl').fill(website);
-        if (aiAssisted) await panel.locator('#devPocAiAssisted').check();
-        await panel.locator(visibility === 'public' ? '#devPocVisibilityPublic' : '#devPocVisibilityPrivate').check();
+        await panel.locator('[id$="-devPocProjectName"]').fill(name);
+        await panel.locator('[id$="-devPocProjectDescription"]').fill(description);
+        if (organization !== undefined) await panel.locator('[id$="-devPocProjectOrg"]').fill(organization);
+        if (website !== undefined) await panel.locator('[id$="-devPocProjectUrl"]').fill(website);
+        if (aiAssisted) await panel.locator('[id$="-devPocAiAssisted"]').check();
+        await panel.locator(visibility === 'public' ? '[id$="-devPocVisibilityPublic"]' : '[id$="-devPocVisibilityPrivate"]').check();
     }
 
     /** Submits the new-project panel, confirming "Save without a website?" when it appears. */
@@ -144,7 +144,7 @@ export class DeveloperSettingsPage extends HelperBase {
     /** Creates a key; the UI holds a progress state for at least four seconds. */
     async createKey(project: Locator, label: string): Promise<Response> {
         await this.action('new-key', project).click();
-        await project.locator('#devPocKeyLabel').fill(label);
+        await project.locator('[id$="-devPocKeyLabel"]').fill(label);
         const response = this.waitForApi(/\/api\/developer\/projects\/\d+\/keys$/);
         await this.action('create-key', project).click();
         const result = await response;

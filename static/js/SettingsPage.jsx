@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
@@ -125,6 +125,19 @@ const ExternalIcon = () => (
 );
 
 const tipId = (fieldId) => fieldId + 'Tip';
+
+/* Each form or section that renders its own labelled fields takes an id of its own, so two of them on the
+   page never share a DOM id or a radio group. A field's id is `<instance>-<name>`: match it by suffix,
+   e.g. [id$="-devPocProjectUrl"]. (React 16 has no useId.) */
+let instanceCounter = 0;
+const useInstanceId = () => {
+  const ref = useRef(null);
+  if (ref.current === null) {
+    instanceCounter += 1;
+    ref.current = 'dp' + instanceCounter;
+  }
+  return ref.current;
+};
 
 const keyboardFocused = (node) => {
   try {
@@ -1051,152 +1064,168 @@ const LinkedListingNote = ({ name }) => (
   </p>
 );
 
-const ProjectFields = ({ fields, set, onChoosePublic, onChoosePrivate, onShowPublic, linkedNote }) => (
-  <React.Fragment>
-    {linkedNote}
-    <div className="devPocField">
-      <Input
-        id="devPocProjectName"
-        dir="auto"
-        label={<InterfaceText text={{ en: 'Project name', he: 'שם הפרויקט' }} />}
-        value={fields.name}
-        onChange={(e) => set('name', e.target.value)}
-      />
-    </div>
-    <div className="devPocField">
-      <Input
-        id="devPocProjectDescription"
-        label={<InterfaceText text={{ en: 'Short description', he: 'תיאור קצר' }} />}
-        labelAddon={
-          <InfoTip fieldId="devPocProjectDescription">
-            <InterfaceText
-              text={{
-                en: "The name and description help you tell your projects apart and tell the Sefaria team what you're building. If you make the project public, they're also what visitors to Powered by Sefaria see.",
-                he: 'השם והתיאור עוזרים לכם להבחין בין הפרויקטים שלכם ומספרים לצוות ספריא מה אתם בונים. אם תהפכו את הפרויקט לציבורי, זה גם מה שיראו המבקרים ב־Powered by Sefaria.',
-              }}
-            />
-          </InfoTip>
-        }
-        dir="auto"
-        maxLength={MAX_DESCRIPTION_LENGTH}
-        aria-describedby={tipId('devPocProjectDescription') + ' devPocProjectDescriptionCount'}
-        placeholder={Sefaria._v({
-          en: 'One sentence, e.g. a daily study tracker for my community',
-          he: 'משפט אחד, למשל: כלי למעקב אחר לימוד יומי בקהילה שלי',
-        })}
-        value={fields.description}
-        onChange={(e) => set('description', e.target.value)}
-      />
-      <CharacterCount id="devPocProjectDescriptionCount" length={fields.description.length} />
-    </div>
-    <div className="devPocField">
-      <Input
-        id="devPocProjectOrg"
-        dir="auto"
-        label={<InterfaceText text={{ en: 'Organization', he: 'ארגון' }} />}
-        labelAddon={<OptionalMark />}
-        value={fields.organization}
-        onChange={(e) => set('organization', e.target.value)}
-      />
-    </div>
-    <div className="devPocField">
-      <Input
-        id="devPocProjectUrl"
-        label={<InterfaceText text={{ en: 'Website', he: 'אתר' }} />}
-        labelAddon={
-          <React.Fragment>
-            <OptionalMark />
-            <InfoTip fieldId="devPocProjectUrl" wide>
+const ProjectFields = ({ fields, set, onChoosePublic, onChoosePrivate, onShowPublic, linkedNote }) => {
+  const uid = useInstanceId();
+  const nameId = uid + '-devPocProjectName';
+  const descriptionId = uid + '-devPocProjectDescription';
+  const countId = uid + '-devPocProjectDescriptionCount';
+  const orgId = uid + '-devPocProjectOrg';
+  const urlId = uid + '-devPocProjectUrl';
+  const aiId = uid + '-devPocAiAssisted';
+  const publicId = uid + '-devPocVisibilityPublic';
+  const privateId = uid + '-devPocVisibilityPrivate';
+  return (
+    <React.Fragment>
+      {linkedNote}
+      <div className="devPocField">
+        <Input
+          id={nameId}
+          dir="auto"
+          label={<InterfaceText text={{ en: 'Project name', he: 'שם הפרויקט' }} />}
+          value={fields.name}
+          onChange={(e) => set('name', e.target.value)}
+        />
+      </div>
+      <div className="devPocField">
+        <Input
+          id={descriptionId}
+          label={<InterfaceText text={{ en: 'Short description', he: 'תיאור קצר' }} />}
+          labelAddon={
+            <InfoTip fieldId={descriptionId}>
               <InterfaceText
                 text={{
-                  en: 'The address people visit to use your project. We show it with your project on Powered by Sefaria, and you can use it to keep your key from working anywhere else. No website yet? You can add it later.',
-                  he: 'הכתובת שבה משתמשים בפרויקט שלכם. נציג אותה לצד הפרויקט ב־Powered by Sefaria, ותוכלו להשתמש בה כדי שהמפתח לא יעבוד בשום מקום אחר. עדיין אין אתר? אפשר להוסיף אותו מאוחר יותר.',
+                  en: "The name and description help you tell your projects apart and tell the Sefaria team what you're building. If you make the project public, they're also what visitors to Powered by Sefaria see.",
+                  he: 'השם והתיאור עוזרים לכם להבחין בין הפרויקטים שלכם ומספרים לצוות ספריא מה אתם בונים. אם תהפכו את הפרויקט לציבורי, זה גם מה שיראו המבקרים ב־Powered by Sefaria.',
                 }}
               />
             </InfoTip>
-          </React.Fragment>
-        }
-        aria-describedby={tipId('devPocProjectUrl')}
-        inputDir="ltr"
-        placeholder="https://"
-        value={fields.websiteUrl}
-        onChange={(e) => set('websiteUrl', e.target.value)}
-      />
-    </div>
-    <label className="devPocChoice">
-      <input
-        type="checkbox"
-        id="devPocAiAssisted"
-        aria-describedby={tipId('devPocAiAssisted')}
-        checked={fields.aiAssisted}
-        onChange={(e) => set('aiAssisted', e.target.checked)}
-      />
-      <span>
-        <InterfaceText text={{ en: 'Built with help from AI tools', he: 'נבנה בעזרת כלי בינה מלאכותית' }} />
-        <InfoTip fieldId="devPocAiAssisted">
-          <InterfaceText
-            text={{
-              en: 'Tick this if an AI tool wrote some or all of the code. It helps us learn how people build.',
-              he: 'סמנו אם כלי בינה מלאכותית כתב חלק מהקוד או את כולו. זה עוזר לנו ללמוד איך אנשים בונים.',
-            }}
+          }
+          dir="auto"
+          maxLength={MAX_DESCRIPTION_LENGTH}
+          aria-describedby={tipId(descriptionId) + ' ' + countId}
+          placeholder={Sefaria._v({
+            en: 'One sentence, e.g. a daily study tracker for my community',
+            he: 'משפט אחד, למשל: כלי למעקב אחר לימוד יומי בקהילה שלי',
+          })}
+          value={fields.description}
+          onChange={(e) => set('description', e.target.value)}
+        />
+        <CharacterCount id={countId} length={fields.description.length} />
+      </div>
+      <div className="devPocField">
+        <Input
+          id={orgId}
+          dir="auto"
+          label={<InterfaceText text={{ en: 'Organization', he: 'ארגון' }} />}
+          labelAddon={<OptionalMark />}
+          value={fields.organization}
+          onChange={(e) => set('organization', e.target.value)}
+        />
+      </div>
+      <div className="devPocField">
+        <Input
+          id={urlId}
+          label={<InterfaceText text={{ en: 'Website', he: 'אתר' }} />}
+          labelAddon={
+            <React.Fragment>
+              <OptionalMark />
+              <InfoTip fieldId={urlId} wide>
+                <InterfaceText
+                  text={{
+                    en: 'The address people visit to use your project. We show it with your project on Powered by Sefaria, and you can use it to keep your key from working anywhere else. No website yet? You can add it later.',
+                    he: 'הכתובת שבה משתמשים בפרויקט שלכם. נציג אותה לצד הפרויקט ב־Powered by Sefaria, ותוכלו להשתמש בה כדי שהמפתח לא יעבוד בשום מקום אחר. עדיין אין אתר? אפשר להוסיף אותו מאוחר יותר.',
+                  }}
+                />
+              </InfoTip>
+            </React.Fragment>
+          }
+          aria-describedby={tipId(urlId)}
+          inputDir="ltr"
+          placeholder="https://"
+          value={fields.websiteUrl}
+          onChange={(e) => set('websiteUrl', e.target.value)}
+        />
+      </div>
+      <label className="devPocChoice">
+        <input
+          type="checkbox"
+          id={aiId}
+          aria-describedby={tipId(aiId)}
+          checked={fields.aiAssisted}
+          onChange={(e) => set('aiAssisted', e.target.checked)}
+        />
+        <span>
+          <InterfaceText text={{ en: 'Built with help from AI tools', he: 'נבנה בעזרת כלי בינה מלאכותית' }} />
+          <InfoTip fieldId={aiId}>
+            <InterfaceText
+              text={{
+                en: 'Tick this if an AI tool wrote some or all of the code. It helps us learn how people build.',
+                he: 'סמנו אם כלי בינה מלאכותית כתב חלק מהקוד או את כולו. זה עוזר לנו ללמוד איך אנשים בונים.',
+              }}
+            />
+          </InfoTip>
+        </span>
+      </label>
+      <fieldset className="devPocFieldset">
+        <legend>
+          <InterfaceText text={{ en: 'Visibility', he: 'נראוּת' }} />
+        </legend>
+        <label className="devPocChoice">
+          <input
+            type="radio"
+            id={publicId}
+            aria-describedby={tipId(publicId)}
+            name={uid + '-devPocVisibility'}
+            value="public"
+            checked={fields.visibility === 'public'}
+            onChange={onChoosePublic}
           />
-        </InfoTip>
-      </span>
-    </label>
-    <fieldset className="devPocFieldset">
-      <legend>
-        <InterfaceText text={{ en: 'Visibility', he: 'נראוּת' }} />
-      </legend>
-      <label className="devPocChoice">
-        <input
-          type="radio"
-          id="devPocVisibilityPublic"
-          aria-describedby={tipId('devPocVisibilityPublic')}
-          name="devPocVisibility"
-          value="public"
-          checked={fields.visibility === 'public'}
-          onChange={onChoosePublic}
-        />
-        <span>
-          <InterfaceText text={{ en: 'Public', he: 'ציבורי' }} />
-          <InfoTip fieldId="devPocVisibilityPublic" wide>
-            <InterfaceText
-              text={{
-                en: 'Sefaria may show this project on Powered by Sefaria, our gallery of projects built with Sefaria. We choose what to feature, so it may not appear.',
-                he: 'ספריא עשויה להציג את הפרויקט ב־Powered by Sefaria, הגלריה של פרויקטים שנבנו עם ספריא. אנחנו בוחרים מה להציג, כך שייתכן שהוא לא יופיע.',
-              }}
-            />
-          </InfoTip>
-        </span>
-      </label>
-      <label className="devPocChoice">
-        <input
-          type="radio"
-          id="devPocVisibilityPrivate"
-          aria-describedby={tipId('devPocVisibilityPrivate')}
-          name="devPocVisibility"
-          value="private"
-          checked={fields.visibility === 'private'}
-          onChange={onChoosePrivate}
-        />
-        <span>
-          <InterfaceText text={{ en: 'Private', he: 'פרטי' }} />
-          <InfoTip fieldId="devPocVisibilityPrivate">
-            <InterfaceText
-              text={{
-                en: 'Only you and the Sefaria team can see this project.',
-                he: 'רק את/ה וצוות ספריא יכולים לראות את הפרויקט.',
-              }}
-            />
-          </InfoTip>
-        </span>
-      </label>
-      <button type="button" className="devPocTextButton" data-agent-action="show-public-preview" onClick={onShowPublic}>
-        <InterfaceText text={{ en: 'Show me what will be public', he: 'הראו לי מה יהיה ציבורי' }} />
-      </button>
-    </fieldset>
-  </React.Fragment>
-);
+          <span>
+            <InterfaceText text={{ en: 'Public', he: 'ציבורי' }} />
+            <InfoTip fieldId={publicId} wide>
+              <InterfaceText
+                text={{
+                  en: 'Sefaria may show this project on Powered by Sefaria, our gallery of projects built with Sefaria. We choose what to feature, so it may not appear.',
+                  he: 'ספריא עשויה להציג את הפרויקט ב־Powered by Sefaria, הגלריה של פרויקטים שנבנו עם ספריא. אנחנו בוחרים מה להציג, כך שייתכן שהוא לא יופיע.',
+                }}
+              />
+            </InfoTip>
+          </span>
+        </label>
+        <label className="devPocChoice">
+          <input
+            type="radio"
+            id={privateId}
+            aria-describedby={tipId(privateId)}
+            name={uid + '-devPocVisibility'}
+            value="private"
+            checked={fields.visibility === 'private'}
+            onChange={onChoosePrivate}
+          />
+          <span>
+            <InterfaceText text={{ en: 'Private', he: 'פרטי' }} />
+            <InfoTip fieldId={privateId}>
+              <InterfaceText
+                text={{
+                  en: 'Only you and the Sefaria team can see this project.',
+                  he: 'רק את/ה וצוות ספריא יכולים לראות את הפרויקט.',
+                }}
+              />
+            </InfoTip>
+          </span>
+        </label>
+        <button
+          type="button"
+          className="devPocTextButton"
+          data-agent-action="show-public-preview"
+          onClick={onShowPublic}
+        >
+          <InterfaceText text={{ en: 'Show me what will be public', he: 'הראו לי מה יהיה ציבורי' }} />
+        </button>
+      </fieldset>
+    </React.Fragment>
+  );
+};
 
 const CharacterCount = ({ id, length }) => (
   <p className={'devPocCount' + (length >= MAX_DESCRIPTION_LENGTH ? ' devPocCountFull' : '')} id={id} dir="ltr">
@@ -1512,7 +1541,7 @@ const ProjectForm = ({
 
   const addWebsite = () => {
     setAskWebsite(false);
-    const input = formRef.current && formRef.current.querySelector('#devPocProjectUrl');
+    const input = formRef.current && formRef.current.querySelector('[id$="-devPocProjectUrl"]');
     if (input) {
       input.focus();
     }
@@ -1608,7 +1637,7 @@ const newProjectFields = () => ({
 const NewProjectPanel = ({ onCreate, onCancel }) => {
   const panelRef = useRef(null);
   useEffect(() => {
-    const input = panelRef.current && panelRef.current.querySelector('#devPocProjectName');
+    const input = panelRef.current && panelRef.current.querySelector('[id$="-devPocProjectName"]');
     if (input) {
       input.focus();
     }
@@ -1776,29 +1805,56 @@ const RestrictionToggle = ({ project, apiKey, onToggle }) => {
   );
 };
 
+/* A secret key value held in memory only. One lifetime for every holder of a plaintext key: it is dropped when
+   the page is left (pagehide, so a back/forward-cache restore shows nothing), when the holder unmounts (state
+   goes with it), and KEY_REMASK_MS after it arrived or after `resetKey` last changed. Callers drop it by hand
+   after a copy or a collapse. `onDrop` runs on every drop, whoever causes it. */
+const useEphemeralSecret = (initial, resetKey, onDrop) => {
+  const [value, setValue] = useState(initial || null);
+  const onDropRef = useRef(onDrop);
+  onDropRef.current = onDrop;
+  const drop = useCallback(() => {
+    setValue(null);
+    if (onDropRef.current) {
+      onDropRef.current();
+    }
+  }, []);
+  useEffect(() => {
+    window.addEventListener('pagehide', drop);
+    return () => window.removeEventListener('pagehide', drop);
+  }, [drop]);
+  useEffect(() => {
+    if (value === null) {
+      return undefined;
+    }
+    const timer = setTimeout(drop, KEY_REMASK_MS);
+    return () => clearTimeout(timer);
+  }, [value, resetKey, drop]);
+  return [value, setValue, drop];
+};
+
 /* A key's row. The value is not in the page: Reveal and Copy ask the server for it, and it lives only in this
    component's state (never storage, history or the developer state), dropped when the row goes away, when the
    page is left, after KEY_REMASK_MS, and after a successful copy. A key just created arrives with its value. */
-const KeyValue = ({ keyId, prefix, initialValue, nameId, describedBy }) => {
-  const [value, setValue] = useState(initialValue || null);
+const KeyValue = ({ keyId, prefix, initialValue, nameId, describedBy, onForget }) => {
   const [shown, setShown] = useState(false);
+  /* The creation answer the parent still holds goes too, or a later row render would bring it back. */
+  const [value, setValue, drop] = useEphemeralSecret(initialValue, shown, () => {
+    setShown(false);
+    if (onForget) {
+      onForget();
+    }
+  });
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState('');
   const [error, setError] = useState('');
   const mounted = useRef(true);
   const copyTimer = useRef(null);
 
-  const drop = () => {
-    setValue(null);
-    setShown(false);
-  };
-
   useEffect(() => {
     mounted.current = true;
-    window.addEventListener('pagehide', drop);
     return () => {
       mounted.current = false;
-      window.removeEventListener('pagehide', drop);
       clearTimeout(copyTimer.current);
     };
   }, []);
@@ -1809,15 +1865,6 @@ const KeyValue = ({ keyId, prefix, initialValue, nameId, describedBy }) => {
       setValue(initialValue);
     }
   }, [initialValue]);
-
-  /* Whatever is in memory is dropped KEY_REMASK_MS after it arrived or was last revealed. */
-  useEffect(() => {
-    if (value === null) {
-      return undefined;
-    }
-    const timer = setTimeout(drop, KEY_REMASK_MS);
-    return () => clearTimeout(timer);
-  }, [value, shown]);
 
   const fetchValue = () => {
     if (value !== null) {
@@ -1935,7 +1982,17 @@ const KeyValue = ({ keyId, prefix, initialValue, nameId, describedBy }) => {
   );
 };
 
-const KeyRow = ({ project, apiKey, isNew, newValue, describedBy, onToggleRestriction, onDelete, onAddWebsite }) => (
+const KeyRow = ({
+  project,
+  apiKey,
+  isNew,
+  newValue,
+  onForget,
+  describedBy,
+  onToggleRestriction,
+  onDelete,
+  onAddWebsite,
+}) => (
   <article className={'devPocKey' + (isNew ? ' devPocKeyNew' : '')}>
     <div className="devPocKeyHeading">
       <strong dir="auto" id={'devPocKeyName-' + apiKey.id}>
@@ -1954,6 +2011,7 @@ const KeyRow = ({ project, apiKey, isNew, newValue, describedBy, onToggleRestric
       keyId={apiKey.id}
       prefix={apiKey.prefix}
       initialValue={newValue}
+      onForget={onForget}
       nameId={'devPocKeyName-' + apiKey.id}
       describedBy={describedBy}
     />
@@ -2012,8 +2070,8 @@ const KeysSection = ({ project, maxKeys, canCreate, run, setConfirm, onAddWebsit
   const [error, setError] = useState('');
   const [createError, setCreateError] = useState('');
   const [newKeyId, setNewKeyId] = useState(null);
-  const [newKey, setNewKey] = useState(null); // {id, value}: the value the creation answer carried, in memory only
-  const newKeyTimer = useRef(null);
+  /* {id, value}: the value the creation answer carried, in memory only, on the same lifetime as a revealed value. */
+  const [newKey, setNewKey] = useEphemeralSecret(null);
   const mounted = useRef(true);
   const highlightTimer = useRef(null);
   const headingRef = useRef(null);
@@ -2022,13 +2080,14 @@ const KeysSection = ({ project, maxKeys, canCreate, run, setConfirm, onAddWebsit
     () => () => {
       mounted.current = false;
       clearTimeout(highlightTimer.current);
-      clearTimeout(newKeyTimer.current);
     },
     []
   );
 
   const atLimit = project.keys.length >= maxKeys;
-  const keysNoteField = 'devPocKeys-' + project.id;
+  const uid = useInstanceId();
+  const keysNoteField = uid + '-devPocKeys';
+  const labelId = uid + '-devPocKeyLabel';
   const firstKeyPrompt = canCreate && project.keys.length === 0 && !creating && phase === 'idle';
   const startCreating = () => {
     setCreating(true);
@@ -2058,8 +2117,6 @@ const KeysSection = ({ project, maxKeys, canCreate, run, setConfirm, onAddWebsit
         setLabel('');
         setNewKeyId(data.keyId);
         setNewKey({ id: data.keyId, value: data.keyValue });
-        clearTimeout(newKeyTimer.current);
-        newKeyTimer.current = setTimeout(() => setNewKey(null), KEY_REMASK_MS);
         clearTimeout(highlightTimer.current);
         highlightTimer.current = setTimeout(() => setNewKeyId(null), KEY_HIGHLIGHT_MS);
       },
@@ -2146,10 +2203,10 @@ const KeysSection = ({ project, maxKeys, canCreate, run, setConfirm, onAddWebsit
         <form className="devPocForm devPocCreateKey" onSubmit={startCreate}>
           <div className="devPocField">
             <Input
-              id="devPocKeyLabel"
+              id={labelId}
               label={<InterfaceText text={{ en: 'Key name', he: 'שם המפתח' }} />}
               labelAddon={
-                <InfoTip fieldId="devPocKeyLabel">
+                <InfoTip fieldId={labelId}>
                   <InterfaceText
                     text={{
                       en: 'A name just for you, so you can tell your keys apart.',
@@ -2158,7 +2215,7 @@ const KeysSection = ({ project, maxKeys, canCreate, run, setConfirm, onAddWebsit
                   />
                 </InfoTip>
               }
-              aria-describedby={tipId('devPocKeyLabel')}
+              aria-describedby={tipId(labelId)}
               dir="auto"
               placeholder={Sefaria._v({ en: 'e.g. My website', he: 'למשל: האתר שלי' })}
               value={label}
@@ -2254,6 +2311,7 @@ const KeysSection = ({ project, maxKeys, canCreate, run, setConfirm, onAddWebsit
                 apiKey={k}
                 isNew={k.id === newKeyId}
                 newValue={newKey && newKey.id === k.id ? newKey.value : null}
+                onForget={() => setNewKey((held) => (held && held.id === k.id ? null : held))}
                 describedBy={tipId(keysNoteField)}
                 onToggleRestriction={(on) => toggleRestriction(k.id, on)}
                 onDelete={() => deleteApiKey(k)}
@@ -2294,7 +2352,7 @@ const ProjectCard = ({ project, expanded, maxKeys, canCreateKeys, run, setConfir
   const addWebsite = () => {
     setEditing(true);
     setTimeout(() => {
-      const input = cardRef.current && cardRef.current.querySelector('#devPocProjectUrl');
+      const input = cardRef.current && cardRef.current.querySelector('[id$="-devPocProjectUrl"]');
       if (input) {
         input.focus();
       }

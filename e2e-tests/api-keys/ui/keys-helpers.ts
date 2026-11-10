@@ -99,7 +99,7 @@ export type CreatedKey = { id: string; value: string; label: string; respondedAt
 /** Creates a key through the form; resolves when the API answers, before the "Ready to use" message. */
 export async function startKeyInUi(dev: DeveloperSettingsPage, card: Locator, label: string): Promise<CreatedKey> {
   await dev.action('new-key', card).first().click();
-  await card.locator('#devPocKeyLabel').fill(label);
+  await card.locator('[id$="-devPocKeyLabel"]').fill(label);
   const pending = waitForDeveloperApi(dev.page, /\/api\/developer\/projects\/[^/]+\/keys$/);
   await dev.action('create-key', card).click();
   const response = await pending;
@@ -141,13 +141,13 @@ export async function revokeKeyInUi(dev: DeveloperSettingsPage, card: Locator, l
 export async function openProjectEditor(card: Locator) {
   const toggle = card.getByRole('button', { name: /^(Edit project|Close editor)$/ });
   if ((await toggle.textContent())?.trim() === 'Edit project') await toggle.click();
-  await expect(card.locator('#devPocProjectUrl')).toBeVisible();
+  await expect(card.locator('[id$="-devPocProjectUrl"]')).toBeVisible();
 }
 
 /** Saves the open project editor with a new website ('' clears it). */
 export async function saveWebsite(dev: DeveloperSettingsPage, card: Locator, website: string): Promise<{ respondedAt: number }> {
   await openProjectEditor(card);
-  await card.locator('#devPocProjectUrl').fill(website);
+  await card.locator('[id$="-devPocProjectUrl"]').fill(website);
   const pending = waitForDeveloperApi(dev.page, /\/api\/developer\/projects\/[^/]+$/);
   await dev.action('save-project', card).click();
   if (!website) await dev.action('save-without-website').click();

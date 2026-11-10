@@ -148,7 +148,7 @@ test.describe('developer settings: projects', () => {
       await expect(card.locator(`#devPocRestrictionSummary-${keyId}`)).toContainText('https://c4-old.example.com');
 
       await card.getByRole('button', { name: 'Edit project' }).click();
-      await card.locator('#devPocProjectUrl').fill('https://c4-new.example.com');
+      await card.locator('[id$="-devPocProjectUrl"]').fill('https://c4-new.example.com');
       let save = dev.waitForApi(`projects/${id}`);
       await dev.action('save-project', card).click();
       expect((await save).status()).toBe(200);
@@ -162,7 +162,7 @@ test.describe('developer settings: projects', () => {
       // for a stale page: settingsPage.test.js and developer_writer_api_project_test.py cover that path).
       const refusal = 'Turn off the restriction on every key';
       await card.getByRole('button', { name: 'Edit project' }).click();
-      await card.locator('#devPocProjectUrl').fill('');
+      await card.locator('[id$="-devPocProjectUrl"]').fill('');
       const sent: string[] = [];
       const onRequest = (r: any) => { if (r.method() !== 'GET' && r.url().includes(`/api/developer/projects/${id}`)) sent.push(r.url()); };
       page.on('request', onRequest);
@@ -171,7 +171,7 @@ test.describe('developer settings: projects', () => {
       await expect(page.locator('[aria-labelledby="devPocNoWebsiteTitle"]')).toHaveCount(0);
       page.off('request', onRequest);
       expect(sent, 'clearing a restricted website sent a request').toEqual([]);
-      await expect(card.locator('#devPocProjectUrl')).toHaveValue('');
+      await expect(card.locator('[id$="-devPocProjectUrl"]')).toHaveValue('');
       let after = (await state(page)).projects.find((p: any) => p.id === id);
       expect(after.websiteUrl).toBe('https://c4-new.example.com');
       expect(after.keys.find((k: any) => k.id === keyId).restrictToWebsite).toBe(true);
@@ -184,7 +184,7 @@ test.describe('developer settings: projects', () => {
       await expect(dev.restrictionSwitch(card, label)).not.toBeChecked();
 
       await card.getByRole('button', { name: 'Edit project' }).click();
-      await card.locator('#devPocProjectUrl').fill('');
+      await card.locator('[id$="-devPocProjectUrl"]').fill('');
       save = dev.waitForApi(`projects/${id}`);
       await dev.action('save-project', card).click();
       await dev.action('save-without-website').click();
