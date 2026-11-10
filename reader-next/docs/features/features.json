@@ -947,7 +947,8 @@
    "BUILT 2026-11-10 (T-F28): a path this client does not render is still handed to Django first; when Django answers 404 too (an HTML page read, not an API's, not on the Voices host) the reader renders its own Page Not Found in the new shell — templates/404.html's words, title 'Page Not Found | Sefaria', 404, X-Robots-Tag and robots meta noindex, Cache-Control no-cache. Mechanism: the request middleware calls the router with a request-context flag and the root route throws notFound() in beforeLoad (src/lib/routing/not-found.ts, src/start.ts). Deliberate difference: live's 404 page has no noindex. Routes with their own not-found (a text: 'Text not found'; topics: 'Page not found.') keep theirs, now noindex.",
    "BUILT 2026-11-10 (T-F28): an upstream failure is an HTML page (src/server/error-page.ts), still 503 + Retry-After 5, no-store, noindex, in the interface language of the cookie, with a 'Try again' link to the same address and templates/500.html's contact line. A fixed document: the app's render would need the API that failed.",
    "Tests: src/lib/routing/not-found.test.ts, src/server/error-page.test.ts, e2e/routing-pass-through.spec.ts (needs a pass-through dev server, E2E_PASS_THROUGH_URL).",
-   "2026-11-10: e2e/routing-pass-through.spec.ts (the reader's 404 after Django's, Hebrew 404, Django's own answers, the Voices host untouched) runs in every suite (third dev server in playwright.config.ts; Django = the API cassette). The signed-in case still needs the stand-in Django (E2E_STANDIN)."
+   "2026-11-10: e2e/routing-pass-through.spec.ts (the reader's 404 after Django's, Hebrew 404, Django's own answers, the Voices host untouched) runs in every suite (third dev server in playwright.config.ts; Django = the API cassette). The signed-in case still needs the stand-in Django (E2E_STANDIN).",
+   "2026-11-10: the topics routes' not-found is the shared NotFoundPage too (DjangoHandoff keeps only its reload for an in-app 404)."
   ],
   "audience": "all",
   "platform": "all",
@@ -7496,7 +7497,8 @@
    "When !multiPanel and not compare: AboutSefaria (hideTitle) rendered at top of content.",
    "RecentlyViewed mobile={true} rendered inline above categories when not multiPanel.",
    "VERIFIED with a phone UA: the About blurb ('Sefaria is home to 3,000 years of Jewish texts … Learn More ›') sits under 'Browse the Library' on /texts. Rebuilt (AboutBlurb, shown at ≤842px). Still open: the Recently Viewed list (needs the reader's history).",
-   "Phone layout: page padding 15px, title 25px under the header; the About blurb (AboutSefaria hideTitle) is 16px/normal #666 with 'Learn More ›' straight after the full stop (no gap, no underline — the a.inTextLink rules only apply inside .navSidebar), 34px over the grid; the sidebar follows 50px below the grid (20px margin, 30px padding, then an empty module's 34px) with module titles 10px over their content, not 20px. The desktop-only AboutSefaria module is not in the phone sidebar (TextsPage passes it for multiPanel only). Verified on www.sefaria.org with Playwright, 2026-10-29."
+   "Phone layout: page padding 15px, title 25px under the header; the About blurb (AboutSefaria hideTitle) is 16px/normal #666 with 'Learn More ›' straight after the full stop (no gap, no underline — the a.inTextLink rules only apply inside .navSidebar), 34px over the grid; the sidebar follows 50px below the grid (20px margin, 30px padding, then an empty module's 34px) with module titles 10px over their content, not 20px. The desktop-only AboutSefaria module is not in the phone sidebar (TextsPage passes it for multiPanel only). Verified on www.sefaria.org with Playwright, 2026-10-29.",
+   "BUILT 2026-11-10: the phone's inline Recently Viewed band above the categories (LIB-025). Tests: e2e/library.spec.ts ('on a phone')."
   ],
   "audience": "all",
   "platform": "mobile",
@@ -7519,7 +7521,8 @@
    "Date key = now + 6 hours local time (ISO YYYY-MM-DD), so dedication flips at 6pm local.",
    "Initial data from Sefaria._tableOfContentsDedications[date] (server-provided cache).",
    "If missing: loads Google Charts and queries a hard-coded public Google Sheet (select A,B,C -> date/en/he), fills the cache for all rows, shows today's.",
-   "Rendered in .dedication via InterfaceText markdown {en,he}; hidden if neither language present."
+   "Rendered in .dedication via InterfaceText markdown {en,he}; hidden if neither language present.",
+   "BUILT 2026-11-10: the sheet is read through its gviz endpoint (docs.google.com/spreadsheets/d/11c9…/gviz/tq?tq=select A, B, C&tqx=out:json, which sends CORS headers for sefaria.org) instead of loading Google Charts; the day turns at 6 pm local time; the band (#fbfbfa, 26px 19px, 18px, English italic Garamond, Hebrew Heebo) under the title, above Recently Viewed on a phone. Shown after load, as the old page. The sheet answered empty rows for 2026-11-10 and -11, so the band was checked with a stand-in answer. Tests: src/lib/library/dedication.test.ts, e2e/library.spec.ts ('the daily dedication')."
   ],
   "audience": "all",
   "platform": "all",
@@ -7966,7 +7969,9 @@
    "Loads Sefaria.loadUserHistory(20,...) if not loaded; dedupes by book, excludes sheets, shows max 3.",
    "Each link /<normRef>?<version params> with he/en ref; gtag recently_viewed events.",
    "'All history' -> /history; if logged out opens sign-up modal (SignUpModalKind.ViewHistory) instead.",
-   "mobile variant: list below header and different phrase id. Hidden if no history."
+   "mobile variant: list below header and different phrase id. Hidden if no history.",
+   "VERIFIED 2026-11-10 on www.sefaria.org (lane GS, Playwright at 1280px and with a phone User-Agent, a user_history cookie of six items): the module shows the newest item of each of the first three books, sheets left out (Genesis 1:3, Berakhot 2a, Exodus 3), after the promo slot and before Translations; items 18px serif black with a bullet between, 'All history ›' 16px grey under them; signed out, All history opens the sign-up modal (view history). Phone: a #fbfbfa band above the categories, its header row the 16px title and 'All History' right-aligned, the list under it.",
+   "BUILT 2026-11-10: src/lib/library/recently-viewed.ts (GET /api/profile/user_history?secondary=0&annotate=1&limit=20, asked by the server with the reader's cookies when there is a session or a user_history cookie, so it is in the first paint), src/features/library/RecentlyViewedModule.tsx, src/ui/NavSidebar/NavSidebar.tsx RecentlyViewed. The old recently_viewed gtag events (ref, all_history with logged_in). Tests: src/lib/library/recently-viewed.test.ts, e2e/library.spec.ts ('Recently Viewed on the library home')."
   ],
   "audience": "all",
   "platform": "all",
@@ -8802,7 +8807,8 @@
    "/texts -> texts_list (menu 'navigation'; props from get_user_history_props for recently viewed).",
    "/texts/<cats> -> texts_category_list: redirects 'Tanach'->'Tanakh'; unknown path falls back to texts_list; SEO desc = enDesc/heDesc -> short desc -> default; JSON-LD breadcrumbs (ld_cat_crumbs).",
    "/texts/notes, /texts/recent legacy (urls_library.py:20-21).",
-   "Rebuild: /texts and /texts/<path…> are routes of their own; 'Tanach' → 301 to 'Tanakh'; an unknown path shows the home page at that address."
+   "Rebuild: /texts and /texts/<path…> are routes of their own; 'Tanach' → 301 to 'Tanakh'; an unknown path shows the home page at that address.",
+   "2026-11-10: /texts/history (where Django's /texts/recent redirects) and any path naming no category is the library home with the home's title and description, as sefaria.org (was titled 'history | …'). Tests: e2e/library.spec.ts."
   ],
   "audience": "system",
   "platform": "all",
@@ -10021,7 +10027,8 @@
   "details": [
    "Root container data-anl-batch = {project:'topics', content_lang, panel_category}.",
    "Root batch {project:'topics', content_lang:<english|hebrew|bilingual from the language toggle>, panel_category:<parents' slugs joined by '|'>} (left out when the topic has no category); the side column data-anl-panel_type='topics' data-anl-panel_number=0. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
-   "GA4 events of the page (data-anl, ANL-015) as sefaria.org fires them: filter:click {text: <sort>} on the funnel, sort_by:click {text, from, to} on a sort option, search:input {text} in the filter box, lang_toggle_click on the A and lang_toggle_select {text, to: source|translation|sourcewtrans, from, feature_name: 'source lang toggled'} on a choice, each with the page batch {project: topics, content_lang, panel_category}. Tab clicks carry no data-anl attribute in the legacy TabView (TopicPage.jsx), so no declarative event. NEW READER: covered by e2e (topic-page.spec.ts 'the topic page's analytics')."
+   "GA4 events of the page (data-anl, ANL-015) as sefaria.org fires them: filter:click {text: <sort>} on the funnel, sort_by:click {text, from, to} on a sort option, search:input {text} in the filter box, lang_toggle_click on the A and lang_toggle_select {text, to: source|translation|sourcewtrans, from, feature_name: 'source lang toggled'} on a choice, each with the page batch {project: topics, content_lang, panel_category}. Tab clicks carry no data-anl attribute in the legacy TabView (TopicPage.jsx), so no declarative event. NEW READER: covered by e2e (topic-page.spec.ts 'the topic page's analytics').",
+   "T-G06 (lane GS, 2026-11-10): dimension5 is Universal Analytics (track.js ga(SET, 'dimension5')), which the new reader does not send (owner decision 2026-11-10): nothing to port. The landing modules' data-anl-* (Featured Topic, Multi-Cards, Parashah, Calendar, Search, Topic Salad, newsletter) were already in src/ui/TopicsNav/TopicLanding.tsx, checked against static/js/TopicLandingPage/*.jsx. Synthetic vs real bold line breaks: accepted as recorded in the topic page entries."
   ],
   "audience": "system",
   "platform": "all",
@@ -10180,7 +10187,8 @@
    "Open: the backend change (get_topic's v2 answer carries `pools`) and its test (sefaria/helper/tests/topic_test.py::test_get_topic_v2_answers_the_topics_pools) have not been run (no Django/Mongo environment); until it is deployed, Library topics outside the A–Z list (~1,366) always go to Django.",
    "BUILT 2026-11-04 (review fix): src/server/topics-owner.ts decides before rendering, in the cluster's pass-through: /topics/<slug> and /topics/b/<slug> are this client's only for the A–Z list's slugs, /topics/category/<slug> only for the TOC's categories; ?editor=1 and everything else go to Django without the topic being fetched (curl with pass-through: /topics/aarons-staff 200 django 1.6s, /topics/category/moses 0.3s, /topics/moses?editor=1 1.0s). In the app, readTopicPage hands a slug outside the A–Z list to Django without fetching it, so the backend 'pools' field is no longer needed to decide. Tests: src/server/topics-owner.test.ts.",
    "Owner rule (2026-11-05): an opted-in reader must never land in the legacy client from inside the new reader; port the page or point the link at a reader-next page (wiki projects/reader-next/exits-to-legacy).",
-   "BUILT 2026-11-05 (replaces 2026-11-04's hand-off): every Library-pool topic is rendered here. A topic outside the A–Z list (some 300: Rashi's students rabbenu-tam, rivan, meir-ben-shmuel; yehuda-herzl-henkin…) is fetched and its pool decided from the API's `pools` where given (this branch's Django), else from the name completer, which filters by pool on sefaria.org today: GET /api/name/<title>?type=Topic&topic_pool=library (VERIFIED 2026-11-05: rabbenu-tam, rivan, yehuda-herzl-henkin found; youth, a sheets-only topic, not; live answers youth 404). Not in the pool: the 404 Django gives. Indexing as live (rabbenu-tam has no robots meta on sefaria.org). src/server/topics-owner.ts now hands Django only ?editor=1 (the moderators' editors, not ported). Tests: e2e/topic-page.spec.ts ('topics outside the A–Z list'), src/server/topics-owner.test.ts."
+   "BUILT 2026-11-05 (replaces 2026-11-04's hand-off): every Library-pool topic is rendered here. A topic outside the A–Z list (some 300: Rashi's students rabbenu-tam, rivan, meir-ben-shmuel; yehuda-herzl-henkin…) is fetched and its pool decided from the API's `pools` where given (this branch's Django), else from the name completer, which filters by pool on sefaria.org today: GET /api/name/<title>?type=Topic&topic_pool=library (VERIFIED 2026-11-05: rabbenu-tam, rivan, yehuda-herzl-henkin found; youth, a sheets-only topic, not; live answers youth 404). Not in the pool: the 404 Django gives. Indexing as live (rabbenu-tam has no robots meta on sefaria.org). src/server/topics-owner.ts now hands Django only ?editor=1 (the moderators' editors, not ported). Tests: e2e/topic-page.spec.ts ('topics outside the A–Z list'), src/server/topics-owner.test.ts.",
+   "2026-11-10 (lane GS): a topic route's own 404 (the server's answer is final) is the shared 'Page Not Found' page, no longer the plain 'Page not found.'; an in-app 404 still reloads for Django. An ambiguous name's topic (isAmbiguous, e.g. /topics/רג-(ambiguous) from Berakhot 2a's sidebar) is rendered as sefaria.org does (h1, an empty Explore Topics, noindex) instead of a 404: the name completer never offers it, so the pool check took it for a non-Library topic. Tests: e2e/topic-page.spec.ts, e2e/topics-category.spec.ts."
   ],
   "refs": [
    "reader/views.py:3592-3640",
@@ -10577,7 +10585,8 @@
   "details": [
    "repairCaseVariant: when not a ref and first completion matches case-insensitively as prefix, rebuild query with completion's casing and recurse.",
    "repairGershayimVariant: swap ״ for \" and, if a completion matches, recurse.",
-   "Recursion happens before deciding navigate vs search."
+   "Recursion happens before deciding navigate vs search.",
+   "BUILT 2026-11-10: repairCaseVariant (Sefaria.isACaseVariant/repairCaseVariant) before the gershayim repair in the header's Enter. 'pirkei avot' is not a ref to the name API (VERIFIED 2026-11-10) and opened a word search; now /Pirkei_Avot. Tests: src/lib/search/autocomplete.test.ts, e2e/search-page.spec.ts."
   ],
   "audience": "all",
   "platform": "all",
@@ -15523,7 +15532,8 @@
    "FOUND: the site header's menus (language, Library, account) opened UNDER the reader's sticky panel header (z-index 100 vs 20), hiding their items; the header is now z-index 110.",
    "REBUILD: Sign Up goes to the client's /register?next= (in-app, data-signup-source=nav_bar).",
    "Right side: search, Sign Up (74x28, 14px/14px, 1px transparent border), then 18px image icons (help_mdl, globallanguageswitcher_mdl, moduleswitcher_mdl, profile_loggedout_mdl) 20px apart, the last 30px from the edge; every gap 20px. Verified on www.sefaria.org with Playwright, 2026-10-29.",
-   "2026-11-10 (T-F20): no notifications link or unread count, deliberately: sefaria.org's Library header has none (the bell is Voices-only in static/js/Header.jsx) and there is no API for the count. Owner question in reports/p-pages.md."
+   "2026-11-10 (T-F20): no notifications link or unread count, deliberately: sefaria.org's Library header has none (the bell is Voices-only in static/js/Header.jsx) and there is no API for the count. Owner question in reports/p-pages.md.",
+   "VERIFIED 2026-11-10 on www.sefaria.org (lane GS, Playwright at 1280px and with a phone User-Agent, /interface/hebrew?next=/texts): the desktop bar says טקסטים (the terms dictionary's 'Texts'), נושאים, תרומה; the phone menu says מקורות (header.texts). The Hebrew search box is Heebo 18px, right to left, 216×28.5 at y=15.25 (.interface-hebrew input; no fixed height). BUILT 2026-11-10 (T-G02). Tests: e2e/shell.spec.ts ('the Hebrew interface's bar'), src/ui/SiteHeader/SiteHeader.test.tsx."
   ],
   "audience": "all",
   "platform": "desktop",
@@ -15585,7 +15595,8 @@
   "summary": "A site-wide warning set by the server can be shown to all users with a close button.",
   "details": [
    "GlobalWarningMessage renders Sefaria.globalWarningMessage HTML",
-   "Shows Sefaria.globalWarningMessage HTML with close x (Misc.jsx:615-628; Header.jsx:373)."
+   "Shows Sefaria.globalWarningMessage HTML with close x (Misc.jsx:615-628; Header.jsx:373).",
+   "Checked 2026-11-10 (lane GS): GLOBAL_WARNING_MESSAGE no longer reaches the client: commit 2493041b8f (2020, 'Remove Global warning var') took it out of context_processors.py and data.js; Misc.jsx's GlobalWarningMessage reads a Sefaria.globalWarningMessage nothing sets, and the helm values only fill a Django setting nothing reads. Nothing to port."
   ],
   "audience": "all",
   "platform": "all",
@@ -16139,7 +16150,8 @@
   "name": "Donate link variants",
   "summary": "The Donate link points to a campaign page by donor type.",
   "details": [
-   "DonateLink variants: default (en 451346 / he 468442), sustainer (457760 / 478929), dayOfLearning (/sponsor, /sponsorhe); appends ?c_src={source}; opens in new tab (Misc.jsx:173-197)."
+   "DonateLink variants: default (en 451346 / he 468442), sustainer (457760 / 478929), dayOfLearning (/sponsor, /sponsorhe); appends ?c_src={source}; opens in new tab (Misc.jsx:173-197).",
+   "BUILT 2026-11-10: the header's and phone menu's Donate use the Hebrew campaign (468442) in the Hebrew interface, as DonateLink's Sefaria._v. The sustainer link is used nowhere on sefaria.org (only the default and dayOfLearning variants are rendered). Tests: src/ui/SiteHeader/SiteHeader.test.tsx, e2e/shell.spec.ts."
   ],
   "audience": "all",
   "platform": "all",
@@ -19935,7 +19947,8 @@
    "/apple-app-site-association and /.well-known/apple-app-site-association: appID 2626EW4BML.org.sefaria.sefariaApp;",
    "excludes /accounts/*, /_allauth/*, /api/auth/google/redirect and any URL with no_applink.",
    "/.well-known/assetlinks.json: Android app links (org.sefaria.sefaria).",
-   "/llms.txt -> static/llms.txt, 1-day cache."
+   "/llms.txt -> static/llms.txt, 1-day cache.",
+   "BUILT 2026-11-10 (lane GS): src/lib/shell/site-head.ts, in the root route's head on every page but the standalone ones: rel=search OpenSearch (title 'Sefaria Search', /static/files/opensearch.xml), the Library's shortcut icon, SVG and PNG icons and 180px apple-touch-icon (/static/icons/library/…?v=3), /site.webmanifest?v=3 (linked only when Django is the page's own origin: a cross-origin manifest needs CORS), apple-mobile-web-app-capable, apple-itunes-app app-id=1163273965, theme-color #18345D, apple-mobile-web-app-title Library/ספרייה. As base.html (curl of /texts, 2026-11-10). Tests: src/lib/shell/site-head.test.ts, e2e/shell.spec.ts ('the head links OpenSearch and the icons')."
   ],
   "audience": "system",
   "platform": "all",
@@ -20057,7 +20070,9 @@
    "topic 'Sheets from Voices on Sefaria' / 'Texts from the Sefaria Library'; collections voices only; default 'Voices on Sefaria' / 'Sefaria Library'.",
    "Sheet titles strip tags; empty -> 'Untitled'. Client mirror Sefaria.getPageTitle with i18n keys.",
    "Text page description = first ~160 chars of segment text (interface-language first, fallback other; bleach-cleaned, word-truncated + ellipsis) or book enDesc/heDesc + 'Read the text of X online...';",
-   "sheets = summary or default; topics, categories, search, translations have specific descriptions."
+   "sheets = summary or default; topics, categories, search, translations have specific descriptions.",
+   "VERIFIED 2026-11-10 on www.sefaria.org (lane GS, Playwright at 1280px and with a phone User-Agent; descriptions with curl, titles as document.title after load): the old client replaces the server's title after hydration ('Genesis | Sefaria Library' → 'Genesis | The Sefaria Library'; Hebrew 'בראשית | האוסף של ספריא'); /texts 'Sefaria: a Living Library of Jewish Texts Online' (he 'ספריא: ספרייה חיה של טקסטים יהודיים'); a category 'Tanakh, Torah | The Sefaria Library', its description its enDesc, else its short description, else 'Read <cats> texts online with commentaries and connections.'; a book its description then 'Read the text of <book> online with commentaries and connections.' (English in both interfaces); search '<q> | The Sefaria Library' or 'Search'/'חיפוש'. The descriptions repeat as og:description and twitter:description, the titles as og:title and twitter:title (base.html meta_desc/meta_title).",
+   "BUILT 2026-11-10 for the library home, category, book and search pages: src/lib/library/page-head.ts. Not ported: the Hebrew category description's doubled escaping ('התנ&quot;ך'), and a book without a Hebrew title in the old client's cache titled in English (Pesach Haggadah). Tests: src/lib/library/page-head.test.ts, e2e/library.spec.ts. Text pages keep '<ref> | Sefaria Reader' and no description (the reader route, lane GR)."
   ],
   "audience": "system",
   "platform": "all",
@@ -20079,7 +20094,8 @@
   "summary": "Some pages are hidden from search engines.",
   "details": [
    "noindex -> <meta name='robots' content='noindex, nofollow'>, also always in DEBUG (base.html:15-17).",
-   "Set on: search, edit collection, unlisted collections, non-public or noindex sheets, topics below MIN_SOURCES_FOR_TOPIC_DISPLAY."
+   "Set on: search, edit collection, unlisted collections, non-public or noindex sheets, topics below MIN_SOURCES_FOR_TOPIC_DISPLAY.",
+   "BUILT 2026-11-10: /search carries robots 'noindex, nofollow' (reader/views.py search). Tests: e2e/library.spec.ts."
   ],
   "audience": "system",
   "platform": "all",
@@ -20144,7 +20160,8 @@
    "OpenSearch descriptor (static/files/opensearch.xml); apple-itunes-app banner id 1163273965; per-module favicons/apple-touch icon/manifest (?v=3); theme-color #518159 voices / #18345D library;",
    "apple-mobile-web-app-title Voices/Library; <html lang>; body classes interface-<lang> and embeded; data-active-module.",
    "Conditional scripts: GTM + VWO, Hotjar, gtag with user_id/traffic_type/site_lang/site_version, Simple Analytics with metadata, Unbounce;",
-   "Google Identity / Apple ID / reCAPTCHA only for logged-out users; chatbot script."
+   "Google Identity / Apple ID / reCAPTCHA only for logged-out users; chatbot script.",
+   "BUILT 2026-11-10 (lane GS): src/lib/shell/site-head.ts, in the root route's head on every page but the standalone ones: rel=search OpenSearch (title 'Sefaria Search', /static/files/opensearch.xml), the Library's shortcut icon, SVG and PNG icons and 180px apple-touch-icon (/static/icons/library/…?v=3), /site.webmanifest?v=3 (linked only when Django is the page's own origin: a cross-origin manifest needs CORS), apple-mobile-web-app-capable, apple-itunes-app app-id=1163273965, theme-color #18345D, apple-mobile-web-app-title Library/ספרייה. As base.html (curl of /texts, 2026-11-10). Tests: src/lib/shell/site-head.test.ts, e2e/shell.spec.ts ('the head links OpenSearch and the icons')."
   ],
   "audience": "system",
   "platform": "all",
@@ -20312,7 +20329,8 @@
   "details": [
    "/site.webmanifest or /manifest.json -> reader_views.dynamic_manifest rendering templates/manifest.json per module and language (name Sefaria Library/Voices, 192/512/maskable icons, theme/background color, display standalone, orientation portrait-primary, dir/lang) (reader/views.py:5575-5602)",
    "No service worker anywhere in repo",
-   "Favicons per module via /favicon.ico|.svg and /apple-touch-icon.png (reader/views.py:5446-5468)"
+   "Favicons per module via /favicon.ico|.svg and /apple-touch-icon.png (reader/views.py:5446-5468)",
+   "BUILT 2026-11-10 (lane GS): src/lib/shell/site-head.ts, in the root route's head on every page but the standalone ones: rel=search OpenSearch (title 'Sefaria Search', /static/files/opensearch.xml), the Library's shortcut icon, SVG and PNG icons and 180px apple-touch-icon (/static/icons/library/…?v=3), /site.webmanifest?v=3 (linked only when Django is the page's own origin: a cross-origin manifest needs CORS), apple-mobile-web-app-capable, apple-itunes-app app-id=1163273965, theme-color #18345D, apple-mobile-web-app-title Library/ספרייה. As base.html (curl of /texts, 2026-11-10). Tests: src/lib/shell/site-head.test.ts, e2e/shell.spec.ts ('the head links OpenSearch and the icons')."
   ],
   "audience": "system",
   "platform": "all",
@@ -20336,7 +20354,8 @@
    "/.well-known/assetlinks.json (Android org.sefaria.sefaria) (:5482-5492)",
    "WebSessionRedirectMiddleware adds no_applink to in-session redirects so iOS does not hijack mid-flow; client strips it (client.jsx:13-18)",
    "App promos: apple-itunes-app meta, /ios, /mobile, /app pages, AppStoreButton in GetTheApp module, Steinsaltz app buttons, /donate/mobile",
-   "Mobile app backend: api/login/, api/register/, api/auth/google|apple/mobile, api/account/delete, api/profile/sync (client param)"
+   "Mobile app backend: api/login/, api/register/, api/auth/google|apple/mobile, api/account/delete, api/profile/sync (client param)",
+   "BUILT 2026-11-10 (lane GS): src/lib/shell/site-head.ts, in the root route's head on every page but the standalone ones: rel=search OpenSearch (title 'Sefaria Search', /static/files/opensearch.xml), the Library's shortcut icon, SVG and PNG icons and 180px apple-touch-icon (/static/icons/library/…?v=3), /site.webmanifest?v=3 (linked only when Django is the page's own origin: a cross-origin manifest needs CORS), apple-mobile-web-app-capable, apple-itunes-app app-id=1163273965, theme-color #18345D, apple-mobile-web-app-title Library/ספרייה. As base.html (curl of /texts, 2026-11-10). Tests: src/lib/shell/site-head.test.ts, e2e/shell.spec.ts ('the head links OpenSearch and the icons')."
   ],
   "audience": "third-party",
   "platform": "mobile",
@@ -20383,7 +20402,8 @@
    "/site.webmanifest and /manifest.json -> reader/views.py:5575-5602 dynamic_manifest renders templates/manifest.json: name 'Sefaria Library'/'Sefaria Voices', short_name, start_url '/', scope '/', icons",
    "static/icons/<module>/<module>-192.png, -512.png, -maskable.png.",
    "theme/background color #518159 (voices) or #18345D (library); display standalone; orientation portrait-primary; dir/lang rtl/he or ltr/en by interface language.",
-   "Headers Vary: Accept-Language, Host; Cache-Control max-age=2592000 (30 days). base.html:58 links manifest with ?v={{favicon_version}}."
+   "Headers Vary: Accept-Language, Host; Cache-Control max-age=2592000 (30 days). base.html:58 links manifest with ?v={{favicon_version}}.",
+   "BUILT 2026-11-10 (lane GS): src/lib/shell/site-head.ts, in the root route's head on every page but the standalone ones: rel=search OpenSearch (title 'Sefaria Search', /static/files/opensearch.xml), the Library's shortcut icon, SVG and PNG icons and 180px apple-touch-icon (/static/icons/library/…?v=3), /site.webmanifest?v=3 (linked only when Django is the page's own origin: a cross-origin manifest needs CORS), apple-mobile-web-app-capable, apple-itunes-app app-id=1163273965, theme-color #18345D, apple-mobile-web-app-title Library/ספרייה. As base.html (curl of /texts, 2026-11-10). Tests: src/lib/shell/site-head.test.ts, e2e/shell.spec.ts ('the head links OpenSearch and the icons')."
   ],
   "audience": "all",
   "platform": "mobile",
@@ -20405,7 +20425,8 @@
   "details": [
    "/favicon.ico, /apple-touch-icon.png, /favicon.svg -> module_favicon (reader/views.py:5446-5468) serving static/icons/<active_module>/<file>, 1-month cache;",
    "base.html:57 apple-touch-icon 180x180 ?v=favicon_version.",
-   "edit_text.html links favicon.ico/svg/png, theme-color #18345D, apple-mobile-web-app-capable."
+   "edit_text.html links favicon.ico/svg/png, theme-color #18345D, apple-mobile-web-app-capable.",
+   "BUILT 2026-11-10 (lane GS): src/lib/shell/site-head.ts, in the root route's head on every page but the standalone ones: rel=search OpenSearch (title 'Sefaria Search', /static/files/opensearch.xml), the Library's shortcut icon, SVG and PNG icons and 180px apple-touch-icon (/static/icons/library/…?v=3), /site.webmanifest?v=3 (linked only when Django is the page's own origin: a cross-origin manifest needs CORS), apple-mobile-web-app-capable, apple-itunes-app app-id=1163273965, theme-color #18345D, apple-mobile-web-app-title Library/ספרייה. As base.html (curl of /texts, 2026-11-10). Tests: src/lib/shell/site-head.test.ts, e2e/shell.spec.ts ('the head links OpenSearch and the icons')."
   ],
   "audience": "all",
   "platform": "all",
@@ -20565,7 +20586,8 @@
   "details": [
    "static/files/opensearch.xml linked in base.html:19 (rel=search, title 'Sefaria Search'): ShortName Sefaria, description 'Search 3,000 years of Jewish texts in Hebrew and English translation.'.",
    "HTML URL /search-autocomplete-redirecter?q={searchTerms} (reader/views.py:2059 redirects to ref/topic/search);",
-   "suggestions URL /api/opensearch-suggestions?q= (reader/views.py:2078 returns [query, top 5 completions] from get_name_completions); both hard-coded to https://www.sefaria.org."
+   "suggestions URL /api/opensearch-suggestions?q= (reader/views.py:2078 returns [query, top 5 completions] from get_name_completions); both hard-coded to https://www.sefaria.org.",
+   "BUILT 2026-11-10 (lane GS): src/lib/shell/site-head.ts, in the root route's head on every page but the standalone ones: rel=search OpenSearch (title 'Sefaria Search', /static/files/opensearch.xml), the Library's shortcut icon, SVG and PNG icons and 180px apple-touch-icon (/static/icons/library/…?v=3), /site.webmanifest?v=3 (linked only when Django is the page's own origin: a cross-origin manifest needs CORS), apple-mobile-web-app-capable, apple-itunes-app app-id=1163273965, theme-color #18345D, apple-mobile-web-app-title Library/ספרייה. As base.html (curl of /texts, 2026-11-10). Tests: src/lib/shell/site-head.test.ts, e2e/shell.spec.ts ('the head links OpenSearch and the icons')."
   ],
   "audience": "all",
   "platform": "desktop",

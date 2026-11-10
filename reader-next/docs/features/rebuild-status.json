@@ -81,12 +81,12 @@
  },
  "PLT-006": {
   "status": "partial",
-  "note": "Page titles done; meta descriptions not"
+  "note": "Library home, category, book, search, topics, calendars and translations as sefaria.org; text pages' titles and descriptions not yet (reader route)"
  },
  "PLT-007": {
-  "status": "partial",
-  "note": "noindex on sparse topic pages and revision history; /search lacks it (sheets, collections are Voices)",
-  "by": "src/features/topics/topic-page-route.ts, src/routes/activity.$.tsx"
+  "status": "done",
+  "note": "noindex on search, sparse topic pages and revision history; sheets and collections are Voices",
+  "by": "src/lib/library/page-head.ts"
  },
  "PLT-008": {
   "status": "partial",
@@ -166,9 +166,9 @@
   "by": "src/lib/workspace/url.ts"
  },
  "RTE-029": {
-  "status": "partial",
-  "note": "q, tab, filters, exact and sort in the URL (e2e/search-page); /search has no robots noindex; sheet params are Voices",
-  "by": "src/routes/search.tsx, src/lib/search/search-page.ts"
+  "status": "done",
+  "note": "q, tab, filters, exact and sort in the URL (e2e/search-page); noindex as sefaria.org; sheet params are Voices",
+  "by": "src/routes/search.tsx"
  },
  "RTE-030": {
   "status": "done",
@@ -1200,8 +1200,8 @@
   "by": "src/ui/LibraryHome, src/ui/ContentLanguage, src/ui/AdminButtons, src/ui/CategoryEditor"
  },
  "LIB-005": {
-  "status": "todo",
-  "note": "Daily dedication banner (live Google Sheet) not built (T-G03)"
+  "status": "done",
+  "by": "src/features/library/DedicationBanner.tsx"
  },
  "LIB-026": {
   "status": "partial",
@@ -2514,8 +2514,8 @@
   "note": "Dead in legacy: ReaderMessage is not mounted by the shell."
  },
  "GUI-006": {
-  "status": "todo",
-  "note": "Show the server's GLOBAL_WARNING_MESSAGE (e.g. read-only maintenance) with a close button in the new shell."
+  "status": "n/a",
+  "note": "Dead on sefaria.org since 2493041b8f (2020): nothing sets the message"
  },
  "GUI-008": {
   "status": "replaced",
@@ -2745,9 +2745,8 @@
   "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
  },
  "LIB-004": {
-  "status": "partial",
-  "note": "Phone About blurb is built; the inline Recently Viewed list above the categories is not (T-G03).",
-  "by": "src/ui/LibraryHome/LibraryHome.tsx, src/ui/NavSidebar/NavSidebar.tsx (AboutBlurb)"
+  "status": "done",
+  "by": "src/ui/LibraryHome/LibraryHome.tsx"
  },
  "LIB-006": {
   "status": "n/a",
@@ -2755,8 +2754,7 @@
  },
  "LIB-007": {
   "status": "partial",
-  "note": "About, promo slot, Translations, Learning Schedules, Resources and footer in order; Recently Viewed and promo content missing (T-G03).",
-  "by": "src/features/library/LibraryRoute.tsx, src/ui/NavSidebar/NavSidebar.tsx"
+  "note": "About, promo slot, Recently Viewed, Translations, Learning Schedules, Resources and footer in order; the promo slot's CMS content is not built (live Strapi query fails, see PRM-012)"
  },
  "LIB-013": {
   "status": "done",
@@ -2773,8 +2771,8 @@
   "by": "src/routes/updates.tsx, src/features/updates/UpdatesRoute.tsx, src/ui/UpdatesPage, src/lib/updates/updates.ts"
  },
  "LIB-025": {
-  "status": "todo",
-  "note": "Recently Viewed module (3 books, no sheets, All history link or sign-up modal) not built; T-G03."
+  "status": "done",
+  "by": "src/features/library/RecentlyViewedModule.tsx"
  },
  "LIB-027": {
   "status": "done",
@@ -2995,9 +2993,9 @@
   "note": "Server behaviour; Django keeps it (email/CRM, no client part)"
  },
  "PLT-001": {
-  "status": "partial",
-  "note": "Django still serves favicon, manifest, app-link and llms.txt files via pass-through; the reader's head links no manifest, SVG icon or apple-touch-icon.",
-  "by": "src/server/route-manifest.ts, src/start.ts"
+  "status": "done",
+  "note": "Django serves the files (pass-through); the reader's head links the icons and manifest",
+  "by": "src/lib/shell/site-head.ts"
  },
  "PLT-009": {
   "status": "deferred",
@@ -3006,8 +3004,7 @@
  },
  "PLT-010": {
   "status": "partial",
-  "note": "GTM, gtag, Simple Analytics, Google Identity, reCAPTCHA, chatbot, html lang done; VWO/Hotjar/Unbounce, OpenSearch, iTunes banner, icons and theme-color missing.",
-  "by": "src/routes/__root.tsx, src/lib/analytics/scripts.ts"
+  "note": "GTM, gtag, Simple Analytics, Google Identity, reCAPTCHA, chatbot, html lang, OpenSearch, icons, iTunes banner and theme-color done; VWO/Hotjar/Unbounce missing (ANL-014)"
  },
  "PLT-015": {
   "status": "replaced",
@@ -3020,24 +3017,23 @@
   "by": "src/lib/versions/preferences.ts, src/ui/CookieNotice/CookieNotice.tsx, src/lib/analytics/session.ts"
  },
  "PLT-017": {
-  "status": "partial",
-  "note": "Django serves the manifest and favicons via pass-through, but the reader's head does not link the manifest, so its pages are not installable.",
-  "by": "src/server/route-manifest.ts"
+  "status": "done",
+  "note": "The head links the manifest (same origin) and the icons; Django serves the files",
+  "by": "src/lib/shell/site-head.ts"
  },
  "PLT-018": {
   "status": "partial",
-  "note": "Get-the-app sidebar module built and app-link files served by Django; apple-itunes-app meta missing and no_applink not stripped.",
-  "by": "src/ui/NavSidebar/TopicModules.tsx, src/server/route-manifest.ts"
+  "note": "Get-the-app module and apple-itunes-app meta built; app-link files served by Django; no_applink is not stripped"
  },
  "PLT-020": {
-  "status": "partial",
-  "note": "Django still serves the per-module manifest (pass-through); the reader's head does not link it.",
-  "by": "src/server/route-manifest.ts"
+  "status": "done",
+  "note": "The Library's manifest is linked; the Voices module is out of scope",
+  "by": "src/lib/shell/site-head.ts"
  },
  "PLT-021": {
-  "status": "partial",
-  "note": "Default /favicon.ico and /apple-touch-icon.png reach Django via pass-through; the head links no icons (no SVG favicon, sized touch icon).",
-  "by": "src/server/route-manifest.ts"
+  "status": "done",
+  "note": "The Library's icons are linked; Voices out of scope",
+  "by": "src/lib/shell/site-head.ts"
  },
  "PLT-022": {
   "status": "n/a",
@@ -3056,8 +3052,8 @@
   "note": "Server behaviour; nginx serves robots.txt from deployment config, unchanged."
  },
  "PLT-028": {
-  "status": "todo",
-  "note": "Add the OpenSearch <link rel=search> to the reader's head; the descriptor and suggestion endpoints stay Django's."
+  "status": "done",
+  "by": "src/lib/shell/site-head.ts"
  },
  "PLT-029": {
   "status": "n/a",
@@ -3090,14 +3086,13 @@
   "note": "Strapi GraphQL fetch via /api/strapi/graphql-cache and per-viewer content selection not built; T-G03."
  },
  "PRM-004": {
-  "status": "partial",
-  "note": "Default and day-of-learning links built; header and phone menu always use the English campaign (no Hebrew 468442); sustainer variant unused.",
-  "by": "src/lib/shell/links.ts, src/ui/NavSidebar/NavSidebar.tsx, src/ui/NavSidebar/TopicModules.tsx"
+  "status": "done",
+  "note": "Default (English and Hebrew campaigns) and day-of-learning links; the sustainer variant is unused on sefaria.org too",
+  "by": "src/lib/shell/links.ts"
  },
  "PRM-005": {
   "status": "partial",
-  "note": "c_src attribution on header, phone menu, Support/Sponsor modules and footer; header/menu ignore the Hebrew campaign; Strapi CTAs not built.",
-  "by": "src/lib/shell/links.ts, src/ui/SiteHeader/SiteHeader.tsx, src/ui/NavSidebar/NavSidebar.tsx"
+  "note": "c_src attribution on header, phone menu, Support/Sponsor modules and footer, Hebrew campaign in the Hebrew interface; Strapi CTAs not built (PRM-012)"
  },
  "PRM-006": {
   "status": "todo",
@@ -3702,9 +3697,8 @@
   "by": "src/features/shell/useHeaderSearch.ts, src/lib/search/autocomplete.ts"
  },
  "SRC-012": {
-  "status": "partial",
-  "note": "Gershayim repair built; client-side case repair (repairCaseVariant) not ported, relying on the name API for miscapitalised refs only.",
-  "by": "src/lib/search/autocomplete.ts, src/features/shell/useHeaderSearch.ts"
+  "status": "done",
+  "by": "src/lib/search/autocomplete.ts"
  },
  "SRC-013": {
   "status": "done",
