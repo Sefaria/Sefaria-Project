@@ -21,14 +21,20 @@ type TextComponent = ComponentType<{ data: WorkspaceRouteData }>;
 const loaded: { book?: BookComponent; text?: TextComponent } = {};
 const loading: Partial<Record<PageKind, Promise<void>>> = {};
 
+/**
+ * Each kind's import, in its own function: the build's minifier merged `kind === "book" ? import(A) : import(B)` into ONE preload
+ * call carrying B's dependency list only, so the book page's stylesheet was never requested in the browser (the page stayed
+ * unstyled after hydration; integrator report on /Sefer_HaBahir, wave 4). Separate statements keep separate dependency lists.
+ */
+const IMPORTS: Record<PageKind, () => Promise<void>> = {
+  book: () => import("~/features/book/BookRoute").then((m) => void (loaded.book = m.BookRoute)),
+  text: () => import("~/features/workspace/Workspace").then((m) => void (loaded.text = m.Workspace)),
+};
+
 /** Load a page kind's code (once). */
 export function loadPageKind(kind: PageKind): Promise<void> {
   if (loaded[kind]) return Promise.resolve();
-  loading[kind] ??= (
-    kind === "book"
-      ? import("~/features/book/BookRoute").then((m) => void (loaded.book = m.BookRoute))
-      : import("~/features/workspace/Workspace").then((m) => void (loaded.text = m.Workspace))
-  ).catch((e: unknown) => {
+  loading[kind] ??= IMPORTS[kind]().catch((e: unknown) => {
     delete loading[kind]; // a failed chunk can be asked for again
     throw e;
   });
