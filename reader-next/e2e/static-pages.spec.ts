@@ -19,7 +19,7 @@ test.beforeAll(() => {
 const quiet = (page: Page) => page.route(/docs\.google\.com|youtube(-nocookie)?\.com/, (r) => r.abort());
 const content = (page: Page) => page.locator("#staticContentWrapper #content");
 
-// @feature STA-001 @feature STA-005 @feature STA-007
+// @feature STA-001 @feature STA-005 @feature STA-007 @feature STA-012 @feature STA-013
 test.describe("static pages in the new shell", () => {
   test("the server renders /terms: title, content, the About sidebar with its item selected, the scoped legacy CSS (no flash)", async ({ page }) => {
     const html = await (await page.request.get("/terms")).text();
@@ -41,6 +41,24 @@ test.describe("static pages in the new shell", () => {
     expect(await content(page).locator("#aboutSidebar a#privacy-policy").evaluate((el) => getComputedStyle(el).color)).toBe("rgb(102, 102, 102)");
     // ...and nothing of them reaches the header
     expect(await page.getByRole("banner").evaluate((el) => getComputedStyle(el).fontFamily)).not.toContain("Taamey");
+    // ...nor replaces the shell's own font files: every face of the families the shell declares is the shell's (src/ui/tokens/fonts.css)
+    const faces = await page.evaluate(() => {
+      const out: { family: string; src: string }[] = [];
+      for (const sheet of [...document.styleSheets]) {
+        let rules: CSSRuleList;
+        try {
+          rules = sheet.cssRules;
+        } catch {
+          continue; // another site's sheet (Typekit)
+        }
+        for (const r of [...rules]) if (r instanceof CSSFontFaceRule) out.push({ family: r.style.getPropertyValue("font-family").replace(/["']/g, ""), src: r.style.getPropertyValue("src") });
+      }
+      return out;
+    });
+    const shell = faces.filter((f) => /^(Taamey Frank|Cardo|Noto Color Emoji)$/.test(f.family));
+    expect(shell.length).toBeGreaterThan(0);
+    for (const f of shell) expect(f.src, f.family).not.toContain("/static/fonts/");
+    expect(faces.some((f) => f.family === "FontAwesome")).toBe(true); // the legacy faces the shell lacks are still declared
   });
 
   test("Hebrew: the Hebrew page, right to left", async ({ page, context }) => {
@@ -77,13 +95,26 @@ test.describe("static pages in the new shell", () => {
     await expect(page.getByRole("heading", { name: "Page Not Found" })).toBeVisible();
   });
 
-  test("/ways-to-give: the Hebrew page is rendered here; the English one (a legacy React page) is left to Django", async ({ page, context }) => {
-    // without Django behind it (local development) the hand-over ends on the reader's 404; in the cluster Django serves the page
-    expect((await page.request.get("/ways-to-give")).status()).toBe(404);
+  test("/ways-to-give: the Hebrew page from Django's content, the English one (the old DonatePage) ported", async ({ page, context }) => {
+    await open(page, "/ways-to-give");
+    await expect(page).toHaveTitle("Donate to Sefaria");
+    await expect(content(page).getByRole("heading", { level: 1, name: "Your gift. Your impact." })).toBeVisible();
+    await expect(content(page).getByRole("link", { name: "Donate Now" }).first()).toHaveAttribute("href", /donate\.sefaria\.org\/give\/451346/);
+    const faq = content(page).locator("details").filter({ hasText: "Is my donation tax-deductible?" });
+    await faq.locator("summary").click();
+    await expect(faq.getByText("registered 501(c)(3)")).toBeVisible();
     await context.addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
     await open(page, "/ways-to-give");
-    await expect(page.locator("#staticContentWrapper")).toBeVisible();
-    await expect(page).toHaveTitle(/ספריא/);
+    await expect(page).toHaveTitle("תרומות לספריא");
+    await expect(content(page).getByText("Your gift. Your impact.")).toHaveCount(0);
+  });
+
+  test("/educators (ported): Teach with Sefaria, its buttons and the newsletter sign-up", async ({ page }) => {
+    await open(page, "/educators");
+    await expect(page).toHaveTitle("Teach with Sefaria");
+    await expect(content(page).getByRole("heading", { level: 1, name: "Teach with Sefaria" })).toBeVisible();
+    await expect(content(page).getByRole("link", { name: "Help Center" })).toHaveAttribute("href", "https://help.sefaria.org/hc/en-us");
+    await expect(content(page).getByPlaceholder("Sign up for Newsletter")).toBeVisible();
   });
 
   test("/linker keeps its bookmarklet; /digitized-by-sefaria lists its texts", async ({ page }) => {
