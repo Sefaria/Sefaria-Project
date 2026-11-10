@@ -14,8 +14,10 @@ preprod (prod cluster, namespace `preprod`) and prod (prod cluster, namespace `d
 `sefaria_auth`. Every web pod runs `python manage.py migrate && gunicorn` at start
 (`helm-chart/sefaria/templates/rollout/web.yaml`). The first preprod pod of the promotion therefore applies
 `powered_by` 0003_developer_settings to 0011_api_key_allowed_domains to **prod's live database**, and the prod promotion later
-carries no schema change. The migrations only add things, and old code works on the new schema (the test suite checks it
-again), so the default after a problem is: roll the code back, keep the schema, roll forward.
+carries no schema change. The migrations only add things, except 0011, which rewrites stored website restrictions from
+origins to domains and can't be reversed. That's safe here: no key has a website restriction before the developer pages
+go public, so 0011 changes no rows at release. Old code works on the new schema (the test suite checks it again), so the
+default after a problem is: roll the code back, keep the schema, roll forward.
 
 ## Safety properties
 
