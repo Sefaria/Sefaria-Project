@@ -318,6 +318,21 @@ entries:
     version: 0.93.0-sc-47260-authsvc-shutdown-drain.1
   - apiVersion: v2
     appVersion: v7.11.6
+    created: "2026-11-10T13:17:18.559224583Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: ecf8f7123a5f8ed0e3bb3dd3be6c2489c814ef28cd4da07c156da94906f7bc9e
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.93.0-sc-47260-auth-service-phase1.11.tgz
+    version: 0.93.0-sc-47260-auth-service-phase1.11
+  - apiVersion: v2
+    appVersion: v7.11.6
     created: "2026-11-10T10:37:09.686645666Z"
     description: Chart to deploy complete Sefaria environment
     digest: bd5531ba5a39d14bc3f23e28dea27bfd94368d6299fb684be8cd253ad11edbad
@@ -24720,4 +24735,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-10T12:47:30.664670024Z"
+generated: "2026-11-10T13:17:18.554615944Z"
