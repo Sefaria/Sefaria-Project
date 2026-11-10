@@ -63,6 +63,8 @@ def md_to_html(md):
         t = H.escape(t, quote=False)
         t = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", t)
         t = re.sub(r"\*(.+?)\*", r"<i>\1</i>", t)
+        # Prettier writes emphasis as _x_; the word-boundary guards keep snake_case names intact.
+        t = re.sub(r"(?<!\w)_(.+?)_(?!\w)", r"<i>\1</i>", t)
         t = re.sub(r"`(.+?)`", r"<code>\1</code>", t)
         return re.sub(r"\b([A-Z]{2,3}-\d{3})\b", r'<a href="#\1">\1</a>', t)
 
