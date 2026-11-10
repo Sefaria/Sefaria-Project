@@ -68,6 +68,7 @@ def _tag(m):
 FOOTNOTE = re.compile(r'&lt;FN&gt;(.*?)&lt;/FN&gt;', re.DOTALL | re.IGNORECASE)
 HEADING_FOOTNOTE = re.compile(r'\s*\d*\s*<FN>.*?</FN>', re.DOTALL | re.IGNORECASE)
 GENERIC_HEADING = re.compile(r'^\s*((Chapter|Section|Part|Book|Volume)\s+\d+|\d+\.?\s*§)\s*$', re.IGNORECASE)
+PREAMBLE_URL = re.compile(r"(https?://[^\s<]+?)(?=[.,;:)]?(?:\s|$))")
 BRACKETED = re.compile(r'^\s*\[\s*(.*?)\s*\]\s*$', re.DOTALL)
 LANG_NAMES = {"heb": "Hebrew", "he": "Hebrew", "yid": "Yiddish", "deu": "German", "lad": "Ladino", "rus": "Russian",
               "fra": "French", "grc": "Greek", "lat": "Latin", "ita": "Italian", "pol": "Polish", "swe": "Swedish",
@@ -180,7 +181,8 @@ def reader(request, source, slug):
         text = preamble.get("text", "").replace("https://www.sefaria.org/open-shelf/", request.build_absolute_uri("/open-shelf/"))
         if raw_title != book["display_title"]:
             text = text.replace(raw_title, book["display_title"])
-        preamble = dict(preamble, text=text)
+        linked = PREAMBLE_URL.sub(r'<a href="\1">\1</a>', html.escape(text, quote=False))
+        preamble = dict(preamble, html=linked)
     return render_template(request, "open_shelf/reader.html", None, {
         "title": "%s | Open Shelf" % book.get("display_title", ""),
         "book": book,
