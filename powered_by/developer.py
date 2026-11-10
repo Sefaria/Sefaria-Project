@@ -233,26 +233,36 @@ def confirm_email(request, key):
     Confirms the address behind an emailed link and turns developer settings on for its
     account. Opening it needs no login. Returns a LinkStatus: a link for an address that is no
     longer the account email is refused, as is one older than the link lifetime.
+
+    The account's auth row is locked from the check to the confirmation, and the address and the account email
+    are read again under that lock: allauth's confirmation sets the account email to the address it confirms, so a
+    link for a previous address, checked just before an email change, would otherwise undo that change.
     """
-    if _address_id_of_link(key) is None:
+    pk = _address_id_of_link(key)
+    if pk is None:
         return LinkStatus.INVALID
-    address = address_of_link(key)
+    owner_id = EmailAddress.objects.filter(pk=pk).values_list("user_id", flat=True).first()
     # A missing address was removed from its account when the account email changed.
-    if address is None or not is_account_email(address):
+    if owner_id is None:
         return LinkStatus.NOT_ACCOUNT_EMAIL
-    if address.verified:
-        return LinkStatus.ALREADY_CONFIRMED
-    if link_expired(key):
-        return LinkStatus.EXPIRED
-    if verified_elsewhere(address):
-        return LinkStatus.ADDRESS_IN_USE
-    if EmailConfirmationHMAC(address).confirm(request) is None:
-        return LinkStatus.INVALID
-    profile = UserProfile(id=address.user_id)
-    profile.settings[ENABLED_SETTING] = True
-    profile.settings.pop(CONFIRMATION_SENT_SETTING, None)
-    profile.settings.pop(CONFIRMATION_SENT_TO_SETTING, None)
-    profile.save()
+    with transaction.atomic():
+        get_user_model().objects.select_for_update().filter(pk=owner_id).first()
+        address = address_of_link(key)
+        if address is None or address.user_id != owner_id or not is_account_email(address):
+            return LinkStatus.NOT_ACCOUNT_EMAIL
+        if address.verified:
+            return LinkStatus.ALREADY_CONFIRMED
+        if link_expired(key):
+            return LinkStatus.EXPIRED
+        if verified_elsewhere(address):
+            return LinkStatus.ADDRESS_IN_USE
+        if EmailConfirmationHMAC(address).confirm(request) is None:
+            return LinkStatus.INVALID
+        profile = UserProfile(id=address.user_id)
+        profile.settings[ENABLED_SETTING] = True
+        profile.settings.pop(CONFIRMATION_SENT_SETTING, None)
+        profile.settings.pop(CONFIRMATION_SENT_TO_SETTING, None)
+        profile.save()
     return LinkStatus.CONFIRMED
 
 

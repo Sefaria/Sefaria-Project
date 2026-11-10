@@ -11,8 +11,9 @@ from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
+from django.contrib.auth.models import User
 from django.core import mail
-from django.db import connection, connections
+from django.db import connection, connections, transaction
 from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
@@ -833,6 +834,67 @@ class ConfirmationRaceTest(TransactionTestCase):
 
         self.assertEqual(sorted(statuses), [200, 429])
         self.assertEqual(len(mail.outbox), 1)
+
+
+@override_settings(DEVELOPER_SETTINGS_ENABLED=True)
+class ConfirmationEmailChangeRaceTest(TransactionTestCase):
+    databases = "__all__"
+
+    def setUp(self):
+        self.user = create_test_user("confemailrace")
+        purge_test_profiles(self.user)
+        self.old_email = self.user.email
+
+    def tearDown(self):
+        EmailAddress.objects.filter(user=self.user).delete()
+        purge_test_profiles(self.user)
+
+    def test_a_link_for_the_previous_address_cannot_undo_an_email_change_made_while_it_is_confirming(self):
+        key = developer.confirmation_for(self.user).key
+        in_window = threading.Event()
+        release = threading.Event()
+        first = []
+        real_check = developer.is_account_email
+
+        def check_then_stall(address):
+            result = real_check(address)
+            if not first:
+                first.append(True)
+                in_window.set()
+                release.wait(10)
+            return result
+
+        def open_link():
+            try:
+                Client().get("/settings/developer/confirm-email/" + key)
+            finally:
+                connections.close_all()
+
+        def change_email():
+            try:
+                with transaction.atomic():
+                    User.objects.filter(pk=self.user.pk).update(email="new-address@example.org")
+                    EmailAddress.objects.filter(user=self.user).delete()
+                    EmailAddress.objects.create(
+                        user=self.user, email="new-address@example.org", primary=False, verified=False
+                    )
+            finally:
+                connections.close_all()
+
+        with patch.object(developer, "is_account_email", check_then_stall):
+            link = threading.Thread(target=open_link)
+            change = threading.Thread(target=change_email)
+            link.start()
+            self.assertTrue(in_window.wait(10))
+            change.start()
+            change.join(0.5)
+            release.set()
+            link.join(10)
+            change.join(10)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, "new-address@example.org")
+        self.assertFalse(EmailAddress.objects.filter(user=self.user, email=self.old_email.lower()).exists())
 
 
 @override_settings(DEVELOPER_SETTINGS_ENABLED=True)
