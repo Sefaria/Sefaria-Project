@@ -20,7 +20,7 @@ from django.contrib.auth import SESSION_KEY, get_user_model
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator, validate_email
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.utils import timezone
 
 from sefaria.model.user_profile import UserProfile
@@ -48,7 +48,6 @@ CONFIRMATION_COOLDOWN = timedelta(seconds=60)
 CONFIRMATION_DAILY_LIMIT = 5
 CONFIRMATION_LINK_MAX_AGE = timedelta(days=account_settings.EMAIL_CONFIRMATION_EXPIRE_DAYS)
 SSO_PROVIDERS = ("google", "apple")
-DISMISSED_LISTINGS_SETTING = "developer_dismissed_listings"
 
 # Written only through developer settings; the generic profile APIs drop them.
 DEVELOPER_PROFILE_SETTINGS = (
@@ -57,7 +56,6 @@ DEVELOPER_PROFILE_SETTINGS = (
     CONFIRMATION_SENT_SETTING,
     CONFIRMATION_SENT_TO_SETTING,
     CONFIRMATION_SENDS_SETTING,
-    DISMISSED_LISTINGS_SETTING,
 )
 
 _url_validator = URLValidator(schemes=["http", "https"])
@@ -300,15 +298,6 @@ def serialize_project(api_project):
     }
 
 
-def public_listing(project):
-    return {
-        "id": str(project.id),
-        "name": project.project_name,
-        "url": project.project_link,
-        "description": project.project_desc,
-    }
-
-
 def owned_projects(user):
     """The account's live API projects, each with its profile and keys."""
     return (
@@ -319,32 +308,10 @@ def owned_projects(user):
     )
 
 
-def unclaimed_listings(user, profile):
-    """
-    Powered by listings submitted with this account's email that no account manages yet.
-    """
-    dismissed = profile.settings.get(DISMISSED_LISTINGS_SETTING, [])
-    return listings_submitted_by(user).exclude(id__in=dismissed).order_by("-created_at")
-
-
-def listings_submitted_by(user):
-    """
-    Profiles submitted outside developer settings with this account's email and no API project. A listing whose
-    API project was deleted was deleted with it, so it is not offered again. A profile an older image or staff soft-deleted (its frozen deleted_at, which the public endpoint also honours) is
-    not offered: claiming it would hand out a listing that stays hidden from the public endpoint for good.
-    """
-    return (
-        Project.objects.filter(creator_email__iexact=user.email, deleted_at__isnull=True)
-        .exclude(submission_source=SubmissionSource.DEVELOPER_SETTINGS)
-        .exclude(id__in=ApiProject.objects.values("profile_id"))
-    )
-
-
 def developer_state(request):
     user = request.user
     profile = UserProfile(id=user.id)
     verified = account_verified(request)
-    listing = unclaimed_listings(user, profile).first() if verified and user.email else None
     sent_at = None
     if not verified and profile.settings.get(CONFIRMATION_SENT_TO_SETTING) == (user.email or "").lower():
         sent_at = profile.settings.get(CONFIRMATION_SENT_SETTING)
@@ -355,7 +322,6 @@ def developer_state(request):
         "confirmationSentAt": sent_at,
         "profile": profile.settings.get(PROFILE_SETTING),
         "projects": [serialize_project(p) for p in owned_projects(user)],
-        "yourListing": public_listing(listing) if listing else None,
         "maxKeysPerProject": MAX_KEYS_PER_PROJECT,
     }
     return state
@@ -683,31 +649,6 @@ def soft_delete(api_project):
 
 
 @transaction.atomic
-def claim_listing(user, listing_id):
-    """
-    Makes an unclaimed Powered by listing submitted with this account's email one of its projects.
-    Returns the new API project. The listing profile itself is not changed.
-    """
-    _check_project_limit(user)
-    try:
-        listing_id = int(listing_id)
-        # Locked before the check: a concurrent claim, or a staff-made API project's foreign key, waits for this one.
-        Project.objects.select_for_update().get(id=listing_id)
-        listing = unclaimed_listings(user, UserProfile(id=user.id)).get(id=listing_id)
-    except (Project.DoesNotExist, ValueError):
-        raise LookupError("No such listing.")
-    # The savepoint keeps the request's transaction usable when another claim or an admin made a live API project
-    # for this profile after the check above; that is the partial unique index, and the listing is simply taken.
-    try:
-        with transaction.atomic():
-            return ApiProject.objects.create(profile=listing, owner=user)
-    except IntegrityError as error:
-        if "api_project_one_live_per_profile" not in str(error) and "api_project.profile_id" not in str(error):
-            raise
-        raise LookupError("No such listing.")
-
-
-@transaction.atomic
 def release_account_projects(user):
     """
     For an account being deleted: every key of its API projects is revoked and live API projects are
@@ -721,20 +662,6 @@ def release_account_projects(user):
         soft_delete(api_project)
         api_project.owner = None
         api_project.save()
-
-
-def dismiss_listing(user, listing_id):
-    profile = UserProfile(id=user.id)
-    dismissed = profile.settings.get(DISMISSED_LISTINGS_SETTING, [])
-    try:
-        listing_id = int(listing_id)
-    except ValueError:
-        raise LookupError("No such listing.")
-    if not listings_submitted_by(user).filter(id=listing_id).exists():
-        raise LookupError("No such listing.")
-    if listing_id not in dismissed:
-        profile.settings[DISMISSED_LISTINGS_SETTING] = dismissed + [listing_id]
-        profile.save()
 
 
 # --- Keys --------------------------------------------------------------------

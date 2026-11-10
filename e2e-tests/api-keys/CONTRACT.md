@@ -105,7 +105,6 @@ SQLite file. The wrapper imports `sefaria.settings` and then sets:
 | `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE` | `False`                                                                                                 |
 | `SESSION_COOKIE_DOMAIN`, `CSRF_COOKIE_DOMAIN` | `None`                                                                                                  |
 | `DEVELOPER_SETTINGS_ENABLED`                  | env `DEVELOPER_SETTINGS_ENABLED` (`true`/`false`), set per process (8100 on, 8101 off)                  |
-| `DEVELOPER_SETTINGS_MOCKS`                    | env `DEVELOPER_SETTINGS_MOCKS`, default `false`                                                         |
 | `EMAIL_BACKEND`                               | SMTP to `127.0.0.1:11025` (mailpit), no TLS                                                             |
 | `DOMAIN_MODULES`                              | `library: http://www.gateway.test:10080`, `voices: http://voices.gateway.test:10080`, for `en` and `he` |
 
@@ -134,7 +133,7 @@ count (users in band, projects matching `E2E api-keys % (temporary)`, their keys
 
 `id = 2_098_000_000 + n`. Suites own their accounts; a mutating test never touches another suite's account. State
 codes are the account states F1-F13 from the UI journeys research (F1 unconfirmed, F3 confirmed, F4/F5 SSO
-verified/unverified, F7 set up with 0 projects, F8 with a project, F9 unclaimed listing, F12 Hebrew, F13 plain user).
+verified/unverified, F7 set up with 0 projects, F8 with a project, F12 Hebrew, F13 plain user).
 
 | n   | Suite      | Role               | State     | Fixtures                                                                     |
 | --- | ---------- | ------------------ | --------- | ---------------------------------------------------------------------------- |
@@ -149,7 +148,6 @@ verified/unverified, F7 set up with 0 projects, F8 with a project, F9 unclaimed 
 | 104 | onboarding | `ssoVerified`      | F4        | Google `SocialAccount`, `email_verified: true`                               |
 | 105 | onboarding | `ssoUnverified`    | F5        | Google `SocialAccount`, `email_verified: false`                              |
 | 201 | projects   | `setUp`            | F7        |                                                                              |
-| 202 | projects   | `listingOwner`     | F9        | one unclaimed listing (`owner=None`, `creator_email` = this account), marked |
 | 203 | projects   | `otherAccount`     | F7        |                                                                              |
 | 301 | keys       | `setUp`            | F8        | project, 0 keys                                                              |
 | 302 | keys       | `twoTabs`          | F8        | project, keys `twoTabs.1`..`twoTabs.4`                                       |
@@ -160,8 +158,6 @@ verified/unverified, F7 set up with 0 projects, F8 with a project, F9 unclaimed 
 | 501 | callers    | `mobile`           | F13       |                                                                              |
 | 502 | callers    | `eval`             | F13       |                                                                              |
 | 503 | callers    | `legacy`           | F13       | legacy Mongo key via `--legacy-key` (B10)                                    |
-| 601 | a11y       | `setUp`            | F8 + F9   | project with key `a11y.1`, one unclaimed listing                             |
-| 602 | a11y       | `hebrew`           | F12 + F8  | project with key `a11yHe.1`                                                  |
 | 701 | scenarios  | `legacyBody`       | F13       | legacy Mongo key (B9)                                                        |
 | 702 | scenarios  | `tierOwner`        | F8        | key `tierOwner` (N-A11, E1)                                                  |
 | 901 | stack      | `sentinel`         | F8        | local only, see above                                                        |
@@ -227,7 +223,7 @@ committed, never pasted into logs or reports. Fields not listed here may be adde
 | `APIKEYS_REGISTRY_URL`                                             | `registry.ts`                      | local `http://127.0.0.1:18080`; cauldron only when set (port-forward `svc/auth-service-<cauldron> 18081:8080`, default `apisplit` or `$APIKEYS_CAULDRON` → `http://127.0.0.1:18081`), otherwise the helper falls back to polling the gateway. Replaces the plan's `REGISTRY_URL` |
 | `APIKEYS_MAILPIT_URL`                                              | `mail.ts`                          | local `http://127.0.0.1:18025`; unset on the cauldron (no mailbox)                                                                                                                                                                                                               |
 | `APIKEYS_KUBE_CONTEXT`                                             | cauldron scripts                   | must equal `gke_development-205018_us-east1-b_cluster-1`; anything else is refused                                                                                                                                                                                               |
-| `DEVELOPER_SETTINGS_ENABLED`, `DEVELOPER_SETTINGS_MOCKS`           | Django wrapper                     | per process, see §2                                                                                                                                                                                                                                                              |
+| `DEVELOPER_SETTINGS_ENABLED`                                        | Django wrapper                     | per process, see §2                                                                                                                                                                                                                                                              |
 | `AUTH_MODE`, `GATED_PATHS`, `RELOAD_INTERVAL`, `PG_NOTIFY_CHANNEL` | compose → `authsvc`                | `enforce`, `/api/knn-search`, `60s`, `sefaria_apikeys`                                                                                                                                                                                                                           |
 
 Process env wins over `e2e-tests/.env`. Do not create an `e2e-tests/.env` in the worktree.
@@ -244,7 +240,6 @@ The `target` fixture exposes these flags; a spec that needs a missing one calls 
 | `hasFlagOffServer`            | yes                                                       | no                               |
 | `hasRegistry`                 | yes                                                       | only with `APIKEYS_REGISTRY_URL` |
 | `hasMailbox`                  | yes                                                       | no                               |
-| `mocks`                       | value of `DEVELOPER_SETTINGS_MOCKS` on :8100 (default no) | yes                              |
 | `canReadNginxLog`             | `docker compose -p sefaria-apikeys-stack logs nginx`      | `kubectl logs` (read-only)       |
 | `canSwapEnvoyConfig`          | only through the stack owner                              | no                               |
 

@@ -16,7 +16,6 @@ export const emptyState = () => ({
   confirmationSentAt: null,
   profile: null,
   projects: [],
-  yourListing: null,
   maxKeysPerProject: 5,
 });
 
@@ -45,7 +44,6 @@ const SERVER_ERRORS_HE = {
   'A key is restricted to this website. Turn off the restriction on every key before removing the website.':
     'יש מפתח שמוגבל לאתר הזה. כבו את ההגבלה בכל המפתחות לפני הסרת האתר.',
   'No such project.': 'הפרויקט לא נמצא.',
-  'No such listing.': 'הרישום לא נמצא.',
   'No such key.': 'המפתח לא נמצא.',
   'Give the key a name.': 'נא לתת למפתח שם.',
   'The key name can be at most 100 characters.': 'שם המפתח יכול להכיל עד 100 תווים.',
@@ -132,8 +130,6 @@ export const deleteProject = (projectId) => call('DELETE', 'projects/' + project
 export const createKey = (projectId, label) => call('POST', 'projects/' + projectId + '/keys', { label });
 export const setKeyRestriction = (keyId, restrictToWebsite) => call('POST', 'keys/' + keyId, { restrictToWebsite });
 export const deleteKey = (keyId) => call('DELETE', 'keys/' + keyId);
-export const claimListing = (listingId) => call('POST', 'listings/' + listingId + '/claim');
-export const dismissListing = (listingId) => call('POST', 'listings/' + listingId + '/dismiss');
 
 /* Developer settings need a verified email: Google or Apple sign-in verifies it, and so does
    the emailed confirmation link. */

@@ -359,16 +359,9 @@ class EmailChangeTest(DeveloperApiTestCase):
         self.assertEqual(len(state["projects"][0]["keys"]), 1)
         self.assertIsNone(ApiKey.objects.get(id=self.key_id).revoked_at)
 
-    def test_new_projects_keys_and_claims_are_blocked(self):
-        Project.objects.create(
-            submission_source=SubmissionSource.MANUAL, project_name="Listing", creator_email=self.user.email
-        )
-        listing = Project.objects.get(project_name="Listing")
-
+    def test_new_projects_and_keys_are_blocked(self):
         self.assertEqual(self.call("post", "projects", {"project": PROJECT})[0], 403)
         self.assertEqual(self.call("post", "projects/{}/keys".format(self.project["id"]), {"label": "Two"})[0], 403)
-        self.assertEqual(self.call("post", f"listings/{listing.id}/claim")[0], 403)
-        self.assertFalse(ApiProject.objects.filter(profile_id=listing.id).exists())
 
     def test_existing_projects_and_keys_can_still_be_managed(self):
         self.assertEqual(
@@ -584,38 +577,8 @@ class ListingTest(DeveloperApiTestCase):
             request_not_to_publish=False,
         )
 
-    def test_an_unclaimed_listing_with_the_account_email_is_offered(self):
-        state = self.call("get", "state")[1]
-
-        self.assertEqual(state["yourListing"]["id"], str(self.listing.id))
-        self.assertEqual(state["yourListing"]["name"], "Tehillim Circle")
-
-    def test_claiming_makes_the_listing_a_project(self):
-        status, state = self.call("post", f"listings/{self.listing.id}/claim")
-
-        self.assertEqual(status, 200)
-        self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, self.user)
-        self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).profile_id, self.listing.id)
-        self.assertIsNone(state["yourListing"])
-        project = state["projects"][0]
-        self.assertTrue(project["linkedListing"])
-        self.assertEqual(project["visibility"], "public")
-
-    def test_claiming_keeps_the_listing_consent_and_publish_flags(self):
-        for refused, published in ((False, False), (True, False)):
-            ApiProject.objects.filter(profile_id=self.listing.id).delete()
-            Project.objects.filter(id=self.listing.id).update(request_not_to_publish=refused, is_published=published)
-
-            status, state = self.call("post", f"listings/{self.listing.id}/claim")
-            self.assertEqual(status, 200)
-
-            row = Project.objects.get(id=self.listing.id)
-            self.assertEqual((row.request_not_to_publish, row.is_published), (refused, published))
-            self.assertNotIn(row.id, gallery_ids())
-            self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, self.user)
-
     def test_deleting_the_account_revokes_keys_and_deletes_projects_and_claimed_listings(self):
-        claimed = self.call("post", f"listings/{self.listing.id}/claim")[1]["projectId"]
+        claimed = str(ApiProject.objects.create(profile=self.listing, owner=self.user).id)
         own = self.create_project()
         claimed_key = self.create_key(claimed)["keyId"]
         own_key = self.create_key(own["id"])["keyId"]
@@ -633,39 +596,14 @@ class ListingTest(DeveloperApiTestCase):
         self.assertIsNone(listing.deleted_at)
         self.assertFalse(ApiProject.objects.filter(profile_id=self.listing.id, deleted_at__isnull=True).exists())
 
-    def test_deleting_a_claimed_listing_unpublishes_it_and_it_is_not_offered_again(self):
-        claimed = self.call("post", f"listings/{self.listing.id}/claim")[1]["projectId"]
+    def test_deleting_a_linked_listing_project_unpublishes_the_listing(self):
+        claimed = str(ApiProject.objects.create(profile=self.listing, owner=self.user).id)
 
         status, state = self.call("delete", "projects/" + claimed)
 
         self.assertEqual(status, 200, state)
-        self.assertIsNone(state["yourListing"])
         listing = Project.objects.get(id=self.listing.id)
         self.assertTrue(listing.request_not_to_publish and not listing.is_published)
-        self.assertEqual(self.call("post", f"listings/{self.listing.id}/claim")[0], 404)
-
-    def test_a_dismissed_listing_is_not_offered_again(self):
-        state = self.call("post", f"listings/{self.listing.id}/dismiss")[1]
-
-        self.assertIsNone(state["yourListing"])
-        self.assertEqual(self.call("post", f"listings/{self.listing.id}/claim")[0], 404)
-
-    def test_only_a_listing_submitted_with_the_account_email_can_be_dismissed(self):
-        other = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK,
-            creator_email="someone@example.org",
-            project_name="Other",
-            project_link="https://other.example.org",
-        )
-
-        self.assertEqual(self.call("post", f"listings/{other.id}/dismiss")[0], 404)
-        self.assertEqual(self.call("post", "listings/999999999/dismiss")[0], 404)
-
-    def test_a_listing_owned_by_another_account_is_not_offered(self):
-        other = create_test_user("devapiowner")
-        ApiProject.objects.create(profile=self.listing, owner=other)
-
-        self.assertIsNone(self.call("get", "state")[1]["yourListing"])
 
 
 class DeveloperSettingsOffTest(TestCase):
@@ -691,7 +629,6 @@ class DeveloperSettingsOffTest(TestCase):
             ("post", "projects"),
             ("post", "projects/1/keys"),
             ("delete", "keys/1"),
-            ("post", "listings/1/claim"),
         ):
             response = self.client.generic(
                 method.upper(), "/api/developer/" + url, "{}", content_type="application/json"
@@ -726,7 +663,6 @@ class DeveloperSettingsStaffOnlyTest(DeveloperApiTestCase):
             ("post", "projects"),
             ("post", "projects/1/keys"),
             ("delete", "keys/1"),
-            ("post", "listings/1/claim"),
         ):
             response = self.client.generic(
                 method.upper(), "/api/developer/" + url, "{}", content_type="application/json"
@@ -829,20 +765,6 @@ class ProjectLockTest(DeveloperApiTestCase):
             i for i, sql in enumerate(sqls) if sql.startswith("UPDATE") and f'"{Project._meta.db_table}"' in sql
         )
         self.assertLess(lock, profile_write)
-
-    def test_claiming_a_listing_locks_the_listing_row(self):
-        listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK,
-            creator_email=self.user.email,
-            project_name="Locked",
-            project_link="https://locked.example.org",
-        )
-
-        with CaptureQueriesContext(connection) as queries:
-            status, _ = self.call("post", f"listings/{listing.id}/claim")
-
-        self.assertEqual(status, 200)
-        self.assertTrue(any("FOR UPDATE" in q["sql"] and f'"{Project._meta.db_table}"' in q["sql"] for q in queries))
 
 
 class ConfirmationLockTest(DeveloperApiTestCase):

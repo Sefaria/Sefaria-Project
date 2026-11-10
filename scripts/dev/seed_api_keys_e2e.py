@@ -65,7 +65,7 @@ EXPIRED_LINK_AGE = timedelta(days=3, minutes=5)
 
 # n, suite, role, state, developer project keys, why.
 # A key spec is (name, options); options: restricted, revoked.
-# A state of F8 gets a developer project; "listing" adds one unclaimed Powered by listing.
+# A state of F8 gets a developer project.
 ACCOUNTS = [
     (1, "gateway", "open", "F8", [("open", {})], "A1, A2: a valid key with no website restriction"),
     (
@@ -99,7 +99,6 @@ ACCOUNTS = [
     (104, "onboarding", "ssoVerified", "F4", None, "C2: a Google login that verified the account email"),
     (105, "onboarding", "ssoUnverified", "F5", None, "C2: a Google login that did not verify the account email"),
     (201, "projects", "setUp", "F7", None, "N-C9, N-C13: a set-up developer with no projects"),
-    (202, "projects", "listingOwner", "F9", None, "N-C14: one unclaimed Powered by listing with this email"),
     (203, "projects", "otherAccount", "F7", None, "N-C13: another account that must not see the first one's projects"),
     (301, "keys", "setUp", "F8", [], "A9, C3: a project with no keys yet"),
     (
@@ -117,8 +116,6 @@ ACCOUNTS = [
     (501, "callers", "mobile", "F13", None, "B6: mobile-app style calls"),
     (502, "callers", "eval", "F13", None, "B7: eval-harness style calls"),
     (503, "callers", "legacy", "F13", None, "B10: a legacy Mongo API key, added with --legacy-key"),
-    (601, "a11y", "setUp", "F8+F9", [("a11y.1", {})], "C10: keyboard and screen reader pass with a listing pending"),
-    (602, "a11y", "hebrew", "F12+F8", [("a11yHe.1", {})], "C10: the same pass in Hebrew"),
     (701, "scenarios", "legacyBody", "F13", None, "B9: a legacy Mongo API key in the request body"),
     (702, "scenarios", "tierOwner", "F8", [("tierOwner", {})], "N-A11, E1: a key whose project tier changes"),
 ]
@@ -258,10 +255,6 @@ def guard_target(target):
     elif target == "cauldron":
         if host in LOOPBACK_HOSTS:
             raise SystemExit("Refusing: --target cauldron but the database is on this machine.")
-        # Cauldrons ran with mocks on; once the test controls are gone the setting no longer exists, and the
-        # DOMAIN_MODULES check below is what tells a cauldron from any other environment. An explicit False refuses.
-        if getattr(settings, "DEVELOPER_SETTINGS_MOCKS", None) is False:
-            raise SystemExit("Refusing: --target cauldron with DEVELOPER_SETTINGS_MOCKS off.")
         name = cauldron_name()
         wanted = {f"www.{name}.cauldron.sefaria.org", f"{name}.cauldron.sefaria.org"}
         if not wanted & _domain_hosts(getattr(settings, "DOMAIN_MODULES", None)):
@@ -307,7 +300,7 @@ def _apply_state(user, suite, role, state):
     from sefaria.model.user_profile import UserProfile
 
     states = _states(state)
-    developer_states = {"F7", "F8", "F9"}
+    developer_states = {"F7", "F8"}
     verified = bool(states & developer_states)
 
     EmailAddress.objects.filter(user=user).delete()
@@ -331,7 +324,6 @@ def _apply_state(user, suite, role, state):
         developer.CONFIRMATION_SENT_SETTING,
         developer.CONFIRMATION_SENT_TO_SETTING,
         developer.CONFIRMATION_SENDS_SETTING,
-        developer.DISMISSED_LISTINGS_SETTING,
     ):
         profile.settings.pop(setting, None)
     profile.settings["interface_language"] = "hebrew" if "F12" in states else "english"
@@ -381,25 +373,6 @@ def _create_developer_project(user, suite, role, key_specs, notes):
     return api_project
 
 
-def _create_listing(user, suite, role, notes):
-    from django.utils import timezone
-
-    from powered_by.models import Project, SubmissionSource
-
-    return Project.objects.create(
-        submission_source=SubmissionSource.MANUAL,
-        submission_date=timezone.now(),
-        creator=user.get_full_name(),
-        creator_email=user.email,
-        project_name=f"E2E listing {suite} {role}",
-        project_link=f"https://listing-{role.lower()}.example.com",
-        project_desc="Temporary end-to-end test listing.",
-        request_not_to_publish=True,
-        is_published=False,
-        notes=notes,
-    )
-
-
 def _seed_account(spec, password, marker, base=None, notes=None):
     n, suite, role, state, key_specs, _ = spec
     user = _ensure_user(n, suite, role, password, base)
@@ -407,8 +380,6 @@ def _seed_account(spec, password, marker, base=None, notes=None):
     states = _states(state)
     if "F8" in states:
         _create_developer_project(user, suite, role, key_specs or [], notes or marker)
-    if "F9" in states:
-        _create_listing(user, suite, role, notes or marker)
     return user
 
 
@@ -705,8 +676,8 @@ def report(stream, base=None):
     from sefaria.model.user_profile import UserProfile
 
     print("run marker:{}".format(marker_for(current_run_id(base)) if current_run_id(base) else "(none)"), file=stream)
-    header = "{:<28} {:>10} {:<8} {:<5} {:<4} {:<4} {:<4} {:>4} {:>8} {:>4}".format(
-        "role", "id", "state", "user", "ver", "sso", "dev", "proj", "keys", "list"
+    header = "{:<28} {:>10} {:<8} {:<5} {:<4} {:<4} {:<4} {:>4} {:>8}".format(
+        "role", "id", "state", "user", "ver", "sso", "dev", "proj", "keys"
     )
     print(header, file=stream)
     print("-" * len(header), file=stream)
@@ -722,9 +693,8 @@ def report(stream, base=None):
         owned = ApiProject.objects.filter(owner=user, deleted_at__isnull=True)
         active = ApiKey.objects.filter(project__owner=user, revoked_at__isnull=True).count()
         total = ApiKey.objects.filter(project__owner=user).count()
-        listings = developer.listings_submitted_by(user).count()
         print(
-            "{:<28} {:>10} {:<8} {:<5} {:<4} {:<4} {:<4} {:>4} {:>8} {:>4}".format(
+            "{:<28} {:>10} {:<8} {:<5} {:<4} {:<4} {:<4} {:>4} {:>8}".format(
                 role_key(spec[1], spec[2]),
                 uid,
                 spec[3],
@@ -734,7 +704,6 @@ def report(stream, base=None):
                 _yn(dev),
                 owned.count(),
                 f"{active}/{total}",
-                listings,
             ),
             file=stream,
         )

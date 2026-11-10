@@ -130,10 +130,9 @@ PY
   fi
 }
 
-# Leaves out what SAFETY.md excludes from a seeded cauldron run: account deletion, listing claims, the test panel's
-# confirmation and listing controls, /register, B7 and B9.
-SEEDED_GREP_INVERT='(N-M6:|N-C14:|N-C9:|N-C1:|B7:|B9:|register)'
-SEEDED_IGNORE_FILES="e2e-tests/api-keys/ui/listing-claim.spec.ts"
+# Leaves out what SAFETY.md excludes from a seeded cauldron run: account deletion, the double-click project test,
+# /register, B7 and B9.
+SEEDED_GREP_INVERT='(N-M6:|N-C9:|B7:|B9:|register)'
 
 seeded_run() {
   seeded_guard
@@ -152,7 +151,7 @@ seeded_run() {
   # The setup project logs the seeded accounts in; a separate session directory keeps the local suites' .auth/ intact.
   local specs prc
   rm -f "$RUN_DIR/playwright-seeded.json"
-  specs="$(git -C "$REPO" ls-files 'e2e-tests/api-keys/*.spec.ts' | grep -vxF "$SEEDED_IGNORE_FILES" | tr '\n' ' ')"
+  specs="$(git -C "$REPO" ls-files 'e2e-tests/api-keys/*.spec.ts' | tr '\n' ' ')"
   ( cd "$REPO" && env -u APIKEYS_TRACE APIKEYS_TARGET=cauldron APIKEYS_CAULDRON="$CAULDRON" APIKEYS_MANIFEST="$MANIFEST_REL" \
       APIKEYS_RUN_ID="$RUN_ID" APIKEYS_AUTH_DIR=e2e-tests/api-keys/.auth-cauldron PLAYWRIGHT_JSON_OUTPUT_NAME="$RUN_DIR/playwright-seeded.json" \
       npx playwright test --project=apikeys --workers=2 --reporter=list,json --grep-invert "$SEEDED_GREP_INVERT" $specs \

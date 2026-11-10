@@ -2,7 +2,7 @@ import { spawnSync } from 'child_process';
 import path from 'path';
 import { Browser, BrowserContext, Page } from '@playwright/test';
 import { AccountSession, Target, expect, pageFetch } from '../fixtures';
-import { REPO_ROOT, baseURLFor, findAccount, loadManifest, readPassword, stackPython } from '../env';
+import { REPO_ROOT, baseURLFor, findAccount, readPassword, stackPython } from '../env';
 import { InterfaceLang, logIn, prepareContext } from '../session';
 import { t } from '../../globals';
 
@@ -34,10 +34,6 @@ export function accountFixture<T = any>(...args: string[]): T {
 }
 
 export const savedSettings = (role: string) => accountFixture<SavedSettings>('show', '--role', role).settings;
-
-export function addListing(role: string, name: string) {
-  return accountFixture<{ id: number; name: string }>('listing', '--role', role, '--name', name, '--marker', loadManifest().marker);
-}
 
 /** Opens a settings URL and waits until the React page has mounted. */
 export async function openSettings(page: Page, path = '/settings/account') {

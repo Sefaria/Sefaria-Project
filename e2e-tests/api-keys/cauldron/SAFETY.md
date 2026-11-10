@@ -80,8 +80,8 @@ registry, so seeded rows show on all of them. The go-ahead is given per run as `
 2. Seed once, with the script and the password on stdin (`python - --target cauldron --reset --manifest-stdout`), into
    the git-ignored manifest above (written with umask 077, deleted on exit).
 3. Run `--project=apikeys` with the setup project, with its sessions in `e2e-tests/api-keys/.auth-cauldron` so the
-   local suites' `.auth/` is never touched, at most 2 workers. Left out: account deletion (N-M6), listing claims
-   (N-C9, N-C14, `ui/listing-claim.spec.ts`), the test panel's confirmation (N-C1), `/register`, B7 and B9.
+   local suites' `.auth/` is never touched, at most 2 workers. Left out: account deletion (N-M6), the double-click
+   project test (N-C9), `/register`, B7 and B9.
 4. The keyed A-series and the nginx log check.
 5. Tear down from a trap, after a `--teardown --dry-run` whose rows are all in band or marked `E2E `; then
    `--leftovers` must print 0 and the snapshot's key and project id checksums must equal the ones taken before.

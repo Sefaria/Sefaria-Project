@@ -1,6 +1,6 @@
 """
 Developer settings API edges: other accounts' objects, malformed requests, website origins,
-key slots, claiming and consent, and confirmation links for an address another account holds.
+key slots, linked-listing consent, and confirmation links for an address another account holds.
 """
 
 import json
@@ -63,8 +63,6 @@ class OtherAccountTest(DeveloperApiTestCase):
             ("post", "keys/" + self.key_id, {"restrictToWebsite": True}),
             ("delete", "keys/" + self.key_id, None),
             ("delete", "projects/" + self.project["id"], None),
-            ("post", f"listings/{self.listing.id}/claim", None),
-            ("post", f"listings/{self.listing.id}/dismiss", None),
         )
         for method, url, body in actions:
             status, _ = self.call(method, url, body, client=self.other_client)
@@ -193,10 +191,10 @@ class KeySlotTest(DeveloperApiTestCase):
         self.assertEqual(active.count(), developer.MAX_KEYS_PER_PROJECT)
 
 
-class ClaimConsentTest(DeveloperApiTestCase):
+class LinkedListingConsentTest(DeveloperApiTestCase):
     """
-    N-C15: claiming keeps the listing's consent (N-D8): a listing whose submitter said "No"
-    stays unpublished until the owner picks Public, and a staff unpublish holds.
+    N-C15: a project linked to an older listing keeps the listing's consent (N-D8): a listing whose
+    submitter said "No" stays unpublished until the owner picks Public, and a staff unpublish holds.
     """
 
     def setUp(self):
@@ -211,6 +209,9 @@ class ClaimConsentTest(DeveloperApiTestCase):
             is_published=False,
         )
 
+    def link(self):
+        return ApiProject.objects.create(profile=self.listing, owner=self.user)
+
     def edit(self, visibility):
         fields = {**PROJECT, "name": "Said no", "websiteUrl": "https://saidno.example.org", "visibility": visibility}
         api_id = ApiProject.objects.get(profile_id=self.listing.id).id
@@ -218,19 +219,19 @@ class ClaimConsentTest(DeveloperApiTestCase):
         self.assertEqual(status, 200, state)
         return Project.objects.get(id=self.listing.id)
 
-    def test_N_C15_claiming_a_listing_whose_submitter_said_no_keeps_it_unpublished(self):
-        status, state = self.call("post", f"listings/{self.listing.id}/claim")
+    def test_N_C15_a_linked_listing_whose_submitter_said_no_stays_unpublished(self):
+        self.link()
+        status, state = self.call("get", "state")
 
         self.assertEqual(status, 200, state)
         row = Project.objects.get(id=self.listing.id)
-        self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, self.user)
         self.assertTrue(row.request_not_to_publish)
         self.assertFalse(row.is_published)
         self.assertEqual(state["projects"][0]["visibility"], "private")
 
-    def test_N_C15_the_owner_picking_public_lists_a_claimed_listing_staff_left_published(self):
+    def test_N_C15_the_owner_picking_public_lists_a_linked_listing_staff_left_published(self):
         Project.objects.filter(id=self.listing.id).update(is_published=True)
-        self.call("post", f"listings/{self.listing.id}/claim")
+        self.link()
         self.assertNotIn(self.listing.id, gallery_ids())
 
         row = self.edit("public")
@@ -239,7 +240,7 @@ class ClaimConsentTest(DeveloperApiTestCase):
         self.assertIn(self.listing.id, gallery_ids())
 
     def test_N_C15_the_owner_picking_public_does_not_publish_an_unpublished_listing(self):
-        self.call("post", f"listings/{self.listing.id}/claim")
+        self.link()
 
         row = self.edit("public")
 
@@ -248,7 +249,7 @@ class ClaimConsentTest(DeveloperApiTestCase):
         self.assertNotIn(self.listing.id, gallery_ids())
 
     def test_N_C15_a_staff_unpublish_holds_when_the_owner_toggles_private_and_public(self):
-        self.call("post", f"listings/{self.listing.id}/claim")
+        self.link()
         self.edit("public")
         Project.objects.filter(id=self.listing.id).update(is_published=False)
 
