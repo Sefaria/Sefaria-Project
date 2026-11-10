@@ -75,8 +75,16 @@ def describe(user):
         "developerEnabled": bool(profile.settings.get(developer.ENABLED_SETTING)),
         "hasProfile": bool(profile.settings.get(developer.PROFILE_SETTING)),
         "confirmationSentAt": profile.settings.get(developer.CONFIRMATION_SENT_SETTING),
-        "sends": len(profile.settings.get(developer.CONFIRMATION_SENDS_SETTING, [])),
+        "sends": _send_count(user, profile),
     }
+
+
+def _send_count(user, profile):
+    """Sends on record: the throttle document once the account has asked for a link, else the seeded settings."""
+    throttle = seed._legacy_db()[developer.THROTTLE_COLLECTION].find_one({"uid": user.id})
+    if throttle is not None:
+        return len(throttle.get("sends", []))
+    return len(profile.settings.get(developer.CONFIRMATION_SENDS_SETTING, []))
 
 
 def reset(role, state, sends, sends_age_minutes):
