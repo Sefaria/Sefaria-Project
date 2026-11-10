@@ -8,7 +8,8 @@
 #   (no flag)    create the role and its grants, and write the encrypted Secret file. Refuses when the role or the
 #                output file already exists (a re-run would desync the password).
 #
-# Django owns the tables and their NOTIFY triggers through its migrations; run them first. The password is generated
+# Django owns the tables and their NOTIFY triggers through its migrations; run them first: this script refuses to run
+# until the phase 1 tables exist (in the release, after premigrate.sh), so it is never a step before the migration. The password is generated
 # here and written only into the encrypted file; it is never printed.
 #
 # Env (no context default: name the cluster explicitly):

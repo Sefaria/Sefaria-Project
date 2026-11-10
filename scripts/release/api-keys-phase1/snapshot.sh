@@ -10,15 +10,16 @@
 # web pod of each env that shares the database, a full pg_dump --format=c of the database and a dump of the tables a
 # scoped restore puts back, each with a sha256 and a pg_restore check. Preprod and prod share sefaria_auth, so a
 # snapshot of either records both. --upload copies the directory with gcloud storage cp (no Slack, unlike the backup
-# CronJob, which this does not trigger).
+# CronJob, which this does not trigger). DIR defaults to ~/.local/state/api-keys-phase1-snapshots (mode 0700), outside any
+# checkout; a DIR inside a git work tree is refused unless git ignores it (the dump holds database content).
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 usage() {
-  sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,17p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit "${1:-0}"
 }
 
-ENV="" CTX="" OUT="${PWD}/api-keys-phase1-snapshots" UPLOAD="" REPO="" FETCH=1 EXECUTE=0
+ENV="" CTX="" OUT="${HOME}/.local/state/api-keys-phase1-snapshots" UPLOAD="" REPO="" FETCH=1 EXECUTE=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --env) ENV="$2"; shift 2 ;;
@@ -45,6 +46,7 @@ DB="$(env_db "$ENV")"
 SHARING="$(env_sharing "$ENV")"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 SNAP="${OUT%/}/${ENV}-${STAMP}"
+refuse_tracked_dir "$OUT"
 TAB="$(printf '\t')"
 
 if [[ "$EXECUTE" != 1 ]]; then
@@ -75,6 +77,8 @@ fi
 
 # The dumps hold database content (password hashes, sessions, API keys once phase 1 has run): private files only.
 umask 077
+mkdir -p "$OUT"
+chmod 700 "$OUT"
 mkdir -p "$SNAP/k8s" "$SNAP/envfiles" "$SNAP/db"
 chmod 700 "$SNAP"
 step "snapshot of $ENV (database $DB, shared by: $SHARING) into $SNAP"

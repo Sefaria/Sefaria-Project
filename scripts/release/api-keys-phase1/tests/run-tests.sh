@@ -442,8 +442,10 @@ printf '#!/bin/sh\nexit 1\n' >"$WORK/bin/gcloud"
 refuses "preflight fails when an image tag is not in the registry" "not found in Artifact Registry" \
   env PATH="$WORK/bin:$PATH" "$REL/preflight.sh" --env prod --context "$CTX" --repo "$FIX" --no-fetch
 k -n preprod delete secret auth-service-registry >/dev/null
-refuses "preflight fails when the registry Secret is missing" "auth-service-registry is missing" \
-  "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
+check "preflight does not fail on a missing registry Secret while authService.enabled is false (WARN, not needed yet)" \
+  bash -c "'$REL/preflight.sh' --env preprod --context '$CTX' --repo '$FIX' --no-fetch --skip-image-check | grep -E '^WARN +Secret auth-service-registry is missing .*not needed yet'"
+refuses "preflight --require-auth-service fails when the registry Secret is missing" "FAIL +Secret auth-service-registry is missing" \
+  "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --require-auth-service
 k -n preprod create secret generic auth-service-registry --from-literal=placeholder=not-a-secret >/dev/null
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -586,6 +588,7 @@ check "restore chart --emergency dry run" "$REL/restore.sh" chart --snapshot "$S
 refuses "the emergency rollback refuses a wrong confirmation" "confirmation did not match" \
   bash -c "echo prod | '$REL/restore.sh' chart --snapshot '$SNAP' --env preprod --context '$CTX' --emergency --execute"
 [[ "$(helm_rev)" == 2 ]] && ok "a wrong confirmation changed nothing" || notok "a wrong confirmation changed the release"
+EMERGENCY_N=$((N + 1))
 check "restore chart --emergency --execute" bash -c "echo preprod | '$REL/restore.sh' chart --snapshot '$SNAP' --env preprod --context '$CTX' --emergency --execute"
 [[ "$(k -n preprod get hr preprod -o jsonpath='{.spec.suspend}')" == true ]] && ok "HelmRelease preprod is suspended" || notok "HelmRelease not suspended"
 [[ "$(helm_rev)" == 3 ]] && helm get values preprod -n preprod --kube-context "$CTX" -o json | grep -q "$IMG:$MASTER_TAG_PREPROD" \
@@ -603,6 +606,21 @@ k -n preprod get hr preprod -o json >"$WORK/hr-after.json"
 check "HelmRelease preprod equals the snapshot's (spec)" "$PY" "$REL/release_lib.py" hr-spec-equal "$WORK/hr-snap.json" "$WORK/hr-after.json"
 [[ "$(k -n preprod get gitrepositories.source.toolkit.fluxcd.io sefaria-project-preprod -o jsonpath='{.spec.ref.tag}')" == "$TAG_PREPROD" ]] \
   && ok "GitRepository preprod is at the snapshot's tag" || notok "GitRepository tag"
+# The resume command is printed only when Flux serves the snapshot's tag: pinned to it AND an artifact fetched for it.
+grep -q "NOT printing the resume command" "$LOGS/$EMERGENCY_N.log" && ! grep -q "flux resume hr" "$LOGS/$EMERGENCY_N.log" \
+  && ok "the emergency rollback's log did not print the resume command (no artifact for the snapshot's tag yet)" || notok "the emergency log printed or lacked the resume refusal"
+refuses "restore resume refuses while the GitRepository has fetched no artifact for the snapshot's tag" "NOT printing the resume command.*has not fetched" \
+  "$REL/restore.sh" resume --snapshot "$SNAP" --env preprod --context "$CTX"
+k -n preprod patch gitrepositories.source.toolkit.fluxcd.io sefaria-project-preprod --type merge -p '{"spec":{"ref":{"tag":"preprod/0.0.0+chart.0"}}}' >/dev/null
+k -n preprod patch gitrepositories.source.toolkit.fluxcd.io sefaria-project-preprod --subresource=status --type merge -p "{\"status\":{\"artifact\":{\"revision\":\"preprod/0.0.0+chart.0@sha1:0123456789abcdef\"}}}" >/dev/null
+refuses "restore resume refuses while the GitRepository serves another tag" "NOT printing the resume command.*spec.ref.tag is 'preprod/0.0.0\+chart.0'" \
+  "$REL/restore.sh" resume --snapshot "$SNAP" --env preprod --context "$CTX"
+k -n preprod patch gitrepositories.source.toolkit.fluxcd.io sefaria-project-preprod --type merge -p "{\"spec\":{\"ref\":{\"tag\":\"$TAG_PREPROD\"}}}" >/dev/null
+refuses "restore resume refuses while the artifact is still the other tag's" "has not fetched" \
+  "$REL/restore.sh" resume --snapshot "$SNAP" --env preprod --context "$CTX"
+k -n preprod patch gitrepositories.source.toolkit.fluxcd.io sefaria-project-preprod --subresource=status --type merge -p "{\"status\":{\"artifact\":{\"revision\":\"$TAG_PREPROD@sha1:0123456789abcdef\"}}}" >/dev/null
+check "restore resume prints the flux resume command once the GitRepository serves the snapshot's tag" \
+  bash -c "'$REL/restore.sh' resume --snapshot '$SNAP' --env preprod --context '$CTX' | grep -F 'flux resume hr preprod -n preprod --context $CTX'"
 
 # ---------------------------------------------------------------------------------------------------------------
 echo "# restore db: the maintenance fence"
@@ -771,6 +789,8 @@ STUB_PID=""
 echo "# staging-smoke and pytest-failure-diff on fixtures (no cluster)"
 check "staging-smoke never puts a credential on curl's command line (fake curl)" "$HERE/test-staging-smoke-secrets.sh"
 check "pytest-failure-diff on JUnit, plain and run-id fixtures" "$HERE/test-pytest-failure-diff.sh"
+check "migration discovery and authService.enabled reading, from a real checkout's root" "$HERE/test-discovery.sh" "$PHASE1_CODE"
+check "snapshot.sh output directory refusals and default" "$HERE/test-snapshot-out.sh"
 
 # ---------------------------------------------------------------------------------------------------------------
 echo "# concurrent migrate"

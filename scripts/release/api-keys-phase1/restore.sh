@@ -22,19 +22,22 @@
 #       of what is still live.
 #   restore.sh db --snapshot DIR --env E --full
 #       Prints the manual full-database procedure and refuses to run it.
+#   restore.sh resume --snapshot DIR --env E --context C
+#       Read-only. Prints the `flux resume hr` command only when the env's Flux GitRepository is pinned to the snapshot's
+#       release tag and has fetched it (the emergency path ends with the same check); otherwise prints why and exits 1.
 #
 # Without --execute nothing changes (dry run).
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 usage() {
-  sed -n '2,27p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,30p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit "${1:-0}"
 }
 
 [[ $# -ge 1 ]] || usage 1
 MODE="$1"
 shift
-[[ "$MODE" == chart || "$MODE" == db ]] || { [[ "$MODE" == -h || "$MODE" == --help ]] && usage 0; usage 1; }
+[[ "$MODE" == chart || "$MODE" == db || "$MODE" == resume ]] || { [[ "$MODE" == -h || "$MODE" == --help ]] && usage 0; usage 1; }
 
 SNAP="" ENV="" CTX="" REPO="" EXECUTE=0 EMERGENCY=0 SCOPED=0 FULL=0
 while [[ $# -gt 0 ]]; do
@@ -221,8 +224,33 @@ chart_emergency() {
 
 HelmRelease $NS/$HR is SUSPENDED, so Flux will not re-apply phase 1 while it stays so. Next:
  1. Point the env back at the snapshot's release in git (restore.sh chart without --emergency, step 1).
- 2. When the GitRepository serves the snapshot's tag again: flux resume hr $HR -n $NS --context $CTX
+ 2. When the GitRepository serves the snapshot's tag again, run: restore.sh resume --snapshot $SNAP --env $ENV --context $CTX
+    (it prints the flux resume command only once that is true)
 TEXT
+  resume_hint || true
+}
+
+# Prints the resume command only when the env's GitRepository serves the snapshot's release tag (a resume while it serves
+# another tag makes Flux re-apply that release over the rollback). Returns 1, printing why, otherwise.
+resume_hint() {
+  local tag gr json why
+  tag="$(mget "envs.$ENV.release_tag" || true)"
+  gr="$(env_gitrepo "$ENV")"
+  if [[ -z "$tag" ]]; then
+    log "NOT printing the resume command: the snapshot records no release tag for $ENV"
+    return 1
+  fi
+  if ! json="$(kubectl --context "$CTX" -n "${gr%/*}" get gitrepositories.source.toolkit.fluxcd.io "${gr#*/}" -o json 2>/dev/null)"; then
+    log "NOT printing the resume command: GitRepository $gr could not be read on $CTX"
+    return 1
+  fi
+  if why="$(printf '%s' "$json" | "$PYTHON" "$RELEASE_PY" gitrepo-serves --tag "$tag")"; then
+    printf 'GitRepository %s serves the snapshot tag %s. Resume:\n  flux resume hr %s -n %s --context %s\n' "$gr" "$tag" "$HR" "$NS" "$CTX"
+    return 0
+  fi
+  log "NOT printing the resume command: GitRepository $gr does not serve the snapshot tag $tag yet ($why)."
+  log "Redeploy the tag (restore.sh chart, step 1), wait for Flux to fetch it, then run: restore.sh resume --snapshot $SNAP --env $ENV --context $CTX"
+  return 1
 }
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -507,6 +535,10 @@ SQLFENCE
 }
 
 case "$MODE" in
+  resume)
+    [[ -n "$ENV" ]] || die "resume needs --env"
+    resume_hint
+    ;;
   chart)
     if [[ "$EMERGENCY" == 1 ]]; then chart_emergency; else chart_normal; fi
     ;;
