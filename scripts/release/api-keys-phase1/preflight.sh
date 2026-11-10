@@ -113,15 +113,23 @@ for e in $(env_sharing "$ENV"); do
   if [[ "$got" == "$DB" ]]; then pass "$e: current_database() on $ns/$pod is $got"; else fail "$e: current_database() on $ns/$pod is '${got}', expected $DB"; fi
 done
 
-# Is the auth service enabled in the env file that is deployed (origin/<env branch>)? Until it is, the reader role and the
-# registry Secret are not needed yet.
-envfile="$(git -C "$REPO" show "origin/$(env_branch "$ENV"):envs/$ENV/helmrelease.yaml" 2>/dev/null || true)"
+# Is the auth service enabled? Until it is, the reader role and the registry Secret are not needed yet. It counts as enabled
+# when EITHER the env file that is deployed (origin/<env branch>) OR the one in the code being promoted ($CODE_REF) enables
+# it: the promotion carries the code ref's file. A file that cannot be read is a FAIL (and the service is then assumed
+# enabled), never "false".
 AUTH_ENABLED=false
-[[ -z "$envfile" ]] || AUTH_ENABLED="$(printf '%s\n' "$envfile" | "$PYTHON" "$RELEASE_PY" auth-service-enabled)"
+for src in "origin/$(env_branch "$ENV")" "$CODE_REF"; do
+  if envfile="$(git -C "$REPO" show "$src:envs/$ENV/helmrelease.yaml" 2>/dev/null)" && [[ -n "$envfile" ]]; then
+    if [[ "$(printf '%s\n' "$envfile" | "$PYTHON" "$RELEASE_PY" auth-service-enabled)" == true ]]; then AUTH_ENABLED=true; fi
+  else
+    fail "cannot read envs/$ENV/helmrelease.yaml at $src, so authService.enabled is unknown (treated as enabled)"
+    AUTH_ENABLED=true
+  fi
+done
 [[ "$REQUIRE_AUTH" == 1 ]] && AUTH_ENABLED=true
 # auth_required MESSAGE: FAIL when the auth service is enabled (or --require-auth-service), else a WARN.
 auth_required() {
-  if [[ "$AUTH_ENABLED" == true ]]; then fail "$1"; else warn "$1: not needed yet (authService.enabled is false in envs/$ENV/helmrelease.yaml); required for the enabling step"; fi
+  if [[ "$AUTH_ENABLED" == true ]]; then fail "$1"; else warn "$1: not needed yet (authService.enabled is false in envs/$ENV/helmrelease.yaml, deployed and at $CODE_REF); required for the enabling step"; fi
 }
 
 # 2. The reader role and its grants: the columns of auth-service/internal/registry/pgload.go.
@@ -285,11 +293,20 @@ if [[ -z "$long" ]]; then pass "no transaction on $DB older than 60 s"; else war
 
 # 8. Developer settings stay off in preprod until prod runs the release (a preprod-created project breaks old prod admin).
 if [[ "$ENV" == preprod ]]; then
-  flag="$(git -C "$REPO" show "$CODE_REF:envs/preprod/helmrelease.yaml" 2>/dev/null | sed -n 's/.*DEVELOPER_SETTINGS_ENABLED:[[:space:]]*"\{0,1\}\([A-Za-z]*\).*/\1/p' | head -1)"
-  case "${flag,,}" in
-    false | "") pass "DEVELOPER_SETTINGS_ENABLED is '${flag:-unset}' in envs/preprod at $CODE_REF" ;;
-    *) fail "DEVELOPER_SETTINGS_ENABLED is '$flag' in envs/preprod at $CODE_REF; keep it off until prod runs the release" ;;
-  esac
+  # Django reads it as os.getenv(..., "False").lower() == "true" (local-settings-file.yaml), so "False", "false" and "0" are
+  # off. Fail closed: only an explicit off value passes; a missing entry, an unreadable file or any other value fails.
+  if ! flagfile="$(git -C "$REPO" show "$CODE_REF:envs/preprod/helmrelease.yaml" 2>/dev/null)" || [[ -z "$flagfile" ]]; then
+    fail "DEVELOPER_SETTINGS_ENABLED: cannot read envs/preprod/helmrelease.yaml at $CODE_REF"
+  else
+    flags="$(printf '%s\n' "$flagfile" | "$PYTHON" "$RELEASE_PY" env-setting-values DEVELOPER_SETTINGS_ENABLED)"
+    if [[ -z "$flags" ]]; then
+      fail "DEVELOPER_SETTINGS_ENABLED is not set in envs/preprod at $CODE_REF; set it to \"False\" explicitly"
+    elif [[ -z "$(printf '%s\n' "$flags" | grep -vxE 'false|0' || true)" ]]; then
+      pass "DEVELOPER_SETTINGS_ENABLED is off ($(printf '%s' "$flags" | tr '\n' ' ')) in envs/preprod at $CODE_REF"
+    else
+      fail "DEVELOPER_SETTINGS_ENABLED is '$(printf '%s' "$flags" | tr '\n' ' ')' in envs/preprod at $CODE_REF; keep it explicitly off (\"False\") until prod runs the release"
+    fi
+  fi
 fi
 
 # 9. The Secret's namespace is declared for the prod cluster (a missing namespace stalls every Flux apply). The release

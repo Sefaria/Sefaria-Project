@@ -31,14 +31,14 @@ CREATE TRIGGER apikeys_notify_c AFTER UPDATE ON api_project FOR EACH STATEMENT E
 CREATE TRIGGER apikeys_notify_d AFTER UPDATE ON api_tier FOR EACH STATEMENT EXECUTE FUNCTION apikeys_notify();
 SQL
 
-# fake sops: the probe passes; --in-place replaces stringData values and appends a sops: block, like the real one.
+# fake sops (no `sed -i`: its argument differs between GNU and BSD sed): the probe passes; --in-place replaces stringData values and appends a sops: block, like the real one.
 mkdir -p "$tmp/bin" "$tmp/out"
 cat >"$tmp/bin/sops" <<'FAKE'
 #!/usr/bin/env bash
 [ "${FAKE_SOPS_FAIL:-}" = 1 ] && exit 1
 for a in "$@"; do f=$a; done
 case " $* " in
-  *" --in-place "*) [ -n "${FAKE_SOPS_SLEEP:-}" ] && sleep "$FAKE_SOPS_SLEEP"; sed -i -E 's/^(  AUTH_PG_DSN: ).*/\1ENC[AES256_GCM,data:fake,type:str]/' "$f"; printf 'sops:\n  version: fake\n' >>"$f" ;;
+  *" --in-place "*) [ -n "${FAKE_SOPS_SLEEP:-}" ] && sleep "$FAKE_SOPS_SLEEP"; sed -E 's/^(  AUTH_PG_DSN: ).*/\1ENC[AES256_GCM,data:fake,type:str]/' "$f" >"$f.sed" && mv "$f.sed" "$f"; printf 'sops:\n  version: fake\n' >>"$f" ;;
   *) cat >/dev/null ;;
 esac
 FAKE

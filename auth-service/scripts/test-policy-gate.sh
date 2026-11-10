@@ -118,6 +118,24 @@ expect fail "a policy accepted only by another controller" 'python3 -c "
 import json,sys; p=sys.argv[1]; d=json.load(open(p))
 for a in d[\"status\"][\"ancestors\"]: a[\"controllerName\"] = \"example.com/other\"
 json.dump(d, open(p, \"w\"))" "$FAKE_DIR/securitypolicy_authpoc-auth.json"'
+# A same-namespace parentRef leaves namespace, group and kind out of spec; Envoy Gateway may spell them out in status.
+# Before the fix these never matched: a false alarm (a healthy route fails the gate), never a silent pass.
+# shellcheck disable=SC2016  # expanded later, by expect's eval
+edit_route='python3 -c "
+import json,sys; p=sys.argv[1]; d=json.load(open(p)); exec(sys.argv[2])
+json.dump(d, open(p, \"w\"))" "$FAKE_DIR/httproute_authpoc.json"'
+expect pass "route: status parentRef names the namespace and kind the spec leaves out" "$edit_route"' "
+for q in d[\"status\"][\"parents\"]: q[\"parentRef\"].update(namespace=\"default\", kind=\"Gateway\", group=\"gateway.networking.k8s.io\")"'
+expect pass "route: spec names the namespace the status leaves out" "$edit_route"' "
+for q in d[\"spec\"][\"parentRefs\"]: q[\"namespace\"] = \"default\""'
+expect fail "route: status is for a Gateway of another namespace" "$edit_route"' "
+for q in d[\"status\"][\"parents\"]: q[\"parentRef\"][\"namespace\"] = \"other\""'
+expect fail "route: status names the right namespace but is rejected" 'obj httproute authpoc statuses=False,False; '"$edit_route"' "
+for q in d[\"status\"][\"parents\"]: q[\"parentRef\"][\"namespace\"] = \"default\""'
+expect pass "route: a parentRef with no listener is covered by one accepted status per listener" "$edit_route"' "
+d[\"spec\"][\"parentRefs\"] = [{\"name\": \"authpoc\"}]"'
+expect fail "route: a parentRef with no listener fails when one listener's status is rejected" 'obj httproute authpoc statuses=True,False; '"$edit_route"' "
+d[\"spec\"][\"parentRefs\"] = [{\"name\": \"authpoc\"}]"'
 expect fail "redirect route missing" 'rm "$FAKE_DIR/httproute_authpoc-http-redirect.json"'
 # Coverage of the policy's own targets (the status must show an accepted ancestor for every target it names).
 expect pass "client traffic policy accepted on each listener it targets" 'obj clienttrafficpolicy authpoc ancestors=authpoc:https-en,authpoc:https-he'

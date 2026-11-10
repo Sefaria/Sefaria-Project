@@ -791,6 +791,7 @@ check "staging-smoke never puts a credential on curl's command line (fake curl)"
 check "pytest-failure-diff on JUnit, plain and run-id fixtures" "$HERE/test-pytest-failure-diff.sh"
 check "migration discovery and authService.enabled reading, from a real checkout's root" "$HERE/test-discovery.sh" "$PHASE1_CODE"
 check "snapshot.sh output directory refusals and default" "$HERE/test-snapshot-out.sh"
+check "preflight reads DEVELOPER_SETTINGS_ENABLED and authService.enabled fail-closed (no cluster)" "$HERE/test-preflight-env-flags.sh"
 
 # ---------------------------------------------------------------------------------------------------------------
 echo "# concurrent migrate"
