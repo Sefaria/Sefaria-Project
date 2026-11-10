@@ -26,8 +26,14 @@ export type Lang = "english" | "hebrew";
 /** Django's DOMAIN_MODULES: { "en": { "library": "https://www.sefaria.org", "voices": "https://voices.sefaria.org" }, "he": {...} } */
 export type DomainModules = Record<string, Record<string, string>>;
 
+let parsedEnv: DomainModules | null | undefined;
 /** DOMAIN_MODULES from the environment (the JSON Django's local settings read), or null when unset or unreadable. */
-export function domainModulesFromEnv(env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {}): DomainModules | null {
+export function domainModulesFromEnv(env?: Record<string, string | undefined>): DomainModules | null {
+  if (!env) {
+    // read once per process: the environment does not change while the server runs
+    if (parsedEnv === undefined) parsedEnv = domainModulesFromEnv(typeof process !== "undefined" ? process.env : {});
+    return parsedEnv;
+  }
   const raw = env.DOMAIN_MODULES;
   if (!raw) return null;
   try {
@@ -86,28 +92,38 @@ export function cookieDomain(lang: Lang, modules: DomainModules | null): string 
   return d.split(".").length - 1 >= 2 ? d : undefined;
 }
 
-/** Django's LocaleMiddleware for LANGUAGES = (en, he): the best Accept-Language match, else "en". */
-export function acceptLanguageCode(header: string | null | undefined): "en" | "he" {
+/**
+ * Django's LocaleMiddleware (get_language_from_request) for LANGUAGES = (en, he): the `django_language` cookie when it names a supported
+ * language, else the Accept-Language entries by quality — "*" ends the search, "he-IL" / "en-US" match through their generic code
+ * (get_supported_language_variant), anything else ("iw", "fr") is skipped — else LANGUAGE_CODE, "en".
+ */
+export function acceptLanguageCode(header: string | null | undefined, djangoLanguageCookie?: string): "en" | "he" {
+  const supported = (code: string | undefined): "en" | "he" | null => {
+    const base = (code ?? "").toLowerCase().split("-")[0];
+    return base === "he" || base === "en" ? base : null;
+  };
+  const fromCookie = supported(djangoLanguageCookie);
+  if (fromCookie) return fromCookie;
   const prefs = (header ?? "")
     .split(",")
     .map((part, i) => {
       const [tag, ...params] = part.trim().split(";");
       const q = params.map((p) => p.trim()).find((p) => p.startsWith("q="));
-      return { tag: (tag ?? "").toLowerCase(), q: q ? Number(q.slice(2)) : 1, i };
+      return { tag: (tag ?? "").trim().toLowerCase(), q: q ? Number(q.slice(2)) : 1, i };
     })
-    .filter((p) => p.tag && p.tag !== "*" && p.q > 0 && !Number.isNaN(p.q))
+    .filter((p) => p.tag && p.q > 0 && !Number.isNaN(p.q))
     .sort((a, b) => b.q - a.q || a.i - b.i);
   for (const p of prefs) {
-    const base = p.tag.split("-")[0];
-    if (base === "he" || base === "iw") return "he";
-    if (base === "en") return "en";
+    if (p.tag === "*") break;
+    const code = supported(p.tag);
+    if (code) return code;
   }
   return "en";
 }
 
 /** _interface_from_request_signals: the cookie, else cf-ipcountry, else the Accept-Language match. */
-export function interfaceFromSignals(cookieLang: string | undefined, country: string | null | undefined, acceptLanguage: string | null | undefined): Lang {
-  let i: string = cookieLang || country || acceptLanguageCode(acceptLanguage) || "english";
+export function interfaceFromSignals(cookieLang: string | undefined, country: string | null | undefined, acceptLanguage: string | null | undefined, djangoLanguage?: string): Lang {
+  let i: string = cookieLang || country || acceptLanguageCode(acceptLanguage, djangoLanguage) || "english";
   if (i === "IL" || i === "he" || i === "he-il") i = "hebrew";
   return i === "hebrew" ? "hebrew" : "english";
 }
@@ -139,6 +155,8 @@ export interface LanguageRequest {
 export function languageDomainAnswer(req: LanguageRequest, modules: DomainModules | null): Response | "django" | "ask-django" | null {
   const { url, host } = req;
   if ((req.method !== "GET" && req.method !== "HEAD") || isLanguageExcluded(url.pathname)) return null;
+  // a path starting with two slashes (or a slash and a backslash) would make a Location on another site: never redirect one
+  if (/^\/[/\\]/.test(url.pathname)) return null;
   const pinned = domainLang(host, modules);
   if (!pinned) return null;
   const module = activeModule(host, modules);
@@ -150,7 +168,8 @@ export function languageDomainAnswer(req: LanguageRequest, modules: DomainModule
       const params = new URLSearchParams(url.search);
       params.delete("set-language-cookie");
       const rest = [...params].map(([k, v]) => `${plus(k)}=${plus(v)}`).join("&");
-      const location = new URL(url.pathname, target).href + (rest ? `?${rest}` : "");
+      // built as a string on the target's origin: the path can never change the host
+      const location = `${new URL(target).origin}${url.pathname}${rest ? `?${rest}` : ""}`;
       const domain = cookieDomain(pinned, modules);
       return new Response(null, {
         status: 302,
@@ -164,14 +183,14 @@ export function languageDomainAnswer(req: LanguageRequest, modules: DomainModule
     }
   }
   if (req.signedIn) return "ask-django";
-  const lang = interfaceFromSignals(req.cookies.interfaceLang, req.headers.get("cf-ipcountry"), req.headers.get("accept-language"));
+  const lang = interfaceFromSignals(req.cookies.interfaceLang, req.headers.get("cf-ipcountry"), req.headers.get("accept-language"), req.cookies.django_language);
   if (lang === pinned) return null;
   const agent = req.headers.get("user-agent") ?? "";
   if (NO_REDIRECT_AGENTS.some((b) => agent.includes(b))) return null;
   const target = modules?.[short(lang)]?.[module];
   const targetHost = target ? urlHostname(target) : null;
   if (!target || !targetHost || targetHost === hostnameOf(host)) return null;
-  return languageRedirect(target.replace(/\/+$/, "") + withLanguageParam(url.pathname, url.search));
+  return languageRedirect(new URL(target).origin + withLanguageParam(url.pathname, url.search));
 }
 
 /** Django's redirect(): a 302 with an empty body. Never kept by a shared cache: it depends on the cookie, the country, the languages. */

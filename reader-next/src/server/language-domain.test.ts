@@ -72,6 +72,18 @@ describe("the language-domain bounce (T-E07)", () => {
       expect(answer(req(`https://www.sefaria.org${p}`, { cookie: "interfaceLang=hebrew" }))).toBeNull();
     expect(answer(req("https://www.sefaria.org/texts", { cookie: "interfaceLang=hebrew", method: "POST" }))).toBeNull();
   });
+  it("never an open redirect: a path starting with // or /\\ is not bounced or cleaned", () => {
+    for (const p of ["//evil.com/x", "/\\evil.com"]) {
+      const u = new URL(`https://www.sefaria.org.il${p}?set-language-cookie=`);
+      expect(u.pathname.startsWith("//")).toBe(true); // the URL parser makes /\ a //
+      expect(languageDomainAnswer({ url: u, method: "GET", host: u.host, cookies: {}, headers: new Headers({ "user-agent": CHROME }), signedIn: false }, PROD)).toBeNull();
+      const v = new URL(`https://www.sefaria.org${p}`);
+      expect(languageDomainAnswer({ url: v, method: "GET", host: v.host, cookies: { interfaceLang: "hebrew" }, headers: new Headers({ "user-agent": CHROME }), signedIn: false }, PROD)).toBeNull();
+    }
+    // a target with a path of its own: only its origin is used
+    const a = answer(req("https://www.sefaria.org.il/texts?set-language-cookie="), { ...PROD, he: { library: "https://www.sefaria.org.il/x/", voices: PROD.he!.voices! } }) as Response;
+    expect(a.headers.get("location")).toBe("https://www.sefaria.org.il/texts");
+  });
   it("keeps the module: Voices to Voices", () => {
     expect(loc(answer(req("https://voices.sefaria.org/sheets/1", { cookie: "interfaceLang=hebrew" })))).toBe("https://chiburim.sefaria.org.il/sheets/1?set-language-cookie=");
   });
@@ -111,6 +123,13 @@ describe("the pieces, as Django computes them", () => {
     expect(acceptLanguageCode("fr-FR,fr;q=0.9,he;q=0.8,en;q=0.7")).toBe("he");
     expect(acceptLanguageCode("en;q=0.5,he;q=0.9")).toBe("he");
     expect(acceptLanguageCode("fr")).toBe("en");
+    // Django's get_language_from_request: "iw" is not a supported code (LANGUAGES = en, he), "*" ends the search
+    expect(acceptLanguageCode("iw-IL,iw;q=0.9")).toBe("en");
+    expect(acceptLanguageCode("*, he;q=0.5")).toBe("en");
+    expect(acceptLanguageCode("fr, *;q=0.8, he;q=0.5")).toBe("en");
+    // the django_language cookie comes first
+    expect(acceptLanguageCode("en", "he")).toBe("he");
+    expect(acceptLanguageCode("he", "xx")).toBe("he");
     expect(acceptLanguageCode(null)).toBe("en");
   });
   it("the query with set-language-cookie, as Python's urlencode writes it", () => {
