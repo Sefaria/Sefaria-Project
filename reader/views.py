@@ -5041,6 +5041,7 @@ def reader_choice_api(request):
 
     GET answers {"available", "canChooseNext", "reader", "saved"}:
       available      this deployment offers the choice (READER_OPTIN, chart nodejs.mode "optin")
+      disabled       the kill switch (remote config feature.reader.next.disabled) is on: nobody gets the new reader
       canChooseNext  this user may switch to the new reader (signed in, and staff unless the remote-config audience is "all")
       reader         what this browser gets now: "next" when it holds the routing cookie, else "classic"
       saved          the signed-in user's stored choice ("next" / "classic"), null when they never chose or are signed out
@@ -5050,7 +5051,8 @@ def reader_choice_api(request):
     POST {"reader": "classic" | "legacy" | "next"} (JSON body, or a form field), with the CSRF token (X-CSRFToken):
       - "classic" (alias "legacy") always works, signed in or out: the response clears the cookie, and a signed-in user's
         profile records the choice so other browsers follow at their next sign-in;
-      - "next" only when available and canChooseNext (else 403): the response sets the cookie and the profile records it.
+      - "next" only when available and canChooseNext (else 403; while the kill switch is on the 403 says so and carries
+        "disabled": true): the response sets the cookie and the profile records it.
       Answers {"reader": <the choice>, "saved": <whether a profile recorded it>}; 400 for any other value.
 
     Never cached: the answer is this browser's.
@@ -5062,6 +5064,7 @@ def reader_choice_api(request):
         response = jsonResponse(
             {
                 "available": reader_choice.available(),
+                "disabled": reader_choice.next_disabled(),
                 "canChooseNext": reader_choice.may_use_next(request.user),
                 "reader": reader_choice.NEXT
                 if request.COOKIES.get(reader_choice.COOKIE_NAME) == reader_choice.NEXT
@@ -5080,6 +5083,11 @@ def reader_choice_api(request):
         choice = reader_choice.parse_choice(posted)
         if choice is None:
             response = jsonResponse({"error": 'Send "reader": "classic" or "next".'}, status=400)
+        elif choice == reader_choice.NEXT and reader_choice.available() and reader_choice.next_disabled():
+            response = jsonResponse(
+                {"error": "The new reader is switched off for now. Please use the classic reader.", "disabled": True},
+                status=403,
+            )
         elif choice == reader_choice.NEXT and not reader_choice.may_use_next(request.user):
             response = jsonResponse({"error": "The new reader is not open to this account."}, status=403)
         else:
@@ -5519,6 +5527,8 @@ def account_settings(request):
             "library_assistant_enabled": library_assistant.is_enabled(profile),
             # nodejs.mode "optin": the choice between the legacy reader and the new one, for whom the audience includes
             "reader_choice_available": reader_choice.may_use_next(request.user),
+            # the kill switch is on for someone who would otherwise see the switch: say why it is gone
+            "new_reader_paused": reader_choice.in_audience(request.user) and reader_choice.next_disabled(),
             "new_reader_enabled": reader_choice.chose_next(profile),
             "lang_names_and_codes": zip(
                 [

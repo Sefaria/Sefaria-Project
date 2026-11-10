@@ -6,6 +6,8 @@ reader exactly when the request carries the cookie ``reader_version=next``
 (helm-chart/sefaria/conf/nginx.template.conf.tpl, ``$page_upstream``). This module owns that cookie:
 
 - ``available()`` -- whether this deployment offers the choice (``READER_OPTIN``, set by the chart);
+- ``next_disabled()`` -- the kill switch, remote config ``feature.reader.next.disabled`` (default false): while true nobody
+  is sent to the new reader;
 - ``audience()`` -- who may take the new reader while it is offered: remote config
   ``feature.reader.optin.audience``, ``"staff"`` (the default: only ``is_staff`` users) or ``"all"``
   (every signed-in user, launch stage L1). Signed-out visitors never opt in (LAUNCH_PLAN D-12);
@@ -56,11 +58,29 @@ def audience():
     return AUDIENCE_ALL if str(value).strip().lower() == AUDIENCE_ALL else AUDIENCE_STAFF
 
 
-def may_use_next(user):
-    """May this user be sent to the new reader? Signed in, and staff unless the audience is everyone."""
+def next_disabled():
+    """
+    The kill switch: remote config ``feature.reader.next.disabled``. True only for a bool true (or the text "true"); missing or
+    anything else is False. While it is on, nobody is sent to the new reader: the client clears its cookie and reloads into the
+    legacy one (lane C), and Django never sets it again (may_use_next is False, the middleware clears it).
+    """
+    from remote_config import remoteConfigCache
+    from remote_config.keys import READER_NEXT_DISABLED
+
+    value = remoteConfigCache.get(READER_NEXT_DISABLED, False)
+    return value is True or (isinstance(value, str) and value.strip().lower() == "true")
+
+
+def in_audience(user):
+    """Is this user among those offered the new reader? Signed in, and staff unless the audience is everyone."""
     if not available() or user is None or not getattr(user, "is_authenticated", False):
         return False
     return audience() == AUDIENCE_ALL or bool(getattr(user, "is_staff", False))
+
+
+def may_use_next(user):
+    """May this user be sent to the new reader now? In the audience, and the kill switch is off."""
+    return in_audience(user) and not next_disabled()
 
 
 def parse_choice(value):
@@ -112,7 +132,8 @@ class ReaderChoiceMiddleware:
     Keeps the routing cookie honest:
 
     - a ``next`` cookie held by someone the audience does not include (while the audience is "staff": a signed-in user who is
-      not staff, or any signed-out visitor) is cleared on the next response Django sends them;
+      not staff, or any signed-out visitor), or by anyone at all while the kill switch (``feature.reader.next.disabled``) is
+      on, is cleared on the next response Django sends them;
     - once per session of a signed-in reader, the cookie is made to say what their profile says (a choice made on another
       browser takes effect here at sign-in). Readers who never chose are left alone.
 
@@ -134,7 +155,8 @@ class ReaderChoiceMiddleware:
         if cookie_next and not signed_in:
             # D-12: the opt-in is for signed-in readers. With the audience "all", a reader who signed out keeps the reader
             # they chose (their next sign-in syncs it again); with "staff" no anonymous visitor can be told apart from staff.
-            if audience() != AUDIENCE_ALL:
+            # The kill switch sends everyone back.
+            if audience() != AUDIENCE_ALL or next_disabled():
                 apply_cookie(response, request, CLASSIC)
             return response
         if not signed_in:
