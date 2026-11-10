@@ -62,7 +62,7 @@ test("Hebrew interface: the library's and a category's descriptions are the old 
   await page.context().addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
   for (const path of ["/texts", "/texts/Tanakh"]) {
     await open(page, path);
-    const desc = page.locator('main div[lang="he"][class*="desc"]').first();
+    const desc = page.locator('main div[lang="he"][class^="_desc_"]').first();
     await expect(desc).toBeVisible();
     const { size, line } = await desc.evaluate((e) => ({ size: getComputedStyle(e).fontSize, line: getComputedStyle(e).lineHeight }));
     expect({ path, size, line }).toEqual({ path, size: "17.08px", line: "24px" });
