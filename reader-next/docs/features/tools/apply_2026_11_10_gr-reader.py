@@ -78,6 +78,17 @@ add("CON-002", "Connections header mobile variant", [
     V + " (Pixel 7, English and Hebrew interface): the header's category-colour top border is set but 0px wide (invisible); Resources' title is centred (justify-content: center); after Resources → Commentary → Rashi in the app the recent filters sit in the header ('Rashi', then 'Ramban Rashi') with no title in the body; on a fresh load of with=Rashi neither shows. Not built in wave 2.",
 ])
 
+mark("CON-002", "Connections header mobile variant", "partial", "Resources title centred at phone width (verified); recent filters in the phone header not built", "src/ui/ConnectionsPanel/ConnectionsPanel.module.css")
+
+add("TXD-062", "Print stylesheet for text", [
+    "2026-11-10 (lane GR): as legacy static/css/s2-print.css (linked media=print on reader pages): the site header, the sidebar, the text header's buttons, the connection dots and footnote markers/itags are hidden; segment numbers are printed (they were hidden here). The live reader has no print footer. Still to do (lane R's TextColumn): the text column is a fixed-height scroll box, so printing shows only what is on screen; legacy sets the reader's heights to auto. Tests: e2e/print.spec.ts.",
+])
+mark("TXD-062", "Print stylesheet for text", "partial", "Legacy print rules ported; the text column's fixed-height scroll box still cuts the printout (TextColumn, lane R)", "src/ui/Segment/Segment.module.css, src/ui/SegmentText/SegmentText.module.css, src/ui/ConnectionsPanel/ConnectionsPanel.module.css, src/ui/ReaderControls/ReaderControls.module.css, src/ui/SiteHeader/SiteHeader.module.css")
+add("PLT-030", "Print stylesheets", [
+    "2026-11-10 (lane GR): see TXD-062. Header, sidebar, reader buttons, dots and footnote markers hidden in print; the cookie notice already was. The live reader has no Sefaria print footer (#printFooter exists only in gdocs_sheet.html, commented out), so none is added. Banners (SiteWideBanner) and the text column's height remain.",
+])
+mark("PLT-030", "Print stylesheets", "partial", "Legacy's print hiding ported; banners and the text column's fixed height remain", "src/ui/*/**.module.css (@media print)")
+
 add("SHL-051", "Connection filter state management", [
     "2026-11-10 (lane GR): recent filters (CON-028, desktop) and the sidebar scroll memory (CON-037) built.",
 ])
