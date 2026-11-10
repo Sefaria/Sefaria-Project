@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { sheetTitle, type UserSheet } from "~/lib/user/sheets";
 import { Button } from "../Button/Button";
@@ -15,6 +15,8 @@ export interface AddToSheetViewProps {
   /** The reader's sheets, newest first (undefined while loading). */
   sheets: UserSheet[] | undefined;
   onAdd: (sheet: UserSheet) => Promise<void>;
+  /** Under the button (the Google Docs promotion, GDocAdvert). */
+  footer?: ReactNode;
   onCreate: (title: string) => Promise<UserSheet>;
   /** A sheet's page (on Voices). */
   sheetHref: (id: number) => string;
@@ -27,7 +29,7 @@ export interface AddToSheetViewProps {
  *
  * @feature CON-034 Add connection to sheet button
  */
-export function AddToSheetView({ citation, citationHref, sheets, onAdd, onCreate, sheetHref }: AddToSheetViewProps) {
+export function AddToSheetView({ citation, citationHref, sheets, onAdd, onCreate, sheetHref, footer }: AddToSheetViewProps) {
   const he = useInterfaceLang() === "hebrew";
   const t = (en: string, hebrew: string) => (he ? hebrew : en);
   const ids = { select: useId(), name: useId() };
@@ -101,6 +103,7 @@ export function AddToSheetView({ citation, citationHref, sheets, onAdd, onCreate
       <Button variant="primary" block loading={busy} onClick={() => void add()}>
         <InterfaceText en="Add to Sheet" he="הוספה לדף המקורות" />
       </Button>
+      {footer}
     </div>
   );
 }

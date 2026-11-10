@@ -31,7 +31,7 @@ import { entriesForCategories, lexiconQueryOptions, shouldActivateLookup } from 
 import { useDictionarySearch } from "../shared/useDictionarySearch";
 import { DictionarySearch } from "~/ui/DictionarySearch/DictionarySearch";
 import { LexiconView } from "~/ui/LexiconView/LexiconView";
-import { readerAnalytics, uaEvent } from "~/lib/analytics";
+import { gtagEvent, readerAnalytics, uaEvent } from "~/lib/analytics";
 import { useViewer } from "~/features/auth/viewer";
 import { deleteNote, notesQuery, refsForSave, saveNote } from "~/lib/user/notes";
 import { syncHistory } from "~/lib/user/history";
@@ -67,6 +67,10 @@ import { AutocorrectBanner } from "~/ui/SearchPage/SearchPage";
 import { autocorrectQueryOptions, decideAutocorrect, NO_AUTOCORRECT } from "~/lib/search/autocorrect";
 import { useLocation } from "@tanstack/react-router";
 import { useLibraryHref } from "~/lib/routing/library-href";
+import { useLastTextSelection } from "./use-last-selection";
+import { GDocAdvert } from "~/ui/AddToSheetView/GDocAdvert";
+
+import { IMAGE_NOT_SUPPORTED, sheetExtras, type SheetExtras } from "~/lib/text/sheet-source";
 import { currVersionsOf, sendFeedback } from "~/lib/feedback/feedback";
 import { ShareView } from "~/ui/ShareView/ShareView";
 import type { SignUpKind } from "~/lib/auth/signup-content";
@@ -157,6 +161,8 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const notesQ = useQuery(notesQuery(uid, notesRefs));
   const qcNotes = useQueryClient();
   const interfaceLang = useInterfaceLang();
+  // the words last selected in the text (Add to Sheet cuts its source to them)
+  const lastSelection = useLastTextSelection();
   // topic pages are this client's (absolute only on a host that does not serve them)
   const libHref = useLibraryHref();
   const topicHref = (slug: string) => libHref(`/topics/${slug}`);
@@ -527,6 +533,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           refs={notesRefs}
           primary={sv(props.section?.primaryVersion)}
           translation={sv(props.section?.translationVersion)}
+          extra={sheetExtras(props.section, notesRefs, settings.language, lastSelection)}
         />
       </ConnectionsPanel>
     );
@@ -878,23 +885,46 @@ export function ConnectionsPane(props: ConnectionsPaneProps) {
   );
 }
 
+const GDOC_CAMPAIGN = "GDocs_Promo_AddToSheet";
+// the old trackSidebarAdImpression / trackSidebarAdClick (Promotions.jsx), the campaign of GDocAdvertBox
+const GDOC_SEEN = () => gtagEvent("promo_viewed", { campaignID: GDOC_CAMPAIGN, adType: "sidebar" });
+
 /** The Add to Sheet tool's data: the reader's sheets, adding, creating (lib/user/sheets.ts). */
-function AddToSheetSection({ uid, citation, citationHref, refs, primary, translation }: { uid: number | null; citation: { en: string; he: string }; citationHref: string; refs: string[]; primary?: SheetVersion; translation?: SheetVersion }) {
+function AddToSheetSection({ uid, citation, citationHref, refs, primary, translation, extra }: { uid: number | null; citation: { en: string; he: string }; citationHref: string; refs: string[]; primary?: SheetVersion; translation?: SheetVersion; extra?: SheetExtras }) {
+  const he = useInterfaceLang() === "hebrew";
   const qc = useQueryClient();
   const sheets = useQuery(userSheetsQuery(uid));
+  // the Google Docs promotion, until its Install Now was clicked once (gdoc_installed cookie); read after hydration
+  const [gdoc, setGdoc] = useState(false);
+  useEffect(() => setGdoc(!/(?:^|;\s*)gdoc_installed=/.test(document.cookie)), []);
   return (
     <AddToSheetView
       citation={citation}
       citationHref={citationHref}
       sheets={sheets.data}
       sheetHref={(id) => `${VOICES}/sheets/${id}`}
+      footer={
+        gdoc ? (
+          <GDocAdvert
+            onSeen={GDOC_SEEN}
+            onInstall={() => {
+              document.cookie = "gdoc_installed=1; path=/";
+              gtagEvent("promo_clicked", { campaignID: GDOC_CAMPAIGN, adType: "sidebar" });
+            }}
+          />
+        ) : null
+      }
       onCreate={async (title) => {
         const sheet = await createSheet(title);
         qc.setQueryData(userSheetsQuery(uid).queryKey, (list = []) => [sheet, ...list]);
         return sheet;
       }}
       onAdd={async (sheet) => {
-        await addToSheet(sheet.id, sourcesFor(refs, primary, translation));
+        if (extra?.hasImage) throw new Error(he ? IMAGE_NOT_SUPPORTED.he : IMAGE_NOT_SUPPORTED.en);
+        const sources = sourcesFor(refs, primary, translation);
+        // the selected words replace the side's text (not when each version is its own source: the old code returned before this)
+        if (extra?.text && sources.length === 1) sources[0]![extra.text.side] = extra.text.html;
+        await addToSheet(sheet.id, sources);
         uaEvent("Tools", "Add to Source Sheet Save", refs.join("/"));
         // a sheet open in the editor in another tab reloads its sources (the old refresh-editor broadcast)
         if (typeof BroadcastChannel !== "undefined") {
