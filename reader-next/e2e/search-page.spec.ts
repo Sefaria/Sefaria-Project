@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { open } from "./helpers";
+import { routeDictaThroughCassette } from "../scripts/cassette/dicta-route.mjs";
 
 // @feature RTE-029 @feature SRC-039 @feature SRC-040 @feature SRC-046 @feature SRC-048 @feature SRC-052 @feature SRC-054 @feature SRC-085 @feature SRC-016 @feature SRC-041 @feature SRC-043 @feature SRC-047 @feature SRC-056 @feature SRC-067 @feature SRC-070 @feature SRC-071 @feature SRC-072 @feature SRC-086
 test.describe("search results page", () => {
@@ -166,6 +167,7 @@ test.describe("Hebrew search merges Dicta's Tanakh (as on sefaria.org)", () => {
   test("All Results asks Dicta and shows its verses; Exact Phrase does not", async ({ page }) => {
     const dicta: string[] = [];
     page.on("request", (r) => r.url().includes("dicta.org.il") && dicta.push(new URL(r.url()).pathname));
+    await routeDictaThroughCassette(page); // Dicta's answers from the cassette, like the API's
     await page.goto("/");
     await page.waitForSelector("html[data-hydrated='true']");
     await page.getByRole("combobox").first().fill("אור");

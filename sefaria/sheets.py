@@ -1119,6 +1119,31 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
     return results
 
 
+def get_sheet_anchors_for_ref(tref):
+    """
+    The public sheets on `tref` reduced to what a count needs: one item per (sheet, anchor) with only `id`, `anchorRef` and
+    `anchorRefExpanded`, the same anchors `get_sheets_for_ref` returns. A client counts the distinct ids anchored to the verses
+    it shows without the sheet records, owner profiles, collections and scores (`/api/related/<ref>?sheets=count`).
+    """
+    oref = model.Ref(tref)
+    segment_refs = [r.normal() for r in oref.all_segment_refs()]
+    query = {"expandedRefs": {"$in": segment_refs}, "status": "public"}
+    results = []
+    for sheet in db.sheets.find(query, {"id": 1, "includedRefs": 1, "expandedRefs": 1}):
+        anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(
+            segment_refs, sheet.get("includedRefs", []), sheet.get("expandedRefs", [])
+        )
+        for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
+            results.append(
+                {
+                    "id": str(sheet["id"]),
+                    "anchorRef": anchor_ref.normal(),
+                    "anchorRefExpanded": [r.normal() for r in anchor_ref_expanded],
+                }
+            )
+    return results
+
+
 def topic_list_diff(old, new):
     """
     Returns a dictionary with fields `removed` and `added` that describes the differences

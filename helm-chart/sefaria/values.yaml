@@ -228,6 +228,12 @@ reader:
   # Absolute origin of the reader's canonical and og:url links (PUBLIC_CANONICAL_ORIGIN); templated. A cauldron or staging keeps
   # production's, so search engines are pointed at www.sefaria.org.
   canonicalOrigin: "https://www.sefaria.org"
+  # Browser error reports (reader-next/src/lib/monitoring/error-reporter.ts): the beacons go to Django's /api/reader-errors on the
+  # page's own origin (reader/browser_errors.py: one log line each, rate limited); sampleRate is the share of page loads that report
+  # (0..1). endpoint "" turns the reports off.
+  errors:
+    endpoint: "/api/reader-errors"
+    sampleRate: "1"
   optin:
     # Kill switch (nodejs.mode "optin"): false makes nginx ignore the reader_version cookie, so everyone gets the legacy reader, and
     # hides the account-settings switch (READER_OPTIN). The reader rollout keeps running. Rollback steps: reader-next/docs/DEPLOYMENT.md.
