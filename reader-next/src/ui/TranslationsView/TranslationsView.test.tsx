@@ -5,6 +5,10 @@ import { InterfaceLangProvider } from "~/lib/i18n/interface-lang";
 import { TranslationsView } from "./TranslationsView";
 import { CURRENT, storyLanguages } from "./story-data";
 
+// These render the whole recorded list of Genesis 1:1's translations (about 2.5 s a test with userEvent): the default 5 s timed out
+// in every lane's gate under parallel load (wave 2), while each passed in 18 s for the file at load 34. A real hang still fails.
+vi.setConfig({ testTimeout: 20_000 });
+
 const href = (v: { languageFamilyName: string; versionTitle: string }) => `/Genesis.1.1?ven=${v.languageFamilyName}|${v.versionTitle.replace(/ /g, "_")}`;
 const renderView = (props: Partial<Parameters<typeof TranslationsView>[0]> = {}) =>
   render(<TranslationsView languages={storyLanguages(CURRENT)} currentTitle={CURRENT} selectHref={href} openHref={href} urlRef="Genesis.1.1" {...props} />);
