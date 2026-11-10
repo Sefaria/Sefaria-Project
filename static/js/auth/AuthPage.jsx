@@ -29,12 +29,7 @@ import { getCsrfToken } from '../sefaria/csrf';
  * SSO endpoints/flow differ by provider and mode — see `useSsoSignIn.jsx`. Email
  * login/register use JSON+session endpoints (/api/auth/login, /register).
  */
-const AuthPage = ({
-  initialPath = '/login',
-  authSource = null,
-  resetValid = null,
-  onNavigate,
-}) => {
+const AuthPage = ({ initialPath = '/login', authSource = null, initialView = null, resetValid = null, onNavigate }) => {
   const flow = pathToFlow(initialPath);
   const next = nextFromPath(initialPath);
   const [view, setView] = useState(() => {
@@ -56,7 +51,13 @@ const AuthPage = ({
   const csrf = getCsrfToken();
   const tracking = useAuthTracking({ flow, source: authSource });
   const {
-    googleReady, appleReady, ssoLoading, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
+    googleReady,
+    appleReady,
+    ssoLoading,
+    overlayNode,
+    registerGoogleTarget,
+    setActiveErrorHandler,
+    triggerApple,
   } = useProviderTriggers({ next, tracking });
   const fieldsRef = useRef(fields);
   fieldsRef.current = fields;
@@ -73,46 +74,72 @@ const AuthPage = ({
   };
 
   // ---- views --------------------------------------------------------------
-  const onForgotClick = (e) => { e.preventDefault(); setView('forgot'); };
+  const onForgotClick = (e) => {
+    e.preventDefault();
+    setView('forgot');
+  };
   // The rare "link doesn't resolve to any account" fallback routes to the
   // existing manual-email-entry ForgotView rather than building a new one.
-  const requestNewLink = () => { setView('forgot'); onNavigate?.(flowToPath('login', next)); };
+  const requestNewLink = () => {
+    setView('forgot');
+    onNavigate?.(flowToPath('login', next));
+  };
   const onEmailClick = () => {
     tracking.chooseMethod(AUTH_METHOD.EMAIL);
     tracking.startProcess();
     setView('email');
   };
+  // Opened straight on the email sign-up form (the Library Assistant's Email option): the same
+  // as clicking Email on the card, so it's reported the same way. Runs after useAuthTracking's
+  // own effect, which starts the flow.
+  useEffect(() => {
+    if (initialView === 'email' && flow === 'register') onEmailClick();
+  }, []);
 
   let content;
   if (view === 'email' && flow === 'register') {
     content = (
       <RegisterView
-        switchFlow={switchFlow} fields={fields} setField={setField}
+        switchFlow={switchFlow}
+        fields={fields}
+        setField={setField}
         onBack={() => setView('choose')}
-        startProcess={tracking.startProcess} endProcess={tracking.endProcess}
-        next={next} csrf={csrf}
-        registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+        startProcess={tracking.startProcess}
+        endProcess={tracking.endProcess}
+        next={next}
+        csrf={csrf}
+        registerGoogleTarget={registerGoogleTarget}
+        triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
       />
     );
   } else if (view === 'email') {
     content = (
       <LoginView
-        switchFlow={switchFlow} fields={fields} setField={setField}
+        switchFlow={switchFlow}
+        fields={fields}
+        setField={setField}
         onBack={() => setView('choose')}
         onForgotClick={onForgotClick}
-        startProcess={tracking.startProcess} endProcess={tracking.endProcess}
-        next={next} csrf={csrf}
-        registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+        startProcess={tracking.startProcess}
+        endProcess={tracking.endProcess}
+        next={next}
+        csrf={csrf}
+        registerGoogleTarget={registerGoogleTarget}
+        triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
       />
     );
   } else if (view === 'forgot') {
     content = (
       <ForgotView
-        emailValue={fields.email} setField={setField} csrf={csrf}
-        onSuccess={() => setView('forgot-sent')} onBack={() => setView('email')}
-        registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+        emailValue={fields.email}
+        setField={setField}
+        csrf={csrf}
+        onSuccess={() => setView('forgot-sent')}
+        onBack={() => setView('email')}
+        registerGoogleTarget={registerGoogleTarget}
+        triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
       />
     );
@@ -120,7 +147,11 @@ const AuthPage = ({
     content = <MessageView heading="auth.reset_link_sent" sub="auth.check_your_email" />;
   } else if (view === 'reset') {
     content = (
-      <ResetView csrf={csrf} onLinkExpired={() => setView('reset-expired')} onSuccess={() => setView('reset-success')} />
+      <ResetView
+        csrf={csrf}
+        onLinkExpired={() => setView('reset-expired')}
+        onSuccess={() => setView('reset-success')}
+      />
     );
   } else if (view === 'reset-expired') {
     content = (
@@ -139,17 +170,21 @@ const AuthPage = ({
   } else {
     content = (
       <ChooseView
-        flow={flow} switchFlow={switchFlow}
+        flow={flow}
+        switchFlow={switchFlow}
         onEmailClick={onEmailClick}
-        googleReady={googleReady} appleReady={appleReady} ssoLoading={ssoLoading}
-        registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+        googleReady={googleReady}
+        appleReady={appleReady}
+        ssoLoading={ssoLoading}
+        registerGoogleTarget={registerGoogleTarget}
+        triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
       />
     );
   }
 
   // Only the log-in and sign-up steps carry the developer banner, not reset or confirmation messages.
-  const notice = (view === 'choose' || view === 'email') ? authNoticeFor(next) : null;
+  const notice = view === 'choose' || view === 'email' ? authNoticeFor(next) : null;
 
   return (
     <div className="sefaria-auth-page">
@@ -162,6 +197,7 @@ const AuthPage = ({
 AuthPage.propTypes = {
   initialPath: PropTypes.string,
   authSource: PropTypes.string,
+  initialView: PropTypes.oneOf(['email']),
   resetValid: PropTypes.bool,
   onNavigate: PropTypes.func,
 };

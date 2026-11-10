@@ -11,8 +11,8 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       name: {{ .Values.deployEnv }}
-  # Phase 1: ext_authz only. The auth service classifies the request and stamps x-sefaria-*; no JWT
-  # verification and no rate limiting are attached to the route yet.
+  # ext_authz only. The auth service classifies the request and stamps x-sefaria-*; there is no JWT
+  # verification, and rate limits are attached separately (authService.rateLimit).
   extAuth:
     failOpen: {{ .Values.authService.extAuth.failOpen }}        # auth service down → anonymous tier
     timeout: {{ .Values.authService.extAuth.timeout }}          # EG default is 10s

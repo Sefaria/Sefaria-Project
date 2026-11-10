@@ -24,7 +24,8 @@ jest.mock('../Misc', () => {
   const Sefaria = require('../sefaria/sefaria').default;
   return {
     __esModule: true,
-    InterfaceText: ({ text, children }) => (text ? text[Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en'] : (children ?? null)),
+    InterfaceText: ({ text, children }) =>
+      text ? text[Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en'] : (children ?? null),
   };
 });
 
@@ -34,12 +35,17 @@ import { act } from 'react-dom/test-utils';
 import $ from '../sefaria/sefariaJquery';
 import Sefaria from '../sefaria/sefaria';
 import SettingsPage from '../SettingsPage.jsx';
+// The profile card's ProfilePic pulls in the image cropper's CSS, which Jest can't parse.
+jest.mock('../ProfilePic', () => ({ ProfilePic: () => null }));
 
 const SETTINGS = {
   emailNotifications: 'daily',
   interfaceLanguage: 'english',
   translationLanguagePreference: 'en',
-  translationLanguages: [{ code: 'en', name: 'English' }, { code: 'es', name: 'Spanish' }],
+  translationLanguages: [
+    { code: 'en', name: 'English' },
+    { code: 'es', name: 'Spanish' },
+  ],
   readingHistory: true,
   textualCustom: 'ashkenazi',
   libraryAssistantEnabled: true,
@@ -67,13 +73,16 @@ function mount(settings = {}) {
         setTab={() => {}}
         setProjectId={() => {}}
       />,
-      container,
+      container
     );
   });
 }
 
 const option = (sectionId, value) => container.querySelector(`#${sectionId} .toggleOption[data-value="${value}"]`);
-const choose = (sectionId, value) => act(() => { option(sectionId, value).click(); });
+const choose = (sectionId, value) =>
+  act(() => {
+    option(sectionId, value).click();
+  });
 const saveButton = () => container.querySelector('.saveAccountSettingsBtn');
 
 /* $.post and $.get are captured; answer() runs the success callback of the latest call. */
@@ -82,9 +91,13 @@ const lastPost = () => {
   return { url, payload: JSON.parse(data.json), callback };
 };
 const save = (response = { status: 'ok' }) => {
-  act(() => { saveButton().click(); });
+  act(() => {
+    saveButton().click();
+  });
   const post = lastPost();
-  act(() => { post.callback(response); });
+  act(() => {
+    post.callback(response);
+  });
   return post;
 };
 
@@ -113,7 +126,9 @@ beforeEach(() => {
 afterEach(() => {
   document.removeEventListener('sefaria:settings-updated', settingsUpdated);
   window.location = originalLocation;
-  if (!container) { return; }
+  if (!container) {
+    return;
+  }
   ReactDOM.unmountComponentAtNode(container);
   container.remove();
   container = null;
@@ -123,7 +138,9 @@ describe('Account tab save', () => {
   it('posts the profile settings form-encoded to /api/profile, as the old template did', () => {
     mount();
     choose('emailNotifications', 'weekly');
-    act(() => { saveButton().click(); });
+    act(() => {
+      saveButton().click();
+    });
     const { url, payload } = lastPost();
     expect(url).toBe('/api/profile');
     expect(payload).toEqual({
@@ -174,7 +191,9 @@ describe('Account tab save', () => {
   it('sets the translation preference cookies before posting', () => {
     mount();
     choose('translationLanguagePreference', 'es');
-    act(() => { saveButton().click(); });
+    act(() => {
+      saveButton().click();
+    });
     expect($.cookie).toHaveBeenCalledWith('translation_language_preference', 'es', { path: '/' });
     expect($.cookie).toHaveBeenCalledWith('translation_language_preference_suggested', '1', { path: '/' });
     const cookieOrder = $.cookie.mock.invocationCallOrder[0];
@@ -199,7 +218,10 @@ describe('Account tab save', () => {
     expect(Sefaria.track.event).toHaveBeenCalledWith('Settings', 'Settings Save', 'weekly');
     expect(window.location.reload).not.toHaveBeenCalled();
     expect(settingsUpdated).toHaveBeenCalledTimes(1);
-    expect(settingsUpdated.mock.calls[0][0].detail).toEqual({ translationLanguagePreference: 'en', readingHistory: true });
+    expect(settingsUpdated.mock.calls[0][0].detail).toEqual({
+      translationLanguagePreference: 'en',
+      readingHistory: true,
+    });
   });
 
   it('tracks a changed translation preference and passes it in the settings event', () => {
@@ -251,7 +273,9 @@ describe('Account tab save', () => {
     mount();
     const buttons = container.querySelectorAll('.saveAccountSettingsBtn');
     expect(buttons.length).toBe(2);
-    act(() => { buttons[1].click(); });
+    act(() => {
+      buttons[1].click();
+    });
     expect($.post).toHaveBeenCalledTimes(1);
   });
 
@@ -265,6 +289,8 @@ describe('Account tab save', () => {
     expect(payload.settings).not.toHaveProperty('interface_language');
     expect(payload.settings).not.toHaveProperty('textual_custom');
     expect(payload.settings).not.toHaveProperty('translation_language_preference');
+    expect(payload.settings).not.toHaveProperty('reading_history');
+    expect(settingsUpdated.mock.calls[0][0].detail).not.toHaveProperty('readingHistory');
   });
 });
 
@@ -273,13 +299,16 @@ describe('Account tab toggles', () => {
     mount();
     const group = container.querySelector('#emailNotifications [role="radiogroup"]');
     const radios = Array.from(group.querySelectorAll('[role="radio"]'));
-    expect(radios.map(r => r.getAttribute('aria-checked'))).toEqual(['true', 'false', 'false']);
-    expect(radios.map(r => r.tabIndex)).toEqual([0, -1, -1]);
+    expect(radios.map((r) => r.getAttribute('aria-checked'))).toEqual(['true', 'false', 'false']);
+    expect(radios.map((r) => r.tabIndex)).toEqual([0, -1, -1]);
   });
 
   it('move to and pick the next or previous option with the arrow keys', () => {
     mount();
-    const keyUp = (el, keyCode) => act(() => { el.dispatchEvent(new KeyboardEvent('keyup', { keyCode, bubbles: true })); });
+    const keyUp = (el, keyCode) =>
+      act(() => {
+        el.dispatchEvent(new KeyboardEvent('keyup', { keyCode, bubbles: true }));
+      });
     keyUp(option('emailNotifications', 'daily'), 39);
     expect(option('emailNotifications', 'weekly').getAttribute('aria-checked')).toBe('true');
     expect(document.activeElement).toBe(option('emailNotifications', 'weekly'));
@@ -291,22 +320,30 @@ describe('Account tab toggles', () => {
 describe('Account tab email change', () => {
   const openEmailEdit = () => {
     mount();
-    act(() => { container.querySelector('#change-email').click(); });
+    act(() => {
+      container.querySelector('#change-email').click();
+    });
     typeInto(container.querySelector('#username-change-edit #email'), 'new@example.org');
     typeInto(container.querySelector('#username-change-edit #confirmEmail'), 'new@example.org');
     typeInto(container.querySelector('#username-change-edit #confirmPassword'), 'secret');
   };
   const update = (response) => {
-    act(() => { container.querySelector('#update-email').click(); });
+    act(() => {
+      container.querySelector('#update-email').click();
+    });
     const post = lastPost();
-    act(() => { post.callback(response); });
+    act(() => {
+      post.callback(response);
+    });
     return post;
   };
 
   it('opens the edit form in place of the display', () => {
     mount();
     expect(container.querySelector('#username-change-edit').style.display).toBe('none');
-    act(() => { container.querySelector('#change-email').click(); });
+    act(() => {
+      container.querySelector('#change-email').click();
+    });
     expect(container.querySelector('#username-change-display').style.display).toBe('none');
     expect(container.querySelector('#username-change-edit').style.display).toBe('');
   });
@@ -321,7 +358,9 @@ describe('Account tab email change', () => {
   it('shows the server error and keeps the form open', () => {
     openEmailEdit();
     update({ error: 'Incorrect account password for this account' });
-    expect(container.querySelector('#email-edit-errors').textContent).toBe('Incorrect account password for this account');
+    expect(container.querySelector('#email-edit-errors').textContent).toBe(
+      'Incorrect account password for this account'
+    );
     expect(container.querySelector('#username-change-edit').style.display).toBe('');
     expect(container.querySelector('#email-display').value).toBe('tova@example.org');
   });
@@ -347,9 +386,13 @@ describe('Account tab email change', () => {
 
 describe('Account tab Google Drive disconnect', () => {
   const disconnect = (response) => {
-    act(() => { container.querySelector('#disconnect-gauth-email').click(); });
+    act(() => {
+      container.querySelector('#disconnect-gauth-email').click();
+    });
     const [url, callback] = $.get.mock.calls[$.get.mock.calls.length - 1];
-    act(() => { callback(response); });
+    act(() => {
+      callback(response);
+    });
     return url;
   };
 
@@ -373,5 +416,85 @@ describe('Account tab Google Drive disconnect', () => {
     disconnect({ error: 'Could not unlink' });
     expect(container.querySelector('#gauth-disconnect-messages').textContent).toBe('Could not unlink');
     expect(container.querySelector('#gauth-email-change').style.display).toBe('');
+  });
+});
+
+/* Back and Forward bring the page back from browser history, which holds no settings: the page
+   gets no accountSettings or initialDeveloper, as ReaderApp leaves them out of history. */
+describe('Account tab after Back', () => {
+  const remount = () => {
+    ReactDOM.unmountComponentAtNode(container);
+    act(() => {
+      ReactDOM.render(
+        <SettingsPage tab="account" projectId={null} setTab={() => {}} setProjectId={() => {}} />,
+        container
+      );
+    });
+  };
+
+  it('shows the saved settings, not the ones the page first loaded with', () => {
+    mount();
+    choose('emailNotifications', 'weekly');
+    choose('readingHistory', 'false');
+    save();
+    remount();
+    expect(option('emailNotifications', 'weekly').classList).toContain('on');
+    expect(option('readingHistory', 'false').classList).toContain('on');
+  });
+
+  it('saves the current settings again rather than the old ones', () => {
+    mount();
+    choose('emailNotifications', 'never');
+    save();
+    remount();
+    const { payload } = save();
+    expect(payload.settings.email_notifications).toBe('never');
+    expect(payload.settings.reading_history).toBe(true);
+  });
+
+  it('shows a changed email and a disconnected Google Drive', () => {
+    mount({ sheetsExport: { gauthEmail: 'tova@gmail.com' } });
+    act(() => {
+      container.querySelector('#change-email').click();
+    });
+    typeInto(container.querySelector('#username-change-edit #email'), 'new@example.org');
+    act(() => {
+      container.querySelector('#update-email').click();
+    });
+    act(() => {
+      lastPost().callback({ status: 'ok' });
+    });
+    act(() => {
+      container.querySelector('#disconnect-gauth-email').click();
+    });
+    const [, callback] = $.get.mock.calls[$.get.mock.calls.length - 1];
+    act(() => {
+      callback({ status: 'ok' });
+    });
+    remount();
+    expect(container.querySelector('#email-display').value).toBe('new@example.org');
+    expect(container.querySelector('#gauth-email-change').style.display).toBe('none');
+  });
+
+  it('starts from the server values on a page load', () => {
+    mount();
+    choose('emailNotifications', 'weekly');
+    save();
+    ReactDOM.unmountComponentAtNode(container);
+    container.remove();
+    mount({ emailNotifications: 'never' });
+    expect(option('emailNotifications', 'never').classList).toContain('on');
+  });
+});
+
+describe('Account tab in Hebrew', () => {
+  it('has Hebrew placeholders on the email change form', () => {
+    const he = require('../sefaria/i18n/interface/he.json');
+    mount();
+    const placeholders = Array.from(container.querySelectorAll('#username-change-edit input')).map(
+      (i) => i.placeholder
+    );
+    expect(placeholders).toHaveLength(3);
+    placeholders.forEach((id) => expect(he[id]).toMatch(/[֐-׿]/));
   });
 });

@@ -1,35 +1,19 @@
 import { defineConfig, devices } from '@playwright/test';
 import { t } from './e2e-tests/globals';
-import {
-  baseURLFor, manifestExists, requestedTarget, workersFor, RESULTS_DIR,
-} from './e2e-tests/api-keys/env';
 
 // load environment variables from .env file in the e2e-tests directory
+// (copy e2e-tests/example.env). Outside CI, the .env values OVERRIDE variables set in the
+// shell: `SANDBOX_URL=http://127.0.0.1:8000 npx playwright test` still runs against .env's
+// SANDBOX_URL if .env sets one. Edit .env, or set CI=1 to skip it. In CI the file doesn't exist
+// and is never read; the workflow passes SANDBOX_URL and the PLAYWRIGHT_* credentials as
+// environment variables instead.
 if (!process.env.CI) {
   const env = require('dotenv').config({ path: './e2e-tests/.env' }).parsed;
-  // The file supplies defaults; anything already in the environment wins.
   process.env = {
-    ...env,
     ...process.env,
+    ...env,
   };
 }
-
-// The api-keys suites (e2e-tests/api-keys) exist as projects only when a target is named and the
-// fixture manifest is present, so neither CI nor a plain local run ever picks them up.
-const APIKEYS_TARGET = requestedTarget();
-const APIKEYS_ENABLED = APIKEYS_TARGET !== undefined && manifestExists();
-const APIKEYS_USE = APIKEYS_TARGET === 'local'
-  ? {
-    baseURL: baseURLFor('local'),
-    // Chromium refuses 10080 as an unsafe port unless it is allowed explicitly.
-    launchOptions: {
-      args: ['--host-resolver-rules=MAP *.gateway.test 127.0.0.1', '--explicitly-allowed-ports=10080,10081'],
-    },
-  }
-  : {
-    baseURL: baseURLFor('cauldron'),
-    ignoreHTTPSErrors: true,
-  };
 
 // Extract domain from SANDBOX_URL
 const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
@@ -71,7 +55,7 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 2,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : (APIKEYS_ENABLED ? workersFor(APIKEYS_TARGET!) : undefined),
+  workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env.CI
     ? [['github']]
@@ -112,6 +96,28 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    // Newsletter signup tests — kept as standalone projects during the
+    // integration window. TODO: fold into the per-module matrix once the
+    // newsletter tests align with an existing module's scope.
+    //
+    // The login step for chrome-newsletter-logged-in: logs in a real user and saves the
+    // session to .auth/setup_session.json.
+    {
+      name: 'chrome-newsletter-login',
+      testMatch: /auth\.setup\.js/,
+    },
+
+    // The logged-out newsletter specs (every newsletter-signup-*.spec.js except -real).
+    {
+      name: 'chrome-newsletter-logged-out',
+      testDir: './e2e-tests/tests',
+      testMatch: /newsletter-signup-.*\.spec\.js/,
+      testIgnore: [/.*-real\.spec\.js/],
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
+
     // Library-specific tests
     {
       name: 'chrome-library',
@@ -141,7 +147,7 @@ export default defineConfig({
     // Strapi content tests (banners/modals/sidebar ads). HAR-driven and deliberately
     // Strapi-ON: these specs bypass goToPageWithLang (which suppresses Strapi) and replay
     // e2e-tests/fixtures/strapi-content.har via routeFromHAR. Kept as a standalone project,
-    // like chrome-newsletter, so the fixtures/clock machinery stays isolated from the
+    // like the chrome-newsletter-* projects, so the fixtures/clock machinery stays isolated from the
     // PageManager suites. See e2e-tests/tests/strapi.fixtures.js.
     {
       name: 'chrome-strapi',
@@ -150,7 +156,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         // No baseURL override: inherit the global `use.baseURL` (= SANDBOX_URL verbatim), like
-        // chrome-newsletter. The MODULE_URLS defined in this file always build
+        // chrome-newsletter-logged-out. The MODULE_URLS defined in this file always build
         // `https://www.<domain>`, which is correct for a remote sandbox but breaks a local one
         // (`https://www.localhost:8000` → ERR_SSL_PROTOCOL_ERROR). Recording happens against a
         // local Django + Strapi, so the raw SANDBOX_URL is what this suite needs.
@@ -168,7 +174,7 @@ export default defineConfig({
       // Mobile @sanity tests need the mobile viewport/config — exclude them here
       // so this desktop project doesn't run them at a desktop viewport (they'd
       // fail). They run under the mobile-sanity project in the mobile config.
-      testIgnore: ['**/mobile web/**', '**/api-keys/**'],
+      testIgnore: '**/mobile web/**',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -237,34 +243,6 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
-    // API keys gateway and developer settings suites. Opt-in: --project=apikeys with
-    // APIKEYS_TARGET set and a seeded manifest. See e2e-tests/api-keys/README.md.
-    ...(APIKEYS_ENABLED ? [
-      {
-        name: 'apikeys-setup',
-        testDir: './e2e-tests/api-keys',
-        testMatch: /auth\.setup\.ts/,
-        outputDir: `${RESULTS_DIR}/setup-${APIKEYS_TARGET}`,
-        retries: 0,
-        use: { ...devices['Desktop Chrome'], ...APIKEYS_USE, trace: 'off' as const },
-      },
-      {
-        name: 'apikeys',
-        testDir: './e2e-tests/api-keys',
-        testMatch: /.*\.spec\.ts/,
-        dependencies: ['apikeys-setup'],
-        outputDir: `${RESULTS_DIR}/${APIKEYS_TARGET}`,
-        timeout: t(90000),
-        expect: { timeout: t(15000) },
-        retries: APIKEYS_TARGET === 'cauldron' ? 1 : 0,
-        use: {
-          ...devices['Desktop Chrome'],
-          ...APIKEYS_USE,
-          // Traces record request headers, which would put key values on disk.
-          trace: process.env.APIKEYS_TRACE ? 'retain-on-failure' as const : 'off' as const,
-        },
-      },
-    ] : []),
     // Cross-Module integration tests (auth persistence + redirects across Library/Voices)
     {
       name: 'chrome-cross-module',
@@ -273,6 +251,21 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
+    },
+
+    // The logged-in newsletter specs. They start with the real Django session that
+    // chrome-newsletter-login saves. The pattern names the newsletter files on purpose:
+    // a bare /-real\.spec\.js/ also matched strapi-audience-real.spec.js, which then ran
+    // twice (it belongs to chrome-strapi).
+    {
+      name: 'chrome-newsletter-logged-in',
+      testDir: './e2e-tests/tests',
+      testMatch: /newsletter-signup-.*-real\.spec\.js/,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'e2e-tests/.auth/setup_session.json',
+      },
+      dependencies: ['chrome-newsletter-login'],
     },
 
     // Firefox - Library-specific modularization tests
@@ -309,7 +302,7 @@ export default defineConfig({
       // Mobile @sanity tests need the mobile viewport/config — exclude them here
       // so this desktop project doesn't run them at a desktop viewport (they'd
       // fail). They run under the mobile-sanity project in the mobile config.
-      testIgnore: ['**/mobile web/**', '**/api-keys/**'],
+      testIgnore: '**/mobile web/**',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -414,7 +407,7 @@ export default defineConfig({
       // Mobile @sanity tests need the mobile viewport/config — exclude them here
       // so this desktop project doesn't run them at a desktop viewport (they'd
       // fail). They run under the mobile-sanity project in the mobile config.
-      testIgnore: ['**/mobile web/**', '**/api-keys/**'],
+      testIgnore: '**/mobile web/**',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,

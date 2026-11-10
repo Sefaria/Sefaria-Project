@@ -62,24 +62,13 @@ const HelpButton = ({ title, description }) => {
           <div className="helpModal" onClick={(e) => e.stopPropagation()}>
             <div className="helpModal-header">
               <h2 className="helpModal-title">{title}</h2>
-              <button
-                type="button"
-                className="helpModal-close"
-                onClick={closeModal}
-                aria-label="Close"
-              >
+              <button type="button" className="helpModal-close" onClick={closeModal} aria-label="Close">
                 &times;
               </button>
             </div>
-            <div className="helpModal-body">
-              {description}
-            </div>
+            <div className="helpModal-body">{description}</div>
             <div className="helpModal-footer">
-              <button
-                type="button"
-                className="modtoolsButton"
-                onClick={closeModal}
-              >
+              <button type="button" className="modtoolsButton" onClick={closeModal}>
                 Got it
               </button>
             </div>
@@ -92,7 +81,7 @@ const HelpButton = ({ title, description }) => {
 
 HelpButton.propTypes = {
   title: PropTypes.string.isRequired,
-  description: PropTypes.node.isRequired
+  description: PropTypes.node.isRequired,
 };
 
 export default HelpButton;

@@ -3,24 +3,41 @@ Test controls for developer settings, on only where DEVELOPER_SETTINGS_MOCKS is 
 where Google refuses the origin and no email is sent). They act on the real data of the
 logged-in account. Remove this module, its route and the settings page's test panel together.
 """
+
 from django.http import Http404
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.exceptions import InputError
+
 from . import developer
 from .developer_views import developer_api, requires_developer_settings, state_response
 from .models import Project, SubmissionSource
 
-
 MOCK_LISTING_NOTE = "Created by the developer settings test controls."
 
 MOCK_LISTINGS = [
-    ("Daf Yomi Companion", "https://dafyomicompanion.org", "Today's daf with Steinsaltz, Rashi and a daily review quiz."),
-    ("Mishnah Yomit Tracker", "https://mishnahtracker.app", "Track your daily two mishnayot and share progress with a study group."),
-    ("Tehillim Circle", "https://tehillimcircle.org", "Split the book of Psalms among a group, with the text in Hebrew and English."),
-    ("Luach Widgets", "https://luachwidgets.dev", "Embeddable Hebrew calendar and daily learning widgets for synagogue websites."),
+    (
+        "Daf Yomi Companion",
+        "https://dafyomicompanion.org",
+        "Today's daf with Steinsaltz, Rashi and a daily review quiz.",
+    ),
+    (
+        "Mishnah Yomit Tracker",
+        "https://mishnahtracker.app",
+        "Track your daily two mishnayot and share progress with a study group.",
+    ),
+    (
+        "Tehillim Circle",
+        "https://tehillimcircle.org",
+        "Split the book of Psalms among a group, with the text in Hebrew and English.",
+    ),
+    (
+        "Luach Widgets",
+        "https://luachwidgets.dev",
+        "Embeddable Hebrew calendar and daily learning widgets for synagogue websites.",
+    ),
 ]
 
 
@@ -32,21 +49,20 @@ def set_email_verified(user, verified):
 
 def start_over(request, sso_override, email_verified):
     """
-    Clears the account's developer settings: its projects are deleted (claimed listings are
-    released instead) and the account's verification is set as asked.
+    Clears the account's developer settings: its projects are deleted, claimed listings included,
+    and the account's verification is set as asked.
     """
     user = request.user
-    for project in developer.owned_projects(user):
-        if project.submission_source == SubmissionSource.DEVELOPER_SETTINGS:
-            developer.delete_project(user, project.id)
-        else:
-            project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=timezone.now())
-            project.owner = None
-            project.save()
+    for api_project in developer.owned_projects(user):
+        developer.delete_project(user, api_project.id)
     profile = UserProfile(id=user.id)
-    for setting in (developer.ENABLED_SETTING, developer.PROFILE_SETTING,
-                    developer.CONFIRMATION_SENT_SETTING, developer.CONFIRMATION_SENT_TO_SETTING,
-                    developer.DISMISSED_LISTINGS_SETTING):
+    for setting in (
+        developer.ENABLED_SETTING,
+        developer.PROFILE_SETTING,
+        developer.CONFIRMATION_SENT_SETTING,
+        developer.CONFIRMATION_SENT_TO_SETTING,
+        developer.DISMISSED_LISTINGS_SETTING,
+    ):
         profile.settings.pop(setting, None)
     profile.save()
     request.session[developer.MOCK_SSO_SESSION_KEY] = sso_override
@@ -71,7 +87,7 @@ def create_listing(user):
         project_name=name,
         project_link=link,
         project_desc=description,
-        consent_to_display=True,
+        request_not_to_publish=False,
         notes=MOCK_LISTING_NOTE,
     )
 

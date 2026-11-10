@@ -156,21 +156,20 @@ web:
 nameService:
   # Standalone autocomplete ("name") service.  Runs the web image with
   # NAME_SERVICE=true, serving only /api/name and the other completion
-  # endpoints (see sefaria/urls_name.py); varnish routes those paths to it
+  # endpoints (see sefaria/urls_name.py) -- including /api/search-autocorrect,
+  # which needs the top-n-grams table and entity alt-title index only this
+  # service loads; varnish routes those paths to it
   # and web and task pods then run with DISABLE_AUTOCOMPLETER=true.
-  # Rebuild signals reach the name service over the multiserver Redis
-  # channel -- do not disable MULTISERVER_ENABLED while this is on, or
-  # topic edits and /admin/reset/ac will no longer refresh completions.
+  # Topic edits and /admin/reset/ac bump a GenCache counter; each worker
+  # notices on its next completion request and rebuilds.
   enabled: false
   # key-pair values to load into name pod environment.  Takes precedence over global localsettings
   localsettings:
   replicaCount: 1
   resources:
-    # Scale with gunicornThreadCount and replicaCount.  Do NOT scale with
-    # gunicornWorkerCount: each multiserver rebuild event is delivered to a
-    # single process per pod, so sibling workers would serve stale
-    # completions forever.  Threads share the rebuilt completers and keep
-    # health probes answering while a rebuild runs.
+    # Scale with gunicornThreadCount and replicaCount. Each extra worker
+    # holds and rebuilds its own copy of the completers; threads share them
+    # and keep health probes answering while a rebuild runs.
     gunicornWorkerCount: 1
     gunicornThreadCount: 4
     resources:
@@ -186,14 +185,14 @@ authService:
   # HTTPRoute (anonymous / embed / developer key) from an in-memory key map loaded from the cluster key registry,
   # and stamps x-sefaria-tier, x-sefaria-project, x-sefaria-auth-result. Enabling this attaches a SecurityPolicy
   # to the HTTPRoute: every request goes through the auth service (failOpen: true, so an outage degrades to the
-  # anonymous tier). No JWT verification and no rate limiting in Phase 1. Off by default everywhere.
+  # anonymous tier). No JWT verification; rate limits are configured under rateLimit. Off by default everywhere.
   enabled: false
   # enforce: unknown/revoked keys get the product-spec 401/403. observe: never denies; records what
   # would have been rejected in x-sefaria-auth-result (dark launch).
   mode: enforce
   # Comma-separated path prefixes that require a key (401 api_key_required without one).
   gatedPaths: "/api/knn-search"
-  helpURL: https://developers.sefaria.org/help/
+  helpURL: https://developers.sefaria.org/#
   # One is enough for a cauldron (failOpen covers the restart gap); production sets more. A PDB is
   # rendered only when this is > 1.
   replicaCount: 1
@@ -216,32 +215,39 @@ authService:
     pgChannel: sefaria_apikeys
   postgres:
     # The key registry: Django's powered_by tables in sefaria_auth on the cluster's shared Postgres, read by
-    # every auth service in the cluster through a read-only role (auth-service/scripts/provision-cluster-registry.sh).
+    # every auth service in the cluster through a read-only role (provisioning runbook: wiki page projects/api-key-program/tooling).
     # The chart never runs a Postgres of its own. The Secret is a cluster-level object from the infrastructure
     # repo, not per release.
     secrets:
       dsn:
         ref: auth-service-registry
         key: AUTH_PG_DSN
+  # Metered products: meter name -> path prefixes. The auth service stamps x-sefaria-meter with the meter of the
+  # request path (none elsewhere), and the monthly limit of a project for that meter comes from the api_tier_meter_limit
+  # table, not from here. The meter name is the same slug as api_tier_meter_limit.meter and limit_month_<meter>.
+  meters:
+    semantic: ["/api/knn-search"]
+  rateLimit:
+    enabled: false          # needs the controller's rateLimit.backend (infrastructure repo) and Envoy Gateway >= 1.9
+    retryAfterSeconds: 60
+    # Per-rule x-ratelimit-* response headers (DraftVersion03). Needs Envoy Gateway >= 1.9.
+    headers: false
+    # The limit of a keyed request comes from its project's tier (api_tier, api_tier_meter_limit) through ext_authz
+    # dynamic metadata, so a tier limit changes without a deploy. The numbers below are the static fallbacks Envoy
+    # uses when the auth service is down (fail-open) or sends no metadata. Test-sized placeholders; production
+    # numbers come from the tier tables.
+    defaults:
+      perMinutePerProject: 60
+      monthlyPerProject: 100000
+    # Rules 3 and 4 (per client IP) count only requests under this path prefix: pages, /static/ and other assets are not
+    # rate limited. Rules 1 and 2 count keyed requests wherever they go.
+    apiPathPrefix: /api/
+    anonymousPerIP: 20       # anonymous: best-effort per client IP
+    anonymousShared: 40      # anything with a missing or unknown tier, at the anonymous limits
+  # Adds sefariaProject, sefariaTier and sefariaAuthResult to the nginx access log, next to the caller-classification fields.
+  nginxLogFields: true
   monitoring:
     enabled: true
-
-redis:
-  containerImage:
-    # Full path of the image registry inclusive of the image name
-    imageRegistry: redis
-    # Version of varnish that's required for the application.
-    tag: latest
-  replicaCount: 1
-  resources:
-    requests:
-      memory: "250Mi"
-      cpu: "100m"
-    limits:
-      memory: "500Mi"
-      cpu: "120m"
-  # enable pod disruption budget
-  pdb: false
 
 nodejs:
   containerImage:
@@ -330,12 +336,23 @@ tasks:
   openaiSecretRef: openai-api-key
   langsmithSecretRef: langsmith-api-key
   redis:
-    url: "redis://127.0.0.1"
-    port: "6397"
+    # Defaults point at the dev cluster's shared Redis Sentinel so cauldrons work with no
+    # redis overrides. Prod/preprod override these in their own values.
+    url: ""
+    port: "26379"
     brokerDBNumber: "0"
     resultBackendDBNumber: "1"
-    sentinelURL: ""
-    transportOptions: {}
+    sentinelURL: "redis-headless.redis.svc.cluster.local"
+    transportOptions:
+      master_name: mymaster
+    # the Bitnami redis chart's sentinel.masterSet
+    masterSet: "mymaster"
+    # DB numbers for Django's CACHES and GenCache on the same Redis. Must differ from
+    # each other and from the Celery DB numbers above, including env overrides (prod
+    # uses 2 and 3); redis_sentinel_test.py checks this.
+    defaultCacheDbNumber: "4"
+    sharedCacheDbNumber: "5"
+    gencacheDbNumber: "6"
     redisPassword:
       ref: redis-password
     sentinelPassword:
@@ -395,6 +412,11 @@ ingress:
 gateway:
   enabled: true
   className: envoy
+  # Serve the app on HTTPS listeners only and answer port 80 with a 301 to HTTPS. Needed for the x-sefaria-* header
+  # strip to cover every request (templates/gateway/clienttrafficpolicy.yaml), so it is applied automatically when
+  # authService.enabled regardless of this value. Off by default otherwise: it changes what a plain HTTP request to the
+  # origin gets.
+  redirectHttpToHttps: false
   alpnProtocols:
     - http/1.1
   annotations:
@@ -424,23 +446,6 @@ nginx:
       memory: "300Mi"
       cpu: "150m"
 
-monitor:
-  # key-pair values to load into monitor pod environment.  Takes precedence over global localsettings
-  localsettings:
-  # APP: monitor
-  containerImage:
-    # Full path of the image registry inclusive of the image name
-    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-    # Commit id of the repo for which the image build has been triggered.
-    tag: latest
-  replicaCount: 1
-  resources:
-    requests:
-      memory: "300Mi"
-      cpu: "50m"
-    limits:
-      memory: "400Mi"
-      cpu: "100m"
 
 secrets:
   ghDispatch:
@@ -500,6 +505,10 @@ secrets:
     #   SENTINEL_PASSWORD
     #   REDIS_URL
     #   MOBILE_APP_KEY:
+    #   CLASSY_WEBHOOK_SECRET
+    #   SALESFORCE_WEBHOOK_SECRET
+    #   CLASSY_API_CLIENT_ID
+    #   CLASSY_API_CLIENT_SECRET
   backupManager:
     # If you're using a reference to an existing secret then the data: section
     # should be commented out and vice-versa.
@@ -537,6 +546,19 @@ cronJobs:
   # Settings for regenerating long cached data
   regenerate:
     enabled: true
+  # Rebuilds the search auto-correction table and uploads it to gs://sefaria-search-autocorrect.
+  # Every environment's name service loads that one object, so enable in production only --
+  # anywhere else would overwrite prod's table. Single-threaded; peak memory is the bigram
+  # level's shard counters plus the carried phrase table (raise --num-shards to lower it).
+  buildTopNGramsForSearchAutocorrect:
+    enabled: false
+    resources:
+      requests:
+        memory: "4Gi"
+        cpu: "1"
+      limits:
+        memory: "12Gi"
+        cpu: "2"
   dailyEmailNotifications:
     enabled: false
   embedLibraryToPgvector:
@@ -635,13 +657,14 @@ localSettings:
   SITE_PACKAGE: "sites.sefaria"
   DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
   SERVER_EMAIL: "dev@sefaria.org"
-  MULTISERVER_ENABLED: "True"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
   # Developer settings test controls; for branch cauldrons only.
   DEVELOPER_SETTINGS_MOCKS: "False"
   # The developer tab in settings and its routes; off means they return 404.
   DEVELOPER_SETTINGS_ENABLED: "False"
+  # With DEVELOPER_SETTINGS_ENABLED on, limits the developer tab and its routes to staff.
+  DEVELOPER_SETTINGS_STAFF_ONLY: "False"
   SESSION_COOKIE_SECURE: true
   SESSION_COOKIE_HTTPONLY: true
   SESSION_COOKIE_SAMESITE: "Lax"
@@ -704,23 +727,15 @@ keda:
     maxReplicas: 1
   nodejs:
     enabled: true
-  monitor:
-    enabled: true
   tasks:
     enabled: true
   # Only renders when tasks.findRefs.enabled is also true.
   findRefs:
     enabled: true
-  redis:
-    enabled: true
-    # Redis is a plain Deployment, not an Argo Rollout.
-    apiVersion: apps/v1
-    kind: Deployment
-    maxReplicas: 1
   nameService:
-    # Scales with the same traffic trigger as web/redis so the name pod sleeps
-    # and wakes with the rest of the stack (it needs redis at boot).  After an
-    # idle scale-to-zero, the first wake rebuilds the autocompleters, so
+    # Scales with the same traffic trigger as web so the name pod sleeps and wakes with the
+    # rest of the stack (Sentinel, which it needs at boot, is always-on and isn't scaled by
+    # KEDA). After an idle scale-to-zero, the first wake rebuilds the autocompleters, so
     # completions return ~minutes after the rest of the site.
     enabled: true
   # Splash page served by Envoy Gateway during cold-start (scale-from-zero).

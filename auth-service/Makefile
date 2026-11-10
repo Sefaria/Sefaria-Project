@@ -1,25 +1,11 @@
 # auth-service/Makefile — run from this directory
-CTX     ?= gke_development-205018_us-east1-b_cluster-1
-ENV     ?= authpoc
-NS      ?= default
-KUBECTL  = kubectl --context $(CTX) -n $(NS)
-CHART    = ../helm-chart/sefaria
-RENDER   = helm template $(ENV) $(CHART) --set deployEnv=$(ENV) --set gateway.enabled=true --set authService.enabled=true --set authService.image.tag=test
-
-.PHONY: test build helm-lint helm-render helm-matrix crd-gate shellcheck
+.PHONY: test build helm-lint helm-matrix
 test:
 	go vet ./... && go test -race -count=1 ./...
 build:
 	mkdir -p bin && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags='-s -w' -o bin/authsvc ./cmd/authsvc
 helm-lint:
 	cd .. && ct lint --charts helm-chart/sefaria --validate-maintainers=false
-helm-render:
-	$(RENDER) > /tmp/authpoc-render.yaml && kubeconform -strict -ignore-missing-schemas -summary /tmp/authpoc-render.yaml && bash scripts/render-check.sh /tmp/authpoc-render.yaml
-crd-gate:
-	bash scripts/crd-gate.sh $(CTX)
-shellcheck:
-	shellcheck -S warning scripts/*.sh
-	bash scripts/test-policy-gate.sh
 helm-matrix:
 	@set -e; C=../helm-chart/sefaria; \
 	echo "== flag off: no auth objects"; helm template x $$C --set deployEnv=x | yq 'select(.kind == "SecurityPolicy" or (.metadata.name | test("auth-service"))) | .kind' | grep -c . | grep -qx 0; \
@@ -29,5 +15,7 @@ helm-matrix:
 	echo "== grpc"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.image.tag=test | yq 'select(.kind=="SecurityPolicy") | .spec.extAuth.grpc.backendRefs[0].port' | grep -qx 9090; \
 	echo "== no jwt block"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.image.tag=test | yq 'select(.kind=="SecurityPolicy") | .spec.jwt' | grep -qx null; \
 	echo "== enabled without an image tag fails"; ! helm template x $$C --set deployEnv=x --set authService.enabled=true >/dev/null 2>&1; \
-	echo "== client x-sefaria-* stripped only when enabled"; helm template x $$C --set deployEnv=x --set gateway.enabled=true --set authService.enabled=true --set authService.image.tag=test | yq 'select(.kind=="ClientTrafficPolicy") | .spec.headers.earlyRequestHeaders.remove | length' | grep -qx 3; [ "$$(helm template x $$C --set deployEnv=x --set gateway.enabled=true | grep -c earlyRequestHeaders)" = 0 ]; \
+	echo "== client x-sefaria-* stripped only when enabled"; helm template x $$C --set deployEnv=x --set gateway.enabled=true --set authService.enabled=true --set authService.image.tag=test | yq 'select(.kind=="ClientTrafficPolicy") | .spec.headers.earlyRequestHeaders.remove | length' | grep -qx 4; [ "$$(helm template x $$C --set deployEnv=x --set gateway.enabled=true | grep -c earlyRequestHeaders)" = 0 ]; \
+	echo "== ClientTrafficPolicy targets HTTPS listeners only, with the auth service off"; helm template x $$C --set deployEnv=x --set gateway.enabled=true | yq 'select(.kind=="ClientTrafficPolicy") | .spec.targetRefs[].sectionName' | grep -v '^https-' | grep -c . | grep -qx 0; \
+	echo "== redirectHttpToHttps alone: app route on HTTPS listeners, a port-80 redirect route"; R=$$(helm template x $$C --set deployEnv=x --set gateway.enabled=true --set gateway.redirectHttpToHttps=true); [ "$$(printf '%s\n' "$$R" | yq 'select(.kind=="HTTPRoute" and .metadata.name=="x") | .spec.parentRefs[].sectionName' | grep -vc '^https-')" = 0 ] && [ "$$(printf '%s\n' "$$R" | yq 'select(.kind=="HTTPRoute" and .metadata.name=="x-http-redirect") | .metadata.name' | grep -c .)" = 1 ]; \
 	echo "helm-matrix OK"

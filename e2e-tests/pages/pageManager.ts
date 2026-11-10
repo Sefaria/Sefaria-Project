@@ -17,8 +17,8 @@ import { ModuleSidebarPage } from "./moduleSidebarPage"
 import { ProfilePage } from "./profilePage"
 import { EditProfilePage } from "./editProfilePage"
 import { AccountSettingsPage } from "./accountSettingsPage"
-import { DeveloperSettingsPage } from "./developerSettingsPage"
 import { LibraryAssistantPage } from "./libraryAssistantPage"
+import { LibraryAssistantQ4Page } from "./libraryAssistantQ4Page"
 import { ResourcePanelPage } from "./resourcePanelPage"
 import { MobileHamburgerPage } from "./mobileHamburgerPage"
 import { VoicesTopicPage } from "./voicesTopicPage"
@@ -49,8 +49,8 @@ export class PageManager {
     private readonly profilePage: ProfilePage
     private readonly editProfilePage: EditProfilePage
     private readonly accountSettingsPage: AccountSettingsPage
-    private readonly developerSettingsPage: DeveloperSettingsPage
     private readonly libraryAssistantPage: LibraryAssistantPage
+    private readonly libraryAssistantQ4Page: LibraryAssistantQ4Page
     private readonly resourcePanelPage: ResourcePanelPage
     private readonly mobileHamburgerPage: MobileHamburgerPage
     private readonly voicesTopicPage: VoicesTopicPage
@@ -82,8 +82,8 @@ export class PageManager {
         this.profilePage = new ProfilePage(page, language)
         this.editProfilePage = new EditProfilePage(page, language)
         this.accountSettingsPage = new AccountSettingsPage(page, language)
-        this.developerSettingsPage = new DeveloperSettingsPage(page, language)
         this.libraryAssistantPage = new LibraryAssistantPage(page, language)
+        this.libraryAssistantQ4Page = new LibraryAssistantQ4Page(page, language)
         this.resourcePanelPage = new ResourcePanelPage(page, language)
         this.mobileHamburgerPage = new MobileHamburgerPage(page, language)
         this.voicesTopicPage = new VoicesTopicPage(page, language)
@@ -162,12 +162,12 @@ export class PageManager {
         return this.accountSettingsPage
     }
 
-    onDeveloperSettingsPage() {
-        return this.developerSettingsPage
-    }
-
     onLibraryAssistant() {
         return this.libraryAssistantPage
+    }
+
+    onLibraryAssistantQ4() {
+        return this.libraryAssistantQ4Page
     }
 
     onResourcePanel() {

@@ -80,13 +80,13 @@ const Input = ({
     error ? 'sefaria-input--error' : '',
     disabled ? 'sefaria-input--disabled' : '',
     rest.readOnly ? 'sefaria-input--readonly' : '',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
-  const fieldClasses = [
-    'sefaria-input-field',
-    isPassword ? 'has-trailing-icon' : '',
-    fieldAddon ? 'has-addon' : '',
-  ].filter(Boolean).join(' ');
+  const fieldClasses = ['sefaria-input-field', isPassword ? 'has-trailing-icon' : '', fieldAddon ? 'has-addon' : '']
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={wrapperClasses}>
@@ -99,7 +99,9 @@ const Input = ({
               </label>
               {labelAddon}
             </span>
-          ) : <span />}
+          ) : (
+            <span />
+          )}
           {trailingLink && (
             <a
               className="sefaria-input-trailingLink"
@@ -107,9 +109,13 @@ const Input = ({
               onClick={trailingLink.onClick}
               tabIndex={!trailingLink.href && 0}
               role={!trailingLink.href && 'link'}
-              onKeyDown={!trailingLink.href && trailingLink.onClick
-                ? (e) => { if (e.key === 'Enter') trailingLink.onClick(e); }
-                : undefined}
+              onKeyDown={
+                !trailingLink.href && trailingLink.onClick
+                  ? (e) => {
+                      if (e.key === 'Enter') trailingLink.onClick(e);
+                    }
+                  : undefined
+              }
             >
               <InterfaceText>{trailingLink.text}</InterfaceText>
             </a>
@@ -135,22 +141,22 @@ const Input = ({
             {...rest}
           />
         ) : (
-        <input
-          id={inputId}
-          name={name}
-          type={effectiveType}
-          className="sefaria-input-control"
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          disabled={disabled}
-          required={required}
-          dir={inputDir}
-          autoComplete={autoComplete}
-          aria-invalid={error ? 'true' : undefined}
-          aria-describedby={describedByIds}
-          {...rest}
-        />
+          <input
+            id={inputId}
+            name={name}
+            type={effectiveType}
+            className="sefaria-input-control"
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            disabled={disabled}
+            required={required}
+            dir={inputDir}
+            autoComplete={autoComplete}
+            aria-invalid={error ? 'true' : undefined}
+            aria-describedby={describedByIds}
+            {...rest}
+          />
         )}
         {fieldAddon ? <span className="sefaria-input-fieldAddon">{fieldAddon}</span> : null}
         {isPassword && !disabled && value && (

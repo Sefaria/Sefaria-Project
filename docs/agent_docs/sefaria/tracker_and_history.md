@@ -1,4 +1,5 @@
 # Tracker and History
+
 > Sources: `sefaria/tracker.py` (~267 lines), `sefaria/history.py` (~390 lines)
 
 ## Purpose
@@ -69,40 +70,50 @@ These two modules form the change-tracking system for Sefaria. `tracker.py` is t
 - **`sefaria.model`**: `tracker.py` calls `model.log_text`, `model.log_add`, `model.log_update`, `model.log_delete` (defined in `sefaria/model/history.py` -- the model-layer history, not to be confused with `sefaria/history.py`). Also uses `model.TextChunk`, `model.Version`, `model.IndexQueue`, `model.library`.
 - **`sefaria.system.varnish`**: Cache invalidation on text changes when `USE_VARNISH` is enabled.
 - **`sefaria.helper.marked_up_text_chunk_generator`**: Generates marked-up text chunks (e.g., auto-wrapped refs) via Celery when `CELERY_ENABLED`.
-- **`sefaria.system.multiserver.coordinator`**: Publishes recount events to other servers in multi-server deployments.
+- **`sefaria.model.text.library.recount_index_in_toc`**: Bumps GenCache's `toc_tree`/TOC-family counters itself, so other processes pick up a recount on their own next check -- no separate propagation call needed from `tracker.py`.
 - **`diff_match_patch`**: Used in `history.py` for applying revert patches to reconstruct historical text.
 - **`db.history`**: Both modules read/write the same MongoDB `history` collection.
 
 ## Common Tasks
 
 **Log a text edit (happens automatically through tracker):**
+
 ```python
 from sefaria.tracker import modify_text
+
 chunk = modify_text(user_id, oref, "Version Title", "en", "New text content")
 ```
 
 **Bulk update many segments at once:**
+
 ```python
 from sefaria.tracker import modify_bulk_text
+
 text_map = {"Genesis 1:1": "New text", "Genesis 1:2": "More text"}
 error_map = modify_bulk_text(user_id, version_obj, text_map)
 ```
 
 **Query the activity feed:**
+
 ```python
 from sefaria.history import get_activity, collapse_activity
+
 activity = get_activity(query={"user": user_id}, page_size=50, page=1)
 collapsed = collapse_activity(activity)
 ```
 
 **Reconstruct text at a past revision:**
+
 ```python
 from sefaria.history import text_at_revision
+
 old_text = text_at_revision("Genesis 1:1", "Tanakh: The Holy Scriptures", "en", revision=42)
 ```
 
 **Add/update a generic model object with tracking:**
+
 ```python
 from sefaria.tracker import add
+
 link = add(user_id, model.Link, {"refs": ["Gen.1.1", "Rashi on Gen.1.1"], "type": "commentary"})
 ```

@@ -56,11 +56,12 @@
   padding: 0 16px;
   border: 1px solid #e6e6e6;
   border-radius: 4px;
-  background: #ffffff;
+  background: #fff;
   color: #121212;
   font-size: 16px;
   line-height: 1.45;
   outline: none;
+  /* stylelint-disable-next-line property-no-vendor-prefix -- keep -webkit- fallback for older Safari */
   -webkit-appearance: none;
   appearance: none;
 }
@@ -121,22 +122,9 @@
 .sefaria-input-field.has-addon .sefaria-input-control {
   padding-inline-end: 64px;
 }
-.sefaria-input-field.has-addon:has(textarea) {
-  flex-direction: column;
-  align-items: stretch;
-}
 .sefaria-input-field.has-addon .sefaria-input-control--multiline {
   padding-inline-end: 16px;
-}
-.sefaria-input-field.has-addon:has(textarea) .sefaria-input-fieldAddon {
-  position: static;
-  align-self: flex-end;
-  margin-top: 4px;
-}
-.sefaria-input:has(.has-addon textarea) .sefaria-input-error {
-  margin-top: -28px;
-  min-height: 20px;
-  padding-inline-end: 64px;
+  padding-bottom: 28px;
 }
 .sefaria-input-fieldAddon {
   position: absolute;
@@ -390,11 +378,11 @@ a.sefaria-common-button.auth-primary {
   font-size: 16px;
   font-weight: 600;
   height: 51px;
-  color: #ffffff;
+  color: #fff;
 }
 button.sefaria-common-button.auth-primary *,
 a.sefaria-common-button.auth-primary * {
-  color: #ffffff;
+  color: #fff;
 }
 button.sefaria-common-button.auth-primary:hover,
 a.sefaria-common-button.auth-primary:hover {

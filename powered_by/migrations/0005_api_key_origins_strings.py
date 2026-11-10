@@ -11,6 +11,7 @@ OR jsonb_path_exists(allowed_origins, '$[*] ? (@.type() != "string")');
 Postgres only (jsonpath needs 12+); elsewhere (SQLite in local development) this migration only
 alters the field.
 """
+
 from django.db import migrations, models
 
 import powered_by.models
@@ -48,7 +49,6 @@ def loosen(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("powered_by", "0004_api_key_notify_triggers"),
     ]
@@ -58,7 +58,9 @@ class Migration(migrations.Migration):
             model_name="apikey",
             name="allowed_origins",
             field=models.JSONField(
-                blank=True, db_default=[], default=list,
+                blank=True,
+                db_default=[],
+                default=list,
                 help_text='Origins (e.g. "https://example.org") allowed to call with this key. Empty allows any.',
                 validators=[powered_by.models.validate_allowed_origins],
             ),

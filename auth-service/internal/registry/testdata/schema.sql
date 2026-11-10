@@ -1,16 +1,46 @@
--- Test fixture only. Mirrors the tables and NOTIFY triggers that the Django models and migrations in powered_by/
+-- Test fixture only. Ids are 32-bit like Django's AutoField. Mirrors the tables and NOTIFY triggers that the Django models and migrations in powered_by/
 -- create in sefaria_auth; Django owns the real schema. powered_by_project is reduced to the columns the auth service
--- reads plus a name. Keep powered_by_apikey and the triggers identical to the Django migration.
+-- reads (id, name, the legacy tier column it must ignore, deleted_at). Keep these tables and the triggers identical
+-- to the Django migration.
 CREATE TABLE powered_by_project (
   id           serial PRIMARY KEY,
   project_name varchar(255) NOT NULL DEFAULT '',
   tier         varchar(20) NOT NULL DEFAULT 'developer',
   deleted_at   timestamptz
 );
+CREATE TABLE api_tier (
+  id                     varchar(20) PRIMARY KEY,
+  name                   varchar(100) NOT NULL DEFAULT '',
+  per_minute_per_project int NOT NULL,
+  created_at             timestamptz NOT NULL DEFAULT now(),
+  updated_at             timestamptz NOT NULL DEFAULT now()
+);
+INSERT INTO api_tier (id, name, per_minute_per_project) VALUES
+  ('developer', 'Developer', 60),
+  ('partner', 'Partner', 300),
+  ('internal', 'Internal', 6000);
+CREATE TABLE api_tier_meter_limit (
+  id                  serial PRIMARY KEY,
+  tier_id             varchar(20) NOT NULL REFERENCES api_tier(id),
+  meter               varchar(50) NOT NULL,
+  monthly_per_project bigint NOT NULL,
+  UNIQUE (tier_id, meter)
+);
+CREATE TABLE api_project (
+  id            serial PRIMARY KEY,
+  profile_id    integer NOT NULL REFERENCES powered_by_project(id),
+  owner_id      int,
+  contact_email text,
+  tier_id       varchar(20) NOT NULL DEFAULT 'developer' REFERENCES api_tier(id),
+  deleted_at    timestamptz,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX api_project_profile_live ON api_project (profile_id) WHERE deleted_at IS NULL;
 CREATE TABLE powered_by_apikey (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   key             varchar(100) NOT NULL UNIQUE,
-  project_id      integer NOT NULL REFERENCES powered_by_project(id),
+  project_id      integer NOT NULL REFERENCES api_project(id),
   label           varchar(100) NOT NULL,
   allowed_origins jsonb NOT NULL DEFAULT '[]',
   created_at      timestamptz NOT NULL DEFAULT now(),
@@ -34,3 +64,20 @@ CREATE TRIGGER apikeys_notify_projects_update AFTER UPDATE ON powered_by_project
   EXECUTE FUNCTION apikeys_notify();
 CREATE TRIGGER apikeys_notify_projects_delete AFTER DELETE ON powered_by_project
   FOR EACH STATEMENT EXECUTE FUNCTION apikeys_notify();
+-- Added with the API-project tables: the loader reads tier and soft-delete from api_project, and the tier limits
+-- from api_tier and api_tier_meter_limit, so changes to those must reach the registry at once too.
+CREATE TRIGGER apikeys_notify_api_project_update AFTER UPDATE ON api_project FOR EACH ROW
+  WHEN (OLD.tier_id IS DISTINCT FROM NEW.tier_id OR OLD.deleted_at IS DISTINCT FROM NEW.deleted_at)
+  EXECUTE FUNCTION apikeys_notify();
+CREATE TRIGGER apikeys_notify_api_project_delete AFTER DELETE ON api_project
+  FOR EACH STATEMENT EXECUTE FUNCTION apikeys_notify();
+CREATE TRIGGER apikeys_notify_tier_write AFTER INSERT OR DELETE ON api_tier
+  FOR EACH STATEMENT EXECUTE FUNCTION apikeys_notify();
+CREATE TRIGGER apikeys_notify_tier_update AFTER UPDATE ON api_tier FOR EACH ROW
+  WHEN (OLD.per_minute_per_project IS DISTINCT FROM NEW.per_minute_per_project)
+  EXECUTE FUNCTION apikeys_notify();
+CREATE TRIGGER apikeys_notify_meter_limit_write AFTER INSERT OR DELETE ON api_tier_meter_limit
+  FOR EACH STATEMENT EXECUTE FUNCTION apikeys_notify();
+CREATE TRIGGER apikeys_notify_meter_limit_update AFTER UPDATE ON api_tier_meter_limit FOR EACH ROW
+  WHEN (OLD.tier_id IS DISTINCT FROM NEW.tier_id OR OLD.meter IS DISTINCT FROM NEW.meter OR OLD.monthly_per_project IS DISTINCT FROM NEW.monthly_per_project)
+  EXECUTE FUNCTION apikeys_notify();

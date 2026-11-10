@@ -1,9 +1,9 @@
-# encoding=utf-8
 import pytest
+
+from sefaria.datatype.jagged_array import JaggedTextArray
+from sefaria.helper.text import modify_text_by_function
 from sefaria.model import *
 from sefaria.model.legacy_text import LegacyTextChunk
-from sefaria.helper.text import modify_text_by_function
-from sefaria.datatype.jagged_array import JaggedTextArray
 
 
 @pytest.mark.deep
@@ -12,13 +12,15 @@ def test_modify_text_by_function():
     original = LegacyTextChunk(Ref("Job"), vtitle="The Holy Scriptures: A New Translation (JPS 1917)")
     total_spaces = JaggedTextArray(original.text).flatten_to_string(joiner="|").count(" ")
 
-    v = Version({
-        "language": "en",
-        "title": "Job",
-        "versionSource": "http://foobar.com",
-        "versionTitle": "TextChangeTest",
-        "chapter": original.text
-    }).save()
+    v = Version(
+        {
+            "language": "en",
+            "title": "Job",
+            "versionSource": "http://foobar.com",
+            "versionTitle": "TextChangeTest",
+            "chapter": original.text,
+        }
+    ).save()
 
     modify_text_by_function("Job", "TextChangeTest", "ltr", lambda x, sections: x.replace(" ", "$"), 23432)
     modified = LegacyTextChunk(Ref("Job"), vtitle="TextChangeTest")

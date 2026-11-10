@@ -12,9 +12,9 @@
  * - DownloadLinks: Download links as CSV
  * - RemoveLinksFromCsv: Delete links from CSV
  * - BulkVersionEditor: Edit Version metadata across multiple indices
+ * - BulkIndexEditor: Edit Index metadata across multiple indices
  *
  * NOTE: The following components are temporarily disabled (open tickets to reintroduce):
- * - BulkIndexEditor: Edit Index metadata across multiple indices
  * - AutoLinkCommentaryTool: Create links between commentaries and base texts
  * - NodeTitleEditor: Edit node titles within an Index schema
  *
@@ -35,9 +35,9 @@ export { default as UploadLinksFromCSV } from './components/UploadLinksFromCSV';
 export { default as DownloadLinks } from './components/DownloadLinks';
 export { default as RemoveLinksFromCsv } from './components/RemoveLinksFromCsv';
 export { default as BulkVersionEditor } from './components/BulkVersionEditor';
+export { default as BulkIndexEditor } from './components/BulkIndexEditor';
 
 // TODO: The following exports are temporarily disabled - open tickets to reintroduce:
-// export { default as BulkIndexEditor } from './components/BulkIndexEditor';
 // export { default as AutoLinkCommentaryTool } from './components/AutoLinkCommentaryTool';
 // export { default as NodeTitleEditor } from './components/NodeTitleEditor';
 

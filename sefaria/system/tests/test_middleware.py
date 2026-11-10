@@ -4,50 +4,43 @@ Tests for SessionCookieDomainMiddleware.
 Tests that session and CSRF cookie domains are dynamically set based on
 an approved list derived from DOMAIN_MODULES.
 """
+
 from unittest.mock import patch
-from django.contrib.auth.models import AnonymousUser
+
+import pytest
 from django.conf import settings
-from django.test import RequestFactory, override_settings
+from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse, HttpResponseRedirect
-from sefaria.system.middleware import ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware, LocationSettingsMiddleware, WebSessionRedirectMiddleware
-from sefaria.utils.chatbot import build_chatbot_user_token
+from django.test import RequestFactory, override_settings
+
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+from sefaria.system.middleware import (
+    ApiCorsPreflightMiddleware,
+    LocationSettingsMiddleware,
+    ModuleMiddleware,
+    SessionCookieDomainMiddleware,
+    SessionIDAuthMiddleware,
+    WebSessionRedirectMiddleware,
+)
+from sefaria.utils.chatbot import MCP_LOGIN_TOKEN_AUDIENCE, MCP_TOKEN_AUDIENCE, build_chatbot_user_token
 
 # ============================================================================
 # TEST CONFIGURATIONS
 # ============================================================================
 
 LOCAL_CONFIG = {
-    "en": {
-        "library": "http://localsefaria.xyz:8000",
-        "voices": "http://voices.localsefaria.xyz:8000"
-    },
-    "he": {
-        "library": "http://localsefaria-il.xyz:8000",
-        "voices": "http://chiburim.localsefaria-il.xyz:8000"
-    }
+    "en": {"library": "http://localsefaria.xyz:8000", "voices": "http://voices.localsefaria.xyz:8000"},
+    "he": {"library": "http://localsefaria-il.xyz:8000", "voices": "http://chiburim.localsefaria-il.xyz:8000"},
 }
 
 PRODUCTION_CONFIG = {
-    "en": {
-        "library": "https://www.sefaria.org",
-        "voices": "https://voices.sefaria.org"
-    },
-    "he": {
-        "library": "https://www.sefaria.org.il",
-        "voices": "https://chiburim.sefaria.org.il"
-    }
+    "en": {"library": "https://www.sefaria.org", "voices": "https://voices.sefaria.org"},
+    "he": {"library": "https://www.sefaria.org.il", "voices": "https://chiburim.sefaria.org.il"},
 }
 
 CAULDRON_CONFIG = {
-    "en": {
-        "library": "http://name.cauldron.sefaria.org",
-        "voices": "http://voices.cauldron.sefaria.org"
-    },
-    "he": {
-        "library": "http://name.cauldron.sefaria.org",
-        "voices": "http://voices.cauldron.sefaria.org"
-    }
+    "en": {"library": "http://name.cauldron.sefaria.org", "voices": "http://voices.cauldron.sefaria.org"},
+    "he": {"library": "http://name.cauldron.sefaria.org", "voices": "http://voices.cauldron.sefaria.org"},
 }
 
 EMPTY_CONFIG = {}
@@ -57,19 +50,20 @@ EMPTY_CONFIG = {}
 # HELPER FUNCTIONS
 # ============================================================================
 
-def create_request(host, path='/'):
+
+def create_request(host, path="/"):
     """Create a mock request with the specified host."""
     factory = RequestFactory()
     request = factory.get(path)
-    request.META['HTTP_HOST'] = host
+    request.META["HTTP_HOST"] = host
     return request
 
 
 def create_response_with_cookies():
     """Create a response with session and CSRF cookies set."""
     response = HttpResponse()
-    response.set_cookie('sessionid', 'test-session-value')
-    response.set_cookie('csrftoken', 'test-csrf-value')
+    response.set_cookie("sessionid", "test-session-value")
+    response.set_cookie("csrftoken", "test-csrf-value")
     return response
 
 
@@ -95,7 +89,7 @@ class TestModuleMiddleware:
             return HttpResponse()
 
         middleware = ModuleMiddleware(get_response=get_response)
-        request = create_request('voices.localsefaria.xyz:8000', '/api/img-gen/not-a-ref')
+        request = create_request("voices.localsefaria.xyz:8000", "/api/img-gen/not-a-ref")
 
         middleware(request)
 
@@ -110,131 +104,128 @@ class TestModuleMiddleware:
             return HttpResponse()
 
         middleware = ModuleMiddleware(get_response=get_response)
-        request = create_request('voices.localsefaria.xyz:8000', '/api/texts/Genesis.1.1')
+        request = create_request("voices.localsefaria.xyz:8000", "/api/texts/Genesis.1.1")
 
         middleware(request)
 
         assert captured["active_module"] == LIBRARY_MODULE
 
+
 class TestBuildApprovedDomains:
     """Test the _build_approved_domains method."""
-    
+
     @override_settings(DOMAIN_MODULES=LOCAL_CONFIG)
     def test_builds_correct_mapping_for_local_config(self):
         """Test that local config builds correct hostname -> cookie domain mapping."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        
+
         expected = {
-            'localsefaria.xyz': '.localsefaria.xyz',
-            'voices.localsefaria.xyz': '.localsefaria.xyz',
-            'localsefaria-il.xyz': '.localsefaria-il.xyz',
-            'chiburim.localsefaria-il.xyz': '.localsefaria-il.xyz'
+            "localsefaria.xyz": ".localsefaria.xyz",
+            "voices.localsefaria.xyz": ".localsefaria.xyz",
+            "localsefaria-il.xyz": ".localsefaria-il.xyz",
+            "chiburim.localsefaria-il.xyz": ".localsefaria-il.xyz",
         }
-        
+
         assert middleware._approved_domains == expected
-    
+
     @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
     def test_builds_correct_mapping_for_production_config(self):
         """Test that production config builds correct hostname -> cookie domain mapping."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        
+
         expected = {
-            'www.sefaria.org': '.sefaria.org',
-            'voices.sefaria.org': '.sefaria.org',
-            'www.sefaria.org.il': '.sefaria.org.il',
-            'chiburim.sefaria.org.il': '.sefaria.org.il'
+            "www.sefaria.org": ".sefaria.org",
+            "voices.sefaria.org": ".sefaria.org",
+            "www.sefaria.org.il": ".sefaria.org.il",
+            "chiburim.sefaria.org.il": ".sefaria.org.il",
         }
-        
+
         assert middleware._approved_domains == expected
-    
+
     @override_settings(DOMAIN_MODULES=EMPTY_CONFIG)
     def test_handles_empty_config(self):
         """Test that empty DOMAIN_MODULES results in empty approved list."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        
+
         assert middleware._approved_domains == {}
-    
+
     def test_cauldron_domain_strips_only_first_subdomain(self):
         """Test that cauldron domain preserves second-level domain."""
         with override_settings(DOMAIN_MODULES=CAULDRON_CONFIG):
             middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-            
+
             expected = {
-                'name.cauldron.sefaria.org': '.cauldron.sefaria.org',
-                'voices.cauldron.sefaria.org': '.cauldron.sefaria.org'
+                "name.cauldron.sefaria.org": ".cauldron.sefaria.org",
+                "voices.cauldron.sefaria.org": ".cauldron.sefaria.org",
             }
-            
+
             assert middleware._approved_domains == expected
-    
+
     def test_single_hostname_per_language_returns_no_cookie_domain(self):
         """Test that single hostname per language returns no cookie domain (need 2+ for common suffix)."""
         single_hostname_config = {
-            "en": {
-                "library": "http://name.cauldron.sefaria.org"
-            },
-            "he": {
-                "library": "http://name.cauldron.sefaria.org"
-            }
+            "en": {"library": "http://name.cauldron.sefaria.org"},
+            "he": {"library": "http://name.cauldron.sefaria.org"},
         }
-        
+
         with override_settings(DOMAIN_MODULES=single_hostname_config):
             middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-            
+
             # No cookie domain should be set when there's only one hostname per language
             assert middleware._approved_domains == {}
-    
 
 
 # ============================================================================
 # TESTS: PROCESS_REQUEST (stores cookie domain on request)
 # ============================================================================
 
+
 class TestProcessRequest:
     """Test that process_request correctly stores cookie domain on request object."""
-    
+
     @override_settings(DOMAIN_MODULES=LOCAL_CONFIG)
     def test_approved_domain_sets_cookie_domain_on_request(self):
         """Test that approved host stores correct cookie domain on request."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('localsefaria.xyz:8000')
-        
+        request = create_request("localsefaria.xyz:8000")
+
         middleware.process_request(request)
-        
-        assert request._cookie_domain == '.localsefaria.xyz'
-    
-    @override_settings(DOMAIN_MODULES=LOCAL_CONFIG, ALLOWED_HOSTS=['*'])
+
+        assert request._cookie_domain == ".localsefaria.xyz"
+
+    @override_settings(DOMAIN_MODULES=LOCAL_CONFIG, ALLOWED_HOSTS=["*"])
     def test_unapproved_domain_sets_none_on_request(self):
         """Test that unapproved host stores None on request."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('random.example.com')
-        
+        request = create_request("random.example.com")
+
         middleware.process_request(request)
-        
+
         assert request._cookie_domain is None
-    
-    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG, ALLOWED_HOSTS=['*'])
+
+    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG, ALLOWED_HOSTS=["*"])
     def test_production_domains_stored_correctly(self):
         """Test that production domains are stored correctly on request."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        
+
         # Test English production
-        request_en = create_request('www.sefaria.org')
+        request_en = create_request("www.sefaria.org")
         middleware.process_request(request_en)
-        assert request_en._cookie_domain == '.sefaria.org'
-        
+        assert request_en._cookie_domain == ".sefaria.org"
+
         # Test Hebrew production
-        request_he = create_request('www.sefaria.org.il')
+        request_he = create_request("www.sefaria.org.il")
         middleware.process_request(request_he)
-        assert request_he._cookie_domain == '.sefaria.org.il'
-    
+        assert request_he._cookie_domain == ".sefaria.org.il"
+
     @override_settings(DOMAIN_MODULES=EMPTY_CONFIG)
     def test_empty_config_sets_none_on_request(self):
         """Test that empty DOMAIN_MODULES sets None on request."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('localsefaria.xyz:8000')
-        
+        request = create_request("localsefaria.xyz:8000")
+
         middleware.process_request(request)
-        
+
         assert request._cookie_domain is None
 
 
@@ -242,308 +233,278 @@ class TestProcessRequest:
 # TESTS: COOKIE DOMAIN SETTING (process_response)
 # ============================================================================
 
+
 class TestCookieDomainSetting:
     """Test that cookies are set with correct domains."""
-    
-    @override_settings(
-        DOMAIN_MODULES=LOCAL_CONFIG,
-        SESSION_COOKIE_NAME='sessionid',
-        CSRF_COOKIE_NAME='csrftoken'
-    )
+
+    @override_settings(DOMAIN_MODULES=LOCAL_CONFIG, SESSION_COOKIE_NAME="sessionid", CSRF_COOKIE_NAME="csrftoken")
     def test_approved_english_domain_sets_cookie_domain(self):
         """Test that approved English host sets correct cookie domain."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('localsefaria.xyz:8000')
+        request = create_request("localsefaria.xyz:8000")
         response = create_response_with_cookies()
-        
+
         middleware.process_request(request)
         result = middleware.process_response(request, response)
-        
-        assert result.cookies['sessionid']['domain'] == '.localsefaria.xyz'
-        assert result.cookies['csrftoken']['domain'] == '.localsefaria.xyz'
-    
-    @override_settings(
-        DOMAIN_MODULES=LOCAL_CONFIG,
-        SESSION_COOKIE_NAME='sessionid',
-        CSRF_COOKIE_NAME='csrftoken'
-    )
+
+        assert result.cookies["sessionid"]["domain"] == ".localsefaria.xyz"
+        assert result.cookies["csrftoken"]["domain"] == ".localsefaria.xyz"
+
+    @override_settings(DOMAIN_MODULES=LOCAL_CONFIG, SESSION_COOKIE_NAME="sessionid", CSRF_COOKIE_NAME="csrftoken")
     def test_approved_hebrew_domain_sets_cookie_domain(self):
         """Test that approved Hebrew host sets correct cookie domain."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('localsefaria-il.xyz:8000')
+        request = create_request("localsefaria-il.xyz:8000")
         response = create_response_with_cookies()
-        
+
         middleware.process_request(request)
         result = middleware.process_response(request, response)
-        
-        assert result.cookies['sessionid']['domain'] == '.localsefaria-il.xyz'
-        assert result.cookies['csrftoken']['domain'] == '.localsefaria-il.xyz'
-    
-    @override_settings(
-        DOMAIN_MODULES=LOCAL_CONFIG,
-        SESSION_COOKIE_NAME='sessionid',
-        CSRF_COOKIE_NAME='csrftoken'
-    )
+
+        assert result.cookies["sessionid"]["domain"] == ".localsefaria-il.xyz"
+        assert result.cookies["csrftoken"]["domain"] == ".localsefaria-il.xyz"
+
+    @override_settings(DOMAIN_MODULES=LOCAL_CONFIG, SESSION_COOKIE_NAME="sessionid", CSRF_COOKIE_NAME="csrftoken")
     def test_voices_subdomain_gets_same_domain_as_library(self):
         """Test that voices subdomain shares cookie domain with library."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        
+
         # Test English voices
-        request_en = create_request('voices.localsefaria.xyz:8000')
+        request_en = create_request("voices.localsefaria.xyz:8000")
         middleware.process_request(request_en)
         response_en = create_response_with_cookies()
         result_en = middleware.process_response(request_en, response_en)
-        assert result_en.cookies['sessionid']['domain'] == '.localsefaria.xyz'
-        
+        assert result_en.cookies["sessionid"]["domain"] == ".localsefaria.xyz"
+
         # Test Hebrew voices
-        request_he = create_request('chiburim.localsefaria-il.xyz:8000')
+        request_he = create_request("chiburim.localsefaria-il.xyz:8000")
         middleware.process_request(request_he)
         response_he = create_response_with_cookies()
         result_he = middleware.process_response(request_he, response_he)
-        assert result_he.cookies['sessionid']['domain'] == '.localsefaria-il.xyz'
+        assert result_he.cookies["sessionid"]["domain"] == ".localsefaria-il.xyz"
 
 
 # ============================================================================
 # TESTS: UNAPPROVED DOMAINS
 # ============================================================================
 
+
 class TestUnapprovedDomains:
     """Test that unapproved domains don't have cookies modified."""
-    
+
     @override_settings(
         DOMAIN_MODULES=LOCAL_CONFIG,
-        SESSION_COOKIE_NAME='sessionid',
-        CSRF_COOKIE_NAME='csrftoken',
-        ALLOWED_HOSTS=['*']  # Allow all hosts for testing
+        SESSION_COOKIE_NAME="sessionid",
+        CSRF_COOKIE_NAME="csrftoken",
+        ALLOWED_HOSTS=["*"],  # Allow all hosts for testing
     )
     def test_unapproved_domain_leaves_cookies_unchanged(self):
         """Test that unapproved host doesn't modify cookie domain."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('random.example.com')
+        request = create_request("random.example.com")
         response = create_response_with_cookies()
-        
+
         # Get original domain (empty string by default)
-        original_session_domain = response.cookies['sessionid']['domain']
-        original_csrf_domain = response.cookies['csrftoken']['domain']
-        
+        original_session_domain = response.cookies["sessionid"]["domain"]
+        original_csrf_domain = response.cookies["csrftoken"]["domain"]
+
         middleware.process_request(request)
         result = middleware.process_response(request, response)
-        
+
         # Domain should remain unchanged
-        assert result.cookies['sessionid']['domain'] == original_session_domain
-        assert result.cookies['csrftoken']['domain'] == original_csrf_domain
-    
+        assert result.cookies["sessionid"]["domain"] == original_session_domain
+        assert result.cookies["csrftoken"]["domain"] == original_csrf_domain
+
     @override_settings(
         DOMAIN_MODULES=LOCAL_CONFIG,
-        SESSION_COOKIE_NAME='sessionid',
-        CSRF_COOKIE_NAME='csrftoken',
-        ALLOWED_HOSTS=['localhost', '127.0.0.1']
+        SESSION_COOKIE_NAME="sessionid",
+        CSRF_COOKIE_NAME="csrftoken",
+        ALLOWED_HOSTS=["localhost", "127.0.0.1"],
     )
     def test_localhost_not_in_approved_list(self):
         """Test that localhost isn't automatically approved."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('localhost:8000')
+        request = create_request("localhost:8000")
         response = create_response_with_cookies()
-        
-        original_domain = response.cookies['sessionid']['domain']
+
+        original_domain = response.cookies["sessionid"]["domain"]
         middleware.process_request(request)
         result = middleware.process_response(request, response)
-        
+
         # Domain should remain unchanged since localhost not in DOMAIN_MODULES
-        assert result.cookies['sessionid']['domain'] == original_domain
+        assert result.cookies["sessionid"]["domain"] == original_domain
 
 
 # ============================================================================
 # TESTS: EDGE CASES
 # ============================================================================
 
+
 class TestEdgeCases:
     """Test edge cases and error handling."""
-    
+
     @override_settings(
-        DOMAIN_MODULES=LOCAL_CONFIG,
-        SESSION_COOKIE_NAME='sessionid',
-        CSRF_COOKIE_NAME='csrftoken',
-        ALLOWED_HOSTS=['*']
+        DOMAIN_MODULES=LOCAL_CONFIG, SESSION_COOKIE_NAME="sessionid", CSRF_COOKIE_NAME="csrftoken", ALLOWED_HOSTS=["*"]
     )
     def test_response_without_cookies_does_not_error(self):
         """Test that response without cookies doesn't cause an error."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('localsefaria.xyz:8000')
+        request = create_request("localsefaria.xyz:8000")
         response = create_response_without_cookies()
-        
+
         # Should not raise an exception
         middleware.process_request(request)
         result = middleware.process_response(request, response)
-        
-        assert 'sessionid' not in result.cookies
-        assert 'csrftoken' not in result.cookies
-    
-    @override_settings(
-        DOMAIN_MODULES=EMPTY_CONFIG,
-        SESSION_COOKIE_NAME='sessionid',
-        CSRF_COOKIE_NAME='csrftoken'
-    )
+
+        assert "sessionid" not in result.cookies
+        assert "csrftoken" not in result.cookies
+
+    @override_settings(DOMAIN_MODULES=EMPTY_CONFIG, SESSION_COOKIE_NAME="sessionid", CSRF_COOKIE_NAME="csrftoken")
     def test_empty_domain_modules_does_not_modify_cookies(self):
         """Test that empty DOMAIN_MODULES doesn't modify any cookies."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('localsefaria.xyz:8000')
+        request = create_request("localsefaria.xyz:8000")
         response = create_response_with_cookies()
-        
-        original_domain = response.cookies['sessionid']['domain']
+
+        original_domain = response.cookies["sessionid"]["domain"]
         middleware.process_request(request)
         result = middleware.process_response(request, response)
-        
-        assert result.cookies['sessionid']['domain'] == original_domain
-    
+
+        assert result.cookies["sessionid"]["domain"] == original_domain
+
     @override_settings(
         DOMAIN_MODULES=PRODUCTION_CONFIG,
-        SESSION_COOKIE_NAME='sessionid',
-        CSRF_COOKIE_NAME='csrftoken',
-        ALLOWED_HOSTS=['*']  # Allow all hosts for testing
+        SESSION_COOKIE_NAME="sessionid",
+        CSRF_COOKIE_NAME="csrftoken",
+        ALLOWED_HOSTS=["*"],  # Allow all hosts for testing
     )
     def test_production_domains_work_correctly(self):
         """Test that production-style domains work correctly."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        
+
         # Test English production
-        request = create_request('www.sefaria.org')
+        request = create_request("www.sefaria.org")
         middleware.process_request(request)
         response = create_response_with_cookies()
         result = middleware.process_response(request, response)
-        assert result.cookies['sessionid']['domain'] == '.sefaria.org'
-        
+        assert result.cookies["sessionid"]["domain"] == ".sefaria.org"
+
         # Test Hebrew production
-        request = create_request('www.sefaria.org.il')
+        request = create_request("www.sefaria.org.il")
         middleware.process_request(request)
         response = create_response_with_cookies()
         result = middleware.process_response(request, response)
-        assert result.cookies['sessionid']['domain'] == '.sefaria.org.il'
+        assert result.cookies["sessionid"]["domain"] == ".sefaria.org.il"
 
 
 # ============================================================================
 # TESTS: LEGACY COOKIE EXPIRATION
 # ============================================================================
 
+
 class TestLegacyCookieExpiration:
     """Test that legacy cookies (without Domain) are expired when feature is enabled."""
 
     @override_settings(
-        DOMAIN_MODULES=LOCAL_CONFIG,
-        SESSION_COOKIE_NAME='sessionid',
-        CSRF_COOKIE_NAME='csrftoken',
-        ALLOWED_HOSTS=['*']
+        DOMAIN_MODULES=LOCAL_CONFIG, SESSION_COOKIE_NAME="sessionid", CSRF_COOKIE_NAME="csrftoken", ALLOWED_HOSTS=["*"]
     )
-    @patch('sefaria.system.middleware.remoteConfigCache')
+    @patch("sefaria.system.middleware.remoteConfigCache")
     def test_legacy_cookies_not_expired_when_feature_disabled(self, mock_cache):
         """Test that legacy cookies are NOT expired when feature is disabled."""
         mock_cache.get.return_value = False
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('localsefaria.xyz:8000')
+        request = create_request("localsefaria.xyz:8000")
         response = create_response_with_cookies()
 
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
         # No legacy expiry morsels should be added to response.cookies
-        assert '_legacy_expire_sessionid' not in result.cookies
-        assert '_legacy_expire_csrftoken' not in result.cookies
+        assert "_legacy_expire_sessionid" not in result.cookies
+        assert "_legacy_expire_csrftoken" not in result.cookies
 
     @override_settings(
-        DOMAIN_MODULES=LOCAL_CONFIG,
-        SESSION_COOKIE_NAME='sessionid',
-        CSRF_COOKIE_NAME='csrftoken',
-        ALLOWED_HOSTS=['*']
+        DOMAIN_MODULES=LOCAL_CONFIG, SESSION_COOKIE_NAME="sessionid", CSRF_COOKIE_NAME="csrftoken", ALLOWED_HOSTS=["*"]
     )
-    @patch('sefaria.system.middleware.remoteConfigCache')
+    @patch("sefaria.system.middleware.remoteConfigCache")
     def test_legacy_cookies_expired_when_feature_enabled(self, mock_cache):
         """Test that legacy cookies ARE expired when feature is enabled."""
         mock_cache.get.return_value = True
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('localsefaria.xyz:8000')
+        request = create_request("localsefaria.xyz:8000")
         response = create_response_with_cookies()
 
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
         # Legacy expiry morsels should be in response.cookies under unique keys
-        assert '_legacy_expire_sessionid' in result.cookies
-        assert '_legacy_expire_csrftoken' in result.cookies
+        assert "_legacy_expire_sessionid" in result.cookies
+        assert "_legacy_expire_csrftoken" in result.cookies
 
     @override_settings(
-        DOMAIN_MODULES=LOCAL_CONFIG,
-        SESSION_COOKIE_NAME='sessionid',
-        CSRF_COOKIE_NAME='csrftoken',
-        ALLOWED_HOSTS=['*']
+        DOMAIN_MODULES=LOCAL_CONFIG, SESSION_COOKIE_NAME="sessionid", CSRF_COOKIE_NAME="csrftoken", ALLOWED_HOSTS=["*"]
     )
-    @patch('sefaria.system.middleware.remoteConfigCache')
+    @patch("sefaria.system.middleware.remoteConfigCache")
     def test_legacy_cookie_header_format(self, mock_cache):
         """Test that legacy cookie expiration header has correct format."""
         mock_cache.get.return_value = True
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('localsefaria.xyz:8000')
+        request = create_request("localsefaria.xyz:8000")
         response = create_response_with_cookies()
 
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
         # Check the legacy expiry morsel for CSRF token
-        csrf_morsel = result.cookies['_legacy_expire_csrftoken']
-        assert csrf_morsel._key == 'csrftoken'        # outputs real cookie name
-        assert csrf_morsel['expires'] == 'Thu, 01 Jan 1970 00:00:00 GMT'
-        assert csrf_morsel['max-age'] == '0'
-        assert csrf_morsel['path'] == '/'
+        csrf_morsel = result.cookies["_legacy_expire_csrftoken"]
+        assert csrf_morsel._key == "csrftoken"  # outputs real cookie name
+        assert csrf_morsel["expires"] == "Thu, 01 Jan 1970 00:00:00 GMT"
+        assert csrf_morsel["max-age"] == "0"
+        assert csrf_morsel["path"] == "/"
         # Crucially, no Domain attribute
-        assert csrf_morsel['domain'] == ''
+        assert csrf_morsel["domain"] == ""
 
         # Check session cookie legacy morsel
-        session_morsel = result.cookies['_legacy_expire_sessionid']
-        assert session_morsel._key == 'sessionid'
+        session_morsel = result.cookies["_legacy_expire_sessionid"]
+        assert session_morsel._key == "sessionid"
 
     @override_settings(
-        DOMAIN_MODULES=LOCAL_CONFIG,
-        SESSION_COOKIE_NAME='sessionid',
-        CSRF_COOKIE_NAME='csrftoken',
-        ALLOWED_HOSTS=['*']
+        DOMAIN_MODULES=LOCAL_CONFIG, SESSION_COOKIE_NAME="sessionid", CSRF_COOKIE_NAME="csrftoken", ALLOWED_HOSTS=["*"]
     )
-    @patch('sefaria.system.middleware.remoteConfigCache')
+    @patch("sefaria.system.middleware.remoteConfigCache")
     def test_legacy_cookies_not_expired_for_unapproved_domain(self, mock_cache):
         """Test that legacy cookies are NOT expired for unapproved domains."""
         mock_cache.get.return_value = True
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('random.example.com')
+        request = create_request("random.example.com")
         response = create_response_with_cookies()
 
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
         # No legacy expiry morsels should be added for unapproved domains
-        assert '_legacy_expire_sessionid' not in result.cookies
-        assert '_legacy_expire_csrftoken' not in result.cookies
+        assert "_legacy_expire_sessionid" not in result.cookies
+        assert "_legacy_expire_csrftoken" not in result.cookies
 
     @override_settings(
-        DOMAIN_MODULES=LOCAL_CONFIG,
-        SESSION_COOKIE_NAME='sessionid',
-        CSRF_COOKIE_NAME='csrftoken',
-        ALLOWED_HOSTS=['*']
+        DOMAIN_MODULES=LOCAL_CONFIG, SESSION_COOKIE_NAME="sessionid", CSRF_COOKIE_NAME="csrftoken", ALLOWED_HOSTS=["*"]
     )
-    @patch('sefaria.system.middleware.remoteConfigCache')
+    @patch("sefaria.system.middleware.remoteConfigCache")
     def test_legacy_expiration_only_for_cookies_present_in_response(self, mock_cache):
         """Test that legacy expiration only happens for cookies actually in the response."""
         mock_cache.get.return_value = True
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-        request = create_request('localsefaria.xyz:8000')
+        request = create_request("localsefaria.xyz:8000")
 
         # Response with only CSRF token, no session cookie
         response = HttpResponse()
-        response.set_cookie('csrftoken', 'test-csrf-value')
+        response.set_cookie("csrftoken", "test-csrf-value")
 
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
         # Only CSRF legacy morsel should be added — session cookie was not in the response
-        assert '_legacy_expire_csrftoken' in result.cookies
-        assert '_legacy_expire_sessionid' not in result.cookies
+        assert "_legacy_expire_csrftoken" in result.cookies
+        assert "_legacy_expire_sessionid" not in result.cookies
 
 
 class TestSessionIDAuthMiddleware:
@@ -602,9 +563,173 @@ class TestSessionIDAuthMiddleware:
         assert not request.user.is_authenticated
 
 
+class TestSessionIDAuthMiddlewareAdminMCP:
+    chatbot_secret = "test-chatbot-secret"
+    mcp_secret = "test-user-mcp-secret"
+    admin_path = "/api/admin/topic-prompts"
+
+    def setup_method(self):
+        self.factory = RequestFactory()
+        self.middleware = SessionIDAuthMiddleware(get_response=lambda r: HttpResponse())
+
+    def _run(self, token, path, method="get"):
+        request = getattr(self.factory, method)(path, HTTP_X_SESSION_ID=token)
+        request.user = AnonymousUser()
+        with override_settings(CHATBOT_USER_ID_SECRET=self.chatbot_secret, MCP_TOKEN_SECRET=self.mcp_secret):
+            self.middleware.process_request(request)
+        return request
+
+    def _mcp_token(self, user):
+        return build_chatbot_user_token(user.id, self.mcp_secret, ttl_hours=5 / 60, aud=MCP_TOKEN_AUDIENCE)
+
+    @pytest.mark.parametrize(
+        ("method", "path"),
+        [
+            ("get", "/api/admin/topic-prompts"),
+            ("patch", "/api/admin/topic-prompts/64f0a1b2c3d4e5f601234567"),
+        ],
+    )
+    def test_mcp_token_authenticates_staff_on_admin_routes_and_skips_csrf(self, django_user_model, method, path):
+        user = django_user_model.objects.create_user(username=f"mcp-staff-{method}", password="pass", is_staff=True)
+        request = self._run(self._mcp_token(user), path, method)
+
+        assert request.user.id == user.id
+        assert request.auth_via == MCP_TOKEN_AUDIENCE
+        assert request._dont_enforce_csrf_checks is True
+
+    def test_mcp_token_rejected_for_non_staff_on_admin_routes(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-nonstaff-admin", password="pass")
+        request = self._run(self._mcp_token(user), self.admin_path)
+
+        assert not request.user.is_authenticated
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+    @pytest.mark.parametrize(
+        ("method", "path"),
+        [
+            ("post", "/api/admin/topic-prompts"),
+            ("get", "/api/admin/other"),
+            ("post", "/api/ref-topic-links/Genesis_1.1"),
+        ],
+    )
+    def test_mcp_token_rejected_off_admin_routes(self, django_user_model, method, path):
+        user = django_user_model.objects.create_user(
+            username=f"mcp-staff-off-{method}-{abs(hash(path))}", password="pass", is_staff=True
+        )
+        request = self._run(self._mcp_token(user), path, method)
+
+        assert not request.user.is_authenticated
+
+    def test_chatbot_token_rejected_on_admin_path(self, django_user_model):
+        user = django_user_model.objects.create_user(username="chatbot-on-admin", password="pass", is_staff=True)
+        token = build_chatbot_user_token(user.id, self.chatbot_secret)
+        request = self._run(token, self.admin_path)
+
+        assert not request.user.is_authenticated
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+    def test_chatbot_token_on_regular_path_still_enforces_csrf(self, django_user_model):
+        user = django_user_model.objects.create_user(username="chatbot-regular", password="pass")
+        token = build_chatbot_user_token(user.id, self.chatbot_secret)
+        request = self._run(token, "/api/profile")
+
+        assert request.user.id == user.id
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+
+class TestSessionIDAuthMiddlewareUserMCP:
+    chatbot_secret = "test-chatbot-secret"
+    mcp_secret = "test-user-mcp-secret"
+
+    def setup_method(self):
+        self.factory = RequestFactory()
+        self.middleware = SessionIDAuthMiddleware(get_response=lambda r: HttpResponse())
+
+    def _run(self, token, path, method="get", mcp_secret="default"):
+        request = getattr(self.factory, method)(path, HTTP_X_SESSION_ID=token)
+        request.user = AnonymousUser()
+        secret = self.mcp_secret if mcp_secret == "default" else mcp_secret
+        with override_settings(CHATBOT_USER_ID_SECRET=self.chatbot_secret, MCP_TOKEN_SECRET=secret):
+            self.middleware.process_request(request)
+        return request
+
+    def _mcp_token(self, user, secret=None, aud=MCP_TOKEN_AUDIENCE, ttl_hours=5 / 60):
+        return build_chatbot_user_token(user.id, secret or self.mcp_secret, ttl_hours=ttl_hours, aud=aud)
+
+    @pytest.mark.parametrize(
+        ("method", "path"),
+        [
+            ("get", "/api/sheets/user/{uid}/date/0/0"),
+            ("get", "/api/sheets/user/{uid}"),
+            ("get", "/api/sheets/715437"),
+            ("post", "/api/sheets/"),
+            ("post", "/api/sheets"),
+        ],
+    )
+    def test_mcp_token_authenticates_on_sheet_routes_and_skips_csrf(self, django_user_model, method, path):
+        user = django_user_model.objects.create_user(username=f"mcp-{method}-{abs(hash(path))}", password="pass")
+        request = self._run(self._mcp_token(user), path.format(uid=user.id), method)
+
+        assert request.user.id == user.id
+        assert request.auth_via == MCP_TOKEN_AUDIENCE
+        assert request._dont_enforce_csrf_checks is True
+
+    @pytest.mark.parametrize(
+        ("method", "path"),
+        [
+            ("post", "/api/sheets/715437/delete"),
+            ("post", "/api/sheets/715437/add"),
+            ("get", "/api/profile"),
+            ("post", "/api/sheets/715437"),
+            ("delete", "/api/admin/topic-prompts/64f0a1b2c3d4e5f601234567"),
+        ],
+    )
+    def test_mcp_token_rejected_elsewhere(self, django_user_model, method, path):
+        user = django_user_model.objects.create_user(
+            username=f"mcp-off-{method}-{abs(hash(path))}", password="pass", is_staff=True
+        )
+        request = self._run(self._mcp_token(user), path, method)
+
+        assert not request.user.is_authenticated
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+    def test_login_token_is_not_an_api_credential(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-login-as-api", password="pass")
+        request = self._run(self._mcp_token(user, aud=MCP_LOGIN_TOKEN_AUDIENCE), "/api/sheets/715437")
+
+        assert not request.user.is_authenticated
+
+    def test_mcp_audience_with_chatbot_secret_rejected(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-wrong-secret", password="pass")
+        request = self._run(self._mcp_token(user, secret=self.chatbot_secret), "/api/sheets/715437")
+
+        assert not request.user.is_authenticated
+
+    def test_expired_mcp_token_rejected(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-expired", password="pass")
+        request = self._run(self._mcp_token(user, ttl_hours=-1), "/api/sheets/715437")
+
+        assert not request.user.is_authenticated
+
+    def test_mcp_token_ignored_when_secret_unset(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-disabled", password="pass")
+        request = self._run(self._mcp_token(user), "/api/sheets/715437", mcp_secret=None)
+
+        assert not request.user.is_authenticated
+
+    def test_chatbot_token_still_works_on_sheet_routes_with_csrf(self, django_user_model):
+        user = django_user_model.objects.create_user(username="chatbot-on-sheets", password="pass")
+        token = build_chatbot_user_token(user.id, self.chatbot_secret)
+        request = self._run(token, "/api/sheets/", "post")
+
+        assert request.user.id == user.id
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+
 # ============================================================================
 # CSRF TRUSTED ORIGINS TESTS
 # ============================================================================
+
 
 class TestCsrfTrustedOrigins:
     """Tests that CSRF_TRUSTED_ORIGINS allows POST requests when Origin differs from Host.
@@ -620,13 +745,14 @@ class TestCsrfTrustedOrigins:
 
     def _make_csrf_middleware(self):
         from django.middleware.csrf import CsrfViewMiddleware
+
         return CsrfViewMiddleware(get_response=lambda r: HttpResponse())
 
     def _post_request(self, host, origin, referer=None):
         """Create a secure POST request with Origin and Referer headers."""
-        referer = referer or f'{origin}/login/'
+        referer = referer or f"{origin}/login/"
         return RequestFactory().post(
-            '/login/',
+            "/login/",
             secure=True,
             HTTP_HOST=host,
             HTTP_ORIGIN=origin,
@@ -639,6 +765,7 @@ class TestCsrfTrustedOrigins:
         Returns None if the referer is accepted, the RejectRequest exception otherwise.
         """
         from django.middleware.csrf import RejectRequest
+
         middleware = self._make_csrf_middleware()
         try:
             middleware._check_referer(request)
@@ -648,46 +775,48 @@ class TestCsrfTrustedOrigins:
 
     # Host is an unrelated value so the same-host fallback never short-circuits the check.
     # Anything that passes here passes specifically because of CSRF_TRUSTED_ORIGINS.
-    UNRELATED_HOST = 'internal-proxy.example'
+    UNRELATED_HOST = "internal-proxy.example"
 
-    @override_settings(CSRF_TRUSTED_ORIGINS=['https://*.sefaria.org'], ALLOWED_HOSTS=['*'])
+    @override_settings(CSRF_TRUSTED_ORIGINS=["https://*.sefaria.org"], ALLOWED_HOSTS=["*"])
     def test_sefaria_subdomain_origin_is_trusted_when_host_differs(self):
         """Origin under *.sefaria.org should be accepted via CSRF_TRUSTED_ORIGINS, not host-match."""
         request = self._post_request(
             host=self.UNRELATED_HOST,
-            origin='https://www.django6.cauldron.sefaria.org',
+            origin="https://www.django6.cauldron.sefaria.org",
         )
-        assert self._check_referer(request) is None, \
+        assert self._check_referer(request) is None, (
             "Cauldron origin should be trusted via CSRF_TRUSTED_ORIGINS but was rejected"
+        )
 
-    @override_settings(CSRF_TRUSTED_ORIGINS=['https://*.sefaria.org'], ALLOWED_HOSTS=['*'])
+    @override_settings(CSRF_TRUSTED_ORIGINS=["https://*.sefaria.org"], ALLOWED_HOSTS=["*"])
     def test_untrusted_origin_is_rejected_when_host_differs(self):
         """Origin outside *.sefaria.org should be rejected when host doesn't match either."""
         request = self._post_request(
             host=self.UNRELATED_HOST,
-            origin='https://evil.example.com',
+            origin="https://evil.example.com",
         )
-        assert self._check_referer(request) is not None, \
-            "External origin should be rejected by CSRF middleware"
+        assert self._check_referer(request) is not None, "External origin should be rejected by CSRF middleware"
 
-    @override_settings(CSRF_TRUSTED_ORIGINS=['https://*.sefaria.org'], ALLOWED_HOSTS=['*'])
+    @override_settings(CSRF_TRUSTED_ORIGINS=["https://*.sefaria.org"], ALLOWED_HOSTS=["*"])
     def test_sefaria_org_subdomains_are_trusted_via_wildcard(self):
         """Various sefaria.org subdomains should all be accepted via the wildcard."""
         trusted_origins = [
-            'https://www.sefaria.org',
-            'https://voices.sefaria.org',
-            'https://www.django6.cauldron.sefaria.org',
-            'https://staging.cauldron.sefaria.org',
+            "https://www.sefaria.org",
+            "https://voices.sefaria.org",
+            "https://www.django6.cauldron.sefaria.org",
+            "https://staging.cauldron.sefaria.org",
         ]
         for origin in trusted_origins:
             request = self._post_request(host=self.UNRELATED_HOST, origin=origin)
-            assert self._check_referer(request) is None, \
+            assert self._check_referer(request) is None, (
                 f"Origin {origin} should be trusted via wildcard but was rejected"
+            )
 
 
 # ============================================================================
 # TESTS: LOCATION SETTINGS (cf-ipcountry -> country_code / diaspora)
 # ============================================================================
+
 
 class TestLocationSettingsMiddleware:
     """Test that country_code/diaspora are derived from cf-ipcountry, falling back to
@@ -695,80 +824,83 @@ class TestLocationSettingsMiddleware:
 
     def test_valid_country_header_sets_country_code(self):
         middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
-        request = RequestFactory().get('/', HTTP_CF_IPCOUNTRY='FR')
+        request = RequestFactory().get("/", HTTP_CF_IPCOUNTRY="FR")
 
         middleware.process_request(request)
 
-        assert request.country_code == 'fr'
+        assert request.country_code == "fr"
         assert request.diaspora is True
 
     def test_il_header_sets_diaspora_false(self):
         middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
-        request = RequestFactory().get('/', HTTP_CF_IPCOUNTRY='IL')
+        request = RequestFactory().get("/", HTTP_CF_IPCOUNTRY="IL")
 
         middleware.process_request(request)
 
-        assert request.country_code == 'il'
+        assert request.country_code == "il"
         assert request.diaspora is False
 
-    @patch('sefaria.settings.PINNED_IPCOUNTRY', 'de', create=True)
+    @patch("sefaria.settings.PINNED_IPCOUNTRY", "de", create=True)
     def test_missing_header_falls_back_to_pinned_ipcountry(self):
         middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
-        request = RequestFactory().get('/')
+        request = RequestFactory().get("/")
 
         middleware.process_request(request)
 
-        assert request.country_code == 'de'
+        assert request.country_code == "de"
 
-    @patch('sefaria.settings.PINNED_IPCOUNTRY', 'de', create=True)
+    @patch("sefaria.settings.PINNED_IPCOUNTRY", "de", create=True)
     def test_unknown_xx_header_falls_back_to_pinned_ipcountry(self):
         """Cloudflare sets cf-ipcountry to XX when it can't geolocate the visitor -- this
         should be treated the same as a missing header, not passed on as a real country."""
         middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
-        request = RequestFactory().get('/', HTTP_CF_IPCOUNTRY='XX')
+        request = RequestFactory().get("/", HTTP_CF_IPCOUNTRY="XX")
 
         middleware.process_request(request)
 
-        assert request.country_code == 'de'
+        assert request.country_code == "de"
 
-    @patch('sefaria.settings.PINNED_IPCOUNTRY', 'de', create=True)
+    @patch("sefaria.settings.PINNED_IPCOUNTRY", "de", create=True)
     def test_lowercase_xx_header_also_falls_back(self):
         middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
-        request = RequestFactory().get('/', HTTP_CF_IPCOUNTRY='xx')
+        request = RequestFactory().get("/", HTTP_CF_IPCOUNTRY="xx")
 
         middleware.process_request(request)
 
-        assert request.country_code == 'de'
+        assert request.country_code == "de"
 
     def test_missing_setting_falls_back_to_env_var(self, monkeypatch):
         """Kubernetes deploys inject PINNED_IPCOUNTRY as a pod env var, but the chart's
         generated local_settings may not define the Django setting -- the env var must
         still take effect."""
         import sefaria.settings
-        monkeypatch.delattr(sefaria.settings, 'PINNED_IPCOUNTRY', raising=False)
-        monkeypatch.setenv('PINNED_IPCOUNTRY', 'GB')
+
+        monkeypatch.delattr(sefaria.settings, "PINNED_IPCOUNTRY", raising=False)
+        monkeypatch.setenv("PINNED_IPCOUNTRY", "GB")
         middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
-        request = RequestFactory().get('/')
+        request = RequestFactory().get("/")
 
         middleware.process_request(request)
 
-        assert request.country_code == 'gb'
+        assert request.country_code == "gb"
 
     def test_missing_setting_and_env_defaults_to_us(self, monkeypatch):
         import sefaria.settings
-        monkeypatch.delattr(sefaria.settings, 'PINNED_IPCOUNTRY', raising=False)
-        monkeypatch.delenv('PINNED_IPCOUNTRY', raising=False)
+
+        monkeypatch.delattr(sefaria.settings, "PINNED_IPCOUNTRY", raising=False)
+        monkeypatch.delenv("PINNED_IPCOUNTRY", raising=False)
         middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
-        request = RequestFactory().get('/')
+        request = RequestFactory().get("/")
 
         middleware.process_request(request)
 
-        assert request.country_code == 'us'
+        assert request.country_code == "us"
 
 
 # ============================================================================
 # TESTS: WEB SESSION REDIRECT MARKING (no_applink)
 # ============================================================================
+
 
 class TestWebSessionRedirectMiddleware:
     """A redirect gets marked no_applink when it continues a web session (sefaria
@@ -780,58 +912,59 @@ class TestWebSessionRedirectMiddleware:
 
     @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
     def test_sefaria_referer_marks_redirect(self):
-        request = RequestFactory().get('/', HTTP_REFERER='https://www.sefaria.org/texts')
-        result = self._middleware().process_response(request, HttpResponseRedirect('/next'))
+        request = RequestFactory().get("/", HTTP_REFERER="https://www.sefaria.org/texts")
+        result = self._middleware().process_response(request, HttpResponseRedirect("/next"))
 
-        assert 'no_applink=1' in result['Location']
+        assert "no_applink=1" in result["Location"]
 
     @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
     def test_external_referer_does_not_mark_redirect(self):
-        request = RequestFactory().get('/', HTTP_REFERER='https://mail.google.com/')
-        result = self._middleware().process_response(request, HttpResponseRedirect('/next'))
+        request = RequestFactory().get("/", HTTP_REFERER="https://mail.google.com/")
+        result = self._middleware().process_response(request, HttpResponseRedirect("/next"))
 
-        assert 'no_applink' not in result['Location']
+        assert "no_applink" not in result["Location"]
 
     @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
     def test_no_referer_does_not_mark_redirect(self):
-        request = RequestFactory().get('/login')
-        result = self._middleware().process_response(request, HttpResponseRedirect('/'))
+        request = RequestFactory().get("/login")
+        result = self._middleware().process_response(request, HttpResponseRedirect("/"))
 
-        assert 'no_applink' not in result['Location']
+        assert "no_applink" not in result["Location"]
 
     def test_accounts_path_marks_redirect_regardless_of_referer(self):
-        request = RequestFactory().get('/accounts/google/login/callback/')
-        result = self._middleware().process_response(request, HttpResponseRedirect('/'))
+        request = RequestFactory().get("/accounts/google/login/callback/")
+        result = self._middleware().process_response(request, HttpResponseRedirect("/"))
 
-        assert 'no_applink=1' in result['Location']
+        assert "no_applink=1" in result["Location"]
 
     def test_allauth_path_marks_redirect_regardless_of_referer(self):
-        request = RequestFactory().get('/_allauth/browser/v1/auth/session')
-        result = self._middleware().process_response(request, HttpResponseRedirect('/'))
+        request = RequestFactory().get("/_allauth/browser/v1/auth/session")
+        result = self._middleware().process_response(request, HttpResponseRedirect("/"))
 
-        assert 'no_applink=1' in result['Location']
+        assert "no_applink=1" in result["Location"]
 
     def test_google_one_tap_redirect_path_marks_redirect_regardless_of_referer(self):
         # accounts.google.com POSTs here directly (redirect-mode SSO) -- Referer is
         # always Google's, never sefaria's, same as /accounts/* and /_allauth/*.
-        request = RequestFactory().post('/api/auth/google/redirect', HTTP_REFERER='https://accounts.google.com/')
-        result = self._middleware().process_response(request, HttpResponseRedirect('/'))
+        request = RequestFactory().post("/api/auth/google/redirect", HTTP_REFERER="https://accounts.google.com/")
+        result = self._middleware().process_response(request, HttpResponseRedirect("/"))
 
-        assert 'no_applink=1' in result['Location']
+        assert "no_applink=1" in result["Location"]
 
     @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
     def test_admin_redirect_with_sefaria_referer_is_not_marked(self):
         # Redirects to an already AASA-excluded path (the admin save redirect) need no no_applink.
-        admin = settings.ADMIN_PATH.strip('/')
+        admin = settings.ADMIN_PATH.strip("/")
         request = RequestFactory().post(
-            f'/{admin}/project/1/change/', HTTP_REFERER=f'https://www.sefaria.org/{admin}/project/1/change/')
-        result = self._middleware().process_response(request, HttpResponseRedirect(f'/{admin}/project/?e=1'))
+            f"/{admin}/project/1/change/", HTTP_REFERER=f"https://www.sefaria.org/{admin}/project/1/change/"
+        )
+        result = self._middleware().process_response(request, HttpResponseRedirect(f"/{admin}/project/?e=1"))
 
-        assert 'no_applink' not in result['Location']
+        assert "no_applink" not in result["Location"]
 
     def test_non_redirect_response_is_untouched(self):
-        request = RequestFactory().get('/accounts/google/login/callback/')
-        response = HttpResponse('ok')
+        request = RequestFactory().get("/accounts/google/login/callback/")
+        response = HttpResponse("ok")
 
         result = self._middleware().process_response(request, response)
 
@@ -841,17 +974,62 @@ class TestWebSessionRedirectMiddleware:
     def test_external_redirect_target_is_not_marked_even_with_sefaria_referer(self):
         # /wiki -> https://developers.sefaria.org/... (sites/sefaria/urls.py) is a real
         # example: a sefaria-referred request whose redirect target isn't a sefaria domain.
-        request = RequestFactory().get('/wiki', HTTP_REFERER='https://www.sefaria.org/texts')
+        request = RequestFactory().get("/wiki", HTTP_REFERER="https://www.sefaria.org/texts")
         result = self._middleware().process_response(
-            request, HttpResponseRedirect('https://developers.sefaria.org/docs/welcome')
+            request, HttpResponseRedirect("https://developers.sefaria.org/docs/welcome")
         )
 
-        assert 'no_applink' not in result['Location']
+        assert "no_applink" not in result["Location"]
 
     def test_external_redirect_target_is_not_marked_from_oauth_path_either(self):
-        request = RequestFactory().get('/accounts/google/login/callback/')
-        result = self._middleware().process_response(
-            request, HttpResponseRedirect('https://example.com/')
+        request = RequestFactory().get("/accounts/google/login/callback/")
+        result = self._middleware().process_response(request, HttpResponseRedirect("https://example.com/"))
+
+        assert "no_applink" not in result["Location"]
+
+
+class TestApiCorsPreflightMiddleware:
+    def setup_method(self):
+        self.factory = RequestFactory()
+        self.middleware = ApiCorsPreflightMiddleware(get_response=lambda r: HttpResponse("view"))
+
+    def preflight(self, path, method="GET"):
+        return self.factory.options(
+            path,
+            HTTP_ORIGIN="https://site-a.example.org",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD=method,
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="x-api-key",
         )
 
-        assert 'no_applink' not in result['Location']
+    def test_an_api_preflight_allows_the_x_api_key_header_from_any_origin(self):
+        for path, method in (
+            ("/api/v3/texts/Genesis.1.1", "GET"),
+            ("/api/texts/Genesis.1.1", "GET"),
+            ("/api/knn-search", "POST"),
+        ):
+            response = self.middleware(self.preflight(path, method))
+
+            assert response.status_code == 204
+            assert response["Access-Control-Allow-Origin"] == "*"
+            assert "x-api-key" in [h.strip().lower() for h in response["Access-Control-Allow-Headers"].split(",")]
+            assert method in response["Access-Control-Allow-Methods"]
+
+    def test_other_requests_reach_the_view(self):
+        requests = (
+            self.preflight("/texts/Genesis.1.1"),
+            self.factory.options("/api/v3/texts/Genesis.1.1"),
+            self.factory.get("/api/v3/texts/Genesis.1.1", HTTP_ORIGIN="https://site-a.example.org"),
+        )
+        for request in requests:
+            assert self.middleware(request).content == b"view"
+
+    def test_the_middleware_is_installed(self, client):
+        response = client.options(
+            "/api/knn-search",
+            HTTP_ORIGIN="https://site-a.example.org",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="x-api-key",
+        )
+
+        assert response.status_code == 204
+        assert "X-API-Key" in response["Access-Control-Allow-Headers"]

@@ -20,7 +20,7 @@ jest.mock('../../sefaria/sefaria', () => {
   const lang = () => (sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
   /* Like Sefaria._: keyed IDs resolve from the interface string maps, and free text passes
      through untranslated. */
-  sefaria._ = (s) => (/^[a-z0-9_]+(\.[a-z0-9_]+)+$/.test(s) ? (strings[lang()][s] || strings.en[s] || s) : s);
+  sefaria._ = (s) => (/^[a-z0-9_]+(\.[a-z0-9_]+)+$/.test(s) ? strings[lang()][s] || strings.en[s] || s : s);
   sefaria._v = (options) => options[lang()];
   return { __esModule: true, default: sefaria };
 });
@@ -34,7 +34,8 @@ jest.mock('../../Misc', () => {
   const Sefaria = require('../../sefaria/sefaria').default;
   return {
     __esModule: true,
-    InterfaceText: ({ text, children }) => (text ? text[Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en'] : (children ?? null)),
+    InterfaceText: ({ text, children }) =>
+      text ? text[Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en'] : (children ?? null),
   };
 });
 
@@ -58,14 +59,19 @@ function mount(settings = {}) {
         tab="account"
         projectId={null}
         accountSettings={{
-          emailNotifications: 'daily', libraryAssistantEnabled: true, email: 'tova@example.org',
-          socialProviders: [], sheetsExport: { gauthEmail: null }, torahSpecific: true, ...settings,
+          emailNotifications: 'daily',
+          libraryAssistantEnabled: true,
+          email: 'tova@example.org',
+          socialProviders: [],
+          sheetsExport: { gauthEmail: null },
+          torahSpecific: true,
+          ...settings,
         }}
         initialDeveloper={null}
         setTab={() => {}}
         setProjectId={() => {}}
       />,
-      container,
+      container
     );
   });
 }
@@ -77,7 +83,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  if (!container) { return; }
+  if (!container) {
+    return;
+  }
   ReactDOM.unmountComponentAtNode(container);
   container.remove();
   container = null;
@@ -94,15 +102,5 @@ describe('Hebrew interface, email change', () => {
     const placeholder = container.querySelector('#username-change-edit ' + selector).getAttribute('placeholder');
     expect(placeholder).not.toBe(english);
     expect(placeholder).toMatch(HEBREW);
-  });
-});
-
-describe('saving on a site that is not Torah-specific', () => {
-  it('does not turn reading history off, since the page has no reading history setting @known-gap N-M15', () => {
-    mount({ torahSpecific: false });
-    act(() => { container.querySelector('.saveAccountSettingsBtn').click(); });
-    const [, data] = $.post.mock.calls[$.post.mock.calls.length - 1];
-    const { settings } = JSON.parse(data.json);
-    expect(settings.reading_history).not.toBe(false);
   });
 });

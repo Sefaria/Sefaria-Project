@@ -1,21 +1,18 @@
 """
 Developer settings API edges: other accounts' objects, malformed requests, website origins,
 key slots, claiming and consent, and confirmation links for an address another account holds.
-
-Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry
-the `failing` marker, so the default CI run (-m "not failing") leaves them out; select them
-with -k known_gap.
 """
+
 import json
 
-import pytest
 from allauth.account.models import EmailAddress
 from django.test import Client, override_settings
 
 from powered_by import developer
-from powered_by.models import ApiKey, Project, SubmissionSource
-from powered_by.tests.developer_api_test import PROFILE, PROJECT, DeveloperApiTestCase
-from reader.conftest import create_test_user, purge_test_profiles
+from powered_by.models import ApiKey, ApiProject, Project, SubmissionSource
+from powered_by.tests.developer_api_test import PROFILE, PROJECT, DeveloperApiTestCase, gallery_ids
+from reader.conftest import create_test_user, page_props, purge_test_profiles
+from sefaria.model.user_profile import UserProfile
 
 
 def snapshot(*querysets):
@@ -38,33 +35,46 @@ class OtherAccountTest(DeveloperApiTestCase):
         self.call("post", "enable", client=self.other_client)
         assert self.call("post", "profile", {"profile": PROFILE}, client=self.other_client)[0] == 200
         self.listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK, creator_email=self.other.email, owner=self.user,
-            project_name="Owned by A, submitted with B's email", project_link="https://listing.example.org",
-            consent_to_display=True,
+            submission_source=SubmissionSource.FORMSTACK,
+            creator_email=self.other.email,
+            project_name="Owned by A, submitted with B's email",
+            project_link="https://listing.example.org",
+            request_not_to_publish=False,
         )
+        ApiProject.objects.create(profile=self.listing, owner=self.user)
 
     def tearDown(self):
         purge_test_profiles(self.other)
         super().tearDown()
 
     def test_C5_every_action_on_another_accounts_objects_is_not_found_and_changes_nothing(self):
-        before = snapshot(Project.objects.filter(id__in=[int(self.project["id"]), self.listing.id]),
-                          ApiKey.objects.filter(project_id=int(self.project["id"])))
+        before = snapshot(
+            ApiProject.objects.filter(id=int(self.project["id"])),
+            Project.objects.filter(id=self.listing.id),
+            ApiKey.objects.filter(project_id=int(self.project["id"])),
+        )
         actions = (
-            ("post", "projects/" + self.project["id"], {"project": {**PROJECT, "name": "Hijacked", "visibility": "public"}}),
+            (
+                "post",
+                "projects/" + self.project["id"],
+                {"project": {**PROJECT, "name": "Hijacked", "visibility": "public"}},
+            ),
             ("post", "projects/{}/keys".format(self.project["id"]), {"label": "Stolen"}),
             ("post", "keys/" + self.key_id, {"restrictToWebsite": True}),
             ("delete", "keys/" + self.key_id, None),
             ("delete", "projects/" + self.project["id"], None),
-            ("post", "listings/{}/claim".format(self.listing.id), None),
-            ("post", "listings/{}/dismiss".format(self.listing.id), None),
+            ("post", f"listings/{self.listing.id}/claim", None),
+            ("post", f"listings/{self.listing.id}/dismiss", None),
         )
         for method, url, body in actions:
             status, _ = self.call(method, url, body, client=self.other_client)
             self.assertEqual(status, 404, url)
 
-        after = snapshot(Project.objects.filter(id__in=[int(self.project["id"]), self.listing.id]),
-                         ApiKey.objects.filter(project_id=int(self.project["id"])))
+        after = snapshot(
+            ApiProject.objects.filter(id=int(self.project["id"])),
+            Project.objects.filter(id=self.listing.id),
+            ApiKey.objects.filter(project_id=int(self.project["id"])),
+        )
         self.assertEqual(after, before)
         self.assertEqual(self.call("get", "state", client=self.other_client)[1]["projects"], [])
 
@@ -87,7 +97,7 @@ class MalformedRequestTest(DeveloperApiTestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(json.loads(response.content)["error"], "Request is too large.")
-        self.assertEqual(Project.objects.filter(owner=self.user).count(), 1)
+        self.assertEqual(ApiProject.objects.filter(owner=self.user).count(), 1)
 
     def test_C6_a_body_that_is_not_json_is_refused(self):
         for url in ("projects", "projects/{}/keys".format(self.project["id"]), "profile"):
@@ -106,18 +116,21 @@ class MalformedRequestTest(DeveloperApiTestCase):
         client.force_login(self.user)
         keys_before = ApiKey.objects.filter(project_id=int(self.project["id"])).count()
 
-        for url, body in (("projects", {"project": PROJECT}),
-                          ("projects/{}/keys".format(self.project["id"]), {"label": "No token"}),
-                          ("enable", {})):
+        for url, body in (
+            ("projects", {"project": PROJECT}),
+            ("projects/{}/keys".format(self.project["id"]), {"label": "No token"}),
+            ("enable", {}),
+        ):
             response = self.post_raw(url, json.dumps(body), client=client)
             self.assertEqual(response.status_code, 403, url)
 
-        self.assertEqual(Project.objects.filter(owner=self.user).count(), 1)
+        self.assertEqual(ApiProject.objects.filter(owner=self.user).count(), 1)
         self.assertEqual(ApiKey.objects.filter(project_id=int(self.project["id"])).count(), keys_before)
 
     def test_C6_a_logged_out_new_link_request_without_a_csrf_token_is_forbidden(self):
-        response = self.post_raw("confirmation/new-link", json.dumps({"key": "anything"}),
-                                 client=Client(enforce_csrf_checks=True))
+        response = self.post_raw(
+            "confirmation/new-link", json.dumps({"key": "anything"}), client=Client(enforce_csrf_checks=True)
+        )
 
         self.assertEqual(response.status_code, 403)
 
@@ -147,12 +160,10 @@ class WebsiteOriginTest(DeveloperApiTestCase):
         self.assertEqual(status, 200)
         self.assertEqual(ApiKey.objects.get(id=key_id).allowed_origins, [browser_origin])
 
-    @pytest.mark.failing
-    def test_C7_an_internationalised_host_is_refused_or_stored_as_punycode_known_gap_C7(self):
+    def test_C7_an_internationalised_host_is_refused_or_stored_as_punycode(self):
         self.assert_refused_or_stored_as_browsers_send_it("https://bücher.example/app", "https://xn--bcher-kva.example")
 
-    @pytest.mark.failing
-    def test_C7_an_ipv6_host_is_refused_or_stored_with_brackets_known_gap_C7(self):
+    def test_C7_an_ipv6_host_is_refused_or_stored_with_brackets(self):
         self.assert_refused_or_stored_as_browsers_send_it("http://[::1]:8080/", "http://[::1]:8080")
 
     def test_C7_a_trailing_dot_host_is_refused_or_stored_with_the_dot(self):
@@ -168,8 +179,9 @@ class KeySlotTest(DeveloperApiTestCase):
         self.project = self.create_project()
 
     def test_N_C4_revoking_a_key_frees_a_slot(self):
-        key_ids = [self.create_key(self.project["id"], "Key {}".format(n))["keyId"]
-                   for n in range(developer.MAX_KEYS_PER_PROJECT)]
+        key_ids = [
+            self.create_key(self.project["id"], f"Key {n}")["keyId"] for n in range(developer.MAX_KEYS_PER_PROJECT)
+        ]
         url = "projects/{}/keys".format(self.project["id"])
         self.assertEqual(self.call("post", url, {"label": "One too many"})[0], 400)
 
@@ -191,46 +203,59 @@ class ClaimConsentTest(DeveloperApiTestCase):
         super().setUp()
         self.set_up_developer()
         self.listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
-            project_name="Said no", project_link="https://saidno.example.org",
-            consent_to_display=False, is_published=False,
+            submission_source=SubmissionSource.FORMSTACK,
+            creator_email=self.user.email,
+            project_name="Said no",
+            project_link="https://saidno.example.org",
+            request_not_to_publish=True,
+            is_published=False,
         )
 
     def edit(self, visibility):
         fields = {**PROJECT, "name": "Said no", "websiteUrl": "https://saidno.example.org", "visibility": visibility}
-        status, state = self.call("post", "projects/{}".format(self.listing.id), {"project": fields})
+        api_id = ApiProject.objects.get(profile_id=self.listing.id).id
+        status, state = self.call("post", f"projects/{api_id}", {"project": fields})
         self.assertEqual(status, 200, state)
         return Project.objects.get(id=self.listing.id)
 
-    @pytest.mark.failing
-    def test_N_C15_claiming_a_listing_whose_submitter_said_no_keeps_it_unpublished_known_gap_N_D8(self):
-        status, state = self.call("post", "listings/{}/claim".format(self.listing.id))
+    def test_N_C15_claiming_a_listing_whose_submitter_said_no_keeps_it_unpublished(self):
+        status, state = self.call("post", f"listings/{self.listing.id}/claim")
 
         self.assertEqual(status, 200, state)
         row = Project.objects.get(id=self.listing.id)
-        self.assertEqual(row.owner, self.user)
-        self.assertFalse(row.consent_to_display)
+        self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, self.user)
+        self.assertTrue(row.request_not_to_publish)
         self.assertFalse(row.is_published)
         self.assertEqual(state["projects"][0]["visibility"], "private")
 
-    def test_N_C15_the_owner_picking_public_publishes_a_claimed_listing(self):
-        self.call("post", "listings/{}/claim".format(self.listing.id))
+    def test_N_C15_the_owner_picking_public_lists_a_claimed_listing_staff_left_published(self):
+        Project.objects.filter(id=self.listing.id).update(is_published=True)
+        self.call("post", f"listings/{self.listing.id}/claim")
+        self.assertNotIn(self.listing.id, gallery_ids())
 
         row = self.edit("public")
 
-        self.assertTrue(row.consent_to_display)
-        self.assertTrue(row.is_published)
+        self.assertFalse(row.request_not_to_publish)
+        self.assertIn(self.listing.id, gallery_ids())
 
-    @pytest.mark.failing
-    def test_N_C15_a_staff_unpublish_holds_when_the_owner_toggles_private_and_public_known_gap_N_D8(self):
-        self.call("post", "listings/{}/claim".format(self.listing.id))
+    def test_N_C15_the_owner_picking_public_does_not_publish_an_unpublished_listing(self):
+        self.call("post", f"listings/{self.listing.id}/claim")
+
+        row = self.edit("public")
+
+        self.assertFalse(row.request_not_to_publish)
+        self.assertFalse(row.is_published)
+        self.assertNotIn(self.listing.id, gallery_ids())
+
+    def test_N_C15_a_staff_unpublish_holds_when_the_owner_toggles_private_and_public(self):
+        self.call("post", f"listings/{self.listing.id}/claim")
         self.edit("public")
         Project.objects.filter(id=self.listing.id).update(is_published=False)
 
         self.edit("private")
         row = self.edit("public")
 
-        self.assertTrue(row.consent_to_display)
+        self.assertFalse(row.request_not_to_publish)
         self.assertFalse(row.is_published)
 
 
@@ -247,11 +272,15 @@ class AddressTakenTest(DeveloperApiTestCase):
         purge_test_profiles(self.holder)
         super().tearDown()
 
-    @pytest.mark.failing
-    def test_N_C16_a_link_for_an_address_verified_by_another_account_shows_a_page_known_gap_N_C16(self):
+    def test_N_C16_a_link_for_an_address_verified_by_another_account_shows_a_page(self):
         key = developer.confirmation_for(self.user).key
 
         response = Client().get("/settings/developer/confirm-email/" + key)
 
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            page_props(response.content.decode("utf-8"))["initialDeveloperEmailLink"],
+            {"status": "address-in-use", "key": key},
+        )
         self.assertFalse(EmailAddress.objects.get(user=self.user).verified)
+        self.assertFalse(UserProfile(id=self.user.id).settings.get(developer.ENABLED_SETTING))

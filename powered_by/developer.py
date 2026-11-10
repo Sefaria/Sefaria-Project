@@ -7,23 +7,26 @@ reported that address as verified, or it was confirmed through the emailed link 
 EmailAddress). Changing the account email therefore ends verification until the new address is
 confirmed; existing keys keep working, but no new project or key can be created.
 """
+
+import ipaddress
 from datetime import datetime, timedelta
 from urllib.parse import urlsplit
 
+import idna
 from allauth.account import app_settings as account_settings
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import SESSION_KEY, get_user_model
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator, validate_email
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.exceptions import InputError
-from .models import ApiKey, Project, SubmissionSource
 
+from .models import ApiKey, ApiProject, Project, SubmissionSource
 
 MAX_KEYS_PER_PROJECT = 5
 MAX_PROJECTS_PER_ACCOUNT = 10
@@ -47,13 +50,28 @@ CONFIRMATION_LINK_MAX_AGE = timedelta(days=account_settings.EMAIL_CONFIRMATION_E
 SSO_PROVIDERS = ("google", "apple")
 DISMISSED_LISTINGS_SETTING = "developer_dismissed_listings"
 
+# Written only through developer settings; the generic profile APIs drop them.
+DEVELOPER_PROFILE_SETTINGS = (
+    ENABLED_SETTING,
+    PROFILE_SETTING,
+    CONFIRMATION_SENT_SETTING,
+    CONFIRMATION_SENT_TO_SETTING,
+    CONFIRMATION_SENDS_SETTING,
+    DISMISSED_LISTINGS_SETTING,
+)
+
 MOCK_SSO_SESSION_KEY = "developer_mock_sso"
 
 _url_validator = URLValidator(schemes=["http", "https"])
 
+WEBSITE_IN_USE_ERROR = (
+    "A key is restricted to this website. Turn off the restriction on every key before removing the website."
+)
+
 
 class CooldownError(Exception):
     """Too soon to send another confirmation email; retry_after is in whole seconds."""
+
     def __init__(self, retry_after, message="Wait a minute before asking for another email."):
         super().__init__(message)
         self.retry_after = retry_after
@@ -61,15 +79,19 @@ class CooldownError(Exception):
 
 class LinkStatus:
     """What opening an emailed confirmation link did."""
+
     CONFIRMED = "confirmed"
     ALREADY_CONFIRMED = "already-confirmed"
     EXPIRED = "expired"
     NOT_ACCOUNT_EMAIL = "not-account-email"
+    ADDRESS_IN_USE = "address-in-use"
     INVALID = "invalid"
 
 
-def settings_enabled():
-    return bool(getattr(settings, "DEVELOPER_SETTINGS_ENABLED", False))
+def settings_enabled(user):
+    if not getattr(settings, "DEVELOPER_SETTINGS_ENABLED", False):
+        return False
+    return not getattr(settings, "DEVELOPER_SETTINGS_STAFF_ONLY", False) or bool(getattr(user, "is_staff", False))
 
 
 def mocks_enabled():
@@ -83,6 +105,18 @@ def iso(dt):
 DEFAULT_PORTS = {"http": 80, "https": 443}
 
 
+def _origin_host(hostname):
+    """A host as browsers write it in the Origin header: punycode for a non-Latin name, IPv6 in brackets."""
+    try:
+        return f"[{ipaddress.IPv6Address(hostname).compressed}]"
+    except ValueError:
+        pass
+    try:
+        return idna.encode(hostname, uts46=True).decode("ascii")
+    except idna.IDNAError:
+        return hostname.lower()
+
+
 def origin_of(url):
     """
     The browser Origin of a URL: scheme://host[:port], lowercase, without a default port. The
@@ -90,31 +124,23 @@ def origin_of(url):
     """
     parts = urlsplit(url)
     scheme = parts.scheme.lower()
-    origin = "{}://{}".format(scheme, (parts.hostname or "").lower())
+    origin = "{}://{}".format(scheme, _origin_host(parts.hostname or ""))
     if parts.port and parts.port != DEFAULT_PORTS.get(scheme):
-        origin += ":{}".format(parts.port)
+        origin += f":{parts.port}"
     return origin
 
 
-def origins_of(url):
+def session_login(request):
     """
-    The origins a website limit accepts: the website's own origin plus its www / no-www twin, so a key limited to
-    example.org also works on www.example.org and the other way round. Not for an IP address, localhost or a
-    subdomain other than www.
+    The user signed in through this browser's session cookie. Other ways a request can carry a
+    user, such as the Library Assistant's X-Session-ID token, don't count for developer settings.
     """
-    origin = origin_of(url)
-    parts = urlsplit(url)
-    host = (parts.hostname or "").lower()
-    if host.startswith("www."):
-        twin = host[4:]
-    elif host.count(".") == 1 and not host.replace(".", "").isdigit():
-        twin = "www." + host
-    else:
-        return [origin]
-    return [origin, origin.replace("://" + host, "://" + twin, 1)]
+    user = request.user
+    return user.is_authenticated and request.session.get(SESSION_KEY) == str(user.pk)
 
 
 # --- Verification ------------------------------------------------------------
+
 
 def mock_sso_override(request):
     return request.session.get(MOCK_SSO_SESSION_KEY) if mocks_enabled() else None
@@ -152,21 +178,38 @@ def account_verified(request):
     return sso_connected(request) or email_verified(request.user)
 
 
+def forget_email_address(user, email):
+    """
+    Called when the account email changes away from `email`. allauth's login backend accepts any
+    address with a row in EmailAddress, so a row left for the old address would keep it working
+    as a login, while password reset only knows the account email.
+    """
+    EmailAddress.objects.filter(user=user, email__iexact=email).delete()
+
+
 def confirmation_for(user):
     address = account_email_address(user)
     if address is None:
         # An account whose email changed still has a primary address row for the old one.
         has_primary = EmailAddress.objects.filter(user=user, primary=True).exists()
-        address = EmailAddress.objects.create(user=user, email=user.email.lower(), primary=not has_primary,
-                                              verified=False)
+        address = EmailAddress.objects.create(
+            user=user, email=user.email.lower(), primary=not has_primary, verified=False
+        )
     return EmailConfirmationHMAC(address)
 
 
-def address_of_link(key):
-    """The address an emailed link was sent for, however old the link, or None if we didn't sign it."""
+def _address_id_of_link(key):
+    """The EmailAddress id an emailed link was signed for, however old the link, or None if we didn't sign it."""
     try:
-        pk = signing.loads(key, salt=account_settings.SALT)
+        return signing.loads(key, salt=account_settings.SALT)
     except signing.BadSignature:
+        return None
+
+
+def address_of_link(key):
+    """The address an emailed link was sent for, or None if we didn't sign it or the address is gone."""
+    pk = _address_id_of_link(key)
+    if pk is None:
         return None
     return EmailAddress.objects.select_related("user").filter(pk=pk).first()
 
@@ -183,21 +226,31 @@ def is_account_email(address):
     return address.email.lower() == (address.user.email or "").lower()
 
 
+def verified_elsewhere(address):
+    """Another account already verified this address, so allauth won't verify it for this one."""
+    return (
+        EmailAddress.objects.filter(email__iexact=address.email, verified=True).exclude(user=address.user_id).exists()
+    )
+
+
 def confirm_email(request, key):
     """
     Confirms the address behind an emailed link and turns developer settings on for its
     account. Opening it needs no login. Returns a LinkStatus: a link for an address that is no
     longer the account email is refused, as is one older than the link lifetime.
     """
-    address = address_of_link(key)
-    if address is None:
+    if _address_id_of_link(key) is None:
         return LinkStatus.INVALID
-    if not is_account_email(address):
+    address = address_of_link(key)
+    # A missing address was removed from its account when the account email changed.
+    if address is None or not is_account_email(address):
         return LinkStatus.NOT_ACCOUNT_EMAIL
     if address.verified:
         return LinkStatus.ALREADY_CONFIRMED
     if link_expired(key):
         return LinkStatus.EXPIRED
+    if verified_elsewhere(address):
+        return LinkStatus.ADDRESS_IN_USE
     if EmailConfirmationHMAC(address).confirm(request) is None:
         return LinkStatus.INVALID
     profile = UserProfile(id=address.user_id)
@@ -221,6 +274,7 @@ def user_for_new_link(key):
 
 # --- State -------------------------------------------------------------------
 
+
 def serialize_key(api_key):
     return {
         "id": str(api_key.id),
@@ -231,18 +285,20 @@ def serialize_key(api_key):
     }
 
 
-def serialize_project(project):
-    keys = [k for k in project.api_keys.all() if k.revoked_at is None]
+def serialize_project(api_project):
+    profile = api_project.profile
+    keys = [k for k in api_project.api_keys.all() if k.revoked_at is None]
     return {
-        "id": str(project.id),
-        "name": project.project_name,
-        "description": project.project_desc,
-        "organization": project.organization,
-        "websiteUrl": project.project_link,
-        "visibility": "public" if project.consent_to_display else "private",
-        "aiAssisted": project.vibe_coded,
-        "linkedListing": project.submission_source != SubmissionSource.DEVELOPER_SETTINGS,
-        "consentWithdrawnAt": iso(project.consent_withdrawn_at),
+        "id": str(api_project.id),
+        "name": profile.project_name,
+        "description": profile.project_desc,
+        "organization": profile.organization,
+        "websiteUrl": profile.project_link,
+        "visibility": "private" if profile.request_not_to_publish else "public",
+        "aiAssisted": profile.vibe_coded,
+        "linkedListing": profile.submission_source != SubmissionSource.DEVELOPER_SETTINGS,
+        "consentWithdrawnAt": iso(profile.consent_withdrawn_at),
+        "contactEmail": api_project.contact_email,
         "keys": [serialize_key(k) for k in keys],
     }
 
@@ -257,8 +313,13 @@ def public_listing(project):
 
 
 def owned_projects(user):
-    return (Project.objects.filter(owner=user, deleted_at__isnull=True)
-            .prefetch_related("api_keys").order_by("-created_at"))
+    """The account's live API projects, each with its profile and keys."""
+    return (
+        ApiProject.objects.filter(owner=user, deleted_at__isnull=True)
+        .select_related("profile")
+        .prefetch_related("api_keys")
+        .order_by("-created_at")
+    )
 
 
 def unclaimed_listings(user, profile):
@@ -270,8 +331,16 @@ def unclaimed_listings(user, profile):
 
 
 def listings_submitted_by(user):
-    return (Project.objects.filter(owner__isnull=True, deleted_at__isnull=True, creator_email__iexact=user.email)
-            .exclude(submission_source=SubmissionSource.DEVELOPER_SETTINGS))
+    """
+    Profiles submitted outside developer settings with this account's email and no API project. A listing whose
+    API project was deleted was deleted with it, so it is not offered again. A profile an older image or staff soft-deleted (its frozen deleted_at, which the public endpoint also honours) is
+    not offered: claiming it would hand out a listing that stays hidden from the public endpoint for good.
+    """
+    return (
+        Project.objects.filter(creator_email__iexact=user.email, deleted_at__isnull=True)
+        .exclude(submission_source=SubmissionSource.DEVELOPER_SETTINGS)
+        .exclude(id__in=ApiProject.objects.values("profile_id"))
+    )
 
 
 def developer_state(request):
@@ -312,17 +381,22 @@ FIELD_LABELS = {
     "name": "The project name",
     "organization": "The organization",
     "websiteUrl": "The website",
+    "contactEmail": "The contact email",
 }
+
+
+# api_project.contact_email is a varchar(254), the length of an email address.
+CONTACT_EMAIL_MAX_LENGTH = 254
 
 
 def _text(data, field, max_length=255):
     label = FIELD_LABELS.get(field, field)
     value = data.get(field, "")
     if not isinstance(value, str):
-        raise InputError("{} must be text.".format(label))
+        raise InputError(f"{label} must be text.")
     value = value.strip()
     if len(value) > max_length:
-        raise InputError("{} can be at most {} characters.".format(label, max_length))
+        raise InputError(f"{label} can be at most {max_length} characters.")
     return value
 
 
@@ -345,6 +419,14 @@ def clean_profile(data):
         except ValidationError:
             raise InputError("The additional email is not a valid address.")
     return profile
+
+
+def drop_developer_settings(profile_settings):
+    """Removes the developer settings from profile settings a client sent, in place."""
+    if isinstance(profile_settings, dict):
+        for key in DEVELOPER_PROFILE_SETTINGS:
+            profile_settings.pop(key, None)
+    return profile_settings
 
 
 def save_profile(user, data):
@@ -413,8 +495,7 @@ def check_confirmation_limits(user):
     if len(sends) >= CONFIRMATION_DAILY_LIMIT:
         raise CooldownError(
             _seconds(timedelta(days=1) - (now - sends[-CONFIRMATION_DAILY_LIMIT])),
-            "You've asked for {} links today. Try again tomorrow, or contact hello@sefaria.org.".format(
-                CONFIRMATION_DAILY_LIMIT),
+            f"You've asked for {CONFIRMATION_DAILY_LIMIT} links today. Try again tomorrow, or contact hello@sefaria.org.",
         )
 
 
@@ -455,6 +536,7 @@ def mark_confirmation_sent(user, sent):
 
 # --- Projects ----------------------------------------------------------------
 
+
 def clean_project_fields(data):
     if not isinstance(data, dict):
         raise InputError("The project must be a JSON object.")
@@ -465,6 +547,8 @@ def clean_project_fields(data):
         "websiteUrl": _text(data, "websiteUrl", 200),
         "visibility": data.get("visibility"),
         "aiAssisted": bool(data.get("aiAssisted")),
+        # None when the request leaves it out, so an edit keeps the stored address.
+        "contactEmail": _text(data, "contactEmail", CONTACT_EMAIL_MAX_LENGTH) if "contactEmail" in data else None,
     }
     if not fields["name"]:
         raise InputError("Give the project a name.")
@@ -475,6 +559,11 @@ def clean_project_fields(data):
             _url_validator(fields["websiteUrl"])
         except ValidationError:
             raise InputError("The website is not a valid web address.")
+    if fields["contactEmail"]:
+        try:
+            validate_email(fields["contactEmail"])
+        except ValidationError:
+            raise InputError("The contact email is not a valid address.")
     return fields
 
 
@@ -488,36 +577,41 @@ def _apply_fields(project, fields):
 
 def _set_visibility(project, visibility):
     """
-    Public projects are listed on Powered by Sefaria, as rows from the public form are when
-    their submitter consents; staff can still unpublish one.
+    Public is the owner's consent to be listed on Powered by Sefaria; private sets request_not_to_publish,
+    which also unpublishes (Project.save). Only staff publish, so a project made public again stays
+    unlisted until staff republish it.
     """
     if visibility == "public":
-        if not project.consent_to_display:
-            project.is_published = True
-        project.consent_to_display = True
+        project.request_not_to_publish = False
         project.consent_withdrawn_at = None
-    elif project.consent_to_display:
-        project.consent_to_display = False
-        project.is_published = False
+    elif not project.request_not_to_publish:
+        project.request_not_to_publish = True
         project.consent_withdrawn_at = timezone.now()
 
 
 def get_owned_project(user, project_id):
     try:
         return owned_projects(user).get(id=int(project_id))
-    except (Project.DoesNotExist, ValueError):
+    except (ApiProject.DoesNotExist, ValueError):
         raise LookupError("No such project.")
 
 
 def _lock_owned_project(user, project_id):
     """
-    The owned, undeleted project with its row locked until the transaction ends, so key creation,
+    The owned, undeleted API project with its row locked until the transaction ends, so key creation,
     project edits and deletion of one project run one at a time. Call inside transaction.atomic().
+
+    The profile is read only after the lock is held: one joined into the locking query can be the version from
+    before the edit this lock waited for, since Postgres re-checks only the locked row.
     """
     try:
-        return Project.objects.select_for_update().get(id=int(project_id), owner=user, deleted_at__isnull=True)
-    except (Project.DoesNotExist, ValueError):
+        api_project = ApiProject.objects.select_for_update().get(
+            id=int(project_id), owner=user, deleted_at__isnull=True
+        )
+    except (ApiProject.DoesNotExist, ValueError):
         raise LookupError("No such project.")
+    api_project.profile = Project.objects.get(pk=api_project.profile_id)
+    return api_project
 
 
 def max_projects(user):
@@ -531,85 +625,113 @@ def _check_project_limit(user):
     _lock_account(user)
     limit = max_projects(user)
     if owned_projects(user).count() >= limit:
-        raise InputError("An account can have at most {} projects. To add more, contact hello@sefaria.org.".format(limit))
+        raise InputError(f"An account can have at most {limit} projects. To add more, contact hello@sefaria.org.")
+
+
+def _unpublish(profile):
+    profile.request_not_to_publish = True
+    profile.is_published = False
+    profile.save()
 
 
 @transaction.atomic
 def create_project(user, data):
+    """Creates the profile of a settings-made project and its API project. Returns the API project."""
     fields = clean_project_fields(data)
     _check_project_limit(user)
-    project = Project(
+    profile = Project(
         submission_source=SubmissionSource.DEVELOPER_SETTINGS,
         submission_date=timezone.now(),
-        owner=user,
         creator=user.get_full_name(),
         creator_email=user.email,
-        is_published=fields["visibility"] == "public",
-        consent_to_display=fields["visibility"] == "public",
+        request_not_to_publish=fields["visibility"] != "public",
     )
-    _apply_fields(project, fields)
-    project.save()
-    return project
+    _apply_fields(profile, fields)
+    profile.save()
+    return ApiProject.objects.create(profile=profile, owner=user, contact_email=fields["contactEmail"] or "")
 
 
 @transaction.atomic
 def update_project(user, project_id, data):
-    project = _lock_owned_project(user, project_id)
+    """
+    Restricted keys follow the website to a new address. The website can't be removed while any
+    key is restricted to it: that would quietly let the key work from anywhere.
+    """
+    api_project = _lock_owned_project(user, project_id)
+    profile = api_project.profile
     fields = clean_project_fields(data)
-    old_link = project.project_link
-    _apply_fields(project, fields)
-    _set_visibility(project, fields["visibility"])
-    project.save()
-    if project.project_link != old_link:
-        new_origins = origins_of(project.project_link) if project.project_link else []
-        for api_key in project.api_keys.filter(revoked_at__isnull=True).exclude(allowed_origins=[]):
-            api_key.allowed_origins = new_origins
+    old_link = profile.project_link
+    restricted_keys = api_project.api_keys.filter(revoked_at__isnull=True).exclude(allowed_origins=[])
+    if old_link and not fields["websiteUrl"] and restricted_keys.exists():
+        raise InputError(WEBSITE_IN_USE_ERROR)
+    _apply_fields(profile, fields)
+    _set_visibility(profile, fields["visibility"])
+    profile.save()
+    if fields["contactEmail"] is not None:
+        api_project.contact_email = fields["contactEmail"]
+    api_project.save()
+    if profile.project_link != old_link:
+        for api_key in restricted_keys:
+            api_key.allowed_origins = [origin_of(profile.project_link)]
             api_key.save(update_fields=["allowed_origins"])
     return get_owned_project(user, project_id)
 
 
 @transaction.atomic
 def delete_project(user, project_id):
-    project = _lock_owned_project(user, project_id)
+    soft_delete(_lock_owned_project(user, project_id))
+
+
+def soft_delete(api_project):
+    """Revokes the API project's keys and marks it deleted. Call inside transaction.atomic() with its row locked."""
     now = timezone.now()
-    project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=now)
-    project.deleted_at = now
-    project.consent_to_display = False
-    project.is_published = False
-    project.save()
+    api_project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=now)
+    if api_project.deleted_at is not None:
+        return
+    api_project.deleted_at = now
+    api_project.save()
+    _unpublish(api_project.profile)
 
 
 @transaction.atomic
 def claim_listing(user, listing_id):
     """
     Makes an unclaimed Powered by listing submitted with this account's email one of its projects.
+    Returns the new API project. The listing profile itself is not changed.
     """
     _check_project_limit(user)
     try:
-        project = unclaimed_listings(user, UserProfile(id=user.id)).get(id=int(listing_id))
+        listing_id = int(listing_id)
+        # Locked before the check: a concurrent claim, or a staff-made API project's foreign key, waits for this one.
+        Project.objects.select_for_update().get(id=listing_id)
+        listing = unclaimed_listings(user, UserProfile(id=user.id)).get(id=listing_id)
     except (Project.DoesNotExist, ValueError):
         raise LookupError("No such listing.")
-    project.owner = user
-    _set_visibility(project, "public")
-    project.save()
-    return project
+    # The savepoint keeps the request's transaction usable when another claim or an admin made a live API project
+    # for this profile after the check above; that is the partial unique index, and the listing is simply taken.
+    try:
+        with transaction.atomic():
+            return ApiProject.objects.create(profile=listing, owner=user)
+    except IntegrityError as error:
+        if "api_project_one_live_per_profile" not in str(error) and "api_project.profile_id" not in str(error):
+            raise
+        raise LookupError("No such listing.")
 
 
 @transaction.atomic
 def release_account_projects(user):
     """
-    For an account being deleted: every key of its projects is revoked, projects it created
-    are deleted, and listings it claimed go back to unclaimed.
+    For an account being deleted: every key of its API projects is revoked and live API projects are
+    deleted with their profiles unpublished, claimed listings included. The API project rows are locked
+    first, in the same order as project edits and key creation take them, then the profiles are read.
     """
-    now = timezone.now()
-    for project in Project.objects.filter(owner=user):
-        project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=now)
-        if project.submission_source == SubmissionSource.DEVELOPER_SETTINGS and project.deleted_at is None:
-            project.deleted_at = now
-            project.consent_to_display = False
-            project.is_published = False
-        project.owner = None
-        project.save()
+    locked = list(ApiProject.objects.select_for_update().filter(owner=user).order_by("id"))
+    profiles = Project.objects.in_bulk([api_project.profile_id for api_project in locked])
+    for api_project in locked:
+        api_project.profile = profiles[api_project.profile_id]
+        soft_delete(api_project)
+        api_project.owner = None
+        api_project.save()
 
 
 def dismiss_listing(user, listing_id):
@@ -628,6 +750,7 @@ def dismiss_listing(user, listing_id):
 
 # --- Keys --------------------------------------------------------------------
 
+
 @transaction.atomic
 def create_key(user, project_id, label):
     project = _lock_owned_project(user, project_id)
@@ -637,24 +760,30 @@ def create_key(user, project_id, label):
     if len(label) > 100:
         raise InputError("The key name can be at most 100 characters.")
     if project.api_keys.filter(revoked_at__isnull=True).count() >= MAX_KEYS_PER_PROJECT:
-        raise InputError("A project can have at most {} keys.".format(MAX_KEYS_PER_PROJECT))
+        raise InputError(f"A project can have at most {MAX_KEYS_PER_PROJECT} keys.")
     return ApiKey.objects.create(project=project, label=label)
 
 
 def get_owned_key(user, key_id):
     try:
-        return ApiKey.objects.select_related("project").get(
-            id=key_id, revoked_at__isnull=True, project__owner=user, project__deleted_at__isnull=True,
+        return ApiKey.objects.select_related("project__profile").get(
+            id=key_id,
+            revoked_at__isnull=True,
+            project__owner=user,
+            project__deleted_at__isnull=True,
         )
     except (ApiKey.DoesNotExist, ValidationError, ValueError):
         raise LookupError("No such key.")
 
 
+@transaction.atomic
 def set_key_restriction(user, key_id, restrict):
+    """Holds the API project's row lock, so a concurrent update_project can't remove the website under it."""
     api_key = get_owned_key(user, key_id)
-    if restrict and not api_key.project.project_link:
+    website = _lock_owned_project(user, api_key.project_id).profile.project_link
+    if restrict and not website:
         raise InputError("Add the project's website before restricting a key to it.")
-    api_key.allowed_origins = origins_of(api_key.project.project_link) if restrict else []
+    api_key.allowed_origins = [origin_of(website)] if restrict else []
     api_key.save(update_fields=["allowed_origins"])
     return api_key
 

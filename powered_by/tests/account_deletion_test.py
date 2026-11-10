@@ -2,11 +2,11 @@
 N-M5: deleting an account (sefaria.utils.user.delete_user_account) with and without developer
 projects, and when the powered_by deletion hook fails.
 
-Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry
-the `failing` marker, so the default CI run (-m "not failing") leaves them out. The whole class
-is `deep`: delete_user_account updates every sheet that lists the user in `likes`, a scan of the
-full sheets collection that can outlast pymongo's socket timeout on a loaded Mongo.
+The whole class is `deep`: delete_user_account updates every sheet that lists the user in
+`likes`, a scan of the full sheets collection that can outlast pymongo's socket timeout on a
+loaded Mongo.
 """
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -15,7 +15,7 @@ from django.db import transaction
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
-from powered_by.models import ApiKey, Project, SubmissionSource
+from powered_by.models import ApiKey, ApiProject, Project, SubmissionSource
 from reader.conftest import create_test_user, purge_test_profiles
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
@@ -40,21 +40,29 @@ class DeleteAccountTest(TestCase):
         purge_test_profiles(self.uid)
 
     def developer_project(self):
-        project = Project.objects.create(
-            submission_source=SubmissionSource.DEVELOPER_SETTINGS, submission_date=timezone.now(),
-            owner=self.user, project_name="Daf Portal", project_link="https://dafportal.example.org",
-            consent_to_display=True, is_published=True,
+        profile = Project.objects.create(
+            submission_source=SubmissionSource.DEVELOPER_SETTINGS,
+            submission_date=timezone.now(),
+            project_name="Daf Portal",
+            project_link="https://dafportal.example.org",
+            request_not_to_publish=False,
+            is_published=True,
         )
+        project = ApiProject.objects.create(profile=profile, owner=self.user)
         keys = [ApiKey.objects.create(project=project, label=label) for label in ("Production", "Staging")]
         return project, keys
 
     def claimed_listing(self):
         listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email, owner=self.user,
-            project_name="Tehillim Circle", project_link="https://tehillimcircle.example.org",
-            consent_to_display=True, is_published=True,
+            submission_source=SubmissionSource.FORMSTACK,
+            creator_email=self.user.email,
+            project_name="Tehillim Circle",
+            project_link="https://tehillimcircle.example.org",
+            request_not_to_publish=False,
+            is_published=True,
         )
-        return listing, ApiKey.objects.create(project=listing, label="Claimed")
+        project = ApiProject.objects.create(profile=listing, owner=self.user)
+        return listing, ApiKey.objects.create(project=project, label="Claimed")
 
     def assert_account_gone(self):
         self.assertFalse(User.objects.filter(id=self.uid).exists())
@@ -75,23 +83,26 @@ class DeleteAccountTest(TestCase):
         project.refresh_from_db()
         self.assertIsNotNone(project.deleted_at)
         self.assertIsNone(project.owner_id)
-        self.assertFalse(project.is_published)
-        self.assertFalse(project.consent_to_display)
+        profile = Project.objects.get(id=project.profile_id)
+        self.assertFalse(profile.is_published)
+        self.assertTrue(profile.request_not_to_publish)
         self.assertTrue(all(k.revoked_at for k in ApiKey.objects.filter(id__in=[k.id for k in keys])))
 
-    def test_N_M5_a_claimed_listing_is_released_and_its_keys_revoked(self):
+    def test_N_M5_a_claimed_listing_is_deleted_with_the_account_and_its_keys_revoked(self):
         listing, key = self.claimed_listing()
 
         self.assertTrue(delete_user_account(self.uid, confirm=False))
 
         self.assert_account_gone()
+        project = ApiProject.objects.get(profile_id=listing.id)
+        self.assertIsNone(project.owner_id)
+        self.assertIsNotNone(project.deleted_at)
         listing.refresh_from_db()
-        self.assertIsNone(listing.owner_id)
         self.assertIsNone(listing.deleted_at)
+        self.assertTrue(listing.request_not_to_publish and not listing.is_published)
         self.assertIsNotNone(ApiKey.objects.get(id=key.id).revoked_at)
 
-    @pytest.mark.failing
-    def test_N_M5_a_failing_deletion_hook_leaves_no_half_deleted_account_known_gap_N_M5(self):
+    def test_N_M5_a_failing_deletion_hook_leaves_no_half_deleted_account(self):
         self.developer_project()
 
         with patch("powered_by.developer.release_account_projects", side_effect=RuntimeError("hook failed")):

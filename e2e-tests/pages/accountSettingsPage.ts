@@ -82,13 +82,6 @@ export class AccountSettingsPage extends HelperBase {
     await expect(option).toHaveClass(/on/);
   }
 
-  async selectLibraryAssistant(enabled: boolean) {
-    await this.waitForHydration();
-    const option = this.page.locator(`#libraryAssistantSetting .toggleOption[data-value="${enabled}"]`);
-    await option.click();
-    await expect(option).toHaveClass(/on/);
-  }
-
   async selectTextualCustom(custom: 'sephardi' | 'ashkenazi') {
     await this.waitForHydration();
     const option = this.textualCustomSection.locator(`.toggleOption[data-value="${custom}"]`);

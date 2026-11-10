@@ -1,6 +1,7 @@
 """
 JSON API behind the developer tab of the settings page, and the emailed confirmation link.
 """
+
 import json
 from functools import wraps
 
@@ -10,33 +11,37 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.views.decorators.clickjacking import xframe_options_deny
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
 from reader.views import menu_page
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError
-from . import developer
 
+from . import developer
 
 MAX_BODY_BYTES = 16 * 1024
 
 
 def requires_developer_settings(view):
     """
-    The view exists only where DEVELOPER_SETTINGS_ENABLED is on; elsewhere it is a 404.
+    The view exists only where DEVELOPER_SETTINGS_ENABLED is on, and with DEVELOPER_SETTINGS_STAFF_ONLY
+    only for staff; elsewhere it is a 404.
     """
+
     @wraps(view)
     def wrapper(request, *args, **kwargs):
-        if not developer.settings_enabled():
+        if not developer.settings_enabled(request.user):
             raise Http404
         return view(request, *args, **kwargs)
+
     return wrapper
 
 
 def developer_api(func=None, login=True):
     """
-    JSON endpoints, logged in unless login=False: parses a JSON body into request.json, and maps
+    JSON endpoints, logged in through the browser session unless login=False: parses a JSON body into request.json, and maps
     input errors to 400, missing setup to 403, unknown or unowned objects to 404 and a repeated
     request to 429.
     """
@@ -45,7 +50,7 @@ def developer_api(func=None, login=True):
 
     @wraps(func)
     def wrapper(request, *args, **kwargs):
-        if login and not request.user.is_authenticated:
+        if login and not developer.session_login(request):
             return jsonResponse({"error": "Log in to use developer settings."}, status=401)
         request.json = {}
         if request.body:
@@ -69,6 +74,7 @@ def developer_api(func=None, login=True):
             response = jsonResponse({"error": str(e)}, status=429)
             response["Retry-After"] = str(e.retry_after)
             return response
+
     return wrapper
 
 
@@ -161,10 +167,12 @@ LINK_PAGE_TITLES = {
     developer.LinkStatus.ALREADY_CONFIRMED: "Already confirmed",
     developer.LinkStatus.EXPIRED: "This link has expired",
     developer.LinkStatus.NOT_ACCOUNT_EMAIL: "This link is no longer valid",
+    developer.LinkStatus.ADDRESS_IN_USE: "This link is no longer valid",
 }
 
 
 @requires_developer_settings
+@xframe_options_deny
 @ensure_csrf_cookie
 def confirm_email(request, key):
     status = developer.confirm_email(request, key)
@@ -172,14 +180,23 @@ def confirm_email(request, key):
         return redirect("/settings/developer/email-confirmed")
     if status == developer.LinkStatus.INVALID:
         raise Http404
-    return menu_page(request, page="developerEmailLink", title=LINK_PAGE_TITLES[status],
-                     props={"initialDeveloperEmailLink": {"status": status, "key": key}})
+    return menu_page(
+        request,
+        page="developerEmailLink",
+        title=LINK_PAGE_TITLES[status],
+        props={"initialDeveloperEmailLink": {"status": status, "key": key}},
+    )
 
 
 @requires_developer_settings
+@xframe_options_deny
 def email_confirmed_page(request):
-    return menu_page(request, page="developerEmailConfirmed", title="Email confirmed",
-                     desc="Your email is confirmed for Sefaria developer settings.")
+    return menu_page(
+        request,
+        page="developerEmailConfirmed",
+        title="Email confirmed",
+        desc="Your email is confirmed for Sefaria developer settings.",
+    )
 
 
 @requires_developer_settings

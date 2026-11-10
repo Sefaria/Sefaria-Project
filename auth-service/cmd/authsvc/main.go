@@ -57,11 +57,16 @@ func main() {
 
 	cfg := authz.Config{
 		Mode:    authz.Mode(envOr("AUTH_MODE", "enforce")),
-		HelpURL: envOr("HELP_URL", "https://developers.sefaria.org/help/"),
+		HelpURL: envOr("HELP_URL", "https://developers.sefaria.org/#"),
 	}
 	if gp := os.Getenv("GATED_PATHS"); gp != "" {
 		cfg.GatedPaths = strings.Split(gp, ",")
 	}
+	meters, err := authz.ParseMeters(os.Getenv("METERED_PATHS"))
+	if err != nil {
+		panic(err)
+	}
+	cfg.Meters = meters
 	if cfg.Mode != authz.ModeEnforce && cfg.Mode != authz.ModeObserve {
 		panic("AUTH_MODE must be enforce or observe")
 	}
