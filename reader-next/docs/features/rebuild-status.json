@@ -239,8 +239,8 @@
  },
  "RTE-059": {
   "status": "done",
-  "note": "Bounce reproduced in the reader's server (needs DOMAIN_MODULES in the pod env)",
-  "by": "src/server/language-domain.ts, src/start.ts"
+  "note": "Bounce reproduced in the reader's server; DOMAIN_MODULES in the reader pods' env; e2e in every suite",
+  "by": "src/server/language-domain.ts, src/start.ts, helm-chart/sefaria/templates/_helpers.tpl"
  },
  "RTE-062": {
   "status": "done",
@@ -1542,9 +1542,9 @@
   "by": "src/lib/analytics/core.ts"
  },
  "ANL-017": {
-  "status": "partial",
-  "note": "First-party beacon reporter built (no Sentry); needs the receiving endpoint and PUBLIC_ERROR_ENDPOINT in the chart",
-  "by": "src/lib/monitoring/error-reporter.ts, src/lib/monitoring/ErrorBoundary.tsx, src/features/shell/Monitoring.tsx"
+  "status": "done",
+  "note": "First-party beacon reporter (no Sentry) with Django's receiver /api/reader-errors and the chart env; not yet seen in Datadog from a cluster",
+  "by": "src/lib/monitoring/error-reporter.ts, reader/browser_errors.py, helm-chart/sefaria/templates/_helpers.tpl"
  },
  "ANL-009": {
   "status": "partial",
@@ -4160,7 +4160,7 @@
  },
  "TXD-070": {
   "status": "done",
-  "note": "Kept and highlighted across sections, sidebar open or closed (legacy parity, verified 2026-11-10)",
+  "note": "Kept and highlighted, sidebar open or closed, long ranges of whole sections included (legacy parity, verified 2026-11-10)",
   "by": "src/lib/text/range-selection.ts, src/features/reader/TextPanel.tsx"
  }
 }
