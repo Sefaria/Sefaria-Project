@@ -12,7 +12,7 @@ CI and a plain `npx playwright test` never run them.
 
 ```bash
 auth-service/dev/local-stack/up.sh                       # the stack owner starts it; suites never restart it
-python scripts/dev/seed_api_keys_e2e.py --target local --reset --manifest-stdout > e2e-tests/.apikeys-e2e.json
+(umask 077; python scripts/dev/seed_api_keys_e2e.py --target local --reset --manifest-stdout > e2e-tests/.apikeys-e2e.json)
 APIKEYS_TARGET=local npx playwright test --project=apikeys
 APIKEYS_TARGET=local npx playwright test --project=apikeys e2e-tests/api-keys/_smoke.spec.ts   # scaffold check
 APIKEYS_TARGET=local npx playwright test --project=apikeys --grep-invert @known-gap            # only what should pass today

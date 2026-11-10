@@ -14,7 +14,7 @@ Usage (local stack, from the repo root, with the stack's settings module):
     python scripts/dev/seed_api_keys_e2e.py --target local --report
     python scripts/dev/seed_api_keys_e2e.py --target local --teardown --dry-run
     python scripts/dev/seed_api_keys_e2e.py --target local --teardown
-    python scripts/dev/seed_api_keys_e2e.py --target local --manifest-stdout > e2e-tests/.apikeys-e2e.json
+    (umask 077; python scripts/dev/seed_api_keys_e2e.py --target local --manifest-stdout > e2e-tests/.apikeys-e2e.json)
     python scripts/dev/seed_api_keys_e2e.py --target local --reset-send-limits onboarding.unverified
     python scripts/dev/seed_api_keys_e2e.py --target local --mint-expired-link onboarding.expiredLink
     python scripts/dev/seed_api_keys_e2e.py --target local --legacy-key callers.legacy
@@ -29,6 +29,10 @@ the exec arguments. The password goes first, as a one-line preamble:
 ``manage.py shell --no-imports`` works too, with ``APIKEYS_SEED_ARGV = [...]`` in the preamble
 (without --no-imports, Django prints its auto-import banner on stdout and breaks the manifest).
 
+The manifest holds full API keys. Redirect --manifest-stdout to a file under ``umask 077``; the script also
+chmods a regular-file stdout to 0600, and writes its own manifest file (no --manifest-stdout) with mode 0600 even
+over an older, wider file.
+
 The password is read from the preamble or from the file named by APIKEYS_E2E_PASSWORD_FILE, never
 from argv, and is never printed. Key values appear only in the manifest.
 """
@@ -39,6 +43,7 @@ import json
 import os
 import re
 import secrets
+import stat
 import sys
 import time
 from datetime import UTC, datetime, timedelta
@@ -210,11 +215,14 @@ def cauldron_name():
 
 
 def _domain_hosts(value):
-    """Every host named anywhere in a DOMAIN_MODULES value, scheme and trailing slash removed."""
+    """Every host named as a value anywhere in a DOMAIN_MODULES value, scheme and trailing slash removed.
+
+    Dict keys (language codes, module names) are not hosts and are skipped.
+    """
     if isinstance(value, dict):
-        return set().union(*(_domain_hosts(v) for v in value.values()), *(_domain_hosts(k) for k in value))
+        return set().union(set(), *(_domain_hosts(v) for v in value.values()))
     if isinstance(value, (list, tuple, set)):
-        return set().union(*(_domain_hosts(v) for v in value))
+        return set().union(set(), *(_domain_hosts(v) for v in value))
     if isinstance(value, str):
         return {re.sub(r"^https?://", "", value).rstrip("/")}
     return set()
@@ -232,35 +240,177 @@ def require_mutation_consent(target):
         )
 
 
-def guard_target(target):
-    """Refuses to run anywhere but the local stack's Postgres or the cauldron named by APIKEYS_CAULDRON."""
-    from django.conf import settings
+# Why the cauldron guard looks like this
+#
+# Service names are identical in the dev and the production clusters (both have Services such as postgres-18 and a
+# Mongo Service in the default namespace), so a hostname allow-list cannot tell a dev database from a production one.
+# What proves which cluster the process runs in is, together:
+#   1. the pod's own DOMAIN_MODULES, which a production pod can never have set to a *.cauldron.sefaria.org site
+#      (checked here, inside the pod), and
+#   2. the kube context the outer cauldron scripts pin to the development cluster before they exec into the pod
+#      (e2e-tests/api-keys/cauldron/lib.sh: KCTX, the kc and seed_exec helpers).
+# On top of that the database destinations must be in-cluster Kubernetes names, so a cauldron whose settings were
+# pointed at an external host (a production Cloud SQL address, a public IP, a vendor FQDN) is refused.
+# APIKEYS_UNSAFE_ALLOW_HOSTS can add hosts to the in-cluster rule only; it never relaxes the domain check.
 
-    env_target = os.environ.get("APIKEYS_TARGET")
+UNSAFE_ALLOW_HOSTS_ENV = "APIKEYS_UNSAFE_ALLOW_HOSTS"
+CAULDRON_DOMAIN_SUFFIX = "cauldron.sefaria.org"
+PRODUCTION_DOMAINS = ("sefaria.org", "sefaria.org.il")
+REGISTRY_DB_NAME = "sefaria_auth"
+
+_LABEL = r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"
+_SINGLE_LABEL_RE = re.compile(rf"^{_LABEL}$")
+_SERVICE_FQDN_RE = re.compile(rf"^{_LABEL}(?:\.{_LABEL})*\.svc(?:\.cluster\.local)?$")
+LOOPBACK_NAMES = LOOPBACK_HOSTS | {"0.0.0.0", "::"}
+
+
+def parse_hosts(value, default_port=None):
+    """
+    The (host, port) pairs of a Postgres HOST or a Mongo MONGO_HOST value: a string or a list, each entry
+    possibly a comma list of ``host``, ``host:port`` or ``[v6]:port``. A host that is empty yields nothing.
+    """
+    if value is None:
+        return []
+    entries = []
+    for item in value if isinstance(value, (list, tuple, set)) else [value]:
+        entries.extend(part.strip() for part in str(item).split(","))
+    pairs = []
+    for entry in entries:
+        if not entry:
+            continue
+        port = default_port
+        if entry.startswith("["):
+            host, _, rest = entry[1:].partition("]")
+            if rest.startswith(":"):
+                port = rest[1:]
+        elif entry.count(":") == 1:
+            host, port = entry.split(":")
+        else:
+            host = entry
+        pairs.append((host.lower(), None if port is None else str(port)))
+    return pairs
+
+
+def is_in_cluster_name(host):
+    """A single DNS label, or <service>[.<namespace>].svc[.cluster.local]. Never an IP, loopback or external FQDN."""
+    if host in LOOPBACK_NAMES or host.isdigit():
+        return False
+    return bool(_SINGLE_LABEL_RE.match(host) or _SERVICE_FQDN_RE.match(host))
+
+
+def _extra_allowed_hosts(environ):
+    return {h.strip().lower() for h in environ.get(UNSAFE_ALLOW_HOSTS_ENV, "").split(",") if h.strip()}
+
+
+def check_cauldron_domains(domain_hosts, name):
+    """Every configured site domain must be the cauldron's own; no production host may appear."""
+    own = f"{name}.{CAULDRON_DOMAIN_SUFFIX}"
+    if not domain_hosts:
+        raise SystemExit(f"Refusing: this pod's DOMAIN_MODULES names no site, so it is not the {name} cauldron.")
+    for host in sorted(domain_hosts):
+        bare = host.split("/")[0].split(":")[0].lower()
+        if bare == own or bare.endswith("." + own):
+            continue
+        if any(bare == d or bare.endswith("." + d) for d in PRODUCTION_DOMAINS):
+            raise SystemExit(f"Refusing: DOMAIN_MODULES names the production host {host}.")
+        raise SystemExit(f"Refusing: DOMAIN_MODULES names {host}, which is not under {own}.")
+
+
+def check_destinations(label, pairs, target, extra_allowed=frozenset()):
+    """The Postgres or Mongo destinations: loopback for local, in-cluster names (or explicit extras) for a cauldron."""
+    if not pairs:
+        raise SystemExit(f"Refusing: no {label} host is configured.")
+    for host, _port in pairs:
+        if target == "local":
+            if host not in LOOPBACK_HOSTS:
+                raise SystemExit(f"Refusing: --target local needs a loopback {label} host, not {host!r}.")
+        elif host in LOOPBACK_NAMES:
+            raise SystemExit(f"Refusing: --target cauldron but the {label} host {host!r} is on this machine.")
+        elif not is_in_cluster_name(host) and host not in extra_allowed:
+            raise SystemExit(
+                f"Refusing: the {label} host {host!r} is not an in-cluster Kubernetes name "
+                f"(a service name, or <service>.<namespace>.svc[.cluster.local]). "
+                f"{UNSAFE_ALLOW_HOSTS_ENV} can add a host, at your own risk."
+            )
+
+
+def check_target(
+    target,
+    *,
+    engine,
+    pg_name,
+    pg_host,
+    pg_port,
+    mongo_host,
+    mongo_port,
+    mongo_db,
+    domain_hosts=None,
+    cauldron=None,
+    environ=None,
+):
+    """
+    Pure guard over the effective settings of the process (no database, no Django). Refuses with SystemExit
+    unless every database this script can write is the local stack's or the named cauldron's. Returns the
+    one-line confirmation the caller prints.
+    """
+    environ = os.environ if environ is None else environ
+    env_target = environ.get("APIKEYS_TARGET")
     if env_target and env_target != target:
         raise SystemExit(f"APIKEYS_TARGET={env_target} disagrees with --target {target}.")
-    db = settings.DATABASES["default"]
-    if "postgresql" not in db.get("ENGINE", ""):
-        raise SystemExit("Refusing: the default database is not Postgres ({}).".format(db.get("ENGINE")))
-    if db.get("NAME") != "sefaria_auth":
-        raise SystemExit("Refusing: the default database is {!r}, not 'sefaria_auth'.".format(db.get("NAME")))
-    host = str(db.get("HOST") or "")
-    port = str(db.get("PORT") or "")
+    if target not in ("local", "cauldron"):
+        raise SystemExit("--target must be local or cauldron.")
+    if "postgresql" not in (engine or ""):
+        raise SystemExit(f"Refusing: the default database is not Postgres ({engine}).")
+    if pg_name != REGISTRY_DB_NAME:
+        raise SystemExit(f"Refusing: the default database is {pg_name!r}, not {REGISTRY_DB_NAME!r}.")
+    if not mongo_db:
+        raise SystemExit("Refusing: the Mongo database name is empty.")
+    pg_pairs = parse_hosts(pg_host, str(pg_port or ""))
+    mongo_pairs = parse_hosts(mongo_host, None if mongo_port is None else str(mongo_port))
     if target == "local":
         # The stack's own Postgres only: no override, so a reset or teardown can never reach another local database.
-        if host not in LOOPBACK_HOSTS or port not in LOCAL_PG_PORTS:
+        if len(pg_pairs) != 1 or pg_pairs[0][0] not in LOOPBACK_HOSTS or pg_pairs[0][1] not in LOCAL_PG_PORTS:
             raise SystemExit(
-                f"Refusing: --target local needs the local stack's Postgres on 127.0.0.1:55432, not {host}:{port}."
+                f"Refusing: --target local needs the local stack's Postgres on 127.0.0.1:55432, not {pg_host}:{pg_port}."
             )
-    elif target == "cauldron":
-        if host in LOOPBACK_HOSTS:
-            raise SystemExit("Refusing: --target cauldron but the database is on this machine.")
-        name = cauldron_name()
-        wanted = {f"www.{name}.cauldron.sefaria.org", f"{name}.cauldron.sefaria.org"}
-        if not wanted & _domain_hosts(getattr(settings, "DOMAIN_MODULES", None)):
-            raise SystemExit(f"Refusing: this pod's DOMAIN_MODULES does not name the {name} cauldron's host.")
+        check_destinations("Mongo", mongo_pairs, target)
+        where = "this machine"
     else:
-        raise SystemExit("--target must be local or cauldron.")
+        name = cauldron
+        if not name or not re.fullmatch(r"[a-z0-9-]+", name):
+            raise SystemExit(f"Refusing: {name!r} is not a cauldron name.")
+        check_cauldron_domains(set(domain_hosts or ()), name)
+        extra = _extra_allowed_hosts(environ)
+        check_destinations("Postgres", pg_pairs, target, extra)
+        check_destinations("Mongo", mongo_pairs, target, extra)
+        where = f"the {name} cauldron"
+    return "target ok: {} (Postgres {} / {}, Mongo {} / database {!r})".format(
+        where,
+        ",".join(h for h, _ in pg_pairs),
+        pg_name,
+        ",".join(h for h, _ in mongo_pairs),
+        mongo_db,
+    )
+
+
+def guard_target(target, out=None):
+    """Reads the process's effective settings and refuses anything but the local stack or the named cauldron."""
+    from django.conf import settings
+
+    db = settings.DATABASES["default"]
+    line = check_target(
+        target,
+        engine=db.get("ENGINE"),
+        pg_name=db.get("NAME"),
+        pg_host=db.get("HOST"),
+        pg_port=db.get("PORT"),
+        mongo_host=getattr(settings, "MONGO_HOST", None),
+        mongo_port=getattr(settings, "MONGO_PORT", None),
+        mongo_db=getattr(settings, "SEFARIA_DB", None),
+        domain_hosts=_domain_hosts(getattr(settings, "DOMAIN_MODULES", None)),
+        cauldron=cauldron_name() if target == "cauldron" else None,
+    )
+    print(line, file=out or sys.stderr)
 
 
 # --- Seeding ------------------------------------------------------------------
@@ -771,10 +921,37 @@ def _manifest_path():
     return root / "e2e-tests" / ".apikeys-e2e.json"
 
 
+def write_private(path, text):
+    """Writes a file readable by its owner only, even when it already existed with wider permissions."""
+    fd = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        os.fchmod(fd, 0o600)  # the mode argument of os.open applies only when the file is created
+    except BaseException:
+        os.close(fd)
+        raise
+    with os.fdopen(fd, "w") as handle:
+        handle.write(text)
+
+
+def enforce_private_stdout(stream=None):
+    """
+    When stdout is a regular file (a shell redirect keeps the mode of a file that already existed), make it 0600
+    before the manifest goes into it. A pipe or terminal is left alone.
+    """
+    stream = stream or sys.stdout
+    try:
+        fileno = stream.fileno()
+        if stat.S_ISREG(os.fstat(fileno).st_mode):
+            os.fchmod(fileno, 0o600)
+    except (AttributeError, OSError, ValueError):
+        pass
+
+
 def emit_manifest(args):
     """With --manifest-stdout the manifest is the only thing on stdout; otherwise it goes to the file."""
     manifest = json.dumps(build_manifest(args.target), indent=2) + "\n"
     if args.manifest_stdout:
+        enforce_private_stdout()
         sys.stdout.write(manifest)
         sys.stdout.flush()
         return "stdout"
@@ -782,9 +959,7 @@ def emit_manifest(args):
         raise SystemExit("On the cauldron the manifest goes to stdout only: add --manifest-stdout.")
     path = _manifest_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, "w") as handle:
-        handle.write(manifest)
+    write_private(path, manifest)
     return str(path)
 
 

@@ -151,7 +151,7 @@ export function loadManifest(): Manifest {
   if (!fs.existsSync(file)) {
     throw new Error(
       `No api-keys fixture manifest at ${file}. Seed first: ` +
-      `python scripts/dev/seed_api_keys_e2e.py --target <local|cauldron> --reset --manifest-stdout > ${file}`
+      `(umask 077; python scripts/dev/seed_api_keys_e2e.py --target <local|cauldron> --reset --manifest-stdout > ${file})`
     );
   }
   const parsed = JSON.parse(fs.readFileSync(file, 'utf-8')) as Manifest;
