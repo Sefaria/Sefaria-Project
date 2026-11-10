@@ -12,6 +12,8 @@ import type { VersionMeta } from "~/lib/text/model";
 import { versionsQueryOptions } from "~/lib/versions/book-versions";
 import { refToUrl, urlToRef } from "~/lib/ref/url";
 import { ErrorState } from "~/ui/Feedback/Feedback";
+// each page kind's stylesheets, linked in the server-rendered head (vite-plugins/page-kind-css.ts, v-exits F-2)
+import pageKindCss from "virtual:page-kind-css";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 
 /**
@@ -64,13 +66,16 @@ export const Route = createFileRoute("/$")({
   head: ({ loaderData, params }) => {
     // which kind the server rendered, for the hydrating client to load that kind's code first (page-kinds.tsx)
     const kindMeta = loaderData ? [{ name: PAGE_KIND_META, content: loaderData.kind }] : [];
-    if (loaderData?.kind === "book") return { meta: [...bookMeta(loaderData, loaderData.interfaceLang), ...loaderData.urls.meta, ...kindMeta], links: loaderData.urls.links };
+    // the kind's own CSS is in the first paint, not only once its JS chunk arrives (an unstyled reader shifted by 0.4 at hydration)
+    const kindCss = loaderData ? (pageKindCss[loaderData.kind] ?? []).map((href) => ({ rel: "stylesheet", href })) : [];
+    if (loaderData?.kind === "book") return { meta: [...bookMeta(loaderData, loaderData.interfaceLang), ...loaderData.urls.meta, ...kindMeta], links: [...kindCss, ...loaderData.urls.links] };
     const panels = loaderData && loaderData.kind === "text" ? Object.values(loaderData.panels) : [];
     const first = panels[0];
     return {
       // Old reader: panel titles joined with "and" (SHL-066).
       meta: [{ title: `${panels.length ? panels.map((p) => p.ref).join(" and ") : urlToRef(params._splat ?? "")} | Sefaria Reader` }, ...kindMeta],
       links: [
+        ...kindCss,
         ...(first?.prev ? [{ rel: "prev", href: `/${refToUrl(first.prev)}` }] : []),
         ...(first?.next ? [{ rel: "next", href: `/${refToUrl(first.next)}` }] : []),
         // The neighbouring sections start downloading with the page, not after hydration. @feature TXD-069
