@@ -532,6 +532,9 @@ UPDATES = [
     ("VER-021", "Extended version notes", "todo", "Extended version notes (sidebar mode and book page ?notes=1) not built; legacy crash bug not to be ported", ""),
     ("VER-030", "Moderator edits or deletes a version", "done", "Moderator version editor and delete on the book page Versions tab", "src/ui/VersionEditForm, src/lib/versions/admin.ts, src/features/book/BookRoute.tsx"),
     # --- existing entries re-checked: the 10 todo, Voices notes, stale entries, spot-check by fields ---
+    ("ANL-014", "Third-party analytics and testing scripts", "partial", "GTM, gtag and Simple Analytics built; Sentry removed (2026-11-04); VWO/Hotjar by remote config and Unbounce per page (decided 2026-10-28) not built", "src/lib/analytics/scripts.ts"),
+    ("BOK-016", "Dictionary node letter browse", "done", "Browse by Letter and the dictionary search box on the book page", "src/features/book/BookRoute.tsx, src/ui/DictionarySearch, src/ui/TocView"),
+    ("GUI-003", "Header right-side controls", "partial", "Search with autocomplete and Hebrew keyboard, account menu, help, language and module switcher built; no notifications link or unread count (T-F20)", "src/ui/SiteHeader"),
     ("GUI-012", "InterfaceText bilingual text component", "done", "Tagged tests; checked against sefaria.org in the parity runs", "src/ui/InterfaceText, src/ui/LangText, src/ui/TopicsNav/TopicCard.tsx (InterfaceMarkdown)"),
     ("LIB-002", "Library home header and edit buttons", "done", "Heading, aleph/ayin content-language toggle and moderator buttons (Add Category, Reorder) built", "src/ui/LibraryHome, src/ui/ContentLanguage, src/ui/AdminButtons, src/ui/CategoryEditor"),
     ("LIB-005", "Daily dedication banner", "todo", "Daily dedication banner (live Google Sheet) not built (T-G03)", ""),
@@ -562,6 +565,8 @@ UPDATES = [
     ("SRC-093", "Library has no sheet full-text search", "deferred", "Voices out of scope (owner 2026-11-10)", ""),
     ("SRC-099", "Shared Autocompleter component", "deferred", "Its users are the sheet editor (Voices out of scope, owner 2026-11-10) and Django admin editors (LAUNCH_PLAN §8)", ""),
     ("SRC-100", "Other getName autocomplete consumers", "deferred", "Its users are the sheet editor (Voices out of scope, owner 2026-11-10) and Django admin editors (LAUNCH_PLAN §8)", ""),
+    ("TOP-002", "Module-specific topics home", "done", "Library topics landing built; the Voices host's /topics is Django's (Voices out of scope, owner 2026-11-10)", "src/features/topics/TopicsLandingRoute.tsx"),
+    ("TOP-024", "Topic sheet cards", "deferred", "Voices out of scope (owner 2026-11-10) (no Sheets tab on Library topic pages, as live)", ""),
     ("TXT-002", "Parashah and aliyah headers in Torah text", "done", "Tagged tests; checked against sefaria.org in the parity runs", "src/lib/reader/parashah.ts, src/ui/TextSection/TextSection.tsx, src/ui/SectionTitle/SectionTitle.tsx"),
     ("TXT-005", "Talmud continuous layout default", "done", "Tagged tests; checked against sefaria.org in the parity runs", "src/lib/reader/settings.ts"),
 ]
