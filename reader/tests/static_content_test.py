@@ -50,6 +50,14 @@ class StaticContentTest(TestCase):
         self.assertNotEqual(en["html"], he["html"])  # templates/static/en/about.html vs he/about.html
         self.assertIn("#aboutPage a", en["inlineCss"])  # its {% block css %}
 
+    def test_links_to_other_modules_are_absolute(self):
+        # about.html links {{ domain_modules.library }}/visualizations and a {{ domain_modules.voices }} collection
+        library, voices = settings.DOMAIN_MODULES["en"]["library"], settings.DOMAIN_MODULES["en"]["voices"]
+        html = self.get("/about", lang="en").json()["html"]
+        self.assertIn(f'href="{library}/visualizations"', html)
+        self.assertIn(f'href="{voices}/collections/', html)
+        self.assertNotIn('href="/visualizations"', html)
+
     def test_digitized_by_sefaria_renders_its_list(self):
         texts = [{"title": "Rashi on Genesis", "versionTitle": "On Your Way", "language": "en"}]
         with mock.patch("reader.views.VersionSet", return_value=texts):
@@ -126,3 +134,35 @@ class EveryStaticPageTest(TestCase):
         res = self.client.get("/random-walk-through-torah", {"format": "json", "lang": "en"})
         self.assertEqual(res.status_code, 404)
         self.assertTrue(res.json()["standalone"])
+
+
+VOICES = {"HTTP_HOST": "voices.localhost:8000"}
+
+
+class VoicesUnchangedTest(TestCase):
+    """Owner rule: on the Voices host ?format=json changes nothing; the page is served exactly as before."""
+
+    databases = "__all__"
+
+    def page_calls(self, path):
+        with mock.patch("reader.views.render_template", return_value=HttpResponse("page")) as page:
+            res = self.client.get(path, {"format": "json", "lang": "en"}, **VOICES)
+        return res, page
+
+    def test_a_voices_static_page_is_the_page(self):
+        res, page = self.page_calls("/getstarted")  # urls_sheets: serve_static with page "sheets"
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.content, b"page")
+        self.assertEqual(page.call_args.args[1], "static/sheets.html")
+
+    def test_a_shared_static_page_on_voices_is_the_page(self):
+        res, page = self.page_calls("/linker")
+        self.assertEqual(res.content, b"page")
+        self.assertEqual(page.call_args.args[1], "static/linker.html")
+
+    def test_an_about_page_on_voices_still_redirects_to_the_library(self):
+        for path in ("/about", "/terms"):
+            res, page = self.page_calls(path)
+            self.assertIn(res.status_code, (301, 302), path)
+            self.assertIn(settings.DOMAIN_MODULES["en"]["library"], res["Location"])
+            page.assert_not_called()

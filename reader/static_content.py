@@ -34,6 +34,8 @@ Why `lang`: the content differs by interface language ({% trans %} titles, the /
 `request.interfaceLang` tests). With `lang` the URL fully decides the answer, which is then the same for everyone and
 `Cache-Control: public`; without it the answer follows the request's language (domain or cookie) and is `private`.
 
+Library host only: on the Voices host ?format=json is ignored and the page is served as before.
+
 The answer never depends on the visitor: the page is rendered for an anonymous desktop visitor (no user, no session, no
 CSRF cookie). Only GET; anything else gets the page as before.
 """
@@ -42,6 +44,7 @@ import html as html_lib
 import re
 from types import SimpleNamespace
 
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponseBadRequest
 from django.template import Context
@@ -92,7 +95,17 @@ _DESCRIPTION = re.compile(r"<meta\s+name=\"description\"\s+content=\"(.*?)\"\s*/
 
 
 def requested(request):
-    return request.method == "GET" and request.GET.get(FORMAT_PARAM) == FORMAT_VALUE
+    """
+    A content-only request: GET with ?format=json, on the Library host only. On the Voices host nothing changes (owner rule:
+    Voices is untouched), so a Voices request with ?format=json gets the page as before.
+    """
+    from sefaria.constants.model import LIBRARY_MODULE
+
+    return (
+        request.method == "GET"
+        and request.GET.get(FORMAT_PARAM) == FORMAT_VALUE
+        and getattr(request, "active_module", None) == LIBRARY_MODULE
+    )
 
 
 class _Visitor:
@@ -166,6 +179,10 @@ def respond(request, template_for_lang, extra_context=None):
             "user": visitor.user,
             "LANGUAGE_CODE": lang_code,
             "active_module": getattr(request, "active_module", None),
+            # module_context gives base.html every language's domains, so {{ domain_modules.library }} renders "" there and
+            # such links come out relative (fine inside the legacy page, wrong in another shell). Here: this language's
+            # domains, so the links are absolute to the right module (e.g. about.html's /visualizations and Voices link).
+            "domain_modules": settings.DOMAIN_MODULES.get(lang_code, {}),
             "renderStatic": True,
             **(extra_context or {}),
         },

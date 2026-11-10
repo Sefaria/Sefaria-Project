@@ -35,8 +35,9 @@ def test_available_follows_the_setting():
         assert not reader_choice.available()
 
 
-def _request(cookies=None):
+def _request(cookies=None, module="library"):
     request = RequestFactory().get("/settings/account")
+    request.active_module = module
     request.COOKIES.update(cookies or {})
     return request
 
@@ -67,9 +68,9 @@ class _Anonymous:
 
 
 def _middleware_response(
-    profile_choice, cookie=None, synced=False, user=None, audience="staff", view_sets_cookie=False
+    profile_choice, cookie=None, synced=False, user=None, audience="staff", view_sets_cookie=False, module="library"
 ):
-    request = _request({"reader_version": cookie} if cookie else {})
+    request = _request({"reader_version": cookie} if cookie else {}, module=module)
     request.user = user or _User()
     request.session = {reader_choice.SESSION_SYNCED_KEY: True} if synced else {}
     profile = mock.Mock(settings={"reader_version": profile_choice} if profile_choice else {})
@@ -183,3 +184,14 @@ def test_may_use_next(user, audience, optin, expected):
 )
 def test_parse_choice_is_strict(posted, choice):
     assert reader_choice.parse_choice(posted) == choice
+
+
+def test_middleware_never_touches_a_voices_response():
+    # owner rule: Voices is untouched; nothing the middleware would do on the Library happens there
+    _, response = _middleware_response("next", cookie="next", user=_Member(), module="voices")
+    assert "reader_version" not in response.cookies
+    _, response = _middleware_response(None, cookie="next", user=_Anonymous(), module="voices")
+    assert "reader_version" not in response.cookies
+    request, response = _middleware_response("next", user=_User(), module="voices")
+    assert "reader_version" not in response.cookies
+    assert reader_choice.SESSION_SYNCED_KEY not in request.session

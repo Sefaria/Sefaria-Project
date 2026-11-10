@@ -29,7 +29,6 @@ shared_patterns = [
     re_path(r"^register/?$", sefaria_views.register, name="register"),
     re_path(r"^enable-library-assistant/?$", reader_views.enable_library_assistant, name="enable_library_assistant"),
     path("api/library-assistant", reader_views.library_assistant_api, name="library_assistant_api"),
-    re_path(r"^api/reader-choice/?$", reader_views.reader_choice_api, name="reader_choice_api"),
     re_path(r"logout/?$", sefaria_views.CustomLogoutView.as_view(), name="logout"),
     path(
         "password/reset/confirm/<uidb64>/<token>/",

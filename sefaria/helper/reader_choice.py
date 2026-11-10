@@ -36,6 +36,17 @@ def available():
     return bool(getattr(settings, "READER_OPTIN", False))
 
 
+def on_library(request):
+    """The routing cookie is only ever set or cleared on Library-host responses; the Voices host is left exactly as it was."""
+    from sefaria.constants.model import LIBRARY_MODULE
+
+    # The host django_hosts routed the request by (sefaria/hosts.py). Not request.active_module: ModuleMiddleware leaves /api/
+    # paths at the default module, so a Voices /api/ request would read as the Library's.
+    host = getattr(request, "host", None)
+    module = getattr(host, "name", None) or getattr(request, "active_module", None)
+    return module == LIBRARY_MODULE
+
+
 def audience():
     """Who may opt in: "all" only when remote config says exactly that; anything else (unset, a typo) is "staff"."""
     from remote_config import remoteConfigCache
@@ -105,7 +116,8 @@ class ReaderChoiceMiddleware:
     - once per session of a signed-in reader, the cookie is made to say what their profile says (a choice made on another
       browser takes effect here at sign-in). Readers who never chose are left alone.
 
-    A response whose view already set or cleared the cookie (``/api/profile``, ``/api/reader-choice``) is left as it is.
+    A response whose view already set or cleared the cookie (``/api/profile``, ``/api/reader-choice``) is left as it is, and
+    Voices-host responses are never touched.
     """
 
     def __init__(self, get_response):
@@ -113,7 +125,7 @@ class ReaderChoiceMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        if not available() or COOKIE_NAME in response.cookies:
+        if not available() or not on_library(request) or COOKIE_NAME in response.cookies:
             return response
         user = getattr(request, "user", None)
         cookie_next = request.COOKIES.get(COOKIE_NAME) == NEXT

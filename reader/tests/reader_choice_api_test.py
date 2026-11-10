@@ -54,8 +54,8 @@ class ReaderChoiceTestCase(TestCase):
         remoteConfigCache.reload()
 
     def csrf(self):
-        """A CSRF token the way the new reader gets one: a GET that sets the cookie, then X-CSRFToken."""
-        self.client.get("/_allauth/browser/v1/auth/session")
+        """A CSRF token the way the new reader gets one: GET /api/reader-choice sets the cookie, then X-CSRFToken."""
+        self.client.get(URL)
         token = self.client.cookies.get("csrftoken")
         self.assertIsNotNone(token, "no csrftoken cookie to send")
         return token.value
@@ -78,6 +78,21 @@ class ReaderChoiceApiTest(ReaderChoiceTestCase):
         self.assertEqual(res.json(), {"reader": "classic", "saved": False})
         self.assertTrue(_cleared(res))
         self.assertIn("no-store", res["Cache-Control"])
+
+    def test_a_browser_with_no_csrf_cookie_gets_one_from_the_get_and_can_switch_back(self):
+        self.set_audience("all")  # keep the signed-out cookie, so only the view could clear it
+        self.client.cookies["reader_version"] = "next"
+        self.assertNotIn("csrftoken", self.client.cookies)
+        got = self.client.get(URL)
+        self.assertIn("csrftoken", got.cookies)
+        res = self.client.post(
+            URL,
+            json.dumps({"reader": "classic"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=self.client.cookies["csrftoken"].value,
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(_cleared(res))
 
     def test_legacy_is_another_name_for_classic_and_a_form_post_works(self):
         res = self.post("legacy", as_json=False)
@@ -235,3 +250,43 @@ class AccountSettingsSwitchTest(ReaderChoiceTestCase):
             html = f.read()
         guarded = html.split("{% if reader_choice_available %}", 1)[1].split("{% endif %}", 1)[0]
         self.assertIn('id="newReaderSetting"', guarded)
+
+
+VOICES = {"HTTP_HOST": "voices.localhost:8000"}
+
+
+class VoicesUntouchedTest(ReaderChoiceTestCase):
+    """Owner rule: the Voices host is untouched by the reader choice."""
+
+    def test_the_voices_host_has_no_reader_choice_endpoint(self):
+        # (asked through the resolver: Voices' 404 page needs the webpack build)
+        from django.urls import Resolver404, resolve
+
+        from reader.views import reader_choice_api
+
+        self.assertEqual(resolve(URL, urlconf="sefaria.urls_library").func, reader_choice_api)
+        try:
+            match = resolve(URL, urlconf="sefaria.urls_sheets")
+        except Resolver404:
+            return
+        self.assertNotEqual(match.func, reader_choice_api)
+
+    def test_a_stale_cookie_is_left_alone_on_voices(self):
+        self.client.force_login(self.member)
+        self.client.cookies["reader_version"] = "next"
+        res = self.client.get("/api/library-assistant", **VOICES)
+        self.assertEqual(res.status_code, 200)
+        self.assertNotIn("reader_version", res.cookies)
+        # the same request on the Library clears it (so the test above is not vacuous)
+        self.assertTrue(_cleared(self.client.get("/api/library-assistant")))
+
+    def test_the_profile_api_on_voices_sets_no_cookie(self):
+        self.client.force_login(self.staff)
+        res = self.client.post(
+            "/api/profile",
+            {"json": json.dumps({"settings": {"reader_version": "next"}})},
+            HTTP_X_CSRFTOKEN=self.csrf(),
+            **VOICES,
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertNotIn("reader_version", res.cookies)
