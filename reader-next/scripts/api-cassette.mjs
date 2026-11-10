@@ -18,7 +18,7 @@
 // E2E_API_PORT (default 3998), E2E_API_UPSTREAM (default https://www.sefaria.org).
 //
 // Local only: it listens on the loopback addresses (127.0.0.1 and ::1), never on the network, and answers CORS with credentials only
-// for a loopback page origin (http://localhost|127.0.0.1|[::1]:<port>), never for an arbitrary Origin.
+// for a loopback page origin (http://[<sub>.]localhost|127.0.0.1|[::1]:<port>), never for an arbitrary Origin.
 import { createServer } from "node:http";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -38,7 +38,8 @@ const misses = new Set();
 
 const keyOf = (method, url, body) => createHash("sha1").update(`${method} ${url}\n${body ?? ""}`).digest("hex");
 
-const LOOPBACK_ORIGIN = /^http:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d{1,5})?$/;
+// localhost and its subdomains (he.localhost, voices.localhost: the e2e hosts; browsers resolve *.localhost to loopback)
+const LOOPBACK_ORIGIN = /^http:\/\/(?:(?:[a-z0-9-]+\.)*localhost|127\.0\.0\.1|\[::1\])(?::\d{1,5})?$/;
 
 function cors(req, headers) {
   headers["vary"] = "Origin";
