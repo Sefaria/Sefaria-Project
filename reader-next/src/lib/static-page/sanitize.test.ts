@@ -114,3 +114,14 @@ describe("sanitizeStaticHtml: the static page's content block", () => {
     expect(clean("<div><small>x</p></div><p>y")).toBe("<div><small>x<p></p></small></div><p>y</p>");
   });
 });
+
+// v-a11y N2: the shell has the page's <main>; a page's own (about, team, the Hebrew ways-to-give…) would be a second one inside it
+describe("sanitizeStaticHtml: one main", () => {
+  it("a page's <main> is written as a <div>, with its id and classes, closed in the right place", () => {
+    const { html } = sanitizeStaticHtml('<main id="aboutPage" class="biReady container static"><div><p>x</p></div><p>y</p></main><p>z</p>', { page: "about" });
+    expect(html).toBe('<div id="aboutPage" class="biReady container static"><div><p>x</p></div><p>y</p></div><p>z</p>');
+  });
+  it("an unclosed <main> is closed as a <div>", () => {
+    expect(sanitizeStaticHtml("<main><div>a", { page: "about" }).html).toBe("<div><div>a</div></div>");
+  });
+});

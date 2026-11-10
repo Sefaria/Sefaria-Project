@@ -26,6 +26,12 @@ const ALLOWED = new Set([
   "section", "small", "source", "span", "strong", "sub", "summary", "sup", "table", "tbody", "td", "textarea", "tfoot", "th", "thead",
   "time", "tr", "track", "u", "ul", "video",
 ]);
+/**
+ * Written as another element: a page's own `<main>` (about, team, jobs, products, the Hebrew ways-to-give…) sits inside the shell's
+ * `<main>`, and a page has one (v-a11y N2: landmark-main-is-top-level, landmark-no-duplicate-main). No stylesheet selects on the tag.
+ */
+const RENAMED: Record<string, string> = { main: "div" };
+const closeTag = (name: string) => `</${RENAMED[name] ?? name}>`;
 const VOID = new Set(["br", "col", "hr", "img", "source", "track", "wbr", "input", "link", "meta", "base", "area", "embed", "param"]);
 /** Dropped with everything inside them. */
 const DROP_CONTENT = new Set(["script", "style", "noscript", "template", "object", "embed", "svg", "math", "head", "title", "select", "button", "form"]);
@@ -222,7 +228,8 @@ export function sanitizeStaticHtml(html: string, opts: StaticSanitizeOptions): S
           }
           if (SANDBOXED_FRAME_HOSTS.has(host)) setAttr(attrs, "sandbox", DOCS_SANDBOX);
         }
-        out += `<${name}${attrs.map(([k, v]) => ` ${k}="${escapeAttribute(v)}"`).join("")}>`;
+        const tag = RENAMED[name] ?? name;
+        out += `<${tag}${attrs.map(([k, v]) => ` ${k}="${escapeAttribute(v)}"`).join("")}>`;
         if (!VOID.has(name)) open.push(name);
       },
       ontext(text) {
@@ -237,7 +244,7 @@ export function sanitizeStaticHtml(html: string, opts: StaticSanitizeOptions): S
         const at = open.lastIndexOf(name);
         if (at < 0) return;
         // close what was left open inside it (the templates are not always balanced: design-system's `<small …></p>`)
-        while (open.length > at) out += `</${open.pop()}>`;
+        while (open.length > at) out += closeTag(open.pop()!);
         void implied;
       },
     },
@@ -245,7 +252,7 @@ export function sanitizeStaticHtml(html: string, opts: StaticSanitizeOptions): S
   );
   parser.write(html);
   parser.end();
-  while (open.length) out += `</${open.pop()}>`;
+  while (open.length) out += closeTag(open.pop()!);
   return { html: out, stylesheets };
 }
 
