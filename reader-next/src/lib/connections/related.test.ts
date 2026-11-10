@@ -42,15 +42,15 @@ describe("related resources", () => {
   it("signed in, counts the reader's own sheets (private too) without counting their public ones twice", () => {
     const res = {
       sheets: groupByRef([
-        { id: 1, owner: 7, anchorRef: "Genesis 1:1" }, // someone's public sheet
-        { id: 2, owner: 42, anchorRef: "Genesis 1:1" }, // my public sheet: also in my list
+        { id: 1, anchorRef: "Genesis 1:1" }, // someone's public sheet
+        { id: 2, anchorRef: "Genesis 1:1" }, // my public sheet: also in my list
       ]),
       topics: {}, manuscripts: {}, media: {}, guides: {},
     };
     const mine = groupByRef([
-      { id: 2, owner: 42, anchorRef: "Genesis 1:1" },
-      { id: 3, owner: 42, anchorRef: "Genesis 1:1-2" }, // private
-      { id: 4, owner: 42, anchorRef: "Genesis 1:5" }, // elsewhere in the chapter
+      { id: 2, anchorRef: "Genesis 1:1" },
+      { id: 3, anchorRef: "Genesis 1:1-2" }, // private
+      { id: 4, anchorRef: "Genesis 1:5" }, // elsewhere in the chapter
     ]);
     expect(resourceCounts(res, ["Genesis 1:1"], { webpages: null, translations: 0 }).sheets).toBe(2);
     expect(resourceCounts(res, ["Genesis 1:1"], { webpages: null, translations: 0, mine: { uid: 42, sheets: mine } }).sheets).toBe(3);
