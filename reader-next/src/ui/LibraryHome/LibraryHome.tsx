@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { isCategory, type TocNode } from "~/lib/catalog/toc";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
+import { markdownToHtml } from "~/lib/html/markdown";
 import { ContentLanguage } from "../ContentLanguage/ContentLanguage";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { Link } from "../Link/Link";
@@ -16,19 +17,20 @@ import styles from "./LibraryHome.module.css";
  * @feature LIB-001 Browse the Library category grid
  * @feature LIB-002 Library home header and edit buttons
  */
-export function LibraryHome({ tree, sidebar, footer, admin }: { tree: readonly TocNode[]; sidebar?: ReactNode; footer?: ReactNode; admin?: PageAdmin }) {
+/** `beforeGrid`: what the old TextsPage put between the About blurb and the categories (the dedication, a phone's Recently Viewed). */
+export function LibraryHome({ tree, sidebar, footer, admin, beforeGrid }: { tree: readonly TocNode[]; sidebar?: ReactNode; footer?: ReactNode; admin?: PageAdmin; beforeGrid?: ReactNode }) {
   return (
     <NavPage sidebar={sidebar} footer={footer} top={{ main: 60, side: 60 }}>
       {admin?.editor ?? (
         <ContentLanguage phoneHeader>
-          <HomeMain tree={tree} admin={admin} />
+          <HomeMain tree={tree} admin={admin} beforeGrid={beforeGrid} />
         </ContentLanguage>
       )}
     </NavPage>
   );
 }
 
-function HomeMain({ tree, admin }: { tree: readonly TocNode[]; admin?: PageAdmin }) {
+function HomeMain({ tree, admin, beforeGrid }: { tree: readonly TocNode[]; admin?: PageAdmin; beforeGrid?: ReactNode }) {
   const he = useInterfaceLang() === "hebrew";
   return (
     <>
@@ -39,6 +41,7 @@ function HomeMain({ tree, admin }: { tree: readonly TocNode[]; admin?: PageAdmin
       </div>
       {admin ? <AdminButtons buttons={admin.buttons} /> : null}
       <AboutBlurb className={styles.phoneAbout} />
+      {beforeGrid}
       <div className={styles.grid}>
         {tree.filter(isCategory).map((c) => (
           <div key={c.category} className={styles.block} style={{ ["--_line" as string]: categoryColor(c.category) } as React.CSSProperties} data-cat={c.category}>
@@ -48,5 +51,21 @@ function HomeMain({ tree, admin }: { tree: readonly TocNode[]; admin?: PageAdmin
         ))}
       </div>
     </>
+  );
+}
+
+/**
+ * The old TextsPage's daily dedication: a pale band, the English in italic Garamond, the Hebrew in Heebo, links underlined.
+ * @feature LIB-005 Daily dedication banner
+ */
+export function Dedication({ text }: { text: { en?: string; he?: string } }) {
+  const he = useInterfaceLang() === "hebrew";
+  const lang = he && text.he ? "he" : text.en ? "en" : "he";
+  const md = lang === "he" ? text.he : text.en;
+  if (!md) return null;
+  return (
+    <div className={styles.dedication} data-dedication="">
+      <span lang={lang} dangerouslySetInnerHTML={{ __html: markdownToHtml(md) }} />
+    </div>
   );
 }

@@ -80,3 +80,70 @@ test("library and search pages carry their slice of the catalog, not all of it",
   await expect(page.getByRole("checkbox", { name: "Tanakh", exact: true })).toBeVisible({ timeout: 15_000 });
 });
 
+// @feature LIB-025 @feature LIB-007 @feature LIB-004: VERIFIED on sefaria.org 2026-11-10 (Playwright, a user_history cookie): the
+// newest item of the first three books (no sheets) after the promo slot and before Translations; on a phone a band above the categories
+test.describe("Recently Viewed on the library home", () => {
+  const HISTORY = [
+    { ref: "Genesis 1:3", he_ref: "בראשית א׳:ג׳", book: "Genesis", versions: { en: null, he: null } },
+    { ref: "Genesis 2", book: "Genesis", versions: { en: null, he: null } },
+    { ref: "Sheet 1", book: "Sheet", versions: {} },
+    { ref: "Berakhot 2a", book: "Berakhot", versions: { en: { versionTitle: "William Davidson Edition - English", languageFamilyName: "english" }, he: null } },
+    { ref: "Exodus 3", book: "Exodus", versions: { en: null, he: null } },
+    { ref: "Psalms 23", book: "Psalms", versions: { en: null, he: null } },
+  ];
+  /** The history answered in the browser; the page is reached in the app (the server asks the API with the reader's cookies). */
+  const reachHome = async (page: import("@playwright/test").Page) => {
+    await page.route(/\/api\/profile\/user_history\?secondary=0&annotate=1&limit=20/, (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(HISTORY) }));
+    await open(page, "/topics");
+    await page.getByRole("banner").getByRole("link", { name: "Texts" }).first().click();
+    await expect(page).toHaveURL(/\/texts$/);
+  };
+
+  test("in the sidebar: three books, with their versions; All history opens the sign-up modal signed out", async ({ page }) => {
+    await reachHome(page);
+    const side = page.locator("section", { has: page.getByRole("heading", { name: "Recently Viewed" }) }).first();
+    await expect(side.getByRole("listitem")).toHaveText(["Genesis 1:3", "Berakhot 2a", "Exodus 3"]);
+    await expect(side.getByRole("link", { name: "Berakhot 2a" })).toHaveAttribute("href", /^\/Berakhot\.2a\?ven=english\|William/);
+    // its place: after the promo slot, before Translations
+    const titles = await page.locator("aside h2, [class*=sidebar] h2").allTextContents();
+    expect(titles.indexOf("Recently Viewed")).toBeLessThan(titles.indexOf("Translations"));
+    expect(titles.indexOf("Recently Viewed")).toBeGreaterThan(titles.indexOf("A Living Library of Torah"));
+    await side.getByRole("link", { name: /All history/ }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page).toHaveURL(/\/texts$/);
+  });
+
+  test("nothing when there is no history", async ({ page }) => {
+    await page.route(/\/api\/profile\/user_history\?secondary=0&annotate=1&limit=20/, (r) => r.fulfill({ status: 200, contentType: "application/json", body: "[]" }));
+    await open(page, "/topics");
+    await page.getByRole("banner").getByRole("link", { name: "Texts" }).first().click();
+    await expect(page.getByRole("heading", { level: 1, name: "Browse the Library" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Recently Viewed" })).toHaveCount(0);
+  });
+
+  test.describe("on a phone", () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+    test("a band above the categories: the title and All History in its header row, the list under it", async ({ page }) => {
+      await page.route(/\/api\/profile\/user_history\?secondary=0&annotate=1&limit=20/, (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(HISTORY) }));
+      await open(page, "/topics");
+      await page.getByRole("button", { name: "Menu" }).first().click();
+      await page.locator("#mobile-nav").getByRole("link", { name: "Texts" }).click();
+      const band = page.locator("section[aria-labelledby='recently-viewed-phone']");
+      await expect(band).toBeVisible();
+      await expect(band.getByRole("listitem")).toHaveText(["Genesis 1:3", "Berakhot 2a", "Exodus 3"]);
+      const [title, all, first, grid] = await Promise.all([
+        band.getByRole("heading").boundingBox(),
+        band.getByRole("link", { name: "All History" }).boundingBox(),
+        band.getByRole("link", { name: "Genesis 1:3" }).boundingBox(),
+        page.locator("[data-cat='Tanakh']").boundingBox(),
+      ]);
+      // measured on sefaria.org: the band from the screen's left edge, title at x=20, All History right-aligned to x=370, items under
+      expect((await band.boundingBox())!.x).toBe(0);
+      expect(title!.x).toBe(20);
+      expect(Math.round(all!.x + all!.width)).toBe(370);
+      expect(first!.y).toBeGreaterThan(title!.y + title!.height);
+      expect(grid!.y).toBeGreaterThan(first!.y);
+    });
+  });
+});
+

@@ -15,6 +15,8 @@ import { LoadingState } from "~/ui/Feedback/Feedback";
 import { LibraryHome } from "~/ui/LibraryHome/LibraryHome";
 import { AboutSefaria, AboutTextCategory, DafYomi, LearningSchedules, PromoSlot, Resources, SidebarFooter, SupportSefaria, Translations, Visualizations, WeeklyTorahPortion } from "~/ui/NavSidebar/NavSidebar";
 import { useReaderSettings } from "../reader/settings-context";
+import { RecentlyViewedModule } from "./RecentlyViewedModule";
+import { DedicationBanner } from "./DedicationBanner";
 
 /**
  * `/texts` and `/texts/<category>/…`: the library's home and category pages, from the catalog the loader filled. An unknown
@@ -80,6 +82,7 @@ export function LibraryRoute({ path }: { path: string[] }) {
       <LibraryHome
         tree={catalog.tree}
         footer={footer}
+        beforeGrid={<><DedicationBanner /><RecentlyViewedModule phone /></>}
         admin={
           staff
             ? ({
@@ -106,6 +109,7 @@ export function LibraryRoute({ path }: { path: string[] }) {
           <>
             <AboutSefaria wideOnly />
             <PromoSlot />
+            <RecentlyViewedModule />
             <Translations />
             <LearningSchedules items={calendars} />
             <Resources />

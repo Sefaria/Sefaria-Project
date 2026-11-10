@@ -61,3 +61,27 @@
 .module .bareText { font-family: var(--sefaria-font-ui-en); }
 /* …and its language span keeps that font: base.css's :lang(yi) would make Yiddish Heebo (taller lines than the old Roboto text) */
 .bareText > [lang] { font-family: inherit; }
+/* Recently Viewed (the old .recentlyViewed), VERIFIED on sefaria.org /texts 2026-11-10 with a user_history cookie. Sidebar (1280px):
+   the 22px title and rule, the items 18px serif black with "•" between, 20px under the rule; "All history ›" 16px grey, 10px under. */
+.recentList { font-family: var(--sefaria-font-text-en); font-size: 18px; margin-block-end: 10px; }
+.recentList ul { margin: 0; padding: 0; list-style: none; }
+.recentList li { display: inline; }
+.recentList li::after { content: "\2022"; margin: 0 5px; white-space: pre; color: var(--sefaria-color-text-dark-grey); }
+.recentList li:last-child::after { content: none; }
+.recentList a { color: var(--sefaria-color-text-strong); text-decoration: none; }
+.recentList a[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.recentList a:hover { text-decoration: underline; }
+.allHistory { color: var(--sefaria-color-text-dark-grey); text-decoration: none; }
+.allHistory:hover { text-decoration: underline; }
+.module .allHistory > *::after { content: "\203A"; }
+/* phone (.singlePanel .recentlyViewed): a #fbfbfa band to the screen's edges, 10px inside; the header row 5px over and under its
+   16px title and the grey "All History", a 1px rule and 10px under it; the list 16px under the header's top edge's line */
+.recentPhone { margin: -5px -15px; padding: 0 10px 10px; background: var(--sefaria-color-surface-subtle, #fbfbfa); }
+.recentHeader { display: flex; justify-content: space-between; margin: 0 10px 10px; padding-block: 5px; border-block-end: 1px solid var(--sefaria-color-border-strong); }
+.recentTitle { margin: 0; font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 500; line-height: 26px; color: var(--sefaria-color-text-dark-grey); }
+.recentHeader .allHistory { margin-block-start: 5px; color: var(--sefaria-color-text-muted); }
+.recentPhone .recentList { margin: 0 10px; }
+.recentPhone { display: none; }
+@media (max-width: 842px) {
+  .recentPhone { display: block; }
+}
