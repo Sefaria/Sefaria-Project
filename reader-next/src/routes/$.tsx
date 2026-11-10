@@ -15,6 +15,12 @@ import { ErrorState } from "~/ui/Feedback/Feedback";
 // each page kind's stylesheets, linked in the server-rendered head (vite-plugins/page-kind-css.ts, v-exits F-2)
 import pageKindCss from "virtual:page-kind-css";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
+import { notFoundTitle, readerPageTitle, type TitleLang } from "~/lib/reader/page-title";
+import { decodeWorkspace, type RawSearch } from "~/lib/workspace/url";
+import { panelOrder } from "~/lib/workspace/ops";
+import { buildCatalog, type Catalog, type TocNode } from "~/lib/catalog/toc";
+import { categoryLabel } from "~/lib/connections/terms";
+import type { QueryClient } from "@tanstack/react-query";
 
 /**
  * The old address for a text in one version, `/<ref>/<lang>/<version>` (Django's `old_versions_redirect`, sefaria/urls_shared.py):
@@ -31,6 +37,24 @@ function textDeps(search: ReaderSearch) {
   const deps: Record<string, string | undefined> = { ven: search.ven, vhe: search.vhe };
   for (const [k, v] of Object.entries(search)) if (/^(p|ven|vhe)\d+$/.test(k)) deps[k] = String(v);
   return deps;
+}
+
+/**
+ * A sidebar filter's Hebrew name for the page title ("Rashi" → רש"י, "Commentary" → מפרשים), from the catalog when it is in memory
+ * (the sidebar loads it); undefined otherwise, and the title keeps the name as written, as the old client did for a name it lacked.
+ */
+const catalogs = new WeakMap<TocNode[], Catalog>();
+function hebrewFilterName(queryClient: QueryClient | undefined): (name: string) => string | undefined {
+  return (name) => {
+    const tree = queryClient?.getQueryData<TocNode[]>(["catalog", "toc"]);
+    const catalog = tree ? (catalogs.get(tree) ?? catalogs.set(tree, buildCatalog(tree)).get(tree)) : undefined;
+    const category = categoryLabel(name, catalog).he;
+    if (category !== name) return category;
+    const book = catalog?.books.get(name)?.heTitle;
+    if (book) return book;
+    for (const b of catalog?.books.values() ?? []) if (b.collectiveTitle === name && b.heCollectiveTitle) return b.heCollectiveTitle;
+    return undefined;
+  };
 }
 
 /**
@@ -61,19 +85,31 @@ export const Route = createFileRoute("/$")({
       return { kind: "book" as const, ...book, interfaceLang: context.interfaceLang, urls: pageUrls(location.href, await pageCanonicalOrigin(), { english: CANONICAL_ORIGIN, hebrew: hebrewSiteOrigin(CANONICAL_ORIGIN) }) };
     }
     const [text] = await Promise.all([loadWorkspaceRoute({ queryClient: context.queryClient, splat, search: deps as ReaderSearch, fullSearch: location.search as ReaderSearch }), loadPageKind("text")]);
-    return { kind: "text" as const, ...text };
+    return { kind: "text" as const, ...text, interfaceLang: context.interfaceLang };
   },
-  head: ({ loaderData, params }) => {
+  head: ({ loaderData, match }) => {
     // which kind the server rendered, for the hydrating client to load that kind's code first (page-kinds.tsx)
     const kindMeta = loaderData ? [{ name: PAGE_KIND_META, content: loaderData.kind }] : [];
     // the kind's own CSS is in the first paint, not only once its JS chunk arrives (an unstyled reader shifted by 0.4 at hydration)
     const kindCss = loaderData ? (pageKindCss[loaderData.kind] ?? []).map((href) => ({ rel: "stylesheet", href })) : [];
     if (loaderData?.kind === "book") return { meta: [...bookMeta(loaderData, loaderData.interfaceLang), ...loaderData.urls.meta, ...kindMeta], links: [...kindCss, ...loaderData.urls.links] };
+    const ctx = match.context as { interfaceLang?: TitleLang; queryClient?: QueryClient };
+    const lang: TitleLang = (loaderData?.kind === "text" ? loaderData.interfaceLang : undefined) ?? ctx.interfaceLang ?? "english";
     const panels = loaderData && loaderData.kind === "text" ? Object.values(loaderData.panels) : [];
     const first = panels[0];
+    // the old client's title (src/lib/reader/page-title.ts): each panel's ref, "with" its sidebar's source, in the interface's language;
+    // no text (the not-found page) is titled as Django's 404
+    let title = notFoundTitle(lang);
+    if (loaderData?.kind === "text") {
+      const ws = decodeWorkspace(urlToRef(match.params._splat ?? ""), match.search as RawSearch);
+      const titled = panelOrder(loaderData.workspace).flatMap((id) => {
+        const p = loaderData.panels[id];
+        return p ? [{ ref: p.ref, heRef: p.heRef, view: ws.panels[id]?.asides[0]?.view }] : [];
+      });
+      title = readerPageTitle(titled, lang, hebrewFilterName(ctx.queryClient));
+    }
     return {
-      // Old reader: panel titles joined with "and" (SHL-066).
-      meta: [{ title: `${panels.length ? panels.map((p) => p.ref).join(" and ") : urlToRef(params._splat ?? "")} | Sefaria Reader` }, ...kindMeta],
+      meta: [{ title }, ...kindMeta],
       links: [
         ...kindCss,
         ...(first?.prev ? [{ rel: "prev", href: `/${refToUrl(first.prev)}` }] : []),
