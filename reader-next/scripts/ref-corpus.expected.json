@@ -1,0 +1,346 @@
+[
+  {
+    "path": "/Genesis.1",
+    "why": "a section",
+    "status": 200,
+    "url": "/Genesis.1",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Genesis.1.3",
+    "why": "a segment",
+    "status": 200,
+    "url": "/Genesis.1.3",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Genesis.1.3-5",
+    "why": "a range within a section",
+    "status": 200,
+    "url": "/Genesis.1.3",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Obadiah.1.21",
+    "why": "the last segment of a one-chapter book",
+    "status": 200,
+    "url": "/Obadiah.1.21",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Gen.1.3",
+    "why": "an abbreviation",
+    "status": 200,
+    "url": "/Genesis.1.3",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/genesis.1.3",
+    "why": "lower case",
+    "status": 200,
+    "url": "/Genesis.1.3",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Exo.3.19",
+    "why": "an abbreviation (ref_test)",
+    "status": 200,
+    "url": "/Exodus.3.19",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Prov.3.21",
+    "why": "an abbreviation (ref_test)",
+    "status": 200,
+    "url": "/Proverbs.3.21",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/I_Chronicles.1.2",
+    "why": "a roman-numeral alternate title",
+    "status": 200,
+    "url": "/I_Chronicles.1.2",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Genesis_1:3",
+    "why": "a human ref in the URL (colon and space)",
+    "status": 200,
+    "url": "/Genesis.1.3",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Genesis.51",
+    "why": "past the last chapter",
+    "status": 404,
+    "url": "/Genesis.51",
+    "highlighted": [],
+    "kind": "other"
+  },
+  {
+    "path": "/Rashi_on_Genesis.1",
+    "why": "a commentary's chapter: its first available section",
+    "status": 200,
+    "url": "/Rashi_on_Genesis.1.1",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Rashi_on_Genesis.2.3",
+    "why": "a commentary section",
+    "status": 200,
+    "url": "/Rashi_on_Genesis.2.3",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Ramban_on_Genesis.1",
+    "why": "a default node beside an introduction",
+    "status": 200,
+    "url": "/Ramban_on_Genesis.1.1",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Ramban_on_Genesis.1.1.1",
+    "why": "a default node, a segment",
+    "status": 200,
+    "url": "/Ramban_on_Genesis.1.1.1",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Berakhot.2a",
+    "why": "a daf side",
+    "status": 200,
+    "url": "/Berakhot.2a",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Berakhot.2a.3",
+    "why": "a segment on an amud",
+    "status": 200,
+    "url": "/Berakhot.2a.3",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Gittin.15a.8-15b.8",
+    "why": "a Talmud range across amudim (ref_test)",
+    "status": 200,
+    "url": "/Gittin.15a.8",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Berakhot.2b.5-3a.2",
+    "why": "a Talmud range across amudim, short",
+    "status": 200,
+    "url": "/Berakhot.2b.5",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Berakhot.64a",
+    "why": "the last amud of a tractate",
+    "status": 200,
+    "url": "/Berakhot.64a",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Rashi_on_Berakhot.3a.2.1",
+    "why": "a commentary on an amud",
+    "status": 200,
+    "url": "/Rashi_on_Berakhot.3a.2.1",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Jerusalem_Talmud_Nazir.9.6",
+    "why": "Yerushalmi, three levels (ref_test)",
+    "status": 200,
+    "url": "/Jerusalem_Talmud_Nazir.9.6",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Mishnah_Peah.4.2-4",
+    "why": "a mishnah range (ref_test)",
+    "status": 200,
+    "url": "/Mishnah_Peah.4.2",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Kohelet_Rabbah.6.9",
+    "why": "a midrash (ref_test)",
+    "status": 200,
+    "url": "/Kohelet_Rabbah.6.9",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Pesach_Haggadah,_Kadesh",
+    "why": "a complex text's node",
+    "status": 200,
+    "url": "/Pesach_Haggadah,_Kadesh",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Pesach_Haggadah,_Magid,_First_Fruits_Declaration.2",
+    "why": "a complex text's nested node, a segment (ref_test)",
+    "status": 200,
+    "url": "/Pesach_Haggadah,_Magid,_First_Fruits_Declaration.2",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Orot,_Lights_from_Darkness,_Land_of_Israel.4",
+    "why": "a complex text's node, a section (ref_test)",
+    "status": 200,
+    "url": "/Orot,_Lights_from_Darkness,_Land_of_Israel.4",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Me'or_Einayim,_Chayei_Sara.24",
+    "why": "a complex text with an apostrophe (ref_test)",
+    "status": 200,
+    "url": "/Me'or_Einayim,_Chayei_Sara.24",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Meshekh_Chokhmah,_Vaera.2",
+    "why": "an alt structure node (ref_test)",
+    "status": 200,
+    "url": "/Meshekh_Chokhmah,_Vaera.2",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Zohar,_Bereshit.1.1",
+    "why": "Zohar by its alt structure",
+    "status": 200,
+    "url": "/Zohar,_Bereshit.1.1",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Jastrow,_ג.1",
+    "why": "a dictionary entry (ref_test)",
+    "status": 200,
+    "url": "/Jastrow,_ג.1",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Klein_Dictionary,_א",
+    "why": "a dictionary entry without a number (ref_test)",
+    "status": 200,
+    "url": "/Klein_Dictionary,_א",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/בראשית.א.ג",
+    "why": "a Hebrew ref",
+    "status": 200,
+    "url": "/Genesis.1.3",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/ברכות.ב.",
+    "why": "a Hebrew Talmud ref",
+    "status": 200,
+    "url": "/Berakhot.2a",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/%D7%A9%D7%9E%D7%95%D7%AA.%D7%90",
+    "why": "a Hebrew ref, percent-encoded",
+    "status": 200,
+    "url": "/Exodus.1",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/The_Five_Books_of_Moses,_by_Everett_Fox,_Leviticus,_Part_II;_Ritual_Pollution_and_Purification,_The_Day_of_Purgation%2FAtonement",
+    "why": "a title with /",
+    "status": 200,
+    "url": "/The_Five_Books_of_Moses,_by_Everett_Fox,_Leviticus,_Part_II;_Ritual_Pollution_and_Purification,_The_Day_of_Purgation/Atonement",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Genesis.1/en/The_Contemporary_Torah,_Jewish_Publication_Society,_2006",
+    "why": "old_versions_redirect: /<ref>/<lang>/<version>",
+    "status": 200,
+    "url": "/Genesis.1?ven=english|The_Contemporary_Torah,_Jewish_Publication_Society,_2006",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Genesis.1.3/he/Miqra_according_to_the_Masorah",
+    "why": "old_versions_redirect, Hebrew version",
+    "status": 200,
+    "url": "/Genesis.1.3?vhe=hebrew|Miqra_according_to_the_Masorah",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Berakhot.2a/en/William_Davidson_Edition_-_English",
+    "why": "old_versions_redirect, Talmud",
+    "status": 200,
+    "url": "/Berakhot.2a?ven=english|William_Davidson_Edition_-_English",
+    "highlighted": [],
+    "kind": "text"
+  },
+  {
+    "path": "/Tanakh",
+    "why": "a category title",
+    "status": 404,
+    "url": "/Tanakh",
+    "highlighted": [],
+    "kind": "other"
+  },
+  {
+    "path": "/Talmud",
+    "why": "a category title",
+    "status": 404,
+    "url": "/Talmud",
+    "highlighted": [],
+    "kind": "other"
+  },
+  {
+    "path": "/Mishnah",
+    "why": "a category title",
+    "status": 404,
+    "url": "/Mishnah",
+    "highlighted": [],
+    "kind": "other"
+  },
+  {
+    "path": "/Midrash",
+    "why": "a category title",
+    "status": 404,
+    "url": "/Midrash",
+    "highlighted": [],
+    "kind": "other"
+  }
+]
