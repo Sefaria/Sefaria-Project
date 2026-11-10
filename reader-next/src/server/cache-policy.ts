@@ -4,7 +4,11 @@
  * user id). So every page says `Vary: Cookie`, and a signed-in reader's page is `private, no-store`: no shared cache in front of
  * this server may keep it and hand one reader's page to another. Django's own pages (passed through) keep their own headers.
  */
-const SESSION_COOKIE = /(?:^|;\s*)sessionid=[^;]+/;
+/**
+ * A page that carries one reader's own data: signed in (`sessionid`), or signed out with a reading history (`user_history`, which the
+ * server reads to draw the library home's Recently Viewed, src/lib/library/recently-viewed.ts).
+ */
+const PERSONAL_COOKIE = /(?:^|;\s*)(?:sessionid|user_history)=[^;]+/;
 
 export function pageCacheHeaders(requestCookie: string | null, response: Headers, status = 200, languagePinned = false): Headers {
   if (response.get("x-served-by") === "django" || !(response.get("content-type") ?? "").includes("text/html")) return response;
@@ -15,7 +19,7 @@ export function pageCacheHeaders(requestCookie: string | null, response: Headers
     const vary = out.get("vary");
     if (!vary || !new RegExp(`\\b${h}\\b`, "i").test(vary)) out.set("vary", vary ? `${vary}, ${h}` : h);
   }
-  if (requestCookie && SESSION_COOKIE.test(requestCookie)) out.set("cache-control", "private, no-store");
+  if (requestCookie && PERSONAL_COOKIE.test(requestCookie)) out.set("cache-control", "private, no-store");
   // only a rendered page is revalidated; a redirect or an error page keeps whatever it said (a permanent redirect stays cacheable)
   else if (status === 200 && !out.has("cache-control")) out.set("cache-control", "no-cache");
   return out;
