@@ -6,8 +6,10 @@
  * Three channels, all as sefaria.org sends them today (VERIFIED 2026-10-06 by recording dataLayer on www.sefaria.org/Genesis.1):
  *  - gtag:  `gtag("event", name, params)` — GA4 property configured in scripts.ts.
  *  - sa:    `sa_event(name, params)` — Simple Analytics (impressions are sent to both).
- *  - ua:    the old Universal Analytics `Track.event(category, action, label, value)`. GTM installs a `ga` shim that converts these
- *           into GA4 events (property "is_legacy_converted"), so they still reach reports; sent only when that shim is present.
+ *  - ua:    the old Universal Analytics `Track.event(category, action, label, value)`: LOGGED ONLY, never sent. Owner decision
+ *           2026-11-10: on www.sefaria.org the old client's UA calls never fire (track.js binds `ga` before GTM's analytics.js has made
+ *           its tracker, so they go to its mock; VERIFIED with scripts/analytics-parity.mjs) and the UA property is shut down, so the
+ *           new reader sends no UA hits either. The log keeps the old names, so tests still see which UA event a control stands for.
  *
  * Every event is also appended to an in-memory log (`analyticsLog`, `window.__SEFARIA_ANALYTICS__`) — tests assert on it and
  * never on network calls. Without IDs configured (development, tests) the vendors are absent and only the log is written.
@@ -23,14 +25,11 @@ export interface LoggedEvent {
 
 type Gtag = (...args: unknown[]) => void;
 type SaEvent = (name: string, params?: AnalyticsParams) => void;
-interface GaTracker { get(field: string): string }
-type Ga = ((...args: unknown[]) => void) & { getAll?: () => GaTracker[] };
 
 declare global {
   interface Window {
     gtag?: Gtag;
     sa_event?: SaEvent;
-    ga?: Ga;
     dataLayer?: unknown[];
     __SEFARIA_ANALYTICS__?: LoggedEvent[];
   }
@@ -85,16 +84,11 @@ export function bothEvent(name: string, params?: AnalyticsParams): void {
   gtagEvent(name, params);
 }
 
-/** The old `Sefaria.track.event(category, action, label, value)` (static/js/sefaria/track.js), through GTM's `ga` shim. */
+/** The old `Sefaria.track.event(category, action, label, value)` (static/js/sefaria/track.js): recorded in the log only, never sent to
+ *  `ga` (owner decision 2026-11-10, see the header). */
 export function uaEvent(category: string, action: string, label?: string, value?: number): void {
   if (!inBrowser) return;
   record({ channel: "ua", name: `${category}|${action}`, params: clean({ label, value }) });
-  try {
-    const tracker = window.ga?.getAll?.()[0];
-    if (tracker) window.ga!(`${tracker.get("name")}.send`, "event", category, action, label, value);
-  } catch {
-    /* ignore */
-  }
 }
 
 /** Once per browser session (sessionStorage key, the old site's names such as "sa.header_viewed"). */

@@ -100,3 +100,37 @@ describe("SiteHeader", () => {
     expect(within(mobile).queryByRole("link", { name: "Log in", hidden: true })).toBeNull();
   });
 });
+
+// @feature ACC-003
+describe("SiteHeader opt-in items", () => {
+  it("absent without the opt-in; with it, both menus offer Report a problem and Back to the classic reader", async () => {
+    const { rerender } = render(<SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada" }} />);
+    expect(screen.queryByTestId("back-to-classic-mobile")).toBeNull();
+    const seen: string[] = [];
+    const optIn = { onBackToClassic: (s: string) => seen.push(`back:${s}`), onReportProblem: (s: string) => seen.push(`report:${s}`) };
+    rerender(<SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada" }} optIn={optIn} />);
+    await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    const dialog = screen.getByRole("dialog", { name: "Account menu" });
+    await userEvent.click(within(dialog).getByRole("button", { name: "Report a problem" }));
+    expect(screen.queryByRole("dialog", { name: "Account menu" })).toBeNull(); // the menu closed
+    await userEvent.click(screen.getByRole("button", { name: "Menu" }));
+    await userEvent.click(screen.getByTestId("back-to-classic-mobile"));
+    expect(seen).toEqual(["report:account_menu", "back:mobile_menu"]);
+    expect(document.getElementById("mobile-nav")).toHaveAttribute("hidden");
+  });
+});
+
+// @feature AI-001 (sefaria.org #3934: the header pill replaced the stand-alone banner)
+describe("SiteHeader Library Assistant pill", () => {
+  it("only while the assistant is on the page; a click asks it to open", async () => {
+    const { rerender } = render(<SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada" }} />);
+    expect(screen.queryByTestId("assistant-pill")).toBeNull();
+    const opened = vi.fn();
+    rerender(<SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada" }} onOpenAssistant={opened} />);
+    const pill = screen.getByTestId("assistant-pill");
+    expect(pill).toHaveAttribute("role", "button");
+    expect(pill).toHaveTextContent("Library Assistant");
+    await userEvent.click(pill);
+    expect(opened).toHaveBeenCalledTimes(1);
+  });
+});

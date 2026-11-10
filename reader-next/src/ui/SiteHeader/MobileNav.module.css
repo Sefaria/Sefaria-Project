@@ -22,3 +22,10 @@
 .menu a.first { padding: 10px 15px 5px; }
 .menu a.last { padding: 5px 15px 10px; }
 .menu a.logout { color: var(--sefaria-color-text-muted); }
+/* the opt-in's action rows look like the link rows */
+.menu button.action { position: relative; display: block; box-sizing: border-box; width: 100%; padding: 15px; border: none; background: none; color: var(--sefaria-color-text-dark-grey); font: inherit; font-size: 16px; text-align: start; cursor: pointer; }
+.menu button.action > img { position: relative; top: 3px; width: 16px; height: 16px; margin-inline-end: 15px; }
+.menu .back { transform: rotate(180deg); }
+.menu[lang="he"] .back { transform: none; }
+/* while the cookie banner spans the bottom of a phone screen, the menu's end stays above it (--bottom-bar-height: CookieNotice) */
+@media (max-width: 842px) { .menu { padding-bottom: var(--bottom-bar-height, 0); } }

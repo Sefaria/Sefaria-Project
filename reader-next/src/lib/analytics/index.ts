@@ -6,3 +6,5 @@ export { copyEvents, setAnalyticsUser, setSaMetadata, useAppAnalytics, useOnceFu
 export { searchBoxAnalytics } from "./search-box";
 export { readerAnalytics } from "./reader";
 export { searchFlow, tabLabel, type SearchApi } from "./search-flow";
+export { startWebVitals, vitalsEnabled } from "./web-vitals";
+export { readerChoiceAnalytics, type ReaderChoiceSource } from "./reader-choice";

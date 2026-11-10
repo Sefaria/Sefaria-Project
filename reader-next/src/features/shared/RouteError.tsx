@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { useRouter } from "@tanstack/react-router";
+import { reportError } from "~/lib/monitoring/error-reporter";
 import { Button } from "~/ui/Button/Button";
 import { ErrorState } from "~/ui/Feedback/Feedback";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
@@ -9,8 +11,12 @@ import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
  *
  * @feature SHL-035 Panel error state
  */
-export function RouteError({ error }: { error: unknown }) {
+export function RouteError({ error, reported }: { error: unknown; reported?: boolean }) {
   const router = useRouter();
+  // a route's error (render or loader) goes to the browser error reports (T-D01), unless a boundary above already sent it
+  useEffect(() => {
+    if (!reported) reportError("boundary", error, { boundary: "route" });
+  }, [error, reported]);
   const message = error instanceof Error ? error.message : String(error);
   return (
     <ErrorState
