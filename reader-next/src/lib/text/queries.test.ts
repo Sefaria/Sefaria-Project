@@ -4,7 +4,8 @@ import { server } from "../../../test/msw/server";
 import { makeQueryClient } from "~/lib/cache/query-client";
 import { resetPersisters } from "~/lib/cache/persisters";
 import { RefIndex } from "~/lib/cache/ref-index";
-import { fetchPassage, loadReaderPassage, MAX_INITIAL_SECTIONS, passageUrl, prefetchNeighbours, textQueryKey } from "./queries";
+import { getRefIndex } from "~/lib/cache/ref-index-singleton";
+import { fetchPassage, loadReaderPassage, MAX_INITIAL_SECTIONS, passageUrl, prefetchNeighbours, textQueryKey, textQueryOptions } from "./queries";
 
 let requests: string[] = [];
 let fullUrls: string[] = [];
@@ -73,6 +74,29 @@ describe("library cache (core tenet: never fetch twice)", () => {
     const again = await loadReaderPassage(qc, idx, "Rashi on Genesis 1");
     expect(requests).toEqual([]);
     expect(again.canonicalRef).toBe("Rashi on Genesis 1:1");
+  });
+
+  // Ref resolution verdict (wiki projects/reader-next/ref-resolution): every text answer teaches the book's shape
+  it("opens a commentary first met in the sidebar without asking the server again", async () => {
+    const qc = makeQueryClient();
+    // the sidebar loads the comment's containing section to show it
+    await qc.fetchQuery(textQueryOptions("Rashi on Genesis 1:1"));
+    await settle();
+    requests = [];
+    const opened = await loadReaderPassage(qc, getRefIndex(), "Rashi on Genesis 1:1:2");
+    expect(requests).toEqual([]);
+    expect(opened.sections.map((s) => s.ref)).toEqual(["Rashi on Genesis 1:1"]);
+    expect(opened.highlight).toEqual({ from: ["1", "1", "2"], to: ["1", "1", "2"] });
+  });
+
+  it("asks the server about a segment the book's shape allows but the section lacks", async () => {
+    const qc = makeQueryClient();
+    const idx = new RefIndex();
+    await loadReaderPassage(qc, idx, "Genesis 1");
+    requests = [];
+    // chapter 1 has 31 verses; the server answers 404 "We have no text for Genesis 1:35"
+    await expect(loadReaderPassage(qc, idx, "Genesis 1:35")).rejects.toThrow();
+    expect(requests).toEqual(["/api/v3/texts/Genesis 1:35"]);
   });
 
   it("prefetches the next section so paging forward is instant", async () => {

@@ -13,9 +13,10 @@ import { getSefariaClient, unwrap } from "~/lib/api/client";
 import { PUBLIC_CONFIG } from "~/lib/config";
 import { withPolicy } from "~/lib/cache/query-options";
 import { RefIndex } from "~/lib/cache/ref-index";
+import { getRefIndex } from "~/lib/cache/ref-index-singleton";
 import { parseHumanRef, isRangedRef, toHumanRef } from "~/lib/ref/url";
 import { normaliseTexts, type RawTextsResponse, type TextPassage } from "./model";
-import { planDisplay, type BookMeta, type Highlight } from "./plan";
+import { isHighlighted, planDisplay, type BookMeta, type DisplayPlan, type Highlight } from "./plan";
 
 /**
  * Which versions to show. Values follow the v3 `version` parameter: a language family ("english",
@@ -60,7 +61,11 @@ export async function fetchPassage(ref: string, sel: VersionSelection, signal?: 
     query: passageQuery(sel),
     signal,
   });
-  return normaliseTexts(unwrap(result, `Text ${ref}`) as unknown as RawTextsResponse);
+  const passage = normaliseTexts(unwrap(result, `Text ${ref}`) as unknown as RawTextsResponse);
+  // Every text answer is the server's word on its book's shape: remember it wherever the text was asked for (the sidebar's
+  // commentaries too), so opening a ref in that book later plans its section without asking again.
+  void getRefIndex().setMeta(metaFromPassage(passage));
+  return passage;
 }
 
 export const textQueryKey = (ref: string, sel: VersionSelection) => ["text", ref, selectionKey(sel)] as const;
@@ -126,20 +131,24 @@ export async function loadReaderPassage(
     }
   }
 
-  if (plan.kind === "resolve") {
+  // Planned from what the index knew, with no answer from the server for this ref itself.
+  const offline = plan.kind === "sections";
+
+  /** Ask the server what `ref` shows: it names the canonical ref and its sections, or says there is no such text (an error). */
+  const askServer = async (): Promise<Extract<DisplayPlan, { kind: "sections" }>> => {
     const passage = await qc.fetchQuery(textQueryOptions(ref, sel));
     await refIndex.setMeta(metaFromPassage(passage));
     // A super-section request comes back as its first section; a misspelt title comes back canonical.
     canonicalRef = passage.ref;
     await refIndex.setAlias(requestedRef, canonicalRef);
     const meta = metaFromPassage(passage);
-    plan = planDisplay(canonicalRef, meta);
+    let p = planDisplay(canonicalRef, meta);
     const asked = parseHumanRef(canonicalRef);
-    if (plan.kind === "resolve" && asked.title === meta.book && asked.sections.length === meta.textDepth) {
+    if (p.kind === "resolve" && asked.title === meta.book && asked.sections.length === meta.textDepth) {
       // A segment range whose sections cannot be enumerated here (a commentary range across chapters: how many verses chapter 1 has is
       // the API's to say): show the sections the API names, and highlight the range by address (CODE_REVIEW low: it lost its highlight)
-      plan = { kind: "sections", sectionRefs: passage.sectionRefs, highlight: { from: asked.sections, to: asked.toSections }, canonicalRef };
-    } else if (plan.kind === "resolve") {
+      p = { kind: "sections", sectionRefs: passage.sectionRefs, highlight: { from: asked.sections, to: asked.toSections }, canonicalRef };
+    } else if (p.kind === "resolve") {
       // A ref above section level (a book, a commentary chapter) opens at its first available section,
       // like the old server (reader/views.py first_available_section_ref). Further sections load as
       // the reader scrolls. The API's own section list is the fallback for shapes we can't enumerate.
@@ -147,17 +156,29 @@ export async function loadReaderPassage(
       const sectionRefs = first && first !== passage.ref ? [first] : passage.sectionRefs;
       canonicalRef = first ?? canonicalRef;
       await refIndex.setAlias(requestedRef, canonicalRef);
-      plan = { kind: "sections", sectionRefs, highlight: null, canonicalRef };
+      p = { kind: "sections", sectionRefs, highlight: null, canonicalRef };
     }
     // If what we fetched *is* a whole display section, seed it so it isn't fetched twice.
-    if (plan.sectionRefs.length === 1 && plan.sectionRefs[0] === passage.ref) {
+    if (p.sectionRefs.length === 1 && p.sectionRefs[0] === passage.ref) {
       qc.setQueryData(textQueryKey(passage.ref, sel), passage);
     }
-  }
+    return p;
+  };
+  if (plan.kind === "resolve") plan = await askServer();
 
   // A long range (Psalms 1-150, Shabbat 2a-157b: hundreds of sections) loads only its first sections; the column loads the rest as
   // the reader scrolls, and the range's highlight is by address, so it carries on (CODE_REVIEW R-05).
-  const sections = await Promise.all(plan.sectionRefs.slice(0, MAX_INITIAL_SECTIONS).map((r) => qc.ensureQueryData(textQueryOptions(r, sel))));
+  const load = (p: Extract<DisplayPlan, { kind: "sections" }>) =>
+    Promise.all(p.sectionRefs.slice(0, MAX_INITIAL_SECTIONS).map((r) => qc.ensureQueryData(textQueryOptions(r, sel))));
+  let sections = await load(plan);
+  // The book's shape says which section a segment would be in, not that the segment exists (Genesis 1:35: chapter 1 has 31 verses,
+  // and the server answers "We have no text"). When the first highlighted segment is not in what loaded, the server decides.
+  const start = plan.highlight && { from: plan.highlight.from, to: plan.highlight.from };
+  if (offline && start && !sections.some((s) => s.segments.some((seg) => isHighlighted(seg.address, start, s.addressTypes)))) {
+    canonicalRef = ref;
+    plan = await askServer();
+    sections = await load(plan);
+  }
   for (const s of sections) await refIndex.setMeta(metaFromPassage(s));
   return { canonicalRef, sections, highlight: plan.highlight };
 }

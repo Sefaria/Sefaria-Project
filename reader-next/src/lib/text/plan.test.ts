@@ -48,6 +48,42 @@ describe("planDisplay", () => {
   });
 });
 
+// Ref resolution verdict (wiki projects/reader-next/ref-resolution): the planner only drops the last level or enumerates sections of
+// a book the server described, under the exact title the server used; everything else is the server's to answer.
+describe("planDisplay edge cases", () => {
+  const rambanDefault: BookMeta = { book: "Ramban on Genesis", indexTitle: "Ramban on Genesis", textDepth: 3, addressTypes: ["Integer", "Integer", "Integer"], sectionNames: ["Chapter", "Verse", "Comment"], isComplex: true };
+
+  it("never plans another node of a complex text from the default node's shape", () => {
+    expect(planDisplay("Ramban on Genesis, Introduction 3", rambanDefault)).toEqual({ kind: "resolve" });
+  });
+
+  it("sends other spellings to the server: alternate, Hebrew and dot-form titles", () => {
+    expect(planDisplay("Bereshit 1:1", genesis)).toEqual({ kind: "resolve" });
+    expect(planDisplay("בראשית א:א", genesis)).toEqual({ kind: "resolve" });
+    expect(planDisplay("Genesis.1.1", genesis)).toEqual({ kind: "resolve" });
+  });
+
+  it("sends refs deeper than the book to the server", () => {
+    expect(planDisplay("Genesis 1:1:1", genesis)).toEqual({ kind: "resolve" });
+  });
+
+  it("plans an out-of-range segment by shape alone (the loader then checks it against what loads)", () => {
+    expect(planDisplay("Genesis 1:35", genesis)).toMatchObject({ sectionRefs: ["Genesis 1"], highlight: { from: ["1", "35"] } });
+  });
+
+  it("enumerates a verse range across amudim", () => {
+    expect(planDisplay("Berakhot 2a:5-2b:3", berakhot)).toMatchObject({ sectionRefs: ["Berakhot 2a", "Berakhot 2b"], highlight: { from: ["2a", "5"], to: ["2b", "3"] } });
+  });
+
+  it("sends a commentary range across chapters to the server (how many verses a chapter has is its to say)", () => {
+    expect(planDisplay("Rashi on Genesis 1:31:1-2:2:1", rashi)).toEqual({ kind: "resolve" });
+  });
+
+  it("plans a commentary range within one verse as that verse", () => {
+    expect(planDisplay("Rashi on Genesis 1:1:1-3", rashi)).toMatchObject({ sectionRefs: ["Rashi on Genesis 1:1"], highlight: { from: ["1", "1", "1"], to: ["1", "1", "3"] } });
+  });
+});
+
 describe("isHighlighted", () => {
   it("compares Talmud addresses by amud order", () => {
     const h = { from: ["2a", "5"], to: ["2b", "2"] };
