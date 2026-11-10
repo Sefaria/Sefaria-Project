@@ -1,6 +1,6 @@
 import { Fragment, memo, useMemo } from "react";
 import { parashahHeader } from "~/lib/reader/parashah";
-import { sectionTitle, showsSegmentNumbers } from "~/lib/reader/labels";
+import { showsSegmentNumbers } from "~/lib/reader/labels";
 import {
   effectiveBiLayout,
   effectiveLayout,
@@ -13,6 +13,7 @@ import { parseHumanRef } from "~/lib/ref/url";
 import { ReaderSurface } from "../ReaderSurface/ReaderSurface";
 import { Segment, type SegmentProps, type SegmentSide } from "../Segment/Segment";
 import { ParashahHeader, SectionTitle } from "../SectionTitle/SectionTitle";
+import { sectionHeading } from "./section-heading";
 
 export interface TextSectionProps {
   passage: TextPassage;
@@ -80,16 +81,22 @@ function TextSectionImpl({
     <ReaderSurface language={settings.language} layout={layout} biLayout={biLayout} fontSize={settings.fontSize}>
       {passage.sectionRefs.map((sectionRef, idx) => {
         const parsed = parseHumanRef(sectionRef);
-        const title = sectionTitle({
+        // as sefaria.org prints it (parity S7, S13): a later section of a spanning passage has no Hebrew ref of its own
+        const title = sectionHeading({
           primaryCategory: passage.primaryCategory,
-          address: parsed.sections.length ? parsed.sections.join(":") : undefined,
-          addressType: passage.addressTypes[parsed.sections.length - 1],
           sectionRef,
-          heSectionRef: idx === 0 ? passage.heSectionRef : sectionRef,
+          heSectionRef: idx === 0 ? passage.heSectionRef : undefined,
+          indexTitle: passage.indexTitle,
+          heIndexTitle: passage.heIndexTitle,
+          book: passage.book,
+          isComplex: passage.isComplex,
+          sectionNames: passage.sectionNames,
+          sections: parsed.sections,
+          addressTypes: passage.addressTypes,
         });
         return (
           <section key={sectionRef} data-ref={sectionRef} aria-label={sectionRef}>
-            {hideTitle || isDictionary ? null : <SectionTitle en={title.en} he={title.he} language={settings.language} />}
+            {hideTitle || isDictionary || (!title.en && !title.he) ? null : <SectionTitle en={title.en} he={title.he} language={settings.language} />}
             {(bySection.get(sectionRef) ?? []).map((seg) => {
               const header = parashahHeader(passage, seg, settings.aliyotTorah);
               return (
