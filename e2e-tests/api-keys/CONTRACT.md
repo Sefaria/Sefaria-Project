@@ -170,7 +170,7 @@ Tier is the `tier_id` column of the profile's live row in `api_project` (one per
 ## 4. Manifest
 
 `e2e-tests/.apikeys-e2e.json` (override: `APIKEYS_MANIFEST`). Git-ignored, written by `--manifest-stdout`, never
-committed, never pasted into logs or reports. Fields not listed here may be added; none may be renamed.
+committed, never pasted into logs or reports. It holds full keys, so it is mode 0600: redirect `--manifest-stdout` to a file under `umask 077` (the script also chmods a regular-file stdout to 0600 and rewrites its own file with 0600). Fields not listed here may be added; none may be renamed.
 
 ```json
 {

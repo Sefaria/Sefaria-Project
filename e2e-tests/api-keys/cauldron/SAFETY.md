@@ -68,6 +68,28 @@ The mutating steps (`run.sh seeded`, `run.sh drill-f1`) need `APIKEYS_CAULDRON=<
 - Everything written under `results/cauldron-runs/<runId>/` is masked (`key_prefix=` and `sfr_…` to 4 characters) and
   grepped for `sfr_[A-Za-z0-9]{5,}` at the end.
 
+## What the seeder verifies before it writes
+
+The seed script checks its own targets before any fixture operation (`--reset`, `--teardown`, the legacy-key and
+send-limit modes), and prints a `target ok:` line with the hosts and the Mongo database name it found:
+
+- **Local:** Postgres on `127.0.0.1:55432` and every Mongo host on loopback.
+- **Cauldron, all three required:**
+  1. Every site in the pod's own `DOMAIN_MODULES` is under `<cauldron>.cauldron.sefaria.org`, and none is a
+     `sefaria.org` or `sefaria.org.il` host. A production pod can never satisfy this.
+  2. The Postgres host and every Mongo host (a string or a list, with ports) is an in-cluster Kubernetes name: one
+     label, or `<service>[.<namespace>].svc[.cluster.local]`. An external FQDN, a public IP or a Cloud SQL address is
+     refused, naming the host. `APIKEYS_UNSAFE_ALLOW_HOSTS` (comma list) can add hosts to this layer only; it never
+     relaxes layer 1.
+  3. The Postgres database is `sefaria_auth`, and the Mongo database name is not empty. Mongo is not required to
+     carry a per-cauldron name, because a cauldron with `restore.dynamicName: false` (such as `apisplit`) uses the
+     shared dev database; the name is printed so the operator sees it.
+
+Why not a hostname allow-list: service names such as `postgres-18` are the same in the dev and the production clusters,
+so a name cannot tell them apart. What proves the cluster is the pod's own cauldron domain (layer 1, checked inside the
+pod) together with the kube context that `lib.sh` pins to the dev cluster for every cluster call before it execs
+(`KCTX`, refused if `APIKEYS_KUBE_CONTEXT` names another, and the `kc` and `seed_exec` helpers).
+
 ## Seeded runs
 
 Seeding the cauldron (fixture accounts, projects and keys written through the ORM in the web pod) is a cluster write.
