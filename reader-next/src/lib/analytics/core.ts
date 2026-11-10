@@ -16,7 +16,8 @@
  */
 export type AnalyticsParams = Record<string, string | number | boolean | null | undefined>;
 export interface LoggedEvent {
-  channel: "gtag" | "sa" | "ua";
+  /** "ua-set": a field set on the Universal Analytics tracker (`ga("<tracker>.set", field, value)`), as the old Track.set* did. */
+  channel: "gtag" | "sa" | "ua" | "ua-set";
   name: string;
   params?: AnalyticsParams;
 }
@@ -92,6 +93,19 @@ export function uaEvent(category: string, action: string, label?: string, value?
   try {
     const tracker = window.ga?.getAll?.()[0];
     if (tracker) window.ga!(`${tracker.get("name")}.send`, "event", category, action, label, value);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** The old `Track.setPageType` & co. (static/js/sefaria/track.js): `ga("<tracker>.set", field, value)` through GTM's `ga` shim, so
+ *  the hits that follow carry the custom dimension. Only when that shim is present, as uaEvent. Nothing is sent by a set. */
+export function uaSet(field: string, value: string): void {
+  if (!inBrowser) return;
+  record({ channel: "ua-set", name: field, params: { value } });
+  try {
+    const tracker = window.ga?.getAll?.()[0];
+    if (tracker) window.ga!(`${tracker.get("name")}.set`, field, value);
   } catch {
     /* ignore */
   }
