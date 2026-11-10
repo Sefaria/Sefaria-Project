@@ -22,8 +22,8 @@ import {
   sendConfirmation,
   setKeyRestriction,
   updateProject,
+  websiteDomain,
   websiteHost,
-  websiteOrigin,
 } from './developerSettingsApi';
 import Input from './common/Input.jsx';
 
@@ -411,10 +411,11 @@ const AgentInstructions = () => (
         they asked, and remind them to keep it private.
       </li>
       <li>
-        Optional: once the project has a website, &quot;Only accept requests from&quot; that site is an allowed-origin
-        restriction: Sefaria refuses this key (403 origin_not_allowed) on any request whose Origin header is not that
-        site, including requests with no Origin. Turn it on only for keys used in front-end code that runs in a browser.
-        Leave it off for keys used from a server, script, app or agent, including your own calls.
+        Optional: once the project has a website, &quot;Only accept requests from&quot; its domain is an allowed-domain
+        restriction: Sefaria refuses this key (403 origin_not_allowed) on any request whose Origin header is not on that
+        domain or one of its subdomains, including requests with no Origin. Turn it on only for keys used in front-end
+        code that runs in a browser. Leave it off for keys used from a server, script, app or agent, including your own
+        calls.
       </li>
     </ol>
     <p>
@@ -1163,7 +1164,7 @@ const ProjectFields = ({ fields, set, onChoosePublic, onChoosePrivate, onShowPub
         }
         aria-describedby={tipId('devPocProjectUrl')}
         inputDir="ltr"
-        placeholder="https://"
+        placeholder="example.com"
         value={fields.websiteUrl}
         onChange={(e) => set('websiteUrl', e.target.value)}
       />
@@ -1772,16 +1773,22 @@ const NewProjectPanel = ({ onCreate, onCancel }) => {
   );
 };
 
-/* An allowed-origin restriction on the key. One visible technical sentence names the exact
+/* An allowed-domain restriction on the key. One visible technical sentence names the exact
    mechanism (Origin header, 403) so developers and agents can act on it without guessing;
    the plain-language explanation is a disclosure, because this setting is the one most
-   likely to break a project. */
+   likely to break a project. A refusal, such as a shared hosting domain, shows under the switch. */
 const RestrictionToggle = ({ project, apiKey, onToggle }) => {
-  const host = websiteHost(project.websiteUrl);
+  const domain = websiteDomain(project.websiteUrl);
   const [explained, setExplained] = useState(false);
+  const [error, setError] = useState('');
   const explainerId = 'devPocRestrictionHelp-' + apiKey.id;
   const summaryId = 'devPocRestrictionSummary-' + apiKey.id;
-  const origin = <code dir="ltr">{websiteOrigin(project.websiteUrl)}</code>;
+  const errorId = 'devPocRestrictionError-' + apiKey.id;
+  const origin = <code dir="ltr">{domain}</code>;
+  const toggle = (on) => {
+    setError('');
+    onToggle(on).catch((err) => setError(err.message || Sefaria._v(SAVE_FAILED)));
+  };
   return (
     <div className="devPocRestriction">
       <div className="devPocRestrictionRow">
@@ -1790,32 +1797,52 @@ const RestrictionToggle = ({ project, apiKey, onToggle }) => {
             type="checkbox"
             className="devPocSwitch"
             checked={!!apiKey.restrictToWebsite}
-            onChange={(e) => onToggle(e.target.checked)}
-            aria-describedby={summaryId}
+            onChange={(e) => toggle(e.target.checked)}
+            aria-describedby={error ? errorId + ' ' + summaryId : summaryId}
+            aria-invalid={error ? true : undefined}
             aria-label={Sefaria._v({
-              en: 'Only accept requests from ' + host + ' (' + apiKey.label + ')',
-              he: 'לקבל בקשות רק מ־ ' + host + ' (' + apiKey.label + ')',
+              en: 'Only accept requests from ' + domain + ' and its subdomains (' + apiKey.label + ')',
+              he: 'לקבל בקשות רק מ־ ' + domain + ' ומתתי־הדומיינים שלו (' + apiKey.label + ')',
             })}
           />
           <span>
-            <InterfaceText text={{ en: 'Only accept requests from', he: 'לקבל בקשות רק מ־' }} />{' '}
-            <code dir="ltr">{host}</code>
+            <InterfaceText
+              text={{
+                en: (
+                  <React.Fragment>
+                    Only accept requests from <code dir="ltr">{domain}</code> and its subdomains
+                  </React.Fragment>
+                ),
+                he: (
+                  <React.Fragment>
+                    לקבל בקשות רק מ־ <code dir="ltr">{domain}</code> ומתתי־הדומיינים שלו
+                  </React.Fragment>
+                ),
+              }}
+            />
           </span>
         </label>
       </div>
+      {error ? (
+        <p className="devPocWarning" role="alert" id={errorId}>
+          {error}
+        </p>
+      ) : null}
       <p className="devPocHelp devPocRestrictionSummary" id={summaryId}>
         <InterfaceText
           text={{
             en: (
               <React.Fragment>
-                Allowed origin: Sefaria refuses requests with this key (<code dir="ltr">403 origin_not_allowed</code>)
-                unless their <code dir="ltr">Origin</code> header is {origin}.
+                Allowed domain: Sefaria refuses requests with this key (<code dir="ltr">403 origin_not_allowed</code>)
+                unless their <code dir="ltr">Origin</code> header is on {origin} or one of its subdomains, such as{' '}
+                <code dir="ltr">www.{domain}</code>.
               </React.Fragment>
             ),
             he: (
               <React.Fragment>
-                מקור מורשה (allowed origin): ספריא דוחה בקשות עם המפתח (<code dir="ltr">403 origin_not_allowed</code>)
-                אלא אם כותרת ה־<code dir="ltr">Origin</code> שלהן היא {origin}.
+                דומיין מורשה (allowed domain): ספריא דוחה בקשות עם המפתח (<code dir="ltr">403 origin_not_allowed</code>)
+                אלא אם כותרת ה־<code dir="ltr">Origin</code> שלהן היא {origin} או אחד מתתי־הדומיינים שלו, כמו{' '}
+                <code dir="ltr">www.{domain}</code>.
               </React.Fragment>
             ),
           }}
@@ -1837,14 +1864,14 @@ const RestrictionToggle = ({ project, apiKey, onToggle }) => {
               text={{
                 en: (
                   <React.Fragment>
-                    When this is on, the key only works on your website, {origin}. Anywhere else, including a request
-                    with no website attached, Sefaria turns it away.
+                    When this is on, the key only works on your website, {origin}, and its subdomains. Anywhere else,
+                    including a request with no website attached, Sefaria turns it away.
                   </React.Fragment>
                 ),
                 he: (
                   <React.Fragment>
-                    כשההגבלה פעילה, המפתח עובד רק באתר שלכם, {origin}. בכל מקום אחר, כולל בקשה שלא מגיעה מאתר, ספריא
-                    דוחה אותו.
+                    כשההגבלה פעילה, המפתח עובד רק באתר שלכם, {origin}, ובתתי־הדומיינים שלו. בכל מקום אחר, כולל בקשה שלא
+                    מגיעה מאתר, ספריא דוחה אותו.
                   </React.Fragment>
                 ),
               }}
@@ -2091,7 +2118,7 @@ const KeysSection = ({ project, maxKeys, canCreate, run, setConfirm, onAddWebsit
     );
   };
 
-  const toggleRestriction = (keyId, on) => run(setKeyRestriction(keyId, on)).catch(() => {});
+  const toggleRestriction = (keyId, on) => run(setKeyRestriction(keyId, on), { quiet: true });
 
   const deleteApiKey = (apiKey) =>
     setConfirm({

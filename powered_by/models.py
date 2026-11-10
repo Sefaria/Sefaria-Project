@@ -390,19 +390,19 @@ def new_key_value():
     return KEY_PREFIX + "".join(secrets.choice(KEY_ALPHABET) for _ in range(KEY_LENGTH))
 
 
-ORIGIN_RE = re.compile(r"^https?://[A-Za-z0-9.-]+(:\d{1,5})?$")
+DOMAIN_RE = re.compile(r"^([a-z0-9-]+(\.[a-z0-9-]+)*|\[[0-9a-f:.]+\])$")
 
 
 def validate_allowed_origins(value):
     """
-    allowed_origins is a list of origins (scheme://host[:port], no path). The auth service loads
-    it as a list of strings, so anything else must never be stored.
+    allowed_origins is a list of domains (lowercase host, no scheme, port or path; IPv6 in
+    brackets). The auth service loads it as a list of strings, so anything else must never be stored.
     """
     if not isinstance(value, list):
-        raise ValidationError("Allowed origins must be a list.")
-    for origin in value:
-        if not isinstance(origin, str) or not ORIGIN_RE.match(origin):
-            raise ValidationError("%(origin)r is not an origin such as https://example.org.", params={"origin": origin})
+        raise ValidationError("Allowed domains must be a list.")
+    for domain in value:
+        if not isinstance(domain, str) or not DOMAIN_RE.match(domain):
+            raise ValidationError("%(domain)r is not a domain such as example.org.", params={"domain": domain})
 
 
 class ApiKey(models.Model):
@@ -421,7 +421,7 @@ class ApiKey(models.Model):
         blank=True,
         db_default=[],
         validators=[validate_allowed_origins],
-        help_text='Origins (e.g. "https://example.org") allowed to call with this key. Empty allows any.',
+        help_text='Domains (e.g. "example.org") whose sites, and their subdomains, may call with this key. Empty allows any.',
     )
     created_at = models.DateTimeField(auto_now_add=True)
     revoked_at = models.DateTimeField(null=True, blank=True)

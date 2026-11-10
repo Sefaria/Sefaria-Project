@@ -645,12 +645,14 @@ describe('key cards', () => {
       ],
     });
 
-  it('leads the website restriction with the allowed-origin rule, explained on request', () => {
+  it('leads the website restriction with the allowed-domain rule, explained on request', () => {
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] }, { projectId: 'proj01' });
     const restriction = container.querySelector('.devPocRestriction');
     const summary = restriction.querySelector('.devPocRestrictionSummary');
-    expect(summary.textContent).toContain('Allowed origin');
-    expect(summary.textContent).toContain('Origin header is https://daftracker.org');
+    expect(summary.textContent).toContain('Allowed domain');
+    expect(summary.textContent).toContain(
+      'Origin header is on daftracker.org or one of its subdomains, such as www.daftracker.org.'
+    );
     expect(restriction.querySelector('input').getAttribute('aria-describedby')).toBe(summary.id);
     expect(restriction.querySelector('.devPocExplainer')).toBeNull();
     act(() => {
@@ -668,7 +670,7 @@ describe('key cards', () => {
     });
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [twoKeys] }, { projectId: 'proj01' });
     const visibleSwitchText = container.querySelector('.devPocRestrictionRow label > span').textContent;
-    expect(visibleSwitchText).toBe('Only accept requests from daftracker.org');
+    expect(visibleSwitchText).toBe('Only accept requests from daftracker.org and its subdomains');
     const switches = Array.from(container.querySelectorAll('.devPocSwitch')).map((s) => s.getAttribute('aria-label'));
     expect(switches).toEqual([visibleSwitchText + ' (Production)', visibleSwitchText + ' (Staging)']);
     const deletes = Array.from(container.querySelectorAll('.devPocKeyHeading button')).map((b) =>
@@ -677,12 +679,27 @@ describe('key cards', () => {
     expect(deletes).toEqual(['Delete key Production', 'Delete key Staging']);
   });
 
-  it("names the origin with the website's own scheme", () => {
-    const httpProject = publicProject({ websiteUrl: 'http://example.org/app', keys: projectWithKey().keys });
+  it('names the domain without www., a scheme or a port', () => {
+    const httpProject = publicProject({ websiteUrl: 'http://www.Example.org:8080/app', keys: projectWithKey().keys });
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [httpProject] }, { projectId: 'proj01' });
     const summary = container.querySelector('.devPocRestrictionSummary');
-    expect(summary.textContent).toContain('Origin header is http://example.org.');
-    expect(summary.textContent).not.toContain('https://example.org');
+    expect(summary.textContent).toContain('Origin header is on example.org or one of its subdomains');
+    expect(summary.textContent).not.toContain('http');
+    expect(summary.textContent).not.toContain('8080');
+  });
+
+  it("shows the server's refusal under the switch", async () => {
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] }, { projectId: 'proj01' });
+    const refusal =
+      "A key can't be restricted to vercel.app, because other people's sites share it. Use your site's own address, such as yourapp.vercel.app, or leave the key unrestricted.";
+    global.fetch = jest.fn(() =>
+      Promise.resolve({ ok: false, status: 400, json: () => Promise.resolve({ error: refusal }) })
+    );
+    const restriction = container.querySelector('.devPocRestriction');
+    await clickAndSettle(restriction.querySelector('.devPocSwitch'));
+    const alert = restriction.querySelector('[role="alert"]');
+    expect(alert.textContent).toBe(refusal);
+    expect(restriction.querySelector('.devPocSwitch').getAttribute('aria-describedby')).toContain(alert.id);
   });
 
   it('show when a key was created, with no usage information', () => {
@@ -1002,6 +1019,8 @@ describe('server errors in Hebrew', () => {
       'The website must be text.',
       'Wait a minute before asking for another email.',
       'A key is restricted to this website. Turn off the restriction on every key before removing the website.',
+      "A key can't be restricted to vercel.app, because other people's sites share it. Use your site's own address, such as yourapp.vercel.app, or leave the key unrestricted.",
+      "A key can't be restricted to localhost, because it isn't a public domain. Leave keys you use for local development unrestricted.",
     ].forEach((message) => expect(serverErrorText(message)).toMatch(HEBREW));
     expect(serverErrorText('A project can have at most 5 keys.')).toContain('5');
   });
