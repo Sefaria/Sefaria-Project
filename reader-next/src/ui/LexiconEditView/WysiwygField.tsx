@@ -5,6 +5,18 @@ import styles from "./LexiconEditView.module.css";
 /** What a stored entry's markup uses (LexiconWysiwygValue's display allowlist); `a` keeps its ref attributes. */
 const KEEP = { a: ["class", "data-ref", "data-scroll-link"], span: ["class", "dir"] } as const;
 const showHtml = (html: string) => sanitizeHtml(html, { keepAttributes: KEEP });
+/**
+ * What the editing box is filled with: the same sanitiser as the display (v-security nit 3: the stored entry went into innerHTML raw),
+ * keeping every attribute the server keeps on save (sefaria/model/lexicon.py LexiconEntry.ALLOWED_ATTRS), so editing an entry does not
+ * strip what the server would have kept. (Its `big` tags and `data:` images are not in this sanitiser's list: their text stays.)
+ */
+const EDIT_KEEP = {
+  a: ["class", "data-ref", "data-scroll-link"],
+  span: ["class", "dir"],
+  i: ["data-commentator", "data-order", "class", "data-label", "dir"],
+  sup: ["class"],
+} as const;
+export const editableHtml = (html: string) => sanitizeHtml(html, { keepAttributes: EDIT_KEEP });
 
 export interface RefLink {
   /** The normalized ref ("Proverbs 4:18"). */
@@ -27,8 +39,8 @@ const closestLink = (node: Node | null) => (node instanceof Element ? node : nod
 /**
  * One string of a dictionary entry, as the old WysiwygValueNode: shown as rendered HTML (click to edit); editing is a
  * contentEditable box with Bold, Italic, Superscript, Subscript and "Ref" (a Sefaria ref link with its own display text,
- * `<a class="refLink" data-ref href>`), and Cancel, which puts the field back. The stored value is edited as it is —
- * sanitizing happens on save, on the server (LexiconEntry._sanitize).
+ * `<a class="refLink" data-ref href>`), and Cancel, which puts the field back. The stored value is put in the box sanitised
+ * (editableHtml), and sanitised again on save, on the server (LexiconEntry._sanitize).
  *
  * @feature CON-072 Edit a dictionary entry (moderator)
  */
@@ -41,7 +53,7 @@ export function WysiwygField({ value, onChange, resolveRef, label }: WysiwygFiel
   useEffect(() => {
     if (!editing || !box.current) return;
     before.current = value;
-    box.current.innerHTML = value;
+    box.current.innerHTML = editableHtml(value);
     box.current.focus();
     // Enter inserts <br> (the only break the server keeps), not a new block
     document.execCommand?.("defaultParagraphSeparator", false, "br");
