@@ -35,7 +35,7 @@
 
 /* Footnote bodies */
 .notes { display: block; margin-block: 0.4em; padding-inline-start: 0.8em; border-inline-start: 2px solid var(--sefaria-color-border); font-size: 0.7em; line-height: 1.4; color: var(--sefaria-color-text-secondary); }
-.notes p { margin: 0 0 0.3em; }
+.notes .note { display: block; margin: 0 0 0.3em; }
 .noteLabel { color: var(--sefaria-color-link); font-weight: 700; margin-inline-end: 0.35em; }
 
 /* Words a search matched (SRC-058): the old reader's pale blue (s2.css .segment .queryTextHighlight) */
