@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CalendarsRoute } from "~/features/calendars/CalendarsRoute";
 import { textualCustomQuery } from "~/features/calendars/textual-custom";
 import { viewerQuery } from "~/features/auth/viewer";
-import { SITE_ORIGIN } from "~/lib/config";
+import { CANONICAL_ORIGIN, SITE_ORIGIN, canonicalUrl } from "~/lib/config";
 import { hebrewSiteOrigin } from "~/lib/routing/site-origins";
 import { calendarsQueryOptions } from "~/lib/library/calendars";
 
@@ -21,7 +21,8 @@ export const Route = createFileRoute("/calendars")({
   },
   head: ({ loaderData }) => {
     const path = loaderData?.path ?? "/calendars";
-    const url = `${SITE_ORIGIN}${path}`;
+    // canonical, og:url and the language alternates are absolute (PUBLIC_CANONICAL_ORIGIN): SITE_ORIGIN is "" in the cluster
+    const url = canonicalUrl(path);
     const img = (platform: string) => `${SITE_ORIGIN}/api/img-gen/calendars?lang=&platform=${platform}&ven=&vhe=`;
     // as sefaria.org's head for the page (VERIFIED 2026-11-04), whatever the interface language
     return {
@@ -44,7 +45,7 @@ export const Route = createFileRoute("/calendars")({
       ],
       links: [
         { rel: "alternate", href: url, hrefLang: "en" },
-        { rel: "alternate", href: `${hebrewSiteOrigin(SITE_ORIGIN)}${path}`, hrefLang: "he" },
+        { rel: "alternate", href: canonicalUrl(path, hebrewSiteOrigin(CANONICAL_ORIGIN)), hrefLang: "he" },
         { rel: "canonical", href: url },
       ],
     };

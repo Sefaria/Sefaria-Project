@@ -8,6 +8,9 @@
  *  - SEFARIA_API_HOST     the Host header those internal requests carry (Django routes by host: "www.<env>.cauldron.sefaria.org").
  *  - PUBLIC_API_ORIGIN    the API as the BROWSER reaches it; "" means the page's own origin (nginx sends /api/* to Varnish).
  *  - PUBLIC_SITE_ORIGIN   where links to the pages this client does not render (topics, sheets, login…) go; "" = same origin.
+ *  - PUBLIC_CANONICAL_ORIGIN  the absolute origin of canonical and Open Graph URLs (`<link rel="canonical">`, og:url), which must
+ *                         never be relative, so not PUBLIC_SITE_ORIGIN (empty in the cluster on purpose). Default (and when unset,
+ *                         empty or not an http(s) origin) "https://www.sefaria.org"; the chart sets it (reader.canonicalOrigin).
  *  - PUBLIC_ROOM_URL      the follow-me room server as the browser reaches it ("ws://<lan-ip>:3199" for scripts/dev-room-server.mjs);
  *                         unset = follow runs in an in-browser room shared over BroadcastChannel (tabs of one browser only).
  *  - PUBLIC_LABS          the labs on by default in this deployment, comma-separated ("follow_me,recording"); remote config
@@ -31,6 +34,8 @@ export interface AnalyticsConfig {
 export interface PublicConfig {
   apiOrigin: string;
   siteOrigin: string;
+  /** Absolute origin for canonical and Open Graph URLs (PUBLIC_CANONICAL_ORIGIN): see {@link canonicalUrl}. */
+  canonicalOrigin: string;
   analytics: AnalyticsConfig;
   /** The Voices site (sheets, collections, profiles): PUBLIC_VOICES_ORIGIN, "https://voices.<root domain>" in a deployment. */
   voicesOrigin: string;
@@ -59,6 +64,13 @@ export interface AssistantEnv {
 
 const DEFAULT_ORIGIN = "https://www.sefaria.org";
 const DEFAULT_VOICES = "https://voices.sefaria.org";
+const DEFAULT_CANONICAL = "https://www.sefaria.org";
+
+/** The canonical origin for a configured value: an absolute http(s) origin without its trailing slash, else sefaria.org's. */
+export function canonicalOriginFrom(value: string | null | undefined): string {
+  const v = (value ?? "").trim().replace(/\/+$/, "");
+  return /^https?:\/\/[^/?#]+$/.test(v) ? v : DEFAULT_CANONICAL;
+}
 /** Django's CHATBOT_API_BASE_URL default (sefaria/local_settings_example.py, the helm chart). */
 const DEFAULT_ASSISTANT_API = "https://chat-dev.sefaria.org/api";
 const isServer = typeof window === "undefined";
@@ -77,6 +89,7 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
   ? {
       apiOrigin: env("PUBLIC_API_ORIGIN") ?? DEFAULT_ORIGIN,
       siteOrigin: env("PUBLIC_SITE_ORIGIN") ?? DEFAULT_ORIGIN,
+      canonicalOrigin: canonicalOriginFrom(env("PUBLIC_CANONICAL_ORIGIN")),
       voicesOrigin: env("PUBLIC_VOICES_ORIGIN") || DEFAULT_VOICES,
       analytics: {
         gtm: env("GOOGLE_TAG_MANAGER_CODE") || null,
@@ -99,6 +112,7 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
   : {
       apiOrigin: window.__SEFARIA_CONFIG__?.apiOrigin ?? DEFAULT_ORIGIN,
       siteOrigin: window.__SEFARIA_CONFIG__?.siteOrigin ?? DEFAULT_ORIGIN,
+      canonicalOrigin: canonicalOriginFrom(window.__SEFARIA_CONFIG__?.canonicalOrigin),
       voicesOrigin: window.__SEFARIA_CONFIG__?.voicesOrigin || DEFAULT_VOICES,
       analytics: { ...NO_ANALYTICS, ...window.__SEFARIA_CONFIG__?.analytics },
       googleClientId: window.__SEFARIA_CONFIG__?.googleClientId ?? "",
@@ -114,6 +128,12 @@ export const API_ORIGIN: string = isServer ? (env("SEFARIA_API_ORIGIN") ?? PUBLI
 
 /** Origin of the old site's pages (topics, sheets, login…): "" when this client is served on the same site. */
 export const SITE_ORIGIN: string = PUBLIC_CONFIG.siteOrigin;
+
+/** Absolute origin of canonical and Open Graph URLs (never ""): PUBLIC_CANONICAL_ORIGIN. */
+export const CANONICAL_ORIGIN: string = PUBLIC_CONFIG.canonicalOrigin;
+
+/** The absolute URL a page names as its canonical and og:url: `path` (with its leading "/") on the canonical origin. */
+export const canonicalUrl = (path: string, origin: string = CANONICAL_ORIGIN): string => `${origin}${path.startsWith("/") ? path : `/${path}`}`;
 
 /** The sign-in providers' public keys (empty when not configured). */
 export const SSO_CONFIG = {
@@ -135,7 +155,7 @@ export function serverConfigProblems(e: Record<string, string | undefined>): str
   const absolute = (v: string) => /^https?:\/\/[^/]+/.test(v);
   const apiForServer = e.SEFARIA_API_ORIGIN ?? e.PUBLIC_API_ORIGIN ?? DEFAULT_ORIGIN;
   if (!absolute(apiForServer)) problems.push(`the server has no absolute API origin (SEFARIA_API_ORIGIN=${JSON.stringify(e.SEFARIA_API_ORIGIN)}, PUBLIC_API_ORIGIN=${JSON.stringify(e.PUBLIC_API_ORIGIN)})`);
-  for (const k of ["PUBLIC_API_ORIGIN", "PUBLIC_SITE_ORIGIN", "PUBLIC_VOICES_ORIGIN"] as const) {
+  for (const k of ["PUBLIC_API_ORIGIN", "PUBLIC_SITE_ORIGIN", "PUBLIC_VOICES_ORIGIN", "PUBLIC_CANONICAL_ORIGIN"] as const) {
     const v = e[k];
     if (v !== undefined && v !== "" && !absolute(v)) problems.push(`${k} must be "" (this site) or an absolute http(s) origin, not ${JSON.stringify(v)}`);
   }

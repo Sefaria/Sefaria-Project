@@ -1,6 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { TranslationsRoute } from "~/features/library/TranslationsRoute";
-import { SITE_ORIGIN } from "~/lib/config";
+import { CANONICAL_ORIGIN, SITE_ORIGIN, canonicalUrl } from "~/lib/config";
 import { hebrewSiteOrigin } from "~/lib/routing/site-origins";
 import { ErrorState } from "~/ui/Feedback/Feedback";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
@@ -30,7 +30,8 @@ export const Route = createFileRoute("/translations/$slug")({
     if (!language) return {};
     // as sefaria.org's head for the page (VERIFIED 2026-11-04 for de, en, he): the language's title and description, the shared card
     const path = `/translations/${params.slug}`;
-    const url = `${SITE_ORIGIN}${path}`;
+    // canonical, og:url and the language alternates are absolute (PUBLIC_CANONICAL_ORIGIN): SITE_ORIGIN is "" in the cluster
+    const url = canonicalUrl(path);
     const img = (platform: string) => `${SITE_ORIGIN}/api/img-gen${path}?lang=&platform=${platform}&ven=&vhe=`;
     return {
       meta: [
@@ -56,7 +57,7 @@ export const Route = createFileRoute("/translations/$slug")({
       ],
       links: [
         { rel: "alternate", href: url, hrefLang: "en" },
-        { rel: "alternate", href: `${hebrewSiteOrigin(SITE_ORIGIN)}${path}`, hrefLang: "he" },
+        { rel: "alternate", href: canonicalUrl(path, hebrewSiteOrigin(CANONICAL_ORIGIN)), hrefLang: "he" },
       ],
     };
   },
