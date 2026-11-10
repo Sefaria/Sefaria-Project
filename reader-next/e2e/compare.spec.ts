@@ -283,10 +283,20 @@ test.describe("Apply Change (moderators)", () => {
   test("signed out: a click on a change says a moderator must sign in", async ({ page }) => {
     await page.route(/\/_allauth\/browser\/v1\/auth\/session$/, (r) => r.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ meta: { is_authenticated: false } }) }));
     await open(page, DIFF);
-    const d = await clickAChange(page);
-    expect(d?.message()).toBe("Not signed in. You must be signed in as a Sefaria Moderator to use this feature.");
-    await d!.dismiss();
+    // every native alert is recorded and dismissed: an unhandled second one blocks the page (CI, 2026-11-10: the test then timed out
+    // on the locator below instead of saying why)
+    const messages: string[] = [];
+    page.on("dialog", (dlg) => {
+      messages.push(dlg.message());
+      void dlg.dismiss().catch(() => {});
+    });
+    await row(page, "Genesis 1:5").locator('[data-diff="ins"]').first().click();
+    await expect.poll(() => messages.length).toBeGreaterThan(0);
+    expect(messages[0]).toBe("Not signed in. You must be signed in as a Sefaria Moderator to use this feature.");
     await expect(page.getByRole("dialog", { name: "Change" })).toHaveCount(0);
+    // one click, one alert
+    await page.waitForTimeout(500);
+    expect(messages).toHaveLength(1);
   });
 
   test("signed in but not a moderator: a click says only moderators can edit", async ({ page }) => {
