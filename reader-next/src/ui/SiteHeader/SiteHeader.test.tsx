@@ -10,7 +10,9 @@ describe("SiteHeader", () => {
   it("primary links go to the library's pages", () => {
     render(<SiteHeader next="/Genesis.1" search={STUB_SEARCH} />);
     const nav = screen.getByRole("navigation", { name: "Primary navigation" });
-    expect(within(nav).getByRole("link", { name: "Texts" })).toHaveAttribute("href", "https://www.sefaria.org/texts");
+    // relative: this client's own pages, navigated in the app (T-F02)
+    expect(within(nav).getByRole("link", { name: "Texts" })).toHaveAttribute("href", "/texts");
+    expect(within(nav).getByRole("link", { name: "Topics" })).toHaveAttribute("href", "/topics");
     expect(within(nav).getByRole("link", { name: "Donate" })).toHaveAttribute("href", expect.stringContaining("c_src=Header"));
   });
   it("Enter in the search box runs the smart submit with the trimmed words", async () => {

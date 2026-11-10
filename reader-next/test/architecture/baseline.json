@@ -6,9 +6,6 @@
     "src/ui/AboutView/AboutView.tsx": [
       "~/lib/config"
     ],
-    "src/ui/BookPage/BookPage.tsx": [
-      "~/lib/config"
-    ],
     "src/ui/CategoryColorLine/CategoryColorLine.tsx": [
       "~/lib/analytics"
     ],
@@ -37,9 +34,6 @@
     "src/ui/ReaderSurface/ReaderSurface.tsx": [
       "~/lib/reader/settings"
     ],
-    "src/ui/SearchPage/SearchPage.tsx": [
-      "~/lib/config"
-    ],
     "src/ui/SectionTitle/SectionTitle.tsx": [
       "~/lib/reader/settings"
     ],
@@ -47,8 +41,7 @@
       "~/lib/reader/settings"
     ],
     "src/ui/SiteHeader/HeaderSearch.tsx": [
-      "~/lib/analytics/search-box",
-      "~/lib/config"
+      "~/lib/analytics/search-box"
     ],
     "src/ui/SiteHeader/SiteHeader.tsx": [
       "~/lib/analytics"

@@ -5,7 +5,6 @@ import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { Icon, type IconName } from "../Icon/Icon";
 import { KeyboardLauncher } from "../VirtualKeyboard/KeyboardLauncher";
 import styles from "./HeaderSearch.module.css";
-import { SITE_ORIGIN } from "~/lib/config";
 
 export interface HeaderSearchProps {
   /** Suggestions for the typed words (three or more characters). */
@@ -172,7 +171,7 @@ export function HeaderSearch({ getSuggestions, onSmartSubmit, onSearch, onChoose
                 data-active={active === i}
                 className={styles.item}
                 lang={isHebrew(s.label) ? "he" : "en"}
-                href={s.url ?? `${SITE_ORIGIN}/search?q=${encodeURIComponent(s.label)}`}
+                href={s.url ?? `/search?q=${encodeURIComponent(s.label)}`}
                 onClick={click(s)}
                 onMouseEnter={() => setActive(i)}
                 // clicks must not blur the input first

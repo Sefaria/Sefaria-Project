@@ -12,7 +12,6 @@ import { Skeleton } from "../Skeleton/Skeleton";
 import { VisuallyHidden } from "../VisuallyHidden/VisuallyHidden";
 import { categoryColor } from "../tokens/category-color";
 import styles from "./SearchPage.module.css";
-import { SITE_ORIGIN } from "~/lib/config";
 import { dirFor } from "~/lib/i18n/direction";
 
 const plain = (e: MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
@@ -370,7 +369,7 @@ export function EntityCard({ type, hit, topicParent, liProps }: { type: EntityTy
   const crumbs = cats.length
     ? cats.map((c, i) => ({ label: c, href: `/texts/${cats.slice(0, i + 1).join("/")}` }))
     : hit.categoryLabel_en ? [{ label: he ? hit.categoryLabel_he ?? hit.categoryLabel_en : hit.categoryLabel_en }]
-    : topicParent ? [{ label: he ? topicParent.he : topicParent.en, href: `${SITE_ORIGIN}/topics/category/${topicParent.slug}` }] : [];
+    : topicParent ? [{ label: he ? topicParent.he : topicParent.en, href: `/topics/category/${topicParent.slug}` }] : [];
   const accent = type === "book" ? categoryColor(cats[0] ?? "") : "#000";
   const href = hit.url ?? entityHref(type, hit);
   const icon = type === "book" ? (hit.isCategory ? "layers" : "book") : type === "author" ? "pen" : "hash";
@@ -386,7 +385,7 @@ export function EntityCard({ type, hit, topicParent, liProps }: { type: EntityTy
           <div className={styles.entityMeta} lang={lang} dir={dirFor(lang)}>
             {date ? (he ? date.he : date.en) : null}
             {date && authorName ? " · " : null}
-            {authorName ? (hit.authors?.[0] ? <Link href={`${SITE_ORIGIN}/topics/${hit.authors[0]}?tab=author-works-on-sefaria`}>{authorName}</Link> : authorName) : null}
+            {authorName ? (hit.authors?.[0] ? <Link href={`/topics/${hit.authors[0]}?tab=author-works-on-sefaria`}>{authorName}</Link> : authorName) : null}
           </div>
         ) : null}
         {desc ? <p className={`${styles.entityDesc} ${type === "book" ? styles.bookDesc : ""}`} lang={lang} dir={dirFor(lang)}>{desc}</p> : null}
@@ -408,8 +407,8 @@ export function EntityResults({ type, hits, empty, topicParents, itemProps }: { 
 const NONE: Record<SearchTab, { h: [string, string]; body: [string, string]; cta: [string, string]; href: string; img: string }> = {
   sources: { h: ["No sources found for", "לא נמצאו מקורות עבור"], body: ["Try a different spelling or shorter search term, change your filter/toggle selections, or browse the library.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בספרייה."], cta: ["Browse Library", "לעיון בספרייה"], href: "/texts", img: "Source" },
   books: { h: ["No books found for", "לא נמצאו ספרים עבור"], body: ["Try a different spelling or shorter search term, or browse the library.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בספרייה."], cta: ["Browse Library", "לעיון בספרייה"], href: "/texts", img: "Books" },
-  authors: { h: ["No authors found for", "לא נמצאו מחברים עבור"], body: ["Try a different spelling or shorter search term, or browse all authors.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בכל המחברים."], cta: ["Browse Authors", "לעיון בכל המחברים"], href: `${SITE_ORIGIN}/people`, img: "Authors" },
-  topics: { h: ["No topics found for", "לא נמצאו נושאים עבור"], body: ["Try a different spelling or shorter search term, or browse all topics.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בכל הנושאים."], cta: ["Browse Topics", "לעיון בכל הנושאים"], href: `${SITE_ORIGIN}/topics`, img: "Topics" },
+  authors: { h: ["No authors found for", "לא נמצאו מחברים עבור"], body: ["Try a different spelling or shorter search term, or browse all authors.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בכל המחברים."], cta: ["Browse Authors", "לעיון בכל המחברים"], href: "/topics/category/authors", img: "Authors" },
+  topics: { h: ["No topics found for", "לא נמצאו נושאים עבור"], body: ["Try a different spelling or shorter search term, or browse all topics.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בכל הנושאים."], cta: ["Browse Topics", "לעיון בכל הנושאים"], href: "/topics", img: "Topics" },
 };
 /** Nothing found: an illustration per tab, the words, a way on, and where to report a problem (VERIFIED on sefaria.org, SRC-064). */
 const queryLang = (q: string) => (/[\u0590-\u05FF]/.test(q) ? { dir: "rtl" as const, lang: "he" } : { dir: "ltr" as const, lang: "en" });
