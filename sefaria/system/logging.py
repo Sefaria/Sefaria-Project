@@ -15,10 +15,16 @@ API_KEY_QUERY_RE = re.compile(
 # Referer, whatever the parameter name: the admin search box sends a pasted key as ?q=sfr_<secret>. The prefix may be
 # percent-encoded. The body is a run of units, a unit being one letter or digit or one percent-encoded byte (% and two
 # hex digits), so a key whose body is partly or wholly encoded, even double-encoded, is still caught and the whole run is
-# consumed. A token whose body is no longer than 6 units (the 6 characters the admin shows: KEY_DISPLAY_PREFIX of 10,
+# consumed. The prefix characters may also be double-encoded (%25 and the hex pair, as sfr%255F). A token must not
+# continue a longer name: it starts the string or follows a character that is not a letter, digit or underscore (so
+# "=", "/", "&", "?" and a space qualify, as does an encoded one such as %3D), and "newsfr_campaign2024" is left alone.
+# A token whose body is no longer than 6 units (the 6 characters the admin shows: KEY_DISPLAY_PREFIX of 10,
 # with "sfr_") is a display prefix, not a secret, and stays. The two unit alternatives start with different characters,
 # so matching is linear. Mirror this regex in the nginx log scrubbing.
-API_KEY_TOKEN_RE = re.compile(r"(?i)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)(?:[A-Za-z0-9]|%[0-9A-Fa-f]{2}){7,}")
+API_KEY_TOKEN_RE = re.compile(
+    r"(?i)(?:(?<![A-Za-z0-9_])|(?<=%[0-9A-Fa-f]{2}))"
+    r"(?:s|%73|%2573)(?:f|%66|%2566)(?:r|%72|%2572)(?:_|%5f|%255f)(?:[A-Za-z0-9]|%[0-9A-Fa-f]{2}){7,}"
+)
 API_KEY_TOKEN_REPLACEMENT = "sfr_[REDACTED]"
 
 

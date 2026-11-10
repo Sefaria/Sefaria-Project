@@ -163,3 +163,45 @@ def test_a_short_display_prefix_stays_even_when_a_byte_is_encoded():
 def test_a_body_stops_at_a_character_that_is_neither_alphanumeric_nor_an_encoded_byte():
     assert scrub_api_key_query("/?q=sfr_%41bc1234-rest") == "/?q=sfr_[REDACTED]-rest"
     assert scrub_api_key_query("/?q=sfr_%41bc1234%zz") == "/?q=sfr_[REDACTED]%zz"
+
+
+_DOUBLE_ENCODED_PREFIX = "%2573%2566%2572%255f"
+
+
+def test_a_double_encoded_sfr_prefix_is_redacted():
+    for prefix in (_DOUBLE_ENCODED_PREFIX, "sfr%255F", "%2573fr_", "%2573%2566r%255F", "SFR%255f"):
+        got = scrub_api_key_query("/admin/?q=" + prefix + _A31 + "&x=1")
+        assert got == "/admin/?q=sfr_[REDACTED]&x=1", (prefix, got)
+        assert "AAAA" not in got
+
+
+def test_a_double_encoded_prefix_with_a_display_prefix_body_stays():
+    raw = "/admin/?q=" + _DOUBLE_ENCODED_PREFIX + "abc123"
+    assert scrub_api_key_query(raw) == raw
+
+
+def test_a_name_that_merely_ends_in_sfr_is_not_a_key():
+    for raw in (
+        "/?q=newsfr_campaign2024",
+        "/?utm_campaign=transfr_campaign2024&x=1",
+        "/newsfr_campaign2024/x",
+        "/?q=my_sfr_campaign2024",
+        "/?q=2sfr_campaign2024",
+    ):
+        assert scrub_api_key_query(raw) == raw, raw
+
+
+def test_a_key_is_redacted_at_the_start_of_the_string_or_after_a_separator():
+    for raw, want in (
+        ("sfr_" + _A31, "sfr_[REDACTED]"),
+        ("/?q=sfr_" + _A31, "/?q=sfr_[REDACTED]"),
+        ("/a/sfr_" + _A31 + "/b", "/a/sfr_[REDACTED]/b"),
+        ("/?a=1&sfr_" + _A31, "/?a=1&sfr_[REDACTED]"),
+        ("/?sfr_" + _A31, "/?sfr_[REDACTED]"),
+        ("/?q=x%3Dsfr_" + _A31, "/?q=x%3Dsfr_[REDACTED]"),
+        ("/?q=x%2Fsfr_" + _A31, "/?q=x%2Fsfr_[REDACTED]"),
+        ("/?q=x%26sfr_" + _A31, "/?q=x%26sfr_[REDACTED]"),
+        ("/?q=x%3Fsfr_" + _A31, "/?q=x%3Fsfr_[REDACTED]"),
+        ("/?q=a+sfr_" + _A31, "/?q=a+sfr_[REDACTED]"),
+    ):
+        assert scrub_api_key_query(raw) == want, raw
