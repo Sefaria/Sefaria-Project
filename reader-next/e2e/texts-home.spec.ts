@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { open } from "./helpers";
 
-// Browse the Library as the site's home, its promo banner and the phone header's content-language toggle.
+// Browse the Library as the site's home (no promo banner since sefaria.org #3934) and the phone header's content-language toggle.
 // Pixel parity with sefaria.org itself is checked by scripts/parity-page.mjs and scripts/parity-header-states.mjs (live site).
 
 // @feature LIB-001
@@ -15,22 +15,11 @@ test("/ answers 302 → /texts, as sefaria.org does (verified 2026-10-29)", asyn
 });
 
 // @feature PRM-014 @feature AI-001
-test("signed out, a wide screen shows Ask the Library Assistant; Maybe later puts it away", async ({ page }) => {
+test("no Ask the Library Assistant banner: sefaria.org removed it (#3934, 2026-11-03)", async ({ page, request }) => {
   await open(page, "/texts");
-  const banner = page.locator("[data-site-banner]");
-  await expect(banner.getByText("Ask the Library Assistant")).toBeVisible();
-  await expect(banner.getByRole("link", { name: "Log in to Try" })).toHaveAttribute("href", "/login?next=%2Fenable-library-assistant%3Fnext%3D%252Ftexts");
-  await banner.getByRole("button", { name: "Maybe later" }).click();
-  await expect(banner).toBeHidden();
-  await page.reload();
-  await page.waitForSelector("html[data-hydrated='true']");
-  await expect(page.locator("[data-site-banner]")).toHaveCount(0);
-});
-
-test("the banner is in the server's page, so it never pushes the page down once it is up", async ({ request }) => {
-  const html = await (await request.get("/texts")).text();
-  expect(html).toContain("data-site-banner");
-  expect(html).toContain("promo_backoff_signup_promo_banner_dismissed_state"); // the pre-paint back-off script
+  await expect(page.getByRole("heading", { name: "Browse the Library" })).toBeVisible(); // presence probe: the page is up
+  await expect(page.getByText("Ask the Library Assistant")).toHaveCount(0);
+  expect(await (await request.get("/texts")).text()).not.toContain("data-site-banner");
 });
 
 // @feature LIB-002 @feature GUI-001

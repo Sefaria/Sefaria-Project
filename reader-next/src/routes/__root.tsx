@@ -24,11 +24,10 @@ import { Monitoring } from "~/features/shell/Monitoring";
 import { useReaderOptIn } from "~/features/shell/ReaderChoice";
 import { ReportingBoundary } from "~/lib/monitoring/ErrorBoundary";
 import { RouteError } from "~/features/shared/RouteError";
-import { LibraryAssistantBanner } from "~/features/shell/SiteWideBanner/SiteWideBanner";
+import { openAssistantFromHeader, useAssistantShown } from "~/features/shell/assistant-pill";
 import { LibraryAssistant } from "~/features/assistant/LibraryAssistant";
 import { installLegacyEvents } from "~/lib/integration/legacy-events";
 import { remoteConfigQueryOptions } from "~/lib/shell/remote-config";
-import type { NudgeSchedule } from "~/lib/shell/promo-backoff";
 import { useViewer, viewerQuery } from "~/features/auth/viewer";
 import { installSignupSourceCapture } from "~/features/auth/signup-source";
 import { useGoogleOneTap } from "~/features/auth/use-google-one-tap";
@@ -202,19 +201,16 @@ function Shell() {
       }),
     [router, queryClient],
   );
-  // the old server's show_join_chatbot_banner switch (remote config), read by the root loader; only a signed-out reader sees the
-  // banner, so a signed-in one never refetches it
-  const remoteConfig = useQuery({ ...remoteConfigQueryOptions(), enabled: !viewer }).data;
-  const showAssistantBanner = remoteConfig?.["feature.client.show_join_chatbot_banner"] === true;
+  // the "✦ Library Assistant" pill, while the widget is on the page (sefaria.org #3934 replaced the stand-alone promo banner with it)
+  const assistantShown = useAssistantShown();
   // "Back to the classic reader" / "Report a problem" while the reader has opted in (src/features/shell/ReaderChoice.tsx)
   const optIn = useReaderOptIn(viewer);
   return (
     <div ref={appRef} className={appCss.app} data-reading={reading ? "true" : undefined} data-menu={menuOpen ? "open" : undefined}>
       <SkipLink />
       <div className={appCss.header}>
-        <SiteHeader next={loc.pathname + (loc.searchStr ?? "")} search={search} viewer={viewer} menuOpen={menuOpen} onMenuOpenChange={setMobileMenuOpen} optIn={optIn.actions} />
+        <SiteHeader next={loc.pathname + (loc.searchStr ?? "")} search={search} viewer={viewer} menuOpen={menuOpen} onMenuOpenChange={setMobileMenuOpen} optIn={optIn.actions} onOpenAssistant={assistantShown ? openAssistantFromHeader : undefined} />
       </div>
-      {!viewer && showAssistantBanner ? <LibraryAssistantBanner path={loc.pathname + (loc.searchStr ?? "")} schedule={remoteConfig?.["feature.chatbot.promoMaybeLaterJSON"] as NudgeSchedule | undefined} sessionSeconds={remoteConfig?.["feature.chatbot.promoSessionLengthSeconds"] as number | undefined} /> : null}
       <main id="main" className={appCss.main} tabIndex={-1} data-scroll-restoration-id="main">
         <Outlet />
       </main>

@@ -8,6 +8,7 @@ import { PUBLIC_CONFIG } from "~/lib/config";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { remoteConfigQueryOptions } from "~/lib/shell/remote-config";
 import { useMediaQuery } from "~/lib/ui/use-media-query";
+import { setAssistantShown } from "~/features/shell/assistant-pill";
 
 declare module "react" {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -64,6 +65,11 @@ export function LibraryAssistant({ search }: { search: string }) {
   useEffect(() => {
     if (show && build) loadAssistantScript(build);
   }, [show, build]);
+  // the header's pill shows while the widget does (src/features/shell/assistant-pill.ts)
+  useEffect(() => {
+    setAssistantShown(show && !!access);
+    return () => setAssistantShown(false);
+  }, [show, access]);
 
   if (!show || !access || !build) return null;
   const attrs = assistantAttributes(access, build, env, {

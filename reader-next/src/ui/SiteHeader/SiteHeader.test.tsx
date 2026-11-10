@@ -119,3 +119,18 @@ describe("SiteHeader opt-in items", () => {
     expect(document.getElementById("mobile-nav")).toHaveAttribute("hidden");
   });
 });
+
+// @feature AI-001 (sefaria.org #3934: the header pill replaced the stand-alone banner)
+describe("SiteHeader Library Assistant pill", () => {
+  it("only while the assistant is on the page; a click asks it to open", async () => {
+    const { rerender } = render(<SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada" }} />);
+    expect(screen.queryByTestId("assistant-pill")).toBeNull();
+    const opened = vi.fn();
+    rerender(<SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada" }} onOpenAssistant={opened} />);
+    const pill = screen.getByTestId("assistant-pill");
+    expect(pill).toHaveAttribute("role", "button");
+    expect(pill).toHaveTextContent("Library Assistant");
+    await userEvent.click(pill);
+    expect(opened).toHaveBeenCalledTimes(1);
+  });
+});

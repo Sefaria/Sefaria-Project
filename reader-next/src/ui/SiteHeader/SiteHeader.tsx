@@ -26,7 +26,17 @@ export interface SiteHeaderProps {
   /** While the reader has opted in to the new reader: "Back to the classic reader" and "Report a problem" in the account and phone
    *  menus (LAUNCH_PLAN T-D05). Absent: no items. */
   optIn?: HeaderOptInActions | null;
+  /** While the Library Assistant is on the page: the "✦ Library Assistant" pill before the search box opens it (the old
+   *  LibraryAssistantHeaderLink, sefaria.org #3934). Absent: no pill. */
+  onOpenAssistant?: () => void;
 }
+
+/** The Library Assistant's ✦ (the old LibraryAssistantStar: the widget's own path, 1.125em). */
+const AssistantStar = () => (
+  <svg width="1.125em" height="1.125em" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path fill="currentColor" d="M12 0C12.6 6.6 17.4 11.4 24 12C17.4 12.6 12.6 17.4 12 24C11.4 17.4 6.6 12.6 0 12C6.6 11.4 11.4 6.6 12 0Z" />
+  </svg>
+);
 
 export interface HeaderOptInActions {
   onBackToClassic: (source: "account_menu" | "mobile_menu") => void;
@@ -152,7 +162,7 @@ function OptInItems({ actions, variant, t, onDone }: { actions: HeaderOptInActio
   );
 }
 
-export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, optIn }: SiteHeaderProps) {
+export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, optIn, onOpenAssistant }: SiteHeaderProps) {
   const lang = useInterfaceLang();
   const he = lang === "hebrew";
   const [ownOpen, setOwnOpen] = useState(false);
@@ -199,6 +209,13 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
           </div>
         </nav>
         <div className={styles.right}>
+          {onOpenAssistant ? (
+            <a href="#" role="button" className={styles.assistantPill} data-testid="assistant-pill" onClick={(e) => { e.preventDefault(); onOpenAssistant(); }}>
+              <AssistantStar />
+              <span className={styles.assistantLabel}>{t("Library Assistant", "עוזר הספרייה")}</span>
+              <span className={styles.assistantShort}>{t("Ask", "שאלו")}</span>
+            </a>
+          ) : null}
           <HeaderSearch {...search} />
           {viewer ? null : authLink("register", styles.signup, <InterfaceText en="Sign Up" he="להרשמה" />)}
           <div className={styles.icons}>
