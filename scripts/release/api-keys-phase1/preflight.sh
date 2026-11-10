@@ -3,13 +3,17 @@
 #
 #   preflight.sh --env preprod|prod --context C [--code-ref REF] [--repo DIR] [--infra-repo DIR] [--no-fetch]
 #                [--skip-image-check] [--allow-pending app/name,...] [--chart-ref REF]
-#                [--stage promote --image-tag TAG]
+#                [--stage promote --image-tag TAG] [--require-auth-service]
 #
 # Checks (from the release plan's Preprod and Prod lists), each printed as PASS, FAIL, WARN or SKIP:
 #   - current_database() on a preprod web pod and on a prod web pod is sefaria_auth (they share it)
 #   - role auth_service_reader exists, may CONNECT, and has SELECT on every column the auth service loader reads
 #     (powered_by_apikey included); tables not created yet are WARN, a missing grant on an existing table is FAIL
 #   - Secret auth-service-registry exists in the env's namespace (name only)
+#     While authService.enabled is false in the env file on origin/<env branch>, a missing reader role and a missing
+#     Secret are WARN ("not needed yet"): they are required only for the step that enables the auth service (re-run with
+#     --require-auth-service, or after the env file says enabled: true, to fail on them). Grants on existing tables
+#     are checked either way.
 #   - pending migrations: the code at --code-ref against django_migrations. preprod: only phase 1 migrations (and those
 #     named in --allow-pending) may be pending; prod: nothing may be pending (the preprod promotion migrated the database)
 #   - the image tags of the env file on origin/<env branch> exist in Artifact Registry (gcloud; SKIP without it)
@@ -35,7 +39,7 @@ usage() {
   exit "${1:-0}"
 }
 
-ENV="" CTX="" CODE_REF="" REPO="" INFRA="" FETCH=1 IMAGE_CHECK=1 ALLOW_PENDING="" CHART_REF="" STAGE=default IMAGE_TAG=""
+ENV="" CTX="" CODE_REF="" REPO="" INFRA="" FETCH=1 IMAGE_CHECK=1 ALLOW_PENDING="" CHART_REF="" STAGE=default IMAGE_TAG="" REQUIRE_AUTH=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --env) ENV="$2"; shift 2 ;;
@@ -49,6 +53,7 @@ while [[ $# -gt 0 ]]; do
     --chart-ref) CHART_REF="$2"; shift 2 ;;
     --stage) STAGE="$2"; shift 2 ;;
     --image-tag) IMAGE_TAG="$2"; shift 2 ;;
+    --require-auth-service) REQUIRE_AUTH=1; shift ;;
     --pg-user) PG_USER="$2"; shift 2 ;;
     -h | --help) usage 0 ;;
     *) log "unknown argument: $1"; usage 1 ;;
@@ -108,11 +113,22 @@ for e in $(env_sharing "$ENV"); do
   if [[ "$got" == "$DB" ]]; then pass "$e: current_database() on $ns/$pod is $got"; else fail "$e: current_database() on $ns/$pod is '${got}', expected $DB"; fi
 done
 
+# Is the auth service enabled in the env file that is deployed (origin/<env branch>)? Until it is, the reader role and the
+# registry Secret are not needed yet.
+envfile="$(git -C "$REPO" show "origin/$(env_branch "$ENV"):envs/$ENV/helmrelease.yaml" 2>/dev/null || true)"
+AUTH_ENABLED=false
+[[ -z "$envfile" ]] || AUTH_ENABLED="$(printf '%s\n' "$envfile" | "$PYTHON" "$RELEASE_PY" auth-service-enabled)"
+[[ "$REQUIRE_AUTH" == 1 ]] && AUTH_ENABLED=true
+# auth_required MESSAGE: FAIL when the auth service is enabled (or --require-auth-service), else a WARN.
+auth_required() {
+  if [[ "$AUTH_ENABLED" == true ]]; then fail "$1"; else warn "$1: not needed yet (authService.enabled is false in envs/$ENV/helmrelease.yaml); required for the enabling step"; fi
+}
+
 # 2. The reader role and its grants: the columns of auth-service/internal/registry/pgload.go.
 LOADER_COLUMNS="powered_by_apikey:id,key,project_id,label,allowed_origins,revoked_at api_project:id,tier_id,deleted_at api_tier:id,per_minute_per_project api_tier_meter_limit:tier_id,meter,monthly_per_project"
 role="$(pg_ro "$DB" -At -c "SELECT EXISTS (SELECT FROM pg_roles WHERE rolname = '$READER_ROLE')")"
 if [[ "$role" != t ]]; then
-  fail "role $READER_ROLE does not exist (infrastructure provisions it with the auth-service-registry Secret)"
+  auth_required "role $READER_ROLE does not exist (infrastructure provisions it with the auth-service-registry Secret)"
 else
   pass "role $READER_ROLE exists"
   if [[ "$(pg_ro "$DB" -At -c "SELECT has_database_privilege('$READER_ROLE', current_database(), 'CONNECT')")" == t ]]; then
@@ -142,14 +158,14 @@ fi
 if kc -n "$NS" get secret auth-service-registry --no-headers >/dev/null 2>&1; then
   pass "Secret auth-service-registry exists in namespace $NS"
 else
-  fail "Secret auth-service-registry is missing in namespace $NS"
+  auth_required "Secret auth-service-registry is missing in namespace $NS"
 fi
 
 # 4. Pending migrations.
 tmp="$(mktemp -d)"
 trap 'web_pod_cleanup; rm -rf "$tmp"' EXIT
 if git -C "$REPO" rev-parse -q --verify "$CODE_REF^{commit}" >/dev/null; then
-  git -C "$REPO" ls-tree -r --name-only "$CODE_REF" | grep '/migrations/' | "$PYTHON" "$RELEASE_PY" migrations-from-paths >"$tmp/code.tsv"
+  code_migrations "$REPO" "$CODE_REF" >"$tmp/code.tsv"
   pg_ro "$DB" -At -F "$TAB" -c 'SELECT app, name FROM public.django_migrations' >"$tmp/applied.tsv"
   result="$("$PYTHON" "$RELEASE_PY" compare-migrations --code "$tmp/code.tsv" --applied "$tmp/applied.tsv")"
   pending="$("$PYTHON" -c 'import json,sys; print(" ".join(json.loads(sys.argv[1])["pending"]))' "$result")"
@@ -202,7 +218,6 @@ POD
 fi
 
 # 5. Image tags of the deployed env file exist in the registry (they are the rollback target).
-envfile="$(git -C "$REPO" show "origin/$(env_branch "$ENV"):envs/$ENV/helmrelease.yaml" 2>/dev/null || true)"
 if [[ "$IMAGE_CHECK" == 0 ]]; then
   skip "image tags (--skip-image-check)"
 elif [[ -z "$envfile" ]]; then

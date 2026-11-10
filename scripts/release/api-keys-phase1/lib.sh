@@ -22,6 +22,25 @@ PYTHON="${APIKEYS_RELEASE_PYTHON3:-python3}"
 PROD_CONTEXT="gke_production-deployment_us-east1-b_cluster-1"
 DEV_CONTEXT="gke_development-205018_us-east1-b_cluster-1"
 
+# code_migrations REPO REF: app<TAB>migration of every Django migration at REF, as preflight's pending check reads it.
+code_migrations() {
+  git -C "$1" ls-tree -r --name-only "$2" | { grep '/migrations/' || true; } | "$PYTHON" "$RELEASE_PY" migrations-from-paths
+}
+
+# refuse_tracked_dir DIR: dies when DIR (it may not exist yet) is inside a git work tree and not git-ignored there, so a
+# `git add .` cannot pick up what is written into it (a snapshot holds a dump of the database).
+refuse_tracked_dir() {
+  local dir="$1" probe top
+  [[ "$dir" == /* ]] || dir="$PWD/$dir"
+  probe="$dir"
+  while [[ ! -d "$probe" ]]; do probe="$(dirname "$probe")"; done
+  top="$(git -C "$probe" rev-parse --show-toplevel 2>/dev/null)" || return 0
+  if git -C "$probe" check-ignore -q "$dir/x" 2>/dev/null; then
+    return 0
+  fi
+  die "$dir is inside the git work tree $top and is not git-ignored; use a directory outside the checkout (the default is \$HOME/.local/state/api-keys-phase1-snapshots) or git-ignore this one"
+}
+
 env_known() { [[ "$1" == staging || "$1" == preprod || "$1" == prod ]]; }
 
 env_context() {

@@ -138,6 +138,23 @@ def env_images(_args):
         print(f"{component}\t{repo.group(1) if repo else ''}\t{tag.group(1) if tag else ''}")
 
 
+def auth_service_enabled(_args):
+    """`true` or `false`: authService.enabled of an env file (stdin), read from the section under spec.values."""
+    in_section = False
+    for line in sys.stdin.read().splitlines():
+        if re.match(r"^    authService:\s*$", line):
+            in_section = True
+        elif re.match(r"^    \S", line) or re.match(r"^\S", line):
+            in_section = False
+        elif in_section:
+            m = re.match(r"^      enabled:\s*(true|false)\s*(#.*)?$", line)
+            if m:
+                print(m.group(1))
+                return 0
+    print("false")
+    return 0
+
+
 def rollout_images(_args):
     """name<TAB>revision annotation<TAB>status phase<TAB>container images, comma separated."""
     for ro in _items(_stdin_json()):
@@ -358,10 +375,11 @@ def listing_refusals(args):
 
 
 def migrations_from_paths(_args):
-    """git ls-tree paths like app/migrations/0001_x.py -> app<TAB>name (Django app label = directory)."""
+    """git ls-tree paths like app/migrations/0001_x.py -> app<TAB>name (Django app label = directory).
+    Everything under scripts/ is ignored: it holds tooling and test fixtures (the suite's fixture app), not Django apps."""
     for line in sys.stdin:
         parts = line.strip().split("/")
-        if len(parts) < 3 or parts[-2] != "migrations":
+        if len(parts) < 3 or parts[-2] != "migrations" or parts[0] == "scripts":
             continue
         name = parts[-1]
         if not re.match(r"^\d{4}_.+\.py$", name):
@@ -451,6 +469,22 @@ def build_manifest(args):
         if sha.exists():
             manifest["files"][str(name.relative_to(root))] = sha.read_text().split()[0]
     (root / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+
+
+def gitrepo_serves(args):
+    """Exit 0 when a Flux GitRepository (stdin, JSON) is pinned to --tag AND has produced an artifact for it; else the
+    reason on stdout and exit 1. Flux writes status.artifact.revision as `<tag>@sha1:<sha>` (older versions `<tag>/<sha>`)."""
+    obj = _stdin_json() or {}
+    want = args.tag
+    pinned = (obj.get("spec") or {}).get("ref", {}).get("tag", "")
+    if pinned != want:
+        print(f"spec.ref.tag is '{pinned}', not '{want}'")
+        return 1
+    revision = ((obj.get("status") or {}).get("artifact") or {}).get("revision", "")
+    if not revision.startswith((want + "@", want + "/")):
+        print(f"status.artifact.revision is '{revision}': Flux has not fetched '{want}' yet")
+        return 1
+    return 0
 
 
 def manifest_get(args):
@@ -882,6 +916,7 @@ def main():
     sub.add_parser("pod-images").set_defaults(func=pod_images)
     sub.add_parser("rollout-images").set_defaults(func=rollout_images)
     sub.add_parser("env-images").set_defaults(func=env_images)
+    sub.add_parser("auth-service-enabled").set_defaults(func=auth_service_enabled)
     p = sub.add_parser("image-guard")
     p.add_argument("--allowed", required=True)
     p.add_argument("--web-label", required=True)
@@ -920,6 +955,9 @@ def main():
     p = sub.add_parser("build-manifest")
     p.add_argument("--dir", required=True)
     p.set_defaults(func=build_manifest)
+    p = sub.add_parser("gitrepo-serves")
+    p.add_argument("--tag", required=True)
+    p.set_defaults(func=gitrepo_serves)
     p = sub.add_parser("manifest-get")
     p.add_argument("manifest")
     p.add_argument("path")
