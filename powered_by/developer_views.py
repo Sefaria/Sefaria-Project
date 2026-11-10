@@ -137,7 +137,11 @@ def new_link_api(request):
     Sends a new link in place of an expired one, to the account it was sent for. Needs no login,
     as the link didn't; the link must still be for the account email.
     """
-    user = developer.user_for_new_link(request.json.get("key") or "")
+    key = request.json.get("key") or ""
+    # Anything but text would reach django.core.signing as a TypeError.
+    if not isinstance(key, str):
+        raise InputError("The link key must be text.")
+    user = developer.user_for_new_link(key)
     send_confirmation(request, user)
     return jsonResponse({"sent": True})
 

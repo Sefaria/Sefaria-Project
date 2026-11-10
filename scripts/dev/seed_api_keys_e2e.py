@@ -342,6 +342,9 @@ def _apply_state(user, suite, role, state):
         profile.settings[developer.CONFIRMATION_SENT_TO_SETTING] = user.email.lower()
         profile.settings[developer.CONFIRMATION_SENDS_SETTING] = [developer.iso(sent)]
     profile.save()
+    # The confirmation throttle lives in its own collection. Drop the account's document so a reset really resets the
+    # limits; the first send after it takes over whatever the settings above hold.
+    _legacy_db()[developer.THROTTLE_COLLECTION].delete_many({"uid": user.id})
 
 
 def _create_developer_project(user, suite, role, key_specs, notes):
@@ -498,7 +501,10 @@ def teardown(include_sentinel=False, base=None):
 
 def purge_profiles(ids, base=None):
     check_ids(ids, base)
+    from powered_by import developer
+
     _legacy_db().profiles.delete_many({"id": {"$in": ids}})
+    _legacy_db()[developer.THROTTLE_COLLECTION].delete_many({"uid": {"$in": ids}})
 
 
 def leftovers(include_sentinel=False, base=None):

@@ -22,9 +22,23 @@ class ApiKeyForm(forms.ModelForm):
             self.fields["revoked_at"].disabled = True
 
 
+class ApiKeyFormSet(forms.BaseInlineFormSet):
+    def save_existing(self, form, obj, commit=True):
+        # The form was built from the key as it was when the page loaded. A revoke since then must stand: re-read the
+        # row under its lock and keep a revocation that is already there, whatever the form carries.
+        if commit:
+            with transaction.atomic():
+                revoked_at = ApiKey.objects.select_for_update().values_list("revoked_at", flat=True).get(pk=obj.pk)
+                if revoked_at is not None:
+                    obj.revoked_at = revoked_at
+                return super().save_existing(form, obj, commit)
+        return super().save_existing(form, obj, commit)
+
+
 class ApiKeyInline(admin.TabularInline):
     model = ApiKey
     form = ApiKeyForm
+    formset = ApiKeyFormSet
     extra = 0
     can_delete = False
     fields = ("label", "masked_key", "allowed_origins", "created_at", "revoked_at", "last_used_at")
@@ -185,6 +199,17 @@ class ApiProjectAdmin(admin.ModelAdmin):
             params[SEARCH_VAR] = queries[-1].strip()[:KEY_DISPLAY_PREFIX]
             return HttpResponseRedirect(f"{request.path}?{params.urlencode()}")
         return super().changelist_view(request, extra_context)
+
+    def save_model(self, request, obj, form, change):
+        # deleted_at is not editable here, but save() writes every column: a project soft-deleted since the form loaded
+        # would come back to life. Re-read it under the row lock and keep a deletion that is already there.
+        if change:
+            with transaction.atomic():
+                deleted_at = ApiProject.objects.select_for_update().values_list("deleted_at", flat=True).get(pk=obj.pk)
+                if deleted_at is not None:
+                    obj.deleted_at = deleted_at
+                return super().save_model(request, obj, form, change)
+        return super().save_model(request, obj, form, change)
 
     def get_search_results(self, request, queryset, search_term):
         # Match only the prefix the admin already shows. Searching further into the key would let staff recover it a

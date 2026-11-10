@@ -339,6 +339,52 @@ class ProjectAdminTest(TestCase):
 
         self.assertIsNotNone(ApiKey.objects.get(pk=self.key.pk).revoked_at)
 
+    def stale_key_formset(self, data):
+        """The admin's inline formset for the API project, validated now so it holds the key as it is now."""
+        from django.test import RequestFactory
+
+        from powered_by.admin import ApiKeyInline
+
+        request = RequestFactory().post("/")
+        request.user = self.staff
+        inline = ApiKeyInline(ApiProject, admin.site)
+        formset = inline.get_formset(request, self.api_project)(
+            data, instance=ApiProject.objects.get(pk=self.api_project.pk)
+        )
+        self.assertTrue(formset.is_valid(), formset.errors)
+        return formset
+
+    def test_a_stale_admin_form_cannot_restore_a_key_revoked_after_it_was_built(self):
+        data = self.api_change_form()
+        data["api_keys-0-label"] = "Renamed in a stale form"
+        formset = self.stale_key_formset(data)
+        revoked_at = timezone.now() - timedelta(minutes=1)
+        ApiKey.objects.filter(pk=self.key.pk).update(revoked_at=revoked_at)
+
+        formset.save()
+
+        self.assertEqual(ApiKey.objects.get(pk=self.key.pk).revoked_at, revoked_at)
+
+    def test_a_stale_admin_form_can_still_revoke_an_active_key(self):
+        data = self.api_change_form()
+        data["api_keys-0-revoked_at_0"] = "2026-01-02"
+        data["api_keys-0-revoked_at_1"] = "03:04:05"
+
+        self.stale_key_formset(data).save()
+
+        self.assertIsNotNone(ApiKey.objects.get(pk=self.key.pk).revoked_at)
+
+    def test_a_stale_admin_save_cannot_undelete_an_api_project_deleted_after_the_form_was_built(self):
+        from powered_by.admin import ApiProjectAdmin
+
+        stale = ApiProject.objects.get(pk=self.api_project.pk)
+        deleted_at = timezone.now() - timedelta(minutes=1)
+        ApiProject.objects.filter(pk=self.api_project.pk).update(deleted_at=deleted_at)
+
+        ApiProjectAdmin(ApiProject, admin.site).save_model(None, stale, None, True)
+
+        self.assertEqual(ApiProject.objects.get(pk=self.api_project.pk).deleted_at, deleted_at)
+
     @pytest.mark.failing
     def test_N_M11_a_sixth_active_key_cannot_be_added_known_gap_N_M11(self):
         for n in range(4):

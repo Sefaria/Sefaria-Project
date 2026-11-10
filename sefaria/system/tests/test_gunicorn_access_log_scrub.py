@@ -47,3 +47,15 @@ def test_request_without_query_or_referer_is_unchanged():
     atoms, line = _build("/api/texts", "-", "")
     assert '"GET /api/texts HTTP/1.1"' in line
     assert '"-"' in line
+
+
+def test_a_full_key_pasted_into_an_admin_search_never_reaches_the_access_log():
+    key = "sfr_" + "Ab1Cd2Ef3Gh4Ij5Kl6Mn7Op8Qr9St0Uv"
+    query = "q=" + key
+    referer = "https://www.sefaria.org/admin/powered_by/apiproject/?" + query
+    atoms, line = _build("/admin/powered_by/apiproject/?" + query, referer, query)
+    assert "Ab1Cd2" not in line
+    assert '"GET /admin/powered_by/apiproject/?q=sfr_[REDACTED] HTTP/1.1"' in line
+    assert '"https://www.sefaria.org/admin/powered_by/apiproject/?q=sfr_[REDACTED]"' in line
+    for atom in ("r", "q", "f", "{referer}i", "{raw_uri}e", "{query_string}e", "{http_referer}e"):
+        assert "Ab1Cd2" not in str(atoms[atom]), atom

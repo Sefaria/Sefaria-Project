@@ -211,6 +211,21 @@ class FrameProtectionTest(DeveloperApiTestCase):
         )
         self.assert_not_frameable(Client().get("/settings/developer/email-confirmed"))
 
+    def test_N_CR5_the_password_reset_request_endpoint_is_a_json_api_and_is_not_decorated(self):
+        # The confirm page renders HTML a site could frame, so it sends DENY. The request endpoint
+        # (sso.views.password_reset_api) is deliberately undecorated: it answers JSON only, with no page to frame.
+        response = Client().post("/api/auth/password/reset", "not json", content_type="application/json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response["Content-Type"], "application/json")
+        self.assertIsNone(response.get("X-Frame-Options"))
+
+    def test_N_CR5_a_normal_reader_page_can_still_be_framed(self):
+        response = Client().get("/texts")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.get("X-Frame-Options"))
+
 
 class CapturingTransport(Transport):
     def __init__(self, options=None):
@@ -276,3 +291,35 @@ def test_N_CR6_scrub_api_keys_replaces_key_values_at_any_depth():
     assert key[:8] not in json.dumps(scrubbed)
     assert scrubbed["message"] == "bad key sfr_[Filtered]"
     assert scrubbed["frames"][0]["vars"]["n"] == 3
+
+
+def _sentry_hooks():
+    remote_config = MagicMock()
+    remote_config.get.return_value = {}
+    with (
+        patch("sefaria.settings_utils.remoteConfigCache", remote_config),
+        patch("sefaria.settings_utils.sentry_sdk.init") as init,
+    ):
+        from sefaria.settings_utils import init_sentry
+
+        init_sentry("https://public@sentry.example.invalid/1", "test", "test")
+    return init.call_args.kwargs
+
+
+def test_scrub_api_keys_also_replaces_a_key_with_a_percent_encoded_prefix():
+    assert scrub_api_keys("/x?q=sfr%5FAb1Cd2Ef3") == "/x?q=sfr_[Filtered]"
+    assert scrub_api_keys("/x?q=%73fr_Ab1Cd2Ef3") == "/x?q=sfr_[Filtered]"
+
+
+def test_a_sentry_transaction_event_carries_no_key_value():
+    key = "sfr_" + "Ab1" * 10 + "Cd"
+    event = {
+        "type": "transaction",
+        "request": {"url": f"https://www.sefaria.org/api/texts?x={key}", "headers": {"x-api-key": key}},
+        "transaction": "/api/texts",
+    }
+
+    scrubbed = _sentry_hooks()["before_send_transaction"](event, {})
+
+    assert key[:8] not in json.dumps(scrubbed)
+    assert scrubbed["request"]["headers"]["x-api-key"] == "sfr_[Filtered]"
