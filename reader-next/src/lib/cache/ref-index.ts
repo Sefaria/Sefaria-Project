@@ -10,6 +10,19 @@ import { createStore, del, entries, get, set, type UseStore } from "idb-keyval";
 import { LRUCache } from "lru-cache";
 import type { BookMeta } from "~/lib/text/plan";
 import { CACHE_BUSTER } from "./policies";
+import { DISK_READ_TIMEOUT_MS, within } from "./storage";
+
+/**
+ * A disk call that can neither throw (idb-keyval throws synchronously when `indexedDB.open` does: a blocked or broken IndexedDB) nor
+ * hang the reader (T-E04): undefined instead.
+ */
+async function disk<T>(op: () => Promise<T>): Promise<T | undefined> {
+  try {
+    return await within(op(), DISK_READ_TIMEOUT_MS, undefined);
+  } catch {
+    return undefined;
+  }
+}
 
 const DB = "sefaria-reader-refs";
 const DAY = 86_400_000;
@@ -46,16 +59,16 @@ export async function sweepRefIndexDisk(now = Date.now()): Promise<number> {
     [createStore(`${DB}-meta`, "meta"), META_MAX_AGE, MAX_METAS],
     [createStore(`${DB}-alias`, "alias"), ALIAS_MAX_AGE, MAX_ALIASES],
   ] as const) {
-    const rows = await entries<string, Stamped<unknown> | unknown>(store).catch(() => [] as [string, unknown][]);
+    const rows = (await disk(() => entries<string, Stamped<unknown> | unknown>(store))) ?? [];
     const kept: [string, number][] = [];
     for (const [key, row] of rows) {
       if (fresh(row as Stamped<unknown>, maxAge, now) === undefined) {
-        await del(key, store).catch(() => undefined);
+        await disk(() => del(key, store));
         removed++;
       } else kept.push([key, (row as Stamped<unknown>).at]);
     }
     for (const [key] of kept.sort((a, b) => b[1] - a[1]).slice(max)) {
-      await del(key, store).catch(() => undefined);
+      await disk(() => del(key, store));
       removed++;
     }
   }
@@ -78,36 +91,32 @@ export class RefIndex {
   async getMeta(book: string): Promise<BookMeta | undefined> {
     const hit = this.metas.get(book);
     if (hit || !this.metaStore) return hit;
-    try {
-      const disk = fresh(await get<Stamped<BookMeta>>(book, this.metaStore), META_MAX_AGE, this.now());
-      if (disk) this.metas.set(book, disk);
-      return disk;
-    } catch {
-      return undefined;
-    }
+    const store = this.metaStore;
+    const found = fresh(await disk(() => get<Stamped<BookMeta>>(book, store)), META_MAX_AGE, this.now());
+    if (found) this.metas.set(book, found);
+    return found;
   }
 
   async setMeta(meta: BookMeta): Promise<void> {
     this.metas.set(meta.book, meta);
-    if (this.metaStore) await set(meta.book, { v: meta, at: this.now(), b: CACHE_BUSTER } satisfies Stamped<BookMeta>, this.metaStore).catch(() => {});
+    const store = this.metaStore;
+    if (store) await disk(() => set(meta.book, { v: meta, at: this.now(), b: CACHE_BUSTER } satisfies Stamped<BookMeta>, store));
   }
 
   async resolveAlias(ref: string): Promise<string | undefined> {
     const hit = this.aliases.get(ref);
     if (hit || !this.aliasStore) return hit;
-    try {
-      const disk = fresh(await get<Stamped<string>>(ref, this.aliasStore), ALIAS_MAX_AGE, this.now());
-      if (disk) this.aliases.set(ref, disk);
-      return disk;
-    } catch {
-      return undefined;
-    }
+    const store = this.aliasStore;
+    const found = fresh(await disk(() => get<Stamped<string>>(ref, store)), ALIAS_MAX_AGE, this.now());
+    if (found) this.aliases.set(ref, found);
+    return found;
   }
 
   async setAlias(from: string, to: string): Promise<void> {
     if (from === to) return;
     this.aliases.set(from, to);
-    if (this.aliasStore) await set(from, { v: to, at: this.now(), b: CACHE_BUSTER } satisfies Stamped<string>, this.aliasStore).catch(() => {});
+    const store = this.aliasStore;
+    if (store) await disk(() => set(from, { v: to, at: this.now(), b: CACHE_BUSTER } satisfies Stamped<string>, store));
   }
 
   /** Forget the in-memory layer (simulates a page reload in tests). */
