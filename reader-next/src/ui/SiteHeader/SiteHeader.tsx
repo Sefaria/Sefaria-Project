@@ -179,7 +179,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
   const logoLabel = he ? "לוגו ספריית ספריא" : "Sefaria library logo";
   const t = (en: string, hebrew: string) => (he ? hebrew : en);
   // header_viewed once per session when the header is fully on screen (ANL-003)
-  const seen = useOnceFullyVisible<HTMLElement>(() => bothEvent("header_viewed", { impression_type: "regular_header" }), "sa.header_viewed");
+  const seen = useOnceFullyVisible<HTMLElement>(() => bothEvent("header_viewed", { impression_type: "regular_header" }), "sa.header_viewed", "regular_header");
   // on an auth page, its own `next` is where Log in / Sign up come back to (ReaderApp.openURL did the same)
   const authNext = isAuthPath(next.split("?")[0]!) ? nextFromPath(next) : next;
   // the auth pages are this client's own (in-app links; data-signup-source=nav_bar for the funnel, as the old AuthNavLink)

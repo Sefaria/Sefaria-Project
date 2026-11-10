@@ -43,14 +43,8 @@ export function LibraryAssistantBanner({ path, schedule, sessionSeconds }: Libra
       setHidden(true); // no storage: the old banner could not be dismissed either, but showing one that cannot stay closed is worse
     }
   }, [sessionSeconds, schedule]);
-  useEffect(() => {
-    if (session === null || hidden) return;
-    const key = `promo_viewed_${cookieName}`;
-    if (!sessionStorage.getItem(key)) {
-      sessionStorage.setItem(key, "1");
-      gtagEvent("promo_viewed", CAMPAIGN);
-    }
-  }, [session, hidden]);
+  // No promo_viewed: www.sefaria.org no longer shows this banner (removed in #3934, 2026-11-03), so it sends none; the analytics
+  // parity diff of 2026-11-10 showed it only here. The banner itself is the integrator's / owner's call (rn-shared reports, lane C).
   if (hidden || isBannerExcludedPath(path.split("?")[0]!)) return null;
   const track = (feature_name: string) => gtagEvent("promo_clicked", { ...CAMPAIGN, feature_name });
   const enable = `/enable-library-assistant?next=${encodeURIComponent(path)}`;

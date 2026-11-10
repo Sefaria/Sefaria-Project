@@ -1,33 +1,30 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { analyticsLog } from "./core";
-import { legacyPageType, resetPageTypeDimension, setPageTypeDimension } from "./page-dimensions";
+import { keywordTargets, readerAnalytics } from "./reader";
 import { clsOf, describeTarget, inpOf, rate, sendVital, vitalsEnabled } from "./web-vitals";
 
 beforeEach(() => {
   analyticsLog.length = 0;
-  resetPageTypeDimension();
   delete (window as { ga?: unknown }).ga;
   delete (window as { gtag?: unknown }).gtag;
 });
 
-// @feature ANL-010
-describe("page-type dimension (dimension5)", () => {
-  it("maps addresses onto the old ReaderApp's menuOpen || mode values", () => {
-    const t = (p: string, c = {}) => legacyPageType(p, c);
-    expect([t("/texts"), t("/texts/Tanakh/Torah"), t("/Genesis.1"), t("/Genesis", { book: true }), t("/Genesis.1", { phone: true, sidebar: true }), t("/Genesis.1", { sidebar: true })]).toEqual(["navigation", "navigation", "Text", "book toc", "TextAndConnections", "Text"]);
-    expect([t("/search"), t("/topics"), t("/topics/moses"), t("/topics/all/a"), t("/calendars"), t("/saved"), t("/history"), t("/texts/notes"), t("/translations/he"), t("/login"), t("/activity")]).toEqual(["search", "topics", "topics", "allTopics", "calendars", "saved", "history", "notes", "translationsPage", "Static", "Static"]);
-  });
-
-  it("sets it on GTM's ga tracker, as Track.setPageType did, and never through gtag", () => {
-    const ga = Object.assign(vi.fn(), { getAll: () => [{ get: () => "gtm1" }] });
+// @feature ANL-009
+describe("display options click (onclick_ToolTipped)", () => {
+  it("sends the old ToolTipped event with ReaderApp's keywordTargets", () => {
     const gtag = vi.fn();
-    Object.assign(window, { ga, gtag });
-    setPageTypeDimension("Text");
-    setPageTypeDimension("Text"); // unchanged: once
-    setPageTypeDimension("search");
-    expect(ga.mock.calls).toEqual([["gtm1.set", "dimension5", "Text"], ["gtm1.set", "dimension5", "search"]]);
-    expect(gtag).not.toHaveBeenCalled();
-    expect(analyticsLog).toEqual([{ channel: "ua-set", name: "dimension5", params: { value: "Text" } }, { channel: "ua-set", name: "dimension5", params: { value: "search" } }]);
+    Object.assign(window, { gtag });
+    // the legacy page sent exactly these on Genesis 1 with the sidebar on 1:1 (parity diff, 2026-11-10)
+    readerAnalytics.displayOptionsClicked({ categories: ["Tanakh", "Torah"], book: "Genesis", refs: ["Genesis 1", "Genesis 1:1"], interfaceLang: "english" });
+    expect(gtag).toHaveBeenCalledWith("event", "onclick_ToolTipped", { classes: "readerOptionsTooltip tooltip-toggle", keywordTargets: ["tanakh", "torah", "genesis", "genesis 1", "genesis 1:1"], interfaceLang: "english" });
+    expect(keywordTargets({ categories: ["Tanakh"], book: "Genesis", refs: ["Genesis 1"] })).toEqual(["tanakh", "genesis", "genesis 1"]);
+  });
+  it("sends no Universal Analytics hit for a ua event (owner decision 2026-11-10)", () => {
+    const ga = Object.assign(vi.fn(), { getAll: () => [{ get: () => "gtm1" }] });
+    Object.assign(window, { ga });
+    readerAnalytics.segmentClicked("Genesis 1:1", true);
+    expect(ga).not.toHaveBeenCalled();
+    expect(analyticsLog.map((e) => e.name)).toEqual(["Reader|Text Segment Click", "Reader|Open Connections Panel"]);
   });
 });
 

@@ -13,6 +13,6 @@ import { bothEvent, useOnceFullyVisible } from "~/lib/analytics";
  */
 export function CategoryColorLine({ category }: { category: string | readonly string[] | undefined }) {
   const key = Array.isArray(category) ? (category[0] as string | undefined) : (category as string | undefined);
-  const seen = useOnceFullyVisible<HTMLDivElement>(() => bothEvent("header_viewed", { impression_type: "category_color_line" }), "sa.header_viewed");
+  const seen = useOnceFullyVisible<HTMLDivElement>(() => bothEvent("header_viewed", { impression_type: "category_color_line" }), "sa.header_viewed", "category_color_line");
   return <div ref={seen} aria-hidden="true" style={{ height: 4, width: "100%", background: categoryColor(key) }} />;
 }

@@ -125,26 +125,37 @@ export function useAppAnalytics(signedIn: boolean | undefined): void {
   }, []);
 }
 
+/** Session keys as they were when this page loaded (the first time each was asked about), and the impressions reported since. */
+const keyAtLoad = new Map<string, boolean>();
+const reportedThisPage = new Set<string>();
+const storedKey = (key: string) => {
+  try {
+    return typeof sessionStorage !== "undefined" && !!sessionStorage.getItem(key);
+  } catch {
+    return true;
+  }
+};
+
 /**
  * The old useOnceFullyVisible: calls `onVisible` the first time the element is 100% visible, once per session (`key` in
- * sessionStorage, checked when the element mounts and set when it fires — so two elements sharing a key on the same first page
- * both report, as on sefaria.org).
+ * sessionStorage). On sefaria.org every user of a shared key mounts in the page's first commit, before any of them reports, so on the
+ * session's first page each of them reports once (the header and the category colour line both send header_viewed). Here the text
+ * panel can mount after the header has already reported, so the key is judged as it was when the page loaded, and each `id` (one per
+ * call site) reports at most once per page.
  */
-export function useOnceFullyVisible<T extends Element>(onVisible: () => void, key: string): (node: T | null) => void {
+export function useOnceFullyVisible<T extends Element>(onVisible: () => void, key: string, id: string = key): (node: T | null) => void {
   // a callback ref: the element may appear after the first render (the banner probe does)
   const [node, setNode] = useState<T | null>(null);
   const cb = useRef(onVisible);
   cb.current = onVisible;
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem(key)) return;
-    } catch {
-      return;
-    }
+    if (!keyAtLoad.has(key)) keyAtLoad.set(key, storedKey(key));
+    if (keyAtLoad.get(key) || reportedThisPage.has(`${key}|${id}`)) return;
     if (!node || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver(
       ([entry]) => {
-        if (entry?.isIntersecting && entry.intersectionRatio === 1) {
+        if (entry?.isIntersecting && entry.intersectionRatio === 1 && !reportedThisPage.has(`${key}|${id}`)) {
+          reportedThisPage.add(`${key}|${id}`);
           cb.current();
           try {
             sessionStorage.setItem(key, "true");
@@ -158,9 +169,15 @@ export function useOnceFullyVisible<T extends Element>(onVisible: () => void, ke
     );
     io.observe(node);
     return () => io.disconnect();
-  }, [node, key]);
+  }, [node, key, id]);
   return setNode;
 }
+
+/** Tests: forget what this "page" has seen. */
+export const resetOnceFullyVisible = () => {
+  keyAtLoad.clear();
+  reportedThisPage.clear();
+};
 
 /** The copy events of ReaderApp.handleGACopyEvents: copy_text, plus bilingual_copy_text / spanning_copy_text. */
 export function copyEvents(params: { length: number; panelType: string; book: string | null; category: string | null }, sel: { en: number; he: number }): void {
