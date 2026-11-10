@@ -20,6 +20,10 @@ import { setMobileMenuOpen, useMobileMenuOpen } from "~/features/shell/mobile-me
 import { SkipLink } from "~/ui/SkipLink/SkipLink";
 import { CookieNotice } from "~/ui/CookieNotice/CookieNotice";
 import { BannerImpressionProbe } from "~/features/shell/BannerImpressionProbe";
+import { Monitoring } from "~/features/shell/Monitoring";
+import { useReaderOptIn } from "~/features/shell/ReaderChoice";
+import { ReportingBoundary } from "~/lib/monitoring/ErrorBoundary";
+import { RouteError } from "~/features/shared/RouteError";
 import { LibraryAssistantBanner } from "~/features/shell/SiteWideBanner/SiteWideBanner";
 import { LibraryAssistant } from "~/features/assistant/LibraryAssistant";
 import { installLegacyEvents } from "~/lib/integration/legacy-events";
@@ -119,7 +123,12 @@ function RootComponent() {
         <LinkProvider value={RouterLink}>
           <ReaderStateProvider>
             <ReaderSettingsProvider initial={settings}>
-              {standalone ? <Outlet /> : <Shell />}
+              {standalone ? <Outlet /> : (
+                // a render error outside a route's own boundary (the header, the shell) is reported and shows the error page
+                <ReportingBoundary name="root" resetKey={pathname} fallback={(error) => <RouteError error={error} reported />}>
+                  <Shell />
+                </ReportingBoundary>
+              )}
             </ReaderSettingsProvider>
           </ReaderStateProvider>
         </LinkProvider>
@@ -197,11 +206,13 @@ function Shell() {
   // banner, so a signed-in one never refetches it
   const remoteConfig = useQuery({ ...remoteConfigQueryOptions(), enabled: !viewer }).data;
   const showAssistantBanner = remoteConfig?.["feature.client.show_join_chatbot_banner"] === true;
+  // "Back to the classic reader" / "Report a problem" while the reader has opted in (src/features/shell/ReaderChoice.tsx)
+  const optIn = useReaderOptIn(viewer);
   return (
     <div ref={appRef} className={appCss.app} data-reading={reading ? "true" : undefined} data-menu={menuOpen ? "open" : undefined}>
       <SkipLink />
       <div className={appCss.header}>
-        <SiteHeader next={loc.pathname + (loc.searchStr ?? "")} search={search} viewer={viewer} menuOpen={menuOpen} onMenuOpenChange={setMobileMenuOpen} />
+        <SiteHeader next={loc.pathname + (loc.searchStr ?? "")} search={search} viewer={viewer} menuOpen={menuOpen} onMenuOpenChange={setMobileMenuOpen} optIn={optIn.actions} />
       </div>
       {!viewer && showAssistantBanner ? <LibraryAssistantBanner path={loc.pathname + (loc.searchStr ?? "")} schedule={remoteConfig?.["feature.chatbot.promoMaybeLaterJSON"] as NudgeSchedule | undefined} sessionSeconds={remoteConfig?.["feature.chatbot.promoSessionLengthSeconds"] as number | undefined} /> : null}
       <main id="main" className={appCss.main} tabIndex={-1} data-scroll-restoration-id="main">
@@ -210,6 +221,8 @@ function Shell() {
       <LibraryAssistant search={loc.searchStr ?? ""} />
       <CookieNotice />
       <BannerImpressionProbe />
+      {optIn.dialog}
+      <Monitoring signedIn={!!viewer} />
     </div>
   );
 }
