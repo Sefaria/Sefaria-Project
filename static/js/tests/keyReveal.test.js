@@ -136,6 +136,8 @@ afterEach(() => {
 describe('the key row before anything is revealed', () => {
   it('shows the display prefix masked, with text-labelled Reveal and Copy buttons, and no value', () => {
     expect(keyText()).toBe(PREFIX + '••••••••••••');
+    expect(keyText()).toMatch(/^sfr_[A-Za-z0-9_-]{6}•{12}$/);
+    expect(keyText()).not.toContain('…');
     expect(container.innerHTML).not.toContain(VALUE.slice(10));
     expect(button('Reveal')).toBeTruthy();
     expect(button('Copy')).toBeTruthy();
