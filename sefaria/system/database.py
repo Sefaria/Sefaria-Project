@@ -141,7 +141,9 @@ def _index_key(args):
 def missing_indices(active_db=None, collections=None):
     """
     The registered indexes (ensure_indices) that ``active_db`` lacks, as (collection, args, kwargs), optionally only for some
-    collections. Compared by key, not by name, so an index built by hand under another name still counts.
+    collections. Compared by key only, not by name, so an index built by hand under another name still counts; options
+    (unique, sparse, partial filters, ...) are NOT compared, so an index with the right key but different options is not
+    reported.
     """
     active_db = db if active_db is None else active_db
     missing = []
@@ -162,8 +164,9 @@ def ensure_indices(active_db=None, collections=None, dry_run=False):
     """
     Create every index the code relies on (create_index is idempotent: an existing index costs nothing).
 
-    Nothing at startup, in the chart or in a cron runs this: run it with ``./manage.py ensure_mongo_indexes`` (reader/management
-    /commands/ensure_mongo_indexes.py) wherever a database was built some other way, e.g. a cauldron restored from a dump. A
+    Nothing at startup, in the chart or in a cron runs this: ``./manage.py ensure_mongo_indexes`` lists what is missing and
+    ``--create`` builds it (reader/management/commands/ensure_mongo_indexes.py); run it wherever a database was built some
+    other way, e.g. a cauldron restored from a dump. A
     query that hints an index (``hint="expandedRefs_1"``) fails outright where the index is missing.
 
     ``collections`` limits it to those collections; ``dry_run`` creates nothing and returns the registered specs.

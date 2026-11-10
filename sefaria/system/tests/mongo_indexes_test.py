@@ -85,13 +85,13 @@ def test_ensure_indices_can_be_limited_to_some_collections_and_dry_run():
     assert set(db.collections) == {"sheets"}
 
 
-def test_command_check_lists_what_is_missing_and_fails():
+def test_command_by_default_only_lists_what_is_missing_and_fails():
     db = _Db(sheets=_Collection({"_id_": [("_id", 1)]}))
     out = StringIO()
     with mock.patch.object(database, "db", db), pytest.raises(SystemExit) as exit_:
-        call_command("ensure_mongo_indexes", "--check", "--collection", "sheets", stdout=out)
+        call_command("ensure_mongo_indexes", "--collection", "sheets", stdout=out)  # listing is the default
     assert exit_.value.code == 1
-    assert "missing sheets: [('expandedRefs', 1)]" in out.getvalue()
+    assert "would create sheets: [('expandedRefs', 1)]" in out.getvalue()
     assert db.collections["sheets"].created == []
 
 
@@ -100,10 +100,10 @@ def test_command_creates_only_what_is_missing():
     db = _Db(sheets=sheets)
     out = StringIO()
     with mock.patch.object(database, "db", db):
-        call_command("ensure_mongo_indexes", "--collection", "sheets", stdout=out)
+        call_command("ensure_mongo_indexes", "--create", "--collection", "sheets", stdout=out)
         assert "expandedRefs_1" not in sheets.created
         assert "owner_1" in sheets.created
         assert "still missing" in out.getvalue() and ", 0 still missing" in out.getvalue()
         out = StringIO()
-        call_command("ensure_mongo_indexes", "--check", "--collection", "sheets", stdout=out)
+        call_command("ensure_mongo_indexes", "--collection", "sheets", stdout=out)
     assert "0 missing" in out.getvalue()

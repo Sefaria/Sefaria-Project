@@ -1,14 +1,17 @@
 """
-./manage.py ensure_mongo_indexes [--check] [--collection NAME ...]
+./manage.py ensure_mongo_indexes [--create] [--collection NAME ...]
 
-Creates the MongoDB indexes the code relies on (sefaria/system/database.py ensure_indices), which nothing at startup, in the
-Helm chart or in a cron creates. Run it on any database built another way, e.g. a cauldron restored from a dump: a query that
-hints an index (sefaria/sheets.py and sefaria/model/webpage.py hint "expandedRefs_1") fails with a 500 where it is missing.
+Lists (default) or creates (--create) the MongoDB indexes the code relies on (sefaria/system/database.py ensure_indices) that this
+database lacks. Nothing at startup, in the Helm chart or in a cron creates them: run it on any database built another way, e.g.
+a cauldron restored from a dump. A query that hints an index (sefaria/sheets.py and sefaria/model/webpage.py hint
+"expandedRefs_1") fails with a 500 where it is missing.
 
---check     list the missing indexes and exit 1 if there are any; create nothing.
+(default)     list each missing index ("would create ...") and exit 1 if there are any; create nothing.
+--create      create the missing ones (printing each first), then check again; exit 1 if any are still missing.
 --collection  only these collections (repeatable).
 
-Creating is idempotent. On a large collection an index build takes a while and some load; prefer --check first in production.
+Missing means no index with the same key; options (unique, sparse, ...) are not compared. Creating is idempotent. On a large
+collection an index build takes a while and some load: run the default listing first, in production especially.
 """
 
 import sys
@@ -23,20 +26,22 @@ def _describe(col, args, kwargs):
 
 
 class Command(BaseCommand):
-    help = "Create (or, with --check, list) the MongoDB indexes the code relies on that this database lacks."
+    help = "List (or, with --create, create) the MongoDB indexes the code relies on that this database lacks."
 
     def add_arguments(self, parser):
-        parser.add_argument("--check", action="store_true", help="list the missing indexes; create nothing")
+        parser.add_argument(
+            "--create", action="store_true", help="create the missing indexes (default: only list them)"
+        )
         parser.add_argument(
             "--collection", action="append", dest="collections", help="only this collection (repeatable)"
         )
 
-    def handle(self, *args, check=False, collections=None, **options):
+    def handle(self, *args, create=False, collections=None, **options):
         missing = database.missing_indices(collections=collections)
         for spec in missing:
-            self.stdout.write(("missing " if check else "creating ") + _describe(*spec))
-        if check:
-            self.stdout.write(f"{len(missing)} missing")
+            self.stdout.write(("creating " if create else "would create ") + _describe(*spec))
+        if not create:
+            self.stdout.write(f"{len(missing)} missing" + (" (run with --create to build them)" if missing else ""))
             if missing:
                 sys.exit(1)
             return
