@@ -77,7 +77,7 @@ add(
     "PRO-010",
     [
         "BUILT 2026-11-10 (T-F21): /torahtracker is this client's page on the Library host, @login_required as Django's, reached from the account menu in the app. /api/user_stats/<uid> and /api/site_stats; Previous Year / All Time; an active reader (more than two texts in the period) sees Your Overall Activity, the two donuts, Your Top Categories and Your Favorite Texts; a quiet one the site's numbers. The old d3 5 charts are drawn without d3: pie, arc, centroid, band scale and nice() ported and compared with d3 on 2,000 random inputs (identical). Moderators keep the User ID box. Title once loaded 'Torah Tracker | Sefaria Library' / 'לימוד במספרים | ספריית ספריא'. Layout VERIFIED 2026-11-10 by measuring the old markup under sefaria.org's stylesheet.",
-        "Deliberate differences: a slice's hover text gives its share (the old one printed the count as a percentage, e.g. '4,500.00%'); in the Hebrew interface the 'Average Sefaria User' label sits by its bar (the old one was placed as if the bars ran left to right).",
+        "Deliberate differences: a slice's hover text gives its share (the old one printed the count as a percentage, e.g. '4,500.00%'); in the Hebrew interface the 'Average Sefaria User' label sits by its bar (the old one was placed as if the bars ran left to right); the old #888 headings, #aaa card labels and #999 percentages fail WCAG contrast on #faf9f9 (3.4, 2.2 and 2.7 to 1), so they are the secondary text grey (#707070, 4.7 to 1).",
         "Tests: src/lib/torahtracker/stats.test.ts, src/ui/TorahTracker/TorahTracker.test.tsx, e2e/library-pages.spec.ts (signed in against the stand-in Django).",
     ],
 )

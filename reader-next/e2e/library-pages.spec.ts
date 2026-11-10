@@ -236,7 +236,7 @@ test.describe("signed in (stand-in Django)", () => {
     expect(await style(page, "h1", ["font-size", "padding-top"])).toMatchObject({ y: top, "font-size": "30px", "padding-top": "60px" });
     expect(await style(page, "[role=group]", [])).toMatchObject({ y: top + 129, w: 240, h: 50 });
     expect(await style(page, "button[aria-pressed=true]", ["background-color", "color"])).toMatchObject({ w: 120, h: 50, color: "rgb(255, 255, 255)" });
-    expect(await style(page, "h2", ["font-size", "color", "padding-top"])).toMatchObject({ y: top + 209, "font-size": "21px", color: "rgb(136, 136, 136)", "padding-top": "40px" });
+    expect(await style(page, "h2", ["font-size", "color", "padding-top"])).toMatchObject({ y: top + 209, "font-size": "21px", color: "rgb(112, 112, 112)", "padding-top": "40px" });
     await page.getByRole("button", { name: "Switch to All Time mode" }).click();
     await expect(page.getByText("Looks like we haven’t seen you in a while!")).toBeVisible();
     await expect(page.getByRole("heading", { name: "What People are Reading" })).toBeVisible();

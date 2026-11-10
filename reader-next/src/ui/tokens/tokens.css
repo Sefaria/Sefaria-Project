@@ -156,9 +156,6 @@
   /* ── Colour: New Additions' moderator form and Torah Tracker (s2.css .globalUpdateForm, .userStats) ── */
   --sefaria-color-update-form: light-dark(#dddddd, #333331);
   --sefaria-color-stats-page: light-dark(#faf9f9, #1c1c1b);
-  --sefaria-color-stats-heading: light-dark(#888888, #a3a3a0);
-  --sefaria-color-stats-label: light-dark(#aaaaaa, #8f8f8c);
-  --sefaria-color-stats-note: light-dark(#999999, #8f8f8c);
   --sefaria-shadow-card: 0 1px 3px rgb(0 0 0 / 0.2);
 
   /* ── Spacing ──────────────────────────────────────── */
