@@ -1,14 +1,26 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { loadWorkspaceRoute } from "~/features/reader/reader-route";
 import { Workspace } from "~/features/workspace/Workspace";
 // Not lazy: a book page's dictionary box is server-rendered, and typing into it before a lazy chunk arrived was lost (found on a
 // production build). The ~47 KB of library navigation stays in the route's chunk until the route is split by page kind.
 import { BookRoute } from "~/features/book/BookRoute";
 import { loadBookRoute } from "~/features/book/book-route";
-import { validateReaderSearch, type ReaderSearch } from "~/lib/reader/url-state";
+import { decodeVtitle, encodeVtitle, validateReaderSearch, type ReaderSearch } from "~/lib/reader/url-state";
+import type { VersionMeta } from "~/lib/text/model";
+import { versionsQueryOptions } from "~/lib/versions/book-versions";
 import { refToUrl, urlToRef } from "~/lib/ref/url";
 import { ErrorState } from "~/ui/Feedback/Feedback";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
+
+/**
+ * The old address for a text in one version, `/<ref>/<lang>/<version>` (Django's `old_versions_redirect`, sefaria/urls_shared.py):
+ * a 301 to `/<ref>?v<lang>=<version>` with the request's own query after it (LAUNCH_PLAN T-E08). A title that itself contains
+ * "/<two letters>/" would be read the same way; Django checks the joined string against its catalog first, and no such title exists.
+ */
+export function oldVersionsRedirect(splat: string): { ref: string; lang: string; version: string } | null {
+  const m = /^([^/]+)\/(\w\w)\/(.+)$/.exec(splat);
+  return m ? { ref: m[1]!, lang: m[2]!, version: m[3]! } : null;
+}
 
 /** Which text each panel shows (refs and versions). Display state (with, lang, aliyot) does not reload. */
 function textDeps(search: ReaderSearch) {
@@ -26,6 +38,15 @@ export const Route = createFileRoute("/$")({
   loaderDeps: ({ search }) => textDeps(search),
   loader: async ({ context, params, deps, location }) => {
     const splat = params._splat ?? "";
+    const old = oldVersionsRedirect(splat);
+    if (old) {
+      // the old form names a version by title only; this reader's `ven`/`vhe` carry its language family too (`english|Title`), which
+      // the versions of the ref say (sefaria.org's client fills it in the same way after the redirect)
+      const title = decodeVtitle(old.version);
+      const versions = await context.queryClient.fetchQuery(versionsQueryOptions(urlToRef(old.ref))).catch(() => [] as VersionMeta[]);
+      const family = versions.find((v) => v.versionTitle === title)?.languageFamilyName ?? (old.lang === "he" ? "hebrew" : "english");
+      throw redirect({ to: "/$", params: { _splat: old.ref }, search: { ...(location.search as Record<string, unknown>), [`v${old.lang}`]: `${family}|${encodeVtitle(title)}` } as never, statusCode: 301 });
+    }
     // `/Genesis` (a book, no section) is the book's page; anything with a section or a node is the reader
     const book = !Object.keys(deps).some((k) => /^p\d+$/.test(k)) ? await loadBookRoute(context.queryClient, splat, location.searchStr ?? "") : null;
     if (book) return { kind: "book" as const, ...book };
