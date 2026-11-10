@@ -224,7 +224,13 @@ reader:
     # reader-next/Dockerfile when reader-next/ changes). Nothing builds a production-registry reader image yet: an environment that
     # runs the reader sets this to its own image (reader-next/docs/DEPLOYMENT.md, "Images").
     imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-reader-master
+    # Mutable on purpose, so nobody runs it by accident: with nodejs.mode "optin" or "reader" the chart refuses to render ("helm
+    # template" fails) while the tag is "latest" or empty, unless allowMutableImage below is true. Set an immutable tag (a
+    # "sha-<short sha>-<date>" or "sha-<short sha>" tag that continuous.yaml pushes for a reviewed master commit).
     tag: latest
+  # Escape for dev environments and cauldrons only: true lets nodejs.mode "optin"/"reader" run a mutable tag ("latest" or empty),
+  # which every pod restart pulls again (imagePullPolicy Always) and which any build can overwrite. Never in preprod or prod.
+  allowMutableImage: false
   # Absolute origin of the reader's canonical and og:url links (PUBLIC_CANONICAL_ORIGIN); templated. A cauldron or staging keeps
   # production's, so search engines are pointed at www.sefaria.org.
   canonicalOrigin: "https://www.sefaria.org"
