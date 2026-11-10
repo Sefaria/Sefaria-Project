@@ -54,12 +54,15 @@ OPTIN = [
     ("/robots.txt", LIBRARY, "static", "static"),
     ("/sheets/1", LIBRARY, "307", "307"),  # the Voices module redirects stay first
     ("/profile/x", LIBRARY, "307", "307"),
+    ("/assets/index-x.js", LIBRARY, "reader", "reader"),  # optin: the reader's bundles, cookie or not (an open page's lazy chunks)
     ("/Genesis.1", VOICES, "varnish", "varnish"),  # the Voices server block never sees the reader
     ("/topics/light", VOICES, "varnish", "varnish"),
 ]
+ASSETS = "/assets/index-x.js"
 MODES = {
-    "legacy": ([], [(p, h, a, a if a != "reader" else "varnish") for p, h, a, _ in OPTIN]),
+    "legacy": ([], [(p, h, "varnish", "varnish") if p == ASSETS else (p, h, a, a) for p, h, a, _ in OPTIN]),
     "optin": (["--set", "nodejs.mode=optin"], OPTIN),
+    # the kill switch: the cookie changes nothing; the reader's bundles still come from it
     "optin-killed": (["--set", "nodejs.mode=optin", "--set", "reader.optin.enabled=false"], [(p, h, a, a) for p, h, a, _ in OPTIN]),
     "reader": (["--set", "nodejs.mode=reader"], [(p, h, b, b) for p, h, _, b in OPTIN]),
 }
@@ -166,6 +169,15 @@ def main():
                     if table or not ok:
                         print(f"  {'ok ' if ok else 'BAD'} {host:32} {path:52} no cookie → {got[0]:8} cookie → {got[1]:8}" + ("" if ok else f" (expected {plain}, {opted})"))
                 print(f"[{mode}] {len(cases)} paths checked")
+                if mode == "optin":
+                    # the reader down (nothing listening): nginx's 502 falls back to Varnish/Django for an opted-in visitor
+                    stubs[1].shutdown()
+                    stubs[1].server_close()
+                    down = [(p, ask(p, LIBRARY, True)) for p in ("/Genesis.1", ASSETS)]
+                    ok = down == [("/Genesis.1", "varnish"), (ASSETS, "varnish")]
+                    failures += not ok
+                    print(f"  {'ok ' if ok else 'BAD'} reader down, with the cookie: {down}")
+                    stubs[1] = stub("reader", READER_PORT)
             finally:
                 proc.terminate()
                 proc.wait()

@@ -226,6 +226,25 @@ http {
       error_page 502 503 504 = @varnish;
     }
 
+    {{- if eq $.Values.nodejs.mode "optin" }}
+
+    # The reader's own hashed bundles (Django has no /assets/): always from the reader, cookie or not, so a reader page that is
+    # already open keeps loading its lazy chunks after its reader left the opt-in or the kill switch was thrown (it lands on the
+    # legacy reader at its next full page load). If the reader is down, Varnish/Django answers (a 404).
+    location /assets/ {
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
+      proxy_pass http://readerupstream;
+      error_page 502 503 504 = @varnish;
+    }
+    {{- end }}
+
     # The API and Django's assets never need the client
     location /api/ {
       {{- if $.Values.instrumentation.enabled }}
