@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Helpers for the API keys phase 1 release scripts (standard library only, except hr-values and chart-prod-paths,
-which need PyYAML and exit 3 without it).
+"""Helpers for the API keys phase 1 release scripts (standard library only, except the env file reader (env-get,
+env-flag-off, env-images, auth-service-enabled), hr-values and chart-prod-paths, which need PyYAML and exit 3 without it).
 
 Each subcommand reads files or stdin and prints plain text or JSON for the shell scripts. Nothing here talks to a
 cluster or a database, and nothing prints a Secret value: Secrets are only ever handled by name.
@@ -113,60 +113,150 @@ def image_guard(args):
     return bad
 
 
-def env_images(_args):
-    """component<TAB>repository<TAB>tag for web, nodejs, nginx and authService of an env file (stdin), read by section
-    (the keys under spec.values at four spaces), so a missing tag shows up as an empty field instead of vanishing."""
-    sections, current = {}, None
-    for line in sys.stdin.read().splitlines():
-        header = re.match(r"^    ([A-Za-z]\w*):\s*$", line)
-        if header:
-            current = header.group(1)
-            sections[current] = []
-        elif re.match(r"^    \S", line) or re.match(r"^\S", line):
-            current = None
-        elif current:
-            sections[current].append(line)
-    for component, repo_key in (
-        ("web", "imageRegistry"),
-        ("nodejs", "imageRegistry"),
-        ("nginx", "imageRegistry"),
-        ("authService", "repository"),
-    ):
-        body = "\n".join(sections.get(component, []))
-        repo = re.search(rf"^\s+{repo_key}:\s*\"?([^\"\s]*)\"?\s*$", body, re.M)
-        tag = re.search(r"^\s+tag:\s*\"?([^\"\s]*)\"?\s*$", body, re.M)
-        print(f"{component}\t{repo.group(1) if repo else ''}\t{tag.group(1) if tag else ''}")
+class EnvFileError(Exception):
+    """An env file (HelmRelease YAML) that cannot be read, or a value that is not what the caller asked for."""
 
 
-def auth_service_enabled(_args):
-    """`true` or `false`: authService.enabled of an env file (stdin), read from the section under spec.values."""
-    in_section = False
-    for line in sys.stdin.read().splitlines():
-        if re.match(r"^    authService:\s*$", line):
-            in_section = True
-        elif re.match(r"^    \S", line) or re.match(r"^\S", line):
-            in_section = False
-        elif in_section:
-            m = re.match(r"^      enabled:\s*(true|false)\s*(#.*)?$", line)
-            if m:
-                print(m.group(1))
-                return 0
-    print("false")
+def _strict_loader(yaml):
+    """A safe YAML loader that refuses a mapping with the same key twice (PyYAML would silently keep the last one)."""
+
+    class Loader(yaml.SafeLoader):
+        pass
+
+    def construct_mapping(loader, node, deep=False):
+        seen = set()
+        for key_node, _ in node.value:
+            key = loader.construct_object(key_node, deep=True)
+            if key in seen:
+                raise yaml.constructor.ConstructorError(None, None, f"duplicate key {key!r}", key_node.start_mark)
+            seen.add(key)
+        return yaml.SafeLoader.construct_mapping(loader, node, deep)
+
+    Loader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping)
+    return Loader
+
+
+def load_env_file(text):
+    """The one HelmRelease document of an env file as a dict. Anything else (empty, invalid YAML, a duplicate key, no or
+    several HelmRelease documents) raises EnvFileError. This is the only way the release scripts read an env file."""
+    yaml = _yaml()
+    if not isinstance(text, str) or not text.strip():
+        raise EnvFileError("the env file is empty or unreadable")
+    try:
+        docs = [d for d in yaml.load_all(text, Loader=_strict_loader(yaml)) if d is not None]
+    except (yaml.YAMLError, TypeError, ValueError) as exc:
+        raise EnvFileError(
+            f"the env file is not valid YAML: {str(exc).splitlines()[0] if str(exc) else exc!r}"
+        ) from exc
+    releases = [d for d in docs if isinstance(d, dict) and d.get("kind") == "HelmRelease"]
+    if len(releases) != 1:
+        raise EnvFileError(f"expected exactly one HelmRelease document in the env file, found {len(releases)}")
+    return releases[0]
+
+
+def env_value_any(text, dotted):
+    """The raw value at the dotted path; a missing path raises EnvFileError."""
+    node = load_env_file(text)
+    walked = []
+    for key in dotted.split("."):
+        walked.append(key)
+        if not isinstance(node, dict) or key not in node:
+            raise EnvFileError(f"{'.'.join(walked)} is missing in the env file")
+        node = node[key]
+    return node
+
+
+ENV_TYPES = ("str", "str-or-empty", "bool")
+
+
+def env_value(text, dotted, kind):
+    """The value at the dotted path (spec.values.authService.enabled) of an env file, of the type asked for, or
+    EnvFileError. Types: str (non-empty string), str-or-empty (string, may be ""), bool (a YAML boolean; the string
+    "true" is an error). A missing path is an error, never a default."""
+    if kind not in ENV_TYPES:
+        raise EnvFileError(f"unknown type {kind!r} (one of {', '.join(ENV_TYPES)})")
+    node = env_value_any(text, dotted)
+    if kind == "bool":
+        ok = isinstance(node, bool)
+    elif kind == "str":
+        ok = isinstance(node, str) and node.strip() != ""
+    else:
+        ok = isinstance(node, str)
+    if not ok:
+        raise EnvFileError(f"{dotted} is {node!r} ({type(node).__name__}), expected {kind}")
+    return node
+
+
+def env_setting_is_off(text, dotted):
+    """For a string setting Django reads as os.getenv(NAME, "False").lower() == "true": (True, value) only for an
+    explicit false ("False", "false", "0", or the YAML false / 0 that renders to the same); (False, value) for anything
+    else. A missing path, a null or an unreadable file raises EnvFileError (callers fail on it)."""
+    value = env_value_any(text, dotted)
+    if isinstance(value, bool) or isinstance(value, int):
+        return (value is False or (type(value) is int and value == 0)), value
+    if isinstance(value, str):
+        return value.strip().lower() in ("false", "0"), value
+    raise EnvFileError(f"{dotted} is {value!r} ({type(value).__name__}), expected a string, boolean or number")
+
+
+def _env_fail(exc):
+    print(f"env file: {exc}", file=sys.stderr)
+    return 2
+
+
+def env_get(args):
+    """Print one value of an env file (stdin) at a dotted path, typed; exit 2 with a message when it cannot be read."""
+    try:
+        value = env_value(sys.stdin.read(), args.path, args.type)
+    except EnvFileError as exc:
+        return _env_fail(exc)
+    print(("true" if value else "false") if isinstance(value, bool) else value)
     return 0
 
 
-def env_setting_values(_args):
-    """One line per `NAME: value` entry of an env file (stdin) for the setting named in argv: the value with quotes and a
-    trailing comment removed, lower-cased. No output when the setting is not there. YAML comments are not entries."""
-    name = _args.name
-    for line in sys.stdin.read().splitlines():
-        m = re.match(r"^\s+" + re.escape(name) + r":\s*(.*?)\s*$", line)
-        if not m:
-            continue
-        raw = m.group(1)
-        q = re.match(r"""^(["'])(.*?)\1\s*(#.*)?$""", raw)
-        value = q.group(2) if q else re.sub(r"\s+#.*$", "", raw)
-        print(value.strip().lower())
+def env_flag_off(args):
+    """Exit 0 and print the value when a string setting of an env file (stdin) is explicitly off; exit 1 and print it
+    when it is anything else; exit 2 (message on stderr) when it cannot be read."""
+    try:
+        off, value = env_setting_is_off(sys.stdin.read(), args.path)
+    except EnvFileError as exc:
+        return _env_fail(exc)
+    print(value)
+    return 0 if off else 1
+
+
+ENV_COMPONENTS = (
+    ("web", "spec.values.web.containerImage.imageRegistry", "spec.values.web.containerImage.tag"),
+    ("nodejs", "spec.values.nodejs.containerImage.imageRegistry", "spec.values.nodejs.containerImage.tag"),
+    ("nginx", "spec.values.nginx.containerImage.imageRegistry", "spec.values.nginx.containerImage.tag"),
+    ("authService", "spec.values.authService.image.repository", "spec.values.authService.image.tag"),
+)
+
+
+def env_images(_args):
+    """component<TAB>repository<TAB>tag for web, nodejs, nginx and authService of an env file (stdin). A key that is
+    missing or not a string exits 2 with nothing printed; an empty string is printed as an empty field (the caller
+    decides which components may have one)."""
+    text = sys.stdin.read()
+    lines = []
+    try:
+        for component, repo_path, tag_path in ENV_COMPONENTS:
+            lines.append(
+                f"{component}\t{env_value(text, repo_path, 'str-or-empty')}\t{env_value(text, tag_path, 'str-or-empty')}"
+            )
+    except EnvFileError as exc:
+        return _env_fail(exc)
+    print("\n".join(lines))
+    return 0
+
+
+def auth_service_enabled(_args):
+    """`true` or `false`: authService.enabled of an env file (stdin), a YAML boolean; exit 2 when it cannot be read."""
+    try:
+        value = env_value(sys.stdin.read(), "spec.values.authService.enabled", "bool")
+    except EnvFileError as exc:
+        return _env_fail(exc)
+    print("true" if value else "false")
     return 0
 
 
@@ -929,9 +1019,13 @@ def main():
     sub.add_parser("canonical-schema").set_defaults(func=canonical_schema)
     sub.add_parser("roles-from-sql").set_defaults(func=roles_from_sql)
     sub.add_parser("pod-images").set_defaults(func=pod_images)
-    p = sub.add_parser("env-setting-values")
-    p.add_argument("name")
-    p.set_defaults(func=env_setting_values)
+    p = sub.add_parser("env-get")
+    p.add_argument("path")
+    p.add_argument("--type", choices=ENV_TYPES, required=True)
+    p.set_defaults(func=env_get)
+    p = sub.add_parser("env-flag-off")
+    p.add_argument("path")
+    p.set_defaults(func=env_flag_off)
     sub.add_parser("rollout-images").set_defaults(func=rollout_images)
     sub.add_parser("env-images").set_defaults(func=env_images)
     sub.add_parser("auth-service-enabled").set_defaults(func=auth_service_enabled)

@@ -28,13 +28,17 @@ done <<<"$under_scripts"
 ! grep -q '^fixtureapp'$'\t' <<<"$found" && ok "no fixtureapp migration in the discovery" || bad "fixtureapp is in the discovery"
 grep -q '^powered_by'$'\t' <<<"$found" && ok "powered_by migrations are still discovered" || bad "powered_by migrations are not discovered"
 
-# authService.enabled of an env file.
+# authService.enabled of an env file (a YAML boolean; anything else is an error: the reader fails closed).
 PY="${APIKEYS_RELEASE_PYTHON3:-python3}"
 RP="$HERE/../release_lib.py"
 real="$(git -C "$ROOT" show HEAD:envs/preprod/helmrelease.yaml | "$PY" "$RP" auth-service-enabled)"
 [[ "$real" == false ]] && ok "envs/preprod ships with authService.enabled false" || bad "envs/preprod authService.enabled read as '$real'"
 flipped="$(git -C "$ROOT" show HEAD:envs/preprod/helmrelease.yaml | awk '/^    authService:/ {s=1} s && /^      enabled: false/ {sub(/false/, "true"); s=0} {print}' | "$PY" "$RP" auth-service-enabled)"
 [[ "$flipped" == true ]] && ok "authService.enabled: true in the env file is read as true" || bad "flipped env file read as '$flipped'"
-none="$(printf 'spec:\n  values:\n    web:\n      enabled: true\n' | "$PY" "$RP" auth-service-enabled)"
-[[ "$none" == false ]] && ok "no authService section reads as false (another section's enabled is not mistaken for it)" || bad "no authService section read as '$none'"
+none_rc=0
+none="$(printf 'kind: HelmRelease\nspec:\n  values:\n    web:\n      enabled: true\n' | "$PY" "$RP" auth-service-enabled 2>/dev/null)" || none_rc=$?
+if [[ "$none_rc" == 2 && -z "$none" ]]; then ok "no authService section is an error, not false (another section's enabled is not mistaken for it)"; else bad "no authService section: exit $none_rc, output '$none'"; fi
+quoted_rc=0
+quoted="$(git -C "$ROOT" show HEAD:envs/preprod/helmrelease.yaml | sed 's/^      enabled: false/      enabled: "false"/' | "$PY" "$RP" auth-service-enabled 2>/dev/null)" || quoted_rc=$?
+if [[ "$quoted_rc" == 2 && -z "$quoted" ]]; then ok 'authService.enabled: "false" (a string) is an error, not a guess'; else bad "quoted boolean: exit $quoted_rc, output '$quoted'"; fi
 exit "$fail"

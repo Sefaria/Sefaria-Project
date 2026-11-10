@@ -195,9 +195,16 @@ fi
 
 envfile=""
 if [[ "$GH" == 1 ]] && command -v gh >/dev/null 2>&1; then
-  envfile="$(gh api "repos/$GH_REPO/contents/envs/staging/helmrelease.yaml?ref=master" --jq .content 2>/dev/null | base64 -d 2>/dev/null || true)"
-  chart="$(sed -n '/chart: sefaria/{n;s/.*version:[[:space:]]*"\{0,1\}\([^"[:space:]]*\).*/\1/p;}' <<<"$envfile" | head -1)"
-  app="$(sed -n '/containerImage:/{n;n;s/.*tag:[[:space:]]*"\{0,1\}v\{0,1\}\([^"[:space:]]*\).*/\1/p;}' <<<"$envfile" | head -1)"
+  # The env file is read by release_lib.py (YAML, typed); a fetch or a parse that fails is a FAIL, never an empty value.
+  chart="" app="" envfile=""
+  if ! envfile="$(gh api "repos/$GH_REPO/contents/envs/staging/helmrelease.yaml?ref=master" --jq .content 2>/dev/null | base64 -d 2>/dev/null)" || [[ -z "$envfile" ]]; then
+    fail "cannot read envs/staging/helmrelease.yaml on master from GitHub"
+  elif ! chart="$(printf '%s\n' "$envfile" | "$PYTHON" "$RELEASE_PY" env-get spec.chart.spec.version --type str 2>"$tmp/envget.err")" \
+    || ! app="$(printf '%s\n' "$envfile" | "$PYTHON" "$RELEASE_PY" env-get spec.values.web.containerImage.tag --type str 2>"$tmp/envget.err")"; then
+    chart="" app=""
+    fail "cannot read the chart version and web image tag of envs/staging/helmrelease.yaml: $(tail -n 1 "$tmp/envget.err")"
+  fi
+  app="${app#v}"
   tag="staging/${app}+chart.${chart}"
   if [[ -n "$chart" && -n "$app" ]] && gh api "repos/$GH_REPO/git/ref/tags/$tag" >/dev/null 2>&1; then
     pass "release tag $tag exists (chart $chart, app $app)"
@@ -224,9 +231,13 @@ if [[ -n "$CTX" ]]; then
   pending="$("$PYTHON" "$RELEASE_PY" compare-migrations --code "$tmp/code.tsv" --applied "$tmp/applied.tsv" | "$PYTHON" -c 'import json,sys; print(" ".join(json.load(sys.stdin)["pending"]))')"
   if [[ -z "$pending" ]]; then pass "showmigrations: nothing of origin/master pending on $(env_db staging)"; else fail "pending on $(env_db staging): $pending"; fi
 
-  want_tag="$(git -C "$REPO" show origin/master:envs/staging/helmrelease.yaml | sed -n '/containerImage:/{n;n;s/.*tag:[[:space:]]*"\{0,1\}\([^"[:space:]]*\).*/\1/p;}' | head -1)"
+  want_tag=""
+  if ! want_tag="$(git -C "$REPO" show origin/master:envs/staging/helmrelease.yaml | "$PYTHON" "$RELEASE_PY" env-get spec.values.web.containerImage.tag --type str 2>"$tmp/envget.err")"; then
+    want_tag=""
+    fail "cannot read the web image tag of envs/staging/helmrelease.yaml on origin/master: $(tail -n 1 "$tmp/envget.err")"
+  fi
   imgs="$(web_pods default sefariastaging | awk -F'\t' '$2 == "Running" {print $3}' | sort -u | tr '\n' ' ')"
-  if [[ -n "$imgs" && "$imgs" == *":$want_tag "* && "$(wc -w <<<"$imgs")" -eq 1 ]]; then pass "staging web pods run $want_tag"; else fail "staging web pods run '$imgs', env file says $want_tag"; fi
+  if [[ -n "$want_tag" && -n "$imgs" && "$imgs" == *":$want_tag "* && "$(wc -w <<<"$imgs")" -eq 1 ]]; then pass "staging web pods run $want_tag"; else fail "staging web pods run '$imgs', env file says $want_tag"; fi
 
   marker="smoketest$(od -An -N6 -tx1 /dev/urandom | tr -d ' \n')"
   since="$(date -u +%Y-%m-%dT%H:%M:%SZ)"

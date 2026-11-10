@@ -113,14 +113,28 @@ for e in $(env_sharing "$ENV"); do
   if [[ "$got" == "$DB" ]]; then pass "$e: current_database() on $ns/$pod is $got"; else fail "$e: current_database() on $ns/$pod is '${got}', expected $DB"; fi
 done
 
+tmp="$(mktemp -d)"
+trap 'web_pod_cleanup; rm -rf "$tmp"' EXIT
+
 # Is the auth service enabled? Until it is, the reader role and the registry Secret are not needed yet. It counts as enabled
 # when EITHER the env file that is deployed (origin/<env branch>) OR the one in the code being promoted ($CODE_REF) enables
 # it: the promotion carries the code ref's file. A file that cannot be read is a FAIL (and the service is then assumed
 # enabled), never "false".
 AUTH_ENABLED=false
-for src in "origin/$(env_branch "$ENV")" "$CODE_REF"; do
-  if envfile="$(git -C "$REPO" show "$src:envs/$ENV/helmrelease.yaml" 2>/dev/null)" && [[ -n "$envfile" ]]; then
-    if [[ "$(printf '%s\n' "$envfile" | "$PYTHON" "$RELEASE_PY" auth-service-enabled)" == true ]]; then AUTH_ENABLED=true; fi
+deployed_envfile="" # envs/$ENV/helmrelease.yaml on origin/<env branch>: what runs now, the rollback target (check 5)
+code_envfile=""     # the same file at $CODE_REF: what the promotion carries (check 8)
+deployed_ref="origin/$(env_branch "$ENV")"
+for which in deployed code; do
+  if [[ "$which" == deployed ]]; then src="$deployed_ref"; else src="$CODE_REF"; fi
+  content=""
+  if content="$(git -C "$REPO" show "$src:envs/$ENV/helmrelease.yaml" 2>/dev/null)" && [[ -n "$content" ]]; then
+    if [[ "$which" == deployed ]]; then deployed_envfile="$content"; else code_envfile="$content"; fi
+    if enabled="$(printf '%s\n' "$content" | "$PYTHON" "$RELEASE_PY" auth-service-enabled 2>"$tmp/auth-enabled.err")"; then
+      if [[ "$enabled" == true ]]; then AUTH_ENABLED=true; fi
+    else
+      fail "cannot read authService.enabled in envs/$ENV/helmrelease.yaml at $src ($(tail -n 1 "$tmp/auth-enabled.err")), so it is unknown (treated as enabled)"
+      AUTH_ENABLED=true
+    fi
   else
     fail "cannot read envs/$ENV/helmrelease.yaml at $src, so authService.enabled is unknown (treated as enabled)"
     AUTH_ENABLED=true
@@ -170,8 +184,6 @@ else
 fi
 
 # 4. Pending migrations.
-tmp="$(mktemp -d)"
-trap 'web_pod_cleanup; rm -rf "$tmp"' EXIT
 if git -C "$REPO" rev-parse -q --verify "$CODE_REF^{commit}" >/dev/null; then
   code_migrations "$REPO" "$CODE_REF" >"$tmp/code.tsv"
   pg_ro "$DB" -At -F "$TAB" -c 'SELECT app, name FROM public.django_migrations' >"$tmp/applied.tsv"
@@ -228,13 +240,16 @@ fi
 # 5. Image tags of the deployed env file exist in the registry (they are the rollback target).
 if [[ "$IMAGE_CHECK" == 0 ]]; then
   skip "image tags (--skip-image-check)"
-elif [[ -z "$envfile" ]]; then
-  fail "envs/$ENV/helmrelease.yaml not found on origin/$(env_branch "$ENV")"
+elif [[ -z "$deployed_envfile" ]]; then
+  fail "envs/$ENV/helmrelease.yaml not found on $deployed_ref (the rollback target)"
 elif ! command -v gcloud >/dev/null 2>&1; then
   skip "image tags: gcloud is not installed"
 else
-  images="$(printf '%s\n' "$envfile" | "$PYTHON" "$RELEASE_PY" env-images)" || images=""
-  [[ -n "$images" ]] || fail "could not read the image tags of envs/$ENV/helmrelease.yaml"
+  images=""
+  if ! images="$(printf '%s\n' "$deployed_envfile" | "$PYTHON" "$RELEASE_PY" env-images 2>"$tmp/env-images.err")"; then
+    images=""
+    fail "could not read the image tags of envs/$ENV/helmrelease.yaml on $deployed_ref: $(tail -n 1 "$tmp/env-images.err")"
+  fi
   while IFS="$TAB" read -r component repo tag; do
     [[ -n "$component" ]] || continue
     if [[ -z "$repo" || -z "$tag" ]]; then
@@ -295,17 +310,16 @@ if [[ -z "$long" ]]; then pass "no transaction on $DB older than 60 s"; else war
 if [[ "$ENV" == preprod ]]; then
   # Django reads it as os.getenv(..., "False").lower() == "true" (local-settings-file.yaml), so "False", "false" and "0" are
   # off. Fail closed: only an explicit off value passes; a missing entry, an unreadable file or any other value fails.
-  if ! flagfile="$(git -C "$REPO" show "$CODE_REF:envs/preprod/helmrelease.yaml" 2>/dev/null)" || [[ -z "$flagfile" ]]; then
+  if [[ -z "$code_envfile" ]]; then
     fail "DEVELOPER_SETTINGS_ENABLED: cannot read envs/preprod/helmrelease.yaml at $CODE_REF"
   else
-    flags="$(printf '%s\n' "$flagfile" | "$PYTHON" "$RELEASE_PY" env-setting-values DEVELOPER_SETTINGS_ENABLED)"
-    if [[ -z "$flags" ]]; then
-      fail "DEVELOPER_SETTINGS_ENABLED is not set in envs/preprod at $CODE_REF; set it to \"False\" explicitly"
-    elif [[ -z "$(printf '%s\n' "$flags" | grep -vxE 'false|0' || true)" ]]; then
-      pass "DEVELOPER_SETTINGS_ENABLED is off ($(printf '%s' "$flags" | tr '\n' ' ')) in envs/preprod at $CODE_REF"
-    else
-      fail "DEVELOPER_SETTINGS_ENABLED is '$(printf '%s' "$flags" | tr '\n' ' ')' in envs/preprod at $CODE_REF; keep it explicitly off (\"False\") until prod runs the release"
-    fi
+    rc=0
+    flag="$(printf '%s\n' "$code_envfile" | "$PYTHON" "$RELEASE_PY" env-flag-off spec.values.localSettings.DEVELOPER_SETTINGS_ENABLED 2>"$tmp/dev-flag.err")" || rc=$?
+    case "$rc" in
+      0) pass "DEVELOPER_SETTINGS_ENABLED is off ($flag) in envs/preprod at $CODE_REF" ;;
+      1) fail "DEVELOPER_SETTINGS_ENABLED is '$flag' in envs/preprod at $CODE_REF; keep it explicitly off (\"False\") until prod runs the release" ;;
+      *) fail "DEVELOPER_SETTINGS_ENABLED cannot be read in envs/preprod at $CODE_REF: $(tail -n 1 "$tmp/dev-flag.err"); set it to \"False\" explicitly" ;;
+    esac
   fi
 fi
 

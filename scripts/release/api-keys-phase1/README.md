@@ -66,6 +66,20 @@ Requirements: bash 4+ (macOS: `brew install bash`), kubectl, helm, git, python3,
 no schema round trip), gcloud for `--upload` and the image check, gh for the staging release check. The rehearsal and the
 test suite need a Python with the project's requirements (Django 6): pass `--python`.
 
+**PyYAML.** The scripts read every env file (`envs/<env>/helmrelease.yaml`) through one reader in `release_lib.py`
+(`env-get`, `env-flag-off`, `env-images`, `auth-service-enabled`), built on `yaml.safe_load`. The python3 the scripts run
+(`APIKEYS_RELEASE_PYTHON3`, default `python3` on PATH) must import `yaml` (PyYAML 6; present on the Mac and the dev
+server); without it the reader exits 3 and the check that needs it FAILs. Check: `python3 -c 'import yaml; print(yaml.__version__)'`.
+
+**How env files are read (every read fails closed).** The reader takes the file text and a dotted path
+(`spec.values.authService.enabled`) and returns the value, or exits 2 with a message when the file is empty, is not valid
+YAML, has a duplicate key, is not exactly one HelmRelease, the path is missing, or the value is not the type asked for
+(`str`, `str-or-empty`, `bool`). A boolean must be a YAML boolean: the string `"true"` is an error, never a guess, and
+a missing `authService.enabled` is an error, not `false`. `DEVELOPER_SETTINGS_ENABLED` (a string setting Django reads as
+`os.getenv(..., "False").lower() == "true"`) passes only when it is explicitly `False`/`false`/`0`; a missing entry, a
+null, a file that cannot be read and any other value FAIL. No script parses an env file with sed, grep or a regex. The
+cases are in `tests/test_env_reader.py`.
+
 ## Runbook
 
 The order follows the [release plan](https://github.com/Sefaria/Sefaria-Project/pull/3774) gates; the Sefaria wiki page
@@ -223,7 +237,9 @@ with the Rollout. The schema stays: old code works on it.
    - verifies the scoped tables' schema (`pg_dump --schema-only`, normalised) and per-table row checksums against the
      snapshot. Postgres prints some CHECK expressions differently after any dump and restore, so the schema reference is
      the snapshot's dump restored once into a scratch postgres:18 container (`db/scoped-schema.roundtrip.sql`); without
-     docker the comparison falls back to CHECK expressions without casts and parentheses.
+     docker the comparison falls back to CHECK expressions without casts and parentheses. A round trip that was started
+     and failed (container, readiness, `pg_dump`) is a failed check, never a fallback to the weaker comparison; the
+     scratch container is removed on every exit path.
      Content types and permissions Django created for the phase 1 models stay (harmless; `remove_stale_contenttypes`
      clears them). A phase 1 pod started after this re-applies the migrations (tested).
      Afterwards resume the HelmReleases and CronJobs, but only once each env's Flux GitRepository serves the snapshot's
@@ -244,7 +260,7 @@ column `auth-service/internal/registry/pgload.go` reads (`powered_by_apikey` inc
 the env's namespace; pending migrations of the code ref (preprod: only phase 1 may be pending; prod: nothing); the env
 file's image tags in Artifact Registry; Rollouts Healthy and the HelmRelease Ready (a `Ready=True` condition that does not describe the HelmRelease's current
 `metadata.generation`, or carries no `observedGeneration`, is stale and fails); transactions older than 60 s; for
-preprod, `DEVELOPER_SETTINGS_ENABLED` off; the Secret's namespace declared in the prod cluster (with `--infra-repo`,
+preprod, `DEVELOPER_SETTINGS_ENABLED` off at `--code-ref` (explicit `False`/`false`/`0` only); the Secret's namespace declared in the prod cluster (with `--infra-repo`,
 in `prod/cluster-1/spec/namespaces.yaml` or another Namespace manifest there; without it, a MANUAL line naming what to
 look for). For prod only, the chart and `envs/prod` values at `--chart-ref` (default `origin/prod`) are rendered with
 `helm template`: every CronJob it renders must exist in `default` (a missing one FAILs; a different schedule, a suspended
