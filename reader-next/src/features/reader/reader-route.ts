@@ -60,7 +60,7 @@ async function loadTextPanel(queryClient: QueryClient, panel: TextPanelState, pr
     const first = result.sections[0]!;
     let corpus: string | undefined;
     if (Object.keys(prefs.byCorpus).length) {
-      corpus = await queryClient.fetchQuery(indexMetaQueryOptions(first.indexTitle)).then((m) => m.corpora?.[0], () => undefined);
+      corpus = await queryClient.ensureQueryData({ ...indexMetaQueryOptions(first.indexTitle), revalidateIfStale: true }).then((m) => m.corpora?.[0], () => undefined);
     }
     const resolved = resolveTranslation({ explicit: versions.translation, corpus, prefs, available: first.availableVersions });
     const showing = first.translationVersion ? toApiVersion(first.translationVersion) : undefined;
@@ -69,7 +69,7 @@ async function loadTextPanel(queryClient: QueryClient, panel: TextPanelState, pr
       result = await load(versions);
     }
   }
-  const corpus = await queryClient.fetchQuery(indexMetaQueryOptions(result.sections[0]!.indexTitle)).then((m) => m.corpora?.[0], () => undefined);
+  const corpus = await queryClient.ensureQueryData({ ...indexMetaQueryOptions(result.sections[0]!.indexTitle), revalidateIfStale: true }).then((m) => m.corpora?.[0], () => undefined);
   const prev = result.sections[0]!.prev;
   const next = result.sections.at(-1)!.next;
   return {

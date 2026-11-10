@@ -5,6 +5,7 @@ import { filterLinks, linksForRefs, makeIndexLookup, sortLinks, withoutEssays, t
 import { linksQueryOptions } from "~/lib/connections/queries";
 import { resourceCounts, resourcesQueryOptions } from "~/lib/connections/related";
 import { refToUrl } from "~/lib/ref/url";
+import { forgetBeforeEditor, invalidateAfterWrite } from "~/lib/cache/invalidate";
 import { categoryView, essaysFor, linkSummary, topLevelSummary } from "~/lib/connections/summary";
 import { categoryLabel } from "~/lib/connections/terms";
 import type { ConnectionsView } from "~/lib/connections/url";
@@ -21,6 +22,7 @@ import { TextList, type LinkedTextItem } from "~/ui/ConnectionsPanel/TextList";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { categoryColor } from "~/ui/tokens/category-color";
 import { EmptyState, LoadingState } from "~/ui/Feedback/Feedback";
+import { PartLoad, ViewLoad } from "./LoadStatus";
 import { TranslationsView } from "~/ui/TranslationsView/TranslationsView";
 import { allTranslationsQueryOptions, bucketLanguage, bucketTranslations, currentFirst, languageName, orderLanguages, parseVersionKey, type TranslationVersion } from "~/lib/versions/translations";
 import { TranslationOpenView } from "~/ui/TranslationsView/TranslationOpenView";
@@ -126,6 +128,10 @@ export interface ConnectionsPaneProps {
   lang?: "en" | "he";
   onLang?: (lang: "en" | "he") => void;
 }
+
+/** What the sidebar names when it is slow or failed (SB-02). */
+const CONNECTIONS = { en: "connections", he: "קשרים" };
+const RESOURCES = { en: "sheets, topics and other resources", he: "דפי מקורות, נושאים ומשאבים נוספים" };
 
 /** In the sidebar one language shows at a time: bilingual follows the interface language. */
 function sidebarLanguage(language: ReaderSettings["language"], interfaceLang: "english" | "hebrew"): "hebrew" | "english" {
@@ -348,8 +354,8 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     const back = { href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> };
     return (
       <ConnectionsPanel label={onManuscripts ? "Manuscripts" : "Torah Readings"} back={back} lang={shownLang} onLang={props.onLang} onClose={onClose}>
-        {resourcesQ.isPending ? (
-          <LoadingState />
+        {!resourcesQ.data ? (
+          <ViewLoad q={resourcesQ} what={RESOURCES} />
         ) : onManuscripts ? (
           <ManuscriptsView pages={manuscriptsForRefs(resourcesQ.data?.manuscripts, selectedRefs)} />
         ) : (
@@ -376,7 +382,10 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
                 key={selectionRef}
                 createPrefix={CREATE_NEW_TOPIC[shownLang]}
                 getSuggestions={async (word) => topicSuggestions(await qcNotes.fetchQuery(nameQueryOptions(word, ["Topic"], null)), word, CREATE_NEW_TOPIC[shownLang])}
-                onAdd={async (slug) => addLinkToResources(qcNotes, sectionRef, await addRefTopicLink(selectionRange(selectedRefs, sectionRef), slug, interfaceLang))}
+                onAdd={async (slug) => {
+                  addLinkToResources(qcNotes, sectionRef, await addRefTopicLink(selectionRange(selectedRefs, sectionRef), slug, interfaceLang));
+                  void invalidateAfterWrite(qcNotes, { kind: "topic", slug });
+                }}
                 createHref={() => `${SITE_ORIGIN}${hrefFor(view)}`}
                 // the old TopicEditor inline: create the topic, then add it to the selection (onCreateSuccess → post)
                 renderCreate={(title, close) => (
@@ -388,6 +397,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
                     onCreate={async (topic) => {
                       const slug = await createTopic(topic);
                       addLinkToResources(qcNotes, sectionRef, await addRefTopicLink(selectionRange(selectedRefs, sectionRef), slug, interfaceLang));
+                      void invalidateAfterWrite(qcNotes, { kind: "topic", slug });
                       close();
                     }}
                   />
@@ -396,6 +406,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
             ) : null
           }
         />
+        <PartLoad q={resourcesQ} what={RESOURCES} />
       </ConnectionsPanel>
     );
   }
@@ -470,7 +481,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   }
 
   if (view.view === "mode" && view.mode === "Notes" && viewer) {
-    const refresh = () => qcNotes.invalidateQueries({ queryKey: ["user", "notes", uid] });
+    const refresh = () => invalidateAfterWrite(qcNotes, { kind: "notes" });
     return (
       <ConnectionsPanel label="Notes" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
         <NotesView
@@ -520,7 +531,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           onAdd={async (refs, type) => {
             await addConnection(refs, type);
             uaEvent("Tools", "Add Connection", refs.join("/"));
-            await qcNotes.invalidateQueries({ queryKey: ["links"] }); // the old Sefaria.clearLinks()
+            await invalidateAfterWrite(qcNotes, { kind: "links" }); // the old Sefaria.clearLinks()
           }}
         />
       </ConnectionsPanel>
@@ -642,7 +653,9 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
       ? () => {
           const path = `${encodeURIComponent(shown.languageFamilyName)}/${encodeURIComponent(shown.versionTitle)}`;
           uaEvent("Tools", "Edit Text Click", `${notesRefs[0]}/${path}`);
-          window.location.assign(`${SITE_ORIGIN}/edit/${refToUrl(notesRefs[0]!)}/${path}?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+          const next = window.location.pathname + window.location.search;
+          // Django's editor comes back with a full page load: what it may change must not be painted from disk then (T-E01)
+          void forgetBeforeEditor({ kind: "text", ref: notesRefs[0]! }).finally(() => window.location.assign(`${SITE_ORIGIN}/edit/${refToUrl(notesRefs[0]!)}/${path}?next=${encodeURIComponent(next)}`));
         }
       : undefined;
     return (
@@ -650,8 +663,10 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
         <AdvancedToolsView
           onAddTranslation={() =>
             viewer
-              ? // the old addTranslation: Django's translation page, coming back here
-                window.location.assign(`${SITE_ORIGIN}/translate/${refToUrl(notesRefs[0]!)}?next=${encodeURIComponent(window.location.pathname + window.location.search)}`)
+              ? // the old addTranslation: Django's translation page, coming back here (what it changes is forgotten on disk first: T-E01)
+                void forgetBeforeEditor({ kind: "text", ref: notesRefs[0]! }).finally(() =>
+                  window.location.assign(`${SITE_ORIGIN}/translate/${refToUrl(notesRefs[0]!)}?next=${encodeURIComponent(window.location.pathname + window.location.search)}`),
+                )
               : props.onSignUp("add-translation")
           }
           onAddConnection={() => (viewer ? onNavigate(hrefFor({ view: "mode", mode: "Add Connection" })) : props.onSignUp("add-connection"))}
@@ -676,14 +691,21 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
         {view.mode === "LexiconHeadwordEdit" ? (
           <LexiconHeadwordEdit
             identity={lexiconEntry}
-            onRename={async (id, newHeadword) => (await renameLexiconHeadword(id, newHeadword)).headword}
+            onRename={async (id, newHeadword) => {
+              const { headword } = await renameLexiconHeadword(id, newHeadword);
+              await invalidateAfterWrite(qcNotes, { kind: "lexicon" });
+              return headword;
+            }}
           />
         ) : (
           <LexiconContentEdit
             identity={lexiconEntry}
             draft={entryQ.isError ? entryQ.error.message : entryDraft}
             resolveRef={resolveRef}
-            onSave={async (id, content) => void (await saveLexiconContent(id, content))}
+            onSave={async (id, content) => {
+              await saveLexiconContent(id, content);
+              await invalidateAfterWrite(qcNotes, { kind: "lexicon" });
+            }}
           />
         )}
       </ConnectionsPanel>
@@ -708,20 +730,25 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   if (view.view === "resources") {
     return (
       <ConnectionsPanel label="Resources" title={<ResourcesTitle />} lang={shownLang} onLang={props.onLang} onClose={onClose}>
-        {linksQ.isPending ? (
-          <LoadingState />
+        {!sectionLinks ? (
+          // SB-02: a cold /api/links can take 11 s; say so, and offer a retry if it fails
+          <ViewLoad q={linksQ} what={CONNECTIONS} />
         ) : (
-          <ResourcesView
-            summary={topLevelSummary(summary, essaysFor(sectionLinks ?? [], props.shownVersions))}
-            catalog={catalog}
-            hrefFor={hrefFor}
-            onNavigate={nav}
-            counts={counts}
-            sheetsHref={sheetsHref}
-            signedIn={!!viewer}
-            moderator={!!viewer?.isStaff}
-            notesCount={notesQ.data?.length ?? 0}
-          />
+          <>
+            <ResourcesView
+              summary={topLevelSummary(summary, essaysFor(sectionLinks, props.shownVersions))}
+              catalog={catalog}
+              hrefFor={hrefFor}
+              onNavigate={nav}
+              counts={counts}
+              sheetsHref={sheetsHref}
+              signedIn={!!viewer}
+              moderator={!!viewer?.isStaff}
+              notesCount={notesQ.data?.length ?? 0}
+            />
+            {/* SB-02: the connections above came from /api/links; a cold /api/related (sheets, topics…) can end in a 504 after 15 s */}
+            <PartLoad q={resourcesQ} what={RESOURCES} />
+          </>
         )}
       </ConnectionsPanel>
     );
@@ -731,7 +758,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     const label = categoryLabel(view.category, catalog);
     return (
       <ConnectionsPanel label={view.category} back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
-        {linksQ.isPending ? <LoadingState /> : <CategoryView categories={categoryView(summary, view.category)} catalog={catalog} hrefFor={hrefFor} onNavigate={nav} current={view.category} lang={shownLang} />}
+        {!sectionLinks ? <ViewLoad q={linksQ} what={CONNECTIONS} /> : <CategoryView categories={categoryView(summary, view.category)} catalog={catalog} hrefFor={hrefFor} onNavigate={nav} current={view.category} lang={shownLang} />}
       </ConnectionsPanel>
     );
   }
@@ -789,7 +816,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
                 if (!window.confirm("Are you sure you want to delete this connection?")) return;
                 try {
                   await deleteConnection(item.id);
-                  await qcNotes.invalidateQueries({ queryKey: ["links"] }); // the old onDataChange: Sefaria.clearLinks()
+                  await invalidateAfterWrite(qcNotes, { kind: "links" }); // the old onDataChange: Sefaria.clearLinks()
                   window.alert("Connection deleted.");
                 } catch (e) {
                   window.alert((e as Error).message);
@@ -806,6 +833,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
             : undefined
         }
       />
+      {sectionLinks ? null : <PartLoad q={linksQ} what={CONNECTIONS} />}
     </ConnectionsPanel>
   );
 }

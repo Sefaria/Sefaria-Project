@@ -13,7 +13,7 @@ import { shouldActivateLookup } from "~/lib/lexicon/lookup";
 import { highlightsOf, type SearchHit } from "~/lib/search/text-search";
 import { versionKey, type TranslationVersion } from "~/lib/versions/translations";
 import { isHighlighted } from "~/lib/text/plan";
-import { startsParashahOrAliyah } from "~/lib/reader/parashah";
+import { highlightOf, keepsRange as rangeIsKept, selectionAddress, wholeSectionRange } from "~/lib/text/range-selection";
 import { prefetchNeighbours, selectionKey, textQueryOptions } from "~/lib/text/queries";
 import { close, closeAside, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
 import type { AsideId, PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
@@ -43,7 +43,6 @@ import { setMobileMenuOpen } from "../shell/mobile-menu";
 import { SignUpModal } from "~/ui/SignUpModal/SignUpModal";
 import { shownVersions as panelVersionsShown, type ReaderRouteData } from "./reader-route";
 import { useReaderSettings } from "./settings-context";
-import { SETTLE_MS } from "./use-reading-scroll";
 import { placeSegment, scrollSegmentToLine } from "~/lib/reader-state/sefaria/slices/dom-position";
 import { TextColumn } from "./TextColumn";
 import { readerAnalytics } from "~/lib/analytics";
@@ -219,8 +218,16 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
 
   const asideRef = useRef(panel.asides);
   asideRef.current = panel.asides;
+  // Segments the reader selected (text selected across several of them): highlighted, sidebar open or closed (legacy parity,
+  // lib/text/range-selection.ts). Reading on, or choosing a verse, drops it.
+  const [picked, setPicked] = useState<string[] | null>(null);
+  // a navigation (a link, Back/Forward to another entry) ends a selection at once, not when the next scroll settles
+  useEffect(() => {
+    if (kind === undefined || kind === "go") setPicked(null);
+  }, [thisEntry, kind]);
   const onSettled = useCallback(
     (ref: string) => {
+      setPicked(null);
       if (asideRef.current.length) setSelection([ref]);
       nav.panelMoved();
       // The address bar always names the verse being read (like the old reader), without moving anything.
@@ -229,19 +236,20 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [apply, id, nav],
   );
 
-  // A range URL ("Genesis 1:3-5") collapses to its first verse once the column settles, as in the old reader. A Torah
-  // portion or aliyah range (the book TOC's links, /Parashat_X) stays in the URL and highlighted, as sefaria.org keeps it.
-  const keepsRange = useMemo(() => {
-    const p = initial[0]!;
-    return startsParashahOrAliyah(p, p.segments.find((s) => s.ref === urlSegments[0]));
-  }, [initial, urlSegments]);
-  const isRangeArrival = (kind === undefined || kind === "go") && urlSegments.length > 1 && !keepsRange;
-  const rangeHighlight = keepsRange && urlSegments.length > 1 ? data.highlight : null;
+  // Every range of several segments stays in the address and highlighted, inside one section or across sections, sidebar open or
+  // closed (owner decision 2026-11-10; the old reader's occasional collapse is a race, not ported: lib/text/range-selection.ts).
+  const keepsRange = rangeIsKept({ segments: urlSegments.length });
+  // A range of whole sections ("Genesis 6-8", "Berakhot 2a-2b") is all highlighted when it is all loaded; without the sidebar its
+  // address is written by its segments (Genesis.6.1-8.22), in place, as sefaria.org does.
+  const sectionRange = useMemo(() => (data.highlight ? null : wholeSectionRange(data.ref, data.sectionRefs, initial)), [data.highlight, data.ref, data.sectionRefs, initial]);
+  const rangeHighlight = keepsRange ? data.highlight : (sectionRange?.highlight ?? null);
+  const writeSectionRange = (kind === undefined || kind === "go") && !!sectionRange?.ref && !panel.asides.length && sectionRange.ref !== data.ref;
   useEffect(() => {
-    if (!isRangeArrival) return;
-    const t = setTimeout(() => onSettled(urlSegments[0]!), SETTLE_MS);
-    return () => clearTimeout(t);
-  }, [isRangeArrival, urlSegments, onSettled]);
+    const ref = sectionRange?.ref;
+    if (!writeSectionRange || !ref) return;
+    apply((ws) => updatePanel(ws, id, { ref }), { replace: true, state: { nav: "stay", panel: id } });
+  }, [writeSectionRange, sectionRange, apply, id]);
+  const shownHighlight = useMemo(() => (picked ? highlightOf(picked, current.passage.book) : null) ?? rangeHighlight, [picked, current.passage.book, rangeHighlight]);
 
   // ── side panels ────────────────────────────────────────────────────────────────────────────────────
   const aside = panel.asides.find((a) => a.kind === "connections");
@@ -295,6 +303,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   currentRef.current = current.ref;
   const onSelectSegment = useCallback(
     (ref: string) => {
+      setPicked(null);
       readerAnalytics.segmentClicked(ref, !viewRef.current);
       // Selecting the verse that is already current while the sidebar is open closes the sidebar.
       if (viewRef.current && currentRef.current === ref) {
@@ -410,8 +419,20 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // Words selected in the text: with the sidebar open, a lookup of up to three Hebrew words in one segment switches it
   // to the dictionaries. A selection never opens a closed sidebar. (VERIFIED on sefaria.org; unlike there, the URL
   // follows every lookup, not just the first.) CON-042, TXD-059
+  const sectionSegmentsRef = useRef<string[]>([]);
+  sectionSegmentsRef.current = current.passage.segments.map((s) => s.ref);
   const onSelectWords = useCallback(
     (words: string, refs: string[]) => {
+      // Text selected across several segments: they are highlighted, the sidebar (if open) shows them, and the address follows the
+      // old reader's rule (lib/text/range-selection.ts), replacing the entry. A selection never opens a closed sidebar.
+      if (refs.length > 1) {
+        setPicked(refs);
+        const sidebarOpen = asideRef.current.length > 0;
+        if (sidebarOpen) setSelection(refs);
+        const ref = selectionAddress(refs, { sidebarOpen, sectionSegments: sectionSegmentsRef.current });
+        if (ref) apply((ws) => updatePanel(ws, id, { ref }), { replace: true, state: { nav: "stay", panel: id } });
+        return;
+      }
       if (!asideRef.current.length || refs.length !== 1 || !shouldActivateLookup(words)) return;
       const ref = refs[0]!;
       const inLexicon = parseWith(asideRef.current[0]?.view)?.view === "mode" && (parseWith(asideRef.current[0]?.view) as { mode?: string }).mode === "Lexicon";
@@ -640,7 +661,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         onSections={onSections}
         settings={settings}
         target={entry.current.target}
-        highlight={rangeHighlight}
+        highlight={shownHighlight}
         terms={navState.mine && navState.kind === "go" ? readNavState(location.state).terms : undefined}
         selected={selected}
         showFocus={Boolean(view)}

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { IDBFactory } from "fake-indexeddb";
+import { http } from "msw";
 import { server } from "../../../test/msw/server";
 import { makeQueryClient } from "~/lib/cache/query-client";
 import { resetPersisters } from "~/lib/cache/persisters";
@@ -192,5 +193,27 @@ describe("a cold long range", () => {
     expect(r.sections.map((s) => s.ref)).toEqual(["Genesis 1", "Genesis 2", "Genesis 3", "Genesis 4"]);
     expect(r.highlight).toEqual({ from: ["1", "1"], to: ["10", "5"] });
     expect(requests.some((p) => p.includes("1:1-10:5"))).toBe(false);
+  });
+});
+
+// Review of lane D: a stale cached section must show at once and be refetched behind, never make the navigation wait on the network
+describe("a stale cached section never blocks a navigation", () => {
+  it("staff (text never fresh): the cached copy comes back with the server not answering, and is asked for again behind it", { timeout: 3_000 }, async () => {
+    const { setStaffFreshness } = await import("~/lib/cache/policies");
+    const qc = makeQueryClient();
+    const idx = new RefIndex();
+    await loadReaderPassage(qc, idx, "Genesis 1");
+    setStaffFreshness(true);
+    try {
+      // from now on the server never answers: a navigation that waited for it would never finish
+      server.use(http.get("*/api/v3/texts/*", () => new Promise<never>(() => {})));
+      requests = [];
+      const verse = await loadReaderPassage(qc, idx, "Genesis 1:3");
+      expect(verse.sections[0]!.ref).toBe("Genesis 1");
+      await new Promise((r) => setTimeout(r, 50));
+      expect(requests).toContain("/api/v3/texts/Genesis 1"); // the revalidation, behind
+    } finally {
+      setStaffFreshness(false);
+    }
   });
 });

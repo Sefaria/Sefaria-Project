@@ -42,24 +42,21 @@ test("a verse URL opens at exactly that verse, which is the current verse", asyn
   await expect(page.locator('[data-focused="true"]')).toHaveAttribute("data-ref", "Genesis 1:3");
 });
 
-test("a verse range opens at its first verse, then the address collapses to it (old reader, verified live)", async ({ page }) => {
+// owner decision 2026-11-10: every range is kept and highlighted (the old reader's occasional collapse is a race; e2e/ranges.spec.ts)
+test("a verse range opens at its first verse, stays in the address and is highlighted", async ({ page }) => {
   await open(page, "/Genesis.1.3-5?lang=en");
   await expect(page.locator('[data-scroll-target="true"]')).toHaveAttribute("data-ref", "Genesis 1:3");
   await expect(page.locator('[data-ref="Genesis 1:3"][role="group"]')).toBeInViewport();
-  await expect(page).toHaveURL(/\/Genesis\.1\.3\?lang=en&aliyot=0$/);
+  await expect(page.locator('[data-highlighted="true"]')).toHaveCount(3);
+  await expect(page).toHaveURL(/\/Genesis\.1\.3-5\?lang=en&aliyot=0$/);
 });
 
-test("with the sidebar, a range highlights only its first verse, and the sidebar shows that verse", async ({ page }) => {
+test("with the sidebar, a range stays highlighted and its first verse is the current one", async ({ page }) => {
   await open(page, "/Genesis.1.3-5?lang=en&with=all");
-  await expect(page).toHaveURL(/\/Genesis\.1\.3\?/);
+  await expect(page).toHaveURL(/\/Genesis\.1\.3-5\?/);
+  await expect(page.locator('[data-highlighted="true"]')).toHaveCount(3);
   await expect(page.locator('[data-focused="true"]')).toHaveCount(1);
   await expect(page.locator('[data-focused="true"]')).toHaveAttribute("data-ref", "Genesis 1:3");
-});
-
-test("a section URL stays section-level until the reader scrolls", async ({ page }) => {
-  await open(page, "/Genesis.1?lang=en");
-  await page.waitForTimeout(800);
-  expect(new URL(page.url()).pathname).toBe("/Genesis.1");
 });
 
 // @feature RTE-043

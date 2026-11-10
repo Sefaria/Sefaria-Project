@@ -1,0 +1,8 @@
+.part {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sefaria-space-3);
+  align-items: center;
+  margin: var(--sefaria-space-4) 0 0;
+  color: var(--sefaria-color-text-secondary);
+}

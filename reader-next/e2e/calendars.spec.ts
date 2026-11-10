@@ -96,7 +96,9 @@ test("following a card opens the reading in the reader; Back returns to the sche
   await page.evaluate(() => ((window as unknown as { __sameDoc: boolean }).__sameDoc = true));
   const sameDoc = () => page.evaluate(() => (window as unknown as { __sameDoc?: boolean }).__sameDoc === true);
   await page.locator('[data-calendar="Daf Yomi"]').getByRole("link", { name: daf.displayValue.en }).click();
-  const at = new RegExp(`/${daf.url.replace(/[.?*+()[\]]/g, "\\$&")}(\\?|$)`);
+  // a daf without its amud is written as both amudim once the reader has it, as on sefaria.org (/Berakhot.2 → /Berakhot.2a.1-2b.19;
+  // lane D, owner decision 2026-11-10, e2e/ranges.spec.ts)
+  const at = new RegExp(`/${dafAddress(daf.url)}(\\?|$)`);
   await expect(page).toHaveURL(at);
   // the reader shows the daf: its title in the reader's header and text in the column
   await expect(page.locator("[data-reader-scroller]")).toBeVisible();
@@ -283,6 +285,13 @@ test("Hebrew interface: Hebrew headings and titles, no (Talmud), cards laid out 
   await expect(side.getByRole("link", { name: "תרומות" })).toHaveAttribute("href", "https://donate.sefaria.org/give/468442/#!/donation/checkout?c_src=Footer");
 });
 
+/** "Bekhorot.53" as an address pattern: as asked, or as both amudim written by their segments ("Bekhorot.53a.1-53b.17"). */
+function dafAddress(url: string): string {
+  const esc = url.replace(/[.?*+()[\]]/g, "\\$&");
+  const n = /\.(\d+)$/.exec(url)?.[1];
+  return n ? `${esc}(?:a\\.1-${n}b\\.\\d+)?` : esc;
+}
+
 // @feature CAL-003 @feature RTE-010
 test("/parashat-hashavua and /todays-daf-yomi answer 302 to this week's portion and today's daf, ignoring ?diaspora", async ({ request, page }) => {
   const all = await items(request, "diaspora=1");
@@ -298,7 +307,7 @@ test("/parashat-hashavua and /todays-daf-yomi answer 302 to this week's portion 
     expect(await r.text()).toBe("");
   }
   await page.goto("/todays-daf-yomi");
-  await expect(page).toHaveURL(new RegExp(`/${daf.url.replace(/\./g, "\\.")}$`));
+  await expect(page).toHaveURL(new RegExp(`/${dafAddress(daf.url)}(\\?|$)`)); // written as both amudim, as on sefaria.org
   await page.waitForSelector("html[data-hydrated='true']");
   // the reader renders today's daf (not a 404 or an error page)
   await expect(page.locator("[data-reader-scroller]")).toBeVisible();

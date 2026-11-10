@@ -268,3 +268,47 @@ test("a long list of connected texts loads a page at a time, and the next as the
   await page.waitForTimeout(800);
   expect(await items.count()).toBeGreaterThanOrEqual(grown);
 });
+
+// Pre-deploy list SB-02 (LAUNCH_PLAN T-H02): a cold /api/related answers 504 after ~15 s, a cold /api/links takes ~11 s. The sidebar
+// shows what /api/links gave, says it is still loading the rest, and offers a retry; never an endless spinner.
+test.describe("a slow or failing server (SB-02)", () => {
+  test("/api/related failing: the connections from /api/links stay, the rest says so, and Try again loads it", async ({ page }) => {
+    let fail = true;
+    const related: string[] = [];
+    await page.route(/\/api\/related\/Genesis[^/]*1(\?|$)/, async (route) => {
+      related.push(route.request().url());
+      if (!fail) return route.fallback();
+      await new Promise((r) => setTimeout(r, 3_500)); // slow first, then the gateway gives up
+      await route.fulfill({ status: 504, contentType: "text/html", body: "<html>Gateway Timeout</html>" });
+    });
+    await open(page, "/Genesis.1?lang=en");
+    await page.locator('[role="group"][data-ref="Genesis 1:1"]').click();
+    const side = panel(page);
+    await expect(side.getByRole("region", { name: "Related Texts" }).getByRole("link").first()).toContainText("Commentary"); // from /api/links
+    await expect(side.getByTestId("sidebar-still-loading")).toBeVisible();
+    await expect(side.getByTestId("sidebar-part-failed")).toBeVisible({ timeout: 20_000 });
+    await expect(side.getByTestId("sidebar-still-loading")).toHaveCount(0);
+    await expect(side.getByRole("region", { name: "Related Texts" }).getByRole("link").first()).toContainText("Commentary");
+    fail = false;
+    await side.getByTestId("sidebar-retry").click();
+    await expect(side.getByRole("region", { name: "Resources" }).getByRole("link", { name: /Sheets/ })).toHaveText(/\(\d+\)/, { timeout: 30_000 });
+    await expect(side.getByTestId("sidebar-part-failed")).toHaveCount(0);
+  });
+
+  test("/api/links slow: the wait says so; failing: a retry, never a spinner for good", async ({ page }) => {
+    let mode: "fail" | "ok" = "fail";
+    await page.route(/\/api\/links\/Genesis[^/]*1(\?|$)/, async (route) => {
+      if (mode === "ok") return route.fallback();
+      await new Promise((r) => setTimeout(r, 3_500));
+      await route.fulfill({ status: 504, contentType: "text/html", body: "<html>Gateway Timeout</html>" });
+    });
+    await open(page, "/Genesis.1?lang=en");
+    await page.locator('[role="group"][data-ref="Genesis 1:1"]').click();
+    const side = panel(page);
+    await expect(side.getByTestId("sidebar-still-loading")).toBeVisible();
+    await expect(side.getByRole("alert")).toContainText("Couldn't load connections", { timeout: 20_000 });
+    mode = "ok";
+    await side.getByTestId("sidebar-retry").click();
+    await expect(side.getByRole("region", { name: "Related Texts" }).getByRole("link").first()).toContainText("Commentary", { timeout: 30_000 });
+  });
+});

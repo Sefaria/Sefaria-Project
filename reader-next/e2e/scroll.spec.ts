@@ -184,8 +184,7 @@ test.describe("verse ranges (verified on sefaria.org 2026-10-28)", () => {
     await expect(page.locator('[data-highlighted="true"]')).toHaveCount(16);
   });
 
-  // a range is kept because of where it starts, not its length (VERIFIED 2026-10-29 on sefaria.org at 1280px: /Genesis.6.9-11 and
-  // /Genesis.1.1-3 stay, highlighted; /Genesis.1.3-5 collapses to /Genesis.1.3)
+  // every range stays, highlighted (owner decision 2026-11-10; sefaria.org's occasional collapse of /Genesis.1.3-5 is a race)
   test("a short range that starts at a portion's first verse stays, highlighted", async ({ page }) => {
     await open(page, "/Genesis.6.9-11?lang=bi");
     await page.waitForTimeout(1500);
@@ -193,10 +192,10 @@ test.describe("verse ranges (verified on sefaria.org 2026-10-28)", () => {
     await expect(page.locator('[data-highlighted="true"]')).toHaveCount(3);
   });
 
-  test("a short range that is not a portion collapses to its first verse", async ({ page }) => {
+  test("a short range that is not a portion stays too, highlighted", async ({ page }) => {
     await open(page, "/Genesis.1.3-5?lang=bi");
-    await expect.poll(() => new URL(page.url()).pathname).toBe("/Genesis.1.3");
-    await expect(page.locator('[data-highlighted="true"]')).toHaveCount(0);
+    await expect(page.locator('[data-highlighted="true"]')).toHaveCount(3);
+    expect(new URL(page.url()).pathname).toBe("/Genesis.1.3-5");
   });
 
   // @feature TXT-004 @feature RTE-046
@@ -281,7 +280,8 @@ test("windowing in a bilingual column with the sidebar open keeps the reader's v
 });
 
 // CODE_REVIEW low: a commentary range across chapters showed refs like "Rashi on Genesis 1:31:1:1" and lost its range (so the reader
-// arrived nowhere in particular); like any range that is not a portion, it arrives at its first comment and the address collapses to it
+// arrived nowhere in particular). It arrives at its first comment; being across chapters, it stays in the address and highlighted, as on
+// sefaria.org (owner decision 2026-11-10, e2e/ranges.spec.ts)
 test("a commentary range across chapters shows both chapters' comments and arrives at its first", async ({ page }) => {
   await open(page, "/Rashi_on_Genesis.1.31.1-2.2.1?lang=bi");
   const first = page.locator('[role="group"][data-ref="Rashi on Genesis 1:31:1"]');
@@ -289,7 +289,8 @@ test("a commentary range across chapters shows both chapters' comments and arriv
   await expect(first).toBeInViewport();
   await expect(page.locator('[role="group"][data-ref="Rashi on Genesis 2:2:1"]')).toHaveCount(1);
   await expect(page.locator('[data-ref="Rashi on Genesis 1:31:1:1"]')).toHaveCount(0);
-  await expect.poll(() => new URL(page.url()).pathname).toBe("/Rashi_on_Genesis.1.31.1");
+  await expect(page.locator('[data-highlighted="true"]')).toHaveCount(2);
+  expect(new URL(page.url()).pathname).toBe("/Rashi_on_Genesis.1.31.1-2.2.1");
 });
 
 // review F03: the sections the page opened with were always kept, and the trim behind the reader stopped at the first of them, so a
