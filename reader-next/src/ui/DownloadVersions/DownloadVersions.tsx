@@ -58,7 +58,7 @@ export function DownloadVersions({ title, versions, origin = SITE_ORIGIN }: Down
   const href = ready ? `${origin}/download/version/${title} - ${chosen.language} - ${chosen.title}.${format}` : undefined;
 
   return (
-    <section aria-label="Download Text" className={styles.module}>
+    <section aria-label={hebrew ? "הורדת טקסט" : "Download Text"} className={styles.module}>
       <PanelSectionHeading variant="title">
         <InterfaceText en="Download Text" he="הורדת טקסט" />
       </PanelSectionHeading>

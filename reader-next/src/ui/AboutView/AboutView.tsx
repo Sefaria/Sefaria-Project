@@ -15,6 +15,7 @@ import { AboutVersionBlock } from "./AboutVersionBlock";
 import styles from "./AboutView.module.css";
 import { SITE_ORIGIN } from "~/lib/config";
 import { ContentText, LangText } from "../LangText/LangText";
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 
 export interface AboutViewProps {
   details?: IndexDetails;
@@ -50,6 +51,8 @@ export interface AboutViewProps {
  * @feature VER-016 Version block display
  */
 export function AboutView(p: AboutViewProps) {
+  // region names in the interface's language (a11y S5: the Hebrew interface read English names)
+  const he = useInterfaceLang() === "hebrew";
   const d = p.details;
   const desc = d ? descriptionFor(d, p.lang) : undefined;
   const composed = d ? composedLine(d, p.lang) : undefined;
@@ -60,7 +63,7 @@ export function AboutView(p: AboutViewProps) {
     const v = kind === "translation" ? translation : source;
     if (!v) return null;
     return (
-      <section key={kind} aria-label={kind === "translation" ? "Current Translation" : "Current Version"}>
+      <section key={kind} aria-label={kind === "translation" ? (he ? "תרגום נוכחי" : "Current Translation") : he ? "מהדורה נוכחית" : "Current Version"}>
         <PanelSectionHeading variant="title">
           {kind === "translation" ? <InterfaceText en="Current Translation" he="תרגום נוכחי" /> : <InterfaceText en="Current Version" he="מהדורה נוכחית" />}
         </PanelSectionHeading>
@@ -71,7 +74,7 @@ export function AboutView(p: AboutViewProps) {
 
   return (
     <div className={styles.view}>
-      <section aria-label="About This Text" className={styles.details}>
+      <section aria-label={he ? "אודות ספר זה" : "About This Text"} className={styles.details}>
         <PanelSectionHeading variant="title">
           <InterfaceText en="About This Text" he="אודות ספר זה" />
         </PanelSectionHeading>
@@ -97,7 +100,7 @@ export function AboutView(p: AboutViewProps) {
       {p.order.map(block)}
 
       {alternates.length ? (
-        <section aria-label="Source Versions">
+        <section aria-label={he ? "מהדורות בשפת המקור" : "Source Versions"}>
           <PanelSectionHeading variant="title">
             {alternatesAreAll ? <InterfaceText en="Source Versions" he="מהדורות בשפת המקור" /> : <InterfaceText en="Alternate Source Versions" he="מהדורות נוספות בשפת המקור" />}
           </PanelSectionHeading>

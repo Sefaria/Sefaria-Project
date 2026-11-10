@@ -134,6 +134,19 @@ export interface ConnectionsPaneProps {
   onLang?: (lang: "en" | "he") => void;
 }
 
+/**
+ * The About box's current versions: the ones the text shows (the old AboutBox's currObjectVersions). The source version the
+ * text shows leads in Hebrew and bilingual, named or not; English text shows no source version and Hebrew text no translation
+ * (VERIFIED on sefaria.org 2026-11-10, Genesis 1:1 with=About: lang=bi "Current Version: Miqra according to the Masorah" then
+ * "Current Translation"; lang=en the translation only; lang=he the version only; parity S9).
+ */
+function aboutCurrent(language: ReaderSettings["language"], section: Pick<TextPassage, "primaryVersion" | "translationVersion"> | undefined, namedSource?: string) {
+  return {
+    translationTitle: language === "hebrew" ? undefined : section?.translationVersion?.versionTitle,
+    sourceTitle: language === "english" ? undefined : (namedSource ?? section?.primaryVersion?.versionTitle),
+  };
+}
+
 /** What the sidebar names when it is slow or failed (SB-02). */
 const CONNECTIONS = { en: "connections", he: "קשרים" };
 const RESOURCES = { en: "sheets, topics and other resources", he: "דפי מקורות, נושאים ומשאבים נוספים" };
@@ -593,11 +606,13 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           details={detailsQ.data}
           loading={detailsQ.isPending}
           category={category}
-          lang={language === "hebrew" ? "he" : "en"}
+          // the Hebrew interface shows the book in Hebrew whatever the sidebar's language (the old AboutBox's ContentText;
+          // VERIFIED on sefaria.org.il 2026-11-10, lang2=en: "בראשית", the Hebrew description, "נוצר/נערך: …"; parity S9)
+          lang={hebrew || language === "hebrew" ? "he" : "en"}
           titleHref={`/${refToUrl(indexTitle)}`}
           authorHref={topicHref}
           topicHref={topicHref}
-          versions={aboutVersions(available, { translationTitle: props.section?.translationVersion?.versionTitle, sourceTitle: props.currentSourceTitle })}
+          versions={aboutVersions(available, aboutCurrent(settings.language, props.section, props.currentSourceTitle))}
           order={versionSectionOrder(settings.language)}
           // a dictionary's About names its section, not the entry chosen (master AboutBox, #3730)
           urlRef={refToUrl(lexiconName ? sectionRef : selectionRef)}
