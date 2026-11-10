@@ -6,5 +6,5 @@ The paths nginx sends straight to Varnish in nodejs.mode "optin"/"reader" (conf/
 favicon.ico, site.webmanifest, manifest.json, llms.txt and /.well-known/.
 */}}
 {{- define "sefaria.readerDjangoPathRegex" -}}
-^/(?:(?!activity/[^/]+/[^/]{2}/[^/])(?:_api|admin|logout|account|accounts|_allauth|gauth|unlink-gauth|sso|sheets|sheets-with-ref|collections|groups|profile|people|person|settings|notifications|my|community|activity|dashboard|explore|garden|vgarden|visualize|translate|contributors|download|data|linker|linker-editor|modtools|random|torahtracker|edit|add|new-home|getstarted|healthz|healthz-rollout|health-check|sefaria\.js|search-autocomplete-redirecter|embed|edit_text|enable-library-assistant)(?:[/.]|$)|(?:favicon\.ico|site\.webmanifest|manifest\.json|llms\.txt)$|\.well-known/)
+^/(?:(?!activity/[^/]+/[^/]{2}/[^/])(?!(?:linker)/?$)(?:_api|admin|logout|account|accounts|_allauth|gauth|unlink-gauth|sso|sheets|sheets-with-ref|collections|groups|profile|people|person|settings|my|community|activity|dashboard|explore|garden|vgarden|visualize|translate|contributors|download|data|linker|linker-editor|modtools|random|edit|add|new-home|getstarted|healthz|healthz-rollout|health-check|sefaria\.js|search-autocomplete-redirecter|embed|edit_text|enable-library-assistant)(?:[/.]|$)|(?:favicon\.ico|site\.webmanifest|manifest\.json|llms\.txt)$|\.well-known/)
 {{- end -}}

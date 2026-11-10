@@ -14,7 +14,8 @@
 //  - LIBRARY_ONLY_PREFIXES: they are the client's on the Library host (the only host this location is used on); the Voices server
 //    block never sends anything to the reader.
 // Runs with Node 22 (--experimental-strip-types imports the .ts file directly; no dependency).
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -35,13 +36,46 @@ function clientUnderDjangoPrefix(text) {
   return m ? m[1].replace(/\\\//g, "/") : null;
 }
 
+/**
+ * django-paths.ts as plain Node can import it: the client's "~/…" path alias means nothing to Node, so the file and each module it
+ * imports through the alias are copied into a temporary folder with those imports rewritten to the copies (one level: an aliased
+ * module that itself imports through the alias is an error here, so this cannot silently go stale).
+ */
+async function importSource() {
+  const tmp = mkdtempSync(join(tmpdir(), "reader-nginx-paths-"));
+  const alias = /from "~\/([^"]+)"/g;
+  const rewrite = (text) =>
+    text.replace(alias, (_, mod) => {
+      const name = mod.replace(/\//g, "__") + ".ts";
+      const body = readFileSync(join(ROOT, "reader-next/src", `${mod}.ts`), "utf8");
+      if (alias.test(body)) throw new Error(`${mod}.ts imports through "~/" too: teach build/ci/reader-nginx-paths.mjs to follow it`);
+      alias.lastIndex = 0;
+      writeFileSync(join(tmp, name), body);
+      return `from "./${name}"`;
+    });
+  writeFileSync(join(tmp, "django-paths.ts"), rewrite(readFileSync(SOURCE, "utf8")));
+  // the static-page manifest too (django-paths.ts uses it but does not export it): which static pages the client renders
+  writeFileSync(join(tmp, "pages.ts"), readFileSync(join(ROOT, "reader-next/src/lib/static-page/pages.ts"), "utf8"));
+  try {
+    const paths = await import(pathToFileURL(join(tmp, "django-paths.ts")).href);
+    const pages = await import(pathToFileURL(join(tmp, "pages.ts")).href);
+    return { ...paths, STATIC_PAGE_NAMES: pages.STATIC_PAGE_NAMES, rendersStaticPage: pages.rendersStaticPage };
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
 export async function build() {
   const text = readFileSync(SOURCE, "utf8");
-  const mod = await import(pathToFileURL(SOURCE).href);
+  const mod = await importSource();
   const prefixes = mod.DJANGO_PREFIXES.filter((p) => !NGINX_OWN.has(p));
   const under = clientUnderDjangoPrefix(text);
-  // the client's exception, anchored after the leading "/" (PCRE and JS read this subset the same way)
-  const exception = under ? `(?!${under.replace(/^\^\//, "")})` : "";
+  // Static pages the client renders whose name is also a Django prefix (/linker: Django's prefix for /linker.js and /linker-editor,
+  // the client's static page itself): the path alone, with an optional slash, stays the client's.
+  const ownStatic = (mod.STATIC_PAGE_NAMES ?? []).filter((n) => mod.rendersStaticPage?.(n) && prefixes.includes(n));
+  // the client's exceptions, anchored after the leading "/" (PCRE and JS read this subset the same way)
+  const exceptions = [under ? under.replace(/^\^\//, "") : null, ownStatic.length ? `(?:${ownStatic.map(esc).join("|")})/?$` : null].filter(Boolean);
+  const exception = exceptions.map((e) => `(?!${e})`).join("");
   const regex =
     `^/(?:${exception}(?:${prefixes.map(esc).join("|")})(?:[/.]|$)` +
     `|(?:${WELL_KNOWN_FILES.map(esc).join("|")})$` +
