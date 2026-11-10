@@ -45,6 +45,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 import sefaria.tracker as tracker
+from reader import static_content
 from reader.models import UserExperimentSettings, _set_user_experiments, user_has_experiments
 from remote_config import remoteConfigCache
 from remote_config.keys import (
@@ -5643,6 +5644,8 @@ def digitized_by_sefaria(request):
         sort=[["title", 1]],
         proj={"title": 1, "versionTitle": 1, "heVersionTitle": 1, "language": 1},
     )
+    if static_content.requested(request):  # ?format=json: the content only (reader/static_content.py)
+        return static_content.respond(request, lambda lang_code: "static/digitized-by-sefaria.html", {"texts": texts})
     return render_template(
         request,
         "static/digitized-by-sefaria.html",
@@ -6062,8 +6065,20 @@ def search_path_filter(request, book_title):
 _ABOUT_SIDEBAR_PATHS = {p["path"] for p in SITE_SETTINGS.get("ABOUT_SIDEBAR_PAGES", [])}
 
 
-@ensure_csrf_cookie
 def serve_static(request, page, by_lang=False):
+    # ?format=json: only the page's content, for the new reader's own shell (reader/static_content.py, LAUNCH_PLAN T-B06).
+    # A Voices request for a Library page keeps its redirect below.
+    if static_content.requested(request) and not (
+        request.active_module == VOICES_MODULE and page in _ABOUT_SIDEBAR_PATHS
+    ):
+        return static_content.respond(
+            request, lambda lang_code: f"static/{lang_code + '/' if by_lang else ''}{page}.html"
+        )
+    return _serve_static_page(request, page, by_lang)
+
+
+@ensure_csrf_cookie
+def _serve_static_page(request, page, by_lang=False):
     if request.active_module == VOICES_MODULE and page in _ABOUT_SIDEBAR_PATHS:
         return redirect_to_module(request, f"/{page}", LIBRARY_MODULE)
     lang_prefix = f"{request.LANGUAGE_CODE}/" if by_lang else ""

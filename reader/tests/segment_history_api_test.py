@@ -153,7 +153,7 @@ class SegmentHistoryApiTest(TestCase):
         self.client.force_login(self.user)
         signed_in = self.get()
         self.assertEqual(anonymous.json(), signed_in.json())
-        self.assertNotIn("Set-Cookie", anonymous)
+        self.assertEqual(dict(anonymous.cookies), {})
 
     def test_an_unknown_ref_or_version_is_a_404(self):
         res = self.get("/api/activity/Nowhere.1.1/en/Test_Version")

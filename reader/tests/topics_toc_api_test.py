@@ -36,7 +36,7 @@ class TopicsTocApiTest(TestCase):
             self.client.force_login(user)
             signed_in = self.get()
             self.assertEqual(anonymous.content, signed_in.content)
-            self.assertNotIn("Set-Cookie", anonymous)
+            self.assertEqual(dict(anonymous.cookies), {})
             self.assertNotIn("private", anonymous.get("Cache-Control", ""))
         finally:
             purge_test_profiles(user)
