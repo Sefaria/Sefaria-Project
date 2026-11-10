@@ -40,6 +40,9 @@ MAX_PROFILE_DESCRIPTION_LENGTH = 300
 
 ENABLED_SETTING = "developer_enabled"
 PROFILE_SETTING = "developer_profile"
+# Set on the request while confirm_email holds the account lock: sso.adapters.SefariaAccountAdapter confirms an
+# address for no other caller (allauth's own confirm page and headless endpoint would skip the lock and its checks).
+EMAIL_CONFIRMATION_FLAG = "developer_email_confirmation_locked"
 CONFIRMATION_SENT_SETTING = "developer_confirmation_sent_at"
 # The address that pending link went to: a link sent before the account email changed doesn't count.
 CONFIRMATION_SENT_TO_SETTING = "developer_confirmation_sent_to"
@@ -260,6 +263,7 @@ def confirm_email(request, key):
             return LinkStatus.EXPIRED
         if verified_elsewhere(address):
             return LinkStatus.ADDRESS_IN_USE
+        setattr(request, EMAIL_CONFIRMATION_FLAG, True)
         if EmailConfirmationHMAC(address).confirm(request) is None:
             return LinkStatus.INVALID
         profile = UserProfile(id=address.user_id)

@@ -18,8 +18,13 @@ IGNORED_EXCEPTIONS = (
 )
 
 # The prefix may be percent-encoded, as in a URL, and so may any byte of the body: the body is a run of letters, digits
-# and percent-encoded bytes (% and two hex digits).
-API_KEY_RE = re.compile(r"(?i)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)(?:[A-Za-z0-9]|%[0-9A-Fa-f]{2})+")
+# and percent-encoded bytes (% and two hex digits). The prefix may also be double-encoded (sfr%255F), and the key must
+# not continue a longer name ("newsfr_campaign2024" is not a key): it starts the string or follows a character that is
+# not a letter, digit or underscore, or an encoded byte such as %3D.
+API_KEY_RE = re.compile(
+    r"(?i)(?:(?<![A-Za-z0-9_])|(?<=%[0-9A-Fa-f]{2}))"
+    r"(?:s|%73|%2573)(?:f|%66|%2566)(?:r|%72|%2572)(?:_|%5f|%255f)(?:[A-Za-z0-9]|%[0-9A-Fa-f]{2})+"
+)
 API_KEY_REPLACEMENT = "sfr_[Filtered]"
 
 

@@ -392,3 +392,18 @@ class NoStoreTest(DeveloperApiTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("no-store", response.get("Cache-Control", ""))
+
+
+def test_scrub_api_keys_handles_a_double_encoded_prefix_and_a_left_boundary():
+    body = "Ab1Cd2Ef3Gh4"
+    for raw, want in {
+        "/?q=%2573%2566%2572%255f" + body: "/?q=sfr_[Filtered]",
+        "/?q=sfr%255F" + body: "/?q=sfr_[Filtered]",
+        "sfr_" + body: "sfr_[Filtered]",
+        "bad key sfr_" + body: "bad key sfr_[Filtered]",
+        "/?q=x%3Dsfr_" + body: "/?q=x%3Dsfr_[Filtered]",
+        "/a/sfr_" + body + "/b": "/a/sfr_[Filtered]/b",
+    }.items():
+        assert scrub_api_keys(raw) == want, raw
+    for untouched in ("/?q=newsfr_campaign2024", "my_sfr_campaign2024", "/?q=2sfr_campaign2024"):
+        assert scrub_api_keys(untouched) == untouched, untouched

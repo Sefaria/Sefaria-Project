@@ -8,6 +8,8 @@
 #   - "sfr_abc" appears 0 times in the access log (apart from the allowed short display prefix sfr_abc123)
 #   - a key whose body holds percent-encoded bytes (%41b12..., Ab%31Cd..., double-encoded %2541...) is redacted too, in a
 #     query or a Referer, and neither its decoded nor its as-sent form appears in the log
+#   - the sfr_ prefix may itself be double-encoded (sfr%255F), and a key must not continue a longer name:
+#     newsfr_campaign2024 is logged unchanged, a key at the start of a string or after =, /, &, ? or %3D is redacted
 #   - a full 32-character key never appears in the access log, whether in the path, any query parameter, the Referer,
 #     percent-encoded, or twice in one URL; a display prefix with a 6-character body is logged unchanged
 #   - each scrubbed line contains [REDACTED] and, where the request had x=1, still contains x=1
@@ -139,8 +141,13 @@ send_requests() { # send_requests <port> <www host>
   curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/?q=sfr_$ENC2&x=1"
   curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" -H "Referer: https://a.example/search?q=sfr_$ENC2&y=2" "http://127.0.0.1:$port/"
   curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/?q=sfr_$ENC3"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/?q=%2573%2566%2572%255f$BODY1"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/?q=newsfr_campaign2024"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/?q=x%3Dsfr_$BODY1"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" -H "Referer: sfr_$BODY1" "http://127.0.0.1:$port/"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" -H "Referer: https://a.example/newsfr_campaign2024" "http://127.0.0.1:$port/"
 }
-EXPECTED_LINES=15
+EXPECTED_LINES=20
 
 start_nginx() { # start_nginx <conf>; sets PORT
   docker rm -f "$RUN_ID-nginx" >/dev/null 2>&1 || true
@@ -210,6 +217,11 @@ extra = [
     ("key with an encoded byte in the first seven units", "requestUrl", ["/?q=" + K + "&x=1"], None),
     ("key with an encoded byte in a Referer", "referer", ["https://a.example/search?q=" + K + "&y=2"], None),
     ("double-encoded key body", "requestUrl", ["/?q=" + K], None),
+    ("double-encoded sfr_ prefix (sfr%255F)", "requestUrl", ["/?q=" + K], None),
+    ("a longer name ending in sfr_ is not a key", "requestUrl", [], "/?q=newsfr_campaign2024"),
+    ("key after an encoded equals sign", "requestUrl", ["/?q=x%3D" + K], None),
+    ("key at the very start of the Referer", "referer", [], K),
+    ("a longer name ending in sfr_ in a Referer is not a key", "referer", [], "https://a.example/newsfr_campaign2024"),
 ]
 for j, (name, field, contains, exact) in enumerate(extra):
     i = len(cases) + j

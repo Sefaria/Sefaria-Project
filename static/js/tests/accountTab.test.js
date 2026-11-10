@@ -124,7 +124,7 @@ beforeEach(() => {
   window.alert = jest.fn();
   originalLocation = window.location;
   delete window.location;
-  window.location = { reload: jest.fn(), href: 'http://localhost/settings/account' };
+  window.location = { reload: jest.fn(), href: 'http://localhost/settings/account', pathname: '/settings/account' };
   settingsUpdated = jest.fn();
   document.addEventListener('sefaria:settings-updated', settingsUpdated);
 });
@@ -575,5 +575,179 @@ describe('Account tab in Hebrew', () => {
     );
     expect(placeholders).toHaveLength(3);
     placeholders.forEach((id) => expect(he[id]).toMatch(/[֐-׿]/));
+  });
+});
+
+/* Django answers a logged-out call to a login_required endpoint with the login page: status 200, an HTML body, which
+   jQuery hands to the success callback as a string. Nothing here is a mocked .fail(). */
+const LOGIN_PAGE =
+  '<!DOCTYPE html><html><head><title>Log in</title></head><body><form id="login"></form></body></html>';
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+/* After the session ended nothing cached may survive: a page mounted from the module cache has nothing to show and
+   reloads to ask the server. */
+const expectCacheCleared = () => {
+  ReactDOM.unmountComponentAtNode(container);
+  window.location.reload.mockClear();
+  act(() => {
+    ReactDOM.render(
+      <SettingsPage tab="account" projectId={null} setTab={() => {}} setProjectId={() => {}} />,
+      container
+    );
+  });
+  expect(window.location.reload).toHaveBeenCalled();
+  expect(container.querySelector('#accountSettingsPage')).toBeNull();
+};
+
+describe('Account tab when the session has ended', () => {
+  it('Update Email: the login page as a 200 sends the visitor to log in and clears the cached settings', () => {
+    mount();
+    act(() => {
+      container.querySelector('#change-email').click();
+    });
+    typeInto(container.querySelector('#username-change-edit #email'), 'new@example.org');
+    act(() => {
+      container.querySelector('#update-email').click();
+    });
+    expect(() => act(() => lastPost().callback(LOGIN_PAGE))).not.toThrow();
+    expect(window.location.href).toBe('/login?next=%2Fsettings%2Faccount');
+    expectCacheCleared();
+  });
+
+  it('Disconnect Drive: the login page as a 200 sends the visitor to log in and clears the cached settings', () => {
+    mount({ sheetsExport: { gauthEmail: 'tova@gmail.com' } });
+    act(() => {
+      container.querySelector('#disconnect-gauth-email').click();
+    });
+    const callback = $.get.mock.calls[$.get.mock.calls.length - 1][1];
+    expect(() => act(() => callback(LOGIN_PAGE))).not.toThrow();
+    expect(window.location.href).toBe('/login?next=%2Fsettings%2Faccount');
+    expectCacheCleared();
+  });
+
+  it('Save: the login page as a 200 sends the visitor to log in, with no "Settings Saved"', () => {
+    mount();
+    act(() => {
+      saveButton().click();
+    });
+    expect(() => act(() => lastPost().callback(LOGIN_PAGE))).not.toThrow();
+    expect(window.location.href).toBe('/login?next=%2Fsettings%2Faccount');
+    expect(window.alert).not.toHaveBeenCalledWith('Settings Saved');
+  });
+});
+
+describe('Account tab save error', () => {
+  it('shows next to the top and the bottom Save button', () => {
+    mount();
+    act(() => {
+      saveButton().click();
+    });
+    const xhr = $.post.mock.results[$.post.mock.results.length - 1].value;
+    act(() => {
+      xhr.failHandlers[0]();
+    });
+    const bottom = container.querySelector('.saveCancel');
+    expect(container.querySelector('.headerWithButtons').nextElementSibling.textContent).toContain("wasn't saved");
+    expect(bottom.previousElementSibling.textContent).toContain("wasn't saved");
+  });
+});
+
+describe('Account tab reading history warning', () => {
+  it('is not shown on load when reading history is already Off', () => {
+    mount({ readingHistory: false });
+    expect(container.querySelector('#reading-history-warning').classList.contains('active')).toBe(false);
+    expect(container.querySelector('#reading-history-warning').textContent).toBe('');
+  });
+
+  it('is shown when the visitor picks Off, and hidden again when they pick On', () => {
+    mount({ readingHistory: false });
+    choose('readingHistory', 'true');
+    choose('readingHistory', 'false');
+    expect(container.querySelector('#reading-history-warning').classList.contains('active')).toBe(true);
+    choose('readingHistory', 'true');
+    expect(container.querySelector('#reading-history-warning').classList.contains('active')).toBe(false);
+  });
+});
+
+describe('Account tab and the back/forward cache', () => {
+  const pageEvent = (name, persisted) => {
+    const event = new Event(name);
+    event.persisted = persisted;
+    act(() => {
+      window.dispatchEvent(event);
+    });
+  };
+  const mountWithDeveloper = () => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    act(() => {
+      ReactDOM.render(
+        <SettingsPage
+          tab="account"
+          projectId={null}
+          accountSettings={{ ...SETTINGS }}
+          initialDeveloper={{ developerEnabled: true, ssoConnected: true, projects: [] }}
+          setTab={() => {}}
+          setProjectId={() => {}}
+        />,
+        container
+      );
+    });
+  };
+
+  it('without a developer tab: leaving the page takes the account content out of the snapshot', () => {
+    mount();
+    expect(container.querySelector('#accountSettingsPage')).toBeTruthy();
+    pageEvent('pagehide', true);
+    expect(container.querySelector('#accountSettingsPage')).toBeNull();
+    expect(container.textContent).not.toContain('tova@example.org');
+  });
+
+  it('without a developer tab: a page restored from the cache asks the server by reloading', () => {
+    mount();
+    pageEvent('pagehide', true);
+    expect(window.location.reload).not.toHaveBeenCalled();
+    pageEvent('pageshow', true);
+    expect(window.location.reload).toHaveBeenCalled();
+  });
+
+  it('without a developer tab: a pageshow that is not from the cache does nothing', () => {
+    mount();
+    pageEvent('pageshow', false);
+    expect(window.location.reload).not.toHaveBeenCalled();
+    expect(container.querySelector('#accountSettingsPage')).toBeTruthy();
+  });
+
+  it.each([[401], [403], [404]])(
+    'with a developer tab: a %i from the state endpoint on a restored page ends the session and clears the cache',
+    async (status) => {
+      mountWithDeveloper();
+      global.fetch = jest.fn(() => Promise.resolve({ ok: false, status, json: () => Promise.resolve({}) }));
+      pageEvent('pagehide', true);
+      expect(container.querySelector('#accountSettingsPage')).toBeNull();
+      pageEvent('pageshow', true);
+      await act(async () => {
+        await flush();
+      });
+      expect(window.location.href).toBe('/login?next=%2Fsettings%2Faccount');
+      expect(container.querySelector('#accountSettingsPage')).toBeNull();
+      expectCacheCleared();
+    }
+  );
+
+  it('with a developer tab: a live session brings the account content back, with what was saved meanwhile', async () => {
+    mountWithDeveloper();
+    choose('emailNotifications', 'weekly');
+    save();
+    global.fetch = jest.fn(() =>
+      Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ developerEnabled: true, projects: [] }) })
+    );
+    pageEvent('pagehide', true);
+    pageEvent('pageshow', true);
+    await act(async () => {
+      await flush();
+    });
+    expect(container.querySelector('#accountSettingsPage')).toBeTruthy();
+    expect(option('emailNotifications', 'weekly').classList).toContain('on');
   });
 });
