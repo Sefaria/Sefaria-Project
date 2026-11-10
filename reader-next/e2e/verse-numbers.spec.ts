@@ -15,6 +15,8 @@ test("verse numbers are legacy's 12px; Hebrew numerals are set in the Hebrew UI 
   expect(he.size).toBe("12px");
   expect(he.family).toMatch(/^"?Heebo/);
   expect(Number(he.weight)).toBeGreaterThanOrEqual(400); // legacy's `lighter` is not ported: the thin face is what is hard to read
+  // Heebo 400 (Hebrew) is preloaded with the page: the numbers are set in it from the first paint
+  await expect(page.locator('head link[rel="preload"][as="font"][href*="heebo-hebrew-400-normal"]')).toHaveCount(1);
 
   await open(page, "/Genesis.1?lang=en");
   await expect(page.locator('[role="group"][data-ref="Genesis 1:1"] [data-number]')).toHaveText("1", { timeout: 25_000 });

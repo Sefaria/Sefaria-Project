@@ -5,7 +5,8 @@
  *  - add: `POST /api/sheets/<id>/add` with form field `source` = JSON {refs, "version-he"?, "version-en"?} — each version keyed by
  *    its text direction; two versions in the same direction are added as two sources, one per version (handleSameDirectionVersions);
  *  - a new sheet: `POST /api/sheets/` with `json` = {title, options: {numbered: 0}, sources: []} → the sheet.
- * Not ported yet: trimming a partial word selection (CON-056), the Google Docs promo (CON-057).
+ * The whole verses are added whatever words are selected (as sefaria.org; owner decision 2026-11-10: legacy's handleSelectedWords
+ * trimming is not ported). The image guard is src/lib/text/sheet-source.ts; the Google Docs promo src/ui/AddToSheetView/GDocAdvert.tsx.
  *
  * @feature CON-034 Add connection to sheet button
  */

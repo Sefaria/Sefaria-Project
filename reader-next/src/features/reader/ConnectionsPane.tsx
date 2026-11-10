@@ -67,11 +67,10 @@ import { AutocorrectBanner } from "~/ui/SearchPage/SearchPage";
 import { autocorrectQueryOptions, decideAutocorrect, NO_AUTOCORRECT } from "~/lib/search/autocorrect";
 import { useLocation } from "@tanstack/react-router";
 import { useLibraryHref } from "~/lib/routing/library-href";
-import { useLastTextSelection } from "./use-last-selection";
 import { useSidebarScroll } from "./use-sidebar-scroll";
 import { GDocAdvert } from "~/ui/AddToSheetView/GDocAdvert";
 
-import { IMAGE_NOT_SUPPORTED, sheetExtras, type SheetExtras } from "~/lib/text/sheet-source";
+import { IMAGE_NOT_SUPPORTED, anyFullImage, refsHaveImage } from "~/lib/text/sheet-source";
 import { currVersionsOf, sendFeedback } from "~/lib/feedback/feedback";
 import { ShareView } from "~/ui/ShareView/ShareView";
 import type { SignUpKind } from "~/lib/auth/signup-content";
@@ -162,8 +161,6 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const notesQ = useQuery(notesQuery(uid, notesRefs));
   const qcNotes = useQueryClient();
   const interfaceLang = useInterfaceLang();
-  // the words last selected in the text (Add to Sheet cuts its source to them)
-  const lastSelection = useLastTextSelection();
   // topic pages are this client's (absolute only on a host that does not serve them)
   const libHref = useLibraryHref();
   const topicHref = (slug: string) => libHref(`/topics/${slug}`);
@@ -537,7 +534,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           refs={notesRefs}
           primary={sv(props.section?.primaryVersion)}
           translation={sv(props.section?.translationVersion)}
-          extra={sheetExtras(props.section, notesRefs, settings.language, lastSelection)}
+          hasImage={refsHaveImage(props.section, notesRefs)}
         />
       </ConnectionsPanel>
     );
@@ -644,7 +641,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           onClose={onClose}
         >
           {/* the old VersionsTextList's AddToSheet: versions {[language]: this translation} only */}
-          <AddToSheetSection uid={uid} citation={{ en: citationEn, he: citationEn }} citationHref={`/${refToUrl(citationEn)}`} refs={notesRefs} translation={{ versionTitle: previewed.versionTitle, direction: previewed.direction === "rtl" ? "rtl" : "ltr" }} />
+          <AddToSheetSection uid={uid} citation={{ en: citationEn, he: citationEn }} citationHref={`/${refToUrl(citationEn)}`} refs={notesRefs} hasImage={refsHaveImage(props.section, notesRefs) || anyFullImage([previewed.text].flat(Infinity).filter((t): t is string => typeof t === "string"))} translation={{ versionTitle: previewed.versionTitle, direction: previewed.direction === "rtl" ? "rtl" : "ltr" }} />
         </ConnectionsPanel>
       );
     }
@@ -821,7 +818,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
         onClose={onClose}
       >
         {/* the connected text in its default versions, as the old AddConnectionToSheetButton (versions null) */}
-        <AddToSheetSection uid={uid} citation={{ en: sheetItem.sourceRef, he: sheetItem.sourceHeRef || sheetItem.sourceRef }} citationHref={`/${refToUrl(sheetItem.sourceRef)}`} refs={[sheetItem.sourceRef]} />
+        <AddToSheetSection uid={uid} citation={{ en: sheetItem.sourceRef, he: sheetItem.sourceHeRef || sheetItem.sourceRef }} citationHref={`/${refToUrl(sheetItem.sourceRef)}`} refs={[sheetItem.sourceRef]} hasImage={anyFullImage([sheetItem.primary?.html, sheetItem.translation?.html])} />
       </ConnectionsPanel>
     );
   }
@@ -944,7 +941,7 @@ const GDOC_CAMPAIGN = "GDocs_Promo_AddToSheet";
 const GDOC_SEEN = () => gtagEvent("promo_viewed", { campaignID: GDOC_CAMPAIGN, adType: "sidebar" });
 
 /** The Add to Sheet tool's data: the reader's sheets, adding, creating (lib/user/sheets.ts). */
-function AddToSheetSection({ uid, citation, citationHref, refs, primary, translation, extra }: { uid: number | null; citation: { en: string; he: string }; citationHref: string; refs: string[]; primary?: SheetVersion; translation?: SheetVersion; extra?: SheetExtras }) {
+function AddToSheetSection({ uid, citation, citationHref, refs, primary, translation, hasImage }: { uid: number | null; citation: { en: string; he: string }; citationHref: string; refs: string[]; primary?: SheetVersion; translation?: SheetVersion; hasImage?: boolean }) {
   const he = useInterfaceLang() === "hebrew";
   const qc = useQueryClient();
   const sheets = useQuery(userSheetsQuery(uid));
@@ -974,11 +971,10 @@ function AddToSheetSection({ uid, citation, citationHref, refs, primary, transla
         return sheet;
       }}
       onAdd={async (sheet) => {
-        if (extra?.hasImage) throw new Error(he ? IMAGE_NOT_SUPPORTED.he : IMAGE_NOT_SUPPORTED.en);
-        const sources = sourcesFor(refs, primary, translation);
-        // the selected words replace the side's text (not when each version is its own source: the old code returned before this)
-        if (extra?.text && sources.length === 1) sources[0]![extra.text.side] = extra.text.html;
-        await addToSheet(sheet.id, sources);
+        // the old checkContentForImages, run before every add (the selected verses, a previewed translation, a connected text)
+        if (hasImage) throw new Error(he ? IMAGE_NOT_SUPPORTED.he : IMAGE_NOT_SUPPORTED.en);
+        // the whole verses, whatever words are selected in them (as sefaria.org: owner decision 2026-11-10)
+        await addToSheet(sheet.id, sourcesFor(refs, primary, translation));
         uaEvent("Tools", "Add to Source Sheet Save", refs.join("/"));
         // a sheet open in the editor in another tab reloads its sources (the old refresh-editor broadcast)
         if (typeof BroadcastChannel !== "undefined") {
