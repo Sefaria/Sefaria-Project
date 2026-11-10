@@ -40,6 +40,19 @@ export function hebrewSegmentRef(heSectionRef: string, address: string | undefin
   return address ? `${heSectionRef}:${hebrewAddress(address, addressType)}` : heSectionRef;
 }
 
+/**
+ * The Hebrew ref of a later section of a passage that spans sections, which the API does not send: the first section's Hebrew ref with
+ * its trailing numbers swapped ("ספר הזהר, בראשית א׳" → "ספר הזהר, בראשית ב׳"), so a complex book keeps its node names; else the book's
+ * Hebrew title and the numbers.
+ */
+export function laterHebrewSectionRef(first: { heSectionRef: string; sections: string[] }, sections: string[], addressTypes: string[], heIndexTitle: string): string {
+  const he = (secs: string[]) => secs.map((p, n) => hebrewAddress(p, addressTypes[n])).join(":");
+  const firstNumbers = he(first.sections);
+  const numbers = he(sections);
+  if (firstNumbers && first.heSectionRef.endsWith(firstNumbers)) return first.heSectionRef.slice(0, first.heSectionRef.length - firstNumbers.length) + numbers;
+  return `${heIndexTitle} ${numbers}`.trim();
+}
+
 const after = (s: string, prefix: string) => (s.startsWith(prefix) ? s.slice(prefix.length) : s).replace(/^[,\s]+/, "").trim();
 const squash = (s: string) => s.replace(/\s+/g, " ").trim();
 

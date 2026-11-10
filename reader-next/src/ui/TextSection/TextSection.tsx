@@ -14,7 +14,7 @@ import { ReaderSurface } from "../ReaderSurface/ReaderSurface";
 import { Segment, type SegmentProps, type SegmentSide } from "../Segment/Segment";
 import { ParashahHeader, SectionTitle } from "../SectionTitle/SectionTitle";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
-import { hebrewAddress, hebrewSegmentRef, sectionHeading } from "./section-heading";
+import { hebrewSegmentRef, laterHebrewSectionRef, sectionHeading } from "./section-heading";
 
 export interface TextSectionProps {
   passage: TextPassage;
@@ -84,11 +84,13 @@ function TextSectionImpl({
     <ReaderSurface language={settings.language} layout={layout} biLayout={biLayout} fontSize={settings.fontSize}>
       {passage.sectionRefs.map((sectionRef, idx) => {
         const parsed = parseHumanRef(sectionRef);
-        // as sefaria.org prints it (parity S7, S13): a later section of a spanning passage has no Hebrew ref of its own
+        // as sefaria.org prints it (parity S7, S13); a later section of a spanning passage has no Hebrew ref of its own: the first's,
+        // with its numbers swapped
+        const heSectionRef = idx === 0 ? passage.heSectionRef : laterHebrewSectionRef({ heSectionRef: passage.heSectionRef, sections: parseHumanRef(passage.sectionRefs[0]!).sections }, parsed.sections, passage.addressTypes, passage.heIndexTitle);
         const title = sectionHeading({
           primaryCategory: passage.primaryCategory,
           sectionRef,
-          heSectionRef: idx === 0 ? passage.heSectionRef : undefined,
+          heSectionRef,
           indexTitle: passage.indexTitle,
           heIndexTitle: passage.heIndexTitle,
           book: passage.book,
@@ -97,7 +99,6 @@ function TextSectionImpl({
           sections: parsed.sections,
           addressTypes: passage.addressTypes,
         });
-        const heSectionRef = idx === 0 ? passage.heSectionRef : `${passage.heIndexTitle} ${parsed.sections.map((p, n) => hebrewAddress(p, passage.addressTypes[n])).join(":")}`;
         const segDepth = parsed.sections.length;
         return (
           <section key={sectionRef} data-ref={sectionRef} aria-label={he ? heSectionRef : sectionRef}>

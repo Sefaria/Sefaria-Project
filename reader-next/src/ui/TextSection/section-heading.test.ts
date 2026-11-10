@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hebrewAddress, sectionHeading, type SectionHeadingInput } from "./section-heading";
+import { hebrewAddress, laterHebrewSectionRef, sectionHeading, type SectionHeadingInput } from "./section-heading";
 
 // Inputs are the API's own fields (www.sefaria.org /api/texts, 2026-11-10); the expected strings are what sefaria.org prints above
 // the section (read from its `.textRange.basetext .title` on the same day, English and Hebrew interface).
@@ -44,5 +44,20 @@ describe("hebrewAddress", () => {
     expect(hebrewAddress("2a", "Talmud")).toBe("ב׳ א");
     expect(hebrewAddress("3d", "Folio")).toBe("ג׳ ד");
     expect(hebrewAddress("15", "Integer")).toBe("ט״ו");
+  });
+});
+
+// review nit 1: www.sefaria.org /Zohar%2C_Bereshit.1.5-2.3?lang=he prints "בראשית, ב׳" above the second section
+describe("a later section of a range across sections", () => {
+  it("keeps a complex book's node names in Hebrew (Zohar 1:5-2:3)", () => {
+    const heSectionRef = laterHebrewSectionRef({ heSectionRef: "ספר הזהר, בראשית א׳", sections: ["1"] }, ["2"], ["Integer", "Integer"], "ספר הזהר");
+    expect(heSectionRef).toBe("ספר הזהר, בראשית ב׳");
+    expect(sectionHeading(simple({ primaryCategory: "Kabbalah", sectionRef: "Zohar, Bereshit 2", heSectionRef, indexTitle: "Zohar", heIndexTitle: "ספר הזהר", book: "Zohar, Bereshit", isComplex: true, sectionNames: ["Chapter", "Paragraph"], sections: ["2"], addressTypes: ["Integer", "Integer"] })).he).toBe("בראשית, ב׳");
+  });
+  it("swaps a daf for a daf (Berakhot 2a-2b)", () => {
+    expect(laterHebrewSectionRef({ heSectionRef: "ברכות ב׳ א", sections: ["2a"] }, ["2b"], ["Talmud", "Integer"], "ברכות")).toBe("ברכות ב׳ ב");
+  });
+  it("falls back to the book's Hebrew title when the first ref does not end in its numbers", () => {
+    expect(laterHebrewSectionRef({ heSectionRef: "משהו אחר", sections: ["1"] }, ["2"], ["Integer"], "ספר")).toBe("ספר ב׳");
   });
 });
