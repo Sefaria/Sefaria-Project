@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useLocation, useMatches, useRouter } from "@tanstack/react-router";
-import { useQuery, type QueryClient } from "@tanstack/react-query";
+import { type QueryClient } from "@tanstack/react-query";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { createServerFn } from "@tanstack/react-start";
 import { InterfaceLangProvider } from "~/lib/i18n/interface-lang";

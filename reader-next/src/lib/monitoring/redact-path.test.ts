@@ -29,6 +29,13 @@ describe("redactPath", () => {
     expect(redactPath("/accounts/Confirm-Email;a=b/MjA:xyz/")).toBe("/accounts/Confirm-Email;a=b/:token/");
     expect(redactPath("/Redeeming_Relevance;_Exodus,_CHAPTER_3")).toBe("/Redeeming_Relevance;_Exodus,_CHAPTER_3");
   });
+  it("decodes %XX escapes in keywords, as Django does (/%63onfirm is confirm)", () => {
+    expect(redactPath("/password/reset/%63onfirm/MTIz/c4k2j8/")).toBe("/password/reset/%63onfirm/:uid/:token/");
+    expect(redactPath("/%70rofile/ada-lovelace")).toBe("/%70rofile/:slug");
+    expect(redactPath("/accounts/%63onfirm-email/mja_xyz/")).toBe("/accounts/%63onfirm-email/:token/");
+    // a malformed escape is compared as written, never throws
+    expect(redactPath("/texts/%E0%A4%A")).toBe("/texts/%E0%A4%A");
+  });
   it("is linear: an 8 KB path, long segments and many segments are fast", () => {
     const cases = [`/${"a".repeat(8000)}`, "/a".repeat(4000), `/${"a".repeat(2000)}`, "/a".repeat(1000), `/${"a.".repeat(1000)}`, `/${"a".repeat(60)}@${"b".repeat(1900)}`];
     redactPath("/warm/up"); // compile the patterns before timing

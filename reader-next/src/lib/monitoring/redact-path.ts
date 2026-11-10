@@ -27,6 +27,16 @@ const TOKEN_LIKE = /^(?=[A-Za-z0-9:-]*[0-9])(?=[A-Za-z0-9:-]*[A-Za-z])[A-Za-z0-9
 /** Bounded on both sides of the @, so a long run of address characters cannot make the search quadratic. */
 const EMAIL = /[A-Za-z0-9._%+-]{1,64}(?:@|%40)[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63}){0,8}\.[A-Za-z]{2,24}/gi;
 
+/** A segment's keyword as Django reads it: %XX escapes decoded (/password/reset/%63onfirm/… is the reset page), ;parameters cut. */
+function keyword(raw: string): string {
+  const s = raw.split(";", 1)[0]!;
+  try {
+    return decodeURIComponent(s).toLowerCase();
+  } catch {
+    return s.toLowerCase(); // a malformed escape: compare as written
+  }
+}
+
 export function redactPath(path: string): string {
   if (path.length > MAX_PATH) return LONG_PATH;
   const slash = path.endsWith("/") && path.length > 1;
@@ -43,7 +53,7 @@ export function redactPath(path: string): string {
       out.push(raw);
       continue;
     }
-    const s = raw.split(";", 1)[0]!.toLowerCase();
+    const s = keyword(raw);
     if (secretRest) out.push(":token");
     else if (p3 === "password" && p2 === "reset" && p1 === "confirm") {
       out.push(":uid");
