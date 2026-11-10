@@ -75,7 +75,19 @@ export const safeInlineCss = (css: string) => css.replace(/<\/?style/gi, "").rep
  * The page's `{% block css %}`, scoped like the legacy stylesheets (legacy-css.ts): on the old page it came after them at the same
  * specificity and won; scoped, it keeps doing so (it is rendered after the head's stylesheets).
  */
-export const pageInlineCss = (css: string) => (css.trim() ? scopeCss(safeInlineCss(css), STATIC_SCOPE) : "");
+export const pageInlineCss = (css: string) => (css.trim() ? scopeCss(remToPx(safeInlineCss(css)), STATIC_SCOPE) : "");
+
+/**
+ * A page that sets the document's font size (pioneers.html: `html { font-size: 10px }`) and sizes its content in rem: in this shell
+ * the document is not the page's, so its rems are made pixels of that size. A page that does not set it keeps its rems (the old
+ * document's 16px is this client's too).
+ */
+export function remToPx(css: string): string {
+  const root = /(?:^|[}\s])html\s*\{[^}]*?font-size:\s*([\d.]+)px/i.exec(css);
+  if (!root) return css;
+  const px = Number(root[1]);
+  return css.replace(/(-?\d*\.?\d+)rem\b/g, (_, n: string) => `${Math.round(Number(n) * px * 1000) / 1000}px`);
+}
 
 /** The legacy stylesheets this client serves scoped to the page (lib/static-page/legacy-css.ts) rather than as Django lists them. */
 const SCOPED_HERE = /^\/static\/css\/(?:static|common|common-components?|color-palette|fonts)\.css(?:\?|$)/;

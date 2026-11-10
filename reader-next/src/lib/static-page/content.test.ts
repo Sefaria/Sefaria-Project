@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { fetchStaticPage, pageInlineCss, parseStaticContent, safeInlineCss, staticContentPath, staticPageModel } from "./content";
+import { fetchStaticPage, pageInlineCss, remToPx, parseStaticContent, safeInlineCss, staticContentPath, staticPageModel } from "./content";
 import { cachedStaticPage, clearStaticPageCache } from "./load";
 import { absoluteUrls, scopeCss, scopeSelector } from "./scope-css";
 
@@ -51,6 +51,11 @@ describe("a static page's content from Django (?format=json&lang=…)", () => {
     expect(safeInlineCss("a{}</style><script>x</script>")).toBe("a{}><script>x</script>");
     expect(pageInlineCss(".static h2 { text-transform: none; }")).toBe("#staticContentWrapper .static h2 { text-transform: none; }\n");
     expect(pageInlineCss("  ")).toBe("");
+  });
+
+  it("a page that sets the document's font size (pioneers) has its rems made pixels of that size", () => {
+    expect(remToPx("html {\n  font-size: 10px;\n}\n#p { font-size: 1.6rem; padding: 11.5rem 0 -.5rem; }")).toBe("html {\n  font-size: 10px;\n}\n#p { font-size: 16px; padding: 115px 0 -5px; }");
+    expect(remToPx("#p { font-size: 1.6rem; }")).toBe("#p { font-size: 1.6rem; }");
   });
 
   it("is kept a few minutes per page and language; a failure is not kept", async () => {
