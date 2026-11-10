@@ -618,11 +618,11 @@ check "master's code still lists after phase 1 re-migrated (old code on the new 
 echo "# rehearsal"
 check "rehearse-migration on the snapshot dump" "$REL/rehearse-migration.sh" --dump "$SNAP/db/sefaria_auth.dump" --code "$PHASE1_CODE" \
   --python "$PY" --port "$REHEARSAL_PORT" --out "$WORK/rehearsal" --concurrent-reads
-"$PY" - "$WORK/rehearsal/report.json" <<'PY' && ok "the rehearsal timed 0003_developer_settings through 0010_seed_mcp_tier" || notok "rehearsal report"
+"$PY" - "$WORK/rehearsal/report.json" <<'PY' && ok "the rehearsal timed 0003_developer_settings through 0011_api_key_allowed_domains" || notok "rehearsal report"
 import json, sys
 r = json.load(open(sys.argv[1]))
 names = [m["name"] for m in r["migrations"] if m["app"] == "powered_by"]
-assert names[0] == "0003_developer_settings" and names[-1] == "0010_seed_mcp_tier", names
+assert names[0] == "0003_developer_settings" and names[-1] == "0011_api_key_allowed_domains", names
 print(r["total_seconds"])
 PY
 sed 's/^/    /' "$WORK/rehearsal/report.txt"

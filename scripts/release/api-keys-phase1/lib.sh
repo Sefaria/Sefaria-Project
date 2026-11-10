@@ -82,7 +82,7 @@ PG_CONTAINER="${PG_CONTAINER:-postgres-18}"
 
 # Phase 1 objects in sefaria_auth, and the scope of a scoped restore: every powered_by_* table plus these.
 PHASE1_EXTRA_TABLES="api_project api_tier api_tier_meter_limit api_key_project_remap"
-PHASE1_MIGRATIONS="0003_developer_settings 0004_api_key_notify_triggers 0005_api_key_origins_strings 0006_api_project_schema 0007_api_project_backfill 0008_api_key_project_triggers_grants 0009_cleanup_abandoned_project_limits 0010_seed_mcp_tier"
+PHASE1_MIGRATIONS="0003_developer_settings 0004_api_key_notify_triggers 0005_api_key_origins_strings 0006_api_project_schema 0007_api_project_backfill 0008_api_key_project_triggers_grants 0009_cleanup_abandoned_project_limits 0010_seed_mcp_tier 0011_api_key_allowed_domains"
 READER_ROLE="auth_service_reader"
 
 log() { printf '%s\n' "$*" >&2; }

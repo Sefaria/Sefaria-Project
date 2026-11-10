@@ -32,7 +32,7 @@ def to_domains(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("powered_by", "0009_cleanup_abandoned_project_limits"),
+        ("powered_by", "0010_seed_mcp_tier"),
     ]
 
     operations = [
