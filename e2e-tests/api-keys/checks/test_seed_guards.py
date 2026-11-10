@@ -151,6 +151,33 @@ class CauldronTarget(unittest.TestCase):
         with self.assertRaises(SystemExit):
             cauldron(environ={"APIKEYS_TARGET": "local"})
 
+    def test_service_dot_own_namespace_passes(self):
+        # apisplit's real settings: MONGO_HOST "mongo.default", the pod running in namespace "default".
+        line = cauldron(mongo_host="mongo.default", pod_namespace="default")
+        self.assertIn("mongo.default", line)
+        cauldron(pg_host="postgres-18.default:5432", mongo_host="mongo.default:27017", pod_namespace="default")
+
+    def test_service_dot_other_namespace_or_unknown_namespace_refused(self):
+        with self.assertRaisesRegex(SystemExit, "mongo.production"):
+            cauldron(mongo_host="mongo.production", pod_namespace="default")
+        with self.assertRaisesRegex(SystemExit, "mongo.default"):
+            cauldron(mongo_host="mongo.default", pod_namespace=None)
+
+    def test_pod_namespace_reads_the_service_account_file_then_the_env(self):
+        with tempfile.NamedTemporaryFile("w", suffix="namespace", delete=False) as f:
+            f.write("default\n")
+        try:
+            self.assertEqual(seed.pod_namespace({}, path=f.name), "default")
+        finally:
+            Path(f.name).unlink()
+        self.assertEqual(seed.pod_namespace({"POD_NAMESPACE": "preview"}, path="/nonexistent"), "preview")
+        self.assertIsNone(seed.pod_namespace({}, path="/nonexistent"))
+
+    def test_two_label_external_names_still_refused(self):
+        for host in ("db.com", "mongo.example", "evil.default.com"):
+            with self.assertRaises(SystemExit, msg=host):
+                cauldron(mongo_host=host, pod_namespace="default")
+
 
 class DomainHosts(unittest.TestCase):
     def test_keys_are_not_hosts(self):

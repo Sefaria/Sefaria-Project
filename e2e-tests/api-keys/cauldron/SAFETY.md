@@ -78,7 +78,9 @@ send-limit modes), and prints a `target ok:` line with the hosts and the Mongo d
   1. Every site in the pod's own `DOMAIN_MODULES` is under `<cauldron>.cauldron.sefaria.org`, and none is a
      `sefaria.org` or `sefaria.org.il` host. A production pod can never satisfy this.
   2. The Postgres host and every Mongo host (a string or a list, with ports) is an in-cluster Kubernetes name: one
-     label, or `<service>[.<namespace>].svc[.cluster.local]`. An external FQDN, a public IP or a Cloud SQL address is
+     label, `<service>[.<namespace>].svc[.cluster.local]`, or the short `<service>.<namespace>` when the namespace is
+     the pod's own (read from its service account; `apisplit` uses `mongo.default`). An external FQDN, a public IP or a
+     Cloud SQL address is
      refused, naming the host. `APIKEYS_UNSAFE_ALLOW_HOSTS` (comma list) can add hosts to this layer only; it never
      relaxes layer 1.
   3. The Postgres database is `sefaria_auth`, and the Mongo database name is not empty. Mongo is not required to
