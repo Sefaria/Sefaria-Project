@@ -15,6 +15,8 @@
  *  - Analytics (src/lib/analytics), the same settings Django's templates/base.html reads; each is off when unset, so development and
  *    tests send nothing: GOOGLE_TAG_MANAGER_CODE, GOOGLE_GTAG, SIMPLE_ANALYTICS_HOSTNAME ("sefaria.org" in
  *    production), APP_VERSION (gtag's site_version).
+ *  - PUBLIC_ERROR_ENDPOINT  where the browser beacons its error reports (src/lib/monitoring/error-reporter.ts); unset = no reports.
+ *    PUBLIC_ERROR_SAMPLE_RATE (0..1, default 1) the share of page loads that report.
  *  - GOOGLE_SSO_CLIENT_ID, APPLE_SSO_CLIENT_ID, RECAPTCHA_PUBLIC_KEY   the sign-in providers' public client IDs and the reCAPTCHA site
  *                         key — the same values Django hands its own pages (reader/views.py user_data). Empty = that provider's
  *                         button is not shown / no captcha, as on the old site.
@@ -41,6 +43,9 @@ export interface PublicConfig {
   roomUrl?: string;
   /** The labs this deployment turns on by default (PUBLIC_LABS); remote config can override each (src/lib/labs.ts). */
   labs?: LabName[];
+  /** Browser error reports (PUBLIC_ERROR_ENDPOINT, PUBLIC_ERROR_SAMPLE_RATE); absent = off. */
+  errorEndpoint?: string;
+  errorSampleRate?: number;
   /** The Library Assistant (`<lc-chatbot>`): which build to load and which server it talks to (src/lib/assistant/config.ts). */
   assistant: AssistantEnv;
 }
@@ -89,6 +94,9 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
       recaptchaSiteKey: env("RECAPTCHA_PUBLIC_KEY") ?? "",
       roomUrl: env("PUBLIC_ROOM_URL") || "",
       labs: parseLabs(env("PUBLIC_LABS")),
+      // undefined (not null) when unset, so the key is left out of the page's config
+      errorEndpoint: env("PUBLIC_ERROR_ENDPOINT") || undefined,
+      errorSampleRate: env("PUBLIC_ERROR_SAMPLE_RATE") ? Number(env("PUBLIC_ERROR_SAMPLE_RATE")) : undefined,
       assistant: {
         apiBaseUrl: env("CHATBOT_API_BASE_URL") || DEFAULT_ASSISTANT_API,
         version: env("CHATBOT_VERSION") || null,
@@ -106,6 +114,8 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
       recaptchaSiteKey: window.__SEFARIA_CONFIG__?.recaptchaSiteKey ?? "",
       roomUrl: window.__SEFARIA_CONFIG__?.roomUrl || "",
       labs: window.__SEFARIA_CONFIG__?.labs ?? [],
+      errorEndpoint: window.__SEFARIA_CONFIG__?.errorEndpoint || undefined,
+      errorSampleRate: window.__SEFARIA_CONFIG__?.errorSampleRate,
       assistant: { apiBaseUrl: DEFAULT_ASSISTANT_API, version: null, useLocalScript: false, origin: "sefaria-local", ...window.__SEFARIA_CONFIG__?.assistant },
     };
 
