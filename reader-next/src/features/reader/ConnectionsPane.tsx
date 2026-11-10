@@ -143,7 +143,7 @@ function sidebarLanguage(language: ReaderSettings["language"], interfaceLang: "e
   return language === "bilingual" ? interfaceLang : language;
 }
 
-const textOf = (segs: Segment[], side: "primary" | "translation") => segs.map((s) => s[side]).filter(Boolean).join(" ");
+const partsOf = (segs: Segment[], side: "primary" | "translation") => segs.map((s) => s[side]).filter((h): h is string => Boolean(h));
 
 /**
  * The resources sidebar for the selected verse(s). Loads the section's links (once; cached), the catalog,
@@ -225,15 +225,17 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     const segs = passage ? segmentsInRef(passage, l.sourceRef) : [];
     const primary = passage?.primaryVersion;
     const translation = passage?.translationVersion;
-    const p = textOf(segs, "primary");
-    const t = textOf(segs, "translation");
+    const pParts = partsOf(segs, "primary");
+    const tParts = partsOf(segs, "translation");
+    const p = pParts.join(" ");
+    const t = tParts.join(" ");
     return {
       id: l._id,
       sourceRef: l.sourceRef,
       sourceHeRef: l.sourceHeRef,
       href: `/${refToUrl(l.sourceRef)}`,
-      primary: p && primary ? { html: p, lang: primary.actualLanguage, dir: primary.direction } : undefined,
-      translation: t && translation ? { html: t, lang: translation.actualLanguage, dir: translation.direction } : undefined,
+      primary: p && primary ? { html: p, parts: pParts, lang: primary.actualLanguage, dir: primary.direction } : undefined,
+      translation: t && translation ? { html: t, parts: tParts, lang: translation.actualLanguage, dir: translation.direction } : undefined,
       number: l.category === "Commentary" ? String(l.anchorVerse) : undefined,
       loading: !passage,
     };
