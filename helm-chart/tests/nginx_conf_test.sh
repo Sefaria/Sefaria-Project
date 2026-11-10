@@ -6,6 +6,8 @@
 # run `nginx -t`, start nginx and send the requests below. Pass needs ALL of:
 #   - one access-log line per request
 #   - "sfr_abc" appears 0 times in the access log (apart from the allowed short display prefix sfr_abc123)
+#   - a key whose body holds percent-encoded bytes (%41b12..., Ab%31Cd..., double-encoded %2541...) is redacted too, in a
+#     query or a Referer, and neither its decoded nor its as-sent form appears in the log
 #   - a full 32-character key never appears in the access log, whether in the path, any query parameter, the Referer,
 #     percent-encoded, or twice in one URL; a display prefix with a 6-character body is logged unchanged
 #   - each scrubbed line contains [REDACTED] and, where the request had x=1, still contains x=1
@@ -24,6 +26,13 @@ SECRET="sfr_abc"
 # Full-length test keys (32 characters), used anywhere but as an api_key= value.
 BODY1="Ab12Cd34Ef56Gh78Ij90Kl12Mn34Op56"
 BODY2="Zy98Xw76Vu54Ts32Rq10Po98Nm76Lk54"
+# Bodies written with percent-encoded bytes: ENC1 is the review's probe (%41 is "A", so it decodes to BODY1); ENC2 has an encoded
+# byte among the first seven units (%31 is "1"); ENC3 is double-encoded (%2541 decodes to %41, then to "A"). The decoded
+# and the as-sent forms must each appear 0 times in the access log.
+ENC1="%41b12Cd34Ef56Gh78Ij90Kl12Mn34Op56"
+ENC2="Ab%31Cd34Ef56Gh78Ij90Kl12Mn34Op56"
+DEC2="Ab1Cd34Ef56Gh78Ij90Kl12Mn34Op56"
+ENC3="%2541b12Cd34Ef56Gh78Ij90Kl12Mn34Op56"
 SHORT="sfr_abc123"   # six-character body: the non-secret display prefix, must be logged unchanged
 
 # Known gaps: names of cases whose leak is documented and tolerated. Empty on purpose. Add a case name only after
@@ -126,8 +135,12 @@ send_requests() { # send_requests <port> <www host>
   curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/?a=sfr_$BODY1&b=SFR_$BODY2&x=1"
   curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/admin/powered_by/apikey/?q=$SHORT"
   curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/sfr_$BODY1/x?x=1"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/?q=sfr_$ENC1"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/?q=sfr_$ENC2&x=1"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" -H "Referer: https://a.example/search?q=sfr_$ENC2&y=2" "http://127.0.0.1:$port/"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/?q=sfr_$ENC3"
 }
-EXPECTED_LINES=11
+EXPECTED_LINES=15
 
 start_nginx() { # start_nginx <conf>; sets PORT
   docker rm -f "$RUN_ID-nginx" >/dev/null 2>&1 || true
@@ -193,6 +206,10 @@ extra = [
     ("two sfr_ keys in one URL", "requestUrl", ["/?a=" + K + "&b=" + K + "&x=1"], None),
     ("short display prefix", "requestUrl", [], "/admin/powered_by/apikey/?q=" + short),
     ("sfr_ key in the path", "requestUrl", ["/" + K + "/x?x=1"], None),
+    ("key with an encoded first byte (the review probe)", "requestUrl", ["/?q=" + K], None),
+    ("key with an encoded byte in the first seven units", "requestUrl", ["/?q=" + K + "&x=1"], None),
+    ("key with an encoded byte in a Referer", "referer", ["https://a.example/search?q=" + K + "&y=2"], None),
+    ("double-encoded key body", "requestUrl", ["/?q=" + K], None),
 ]
 for j, (name, field, contains, exact) in enumerate(extra):
     i = len(cases) + j
@@ -230,7 +247,7 @@ run_case() {
   send_requests "$PORT" "$host"
   sleep 1
   docker logs "$RUN_ID-nginx" >"$TMP/access.log" 2>"$TMP/error.log" || true
-  python3 "$TMP/analyse.py" "$TMP/access.log" "$SECRET" "$EXPECTED_LINES" "$KNOWN_GAPS" "$BODY1,$BODY2" "$SHORT"
+  python3 "$TMP/analyse.py" "$TMP/access.log" "$SECRET" "$EXPECTED_LINES" "$KNOWN_GAPS" "$BODY1,$BODY2,$ENC1,$ENC2,$DEC2,$ENC3" "$SHORT"
 }
 
 for env in staging preprod prod; do
