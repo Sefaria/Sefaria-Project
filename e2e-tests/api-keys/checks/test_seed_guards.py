@@ -9,9 +9,12 @@ passes the settings in. Run: python3 e2e-tests/api-keys/checks/test_seed_guards.
 import importlib.util
 import os
 import stat
+import sys
 import tempfile
+import types
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SEED = Path(
     os.environ.get("SEED_SCRIPT") or Path(__file__).resolve().parents[3] / "scripts" / "dev" / "seed_api_keys_e2e.py"
@@ -155,6 +158,74 @@ class DomainHosts(unittest.TestCase):
             "en": {"library": "https://www.a.cauldron.sefaria.org", "voices": "https://voices.a.cauldron.sefaria.org/"}
         }
         self.assertEqual(seed._domain_hosts(value), {"www.a.cauldron.sefaria.org", "voices.a.cauldron.sefaria.org"})
+
+
+class ResetSendLimits(unittest.TestCase):
+    """--reset-send-limits must clear every place the confirmation limits live, and only for a fixture account."""
+
+    def setUp(self):
+        self.profiles = {}
+        self.throttle_deletes = []
+        test = self
+
+        class Profile:
+            def __init__(self, id):
+                self.id = id
+                self.settings = test.profiles.setdefault(id, {})
+
+            def save(self):
+                test.saved = True
+
+        class Collection:
+            def delete_many(self, query):
+                test.throttle_deletes.append(query)
+
+        developer = types.SimpleNamespace(
+            CONFIRMATION_SENT_SETTING="developer_confirmation_sent_at",
+            CONFIRMATION_SENT_TO_SETTING="developer_confirmation_sent_to",
+            CONFIRMATION_SENDS_SETTING="developer_confirmation_sends",
+            THROTTLE_COLLECTION="developer_confirmation_throttle",
+        )
+        powered_by = types.ModuleType("powered_by")
+        powered_by.developer = developer
+        user_profile = types.ModuleType("sefaria.model.user_profile")
+        user_profile.UserProfile = Profile
+        patcher = mock.patch.dict(
+            sys.modules,
+            {
+                "powered_by": powered_by,
+                "powered_by.developer": developer,
+                "sefaria": types.ModuleType("sefaria"),
+                "sefaria.model": types.ModuleType("sefaria.model"),
+                "sefaria.model.user_profile": user_profile,
+            },
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.developer = developer
+        mock_db = {developer.THROTTLE_COLLECTION: Collection()}
+        patch_db = mock.patch.object(seed, "_legacy_db", return_value=mock_db)
+        patch_db.start()
+        self.addCleanup(patch_db.stop)
+        self.role = "onboarding.unverified"
+        self.uid = seed.account_id(seed.spec_for(self.role)[0])
+
+    def test_clears_sends_pending_confirmation_and_the_throttle_document(self):
+        d = self.developer
+        self.profiles[self.uid] = {
+            d.CONFIRMATION_SENT_SETTING: "2026-01-01T00:00:00Z",
+            d.CONFIRMATION_SENT_TO_SETTING: "a@example.com",
+            d.CONFIRMATION_SENDS_SETTING: ["2026-01-01T00:00:00Z"],
+            "interface_language": "english",
+        }
+        seed.reset_send_limits(self.role)
+        self.assertEqual(self.profiles[self.uid], {"interface_language": "english"})
+        self.assertEqual(self.throttle_deletes, [{"uid": self.uid}])
+
+    def test_a_uid_outside_the_fixture_band_is_refused_and_nothing_is_deleted(self):
+        with self.assertRaises(AssertionError):
+            seed.reset_send_limits(self.role, base=1)
+        self.assertEqual(self.throttle_deletes, [])
 
 
 class ManifestMode(unittest.TestCase):

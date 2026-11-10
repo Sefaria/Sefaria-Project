@@ -694,8 +694,16 @@ def reset_send_limits(role_name, base=None):
     uid = account_id(spec[0], base)
     check_ids([uid], base)
     profile = UserProfile(id=uid)
-    profile.settings.pop(developer.CONFIRMATION_SENDS_SETTING, None)
+    # Everything the confirmation limits read: the profile's send record, the pending-confirmation fields (as
+    # _apply_state clears them) and the throttle document in its own collection.
+    for setting in (
+        developer.CONFIRMATION_SENT_SETTING,
+        developer.CONFIRMATION_SENT_TO_SETTING,
+        developer.CONFIRMATION_SENDS_SETTING,
+    ):
+        profile.settings.pop(setting, None)
     profile.save()
+    _legacy_db()[developer.THROTTLE_COLLECTION].delete_many({"uid": uid})
 
 
 def expired_link_path(user, age=EXPIRED_LINK_AGE):
