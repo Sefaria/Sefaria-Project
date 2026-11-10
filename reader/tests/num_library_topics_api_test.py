@@ -21,3 +21,7 @@ class NumLibraryTopicsApiTest(TestCase):
     def test_a_trailing_slash_is_the_same_endpoint(self):
         with patch("reader.views.get_num_library_topics", return_value=12):
             self.assertEqual(self.client.get("/api/topics/library-count/").json(), {"count": 12})
+
+    def test_only_get(self):
+        with patch("reader.views.get_num_library_topics", return_value=12):
+            self.assertEqual(self.client.post("/api/topics/library-count").status_code, 405)
