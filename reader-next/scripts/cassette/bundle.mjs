@@ -4,8 +4,9 @@
 //   node scripts/cassette/bundle.mjs hash                 the content hash of e2e/.cassette (names and bytes of every recording)
 //   node scripts/cassette/bundle.mjs pack [--out <dir>]   write reader-next-e2e-cassette-<hash>.tar.gz and pin it in e2e/cassette.lock
 //   node scripts/cassette/bundle.mjs unpack <file>        replace e2e/.cassette with a bundle; fails unless it matches the lock's hash
-//   node scripts/cassette/bundle.mjs fetch                CI: download the pinned bundle and unpack it; prints mode=replay, or
-//                                                         mode=auto (with a warning) when there is no lock or no bundle yet
+//   node scripts/cassette/bundle.mjs fetch [--strict]     CI: download the pinned bundle and unpack it; prints mode=replay, or
+//                                                         mode=auto (with a warning) when there is no lock or no bundle yet.
+//                                                         --strict (CI on push): a lock whose bundle cannot be used fails
 //   node scripts/cassette/bundle.mjs verify               does e2e/.cassette match the lock?
 //
 // The hash covers the recordings, not the tarball's bytes (tar is not byte-reproducible across platforms): sha256 over the sorted lines
@@ -83,15 +84,18 @@ function unpack(file, expected) {
   return got;
 }
 
-/** CI: the pinned bundle, or today's fallback (cache + auto). Never fails the job by itself: the mode it prints says what happened. */
-async function fetchPinned() {
+/**
+ * CI: the pinned bundle, or today's fallback (cache + auto), saying which with mode=…. With `strict` (pushes), a lock whose bundle
+ * cannot be fetched or does not match is an error: the branch's e2e would otherwise quietly stop being deterministic.
+ */
+async function fetchPinned(strict = false) {
   const output = (mode) => {
     console.log(`mode=${mode}`);
     if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `mode=${mode}\n`);
   };
   const lock = readLock();
   if (!lock) {
-    console.log(`no ${LOCK}: the cassette comes from the CI cache and missing answers are recorded (auto)`);
+    console.log(`::warning title=e2e cassette::no ${LOCK}: the cassette comes from the CI cache and missing answers are recorded (auto)`);
     return output("auto");
   }
   const url = process.env.E2E_CASSETTE_URL || lock.url || assetUrl(lock.hash);
@@ -104,7 +108,12 @@ async function fetchPinned() {
     console.log(`unpacked ${got.files} recordings from ${url} (hash ${lock.hash.slice(0, 16)})`);
     return output("replay");
   } catch (e) {
-    // until the integrator uploads the pinned bundle, CI keeps today's behaviour
+    if (strict) {
+      console.log(`::error title=e2e cassette::the pinned bundle could not be used (${url}: ${e.message}). Upload it (scripts/cassette/bundle.mjs pack prints how) or fix e2e/cassette.lock`);
+      process.exitCode = 1;
+      return;
+    }
+    // a pull request keeps today's behaviour, with a warning
     console.log(`::warning title=e2e cassette::the pinned bundle could not be used (${url}: ${e.message}); falling back to the CI cache and E2E_API_MODE=auto`);
     return output("auto");
   }
@@ -125,7 +134,7 @@ if (isMain) {
       const got = unpack(args[0], readLock()?.hash);
       console.log(`unpacked ${got.files} recordings into ${DIR}`);
     } else if (cmd === "fetch") {
-      await fetchPinned();
+      await fetchPinned(args.includes("--strict"));
     } else if (cmd === "verify") {
       const lock = readLock();
       const { hash } = hashDir();

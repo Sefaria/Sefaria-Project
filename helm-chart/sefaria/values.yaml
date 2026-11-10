@@ -220,8 +220,10 @@ nodejs:
 # nodejs.mode "reader"; the rest of this block is the optin rollout's.
 reader:
   containerImage:
-    # built by .github/workflows/continuous.yaml from reader-next/Dockerfile (sefaria-reader-<branch> in the dev project)
-    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-reader
+    # The image .github/workflows/continuous.yaml pushes for master (sefaria-reader-<branch> in the development project, built from
+    # reader-next/Dockerfile when reader-next/ changes). Nothing builds a production-registry reader image yet: an environment that
+    # runs the reader sets this to its own image (reader-next/docs/DEPLOYMENT.md, "Images").
+    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-reader-master
     tag: latest
   # Absolute origin of the reader's canonical and og:url links (PUBLIC_CANONICAL_ORIGIN); templated. A cauldron or staging keeps
   # production's, so search engines are pointed at www.sefaria.org.

@@ -79,9 +79,20 @@ test("fetch replays the pinned bundle, and falls back to auto when it is missing
     const missing = await runAsync({ ...env, E2E_CASSETTE_URL: `${base}/absent.tar.gz` }, "fetch");
     assert.match(missing.stdout, /::warning title=e2e cassette::.*404/);
     assert.match(missing.stdout, /mode=auto$/m);
+
+    // on a push (--strict) a pinned bundle that cannot be used fails the step, and says no mode
+    const strict = await runAsync({ ...env, E2E_CASSETTE_URL: `${base}/absent.tar.gz` }, "fetch", "--strict");
+    assert.equal(strict.code, 1);
+    assert.match(strict.stdout, /::error title=e2e cassette::.*404/);
+    assert.doesNotMatch(strict.stdout, /mode=/);
+    const strictOk = await runAsync({ ...env, E2E_CASSETTE_URL: `${base}/${lock.asset}` }, "fetch", "--strict");
+    assert.equal(strictOk.code, 0);
+    assert.match(strictOk.stdout, /mode=replay$/m);
   } finally {
     server.close();
   }
-  const noLock = run({ ...env, E2E_CASSETTE_LOCK: join(root, "absent.lock") }, "fetch");
+  const noLock = run({ ...env, E2E_CASSETTE_LOCK: join(root, "absent.lock") }, "fetch", "--strict");
+  assert.equal(noLock.status, 0); // no lock: nothing is pinned yet, even on a push
+  assert.match(noLock.stdout, /::warning title=e2e cassette::no /);
   assert.match(noLock.stdout, /mode=auto$/m);
 });

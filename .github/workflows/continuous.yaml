@@ -23,22 +23,61 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Which images to build: web and node (the legacy SSR server, build/node/Dockerfile) always; the new reader client
+  # (sefaria-reader-<branch>, reader-next/Dockerfile with reader-next/ as context, for helm nodejs.mode "optin"/"reader") only when
+  # reader-next/ changed in this push or pull request, or when that cannot be told (a new branch): it is a separate app with its own
+  # build, so other changes do not need a new reader image (its last one, tag latest, stays current).
+  images:
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+    name: "Images to build"
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.pick.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: pick
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+        run: |
+          reader=true
+          if [ "$EVENT" = pull_request ]; then
+            git fetch -q origin "$BASE_REF" && range="origin/$BASE_REF...HEAD"
+          elif [ -n "$BEFORE" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            range="$BEFORE..$SHA"
+          fi
+          if [ -n "$range" ] && ! git diff --name-only $range | grep -q '^reader-next/'; then reader=false; fi
+          apps='{"app":"web"},{"app":"node"}'
+          if [ "$reader" = true ]; then apps="$apps"',{"app":"reader","context":"./reader-next","dockerfile":"./reader-next/Dockerfile"}'; fi
+          echo "reader image: $reader (${range:-no range})"
+          echo "matrix={\"include\":[$apps]}" >> "$GITHUB_OUTPUT"
+  # nginx's copy of the reader's Django paths (helm-chart/sefaria/templates/_reader-django-paths.tpl) must match
+  # reader-next/src/lib/routing/django-paths.ts, on master too
+  reader-nginx-paths:
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+    name: "Reader nginx paths are current"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --experimental-strip-types build/ci/reader-nginx-paths.mjs --check
   build-generic:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
     name: "Continuous Image Build"
+    needs:
+      - images
     permissions:
       contents: 'read'
       id-token: 'write'
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        app: [ web, node ]
-        include:
-          # the new reader client (reader-next/), for helm nodejs.mode "optin"/"reader": its own Dockerfile and build context.
-          # sefaria-node stays the legacy SSR server (build/node/Dockerfile).
-          - app: reader
-            context: ./reader-next
-            dockerfile: ./reader-next/Dockerfile
+      matrix: ${{ fromJSON(needs.images.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up QEMU

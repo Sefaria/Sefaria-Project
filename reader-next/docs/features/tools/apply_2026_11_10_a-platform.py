@@ -21,13 +21,13 @@ def add(fid, lines):
 add(
     "PLT-008",
     [
-        "REBUILD 2026-11-10 (T-C08): canonical and hreflang alternates are absolute, from PUBLIC_CANONICAL_ORIGIN (src/lib/config.ts canonicalUrl; default and fallback https://www.sefaria.org; chart value reader.canonicalOrigin), not PUBLIC_SITE_ORIGIN, which is empty in the cluster on purpose. Pages with a canonical today: /calendars and /translations/<lang>; the reader, library and topic pages have none yet. Tests: src/lib/config.test.ts ('the canonical origin').",
+        "REBUILD 2026-11-10 (T-C08): canonical and hreflang alternates are absolute, from PUBLIC_CANONICAL_ORIGIN (src/lib/config.ts canonicalUrl; default and fallback https://www.sefaria.org; chart value reader.canonicalOrigin), not PUBLIC_SITE_ORIGIN, which is empty in the cluster on purpose. Per request, as Django's canonical_url: on the Hebrew site's host (*.org.il, *-il.org) canonical and og:url name www.sefaria.org.il (src/lib/routing/canonical.ts); the alternates stay one per language. Pages with a canonical today: /calendars and /translations/<lang>; the reader, library and topic pages have none yet. Tests: src/lib/config.test.ts, src/lib/routing/canonical.test.ts.",
     ],
 )
 status["PLT-008"] = {
     "status": "partial",
     "note": "Absolute canonical + hreflang on /calendars and /translations/<lang> (PUBLIC_CANONICAL_ORIGIN); reader, library and topic pages have none yet",
-    "by": "src/lib/config.ts (canonicalUrl), src/routes/calendars.tsx, src/routes/translations.$slug.tsx",
+    "by": "src/lib/config.ts (canonicalUrl), src/lib/routing/canonical.ts, src/routes/calendars.tsx, src/routes/translations.$slug.tsx",
 }
 add(
     "PLT-027",
@@ -56,7 +56,7 @@ add(
 add(
     "PLT-031",
     [
-        "DEPLOY 2026-11-10: in optin/reader modes nginx gives the reader 5 s to accept a connection (proxy_connect_timeout) before falling back to Varnish/Django, so a reader scaled to zero (the emergency rollback, reader-next/docs/DEPLOYMENT.md) costs an opted-in visitor seconds, not a minute.",
+        "DEPLOY 2026-11-10: in optin/reader modes nginx gives the reader 5 s to accept a connection (proxy_connect_timeout) before falling back to Varnish/Django (@reader_down: GET/HEAD only; a write gets the 502, never replayed), so a reader scaled to zero (the emergency rollback, reader-next/docs/DEPLOYMENT.md) costs an opted-in visitor seconds, not a minute.",
     ],
 )
 

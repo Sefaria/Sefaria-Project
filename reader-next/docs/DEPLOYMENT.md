@@ -21,18 +21,30 @@ settings (`sefaria/helper/reader_choice.py`).
 Cloudflare → nginx (www server block of each root domain)
                ├─ /api/search/…                  → Elasticsearch                      (unchanged)
                ├─ /static/…, /robots.txt         → nginx's own files                   (unchanged, cookie never consulted)
-               ├─ /api/…                         → Varnish → Django                    (unchanged)
+               ├─ /api/…                         → Varnish → Django, cookie or not     (its own location in optin)
                ├─ /sheets, /collections, /profile → 307 to the Voices host             (unchanged; Voices block untouched)
                ├─ Django's prefixes, favicon,    → Varnish → Django, cookie or not     (T-C04; generated from DJANGO_PREFIXES)
                │  manifests, llms.txt, .well-known
                ├─ /assets/…                      → the reader, cookie or not           (its hashed bundles; Django has none)
-               └─ everything else (pages)        → $page_upstream:
-                    cookie reader_version=next   → the reader (reader-<env>:3000)
+               └─ everything else (pages): location /, legacy's
+                    no cookie (or kill switch)   → Varnish → Django, exactly as in legacy mode
+                    cookie reader_version=next   → `return 418` → error_page → @reader → the reader (reader-<env>:3000)
                                                     ├─ reader / library page → rendered there; data read from Varnish
                                                     ├─ a page it does not render, a write, its 404 → passed to Varnish → Django
-                                                    └─ unreachable (502/503/504, 5 s connect timeout) → nginx falls back to Varnish
-                    no cookie (or kill switch)   → Varnish → Django (legacy reader, as today)
+                                                    └─ nginx's own 502/504 (unreachable: 5 s connect timeout; timed out)
+                                                         → @reader_down: GET/HEAD from Varnish → Django; any other method 502
 ```
+
+**Visitors without the cookie are served by legacy's `location /`, unchanged.** The optin config only adds to legacy's: `diff` of
+the rendered nginx config, legacy against optin (instrumentation on), has no removed line; added are the reader upstream and cookie
+map, three lines at the top of `location /` (`recursive_error_pages on; error_page 418 = @reader; if ($reader_page) { return 418; }`),
+and the `/api/`, `@reader`, `/assets/`, `@reader_down` and Django-paths locations (the `/api/` and Django-paths ones have legacy's
+`location /` body). With the kill switch the three lines and the map are not rendered at all. A write is never replayed: only
+nginx's own failure to reach the reader falls back, and only for GET/HEAD; a Varnish failure is never retried (no `error_page` on the
+Varnish locations, as in legacy). `recursive_error_pages` is needed because nginx checks it in the location where the first
+`error_page` (the 418) fired; `location /` has no other `error_page`, so nothing else changes. Every reader location sets
+`X-Forwarded-Host $host` and `X-Forwarded-Proto https`: the reader trusts `X-Forwarded-Host` (Voices detection, the Host it sends to
+Varnish, the canonical origin), so a value from the client must never reach it.
 
 The Voices server blocks (`voices.*`, `chiburim.*`) never consult the cookie and never reach the reader.
 
@@ -43,7 +55,8 @@ The Voices server blocks (`voices.*`, `chiburim.*`) never consult the cookie and
   `node --experimental-strip-types build/ci/reader-nginx-paths.mjs` (run it after changing `DJANGO_PREFIXES`; CI's `--check` fails
   when the copy is stale, or when the regex would send one of the client's own pages to Django — e.g. the revision history
   `/activity/<ref>/<lang>/<version>`). `/api/` and `/static/` are left out of the regex: nginx has locations of their own for them.
-- In `reader` mode the same nginx locations apply, except that every page goes to the reader first.
+- In `reader` mode the same nginx locations apply, except that every page goes to the reader first (`location /` → the node pods,
+  falling back through `@reader_down`).
 
 ## Pieces
 
@@ -62,7 +75,7 @@ The Voices server blocks (`voices.*`, `chiburim.*`) never consult the cookie and
 | Value                          | Default                                                            | Meaning                                                                                                    |
 | ------------------------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
 | `nodejs.mode`                  | `legacy`                                                           | see above                                                                                                  |
-| `reader.containerImage`        | `…/production-deployment/containers/sefaria-reader:latest`         | the reader image (optin rollout; the node pods in reader mode)                                             |
+| `reader.containerImage`        | `…/development-205018/containers/sefaria-reader-master:latest`     | the reader image (optin rollout; the node pods in reader mode): what CI pushes for master (see "Images")    |
 | `reader.optin.enabled`         | `true`                                                             | the kill switch (optin): `false` = nginx ignores the cookie, `READER_OPTIN = False`; the rollout stays    |
 | `reader.canonicalOrigin`       | `https://www.sefaria.org`                                          | `PUBLIC_CANONICAL_ORIGIN` (templated)                                                                      |
 | `reader.replicaCount`, `reader.resources`, `reader.heapSize` | 1, 256Mi/100m → 768Mi/1 CPU, 384 MB          | optin rollout sizing, not yet measured (T-C06 below)                                                       |
@@ -77,7 +90,7 @@ against `src/lib/config.ts` and against what the web pods read (2026-11-10).
 | `SEFARIA_API_ORIGIN`                                                     | `http://varnish-<env>-<revision>:8040`                         | this release's Varnish                                                                                          |
 | `SEFARIA_API_HOST`                                                       | `www.<first root domain>`                                      | `domains.root[0]` (so `www.sefaria.org` on the `.org.il` host too)                                              |
 | `PUBLIC_API_ORIGIN`, `PUBLIC_SITE_ORIGIN`                                | `""`                                                           | same origin                                                                                                     |
-| `PUBLIC_CANONICAL_ORIGIN`                                                | `reader.canonicalOrigin`                                       | canonical, og:url and hreflang alternates are absolute (T-C08)                                                  |
+| `PUBLIC_CANONICAL_ORIGIN`                                                | `reader.canonicalOrigin`                                       | canonical, og:url and hreflang alternates are absolute (T-C08); on the Hebrew site's host (`*.org.il`, `*-il.org`) a page names the origin's Hebrew twin (`www.sefaria.org.il`), as Django's `canonical_url` (`src/lib/routing/canonical.ts`) |
 | `PUBLIC_VOICES_ORIGIN`                                                   | `https://voices.<first root domain>`                           |                                                                                                                 |
 | `SEFARIA_PASS_THROUGH`, `PORT`                                           | `1`, `3000`                                                    |                                                                                                                 |
 | `APP_VERSION`                                                            | the reader image tag                                           | gtag `site_version`                                                                                             |
@@ -99,8 +112,8 @@ Target: every reader back on the legacy reader within two minutes, without remov
    legacy reader. Saved profile choices are untouched (the account switch stays), so turning the key back on restores everyone at
    their next sign-in sync. Until lane C lands this, use 2 or 3.
 2. **Emergency, kubectl (seconds).** Take the reader's endpoints away; nginx's connect fails (5 s timeout at worst) and every page
-   falls back to Varnish/Django (the `error_page` → `@varnish` path, checked by `reader-nginx-routing.py`). Opted-in readers pay at
-   most one failed connect per page.
+   falls back to Varnish/Django (`@reader_down`, GET/HEAD; a write gets a 502), checked by `reader-nginx-routing.py`. Opted-in
+   readers pay at most one failed connect per page.
    ```
    # without KEDA (production today)
    kubectl -n <namespace> scale rollout <env>-reader --replicas=0
@@ -110,7 +123,7 @@ Target: every reader back on the legacy reader within two minutes, without remov
    Flux does not undo a replica change on a Rollout it manages through Helm unless drift detection is on; the next release does
    (`reader.replicaCount`), so follow with 3.
 3. **Durable, Helm (one release).** Set `reader.optin.enabled: false` in the environment's HelmRelease values and let Flux reconcile
-   (`flux reconcile helmrelease <name>`). The rendered nginx map then sends every page to Varnish whatever the cookie, `READER_OPTIN`
+   (`flux reconcile helmrelease <name>`). nginx's `location /` is then legacy's byte for byte (no cookie check), `READER_OPTIN`
    becomes `False` (the account switch is hidden), and the reader rollout keeps running (its `/assets/` still serve pages that are
    already open). A release rolls nginx and web blue/green, so this takes as long as a deploy, not two minutes.
 
@@ -152,14 +165,15 @@ the longest common suffix of the language's module hosts.
 
 | Workflow                 | What it does for the reader                                                                                                                                       |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `continuous.yaml`        | builds `sefaria-web-<branch>`, `sefaria-node-<branch>` (legacy SSR) and `sefaria-reader-<branch>` (`reader-next/Dockerfile`, context `reader-next/`)              |
+| `continuous.yaml`        | builds `sefaria-web-<branch>`, `sefaria-node-<branch>` (legacy SSR) and, only when `reader-next/` changed in the push or pull request (or a new branch, where that cannot be told), `sefaria-reader-<branch>` (`reader-next/Dockerfile`, context `reader-next/`; job `images` picks the matrix). Job `reader-nginx-paths` runs the generated-paths `--check` on master and every pull request |
 | `helm.yaml` (lint job)   | `ct lint`; `reader-nginx-paths.mjs --check`; `reader-nginx-routing.py --table` (helm + nginx on the runner)                                                       |
 | `reader-next-client.yaml`| checks (types, unit, atlas, stories, the nginx paths check, the scripts' `node --test`), `budgets` (initial JS/CSS of a reader page, `scripts/budgets/`), `e2e` (below) |
 
 **Deterministic e2e (T-A04).** The e2e job downloads the API cassette bundle pinned by `e2e/cassette.lock` (a release asset named by
 the recordings' content hash, `scripts/cassette/bundle.mjs fetch`) and runs `E2E_API_MODE=replay`: a missing recording is a 504 and a
-`[cassette] MISS` line in the log, never a network call. With no lock or no uploaded bundle it warns and keeps the old behaviour (Actions
-cache + `auto`). When a change needs new recordings: run the suite locally (auto records them), then
+`[cassette] MISS` line in the log, never a network call. With no lock it warns and keeps the old behaviour (Actions cache + `auto`).
+With a lock whose bundle cannot be fetched or does not match, a **push fails** (`fetch --strict`) and a pull request warns and falls
+back: so upload a new bundle before pushing its lock. When a change needs new recordings: run the suite locally (auto records them), then
 `node scripts/cassette/bundle.mjs pack --out <dir>`, upload the printed asset (`gh release upload reader-next-e2e-cassette …`, maintainers
 only) and commit the new `e2e/cassette.lock`. Dicta (Hebrew search) is recorded under the cassette's `/__dicta/` prefix once the specs
 route it there (`scripts/cassette/dicta-route.mjs`).
@@ -167,7 +181,9 @@ route it there (`scripts/cassette/dicta-route.mjs`).
 **Budgets (T-H04).** `node scripts/budgets/measure.mjs` after `npm run build`: the JS and CSS a server-rendered `/Genesis.1` links
 (TanStack Start's manifest for `__root__` + `/$`, plus the root's `?url` stylesheets), raw and gzip, against
 `scripts/budgets/baseline.json`; more than 2% over fails. Re-baseline a deliberate change with `--write` and say why in the commit.
-Baseline 2026-11-10: JS 56 files, 1,339,866 B (gzip 434,242); CSS 17 files, 239,813 B (gzip 57,081).
+Baseline 2026-11-10: JS 56 files, 1,339,866 B (gzip 434,242); CSS 17 files, 239,813 B (gzip 57,081). Who may raise it: the owner (or
+whoever reviews performance) should approve every change to `baseline.json`; a CODEOWNERS entry for
+`reader-next/scripts/budgets/baseline.json` would enforce that (not added here).
 
 ## Sign-in (the ported AuthPage)
 
@@ -244,7 +260,7 @@ office network are not measured), every request with `Cookie: reader_version=nex
   the www hosts) × the expected opt-in share (L0: staff only, negligible; L1: assume 5% of signed-in page views). Ramp in 5-minute
   steps to ×1, ×3, ×10 that rate, hold ×10 for 15 minutes, then a spike to ×20 for 2 minutes. During the hold, roll the reader
   (`kubectl argo rollouts restart <env>-reader`) once to measure graceful shutdown.
-- **Measure.** TTFB and full-response p50/p95/p99 per page; error rate (any 5xx, and nginx falling back to `@varnish`, visible as
+- **Measure.** TTFB and full-response p50/p95/p99 per page; error rate (any 5xx, and nginx falling back to `@reader_down`, visible as
   Django-served reader pages in the access log); reader pod CPU, RSS against the limit and V8 heap against `heapSize`, event-loop
   delay, GC pauses; restarts and OOMKills (must be 0); requests per pod at which p95 TTFB passes 1 s (sets the KEDA/HPA target);
   Varnish hit ratio of the reader's own API reads and the web pods' extra load from pass-throughs; in-flight requests dropped during
@@ -261,9 +277,24 @@ same time.
 
 ### Images
 
-- The production image build (outside this repository) must build `reader-next/Dockerfile` (context `reader-next/`) as
-  `production-deployment/containers/sefaria-reader`, beside `sefaria-node`; and the environments' image automation must track it.
-- Upload the pinned e2e cassette bundle once (command in `scripts/cassette/bundle.mjs pack`'s output); until then CI warns and records.
+What exists today: `continuous.yaml` pushes `us-east1-docker.pkg.dev/<DEV_PROJECT>/containers/sefaria-reader-<branch>` (tags
+`latest`, `sha-<short>-<date>`, `<branch>`) whenever `reader-next/` changes, so `sefaria-reader-master:latest` exists once a
+`reader-next/` change has landed on master. The chart's default, `…/development-205018/containers/sefaria-reader-master:latest`,
+assumes `DEV_PROJECT` is `development-205018` (as `build/ci/integration-values.yaml` does for the other images): check it. Nothing pushes
+a reader image to the production registry. Owner actions before the reader runs anywhere shared:
+
+1. Production image: add `reader-next/Dockerfile` (context `reader-next/`) to the production image pipeline (outside this repository)
+   as `us-east1-docker.pkg.dev/production-deployment/containers/sefaria-reader`, tagged like `sefaria-node`.
+2. In each environment that runs `nodejs.mode: optin` (staging, production), set `reader.containerImage.imageRegistry` and `.tag` to that
+   image, and add an image policy for it in the environment's Flux image automation, as for `sefaria-node`.
+3. Cauldrons: `reader.containerImage.imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-reader-<branch>`.
+4. Upload the pinned e2e cassette bundle (command in `scripts/cassette/bundle.mjs pack`'s output) **before** the lock reaches a pushed
+   branch: with a lock, a push whose bundle cannot be fetched fails the e2e job.
+
+**After a rollout, old chunks.** Bundles are content-hashed and the rollout is blue/green: once the new reader is promoted, a page
+opened on the old one that lazy-loads a chunk it has not fetched yet gets a 404 (Cloudflare keeps the chunks it already cached for a
+year). Recommendation for the client: on Vite's `vite:preloadError` (a dynamic import that failed), reload the page once. Alternative on
+the platform side: keep the previous release's `dist/client/assets` in the new image. Neither is done here.
 
 ### Open questions
 

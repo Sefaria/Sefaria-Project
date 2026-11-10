@@ -2,8 +2,8 @@
 
 ### Updated
 
-- **PLT-008** Canonical URLs and hreflang: absolute, from `PUBLIC_CANONICAL_ORIGIN` (default `https://www.sefaria.org`), on the two
-  pages that have them (`/calendars`, `/translations/<lang>`); status `partial` (reader, library and topic pages have none yet).
+- **PLT-008** Canonical URLs and hreflang: absolute, from `PUBLIC_CANONICAL_ORIGIN` (default `https://www.sefaria.org`; the Hebrew
+  site's host names `www.sefaria.org.il`, as Django), on the two pages that have them (`/calendars`, `/translations/<lang>`); status `partial` (reader, library and topic pages have none yet).
 - **PLT-027** Canonical, hreflang, Open Graph and JSON-LD: `og:url` from the same origin; `og:image` still relative in the cluster.
 - **SRC-082** Dicta Hebrew Tanakh search merge: the e2e cassette can record and replay Dicta (`/__dicta/`), once a fixture routes it.
 - **PLT-022** No service worker (manifest-only PWA), **PLT-025** robots.txt: with the opt-in, nginx serves the favicon, manifests,

@@ -80,11 +80,12 @@ jobs:
           cache-dependency-path: reader-next/package-lock.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      # The pinned recordings (e2e/cassette.lock → a release asset, scripts/cassette/bundle.mjs): replayed, never the network. Until
-      # that bundle exists (or when it cannot be fetched) the step warns and CI keeps the cache + auto behaviour below.
+      # The pinned recordings (e2e/cassette.lock → a release asset, scripts/cassette/bundle.mjs): replayed, never the network. Without
+      # a lock the step warns and CI keeps the cache + auto behaviour below; with one, a bundle that cannot be used fails a push and
+      # warns (then falls back) on a pull request.
       - name: Fetch the pinned API cassette
         id: cassette
-        run: node scripts/cassette/bundle.mjs fetch
+        run: node scripts/cassette/bundle.mjs fetch ${{ github.event_name == 'push' && '--strict' || '' }}
       - name: Restore the API cassette (fallback)
         if: steps.cassette.outputs.mode != 'replay'
         uses: actions/cache@v4
