@@ -5,9 +5,9 @@ import { expect, test, type BrowserContext } from "@playwright/test";
  * bounce (T-E07), and the Voices host left exactly as Django answers it. The same routing is unit-tested with Django stubbed in
  * src/server/site-routing.test.ts (which runs in every gate); this spec checks it end to end, rendered.
  *
- * SKIPPED unless E2E_PASS_THROUGH_URL is set: the suite's dev servers run without pass-through and without DOMAIN_MODULES (a change
- * to playwright.config.ts, requested of the integrator). To run it, start a pass-through server whose Django is the read-only
- * stand-in in front of www.sefaria.org (scripts/exits-crawl.mjs: it never forwards a write, and it signs in `sessionid=exits-crawl`):
+ * Runs in every suite against playwright.config.ts's third dev server (pass-through on, DOMAIN_MODULES for localhost / he.localhost;
+ * E2E_PASS_THROUGH_URL), whose Django is the API cassette (recorded answers of www.sefaria.org). Skipped only with E2E_LIVE.
+ * Against the read-only stand-in Django instead (scripts/exits-crawl.mjs: never forwards a write, signs in `sessionid=exits-crawl`):
  *
  *   EXITS_PORT=3365 DOMAIN_MODULES='{"en":{"library":"http://localhost:3365","voices":"http://voices.localhost:3365"},
  *     "he":{"library":"http://he.localhost:3365","voices":"http://chiburim.localhost:3365"}}' node scripts/exits-crawl.mjs --serve
