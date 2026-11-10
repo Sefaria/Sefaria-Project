@@ -20,7 +20,15 @@ check F4 "with live sessions a revoke still applies (pooled connections keep the
   "$(revoke_key f4; wait_for 8 'test "$(gw $GW_HC $GATED f4)" = 401' >/dev/null; gw $GW_HC $GATED f4)" 401
 
 new_key f4b
-sleep 2
+# The key must be loaded and accepted before the readers are cut off, or the later "revoked" 401 would only mean it was
+# never valid.
+# shellcheck disable=SC2016,SC2086  # wait_for evaluates the quoted condition itself
+if wait_for 8 'test "$(gw $GW_HC $GATED f4b)" = 200' >/dev/null; then
+  pass "F4 the new key is accepted before the backends end"
+else
+  fail "F4 the new key is not accepted (got $(gw "$GW_HC" "$GATED" f4b), want 200): the revoke checks below would prove nothing"
+  restore; drill_reset; finish
+fi
 psql_su -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE usename = 'auth_service_reader'" >/dev/null
 sleep 1
 revoke_key f4b

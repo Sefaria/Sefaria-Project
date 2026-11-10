@@ -132,11 +132,12 @@ test.describe('developer settings: projects', () => {
     const name = unique('C4 website');
     const label = unique('c4 key');
     const id = await createProjectThroughApi(page, { name, websiteUrl: 'https://c4-old.example.com' });
-    const key = await pageFetch(page, `/api/developer/projects/${id}/keys`, { method: 'POST', body: { label } });
-    expect(key.status, key.text).toBe(200);
-    const keyId = key.json.keyId;
 
     try {
+      const key = await pageFetch(page, `/api/developer/projects/${id}/keys`, { method: 'POST', body: { label } });
+      expect(key.status, key.text).toBe(200);
+      const keyId = key.json.keyId;
+
       const dev = await openDeveloper(page, `/settings/developer/projects/${id}`);
       const card = dev.projectCard(name);
       await expect(card.locator('button.devPocProjectToggle')).toHaveAttribute('aria-expanded', 'true');

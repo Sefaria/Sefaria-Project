@@ -36,13 +36,40 @@ probe_aseries() {  # probe_aseries [MANIFEST]: keyed checks only with a manifest
 # F5 passive: sequential requests at 2 per second (no load), gated without a key (answered by ext_authz) and ungated
 # (through the route), and the auth service's own decision latency from /metrics through the port-forward.
 probe_f5_passive() {
-  local i out gated=() ungated=()
+  local i out gc mode body="$RUN_DIR/tmp.f5" gated=() ungated=()
+  mode="$(cauldron_auth_mode)"
+  # Each row is "status time_starttransfer gateway-code"; the code is "-" when the body carries none.
   for i in $(seq 1 20); do
-    out="$(curl -s -o /dev/null -m 10 -w '%{http_code} %{time_starttransfer}' -A "$UA_TAG/$RUN_ID" "$BASE/api/knn-search")"
-    gated+=("$out"); sleep 0.5
-    out="$(curl -s -o /dev/null -m 20 -w '%{http_code} %{time_starttransfer}' -A "$UA_TAG/$RUN_ID" "$BASE/api/v3/texts/Genesis.1.1")"
-    ungated+=("$out"); sleep 0.5
+    out="$(curl -s -o "$body" -m 10 -w '%{http_code} %{time_starttransfer}' -A "$UA_TAG/$RUN_ID" "$BASE/api/knn-search")"
+    gc="$(sed -n 's/.*"code" *: *"\([^"]*\)".*/\1/p' "$body" 2>/dev/null | head -1)"; gated+=("$out ${gc:--}"); sleep 0.5
+    out="$(curl -s -o "$body" -m 20 -w '%{http_code} %{time_starttransfer}' -A "$UA_TAG/$RUN_ID" "$BASE/api/v3/texts/Genesis.1.1")"
+    gc="$(sed -n 's/.*"code" *: *"\([^"]*\)".*/\1/p' "$body" 2>/dev/null | head -1)"; ungated+=("$out ${gc:--}"); sleep 0.5
   done
+  rm -f "$body"
+  # The answers must be the right ones, or the latency numbers below measure an error page. Gated and keyless:
+  # enforce answers 401 api_key_required, any other mode never denies. Ungated: a 2xx or 3xx in every mode. 000 and
+  # 5xx are never right.
+  local row code bad_gated=0 bad_ungated=0 infra=0
+  for row in ${gated[@]+"${gated[@]}"}; do
+    code="${row%% *}"; gc="${row##* }"
+    [[ $code =~ ^(000|5[0-9][0-9])$ ]] && infra=$((infra + 1))
+    if [ "$mode" = enforce ]; then
+      { [ "$code" = 401 ] && [ "$gc" = api_key_required ]; } || bad_gated=$((bad_gated + 1))
+    else
+      { [[ $code =~ ^(000|5[0-9][0-9])$ ]] || [ "$gc" = api_key_required ] || [ "$gc" = api_key_invalid ]; } && bad_gated=$((bad_gated + 1))
+    fi
+  done
+  for row in ${ungated[@]+"${ungated[@]}"}; do
+    code="${row%% *}"
+    [[ $code =~ ^(000|5[0-9][0-9])$ ]] && infra=$((infra + 1))
+    [[ $code =~ ^[23][0-9][0-9]$ ]] || bad_ungated=$((bad_ungated + 1))
+  done
+  local want_gated="no denial and no 000/5xx"; [ "$mode" = enforce ] && want_gated="401 api_key_required"
+  local verdict="pass" counts
+  counts="mode $mode: gated wrong answers $bad_gated/${#gated[@]} (want $want_gated), ungated wrong answers $bad_ungated/${#ungated[@]} (want 2xx/3xx), 000/5xx answers $infra"
+  if [ "$bad_gated" != 0 ] || [ "$bad_ungated" != 0 ]; then
+    verdict=fail-product-bug; [ "$infra" != 0 ] && verdict=fail-harness
+  fi
   local stats
   stats="$(python3 - "${gated[@]}" -- "${ungated[@]}" <<'PY'
 import sys
@@ -61,7 +88,7 @@ PY
     kill "$PF_PID" 2>/dev/null; wait "$PF_PID" 2>/dev/null; PF_PID=""
   fi
   printf '%s\n%s\n' "$stats" "$hist" >"$RUN_DIR/f5-passive.txt"
-  rec F5-passive pass "$stats; auth-service decision metrics: ${hist:-not exposed}. The 200 ms timeout drill itself runs locally (f5-latency.sh, nf2-pause.sh); the load benchmark belongs on a perf cauldron (D6)"
+  rec F5-passive "$verdict" "$counts; $stats; auth-service decision metrics: ${hist:-not exposed}. The 200 ms timeout drill itself runs locally (f5-latency.sh, nf2-pause.sh); the load benchmark belongs on a perf cauldron (D6)"
 }
 
 # --- seeded ---------------------------------------------------------------------------------------------------------
@@ -216,10 +243,18 @@ verify_off() {
   else rec E4-gated "$(infra_or "$(status_of "$r")" pass)" "gated path without a key -> $(status_of "$r"), not a gateway denial"; fi
   r="$(c -H 'x-sefaria-tier: partner' "$BASE/api/v3/texts/Genesis.1.1")"
   rec E4-ungated "$(infra_or "$(status_of "$r")" "$([ "$(status_of "$r")" = 200 ] && echo pass || echo fail-product-bug)")" "ungated page -> $(status_of "$r")"
-  sleep 5
-  local lines; lines="$(kc logs -l "$NGINX_SELECTOR" --since=5m --tail=-1 2>/dev/null | grep -F "$UA_TAG/$RUN_ID" | mask || true)"
-  if printf '%s' "$lines" | grep -q 'sefariaTier'; then rec E4-log fail-product-bug "nginx still logs sefariaTier with the gate off"
-  else rec E4-log pass "nginx log lines for this run carry no x-sefaria-* fields ($(printf '%s\n' "$lines" | grep -c .) lines)"; fi
+  # The run's own requests above must show up in the nginx log, or an empty read (the read failed, lines not flushed)
+  # would pass the check below. Retry for up to ~30 s, as probe_ne1 does for its first read.
+  local lines="" n=0 try
+  for try in 1 2 3 4 5 6; do
+    sleep 5
+    lines="$(kc logs -l "$NGINX_SELECTOR" --since=5m --tail=-1 2>/dev/null | grep -F "$UA_TAG/$RUN_ID" | mask || true)"
+    n="$(printf '%s\n' "$lines" | grep -c . || true)"
+    [ "$n" -gt 0 ] && break
+  done
+  if [ "$n" = 0 ]; then rec E4-log fail-harness "no nginx log line for this run's requests after 30 s (the log read failed or was not flushed): the check could not run"
+  elif printf '%s' "$lines" | grep -q 'sefariaTier'; then rec E4-log fail-product-bug "nginx still logs sefariaTier with the gate off"
+  else rec E4-log pass "nginx log lines for this run carry no x-sefaria-* fields ($n lines)"; fi
 }
 
 # --- drill-f1 -------------------------------------------------------------------------------------------------------

@@ -131,13 +131,20 @@ assert isinstance(d, list); print(len(d))' 2>/dev/null)"
 probe_nm4() {
   local a b v
   a="$(c "$BASE/settings/account")"; b="$(c "$BASE/settings/account/")"; v="$(c "https://voices.$CAULDRON.cauldron.sefaria.org/settings/account")"
-  local la lb
+  local la lb sa sb sv
   la="$(headers_of "$a" | tr -d '\r' | grep -i '^location:' | cut -d' ' -f2- || true)"
   lb="$(headers_of "$b" | tr -d '\r' | grep -i '^location:' | cut -d' ' -f2- || true)"
-  local ev; ev="logged out: /settings/account -> $(status_of "$a") $la; /settings/account/ -> $(status_of "$b") $lb; voices /settings/account -> $(status_of "$v")"
-  if [ "$(status_of "$v")" = 404 ] && [ "$(status_of "$a")" != 500 ] && [ "$(status_of "$b")" != 500 ]; then
+  sa="$(status_of "$a")"; sb="$(status_of "$b")"; sv="$(status_of "$v")"
+  local ev; ev="logged out: /settings/account -> $sa $la; /settings/account/ -> $sb $lb; voices /settings/account -> $sv"
+  # The page is @login_required: a logged-out request is redirected (302) to the login page, with or without the
+  # trailing slash, and Voices has no account page (404). Any other status, 000 and 5xx included, is a failure.
+  local ok=1 s
+  for s in "$sa" "$sb" "$sv"; do [[ $s =~ ^(000|5[0-9][0-9])$ ]] && ok=0; done
+  if [ "$ok" = 0 ]; then rec N-M4 fail-harness "no answer or a 5xx (000/502/503/504 included): $ev"; return; fi
+  if [ "$sv" = 404 ] && [ "$sa" = 302 ] && [ "$sb" = 302 ] \
+     && [[ $la == */login* ]] && [[ $lb == */login* ]]; then
     rec N-M4 pass "partial (logged-out half): $ev. SSR content check with a session: blocked (Q1)"
-  else rec N-M4 "$(infra_or "$(status_of "$a")" fail-product-bug)" "$ev"; fi
+  else rec N-M4 fail-product-bug "want 302 to /login for both account URLs and 404 on Voices: $ev"; fi
 }
 
 probe_b8_strapi() {

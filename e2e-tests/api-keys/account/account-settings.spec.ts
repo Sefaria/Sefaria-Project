@@ -177,7 +177,7 @@ test.describe('account settings: password account', () => {
     await settingsPage.saveSettings();
   });
 
-  test('N-C7: after Save, a header link and Back show the saved values, and a second Save keeps them @known-gap S4', async ({ account, browser, target }) => {
+  test('N-C7: after Save, a header link and Back show the saved values, and a second Save keeps them', async ({ account, browser, target }) => {
     const { page } = await openAs(account, browser, target, PASSWORD);
     await openSettings(page);
     const settingsPage = new AccountSettingsPage(page, LANGUAGES.EN);
@@ -240,7 +240,7 @@ test.describe('account settings: developer', () => {
     await openSettings(page);
   });
 
-  test('N-C7: a key made on the page is listed after a header link and Back, and history.state holds no full key value @known-gap S4', async () => {
+  test('N-C7: a key made on the page is listed after a header link and Back, and history.state holds no full key value', async () => {
     let state = await developerState(page);
     if (!state.projects.length) {
       const created = await pageFetch(page, '/api/developer/projects', {
@@ -256,24 +256,28 @@ test.describe('account settings: developer', () => {
       expect(revoked.status, revoked.text).toBe(200);
     }
 
-    const baseline = await pageFetch(page, `/api/developer/projects/${project.id}/keys`, { method: 'POST', body: { label: 'N-C7 loaded with the page' } });
-    expect(baseline.status, 'baseline key created').toBe(200);
-    const baselineKey = { id: baseline.json.keyId, value: baseline.json.keyValue };
-
-    const dev = new DeveloperSettingsPage(page, 'english');
-    await dev.goto();
-    await dev.expandProject(project.name);
-    const label = `N-C7 ${Date.now().toString(36)}`;
-    const madeResponse = await dev.createKey(dev.projectCard(project.name), label);
-    const madeValue = (await madeResponse.json()).keyValue;
-    const madeKey = (await developerState(page)).projects.find((p: any) => p.id === project.id).keys.find((k: any) => k.label === label);
-    expect(!!madeKey, 'the key exists on the server').toBe(true);
-    // Both values must be real keys, or the history.state check below would search for "undefined" and never fail.
-    // The state response carries only a prefix; a key's value comes from its creation response.
-    expect(typeof madeValue === 'string' && /^sfr_[A-Za-z0-9]{8,}/.test(madeValue), 'the creation response of the made key carries its value').toBe(true);
-    expect(typeof baselineKey.value === 'string' && /^sfr_[A-Za-z0-9]{8,}/.test(baselineKey.value), 'the baseline key creation response carries its value').toBe(true);
-
+    let baselineKey: { id: string; value: string } | undefined;
+    let madeKey: any;
     try {
+      const baseline = await pageFetch(page, `/api/developer/projects/${project.id}/keys`, { method: 'POST', body: { label: 'N-C7 loaded with the page' } });
+      expect(baseline.status, 'baseline key created').toBe(200);
+      baselineKey = { id: baseline.json.keyId, value: baseline.json.keyValue };
+
+      const dev = new DeveloperSettingsPage(page, 'english');
+      await dev.goto();
+      await dev.expandProject(project.name);
+      const label = `N-C7 ${Date.now().toString(36)}`;
+      const madeResponse = await dev.createKey(dev.projectCard(project.name), label);
+      const made = await madeResponse.json();
+      const madeValue = made.keyValue;
+      if (made.keyId) madeKey = { id: made.keyId };  // cleanup works even if the state lookup below fails
+      madeKey = (await developerState(page)).projects.find((p: any) => p.id === project.id).keys.find((k: any) => k.label === label);
+      expect(!!madeKey, 'the key exists on the server').toBe(true);
+      // Both values must be real keys, or the history.state check below would search for "undefined" and never fail.
+      // The state response carries only a prefix; a key's value comes from its creation response.
+      expect(typeof madeValue === 'string' && /^sfr_[A-Za-z0-9]{8,}/.test(madeValue), 'the creation response of the made key carries its value').toBe(true);
+      expect(typeof baselineKey.value === 'string' && /^sfr_[A-Za-z0-9]{8,}/.test(baselineKey.value), 'the baseline key creation response carries its value').toBe(true);
+
       await markDocument(page);
       await hideAllModalsAndPopups(page);
       await page.locator('.header a[href="/texts"]').first().click();
@@ -293,7 +297,7 @@ test.describe('account settings: developer', () => {
       expect.soft(keyListed, 'the key made before leaving is listed after Back').toBeGreaterThan(0);
       expect.soft(valueKept || anyValueKept, 'history.state holds no full key value').toBe(false);
     } finally {
-      for (const key of [madeKey, baselineKey]) await pageFetch(page, `/api/developer/keys/${key.id}`, { method: 'DELETE' });
+      for (const key of [madeKey, baselineKey]) if (key?.id) await pageFetch(page, `/api/developer/keys/${key.id}`, { method: 'DELETE' });
     }
   });
 });
