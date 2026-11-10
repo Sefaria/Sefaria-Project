@@ -5,7 +5,10 @@ LAUNCH_PLAN T-D01). The reader's pods are told the path through PUBLIC_ERROR_END
 A beacon (`navigator.sendBeacon`) cannot carry a CSRF header and is often sent while the page unloads, so this endpoint:
   - is CSRF-exempt and needs no session: it writes nothing but one log line, so there is nothing to forge;
   - answers 204 with no body, or 400 (not the schema) / 405 / 413 (over 16 KB) / 429 (rate limit) / 415 (not JSON);
-  - accepts at most RATE_LIMIT beacons per client address per RATE_WINDOW seconds (Django's default cache: Redis in the cluster);
+  - accepts at most RATE_LIMIT beacons per client address, and RATE_LIMIT_GLOBAL from everyone together, per RATE_WINDOW seconds
+    (Django's default cache: Redis in the cluster). The client address is the one nginx sets (X-Real-IP, which nginx overwrites with
+    the address it was connected from; REMOTE_ADDR without it), never a header the client can choose: CF-Connecting-IP is trusted only
+    when settings.ORIGIN_LOCKED_TO_CLOUDFLARE says nothing but Cloudflare can reach the origin, and X-Forwarded-For never;
   - validates the agreed fields and drops every other one, re-scrubs query strings and e-mail addresses (the client already does),
     and logs one structured line on the `reader-browser` logger (JSON in the cluster, for Datadog). No database write.
 Never logged: cookies, headers, the request's own query string, the client address.
@@ -17,6 +20,7 @@ import json
 import re
 
 import structlog
+from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -25,6 +29,8 @@ logger = structlog.get_logger("reader-browser")
 
 MAX_BODY_BYTES = 16 * 1024
 RATE_LIMIT = 30
+# every client together: caps what a caller who can vary its address (or many callers) can write into the logs
+RATE_LIMIT_GLOBAL = 600
 RATE_WINDOW = 60
 
 KINDS = {"error", "unhandledrejection", "boundary", "hydration"}
@@ -44,22 +50,32 @@ def _scrub(text, limit):
 
 
 def _client_address(request):
+    """
+    The rate limit's key. nginx (helm-chart conf/nginx.template.conf.tpl, every proxied location) sets X-Real-IP to $remote_addr,
+    replacing whatever the client sent, and Varnish passes it on; REMOTE_ADDR is the hop before Django (Varnish), the fallback when
+    there is no nginx (local runs). CF-Connecting-IP is set by Cloudflare, but anyone who reaches the origin some other way can send
+    their own, so it is used only when settings.ORIGIN_LOCKED_TO_CLOUDFLARE is true. X-Forwarded-For's first entry is client-chosen.
+    """
     meta = request.META
-    return (
-        meta.get("HTTP_CF_CONNECTING_IP")
-        or meta.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
-        or meta.get("REMOTE_ADDR", "")
-    )
+    if getattr(settings, "ORIGIN_LOCKED_TO_CLOUDFLARE", False) and meta.get("HTTP_CF_CONNECTING_IP"):
+        return meta["HTTP_CF_CONNECTING_IP"].strip()
+    return meta.get("HTTP_X_REAL_IP", "").strip() or meta.get("REMOTE_ADDR", "")
 
 
-def _over_limit(address):
-    key = f"reader-errors:ip:{address}"
+def _counted_over(key, limit):
     cache.add(key, 0, RATE_WINDOW)
     try:
-        return cache.incr(key) > RATE_LIMIT
+        return cache.incr(key) > limit
     except ValueError:  # evicted between add and incr
         cache.set(key, 1, RATE_WINDOW)
         return False
+
+
+def _over_limit(address):
+    """Per client address first; a beacon that passes it also counts against the cap for everyone together."""
+    if _counted_over(f"reader-errors:ip:{address}", RATE_LIMIT):
+        return True
+    return _counted_over("reader-errors:all", RATE_LIMIT_GLOBAL)
 
 
 def _number(value, low, high):
