@@ -3,7 +3,7 @@ import re
 from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from reader.conftest import create_test_user, make_profile_missing_la_setting, purge_test_profiles
 from reader.models import UserExperimentSettings, _set_user_experiments
@@ -317,3 +317,30 @@ class AskButtonHiddenTest(LibraryAssistantUserTestCase):
         self.post_setting(False)
 
         self.assertNotIn("chatbot_hide_launcher", self.access_props())
+
+
+class RequestedChatbotVersionTest(SimpleTestCase):
+    def request(self, query="", session=None):
+        from django.test import RequestFactory
+        request = RequestFactory().get("/texts" + query)
+        request.session = session or {}
+        return request
+
+    def test_first_visit_uses_the_query_param(self):
+        from reader.views import requested_chatbot_version
+        self.assertEqual(requested_chatbot_version(self.request("?chatbot_version=302")), "302")
+
+    def test_later_visits_use_the_session(self):
+        from reader.views import requested_chatbot_version
+        self.assertEqual(requested_chatbot_version(self.request(session={"chatbot_version": "302"})), "302")
+
+    def test_query_param_beats_the_session(self):
+        from reader.views import requested_chatbot_version
+        request = self.request("?chatbot_version=303", {"chatbot_version": "302"})
+        self.assertEqual(requested_chatbot_version(request), "303")
+
+    def test_clear_and_junk_mean_no_preview(self):
+        from reader.views import requested_chatbot_version
+        self.assertIsNone(requested_chatbot_version(self.request("?chatbot_version=clear")))
+        self.assertIsNone(requested_chatbot_version(self.request("?chatbot_version=abc")))
+        self.assertIsNone(requested_chatbot_version(self.request()))

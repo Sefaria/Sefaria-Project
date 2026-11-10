@@ -380,6 +380,14 @@ def chatbot_access_props(request, profile):
     return props
 
 
+def requested_chatbot_version(request):
+    """The chatbot preview build to use, or None. The query param wins over the session, so the
+    first visit with ?chatbot_version= already talks to that build's server (the context processor
+    saves it to the session only while the template renders, after these props are built)."""
+    chatbot_version = request.GET.get("chatbot_version", "").strip() or request.session.get("chatbot_version")
+    return chatbot_version if is_int(chatbot_version) else None
+
+
 def base_props(request):
     """
     Returns a dictionary of props that all App pages get based on the request
@@ -476,8 +484,7 @@ def base_props(request):
         }
     )
 
-    chatbot_version = request.session.get("chatbot_version")
-    chatbot_version = chatbot_version if is_int(chatbot_version) else None
+    chatbot_version = requested_chatbot_version(request)
 
     # Chatbot props (passed through base_props for ReaderApp)
     chatbot_data = {
