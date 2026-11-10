@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { errorPageLang, unavailableResponse } from "./error-page";
+import { errorPageLang, retryHref, unavailableResponse } from "./error-page";
 import { upstreamUnavailable } from "./pass-through";
 
 // @feature RTE-040
@@ -31,5 +31,19 @@ describe("the page for an upstream failure (T-F28)", () => {
     expect(body).not.toContain("<script>");
     expect(unavailableResponse(new Request("http://x/t", { method: "HEAD" })).body).toBeNull();
     expect(upstreamUnavailable().status).toBe(503);
+  });
+  it("Try again never leaves the site: leading slashes collapse to one", async () => {
+    expect(retryHref(new URL("http://x//evil.com/a?b=1"))).toBe("/evil.com/a?b=1");
+    expect(retryHref(new URL("http://x/Genesis.1"))).toBe("/Genesis.1");
+    const body = await unavailableResponse(new Request("http://x//evil.com/x")).text();
+    expect(body).toContain('href="/evil.com/x"');
+    expect(body).not.toContain('href="//evil.com');
+  });
+  it("the Voices host keeps the old plain-text 503 (nothing new on Voices)", async () => {
+    for (const host of ["voices.sefaria.org", "chiburim.sefaria.org.il"]) {
+      const r = unavailableResponse(new Request("http://x/sheets/1", { headers: { "x-forwarded-host": host } }), "https://voices.sefaria.org");
+      expect([r.status, r.headers.get("retry-after"), r.headers.get("content-type")]).toEqual([503, "5", "text/plain; charset=utf-8"]);
+      expect(await r.text()).toBe("The library is not answering right now. Please try again in a moment.");
+    }
   });
 });

@@ -9,6 +9,9 @@
  *
  * @feature RTE-040 404 and error pages
  */
+import { PUBLIC_CONFIG } from "~/lib/config";
+import { isVoicesHost } from "~/lib/routing/django-paths";
+
 const TEXT = {
   english: {
     title: "The library is not answering right now",
@@ -67,16 +70,27 @@ p a { color: var(--link); }
 </html>`;
 }
 
+/** The plain-text answer this server gave before T-F28: kept on the Voices host (Voices is out of scope: nothing new there). */
+const plainUnavailable = () =>
+  new Response("The library is not answering right now. Please try again in a moment.", {
+    status: 503,
+    headers: { "content-type": "text/plain; charset=utf-8", "retry-after": "5", "cache-control": "no-store" },
+  });
+
+/** The same address, as a link: leading slashes (and backslashes) collapsed to one, so "//evil.com" can never leave the site. */
+export const retryHref = (u: URL): string => `/${u.pathname.replace(/^[/\\]+/, "")}${u.search}`;
+
 /** What a page answers when what it needs upstream is down or too slow: 503 (try again), never a 500 (a bug) or a hang. */
-export function unavailableResponse(request?: Request): Response {
+export function unavailableResponse(request?: Request, voicesOrigin: string | undefined = PUBLIC_CONFIG.voicesOrigin): Response {
   let retry = "";
-  try {
-    if (request) {
-      const u = new URL(request.url);
-      retry = u.pathname + u.search;
+  if (request) {
+    const host = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() || request.headers.get("host") || new URL(request.url).host;
+    if (isVoicesHost(host, voicesOrigin)) return plainUnavailable();
+    try {
+      retry = retryHref(new URL(request.url));
+    } catch {
+      /* the page itself, by an empty href */
     }
-  } catch {
-    /* the page itself, by an empty href */
   }
   const body = request?.method === "HEAD" ? null : unavailableHtml(errorPageLang(request?.headers.get("cookie")), retry);
   return new Response(body, {
