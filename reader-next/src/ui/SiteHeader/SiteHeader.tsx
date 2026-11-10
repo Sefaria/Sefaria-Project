@@ -25,6 +25,24 @@ export interface SiteHeaderProps {
   onMenuOpenChange?: (open: boolean) => void;
   /** The signed-in reader (null or absent: signed out). */
   viewer?: HeaderViewer | null;
+  /** While the reader has opted in to the new reader: "Back to the classic reader" and "Report a problem" in the account and phone
+   *  menus (LAUNCH_PLAN T-D05). Absent: no items. */
+  optIn?: HeaderOptInActions | null;
+  /** While the Library Assistant is on the page: the "✦ Library Assistant" pill before the search box opens it (the old
+   *  LibraryAssistantHeaderLink, sefaria.org #3934). Absent: no pill. */
+  onOpenAssistant?: () => void;
+}
+
+/** The Library Assistant's ✦ (the old LibraryAssistantStar: the widget's own path, 1.125em). */
+const AssistantStar = () => (
+  <svg width="1.125em" height="1.125em" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path fill="currentColor" d="M12 0C12.6 6.6 17.4 11.4 24 12C17.4 12.6 12.6 17.4 12 24C11.4 17.4 6.6 12.6 0 12C6.6 11.4 11.4 6.6 12 0Z" />
+  </svg>
+);
+
+export interface HeaderOptInActions {
+  onBackToClassic: (source: "account_menu" | "mobile_menu") => void;
+  onReportProblem: (source: "account_menu" | "mobile_menu") => void;
 }
 
 export interface HeaderViewer {
@@ -90,8 +108,9 @@ function Menu({ icon, label, children, anlFeature, picture, optionsClassName }: 
         )}
       >
         <div className={optionsClassName ? `${dd.options} ${optionsClassName}` : dd.options} lang={he ? "he" : "en"} onClick={(e) => {
-          // a link closes the menu, except one marked data-prevent-close (the reader's name), as the old DropdownMenu
-          const a = (e.target as Element).closest("a");
+          // a link closes the menu, except one marked data-prevent-close (the reader's name), as the old DropdownMenu; so does an
+          // action button marked data-close-menu
+          const a = (e.target as Element).closest("a, button[data-close-menu]");
           if (a && !a.hasAttribute("data-prevent-close")) setOpen(false);
         }}>{children}</div>
       </Popover>
@@ -140,7 +159,25 @@ const DropdownLanguageToggle = ({ next, lang, globe }: { next: string; lang: "en
  * @feature I18-008 Interface language switcher
  * @feature ANL-003 Header and category line impression events
  */
-export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }: SiteHeaderProps) {
+/** The opt-in's two items, as drop-down rows (account menu) or phone-menu rows. */
+function OptInItems({ actions, variant, t, onDone }: { actions: HeaderOptInActions; variant: "dropdown" | "mobile"; t: (en: string, he: string) => string; onDone?: () => void }) {
+  const source = variant === "dropdown" ? "account_menu" : "mobile_menu";
+  const cls = variant === "dropdown" ? `${dd.item} ${dd.actionItem}` : mn.action;
+  return (
+    <>
+      <button type="button" className={cls} data-close-menu="" data-testid={`report-problem-${variant}`} onClick={() => { onDone?.(); actions.onReportProblem(source); }}>
+        {variant === "mobile" ? <img src="/icons/editing-pencil.svg" alt="" /> : null}
+        {t("Report a problem", "דיווח על בעיה")}
+      </button>
+      <button type="button" className={cls} data-close-menu="" data-testid={`back-to-classic-${variant}`} onClick={() => { onDone?.(); actions.onBackToClassic(source); }}>
+        {variant === "mobile" ? <img src="/icons/chevron-right.svg" alt="" className={mn.back} /> : null}
+        {t("Back to the classic reader", "חזרה לגרסה הקודמת")}
+      </button>
+    </>
+  );
+}
+
+export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, optIn, onOpenAssistant }: SiteHeaderProps) {
   const lang = useInterfaceLang();
   // relative on the Library host (in-app), the Library's own address on a Voices host (lib/routing/library-href.ts)
   const lib = useLibraryHref();
@@ -169,7 +206,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
   const logoLabel = he ? "לוגו ספריית ספריא" : "Sefaria library logo";
   const t = (en: string, hebrew: string) => (he ? hebrew : en);
   // header_viewed once per session when the header is fully on screen (ANL-003)
-  const seen = useOnceFullyVisible<HTMLElement>(() => bothEvent("header_viewed", { impression_type: "regular_header" }), "sa.header_viewed");
+  const seen = useOnceFullyVisible<HTMLElement>(() => bothEvent("header_viewed", { impression_type: "regular_header" }), "sa.header_viewed", "regular_header");
   // on an auth page, its own `next` is where Log in / Sign up come back to (ReaderApp.openURL did the same)
   const authNext = isAuthPath(next.split("?")[0]!) ? nextFromPath(next) : next;
   // the auth pages are this client's own (in-app links; data-signup-source=nav_bar for the funnel, as the old AuthNavLink)
@@ -189,6 +226,13 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
           </div>
         </nav>
         <div className={styles.right}>
+          {onOpenAssistant ? (
+            <a href="#" role="button" className={styles.assistantPill} data-testid="assistant-pill" onClick={(e) => { e.preventDefault(); onOpenAssistant(); }}>
+              <AssistantStar />
+              <span className={styles.assistantLabel}>{t("Library Assistant", "עוזר הספרייה")}</span>
+              <span className={styles.assistantShort}>{t("Ask", "שאלו")}</span>
+            </a>
+          ) : null}
           <HeaderSearch {...search} />
           {viewer ? null : authLink("register", styles.signup, <InterfaceText en="Sign Up" he="להרשמה" />)}
           <div className={styles.icons}>
@@ -222,6 +266,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
                 <div className={dd.separator} />
                 <A href={`${LIBRARY}/updates`} className={dd.item}>{t("New Additions", "חידושים בארון הספרים של ספריא")}</A>
                 <A href={HELP[lang]} className={dd.item} target="_blank">{t("Help", "עזרה")}</A>
+                {optIn ? <><div className={dd.separator} /><OptInItems actions={optIn} variant="dropdown" t={t} /></> : null}
                 <div className={dd.separator} />
                 <A href={`${LIBRARY}${LOGOUT_HREF}`} className={dd.item}>{t("Log Out", "ניתוק")}</A>
               </Menu>
@@ -234,6 +279,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
               <div className={dd.separator} />
               <A href={`${LIBRARY}/updates`} className={dd.item}>{t("New Additions", "חידושים בארון הספרים של ספריא")}</A>
               <A href={HELP[lang]} className={dd.item} target="_blank">{t("Help", "עזרה")}</A>
+              {optIn ? <><div className={dd.separator} /><OptInItems actions={optIn} variant="dropdown" t={t} /></> : null}
             </Menu>
             )}
           </div>
@@ -287,6 +333,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
           <hr />
           <A href={HELP[lang]} target="_blank"><img src="/icons/help_mdl.svg" alt="" /><InterfaceText en="Get Help" he="עזרה" /></A>
           <A href={`${LIBRARY}/mobile-about-menu`}><img src="/icons/info.svg" alt="" /><InterfaceText en="About Sefaria" he="אודות ספריא" /></A>
+          {optIn ? <><hr /><OptInItems actions={optIn} variant="mobile" t={t} onDone={() => setMobileOpen(false)} /></> : null}
           <hr />
           <A href={`${VOICES}/`} className={mn.moduleSwitcher}><span className={mn.dot} style={{ backgroundColor: "#518159" }} /><InterfaceText en="Voices on Sefaria" he="חיבורים בספריא" /></A>
           <A href={DEVELOPERS} className={mn.moduleSwitcher} target="_blank"><span className={mn.dot} style={{ backgroundColor: "#7c416f" }} /><InterfaceText en="Developers on Sefaria" he="מפתחים בספריא" /></A>

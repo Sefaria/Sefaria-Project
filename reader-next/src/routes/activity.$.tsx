@@ -1,7 +1,7 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { DjangoHandoff } from "~/features/topics/DjangoHandoff";
 import { RevisionHistoryRoute } from "~/features/activity/RevisionHistoryRoute";
-import { parseSegmentHistoryPath, segmentHistoryQueryOptions } from "~/lib/activity/segment-history";
+import { isSignedOut, parseSegmentHistoryPath, segmentHistoryQueryOptions } from "~/lib/activity/segment-history";
 
 interface ActivitySearch {
   type?: string;
@@ -18,10 +18,15 @@ export const Route = createFileRoute("/activity/$")({
   notFoundComponent: DjangoHandoff,
   validateSearch: (s: Record<string, unknown>): ActivitySearch => (typeof s.type === "string" && s.type ? { type: s.type } : {}),
   loaderDeps: ({ search }) => ({ type: search.type }),
-  loader: async ({ context, params, deps }) => {
+  loader: async ({ context, params, deps, location }) => {
     const address = parseSegmentHistoryPath(params._splat ?? "");
     if (!address) throw notFound();
     const history = await context.queryClient.ensureQueryData(segmentHistoryQueryOptions(address, deps.type));
+    // signed out (the API's 401): to the login page and back here, as Django's login_required page did
+    if (isSignedOut(history)) {
+      context.queryClient.removeQueries({ queryKey: segmentHistoryQueryOptions(address, deps.type).queryKey });
+      throw redirect({ href: `/login?next=${encodeURIComponent(location.href)}`, statusCode: 302 });
+    }
     if (!history) throw notFound();
     return { address, ref: history.ref, version: history.version, lang: context.interfaceLang === "hebrew" ? "he" : "en" };
   },

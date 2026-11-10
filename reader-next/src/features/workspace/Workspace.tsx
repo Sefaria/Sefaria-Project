@@ -9,7 +9,9 @@ import type { PanelId, PanelState } from "~/lib/workspace/types";
 import { decodeWorkspace, type RawSearch } from "~/lib/workspace/url";
 import { panelKeysFor, readNavState, withPanelKeys } from "~/lib/workspace/commands";
 import { selectionKey } from "~/lib/text/queries";
-import { LoadingState } from "~/ui/Feedback/Feedback";
+import { ErrorState, LoadingState } from "~/ui/Feedback/Feedback";
+import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
+import { ReportingBoundary } from "~/lib/monitoring/ErrorBoundary";
 import { SplitView } from "~/ui/SplitView/SplitView";
 import type { WorkspaceRouteData } from "../reader/reader-route";
 import { TextPanel } from "../reader/TextPanel";
@@ -116,9 +118,12 @@ function PanelHost({ panel, data, innerSizes, alone }: { panel: PanelState; data
   switch (panel.kind) {
     case "text":
       return (
-        <Suspense fallback={<LoadingState />}>
-          <TextPanel panel={panel} data={panelData} innerSizes={innerSizes} alone={alone} />
-        </Suspense>
+        // a panel that fails to render is reported (T-D01) and shows the error message in its place; the other panels keep working
+        <ReportingBoundary name="panel" resetKey={panel.ref} fallback={() => <ErrorState title={<InterfaceText en="Something went wrong!" he="ארעה תקלה במערכת." />}><InterfaceText en="Please use the back button or the menus above to get back on track." he="אנא חזרו לתפריט הראשי או אחורנית על ידי שימוש בכפתורי התפריט או החזור." /></ErrorState>}>
+          <Suspense fallback={<LoadingState />}>
+            <TextPanel panel={panel} data={panelData} innerSizes={innerSizes} alone={alone} />
+          </Suspense>
+        </ReportingBoundary>
       );
   }
 }

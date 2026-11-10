@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**961 features**, 3937 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
+**961 features**, 3955 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 429 · partial 99 · todo 54 · replaced 46 · deferred 198 · n/a 135; 390 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 427 · partial 102 · todo 53 · replaced 47 · deferred 197 · n/a 135; 393 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -7087,6 +7087,7 @@ Hebrew all-results queries also search Dicta's Tanakh index and replace Sefaria'
 - VERIFIED 2026-10-05 (scripts/parity-search.mjs): for the Hebrew query אור with 'All Results' sefaria.org shows 10,182+ sources, Tanakh (182) and Genesis 1:14 first — Dicta's Tanakh hits replace Sefaria's (the Sefaria API alone gives 10,000+, Tanakh (233), Genesis 1:3 first). The page's single search-wrapper POST (aggs ['path'] + 100 hits together) is unchanged; the Dicta calls go to another host.
 - Rebuild: NOT built — it would send the user's Hebrew query to dicta.org.il, a third party. Owner decision needed. Until then Hebrew 'All Results' is Sefaria's own Tanakh hits (the old client's fallback when Dicta fails). Exact Phrase is identical to live.
 - OWNER DECISION 2026-10-06: merge with Dicta as sefaria.org does. BUILT (src/lib/search/dicta.ts, a port of search.js dictaQuery/dictaBooksQuery/mergeQueries): Hebrew 'All Results' sends /search and /books to sefaria.loadbalancer.dicta.org.il beside Sefaria's own query (CORS: any origin, content-type allowed); Sefaria's Tanakh hits are dropped and Dicta's verses ('Tanach with Ta'amei Hamikra') merged; relevance rescales Dicta's -pagerank to Sefaria's mean/spread — the old quirk of dividing both means by the Sefaria count is KEPT so the order equals sefaria.org's; chronological puts Dicta first; filter-tree Tanakh counts are Dicta's; the total is the sum ('10,182+'), or under filters the merged buckets' sum; a failed /books (3 s timeout) or /search falls back to Sefaria's results. Every page re-sorts all hits loaded so far. VERIFIED with scripts/parity-search.mjs: 'אור' and 'שמע ישראל' (relevance), 'אור' chronological, filtered to Tanakh and to Talmud — tabs, first 2,500 characters of results and the filter list identical to sefaria.org.
+- E2E 2026-11-10 (T-A04): the API cassette records Dicta under its /__dicta/ prefix (scripts/api-cassette.mjs, E2E_DICTA_UPSTREAM); scripts/cassette/dicta-route.mjs routes the browser's calls to sefaria.loadbalancer.dicta.org.il there, keeping their URLs, so the search-page spec replays Dicta once a fixture calls it.
 
 Code: [`static/js/sefaria/search.js:20`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/search.js#L20), [`static/js/sefaria/search.js:92`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/search.js#L92), [`static/js/sefaria/search.js:190`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/search.js#L190), [`static/js/sefaria/search.js:245`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/search.js#L245)
 
@@ -9151,6 +9152,7 @@ A bar tells new visitors the site uses cookies and lets them accept with one cli
 - Google One Tap defers if the cookie bar is visible
 - Shown until cookie cookiesNotificationAccepted set (20 years, shared cookie domain); bilingual text with privacy-policy link, Hebrew link module-aware (Misc.jsx:2816-2856).
 - VERIFIED 2026-10-05: cookie notice text EN 'We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. Learn More.' / HE 'אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר. קראו עוד בנושא', button 'OK' / 'לחצו כאן לאישור'; a 360px grey box at the bottom left. Rebuild: same cookie name; shown after mount.
+- 2026-11-10 (master #3948 ported): phone widths: a full-width navy bar on the bottom edge (centred text, OK inline); its height is published as --bottom-bar-height (the app and the phone menu keep their end above it) and --lc-launcher-bottom-offset (lifts the Library Assistant's button). Tablet and wider: a 360px card in the corner, the launcher offset forced to 0. Colours VERIFIED on www.sefaria.org v7.11.4 (Pixel 7 and 1280px, 2026-11-10): background rgb(33, 46, 80), a 1px #ccc top rule on phones, OK white with #333 text, 10px 14px padding, 6px radius. Tests: src/ui/CookieNotice/bottom-bar.test.ts, e2e/analytics-observability.spec.ts.
 
 Code: [`static/js/Misc.jsx:2816`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L2816)
 
@@ -9516,7 +9518,7 @@ Source: `inv_02_reader_shell.md#13`
 ### Account settings
 
 #### ACC-003 · Account settings page
-`standard` `legacy` · rebuild: **todo** — /settings/account stays a Django form at L1: record it as an accepted exit with a way back; the opt-in switch also in the new menu (T-F23, T-D05) `signed-in`
+`standard` `legacy` · rebuild: **partial** — The way back and the kill switch built in the new reader; the endpoint (lane B) and the settings page itself are Django's · *tested* `signed-in`
 
 The classic server-rendered account settings page lets users set notification frequency, languages, reading history, customs, assistant, experiments, email and Google Drive.
 
@@ -9533,6 +9535,7 @@ The classic server-rendered account settings page lets users set notification fr
 - Change email hidden when signed in via social providers (confirm email + password); Google Drive connected email + disconnect (/unlink-gauth) and connect Google; Save/Cancel (navigateBack()).
 - SERVER 2026-11-10 (lane B): the New Reader switch on /settings/account shows only while READER_OPTIN is on AND the remote-config key feature.reader.optin.audience includes the user: "staff" (default, also for a missing or unknown value; created by remote_config migration 0003) = is_staff only, "all" = every signed-in user. /api/profile ignores reader_version=next from anyone else. ReaderChoiceMiddleware clears a stale reader_version=next cookie of a non-staff user (and of any signed-out visitor) while the audience is "staff". Library host only: Voices responses never get or lose the cookie. Remote config reloads only in the process that saved it (no pub/sub): restart the web pods after changing the audience. Tests: reader/tests/reader_choice_api_test.py, sefaria/helper/tests/reader_choice_test.py.
 - SERVER 2026-11-10 (lane B, T-D05 server half): /api/reader-choice (Library host only). Every answer sets the csrftoken cookie if missing (GET first). GET -> {available, canChooseNext, reader, saved}; POST {"reader": "classic"|"legacy"|"next"} with X-CSRFToken: classic always works (signed out: cookie only; signed in: also profile.settings.reader_version), next only for the audience (else 403); answers {reader, saved} and sets or clears the cookie; never cached. Tests: reader/tests/reader_choice_api_test.py.
+- 2026-11-10 (T-D05 client half, T-C03 client half): while the reader_version=next cookie is present (the opt-in exists for this reader), the account menu and the phone menu offer 'Report a problem' (the sidebar's Feedback form in a dialog; the message is prefixed '[New reader]') and 'Back to the classic reader' (POST /api/reader-choice {reader: 'legacy'} with CSRF, then the cookie is cleared on the host and its parent domains and the page reloads). New GA4 events for these new controls only: reader_report_problem {source}, reader_back_to_classic {source, transport_type: beacon}. Remote config feature.reader.next.disabled = true clears the cookie and reloads into the classic reader once per session. Tests: src/features/shell/reader-choice.test.ts, src/ui/SiteHeader/SiteHeader.test.tsx, e2e/analytics-observability.spec.ts.
 
 Code: [`templates/account_settings.html:24-150`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/account_settings.html#L24-L150), [`templates/account_settings.html:249-304`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/account_settings.html#L249-L304), [`sefaria/model/user_profile.py:475-478`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/user_profile.py#L475-L478), [`reader/views.py:4558`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4558), [`reader/views.py:4243`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4243), [`templates/account_settings.html:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/account_settings.html#L1)
 
@@ -9971,7 +9974,7 @@ Source: `inv_08_other.md#4.1`
 ### Site banners
 
 #### PRM-014 · Site-wide banner with maybe-later back-off
-`standard` `live` · rebuild: **partial** — Library Assistant promo with the old back-off; generic SiteWideBanner (Strapi) not built · *tested*
+`standard` `live` · rebuild: **partial** — The Library Assistant promo banner is gone, as on sefaria.org (#3934); the generic SiteWideBanner (Strapi) is not built · *tested*
 
 A generic promotional banner can be dismissed permanently or snoozed so it returns later, up to three times.
 
@@ -9982,6 +9985,7 @@ A generic promotional banner can be dismissed permanently or snoozed so it retur
 - Cookie names chatbot_experiment_banner_dismissed, signup_promo_banner_dismissed
 - Geometry (1280px): a 104px #f7f7f7 strip under the header (padding 10px, 1px lightgrey rule), the #653259 card radius 10px padding 20px; ai-double-star.svg 41x43, 18px from two lines (16px 600 white; 16px at 0.85 opacity, 4px apart); buttons 38px high, 14px/18px 600: 'Log in to Try' white with a shadow, 'Maybe later' transparent; 50px before the buttons, 20px between them. Verified on www.sefaria.org with Playwright, 2026-10-29.
 - Hebrew interface: the banner's text and buttons stay in the English sans (Roboto; the Hebrew glyphs from the system's fallback face), 19px lines — not Heebo (24px lines), which made the strip 9px taller and moved every Hebrew desktop page down (the 2–14% whole-page diffs on the topics pages). VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
+- 2026-11-10 (master port, sefaria.org #3934 of 2026-11-03): the old client no longer mounts the 'Ask the Library Assistant' stand-alone promo banner (ChatbotExperimentBanner), and sends no promo_viewed for it (parity diff). The new reader's banner (src/features/shell/SiteWideBanner) is removed with its tests; the maybe-later back-off (src/lib/shell/promo-backoff.ts) stays for the generic SiteWideBanner, not built yet. Tests: e2e/texts-home.spec.ts (no banner).
 
 Code: [`static/js/SiteWideBanner.jsx:5`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SiteWideBanner.jsx#L5), [`static/js/SiteWideBanner.jsx:105`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SiteWideBanner.jsx#L105)
 
@@ -10546,12 +10550,13 @@ Source: `inv_08_other.md#5.3`
 ### Library Assistant
 
 #### AI-001 · Chatbot experiment banner (shell mount)
-`standard` `live` · rebuild: **partial** — Signed-out banner done; signed-in 'Try It' (not in the experiment) not shown yet · *tested*
+`standard` `live` · rebuild: **replaced** — The banner is gone on sefaria.org (#3934); its replacement, the header's Library Assistant pill, is ported · *tested*
 
 A site-wide banner invites eligible users to try the Library Assistant.
 
 - Shows only when module is Library, show_join_chatbot_banner set, not mobile, !Sefaria.in_chatbot_experiment (ReaderApp.jsx:2574). Behavior details: see SiteWideBanner entry.
 - Mounted only for the library module, wide screens (not mobile), when remote config feature.client.show_join_chatbot_banner is true and the reader is not already in the experiment; never on /login, /register, /password/reset/confirm. Signed out: 'Log in to Try' → /login?next=/enable-library-assistant?next=<page> (data-signup-source la_banner), cookie signup_promo_banner_dismissed. Signed in: 'Try It' posts profile settings {library_assistant: true} and reloads (cookie chatbot_experiment_banner_dismissed). Back-off schedule from feature.chatbot.promoMaybeLaterJSON, session length from feature.chatbot.promoSessionLengthSeconds. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- 2026-11-10 (master port, #3934): what replaced the banner on sefaria.org is the header's '✦ Library Assistant' pill before the search box (Header.jsx LibraryAssistantHeaderLink, static/css/library-assistant.scss): shown while the widget is on the page, 'Ask' below 1159px, hidden below 900px, a click dispatches document `chatbot:open {source: 'header'}`. Ported: src/ui/SiteHeader (onOpenAssistant), src/features/shell/assistant-pill.ts, LibraryAssistant publishes whether it shows. Not ported here: #3934's other entry points (the phone menu item, signed-out and phone access), which follow the widget's own rules in src/features/assistant. Tests: src/ui/SiteHeader/SiteHeader.test.tsx, src/features/shell/assistant-pill.test.ts.
 
 Code: [`static/js/ReaderApp.jsx:2574`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2574)
 
@@ -12026,7 +12031,7 @@ Code: [`templates/base.html:15-17`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#5.2`
 
 #### PLT-008 · Canonical URLs and hreflang
-`core` `live` · rebuild: **deferred** — Default-on/SEO head builder waits (LAUNCH_PLAN §8): canonical only on /calendars and /translations, no hreflang; origin is T-C08 `system`
+`core` `live` · rebuild: **partial** — Absolute canonical + hreflang on /calendars and /translations/<lang> (PUBLIC_CANONICAL_ORIGIN); reader, library and topic pages have none yet `system`
 
 Pages declare a canonical address and language alternates so search engines pick the right version.
 
@@ -12034,6 +12039,7 @@ Pages declare a canonical address and language alternates so search engines pick
 - strips exactly ?lang=he[&aliyot=0] (he) or ?lang=bi[&aliyot=0] (en); '/' -> bare host. Emitted for text panels, category pages, menu_page pages.
 - hreflang alternates: https://www.sefaria.org<path> (en) and https://www.sefaria.org.il<path> (he) on every page, path only,
 - hard-coded www hosts even for voices (BUG-ish: voices pages point to library hosts).
+- REBUILD 2026-11-10 (T-C08): canonical and hreflang alternates are absolute, from PUBLIC_CANONICAL_ORIGIN (src/lib/config.ts canonicalUrl; default and fallback https://www.sefaria.org; chart value reader.canonicalOrigin), not PUBLIC_SITE_ORIGIN, which is empty in the cluster on purpose. Per request, as Django's canonical_url: on the Hebrew site's host (*.org.il, *-il.org) canonical and og:url name www.sefaria.org.il (src/lib/routing/canonical.ts); the alternates stay one per language. Pages with a canonical today: /calendars and /translations/<lang>; the reader, library and topic pages have none yet. Tests: src/lib/config.test.ts, src/lib/routing/canonical.test.ts.
 
 Code: [`reader/views.py:1413-1428`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1413-L1428), [`templates/base.html:21-24`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/base.html#L21-L24)
 
@@ -12260,6 +12266,7 @@ The site has a manifest and icons but no offline caching, push notifications or 
 - Mobile web variant is only a Playwright config (playwright.mobileweb.config.ts).
 - nginx 301-redirects /static/mobile/message-en.json and message-he.json to ${STRAPI_LOCATION}/api/mobile-message[-he] (nginx tpl:150-158, 258-266);
 - legacy copies in static/mobile/message-{en,he}.json (2023 donation message schema {title,text[],buttonLink,buttonText,name,schemaVersion}).
+- DEPLOY 2026-11-10 (T-C04): with nodejs.mode optin/reader, nginx sends /favicon.ico, /site.webmanifest, /manifest.json, /llms.txt and /.well-known/* straight to Varnish whatever the reader_version cookie (helm-chart/sefaria/templates/_reader-django-paths.tpl, generated by build/ci/reader-nginx-paths.mjs), instead of a failed render in the reader first.
 
 Code: [`helm-chart/sefaria/templates/configmap/nginx.yaml:150`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/helm-chart/sefaria/templates/configmap/nginx.yaml#L150), [`static/mobile/message-en.json:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/mobile/message-en.json#L1)
 
@@ -12307,6 +12314,7 @@ Crawling rules are served by nginx from deployment config and block everything o
 - Not a Django view: Helm ConfigMap robots-txt-<env> (templates/configmap/robots-txt.yaml) mounted in nginx rollout (rollout/nginx.yaml:101,141); nginx location /robots.txt alias /app/robots.txt.
 - Content: User-agent: * then Disallow: / when nginx.disableScraping (non-prod), else Disallow: /activity/, /login?next=*, /register?next=*.
 - Varnish bans spiders violating crawl delay (403 'Your spider is not honoring our robots.txt crawl-delay. Banning.').
+- DEPLOY 2026-11-10 (T-C05): /robots.txt stays nginx's own location in every nodejs.mode; the reader_version cookie is never consulted for it (build/ci/reader-nginx-routing.py checks it).
 
 Code: [`helm-chart/sefaria/templates/configmap/robots-txt.yaml:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/helm-chart/sefaria/templates/configmap/robots-txt.yaml#L1), [`helm-chart/sefaria/templates/rollout/nginx.yaml:101`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/helm-chart/sefaria/templates/rollout/nginx.yaml#L101)
 
@@ -12338,6 +12346,7 @@ Every server-rendered page carries canonical, language-alternate and social meta
 - base.html: hreflang en -> www.sefaria.org{{path}}, hreflang he -> sefaria.org.il (:22-23); canonical_url block (:26-28; set by reader/views.py canonical_url for texts/sheets);
 - og:type/image/image:type/width 1200/height 630/url (:31-41) with image from {% social_image_url request 'facebook' %}; per-page meta_title/meta_description blocks.
 - JSON-LD breadcrumbs: ld_cat_crumbs, sheet_crumbs (reader/views.py:1433-1520) and ref-level ld. Server-side rendered HTML via Node SSR (render_react_component) so crawlers see content.
+- REBUILD 2026-11-10 (T-C08): og:url uses the same absolute canonical origin as the canonical link (PUBLIC_CANONICAL_ORIGIN). og:image is still built on PUBLIC_SITE_ORIGIN (relative in the cluster).
 
 Code: [`templates/base.html:22`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/base.html#L22), [`reader/views.py:1433`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1433)
 
@@ -12388,13 +12397,15 @@ Source: `inv_08b_admin_linker_apps.md#5.7`
 ### Operations
 
 #### PLT-031 · Health checks and operational endpoints
-`standard` `live` · rebuild: **done** — /healthz-reader for the reader's probes; Django's health URLs pass through. `system`
+`standard` `live` · rebuild: **partial** — Request log module built; start.ts wiring and the Django side of the request id pending · *tested* `system`
 
 Health endpoints report readiness of database, Redis, Node SSR and the library for load balancers and rollouts.
 
 - /healthz and /health-check (application_health_api: redis ping, Node SSR /healthz, db; JSON {allReady, dbConnected, multiserverReady, redisReady, nodejsReady, revisionNumber}; 503 on failure);
 - /healthz-rollout (200 once library.is_initialized()); standalone name-service /healthz always 200; /nginx-health in nginx.
 - urls_name.py standalone autocomplete pod (NAME_SERVICE=true).
+- DEPLOY 2026-11-10: in optin/reader modes nginx gives the reader 5 s to accept a connection (proxy_connect_timeout) before falling back to Varnish/Django (@reader_down: GET/HEAD only; a write gets the 502, never replayed), so a reader scaled to zero (the emergency rollback, reader-next/docs/DEPLOYMENT.md) costs an opted-in visitor seconds, not a minute.
+- 2026-11-10 (T-D02, Node side): src/lib/monitoring/server-log.ts writes one JSON line per page request (request_id, http.method/path/status_code/route_kind, duration in ns, upstream_status, pass_through, upstream_failed, release) and answers X-Request-Id (the incoming one when well-formed); withRequestId() adds it to upstream calls. Not wired yet: src/start.ts (lane E) calls beginRequestLog / finish. Tests: src/lib/monitoring/server-log.test.ts.
 
 Code: [`sefaria/views.py:293`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L293), [`sefaria/urls_name.py:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_name.py#L1)
 
@@ -12767,6 +12778,7 @@ Header visibility is reported once per session.
 - header_viewed {impression_type:'regular_header'} (sa_event + gtag) once per session when 100% visible (useOnceFullyVisible, sessionStorage sa.header_viewed) (Header.jsx:257-261).
 - CategoryColorLine shares same session key with impression_type 'category_color_line' (Misc.jsx:1633-1646).
 - Rebuild: SiteHeader and CategoryColorLine report header_viewed (sa + gtag) once per session via useOnceFullyVisible (shared key sa.header_viewed, checked when the element mounts — as on the old site, both report only when they mount before either fires).
+- 2026-11-10: on www.sefaria.org a reader's first page sends header_viewed twice, impression_type category_color_line and regular_header (parity diff). The new reader sent only the header's: its text panel mounts after the header has reported and set the shared session key. useOnceFullyVisible now judges the key as it was when the page loaded and lets each call site report once per page, so both are sent. Deliberate difference: a colour line first fully visible on a later in-app page of that first page load still reports. Tests: e2e/analytics-observability.spec.ts.
 
 Code: [`static/js/Header.jsx:257`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L257), [`static/js/Misc.jsx:1633`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L1633)
 
@@ -12854,6 +12866,7 @@ Named events from the shell used by analytics.
 - Search analytics flow source labels nav_bar/back_click, endFlow('abandoned') on in-app navigation away, reporting of modified-click results (ReaderApp.jsx:1164,1225-1227,1240-1242,2035-2037,336-338).
 - ToolTipped clicks go via TrackG4.gtagClick with AdContext (Misc.jsx:1458-1468).
 - Rebuild (src/lib/analytics/reader.ts): select_content on opening a text; Text Segment Click (+ Open Connections Panel when no sidebar), Citation Link Click, Named Entity Link Click, Change Language (aleph buttons and the sidebar's), Choose Version, Other Text Click. NOT sent: Display Option Click (FOUND: only the retired ToggleOption sent it; the current display menu sends nothing), Set Translation Language Preference (the setting is not in this client).
+- 2026-11-10: the display-options button sends the old `onclick_ToolTipped {classes: 'readerOptionsTooltip tooltip-toggle', keywordTargets, interfaceLang}` (DisplaySettingsButton is a ToolTipped; TrackG4.gtagClick) when it opens the menu; keywordTargets as ReaderApp.getUserContext: the refs' categories, the book, the refs, lower-cased, de-duplicated (the text's section, plus the selected verse while the sidebar is open). The old one also fires on the click that closes the menu. Tests: src/lib/analytics/observability.test.ts, e2e/analytics-observability.spec.ts.
 
 Code: [`static/js/ReaderPanel.jsx:684`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L684), [`static/js/ReaderApp.jsx:1225`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1225)
 
@@ -12870,6 +12883,7 @@ Custom dimensions describing the page are computed for each navigation.
 - trackPageview (355-413) via Sefaria.track: page type (menuOpen or mode; 'Static' with no panels), number of panels ('2' or '3.2' text.connection), refs and book names (joined ' | '), primary category ('X Commentary' for commentaries) and secondary, content languages and version titles per text panel, sidebars (filters or 'all').
 - **DEAD:** actual Sefaria.track.pageview call is commented out. It would fire on push, on replace after 3s of unchanged refs (checkScrollIntentAndTrack), and initially.
 - Confirmed dead (the pageview call is commented out): not ported.
+- 2026-11-10: the old ReaderApp.trackPageview still calls Track.setPageType (dimension5 = panels[0].menuOpen || mode) and the other Track.set* dimensions, but they only ever went to Universal Analytics, and on www.sefaria.org even that call never reaches a tracker (track.js binds `ga` before GTM's analytics.js has made it; VERIFIED with scripts/analytics-parity.mjs). GA4 receives no page-type dimension from the old client, so the new reader sends none (owner decision 2026-11-10: no Universal Analytics hits).
 
 Code: [`static/js/ReaderApp.jsx:355`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L355)
 
@@ -12942,6 +12956,7 @@ The site loads several external tools for tag management, A/B testing, behavior 
 - React 16 + ReactDOM UMD from unpkg; jQuery 2.2.4 + jQuery UI 1.12.1 from cdnjs with local fallbacks; js/lib/keyboard.js (virtual Hebrew keyboard); analyticsEventTracker.js
 - VERIFIED 2026-10-06 (scripts/probes/anl-probe.mjs, dataLayer recorded on www.sefaria.org/Genesis.1): GTM container + gtag config G-5S6RP1RFZ2 {user_id, traffic_type, site_lang:'english', site_version:'v7.2.3-prod.2'}; GTM also loads a legacy property G-P6B48B03CT ('is_legacy_loaded') and a `ga` shim, so Sefaria.track.event (Universal Analytics) calls are still converted into GA4 events.
 - Rebuild: src/lib/analytics/scripts.ts writes GTM, gtag (same config) and Simple Analytics (stub, sa_metadata, latest[.dev].js with DNT) from env GOOGLE_TAG_MANAGER_CODE / GOOGLE_GTAG / SIMPLE_ANALYTICS_HOSTNAME / APP_VERSION; each off when unset (development, tests). Helm (reader mode) reads the IDs from the local-settings secret by key. NOT ported: VWO (hides <body> until loaded), Hotjar, Unbounce — owner decision.
+- 2026-11-10 (decision D1, T-D03): web vitals as one GA4 `web_vitals` event per metric (LCP, CLS, INP when the page is hidden; FCP, TTFB when known) through the existing gtag, with metric_name, metric_value, metric_rating, metric_id, page_type (route kind), debug_target (tag#id.class, never text) and reader_variant 'next'. The `web-vitals` package is not a dependency, so the measurement is first-party (PerformanceObserver). On only when remote config feature.client.remote_config_json has webVitals {enabled: 1, sampleRate}. The old reader sends no web_vitals event. Tests: src/lib/analytics/observability.test.ts.
 
 Code: [`templates/base.html`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/base.html)
 
@@ -12970,7 +12985,7 @@ Source: `inv_08_other.md#5.4`
 ### Legacy tracking
 
 #### ANL-016 · Legacy Universal Analytics wrapper and TrackG4
-`standard` `legacy` · rebuild: **done** · *tested* `system`
+`standard` `legacy` · rebuild: **replaced** — UA calls logged only, never sent (owner decision 2026-11-10: legacy's never fire, the property is shut down) · *tested* `system`
 
 Older event tracking helpers still used by many components.
 
@@ -12981,6 +12996,7 @@ Older event tracking helpers still used by many components.
 - Direct gtag/sa_event: banner_viewed, modal_viewed, *_interacted_with_*, promo_viewed/promo_clicked, header_viewed, banner_probe_viewed, products_*
 - Server: api/linker-track, /api/send_feedback
 - Rebuild: uaEvent(category, action, label, value) sends through GTM's ga shim with the tracker name (as track.js), only when the shim is present. TrackG4.gtagClick (onclick_ToolTipped) belongs to promotions/AdContext — not built.
+- Owner decision 2026-11-10: no Universal Analytics hits from the new reader. The old client's Track.event calls never fire on www.sefaria.org (track.js binds `ga` before the tracker exists, so they go to its mock; VERIFIED with scripts/analytics-parity.mjs) and the UA property is shut down. src/lib/analytics/core.ts uaEvent now only writes the in-page analytics log (tests keep the old names); nothing is sent to `ga`. The old window.onerror 'Javascript Errors' UA event is not ported for the same reason. The GA4 stream is unchanged.
 
 Code: [`static/js/sefaria/track.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/track.js), [`static/js/sefaria/trackG4.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/trackG4.js)
 
@@ -12990,13 +13006,14 @@ Source: `inv_08_other.md#5.4`
 ### Error reporting
 
 #### ANL-017 · Browser error reporting (Sentry)
-`retire` `live` · rebuild: **replaced** — Not ported: Sentry is no longer used (owner, 2026-11-04) `system`
+`retire` `live` · rebuild: **partial** — First-party beacon reporter built (no Sentry); needs the receiving endpoint and PUBLIC_ERROR_ENDPOINT in the chart · *tested* `system`
 
 Front-end errors and performance traces are reported to Sentry.
 
 - client.jsx:21-34: @sentry/react with BrowserTracing + Replay; sample rates from remoteConfig.sentry.*; release = appVersion; DSN CLIENT_SENTRY_DSN
 - Server Sentry config in sefaria/settings_utils.py
 - RETIRED 2026-11-04 (owner): Sentry is no longer used. The new reader loads no Sentry SDK and sends no errors, traces or replays; CLIENT_SENTRY_DSN is no longer passed to the reader pods. Its removal also ends the browser's /api/remote-config fetch on every page (Sentry was its only reader).
+- BUILT 2026-11-10 (decision D-8; Sentry stays out): a first-party reporter (src/lib/monitoring/error-reporter.ts) beacons window errors, unhandled rejections, React boundary errors (root, route via RouteError, each text panel) and hydration errors to PUBLIC_ERROR_ENDPOINT with navigator.sendBeacon; off when unset. Payload: message and stack (truncated; query strings, fragments and e-mail addresses scrubbed), release (APP_VERSION), route kind, signed-in flag, path without query, user-agent class, sample rate, ms since load. Installed at module load, before hydration (src/lib/monitoring/browser.ts). Path secrets collapsed (src/lib/monitoring/redact-path.ts); a non-Error throw reported by its type only; off for bots; 4xx API answers not reported; sampled per page load (PUBLIC_ERROR_SAMPLE_RATE), at most 10 per page and 30 per session, duplicates once. PUBLIC_ERROR_ENDPOINT must be same-origin. The old track.js window.onerror 'Javascript Errors' UA event is not ported (no UA hits, owner decision 2026-11-10). The receiving endpoint is not built yet (contract in rn-shared/reports/c-observability.md). Tests: src/lib/monitoring/error-reporter.test.ts, e2e/analytics-observability.spec.ts.
 
 Code: [`static/js/client.jsx:21`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/client.jsx#L21), [`sefaria/settings_utils.py`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/settings_utils.py)
 
@@ -14411,6 +14428,7 @@ A public feed of recent text edits, filterable by type, by user, or by segment, 
 - robots.txt Disallows /activity/.
 - BUILT 2026-11-05, a text's revision history only (/activity/<ref>/<lang>/<version>[/<page>]?type=): title, version (Hebrew title in the Hebrew interface), the filter menu, the feed as activity_feed.html (text edits with their diff in green/red, connections, notes, index and term changes with 'details', version metadata, lexicon entries, reviews with a star score, sheets), Django's naturaltime, 'Older Activity »', noindex; refs open in the app. Data: GET /api/activity/<ref>/<lang>/<version>?type=&page= — reader/views.py segment_history_api, NEW on this branch (sefaria.org has no JSON for this page; until it is deployed the API's 404 makes the page a 404, which the server passes to Django). The reader's 'Revision History' link is now relative (same tab rule as live: a new tab). Not built: the site's and a user's activity, the leaderboard (still Django's), and the template's dead revert button. Tests: e2e/activity.spec.ts (the API answer written into the cassette), src/lib/activity/segment-history.test.ts.
 - SERVER 2026-11-10 (lane B): /api/activity/<ref>/<lang>/<version> requires sign-in as the page does (401 JSON signed out; the client must send the reader's cookies), validates page (1..100, else 400 before any lookup), is GET only and private, keeps 404 for an unknown ref or version, and carries the same events the page's template is given (parity test). Tests: reader/tests/segment_history_api_test.py.
+- 2026-11-10 (lane B's contract): /api/activity answers 401 signed out. The new page's server call forwards the reader's cookie, and a 401 sends the reader to /login?next=<the page> (302), as Django's login_required page did. Tests: e2e/analytics-activity-auth.spec.ts.
 
 Code: [`reader/views.py:3963`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3963), [`reader/views.py:4080`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4080), [`templates/activity.html:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/activity.html#L1)
 

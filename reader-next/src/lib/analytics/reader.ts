@@ -7,7 +7,7 @@
  * @feature ANL-009 Reader interaction event names
  * @feature ANL-012 Sidebar analytics events
  */
-import { gtagEvent, uaEvent } from "./core";
+import { gtagEvent, uaEvent, type AnalyticsParams } from "./core";
 
 /** Tool modes that need an account (ConnectionsPanel: signed out they open the sign-up modal and set no mode). */
 const SIGN_IN_MODES = new Set(["Add To Sheet", "Notes", "Add Connection"]);
@@ -50,4 +50,17 @@ export const readerAnalytics = {
   feedbackSent: (url: string) => uaEvent("Tools", "Send Feedback", url),
   lexiconLookup: (action: string, words: string) => uaEvent("Lexicon", action, words),
   dictionaryEntryClicked: (ref: string) => uaEvent("Reader", "Click Dictionary Entry from Lookup", ref),
+  /**
+   * The display-options button (the old DisplaySettingsButton is a ToolTipped: TrackG4.gtagClick sends `onclick_ToolTipped` with its
+   * classes and the AdContext's keywordTargets and interfaceLang). keywordTargets as ReaderApp.getUserContext builds them: each
+   * panel ref's categories, then the books, then the refs, lower-cased, without repeats.
+   */
+  displayOptionsClicked: (p: { categories: readonly string[]; book: string; refs: readonly string[]; interfaceLang: "english" | "hebrew" }) =>
+    gtagEvent("onclick_ToolTipped", { classes: "readerOptionsTooltip tooltip-toggle", keywordTargets: keywordTargets(p), interfaceLang: p.interfaceLang } as unknown as AnalyticsParams),
 };
+
+/** ReaderApp.getUserContext's keywordTargets for the refs on screen (one book). */
+export function keywordTargets({ categories, book, refs }: { categories: readonly string[]; book: string; refs: readonly string[] }): string[] {
+  const triggers = [...refs.flatMap(() => categories), ...refs.map(() => book), ...refs].filter(Boolean);
+  return [...new Set(triggers.map((t) => t.toLowerCase()))];
+}

@@ -7,6 +7,7 @@
  * @feature LEG-019 Text edit activity feed (/activity): a text's revision history
  */
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader } from "@tanstack/react-start/server";
 import { queryOptions } from "@tanstack/react-query";
 import { decodeHTML } from "entities";
 import { SEFARIA_API_ORIGIN, SefariaApiError, apiJson } from "~/lib/api/client";
@@ -188,12 +189,21 @@ export function naturalTime(iso: string | null | undefined, lang: "en" | "he", n
   return `${out.join(", ")} ago`;
 }
 
+/** The API's answer to a reader who is not signed in (401): the page sends them to log in, as Django's login_required did. */
+export interface SignedOut {
+  signedOut: true;
+}
+export const isSignedOut = (h: SegmentHistory | SignedOut | null | undefined): h is SignedOut => !!h && "signedOut" in h;
+
 export const readSegmentHistory = createServerFn({ method: "GET" })
   .validator((d: { ref: string; lang: string; version: string; page: number; type?: string }) => d)
-  .handler(async ({ data }): Promise<SegmentHistory | null> => {
+  .handler(async ({ data }): Promise<SegmentHistory | SignedOut | null> => {
     const q = new URLSearchParams({ page: String(data.page), ...(data.type ? { type: data.type } : {}) });
     const path = `/api/activity/${data.ref.split("/").map(encodeURIComponent).join("/")}/${encodeURIComponent(data.lang)}/${encodeURIComponent(data.version)}?${q}`;
-    const r = await fetch(`${SEFARIA_API_ORIGIN}${path}`, { deadlineMs: 30_000 } as RequestInit);
+    // the reader's own session (the API answers 401 signed out): the request's cookie goes with the server's call
+    const cookie = getRequestHeader("cookie");
+    const r = await fetch(`${SEFARIA_API_ORIGIN}${path}`, { deadlineMs: 30_000, credentials: "include", ...(cookie ? { headers: { cookie } } : {}) } as RequestInit);
+    if (r.status === 401 || r.status === 403) return { signedOut: true };
     if (r.status === 404) return null;
     try {
       return await apiJson<SegmentHistory>(r, `Revision history ${data.ref}`);
@@ -205,10 +215,10 @@ export const readSegmentHistory = createServerFn({ method: "GET" })
 
 /** The history page. Search class: memory only (it changes with every edit). */
 export const segmentHistoryQueryOptions = (a: SegmentHistoryAddress, type: string | undefined) =>
-  queryOptions<SegmentHistory | null>({
+  queryOptions<SegmentHistory | SignedOut | null>({
     ...withPolicy("search", {
       queryKey: ["activity", a.ref, a.lang, a.version, a.page, type ?? ""] as const,
-      queryFn: (): Promise<SegmentHistory | null> => readSegmentHistory({ data: { ...a, ...(type ? { type } : {}) } }),
+      queryFn: (): Promise<SegmentHistory | SignedOut | null> => readSegmentHistory({ data: { ...a, ...(type ? { type } : {}) } }),
     }),
     retry: false,
   });

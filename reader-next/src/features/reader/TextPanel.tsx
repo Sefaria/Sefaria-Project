@@ -601,7 +601,11 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           />
           <Popover
             open={menuOpen}
-            onOpenChange={setMenuOpen}
+            onOpenChange={(o) => {
+              // the old DisplaySettingsButton's click event (onclick_ToolTipped), on opening the menu
+              if (o && !menuOpen) readerAnalytics.displayOptionsClicked({ categories: section.categories, book: section.book, refs: view && selectedRefs.length === 1 ? [section.ref, selectedRefs[0]!] : [section.ref], interfaceLang });
+              setMenuOpen(o);
+            }}
             label="Text display options"
             flush
             panelClassName={styles.displayMenu}
