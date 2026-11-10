@@ -49,6 +49,8 @@ export interface PrepareOptions {
   lang?: string;
   /** href for a citation. Default: Sefaria's canonical path. */
   refHref?: (ref: string) => string;
+  /** href for a plain site path in the text ("/Genesis.1.1"). Default: as written; pass libraryHref's on another host. */
+  siteHref?: (path: string) => string;
   /** href for a category mention's library page. Default: /texts/<path>. */
   categoryHref?: (path: string) => string;
   /** href for a named entity's topic page. Default: /topics/<slug> (this client's page; pass libraryHref's on another host). */
@@ -157,7 +159,12 @@ export function prepareSegmentHtml(raw: string, opts: PrepareOptions = {}): Prep
     else if (el.name === "span" && a["data-sefaria-image"] !== undefined) {
       const alt = a["data-sefaria-alt"] ?? "";
       // no size is known before it loads: lazy below the screen, decoded off the main thread
-      const imgAttribs = { src: a["data-sefaria-image"], alt, loading: full ? "eager" : "lazy", decoding: "async" };
+      const imgAttribs: Record<string, string> = { src: a["data-sefaria-image"], alt, loading: full ? "eager" : "lazy", decoding: "async" };
+      // the stored size (when given) reserves the image's box before it loads: an image above the reading place must not move it
+      if (a["data-sefaria-width"] && a["data-sefaria-height"]) {
+        imgAttribs.width = a["data-sefaria-width"];
+        imgAttribs.height = a["data-sefaria-height"];
+      }
       if (full) {
         // legacy VersionImageSpan: the image, centred, with its alt text as the caption under it
         el.attribs = { class: "image-in-text" };
@@ -177,8 +184,11 @@ export function prepareSegmentHtml(raw: string, opts: PrepareOptions = {}): Prep
       el.attribs = { class: "category-link", href: (opts.categoryHref ?? defaultCategoryHref)(path.split("/").map(encodeURIComponent).join("/")), "data-category-path": path };
     } else if (el.name === "span" && a["data-sefaria-href"]) {
       el.name = "a";
-      el.attribs = { href: a["data-sefaria-href"] };
-      if (/^https?:/i.test(a["data-sefaria-href"])) el.attribs.rel = "noopener noreferrer";
+      const raw = a["data-sefaria-href"];
+      const external = /^https?:/i.test(raw);
+      // a site path goes through libraryHref like category and topic links (absolute on a host that does not serve it)
+      el.attribs = { href: external ? raw : (opts.siteHref ?? ((p: string) => p))(raw), class: external ? "external-link" : "site-link" };
+      if (external) el.attribs.rel = "noopener noreferrer";
     }
     // any other link in the text (a translation's own <a href>) is not a tab stop either: Tab goes verse to verse
     if (el.name === "a") el.attribs.tabindex = "-1";

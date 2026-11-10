@@ -194,8 +194,11 @@ const MAM_VALUES = new Map([
 /**
  * Converts untrusted Sefaria text markup into safe, directly renderable HTML.
  *
- * The operation parses once, removes unsupported attributes, emits no URLs,
- * and extracts footnotes into result-local records. Options can narrow but
+ * The operation parses once, removes unsupported attributes, emits no
+ * executable URLs, and extracts footnotes into result-local records.
+ * (SEFARIA-READER EXTENSION: upstream emits no URLs at all; this copy keeps
+ * vetted http(s)/data:image image sources and http(s)/site-relative link
+ * addresses as data-sefaria-image / data-sefaria-href values — see below.) Options can narrow but
  * never widen the fixed output grammar.
  *
  * @remarks
@@ -427,7 +430,13 @@ function classifyElement(
       return {
         kind: "element",
         name: "span",
-        attributes: { "data-sefaria-image": src, "data-sefaria-alt": element.attribs.alt ?? "" },
+        attributes: {
+          "data-sefaria-image": src,
+          "data-sefaria-alt": element.attribs.alt ?? "",
+          // its size, when the markup gives one, so the reader reserves the space before it loads
+          ...(/^\d{1,5}$/.test(element.attribs.width ?? "") ? { "data-sefaria-width": element.attribs.width! } : {}),
+          ...(/^\d{1,5}$/.test(element.attribs.height ?? "") ? { "data-sefaria-height": element.attribs.height! } : {}),
+        },
         suppressChildren: true,
       };
     }
@@ -644,7 +653,9 @@ function classifyAnchor(
   }
   if (!hasClass(element, "namedEntityLink")) {
     const href = (element.attribs.href ?? "").trim();
-    if (/^(?:https?:\/\/|\/(?!\/))[^\s"'<>]*$/i.test(href)) {
+    // a site path is "/" not followed by "/" or a backslash (browsers read "/" + backslash + "evil.org" as "//evil.org");
+    // no backslash or %5C anywhere in the address
+    if (/^(?:https?:\/\/|\/(?![\/\\]))[^\s"'<>\\]*$/i.test(href) && !/%5c/i.test(href)) {
       return { kind: "element", name: "span", attributes: { "data-sefaria-href": href } };
     }
   }

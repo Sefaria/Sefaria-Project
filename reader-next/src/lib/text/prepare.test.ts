@@ -155,6 +155,10 @@ describe("images", () => {
     expect(prepareSegmentHtml('a <img src="data:text/html;base64,PHNjcmlwdD4=" alt="bad"> b').html).toBe("a bad b");
     expect(prepareSegmentHtml('a <img src="https://x.org/a.png" onerror="alert(1)" alt="ok"> b').html).not.toContain("onerror");
   });
+  it("keeps the stored size so the box is reserved before the image loads; drops a size that is not a number", () => {
+    expect(prepareSegmentHtml(`a <img src="${SRC}" alt="f" width="400" height="200"> b`).html).toBe(`a <img alt="f" decoding="async" height="200" loading="lazy" src="${SRC}" width="400"> b`);
+    expect(prepareSegmentHtml(`a <img src="${SRC}" alt="f" width="40%" height="x"> b`).html).not.toMatch(/width|height/);
+  });
   it("isFullSegmentImage is legacy's regex", () => {
     expect(isFullSegmentImage(`<img src="${SRC}">`)).toBe(true);
     expect(isFullSegmentImage(`text <img src="${SRC}">`)).toBe(false);
@@ -172,9 +176,16 @@ describe("category mentions and plain links", () => {
   });
   // @feature TXD-020
   it("a plain link keeps an http(s) or site address; any other is unwrapped", () => {
-    expect(prepareSegmentHtml('see <a href="https://example.org/x">this</a>').html).toBe('see <a href="https://example.org/x" rel="noopener noreferrer" tabindex="-1">this</a>');
-    expect(prepareSegmentHtml('see <a href="/Genesis.1.1">this</a>').html).toBe('see <a href="/Genesis.1.1" tabindex="-1">this</a>');
+    expect(prepareSegmentHtml('see <a href="https://example.org/x">this</a>').html).toBe('see <a class="external-link" href="https://example.org/x" rel="noopener noreferrer" tabindex="-1">this</a>');
+    expect(prepareSegmentHtml('see <a href="/Genesis.1.1">this</a>').html).toBe('see <a class="site-link" href="/Genesis.1.1" tabindex="-1">this</a>');
+    // a site path through libraryHref (absolute on a host that does not serve it)
+    expect(prepareSegmentHtml('see <a href="/Genesis.1.1">this</a>', { siteHref: (p) => `https://www.sefaria.org${p}` }).html).toContain('href="https://www.sefaria.org/Genesis.1.1"');
     expect(prepareSegmentHtml('see <a href="javascript:alert(1)">this</a>').html).toBe("see this");
     expect(prepareSegmentHtml('see <a href="//evil.org">this</a>').html).toBe("see this");
+    // browsers read a backslash as a slash: "/\\evil.org" is "//evil.org"
+    expect(prepareSegmentHtml('see <a href="/\\evil.org">this</a>').html).toBe("see this");
+    expect(prepareSegmentHtml('see <a href="/%5Cevil.org">this</a>').html).toBe("see this");
+    expect(prepareSegmentHtml('see <a href="/%5cevil.org">this</a>').html).toBe("see this");
+    expect(prepareSegmentHtml('see <a href="/a\\b">this</a>').html).toBe("see this");
   });
 });
