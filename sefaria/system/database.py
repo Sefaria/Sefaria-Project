@@ -218,6 +218,10 @@ def ensure_indices(active_db=None):
             {},
         ),
         ("sheets", ["tags"], {}),
+        # delete_user_account() and merge_user_accounts() run update_many({"likes": uid}).
+        # Unindexed, that is a COLLSCAN of every sheet: 17s of a 21s admin deletion on
+        # 2026-10-19, and 92-202s on 2026-11-10, long past the proxy timeout.
+        ("sheets", ["likes"], {}),
         ("sheets", ["owner"], {}),
         ("sheets", ["assignment_id"], {}),
         ("sheets", ["is_featured"], {}),
