@@ -7,12 +7,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html
 
-from .models import ApiKey, ApiProject, Project
-
-# How much of a key the admin may show or search on: the "sfr_" prefix and 6 characters. Enough to tell keys apart in a
-# log or a support request; everything after it is the secret.
-KEY_DISPLAY_PREFIX = 10
-
+from .models import KEY_DISPLAY_PREFIX, ApiKey, ApiProject, Project
 
 # The fields an admin may edit inline. The admin form carries each one's value as it was when the page rendered
 # (a hidden "initial-" input), so a save can tell what the admin changed from what merely went stale.

@@ -9,6 +9,7 @@ confirmed; existing keys keep working, but no new project or key can be created.
 """
 
 import ipaddress
+import logging
 from datetime import UTC, datetime, timedelta
 from datetime import timezone as dt_timezone
 from urllib.parse import urlsplit
@@ -19,6 +20,7 @@ from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 from django.conf import settings
 from django.contrib.auth import SESSION_KEY, get_user_model
 from django.core import signing
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator, validate_email
 from django.db import transaction
@@ -28,7 +30,7 @@ from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-from .models import ApiKey, ApiProject, Project, SubmissionSource
+from .models import KEY_DISPLAY_PREFIX, ApiKey, ApiProject, Project, SubmissionSource
 
 MAX_KEYS_PER_PROJECT = 5
 MAX_PROJECTS_PER_ACCOUNT = 10
@@ -64,6 +66,14 @@ DEVELOPER_PROFILE_SETTINGS = (
     CONFIRMATION_SENT_TO_SETTING,
     CONFIRMATION_SENDS_SETTING,
 )
+
+# A key's value is sent only when its owner asks, at most REVEAL_LIMIT times per REVEAL_WINDOW seconds per account.
+# Every attempt counts, a failed one included, so guessing key ids is throttled too.
+REVEAL_LIMIT = 20
+REVEAL_WINDOW = 60
+REVEAL_THROTTLE_PREFIX = "developer-key-reveal:"
+
+audit_logger = logging.getLogger("powered_by.key_reveal")
 
 _url_validator = URLValidator(schemes=["http", "https"])
 
@@ -292,7 +302,8 @@ def serialize_key(api_key):
     return {
         "id": str(api_key.id),
         "label": api_key.label,
-        "value": api_key.key,
+        # Never the value: that comes from the reveal endpoint, so no state response, page or cache holds it.
+        "prefix": api_key.key[:KEY_DISPLAY_PREFIX],
         "created": iso(api_key.created_at),
         "restrictToWebsite": bool(api_key.allowed_origins),
     }
@@ -755,6 +766,30 @@ def set_key_restriction(user, key_id, restrict):
     api_key.allowed_origins = [origin_of(website)] if restrict else []
     api_key.save(update_fields=["allowed_origins"])
     return api_key
+
+
+def _reserve_reveal(user):
+    """Counts one reveal against the account's limit. Raises CooldownError over it."""
+    name = REVEAL_THROTTLE_PREFIX + str(user.id)
+    cache.add(name, 0, REVEAL_WINDOW)
+    try:
+        count = cache.incr(name)
+    except ValueError:  # expired between the add and the incr
+        cache.set(name, 1, REVEAL_WINDOW)
+        count = 1
+    if count > REVEAL_LIMIT:
+        raise CooldownError(REVEAL_WINDOW, "Too many requests for key values. Wait a minute and try again.")
+
+
+def reveal_key(user, key_id):
+    """
+    The value of a live key of one of the account's projects. An unknown key and another account's key are the
+    same LookupError. Logs the user id and the key's display prefix, never the value.
+    """
+    _reserve_reveal(user)
+    api_key = get_owned_key(user, key_id)
+    audit_logger.info("API key value revealed: user=%s key=%s", user.id, api_key.key[:KEY_DISPLAY_PREFIX])
+    return api_key.key
 
 
 def revoke_key(user, key_id):

@@ -46,6 +46,8 @@ const SERVER_ERRORS_HE = {
     'יש מפתח שמוגבל לאתר הזה. כבו את ההגבלה בכל המפתחות לפני הסרת האתר.',
   'No such project.': 'הפרויקט לא נמצא.',
   'No such key.': 'המפתח לא נמצא.',
+  'Too many requests for key values. Wait a minute and try again.':
+    'יותר מדי בקשות לערכי מפתחות. נא להמתין דקה ולנסות שוב.',
   'Give the key a name.': 'נא לתת למפתח שם.',
   'The key name can be at most 100 characters.': 'שם המפתח יכול להכיל עד 100 תווים.',
   "Add the project's website before restricting a key to it.": 'הוסיפו את אתר הפרויקט לפני שמגבילים אליו מפתח.',
@@ -130,6 +132,8 @@ export const updateProject = (projectId, project) => call('POST', 'projects/' + 
 export const deleteProject = (projectId) => call('DELETE', 'projects/' + projectId);
 export const createKey = (projectId, label) => call('POST', 'projects/' + projectId + '/keys', { label });
 export const setKeyRestriction = (keyId, restrictToWebsite) => call('POST', 'keys/' + keyId, { restrictToWebsite });
+/* The one request that returns a key's value: when its owner clicks Reveal or Copy. Resolves to the value. */
+export const revealKey = (keyId) => call('POST', 'keys/' + keyId + '/value').then((data) => data.value);
 export const deleteKey = (keyId) => call('DELETE', 'keys/' + keyId);
 
 /* Developer settings need a verified email: Google or Apple sign-in verifies it, and so does

@@ -30,7 +30,7 @@ PROJECT_KEYS = {
     "keys",
     "contactEmail",
 }
-KEY_KEYS = {"id", "label", "value", "created", "restrictToWebsite"}
+KEY_KEYS = {"id", "label", "prefix", "created", "restrictToWebsite"}
 
 
 class StateShapeTest(DeveloperApiTestCase):

@@ -172,25 +172,29 @@ test.describe('keys', () => {
         const key = await createKeyInUi(dev, card, 'N-C17 copy');
         const row = keyRow(card, 'N-C17 copy');
         const code = row.locator('.devPocKeyValue code');
-        const show = row.locator('[data-agent-action="show-key"]');
+        const show = row.getByRole('button', { name: 'Reveal', exact: true });
+        const copy = row.getByRole('button', { name: 'Copy', exact: true });
 
         await expect(code).toHaveText(/^sfr_(test_)?•{12}$/);
         await expect(show).toHaveAttribute('aria-pressed', 'false');
-        await expect(show).toHaveAccessibleName('Show key');
 
+        // The value is fetched on click: the label stays "Reveal" and aria-pressed carries the state.
+        const revealed = waitForDeveloperApi(page, /\/api\/developer\/keys\/[^/]+\/value$/);
         await show.click();
+        expect((await revealed).status()).toBe(200);
         await expect(show).toHaveAttribute('aria-pressed', 'true');
-        await expect(show).toHaveAccessibleName('Hide key');
+        await expect(show).toHaveAccessibleName('Reveal');
         expect((await code.textContent()) === key.value, 'the shown value is the key').toBe(true);
 
         await show.click();
         await expect(code).toHaveText(/^sfr_(test_)?•{12}$/);
         await expect(show).toHaveAttribute('aria-pressed', 'false');
 
-        await row.locator('[data-agent-action="copy-key"]').click();
+        await copy.click();
         await expect(row.locator('.devPocCopied')).toHaveText('Copied');
         const copied = await page.evaluate(() => navigator.clipboard.readText());
         expect(copied === key.value, 'the clipboard holds the key').toBe(true);
+        await expect(code).toHaveText(/^sfr_(test_)?•{12}$/);
 
         const works = await poll(() => probeKey(gw, target, copied), isAllowed, { timeoutMs: 10000 });
         expect(works.elapsedMs, `the copied key works at the gateway: ${probeSummary(works.last)}`).toBeDefined();

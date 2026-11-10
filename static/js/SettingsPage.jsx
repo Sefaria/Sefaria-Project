@@ -16,6 +16,7 @@ import {
   parseWebsite,
   readState,
   requestNewLink,
+  revealKey,
   saveProfile,
   sendConfirmation,
   setKeyRestriction,
@@ -35,10 +36,22 @@ const LIBRARY_EXPORT_URL = 'https://github.com/Sefaria/Sefaria-Export';
 const CONTACT_EMAIL = 'hello@sefaria.org';
 const API_TERMS_URL = '/api-terms';
 
-const maskKey = (value) => {
-  const prefix = value.match(/^sfr_(?:test_)?/);
-  return (prefix ? prefix[0] : '') + '••••••••••••';
+/* The key as the page shows it until its owner reveals it: the display prefix the server sends, never the value. */
+const maskKey = (prefix) => (prefix || '') + '••••••••••••';
+
+/* The state an API answer carries, minus the one-time value of a key just created. */
+const withoutKeyValue = (data) => {
+  if (!data || !('keyValue' in data)) {
+    return data;
+  }
+  const state = { ...data };
+  delete state.keyValue;
+  return state;
 };
+
+/* A revealed value stays in component memory only, and only this long. */
+const KEY_REMASK_MS = 30000;
+const KEY_COPIED_MS = 2000;
 
 const formatDate = (iso) => {
   if (!iso) {
@@ -52,74 +65,36 @@ const formatDate = (iso) => {
   }
 };
 
-const copyToClipboard = (text, node, onDone) => {
+/* Writes to the clipboard and reports 'copied', or 'manual' where the browser refuses and the person must copy by hand. */
+const copyToClipboard = (text, onDone) => {
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => onDone(Sefaria._v({ en: 'Copied', he: 'הועתק' })))
-      .catch(() => onDone(Sefaria._v({ en: 'Press ⌘C to copy', he: 'להעתקה הקישו ⌘C' })));
+    navigator.clipboard.writeText(text).then(
+      () => onDone('copied'),
+      () => onDone('manual')
+    );
     return;
   }
-  if (node && window.getSelection) {
-    const range = document.createRange();
-    range.selectNodeContents(node);
-    const selection = window.getSelection();
-    selection.removeAllRanges();
-    selection.addRange(range);
-    onDone(Sefaria._v({ en: 'Selected: press ⌘C', he: 'נבחר: הקישו ⌘C' }));
-    return;
-  }
-  onDone(Sefaria._v({ en: 'Copy failed', he: 'ההעתקה נכשלה' }));
+  onDone('manual');
 };
 
 /* The name and email the account itself carries, which the developer profile shows locked. */
 const accountName = () => (Sefaria.full_name || '').trim();
 const accountEmail = () => (Sefaria._email && Sefaria._email !== 'null' ? Sefaria._email : '');
 
-const CopyIcon = () => (
-  <svg viewBox="0 0 18 18" width="15" height="15" aria-hidden="true" focusable="false">
-    <path
-      fill="currentColor"
-      d="M13.5 4.5V0H0V13.5H4.5V18H18V4.5H13.5ZM4.5 12H1.5V1.5H12V4.5H4.5V12ZM16.5 16.5H6V6H16.5V16.5Z"
-    />
-  </svg>
-);
-
-const EyeIcon = () => (
+const CheckIcon = () => (
   <svg
     viewBox="0 0 24 24"
-    width="16"
-    height="16"
+    width="14"
+    height="14"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2"
+    strokeWidth="3"
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden="true"
     focusable="false"
   >
-    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const EyeOffIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    width="16"
-    height="16"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-    focusable="false"
-  >
-    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-    <line x1="2" y1="2" x2="22" y2="22" />
+    <path d="M5 13l4 4L19 7" />
   </svg>
 );
 
@@ -1801,65 +1776,171 @@ const RestrictionToggle = ({ project, apiKey, onToggle }) => {
   );
 };
 
-const KeyValue = ({ value, describedBy }) => {
+/* A key's row. The value is not in the page: Reveal and Copy ask the server for it, and it lives only in this
+   component's state (never storage, history or the developer state), dropped when the row goes away, when the
+   page is left, after KEY_REMASK_MS, and after a successful copy. A key just created arrives with its value. */
+const KeyValue = ({ keyId, prefix, initialValue, nameId, describedBy }) => {
+  const [value, setValue] = useState(initialValue || null);
   const [shown, setShown] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState('');
-  const codeRef = useRef(null);
+  const [error, setError] = useState('');
+  const mounted = useRef(true);
   const copyTimer = useRef(null);
 
-  useEffect(() => () => clearTimeout(copyTimer.current), []);
+  const drop = () => {
+    setValue(null);
+    setShown(false);
+  };
 
-  const copy = () =>
-    copyToClipboard(value, codeRef.current, (label) => {
-      setCopied(label);
+  useEffect(() => {
+    mounted.current = true;
+    window.addEventListener('pagehide', drop);
+    return () => {
+      mounted.current = false;
+      window.removeEventListener('pagehide', drop);
       clearTimeout(copyTimer.current);
-      copyTimer.current = setTimeout(() => setCopied(''), 2000);
-    });
+    };
+  }, []);
 
-  const showLabel = shown
-    ? Sefaria._v({ en: 'Hide key', he: 'הסתרת המפתח' })
-    : Sefaria._v({ en: 'Show key', he: 'הצגת המפתח' });
-  const copyLabel = Sefaria._v({ en: 'Copy key', he: 'העתקת המפתח' });
+  /* The creation answer reaches the row after the row first renders (the key list updates first). */
+  useEffect(() => {
+    if (initialValue) {
+      setValue(initialValue);
+    }
+  }, [initialValue]);
 
+  /* Whatever is in memory is dropped KEY_REMASK_MS after it arrived or was last revealed. */
+  useEffect(() => {
+    if (value === null) {
+      return undefined;
+    }
+    const timer = setTimeout(drop, KEY_REMASK_MS);
+    return () => clearTimeout(timer);
+  }, [value, shown]);
+
+  const fetchValue = () => {
+    if (value !== null) {
+      return Promise.resolve(value);
+    }
+    setBusy(true);
+    setError('');
+    return revealKey(keyId).then(
+      (fetched) => {
+        if (mounted.current) {
+          setBusy(false);
+          setValue(fetched);
+        }
+        return fetched;
+      },
+      (err) => {
+        if (mounted.current) {
+          setBusy(false);
+          setError(
+            err.message ||
+              Sefaria._v({ en: "Couldn't get the key. Try again.", he: 'לא הצלחנו להביא את המפתח. נסו שוב.' })
+          );
+        }
+        throw err;
+      }
+    );
+  };
+
+  const toggle = () => {
+    setCopied('');
+    if (shown) {
+      drop();
+      return;
+    }
+    fetchValue().then(
+      () => {
+        if (mounted.current) {
+          setShown(true);
+        }
+      },
+      () => {}
+    );
+  };
+
+  const announce = (message) => {
+    setCopied(message);
+    clearTimeout(copyTimer.current);
+    copyTimer.current = setTimeout(() => setCopied(''), KEY_COPIED_MS);
+  };
+
+  const copy = () => {
+    fetchValue().then(
+      (fetched) =>
+        copyToClipboard(fetched, (result) => {
+          if (!mounted.current) {
+            return;
+          }
+          if (result === 'copied') {
+            drop();
+            announce('copied');
+          } else {
+            /* Nothing was written: leave the key showing, to select and copy by hand. */
+            setShown(true);
+            setError(
+              Sefaria._v({
+                en: "Couldn't copy. Select the key and copy it.",
+                he: 'ההעתקה נכשלה. סמנו את המפתח והעתיקו אותו.',
+              })
+            );
+          }
+        }),
+      () => {}
+    );
+  };
+
+  const names = [nameId, describedBy].filter(Boolean).join(' ') || undefined;
   return (
     <div className="devPocKeyValue">
-      <code ref={codeRef} dir="ltr">
-        {shown ? value : maskKey(value)}
-      </code>
+      <code dir="ltr">{shown && value !== null ? value : maskKey(prefix)}</code>
       <button
         type="button"
-        className="devPocIconButton"
+        className="button small white"
         aria-pressed={shown}
-        aria-label={showLabel}
-        aria-describedby={describedBy}
-        title={showLabel}
+        aria-describedby={names}
+        disabled={busy}
         data-agent-action="show-key"
-        onClick={() => setShown((s) => !s)}
+        onClick={toggle}
       >
-        {shown ? <EyeOffIcon /> : <EyeIcon />}
+        {Sefaria._v({ en: 'Reveal', he: 'חשיפה' })}
       </button>
       <button
         type="button"
-        className="devPocIconButton"
-        aria-label={copyLabel}
-        aria-describedby={describedBy}
-        title={copyLabel}
+        className="button small white"
+        aria-describedby={names}
+        disabled={busy}
         data-agent-action="copy-key"
         onClick={copy}
       >
-        <CopyIcon />
+        {Sefaria._v({ en: 'Copy', he: 'העתקה' })}
       </button>
-      <span className="devPocCopied" role="status">
-        {copied}
+      <span className="devPocCopied" role="status" aria-live="polite">
+        {copied ? (
+          <React.Fragment>
+            <CheckIcon />
+            {Sefaria._v({ en: 'Copied', he: 'הועתק' })}
+          </React.Fragment>
+        ) : null}
       </span>
+      {error ? (
+        <span className="devPocKeyError" role="alert">
+          {error}
+        </span>
+      ) : null}
     </div>
   );
 };
 
-const KeyRow = ({ project, apiKey, isNew, describedBy, onToggleRestriction, onDelete, onAddWebsite }) => (
+const KeyRow = ({ project, apiKey, isNew, newValue, describedBy, onToggleRestriction, onDelete, onAddWebsite }) => (
   <article className={'devPocKey' + (isNew ? ' devPocKeyNew' : '')}>
     <div className="devPocKeyHeading">
-      <strong dir="auto">{apiKey.label}</strong>
+      <strong dir="auto" id={'devPocKeyName-' + apiKey.id}>
+        {apiKey.label}
+      </strong>
       <button
         type="button"
         className="button small transparent devPocDanger"
@@ -1869,7 +1950,13 @@ const KeyRow = ({ project, apiKey, isNew, describedBy, onToggleRestriction, onDe
         <InterfaceText text={{ en: 'Delete key', he: 'מחיקת המפתח' }} />
       </button>
     </div>
-    <KeyValue value={apiKey.value} describedBy={describedBy} />
+    <KeyValue
+      keyId={apiKey.id}
+      prefix={apiKey.prefix}
+      initialValue={newValue}
+      nameId={'devPocKeyName-' + apiKey.id}
+      describedBy={describedBy}
+    />
     <div className="devPocKeyMeta">
       <span>
         <InterfaceText
@@ -1925,6 +2012,8 @@ const KeysSection = ({ project, maxKeys, canCreate, run, setConfirm, onAddWebsit
   const [error, setError] = useState('');
   const [createError, setCreateError] = useState('');
   const [newKeyId, setNewKeyId] = useState(null);
+  const [newKey, setNewKey] = useState(null); // {id, value}: the value the creation answer carried, in memory only
+  const newKeyTimer = useRef(null);
   const mounted = useRef(true);
   const highlightTimer = useRef(null);
   const headingRef = useRef(null);
@@ -1933,6 +2022,7 @@ const KeysSection = ({ project, maxKeys, canCreate, run, setConfirm, onAddWebsit
     () => () => {
       mounted.current = false;
       clearTimeout(highlightTimer.current);
+      clearTimeout(newKeyTimer.current);
     },
     []
   );
@@ -1967,6 +2057,9 @@ const KeysSection = ({ project, maxKeys, canCreate, run, setConfirm, onAddWebsit
         setCreating(false);
         setLabel('');
         setNewKeyId(data.keyId);
+        setNewKey({ id: data.keyId, value: data.keyValue });
+        clearTimeout(newKeyTimer.current);
+        newKeyTimer.current = setTimeout(() => setNewKey(null), KEY_REMASK_MS);
         clearTimeout(highlightTimer.current);
         highlightTimer.current = setTimeout(() => setNewKeyId(null), KEY_HIGHLIGHT_MS);
       },
@@ -2160,6 +2253,7 @@ const KeysSection = ({ project, maxKeys, canCreate, run, setConfirm, onAddWebsit
                 project={project}
                 apiKey={k}
                 isNew={k.id === newKeyId}
+                newValue={newKey && newKey.id === k.id ? newKey.value : null}
                 describedBy={tipId(keysNoteField)}
                 onToggleRestriction={(on) => toggleRestriction(k.id, on)}
                 onDelete={() => deleteApiKey(k)}
@@ -3297,7 +3391,8 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
     request.then(
       (data) => {
         if (pageMounted.current) {
-          setDeveloperState(data);
+          /* A created key's value goes to the key's row alone, never into the page's state. */
+          setDeveloperState(withoutKeyValue(data));
         }
         return data;
       },

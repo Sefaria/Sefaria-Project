@@ -384,6 +384,9 @@ class ApiProject(models.Model):
 KEY_PREFIX = "sfr_"
 KEY_ALPHABET = string.ascii_letters + string.digits
 KEY_LENGTH = 32
+# How much of a key may be shown or searched on without revealing it: the "sfr_" prefix and 6 characters. Enough to tell
+# keys apart in a log or a support request; everything after it is the secret.
+KEY_DISPLAY_PREFIX = 10
 
 
 def new_key_value():
