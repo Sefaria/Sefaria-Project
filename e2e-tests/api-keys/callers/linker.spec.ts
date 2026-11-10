@@ -3,7 +3,7 @@ import { test, expect } from '../fixtures';
 import { rawRequest } from '../gateway/util';
 import { t } from '../../globals';
 import {
-  SITE_B, LOCAL_LAUNCH_ARGS, TlsFront, apiBase, describeFetch, fetchFromPage, openForeignPage, watchRefusals,
+  SITE_B, LOCAL_LAUNCH_ARGS, TlsFront, apiBase, describeFetch, fetchFromPage, openForeignPage, settleRefusals, watchRefusals,
 } from './browser';
 
 /**
@@ -81,6 +81,7 @@ test.describe('linker on a third-party site', () => {
     const { context, refusals, calls } = await runLinker(browser, target.name);
     try {
       await expect.poll(() => calls.some(c => c.path.startsWith('/api/async/')), { timeout: t(60000), message: 'the linker polled its find-refs task' }).toBe(true);
+      await settleRefusals(refusals);
     } finally {
       await context.close();
     }
@@ -112,6 +113,7 @@ test.describe('linker on a third-party site', () => {
       await expect(page.locator('#article a.sefaria-ref').first()).toBeVisible({ timeout: t(90000) });
       const refs = await page.locator('#article a.sefaria-ref').evaluateAll(as => as.map(a => a.getAttribute('data-ref')));
       expect(refs).toEqual(expect.arrayContaining(['Genesis 1:1']));
+      await settleRefusals(refusals);
     } finally {
       await context.close();
     }

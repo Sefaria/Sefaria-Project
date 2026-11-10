@@ -155,17 +155,34 @@ export function describeFetch(r: PageFetchResult): string {
 
 export type Refusal = { url: string; status: number; code?: string };
 
-/** Records every 401/403 a page receives from the target's own hosts. */
+const pendingRefusalReads = new WeakMap<Refusal[], Promise<void>[]>();
+
+/**
+ * Records every 401/403 a page receives from the target's own hosts. The refusal is recorded as soon as the
+ * response arrives; its body is read in the background to fill in `code`. Call settleRefusals before asserting
+ * (and before closing the context) so no body read is still pending.
+ */
 export function watchRefusals(page: Page, target: TargetName): Refusal[] {
   const refusals: Refusal[] = [];
-  page.on('response', async (response: Response) => {
+  const pending: Promise<void>[] = [];
+  pendingRefusalReads.set(refusals, pending);
+  page.on('response', (response: Response) => {
     const status = response.status();
     if (status !== 401 && status !== 403) return;
     const url = response.url();
     if (!isTargetUrl(target, url)) return;
-    let code: string | undefined;
-    try { code = (await response.json())?.code; } catch { /* not JSON */ }
-    refusals.push({ url: maskSecrets(url), status, code });
+    const refusal: Refusal = { url: maskSecrets(url), status };
+    refusals.push(refusal);
+    pending.push((async () => {
+      try { refusal.code = (await response.json())?.code; } catch { /* not JSON, or the page is gone */ }
+    })());
   });
+  return refusals;
+}
+
+/** Waits for every body read started by watchRefusals, so the list is complete before it is asserted. */
+export async function settleRefusals(refusals: Refusal[]): Promise<Refusal[]> {
+  const pending = pendingRefusalReads.get(refusals) ?? [];
+  while (pending.length) await Promise.all(pending.splice(0));
   return refusals;
 }
