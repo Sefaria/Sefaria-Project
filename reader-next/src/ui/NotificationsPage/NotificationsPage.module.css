@@ -1,0 +1,10 @@
+/* The old NotificationsPanel (s2.css .notificationsTopContainer, .readerNavMenu h1, .emptyNotification…; VERIFIED on sefaria.org's
+   own stylesheet 2026-11-10, the panel's markup in its page): the title 4px down, 22px medium-weight grey with the 24px bell 9px
+   before it and 2px lower; 42px under it the list; or the two-line "no notifications" message, 16px semibold over 14px. */
+.top { display: flex; flex-direction: row; margin-bottom: 30px; }
+.headerBox { flex-grow: 1; margin-bottom: 12px; }
+.title { position: relative; margin: 4px 0 0; font-size: 22px; font-weight: 500; line-height: normal; color: var(--sefaria-color-text-dark-grey); }
+.icon { position: relative; top: 2px; width: 24px; height: 24px; margin-inline-end: 9px; vertical-align: baseline; }
+.empty { display: flex; flex-direction: column; }
+.emptyTitle { padding-bottom: 10px; font-size: 16px; font-weight: 600; line-height: 18.75px; }
+.emptyMessage { font-size: 14px; font-weight: 400; line-height: 18px; text-align: start; }

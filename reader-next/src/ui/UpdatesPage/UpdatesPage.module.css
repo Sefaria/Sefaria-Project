@@ -1,0 +1,49 @@
+/* New Additions as sefaria.org lays it out (templates/static/updates.html, static.css #aboutSidebar / #updatesPanelContent, s2.css
+   .readerNavMenu .contentInner; VERIFIED 2026-11-10 at 1280px and 390px, English and Hebrew): on the site's off-white, the About
+   list 60px under the header, then the page's 725px column 70px in and 80px down; "Updates" 22px medium-weight grey, 30px over the
+   list, which starts 20px higher (its first item's 25px padding). 480–1000px: the list above the page; a phone: the page alone. */
+.page { display: flex; flex-direction: row; min-height: 100%; background: var(--sefaria-color-surface-subtle); color: var(--sefaria-color-text-strong); font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: normal; text-align: start; }
+.page[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+
+.aboutSidebar { display: flow-root; margin-top: 60px; text-align: left; }
+.page[lang="he"] .aboutSidebar { text-align: right; }
+.aboutSidebar ul { list-style-type: none; margin: 16px 0; padding: 0; padding-inline-start: 40px; }
+.aboutSidebar li { min-width: max-content; margin: 0; padding: 10px; color: var(--sefaria-color-text-dark-grey); }
+.aboutSidebar a { font-size: 16px; color: inherit; text-decoration: none; }
+.aboutSidebar a:hover { text-decoration: underline; }
+/* the link keeps the page's Roboto (its Hebrew words are Heebo inside it), so the grey chip is the old 29px, not Heebo's taller line */
+.page[lang="he"] .aboutSidebar a { font-family: var(--sefaria-font-ui-en); }
+.aboutSidebar a.selected { padding: 5px; margin-left: -5px; border-radius: 6px; background-color: var(--sefaria-color-chip); color: var(--sefaria-color-text-strong); }
+
+.main { display: block; min-width: 0; }
+.inner { box-sizing: border-box; width: 725px; max-width: 100%; margin-top: 80px; margin-inline-start: 70px; padding: 0 30px 70px; }
+.title { margin: 0 0 30px; padding-top: 2px; font-size: 22px; font-weight: 500; line-height: 26px; color: var(--sefaria-color-text-dark-grey); }
+.page[lang="he"] .title { padding-top: 5px; }
+.list { margin-top: -20px; }
+.list.afterForm { margin-top: 20px; }
+
+.update { position: relative; }
+/* a global announcement has no picture here (s2.css .update .imageSection) */
+.update [data-image-section] { display: none; }
+.deleteButton { position: absolute; top: 8px; right: 0; padding: 0; border: 0; background: none; color: var(--sefaria-color-text-dark-grey); cursor: pointer; line-height: 1; }
+
+/* the moderators' form (s2.css .globalUpdateForm) */
+.form { padding: 20px; border-radius: 15px; background-color: var(--sefaria-color-update-form); font-size: 18px; text-align: left; }
+.form label { display: block; padding-top: 10px; }
+.form input[type="radio"] { margin: 8px; padding: 5px; }
+.form input[type="text"] { width: 260px; margin: 5px 0; padding: 5px; }
+.form select { margin: 0 0 0 15px; }
+.textarea { max-width: 100%; box-sizing: border-box; }
+.error { color: var(--sefaria-color-danger); font-size: 90%; }
+
+@media (max-width: 1000px) {
+  .page { flex-direction: column; }
+  .inner { margin-top: 0; margin-inline-start: 20px; }
+}
+@media (max-width: 480px) {
+  .sidebar { display: none; }
+  .inner { width: auto; margin: 0; }
+  /* the phone rule's padding-top: 0 loses to .interface-english/-hebrew h1.aboutHeader on sefaria.org: the 2px / 5px stay */
+  .title { margin: 40px 0; }
+  .form { width: 270px; margin-top: 50px; }
+}
