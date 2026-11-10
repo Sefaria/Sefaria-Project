@@ -68,7 +68,7 @@ describe("LexiconContentEdit", () => {
     render(<LexiconContentEdit identity={id} draft={{ notes: stored }} onSave={vi.fn()} resolveRef={resolveRef} />);
     await userEvent.click(screen.getByRole("button", { name: "Edit notes" }));
     const box = screen.getByRole("textbox", { name: "notes" });
-    expect(box.innerHTML).toBe('<b>x</b><a href="/Proverbs.4.18" class="refLink" data-ref="Proverbs 4:18">P</a><i data-commentator="Rashi" class="footnote">n</i><sup class="footnote-marker">1</sup>');
+    expect(box.innerHTML).toBe('<b>x</b><a class="refLink" href="/Proverbs.4.18" data-ref="Proverbs 4:18">P</a><i data-commentator="Rashi" class="footnote">n</i><sup class="footnote-marker">1</sup>');
   });
 
   it("shows a load error", () => {

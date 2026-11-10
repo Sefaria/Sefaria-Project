@@ -1,22 +1,11 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { sanitizeHtml } from "~/lib/html/sanitize";
+import { editableHtml } from "./editable-html";
 import styles from "./LexiconEditView.module.css";
 
 /** What a stored entry's markup uses (LexiconWysiwygValue's display allowlist); `a` keeps its ref attributes. */
 const KEEP = { a: ["class", "data-ref", "data-scroll-link"], span: ["class", "dir"] } as const;
 const showHtml = (html: string) => sanitizeHtml(html, { keepAttributes: KEEP });
-/**
- * What the editing box is filled with: the same sanitiser as the display (v-security nit 3: the stored entry went into innerHTML raw),
- * keeping every attribute the server keeps on save (sefaria/model/lexicon.py LexiconEntry.ALLOWED_ATTRS), so editing an entry does not
- * strip what the server would have kept. (Its `big` tags and `data:` images are not in this sanitiser's list: their text stays.)
- */
-const EDIT_KEEP = {
-  a: ["class", "data-ref", "data-scroll-link"],
-  span: ["class", "dir"],
-  i: ["data-commentator", "data-order", "class", "data-label", "dir"],
-  sup: ["class"],
-} as const;
-export const editableHtml = (html: string) => sanitizeHtml(html, { keepAttributes: EDIT_KEEP });
 
 export interface RefLink {
   /** The normalized ref ("Proverbs 4:18"). */
