@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**962 features**, 4050 documented behaviors. Proposed tiers: core 323, standard 419, optional 156, retire 61.
+**962 features**, 4076 documented behaviors. Proposed tiers: core 323, standard 419, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 452 · partial 88 · todo 38 · replaced 47 · deferred 201 · n/a 136; 411 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 463 · partial 84 · todo 28 · replaced 47 · deferred 204 · n/a 136; 422 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -721,13 +721,14 @@ Code: [`static/js/ReaderApp.jsx:1102`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-051 · Connection filter state management
-`standard` `live` · rebuild: **partial** — Filter and list/essay/web-pages views are in the with= URL and mirrored to link dots; recent-filter chips and sidebar scroll memory missing
+`standard` `live` · rebuild: **partial** — Filter, views, recent filters and scroll memory built; the phone header placement of recent filters (CON-002) not · *tested*
 
 Selecting a commentator/category filter updates sidebar mode and remembers recent filters.
 
 - setConnectionsFilter(n,filter,updateRecent) (1887-1910): moves filter to front of recentFilters (deduped via toggle); mode 'EssayList' if filter has suffix '|Essay' else 'TextList'; no filter -> 'ConnectionsList'; mirrors filter/recentFilters onto base panel.
 - setSideScrollPosition(n,pos) remembers sidebar scroll (1911-1915).
 - setConnectionsCategory sets filter for link dots and switches to 'ConnectionsList'; setWebPagesFilter -> 'WebPagesList'; editNote -> 'Edit Note' (ReaderPanel).
+- 2026-11-10 (lane GR): recent filters (CON-028, desktop) and the sidebar scroll memory (CON-037) built.
 
 Code: [`static/js/ReaderApp.jsx:1887`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1887), [`static/js/ReaderApp.jsx:1911`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1911)
 
@@ -769,11 +770,12 @@ Code: [`static/js/ReaderApp.jsx:1663`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-055 · Extended notes view
-`optional` `live` · rebuild: **todo** — Extended version notes view (from book page and sidebar) not built
+`optional` `live` · rebuild: **deferred** — Deferred after L1 (owner 2026-11-10); no live version found using extended notes
 
 Books with extended notes can open them from the book page or the sidebar.
 
 - viewExtendedNotes(n,method,title,vLang,vTitle,family) sets bookRef and single version, then opens 'extended notes' as a menu ('toc') or connectionsMode ('Connections'); backFromExtendedNotes returns to 'book toc' (1687-1706).
+- Deferred 2026-11-10 (owner, LAUNCH_PLAN §8): no version on www.sefaria.org with extendedNotes/extendedNotesHebrew was found among 26 titles checked through /api/texts/versions/<title> (lane GR).
 
 Code: [`static/js/ReaderApp.jsx:1687`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1687)
 
@@ -1230,6 +1232,7 @@ Raw text arrays are turned into numbered, addressable segments with highlight an
 - highlight true when ref is segment-level and number within [sections[-1], toSections[-1]]; alt = data.alts[i] (used for parashah/aliyah headers).
 - Spanning data: iterates sections; highlight covers first section from start, middle fully, last to its end.
 - stripImagesFromSegments is used by sheet editors only.
+- Fixed 2026-11-10 (lane GR, T-G05): a section whose numbering continues its parent's (index_offsets_by_depth) was numbered from 1: /Zohar,_Bereshit.2 showed 2:1, 2:2… where sefaria.org (VERIFIED 2026-11-10 on www.sefaria.org (Playwright, lane GR)) shows 2:3, 2:4 (offset 2), and the refs were wrong too. normaliseTexts starts each segment section at 1 + its offset, per section across a range (old Sefaria.makeSegments / _get_offsets). Tests: src/lib/text/model.test.ts ('numbering offsets'), e2e/verse-numbers.spec.ts (Zohar). The book page's table of contents (BookPage.jsx:807 uses the depth-1 offset) is lane GS's.
 
 Code: [`static/js/sefaria/sefaria.js:2481-2555`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2481-L2555)
 
@@ -1373,7 +1376,7 @@ Source: `inv_03_text_rendering.md#3.6`
 ### Inline markup
 
 #### TXD-020 · Allowed inline HTML in stored text
-`standard` `live` · rebuild: **partial** — Formatting tags, footnotes, itags and overlays render; img becomes its alt text and plain <a href> links are unwrapped `system`
+`standard` `live` · rebuild: **done** — Formatting tags, footnotes, itags, overlays, images and plain links render · *tested* `system`
 
 Stored texts may contain a fixed set of formatting tags, footnotes, images, and overlay markers.
 
@@ -1381,6 +1384,7 @@ Stored texts may contain a fixed set of formatting tags, footnotes, images, and 
 - Attributes: sup[class]; span[class,dir]; i[data-overlay,data-value,data-commentator,data-order,class,data-label,dir]; img[src,alt]; a[dir,class,href,data-ref,data-ven,data-vhe,data-scroll-link].
 - i tags serve three uses: footnotes, commentary placement (itags) and structure overlays such as page transitions.
 - No mam-* (Miqra al pi ha-Masorah) or ktiv/kri classes exist in CSS; big -> 1.2em, other tags browser default.
+- 2026-11-10 (lane GR): images (TXD-026) and plain links are kept. A plain <a> with an http(s) or site-relative href stays a link (external ones rel=noopener noreferrer, same tab as legacy; a site path through libraryHref); javascript:, protocol-relative (//…), a backslash or %5C anywhere (/\evil.org is //evil.org to a browser) and other addresses are unwrapped. Tests: src/lib/text/prepare.test.ts.
 
 Code: [`sefaria/constants/model.py:1-12`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/constants/model.py#L1-L12), [`static/css/s2.css:6276-6280`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/css/s2.css#L6276-L6280)
 
@@ -1412,17 +1416,19 @@ People and concepts named in the text are underlined links that open the topic/l
 - VERIFIED 2026-10-05 (Berakhot 2a, English): clicking 'Rabbi Eliezer' selects the verse and the address becomes /Berakhot.2a.1?namedEntity=rabbi-eliezer-b-hyrcanus&namedEntityText=Rabbi Eliezer&with=Lexicon; the sidebar shows 'Rabbi Eliezer b. Hyrcanus' (link to /topics/<slug>, new tab) + 'Tannaim - Third Generation' + 'c.80 – c.110 CE' + the markdown description. Request: GET /api/v2/topics/<slug>?annotate_time_period=1&ref_link_type_filters=about|popular-writing-of&with_html=0&with_links=0&annotate_links=0&with_refs=0&group_related=0&with_indexes=0.
 - An ambiguous name's slug ends in '-(ambiguous)' (e.g. /topics/רג-(ambiguous)); the response then carries `possibilities` (Rabban Gamliel → three people) and the sidebar says '"Rabban Gamliel" could refer to one of the following:' / 'ייתכן ש-"…" מתייחס לאחד מהבאים:' above each. No description: "No description known for '<title>'" / "לא קיים מידע עבור '<title>'".
 - Rebuild: links in the text carry the library's absolute /topics URL (a modified click or a new tab works), a plain click opens the sidebar; choosing another verse ends the card (back to Resources). Params namedEntity, namedEntityText (+N per panel) in the workspace URL.
+- 2026-11-10 (lane GR): the entity's href is /topics/<slug> through libraryHref (was the absolute www.sefaria.org address); the sidebar's Topics list, the dictionary's entity card and About's author and related-topic links likewise. Tests: src/lib/text/prepare.test.ts, e2e/connections.spec.ts, e2e/about.spec.ts.
 
 Code: [`sefaria/model/marked_up_text_chunk.py:342-351`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/marked_up_text_chunk.py#L342-L351), [`static/js/ReaderPanel.jsx:231-243`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L231-L243), [`static/js/ReaderApp.jsx:1071-1076`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1071-L1076), [`static/js/LexiconBox.jsx:114-119`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/LexiconBox.jsx#L114-L119)
 
 Source: `inv_03_text_rendering.md#3.4, 5.3, 7.3`
 
 #### TXD-023 · Inline category links in text
-`optional` `live` · rebuild: **todo** — Category links are dropped: normalizeText unwraps a.categoryLink; render them as /texts/<path> links
+`optional` `live` · rebuild: **done** — Category mentions link to /texts/<path> (libraryHref) · *tested*
 
 Mentions of a category name in the text can link to that category in the library.
 
 - CategoryMUTCSpan -> <a class='categoryLink' href='/texts/path' data-category-path>.
+- BUILT 2026-11-10 (lane GR): a.categoryLink[data-category-path] (the linker's CategoryMUTCSpan) is kept by the sanitiser (marked local change) and becomes <a class=category-link href=/texts/<path>> through libraryHref (this client's category pages; absolute on a host that does not serve them). Tests: src/lib/text/prepare.test.ts.
 
 Code: [`sefaria/model/marked_up_text_chunk.py:354-363`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/marked_up_text_chunk.py#L354-L363)
 
@@ -1455,13 +1461,14 @@ Code: [`static/js/TextRange.jsx:227-231`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.3, 5.5`
 
 #### TXD-026 · Inline images in text
-`standard` `live` · rebuild: **todo** — Images render as alt text only; build full-segment image with caption, inline images and the bilingual image rule
+`standard` `live` · rebuild: **done** — Full-segment image with caption, inline images, the bilingual one-image rule (from legacy code; no live sample found) · *tested*
 
 Texts can contain whole-segment images with captions and inline images in running text.
 
 - Full-segment image (segment is exactly one <img>, isFullSegmentImage regex /^\s*<img\b[^>]*>\s*$/i): VersionImageSpan renders .image-in-text > img + p.image-in-text-title (alt as caption); onLoad re-places segment numbers.
 - In bilingual mode, if both sides are images the primary image is suppressed (translation preferred).
 - CSS: centered flex, responsive widths, aspect-ratio rules. Inline images stay in HTML with .segment img {max-width:100%}.
+- BUILT 2026-11-10 (lane GR): the vendored sanitiser keeps an <img> whose source is http(s) or a base64 data:image (a marked local change, docs/VENDOR.md; any other source is still its alt text); src/lib/text/prepare.ts makes a segment that is only an image the image centred, 67% of a column wider than 540px, with its alt text as a 14px caption under it (the image itself alt="": axe image-redundant-alt); an inline image stays in the line, max 100% wide. Bilingual with an image on both sides shows the translation's only, the source column left empty (src/ui/Segment/Segment.tsx). Images load lazily (eager for a full-segment image); a stored width/height is kept so the box is reserved before the image loads (e2e/image-reserve.spec.ts: an image arriving above the reading place does not move the verse read). An image with no stored size cannot be reserved. No live text with a full-segment image was found to compare against (Mishnat Eretz Yisrael, the original use, has none in the sections checked); built from static/js/ContentText.jsx and s2.css. Tests: src/lib/text/prepare.test.ts, src/ui/Segment/Segment.test.tsx, story Reader/TextSection ImagesInText.
 
 Code: [`static/js/ContentText.jsx:32-100`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ContentText.jsx#L32-L100), [`static/js/sefaria/sefaria.js:1479-1487`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L1479-L1487), [`static/css/s2.css:15892-15923`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/css/s2.css#L15892-L15923), [`static/css/s2.css:7723-7725`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/css/s2.css#L7723-L7725)
 
@@ -1731,6 +1738,7 @@ Each verse/segment shows its number in the margin, in Hebrew numerals for Hebrew
 - In English/bilingual panels a heOnly segment shows English numeral; in a hebrew panel an enOnly segment shows Hebrew numeral.
 - CORRECTION (VERIFIED 2026-10-05, Psalms 119 in Hebrew): Hebrew segment numbers are plain letters — א … יט טו טז … קיט — with NO geresh/gershayim ('טו', not 'ט״ו'). The rebuild had added punctuation.
 - CORRECTION (VERIFIED, Zohar Bereshit 1 in English mode): the 'English' slot of Zohar is a Hebrew translation; its segments are numbered in HEBREW (א, ב) there. The rule 'a Hebrew-only segment in an English/bilingual panel shows an English numeral' holds for a Hebrew PRIMARY shown alone (Arukh HaShulchan 1:13 in English mode: '13' with the Hebrew text) but not for a Hebrew TRANSLATION. The number's language follows the slot and its direction.
+- VERIFIED 2026-11-10 on www.sefaria.org (Playwright, lane GR) (Genesis 1, Berakhot 2a; desktop 1280 and Pixel 7; English and Hebrew interface): the number is 12px whatever the reader's font size, Hebrew numerals in Heebo (.segmentNumberInner .he), Arabic in Roboto, weight 'lighter' (100). Here: 12px, Hebrew numerals now in Heebo (they fell back to a system face), weight 400 on purpose (the thin face is what support's most common complaint is about: verse numbers too small to read). Owner decision 2026-11-10: the size stays 12px (parity). Heebo 400 (Hebrew) is preloaded with the page. Tests: e2e/verse-numbers.spec.ts.
 
 Code: [`static/js/TextRange.jsx:256-260`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L256-L260), [`static/js/TextRange.jsx:617-626`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L617-L626), [`static/css/s2.css:7344-7351`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/css/s2.css#L7344-L7351)
 
@@ -2023,12 +2031,13 @@ Code: [`static/css/s2.css:6839-7351`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_03_text_rendering.md#5.6`
 
 #### TXD-062 · Print stylesheet for text
-`optional` `live` · rebuild: **partial** — Print hides only segment numbers and link dots; header, sidebar, footnote markers and controls still print
+`optional` `live` · rebuild: **partial** — Legacy print rules ported; the text column's fixed-height scroll box still cuts the printout (TextColumn, lane R) · *tested*
 
 Printing a text hides interface chrome and keeps clean reading layout.
 
 - s2-print.css hides link dots, loading messages, bookMetaDataBox, all sup (footnote markers/itags) and connections; adds 20px padding for side-by-side; segment numbers pinned top 0.
 - #printFooter shown only for sheets.
+- 2026-11-10 (lane GR): as legacy static/css/s2-print.css (linked media=print on reader pages): the site header, the sidebar, the text header's buttons, the connection dots and footnote markers/itags are hidden; segment numbers are printed (they were hidden here). The live reader has no print footer. Still to do (lane R's TextColumn): the text column is a fixed-height scroll box, so printing shows only what is on screen; legacy sets the reader's heights to auto. Tests: e2e/print.spec.ts.
 
 Code: [`static/css/s2-print.css`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/css/s2-print.css), [`static/js/SheetContent.jsx:173`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SheetContent.jsx#L173)
 
@@ -2385,6 +2394,7 @@ Source: `inv_03_text_rendering.md#6.5`
 Prayer texts omit segment numbers and use named section titles.
 
 - categories[0]==='Liturgy': no segment numbers (TextRange.jsx:257). Long/named section titles (complex node names).
+- VERIFIED 2026-11-10 on www.sefaria.org (Playwright, lane GR) (T-G05, Siddur Ashkenaz, Modeh Ani, desktop and Pixel 7): the display menu offers Source / Translation / Source with Translation, the layouts and font size, and Vowels only (no cantillation, aliyot or punctuation); the same here (displayMenuAvailability).
 
 Code: [`static/js/TextRange.jsx:257`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L257)
 
@@ -2527,11 +2537,12 @@ Source: `inv_02_reader_shell.md#9`
 ### Connections panel header
 
 #### CON-002 · Connections header mobile variant
-`standard` `live` · rebuild: **todo** — Phone sidebar header variant (category-colour top border, centred Resources, recent-commentator chips) not built `mobile only`
+`standard` `live` · rebuild: **partial** — Resources title centred at phone width (verified); recent filters in the phone header not built · *tested* `mobile only`
 
 On mobile the connections header uses a category-colored border and recent-commentator chips.
 
 - Category-colour top border in TextList mode, Resources centered, RecentFilterSet renders as header for recent commentators (ConnectionsPanelHeader.jsx:158-181).
+- VERIFIED 2026-11-10 on www.sefaria.org (Playwright, lane GR) (Pixel 7, English and Hebrew interface): the header's category-colour top border is set but 0px wide (invisible); Resources' title is centred (justify-content: center); after Resources → Commentary → Rashi in the app the recent filters sit in the header ('Rashi', then 'Ramban Rashi') with no title in the body; on a fresh load of with=Rashi neither shows. Not built in wave 2.
 
 Code: [`static/js/ConnectionsPanelHeader.jsx:158`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanelHeader.jsx#L158)
 
@@ -2726,6 +2737,7 @@ A list of resource types for the selected text with counts, each opening its own
 - Topics (count) -> Topics; shown ALWAYS for moderators (alwaysShow) so they can add topics.
 - VERIFIED 2026-10-05: Genesis 1:1 → Sheets (979, sheets deduplicated by id), Web Pages (no number while loading), Topics (7), Manuscripts (1), Torah Readings (1).
 - VERIFIED 2026-10-05 (Berakhot 2a:1): the 'Web Pages' row has NO number — it only shows one once the pages have been loaded (by visiting the view); Sheets (46), Topics (7), Manuscripts (4), Translations (5) are shown.
+- 2026-11-10 (lane GR, T-G04): signed in, the Sheets count adds the reader's own sheets on the verses (private too) from /api/related/<ref>?private=1, their public ones counted once (old Sefaria.sheets.sheetsTotalCount); adding to a sheet refreshes it. Tests: src/lib/connections/related.test.ts.
 
 Code: [`static/js/ConnectionsPanel.jsx:662`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L662), [`static/js/ConnectionsPanel.jsx:668`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L668)
 
@@ -2918,7 +2930,7 @@ Code: [`static/js/sefaria/sefaria.js:1676`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_04_connections.md#3.4`
 
 #### CON-028 · Recent filters chips
-`standard` `live` · rebuild: **todo** — Recent-filter chips (phone header and full-panel list) not built; legacy loop bug means only the current filter shows
+`standard` `live` · rebuild: **partial** — Desktop recent-filter set built and verified; the phone header placement (CON-002) not built · *tested*
 
 A strip of recently used filters lets users hop between sources quickly.
 
@@ -2928,6 +2940,8 @@ A strip of recently used filters lets users hop between sources quickly.
 - Desktop: inside TextList body when fullPanel; Mobile: in panel header next to back link when previousCategory set and mode TextList.
 - Kept on both connections panel and base panel; copied when new connections panel opens.
 - Also reused in VersionsTextList for recent version filters.
+- Correction 2026-11-10 (lane GR, VERIFIED 2026-11-10 on www.sefaria.org (Playwright, lane GR)): the loop bug only matters for an empty list; the recent filters do accumulate. Desktop 1280: Commentary → Rashi shows 'Rashi' above the list (in the body, 48px); back → Ramban shows 'Ramban Rashi' (newest first, the current one with its 4px category rule, chips 18px serif, margin 6px 14px 6px 0). Phone (Pixel 7): none on load; after the same in-app path the set is in the header instead (CON-002).
+- BUILT 2026-11-10 (desktop): with more than one filter used the names replace the title above the list, newest first, the current one marked (aria-current) with its rule; a recent one's link switches without reordering (setConnectionsFilter updateRecent=false). Tests: e2e/recent-filters.spec.ts. The phone header placement is CON-002 (not built).
 
 Code: [`static/js/ConnectionFilters.jsx:165`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionFilters.jsx#L165), [`static/js/ConnectionFilters.jsx:189`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionFilters.jsx#L189), [`static/js/TextList.jsx:187`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextList.jsx#L187)
 
@@ -3005,7 +3019,7 @@ Code: [`static/js/TextList.jsx:255`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_04_connections.md#4`
 
 #### CON-034 · Add connection to sheet button
-`standard` `live` · rebuild: **partial** — Add to Sheet works; partial-selection trimming (CON-056) to do · *tested* `signed-in`
+`standard` `live` · rebuild: **done** — Add to Sheet for the selected verses and on each connected text · *tested* `signed-in`
 
 Signed-in users can add a connected passage straight to a source sheet.
 
@@ -3043,11 +3057,12 @@ Code: [`static/js/ConnectionsPanel.jsx:131`](https://github.com/Sefaria/Sefaria-
 Source: `inv_04_connections.md#4`
 
 #### CON-037 · Sidebar scroll position restore
-`optional` `live` · rebuild: **todo** — Sidebar scroll position is not saved or restored when returning to a list view
+`optional` `live` · rebuild: **done** — Book lists and Web Pages keep their place; text lists open at the top; Resources forgets (verified) · *tested*
 
 Returning to a list view restores where the user was scrolled.
 
 - In ConnectionsList, WebPages and Sheets modes scroll position saved via setSideScrollPosition and restored on return; entering Resources resets it (ConnectionsPanel.jsx:99-130).
+- BUILT 2026-11-10 (lane GR). VERIFIED 2026-11-10 on www.sefaria.org (Playwright, lane GR): Genesis 1:1, Commentary book list scrolled to 300 → Sforno opens at 0 → back to the list at 300; through Resources the place is forgotten (0). Here the same (src/features/reader/use-sidebar-scroll.ts); before, the panel body kept the last view's offset for every view (a text list opened mid-way). Tests: e2e/sidebar-scroll.spec.ts.
 
 Code: [`static/js/ConnectionsPanel.jsx:99`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L99), [`static/js/ReaderApp.jsx:1912`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1912)
 
@@ -3363,24 +3378,27 @@ Code: [`static/js/AddToSourceSheet.jsx`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_04_connections.md#13`
 
 #### CON-056 · Add to sheet: version and partial-selection handling
-`standard` `live` · rebuild: **partial** — Version handling (per-direction versions, same-direction split) done; partial-selection trimming and the image guard not built `signed-in`
+`standard` `live` · rebuild: **done** — Versions and the image guard built; whole verses added whatever is selected (owner decision 2026-11-10, legacy parity) · *tested* `signed-in`
 
 When adding to a sheet, the right version text is used and a highlighted portion is trimmed precisely.
 
 - Version handling: both versions same direction -> two separate sources posted (handleSameDirectionVersions); otherwise en/he swapped when directions reversed; source gets version-he/version-en.
 - Partial selection (words highlighted and panel not bilingual): sheetsUtils.getSegmentObjs fetches segments; first segment trimmed to longest suffix that is prefix of selection, last to longest prefix that is suffix; '...' ellipses; text set for that language only (AddToSourceSheet.jsx:194-223).
 - Images unsupported: alert 'We do not currently support adding images to source sheets.' when any ref text is a full-segment image (l.266-276).
+- Owner decision 2026-11-10: Add to Sheet adds the WHOLE verses whatever words are selected in them, as sefaria.org effectively does. Legacy's handleSelectedWords trimming (English- or Hebrew-only panels) is not ported; its quirks (a single verse is never cut at its end; the start is found only when the selection runs to the verse's end) are moot.
+- BUILT 2026-11-10 (lane GR, T-G04): the image guard (old checkContentForImages, run before every add): a verse that is only an image is not added ('We do not currently support adding images to source sheets.' in the view instead of an alert), for the selected verses, a previewed translation (VER-013) and a connected text. Signed-in only: not checkable on sefaria.org without an account; built from static/js/AddToSourceSheet.jsx. Tests: src/lib/text/sheet-source.test.ts.
 
 Code: [`static/js/AddToSourceSheet.jsx:194`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/AddToSourceSheet.jsx#L194), [`static/js/AddToSourceSheet.jsx:266`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/AddToSourceSheet.jsx#L266)
 
 Source: `inv_04_connections.md#13`
 
 #### CON-057 · Google Docs extension promo in Add to Sheet
-`optional` `live` · rebuild: **todo** — Google Docs extension promo box in Add to Sheet not built `signed-in`
+`optional` `live` · rebuild: **done** — GDocAdvertBox ported (impression, click, gdoc_installed) · *tested* `signed-in`
 
 A promo box in Add to Sheet advertises the Sefaria Google Docs extension.
 
 - GDocAdvertBox 'new Google Docs extension' with Install Now; hidden once gdoc_installed cookie set; tracks impressions and clicks (Promotions.jsx:114-145).
+- BUILT 2026-11-10 (lane GR): the box under Add to Sheet's button (old GDocAdvertBox: 'Add texts directly to your Google Docs with our new extension! Learn more' and Install Now with the old utm parameters), promo_viewed once on screen and promo_clicked for campaign GDocs_Promo_AddToSheet, adType sidebar; Install Now sets gdoc_installed, which hides it. Signed-in only. Tests: src/ui/AddToSheetView/AddToSheetView.test.tsx; story WithGoogleDocsPromo.
 
 Code: [`static/js/Promotions.jsx:114`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Promotions.jsx#L114)
 
@@ -3778,6 +3796,7 @@ Users can download any public-domain version in several formats.
 - Version dropdown: public-domain only (license starting with 'Copyright' excluded) plus 'Merged version' per language.
 - Format dropdown: txt with tags, plain.txt, csv, json; link /download/version/<title> - <lang> - <vtitle>.<fmt>, disabled until both chosen; tracks 'Version Download'.
 - Rebuild: the form is native selects plus a link to https://www.sefaria.org/download/version/<title> - <lang> - <version>.<fmt> (the files are produced by sefaria.org); copyrighted versions (licence starting 'Copyright') are not offered; a merged version is offered per language family.
+- Re-checked 2026-11-10 (lane GR, T-G05): only versions whose licence does not start with 'Copyright' are offered (old isVersionPublicDomain); src/ui/DownloadVersions/DownloadVersions.test.tsx.
 
 Code: [`static/js/NavSidebar.jsx:957`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L957)
 
@@ -3805,7 +3824,7 @@ Code: [`static/js/TranslationsBox.jsx:39`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_04_connections.md#7`
 
 #### VER-010 · Translation preview with truncation
-`standard` `live` · rebuild: **partial** — Preview opens the sidebar; truncation is CSS max-height without the clickable ellipsis · *tested*
+`standard` `live` · rebuild: **done** — Five-line cut with the clickable … (verified) · *tested*
 
 Each translation shows a snippet of its text for the selected passage that expands on click.
 
@@ -3813,6 +3832,7 @@ Each translation shows a snippet of its text for the selected passage that expan
 - Click preview opens 'Translation Open': setConnectionsMode + setFilter('vTitle|lang'); fires gtag onClick_version_title (change_to/from, categories, book).
 - Preview href is /<ref>?v<lang>=...&vside=...&with=Translation Open keeping all current versions.
 - Rebuild a11y: the whole preview opens the sidebar through an overlay link (the old markup wraps the preview, which can contain footnotes and citations, in an <a> — a link inside a link).
+- BUILT 2026-11-10 (lane GR). VERIFIED 2026-11-10 on www.sefaria.org (Playwright, lane GR) (Genesis 1:1-5, Translations): previews are cut at 110px (5 lines × 22px); 44 of 47 were cut; a '…' (18px, black, inline under the preview) shows the whole preview (253px) without changing the address. Here the same (was a 7.5em CSS cut without the '…'). Tests: e2e/versions.spec.ts.
 
 Code: [`static/js/VersionBlock/VersionBlockWithPreview.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/VersionBlock/VersionBlockWithPreview.jsx), [`static/js/VersionBlock/VersionBlockHeader.jsx:42`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/VersionBlock/VersionBlockHeader.jsx#L42), [`static/js/VersionBlock/VersionBlock.jsx:25`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/VersionBlock/VersionBlock.jsx#L25)
 
@@ -3849,7 +3869,7 @@ Code: [`static/js/VersionBlock/VersionBlock.jsx:56`](https://github.com/Sefaria/
 Source: `inv_04_connections.md#7`
 
 #### VER-013 · Translation Open sub-mode
-`standard` `live` · rebuild: **partial** — Preview, Open and back done; the Add to Sheet button beside Open is not built · *tested*
+`standard` `live` · rebuild: **done** — Preview, Open, back and Add to Sheet built · *tested*
 
 Previewing one translation in the sidebar with options to open it or add it to a sheet.
 
@@ -3860,6 +3880,7 @@ Previewing one translation in the sidebar with options to open it or add it to a
 - VERIFIED 2026-10-05: each preview is <a class=versionPreview href='/Genesis.1.1?ven=<current>&vside=The_Koren_Jerusalem_Bible&with=Translation Open'>; the click handler rewrites the URL to …&vside=The_Koren_Jerusalem_Bible|en&with=Translation Open (key '<title>|<language>', language = the version's `language`, 'en' for every translation). Both forms must be read.
 - VERIFIED 2026-10-05: the view is: header '‹ Translations' (back to the list), an uppercase title chip with a coloured underline, the selected passage in ONLY that translation, then 'Open' and 'Add to Sheet'. One extra request: /api/v3/texts/Genesis.1.1?version=english|<title>&version=hebrew|…. The rebuild reuses the translations list it already fetched (no extra request).
 - Rebuild: 'Add to Sheet' needs sign-in and arrives with the signed-in tools; the recent-versions chip row shows only the previewed version.
+- 2026-11-10 (lane GR): signed in, Add to Sheet beside Open adds the passage in that translation only (the old VersionsTextList passes versions {[language]: title}); its back link returns to the preview. Tests: src/ui/TranslationsView/TranslationOpenView.test.tsx.
 
 Code: [`static/js/VersionsTextList.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/VersionsTextList.jsx), [`static/js/sefaria/sefaria.js:1112`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L1112)
 
@@ -3964,7 +3985,7 @@ Code: [`reader/views.py:2027`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_04_connections.md#8.1`
 
 #### VER-021 · Extended version notes
-`optional` `broken` · rebuild: **todo** — Extended version notes (sidebar mode and book page ?notes=1) not built; legacy crash bug not to be ported
+`optional` `broken` · rebuild: **deferred** — Deferred after L1 (owner 2026-11-10); no live version found using extended notes
 
 Long-form notes about a version can be read in the sidebar, in English or Hebrew.
 
@@ -3972,6 +3993,7 @@ Long-form notes about a version can be read in the sidebar, in English or Hebrew
 - Language toggle 'עברית'/'English' when both exist; missing-language messages.
 - Back link only if backFromExtendedNotes passed; BUG: not passed in sidebar so ExtendedNotes.jsx:30 calls undefined prop and can crash when version has no extended notes; header back goes to 'Translations'.
 - Book-TOC variant (menuOpen 'extended notes') served at ?notes=1 via make_panel_dict (reader/views.py:551-559).
+- Deferred 2026-11-10 (owner, LAUNCH_PLAN §8): no version on www.sefaria.org with extendedNotes/extendedNotesHebrew was found among 26 titles checked through /api/texts/versions/<title> (lane GR).
 
 Code: [`static/js/ExtendedNotes.jsx:30`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ExtendedNotes.jsx#L30), [`static/js/ConnectionsPanel.jsx:570`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L570), [`reader/views.py:551`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L551)
 
@@ -8793,12 +8815,13 @@ Code: [`static/js/MyNotesPanel.jsx`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_04_connections.md#11`
 
 #### USL-004 · Note listing with delete and sheet-aware links
-`optional` `live` · rebuild: **partial** — Listing with delete and sheet-aware links; Add to Sheet on a note not built · *tested* `signed-in`
+`optional` `live` · rebuild: **done** — Listing with delete and sheet-aware links; legacy's note Add to Sheet is unreachable (dead code), not ported · *tested* `signed-in`
 
 Compact note entries on profile/note lists with delete and a link to the source.
 
 - NoteListing.jsx: circled-x delete with confirm; ref link goes to voices /sheets/<id>.<node> for sheet refs else library /<ref>?with=Notes; NotesList renders empty state.
 - BUILT 2026-11-05: each note links to /<ref>?with=Notes (a sheet's note to /sheets/x.y), the text, delete with a confirm. Not built: Add to Sheet on a note. Tests: src/ui/UserHistoryPage/UserHistoryPage.test.tsx.
+- 2026-11-10 (lane GR, T-G04): 'Add to Sheet on a note' has no way in on sefaria.org: static/js/NoteListing.jsx (the live /texts/notes list) keeps the modal state but renders no button that opens it; the button exists only in static/js/MyNotesPanel.jsx, which nothing imports. Parity is none; not built.
 
 Code: [`static/js/NoteListing.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NoteListing.jsx)
 
@@ -8847,7 +8870,7 @@ Source: `inv_08_other.md#1.6`
 ### Saved and history
 
 #### USL-008 · Saved items and reading history pages
-`core` `live` · rebuild: **partial** — Saved and History pages built; per-item save button and language toggle not · *tested* `signed-in`
+`core` `live` · rebuild: **partial** — Saved and History pages with per-item Save; the language toggle not built · *tested* `signed-in`
 
 Users see saved items and reading history, split by Library texts and Voices sheets.
 
@@ -8858,6 +8881,7 @@ Users see saved items and reading history, split by Library texts and Voices she
 - Items: sheets -> SheetBlock (title, save button, author ProfileListing with follow); texts -> TextPassage (ref link with version params, save button, he/en content)
 - History disabled -> message linking to account settings; empty states; /history requires login
 - BUILT 2026-11-05: /saved and /history in the new reader (signed out: 302 to /login?next=, as login_required), tabs Saved / History / Notes routed in the app, /api/profile/user_history 20 at a time with scroll-to-load, history deduped by consecutive book with its time stamp, the reading-history-off message. Not built: the per-item save button, the language toggle. Tests: e2e/user-history-page.spec.ts, src/lib/user/user-history-page.test.ts, src/ui/UserHistoryPage/UserHistoryPage.test.tsx.
+- 2026-11-10 (lane GR, T-G04): each text and sheet on /saved and /history has its Save button (old SaveLine: after the title, before the time stamp; shown on hover, always on touch screens and while focused), filled while saved; a click removes or saves it again with the item's versions. The language toggle (old LanguageToggleButton beside the title, desktop English interface) is not built. Tests: src/features/user-history/UserHistoryRoute.test.tsx, src/ui/UserHistoryPage/UserHistoryPage.test.tsx.
 
 Code: [`static/js/UserHistoryPanel.jsx:44-179`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/UserHistoryPanel.jsx#L44-L179), [`reader/views.py:1335-1371`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1335-L1371), [`sefaria/model/user_profile.py:248`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/user_profile.py#L248), [`static/js/Story.jsx:283-358`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Story.jsx#L283-L358)
 
@@ -9956,7 +9980,7 @@ Code: [`static/js/Promotions.jsx:57`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_08_other.md#4.2`
 
 #### PRM-009 · Google Docs add-on promo
-`optional` `live` · rebuild: **todo** — Google Docs add-on advert in Add to Sheet not ported.
+`optional` `live` · rebuild: **done** — Same as CON-057
 
 The Add to sheet panel advertises the Sefaria Google Docs add-on until a user installs it.
 
@@ -11681,12 +11705,13 @@ Code: [`reader/views.py:847-848`](https://github.com/Sefaria/Sefaria-Project/blo
 Source: `inv_01_urls_routing.md#2.1`
 
 #### RTE-047 · Version notes param (notes)
-`optional` `live` · rebuild: **todo** — ?notes=1 extended-notes page for a version is not built (BOK-001 also lists extended notes as missing).
+`optional` `live` · rebuild: **deferred** — Deferred after L1 (owner 2026-11-10); no live version found using extended notes
 
 A book-level URL with notes=1 opens the 'extended notes' page for a version.
 
 - notes=1 on a book-level ref -> menuOpen 'extended notes' with currVersions.
 - Client hist.url = '<Book>&notes[i]=1' (ReaderApp.jsx:544-549).
+- Deferred 2026-11-10 (owner, LAUNCH_PLAN §8): no version on www.sefaria.org with extendedNotes/extendedNotesHebrew was found among 26 titles checked through /api/texts/versions/<title> (lane GR).
 
 Code: [`reader/views.py:553-561`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L553-L561), [`static/js/ReaderApp.jsx:544-549`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L544-L549)
 
@@ -12475,7 +12500,7 @@ Source: `inv_08b_admin_linker_apps.md#5.3`
 ### Print
 
 #### PLT-030 · Print stylesheets
-`standard` `live` · rebuild: **partial** — Only verse numbers are hidden in print; header, sidebar, banners and cookie notice still print and there is no Sefaria print footer. `desktop only`
+`standard` `live` · rebuild: **partial** — Legacy's print hiding ported; banners and the text column's fixed height remain · *tested* `desktop only`
 
 Printing a page hides interface chrome and lays text out in a clean flow with a Sefaria footer.
 
@@ -12483,6 +12508,7 @@ Printing a page hides interface chrome and lays text out in a clean flow with a 
 - media=print at base.html:121): hides header, nav buttons, loading, skip link, connections panel/header, link-count dots, category color line, cookie notice, banners, interrupting message, editor
 - sidebar toggle/add interface, display options panel, <details>; static full-width layout; hides verse sup footnote markers; #printFooter 'Sefaria' logo (Hebrew variant).
 - Also reader-print.css (40), sheets-print.css (61; legacy sheets.html and sheets_visual.html), contest-print.css (21). No server-side PDF/Word generation.
+- 2026-11-10 (lane GR): see TXD-062. Header, sidebar, reader buttons, dots and footnote markers hidden in print; the cookie notice already was. The live reader has no Sefaria print footer (#printFooter exists only in gdocs_sheet.html, commented out), so none is added. Banners (SiteWideBanner) and the text column's height remain.
 
 Code: [`static/css/s2-print.css:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/css/s2-print.css#L1), [`templates/base.html:121`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/base.html#L121)
 

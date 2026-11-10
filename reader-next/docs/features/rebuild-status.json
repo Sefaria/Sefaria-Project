@@ -636,13 +636,14 @@
   "by": "src/ui/DownloadVersions/DownloadVersions.tsx"
  },
  "VER-010": {
-  "status": "partial",
-  "note": "Preview opens the sidebar; truncation is CSS max-height without the clickable ellipsis"
+  "status": "done",
+  "note": "Five-line cut with the clickable … (verified)",
+  "by": "src/ui/TranslationsView/TranslationsView.tsx"
  },
  "VER-013": {
-  "status": "partial",
-  "note": "Preview, Open and back done; the Add to Sheet button beside Open is not built",
-  "by": "src/ui/TranslationsView/TranslationOpenView.tsx"
+  "status": "done",
+  "note": "Preview, Open, back and Add to Sheet built",
+  "by": "src/ui/TranslationsView/TranslationOpenView.tsx, src/features/reader/ConnectionsPane.tsx"
  },
  "VER-014": {
   "status": "done",
@@ -1621,9 +1622,9 @@
   "by": "src/ui/NotesView"
  },
  "CON-034": {
-  "status": "partial",
-  "note": "Add to Sheet works; partial-selection trimming (CON-056) to do",
-  "by": "src/ui/AddToSheetView"
+  "status": "done",
+  "note": "Add to Sheet for the selected verses and on each connected text",
+  "by": "src/ui/AddToSheetView, src/features/reader/ConnectionsPane.tsx"
  },
  "CON-036": {
   "status": "done",
@@ -1899,7 +1900,7 @@
  },
  "USL-008": {
   "status": "partial",
-  "note": "Saved and History pages built; per-item save button and language toggle not",
+  "note": "Saved and History pages with per-item Save; the language toggle not built",
   "by": "src/routes/saved.tsx, src/routes/history.tsx, src/features/user-history, src/ui/UserHistoryPage"
  },
  "USL-003": {
@@ -1908,9 +1909,9 @@
   "by": "src/routes/texts.notes.tsx, src/ui/UserHistoryPage"
  },
  "USL-004": {
-  "status": "partial",
-  "note": "Listing with delete and sheet-aware links; Add to Sheet on a note not built",
-  "by": "src/ui/UserHistoryPage"
+  "status": "done",
+  "note": "Listing with delete and sheet-aware links; legacy's note Add to Sheet is unreachable (dead code), not ported",
+  "by": "src/ui/UserHistoryPage, src/features/user-history"
  },
  "RTE-031": {
   "status": "done",
@@ -2403,8 +2404,9 @@
   "note": "Not in launch: admin/moderator Django tool, linker admin (LAUNCH_PLAN §8)"
  },
  "CON-002": {
-  "status": "todo",
-  "note": "Phone sidebar header variant (category-colour top border, centred Resources, recent-commentator chips) not built"
+  "status": "partial",
+  "note": "Resources title centred at phone width (verified); recent filters in the phone header not built",
+  "by": "src/ui/ConnectionsPanel/ConnectionsPanel.module.css"
  },
  "CON-005": {
   "status": "replaced",
@@ -2434,8 +2436,9 @@
   "note": "Server behaviour; Django keeps it (the client reads category from /api/links)"
  },
  "CON-028": {
-  "status": "todo",
-  "note": "Recent-filter chips (phone header and full-panel list) not built; legacy loop bug means only the current filter shows"
+  "status": "partial",
+  "note": "Desktop recent-filter set built and verified; the phone header placement (CON-002) not built",
+  "by": "src/ui/ConnectionsPanel/TextList.tsx, src/features/reader/ConnectionsPane.tsx"
  },
  "CON-031": {
   "status": "replaced",
@@ -2448,8 +2451,9 @@
   "by": "src/ui/ConnectionsPanel/TextList.tsx, src/features/reader/ConnectionsPane.tsx, src/lib/user/sheets.ts"
  },
  "CON-037": {
-  "status": "todo",
-  "note": "Sidebar scroll position is not saved or restored when returning to a list view"
+  "status": "done",
+  "note": "Book lists and Web Pages keep their place; text lists open at the top; Resources forgets (verified)",
+  "by": "src/features/reader/use-sidebar-scroll.ts, src/features/reader/ConnectionsPane.tsx"
  },
  "CON-040": {
   "status": "n/a",
@@ -2470,13 +2474,14 @@
   "note": "Dead in legacy: public notes are switched off"
  },
  "CON-056": {
-  "status": "partial",
-  "note": "Version handling (per-direction versions, same-direction split) done; partial-selection trimming and the image guard not built",
-  "by": "src/lib/user/sheets.ts, src/ui/AddToSheetView"
+  "status": "done",
+  "note": "Versions and the image guard built; whole verses added whatever is selected (owner decision 2026-11-10, legacy parity)",
+  "by": "src/lib/text/sheet-source.ts, src/features/reader/ConnectionsPane.tsx, src/lib/user/sheets.ts"
  },
  "CON-057": {
-  "status": "todo",
-  "note": "Google Docs extension promo box in Add to Sheet not built"
+  "status": "done",
+  "note": "GDocAdvertBox ported (impression, click, gdoc_installed)",
+  "by": "src/ui/AddToSheetView/GDocAdvert.tsx, src/features/reader/ConnectionsPane.tsx"
  },
  "CON-058": {
   "status": "n/a",
@@ -3061,8 +3066,8 @@
  },
  "PLT-030": {
   "status": "partial",
-  "note": "Only verse numbers are hidden in print; header, sidebar, banners and cookie notice still print and there is no Sefaria print footer.",
-  "by": "src/ui/Segment/Segment.module.css"
+  "note": "Legacy's print hiding ported; banners and the text column's fixed height remain",
+  "by": "src/ui/*/**.module.css (@media print)"
  },
  "PLT-031": {
   "status": "partial",
@@ -3107,8 +3112,9 @@
   "note": "Targeted sidebar ad cards (matching, impressions, blue/newsletter variants) not built; T-G03."
  },
  "PRM-009": {
-  "status": "todo",
-  "note": "Google Docs add-on advert in Add to Sheet not ported."
+  "status": "done",
+  "note": "Same as CON-057",
+  "by": "src/ui/AddToSheetView/GDocAdvert.tsx"
  },
  "PRM-010": {
   "status": "todo",
@@ -3257,8 +3263,8 @@
   "by": "src/lib/workspace/url.ts, src/features/reader/TextPanel.tsx"
  },
  "RTE-047": {
-  "status": "todo",
-  "note": "?notes=1 extended-notes page for a version is not built (BOK-001 also lists extended notes as missing)."
+  "status": "deferred",
+  "note": "Deferred after L1 (owner 2026-11-10); no live version found using extended notes"
  },
  "RTE-048": {
   "status": "done",
@@ -3494,8 +3500,8 @@
  },
  "SHL-051": {
   "status": "partial",
-  "note": "Filter and list/essay/web-pages views are in the with= URL and mirrored to link dots; recent-filter chips and sidebar scroll memory missing",
-  "by": "src/lib/connections/url.ts, src/features/reader/ConnectionsPane.tsx"
+  "note": "Filter, views, recent filters and scroll memory built; the phone header placement of recent filters (CON-002) not",
+  "by": "src/lib/connections/url.ts, src/features/reader/ConnectionsPane.tsx, src/features/reader/use-sidebar-scroll.ts"
  },
  "SHL-054": {
   "status": "replaced",
@@ -3503,8 +3509,8 @@
   "by": "src/lib/workspace/types.ts"
  },
  "SHL-055": {
-  "status": "todo",
-  "note": "Extended version notes view (from book page and sidebar) not built"
+  "status": "deferred",
+  "note": "Deferred after L1 (owner 2026-11-10); no live version found using extended notes"
  },
  "SHL-057": {
   "status": "replaced",
@@ -4000,21 +4006,23 @@
   "note": "Server behaviour; Django keeps it"
  },
  "TXD-020": {
-  "status": "partial",
-  "note": "Formatting tags, footnotes, itags and overlays render; img becomes its alt text and plain <a href> links are unwrapped",
-  "by": "src/ui/SegmentText/SegmentText.tsx, src/lib/text/prepare.ts"
+  "status": "done",
+  "note": "Formatting tags, footnotes, itags, overlays, images and plain links render",
+  "by": "src/lib/text/prepare.ts, src/ui/SegmentText/SegmentText.tsx, vendor/sefaria-toolkit/text-transform/normalize.ts"
  },
  "TXD-023": {
-  "status": "todo",
-  "note": "Category links are dropped: normalizeText unwraps a.categoryLink; render them as /texts/<path> links"
+  "status": "done",
+  "note": "Category mentions link to /texts/<path> (libraryHref)",
+  "by": "src/lib/text/prepare.ts, vendor/sefaria-toolkit/text-transform/normalize.ts"
  },
  "TXD-024": {
   "status": "n/a",
   "note": "Server behaviour; Django keeps it"
  },
  "TXD-026": {
-  "status": "todo",
-  "note": "Images render as alt text only; build full-segment image with caption, inline images and the bilingual image rule"
+  "status": "done",
+  "note": "Full-segment image with caption, inline images, the bilingual one-image rule (from legacy code; no live sample found)",
+  "by": "src/lib/text/prepare.ts, src/ui/Segment/Segment.tsx, src/ui/SegmentText/SegmentText.module.css, vendor/sefaria-toolkit/text-transform/normalize.ts"
  },
  "TXD-029": {
   "status": "done",
@@ -4045,8 +4053,8 @@
  },
  "TXD-062": {
   "status": "partial",
-  "note": "Print hides only segment numbers and link dots; header, sidebar, footnote markers and controls still print",
-  "by": "src/ui/Segment/Segment.module.css"
+  "note": "Legacy print rules ported; the text column's fixed-height scroll box still cuts the printout (TextColumn, lane R)",
+  "by": "src/ui/Segment/Segment.module.css, src/ui/SegmentText/SegmentText.module.css, src/ui/ConnectionsPanel/ConnectionsPanel.module.css, src/ui/ReaderControls/ReaderControls.module.css, src/ui/SiteHeader/SiteHeader.module.css"
  },
  "TXD-066": {
   "status": "done",
@@ -4151,8 +4159,8 @@
   "by": "src/ui/VersionEditForm, src/lib/versions/admin.ts, src/features/book/BookRoute.tsx"
  },
  "VER-021": {
-  "status": "todo",
-  "note": "Extended version notes (sidebar mode and book page ?notes=1) not built; legacy crash bug not to be ported"
+  "status": "deferred",
+  "note": "Deferred after L1 (owner 2026-11-10); no live version found using extended notes"
  },
  "VER-030": {
   "status": "done",
