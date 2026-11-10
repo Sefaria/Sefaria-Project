@@ -304,7 +304,7 @@ test("reading far forward lets the opening section go, and the column stays boun
   }
   await expect.poll(async () => (await sectionRefs(page)).includes("Genesis 1"), { timeout: 20_000 }).toBe(false);
   const held = await sectionRefs(page);
-  expect(held.length).toBeLessThan(12);
+  expect(held.length, `held: ${held.join(", ")}`).toBeLessThan(12);
   // what is left is contiguous: each section's neighbour is the next one
   const nums = held.map((r) => Number(r!.split(" ")[1]));
   expect(nums).toEqual(nums.map((_, i) => nums[0]! + i));
