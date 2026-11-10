@@ -810,7 +810,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   if (view.view === "category") {
     const label = categoryLabel(view.category, catalog);
     return (
-      <ConnectionsPanel label={view.category} back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
+      <ConnectionsPanel label={{ en: view.category, he: label.he }} back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
         {!sectionLinks ? <ViewLoad q={linksQ} what={CONNECTIONS} /> : <CategoryView categories={categoryView(summary, view.category)} catalog={catalog} hrefFor={hrefFor} onNavigate={nav} current={view.category} lang={shownLang} />}
       </ConnectionsPanel>
     );
@@ -843,7 +843,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   }
 
   return (
-    <ConnectionsPanel label={title.en} back={{ href: link(backView), label: <InterfaceText en={backLabel.en} he={backLabel.he} /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
+    <ConnectionsPanel label={title} back={{ href: link(backView), label: <InterfaceText en={backLabel.en} he={backLabel.he} /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
       <TextList
         recent={props.recentFilters.map((f) => {
           // a commentator or book as the links name it (collective title), else a book of the catalog, else a category (upper-case)

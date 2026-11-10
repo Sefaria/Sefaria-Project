@@ -237,11 +237,11 @@ test.describe("the sidebar's language button", () => {
     await page.goto("/Genesis.1.3?lang=bi&with=Rashi");
     await page.waitForSelector("html[data-hydrated='true']");
     const side = page.getByRole("complementary");
-    await side.getByRole("button", { name: "Hebrew Language Toggle Icon" }).click();
+    await side.getByRole("button", { name: "Show in Hebrew" }).click();
     await expect(page).toHaveURL(/lang2=he/);
     await expect(page).toHaveURL(/lang=bi/);
-    await expect(side.getByRole("button", { name: "English Language Toggle Icon" })).toBeVisible();
-    await side.getByRole("button", { name: "English Language Toggle Icon" }).click();
+    await expect(side.getByRole("button", { name: "Show in English" })).toBeVisible();
+    await side.getByRole("button", { name: "Show in English" }).click();
     await expect(page).toHaveURL(/lang2=en/);
   });
 });

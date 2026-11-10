@@ -157,3 +157,18 @@ test("a long translation preview is cut at five lines; its … shows the rest in
   await expect(more).toHaveCount(count - 1);
   expect(page.url()).toBe(url);
 });
+
+// a11y N10: at 320px a version's long bare link ("modernizedtanakh.blogspot.com") ended 1.5px past the screen
+test.describe("the Translations sidebar on a 320px phone", () => {
+  test.use({ viewport: { width: 320, height: 700 } });
+  test("no link runs past the screen's edge", async ({ page }) => {
+    await open(page, "/Genesis.1.1?lang=en&with=Translations&lang2=en");
+    await expect(page.getByRole("complementary").getByRole("region", { name: "English" })).toBeVisible({ timeout: 30_000 });
+    // every version's details open, so their facts (sources, licences, long links) are on screen
+    const past = await page.evaluate(() => {
+      document.querySelectorAll("aside details").forEach((d) => ((d as HTMLDetailsElement).open = true));
+      return [...document.querySelectorAll("aside a")].filter((a) => a.getClientRects().length && a.getBoundingClientRect().right > document.documentElement.clientWidth + 0.5).map((a) => a.textContent);
+    });
+    expect(past).toEqual([]);
+  });
+});
