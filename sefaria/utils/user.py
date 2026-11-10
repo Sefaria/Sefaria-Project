@@ -53,9 +53,6 @@ def delete_user_account(uid, confirm=True):
     # Delete Following Relationships
     db.following.delete_many({"follower": uid})
     db.following.delete_many({"followee": uid})
-    # Sheet likes are not cleaned up: the feature was removed in 2019 (likes were
-    # converted to saves) and no sheet on prod has any. The $pull matched nothing but
-    # scanned every sheet, since likes is unindexed: most of the 92-202s deletions.
     # Delete Profile
     db.profiles.delete_one({"id": uid})
     # Delete User Object
