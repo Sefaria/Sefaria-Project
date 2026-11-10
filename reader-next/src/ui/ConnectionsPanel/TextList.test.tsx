@@ -124,4 +124,15 @@ describe("TextList dwell (the old checkVisibleSegments)", () => {
     await userEvent.click(screen.getByRole("button", { name: "Remove" }));
     expect(onRemove).toHaveBeenCalledWith(expect.objectContaining({ id: "i1" }));
   });
+
+  // parity S8: sefaria.org shows "Abarbanel on Torah, Genesis 1:1" (segments 1:1:1-3) as three paragraphs, not one
+  it("shows each segment of a ranged link as its own paragraph", () => {
+    const ranged = item(1, {
+      sourceRef: "Abarbanel on Torah, Genesis 1:1",
+      translation: { html: "first questions to raise second third", parts: ["first questions to raise", "second", "third"], lang: "en", dir: "ltr" },
+    });
+    const { container } = render(<TextList {...props} items={[ranged]} />);
+    const paras = [...container.querySelectorAll("li p")].map((p) => p.textContent);
+    expect(paras).toEqual(["first questions to raise", "second", "third"]);
+  });
 });

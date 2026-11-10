@@ -5,6 +5,8 @@ import { categoryDescription, categoryLabel } from "~/lib/connections/terms";
 import type { ResourceCounts } from "~/lib/connections/related";
 import type { TopLevelSummary } from "~/lib/connections/summary";
 import { withHref, type ConnectionsView } from "~/lib/connections/url";
+import { CONNECTION_PANEL_SECTION as SECTION } from "~/lib/connections/strings";
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { Icon, type IconName } from "../Icon/Icon";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { categoryColor } from "../tokens/category-color";
@@ -71,6 +73,8 @@ const visible = (r: ToolRow) => r.count === undefined || r.count === null || r.c
 export function ResourcesView({ hrefFor, summary, catalog, basePath, search = "", onNavigate, counts, notesCount = 0, sheetsHref, showCompare, signedIn = false, moderator = false }: ResourcesViewProps) {
   const href_ = (v: ConnectionsView) => (hrefFor ? hrefFor(v) : withHref(basePath ?? "", v, search));
   const [expanded, setExpanded] = useState(false);
+  // section names in the interface's language (a11y S5), the old client's words (parity S11)
+  const ui = useInterfaceLang() === "hebrew" ? "he" : "en";
   const rows = expanded ? summary.categories : summary.visible;
   const none = summary.categories.length === 0 && summary.essays.length === 0;
 
@@ -113,7 +117,7 @@ export function ResourcesView({ hrefFor, summary, catalog, basePath, search = ""
         external={Boolean(r.external)}
         onNavigate={r.external ? undefined : onNavigate}
         onTrack={() => (r.key === "compare" ? (readerAnalytics.toolClicked(r.label.en, undefined, signedIn), readerAnalytics.compareOpened()) : readerAnalytics.toolClicked(r.label.en, r.view?.view === "mode" ? r.view.mode : undefined, signedIn))}
-        trailing={r.external ? <Icon name="external-link" size="1em" label="Opens in a new tab" /> : undefined}
+        trailing={r.external ? <Icon name="external-link" size="1em" label={ui === "he" ? "נפתח בכרטיסייה חדשה" : "Opens in a new tab"} /> : undefined}
       />
     ));
   // Old panel: the Resources section shows when any of its counts is non-zero or unknown.
@@ -122,9 +126,9 @@ export function ResourcesView({ hrefFor, summary, catalog, basePath, search = ""
   return (
     <div>
       <div className={styles.topTools}>{renderRows(top)}</div>
-      <section aria-label="Related Texts">
+      <section aria-label={SECTION.related_texts[ui]}>
       <PanelSectionHeading>
-        <InterfaceText en="Related Texts" he="טקסטים קשורים" />
+        <InterfaceText {...SECTION.related_texts} />
       </PanelSectionHeading>
       {none ? (
         <p className={styles.empty}>
@@ -164,16 +168,16 @@ export function ResourcesView({ hrefFor, summary, catalog, basePath, search = ""
       ) : null}
       </section>
       {showResources ? (
-        <section aria-label="Resources">
+        <section aria-label={SECTION.resources[ui]}>
           <PanelSectionHeading>
-            <InterfaceText en="Resources" he="משאבים" />
+            <InterfaceText {...SECTION.resources} />
           </PanelSectionHeading>
           {renderRows(resources)}
         </section>
       ) : null}
-      <section aria-label="Tools">
+      <section aria-label={SECTION.tools[ui]}>
         <PanelSectionHeading>
-          <InterfaceText en="Tools" he="כלים" />
+          <InterfaceText {...SECTION.tools} />
         </PanelSectionHeading>
         {renderRows(tools)}
       </section>

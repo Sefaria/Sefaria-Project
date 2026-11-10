@@ -1,3 +1,4 @@
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { useState } from "react";
 import type { RelatedTopic } from "~/lib/catalog/index-details";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
@@ -21,10 +22,11 @@ export interface RelatedTopicsProps {
  */
 export function RelatedTopics({ topics, topicHref, initial = 5 }: RelatedTopicsProps) {
   const [all, setAll] = useState(false);
+  const he = useInterfaceLang() === "hebrew";
   if (!topics.length) return null;
   const shown = all ? topics : topics.slice(0, initial);
   return (
-    <section aria-label="Related Topics" className={styles.module}>
+    <section aria-label={he ? "נושאים קשורים" : "Related Topics"} className={styles.module}>
       <PanelSectionHeading variant="title">
         <InterfaceText en="Related Topics" he="נושאים קשורים" />
       </PanelSectionHeading>
