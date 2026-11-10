@@ -1,7 +1,8 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { TranslationsRoute } from "~/features/library/TranslationsRoute";
-import { SITE_ORIGIN } from "~/lib/config";
+import { CANONICAL_ORIGIN, SITE_ORIGIN, canonicalUrl } from "~/lib/config";
 import { hebrewSiteOrigin } from "~/lib/routing/site-origins";
+import { pageCanonicalOrigin } from "~/lib/routing/canonical";
 import { ErrorState } from "~/ui/Feedback/Feedback";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { prefetchTranslationsPage, translationLanguage } from "~/lib/translations/translations-page";
@@ -24,13 +25,16 @@ export const Route = createFileRoute("/translations/$slug")({
     if (!translationLanguage(params.slug, inApp())) throw notFound();
     // the list in the server's page when the API answers quickly; otherwise the page does not wait for it (LIB-021)
     await prefetchTranslationsPage(context.queryClient, params.slug);
+    return { canonicalOrigin: await pageCanonicalOrigin() };
   },
-  head: ({ params }) => {
+  head: ({ params, loaderData }) => {
     const language = translationLanguage(params.slug, inApp());
     if (!language) return {};
     // as sefaria.org's head for the page (VERIFIED 2026-11-04 for de, en, he): the language's title and description, the shared card
     const path = `/translations/${params.slug}`;
-    const url = `${SITE_ORIGIN}${path}`;
+    // og:url and the language alternates are absolute (PUBLIC_CANONICAL_ORIGIN): SITE_ORIGIN is "" in the cluster; og:url names
+    // this host's site (English or Hebrew), the alternates both
+    const url = canonicalUrl(path, loaderData?.canonicalOrigin);
     const img = (platform: string) => `${SITE_ORIGIN}/api/img-gen${path}?lang=&platform=${platform}&ven=&vhe=`;
     return {
       meta: [
@@ -55,8 +59,8 @@ export const Route = createFileRoute("/translations/$slug")({
         { name: "twitter:image", content: img("twitter") },
       ],
       links: [
-        { rel: "alternate", href: url, hrefLang: "en" },
-        { rel: "alternate", href: `${hebrewSiteOrigin(SITE_ORIGIN)}${path}`, hrefLang: "he" },
+        { rel: "alternate", href: canonicalUrl(path), hrefLang: "en" },
+        { rel: "alternate", href: canonicalUrl(path, hebrewSiteOrigin(CANONICAL_ORIGIN)), hrefLang: "he" },
       ],
     };
   },
