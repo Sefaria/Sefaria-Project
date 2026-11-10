@@ -6,7 +6,6 @@ waits, so the admin page timed out and admins submitted again. The admin view
 now queues this task and returns at once.
 """
 
-import sentry_sdk
 import structlog
 
 from sefaria.celery_setup.app import app
@@ -56,8 +55,7 @@ def delete_user_account_task(self, uid: int) -> dict:
             raise self.retry(exc=exc, countdown=countdown)
         # Out of retries: the user may be partly deleted. Re-queue by hand (the
         # task is safe to re-run) once the cause is fixed.
-        logger.error("delete_user_account_task:failed", uid=uid, error=f"{type(exc).__name__}: {exc}")
-        sentry_sdk.capture_exception(exc)
+        logger.error("delete_user_account_task:failed", uid=uid, error=f"{type(exc).__name__}: {exc}", exc_info=True)
         raise
     logger.info("delete_user_account_task:done", uid=uid)
     return {"uid": uid, "deleted": True}

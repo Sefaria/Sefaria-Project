@@ -67,12 +67,12 @@ def test_task_reports_after_last_retry():
     with (
         patch("sefaria.utils.user.delete_user_account", side_effect=RuntimeError("mongo down")),
         patch.object(tasks.delete_user_account_task, "retry") as retry,
-        patch.object(tasks.sentry_sdk, "capture_exception") as capture,
+        patch.object(tasks, "logger") as logger,
         pytest.raises(RuntimeError),
     ):
         _run_task(tasks.DELETE_USER_MAX_RETRIES)
     retry.assert_not_called()
-    capture.assert_called_once()
+    assert logger.error.call_args.args[0] == "delete_user_account_task:failed"
 
 
 # ---------------------------------------------------------------------------
