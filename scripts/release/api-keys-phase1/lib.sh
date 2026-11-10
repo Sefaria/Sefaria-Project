@@ -288,3 +288,93 @@ confirm_env() {
   fi
   [[ "$answer" == "$env" ]] || die "confirmation did not match '$env'; nothing was changed"
 }
+
+# ---------------------------------------------------------------------------------------------------------------
+# One-off web pods (premigrate.sh, preflight.sh --stage promote)
+# ---------------------------------------------------------------------------------------------------------------
+# The environment's live web Rollout, as JSON on stdout; fails when it is missing (the pod spec is copied from it).
+web_rollout_json() {
+  local env="$1"
+  kc -n "$(env_namespace "$env")" get rollouts.argoproj.io "$(env_hr "$env")-web" -o json
+}
+
+# Pods created by run_web_pod that may still exist; the calling script's EXIT/INT/TERM trap calls web_pod_cleanup.
+WEB_PODS_LIVE=()
+# shellcheck disable=SC2034
+LAST_POD_NAME="" # the last pod run_web_pod created
+web_pod_cleanup() {
+  local p
+  for p in "${WEB_PODS_LIVE[@]:-}"; do
+    [[ -n "$p" ]] || continue
+    kc -n "${WEB_PODS_NS:-default}" delete pod "$p" --ignore-not-found --wait=false >/dev/null 2>&1 || true
+  done
+  WEB_PODS_LIVE=()
+}
+
+# run_web_pod ENV IMAGE_TAG PURPOSE LOGFILE SCRIPT [TIMEOUT_SECONDS]
+# Creates a pod whose spec is copied from ENV's live web Rollout (volumes, env, envFrom, Secrets, serviceAccount,
+# imagePullSecrets; the web container only) with the image tag replaced and SCRIPT (bash) as its command, waits for it
+# to end, saves its log in LOGFILE, deletes it, and returns the container's exit code. 125: the pod could not start
+# (nothing ran); 124: it did not finish in time (the pod is deleted, so the process is gone; what it did is unknown).
+# The pod name is unique (purpose, env, UTC time, random), and its labels never include the web Rollout's app label.
+run_web_pod() {
+  local env="$1" tag="$2" purpose="$3" logfile="$4" script="$5" timeout="${6:-900}"
+  local ns name rollout script_file manifest start phase reason code now
+  ns="$(env_namespace "$env")"
+  WEB_PODS_NS="$ns"
+  name="${purpose}-${env}-$(date -u +%Y%m%d%H%M%S)-${RANDOM}${RANDOM}"
+  LAST_POD_NAME="$name"
+  script_file="$(mktemp)"
+  manifest="$(mktemp)"
+  printf '%s\n' "$script" >"$script_file"
+  if ! rollout="$(web_rollout_json "$env")"; then
+    rm -f "$script_file" "$manifest"
+    log "  could not read the web Rollout $ns/$(env_hr "$env")-web"
+    return 125
+  fi
+  if ! "$PYTHON" "$RELEASE_PY" oneoff-pod --image-tag "$tag" --script-file "$script_file" --name "$name" --namespace "$ns" \
+    --label "${purpose}-${env}" --purpose "$purpose" --deadline "$((timeout + 120))" <<<"$rollout" >"$manifest"; then
+    rm -f "$script_file" "$manifest"
+    log "  could not build the pod from the web Rollout"
+    return 125
+  fi
+  rm -f "$script_file"
+  if ! kc -n "$ns" create -f "$manifest" >/dev/null; then
+    rm -f "$manifest"
+    log "  could not create pod $ns/$name"
+    return 125
+  fi
+  rm -f "$manifest"
+  WEB_PODS_LIVE+=("$name")
+  start="$(date +%s)"
+  code=124
+  while :; do
+    phase="$(kc -n "$ns" get pod "$name" -o jsonpath='{.status.phase}' 2>/dev/null || true)"
+    reason="$(kc -n "$ns" get pod "$name" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}' 2>/dev/null || true)"
+    case "$phase" in
+      Succeeded | Failed)
+        code="$(kc -n "$ns" get pod "$name" -o jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}' 2>/dev/null || true)"
+        [[ -n "$code" ]] || code=125
+        break
+        ;;
+    esac
+    case "$reason" in
+      ImagePullBackOff | ErrImagePull | CreateContainerConfigError | InvalidImageName | CreateContainerError)
+        log "  pod $name cannot start: $reason ($(kc -n "$ns" get pod "$name" -o jsonpath='{.status.containerStatuses[0].state.waiting.message}' 2>/dev/null | head -c 300))"
+        code=125
+        break
+        ;;
+    esac
+    now="$(date +%s)"
+    if ((now - start > timeout)); then
+      log "  pod $name did not finish in ${timeout}s; deleting it"
+      code=124
+      break
+    fi
+    sleep 1
+  done
+  kc -n "$ns" logs "$name" >"$logfile" 2>&1 || true
+  kc -n "$ns" delete pod "$name" --ignore-not-found --wait=true --timeout=90s >/dev/null 2>&1 || true
+  WEB_PODS_LIVE=("${WEB_PODS_LIVE[@]/$name/}")
+  return "$code"
+}

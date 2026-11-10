@@ -135,12 +135,13 @@ else
   fail "POST /api/knn-search without a token: $CODE $(head -c 200 "$tmp/b")"
 fi
 if [[ -n "$KNN_TOKEN_FILE" ]]; then
-  auth="Authorization: Bearer $(tr -d '\n' <"$KNN_TOKEN_FILE")"
-  http POST /api/knn-search -H "Content-Type: application/json" -H "$auth" --data '{"query": ""}'
+  # The bearer token goes in a private header file (curl -H @file), never on curl's command line, where ps shows it.
+  (umask 077 && printf 'Authorization: Bearer %s\n' "$(tr -d '\r\n' <"$KNN_TOKEN_FILE")" >"$tmp/auth-header")
+  http POST /api/knn-search -H "Content-Type: application/json" -H "@$tmp/auth-header" --data '{"query": ""}'
   if [[ "$CODE" == 400 ]]; then pass "the Library Assistant token is accepted on /api/knn-search (400 on an empty query)"; else fail "knn-search with the token: $CODE $(head -c 200 "$tmp/b")"; fi
   if [[ -n "$KNN_QUERY" ]]; then
     body="$("$PYTHON" -c 'import json,sys; print(json.dumps({"query": sys.argv[1]}))' "$KNN_QUERY")"
-    http POST /api/knn-search -H "Content-Type: application/json" -H "$auth" --data "$body"
+    http POST /api/knn-search -H "Content-Type: application/json" -H "@$tmp/auth-header" --data "$body"
     if [[ "$CODE" == 200 ]]; then pass "knn-search query returned 200"; else fail "knn-search query: $CODE $(head -c 200 "$tmp/b")"; fi
   fi
 else
