@@ -219,7 +219,9 @@ def self_test_policy_check():
         copy.flush()
         mutated = helm_release("prod", copy.name)
     problems = policy_problems(mutated)
-    check(any("mode" in p for p in problems), "self-test: a prod copy with mode enforce is rejected by the policy check")
+    check(
+        any("mode" in p for p in problems), "self-test: a prod copy with mode enforce is rejected by the policy check"
+    )
     check(not policy_problems(helm_release("prod")), "self-test: the real prod file passes the same policy check")
 
 
@@ -228,7 +230,9 @@ def check_release_rules(env, release, rendered_on):
     problems = policy_problems(release)
     check(not problems, f"{env}: phase 1 policy: mode observe, failOpen true, rateLimit off ({'; '.join(problems)})")
     deployment = find(rendered_on, "Deployment", r"-auth-service$")
-    container_env = {e["name"]: e.get("value") for e in deployment[0]["spec"]["template"]["spec"]["containers"][0]["env"]}
+    container_env = {
+        e["name"]: e.get("value") for e in deployment[0]["spec"]["template"]["spec"]["containers"][0]["env"]
+    }
     check(
         container_env.get("AUTH_MODE") == "observe",
         f"{env} on: the auth-service container runs with AUTH_MODE={container_env.get('AUTH_MODE')!r} (want 'observe')",

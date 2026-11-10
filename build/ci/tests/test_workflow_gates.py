@@ -29,7 +29,12 @@ def test_helm_workflow_runs_on_pull_requests():
 
 def test_helm_lint_job_runs_the_new_chart_tests():
     steps = " ".join(str(step.get("run", "")) for step in load("helm.yaml")["jobs"]["lint"]["steps"])
-    for script in ("gunicorn_conf_test.sh", "nginx_conf_test.sh", "render_diff_vs_base.sh", "auth_service_render_test.py"):
+    for script in (
+        "gunicorn_conf_test.sh",
+        "nginx_conf_test.sh",
+        "render_diff_vs_base.sh",
+        "auth_service_render_test.py",
+    ):
         assert script in steps, script
 
 
@@ -43,7 +48,9 @@ def test_branch_protection_needs_jest_and_auth_service_tests():
 
 def test_branch_protection_script_requires_both_to_succeed():
     script = next(
-        step["run"] for step in load("continuous.yaml")["jobs"]["continuous-branch-protection"]["steps"] if "run" in step
+        step["run"]
+        for step in load("continuous.yaml")["jobs"]["continuous-branch-protection"]["steps"]
+        if "run" in step
     )
     for job_id in ("jest-tests", "auth-service-tests"):
         assert f'needs.{job_id}.result }}}}" != "success"' in script
