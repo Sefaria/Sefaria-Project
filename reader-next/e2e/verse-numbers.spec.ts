@@ -23,7 +23,7 @@ test("verse numbers are legacy's 12px; Hebrew numerals are set in the Hebrew UI 
   expect(en.family).toMatch(/^"?Roboto/);
 });
 
-// @feature TXT-022 Zohar's paragraph numbers run on across sections (index_offsets_by_depth). VERIFIED on sefaria.org 2026-11-10:
+// @feature TXD-010 Zohar's paragraph numbers run on across sections (index_offsets_by_depth). VERIFIED on sefaria.org 2026-11-10:
 // /Zohar,_Bereshit.2 opens at paragraph 3 (Zohar, Bereshit 2:3), numbered 3, 4, 5...
 test("Zohar: a section's paragraphs are numbered on from the one before", async ({ page }) => {
   await open(page, "/Zohar,_Bereshit.2?lang=bi");

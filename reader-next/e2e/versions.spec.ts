@@ -141,3 +141,19 @@ test.describe("previewing a translation in the sidebar (Translation Open)", () =
     await expect(side(page).getByRole("heading", { name: "The Koren Jerusalem Bible" })).toBeVisible({ timeout: 20_000 });
   });
 });
+
+// @feature VER-010 Translation preview with truncation (VERIFIED on sefaria.org 2026-11-10, Genesis 1:1-5: previews cut at 110px, a "…"
+// under a cut one shows the rest without changing the address)
+test("a long translation preview is cut at five lines; its … shows the rest in place", async ({ page }) => {
+  await open(page, "/Genesis.1.1-5?lang=bi&with=Translations");
+  const side = page.locator("aside");
+  const more = side.getByRole("button", { name: "Show the whole passage" });
+  await expect(more.first()).toBeVisible({ timeout: 25_000 });
+  const preview = more.first().locator("xpath=preceding-sibling::div[1]").locator("[data-cut]");
+  expect(await preview.evaluate((e) => Math.round(e.getBoundingClientRect().height))).toBeLessThanOrEqual(110);
+  const url = page.url();
+  const count = await more.count();
+  await more.first().click();
+  await expect(more).toHaveCount(count - 1);
+  expect(page.url()).toBe(url);
+});

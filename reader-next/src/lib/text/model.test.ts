@@ -81,7 +81,7 @@ describe("normaliseTexts across book types", () => {
   });
 });
 
-// @feature TXT-022 Zohar's paragraphs run on from section to section (index_offsets_by_depth; old makeSegments, T-G05)
+// @feature TXD-010 Zohar's paragraphs run on from section to section (index_offsets_by_depth; old makeSegments, T-G05)
 describe("numbering offsets", () => {
   const zohar = (over: Partial<RawTextsResponse>): RawTextsResponse =>
     ({
