@@ -77,7 +77,8 @@ class Stub(http.server.BaseHTTPRequestHandler):
         self.do_GET()
 
     def do_GET(self):
-        body = f"{self.server.name} {self.path} body={getattr(self, 'posted', '')} xfh={self.headers.get('x-forwarded-host')}".encode()
+        body = (f"{self.server.name} {self.path} body={getattr(self, 'posted', '')} rid={self.headers.get('x-request-id')} "
+                f"xfh={self.headers.get('x-forwarded-host')}").encode()
         self.send_response(200)
         self.send_header("content-type", "text/plain")
         self.send_header("x-stub", self.server.name)
@@ -189,6 +190,14 @@ def main():
                     ok = seen.endswith(f"xfh={LIBRARY}")
                     failures += not ok
                     print(f"  {'ok ' if ok else 'BAD'} X-Forwarded-Host sent to the reader: {seen!r}")
+                    # nginx's own request id ($request_id, 32 hex) reaches the reader and Varnish, never the client's own
+                    rids = []
+                    for path, cookie in (("/Genesis.1", True), ("/api/v3/texts/Genesis.1", True), ("/admin/", False)):
+                        who, seen = fetch(path, LIBRARY, cookie, headers={"X-Request-Id": "client-chosen-id"})
+                        rids.append((who, re.search(r" rid=(\S+) ", seen).group(1)))
+                    ok = [w for w, _ in rids] == ["reader", "varnish", "varnish"] and all(re.fullmatch(r"[0-9a-f]{32}", r) for _, r in rids)
+                    failures += not ok
+                    print(f"  {'ok ' if ok else 'BAD'} X-Request-Id to the reader, /api/ and a Django path: {rids}")
                     # a write with the cookie reaches the reader, body and all
                     page = fetch("/Genesis.1", LIBRARY, True, "POST")
                     got = ask("/api/profile/x", LIBRARY, True, "POST"), page[0]
@@ -203,6 +212,10 @@ def main():
                     ok = down == want
                     failures += not ok
                     print(f"  {'ok ' if ok else 'BAD'} reader down, with the cookie: {down}" + ("" if ok else f" (expected {want})"))
+                    seen = fetch("/Genesis.1", LIBRARY, True, headers={"X-Request-Id": "client-chosen-id"})[1]
+                    ok = bool(re.search(r" rid=[0-9a-f]{32} ", seen))
+                    failures += not ok
+                    print(f"  {'ok ' if ok else 'BAD'} reader down: Varnish still gets nginx's X-Request-Id: {seen!r}")
                     stubs[1] = stub("reader", READER_PORT)
             finally:
                 proc.terminate()

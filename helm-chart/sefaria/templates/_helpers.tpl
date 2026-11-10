@@ -306,6 +306,17 @@ pods are the reader) or "optin" (a separate reader rollout beside the legacy nod
   value: "1"
 - name: PORT
   value: "3000"
+# the hosts of each interface language, the JSON Django reads (configmap local-settings): the reader's language-domain bounce
+# (reader-next/src/server/language-domain.ts) is inert without it
+- name: DOMAIN_MODULES
+  value: {{ include "config.domainModules" $ctx | fromYaml | toJson | quote }}
+# browser error reports (reader.errors; reader-next/src/lib/config.ts errorEndpoint, errorSampleRate)
+{{- if $ctx.Values.reader.errors.endpoint }}
+- name: PUBLIC_ERROR_ENDPOINT
+  value: {{ $ctx.Values.reader.errors.endpoint | quote }}
+- name: PUBLIC_ERROR_SAMPLE_RATE
+  value: {{ $ctx.Values.reader.errors.sampleRate | toString | quote }}
+{{- end }}
 # analytics IDs and the sign-in providers' public keys, as Django's pages use them (each optional; reader-next/src/lib/config.ts)
 - name: APP_VERSION
   value: {{ $tag | quote }}

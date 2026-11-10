@@ -7,3 +7,5 @@ coverage
 storybook-static
 docs/features/build
 *.log
+# the e2e API recordings (tens of MB, never part of the image)
+e2e/.cassette
