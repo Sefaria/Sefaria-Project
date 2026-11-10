@@ -2,6 +2,7 @@
 ApiKey.allowed_origins: the database refuses anything but an array of strings (Postgres), and
 model validation refuses anything but a list of domains.
 """
+
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, connection, transaction
 from django.test import TestCase
@@ -14,7 +15,8 @@ class AllowedOriginsTest(TestCase):
 
     def setUp(self):
         profile = Project.objects.create(
-            submission_source=SubmissionSource.MANUAL, project_name="Origins", is_published=False)
+            submission_source=SubmissionSource.MANUAL, project_name="Origins", is_published=False
+        )
         self.project = ApiProject.objects.create(profile=profile)
 
     def make(self, origins):
@@ -33,7 +35,17 @@ class AllowedOriginsTest(TestCase):
                 self.make(bad).save()
 
     def test_full_clean_rejects_bad_values(self):
-        for bad in ([1], ["a", {}], "x", ["not a domain"], ["https://a.example"], ["a.example/path"], ["a.example:8080"], ["A.example"], [""]):
+        for bad in (
+            [1],
+            ["a", {}],
+            "x",
+            ["not a domain"],
+            ["https://a.example"],
+            ["a.example/path"],
+            ["a.example:8080"],
+            ["A.example"],
+            [""],
+        ):
             with self.subTest(bad=bad), self.assertRaises(ValidationError) as ctx:
                 self.make(bad).full_clean(exclude=["key"])
             self.assertIn("allowed_origins", ctx.exception.message_dict)

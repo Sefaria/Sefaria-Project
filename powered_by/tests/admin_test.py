@@ -4,6 +4,7 @@ N-M11: the Powered by admin with its API key inline.
 Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry
 the `failing` marker, so the default CI run (-m "not failing") leaves them out.
 """
+
 from datetime import timedelta
 from html.parser import HTMLParser
 
@@ -88,15 +89,23 @@ class ProjectAdminTest(TestCase):
         purge_test_profiles(self.staff)
         self.client.force_login(self.staff)
         self.listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK, submission_date=timezone.now().replace(microsecond=0),
-            creator="Tova Levi", creator_email="tova@example.org", project_name="Tehillim Circle",
-            project_link="https://tehillimcircle.org", project_desc="Psalms for a group.",
-            sefaria_tools_used=["API"], tags=["Liturgy"], notes="Checked by staff.", request_not_to_publish=False,
+            submission_source=SubmissionSource.FORMSTACK,
+            submission_date=timezone.now().replace(microsecond=0),
+            creator="Tova Levi",
+            creator_email="tova@example.org",
+            project_name="Tehillim Circle",
+            project_link="https://tehillimcircle.org",
+            project_desc="Psalms for a group.",
+            sefaria_tools_used=["API"],
+            tags=["Liturgy"],
+            notes="Checked by staff.",
+            request_not_to_publish=False,
             is_published=True,
         )
         self.api_project = ApiProject.objects.create(profile=self.listing)
-        self.key = ApiKey.objects.create(project=self.api_project, label="Production",
-                                         allowed_origins=["tehillimcircle.org"])
+        self.key = ApiKey.objects.create(
+            project=self.api_project, label="Production", allowed_origins=["tehillimcircle.org"]
+        )
 
     def tearDown(self):
         purge_test_profiles(self.staff)
@@ -169,14 +178,22 @@ class ProjectAdminTest(TestCase):
         self.assertTrue(ApiKey.objects.filter(pk=self.key.pk).exists())
 
     def test_staff_can_soft_delete_an_api_project_and_revoke_its_keys(self):
-        settings_made = Project.objects.create(submission_source=SubmissionSource.DEVELOPER_SETTINGS,
-                                               project_name="Settings project", request_not_to_publish=False, is_published=True)
+        settings_made = Project.objects.create(
+            submission_source=SubmissionSource.DEVELOPER_SETTINGS,
+            project_name="Settings project",
+            request_not_to_publish=False,
+            is_published=True,
+        )
         other = ApiProject.objects.create(profile=settings_made)
         other_key = ApiKey.objects.create(project=other, label="Other")
 
-        response = self.client.post(admin_url("changelist", model="apiproject"), {
-            "action": "soft_delete_and_revoke_keys", "_selected_action": [self.api_project.pk, other.pk],
-        })
+        response = self.client.post(
+            admin_url("changelist", model="apiproject"),
+            {
+                "action": "soft_delete_and_revoke_keys",
+                "_selected_action": [self.api_project.pk, other.pk],
+            },
+        )
 
         self.assertEqual(response.status_code, 302)
         for api_project, key in ((self.api_project, self.key), (other, other_key)):
@@ -190,9 +207,13 @@ class ProjectAdminTest(TestCase):
         deleted_at = timezone.now() - timedelta(days=3)
         ApiProject.objects.filter(pk=self.api_project.pk).update(deleted_at=deleted_at)
 
-        self.client.post(admin_url("changelist", model="apiproject"), {
-            "action": "soft_delete_and_revoke_keys", "_selected_action": [self.api_project.pk],
-        })
+        self.client.post(
+            admin_url("changelist", model="apiproject"),
+            {
+                "action": "soft_delete_and_revoke_keys",
+                "_selected_action": [self.api_project.pk],
+            },
+        )
 
         self.assertEqual(ApiProject.objects.get(pk=self.api_project.pk).deleted_at, deleted_at)
 
@@ -209,13 +230,13 @@ class ProjectAdminTest(TestCase):
     @pytest.mark.failing
     def test_N_M11_a_sixth_active_key_cannot_be_added_known_gap_N_M11(self):
         for n in range(4):
-            ApiKey.objects.create(project=self.api_project, label="Key {}".format(n))
+            ApiKey.objects.create(project=self.api_project, label=f"Key {n}")
         data = self.api_change_form()
         total = int(data["api_keys-TOTAL_FORMS"])
         data["api_keys-TOTAL_FORMS"] = str(total + 1)
-        data["api_keys-{}-label".format(total)] = "Sixth"
-        data["api_keys-{}-allowed_origins".format(total)] = "[]"
-        data["api_keys-{}-project".format(total)] = str(self.api_project.pk)
+        data[f"api_keys-{total}-label"] = "Sixth"
+        data[f"api_keys-{total}-allowed_origins"] = "[]"
+        data[f"api_keys-{total}-project"] = str(self.api_project.pk)
 
         self.api_save(data)
 
@@ -225,6 +246,7 @@ class ProjectAdminTest(TestCase):
 def test_the_admin_module_does_not_import_sefaria_model_at_load():
     # Admin modules load at Django setup, including collectstatic in the image build, which has no Mongo.
     import ast
+
     import powered_by.admin as admin_module
 
     tree = ast.parse(open(admin_module.__file__).read())

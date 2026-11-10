@@ -5,6 +5,7 @@ restricted before this change keep working. The column keeps its name, which the
 service's loader use. Not reversed: an origin can't be rebuilt from a domain, and the old auth service refuses a
 domain, which fails closed.
 """
+
 from urllib.parse import urlsplit
 
 from django.db import migrations, models
@@ -16,8 +17,8 @@ def _domain(origin):
     if "://" not in origin:
         return origin
     netloc = urlsplit(origin).netloc.lower()
-    host = netloc[:netloc.index("]") + 1] if netloc.startswith("[") else netloc.split(":")[0]
-    return host[len("www."):] if host.startswith("www.") else host
+    host = netloc[: netloc.index("]") + 1] if netloc.startswith("[") else netloc.split(":")[0]
+    return host[len("www.") :] if host.startswith("www.") else host
 
 
 def to_domains(apps, schema_editor):
@@ -30,7 +31,6 @@ def to_domains(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("powered_by", "0009_cleanup_abandoned_project_limits"),
     ]
@@ -40,7 +40,9 @@ class Migration(migrations.Migration):
             model_name="apikey",
             name="allowed_origins",
             field=models.JSONField(
-                blank=True, db_default=[], default=list,
+                blank=True,
+                db_default=[],
+                default=list,
                 help_text='Domains (e.g. "example.org") whose sites, and their subdomains, may call with this key. Empty allows any.',
                 validators=[powered_by.models.validate_allowed_origins],
             ),

@@ -7,13 +7,13 @@ reported that address as verified, or it was confirmed through the emailed link 
 EmailAddress). Changing the account email therefore ends verification until the new address is
 confirmed; existing keys keep working, but no new project or key can be created.
 """
+
 import ipaddress
 import re
 from datetime import datetime, timedelta
 from urllib.parse import urlsplit
 
 import idna
-from publicsuffixlist import PublicSuffixList
 from allauth.account import app_settings as account_settings
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 from django.conf import settings
@@ -23,11 +23,12 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator, validate_email
 from django.db import IntegrityError, transaction
 from django.utils import timezone
+from publicsuffixlist import PublicSuffixList
 
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.exceptions import InputError
-from .models import ApiKey, ApiProject, Project, SubmissionSource
 
+from .models import ApiKey, ApiProject, Project, SubmissionSource
 
 MAX_KEYS_PER_PROJECT = 5
 MAX_PROJECTS_PER_ACCOUNT = 10
@@ -52,8 +53,14 @@ SSO_PROVIDERS = ("google", "apple")
 DISMISSED_LISTINGS_SETTING = "developer_dismissed_listings"
 
 # Written only through developer settings; the generic profile APIs drop them.
-DEVELOPER_PROFILE_SETTINGS = (ENABLED_SETTING, PROFILE_SETTING, CONFIRMATION_SENT_SETTING, CONFIRMATION_SENT_TO_SETTING,
-                              CONFIRMATION_SENDS_SETTING, DISMISSED_LISTINGS_SETTING)
+DEVELOPER_PROFILE_SETTINGS = (
+    ENABLED_SETTING,
+    PROFILE_SETTING,
+    CONFIRMATION_SENT_SETTING,
+    CONFIRMATION_SENT_TO_SETTING,
+    CONFIRMATION_SENDS_SETTING,
+    DISMISSED_LISTINGS_SETTING,
+)
 
 MOCK_SSO_SESSION_KEY = "developer_mock_sso"
 
@@ -61,14 +68,17 @@ _url_validator = URLValidator(schemes=["http", "https"])
 # A public host name, as the settings page checks it: dotted labels and a top-level domain of letters or
 # punycode. No IP addresses, localhost, single labels or trailing dot.
 WEBSITE_HOST_RE = re.compile(
-    r"^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,63}|xn--[a-z0-9-]{2,59})$")
+    r"^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,63}|xn--[a-z0-9-]{2,59})$"
+)
 
-WEBSITE_IN_USE_ERROR = ("A key is restricted to this website. Turn off the restriction on every key "
-                        "before removing the website.")
+WEBSITE_IN_USE_ERROR = (
+    "A key is restricted to this website. Turn off the restriction on every key before removing the website."
+)
 
 
 class CooldownError(Exception):
     """Too soon to send another confirmation email; retry_after is in whole seconds."""
+
     def __init__(self, retry_after, message="Wait a minute before asking for another email."):
         super().__init__(message)
         self.retry_after = retry_after
@@ -76,6 +86,7 @@ class CooldownError(Exception):
 
 class LinkStatus:
     """What opening an emailed confirmation link did."""
+
     CONFIRMED = "confirmed"
     ALREADY_CONFIRMED = "already-confirmed"
     EXPIRED = "expired"
@@ -101,7 +112,7 @@ def iso(dt):
 def _origin_host(hostname):
     """A host as browsers write it in the Origin header: punycode for a non-Latin name, IPv6 in brackets."""
     try:
-        return "[{}]".format(ipaddress.IPv6Address(hostname).compressed)
+        return f"[{ipaddress.IPv6Address(hostname).compressed}]"
     except ValueError:
         pass
     try:
@@ -117,22 +128,35 @@ def domain_of(url):
     is this domain or a subdomain of it; an IP address only matches itself.
     """
     host = _origin_host(urlsplit(url).hostname or "").rstrip(".")
-    return host[len("www."):] if host.startswith("www.") else host
+    return host[len("www.") :] if host.startswith("www.") else host
 
 
 # A key restricted to a public suffix (co.uk, vercel.app, github.io, ...) would work for every site under it, so
 # that is refused; a site of one's own under it (myapp.vercel.app) is fine. The Public Suffix List's private
 # section covers most shared hosts; these are shared hosts it doesn't list.
 PUBLIC_SUFFIXES = PublicSuffixList()
-EXTRA_SHARED_HOSTS = frozenset({
-    "sites.google.com", "googleusercontent.com", "wordpress.com", "squarespace.com", "netlify.com",
-    "glitch.me", "railway.app", "codesandbox.io", "stackblitz.io",
-})
+EXTRA_SHARED_HOSTS = frozenset(
+    {
+        "sites.google.com",
+        "googleusercontent.com",
+        "wordpress.com",
+        "squarespace.com",
+        "netlify.com",
+        "glitch.me",
+        "railway.app",
+        "codesandbox.io",
+        "stackblitz.io",
+    }
+)
 
-SHARED_DOMAIN_ERROR = ("A key can't be restricted to {domain}, because other people's sites share it. Use your "
-                       "site's own address, such as yourapp.{domain}, or leave the key unrestricted.")
-NOT_A_DOMAIN_ERROR = ("A key can't be restricted to {domain}, because it isn't a public domain. Leave keys "
-                      "you use for local development unrestricted.")
+SHARED_DOMAIN_ERROR = (
+    "A key can't be restricted to {domain}, because other people's sites share it. Use your "
+    "site's own address, such as yourapp.{domain}, or leave the key unrestricted."
+)
+NOT_A_DOMAIN_ERROR = (
+    "A key can't be restricted to {domain}, because it isn't a public domain. Leave keys "
+    "you use for local development unrestricted."
+)
 
 
 def _is_ip(host):
@@ -163,6 +187,7 @@ def session_login(request):
 
 
 # --- Verification ------------------------------------------------------------
+
 
 def mock_sso_override(request):
     return request.session.get(MOCK_SSO_SESSION_KEY) if mocks_enabled() else None
@@ -214,8 +239,9 @@ def confirmation_for(user):
     if address is None:
         # An account whose email changed still has a primary address row for the old one.
         has_primary = EmailAddress.objects.filter(user=user, primary=True).exists()
-        address = EmailAddress.objects.create(user=user, email=user.email.lower(), primary=not has_primary,
-                                              verified=False)
+        address = EmailAddress.objects.create(
+            user=user, email=user.email.lower(), primary=not has_primary, verified=False
+        )
     return EmailConfirmationHMAC(address)
 
 
@@ -249,7 +275,9 @@ def is_account_email(address):
 
 def verified_elsewhere(address):
     """Another account already verified this address, so allauth won't verify it for this one."""
-    return EmailAddress.objects.filter(email__iexact=address.email, verified=True).exclude(user=address.user_id).exists()
+    return (
+        EmailAddress.objects.filter(email__iexact=address.email, verified=True).exclude(user=address.user_id).exists()
+    )
 
 
 def confirm_email(request, key):
@@ -293,6 +321,7 @@ def user_for_new_link(key):
 
 # --- State -------------------------------------------------------------------
 
+
 def serialize_key(api_key):
     return {
         "id": str(api_key.id),
@@ -332,8 +361,12 @@ def public_listing(project):
 
 def owned_projects(user):
     """The account's live API projects, each with its profile and keys."""
-    return (ApiProject.objects.filter(owner=user, deleted_at__isnull=True)
-            .select_related("profile").prefetch_related("api_keys").order_by("-created_at"))
+    return (
+        ApiProject.objects.filter(owner=user, deleted_at__isnull=True)
+        .select_related("profile")
+        .prefetch_related("api_keys")
+        .order_by("-created_at")
+    )
 
 
 def unclaimed_listings(user, profile):
@@ -350,9 +383,11 @@ def listings_submitted_by(user):
     API project was deleted was deleted with it, so it is not offered again. A profile an older image or staff soft-deleted (its frozen deleted_at, which the public endpoint also honours) is
     not offered: claiming it would hand out a listing that stays hidden from the public endpoint for good.
     """
-    return (Project.objects.filter(creator_email__iexact=user.email, deleted_at__isnull=True)
-            .exclude(submission_source=SubmissionSource.DEVELOPER_SETTINGS)
-            .exclude(id__in=ApiProject.objects.values("profile_id")))
+    return (
+        Project.objects.filter(creator_email__iexact=user.email, deleted_at__isnull=True)
+        .exclude(submission_source=SubmissionSource.DEVELOPER_SETTINGS)
+        .exclude(id__in=ApiProject.objects.values("profile_id"))
+    )
 
 
 def developer_state(request):
@@ -404,10 +439,10 @@ def _text(data, field, max_length=255):
     label = FIELD_LABELS.get(field, field)
     value = data.get(field, "")
     if not isinstance(value, str):
-        raise InputError("{} must be text.".format(label))
+        raise InputError(f"{label} must be text.")
     value = value.strip()
     if len(value) > max_length:
-        raise InputError("{} can be at most {} characters.".format(label, max_length))
+        raise InputError(f"{label} can be at most {max_length} characters.")
     return value
 
 
@@ -506,8 +541,7 @@ def check_confirmation_limits(user):
     if len(sends) >= CONFIRMATION_DAILY_LIMIT:
         raise CooldownError(
             _seconds(timedelta(days=1) - (now - sends[-CONFIRMATION_DAILY_LIMIT])),
-            "You've asked for {} links today. Try again tomorrow, or contact hello@sefaria.org.".format(
-                CONFIRMATION_DAILY_LIMIT),
+            f"You've asked for {CONFIRMATION_DAILY_LIMIT} links today. Try again tomorrow, or contact hello@sefaria.org.",
         )
 
 
@@ -547,6 +581,7 @@ def mark_confirmation_sent(user, sent):
 
 
 # --- Projects ----------------------------------------------------------------
+
 
 def clean_project_fields(data):
     if not isinstance(data, dict):
@@ -618,7 +653,9 @@ def _lock_owned_project(user, project_id):
     before the edit this lock waited for, since Postgres re-checks only the locked row.
     """
     try:
-        api_project = ApiProject.objects.select_for_update().get(id=int(project_id), owner=user, deleted_at__isnull=True)
+        api_project = ApiProject.objects.select_for_update().get(
+            id=int(project_id), owner=user, deleted_at__isnull=True
+        )
     except (ApiProject.DoesNotExist, ValueError):
         raise LookupError("No such project.")
     api_project.profile = Project.objects.get(pk=api_project.profile_id)
@@ -636,7 +673,7 @@ def _check_project_limit(user):
     _lock_account(user)
     limit = max_projects(user)
     if owned_projects(user).count() >= limit:
-        raise InputError("An account can have at most {} projects. To add more, contact hello@sefaria.org.".format(limit))
+        raise InputError(f"An account can have at most {limit} projects. To add more, contact hello@sefaria.org.")
 
 
 def _unpublish(profile):
@@ -763,6 +800,7 @@ def dismiss_listing(user, listing_id):
 
 # --- Keys --------------------------------------------------------------------
 
+
 @transaction.atomic
 def create_key(user, project_id, label):
     project = _lock_owned_project(user, project_id)
@@ -772,14 +810,17 @@ def create_key(user, project_id, label):
     if len(label) > 100:
         raise InputError("The key name can be at most 100 characters.")
     if project.api_keys.filter(revoked_at__isnull=True).count() >= MAX_KEYS_PER_PROJECT:
-        raise InputError("A project can have at most {} keys.".format(MAX_KEYS_PER_PROJECT))
+        raise InputError(f"A project can have at most {MAX_KEYS_PER_PROJECT} keys.")
     return ApiKey.objects.create(project=project, label=label)
 
 
 def get_owned_key(user, key_id):
     try:
         return ApiKey.objects.select_related("project__profile").get(
-            id=key_id, revoked_at__isnull=True, project__owner=user, project__deleted_at__isnull=True,
+            id=key_id,
+            revoked_at__isnull=True,
+            project__owner=user,
+            project__deleted_at__isnull=True,
         )
     except (ApiKey.DoesNotExist, ValidationError, ValueError):
         raise LookupError("No such key.")
