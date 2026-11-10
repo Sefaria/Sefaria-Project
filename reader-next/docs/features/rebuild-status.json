@@ -1347,12 +1347,12 @@
   "by": "src/lib/search/search-page.ts"
  },
  "SRC-025": {
-  "status": "todo",
-  "note": "In-reader Compare Text panel not built (MULTIPANEL_PLAN step 4); not in LAUNCH_PLAN §8: owner to confirm scope"
+  "status": "deferred",
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
  },
  "SRC-026": {
-  "status": "todo",
-  "note": "In-reader Compare Text panel not built (MULTIPANEL_PLAN step 4); not in LAUNCH_PLAN §8: owner to confirm scope"
+  "status": "deferred",
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
  },
  "SRC-027": {
   "status": "deferred",
@@ -2331,8 +2331,8 @@
   "note": "Server behaviour; Django keeps it (the client calls it)"
  },
  "BOK-004": {
-  "status": "todo",
-  "note": "Book page in a compare panel (compact control bar) not built; compare panels do not exist yet"
+  "status": "deferred",
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
  },
  "BOK-019": {
   "status": "done",
@@ -2486,8 +2486,8 @@
   "note": "Not in launch: admin/moderator Django tool, linker admin (LAUNCH_PLAN §8)"
  },
  "CON-066": {
-  "status": "todo",
-  "note": "In-reader Compare Text panel not built; showCompare is never passed so the row is hidden"
+  "status": "deferred",
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
  },
  "CON-068": {
   "status": "partial",
@@ -2735,8 +2735,8 @@
   "note": "Dead in legacy; nothing to rebuild"
  },
  "LIB-003": {
-  "status": "todo",
-  "note": "Library browsing inside the in-reader Compare Text panel is not built; ResourcesView's Compare Text opens Add Connection instead."
+  "status": "deferred",
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
  },
  "LIB-004": {
   "status": "partial",
@@ -2758,8 +2758,8 @@
   "by": "src/ui/CategoryPage/CategoryPage.tsx, src/lib/library/category-model.ts"
  },
  "LIB-018": {
-  "status": "todo",
-  "note": "Category pages inside the in-reader Compare Text panel (compact header, back up one level) are not built."
+  "status": "deferred",
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
  },
  "LIB-022": {
   "status": "todo",
@@ -3461,12 +3461,12 @@
   "note": "Static pages via one mechanism, T-F31 (D-5)"
  },
  "SHL-037": {
-  "status": "todo",
-  "note": "Compare panel header (back, search, display settings) not built; build with the compare panel kind"
+  "status": "deferred",
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
  },
  "SHL-038": {
-  "status": "todo",
-  "note": "In-reader Compare Text panel not built: ResourcesView showCompare is never passed and Add Connection has no Browse"
+  "status": "deferred",
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
  },
  "SHL-041": {
   "status": "partial",

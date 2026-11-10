@@ -5,7 +5,7 @@ Master list of every feature in the current Sefaria web client, extracted from a
 **961 features**, 3932 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 429 · partial 99 · todo 62 · replaced 46 · deferred 190 · n/a 135; 390 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 429 · partial 99 · todo 54 · replaced 46 · deferred 198 · n/a 135; 390 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -529,7 +529,7 @@ Source: `inv_02_reader_shell.md#5`
 ### Compare panel
 
 #### SHL-037 · Compare panel header
-`standard` `live` · rebuild: **todo** — Compare panel header (back, search, display settings) not built; build with the compare panel kind
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built
 
 Panels used to pick a second text have their own header with search and settings.
 
@@ -542,7 +542,7 @@ Code: [`static/js/ComparePanelHeader.jsx:19`](https://github.com/Sefaria/Sefaria
 Source: `inv_02_reader_shell.md#7`
 
 #### SHL-038 · Compare / 'other text' panel
-`standard` `live` · rebuild: **todo** — In-reader Compare Text panel not built: ResourcesView showCompare is never passed and Add Connection has no Browse `desktop only`
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built `desktop only`
 
 Readers can open a second text beside the first by picking it through a library browse flow.
 
@@ -3486,7 +3486,7 @@ Source: `inv_04_connections.md#16.3`
 ### Compare
 
 #### CON-066 · Compare text from sidebar
-`standard` `live` · rebuild: **todo** — In-reader Compare Text panel not built; showCompare is never passed so the row is hidden `desktop only`
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built `desktop only`
 
 The Compare Text tool replaces the sidebar with a text chooser to open a second text side-by-side.
 
@@ -4010,7 +4010,7 @@ Code: [`static/js/TextsPage.jsx:76-83`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_05_library_topics.md#1.2`
 
 #### LIB-003 · Library home in compare panel
-`standard` `live` · rebuild: **todo** — Library browsing inside the in-reader Compare Text panel is not built; ResourcesView's Compare Text opens Add Connection instead.
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built
 
 When the library is opened as a second 'compare' panel it shows a compact header with search and back instead of the title and extras.
 
@@ -4224,7 +4224,7 @@ Code: [`static/js/TextCategoryPage.jsx:421-442`](https://github.com/Sefaria/Sefa
 Source: `inv_05_library_topics.md#2.8`
 
 #### LIB-018 · Category page in compare panel
-`standard` `live` · rebuild: **todo** — Category pages inside the in-reader Compare Text panel (compact header, back up one level) are not built.
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built
 
 In a compare panel a category page shows a compact header with back navigation up one category level.
 
@@ -4961,7 +4961,7 @@ Code: [`static/js/BookPage.jsx:171-187`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.4`
 
 #### BOK-004 · Book page in compare panel
-`standard` `live` · rebuild: **todo** — Book page in a compare panel (compact control bar) not built; compare panels do not exist yet
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built
 
 Opening a book in a compare panel shows a compact reader-style control bar with back, title and display settings.
 
@@ -6270,7 +6270,7 @@ Code: [`static/js/Header.jsx:434`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_06_search.md#1`
 
 #### SRC-025 · Compare-panel search box
-`standard` `live` · rebuild: **todo** — In-reader Compare Text panel not built (MULTIPANEL_PLAN step 4); not in LAUNCH_PLAN §8: owner to confirm scope
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built
 
 A compare panel has its own plain search box that opens search results inside that panel.
 
@@ -6285,7 +6285,7 @@ Code: [`static/js/ComparePanelHeader.jsx:19`](https://github.com/Sefaria/Sefaria
 Source: `inv_06_search.md#1, 5.13`
 
 #### SRC-026 · Compare-panel search limitations
-`optional` `broken` · rebuild: **todo** — In-reader Compare Text panel not built (MULTIPANEL_PLAN step 4); not in LAUNCH_PLAN §8: owner to confirm scope
+`optional` `broken` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built
 
 In compare mode, entity-tab Book category filters cannot be reached.
 

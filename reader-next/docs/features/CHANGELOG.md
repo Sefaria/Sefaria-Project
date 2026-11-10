@@ -489,3 +489,9 @@ Script: `tools/apply_2026_11_10_f-atlas.py` (rebuild-status.json only; idempoten
   and Add to Sheet are built for signed-in readers; the notes said "signed-out modal only"); **VER-013** note (only Add to Sheet beside
   Open is missing).
 - GUI-012, TXT-002, TXT-005: `by` filled in (spot-check of 30 random `done` entries: all 30 confirmed).
+
+## 2026-11-10 — In-reader Compare Text deferred (owner)
+
+- **Deferred:** SRC-025, SRC-026, BOK-004, CON-066, LIB-003, LIB-018, SHL-037, SHL-038 (`todo` → `deferred`): the in-reader Compare
+  Text panel is not in this launch (LAUNCH_PLAN §8). The standalone `/compare` page is built and unaffected. Script:
+  `tools/apply_2026_11_10_compare-deferral.py`.
