@@ -2,7 +2,7 @@
 
 ### Fixed
 
-- **PLT-003** The server-rendered head links each page kind's stylesheets (v-exits F-2): the reader's classes no longer arrive with the JS. Production build, Pixel 7 / CPU 4× / Slow 4G, median of 3: `/Genesis.1` CLS **0.484 → 0**, LCP 13,992 → 3,644 ms.
+- **PLT-003** The server-rendered head links each page kind's stylesheets (v-exits F-2): the reader's classes no longer arrive with the JS. Production build, Pixel 7 / CPU 4× / Slow 4G, median of 3: `/Genesis.1` CLS **0.484 → 0**, LCP 13,992 → 3,644 ms. The book page's CSS is now linked by the server and loaded in the browser too (a merged preload had dropped it: unstyled /Sefer_HaBahir on staging); a guard test covers nine routes.
 - **TXT-023** A complex text's node address (`/Arukh_HaShulchan,_Orach_Chaim`) opens its first section via `/api/ref` instead of downloading the whole node (was a 503) (v-exits F-4).
 - **BOK-013** The book TOC no longer throws `counts.forEach is not a function` on counts shallower than the node's depth (v-exits F-5).
 

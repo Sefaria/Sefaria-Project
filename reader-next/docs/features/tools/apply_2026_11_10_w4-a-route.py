@@ -28,6 +28,7 @@ add(
     "PLT-003",
     [
         "FIXED 2026-11-10 (wave 4, v-exits F-2): the server-rendered head links each page kind's stylesheets. The $ route's kinds (reader, book page) are dynamic chunks and Start's route manifest lists only static imports' CSS, so the reader's classes (Workspace chunk) came with the JS: an unstyled first paint, a 0.39 shift at hydration. vite-plugins/page-kind-css.ts reads each kind's CSS from the client build into virtual:page-kind-css for the server build; src/routes/$.tsx links it. Measured on a production build (Pixel 7, CPU 4x, Slow 4G, median of 3, API www.sefaria.org): /Genesis.1 CLS 0.484 -> 0, LCP 13,992 -> 3,644 ms. Tests: test/build/page-kind-css.test.ts, e2e/ssr-styles.spec.ts (also against a built server with E2E_SSR_BASE_URL).",
+        "FIXED 2026-11-10 (wave 4, staging /Sefer_HaBahir): the book page's CSS was never requested in the browser either: the minifier merged `kind === 'book' ? import(BookRoute) : import(Workspace)` into one preload with the Workspace chunk's dependencies only. Each kind's import is now its own function (src/features/reader/page-kinds.tsx). Guard: e2e/ssr-styles.spec.ts checks, for nine representative routes, that every CSS module in the SSR HTML has rules in a linked stylesheet, and in the browser after an in-app move to the book page.",
     ],
 )
 
