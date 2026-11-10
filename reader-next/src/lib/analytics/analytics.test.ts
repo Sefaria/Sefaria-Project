@@ -15,7 +15,7 @@ beforeEach(() => {
 afterEach(() => {
   delete window.gtag;
   delete window.sa_event;
-  delete window.ga;
+  delete (window as unknown as { ga?: unknown }).ga;
   document.body.innerHTML = "";
 });
 
@@ -30,13 +30,12 @@ describe("core channels", () => {
     expect(window.sa_event).toHaveBeenCalledWith("header_viewed", { impression_type: "regular_header" });
     expect(window.gtag).toHaveBeenCalledWith("event", "header_viewed", { impression_type: "regular_header" });
   });
-  it("Track.event goes through GTM's ga shim with the tracker name, and is skipped without it", () => {
-    uaEvent("Reader", "Change Language", "hebrew");
-    const ga = Object.assign(vi.fn(), { getAll: () => [{ get: () => "gtm7" }] });
-    window.ga = ga;
+  it("Track.event is logged only: no Universal Analytics hit, even with GTM's ga shim present (owner decision 2026-11-10)", () => {
+    const ga = vi.fn();
+    (window as unknown as { ga: unknown }).ga = Object.assign(ga, { getAll: () => [{ get: () => "gtm7" }] });
     uaEvent("Reader", "Change Language", "english");
-    expect(ga).toHaveBeenCalledTimes(1);
-    expect(ga).toHaveBeenCalledWith("gtm7.send", "event", "Reader", "Change Language", "english", undefined);
+    expect(ga).not.toHaveBeenCalled();
+    expect(analyticsLog.at(-1)).toEqual({ channel: "ua", name: "Reader|Change Language", params: { label: "english" } });
   });
   it("a vendor that throws never breaks the caller", () => {
     window.gtag = () => {
