@@ -281,7 +281,7 @@ test.describe("addresses", () => {
     page.on("load", () => loads++);
     const res = await open(page, "/topics/no-such-topic-xyz");
     expect(res!.status()).toBe(404);
-    await expect(page.getByText("Page not found.")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Page Not Found" })).toBeVisible();
     await page.waitForTimeout(1000);
     expect(loads).toBe(1);
   });
@@ -296,7 +296,7 @@ test.describe("addresses", () => {
     await expect(page).toHaveURL(/\/topics\/no-such-topic-xyz$/);
     // a full load: the in-app state is gone, and the server's answer is what shows
     expect(await page.evaluate(() => (window as unknown as { __same?: boolean }).__same)).toBeUndefined();
-    await expect(page.getByText("Page not found.")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Page Not Found" })).toBeVisible();
   });
   test("a topic card on a category page opens the topic in the app", async ({ page }) => {
     await open(page, "/topics/category/biblical-figures");
@@ -432,4 +432,14 @@ test.describe("topics outside the A–Z list", () => {
     await expect(page).toHaveURL(/\/topics\/moses(\?|$)/);
     await expect(main(page).getByRole("heading", { level: 1, name: "Moses" })).toBeVisible();
   });
+});
+
+// Carry-over (wave 2, lane GS): Berakhot 2a's sidebar links an ambiguous name; sefaria.org renders its page (VERIFIED 2026-11-10 with
+// Playwright: the title as h1, an empty "Explore Topics" side column, robots noindex, nofollow), where this client answered 404
+test("an ambiguous name's topic page renders, as on sefaria.org (title only, noindex)", async ({ page }) => {
+  const res = await open(page, "/topics/%D7%A8%D7%92-(ambiguous)");
+  expect(res!.status()).toBe(200);
+  await expect(main(page).getByRole("heading", { level: 1, name: "Rabbi Gamliel [Ambiguous]" })).toBeVisible();
+  await expect(page).toHaveTitle("Rabbi Gamliel [Ambiguous] | Texts from the Sefaria Library");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 });

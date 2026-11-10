@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { markdownToHtml } from "~/lib/html/markdown";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { dafYomi, haftarot, parashah, type CalendarItem } from "~/lib/library/calendars";
@@ -311,5 +311,56 @@ export function SidebarFooter() {
         ))}
       </div>
     </nav>
+  );
+}
+
+export interface RecentlyViewedItem {
+  label: string;
+  /** "he" for a Hebrew label (the Hebrew interface's he_ref). */
+  lang: "en" | "he";
+  href: string;
+}
+
+/**
+ * The old RecentlyViewed: the newest item of the reader's last three books and "All history". Nothing when there is no history
+ * (`hasHistory` false); a history of sheets only shows the title and "All history" with an empty list, as the old module.
+ * `phone`: the old single-panel layout, above the categories: a grey band whose header row holds the title and the link, the list
+ * under it. `onItem` / `onAllHistory`: the old gtag events; `onAllHistory` may cancel the link (signed out: the sign-up modal).
+ *
+ * @feature LIB-025 Sidebar module: Recently viewed
+ */
+export function RecentlyViewed({ items, hasHistory = items.length > 0, phone, onItem, onAllHistory }: { items: readonly RecentlyViewedItem[]; hasHistory?: boolean; phone?: boolean; onItem?: (item: RecentlyViewedItem) => void; onAllHistory?: (e: MouseEvent<HTMLAnchorElement>) => void }) {
+  if (!hasHistory) return null;
+  const list = (
+    <div className={styles.recentList}>
+      <ul>
+        {items.map((x) => (
+          <li key={x.href}>
+            <Link href={x.href} lang={x.lang} dir={x.lang === "he" ? "rtl" : "ltr"} onClick={() => onItem?.(x)}>{x.label}</Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+  const all = (
+    <Link className={styles.allHistory} href="/history" onClick={onAllHistory}>
+      {phone ? <InterfaceText en="All History" he="כל ההסטוריה" /> : <InterfaceText en="All history " he="כל ההסטוריה " />}
+    </Link>
+  );
+  if (phone)
+    return (
+      <section className={styles.recentPhone} aria-labelledby="recently-viewed-phone">
+        <div className={styles.recentHeader}>
+          <h2 id="recently-viewed-phone" className={styles.recentTitle}><InterfaceText en="Recently Viewed" he="נצפו לאחרונה" /></h2>
+          {all}
+        </div>
+        {list}
+      </section>
+    );
+  return (
+    <SidebarModule wideOnly title={<InterfaceText en="Recently Viewed" he="נצפו לאחרונה" />}>
+      {list}
+      {all}
+    </SidebarModule>
   );
 }

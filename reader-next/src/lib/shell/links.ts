@@ -15,7 +15,8 @@ export const DONATE = "https://donate.sefaria.org/give/451346/#!/donation/checko
 export const DONATE_HE = "https://donate.sefaria.org/give/468442/#!/donation/checkout";
 export const HELP = { english: "https://help.sefaria.org/hc/en-us", hebrew: "https://help.sefaria.org/hc/he" } as const;
 
-export const donateHref = (source: "Header" | "MobileNavMenu") => `${DONATE}?c_src=${source}`;
+/** The old DonateLink: the Hebrew interface's own campaign (Sefaria._v), with the link's source for attribution (PRM-004, PRM-005). */
+export const donateHref = (source: "Header" | "MobileNavMenu", hebrew = false) => `${hebrew ? DONATE_HE : DONATE}?c_src=${source}`;
 export const searchHref = (q: string) => `${LIBRARY}/search?q=${encodeURIComponent(q)}&tab=text`;
 /** The server route that sets the interface language and comes back (RTE-034). */
 export const interfaceHref = (lang: "english" | "hebrew", next: string) => `/interface/${lang}?next=${encodeURIComponent(next)}`;

@@ -8,6 +8,10 @@ import { bookVersionsQueryOptions } from "~/lib/versions/book-versions";
 export interface BookRouteData {
   /** The index title: "Genesis". */
   title: string;
+  /** For the page's title and description (PLT-006). */
+  heTitle?: string;
+  enDesc?: string;
+  heDesc?: string;
 }
 
 /**
@@ -34,5 +38,6 @@ export async function loadBookRoute(queryClient: QueryClient, splat: string, sea
     throw redirect({ to: `/${refToUrl(details.title)}` as never, search: Object.fromEntries(new URLSearchParams(search)) as never, statusCode: 301 });
   }
   await queryClient.prefetchQuery(bookVersionsQueryOptions(details.title));
-  return { title: details.title };
+  const d = details as { heTitle?: string; enDesc?: string; heDesc?: string };
+  return { title: details.title, heTitle: d.heTitle, enDesc: d.enDesc, heDesc: d.heDesc };
 }

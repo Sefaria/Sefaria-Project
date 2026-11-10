@@ -11,6 +11,8 @@
 .btn { display: flex; align-items: flex-start; flex: none; align-self: flex-start; height: 22px; margin: 6px 9px 0 7px; padding: 0; border: 0; background: none; cursor: pointer; line-height: normal; }
 .btn img { display: block; }
 .input { flex: 1; min-width: 0; height: 25px; margin: 0 0 1px; padding: 1px 2px; box-sizing: border-box; border: 0; background: none; font-family: var(--sefaria-font-text-en); font-size: 18px; line-height: normal; color: var(--sefaria-color-text-strong); outline: none; }
+/* sefaria.org: .interface-hebrew input { font-family: Heebo… } and no fixed height (26.5px of content at 18px) */
+.input[data-interface="hebrew"] { font-family: var(--sefaria-font-ui-he); height: auto; }
 .dropdown { position: absolute; z-index: 40; inset-inline-start: 0; top: calc(100% + 6px); width: max(100%, 320px); max-height: 70vh; overflow: auto; background: var(--sefaria-color-surface); border-radius: 8px; box-shadow: 0 4px 16px rgb(0 0 0 / 22%); padding-block: 6px; }
 .group { padding-block: 4px; }
 .groupTitle { padding: 6px 16px 2px; font-family: var(--sefaria-font-ui-en); font-size: 12px; letter-spacing: 0.05em; color: var(--sefaria-color-text-muted); text-transform: uppercase; }

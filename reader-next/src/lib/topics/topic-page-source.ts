@@ -83,6 +83,8 @@ interface ApiTopic {
   data_source?: string;
   /** This branch's Django adds the topic's pools (sefaria.org does not, yet). */
   pools?: string[];
+  /** A name the linker could not resolve to one person ("Rabbi Gamliel [Ambiguous]"), linked from texts' sidebars. */
+  isAmbiguous?: boolean;
 }
 
 /** Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP: an author directly under Authors shows only its Top Citations on the Library. */
@@ -240,7 +242,10 @@ const readTopicPage = createServerFn({ method: "GET" })
     const t = await apiJson<ApiTopic>(r, `Topic ${data.slug}`);
     if (!t || !t.slug) return { kind: "missing" };
     const inList = listed?.has(t.slug) ?? false;
-    if (!inList && !(t.pools ? t.pools.includes("library") : await inLibraryPool(t.slug, t.primaryTitle))) return { kind: "missing" };
+    // an ambiguous name is never offered by the name completer, but sefaria.org renders its page (title and an empty Explore Topics,
+    // noindex): Berakhot 2a's sidebar links /topics/רג-(ambiguous). Without `pools` it is taken as the Library's.
+    const inPool = t.pools ? t.pools.includes("library") : t.isAmbiguous || (await inLibraryPool(t.slug, t.primaryTitle));
+    if (!inList && !inPool) return { kind: "missing" };
     return { kind: "page", page: topicPageModel(t, { slug: t.slug, tocPaths, toc, books: indexLookup(tree).books, listed: inList }) };
   });
 

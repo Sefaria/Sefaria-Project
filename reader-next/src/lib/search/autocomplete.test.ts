@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFixture } from "../../../test/msw/fixtures";
-import { outcomeOf, repairGershayimVariant, suggestionsFrom, urlForObject, type NameResponse } from "./autocomplete";
+import { outcomeOf, repairCaseVariant, repairGershayimVariant, repairQuery, suggestionsFrom, urlForObject, type NameResponse } from "./autocomplete";
 
 const gen = readFixture<NameResponse>("search/name-gen.json");
 const rashi = readFixture<NameResponse>("search/name-rashi-on-gen.json");
@@ -23,7 +23,8 @@ describe("suggestions", () => {
   it("urls: book → its page, category → /texts path, topic → the library's topic page", () => {
     expect(urlForObject("ref", "Rashi on Genesis")).toBe("/Rashi_on_Genesis");
     expect(urlForObject("TocCategory", ["Tanakh", "Torah"])).toBe("/texts/Tanakh/Torah");
-    expect(urlForObject("Topic", "gender")).toBe("https://www.sefaria.org/topics/gender");
+    expect(urlForObject("Topic", "gender")).toBe("/topics/gender");
+    expect(urlForObject("Topic", "gender", "voices.sefaria.org")).toBe("https://www.sefaria.org/topics/gender");
     expect(urlForObject("Collection", "x")).toBeUndefined();
   });
   it("nothing completes: no dropdown", () => {
@@ -47,5 +48,29 @@ describe("what Enter does", () => {
   it("a name typed with a gershayim matches the stored quote", () => {
     expect(repairGershayimVariant("רש״י", { is_ref: false, completions: ['רש"י'] })).toBe('רש"י');
     expect(repairGershayimVariant("Shema", { is_ref: false, completions: ["Shema"] })).toBe("Shema");
+  });
+});
+
+// SRC-012: the API's answers for these queries, read 2026-11-10
+describe("repairCaseVariant", () => {
+  const pirkei = { is_ref: false, type: "ref", key: "Pirkei Avot", completions: ["Pirkei Avot", "Avot", "Tosafot Yom Tov on Pirkei Avot, Pirkei Avot, Introduction"], completion_objects: [{ title: "Pirkei Avot", type: "ref", key: "Pirkei Avot" }, { title: "Pirkei Avot", type: "Topic", key: "pirkei-avot" }, { title: "Avot", type: "Topic", key: "avot" }] } as NameResponse;
+  it("a miscapitalised book becomes the book, the rest of the query kept", () => {
+    expect(repairCaseVariant("pirkei avot", pirkei)).toBe("Pirkei Avot");
+    expect(repairCaseVariant("pirkei avot 3", pirkei)).toBe("Pirkei Avot 3");
+  });
+  it("leaves a ref, an exact match and an unrelated query alone", () => {
+    expect(repairCaseVariant("Pirkei Avot", pirkei)).toBe("Pirkei Avot");
+    expect(repairCaseVariant("pirkei avot", { ...pirkei, is_ref: true })).toBe("pirkei avot");
+    expect(repairCaseVariant("moses", { is_ref: false, completions: ["Moses; A Human Life"], completion_objects: [{ title: "Moses; A Human Life", type: "ref", key: "x" }] } as NameResponse)).toBe("moses");
+  });
+});
+
+describe("repairQuery", () => {
+  it("the case repair first, then the gershayim repair on the next answer (asked again until nothing changes)", () => {
+    const lower = { is_ref: false, completions: ["Pirkei Avot"], completion_objects: [{ title: "Pirkei Avot", type: "ref", key: "Pirkei Avot" }] } as NameResponse;
+    expect(repairQuery("pirkei avot", lower)).toBe("Pirkei Avot");
+    const quote = { is_ref: false, completions: ['רמב"ם'] } as NameResponse;
+    expect(repairQuery("רמב״ם", quote)).toBe('רמב"ם');
+    expect(repairQuery('רמב"ם', quote)).toBe('רמב"ם');
   });
 });

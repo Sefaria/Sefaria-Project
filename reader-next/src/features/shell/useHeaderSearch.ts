@@ -1,11 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { nameQueryOptions, outcomeOf, repairGershayimVariant, suggestionsFrom } from "~/lib/search/autocomplete";
+import { nameQueryOptions, outcomeOf, repairQuery, suggestionsFrom } from "~/lib/search/autocomplete";
 import { refToUrl } from "~/lib/ref/url";
 import { toRouterLocation } from "../shared/RouterLink";
 import type { HeaderSearchProps } from "~/ui/SiteHeader/HeaderSearch";
-import { SITE_ORIGIN } from "~/lib/config";
+import { libraryHref, useSiteHost } from "~/lib/routing/library-href";
 import { searchBoxAnalytics, searchFlow } from "~/lib/analytics";
 
 /**
@@ -20,6 +20,7 @@ import { searchBoxAnalytics, searchFlow } from "~/lib/analytics";
 export function useHeaderSearch(): Omit<HeaderSearchProps, "mobile"> {
   const qc = useQueryClient();
   const router = useRouter();
+  const host = useSiteHost();
   return useMemo(() => {
     const go = (href: string) => {
       if (/^https?:/.test(href)) window.location.assign(href);
@@ -31,16 +32,18 @@ export function useHeaderSearch(): Omit<HeaderSearchProps, "mobile"> {
       go(`/search?q=${encodeURIComponent(q.trim())}&tab=text`);
     };
     return {
-      getSuggestions: async (q) => suggestionsFrom(q, await qc.fetchQuery(nameQueryOptions(q))),
+      getSuggestions: async (q) => suggestionsFrom(q, await qc.fetchQuery(nameQueryOptions(q)), host),
       onSearch: search,
       onChoose: (s) => s.url && go(s.url),
       onSmartSubmit: async (query) => {
-        // a name typed with the wrong quote mark is repaired before it is judged
+        // a miscapitalised name, then one typed with the wrong quote mark, is repaired and asked again until nothing changes (the old
+        // getQueryObj's recursion; bounded here)
         let q = query;
         let d = await qc.fetchQuery(nameQueryOptions(q));
-        const repaired = repairGershayimVariant(q, d);
-        if (repaired !== q) {
-          q = repaired;
+        for (let i = 0; i < 5; i++) {
+          const next = repairQuery(q, d);
+          if (next === q) break;
+          q = next;
           d = await qc.fetchQuery(nameQueryOptions(q));
         }
         const out = outcomeOf(q, d);
@@ -49,7 +52,7 @@ export function useHeaderSearch(): Omit<HeaderSearchProps, "mobile"> {
           go(`/${refToUrl(out.ref)}`);
         } else if (out.kind === "topic") {
           searchBoxAnalytics.autolinkTopic(q);
-          go(`${SITE_ORIGIN}/topics/${out.slug}`);
+          go(libraryHref(`/topics/${out.slug}`, host));
         } else if (out.kind === "category") {
           searchBoxAnalytics.autolinkObject(q, "TocCategory", out.key);
           go(`/texts/${(Array.isArray(out.key) ? out.key : [out.key]).map(encodeURIComponent).join("/")}`);
@@ -59,5 +62,5 @@ export function useHeaderSearch(): Omit<HeaderSearchProps, "mobile"> {
         }
       },
     };
-  }, [qc, router]);
+  }, [qc, router, host]);
 }

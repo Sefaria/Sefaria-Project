@@ -220,9 +220,10 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
         <nav className={styles.nav} aria-label={t("Primary navigation", "ניווט ראשי")}>
           <A href={lib("/")} className={styles.logo}><img src={logo} alt={logoLabel} /><span className={styles.samech} role="img" aria-label={logoLabel} /></A>
           <div className={styles.links}>
-            <Link href={lib("/texts")} className={styles.link} onClick={fullLoadWhereNotOurs}><InterfaceText en="Texts" he="מקורות" /></Link>
+            {/* the desktop label is the terms dictionary's "Texts" (טקסטים); the phone menu's is header.texts (מקורות), as on sefaria.org */}
+            <Link href={lib("/texts")} className={styles.link} onClick={fullLoadWhereNotOurs}><InterfaceText en="Texts" he="טקסטים" /></Link>
             <Link href={lib("/topics")} className={styles.link} onClick={fullLoadWhereNotOurs}><InterfaceText en="Topics" he="נושאים" /></Link>
-            <A href={donateHref("Header")} className={styles.link} target="_blank"><InterfaceText en="Donate" he="תרומה" /></A>
+            <A href={donateHref("Header", he)} className={styles.link} target="_blank"><InterfaceText en="Donate" he="תרומה" /></A>
           </div>
         </nav>
         <div className={styles.right}>
@@ -306,7 +307,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
         <Link href={lib("/texts")} onClick={fullLoadWhereNotOurs}><img src="/icons/book.svg" alt="" /><InterfaceText en="Texts" he="מקורות" /></Link>
         <Link href={lib("/topics")} onClick={fullLoadWhereNotOurs}><img src="/icons/topic.svg" alt="" /><InterfaceText en="Topics" he="נושאים" /></Link>
         <A href="/calendars"><img src="/icons/calendar.svg" alt="" /><InterfaceText en="Learning Schedules" he="לוח לימוד יומי" /></A>
-        <A href={donateHref("MobileNavMenu")} className={mn.blue} target="_blank"><img src="/icons/heart.png" alt="" /><InterfaceText en="Donate" he="תרומה" /></A>
+        <A href={donateHref("MobileNavMenu", he)} className={mn.blue} target="_blank"><img src="/icons/heart.png" alt="" /><InterfaceText en="Donate" he="תרומה" /></A>
         <div className={mn.accountLinks}>
           {viewer ? (
             <>

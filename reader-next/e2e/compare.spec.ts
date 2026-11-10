@@ -355,7 +355,8 @@ test.describe("Apply Change (moderators)", () => {
     expect(posted[0]!.csrf).toBe("e2e-csrf");
     // both versions reloaded, then the posted text is exactly the original with that one piece replaced, where it was
     await expect.poll(() => reloads.length).toBeGreaterThanOrEqual(2);
-    expect(original).not.toBeNull();
+    // a reload is counted when it is asked, the Masorah's text once it is answered (under load the answer can come later)
+    await expect.poll(() => original).not.toBeNull();
     expect(original!).toMatch(/<small>/); // tags (<small>, <span>, <br>): the cell's positions are mapped back into the raw text
     const at = rawIndex(original!, before);
     expect(at).toBeGreaterThan(before);

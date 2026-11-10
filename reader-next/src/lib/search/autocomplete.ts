@@ -19,7 +19,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 import { refToUrl } from "~/lib/ref/url";
-import { SITE_ORIGIN } from "~/lib/config";
+import { libraryHref } from "~/lib/routing/library-href";
 
 export const MIN_SUGGEST_LENGTH = 3;
 /** What the Library's box suggests (the Voices box has its own list). */
@@ -91,17 +91,17 @@ const TYPE_ORDER = ["search", "ref", "Collection", "TocCategory", "Topic", "Pers
 const rank = (t: string) => TYPE_ORDER.indexOf(t);
 
 /** Where a suggestion leads in the Library (topic pages are the library's until this client has its own). */
-export function urlForObject(type: string, key: string | string[]): string | undefined {
+export function urlForObject(type: string, key: string | string[], host?: string): string | undefined {
   if (type === "TocCategory") return `/texts/${(Array.isArray(key) ? key : [key]).map(encodeURIComponent).join("/")}`;
-  if (type === "Topic" || type === "PersonTopic" || type === "AuthorTopic") return `${SITE_ORIGIN}/topics/${key as string}`;
+  if (type === "Topic" || type === "PersonTopic" || type === "AuthorTopic") return libraryHref(`/topics/${key as string}`, host);
   if (type === "ref") return `/${refToUrl(key as string)}`;
   return undefined; // Collections and Users belong to Voices
 }
 
 /** The "Search for" row first, then the completions grouped by type, groups in the old order. Nothing for no completions. */
-export function suggestionsFrom(query: string, d: NameResponse): Suggestion[] {
+export function suggestionsFrom(query: string, d: NameResponse, host?: string): Suggestion[] {
   const comps = (d.completion_objects ?? [])
-    .map((o) => ({ ...o, type: (o.type === "PersonTopic" ? "Topic" : o.type) as SuggestionType, url: urlForObject(o.type, o.key) }))
+    .map((o) => ({ ...o, type: (o.type === "PersonTopic" ? "Topic" : o.type) as SuggestionType, url: urlForObject(o.type, o.key, host) }))
     .filter((o) => o.url !== undefined);
   if (!comps.length) return [];
   // stable sort by descending rank, as the old comparator did
@@ -117,6 +117,23 @@ export function suggestionsFrom(query: string, d: NameResponse): Suggestion[] {
 
 // (A miscapitalised citation — "genesis 1" — is repaired by the API itself: it answers is_ref with the canonical ref.)
 
+/**
+ * Sefaria.isACaseVariant / repairCaseVariant: a query that is only a miscapitalised completion ("pirkei avot" → "Pirkei Avot", which
+ * the name API does not take as a ref, VERIFIED 2026-11-10) is replaced by the longest completion it contains, the rest kept as typed.
+ * Like the old code, only the first ״ is normalised.
+ * @feature SRC-012 Case and gershayim query repair
+ */
+export function repairCaseVariant(query: string, d: NameResponse): string {
+  const first = d.completions?.[0];
+  const norm = (s: string) => s.toLowerCase().replace("״", '"');
+  const isVariant = !d.is_ref && !!first && first !== query && norm(first) === norm(query.slice(0, first.length)) && first !== query.slice(0, first.length);
+  if (!isVariant) return query;
+  const q = query.toLowerCase();
+  let best = "";
+  for (const c of (d.completion_objects ?? []).map((x) => x.title)) if (q.includes(c.toLowerCase()) && c.length > best.length) best = c;
+  return best + query.slice(best.length);
+}
+
 /** Hebrew abbreviations typed with ״ (gershayim) match the stored ". */
 export function repairGershayimVariant(query: string, d: NameResponse): string {
   if (!d.is_ref && d.completions && !d.completions.includes(query)) {
@@ -125,6 +142,12 @@ export function repairGershayimVariant(query: string, d: NameResponse): string {
     if (hit) return hit;
   }
   return query;
+}
+
+/** One step of the old getQueryObj: the case repair first, else the gershayim repair; the query itself when neither applies. */
+export function repairQuery(query: string, d: NameResponse): string {
+  const recased = repairCaseVariant(query, d);
+  return recased !== query ? recased : repairGershayimVariant(query, d);
 }
 
 /** What pressing Enter on a typed query does. */

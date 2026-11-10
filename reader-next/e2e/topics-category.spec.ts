@@ -54,10 +54,10 @@ test.describe("a topic category (verified against sefaria.org 2026-11-04)", () =
     await expect(side(page).getByRole("heading", { name: "Study Companion" })).toHaveCount(0);
   });
 
-  test("an unknown category is not found (the old page's 404): the reader sees 'Page not found.'", async ({ page, request }) => {
+  test("an unknown category is not found (the old page's 404): the reader sees the shared 'Page Not Found'", async ({ page, request }) => {
     expect((await request.get("/topics/category/no-such-category")).status()).toBe(404);
     await open(page, "/topics/category/no-such-category");
-    await expect(page.getByText("Page not found.")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Page Not Found" })).toBeVisible();
   });
 });
 

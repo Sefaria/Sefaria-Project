@@ -24,6 +24,11 @@ describe("pageCacheHeaders", () => {
   it("on a host pinned to a language the page also varies on Accept-Language (the bounce, T-E07)", () => {
     expect(pageCacheHeaders(null, html(), 200, true).get("vary")).toBe("Origin, Cookie, CF-IPCountry, Accept-Language");
   });
+  it("a signed-out reader with a reading history: private and never stored (the library home draws it, Recently Viewed)", () => {
+    expect(pageCacheHeaders("interfaceLang=english; user_history=%5B%7B%22ref%22%3A%22Genesis%201%22%7D%5D", html()).get("cache-control")).toBe("private, no-store");
+    expect(pageCacheHeaders("user_history=", html()).get("cache-control")).toBe("no-cache"); // an empty cookie carries nothing
+    expect(pageCacheHeaders("xuser_history=1", html()).get("cache-control")).toBe("no-cache");
+  });
   it("a cookie merely named like the session one does not count", () => {
     expect(pageCacheHeaders("xsessionid=1", html()).get("cache-control")).toBe("no-cache");
   });

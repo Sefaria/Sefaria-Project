@@ -21,6 +21,7 @@ import { useHeaderSearch } from "~/features/shell/useHeaderSearch";
 import { SiteHeader } from "~/ui/SiteHeader/SiteHeader";
 import { setMobileMenuOpen, useMobileMenuOpen } from "~/features/shell/mobile-menu";
 import { SkipLink } from "~/ui/SkipLink/SkipLink";
+import { siteHeadLinks, siteHeadMeta } from "~/lib/shell/site-head";
 import { CookieNotice } from "~/ui/CookieNotice/CookieNotice";
 import { BannerImpressionProbe } from "~/features/shell/BannerImpressionProbe";
 import { Monitoring } from "~/features/shell/Monitoring";
@@ -278,6 +279,10 @@ function RootDocument({ children, lang, dir, standalone }: Readonly<{ children: 
     <html lang={lang} dir={dir} data-theme="light">
       <head>
         {headScripts.map(({ children: code, ...attrs }, i) => (code ? <script key={i} {...attrs} dangerouslySetInnerHTML={{ __html: code }} /> : <script key={i} {...attrs} />))}
+        {/* base.html's static links and meta (src/lib/shell/site-head.ts): plain tags, once per document. Declared in head() they were
+            re-rendered on every address update while reading, which slowed long reads (e2e/scroll.spec.ts 'reading far forward'). */}
+        {standalone ? null : siteHeadMeta(interfaceLang === "hebrew").map((m) => <meta key={m.name} {...m} />)}
+        {standalone ? null : siteHeadLinks().map((l) => <link key={`${l.rel}${l.type ?? ""}`} {...l} />)}
         <HeadContent />
       </head>
       <body data-standalone={standalone ? "" : undefined}>

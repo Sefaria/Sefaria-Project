@@ -147,7 +147,9 @@ export function HeaderSearch({ getSuggestions, onSmartSubmit, onSearch, onChoose
           title={label}
           placeholder={he ? "חיפוש" : "Search"}
           maxLength={75}
-          dir="auto"
+          // the Hebrew interface's box is right to left in its sans-serif, as sefaria.org's (.interface-hebrew input: Heebo; T-G02)
+          dir={he ? "rtl" : "auto"}
+          data-interface={he ? "hebrew" : undefined}
           autoComplete="off"
           value={q}
           onChange={(e) => setQ(e.target.value)}
