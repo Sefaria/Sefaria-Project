@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { gzipSync } from "node:zlib";
+import { gunzipSync, gzipSync } from "node:zlib";
 
 /**
  * The static pages' content answers (`/<page>?format=json&lang=en|he`, reader/static_content.py) for the e2e suite. www.sefaria.org
@@ -16,12 +16,27 @@ const CASSETTE = process.env.E2E_CASSETTE_DIR || new URL("./.cassette/", import.
 
 export const staticContentUrl = (page: string, lang: "en" | "he") => `/${page}?format=json&lang=${lang}`;
 
-/** Write one answer into the cassette as Django's (a JSON body with the status given). */
+/**
+ * Write one answer into the cassette as Django's (a JSON body with the status given). Each worker seeds the same files while the
+ * proxy may be reading them: an existing recording of the same answer is left alone, and a new one appears whole (written aside,
+ * then renamed into place).
+ */
 export function recordStaticAnswer(url: string, body: string, status = 200, dir = CASSETTE) {
   mkdirSync(dir, { recursive: true });
   const key = createHash("sha1").update(`GET ${url}\n`).digest("hex");
   const entry = { method: "GET", url, status, headers: { "content-type": "application/json" } };
-  writeFileSync(join(dir, `${key}.gz`), gzipSync(Buffer.concat([Buffer.from(JSON.stringify(entry) + "\n"), Buffer.from(body)])));
+  const file = join(dir, `${key}.gz`);
+  const data = Buffer.concat([Buffer.from(JSON.stringify(entry) + "\n"), Buffer.from(body)]);
+  if (existsSync(file)) {
+    try {
+      if (gunzipSync(readFileSync(file)).equals(data)) return;
+    } catch {
+      /* unreadable: rewrite it */
+    }
+  }
+  const tmp = `${file}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
+  writeFileSync(tmp, gzipSync(data));
+  renameSync(tmp, file);
 }
 
 /** Every fixture of e2e/fixtures/static-pages (or of `from`) into the cassette. */
