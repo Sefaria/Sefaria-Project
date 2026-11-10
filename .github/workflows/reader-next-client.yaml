@@ -2,6 +2,7 @@
 # Unit, architecture and component (Storybook) tests, in English/LTR and Hebrew/RTL; then the end-to-end suite against the API
 # cassette (scripts/api-cassette.mjs): the bundle pinned by e2e/cassette.lock, replayed (scripts/cassette/bundle.mjs); without one, the
 # CI cache, recording anything missing from the live API. A budgets job holds the reader page's initial JS/CSS (scripts/budgets/).
+# The ways out to the legacy client are listed by its own workflow, reader-next-exits.yaml (weekly and on demand).
 name: reader-next client
 
 on:

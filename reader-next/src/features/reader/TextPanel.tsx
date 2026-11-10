@@ -1,5 +1,5 @@
 import { selectionRange } from "~/lib/user/topic-links";
-import { useQueryClient, useSuspenseQueries } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useSuspenseQueries } from "@tanstack/react-query";
 import { useLocation, useRouter } from "@tanstack/react-router";
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { leaf, split, type LayoutNode } from "~/lib/layout/tree";
@@ -239,11 +239,23 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // Every range of several segments stays in the address and highlighted, inside one section or across sections, sidebar open or
   // closed (owner decision 2026-11-10; the old reader's occasional collapse is a race, not ported: lib/text/range-selection.ts).
   const keepsRange = rangeIsKept({ segments: urlSegments.length });
-  // A range of whole sections ("Genesis 6-8", "Berakhot 2a-2b") is all highlighted when it is all loaded; without the sidebar its
-  // address is written by its segments (Genesis.6.1-8.22), in place, as sefaria.org does.
-  const sectionRange = useMemo(() => (data.highlight ? null : wholeSectionRange(data.ref, data.sectionRefs, initial)), [data.highlight, data.ref, data.sectionRefs, initial]);
+  // A range of whole sections ("Genesis 6-8", "Berakhot 2a-2b", "Genesis 1-50") is all highlighted at once, by address (sections the
+  // column loads later are blue as they arrive); without the sidebar its address is written by its segments (Genesis.6.1-8.22,
+  // Genesis.1.1-50.26), in place, as sefaria.org does, once its last section's length is known: one request for that section when it
+  // is not among those loaded with the page. Nothing in the column moves (a replaced entry, "stay").
+  const rewritesSectionRange = (kind === undefined || kind === "go") && !panel.asides.length;
+  const sectionRange0 = useMemo(() => (data.highlight ? null : wholeSectionRange(data.ref, data.sectionRefs[0], initial)), [data.highlight, data.ref, data.sectionRefs, initial]);
+  const lastSectionQ = useQuery({
+    ...textQueryOptions(sectionRange0?.lastSection ?? "", data.versions),
+    enabled: rewritesSectionRange && !!sectionRange0 && !sectionRange0.ref,
+  });
+  const lastSection = lastSectionQ.data;
+  const sectionRange = useMemo(
+    () => (sectionRange0 && !sectionRange0.ref && lastSection ? wholeSectionRange(data.ref, data.sectionRefs[0], [...initial, lastSection]) : sectionRange0),
+    [sectionRange0, lastSection, data.ref, data.sectionRefs, initial],
+  );
   const rangeHighlight = keepsRange ? data.highlight : (sectionRange?.highlight ?? null);
-  const writeSectionRange = (kind === undefined || kind === "go") && !!sectionRange?.ref && !panel.asides.length && sectionRange.ref !== data.ref;
+  const writeSectionRange = rewritesSectionRange && !!sectionRange?.ref && sectionRange.ref !== data.ref;
   useEffect(() => {
     const ref = sectionRange?.ref;
     if (!writeSectionRange || !ref) return;
