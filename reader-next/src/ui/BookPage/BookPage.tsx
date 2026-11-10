@@ -41,8 +41,8 @@ export interface BookPageProps {
   versionHref: (v: VersionMeta) => string;
   /** Authors and composition shown above the description in the sidebar (LIB-036). */
   meta?: AboutTextMeta;
-  /** Book description (markdown) by language; sidebar. */
-  description?: { en?: string | null; he?: string | null };
+  /** Book description (markdown) by language; sidebar. `heShort` (the index's heShortDesc) stands in for a missing Hebrew one. */
+  description?: { en?: string | null; he?: string | null; heShort?: string | null };
   /** Sidebar modules after the description: related topics, downloads. */
   sidebar?: ReactNode;
   /** The book's top category, for the colour line under the header. */
@@ -74,7 +74,11 @@ export function BookPage({ title, category, attribution, dedication, readHref, c
   const he = lang === "hebrew";
   const lib = useLibraryHref();
   const code = he ? "he" : "en";
-  const about = he ? description?.he || description?.en : description?.en || description?.he;
+  // the Hebrew interface: the Hebrew description, else the short Hebrew one, before any English (the old AboutBox's
+  // `heDesc || heShortDesc`; VERIFIED on sefaria.org.il 2026-11-10: Berakhot shows "ברכות ותפילות, בדגש על קריאת שמע…"; parity S9)
+  const heAbout = description?.he || description?.heShort;
+  const about = he ? heAbout || description?.en : description?.en || heAbout;
+  const aboutLang = about && about === heAbout ? "he" : "en";
   const hasAbout = Boolean(about || meta?.authors.length || meta?.composed);
   const aboutBody = (
     <>
@@ -93,7 +97,7 @@ export function BookPage({ title, category, attribution, dedication, readHref, c
                 ) : null}
               </div>
             ) : null}
-            {about ? <div className={styles.about} dangerouslySetInnerHTML={{ __html: markdownToHtml(about) }} /> : null}
+            {about ? <div className={styles.about} lang={aboutLang} dir={dirFor(aboutLang)} dangerouslySetInnerHTML={{ __html: markdownToHtml(about) }} /> : null}
     </>
   );
   return (

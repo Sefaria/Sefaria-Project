@@ -13,6 +13,8 @@ import styles from "./TextList.module.css";
 
 export interface LinkedTextSide {
   html: string;
+  /** A ranged link's segments, each its own paragraph as on sefaria.org (the old TextRange's one `.segment` per segment). */
+  parts?: string[];
   lang: string;
   dir: "rtl" | "ltr";
 }
@@ -184,14 +186,26 @@ export function TextList({ recent, onRecent, title, categoryTitle, color, items,
                 <ContentText as="div" className={styles.ref} lang={language} en={item.sourceRef} he={item.sourceHeRef} fallback />
               )}
               {/* the block takes the text's direction, as the old `.segment.heOnly` did: Hebrew lines start and end at the right */}
-              <LangText as="p" className={styles.text} lang={side?.lang ?? (language === "hebrew" ? "he" : "en")} dir={side?.dir}>
-                {item.number ? <span className={styles.number} aria-hidden="true">{item.number}</span> : null}
-                {side ? (
-                  <SegmentText html={side.html} lang={side.lang} dir={side.dir} vocalization={vocalization} onRefClick={onRefClick} />
-                ) : item.loading ? (
-                  <span aria-busy="true"><InterfaceText en="Loading…" he="טוען…" /></span>
-                ) : null}
-              </LangText>
+              {side?.parts && side.parts.length > 1 ? (
+                // a range (Abarbanel on Torah, Genesis 1:1 is 1:1:1-3): one paragraph per segment, 6px apart (VERIFIED on sefaria.org)
+                <LangText as="div" className={styles.text} lang={side.lang} dir={side.dir} data-parts={side.parts.length}>
+                  {side.parts.map((html, i) => (
+                    <p key={i} className={styles.part}>
+                      {i === 0 && item.number ? <span className={styles.number} aria-hidden="true">{item.number}</span> : null}
+                      <SegmentText html={html} lang={side.lang} dir={side.dir} vocalization={vocalization} onRefClick={onRefClick} />
+                    </p>
+                  ))}
+                </LangText>
+              ) : (
+                <LangText as="p" className={styles.text} lang={side?.lang ?? (language === "hebrew" ? "he" : "en")} dir={side?.dir}>
+                  {item.number ? <span className={styles.number} aria-hidden="true">{item.number}</span> : null}
+                  {side ? (
+                    <SegmentText html={side.html} lang={side.lang} dir={side.dir} vocalization={vocalization} onRefClick={onRefClick} />
+                  ) : item.loading ? (
+                    <span aria-busy="true"><InterfaceText en="Loading…" he="טוען…" /></span>
+                  ) : null}
+                </LangText>
+              )}
               <div className={styles.actions}>
                 <Link
                   className={styles.open}

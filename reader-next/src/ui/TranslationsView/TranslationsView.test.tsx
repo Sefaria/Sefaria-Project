@@ -71,5 +71,8 @@ describe("TranslationsView (Genesis 1:1, recorded)", () => {
     expect(screen.getByRole("heading", { name: "תרגומים" })).toBeInTheDocument();
     expect(screen.getByText("נוכחי")).toBeInTheDocument();
     expect(screen.getAllByRole("region")[0]).toHaveAccessibleName("אנגלית");
+    // a11y S5: Select and Preview are named in Hebrew too
+    expect(screen.getAllByRole("link", { name: /^בחירה: / }).length).toBeGreaterThan(0);
+    expect(screen.queryAllByRole("link", { name: /^Select / })).toHaveLength(0);
   });
 });

@@ -56,7 +56,9 @@ export function FilterRow({ label, count, color, icon = "book", hasEnglish, desc
   const Anchor = external ? PlainAnchor : Link;
   const desc = description && (contentLang ? description[contentLang] : lang === "hebrew" ? description.he || description.en : description.en || description.he);
   const list = variant === "list";
-  const showTag = hasEnglish && contentLang !== "he";
+  // the old EnglishAvailableTag sits in a `span.en`, which the Hebrew interface hides (VERIFIED on sefaria.org.il 2026-11-10:
+  // `.englishAvailableTag` computes display:none; parity S11)
+  const showTag = hasEnglish && contentLang !== "he" && interfaceLang !== "hebrew";
   const tag = showTag ? (
     <>
       <span className={styles.tag} aria-hidden="true" title="English available">EN</span>
