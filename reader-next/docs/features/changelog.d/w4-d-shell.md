@@ -12,3 +12,6 @@
   /topics Hebrew at 320px and /updates at 200% (S8); /calendars h1 (N1); one `<main>` on /updates and static pages (N2); topic card
   links underlined (N3); header menus close when focus leaves (N9). (GUI-011, SRC-063, TOP-003, LIB-022, CAL-001, STA-001, TOP-012, I18-007)
 - **Dictionary editor** sanitises the stored entry before editing (security nit 3). (CON-072)
+- **Rework round 1**: the stale host-only `interfaceLang` is expired on the signed-in switch and on the arrival host's
+  `set-language-cookie`; the dictionary editor keeps `<big>` and raster `data:` images (never SVG); the Library Assistant only in the
+  Library (never on the Voices host) and not on a password reset, as legacy. (RTE-034, CON-072, AI-011)

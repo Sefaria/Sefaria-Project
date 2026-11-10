@@ -98,5 +98,16 @@ add("CON-072", [
     "FIXED 2026-11-10 (wave 4, v-security nit 3): the editing box gets the stored entry through the display's sanitiser (keeping every attribute the server keeps on save: LexiconEntry.ALLOWED_ATTRS), not raw into innerHTML. The server's big tags and data: images are not in that sanitiser's list: their text is kept, the tag is not (an open question in the lane report).",
 ])
 
+# rework round 1 (review-w4-d-shell.md)
+add("RTE-034", [
+    "FIXED 2026-11-11 (wave 4 rework 1): the stale host-only interfaceLang is also expired when the signed-in switch is Django's (the route appends the expiry to Django's answer) and on the arrival host's ?set-language-cookie for signed-out readers (src/server/language-domain.ts). Still open: a signed-in reader's ?set-language-cookie on the arrival host is passed to Django by src/server/site-routing.ts without it (request to that file's owner: wrap it with withHostOnlyLangCookieExpired).",
+])
+add("CON-072", [
+    "FIXED 2026-11-11 (wave 4 rework 1): the editor's box uses the server's own allowlist (src/ui/LexiconEditView/editable-html.ts): <big> kept, data: images kept only as raster (png, jpeg, gif, webp; never SVG), javascript:/data:/protocol-relative link addresses dropped, a bare relative href kept as stored. Legacy did not sanitise the box: deliberate difference.",
+])
+add("AI-011", [
+    "FIXED 2026-11-11 (wave 4 rework 1): only in the Library, as the old ReaderApp's isLibraryModule (static/js/ReaderApp.jsx:2641-2648): never on the Voices host, signed in or out; and not on a password reset (the old authResetUid), besides /login and /register.",
+])
+
 json.dump(atlas, open(T / "features.json", "w"), ensure_ascii=False, indent=1)
 json.dump(status, open(T / "rebuild-status.json", "w"), ensure_ascii=False, indent=1)
