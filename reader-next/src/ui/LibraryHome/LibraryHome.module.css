@@ -15,7 +15,9 @@
 .blockTitle[lang="he"] { font-family: var(--sefaria-font-text-he); }
 .blockTitle:hover { color: var(--sefaria-color-text-dark-grey); }
 .desc { margin-inline-end: 20px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-dark-grey); }
-.desc[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+/* Hebrew: the old .int-he span's 122% (17.08px) on the Hebrew panel's 24px line (s2.css .navBlockDescription .int-he, .hebrew
+   .navBlockDescription), VERIFIED on sefaria.org /texts, /texts/Tanakh, /texts/Talmud/Bavli in the Hebrew interface (parity S12b) */
+.desc[lang="he"] { font-family: var(--sefaria-font-ui-he); font-size: calc(14px * 1.22); line-height: 24px; }
 .phoneAbout { display: none; }
 /* the old .readerNavMenu .dedication (static/css/s2.css): #fbfbfa, 26px 19px, 18px; 20px under the title (.navTitle + .dedication) */
 .dedication { margin: 0 0 20px; padding: 26px 19px; background: var(--sefaria-color-surface-subtle); font-size: 18px; color: var(--sefaria-color-text-dark-grey); text-align: start; }
