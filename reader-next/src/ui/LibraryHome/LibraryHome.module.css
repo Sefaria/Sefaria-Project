@@ -17,10 +17,18 @@
 .desc { margin-inline-end: 20px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-dark-grey); }
 .desc[lang="he"] { font-family: var(--sefaria-font-ui-he); }
 .phoneAbout { display: none; }
+/* the old .readerNavMenu .dedication (static/css/s2.css): #fbfbfa, 26px 19px, 18px; 20px under the title (.navTitle + .dedication) */
+.dedication { margin: 0 0 20px; padding: 26px 19px; background: var(--sefaria-color-surface-subtle, #fbfbfa); font-size: 18px; color: var(--sefaria-color-text-dark-grey); text-align: start; }
+.dedication > [lang="en"] { font-family: var(--sefaria-font-text-en); font-style: italic; }
+.dedication > [lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.dedication p { display: inline; margin: 0; }
+.dedication a { color: inherit; text-decoration: underline; }
 
 @media (max-width: 842px) {
   /* the toggle is in the site header on a phone, so the title row is only as tall as the title */
   .titleBar { min-height: 0; }
   .grid { grid-template-columns: 1fr; }
   .phoneAbout { display: block; }
+  /* .singlePanel: 27px over and under, pulled 30px up under the About module (.navSidebarModule + .dedication) */
+  .dedication { margin: -30px 0 27px; }
 }

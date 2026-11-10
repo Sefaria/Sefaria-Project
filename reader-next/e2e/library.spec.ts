@@ -147,3 +147,31 @@ test.describe("Recently Viewed on the library home", () => {
   });
 });
 
+// @feature LIB-005: the old TextsPage Dedication (a Google Sheet by date; the day turns at 6 pm local time). Today's sheet rows are
+// empty on sefaria.org (2026-11-10), so the band is shown here from a stand-in answer
+test("the daily dedication: today's row of the sheet, under the title; nothing for an empty day", async ({ page }) => {
+  const date = await page.evaluate(() => {
+    const d = new Date(Date.now() + 6 * 3_600_000);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
+  let answer = "";
+  await page.route(/docs\.google\.com\/spreadsheets\/d\/11c9Yw9FdfLnfbIWqvUztCt-QICW5790dfFGgXH7IB1k\/gviz/, (r) => r.fulfill({ status: 200, contentType: "text/plain", body: answer, headers: { "access-control-allow-origin": "*" } }));
+  answer = `/*O_o*/\ngoogle.visualization.Query.setResponse({"table":{"rows":[{"c":[{"v":"Date()","f":"${date}"},{"v":"Today's learning is dedicated by [the Levi family](https://example.org)"},{"v":"הלימוד היום מוקדש"}]}]}});`;
+  await open(page, "/texts");
+  const band = page.locator("[data-dedication]");
+  await expect(band).toHaveText("Today's learning is dedicated by the Levi family");
+  await expect(band.getByRole("link")).toHaveAttribute("href", "https://example.org");
+  const [title, box, grid] = await Promise.all([page.getByRole("heading", { level: 1 }).boundingBox(), band.boundingBox(), page.locator("[data-cat='Tanakh']").boundingBox()]);
+  expect(box!.y).toBeGreaterThan(title!.y);
+  expect(grid!.y).toBeGreaterThan(box!.y + box!.height);
+  expect(await band.evaluate((e) => [getComputedStyle(e).paddingTop, getComputedStyle(e).fontSize, getComputedStyle(e.firstElementChild!).fontStyle])).toEqual(["26px", "18px", "italic"]);
+  answer = `google.visualization.Query.setResponse({"table":{"rows":[{"c":[{"f":"${date}"},null,{"v":null}]}]}});`;
+  await page.evaluate(() => sessionStorage.clear());
+  await page.context().clearCookies();
+  const fresh = await page.context().newPage();
+  await fresh.route(/docs\.google\.com/, (r) => r.fulfill({ status: 200, contentType: "text/plain", body: answer }));
+  await open(fresh, "/texts");
+  await expect(fresh.getByRole("heading", { level: 1, name: "Browse the Library" })).toBeVisible();
+  await fresh.waitForTimeout(500);
+  await expect(fresh.locator("[data-dedication]")).toHaveCount(0);
+});
