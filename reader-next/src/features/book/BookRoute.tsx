@@ -116,7 +116,7 @@ export function BookRoute({ title }: { title: string }) {
                 if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                 e.preventDefault();
                 const href = e.currentTarget.href;
-                void leaveAfterWrite(null, [{ kind: "book", title: details.title }], href);
+                void leaveAfterWrite([{ kind: "book", title: details.title }], href);
               },
               onEdit: () => setEditingIndex(true),
               editor:
@@ -163,11 +163,11 @@ export function BookRoute({ title }: { title: string }) {
                         window.alert("Text information saved.");
                       }
                       // Django's reset refreshes the caches, then comes back to the book (a full load: the stored copies go first)
-                      await leaveAfterWrite(qc, indexWrites(details.title, finalTitle), `${SITE_ORIGIN}/admin/reset/${encodeURIComponent(finalTitle)}`);
+                      await leaveAfterWrite(indexWrites(details.title, finalTitle), `${SITE_ORIGIN}/admin/reset/${encodeURIComponent(finalTitle)}`);
                     }}
                     onDelete={async () => {
                       await deleteIndex(details.title);
-                      await leaveAfterWrite(qc, [{ kind: "book", title: details.title }, { kind: "catalog" }], "/texts");
+                      await leaveAfterWrite([{ kind: "book", title: details.title }, { kind: "catalog" }], "/texts");
                     }}
                   />
                 ) : undefined,

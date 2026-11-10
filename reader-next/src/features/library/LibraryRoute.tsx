@@ -50,7 +50,7 @@ export function LibraryRoute({ path }: { path: string[] }) {
   // after a change the catalog everyone caches is stale: drop it, then go where the old editors went
   const done = async (to: string) => {
     // a full load follows: the stored copies on disk go too, or the next page would paint the old catalog from IndexedDB
-    await leaveAfterWrite(queryClient, [{ kind: "catalog" }], to);
+    await leaveAfterWrite([{ kind: "catalog" }], to);
   };
   const categoryEditor = (draft: CategoryDraft, isNew: boolean, origTitle: string, origPath: string[]) =>
     fullTree ? (

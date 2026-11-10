@@ -1,18 +1,23 @@
 /**
  * What the book page's moderator tools forget after a write (carry-over R2, D-7): the version editor's save and delete, the index
- * editor's save (then Django's /admin/reset) and delete, and Add Section (Django's add-text editor). A write that stays on the page
- * invalidates in memory and on disk; one that leaves with a full page load first waits for the disk (forgetBeforeEditor), or the
- * next page would paint the old book from IndexedDB.
+ * editor's save (then Django's /admin/reset) and delete, and Add Section (Django's add-text editor).
+ * - A write that stays on the page marks the book's queries stale and deletes their stored copies, then refetches only the versions
+ *   list it shows (refetching every active match would wait on the whole catalog first).
+ * - A write that leaves with a full page load does not touch memory (the load drops it): it deletes the stored copies, waiting at most
+ *   EDITOR_LEAVE_WAIT_MS (forgetBeforeEditor), then leaves; a hanging disk or API never holds the reader on the page.
  */
 import type { QueryClient } from "@tanstack/react-query";
 import { forgetBeforeEditor, invalidateAfterWrite, type Write } from "~/lib/cache/invalidate";
+import { bookVersionsQueryOptions } from "~/lib/versions/book-versions";
 
-/** A version's flags were saved, or the version deleted: the book's versions, texts and page are read again. */
-export const afterVersionWrite = (qc: QueryClient, title: string) => invalidateAfterWrite(qc, { kind: "book", title });
+/** A version's flags were saved, or the version deleted: everything of the book is stale; the versions list is read again now. */
+export async function afterVersionWrite(qc: QueryClient, title: string): Promise<void> {
+  await invalidateAfterWrite(qc, { kind: "book", title }, { refetchType: "none" });
+  await qc.refetchQueries({ queryKey: bookVersionsQueryOptions(title).queryKey, exact: true });
+}
 
-/** Forget `writes` in memory and on disk, then leave for `href` with a full page load (`assign`: window.location.assign). */
-export async function leaveAfterWrite(qc: QueryClient | null, writes: Write[], href: string, assign: (href: string) => void = (h) => window.location.assign(h)): Promise<void> {
-  if (qc) await invalidateAfterWrite(qc, writes).catch(() => undefined);
+/** Delete the stored copies `writes` made wrong (bounded), then leave for `href` with a full page load. */
+export async function leaveAfterWrite(writes: Write[], href: string, assign: (href: string) => void = (h) => window.location.assign(h)): Promise<void> {
   await forgetBeforeEditor(writes).catch(() => undefined);
   assign(href);
 }

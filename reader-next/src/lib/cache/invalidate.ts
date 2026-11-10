@@ -123,11 +123,12 @@ export const pendingDiskInvalidation = (): Promise<unknown> => pending;
  * Invalidate in memory first (active queries refetch now, the rest when next used), then delete from disk behind it: a slow or
  * hanging disk never holds up the write's caller (review: a hanging IndexedDB froze link edits).
  */
-export async function invalidateAfterWrite(qc: QueryClient, write: Write | Write[]): Promise<void> {
+export async function invalidateAfterWrite(qc: QueryClient, write: Write | Write[], opts: { refetchType?: "active" | "none" } = {}): Promise<void> {
   const match = anyOf([write].flat().flatMap(matchersFor));
   const disk = forgetOnDisk(write);
   pending = Promise.all([pending, disk]);
-  await qc.invalidateQueries({ predicate: (q) => match(q.queryKey as readonly unknown[]) });
+  // `refetchType: "none"`: mark stale only (a caller that refetches what it shows itself, and no more)
+  await qc.invalidateQueries({ predicate: (q) => match(q.queryKey as readonly unknown[]), refetchType: opts.refetchType ?? "active" });
 }
 
 /** How long leaving for an editor may wait for the disk. */
