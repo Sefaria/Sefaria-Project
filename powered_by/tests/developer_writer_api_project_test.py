@@ -24,7 +24,6 @@ STATE_KEYS = {
     "projects",
     "yourListing",
     "maxKeysPerProject",
-    "mock",
 }
 PROJECT_KEYS = {
     "id",

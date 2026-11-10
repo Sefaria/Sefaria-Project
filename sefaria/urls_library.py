@@ -1,118 +1,118 @@
-from django.urls import path, re_path
-from django.conf.urls import handler404, handler500
-from django.contrib import admin
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from functools import partial
-import reader.views as reader_views
-import powered_by.poc_views as powered_by_poc_views
+
+from django.contrib import admin
+from django.urls import path, re_path
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 import powered_by.developer_views as developer_views
-import powered_by.developer_mocks as developer_mocks
-import sefaria.views as sefaria_views
-from sefaria.urls_shared import shared_patterns, maintenance_patterns
-from sefaria.settings import DOWN_FOR_MAINTENANCE
+import reader.views as reader_views
 import remote_config.views as remote_config_views
+import sefaria.views as sefaria_views
 from sefaria.heapdump import heapdump_view
+from sefaria.settings import DOWN_FOR_MAINTENANCE
+from sefaria.urls_shared import maintenance_patterns, shared_patterns
 
 admin.autodiscover()
-handler500 = 'reader.views.custom_server_error'
-handler404 = 'reader.views.custom_page_not_found'
+handler500 = "reader.views.custom_server_error"
+handler404 = "reader.views.custom_page_not_found"
 
 urlpatterns = [
-    path('', reader_views.home, name="home"),
-    re_path(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
-    re_path(r'^texts/notes/?$', reader_views.notes),
-    re_path(r'^texts/recent/?$', reader_views.old_recent_redirect),
-    re_path(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
-    re_path(r'^calendars/?$', reader_views.calendars),
-    re_path(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
-    re_path(r'^modtools/?$', reader_views.modtools),
-    re_path(r'^linker-editor/?$', reader_views.linker_editor),
-    path('modtools/upload_text', sefaria_views.modtools_upload_workflowy),
-    path('modtools/links', sefaria_views.links_upload_api),
-    path('modtools/links/<path:tref1>/<path:tref2>', sefaria_views.get_csv_links_by_refs_api),
-    path('modtools/index_links/<path:tref1>/<path:tref2>',
-        partial(sefaria_views.get_csv_links_by_refs_api, by_segment=True)),
-    re_path(r'^torahtracker/?$', reader_views.user_stats),
-    re_path(r'^explore(-(?P<topCat>[\w-]+)-and-(?P<bottomCat>[\w-]+))?(/(?P<book1>[A-Za-z-,\']+))?(/(?P<book2>[A-Za-z-,\']+))?(/(?P<lang>\w\w)/?)?/?$',
-        reader_views.explore),
-
-    re_path(r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', reader_views.visualize_library),
-    re_path(r'^visualize/library/?(?P<cats>.*)/?$', reader_views.visualize_library),
-    path('visualize/toc', reader_views.visualize_toc),
-    path('visualize/parasha-colors', reader_views.visualize_parasha_colors),
-    path('visualize/links-through-rashi', reader_views.visualize_links_through_rashi),
-    path('visualize/talmudic-relationships', reader_views.talmudic_relationships),
-    path('visualize/sefer-hachinukh-mitzvot', reader_views.sefer_hachinukh_mitzvot),
-    path('visualize/timeline', reader_views.visualize_timeline),
-    re_path(r'^visualize/unique-words-by-commentator', reader_views.unique_words_viz),
-
-    re_path(r'^settings/account/?$', partial(reader_views.settings_page, tab="account")),
-    path('settings/account/user', reader_views.account_user_update),
-    re_path(r'^settings/profile/?$', reader_views.settings_profile_redirect),
-    re_path(r'^settings/developer/?$', developer_views.requires_developer_settings(partial(reader_views.settings_page, tab="developer"))),
-    path('settings/developer/projects/<str:project_id>', developer_views.requires_developer_settings(partial(reader_views.settings_page, tab="developer"))),
-    path('settings/developer/confirm-email/<str:key>', developer_views.confirm_email, name="developer_confirm_email"),
-    path('settings/developer/email-confirmed', developer_views.email_confirmed_page),
-    path('api/developer/state', developer_views.state_api),
-    path('api/developer/enable', developer_views.enable_api),
-    path('api/developer/profile', developer_views.profile_api),
-    path('api/developer/confirmation', developer_views.confirmation_api),
-    path('api/developer/confirmation/new-link', developer_views.new_link_api),
-    path('api/developer/projects', developer_views.projects_api),
-    path('api/developer/projects/<str:project_id>', developer_views.project_api),
-    path('api/developer/projects/<str:project_id>/keys', developer_views.project_keys_api),
-    path('api/developer/keys/<str:key_id>', developer_views.key_api),
-    re_path(r'^api/developer/listings/(?P<listing_id>\d+)/(?P<action>claim|dismiss)$', developer_views.listing_api),
-    path('api/developer/mock', developer_mocks.mock_api),
-    re_path(r'^powered-by/form/?$', powered_by_poc_views.powered_by_form_page),
-    path('api/developer-poc/powered-by-submissions', powered_by_poc_views.powered_by_poc_submissions_api),
-
-    re_path(r'^community/?$', reader_views.community_to_voices_redirect),
-
-    path('parashat-hashavua', reader_views.parashat_hashavua_redirect),
-    path('todays-daf-yomi', reader_views.daf_yomi_redirect),
-
-    path('add/textinfo/<path:new_title>', reader_views.edit_text_info),
-    re_path(r'^add/new/?$', reader_views.edit_text),
-    path('add/<path:ref>', reader_views.edit_text),
-    path('translate/<path:ref>', reader_views.edit_text),
-    path('edit/terms/<path:term>', reader_views.terms_editor),
-    path('add/terms/<path:term>', reader_views.terms_editor),
-    re_path(r'^edit/(?P<ref>.+)/(?P<language_family_name>[a-z]+)/(?P<version>.+)$', reader_views.edit_text),
-    path('edit/<path:ref>', reader_views.edit_text),
-
-    re_path(r'^dashboard/?$', reader_views.dashboard),
-
-    re_path(r'^activity/?$', reader_views.global_activity),
-    re_path(r'^activity/leaderboard?$', reader_views.leaderboard),
-    path('activity/<int:page>', reader_views.global_activity),
-    re_path(r'^activity/(?P<slug>[^/]+)/(?P<page>\d+)?$', reader_views.user_activity),
+    path("", reader_views.home, name="home"),
+    re_path(r"^texts/?$", reader_views.texts_list, name="table_of_contents"),
+    re_path(r"^texts/notes/?$", reader_views.notes),
+    re_path(r"^texts/recent/?$", reader_views.old_recent_redirect),
+    re_path(r"^texts/(?P<cats>.+)?$", reader_views.texts_category_list),
+    re_path(r"^calendars/?$", reader_views.calendars),
+    re_path(r"^translations/(?P<slug>[^.]+)$", reader_views.translations_page),
+    re_path(r"^modtools/?$", reader_views.modtools),
+    re_path(r"^linker-editor/?$", reader_views.linker_editor),
+    path("modtools/upload_text", sefaria_views.modtools_upload_workflowy),
+    path("modtools/links", sefaria_views.links_upload_api),
+    path("modtools/links/<path:tref1>/<path:tref2>", sefaria_views.get_csv_links_by_refs_api),
+    path(
+        "modtools/index_links/<path:tref1>/<path:tref2>",
+        partial(sefaria_views.get_csv_links_by_refs_api, by_segment=True),
+    ),
+    re_path(r"^torahtracker/?$", reader_views.user_stats),
+    re_path(
+        r"^explore(-(?P<topCat>[\w-]+)-and-(?P<bottomCat>[\w-]+))?(/(?P<book1>[A-Za-z-,\']+))?(/(?P<book2>[A-Za-z-,\']+))?(/(?P<lang>\w\w)/?)?/?$",
+        reader_views.explore,
+    ),
+    re_path(r"^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$", reader_views.visualize_library),
+    re_path(r"^visualize/library/?(?P<cats>.*)/?$", reader_views.visualize_library),
+    path("visualize/toc", reader_views.visualize_toc),
+    path("visualize/parasha-colors", reader_views.visualize_parasha_colors),
+    path("visualize/links-through-rashi", reader_views.visualize_links_through_rashi),
+    path("visualize/talmudic-relationships", reader_views.talmudic_relationships),
+    path("visualize/sefer-hachinukh-mitzvot", reader_views.sefer_hachinukh_mitzvot),
+    path("visualize/timeline", reader_views.visualize_timeline),
+    re_path(r"^visualize/unique-words-by-commentator", reader_views.unique_words_viz),
+    re_path(r"^settings/account/?$", partial(reader_views.settings_page, tab="account")),
+    path("settings/account/user", reader_views.account_user_update),
+    re_path(r"^settings/profile/?$", reader_views.settings_profile_redirect),
+    re_path(
+        r"^settings/developer/?$",
+        developer_views.requires_developer_settings(partial(reader_views.settings_page, tab="developer")),
+    ),
+    path(
+        "settings/developer/projects/<str:project_id>",
+        developer_views.requires_developer_settings(partial(reader_views.settings_page, tab="developer")),
+    ),
+    path("settings/developer/confirm-email/<str:key>", developer_views.confirm_email, name="developer_confirm_email"),
+    path("settings/developer/email-confirmed", developer_views.email_confirmed_page),
+    path("api/developer/state", developer_views.state_api),
+    path("api/developer/enable", developer_views.enable_api),
+    path("api/developer/profile", developer_views.profile_api),
+    path("api/developer/confirmation", developer_views.confirmation_api),
+    path("api/developer/confirmation/new-link", developer_views.new_link_api),
+    path("api/developer/projects", developer_views.projects_api),
+    path("api/developer/projects/<str:project_id>", developer_views.project_api),
+    path("api/developer/projects/<str:project_id>/keys", developer_views.project_keys_api),
+    path("api/developer/keys/<str:key_id>", developer_views.key_api),
+    re_path(r"^api/developer/listings/(?P<listing_id>\d+)/(?P<action>claim|dismiss)$", developer_views.listing_api),
+    re_path(r"^community/?$", reader_views.community_to_voices_redirect),
+    path("parashat-hashavua", reader_views.parashat_hashavua_redirect),
+    path("todays-daf-yomi", reader_views.daf_yomi_redirect),
+    path("add/textinfo/<path:new_title>", reader_views.edit_text_info),
+    re_path(r"^add/new/?$", reader_views.edit_text),
+    path("add/<path:ref>", reader_views.edit_text),
+    path("translate/<path:ref>", reader_views.edit_text),
+    path("edit/terms/<path:term>", reader_views.terms_editor),
+    path("add/terms/<path:term>", reader_views.terms_editor),
+    re_path(r"^edit/(?P<ref>.+)/(?P<language_family_name>[a-z]+)/(?P<version>.+)$", reader_views.edit_text),
+    path("edit/<path:ref>", reader_views.edit_text),
+    re_path(r"^dashboard/?$", reader_views.dashboard),
+    re_path(r"^activity/?$", reader_views.global_activity),
+    re_path(r"^activity/leaderboard?$", reader_views.leaderboard),
+    path("activity/<int:page>", reader_views.global_activity),
+    re_path(r"^activity/(?P<slug>[^/]+)/(?P<page>\d+)?$", reader_views.user_activity),
     # tref may contain a slash: WSGI decodes the %2F that Ref.url() emits for titles.
-    re_path(r'^activity/(?P<tref>.+?)/(?P<lang>.{2})/(?P<version>.+)/(?P<page>\d+)$', reader_views.segment_history),
-    re_path(r'^activity/(?P<tref>.+?)/(?P<lang>.{2})/(?P<version>.+)$', reader_views.segment_history),
-
-    path('random/link', reader_views.random_redirect),
-    re_path(r'^random/?$', reader_views.random_text_page),
-
-    re_path(r'^compare/?((?P<comp_ref>[^/]+)/)?((?P<lang>en|he)/)?((?P<v1>[^/]+)/)?(?P<v2>[^/]+)?$', sefaria_views.compare),
-
-    path('garden/<path:key>', reader_views.custom_visual_garden_page),
-    path('garden/sheets/<path:key>', reader_views.sheet_tag_visual_garden_page),
-    path('garden/search/<path:q>', reader_views.search_query_visual_garden_page),
-    re_path(r'^vgarden/custom/(?P<key>.*)$', reader_views.custom_visual_garden_page),
-
-    re_path(r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>plain\.txt)',
-        sefaria_views.text_download_api),
-    re_path(r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)',
-        sefaria_views.text_download_api),
-    re_path(r'^download/bulk/versions/', sefaria_views.bulk_download_versions_api),
-
+    re_path(r"^activity/(?P<tref>.+?)/(?P<lang>.{2})/(?P<version>.+)/(?P<page>\d+)$", reader_views.segment_history),
+    re_path(r"^activity/(?P<tref>.+?)/(?P<lang>.{2})/(?P<version>.+)$", reader_views.segment_history),
+    path("random/link", reader_views.random_redirect),
+    re_path(r"^random/?$", reader_views.random_text_page),
+    re_path(
+        r"^compare/?((?P<comp_ref>[^/]+)/)?((?P<lang>en|he)/)?((?P<v1>[^/]+)/)?(?P<v2>[^/]+)?$", sefaria_views.compare
+    ),
+    path("garden/<path:key>", reader_views.custom_visual_garden_page),
+    path("garden/sheets/<path:key>", reader_views.sheet_tag_visual_garden_page),
+    path("garden/search/<path:q>", reader_views.search_query_visual_garden_page),
+    re_path(r"^vgarden/custom/(?P<key>.*)$", reader_views.custom_visual_garden_page),
+    re_path(
+        r"^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>plain\.txt)",
+        sefaria_views.text_download_api,
+    ),
+    re_path(
+        r"^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)",
+        sefaria_views.text_download_api,
+    ),
+    re_path(r"^download/bulk/versions/", sefaria_views.bulk_download_versions_api),
 ]
 
 # Operational tooling
 urlpatterns += [
-    path('admin/heapdump/', heapdump_view, name="heapdump"),
-    re_path(r'^api/remote-config/?$', remote_config_views.remote_config_values, name="remote_config_api")
+    path("admin/heapdump/", heapdump_view, name="heapdump"),
+    re_path(r"^api/remote-config/?$", remote_config_views.remote_config_values, name="remote_config_api"),
 ]
 
 urlpatterns += shared_patterns

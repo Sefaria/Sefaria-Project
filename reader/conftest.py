@@ -2,10 +2,9 @@ import json
 import re
 import secrets
 import uuid
+from unittest.mock import MagicMock, patch
 
 import pytest
-from unittest.mock import patch, MagicMock
-
 from django.contrib.auth.models import User
 
 from sefaria.helper.library_assistant import SETTING_KEY

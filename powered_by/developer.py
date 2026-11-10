@@ -62,8 +62,6 @@ DEVELOPER_PROFILE_SETTINGS = (
     DISMISSED_LISTINGS_SETTING,
 )
 
-MOCK_SSO_SESSION_KEY = "developer_mock_sso"
-
 _url_validator = URLValidator(schemes=["http", "https"])
 # A public host name, as the settings page checks it: dotted labels and a top-level domain of letters or
 # punycode. No IP addresses, localhost, single labels or trailing dot.
@@ -101,8 +99,14 @@ def settings_enabled(user):
     return not getattr(settings, "DEVELOPER_SETTINGS_STAFF_ONLY", False) or bool(getattr(user, "is_staff", False))
 
 
-def mocks_enabled():
-    return bool(getattr(settings, "DEVELOPER_SETTINGS_MOCKS", False))
+def login_may_enable_settings(request):
+    """True when developer settings are on for staff only and the visitor, being logged out, may be staff."""
+    return (
+        getattr(settings, "DEVELOPER_SETTINGS_ENABLED", False)
+        and getattr(settings, "DEVELOPER_SETTINGS_STAFF_ONLY", False)
+        and not request.user.is_authenticated
+        and request.method == "GET"
+    )
 
 
 def iso(dt):
@@ -189,19 +193,12 @@ def session_login(request):
 # --- Verification ------------------------------------------------------------
 
 
-def mock_sso_override(request):
-    return request.session.get(MOCK_SSO_SESSION_KEY) if mocks_enabled() else None
-
-
 def sso_connected(request):
     """
     Whether a Google or Apple login of this account vouches for the account email: the provider
     marked that address verified at the last sign-in. Signing in with an address the provider
     hasn't verified doesn't count; that account confirms by link instead.
     """
-    override = mock_sso_override(request)
-    if override is not None:
-        return override
     email = (request.user.email or "").lower()
     if not email:
         return False
@@ -407,14 +404,7 @@ def developer_state(request):
         "projects": [serialize_project(p) for p in owned_projects(user)],
         "yourListing": public_listing(listing) if listing else None,
         "maxKeysPerProject": MAX_KEYS_PER_PROJECT,
-        "mock": None,
     }
-    if mocks_enabled():
-        state["mock"] = {
-            "ssoOverride": mock_sso_override(request),
-            "realSsoProviders": list(user.socialaccount_set.values_list("provider", flat=True)),
-            "confirmationKey": confirmation_for(user).key if sent_at else None,
-        }
     return state
 
 

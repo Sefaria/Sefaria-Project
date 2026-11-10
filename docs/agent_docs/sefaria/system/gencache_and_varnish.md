@@ -1,4 +1,5 @@
 # GenCache Coordination and Varnish Cache Invalidation
+
 > Sources: `sefaria/system/cache.py` (`GenCache`), `sefaria/system/redis_sentinel.py`, `sefaria/system/varnish/common.py`, `sefaria/system/varnish/wrapper.py`
 
 ## Purpose
@@ -49,7 +50,7 @@ Coordinates cache invalidation across multiple application server instances and 
 
 - **`refresh_fn` must reproduce a shared-cache tier, not skip it**: for objects with an existing Redis-backed shared-cache tier in front of Mongo (most of `Library`'s tracked objects), `refresh_fn` is a dedicated method that checks that shared cache before rebuilding from Mongo -- never a direct rebuild-from-Mongo shortcut. Otherwise a generation mismatch (including a cold start on a brand-new process) always pays a full Mongo rebuild even when a peer already repopulated the shared cache.
 - **`refresh_fn` must never call `publish()`/`mark_fresh()`/`invalidate()`**: several `refresh_fn`s are also the public rebuild method a writer calls directly (e.g. `Library._build_index_maps`, `build_full_auto_completer`). If the shared method bumped its own counter, a peer refreshing via `GenCache.get()` would re-trigger the same bump, cascading across the fleet. Bumping happens only at the actual write-path call site, after the local mutation.
-- **Bump before purging Varnish**: Varnish invalidation isn't gated on peers confirming they've refreshed. Instead, the counter is bumped *before* the Varnish purge, so a request that repopulates Varnish will, on its own next `GenCache.get()`, already see the bumped counter.
+- **Bump before purging Varnish**: Varnish invalidation isn't gated on peers confirming they've refreshed. Instead, the counter is bumped _before_ the Varnish purge, so a request that repopulates Varnish will, on its own next `GenCache.get()`, already see the bumped counter.
 - **Granularity is coarse by default**: most objects use one counter per object type, matching the granularity their existing rebuild methods already operate at (e.g. `gen:index_map` bumps on any index change, re-walking the whole `IndexSet`). `NonUniqueTerm`'s per-slug counters are the one deliberately fine-grained, lazy exception -- checked only when that slug is actually looked up via `.init()`, not via a bulk sweep.
 - **Shared-cache errors fail open on refresh only**: `Library`'s shared-cache-backed `refresh_fn`s (`_refresh_shared_cache_object`, `_refresh_text_titles_json`) treat an unreachable `CACHES["shared"]` as a miss and rebuild from Mongo, and log a failed write instead of raising. The write paths (`rebuild=True`, `reset_text_titles_cache()`) still raise: a failed write there would leave a stale shared value that peers read once the retried bump reaches them.
 - **The per-key throttle bounds Redis QPS** as `(tracked keys) × (1 / GENCACHE_CHECK_INTERVAL_SECONDS)` per process, independent of request volume.

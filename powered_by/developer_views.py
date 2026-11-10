@@ -1,10 +1,12 @@
 """
 JSON API behind the developer tab of the settings page, and the emailed confirmation link.
 """
+
 import json
 from functools import wraps
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.core.mail import send_mail
 from django.http import Http404
 from django.shortcuts import redirect
@@ -17,8 +19,8 @@ from django.views.decorators.http import require_http_methods
 from reader.views import menu_page
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError
-from . import developer
 
+from . import developer
 
 MAX_BODY_BYTES = 16 * 1024
 
@@ -26,13 +28,18 @@ MAX_BODY_BYTES = 16 * 1024
 def requires_developer_settings(view):
     """
     The view exists only where DEVELOPER_SETTINGS_ENABLED is on, and with DEVELOPER_SETTINGS_STAFF_ONLY
-    only for staff; elsewhere it is a 404.
+    only for staff; elsewhere it is a 404. In staff-only mode a logged-out visitor opening a page is sent
+    to log in first, since they may be staff; the API stays a 404.
     """
+
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         if not developer.settings_enabled(request.user):
+            if developer.login_may_enable_settings(request) and not request.path.startswith("/api/"):
+                return redirect_to_login(request.get_full_path())
             raise Http404
         return view(request, *args, **kwargs)
+
     return wrapper
 
 
@@ -71,6 +78,7 @@ def developer_api(func=None, login=True):
             response = jsonResponse({"error": str(e)}, status=429)
             response["Retry-After"] = str(e.retry_after)
             return response
+
     return wrapper
 
 
@@ -109,7 +117,6 @@ def profile_api(request):
 def confirmation_api(request):
     """
     POST emails the account a link that confirms its address; DELETE stops waiting for it.
-    With mocks on, nothing is sent: the state carries the link for the mock email instead.
     """
     if request.method == "DELETE":
         developer.mark_confirmation_sent(request.user, False)
@@ -138,11 +145,10 @@ def new_link_api(request):
 def send_confirmation(request, user):
     """
     Reserves the send (check + record, atomically) before sending, so a failed send still
-    throttles. With mocks on, nothing is sent.
+    throttles.
     """
     developer.reserve_confirmation_send(user)
-    if not developer.mocks_enabled():
-        send_confirmation_email(request, user)
+    send_confirmation_email(request, user)
 
 
 def confirmation_url(request, key):
@@ -176,15 +182,23 @@ def confirm_email(request, key):
         return redirect("/settings/developer/email-confirmed")
     if status == developer.LinkStatus.INVALID:
         raise Http404
-    return menu_page(request, page="developerEmailLink", title=LINK_PAGE_TITLES[status],
-                     props={"initialDeveloperEmailLink": {"status": status, "key": key}})
+    return menu_page(
+        request,
+        page="developerEmailLink",
+        title=LINK_PAGE_TITLES[status],
+        props={"initialDeveloperEmailLink": {"status": status, "key": key}},
+    )
 
 
 @requires_developer_settings
 @xframe_options_deny
 def email_confirmed_page(request):
-    return menu_page(request, page="developerEmailConfirmed", title="Email confirmed",
-                     desc="Your email is confirmed for Sefaria developer settings.")
+    return menu_page(
+        request,
+        page="developerEmailConfirmed",
+        title="Email confirmed",
+        desc="Your email is confirmed for Sefaria developer settings.",
+    )
 
 
 @requires_developer_settings

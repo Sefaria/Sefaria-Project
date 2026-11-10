@@ -12,19 +12,36 @@ from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from sefaria.system.decorators import catch_error_as_json
 from sefaria.client.util import jsonResponse
-from .models import ApiProject, Project, SubmissionSource, TechnicalExperience
+from sefaria.system.decorators import catch_error_as_json
 
+from .models import ApiProject, Project, SubmissionSource, TechnicalExperience
 
 REQUIRED_FIELDS = ("project_name", "project_link")
 
 WRITABLE_FIELDS = (
-    "submission_date", "submission_source", "sefaria_tools_used", "tech_used_raw",
-    "technical_experience", "vibe_coded", "project_why", "project_name", "project_link",
-    "project_source_code", "project_reach", "project_desc", "project_category",
-    "image_url", "has_pbs_logo", "request_not_to_publish", "creator", "creator_email",
-    "is_developer", "job_title", "found_sefaria", "notes",
+    "submission_date",
+    "submission_source",
+    "sefaria_tools_used",
+    "tech_used_raw",
+    "technical_experience",
+    "vibe_coded",
+    "project_why",
+    "project_name",
+    "project_link",
+    "project_source_code",
+    "project_reach",
+    "project_desc",
+    "project_category",
+    "image_url",
+    "has_pbs_logo",
+    "request_not_to_publish",
+    "creator",
+    "creator_email",
+    "is_developer",
+    "job_title",
+    "found_sefaria",
+    "notes",
 )
 
 BOOLEAN_FIELDS = ("vibe_coded", "is_developer", "request_not_to_publish", "has_pbs_logo")
@@ -88,9 +105,19 @@ FORMSTACK_INVERTED_BOOLEAN_FIELD_MAP = {
 # did you utilize?", and the 11 conditional "Which specific endpoints did you
 # use?" fields all merge into Project.sefaria_tools_used.
 FORMSTACK_TOOLS_USED_FIELDS = (
-    "196457970", "196602042",
-    "196602151", "196602402", "196602409", "196602439", "196602489",
-    "196602566", "196602632", "196602641", "196602679", "196602688", "196602699",
+    "196457970",
+    "196602042",
+    "196602151",
+    "196602402",
+    "196602409",
+    "196602439",
+    "196602489",
+    "196602566",
+    "196602632",
+    "196602641",
+    "196602679",
+    "196602688",
+    "196602699",
 )
 
 
@@ -290,15 +317,21 @@ def powered_by_api(request):
     if authenticated:
         queryset = Project.objects.all()
     else:
-        # A profile with an internal-tier live API project is never listed. A settings-created profile
+        # A profile with an internal- or mcp-tier (staff-only system tiers) live API project is never listed. A settings-created profile
         # is listed only while it has a live API project; a legacy listing needs none.
         live_api_projects = ApiProject.objects.filter(profile=OuterRef("pk"), deleted_at__isnull=True)
-        queryset = Project.objects.filter(
-            is_published=True, request_not_to_publish=False, deleted_at__isnull=True,
-        ).filter(
-            ~Exists(live_api_projects.filter(tier_id="internal")),
-        ).filter(
-            ~Q(submission_source=SubmissionSource.DEVELOPER_SETTINGS) | Exists(live_api_projects),
+        queryset = (
+            Project.objects.filter(
+                is_published=True,
+                request_not_to_publish=False,
+                deleted_at__isnull=True,
+            )
+            .filter(
+                ~Exists(live_api_projects.filter(tier_id__in=("internal", "mcp"))),
+            )
+            .filter(
+                ~Q(submission_source=SubmissionSource.DEVELOPER_SETTINGS) | Exists(live_api_projects),
+            )
         )
     projects = [project.contents(authenticated=authenticated) for project in queryset]
     return jsonResponse({"projects": projects})
@@ -321,7 +354,7 @@ def _formstack_signature_ok(request):
 
 
 def _powered_by_post(request):
-    if not _formstack_signature_ok(request):   ## BEFORE json.loads
+    if not _formstack_signature_ok(request):  ## BEFORE json.loads
         return jsonResponse({"error": "Unauthorized"}, status=401)
     try:
         body = json.loads(request.body)

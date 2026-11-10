@@ -1,0 +1,4 @@
+apiVersion: v2
+name: sefaria-standin
+description: Test stand-in for the sefaria chart's web Rollout and web pods (kind test suite only).
+version: 0.1.0

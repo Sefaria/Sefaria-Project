@@ -3,6 +3,7 @@ ApiProject, ApiTier and ApiTierMeterLimit (migration 0006): the database refuses
 API project for one profile, an unknown tier, and a deleted owner leaves the project in place
 with no owner. The three tiers are seeded by the migration.
 """
+
 from django.contrib.auth.models import User
 from django.db import IntegrityError, connection, transaction
 from django.test import TestCase
@@ -16,7 +17,8 @@ class ApiProjectModelTest(TestCase):
 
     def setUp(self):
         self.profile = Project.objects.create(
-            submission_source=SubmissionSource.MANUAL, project_name="Profile", is_published=False)
+            submission_source=SubmissionSource.MANUAL, project_name="Profile", is_published=False
+        )
 
     def test_second_live_api_project_for_a_profile_is_refused(self):
         ApiProject.objects.create(profile=self.profile)
@@ -45,10 +47,13 @@ class ApiProjectModelTest(TestCase):
         self.assertIsNone(project.owner_id)
         self.assertTrue(ApiProject.objects.filter(pk=project.pk).exists())
 
+    def test_mcp_tier_seeded(self):
+        self.assertEqual(ApiTier.objects.get(id="mcp").per_minute_per_project, 6000)
+        self.assertEqual(ApiTierMeterLimit.objects.get(tier_id="mcp", meter="semantic").monthly_per_project, 1000000)
+
     def test_seeded_tiers_have_a_semantic_meter_row(self):
         slugs = set(ApiTier.objects.values_list("id", flat=True))
         self.assertTrue({"developer", "partner", "internal"} <= slugs)
         for slug in ("developer", "partner", "internal"):
             with self.subTest(tier=slug):
-                self.assertTrue(
-                    ApiTierMeterLimit.objects.filter(tier_id=slug, meter="semantic").exists())
+                self.assertTrue(ApiTierMeterLimit.objects.filter(tier_id=slug, meter="semantic").exists())

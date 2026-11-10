@@ -7,9 +7,7 @@ describe('keyed interface strings', () => {
   const ID_RE = /^[a-z0-9_]+(\.[a-z0-9_]+)+$/;
 
   test('every key in every map is an ID matching the router regex', () => {
-    [interfaceEn, interfaceHe].forEach(map =>
-      Object.keys(map).forEach(id => expect(id).toMatch(ID_RE))
-    );
+    [interfaceEn, interfaceHe].forEach((map) => Object.keys(map).forEach((id) => expect(id).toMatch(ID_RE)));
   });
 
   test('en.json and he.json cover the same IDs', () => {
@@ -24,14 +22,14 @@ describe('keyed interface strings', () => {
   });
 
   test('runtime map exposes every ID in both languages', () => {
-    Object.entries(interfaceEn).forEach(([id, v]) =>
-      expect(Sefaria._i18nInterfaceStrings.en[id]).toBe(v));
-    Object.entries(interfaceHe).forEach(([id, v]) =>
-      expect(Sefaria._i18nInterfaceStrings.he[id]).toBe(v));
+    Object.entries(interfaceEn).forEach(([id, v]) => expect(Sefaria._i18nInterfaceStrings.en[id]).toBe(v));
+    Object.entries(interfaceHe).forEach(([id, v]) => expect(Sefaria._i18nInterfaceStrings.he[id]).toBe(v));
   });
 
   describe('Sefaria._ routing', () => {
-    afterEach(() => { Sefaria.interfaceLang = 'english'; });
+    afterEach(() => {
+      Sefaria.interfaceLang = 'english';
+    });
 
     test('keyed ID resolves to English in English interface', () => {
       Sefaria.interfaceLang = 'english';
@@ -61,7 +59,7 @@ describe('keyed interface strings', () => {
     });
 
     test('non-ID strings fall back to the terms dictionary in Hebrew', () => {
-      Sefaria._translateTerms['Test Term XYZ'] = {en: 'Test Term XYZ', he: 'מונח בדיקה'};
+      Sefaria._translateTerms['Test Term XYZ'] = { en: 'Test Term XYZ', he: 'מונח בדיקה' };
       Sefaria.interfaceLang = 'hebrew';
       expect(Sefaria._('Test Term XYZ')).toBe('מונח בדיקה');
       delete Sefaria._translateTerms['Test Term XYZ'];
@@ -70,8 +68,8 @@ describe('keyed interface strings', () => {
     test('site-settings override common.site_name / common.library_name by ID', () => {
       const orig = Sefaria._siteSettings;
       Sefaria._siteSettings = {
-        SITE_NAME: {en: 'MySite', he: 'האתר שלי'},
-        LIBRARY_NAME: {en: 'MyLibrary', he: 'הספריה שלי'},
+        SITE_NAME: { en: 'MySite', he: 'האתר שלי' },
+        LIBRARY_NAME: { en: 'MyLibrary', he: 'הספריה שלי' },
       };
       Sefaria._cacheSiteInterfaceStrings();
       Sefaria.interfaceLang = 'hebrew';

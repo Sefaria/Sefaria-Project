@@ -10,22 +10,22 @@ concurrent edits to other languages or fields. The lifecycle steps are run expli
 topic.update_after_link_change() hook is skipped because a description edit doesn't change link
 counts or pools.
 """
+
 import copy
 import datetime
 import hashlib
 import json
 import re
 
+import structlog
 from bson import ObjectId
 from bson.errors import InvalidId
 
-import structlog
-
+from sefaria.helper.topic import _get_merged_descriptions
 from sefaria.model import Ref, RefTopicLink, RefTopicLinkSet, TopicSet
 from sefaria.model.abstract import notify
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
-from sefaria.helper.topic import _get_merged_descriptions
 
 LANGS = ("en", "he")
 REVIEW_STATES = ("not reviewed", "edited", "reviewed")
@@ -106,8 +106,17 @@ def _bool_param(value, name):
     raise InputError(f"{name} must be true or false")
 
 
-def build_list_query(lang="en", link_id=None, topics=None, review_state=None, published=None,
-                     ai_generated=None, ref=None, q=None, cursor=None):
+def build_list_query(
+    lang="en",
+    link_id=None,
+    topics=None,
+    review_state=None,
+    published=None,
+    ai_generated=None,
+    ref=None,
+    q=None,
+    cursor=None,
+):
     _validate_lang(lang)
     prefix = f"descriptions.{lang}"
     clauses = [{prefix: {"$exists": True}}]
@@ -146,8 +155,19 @@ def build_list_query(lang="en", link_id=None, topics=None, review_state=None, pu
     return {"$and": clauses}
 
 
-def list_prompts(lang="en", link_id=None, topics=None, review_state=None, published=None,
-                 ai_generated=None, ref=None, q=None, limit=DEFAULT_LIMIT, cursor=None, base_url=""):
+def list_prompts(
+    lang="en",
+    link_id=None,
+    topics=None,
+    review_state=None,
+    published=None,
+    ai_generated=None,
+    ref=None,
+    q=None,
+    limit=DEFAULT_LIMIT,
+    cursor=None,
+    base_url="",
+):
     """
     Returns {"results": [...], "next_cursor": str|None}, paginated by _id.
     """
@@ -255,18 +275,24 @@ def update_prompt(link_id, lang, fields, base_version, uid, dry_run=False, base_
     if dry_run:
         return {"result": after, "before": before, "dry_run": True, "warnings": []}
 
-    audit_id = db[AUDIT_COLLECTION].insert_one({
-        "link_id": oid,
-        "topic": link.toTopic,
-        "ref": link.ref,
-        "lang": lang,
-        "uid": uid,
-        "via": via,
-        "status": "pending",
-        "before": {**_audit_fields(before), "version": before["version"]},
-        "after": {**_audit_fields(after), "version": after["version"]},
-        "date": datetime.datetime.utcnow(),
-    }).inserted_id
+    audit_id = (
+        db[AUDIT_COLLECTION]
+        .insert_one(
+            {
+                "link_id": oid,
+                "topic": link.toTopic,
+                "ref": link.ref,
+                "lang": lang,
+                "uid": uid,
+                "via": via,
+                "status": "pending",
+                "before": {**_audit_fields(before), "version": before["version"]},
+                "after": {**_audit_fields(after), "version": after["version"]},
+                "date": datetime.datetime.utcnow(),
+            }
+        )
+        .inserted_id
+    )
 
     def mark_audit(status):
         db[AUDIT_COLLECTION].update_one({"_id": audit_id}, {"$set": {"status": status}})

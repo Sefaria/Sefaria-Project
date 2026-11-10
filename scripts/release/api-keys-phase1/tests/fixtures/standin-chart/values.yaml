@@ -1,0 +1,8 @@
+deployEnv: preprod
+web:
+  image: kind.local/sefaria-web:master
+  podLabels: {}
+  podAnnotations: {}
+nginx:
+  enabled: false
+  image: kind.local/postgres:18

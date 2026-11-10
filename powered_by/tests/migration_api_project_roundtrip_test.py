@@ -3,6 +3,7 @@ Migrations 0007 and 0008 under the awkward cases a shared development database p
 taken when the backfill inserts, a rollback to 0007 followed by a new forward run when API project ids no longer
 match profile ids, and a development SQLite database. Keys must end on the API project they started on.
 """
+
 import importlib
 from unittest import skipUnless
 
@@ -13,7 +14,6 @@ from django.utils import timezone
 
 from powered_by.tests.migration_api_project_backfill_test import MigrationTestCase
 
-
 BEFORE = ("powered_by", "0006_api_project_schema")
 AFTER = ("powered_by", "0007_api_project_backfill")
 LATEST = ("powered_by", "0008_api_key_project_triggers_grants")
@@ -22,10 +22,9 @@ BACKFILL = importlib.import_module("powered_by.migrations.0007_api_project_backf
 
 @skipUnless(connection.vendor == "postgresql", "the backfill and key remap SQL need PostgreSQL")
 class BackfillTakenIdTest(MigrationTestCase):
-
     def test_a_rerun_with_a_taken_id_inserts_under_another_id(self):
         apps = self.migrate(BEFORE)
-        Project, ApiProject = apps.get_model("powered_by", "Project"), apps.get_model("powered_by", "ApiProject")
+        ApiProject = apps.get_model("powered_by", "ApiProject")
         wanted = self.make_project(apps, "Wants its own id")
         other = self.make_project(apps, "Holds that id")
         # An API project of another profile already holds the id the backfill would give `wanted`.
@@ -51,7 +50,9 @@ class BackfillTakenIdTest(MigrationTestCase):
         apps = self.migrate(BEFORE)
         Project, ApiProject = apps.get_model("powered_by", "Project"), apps.get_model("powered_by", "ApiProject")
         for pk in (1, 2, 3):
-            Project.objects.create(id=pk, project_name=f"Profile {pk}", submission_source="developer_settings", tier="developer")
+            Project.objects.create(
+                id=pk, project_name=f"Profile {pk}", submission_source="developer_settings", tier="developer"
+            )
         ApiProject.objects.create(id=1, profile_id=3, tier_id="developer")
 
         self.migrate(AFTER)
@@ -77,7 +78,6 @@ class BackfillTakenIdTest(MigrationTestCase):
 
 @skipUnless(connection.vendor == "postgresql", "the backfill and key remap SQL need PostgreSQL")
 class KeyRemapRoundTripTest(MigrationTestCase):
-
     def key_projects(self):
         return dict(self.query("SELECT label, project_id FROM powered_by_apikey ORDER BY label"))
 
@@ -94,7 +94,9 @@ class KeyRemapRoundTripTest(MigrationTestCase):
         apps = self.migrate(LATEST)
         ApiProject, ApiKey = apps.get_model("powered_by", "ApiProject"), apps.get_model("powered_by", "ApiKey")
         profile = self.make_project(apps, "Replaced")
-        deleted = ApiProject.objects.create(id=profile.pk, profile=profile, tier_id="developer", deleted_at=timezone.now())
+        deleted = ApiProject.objects.create(
+            id=profile.pk, profile=profile, tier_id="developer", deleted_at=timezone.now()
+        )
         replacement = ApiProject.objects.create(id=profile.pk + 100000, profile=profile, tier_id="developer")
         ApiKey.objects.create(project=deleted, label="old", revoked_at=timezone.now())
         ApiKey.objects.create(project=replacement, label="live")
@@ -119,8 +121,12 @@ class KeyRemapRoundTripTest(MigrationTestCase):
         self.roundtrip()
 
         self.assertEqual(self.key_projects(), before)
-        self.assertEqual(self.query("SELECT label, a.profile_id FROM powered_by_apikey k JOIN api_project a ON a.id = k.project_id ORDER BY label"),
-                         [("first-key", first.pk), ("second-key", second.pk)])
+        self.assertEqual(
+            self.query(
+                "SELECT label, a.profile_id FROM powered_by_apikey k JOIN api_project a ON a.id = k.project_id ORDER BY label"
+            ),
+            [("first-key", first.pk), ("second-key", second.pk)],
+        )
 
     def test_the_remap_record_is_gone_after_the_forward_run(self):
         apps = self.migrate(LATEST)
@@ -140,7 +146,9 @@ class KeyRemapRoundTripTest(MigrationTestCase):
         apps = self.migrate(AFTER)
         ApiProject, ApiKey = apps.get_model("powered_by", "ApiProject"), apps.get_model("powered_by", "ApiKey")
         profile = self.make_project(apps, "No record")
-        deleted = ApiProject.objects.create(id=profile.pk, profile=profile, tier_id="developer", deleted_at=timezone.now())
+        deleted = ApiProject.objects.create(
+            id=profile.pk, profile=profile, tier_id="developer", deleted_at=timezone.now()
+        )
         live = ApiProject.objects.create(id=profile.pk + 100000, profile=profile, tier_id="developer")
         ApiKey.objects.create(project=profile, label="live")
         ApiKey.objects.create(project=profile, label="revoked", revoked_at=timezone.now())
@@ -152,16 +160,19 @@ class KeyRemapRoundTripTest(MigrationTestCase):
 
 class SqliteBackfillTest(TransactionTestCase):
     """A development SQLite database has the same ids and keys after 0006 -> 0008 as the Postgres path gives."""
+
     databases = "__all__"
     ALIAS = "sqlite_roundtrip"
 
     def setUp(self):
         from django.db.utils import ConnectionHandler
 
-        self.handler = ConnectionHandler({
-            "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"},
-            self.ALIAS: {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"},
-        })
+        self.handler = ConnectionHandler(
+            {
+                "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"},
+                self.ALIAS: {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"},
+            }
+        )
         self.sqlite = self.handler[self.ALIAS]
         connections[self.ALIAS] = self.sqlite
         self.addCleanup(self.drop_connection)
@@ -181,9 +192,11 @@ class SqliteBackfillTest(TransactionTestCase):
         apps = self.migrate(BEFORE)
         Project, ApiKey = apps.get_model("powered_by", "Project"), apps.get_model("powered_by", "ApiKey")
         profile = Project.objects.using(self.ALIAS).create(
-            project_name="Dev", submission_source="developer_settings", tier="developer")
+            project_name="Dev", submission_source="developer_settings", tier="developer"
+        )
         listing = Project.objects.using(self.ALIAS).create(
-            project_name="Plain listing", submission_source="formstack", tier="developer")
+            project_name="Plain listing", submission_source="formstack", tier="developer"
+        )
         key = ApiKey.objects.using(self.ALIAS).create(project=profile, label="k")
 
         apps = self.migrate(LATEST)
@@ -200,8 +213,11 @@ class SqliteBackfillTest(TransactionTestCase):
             return cursor.fetchall()
 
     def make_profile(self, apps, pk, name="Profile"):
-        return apps.get_model("powered_by", "Project").objects.using(self.ALIAS).create(
-            id=pk, project_name=f"{name} {pk}", submission_source="developer_settings", tier="developer")
+        return (
+            apps.get_model("powered_by", "Project")
+            .objects.using(self.ALIAS)
+            .create(id=pk, project_name=f"{name} {pk}", submission_source="developer_settings", tier="developer")
+        )
 
     def test_a_fallback_id_never_meets_a_later_profile_id(self):
         # API project 1 belongs to profile 3; profiles 1 and 2 have none. Profile 1's own id is taken, so it needs a
@@ -232,11 +248,19 @@ class SqliteBackfillTest(TransactionTestCase):
         on_second_id = ApiProject.objects.using(self.ALIAS).create(id=2, profile=first, tier_id="developer")
         on_first_id = ApiProject.objects.using(self.ALIAS).create(id=1, profile=second, tier_id="partner")
         third = self.make_profile(apps, 3)
-        deleted = ApiProject.objects.using(self.ALIAS).create(id=3, profile=third, tier_id="developer", deleted_at=timezone.now())
+        deleted = ApiProject.objects.using(self.ALIAS).create(
+            id=3, profile=third, tier_id="developer", deleted_at=timezone.now()
+        )
         replacement = ApiProject.objects.using(self.ALIAS).create(id=30, profile=third, tier_id="developer")
-        for label, project in (("first-key", on_second_id), ("second-key", on_first_id), ("old", deleted), ("live", replacement)):
+        for label, project in (
+            ("first-key", on_second_id),
+            ("second-key", on_first_id),
+            ("old", deleted),
+            ("live", replacement),
+        ):
             ApiKey.objects.using(self.ALIAS).create(
-                project=project, label=label, revoked_at=timezone.now() if label == "old" else None)
+                project=project, label=label, revoked_at=timezone.now() if label == "old" else None
+            )
         before = self.key_projects()
         self.assertEqual(before, {"first-key": 2, "second-key": 1, "old": 3, "live": 30})
 
@@ -247,4 +271,3 @@ class SqliteBackfillTest(TransactionTestCase):
 
         self.assertEqual(self.key_projects(), before)
         self.assertEqual(self.rows("SELECT name FROM sqlite_master WHERE name = 'api_key_project_remap'"), [])
-

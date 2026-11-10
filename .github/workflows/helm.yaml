@@ -29,6 +29,10 @@ jobs:
         run: ct lint --charts helm-chart/sefaria
       - name: Test release-rules channel derivation
         run: bash helm-chart/tests/release-rules-channel.test.sh
+      - name: Test the auth service render in each environment (flag off and on)
+        run: |
+          python -m pip install --quiet pyyaml
+          python helm-chart/tests/auth_service_render_test.py
 
   chart:
     name: Release Chart

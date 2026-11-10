@@ -1,11 +1,17 @@
 from django import forms
 from django.contrib import admin, messages
+from django.contrib.admin.views.main import SEARCH_VAR
 from django.db import transaction
 from django.db.models import Prefetch
+from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html
 
 from .models import ApiKey, ApiProject, Project
+
+# How much of a key the admin may show or search on: the "sfr_" prefix and 6 characters. Enough to tell keys apart in a
+# log or a support request; everything after it is the secret.
+KEY_DISPLAY_PREFIX = 10
 
 
 class ApiKeyForm(forms.ModelForm):
@@ -21,8 +27,15 @@ class ApiKeyInline(admin.TabularInline):
     form = ApiKeyForm
     extra = 0
     can_delete = False
-    fields = ("label", "key", "allowed_origins", "created_at", "revoked_at", "last_used_at")
-    readonly_fields = ("key", "created_at", "last_used_at")
+    fields = ("label", "masked_key", "allowed_origins", "created_at", "revoked_at", "last_used_at")
+    readonly_fields = ("masked_key", "created_at", "last_used_at")
+
+    @admin.display(description="Key")
+    def masked_key(self, obj):
+        # An unsaved "Add another" row holds the default's freshly generated key, which will never exist.
+        if obj is None or obj._state.adding:
+            return "-"
+        return obj.key[:KEY_DISPLAY_PREFIX] + "\u2026"
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -55,10 +68,17 @@ class ProjectAdmin(admin.ModelAdmin):
     date_hierarchy = "created_at"
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related(Prefetch(
-            "api_projects", queryset=ApiProject.objects.filter(deleted_at__isnull=True),
-            to_attr="live_api_projects",
-        ))
+        return (
+            super()
+            .get_queryset(request)
+            .prefetch_related(
+                Prefetch(
+                    "api_projects",
+                    queryset=ApiProject.objects.filter(deleted_at__isnull=True),
+                    to_attr="live_api_projects",
+                )
+            )
+        )
 
     @admin.display(description="API project")
     def live_api_project(self, obj):
@@ -67,73 +87,109 @@ class ProjectAdmin(admin.ModelAdmin):
         live = obj.live_api_projects
         if not live:
             return "-"
-        return format_html('<a href="{}">API project {}</a>',
-                           reverse("admin:powered_by_apiproject_change", args=[live[0].pk]), live[0].pk)
+        return format_html(
+            '<a href="{}">API project {}</a>',
+            reverse("admin:powered_by_apiproject_change", args=[live[0].pk]),
+            live[0].pk,
+        )
 
     fieldsets = (
-        ("Submission", {
-            "fields": (
-                "submission_source",
-                "submission_date",
-                ("created_at", "updated_at"),
-                "salesforce_id",
-            ),
-        }),
-        ("Creator", {
-            "fields": (
-                ("creator", "creator_email"),
-                "submitter",
-                "is_developer",
-                "job_title",
-                "technical_experience",
-                "found_sefaria",
-                "sefaria_tools_used",
-                "tech_used_raw",
-            ),
-        }),
-        ("Project", {
-            "fields": (
-                "project_name",
-                "project_link",
-                "project_source_code",
-                "project_desc",
-                "project_why",
-                "project_category",
-                "project_reach",
-                "vibe_coded",
-                "image_url",
-                "has_pbs_logo",
-            ),
-        }),
-        ("Editorial & staff", {
-            "fields": (
-                "tags",
-                "status",
-                "last_checked",
-                "is_buggy",
-                "request_not_to_publish",
-                "is_published",
-                "featured",
-                "notes",
-            ),
-        }),
-        ("Developer settings", {
-            "fields": (
-                "organization",
-                "consent_withdrawn_at",
-                "live_api_project",
-            ),
-        }),
+        (
+            "Submission",
+            {
+                "fields": (
+                    "submission_source",
+                    "submission_date",
+                    ("created_at", "updated_at"),
+                    "salesforce_id",
+                ),
+            },
+        ),
+        (
+            "Creator",
+            {
+                "fields": (
+                    ("creator", "creator_email"),
+                    "submitter",
+                    "is_developer",
+                    "job_title",
+                    "technical_experience",
+                    "found_sefaria",
+                    "sefaria_tools_used",
+                    "tech_used_raw",
+                ),
+            },
+        ),
+        (
+            "Project",
+            {
+                "fields": (
+                    "project_name",
+                    "project_link",
+                    "project_source_code",
+                    "project_desc",
+                    "project_why",
+                    "project_category",
+                    "project_reach",
+                    "vibe_coded",
+                    "image_url",
+                    "has_pbs_logo",
+                ),
+            },
+        ),
+        (
+            "Editorial & staff",
+            {
+                "fields": (
+                    "tags",
+                    "status",
+                    "last_checked",
+                    "is_buggy",
+                    "request_not_to_publish",
+                    "is_published",
+                    "featured",
+                    "notes",
+                ),
+            },
+        ),
+        (
+            "Developer settings",
+            {
+                "fields": (
+                    "organization",
+                    "consent_withdrawn_at",
+                    "live_api_project",
+                ),
+            },
+        ),
     )
 
 
 @admin.register(ApiProject)
 class ApiProjectAdmin(admin.ModelAdmin):
     list_display = ("id", "profile", "owner", "tier", "deleted_at")
+    # Finds a project from a key prefix quoted in a support request; the key itself is never displayed.
+    search_fields = ("api_keys__key__startswith",)
     raw_id_fields = ("profile", "owner")
     readonly_fields = ("deleted_at", "created_at", "updated_at")
     inlines = (ApiKeyInline,)
     actions = ("soft_delete_and_revoke_keys",)
+
+    def changelist_view(self, request, extra_context=None):
+        # The changelist echoes the query into the search box, the result links and every later request. A pasted full
+        # key would be rendered back and logged again, so cut the query to the shown prefix before anything renders.
+        # Every value counts: with a repeated q, Django searches the last one but keeps all of them in its links.
+        queries = request.GET.getlist(SEARCH_VAR)
+        if len(queries) > 1 or any(len(query.strip()) > KEY_DISPLAY_PREFIX for query in queries):
+            params = request.GET.copy()
+            params[SEARCH_VAR] = queries[-1].strip()[:KEY_DISPLAY_PREFIX]
+            return HttpResponseRedirect(f"{request.path}?{params.urlencode()}")
+        return super().changelist_view(request, extra_context)
+
+    def get_search_results(self, request, queryset, search_term):
+        # Match only the prefix the admin already shows. Searching further into the key would let staff recover it a
+        # character at a time by watching whether a project stays in the results.
+        return super().get_search_results(request, queryset, search_term.strip()[:KEY_DISPLAY_PREFIX])
 
     @admin.action(description="Soft-delete and revoke keys", permissions=("change",))
     def soft_delete_and_revoke_keys(self, request, queryset):
@@ -149,8 +205,9 @@ class ApiProjectAdmin(admin.ModelAdmin):
             for api_project in locked:
                 api_project.profile = profiles[api_project.profile_id]
                 developer.soft_delete(api_project)
-        self.message_user(request, "Soft-deleted {} API project(s) and revoked their keys.".format(queryset.count()),
-                          messages.SUCCESS)
+        self.message_user(
+            request, f"Soft-deleted {queryset.count()} API project(s) and revoked their keys.", messages.SUCCESS
+        )
 
     def get_readonly_fields(self, request, obj=None):
         readonly = super().get_readonly_fields(request, obj)

@@ -8,7 +8,6 @@ import {
   accountVerified,
   cancelConfirmation,
   claimListing,
-  confirmationLink,
   createKey,
   createProject,
   deleteKey,
@@ -16,7 +15,6 @@ import {
   dismissListing,
   emptyState,
   enableDeveloper,
-  mockAction,
   parseWebsite,
   readState,
   requestNewLink,
@@ -24,8 +22,8 @@ import {
   sendConfirmation,
   setKeyRestriction,
   updateProject,
-  websiteHost,
   websiteDomain,
+  websiteHost,
 } from './developerSettingsApi';
 import Input from './common/Input.jsx';
 
@@ -289,186 +287,6 @@ const useDialogKeys = (focusRef, onEscape) => {
   }, []);
 };
 
-const PANEL_OPEN_KEY = 'sefariaDeveloperPocPanelOpen';
-
-const readPanelOpen = () => {
-  try {
-    return window.localStorage.getItem(PANEL_OPEN_KEY) === '1';
-  } catch (e) {
-    return false;
-  }
-};
-
-const writePanelOpen = (open) => {
-  try {
-    window.localStorage.setItem(PANEL_OPEN_KEY, open ? '1' : '0');
-  } catch (e) {
-    /* ignore */
-  }
-};
-
-/* Test controls, shown only where the server has DEVELOPER_SETTINGS_MOCKS on. Deliberately
-   unlike the product: a floating panel pinned to the corner of the viewport, in colours the
-   site never uses, and English only. They change the real data of the logged-in account. */
-/* Starting points for a walkthrough; each one clears developer settings back to "Get started". */
-const ACCOUNT_SCENARIOS = [
-  { id: 'sso', label: 'Google or Apple account', ssoOverride: true },
-  { id: 'email', label: 'Email account, unconfirmed', ssoOverride: false },
-  { id: 'email-confirmed', label: 'Email account, confirmed', ssoOverride: false, emailVerified: true },
-];
-
-const accountStatus = (state) => {
-  const kind = state.ssoConnected ? 'Google or Apple account' : 'Email account';
-  const email = state.emailVerified
-    ? 'email confirmed'
-    : state.confirmationSentAt
-      ? 'confirmation link sent'
-      : 'email not confirmed';
-  const dev = !state.developerEnabled
-    ? 'developer settings not started'
-    : !state.profile
-      ? 'at About you'
-      : state.projects.length + ' project' + (state.projects.length === 1 ? '' : 's');
-  return 'Now: ' + kind + ' · ' + email + ' · ' + dev;
-};
-
-const TestPanel = ({ state, mock, onOpenMockEmail }) => {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    setOpen(readPanelOpen());
-  }, []);
-
-  const toggle = (next) => {
-    setOpen(next);
-    writePanelOpen(next);
-  };
-
-  const realProviders = state.mock.realSsoProviders || [];
-  const realLabel = realProviders.length
-    ? 'Real account: ' + realProviders.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(' + ') + ' connected'
-    : 'Real account: no Google or Apple connection';
-  const pretending = state.mock.ssoOverride !== null;
-  const email = accountEmail();
-
-  return (
-    <div className="devPocPanel" data-open={open ? 'true' : 'false'} lang="en">
-      <button type="button" className="devPocPanelPill" aria-expanded={open} onClick={() => toggle(true)}>
-        🧪 Test controls
-      </button>
-      <div className="devPocPanelBody">
-        <div className="devPocPanelHeader">
-          <div>
-            <p className="devPocPanelTitle">TEST CONTROLS</p>
-            <p className="devPocPanelSub">Test environments only. They change this account's real developer data.</p>
-          </div>
-          <button
-            type="button"
-            className="devPocPanelClose"
-            aria-label="Collapse test controls"
-            onClick={() => toggle(false)}
-          >
-            Hide
-          </button>
-        </div>
-
-        <div className="devPocPanelGroup">
-          <div className="devPocPanelGroupLabel">Start over as</div>
-          <div className="devPocPanelRow devPocPanelScenarios">
-            {ACCOUNT_SCENARIOS.map((sc) => (
-              <button
-                key={sc.id}
-                type="button"
-                className="devPocPanelButton"
-                data-scenario={sc.id}
-                onClick={() => mock('start-over', { ssoOverride: sc.ssoOverride, emailVerified: !!sc.emailVerified })}
-              >
-                {sc.label}
-              </button>
-            ))}
-          </div>
-          <p className="devPocPanelNote">
-            Each deletes this account's projects (revoking their keys), claimed listings included, and starts at "Get
-            started". "Add a listing submitted with my email" makes a new one to claim.
-          </p>
-        </div>
-
-        <div className="devPocPanelGroup">
-          <div className="devPocPanelGroupLabel">Account state now</div>
-          <p className="devPocPanelNote devPocPanelStatus" role="status">
-            {accountStatus(state)}
-          </p>
-          <label className="devPocPanelChoice">
-            <input
-              type="checkbox"
-              className="devPocSwitch"
-              checked={!!state.ssoConnected}
-              onChange={(e) => mock('sso', { ssoOverride: e.target.checked })}
-              aria-label="Simulate Google or Apple connected"
-            />
-            <span>Google or Apple {state.ssoConnected ? 'connected' : 'not connected'}</span>
-          </label>
-          <label className="devPocPanelChoice">
-            <input
-              type="checkbox"
-              className="devPocSwitch"
-              checked={!!state.emailVerified}
-              onChange={(e) => mock('email-verified', { emailVerified: e.target.checked })}
-              aria-label="Email confirmed"
-            />
-            <span>Email {state.emailVerified ? 'confirmed' : 'not confirmed'}</span>
-          </label>
-          <p className="devPocPanelNote">
-            {realLabel}
-            {pretending ? ' (simulated value in use)' : ''}
-          </p>
-          {pretending ? (
-            <div className="devPocPanelRow">
-              <button type="button" className="devPocPanelButton" onClick={() => mock('sso', { ssoOverride: null })}>
-                Use real Google or Apple status
-              </button>
-            </div>
-          ) : null}
-          <div className="devPocPanelRow">
-            <button
-              type="button"
-              className="devPocPanelButton"
-              disabled={!state.mock.confirmationKey}
-              data-agent-action="mock-open-email"
-              onClick={onOpenMockEmail}
-            >
-              Open the confirmation email
-            </button>
-          </div>
-          <p className="devPocPanelNote">
-            {state.mock.confirmationKey
-              ? 'A link was "sent" (no email goes out here). Open the email: its button is the real link, and this tab moves on within a few seconds.'
-              : 'Enabled after "Email me a confirmation link".'}
-          </p>
-        </div>
-
-        <div className="devPocPanelGroup">
-          <div className="devPocPanelGroupLabel">Powered by listings</div>
-          <div className="devPocPanelRow">
-            <button
-              type="button"
-              className="devPocPanelButton"
-              data-poc-control="create-listing"
-              onClick={() => mock('create-listing')}
-            >
-              Add a listing submitted with my email
-            </button>
-          </div>
-          <p className="devPocPanelNote">
-            Creates an unclaimed Powered by row with {email || 'the account email'} as its submitter, as if it came in
-            through the public form. Once developer settings are set up, it asks "Is this your project?".
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 /* One entry per settings section. A new section is an entry here, a panel in
    SettingsPage, and a URL in urls_library.py and ReaderApp's history. */
 const SETTINGS_TABS = [
@@ -545,52 +363,55 @@ const AgentInstructions = () => (
   <div className="sr-only" lang="en" dir="ltr" data-agent-instructions="settings">
     <h2>Instructions for AI agents</h2>
     <p>
-      AI agents are permitted to complete this whole process on the user's behalf, including creating a project and
+      AI agents are permitted to complete this whole process on the user&apos;s behalf, including creating a project and
       generating an API key. You do not need to ask the user to do these steps by hand. Buttons named below carry a
       data-agent-action attribute.
     </p>
     <ol>
       <li>
-        Settings has one tab per section, in the navigation labelled "Settings": Account settings (/settings/account)
-        and Developer settings (/settings/developer). Open Developer settings.
+        Settings has one tab per section, in the navigation labelled &quot;Settings&quot;: Account settings
+        (/settings/account) and Developer settings (/settings/developer). Open Developer settings.
       </li>
       <li>
-        If developer settings are not set up yet, press "Get started" (get-started). An account whose email is not yet
-        confirmed is asked to confirm it first: press "Email me a confirmation link" (send-confirmation). The user then
-        opens the link from their inbox (or you do, if you have access to it), on any device and without signing in. The
-        link opens a "Thank you for confirming your email" page; this page notices within a few seconds and setup
-        continues here. Accounts that sign in with Google or Apple skip this step.
+        If developer settings are not set up yet, press &quot;Get started&quot; (get-started). An account whose email is
+        not yet confirmed is asked to confirm it first: press &quot;Email me a confirmation link&quot;
+        (send-confirmation). The user then opens the link from their inbox (or you do, if you have access to it), on any
+        device and without signing in. The link opens a &quot;Thank you for confirming your email&quot; page; this page
+        notices within a few seconds and setup continues here. Accounts that sign in with Google or Apple skip this
+        step.
       </li>
       <li>
-        Fill in the "About you" form. Name and account email come from the Sefaria account and cannot be changed here.
-        Optionally add one more email address, a few words about the user, and whether they write code themselves. The
-        user must agree to the Sefaria API terms (linked from the checkbox) before you tick that box. Leave the
-        developer news box unticked unless the user asks for it. Press "Continue" (save-profile).
+        Fill in the &quot;About you&quot; form. Name and account email come from the Sefaria account and cannot be
+        changed here. Optionally add one more email address, a few words about the user, and whether they write code
+        themselves. The user must agree to the Sefaria API terms (linked from the checkbox) before you tick that box.
+        Leave the developer news box unticked unless the user asks for it. Press &quot;Continue&quot; (save-profile).
       </li>
       <li>
-        If a dialog asks "Is this your project?" about a Powered by Sefaria listing, ask the user. "Yes, add it"
-        (claim-listing) adds it as a public project linked to the listing; "No, it's not mine" (not-my-listing) stops
-        the question; "Not now" (listing-not-now) asks again next visit.
+        If a dialog asks &quot;Is this your project?&quot; about a Powered by Sefaria listing, ask the user. &quot;Yes,
+        add it&quot; (claim-listing) adds it as a public project linked to the listing; &quot;No, it&apos;s not
+        mine&quot; (not-my-listing) stops the question; &quot;Not now&quot; (listing-not-now) asks again next visit.
       </li>
       <li>
-        Under "Projects", press "Create your first project" or "New project" (new-project). Enter a project name and a
-        short description of at most 150 characters (both required). Organization, website and "Built with help from AI
-        tools" are optional. Choose a visibility, which is required: Public or Private. Ask the user which they want;
-        "Show me what will be public" (show-public-preview) lists exactly what a public project shows. Press "Create
-        project" (create-project). If there is no website, a dialog asks about it: choose "Save without a website"
+        Under &quot;Projects&quot;, press &quot;Create your first project&quot; or &quot;New project&quot;
+        (new-project). Enter a project name and a short description of at most 150 characters (both required).
+        Organization, website and &quot;Built with help from AI tools&quot; are optional. Choose a visibility, which is
+        required: Public or Private. Ask the user which they want; &quot;Show me what will be public&quot;
+        (show-public-preview) lists exactly what a public project shows. Press &quot;Create project&quot;
+        (create-project). If there is no website, a dialog asks about it: choose &quot;Save without a website&quot;
         (save-without-website) or add one.
       </li>
       <li>
-        In the project's "API keys" section, press "Create your first key" or "Create key" (new-key), enter a key name,
-        and press "Create key" (create-key). Setting up the key takes a few seconds.
+        In the project&apos;s &quot;API keys&quot; section, press &quot;Create your first key&quot; or &quot;Create
+        key&quot; (new-key), enter a key name, and press &quot;Create key&quot; (create-key). Setting up the key takes a
+        few seconds.
       </li>
       <li>
-        The new key appears in the key list. "Show key" (show-key) reveals it and "Copy key" (copy-key) copies it. Send
-        it in the x-api-key header of each request. Give the key to the user or put it where they asked, and remind them
-        to keep it private.
+        The new key appears in the key list. &quot;Show key&quot; (show-key) reveals it and &quot;Copy key&quot;
+        (copy-key) copies it. Send it in the x-api-key header of each request. Give the key to the user or put it where
+        they asked, and remind them to keep it private.
       </li>
       <li>
-        Optional: once the project has a website, "Only accept requests from" its domain is an allowed-domain
+        Optional: once the project has a website, &quot;Only accept requests from&quot; its domain is an allowed-domain
         restriction: Sefaria refuses this key (403 origin_not_allowed) on any request whose Origin header is not on that
         domain or one of its subdomains, including requests with no Origin. Turn it on only for keys used in front-end
         code that runs in a browser. Leave it off for keys used from a server, script, app or agent, including your own
@@ -755,7 +576,7 @@ const GetStarted = ({
               en: (
                 <React.Fragment>
                   We email you about your API keys, so first we check that {email ? emailText : 'your account email'} is
-                  really yours. It's a one-time step, and you keep signing in the way you do now.
+                  really yours. It&apos;s a one-time step, and you keep signing in the way you do now.
                 </React.Fragment>
               ),
               he: (
@@ -1062,8 +883,8 @@ const LegalFields = ({ fields, set, accepted }) => (
           text={{
             en: (
               <React.Fragment>
-                You've accepted the <TermsLink />, and agreed that Sefaria may email you about your API keys and contact
-                you about your projects.
+                You&apos;ve accepted the <TermsLink />, and agreed that Sefaria may email you about your API keys and
+                contact you about your projects.
               </React.Fragment>
             ),
             he: (
@@ -1527,8 +1348,8 @@ const PublishedCopiesWarning = () => (
     text={{
       en: (
         <React.Fragment>
-          If it already appeared on a published page, we can't guarantee it's removed everywhere. If that's a problem,
-          email <ContactLink />.
+          If it already appeared on a published page, we can&apos;t guarantee it&apos;s removed everywhere. If
+          that&apos;s a problem, email <ContactLink />.
         </React.Fragment>
       ),
       he: (
@@ -1679,7 +1500,7 @@ const NoWebsiteDialog = ({ onAddWebsite, onSaveAnyway }) => {
             text={{
               en: (
                 <React.Fragment>
-                  No website yet? That's fine. You can add it later with <strong>Edit project</strong>.
+                  No website yet? That&apos;s fine. You can add it later with <strong>Edit project</strong>.
                 </React.Fragment>
               ),
               he: (
@@ -2061,8 +1882,8 @@ const RestrictionToggle = ({ project, apiKey, onToggle }) => {
               text={{
                 en: (
                   <React.Fragment>
-                    <strong>Turn it on</strong> if the key is in front-end code that runs in visitors' browsers, where
-                    anyone can read it. A copied key then won't work on another website.
+                    <strong>Turn it on</strong> if the key is in front-end code that runs in visitors&apos; browsers,
+                    where anyone can read it. A copied key then won&apos;t work on another website.
                   </React.Fragment>
                 ),
                 he: (
@@ -2953,69 +2774,6 @@ const DeveloperTab = ({
   );
 };
 
-/* The confirmation email as the user would get it, in the interface language, for copy
-   review. Its button is the emailed link, and opens in a new tab as a mail client would. */
-const MockEmailDialog = ({ confirmationKey, onCancel }) => {
-  const confirmRef = useRef(null);
-  const email = accountEmail() || 'you@example.org';
-  useDialogKeys(confirmRef, onCancel);
-  return (
-    <div className="devPocMockSso" role="dialog" aria-modal="true" aria-label="Confirmation email">
-      <div className="devPocMockSsoBackdrop" onClick={onCancel} />
-      <div className="devPocMockSsoDialog devPocMockEmail">
-        <p className="devPocMockSsoBanner" lang="en" dir="ltr">
-          MOCK &mdash; the email the user receives; no email is sent
-        </p>
-        <div className="devPocMockSsoBody">
-          <p className="devPocMockEmailMeta" dir="ltr">
-            Sefaria &lt;hello@sefaria.org&gt; → {email}
-          </p>
-          <h2>
-            <InterfaceText
-              text={{
-                en: 'Confirm your email for Sefaria developer settings',
-                he: 'אישור כתובת הדוא״ל להגדרות המפתחים בספריא',
-              }}
-            />
-          </h2>
-          <p>
-            <InterfaceText
-              text={{
-                en: 'Someone, hopefully you, asked to set up developer settings on the Sefaria account that uses this address. Confirm it to continue. The link works for 3 days.',
-                he: 'מישהו, כנראה את/ה, ביקש להגדיר הגדרות מפתחים בחשבון ספריא שמשתמש בכתובת הזו. אשרו אותה כדי להמשיך. הקישור בתוקף 3 ימים.',
-              }}
-            />
-          </p>
-          <div className="devPocMockSsoActions">
-            <button type="button" className="devPocMockSsoCancel" onClick={onCancel}>
-              Close
-            </button>
-            <a
-              className="devPocMockSsoContinue"
-              href={confirmationLink(confirmationKey)}
-              target="_blank"
-              rel="noopener noreferrer"
-              ref={confirmRef}
-              data-agent-action="mock-confirm-email"
-              onClick={onCancel}
-            >
-              <InterfaceText text={{ en: 'Confirm my email', he: 'אישור כתובת הדוא״ל' }} />
-            </a>
-          </div>
-          <p className="devPocMockEmailFoot">
-            <InterfaceText
-              text={{
-                en: "Didn't ask for this? Ignore this email and nothing changes.",
-                he: 'לא ביקשת? אפשר להתעלם מההודעה, ושום דבר לא ישתנה.',
-              }}
-            />
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 /* ---- Account settings tab ---- */
 
 /* The settings this page last showed or saved. ReaderApp leaves them out of browser history, so
@@ -3519,7 +3277,6 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
   const [editingProfile, setEditingProfile] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const [notice, setNotice] = useState('');
-  const [mockEmailOpen, setMockEmailOpen] = useState(false);
   const [connectedMessage, setConnectedMessage] = useState('');
   const [settingUp, setSettingUp] = useState(false);
   const [arrivalHighlight, setArrivalHighlight] = useState(false);
@@ -3739,7 +3496,6 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
   }, [confirmationSentAt]);
 
   const emailConfirmed = (server) => {
-    setMockEmailOpen(false);
     showDeveloper(() => {
       if (pageMounted.current) {
         setDeveloperState(server);
@@ -3764,20 +3520,6 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
       () => {}
     );
   };
-
-  const mock = (action, fields) =>
-    run(mockAction(action, fields)).then(
-      () => {
-        if (action === 'start-over') {
-          setShowNewProject(false);
-          setEditingProfile(false);
-          setConfirm(null);
-          setNotice('');
-          expandProject(null);
-        }
-      },
-      () => {}
-    );
 
   if (!settings) {
     return null;
@@ -3843,18 +3585,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
           {hasDeveloper ? <AgentInstructions /> : null}
         </div>
       </div>
-      <div className="devPocPage">
-        {confirm ? <ConfirmDialog confirm={confirm} onClose={closeConfirm} /> : null}
-        {mockEmailOpen && developerState.mock && developerState.mock.confirmationKey ? (
-          <MockEmailDialog
-            confirmationKey={developerState.mock.confirmationKey}
-            onCancel={() => setMockEmailOpen(false)}
-          />
-        ) : null}
-        {developerState.mock ? (
-          <TestPanel state={developerState} mock={mock} onOpenMockEmail={() => setMockEmailOpen(true)} />
-        ) : null}
-      </div>
+      <div className="devPocPage">{confirm ? <ConfirmDialog confirm={confirm} onClose={closeConfirm} /> : null}</div>
     </div>
   );
 };
@@ -3959,7 +3690,7 @@ export const EmailLinkPage = ({ link }) => {
       body: {
         en: (
           <React.Fragment>
-            This address can't be confirmed for this account. If you need help, email <ContactLink />.
+            This address can&apos;t be confirmed for this account. If you need help, email <ContactLink />.
           </React.Fragment>
         ),
         he: (

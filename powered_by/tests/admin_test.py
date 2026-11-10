@@ -9,6 +9,7 @@ from datetime import timedelta
 from html.parser import HTMLParser
 
 import pytest
+from django.contrib import admin
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -164,6 +165,117 @@ class ProjectAdminTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(ApiKey.objects.get(pk=self.key.pk).allowed_origins, ["tehillimcircle.org"])
+
+    def test_admin_project_page_masks_keys(self):
+        ApiKey.objects.create(project=self.api_project, label="Masked", key="sfr_abcdef1234567890")
+        change = self.client.get(self.api_change_url()).content.decode()
+        delete_response = self.client.get(admin_url("delete", self.api_project.pk, model="apiproject"))
+        delete = delete_response.content.decode()
+
+        self.assertIn("sfr_abcdef\u2026", change)
+        self.assertNotIn("sfr_abcdef1234567890", change)
+        # Keys are on_delete=PROTECT, so the delete page must render and list the keys by label, never by value.
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertContains(delete_response, "Masked")
+        self.assertNotIn("sfr_abcdef1234567890", delete)
+
+    def test_masked_key_of_an_unsaved_key_is_a_dash(self):
+        from powered_by.admin import ApiKeyInline
+
+        inline = ApiKeyInline(ApiProject, admin.site)
+
+        self.assertEqual(inline.masked_key(ApiKey(project=self.api_project)), "-")
+        self.assertEqual(inline.masked_key(None), "-")
+        self.assertEqual(inline.masked_key(self.key), self.key.key[:10] + "\u2026")
+
+    def test_api_project_changelist_search_by_key_prefix_never_shows_the_key(self):
+        other_profile = Project.objects.create(
+            submission_source=SubmissionSource.DEVELOPER_SETTINGS,
+            project_name="Other project",
+            request_not_to_publish=False,
+            is_published=True,
+        )
+        other = ApiProject.objects.create(profile=other_profile)
+        ApiKey.objects.create(project=other, label="Other")
+
+        response = self.client.get(admin_url("changelist", model="apiproject"), {"q": self.key.key[:10]})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([p.pk for p in response.context["cl"].result_list], [self.api_project.pk])
+        self.assertNotIn(self.key.key, response.content.decode())
+
+    def test_api_project_search_with_a_full_key_never_echoes_the_hidden_part(self):
+        # Staff paste a whole key from a support request. The changelist would render the query back into the search
+        # box and its links, so the request is redirected to the shown prefix before anything renders.
+        url = admin_url("changelist", model="apiproject")
+        hidden = self.key.key[10:]
+
+        response = self.client.get(url, {"q": self.key.key, "o": "1"})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn(hidden, response["Location"])
+        self.assertIn("q=" + self.key.key[:10], response["Location"])
+        self.assertIn("o=1", response["Location"])
+
+        followed = self.client.get(url, {"q": self.key.key}, follow=True)
+
+        self.assertEqual(followed.status_code, 200)
+        self.assertEqual([p.pk for p in followed.context["cl"].result_list], [self.api_project.pk])
+        self.assertNotIn(hidden, followed.content.decode())
+
+    def test_api_project_search_with_a_repeated_query_never_echoes_the_hidden_part(self):
+        # Django searches the last q but keeps every q in the changelist's links, so a full key placed before a short
+        # one must not slip past the redirect.
+        url = admin_url("changelist", model="apiproject")
+        hidden = self.key.key[10:]
+        query = f"q={self.key.key}&q={self.key.key[:10]}"
+
+        response = self.client.get(f"{url}?{query}")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn(hidden, response["Location"])
+        self.assertEqual(response["Location"].count("q="), 1)
+
+        followed = self.client.get(f"{url}?{query}", follow=True)
+
+        self.assertEqual(followed.status_code, 200)
+        self.assertNotIn(hidden, followed.content.decode())
+
+    def test_api_project_search_cannot_probe_past_the_shown_prefix(self):
+        # Two keys share the 10 characters the admin shows and differ after them. A query that reaches into the hidden
+        # part must not tell them apart, or staff could recover a key one character at a time.
+        a_profile = Project.objects.create(
+            submission_source=SubmissionSource.DEVELOPER_SETTINGS, project_name="Probe A", request_not_to_publish=False
+        )
+        b_profile = Project.objects.create(
+            submission_source=SubmissionSource.DEVELOPER_SETTINGS, project_name="Probe B", request_not_to_publish=False
+        )
+        a = ApiProject.objects.create(profile=a_profile)
+        b = ApiProject.objects.create(profile=b_profile)
+        ApiKey.objects.create(project=a, label="A", key="sfr_qz7wx1AAAAAAAAAAAA")
+        ApiKey.objects.create(project=b, label="B", key="sfr_qz7wx1BBBBBBBBBBBB")
+        url = admin_url("changelist", model="apiproject")
+
+        def found(query):
+            return sorted(p.pk for p in self.client.get(url, {"q": query}, follow=True).context["cl"].result_list)
+
+        both = sorted([a.pk, b.pk])
+        self.assertEqual(found("sfr_qz7wx1"), both)
+        self.assertEqual(found("sfr_qz7wx1A"), both)
+        self.assertEqual(found("sfr_qz7wx1B"), both)
+        self.assertEqual(found("sfr_qz7wx1ZZZZ"), both)
+
+    def test_api_project_history_page_never_shows_the_key(self):
+        # Rename the key through the admin form, so the history page has a real entry naming the key.
+        data = self.api_change_form()
+        data["api_keys-0-label"] = "Renamed"
+        self.assertEqual(self.api_save(data).status_code, 302)
+
+        response = self.client.get(admin_url("history", self.api_project.pk, model="apiproject"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Renamed")
+        self.assertNotIn(self.key.key, response.content.decode())
 
     def test_N_M11_deleting_a_project_with_keys_is_refused_with_a_page(self):
         url = admin_url("delete", self.listing.pk)

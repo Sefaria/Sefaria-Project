@@ -57,30 +57,14 @@ Functions that call AC directly have "ac" after the verb (fetch_ac_lists,
 find_ac_contact_id_by_email). The public names here never do.
 """
 
+from api.newsletter_service._ac_client import is_newsletter_service_configured
+from api.newsletter_service._catalog import get_newsletters
 from api.newsletter_service._errors import (
     InvalidEmailError,
     NewsletterListUnavailableError,
     NewsletterServiceError,
     NewsletterServiceNotConfiguredError,
     NewsletterUpdateIncompleteError,
-)
-from api.newsletter_service._results import (
-    AddSubscriptionsResult,
-    NewsletterInfo,
-    ReplacePreferencesResult,
-    SetLearningLevelResult,
-    UserSubscriptions,
-)
-from api.newsletter_service._validation import (
-    is_valid_learning_level,
-    normalize_and_validate_email,
-)
-from api.newsletter_service._ac_client import is_newsletter_service_configured
-from api.newsletter_service._catalog import get_newsletters
-from api.newsletter_service._subscriptions import (
-    add_newsletter_subscriptions,
-    fetch_user_subscriptions,
-    replace_user_preferences,
 )
 from api.newsletter_service._learning_level import (
     LEARNING_LEVEL_TOKEN_MAX_AGE,
@@ -90,6 +74,22 @@ from api.newsletter_service._learning_level import (
     set_learning_level,
     sign_learning_level_token,
     verify_learning_level_token,
+)
+from api.newsletter_service._results import (
+    AddSubscriptionsResult,
+    NewsletterInfo,
+    ReplacePreferencesResult,
+    SetLearningLevelResult,
+    UserSubscriptions,
+)
+from api.newsletter_service._subscriptions import (
+    add_newsletter_subscriptions,
+    fetch_user_subscriptions,
+    replace_user_preferences,
+)
+from api.newsletter_service._validation import (
+    is_valid_learning_level,
+    normalize_and_validate_email,
 )
 
 __all__ = [

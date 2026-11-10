@@ -1,14 +1,16 @@
 """
 Tests for serve_static and the settings page.
 """
+
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.test import RequestFactory, TestCase, override_settings
-from django.conf import settings
-from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
-from reader.conftest import create_test_user, page_props, purge_test_profiles
+
 import reader.views as reader_views
+from reader.conftest import create_test_user, page_props, purge_test_profiles
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 
 
 @pytest.fixture
@@ -114,8 +116,12 @@ class SettingsPageStaffOnlyTest(SettingsPageTestCase):
         for url in ("/settings/developer", "/settings/developer/projects/abc123"):
             self.assertEqual(self.client.get(url).status_code, 404, url)
 
-    def test_the_developer_tab_is_not_found_logged_out(self):
-        self.assertEqual(self.client.get("/settings/developer").status_code, 404)
+    def test_a_logged_out_visitor_is_sent_to_log_in_from_the_developer_tab(self):
+        # A logged-out visitor may be staff, so the page asks them to log in instead of a 404.
+        response = self.client.get("/settings/developer")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/login?next=/settings/developer")
 
     def test_staff_get_the_developer_tab(self):
         self.user.is_staff = True
@@ -146,6 +152,5 @@ class SettingsPageWithoutDeveloperSettingsTest(SettingsPageTestCase):
             self.assertEqual(self.client.get(url).status_code, 404, url)
 
     def test_developer_tab_is_not_found_before_any_login_redirect(self):
-        self.client.logout()
         for url in ("/settings/developer", "/settings/developer/projects/abc123"):
             self.assertEqual(self.client.get(url).status_code, 404, url)

@@ -25,27 +25,29 @@ const SignupOptions = ({ source, next, onEmailClick, featureName }) => {
   const onGoogleClick = () => {
     googleCircleElRef.current?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
   };
-  const {
-    googleReady, appleReady, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
-  } = useProviderTriggers({ next, tracking, onGoogleClick });
+  const { googleReady, appleReady, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple } =
+    useProviderTriggers({ next, tracking, onGoogleClick });
   const [error] = useProviderError(setActiveErrorHandler);
 
   // Google's button is created at the size of the circle it covers, so the circle is handed over
   // only once it's in view: before that the options may be on the page without being laid out
   // (the assistant shows its slot only in the login prompt).
   const observerRef = useRef(null);
-  const googleCircleRef = useCallback((el) => {
-    googleCircleElRef.current = el;
-    observerRef.current?.disconnect();
-    observerRef.current = null;
-    if (!el) return;
-    observerRef.current = new IntersectionObserver((entries) => {
-      if (!entries.some((entry) => entry.isIntersecting)) return;
-      observerRef.current.disconnect();
-      registerGoogleTarget(el);
-    });
-    observerRef.current.observe(el);
-  }, [registerGoogleTarget]);
+  const googleCircleRef = useCallback(
+    (el) => {
+      googleCircleElRef.current = el;
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+      if (!el) return;
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observerRef.current.disconnect();
+        registerGoogleTarget(el);
+      });
+      observerRef.current.observe(el);
+    },
+    [registerGoogleTarget]
+  );
 
   return (
     <div className="sefaria-signup-options">
@@ -53,14 +55,20 @@ const SignupOptions = ({ source, next, onEmailClick, featureName }) => {
       <div className="sefaria-signup-options-buttons">
         {googleClientId && (
           <ProviderButton
-            variant="icon" provider="google" featureName={featureName}
-            disabled={!googleReady} trackingRef={googleCircleRef}
+            variant="icon"
+            provider="google"
+            featureName={featureName}
+            disabled={!googleReady}
+            trackingRef={googleCircleRef}
           />
         )}
         {appleClientId && (
           <ProviderButton
-            variant="icon" provider="apple" featureName={featureName}
-            disabled={!appleReady} onClick={triggerApple}
+            variant="icon"
+            provider="apple"
+            featureName={featureName}
+            disabled={!appleReady}
+            onClick={triggerApple}
           />
         )}
         <ProviderButton variant="icon" provider="email" featureName={featureName} onClick={onEmailClick} />

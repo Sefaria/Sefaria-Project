@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# N-CR8: the auth service starts against a reachable database whose key table is empty (wrong DSN or database, a
+# fresh restore), and, separately, its first load fails. Desired: no valid key is ever denied because of it; either
+# the pod stays not ready, or Check answers UNAVAILABLE so Envoy fails open.
+set -uo pipefail
+source "$(dirname "$0")/lib.sh"
+
+drill_up
+new_key ncr8
+wait_for 5 'test "$(gw $GW_HC $GATED ncr8)" = 200' >/dev/null
+check N-CR8 "key valid against the real registry" "$(gw $GW_HC $GATED ncr8)" 200
+
+if [ "$(psql_su -c "SELECT count(*) FROM pg_database WHERE datname = 'sefaria_auth_empty'")" = 0 ]; then
+  psql_su -c "CREATE DATABASE sefaria_auth_empty" >/dev/null
+  dcompose exec -T pg sh -c 'pg_dump -U postgres -s sefaria_auth | psql -q -U postgres -d sefaria_auth_empty' >/dev/null
+  sed 's/DATABASE sefaria_auth /DATABASE sefaria_auth_empty /' "$STACK_DIR/provision.sql" \
+    | dcompose exec -T pg psql -q -U postgres -d sefaria_auth_empty -v ON_ERROR_STOP=1 >/dev/null
+fi
+check N-CR8 "the empty database has no keys" "$(PGDB=sefaria_auth_empty psql_su -c 'SELECT count(*) FROM powered_by_apikey')" 0
+
+# 1. Reachable but empty. Either outcome is acceptable as long as no valid key is denied: the pod reports ready with
+# 0 keys and the key fails open, or the pod stays not ready (an empty first load is not trusted) and Envoy fails open.
+WAIT_READY=0 authsvc_recreate "PG_DSN=postgres://auth_service_reader:reader@pg:5432/sefaria_auth_empty?sslmode=disable"
+wait_for 10 'test "$(readyz)" = 200 || test "$(readyz)" = 503' >/dev/null \
+  || { fail "N-CR8 empty start: the auth service never answered /readyz (got $(readyz)); the empty start was not exercised"; drill_reset; finish; }
+sleep 2
+ready="$(readyz)"
+if [ "$ready" != 200 ] && [ "$ready" != 503 ]; then
+  fail "N-CR8 empty start: /readyz $ready (want 200 or 503: the service is not up)"
+elif [ "$ready" = 200 ]; then
+  check N-CR8 "empty start: ready, registry len" "$(registry_field len)" 0
+else
+  # Not ready must come from an empty load, not from a load that failed (a bad password or a missing grant also
+  # gives 503 and a fail-open pass): the fresh process must have loaded without error and rejected the empty set.
+  errs="$(metric 'authsvc_reload_total{result="error"}')"
+  empties="$(metric 'authsvc_reload_total{result="rejected_empty"}')"
+  if [ "$errs" = 0 ] && [ "$empties" -ge 1 ]; then
+    pass "N-CR8 empty start: the first load succeeded with 0 keys and the pod stays not ready (/readyz $ready, rejected_empty=$empties)"
+  else
+    fail "N-CR8 empty start: /readyz $ready but the loads were not an empty success (reload errors=$errs, rejected_empty=$empties)"
+    ready=error
+  fi
+  wait_for 15 '! authsvc_endpoint_healthy' >/dev/null
+fi
+s="$(gw $GW_HC $GATED ncr8)"; c="$(gw_code $GW_HC $GATED ncr8)"
+if [ "$ready" != 200 ] && [ "$ready" != 503 ]; then
+  :
+elif [ "$s" = 200 ]; then
+  pass "N-CR8 empty start: a valid key fails open (/readyz $ready)"
+else
+  gap N-CR8 "empty start: /readyz $ready with 0 keys and a valid key gets $s $c through Envoy"
+fi
+
+# 2. The first load fails: the pod stays not ready. Through the health-checked listener Envoy fails open; through
+# the listener without a health check (Envoy still sending to a not-ready endpoint) Check decides on an empty set.
+WAIT_READY=0 authsvc_recreate "PG_DSN=postgres://auth_service_reader:reader@pg:5432/no_such_db?sslmode=disable"
+sleep 2
+wait_for 15 '! authsvc_endpoint_healthy' >/dev/null
+check N-CR8 "failed first load: /readyz" "$(readyz)" 503
+check N-CR8 "failed first load: a valid key fails open through the health-checked route" "$(gw $GW_HC $GATED ncr8)" 200
+s="$(gw $GW_NOHC $GATED ncr8)"; c="$(gw_code $GW_NOHC $GATED ncr8)"
+if [ "$s" = 200 ]; then
+  pass "N-CR8 failed first load: Check fails open even when Envoy sends to the not-ready pod"
+else
+  gap N-CR8 "failed first load: Check ignores readiness; a valid key sent to the not-ready pod gets $s $c (want UNAVAILABLE, so Envoy fails open)"
+fi
+
+drill_reset
+finish

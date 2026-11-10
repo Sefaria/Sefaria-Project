@@ -3,13 +3,13 @@ Migration 0009 removes what the abandoned per-project limits design left on a sh
 fixture below recreates that leftover state on top of the real schema, runs the migration's function twice, and
 checks the leftovers are gone, the project trigger watches tier OR deleted_at again, and a second run changes nothing.
 """
+
 import importlib
 from unittest import skipUnless
 
 from django.db import connection
 
 from powered_by.tests.migration_api_project_backfill_test import MigrationTestCase
-
 
 CLEANUP = importlib.import_module("powered_by.migrations.0009_cleanup_abandoned_project_limits")
 ABANDONED = ("0006_project_limits_schema", "0007_project_limits_backfill", "0008_project_limits_check_triggers")
@@ -31,7 +31,6 @@ CREATE TRIGGER apikeys_notify_limits_update AFTER UPDATE ON powered_by_projectli
 
 @skipUnless(connection.vendor == "postgresql", "migration 0009 SQL needs PostgreSQL")
 class CleanupAbandonedLimitsMigrationTest(MigrationTestCase):
-
     def execute(self, sql, params=None):
         with connection.cursor() as cursor:
             cursor.execute(sql, params)
@@ -51,12 +50,15 @@ class CleanupAbandonedLimitsMigrationTest(MigrationTestCase):
             self.execute("INSERT INTO django_migrations (app, name, applied) VALUES ('powered_by', %s, now())", [name])
 
     def abandoned_migration_rows(self):
-        return self.query("SELECT name FROM django_migrations WHERE app = 'powered_by' AND name = ANY(%s)", [list(ABANDONED)])
+        return self.query(
+            "SELECT name FROM django_migrations WHERE app = 'powered_by' AND name = ANY(%s)", [list(ABANDONED)]
+        )
 
     def project_trigger_when(self):
         (definition,) = self.query(
             "SELECT pg_get_triggerdef(oid) FROM pg_trigger "
-            "WHERE tgname = 'apikeys_notify_projects_update' AND tgrelid = 'powered_by_project'::regclass")[0]
+            "WHERE tgname = 'apikeys_notify_projects_update' AND tgrelid = 'powered_by_project'::regclass"
+        )[0]
         return definition.lower()
 
     def limits_table_exists(self):
@@ -73,8 +75,9 @@ class CleanupAbandonedLimitsMigrationTest(MigrationTestCase):
 
         self.assertFalse(self.limits_table_exists())
         self.assertEqual(self.abandoned_migration_rows(), [])
-        self.assertEqual(self.query(
-            "SELECT count(*) FROM pg_trigger WHERE tgname LIKE 'apikeys_notify_limits_%'"), [(0,)])
+        self.assertEqual(
+            self.query("SELECT count(*) FROM pg_trigger WHERE tgname LIKE 'apikeys_notify_limits_%'"), [(0,)]
+        )
         when = self.project_trigger_when()
         self.assertIn("old.tier", when)
         self.assertIn("old.deleted_at", when)

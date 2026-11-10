@@ -1,19 +1,18 @@
 """
 Security and abuse edges of developer settings: other ways to authenticate (N-CR1), developer
 state written through the generic profile APIs (N-CR2), a per-account project cap (N-CR7),
-deleted projects in the public gallery (N-CR14), the test controls outside cauldrons (N-CR18),
-key values in Sentry events (N-CR6) and framing by another site (N-CR5).
+deleted projects in the public gallery (N-CR14), key values in Sentry events (N-CR6) and framing
+by another site (N-CR5).
 
 Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry
 the `failing` marker, so the default CI run (-m "not failing") leaves them out.
 """
+
 import json
 import time
 from unittest.mock import MagicMock, patch
 
-import pytest
 import sentry_sdk
-from allauth.account.models import EmailAddress
 from django.contrib.auth.models import Group
 from django.test import Client, override_settings
 from sentry_sdk.transport import Transport
@@ -42,8 +41,12 @@ class SessionIdHeaderTest(DeveloperApiTestCase):
         self.token = build_chatbot_user_token(self.user.id, CHATBOT_SECRET)
 
     def header_client(self):
-        client = Client(enforce_csrf_checks=True, HTTP_X_SESSION_ID=self.token,
-                        HTTP_X_CSRFTOKEN=CSRF_TOKEN, HTTP_REFERER="https://www.example.org/")
+        client = Client(
+            enforce_csrf_checks=True,
+            HTTP_X_SESSION_ID=self.token,
+            HTTP_X_CSRFTOKEN=CSRF_TOKEN,
+            HTTP_REFERER="https://www.example.org/",
+        )
         client.cookies["csrftoken"] = CSRF_TOKEN
         return client
 
@@ -56,8 +59,11 @@ class SessionIdHeaderTest(DeveloperApiTestCase):
     def test_N_CR1_keys_cannot_be_created_or_revoked_with_the_session_id_header(self):
         client = self.header_client()
 
-        created = client.post("/api/developer/projects/{}/keys".format(self.project["id"]),
-                              json.dumps({"label": "Through the header"}), content_type="application/json")
+        created = client.post(
+            "/api/developer/projects/{}/keys".format(self.project["id"]),
+            json.dumps({"label": "Through the header"}),
+            content_type="application/json",
+        )
         revoked = client.delete("/api/developer/keys/" + self.key_id)
 
         self.assertEqual(created.status_code, 401)
@@ -114,8 +120,12 @@ class ProfileApiDeveloperStateTest(DeveloperApiTestCase):
         self.assertEqual(self.developer_settings(), self.before)
 
     def test_N_CR2_every_developer_setting_is_dropped(self):
-        forged = {**self.FORGED, developer.CONFIRMATION_SENT_SETTING: "x", developer.CONFIRMATION_SENT_TO_SETTING: "x",
-                  "reading_history": False}
+        forged = {
+            **self.FORGED,
+            developer.CONFIRMATION_SENT_SETTING: "x",
+            developer.CONFIRMATION_SENT_TO_SETTING: "x",
+            "reading_history": False,
+        }
 
         self.client.post("/api/profile", {"json": json.dumps({"settings": forged})})
 
@@ -133,7 +143,7 @@ class ProjectCapTest(DeveloperApiTestCase):
         self.set_up_developer()
 
     def create(self, n):
-        return self.call("post", "projects", {"project": {"name": "Project {}".format(n), "visibility": "private"}})
+        return self.call("post", "projects", {"project": {"name": f"Project {n}", "visibility": "private"}})
 
     def fill(self):
         for n in range(developer.MAX_PROJECTS_PER_ACCOUNT):
@@ -145,21 +155,26 @@ class ProjectCapTest(DeveloperApiTestCase):
         status, body = self.create("over")
 
         self.assertEqual(status, 400)
-        self.assertIn("at most {} projects".format(developer.MAX_PROJECTS_PER_ACCOUNT), body["error"])
+        self.assertIn(f"at most {developer.MAX_PROJECTS_PER_ACCOUNT} projects", body["error"])
         self.assertEqual(ApiProject.objects.filter(owner=self.user).count(), developer.MAX_PROJECTS_PER_ACCOUNT)
 
     def test_N_CR7_a_deleted_project_frees_a_slot(self):
         self.fill()
-        self.call("delete", "projects/{}".format(ApiProject.objects.filter(owner=self.user).first().id))
+        self.call("delete", f"projects/{ApiProject.objects.filter(owner=self.user).first().id}")
 
         self.assertEqual(self.create("again")[0], 200)
 
     def test_N_CR7_claiming_a_listing_counts_toward_the_cap(self):
         self.fill()
-        listing = Project.objects.create(submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
-                                         project_name="Submitted", request_not_to_publish=False, is_published=True)
+        listing = Project.objects.create(
+            submission_source=SubmissionSource.FORMSTACK,
+            creator_email=self.user.email,
+            project_name="Submitted",
+            request_not_to_publish=False,
+            is_published=True,
+        )
 
-        status, body = self.call("post", "listings/{}/claim".format(listing.id))
+        status, body = self.call("post", f"listings/{listing.id}/claim")
 
         self.assertEqual(status, 400)
         self.assertFalse(ApiProject.objects.filter(profile_id=listing.id).exists())
@@ -190,19 +205,6 @@ class DeletedProjectGalleryTest(DeveloperApiTestCase):
         self.assertNotIn(profile_id, [p["id"] for p in json.loads(response.content)["projects"]])
 
 
-@override_settings(DEVELOPER_SETTINGS_MOCKS=True, ALLOWED_HOSTS=["*"])
-class MocksOutsideCauldronsTest(DeveloperApiTestCase):
-    """N-CR18: the test controls refuse on a production host even if the mocks flag is on."""
-
-    @pytest.mark.failing
-    def test_N_CR18_the_test_controls_refuse_on_a_production_host_known_gap_N_CR18(self):
-        response = self.client.post("/api/developer/mock", json.dumps({"action": "email-verified", "emailVerified": True}),
-                                    content_type="application/json", HTTP_HOST="www.sefaria.org")
-
-        self.assertEqual(response.status_code, 404)
-        self.assertFalse(EmailAddress.objects.filter(user=self.user, verified=True).exists())
-
-
 class FrameProtectionTest(DeveloperApiTestCase):
     """N-CR5: settings and login pages refuse to be framed by another site."""
 
@@ -220,7 +222,9 @@ class FrameProtectionTest(DeveloperApiTestCase):
 
     def test_N_CR5_the_confirmation_link_pages_cannot_be_framed(self):
         self.verify_email()
-        self.assert_not_frameable(Client().get("/settings/developer/confirm-email/" + developer.confirmation_for(self.user).key))
+        self.assert_not_frameable(
+            Client().get("/settings/developer/confirm-email/" + developer.confirmation_for(self.user).key)
+        )
         self.assert_not_frameable(Client().get("/settings/developer/email-confirmed"))
 
 
@@ -249,9 +253,12 @@ class SentryKeyValueTest(DeveloperApiTestCase):
 
         remote_config = MagicMock()
         remote_config.get.return_value = {}
-        with patch("sefaria.settings_utils.remoteConfigCache", remote_config), \
-                patch("sefaria.settings_utils.sentry_sdk.init", side_effect=init_with_capture):
+        with (
+            patch("sefaria.settings_utils.remoteConfigCache", remote_config),
+            patch("sefaria.settings_utils.sentry_sdk.init", side_effect=init_with_capture),
+        ):
             from sefaria.settings_utils import init_sentry
+
             init_sentry("https://public@sentry.example.invalid/1", "test", "test")
 
     def tearDown(self):
@@ -264,9 +271,11 @@ class SentryKeyValueTest(DeveloperApiTestCase):
         def failing_json_response(data, callback=None, status=200):
             raise RuntimeError("could not serialise the developer state")
 
-        with patch("powered_by.developer_views.jsonResponse", side_effect=failing_json_response):
-            with self.assertRaises(RuntimeError):
-                self.client.get("/api/developer/state")
+        with (
+            patch("powered_by.developer_views.jsonResponse", side_effect=failing_json_response),
+            self.assertRaises(RuntimeError),
+        ):
+            self.client.get("/api/developer/state")
         sentry_sdk.flush()
 
         events = "\n".join(self.transport.payloads)
@@ -276,8 +285,7 @@ class SentryKeyValueTest(DeveloperApiTestCase):
 
 def test_N_CR6_scrub_api_keys_replaces_key_values_at_any_depth():
     key = "sfr_" + "Ab1" * 10 + "Cd"
-    event = {"message": "bad key " + key, "frames": [{"vars": {"value": "'{}'".format(key), "n": 3}}],
-             "extra": ("x", key)}
+    event = {"message": "bad key " + key, "frames": [{"vars": {"value": f"'{key}'", "n": 3}}], "extra": ("x", key)}
 
     scrubbed = scrub_api_keys(event)
 

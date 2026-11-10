@@ -209,6 +209,10 @@ authService:
     failOpen: true
     timeout: 200ms  # Envoy Gateway's default is 10s
   reloadInterval: 60s       # full reload from Postgres; also the revocation SLA when LISTEN/NOTIFY is down
+  # After SIGTERM the auth service reports not ready but keeps answering this many seconds, so Envoy stops routing
+  # checks to the pod before it closes; without it, checks in flight during a rollout fail open (N-F1). The pod's
+  # terminationGracePeriodSeconds is this plus 35 (the gRPC and HTTP shutdown timeouts and a margin).
+  shutdownDrainSeconds: 10
   push:
     # Key changes reach every auth service in the cluster through Postgres LISTEN/NOTIFY on the key registry:
     # triggers from the Django powered_by migrations NOTIFY on this channel whatever the writer. The name is fixed there.
@@ -248,6 +252,13 @@ authService:
   nginxLogFields: true
   monitoring:
     enabled: true
+    # PrometheusRule AuthServiceRegistryStale: fires when a pod has not accepted a registry load for over 10 reload
+    # intervals, so revoked keys cannot keep working unnoticed. Off by default until the alert is wired to a receiver.
+    # The threshold is computed from authService.reloadInterval, which may be any positive Go duration (60s, 1m30s, 1.5m, 500ms).
+    # Alerts need monitoring.enabled (the alert reads the series the ServiceMonitor scrapes); the chart fails to render otherwise.
+    # The rule only selects this release's series: its namespace and job="auth-service-<deployEnv>" (the Service name).
+    alerts:
+      enabled: false
 
 nodejs:
   containerImage:
@@ -659,8 +670,6 @@ localSettings:
   SERVER_EMAIL: "dev@sefaria.org"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
-  # Developer settings test controls; for branch cauldrons only.
-  DEVELOPER_SETTINGS_MOCKS: "False"
   # The developer tab in settings and its routes; off means they return 404.
   DEVELOPER_SETTINGS_ENABLED: "False"
   # With DEVELOPER_SETTINGS_ENABLED on, limits the developer tab and its routes to staff.
