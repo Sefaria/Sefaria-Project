@@ -75,7 +75,8 @@ def resolve_default_prod_tag():
 def search_deploy_ready_stories(token):
     """Enumerate all non-archived Deploy Ready stories via the token'd search endpoint, paginated via its `next` cursor. Deliberately not `iterations-get-active`, which is scoped to the calling token's own teams."""
     stories = []
-    next_path = f"/api/v3/search/stories?query={urllib.parse.quote(DEPLOY_READY_SEARCH_QUERY)}"
+    # detail=full is the default, but stated so the checklist (`tasks`) the post-deploy hold reads is always returned.
+    next_path = f"/api/v3/search/stories?query={urllib.parse.quote(DEPLOY_READY_SEARCH_QUERY)}&detail=full"
     while next_path:
         url = next_path if next_path.startswith("http") else SHORTCUT_API_ROOT + next_path
         req = urllib.request.Request(url, headers={"Shortcut-Token": token, "Accept": "application/json"})

@@ -15,10 +15,19 @@ import re
 POST_DEPLOY_PATTERN = re.compile(r"^\s*post[- ]?deploy\s*:", re.IGNORECASE)
 
 
+UNREADABLE_CHECKLIST = "Checklist couldn't be read; check it for post-deploy steps"
+
+
 def open_items(story):
-    """Texts of a raw Shortcut story's unticked "Post-deploy:" checklist items."""
+    """Unticked "Post-deploy:" checklist items of a raw Shortcut story, without the prefix.
+
+    A story whose checklist exists (`task_ids`) but wasn't returned (`tasks`) is treated as
+    held, since we can't tell whether its items are ticked.
+    """
+    if "tasks" not in story and story.get("task_ids"):
+        return [UNREADABLE_CHECKLIST]
     return [
-        t["description"].strip()
+        POST_DEPLOY_PATTERN.sub("", t["description"], count=1).strip()
         for t in story.get("tasks") or []
         if not t.get("complete") and POST_DEPLOY_PATTERN.match(t.get("description") or "")
     ]

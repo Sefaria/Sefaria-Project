@@ -9,7 +9,8 @@ import post_deploy
 import reconcile_deploy_ready as rdr
 
 DEPLOY_READY = 500000045
-ITEM = "Post-deploy: drop webpages index expandedRefs_1 after confirming the sidebar works (#3945)"
+ITEM_TEXT = "drop webpages index expandedRefs_1 after confirming the sidebar works (#3945)"
+ITEM = f"Post-deploy: {ITEM_TEXT}"
 
 
 def test_open_items_keeps_only_unticked_post_deploy_items():
@@ -22,8 +23,13 @@ def test_open_items_keeps_only_unticked_post_deploy_items():
             {"description": "Mention post-deploy: mid-sentence", "complete": False},
         ]
     }
-    assert post_deploy.open_items(story) == [ITEM, "post deploy: lowercase, no dash"]
+    assert post_deploy.open_items(story) == [ITEM_TEXT, "lowercase, no dash"]
     assert post_deploy.open_items({}) == []
+
+
+def test_open_items_holds_story_whose_checklist_was_not_returned():
+    assert post_deploy.open_items({"task_ids": [1]}) == [post_deploy.UNREADABLE_CHECKLIST]
+    assert post_deploy.open_items({"task_ids": []}) == []
 
 
 def test_slack_section_lists_items_verbatim_with_story_link():
@@ -32,6 +38,25 @@ def test_slack_section_lists_items_verbatim_with_story_link():
         f":pushpin: *Post-deploy actions*\n• {ITEM} (<https://x/11111|sc-11111: A &amp; B>)"
     )
     assert post_deploy.slack_section({"stories": [{"id": 1, "post_deploy_items": []}]}) == ""
+
+
+def test_main_appends_section_only_when_there_are_items(monkeypatch, tmp_path):
+    notes = tmp_path / "notes.txt"
+    data = tmp_path / "shipped-stories.json"
+
+    def run(stories):
+        notes.write_text("Release notes", encoding="utf-8")
+        data.write_text(json.dumps({"stories": stories}), encoding="utf-8")
+        monkeypatch.setattr("sys.argv", ["post_deploy.py", "--input", str(data), "--append-to", str(notes)])
+        post_deploy.main()
+        return notes.read_text(encoding="utf-8")
+
+    story = {"id": 11111, "name": "A", "url": "https://x/11111", "post_deploy_items": [ITEM_TEXT]}
+    assert (
+        run([story])
+        == f"Release notes\n\n:pushpin: *Post-deploy actions*\n• {ITEM_TEXT} (<https://x/11111|sc-11111: A>)\n"
+    )
+    assert run([dict(story, post_deploy_items=[])]) == "Release notes"
 
 
 def test_mark_holds_story_with_open_items(monkeypatch, tmp_path, capsys):

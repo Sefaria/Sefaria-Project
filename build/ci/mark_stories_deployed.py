@@ -217,7 +217,8 @@ def main():
         if transitioned or held:
             warn(
                 f"{len(skipped_detail)} shipped stor{'y was' if len(skipped_detail) == 1 else 'ies were'} "
-                f"skipped (not already Done) alongside {len(transitioned)} that DID transition: "
+                f"skipped (not already Done) alongside {len(transitioned)} that DID transition "
+                f"and {len(held)} held for post-deploy steps: "
                 f"{skipped_ids_and_context}. Verify these are intentionally on a different "
                 "workflow/state before assuming they're covered."
             )
