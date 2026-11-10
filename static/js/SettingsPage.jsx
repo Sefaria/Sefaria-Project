@@ -2323,77 +2323,13 @@ const EKeyName = ({ name }) => {
 };
 
 /* The home: a page header, then each project as a section with its keys in a plain table. */
-/* Usage against the project's monthly limit (D56, 2026-10-26): a bar that goes green, then yellow from 70%, then red
-   from 90%. The words carry the same state, so color is never the only signal. The window is 30 days, not a calendar
-   month, so the copy names the reset date and never says "this month". DESIGN PREVIEW: the API doesn't return usage
-   yet (Yotam: rate-limit Redis, real time), so projects without project.usage get sample numbers by row. */
-const E_USAGE_SAMPLES = [0.36, 0.78, 0.96, 1];
-const eUsageOf = (project, index) => {
-  if (project.usage) {
-    return project.usage;
-  }
-  const limit = 5000;
-  /* A project with no keys can't have made any calls, so its sample usage is empty. */
-  if (!project.keys || !project.keys.length) {
-    return { used: 0, limit, resetsAt: new Date(Date.now() + 30 * 86400000).toISOString() };
-  }
-  const reset = new Date(Date.now() + (5 + index * 9) * 86400000);
-  return {
-    used: Math.round(limit * E_USAGE_SAMPLES[index % E_USAGE_SAMPLES.length]),
-    limit,
-    resetsAt: reset.toISOString(),
-  };
-};
-/* Option D (2026-11-05): usage is one quiet line in the project's details, a tiny bar and "36% of monthly limit ·
-   Resets Nov 10". It only gets loud near the limit, as a red chip beside the project name (EUsageChip). Never says
-   "calls". The bar is gray, then feedback-warning from 70%, then feedback-error from 90%; words carry the state too. */
-const eUsageLevel = (usage) => {
-  const pct = usage.limit ? Math.min(100, Math.round((usage.used / usage.limit) * 100)) : 0;
-  const he = Sefaria.interfaceLang === 'hebrew';
-  const date = new Date(usage.resetsAt).toLocaleDateString(he ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric' });
-  return { pct, date, level: pct >= 90 ? 'high' : pct >= 70 ? 'mid' : 'low' };
-};
-const EUsage = ({ usage, projectName }) => {
-  const { pct, date, level } = eUsageLevel(usage);
-  return (
-    <div className={'devE-usageLine is-' + level}>
-      <span
-        className="devE-usageMini"
-        role="meter"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={pct}
-        aria-label={vE('Monthly limit used for ' + projectName, 'השימוש במגבלה החודשית של ' + projectName)}
-        aria-valuetext={vE(pct + '% used, resets ' + date, pct + '% בשימוש, מתאפס ב־' + date)}
-      >
-        <span style={{ width: pct + '%' }} />
-      </span>
-      <span aria-hidden="true">
-        <InterfaceText text={{ en: pct + '% of monthly limit', he: pct + '% מהמגבלה החודשית' }} />
-      </span>
-      <span className="devE-usageDot" aria-hidden="true">
-        ·
-      </span>
-      <span className="devE-usageReset" aria-hidden="true">
-        <InterfaceText text={{ en: 'Resets ' + date, he: 'מתאפס ב־' + date }} />
-      </span>
-    </div>
-  );
-};
-/* Shown once the project has a key, or has used part of its limit this window even with no keys now: deleting
-   every key doesn't reset usage (2026-11-08). */
-const eShowUsage = (project, usage) => !!(project.keys && project.keys.length) || usage.used > 0;
-const EUsageChip = ({ usage }) => {
-  const { pct } = eUsageLevel(usage);
-  if (pct < 90) {
-    return null;
-  }
-  return (
-    <span className="devE-usageChip">
-      {pct >= 100 ? tE('Limit reached', 'הגעתם למגבלה') : tE('Almost at the limit', 'קרוב למגבלה')}
-    </span>
-  );
-};
+/* Usage is out of Phase 1 (Daniel, 2026-11-09): no usage bar or chip on the project. The earlier design (a quiet
+   bar and "36% of monthly limit · Resets Nov 10", a red chip near the limit) is saved on the local branch
+   archive/usage-bar-2026-11-09. eUsagePct reads real usage if the API ever sends project.usage; it never invents it. */
+const eUsagePct = (project) =>
+  project.usage && project.usage.limit
+    ? Math.min(100, Math.round((project.usage.used / project.usage.limit) * 100))
+    : 0;
 
 /* The key table's column heads, repeated over each project's keys. Fixed widths keep the columns lined up
    from one project to the next. */
@@ -3327,7 +3263,6 @@ const EHome = ({
       {!canCreate ? <EReconfirmBanner sentAt={state.confirmationSentAt} run={run} /> : null}
       <EPublishNudge
         projects={state.projects}
-        usageOf={eUsageOf}
         onPublish={(project) => open({ screen: 'share', projectId: project.id })}
       />
       {/* The profile as a card (option B, Penina 2026-11-05): the site's ProfilePic (photo, else initials), name over
@@ -3476,9 +3411,6 @@ const EHome = ({
                         · <bdi dir="auto">{project.organization}</bdi>
                       </span>
                     ) : null}
-                    {eShowUsage(project, eUsageOf(project, index)) ? (
-                      <EUsageChip usage={eUsageOf(project, index)} />
-                    ) : null}
                   </h3>
                   {project.description ? (
                     <span className="devE-desc" dir="auto">
@@ -3581,9 +3513,6 @@ const EHome = ({
                       </button>
                     )}
                   </span>
-                  {eShowUsage(project, eUsageOf(project, index)) ? (
-                    <EUsage usage={eUsageOf(project, index)} projectName={project.name} />
-                  ) : null}
                 </div>
               </div>
               {/* A project with no keys shows only its header, no empty table (2026-11-05). */}
@@ -3711,7 +3640,8 @@ const eScrollTop = () => {
 /* "Publish it" nudge (Sarah's first point, Penina 2026-11-08): once a project is getting real use, the same banner as
    the email reconfirmation suggests publishing that one project, with a button straight to its form. One project at a
    time (the one with the most use); it stays away once dismissed or published. What counts as "real use" is still
-   open: for now a share of the monthly limit, E_PUBLISH_NUDGE_PCT, to look at and tune. Kept separate from the
+   open (asked Daniel, 2026-11-09): for now a share of the monthly limit, E_PUBLISH_NUDGE_PCT, so with usage out of
+   Phase 1 the nudge stays dormant until the API sends usage or the trigger changes. Kept separate from the
    site's SiteWideBanner on purpose (Penina, 2026-11-08). */
 const E_PUBLISH_NUDGE_PCT = 25;
 const E_NUDGE_DISMISSED = 'devEPublishNudgeDismissed';
@@ -3722,10 +3652,10 @@ const eNudgeDismissed = () => {
     return [];
   }
 };
-const EPublishNudge = ({ projects, usageOf, onPublish }) => {
+const EPublishNudge = ({ projects, onPublish }) => {
   const [dismissed, setDismissed] = useState(eNudgeDismissed);
   const candidates = projects
-    .map((p, index) => ({ p, pct: eUsageLevel(usageOf(p, index)).pct }))
+    .map((p) => ({ p, pct: eUsagePct(p) }))
     .filter(
       ({ p, pct }) =>
         p.keys.length && p.visibility !== 'public' && pct >= E_PUBLISH_NUDGE_PCT && !dismissed.includes(p.id)

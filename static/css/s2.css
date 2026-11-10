@@ -18558,19 +18558,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devE-deleteBtnPrimary { border: 0; background: #18345d; color: #ffffff; /* action-primary */ }
 .devE-deleteBtnPrimary:hover { background: #132b4c; /* action-primary-hover */ }
 
-/* Trial E: monthly usage bar on each project row (D56). Green → yellow (70%) → red (90%).
-   The DS has no warning color: the yellow fill is the codebase's --talmud-gold, the yellow text is .devPocWarning's. */
 .devPocPage .devE-projSide { display: flex; flex-direction: column; align-items: stretch; gap: 12px; min-width: 0; }
-.devPocPage .devE-usage { display: flex; flex-direction: column; gap: 4px; font-weight: 400; }
-.devPocPage .devE-usageTop { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px; line-height: 16px; color: #707070; /* text-muted */ }
-.devPocPage .devE-usagePct { font-size: 14px; font-weight: 600; color: #121212; font-variant-numeric: tabular-nums; }
-.devPocPage .devE-usageBar { display: block; height: 6px; border-radius: 3px; background: #eeeeee; /* surface-hover */ overflow: hidden; }
-.devPocPage .devE-usageBar > span { display: block; height: 100%; border-radius: 3px; background: #518159; /* feedback-success */ }
-.devPocPage .devE-usage.is-mid .devE-usageBar > span { background: var(--talmud-gold, #CCB479); }
-.devPocPage .devE-usage.is-high .devE-usageBar > span { background: #c03522; /* feedback-error */ }
-.devPocPage .devE-usageSub { font-size: 12px; line-height: 16px; color: #707070; /* text-muted */ font-variant-numeric: tabular-nums; }
-.devPocPage .devE-usage.is-high .devE-usageStatus { color: #c03522; font-weight: 600; }
-@media (prefers-reduced-motion: no-preference) { .devPocPage .devE-usageBar > span { transition: width .4s ease; } }
 
 /* Trial E header links (D57): API docs first, the library download beside it in a quieter color. */
 .devPocPage .devE-headLinks { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; }
@@ -18911,22 +18899,10 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-thTip .devPocTip { margin-inline-start: 0; gap: 8px; align-items: center; cursor: default; }
 .devPocPage .devE-recBadge { gap: 4px; /* the shield stays in the badge, out of the table header */ }
 
-/* Usage, option D (2026-11-05): one line under the project's chips, and a red chip by the name near the limit. */
-.devPocPage .devE-usageLine { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; font-size: 14px; line-height: 20px; color: #575757; font-variant-numeric: tabular-nums; /* text-secondary */ }
-.devPocPage .devE-usageMini { display: inline-block; flex: none; width: 40px; height: 4px; border-radius: 2px; background: #eeeeee; overflow: hidden; /* surface-hover */ }
-.devPocPage .devE-usageMini > span { display: block; height: 100%; background: #575757; }
-.devPocPage .devE-usageLine.is-mid .devE-usageMini > span { background: #e6b624; /* feedback-warning: a mark only */ }
-.devPocPage .devE-usageLine.is-high .devE-usageMini > span { background: #c03522; /* feedback-error */ }
-.devPocPage .devE-usageDot { color: #cccccc; /* gray-300 */ }
-.devPocPage .devE-usageReset { color: #707070; /* text-muted */ }
-.devPocPage .devE-usageChip { display: inline-flex; align-items: center; margin-inline-start: 8px; padding: 0 8px; border-radius: 4px; background: #f9ebe9; color: #c03522; font-size: 12px; line-height: 20px; font-weight: 500; vertical-align: middle; /* feedback-error-background, feedback-error-text */ }
 
-/* Website and Share chips, then the usage line all the way on the right, on one row under the project's name and
-   buttons (2026-11-08). On narrow cards the usage line wraps under the chips. */
+/* Website and Share chips on one row under the project's name and buttons (2026-11-08). */
 .devPocPage .devE-projExtras { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin-top: -6px; }
 .devPocPage .devE-projExtras .devE-chips { margin-top: 0; }
-.devPocPage .devE-projExtras .devE-usageLine { margin-top: 0; margin-inline-start: auto; }
-@media (max-width: 842px) { .devPocPage .devE-projExtras .devE-usageLine { margin-inline-start: 0; } }
 
 /* Share form (2026-11-08): About you and the project as filled-in summaries with an Edit link, and the optional
    questions behind one "Tell us more" toggle. Summary card = surface-subtle with border-default, like the chips. */
@@ -18962,15 +18938,6 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
    text-primary) whether the question is a text field, radio buttons or checkboxes (2026-11-08). */
 .devPocPage .devE-choices legend { font-size: 14px; font-weight: 400; line-height: 1.3; color: #121212; }
 
-/* Usage bar track (2026-11-08): surface-hover (#eeeeee) disappeared on the project card's navy-100; gray-300 gives the
-   empty part of the bar a visible edge. */
-.devPocPage .devE-usageMini { background: #cccccc; /* gray-300 */ }
-/* Usage bar fill below 70% (2026-11-08): green, feedback-success (green-tbr-700), instead of dark gray. */
-.devPocPage .devE-usageMini > span { background: #518159; /* feedback-success */ }
-.devPocPage .devE-usageLine.is-mid .devE-usageMini > span { background: #e6b624; /* feedback-warning */ }
-.devPocPage .devE-usageLine.is-high .devE-usageMini > span { background: #c03522; /* feedback-error */ }
-/* feedback-success (#518159) read as gray on the 4px bar; the design system's Core Validation green-700 is brighter. */
-.devPocPage .devE-usageLine.is-low .devE-usageMini > span { background: #3fa26a; /* green-700 */ }
 
 /* Repo link after a tool's name in the publish form (2026-11-08): just the external icon, text-secondary. */
 .devPocPage .devE-toolLink { display: inline-flex; align-items: center; vertical-align: middle; color: #575757; padding: 2px; }
