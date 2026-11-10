@@ -5,6 +5,10 @@ import { InterfaceLangProvider } from "~/lib/i18n/interface-lang";
 import { TranslationsView } from "./TranslationsView";
 import { CURRENT, storyLanguages } from "./story-data";
 
+// ~50 recorded translations rendered per test: 1-7 s each on this machine at load 30, the same before and after lane GR's changes
+// (measured side by side 2026-11-10); the default 5 s budget made the gate fail on load alone
+vi.setConfig({ testTimeout: 20_000 });
+
 const href = (v: { languageFamilyName: string; versionTitle: string }) => `/Genesis.1.1?ven=${v.languageFamilyName}|${v.versionTitle.replace(/ /g, "_")}`;
 const renderView = (props: Partial<Parameters<typeof TranslationsView>[0]> = {}) =>
   render(<TranslationsView languages={storyLanguages(CURRENT)} currentTitle={CURRENT} selectHref={href} openHref={href} urlRef="Genesis.1.1" {...props} />);
@@ -50,7 +54,7 @@ describe("TranslationsView (Genesis 1:1, recorded)", () => {
     expect(link).toHaveAttribute("href", "/Genesis.1.1?vside=The_Koren_Jerusalem_Bible|en&with=Translation Open");
     await userEvent.click(link);
     expect(onPreview).toHaveBeenCalledWith(expect.objectContaining({ versionTitle: "The Koren Jerusalem Bible" }), expect.anything());
-  }, 15_000);
+  });
 
   it("details: source, licence link, revision history and Open Text", async () => {
     renderView();
