@@ -1,3 +1,4 @@
+import { QueryObserver } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
 import { http, HttpResponse } from "msw";
 import { makeQueryClient } from "~/lib/cache/query-client";
@@ -64,6 +65,33 @@ describe("related resources", () => {
     expect(c.sheets).toBeGreaterThan(0);
     expect(c.manuscripts).toBeGreaterThan(0);
     expect(c.audio).toBeGreaterThan(0);
+  });
+});
+
+// V-EXITS SB-05: an in-page reopen of the sidebar must not ask /api/related again
+describe("the Resources request outlives the sidebar that asked for it", () => {
+  it("closing the sidebar while it loads neither aborts it nor makes the next opening send it again", async () => {
+    let sent = 0;
+    let aborted = 0;
+    server.use(
+      http.get(/\/api\/related\//, async ({ request }) => {
+        sent++;
+        request.signal.addEventListener("abort", () => aborted++);
+        await new Promise((r) => setTimeout(r, 30));
+        return HttpResponse.json({ sheets: [{ id: 1, anchorRef: "Genesis 1:1" }], topics: [], manuscripts: [], media: [], guides: [] });
+      }),
+    );
+    const qc = makeQueryClient();
+    const options = resourcesQueryOptions("Genesis 1");
+    // the sidebar opens (and, as the reader does, mounts its pane twice), then closes before the answer comes
+    for (let i = 0; i < 2; i++) new QueryObserver(qc, options).subscribe(() => {})();
+    await new Promise((r) => setTimeout(r, 60));
+    expect(qc.getQueryData(options.queryKey)?.sheets["Genesis 1:1"]).toHaveLength(1);
+    // reopened: from the cache
+    const unsubscribe = new QueryObserver(qc, options).subscribe(() => {});
+    await new Promise((r) => setTimeout(r, 10));
+    unsubscribe();
+    expect({ sent, aborted }).toEqual({ sent: 1, aborted: 0 });
   });
 });
 
