@@ -8,8 +8,8 @@
 .ok { display: inline-block; margin: 0 2px 6px 12px; margin-inline: 12px 2px; padding: 10px 14px; border: none; border-radius: 6px; background: var(--sefaria-color-surface); color: var(--sefaria-color-text-list); font: inherit; font-size: 16px; line-height: 19px; cursor: pointer; }
 
 @media (min-width: 843px) {
-  /* here the notice is a card in the corner, clear of the Library Assistant's button */
-  :root { --lc-launcher-bottom-offset: 0px !important; }
+  /* here the notice is a card in the corner, clear of the Library Assistant's button: no lift while it shows (and no override otherwise) */
+  :root:has(.notice) { --lc-launcher-bottom-offset: 0px !important; }
   .notice { inset-inline: 0 auto; width: 360px; margin: 10px; padding: 15px; border-top: none; border-radius: 10px; text-align: start; }
   .ok { display: block; margin: 10px 0 0; }
 }
