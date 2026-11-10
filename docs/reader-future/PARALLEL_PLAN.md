@@ -40,6 +40,8 @@ A lane hands back only when all of this is green **in its own worktree, after me
 Ports per lane: A 3200, B 3240, C 3280, D 3320, E 3360, F 3400 (wave 2 reuses them). Never port 3100: Playwright reuses any server
 already listening there, even from another checkout.
 
+**Running long checks (learned in wave 0).** A command started with the shell tool's background mode is reported finished while Playwright is still running, and a second run then shares its ports and log. Run the full Playwright suite detached with `( nohup npx playwright test … > <log> 2>&1; echo "EXIT $?" >> <log> ) & disown`, wait in the foreground for the `EXIT` line (10-minute slices), read the summary from the log, and check `pgrep -f "playwright test"` shows no other run in your worktree before starting one. The suite takes about 5 minutes here (397 tests; 7 `@mobile` tests are skipped by the desktop project).
+
 The lane reports: branch, commit list, the gate table with each command's last lines, atlas apply script name, and anything it could
 not do. Code reading is not verification; every claim needs a command and its output.
 
