@@ -12,14 +12,14 @@
  *   `set-language-cookie`, where LanguageCookieMiddleware (or our src/server/language-domain.ts) sets the cookie on the arrival domain
  *   and, for a signed-in reader, saves the language in their profile.
  * - a host-only `interfaceLang` left by an earlier version of this client would shadow the domain cookie (the browser sends both and
- *   Django reads whichever comes first): it is expired in the same response.
+ *   every parser here and in Django keeps the last one, the stale host-only cookie): it is expired in the same response.
  *
  * @feature RTE-034 Language switch URL (/interface)
  * @feature I18-007 Site language toggle in dropdowns
  */
 export { safeNext } from "~/lib/auth/utils";
 import { safeNext } from "~/lib/auth/utils";
-import { activeModule, cookieDomain, domainLang, type DomainModules } from "~/server/language-domain";
+import { EXPIRE_HOST_ONLY_LANG_COOKIE, activeModule, cookieDomain, domainLang, withLanguageParam, type DomainModules } from "~/server/language-domain";
 
 export const isInterfaceLang = (x: string): x is "english" | "hebrew" => x === "english" || x === "hebrew";
 
@@ -38,7 +38,7 @@ export function interfaceCookieDomain(host: string, modules: DomainModules | nul
 /** The Set-Cookie headers: the legacy cookie, after expiring a host-only one that would shadow it. */
 export function interfaceCookies(lang: "english" | "hebrew", domain: string | undefined): string[] {
   const cookie = `interfaceLang=${lang}; ${domain ? `Domain=${domain}; ` : ""}Path=/`;
-  return domain ? ["interfaceLang=; Max-Age=0; Path=/", cookie] : [cookie];
+  return domain ? [EXPIRE_HOST_ONLY_LANG_COOKIE, cookie] : [cookie];
 }
 
 /** Where `next` goes: this site, or the language's domain for this module with `set-language-cookie` (add_query_param). */
@@ -54,7 +54,8 @@ function target(lang: "english" | "hebrew", next: string, host: string | undefin
   if (origin.hostname.toLowerCase() === hostnameOf(host)) return next;
   // `next` is a path of this site (safeNext): it cannot change the origin
   const url = new URL(next, origin.origin);
-  return `${origin.origin}${url.pathname}${url.search ? `${url.search}&` : "?"}set-language-cookie=${url.hash}`;
+  // add_query_param: the query re-encoded as Django's urlencode does, the parameter appended
+  return `${origin.origin}${withLanguageParam(url.pathname, url.search)}${url.hash}`;
 }
 
 export function interfaceLanguageResponse(lang: string, nextParam: string | null, where: { host?: string; modules?: DomainModules | null } = {}): Response {
