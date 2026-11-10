@@ -69,13 +69,22 @@ MODES = {
 
 
 class Stub(http.server.BaseHTTPRequestHandler):
+    def do_POST(self):
+        self.posted = self.rfile.read(int(self.headers.get("content-length") or 0)).decode()
+        self.do_GET()
+
+    def do_HEAD(self):
+        self.do_GET()
+
     def do_GET(self):
-        body = f"{self.server.name} {self.path}".encode()
+        body = f"{self.server.name} {self.path} body={getattr(self, 'posted', '')} xfh={self.headers.get('x-forwarded-host')}".encode()
         self.send_response(200)
         self.send_header("content-type", "text/plain")
+        self.send_header("x-stub", self.server.name)
         self.send_header("content-length", str(len(body)))
         self.end_headers()
-        self.wfile.write(body)
+        if self.command != "HEAD":
+            self.wfile.write(body)
 
     def log_message(self, *a):
         pass
@@ -127,14 +136,19 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def ask(path, host, cookie):
-    req = urllib.request.Request(f"http://127.0.0.1:{NGINX_PORT}{path}", headers={"Host": host, **({"Cookie": "reader_version=next"} if cookie else {})})
+def fetch(path, host, cookie, method="GET", headers=None):
+    req = urllib.request.Request(f"http://127.0.0.1:{NGINX_PORT}{path}", method=method, data=b"x=1" if method == "POST" else None,
+                                 headers={"Host": host, **({"Cookie": "reader_version=next"} if cookie else {}), **(headers or {})})
     try:
-        with urllib.request.build_opener(NoRedirect).open(req, timeout=5) as r:
-            body = r.read().decode()
+        with urllib.request.build_opener(NoRedirect).open(req, timeout=15) as r:
+            return r.headers.get("x-stub") or "static", r.read().decode()
     except urllib.error.HTTPError as e:
-        return str(e.code)
-    return body.split(" ")[0] if body.split(" ")[0] in ("varnish", "reader") else "static"
+        return str(e.code), ""
+
+
+def ask(path, host, cookie, method="GET"):
+    """Who answered: "varnish" or "reader" (the stubs), "static" (nginx's own files), or nginx's own status code."""
+    return fetch(path, host, cookie, method)[0]
 
 
 def wait_port(port):
@@ -169,14 +183,26 @@ def main():
                     if table or not ok:
                         print(f"  {'ok ' if ok else 'BAD'} {host:32} {path:52} no cookie → {got[0]:8} cookie → {got[1]:8}" + ("" if ok else f" (expected {plain}, {opted})"))
                 print(f"[{mode}] {len(cases)} paths checked")
-                if mode == "optin":
-                    # the reader down (nothing listening): nginx's 502 falls back to Varnish/Django for an opted-in visitor
+                if mode in ("optin", "reader"):
+                    # nginx sets X-Forwarded-Host itself: a value the client sends never reaches the reader
+                    seen = fetch("/Genesis.1", LIBRARY, True, headers={"X-Forwarded-Host": "evil.example"})[1]
+                    ok = seen.endswith(f"xfh={LIBRARY}")
+                    failures += not ok
+                    print(f"  {'ok ' if ok else 'BAD'} X-Forwarded-Host sent to the reader: {seen!r}")
+                    # a write with the cookie reaches the reader, body and all
+                    page = fetch("/Genesis.1", LIBRARY, True, "POST")
+                    got = ask("/api/profile/x", LIBRARY, True, "POST"), page[0]
+                    ok = got == ("varnish", "reader") and " body=x=1 " in page[1]
+                    failures += not ok
+                    print(f"  {'ok ' if ok else 'BAD'} POST with the cookie: /api → {got[0]}, a page → {got[1]}")
+                    # the reader down (nothing listening): a read falls back to Varnish/Django; a write is never replayed (502)
                     stubs[1].shutdown()
                     stubs[1].server_close()
-                    down = [(p, ask(p, LIBRARY, True)) for p in ("/Genesis.1", ASSETS)]
-                    ok = down == [("/Genesis.1", "varnish"), (ASSETS, "varnish")]
+                    down = [(p, m, ask(p, LIBRARY, True, m)) for p, m in (("/Genesis.1", "GET"), ("/Genesis.1", "HEAD"), (ASSETS, "GET"), ("/Genesis.1", "POST"))]
+                    want = [("/Genesis.1", "GET", "varnish"), ("/Genesis.1", "HEAD", "varnish"), (ASSETS, "GET", "varnish"), ("/Genesis.1", "POST", "502")]
+                    ok = down == want
                     failures += not ok
-                    print(f"  {'ok ' if ok else 'BAD'} reader down, with the cookie: {down}")
+                    print(f"  {'ok ' if ok else 'BAD'} reader down, with the cookie: {down}" + ("" if ok else f" (expected {want})"))
                     stubs[1] = stub("reader", READER_PORT)
             finally:
                 proc.terminate()
