@@ -80,6 +80,11 @@ describe("notifications, Torah Tracker and New Additions (wave 2, lane P)", () =
       expect(isDjangoPage(p, "chiburim.sefaria.org.il"), p).toBe(true);
     }
   });
+  it("/updates is not Django's on the Library host (catches a merge that lists it as a Django or static page again)", () => {
+    expect(isDjangoPage("/updates", "www.sefaria.org")).toBe(false);
+    expect(isDjangoPage("/updates")).toBe(false);
+    expect(leavesClient("/updates", "www.sefaria.org")).toBe(false);
+  });
   it("the account settings page stays Django's (an accepted exit, T-F23)", () => {
     expect(leavesClient("/settings/account")).toBe(true);
   });

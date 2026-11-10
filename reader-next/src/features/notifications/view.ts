@@ -2,6 +2,7 @@ import type { TocBook } from "~/lib/catalog/toc";
 import { sanitizeHtml } from "~/lib/html/sanitize";
 import { timeAgo } from "~/lib/notifications/natural-time";
 import { bookHref, type NotificationRecord } from "~/lib/notifications/notifications";
+import { PUBLIC_CONFIG } from "~/lib/config";
 import type { BilingualHtml, NotificationView } from "~/ui/Notification/Notification";
 
 const html = (t: { en?: string; he?: string }): BilingualHtml | undefined => {
@@ -10,8 +11,12 @@ const html = (t: { en?: string; he?: string }): BilingualHtml | undefined => {
   return en || he ? { en, he } : undefined;
 };
 
-/** A Voices page (a sheet, a profile, a collection), linked as the old page did; Django sends it on to the Voices site (an accepted exit). */
-const voices = (path: string) => path;
+/**
+ * A Voices page (a sheet, a profile, a collection): the Voices site's own address (PUBLIC_CONFIG.voicesOrigin), as the old page sent
+ * it there (data-target-module="voices"); an address that is already absolute is kept. An accepted exit.
+ */
+export const voicesHref = (path: string, origin: string = PUBLIC_CONFIG.voicesOrigin): string =>
+  /^https?:\/\//i.test(path) ? path : `${origin.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
 
 /**
  * The API's record as the list shows it, or null for a kind the old page did not show. A book's Hebrew title comes from the catalog
@@ -19,7 +24,8 @@ const voices = (path: string) => path;
  *
  * @feature NTF-002 Notification types and rendering
  */
-export function toNotificationView(n: NotificationRecord, lang: "en" | "he", books: ReadonlyMap<string, TocBook> | undefined, now?: number): NotificationView | null {
+export function toNotificationView(n: NotificationRecord, lang: "en" | "he", books: ReadonlyMap<string, TocBook> | undefined, now?: number, voicesOrigin?: string): NotificationView | null {
+  const voices = (path: string) => voicesHref(path, voicesOrigin);
   const base = { id: n._id, date: timeAgo(n.date, lang, now) };
   const c = n.content ?? {};
   const person = { name: c.name ?? "", profileUrl: voices(c.profileUrl ?? "/"), imageUrl: c.imageUrl };

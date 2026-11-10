@@ -60,6 +60,7 @@ add(
     [
         "BUILT 2026-11-10 (T-F20): the seven kinds of the old NotificationsPanel (src/ui/Notification): new text, new version (English / Hebrew wording), general announcement (moderators' HTML, sanitised; its links to this client's pages open in the app), and the Voices kinds — sheet published, sheet liked, follower, added to a collection — whose links go to the Voices pages (accepted exits). Dates as the old naturalTime: humanize-duration's largest unit, rounded, '<n> <units> ago' / 'לפני ...' (identical to humanize-duration 3.28 on 200,000 random spans).",
         "Deliberate difference: a follower notification has no Follow back button (the Library scope never lists follow notifications; Django keeps them for the Voices site).",
+        "Deliberate difference: the other reader's name is the Voices token green (#518159, 4.5:1 on white) instead of the old --midrash-green (#5d956f, 3.5:1), which fails WCAG contrast (the story a11y check). Voices links (sheet, profile, collection) are the Voices site's absolute addresses (PUBLIC_CONFIG.voicesOrigin).",
     ],
 )
 set_status("NTF-002", {"status": "done", "note": "All seven kinds; Voices kinds link out", "by": "src/ui/Notification/Notification.tsx, src/features/notifications/view.ts, src/lib/notifications/natural-time.ts"})
