@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TocNode } from "~/lib/catalog/toc";
-import { bookMeta, categoryMeta, libraryHomeMeta, searchMeta } from "./page-head";
+import { bookMeta, categoryMeta, libraryHomeMeta, pageUrls, searchMeta } from "./page-head";
 
 const get = (meta: ReturnType<typeof searchMeta>, key: string) =>
   meta.map((m) => ("title" in m ? (key === "title" ? m.title : undefined) : "name" in m ? (m.name === key ? m.content : undefined) : m.property === key ? m.content : undefined)).find((v) => v !== undefined);
@@ -35,5 +35,24 @@ describe("the library pages' titles and descriptions, as sefaria.org's", () => {
     expect(get(searchMeta("moses", "english"), "title")).toBe("moses | The Sefaria Library");
     expect(get(searchMeta(undefined, "hebrew"), "title")).toBe("חיפוש | האוסף של ספריא");
     expect(get(searchMeta("x", "english"), "robots")).toBe("noindex, nofollow");
+  });
+});
+
+// base.html's og:url, canonical and alternates (curl of www.sefaria.org, 2026-11-10)
+describe("pageUrls", () => {
+  const sites = { english: "https://www.sefaria.org", hebrew: "https://www.sefaria.org.il" };
+  it("og:url and the canonical are the address as asked; the alternates its path on both sites", () => {
+    const u = pageUrls("/Genesis?tab=versions", "https://www.sefaria.org", sites);
+    expect(u.meta).toEqual([{ property: "og:url", content: "https://www.sefaria.org/Genesis?tab=versions" }]);
+    expect(u.links).toEqual([
+      { rel: "alternate", href: "https://www.sefaria.org/Genesis", hrefLang: "en" },
+      { rel: "alternate", href: "https://www.sefaria.org.il/Genesis", hrefLang: "he" },
+      { rel: "canonical", href: "https://www.sefaria.org/Genesis?tab=versions" },
+    ]);
+  });
+  it("search has no canonical; on the Hebrew site og:url names it", () => {
+    const u = pageUrls("/search?q=moses&tab=text", "https://www.sefaria.org.il", { ...sites, canonical: false });
+    expect(u.meta[0]).toEqual({ property: "og:url", content: "https://www.sefaria.org.il/search?q=moses&tab=text" });
+    expect(u.links.map((l) => l.rel)).toEqual(["alternate", "alternate"]);
   });
 });

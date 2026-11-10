@@ -86,3 +86,25 @@ export function bookMeta(book: { title: string; heTitle?: string; enDesc?: strin
 export function searchMeta(q: string | undefined, lang: Lang): MetaTag[] {
   return [...pageMeta(pageTitle(q || (lang === "hebrew" ? "חיפוש" : "Search"), lang), "Search 3,000 years of Jewish texts in Hebrew and English translation."), NOINDEX];
 }
+
+export type HeadLink = { rel: string; href: string; hrefLang?: string };
+
+/**
+ * og:url, the canonical and the language alternates, as base.html writes them (VERIFIED with curl 2026-11-10): og:url and the canonical
+ * are the address as asked, query included (/Genesis?tab=versions), on this host's site (www.sefaria.org or .org.il: `origin`); the
+ * alternates are the path on the English and Hebrew sites. Search has no canonical (reader/views.py search sets no canonical_url).
+ *
+ * @feature PLT-008 Canonical URLs and hreflang
+ */
+export function pageUrls(href: string, origin: string, opts: { canonical?: boolean; english?: string; hebrew?: string } = {}): { meta: MetaTag[]; links: HeadLink[] } {
+  const path = href.split(/[?#]/)[0] || "/";
+  const url = `${origin}${href}`;
+  return {
+    meta: [{ property: "og:url", content: url }],
+    links: [
+      ...(opts.english ? [{ rel: "alternate", href: `${opts.english}${path}`, hrefLang: "en" }] : []),
+      ...(opts.hebrew ? [{ rel: "alternate", href: `${opts.hebrew}${path}`, hrefLang: "he" }] : []),
+      ...(opts.canonical === false ? [] : [{ rel: "canonical", href: url }]),
+    ],
+  };
+}
