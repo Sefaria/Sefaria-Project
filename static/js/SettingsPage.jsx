@@ -2939,7 +2939,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
                   },
                 ]}
               >
-                <span id="reading-history-warning" className={readingHistory === 'false' ? 'on' : null}>
+                <span id="reading-history-warning" className={readingHistory === 'false' ? 'active' : null}>
                   {readingHistory === 'false'
                     ? Sefaria._('Turning this feature off will permanently delete your reading history.')
                     : null}
