@@ -65,7 +65,7 @@ export function Dedication({ text }: { text: { en?: string; he?: string } }) {
   if (!md) return null;
   return (
     <div className={styles.dedication} data-dedication="">
-      <span lang={lang} dangerouslySetInnerHTML={{ __html: markdownToHtml(md) }} />
+      <span lang={lang} dir={lang === "he" ? "rtl" : "ltr"} dangerouslySetInnerHTML={{ __html: markdownToHtml(md) }} />
     </div>
   );
 }

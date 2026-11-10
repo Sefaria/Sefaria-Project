@@ -76,7 +76,7 @@
 .module .allHistory > *::after { content: "\203A"; }
 /* phone (.singlePanel .recentlyViewed): a #fbfbfa band to the screen's edges, 10px inside; the header row 5px over and under its
    16px title and the grey "All History", a 1px rule and 10px under it; the list 16px under the header's top edge's line */
-.recentPhone { margin: -5px -15px; padding: 0 10px 10px; background: var(--sefaria-color-surface-subtle, #fbfbfa); }
+.recentPhone { margin: -5px -15px; padding: 0 10px 10px; background: var(--sefaria-color-surface-subtle); }
 .recentHeader { display: flex; justify-content: space-between; margin: 0 10px 10px; padding-block: 5px; border-block-end: 1px solid var(--sefaria-color-border-strong); }
 .recentTitle { margin: 0; font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 500; line-height: 26px; color: var(--sefaria-color-text-dark-grey); }
 .recentHeader .allHistory { margin-block-start: 5px; color: var(--sefaria-color-text-muted); }

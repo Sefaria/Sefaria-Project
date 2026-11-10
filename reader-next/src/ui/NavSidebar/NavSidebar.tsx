@@ -333,7 +333,7 @@ export function RecentlyViewed({ items, phone, onItem, onAllHistory }: { items: 
       <ul>
         {items.map((x) => (
           <li key={x.href}>
-            <Link href={x.href} lang={x.lang} onClick={() => onItem?.(x)}>{x.label}</Link>
+            <Link href={x.href} lang={x.lang} dir={x.lang === "he" ? "rtl" : "ltr"} onClick={() => onItem?.(x)}>{x.label}</Link>
           </li>
         ))}
       </ul>
