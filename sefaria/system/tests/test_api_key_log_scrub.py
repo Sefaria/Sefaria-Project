@@ -116,3 +116,50 @@ def test_the_structlog_request_processor_redacts_a_full_key_in_any_parameter():
 
     assert "Ab1Cd2" not in str(event)
     assert "sfr_[REDACTED]" in event["httpRequest"]["requestUrl"]
+
+
+# Keys whose BODY holds percent-encoded bytes. A body unit is one literal letter or digit or one percent-encoded byte.
+_A31 = "A" * 31
+_ENCODED_BODY_KEYS = {
+    "review probe: one encoded byte then 31 letters": "sfr_%41" + _A31,
+    "encoded byte inside the first seven units": "sfr_Ab%31Cd2Ef3Gh4Ij5Kl6Mn7Op8Qr9St0Uv",
+    "lowercase hex": "sfr_%4aB1Cd2Ef3Gh4Ij5Kl6Mn7Op8Qr9St0U",
+    "fully percent-encoded body": "sfr_" + "%41" * 32,
+    "double-encoded body": "sfr_%2541" + "b12Cd34Ef56Gh78Ij90Kl12Mn34Op",
+    "seven units, the first encoded": "sfr_%41bc1234",
+    "encoded prefix and encoded body": "%73fr%5f%41b12Cd34Ef56Gh78Ij90Kl12Mn34Op56",
+}
+
+
+def test_a_key_with_a_percent_encoded_body_is_redacted_from_the_query_and_the_path():
+    for name, key in _ENCODED_BODY_KEYS.items():
+        for raw, want in (
+            ("/admin/powered_by/apikey/?q=" + key, "/admin/powered_by/apikey/?q=sfr_[REDACTED]"),
+            ("/admin/?q=" + key + "&x=1", "/admin/?q=sfr_[REDACTED]&x=1"),
+            ("/" + key + "/x?x=1", "/sfr_[REDACTED]/x?x=1"),
+        ):
+            got = scrub_api_key_query(raw)
+            assert got == want, (name, raw, got)
+
+
+def test_the_review_probe_leaves_no_recoverable_key_in_the_log_url():
+    got = scrub_api_key_query("/?q=sfr_%41" + _A31)
+    assert got == "/?q=sfr_[REDACTED]"
+    assert "AAAA" not in got
+
+
+def test_a_short_display_prefix_stays_even_when_a_byte_is_encoded():
+    for raw in (
+        "/admin/?q=sfr_abc123",
+        "/admin/?q=sfr_%41bc123",
+        "/admin/?q=sfr_%41%42%43%44%45%46",
+        "/admin/?q=sfr_",
+        "/admin/?q=transfr_report",
+        "/admin/?q=sfr_%zz",
+    ):
+        assert scrub_api_key_query(raw) == raw, raw
+
+
+def test_a_body_stops_at_a_character_that_is_neither_alphanumeric_nor_an_encoded_byte():
+    assert scrub_api_key_query("/?q=sfr_%41bc1234-rest") == "/?q=sfr_[REDACTED]-rest"
+    assert scrub_api_key_query("/?q=sfr_%41bc1234%zz") == "/?q=sfr_[REDACTED]%zz"

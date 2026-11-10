@@ -70,10 +70,11 @@ http {
   # The last parameter map fails closed: if a raw value is still present it logs [REDACTED-URI] (or [REDACTED-REFERER]).
   # keyTokenScrub: after the parameter passes, a second chain redacts a whole API key token anywhere in the string
   # (path, any parameter, after a hash), for example a key pasted into an admin search box (?q=sfr_...). A token is
-  # sfr_ (each character literal in any case, or percent-encoded) followed by 7 or more letters or digits; a
+  # sfr_ (each character literal in any case, or percent-encoded) followed by 7 or more body units, a unit being one letter or digit or one
+  # percent-encoded byte (a percent sign and two hex digits, any case), so ?q=sfr_%41 plus 31 letters is caught; a
   # shorter body is the non-secret display prefix and stays. Each pass replaces the first token with [REDACTED-KEY],
   # three passes cover three tokens, and a final map fails closed: a token still present logs [REDACTED-URI] or
-  # [REDACTED-REFERER]. The pattern is anchored, with one lazy dot-star and no nested quantifiers, so cost is linear
+  # [REDACTED-REFERER]. The pattern is anchored, with one lazy dot-star and no nested quantifiers (the two alternatives of a body unit start with different characters, so a unit has one way to match), so cost is linear
   # in the length of the string. requestUrl and referer use the final maps' output. In a replacement a capture
   # must be followed by a character that cannot be part of a name, hence the bracket. No Helm braces and no
   # dollar-brace names here: this file goes through Helm tpl and envsubst.
@@ -94,19 +95,19 @@ http {
     default $uri_scrub_3;
   }
   map $uri_scrub_4 $uri_key_1 {
-    "~*^(?<pre>.*?)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)[a-z0-9]{7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
+    "~*^(?<pre>.*?)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
     default $uri_scrub_4;
   }
   map $uri_key_1 $uri_key_2 {
-    "~*^(?<pre>.*?)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)[a-z0-9]{7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
+    "~*^(?<pre>.*?)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
     default $uri_key_1;
   }
   map $uri_key_2 $uri_key_3 {
-    "~*^(?<pre>.*?)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)[a-z0-9]{7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
+    "~*^(?<pre>.*?)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
     default $uri_key_2;
   }
   map $uri_key_3 $request_uri_scrubbed {
-    "~*(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)[a-z0-9]{7,}" "[REDACTED-URI]";
+    "~*(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}" "[REDACTED-URI]";
     default $uri_key_3;
   }
   map $http_referer $referer_scrub_1 {
@@ -126,19 +127,19 @@ http {
     default $referer_scrub_3;
   }
   map $referer_scrub_4 $referer_key_1 {
-    "~*^(?<pre>.*?)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)[a-z0-9]{7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
+    "~*^(?<pre>.*?)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
     default $referer_scrub_4;
   }
   map $referer_key_1 $referer_key_2 {
-    "~*^(?<pre>.*?)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)[a-z0-9]{7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
+    "~*^(?<pre>.*?)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
     default $referer_key_1;
   }
   map $referer_key_2 $referer_key_3 {
-    "~*^(?<pre>.*?)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)[a-z0-9]{7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
+    "~*^(?<pre>.*?)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
     default $referer_key_2;
   }
   map $referer_key_3 $referer_scrubbed {
-    "~*(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)[a-z0-9]{7,}" "[REDACTED-REFERER]";
+    "~*(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}" "[REDACTED-REFERER]";
     default $referer_key_3;
   }
 
