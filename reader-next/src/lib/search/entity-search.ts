@@ -9,7 +9,7 @@
 import { infiniteQueryOptions, queryOptions, type InfiniteData } from "@tanstack/react-query";
 import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
-import { SITE_ORIGIN } from "~/lib/config";
+import { libraryHref } from "~/lib/routing/library-href";
 import { encodeTitle } from "~/lib/ref/url";
 
 export type EntityType = "book" | "author" | "topic";
@@ -57,10 +57,10 @@ export const entitySearchQueryOptions = (q: string, type: EntityType, start = 0,
 export const formatEntityCount = (n: number): string => (n >= 10000 ? "10,000+" : n.toLocaleString("en-US"));
 
 /** The link of an entity: a book to its page, an author or topic to the library's topic page. */
-export function entityHref(type: EntityType, hit: EntityHit): string {
+export function entityHref(type: EntityType, hit: EntityHit, host?: string): string {
   // the book's own title (master, #3790): a title may hold "/", so the last segment of its category path is not the title
   if (type === "book") return `/${encodeTitle(hit.title_en)}`;
-  return `${SITE_ORIGIN}/topics/${hit.slug}`;
+  return libraryHref(`/topics/${hit.slug}`, host);
 }
 
 /** Pages of entity results, 20 or so at a time: the next starts after the hits already loaded (capped at ten thousand). */

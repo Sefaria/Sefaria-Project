@@ -23,7 +23,8 @@ describe("suggestions", () => {
   it("urls: book → its page, category → /texts path, topic → the library's topic page", () => {
     expect(urlForObject("ref", "Rashi on Genesis")).toBe("/Rashi_on_Genesis");
     expect(urlForObject("TocCategory", ["Tanakh", "Torah"])).toBe("/texts/Tanakh/Torah");
-    expect(urlForObject("Topic", "gender")).toBe("https://www.sefaria.org/topics/gender");
+    expect(urlForObject("Topic", "gender")).toBe("/topics/gender");
+    expect(urlForObject("Topic", "gender", "voices.sefaria.org")).toBe("https://www.sefaria.org/topics/gender");
     expect(urlForObject("Collection", "x")).toBeUndefined();
   });
   it("nothing completes: no dropdown", () => {

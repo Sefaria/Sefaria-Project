@@ -5,7 +5,7 @@ import { nameQueryOptions, outcomeOf, repairGershayimVariant, suggestionsFrom } 
 import { refToUrl } from "~/lib/ref/url";
 import { toRouterLocation } from "../shared/RouterLink";
 import type { HeaderSearchProps } from "~/ui/SiteHeader/HeaderSearch";
-import { SITE_ORIGIN } from "~/lib/config";
+import { libraryHref, useSiteHost } from "~/lib/routing/library-href";
 import { searchBoxAnalytics, searchFlow } from "~/lib/analytics";
 
 /**
@@ -20,6 +20,7 @@ import { searchBoxAnalytics, searchFlow } from "~/lib/analytics";
 export function useHeaderSearch(): Omit<HeaderSearchProps, "mobile"> {
   const qc = useQueryClient();
   const router = useRouter();
+  const host = useSiteHost();
   return useMemo(() => {
     const go = (href: string) => {
       if (/^https?:/.test(href)) window.location.assign(href);
@@ -31,7 +32,7 @@ export function useHeaderSearch(): Omit<HeaderSearchProps, "mobile"> {
       go(`/search?q=${encodeURIComponent(q.trim())}&tab=text`);
     };
     return {
-      getSuggestions: async (q) => suggestionsFrom(q, await qc.fetchQuery(nameQueryOptions(q))),
+      getSuggestions: async (q) => suggestionsFrom(q, await qc.fetchQuery(nameQueryOptions(q)), host),
       onSearch: search,
       onChoose: (s) => s.url && go(s.url),
       onSmartSubmit: async (query) => {
@@ -49,7 +50,7 @@ export function useHeaderSearch(): Omit<HeaderSearchProps, "mobile"> {
           go(`/${refToUrl(out.ref)}`);
         } else if (out.kind === "topic") {
           searchBoxAnalytics.autolinkTopic(q);
-          go(`${SITE_ORIGIN}/topics/${out.slug}`);
+          go(libraryHref(`/topics/${out.slug}`, host));
         } else if (out.kind === "category") {
           searchBoxAnalytics.autolinkObject(q, "TocCategory", out.key);
           go(`/texts/${(Array.isArray(out.key) ? out.key : [out.key]).map(encodeURIComponent).join("/")}`);
@@ -59,5 +60,5 @@ export function useHeaderSearch(): Omit<HeaderSearchProps, "mobile"> {
         }
       },
     };
-  }, [qc, router]);
+  }, [qc, router, host]);
 }

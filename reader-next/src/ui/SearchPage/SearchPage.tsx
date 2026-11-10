@@ -1,5 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
-import { useLibraryHref } from "~/lib/routing/library-href";
+import { useLibraryHref, useSiteHost } from "~/lib/routing/library-href";
 import { sanitizeHtml } from "~/lib/html/sanitize";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { entityHref, type EntityHit, type EntityType } from "~/lib/search/entity-search";
@@ -373,7 +373,8 @@ export function EntityCard({ type, hit, topicParent, liProps }: { type: EntityTy
     : hit.categoryLabel_en ? [{ label: he ? hit.categoryLabel_he ?? hit.categoryLabel_en : hit.categoryLabel_en }]
     : topicParent ? [{ label: he ? topicParent.he : topicParent.en, href: lib(`/topics/category/${topicParent.slug}`) }] : [];
   const accent = type === "book" ? categoryColor(cats[0] ?? "") : "#000";
-  const href = hit.url ?? entityHref(type, hit);
+  const host = useSiteHost();
+  const href = hit.url ?? entityHref(type, hit, host);
   const icon = type === "book" ? (hit.isCategory ? "layers" : "book") : type === "author" ? "pen" : "hash";
   const titleLink = useRef<HTMLAnchorElement>(null);
   return (

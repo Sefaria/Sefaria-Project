@@ -19,7 +19,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 import { refToUrl } from "~/lib/ref/url";
-import { SITE_ORIGIN } from "~/lib/config";
+import { libraryHref } from "~/lib/routing/library-href";
 
 export const MIN_SUGGEST_LENGTH = 3;
 /** What the Library's box suggests (the Voices box has its own list). */
@@ -91,17 +91,17 @@ const TYPE_ORDER = ["search", "ref", "Collection", "TocCategory", "Topic", "Pers
 const rank = (t: string) => TYPE_ORDER.indexOf(t);
 
 /** Where a suggestion leads in the Library (topic pages are the library's until this client has its own). */
-export function urlForObject(type: string, key: string | string[]): string | undefined {
+export function urlForObject(type: string, key: string | string[], host?: string): string | undefined {
   if (type === "TocCategory") return `/texts/${(Array.isArray(key) ? key : [key]).map(encodeURIComponent).join("/")}`;
-  if (type === "Topic" || type === "PersonTopic" || type === "AuthorTopic") return `${SITE_ORIGIN}/topics/${key as string}`;
+  if (type === "Topic" || type === "PersonTopic" || type === "AuthorTopic") return libraryHref(`/topics/${key as string}`, host);
   if (type === "ref") return `/${refToUrl(key as string)}`;
   return undefined; // Collections and Users belong to Voices
 }
 
 /** The "Search for" row first, then the completions grouped by type, groups in the old order. Nothing for no completions. */
-export function suggestionsFrom(query: string, d: NameResponse): Suggestion[] {
+export function suggestionsFrom(query: string, d: NameResponse, host?: string): Suggestion[] {
   const comps = (d.completion_objects ?? [])
-    .map((o) => ({ ...o, type: (o.type === "PersonTopic" ? "Topic" : o.type) as SuggestionType, url: urlForObject(o.type, o.key) }))
+    .map((o) => ({ ...o, type: (o.type === "PersonTopic" ? "Topic" : o.type) as SuggestionType, url: urlForObject(o.type, o.key, host) }))
     .filter((o) => o.url !== undefined);
   if (!comps.length) return [];
   // stable sort by descending rank, as the old comparator did
