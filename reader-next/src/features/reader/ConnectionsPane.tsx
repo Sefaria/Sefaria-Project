@@ -22,6 +22,7 @@ import { TextList, type LinkedTextItem } from "~/ui/ConnectionsPanel/TextList";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { categoryColor } from "~/ui/tokens/category-color";
 import { EmptyState, LoadingState } from "~/ui/Feedback/Feedback";
+import { PartLoad, ViewLoad } from "./LoadStatus";
 import { TranslationsView } from "~/ui/TranslationsView/TranslationsView";
 import { allTranslationsQueryOptions, bucketLanguage, bucketTranslations, currentFirst, languageName, orderLanguages, parseVersionKey, type TranslationVersion } from "~/lib/versions/translations";
 import { TranslationOpenView } from "~/ui/TranslationsView/TranslationOpenView";
@@ -127,6 +128,10 @@ export interface ConnectionsPaneProps {
   lang?: "en" | "he";
   onLang?: (lang: "en" | "he") => void;
 }
+
+/** What the sidebar names when it is slow or failed (SB-02). */
+const CONNECTIONS = { en: "connections", he: "קשרים" };
+const RESOURCES = { en: "sheets, topics and other resources", he: "דפי מקורות, נושאים ומשאבים נוספים" };
 
 /** In the sidebar one language shows at a time: bilingual follows the interface language. */
 function sidebarLanguage(language: ReaderSettings["language"], interfaceLang: "english" | "hebrew"): "hebrew" | "english" {
@@ -349,8 +354,8 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     const back = { href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> };
     return (
       <ConnectionsPanel label={onManuscripts ? "Manuscripts" : "Torah Readings"} back={back} lang={shownLang} onLang={props.onLang} onClose={onClose}>
-        {resourcesQ.isPending ? (
-          <LoadingState />
+        {!resourcesQ.data ? (
+          <ViewLoad q={resourcesQ} what={RESOURCES} />
         ) : onManuscripts ? (
           <ManuscriptsView pages={manuscriptsForRefs(resourcesQ.data?.manuscripts, selectedRefs)} />
         ) : (
@@ -401,6 +406,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
             ) : null
           }
         />
+        <PartLoad q={resourcesQ} what={RESOURCES} />
       </ConnectionsPanel>
     );
   }
@@ -724,20 +730,25 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   if (view.view === "resources") {
     return (
       <ConnectionsPanel label="Resources" title={<ResourcesTitle />} lang={shownLang} onLang={props.onLang} onClose={onClose}>
-        {linksQ.isPending ? (
-          <LoadingState />
+        {!sectionLinks ? (
+          // SB-02: a cold /api/links can take 11 s; say so, and offer a retry if it fails
+          <ViewLoad q={linksQ} what={CONNECTIONS} />
         ) : (
-          <ResourcesView
-            summary={topLevelSummary(summary, essaysFor(sectionLinks ?? [], props.shownVersions))}
-            catalog={catalog}
-            hrefFor={hrefFor}
-            onNavigate={nav}
-            counts={counts}
-            sheetsHref={sheetsHref}
-            signedIn={!!viewer}
-            moderator={!!viewer?.isStaff}
-            notesCount={notesQ.data?.length ?? 0}
-          />
+          <>
+            <ResourcesView
+              summary={topLevelSummary(summary, essaysFor(sectionLinks, props.shownVersions))}
+              catalog={catalog}
+              hrefFor={hrefFor}
+              onNavigate={nav}
+              counts={counts}
+              sheetsHref={sheetsHref}
+              signedIn={!!viewer}
+              moderator={!!viewer?.isStaff}
+              notesCount={notesQ.data?.length ?? 0}
+            />
+            {/* SB-02: the connections above came from /api/links; a cold /api/related (sheets, topics…) can end in a 504 after 15 s */}
+            <PartLoad q={resourcesQ} what={RESOURCES} />
+          </>
         )}
       </ConnectionsPanel>
     );
@@ -747,7 +758,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     const label = categoryLabel(view.category, catalog);
     return (
       <ConnectionsPanel label={view.category} back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
-        {linksQ.isPending ? <LoadingState /> : <CategoryView categories={categoryView(summary, view.category)} catalog={catalog} hrefFor={hrefFor} onNavigate={nav} current={view.category} lang={shownLang} />}
+        {!sectionLinks ? <ViewLoad q={linksQ} what={CONNECTIONS} /> : <CategoryView categories={categoryView(summary, view.category)} catalog={catalog} hrefFor={hrefFor} onNavigate={nav} current={view.category} lang={shownLang} />}
       </ConnectionsPanel>
     );
   }
@@ -822,6 +833,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
             : undefined
         }
       />
+      {sectionLinks ? null : <PartLoad q={linksQ} what={CONNECTIONS} />}
     </ConnectionsPanel>
   );
 }
