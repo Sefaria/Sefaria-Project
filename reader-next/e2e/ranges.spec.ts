@@ -134,12 +134,59 @@ test.describe("a daf without its amud is both amudim, all highlighted (sefaria.o
   });
 });
 
-test("a range of whole sections longer than what loads with the page keeps its address, with no blue over it", async ({ page }) => {
-  await open(page, "/Genesis.1-50?lang=en");
-  await expect(seg(page, "Genesis 1:1")).toBeVisible();
-  await page.waitForTimeout(1000);
-  expect(path(page)).toBe("/Genesis.1-50");
-  expect(await highlighted(page)).toEqual([]);
+// sefaria.org (VERIFIED 2026-11-10, Playwright, read-only; lane-R report): /Genesis.1-50 is written /Genesis.1.1-50.26 before any text
+// shows, and every verse is blue as its chapter arrives (it then sometimes loses the race described above and collapses to a verse).
+test.describe("a range of whole sections longer than what loads with the page", () => {
+  test("is all highlighted and written by its verses once its last chapter is known, in place, without moving the text", async ({ page }) => {
+    await open(page, "/Exodus.1?lang=en");
+    const length = await page.evaluate(() => history.length);
+    // every frame from the start: where Genesis 1:1 is on screen, and the address
+    await page.addInitScript(() => {
+      const w = window as unknown as { __tops: [string, number][] };
+      w.__tops = [];
+      const tick = () => {
+        const el = document.querySelector('[data-reader-scroller] [role="group"][data-ref="Genesis 1:1"]');
+        if (el) w.__tops.push([location.pathname, Math.round(el.getBoundingClientRect().top)]);
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    await open(page, "/Genesis.1-50?lang=en");
+    await expect(page).toHaveURL(/\/Genesis\.1\.1-50\.26\?/);
+    await page.waitForTimeout(500);
+    const tops = await page.evaluate(() => (window as unknown as { __tops: [string, number][] }).__tops);
+    // the text was on screen before the address changed, and it did not move when it changed
+    expect(tops.some(([p]) => p === "/Genesis.1-50")).toBe(true);
+    expect(new Set(tops.map(([, t]) => t)).size).toBe(1);
+    expect(await page.evaluate(() => history.length)).toBe(length + 1); // the rewrite replaced its entry
+    // every loaded verse is blue, from the first chapter's first
+    const hl = await highlighted(page);
+    const all = await page.locator("[data-reader-scroller] [role='group'][data-ref]").evaluateAll((els) => els.map((e) => e.getAttribute("data-ref")));
+    expect(hl[0]).toBe("Genesis 1:1");
+    expect(hl).toEqual([...new Set(all)]);
+    await page.waitForTimeout(800);
+    expect(path(page)).toBe("/Genesis.1.1-50.26");
+  });
+
+  test("with the sidebar open keeps its address, all highlighted", async ({ page }) => {
+    await open(page, "/Genesis.1-50?lang=en&with=all");
+    await expect.poll(async () => (await highlighted(page))[0]).toBe("Genesis 1:1");
+    await page.waitForTimeout(800);
+    expect(path(page)).toBe("/Genesis.1-50");
+  });
+
+  test("a later chapter is blue when the column loads it", async ({ page }) => {
+    await open(page, "/Psalms.1-150?lang=en");
+    await expect(page).toHaveURL(/\/Psalms\.1\.1-150\.6\?/);
+    // the column fills below (not the reader scrolling, which would end the range: the address follows the verse read)
+    await expect
+      .poll(async () => {
+        await page.locator("[data-reader-scroller]").evaluate((el) => (el.scrollTop = el.scrollHeight));
+        return (await highlighted(page)).some((r) => /^Psalms ([5-9]|\d\d+):/.test(r!));
+      })
+      .toBe(true);
+    expect(path(page)).toBe("/Psalms.1.1-150.6");
+  });
 });
 
 test.describe("selecting text across segments highlights them, as on sefaria.org", () => {
@@ -204,5 +251,105 @@ test.describe("selecting text across segments highlights them, as on sefaria.org
     await seg(page, "Genesis 1:7").click();
     await expect(page).toHaveURL(/\/Genesis\.1\.7\?.*with=all/);
     await expect.poll(() => highlighted(page)).toEqual([]);
+  });
+});
+
+/** Select segments' text by script (the first words of `from`, or from it into `to`): what a keyboard or a touch leaves, no mouse event. */
+async function selectByScript(page: Page, from: string, to?: string) {
+  await page.evaluate(
+    ([from, to]) => {
+      const textOf = (ref: string) => {
+        const el = document.querySelector(`[data-reader-scroller] [role="group"][data-ref="${ref}"]`)!;
+        const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+          acceptNode: (t) => (t.textContent!.trim().length > 20 && t.parentElement!.getClientRects().length && getComputedStyle(t.parentElement!).userSelect !== "none" && !t.parentElement!.closest("[aria-hidden='true']") ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP),
+        });
+        return w.nextNode() as Text;
+      };
+      const a = textOf(from!);
+      const z = textOf(to ?? from!);
+      getSelection()!.setBaseAndExtent(a, 0, z, Math.min(10, z.length));
+    },
+    [from, to],
+  );
+}
+
+// Lane R (wave 2). sefaria.org (VERIFIED 2026-11-10, Playwright, read-only): after a drag over 1:3-1:5 (or 1:30-2:2), Cmd+C, Shift and a
+// reflow (the window narrowed) leave the range and its blue as they were. Here a key that does not scroll is no longer taken for
+// reading on (use-reading-scroll.ts), so a later reflow cannot settle on a verse and drop the range.
+test.describe("keys that do not scroll leave a selected range alone", () => {
+  test.use({ viewport: { width: 1280, height: 1300 } });
+  for (const [start, from, to, address, refs] of [
+    ["/Genesis.1.3", "Genesis 1:3", "Genesis 1:5", "/Genesis.1.3-5", ["Genesis 1:3", "Genesis 1:4", "Genesis 1:5"]],
+    ["/Genesis.1.29", "Genesis 1:30", "Genesis 2:2", "/Genesis.1.29", ["Genesis 1:30", "Genesis 1:31", "Genesis 2:1", "Genesis 2:2"]],
+  ] as const) {
+    test(`copy (Cmd+C), Shift, then a reflow: ${from}-${to} stays`, async ({ page }) => {
+      await open(page, `${start}?lang=en`);
+      await expect(seg(page, to)).toBeAttached();
+      await dragSelect(page, from, to);
+      await expect.poll(() => highlighted(page)).toEqual([...refs]);
+      await expect.poll(() => path(page)).toBe(address);
+      // a drag that reaches the column's edge scrolls it (the browser's, not the reader's wheel): the verse on the reading line changes
+      await page.locator("[data-reader-scroller]").evaluate((el) => el.scrollBy(0, 250));
+      await page.waitForTimeout(500);
+      await page.keyboard.press("ControlOrMeta+c");
+      await page.keyboard.press("Shift");
+      await page.keyboard.press("Meta");
+      await page.setViewportSize({ width: 760, height: 1300 }); // the window narrowed to the phone layout: everything reflows
+      await page.waitForTimeout(1500); // well past the moment a scroll settles
+      expect(await highlighted(page)).toEqual([...refs]);
+      expect(path(page)).toBe(address);
+    });
+  }
+});
+
+// Lane R (wave 2): a selection made without a mouse makes a range too. sefaria.org listens to mouseup only (static/js/TextColumn.jsx),
+// so there Shift+arrows or a long press make no range (VERIFIED 2026-11-10: Shift+Down in 1:3, no blue); a deliberate
+// difference, asked for by the owner's wave-2 list (D4).
+test.describe("a selection made by keyboard or touch makes a range, as a mouse selection does", () => {
+  test.use({ viewport: { width: 1280, height: 1300 } });
+  test("Shift+Down from a word selected in 1:3: the segments it reaches are highlighted and the address follows, in place", async ({ page }) => {
+    await open(page, "/Genesis.1.3?lang=en");
+    await expect(seg(page, "Genesis 1:5")).toBeAttached();
+    const length = await page.evaluate(() => history.length);
+    await selectByScript(page, "Genesis 1:3"); // a word
+    // down until the selection reaches into 1:4
+    await expect
+      .poll(async () => {
+        await page.keyboard.press("Shift+ArrowDown");
+        return page.evaluate(() => {
+          const s = getSelection()!;
+          return !!s.rangeCount && !!document.querySelector('[data-reader-scroller] [role="group"][data-ref="Genesis 1:4"]') && s.getRangeAt(0).intersectsNode(document.querySelector('[data-reader-scroller] [role="group"][data-ref="Genesis 1:4"]')!);
+        });
+      })
+      .toBe(true);
+    const refs = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('[data-reader-scroller] [role="group"][data-ref]')].filter((el) => getSelection()!.getRangeAt(0).intersectsNode(el)).map((el) => el.dataset.ref),
+    );
+    expect(refs.length).toBeGreaterThan(1);
+    await expect.poll(() => highlighted(page)).toEqual(refs);
+    await expect(page).toHaveURL(new RegExp(`/Genesis\\.1\\.3-${refs.at(-1)!.split(":")[1]}\\?`));
+    expect(await page.evaluate(() => history.length)).toBe(length);
+    await expect(sidebar(page)).toHaveCount(0);
+  });
+
+  test("a selection outside the text (the header) makes no range", async ({ page }) => {
+    await open(page, "/Genesis.1.3?lang=en");
+    await expect(seg(page, "Genesis 1:5")).toBeAttached();
+    await page.evaluate(() => getSelection()!.selectAllChildren(document.querySelector("header") ?? document.body.firstElementChild!));
+    await page.waitForTimeout(800);
+    expect(await highlighted(page)).toEqual([]);
+    expect(path(page)).toBe("/Genesis.1.3");
+  });
+});
+
+test.describe("on a phone, a selection made by touch (no mouseup) makes a range", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  test("1:3 to 1:4 selected (as a long press and its handles leave it): highlighted, the address follows", async ({ page }) => {
+    await open(page, "/Genesis.1.3?lang=en");
+    await expect(seg(page, "Genesis 1:4")).toBeAttached();
+    // Playwright cannot long-press to select; the selection it leaves is made here, with no mouse event at all
+    await selectByScript(page, "Genesis 1:3", "Genesis 1:4");
+    await expect.poll(() => highlighted(page)).toEqual(["Genesis 1:3", "Genesis 1:4"]);
+    await expect(page).toHaveURL(/\/Genesis\.1\.3-4\?/);
   });
 });

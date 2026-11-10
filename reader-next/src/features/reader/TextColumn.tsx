@@ -99,6 +99,10 @@ export function TextColumn(props: TextColumnProps) {
   const propsRef = useRef(props);
   propsRef.current = props;
 
+  // Text the reader selects in this column: on mouseup for a mouse, and when the selection rests for one made by keyboard (Shift+arrows)
+  // or touch (a long press and its handles), which end in no mouseup. One report per selection either way (lane R, D4).
+  useEffect(() => listenForSelections(() => contentRef.current, (words, refs) => propsRef.current.onSelectWords?.(words, refs)), []);
+
   // Development aid: count column mounts (a remount while reading would be a visible reset).
   useEffect(() => {
     if (import.meta.env?.DEV) {
@@ -399,15 +403,6 @@ export function TextColumn(props: TextColumnProps) {
           e.clipboardData.setData("text/plain", text);
           e.preventDefault();
         }}
-        onMouseUp={() => {
-          const sel = window.getSelection();
-          const root = contentRef.current;
-          if (!sel || sel.isCollapsed || !sel.rangeCount || !root) return;
-          const range = sel.getRangeAt(0);
-          if (!root.contains(range.commonAncestorContainer)) return;
-          const words = selectedText(range);
-          if (words) props.onSelectWords?.(words, segmentsInRange(root, range));
-        }}
       >
         <div className={styles.edge} aria-hidden={!loading.up}>
           {first.prev ? (
@@ -440,4 +435,62 @@ export function TextColumn(props: TextColumnProps) {
       <script dangerouslySetInnerHTML={{ __html: INITIAL_POSITION_SCRIPT }} />
     </div>
   );
+}
+
+/** How long a selection made without a mouse (keyboard, touch handles) must rest before it counts. */
+export const SELECTION_SETTLE_MS = 300;
+
+/**
+ * Report text selected inside `root()`: the words and the segments they touch (the old handleTextSelection, which listened to mouseup
+ * only). A mouse selection is reported on mouseup; one made by keyboard or touch, when `selectionchange` has been quiet for
+ * `settleMs`. While a mouse button is down the changes of a drag are not reported; a selection already reported (by either path) is
+ * not reported again, and a selection outside the column is never reported. Returns the cleanup.
+ */
+export function listenForSelections(root: () => Element | null, report: (words: string, refs: string[]) => void, settleMs = SELECTION_SETTLE_MS, doc: Document = document): () => void {
+  let last = "";
+  let mouseDown = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const check = () => {
+    timer = undefined;
+    const sel = doc.getSelection();
+    const el = root();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) {
+      last = "";
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    if (!el || !el.contains(range.commonAncestorContainer)) return;
+    const words = selectedText(range);
+    if (!words) return;
+    const refs = segmentsInRange(el, range);
+    const key = `${words}\u0000${refs.join("|")}`;
+    if (key === last) return;
+    last = key;
+    report(words, refs);
+  };
+  const onDown = (e: PointerEvent) => {
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    mouseDown = true;
+    clearTimeout(timer);
+  };
+  const onUp = (e: MouseEvent) => {
+    if (e.button !== 0 || !mouseDown) return;
+    mouseDown = false;
+    clearTimeout(timer);
+    check();
+  };
+  const onChange = () => {
+    if (mouseDown) return;
+    clearTimeout(timer);
+    timer = setTimeout(check, settleMs);
+  };
+  doc.addEventListener("pointerdown", onDown, true);
+  doc.addEventListener("mouseup", onUp, true);
+  doc.addEventListener("selectionchange", onChange);
+  return () => {
+    clearTimeout(timer);
+    doc.removeEventListener("pointerdown", onDown, true);
+    doc.removeEventListener("mouseup", onUp, true);
+    doc.removeEventListener("selectionchange", onChange);
+  };
 }
