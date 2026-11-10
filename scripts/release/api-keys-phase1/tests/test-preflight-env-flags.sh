@@ -11,7 +11,6 @@
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REL="$(cd "${1:-$HERE/..}" && pwd)"
-PY="${APIKEYS_RELEASE_PYTHON3:-python3}"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/preflight-env-flags.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 fail=0
@@ -19,6 +18,7 @@ ok() { echo "ok: $*"; }
 bad() { echo "FAIL: $*"; fail=1; }
 
 mkdir -p "$WORK/bin"
+# shellcheck disable=SC2016  # the stub is a script of its own: its $1 and $2 are not ours
 printf '#!/bin/sh\n[ "$1 $2" = "config get-contexts" ] && echo kind-flags\nexit 0\n' >"$WORK/bin/kubectl"
 chmod +x "$WORK/bin/kubectl"
 
@@ -88,7 +88,7 @@ f="$WORK/auth-base.yaml"
 env_file "$f" 'DEVELOPER_SETTINGS_ENABLED: "False"' false
 make_repo "$WORK/dev$n" - "$f"
 out="$(run_preflight "$WORK/dev$n" | grep 'DEVELOPER_SETTINGS_ENABLED' || true)"
-[[ "$out" == FAIL* ]] && ok "DEVELOPER_SETTINGS_ENABLED: an unreadable env file at the code ref -> FAIL" || bad "unreadable env file at the code ref: ${out:-nothing}"
+if [[ "$out" == FAIL* ]]; then ok "DEVELOPER_SETTINGS_ENABLED: an unreadable env file at the code ref -> FAIL"; else bad "unreadable env file at the code ref: ${out:-nothing}"; fi
 
 # --- authService.enabled ---
 auth_case() { # DESC DEPLOYED_ENABLED CODE_ENABLED EXPECT(FAIL|WARN) [extra preflight args]
@@ -112,6 +112,6 @@ n=$((n + 1))
 env_file "$WORK/auth-code$n.yaml" 'DEVELOPER_SETTINGS_ENABLED: "False"' false
 make_repo "$WORK/auth$n" "$WORK/auth-code$n.yaml" -
 out="$(run_preflight "$WORK/auth$n")"
-grep -qE '^FAIL +cannot read envs/preprod/helmrelease.yaml at origin/preprod' <<<"$out" && ok "an unreadable deployed env file -> FAIL" || bad "unreadable deployed env file: $(grep -E 'cannot read|reader' <<<"$out" | head -3)"
-grep -qE '^FAIL +role .*reader' <<<"$out" && ok "an unreadable deployed env file makes the reader role required" || bad "reader role not required after an unreadable file"
+if grep -qE '^FAIL +cannot read envs/preprod/helmrelease.yaml at origin/preprod' <<<"$out"; then ok "an unreadable deployed env file -> FAIL"; else bad "unreadable deployed env file: $(grep -E 'cannot read|reader' <<<"$out" | head -3)"; fi
+if grep -qE '^FAIL +role .*reader' <<<"$out"; then ok "an unreadable deployed env file makes the reader role required"; else bad "reader role not required after an unreadable file"; fi
 exit "$fail"

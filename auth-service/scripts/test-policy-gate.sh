@@ -120,6 +120,7 @@ for a in d[\"status\"][\"ancestors\"]: a[\"controllerName\"] = \"example.com/oth
 json.dump(d, open(p, \"w\"))" "$FAKE_DIR/securitypolicy_authpoc-auth.json"'
 # A same-namespace parentRef leaves namespace, group and kind out of spec; Envoy Gateway may spell them out in status.
 # Before the fix these never matched: a false alarm (a healthy route fails the gate), never a silent pass.
+# shellcheck disable=SC2016  # expanded later, by expect's eval
 edit_route='python3 -c "
 import json,sys; p=sys.argv[1]; d=json.load(open(p)); exec(sys.argv[2])
 json.dump(d, open(p, \"w\"))" "$FAKE_DIR/httproute_authpoc.json"'
