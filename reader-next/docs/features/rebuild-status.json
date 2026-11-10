@@ -197,8 +197,9 @@
   "note": "Voices out of scope (owner 2026-11-10)"
  },
  "RTE-040": {
-  "status": "partial",
-  "note": "Unknown book is a real 404 page; error pages for server failures not designed"
+  "status": "done",
+  "note": "Own 404 page after Django's 404 (noindex), HTML 503 page",
+  "by": "src/lib/routing/not-found.ts, src/features/routing/NotFoundPage.tsx, src/server/error-page.ts, src/start.ts"
  },
  "RTE-042": {
   "status": "done",
@@ -237,8 +238,9 @@
   "by": "src/lib/workspace/url.ts"
  },
  "RTE-059": {
-  "status": "todo",
-  "note": "sefaria.org / sefaria.org.il bounce by interface language not reproduced by the reader's server (T-E07)"
+  "status": "done",
+  "note": "Bounce reproduced in the reader's server (needs DOMAIN_MODULES in the pod env)",
+  "by": "src/server/language-domain.ts, src/start.ts"
  },
  "RTE-062": {
   "status": "done",
@@ -3194,8 +3196,9 @@
   "note": "Server behaviour; nginx serves robots.txt from its ConfigMap, unchanged."
  },
  "RTE-012": {
-  "status": "todo",
-  "note": "/random and /random/link still Django's; answer the redirects in the reader's server (T-F26)."
+  "status": "partial",
+  "note": "/random/link answered here; /random page Django's",
+  "by": "src/server/redirects.ts"
  },
  "RTE-013": {
   "status": "todo",
@@ -3235,8 +3238,8 @@
  },
  "RTE-037": {
   "status": "partial",
-  "note": "Tanach->Tanakh, / -> /texts and canonical-ref 301s are the reader's; the rest still go to Django (people, person, my/notes, texts/recent, community, contributors: T-F26).",
-  "by": "src/routes/texts.$.tsx, src/routes/index.tsx, src/features/reader/reader-route.ts"
+  "note": "The data-free redirects answered by the reader's server; /person and the rest Django's",
+  "by": "src/server/redirects.ts"
  },
  "RTE-038": {
   "status": "n/a",

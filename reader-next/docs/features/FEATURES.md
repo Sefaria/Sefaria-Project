@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**961 features**, 3955 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
+**961 features**, 3965 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 427 · partial 102 · todo 53 · replaced 47 · deferred 197 · n/a 135; 393 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 429 · partial 102 · todo 51 · replaced 47 · deferred 197 · n/a 135; 397 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -3890,6 +3890,7 @@ Version metadata: source, digitization, license, revision history and where to b
 - Revision History link /activity/<ref>/<lang>/<vtitle> (segment_history) always shown; Buy in print link to purchaseInformationURL.
 - VersionImage: buy image links to purchase URL or versionSource; hidden when no image (src 'data:,'); alt 'Buy now'.
 - VersionMetadata composes title + information + image inside preview disclosure.
+- 2026-11-10 (T-F03), deliberate difference: a version source that is not an address (a book's name such as 'Biblia Judaica Completa') is plain text; the old VersionInformation wrote it as a relative link that ended at Django's 404. An address (http(s)://, www., or a site path such as /shraga-silverstein) stays a link; the edition's picture is linked only to an address. Tests: src/ui/VersionInfo/VersionInfo.test.tsx.
 
 Code: [`static/js/VersionBlock/VersionInformation.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/VersionBlock/VersionInformation.jsx), [`static/js/sefaria/sefaria.js:1123`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L1123)
 
@@ -9073,6 +9074,7 @@ The header gives access to main sections, search, donate, account and module swi
 - VERIFIED 2026-10-05 (/texts, signed out, English): role=banner .header > .headerInner (60px, box-shadow) with nav aria-label 'Primary navigation': logo link (aria-label 'Sefaria library logo'), 'Texts' /texts, 'Topics' /topics, 'Donate' (donate.sefaria.org …?c_src=Header, new tab). Hebrew labels: מקורות, נושאים, תרומה. The desktop header shows from 900px up; at 842px and below the mobile header replaces it (the same 842px where panels go single-column).
 - Rebuild: SiteHeader (src/ui/SiteHeader). Destinations the client does not have yet are the old site's pages (src/lib/shell/links.ts). While reading on a phone the header is hidden (live: same).
 - Desktop bar: links 16px/500 #666 nudged down translateY(0.15em) (0.1em Hebrew), 30px apart, 60px after the 154x25 logo; search box 250x30, radius 250px, #ededec, the 18px search_mdl.svg 6px down/7px in and 9px from an 18px Cardo input that runs to the end; the keyboard_mdl.svg icon appears inside it on focus, 7px from the end; no focus ring after a click (only when tabbing, body.user-is-tabbing). 843–1086px: the logo becomes the 19x25 samech mark, links 24px apart and 20px after it, icons 16px apart. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- 2026-11-10 (T-F02): Texts and Topics (desktop and phone menu) are relative links through the router's Link, so they navigate inside the app instead of reloading from www.sefaria.org-style absolute addresses. Tests: e2e/routing-server.spec.ts, src/ui/SiteHeader/SiteHeader.test.tsx.
 
 Code: [`static/js/Header.jsx:236`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L236), [`static/js/Header.jsx:347`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L347)
 
@@ -11045,13 +11047,14 @@ Code: [`reader/views.py:1256-1289`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-012 · Random text URLs
-`optional` `live` · rebuild: **todo** — /random and /random/link still Django's; answer the redirects in the reader's server (T-F26).
+`optional` `live` · rebuild: **partial** — /random/link answered here; /random page Django's · *tested*
 
 Random links send readers to a random segment or a random-text page.
 
 - /random/link -> 302 random segment ref (random_redirect).
 - /random -> random.html page.
 - api/texts/random -> 302 /api/texts/<random>?commentary=0&context=0; regex ^api/texts/random?$ also matches a missing last letter.
+- BUILT 2026-11-10 (T-F26): /random/link is a 302 to the ref /api/texts/random's own redirect names (the same random_ref()), answered by the reader's server; Django when the API cannot say. /random (a page of Django's) stays Django's. Tests: src/server/redirects.test.ts.
 
 Code: [`reader/views.py:4718-4730`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4718-L4730)
 
@@ -11092,6 +11095,7 @@ Source: `inv_01_urls_routing.md#1.1`
 - /torahtracker -> menu 'user_stats' (login required).
 - /texts/notes -> menu 'notes', @login_required (client history writes /texts/notes for notes menu).
 - BUILT 2026-11-05: /texts/notes is this client's (src/routes/texts.notes.tsx). /torahtracker is still Django's.
+- BUILT 2026-11-10 (T-F26): /my/notes[/] is a 302 to /texts/notes, this client's notes page. Deliberate difference: Django sends a signed-in reader to /my/profile?tab=notes (the Voices profile) and a signed-out one to /login?next=/my/notes. Tests: e2e/routing-server.spec.ts.
 
 Code: [`reader/views.py:1373-1382`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1373-L1382)
 
@@ -11442,7 +11446,7 @@ Code: [`sefaria/urls_shared.py:274-311`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_01_urls_routing.md#1.3`
 
 #### RTE-037 · Legacy redirects (complete list)
-`standard` `live` · rebuild: **partial** — Tanach->Tanakh, / -> /texts and canonical-ref 301s are the reader's; the rest still go to Django (people, person, my/notes, texts/recent, community, contributors: T-F26).
+`standard` `live` · rebuild: **partial** — The data-free redirects answered by the reader's server; /person and the rest Django's · *tested*
 
 A single reference list of every legacy URL that is redirected.
 
@@ -11452,6 +11456,7 @@ A single reference list of every legacy URL that is redirected.
 - /new-home->/ (302); /my/notes->/my/profile?tab=notes; /account, /profile, /my/profile -> /profile/<slug>.
 - / (library)->/texts; collection privateSlug -> public slug; /edit/textinfo add-new -> edit; /annualreport2021 -> /annualreport/2021.
 - api/texts/<non-normal tref> GET -> 301 to normalized URL with params.
+- BUILT 2026-11-10 (T-F26): answered by the reader's server (src/server/redirects.ts), same status and Location as Django (VERIFIED on www.sefaria.org 2026-11-10): /people[/] 301 /topics/category/authors, /people/Talmud[/] 301 /topics/category/talmudic-figures, /texts/recent[/] 301 /texts/history, /contributors/<uid>[/<n>] 301 /profile/<uid>. /person/<name> stays Django's (database lookup by the old person key; its answer is a redirect to a topic page this client renders) and so does /community (a redirect to Voices). Tests: src/server/redirects.test.ts, e2e/routing-server.spec.ts.
 
 Code: [`reader/views.py:525-531`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L525-L531), [`reader/views.py:1749-1756`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1749-L1756), [`reader/views.py:2025-2032`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L2025-L2032)
 
@@ -11487,7 +11492,7 @@ Code: [`reader/views.py:5250-5257`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#3.3`
 
 #### RTE-040 · 404 and error pages
-`core` `live` · rebuild: **partial** — Unknown book is a real 404 page; error pages for server failures not designed
+`core` `live` · rebuild: **done** — Own 404 page after Django's 404 (noindex), HTML 503 page · *tested*
 
 Missing pages show a bilingual, header-only 404; server errors show a 500 page.
 
@@ -11495,6 +11500,9 @@ Missing pages show a bilingual, header-only 404; server errors show a 500 page.
 - 404 triggers: bad ref; topic not found or not in module pool; unknown collection/translation slug/profile/inactive profile; sheet load error (make_sheet_panel_dict); unknown annual-report year;
 - segment history w/o version.
 - Unrecognized extra panels p<N> are skipped silently rather than 404.
+- BUILT 2026-11-10 (T-F28): a path this client does not render is still handed to Django first; when Django answers 404 too (an HTML page read, not an API's, not on the Voices host) the reader renders its own Page Not Found in the new shell — templates/404.html's words, title 'Page Not Found | Sefaria', 404, X-Robots-Tag and robots meta noindex, Cache-Control no-cache. Mechanism: the request middleware calls the router with a request-context flag and the root route throws notFound() in beforeLoad (src/lib/routing/not-found.ts, src/start.ts). Deliberate difference: live's 404 page has no noindex. Routes with their own not-found (a text: 'Text not found'; topics: 'Page not found.') keep theirs, now noindex.
+- BUILT 2026-11-10 (T-F28): an upstream failure is an HTML page (src/server/error-page.ts), still 503 + Retry-After 5, no-store, noindex, in the interface language of the cookie, with a 'Try again' link to the same address and templates/500.html's contact line. A fixed document: the app's render would need the API that failed.
+- Tests: src/lib/routing/not-found.test.ts, src/server/error-page.test.ts, e2e/routing-pass-through.spec.ts (needs a pass-through dev server, E2E_PASS_THROUGH_URL).
 
 Code: [`reader/views.py:5386-5408`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5386-L5408), [`reader/views.py:670-671`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L670-L671)
 
@@ -11811,7 +11819,7 @@ Source: `inv_01_urls_routing.md#4.5`
 ### Language domains
 
 #### RTE-059 · Language-domain redirect
-`core` `live` · rebuild: **todo** — sefaria.org / sefaria.org.il bounce by interface language not reproduced by the reader's server (T-E07)
+`core` `live` · rebuild: **done** — Bounce reproduced in the reader's server (needs DOMAIN_MODULES in the pod env) · *tested*
 
 A user whose language does not match the language-specific domain is bounced to the other-language domain.
 
@@ -11821,6 +11829,8 @@ A user whose language does not match the language-specific domain is bounced to 
 - Crawlers/bots get the domain's language with no redirect: Googlebot, Bingbot, Slurp, DuckDuckBot, Baiduspider, YandexBot, Facebot, facebookexternalhit, ia_archiver, Sogou, python-request, curl, Wget,
 - sefaria-node.
 - PROBE NOTE 2026-10-05: an automated visit to www.sefaria.org from this machine was redirected to www.sefaria.org.il with a Hebrew interface (geo/language domain redirect); set the interfaceLang=english cookie for www.sefaria.org to keep English.
+- BUILT 2026-11-10 (T-E07): src/server/language-domain.ts reproduces LanguageCookieMiddleware and LanguageSettingsMiddleware for the page requests this server answers (Django's own pages do it themselves): the same exclusions, interface from the interfaceLang cookie, else cf-ipcountry (IL = Hebrew), else the Accept-Language match; crawlers (Django's list) stay; a 302 to the language's domain of the same module with the full path and set-language-cookie= appended; ?set-language-cookie sets the session cookie interfaceLang on the language's cookie domain and cleans the address. Reads DOMAIN_MODULES from the environment (Django's JSON); without it nothing is pinned. A signed-in reader's language is in the profile: Django is asked with a probe (GET /people, a fixed redirect; the middleware runs first), cached 5 min per session; a signed-in ?set-language-cookie (which writes the profile) is passed to Django. VERIFIED 2026-11-10: www.sefaria.org from an Israeli address answers 302 https://www.sefaria.org.il/<path>?set-language-cookie= (the same Location shape).
+- Needs in the cluster: DOMAIN_MODULES in the reader pod's environment (the optin rollout, helm reader.yaml, does not mount local-settings-<env>). Tests: src/server/language-domain.test.ts, e2e/routing-pass-through.spec.ts.
 
 Code: [`sefaria/system/middleware.py:129-149`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/system/middleware.py#L129-L149), [`sefaria/system/middleware.py:209-233`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/system/middleware.py#L209-L233), [`sefaria/utils/domains_and_languages.py:34-62`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/utils/domains_and_languages.py#L34-L62)
 
