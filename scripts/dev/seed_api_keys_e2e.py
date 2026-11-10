@@ -977,6 +977,28 @@ def emit_manifest(args):
     return str(path)
 
 
+def validate_manifest_destination(args):
+    """
+    Refuses, before anything is written to the database, a run whose manifest could not be delivered afterwards: the
+    cauldron's manifest goes to stdout only, and a local manifest file needs a writable directory. Without this a
+    --reset on the cauldron without --manifest-stdout reseeded every fixture and then died in emit_manifest, leaving
+    full API keys in a database with no manifest to show for them.
+    """
+    if not (args.reset or args.legacy_key or args.write_manifest or (args.ensure_sentinel and args.manifest_stdout)):
+        return  # nothing here emits a manifest
+    if args.manifest_stdout:
+        return
+    if args.target == "cauldron":
+        raise SystemExit("On the cauldron the manifest goes to stdout only: add --manifest-stdout.")
+    path = _manifest_path()
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise SystemExit(f"Cannot create the directory for the manifest {path}: {exc}")
+    if not os.access(str(path.parent), os.W_OK) or (path.exists() and not os.access(str(path), os.W_OK)):
+        raise SystemExit(f"The manifest {path} is not writable; nothing was changed.")
+
+
 def setup_django():
     from django.apps import apps
 
@@ -999,6 +1021,7 @@ def main(argv, password_preamble=None):
 
     if args.ensure_sentinel and args.target != "local":
         raise SystemExit("The sentinel exists only on the local stack.")
+    validate_manifest_destination(args)
 
     if args.report:
         report(out)

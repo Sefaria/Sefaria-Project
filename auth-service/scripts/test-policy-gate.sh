@@ -136,6 +136,43 @@ expect pass "route: a parentRef with no listener is covered by one accepted stat
 d[\"spec\"][\"parentRefs\"] = [{\"name\": \"authpoc\"}]"'
 expect fail "route: a parentRef with no listener fails when one listener's status is rejected" 'obj httproute authpoc statuses=True,False; '"$edit_route"' "
 d[\"spec\"][\"parentRefs\"] = [{\"name\": \"authpoc\"}]"'
+# The policy branch normalises ancestorRef (group, kind, name, namespace) with the Gateway API defaults too: group
+# gateway.networking.k8s.io, kind Gateway, and the namespace of the policy (a fixture policy has no metadata.namespace,
+# so the gate's NS, "default", stands in for it).
+# shellcheck disable=SC2016  # expanded later, by expect's eval
+edit_policy='python3 -c "
+import json,sys; p=sys.argv[1]; d=json.load(open(p)); exec(sys.argv[2])
+json.dump(d, open(p, \"w\"))" "$FAKE_DIR/securitypolicy_authpoc-auth.json"'
+# shellcheck disable=SC2016  # expanded later, by expect's eval
+edit_ctp='python3 -c "
+import json,sys; p=sys.argv[1]; d=json.load(open(p)); exec(sys.argv[2])
+json.dump(d, open(p, \"w\"))" "$FAKE_DIR/clienttrafficpolicy_authpoc.json"'
+# shellcheck disable=SC2016  # expanded later, by expect's eval
+listeners='obj securitypolicy authpoc-auth ancestors=authpoc:https-en,authpoc:https-he; '"$edit_route"' "
+d[\"spec\"][\"parentRefs\"] = [{\"name\": \"authpoc\"}]"; '
+expect pass "policy: ancestorRef spells out the group, kind and namespace the default leaves out" "$edit_policy"' "
+for a in d[\"status\"][\"ancestors\"]: a[\"ancestorRef\"].update(namespace=\"default\", kind=\"Gateway\", group=\"gateway.networking.k8s.io\")"'
+expect pass "client traffic policy: ancestorRef spells out namespace, group and kind" 'obj clienttrafficpolicy authpoc ancestors=authpoc:https-en,authpoc:https-he; '"$edit_ctp"' "
+for a in d[\"status\"][\"ancestors\"]: a[\"ancestorRef\"].update(namespace=\"default\", kind=\"Gateway\", group=\"gateway.networking.k8s.io\")"'
+expect fail "policy: ancestorRef is a Gateway of another namespace" "$edit_policy"' "
+for a in d[\"status\"][\"ancestors\"]: a[\"ancestorRef\"][\"namespace\"] = \"other\""'
+expect fail "policy: ancestorRef is of another group" "$edit_policy"' "
+for a in d[\"status\"][\"ancestors\"]: a[\"ancestorRef\"][\"group\"] = \"example.com\""'
+expect fail "policy: ancestorRef is of another kind with the Gateway's name" "$edit_policy"' "
+for a in d[\"status\"][\"ancestors\"]: a[\"ancestorRef\"][\"kind\"] = \"Service\""'
+expect fail "client traffic policy: ancestorRef is of another namespace" 'obj clienttrafficpolicy authpoc ancestors=authpoc:https-en,authpoc:https-he; '"$edit_ctp"' "
+for a in d[\"status\"][\"ancestors\"]: a[\"ancestorRef\"][\"namespace\"] = \"other\""'
+expect pass "policy in another namespace: its ancestorRef defaults to that namespace" "$edit_policy"' "
+d[\"metadata\"][\"namespace\"] = \"other\""'
+expect fail "policy in another namespace: an ancestorRef naming the gate's namespace is not its Gateway" "$edit_policy"' "
+d[\"metadata\"][\"namespace\"] = \"other\"
+for a in d[\"status\"][\"ancestors\"]: a[\"ancestorRef\"][\"namespace\"] = \"default\""'
+# A target route whose parentRef has no sectionName: the ancestor statuses are listener-scoped, and each must be accepted.
+expect pass "policy: a target route's parentRef without a listener is covered by an accepted ancestor per listener" "$listeners"
+expect fail "policy: a target route's parentRef without a listener, one listener's ancestor rejected" "${listeners}"'obj securitypolicy authpoc-auth ancestors=authpoc:https-en,authpoc:https-he statuses=True,False'
+expect fail "policy: a target route's parentRef without a listener, one listener's ancestor is for an older generation" "${listeners}"'obj securitypolicy authpoc-auth ancestors=authpoc:https-en,authpoc:https-he gen=4 observed=4,3'
+expect fail "policy: a target route's parentRef without a listener, the only status is another namespace's" "${listeners}$edit_policy"' "
+for a in d[\"status\"][\"ancestors\"]: a[\"ancestorRef\"][\"namespace\"] = \"other\""'
 expect fail "redirect route missing" 'rm "$FAKE_DIR/httproute_authpoc-http-redirect.json"'
 # Coverage of the policy's own targets (the status must show an accepted ancestor for every target it names).
 expect pass "client traffic policy accepted on each listener it targets" 'obj clienttrafficpolicy authpoc ancestors=authpoc:https-en,authpoc:https-he'

@@ -267,5 +267,71 @@ class ManifestMode(unittest.TestCase):
             os.close(write_end)
 
 
+class ManifestValidatedBeforeMutation(unittest.TestCase):
+    """--target cauldron without --manifest-stdout must be refused before reset() or add_legacy_key() change anything."""
+
+    def call(self, argv):
+        names = (
+            "setup_django",
+            "guard_target",
+            "require_mutation_consent",
+            "read_password",
+            "reset",
+            "add_legacy_key",
+            "report",
+            "print_leftovers",
+        )
+        with (
+            mock.patch.multiple(seed, **dict.fromkeys(names, mock.DEFAULT)) as mocks,
+            mock.patch.object(seed, "emit_manifest", return_value="stdout") as emit_mock,
+        ):
+            mocks["reset"].return_value = "run-1"
+            try:
+                seed.main(argv, "pw")
+                error = None
+            except SystemExit as exc:
+                error = exc
+            return mocks, emit_mock, error
+
+    def test_reset_on_the_cauldron_without_manifest_stdout_changes_nothing(self):
+        mocks, emit_mock, error = self.call(["--target", "cauldron", "--reset"])
+        self.assertIsNotNone(error)
+        self.assertIn("--manifest-stdout", str(error))
+        mocks["reset"].assert_not_called()
+        mocks["add_legacy_key"].assert_not_called()
+        emit_mock.assert_not_called()
+
+    def test_legacy_key_on_the_cauldron_without_manifest_stdout_changes_nothing(self):
+        mocks, _, error = self.call(["--target", "cauldron", "--legacy-key", "a.b"])
+        self.assertIn("--manifest-stdout", str(error))
+        mocks["add_legacy_key"].assert_not_called()
+        mocks["reset"].assert_not_called()
+
+    def test_the_refusal_comes_before_the_consent_prompt_and_the_password_read(self):
+        mocks, _, _ = self.call(["--target", "cauldron", "--reset"])
+        mocks["require_mutation_consent"].assert_not_called()
+        mocks["read_password"].assert_not_called()
+
+    def test_reset_on_the_cauldron_with_manifest_stdout_runs(self):
+        mocks, emit_mock, error = self.call(["--target", "cauldron", "--reset", "--manifest-stdout"])
+        self.assertIsNone(error)
+        mocks["reset"].assert_called_once()
+        emit_mock.assert_called_once()
+
+    def test_an_unwritable_local_manifest_directory_changes_nothing(self):
+        with tempfile.TemporaryDirectory() as d:
+            blocker = Path(d) / "file"
+            blocker.write_text("x")  # a file where the manifest's directory should be
+            with mock.patch.dict(os.environ, {"APIKEYS_MANIFEST": str(blocker / "sub" / "m.json")}):
+                mocks, _, error = self.call(["--target", "local", "--reset"])
+        self.assertIsNotNone(error)
+        mocks["reset"].assert_not_called()
+
+    def test_a_read_only_mode_needs_no_manifest_destination(self):
+        mocks, _, error = self.call(["--target", "cauldron", "--report"])
+        self.assertIsNone(error)
+        mocks["reset"].assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

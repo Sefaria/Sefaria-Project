@@ -7,6 +7,8 @@
 #     failing it is deliberate: a release check accepts what it knows to be off and nothing else.
 #   - authService.enabled: the reader role and the registry Secret are required when EITHER the deployed env file
 #     (origin/<env branch>) OR the code ref's enables it, and an unreadable file is a FAIL, never "not enabled".
+#   - the rollback target check (image tags in the registry) reads the DEPLOYED env file (origin/<env branch>), never the
+#     code ref's file, and an unreadable or malformed one is a FAIL.
 #   tests/test-preflight-env-flags.sh [RELEASE_DIR]     (bash 4+, git, python3)
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -41,9 +43,11 @@ make_repo() {
   git -C "$dir" update-ref refs/remotes/origin/master master
   git -C "$dir" update-ref refs/remotes/origin/preprod preprod
 }
-# env_file OUT DEV_LINE AUTH_ENABLED: a minimal env file. DEV_LINE is the whole DEVELOPER_SETTINGS_ENABLED line, or "".
+# env_file OUT DEV_LINE AUTH_ENABLED [TAG]: a minimal env file. DEV_LINE is the whole DEVELOPER_SETTINGS_ENABLED line, or "".
+# AUTH_ENABLED is the text after "enabled: " (so a quoted string can be tried). TAG is the image tag of the three images.
 env_file() {
   {
+    echo "kind: HelmRelease"
     echo "spec:"
     echo "  values:"
     echo "    localSettings:"
@@ -51,6 +55,15 @@ env_file() {
     echo "      OTHER: x"
     echo "    authService:"
     echo "      enabled: $3"
+    echo "      image:"
+    echo "        repository: reg.example/auth"
+    echo "        tag: \"\""
+    for c in web nodejs nginx; do
+      echo "    $c:"
+      echo "      containerImage:"
+      echo "        imageRegistry: reg.example/$c"
+      echo "        tag: \"${4:-v0}\""
+    done
   } >"$1"
 }
 run_preflight() { # repo [extra args]: prints the output
@@ -114,4 +127,45 @@ make_repo "$WORK/auth$n" "$WORK/auth-code$n.yaml" -
 out="$(run_preflight "$WORK/auth$n")"
 if grep -qE '^FAIL +cannot read envs/preprod/helmrelease.yaml at origin/preprod' <<<"$out"; then ok "an unreadable deployed env file -> FAIL"; else bad "unreadable deployed env file: $(grep -E 'cannot read|reader' <<<"$out" | head -3)"; fi
 if grep -qE '^FAIL +role .*reader' <<<"$out"; then ok "an unreadable deployed env file makes the reader role required"; else bad "reader role not required after an unreadable file"; fi
+# authService.enabled as a quoted string is an error (FAIL, treated as enabled), never "false"
+n=$((n + 1))
+env_file "$WORK/auth-q$n.yaml" 'DEVELOPER_SETTINGS_ENABLED: "False"' '"false"'
+env_file "$WORK/auth-ok$n.yaml" 'DEVELOPER_SETTINGS_ENABLED: "False"' false
+make_repo "$WORK/auth$n" "$WORK/auth-ok$n.yaml" "$WORK/auth-q$n.yaml"
+out="$(run_preflight "$WORK/auth$n")"
+if grep -qE "^FAIL +cannot read authService.enabled in envs/preprod/helmrelease.yaml at origin/preprod" <<<"$out" && grep -qE '^FAIL +role .*reader' <<<"$out"; then ok 'authService.enabled: "false" (a string) -> FAIL, reader role required'; else bad "quoted authService.enabled: $(grep -E 'authService|reader' <<<"$out" | head -3)"; fi
+
+# --- rollback target: the image check reads the deployed env file, not the code ref's ---
+cat >"$WORK/bin/gcloud" <<GCLOUD
+#!/bin/sh
+echo "\$@" >>"$WORK/gcloud.log"
+exit 0
+GCLOUD
+chmod +x "$WORK/bin/gcloud"
+run_preflight_images() { # repo: like run_preflight, with the image check on
+  APIKEYS_RELEASE_TEST_CONTEXT=kind-flags PATH="$WORK/bin:$PATH" "$REL/preflight.sh" --env preprod --context kind-flags --repo "$1" --no-fetch 2>&1
+}
+n=$((n + 1))
+env_file "$WORK/img-deployed$n.yaml" 'DEVELOPER_SETTINGS_ENABLED: "False"' false v-deployed
+env_file "$WORK/img-code$n.yaml" 'DEVELOPER_SETTINGS_ENABLED: "False"' false v-code
+make_repo "$WORK/img$n" "$WORK/img-code$n.yaml" "$WORK/img-deployed$n.yaml"
+rm -f "$WORK/gcloud.log"
+out="$(run_preflight_images "$WORK/img$n")"
+if grep -q ':v-deployed' "$WORK/gcloud.log" 2>/dev/null && ! grep -q ':v-code' "$WORK/gcloud.log"; then ok "image tags are checked on the deployed env file (v-deployed), not the code ref's (v-code)"; else bad "image check read: $(cat "$WORK/gcloud.log" 2>/dev/null | tr '\n' ';') / $(grep -E 'image' <<<"$out" | head -3)"; fi
+if grep -qE '^PASS +web image reg.example/web:v-deployed exists' <<<"$out"; then ok "the passing image line names the deployed tag"; else bad "no pass line for the deployed tag"; fi
+# no deployed file: the image check FAILs on it even though the code ref has one
+n=$((n + 1))
+env_file "$WORK/img-code$n.yaml" 'DEVELOPER_SETTINGS_ENABLED: "False"' false v-code
+make_repo "$WORK/img$n" "$WORK/img-code$n.yaml" -
+rm -f "$WORK/gcloud.log"
+out="$(run_preflight_images "$WORK/img$n")"
+if grep -qE '^FAIL +envs/preprod/helmrelease.yaml not found on origin/preprod' <<<"$out" && [[ ! -s "$WORK/gcloud.log" ]]; then ok "no deployed env file -> FAIL; the code ref's file is not used instead"; else bad "missing deployed file: $(grep -E 'image|not found' <<<"$out" | head -3)"; fi
+# a deployed file with a tag that is not a string
+n=$((n + 1))
+env_file "$WORK/img-deployed$n.yaml" 'DEVELOPER_SETTINGS_ENABLED: "False"' false 7.1
+env_file "$WORK/img-code$n.yaml" 'DEVELOPER_SETTINGS_ENABLED: "False"' false v-code
+make_repo "$WORK/img$n" "$WORK/img-code$n.yaml" "$WORK/img-deployed$n.yaml"
+sed -i.bak 's/tag: "7.1"/tag: 7.1/' "$WORK/img-deployed$n.yaml" 2>/dev/null; git -C "$WORK/img$n" checkout -q preprod && cp "$WORK/img-deployed$n.yaml" "$WORK/img$n/envs/preprod/helmrelease.yaml" && git -C "$WORK/img$n" commit -q -am numeric-tag && git -C "$WORK/img$n" update-ref refs/remotes/origin/preprod preprod && git -C "$WORK/img$n" checkout -q master
+out="$(run_preflight_images "$WORK/img$n")"
+if grep -qE '^FAIL +could not read the image tags of envs/preprod/helmrelease.yaml on origin/preprod' <<<"$out"; then ok "a non-string image tag in the deployed file -> FAIL"; else bad "numeric tag: $(grep -E 'image' <<<"$out" | head -3)"; fi
 exit "$fail"

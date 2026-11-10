@@ -63,7 +63,33 @@ def ours(entries):
     return [e for e in entries if str(e.get("controllerName", "")).startswith(CONTROLLER)]
 
 
+# A reference to a Gateway names it by group, kind, name and namespace; spec and status may each leave group, kind and
+# namespace out or spell them out, and the API means the same thing: the defaults are the Gateway API's
+# (gateway.networking.k8s.io, Gateway, the namespace of the object that holds the reference). One normalisation for the
+# policy branch (a policy's ancestorRef and the parentRefs of a target route) and the route branch (parentRefs and
+# status parents), so the two cannot drift apart again.
+def gateway_key(ref, owner_ns):
+    return (ref.get("group") or "gateway.networking.k8s.io", ref.get("kind") or "Gateway", ref.get("name"),
+            ref.get("namespace") or owner_ns)
+
+
+def select(entries, ref_field, want, section, entry_ns, unscoped_ok):
+    """The status entries (ancestors or parents) that are about the Gateway `want` and, when the spec names a listener
+    (`section`), about that listener; a spec that omits the listener matches every entry of the Gateway, listener-scoped
+    ones included. unscoped_ok: an entry without a sectionName also covers a named listener."""
+    out = []
+    for e in entries:
+        ref = e.get(ref_field) or {}
+        if gateway_key(ref, entry_ns) != want:
+            continue
+        if section and ref.get("sectionName") != section and not (unscoped_ok and not ref.get("sectionName")):
+            continue
+        out.append(e)
+    return out
+
+
 status = obj.get("status") or {}
+object_ns = (obj.get("metadata") or {}).get("namespace") or os.environ.get("NS", "")
 if shape == "policy":
     ancestors = ours(status.get("ancestors") or [])
     if not ancestors:
@@ -87,56 +113,52 @@ if shape == "policy":
     for t in targets:
         tkind, tname, tsection = t.get("kind"), t.get("name"), t.get("sectionName")
         if tkind == "Gateway":
-            expected = [(tname, tsection)]
+            # a targetRef is local: the Gateway is in the policy's namespace
+            expected = [(gateway_key(t, object_ns), tsection)]
         elif tkind == "HTTPRoute":
             route = routes.get(tname)
             if not route:
                 fails.append("target HTTPRoute/%s: not found, so its ancestors cannot be derived" % tname)
                 continue
-            expected = [(r.get("name"), r.get("sectionName")) for r in (route.get("spec") or {}).get("parentRefs") or []]
+            route_ns = (route.get("metadata") or {}).get("namespace") or object_ns
+            expected = [(gateway_key(r, route_ns), r.get("sectionName"))
+                        for r in (route.get("spec") or {}).get("parentRefs") or []]
             if not expected:
                 fails.append("target HTTPRoute/%s has no parentRefs" % tname)
                 continue
         else:
             fails.append("target %s/%s: kind not supported by this gate, coverage cannot be shown" % (tkind, tname))
             continue
-        for gw, section in expected:
-            # An ancestor covers a (Gateway, listener) when it names the Gateway and either no listener or that listener.
-            match = [a for a in ancestors if (a.get("ancestorRef") or {}).get("name") == gw
-                     and (a.get("ancestorRef") or {}).get("sectionName") in (None, "", section)]
-            where = "target %s/%s%s (ancestor Gateway %s%s)" % (tkind, tname, ("/" + tsection) if tsection else "", gw,
-                                                                ("/" + section) if section else "")
-            accepted = [a for a in match
-                        if any(c.get("type") == "Accepted" and c.get("status") == "True" and current(c)
-                               for c in a.get("conditions") or [])]
+        for key, section in expected:
+            match = select(ancestors, "ancestorRef", key, section, object_ns, unscoped_ok=True)
+            where = "target %s/%s%s (ancestor Gateway %s/%s%s)" % (tkind, tname, ("/" + tsection) if tsection else "",
+                                                                   key[3], key[2], ("/" + section) if section else "")
             if not match:
                 fails.append("%s: no Envoy Gateway status at all" % where)
-            elif not accepted:
-                fails.append("%s: no current Accepted=True status" % where)
+                continue
+            # A parentRef without a sectionName attaches to every listener: every matched entry (the unscoped one and
+            # each listener-scoped one) must be Accepted=True for the current generation, never just one of them.
+            for a in match:
+                ref = a.get("ancestorRef") or {}
+                if not any(c.get("type") == "Accepted" and c.get("status") == "True" and current(c)
+                           for c in a.get("conditions") or []):
+                    fails.append("%s: ancestor %s: no current Accepted=True status"
+                                 % (where, "/".join(str(ref.get(k)) for k in ("name", "sectionName") if ref.get(k))))
 else:
     parents = ours(status.get("parents") or [])
     refs = (obj.get("spec") or {}).get("parentRefs") or []
     if not refs:
         fails.append("no parentRefs in spec")
 
-    # A parentRef names its Gateway by group, kind, name and namespace; spec and status may each leave group, kind and
-    # namespace out (same-namespace Gateway) or spell them out, and the API means the same thing: the defaults are the
-    # Gateway API's (gateway.networking.k8s.io, Gateway, the route's own namespace). A route that is not given a
-    # listener (no sectionName) attaches to every listener, and its status may list one entry per listener.
-    route_ns = (obj.get("metadata") or {}).get("namespace") or os.environ.get("NS", "")
-
-    def gateway(ref):
-        return (ref.get("group") or "gateway.networking.k8s.io", ref.get("kind") or "Gateway", ref.get("name"),
-                ref.get("namespace") or route_ns)
-
+    # A route that is not given a listener (no sectionName) attaches to every listener, and its status may list one
+    # entry per listener; each entry is judged on its own, never merged.
     for ref in refs:
         where = "parent %s/%s" % (ref.get("name"), ref.get("sectionName") or "*")
-        match = [p for p in parents if gateway(p.get("parentRef") or {}) == gateway(ref)
-                 and (not ref.get("sectionName") or (p.get("parentRef") or {}).get("sectionName") == ref.get("sectionName"))]
+        match = select(parents, "parentRef", gateway_key(ref, object_ns), ref.get("sectionName"), object_ns, unscoped_ok=False)
         if not match:
             fails.append(where + ": no Envoy Gateway status for this parentRef")
             continue
-        for p in match:  # each status entry on its own, never merged
+        for p in match:
             need(p.get("conditions") or [], "Accepted", where)
             need(p.get("conditions") or [], "ResolvedRefs", where)
     count, what = len(refs), "parents"

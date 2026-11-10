@@ -792,6 +792,8 @@ check "pytest-failure-diff on JUnit, plain and run-id fixtures" "$HERE/test-pyte
 check "migration discovery and authService.enabled reading, from a real checkout's root" "$HERE/test-discovery.sh" "$PHASE1_CODE"
 check "snapshot.sh output directory refusals and default" "$HERE/test-snapshot-out.sh"
 check "preflight reads DEVELOPER_SETTINGS_ENABLED and authService.enabled fail-closed (no cluster)" "$HERE/test-preflight-env-flags.sh"
+check "scoped schema round trip checks every step and removes its container on every path (fake docker)" "$HERE/test-schema-roundtrip.sh"
+check "env file reader: booleans, quoted strings, missing paths, invalid YAML, comments, single quotes, flags, images" "$PY" "$HERE/test_env_reader.py" "$REL/release_lib.py" "$PHASE1_CODE/envs/prod/helmrelease.yaml"
 
 # ---------------------------------------------------------------------------------------------------------------
 echo "# concurrent migrate"
