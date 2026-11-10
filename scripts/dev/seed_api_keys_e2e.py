@@ -501,6 +501,8 @@ def teardown(include_sentinel=False, base=None):
 
 def purge_profiles(ids, base=None):
     check_ids(ids, base)
+    from powered_by import developer
+
     _legacy_db().profiles.delete_many({"id": {"$in": ids}})
     _legacy_db()[developer.THROTTLE_COLLECTION].delete_many({"uid": {"$in": ids}})
 
