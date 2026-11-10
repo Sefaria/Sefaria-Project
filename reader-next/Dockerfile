@@ -1,5 +1,7 @@
 # The new reader client: server rendering + static assets, one Node process (server/index.mjs) on PORT (3000).
-# In Sefaria-Project this folder is reader/ and build/node/Dockerfile builds it as the sefaria-node image.
+# Build context: this folder (`docker build reader-next`). CI (.github/workflows/continuous.yaml) builds it as sefaria-reader-<branch>;
+# the chart runs it as the reader-<env> rollout (nodejs.mode "optin") or in the node pods (nodejs.mode "reader"). sefaria-node stays the
+# legacy SSR server (build/node/Dockerfile).
 FROM node:22-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./

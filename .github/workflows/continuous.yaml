@@ -34,9 +34,11 @@ jobs:
       matrix:
         app: [ web, node ]
         include:
-          # the legacy SSR server, for nodejs.mode "optin" (the node image is the new reader; both run side by side)
-          - app: nodelegacy
-            dockerfile: ./build/node/Dockerfile.legacy
+          # the new reader client (reader-next/), for helm nodejs.mode "optin"/"reader": its own Dockerfile and build context.
+          # sefaria-node stays the legacy SSR server (build/node/Dockerfile).
+          - app: reader
+            context: ./reader-next
+            dockerfile: ./reader-next/Dockerfile
     steps:
       - uses: actions/checkout@v4
       - name: Set up QEMU
@@ -88,7 +90,7 @@ jobs:
         with:
 #         cache-from: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache
 #         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache, mode=max
-          context: .
+          context: ${{ matrix.context || '.' }}
           push: true
           build-args: |
             TYPE=build
