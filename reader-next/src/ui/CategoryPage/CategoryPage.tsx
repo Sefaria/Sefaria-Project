@@ -127,7 +127,7 @@ function Contents({ contents, cats, category, nest, he, hebrewContent, hebrewUi,
         const d = descriptionPlacement(hebrewContent ? item.heShortDesc : item.enShortDesc);
         out.push(
           <section key={`s.${item.category}`} className={styles.category}>
-            <h2 {...langDir(hebrewUi)}>
+            <h2 {...langDir(hebrewUi && !!item.heCategory)}>
               {hebrewUi ? item.heCategory || item.category : item.category}
               {d.inline ? <span className={styles.inlineDesc}>{d.inline}</span> : null}
             </h2>

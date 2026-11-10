@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useViewer } from "~/features/auth/viewer";
 import { anonymousAccess, assistantAccessQuery, ANONYMOUS_FREE_ANSWERS_KEY } from "~/lib/assistant/access";
 import { isAuthPath, withNext } from "~/lib/auth/utils";
+import { isVoicesHost } from "~/lib/routing/django-paths";
+import { useSiteHost } from "~/lib/routing/library-href";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { Link } from "~/ui/Link/Link";
 import styles from "./LibraryAssistant.module.css";
@@ -65,7 +67,8 @@ function AssistantSignupOptions({ next }: { next: string }) {
  * The Library Assistant (`<lc-chatbot>`), floating over the page on a wide screen unless remote config hides it (`chatbot.hide`) —
  * sefaria.org's ReaderApp rule. A signed-in reader gets it when it is on for them (with their token); a signed-out visitor when remote
  * config's `feature.chatbot.anonymous_enabled` is not off (base_props' `chatbot_access_props`), without a token and with the sign-up
- * prompt's options. Not on the login and registration pages, which a visitor reaches from the assistant itself (as there).
+ * prompt's options. Not on the login, registration and password-reset pages, which a visitor reaches from the assistant itself, and
+ * only in the Library (never on the Voices host), as there.
  * Nothing is rendered on the server or before the browser knows the answer, so the page hydrates the same for everyone. The element's
  * links reach the reader through src/lib/integration.
  *
@@ -81,8 +84,12 @@ export function LibraryAssistant({ search, pathname }: { search: string; pathnam
   const remoteConfig = useQuery(remoteConfigQueryOptions()).data;
   const hidden = (remoteConfig?.["feature.client.remote_config_json"] as { chatbot?: { hide?: unknown } } | undefined)?.chatbot?.hide === 1;
   const path = pathname ?? (typeof window !== "undefined" ? window.location.pathname : "/");
-  const onAuthPage = isAuthPath(path);
-  const wanted = !phone && !hidden && !onAuthPage;
+  // the old ReaderApp's !showAuth (login, registration) and authResetUid (a password reset)
+  const onAuthPage = isAuthPath(path) || path.startsWith("/password/reset/confirm/");
+  // only in the Library: the old ReaderApp's isLibraryModule — never on the Voices host, signed in or out (read, not changed, here)
+  const siteHost = useSiteHost() ?? (typeof window !== "undefined" ? window.location.host : undefined);
+  const library = !isVoicesHost(siteHost, PUBLIC_CONFIG.voicesOrigin);
+  const wanted = !phone && !hidden && !onAuthPage && library;
   const signedIn = useQuery({ ...assistantAccessQuery(viewer?.id ?? null), enabled: wanted && !!viewer }).data;
   // signed out: remote config decides (undefined until it has loaded)
   const anonymous = useMemo(() => (remoteConfig ? anonymousAccess(remoteConfig) : undefined), [remoteConfig]);

@@ -88,6 +88,7 @@ export function assistantAttributes(
     "max-prompts": num(opts.maxPrompts, 100),
     "interface-lang": opts.interfaceLang,
     // signed out only: the free answers remote config allows (for the widget's analytics; the chat server enforces it)
-    ...(!access.userToken && typeof opts.anonFreeAnswers === "number" ? { "anon-free-answers": String(opts.anonFreeAnswers) } : {}),
+    // (any value remote config holds, as the old `chatbot_anon_free_answers ?? undefined`)
+    ...(!access.userToken && opts.anonFreeAnswers !== undefined && opts.anonFreeAnswers !== null ? { "anon-free-answers": String(opts.anonFreeAnswers) } : {}),
   };
 }

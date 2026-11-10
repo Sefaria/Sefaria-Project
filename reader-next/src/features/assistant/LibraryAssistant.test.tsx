@@ -2,11 +2,12 @@ import { render, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InterfaceLangProvider } from "~/lib/i18n/interface-lang";
+import { SiteHostProvider } from "~/lib/routing/library-href";
 import { LibraryAssistant } from "./LibraryAssistant";
 
 const ME = { id: 7, name: "Reader", email: "r@example.org" };
 
-function setup(opts: { viewer?: typeof ME | null; access?: unknown; remote?: Record<string, unknown>; phone?: boolean; search?: string; pathname?: string; lang?: "english" | "hebrew" } = {}) {
+function setup(opts: { viewer?: typeof ME | null; access?: unknown; remote?: Record<string, unknown>; phone?: boolean; search?: string; pathname?: string; host?: string; lang?: "english" | "hebrew" } = {}) {
   window.matchMedia = vi.fn((q: string) => ({ matches: !!opts.phone && q.includes("max-width"), media: q, addEventListener: () => {}, removeEventListener: () => {} })) as unknown as typeof window.matchMedia;
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
   qc.setQueryData(["user", "viewer"], opts.viewer === undefined ? ME : opts.viewer);
@@ -15,7 +16,9 @@ function setup(opts: { viewer?: typeof ME | null; access?: unknown; remote?: Rec
   return render(
     <QueryClientProvider client={qc}>
       <InterfaceLangProvider lang={opts.lang ?? "english"}>
-        <LibraryAssistant search={opts.search ?? ""} pathname={opts.pathname ?? "/texts"} />
+        <SiteHostProvider value={opts.host ?? "www.sefaria.org"}>
+          <LibraryAssistant search={opts.search ?? ""} pathname={opts.pathname ?? "/texts"} />
+        </SiteHostProvider>
       </InterfaceLangProvider>
     </QueryClientProvider>,
   );
@@ -91,7 +94,11 @@ describe("LibraryAssistant", () => {
       { viewer: null, remote: { "feature.chatbot.anonymous_enabled": false } },
       { viewer: null, remote: { "feature.chatbot.anonymous_enabled": "off" } },
       { viewer: null, pathname: "/login" },
+      { viewer: null, pathname: "/password/reset/confirm/MQ/set-password/" },
       { pathname: "/register" },
+      // the old ReaderApp's isLibraryModule: never on the Voices host, signed in or out (rework item 4)
+      { viewer: null, host: "voices.sefaria.org" },
+      { host: "chiburim.sefaria.org.il" },
       { access: { enabled: false, userToken: null, isModerator: false } },
       { phone: true },
       { remote: { "feature.client.remote_config_json": { chatbot: { hide: 1 } } } },
