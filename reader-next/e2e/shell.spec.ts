@@ -56,6 +56,23 @@ test.describe("the page around the reader (verified against sefaria.org)", () =>
     expect(Math.abs(style.y - 15.25)).toBeLessThanOrEqual(1);
   });
 
+  // @feature PLT-028 @feature PLT-017 @feature PLT-021 @feature PLT-018 @feature PLT-010: base.html's head, as on sefaria.org (2026-11-10)
+  test("the head links OpenSearch and the icons, with the app banner and theme colour (the manifest: unit-tested, same origin only)", async ({ page }) => {
+    await open(page, "/texts");
+    const head = page.locator("head");
+    await expect(head.locator('link[rel="search"]')).toHaveAttribute("href", /\/static\/files\/opensearch\.xml$/);
+    await expect(head.locator('link[rel="search"]')).toHaveAttribute("title", "Sefaria Search");
+    await expect(head.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute("href", /\/static\/icons\/library\/favicon\.svg\?v=3$/);
+    await expect(head.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("sizes", "180x180");
+    await expect(head.locator('meta[name="apple-itunes-app"]')).toHaveAttribute("content", "app-id=1163273965");
+    await expect(head.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#18345D");
+    await expect(head.locator('meta[name="apple-mobile-web-app-title"]')).toHaveAttribute("content", "Library");
+    // one of each, also after an in-app navigation (the head is not doubled)
+    await page.getByRole("banner").getByRole("link", { name: "Topics" }).first().click();
+    await expect(page).toHaveURL(/\/topics$/);
+    await expect(head.locator('link[rel="search"]')).toHaveCount(1);
+  });
+
   test("a new visitor sees the cookie notice once", async ({ page }) => {
     await open(page, "/Genesis.1?lang=en", { cookieNotice: true });
     const notice = page.getByRole("region", { name: "Cookie notice" });
