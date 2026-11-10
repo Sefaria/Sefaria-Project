@@ -74,5 +74,15 @@ describe("BookPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Editing A edition" }));
     expect(screen.getByRole("button", { name: "Edit A edition" })).toBeInTheDocument();
   });
-});
 
+  // parity S9: Berakhot has no heDesc; sefaria.org.il shows its heShortDesc, not the English description
+  it("Hebrew interface: the short Hebrew description stands in for a missing Hebrew one, before the English", () => {
+    render(
+      <InterfaceLangProvider lang="hebrew">
+        <BookPage {...base} description={{ en: "Berakhot (Blessings) is the first tractate", he: null, heShort: "ברכות ותפילות, בדגש על קריאת שמע" }} />
+      </InterfaceLangProvider>,
+    );
+    expect(screen.getAllByText("ברכות ותפילות, בדגש על קריאת שמע").length).toBeGreaterThan(0);
+    expect(screen.queryByText(/first tractate/)).toBeNull();
+  });
+});

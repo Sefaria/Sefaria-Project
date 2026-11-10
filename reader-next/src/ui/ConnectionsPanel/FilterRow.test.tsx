@@ -27,6 +27,13 @@ describe("FilterRow", () => {
     expect(screen.getByText("English available")).toBeInTheDocument();
   });
 
+  // parity S11: sefaria.org.il hides the EN tag (`.englishAvailableTag` computes display:none in the Hebrew interface)
+  it("shows no EN tag in the Hebrew interface", () => {
+    render(<InterfaceLangProvider lang="hebrew"><FilterRow {...base} hasEnglish /></InterfaceLangProvider>);
+    expect(screen.queryByText("EN")).toBeNull();
+    expect(screen.queryByText("English available")).toBeNull();
+  });
+
   it("navigates in-app on a plain click, but leaves modified clicks to the browser", async () => {
     const onNavigate = vi.fn();
     render(<FilterRow {...base} onNavigate={onNavigate} />);

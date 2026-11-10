@@ -94,7 +94,7 @@ export function TranslationsView({ languages, currentTitle, selectHref, onSelect
                       <Link
                         href={previewHref(v)}
                         className={styles.previewHit}
-                        aria-label={`Preview ${title}`}
+                        aria-label={hebrew ? `תצוגה מקדימה: ${title}` : `Preview ${title}`}
                         onClick={(e) => {
                           if (onPreview && plainClick(e)) {
                             e.preventDefault();
@@ -135,7 +135,7 @@ export function TranslationsView({ languages, currentTitle, selectHref, onSelect
                   <Link
                     href={selectHref(v)}
                     className={styles.select}
-                    aria-label={`Select ${title}`}
+                    aria-label={hebrew ? `בחירה: ${title}` : `Select ${title}`}
                     onClick={(e) => {
                       if (onSelect && plainClick(e)) {
                         e.preventDefault();

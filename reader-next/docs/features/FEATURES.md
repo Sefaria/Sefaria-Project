@@ -2,7 +2,7 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**962 features**, 4102 documented behaviors. Proposed tiers: core 323, standard 419, optional 156, retire 61.
+**962 features**, 4113 documented behaviors. Proposed tiers: core 323, standard 419, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
 - **Rebuild status** (new reader): done 468 · partial 88 · todo 19 · replaced 47 · deferred 204 · n/a 136; 426 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
@@ -2706,6 +2706,7 @@ The top-level sidebar view lists top tools, a Related Texts summary, Resources (
 - Tools counts: notes = Sefaria.notesTotalCount(srefs).
 - Flash message after Add Connection save: clearLinks + reload, return to Resources, 'Success! You've created a new connection.' for 3s.
 - VERIFIED 2026-10-29 (Mishnah Peah 4:1, 1280px): first tool's text 30px under the header; tool rows ~40.5px apart; section headings ('Related Texts', 'Resources', 'Tools') #666 Roboto 14px/18px with 13px to a 1px #ccc rule, their text ~50px below the previous row's and ~52px above the next row's (margins 30/15 collapsing into the rows' 19px); category names #000, counts as CON-025; 'More' #666 with the navy dots.
+- 2026-11-10 (parity S11, a11y S5): section headings in legacy's words (connection_panel_section.* of static/js/sefaria/i18n/interface: מקורות לעיון, עזרים, כלים; src/lib/connections/strings.ts, held to those files by strings.test.ts); sections and the new-tab icon named in the interface's language.
 
 Code: [`static/js/ConnectionsPanel.jsx:272`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L272), [`static/js/ConnectionsPanel.jsx:217`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L217)
 
@@ -2807,6 +2808,7 @@ The Related Texts summary lists categories of linked texts (Commentary, Talmud, 
 - Category order: TOC order with Commentary forced first and Targum inserted at index 2, then categoryOrderOverrides per base-text primary category (e.g. Tanakh -> Talmud, Midrash, Halakhah; Mishnah -> Tanakh, Mishnah, Talmud; Talmud -> Tanakh, Talmud, Halakhah).
 - Overrides exist for Midrash, Halakhah, Kabbalah, Liturgy, Jewish Thought, Tosefta, Chasidut, Musar, Responsa; Second Temple and Reference empty; override applied only if >1 entry; unknown categories last.
 - Memoised in _linkSummaries[normRef/excludedSheet], invalidated when link count grows (shouldBuildLinkSummaries).
+- 2026-11-10 (parity S11): no EN tag in the Hebrew interface (sefaria.org.il: `.englishAvailableTag` computes display:none).
 
 Code: [`static/js/sefaria/sefaria.js:1768`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L1768), [`static/js/sefaria/sefaria.js:1771`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L1771), [`static/js/sefaria/sefaria.js:1930`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L1930)
 
@@ -2973,6 +2975,7 @@ Shows the actual connected passages (commentary, quotations, sheets) for the sel
 - States: LoadingMessage; zero links: 'No connections known [for X, Y here].' (Hebrew uses hebrewTerm with suffixes stripped).
 - Recomputes when srefs or filter change.
 - VERIFIED 2026-10-05 geometry of the connected-texts list: title 18px black UPPER-CASE with a 4px rule (#4b71b7 for commentary, the category's colour otherwise) under the title's own width; each item a block ruled 1px #eee below: the source in 18px grey (#6f6f6f) serif, the text 18px/25px JUSTIFIED black, and '⧉ Open' in 14px grey sans (an external-link icon, not a blue button). Empty: italic 14px 'No connections known for Rashi here.' (Hebrew 'אין קשרים ידועים ל<name>.'), under the category's rule colour even when this verse has none. Rebuilt.
+- 2026-11-10 (parity S11): connected texts are ordered in the sidebar's language (lang2), not the interface's, as the old TextList's contentLang (VERIFIED on sefaria.org.il: Genesis 1:1 with=Commentary, lang2=en starts with Abarbanel on Torah, lang2=he with Avi Ezer). Test: e2e/connections.spec.ts.
 
 Code: [`static/js/TextList.jsx:36`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextList.jsx#L36), [`static/js/TextList.jsx:93`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextList.jsx#L93), [`static/js/ConnectionsPanel.jsx:253`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L253)
 
@@ -3000,6 +3003,7 @@ Each connection shows the linked text with highlights, a number label for commen
 - Sheet link (isSheet) renders SheetListing with openInNewTab, handleSheetClick, connectedRefs; author hidden when filter equals collection title.
 - VERIFIED 2026-10-29: beside its text (multiPanel) the numberLabel is hidden by s2.css `.multiPanel .textRange .numberLabel {display:none}` (itag labels excepted); only a single-panel (phone) sidebar shows a commentary's verse numbers.
 - Rebuild 2026-10-29: each item's text block carries the text's lang and dir (Hebrew right-aligned and justified like the old `.segment.heOnly`), and the item's title is in the sidebar's language (lang2), not the interface's.
+- 2026-11-10 (parity S8): a ranged connected text shows one paragraph per segment, 6px apart, as sefaria.org's TextRange (one block `.segment` each; VERIFIED: "Abarbanel on Torah, Genesis 1:1" = 1:1:1-3, three paragraphs). LinkedTextSide.parts. Tests: TextList.test.tsx, e2e/connections.spec.ts.
 
 Code: [`static/js/TextList.jsx:149`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextList.jsx#L149), [`static/js/TextRange.jsx:138`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L138), [`static/js/TextRange.jsx:351`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L351)
 
@@ -3099,6 +3103,7 @@ The About view shows title, category, authors, description and composition info 
 - VERIFIED 2026-10-05 (Genesis): headings 'About This Text' (large, mixed case, rule beneath), 'Genesis' (link to the book), 'TANAKH', description, 'Composed: Sinai/Canaan (c.1400 – c.400 BCE)'; then 'Current Translation', then 'Source Versions', then Related Topics and Download Text. Berakhot: 'Composed: Talmudic Babylon (c.450 – c.550 CE)'. Rashi on Genesis: 'Author:' + linked 'Rashi', 'Composed: Middle-Age France (c.1075 – c.1105 CE)'.
 - Data (all cached): /api/v2/index/<title>?with_content_counts=1&with_related_topics=1 (authors, enDesc/heDesc, compPlaceString, compDateString, relatedTopics) and the versions of the section. The v3 text response's available_versions carries versionNotes, license, versionSource, digitizedBySefaria, purchaseInformationURL/Image, so no separate versions request is needed.
 - Rebuild: descriptions are markdown rendered through marked and an allowlist sanitizer; version notes (HTML from the library) go through the same sanitizer — scripts, handlers and javascript: links cannot survive.
+- 2026-11-10 (parity S9): the current versions are the ones the text shows (the old currObjectVersions): bilingual and Hebrew show 'Current Version' (the source on screen, named in the address or not) before 'Current Translation'; English text shows no Current Version, Hebrew text no Current Translation (VERIFIED on sefaria.org, Genesis 1:1). Type as sefaria.org: title 24/29 black, category 16/19 #666 2px, description 16px/19px #666 (Heebo 19.52px in Hebrew) 15px above and below, Composed 14/18 #6f6f6f. In the Hebrew interface the box shows the Hebrew title, description and composition whatever lang2 is. Region names in the interface's language. Tests: e2e/about.spec.ts.
 
 Code: [`static/js/AboutBox.jsx:54`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/AboutBox.jsx#L54), [`static/js/AboutBox.jsx:132`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/AboutBox.jsx#L132), [`static/js/sefaria/sefaria.js:1443`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L1443)
 
@@ -3616,6 +3621,7 @@ The sidebar header shows the current section, a context-aware back link, a langu
 - Header marginRight (left for Hebrew) equal to scrollbar width to stay centred (l.30-40).
 - FOUND 2026-10-05: this entry (and CON-003) was marked done, but the sidebar header had no language toggle. VERIFIED on sefaria.org: the header is #ededed, 60px, 34px sides; title 16px weight-100 (light) #666 with 1px letter-spacing, upper-case; at the right an aleph/ayin button (18px, 40% grey; shows the language it will switch TO) and the circled × (20px). It sets `lang2` (the sidebar's own language) and never touches the text's. Rebuilt (ConnectionsPanel `lang`/`onLang`, TextPanel `onSidebarLang`).
 - VERIFIED 2026-10-29: the back link ('‹ Resources') and the static title share one style — Roboto 16px, weight lighter (100), #666, letter-spacing 1px; the chevron #6f6f6f, 10px before the word.
+- 2026-11-10 (a11y S5, N8): the panel, Close and the language button are named in the interface's language; the language button says what it does ("Show in Hebrew" / "Show in English"; was "Hebrew Language Toggle Icon").
 
 Code: [`static/js/ConnectionsPanelHeader.jsx:30`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanelHeader.jsx#L30), [`static/js/ConnectionsPanelHeader.jsx:72`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanelHeader.jsx#L72), [`static/js/ConnectionsPanelHeader.jsx:158`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanelHeader.jsx#L158)
 
@@ -3638,6 +3644,7 @@ One call bundles links, sheets, topics, manuscripts, media and guides for a ref 
 - SB-03 (measured 2026-11-10 through the cassette, Genesis 1:1): the page's /api/links is 6.19 MB raw / 638 KB gzip; opening the sidebar and Resources adds /api/related 12.09 MB / 1.27 MB gzip, of which its links are 8.2 MB / 633 KB gzip already loaded and its sheets 6.1 MB / 613 KB gzip used only for a count. No URL is fetched twice. The links cannot be dropped from the client side: related_api has no parameter to omit them (request: with_links=0, and a count-only sheets mode).
 - 2026-11-10 (review round 1): the two parameters are honoured on the Library host only (Voices answers exactly as before). Varnish: invalidate_ref also bans and purges /api/related/<encodeURIComponent(section ref)>, the form the generated client sends (the dotted pattern never matched it); the client's URLs are pinned in fixtures/varnish/related-client-urls.json and tested on both sides (src/lib/connections/related.test.ts, reader/tests/related_api_test.py).
 - 2026-11-10 (SB-03): /api/related/<ref> takes ?with_links=0 (no links: the client has them from /api/links) and ?sheets=count (each sheet as {id, anchorRef, anchorRefExpanded} only, from sefaria/sheets.py get_sheet_anchors_for_ref: no sheet records, owner profiles, collections or scores). New URLs, so new Varnish keys; without them the answer is unchanged for every other caller; the new reader's URL is purged on a text save with the others. The Resources rows ask `?with_links=0&sheets=count` (src/lib/connections/related.ts); counts are unchanged (distinct sheet ids per selected verse). Genesis 1: 12.4 MB raw / 1.30 MB gzip before, 0.61 MB / 46 KB after (the recorded answer projected the way the new modes answer; production answers the new URL in full until this Django change is deployed). Tests: reader/tests/related_api_test.py.
+- 2026-11-10 (V-EXITS SB-05): the Resources request (/api/related) is no longer aborted when the sidebar pane unmounts: opening the sidebar mounted the pane twice and sent it twice (the first aborted), and closing the sidebar while it loaded made the next opening fetch it again. It now finishes into the cache; an in-page reopen sends nothing. A reload still refetches (connections memory-only, CODE_REVIEW R-10). Test: related.test.ts.
 
 Code: [`static/js/sefaria/sefaria.js:2301`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2301), [`static/js/sefaria/sefaria.js:2375`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2375), [`static/js/sefaria/sefaria.js:1574`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L1574)
 
@@ -3767,6 +3774,7 @@ About lists the current source version, current translation and other available 
 - VERIFIED 2026-10-05: 'Current Version' appears only when a source version is chosen (?vhe=). Choosing one (Select Version on Berakhot, from lang=en, he or bi) writes ?vhe=hebrew|William_Davidson_Edition_-_Aramaic, ALWAYS switches to lang=bi, writes NO cookie (only translations are remembered), and the box then reads 'Current Version / Current Translation / Alternate Source Versions' (source first because the panel is no longer English).
 - VERIFIED 2026-10-05: the source list is the versions flagged isPrimary; the current ones leave it only from their own language slot — Rashi on Genesis lists its English edition both as the Current Translation (language en) and under Source Versions (a separate version object with language he).
 - The Select Version button is an <a class=selectButton> WITHOUT an href (a click handler only); the rebuild makes it a real link.
+- 2026-11-10 (parity S9): the source version on screen is 'Current Version' in bilingual and Hebrew even when the address names none (was: only with vhe=).
 
 Code: [`static/js/AboutBox.jsx:66`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/AboutBox.jsx#L66), [`static/js/AboutBox.jsx:204`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/AboutBox.jsx#L204), [`static/js/VersionBlock/VersionBlock.jsx:54`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/VersionBlock/VersionBlock.jsx#L54)
 
@@ -3818,6 +3826,7 @@ The Translations view lists all available translations by language with a previe
 - Rendered as VersionsBlocksList with inTranslationBox -> VersionBlockWithPreview; 'current' computed by key actualLanguage|versionTitle.
 - VERIFIED 2026-10-05: Genesis 1:1 → English (14), German (3), Esperanto (1), Spanish (3)… — languages by code with English first. Buckets come from a '[xx]' title suffix else the version's `language`; the v3 API's `actualLanguage` gives different buckets (18 'en') and must not be used.
 - VERIFIED typography: intro 16px #666; language heading 'English (14)' mixed case, 16px, letter-spacing 1px, count weight 100; previews 18px/22px black serif; ONE 14px grey line under each: '⌄ <italic title> • Select' (or '• Currently Selected'), the © mark after it when licensed. Rebuilt.
+- 2026-11-10 (a11y S5, N10): Preview and Select are named in Hebrew in the Hebrew interface; a version's long bare link wraps inside its column (at 320px it ended 1.5px past the screen).
 
 Code: [`static/js/TranslationsBox.jsx:39`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TranslationsBox.jsx#L39), [`static/js/sefaria/sefaria.js:746`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L746), [`static/js/sefaria/sefaria.js:1086`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L1086)
 
@@ -5059,6 +5068,7 @@ The desktop book page sidebar shows About this text, a promo, related topics and
 - Book toc only, not compare: AboutText (multiPanel only), Promo, RelatedTopics(title), DownloadVersions(sref=title).
 - DownloadVersions omitted for dictionaries (indexDetails.lexiconName).
 - VERIFIED: the sidebar module lists, above the description, 'Author(s): <links to /topics/slug>' and 'Composed: <place>, <date>' (parentheses removed, double spaces collapsed; none for Tanakh's Torah/Prophets/Writings); labels grey, values black. The rebuild's sidebar had only the description — fixed (src/lib/book/about-text.ts).
+- 2026-11-10 (parity S9): in the Hebrew interface the description falls back to the short Hebrew one (heShortDesc) before English, as the old AboutBox (Berakhot: "ברכות ותפילות, בדגש על קריאת שמע…"); BookPage takes description.heShort, which BookRoute must pass (requested from lane a-route).
 
 Code: [`static/js/BookPage.jsx:200-206`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/BookPage.jsx#L200-L206), [`static/js/BookPage.jsx:305-306`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/BookPage.jsx#L305-L306)
 
@@ -5103,6 +5113,7 @@ The same table of contents appears inside the reader's sidebar and highlights th
 - VERIFIED 2026-10-05: text of the sidebar contents identical to the rebuild's for Genesis, Berakhot, Mishneh Torah, Pesach Haggadah, Zohar (both structures) and Jastrow, including the marked current places (scripts/_toc-diff.mjs, _toc-essay.mjs). Genesis 2:3 marks TWO places: chapter 2 and aliyah 1 of Bereshit (2:3 closes the first aliyah).
 - Rebuild: the current place is marked with data-current (and aria-current='location'); the router's Link replaces aria-current with 'page' on an exact-URL match, so tests use data-current.
 - VERIFIED 2026-10-05 (sidebar Table of Contents, Genesis, desktop): 50×50 WHITE tiles with 6px gaps (5 per row in the 300px column), 18px serif numbers in black, the reader's place a filled #18345d tile with white number; headings 'Chapters' / 'Torah Portions' 16px #666 sans. Rebuilt (it had small bordered tiles in sans).
+- 2026-11-10 (parity S10): the sidebar's Torah portions lay out as on sefaria.org and the book page: 'Torah Portions' 16px #666 30px under the chapters, two 50% columns of 61px rows, a 24px serif name over inline 14px/30px aliyot (#6f6f6f, the reader's in the brand blue); 392px for Genesis, as live (was 2008px of 50px tiles). Test: e2e/toc.spec.ts.
 
 Code: [`static/js/ConnectionsPanel.jsx:37`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L37), [`static/js/BookPage.jsx:333-508`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/BookPage.jsx#L333-L508)
 
