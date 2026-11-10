@@ -58,6 +58,6 @@ a.groupTitle { text-decoration: none; }
 .view:not([data-variant="page"]) .group[data-fixed-group="part"] .level { gap: 0; }
 .view:not([data-variant="page"]) .group[data-fixed-group="part"] .grid { display: block; }
 .view:not([data-variant="page"]) .group[data-fixed-group="part"] .grid > li { display: inline; }
-.view:not([data-variant="page"]) .group[data-fixed-group="part"] .sectionLink { display: inline; min-width: 0; min-height: 0; padding: 0 4px; background: none; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 30px; color: light-dark(#6f6f6f, var(--sefaria-color-text-muted)); }
+.view:not([data-variant="page"]) .group[data-fixed-group="part"] .sectionLink { display: inline; min-width: 0; min-height: 0; padding: 0 4px; background: none; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 30px; color: var(--sefaria-color-text-muted); }
 .view:not([data-variant="page"]) .group[data-fixed-group="part"] .sectionLink[lang="he"] { font-family: var(--sefaria-font-ui-he); }
 .view:not([data-variant="page"]) .group[data-fixed-group="part"] .sectionLink[data-current] { background: none; color: var(--sefaria-color-brand); }

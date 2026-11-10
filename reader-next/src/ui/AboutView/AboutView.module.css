@@ -16,9 +16,9 @@
 /* VERIFIED on sefaria.org 2026-11-10 (Genesis 1:1 with=About, 1280px; parity S9): the title 24px/29px black serif; the category
    16px/19px #666 upper-case, 2px apart, 17px above the description; the description 16px/19px #666 sans (Heebo at 1.22em in
    Hebrew), 15px above and below; "Composed" 14px/18px #6f6f6f */
-.title { font-size: 24px; line-height: 29px; color: var(--sefaria-color-text-strong, #000); }
-.category { font-size: 16px; line-height: 19px; letter-spacing: 2px; color: light-dark(#666, var(--sefaria-color-text-secondary)); margin-block-end: 17px; }
-.desc { margin-block: 15px; font-size: 16px; line-height: 19px; color: light-dark(#666, var(--sefaria-color-text-secondary)); }
+.title { font-size: 24px; line-height: 29px; color: var(--sefaria-color-text-strong); }
+.category { font-size: 16px; line-height: 19px; letter-spacing: 2px; color: var(--sefaria-color-text-dark-grey); margin-block-end: 17px; }
+.desc { margin-block: 15px; font-size: 16px; line-height: 19px; color: var(--sefaria-color-text-dark-grey); }
 .desc[lang="he"] { font-size: 19.52px; }
-.composed { margin-block-start: 0; font-size: 14px; line-height: 18px; color: light-dark(#6f6f6f, var(--sefaria-color-text-muted)); }
+.composed { margin-block-start: 0; font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-muted); }
 .desc p:last-child { margin-block-end: 0; }
