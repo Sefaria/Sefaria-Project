@@ -30,8 +30,10 @@ export interface CategoryPageProps {
 }
 
 const catHref = (path: readonly string[]) => `/texts/${path.map(encodeURIComponent).join("/")}`;
-const lang = (he: boolean) => (he ? "he" : "en");
 const pick = (b: Bilingual, he: boolean) => (he ? b.he || b.en : b.en);
+/** The language and direction of what is shown (v-a11y N7: lang with dir; and a Hebrew-interface fallback to English is English). */
+const langDir = (he: boolean) => ({ lang: he ? "he" : "en", dir: he ? "rtl" : "ltr" }) as const;
+const pickedLangDir = (b: Bilingual, he: boolean) => langDir(he && !!b.he);
 
 /**
  * A category's page: its title (with the Bavli / Yerushalmi toggle for Talmud), the texts and sub-categories in it — each a
@@ -67,7 +69,7 @@ function CategoryMain({ cats, contents, he, hebrewContent, description, admin }:
   return (
     <>
       <div className={styles.titleBar}>
-        <h1 className={styles.title} lang={lang(hebrewUi)}>{pick(title, hebrewUi)}</h1>
+        <h1 className={styles.title} {...pickedLangDir(title, hebrewUi)}>{pick(title, hebrewUi)}</h1>
         {toggle ? (
           <div className={styles.toggles}>
             {toggle.map((t) => (
@@ -80,7 +82,7 @@ function CategoryMain({ cats, contents, he, hebrewContent, description, admin }:
       </div>
       {admin ? <AdminButtons buttons={admin.buttons} /> : null}
       {/* plain text, as the old ContentText text={…}: its Markdown is not rendered, so *word* shows its asterisks (as sefaria.org does) */}
-      {description && pick(description, hebrewUi) ? <div className={styles.topDesc} lang={lang(hebrewUi)}>{pick(description, hebrewUi)}</div> : null}
+      {description && pick(description, hebrewUi) ? <div className={styles.topDesc} {...pickedLangDir(description, hebrewUi)}>{pick(description, hebrewUi)}</div> : null}
       {edition ? <div className={styles.attribution}><Link href={edition.href}><InterfaceText en={edition.en} he={edition.he} /></Link></div> : null}
       <Contents contents={contents} cats={cats} category={category} nest={category === "Commentary" ? 1 : 0} he={he} hebrewContent={!!hebrewContent || hebrewUi} hebrewUi={hebrewUi} />
     </>
@@ -90,8 +92,8 @@ function CategoryMain({ cats, contents, he, hebrewContent, description, admin }:
 function Block({ href, title, desc, line, hebrewUi }: { href: string; title: Bilingual; desc?: Bilingual; line?: string; hebrewUi: boolean }) {
   return (
     <div className={styles.block} data-line={line ? "" : undefined} style={line ? ({ ["--_line" as string]: line } as React.CSSProperties) : undefined}>
-      <Link className={styles.blockTitle} href={href} lang={lang(hebrewUi)}>{pick(title, hebrewUi)}</Link>
-      {desc && (hebrewUi ? desc.he : desc.en) ? <div className={styles.desc} lang={lang(hebrewUi)}>{pick(desc, hebrewUi)}</div> : null}
+      <Link className={styles.blockTitle} href={href} {...pickedLangDir(title, hebrewUi)}>{pick(title, hebrewUi)}</Link>
+      {desc && (hebrewUi ? desc.he : desc.en) ? <div className={styles.desc} {...pickedLangDir(desc, hebrewUi)}>{pick(desc, hebrewUi)}</div> : null}
     </div>
   );
 }
@@ -125,7 +127,7 @@ function Contents({ contents, cats, category, nest, he, hebrewContent, hebrewUi,
         const d = descriptionPlacement(hebrewContent ? item.heShortDesc : item.enShortDesc);
         out.push(
           <section key={`s.${item.category}`} className={styles.category}>
-            <h2 lang={lang(hebrewUi)}>
+            <h2 {...langDir(hebrewUi)}>
               {hebrewUi ? item.heCategory || item.category : item.category}
               {d.inline ? <span className={styles.inlineDesc}>{d.inline}</span> : null}
             </h2>
