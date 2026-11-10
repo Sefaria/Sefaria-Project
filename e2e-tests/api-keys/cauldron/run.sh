@@ -50,10 +50,25 @@ rec() {
 }
 infra_or() { case "$1" in 000|502|503|504) echo blocked ;; *) echo "$2" ;; esac; }
 
+# N-CR4: nothing under the run dir may hold a full key. A leak is "sfr_" plus a body longer than the 6 characters the
+# admin shows (the same line the server's log scrubbing draws), so a display prefix such as sfr_abcdef stays.
+# The mask above turns every key into "sfr_…", so a hit means something reached disk without passing it.
+# Called from cleanup, so every mode and every exit path (normal end, die, signal) runs it; returns 1 on a leak.
+leak_scan() {
+  [ -n "${RUN_DIR:-}" ] && [ -d "$RUN_DIR" ] || return 0
+  local hits; hits="$(grep -rEl 'sfr_[A-Za-z0-9]{7,}' "$RUN_DIR" 2>/dev/null || true)"
+  if [ -n "$hits" ]; then
+    rec N-CR4-harness fail-product-bug "unmasked key-shaped values in: $hits"
+    return 1
+  fi
+  log "N-CR4 grep over $RUN_DIR: clean"
+}
+
 cleanup() {  # cleanup [RC]: RC is the status to keep when a mode's own trap ran first
   local rc=${1:-$?}
   [ -n "$PF_PID" ] && kill "$PF_PID" 2>/dev/null
   rm -f "$MANIFEST" "$RUN_DIR"/tmp.*
+  leak_scan || { [ "$rc" = 0 ] && rc=1; }
   # Any failed case fails the run, whatever the last command returned.
   [ "$rc" = 0 ] && [ "$FAILS" -gt 0 ] && rc=1
   exit $rc
@@ -246,7 +261,5 @@ else
   rec N-D1 fail-product-bug "snapshot changed: before $(tr '\n' ' ' < "$RUN_DIR/snapshot-before.txt") after $(tr '\n' ' ' < "$RUN_DIR/snapshot-after.txt")"
 fi
 
-hits="$(grep -rEl 'sfr_[A-Za-z0-9]{5,}' "$RUN_DIR" || true)"
-[ -z "$hits" ] || { rec N-CR4-harness fail-product-bug "unmasked key-shaped values in: $hits"; exit 1; }
-log "N-CR4 grep over $RUN_DIR: clean"
+# The N-CR4 key scan runs from cleanup (the exit trap), after this point and after the three early-exit modes above.
 log "done: $CASES ($FAILS failed case(s))"

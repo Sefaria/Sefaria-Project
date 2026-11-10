@@ -15,7 +15,7 @@ expect_refusal() {
   local envs=()
   while [ "$1" != -- ]; do envs+=("$1"); shift; done; shift
   : >"$tmp/calls"
-  env -u APIKEYS_ALLOW_SEEDING -u APIKEYS_ALLOW_MUTATING_ON PATH="$tmp:$PATH" "${envs[@]}" bash "$here/run.sh" "$@" >"$tmp/out" 2>&1
+  env -u APIKEYS_ALLOW_SEEDING -u APIKEYS_ALLOW_MUTATING_ON PATH="$tmp:$PATH" ${envs[@]+"${envs[@]}"} bash "$here/run.sh" "$@" >"$tmp/out" 2>&1
   local rc=$?
   if [ $rc != 0 ] && grep -q STOP "$tmp/out" && [ ! -s "$tmp/calls" ]; then echo "ok: $label"
   else echo "FAIL: $label (exit $rc, calls: $(tr '\n' ';' <"$tmp/calls"))"; sed 's/^/    /' "$tmp/out" | tail -5; fail=1; fi
@@ -36,5 +36,27 @@ scales="$(grep -hE 'kubectl .* scale ' "$here"/scripts/*.sh "$here/run.sh" "$her
 [ "$scales" = 2 ] && echo "ok: the only scale calls are drill-f1's scale-down and its restore" || { echo "FAIL: $scales scale calls"; fail=1; }
 execs="$(grep -nE 'kubectl .* exec ' "$here"/scripts/*.sh "$here/run.sh" "$here/lib.sh" | grep -vc 'postgres\|PG_POD\|seed_exec\|"\$pod" -c web' || true)"
 [ "$execs" = 0 ] && echo "ok: exec only into Postgres (read-only) and the seeder's web pod" || { echo "FAIL: other exec calls"; fail=1; }
+# N-CR4: the key scan runs on every mode's exit path. The runner is copied into a scratch git repo with the three modes'
+# bodies replaced by no-ops, and a run dir is pre-seeded with a file; a full key must fail the run in each mode, a
+# display prefix ("sfr_" plus 6 characters, then bullets) must not, and the mode's own exit status is kept otherwise.
+leak="$tmp/leakrepo"; mkdir -p "$leak/e2e-tests/api-keys" "$leak/auth-service/dev/local-stack/scenarios"
+cp -R "$here" "$leak/e2e-tests/api-keys/cauldron"
+touch "$leak/auth-service/dev/local-stack/scenarios/a-series.sh"
+printf 'results/\n' >"$leak/e2e-tests/api-keys/.gitignore"; printf 'e2e-tests/api-keys/results/\n' >"$leak/.gitignore"
+git -C "$leak" init -q
+printf '\nseeded_guard() { :; }\nseeded_run() { :; }\nverify_off() { :; }\ndrill_f1() { :; }\n' >>"$leak/e2e-tests/api-keys/cauldron/scripts/modes.sh"
+expect_scan() {  # expect_scan MODE CONTENT WANT_EXIT
+  local mode=$1 content=$2 want=$3 rundir="$leak/e2e-tests/api-keys/results/cauldron-runs/leak-$1"
+  rm -rf "$rundir"; mkdir -p "$rundir"; printf '%s\n' "$content" >"$rundir/evidence.log"
+  env PATH="$tmp:$PATH" APIKEYS_CAULDRON=apisplit APIKEYS_ALLOW_MUTATING_ON=apisplit APIKEYS_ALLOW_SEEDING=apisplit APIKEYS_RUN_ID="leak-$mode" \
+    bash "$leak/e2e-tests/api-keys/cauldron/run.sh" "$mode" >"$tmp/out" 2>&1
+  local rc=$?
+  if [ "$rc" = "$want" ] && { [ "$want" = 0 ] || grep -q 'N-CR4-harness' "$tmp/out"; }; then echo "ok: key scan, $mode, exit $rc"
+  else echo "FAIL: key scan, $mode: exit $rc, wanted $want"; sed 's/^/    /' "$tmp/out" | tail -6; fail=1; fi
+}
+for mode in seeded verify-off drill-f1; do
+  expect_scan "$mode" "header sfr_AbCdEf0123456789AbCdEf0123456789" 1
+  expect_scan "$mode" "shown as sfr_abcdef••••••••" 0
+done
 bash "$here/run.sh" check >/dev/null 2>&1 && echo "ok: G1 self-check (every cluster call names the dev context)" || { echo "FAIL: G1 self-check"; fail=1; }
 exit $fail
