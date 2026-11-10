@@ -1,8 +1,12 @@
-# Handoff: next phase of the Sefaria reader rebuild
+# Handoff: working method for the Sefaria reader rebuild
 
-For the agent picking this up. Read this file top to bottom before touching code, then `docs/ARCHITECTURE.md`,
-`docs/WORKSPACE.md` and `docs/PROGRESS.md`. State at handoff: commit `54c2388`, all suites green
-(661 unit, 115 story, 85 e2e), 109 of 905 in-scope atlas features covered by tests.
+**The plan is no longer here.** What is left, in what order, and the launch gates are in `docs/reader-future/LAUNCH_PLAN.md`
+(repo root); how the work runs in parallel lanes is in `docs/reader-future/PARALLEL_PLAN.md`; decisions are in
+`docs/reader-future/DECISIONS.md`. Per-feature status is in `docs/features/rebuild-status.json` (all 961 features, since
+2026-11-10). This file keeps the rules and the working method (§1–6, §9), which still apply. The phase plan that was §7 and the gap
+list that was §8 (early October 2026) are in git history.
+
+Read this file, then `docs/ARCHITECTURE.md` and `docs/WORKSPACE.md`.
 
 ---
 
@@ -13,7 +17,7 @@ reader at www.sefaria.org, built section by section, always tested, always check
 
 **Non-negotiables** (these come from the product owner; do not relax them):
 
-1. **The Feature Atlas is the source of truth.** `docs/features/features.json` (945 features). When you find that
+1. **The Feature Atlas is the source of truth.** `docs/features/features.json` (961 features). When you find that
    an entry is wrong, incomplete or missing — or that the rebuild differs on purpose — fix the atlas _in the same
    commit_ and log it in `docs/features/CHANGELOG.md`. Details in §4.
 2. **Verify against the live site, never from memory.** Before building a feature, look at what sefaria.org does
@@ -51,7 +55,8 @@ npx tsc --noEmit -p .            # typecheck (run before every commit)
 npx vitest run --project unit    # ~650 tests, uses recorded fixtures via MSW
 npx vitest run --project storybook   # stories + axe; the FIRST run after new imports can fail from Vite
                                      # dependency re-optimisation — rerun once before investigating
-npx playwright test              # e2e against the dev server and the LIVE API
+npx playwright test              # e2e against the dev server; API answers through the cassette proxy (scripts/api-cassette.mjs)
+                                 # (parallel lanes: use the rn-shared pw-start.sh / pw-wait.sh scripts, never port 3100)
 node scripts/feature-coverage.mjs --unknown   # coverage of atlas IDs; must report no unknown IDs
 STEP=120 WAIT=60 node scripts/jank-probe.mjs http://localhost:3100 "/Berakhot.3a.5?lang=he" "Berakhot 3a:5"
 ```
@@ -69,21 +74,21 @@ change a request's query string, add the new key to `requests.json` pointing at 
 
 ## 3. Where things are
 
-| Need                                       | Look at                                                                                                  |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| Reader route, loader, canonical redirects  | `src/routes/$.tsx`, `src/features/reader/reader-route.ts`                                                |
-| Workspace (panels, sizing, URL codec)      | `src/lib/workspace/*`, `src/lib/layout/tree.ts`, `src/features/workspace/*`                              |
-| A text panel (header, column, its sidebar) | `src/features/reader/TextPanel.tsx`                                                                      |
-| Scroll engine (focus, anchors, URL sync)   | `src/features/reader/use-reading-scroll.ts`, `TextColumn.tsx`, `src/lib/reader/column.ts`                |
-| Sidebar container and views                | `src/features/reader/ConnectionsPane.tsx`, `src/ui/ConnectionsPanel/*`, `src/ui/TranslationsView/*`      |
-| Sidebar data                               | `src/lib/connections/*` (links, summary, related resources, `with=` grammar)                             |
-| Text model and pipeline                    | `src/lib/text/*` (`model.ts`, `prepare.ts`, `queries.ts`, `commentary.ts`)                               |
-| Versions                                   | `src/lib/versions/translations.ts`                                                                       |
-| Settings (cookies, display menu rules)     | `src/lib/reader/settings.ts`, `src/features/reader/settings-context.tsx`                                 |
-| Query-string format (old site's)           | `src/lib/reader/search-serializer.ts` (`+` is a space; no JSON quoting)                                  |
-| API client (vendored, GPL-3.0)             | `vendor/sefaria-toolkit/client` — use its namespaces (`text`, `related`, `index`, `lexicon`, `topic`, …) |
-| Atlas tools                                | `docs/features/tools/` (`build.py`, `apply_<date>.py`, template)                                         |
-| Old client                                 | `/Users/akiva/Sefaria/dev/Sefaria-Project/static/js` (the atlas cites file:line for every feature)       |
+| Need                                        | Look at                                                                                                  |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Reader route, loader, canonical redirects   | `src/routes/$.tsx`, `src/features/reader/reader-route.ts`                                                |
+| Workspace (panels, sizing, URL codec)       | `src/lib/workspace/*`, `src/lib/layout/tree.ts`, `src/features/workspace/*`                              |
+| A text panel (header, column, its sidebar)  | `src/features/reader/TextPanel.tsx`                                                                      |
+| Scroll engine (focus, anchors, URL sync)    | `src/features/reader/use-reading-scroll.ts`, `TextColumn.tsx`, `src/lib/reader/column.ts`                |
+| Sidebar container and views                 | `src/features/reader/ConnectionsPane.tsx`, `src/ui/ConnectionsPanel/*`, `src/ui/TranslationsView/*`      |
+| Sidebar data                                | `src/lib/connections/*` (links, summary, related resources, `with=` grammar)                             |
+| Text model and pipeline                     | `src/lib/text/*` (`model.ts`, `prepare.ts`, `queries.ts`, `commentary.ts`)                               |
+| Versions                                    | `src/lib/versions/translations.ts`                                                                       |
+| Settings (cookies, display menu rules)      | `src/lib/reader/settings.ts`, `src/features/reader/settings-context.tsx`                                 |
+| Query-string format (old site's)            | `src/lib/reader/search-serializer.ts` (`+` is a space; no JSON quoting)                                  |
+| API client (vendored; see `docs/VENDOR.md`) | `vendor/sefaria-toolkit/client` — use its namespaces (`text`, `related`, `index`, `lexicon`, `topic`, …) |
+| Atlas tools                                 | `docs/features/tools/` (`build.py`, `apply_<date>.py`, template)                                         |
+| Old client                                  | `/Users/akiva/Sefaria/dev/Sefaria-Project/static/js` (the atlas cites file:line for every feature)       |
 
 ---
 
@@ -106,6 +111,10 @@ For every correction or addition:
    (Artifact tool, `url` set to that link, after reading it once) so the link the team has keeps working.
 
 Do this at the end of each phase at least, and immediately for anything surprising.
+
+**In a parallel lane** (PARALLEL_PLAN §5) do not edit `features.json`, `rebuild-status.json` or `CHANGELOG.md`: write
+`docs/features/tools/apply_<yyyy_mm_dd>_<lane>.py` (print each changed ID with its name; a second run prints nothing; honour
+`ATLAS_DIR` so it can be tested on a copy) and `docs/features/changelog.d/<lane>.md`. The integrator runs and folds them in.
 
 ---
 
@@ -130,7 +139,7 @@ For each feature (or tight group):
 5. **Wire** it in `src/features/...`; navigation via workspace ops with the right history state
    (`stay` for sidebar-only changes, `select`, `go`, or none for real navigations — see `navigation.tsx`).
 6. **e2e** in `e2e/*.spec.ts` against the live API: behaviour, URL, and anything that must not move.
-7. **Run everything**, update `docs/PROGRESS.md`, the atlas (§4), commit.
+7. **Run everything**, update the atlas and the feature's rebuild status (§4), commit.
 
 ---
 
@@ -157,128 +166,16 @@ For each feature (or tight group):
 
 ---
 
-## 7. The plan
+## 7. The plan → `docs/reader-future/LAUNCH_PLAN.md`
 
-Work the phases in order; within a phase, the listed order. Each task lists atlas IDs, what "done" means, and
-pointers. If a task turns out bigger than expected, split it and commit the parts.
+Replaced on 2026-11-10. Phases 0–6 of the old plan are done or folded into the launch plan's workstreams; Phase 7's "ask before
+starting" questions were answered by the owner (LAUNCH_PLAN §4, DECISIONS.md: Voices is out of scope, 2026-11-10). The remaining
+work per feature is the `partial` and `todo` entries of `rebuild-status.json`; LAUNCH_PLAN workstream G works that list.
 
-### Phase 0 — Housekeeping (½ day)
+## 8. Known gaps → `rebuild-status.json`
 
-0.1 **Rebuild status per feature.** Coverage is undercounted because many "core" entries describe old internals
-that have no equivalent here (e.g. TXD-007 "adapt v3 response to legacy shape", TXD-008 legacy text cache,
-TXD-017 TextRequestAdapter, SHL-022/024/026/027 bootstrap details, server-only RTE/PLT entries). Add
-`docs/features/rebuild-status.json` (`{ "TXD-007": { "status": "n/a" | "replaced" | "done" | "partial" | "todo",
-"note": "…", "by": "src/…" } }`), teach `build.py` to show it (pill + filter in the HTML, column in FEATURES.md) and
-`feature-coverage.mjs` to report `done + n/a` vs `todo` per area. Triage every **core** entry in `reader-shell`,
-`text-display`, `routing`, `platform-seo` honestly. Done: report numbers per area; atlas republished.
-
-0.2 **Back/forward restores the right place** (SHL-064, SHL-065, RTE-055). Today a popstate is treated as the kind
-stored with the entry (e.g. `select`), so the column isn't re-placed. Treat a popstate as a real navigation for
-panels whose ref changed, but keep scroll positions for entries the reader merely scrolled through (store
-`scrollTop` per panel in history state on `replace`, restore it on popstate before paint). Done: e2e — scroll,
-select a verse, go back, forward: column and highlight right each time, no jump.
-
-0.3 Tag existing tests that already cover features (verify by name), e.g. SHL-031, SHL-033, SHL-074, TXD-013.
-
-### Phase 1 — Versions and About (core reader)
-
-1.1 **Version resolution order** (VER-014, VER-001, VER-002, I18-001): explicit `ven/vhe` → corpus preference
-(`version_preferences_by_corpus` cookie, JSON, written whenever a translation is chosen — VER-012) →
-`translation_language_preference` cookie → default. Server reads cookies in the loader (see how `__root.tsx`
-reads settings cookies). Done: unit tests for the order; e2e: choose Koren on Genesis 1, open Exodus 1 → Koren.
-
-1.2 **Header version label** (TXD-013, VER-005, TXT-009 William Davidson attribution for Bavli): match the old
-header's subtitle exactly (it shows an attribution string for some corpora, not the version title). Verify on
-Genesis, Berakhot, a Mishnah, a commentary.
-
-1.3 **Translation Open / Version Open** (VER-013, VER-007, VER-010 preview click): clicking a preview shows that
-translation's text for the selection inside the sidebar (`with=Translation Open&vside=…`). Add `vside` to the
-workspace URL codec (per panel `vside{n}`), with codec tests.
-
-1.4 **About this Text** (CON-039, VER-006, VER-008, LIB-036): book description, authors, composition dates/places,
-current and alternate source versions, version info rows (VER-017), download links. Data: `/api/v2/index/<title>`
-(already a cached query in `src/lib/text/commentary.ts` — generalise it into `src/lib/catalog/index-meta.ts`).
-
-1.5 **Hebrew source versions** (`vhe`): selecting a source version from About; same in-place swap as translations.
-
-### Phase 2 — Sidebar tools (each replaces its "not built yet" view)
-
-2.1 **Lexicon** (CON-042, CON-043, CON-044, TXD-059, SHL-053, TXT-019): selecting words in the text opens
-`with=Lexicon&lookup=…` (codec: `lookup`, `lookup{n}`); lookups via the client's `lexicon` namespace; entry rendering
-for Jastrow, BDB, Klein (fixtures exist: `jastrow-abba-1`, `klein-av-1`). Mobile: same sheet.
-
-2.2 **Topics** (CON-046, CON-045 named-entity popup, TXD-022 inline entity links): data from the related resources
-query (already loaded); entity links in text open the topic sidebar.
-
-2.3 **Web Pages** (CON-052, CON-053) and **Manuscripts** (images; fixture `genesis-1` has manuscripts) and
-**Torah Readings** (audio player; `media` in related data).
-
-2.4 **Table of Contents in the sidebar** (BOK-008…018) — DONE (`src/lib/toc`, `src/ui/TocView`; the book page reuses `TocView`; dictionary search box still missing).
-
-2.5 **Search in this Text** — DONE (`src/lib/search`, `src/ui/SidebarSearch`; keyboard/dictionary box missing; POST must be text/plain). Original note: (SRC-094, SRC-095 `sbsq`, SRC-096) — needs the search client from Phase 5; if you
-reach it first, build the search API module here and reuse it later.
-
-2.6 **Share** — DONE (`src/ui/ShareView`, `src/ui/FeedbackView`). Original note: (CON-061) and **Feedback** (CON-067; posts to the old endpoint — check what it sends, ask the owner
-before sending real feedback from tests; mock it in e2e).
-
-2.7 (signed-out part DONE: `SignUpModal`; signed-in part waits for the owner) **Signed-in tools** (CON-011, CON-048–050 notes, CON-055/056 add to sheet, GUI-004 sign-up modal): there is no
-auth in this client yet. Build the signed-out behaviour (sign-up prompt) now; **stop and ask** the owner how
-sign-in should work before building signed-in flows (there is a separate SSO project).
-
-### Phase 3 — Every text type, side by side with the live site
-
-Use `scripts/reference-shots.mjs` (live) and `scripts/app-shots.mjs` (ours) across the book-type matrix in
-`docs/BOOK_TYPES.md`, at desktop and 390px, Hebrew/English/bilingual, segmented/continuous. Fix differences;
-record intentional ones. Includes: TXT-001 Tanakh, TXT-014 Mishnah/Tosefta, TXT-016 commentary as base text,
-TXT-017/018 commentary markers and numbers, TXT-020 Siddur, TXT-023 complex texts and default nodes, TXT-024
-address types, TXT-025 Hebrew-only / translation-only, TXD-044 RTL translations, TXD-046 segment numbers in
-continuous layout (known gap: collisions), TXD-026 inline images, TXD-001/058 copy formatting, TXD-063/064
-translation banners, SHL-012/013/014 language rules. Done: a screenshot diff table committed as
-`docs/PARITY_SHOTS.md` with every remaining difference explained.
-
-### Phase 4 — Shell: header, navigation, accessibility
-
-GUI-002/003/009/010/011 header and mobile menu (no auth: show Log in / Sign up linking to sefaria.org for now),
-SHL-062 mobile reader header, SHL-067/069 in-app link interception with modifier keys (links inside text and
-sidebar; `data-target-module` to other modules), SHL-071 Escape closes a panel, SHL-040 auto-scroll to a new panel
-when the row overflows, SHL-035 panel error state, I18-002 skip link and landmarks, I18-003 focus management,
-I18-007/008/010 interface language switch (`/interface/<lang>` + cookie), GUI-007 cookie notice (privacy-preserving
-default), SHL-010 new panels inherit display settings.
-
-### Phase 5 — Book pages and library (book pages DONE 2026-10-05: BOK-001…023 except compare-panel mode, extended notes and the promo; library home and category pages DONE 2026-10-05; translations-by-language pages LIB-020 and recently viewed remain)
-
-BOK-001…BOK-023 (book page: header, Start/Continue Reading, Contents/Versions tabs, schema nodes, section grids by
-address type, alt structures and Torah portions, dictionary browse), then LIB-008…LIB-016 (category pages,
-Talmud/Tosefta edition toggle, single-text collapse, Hebrew ordering), LIB-001 home, then the nav-sidebar modules
-(LIB-023…LIB-060) that the home, category and book pages use. Book pages are new routes in `src/routes/`; the
-catalog query (`src/lib/catalog/toc.ts`) already caches `/api/index`.
-
-### Phase 6 — Search — COMPLETE (2026-10-05)
-
-Done and parked items are listed in `docs/PHASE6_FINISH.md` ("Done means") and the atlas statuses; open owner questions in `docs/OWNER_QUESTIONS.md`. Original scope:
-
-SRC-001…SRC-016 header autocomplete and smart submit (refs, topics, books; 3-char minimum; Hebrew keyboard
-correction), SRC-039…SRC-066 search page (URL params, tabs, filters tree, sort, exact toggle, result cards,
-infinite scroll, opening a result highlights terms — TXT-027/SRC-058), SRC-066…SRC-075 entity tabs. Search requests
-go to the public search API; cache per query string with the `search` policy.
-
-### Phase 7 — Ask before starting
-
-Topics pages, calendars, Voices (sheets view/editor), collections, profiles, user library, notifications,
-accounts. These depend on decisions the owner hasn't made (auth, Voices scope, deployment). Prepare a one-page
-proposal with the atlas counts per area and the open questions; don't build until answered.
-
----
-
-## 8. Known gaps carried over
-
-- Back/forward re-placement (Phase 0.2).
-- `/api/related` takes several seconds; the Resources rows appear late (same as the old site). Consider prefetching
-  it when a verse is selected, or `/api/link-summary` for a faster first paint — measure first.
-- Translations count uses the section's `available_versions` (verse-level could differ for partial translations).
-- Compare Text (SHL-037/038, CON-066) is not built; the Tools row is hidden until it is.
-- Segment-number collisions in continuous layout; Zohar paragraph numbers (`index_offsets_by_depth`).
-- Sidebar language toggle (`lang2` for the first panel) is read but has no UI yet.
+Every gap this section listed is now an atlas status with a note once `tools/apply_2026_11_10_f-atlas.py` has run (e.g. Compare
+Text: SHL-037/038, CON-066, todo; extended notes: SHL-055, VER-021, todo; segment-number collisions: TXD-046, done). `npm run features:coverage -- --status` prints the table by area.
 
 ## 9. When to stop and ask
 
