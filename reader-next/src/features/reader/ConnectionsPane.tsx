@@ -176,6 +176,9 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const [sheetItem, setSheetItem] = useState<LinkedTextItem | null>(null);
   const viewKey = JSON.stringify(view);
   useEffect(() => setSheetItem(null), [viewKey]);
+  // Translation Open's Add to Sheet (VER-013), until the view changes
+  const [translationSheet, setTranslationSheet] = useState(false);
+  useEffect(() => setTranslationSheet(false), [viewKey, props.versionFilter]);
 
   const selected = useMemo(() => (sectionLinks ? linksForRefs(sectionLinks, selectedRefs) : []), [sectionLinks, selectedRefs]);
   const lookup = useMemo(() => makeIndexLookup(catalog, sectionLinks ?? []), [catalog, sectionLinks]);
@@ -629,6 +632,22 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   if (onTranslationOpen) {
     const wanted = parseVersionKey(props.versionFilter);
     const previewed = translationsQ.data?.find((v) => v.versionTitle === wanted?.title);
+    if (translationSheet && previewed && viewer) {
+      const last = notesRefs.at(-1)!;
+      const citationEn = notesRefs.length === 1 ? notesRefs[0]! : `${notesRefs[0]}-${last.slice(last.lastIndexOf(":") + 1)}`;
+      return (
+        <ConnectionsPanel
+          label="Add to Sheet"
+          back={{ href: hrefFor(view), label: <InterfaceText en={previewed.versionTitle} he={previewed.versionTitleInHebrew || previewed.versionTitle} />, onClick: (e) => (e.preventDefault(), setTranslationSheet(false)) }}
+          lang={shownLang}
+          onLang={props.onLang}
+          onClose={onClose}
+        >
+          {/* the old VersionsTextList's AddToSheet: versions {[language]: this translation} only */}
+          <AddToSheetSection uid={uid} citation={{ en: citationEn, he: citationEn }} citationHref={`/${refToUrl(citationEn)}`} refs={notesRefs} translation={{ versionTitle: previewed.versionTitle, direction: previewed.direction === "rtl" ? "rtl" : "ltr" }} />
+        </ConnectionsPanel>
+      );
+    }
     return (
       <ConnectionsPanel label="Translation" back={{ href: hrefFor({ view: "mode", mode: "Translations" }), label: <InterfaceText en="Translations" he="תרגומים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
         <TranslationOpenView
@@ -637,6 +656,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           lang={previewed ? bucketLanguage(previewed) : "en"}
           openHref={previewed ? props.translationHref(previewed) : hrefFor({ view: "resources" })}
           onOpen={() => previewed && props.onOpenTranslation(previewed)}
+          onAddToSheet={viewer && previewed ? () => setTranslationSheet(true) : undefined}
         />
       </ConnectionsPanel>
     );

@@ -21,6 +21,14 @@ describe("TranslationOpenView (Genesis 1:1, recorded)", () => {
     await userEvent.click(screen.getByRole("link", { name: "Open" }));
     expect(onOpen).toHaveBeenCalledOnce();
   });
+  it("signed in: Add to Sheet beside Open; signed out: none", async () => {
+    const onAddToSheet = vi.fn();
+    const { rerender } = render(<TranslationOpenView version={koren} lang="en" openHref="/x" onAddToSheet={onAddToSheet} />);
+    await userEvent.click(screen.getByRole("button", { name: "Add to Sheet" }));
+    expect(onAddToSheet).toHaveBeenCalledOnce();
+    rerender(<TranslationOpenView version={koren} lang="en" openHref="/x" />);
+    expect(screen.queryByRole("button", { name: "Add to Sheet" })).toBeNull();
+  });
   it("loading, and a translation without text for the passage", () => {
     const { rerender } = render(<TranslationOpenView loading lang="en" openHref="/x" />);
     expect(screen.getByRole("status")).toBeInTheDocument();
