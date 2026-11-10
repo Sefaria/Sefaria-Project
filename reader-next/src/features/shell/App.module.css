@@ -12,3 +12,8 @@
   /* ...unless the panel's menu button opened the navigation menu */
   .app[data-reading="true"][data-menu="open"] .header { display: block; position: sticky; top: 0; z-index: 70; background: var(--sefaria-color-surface); }
 }
+/* Phone: while the cookie notice spans the bottom of the screen, the page's end stays above it (--bottom-bar-height, set by
+   src/ui/CookieNotice/bottom-bar.ts; the old #readerAppWrap rule of static/css/cookies-notification.scss, master #3948) */
+@media (max-width: 842px) {
+  .app { box-sizing: border-box; padding-bottom: var(--bottom-bar-height, 0); }
+}
