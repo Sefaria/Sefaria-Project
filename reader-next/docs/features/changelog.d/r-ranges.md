@@ -10,10 +10,10 @@
 - **CAL-002** The Daf Yomi card and `/todays-daf-yomi` land on both amudim written by segments (`/Bekhorot.53a.1-53b.17`), now
   required by the tests. _Verified_ 2026-11-10 for `/todays-daf-yomi`; sefaria.org's in-app card click shows `/Bekhorot.53a-53b`
   (one rule here, recorded).
-- **RTE-027** A title with a backslash is a 404: root cause found (h3 decodes `%5C` in the request URL it shares with srvx), not in
-  the ref codec; fix proposed for the server entry.
+- **RTE-027** A title with a backslash opens (was a 404): h3 decoded `%5C` in the request URL it shares with srvx; the server entry
+  (`src/server.ts`) hands such a request on with its own URL, in dev and production.
 
 ### Added
 
-- **TXD-057** A selection made by keyboard (Shift+arrows) or touch (a long press) makes a range as a mouse one does. A deliberate
-  difference: sefaria.org listens to mouseup only.
+- **TXD-057** A selection made by keyboard (Shift+arrows) or touch (a long press) makes a range as a mouse one does; one made by
+  script or by find in page does not. A deliberate difference: sefaria.org listens to mouseup only.

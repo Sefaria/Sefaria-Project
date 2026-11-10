@@ -39,7 +39,7 @@ status["TXD-070"] = {"status": "done", "note": "Kept and highlighted, sidebar op
 add(
     "TXD-055",
     [
-        "Fixed 2026-11-10 (lane R): only keys that scroll mark the reader as reading on (arrows up/down, Page Up/Down, Home/End, Space; not Shift+arrows, not in a field, not Space on a button; Tab when a scroll follows it at once), and the mark clears when the scroll settles. Any key used to count and the mark was never cleared, so after Cmd+C on a selected range a later reflow settled on a verse and dropped the range. "
+        "Fixed 2026-11-10 (lane R): only keys that scroll mark the reader as reading on (arrows up/down, Page Up/Down, Home/End, Space; not Shift+arrows, not in a field, not Space on a button or a verse; Tab too), and only when a scroll follows within 300 ms (End at the bottom scrolls nothing); the mark clears when the scroll settles. Any key used to count and the mark was never cleared, so after Cmd+C on a selected range a later reflow settled on a verse and dropped the range. "
         + V
         + ": after a drag over 1:3-1:5 (or 1:30-2:2), Cmd+C, Shift and a narrower window leave the range and its blue. Tests: src/features/reader/use-reading-scroll.test.ts, e2e/ranges.spec.ts ('keys that do not scroll leave a selected range alone').",
     ],
@@ -49,9 +49,9 @@ add(
 add(
     "TXD-057",
     [
-        "BUILT 2026-11-10 (lane R): a selection made by keyboard (Shift+arrows) or touch (a long press and its handles) makes a range as a mouse one does: a debounced selectionchange (300 ms) reports it once, ignored while a mouse button is down and outside the column. Deliberate difference: sefaria.org listens to mouseup only (static/js/TextColumn.jsx), so there such a selection makes no range ("
+        "BUILT 2026-11-10 (lane R): a selection made by keyboard (Shift+arrows) or touch (a long press and its handles) makes a range as a mouse one does: a debounced selectionchange reports it once (300 ms after a key, 700 ms for touch), only within 1 s of a selecting key or 10 s of a touch or pen going down, so a selection made by script or by find in page changes nothing; ignored while a mouse button is down (released on pointerup, pointercancel, contextmenu, blur) and outside the column. Deliberate difference: sefaria.org listens to mouseup only (static/js/TextColumn.jsx), so there such a selection makes no range ("
         + V
-        + "). Tests: src/features/reader/TextColumn.selection.test.ts, e2e/ranges.spec.ts (keyboard; phone context with the selection made by script, as Playwright cannot long-press to select).",
+        + "). Tests: src/features/reader/TextColumn.selection.test.ts, e2e/ranges.spec.ts (keyboard; a selection by script with no gesture changes nothing; phone context: a finger held 800 ms through CDP, then the selection made by script, as Playwright cannot long-press to select).",
     ],
 )
 
@@ -59,7 +59,7 @@ add(
 add(
     "CAL-002",
     [
-        "The Daf Yomi card (and /todays-daf-yomi) land on both amudim written by their segments (/Bekhorot.53a.1-53b.17, TXD-070). "
+        "The Daf Yomi card (and /todays-daf-yomi) land on both amudim written by their segments (/Bekhorot.53a.1-53b.17, TXD-070) when the server answers the daf as both amudim (a tractate's last daf may be one amud, Berakhot 64a, and keeps its address). "
         + V
         + ": /todays-daf-yomi -> /Bekhorot.53a.1-53b.17 (28 lines blue); the card clicked inside the app shows /Bekhorot.53a-53b (same 28 blue). One rule here (the segment form); recorded as a difference. Tests: e2e/calendars.spec.ts.",
     ],
@@ -69,7 +69,7 @@ add(
 add(
     "RTE-027",
     [
-        "Root cause of the backslash-title 404 (lane R, 2026-11-10): not the ref codec. h3 (inside TanStack Start, H3Event constructor) runs decodeURI on the pathname of the URL object it shares with srvx's NodeRequest; %5C becomes a backslash, which the URL setter turns into '/', so request.url itself reaches the router as .../Subject/Object (%2F is reserved and survives, which is why '/' titles work). Fix proposed for server/index.mjs (hand the app a request with its own URL) and the dev server; verified on a production build: the title answers 200.",
+        "Root cause of the backslash-title 404 (lane R, 2026-11-10): not the ref codec. h3 (inside TanStack Start, H3Event constructor) runs decodeURI on the pathname of the URL object it shares with srvx's NodeRequest; %5C becomes a backslash, which the URL setter turns into '/', so request.url itself reaches the router as .../Subject/Object (%2F is reserved and survives, which is why '/' titles work). FIXED 2026-11-10 (lane R, review round 1): src/server.ts, the server entry used by vite dev and the build, hands a request whose URL holds %5C on as a plain Request with its own URL (body and signal kept, so POST too); other requests pass untouched. Tests: src/server.test.ts, e2e/titles-backslash.spec.ts (the corpus case). Upstream: h3 should not mutate the request's URL object.",
     ],
 )
 
