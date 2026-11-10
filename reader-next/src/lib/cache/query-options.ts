@@ -15,7 +15,7 @@ export function withPolicy<T extends { queryKey: QueryKey }>(dataClass: DataClas
     // once and asked for again next time, never kept as fresh for days (CODE_REVIEW low; persisters.ts keeps it off the disk)
     staleTime: (query: { state: { data?: unknown } }) => (hasApiWarnings(query.state.data) ? 0 : staleTimeFor(dataClass)),
     gcTime: policy.gcTime,
-    ...(persister ? { persister: persister.persisterFn } : {}),
+    ...(persister ? { persister: persister.revalidatingFn } : {}),
     meta: { dataClass },
   };
 }

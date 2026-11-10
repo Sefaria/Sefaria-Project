@@ -3,14 +3,36 @@
  */
 import { experimental_createQueryPersister, type PersistedQuery } from "@tanstack/query-persist-client-core";
 import type { QueryClient } from "@tanstack/react-query";
-import { CACHE_BUSTER, POLICIES, type DataClass } from "./policies";
+import { CACHE_BUSTER, POLICIES, staleTimeFor, type DataClass } from "./policies";
 import { pendingDiskInvalidation } from "./invalidate";
 import { sweepRefIndexDisk } from "./ref-index";
 import { createIdbStorage, DISK_READ_TIMEOUT_MS, resetIdbStore, storedDataUpdatedAt, sweepOnce, within, type SweepResult } from "./storage";
 
-type QueryPersister = ReturnType<typeof experimental_createQueryPersister<PersistedQuery>>;
+type QueryPersister = ReturnType<typeof experimental_createQueryPersister<PersistedQuery>> & {
+  /** `persisterFn`, plus a refresh of what it restored from disk once that is past its class's fresh window (see `revalidating`). */
+  revalidatingFn: QueryPersister["persisterFn"];
+};
 
 const persisters = new Map<DataClass, QueryPersister>();
+
+/**
+ * TanStack refetches a restored query only when an observer finds it stale; the reader reads most text through loaders and
+ * `fetchQuery` (no observer), so a copy restored from disk was used as it was for as long as the disk kept it (30 days), whatever its
+ * staleTime. D-7: past the class's fresh window, the restored copy is used at once and asked for again behind it.
+ */
+function revalidating(dataClass: DataClass, inner: QueryPersister["persisterFn"], restoredAt: Map<string, number>): QueryPersister["persisterFn"] {
+  return (async (queryFn, ctx, query) => {
+    let fetched = false;
+    const data = await inner(((c: never) => ((fetched = true), queryFn(c))) as typeof queryFn, ctx, query);
+    const at = restoredAt.get(query.queryHash);
+    restoredAt.delete(query.queryHash);
+    if (!fetched && at !== undefined && Date.now() - at > staleTimeFor(dataClass)) {
+      // after this fetch settles (the restore's own bookkeeping runs in the same macrotask queue first)
+      setTimeout(() => void query.fetch(undefined, { cancelRefetch: false })?.catch(() => undefined), 0);
+    }
+    return data;
+  }) as QueryPersister["persisterFn"];
+}
 
 export function getPersister(dataClass: DataClass): QueryPersister | undefined {
   if (POLICIES[dataClass].maxAge === 0) return undefined;
@@ -18,15 +40,28 @@ export function getPersister(dataClass: DataClass): QueryPersister | undefined {
   if (!p) {
     const storage = createIdbStorage();
     if (!storage) return undefined;
-    p = experimental_createQueryPersister<PersistedQuery>({
-      // an answer with API warnings is never written to disk (see withPolicy); a read waits for deletions an edit started (invalidate.ts)
-      storage: { ...storage, getItem: async (key) => (await within(pendingDiskInvalidation(), DISK_READ_TIMEOUT_MS, undefined), storage.getItem(key)), setItem: (key, value) => (hasApiWarnings(value.state.data) ? storage.removeItem(key) : storage.setItem(key, value)) },
+    const prefix = `sr-${dataClass}`;
+    const restoredAt = new Map<string, number>();
+    const base = experimental_createQueryPersister<PersistedQuery>({
+      storage: {
+        ...storage,
+        // a read waits for deletions an edit started (invalidate.ts), and notes when what it restores was fetched (revalidating)
+        getItem: async (key) => {
+          await within(pendingDiskInvalidation(), DISK_READ_TIMEOUT_MS, undefined);
+          const value = await storage.getItem(key);
+          if (value && value.buster === CACHE_BUSTER) restoredAt.set(key.slice(prefix.length + 1), value.state.dataUpdatedAt);
+          return value;
+        },
+        // an answer with API warnings is never written to disk (see withPolicy)
+        setItem: (key, value) => (hasApiWarnings(value.state.data) ? storage.removeItem(key) : storage.setItem(key, value)),
+      },
       buster: CACHE_BUSTER,
       maxAge: POLICIES[dataClass].maxAge,
-      prefix: `sr-${dataClass}`,
+      prefix,
       serialize: (q) => q,
       deserialize: (q) => q,
     });
+    p = { ...base, revalidatingFn: revalidating(dataClass, base.persisterFn, restoredAt) };
     persisters.set(dataClass, p);
   }
   return p;

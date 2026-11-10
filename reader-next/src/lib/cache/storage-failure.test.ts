@@ -124,3 +124,26 @@ describe("reading works whatever IndexedDB does", () => {
     expect(cold.fetched).toHaveBeenCalledTimes(1);
   });
 });
+
+// D-7: TanStack refetches a restored query only for an observer that finds it stale; loaders read through fetchQuery (no observer), so a
+// stored copy was used as is for as long as the disk kept it
+describe("a copy restored from disk past the hour", () => {
+  it("is used at once and asked for again behind it; within the hour it is not", async () => {
+    const factory = new IDBFactory();
+    install(factory);
+    await readText();
+    await written();
+    resetPersisters();
+    const fresh = await readText(new QueryClient());
+    await new Promise((r) => setTimeout(r, 50));
+    expect(fresh.fetched).not.toHaveBeenCalled();
+
+    resetPersisters();
+    const later = Date.now() + 61 * 60_000;
+    const now = vi.spyOn(Date, "now").mockReturnValue(later);
+    const stale = await readText(new QueryClient());
+    expect(stale.data.ref).toBe("Genesis 1"); // the stored copy, at once
+    await vi.waitFor(() => expect(stale.fetched).toHaveBeenCalledTimes(1));
+    now.mockRestore();
+  });
+});
