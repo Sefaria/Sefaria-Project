@@ -227,8 +227,9 @@ test.describe("signed in (stand-in Django)", () => {
     await expect(page).toHaveTitle("Torah Tracker | Sefaria Library");
     await expect(page.getByRole("heading", { name: "Your Overall Activity" })).toBeVisible();
     await expect(page.getByText("120", { exact: true })).toBeVisible();
-    await expect(page.locator("svg[role=img] path")).toHaveCount(2 * 4); // two donuts: Tanakh, Talmud, Midrash and Etc
-    await expect(page.getByText("TANAKH")).toBeVisible();
+    // the reader's donut: Tanakh, Talmud, Midrash and Etc (Liturgy is under 4%); the average reader's: all four and Etc
+    await expect(page.locator("svg[role=img] path")).toHaveCount(4 + 5);
+    await expect(page.getByText("TANAKH", { exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: "Genesis 1:1" })).toHaveAttribute("href", "/Genesis.1.1");
     // sefaria.org's stylesheet on the old markup: the name 60px down in 30px Garamond; the 240px switch; the 211px card
     const top = await headerBottom(page);
@@ -239,6 +240,32 @@ test.describe("signed in (stand-in Django)", () => {
     await page.getByRole("button", { name: "Switch to All Time mode" }).click();
     await expect(page.getByText("Looks like we haven’t seen you in a while!")).toBeVisible();
     await expect(page.getByRole("heading", { name: "What People are Reading" })).toBeVisible();
+  });
+
+  // @feature LEG-007 (T-F27): Django's editors come back to this client through ?next= (the old s1 editor goes to params.next on save
+  // and on cancel), and the return forgets the edited book on disk (e2e/freshness.spec.ts covers that half)
+  test("Add Translation and Edit Text send the reader to Django's editor with ?next= this page", async ({ page }) => {
+    await signedIn(page, "english");
+    const editors: string[] = [];
+    await page.route(/\/(translate|edit)\//, (r) => {
+      editors.push(r.request().url());
+      return r.fulfill({ status: 200, contentType: "text/html", body: "<title>editor</title>" });
+    });
+    const here = "/Genesis.1.1?lang=en&with=Advanced%20Tools";
+    await open(page, here);
+    await page.getByRole("link", { name: "Add Translation" }).click();
+    await expect.poll(() => editors.length).toBe(1);
+    const translate = new URL(editors[0]!);
+    expect(translate.pathname).toBe("/translate/Genesis.1.1");
+    expect(new URL(translate.searchParams.get("next")!, BASE).pathname).toBe("/Genesis.1.1");
+    // Edit Text needs a version that is not locked (Genesis's all are): Sefer HaChinukh's Torat Emet Hebrew
+    const open2 = "/Sefer_HaChinukh.1.1?lang=he&vhe=hebrew|Sefer_HaChinukh_--_Torat_Emet&with=Advanced%20Tools";
+    await open(page, open2);
+    await page.getByRole("link", { name: "Edit Text" }).click();
+    await expect.poll(() => editors.length).toBe(2);
+    const edit = new URL(editors[1]!);
+    expect(edit.pathname).toBe("/edit/Sefer_HaChinukh.1.1/hebrew/Sefer%20HaChinukh%20--%20Torat%20Emet");
+    expect(new URL(edit.searchParams.get("next")!, BASE).pathname).toBe("/Sefer_HaChinukh.1.1");
   });
 
   test.describe("Hebrew, on a phone", () => {
