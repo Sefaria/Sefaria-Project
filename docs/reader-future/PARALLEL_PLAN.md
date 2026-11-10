@@ -95,21 +95,25 @@ staff opt-in) and T-E06 (the two first real writes) need the owner and run after
 
 ### Wave 2 — L1 (target: two to three weeks)
 
+> **2026-11-10, owner: do not touch Voices at all.** Lane V below is cancelled. No lane edits Voices pages, the Voices host logic
+> (`isVoicesHost`, the Voices half of `LIBRARY_ONLY_PREFIXES`) or the Voices server block in nginx. Links to sheets, sheets-with-ref,
+> collections and profiles are accepted exits. Wave 2 runs five lanes: P, S, GR, GS, H.
+
 | Lane | Tasks | Owns | Notes |
 |---|---|---|---|
-| **V Voices** | T-F10…T-F16 | `src/features/sheets/**`, `features/collections/**`, `features/profile/**`, `src/lib/sheets/**` (new), `src/routes/sheets*`, `collections*`, `profile*`, `sheets-with-ref*`; the Voices server block in `helm-chart/sefaria/conf/nginx.template.conf.tpl` (lane A is done by then); the module route table in `src/lib/routing/**` | The long pole. T-F10 first and merged on its own (mid-wave merge) so other lanes see the module model. Parity script on 20 sheets, desktop and phone UA |
+| ~~**V Voices**~~ CANCELLED | ~~T-F10…T-F16~~ | `src/features/sheets/**`, `features/collections/**`, `features/profile/**`, `src/lib/sheets/**` (new), `src/routes/sheets*`, `collections*`, `profile*`, `sheets-with-ref*`; the Voices server block in `helm-chart/sefaria/conf/nginx.template.conf.tpl` (lane A is done by then); the module route table in `src/lib/routing/**` | The long pole. T-F10 first and merged on its own (mid-wave merge) so other lanes see the module model. Parity script on 20 sheets, desktop and phone UA |
 | **P Pages** | T-F20…T-F25, T-F27 | `src/features/notifications/**`, `features/torahtracker/**`, `features/updates/**`, matching routes and specs | Header link for notifications: a small edit in `SiteHeader.tsx`, coordinated with lane GS through the integrator |
 | **S Static** | T-F31, T-F32 | `src/features/static-page/**`, `src/routes/` for the static paths, the content-only template flag if lane B left work | Needs T-B06 merged |
 | **GR Polish, reader** | T-G01 for reader-shell, text-display, text-types, connections, versions; T-G04, T-G05 | `src/features/reader/**`, `src/ui/` components used only by the reader and sidebar | Takes over lane D's paths |
 | **GS Polish, shell & library** | T-G01 for library-nav, book-pages, search, topics, global-ui; T-G02, T-G03, T-G06 | `src/features/{library,book,search,topics,shell}/**`, `src/ui/{SiteHeader,NavSidebar,…}` | G03 adds the minimal CMS reader in `src/lib/cms/**` |
 | **H Performance** | T-H01 (pre-deploy list, on staging), T-H04 follow-ups, measurement for GR's fixes | `scripts/perf/**`, the wiki pre-deploy list's run log | Mostly measurement; fixes go to GR or V through the integrator |
 
-Merge order: V's T-F10 slice first (mid-wave), then S, P, GS, GR, V's remainder, H. Each time a lane removes a prefix from
+Merge order: S, P, GS, GR, H. Each time a lane removes a prefix from
 `DJANGO_PREFIXES` the exits allowlist shrinks in the same merge.
 
 ### Wave 3 — verification (integrator + 2 checker agents)
 
-T-G07 full parity matrix, T-G08 accessibility, the exits crawl with only the D-4/D-6 allowlist, the L1 gate list (LAUNCH_PLAN §7.2).
+T-G07 full parity matrix, T-G08 accessibility, the exits crawl with only the Voices links and the D-6 allowlist, the L1 gate list (LAUNCH_PLAN §7.2).
 Checkers are fresh agents that did not build the code. Staging work and the Support brief (T-I03) need the owner.
 
 ---

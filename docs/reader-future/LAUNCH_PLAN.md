@@ -76,6 +76,12 @@ Two launch stages. Scope is frozen when the owner accepts this plan; anything ne
 > **Amended 2026-11-10 (owner):** all work lands on `reader-next`, with no PRs to `master` and no per-lane PRs. D-2 and workstream B
 > below are superseded: the Django changes stay on `reader-next`, and `reader-next` → `master` is one later merge. How the work runs
 > in parallel: `PARALLEL_PLAN.md`.
+>
+> **Amended 2026-11-10 (owner): Voices is out of scope entirely — do not touch it.** No Voices pages are ported, and no code, chart or
+> nginx change touches the Voices host or the Voices module. D-3 and D-4 are withdrawn and section F1 (T-F10…T-F16) is cancelled.
+> Links from the reader to sheets, sheets-with-ref, collections and profiles stay as they are: they lead to Voices, and they are
+> **accepted exits** in the crawl allowlist. Do not edit `isVoicesHost`, `LIBRARY_ONLY_PREFIXES`' Voices behaviour, or the Voices
+> nginx server block. T-C05 checks only the Library hosts.
 
 **All twelve defaults below were accepted by Akiva on 2026-11-09** and are recorded in `docs/reader-future/DECISIONS.md`. They are settled: build on them. Scope (§3) is frozen from this date; anything new goes to §8.
 
@@ -183,7 +189,7 @@ Acceptance: a crawl from every new-reader page, signed in and signed out, deskto
 | T-F02 [P] | Absolute `${SITE_ORIGIN}/…` links to relative, so they navigate inside the app (topics from the sidebar, book page, autocomplete, named-entity popup; header `/texts`, `/topics`) | S |
 | T-F03 [P] | Version source "links" that are not addresses render as plain text (deliberate difference from legacy) | S |
 
-**F1. Voices pages (needs D-3, D-4). Largest item of the launch.**
+**F1. Voices pages — CANCELLED 2026-11-10 (owner: do not touch Voices). Kept for the record only; do not build.**
 
 | ID | Task | Done when | Size |
 |---|---|---|---|
@@ -274,7 +280,7 @@ Parallel lanes that never touch the same files: {F1 Voices}, {F2 small Library p
 - [ ] "Back to the classic reader" works from every page.
 
 ### 7.2 L1 (public opt-in)
-- [ ] Exits crawl green with only the D-4 and D-6 allowlist, signed in and out, desktop and phone, English and Hebrew interface.
+- [ ] Exits crawl green with only the Voices links (sheets, sheets-with-ref, collections, profiles) and the D-6 allowlist, signed in and out, desktop and phone, English and Hebrew interface.
 - [ ] `rebuild-status.json` has no `todo` in rendered areas; every `partial` has a note the owner has seen.
 - [ ] Parity run (T-G07) and accessibility run (T-G08) committed.
 - [ ] Pre-deploy list run; web vitals at p75 on phones no worse than legacy for opted-in staff, LCP better.
