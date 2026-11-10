@@ -2,6 +2,7 @@ import { Page } from '@playwright/test';
 import { test, expect, pageFetch } from '../fixtures';
 import { DeveloperSettingsPage } from '../../pages/developerSettingsPage';
 import { openAccount } from './session-wait';
+import { deleteProjectQuietly } from './keys-helpers';
 import { t } from '../../globals';
 
 const SUITE = 'projects';
@@ -40,39 +41,49 @@ test.describe('developer settings: projects', () => {
     const dev = await openDeveloper(page);
     const name = unique('N-C9 double click');
 
-    const posts: number[] = [];
-    page.on('response', r => {
-      if (r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/developer/projects') posts.push(r.status());
-    });
+    try {
+      const posts: number[] = [];
+      page.on('response', r => {
+        if (r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/developer/projects') posts.push(r.status());
+      });
 
-    await dev.newProjectButton().click();
-    await dev.fillNewProject({ name, description: 'Created by a double click.', website: 'https://n-c9.example.com', visibility: 'private' });
-    await dev.action('create-project', dev.newProjectPanel()).dblclick();
+      await dev.newProjectButton().click();
+      await dev.fillNewProject({ name, description: 'Created by a double click.', website: 'https://n-c9.example.com', visibility: 'private' });
+      await dev.action('create-project', dev.newProjectPanel()).dblclick();
 
-    await expect(dev.projectCard(name).first()).toBeVisible({ timeout: t(15000) });
-    await page.waitForTimeout(2000);
-    const named = (await state(page)).projects.filter((p: any) => p.name === name);
-    expect(named.length, `POST /api/developer/projects answered ${JSON.stringify(posts)}`).toBe(1);
-    await expect(dev.projectCard(name)).toHaveCount(1);
-    await expect(page.locator('.devPocNotice[role="status"]')).toHaveCount(0);
+      await expect(dev.projectCard(name).first()).toBeVisible({ timeout: t(15000) });
+      await page.waitForTimeout(2000);
+      const named = (await state(page)).projects.filter((p: any) => p.name === name);
+      expect(named.length, `POST /api/developer/projects answered ${JSON.stringify(posts)}`).toBe(1);
+      await expect(dev.projectCard(name)).toHaveCount(1);
+      await expect(page.locator('.devPocNotice[role="status"]')).toHaveCount(0);
+    } finally {
+      // The double click made one project; look it up by name and delete it.
+      const ids = await state(page).then(st => st.projects.filter((p: any) => p.name === name).map((p: any) => p.id), () => []);
+      for (const projectId of ids) await deleteProjectQuietly(page, projectId);
+    }
   });
 
   test('N-C13 (S10): Back from /settings/developer/projects/<id> collapses the card', async ({ account }) => {
     const { page } = await openAccount(account, SUITE, 'setUp');
     await openDeveloper(page);
     const name = unique('N-C13 back');
-    await createProjectThroughApi(page, { name });
+    const id = await createProjectThroughApi(page, { name });
 
-    const dev = await openDeveloper(page);
-    const toggle = dev.projectCard(name).locator('button.devPocProjectToggle');
-    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    await expect(page).toHaveURL(/\/settings\/developer\/projects\/\d+$/);
+    try {
+      const dev = await openDeveloper(page);
+      const toggle = dev.projectCard(name).locator('button.devPocProjectToggle');
+      await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      await toggle.click();
+      await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+      await expect(page).toHaveURL(/\/settings\/developer\/projects\/\d+$/);
 
-    await page.goBack();
-    await expect(page).toHaveURL(/\/settings\/developer$/);
-    await expect(toggle).toHaveAttribute('aria-expanded', 'false', { timeout: t(5000) });
+      await page.goBack();
+      await expect(page).toHaveURL(/\/settings\/developer$/);
+      await expect(toggle).toHaveAttribute('aria-expanded', 'false', { timeout: t(5000) });
+    } finally {
+      await deleteProjectQuietly(page, String(id));
+    }
   });
 
   test('N-C13 (S10): reloading /settings/developer/projects/<id> opens that card', async ({ account }) => {
@@ -81,8 +92,12 @@ test.describe('developer settings: projects', () => {
     const name = unique('N-C13 reload');
     const id = await createProjectThroughApi(page, { name });
 
-    const dev = await openDeveloper(page, `/settings/developer/projects/${id}`);
-    await expect(dev.projectCard(name).locator('button.devPocProjectToggle')).toHaveAttribute('aria-expanded', 'true');
+    try {
+      const dev = await openDeveloper(page, `/settings/developer/projects/${id}`);
+      await expect(dev.projectCard(name).locator('button.devPocProjectToggle')).toHaveAttribute('aria-expanded', 'true');
+    } finally {
+      await deleteProjectQuietly(page, String(id));
+    }
   });
 
   test('N-C13 (S12): Account Cancel after switching tabs leaves settings', async ({ account }) => {
@@ -121,63 +136,67 @@ test.describe('developer settings: projects', () => {
     expect(key.status, key.text).toBe(200);
     const keyId = key.json.keyId;
 
-    const dev = await openDeveloper(page, `/settings/developer/projects/${id}`);
-    const card = dev.projectCard(name);
-    await expect(card.locator('button.devPocProjectToggle')).toHaveAttribute('aria-expanded', 'true');
+    try {
+      const dev = await openDeveloper(page, `/settings/developer/projects/${id}`);
+      const card = dev.projectCard(name);
+      await expect(card.locator('button.devPocProjectToggle')).toHaveAttribute('aria-expanded', 'true');
 
-    const restrict = dev.waitForApi(new RegExp(`/api/developer/keys/${keyId}$`));
-    await dev.restrictionSwitch(card, label).click();
-    expect((await restrict).status()).toBe(200);
-    await expect(dev.restrictionSwitch(card, label)).toBeChecked();
-    await expect(card.locator(`#devPocRestrictionSummary-${keyId}`)).toContainText('https://c4-old.example.com');
+      const restrict = dev.waitForApi(new RegExp(`/api/developer/keys/${keyId}$`));
+      await dev.restrictionSwitch(card, label).click();
+      expect((await restrict).status()).toBe(200);
+      await expect(dev.restrictionSwitch(card, label)).toBeChecked();
+      await expect(card.locator(`#devPocRestrictionSummary-${keyId}`)).toContainText('https://c4-old.example.com');
 
-    await card.getByRole('button', { name: 'Edit project' }).click();
-    await card.locator('#devPocProjectUrl').fill('https://c4-new.example.com');
-    let save = dev.waitForApi(`projects/${id}`);
-    await dev.action('save-project', card).click();
-    expect((await save).status()).toBe(200);
-    await expect(dev.restrictionSwitch(card, label)).toBeChecked();
-    await expect(card.locator(`#devPocRestrictionSummary-${keyId}`)).toContainText('https://c4-new.example.com');
-    await expect(card.locator(`#devPocRestrictionSummary-${keyId}`)).not.toContainText('c4-old');
-    let row = (await state(page)).projects.find((p: any) => p.id === id).keys.find((k: any) => k.id === keyId);
-    expect(row.restrictToWebsite).toBe(true);
+      await card.getByRole('button', { name: 'Edit project' }).click();
+      await card.locator('#devPocProjectUrl').fill('https://c4-new.example.com');
+      let save = dev.waitForApi(`projects/${id}`);
+      await dev.action('save-project', card).click();
+      expect((await save).status()).toBe(200);
+      await expect(dev.restrictionSwitch(card, label)).toBeChecked();
+      await expect(card.locator(`#devPocRestrictionSummary-${keyId}`)).toContainText('https://c4-new.example.com');
+      await expect(card.locator(`#devPocRestrictionSummary-${keyId}`)).not.toContainText('c4-old');
+      let row = (await state(page)).projects.find((p: any) => p.id === id).keys.find((k: any) => k.id === keyId);
+      expect(row.restrictToWebsite).toBe(true);
 
-    // The form refuses before anything is sent while a key is restricted to the website (the server refuses too,
-    // for a stale page: settingsPage.test.js and developer_writer_api_project_test.py cover that path).
-    const refusal = 'Turn off the restriction on every key';
-    await card.getByRole('button', { name: 'Edit project' }).click();
-    await card.locator('#devPocProjectUrl').fill('');
-    const sent: string[] = [];
-    const onRequest = (r: any) => { if (r.method() !== 'GET' && r.url().includes(`/api/developer/projects/${id}`)) sent.push(r.url()); };
-    page.on('request', onRequest);
-    await dev.action('save-project', card).click();
-    await expect(card.locator('[role="alert"]')).toContainText(refusal);
-    await expect(page.locator('[aria-labelledby="devPocNoWebsiteTitle"]')).toHaveCount(0);
-    page.off('request', onRequest);
-    expect(sent, 'clearing a restricted website sent a request').toEqual([]);
-    await expect(card.locator('#devPocProjectUrl')).toHaveValue('');
-    let after = (await state(page)).projects.find((p: any) => p.id === id);
-    expect(after.websiteUrl).toBe('https://c4-new.example.com');
-    expect(after.keys.find((k: any) => k.id === keyId).restrictToWebsite).toBe(true);
+      // The form refuses before anything is sent while a key is restricted to the website (the server refuses too,
+      // for a stale page: settingsPage.test.js and developer_writer_api_project_test.py cover that path).
+      const refusal = 'Turn off the restriction on every key';
+      await card.getByRole('button', { name: 'Edit project' }).click();
+      await card.locator('#devPocProjectUrl').fill('');
+      const sent: string[] = [];
+      const onRequest = (r: any) => { if (r.method() !== 'GET' && r.url().includes(`/api/developer/projects/${id}`)) sent.push(r.url()); };
+      page.on('request', onRequest);
+      await dev.action('save-project', card).click();
+      await expect(card.locator('[role="alert"]')).toContainText(refusal);
+      await expect(page.locator('[aria-labelledby="devPocNoWebsiteTitle"]')).toHaveCount(0);
+      page.off('request', onRequest);
+      expect(sent, 'clearing a restricted website sent a request').toEqual([]);
+      await expect(card.locator('#devPocProjectUrl')).toHaveValue('');
+      let after = (await state(page)).projects.find((p: any) => p.id === id);
+      expect(after.websiteUrl).toBe('https://c4-new.example.com');
+      expect(after.keys.find((k: any) => k.id === keyId).restrictToWebsite).toBe(true);
 
-    // The way through: turn the restriction off on the key, then clear the website.
-    await card.getByRole('button', { name: 'Cancel' }).click();
-    const unrestrict = dev.waitForApi(new RegExp(`/api/developer/keys/${keyId}$`));
-    await dev.restrictionSwitch(card, label).click();
-    expect((await unrestrict).status()).toBe(200);
-    await expect(dev.restrictionSwitch(card, label)).not.toBeChecked();
+      // The way through: turn the restriction off on the key, then clear the website.
+      await card.getByRole('button', { name: 'Cancel' }).click();
+      const unrestrict = dev.waitForApi(new RegExp(`/api/developer/keys/${keyId}$`));
+      await dev.restrictionSwitch(card, label).click();
+      expect((await unrestrict).status()).toBe(200);
+      await expect(dev.restrictionSwitch(card, label)).not.toBeChecked();
 
-    await card.getByRole('button', { name: 'Edit project' }).click();
-    await card.locator('#devPocProjectUrl').fill('');
-    save = dev.waitForApi(`projects/${id}`);
-    await dev.action('save-project', card).click();
-    await dev.action('save-without-website').click();
-    expect((await save).status()).toBe(200);
+      await card.getByRole('button', { name: 'Edit project' }).click();
+      await card.locator('#devPocProjectUrl').fill('');
+      save = dev.waitForApi(`projects/${id}`);
+      await dev.action('save-project', card).click();
+      await dev.action('save-without-website').click();
+      expect((await save).status()).toBe(200);
 
-    await expect(dev.restrictionSwitch(card, label)).toHaveCount(0);
-    await expect(card.getByRole('button', { name: 'Add your website' })).toBeVisible();
-    after = (await state(page)).projects.find((p: any) => p.id === id);
-    expect(after.websiteUrl).toBeFalsy();
-    expect(after.keys.find((k: any) => k.id === keyId).restrictToWebsite).toBe(false);
+      await expect(dev.restrictionSwitch(card, label)).toHaveCount(0);
+      await expect(card.getByRole('button', { name: 'Add your website' })).toBeVisible();
+      after = (await state(page)).projects.find((p: any) => p.id === id);
+      expect(after.websiteUrl).toBeFalsy();
+      expect(after.keys.find((k: any) => k.id === keyId).restrictToWebsite).toBe(false);
+    } finally {
+      await deleteProjectQuietly(page, String(id));
+    }
   });
 });
