@@ -74,21 +74,21 @@ change a request's query string, add the new key to `requests.json` pointing at 
 
 ## 3. Where things are
 
-| Need                                       | Look at                                                                                                  |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| Reader route, loader, canonical redirects  | `src/routes/$.tsx`, `src/features/reader/reader-route.ts`                                                |
-| Workspace (panels, sizing, URL codec)      | `src/lib/workspace/*`, `src/lib/layout/tree.ts`, `src/features/workspace/*`                              |
-| A text panel (header, column, its sidebar) | `src/features/reader/TextPanel.tsx`                                                                      |
-| Scroll engine (focus, anchors, URL sync)   | `src/features/reader/use-reading-scroll.ts`, `TextColumn.tsx`, `src/lib/reader/column.ts`                |
-| Sidebar container and views                | `src/features/reader/ConnectionsPane.tsx`, `src/ui/ConnectionsPanel/*`, `src/ui/TranslationsView/*`      |
-| Sidebar data                               | `src/lib/connections/*` (links, summary, related resources, `with=` grammar)                             |
-| Text model and pipeline                    | `src/lib/text/*` (`model.ts`, `prepare.ts`, `queries.ts`, `commentary.ts`)                               |
-| Versions                                   | `src/lib/versions/translations.ts`                                                                       |
-| Settings (cookies, display menu rules)     | `src/lib/reader/settings.ts`, `src/features/reader/settings-context.tsx`                                 |
-| Query-string format (old site's)           | `src/lib/reader/search-serializer.ts` (`+` is a space; no JSON quoting)                                  |
+| Need                                        | Look at                                                                                                  |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Reader route, loader, canonical redirects   | `src/routes/$.tsx`, `src/features/reader/reader-route.ts`                                                |
+| Workspace (panels, sizing, URL codec)       | `src/lib/workspace/*`, `src/lib/layout/tree.ts`, `src/features/workspace/*`                              |
+| A text panel (header, column, its sidebar)  | `src/features/reader/TextPanel.tsx`                                                                      |
+| Scroll engine (focus, anchors, URL sync)    | `src/features/reader/use-reading-scroll.ts`, `TextColumn.tsx`, `src/lib/reader/column.ts`                |
+| Sidebar container and views                 | `src/features/reader/ConnectionsPane.tsx`, `src/ui/ConnectionsPanel/*`, `src/ui/TranslationsView/*`      |
+| Sidebar data                                | `src/lib/connections/*` (links, summary, related resources, `with=` grammar)                             |
+| Text model and pipeline                     | `src/lib/text/*` (`model.ts`, `prepare.ts`, `queries.ts`, `commentary.ts`)                               |
+| Versions                                    | `src/lib/versions/translations.ts`                                                                       |
+| Settings (cookies, display menu rules)      | `src/lib/reader/settings.ts`, `src/features/reader/settings-context.tsx`                                 |
+| Query-string format (old site's)            | `src/lib/reader/search-serializer.ts` (`+` is a space; no JSON quoting)                                  |
 | API client (vendored; see `docs/VENDOR.md`) | `vendor/sefaria-toolkit/client` — use its namespaces (`text`, `related`, `index`, `lexicon`, `topic`, …) |
-| Atlas tools                                | `docs/features/tools/` (`build.py`, `apply_<date>.py`, template)                                         |
-| Old client                                 | `/Users/akiva/Sefaria/dev/Sefaria-Project/static/js` (the atlas cites file:line for every feature)       |
+| Atlas tools                                 | `docs/features/tools/` (`build.py`, `apply_<date>.py`, template)                                         |
+| Old client                                  | `/Users/akiva/Sefaria/dev/Sefaria-Project/static/js` (the atlas cites file:line for every feature)       |
 
 ---
 

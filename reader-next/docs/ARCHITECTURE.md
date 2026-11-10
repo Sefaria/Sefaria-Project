@@ -89,11 +89,11 @@ priority. Hovering a table-of-contents entry prefetches that section.
 
 ## Testing
 
-| Level       | Tool                                                                  | Scope                                                                  |
-| ----------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Unit        | Vitest (jsdom)                                                        | `lib/*` pure logic: refs, numerals, cache policies, section derivation |
-| Component   | Storybook stories run as Vitest browser tests (Chromium) + a11y addon | every `ui` component's states                                          |
-| Integration | Vitest + Testing Library + MSW serving `fixtures/api`                 | routes/features against every book type                                |
+| Level       | Tool                                                                  | Scope                                                                                                |
+| ----------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Unit        | Vitest (jsdom)                                                        | `lib/*` pure logic: refs, numerals, cache policies, section derivation                               |
+| Component   | Storybook stories run as Vitest browser tests (Chromium) + a11y addon | every `ui` component's states                                                                        |
+| Integration | Vitest + Testing Library + MSW serving `fixtures/api`                 | routes/features against every book type                                                              |
 | E2E         | Playwright (`e2e/*.spec.ts`, 47 specs; desktop and `@mobile` Pixel 7) | journeys against the dev server; API answers through the cassette proxy (`scripts/api-cassette.mjs`) |
 
 Every book type in `fixtures/api/manifest.json` must render through the reader without errors (book-type matrix test).
