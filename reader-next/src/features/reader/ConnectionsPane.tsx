@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { tocQueryOptions } from "~/lib/catalog/toc";
 import { filterLinks, linksForRefs, makeIndexLookup, sortLinks, withoutEssays, type RelatedLink } from "~/lib/connections/links";
 import { linksQueryOptions } from "~/lib/connections/queries";
-import { resourceCounts, resourcesQueryOptions } from "~/lib/connections/related";
+import { privateSheetsQueryOptions, resourceCounts, resourcesQueryOptions } from "~/lib/connections/related";
 import { refToUrl } from "~/lib/ref/url";
 import { forgetBeforeEditor, invalidateAfterWrite } from "~/lib/cache/invalidate";
 import { categoryView, essaysFor, linkSummary, topLevelSummary } from "~/lib/connections/summary";
@@ -248,7 +248,12 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   // The translations of this verse (not of the whole section): Berakhot 2a:1 has 5, the amud 6.
   const verseVersionsQ = useQuery({ ...versionsQueryOptions(selectionRef), enabled: onResources });
   const translations = (verseVersionsQ.data ?? []).filter((v) => !v.isSource).length;
-  const counts = resourcesQ.data && verseVersionsQ.data ? resourceCounts(resourcesQ.data, selectedRefs, { webpages: webQ.data ? webQ.data.length : null, translations }) : undefined;
+  // signed in, the Sheets count includes the reader's own sheets, private ones too (old sheetsTotalCount)
+  const mySheetsQ = useQuery({ ...privateSheetsQueryOptions(uid, sectionRef), enabled: onResources && uid !== null });
+  const counts =
+    resourcesQ.data && verseVersionsQ.data
+      ? resourceCounts(resourcesQ.data, selectedRefs, { webpages: webQ.data ? webQ.data.length : null, translations, mine: uid !== null && mySheetsQ.data ? { uid, sheets: mySheetsQ.data } : undefined })
+      : undefined;
   const sheetsHref = `${hebrew ? "https://chiburim.sefaria.org.il" : VOICES}/sheets-with-ref/${refToUrl(selectionRef)}`;
 
   const onTranslations = view.view === "mode" && view.mode === "Translations";
@@ -899,6 +904,8 @@ function AddToSheetSection({ uid, citation, citationHref, refs, primary, transla
         }
         // the sheet just used moves to the front (updateUserSheets)
         qc.setQueryData(userSheetsQuery(uid).queryKey, (list = []) => [sheet, ...list.filter((s) => s.id !== sheet.id)]);
+        // the Sheets count on Resources includes this sheet now
+        void qc.invalidateQueries({ queryKey: ["user", "related-private", uid] });
       }}
     />
   );

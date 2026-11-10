@@ -11,6 +11,9 @@ import { queryOptions } from "@tanstack/react-query";
 import { related } from "@vendor/sefaria-toolkit/client/runtime";
 import { getSefariaClient, unwrap } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
+import { POLICIES } from "~/lib/cache/policies";
+import { sameOrigin } from "~/lib/auth/http";
+import { refToUrl } from "~/lib/ref/url";
 
 interface Anchored {
   anchorRef?: string;
@@ -64,9 +67,19 @@ export interface ResourceCounts {
   translations: number;
 }
 
-/** The counts on the Resources rows for the selected verses. Old ConnectionsPanel `resourcesButtonCounts`. */
-export function resourceCounts(res: SectionResources | undefined, refs: readonly string[], extra: { webpages: number | null; translations: number }): ResourceCounts {
-  const sheets = new Set(pick(res?.sheets ?? {}, refs).map((s) => String(s.id))).size; // spanning anchors duplicate
+/**
+ * The counts on the Resources rows for the selected verses. Old ConnectionsPanel `resourcesButtonCounts`.
+ * Sheets: the public sheets on the verses plus, signed in, the reader's own (private ones too) without counting their public sheets
+ * twice (old Sefaria.sheets.sheetsTotalCount).
+ */
+export function resourceCounts(
+  res: SectionResources | undefined,
+  refs: readonly string[],
+  extra: { webpages: number | null; translations: number; mine?: { uid: number; sheets: ByRef<RelatedSheet> } },
+): ResourceCounts {
+  const publicSheets = pick(res?.sheets ?? {}, refs);
+  const all = extra.mine ? [...pick(extra.mine.sheets, refs), ...publicSheets.filter((s) => s.owner !== extra.mine!.uid)] : publicSheets;
+  const sheets = new Set(all.map((s) => String(s.id))).size; // spanning anchors duplicate
   const topics = new Set(pick(res?.topics ?? {}, refs).map((t) => t.topic)).size;
   return {
     sheets,
@@ -99,6 +112,24 @@ export async function fetchSectionResources(sectionRef: string, signal?: AbortSi
     guides: groupByRef(raw.guides),
   };
 }
+
+/**
+ * The signed-in reader's own sheets (private ones too) on a section: /api/related/<ref>?private=1 (old Sefaria.relatedPrivate), for the
+ * Sheets count. Same-origin with the session cookie; an error or a signed-out answer counts as none.
+ */
+export const privateSheetsQueryOptions = (uid: number | null, sectionRef: string) =>
+  queryOptions<ByRef<RelatedSheet>>({
+    queryKey: ["user", "related-private", uid, sectionRef] as const,
+    queryFn: async ({ signal }) => {
+      const r = await fetch(sameOrigin(`/api/related/${refToUrl(sectionRef)}?private=1`), { credentials: "same-origin", signal });
+      if (!r.ok) return {};
+      const data = (await r.json()) as { sheets?: RelatedSheet[]; error?: string };
+      return groupByRef(data.sheets?.map(({ id, title, owner, sheetUrl, anchorRef, anchorRefExpanded }) => ({ id, title, owner, sheetUrl, anchorRef, anchorRefExpanded })));
+    },
+    enabled: uid !== null,
+    staleTime: 30_000,
+    gcTime: POLICIES.user.gcTime,
+  });
 
 export const resourcesQueryOptions = (sectionRef: string) =>
   queryOptions<SectionResources>({

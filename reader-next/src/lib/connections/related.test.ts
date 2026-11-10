@@ -35,6 +35,25 @@ describe("related resources", () => {
     expect(resourceCounts(res, ["Genesis 1:3", "Genesis 1:4"], { webpages: 0, translations: 0 }).topics).toBe(1);
   });
 
+  // @feature CON-014 Sheets count with the reader's own sheets (old sheetsTotalCount, T-G04)
+  it("signed in, counts the reader's own sheets (private too) without counting their public ones twice", () => {
+    const res = {
+      sheets: groupByRef([
+        { id: 1, owner: 7, anchorRef: "Genesis 1:1" }, // someone's public sheet
+        { id: 2, owner: 42, anchorRef: "Genesis 1:1" }, // my public sheet: also in my list
+      ]),
+      topics: {}, manuscripts: {}, media: {}, guides: {},
+    };
+    const mine = groupByRef([
+      { id: 2, owner: 42, anchorRef: "Genesis 1:1" },
+      { id: 3, owner: 42, anchorRef: "Genesis 1:1-2" }, // private
+      { id: 4, owner: 42, anchorRef: "Genesis 1:5" }, // elsewhere in the chapter
+    ]);
+    expect(resourceCounts(res, ["Genesis 1:1"], { webpages: null, translations: 0 }).sheets).toBe(2);
+    expect(resourceCounts(res, ["Genesis 1:1"], { webpages: null, translations: 0, mine: { uid: 42, sheets: mine } }).sheets).toBe(3);
+    expect(resourceCounts(res, ["Genesis 1:2"], { webpages: null, translations: 0, mine: { uid: 42, sheets: mine } }).sheets).toBe(1);
+  });
+
   it("loads and groups a real section (recorded)", async () => {
     const qc = makeQueryClient();
     const res = await qc.fetchQuery(resourcesQueryOptions("Genesis 1"));
