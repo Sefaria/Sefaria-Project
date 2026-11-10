@@ -45,6 +45,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 import sefaria.tracker as tracker
+from reader import static_content
 from reader.models import UserExperimentSettings, _set_user_experiments, user_has_experiments
 from remote_config import remoteConfigCache
 from remote_config.keys import (
@@ -2526,8 +2527,15 @@ def table_of_contents_api(request):
     return jsonResponse(toc, callback=request.GET.get("callback", None))
 
 
+@catch_error_as_json
 def topics_toc_api(request):
-    """The topics table of contents (the tree the topics pages and search's topic crumbs are built from)."""
+    """
+    The topics table of contents (the tree the topics pages and search's topic crumbs are built from): the same JSON every page
+    of the old client carries in its data.js (topic_toc_json), so nothing in it is new to the public. The same for every
+    visitor. Not in Varnish's cached list, deliberately: it would not be purged when a topic is edited.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
     return http.HttpResponse(library.get_topic_toc_json(), content_type="application/json; charset=utf-8")
 
 
@@ -2535,8 +2543,10 @@ def topics_toc_api(request):
 def num_library_topics_api(request):
     """
     How many topics the library's pool has: the topics landing page's "Search N Topics A-Z" (the old pages read it from their props,
-    base_props' numLibraryTopics; the new reader asks for it).
+    base_props' numLibraryTopics; the new reader asks for it). The same for every visitor.
     """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
     return jsonResponse({"count": get_num_library_topics()})
 
 
@@ -4716,6 +4726,10 @@ def segment_history(request, tref, lang, version, page=1):
     )
 
 
+# Each page is an $or of $regex clauses over history with a skip of (page - 1) * 100: 100 pages bound the skip at ~10,000 rows.
+SEGMENT_HISTORY_MAX_PAGE = 100
+
+
 @catch_error_as_json
 def segment_history_api(request, tref, lang, version):
     """
@@ -4726,6 +4740,23 @@ def segment_history_api(request, tref, lang, version):
     """
     from sefaria.model.user_profile import public_user_data
 
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+    # Signed in only, as the page (segment_history is @login_required, which sends a signed-out visitor to /login?next=).
+    if not request.user.is_authenticated:
+        response = jsonResponse({"error": "You must be signed in to see revision history."}, status=401)
+        patch_cache_control(response, private=True, no_store=True)
+        return response
+    # `page` counts from 1, in pages of 100 (text_history)
+    try:
+        page = int(request.GET.get("page", 1))
+    except ValueError:
+        page = 0
+    if not 1 <= page <= SEGMENT_HISTORY_MAX_PAGE:
+        return jsonResponse({"error": f"page must be a whole number from 1 to {SEGMENT_HISTORY_MAX_PAGE}."}, status=400)
+    # An unknown ref or version is a 404, as on the page (segment_history raises Http404), so the new reader hands the address
+    # to Django like any other 404 (reader-next/src/lib/activity/segment-history.ts), rather than the 200 {"error"} that
+    # catch_error_as_json gives other InputErrors.
     try:
         oref = Ref(tref)
     except InputError:
@@ -4737,10 +4768,6 @@ def segment_history_api(request, tref, lang, version):
             {"error": f"We do not have a version of {oref.index.title} called '{version}'."}, status=404
         )
     filter_type = request.GET.get("type") or None
-    try:
-        page = max(1, int(request.GET.get("page", 1)))
-    except ValueError:
-        page = 1
     history = text_history(oref, version, lang, filter_type=filter_type, page=page)
 
     he_versions = {}
@@ -4795,7 +4822,7 @@ def segment_history_api(request, tref, lang, version):
                 "sheet": a.get("sheet"),
             }
         )
-    return jsonResponse(
+    response = jsonResponse(
         {
             "ref": oref.normal(),
             "heRef": oref.he_normal(),
@@ -4805,10 +4832,12 @@ def segment_history_api(request, tref, lang, version):
             "versionTitleInHebrew": getattr(version_record, "versionTitleInHebrew", version_record.versionTitle),
             "filterType": filter_type,
             "page": page,
-            "hasMore": len(history) >= 100,
+            "hasMore": len(history) >= 100 and page < SEGMENT_HISTORY_MAX_PAGE,
             "items": items,
         }
     )
+    patch_cache_control(response, private=True)  # for signed-in readers only: never in a shared cache
+    return response
 
 
 @catch_error_as_json
@@ -4917,11 +4946,20 @@ def profile_api(request, slug=None):
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
 
-        reader_choice_posted = reader_choice.SETTING_KEY in profileUpdate.get("settings", {})
+        # Library host only (the switch is on the Library's account settings); a Voices request is handled as before
+        reader_choice_posted = reader_choice.on_library(request) and reader_choice.SETTING_KEY in profileUpdate.get(
+            "settings", {}
+        )
         if reader_choice_posted:
             profileUpdate["settings"][reader_choice.SETTING_KEY] = reader_choice.normalize(
                 profileUpdate["settings"][reader_choice.SETTING_KEY]
             )
+            # the new reader only for whom the audience includes (remote config feature.reader.optin.audience)
+            if profileUpdate["settings"][
+                reader_choice.SETTING_KEY
+            ] == reader_choice.NEXT and not reader_choice.may_use_next(request.user):
+                profileUpdate["settings"].pop(reader_choice.SETTING_KEY)
+                reader_choice_posted = False
 
         la_key = library_assistant.SETTING_KEY
         if la_key in profileUpdate.get("settings", {}):
@@ -4976,7 +5014,9 @@ def library_assistant_api(request):
     Returns {"enabled": bool, "userToken": str | None, "isModerator": bool}.
     """
     if request.method != "GET":
-        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+        response = jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+        patch_cache_control(response, private=True, no_store=True)
+        return response
     enabled, token = False, None
     if request.user.is_authenticated and library_assistant.is_enabled(UserProfile(user_obj=request.user)):
         token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
@@ -4988,6 +5028,71 @@ def library_assistant_api(request):
             "isModerator": bool(request.user.is_authenticated and request.user.is_staff),
         }
     )
+    patch_cache_control(response, private=True, no_store=True)
+    return response
+
+
+@ensure_csrf_cookie  # a GET hands a signed-out reader with no csrftoken yet the cookie its POST needs (answers are private)
+@catch_error_as_json
+def reader_choice_api(request):
+    """
+    /api/reader-choice: which reader this browser gets (the legacy one or the new one), read and switched without a legacy page
+    (LAUNCH_PLAN T-D05; account settings stays the other place to switch).
+
+    GET answers {"available", "canChooseNext", "reader", "saved"}:
+      available      this deployment offers the choice (READER_OPTIN, chart nodejs.mode "optin")
+      canChooseNext  this user may switch to the new reader (signed in, and staff unless the remote-config audience is "all")
+      reader         what this browser gets now: "next" when it holds the routing cookie, else "classic"
+      saved          the signed-in user's stored choice ("next" / "classic"), null when they never chose or are signed out
+
+    Every answer sets the csrftoken cookie if the browser has none (ensure_csrf_cookie): GET first, then POST.
+
+    POST {"reader": "classic" | "legacy" | "next"} (JSON body, or a form field), with the CSRF token (X-CSRFToken):
+      - "classic" (alias "legacy") always works, signed in or out: the response clears the cookie, and a signed-in user's
+        profile records the choice so other browsers follow at their next sign-in;
+      - "next" only when available and canChooseNext (else 403): the response sets the cookie and the profile records it.
+      Answers {"reader": <the choice>, "saved": <whether a profile recorded it>}; 400 for any other value.
+
+    Never cached: the answer is this browser's.
+    """
+    if request.method == "GET":
+        saved = None
+        if request.user.is_authenticated:
+            saved = (UserProfile(id=request.user.id).settings or {}).get(reader_choice.SETTING_KEY)
+        response = jsonResponse(
+            {
+                "available": reader_choice.available(),
+                "canChooseNext": reader_choice.may_use_next(request.user),
+                "reader": reader_choice.NEXT
+                if request.COOKIES.get(reader_choice.COOKIE_NAME) == reader_choice.NEXT
+                else reader_choice.CLASSIC,
+                "saved": saved if saved in (reader_choice.NEXT, reader_choice.CLASSIC) else None,
+            }
+        )
+    elif request.method == "POST":
+        posted = request.POST.get("reader")
+        if posted is None and request.content_type == "application/json":
+            try:
+                body = json.loads(request.body)
+            except ValueError:
+                body = None
+            posted = body.get("reader") if isinstance(body, dict) else None
+        choice = reader_choice.parse_choice(posted)
+        if choice is None:
+            response = jsonResponse({"error": 'Send "reader": "classic" or "next".'}, status=400)
+        elif choice == reader_choice.NEXT and not reader_choice.may_use_next(request.user):
+            response = jsonResponse({"error": "The new reader is not open to this account."}, status=403)
+        else:
+            saved = False
+            if request.user.is_authenticated:
+                profile = UserProfile(id=request.user.id)
+                profile.update({"settings": {reader_choice.SETTING_KEY: choice}})
+                profile.save()
+                saved = True
+            response = jsonResponse({"reader": choice, "saved": saved})
+            reader_choice.apply_cookie(response, request, choice)
+    else:
+        response = jsonResponse({"error": "Unsupported HTTP method."}, status=405)
     patch_cache_control(response, private=True, no_store=True)
     return response
 
@@ -5412,8 +5517,8 @@ def account_settings(request):
             # The toggle must render the *effective* value: a user who is on through the
             # legacy rule has no setting key yet, and must still see "On".
             "library_assistant_enabled": library_assistant.is_enabled(profile),
-            # nodejs.mode "optin": the choice between the legacy reader and the new one
-            "reader_choice_available": reader_choice.available(),
+            # nodejs.mode "optin": the choice between the legacy reader and the new one, for whom the audience includes
+            "reader_choice_available": reader_choice.may_use_next(request.user),
             "new_reader_enabled": reader_choice.chose_next(profile),
             "lang_names_and_codes": zip(
                 [
@@ -5553,6 +5658,8 @@ def digitized_by_sefaria(request):
         sort=[["title", 1]],
         proj={"title": 1, "versionTitle": 1, "heVersionTitle": 1, "language": 1},
     )
+    if static_content.requested(request):  # ?format=json: the content only (reader/static_content.py)
+        return static_content.respond(request, lambda lang_code: "static/digitized-by-sefaria.html", {"texts": texts})
     return render_template(
         request,
         "static/digitized-by-sefaria.html",
@@ -5972,8 +6079,18 @@ def search_path_filter(request, book_title):
 _ABOUT_SIDEBAR_PATHS = {p["path"] for p in SITE_SETTINGS.get("ABOUT_SIDEBAR_PAGES", [])}
 
 
-@ensure_csrf_cookie
 def serve_static(request, page, by_lang=False):
+    # ?format=json: only the page's content, for the new reader's own shell (reader/static_content.py, LAUNCH_PLAN T-B06).
+    # Library host only (requested() is False on Voices, which keeps its behaviour below unchanged).
+    if static_content.requested(request):
+        return static_content.respond(
+            request, lambda lang_code: f"static/{lang_code + '/' if by_lang else ''}{page}.html"
+        )
+    return _serve_static_page(request, page, by_lang)
+
+
+@ensure_csrf_cookie
+def _serve_static_page(request, page, by_lang=False):
     if request.active_module == VOICES_MODULE and page in _ABOUT_SIDEBAR_PATHS:
         return redirect_to_module(request, f"/{page}", LIBRARY_MODULE)
     lang_prefix = f"{request.LANGUAGE_CODE}/" if by_lang else ""
