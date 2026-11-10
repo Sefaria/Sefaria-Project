@@ -64,3 +64,28 @@ describe("revision history under /activity", () => {
     expect(isDjangoPage("/activity/Genesis.1.1/en/The_Koren_Jerusalem_Bible", "voices.sefaria.org")).toBe(true);
   });
 });
+
+// @feature NTF-001 @feature PRO-010 @feature LIB-022 @feature RTE-031 @feature RTE-015
+describe("notifications, Torah Tracker and New Additions (wave 2, lane P)", () => {
+  const pages = ["/notifications", "/notifications/", "/torahtracker", "/torahtracker/", "/updates"];
+  it("are this client's on the Library host: a click stays in the app", () => {
+    for (const p of pages) {
+      expect(isDjangoPage(p, "www.sefaria.org"), p).toBe(false);
+      expect(leavesClient(p), p).toBe(false);
+    }
+  });
+  it("stay Django's on the Voices host (its notifications are the Voices ones)", () => {
+    for (const p of pages) {
+      expect(isDjangoPage(p, "voices.sefaria.org"), p).toBe(true);
+      expect(isDjangoPage(p, "chiburim.sefaria.org.il"), p).toBe(true);
+    }
+  });
+  it("/updates is not Django's on the Library host (catches a merge that lists it as a Django or static page again)", () => {
+    expect(isDjangoPage("/updates", "www.sefaria.org")).toBe(false);
+    expect(isDjangoPage("/updates")).toBe(false);
+    expect(leavesClient("/updates", "www.sefaria.org")).toBe(false);
+  });
+  it("the account settings page stays Django's (an accepted exit, T-F23)", () => {
+    expect(leavesClient("/settings/account")).toBe(true);
+  });
+});
