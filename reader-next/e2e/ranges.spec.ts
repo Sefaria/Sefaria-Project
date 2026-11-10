@@ -155,9 +155,11 @@ test.describe("a range of whole sections longer than what loads with the page", 
     await expect(page).toHaveURL(/\/Genesis\.1\.1-50\.26\?/);
     await page.waitForTimeout(500);
     const tops = await page.evaluate(() => (window as unknown as { __tops: [string, number][] }).__tops);
-    // the text was on screen before the address changed, and it did not move when it changed
-    expect(tops.some(([p]) => p === "/Genesis.1-50")).toBe(true);
-    expect(new Set(tops.map(([, t]) => t)).size).toBe(1);
+    // the text was on screen before the address changed, and it did not move when it changed (from the last frame at the typed
+    // address on; how the page settles before that, fonts and styles arriving, is e2e/smoothness.spec.ts's)
+    const at = tops.findLastIndex(([p]) => p === "/Genesis.1-50");
+    expect(at).toBeGreaterThanOrEqual(0);
+    expect(new Set(tops.slice(at).map(([, t]) => t)).size).toBe(1);
     expect(await page.evaluate(() => history.length)).toBe(length + 1); // the rewrite replaced its entry
     // every loaded verse is blue, from the first chapter's first
     const hl = await highlighted(page);
