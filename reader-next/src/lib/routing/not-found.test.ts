@@ -39,3 +39,48 @@ describe("the reader's own 404 (T-F28)", () => {
     expect(isNotFoundMatch({ status: "error", error: new Error("x") })).toBe(false);
   });
 });
+
+// The mechanism with the real router (TanStack Router, server load): a path Django has 404'd whose catch-all loader would redirect
+// (as the reader's "$" route does for a non-canonical ref) must end as the root's not-found, with no page loader run at all.
+import { createMemoryHistory, createRootRoute, createRoute, createRouter, redirect } from "@tanstack/react-router";
+import { throwIfForcedNotFound, prefsOfForcedNotFound } from "./not-found";
+
+describe("forced not-found in the real router", () => {
+  async function load(forced: boolean) {
+    const loaderCalls: string[] = [];
+    const root = createRootRoute({
+      beforeLoad: async (opts) => {
+        const prefs = { interfaceLang: "hebrew" };
+        await throwIfForcedNotFound(opts, prefs);
+        return prefs;
+      },
+    });
+    const splat = createRoute({
+      getParentRoute: () => root,
+      path: "$",
+      loader: async () => {
+        loaderCalls.push("$");
+        throw redirect({ href: "/Genesis.1.1", statusCode: 301 });
+      },
+    });
+    const router = createRouter({ routeTree: root.addChildren([splat]), history: createMemoryHistory({ initialEntries: ["/people/Gen.1.1"] }), isServer: true });
+    router.options.additionalContext = { serverContext: forced ? { [FORCE_NOT_FOUND]: true } : {} };
+    await router.load();
+    const r = router as unknown as { _serverResult?: { type: string }; state: { matches: { routeId: string; status: string; error?: unknown }[] } };
+    return { loaderCalls, serverResult: r._serverResult?.type, matches: r.state.matches };
+  }
+
+  it("without the flag the catch-all's redirect wins (what happened before)", async () => {
+    const out = await load(false);
+    expect(out.loaderCalls).toEqual(["$"]);
+    expect(out.serverResult).toBe("redirect");
+  });
+  it("with the flag: no loader runs, no redirect, the root is not-found and carries the reader's preferences", async () => {
+    const out = await load(true);
+    expect(out.loaderCalls).toEqual([]);
+    expect(out.serverResult).not.toBe("redirect");
+    const root = out.matches[0]!;
+    expect(isNotFoundMatch(root as never)).toBe(true);
+    expect(prefsOfForcedNotFound(root.error)).toEqual({ interfaceLang: "hebrew" });
+  });
+});

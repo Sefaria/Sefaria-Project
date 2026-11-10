@@ -47,11 +47,15 @@ test.describe("with Django behind the reader's server", () => {
 
   test("a Hebrew-interface reader gets the 404 page in Hebrew, right to left", async ({ page, context }) => {
     await cookies(context, "he.localhost", [{ name: "interfaceLang", value: "hebrew" }]);
+    const hydration: string[] = [];
+    page.on("console", (m) => m.type() === "error" && /hydrat/i.test(m.text()) && hydration.push(m.text()));
     const res = await page.goto(`http://${HE}/no-such-page-at-all-xyz`);
+    await page.waitForSelector("html[data-hydrated='true']");
     expect(res!.status()).toBe(404);
     await expect(page.locator("html")).toHaveAttribute("lang", "he");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(page.getByRole("heading", { name: "הדף שביקשת איננו נמצא" })).toBeVisible();
+    expect(hydration).toEqual([]); // the server render and the browser agree (the preferences ride on the not-found)
   });
 
   test("a signed-in reader's 404 page has the signed-in header and is never cached", async ({ page, context }) => {
