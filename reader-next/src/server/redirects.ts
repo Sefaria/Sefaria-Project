@@ -23,8 +23,9 @@
  */
 import { SEFARIA_API_ORIGIN } from "~/lib/api/client";
 
+// No Cache-Control on a permanent redirect, as Django sends none (the cache policy adds Vary; a signed-in reader's is made private)
 const permanent = (location: string) =>
-  new Response(null, { status: 301, headers: { location, "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=86400", "x-served-by": "reader-redirect" } });
+  new Response(null, { status: 301, headers: { location, "content-type": "text/html; charset=utf-8", "x-served-by": "reader-redirect" } });
 const temporary = (location: string) =>
   new Response(null, { status: 302, headers: { location, "content-type": "text/html; charset=utf-8", "cache-control": "private, no-store", "x-served-by": "reader-redirect" } });
 

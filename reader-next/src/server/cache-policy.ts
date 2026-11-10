@@ -6,12 +6,12 @@
  */
 const SESSION_COOKIE = /(?:^|;\s*)sessionid=[^;]+/;
 
-export function pageCacheHeaders(requestCookie: string | null, response: Headers, status = 200): Headers {
+export function pageCacheHeaders(requestCookie: string | null, response: Headers, status = 200, languagePinned = false): Headers {
   if (response.get("x-served-by") === "django" || !(response.get("content-type") ?? "").includes("text/html")) return response;
   const out = new Headers(response);
   // a page depends on the cookies, and on the visitor's country (diaspora or Israel: the calendars, CODE_REVIEW R-21); on a host pinned
   // to a language, whether it is a page at all or the bounce to the other language's domain depends on Accept-Language too (T-E07)
-  for (const h of ["Cookie", "CF-IPCountry", "Accept-Language"]) {
+  for (const h of ["Cookie", "CF-IPCountry", ...(languagePinned ? ["Accept-Language"] : [])]) {
     const vary = out.get("vary");
     if (!vary || !new RegExp(`\\b${h}\\b`, "i").test(vary)) out.set("vary", vary ? `${vary}, ${h}` : h);
   }
