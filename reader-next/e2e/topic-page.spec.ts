@@ -90,8 +90,9 @@ test.describe("tabs, sort, filter and language", () => {
     await main(page).locator('input[name="filterableListInput"]').fill("rashi on");
     await expect(cards(page).first().getByRole("link").last()).toHaveText(/^Rashi on /);
     // every source shown matches the filter, not just the first
+    // the filtered list fills in after the first match shows: wait for more than one, then check every one
+    await expect.poll(() => cards(page).count()).toBeGreaterThan(1);
     const citations = await cards(page).evaluateAll((els) => els.map((e) => [...e.querySelectorAll("a")].at(-1)?.textContent?.trim() ?? ""));
-    expect(citations.length).toBeGreaterThan(1);
     expect(citations.filter((c) => !/^Rashi on /.test(c))).toEqual([]);
     // back: the sort, then the tab
     await page.goBack();
@@ -215,8 +216,10 @@ test.describe("an author (Rashi)", () => {
     await expect(page).toHaveURL(/\?sort=Relevance&tab=popular-writing-of$/);
     await expect(page.getByRole("button", { name: "Filter and sort" })).toBeVisible();
     // Top Citations: Rashi's most cited comments, in the server's order (as sefaria.org shows them, 2026-11-04)
-    const cites = await cards(page).evaluateAll((els) => els.slice(0, 4).map((e) => [...e.querySelectorAll("a")].at(-1)?.textContent?.trim()));
-    expect(cites).toEqual(["Rashi on Genesis 1:1:2", "Rashi on Genesis 6:9:2", "Rashi on Genesis 6:9:1", "Rashi on Genesis 1:1:1"]);
+    // the cards arrive after the tab switch: poll, never read once (under load a single read saw none)
+    await expect
+      .poll(() => cards(page).evaluateAll((els) => els.slice(0, 4).map((e) => [...e.querySelectorAll("a")].at(-1)?.textContent?.trim())))
+      .toEqual(["Rashi on Genesis 1:1:2", "Rashi on Genesis 6:9:2", "Rashi on Genesis 6:9:1", "Rashi on Genesis 1:1:1"]);
     await expect(cards(page).first()).toContainText(/IN THE BEGINNING GOD CREATED/);
     await expect(side(page).getByRole("heading", { name: "Lived" })).toBeVisible();
     await expect(side(page)).toContainText("1040 – 1105 CE");
