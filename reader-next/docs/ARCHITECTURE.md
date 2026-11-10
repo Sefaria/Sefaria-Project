@@ -1,8 +1,9 @@
 # Sefaria Reader (next) — Architecture
 
 A from-scratch web client for the Sefaria library, built with React 19 and TanStack Start.
-The feature scope is the **Feature Atlas** (`docs/features/features.json`, 941 features with IDs like `TXD-012`),
-extracted from a full read of the current client in `Sefaria-Project`.
+The feature scope is the **Feature Atlas** (`docs/features/features.json`, 961 features with IDs like `TXD-012`),
+extracted from a full read of the current client in `Sefaria-Project`; each feature's rebuild status is in
+`docs/features/rebuild-status.json`. Plan to launch: `docs/reader-future/LAUNCH_PLAN.md` (repo root); deployment: `docs/DEPLOYMENT.md`.
 
 ## Tenets
 
@@ -32,7 +33,9 @@ extracted from a full read of the current client in `Sefaria-Project`.
 ```
 src/
   routes/            TanStack Router file routes (thin: parse URL → load via cache → render feature)
-  features/          Feature modules (reader, toc, search, …): composition of ui + data hooks
+  features/          Feature modules (reader, book, library, search, topics, auth, user-history, …): composition of ui + data hooks
+  server/            Server-only code: pass-through of Django's pages (pass-through.ts), route manifest, cache headers
+  start.ts           Request entry: decides per request whether this client renders or Django answers
   ui/                Component library (tokens, primitives, layout, domain components) — Storybook-catalogued
   lib/
     api/             Typed Sefaria API access (vendored toolkit client) + query option factories
@@ -41,8 +44,10 @@ src/
     layout/          Generic layout tree (rows/columns of leaves) for panels and side panels
     workspace/       Workspace model, pure operations, legacy sizing, URL codec (docs/WORKSPACE.md)
     i18n/            Interface strings (English/Hebrew), direction helpers
-vendor/sefaria-toolkit/   Vendored from arithmomaniac/sefaria-frontend-toolkit (GPL-3.0): API client + text-transform
-fixtures/api/        Recorded real API responses per book type (tests never hit the network)
+    routing/         Which paths are Django's (django-paths.ts: DJANGO_PREFIXES, LIBRARY_ONLY_PREFIXES)
+    …                one folder per domain (text, connections, versions, search, topics, auth, user, analytics, …)
+vendor/sefaria-toolkit/   Vendored snapshot of sefaria-frontend-toolkit (now Sefaria/sefaria-frontend-toolkit; licence: docs/VENDOR.md): API client + text-transform
+fixtures/api/        Recorded real API responses per book type (unit tests never hit the network)
 ```
 
 ## Library cache
@@ -62,11 +67,14 @@ The cache engine is TanStack Query. On top of it sits a small domain layer (`src
 | Class       | Examples                                | staleTime | Kept on disk  |
 | ----------- | --------------------------------------- | --------- | ------------- |
 | catalog     | TOC, index, shape, versions list        | 1 day     | 30 days       |
-| text        | v3 texts by section + version selection | 7 days    | 30 days       |
-| connections | related, links, link counts             | 1 hour    | 7 days        |
+| text        | v3 texts by section + version selection | 7 days¹   | 30 days       |
+| connections | related, links, link counts             | 1 hour    | not persisted |
 | reference   | lexicon, dictionary entries             | 30 days   | 90 days       |
 | search      | search results, autocomplete            | 5 min     | not persisted |
 | user        | profile, saved, history, notes          | 0         | not persisted |
+
+¹ Decision D-7 (2026-11-09): text and catalog revalidate at most 1 hour after fetch, staff always (LAUNCH_PLAN T-E01).
+Connections are memory-only since CODE_REVIEW R-10 (a chapter's links are megabytes).
 
 Stale data is shown immediately and revalidated in the background (stale-while-revalidate). A cache _buster_
 (app schema version) invalidates disk entries when response shapes change.
@@ -81,11 +89,11 @@ priority. Hovering a table-of-contents entry prefetches that section.
 
 ## Testing
 
-| Level       | Tool                                                                  | Scope                                                                  |
-| ----------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Unit        | Vitest (jsdom)                                                        | `lib/*` pure logic: refs, numerals, cache policies, section derivation |
-| Component   | Storybook stories run as Vitest browser tests (Chromium) + a11y addon | every `ui` component's states                                          |
-| Integration | Vitest + Testing Library + MSW serving `fixtures/api`                 | routes/features against every book type                                |
-| E2E         | Playwright (later)                                                    | critical journeys against the dev server                               |
+| Level       | Tool                                                                  | Scope                                                                                                |
+| ----------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Unit        | Vitest (jsdom)                                                        | `lib/*` pure logic: refs, numerals, cache policies, section derivation                               |
+| Component   | Storybook stories run as Vitest browser tests (Chromium) + a11y addon | every `ui` component's states                                                                        |
+| Integration | Vitest + Testing Library + MSW serving `fixtures/api`                 | routes/features against every book type                                                              |
+| E2E         | Playwright (`e2e/*.spec.ts`, 47 specs; desktop and `@mobile` Pixel 7) | journeys against the dev server; API answers through the cassette proxy (`scripts/api-cassette.mjs`) |
 
 Every book type in `fixtures/api/manifest.json` must render through the reader without errors (book-type matrix test).
