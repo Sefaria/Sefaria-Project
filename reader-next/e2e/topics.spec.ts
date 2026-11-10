@@ -15,7 +15,7 @@ test.describe("Topics for the selected passage (verified against sefaria.org)", 
     await expect(items).toHaveCount(7);
     await expect(items.nth(0)).toContainText("Creation");
     await expect(items.nth(0)).toContainText("The opening two chapters of the Torah describe how God created the world");
-    await expect(items.nth(0).getByRole("link", { name: "Creation" })).toHaveAttribute("href", "https://www.sefaria.org/topics/creation");
+    await expect(items.nth(0).getByRole("link", { name: "Creation" })).toHaveAttribute("href", "/topics/creation"); // this client's topic page (libraryHref)
     await expect(items.nth(1)).toContainText('"In the Beginning of"');
     const dots = items.nth(0).getByRole("button", { name: /connected to "Genesis 1:1" by Curation of the Sefaria Learning Team/ });
     const tip = items.nth(0).getByRole("tooltip");
