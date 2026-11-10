@@ -71,16 +71,16 @@ APIKEYS_CAULDRON=apisplit e2e-tests/api-keys/cauldron/run.sh verify-off   # E4, 
 
 What a pass looks like:
 
-| Step                                                                                   | Expected                                                                                                               |
-| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `render-check (staging, preprod, prod)`                                                | each env renders with the flag off (no auth objects, no header strip) and on (32 assertions each)                      |
-| `policy-gate tests`, `provision-cluster-registry tests`, `render-check negative tests` | every `ok:`; the scripts themselves run against a cluster later (below)                                                |
-| `smoke`                                                                                | S1-S4 pass; S4 prints the revoke-to-deny time (well under 2 s)                                                         |
-| `a-series (enforce)` / `(observe)`                                                     | 0 FAIL: enforce denies only `/api/knn-search`; observe never denies and stamps `observed:<code>`                       |
-| drills                                                                                 | 0 FAIL each; the GAP lines are the known gaps listed in the release plan                                               |
-| `playwright apikeys (local)`                                                           | `0 failed`; failures titled `@known-gap` are counted separately                                                        |
-| `seed: --teardown leaves 0 rows`                                                       | `leftovers: 0`                                                                                                         |
-| `drill perf-revoke`                                                                    | 0 FAIL; the PERF-R lines print the create-to-allow and revoke-to-deny times under the row                              |
+| Step                                                                                   | Expected                                                                                          |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `render-check (staging, preprod, prod)`                                                | each env renders with the flag off (no auth objects, no header strip) and on (32 assertions each) |
+| `policy-gate tests`, `provision-cluster-registry tests`, `render-check negative tests` | every `ok:`; the scripts themselves run against a cluster later (below)                           |
+| `smoke`                                                                                | S1-S4 pass; S4 prints the revoke-to-deny time (well under 2 s)                                    |
+| `a-series (enforce)` / `(observe)`                                                     | 0 FAIL: enforce denies only `/api/knn-search`; observe never denies and stamps `observed:<code>`  |
+| drills                                                                                 | 0 FAIL each; the GAP lines are the known gaps listed in the release plan                          |
+| `playwright apikeys (local)`                                                           | `0 failed`; failures titled `@known-gap` are counted separately                                   |
+| `seed: --teardown leaves 0 rows`                                                       | `leftovers: 0`                                                                                    |
+| `drill perf-revoke`                                                                    | 0 FAIL; the PERF-R lines print the create-to-allow and revoke-to-deny times under the row         |
 
 The cluster-side gates, run by hand at each promotion (all read-only except the provisioning create path):
 
@@ -106,7 +106,7 @@ Import `test` and `expect` from `./fixtures` (or `../fixtures`).
 | Fixture / helper                        | What it does                                                                                                                                                                                                                                                                   |
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `manifest`                              | The parsed manifest. Key values are secrets: never print them; `maskSecrets()` / `maskKey()` from `env.ts`                                                                                                                                                                     |
-| `target`                                | `{name, hasEcho, hasNginx, hasStripOffListener, hasFlagOffServer, hasRegistry, hasMailbox, canReadNginxLog, canSwapEnvoyConfig}`. Skip with `test.skip(!target.hasEcho, '…')`                                                                                           |
+| `target`                                | `{name, hasEcho, hasNginx, hasStripOffListener, hasFlagOffServer, hasRegistry, hasMailbox, canReadNginxLog, canSwapEnvoyConfig}`. Skip with `test.skip(!target.hasEcho, '…')`                                                                                                  |
 | `account(suite, role, {host?, lang?})`  | A logged-in `{account, context, page}`; closed after the test. `host: 'flagoff.gateway.test'` moves the session to another local host                                                                                                                                          |
 | `gw`                                    | Node-side gateway calls: `gw.get(path, {key, origin, authorization, host, listener})` → `{status, code, error, help, headers, json, echoHeaders}`. `key` is `{suite, name}` from the manifest or a literal string. Redirects are not followed. Infra statuses are retried once |
 | `pageFetch(page, path, {method, body})` | A same-origin call from the page with the browser's cookies and CSRF token (Node-side requests carry no browser cookies locally)                                                                                                                                               |

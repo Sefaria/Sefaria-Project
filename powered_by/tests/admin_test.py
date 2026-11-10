@@ -348,7 +348,9 @@ class ProjectAdminTest(TestCase):
         request = RequestFactory().post("/")
         request.user = self.staff
         inline = ApiKeyInline(ApiProject, admin.site)
-        formset = inline.get_formset(request, self.api_project)(data, instance=ApiProject.objects.get(pk=self.api_project.pk))
+        formset = inline.get_formset(request, self.api_project)(
+            data, instance=ApiProject.objects.get(pk=self.api_project.pk)
+        )
         self.assertTrue(formset.is_valid(), formset.errors)
         return formset
 

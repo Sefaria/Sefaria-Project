@@ -261,7 +261,9 @@ class ConfirmationLinkTest(DeveloperApiTestCase):
 
     def test_a_new_link_request_with_a_key_that_is_not_text_is_a_400_not_a_500(self):
         for key in (123, ["a"], {"a": 1}, True, 1.5):
-            response = Client().post("/api/developer/confirmation/new-link", {"key": key}, content_type="application/json")
+            response = Client().post(
+                "/api/developer/confirmation/new-link", {"key": key}, content_type="application/json"
+            )
 
             self.assertEqual(response.status_code, 400, key)
             self.assertIn("error", json.loads(response.content))
