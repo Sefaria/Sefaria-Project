@@ -70,14 +70,19 @@ export interface ReporterOptions {
   session?: Pick<Storage, "getItem" | "setItem"> | null;
 }
 
-/** Query strings, fragments and e-mail addresses out; the rest kept. Callers clip first: the URL pattern is slow on huge strings. */
+/**
+ * Query strings, fragments and e-mail addresses out, and every URL or path in the text through redactPath (a stack frame or a script
+ * URL can be the page itself: an inline script on a password-reset page is reported at /password/reset/confirm/<uid>/<token>/).
+ * A stack frame's ":line:col" is kept. Callers clip first.
+ */
 export function scrub(s: string): string {
   return s
-    .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, "[email]")
-    .replace(/((?:https?:\/\/|\/)[^\s?#"'()<>]*)[?#][^\s"'()<>,;]*/g, (m, base: string) => {
-      // keep a stack frame's ":line:col" that followed the query
-      const pos = m.match(/(:\d+:\d+)$/);
-      return base + (pos ? pos[1] : "");
+    .replace(/[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63}){0,8}\.[A-Za-z]{2,24}/g, "[email]")
+    .replace(/(https?:\/\/[^\s/?#"'()<>]+)?(\/[^\s?#"'()<>]*)([?#][^\s"'()<>,;]*)?/g, (_m, origin: string | undefined, path: string, query: string | undefined) => {
+      // ":line:col" after the path (no query) or after the query
+      const tail = (query ?? path).match(/(:\d+:\d+)$/)?.[1] ?? "";
+      const bare = query ? path : tail ? path.slice(0, -tail.length) : path;
+      return `${origin ?? ""}${redactPath(bare)}${tail}`;
     });
 }
 
@@ -100,12 +105,18 @@ const typeName = (v: unknown): string => {
   return typeof name === "string" && name ? name : "Object";
 };
 
+/** An Error's name, message and stack; for anything else thrown or rejected, only its type (a string may be a secret). */
 const errorParts = (e: unknown): { message: string; stack?: string } => {
   if (e instanceof Error) return { message: `${e.name}: ${e.message}`, stack: typeof e.stack === "string" ? e.stack : undefined };
-  // a window error event without an Error carries its message as a string (a cross-origin script: "Script error.")
-  if (typeof e === "string") return { message: e };
   return { message: `Non-Error thrown: ${typeName(e)}` };
 };
+/** A window error event's own message is the browser's text ("Script error.", "Uncaught …"), used only when it carries no Error. */
+const BROWSER_MESSAGE = Symbol("browser message");
+interface BrowserMessage {
+  [BROWSER_MESSAGE]: string;
+}
+const browserMessage = (m: string): BrowserMessage => ({ [BROWSER_MESSAGE]: m });
+const partsOf = (e: unknown) => (e && typeof e === "object" && BROWSER_MESSAGE in e ? { message: (e as BrowserMessage)[BROWSER_MESSAGE] } : errorParts(e));
 
 /** A React hydration error: the development wording, and production's minified errors #418, #419, #423, #425. */
 export const isHydrationMessage = (m: string) => /hydrat|did not match|server rendered|server HTML/i.test(m) || /#(?:418|419|423|425)\b/.test(m);
@@ -153,7 +164,7 @@ export class ErrorReporter {
       /* storage blocked: the page cap still holds */
     }
     if (sessionCount >= MAX_PER_SESSION) return null;
-    const { message, stack } = errorParts(error);
+    const { message, stack } = partsOf(error) as { message: string; stack?: string };
     const firstFrame = stack?.split("\n").find((l) => /\d+:\d+/.test(l)) ?? "";
     const key = `${kind}|${message.slice(0, 200)}|${firstFrame.slice(0, 200)}`;
     if (this.seen.has(key)) return null;
@@ -201,9 +212,10 @@ export class ErrorReporter {
       // a resource that failed to load (img/script) is an Event, not an ErrorEvent with an error: not ours to report here
       if (!(e instanceof ErrorEvent)) return;
       const source = e.filename ? `${e.filename}:${e.lineno}:${e.colno}` : undefined;
-      const err = e.error ?? e.message;
+      // without an Error object (a cross-origin script) the event's own message is all there is; a thrown string is never sent
+      const err = e.error !== undefined && e.error !== null ? e.error : browserMessage(String(e.message ?? ""));
       // React 19 hands a hydration mismatch it recovered from to window.reportError, which lands here
-      this.report(isHydrationMessage(errorParts(err).message.slice(0, 2000)) ? "hydration" : "error", err, { source });
+      this.report(isHydrationMessage(partsOf(err).message.slice(0, 2000)) ? "hydration" : "error", err, { source });
     };
     const onRejection = (e: PromiseRejectionEvent) => this.report("unhandledrejection", e.reason);
     target.addEventListener("error", onError);

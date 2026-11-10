@@ -63,7 +63,7 @@ describe("ErrorReporter", () => {
     expect(sent.map((s) => [s.kind, s.message, s.source])).toEqual([
       ["error", "Error: plain", "http://x/a.js:3:4"],
       ["hydration", "Error: Hydration failed because the server rendered text didn't match the client", undefined],
-      ["unhandledrejection", "rejected!", undefined],
+      ["unhandledrejection", "Non-Error thrown: string", undefined],
     ]);
   });
 
@@ -133,6 +133,33 @@ describe("ErrorReporter: what is never sent", () => {
     }
     expect(sent.map((s) => s.kind)).toEqual(["hydration", "hydration", "error"]);
     expect(sent[0]!.message).toBe("Error: Minified React error #418; visit https://react.dev/errors/418 for the full message");
+  });
+});
+
+describe("round 2: secrets in sources, stacks and strings", () => {
+  it("an inline script's error on a reset page: source and stack frames are redacted", () => {
+    const { r, sent } = make();
+    const win = new EventTarget() as unknown as Window;
+    const off = r.install(win);
+    const e = new Error("boom");
+    e.stack = "Error: boom\n    at http://localhost:3000/password/reset/confirm/MTIz/c4k2j8-3f9a1b2c3d4e5f6a7b8c/:12:5\n    at /Password/Reset/Confirm/MTIz/abc/?x=1:3:4";
+    win.dispatchEvent(new ErrorEvent("error", { error: e, message: "Uncaught Error: boom", filename: "http://localhost:3000/password/reset/confirm/MTIz/c4k2j8-3f9a1b2c3d4e5f6a7b8c/", lineno: 12, colno: 5 }));
+    off();
+    expect(sent[0]!.source).toBe("http://localhost:3000/password/reset/confirm/:uid/:token/:12:5");
+    expect(sent[0]!.stack).toBe("Error: boom\n    at http://localhost:3000/password/reset/confirm/:uid/:token/:12:5\n    at /Password/Reset/Confirm/:uid/:token/:3:4");
+    expect(JSON.stringify(sent)).not.toMatch(/MTIz|c4k2j8|abc/);
+  });
+  it("a thrown or rejected string is sent as its type only; a browser message without an Error is kept", () => {
+    const { r, sent } = make();
+    const win = new EventTarget() as unknown as Window;
+    const off = r.install(win);
+    win.dispatchEvent(new ErrorEvent("error", { error: "the reset token is c4k2j8", message: "Uncaught the reset token is c4k2j8" }));
+    const ev = new Event("unhandledrejection") as PromiseRejectionEvent;
+    Object.defineProperty(ev, "reason", { value: "secret-value" });
+    win.dispatchEvent(ev);
+    win.dispatchEvent(new ErrorEvent("error", { message: "Script error." }));
+    off();
+    expect(sent.map((x) => x.message)).toEqual(["Non-Error thrown: string", "Non-Error thrown: string", "Script error."]);
   });
 });
 

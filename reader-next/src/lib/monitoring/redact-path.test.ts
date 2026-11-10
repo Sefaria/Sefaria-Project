@@ -20,4 +20,23 @@ describe("redactPath", () => {
     for (const p of ["/", "/Genesis.1.3", "/Rashi_on_Genesis.1.1.1", "/Shulchan_Arukh,_Orach_Chayim.1", "/topics/moses", "/texts/Tanakh/Torah", "/search", "/activity/Genesis.1.1/en/The_Koren_Jerusalem_Bible", "/Mishneh_Torah,_Shabbat.1.1", "/translations/he"])
       expect(redactPath(p)).toBe(p);
   });
+
+  it("ignores case and sees through %2F and ;parameters (round 2)", () => {
+    expect(redactPath("/Password/Reset/Confirm/MTIz/c4k2j8-3f9a1b2c3d4e5f6a7b8c/")).toBe("/Password/Reset/Confirm/:uid/:token/");
+    expect(redactPath("/Profile/ada-lovelace")).toBe("/Profile/:slug");
+    expect(redactPath("/password/reset/confirm%2FMTIz%2Fc4k2j8")).toBe("/password/reset/confirm/:uid/:token");
+    expect(redactPath("/password/reset/confirm;x/MTIz/c4k2j8/")).toBe("/password/reset/confirm;x/:uid/:token/");
+    expect(redactPath("/accounts/Confirm-Email;a=b/MjA:xyz/")).toBe("/accounts/Confirm-Email;a=b/:token/");
+    expect(redactPath("/Redeeming_Relevance;_Exodus,_CHAPTER_3")).toBe("/Redeeming_Relevance;_Exodus,_CHAPTER_3");
+  });
+  it("is linear: an 8 KB path, long segments and many segments are fast", () => {
+    const cases = [`/${"a".repeat(8000)}`, "/a".repeat(4000), `/${"a".repeat(2000)}`, "/a".repeat(1000), `/${"a.".repeat(1000)}`, `/${"a".repeat(60)}@${"b".repeat(1900)}`];
+    redactPath("/warm/up"); // compile the patterns before timing
+    for (const p of cases) {
+      const t = performance.now();
+      redactPath(p);
+      expect(performance.now() - t, `${p.length} chars`).toBeLessThan(5);
+    }
+    expect(redactPath(`/${"a".repeat(8000)}`)).toBe("/:long-path");
+  });
 });
