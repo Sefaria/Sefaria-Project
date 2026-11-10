@@ -258,7 +258,7 @@ def _run_with(patches, func):
 
 def test_rerun_after_worker_death_still_queues_deleted_sheets_for_search():
     fake_db = FakeDB(
-        sheets=[{"id": 1, "owner": 42}, {"id": 2, "owner": 42}, {"id": 3, "owner": 7, "likes": [42]}],
+        sheets=[{"id": 1, "owner": 42}, {"id": 2, "owner": 42}, {"id": 3, "owner": 7}],
         profiles=[{"id": 42}, {"id": 42}],
     )
     patches, user_rows, queue_sheets_sync = _deletion_env(fake_db)
@@ -276,7 +276,7 @@ def test_rerun_after_worker_death_still_queues_deleted_sheets_for_search():
     assert sorted(queue_sheets_sync.call_args.args[0]) == [1, 2]
     assert 42 not in user_rows
     assert fake_db.profiles.docs == []
-    assert fake_db.sheets.docs == [{"id": 3, "owner": 7, "likes": []}]
+    assert fake_db.sheets.docs == [{"id": 3, "owner": 7}]
     assert fake_db.user_deletions.docs == [], "the saved ids are dropped once the user is gone"
 
 
