@@ -16,7 +16,8 @@ interface Anchored {
   anchorRef?: string;
   anchorRefExpanded?: string[];
 }
-export interface RelatedSheet extends Anchored { id: string | number; title?: string; owner?: number; sheetUrl?: string }
+/** A sheet as `sheets=count` answers it: only what counting needs (the Sheets row opens Voices; nothing lists them here). */
+export interface RelatedSheet extends Anchored { id: string | number }
 export interface RelatedTopic extends Anchored { topic: string; title?: { en: string; he: string }; order?: { pr?: number } }
 export type RelatedItem = Anchored & Record<string, unknown>;
 
@@ -92,7 +93,7 @@ export async function fetchSectionResources(sectionRef: string, signal?: AbortSi
   const raw = unwrap(result, `Related to ${sectionRef}`) as unknown as RawRelated;
   // Links are not kept here (the links query has them); only what the Resources rows need is cached.
   return {
-    sheets: groupByRef(raw.sheets?.map(({ id, title, owner, sheetUrl, anchorRef, anchorRefExpanded }) => ({ id, title, owner, sheetUrl, anchorRef, anchorRefExpanded }))),
+    sheets: groupByRef(raw.sheets?.map(({ id, anchorRef, anchorRefExpanded }) => ({ id, anchorRef, anchorRefExpanded }))),
     topics: groupByRef(raw.topics),
     manuscripts: groupByRef(raw.manuscripts),
     media: groupByRef(raw.media),

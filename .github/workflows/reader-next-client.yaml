@@ -2,8 +2,7 @@
 # Unit, architecture and component (Storybook) tests, in English/LTR and Hebrew/RTL; then the end-to-end suite against the API
 # cassette (scripts/api-cassette.mjs): the bundle pinned by e2e/cassette.lock, replayed (scripts/cassette/bundle.mjs); without one, the
 # CI cache, recording anything missing from the live API. A budgets job holds the reader page's initial JS/CSS (scripts/budgets/).
-# The exits job (push and manual runs only) lists the links that still lead out to the legacy client (scripts/exits-crawl.mjs), as
-# an artifact; report-only until wave 2 has ported what it names (LAUNCH_PLAN §5 F), then it becomes a gate.
+# The ways out to the legacy client are listed by its own workflow, reader-next-exits.yaml (weekly and on demand).
 name: reader-next client
 
 on:
@@ -13,7 +12,6 @@ on:
   push:
     branches: [reader-next]
     paths: ["reader-next/**", ".github/workflows/reader-next-client.yaml", "build/ci/reader-nginx-paths.mjs", "helm-chart/sefaria/templates/_reader-django-paths.tpl"]
-  workflow_dispatch:
 
 concurrency:
   group: reader-next-client-${{ github.ref }}
@@ -107,36 +105,3 @@ jobs:
           name: playwright-traces
           path: reader-next/test-results
           retention-days: 7
-
-  # T-F01 (owner rule 2026-11-05: no way out to the legacy client): crawl the reader's page types (desktop and phone, signed out and
-  # in) through a read-only stand-in for Django in front of www.sefaria.org, and list every same-site link Django answers that is not
-  # in scripts/exits-allowlist.json. Report-only: it never fails on the list (only on a crawl that could not run); the list is the
-  # artifact "exits" (exits.json, exits.md) and the job summary. Not on pull requests: it reads the live site for ~45 minutes.
-  exits:
-    if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 75
-    needs: checks
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: reader-next/package-lock.json
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - name: Ways out to the legacy client (report only)
-        run: node scripts/exits-crawl.mjs --report-only --out exits.json --md exits.md
-      - name: Summary
-        if: always()
-        run: if [ -f exits.md ]; then cat exits.md >> "$GITHUB_STEP_SUMMARY"; fi
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: exits
-          path: |
-            reader-next/exits.json
-            reader-next/exits.md
-          if-no-files-found: warn
-          retention-days: 30

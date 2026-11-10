@@ -76,7 +76,8 @@ export default defineConfig({
               PUBLIC_SITE_ORIGIN: "",
               DOMAIN_MODULES,
             },
-            reuseExistingServer: true,
+            // never someone else's server on that port (another worktree's run): it must be this one, with this env
+            reuseExistingServer: false,
             timeout: 60_000,
           },
         ]),
