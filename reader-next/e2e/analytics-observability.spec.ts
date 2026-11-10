@@ -49,34 +49,66 @@ test.describe("browser error reports", () => {
     expect(JSON.stringify(beacons)).not.toMatch(/lang=bi|with=Rashi|secret-words|reader@example|In the beginning/);
   });
 
-  test("without PUBLIC_ERROR_ENDPOINT nothing is sent", async ({ page }) => {
+  test("without PUBLIC_ERROR_ENDPOINT nothing is sent (the error did happen)", async ({ page }) => {
     const sent: string[] = [];
     page.on("request", (r) => r.method() === "POST" && sent.push(r.url()));
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(e.message));
     await open(page, "/texts");
     await page.evaluate(() => setTimeout(() => {
       throw new Error("not reported");
     }));
-    await page.waitForTimeout(500);
+    // presence probe: the error was thrown on the page
+    await expect.poll(() => errors).toContain("not reported");
+    await page.waitForTimeout(300);
     expect(sent).toEqual([]);
+  });
+
+  test("a hydration mismatch (reported by React right after the first commit, before the shell's watchers mount) is reported", async ({ page }) => {
+    // the server's page with one word changed, so the browser's first render differs from it
+    await page.route(
+      (url) => url.pathname === "/texts",
+      async (route) => {
+        if (route.request().resourceType() !== "document") return route.fallback();
+        const res = await route.fetch();
+        const html = (await res.text())
+          .replace(/(window\.__SEFARIA_CONFIG__=\{.*?"labs":\[[^\]]*\],)/, `$1"errorEndpoint":"/__test/errors",`)
+          .replace("Browse the Library</span></h1>", "Browse the Librarx</span></h1>");
+        await route.fulfill({ response: res, body: html });
+      },
+    );
+    const beacons = await captureBeacons(page);
+    await page.goto("/texts"); // not open(): that helper fails on the hydration error this test causes on purpose
+    await page.waitForSelector("html[data-hydrated='true']");
+    await expect.poll(() => beacons.map((b) => b.kind)).toContain("hydration");
+    expect(beacons.find((b) => b.kind === "hydration")).toMatchObject({ route: "texts", path: "/texts" });
   });
 });
 
-// @feature ANL-010
-test.describe("page-type dimension", () => {
-  test("dimension5 is set on GTM's ga tracker as the old client did, and the GA4 events are unchanged", async ({ page }) => {
-    // GTM's ga shim, as on sefaria.org (a tracker named by GTM): recorded, nothing sent
+// Owner decision 2026-11-10: no Universal Analytics hits (the old client's never fire; the property is shut down)
+// @feature ANL-016 @feature ANL-009
+test.describe("analytics parity fixes", () => {
+  test("no ga call at all, though the reader logs its old UA names; the colour line and the header both report header_viewed", async ({ page }) => {
     await page.addInitScript(() => {
       const calls: unknown[][] = [];
       (window as unknown as { __ga: unknown[][] }).__ga = calls;
       (window as unknown as { ga: unknown }).ga = Object.assign((...a: unknown[]) => void calls.push(a), { getAll: () => [{ get: () => "gtm1" }] });
     });
     await open(page, "/Genesis.1");
-    await expect.poll(() => page.evaluate(() => (window as unknown as { __ga: unknown[][] }).__ga.filter((c) => c[0] === "gtm1.set"))).toEqual([["gtm1.set", "dimension5", "Text"]]);
-    // (the header's links are full loads of the site's pages in tests, so another page is opened directly)
-    await open(page, "/texts");
-    await expect.poll(() => page.evaluate(() => (window as unknown as { __ga: unknown[][] }).__ga.filter((c) => c[0] === "gtm1.set"))).toEqual([["gtm1.set", "dimension5", "navigation"]]);
-    // a set is not an event: the GA4 channel has no new name
-    expect((await log(page)).filter((e) => e.channel === "gtag").map((e) => e.name)).not.toContain("dimension5");
+    await page.locator('[role="group"][data-ref="Genesis 1:1"]').click();
+    // presence probe: the click is logged under its old UA name
+    await expect.poll(async () => (await log(page)).map((e) => `${e.channel}:${e.name}`)).toContain("ua:Reader|Text Segment Click");
+    expect(await page.evaluate(() => (window as unknown as { __ga: unknown[][] }).__ga)).toEqual([]);
+    // both impressions, as on www.sefaria.org (parity diff 2026-11-10)
+    await expect.poll(async () => (await log(page)).filter((e) => e.channel === "gtag" && e.name === "header_viewed").map((e) => e.params?.impression_type).sort()).toEqual(["category_color_line", "regular_header"]);
+  });
+
+  test("the display options button sends the old onclick_ToolTipped", async ({ page }) => {
+    await open(page, "/Genesis.1");
+    await page.getByRole("button", { name: "Text display options" }).first().click();
+    await expect.poll(async () => (await log(page)).filter((e) => e.name === "onclick_ToolTipped").map((e) => e.params)).toEqual([
+      { classes: "readerOptionsTooltip tooltip-toggle", keywordTargets: ["tanakh", "torah", "genesis", "genesis 1"], interfaceLang: "english" },
+    ]);
   });
 });
 
@@ -102,6 +134,11 @@ test.describe("the opt-in's menu items", () => {
     await page.getByRole("button", { name: "Account menu" }).click();
     await expect(page.getByRole("dialog", { name: "Account menu" }).getByRole("link", { name: "Log in" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Back to the classic reader" })).toHaveCount(0);
+    // presence probe: the same page with the opt-in cookie has the item
+    await page.context().addCookies([{ name: "reader_version", value: "next", domain: "localhost", path: "/" }]);
+    await open(page, "/texts");
+    await page.getByRole("button", { name: "Account menu" }).click();
+    await expect(page.getByRole("dialog", { name: "Account menu" }).getByRole("button", { name: "Back to the classic reader" })).toBeVisible();
   });
 
   test("Report a problem opens the feedback form and reports; Back to the classic reader posts the choice, clears the cookie, reloads", async ({ page, context }) => {
