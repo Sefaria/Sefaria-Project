@@ -1,0 +1,34 @@
+{
+ "path": "/terms",
+ "lang": "en",
+ "title": "Terms of Use | Sefaria",
+ "description": "",
+ "html": "<div class=\"superAbout\">\n    \n        \n\n    <nav id=\"aboutSidebar\">\n        \n        <ul>\n            \n            <li><a id=\"about\" href=\"/about\">\n                    <span class=\"int-en\">What is Sefaria?<i class=\"fa fa-chevron-right\"></i></span>\n                    <span class=\"int-he\">מהי ספריא<i class=\"fa fa-chevron-left\"></i></span></a></li>\n            \n            <li><a id=\"team\" href=\"/team\">\n                    <span class=\"int-en\">Team<i class=\"fa fa-chevron-right\"></i></span>\n                    <span class=\"int-he\">צוות ספריא<i class=\"fa fa-chevron-left\"></i></span></a></li>\n            \n            <li><a id=\"jobs\" href=\"/jobs\">\n                    <span class=\"int-en\">Jobs at Sefaria<i class=\"fa fa-chevron-right\"></i></span>\n                    <span class=\"int-he\">משרות פנויות בספריא<i class=\"fa fa-chevron-left\"></i></span></a></li>\n            \n            <li><a id=\"products\" href=\"/products\">\n                    <span class=\"int-en\">Sefaria&#x27;s Products<i class=\"fa fa-chevron-right\"></i></span>\n                    <span class=\"int-he\">המוצרים של ספריא<i class=\"fa fa-chevron-left\"></i></span></a></li>\n            \n            <li><a id=\"ai\" href=\"/ai\">\n                    <span class=\"int-en\">AI on Sefaria<i class=\"fa fa-chevron-right\"></i></span>\n                    <span class=\"int-he\">השימוש ב-AI בספריא<i class=\"fa fa-chevron-left\"></i></span></a></li>\n            \n            <li><a id=\"supporters\" href=\"/supporters\">\n                    <span class=\"int-en\">Our Supporters<i class=\"fa fa-chevron-right\"></i></span>\n                    <span class=\"int-he\">התומכים שלנו<i class=\"fa fa-chevron-left\"></i></span></a></li>\n            \n            <li><a id=\"testimonials\" href=\"/testimonials\">\n                    <span class=\"int-en\">Testimonials<i class=\"fa fa-chevron-right\"></i></span>\n                    <span class=\"int-he\">המלצות על ספריא<i class=\"fa fa-chevron-left\"></i></span></a></li>\n            \n            <li><a id=\"metrics\" href=\"/metrics\">\n                    <span class=\"int-en\">Metrics<i class=\"fa fa-chevron-right\"></i></span>\n                    <span class=\"int-he\">מדדים<i class=\"fa fa-chevron-left\"></i></span></a></li>\n            \n            <li><a id=\"updates\" href=\"/updates\">\n                    <span class=\"int-en\">New Additions<i class=\"fa fa-chevron-right\"></i></span>\n                    <span class=\"int-he\">עדכונים<i class=\"fa fa-chevron-left\"></i></span></a></li>\n            \n            <li><a id=\"link-to-annual-report\" href=\"/link-to-annual-report\">\n                    <span class=\"int-en\">Annual Report<i class=\"fa fa-chevron-right\"></i></span>\n                    <span class=\"int-he\">דו&quot;ח שנתי<i class=\"fa fa-chevron-left\"></i></span></a></li>\n            \n            <li><a id=\"terms\" href=\"/terms\">\n                    <span class=\"int-en\">Terms of Use<i class=\"fa fa-chevron-right\"></i></span>\n                    <span class=\"int-he\">תנאי שימוש<i class=\"fa fa-chevron-left\"></i></span></a></li>\n            \n            <li><a id=\"privacy-policy\" href=\"/privacy-policy\">\n                    <span class=\"int-en\">Privacy Policy<i class=\"fa fa-chevron-right\"></i></span>\n                    <span class=\"int-he\">מדיניות פרטיות<i class=\"fa fa-chevron-left\"></i></span></a></li>\n            \n        </ul>\n    </nav>\n<script>\n  const mobile = \"False\" === \"True\";\n  if (!mobile) {\n      const whichPage = \"terms\";\n      const item = document.getElementById(whichPage);\n      item.className = 'selected';\n      const aboutSidebar = document.getElementById(\"aboutSidebar\");\n      aboutSidebar.className = `${whichPage}`;\n  }\n  else {\n      const aboutSidebar = document.getElementById(\"aboutSidebar\");\n      aboutSidebar.className = 'mobileAbout';\n  }\n</script>\n    \n    <div id=\"\" class=\"container doc legal static\">\n        <div class=\"inner\">\n                <h1 class=\"aboutHeader\"><span class=\"int-en\">Terms of Use</span><span class=\"int-he\">תנאי שימוש</span></h1>\n            <iframe src=\"https://docs.google.com/document/d/e/2PACX-1vQHQfHUVMNugNyPyJRucHa9cEU9VUdFD8DAcLFAsUmBORodDmIO2YG85-m01OtF3FUlIgmaSxW_YWSc/pub?embedded=true\"></iframe>\n        </div>\n    </div>\n</div>",
+ "css": [
+  "/static/css/static.css?v=0c99bbc2"
+ ],
+ "inlineCss": "",
+ "baseCss": [
+  "/static/css/common.css?v=305af3bd",
+  "/static/font-awesome/css/font-awesome.css?v=151bd7ea",
+  "/static/css/fonts.css?v=a59e92d4",
+  "/static/css/header.css?v=94d8702a",
+  "/static/css/popover.css?v=90bfaaa4",
+  "/static/css/breakpoints.css?v=a38385e0",
+  "/static/css/keyboard.css?v=2c0640d3",
+  "/static/css/font-faces.css?v=8d5bcc01",
+  "/static/css/color-palette.css?v=51569dd8",
+  "/static/css/themes/library-theme.css?v=75488c0c",
+  "/static/css/themes/sheets-theme.css?v=ac584759",
+  "/static/css/common-components.css?v=0de1860f",
+  "/static/css/common-component.css?v=c7b2475e",
+  "/static/css/auth.css?v=b5f43058",
+  "/static/css/s2.css?v=798c0cdb",
+  "/static/css/cookies-notification.css?v=5f0dbbcd",
+  "/static/css/library-assistant.css?v=6b484388",
+  "/static/css/lexicon-edit.css?v=eb309c33",
+  "/static/css/unbounce-banner.css?v=7cb47188"
+ ],
+ "bodyClass": "interface-english",
+ "hasScript": false
+}

@@ -28,9 +28,16 @@ describe("routeOwner", () => {
   it("another ref spelling renders here (the canonical redirect is the reader's); anything else is Django's, checked once", async () => {
     const fetcher = nameApi({ Gen: true });
     expect(await routeOwner("/Gen.1.1", { fetcher })).toBe("client");
-    expect(await routeOwner("/about", { fetcher })).toBe("django");
-    expect(await routeOwner("/about", { fetcher })).toBe("django");
+    expect(await routeOwner("/Tanakh", { fetcher })).toBe("django");
+    expect(await routeOwner("/Tanakh", { fetcher })).toBe("django");
     expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+  it("the static pages this client renders are its own, without a name check (/about: lib/static-page/pages.ts)", async () => {
+    const fetcher = nameApi({});
+    expect(await routeOwner("/about", { fetcher })).toBe("client");
+    expect(await routeOwner("/terms/", { fetcher })).toBe("client");
+    expect(await routeOwner("/static-page-styles/legacy.0123abcd.css", { fetcher })).toBe("client");
+    expect(fetcher).not.toHaveBeenCalled();
   });
   it("before the catalog is loaded, the name check answers (no request waits for 3.5 MB)", async () => {
     resetRouteManifest();
