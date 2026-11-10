@@ -18,7 +18,12 @@ type Notice struct {
 	Age   time.Duration // commit-side trigger time to receipt; informational (clock skew applies)
 }
 
+// defaultOpTimeout bounds each connect, LISTEN and idle Ping when ListenConfig.OpTimeout is zero. A black-holed connection
+// (no RST, no reply) would otherwise hold the listener forever, since the process-lifetime context has no deadline.
+const defaultOpTimeout = 10 * time.Second
+
 type ListenConfig struct {
+	OpTimeout              time.Duration // per connect, LISTEN and Ping; zero means defaultOpTimeout
 	DSN, Channel, AppName  string
 	MinBackoff, MaxBackoff time.Duration
 	WaitTimeout            time.Duration // idle wait before a Ping; proxies and idle_session_timeout kill silent sessions
@@ -56,12 +61,26 @@ func listenOnce(ctx context.Context, cfg ListenConfig, connected func()) error {
 		pc.RuntimeParams["application_name"] = cfg.AppName
 	}
 	// A dedicated connection, not a pool member: a pool can recycle it and silently drop the LISTEN.
-	conn, err := pgx.ConnectConfig(ctx, pc)
+	opTimeout := cfg.OpTimeout
+	if opTimeout <= 0 {
+		opTimeout = defaultOpTimeout
+	}
+	cctx, cancel := context.WithTimeout(ctx, opTimeout)
+	conn, err := pgx.ConnectConfig(cctx, pc)
+	cancel()
 	if err != nil {
 		return err
 	}
-	defer conn.Close(context.Background())
-	if _, err := conn.Exec(ctx, "LISTEN "+pgx.Identifier{cfg.Channel}.Sanitize()); err != nil {
+	// Close with a bound too: a dead peer must not hang the teardown.
+	defer func() {
+		closeCtx, cancel := context.WithTimeout(context.Background(), opTimeout)
+		defer cancel()
+		_ = conn.Close(closeCtx)
+	}()
+	lctx, cancel := context.WithTimeout(ctx, opTimeout)
+	_, err = conn.Exec(lctx, "LISTEN "+pgx.Identifier{cfg.Channel}.Sanitize())
+	cancel()
+	if err != nil {
 		return err
 	}
 	connected()
@@ -75,7 +94,10 @@ func listenOnce(ctx context.Context, cfg ListenConfig, connected func()) error {
 				return ctx.Err()
 			}
 			if errors.Is(err, context.DeadlineExceeded) || pgconn.Timeout(err) {
-				if err := conn.Ping(ctx); err != nil {
+				pctx, cancel := context.WithTimeout(ctx, opTimeout)
+				err := conn.Ping(pctx)
+				cancel()
+				if err != nil {
 					return err
 				}
 				continue

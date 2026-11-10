@@ -44,11 +44,14 @@ for setting in authService.mode=bogus authService.reloadInterval=abc authService
 done
 helm_template --set authService.mode=enforce && pass "N-E5 the chart renders a good mode" || fail "N-E5 the chart fails on a good mode"
 
-# Not trimmed: a space after a comma in GATED_PATHS ungates that path.
+# Entries are trimmed: a space after a comma in GATED_PATHS must not ungate that path.
 authsvc_recreate "GATED_PATHS=/api/other, /api/knn-search"
+# The case before this one left the auth service crash-looping, and Envoy fails open until its health check has
+# seen the new container healthy again. Give it a moment before reading the decision.
+wait_for 20 'test "$(gw $GW_HC $GATED)" = 401' >/dev/null || true
 s="$(gw $GW_HC $GATED)"
 [ "$s" = 401 ] && pass "N-E5 GATED_PATHS entries are trimmed" \
-  || gap N-E5 "GATED_PATHS='/api/other, /api/knn-search' leaves /api/knn-search ungated ($s): entries are not trimmed"
+  || fail "N-E5 GATED_PATHS='/api/other, /api/knn-search' leaves /api/knn-search ungated ($s)"
 
 drill_reset
 finish
