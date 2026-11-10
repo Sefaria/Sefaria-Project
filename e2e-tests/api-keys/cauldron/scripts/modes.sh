@@ -278,18 +278,24 @@ except Exception: print(" -")' "$RUN_DIR/tmp.f1")" >>"$probe"
   sleep 15
   f1_stop_probe
   local verdict
-  verdict="$(python3 - "$probe" "$t_down" "$t_up" "$t_ready" <<'PY'
+  verdict="$(python3 - "$probe" "$t_down" "$t_up" "$t_ready" "${F1_EXPECT_OUTAGE:-405 -}" <<'PY'
 import sys
 rows = [l.rstrip("\n").split("\t") for l in open(sys.argv[1]) if "\t" in l]
 down, up, ready = (float(x) for x in sys.argv[2:5])
+expected = sys.argv[5]
 def window(a, b): return [r[1] for r in rows if a <= float(r[0]) < b]
 before, outage, after = window(0, down), window(down + 15, up), window(ready + 5, 9e12)
 denied_in_outage = sum(1 for r in outage if r.endswith("api_key_required") or r.endswith("api_key_invalid"))
+# Failing open means the request reached Django, so every outage row must be the answer Django gives the probe
+# (F1_EXPECT_OUTAGE, default "405 -": the keyless probe's method is not allowed on the gated path, and no gateway
+# code is attached). A 5xx or a transport error is an outage, not fail-open, and fails the drill.
+other_in_outage = sorted({r for r in outage if r != expected})
 ok_before = all(r.endswith("api_key_required") for r in before) and before
 ok_after = after and all(r.endswith("api_key_required") for r in after)
-print("pass" if ok_before and outage and denied_in_outage == 0 and ok_after else "fail",
-      f"before={len(before)} all 401 api_key_required={bool(ok_before)}; outage={len(outage)} gateway denials={denied_in_outage} "
-      f"(codes {sorted(set(outage))}); after ready+5s={len(after)} all 401={bool(ok_after)}; ready {ready - up:.0f}s after the scale-up")
+print("pass" if ok_before and outage and denied_in_outage == 0 and not other_in_outage and ok_after else "fail",
+      f"before={len(before)} all 401 api_key_required={bool(ok_before)}; outage={len(outage)} gateway denials={denied_in_outage}, "
+      f"not the Django answer ({expected!r})={other_in_outage} (codes {sorted(set(outage))}); "
+      f"after ready+5s={len(after)} all 401={bool(ok_after)}; ready {ready - up:.0f}s after the scale-up")
 PY
 )"
   case "$verdict" in pass*) rec F1 pass "${verdict#pass }" ;; *) rec F1 fail-product-bug "${verdict#fail }" ;; esac

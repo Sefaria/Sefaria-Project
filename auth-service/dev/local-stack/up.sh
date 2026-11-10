@@ -10,7 +10,8 @@ set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
 mkdir -p "$STATE_DIR" "$STACK_RUN_DIR"
-[ -x "$PYTHON" ] || die "no Python at $PYTHON (set APIKEYS_STACK_PYTHON)"
+# PYTHON is a path (the checkout's .venv, or APIKEYS_STACK_PYTHON) or a command on PATH (the python3 fallback).
+[ -x "$PYTHON" ] || command -v "$PYTHON" >/dev/null || die "no Python at $PYTHON (set APIKEYS_STACK_PYTHON)"
 
 variant="${ENVOY_VARIANT:-$(cat "$STACK_RUN_DIR/envoy.variant" 2>/dev/null || echo default)}"
 log "render envoy ($variant) and nginx configs"
