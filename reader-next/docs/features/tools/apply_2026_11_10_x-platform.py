@@ -22,6 +22,7 @@ def add(fid, lines):
 add(
     "CON-071",
     [
+        "2026-11-10 (review round 1): the two parameters are honoured on the Library host only (Voices answers exactly as before). Varnish: invalidate_ref also bans and purges /api/related/<encodeURIComponent(section ref)>, the form the generated client sends (the dotted pattern never matched it); the client's URLs are pinned in fixtures/varnish/related-client-urls.json and tested on both sides (src/lib/connections/related.test.ts, reader/tests/related_api_test.py).",
         "2026-11-10 (SB-03): /api/related/<ref> takes ?with_links=0 (no links: the client has them from /api/links) and ?sheets=count (each sheet as {id, anchorRef, anchorRefExpanded} only, from sefaria/sheets.py get_sheet_anchors_for_ref: no sheet records, owner profiles, collections or scores). New URLs, so new Varnish keys; without them the answer is unchanged for every other caller; the new reader's URL is purged on a text save with the others. The Resources rows ask `?with_links=0&sheets=count` (src/lib/connections/related.ts); counts are unchanged (distinct sheet ids per selected verse). Genesis 1: 12.4 MB raw / 1.30 MB gzip before, 0.61 MB / 46 KB after (the recorded answer projected the way the new modes answer; production answers the new URL in full until this Django change is deployed). Tests: reader/tests/related_api_test.py.",
     ],
 )

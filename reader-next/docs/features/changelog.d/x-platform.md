@@ -3,7 +3,8 @@
 ### Corrected
 
 - **CON-071** SB-03: the Resources rows ask `/api/related/<section>?with_links=0&sheets=count` (no links; sheets as id + anchors).
-  Genesis 1: 12.4 MB / 1.30 MB gzip → 0.61 MB / 46 KB gzip once the Django change is deployed. Other callers unchanged.
+  Genesis 1: 12.4 MB / 1.30 MB gzip → 0.61 MB / 46 KB gzip once the Django change is deployed. Other callers and the Voices
+  host unchanged; Varnish invalidation covers the client's own (percent-encoded) URLs.
 - **RTE-059** The reader pods get `DOMAIN_MODULES`, so the language-domain bounce works in the cluster.
 
 ### Added
