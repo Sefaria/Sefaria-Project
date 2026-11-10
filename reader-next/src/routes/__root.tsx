@@ -99,12 +99,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: ({ matches }) => {
     // a standalone page (compare.html) has no viewport meta and loads no site fonts: the browser's own Times, laid out 980px wide on a phone
     if (isStandalonePage(matches[matches.length - 1]?.pathname ?? "")) return { meta: [{ charSet: "utf-8" }, { title: "Sefaria Reader" }], links: [{ rel: "stylesheet", href: tokens }, { rel: "stylesheet", href: base }] };
-    const hebrew = (matches[0]?.context as { interfaceLang?: string } | undefined)?.interfaceLang === "hebrew";
     return {
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      ...siteHeadMeta(hebrew),
       // a page nobody has (the reader's 404, T-F28): titled as the old site's 404 and kept out of search engines
       ...(matches.some(isNotFoundMatch) ? [{ title: "Page Not Found | Sefaria" }, { name: "robots", content: "noindex" }] : [{ title: "Sefaria Reader" }]),
     ],
@@ -122,7 +120,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: fonts },
       { rel: "stylesheet", href: tokens },
       { rel: "stylesheet", href: base },
-      ...siteHeadLinks(),
     ],
     };
   },
@@ -282,6 +279,10 @@ function RootDocument({ children, lang, dir, standalone }: Readonly<{ children: 
     <html lang={lang} dir={dir} data-theme="light">
       <head>
         {headScripts.map(({ children: code, ...attrs }, i) => (code ? <script key={i} {...attrs} dangerouslySetInnerHTML={{ __html: code }} /> : <script key={i} {...attrs} />))}
+        {/* base.html's static links and meta (src/lib/shell/site-head.ts): plain tags, once per document. Declared in head() they were
+            re-rendered on every address update while reading, which slowed long reads (e2e/scroll.spec.ts 'reading far forward'). */}
+        {standalone ? null : siteHeadMeta(interfaceLang === "hebrew").map((m) => <meta key={m.name} {...m} />)}
+        {standalone ? null : siteHeadLinks().map((l) => <link key={`${l.rel}${l.type ?? ""}`} {...l} />)}
         <HeadContent />
       </head>
       <body data-standalone={standalone ? "" : undefined}>
