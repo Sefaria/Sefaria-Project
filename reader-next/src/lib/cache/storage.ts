@@ -48,6 +48,24 @@ function sizeOf(value: unknown, depth = 0): number {
   return n;
 }
 
+/**
+ * How long a disk read may take before the reader stops waiting for it and goes to the network. IndexedDB can hang rather than fail
+ * (WebKit has shipped versions whose first `open` after launch never answered; a busy disk on a cheap phone): the text must never wait
+ * on the cache (T-E04).
+ */
+export const DISK_READ_TIMEOUT_MS = 1_500;
+
+/** `p`, or `fallback` once `ms` have passed (the late answer is dropped). */
+export function within<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return new Promise<T>((resolve) => {
+    const t = setTimeout(() => resolve(fallback), ms);
+    p.then(
+      (v) => (clearTimeout(t), resolve(v)),
+      () => (clearTimeout(t), resolve(fallback)),
+    );
+  });
+}
+
 /** A read refreshes an entry's last use at most once an hour (no write per read). */
 const TOUCH_EVERY = 60 * 60_000;
 let quotaWarned = false;
@@ -60,7 +78,7 @@ export function createIdbStorage(): AsyncStorage<PersistedQuery> | undefined {
   return {
     getItem: async (key) => {
       try {
-        const value = (await get<PersistedQuery>(key, s)) ?? null;
+        const value = (await within(get<PersistedQuery>(key, s), DISK_READ_TIMEOUT_MS, undefined)) ?? null;
         if (value) {
           void get<DiskEntryMeta>(key, m)
             .then((meta) => (meta && Date.now() - meta.at > TOUCH_EVERY ? set(key, { ...meta, at: Date.now() }, m) : undefined))
@@ -148,11 +166,33 @@ export async function sweepDisk(opts: { budgetBytes?: number; now?: number; maxA
   return { removed, keptBytes: total };
 }
 
+/**
+ * Delete every disk entry whose key passes `pred` (an edit made the stored copies wrong: invalidate.ts). Reads only the key list.
+ * Returns how many went; never throws (no IndexedDB, or a failing one, deletes nothing).
+ */
+export async function removeDiskKeysWhere(pred: (key: string) => boolean): Promise<number> {
+  const s = getStore();
+  const m = getMetaStore();
+  if (!s || !m) return 0;
+  let n = 0;
+  for (const key of await keys<string>(s).catch(() => [] as string[])) {
+    if (typeof key !== "string" || !pred(key)) continue;
+    await del(key, s).catch(() => undefined);
+    await del(key, m).catch(() => undefined);
+    n++;
+  }
+  return n;
+}
+
 /** When the disk's copy of `key` was fetched (from the metadata index), or undefined when there is none. */
 export async function storedDataUpdatedAt(key: string): Promise<number | undefined> {
   const m = getMetaStore();
   if (!m) return undefined;
-  return (await get<DiskEntryMeta>(key, m).catch(() => undefined))?.updated;
+  try {
+    return (await within(get<DiskEntryMeta>(key, m), DISK_READ_TIMEOUT_MS, undefined))?.updated;
+  } catch {
+    return undefined; // idb-keyval throws synchronously when indexedDB.open does
+  }
 }
 
 let sweeping: Promise<SweepResult> | undefined;

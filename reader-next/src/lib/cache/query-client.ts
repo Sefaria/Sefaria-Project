@@ -1,5 +1,7 @@
 import { isCancelledError, QueryClient } from "@tanstack/react-query";
 import { SefariaApiError } from "~/lib/api/client";
+import { invalidateAfterEditorReturn } from "./invalidate";
+import { setStaffFreshness } from "./policies";
 
 /**
  * Retry a read once when that could help: never an answer that will not change ("no such text" 4xx — retrying every 404 added a
@@ -41,6 +43,17 @@ export function makeQueryClient(): QueryClient {
       return fetchQuery(options);
     }
   }) as typeof fetchQuery;
+  if (typeof window !== "undefined") {
+    // Staff always revalidate text (D-7): known once the viewer query answers (server-rendered, or fetched), whichever comes first
+    client.getQueryCache().subscribe((event) => {
+      const q = event.query;
+      if (q.queryKey[0] === "user" && q.queryKey[1] === "viewer" && (event.type === "updated" || event.type === "added")) {
+        setStaffFreshness(!!(q.state.data as { isStaff?: boolean } | null | undefined)?.isStaff);
+      }
+    });
+    // Back from a Django editor (`?next=`): forget on disk what it changed before anything is read from there
+    invalidateAfterEditorReturn();
+  }
   if (typeof window === "undefined") {
     const defaults = client.defaultQueryOptions.bind(client);
     client.defaultQueryOptions = ((options: Parameters<typeof defaults>[0]) => ({ ...defaults(options), gcTime: Infinity })) as typeof defaults;

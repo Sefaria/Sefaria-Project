@@ -4,8 +4,9 @@
 import { experimental_createQueryPersister, type PersistedQuery } from "@tanstack/query-persist-client-core";
 import type { QueryClient } from "@tanstack/react-query";
 import { CACHE_BUSTER, POLICIES, type DataClass } from "./policies";
+import { pendingDiskInvalidation } from "./invalidate";
 import { sweepRefIndexDisk } from "./ref-index";
-import { createIdbStorage, resetIdbStore, storedDataUpdatedAt, sweepOnce, type SweepResult } from "./storage";
+import { createIdbStorage, DISK_READ_TIMEOUT_MS, resetIdbStore, storedDataUpdatedAt, sweepOnce, within, type SweepResult } from "./storage";
 
 type QueryPersister = ReturnType<typeof experimental_createQueryPersister<PersistedQuery>>;
 
@@ -18,8 +19,8 @@ export function getPersister(dataClass: DataClass): QueryPersister | undefined {
     const storage = createIdbStorage();
     if (!storage) return undefined;
     p = experimental_createQueryPersister<PersistedQuery>({
-      // an answer with API warnings is never written to disk (see withPolicy)
-      storage: { ...storage, setItem: (key, value) => (hasApiWarnings(value.state.data) ? storage.removeItem(key) : storage.setItem(key, value)) },
+      // an answer with API warnings is never written to disk (see withPolicy); a read waits for deletions an edit started (invalidate.ts)
+      storage: { ...storage, getItem: async (key) => (await within(pendingDiskInvalidation(), DISK_READ_TIMEOUT_MS, undefined), storage.getItem(key)), setItem: (key, value) => (hasApiWarnings(value.state.data) ? storage.removeItem(key) : storage.setItem(key, value)) },
       buster: CACHE_BUSTER,
       maxAge: POLICIES[dataClass].maxAge,
       prefix: `sr-${dataClass}`,

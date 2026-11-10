@@ -61,14 +61,17 @@ The cache engine is TanStack Query. On top of it sits a small domain layer (`src
 
 | Class       | Examples                                | staleTime | Kept on disk  |
 | ----------- | --------------------------------------- | --------- | ------------- |
-| catalog     | TOC, index, shape, versions list        | 1 day     | 30 days       |
-| text        | v3 texts by section + version selection | 7 days    | 30 days       |
-| connections | related, links, link counts             | 1 hour    | 7 days        |
+| catalog     | TOC, index, shape, versions list        | 1 hour    | 30 days       |
+| text        | v3 texts by section + version selection | 1 hour (staff: 0) | 30 days |
+| connections | related, links, link counts             | 1 hour    | not persisted |
 | reference   | lexicon, dictionary entries             | 30 days   | 90 days       |
 | search      | search results, autocomplete            | 5 min     | not persisted |
 | user        | profile, saved, history, notes          | 0         | not persisted |
 
-Stale data is shown immediately and revalidated in the background (stale-while-revalidate). A cache _buster_
+Stale data is shown immediately and revalidated in the background (stale-while-revalidate). Freshness is D-7 (LAUNCH_PLAN
+T-E01): text and catalog are asked again at most an hour after they were fetched; staff and moderators always ask again for text.
+After a write this client makes, or a return from a Django editor (`/edit/`, `/translate/`, `/add/`, `/admin/reset/`, found by the
+page's referrer), the affected queries are invalidated in memory and their disk entries deleted (`src/lib/cache/invalidate.ts`). A cache _buster_
 (app schema version) invalidates disk entries when response shapes change.
 
 **Section granularity.** Texts are always fetched and cached by _section_ (e.g. `Genesis 1`, `Berakhot 2a`), never
