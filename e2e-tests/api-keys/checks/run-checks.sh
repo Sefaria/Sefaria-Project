@@ -41,8 +41,9 @@ usage: bash e2e-tests/api-keys/checks/run-checks.sh <command> [args]
   pytest [args]         powered_by suite; default -m "not deep and not failing" and target powered_by/tests
   migrations [--seed]   migration round trip on $DJANGO_DB; --seed also runs the dev-shape round trip
   go                    auth-service go vet + go test -race with PG_TEST_DSN on $GO_DB
+  seedguards            seed-script target guard and manifest-mode tests (stdlib, no containers, no Django)
   shell [files]         shellcheck -S warning (default: auth-service/scripts/*.sh and this script)
-  all                   selftest pytest migrations go shell
+  all                   selftest seedguards pytest migrations go shell
 PY=${PY} (override with PY=/path/to/python)
 EOF
 }
@@ -299,6 +300,12 @@ cmd_go() {
   return 0
 }
 
+# ---------------------------------------------------------------- seed guards
+cmd_seedguards() {
+  step "seed script guards (no containers, no database)"
+  "$PY" "$HERE/test_seed_guards.py" || fail "test_seed_guards.py (needs a Python 3.11+ for the seed script's imports; set PY)"
+}
+
 # ---------------------------------------------------------------- shell
 cmd_shell() {
   local -a files=()
@@ -326,6 +333,7 @@ cmd_shell() {
 
 cmd_all() {
   cmd_selftest
+  cmd_seedguards
   cmd_pytest
   cmd_migrations
   cmd_go
@@ -338,7 +346,7 @@ main() {
   [ "$#" -gt 0 ] && shift
   SUBCOMMAND_ARGS=("$@")
   case "$cmd" in
-    selftest|up|down|pytest|migrations|go|shell|all) ;;
+    selftest|up|down|seedguards|pytest|migrations|go|shell|all) ;;
     *) usage; exit 2 ;;
   esac
   case "$cmd" in
