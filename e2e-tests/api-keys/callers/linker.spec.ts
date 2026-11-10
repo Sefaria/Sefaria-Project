@@ -1,6 +1,7 @@
 import { Response } from '@playwright/test';
 import { test, expect } from '../fixtures';
 import { rawRequest } from '../gateway/util';
+import { requestedTarget } from '../env';
 import { t } from '../../globals';
 import {
   SITE_B, LOCAL_LAUNCH_ARGS, TlsFront, apiBase, describeFetch, fetchFromPage, openForeignPage, settleRefusals, watchRefusals,
@@ -15,13 +16,13 @@ const ARTICLE = `<!doctype html><html><head><title>Linker host page</title></hea
 <div id="article"><p>In the beginning (Genesis 1:1), and later Exodus 3:14 and Berakhot 2a.</p></div>
 </body></html>`;
 
-test.use({ launchOptions: process.env.APIKEYS_TARGET === 'local' ? { args: LOCAL_LAUNCH_ARGS } : {} });
+test.use({ launchOptions: requestedTarget() === 'local' ? { args: LOCAL_LAUNCH_ARGS } : {} });
 
 test.describe('linker on a third-party site', () => {
   test.describe.configure({ timeout: t(240000) });
   let front: TlsFront | undefined;
   test.beforeAll(async () => {
-    if (process.env.APIKEYS_TARGET === 'local') front = await TlsFront.start();
+    if (requestedTarget() === 'local') front = await TlsFront.start();
   });
   test.afterAll(async () => {
     await front?.stop();

@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures';
+import { requestedTarget } from '../env';
 import { describe as describeCall, keyValue } from '../gateway';
 import { SITE_A, SITE_B, LOCAL_LAUNCH_ARGS, TlsFront, apiBase, describeFetch, fetchFromPage, openForeignPage } from './browser';
 
@@ -12,12 +13,12 @@ const RESTRICTED = { suite: 'gateway', name: 'restricted' };
 const TEXT_PATH = '/api/v3/texts/Genesis.1.1';
 const GATED = '/api/knn-search';
 
-test.use({ launchOptions: process.env.APIKEYS_TARGET === 'local' ? { args: LOCAL_LAUNCH_ARGS } : {} });
+test.use({ launchOptions: requestedTarget() === 'local' ? { args: LOCAL_LAUNCH_ARGS } : {} });
 
 test.describe('website keys in a browser', () => {
   let front: TlsFront | undefined;
   test.beforeAll(async () => {
-    if (process.env.APIKEYS_TARGET === 'local') front = await TlsFront.start();
+    if (requestedTarget() === 'local') front = await TlsFront.start();
   });
   test.afterAll(async () => {
     await front?.stop();

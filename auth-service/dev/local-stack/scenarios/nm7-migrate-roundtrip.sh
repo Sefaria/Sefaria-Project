@@ -17,8 +17,16 @@ applied() { psql_su -c "SELECT name FROM django_migrations WHERE app = 'powered_
 latest_file="$(basename "$(ls "$REPO"/powered_by/migrations/0[0-9][0-9][0-9]_*.py | sort | tail -1)" .py)"
 check N-M7 "latest powered_by migration applied before ($latest_file, the newest file)" "$(applied)" "$latest_file"
 
-for m in 0003_developer_settings 0004_api_key_notify_triggers 0005_api_key_origins_strings \
-    0006_api_project_schema 0007_api_project_backfill 0008_api_key_project_triggers_grants; do
+# Every migration from 0003 on, derived from the files so a new one is covered without editing this list.
+sql_migrations=()
+for f in "$REPO"/powered_by/migrations/0[0-9][0-9][0-9]_*.py; do
+  m="$(basename "$f" .py)"
+  [ "$((10#${m%%_*}))" -ge 3 ] && sql_migrations+=("$m")  # 10# keeps 0008 and 0009 from reading as octal
+done
+echo "N-M7 sqlmigrate list: ${sql_migrations[*]}"
+check N-M7 "sqlmigrate covers every migration from 0003 up to the newest ($latest_file)" "${sql_migrations[*]: -1}" "$latest_file"
+
+for m in "${sql_migrations[@]}"; do
   for dir in forward backward; do
     flag=(); [ $dir = backward ] && flag=(--backwards)
     if d11_manage sqlmigrate ${flag[@]+"${flag[@]}"} powered_by "$m" >"$OUT/$m.$dir.sql" 2>"$OUT/$m.$dir.err"; then

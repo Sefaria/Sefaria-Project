@@ -40,6 +40,7 @@ _spec.loader.exec_module(seed)
 
 from allauth.account.models import EmailAddress  # noqa: E402
 from allauth.socialaccount.models import SocialAccount  # noqa: E402
+from django.conf import settings  # noqa: E402
 from django.contrib.auth.models import User  # noqa: E402
 
 from powered_by import developer  # noqa: E402
@@ -47,6 +48,15 @@ from sefaria.model.user_profile import UserProfile  # noqa: E402
 
 SUITE = "onboarding"
 STATES = {"F1", "F2", "F4", "F5", "F7"}
+
+
+def guard():
+    """The users, emails and social accounts changed below live in Postgres, so that database is named explicitly,
+    besides the seed script's Mongo guard: the local stack's sefaria_auth on 127.0.0.1:55432 and nothing else."""
+    db = settings.DATABASES["default"]
+    if not (db.get("NAME") == "sefaria_auth" and str(db.get("HOST")) == "127.0.0.1" and str(db.get("PORT")) == "55432"):
+        raise SystemExit("Refusing: onboarding fixtures are for the local stack's Postgres on 127.0.0.1:55432 only.")
+    seed.guard_target("local")
 
 
 def spec_for(role):
@@ -116,7 +126,7 @@ def main():
         command.add_argument("--role", required=True)
     args = parser.parse_args()
 
-    seed.guard_target("local")
+    guard()
     if args.command == "reset":
         user = reset(args.role, args.state, args.sends, args.sends_age_minutes)
         print(json.dumps(describe(user)))
