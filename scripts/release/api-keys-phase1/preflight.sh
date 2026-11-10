@@ -3,6 +3,7 @@
 #
 #   preflight.sh --env preprod|prod --context C [--code-ref REF] [--repo DIR] [--infra-repo DIR] [--no-fetch]
 #                [--skip-image-check] [--allow-pending app/name,...] [--chart-ref REF]
+#                [--stage promote --image-tag TAG]
 #
 # Checks (from the release plan's Preprod and Prod lists), each printed as PASS, FAIL, WARN or SKIP:
 #   - current_database() on a preprod web pod and on a prod web pod is sefaria_auth (they share it)
@@ -21,15 +22,20 @@
 #     is the new release) rendered with helm template: every CronJob it renders exists in namespace default, and the
 #     Datadog labels and annotations it renders on the web pod template are on every Running prod web pod
 #     (needs helm and PyYAML; SKIP without them)
+# --stage promote (right before the promotion, after premigrate.sh) runs every check above, and in addition requires
+# that nothing is pending at all: no migration of --code-ref may be pending (the preprod leniency for phase 1 ends), and
+# `python manage.py migrate --check` must exit 0 in a one-off pod copied from the env's live web Rollout with the image
+# tag --image-tag (the web image the promotion deploys) on the target database. A promotion that would start with
+# migrations pending fails here. The pod is deleted afterwards.
 # Exits 1 when any check FAILs. WARN, SKIP and MANUAL lines do not fail the run.
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 usage() {
-  sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,30p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit "${1:-0}"
 }
 
-ENV="" CTX="" CODE_REF="" REPO="" INFRA="" FETCH=1 IMAGE_CHECK=1 ALLOW_PENDING="" CHART_REF=""
+ENV="" CTX="" CODE_REF="" REPO="" INFRA="" FETCH=1 IMAGE_CHECK=1 ALLOW_PENDING="" CHART_REF="" STAGE=default IMAGE_TAG=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --env) ENV="$2"; shift 2 ;;
@@ -41,12 +47,20 @@ while [[ $# -gt 0 ]]; do
     --skip-image-check) IMAGE_CHECK=0; shift ;;
     --allow-pending) ALLOW_PENDING="$2"; shift 2 ;;
     --chart-ref) CHART_REF="$2"; shift 2 ;;
+    --stage) STAGE="$2"; shift 2 ;;
+    --image-tag) IMAGE_TAG="$2"; shift 2 ;;
     --pg-user) PG_USER="$2"; shift 2 ;;
     -h | --help) usage 0 ;;
     *) log "unknown argument: $1"; usage 1 ;;
   esac
 done
 [[ "$ENV" == preprod || "$ENV" == prod ]] || die "--env must be preprod or prod"
+[[ "$STAGE" == default || "$STAGE" == promote ]] || die "--stage must be default or promote"
+if [[ "$STAGE" == promote ]]; then
+  [[ -n "$IMAGE_TAG" && "$IMAGE_TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]] || die "--stage promote needs --image-tag TAG (the web image tag the promotion deploys)"
+elif [[ -n "$IMAGE_TAG" ]]; then
+  die "--image-tag is only used with --stage promote"
+fi
 need kubectl git "$PYTHON"
 check_context "$ENV" "$CTX"
 REPO="${REPO:-$(git -C "$RELEASE_DIR" rev-parse --show-toplevel)}"
@@ -133,7 +147,7 @@ fi
 
 # 4. Pending migrations.
 tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+trap 'web_pod_cleanup; rm -rf "$tmp"' EXIT
 if git -C "$REPO" rev-parse -q --verify "$CODE_REF^{commit}" >/dev/null; then
   git -C "$REPO" ls-tree -r --name-only "$CODE_REF" | grep '/migrations/' | "$PYTHON" "$RELEASE_PY" migrations-from-paths >"$tmp/code.tsv"
   pg_ro "$DB" -At -F "$TAB" -c 'SELECT app, name FROM public.django_migrations' >"$tmp/applied.tsv"
@@ -143,8 +157,14 @@ if git -C "$REPO" rev-parse -q --verify "$CODE_REF^{commit}" >/dev/null; then
   if [[ -n "$unknown" ]]; then
     fail "applied migrations that $CODE_REF does not have (the database is ahead of the code): $unknown"
   fi
-  if [[ "$ENV" == prod ]]; then
-    if [[ -z "$pending" ]]; then pass "no migration of $CODE_REF is pending"; else fail "pending at $CODE_REF: $pending (the preprod promotion should have applied them)"; fi
+  if [[ "$ENV" == prod || "$STAGE" == promote ]]; then
+    if [[ -z "$pending" ]]; then
+      pass "no migration of $CODE_REF is pending"
+    elif [[ "$STAGE" == promote ]]; then
+      fail "pending at $CODE_REF: $pending (run premigrate.sh first; a promotion must not start with migrations pending)"
+    else
+      fail "pending at $CODE_REF: $pending (the preprod promotion should have applied them)"
+    fi
   else
     allowed=" powered_by/0003_request_not_to_publish "
     for m in $PHASE1_MIGRATIONS; do allowed+="powered_by/$m "; done
@@ -159,6 +179,26 @@ if git -C "$REPO" rev-parse -q --verify "$CODE_REF^{commit}" >/dev/null; then
   fi
 else
   fail "code ref $CODE_REF not found in $REPO"
+fi
+
+# 4b. --stage promote: the target image sees nothing pending on the target database (what its pods' own
+# `migrate && gunicorn` start would otherwise apply, unlocked, while serving).
+if [[ "$STAGE" == promote ]]; then
+  rc=0
+  run_web_pod "$ENV" "$IMAGE_TAG" migcheck "$tmp/migcheck.log" "$(cat <<'POD'
+export PGOPTIONS='-c lock_timeout=5s'
+python manage.py migrate --check
+rc=$?
+echo "migrate --check: exit $rc"
+if [ $rc -ne 0 ]; then echo '--- pending (migrate --plan):'; python manage.py migrate --plan 2>&1 | head -n 40; fi
+exit $rc
+POD
+)" 300 || rc=$?
+  case "$rc" in
+    0) pass "migrate --check exits 0 for web image tag $IMAGE_TAG on $DB (nothing pending)" ;;
+    1) fail "migrate --check exits 1 for web image tag $IMAGE_TAG on $DB (migrations pending, or the check could not run): $(grep -vE '^$' "$tmp/migcheck.log" | tail -n 12 | tr '\n' ';')" ;;
+    *) fail "could not run migrate --check in a pod for web image tag $IMAGE_TAG (exit $rc): $(grep -vE '^$' "$tmp/migcheck.log" 2>/dev/null | tail -n 5 | tr '\n' ';')" ;;
+  esac
 fi
 
 # 5. Image tags of the deployed env file exist in the registry (they are the rollback target).
@@ -197,6 +237,8 @@ if rollouts="$(kc -n "$NS" get rollouts.argoproj.io -o json | "$PYTHON" "$RELEAS
 else
   fail "could not list the Rollouts of namespace $NS"
 fi
+# Ready must be True AND describe the HelmRelease's current generation: right after a spec change the previous
+# reconciliation's Ready=True is still there until Flux has caught up.
 ready="$(kc -n "$NS" get helmreleases.helm.toolkit.fluxcd.io "$(env_hr "$ENV")" -o json 2>/dev/null | "$PYTHON" -c '
 import json, sys
 try:
@@ -204,9 +246,20 @@ try:
 except ValueError:
     print("missing"); sys.exit()
 conds = {c.get("type"): c for c in hr.get("status", {}).get("conditions", [])}
-print("suspended" if hr.get("spec", {}).get("suspend") else conds.get("Ready", {}).get("status", "unknown"))')"
+ready = conds.get("Ready", {})
+gen = hr.get("metadata", {}).get("generation")
+seen = ready.get("observedGeneration")
+if hr.get("spec", {}).get("suspend"):
+    print("suspended")
+elif ready.get("status", "unknown") != "True":
+    print(ready.get("status", "unknown"))
+elif gen is None or seen != gen:
+    print("stale:observedGeneration=%s,generation=%s" % (seen, gen))
+else:
+    print("True")')"
 case "$ready" in
-  True) pass "HelmRelease $NS/$(env_hr "$ENV") is Ready" ;;
+  True) pass "HelmRelease $NS/$(env_hr "$ENV") is Ready for its current generation" ;;
+  stale:*) fail "HelmRelease $NS/$(env_hr "$ENV") Ready=True is stale (${ready#stale:}); wait for Flux to reconcile the current generation" ;;
   *) fail "HelmRelease $NS/$(env_hr "$ENV") Ready=$ready" ;;
 esac
 

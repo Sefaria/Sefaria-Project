@@ -15,9 +15,12 @@
 # snapshot; master's code creates, lists and deletes a listing on the restored database; phase 1 migrates forward again;
 # rehearse-migration on the snapshot dump; watch-promotion on a short window, with its lock-wait and 5xx alarms; the
 # preflight's prod-only checks (CronJobs, Datadog labels) and namespace check; staging-smoke's legacy apikey write against
-# a stub server. Negative tests: wrong context, dry runs change nothing, db --full refuses, preflight fails without the
-# reader grant on powered_by_apikey. Uses ports 56441 (port-forward) and 56445 (rehearsal); the stub server takes an
-# ephemeral port.
+# a stub server; then (at the end) the maintenance fence of restore db, the concurrent-migrate case, premigrate.sh
+# (lock timeout and retry, the final migrate --check, no-op, refusals) and preflight --stage promote, with a stand-in
+# web image (tests/fixtures/migrate-app: Django 6 and a fixture app) that the premigrate pod runs with the Rollout's
+# volumes, env and Secret copied. Negative tests: wrong context, dry runs change nothing, db --full refuses, preflight
+# fails without the reader grant on powered_by_apikey and on a stale HelmRelease Ready. Uses ports 56441 (port-forward)
+# and 56445 (rehearsal); the stub server takes an ephemeral port.
 # The cluster and the work directory are deleted at the end unless --keep-cluster / --keep-work.
 set -uo pipefail
 
@@ -31,7 +34,7 @@ while [[ $# -gt 0 ]]; do
     --python) PY="$2"; shift 2 ;;
     --keep-cluster) KEEP_CLUSTER=1; shift ;;
     --keep-work) KEEP_WORK=1; shift ;;
-    -h | --help) sed -n '2,20p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h | --help) sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -49,7 +52,7 @@ WORK="$(mktemp -d "${TMPDIR:-/tmp}/apikeys-release-tests.XXXXXX")"
 LOGS="$WORK/logs"
 mkdir -p "$LOGS"
 export APIKEYS_RELEASE_TEST_CONTEXT="$CTX"
-MASTER_TAG_PREPROD="v7.11.4-preprod.1" MASTER_TAG_PROD="v7.11.4-prod.1" PHASE1_TAG_PREPROD="v7.12.0-preprod.1"
+MASTER_TAG_PREPROD="v7.11.4-preprod.1" MASTER_TAG_PROD="v7.11.4-prod.1" PHASE1_TAG_PREPROD="v7.12.0-preprod.1" FIXTURE_TAG="fixture"
 CHART_PREPROD="0.92.5-preprod.1" CHART_PROD="0.92.5-prod.1" PHASE1_CHART_PREPROD="0.93.0-preprod.1"
 IMG=kind.local/sefaria-web
 
@@ -152,8 +155,11 @@ mark_healthy() { # ns hr
   for ro in $(k -n "$1" get rollouts.argoproj.io -o name); do
     k -n "$1" patch "$ro" --subresource=status --type merge -p '{"status":{"phase":"Healthy"}}' >/dev/null
   done
+  # Ready=True for the HelmRelease's current generation, as Flux writes it once it has reconciled.
+  local gen
+  gen="$(k -n "$1" get helmreleases.helm.toolkit.fluxcd.io "$2" -o jsonpath='{.metadata.generation}')"
   k -n "$1" patch helmreleases.helm.toolkit.fluxcd.io "$2" --subresource=status --type merge \
-    -p '{"status":{"conditions":[{"type":"Ready","status":"True","reason":"Test","message":"stand-in","lastTransitionTime":"2026-11-09T00:00:00Z"}]}}' >/dev/null
+    -p "{\"status\":{\"conditions\":[{\"type\":\"Ready\",\"status\":\"True\",\"reason\":\"Test\",\"message\":\"stand-in\",\"lastTransitionTime\":\"2026-11-09T00:00:00Z\",\"observedGeneration\":$gen}]}}" >/dev/null
 }
 # Calls a lib.sh function in a child shell (lib.sh sets -e, which this runner must not inherit).
 libcall() { CTX="$CTX" PG_USER="" bash -c 'source "$1"; shift; "$@"' _ "$REL/lib.sh" "$@"; }
@@ -178,7 +184,10 @@ kind create cluster --name "$CLUSTER" --wait 120s >"$LOGS/kind.log" 2>&1 || fata
 # A single-platform copy of postgres:18: kind load fails on a multi-platform image whose other platforms are not local.
 printf 'FROM postgres:18\n' | docker build -q -t kind.local/postgres:18 - >"$LOGS/docker-build.log" 2>&1 || fatal "docker build of kind.local/postgres:18 failed"
 for tag in "$MASTER_TAG_PREPROD" "$MASTER_TAG_PROD" "$PHASE1_TAG_PREPROD"; do docker tag kind.local/postgres:18 "$IMG:$tag"; done
-kind load docker-image --name "$CLUSTER" kind.local/postgres:18 "$IMG:$MASTER_TAG_PREPROD" "$IMG:$MASTER_TAG_PROD" "$IMG:$PHASE1_TAG_PREPROD" >"$LOGS/kind-load.log" 2>&1 \
+# The stand-in web image the premigrate pods run: Django 6.0.4 and psycopg2-binary 2.9.9 (as requirements.txt), a manage.py
+# and a fixture app (pip needs the network; the base image is python:3.12-slim-bookworm).
+docker build -q -t "$IMG:$FIXTURE_TAG" "$HERE/fixtures/migrate-app" >"$LOGS/docker-build-fixture.log" 2>&1 || fatal "docker build of the fixture web image failed (log: $LOGS/docker-build-fixture.log)"
+kind load docker-image --name "$CLUSTER" kind.local/postgres:18 "$IMG:$MASTER_TAG_PREPROD" "$IMG:$MASTER_TAG_PROD" "$IMG:$PHASE1_TAG_PREPROD" "$IMG:$FIXTURE_TAG" >"$LOGS/kind-load.log" 2>&1 \
   || fatal "kind load failed"
 k apply -f "$HERE/fixtures/crds.yaml" >/dev/null || fatal "CRDs"
 k wait --for condition=established --timeout=60s crd/helmreleases.helm.toolkit.fluxcd.io crd/gitrepositories.source.toolkit.fluxcd.io crd/rollouts.argoproj.io >/dev/null || fatal "CRDs not established"
@@ -207,7 +216,7 @@ mkdir -p "$FIX/envs"
 for e in staging preprod prod; do mkdir -p "$FIX/envs/$e"; cp "$PHASE1_CODE/envs/$e/helmrelease.yaml" "$FIX/envs/$e/"; done
 set_tags "$FIX/envs/preprod/helmrelease.yaml" "$MASTER_TAG_PREPROD" "$CHART_PREPROD"
 set_tags "$FIX/envs/prod/helmrelease.yaml" "$MASTER_TAG_PROD" "$CHART_PROD"
-(cd "$PHASE1_CODE" && git ls-files '*/migrations/*.py' helm-chart/sefaria) | while read -r f; do mkdir -p "$FIX/$(dirname "$f")"; cp "$PHASE1_CODE/$f" "$FIX/$f"; done
+(cd "$PHASE1_CODE" && git ls-files '*/migrations/*.py' helm-chart/sefaria ':!:scripts/release/api-keys-phase1/tests/fixtures') | while read -r f; do mkdir -p "$FIX/$(dirname "$f")"; cp "$PHASE1_CODE/$f" "$FIX/$f"; done
 git -C "$FIX" add -A && git -C "$FIX" commit -q -m "fixture: master state"
 git -C "$FIX" branch preprod && git -C "$FIX" branch prod
 TAG_PREPROD="preprod/${MASTER_TAG_PREPROD#v}+chart.$CHART_PREPROD"
@@ -291,7 +300,9 @@ echo "# snapshot"
 SNAPS="$WORK/snapshots"
 check "snapshot dry run exits 0" "$REL/snapshot.sh" --env preprod --context "$CTX" --repo "$FIX" --out "$SNAPS"
 [[ ! -e "$SNAPS" ]] && ok "snapshot dry run wrote nothing" || notok "snapshot dry run created $SNAPS"
-check "listing-count before the merge" "$REL/listing-count.sh" --env preprod --context "$CTX" --repo "$MASTER_CODE" --record "$WORK/listing.json"
+refuses "listing-count refuses to infer which code serves the listing (--listing is required)" "listing before\|after is required|--listing before.after is required" \
+  "$REL/listing-count.sh" --env preprod --context "$CTX" --repo "$MASTER_CODE"
+check "listing-count before the merge" "$REL/listing-count.sh" --env preprod --context "$CTX" --repo "$MASTER_CODE" --listing before --record "$WORK/listing.json"
 "$PY" - "$WORK/listing.json" <<'PY' && ok "listing count: 3 listed now, 1 hidden by the merge, 2 after" || notok "listing count (see $WORK/listing.json)"
 import json, sys
 d = json.load(open(sys.argv[1]))
@@ -344,6 +355,22 @@ helm upgrade preprod "$HERE/fixtures/standin-chart" -n preprod --kube-context "$
 mark_healthy preprod preprod
 wait_web preprod preprod "$IMG:$PHASE1_TAG_PREPROD" && ok "preprod runs the phase 1 image (helm revision 2)" || notok "preprod did not roll to phase 1"
 
+# The interval between the preprod promotion (which migrated the shared database) and the prod promotion: the schema is
+# phase 1's, but prod's code is still master's and lists every published row. The expected behaviour is a parameter.
+echo "# listing-count with the phase 1 schema and each code serving the listing"
+check "listing-count --listing before on the phase 1 schema (master's code still serving)" \
+  "$REL/listing-count.sh" --env preprod --context "$CTX" --repo "$MASTER_CODE" --listing before --record "$WORK/listing-before.json"
+check "listing-count --listing after on the phase 1 schema (phase 1's code serving)" \
+  "$REL/listing-count.sh" --env preprod --context "$CTX" --repo "$MASTER_CODE" --listing after --record "$WORK/listing-after.json"
+"$PY" - "$WORK/listing-before.json" "$WORK/listing-after.json" <<'PY' && ok "listing: before = master's filter on the new schema (hidden rows reported), after = phase 1's filter (nothing more hidden); both agree on what is listed after" || notok "listing before/after on the phase 1 schema (see $WORK/listing-*.json)"
+import json, sys
+b, a = (json.load(open(p)) for p in sys.argv[1:3])
+assert b["schema"] == "master-code-on-phase1-schema" and a["schema"] == "phase1-code", (b["schema"], a["schema"])
+assert b["hidden_after_merge"] >= 1, b            # the schema inference reported 0 here: the old behaviour
+assert b["listed_now"] == b["listed_after_merge"] + b["hidden_after_merge"], b
+assert a["hidden_after_merge"] == 0 and a["listed_now"] == a["listed_after_merge"] == b["listed_after_merge"], (a, b)
+PY
+
 echo "# preflight"
 mkdir -p "$WORK/infra/prod/cluster-1/spec/preprod"
 printf 'apiVersion: v1\nkind: Namespace\nmetadata:\n  name: preprod\n' >"$WORK/infra/prod/cluster-1/spec/preprod/namespace.yaml"
@@ -352,6 +379,18 @@ refuses "preflight fails without the reader grant on powered_by_apikey" "lacks S
 psql_pod -c "GRANT SELECT (id, key, project_id, label, allowed_origins, revoked_at) ON powered_by_apikey TO auth_service_reader" >/dev/null
 check "preflight preprod passes once the grant exists" "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --infra-repo "$WORK/infra"
 PREPROD_PASS_N="$N"
+# A Ready=True that describes an older generation (or carries no generation) is not readiness.
+gen="$(k -n preprod get hr preprod -o jsonpath='{.metadata.generation}')"
+k -n preprod patch hr preprod --subresource=status --type merge \
+  -p "{\"status\":{\"conditions\":[{\"type\":\"Ready\",\"status\":\"True\",\"reason\":\"Old\",\"message\":\"previous reconciliation\",\"lastTransitionTime\":\"2026-11-09T00:00:00Z\",\"observedGeneration\":$((gen - 1))}]}}" >/dev/null
+refuses "preflight fails on a HelmRelease whose Ready=True is for an older generation" "Ready=True is stale \(observedGeneration=$((gen - 1)),generation=$gen\)" \
+  "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --infra-repo "$WORK/infra"
+k -n preprod patch hr preprod --subresource=status --type merge \
+  -p '{"status":{"conditions":[{"type":"Ready","status":"True","reason":"Old","message":"no generation","lastTransitionTime":"2026-11-09T00:00:00Z"}]}}' >/dev/null
+refuses "preflight fails on a Ready=True that names no observedGeneration" "Ready=True is stale \(observedGeneration=None" \
+  "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --infra-repo "$WORK/infra"
+mark_healthy preprod preprod
+check "preflight preprod passes again once Ready describes the current generation" "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --infra-repo "$WORK/infra"
 k -n default delete rollouts.argoproj.io production-web >/dev/null
 refuses "preflight fails when the web Rollout is missing" "Rollout default/production-web not found" \
   "$REL/preflight.sh" --env prod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check
@@ -566,10 +605,74 @@ check "HelmRelease preprod equals the snapshot's (spec)" "$PY" "$REL/release_lib
   && ok "GitRepository preprod is at the snapshot's tag" || notok "GitRepository tag"
 
 # ---------------------------------------------------------------------------------------------------------------
+echo "# restore db: the maintenance fence"
+before="$(db_state)"
+refuses "restore db --scoped refuses while the HelmReleases are not suspended" "HelmRelease preprod/preprod is not suspended" \
+  "$REL/restore.sh" db --snapshot "$SNAP" --env preprod --context "$CTX" --scoped
+grep -q "HelmRelease default/production is not suspended" "$LOGS/$N.log" && ok "the refusal lists prod's HelmRelease too (both envs share the database)" || notok "prod's HelmRelease not listed"
+refuses "restore db --scoped --execute refuses without the fence and changes nothing" "maintenance fence is not in place" \
+  bash -c "echo preprod | '$REL/restore.sh' db --snapshot '$SNAP' --env preprod --context '$CTX' --scoped --execute"
+[[ "$(db_state)" == "$before" ]] && ok "the refused restore changed nothing" || notok "the refused restore changed the database"
+k -n preprod patch hr preprod --type merge -p '{"spec":{"suspend":true}}' >/dev/null
+k -n default patch hr production --type merge -p '{"spec":{"suspend":true}}' >/dev/null
+# A CronJob that runs the web image writes the database: it must be suspended too.
+k -n default create cronjob release-test-web-cron --image="$IMG:$MASTER_TAG_PROD" --schedule="0 0 1 1 *" -- true >/dev/null
+refuses "restore db --scoped refuses an unsuspended CronJob that runs the web image" "CronJob/release-test-web-cron: it runs the web image and is not suspended" \
+  "$REL/restore.sh" db --snapshot "$SNAP" --env preprod --context "$CTX" --scoped
+k -n default patch cronjob release-test-web-cron --type merge -p '{"spec":{"suspend":true}}' >/dev/null
+# A controller whose pod template is on the phase 1 image can start phase 1 pods at any time, even with no pod now.
+helm upgrade preprod "$HERE/fixtures/standin-chart" -n preprod --kube-context "$CTX" --reuse-values --set "rolloutImage=$IMG:$PHASE1_TAG_PREPROD" >/dev/null
+refuses "restore db --scoped refuses a Rollout whose pod template is on the phase 1 image (no pod of it needs to exist)" "Rollout/preprod-web: its pod template runs .*$PHASE1_TAG_PREPROD" \
+  "$REL/restore.sh" db --snapshot "$SNAP" --env preprod --context "$CTX" --scoped
+helm upgrade preprod "$HERE/fixtures/standin-chart" -n preprod --kube-context "$CTX" --reuse-values --set rolloutImage= >/dev/null
+# Another session writing the scoped tables: one holding a write lock, and one that writes in short transactions.
+psql_pod -c "SET application_name = 'release-test-writer'; BEGIN; UPDATE powered_by_project SET project_name = project_name WHERE id = (SELECT min(id) FROM powered_by_project); SELECT pg_sleep(90); COMMIT;" </dev/null >/dev/null 2>&1 &
+HOLD_PID=$!
+for _ in $(seq 1 30); do
+  [[ "$(psql_pod -At -c "SELECT count(*) FROM pg_locks l JOIN pg_class c ON c.oid = l.relation WHERE c.relname = 'powered_by_project' AND l.mode = 'RowExclusiveLock' AND l.granted")" -ge 1 ]] && break
+  sleep 1
+done
+refuses "restore db --scoped refuses while another session holds a write lock on a scoped table" "session [0-9]+ \(app release-test-writer, .*\) holds RowExclusiveLock on powered_by_project: a writer" \
+  "$REL/restore.sh" db --snapshot "$SNAP" --env preprod --context "$CTX" --scoped
+psql_pod -At -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE application_name = 'release-test-writer'" >/dev/null
+wait "$HOLD_PID" 2>/dev/null
+printf "SET application_name = 'release-test-watcher';\nUPDATE powered_by_project SET project_name = project_name WHERE id = (SELECT min(id) FROM powered_by_project);\n\\watch 0.3\n" | psql_pod >/dev/null 2>&1 &
+WATCH_PID=$!
+sleep 3
+refuses "restore db --scoped refuses while another session writes the scoped tables in short transactions" "rows of the scoped tables were written within|holds RowExclusiveLock on powered_by_project: a writer" \
+  "$REL/restore.sh" db --snapshot "$SNAP" --env preprod --context "$CTX" --scoped
+psql_pod -At -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE application_name = 'release-test-watcher'" >/dev/null
+wait "$WATCH_PID" 2>/dev/null
+[[ "$(db_state)" == "$before" ]] && ok "none of the refused restores changed the database" || notok "a refused restore changed the database"
+
 echo "# restore db"
 before="$(db_state)"
 check "restore db --scoped dry run" "$REL/restore.sh" db --snapshot "$SNAP" --env preprod --context "$CTX" --scoped
-grep -q "DRY RUN" "$LOGS/$N.log" && [[ "$(db_state)" == "$before" ]] && ok "the db dry run changed nothing" || notok "the db dry run changed the database"
+DRYLOG="$LOGS/$N.log"
+grep -q "DRY RUN" "$DRYLOG" && [[ "$(db_state)" == "$before" ]] && ok "the db dry run changed nothing" || notok "the db dry run changed the database"
+grep -q "fence in place (before the dump)" "$DRYLOG" && ok "the dry run reports the fence in place" || notok "no fence report in the dry run"
+# The restore SQL: pg_restore's own SET statement_timeout/lock_timeout = 0 lines are gone, the bounds are set again after
+# the dump's statements, and the transaction takes the tables ACCESS EXCLUSIVE first and aborts on queued writers.
+SQLF="$(ls -t "$SNAP"/restore-*/restore.sql | head -1)"
+libcall pg_restore_local "$SNAP/db/scoped.dump" --file=- >"$WORK/raw-restore.sql" 2>/dev/null
+grep -qE '^SET (statement_timeout|lock_timeout) = 0' "$WORK/raw-restore.sql" \
+  && ok "pg_restore's raw output does set statement_timeout and lock_timeout to 0 (so the next check can fail)" || notok "pg_restore's raw output has no timeout reset; the check below proves nothing"
+! grep -qE '^SET (statement_timeout|lock_timeout|idle_in_transaction_session_timeout|transaction_timeout) = ' "$SQLF" \
+  && ok "the restore SQL carries none of the dump's timeout settings" || notok "the restore SQL still resets a timeout ($SQLF)"
+"$PY" - "$SQLF" <<'PY' && ok "the lock and statement bounds are set at the start and again after the dump's statements; the tables are locked ACCESS EXCLUSIVE first and queued writers abort the transaction" || notok "restore SQL structure ($SQLF)"
+import sys
+lines = open(sys.argv[1]).read().splitlines()
+lock = [i for i, l in enumerate(lines) if l == "SET LOCAL lock_timeout = '15s';"]
+stmt = [i for i, l in enumerate(lines) if l == "SET LOCAL statement_timeout = '10min';"]
+begin = lines.index("BEGIN;")
+lt = next(i for i, l in enumerate(lines) if l.startswith("LOCK TABLE"))
+do = next(i for i, l in enumerate(lines) if l.startswith("DO $fence$"))
+drop = next(i for i, l in enumerate(lines) if l.startswith("DROP TABLE"))
+assert len(lock) >= 2 and len(stmt) >= 2, (lock, stmt)
+assert begin < lock[0] < lt < do < drop, (begin, lock, lt, do, drop)
+assert "ACCESS EXCLUSIVE" in lines[lt]
+assert lock[-1] > drop and stmt[-1] > drop, "the bounds are set again after the dump's statements"
+PY
 # A failure at the last statement (the django_migrations rows) must roll back the drops and the table restore.
 psql_pod -c "CREATE FUNCTION release_test_block() RETURNS trigger LANGUAGE plpgsql AS \$\$ BEGIN RAISE EXCEPTION 'release test: blocked'; END \$\$;
   CREATE TRIGGER release_test_block BEFORE INSERT ON django_migrations FOR EACH ROW WHEN (NEW.app = 'powered_by') EXECUTE FUNCTION release_test_block();" >/dev/null
@@ -663,6 +766,194 @@ PY
 ! grep -rqF "$LEGACY_KEY" "$LEG/with.log" "$LEG/without.log" && ok "the legacy key never appears in staging-smoke's output" || notok "the legacy key was printed"
 kill "$STUB_PID" 2>/dev/null
 STUB_PID=""
+
+# ---------------------------------------------------------------------------------------------------------------
+echo "# staging-smoke and pytest-failure-diff on fixtures (no cluster)"
+check "staging-smoke never puts a credential on curl's command line (fake curl)" "$HERE/test-staging-smoke-secrets.sh"
+check "pytest-failure-diff on JUnit, plain and run-id fixtures" "$HERE/test-pytest-failure-diff.sh"
+
+# ---------------------------------------------------------------------------------------------------------------
+echo "# concurrent migrate"
+# Every web pod runs `manage.py migrate && gunicorn` at start, with no lock between pods. Two migrate processes started
+# at once on a copy of the database at master's schema (with rows): Django takes no lock, so two clean exits are not
+# expected. What must hold: at least one succeeds, a loser fails loudly ("already exists" class) and leaves no partial
+# state, a third migrate then exits 0 (self-heals), each powered_by migration is recorded once, and the leaf is 0010.
+SCRATCH=release_scratch
+psql_pod -c "DROP DATABASE IF EXISTS $SCRATCH" >/dev/null
+psql_pod -c "CREATE DATABASE $SCRATCH" >/dev/null
+k -n default exec -i postgres-18-0 -c postgres-18 -- pg_restore -U postgres -d "$SCRATCH" <"$SNAP/db/sefaria_auth.dump" >"$LOGS/scratch-restore.log" 2>&1 || true
+psql_scratch() { k -n default exec -i postgres-18-0 -c postgres-18 -- psql -X -q -At -v ON_ERROR_STOP=1 -U postgres -d "$SCRATCH" "$@"; }
+django_scratch() {
+  local code="$1"
+  shift
+  (cd "$code" && RELEASE_PG_HOST=127.0.0.1 RELEASE_PG_PORT="$PF_PORT" RELEASE_PG_DB="$SCRATCH" RELEASE_PG_USER=postgres RELEASE_PG_PASSWORD=postgres PYTHONPATH="$code:$REL/django" DJANGO_SETTINGS_MODULE=release_settings "$PY" "$@")
+}
+[[ "$(psql_scratch -c "SELECT count(*) FROM powered_by_project")" -ge 1 && "$(psql_scratch -c "SELECT name FROM django_migrations WHERE app = 'powered_by' ORDER BY id DESC LIMIT 1")" == 0003_request_not_to_publish ]] \
+  && ok "scratch database $SCRATCH: master's schema with rows (leaf 0003_request_not_to_publish)" || notok "scratch database (log: $LOGS/scratch-restore.log)"
+django_scratch "$PHASE1_CODE" manage.py migrate --noinput >"$LOGS/concurrent-1.log" 2>&1 &
+CM1=$!
+django_scratch "$PHASE1_CODE" manage.py migrate --noinput >"$LOGS/concurrent-2.log" 2>&1 &
+CM2=$!
+cm1=0 cm2=0
+wait "$CM1" || cm1=$?
+wait "$CM2" || cm2=$?
+echo "# two concurrent migrates exited $cm1 and $cm2"
+[[ "$cm1" == 0 || "$cm2" == 0 ]] && ok "concurrent migrate: at least one of the two exits 0" || notok "concurrent migrate: both failed ($cm1, $cm2; logs $LOGS/concurrent-*.log)"
+for pair in "1 $cm1" "2 $cm2"; do
+  set -- $pair
+  if [[ "$2" != 0 ]]; then
+    grep -qiE "already exists|DuplicateTable|DuplicateColumn|DuplicateObject|duplicate" "$LOGS/concurrent-$1.log" \
+      && ok "concurrent migrate: the loser (process $1) failed with an 'already exists' class error" || { notok "concurrent migrate: process $1 failed with another error"; tail -n 8 "$LOGS/concurrent-$1.log" | sed 's/^/    /'; }
+  fi
+done
+check "concurrent migrate: a third migrate exits 0 (the database self-heals)" django_scratch "$PHASE1_CODE" manage.py migrate --noinput
+check "concurrent migrate: migrate --check then reports nothing pending" django_scratch "$PHASE1_CODE" manage.py migrate --check
+[[ "$(psql_scratch -c "SELECT count(*) - count(DISTINCT name) FROM django_migrations WHERE app = 'powered_by'")" == 0 ]] \
+  && ok "concurrent migrate: django_migrations holds each powered_by migration exactly once" || notok "a powered_by migration is recorded twice: $(psql_scratch -c "SELECT name, count(*) FROM django_migrations WHERE app = 'powered_by' GROUP BY name HAVING count(*) > 1" | tr '\n' ' ')"
+[[ "$(psql_scratch -c "SELECT name FROM django_migrations WHERE app = 'powered_by' ORDER BY name DESC LIMIT 1")" == 0010_seed_mcp_tier ]] \
+  && ok "concurrent migrate: the leaf is 0010_seed_mcp_tier" || notok "the powered_by leaf is not 0010"
+# PGOPTIONS reaches Django's connection: the real project's Django 6 (psycopg2, libpq) with a DATABASES that has no OPTIONS,
+# the same shape as the chart's local settings. Without it the session has no lock timeout.
+SHOW_LT='import django; django.setup(); from django.db import connection as c; cur = c.cursor(); cur.execute("SHOW lock_timeout"); print(cur.fetchone()[0])'
+[[ "$(PGOPTIONS='-c lock_timeout=5s' django_scratch "$PHASE1_CODE" -c "$SHOW_LT" 2>/dev/null | tail -n 1)" == 5s && "$(django_scratch "$PHASE1_CODE" -c "$SHOW_LT" 2>/dev/null | tail -n 1)" == 0 ]] \
+  && ok "PGOPTIONS='-c lock_timeout=5s' makes SHOW lock_timeout print 5s on the project's Django connection (and 0 without it)" || notok "PGOPTIONS did not reach the project's Django connection"
+psql_pod -c "DROP DATABASE $SCRATCH" >/dev/null
+
+# ---------------------------------------------------------------------------------------------------------------
+echo "# premigrate and preflight --stage promote"
+# The fixture app's migrations are in the fixture repository's master too (preflight reads the migrations of its code ref).
+git -C "$FIX" checkout -q master
+mkdir -p "$FIX/fixtureapp/migrations"
+cp "$HERE"/fixtures/migrate-app/fixtureapp/migrations/*.py "$FIX/fixtureapp/migrations/"
+git -C "$FIX" add -A && git -C "$FIX" commit -qm "fixture: the fixture app's migrations" && git -C "$FIX" push -q origin master
+psql_pod -c "CREATE TABLE fx_item (id serial PRIMARY KEY)" >/dev/null
+# The HelmReleases are running again, as before the promotion (the restore tests suspended them); the reader grant is back.
+k -n preprod patch hr preprod --type merge -p '{"spec":{"suspend":false}}' >/dev/null
+k -n default patch hr production --type merge -p '{"spec":{"suspend":false}}' >/dev/null
+mark_healthy preprod preprod
+mark_healthy default production
+psql_pod -c "GRANT SELECT (id, key, project_id, label, allowed_origins, revoked_at) ON powered_by_apikey TO auth_service_reader" >/dev/null
+PM() { "$REL/premigrate.sh" --env preprod --context "$CTX" --image-tag "$FIXTURE_TAG" --backoff 1 "$@"; }
+fx_applied() { psql_pod -At -c "SELECT coalesce(string_agg(name, ',' ORDER BY name), '') FROM django_migrations WHERE app = 'fixtureapp'"; }
+no_pm_pods() { [[ -z "$(k get pods -A -l release.sefaria.org/purpose -o name)" ]]; }
+
+# An idle-in-transaction session, left open for over 60 s while the quick cases below run.
+(printf "SET application_name = 'release-test-idle';\nBEGIN;\nSELECT 1;\n"; sleep 150) | psql_pod >/dev/null 2>&1 &
+IDLE_PID=$!
+IDLE_T0="$(date +%s)"
+refuses "premigrate refuses a directory with no manifest.json" "has no manifest.json" PM --snapshot "$WORK/no-such-snapshot"
+mkdir -p "$WORK/empty-snapshot"
+refuses "premigrate refuses an empty snapshot directory" "has no manifest.json" PM --snapshot "$WORK/empty-snapshot"
+mkdir -p "$WORK/old-snapshot"
+"$PY" - "$SNAP/manifest.json" "$WORK/old-snapshot/manifest.json" <<'PY'
+import datetime as d, json, sys
+m = json.load(open(sys.argv[1]))
+m["created_at"] = (d.datetime.now(d.timezone.utc) - d.timedelta(hours=3)).strftime("%Y%m%dT%H%M%SZ")
+json.dump(m, open(sys.argv[2], "w"))
+PY
+refuses "premigrate refuses a snapshot older than 2 hours" "older than 2 hours" PM --snapshot "$WORK/old-snapshot"
+exits 0 "premigrate --allow-old-snapshot overrides the age only (a dry run proceeds past it)" "DRY RUN" PM --snapshot "$WORK/old-snapshot" --allow-old-snapshot
+exits 0 "premigrate dry run with a fresh snapshot creates nothing" "DRY RUN \(nothing created\)" PM --snapshot "$SNAP"
+no_pm_pods && [[ "$(fx_applied)" == "" ]] && ok "the dry run created no pod and applied no migration" || notok "the dry run changed something"
+refuses "premigrate refuses the wrong context" "not the cluster of preprod" "$REL/premigrate.sh" --env preprod --context kind-some-other-cluster --snapshot "$SNAP" --image-tag "$FIXTURE_TAG"
+refuses "premigrate refuses --execute with a wrong confirmation" "confirmation did not match" bash -c "echo prod | '$REL/premigrate.sh' --env preprod --context '$CTX' --snapshot '$SNAP' --image-tag '$FIXTURE_TAG' --execute"
+
+# The pod spec is a copy of the live Rollout's pod template.
+k -n preprod get rollouts.argoproj.io preprod-web -o json >"$WORK/preprod-web.json"
+printf 'echo hi\n' >"$WORK/script.sh"
+"$PY" "$REL/release_lib.py" oneoff-pod --image-tag "$FIXTURE_TAG" --script-file "$WORK/script.sh" --name premigrate-x --namespace preprod --label premigrate-preprod --purpose premigrate --deadline 60 <"$WORK/preprod-web.json" >"$WORK/pod.json"
+"$PY" - "$WORK/preprod-web.json" "$WORK/pod.json" "$IMG:$FIXTURE_TAG" <<'PY' && ok "the one-off pod copies the Rollout's volumes, env, envFrom, Secret reference, serviceAccount and imagePullSecrets, with the image tag replaced, and leaves out probes, ports, fleet labels and anti-affinity" || notok "one-off pod spec (see $WORK/pod.json)"
+import json, sys
+ro = json.load(open(sys.argv[1]))["spec"]["template"]["spec"]
+pod = json.load(open(sys.argv[2]))
+spec = pod["spec"]
+web = ro["containers"][0]
+c = spec["containers"][0]
+assert len(spec["containers"]) == 1 and c["name"] == "web"
+assert c["image"] == sys.argv[3], c["image"]
+assert c["env"] == web["env"] and c["envFrom"] == web["envFrom"] and c["volumeMounts"] == web["volumeMounts"]
+assert any(e.get("valueFrom", {}).get("secretKeyRef") for e in c["env"])
+assert spec["volumes"] == ro["volumes"] and spec["serviceAccountName"] == ro["serviceAccountName"] and spec["imagePullSecrets"] == ro["imagePullSecrets"]
+for gone in ("startupProbe", "livenessProbe", "readinessProbe", "ports", "lifecycle"):
+    assert gone not in c, gone
+assert "affinity" not in spec and spec["restartPolicy"] == "Never"
+assert pod["metadata"]["labels"]["app"] == "premigrate-preprod" and "tier" not in pod["metadata"]["labels"] and not pod["metadata"].get("annotations")
+assert c["command"] == ["/bin/bash", "-c"] and c["args"] == ["echo hi\n"]
+PY
+
+# Wait out the 60 s of the idle session, then refuse on it.
+while (($(date +%s) - IDLE_T0 < 63)); do sleep 1; done
+refuses "premigrate refuses while a session has been idle in transaction for over 60 s (and prints it)" "idle in transaction.*release-test-idle|app release-test-idle" PM --snapshot "$SNAP"
+grep -q "idle in transaction for over 60s" "$LOGS/$N.log" && ok "the refusal names the 60 s limit" || notok "refusal text"
+no_pm_pods && ok "the refused run created no pod" || notok "the refused run left a pod"
+psql_pod -At -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE application_name = 'release-test-idle'" >/dev/null
+wait "$IDLE_PID" 2>/dev/null
+
+# migrate exits 0 but a migration is left pending: the final migrate --check must stop it before 'premigrate: ok'.
+helm upgrade preprod "$HERE/fixtures/standin-chart" -n preprod --kube-context "$CTX" --reuse-values --set fixturePartial=1 >/dev/null
+echo preprod | PM --snapshot "$SNAP" --execute >"$LOGS/pm-partial.log" 2>&1
+rc=$?
+[[ "$rc" == 1 ]] && grep -q "premigrate: FAILED" "$LOGS/pm-partial.log" && grep -q "migrate --check exited 1 after a successful migrate" "$LOGS/pm-partial.log" && ! grep -qx "premigrate: ok" "$LOGS/pm-partial.log" \
+  && ok "premigrate: migrate exited 0 with a migration pending -> FAILED, exit 1 and no 'premigrate: ok'" || { notok "partial migrate (exit $rc, log $LOGS/pm-partial.log)"; tail -n 20 "$LOGS/pm-partial.log" | sed 's/^/    /'; }
+grep -q "database state: each Django migration is atomic" "$LOGS/pm-partial.log" && grep -q "latest applied migrations" "$LOGS/pm-partial.log" \
+  && ok "the failure says what state the database is in (atomic migrations, the latest applied ones)" || notok "no database state in the failure message"
+[[ "$(fx_applied)" == 0001_alter_fx_item ]] && no_pm_pods && ok "the database has the first fixture migration only, and no pod is left" || notok "state after the partial run: $(fx_applied)"
+PMDIR="$(ls -dt "$SNAP"/premigrate-* | head -1)"
+grep -q "lock_timeout=5s" "$PMDIR/attempt-1.log" \
+  && ok "SHOW lock_timeout in the pod's Django connection printed 5s (PGOPTIONS reaches psycopg2/libpq in the copied pod)" || notok "no lock_timeout=5s in $PMDIR/attempt-1.log"
+# preflight --stage promote with that migration pending.
+refuses "preflight --stage promote fails with a pending migration (migrate --check exits 1)" "FAIL +migrate --check exits 1 for web image tag $FIXTURE_TAG" \
+  "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --infra-repo "$WORK/infra" --stage promote --image-tag "$FIXTURE_TAG"
+grep -q "FAIL  pending at origin/master: fixtureapp/0002_alter_fx_item_again" "$LOGS/$N.log" && ok "and the code ref's pending migration is named (a promotion must not start with migrations pending)" || notok "pending migration not named"
+refuses "preflight --stage promote needs --image-tag" "needs --image-tag" "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --stage promote
+no_pm_pods && ok "the preflight pod is deleted" || notok "a pod is left"
+
+# A held lock on a table the migration alters: an attempt fails within about 5 s, and the run retries.
+helm upgrade preprod "$HERE/fixtures/standin-chart" -n preprod --kube-context "$CTX" --reuse-values --set fixturePartial= >/dev/null
+psql_pod -c "SET application_name = 'release-test-hold'; BEGIN; LOCK TABLE fx_item IN ACCESS EXCLUSIVE MODE; SELECT pg_sleep(25); COMMIT;" </dev/null >/dev/null 2>&1 &
+HOLD_PID=$!
+for _ in $(seq 1 30); do
+  [[ "$(psql_pod -At -c "SELECT count(*) FROM pg_locks l JOIN pg_class c ON c.oid = l.relation WHERE c.relname = 'fx_item' AND l.mode = 'AccessExclusiveLock' AND l.granted")" == 1 ]] && break
+  sleep 1
+done
+echo preprod | PM --snapshot "$SNAP" --execute >"$LOGS/pm-lock.log" 2>&1
+rc=$?
+wait "$HOLD_PID" 2>/dev/null
+PMDIR="$(ls -dt "$SNAP"/premigrate-* | head -1)"
+[[ "$rc" == 0 ]] && grep -qx "premigrate: ok" "$LOGS/pm-lock.log" && ok "premigrate with a lock held for 25 s: retried and ended with 'premigrate: ok'" || { notok "held-lock run (exit $rc, log $LOGS/pm-lock.log)"; tail -n 25 "$LOGS/pm-lock.log" | sed 's/^/    /'; }
+grep -qiE "lock timeout|lock_timeout" "$PMDIR/attempt-1.log" && grep -qE "migrate: exit 1 after (4|5|6|7|8|9|10)s" "$PMDIR/attempt-1.log" \
+  && ok "attempt 1 failed on the lock timeout within about 5 s: $(grep -E 'migrate: exit' "$PMDIR/attempt-1.log")" || { notok "attempt 1 (log $PMDIR/attempt-1.log)"; tail -n 8 "$PMDIR/attempt-1.log" | sed 's/^/    /'; }
+grep -q "retrying in" "$LOGS/pm-lock.log" && [[ "$(ls "$PMDIR"/attempt-*.log | wc -l)" -ge 2 ]] && ok "a failed attempt was retried ($(ls "$PMDIR"/attempt-*.log | wc -l) attempts, one pod each, all deleted)" || notok "no retry"
+grep -q "lock_timeout=5s" "$PMDIR/attempt-1.log" && ok "SHOW lock_timeout in the pod's Django connection prints 5s (attempt 1)" || notok "lock_timeout=5s missing from the pod log"
+[[ "$(fx_applied)" == "0001_alter_fx_item,0002_alter_fx_item_again" ]] && no_pm_pods && ok "both fixture migrations are applied and no pod is left" || notok "state: $(fx_applied)"
+# A lock held for the whole run: after its attempts the run fails, says so, and stops (no 'premigrate: ok').
+psql_pod -c "DELETE FROM django_migrations WHERE app = 'fixtureapp' AND name LIKE '0002%'; ALTER TABLE fx_item DROP COLUMN note2" >/dev/null
+psql_pod -c "SET application_name = 'release-test-hold'; BEGIN; LOCK TABLE fx_item IN ACCESS EXCLUSIVE MODE; SELECT pg_sleep(60); COMMIT;" </dev/null >/dev/null 2>&1 &
+HOLD_PID=$!
+for _ in $(seq 1 30); do
+  [[ "$(psql_pod -At -c "SELECT count(*) FROM pg_locks l JOIN pg_class c ON c.oid = l.relation WHERE c.relname = 'fx_item' AND l.mode = 'AccessExclusiveLock' AND l.granted")" == 1 ]] && break
+  sleep 1
+done
+echo preprod | PM --snapshot "$SNAP" --execute --attempts 2 >"$LOGS/pm-fail.log" 2>&1
+rc=$?
+psql_pod -At -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE application_name = 'release-test-hold'" >/dev/null
+wait "$HOLD_PID" 2>/dev/null
+[[ "$rc" == 1 ]] && grep -q "premigrate: FAILED: migrate did not succeed in 2 attempts" "$LOGS/pm-fail.log" && ! grep -qx "premigrate: ok" "$LOGS/pm-fail.log" && grep -q "do not promote" "$LOGS/pm-fail.log" \
+  && ok "premigrate after its attempts: FAILED, exit 1, 'do not promote', no 'premigrate: ok'" || { notok "failing run (exit $rc, log $LOGS/pm-fail.log)"; tail -n 15 "$LOGS/pm-fail.log" | sed 's/^/    /'; }
+[[ "$(fx_applied)" == 0001_alter_fx_item ]] && no_pm_pods && ok "the failed run left the database as it was (0002 not applied) and no pod" || notok "state after the failed run: $(fx_applied)"
+# Now it works again, and a second run is a no-op.
+check "premigrate succeeds once the lock is gone" bash -c "echo preprod | '$REL/premigrate.sh' --env preprod --context '$CTX' --image-tag '$FIXTURE_TAG' --backoff 1 --snapshot '$SNAP' --execute | grep -x 'premigrate: ok'"
+[[ "$(fx_applied)" == "0001_alter_fx_item,0002_alter_fx_item_again" ]] && ok "the fixture migrations are applied" || notok "state: $(fx_applied)"
+check "preflight --stage promote passes with nothing pending" "$REL/preflight.sh" --env preprod --context "$CTX" --repo "$FIX" --no-fetch --skip-image-check --infra-repo "$WORK/infra" --stage promote --image-tag "$FIXTURE_TAG"
+grep -qE "^PASS +migrate --check exits 0 for web image tag $FIXTURE_TAG on sefaria_auth" "$LOGS/$N.log" && ok "preflight --stage promote reports migrate --check exit 0" || notok "promote check line missing"
+# The Rollout now runs the migrating image: the same tag with nothing pending is a no-op.
+helm upgrade preprod "$HERE/fixtures/standin-chart" -n preprod --kube-context "$CTX" --reuse-values --set "rolloutImage=$IMG:$FIXTURE_TAG" >/dev/null
+echo preprod | PM --snapshot "$SNAP" --execute >"$LOGS/pm-noop.log" 2>&1
+rc=$?
+PMDIR="$(ls -dt "$SNAP"/premigrate-* | head -1)"
+[[ "$rc" == 0 ]] && grep -q "premigrate: no-op" "$LOGS/pm-noop.log" && grep -qx "premigrate: ok" "$LOGS/pm-noop.log" && ! ls "$PMDIR"/attempt-*.log >/dev/null 2>&1 \
+  && ok "premigrate with the running tag and nothing pending is a no-op (exit 0, no migrate attempt)" || { notok "no-op run (exit $rc, log $LOGS/pm-noop.log)"; tail -n 12 "$LOGS/pm-noop.log" | sed 's/^/    /'; }
+no_pm_pods && ok "no one-off pod is left anywhere" || notok "a one-off pod is left"
 
 echo
 echo "1..$N"

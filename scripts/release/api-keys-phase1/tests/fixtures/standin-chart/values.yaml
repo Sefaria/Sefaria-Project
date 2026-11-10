@@ -6,3 +6,5 @@ web:
 nginx:
   enabled: false
   image: kind.local/postgres:18
+rolloutImage: ""
+fixturePartial: ""

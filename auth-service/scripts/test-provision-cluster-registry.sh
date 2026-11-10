@@ -38,7 +38,7 @@ cat >"$tmp/bin/sops" <<'FAKE'
 [ "${FAKE_SOPS_FAIL:-}" = 1 ] && exit 1
 for a in "$@"; do f=$a; done
 case " $* " in
-  *" --in-place "*) sed -i -E 's/^(  AUTH_PG_DSN: ).*/\1ENC[AES256_GCM,data:fake,type:str]/' "$f"; printf 'sops:\n  version: fake\n' >>"$f" ;;
+  *" --in-place "*) [ -n "${FAKE_SOPS_SLEEP:-}" ] && sleep "$FAKE_SOPS_SLEEP"; sed -i -E 's/^(  AUTH_PG_DSN: ).*/\1ENC[AES256_GCM,data:fake,type:str]/' "$f"; printf 'sops:\n  version: fake\n' >>"$f" ;;
   *) cat >/dev/null ;;
 esac
 FAKE
@@ -57,6 +57,54 @@ run && bad "create succeeded with a missing column" || ok "create fails when a g
 psql_ -d sefaria_auth -c "ALTER TABLE powered_by_apikey RENAME COLUMN label_gone TO label"
 FAKE_SOPS_FAIL=1 run && bad "create ran with a broken sops" || ok "create refuses when sops cannot encrypt"
 [ "$(psql_ -c "SELECT count(*) FROM pg_roles WHERE rolname = 'auth_service_reader'")" = 0 ] && ok "no role is left behind after a sops failure" || bad "a role was created despite the sops failure"
+# An interruption (INT/TERM, as Ctrl-C sends to the whole foreground group) in the two phases of create:
+#  - before the role can exist (the encryption step): the temporary file is removed and no role exists;
+#  - while the role is being created (the SQL has been sent and its answer is pending): the encrypted file is the only copy
+#    of the password, so it is kept, and the output says so.
+interrupt() { # PGID: signal the whole process group of a background job, as a terminal does
+  kill -TERM -- "-$1" 2>/dev/null
+}
+set -m
+PATH="$tmp/bin:$PATH" PG_EXEC="docker exec -i $name" OUT_DIR="$tmp/out" KMS=projects/x/locations/global/keyRings/k/cryptoKeys/k FAKE_SOPS_SLEEP=30 \
+  bash "$here/provision-cluster-registry.sh" >"$tmp/log-int1" 2>&1 </dev/null &
+pid=$!
+sleep 3
+interrupt "$pid"
+wait "$pid" 2>/dev/null
+[ "$(psql_ -c "SELECT count(*) FROM pg_roles WHERE rolname = 'auth_service_reader'")" = 0 ] && [ -z "$(ls -A "$tmp/out")" ] \
+  && ok "an interruption before the role is created removes the temporary file and creates nothing" || { bad "interrupt before creation left state: $(ls -A "$tmp/out")"; }
+# slowpg: forwards everything, but after the SQL that creates the role it has been committed, it never answers.
+cat >"$tmp/slowpg" <<'SLOW'
+#!/usr/bin/env bash
+in=$(cat)
+printf '%s' "$in" | docker exec -i "$1" "${@:2}"
+if grep -q 'CREATE ROLE' <<<"$in"; then touch "$SLOWPG_FLAG"; sleep 60; fi
+SLOW
+chmod +x "$tmp/slowpg"
+rm -f "$tmp/flag"
+PATH="$tmp/bin:$PATH" PG_EXEC="$tmp/slowpg $name" SLOWPG_FLAG="$tmp/flag" OUT_DIR="$tmp/out" KMS=projects/x/locations/global/keyRings/k/cryptoKeys/k \
+  bash "$here/provision-cluster-registry.sh" >"$tmp/log-int2" 2>&1 </dev/null &
+pid=$!
+for _ in $(seq 60); do [ -e "$tmp/flag" ] && break; sleep 0.5; done
+interrupt "$pid"
+wait "$pid" 2>/dev/null
+rc=$?
+set +m
+[ -e "$tmp/flag" ] && [ "$(psql_ -c "SELECT count(*) FROM pg_roles WHERE rolname = 'auth_service_reader'")" = 1 ] \
+  && ok "the role was created before the interruption (the case that matters)" || bad "test setup: the role was not created before the interrupt"
+kept="$(ls -A "$tmp/out" | grep -c '^\.auth-service-registry\.tmp\.' || true)"
+[ "$kept" = 1 ] && grep -q '^sops:' "$tmp/out"/.auth-service-registry.tmp.* \
+  && ok "an interruption while the role is being created keeps the encrypted Secret file (the only copy of the password)" \
+  || bad "the encrypted file was lost on interrupt (files: $(ls -A "$tmp/out"))"
+[ "$rc" != 0 ] && grep -q 'INTERRUPTED while the role was being created' "$tmp/log-int2" && grep -q 'encrypted Secret is kept at' "$tmp/log-int2" \
+  && ok "the interruption exits nonzero and says the file is kept" || { bad "interrupt message/exit (rc $rc)"; sed 's/^/    /' "$tmp/log-int2"; }
+grep -qE 'postgres://|[0-9a-f]{48}' "$tmp/log-int2" && bad "the interrupt output shows the password or DSN" || ok "no password or DSN in the interrupt output"
+# Clean up for the cases below: the role and the kept file.
+psql_ -d sefaria_auth -c "DROP OWNED BY auth_service_reader" >/dev/null 2>&1
+psql_ -c "DROP ROLE auth_service_reader" >/dev/null 2>&1
+rm -f "$tmp/out"/.auth-service-registry.tmp.*
+[ "$(psql_ -c "SELECT count(*) FROM pg_roles WHERE rolname = 'auth_service_reader'")" = 0 ] || bad "could not drop the role after the interrupt test"
+
 SECRET_NS=preprod run && ok "create succeeds" || { bad "create failed"; sed 's/^/    /' "$tmp/log"; }
 grep -q 'verify: PASS' "$tmp/log" && ok "create ends with a passing verify" || bad "create did not verify"
 grep -q '^sops:' "$tmp/out/auth-service-registry.yaml" && ok "the Secret file is encrypted" || bad "Secret file not encrypted"

@@ -155,6 +155,117 @@ def rollout_images(_args):
         )
 
 
+def with_image_tag(image, tag):
+    """The image reference with its tag replaced (and any @digest dropped): repository:tag."""
+    return f"{image_repository(image)}:{tag}"
+
+
+def rollout_web_image(args):
+    """The image of the web container of a Rollout (stdin JSON); exit 1 when it has none."""
+    containers = _stdin_json().get("spec", {}).get("template", {}).get("spec", {}).get("containers", [])
+    web = next((c for c in containers if c.get("name") == args.container), None)
+    if not web or not web.get("image"):
+        print(f"the Rollout has no container named {args.container}", file=sys.stderr)
+        return 1
+    print(web["image"])
+    return 0
+
+
+# Pod-level fields a one-off pod copies from the Rollout's pod template. Everything that makes a pod part of the
+# serving fleet (labels, probes, ports, the other containers, spread and anti-affinity rules) is left out on purpose.
+_POD_SPEC_COPY = (
+    "volumes",
+    "serviceAccountName",
+    "serviceAccount",
+    "automountServiceAccountToken",
+    "imagePullSecrets",
+    "nodeSelector",
+    "tolerations",
+    "securityContext",
+    "priorityClassName",
+    "runtimeClassName",
+    "dnsPolicy",
+    "dnsConfig",
+    "hostAliases",
+    "initContainers",
+    "terminationGracePeriodSeconds",
+    "enableServiceLinks",
+    "shareProcessNamespace",
+)
+_CONTAINER_DROP = ("ports", "livenessProbe", "readinessProbe", "startupProbe", "lifecycle", "args", "command")
+
+
+def oneoff_pod(args):
+    """A Pod manifest (JSON) copied from a Rollout's pod template (stdin): the web container only, with its image tag
+    replaced and the given shell script as its command, and without the serving fleet's labels, probes, ports and
+    anti-affinity. Volumes, env, envFrom, resources, serviceAccount and imagePullSecrets are copied as they are."""
+    rollout = _stdin_json()
+    template = rollout.get("spec", {}).get("template", {}).get("spec", {})
+    web = next((c for c in template.get("containers", []) if c.get("name") == args.container), None)
+    if web is None:
+        print(f"the Rollout has no container named {args.container}", file=sys.stderr)
+        return 1
+    container = {k: v for k, v in web.items() if k not in _CONTAINER_DROP}
+    container["image"] = with_image_tag(web["image"], args.image_tag)
+    container["command"] = ["/bin/bash", "-c"]
+    container["args"] = [Path(args.script_file).read_text()]
+    spec = {k: template[k] for k in _POD_SPEC_COPY if k in template}
+    spec["containers"] = [container]
+    spec["restartPolicy"] = "Never"
+    spec["activeDeadlineSeconds"] = args.deadline
+    node_affinity = (template.get("affinity") or {}).get("nodeAffinity")
+    if node_affinity:
+        spec["affinity"] = {"nodeAffinity": node_affinity}
+    pod = {
+        "apiVersion": "v1",
+        "kind": "Pod",
+        "metadata": {
+            "name": args.name,
+            "namespace": args.namespace,
+            "labels": {"app": args.label, "release.sefaria.org/purpose": args.purpose},
+        },
+        "spec": spec,
+    }
+    json.dump(pod, sys.stdout, indent=2)
+    print()
+    return 0
+
+
+def fence_check(args):
+    """Reads a kubectl List (stdin) of Rollouts, Deployments, StatefulSets, DaemonSets, CronJobs and Jobs and prints
+    kind/name<TAB>reason for everything that is still live next to a database restore: a controller whose pod template
+    runs an image of the web repository other than the allowed ones (it can start such pods at any time, also when
+    scaled to zero), a CronJob of the web repository that is not suspended, a Job of it with active pods.
+    Exit 1 when there is one."""
+    allowed = set(args.allowed.split())
+    repos = {image_repository(i) for i in allowed}
+    bad = 0
+
+    def images(spec):
+        return [c.get("image", "") for c in spec.get("containers", []) + spec.get("initContainers", [])]
+
+    for obj in _items(_stdin_json()):
+        kind = obj.get("kind", "")
+        name = f"{kind}/{obj.get('metadata', {}).get('name', '')}"
+        spec = obj.get("spec", {})
+        if kind in ("Rollout", "Deployment", "StatefulSet", "DaemonSet"):
+            for image in images(spec.get("template", {}).get("spec", {})):
+                if image_repository(image) in repos and image not in allowed:
+                    print(f"{name}\tits pod template runs {image}, which is not the snapshot's image")
+                    bad = 1
+        elif kind == "CronJob":
+            pod = spec.get("jobTemplate", {}).get("spec", {}).get("template", {}).get("spec", {})
+            if any(image_repository(i) in repos for i in images(pod)) and not spec.get("suspend"):
+                print(f"{name}\tit runs the web image and is not suspended (it may write the database)")
+                bad = 1
+        elif kind == "Job":
+            pod = spec.get("template", {}).get("spec", {})
+            if obj.get("status", {}).get("active", 0) and any(image_repository(i) in repos for i in images(pod)):
+                print(f"{name}\tit runs the web image and has active pods")
+                bad = 1
+    return bad
+
+
 def secret_refs(_args):
     """Names of the Secrets a HelmRelease's values reference (every values key named ref), plus the auth Secret."""
     names = set()
@@ -775,6 +886,22 @@ def main():
     p.add_argument("--allowed", required=True)
     p.add_argument("--web-label", required=True)
     p.set_defaults(func=image_guard)
+    p = sub.add_parser("rollout-web-image")
+    p.add_argument("--container", default="web")
+    p.set_defaults(func=rollout_web_image)
+    p = sub.add_parser("oneoff-pod")
+    p.add_argument("--container", default="web")
+    p.add_argument("--image-tag", required=True)
+    p.add_argument("--script-file", required=True)
+    p.add_argument("--name", required=True)
+    p.add_argument("--namespace", required=True)
+    p.add_argument("--label", required=True)
+    p.add_argument("--purpose", required=True)
+    p.add_argument("--deadline", type=int, required=True)
+    p.set_defaults(func=oneoff_pod)
+    p = sub.add_parser("fence-check")
+    p.add_argument("--allowed", required=True)
+    p.set_defaults(func=fence_check)
     sub.add_parser("secret-refs").set_defaults(func=secret_refs)
     sub.add_parser("hr-summary").set_defaults(func=hr_summary)
     sub.add_parser("helm-release-revision").set_defaults(func=helm_release)

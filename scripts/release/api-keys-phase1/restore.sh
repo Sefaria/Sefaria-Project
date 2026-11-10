@@ -11,7 +11,15 @@
 #   restore.sh db --snapshot DIR --env E --context C --scoped [--execute]
 #       Puts sefaria_auth's powered_by tables, the phase 1 tables and the powered_by django_migrations rows back to the
 #       snapshot, in one transaction, after a fresh dump. Refuses while a pod of any env sharing the database runs an
-#       image other than the snapshot's. Verifies schema and row checksums afterwards.
+#       image other than the snapshot's, and unless a maintenance fence is in place (below). Verifies schema and row
+#       checksums afterwards.
+#       The fence, checked before the dump, again right before the change, and partly inside the transaction: every
+#       sharing env's HelmRelease is suspended (Flux cannot re-apply anything), no controller (Rollout, Deployment,
+#       StatefulSet, DaemonSet) has a pod template on another web image (it could start such pods at any time, scaled to
+#       zero or not), no CronJob that runs the web image is unsuspended, no Job of it is active, no pod runs another web
+#       image, and no other session writes the scoped tables (locks held, and no writes in a short window; inside the
+#       transaction the tables are locked ACCESS EXCLUSIVE first and queued writers abort it). Refuses with the list
+#       of what is still live.
 #   restore.sh db --snapshot DIR --env E --full
 #       Prints the manual full-database procedure and refuses to run it.
 #
@@ -19,7 +27,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 usage() {
-  sed -n '2,19p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,27p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit "${1:-0}"
 }
 
@@ -250,6 +258,96 @@ image_guard() {
   return "$bad"
 }
 
+# The maintenance fence. Prints what is still live (one line each) and returns nonzero when anything is. Fails closed:
+# an object that cannot be read counts as live. The snapshot's web images are the only images allowed to exist.
+fence_check() {
+  local bad=0 e ns hr want suspend lines allowed="" pods
+  for e in $SHARING; do
+    want="$(mget "envs.$e.web_pods" | "$PYTHON" -c 'import json,sys; print(" ".join(sorted({p["image"] for p in json.load(sys.stdin) if p["phase"]=="Running"})))')" || want=""
+    if [[ -z "$want" ]]; then
+      echo "$e: the snapshot recorded no running web pod, so there is no web image to compare the controllers with"
+      bad=1
+    fi
+    allowed+=" $want"
+  done
+  for e in $SHARING; do
+    ns="$(env_namespace "$e")"
+    hr="$(env_hr "$e")"
+    if ! suspend="$(kc -n "$ns" get helmreleases.helm.toolkit.fluxcd.io "$hr" -o jsonpath='{.spec.suspend}' 2>/dev/null)"; then
+      echo "$e: HelmRelease $ns/$hr cannot be read, so Flux cannot be shown to be stopped (flux suspend hr $hr -n $ns)"
+      bad=1
+    elif [[ "$suspend" != true ]]; then
+      echo "$e: HelmRelease $ns/$hr is not suspended; Flux can re-apply a phase 1 release at any time (flux suspend hr $hr -n $ns)"
+      bad=1
+    fi
+    if ! lines="$(kc -n "$ns" get rollouts.argoproj.io,deployments.apps,statefulsets.apps,daemonsets.apps,cronjobs.batch,jobs.batch -o json 2>/dev/null \
+      | "$PYTHON" "$RELEASE_PY" fence-check --allowed "${allowed# }")"; then
+      if [[ -z "$lines" ]]; then
+        echo "$e: could not list or read the controllers, CronJobs and Jobs of namespace $ns"
+      fi
+      while IFS="$TAB" read -r what why; do
+        [[ -n "$what" ]] && echo "$e: $what: $why"
+      done <<<"$lines"
+      bad=1
+    fi
+  done
+  # Pods: the same check as the first guard, listed here too.
+  if ! pods="$(image_guard 2>&1)"; then
+    echo "$pods" | sed 's/^ *//'
+    bad=1
+  fi
+  fence_writers || bad=1
+  return "$bad"
+}
+
+# Other sessions writing the scoped tables (FENCE_TABLES): locks that writers hold, and writes within a short window
+# (the counters of pg_stat_user_tables; APIKEYS_RESTORE_FENCE_WINDOW seconds, default 3).
+fence_writers() {
+  local list window="${APIKEYS_RESTORE_FENCE_WINDOW:-3}" held before after
+  [[ -n "${FENCE_TABLES// /}" ]] || return 0
+  # shellcheck disable=SC2086
+  list="$(printf "'%s'," $FENCE_TABLES)"
+  list="${list%,}"
+  held="$(pg_ro "$DB" -At -F "$TAB" -c "SELECT a.pid, coalesce(nullif(a.application_name, ''), '-'), a.state, c.relname, l.mode
+      FROM pg_locks l JOIN pg_class c ON c.oid = l.relation JOIN pg_stat_activity a ON a.pid = l.pid
+      WHERE a.datname = current_database() AND l.pid <> pg_backend_pid() AND l.granted AND c.relname IN ($list)
+        AND l.mode IN ('RowExclusiveLock', 'ShareUpdateExclusiveLock', 'ShareLock', 'ShareRowExclusiveLock', 'ExclusiveLock', 'AccessExclusiveLock')" 2>&1)" || {
+    echo "db: could not read pg_locks, so writers on the scoped tables cannot be excluded: $held"
+    return 1
+  }
+  if [[ -n "$held" ]]; then
+    while IFS="$TAB" read -r pid app state rel mode; do
+      echo "db: session $pid (app $app, $state) holds $mode on $rel: a writer"
+    done <<<"$held"
+    return 1
+  fi
+  before="$(pg_ro "$DB" -At -F "$TAB" -c "SELECT relname, n_tup_ins + n_tup_upd + n_tup_del FROM pg_stat_user_tables WHERE relname IN ($list) ORDER BY 1" 2>&1)" || {
+    echo "db: could not read pg_stat_user_tables: $before"
+    return 1
+  }
+  sleep "$window"
+  after="$(pg_ro "$DB" -At -F "$TAB" -c "SELECT relname, n_tup_ins + n_tup_upd + n_tup_del FROM pg_stat_user_tables WHERE relname IN ($list) ORDER BY 1" 2>&1)" || {
+    echo "db: could not read pg_stat_user_tables: $after"
+    return 1
+  }
+  if [[ "$before" != "$after" ]]; then
+    echo "db: rows of the scoped tables were written within ${window}s (write counters before: $(tr '\t\n' '= ' <<<"$before"); after: $(tr '\t\n' '= ' <<<"$after")): a live writer"
+    return 1
+  fi
+  return 0
+}
+
+# Runs the fence; prints everything still live and dies when there is anything. $1 names the moment.
+require_fence() {
+  local when="$1" out
+  if ! out="$(fence_check)"; then
+    log "  still live ($when):"
+    sed 's/^/    - /' <<<"$out" >&2
+    die "refusing: the maintenance fence is not in place ($when); nothing was changed. Suspend the HelmReleases, suspend the CronJobs that run the web image, roll the chart back, stop the writers, then run this again."
+  fi
+  log "  fence in place ($when): HelmReleases suspended, no web image but the snapshot's in any controller, CronJob, Job or pod, no writer on the scoped tables"
+}
+
 # The snapshot's apikeys_notify() state: md5 of its definition, or "absent".
 # The function's state as the snapshot recorded it. snapshot.sh always writes apikeys_notify.state; a snapshot without it
 # cannot be verified after a restore, so db_scoped refuses it before changing anything.
@@ -286,6 +384,10 @@ db_scoped() {
   fi
   rm -f "${TMPDIR:-/tmp}/apikeys-schema.$$"
 
+  step "maintenance fence"
+  FENCE_TABLES="$current_tables"
+  require_fence "before the dump"
+
   # A foreign key from a table outside the scope into it would be dropped or broken; refuse instead.
   local outside
   # shellcheck disable=SC2086
@@ -320,6 +422,26 @@ PY
     echo "BEGIN;"
     echo "SET LOCAL lock_timeout = '15s';"
     echo "SET LOCAL statement_timeout = '10min';"
+    # The fence, inside the transaction: take the scoped tables ACCESS EXCLUSIVE first (writers that hold or queue for
+    # them make this wait at most lock_timeout and abort), then abort if any session is queued behind that lock: a
+    # writer that arrived after the checks above.
+    if [[ -n "${current_tables// /}" ]]; then
+      # shellcheck disable=SC2086
+      echo "LOCK TABLE $(printf 'public."%s", ' $current_tables | sed 's/, $//') IN ACCESS EXCLUSIVE MODE;"
+      # shellcheck disable=SC2086
+      cat <<SQLFENCE
+DO \$fence\$
+DECLARE who text;
+BEGIN
+  SELECT string_agg(DISTINCT a.pid::text, ',') INTO who FROM pg_locks l JOIN pg_class c ON c.oid = l.relation
+    JOIN pg_stat_activity a ON a.pid = l.pid
+   WHERE NOT l.granted AND l.pid <> pg_backend_pid() AND c.relname IN ($(printf "'%s'," $current_tables | sed 's/,$//'));
+  IF who IS NOT NULL THEN
+    RAISE EXCEPTION 'restore fence: sessions % are queued on locks of the scoped tables (a live writer); nothing was changed', who;
+  END IF;
+END \$fence\$;
+SQLFENCE
+    fi
     # One DROP for every scoped table: references between them are fine, a dependent outside the scope fails it.
     # shellcheck disable=SC2086
     [[ -n "${current_tables// /}" ]] && echo "DROP TABLE $(printf 'public."%s", ' $current_tables | sed 's/, $//');"
@@ -328,11 +450,19 @@ PY
     else
       echo "DROP FUNCTION IF EXISTS public.apikeys_notify();"
     fi
-    pg_restore_local "$SNAP/db/scoped.dump" --file=-
+    # pg_restore's SQL starts with SET statement_timeout = 0 and SET lock_timeout = 0, which would switch the bounds above
+    # off for everything after it. Those lines (and the other timeout settings) are dropped, and the bounds are set again
+    # after the dump's statements as well.
+    pg_restore_local "$SNAP/db/scoped.dump" --file=- | grep -vE '^SET (statement_timeout|lock_timeout|idle_in_transaction_session_timeout|transaction_timeout) = '
+    echo "SET LOCAL lock_timeout = '15s';"
+    echo "SET LOCAL statement_timeout = '10min';"
     echo "SET search_path = public;"
     "$PYTHON" "$RELEASE_PY" migrations-insert-sql "$MANIFEST"
     echo "COMMIT;"
   } >"$sql"
+  if grep -qE '^SET (statement_timeout|lock_timeout|idle_in_transaction_session_timeout|transaction_timeout) = ' "$sql"; then
+    die "the restore SQL still sets a timeout of its own; refusing (it would lift the lock and statement bounds)"
+  fi
   log "  restore SQL: $sql ($(wc -l <"$sql" | tr -d ' ') lines)"
 
   if [[ "$EXECUTE" != 1 ]]; then
@@ -355,6 +485,7 @@ PY
 
   step "guard again, right before the change"
   image_guard || die "refusing: a pod sharing $DB now runs an image other than the snapshot's; nothing was changed"
+  require_fence "right before the change"
   step "restore (one transaction)"
   pg_rw "$DB" -f - <"$sql" >"$work/restore.log" 2>&1 || { cat "$work/restore.log" >&2; die "the restore failed and was rolled back"; }
 
