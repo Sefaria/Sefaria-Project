@@ -54,7 +54,7 @@
       {% if book.licence.attribution %}<dt>Attribution</dt><dd>{{ book.licence.attribution }}</dd>{% endif %}
       {% if book.licence.note %}<dt>Licence note</dt><dd>{{ book.licence.note }}</dd>{% endif %}
       {% if book.date %}<dt>Date</dt><dd>{{ book.date }}</dd>{% endif %}
-      {% if book.languages %}<dt>Languages</dt><dd>{{ book.languages|join:", " }}</dd>{% endif %}
+      {% if book.language_names %}<dt>Languages</dt><dd>{{ book.language_names|join:", " }}</dd>{% endif %}
       {% if book.quality.origin %}<dt>Text origin</dt><dd>{{ book.quality.origin }}{% if book.quality.structure_method %}; structure: {{ book.quality.structure_method }}{% endif %}{% if book.quality.structure_confidence %} ({{ book.quality.structure_confidence }} confidence){% endif %}</dd>{% endif %}
       {% if book.quality.notes %}<dt>Notes</dt><dd>{{ book.quality.notes }}</dd>{% endif %}
       <dt>Size</dt><dd>{{ book.words|intcomma }} words</dd>

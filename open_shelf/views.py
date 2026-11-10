@@ -12,9 +12,14 @@ import re
 import time
 from urllib.parse import quote
 
-from django.http import Http404, JsonResponse, HttpResponseForbidden, HttpResponseBadRequest
+from django.http import (
+    Http404,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+    JsonResponse,
+)
 from django.views.decorators.csrf import csrf_exempt
-from pymongo import ReplaceOne, ASCENDING
+from pymongo import ASCENDING, ReplaceOne
 
 from reader.views import render_template
 from sefaria.system.database import db
@@ -52,7 +57,7 @@ def _cached(key, ttl, fn):
     return val
 
 
-ALLOWED_TAGS = re.compile(r'&lt;(/?)(b|i|em|strong|sup|sub|small|br|u)(\s+class="footnote")?\s*/?&gt;', re.I)
+ALLOWED_TAGS = re.compile(r'&lt;(/?)(b|i|em|strong|sup|sub|small|br|u)(\s+class="footnote")?\s*/?&gt;', re.IGNORECASE)
 
 
 def _tag(m):
@@ -60,9 +65,32 @@ def _tag(m):
     return "<%s%s%s>" % (m.group(1), m.group(2).lower(), cls)
 
 
+FOOTNOTE = re.compile(r'&lt;FN&gt;(.*?)&lt;/FN&gt;', re.DOTALL | re.IGNORECASE)
+HEADING_FOOTNOTE = re.compile(r'\s*\d*\s*<FN>.*?</FN>', re.DOTALL | re.IGNORECASE)
+GENERIC_HEADING = re.compile(r'^\s*((Chapter|Section|Part|Book|Volume)\s+\d+|\d+\.?\s*§)\s*$', re.IGNORECASE)
+BRACKETED = re.compile(r'^\s*\[\s*(.*?)\s*\]\s*$', re.DOTALL)
+LANG_NAMES = {"heb": "Hebrew", "he": "Hebrew", "yid": "Yiddish", "deu": "German", "lad": "Ladino", "rus": "Russian",
+              "fra": "French", "grc": "Greek", "lat": "Latin", "ita": "Italian", "pol": "Polish", "swe": "Swedish",
+              "nld": "Dutch", "hun": "Hungarian", "spa": "Spanish", "eng": "English", "en": "English",
+              "arc": "Aramaic", "jrb": "Judeo-Arabic", "ara": "Arabic", "obm": "Old Babylonian"}
+
+
 def safe_html(s):
     escaped = html.escape(s or "", quote=False)
+    escaped = FOOTNOTE.sub(r' <small class="os-fn">[\1]</small>', escaped)
     return ALLOWED_TAGS.sub(_tag, escaped)
+
+
+def clean_heading(h, rtl):
+    h = HEADING_FOOTNOTE.sub("", h or "").strip()
+    if rtl and GENERIC_HEADING.match(h):
+        return ""
+    return h
+
+
+def clean_title(t):
+    m = BRACKETED.match(t or "")
+    return m.group(1) if m else (t or "")
 
 
 def book_url(book):
@@ -76,7 +104,7 @@ def _shelf_counts():
 
 def landing(request):
     hero = db.open_shelf_meta.find_one({"_id": "hero"}) or {}
-    counts = _cached("shelf_counts", 600, _shelf_counts)
+    counts = _cached("shelf_counts", 30, _shelf_counts)
     shelves = []
     for key, en, he, blurb in SHELVES:
         n, w = counts.get(key, (0, 0))
@@ -105,6 +133,7 @@ def shelf(request, key):
     books = []
     for b in cur:
         b["url"] = book_url(b)
+        b["display_title"] = clean_title(b.get("display_title"))
         books.append(b)
     pages = max(1, (total + BOOKS_PER_PAGE - 1) // BOOKS_PER_PAGE)
     return render_template(request, "open_shelf/shelf.html", None, {
@@ -126,15 +155,32 @@ def reader(request, source, slug):
         p = 1
     p = min(max(1, p), book.get("num_pages", 1))
     page = db.open_shelf_pages.find_one({"_id": "%s|%d" % (book["_id"], p)}) or {"blocks": [], "ctx": []}
+    rtl = book.get("dir") == "rtl"
+    raw_title = book.get("display_title", "")
+    book["display_title"] = clean_title(raw_title)
+    book["language_names"] = [LANG_NAMES.get(c, c) for c in book.get("languages") or []]
     blocks = []
     for blk in page.get("blocks", []):
         if "h" in blk:
-            blocks.append({"h": blk["h"], "d": min(blk.get("d", 0), 3)})
+            h = clean_heading(blk["h"], rtl)
+            if h:
+                blocks.append({"h": h, "d": min(blk.get("d", 0), 3)})
         else:
             blocks.append({"s": safe_html(blk.get("s", ""))})
     url = book_url(book)
     shelf_info = SHELF_MAP.get(book.get("shelf"), SHELVES[-1])
-    toc = book.get("toc", [])
+    toc = []
+    for t in book.get("toc", []):
+        label = clean_heading(t.get("l"), rtl)
+        if label:
+            toc.append(dict(t, l=label))
+    ctx = [c for c in (clean_heading(c, rtl) for c in page.get("ctx", [])) if c]
+    preamble = book.get("preamble") if p == 1 else None
+    if preamble:
+        text = preamble.get("text", "").replace("https://www.sefaria.org/open-shelf/", request.build_absolute_uri("/open-shelf/"))
+        if raw_title != book["display_title"]:
+            text = text.replace(raw_title, book["display_title"])
+        preamble = dict(preamble, text=text)
     return render_template(request, "open_shelf/reader.html", None, {
         "title": "%s | Open Shelf" % book.get("display_title", ""),
         "book": book,
@@ -143,11 +189,11 @@ def reader(request, source, slug):
         "num_pages": book.get("num_pages", 1),
         "prev_p": p - 1 if p > 1 else None,
         "next_p": p + 1 if p < book.get("num_pages", 1) else None,
-        "ctx": page.get("ctx", []),
+        "ctx": ctx,
         "blocks": blocks,
         "toc": toc,
         "shelf": {"key": shelf_info[0], "en": shelf_info[1]},
-        "preamble": book.get("preamble") if p == 1 else None,
+        "preamble": preamble,
     })
 
 
