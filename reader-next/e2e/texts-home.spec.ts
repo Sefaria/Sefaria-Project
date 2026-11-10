@@ -57,7 +57,7 @@ test("a wide screen keeps the category line under the header while the page scro
   expect(await top()).toBe(before);
 });
 
-// @feature LIB-002 — parity S12b, measured on sefaria.org in the Hebrew interface (2026-11-10): the descriptions are 17.08px on a 24px line
+// @feature LIB-001 @feature LIB-008 — parity S12b, measured on sefaria.org in the Hebrew interface (2026-11-10): the descriptions are 17.08px on a 24px line
 test("Hebrew interface: the library's and a category's descriptions are the old size", async ({ page }) => {
   await page.context().addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
   for (const path of ["/texts", "/texts/Tanakh"]) {
