@@ -236,29 +236,63 @@ scoped_schema() {
 # The scoped tables' normalised schema as a restore from the snapshot recreates it. Postgres re-deparses some
 # expressions (a CHECK ... IN list, for one) on every dump and restore, so a restored table never prints exactly like the
 # original. The reference is therefore the snapshot's full dump restored (schema only) into a scratch postgres:18 container
-# and dumped again; cached as db/scoped-schema.roundtrip.sql. Without docker it returns nonzero.
+# and dumped again; cached as db/scoped-schema.roundtrip.sql.
+# Exit status: 0 = printed; 1 = no docker (the caller may compare the weaker canonical form instead); 2 = the round trip
+# was attempted and failed (never fall back to a weaker comparison for that). This function is called inside `if`, where
+# `set -e` does not apply to its body, so every step checks its own status and the build runs in a subshell whose EXIT,
+# INT and TERM traps remove the scratch container on every path. $out.tmp becomes $out only when every step succeeded.
 expected_scoped_schema() {
-  local snap="$1" out="$1/db/scoped-schema.roundtrip.sql" name t args=() r full
+  local snap="$1" out="$1/db/scoped-schema.roundtrip.sql"
   if [[ -s "$out" ]]; then cat "$out"; return 0; fi
   command -v docker >/dev/null 2>&1 || return 1
-  name="apikeys-schema-check-$$"
-  docker run -d --rm --name "$name" -e POSTGRES_PASSWORD=check "${APIKEYS_RELEASE_PG_IMAGE:-postgres:18}" >/dev/null || return 1
-  for _ in $(seq 1 60); do docker exec "$name" psql -U postgres -Atc 'SELECT 1' >/dev/null 2>&1 && break; sleep 1; done
-  full="$(ls "$snap"/db/*.dump | grep -v '/scoped\.dump$' | head -1)"
-  for r in $(pg_restore_local "$full" --schema-only --file=- | "$PYTHON" "$RELEASE_PY" roles-from-sql); do
-    docker exec "$name" psql -q -U postgres -c "CREATE ROLE \"$r\" NOLOGIN" >/dev/null 2>&1 || true
-  done
-  docker exec "$name" createdb -U postgres check
-  docker exec -i "$name" pg_restore -U postgres -d check --schema-only <"$full" >/dev/null 2>&1 || true
-  while read -r t; do [[ -n "$t" ]] && args+=(-t "public.\"$t\""); done <"$snap/db/scoped-tables.txt"
-  if [[ ${#args[@]} -gt 0 ]]; then
-    docker exec "$name" pg_dump -U postgres --schema-only "${args[@]}" check | "$PYTHON" "$RELEASE_PY" normalise-schema >"$out.tmp"
-  else
-    : >"$out.tmp"
-  fi
-  docker rm -f "$name" >/dev/null 2>&1
-  mv "$out.tmp" "$out"
+  (build_scoped_schema_roundtrip "$snap" "$out") || { rm -f "$out.tmp"; return 2; }
   cat "$out"
+}
+
+# The body of expected_scoped_schema; run in a subshell. Exits nonzero (after logging why) on the first failed step.
+build_scoped_schema_roundtrip() {
+  local snap="$1" out="$2" name="apikeys-schema-check-$$" t r full roles dump_err role_err
+  local args=() tables=()
+  trap 'docker rm -f "$name" >/dev/null 2>&1 || true; rm -f "$out.tmp" "$out.raw"' EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+  full="$(ls "$snap"/db/*.dump 2>/dev/null | grep -v '/scoped\.dump$' | head -n 1)" || true
+  [[ -n "$full" && -s "$full" ]] || { log "  round trip: no full dump in $snap/db"; exit 1; }
+  [[ -r "$snap/db/scoped-tables.txt" ]] || { log "  round trip: $snap/db/scoped-tables.txt is missing"; exit 1; }
+  while read -r t; do [[ -z "$t" ]] || { args+=(-t "public.\"$t\""); tables+=("$t"); }; done <"$snap/db/scoped-tables.txt"
+  roles="$(pg_restore_local "$full" --schema-only --file=- | "$PYTHON" "$RELEASE_PY" roles-from-sql)" \
+    || { log "  round trip: could not read the roles out of $full"; exit 1; }
+  docker run -d --rm --name "$name" -e POSTGRES_PASSWORD=check "${APIKEYS_RELEASE_PG_IMAGE:-postgres:18}" >/dev/null \
+    || { log "  round trip: could not start the scratch postgres container"; exit 1; }
+  local ready=0 _
+  for _ in $(seq 1 60); do
+    if docker exec "$name" psql -U postgres -Atc 'SELECT 1' >/dev/null 2>&1; then ready=1; break; fi
+    sleep 1
+  done
+  [[ "$ready" == 1 ]] || { log "  round trip: the scratch postgres container was not ready after 60 s"; exit 1; }
+  for r in $roles; do
+    role_err="$(docker exec "$name" psql -q -U postgres -c "CREATE ROLE \"$r\" NOLOGIN" 2>&1 >/dev/null)" \
+      || [[ "$role_err" == *"already exists"* ]] \
+      || { log "  round trip: could not create role $r in the scratch container: $role_err"; exit 1; }
+  done
+  docker exec "$name" createdb -U postgres check || { log "  round trip: createdb failed"; exit 1; }
+  # pg_restore may report errors that do not matter here (ownership, extensions); what matters is that the scoped tables
+  # exist afterwards, and that is checked below against the dump of them.
+  docker exec -i "$name" pg_restore -U postgres -d check --schema-only <"$full" >/dev/null 2>&1 || true
+  if [[ ${#args[@]} -gt 0 ]]; then
+    dump_err="$(mktemp)"
+    docker exec "$name" pg_dump -U postgres --schema-only "${args[@]}" check >"$out.raw" 2>"$dump_err" \
+      || { log "  round trip: pg_dump of the scoped tables failed: $(tail -n 2 "$dump_err" | tr '\n' ' ')"; rm -f "$dump_err" "$out.raw"; exit 1; }
+    rm -f "$dump_err"
+    "$PYTHON" "$RELEASE_PY" normalise-schema <"$out.raw" >"$out.tmp" || { log "  round trip: normalise-schema failed"; rm -f "$out.raw"; exit 1; }
+    rm -f "$out.raw"
+    for t in "${tables[@]}"; do
+      grep -qF -e "CREATE TABLE public.$t " -e "CREATE TABLE public.\"$t\" " "$out.tmp" || { log "  round trip: table $t is not in the restored schema"; exit 1; }
+    done
+  else
+    : >"$out.tmp" || exit 1
+  fi
+  mv "$out.tmp" "$out" || exit 1
 }
 
 # Compares the live scoped schema (file $2) with the snapshot ($1): exact against the round-tripped reference, or, without
@@ -267,8 +301,12 @@ schema_matches() {
   local snap="$1" live="$2" ref
   ref="$(mktemp)"
   if cmp -s "$live" "$snap/db/scoped-schema.sql"; then rm -f "$ref"; return 0; fi
-  if expected_scoped_schema "$snap" >"$ref"; then
+  local rc=0
+  expected_scoped_schema "$snap" >"$ref" || rc=$?
+  if [[ "$rc" == 0 ]]; then
     diff -u "$ref" "$live" >&2 && { rm -f "$ref"; return 0; }
+  elif [[ "$rc" == 2 ]]; then
+    log "  the schema round trip failed (see above); not falling back to the weaker comparison"
   else
     log "  (no docker: comparing CHECK expressions without casts or parentheses)"
     diff -u <("$PYTHON" "$RELEASE_PY" canonical-schema <"$snap/db/scoped-schema.sql") <("$PYTHON" "$RELEASE_PY" canonical-schema <"$live") >&2 \
@@ -325,7 +363,8 @@ web_pod_cleanup() {
   local p
   for p in "${WEB_PODS_LIVE[@]:-}"; do
     [[ -n "$p" ]] || continue
-    kc -n "${WEB_PODS_NS:-default}" delete pod "$p" --ignore-not-found --wait=false >/dev/null 2>&1 || true
+    kc -n "${WEB_PODS_NS:-default}" delete pod "$p" --ignore-not-found --wait=false >/dev/null 2>&1 \
+      || log "WARNING: could not delete pod ${WEB_PODS_NS:-default}/$p; it may still be running. Delete it by hand: kubectl -n ${WEB_PODS_NS:-default} delete pod $p"
   done
   WEB_PODS_LIVE=()
 }
@@ -392,8 +431,13 @@ run_web_pod() {
     fi
     sleep 1
   done
-  kc -n "$ns" logs "$name" >"$logfile" 2>&1 || true
-  kc -n "$ns" delete pod "$name" --ignore-not-found --wait=true --timeout=90s >/dev/null 2>&1 || true
-  WEB_PODS_LIVE=("${WEB_PODS_LIVE[@]/$name/}")
+  kc -n "$ns" logs "$name" >"$logfile" 2>&1 || log "  WARNING: could not read the log of pod $name ($logfile holds the error)"
+  # run_web_pod is called inside `||`, where set -e does not apply: check the delete. A pod that is not gone stays in
+  # WEB_PODS_LIVE, so the caller's exit trap tries again and names it if that fails too.
+  if kc -n "$ns" delete pod "$name" --ignore-not-found --wait=true --timeout=90s >/dev/null 2>&1; then
+    WEB_PODS_LIVE=("${WEB_PODS_LIVE[@]/$name/}")
+  else
+    log "  WARNING: could not delete pod $ns/$name; it may still be running (the exit trap retries)"
+  fi
   return "$code"
 }
