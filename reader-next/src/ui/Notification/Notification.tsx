@@ -58,8 +58,8 @@ function Frame({ image, imageHref, imageAlt, topLine, date, body }: { image?: st
   );
 }
 
-const userName = (p: Person, color?: string) => (
-  <Link href={p.profileUrl} className={styles.userName} style={color ? { color } : undefined}>
+const userName = (p: Person) => (
+  <Link href={p.profileUrl} className={styles.userName}>
     {p.name}
   </Link>
 );
@@ -69,11 +69,12 @@ const userName = (p: Person, color?: string) => (
  * announcement (the Library's), and the Voices kinds — a sheet published or liked, a follower, a collection — whose links go to the
  * Voices site. The image is the other reader's picture, or the site's for a global one.
  *
- * `voicesColor`: the user name's colour (the old .notificationUserName, --midrash-green).
+ * The other reader's name is the Voices green (the old .notificationUserName was --midrash-green #5d956f, 3.5:1 on white: the
+ * Voices token, 4.5:1, instead).
  *
  * @feature NTF-002 Notification types and rendering
  */
-export function NotificationItem({ n, he, imageAlt, voicesColor }: { n: NotificationView; he: boolean; imageAlt: string; voicesColor?: string }) {
+export function NotificationItem({ n, he, imageAlt }: { n: NotificationView; he: boolean; imageAlt: string }) {
   switch (n.type) {
     case "index":
       return (
@@ -121,7 +122,7 @@ export function NotificationItem({ n, he, imageAlt, voicesColor }: { n: Notifica
           imageHref={n.profileUrl}
           imageAlt={imageAlt}
           date={n.date}
-          topLine={<>{userName(n, voicesColor)}{" "}<InterfaceText en="published a new sheet" he="פרסמ/ה דף מקורות חדש" /></>}
+          topLine={<>{userName(n)}{" "}<InterfaceText en="published a new sheet" he="פרסמ/ה דף מקורות חדש" /></>}
           body={
             <>
               <Link className={styles.sheetTitle} href={n.sheetHref}>{n.sheetTitle}</Link>
@@ -137,7 +138,7 @@ export function NotificationItem({ n, he, imageAlt, voicesColor }: { n: Notifica
           imageHref={n.profileUrl}
           imageAlt={imageAlt}
           date={n.date}
-          topLine={<>{userName(n, voicesColor)}{" "}<InterfaceText en="liked your sheet" he="שמר/ה את דף המקורות שלך" /></>}
+          topLine={<>{userName(n)}{" "}<InterfaceText en="liked your sheet" he="שמר/ה את דף המקורות שלך" /></>}
           body={<Link className={styles.sheetTitle} href={n.sheetHref}>{n.sheetTitle}</Link>}
         />
       );
@@ -148,7 +149,7 @@ export function NotificationItem({ n, he, imageAlt, voicesColor }: { n: Notifica
           imageHref={n.profileUrl}
           imageAlt={imageAlt}
           date={n.date}
-          topLine={<>{userName(n, voicesColor)}{" "}<InterfaceText en="is now following you" he="נרשמ/ה לעדכונים ממך" /></>}
+          topLine={<>{userName(n)}{" "}<InterfaceText en="is now following you" he="נרשמ/ה לעדכונים ממך" /></>}
         />
       );
     case "collection add":

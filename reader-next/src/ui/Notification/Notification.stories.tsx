@@ -8,7 +8,7 @@ function List() {
   return (
     <div style={{ maxWidth: 665, padding: 30 }} dir={he ? "rtl" : "ltr"} lang={he ? "he" : "en"}>
       <NotificationList>
-        {NOTIFICATIONS.map((n) => <NotificationItem key={n.id} n={n} he={he} imageAlt="Notification image" voicesColor="#5d956f" />)}
+        {NOTIFICATIONS.map((n) => <NotificationItem key={n.id} n={n} he={he} imageAlt="Notification image" />)}
       </NotificationList>
     </div>
   );

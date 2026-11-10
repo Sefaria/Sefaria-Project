@@ -7,7 +7,6 @@ import { tocQueryOptions } from "~/lib/catalog/toc";
 import { langCode, useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { LIBRARY } from "~/lib/shell/links";
 import { deleteUpdate, postUpdate, updatePayload, updatesQuery, validateUpdate, type UpdateDraft } from "~/lib/updates/updates";
-import { categoryColor } from "~/ui/tokens/category-color";
 import { NotificationItem } from "~/ui/Notification/Notification";
 import { AboutSidebar, UpdateForm, UpdateItem, UpdatesPage } from "~/ui/UpdatesPage/UpdatesPage";
 
@@ -84,7 +83,7 @@ export function UpdatesRoute() {
           if (!view) return null;
           return (
             <UpdateItem key={n._id} onDelete={moderator && !n._id.startsWith("new-") ? () => void remove(n._id) : undefined}>
-              <NotificationItem n={view} he={he} imageAlt={he ? "תמונת התראה" : "Notification image"} voicesColor={categoryColor("Midrash")} />
+              <NotificationItem n={view} he={he} imageAlt={he ? "תמונת התראה" : "Notification image"} />
             </UpdateItem>
           );
         })}

@@ -11,7 +11,6 @@ import { PromoSlot, SidebarFooter, StayConnected } from "~/ui/NavSidebar/NavSide
 import { NewsletterSignUp, type NewsletterSubscription } from "~/ui/NewsletterSignUp/NewsletterSignUp";
 import { NotificationItem } from "~/ui/Notification/Notification";
 import { NotificationsPage } from "~/ui/NotificationsPage/NotificationsPage";
-import { categoryColor } from "~/ui/tokens/category-color";
 import { useInAppLinkClicks } from "./in-app-links";
 import { toNotificationView } from "./view";
 
@@ -72,7 +71,7 @@ export function NotificationsRoute() {
   const items = list
     ?.map((n) => {
       const view = toNotificationView(n, code, books);
-      return view ? <NotificationItem key={n._id} n={view} he={he} imageAlt={he ? "תמונת התראה" : "Notification image"} voicesColor={categoryColor("Midrash")} /> : null;
+      return view ? <NotificationItem key={n._id} n={view} he={he} imageAlt={he ? "תמונת התראה" : "Notification image"} /> : null;
     })
     .filter((x) => x !== null);
 

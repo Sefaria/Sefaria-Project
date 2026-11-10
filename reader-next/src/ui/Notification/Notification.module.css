@@ -17,3 +17,4 @@
 .sheetTitle, .collectionName { display: block; font-size: 24px; }
 .sheetSummary { margin-top: 10px; font-size: 18px; color: var(--sefaria-color-text-dark-grey); }
 .userName { font-weight: bold; }
+.notification a.userName { color: var(--sefaria-color-voices); }
