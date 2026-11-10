@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type Mo
 import type { VocalizationMode } from "@vendor/sefaria-toolkit/text-transform/index";
 import { highlightTerms } from "~/lib/text/highlight-terms";
 import { prepareSegmentHtml, type PrepareOptions } from "~/lib/text/prepare";
+import { useLibraryHref } from "~/lib/routing/library-href";
 import styles from "./SegmentText.module.css";
 
 export interface SegmentTextProps {
@@ -36,10 +37,11 @@ const isPlainClick = (e: MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlK
  * @feature TXD-020 @feature TXD-021 @feature TXD-025 @feature TXD-027 @feature TXD-028 @feature TXD-051
  */
 export function SegmentText({ html, lang, dir, vocalization, stripPunctuation, itagCommentator, refHref, terms, onRefClick, onEntityClick, className }: SegmentTextProps) {
+  const libHref = useLibraryHref();
   const prepared = useMemo(() => {
-    const p = prepareSegmentHtml(html, { vocalization, stripPunctuation, lang, itagCommentator, refHref });
+    const p = prepareSegmentHtml(html, { vocalization, stripPunctuation, lang, itagCommentator, refHref, topicHref: (slug) => libHref(`/topics/${slug}`) });
     return terms?.length ? { ...p, html: highlightTerms(p.html, terms) } : p;
-  }, [html, lang, vocalization, stripPunctuation, itagCommentator, refHref, terms]);
+  }, [html, lang, vocalization, stripPunctuation, itagCommentator, refHref, terms, libHref]);
   const [open, setOpen] = useState<ReadonlySet<number>>(new Set());
 
   const toggle = (key: number) =>

@@ -25,7 +25,6 @@ import {
 import { refToUrl } from "~/lib/ref/url";
 import { encodeHebrewNumeral } from "~/lib/ref/hebrew-numerals";
 import { repairHtml } from "~/lib/html/repair";
-import { SITE_ORIGIN } from "~/lib/config";
 
 /**
  * Talmud punctuation removal (Hebrew side only, when the reader turns punctuation off).
@@ -44,6 +43,8 @@ export interface PrepareOptions {
   lang?: string;
   /** href for a citation. Default: Sefaria's canonical path. */
   refHref?: (ref: string) => string;
+  /** href for a named entity's topic page. Default: /topics/<slug> (this client's page; pass libraryHref's on another host). */
+  topicHref?: (slug: string) => string;
   /** Show itag superscripts for this commentator (exact `data-commentator` name). */
   itagCommentator?: string;
 }
@@ -62,6 +63,7 @@ export interface PreparedSegment {
 }
 
 const defaultRefHref = (ref: string) => `/${refToUrl(ref)}`;
+const defaultTopicHref = (slug: string) => `/topics/${slug}`;
 
 function walk(nodes: ChildNode[], visit: (el: Element) => void): void {
   for (const n of nodes) {
@@ -107,9 +109,9 @@ export function prepareSegmentHtml(raw: string, opts: PrepareOptions = {}): Prep
       a.class = "ref-link";
     } else if (el.name === "span" && a["data-sefaria-slug"]) {
       el.name = "a";
-      // the topic page is the library's until this client has topic pages; a plain click opens the sidebar instead
+      // a plain click opens the sidebar instead; the href is the topic page (new tab, crawlers)
       a["data-slug"] = a["data-sefaria-slug"];
-      a.href = `${SITE_ORIGIN}/topics/${a["data-sefaria-slug"]}`;
+      a.href = (opts.topicHref ?? defaultTopicHref)(a["data-sefaria-slug"]);
       a.class = "entity-link";
     } else if (el.name === "span" && a["data-sefaria-note"] !== undefined) {
       const key = Number(a["data-sefaria-note"]);

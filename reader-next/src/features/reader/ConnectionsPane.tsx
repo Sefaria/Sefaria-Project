@@ -66,6 +66,7 @@ import { SidebarSearch } from "~/ui/SidebarSearch/SidebarSearch";
 import { AutocorrectBanner } from "~/ui/SearchPage/SearchPage";
 import { autocorrectQueryOptions, decideAutocorrect, NO_AUTOCORRECT } from "~/lib/search/autocorrect";
 import { useLocation } from "@tanstack/react-router";
+import { useLibraryHref } from "~/lib/routing/library-href";
 import { currVersionsOf, sendFeedback } from "~/lib/feedback/feedback";
 import { ShareView } from "~/ui/ShareView/ShareView";
 import type { SignUpKind } from "~/lib/auth/signup-content";
@@ -156,6 +157,9 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const notesQ = useQuery(notesQuery(uid, notesRefs));
   const qcNotes = useQueryClient();
   const interfaceLang = useInterfaceLang();
+  // topic pages are this client's (absolute only on a host that does not serve them)
+  const libHref = useLibraryHref();
+  const topicHref = (slug: string) => libHref(`/topics/${slug}`);
   const hebrew = interfaceLang === "hebrew";
   const catalogQ = useQuery(tocQueryOptions());
   const linksQ = useQuery(linksQueryOptions(sectionRef));
@@ -373,7 +377,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           topics={topics}
           loading={resourcesQ.isPending}
           refLabel={localizedRef(selectionRef, props.section, hebrew ? "he" : "en")}
-          topicHref={(slug) => `${SITE_ORIGIN}/topics/${slug}`}
+          topicHref={topicHref}
           lang={language === "hebrew" ? "he" : "en"}
           search={
             // moderators only, as the old TopicList (Sefaria.is_moderator = is_staff, which the server checks too)
@@ -415,7 +419,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     const note = entitySourceNote(selectionRef, { en: localizedRef(selectionRef, props.section, "en"), he: localizedRef(selectionRef, props.section, "he") });
     return (
       <ConnectionsPanel label="Dictionaries" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
-        <NamedEntityView answer={entityQ.data} text={props.entity.text} topicHref={(slug) => `${SITE_ORIGIN}/topics/${slug}`} sourceNote={interfaceLang === "hebrew" ? note.he : note.en} />
+        <NamedEntityView answer={entityQ.data} text={props.entity.text} topicHref={topicHref} sourceNote={interfaceLang === "hebrew" ? note.he : note.en} />
       </ConnectionsPanel>
     );
   }
@@ -576,8 +580,8 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           category={category}
           lang={language === "hebrew" ? "he" : "en"}
           titleHref={`/${refToUrl(indexTitle)}`}
-          authorHref={(slug) => `${SITE_ORIGIN}/topics/${slug}`}
-          topicHref={(slug) => `${SITE_ORIGIN}/topics/${slug}`}
+          authorHref={topicHref}
+          topicHref={topicHref}
           versions={aboutVersions(available, { translationTitle: props.section?.translationVersion?.versionTitle, sourceTitle: props.currentSourceTitle })}
           order={versionSectionOrder(settings.language)}
           // a dictionary's About names its section, not the entry chosen (master AboutBox, #3730)

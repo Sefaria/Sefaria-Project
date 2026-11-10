@@ -19,7 +19,10 @@ describe("citations become real links", () => {
   });
   it("links named entities to their topic", () => {
     const out = prepareSegmentHtml(seg("jt-berakhot-1-1", "primary", (h) => h.includes("namedEntityLink"))).html;
-    expect(out).toContain('href="https://www.sefaria.org/topics/rabbi-eliezer-b-hyrcanus"');
+    // this client's topic page (relative); a Voices host passes libraryHref's absolute address
+    expect(out).toContain('href="/topics/rabbi-eliezer-b-hyrcanus"');
+    const voices = prepareSegmentHtml(seg("jt-berakhot-1-1", "primary", (h) => h.includes("namedEntityLink")), { topicHref: (s) => `https://www.sefaria.org/topics/${s}` }).html;
+    expect(voices).toContain('href="https://www.sefaria.org/topics/rabbi-eliezer-b-hyrcanus"');
   });
   it("honours a custom href builder", () => {
     const out = prepareSegmentHtml('<a class="refLink" href="x" data-ref="Genesis 1:1">Gen</a>', { refHref: (r) => `/app?ref=${r}` }).html;
