@@ -1207,7 +1207,8 @@ describe('developer settings after Back', () => {
     remount();
     expect(lastRequest()).toMatchObject({ url: '/api/developer/state', method: 'GET' });
     expect(container.querySelectorAll('nav.settingsNav a')).toHaveLength(2);
-    expect(developerPanel().textContent).toContain('Daf Tracker');
+    // nothing cached is shown until the server has confirmed the session
+    expect(developerPanel().textContent).not.toContain('Daf Tracker');
 
     const server = { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ name: 'Mishnah Tracker' })] };
     await act(async () => {
@@ -1225,5 +1226,135 @@ describe('developer settings after Back', () => {
     });
     expect(container.querySelectorAll('nav.settingsNav a')).toHaveLength(1);
     expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
+
+/* The back/forward cache and the cached settings must never show keys without the server's say-so. */
+describe('developer settings after the session changes', () => {
+  const KEY = 'sfr_live_SECRETVALUE123';
+  const withKey = () => ({
+    ...DEVELOPER_ON,
+    profile: PROFILE,
+    projects: [
+      publicProject({ keys: [{ id: 'k1', label: 'Site key', value: KEY, created: null, restrictToWebsite: false }] }),
+    ],
+  });
+  const reveal = () => {
+    act(() => {
+      developerPanel().querySelector('[data-agent-action="show-key"]').click();
+    });
+    expect(container.textContent).toContain(KEY);
+  };
+  const remount = () => {
+    ReactDOM.unmountComponentAtNode(container);
+    act(() => {
+      ReactDOM.render(
+        <SettingsPage tab="developer" projectId={null} setTab={() => {}} setProjectId={() => {}} />,
+        container
+      );
+    });
+  };
+  const persistedPageshow = async () => {
+    await act(async () => {
+      const event = new Event('pageshow');
+      event.persisted = true;
+      window.dispatchEvent(event);
+      await flush();
+    });
+  };
+  const mountWithRevealedKey = () => {
+    mount('developer', withKey(), { projectId: 'proj01' });
+    reveal();
+  };
+  const answerAs = (status, body) => {
+    global.fetch = jest.fn(() => Promise.resolve({ ok: status === 200, status, json: () => Promise.resolve(body) }));
+  };
+  let originalLocation;
+  beforeEach(() => {
+    originalLocation = window.location;
+    delete window.location;
+    window.location = {
+      href: 'http://localhost/settings/developer',
+      pathname: '/settings/developer',
+      reload: jest.fn(),
+    };
+  });
+  afterEach(() => {
+    window.location = originalLocation;
+  });
+
+  it('removes the keys from the page when it leaves for the back/forward cache', () => {
+    mountWithRevealedKey();
+    act(() => {
+      const event = new Event('pagehide');
+      event.persisted = true;
+      window.dispatchEvent(event);
+    });
+    expect(container.textContent).not.toContain(KEY);
+    expect(container.textContent).not.toContain('sfr_');
+  });
+
+  it('on a restored page after logout shows no key, clears the cache and goes to log in', async () => {
+    mountWithRevealedKey();
+    answerAs(401, { error: 'Log in to use developer settings.' });
+    await persistedPageshow();
+    expect(container.textContent).not.toContain(KEY);
+    expect(window.location.href).toBe('/login?next=%2Fsettings%2Fdeveloper');
+    // the module cache is gone too: a page remounted from it has nothing to show or reload
+    global.fetch = jest.fn();
+    remount();
+    expect(container.textContent).not.toContain(KEY);
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(window.location.reload).toHaveBeenCalled();
+  });
+
+  it('treats a 403 the same as a 401', async () => {
+    mountWithRevealedKey();
+    answerAs(403, { error: 'Forbidden' });
+    await persistedPageshow();
+    expect(container.textContent).not.toContain(KEY);
+    expect(window.location.href).toBe('/login?next=%2Fsettings%2Fdeveloper');
+  });
+
+  it('on a restored page with a live session renders the fresh state from the server', async () => {
+    mountWithRevealedKey();
+    answerAs(200, {
+      ...withKey(),
+      projects: [
+        publicProject({
+          name: 'Fresh Name',
+          keys: [{ id: 'k9', label: 'New', value: 'sfr_live_NEWKEY', created: null, restrictToWebsite: false }],
+        }),
+      ],
+    });
+    await persistedPageshow();
+    expect(lastRequest()).toMatchObject({ url: '/api/developer/state', method: 'GET' });
+    expect(developerPanel().textContent).toContain('Fresh Name');
+    expect(container.textContent).not.toContain(KEY);
+    expect(window.location.href).toBe('http://localhost/settings/developer');
+  });
+
+  it('shows no keys from a remount while the session check is pending, or when it fails', async () => {
+    mountWithRevealedKey();
+    answerAs(500, { error: 'boom' });
+    await act(async () => {
+      remount();
+      await flush();
+    });
+    expect(container.textContent).not.toContain(KEY);
+    expect(container.textContent).not.toContain('sfr_');
+    expect(developerPanel().querySelector('[role="alert"]')).toBeTruthy();
+    expect(window.location.href).toBe('http://localhost/settings/developer');
+  });
+
+  it('ignores a pageshow that is not from the cache', async () => {
+    mountWithRevealedKey();
+    global.fetch = jest.fn();
+    await act(async () => {
+      window.dispatchEvent(new Event('pageshow'));
+      await flush();
+    });
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(container.textContent).toContain(KEY);
   });
 });
