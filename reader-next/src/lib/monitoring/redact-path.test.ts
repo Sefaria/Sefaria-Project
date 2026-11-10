@@ -39,10 +39,17 @@ describe("redactPath", () => {
   it("is linear: an 8 KB path, long segments and many segments are fast", () => {
     const cases = [`/${"a".repeat(8000)}`, "/a".repeat(4000), `/${"a".repeat(2000)}`, "/a".repeat(1000), `/${"a.".repeat(1000)}`, `/${"a".repeat(60)}@${"b".repeat(1900)}`];
     redactPath("/warm/up"); // compile the patterns before timing
+    // The best of five runs: a single timing on a loaded machine (CI, parallel test workers) measured scheduling, not the function
+    // (5.6 ms and 147 ms seen for a ~0.04 ms call). The quadratic version this guards against took 350–590 ms per call, so 50 ms
+    // still fails it by an order of magnitude.
     for (const p of cases) {
-      const t = performance.now();
-      redactPath(p);
-      expect(performance.now() - t, `${p.length} chars`).toBeLessThan(5);
+      let best = Infinity;
+      for (let i = 0; i < 5; i++) {
+        const t = performance.now();
+        redactPath(p);
+        best = Math.min(best, performance.now() - t);
+      }
+      expect(best, `${p.length} chars`).toBeLessThan(50);
     }
     expect(redactPath(`/${"a".repeat(8000)}`)).toBe("/:long-path");
   });
