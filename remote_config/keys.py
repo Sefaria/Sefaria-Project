@@ -21,3 +21,8 @@ CHATBOT_ANONYMOUS_ENABLED = "feature.chatbot.anonymous_enabled"
 # Free Library Assistant answers for a logged-out visitor. Read by the chatbot server
 # (ai-chatbot, chat/anon_access.py) from /api/remote-config; created by migration 0002.
 CHATBOT_ANONYMOUS_FREE_ANSWERS = "feature.chatbot.anonymous_free_answers"
+
+# Who may opt in to the new reader while the chart offers the choice (nodejs.mode "optin", READER_OPTIN):
+# "staff" (default: only is_staff users see the switch and get the cookie) or "all" (every signed-in user).
+# Read by sefaria/helper/reader_choice.py.
+READER_OPTIN_AUDIENCE = "feature.reader.optin.audience"

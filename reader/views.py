@@ -4922,6 +4922,12 @@ def profile_api(request, slug=None):
             profileUpdate["settings"][reader_choice.SETTING_KEY] = reader_choice.normalize(
                 profileUpdate["settings"][reader_choice.SETTING_KEY]
             )
+            # the new reader only for whom the audience includes (remote config feature.reader.optin.audience)
+            if profileUpdate["settings"][
+                reader_choice.SETTING_KEY
+            ] == reader_choice.NEXT and not reader_choice.may_use_next(request.user):
+                profileUpdate["settings"].pop(reader_choice.SETTING_KEY)
+                reader_choice_posted = False
 
         la_key = library_assistant.SETTING_KEY
         if la_key in profileUpdate.get("settings", {}):
@@ -4976,7 +4982,9 @@ def library_assistant_api(request):
     Returns {"enabled": bool, "userToken": str | None, "isModerator": bool}.
     """
     if request.method != "GET":
-        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+        response = jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+        patch_cache_control(response, private=True, no_store=True)
+        return response
     enabled, token = False, None
     if request.user.is_authenticated and library_assistant.is_enabled(UserProfile(user_obj=request.user)):
         token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
@@ -4988,6 +4996,68 @@ def library_assistant_api(request):
             "isModerator": bool(request.user.is_authenticated and request.user.is_staff),
         }
     )
+    patch_cache_control(response, private=True, no_store=True)
+    return response
+
+
+@catch_error_as_json
+def reader_choice_api(request):
+    """
+    /api/reader-choice: which reader this browser gets (the legacy one or the new one), read and switched without a legacy page
+    (LAUNCH_PLAN T-D05; account settings stays the other place to switch).
+
+    GET answers {"available", "canChooseNext", "reader", "saved"}:
+      available      this deployment offers the choice (READER_OPTIN, chart nodejs.mode "optin")
+      canChooseNext  this user may switch to the new reader (signed in, and staff unless the remote-config audience is "all")
+      reader         what this browser gets now: "next" when it holds the routing cookie, else "classic"
+      saved          the signed-in user's stored choice ("next" / "classic"), null when they never chose or are signed out
+
+    POST {"reader": "classic" | "legacy" | "next"} (JSON body, or a form field), with the CSRF token (X-CSRFToken):
+      - "classic" (alias "legacy") always works, signed in or out: the response clears the cookie, and a signed-in user's
+        profile records the choice so other browsers follow at their next sign-in;
+      - "next" only when available and canChooseNext (else 403): the response sets the cookie and the profile records it.
+      Answers {"reader": <the choice>, "saved": <whether a profile recorded it>}; 400 for any other value.
+
+    Never cached: the answer is this browser's.
+    """
+    if request.method == "GET":
+        saved = None
+        if request.user.is_authenticated:
+            saved = (UserProfile(id=request.user.id).settings or {}).get(reader_choice.SETTING_KEY)
+        response = jsonResponse(
+            {
+                "available": reader_choice.available(),
+                "canChooseNext": reader_choice.may_use_next(request.user),
+                "reader": reader_choice.NEXT
+                if request.COOKIES.get(reader_choice.COOKIE_NAME) == reader_choice.NEXT
+                else reader_choice.CLASSIC,
+                "saved": saved if saved in (reader_choice.NEXT, reader_choice.CLASSIC) else None,
+            }
+        )
+    elif request.method == "POST":
+        posted = request.POST.get("reader")
+        if posted is None and request.content_type == "application/json":
+            try:
+                body = json.loads(request.body)
+            except ValueError:
+                body = None
+            posted = body.get("reader") if isinstance(body, dict) else None
+        choice = reader_choice.parse_choice(posted)
+        if choice is None:
+            response = jsonResponse({"error": 'Send "reader": "classic" or "next".'}, status=400)
+        elif choice == reader_choice.NEXT and not reader_choice.may_use_next(request.user):
+            response = jsonResponse({"error": "The new reader is not open to this account."}, status=403)
+        else:
+            saved = False
+            if request.user.is_authenticated:
+                profile = UserProfile(id=request.user.id)
+                profile.update({"settings": {reader_choice.SETTING_KEY: choice}})
+                profile.save()
+                saved = True
+            response = jsonResponse({"reader": choice, "saved": saved})
+            reader_choice.apply_cookie(response, request, choice)
+    else:
+        response = jsonResponse({"error": "Unsupported HTTP method."}, status=405)
     patch_cache_control(response, private=True, no_store=True)
     return response
 
@@ -5412,8 +5482,8 @@ def account_settings(request):
             # The toggle must render the *effective* value: a user who is on through the
             # legacy rule has no setting key yet, and must still see "On".
             "library_assistant_enabled": library_assistant.is_enabled(profile),
-            # nodejs.mode "optin": the choice between the legacy reader and the new one
-            "reader_choice_available": reader_choice.available(),
+            # nodejs.mode "optin": the choice between the legacy reader and the new one, for whom the audience includes
+            "reader_choice_available": reader_choice.may_use_next(request.user),
             "new_reader_enabled": reader_choice.chose_next(profile),
             "lang_names_and_codes": zip(
                 [
