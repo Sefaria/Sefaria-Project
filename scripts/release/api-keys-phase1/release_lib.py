@@ -155,6 +155,21 @@ def auth_service_enabled(_args):
     return 0
 
 
+def env_setting_values(_args):
+    """One line per `NAME: value` entry of an env file (stdin) for the setting named in argv: the value with quotes and a
+    trailing comment removed, lower-cased. No output when the setting is not there. YAML comments are not entries."""
+    name = _args.name
+    for line in sys.stdin.read().splitlines():
+        m = re.match(r"^\s+" + re.escape(name) + r":\s*(.*?)\s*$", line)
+        if not m:
+            continue
+        raw = m.group(1)
+        q = re.match(r"""^(["'])(.*?)\1\s*(#.*)?$""", raw)
+        value = q.group(2) if q else re.sub(r"\s+#.*$", "", raw)
+        print(value.strip().lower())
+    return 0
+
+
 def rollout_images(_args):
     """name<TAB>revision annotation<TAB>status phase<TAB>container images, comma separated."""
     for ro in _items(_stdin_json()):
@@ -914,6 +929,9 @@ def main():
     sub.add_parser("canonical-schema").set_defaults(func=canonical_schema)
     sub.add_parser("roles-from-sql").set_defaults(func=roles_from_sql)
     sub.add_parser("pod-images").set_defaults(func=pod_images)
+    p = sub.add_parser("env-setting-values")
+    p.add_argument("name")
+    p.set_defaults(func=env_setting_values)
     sub.add_parser("rollout-images").set_defaults(func=rollout_images)
     sub.add_parser("env-images").set_defaults(func=env_images)
     sub.add_parser("auth-service-enabled").set_defaults(func=auth_service_enabled)
