@@ -6,6 +6,7 @@ import { routeTree } from "./routeTree.gen";
 import { isReaderPath } from "./lib/reader/paths";
 import { parseSearch, stringifySearch } from "./lib/reader/search-serializer";
 import { RouteError } from "./features/shared/RouteError";
+import { NotFoundPage } from "./features/routing/NotFoundPage";
 // the browser error reporter, installed now, before hydration (its own module guards the server)
 import "./lib/monitoring/browser";
 
@@ -23,6 +24,8 @@ export function getRouter() {
     // Library data is immutable-ish and cached by the library cache; route matches need not reload.
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: RouteError,
+    // an address no route matches: the reader's own 404 page (T-F28)
+    defaultNotFoundComponent: NotFoundPage,
     // Old-site query strings (no JSON quoting; `+` literal): every existing link keeps working.
     parseSearch,
     stringifySearch,

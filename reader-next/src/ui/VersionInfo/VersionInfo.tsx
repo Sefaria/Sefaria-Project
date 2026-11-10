@@ -24,6 +24,14 @@ export interface VersionInfoProps {
   showImage?: boolean;
 }
 
+/**
+ * Is a version's source an address? Some are a book's name ("Biblia Judaica Completa", "La Torá Con Rashi"): the old client wrote them
+ * as a relative link that ended at Django's 404; here they are plain text (deliberate difference, T-F03). An address (http(s)://…,
+ * www.…, or a path of the site such as /shraga-silverstein) stays a link.
+ */
+export const isSourceAddress = (source: string): boolean => /^(?:https?:\/\/[^\s/]+\.[^\s]+|www\.[^\s]+\.[^\s]+|\/[^\s/][^\s]*)$/i.test(source.trim());
+const sourceHref = (source: string) => (/^www\./i.test(source.trim()) ? `https://${source.trim()}` : source.trim());
+
 const hostOf = (url: string): string => {
   try {
     return new URL(url).host.replace(/^www\./, "");
@@ -41,7 +49,7 @@ const hostOf = (url: string): string => {
  */
 export function VersionInfo({ version: v, urlRef, showImage }: VersionInfoProps) {
   const license = licenseUrl(v.license);
-  const buyHref = v.purchaseInformationURL || v.versionSource;
+  const buyHref = v.purchaseInformationURL || (v.versionSource && isSourceAddress(v.versionSource) ? sourceHref(v.versionSource) : undefined);
   return (
     <div className={styles.info}>
       <div className={styles.text}>
@@ -49,7 +57,7 @@ export function VersionInfo({ version: v, urlRef, showImage }: VersionInfoProps)
           {v.versionSource ? (
             <div>
               <dt><InterfaceText en="Source" he="מקור" />:</dt>
-              <dd><a href={v.versionSource} target="_blank" rel="noopener noreferrer">{hostOf(v.versionSource)}</a></dd>
+              <dd>{isSourceAddress(v.versionSource) ? <a href={sourceHref(v.versionSource)} target="_blank" rel="noopener noreferrer">{hostOf(sourceHref(v.versionSource))}</a> : v.versionSource}</dd>
             </div>
           ) : null}
           {v.digitizedBySefaria ? (

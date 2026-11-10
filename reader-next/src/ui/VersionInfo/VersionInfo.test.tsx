@@ -22,6 +22,16 @@ describe("VersionInfo", () => {
     expect(screen.queryByRole("link", { name: "Buy in Print" })).toBeNull();
     expect(screen.getByRole("link", { name: "Revision History" })).toBeInTheDocument();
   });
+  // T-F03: a source that is a book's name, not an address, was a relative link to Django's 404 on the old site
+  it("a source that is not an address is plain text; addresses stay links", () => {
+    const { rerender } = render(<VersionInfo urlRef="x" version={{ ...base, versionSource: "Biblia Judaica Completa", purchaseInformationImage: "https://img.example/c.png" }} showImage />);
+    expect(screen.getByText("Biblia Judaica Completa").closest("a")).toBeNull();
+    expect(screen.queryByRole("img")).toBeNull(); // no "buy" picture linked to a name
+    rerender(<VersionInfo urlRef="x" version={{ ...base, versionSource: "/shraga-silverstein" }} />);
+    expect(screen.getByRole("link", { name: "/shraga-silverstein" })).toHaveAttribute("href", "/shraga-silverstein");
+    rerender(<VersionInfo urlRef="x" version={{ ...base, versionSource: "www.example.org/b" }} />);
+    expect(screen.getByRole("link", { name: "example.org" })).toHaveAttribute("href", "https://www.example.org/b");
+  });
   it("an unknown licence is shown as text, not a dead link", () => {
     render(<VersionInfo urlRef="x" version={{ ...base, license: "Copyright: JPS, 1985" }} />);
     expect(screen.getByText("Copyright: JPS, 1985").closest("a")).toBeNull();
