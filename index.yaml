@@ -198,6 +198,21 @@ entries:
     version: 0.93.0-sc-47260-phase1-trim-tooling.1
   - apiVersion: v2
     appVersion: v7.11.6
+    created: "2026-11-10T11:17:27.892139761Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 5575e1c58a95a6250d6c406d22d22796e9ac6f4a30658c8fc53f1ae81fe10ccd
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.93.0-sc-47260-phase1-review-fixes-2.1.tgz
+    version: 0.93.0-sc-47260-phase1-review-fixes-2.1
+  - apiVersion: v2
+    appVersion: v7.11.6
     created: "2026-11-10T08:32:47.74814587Z"
     description: Chart to deploy complete Sefaria environment
     digest: 41f2d78caf070dbf0cefbec8004a77a3f1155782c236835420784bf1a680e5eb
@@ -24690,4 +24705,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-10T10:37:09.683494409Z"
+generated: "2026-11-10T11:17:27.887239852Z"
