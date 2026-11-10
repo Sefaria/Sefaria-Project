@@ -19,14 +19,17 @@ export type Probe = { allowed: boolean; status: number; code?: string; result: G
 
 /**
  * Sends the key on the gated path, so the answer does not depend on how ungated paths treat
- * unknown keys. Locally the echo upstream proves the gateway's own verdict; on the cauldron
- * anything that is not a gateway denial counts as allowed.
+ * unknown keys. Locally the echo upstream proves the gateway's own verdict; on the cauldron a
+ * key counts as allowed only when the request reaches the real upstream, which answers a GET on
+ * the POST-only gated path with 405 (the same status modes.sh expects of its keyless probe).
  */
+export const UPSTREAM_GET_STATUS = 405;
+
 export async function probeKey(gw: Gateway, target: Target, value: string, origin?: string): Promise<Probe> {
   const result = await gw.get(GATED_PATH, { key: value, origin, host: target.hasEcho ? 'echo' : 'www', retryInfra: false });
   const allowed = target.hasEcho
     ? result.status === 200 && result.echoHeaders?.['x-sefaria-auth-result'] === 'ok'
-    : result.status < 500 && result.status !== 401 && result.status !== 403 && !DENY_CODES.includes(result.code ?? '');
+    : result.status === UPSTREAM_GET_STATUS && !DENY_CODES.includes(result.code ?? '');
   return { allowed, status: result.status, code: result.code, result };
 }
 
