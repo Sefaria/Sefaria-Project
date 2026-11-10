@@ -167,7 +167,9 @@ class ApiProjectIdTest(DeveloperApiTestCase):
         if api_project.id == api_project.profile_id:
             # Sequences are not reset between tests, so the two ids can line up by chance. One more filler profile
             # shifts the profile sequence, and the next project is then guaranteed to differ.
-            Project.objects.create(submission_source=SubmissionSource.MANUAL, project_name="Filler 2", is_published=False)
+            Project.objects.create(
+                submission_source=SubmissionSource.MANUAL, project_name="Filler 2", is_published=False
+            )
             project = self.create_project()
             api_project = ApiProject.objects.get(id=int(project["id"]))
 
