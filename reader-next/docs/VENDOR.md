@@ -1,9 +1,14 @@
 # Vendored code
 
-## `vendor/sefaria-toolkit/` — arithmomaniac/sefaria-frontend-toolkit
+## `vendor/sefaria-toolkit/` — Sefaria/sefaria-frontend-toolkit
 
-- Source: https://github.com/arithmomaniac/sefaria-frontend-toolkit, commit in `vendor/sefaria-toolkit/UPSTREAM_COMMIT`.
-- Licence: GPL-3.0 (`vendor/sefaria-toolkit/LICENSE`), same as Sefaria-Project.
+- Source: https://github.com/Sefaria/sefaria-frontend-toolkit (formerly `arithmomaniac/sefaria-frontend-toolkit`, which now
+  redirects there), commit in `vendor/sefaria-toolkit/UPSTREAM_COMMIT` (`6d7f259`, 2026-10-02).
+- Licence: **upstream is MIT** since its commit `0d11376` (2026-10-06, "migrate toolkit ownership and distribution to Sefaria",
+  upstream PR #57; see also Sefaria-Project #3870). The snapshot vendored here predates that change, so its
+  `vendor/sefaria-toolkit/LICENSE` is still the GPL-3.0 text it was taken under (checked 2026-11-10 with `gh api`). Re-vendoring
+  from a commit at or after `0d11376` brings the MIT licence file with it; until then the GPL-3.0 file is the accurate one for
+  this copy (GPL-3.0 is also Sefaria-Project's licence).
 - Taken: `packages/client/src` (typed, response-validated API client, 60 operations) and
   `packages/text-transform/src` (HTML sanitiser/normaliser, vocalization transforms).
 - **Not taken:** the Lit web components. See `docs/ARCHITECTURE.md` and the decision record in the session notes:
