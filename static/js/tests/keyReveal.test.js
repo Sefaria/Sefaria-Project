@@ -295,49 +295,83 @@ describe('nothing is stored', () => {
   });
 });
 
+/* Walks the committed component tree and reports whether any hook state (state, refs, effect deps) still holds
+   `needle`. DOM nodes are skipped: their React-internal props are the page, which other tests read as text. */
+const heldInState = (needle) => {
+  const seen = new Set();
+  const holds = (node, depth) => {
+    if (typeof node === 'string') {
+      return node.includes(needle);
+    }
+    if (!node || typeof node !== 'object' || node.nodeType || depth > 4 || seen.has(node)) {
+      return false;
+    }
+    seen.add(node);
+    return Object.keys(node).some((k) => typeof node[k] !== 'function' && k !== 'next' && holds(node[k], depth + 1));
+  };
+  const walk = (fiber) => {
+    for (let f = fiber; f; f = f.sibling) {
+      for (let hook = f.memoizedState; hook && typeof hook === 'object' && 'next' in hook; hook = hook.next) {
+        if (holds(hook.memoizedState, 0)) {
+          return true;
+        }
+      }
+      if (walk(f.child)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  return walk(container._reactRootContainer._internalRoot.current);
+};
+
+const createFirstKey = async () => {
+  const created = { ...PROJECT, keys: [] };
+  global.fetch = jest.fn((url, options) => {
+    requests.push({ url, method: options.method });
+    const body = url.endsWith('/keys')
+      ? {
+          developerEnabled: true,
+          ssoConnected: true,
+          profile: PROFILE,
+          projects: [{ ...created, keys: PROJECT.keys }],
+          keyId: 'k1',
+          keyValue: VALUE,
+        }
+      : { developerEnabled: true, ssoConnected: true, profile: PROFILE, projects: [created] };
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });
+  });
+  ReactDOM.unmountComponentAtNode(container);
+  act(() => {
+    ReactDOM.render(
+      <SettingsPage
+        tab="developer"
+        projectId="proj01"
+        accountSettings={{ socialProviders: [], email: 'tova@example.org' }}
+        initialDeveloper={{ developerEnabled: true, ssoConnected: true, profile: PROFILE, projects: [created] }}
+        setTab={() => {}}
+        setProjectId={() => {}}
+      />,
+      container
+    );
+  });
+
+  await click(button('Create your first key'));
+  const input = container.querySelector('[id$="devPocKeyLabel"]');
+  act(() => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Site key');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await click(container.querySelector('form.devPocCreateKey button[type="submit"]'));
+  await act(async () => {
+    jest.advanceTimersByTime(4500);
+    await flush();
+  });
+};
+
 describe('a key just created', () => {
   it('can be copied without a second request, and its value is kept out of the page state', async () => {
-    const created = { ...PROJECT, keys: [] };
-    global.fetch = jest.fn((url, options) => {
-      requests.push({ url, method: options.method });
-      const body = url.endsWith('/keys')
-        ? {
-            developerEnabled: true,
-            ssoConnected: true,
-            profile: PROFILE,
-            projects: [{ ...created, keys: PROJECT.keys }],
-            keyId: 'k1',
-            keyValue: VALUE,
-          }
-        : { developerEnabled: true, ssoConnected: true, profile: PROFILE, projects: [created] };
-      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });
-    });
-    ReactDOM.unmountComponentAtNode(container);
-    act(() => {
-      ReactDOM.render(
-        <SettingsPage
-          tab="developer"
-          projectId="proj01"
-          accountSettings={{ socialProviders: [], email: 'tova@example.org' }}
-          initialDeveloper={{ developerEnabled: true, ssoConnected: true, profile: PROFILE, projects: [created] }}
-          setTab={() => {}}
-          setProjectId={() => {}}
-        />,
-        container
-      );
-    });
-
-    await click(button('Create your first key'));
-    const input = container.querySelector('#devPocKeyLabel');
-    act(() => {
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Site key');
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-    await click(container.querySelector('form.devPocCreateKey button[type="submit"]'));
-    await act(async () => {
-      jest.advanceTimersByTime(4500);
-      await flush();
-    });
+    await createFirstKey();
 
     expect(container.querySelector('.devPocKeyValue')).toBeTruthy();
     expect(container.textContent).not.toContain(VALUE);
@@ -345,5 +379,48 @@ describe('a key just created', () => {
 
     expect(writeText).toHaveBeenCalledWith(VALUE);
     expect(revealedRequests()).toHaveLength(0);
+  });
+
+  describe('keeps the value in memory no longer than a revealed one', () => {
+    it('holds it right after creation (the checks below can see it)', async () => {
+      await createFirstKey();
+      expect(heldInState(VALUE)).toBe(true);
+    });
+
+    it('drops it on pagehide', async () => {
+      await createFirstKey();
+      act(() => {
+        window.dispatchEvent(new Event('pagehide'));
+      });
+      expect(heldInState(VALUE)).toBe(false);
+    });
+
+    it('drops it after the timeout', async () => {
+      await createFirstKey();
+      act(() => {
+        jest.advanceTimersByTime(31000);
+      });
+      expect(heldInState(VALUE)).toBe(false);
+    });
+
+    it('drops it after a successful copy', async () => {
+      await createFirstKey();
+      await click(button('Copy'));
+      expect(writeText).toHaveBeenCalledWith(VALUE);
+      expect(heldInState(VALUE)).toBe(false);
+    });
+
+    it('drops it when the value is hidden again', async () => {
+      await createFirstKey();
+      await click(button('Reveal'));
+      await click(button('Reveal'));
+      expect(heldInState(VALUE)).toBe(false);
+    });
+
+    it('drops it when the section collapses', async () => {
+      await createFirstKey();
+      await click(container.querySelector('.devPocProjectToggle'));
+      expect(heldInState(VALUE)).toBe(false);
+    });
   });
 });

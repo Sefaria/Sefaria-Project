@@ -157,13 +157,13 @@ const openNewProject = (developer = {}) => {
   });
 };
 const fillProject = ({ website = '' } = {}) => {
-  typeInto(container.querySelector('#devPocProjectName'), 'Daf Tracker');
-  typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+  typeInto(container.querySelector('[id$="-devPocProjectName"]'), 'Daf Tracker');
+  typeInto(container.querySelector('[id$="-devPocProjectDescription"]'), 'A tracker');
   if (website) {
-    typeInto(container.querySelector('#devPocProjectUrl'), website);
+    typeInto(container.querySelector('[id$="-devPocProjectUrl"]'), website);
   }
   act(() => {
-    container.querySelector('#devPocVisibilityPublic').click();
+    container.querySelector('[id$="-devPocVisibilityPublic"]').click();
   });
 };
 const submitProject = () => {
@@ -297,7 +297,7 @@ describe('key-create errors', () => {
 
   it("limits the label to 100 characters, and shows the server's reason for a refused label", async () => {
     startKey([]);
-    const input = container.querySelector('#devPocKeyLabel');
+    const input = container.querySelector('[id$="-devPocKeyLabel"]');
     expect(input.maxLength).toBe(100);
     typeInto(input, 'x'.repeat(101));
     respondError(400, 'The key name can be at most 100 characters.');
@@ -310,7 +310,7 @@ describe('key-create errors', () => {
 
   it('shows the key-limit message when another tab took the last slot, and refreshes the count', async () => {
     startKey([key(1), key(2), key(3), key(4)]);
-    typeInto(container.querySelector('#devPocKeyLabel'), 'Fifth');
+    typeInto(container.querySelector('[id$="-devPocKeyLabel"]'), 'Fifth');
     serve({
       'POST projects/proj01/keys': [400, { error: 'A project can have at most 5 keys.' }],
       'GET state': [
@@ -329,7 +329,7 @@ describe('key-create errors', () => {
     act(() => {
       buttonNamed(developerPanel(), 'Close').click();
     });
-    expect(container.querySelector('#devPocKeyLabel')).toBeNull();
+    expect(container.querySelector('[id$="-devPocKeyLabel"]')).toBeNull();
   });
 });
 

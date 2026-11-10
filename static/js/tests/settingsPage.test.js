@@ -217,10 +217,10 @@ const openNewProject = (state = {}, props = {}) => {
   act(() => {
     container.querySelector('[data-agent-action="new-project"]').click();
   });
-  typeInto(container.querySelector('#devPocProjectName'), 'Daf Tracker');
+  typeInto(container.querySelector('[id$="-devPocProjectName"]'), 'Daf Tracker');
 };
 
-const visibilityRadio = (value) => container.querySelector(`input[name="devPocVisibility"][value="${value}"]`);
+const visibilityRadio = (value) => container.querySelector(`input[name$="-devPocVisibility"][value="${value}"]`);
 const submitProject = () =>
   act(() => {
     container.querySelector('[data-agent-action="create-project"]').click();
@@ -229,14 +229,14 @@ const submitProject = () =>
 describe('project visibility', () => {
   it('has nothing preselected, and recommends neither option', () => {
     openNewProject();
-    expect(container.querySelector('input[name="devPocVisibility"]:checked')).toBeNull();
+    expect(container.querySelector('input[name$="-devPocVisibility"]:checked')).toBeNull();
     expect(container.querySelector('.devPocFieldset').textContent).not.toContain('Recommended');
   });
 
   it("won't save until a visibility is chosen", () => {
     openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
+    typeInto(container.querySelector('[id$="-devPocProjectDescription"]'), 'A tracker');
+    typeInto(container.querySelector('[id$="-devPocProjectUrl"]'), 'daftracker.org');
     submitProject();
     expect(container.querySelector('[role="alert"]').textContent).toContain(
       'Choose whether the project is public or private'
@@ -269,17 +269,17 @@ describe('project visibility', () => {
       buttonNamed(dialog, 'Close').click();
     });
     expect(container.querySelector('[aria-labelledby="devPocPublicTitle"]')).toBeNull();
-    expect(container.querySelector('input[name="devPocVisibility"]:checked')).toBeNull();
+    expect(container.querySelector('input[name$="-devPocVisibility"]:checked')).toBeNull();
   });
 });
 
 describe('short description', () => {
   it('is limited to 150 characters, with a counter', () => {
     openNewProject();
-    const description = container.querySelector('#devPocProjectDescription');
+    const description = container.querySelector('[id$="-devPocProjectDescription"]');
     expect(description.maxLength).toBe(150);
     typeInto(description, 'A daily tracker');
-    expect(container.querySelector('#devPocProjectDescriptionCount').textContent).toBe('15/150');
+    expect(container.querySelector('[id$="-devPocProjectDescriptionCount"]').textContent).toBe('15/150');
   });
 });
 
@@ -301,8 +301,8 @@ describe('project website', () => {
 
   it('saves a bare domain as an https address', () => {
     openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
+    typeInto(container.querySelector('[id$="-devPocProjectDescription"]'), 'A tracker');
+    typeInto(container.querySelector('[id$="-devPocProjectUrl"]'), 'daftracker.org');
     act(() => {
       visibilityRadio('private').click();
     });
@@ -313,8 +313,8 @@ describe('project website', () => {
 
   it("won't save a website without a dot", () => {
     openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker');
+    typeInto(container.querySelector('[id$="-devPocProjectDescription"]'), 'A tracker');
+    typeInto(container.querySelector('[id$="-devPocProjectUrl"]'), 'daftracker');
     act(() => {
       visibilityRadio('private').click();
     });
@@ -324,7 +324,7 @@ describe('project website', () => {
   });
   it("doesn't promise that a website restriction makes a copied key useless", () => {
     openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+    typeInto(container.querySelector('[id$="-devPocProjectDescription"]'), 'A tracker');
     act(() => {
       visibilityRadio('private').click();
     });
@@ -357,7 +357,7 @@ describe('a project linked to an older Powered by listing', () => {
 
   it('no longer asks about websites that are already listed', () => {
     openNewProject();
-    typeInto(container.querySelector('#devPocProjectUrl'), 'dafyomicompanion.org');
+    typeInto(container.querySelector('[id$="-devPocProjectUrl"]'), 'dafyomicompanion.org');
     expect(container.textContent).not.toContain('already on Powered by Sefaria');
     expect(container.querySelector('[data-agent-action="request-listing-link"]')).toBeNull();
   });
@@ -365,8 +365,8 @@ describe('a project linked to an older Powered by listing', () => {
 
 describe('saving a project', () => {
   const fillProject = async (visibility) => {
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
+    typeInto(container.querySelector('[id$="-devPocProjectDescription"]'), 'A tracker');
+    typeInto(container.querySelector('[id$="-devPocProjectUrl"]'), 'daftracker.org');
     act(() => {
       visibilityRadio(visibility).click();
     });
@@ -391,8 +391,8 @@ describe('saving a project', () => {
 
   it('keeps the form open with the server error when saving fails', async () => {
     openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
+    typeInto(container.querySelector('[id$="-devPocProjectDescription"]'), 'A tracker');
+    typeInto(container.querySelector('[id$="-devPocProjectUrl"]'), 'daftracker.org');
     act(() => {
       visibilityRadio('private').click();
     });
@@ -433,14 +433,14 @@ describe('saving a project', () => {
     act(() => {
       buttonNamed(container, 'Edit project').click();
     });
-    typeInto(container.querySelector('#devPocProjectUrl'), '');
+    typeInto(container.querySelector('[id$="-devPocProjectUrl"]'), '');
     global.fetch = jest.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ error: refusal }) }));
     act(() => {
       container.querySelector('[data-agent-action="save-project"]').click();
     });
     await clickAndSettle(buttonNamed(container, 'Save without a website'));
     expect(container.querySelector('[role="alert"]').textContent).toContain(refusal);
-    expect(container.querySelector('#devPocProjectUrl').value).toBe('');
+    expect(container.querySelector('[id$="-devPocProjectUrl"]').value).toBe('');
     expect(container.querySelector('[data-agent-action="save-project"]')).toBeTruthy();
   });
 });
@@ -521,7 +521,7 @@ describe('removing the website', () => {
     act(() => {
       buttonNamed(container, 'Edit project').click();
     });
-    typeInto(container.querySelector('#devPocProjectUrl'), '');
+    typeInto(container.querySelector('[id$="-devPocProjectUrl"]'), '');
     respondWith({});
     act(() => {
       container.querySelector('[data-agent-action="save-project"]').click();
@@ -658,7 +658,7 @@ describe('keys', () => {
     act(() => {
       container.querySelector('[data-agent-action="new-key"]').click();
     });
-    typeInto(container.querySelector('#devPocKeyLabel'), 'Production');
+    typeInto(container.querySelector('[id$="-devPocKeyLabel"]'), 'Production');
     respondWith({ ...DEVELOPER_ON, profile: PROFILE, keyId: 'k1', projects: [projectWithKey()] });
     await act(async () => {
       container.querySelector('[data-agent-action="create-key"]').click();
@@ -682,7 +682,7 @@ describe('keys', () => {
     });
     const region = container.querySelector('.devPocSection p.sr-only[role="status"]');
     expect(region.textContent).toBe('');
-    typeInto(container.querySelector('#devPocKeyLabel'), 'Production');
+    typeInto(container.querySelector('[id$="-devPocKeyLabel"]'), 'Production');
     respondWith({ ...DEVELOPER_ON, profile: PROFILE, keyId: 'k1', projects: [projectWithKey()] });
     await act(async () => {
       container.querySelector('[data-agent-action="create-key"]').click();
@@ -705,7 +705,7 @@ describe('keys', () => {
     act(() => {
       container.querySelector('[data-agent-action="new-key"]').click();
     });
-    typeInto(container.querySelector('#devPocKeyLabel'), 'Production');
+    typeInto(container.querySelector('[id$="-devPocKeyLabel"]'), 'Production');
     global.fetch = jest.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Nope' }) }));
     await act(async () => {
       container.querySelector('[data-agent-action="create-key"]').click();
@@ -776,7 +776,7 @@ describe('dialog keyboard behaviour', () => {
     container.remove();
 
     openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+    typeInto(container.querySelector('[id$="-devPocProjectDescription"]'), 'A tracker');
     act(() => {
       visibilityRadio('public').click();
     });
@@ -895,8 +895,8 @@ describe('Hebrew interface', () => {
   it('shows a server error from the developer API in Hebrew', async () => {
     Sefaria.interfaceLang = 'hebrew';
     openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
+    typeInto(container.querySelector('[id$="-devPocProjectDescription"]'), 'A tracker');
+    typeInto(container.querySelector('[id$="-devPocProjectUrl"]'), 'daftracker.org');
     act(() => {
       visibilityRadio('private').click();
     });
@@ -1189,8 +1189,8 @@ describe('developer settings after Back', () => {
 
   it('shows the latest projects at once, then reloads them from the server', async () => {
     openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
+    typeInto(container.querySelector('[id$="-devPocProjectDescription"]'), 'A tracker');
+    typeInto(container.querySelector('[id$="-devPocProjectUrl"]'), 'daftracker.org');
     act(() => {
       visibilityRadio('public').click();
     });

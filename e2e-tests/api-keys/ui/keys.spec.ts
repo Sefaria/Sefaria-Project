@@ -103,7 +103,7 @@ test.describe('keys', () => {
         const card = tab.dev.projectCard(TWO_TABS_PROJECT);
         await expect(counter(card)).toHaveText('4 of 5 keys');
         await tab.dev.action('new-key', card).first().click();
-        await card.locator('#devPocKeyLabel').fill(tab.label);
+        await card.locator('[id$="-devPocKeyLabel"]').fill(tab.label);
       }
       const responses = tabs.map(tab => waitForDeveloperApi(tab.dev.page, /\/api\/developer\/projects\/[^/]+\/keys$/));
       await Promise.all(tabs.map(tab => tab.dev.action('create-key', tab.dev.projectCard(TWO_TABS_PROJECT)).click()));
@@ -137,7 +137,7 @@ test.describe('keys', () => {
       projectId = await createProjectInUi(dev, name, SITE_A);
       const card = dev.projectCard(name);
       await dev.action('new-key', card).first().click();
-      const input = card.locator('#devPocKeyLabel');
+      const input = card.locator('[id$="-devPocKeyLabel"]');
       await input.fill('x'.repeat(101));
       const maxLength = await input.getAttribute('maxlength');
       if (maxLength !== null) {
@@ -214,7 +214,7 @@ test.describe('keys', () => {
         projectId = await createProjectInUi(dev, name, SITE_A);
         const card = dev.projectCard(name);
         await dev.action('new-key', card).first().click();
-        await card.locator('#devPocKeyLabel').fill(label);
+        await card.locator('[id$="-devPocKeyLabel"]').fill(label);
         const pending = waitForDeveloperApi(dev.page, /\/api\/developer\/projects\/[^/]+\/keys$/);
         await dev.action('create-key', card).click();
         const settingUp = card.getByRole('status').filter({ hasText: 'Setting up your key…' });
