@@ -2715,7 +2715,12 @@ const loginMethod = (socialProviders) => {
   return { en: 'Apple Sign-In with', he: 'התחברות דרך אפל עם' };
 };
 
-const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
+/* The account endpoints answer JSON. A logged-out call to one that needs login is redirected by Django to the
+   login page, which jQuery hands over as an HTML string with status 200: anything that is not a JSON object means
+   the session ended. */
+const isJsonAnswer = (data) => typeof data === 'object' && data !== null;
+
+const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded }) => {
   const torahSpecific = !!settings.torahSpecific;
   const translationLanguages = settings.translationLanguages || [];
 
@@ -2725,6 +2730,8 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
   const [readingHistory, setReadingHistory] = useState(settings.readingHistory === false ? 'false' : 'true');
   const [textualCustom, setTextualCustom] = useState(settings.textualCustom);
   const [libraryAssistant, setLibraryAssistant] = useState(settings.libraryAssistantEnabled ? 'true' : 'false');
+  /* The warning belongs to the moment the visitor picks Off, not to a setting that was already Off on load. */
+  const [warnReadingHistory, setWarnReadingHistory] = useState(false);
 
   /* The values saving compares against. Textual custom moves to the saved value, because
      a second save should only re-fetch the calendars if it changed again. */
@@ -2771,6 +2778,10 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
     }
     $.cookie('translation_language_preference_suggested', JSON.stringify(1), { path: '/' });
     $.post('/api/profile', { json: JSON.stringify(profile) }, (data) => {
+      if (!isJsonAnswer(data)) {
+        onSessionEnded();
+        return;
+      }
       if ('error' in data) {
         alert(data.error);
         return;
@@ -2820,6 +2831,10 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
 
   const updateEmail = () => {
     $.post('/settings/account/user', { json: JSON.stringify(emailFields) }, (data) => {
+      if (!isJsonAnswer(data)) {
+        onSessionEnded();
+        return;
+      }
       if ('error' in data) {
         setEmailError(data.error);
         return;
@@ -2841,6 +2856,10 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
 
   const disconnectGauth = () => {
     $.get('/unlink-gauth?redirect=0', (data) => {
+      if (!isJsonAnswer(data)) {
+        onSessionEnded();
+        return;
+      }
       if ('error' in data) {
         setGauthError(data.error);
       } else {
@@ -2851,6 +2870,12 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
     }).fail(() => setGauthError(Sefaria._v(SAVE_FAILED)));
   };
 
+  const saveErrorMessage = (id) =>
+    saveError ? (
+      <p id={id} className="account-save-error" role="alert">
+        {saveError}
+      </p>
+    ) : null;
   const saveButton = (
     <button type="button" className="button small blue control-elem saveAccountSettingsBtn" onClick={save}>
       <InterfaceText text={{ en: 'Save', he: 'שמירה' }} />
@@ -2874,11 +2899,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
             {saveButton}
           </div>
         </div>
-        {saveError ? (
-          <p id="account-save-error" role="alert">
-            {saveError}
-          </p>
-        ) : null}
+        {saveErrorMessage('account-save-error')}
         <SettingSection
           id="emailNotifications"
           label={
@@ -2935,7 +2956,10 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
               <SettingToggle
                 optionClass="doubleOption"
                 value={readingHistory}
-                onChange={setReadingHistory}
+                onChange={(value) => {
+                  setReadingHistory(value);
+                  setWarnReadingHistory(value === 'false');
+                }}
                 options={[
                   {
                     value: 'true',
@@ -2949,8 +2973,8 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
                   },
                 ]}
               >
-                <span id="reading-history-warning" className={readingHistory === 'false' ? 'active' : null}>
-                  {readingHistory === 'false'
+                <span id="reading-history-warning" className={warnReadingHistory ? 'active' : null}>
+                  {warnReadingHistory
                     ? Sefaria._('Turning this feature off will permanently delete your reading history.')
                     : null}
                 </span>
@@ -3093,6 +3117,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
           </div>
         </div>
 
+        {saveErrorMessage('account-save-error-bottom')}
         <div className="saveCancel">
           {saveButton}
           {cancelButton('transparent small')}
@@ -3117,7 +3142,7 @@ const ARRIVAL_HIGHLIGHT_MS = 2400;
 
 const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTab, setProjectId }) => {
   const [restored] = useState(() => !accountSettings);
-  const [settings] = useState(() => (restored ? latestSettings.account : accountSettings));
+  const [settings, setSettings] = useState(() => (restored ? latestSettings.account : accountSettings));
   const [hasDeveloper] = useState(() => !!(restored ? latestSettings.developer : initialDeveloper));
   const socialProviders = (settings && settings.socialProviders) || [];
 
@@ -3133,6 +3158,9 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
   const [verified, setVerified] = useState(() => !(restored && hasDeveloper));
   const [verifyFailed, setVerifyFailed] = useState(false);
   const [sessionEnded, setSessionEnded] = useState(false);
+  /* Set while the page is in the back/forward cache and until the server has confirmed the session again. */
+  const [paused, setPaused] = useState(false);
+  const pausedSettings = useRef(undefined);
   const [showNewProject, setShowNewProject] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
   const [confirm, setConfirm] = useState(null);
@@ -3165,7 +3193,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
     []
   );
 
-  /* The session ended (401 or 403): nothing cached survives, and the visitor is sent to log in. */
+  /* The session ended (401, 403, or a login page where JSON was due): nothing cached survives, and the visitor is sent to log in. */
   const endSession = () => {
     latestSettings.account = undefined;
     latestSettings.developer = undefined;
@@ -3174,6 +3202,16 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
       setSessionEnded(true);
     }
     window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+  };
+
+  /* Brings back the account content that pagehide took down, as it was when the page left. */
+  const resumeAccount = () => {
+    if (pausedSettings.current) {
+      latestSettings.account = pausedSettings.current;
+      setSettings(pausedSettings.current);
+      pausedSettings.current = undefined;
+    }
+    setPaused(false);
   };
 
   /* Asks the server whether the session is still the one the cached state belongs to. Developer
@@ -3185,13 +3223,16 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
         if (pageMounted.current) {
           setDeveloperState(server);
           setVerified(true);
+          resumeAccount();
         }
       },
       (err) => {
-        if (err.status === 401 || err.status === 403) {
+        /* A 404 is the answer in staff-only mode once the visitor is no longer staff or no longer logged in. */
+        if (err.status === 401 || err.status === 403 || err.status === 404) {
           endSession();
         } else if (pageMounted.current) {
           setVerifyFailed(true);
+          resumeAccount();
         }
       }
     );
@@ -3215,21 +3256,29 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
   }, [developerState]);
 
   /* The back/forward cache keeps the page as it was, keys and all, however long ago and whoever
-     is logged in by then. Leaving clears the developer content from the snapshot, and a page
-     brought back from the cache asks the server again before showing it. */
+     is logged in by then. Leaving clears the account and developer content from the snapshot, and a page
+     brought back from the cache asks the server again before showing it: the developer state endpoint where
+     there is a developer tab, and a reload (the settings page itself needs a login) where there is not. */
   useEffect(() => {
-    if (!hasDeveloper) {
-      return undefined;
-    }
     const hide = () => {
-      latestSettings.developer = emptyState();
-      setVerified(false);
-      setDeveloperState(emptyState());
+      pausedSettings.current = latestSettings.account || pausedSettings.current;
+      latestSettings.account = undefined;
+      setPaused(true);
+      if (hasDeveloper) {
+        latestSettings.developer = emptyState();
+        setVerified(false);
+        setDeveloperState(emptyState());
+      }
     };
     const show = (e) => {
-      if (e.persisted) {
-        hide();
+      if (!e.persisted) {
+        return;
+      }
+      hide();
+      if (hasDeveloper) {
         revalidate();
+      } else {
+        window.location.reload();
       }
     };
     window.addEventListener('pagehide', hide);
@@ -3432,7 +3481,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
     );
   };
 
-  if (!settings || sessionEnded) {
+  if (!settings || sessionEnded || paused) {
     return null;
   }
 
@@ -3445,6 +3494,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
         settings={settings}
         socialProviders={socialProviders}
         onEmailChanged={hasDeveloper ? developerEmailChanged : null}
+        onSessionEnded={endSession}
       />
     ),
     developer: !verified ? (
