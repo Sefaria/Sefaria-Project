@@ -64,10 +64,6 @@ MOCK_SSO_SESSION_KEY = "developer_mock_sso"
 
 _url_validator = URLValidator(schemes=["http", "https"])
 
-WEBSITE_IN_USE_ERROR = (
-    "A key is restricted to this website. Turn off the restriction on every key before removing the website."
-)
-
 
 class CooldownError(Exception):
     """Too soon to send another confirmation email; retry_after is in whole seconds."""
@@ -654,16 +650,15 @@ def create_project(user, data):
 @transaction.atomic
 def update_project(user, project_id, data):
     """
-    Restricted keys follow the website to a new address. The website can't be removed while any
-    key is restricted to it: that would quietly let the key work from anywhere.
+    Restricted keys follow the website to a new address. Removing the website turns the website
+    limit off on every key that had it, in the same save: the settings page warns first and names
+    those keys (Penina, 2026-11-09).
     """
     api_project = _lock_owned_project(user, project_id)
     profile = api_project.profile
     fields = clean_project_fields(data)
     old_link = profile.project_link
-    restricted_keys = api_project.api_keys.filter(revoked_at__isnull=True).exclude(allowed_origins=[])
-    if old_link and not fields["websiteUrl"] and restricted_keys.exists():
-        raise InputError(WEBSITE_IN_USE_ERROR)
+    restricted_keys = list(api_project.api_keys.filter(revoked_at__isnull=True).exclude(allowed_origins=[]))
     _apply_fields(profile, fields)
     _set_visibility(profile, fields["visibility"])
     profile.save()
@@ -671,8 +666,9 @@ def update_project(user, project_id, data):
         api_project.contact_email = fields["contactEmail"]
     api_project.save()
     if profile.project_link != old_link:
+        new_origins = [origin_of(profile.project_link)] if profile.project_link else []
         for api_key in restricted_keys:
-            api_key.allowed_origins = [origin_of(profile.project_link)]
+            api_key.allowed_origins = new_origins
             api_key.save(update_fields=["allowed_origins"])
     return get_owned_project(user, project_id)
 

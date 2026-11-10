@@ -43,8 +43,6 @@ const SERVER_ERRORS_HE = {
   'Give the project a name.': 'נא לתת לפרויקט שם.',
   'Choose whether the project is public or private.': 'נא לבחור אם הפרויקט ציבורי או פרטי.',
   'The website is not a valid web address.': 'כתובת האתר אינה תקינה.',
-  'A key is restricted to this website. Turn off the restriction on every key before removing the website.':
-    'יש מפתח שמוגבל לאתר הזה. כבו את ההגבלה בכל המפתחות לפני הסרת האתר.',
   'No such project.': 'הפרויקט לא נמצא.',
   'No such listing.': 'הרישום לא נמצא.',
   'No such key.': 'המפתח לא נמצא.',

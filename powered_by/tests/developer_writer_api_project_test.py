@@ -69,18 +69,15 @@ class WebsiteRestrictionTest(DeveloperApiTestCase):
         self.project = self.create_project()
         self.url = "projects/" + self.project["id"]
 
-    def test_clear_website_refused_when_restricted(self):
+    def test_clear_website_turns_off_restricted_keys(self):
         restricted = self.create_key(self.project["id"], "Production")["keyId"]
         self.call("post", "keys/" + restricted, {"restrictToWebsite": True})
 
         status, state = self.call("post", self.url, {"project": {**PROJECT, "websiteUrl": ""}})
 
-        self.assertEqual(status, 400)
-        self.assertEqual(state["error"], developer.WEBSITE_IN_USE_ERROR)
-        self.assertEqual(
-            Project.objects.get(api_projects__id=int(self.project["id"])).project_link, PROJECT["websiteUrl"]
-        )
-        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://dafportal.org"])
+        self.assertEqual(status, 200, state)
+        self.assertEqual(Project.objects.get(api_projects__id=int(self.project["id"])).project_link, "")
+        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, [])
 
     def test_clear_website_allowed_when_no_key_is_restricted(self):
         self.create_key(self.project["id"], "Local")
