@@ -47,8 +47,8 @@ RULES = [
     ("DEVELOPER_SETTINGS_* entries", ENVS, "ConfigMap", r"^local-settings-",
      rf"({BLANK}|\s*DEVELOPER_SETTINGS_(ENABLED|STAFF_ONLY)\b.*)"),
     ("nginx log_format and scrub maps", ENVS, "ConfigMap", r"^nginx-conf-",
-     rf"({BLANK}|\s*#.*|\s*map \$\S+ \$(uri_scrub_\d|referer_scrub_\d|request_uri_scrubbed|referer_scrubbed) \{{"
-     r"|\s*\"~\*.*\" .*;|\s*default \$(request_uri|http_referer|uri_scrub_\d|referer_scrub_\d);|\s*\}|\s*log_format structured .*)"),
+     rf"({BLANK}|\s*#.*|\s*map \$\S+ \$(uri_scrub_\d|referer_scrub_\d|uri_key_\d|referer_key_\d|request_uri_scrubbed|referer_scrubbed) \{{"
+     r"|\s*\"~\*.*\" .*;|\s*default \$(request_uri|http_referer|uri_scrub_\d|referer_scrub_\d|uri_key_\d|referer_key_\d);|\s*\}|\s*log_format structured .*)"),
     ("staging sync-postgres CronJob", ("staging",), "CronJob", r"sync-postgres", r".*"),
     # Not in the plan's list: one comment line in the ClientTrafficPolicy, a no-op for Kubernetes.
     ("ClientTrafficPolicy comment", ENVS, "ClientTrafficPolicy", r".*", rf"({BLANK}|\s*# Port 80 still serves the site here.*)"),

@@ -3,9 +3,11 @@
 #
 # For staging, preprod and prod: render the nginx ConfigMap, apply the exact envsubst variable list from the chart's
 # entrypoint (read from the rendered entrypoint.sh, not copied), point VARNISH_HOST and SEARCH_HOST at a stub nginx,
-# run `nginx -t`, start nginx and send five requests. Pass needs ALL of:
+# run `nginx -t`, start nginx and send the requests below. Pass needs ALL of:
 #   - one access-log line per request
-#   - "sfr_abc" appears 0 times in the access log
+#   - "sfr_abc" appears 0 times in the access log (apart from the allowed short display prefix sfr_abc123)
+#   - a full 32-character key never appears in the access log, whether in the path, any query parameter, the Referer,
+#     percent-encoded, or twice in one URL; a display prefix with a 6-character body is logged unchanged
 #   - each scrubbed line contains [REDACTED] and, where the request had x=1, still contains x=1
 # Built-in mutations (staging): the same run with scrub maps removed must FAIL, so the test is proven able to fail.
 # Also probes the nginx ERROR log (not governed by log_format) on an upstream failure; see KNOWN GAPS below.
@@ -19,6 +21,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # image at the same version runs the same config.
 NGINX_IMAGE="nginx:1.23.3"
 SECRET="sfr_abc"
+# Full-length test keys (32 characters), used anywhere but as an api_key= value.
+BODY1="Ab12Cd34Ef56Gh78Ij90Kl12Mn34Op56"
+BODY2="Zy98Xw76Vu54Ts32Rq10Po98Nm76Lk54"
+SHORT="sfr_abc123"   # six-character body: the non-secret display prefix, must be logged unchanged
 
 # Known gaps: names of cases whose leak is documented and tolerated. Empty on purpose. Add a case name only after
 # reporting the leak; the test then prints it as KNOWN GAP instead of failing. Cases: encoded_name, error_log.
@@ -82,12 +88,12 @@ substitute() { # substitute <env> <template> <out conf>
     "$NGINX_IMAGE" envsubst "$(cat "$TMP/$env.envsubst-list")" < "$tpl" > "$out"
 }
 
-# Rewrites the template to remove scrub rules. kind: uri_all | referer_all | uri_passes
+# Rewrites the template to remove scrub rules. kind: uri_all | referer_all | uri_passes | token_all
 mutate() { # mutate <kind> <in> <out>
   python3 - "$1" "$2" "$3" <<'PY'
 import re, sys
 kind, src, dst = sys.argv[1:4]
-prefix = {"uri_all": "uri_scrub|request_uri_scrubbed", "uri_passes": "uri_scrub", "referer_all": "referer_scrub"}[kind]
+prefix = {"uri_all": "uri_scrub|request_uri_scrubbed", "uri_passes": "uri_scrub", "referer_all": "referer_scrub", "token_all": "uri_key|request_uri_scrubbed|referer_key|referer_scrubbed"}[kind]
 only_passes = kind == "uri_passes"
 current, dropped, out = None, 0, []
 for line in open(src).read().split("\n"):
@@ -114,8 +120,14 @@ send_requests() { # send_requests <port> <www host>
   curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/?%61pi_key=$SECRET"
   curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" -H "Referer: https://a.example/?api_key=$SECRET" "http://127.0.0.1:$port/"
   curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" -H "x-sefaria-tier: gold" "http://127.0.0.1:$port/?x=1"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/admin/powered_by/apikey/?q=sfr_$BODY1"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/admin/powered_by/apikey/?q=%73fr%5f$BODY1"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" -H "Referer: https://a.example/search?q=sfr_$BODY1&y=2" "http://127.0.0.1:$port/"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/?a=sfr_$BODY1&b=SFR_$BODY2&x=1"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/admin/powered_by/apikey/?q=$SHORT"
+  curl -s -o /dev/null --globoff --path-as-is -H "Host: $host" "http://127.0.0.1:$port/sfr_$BODY1/x?x=1"
 }
-EXPECTED_LINES=5
+EXPECTED_LINES=11
 
 start_nginx() { # start_nginx <conf>; sets PORT
   docker rm -f "$RUN_ID-nginx" >/dev/null 2>&1 || true
@@ -133,6 +145,7 @@ start_nginx() { # start_nginx <conf>; sets PORT
 cat > "$TMP/analyse.py" <<'PY'
 import json, re, sys
 log_path, secret, expected, known_gaps = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4].split(",")
+bodies, short = sys.argv[5].split(","), sys.argv[6]
 text = open(log_path).read()
 # The container's stdout also carries the image entrypoint's own start-up lines ("/docker-entrypoint.sh: ...",
 # "10-listen-on-ipv6-by-default.sh: info: ..."). They are not access-log lines, so they are dropped by name; any other
@@ -171,8 +184,32 @@ for i, (name, field, keep_x, redacted) in enumerate(cases[: len(parsed)]):
         check("[REDACTED" in value, f"{name}: {field} carries the redaction marker ({value})")
     if keep_x:
         check("x=1" in value, f"{name}: x=1 still present ({value})")
+# Full-key cases (sent after the five above): field, strings the value must contain, whether the value must equal exactly.
+K = "[REDACTED-KEY]"
+extra = [
+    ("sfr_ key in admin search", "requestUrl", ["/admin/powered_by/apikey/?q=" + K], None),
+    ("percent-encoded sfr_ key in admin search", "requestUrl", ["/admin/powered_by/apikey/?q=" + K], None),
+    ("sfr_ key in Referer parameter", "referer", ["https://a.example/search?q=" + K + "&y=2"], None),
+    ("two sfr_ keys in one URL", "requestUrl", ["/?a=" + K + "&b=" + K + "&x=1"], None),
+    ("short display prefix", "requestUrl", [], "/admin/powered_by/apikey/?q=" + short),
+    ("sfr_ key in the path", "requestUrl", ["/" + K + "/x?x=1"], None),
+]
+for j, (name, field, contains, exact) in enumerate(extra):
+    i = len(cases) + j
+    if i >= len(parsed):
+        check(False, f"{name}: no log line")
+        continue
+    value = parsed[i][field]
+    line = json.dumps(parsed[i])
+    check(not any(b in line for b in bodies), f"{name}: key body absent from the line ({value})")
+    for c in contains:
+        check(c in value, f"{name}: {field} is {c!r} ({value})")
+    if exact is not None:
+        check(value == exact, f"{name}: {field} logged unchanged ({value})")
 # The forged header must not appear in the log with the flag off.
 check("gold" not in text, "forged x-sefaria-tier value is not logged (flag off)")
+check(not any(b in text for b in bodies), "no full-length key body appears in the access log")
+text = text.replace(short, "")   # the display prefix legitimately starts with the short secret
 if secret in text and "encoded_name" not in known_gaps:
     check(False, f"{secret} appears {text.count(secret)} time(s) in the access log")
 elif secret not in text:
@@ -193,7 +230,7 @@ run_case() {
   send_requests "$PORT" "$host"
   sleep 1
   docker logs "$RUN_ID-nginx" >"$TMP/access.log" 2>"$TMP/error.log" || true
-  python3 "$TMP/analyse.py" "$TMP/access.log" "$SECRET" "$EXPECTED_LINES" "$KNOWN_GAPS"
+  python3 "$TMP/analyse.py" "$TMP/access.log" "$SECRET" "$EXPECTED_LINES" "$KNOWN_GAPS" "$BODY1,$BODY2" "$SHORT"
 }
 
 for env in staging preprod prod; do
@@ -208,7 +245,7 @@ for env in staging preprod prod; do
 done
 
 # Mutations: each must make the run fail.
-for kind in uri_all referer_all uri_passes; do
+for kind in uri_all referer_all uri_passes token_all; do
   note "== mutation $kind (staging): must fail =="
   mutate "$kind" "$TMP/staging.template.conf" "$TMP/mut.template.conf"
   substitute staging "$TMP/mut.template.conf" "$TMP/mut.conf"
