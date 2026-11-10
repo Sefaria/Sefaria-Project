@@ -19,6 +19,7 @@
  */
 import type { Highlight } from "./plan";
 import type { TextPassage } from "./model";
+import { isRangedRef, parseHumanRef } from "~/lib/ref/url";
 
 /** "Genesis 1:30" + "Genesis 2:2" → "Genesis 1:30-2:2" (the old normRef of a list of segment refs). */
 export function rangeOf(refs: readonly string[]): string | undefined {
@@ -50,17 +51,21 @@ export function keepsRange(a: { segments: number; sections: number; portion: boo
 }
 
 /**
- * A range of whole sections (no segment named): the highlight over all their segments and the same range written by its segments,
- * from the loaded sections. Null when not every section is loaded or the address names segments.
+ * A range of whole sections (no segment named: "Genesis 6-8", "Rashi on Exodus 3:1-4:10"): the highlight over all its segments, and
+ * the same range written by its segments when its last section is loaded (a long range loads only its first sections; then the
+ * address is left as asked and the highlight still reaches the end by address). Null when the address names segments.
  */
-export function wholeSectionRange(sectionRefs: readonly string[], passages: readonly TextPassage[]): { highlight: Highlight; ref: string } | null {
-  if (sectionRefs.length < 2) return null;
-  const loaded = sectionRefs.map((r) => passages.find((p) => p.ref === r));
-  if (loaded.some((p) => !p || !p.segments.length)) return null;
-  const firstSeg = loaded[0]!.segments[0]!;
-  const lastSeg = loaded[loaded.length - 1]!.segments.at(-1)!;
-  const ref = rangeOf([firstSeg.ref, lastSeg.ref]);
-  return ref ? { highlight: { from: firstSeg.address, to: lastSeg.address }, ref } : null;
+export function wholeSectionRange(rangeRef: string, sectionRefs: readonly string[], passages: readonly TextPassage[]): { highlight: Highlight; ref?: string } | null {
+  if (!isRangedRef(rangeRef)) return null;
+  const end = parseHumanRef(rangeRef).toSections;
+  const first = passages.find((p) => p.ref === sectionRefs[0]);
+  const firstSeg = first?.segments[0];
+  if (!firstSeg || !end.length || firstSeg.address.length !== end.length + 1) return null;
+  const last = passages.find((p) => p.ref === sectionRefs[sectionRefs.length - 1]);
+  const lastSeg = last?.segments.at(-1);
+  const complete = !!lastSeg && lastSeg.address.slice(0, -1).join(":") === end.join(":");
+  // "the end of the last section" by address: a segment number past any real one
+  return { highlight: { from: firstSeg.address, to: [...end, "999999"] }, ...(complete ? { ref: rangeOf([firstSeg.ref, lastSeg!.ref]) } : {}) };
 }
 
 /**

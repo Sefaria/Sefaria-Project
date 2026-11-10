@@ -281,7 +281,8 @@ test("windowing in a bilingual column with the sidebar open keeps the reader's v
 });
 
 // CODE_REVIEW low: a commentary range across chapters showed refs like "Rashi on Genesis 1:31:1:1" and lost its range (so the reader
-// arrived nowhere in particular); like any range that is not a portion, it arrives at its first comment and the address collapses to it
+// arrived nowhere in particular). It arrives at its first comment; being across chapters, it stays in the address and highlighted, as on
+// sefaria.org (owner decision 2026-11-10, e2e/ranges.spec.ts)
 test("a commentary range across chapters shows both chapters' comments and arrives at its first", async ({ page }) => {
   await open(page, "/Rashi_on_Genesis.1.31.1-2.2.1?lang=bi");
   const first = page.locator('[role="group"][data-ref="Rashi on Genesis 1:31:1"]');
@@ -289,7 +290,8 @@ test("a commentary range across chapters shows both chapters' comments and arriv
   await expect(first).toBeInViewport();
   await expect(page.locator('[role="group"][data-ref="Rashi on Genesis 2:2:1"]')).toHaveCount(1);
   await expect(page.locator('[data-ref="Rashi on Genesis 1:31:1:1"]')).toHaveCount(0);
-  await expect.poll(() => new URL(page.url()).pathname).toBe("/Rashi_on_Genesis.1.31.1");
+  await page.waitForTimeout(600); // past the moment a range inside one section collapses
+  expect(new URL(page.url()).pathname).toBe("/Rashi_on_Genesis.1.31.1-2.2.1");
 });
 
 // review F03: the sections the page opened with were always kept, and the trim behind the reader stopped at the first of them, so a

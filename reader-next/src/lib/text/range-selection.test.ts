@@ -35,11 +35,18 @@ describe("ranges and selection (legacy parity)", () => {
     expect(selectionAddress(["Genesis 1:3", "Genesis 1:4", "Genesis 1:5"], { sidebarOpen: false, sectionSegments })).toBe("Genesis 1:3-5");
     expect(selectionAddress(["Genesis 1:3"], { sidebarOpen: true, sectionSegments })).toBeUndefined();
   });
-  it("a range of whole sections is written by its segments, when every section is loaded", () => {
+  it("a range of whole sections is all highlighted, and written by its segments when its last section is loaded", () => {
     const passage = (ref: string, n: number) => ({ ref, segments: Array.from({ length: n }, (_, i) => ({ ref: `${ref}:${i + 1}`, address: [ref.split(" ")[1]!, String(i + 1)] })) }) as unknown as TextPassage;
     const all = [passage("Genesis 6", 22), passage("Genesis 7", 24), passage("Genesis 8", 22)];
-    expect(wholeSectionRange(["Genesis 6", "Genesis 7", "Genesis 8"], all)).toEqual({ highlight: { from: ["6", "1"], to: ["8", "22"] }, ref: "Genesis 6:1-8:22" });
-    expect(wholeSectionRange(["Genesis 6", "Genesis 7", "Genesis 8"], all.slice(0, 2))).toBeNull();
-    expect(wholeSectionRange(["Genesis 6"], all)).toBeNull();
+    const r = wholeSectionRange("Genesis 6-8", ["Genesis 6", "Genesis 7", "Genesis 8"], all)!;
+    expect(r.ref).toBe("Genesis 6:1-8:22");
+    expect(isHighlighted(["8", "22"], r.highlight, ["Integer", "Integer"])).toBe(true);
+    expect(isHighlighted(["9", "1"], r.highlight, ["Integer", "Integer"])).toBe(false);
+    // only the first sections loaded (a long range): highlighted to its end by address, the address left as asked
+    const capped = wholeSectionRange("Genesis 6-8", ["Genesis 6", "Genesis 7"], all.slice(0, 2))!;
+    expect(capped.ref).toBeUndefined();
+    expect(isHighlighted(["8", "5"], capped.highlight, ["Integer", "Integer"])).toBe(true);
+    expect(wholeSectionRange("Genesis 6", ["Genesis 6"], all)).toBeNull();
+    expect(wholeSectionRange("Genesis 6:3-8:2", ["Genesis 6"], all)).toBeNull(); // names segments: the planner's highlight
   });
 });

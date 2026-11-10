@@ -246,17 +246,18 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const isRangeArrival = (kind === undefined || kind === "go") && urlSegments.length > 1 && !keepsRange;
   // A range of whole sections ("Genesis 6-8", a commentary's verses "Rashi on Exodus 3:1-4:10") is all highlighted; without the
   // sidebar its address is written by its segments (Genesis.6.1-8.22), in place, as sefaria.org does.
-  const sectionRange = useMemo(() => (data.highlight ? null : wholeSectionRange(data.sectionRefs, initial)), [data.highlight, data.sectionRefs, initial]);
+  const sectionRange = useMemo(() => (data.highlight ? null : wholeSectionRange(data.ref, data.sectionRefs, initial)), [data.highlight, data.ref, data.sectionRefs, initial]);
   const rangeHighlight = keepsRange ? data.highlight : (sectionRange?.highlight ?? null);
   useEffect(() => {
     if (!isRangeArrival) return;
     const t = setTimeout(() => onSettled(urlSegments[0]!), SETTLE_MS);
     return () => clearTimeout(t);
   }, [isRangeArrival, urlSegments, onSettled]);
-  const writeSectionRange = (kind === undefined || kind === "go") && !!sectionRange && !panel.asides.length && sectionRange.ref !== data.ref;
+  const writeSectionRange = (kind === undefined || kind === "go") && !!sectionRange?.ref && !panel.asides.length && sectionRange.ref !== data.ref;
   useEffect(() => {
-    if (!writeSectionRange || !sectionRange) return;
-    apply((ws) => updatePanel(ws, id, { ref: sectionRange.ref }), { replace: true, state: { nav: "stay", panel: id } });
+    const ref = sectionRange?.ref;
+    if (!writeSectionRange || !ref) return;
+    apply((ws) => updatePanel(ws, id, { ref }), { replace: true, state: { nav: "stay", panel: id } });
   }, [writeSectionRange, sectionRange, apply, id]);
   const shownHighlight = useMemo(() => (picked ? highlightOf(picked, current.passage.book) : null) ?? rangeHighlight, [picked, current.passage.book, rangeHighlight]);
 

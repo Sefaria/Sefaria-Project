@@ -62,6 +62,65 @@ add(
     ],
 )
 
+# --- Rework 1 (2026-11-10): ranges and selection with legacy parity (owner decision), and the review's data-layer fixes ---
+
+V = "VERIFIED 2026-11-10 on www.sefaria.org (Playwright, interfaceLang=english; lane-D report, legacy-ranges probe)"
+RANGE = {
+    "id": "TXD-070",
+    "area": "text-display",
+    "group": "Scrolling",
+    "name": "Ranged address kept and highlighted across sections",
+    "summary": "A pasted range that crosses chapters or dapim stays in the address and every segment in it is highlighted light blue, sidebar open or closed; a range inside one section collapses to its first segment.",
+    "details": [
+        V + ": /Genesis.1.30-2.3 keeps its address and highlights 1:30-2:3 (sidebar closed and with=all); /Berakhot.2b.5-3a.2 the same (17 segments); /Rashi_on_Genesis.1.31.1-2.2.1 the same; /Genesis.1.3-5 collapses to /Genesis.1.3 (no highlight; with the sidebar, 1:3 is the current verse); /Genesis.6-8 is rewritten to /Genesis.6.1-8.22 and all 68 verses highlighted without the sidebar, and keeps /Genesis.6-8 (all highlighted) with it. Reading on drops the highlight and the address follows the verse (/Berakhot.2b.17).",
+        "Owner decision 2026-11-10: legacy parity; the new reader had collapsed every range. Built: src/lib/text/range-selection.ts, src/features/reader/TextPanel.tsx. Tests: src/lib/text/range-selection.test.ts, e2e/ranges.spec.ts, e2e/history.spec.ts.",
+    ],
+    "audience": "all",
+    "platform": "all",
+    "status": "core",
+    "tier": "standard",
+    "refs": [],
+    "src": "static/js/ReaderApp.jsx (history from highlightedRefs), static/js/TextRange.jsx (highlight), static/js/ReaderPanel.jsx (showHighlight)",
+}
+if "TXD-070" not in by:
+    atlas.append(RANGE)
+    by["TXD-070"] = RANGE
+print("TXD-070", by["TXD-070"]["name"])
+status["TXD-070"] = {"status": "done", "note": "Kept and highlighted across sections, sidebar open or closed (legacy parity, verified 2026-11-10)", "by": "src/lib/text/range-selection.ts, src/features/reader/TextPanel.tsx"}
+
+by["TXD-050"]["summary"] = "The segment being studied is marked light blue while the sidebar is open; several segments (a pasted range across sections, or text selected across segments) are marked whether or not the sidebar is open."
+add(
+    "TXD-050",
+    [
+        "Corrected 2026-11-10: the blue highlight also shows with the sidebar closed when more than one segment is highlighted (the old ReaderPanel showHighlight = showHighlight || highlightedRefs.length > 1). " + V + ": dragging a selection from Genesis 1:30 to 2:2 with the sidebar closed highlights the four verses; the sidebar does not open. Tests: e2e/ranges.spec.ts.",
+    ],
+)
+add(
+    "TXD-055",
+    [
+        "Corrected 2026-11-10: only a range inside one section is replaced by its first segment; a range across sections stays (TXD-070). " + V + ".",
+    ],
+)
+add(
+    "TXD-057",
+    [
+        "BUILT 2026-11-10 (legacy parity, " + V + "): text selected across several segments highlights them (blue) with the sidebar open or closed and never opens it; with the sidebar open the address becomes the range (/Genesis.1.30-2.2?with=all) and the sidebar shows it; closed, the address becomes the range only when it lies in the section being read (/Genesis.1.3-5), otherwise it stays (/Genesis.1.29); the entry is replaced, not added. Choosing a verse or reading on drops it. Tests: e2e/ranges.spec.ts ('selecting text across segments').",
+    ],
+)
+status["TXD-057"] = {"status": "partial", "note": "Multi-segment selection highlighted and written to the address as legacy (verified 2026-11-10); double-click guard not ported", "by": "src/lib/text/range-selection.ts, src/features/reader/TextPanel.tsx"}
+add(
+    "TXD-003",
+    [
+        "Review fix 2026-11-10: loaders read text and catalog with ensureQueryData(revalidateIfStale): a stale cached copy shows at once and is refetched behind it, so Back and section navigation never wait on the network (staff's 0 applies to revalidation only); neighbours are prefetched only when not in memory.",
+    ],
+)
+add(
+    "PLT-016",
+    [
+        "Review fix 2026-11-10: every disk call (reads, key scans, deletions) is bounded; after one timeout the disk is skipped for the rest of the visit; writes invalidate memory first and never wait on the disk; leaving for a Django editor waits at most 300 ms. Editor returns recognised: /edit, /translate, /add, /add/textinfo/<title>, /admin/reset/cache|counts/<title>, /admin/reset/toc (whole catalog), on the site origin or the page's own, on a navigation only (not a reload or Back).",
+    ],
+)
+
 status["PLT-016"] = status.get("PLT-016") or {
     "status": "partial",
     "note": "IndexedDB failure modes handled and unit-tested; no WebKit browser run yet",

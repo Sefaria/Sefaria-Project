@@ -99,24 +99,23 @@ export function normalize(href) {
  * scripts/ref-corpus.mjs prints these as "known" rather than "DIFF".
  */
 export const KNOWN_DIFFERENCES = {
-  // Ranges across sections. sefaria.org's answer depends on which section its column reports as "currently visible" when it first
-  // writes the URL, so the same address lands differently from one load to the next (seen on 2026-11-10: Genesis 1:30-2:3 kept once,
-  // collapsed once; Gittin 15a:8-15b:8 the same; Genesis 1:1-6:8 collapsed once, kept once). Not ported (a legacy race). This reader
-  // has one rule: a range collapses to its first verse in place (T-E03), a Torah portion or aliyah stays highlighted, and a range of
-  // whole sections becomes its first section. Open question for the owner: keep and highlight every range that crosses sections?
-  "/Genesis.1.30-2.3": "range across sections: collapses here; sefaria.org varies by load",
-  "/Genesis.6-8": "range of whole chapters: first chapter here (T-E03); sefaria.org writes Genesis.6.1-8.22 and highlights it",
-  "/Exodus.4.30-6.2": "range across sections (see above)",
-  "/Genesis.1.1-6.8": "a Torah portion: kept and highlighted here every time; sefaria.org varies by load",
-  "/Leviticus.15.3-17.12": "range across sections (see above)",
-  "/Rashi_on_Genesis.1.31.1-2.2.1": "commentary range across chapters (see above)",
-  "/Rashi_on_Exodus.3.1-4.10": "commentary range across chapters (see above)",
-  "/Rashi_on_Exodus.5.3-6.7": "commentary range across chapters (see above)",
-  "/Berakhot.2a-3b": "amud range (see above)",
-  "/Bava_Metzia.20b-21b": "amud range (see above)",
-  "/Berakhot.2": "a daf without an amud names two amudim: the first amud here; sefaria.org varies by load (Berakhot.2a.1 or 2a.1-2b.19)",
-  "/Zohar.1.15a.1": "Zohar's paragraph maps to a two-segment range of the alt structure (Zohar, Bereshit 1:1-2): its first segment here",
-  "/Rashi_on_Berakhot.3a.2.1-4a.3.1": "sefaria.org lands on Rashi on Berakhot 3b:1 (neither end of the range); here the range's first comment",
+  // Ranges. Owner decision 2026-11-10: legacy parity. A dedicated probe (three loads each, waiting for the text) found sefaria.org
+  // keeps a range across sections and highlights it every time; this script's quicker look (3 s after domcontentloaded, on a loaded
+  // machine) sometimes catches it before its client has written the address, and reports a collapse or the top of the chapter. These
+  // cases are therefore asserted by e2e/ranges.spec.ts against the probe's results; here they are listed as known when the live side
+  // raced.
+  "/Genesis.1.30-2.3": "kept and highlighted here (e2e/ranges.spec.ts); this run's live look raced",
+  "/Exodus.4.30-6.2": "range across sections: kept here; this run's live look raced",
+  "/Leviticus.15.3-17.12": "range across sections: kept here; this run's live look raced",
+  "/Gittin.15a.8-15b.8": "range across amudim: kept here; this run's live look raced",
+  "/Berakhot.2b.5-3a.2": "kept and highlighted here (e2e/ranges.spec.ts); this run's live look raced",
+  "/Berakhot.2a-3b": "range of whole amudim: written by its segments here (Berakhot.2a.1-3b.32); this run's live look raced",
+  "/Rashi_on_Berakhot.3a.2.1-4a.3.1": "kept here; sefaria.org's quick look lands on Rashi on Berakhot 3b:1 (neither end)",
+  "/Genesis.1.1-6.8": "a Torah portion: kept and highlighted; this reader puts only the first loaded sections in the page (the highlight carries on by address as the reader scrolls), sefaria.org all six chapters",
+  "/Rashi_on_Exodus.3.1-4.10": "a long range of whole sections: highlighted to its end by address, but only its first sections are loaded, so the address is left as asked; sefaria.org writes Rashi_on_Exodus.3.1.1-4.10.2",
+  "/Rashi_on_Exodus.5.3-6.7": "as /Rashi_on_Exodus.3.1-4.10",
+  "/Berakhot.2": "a daf without an amud: this reader opens 2a only; sefaria.org varies by load (Berakhot.2a.1 or 2a.1-2b.19)",
+  "/Zohar.1.15a.1": "Zohar's paragraph maps to a two-segment range of the alt structure (Zohar, Bereshit 1:1-2), one section: collapses to its first segment, as any range inside one section; sefaria.org keeps it",
   // Addresses that do not exist
   "/Genesis.1.35": "no such verse: not found here (decided 2026-11-02, wiki ref-resolution.md); sefaria.org shows Genesis 2",
   "/Rashi_on_Genesis.2.3.4": "no such comment: not found here (as above); sefaria.org shows the next verse's comments",
