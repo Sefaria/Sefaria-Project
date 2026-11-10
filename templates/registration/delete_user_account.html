@@ -12,15 +12,80 @@
         </h1>
         <h2> CAUTION THIS WILL DELETE THE USER ASSOCIATED WITH THE EMAIL YOU INPUT</h2>
         <h3>IT CANNOT BE UNDONE.</h3>
-        <form method="post" autocomplete="off" if="delete-form" action="{% url "delete/user-account" %}">
+        <form method="post" autocomplete="off" id="delete-form" action="{% url "delete/user-account" %}">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="button control-elem">
                 <span class="int-en">Delete User</span>
             </button>
         </form>
-        Note: deleting a user can take a while; once you hit "Delete User" please be patient as the user is deleted
-        from our system, and do not leave the page.
+        <p id="delete-status" role="status" aria-live="polite"></p>
+        Note: the deletion runs in the background. This page shows its progress; you can leave once it says the
+        deletion was queued. Submitting the same email again is harmless.
     </div>
 </div>
+{% endblock %}
+
+{% block js %}
+<script>
+(function () {
+    var form = document.getElementById("delete-form");
+    var status = document.getElementById("delete-status");
+    if (!form || !window.fetch) { return; }  // without fetch the form still posts and shows JSON
+
+    function show(text, link) {
+        status.textContent = text;
+        if (link) {
+            status.appendChild(document.createTextNode(" "));
+            var a = document.createElement("a");
+            a.href = link;
+            a.target = "_blank";
+            a.rel = "noopener";
+            a.textContent = "Task status";
+            status.appendChild(a);
+        }
+    }
+
+    function poll(url, label, attempt) {
+        fetch(url, {credentials: "same-origin"})
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.ready && data.state === "SUCCESS") {
+                    show(label + " Done: the user is deleted.", url);
+                } else if (data.ready) {
+                    show(label + " Failed: " + (data.error || data.state) + ". Contact a developer.", url);
+                } else if (attempt < 200) {  // ~10 minutes, longer than the task's retries
+                    show(label + " Still running (" + data.state + ")...", url);
+                    setTimeout(function () { poll(url, label, attempt + 1); }, 3000);
+                } else {
+                    show(label + " Still not finished. Check the task status later.", url);
+                }
+            })
+            .catch(function () {
+                show(label + " Could not check progress. Check the task status later.", url);
+            });
+    }
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var button = form.querySelector("button[type=submit]");
+        button.disabled = true;
+        show("Submitting...");
+        fetch(form.action, {method: "POST", body: new FormData(form), credentials: "same-origin"})
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.failure) {
+                    show("Not deleted: " + data.failure);
+                } else if (data.status_url) {
+                    show(data.success, data.status_url);
+                    poll(data.status_url, data.success, 0);
+                } else {
+                    show(data.success || JSON.stringify(data));
+                }
+            })
+            .catch(function (err) { show("Request failed: " + err + ". Try again or contact a developer."); })
+            .then(function () { button.disabled = false; });
+    });
+})();
+</script>
 {% endblock %}
