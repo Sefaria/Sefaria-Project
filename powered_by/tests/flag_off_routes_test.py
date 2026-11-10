@@ -47,8 +47,6 @@ def test_C9_the_route_list_covers_every_developer_surface():
         "/settings/developer/confirm-email/1",
         "/settings/developer/email-confirmed",
         "/api/developer/state",
-        "/api/developer/listings/1/claim",
-        "/api/developer/listings/1/dismiss",
     ):
         assert expected in GATED_URLS
 

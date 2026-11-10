@@ -88,12 +88,6 @@ export class DeveloperSettingsPage extends HelperBase {
         return response;
     }
 
-    // Listings ("Is this your project?")
-
-    listingDialog(): Locator {
-        return this.page.locator('[role="dialog"][aria-labelledby="devPocYourListingTitle"]');
-    }
-
     // Projects
 
     newProjectButton(): Locator {
@@ -167,16 +161,5 @@ export class DeveloperSettingsPage extends HelperBase {
 
     restrictionSwitch(project: Locator, label: string): Locator {
         return project.getByRole('checkbox', { name: new RegExp(`^Only accept requests from .+ \\(${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)$`) });
-    }
-
-    // Test controls (DEVELOPER_SETTINGS_MOCKS only)
-
-    testControls(): Locator {
-        return this.page.locator('.devPocPanel');
-    }
-
-    async collapseTestControls() {
-        const hide = this.page.getByRole('button', { name: 'Collapse test controls' });
-        if (await hide.isVisible()) await hide.click();
     }
 }

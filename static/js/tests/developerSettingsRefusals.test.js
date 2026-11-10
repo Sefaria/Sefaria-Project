@@ -49,12 +49,6 @@ const PROFILE = {
 };
 const UNVERIFIED = { developerEnabled: false, ssoConnected: false, emailVerified: false };
 const LINK_SENT = { ...UNVERIFIED, confirmationSentAt: new Date().toISOString() };
-const LISTING = {
-  id: '42',
-  name: 'Mishnah Yomit Tracker',
-  url: 'https://mishnahtracker.app',
-  description: 'Track your daily two mishnayot and share progress with a study group.',
-};
 const project = (extra = {}) => ({
   id: 'proj01',
   name: 'Daf Tracker',
@@ -139,7 +133,6 @@ const accountPanel = () => container.querySelectorAll('.settingsPanel')[0];
 const developerPanel = () => container.querySelectorAll('.settingsPanel')[1];
 const buttonNamed = (root, name) =>
   Array.from(root.querySelectorAll('button')).find((b) => b.textContent.trim() === name);
-const yourListingDialog = () => container.querySelector('[aria-labelledby="devPocYourListingTitle"]');
 const noWebsiteDialog = () => container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]');
 
 const typeInto = (input, value) => {

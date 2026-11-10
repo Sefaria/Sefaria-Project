@@ -241,16 +241,3 @@ def key_api(request, key_id):
     else:
         developer.set_key_restriction(request.user, key_id, bool(request.json.get("restrictToWebsite")))
     return state_response(request)
-
-
-@requires_developer_settings
-@require_http_methods(["POST"])
-@developer_api
-def listing_api(request, listing_id, action):
-    if action == "claim":
-        developer.require_verified_developer(request)
-        project = developer.claim_listing(request.user, listing_id)
-        return state_response(request, projectId=str(project.id))
-    developer.require_developer(request)
-    developer.dismiss_listing(request.user, listing_id)
-    return state_response(request)

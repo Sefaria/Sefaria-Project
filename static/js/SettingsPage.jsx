@@ -7,12 +7,10 @@ import {
   MAX_DESCRIPTION_LENGTH,
   accountVerified,
   cancelConfirmation,
-  claimListing,
   createKey,
   createProject,
   deleteKey,
   deleteProject,
-  dismissListing,
   emptyState,
   enableDeveloper,
   parseWebsite,
@@ -385,11 +383,6 @@ const AgentInstructions = () => (
         changed here. Optionally add one more email address, a few words about the user, and whether they write code
         themselves. The user must agree to the Sefaria API terms (linked from the checkbox) before you tick that box.
         Leave the developer news box unticked unless the user asks for it. Press &quot;Continue&quot; (save-profile).
-      </li>
-      <li>
-        If a dialog asks &quot;Is this your project?&quot; about a Powered by Sefaria listing, ask the user. &quot;Yes,
-        add it&quot; (claim-listing) adds it as a public project linked to the listing; &quot;No, it&apos;s not
-        mine&quot; (not-my-listing) stops the question; &quot;Not now&quot; (listing-not-now) asks again next visit.
       </li>
       <li>
         Under &quot;Projects&quot;, press &quot;Create your first project&quot; or &quot;New project&quot;
@@ -1055,19 +1048,6 @@ const ProfileForm = ({ profile, onSave, onCancel }) => {
   );
 };
 
-/* A listing's public fields only: what anyone can already see on Powered by Sefaria. */
-const ListingSummary = ({ id, listing }) => (
-  <div className="devPocListingSummary" id={id}>
-    <strong dir="auto">{listing.name}</strong>{' '}
-    <span className="devPocMuted" dir="ltr">
-      ({listing.url})
-    </span>
-    <p className="devPocHelp" dir="auto">
-      {listing.description}
-    </p>
-  </div>
-);
-
 const ContactLink = () => (
   <a className="devPocContactLink" href={'mailto:' + CONTACT_EMAIL} dir="ltr">
     {CONTACT_EMAIL}
@@ -1248,97 +1228,6 @@ const CharacterCount = ({ id, length }) => (
     {length}/{MAX_DESCRIPTION_LENGTH}
   </p>
 );
-
-/* A listing submitted with this account's verified email. "Yes" turns it into a public
-   project linked to the listing; nothing is linked without that answer. */
-const YourListingDialog = ({ listing, onYes, onNo, onLater }) => {
-  const yesRef = useRef(null);
-  const busy = useRef(false);
-  const [pending, setPending] = useState(false);
-  const mounted = useRef(true);
-  useEffect(
-    () => () => {
-      mounted.current = false;
-    },
-    []
-  );
-  useDialogKeys(yesRef, onLater);
-  /* One answer at a time: the buttons are disabled until the server replies. */
-  const answer = (send) => () => {
-    if (busy.current) {
-      return;
-    }
-    busy.current = true;
-    setPending(true);
-    Promise.resolve(send()).finally(() => {
-      busy.current = false;
-      if (mounted.current) {
-        setPending(false);
-      }
-    });
-  };
-  return (
-    <div
-      className="devPocModalStage devPocConfirmStage"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="devPocYourListingTitle"
-      aria-describedby="devPocYourListingBody devPocYourListingSummary devPocYourListingAfter"
-    >
-      <section className="devPocDialog">
-        <h2 id="devPocYourListingTitle">
-          <InterfaceText text={{ en: 'Is this your project?', he: 'האם זה הפרויקט שלך?' }} />
-        </h2>
-        <p id="devPocYourListingBody">
-          <InterfaceText
-            text={{
-              en: 'This project on Powered by Sefaria was submitted with your email address.',
-              he: 'הפרויקט הזה ב־Powered by Sefaria נשלח עם כתובת האימייל שלך.',
-            }}
-          />
-        </p>
-        <ListingSummary id="devPocYourListingSummary" listing={listing} />
-        <p id="devPocYourListingAfter">
-          <InterfaceText
-            text={{
-              en: "If it's yours, we'll add it to your projects with these details, so you can create an API key for it. It stays public, like the listing, and you can edit it afterwards.",
-              he: 'אם הוא שלך, נוסיף אותו לפרויקטים שלך עם הפרטים האלה, כדי שתוכלו ליצור לו מפתח API. הוא יישאר ציבורי, כמו הרישום, ואפשר לערוך אותו אחר כך.',
-            }}
-          />
-        </p>
-        <div className="devPocActions">
-          <button
-            type="button"
-            className="button small blue"
-            ref={yesRef}
-            data-agent-action="claim-listing"
-            aria-disabled={pending}
-            onClick={answer(onYes)}
-          >
-            <InterfaceText text={{ en: 'Yes, add it', he: 'כן, להוסיף' }} />
-          </button>
-          <button
-            type="button"
-            className="button small white"
-            data-agent-action="not-my-listing"
-            aria-disabled={pending}
-            onClick={answer(onNo)}
-          >
-            <InterfaceText text={{ en: "No, it's not mine", he: 'לא, זה לא שלי' }} />
-          </button>
-          <button
-            type="button"
-            className="button small transparent"
-            data-agent-action="listing-not-now"
-            onClick={onLater}
-          >
-            <InterfaceText text={{ en: 'Not now', he: 'לא עכשיו' }} />
-          </button>
-        </div>
-      </section>
-    </div>
-  );
-};
 
 /* A public project may already have been published, so neither making it private nor
    deleting it can promise it disappears everywhere. */
@@ -2504,16 +2393,10 @@ const DeveloperTab = ({
   expandProject,
   onStart,
   settingUp,
-  active,
 }) => {
   const profileName = accountName() || (state.profile ? state.profile.developerName : '');
   const canCreate = accountVerified(state);
-  const [askLaterListingId, setAskLaterListingId] = useState(null);
-  const yourListing = state.yourListing;
   const projectsHeadingRef = useRef(null);
-  /* The listing question is a modal, so it waits until this tab is the one showing. */
-  const askAboutListing =
-    active && yourListing && developerOn && state.profile && !showNewProject && askLaterListingId !== yourListing.id;
 
   const projectDeleted = () => {
     expandProject(null);
@@ -2728,21 +2611,6 @@ const DeveloperTab = ({
           ))}
         </React.Fragment>
       )}
-
-      {askAboutListing ? (
-        <YourListingDialog
-          key={yourListing.id}
-          listing={yourListing}
-          onYes={() =>
-            run(claimListing(yourListing.id), { refresh: true }).then(
-              (data) => expandProject(data.projectId),
-              () => {}
-            )
-          }
-          onNo={() => run(dismissListing(yourListing.id), { refresh: true }).catch(() => {})}
-          onLater={() => setAskLaterListingId(yourListing.id)}
-        />
-      ) : null}
     </div>
   );
 };
@@ -3528,7 +3396,6 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
         expandProject={expandProject}
         onStart={startDeveloper}
         settingUp={settingUp}
-        active={tab === 'developer'}
       />
     ),
   };

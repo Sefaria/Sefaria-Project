@@ -3,12 +3,9 @@ Account states for the account suite, on the local stack only.
 
     python account_fixtures.py show --role password
     python account_fixtures.py reset-settings --role password [--interface-language english|hebrew]
-    python account_fixtures.py listing --role gauth --name <name> --marker <marker>
 
 `show` prints the saved account settings the specs assert on. `reset-settings` puts them back to
-the seeded values before a test changes them. `listing` adds a Powered by listing submitted with
-the account's email that no account manages yet; it carries the run marker, so the seed teardown
-removes it.
+the seeded values before a test changes them.
 
 Every command prints one JSON object. Run with the stack's settings (PYTHONPATH pointing at
 auth-service/dev/local-stack, DJANGO_SETTINGS_MODULE=django_settings).
@@ -18,7 +15,6 @@ import argparse
 import importlib.util
 import json
 import os
-import re
 import sys
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -36,13 +32,10 @@ _spec.loader.exec_module(seed)
 
 from django.conf import settings  # noqa: E402
 from django.contrib.auth.models import User  # noqa: E402
-from django.utils import timezone  # noqa: E402
 
-from powered_by.models import Project, SubmissionSource  # noqa: E402
 from sefaria.model.user_profile import UserProfile  # noqa: E402
 
 SUITE = "account"
-MARKER = re.compile(r"^E2E api-keys \S+ \(temporary\)$")
 SHOWN_SETTINGS = ("email_notifications", "interface_language", "reading_history", "textual_custom", "library_assistant")
 
 
@@ -74,17 +67,13 @@ def main():
     reset = sub.add_parser("reset-settings")
     reset.add_argument("--role", required=True)
     reset.add_argument("--interface-language", choices=["english", "hebrew"], default="english")
-    listing = sub.add_parser("listing")
-    listing.add_argument("--role", required=True)
-    listing.add_argument("--name", required=True)
-    listing.add_argument("--marker", required=True)
     args = parser.parse_args()
 
     guard()
     user = fixture_user(args.role)
     if args.command == "show":
         print(json.dumps(shown(user)))
-    elif args.command == "reset-settings":
+    else:
         profile = UserProfile(id=user.id)
         profile.settings.update(
             {
@@ -97,24 +86,6 @@ def main():
         profile.settings.pop("library_assistant", None)
         profile.save()
         print(json.dumps(shown(user)))
-    else:
-        if not MARKER.match(args.marker):
-            raise SystemExit(f"Refusing: {args.marker!r} is not a run marker.")
-        project = Project.objects.create(
-            submission_source=SubmissionSource.MANUAL,
-            submission_date=timezone.now(),
-            creator=user.get_full_name(),
-            creator_email=user.email,
-            project_name=args.name,
-            project_link="https://listing-account-{}.example.com".format(
-                re.sub(r"[^a-z0-9]+", "-", args.name.lower()).strip("-")
-            ),
-            project_desc="Temporary end-to-end test listing.",
-            request_not_to_publish=True,
-            is_published=False,
-            notes=args.marker,
-        )
-        print(json.dumps({"id": project.id, "name": project.project_name, "ownerId": project.owner_id}))
 
 
 if __name__ == "__main__":

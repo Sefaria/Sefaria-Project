@@ -18,7 +18,7 @@ from django.test import Client, override_settings
 from sentry_sdk.transport import Transport
 
 from powered_by import developer
-from powered_by.models import ApiKey, ApiProject, Project, SubmissionSource
+from powered_by.models import ApiKey, ApiProject, Project
 from powered_by.tests.developer_api_test import DeveloperApiTestCase
 from sefaria.model.user_profile import UserProfile
 from sefaria.settings_utils import scrub_api_keys
@@ -91,7 +91,6 @@ class ProfileApiDeveloperStateTest(DeveloperApiTestCase):
         developer.CONFIRMATION_SENDS_SETTING: [],
         developer.ENABLED_SETTING: True,
         developer.PROFILE_SETTING: {"developerName": "x" * 5000, "termsAccepted": False},
-        developer.DISMISSED_LISTINGS_SETTING: [1, 2, 3],
     }
 
     def setUp(self):
@@ -163,21 +162,6 @@ class ProjectCapTest(DeveloperApiTestCase):
         self.call("delete", f"projects/{ApiProject.objects.filter(owner=self.user).first().id}")
 
         self.assertEqual(self.create("again")[0], 200)
-
-    def test_N_CR7_claiming_a_listing_counts_toward_the_cap(self):
-        self.fill()
-        listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK,
-            creator_email=self.user.email,
-            project_name="Submitted",
-            request_not_to_publish=False,
-            is_published=True,
-        )
-
-        status, body = self.call("post", f"listings/{listing.id}/claim")
-
-        self.assertEqual(status, 400)
-        self.assertFalse(ApiProject.objects.filter(profile_id=listing.id).exists())
 
     def test_N_CR7_staff_raise_the_cap_with_the_group(self):
         self.fill()

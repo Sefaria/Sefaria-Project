@@ -2,8 +2,7 @@
 # Brings the local API-keys stack up, or repairs whatever part of it is down. Idempotent.
 #   auth-service/dev/local-stack/up.sh
 # Env: ENVOY_VARIANT=default|keepunchanged (default: the last one used), DJANGO_RESTART=1 (restart both Django
-# servers, e.g. after changing DEVELOPER_SETTINGS_MOCKS), DEVELOPER_SETTINGS_MOCKS (Django :8100, default false),
-# SKIP_WEBPACK=1, AUTHSVC_REBUILD=1 (rebuild the auth service image from auth-service/; otherwise it is built
+# servers), SKIP_WEBPACK=1, AUTHSVC_REBUILD=1 (rebuild the auth service image from auth-service/; otherwise it is built
 # only when missing, so work in progress there never breaks a running stack), and the authsvc overrides
 # AUTH_MODE, GATED_PATHS, RELOAD_INTERVAL, PG_NOTIFY_CHANNEL, PG_DSN.
 set -euo pipefail
@@ -47,7 +46,7 @@ if [ -z "${SKIP_WEBPACK:-}" ]; then
 fi
 
 start_django() {
-  local port="$1" flag="$2" mocks="$3" pid
+  local port="$1" flag="$2" pid
   pid="$(django_pid "$port")"
   if [ -n "$pid" ] && [ -n "${DJANGO_RESTART:-}" ]; then
     log "stop Django :$port (pid $pid)"
@@ -62,15 +61,15 @@ start_django() {
   if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
     die "port $port is taken by a process this stack did not start"
   fi
-  log "start Django :$port (DEVELOPER_SETTINGS_ENABLED=$flag, MOCKS=$mocks)"
+  log "start Django :$port (DEVELOPER_SETTINGS_ENABLED=$flag)"
   # exec all the way down, so $! is the runserver pid and nothing holds this script's stdout open.
-  (cd "$REPO" && DEVELOPER_SETTINGS_ENABLED="$flag" DEVELOPER_SETTINGS_MOCKS="$mocks" \
+  (cd "$REPO" && DEVELOPER_SETTINGS_ENABLED="$flag" \
     exec nohup env -u FRONT_END_URL -u CI_RUN PYTHONPATH="$STACK_DIR" DJANGO_SETTINGS_MODULE=django_settings \
     "$PYTHON" manage.py runserver "$DJANGO_BIND:$port" --noreload) </dev/null >>"$(django_logfile "$port")" 2>&1 &
   echo $! >"$(django_pidfile "$port")"
 }
-start_django 8100 true "${DEVELOPER_SETTINGS_MOCKS:-false}"
-start_django 8101 false false
+start_django 8100 true
+start_django 8101 false
 
 wait_for() {
   local what="$1" tries="$2"; shift 2

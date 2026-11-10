@@ -1,6 +1,6 @@
 /**
- * Developer settings interactions that cross components: the listing question while another
- * tab is showing, double clicks on buttons that send a request, and Back from a project URL.
+ * Developer settings interactions that cross components: the Account tab of a developer,
+ * double clicks on buttons that send a request, and Back from a project URL.
  */
 
 jest.mock('../sefaria/sefaria', () => {
@@ -49,12 +49,6 @@ const PROFILE = {
 };
 const UNVERIFIED = { developerEnabled: false, ssoConnected: false, emailVerified: false };
 const LINK_SENT = { ...UNVERIFIED, confirmationSentAt: new Date().toISOString() };
-const LISTING = {
-  id: '42',
-  name: 'Mishnah Yomit Tracker',
-  url: 'https://mishnahtracker.app',
-  description: 'Track your daily two mishnayot and share progress with a study group.',
-};
 const project = (extra = {}) => ({
   id: 'proj01',
   name: 'Daf Tracker',
@@ -139,7 +133,6 @@ const accountPanel = () => container.querySelectorAll('.settingsPanel')[0];
 const developerPanel = () => container.querySelectorAll('.settingsPanel')[1];
 const buttonNamed = (root, name) =>
   Array.from(root.querySelectorAll('button')).find((b) => b.textContent.trim() === name);
-const yourListingDialog = () => container.querySelector('[aria-labelledby="devPocYourListingTitle"]');
 const noWebsiteDialog = () => container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]');
 
 const typeInto = (input, value) => {
@@ -199,17 +192,16 @@ afterEach(() => {
   container = null;
 });
 
-describe('the Account tab of a developer with an unclaimed listing', () => {
-  const mountAccountWithListing = () =>
+describe('the Account tab of a developer', () => {
+  const mountAccountOfDeveloper = () =>
     mount('account', {
       ...DEVELOPER_ON,
       profile: PROFILE,
       projects: [],
-      yourListing: LISTING,
     });
 
   it('leaves Tab to the browser on the Account tab', () => {
-    mountAccountWithListing();
+    mountAccountOfDeveloper();
     const changeEmail = container.querySelector('#change-email');
     act(() => {
       changeEmail.focus();
@@ -219,19 +211,8 @@ describe('the Account tab of a developer with an unclaimed listing', () => {
   });
 
   it('does not move focus into the hidden developer panel on load', () => {
-    mountAccountWithListing();
+    mountAccountOfDeveloper();
     expect(developerPanel().contains(document.activeElement)).toBe(false);
-  });
-
-  it('does not answer the hidden listing question when Escape is pressed on the Account tab', () => {
-    mountAccountWithListing();
-    const changeEmail = container.querySelector('#change-email');
-    act(() => {
-      changeEmail.focus();
-    });
-    pressOn(changeEmail, 'Escape');
-    render({ tab: 'developer' });
-    expect(yourListingDialog()).toBeTruthy();
   });
 });
 
@@ -252,19 +233,6 @@ describe('double clicks', () => {
       submit.click();
     });
     expect(calls('POST projects')).toBe(1);
-  });
-
-  it('claims a listing once from a double-clicked "Yes, add it"', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING });
-    never();
-    const yes = container.querySelector('[data-agent-action="claim-listing"]');
-    act(() => {
-      yes.click();
-    });
-    act(() => {
-      yes.click();
-    });
-    expect(calls('POST listings/42/claim')).toBe(1);
   });
 });
 

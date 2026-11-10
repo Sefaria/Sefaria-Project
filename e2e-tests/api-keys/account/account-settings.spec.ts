@@ -7,7 +7,7 @@ import { AccountSettingsPage } from '../../pages/accountSettingsPage';
 import { DeveloperSettingsPage } from '../../pages/developerSettingsPage';
 import { openHeaderDropdown, selectDropdownOption, hideAllModalsAndPopups } from '../../utils';
 import { LANGUAGES, t } from '../../globals';
-import { SUITE, addListing, closeOwnContexts, openAs, developerState, openSettings, other, savedSettings, selectedOption } from './accountFixtures';
+import { SUITE, closeOwnContexts, openAs, developerState, openSettings, other, savedSettings, selectedOption } from './accountFixtures';
 
 const PASSWORD = 'password';
 const GAUTH = 'gauth';
@@ -152,7 +152,7 @@ test.describe('account settings: password account', () => {
     });
   }
 
-  test('N-C6: Tab moves focus through the Account tab when no listing question waits (control)', async ({ account, browser, target }) => {
+  test('N-C6: Tab moves focus through the Account tab', async ({ account, browser, target }) => {
     const { page } = await openAs(account, browser, target, PASSWORD);
     await openSettings(page);
     const stops = await tabStops(page);
@@ -216,17 +216,16 @@ test.describe('account settings: Hebrew interface', () => {
   });
 });
 
-test.describe('account settings: developer with a listing waiting', () => {
+test.describe('account settings: developer', () => {
   test.describe.configure({ mode: 'default', timeout: t(240000) });
 
   let page: Page;
-  let listingId: number;
 
   test.beforeEach(async ({ account, browser, target }) => {
-    test.skip(target.name !== 'local', 'The listing fixture is made through the local stack database.');
+    test.skip(target.name !== 'local', 'The developer state is prepared through the local stack account.');
     ({ page } = await openAs(account, browser, target, GAUTH));
     await openSettings(page);
-    let state = await developerState(page);
+    const state = await developerState(page);
     if (!state.developerEnabled) {
       const enabled = await pageFetch(page, '/api/developer/enable', { method: 'POST' });
       expect(enabled.status, enabled.text).toBe(200);
@@ -238,17 +237,7 @@ test.describe('account settings: developer with a listing waiting', () => {
       });
       expect(profile.status, profile.text).toBe(200);
     }
-    state = await developerState(page);
-    listingId = Number(state.yourListing?.id ?? addListing(GAUTH, `Account listing ${Date.now().toString(36)}`).id);
     await openSettings(page);
-    expect(Number((await developerState(page)).yourListing?.id), 'the pending listing (the state API sends ids as strings)').toBe(listingId);
-  });
-
-  test('N-C6: Tab moves focus through the Account tab while a listing question waits on the hidden Developer tab', async () => {
-    const stops = await tabStops(page);
-    test.info().annotations.push({ type: 'evidence', description: `focus after each Tab: ${stops.join(' -> ')}` });
-    expect(new Set(stops).size, 'each Tab moves focus somewhere new').toBe(3);
-    for (const stop of stops) expect(stop, 'focus lands on a visible element').toMatch(/visible=true$/);
   });
 
   test('N-C7: a key made on the page is listed after a header link and Back, and history.state holds no full key value @known-gap S4', async () => {
@@ -273,9 +262,6 @@ test.describe('account settings: developer with a listing waiting', () => {
 
     const dev = new DeveloperSettingsPage(page, 'english');
     await dev.goto();
-    await expect(dev.listingDialog()).toBeVisible({ timeout: t(30000) });
-    await dev.action('listing-not-now').click();
-    await expect(dev.listingDialog()).toBeHidden();
     await dev.expandProject(project.name);
     const label = `N-C7 ${Date.now().toString(36)}`;
     await dev.createKey(dev.projectCard(project.name), label);
@@ -302,22 +288,5 @@ test.describe('account settings: developer with a listing waiting', () => {
     } finally {
       for (const key of [madeKey, baselineKey]) await pageFetch(page, `/api/developer/keys/${key.id}`, { method: 'DELETE' });
     }
-  });
-
-  test('N-C6: switching from the Account tab to the Developer tab asks about the listing (control)', async () => {
-    const dev = new DeveloperSettingsPage(page, 'english');
-    await dev.developerTabLink().first().click();
-    await page.waitForURL(/\/settings\/developer/, { timeout: t(30000) });
-    await expect(dev.listingDialog()).toBeVisible({ timeout: t(10000) });
-  });
-
-  test('N-C6: Escape on the Account tab leaves the listing question for the Developer tab', async () => {
-    await page.locator('#accountSettingsPage h1').click();
-    await page.keyboard.press('Escape');
-    const dev = new DeveloperSettingsPage(page, 'english');
-    await dev.developerTabLink().first().click();
-    await page.waitForURL(/\/settings\/developer/, { timeout: t(30000) });
-    await expect(dev.listingDialog(), 'the listing question is still asked').toBeVisible({ timeout: t(10000) });
-    expect(Number((await developerState(page)).yourListing?.id), 'the pending listing (the state API sends ids as strings)').toBe(listingId);
   });
 });

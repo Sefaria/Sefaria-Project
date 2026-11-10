@@ -8,7 +8,7 @@ import { t } from '../../globals';
 
 /**
  * Developer onboarding by emailed link, with real mail captured by the local stack's Mailpit
- * (mocks off). Each describe owns one onboarding account and runs its tests in order, because
+ * Each describe owns one onboarding account and runs its tests in order, because
  * every test resets that account first.
  */
 
@@ -18,7 +18,6 @@ const DAILY_LIMIT_MESSAGE = /You've asked for 5 links today/;
 function localMailOnly(role: OnboardingRole) {
   test.beforeEach(async ({ target }) => {
     test.skip(target.name !== 'local' || !target.hasMailbox, 'needs the local stack: Mailpit and direct fixture resets');
-    test.skip(target.mocks, 'mocks are on, so no mail is sent; N-C1 covers that journey');
     test.setTimeout(t(180000));
     await sessionReady(role);
   });
@@ -281,31 +280,5 @@ test.describe('onboarding.ssoVerified', () => {
     expect((await enabled).status()).toBe(200);
     await finishAboutYou(dev);
     await expect(activePanel(dev).getByText(refusal), `shown after onboarding: ${await visibleMessages(page)}`).toHaveCount(0);
-  });
-});
-
-test.describe('onboarding with mocks on (cauldron)', () => {
-  test('N-C1: the test-panel confirmation email confirms, and the waiting tab continues to About you', async ({ account, target }) => {
-    test.skip(!target.mocks, 'needs DEVELOPER_SETTINGS_MOCKS on (the cauldron)');
-    const { page, context } = await openAs(account, 'unverified');
-    const dev = await openDeveloperTab(page);
-    const sent = await askForLink(dev);
-    expect(sent.status()).toBe(200);
-    await expect(checkYourEmail(page)).toBeVisible();
-
-    const pill = page.getByRole('button', { name: /Test controls/ });
-    if (await pill.getAttribute('aria-expanded') === 'false') await pill.click();
-    await dev.action('mock-open-email').click();
-    const mail = page.getByRole('dialog', { name: 'Confirmation email' });
-    await expect(mail).toBeVisible();
-    const [confirmTab] = await Promise.all([
-      context.waitForEvent('page'),
-      mail.locator('[data-agent-action="mock-confirm-email"]').click(),
-    ]);
-    await confirmTab.waitForLoadState('domcontentloaded');
-    await expectThankYouPage(confirmTab);
-
-    await expect(dev.onboardingCard().getByRole('heading', { name: 'About you' })).toBeVisible({ timeout: t(15000) });
-    await expect(activePanel(dev).getByRole('status').filter({ hasText: 'Your email is confirmed.' })).toBeVisible();
   });
 });

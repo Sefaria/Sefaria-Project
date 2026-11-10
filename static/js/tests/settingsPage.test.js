@@ -335,77 +335,24 @@ describe('project website', () => {
   });
 });
 
-const yourListingDialog = () => container.querySelector('[aria-labelledby="devPocYourListingTitle"]');
-
 const LISTING = {
   id: '42',
   name: 'Mishnah Yomit Tracker',
-  url: 'https://mishnahtracker.app',
-  description: 'Track your daily two mishnayot and share progress with a study group.',
 };
 
-describe('"Is this your project?"', () => {
-  const mountWithListing = (state = {}) =>
-    mount('developer', {
-      ...DEVELOPER_ON,
-      profile: PROFILE,
-      projects: [],
-      yourListing: LISTING,
-      ...state,
-    });
-
-  it('asks about a listing submitted with the account email, showing only its public fields', () => {
-    mountWithListing();
-    const dialog = yourListingDialog();
-    expect(dialog.textContent).toContain('Is this your project?');
-    expect(dialog.textContent).toContain('Mishnah Yomit Tracker');
-    expect(dialog.textContent).toContain('mishnahtracker.app');
-    expect(dialog.textContent).not.toContain('tova@example.org');
-  });
-
-  it('asks nothing when no listing has the account email', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [] });
-    expect(yourListingDialog()).toBeNull();
-  });
-
-  it('asks nothing before developer settings are set up', () => {
-    mountWithListing({ profile: null });
-    expect(yourListingDialog()).toBeNull();
-  });
-
-  it('claims the listing and opens it as a project', async () => {
-    const setProjectId = jest.fn();
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING }, { setProjectId });
-    respondWith({
-      ...DEVELOPER_ON,
-      profile: PROFILE,
-      yourListing: null,
-      projectId: '42',
-      projects: [publicProject({ id: '42', name: LISTING.name, linkedListing: true })],
-    });
-    await clickAndSettle(buttonNamed(yourListingDialog(), 'Yes, add it'));
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/listings/42/claim', method: 'POST' });
-    expect(setProjectId).toHaveBeenLastCalledWith('42');
-    expect(yourListingDialog()).toBeNull();
+describe('a project linked to an older Powered by listing', () => {
+  it('says which listing the project is, once it is open', () => {
+    mount(
+      'developer',
+      {
+        ...DEVELOPER_ON,
+        profile: PROFILE,
+        projects: [publicProject({ id: '42', name: LISTING.name, linkedListing: true })],
+      },
+      { projectId: '42' }
+    );
     expect(container.querySelector('[data-agent-action="new-key"]')).toBeTruthy();
     expect(developerPanel().textContent).toContain('this is the Mishnah Yomit Tracker listing');
-  });
-
-  it('stops asking once the developer says it is not theirs', async () => {
-    mountWithListing();
-    respondWith({ ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: null });
-    await clickAndSettle(buttonNamed(yourListingDialog(), "No, it's not mine"));
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/listings/42/dismiss', method: 'POST' });
-    expect(yourListingDialog()).toBeNull();
-  });
-
-  it('can be put off until the next visit with Not now', () => {
-    mountWithListing();
-    act(() => {
-      buttonNamed(yourListingDialog(), 'Not now').click();
-    });
-    expect(yourListingDialog()).toBeNull();
-    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('no longer asks about websites that are already listed', () => {
@@ -846,11 +793,6 @@ describe('dialog keyboard behaviour', () => {
     const noWebsite = description(container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]'));
     expect(noWebsite).toContain('A website helps your project');
     expect(noWebsite).toContain('You can add it later');
-    ReactDOM.unmountComponentAtNode(container);
-    container.remove();
-
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING });
-    expect(description(yourListingDialog())).toContain('Mishnah Yomit Tracker');
   });
 
   it('returns focus to the button that opened the new-project form when it is cancelled', () => {
@@ -948,12 +890,6 @@ describe('Hebrew interface', () => {
     expect(developerPanel().textContent).toContain('הגדרות מפתחים');
     expect(developerPanel().textContent).toContain('עדיין אין פרויקטים');
     expect(developerPanel().textContent).not.toContain('No projects yet');
-  });
-
-  it('asks "Is this your project?" in Hebrew', () => {
-    Sefaria.interfaceLang = 'hebrew';
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING });
-    expect(yourListingDialog().textContent).toContain('האם זה הפרויקט שלך?');
   });
 
   it('shows a server error from the developer API in Hebrew', async () => {

@@ -1,19 +1,12 @@
 """
 The developer settings writer on API projects: the state shape, the website restriction on update,
-a claimed legacy listing deleted with its account, the unpublishing of a deleted settings-made
+a linked legacy listing deleted with its account, the unpublishing of a deleted settings-made
 project, and ids that are API project ids rather than profile ids.
 """
 
-from unittest.mock import patch
-
-from allauth.account.models import EmailAddress
-from django.test import Client
-from django.utils import timezone
-
 from powered_by import developer
 from powered_by.models import ApiKey, ApiProject, Project, SubmissionSource
-from powered_by.tests.developer_api_test import PROFILE, PROJECT, DeveloperApiTestCase
-from reader.conftest import create_test_user, purge_test_profiles
+from powered_by.tests.developer_api_test import PROJECT, DeveloperApiTestCase
 
 STATE_KEYS = {
     "developerEnabled",
@@ -22,7 +15,6 @@ STATE_KEYS = {
     "confirmationSentAt",
     "profile",
     "projects",
-    "yourListing",
     "maxKeysPerProject",
 }
 PROJECT_KEYS = {
@@ -101,21 +93,18 @@ class WebsiteRestrictionTest(DeveloperApiTestCase):
         self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
 
 
-class ClaimedListingAccountDeletionTest(DeveloperApiTestCase):
-    def test_claimed_legacy_listing_is_unpublished_with_the_account_and_not_claimable_again(self):
+class LinkedListingAccountDeletionTest(DeveloperApiTestCase):
+    def test_linked_legacy_listing_is_unpublished_with_the_account(self):
         self.set_up_developer()
-        email = self.user.email
         listing = Project.objects.create(
             submission_source=SubmissionSource.FORMSTACK,
-            creator_email=email,
+            creator_email=self.user.email,
             project_name="Tehillim Circle",
             project_link="https://tehillimcircle.org",
             request_not_to_publish=False,
             is_published=True,
         )
-        status, state = self.call("post", f"listings/{listing.id}/claim")
-        self.assertEqual(status, 200, state)
-        api_id = state["projectId"]
+        api_id = str(ApiProject.objects.create(profile=listing, owner=self.user).id)
         status, state = self.call(
             "post",
             "projects/" + api_id,
@@ -143,23 +132,6 @@ class ClaimedListingAccountDeletionTest(DeveloperApiTestCase):
         self.assertIsNone(api_project.owner_id)
         self.assertIsNotNone(api_project.deleted_at)
         self.assertIsNotNone(ApiKey.objects.get(id=key_id).revoked_at)
-
-        other = create_test_user("devapiagain")
-        purge_test_profiles(other)
-        try:
-            EmailAddress.objects.create(user=other, email=email, primary=True, verified=True)
-            other.email = email
-            other.save()
-            client = Client()
-            client.force_login(other)
-            self.assertEqual(self.call("post", "enable", client=client)[0], 200)
-            self.assertEqual(self.call("post", "profile", {"profile": PROFILE}, client=client)[0], 200)
-
-            status, state = self.call("post", f"listings/{listing.id}/claim", client=client)
-
-            self.assertEqual(status, 404, state)
-        finally:
-            purge_test_profiles(other)
 
 
 class DeletedSettingsProjectTest(DeveloperApiTestCase):
@@ -192,6 +164,14 @@ class ApiProjectIdTest(DeveloperApiTestCase):
     def test_ids_are_api_project_ids_not_profile_ids(self):
         project = self.create_project()
         api_project = ApiProject.objects.get(id=int(project["id"]))
+        if api_project.id == api_project.profile_id:
+            # Sequences are not reset between tests, so the two ids can line up by chance. One more filler profile
+            # shifts the profile sequence, and the next project is then guaranteed to differ.
+            Project.objects.create(
+                submission_source=SubmissionSource.MANUAL, project_name="Filler 2", is_published=False
+            )
+            project = self.create_project()
+            api_project = ApiProject.objects.get(id=int(project["id"]))
 
         self.assertNotEqual(api_project.id, api_project.profile_id)
         self.assertEqual(project["id"], str(api_project.id))
@@ -278,59 +258,3 @@ class ContactEmailLengthTest(DeveloperApiTestCase):
 
         self.assertEqual(status, 400, state)
         self.assertEqual(ApiProject.objects.get(id=int(project_id)).contact_email, "dev@example.org")
-
-
-class ClaimGuardsTest(DeveloperApiTestCase):
-    def setUp(self):
-        super().setUp()
-        self.set_up_developer()
-
-    def make_listing(self, **fields):
-        return Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK,
-            creator_email=self.user.email,
-            project_name="Tehillim Circle",
-            project_link="https://tehillimcircle.org",
-            request_not_to_publish=False,
-            is_published=True,
-            **fields,
-        )
-
-    def test_a_claim_that_loses_a_race_for_the_listing_is_refused_not_a_server_error(self):
-        listing = self.make_listing()
-        rival = create_test_user("devapirival")
-        purge_test_profiles(rival)
-
-        class Stale:
-            """The eligibility check answered before the rival's API project existed: it still finds the listing."""
-
-            def get(self, **kwargs):
-                return Project.objects.get(**kwargs)
-
-        try:
-            ApiProject.objects.create(profile=listing, owner=rival)  # committed by the rival after the check
-            with patch.object(developer, "unclaimed_listings", lambda user, profile: Stale()):
-                status, state = self.call("post", f"listings/{listing.id}/claim")
-
-            self.assertEqual(status, 404, state)
-            self.assertEqual(
-                list(
-                    ApiProject.objects.filter(profile=listing, deleted_at__isnull=True).values_list(
-                        "owner_id", flat=True
-                    )
-                ),
-                [rival.id],
-            )
-            self.assertEqual(self.call("get", "state")[0], 200)  # the request's transaction is still usable
-        finally:
-            purge_test_profiles(rival)
-
-    def test_a_soft_deleted_legacy_listing_is_not_offered_and_a_claim_of_it_is_refused(self):
-        listing = self.make_listing(deleted_at=timezone.now())
-
-        state = self.call("get", "state")[1]
-        status, claimed = self.call("post", f"listings/{listing.id}/claim")
-
-        self.assertIsNone(state["yourListing"])
-        self.assertEqual(status, 404, claimed)
-        self.assertFalse(ApiProject.objects.filter(profile=listing).exists())
