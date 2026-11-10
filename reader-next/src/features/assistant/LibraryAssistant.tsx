@@ -5,6 +5,7 @@ import { anonymousAccess, assistantAccessQuery, ANONYMOUS_FREE_ANSWERS_KEY } fro
 import { isAuthPath, withNext } from "~/lib/auth/utils";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { Link } from "~/ui/Link/Link";
+import styles from "./LibraryAssistant.module.css";
 import { assistantAttributes, assistantBuild, versionCookie, versionFromCookie, versionFromQuery } from "~/lib/assistant/config";
 import { loadAssistantScript } from "~/lib/assistant/script";
 import { PUBLIC_CONFIG } from "~/lib/config";
@@ -53,7 +54,7 @@ export const ASSISTANT_SIGNUP_SOURCE = "rate_limit_login_button";
  */
 function AssistantSignupOptions({ next }: { next: string }) {
   return (
-    <div slot="signup-options" data-signup-source={ASSISTANT_SIGNUP_SOURCE} style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+    <div slot="signup-options" data-signup-source={ASSISTANT_SIGNUP_SOURCE} className={styles.signupOptions}>
       <Link href={withNext("/register", next)}><InterfaceText en="Sign up" he="להרשמה" /></Link>
       <Link href={withNext("/login", next)}><InterfaceText en="Log in" he="התחברות" /></Link>
     </div>

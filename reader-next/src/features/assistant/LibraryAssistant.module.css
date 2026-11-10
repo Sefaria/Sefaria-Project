@@ -1,0 +1,5 @@
+/* The sign-up options a signed-out visitor sees in the assistant's login prompt (its `signup-options` slot) */
+.signupOptions { display: flex; gap: 12px; justify-content: center; }
+/* They show only inside the widget: until its script defines the element, or if it never loads, they would be plain page content
+   (static/css/library-assistant.scss, the same rule) */
+:global(lc-chatbot:not(:defined)) > .signupOptions { display: none; }
