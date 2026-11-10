@@ -144,6 +144,12 @@ export function repairGershayimVariant(query: string, d: NameResponse): string {
   return query;
 }
 
+/** One step of the old getQueryObj: the case repair first, else the gershayim repair; the query itself when neither applies. */
+export function repairQuery(query: string, d: NameResponse): string {
+  const recased = repairCaseVariant(query, d);
+  return recased !== query ? recased : repairGershayimVariant(query, d);
+}
+
 /** What pressing Enter on a typed query does. */
 export type QueryOutcome =
   | { kind: "ref"; ref: string; isBook: boolean }
