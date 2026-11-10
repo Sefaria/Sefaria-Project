@@ -35,8 +35,9 @@ def test_available_follows_the_setting():
         assert not reader_choice.available()
 
 
-def _request(cookies=None):
+def _request(cookies=None, module="library"):
     request = RequestFactory().get("/settings/account")
+    request.active_module = module
     request.COOKIES.update(cookies or {})
     return request
 
@@ -53,21 +54,53 @@ def test_apply_cookie_sets_and_clears(_):
 
 class _User:
     is_authenticated = True
+    is_staff = True
     id = 7
 
 
-def _middleware_response(profile_choice, cookie=None, synced=False):
-    request = _request({"reader_version": cookie} if cookie else {})
-    request.user = _User()
+class _Member(_User):
+    is_staff = False
+
+
+class _Anonymous:
+    is_authenticated = False
+    is_staff = False
+
+
+def _middleware_response(
+    profile_choice,
+    cookie=None,
+    synced=False,
+    user=None,
+    audience="staff",
+    view_sets_cookie=False,
+    module="library",
+    disabled=False,
+):
+    request = _request({"reader_version": cookie} if cookie else {}, module=module)
+    request.user = user or _User()
     request.session = {reader_choice.SESSION_SYNCED_KEY: True} if synced else {}
     profile = mock.Mock(settings={"reader_version": profile_choice} if profile_choice else {})
+
+    def view(r):
+        response = HttpResponse()
+        if view_sets_cookie:
+            response.set_cookie("reader_version", "next")
+        return response
+
     with (
         override_settings(READER_OPTIN=True),
         mock.patch("sefaria.model.user_profile.UserProfile", return_value=profile),
         mock.patch.object(reader_choice, "_cookie_domain", return_value=None),
+        mock.patch.object(reader_choice, "audience", return_value=audience),
+        mock.patch.object(reader_choice, "next_disabled", return_value=disabled),
     ):
-        response = reader_choice.ReaderChoiceMiddleware(lambda r: HttpResponse())(request)
+        response = reader_choice.ReaderChoiceMiddleware(view)(request)
     return request, response
+
+
+def _cleared(response):
+    return "reader_version" in response.cookies and response.cookies["reader_version"]["max-age"] == 0
 
 
 def test_middleware_brings_the_cookie_in_line_with_the_profile_once_per_session():
@@ -75,7 +108,7 @@ def test_middleware_brings_the_cookie_in_line_with_the_profile_once_per_session(
     assert response.cookies["reader_version"].value == "next"
     assert request.session[reader_choice.SESSION_SYNCED_KEY]
     _, response = _middleware_response("classic", cookie="next")
-    assert response.cookies["reader_version"]["max-age"] == 0
+    assert _cleared(response)
     _, response = _middleware_response("next", synced=True)
     assert "reader_version" not in response.cookies
 
@@ -84,4 +117,136 @@ def test_middleware_leaves_alone_who_never_chose_or_already_matches():
     _, response = _middleware_response(None, cookie="next")
     assert "reader_version" not in response.cookies
     _, response = _middleware_response("next", cookie="next")
+    assert "reader_version" not in response.cookies
+
+
+def test_middleware_clears_a_stale_cookie_of_a_member_while_the_audience_is_staff():
+    # even after this session already synced: the audience can shrink at any time
+    _, response = _middleware_response("next", cookie="next", user=_Member(), synced=True)
+    assert _cleared(response)
+    _, response = _middleware_response("next", cookie="next", user=_Member(), audience="all", synced=True)
+    assert "reader_version" not in response.cookies
+
+
+def test_middleware_does_not_hand_a_member_the_cookie_while_the_audience_is_staff():
+    request, response = _middleware_response("next", user=_Member())
+    assert "reader_version" not in response.cookies
+    assert request.session[reader_choice.SESSION_SYNCED_KEY]
+    _, response = _middleware_response("next", user=_Member(), audience="all")
+    assert response.cookies["reader_version"].value == "next"
+
+
+def test_middleware_clears_a_signed_out_cookie_only_while_the_audience_is_staff():
+    _, response = _middleware_response(None, cookie="next", user=_Anonymous())
+    assert _cleared(response)
+    _, response = _middleware_response(None, cookie="next", user=_Anonymous(), audience="all")
+    assert "reader_version" not in response.cookies
+    _, response = _middleware_response(None, user=_Anonymous())
+    assert "reader_version" not in response.cookies
+
+
+def test_middleware_leaves_a_cookie_the_view_set():
+    _, response = _middleware_response("classic", cookie="next", user=_Member(), view_sets_cookie=True)
+    assert response.cookies["reader_version"].value == "next"
+
+
+def test_middleware_does_nothing_where_the_choice_is_not_offered():
+    request = _request({"reader_version": "next"})
+    request.user = _Member()
+    request.session = {}
+    with override_settings(READER_OPTIN=False):
+        response = reader_choice.ReaderChoiceMiddleware(lambda r: HttpResponse())(request)
+    assert "reader_version" not in response.cookies
+
+
+@pytest.mark.parametrize(
+    "stored,expected", [(None, "staff"), ("staff", "staff"), ("all", "all"), (" ALL ", "all"), ("everyone", "staff")]
+)
+def test_audience_reads_remote_config_and_defaults_to_staff(stored, expected):
+    from remote_config import remoteConfigCache
+    from remote_config.keys import READER_OPTIN_AUDIENCE
+
+    values = {READER_OPTIN_AUDIENCE: stored} if stored is not None else {}
+    with mock.patch.object(remoteConfigCache, "get", side_effect=lambda k, d=None: values.get(k, d)):
+        assert reader_choice.audience() == expected
+
+
+@pytest.mark.parametrize(
+    "user,audience,optin,expected",
+    [
+        (_User(), "staff", True, True),
+        (_Member(), "staff", True, False),
+        (_Member(), "all", True, True),
+        (_Anonymous(), "all", True, False),
+        (_User(), "all", False, False),
+    ],
+)
+def test_may_use_next(user, audience, optin, expected):
+    with (
+        override_settings(READER_OPTIN=optin),
+        mock.patch.object(reader_choice, "audience", return_value=audience),
+        mock.patch.object(reader_choice, "next_disabled", return_value=False),
+    ):
+        assert reader_choice.may_use_next(user) is expected
+
+
+@pytest.mark.parametrize(
+    "posted,choice",
+    [("next", "next"), ("classic", "classic"), ("legacy", "classic"), (" Next ", "next"), ("on", None), (None, None)],
+)
+def test_parse_choice_is_strict(posted, choice):
+    assert reader_choice.parse_choice(posted) == choice
+
+
+def test_middleware_never_touches_a_voices_response():
+    # owner rule: Voices is untouched; nothing the middleware would do on the Library happens there
+    _, response = _middleware_response("next", cookie="next", user=_Member(), module="voices")
+    assert "reader_version" not in response.cookies
+    _, response = _middleware_response(None, cookie="next", user=_Anonymous(), module="voices")
+    assert "reader_version" not in response.cookies
+    request, response = _middleware_response("next", user=_User(), module="voices")
+    assert "reader_version" not in response.cookies
+    assert reader_choice.SESSION_SYNCED_KEY not in request.session
+
+
+# The kill switch: remote config feature.reader.next.disabled
+
+
+@pytest.mark.parametrize(
+    "stored,expected",
+    [(None, False), (False, False), (True, True), ("true", True), (" TRUE ", True), ("yes", False), (1, False)],
+)
+def test_next_disabled_reads_remote_config_and_defaults_to_false(stored, expected):
+    from remote_config import remoteConfigCache
+    from remote_config.keys import READER_NEXT_DISABLED
+
+    values = {READER_NEXT_DISABLED: stored} if stored is not None else {}
+    with mock.patch.object(remoteConfigCache, "get", side_effect=lambda k, d=None: values.get(k, d)):
+        assert reader_choice.next_disabled() is expected
+
+
+def test_the_kill_switch_closes_the_new_reader_to_everyone():
+    with (
+        override_settings(READER_OPTIN=True),
+        mock.patch.object(reader_choice, "audience", return_value="all"),
+        mock.patch.object(reader_choice, "next_disabled", return_value=True),
+    ):
+        assert reader_choice.in_audience(_User())
+        assert not reader_choice.may_use_next(_User())
+        assert not reader_choice.may_use_next(_Member())
+
+
+def test_middleware_under_the_kill_switch_clears_next_and_never_sets_it():
+    # staff with a next cookie, even after this session synced
+    _, response = _middleware_response("next", cookie="next", synced=True, disabled=True)
+    assert _cleared(response)
+    # the once-per-session sync does not hand out next
+    request, response = _middleware_response("next", disabled=True)
+    assert "reader_version" not in response.cookies
+    assert request.session[reader_choice.SESSION_SYNCED_KEY]
+    # signed out, even with the audience "all"
+    _, response = _middleware_response(None, cookie="next", user=_Anonymous(), audience="all", disabled=True)
+    assert _cleared(response)
+    # Voices: untouched
+    _, response = _middleware_response("next", cookie="next", disabled=True, module="voices")
     assert "reader_version" not in response.cookies

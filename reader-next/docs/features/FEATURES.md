@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**961 features**, 3932 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
+**961 features**, 3937 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 429 · partial 99 · todo 62 · replaced 46 · deferred 190 · n/a 135; 390 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 429 · partial 99 · todo 54 · replaced 46 · deferred 198 · n/a 135; 390 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -529,7 +529,7 @@ Source: `inv_02_reader_shell.md#5`
 ### Compare panel
 
 #### SHL-037 · Compare panel header
-`standard` `live` · rebuild: **todo** — Compare panel header (back, search, display settings) not built; build with the compare panel kind
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built
 
 Panels used to pick a second text have their own header with search and settings.
 
@@ -542,7 +542,7 @@ Code: [`static/js/ComparePanelHeader.jsx:19`](https://github.com/Sefaria/Sefaria
 Source: `inv_02_reader_shell.md#7`
 
 #### SHL-038 · Compare / 'other text' panel
-`standard` `live` · rebuild: **todo** — In-reader Compare Text panel not built: ResourcesView showCompare is never passed and Add Connection has no Browse `desktop only`
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built `desktop only`
 
 Readers can open a second text beside the first by picking it through a library browse flow.
 
@@ -3486,7 +3486,7 @@ Source: `inv_04_connections.md#16.3`
 ### Compare
 
 #### CON-066 · Compare text from sidebar
-`standard` `live` · rebuild: **todo** — In-reader Compare Text panel not built; showCompare is never passed so the row is hidden `desktop only`
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built `desktop only`
 
 The Compare Text tool replaces the sidebar with a text chooser to open a second text side-by-side.
 
@@ -4010,7 +4010,7 @@ Code: [`static/js/TextsPage.jsx:76-83`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_05_library_topics.md#1.2`
 
 #### LIB-003 · Library home in compare panel
-`standard` `live` · rebuild: **todo** — Library browsing inside the in-reader Compare Text panel is not built; ResourcesView's Compare Text opens Add Connection instead.
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built
 
 When the library is opened as a second 'compare' panel it shows a compact header with search and back instead of the title and extras.
 
@@ -4224,7 +4224,7 @@ Code: [`static/js/TextCategoryPage.jsx:421-442`](https://github.com/Sefaria/Sefa
 Source: `inv_05_library_topics.md#2.8`
 
 #### LIB-018 · Category page in compare panel
-`standard` `live` · rebuild: **todo** — Category pages inside the in-reader Compare Text panel (compact header, back up one level) are not built.
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built
 
 In a compare panel a category page shows a compact header with back navigation up one category level.
 
@@ -4961,7 +4961,7 @@ Code: [`static/js/BookPage.jsx:171-187`](https://github.com/Sefaria/Sefaria-Proj
 Source: `inv_05_library_topics.md#3.4`
 
 #### BOK-004 · Book page in compare panel
-`standard` `live` · rebuild: **todo** — Book page in a compare panel (compact control bar) not built; compare panels do not exist yet
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built
 
 Opening a book in a compare panel shows a compact reader-style control bar with back, title and display settings.
 
@@ -5774,6 +5774,7 @@ The topics pages read the topics table of contents, which the old site put in ev
 - Legacy: templates/js/data.js writes DJANGO_DATA_VARS.topic_toc (library.get_topic_toc(): the whole tree with titles, displayOrder, pools, shouldDisplay, description and categoryDescription) into the 9.4 MB /data.<ts>.js every page loads; Sefaria.topicTocPage / topicTocCategories / isTopicTopLevel read it. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 - GET /api/topics-toc (Sefaria-Project, 2026-10-06) serves the same JSON; sefaria.org answers 404 until it is deployed.
 - NEW READER (src/lib/topics/toc-source.ts): the server fetches /api/topics-toc, or on a 404 /data.js (sent as the 'sefaria-node' user agent, which Django's language middleware never redirects), extracts topic_toc and keeps it an hour for all requests; pages get a category's entries, the top-level slugs and the category's path, or the slug → category-path index for the landing search, through server functions (cached as catalog data).
+- SERVER 2026-11-10 (lane B): /api/topics-toc and /api/topics/library-count are GET only (405 otherwise) and the same for every visitor; the TOC is the JSON every legacy page already ships in data.js. Neither is in Varnish's cached list, on purpose (no purge on topic edits). v2 /api/v2/topics/<slug> always has `pools` ([] for a topic in no pool): existing branch behaviour, no code change, now covered by a test. Tests: reader/tests/topics_toc_api_test.py, reader/tests/num_library_topics_api_test.py, sefaria/helper/tests/topic_pools_test.py.
 
 Code: [`templates/js/data.js:8`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/js/data.js#L8), [`static/js/sefaria/sefaria.js:3240-3320`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3240-L3320), `reader/views.py topics_toc_api`
 
@@ -6270,7 +6271,7 @@ Code: [`static/js/Header.jsx:434`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_06_search.md#1`
 
 #### SRC-025 · Compare-panel search box
-`standard` `live` · rebuild: **todo** — In-reader Compare Text panel not built (MULTIPANEL_PLAN step 4); not in LAUNCH_PLAN §8: owner to confirm scope
+`standard` `live` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built
 
 A compare panel has its own plain search box that opens search results inside that panel.
 
@@ -6285,7 +6286,7 @@ Code: [`static/js/ComparePanelHeader.jsx:19`](https://github.com/Sefaria/Sefaria
 Source: `inv_06_search.md#1, 5.13`
 
 #### SRC-026 · Compare-panel search limitations
-`optional` `broken` · rebuild: **todo** — In-reader Compare Text panel not built (MULTIPANEL_PLAN step 4); not in LAUNCH_PLAN §8: owner to confirm scope
+`optional` `broken` · rebuild: **deferred** — Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built
 
 In compare mode, entity-tab Book category filters cannot be reached.
 
@@ -9530,6 +9531,8 @@ The classic server-rendered account settings page lets users set notification fr
 - reading history on/off (warning text); textual custom Sephardi/Ashkenazi (triggers calendars refetch w/ diaspora flag); Library Assistant on/off (/enable-library-assistant;
 - effective via library_assistant.is_enabled); Experiments toggle (only if user_has_experiments; /api/profile/experiments/opt-in).
 - Change email hidden when signed in via social providers (confirm email + password); Google Drive connected email + disconnect (/unlink-gauth) and connect Google; Save/Cancel (navigateBack()).
+- SERVER 2026-11-10 (lane B): the New Reader switch on /settings/account shows only while READER_OPTIN is on AND the remote-config key feature.reader.optin.audience includes the user: "staff" (default, also for a missing or unknown value; created by remote_config migration 0003) = is_staff only, "all" = every signed-in user. /api/profile ignores reader_version=next from anyone else. ReaderChoiceMiddleware clears a stale reader_version=next cookie of a non-staff user (and of any signed-out visitor) while the audience is "staff". Library host only: Voices responses never get or lose the cookie. Remote config reloads only in the process that saved it (no pub/sub): restart the web pods after changing the audience. Tests: reader/tests/reader_choice_api_test.py, sefaria/helper/tests/reader_choice_test.py.
+- SERVER 2026-11-10 (lane B, T-D05 server half): /api/reader-choice (Library host only). Every answer sets the csrftoken cookie if missing (GET first). GET -> {available, canChooseNext, reader, saved}; POST {"reader": "classic"|"legacy"|"next"} with X-CSRFToken: classic always works (signed out: cookie only; signed in: also profile.settings.reader_version), next only for the audience (else 403); answers {reader, saved} and sets or clears the cookie; never cached. Tests: reader/tests/reader_choice_api_test.py.
 
 Code: [`templates/account_settings.html:24-150`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/account_settings.html#L24-L150), [`templates/account_settings.html:249-304`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/account_settings.html#L249-L304), [`sefaria/model/user_profile.py:475-478`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/user_profile.py#L475-L478), [`reader/views.py:4558`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4558), [`reader/views.py:4243`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4243), [`templates/account_settings.html:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/account_settings.html#L1)
 
@@ -10114,6 +10117,7 @@ Informational pages are served as server templates with the site header, plus an
 - Sidebar _sidebar.html from SITE_SETTINGS.ABOUT_SIDEBAR_PAGES: About, Team, Jobs, Products, AI, Supporters, Testimonials, Metrics, Updates (New Additions), Annual Report, Terms, Privacy Policy; hidden on mobile (title shown instead)
 - **DEAD:** unrouted templates all_home.html, home.html, index.html, generic.html, connect.html, categorize-sheets.html (admin), contest/* (legacy leaderboards)
 - maintenance.html used for DOWN_FOR_MAINTENANCE (sefaria/views.py:293)
+- SERVER 2026-11-10 (lane B, T-B06 for F3/D-5): GET /<static page>?format=json[&lang=en|he] answers {path, lang, title, description, html (the content block), css, inlineCss, baseCss, bodyClass, hasScript} for every static_pages entry, /about and /ways-to-give by language, and /digitized-by-sefaria; Library host only (Voices unchanged); rendered for an anonymous desktop visitor, links to other modules absolute; public (max-age 3600) with lang, private without. Standalone documents (random-walk-through-torah, cloudflare_site_is_down_*) answer 404 {standalone: true}. Pages with hasScript (team, jobs, products, strategy, ...) mount legacy JS and are incomplete as HTML. Contract: reader/static_content.py. Tests: reader/tests/static_content_test.py.
 
 Code: [`sites/sefaria/urls.py:10`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sites/sefaria/urls.py#L10), [`reader/views.py:5052`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5052), [`sites/sefaria/site_settings.py:28`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sites/sefaria/site_settings.py#L28), [`templates/_sidebar.html`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/_sidebar.html)
 
@@ -14406,6 +14410,7 @@ A public feed of recent text edits, filterable by type, by user, or by segment, 
 - revert via POST /api/revert/<ref>/<lang>/<version>/<revision> (revert_api :4080 requires login); star ratings (jquery.raty).
 - robots.txt Disallows /activity/.
 - BUILT 2026-11-05, a text's revision history only (/activity/<ref>/<lang>/<version>[/<page>]?type=): title, version (Hebrew title in the Hebrew interface), the filter menu, the feed as activity_feed.html (text edits with their diff in green/red, connections, notes, index and term changes with 'details', version metadata, lexicon entries, reviews with a star score, sheets), Django's naturaltime, 'Older Activity »', noindex; refs open in the app. Data: GET /api/activity/<ref>/<lang>/<version>?type=&page= — reader/views.py segment_history_api, NEW on this branch (sefaria.org has no JSON for this page; until it is deployed the API's 404 makes the page a 404, which the server passes to Django). The reader's 'Revision History' link is now relative (same tab rule as live: a new tab). Not built: the site's and a user's activity, the leaderboard (still Django's), and the template's dead revert button. Tests: e2e/activity.spec.ts (the API answer written into the cassette), src/lib/activity/segment-history.test.ts.
+- SERVER 2026-11-10 (lane B): /api/activity/<ref>/<lang>/<version> requires sign-in as the page does (401 JSON signed out; the client must send the reader's cookies), validates page (1..100, else 400 before any lookup), is GET only and private, keeps 404 for an unknown ref or version, and carries the same events the page's template is given (parity test). Tests: reader/tests/segment_history_api_test.py.
 
 Code: [`reader/views.py:3963`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3963), [`reader/views.py:4080`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4080), [`templates/activity.html:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/activity.html#L1)
 
