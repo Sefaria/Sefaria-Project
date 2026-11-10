@@ -16,7 +16,10 @@ const PROPERTIES = [BOTTOM_BAR_HEIGHT, LAUNCHER_OFFSET];
 export function reserveBottomBar(el: HTMLElement | null, root: HTMLElement = document.documentElement): () => void {
   if (!el || typeof ResizeObserver === "undefined") return () => {};
   const observer = new ResizeObserver(() => {
-    for (const p of PROPERTIES) root.style.setProperty(p, `${el.offsetHeight}px`);
+    root.style.setProperty(BOTTOM_BAR_HEIGHT, `${el.offsetHeight}px`);
+    // tablet and wider: a corner card, clear of the button. Also set here, not only in CSS (`:root:has(…)`), for browsers without :has()
+    const wide = typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(min-width: 843px)").matches;
+    root.style.setProperty(LAUNCHER_OFFSET, wide ? "0px" : `${el.offsetHeight}px`);
   });
   observer.observe(el);
   return () => {
