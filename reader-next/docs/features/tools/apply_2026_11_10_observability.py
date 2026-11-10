@@ -21,7 +21,7 @@ def add(fid, lines):
 add(
     "ANL-017",
     [
-        "BUILT 2026-11-10 (decision D-8; Sentry stays out): a first-party reporter (src/lib/monitoring/error-reporter.ts) beacons window errors, unhandled rejections, React boundary errors (root, route via RouteError, each text panel) and hydration errors to PUBLIC_ERROR_ENDPOINT with navigator.sendBeacon; off when unset. Payload: message and stack (truncated; query strings, fragments and e-mail addresses scrubbed), release (APP_VERSION), route kind, signed-in flag, path without query, user-agent class, sample rate, ms since load. Sampled per page load (PUBLIC_ERROR_SAMPLE_RATE), at most 10 per page, duplicates once. The old track.js window.onerror 'Javascript Errors' UA event is kept. The receiving endpoint is not built yet (contract in rn-shared/reports/c-observability.md). Tests: src/lib/monitoring/error-reporter.test.ts, e2e/analytics-observability.spec.ts.",
+        "BUILT 2026-11-10 (decision D-8; Sentry stays out): a first-party reporter (src/lib/monitoring/error-reporter.ts) beacons window errors, unhandled rejections, React boundary errors (root, route via RouteError, each text panel) and hydration errors to PUBLIC_ERROR_ENDPOINT with navigator.sendBeacon; off when unset. Payload: message and stack (truncated; query strings, fragments and e-mail addresses scrubbed), release (APP_VERSION), route kind, signed-in flag, path without query, user-agent class, sample rate, ms since load. Installed at module load, before hydration (src/lib/monitoring/browser.ts). Path secrets collapsed (src/lib/monitoring/redact-path.ts); a non-Error throw reported by its type only; off for bots; 4xx API answers not reported; sampled per page load (PUBLIC_ERROR_SAMPLE_RATE), at most 10 per page and 30 per session, duplicates once. PUBLIC_ERROR_ENDPOINT must be same-origin. The old track.js window.onerror 'Javascript Errors' UA event is not ported (no UA hits, owner decision 2026-11-10). The receiving endpoint is not built yet (contract in rn-shared/reports/c-observability.md). Tests: src/lib/monitoring/error-reporter.test.ts, e2e/analytics-observability.spec.ts.",
     ],
 )
 status["ANL-017"] = {
@@ -33,14 +33,42 @@ status["ANL-017"] = {
 add(
     "ANL-010",
     [
-        "2026-11-10: the old ReaderApp.trackPageview still calls Track.setPageType (dimension5 = panels[0].menuOpen || mode) on every page, but the analytics parity harness (scripts/analytics-parity.mjs) shows the call never reaches GTM's ga tracker on www.sefaria.org: track.js binds `ga` when it loads, before analytics.js has created the tracker, so it uses its mock. The new reader sets dimension5 with the old values through the `ga` shim when a tracker exists (src/lib/analytics/page-dimensions.ts); a set sends no hit and nothing goes to gtag. Tests: src/lib/analytics/observability.test.ts, e2e/analytics-observability.spec.ts.",
+        "2026-11-10: the old ReaderApp.trackPageview still calls Track.setPageType (dimension5 = panels[0].menuOpen || mode) and the other Track.set* dimensions, but they only ever went to Universal Analytics, and on www.sefaria.org even that call never reaches a tracker (track.js binds `ga` before GTM's analytics.js has made it; VERIFIED with scripts/analytics-parity.mjs). GA4 receives no page-type dimension from the old client, so the new reader sends none (owner decision 2026-11-10: no Universal Analytics hits).",
     ],
 )
-status["ANL-010"] = {
-    "status": "done",
-    "note": "dimension5 set as the old code intends (the old client's call is lost to a load-order bug; see details)",
-    "by": "src/lib/analytics/page-dimensions.ts",
+
+add(
+    "ANL-016",
+    [
+        "Owner decision 2026-11-10: no Universal Analytics hits from the new reader. The old client's Track.event calls never fire on www.sefaria.org (track.js binds `ga` before the tracker exists, so they go to its mock; VERIFIED with scripts/analytics-parity.mjs) and the UA property is shut down. src/lib/analytics/core.ts uaEvent now only writes the in-page analytics log (tests keep the old names); nothing is sent to `ga`. The old window.onerror 'Javascript Errors' UA event is not ported for the same reason. The GA4 stream is unchanged.",
+    ],
+)
+status["ANL-016"] = {
+    "status": "replaced",
+    "note": "UA calls logged only, never sent (owner decision 2026-11-10: legacy's never fire, the property is shut down)",
+    "by": "src/lib/analytics/core.ts",
 }
+
+add(
+    "ANL-003",
+    [
+        "2026-11-10: on www.sefaria.org a reader's first page sends header_viewed twice, impression_type category_color_line and regular_header (parity diff). The new reader sent only the header's: its text panel mounts after the header has reported and set the shared session key. useOnceFullyVisible now judges the key as it was when the page loaded and lets each call site report once per page, so both are sent. Deliberate difference: a colour line first fully visible on a later in-app page of that first page load still reports. Tests: e2e/analytics-observability.spec.ts.",
+    ],
+)
+
+add(
+    "ANL-009",
+    [
+        "2026-11-10: the display-options button sends the old `onclick_ToolTipped {classes: 'readerOptionsTooltip tooltip-toggle', keywordTargets, interfaceLang}` (DisplaySettingsButton is a ToolTipped; TrackG4.gtagClick) when it opens the menu; keywordTargets as ReaderApp.getUserContext: the refs' categories, the book, the refs, lower-cased, de-duplicated (the text's section, plus the selected verse while the sidebar is open). The old one also fires on the click that closes the menu. Tests: src/lib/analytics/observability.test.ts, e2e/analytics-observability.spec.ts.",
+    ],
+)
+
+add(
+    "LEG-019",
+    [
+        "2026-11-10 (lane B's contract): /api/activity answers 401 signed out. The new page's server call forwards the reader's cookie, and a 401 sends the reader to /login?next=<the page> (302), as Django's login_required page did. Tests: e2e/analytics-activity-auth.spec.ts.",
+    ],
+)
 
 add(
     "ANL-014",
@@ -80,6 +108,13 @@ add(
     ],
 )
 status["GUI-007"] = {"status": "done", "by": "src/ui/CookieNotice"}
+
+add(
+    "PRM-014",
+    [
+        "2026-11-10: www.sefaria.org no longer shows the 'Ask the Library Assistant' site-wide banner (ChatbotExperimentBanner unmounted in #3934, 2026-11-03), so it sends no promo_viewed for it. The new reader still shows the banner but no longer sends promo_viewed (parity diff); whether to keep the banner is open (lane-C report).",
+    ],
+)
 
 json.dump(atlas, open(T / "features.json", "w"), ensure_ascii=False, indent=1)
 json.dump(status, open(T / "rebuild-status.json", "w"), ensure_ascii=False, indent=1)
