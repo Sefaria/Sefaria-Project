@@ -75,6 +75,17 @@ class SefariaAccountAdapter(DefaultAccountAdapter):
         # emailusernames requires username == email
         user.username = user.email
 
+    def confirm_email(self, request, email_address):
+        # allauth's own confirm page (/accounts/confirm-email/<key>/) and headless verify endpoint accept the key of an
+        # emailed developer-settings link, because it is an allauth confirmation key. They would confirm it without the
+        # account's row lock and the checks of powered_by.developer.confirm_email. allauth sends no confirmation mail of
+        # its own here (ACCOUNT_EMAIL_VERIFICATION is "none"), so refusing every other confirmation loses nothing.
+        from powered_by.developer import EMAIL_CONFIRMATION_FLAG
+
+        if not getattr(request, EMAIL_CONFIRMATION_FLAG, False):
+            return False
+        return super().confirm_email(request, email_address)
+
     def is_safe_url(self, url):
         # DefaultAccountAdapter.is_safe_url falls back to settings.ALLOWED_HOSTS, which
         # we run as ["*"] in production for multi-domain routing (see DOMAIN_MODULES).
