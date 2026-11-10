@@ -67,6 +67,9 @@ const PAGES = QUICK
       "/saved",
       "/history",
       "/texts/notes",
+      "/updates",
+      "/notifications",
+      "/torahtracker",
     ];
 
 // ---------------------------------------------------------------- the read-only stand-in for Django

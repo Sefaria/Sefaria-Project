@@ -15,8 +15,11 @@ import { Route as PageRouteImport } from './routes/$page'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as CalendarsRouteImport } from './routes/calendars'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as TorahtrackerRouteImport } from './routes/torahtracker'
+import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as AuthLoginRouteImport } from './routes/_auth.login'
 import { Route as AuthRegisterRouteImport } from './routes/_auth.register'
 import { Route as ActivitySplatRouteImport } from './routes/activity.$'
@@ -64,6 +67,11 @@ const HistoryRoute = HistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
   path: '/saved',
@@ -72,6 +80,16 @@ const SavedRoute = SavedRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TorahtrackerRoute = TorahtrackerRouteImport.update({
+  id: '/torahtracker',
+  path: '/torahtracker',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UpdatesRoute = UpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
@@ -167,8 +185,11 @@ export interface FileRoutesByFullPath {
   '/$page': typeof PageRoute
   '/calendars': typeof CalendarsRoute
   '/history': typeof HistoryRoute
+  '/notifications': typeof NotificationsRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
+  '/torahtracker': typeof TorahtrackerRoute
+  '/updates': typeof UpdatesRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
   '/activity/$': typeof ActivitySplatRoute
@@ -193,8 +214,11 @@ export interface FileRoutesByTo {
   '/$page': typeof PageRoute
   '/calendars': typeof CalendarsRoute
   '/history': typeof HistoryRoute
+  '/notifications': typeof NotificationsRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
+  '/torahtracker': typeof TorahtrackerRoute
+  '/updates': typeof UpdatesRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
   '/activity/$': typeof ActivitySplatRoute
@@ -221,8 +245,11 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/calendars': typeof CalendarsRoute
   '/history': typeof HistoryRoute
+  '/notifications': typeof NotificationsRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
+  '/torahtracker': typeof TorahtrackerRoute
+  '/updates': typeof UpdatesRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/register': typeof AuthRegisterRoute
   '/activity/$': typeof ActivitySplatRoute
@@ -249,8 +276,11 @@ export interface FileRouteTypes {
     | '/$page'
     | '/calendars'
     | '/history'
+    | '/notifications'
     | '/saved'
     | '/search'
+    | '/torahtracker'
+    | '/updates'
     | '/login'
     | '/register'
     | '/activity/$'
@@ -275,8 +305,11 @@ export interface FileRouteTypes {
     | '/$page'
     | '/calendars'
     | '/history'
+    | '/notifications'
     | '/saved'
     | '/search'
+    | '/torahtracker'
+    | '/updates'
     | '/login'
     | '/register'
     | '/activity/$'
@@ -302,8 +335,11 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/calendars'
     | '/history'
+    | '/notifications'
     | '/saved'
     | '/search'
+    | '/torahtracker'
+    | '/updates'
     | '/_auth/login'
     | '/_auth/register'
     | '/activity/$'
@@ -330,8 +366,11 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   CalendarsRoute: typeof CalendarsRoute
   HistoryRoute: typeof HistoryRoute
+  NotificationsRoute: typeof NotificationsRoute
   SavedRoute: typeof SavedRoute
   SearchRoute: typeof SearchRoute
+  TorahtrackerRoute: typeof TorahtrackerRoute
+  UpdatesRoute: typeof UpdatesRoute
   ActivitySplatRoute: typeof ActivitySplatRoute
   CompareSplatRoute: typeof CompareSplatRoute
   InterfaceLangRoute: typeof InterfaceLangRoute
@@ -392,6 +431,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/saved': {
       id: '/saved'
       path: '/saved'
@@ -404,6 +450,20 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/torahtracker': {
+      id: '/torahtracker'
+      path: '/torahtracker'
+      fullPath: '/torahtracker'
+      preLoaderRoute: typeof TorahtrackerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/updates': {
+      id: '/updates'
+      path: '/updates'
+      fullPath: '/updates'
+      preLoaderRoute: typeof UpdatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth/login': {
@@ -550,8 +610,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   CalendarsRoute: CalendarsRoute,
   HistoryRoute: HistoryRoute,
+  NotificationsRoute: NotificationsRoute,
   SavedRoute: SavedRoute,
   SearchRoute: SearchRoute,
+  TorahtrackerRoute: TorahtrackerRoute,
+  UpdatesRoute: UpdatesRoute,
   ActivitySplatRoute: ActivitySplatRoute,
   CompareSplatRoute: CompareSplatRoute,
   InterfaceLangRoute: InterfaceLangRoute,

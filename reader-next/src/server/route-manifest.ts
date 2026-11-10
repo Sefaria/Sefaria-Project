@@ -13,7 +13,7 @@ import { serverCatalogTree, type TocNode } from "~/lib/catalog/toc";
 import { parseUrlRef } from "~/lib/ref/url";
 import { isClientStaticPage } from "~/lib/routing/django-paths";
 
-const CLIENT_EXACT = new Set(["/", "/search", "/login", "/register", "/texts", "/calendars", "/calendars/", "/compare", "/topics", "/saved", "/history"]);
+const CLIENT_EXACT = new Set(["/", "/search", "/login", "/register", "/texts", "/calendars", "/calendars/", "/compare", "/topics", "/saved", "/history", "/notifications", "/torahtracker", "/updates"]);
 const CLIENT_PREFIXES = ["/texts/", "/activity/", "/translations/", "/compare/", "/topics/", "/interface/", "/password/reset/confirm/", "/_serverFn/", "/assets/", "/auth/", "/static-page-styles/", "/brand/", "/fonts/", "/img/", "/@", "/__"];
 
 export type RouteOwner = "client" | "django";

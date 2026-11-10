@@ -127,7 +127,9 @@ describe("SiteHeader", () => {
     await userEvent.click(within(menu).getByText("Ada Lovelace"));
     expect(screen.getByRole("dialog", { name: "Account menu" })).toBeInTheDocument();
     expect(within(menu).getByRole("link", { name: "Account Settings" })).toHaveAttribute("href", "https://www.sefaria.org/settings/account");
-    expect(within(menu).getByRole("link", { name: "Torah Tracker" })).toBeInTheDocument();
+    // Torah Tracker and New Additions are this client's pages (lane P): relative, in the app
+    expect(within(menu).getByRole("link", { name: "Torah Tracker" })).toHaveAttribute("href", "/torahtracker");
+    expect(within(menu).getByRole("link", { name: "New Additions" })).toHaveAttribute("href", "/updates");
     expect(within(menu).getByRole("link", { name: "Log Out" })).toHaveAttribute("href", "https://www.sefaria.org/logout?next=/texts");
     const mobile = document.getElementById("mobile-nav")!;
     expect(within(mobile).getByRole("link", { name: "Logout", hidden: true })).toBeInTheDocument();

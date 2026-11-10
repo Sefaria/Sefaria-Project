@@ -185,7 +185,8 @@ export function Resources() {
     <SidebarModule upper title={<InterfaceText en="Resources" he="משאבים" />}>
       <div className={styles.links}>
         {ICON_LINKS.map((l) => (
-          <IconLink key={l.path} icon={l.icon} href={lib(l.path)}><InterfaceText en={l.en} he={l.he} /></IconLink>
+          // Visualizations stay the old site's and open in a new tab (D-6)
+          <IconLink key={l.path} icon={l.icon} href={lib(l.path)} newTab={l.path === "/visualizations"}><InterfaceText en={l.en} he={l.he} /></IconLink>
         ))}
         <IconLink icon="help.svg" href={HELP[lang]} newTab><InterfaceText en="Help" he="עזרה" /></IconLink>
       </div>
@@ -256,6 +257,7 @@ const VISUALIZATIONS = [
 /** Visualizations whose name mentions one of the page's categories. */
 export const visualizationsFor = (categories: readonly string[]) => VISUALIZATIONS.filter((v) => categories.some((c) => v.en.includes(c)));
 
+/** Link Explorer and the visualizations stay Django's and open in a new tab, an accepted way out of this client (D-6). */
 export function Visualizations({ categories }: { categories: readonly string[] }) {
   const links = visualizationsFor(categories);
   if (!links.length) return null;
@@ -263,9 +265,9 @@ export function Visualizations({ categories }: { categories: readonly string[] }
     <SidebarModule title={<InterfaceText en="Visualizations" he="תרשימים גרפיים" />}>
       <p className={styles.body}><InterfaceText en="Explore interconnections among texts with our interactive visualizations." he="העזרו בתרשימים הגרפיים כדי לגלות קשרים מעניינים בין מקורות." /></p>
       <div className={styles.links}>
-        {links.map((v) => <IconLink key={v.url} icon="visualization.svg" href={lib(v.url)}><InterfaceText en={v.en} he={v.he} /></IconLink>)}
+        {links.map((v) => <IconLink key={v.url} icon="visualization.svg" href={lib(v.url)} newTab><InterfaceText en={v.en} he={v.he} /></IconLink>)}
       </div>
-      <a className={styles.all} href={lib("/visualizations")}><InterfaceText en="All Visualizations ›" he="תרשימים גרפיים נוספים ›" /></a>
+      <a className={styles.all} href={lib("/visualizations")} target="_blank" rel="noopener noreferrer"><InterfaceText en="All Visualizations ›" he="תרשימים גרפיים נוספים ›" /></a>
     </SidebarModule>
   );
 }

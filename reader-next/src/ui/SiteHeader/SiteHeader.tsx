@@ -260,11 +260,11 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
                 <a className={dd.item} data-prevent-close="true"><strong>{viewer.name}</strong></a>
                 <div className={dd.separator} />
                 <A href={`${LIBRARY}/settings/account`} className={dd.item}>{t("Account Settings", "הגדרות")}</A>
-                <A href={`${LIBRARY}/torahtracker`} className={dd.item}>{t("Torah Tracker", "לימוד במספרים")}</A>
+                <Link href={lib("/torahtracker")} className={dd.item} onClick={fullLoadWhereNotOurs}>{t("Torah Tracker", "לימוד במספרים")}</Link>
                 <div className={dd.separator} />
                 <DropdownLanguageToggle next={next} lang={lang} />
                 <div className={dd.separator} />
-                <A href={`${LIBRARY}/updates`} className={dd.item}>{t("New Additions", "חידושים בארון הספרים של ספריא")}</A>
+                <Link href={lib("/updates")} className={dd.item} onClick={fullLoadWhereNotOurs}>{t("New Additions", "חידושים בארון הספרים של ספריא")}</Link>
                 <A href={HELP[lang]} className={dd.item} target="_blank">{t("Help", "עזרה")}</A>
                 {optIn ? <><div className={dd.separator} /><OptInItems actions={optIn} variant="dropdown" t={t} /></> : null}
                 <div className={dd.separator} />
@@ -277,7 +277,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
               <div className={dd.separator} />
               <DropdownLanguageToggle next={next} lang={lang} />
               <div className={dd.separator} />
-              <A href={`${LIBRARY}/updates`} className={dd.item}>{t("New Additions", "חידושים בארון הספרים של ספריא")}</A>
+              <Link href={lib("/updates")} className={dd.item} onClick={fullLoadWhereNotOurs}>{t("New Additions", "חידושים בארון הספרים של ספריא")}</Link>
               <A href={HELP[lang]} className={dd.item} target="_blank">{t("Help", "עזרה")}</A>
               {optIn ? <><div className={dd.separator} /><OptInItems actions={optIn} variant="dropdown" t={t} /></> : null}
             </Menu>
