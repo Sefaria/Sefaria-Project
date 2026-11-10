@@ -2175,7 +2175,7 @@
  },
  "ADM-056": {
   "status": "todo",
-  "note": "/dedication/<slug> reaches Django through the pass-through; render it with the static-page mechanism (T-F31) or record it as an exit"
+  "note": "/dedication/<slug>: Django's page, an accepted exit; needs ?format=json on the dedications view"
  },
  "ADM-057": {
   "status": "n/a",
@@ -2711,15 +2711,16 @@
  },
  "LEG-022": {
   "status": "todo",
-  "note": "/metrics is an About-sidebar page; Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+  "note": "/metrics: Django's page, an accepted exit; needs a metrics API to port"
  },
  "LEG-023": {
   "status": "todo",
   "note": "/random and /random/link are Django's; answer the redirect in the reader's server (T-F26)"
  },
  "LEG-024": {
-  "status": "todo",
-  "note": "/digitized-by-sefaria is linked from the new reader; Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+  "status": "done",
+  "note": "Rendered in the new shell (T-F31)",
+  "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page"
  },
  "LEG-025": {
   "status": "todo",
@@ -3900,57 +3901,64 @@
   "by": "src/features/search/SearchRoute.tsx"
  },
  "STA-001": {
-  "status": "todo",
-  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+  "status": "partial",
+  "note": "Content pages rendered in the new shell (T-F31); /mobile, /educators, English /ways-to-give ported; CMS and other legacy-React pages still Django's (pages.ts)",
+  "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page"
  },
  "STA-002": {
   "status": "deferred",
   "note": "Voices out of scope (owner 2026-11-10)"
  },
  "STA-003": {
-  "status": "todo",
-  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+  "status": "partial",
+  "note": "/digitized-by-sefaria rendered; /metrics Django's",
+  "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page"
  },
  "STA-004": {
   "status": "n/a",
   "note": "Server behaviour; Django keeps it (PDF redirects reach Django through the pass-through)"
  },
  "STA-005": {
-  "status": "todo",
-  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+  "status": "done",
+  "note": "One static-page route; About sidebar selected item; hidden on phones",
+  "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page"
  },
  "STA-006": {
-  "status": "todo",
-  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+  "status": "done",
+  "note": "Rendered in the new shell (T-F31)",
+  "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page"
  },
  "STA-007": {
-  "status": "partial",
-  "note": "Links to /terms and /privacy-policy from sign-up and the cookie notice built; the pages themselves are Django's until T-F31 (D-5)",
-  "by": "src/ui/LegalText, src/ui/CookieNotice"
+  "status": "done",
+  "note": "Rendered in the new shell (T-F31)",
+  "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page"
  },
  "STA-008": {
-  "status": "todo",
-  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+  "status": "partial",
+  "note": "All but the standalone documents and the 2019 contest page; /mobile ported",
+  "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page, src/features/static-page/ports/MobileAppPage.tsx"
  },
  "STA-009": {
   "status": "todo",
-  "note": "CMS-driven React page inside a static template: T-F31/T-F32 must render it (Django's content block alone has no data)"
+  "note": "/jobs: Django's page (CMS-driven legacy React), an accepted exit; port needs the CMS query"
  },
  "STA-010": {
   "status": "todo",
-  "note": "CMS-driven React page inside a static template: T-F31/T-F32 must render it (Django's content block alone has no data)"
+  "note": "/team: Django's page (CMS-driven legacy React), an accepted exit; port needs the CMS query"
  },
  "STA-011": {
   "status": "todo",
-  "note": "CMS-driven React page inside a static template: T-F31/T-F32 must render it (Django's content block alone has no data)"
+  "note": "/products: Django's page (CMS-driven legacy React), an accepted exit; port needs the CMS query"
  },
  "STA-012": {
-  "status": "todo",
-  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+  "status": "partial",
+  "note": "/educators ported; word-by-word, ramban, newsletter still Django's",
+  "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page, src/features/static-page/ports/EducatorsPage.tsx"
  },
  "STA-013": {
-  "status": "todo",
-  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+  "status": "done",
+  "note": "Hebrew page from Django's content, English DonatePage ported",
+  "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page, src/features/static-page/ports/DonatePage.tsx"
  },
  "STA-014": {
   "status": "n/a",
@@ -3965,8 +3973,9 @@
   "note": "Page bodies stay Django-rendered (D-5); no client port of the building blocks"
  },
  "STA-017": {
-  "status": "todo",
-  "note": "Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then"
+  "status": "partial",
+  "note": "/digitized-by-sefaria rendered; the rest Django's (not pages of the shell)",
+  "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page"
  },
  "STA-018": {
   "status": "n/a",

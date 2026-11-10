@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**962 features**, 4076 documented behaviors. Proposed tiers: core 323, standard 419, optional 156, retire 61.
+**962 features**, 4102 documented behaviors. Proposed tiers: core 323, standard 419, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 463 · partial 84 · todo 28 · replaced 47 · deferred 204 · n/a 136; 422 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 468 · partial 88 · todo 19 · replaced 47 · deferred 204 · n/a 136; 426 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -10108,6 +10108,7 @@ Visitors can subscribe to Sefaria newsletters, optionally as educators, from sid
 - BUILT 2026-11-04 for the sidebar (src/ui/NewsletterSignUp, src/lib/user/newsletter.ts via lib/auth/http with the CSRF token; the same UA event, 'Subscribe from undefined'). Not built: the static pages, promotions and topic-landing uses (lists, Steinsaltz).
 - The arrow is an <img alt='Submit'> ('שלח'); ours is a button whose image carries that alt (its accessible name). BUILT 2026-11-04.
 - NEW READER: the topics landing newsletter (TOP-007) is built; the sidebar and static-page forms are not.
+- 2026-11-10 (T-F32): also at the bottom of /mobile (src/features/static-page/ports/MobileAppPage.tsx: no educator option, 'Subscribe from Mobile Landing Page').
 
 Code: [`static/js/NewsletterSignUpForm.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NewsletterSignUpForm.jsx), [`sefaria/views.py:327`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L327), [`static/js/sefaria/sefaria.js:955`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L955)
 
@@ -10137,7 +10138,7 @@ Source: `inv_08_other.md#4.5`
 ### Site package pages
 
 #### STA-001 · Static content pages
-`standard` `live` · rebuild: **todo** — Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then
+`standard` `live` · rebuild: **partial** — Content pages rendered in the new shell (T-F31); /mobile, /educators, English /ways-to-give ported; CMS and other legacy-React pages still Django's (pages.ts) · *tested*
 
 Many informational pages (about, team, jobs, terms, etc.) are served as static templates under the header-only React shell.
 
@@ -10149,6 +10150,13 @@ Many informational pages (about, team, jobs, terms, etc.) are served as static t
 - metrics also appears in static_pages but the explicit /metrics route wins (shadowed).
 - Language-specific pages about and ways-to-give render templates/static/<LANGUAGE_CODE>/<page>.html.
 - /dedication/<slug> -> dedications.views.dedication.
+- BUILT 2026-11-10 (T-F31, D-5): one route, src/routes/$page.tsx (its params.parse admits only the names of lib/static-page/pages.ts, so every other single-segment address is still the reader's), for the static_pages of sites/sefaria/urls.py (44 in the list, not the plan's 46; /updates excluded: the new reader's own page, lane P), /about and /ways-to-give by language, and /digitized-by-sefaria. The server asks Django GET /<page>?format=json&lang=en|he (reader/static_content.py) through the internal API origin, in the interface language, keeps the answer 5 minutes per page and language, sanitises the content (allowlist: everything the templates use, classes, ids, inline styles, Google Docs/YouTube frames, the Docs frames sandboxed; no scripts, handlers, javascript:/data: addresses — the scheme judged with control characters and whitespace removed, as a browser reads it) and renders it inside base.html's #staticContentWrapper > #content in the new shell, server-rendered.
+- BUILT 2026-11-10 (T-F31): the content is styled by the old site's own CSS — every stylesheet base.html loads plus static.css, in base.html's order, scoped to #staticContentWrapper, without the @font-face rules of the families the shell declares itself (Taamey Frank, Cardo, Noto Color Emoji: the shell's files stay in use); no other stylesheet is loaded unscoped (one a page lists outside these is left out and logged) (lib/static-page/scope-css.ts) so none of it reaches the header or other pages; generated into lib/static-page/legacy-css.gen.ts (the reader's image is built from reader-next/ alone) and checked against static/ by legacy-css.test.ts; served at /static-page-styles/legacy.<hash>.css (immutable) and linked in the page's head (no unstyled flash; fetched before an in-app navigation shows the page). A page's {% block css %} is scoped the same way so it still wins.
+- BUILT 2026-11-10 (T-F31): head as the old page: title, description, og/twitter card, the en/he alternates; plus a canonical link (PUBLIC_CANONICAL_ORIGIN for this host's site: the old static pages had none) — deliberate difference. No noindex (the old pages had none). A page Django does not have: the reader's 404. A page still Django's in this language, or a Django without the content mode: handed to Django (the server answers 404 to its own router and site-routing passes the request on; in the app, a full load).
+- BUILT 2026-11-10 (T-F31): links in the content: a same-site page this client renders navigates in the app; Django's pages (and, on the Voices host, everything Library-only) load in full; other sites, Voices, new windows, modified clicks and anchors are the browser's. On the Voices host every static page is Django's, exactly as before.
+- Parity 2026-11-10 (scripts in the lane report; www.sefaria.org vs the new shell, desktop 1280 and phone UA 390, English and Hebrew): visible text of the content block identical and the measured layout (widths, x offsets, font sizes and families, weights, line heights, colours, margins of headings, paragraphs, .inner, sidebar, frames, images) equal within 2px on the content pages, except as noted under each page's entry.
+- Ported (T-F32, the old components' markup and classes in features/static-page/ports): /mobile, /educators, the English /ways-to-give (DonatePage). Not rendered here (Django's page on every host (lib/static-page/pages.ts; an accepted exit in scripts/exits-allowlist.json)): jobs, team, products (legacy React filled from the CMS), word-by-word, ramban-sponsorships (legacy React mount points), contest, powered-by-sefaria-contest-2020/2021 (finished contests, not linked from the reader), newsletter (a 1,700-line legacy React flow), aramaic-translation-contest (jQuery form), random-walk-through-torah and cloudflare_site_is_down_en/he (whole documents), metrics (its own view).
+- Tests: src/lib/static-page/*.test.ts (routing incl. Voices, sanitiser, content, scoped CSS), src/features/static-page/static-page.test.tsx, e2e/static-pages.spec.ts (Django's answers from e2e/fixtures/static-pages written into the cassette: www.sefaria.org does not serve ?format=json yet).
 
 Code: [`sites/sefaria/urls.py:11-77`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sites/sefaria/urls.py#L11-L77), [`reader/views.py:5049-5057`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5049-L5057)
 
@@ -10168,12 +10176,13 @@ Code: [`reader/views.py:5053-5054`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.4`
 
 #### STA-003 · Metrics and digitized-by-Sefaria pages
-`optional` `live` · rebuild: **todo** — Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then
+`optional` `live` · rebuild: **partial** — /digitized-by-sefaria rendered; /metrics Django's
 
 Two data-oriented pages show site metrics and Sefaria-digitized texts.
 
 - /metrics -> reader.views.metrics (metrics.html chart page).
 - /digitized-by-sefaria -> list of Sefaria-digitized versions.
+- 2026-11-10 (T-F31): /digitized-by-sefaria rendered in the new shell; /metrics stays Django's (its own view with d3 charts, no content answer): an accepted exit (LEG-022).
 
 Code: [`sites/sefaria/urls.py:67`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sites/sefaria/urls.py#L67), [`reader/views.py:4657-4677`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4657-L4677)
 
@@ -10197,7 +10206,7 @@ Source: `inv_01_urls_routing.md#1.4`
 ### Serving
 
 #### STA-005 · Static page serving and About sidebar
-`core` `live` · rebuild: **todo** — Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then · *tested*
+`core` `live` · rebuild: **done** — One static-page route; About sidebar selected item; hidden on phones · *tested*
 
 Informational pages are served as server templates with the site header, plus an About sidebar linking them together.
 
@@ -10209,6 +10218,7 @@ Informational pages are served as server templates with the site header, plus an
 - **DEAD:** unrouted templates all_home.html, home.html, index.html, generic.html, connect.html, categorize-sheets.html (admin), contest/* (legacy leaderboards)
 - maintenance.html used for DOWN_FOR_MAINTENANCE (sefaria/views.py:293)
 - SERVER 2026-11-10 (lane B, T-B06 for F3/D-5): GET /<static page>?format=json[&lang=en|he] answers {path, lang, title, description, html (the content block), css, inlineCss, baseCss, bodyClass, hasScript} for every static_pages entry, /about and /ways-to-give by language, and /digitized-by-sefaria; Library host only (Voices unchanged); rendered for an anonymous desktop visitor, links to other modules absolute; public (max-age 3600) with lang, private without. Standalone documents (random-walk-through-torah, cloudflare_site_is_down_*) answer 404 {standalone: true}. Pages with hasScript (team, jobs, products, strategy, ...) mount legacy JS and are incomplete as HTML. Contract: reader/static_content.py. Tests: reader/tests/static_content_test.py.
+- BUILT 2026-11-10 (T-F31): the static-page route serves every page of the list (lib/static-page/pages.ts). The About sidebar as its script left it on a desktop (the sanitiser does it: the sidebar's class is the page, the page's item 'selected'); on a phone the old templates leave the sidebar out ({% if not request.user_agent.is_mobile %}): here hidden at 480px and narrower (Django renders the content for a desktop) — deliberate difference: decided by width, not the user agent (a phone held sideways shows it stacked; a desktop window narrowed under 480px hides it).
 
 Code: [`sites/sefaria/urls.py:10`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sites/sefaria/urls.py#L10), [`reader/views.py:5052`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5052), [`sites/sefaria/site_settings.py:28`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sites/sefaria/site_settings.py#L28), [`templates/_sidebar.html`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/_sidebar.html)
 
@@ -10218,7 +10228,7 @@ Source: `inv_08_other.md#3.1`
 ### Organization pages
 
 #### STA-006 · About, strategy, story and supporters pages
-`standard` `live` · rebuild: **todo** — Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then
+`standard` `live` · rebuild: **done** — Rendered in the new shell (T-F31)
 
 Pages about Sefaria's mission, story, strategy and supporters.
 
@@ -10226,6 +10236,7 @@ Pages about Sefaria's mission, story, strategy and supporters.
 - Plain Django template HTML with bilingual int-en/int-he spans
 - Dedication pages: /shraga-silverstein, /henry-and-julia-koschitzky-apps, /adin-even-israel-steinsaltz, /william-davidson-talmud, /nash-bravmann-collection, /fleishman-hirsch-on-torah-in-english
 - /dedication/<slug> served by dedications app (templates/static/dedication/dedication.html)
+- BUILT 2026-11-10 (T-F31): /about (en and he templates), /strategy (its deck width script done here), /supporters, /the-sefaria-story, /pioneers, /testimonials, /link-to-annual-report, /coming-soon and the dedication pages (/shraga-silverstein, /henry-and-julia-koschitzky-apps, /adin-even-israel-steinsaltz, /william-davidson-talmud, /nash-bravmann-collection, /fleishman-hirsch-on-torah-in-english) rendered in the new shell from Django's content block. /dedication/<slug> is the dedications app's view, not a static page: ADM-056.
 
 Code: [`sites/sefaria/urls.py:10`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sites/sefaria/urls.py#L10)
 
@@ -10235,12 +10246,13 @@ Source: `inv_08_other.md#3.2`
 ### Legal
 
 #### STA-007 · Terms and privacy policy
-`core` `live` · rebuild: **partial** — Links to /terms and /privacy-policy from sign-up and the cookie notice built; the pages themselves are Django's until T-F31 (D-5) · *tested*
+`core` `live` · rebuild: **done** — Rendered in the new shell (T-F31) · *tested*
 
 Terms of use and privacy policy pages, linked from sign-up and the cookie notice.
 
 - /terms and /privacy-policy are plain Django templates in About sidebar
 - Linked from LegalText in auth ChooseView and CookiesNotification
+- BUILT 2026-11-10 (T-F31): /terms and /privacy-policy rendered in the new shell (the Google Docs frame kept), linked in-app from sign-up and the cookie notice.
 
 Code: [`sites/sefaria/urls.py:10`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sites/sefaria/urls.py#L10)
 
@@ -10250,13 +10262,17 @@ Source: `inv_08_other.md#3.2`
 ### Product pages
 
 #### STA-008 · Product, tool and edition pages
-`optional` `live` · rebuild: **todo** — Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then
+`optional` `live` · rebuild: **partial** — All but the standalone documents and the 2019 contest page; /mobile ported · *tested*
 
 Marketing pages for Sefaria's apps, tools and special editions and projects.
 
 - /ios, /mobile, /app (app download pages), /mobile-about-menu (used by app About menu)
 - /linker (linker marketing/instructions), /ai (AI on Sefaria), /torah-tab, /daf-yomi, /dicta-thanks, /sefaria-edition, /sefaria-community-translation, /contributed-to-sefaria, /random-walk-through-torah, /aramaic-translation-contest, /visualizations, /design-system
 - Cloudflare-down pages: /cloudflare_site_is_down_en, /cloudflare_site_is_down_he
+- BUILT 2026-11-10 (T-F31): /ios, /mobile-about-menu, /linker (its bookmarklet kept: the one javascript: address allowed, and only there), /ai, /torah-tab, /daf-yomi, /dicta-thanks, /sefaria-edition, /sefaria-community-translation, /contributed-to-sefaria, /visualizations, /design-system rendered from Django's content block. /app is Django's redirect to /mobile.
+- BUILT 2026-11-10 (T-F32): /mobile ported (features/static-page/ports/MobileAppPage.tsx: the old MobileAppPage's markup and classes, styled by the scoped static.css): the store buttons carry a full UTM campaign to the App Store and Google Play from the server's first paint (the old page set them after mounting), and the newsletter sign-up at the bottom (src/ui/NewsletterSignUp, 'Subscribe from Mobile Landing Page').
+- Still Django's: /random-walk-through-torah and the Cloudflare outage pages (whole documents of their own), /aramaic-translation-contest (a 2019 contest page whose mailing-list form runs on jQuery).
+- /mobile-about-menu (the app's About menu): rendered as Django renders it for a desktop; the old page's phone variant (a title heading, the sidebar as a full-width overlay) is not reproduced — deliberate difference.
 
 Code: [`sites/sefaria/urls.py:10`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sites/sefaria/urls.py#L10)
 
@@ -10266,42 +10282,45 @@ Source: `inv_08_other.md#3.2`
 ### React static pages
 
 #### STA-009 · Jobs page
-`optional` `live` · rebuild: **todo** — CMS-driven React page inside a static template: T-F31/T-F32 must render it (Django's content block alone has no data)
+`optional` `live` · rebuild: **todo** — /jobs: Django's page (CMS-driven legacy React), an accepted exit; port needs the CMS query
 
 Lists current open positions grouped by department from the CMS.
 
 - JobsPage: Strapi jobPostings active by start/end date, grouped by department; no openings notice
+- 2026-11-10 (T-F32): /jobs is a legacy React page filled from the CMS (Strapi) inside a static template: Django's content block has no data, so it stays Django's page on every host (lib/static-page/pages.ts; an accepted exit in scripts/exits-allowlist.json). Porting it needs the CMS query in this client.
 
 Code: [`static/js/StaticPages.jsx:2654`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/StaticPages.jsx#L2654)
 
 Source: `inv_08_other.md#3.2`
 
 #### STA-010 · Team page
-`optional` `live` · rebuild: **todo** — CMS-driven React page inside a static template: T-F31/T-F32 must render it (Django's content block alone has no data)
+`optional` `live` · rebuild: **todo** — /team: Django's page (CMS-driven legacy React), an accepted exit; port needs the CMS query
 
 Shows staff and board members from the CMS.
 
 - TeamMembersPage: Strapi teamMembers with EN/HE localizations; board vs staff split; chairman, then co-founders, then by last name; locale-aware sort
+- 2026-11-10 (T-F32): /team is a legacy React page filled from the CMS (Strapi) inside a static template: Django's content block has no data, so it stays Django's page on every host (lib/static-page/pages.ts; an accepted exit in scripts/exits-allowlist.json). Porting it needs the CMS query in this client.
 
 Code: [`static/js/StaticPages.jsx:2419`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/StaticPages.jsx#L2419), [`templates/static/team.html:10`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/static/team.html#L10)
 
 Source: `inv_08_other.md#3.2`
 
 #### STA-011 · Products page
-`optional` `live` · rebuild: **todo** — CMS-driven React page inside a static template: T-F31/T-F32 must render it (Django's content block alone has no data)
+`optional` `live` · rebuild: **todo** — /products: Django's page (CMS-driven legacy React), an accepted exit; port needs the CMS query
 
 Lists Sefaria products from the CMS with links and images.
 
 - ProductsPage: Strapi products sorted by rank; moderators also see draft-only products
 - Per-product title, type label, CTA links with icons, markdown description, image
 - Powered by Sefaria DevBox inserted after 2nd product; products_* gtag analytics
+- 2026-11-10 (T-F32): /products is a legacy React page filled from the CMS (Strapi) inside a static template: Django's content block has no data, so it stays Django's page on every host (lib/static-page/pages.ts; an accepted exit in scripts/exits-allowlist.json). Porting it needs the CMS query in this client.
 
 Code: [`static/js/StaticPages.jsx:2880`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/StaticPages.jsx#L2880)
 
 Source: `inv_08_other.md#3.2`
 
 #### STA-012 · Educators, Word-by-Word, newsletter and sponsorship pages
-`optional` `live` · rebuild: **todo** — Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then
+`optional` `live` · rebuild: **partial** — /educators ported; word-by-word, ramban, newsletter still Django's · *tested*
 
 Landing pages for educators, a writing fellowship, newsletter signup and parasha sponsorship.
 
@@ -10311,13 +10330,15 @@ Landing pages for educators, a writing fellowship, newsletter signup and parasha
 - /ramban-sponsorships RambanLandingPage (parasha sponsorship list; ParashaSponsorship Available for Sponsorship mailto)
 - /getstarted on Voices domain: SheetsLandingPage (templates/static/sheets.html)
 - /updates UpdatesPanel (New Additions feed)
+- BUILT 2026-11-10 (T-F32): /educators ported (features/static-page/ports/EducatorsPage.tsx: the old EducatorsPage's markup and classes inside the static-page frame, styled by the scoped static.css; its newsletter sign-up is this client's, 'Subscribe from educators').
+- 2026-11-10 (T-F32): /word-by-word, /ramban-sponsorships (legacy React mount points) and /newsletter (the 1,700-line NewsletterSignUpPage flow: survey, confirmation, marketing toggles) stay Django's page on every host (lib/static-page/pages.ts; an accepted exit in scripts/exits-allowlist.json). /updates is the new reader's own page (lane P).
 
 Code: [`static/js/StaticPages.jsx:521`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/StaticPages.jsx#L521), [`static/js/StaticPages.jsx:1455`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/StaticPages.jsx#L1455), [`static/js/StaticPages.jsx:3068`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/StaticPages.jsx#L3068), [`static/js/StaticPages.jsx:256`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/StaticPages.jsx#L256), [`sefaria/urls_sheets.py:22`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_sheets.py#L22)
 
 Source: `inv_08_other.md#3.2`
 
 #### STA-013 · Ways to give / donate page
-`standard` `live` · rebuild: **todo** — Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then
+`standard` `live` · rebuild: **done** — Hebrew page from Django's content, English DonatePage ported · *tested*
 
 Explains ways to donate with feature boxes and a detailed FAQ.
 
@@ -10326,6 +10347,7 @@ Explains ways to donate with feature boxes and a detailed FAQ.
 - Ways to Give: online, mail, donor-advised fund, additional
 - ~18-item FAQ accordion (tribute gifts, tax deductibility, receipts, matching gifts, cancel/change monthly donation)
 - Accordian component uses details element; HeaderForDonatePage
+- BUILT 2026-11-10 (T-F31, T-F32): the Hebrew /ways-to-give (a plain template) is rendered from Django's content; the English page's DonatePage is ported (features/static-page/ports/DonatePage.tsx, copied from StaticPages.jsx with the same markup: feature boxes, ways to give, the FAQ as <details>, financial stewardship), both in the new shell.
 
 Code: [`static/js/StaticPages.jsx:1107`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/StaticPages.jsx#L1107), [`templates/static/en/ways-to-give.html:17`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/static/en/ways-to-give.html#L17)
 
@@ -10373,7 +10395,7 @@ Source: `inv_08_other.md#3.2`
 ### Data pages
 
 #### STA-017 · Metrics, digitized versions, annual report, 990, llms.txt
-`optional` `live` · rebuild: **todo** — Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then
+`optional` `live` · rebuild: **partial** — /digitized-by-sefaria rendered; the rest Django's (not pages of the shell)
 
 Pages publishing usage metrics, digitized-by-Sefaria versions, annual reports and financial filings, plus an LLM-friendly API doc.
 
@@ -10382,6 +10404,7 @@ Pages publishing usage metrics, digitized-by-Sefaria versions, annual reports an
 - /annualreport[/<year>]: standalone page embedding PDF/issuu for 2020-2025 (reader/views.py:5061-5079); /annualreport2021 redirect
 - /current-990-form: redirect to newest Sefaria_<year>_990_Public.pdf (reader/views.py:5082-5099)
 - /llms.txt: static/llms.txt (reader/views.py:5471)
+- 2026-11-10 (T-F31): /digitized-by-sefaria rendered in the new shell. /metrics (its own view), /annualreport (a standalone document), /current-990-form (a redirect to a PDF) and /llms.txt (a text file) stay Django's.
 
 Code: [`reader/views.py:4658`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4658), [`reader/views.py:4670`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4670), [`reader/views.py:5061`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5061), [`reader/views.py:5082`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5082), [`reader/views.py:5471`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5471)
 
@@ -14215,11 +14238,12 @@ Code: [`powered_by/models.py:1`](https://github.com/Sefaria/Sefaria-Project/blob
 Source: `inv_08b_admin_linker_apps.md#4.8`
 
 #### ADM-056 · Dedications
-`optional` `live` · rebuild: **todo** — /dedication/<slug> reaches Django through the pass-through; render it with the static-page mechanism (T-F31) or record it as an exit
+`optional` `live` · rebuild: **todo** — /dedication/<slug>: Django's page, an accepted exit; needs ?format=json on the dedications view
 
 Dedication pages are editable in admin and rendered at /dedication/<slug>.
 
 - Dedication model (slug, en/he title, en/he HTML content); template static/dedication/dedication.html; admin-editable.
+- 2026-11-10 (T-F31): /dedication/<slug> is the dedications app's view (an admin-edited model in templates/static/dedication/dedication.html), not a static page; it has no content answer, so it stays Django's: an accepted exit (scripts/exits-allowlist.json 'dedication'). Rendering it in the shell needs ?format=json on that view (request to the Django lane).
 
 Code: [`dedications/models.py:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/dedications/models.py#L1)
 
@@ -14591,11 +14615,12 @@ Code: [`reader/views.py:4634`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-022 · Library metrics charts (/metrics)
-`optional` `legacy` · rebuild: **todo** — /metrics is an About-sidebar page; Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then `desktop only`
+`optional` `legacy` · rebuild: **todo** — /metrics: Django's page, an accepted exit; needs a metrics API to port `desktop only`
 
 A public page charts growth of words, links and sheets since 2013.
 
 - /metrics (reader/views.py:4658); metrics.html (265) Chart.js from db.metrics; extends _sidebar.html (About sidebar). Data written daily by metrics.py cron.
+- 2026-11-10 (T-F32): /metrics is its own Django view (charts from db.metrics), not a static template: no content answer; an accepted exit (scripts/exits-allowlist.json static-metrics). Porting it needs an API for the metrics.
 
 Code: [`reader/views.py:4658`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4658), [`templates/metrics.html:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/metrics.html#L1)
 
@@ -14613,11 +14638,12 @@ Code: [`reader/views.py:4726`](https://github.com/Sefaria/Sefaria-Project/blob/b
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-024 · Digitized by Sefaria list
-`optional` `legacy` · rebuild: **todo** — /digitized-by-sefaria is linked from the new reader; Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then
+`optional` `legacy` · rebuild: **done** — Rendered in the new shell (T-F31)
 
 A page lists all versions digitized by Sefaria.
 
 - /digitized-by-sefaria (reader/views.py:4670); template static/digitized-by-sefaria.html.
+- BUILT 2026-11-10 (T-F31): /digitized-by-sefaria rendered from Django's content answer (its own view, which lists the versions digitizedBySefaria).
 
 Code: [`reader/views.py:4670`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4670)
 
