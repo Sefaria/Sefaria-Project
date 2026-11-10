@@ -87,3 +87,72 @@ test.describe("back and forward", () => {
     await expect(page.locator("section[data-panel-id]")).toHaveCount(1);
   });
 });
+
+/** Go somewhere inside the app (a router navigation, as a link in the app does), not a page load. */
+const goInApp = (page: import("@playwright/test").Page, url: string) =>
+  page.evaluate((u) => document.dispatchEvent(new CustomEvent("sefaria:bootstrap-url", { detail: { url: u } })), url);
+const historyLength = (page: import("@playwright/test").Page) => page.evaluate(() => history.length);
+
+// LAUNCH_PLAN T-E03: a ref the reader rewrites to what it shows replaces the history entry, never adds one; Back never walks verse by verse
+test.describe("history rules (T-E03)", () => {
+  for (const [label, asked, shown] of [
+    ["a non-canonical spelling", "/Gen.1.3?lang=en", /\/Genesis\.1\.3\?/],
+    ["a range across sections", "/Genesis.1.30-2.3?lang=en", /\/Genesis\.1\.30\?/],
+    ["a commentary's whole chapter", "/Rashi_on_Genesis.1?lang=en", /\/Rashi_on_Genesis\.1\.1(\?|$)/],
+    ["a range within a section", "/Genesis.1.3-5?lang=en", /\/Genesis\.1\.3\?/],
+    ["a range of whole chapters", "/Genesis.6-8?lang=en", /\/Genesis\.6\?/],
+  ] as const) {
+    test(`${label}, opened inside the app, is rewritten in place: one entry, and Back leaves`, async ({ page }) => {
+      await open(page, "/Exodus.1?lang=en");
+      const start = await historyLength(page);
+      await goInApp(page, asked);
+      await expect(page).toHaveURL(shown);
+      await page.waitForTimeout(800); // any later rewrite (the address collapsing to the verse) has happened
+      expect(await historyLength(page)).toBe(start + 1);
+      await page.goBack();
+      await expect(page).toHaveURL(/\/Exodus\.1\?lang=en(&aliyot=0)?$/);
+    });
+  }
+
+  test("a range across sections, loaded as a page, collapses without an entry of its own", async ({ page }) => {
+    await open(page, "/Exodus.1?lang=en");
+    await open(page, "/Genesis.1.30-2.3?lang=en");
+    await expect(page).toHaveURL(/\/Genesis\.1\.30\?/);
+    await page.waitForTimeout(800);
+    expect(await historyLength(page)).toBe(3); // about:blank, Exodus 1, the range (rewritten in place)
+    await page.goBack();
+    await expect(page).toHaveURL(/\/Exodus\.1\?lang=en(&aliyot=0)?$/);
+  });
+
+  test("Back after reading through many verses goes back to the page before, not verse by verse", async ({ page }) => {
+    await open(page, "/Exodus.1?lang=en");
+    await open(page, "/Genesis.1?lang=en");
+    const seen = new Set<string>();
+    for (let i = 0; i < 6; i++) {
+      await wheel(page, 300, 2);
+      await page.waitForTimeout(500);
+      seen.add(new URL(page.url()).pathname);
+    }
+    expect(seen.size).toBeGreaterThan(2); // the address followed the reader through several verses
+    await page.goBack();
+    await expect(page).toHaveURL(/\/Exodus\.1\?lang=en(&aliyot=0)?$/);
+  });
+});
+
+// LAUNCH_PLAN T-E03: below ~1075px the old reader overlays nothing; the column narrows beside the sidebar. The verse the reader chose
+// must stay where it was on screen when the sidebar opens.
+for (const width of [1280, 1000, 900]) {
+  test(`opening the sidebar at ${width}px does not move the chosen verse`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await open(page, "/Genesis.1.5?lang=en");
+    await page.waitForTimeout(400);
+    const verse = page.locator('[role="group"][data-ref="Genesis 1:7"]');
+    const before = await segmentTop(page, "Genesis 1:7");
+    const box = await verse.boundingBox();
+    await page.mouse.click(box!.x + 40, box!.y + 8);
+    await expect(page).toHaveURL(/with=all/);
+    await expect(page.getByRole("complementary")).toBeVisible();
+    await page.waitForTimeout(600);
+    expect(Math.abs((await segmentTop(page, "Genesis 1:7")) - before)).toBeLessThan(3);
+  });
+}

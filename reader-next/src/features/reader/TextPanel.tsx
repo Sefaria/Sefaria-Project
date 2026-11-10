@@ -242,6 +242,15 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     const t = setTimeout(() => onSettled(urlSegments[0]!), SETTLE_MS);
     return () => clearTimeout(t);
   }, [isRangeArrival, urlSegments, onSettled]);
+  // A range of whole sections ("Genesis 6-8", a daf "Berakhot 2" = 2a-2b) names no verse: it becomes its first section, in place
+  // (T-E03: a multi-section ref is rewritten to its canonical section by replacing the history entry, never adding one).
+  const firstSection = data.sectionRefs[0]!;
+  const isSectionRangeArrival = (kind === undefined || kind === "go") && !data.highlight && data.sectionRefs.length > 1 && data.ref !== firstSection;
+  useEffect(() => {
+    if (!isSectionRangeArrival) return;
+    const t = setTimeout(() => onSettled(firstSection), SETTLE_MS);
+    return () => clearTimeout(t);
+  }, [isSectionRangeArrival, firstSection, onSettled]);
 
   // ── side panels ────────────────────────────────────────────────────────────────────────────────────
   const aside = panel.asides.find((a) => a.kind === "connections");
