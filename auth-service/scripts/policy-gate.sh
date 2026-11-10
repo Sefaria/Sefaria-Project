@@ -29,7 +29,7 @@ ERR="$(mktemp)"; trap 'rm -f "$ERR"' EXIT
 
 # judge KIND NAME policy|route JSON: prints ok/FAIL lines for the object; exit 1 on any FAIL.
 judge() {
-  OBJ_JSON="$4" python3 - "$1" "$2" "$3" <<'PY'
+  OBJ_JSON="$4" NS="$NS" python3 - "$1" "$2" "$3" <<'PY'
 import json, os, sys
 kind, name, shape = sys.argv[1:4]
 obj = json.loads(os.environ["OBJ_JSON"])
@@ -119,12 +119,20 @@ else:
     if not refs:
         fails.append("no parentRefs in spec")
 
-    def key(ref):
-        return (ref.get("name"), ref.get("sectionName"), ref.get("namespace"))
+    # A parentRef names its Gateway by group, kind, name and namespace; spec and status may each leave group, kind and
+    # namespace out (same-namespace Gateway) or spell them out, and the API means the same thing: the defaults are the
+    # Gateway API's (gateway.networking.k8s.io, Gateway, the route's own namespace). A route that is not given a
+    # listener (no sectionName) attaches to every listener, and its status may list one entry per listener.
+    route_ns = (obj.get("metadata") or {}).get("namespace") or os.environ.get("NS", "")
+
+    def gateway(ref):
+        return (ref.get("group") or "gateway.networking.k8s.io", ref.get("kind") or "Gateway", ref.get("name"),
+                ref.get("namespace") or route_ns)
 
     for ref in refs:
         where = "parent %s/%s" % (ref.get("name"), ref.get("sectionName") or "*")
-        match = [p for p in parents if key(p.get("parentRef") or {}) == key(ref)]
+        match = [p for p in parents if gateway(p.get("parentRef") or {}) == gateway(ref)
+                 and (not ref.get("sectionName") or (p.get("parentRef") or {}).get("sectionName") == ref.get("sectionName"))]
         if not match:
             fails.append(where + ": no Envoy Gateway status for this parentRef")
             continue
