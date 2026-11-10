@@ -377,8 +377,8 @@
   "by": "src/lib/workspace/"
  },
  "SHL-060": {
-  "status": "partial",
-  "note": "Header opens /texts, /topics, /search, /saved, /history, /calendars as routes; notifications and Torah Tracker are Django's (T-F20, T-F21)",
+  "status": "done",
+  "note": "Header pages all routes of this client (Library host)",
   "by": "src/ui/SiteHeader/SiteHeader.tsx"
  },
  "SHL-061": {
@@ -1913,23 +1913,23 @@
   "by": "src/ui/UserHistoryPage"
  },
  "RTE-031": {
-  "status": "partial",
-  "note": "/saved and /history routed to the client; notifications still Django's",
-  "by": "src/lib/routing/django-paths.ts"
+  "status": "done",
+  "note": "/saved, /history and /notifications routed to the client",
+  "by": "src/routes/notifications.tsx, src/lib/routing/django-paths.ts"
  },
  "RTE-015": {
-  "status": "partial",
-  "note": "/texts/notes routed to the client; /torahtracker still Django's",
-  "by": "src/routes/texts.notes.tsx"
+  "status": "done",
+  "note": "/texts/notes and /torahtracker routed to the client",
+  "by": "src/routes/torahtracker.tsx, src/routes/texts.notes.tsx, src/lib/routing/django-paths.ts"
  },
  "ACC-003": {
-  "status": "partial",
-  "note": "The way back and the kill switch built in the new reader; the endpoint (lane B) and the settings page itself are Django's",
-  "by": "src/features/shell/reader-choice.ts, src/features/shell/ReaderChoice.tsx"
+  "status": "deferred",
+  "note": "Stays Django (accepted exit with a way back, T-F23); the reader switch is also in the new menus",
+  "by": "scripts/exits-allowlist.json"
  },
  "ACC-004": {
-  "status": "todo",
-  "note": "Part of /settings/account (T-F23); stays Django"
+  "status": "deferred",
+  "note": "Part of /settings/account: stays Django (T-F23)"
  },
  "ACC-005": {
   "status": "n/a",
@@ -2697,8 +2697,8 @@
   "note": "Voices out of scope (owner 2026-11-10)"
  },
  "LEG-020": {
-  "status": "todo",
-  "note": "Contributor leaderboard is Django's; remove the links or port the list (T-F25)"
+  "status": "deferred",
+  "note": "Stays Django; not reachable from the new reader (T-F25)"
  },
  "LEG-021": {
   "status": "deferred",
@@ -2768,8 +2768,9 @@
   "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
  },
  "LIB-022": {
-  "status": "todo",
-  "note": "/updates (New Additions) is linked from the new header and stays Django; launch plan T-F22 (wave 2)."
+  "status": "done",
+  "note": "/updates in the new reader (Library host), measured against sefaria.org",
+  "by": "src/routes/updates.tsx, src/features/updates/UpdatesRoute.tsx, src/ui/UpdatesPage, src/lib/updates/updates.ts"
  },
  "LIB-025": {
   "status": "todo",
@@ -2946,20 +2947,24 @@
   "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
  },
  "NTF-001": {
-  "status": "todo",
-  "note": "/notifications is Django's and the new header has no notifications link or unread count (T-F20)"
+  "status": "done",
+  "note": "/notifications in the new reader (Library host)",
+  "by": "src/routes/notifications.tsx, src/features/notifications/NotificationsRoute.tsx, src/ui/NotificationsPage, src/lib/notifications/notifications.ts"
  },
  "NTF-002": {
-  "status": "todo",
-  "note": "Per-type notification rendering comes with the notifications page (T-F20)"
+  "status": "done",
+  "note": "All seven kinds; Voices kinds link out",
+  "by": "src/ui/Notification/Notification.tsx, src/features/notifications/view.ts, src/lib/notifications/natural-time.ts"
  },
  "NTF-003": {
-  "status": "todo",
-  "note": "Mark-read on load and the header's unread badge come with the notifications page (T-F20)"
+  "status": "done",
+  "note": "Marks loaded notifications read (Library scope)",
+  "by": "src/lib/notifications/notifications.ts, src/features/notifications/NotificationsRoute.tsx"
  },
  "NTF-004": {
-  "status": "todo",
-  "note": "Global notifications show in the notifications feed and /updates; both still Django's (T-F20, T-F22)"
+  "status": "done",
+  "note": "Global notifications on /updates and /notifications in the new reader",
+  "by": "src/features/updates/UpdatesRoute.tsx, src/features/notifications/NotificationsRoute.tsx"
  },
  "NTF-005": {
   "status": "n/a",
@@ -3167,8 +3172,9 @@
   "note": "Voices out of scope (owner 2026-11-10)"
  },
  "PRO-010": {
-  "status": "todo",
-  "note": "/torahtracker (user stats) is still Django's, reached from the account menu; port it (T-F21)"
+  "status": "done",
+  "note": "/torahtracker in the new reader, charts ported from d3",
+  "by": "src/routes/torahtracker.tsx, src/features/torahtracker/TorahTrackerRoute.tsx, src/ui/TorahTracker, src/lib/torahtracker/stats.ts"
  },
  "PRO-011": {
   "status": "deferred",
@@ -3201,8 +3207,9 @@
   "by": "src/server/redirects.ts"
  },
  "RTE-013": {
-  "status": "todo",
-  "note": "/settings/account stays a Django form; record it as an accepted exit with a way back (T-F23)."
+  "status": "deferred",
+  "note": "Stays Django (accepted exit, T-F23)",
+  "by": "scripts/exits-allowlist.json"
  },
  "RTE-014": {
   "status": "n/a",

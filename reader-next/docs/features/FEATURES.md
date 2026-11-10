@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**962 features**, 3995 documented behaviors. Proposed tiers: core 323, standard 419, optional 156, retire 61.
+**962 features**, 4028 documented behaviors. Proposed tiers: core 323, standard 419, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 431 · partial 101 · todo 51 · replaced 47 · deferred 197 · n/a 135; 397 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 440 · partial 97 · todo 42 · replaced 47 · deferred 201 · n/a 135; 403 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -830,7 +830,7 @@ Code: [`static/js/ReaderPanel.jsx:66`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-060 · Open library, voices, root, search and user pages
-`core` `live` · rebuild: **partial** — Header opens /texts, /topics, /search, /saved, /history, /calendars as routes; notifications and Torah Tracker are Django's (T-F20, T-F21)
+`core` `live` · rebuild: **done** — Header pages all routes of this client (Library host)
 
 Header/nav actions open the right home or page panel.
 
@@ -839,6 +839,7 @@ Header/nav actions open the right home or page panel.
 - searchInCollection(query,collection): sheet search with applied filter [collection], aggType 'collections' (2043-2048).
 - showSaved, showNotes, showHistory, showTopics, showNotifications, showCalendars, showUserStats, showLinkerEditor(book), showCollections (2049-2075).
 - openTopic(slug) async Sefaria.getTopic then topics panel with primaryTitle and topicTestVersion; openTopicCategory(slug) (title from topicTocCategoryTitle); openAllTopics(letter); openProfile(slug,tab='sheets') async profileAPI; openCollection(slug,tag); openTranslationsPage(slug) (2081-2108).
+- 2026-11-10 (lane P): the account menu's Torah Tracker and New Additions are in-app links to this client's pages; /notifications is this client's too (no header link to it in the Library, as on sefaria.org).
 
 Code: [`static/js/ReaderApp.jsx:2007`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2007), [`static/js/ReaderApp.jsx:2027`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2027), [`static/js/ReaderApp.jsx:2081`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2081)
 
@@ -4330,7 +4331,7 @@ Source: `inv_05_library_topics.md#19`
 ### Orphaned pages
 
 #### LIB-022 · New Additions to the Library page
-`retire` `unused` · rebuild: **todo** — /updates (New Additions) is linked from the new header and stays Django; launch plan T-F22 (wave 2).
+`retire` `unused` · rebuild: **done** — /updates in the new reader (Library host), measured against sefaria.org
 
 A feed of newly added texts, versions and announcements with infinite scroll; moderators can post and delete updates.
 
@@ -4340,6 +4341,9 @@ A feed of newly added texts, versions and announcements with infinite scroll; mo
 - Items rendered by Notifications: index ('New Text: <title>' + HTML body), version ('New English/Hebrew version of <title>: <version>'), general (HTML).
 - Moderator NewUpdateForm: radio Index/Version/General; Index Title; Version Title + language; en/he descriptions; validation general needs both langs, index needs title, version needs version+language; POST /api/updates; delete icon -> DELETE /api/updates/<id>.
 - **DEAD:** sidebarModules (Promo, StayConnected) defined but NavSidebar never rendered.
+- BUILT 2026-11-10 (T-F22): /updates is this client's page on the Library host (the Voices host keeps Django's): the About sidebar (wide screens; a phone has none, as sefaria.org leaves it out for a phone User-Agent), 'Updates', and the site's global notifications from /api/updates, ten at a time as the reader nears the end (the first ten with the page). Moderators: the old add form (index / version / general) and a delete button on each (POST and DELETE /api/updates with CSRF). Layout VERIFIED against www.sefaria.org with Playwright 2026-11-10 at 1280px and a phone User-Agent at 390px, English and Hebrew, computed styles and positions (e2e/library-pages.spec.ts asserts them).
+- Deliberate differences: the old page stopped asking for more only when the API's total count was under ten, so at the end it kept requesting empty pages on every scroll (not ported: a short page is the last); the old Hebrew phone page pushed its title off the left of the screen (a 725px column in a 390px window), here it is on screen; on a phone the list is the full width less 30px each side (the old one was a fixed 332.5px, 50% of its 665px column).
+- Tests: src/lib/updates/updates.test.ts, src/ui/UpdatesPage/UpdatesPage.test.tsx, src/features/notifications/view.test.ts, e2e/library-pages.spec.ts.
 
 Code: [`static/js/UpdatesPanel.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/UpdatesPanel.jsx), [`static/js/NotificationsPanel.jsx:117-130`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NotificationsPanel.jsx#L117-L130), [`reader/views.py:3271-3333`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3271-L3333)
 
@@ -4582,6 +4586,7 @@ Source: `inv_05_library_topics.md#4.2`
 Suggests relevant visualizations for the current category.
 
 - Filters 7 hard-coded explorer links (Tanakh & Talmud -> /explore; Talmud & Mishneh Torah; Talmud & Shulchan Arukh; MT & SA; Tanakh & Midrash Rabbah; Tanakh & MT; Tanakh & SA) to those whose name contains any current category; hidden if none; 'All Visualizations ›'.
+- 2026-11-10 (T-F24, D-6): the new reader's links to /explore… and /visualizations (category sidebars' Visualizations module, Resources) open in a new tab (target=_blank, rel=noopener noreferrer); /explore, /visualizations and /visualize/ are on the exits-crawl allowlist (d6-explore, d6-visualizations). Test: e2e/library-pages.spec.ts.
 
 Code: [`static/js/NavSidebar.jsx:578-627`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L578-L627)
 
@@ -8675,7 +8680,7 @@ Source: `inv_07_sheets_users.md#10.3`
 ### Stats
 
 #### PRO-010 · Torah Tracker user stats
-`optional` `live` · rebuild: **todo** — /torahtracker (user stats) is still Django's, reached from the account menu; port it (T-F21) `signed-in`
+`optional` `live` · rebuild: **done** — /torahtracker in the new reader, charts ported from d3 · *tested* `signed-in`
 
 Users see their reading activity compared with the average Sefaria user; moderators can view others.
 
@@ -8683,6 +8688,9 @@ Users see their reading activity compared with the average Sefaria user; moderat
 - Moderators get debounced (500ms) User ID chooser
 - Active users (textsRead > 2): Overall Activity card, donut charts Your Reading vs Average User by category (<4% grouped as 'Etc'), top-5 category bar chart (RTL-aware), Your Favorite Texts (top refs, 3-column TextBlockLink); d3
 - Inactive users: 'Looks like we haven't seen you in a while' with site-wide donut and bars
+- BUILT 2026-11-10 (T-F21): /torahtracker is this client's page on the Library host, @login_required as Django's, reached from the account menu in the app. /api/user_stats/<uid> and /api/site_stats; Previous Year / All Time; an active reader (more than two texts in the period) sees Your Overall Activity, the two donuts, Your Top Categories and Your Favorite Texts; a quiet one the site's numbers. The old d3 5 charts are drawn without d3: pie, arc, centroid, band scale and nice() ported and compared with d3 on 2,000 random inputs (identical). Moderators keep the User ID box. Title once loaded 'Torah Tracker | Sefaria Library' / 'לימוד במספרים | ספריית ספריא'. Layout VERIFIED 2026-11-10 by measuring the old markup under sefaria.org's stylesheet.
+- Deliberate differences: a slice's hover text gives its share (the old one printed the count as a percentage, e.g. '4,500.00%'); in the Hebrew interface the 'Average Sefaria User' label sits by its bar (the old one was placed as if the bars ran left to right); the old #888 headings, #aaa card labels and #999 percentages fail WCAG contrast on #faf9f9 (3.4, 2.2 and 2.7 to 1), so they are the secondary text grey (#707070, 4.7 to 1).
+- Tests: src/lib/torahtracker/stats.test.ts, src/ui/TorahTracker/TorahTracker.test.tsx, e2e/library-pages.spec.ts (signed in against the stand-in Django).
 
 Code: [`static/js/UserStats.jsx:21-363`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/UserStats.jsx#L21-L363), [`reader/views.py:3253-3267`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3253-L3267), [`sefaria/urls_library.py:32`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_library.py#L32)
 
@@ -8920,7 +8928,7 @@ Source: `inv_08_other.md#5.2`
 ### Panel
 
 #### NTF-001 · Notifications page
-`standard` `live` · rebuild: **todo** — /notifications is Django's and the new header has no notifications link or unread count (T-F20) `signed-in`
+`standard` `live` · rebuild: **done** — /notifications in the new reader (Library host) · *tested* `signed-in`
 
 Users see a feed of activity such as new sheets from people they follow, likes, new followers and collection invitations.
 
@@ -8928,31 +8936,39 @@ Users see a feed of activity such as new sheets from people they follow, likes, 
 - Voices shows 'collection add', 'follow', 'sheet like', 'sheet publish'; Library shows everything else (notification.py:173-178, 363)
 - Logged out -> LoginPrompt with ?next=; empty state suggests following sheet creators
 - Sheet deletion deletes its notifications
+- BUILT 2026-11-10 (T-F20): /notifications is this client's page on the Library host (Voices: Django's, whose list is the Voices notifications): @login_required as Django's (signed out: /login?next=/notifications), the bell and 'Notifications', the reader's notifications from /api/notifications?page=<n>&scope=library ten at a time as the reader nears the end, the old empty message, Stay Connected and the promotion slot. Title as the old app set it once loaded ('Notifications | Sefaria Library' / 'התראות | ספריית ספריא'). Layout VERIFIED 2026-11-10 by measuring the old panel's markup under sefaria.org's own stylesheet (no sign-in on production), English and Hebrew.
+- Deliberate difference: the old page had the first page in its server's HTML; here it is asked for on arrival (a moment's spinner).
+- Not built: an unread count or notifications link in the header. sefaria.org's Library header has neither (static/js/Header.jsx shows the bell only in the Voices module); no API gives the count without marking read. Owner question in reports/p-pages.md.
+- Tests: src/lib/notifications/notifications.test.ts, src/ui/NotificationsPage/NotificationsPage.test.tsx, e2e/library-pages.spec.ts (signed in against the stand-in Django).
 
 Code: [`static/js/NotificationsPanel.jsx:33-146`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NotificationsPanel.jsx#L33-L146), [`reader/views.py:1386-1394`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1386-L1394), [`sefaria/model/notification.py:173-178`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/notification.py#L173-L178), [`sefaria/model/notification.py:429-436`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/notification.py#L429-L436)
 
 Source: `inv_07_sheets_users.md#11`
 
 #### NTF-002 · Notification types and rendering
-`standard` `live` · rebuild: **todo** — Per-type notification rendering comes with the notifications page (T-F20) `signed-in`
+`standard` `live` · rebuild: **done** — All seven kinds; Voices kinds link out · *tested* `signed-in`
 
 Each notification type has its own wording, image and links.
 
 - sheet publish (user pic, title link, summary), sheet like, follow (Follow Back unless already following), collection add, index (new text; global), version (new version; global), general (global HTML message)
 - Image (user pic / Sefaria icon), linked name, relative time 'X ago'/'לפני X'
 - Unknown types (legacy discuss, message) render nothing
+- BUILT 2026-11-10 (T-F20): the seven kinds of the old NotificationsPanel (src/ui/Notification): new text, new version (English / Hebrew wording), general announcement (moderators' HTML, sanitised; its links to this client's pages open in the app), and the Voices kinds — sheet published, sheet liked, follower, added to a collection — whose links go to the Voices pages (accepted exits). Dates as the old naturalTime: humanize-duration's largest unit, rounded, '<n> <units> ago' / 'לפני ...' (identical to humanize-duration 3.28 on 200,000 random spans).
+- Deliberate difference: a follower notification has no Follow back button (the Library scope never lists follow notifications; Django keeps them for the Voices site).
+- Deliberate difference: the other reader's name is the Voices token green (#518159, 4.5:1 on white) instead of the old --midrash-green (#5d956f, 3.5:1), which fails WCAG contrast (the story a11y check). Voices links (sheet, profile, collection) are the Voices site's absolute addresses (PUBLIC_CONFIG.voicesOrigin).
 
 Code: [`static/js/NotificationsPanel.jsx:117-131`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NotificationsPanel.jsx#L117-L131), [`static/js/NotificationsPanel.jsx:209-231`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NotificationsPanel.jsx#L209-L231)
 
 Source: `inv_07_sheets_users.md#11`
 
 #### NTF-003 · Mark notifications read
-`standard` `live` · rebuild: **todo** — Mark-read on load and the header's unread badge come with the notifications page (T-F20) `signed-in`
+`standard` `live` · rebuild: **done** — Marks loaded notifications read (Library scope) · *tested* `signed-in`
 
 Notifications are marked read automatically as they load, and the unread badge updates.
 
 - POST /api/notifications/read with ids JSON + scope on mount, scroll and load; updates header unread count
 - API also accepts notifications=all; only own notifications marked
+- BUILT 2026-11-10 (T-F20): every notification the page has loaded that is unread is marked read once, POST /api/notifications/read (notifications=<JSON ids>, scope=library, X-CSRFToken), as the old markAsRead on load and after each page. The answer's unreadCount is not shown anywhere (the Library header has no badge, see NTF-001).
 
 Code: [`static/js/NotificationsPanel.jsx:43-61`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NotificationsPanel.jsx#L43-L61), [`reader/views.py:3358-3393`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3358-L3393)
 
@@ -8962,12 +8978,13 @@ Source: `inv_07_sheets_users.md#11`
 ### Global
 
 #### NTF-004 · Global notifications and site updates
-`optional` `live` · rebuild: **todo** — Global notifications show in the notifications feed and /updates; both still Django's (T-F20, T-F22) `staff`
+`optional` `live` · rebuild: **done** — Global notifications on /updates and /notifications in the new reader · *tested* `staff`
 
 Staff post site-wide announcements that appear in each user's notifications and in an updates panel.
 
 - Admin-posted GlobalNotifications copied into per-user notifications on read (notification.py:340-350)
 - /api/updates GET/POST/DELETE (staff); shown in UpdatesPanel.jsx
+- BUILT 2026-11-10 (T-F20, T-F22): global notifications show on New Additions (/updates) and in the reader's notifications (/notifications, the Library scope), both this client's pages.
 
 Code: [`sefaria/model/notification.py:340-350`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/notification.py#L340-L350), [`reader/views.py:3271-3333`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3271-L3333), [`static/js/UpdatesPanel.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/UpdatesPanel.jsx)
 
@@ -9122,6 +9139,7 @@ Search box plus account/auth buttons, help, language and module switching.
 - FOUND: the site header's menus (language, Library, account) opened UNDER the reader's sticky panel header (z-index 100 vs 20), hiding their items; the header is now z-index 110.
 - REBUILD: Sign Up goes to the client's /register?next= (in-app, data-signup-source=nav_bar).
 - Right side: search, Sign Up (74x28, 14px/14px, 1px transparent border), then 18px image icons (help_mdl, globallanguageswitcher_mdl, moduleswitcher_mdl, profile_loggedout_mdl) 20px apart, the last 30px from the edge; every gap 20px. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- 2026-11-10 (T-F20): no notifications link or unread count, deliberately: sefaria.org's Library header has none (the bell is Voices-only in static/js/Header.jsx) and there is no API for the count. Owner question in reports/p-pages.md.
 
 Code: [`static/js/Header.jsx:291`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L291)
 
@@ -9550,7 +9568,7 @@ Source: `inv_02_reader_shell.md#13`
 ### Account settings
 
 #### ACC-003 · Account settings page
-`standard` `legacy` · rebuild: **partial** — The way back and the kill switch built in the new reader; the endpoint (lane B) and the settings page itself are Django's · *tested* `signed-in`
+`standard` `legacy` · rebuild: **deferred** — Stays Django (accepted exit with a way back, T-F23); the reader switch is also in the new menus · *tested* `signed-in`
 
 The classic server-rendered account settings page lets users set notification frequency, languages, reading history, customs, assistant, experiments, email and Google Drive.
 
@@ -9568,18 +9586,20 @@ The classic server-rendered account settings page lets users set notification fr
 - SERVER 2026-11-10 (lane B): the New Reader switch on /settings/account shows only while READER_OPTIN is on AND the remote-config key feature.reader.optin.audience includes the user: "staff" (default, also for a missing or unknown value; created by remote_config migration 0003) = is_staff only, "all" = every signed-in user. /api/profile ignores reader_version=next from anyone else. ReaderChoiceMiddleware clears a stale reader_version=next cookie of a non-staff user (and of any signed-out visitor) while the audience is "staff". Library host only: Voices responses never get or lose the cookie. Remote config reloads only in the process that saved it (no pub/sub): restart the web pods after changing the audience. Tests: reader/tests/reader_choice_api_test.py, sefaria/helper/tests/reader_choice_test.py.
 - SERVER 2026-11-10 (lane B, T-D05 server half): /api/reader-choice (Library host only). Every answer sets the csrftoken cookie if missing (GET first). GET -> {available, canChooseNext, reader, saved}; POST {"reader": "classic"|"legacy"|"next"} with X-CSRFToken: classic always works (signed out: cookie only; signed in: also profile.settings.reader_version), next only for the audience (else 403); answers {reader, saved} and sets or clears the cookie; never cached. Tests: reader/tests/reader_choice_api_test.py.
 - 2026-11-10 (T-D05 client half, T-C03 client half): while the reader_version=next cookie is present (the opt-in exists for this reader), the account menu and the phone menu offer 'Report a problem' (the sidebar's Feedback form in a dialog; the message is prefixed '[New reader]') and 'Back to the classic reader' (POST /api/reader-choice {reader: 'legacy'} with CSRF, then the cookie is cleared on the host and its parent domains and the page reloads). New GA4 events for these new controls only: reader_report_problem {source}, reader_back_to_classic {source, transport_type: beacon}. Remote config feature.reader.next.disabled = true clears the cookie and reloads into the classic reader once per session. Tests: src/features/shell/reader-choice.test.ts, src/ui/SiteHeader/SiteHeader.test.tsx, e2e/analytics-observability.spec.ts.
+- 2026-11-10 (T-F23): /settings/account stays Django's — an accepted way out, recorded in scripts/exits-allowlist.json (settings-account). The way back: Cancel goes back in history (else /texts) and the old header's links lead to pages the opt-in routing gives this client; the switch back to the classic reader is also in this client's account and phone menus (T-D05).
 
 Code: [`templates/account_settings.html:24-150`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/account_settings.html#L24-L150), [`templates/account_settings.html:249-304`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/account_settings.html#L249-L304), [`sefaria/model/user_profile.py:475-478`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/user_profile.py#L475-L478), [`reader/views.py:4558`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4558), [`reader/views.py:4243`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4243), [`templates/account_settings.html:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/account_settings.html#L1)
 
 Source: `inv_07_sheets_users.md#12; inv_08b_admin_linker_apps.md#3.9`
 
 #### ACC-004 · Change email and connected accounts
-`standard` `legacy` · rebuild: **todo** — Part of /settings/account (T-F23); stays Django `signed-in`
+`standard` `legacy` · rebuild: **deferred** — Part of /settings/account: stays Django (T-F23) `signed-in`
 
 Users change their login email or disconnect Google Drive from settings.
 
 - Non-social users: New Email + Confirm + Password -> POST /settings/account/user (email match, password check, CRM update); social users see 'Google/Apple Sign-In with <email>'
 - Google Drive (sheet export): connected email + Disconnect (/unlink-gauth?redirect=0) or 'not connected'
+- 2026-11-10 (T-F23): part of /settings/account, which stays Django's (accepted exit).
 
 Code: [`templates/account_settings.html:151-210`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/account_settings.html#L151-L210), [`reader/views.py:4242-4284`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4242-L4284)
 
@@ -10142,7 +10162,7 @@ Source: `inv_01_urls_routing.md#1.4`
 ### Serving
 
 #### STA-005 · Static page serving and About sidebar
-`core` `live` · rebuild: **todo** — Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then
+`core` `live` · rebuild: **todo** — Static information page: rendered in the new shell via Django's content block, T-F31 (D-5); Django's page until then · *tested*
 
 Informational pages are served as server templates with the site header, plus an About sidebar linking them together.
 
@@ -10637,6 +10657,7 @@ Users opt in to the assistant from a banner, signup flow or account settings; th
 - Banner ChatbotExperimentBanner 'Ask the Library Assistant' (dismiss cookies chatbot_experiment_banner_dismissed / signup_promo_banner_dismissed)
 - shown when remote config feature.client.show_join_chatbot_banner and not in_chatbot_experiment; SiteWideBanner.jsx:276 opt-in writes settings.library_assistant=true via Sefaria.editProfileAPI.
 - Account settings page toggle (account_settings.html).
+- 2026-11-10 (T-F23): the Account Settings toggle stays on Django's /settings/account (accepted exit); banner and /enable-library-assistant link are this client's.
 
 Code: [`sefaria/helper/library_assistant.py:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/helper/library_assistant.py#L1), [`reader/views.py:4205`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4205), [`static/js/SiteWideBanner.jsx:276`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SiteWideBanner.jsx#L276)
 
@@ -11091,7 +11112,7 @@ Code: [`reader/views.py:4718-4730`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-013 · Account settings URL
-`standard` `live` · rebuild: **todo** — /settings/account stays a Django form; record it as an accepted exit with a way back (T-F23). `signed-in`
+`standard` `live` · rebuild: **deferred** — Stays Django (accepted exit, T-F23) `signed-in`
 
 Signed-in users manage account preferences at /settings/account, a server-rendered page under the React header.
 
@@ -11100,6 +11121,7 @@ Signed-in users manage account preferences at /settings/account, a server-render
 - Regex ^settings/account?$ also matches /settings/accoun (typo-tolerant).
 - POST /settings/account/user changes email (requires current password).
 - /settings/profile on library -> 301 voices /settings/profile/ (cross-module).
+- 2026-11-10 (T-F23): /settings/account stays Django's — an accepted way out, recorded in scripts/exits-allowlist.json (settings-account). The way back: Cancel goes back in history (else /texts) and the old header's links lead to pages the opt-in routing gives this client; the switch back to the classic reader is also in this client's account and phone menus (T-D05).
 
 Code: [`reader/views.py:4556-4578`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4556-L4578), [`reader/views.py:4241-4283`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4241-L4283), [`reader/views.py:5260-5264`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5260-L5264)
 
@@ -11118,7 +11140,7 @@ Code: [`reader/views.py:5267-5271`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-015 · Torah tracker and notes URLs
-`optional` `live` · rebuild: **partial** — /texts/notes routed to the client; /torahtracker still Django's · *tested* `signed-in`
+`optional` `live` · rebuild: **done** — /texts/notes and /torahtracker routed to the client · *tested* `signed-in`
 
 /torahtracker shows a user's learning stats and /texts/notes shows 'My Notes'; both need login.
 
@@ -11126,6 +11148,7 @@ Source: `inv_01_urls_routing.md#1.1`
 - /texts/notes -> menu 'notes', @login_required (client history writes /texts/notes for notes menu).
 - BUILT 2026-11-05: /texts/notes is this client's (src/routes/texts.notes.tsx). /torahtracker is still Django's.
 - BUILT 2026-11-10 (T-F26): /my/notes[/] is a 302 to /texts/notes, this client's notes page. Deliberate difference: Django sends a signed-in reader to /my/profile?tab=notes (the Voices profile) and a signed-out one to /login?next=/my/notes. Tests: e2e/routing-server.spec.ts.
+- 2026-11-10 (T-F21): /torahtracker routed to this client on the Library host (LIBRARY_ONLY_PREFIXES; the Voices host keeps Django's).
 
 Code: [`reader/views.py:1373-1382`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1373-L1382)
 
@@ -11175,6 +11198,7 @@ Contribution history pages show recent edits globally, per user, and per text se
 - /activity/<tref>/<lang>/<version>[/<page>]: segment_history revision history; 404 if version missing.
 - robots.txt disallows /activity/.
 - BUILT 2026-11-05: /activity/<ref>/<lang>/<version>[/<page>] is this client's on the Library host (src/lib/routing/django-paths.ts CLIENT_UNDER_DJANGO_PREFIX_RE, src/server/route-manifest.ts); /activity, /activity/<n>, /activity/<user>/… and /activity/leaderboard stay Django's, as does all of /activity on the Voices host. Tests: src/lib/routing/django-paths.test.ts.
+- 2026-11-10 (T-F25): /activity, /activity/<n>, /activity/leaderboard and /activity/<user> stay Django's; nothing in the new reader links to them.
 
 Code: [`reader/views.py:3961-4107`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3961-L4107), [`reader/views.py:4023-4025`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4023-L4025)
 
@@ -11388,7 +11412,7 @@ Code: [`reader/views.py:1013-1051`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.3`
 
 #### RTE-031 · Saved, history and notifications URLs
-`standard` `live` · rebuild: **partial** — /saved and /history routed to the client; notifications still Django's · *tested* `signed-in`
+`standard` `live` · rebuild: **done** — /saved, /history and /notifications routed to the client · *tested* `signed-in`
 
 Signed-in users have URLs for saved items, reading history and notifications.
 
@@ -11396,6 +11420,7 @@ Signed-in users have URLs for saved items, reading history and notifications.
 - /history: menu 'history', userHistory; respects reading_history setting; login required.
 - /notifications: menu 'notifications', scoped by active module; login required.
 - BUILT 2026-11-05: /saved and /history are this client's on the Library host (LIBRARY_ONLY_PREFIXES; Django's on Voices). Tests: e2e/user-history-page.spec.ts.
+- 2026-11-10 (T-F20): /notifications routed to this client on the Library host (LIBRARY_ONLY_PREFIXES; the Voices host keeps Django's).
 
 Code: [`reader/views.py:1334-1394`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1334-L1394)
 
@@ -14192,6 +14217,7 @@ The old interactive Explorer shows link density between two books/categories.
 - Default Tanakh/Bavli; category keys: Tanakh, Torah, Bavli, Yerushalmi, Mishnah, Tosefta, MidrashRabbah, MishnehTorah, ShulchanArukh, Zohar (dashes stripped).
 - '/he' suffix forces Hebrew content.
 - **BUG:** unknown category -> KeyError -> 500.
+- 2026-11-10 (T-F24, D-6): the new reader's links to /explore… and /visualizations (category sidebars' Visualizations module, Resources) open in a new tab (target=_blank, rel=noopener noreferrer); /explore, /visualizations and /visualize/ are on the exits-crawl allowlist (d6-explore, d6-visualizations). Test: e2e/library-pages.spec.ts.
 
 Code: [`reader/views.py:5101-5200`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5101-L5200)
 
@@ -14207,6 +14233,7 @@ Several experimental visualizations live under /visualize and are separate templ
 - /visualize/timeline: timeline.html, staff only.
 - /visualize/unique-words-by-commentator...: regex has no $ anchor.
 - Sheets visualization: /sheets/visual/<int:id> -> legacy sheets_visual.html.
+- 2026-11-10 (T-F24, D-6): the new reader's links to /explore… and /visualizations (category sidebars' Visualizations module, Resources) open in a new tab (target=_blank, rel=noopener noreferrer); /explore, /visualizations and /visualize/ are on the exits-crawl allowlist (d6-explore, d6-visualizations). Test: e2e/library-pages.spec.ts.
 
 Code: [`reader/views.py:2693-2723`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L2693-L2723), [`reader/views.py:5202-5204`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5202-L5204)
 
@@ -14283,6 +14310,8 @@ A jQuery-era page for adding a new text, editing a section or adding a translati
 - Header says it is legacy reader.js code now used only by Editor, 'ought to be rewritten entirely'.
 - jQuery plugins: keyboard, scrollTo, history, easing, caret, textchange, autosize, tag-it, raty, tooltipster. Loads templates/js/headers.js (868 lines).
 - s1/util.js (2823 lines, sjs.* helpers: loginPrompt, loadTOC, SchemaNode for Index editing, tagit, wrapRefLinks) also used by edit_text_info.html, sheets_visual.html, sheets.html.
+- 2026-11-10 (T-F27): verified that the reader's Add Translation and Edit Text send the reader to /translate/<ref>?next=<this address> and /edit/<ref>/<language>/<version>?next=<this address> (e2e/library-pages.spec.ts against the stand-in Django); the old s1 editor goes to params.next on save and on cancel (static/js/s1/editor.js), and the return forgets the edited book on disk (e2e/freshness.spec.ts). The book page's Add section (/add/<title>, no next: the editor goes to /<title>) is recognised by the referrer too.
+- Gap (not this lane's file): after the index editor saves, the book page goes to /admin/reset/<title>, which redirects to /<title>?m=Cache-Reset; after a redirect the referrer is the book page, not the reset, so invalidateAfterEditorReturn does not see it and nothing forgets the book's index on disk first. Request in reports/p-pages.md: forgetBeforeEditor({kind: 'book', title}) before that assign in src/features/book/BookRoute.tsx.
 
 Code: [`reader/views.py:1525`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1525), [`static/js/s1/editor.js:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/s1/editor.js#L1), [`static/js/s1/util.js:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/s1/util.js#L1)
 
@@ -14361,6 +14390,7 @@ An interactive D3 chart shows how two categories of texts (e.g. Tanakh and Talmu
 - click a book to focus (axis + brush range); segment links GET /api/links/bare/<book>/<cat>; tooltips; toggle colour scheme; EN/HE labels.
 - pushState URL /explore-X-and-Y/<book1>/<book2>, Sefaria.track.exploreBook analytics; alert for unsupported browsers (ol.reversed).
 - Shared helper sefaria-d3/sefaria-d3.js (164 lines; SD3 textScale, _jaggedArrayScale, _textDomain for Talmud/integer address types) imported by explore.js and timeline.js.
+- 2026-11-10 (T-F24, D-6): the new reader's links to /explore… and /visualizations (category sidebars' Visualizations module, Resources) open in a new tab (target=_blank, rel=noopener noreferrer); /explore, /visualizations and /visualize/ are on the exits-crawl allowlist (d6-explore, d6-visualizations). Test: e2e/library-pages.spec.ts.
 
 Code: [`reader/views.py:5102`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5102), [`static/js/explore.js:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/explore.js#L1), [`static/js/sefaria-d3/sefaria-d3.js:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria-d3/sefaria-d3.js#L1)
 
@@ -14386,6 +14416,7 @@ Public pages visualize library word counts by category and a visual table of con
 
 - /visualize/library[/<lang>][/<cats>] -> visualize_library (:2694), visual_library.html, data GET /api/texts/version-status/tree/<lang>; lang regex [enh]*.
 - /visualize/toc -> visualize_toc (:2702), visual_toc.html.
+- 2026-11-10 (T-F24, D-6): the new reader's links to /explore… and /visualizations (category sidebars' Visualizations module, Resources) open in a new tab (target=_blank, rel=noopener noreferrer); /explore, /visualizations and /visualize/ are on the exits-crawl allowlist (d6-explore, d6-visualizations). Test: e2e/library-pages.spec.ts.
 
 Code: [`reader/views.py:2694`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L2694), [`reader/views.py:2702`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L2702)
 
@@ -14480,18 +14511,20 @@ A public feed of recent text edits, filterable by type, by user, or by segment, 
 - BUILT 2026-11-05, a text's revision history only (/activity/<ref>/<lang>/<version>[/<page>]?type=): title, version (Hebrew title in the Hebrew interface), the filter menu, the feed as activity_feed.html (text edits with their diff in green/red, connections, notes, index and term changes with 'details', version metadata, lexicon entries, reviews with a star score, sheets), Django's naturaltime, 'Older Activity »', noindex; refs open in the app. Data: GET /api/activity/<ref>/<lang>/<version>?type=&page= — reader/views.py segment_history_api, NEW on this branch (sefaria.org has no JSON for this page; until it is deployed the API's 404 makes the page a 404, which the server passes to Django). The reader's 'Revision History' link is now relative (same tab rule as live: a new tab). Not built: the site's and a user's activity, the leaderboard (still Django's), and the template's dead revert button. Tests: e2e/activity.spec.ts (the API answer written into the cassette), src/lib/activity/segment-history.test.ts.
 - SERVER 2026-11-10 (lane B): /api/activity/<ref>/<lang>/<version> requires sign-in as the page does (401 JSON signed out; the client must send the reader's cookies), validates page (1..100, else 400 before any lookup), is GET only and private, keeps 404 for an unknown ref or version, and carries the same events the page's template is given (parity test). Tests: reader/tests/segment_history_api_test.py.
 - 2026-11-10 (lane B's contract): /api/activity answers 401 signed out. The new page's server call forwards the reader's cookie, and a 401 sends the reader to /login?next=<the page> (302), as Django's login_required page did. Tests: e2e/analytics-activity-auth.spec.ts.
+- 2026-11-10 (T-F25): the site-wide (/activity, /activity/<n>) and per-user (/activity/<user>) lists are not linked from any page of the new reader (the revision history links profiles, which are Voices'); they stay Django's.
 
 Code: [`reader/views.py:3963`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3963), [`reader/views.py:4080`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4080), [`templates/activity.html:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/activity.html#L1)
 
 Source: `inv_08b_admin_linker_apps.md#3.9`
 
 #### LEG-020 · Contributor leaderboard
-`optional` `legacy` · rebuild: **todo** — Contributor leaderboard is Django's; remove the links or port the list (T-F25) `desktop only`
+`optional` `legacy` · rebuild: **deferred** — Stays Django; not reachable from the new reader (T-F25) `desktop only`
 
 A page ranks top contributors over all time, 30 days, 7 days and 1 day.
 
 - /activity/leaderboard (reader/views.py:4101) with top_contributors(n); templates leaderboard.html / elements/leaderboard.html.
 - **DEAD:** contributors.html template is not routed.
+- 2026-11-10 (T-F25): no page of the new reader links to the leaderboard (exits crawl and source search); it stays Django's, not ported. Owner question in reports/p-pages.md.
 
 Code: [`reader/views.py:4101`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4101), [`templates/leaderboard.html:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/leaderboard.html#L1)
 
