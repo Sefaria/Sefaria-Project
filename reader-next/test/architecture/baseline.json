@@ -90,25 +90,10 @@
     "src/ui/AuthCard/AuthCard.module.css": [
       "8 literal colour(s)"
     ],
-    "src/ui/BookPage/BookPage.module.css": [
-      "4 literal colour(s)"
-    ],
-    "src/ui/ConnectionsPanel/ConnectionsPanel.module.css": [
+    "src/ui/ConnectionsPanel/TextList.module.css": [
       "2 literal colour(s)"
     ],
-    "src/ui/ConnectionsPanel/FilterRow.module.css": [
-      "3 literal colour(s)"
-    ],
-    "src/ui/ConnectionsPanel/TextList.module.css": [
-      "6 literal colour(s)"
-    ],
-    "src/ui/CookieNotice/CookieNotice.module.css": [
-      "3 literal colour(s)"
-    ],
     "src/ui/DictionarySearch/DictionarySearch.module.css": [
-      "4 literal colour(s)"
-    ],
-    "src/ui/DisplaySettingsMenu/DisplaySettingsMenu.module.css": [
       "4 literal colour(s)"
     ],
     "src/ui/DownloadVersions/DownloadVersions.module.css": [
@@ -121,10 +106,7 @@
       "2 literal colour(s)"
     ],
     "src/ui/NotesView/NotesView.module.css": [
-      "6 literal colour(s)"
-    ],
-    "src/ui/PanelHeader/PanelHeader.module.css": [
-      "1 literal colour(s)"
+      "4 literal colour(s)"
     ],
     "src/ui/ProfilePic/ProfilePic.module.css": [
       "2 literal colour(s)"
@@ -133,16 +115,10 @@
       "8 literal colour(s)"
     ],
     "src/ui/SearchPage/SearchPage.module.css": [
-      "35 literal colour(s)"
-    ],
-    "src/ui/Segment/Segment.module.css": [
-      "2 literal colour(s)"
+      "14 literal colour(s)"
     ],
     "src/ui/SegmentText/SegmentText.module.css": [
       "2 literal colour(s)"
-    ],
-    "src/ui/SegmentedControl/SegmentedControl.module.css": [
-      "13 literal colour(s)"
     ],
     "src/ui/SidebarSearch/SidebarSearch.module.css": [
       "1 literal colour(s)"
@@ -163,10 +139,10 @@
       "5 literal colour(s)"
     ],
     "src/ui/TocView/TocView.module.css": [
-      "9 literal colour(s)"
+      "2 literal colour(s)"
     ],
     "src/ui/TopicsView/TopicsView.module.css": [
-      "4 literal colour(s)"
+      "1 literal colour(s)"
     ],
     "src/ui/TorahReadingsView/ClipPlayer.module.css": [
       "3 literal colour(s)"
@@ -175,16 +151,13 @@
       "1 literal colour(s)"
     ],
     "src/ui/TranslationsView/TranslationsView.module.css": [
-      "9 literal colour(s)"
+      "3 literal colour(s)"
     ],
     "src/ui/VersionInfo/VersionInfo.module.css": [
       "1 literal colour(s)"
     ],
-    "src/ui/VirtualKeyboard/KeyboardLauncher.module.css": [
-      "1 literal colour(s)"
-    ],
     "src/ui/VirtualKeyboard/VirtualKeyboard.module.css": [
-      "6 literal colour(s)"
+      "1 literal colour(s)"
     ]
   },
   "url-through-router": {},

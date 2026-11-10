@@ -4,9 +4,10 @@ title: Library navigation
 domain: Library & discovery
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Library navigation — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -71,43 +72,43 @@ Implemented in (most features first):
 
 ### Gaps: core and standard features not done (35)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| LIB-036 | core | Sidebar module: About this text | not started |
-| LIB-065 | core | Tab view component | not started |
-| LIB-068 | core | Library navigation support utilities | not started |
-| LIB-002 | standard | Library home header and edit buttons | partial |
-| LIB-003 | standard | Library home in compare panel | not started |
-| LIB-004 | standard | Mobile library home extras | not started |
-| LIB-005 | standard | Daily dedication banner | todo |
-| LIB-007 | standard | Library home sidebar composition | not started |
-| LIB-013 | standard | Collections listed inside categories | not started |
-| LIB-018 | standard | Category page in compare panel | not started |
-| LIB-020 | standard | Translations by language page | not started |
-| LIB-021 | standard | Translations page backend and SEO | not started |
-| LIB-025 | standard | Sidebar module: Recently viewed | not started |
-| LIB-026 | standard | Sidebar module: Promotions slot | todo |
-| LIB-027 | standard | Sidebar module: Study Companion | not started |
-| LIB-029 | standard | Sidebar module: About translated text | not started |
-| LIB-034 | standard | Sidebar module: Sponsor a Day | not started |
-| LIB-042 | standard | Sidebar module: About topics | not started |
-| LIB-043 | standard | Sidebar module: Trending topics | not started |
-| LIB-044 | standard | Sidebar module: Browse Topics categories | not started |
-| LIB-045 | standard | Sidebar module: All Topics A-Z link | not started |
-| LIB-046 | standard | Sidebar module: Related topics | partial |
-| LIB-047 | standard | Sidebar module: Join the Community | not started |
-| LIB-048 | standard | Sidebar module: Join the Conversation | not started |
-| LIB-049 | standard | Sidebar module: Get the App | not started |
-| LIB-050 | standard | Sidebar module: Stay Connected | not started |
-| LIB-051 | standard | Sidebar module: Create a Sheet | not started |
-| LIB-052 | standard | Sidebar module: What is Sefaria Voices | not started |
-| LIB-053 | standard | Sidebar module: Voices newsletter sign-up | not started |
-| LIB-054 | standard | Sidebar module: About learning schedules | not started |
-| LIB-055 | standard | Sidebar module: About collections | not started |
-| LIB-056 | standard | Sidebar module: Explore collections | not started |
-| LIB-057 | standard | Sidebar module: Who to follow | not started |
-| LIB-060 | standard | Sidebar module: Download text versions | partial |
-| LIB-066 | standard | Filterable, sortable list component | not started |
+| ID      | Tier     | Feature                                   | Rebuild status |
+| ------- | -------- | ----------------------------------------- | -------------- |
+| LIB-036 | core     | Sidebar module: About this text           | not started    |
+| LIB-065 | core     | Tab view component                        | not started    |
+| LIB-068 | core     | Library navigation support utilities      | not started    |
+| LIB-002 | standard | Library home header and edit buttons      | partial        |
+| LIB-003 | standard | Library home in compare panel             | not started    |
+| LIB-004 | standard | Mobile library home extras                | not started    |
+| LIB-005 | standard | Daily dedication banner                   | todo           |
+| LIB-007 | standard | Library home sidebar composition          | not started    |
+| LIB-013 | standard | Collections listed inside categories      | not started    |
+| LIB-018 | standard | Category page in compare panel            | not started    |
+| LIB-020 | standard | Translations by language page             | not started    |
+| LIB-021 | standard | Translations page backend and SEO         | not started    |
+| LIB-025 | standard | Sidebar module: Recently viewed           | not started    |
+| LIB-026 | standard | Sidebar module: Promotions slot           | todo           |
+| LIB-027 | standard | Sidebar module: Study Companion           | not started    |
+| LIB-029 | standard | Sidebar module: About translated text     | not started    |
+| LIB-034 | standard | Sidebar module: Sponsor a Day             | not started    |
+| LIB-042 | standard | Sidebar module: About topics              | not started    |
+| LIB-043 | standard | Sidebar module: Trending topics           | not started    |
+| LIB-044 | standard | Sidebar module: Browse Topics categories  | not started    |
+| LIB-045 | standard | Sidebar module: All Topics A-Z link       | not started    |
+| LIB-046 | standard | Sidebar module: Related topics            | partial        |
+| LIB-047 | standard | Sidebar module: Join the Community        | not started    |
+| LIB-048 | standard | Sidebar module: Join the Conversation     | not started    |
+| LIB-049 | standard | Sidebar module: Get the App               | not started    |
+| LIB-050 | standard | Sidebar module: Stay Connected            | not started    |
+| LIB-051 | standard | Sidebar module: Create a Sheet            | not started    |
+| LIB-052 | standard | Sidebar module: What is Sefaria Voices    | not started    |
+| LIB-053 | standard | Sidebar module: Voices newsletter sign-up | not started    |
+| LIB-054 | standard | Sidebar module: About learning schedules  | not started    |
+| LIB-055 | standard | Sidebar module: About collections         | not started    |
+| LIB-056 | standard | Sidebar module: Explore collections       | not started    |
+| LIB-057 | standard | Sidebar module: Who to follow             | not started    |
+| LIB-060 | standard | Sidebar module: Download text versions    | partial        |
+| LIB-066 | standard | Filterable, sortable list component       | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

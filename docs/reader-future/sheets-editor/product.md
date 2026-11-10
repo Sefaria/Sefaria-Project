@@ -7,6 +7,7 @@ owner: unassigned
 status: baseline  # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Sheets: editing & publishing — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -51,52 +52,52 @@ Feature groups: Editor (7); Adding content (5); Editing behavior (3); Saving (3)
 
 ### Core (14)
 
-| ID | Feature | What it does |
-|---|---|---|
-| SHE-001 | Rich-text sheet editor (owner) | Sheet owners edit their sheet inline in a Slate-based editor that saves automatically. |
-| SHE-002 | Sheet HTML import and export mapping | Existing sheet text is converted in and out of the editor, preserving formatting from older sheets. |
-| SHE-003 | Editor element rendering | The editor renders each sheet block type (sources, comments, media, lists, tables, headers) with in-place editing styles. |
-| SHE-004 | Boxed source editing | Each source in the editor is a box where Hebrew and English text can be edited separately and the box can be dragged. |
-| SHE-007 | Create new sheet | Signed-in users create a new empty sheet and land directly in the editor. |
-| SHE-008 | Add source by citation | Owners add a text source by typing a reference with autocomplete and a live preview. |
-| SHE-016 | Editor document normalization | Behind the scenes the editor keeps the document well-formed: merging text, adding spacers and numbering every item. |
-| SHE-017 | Inline title and summary editing | Owners edit the sheet title and summary directly on the page. |
-| SHE-018 | Sheet autosave | Changes to a sheet save automatically shortly after typing. |
-| SHE-019 | Save-state indicator and input lock | The editor shows saved/saving/error state and blocks editing when saving fails so no work is silently lost. |
-| SHE-021 | Publish sheet to Voices | Owners publish an unlisted sheet by adding a title, short description and at least one topic. |
-| SHE-022 | Publish side effects (backend) | Publishing a sheet notifies followers, scores it, links it to topics and queues it for search. |
-| SHE-023 | Sheet save permissions and sanitization | The server controls who may edit a sheet and cleans submitted HTML. |
-| SHE-029 | Sheet title and metadata box | Editable sheet title, summary and author info at the top of a sheet. |
+| ID      | Feature                                 | What it does                                                                                                              |
+| ------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| SHE-001 | Rich-text sheet editor (owner)          | Sheet owners edit their sheet inline in a Slate-based editor that saves automatically.                                    |
+| SHE-002 | Sheet HTML import and export mapping    | Existing sheet text is converted in and out of the editor, preserving formatting from older sheets.                       |
+| SHE-003 | Editor element rendering                | The editor renders each sheet block type (sources, comments, media, lists, tables, headers) with in-place editing styles. |
+| SHE-004 | Boxed source editing                    | Each source in the editor is a box where Hebrew and English text can be edited separately and the box can be dragged.     |
+| SHE-007 | Create new sheet                        | Signed-in users create a new empty sheet and land directly in the editor.                                                 |
+| SHE-008 | Add source by citation                  | Owners add a text source by typing a reference with autocomplete and a live preview.                                      |
+| SHE-016 | Editor document normalization           | Behind the scenes the editor keeps the document well-formed: merging text, adding spacers and numbering every item.       |
+| SHE-017 | Inline title and summary editing        | Owners edit the sheet title and summary directly on the page.                                                             |
+| SHE-018 | Sheet autosave                          | Changes to a sheet save automatically shortly after typing.                                                               |
+| SHE-019 | Save-state indicator and input lock     | The editor shows saved/saving/error state and blocks editing when saving fails so no work is silently lost.               |
+| SHE-021 | Publish sheet to Voices                 | Owners publish an unlisted sheet by adding a title, short description and at least one topic.                             |
+| SHE-022 | Publish side effects (backend)          | Publishing a sheet notifies followers, scores it, links it to topics and queues it for search.                            |
+| SHE-023 | Sheet save permissions and sanitization | The server controls who may edit a sheet and cleans submitted HTML.                                                       |
+| SHE-029 | Sheet title and metadata box            | Editable sheet title, summary and author info at the top of a sheet.                                                      |
 
 ### Standard (10)
 
-| ID | Feature | What it does |
-|---|---|---|
-| SHE-006 | Open sheet at highlighted node | Opening a sheet with a node in the URL scrolls to that node. |
-| SHE-009 | Add image to sheet | Owners upload an image (jpg, png, gif) and insert it into the sheet. |
-| SHE-010 | Add media by URL | Owners paste a media link (YouTube, Vimeo, SoundCloud, Spotify, Bandcamp, mp3, image) and it is embedded. |
-| SHE-011 | Typed citation auto-conversion | Typing a reference on its own line and pressing Enter turns it into a source block. |
-| SHE-012 | Smart paste and drop | Pasting Sefaria links inserts titled links, and pasted or dropped content is cleaned and numbered. |
-| SHE-013 | Formatting toolbar and shortcuts | Selecting text shows a floating toolbar for bold, italic, underline, highlight, links, headers and lists. |
-| SHE-014 | Inline link editing | Owners add and edit hyperlinks in sheet text through a hover popover. |
+| ID      | Feature                                    | What it does                                                                                                     |
+| ------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| SHE-006 | Open sheet at highlighted node             | Opening a sheet with a node in the URL scrolls to that node.                                                     |
+| SHE-009 | Add image to sheet                         | Owners upload an image (jpg, png, gif) and insert it into the sheet.                                             |
+| SHE-010 | Add media by URL                           | Owners paste a media link (YouTube, Vimeo, SoundCloud, Spotify, Bandcamp, mp3, image) and it is embedded.        |
+| SHE-011 | Typed citation auto-conversion             | Typing a reference on its own line and pressing Enter turns it into a source block.                              |
+| SHE-012 | Smart paste and drop                       | Pasting Sefaria links inserts titled links, and pasted or dropped content is cleaned and numbered.               |
+| SHE-013 | Formatting toolbar and shortcuts           | Selecting text shows a floating toolbar for bold, italic, underline, highlight, links, headers and lists.        |
+| SHE-014 | Inline link editing                        | Owners add and edit hyperlinks in sheet text through a hover popover.                                            |
 | SHE-015 | Editor Enter/Backspace and structure rules | The editor has custom rules for Enter, Backspace, cut/copy and tables so sources and spacers behave predictably. |
-| SHE-020 | Cross-tab editor refresh | When a source is added to a sheet from another tab or panel, open editors reload the sheet. |
-| SHE-025 | Sheet content API surface | A set of endpoints creates, reads, appends to and queries sheets for the app and API clients. |
+| SHE-020 | Cross-tab editor refresh                   | When a source is added to a sheet from another tab or panel, open editors reload the sheet.                      |
+| SHE-025 | Sheet content API surface                  | A set of endpoints creates, reads, appends to and queries sheets for the app and API clients.                    |
 
 ### Optional (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature      | What it does                                                       |
+| ------- | ------------ | ------------------------------------------------------------------ |
 | SHE-005 | Editor guide | A bulb button opens a how-to guide for the sheet editor to owners. |
 
 ### Retire (4)
 
-| ID | Feature | What it does |
-|---|---|---|
-| SHE-024 | Sheet collaboration (no React UI) | Backend supports 'anyone can edit' and 'anyone can add' sheets, but the React app has no control for it and collaborators cannot edit. |
-| SHE-026 | Legacy highlighter mode and tag editor | The old editor can highlight sheet segments with named colored tags and edit sheet tags with suggestions. |
-| SHE-027 | Legacy assignments, embed and print | The old editor supports assignments for students, an embed-code dialog and printing; none exist in React. |
-| SHE-028 | Legacy sheet actions and parasha-to-sheet | The old editor has its own copy, Drive export, delete, likes list, publish prompt and a modal to add a parasha's aliyot to a sheet. |
+| ID      | Feature                                   | What it does                                                                                                                           |
+| ------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| SHE-024 | Sheet collaboration (no React UI)         | Backend supports 'anyone can edit' and 'anyone can add' sheets, but the React app has no control for it and collaborators cannot edit. |
+| SHE-026 | Legacy highlighter mode and tag editor    | The old editor can highlight sheet segments with named colored tags and edit sheet tags with suggestions.                              |
+| SHE-027 | Legacy assignments, embed and print       | The old editor supports assignments for students, an embed-code dialog and printing; none exist in React.                              |
+| SHE-028 | Legacy sheet actions and parasha-to-sheet | The old editor has its own copy, Drive export, delete, likes list, publish prompt and a modal to add a parasha's aliyot to a sheet.    |
 
 ### Flags from the audit (not to port as-is)
 

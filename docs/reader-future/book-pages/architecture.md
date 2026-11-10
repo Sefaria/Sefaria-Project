@@ -4,9 +4,10 @@ title: Book pages
 domain: Library & discovery
 document: architecture
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-19
 ---
+
 # Book pages — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -29,7 +30,7 @@ _Not discussed yet. Items carry a status: idea · proposed · agreed · decided.
 
 - [Saved, history & notes](../user-library/architecture.md): Continue Reading (BOK-003) reads `last-place.ts` in localStorage
   today ([`src/features/book/BookRoute.tsx:38-40`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/book/BookRoute.tsx#L38-L40)); in the target it reads the reader's position from the user-state store,
-  so it follows the account. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  so it follows the account. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Risks and open questions
 
@@ -74,15 +75,15 @@ Implemented in (most features first):
 
 ### Gaps: core and standard features not done (7)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| BOK-001 | core | Book page (text table of contents) | partial |
-| BOK-004 | standard | Book page in compare panel | not started |
-| BOK-006 | standard | Book page sidebar | partial |
-| BOK-012 | standard | Deep-nested text headings | partial |
-| BOK-013 | standard | Zoomed-out TOC levels | partial |
-| BOK-016 | standard | Dictionary node letter browse | partial |
-| BOK-019 | standard | Dictionary search on book page | not started |
+| ID      | Tier     | Feature                            | Rebuild status |
+| ------- | -------- | ---------------------------------- | -------------- |
+| BOK-001 | core     | Book page (text table of contents) | partial        |
+| BOK-004 | standard | Book page in compare panel         | not started    |
+| BOK-006 | standard | Book page sidebar                  | partial        |
+| BOK-012 | standard | Deep-nested text headings          | partial        |
+| BOK-013 | standard | Zoomed-out TOC levels              | partial        |
+| BOK-016 | standard | Dictionary node letter browse      | partial        |
+| BOK-019 | standard | Dictionary search on book page     | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

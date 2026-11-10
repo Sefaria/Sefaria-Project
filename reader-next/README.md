@@ -14,14 +14,14 @@ npm run features:coverage        # which atlas features have tagged tests/storie
 npm run fixtures:record  # re-record API fixtures in fixtures/api
 ```
 
-| Doc | What |
-|---|---|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Tenets, layers, the library cache, testing levels |
-| [docs/PROGRESS.md](docs/PROGRESS.md) | What is built, what is next, known gaps |
+| Doc                                                | What                                                            |
+| -------------------------------------------------- | --------------------------------------------------------------- |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)       | Tenets, layers, the library cache, testing levels               |
+| [docs/PROGRESS.md](docs/PROGRESS.md)               | What is built, what is next, known gaps                         |
 | [docs/COMPONENT_AUDIT.md](docs/COMPONENT_AUDIT.md) | Old-client audit, design tokens, the proposed component library |
-| [docs/BOOK_TYPES.md](docs/BOOK_TYPES.md) | How every book type differs, grounded in recorded API data |
-| [docs/VENDOR.md](docs/VENDOR.md) | The vendored toolkit code and our changes to it |
-| [docs/features/](docs/features/) | The Feature Atlas (941 features) and the old-client write-ups |
+| [docs/BOOK_TYPES.md](docs/BOOK_TYPES.md)           | How every book type differs, grounded in recorded API data      |
+| [docs/VENDOR.md](docs/VENDOR.md)                   | The vendored toolkit code and our changes to it                 |
+| [docs/features/](docs/features/)                   | The Feature Atlas (941 features) and the old-client write-ups   |
 
 Conventions: tests and stories carry `// @feature ID` tags (IDs from the atlas); `npm run features:coverage -- --unknown`
 fails on a tag that does not exist. Before adding a component, search Storybook for it.

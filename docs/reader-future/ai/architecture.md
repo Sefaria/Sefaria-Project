@@ -4,9 +4,10 @@ title: AI features
 domain: Site & accounts
 document: architecture
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-28
 ---
+
 # AI features — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -34,7 +35,7 @@ _Not discussed yet._
 _Items carry a status: idea · proposed · agreed · decided._
 
 - The assistant drives the new reader through the same integration interface as any other integration, with the legacy
-  `sefaria:bootstrap-url` kept working. — *decided* (parity) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) · shape *proposed* in `../routing/architecture.md` → Integrations
+  `sefaria:bootstrap-url` kept working. — _decided_ (parity) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) · shape _proposed_ in `../routing/architecture.md` → Integrations
 
 ## Dependencies on other areas
 
@@ -82,14 +83,14 @@ Rebuild status of this area's features: not started 20.
 
 ### Gaps: core and standard features not done (6)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| AI-001 | standard | Chatbot experiment banner (shell mount) | not started |
-| AI-003 | standard | Chatbot user token and props | not started |
-| AI-004 | standard | Library Assistant opt-in, setting and promo banner | not started |
-| AI-008 | standard | AI disclosure tooltip on Guided Learning | not started |
-| AI-011 | standard | Library Assistant chatbot widget | not started |
-| AI-017 | standard | AI info tooltip | not started |
+| ID     | Tier     | Feature                                            | Rebuild status |
+| ------ | -------- | -------------------------------------------------- | -------------- |
+| AI-001 | standard | Chatbot experiment banner (shell mount)            | not started    |
+| AI-003 | standard | Chatbot user token and props                       | not started    |
+| AI-004 | standard | Library Assistant opt-in, setting and promo banner | not started    |
+| AI-008 | standard | AI disclosure tooltip on Guided Learning           | not started    |
+| AI-011 | standard | Library Assistant chatbot widget                   | not started    |
+| AI-017 | standard | AI info tooltip                                    | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

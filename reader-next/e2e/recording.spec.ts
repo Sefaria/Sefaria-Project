@@ -191,7 +191,18 @@ test.describe("recording and replay", () => {
     // ── Record ────────────────────────────────────────────────────────────────────────────────────────────────
     await menuButton(page).click();
     const record = page.getByRole("button", { name: "Record session" });
-    await record.evaluate((el) => el.addEventListener("click", () => ((window as unknown as { __recT0: number }).__recT0 = performance.now()), { capture: true, once: true }));
+    // The test's clock starts when the recorder does, not at the click: the recorder is loaded on demand (recording/entry.ts), so on a
+    // slow machine it starts tens of ms after the click, and a click-anchored clock ran ahead of the recording's (CI: duration 19668 <
+    // last step 19711). The dock's timer is rendered by the recorder's own start notification, so its arrival is the recorder's t=0
+    // (at most a frame late, which only makes every step window end earlier than the recording's).
+    await page.evaluate(() => {
+      const mo = new MutationObserver(() => {
+        if (!document.querySelector('[role="timer"][aria-label="Elapsed time"]')) return;
+        (window as unknown as { __recT0: number }).__recT0 = performance.now();
+        mo.disconnect();
+      });
+      mo.observe(document.body, { childList: true, subtree: true });
+    });
     await record.click();
     await expect(dock(page).getByRole("timer", { name: "Elapsed time" })).toBeVisible();
     await closeMenu(page);

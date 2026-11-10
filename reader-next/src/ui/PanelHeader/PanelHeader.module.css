@@ -12,7 +12,7 @@
 .title, .subtitle > * { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .subtitle a { color: inherit; text-decoration: none; }
 .subtitle [lang="he"] { font-style: normal; font-family: var(--sefaria-font-text-he); }
-.subtitle { margin: 2px 0 0; font-family: var(--sefaria-font-text-en); font-size: 15px; color: #6f6f6f; font-style: italic; }
+.subtitle { margin: 2px 0 0; font-family: var(--sefaria-font-text-en); font-size: 15px; color: var(--sefaria-color-text-muted); font-style: italic; }
 
 /* VERIFIED on sefaria.org: the controls sit in the text's own 700px column, not at the panel's edges; 18px icons about 36px apart */
 .end > * + * { margin-inline-start: -3px; }

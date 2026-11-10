@@ -44,23 +44,23 @@ target architecture.
 Each decision Sonnet took (explicitly in `docs/ARCHITECTURE.md` or implicitly in the code), with a verdict: **keep**, **change**
 (right goal, wrong execution) or **reverse**.
 
-| # | Decision | Verdict | Why | Direction |
-|---|---|---|---|---|
-| 1 | React 19 + TanStack Start/Router/Query, SSR first paint | **Keep** | Right stack; per-request QueryClient is correct; SSR text in HTML is a real SEO/LCP win over legacy | Add an HTTP policy layer (§3.4) |
-| 2 | React + Storybook component library instead of the Lit toolkit | **Keep** | Correct call; Popover, Modal (native `<dialog>`), SegmentedControl are well built | Enforce the ui boundary (§3.6) |
-| 3 | "The URL is the reader state", byte-exact legacy grammar | **Change** | The goal is right (F1). The execution — porting `makeHistoryState`'s string templating, then re-parsing the string, then rewriting the address bar after the fact with `history.replaceState` outside the router — produced the `%` crash, parameter injection, the `sbsq{i}` typo, back/forward restore damage and a server round trip per scroll pause | Structured encoder (pairs → one serializer); byte-exactness proven by golden tests; full form written at navigation time; no post-hoc rewrite |
-| 4 | "Local library cache is the backbone": persist every query to IndexedDB | **Reverse the default** | Persistence was made the default for every class, with no budget, no eviction and silent quota failure. Multi-MB link arrays, autocomplete prefixes and stale calendars go to disk; SSR-seeded data (the page you landed on) never does. Offline reading is not a stated product goal; a fast revisit is, and memory + HTTP caching gives most of it | Opt-in persistence for texts and catalog only, byte budget + LRU eviction, memory-only for links/related/search; a server freshness signal (ETag or library version) |
-| 5 | Vendored toolkit API client with zod validation of every response at runtime | **Reverse** | Costs 58 KB gzip on every page and ~40 ms per large response on the main thread (more on phones), double-parses bodies, turns undocumented statuses into "contract" errors — and gives no type safety, since `src/lib` still casts (`as unknown as` ×11). Its cache is disabled and its schemas patched | Keep `text-transform`; replace the client with a thin fetch layer + types generated from Sefaria's OpenAPI; validate against fixtures in CI, sample in prod |
-| 6 | Port legacy behaviour by hand, verified by parity scripts | **Change** | Parity is the right bar, but hand-ports drift (auth analytics was ported from a snapshot master has since changed) and copy legacy bugs (`sbsq{i}`, the range-collapse comment). The `innerText` parity scripts normalise away differences and mostly don't fail | Contract tests against master for anything with an external consumer (analytics events, chatbot events, URLs); parity as recorded fixtures asserted in specs |
-| 7 | Feature logic inside React components (TextPanel ~600 lines, ~30 inline `useCallback` commands; ConnectionsPane a 700-line if-chain) | **Reverse** | Untestable without React, blocks the integration command layer (F2), duplicates logic, causes the render cascades | Pure commands `(ws, panelId, args) → {ws, navState}` in `src/lib/workspace`; a "now reading" store per panel; a view registry for the sidebar |
-| 8 | Infinite column that only appends; per-verse React state | **Change** | Long sessions degrade linearly (DOM, links arrays, per-frame `querySelectorAll`, layout in `spreadNumbers`); each verse crossed re-renders the panel | Window the column (unload far sections); external store for "now reading", subscribed selectively |
-| 9 | SSR loads everything the URL names | **Reverse** | Ranges fetch every section (up to 500), `p2…pN` loads every panel, the 4 MB catalog is dehydrated into HTML, slow upstreams hang renders with no timeout | SSR budgets: first section + highlight only, panel cap, `shouldDehydrateQuery` by class, timeouts, 503 + `Retry-After` |
-| 10 | Analytics head scripts declared through the router's `head()` | **Reverse** | The router re-injects them on route changes (re-running GTM and `gtag('config')`) | Bootstrap third-party scripts once, in the document shell, idempotently |
-| 11 | `light-dark()` tokens that follow the OS when no theme is set | **Change** | Shipped before the token sweep: dark-OS users already get a half-dark site with 1.07:1 contrast controls | Pin `data-theme="light"` until §6.6 lands behind its flag |
-| 12 | Request prefs through a server function in root `beforeLoad` | **Reverse** | Runs on every navigation, including scroll-driven ones, as an HTTP round trip | Read cookies in request middleware → router context on the server; `document.cookie` on the client |
-| 13 | e2e against the live API as the main gate; coverage % from `@feature` tags; no CI | **Reverse** | The suite is red today because live data changed (145 → 144); tags credit skipped and expected-fail tests | Fixture/HAR replay in CI on every PR; nightly live drift suite; coverage from tests that ran |
-| 14 | Client developed in a local-only repo, synced by squash subtree | **Reverse** | The only copy of the history is on one laptop; squashes lose authorship and bisectability | Develop in `reader-next/` on the branch (or push `sefaria-reader` and keep the subtree) |
-| 15 | Two HTML pipelines (vendored normaliser + `sanitizeHtml`) plus regex post-processing | **Reverse** | Regex highlighting over serialized HTML is the XSS (R-02) | One parse → DOM transforms (highlight, link upgrade) → one escaping serializer |
+| #   | Decision                                                                                                                             | Verdict                 | Why                                                                                                                                                                                                                                                                                                                                                      | Direction                                                                                                                                                            |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | React 19 + TanStack Start/Router/Query, SSR first paint                                                                              | **Keep**                | Right stack; per-request QueryClient is correct; SSR text in HTML is a real SEO/LCP win over legacy                                                                                                                                                                                                                                                      | Add an HTTP policy layer (§3.4)                                                                                                                                      |
+| 2   | React + Storybook component library instead of the Lit toolkit                                                                       | **Keep**                | Correct call; Popover, Modal (native `<dialog>`), SegmentedControl are well built                                                                                                                                                                                                                                                                        | Enforce the ui boundary (§3.6)                                                                                                                                       |
+| 3   | "The URL is the reader state", byte-exact legacy grammar                                                                             | **Change**              | The goal is right (F1). The execution — porting `makeHistoryState`'s string templating, then re-parsing the string, then rewriting the address bar after the fact with `history.replaceState` outside the router — produced the `%` crash, parameter injection, the `sbsq{i}` typo, back/forward restore damage and a server round trip per scroll pause | Structured encoder (pairs → one serializer); byte-exactness proven by golden tests; full form written at navigation time; no post-hoc rewrite                        |
+| 4   | "Local library cache is the backbone": persist every query to IndexedDB                                                              | **Reverse the default** | Persistence was made the default for every class, with no budget, no eviction and silent quota failure. Multi-MB link arrays, autocomplete prefixes and stale calendars go to disk; SSR-seeded data (the page you landed on) never does. Offline reading is not a stated product goal; a fast revisit is, and memory + HTTP caching gives most of it     | Opt-in persistence for texts and catalog only, byte budget + LRU eviction, memory-only for links/related/search; a server freshness signal (ETag or library version) |
+| 5   | Vendored toolkit API client with zod validation of every response at runtime                                                         | **Reverse**             | Costs 58 KB gzip on every page and ~40 ms per large response on the main thread (more on phones), double-parses bodies, turns undocumented statuses into "contract" errors — and gives no type safety, since `src/lib` still casts (`as unknown as` ×11). Its cache is disabled and its schemas patched                                                  | Keep `text-transform`; replace the client with a thin fetch layer + types generated from Sefaria's OpenAPI; validate against fixtures in CI, sample in prod          |
+| 6   | Port legacy behaviour by hand, verified by parity scripts                                                                            | **Change**              | Parity is the right bar, but hand-ports drift (auth analytics was ported from a snapshot master has since changed) and copy legacy bugs (`sbsq{i}`, the range-collapse comment). The `innerText` parity scripts normalise away differences and mostly don't fail                                                                                         | Contract tests against master for anything with an external consumer (analytics events, chatbot events, URLs); parity as recorded fixtures asserted in specs         |
+| 7   | Feature logic inside React components (TextPanel ~600 lines, ~30 inline `useCallback` commands; ConnectionsPane a 700-line if-chain) | **Reverse**             | Untestable without React, blocks the integration command layer (F2), duplicates logic, causes the render cascades                                                                                                                                                                                                                                        | Pure commands `(ws, panelId, args) → {ws, navState}` in `src/lib/workspace`; a "now reading" store per panel; a view registry for the sidebar                        |
+| 8   | Infinite column that only appends; per-verse React state                                                                             | **Change**              | Long sessions degrade linearly (DOM, links arrays, per-frame `querySelectorAll`, layout in `spreadNumbers`); each verse crossed re-renders the panel                                                                                                                                                                                                     | Window the column (unload far sections); external store for "now reading", subscribed selectively                                                                    |
+| 9   | SSR loads everything the URL names                                                                                                   | **Reverse**             | Ranges fetch every section (up to 500), `p2…pN` loads every panel, the 4 MB catalog is dehydrated into HTML, slow upstreams hang renders with no timeout                                                                                                                                                                                                 | SSR budgets: first section + highlight only, panel cap, `shouldDehydrateQuery` by class, timeouts, 503 + `Retry-After`                                               |
+| 10  | Analytics head scripts declared through the router's `head()`                                                                        | **Reverse**             | The router re-injects them on route changes (re-running GTM and `gtag('config')`)                                                                                                                                                                                                                                                                        | Bootstrap third-party scripts once, in the document shell, idempotently                                                                                              |
+| 11  | `light-dark()` tokens that follow the OS when no theme is set                                                                        | **Change**              | Shipped before the token sweep: dark-OS users already get a half-dark site with 1.07:1 contrast controls                                                                                                                                                                                                                                                 | Pin `data-theme="light"` until §6.6 lands behind its flag                                                                                                            |
+| 12  | Request prefs through a server function in root `beforeLoad`                                                                         | **Reverse**             | Runs on every navigation, including scroll-driven ones, as an HTTP round trip                                                                                                                                                                                                                                                                            | Read cookies in request middleware → router context on the server; `document.cookie` on the client                                                                   |
+| 13  | e2e against the live API as the main gate; coverage % from `@feature` tags; no CI                                                    | **Reverse**             | The suite is red today because live data changed (145 → 144); tags credit skipped and expected-fail tests                                                                                                                                                                                                                                                | Fixture/HAR replay in CI on every PR; nightly live drift suite; coverage from tests that ran                                                                         |
+| 14  | Client developed in a local-only repo, synced by squash subtree                                                                      | **Reverse**             | The only copy of the history is on one laptop; squashes lose authorship and bisectability                                                                                                                                                                                                                                                                | Develop in `reader-next/` on the branch (or push `sefaria-reader` and keep the subtree)                                                                              |
+| 15  | Two HTML pipelines (vendored normaliser + `sanitizeHtml`) plus regex post-processing                                                 | **Reverse**             | Regex highlighting over serialized HTML is the XSS (R-02)                                                                                                                                                                                                                                                                                                | One parse → DOM transforms (highlight, link upgrade) → one escaping serializer                                                                                       |
 
 ---
 
@@ -74,7 +74,7 @@ Before more features: CI on every PR to `reader-next` (typecheck, unit, stories,
 vitest **architecture test** for import boundaries (`src/ui` may not import settings, router, config, analytics or API types; features
 may not import API shapes) with a shrinking allowlist; **stylelint** `color-no-hex` outside `tokens.css`. Today: 48 ui files import
 `src/lib` beyond i18n (7 emit analytics, 11 read config, 5 read settings), 13 ui/features files import API shapes, 208 literal colours
-in 43 CSS files. Without enforcement every new Sonnet commit widens the gap. *(Amends §5: rules are tests, from day one.)*
+in 43 CSS files. Without enforcement every new Sonnet commit widens the gap. _(Amends §5: rules are tests, from day one.)_
 
 ### 3.2 One HTML pipeline
 
@@ -87,7 +87,7 @@ Parse once, transform the DOM (sanitise, highlight search terms, upgrade links, 
 in every field; golden tests hold the byte-exact legacy URLs (the existing `legacy-urls.ts` table becomes the oracle). Write the full
 form at navigation time through `router.navigate`; delete the address-bar rewrite. Panel ids travel in history state (D7). Move `go`,
 `current` and defaults to `src/lib/workspace/commands.ts` (router + settings getter), which is also the integration layer's entry
-point (§6.12). *(Amends §6.1.)*
+point (§6.12). _(Amends §6.1.)_
 
 ### 3.4 An HTTP policy layer on the node server
 
@@ -97,7 +97,7 @@ timeouts on every upstream fetch (`AbortSignal.timeout`, ~6 s render, shorter fo
 data, and `Vary` on preference cookies before anyone caches anonymous pages; SSR fan-out caps (panels ≤ 5, sections per panel = first +
 highlight); SIGTERM drain. Replace the global `fetch` monkey-patch with an injected `apiFetch(origin, host)`, and fail fast on bad
 config at boot. Replace the "render, 404, then ask Django" fallback with an explicit route manifest plus a cached name check for refs.
-*(Amends §4 and §6.16.)*
+_(Amends §4 and §6.16.)_
 
 ### 3.5 Data layer: fewer bytes, explicit lifetimes
 
@@ -109,7 +109,7 @@ config at boot. Replace the "render, 404, then ask Django" fallback with an expl
 - Ref value type `{book, structure, from[], to[]}` parsed once; sections derived from the index shape, not learned from text fetches;
   cache keys include the structure (prepares the backend text model).
 - Freshness: ETag/Last-Modified through Varnish or a library-version endpoint to bust texts after corrections.
-*(Amends §6.7.)*
+  _(Amends §6.7.)_
 
 ### 3.6 Reader core: commands, stores, display model
 
@@ -149,14 +149,14 @@ in `sefaria-reader`).
 
 ### Critical
 
-**R-01 · C · analytics · GTM and `gtag('config')` re-run on every in-app route change** — *verified (production build; `config`,
-`js`, `gtm.js` counts 1 → 2 → 3 over three clicks)*
+**R-01 · C · analytics · GTM and `gtag('config')` re-run on every in-app route change** — _verified (production build; `config`,
+`js`, `gtm.js` counts 1 → 2 → 3 over three clicks)_
 `src/routes/__root.tsx:52` declares the snippets in `head().scripts`; TanStack's `<Script>` renders `null` after hydration and its effect
 re-injects the script whenever the root loader's data changes. Each route change sends an extra `page_view` and re-fires every GTM
 tag: the decided "GA4 stream unchanged" condition (D1, F4) is broken today. **Fix:** plain `<script>` in `RootDocument`'s `<head>`,
 guarded (`if (window.__sfAnalyticsInit) return`).
 
-**R-02 · C · security · stored XSS through search-term highlighting** — *verified (jsdom PoC)*
+**R-02 · C · security · stored XSS through search-term highlighting** — _verified (jsdom PoC)_
 `src/lib/text/highlight-terms.ts:21` tokenises serialized HTML with `/<[^>]*>/`; the vendored serializer
 (`vendor/sefaria-toolkit/text-transform/html.ts:48`, `entities.escapeAttribute`) leaves `<`/`>` raw in attribute values. A `>` inside
 `data-value`/`data-ref`/`data-commentator` lets the highlighter's inserted `<span class="…">` break out of the attribute; the browser
@@ -165,62 +165,62 @@ version (`reader/views.py:1863-1886`). Chain: plant text → wait for indexing �
 escape `< > " &` in attributes; highlight by walking text nodes of the parsed DOM (§3.2); regression test with the payload; backend:
 restrict who may create versions and strip `<`/`>` from those attributes.
 
-**R-03 · C · security · open redirect in `/interface/<lang>?next=`** — *verified (`next=/%09/evil.com` → `Location: /\t/evil.com`;
-`new URL("/\t/evil.com", origin)` = `https://evil.com/`)*
+**R-03 · C · security · open redirect in `/interface/<lang>?next=`** — _verified (`next=/%09/evil.com` → `Location: /\t/evil.com`;
+`new URL("/\t/evil.com", origin)` = `https://evil.com/`)_
 `src/lib/shell/interface-language.ts:9-11` blocks `//`, `/\` and CR/LF but not TAB. A correct implementation exists in
 `src/lib/auth/utils.ts:64`. **Fix:** use that one; delete the copy; add the TAB case to its tests.
 
 **R-04 · C · availability · a `%` in a sidebar search (or any free-text URL value) crashes the reader; values can inject parameters**
-— *verified in the browser (`…&with=SidebarSearch&sbsq=100%25` hydrates, then `URIError`, "Something went wrong!")*
+— _verified in the browser (`…&with=SidebarSearch&sbsq=100%25` hydrates, then `URIError`, "Something went wrong!")_
 `src/lib/workspace/url.ts:137-142,159` writes `sbsq`, `with`/`w<n>`, `namedEntity` and version values unencoded into a string that
 `encodeWorkspace` re-splits and `decodeURIComponent`s; `features/workspace/navigation.tsx:160` runs it on every rewrite. `sbsq=a%26p2%3DExodus.1`
 round-trips into an extra panel; a search for `a&b` becomes `a`. Also `&sbsq{i}=` is written literally (missing `$`) and never read back.
 **Fix:** §3.3 (structured encoder + property tests).
 
-**R-05 · C · availability · unbounded server fan-out and no upstream timeouts** — *verified (local SSR: `/Psalms.1-150` → 150 parallel
-requests, 8 MB HTML, 11.7 s; `?p2…p500` → every panel loaded; hung API → request still open at 40 s; API 503 → SSR 500)*
+**R-05 · C · availability · unbounded server fan-out and no upstream timeouts** — _verified (local SSR: `/Psalms.1-150` → 150 parallel
+requests, 8 MB HTML, 11.7 s; `?p2…p500` → every panel loaded; hung API → request still open at 40 s; API 503 → SSR 500)_
 `src/lib/text/plan.ts:44-60,73-76` + `queries.ts:132` fetch every section of a range (≤ 500, e.g. `Shabbat 2a-157b` = 312);
 `features/reader/reader-route.ts:103` loads every `pN` panel; `src/server/internal-fetch.ts:39` and `pass-through.ts:44` have no timeout;
 nginx waits 300 s and does not intercept node's 500. One crawler URL multiplies into hundreds of Varnish/Django calls. **Fix:** §3.4
 (caps, timeouts, 503 + `Retry-After`) and §3.5 (range = first section + highlight, the rest on scroll).
 
-**R-06 · C · UX/a11y · users whose OS is in dark mode get a broken half-dark site today** — *verified (Playwright `colorScheme: dark`,
-screenshot; English translation 2.97:1, "Exact Phrase" control 1.07:1, logo near-invisible)*
+**R-06 · C · UX/a11y · users whose OS is in dark mode get a broken half-dark site today** — _verified (Playwright `colorScheme: dark`,
+screenshot; English translation 2.97:1, "Exact Phrase" control 1.07:1, logo near-invisible)_
 `src/ui/tokens/tokens.css:10` sets `color-scheme: light dark` and `__root.tsx` never sets `data-theme`, so tokens follow the OS while
 208 literal colours stay light. Contradicts D3/§6.6 ("flag off ⇒ light"). **Fix:** render `<html data-theme="light">` until the dark-mode
 work lands behind its flag.
 
 ### High
 
-**R-07 · H · reader · a URL naming only `vhe` drops the reader's saved translation after hydration** — *verified (Playwright: SSR shows
-Koren, hydration swaps to the default; Genesis 2 fetched in both versions)*
+**R-07 · H · reader · a URL naming only `vhe` drops the reader's saved translation after hydration** — _verified (Playwright: SSR shows
+Koren, hydration swaps to the default; Genesis 2 fetched in both versions)_
 `features/reader/TextPanel.tsx:85` prefers `panel.versions` over the loader's resolved `data.versions` whenever the URL names any
 version; `TextColumn.tsx:113-129` then swaps every section. **Fix:** loader returns requested + resolved; one `resolvePanelVersions`
 (§3.6); test that resolved versions survive hydration.
 
-**R-08 · H · analytics · the sign-in funnel sends master's old event names and schema** — *verified (`static/js/auth/authAnalytics.js`
-on `origin/master` sends `auth_flow_started`, `auth_method_chosen`, `auth_process_started/ended`, `auth_flow_ended`)*
+**R-08 · H · analytics · the sign-in funnel sends master's old event names and schema** — _verified (`static/js/auth/authAnalytics.js`
+on `origin/master` sends `auth_flow_started`, `auth_method_chosen`, `auth_process_started/ended`, `auth_flow_ended`)_
 `src/lib/auth/analytics.ts:23`; missing `flow_intent`, `outcome`, the `sefaria_sso_outcome` cookie, and all email-login tracking
 (`features/auth/views.tsx:125`). **Fix:** re-port from master; contract test (§3.7).
 
-**R-09 · H · perf · every client navigation (including each scroll pause) makes a server round trip** — *verified (2 scroll gestures →
-2 `GET /_serverFn/…getRequestPrefs…`)*
+**R-09 · H · perf · every client navigation (including each scroll pause) makes a server round trip** — _verified (2 scroll gestures →
+2 `GET /_serverFn/…getRequestPrefs…`)_
 `src/routes/__root.tsx:36,45` calls a server function from root `beforeLoad`. **Fix:** §3.4 (middleware on the server, `document.cookie`
 on the client, as `prefs-source.ts` already does).
 
 **R-10 · H · perf · 6 MB link arrays per section: fetched, parsed twice, zod-validated on the main thread, held 2 h, written to disk 7 days**
-— *verified (Genesis 1: 6.3 MB JSON, 11,051 rows; 40 ms parse + 42 ms validate on a Mac in node)*
+— _verified (Genesis 1: 6.3 MB JSON, 11,051 rows; 40 ms parse + 42 ms validate on a Mac in node)_
 `src/lib/connections/queries.ts:18-31`, `TextColumn.tsx:225`; Resources also fetches `/api/related` (1.27 MB gzip) containing the same
 links and discards them (`related.ts:90`). **Fix:** §3.5.
 
-**R-11 · H · data · IndexedDB is never garbage-collected; quota errors are swallowed** — *verified (`collectGarbage` has no caller)*
+**R-11 · H · data · IndexedDB is never garbage-collected; quota errors are swallowed** — _verified (`collectGarbage` has no caller)_
 `src/lib/cache/persisters.ts:32`, `storage.ts:31-36`. With R-10 the disk cache grows until the quota, then silently stops writing (and the
 browser may evict the origin). Note: wiring TanStack's `persisterGc` as-is loads every value. **Fix:** metadata store + LRU byte budget
 (§3.5).
 
 **R-12 · H · perf · the whole column re-renders on every section load and every links update; TextPanel renders per verse, twice**
-— *verified (render probe: adding Genesis 11 → 436 `SegmentText` renders for 186 sides; a scroll batch with no new section re-rendered
-all 262)*
+— _verified (render probe: adding Genesis 11 → 436 `SegmentText` renders for 186 sides; a scroll batch with no new section re-rendered
+all 262)_
 `TextColumn.tsx:225-237` rebuilds counts for every section; `ui/TextSection/TextSection.tsx:91-92` passes inline objects that defeat
 `Segment`'s `memo`; `ui/SegmentText/SegmentText.tsx:84` creates a new callback ref each render; `TextPanel.tsx:88`
 `useSuspenseQueries(...).map(...)` is a new array each render, defeating every downstream memo and making `useDeferredValue` schedule
@@ -228,45 +228,45 @@ an extra render; `setCurrent` per verse; ConnectionsPane and TextColumn are not 
 re-renders the sections already there" is false. **Fix:** §3.6 (display model, external store, memoised counts per section, stable refs);
 a render-count test.
 
-**R-13 · H · process · the e2e suite is red against live data and nothing runs in CI** — *verified (213 pass, 3 fail: `webpages.spec.ts:11,36`
-expect `Halachipedia (145)`, live is 144; `lexicon.spec.ts:105` fails 2/2)*
+**R-13 · H · process · the e2e suite is red against live data and nothing runs in CI** — _verified (213 pass, 3 fail: `webpages.spec.ts:11,36`
+expect `Halachipedia (145)`, live is 144; `lexicon.spec.ts:105` fails 2/2)_
 33 `waitForTimeout`s, several absence assertions that pass vacuously; only 4 specs mock routes. The lexicon failure is probably a real bug:
 `DictionarySearch` submits `list[0]` instead of the exact typed word (plausible). **Fix:** §3.8.
 
-**R-14 · H · perf · the 4 MB catalog is serialized into the HTML of `/texts` and `/search`** — *verified (`/texts` = 3.83 MB HTML)*
+**R-14 · H · perf · the 4 MB catalog is serialized into the HTML of `/texts` and `/search`** — _verified (`/texts` = 3.83 MB HTML)_
 `routes/texts.index.tsx:9`, `texts.$.tsx:14`, `search.tsx:17` `ensureQueryData(tocQueryOptions())`, and the SSR integration dehydrates
 every query. **Fix:** `shouldDehydrateQuery` by data class; node cross-request catalog cache; dehydrate only the slice rendered.
 
-**R-15 · H · perf · reader-page JS ~1.07 MB raw / ~320 KB gzip before interactive** — *verified (production build)*
+**R-15 · H · perf · reader-page JS ~1.07 MB raw / ~320 KB gzip before interactive** — _verified (production build)_
 Entry 130 KB gz, reader route 86 KB, `toc` chunk 58 KB gz of which almost all is the toolkit's generated zod validators, NavPage + NavSidebar
 47 KB gz statically imported by the reader route; Sentry chunk 148 KB gz loaded after hydration including `replayIntegration` while replay
 rates are 0. **Fix:** §3.9 and a CI budget.
 
 ### Medium
 
-| ID | Area | Finding | Evidence | Fix |
-|---|---|---|---|---|
-| R-16 | routing | Address-bar rewrite calls `history.replaceState` outside the router: TanStack sees a REPLACE, re-matches and re-runs root `beforeLoad`; the file's own subscriber clears `poppedKey` and overwrites the popped entry's saved positions (back/forward restore breaks after a setting change); 20× `setTimeout` polling | code path; restore damage plausible | §3.3 |
-| R-17 | data | Global `retry: 1` retries every 404 (≈ +1 s on every bad or old link, on server and client) | verified: `Genesis 51` → 2 calls, 1,405 ms | Retry predicate: never on 4xx or contract errors |
-| R-18 | data | Segment ranges crossing sections produce wrong refs (`"Genesis 1:30-31:1"`), cached 30 days; reached via the resolve path, ConnectionsPane ranged selections, dictionary search | verified: `fetchPassage("Genesis 1:30-2:3")` | Parse spanning refs with `parseHumanRef` (`model.ts` `leavesOf`) |
-| R-19 | data | RefIndex never expires (no buster, no maxAge); aliases not keyed by structure; server singleton `Map` grows with every distinct spelling (also: server alias map unbounded) | code path; growth plausible | Under `CACHE_BUSTER` + maxAge; LRU+TTL on the server |
-| R-20 | data | SSR-seeded queries are never persisted (TanStack persists only after a `queryFn` runs): the landing section is the one page not cached | code path | Persist hydrated queries after hydration; seed RefIndex |
-| R-21 | data | Calendars hard-code `diaspora=1` (Israeli readers get the diaspora parasha when they differ); key has no date; persisted 90 days → last week's parasha offline | verified | Key by date + diaspora; diaspora from the server (§6.4); don't persist |
-| R-22 | reader | Connected-texts list fetches a whole section per link (Genesis 1:1 commentary: 235 parallel v3 requests, each persisted 30 days); cross-section links truncated to their first section | measured | `/api/bulktext` or `links?with_text=1` scoped to the selection; virtualise |
-| R-23 | auth | Feedback POST has no CSRF token → every submit 403s (feature broken); backend takes the sender from a client-supplied `uid` (spoofable) | code path (`lib/feedback/feedback.ts:46`, `sefaria/views.py:388`) | Use `postForm()`; backend: sender from the session |
-| R-24 | workspace | Panels keyed by position: closing panel 1 hands its React state (scroll, selection) to the next panel; during a pending navigation `data.panels[id]` can belong to another panel | code path (`ops.ts:32`, `SplitView.tsx:56`) | Stable ids in history state (D7) |
-| R-25 | reader | Column grows without bound: per-frame `querySelectorAll` over all segments, one links array per section, version change refetches all, `spreadNumbers` forces layout over every number on each resize | code path; growth observed | Windowing; scope `spreadNumbers` to the resized section |
-| R-26 | reader | Version change: `Promise.all` over every loaded section, no `catch` (one failure leaves old text under a new header), nothing shown until the farthest section arrives, and a race with edge loads can drop a section | code path; race plausible | Visible sections first, merge into current state, error handling |
-| R-27 | server | SSR HTML with viewer data (email-derived traffic type, uid) has no `Cache-Control: private` and only `Vary: Origin` | plausible (depends on edge rules) | §3.4 |
-| R-28 | routing | `/texts/Tanach/A%20B` → `301 /texts/Tanakh/A%2520B` (double-encoded permanent redirect; crawlers cache it) | verified (curl) | Pass the raw path to the router |
-| R-29 | privacy/perf | Last reading place per book in localStorage forever, not tied to the user, not cleared at logout (next person on a shared machine sees it); read-parse-write per verse; history positions stringified to sessionStorage twice per scroll pause | verified (code) | Server history when signed in; clear on viewer change; write on settle/`pagehide`; cap |
-| R-30 | ui | ui boundary not real: 48 ui files import `src/lib` beyond i18n; business rules in ui (`Segment.tsx:66-75` numerals); 208 literal colours / 43 files + 5 in TSX | counted | §3.1 |
-| R-31 | a11y | Every segment is a tab stop (31 on Genesis 1, growing with scroll) and selection is not exposed (no `aria-current`); SortMenu claims the ARIA menu pattern without its keyboard behaviour; two combobox implementations; mobile nav has no Escape/focus handling; nested `<main>`; no h1 on `/search` | verified (Playwright, axe probe) | Roving tabindex + `aria-current`; SortMenu on Popover as listbox/radiogroup; one combobox |
-| R-32 | tests | 15 of 67 ui components have no story (Segment, SegmentText, Modal, NavSidebar…); only 33 of 283 stories have `play`; 72 stories fail a11y in dark theme (1,036 contrast violations) but the suite runs light/English only | verified (matrix configs) | §3.8 |
-| R-33 | tests | `@feature` coverage counts any tag in a file, including skipped specs and `it.fails` (which also pass on any crash) | verified | §3.8 |
-| R-34 | backend | Password-reset "resend" emails any account by uid and reveals whether a uid exists; no rate limit (`sefaria/views.py:153-170`) | code path | Rate-limit, uniform answer, require the session's reset token |
-| R-35 | server | Config read at module load; global `fetch` monkey-patch for Host (skipped silently for an `https` origin); empty `SEFARIA_API_ORIGIN` → relative URLs on the server | code path | §3.4 |
-| R-36 | routing | "Render, 404, then ask Django": full render with API calls thrown away; an API 429 becomes `notFound()` and Django serves the old reader | code path | Route manifest + cached name check (§3.4) |
+| ID   | Area         | Finding                                                                                                                                                                                                                                                                                                               | Evidence                                                          | Fix                                                                                       |
+| ---- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| R-16 | routing      | Address-bar rewrite calls `history.replaceState` outside the router: TanStack sees a REPLACE, re-matches and re-runs root `beforeLoad`; the file's own subscriber clears `poppedKey` and overwrites the popped entry's saved positions (back/forward restore breaks after a setting change); 20× `setTimeout` polling | code path; restore damage plausible                               | §3.3                                                                                      |
+| R-17 | data         | Global `retry: 1` retries every 404 (≈ +1 s on every bad or old link, on server and client)                                                                                                                                                                                                                           | verified: `Genesis 51` → 2 calls, 1,405 ms                        | Retry predicate: never on 4xx or contract errors                                          |
+| R-18 | data         | Segment ranges crossing sections produce wrong refs (`"Genesis 1:30-31:1"`), cached 30 days; reached via the resolve path, ConnectionsPane ranged selections, dictionary search                                                                                                                                       | verified: `fetchPassage("Genesis 1:30-2:3")`                      | Parse spanning refs with `parseHumanRef` (`model.ts` `leavesOf`)                          |
+| R-19 | data         | RefIndex never expires (no buster, no maxAge); aliases not keyed by structure; server singleton `Map` grows with every distinct spelling (also: server alias map unbounded)                                                                                                                                           | code path; growth plausible                                       | Under `CACHE_BUSTER` + maxAge; LRU+TTL on the server                                      |
+| R-20 | data         | SSR-seeded queries are never persisted (TanStack persists only after a `queryFn` runs): the landing section is the one page not cached                                                                                                                                                                                | code path                                                         | Persist hydrated queries after hydration; seed RefIndex                                   |
+| R-21 | data         | Calendars hard-code `diaspora=1` (Israeli readers get the diaspora parasha when they differ); key has no date; persisted 90 days → last week's parasha offline                                                                                                                                                        | verified                                                          | Key by date + diaspora; diaspora from the server (§6.4); don't persist                    |
+| R-22 | reader       | Connected-texts list fetches a whole section per link (Genesis 1:1 commentary: 235 parallel v3 requests, each persisted 30 days); cross-section links truncated to their first section                                                                                                                                | measured                                                          | `/api/bulktext` or `links?with_text=1` scoped to the selection; virtualise                |
+| R-23 | auth         | Feedback POST has no CSRF token → every submit 403s (feature broken); backend takes the sender from a client-supplied `uid` (spoofable)                                                                                                                                                                               | code path (`lib/feedback/feedback.ts:46`, `sefaria/views.py:388`) | Use `postForm()`; backend: sender from the session                                        |
+| R-24 | workspace    | Panels keyed by position: closing panel 1 hands its React state (scroll, selection) to the next panel; during a pending navigation `data.panels[id]` can belong to another panel                                                                                                                                      | code path (`ops.ts:32`, `SplitView.tsx:56`)                       | Stable ids in history state (D7)                                                          |
+| R-25 | reader       | Column grows without bound: per-frame `querySelectorAll` over all segments, one links array per section, version change refetches all, `spreadNumbers` forces layout over every number on each resize                                                                                                                 | code path; growth observed                                        | Windowing; scope `spreadNumbers` to the resized section                                   |
+| R-26 | reader       | Version change: `Promise.all` over every loaded section, no `catch` (one failure leaves old text under a new header), nothing shown until the farthest section arrives, and a race with edge loads can drop a section                                                                                                 | code path; race plausible                                         | Visible sections first, merge into current state, error handling                          |
+| R-27 | server       | SSR HTML with viewer data (email-derived traffic type, uid) has no `Cache-Control: private` and only `Vary: Origin`                                                                                                                                                                                                   | plausible (depends on edge rules)                                 | §3.4                                                                                      |
+| R-28 | routing      | `/texts/Tanach/A%20B` → `301 /texts/Tanakh/A%2520B` (double-encoded permanent redirect; crawlers cache it)                                                                                                                                                                                                            | verified (curl)                                                   | Pass the raw path to the router                                                           |
+| R-29 | privacy/perf | Last reading place per book in localStorage forever, not tied to the user, not cleared at logout (next person on a shared machine sees it); read-parse-write per verse; history positions stringified to sessionStorage twice per scroll pause                                                                        | verified (code)                                                   | Server history when signed in; clear on viewer change; write on settle/`pagehide`; cap    |
+| R-30 | ui           | ui boundary not real: 48 ui files import `src/lib` beyond i18n; business rules in ui (`Segment.tsx:66-75` numerals); 208 literal colours / 43 files + 5 in TSX                                                                                                                                                        | counted                                                           | §3.1                                                                                      |
+| R-31 | a11y         | Every segment is a tab stop (31 on Genesis 1, growing with scroll) and selection is not exposed (no `aria-current`); SortMenu claims the ARIA menu pattern without its keyboard behaviour; two combobox implementations; mobile nav has no Escape/focus handling; nested `<main>`; no h1 on `/search`                 | verified (Playwright, axe probe)                                  | Roving tabindex + `aria-current`; SortMenu on Popover as listbox/radiogroup; one combobox |
+| R-32 | tests        | 15 of 67 ui components have no story (Segment, SegmentText, Modal, NavSidebar…); only 33 of 283 stories have `play`; 72 stories fail a11y in dark theme (1,036 contrast violations) but the suite runs light/English only                                                                                             | verified (matrix configs)                                         | §3.8                                                                                      |
+| R-33 | tests        | `@feature` coverage counts any tag in a file, including skipped specs and `it.fails` (which also pass on any crash)                                                                                                                                                                                                   | verified                                                          | §3.8                                                                                      |
+| R-34 | backend      | Password-reset "resend" emails any account by uid and reveals whether a uid exists; no rate limit (`sefaria/views.py:153-170`)                                                                                                                                                                                        | code path                                                         | Rate-limit, uniform answer, require the session's reset token                             |
+| R-35 | server       | Config read at module load; global `fetch` monkey-patch for Host (skipped silently for an `https` origin); empty `SEFARIA_API_ORIGIN` → relative URLs on the server                                                                                                                                                   | code path                                                         | §3.4                                                                                      |
+| R-36 | routing      | "Render, 404, then ask Django": full render with API calls thrown away; an API 429 becomes `notFound()` and Django serves the old reader                                                                                                                                                                              | code path                                                         | Route manifest + cached name check (§3.4)                                                 |
 
 ### Low
 
@@ -319,18 +319,19 @@ All four batches of §5 were worked through in `sefaria-reader`, one local commi
 it, then a code review of the batch's diff and its fixes. A fourth batch ported what master gained (merged 2026-10-29) and closed the
 remaining findings. Synced into `reader-next/`; not pushed.
 
-| Batch | Commit | Findings |
-|-------|--------|----------|
-| 0 | `d580d7a` | R-01, R-02, R-03, R-04, R-05, R-06, R-07, R-08, R-23, R-27 |
-| 1 | `8d1931c` | R-13, R-33; R-30 and R-32 as an enforced baseline (architecture test, story matrix) |
-| 2a | `ce87423` | R-16, R-24 (and the root of R-04: a structured URL encoder) |
-| 2b | `07ccfc4` | R-09, R-28, R-35, R-36 (404 vs 503; the route manifest itself is not built) |
-| 2c | `23bac7e` | R-10, R-11, R-17, R-18, R-19, R-20, R-21, R-22 |
-| 2d | `398d885` | R-12, R-25, R-26 |
-| 3 | `5e6463e` | R-15 (part), R-31, R-18 follow-up, most of the low list |
-| 4 | `868bf37` | Master port (R-37, search autocorrect and auto-switch, titles with `/` and `\`, version-title escaping); R-14, R-29, R-36 (route manifest), R-38, R-39, the rest of the low list. R-34 is a Django change on this branch (`sefaria/views.py`). |
+| Batch | Commit    | Findings                                                                                                                                                                                                                                       |
+| ----- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | `d580d7a` | R-01, R-02, R-03, R-04, R-05, R-06, R-07, R-08, R-23, R-27                                                                                                                                                                                     |
+| 1     | `8d1931c` | R-13, R-33; R-30 and R-32 as an enforced baseline (architecture test, story matrix)                                                                                                                                                            |
+| 2a    | `ce87423` | R-16, R-24 (and the root of R-04: a structured URL encoder)                                                                                                                                                                                    |
+| 2b    | `07ccfc4` | R-09, R-28, R-35, R-36 (404 vs 503; the route manifest itself is not built)                                                                                                                                                                    |
+| 2c    | `23bac7e` | R-10, R-11, R-17, R-18, R-19, R-20, R-21, R-22                                                                                                                                                                                                 |
+| 2d    | `398d885` | R-12, R-25, R-26                                                                                                                                                                                                                               |
+| 3     | `5e6463e` | R-15 (part), R-31, R-18 follow-up, most of the low list                                                                                                                                                                                        |
+| 4     | `868bf37` | Master port (R-37, search autocorrect and auto-switch, titles with `/` and `\`, version-title escaping); R-14, R-29, R-36 (route manifest), R-38, R-39, the rest of the low list. R-34 is a Django change on this branch (`sefaria/views.py`). |
 
 **Fixed in Batch 3**
+
 - R-15, in part: the toolkit's zod validators run in development and tests only, loaded lazily (production pages no longer carry them);
   Sentry session replay is loaded only when a replay rate is above 0. Reader page (`/Genesis.1`, production build, JS
   before interactive): 1.07 MB raw / 320 KB gzip → 973 KB / 308 KB; the `toc` chunk 58 → 24 KB gzip; the Sentry chunk (after hydration)
@@ -352,13 +353,14 @@ remaining findings. Synced into `reader-next/`; not pushed.
 
 **New findings**
 
-| ID | Sev | Area | Finding |
-|----|-----|------|---------|
-| R-37 | H | auth | master moved Google sign-in and One Tap to `/api/auth/google/callback` (returns `outcome`); the reader-next backend does not have it. **Fixed** (batch 4, after merging master). |
-| R-38 | M | reader | Fast flinging through a long chapter jumps on a production build. **Not a reader bug:** the test subtracted the engine's corrections, which only development builds report, so on production it read each correction as a jump. It now checks the verse moved by the wheel step; the whole smoothness spec passes on a production build. |
-| R-39 | M | data | A query cancelled because its last observer unmounted (a Suspense boundary hidden, a panel closed) rejects every other caller waiting on the same fetch with `CancelledError`, including a route loader, which then shows the error page. Seen with the lazy sidebar; the cause is general. Loaders should not share a fetch an observer can cancel, or should retry a `CancelledError` once. **Fixed:** `fetchQuery` (and so `ensureQueryData` and every loader) fetches again once. |
+| ID   | Sev | Area   | Finding                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ---- | --- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R-37 | H   | auth   | master moved Google sign-in and One Tap to `/api/auth/google/callback` (returns `outcome`); the reader-next backend does not have it. **Fixed** (batch 4, after merging master).                                                                                                                                                                                                                                                                                                      |
+| R-38 | M   | reader | Fast flinging through a long chapter jumps on a production build. **Not a reader bug:** the test subtracted the engine's corrections, which only development builds report, so on production it read each correction as a jump. It now checks the verse moved by the wheel step; the whole smoothness spec passes on a production build.                                                                                                                                              |
+| R-39 | M   | data   | A query cancelled because its last observer unmounted (a Suspense boundary hidden, a panel closed) rejects every other caller waiting on the same fetch with `CancelledError`, including a route loader, which then shows the error page. Seen with the lazy sidebar; the cause is general. Loaders should not share a fetch an observer can cancel, or should retry a `CancelledError` once. **Fixed:** `fetchQuery` (and so `ensureQueryData` and every loader) fetches again once. |
 
 **Still open**
+
 - Page-kind code splitting of the `$` route (book page and sidebar as their own chunks). The router must load the chunk a page
   needs before it hydrates, and one route renders both kinds today. R-15's remaining part.
 - R-30 and R-32 debt: the baselines may only shrink; nothing was paid down yet.
@@ -372,22 +374,22 @@ remaining findings. Synced into `reader-next/`; not pushed.
 An independent review found 14 issues (F01–F14) and narrowed several §6 claims. Each was checked against the code before fixing;
 fixes are in `sefaria-reader` `57da124` and this branch (`reader-next-review-fixes`), each with a test that reproduces the defect.
 
-| ID | Verdict | Fix |
-|----|---------|-----|
-| F01 note edit moved the note | Confirmed | An edit keeps the note's `anchorRef` (`refsForSave`). |
-| F02 sidebar toggle rebuilt the column | Confirmed (e2e) | The panel frame is always a row (as the workspace, R-24). |
-| F03 windowing never trimmed behind | Confirmed (31 sections kept) | Keep the sections the address names now, not the opening ones; trims to 4. |
-| F04 late edge load in old versions | Confirmed | `fetchInWantedVersions`: fetch again in the versions wanted at arrival. |
-| F05 search POSTs had no deadline | Confirmed | Reads sent as POST pass `deadlineMs`; the server bounds them. |
-| F06 resend lost its proof via the node redirect | Confirmed (regression from R-34) | Opening a real expired link leaves one-hour proof in the session. |
-| F07 sidebar views dropped panel keys | Confirmed (e2e) | Keys carry over navigations that record none; `goSidebarView` writes them. |
-| F08 nginx did not intercept the reader's 503 | Partly: by design | The fallback is for nginx's own 502/504 (reader unreachable); a reader 503 means the API is down for both readers, and writes must not be replayed. Comment corrected. |
-| F09 cold range downloaded the whole range | Confirmed | Plan from the range's first point; the range is fetched only when the planner cannot enumerate it. |
-| F10 cross-section links showed one section | Confirmed | Such links load the range itself (`loadRefFor`). |
-| F11 Save recorded requested, not shown, versions | Confirmed | The shown versions (preferences included), as the old currVersions. |
-| F12 ref-index stores never swept | Confirmed | `sweepRefIndexDisk` with the idle sweep (expired, busted, capped). |
-| F13 CI e2e not deterministic | Confirmed | **Open — needs a decision**: commit the recordings (~11 MB) or host a versioned bundle; then CI runs `replay`. Dicta is not recorded yet. |
-| F14 408/429 ended as 500 | Confirmed | They mark the request as an upstream failure, so it ends 503. |
+| ID                                               | Verdict                          | Fix                                                                                                                                                                    |
+| ------------------------------------------------ | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F01 note edit moved the note                     | Confirmed                        | An edit keeps the note's `anchorRef` (`refsForSave`).                                                                                                                  |
+| F02 sidebar toggle rebuilt the column            | Confirmed (e2e)                  | The panel frame is always a row (as the workspace, R-24).                                                                                                              |
+| F03 windowing never trimmed behind               | Confirmed (31 sections kept)     | Keep the sections the address names now, not the opening ones; trims to 4.                                                                                             |
+| F04 late edge load in old versions               | Confirmed                        | `fetchInWantedVersions`: fetch again in the versions wanted at arrival.                                                                                                |
+| F05 search POSTs had no deadline                 | Confirmed                        | Reads sent as POST pass `deadlineMs`; the server bounds them.                                                                                                          |
+| F06 resend lost its proof via the node redirect  | Confirmed (regression from R-34) | Opening a real expired link leaves one-hour proof in the session.                                                                                                      |
+| F07 sidebar views dropped panel keys             | Confirmed (e2e)                  | Keys carry over navigations that record none; `goSidebarView` writes them.                                                                                             |
+| F08 nginx did not intercept the reader's 503     | Partly: by design                | The fallback is for nginx's own 502/504 (reader unreachable); a reader 503 means the API is down for both readers, and writes must not be replayed. Comment corrected. |
+| F09 cold range downloaded the whole range        | Confirmed                        | Plan from the range's first point; the range is fetched only when the planner cannot enumerate it.                                                                     |
+| F10 cross-section links showed one section       | Confirmed                        | Such links load the range itself (`loadRefFor`).                                                                                                                       |
+| F11 Save recorded requested, not shown, versions | Confirmed                        | The shown versions (preferences included), as the old currVersions.                                                                                                    |
+| F12 ref-index stores never swept                 | Confirmed                        | `sweepRefIndexDisk` with the idle sweep (expired, busted, capped).                                                                                                     |
+| F13 CI e2e not deterministic                     | Confirmed                        | **Open — needs a decision**: commit the recordings (~11 MB) or host a versioned bundle; then CI runs `replay`. Dicta is not recorded yet.                              |
+| F14 408/429 ended as 500                         | Confirmed                        | They mark the request as an upstream failure, so it ends 503.                                                                                                          |
 
 §6 claims, narrowed accordingly: R-24 was partial until F02/F07, R-25 until F03, R-26 until F04, R-05 until F05/F09/F14, R-22 until F10;
 R-19 bounded memory but not disk until F12; R-13 has CI and recordings but not yet a deterministic gate (F13).

@@ -42,9 +42,8 @@ jobs:
         run: npm run test:stories
       - name: Component tests (Hebrew, RTL)
         run: npm run test:stories:hebrew
-      - name: Component tests (dark theme) — report only until every colour is a token
+      - name: Component tests (dark theme)
         run: npm run test:stories:dark
-        continue-on-error: true
 
   e2e:
     runs-on: ubuntu-latest

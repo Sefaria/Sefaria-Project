@@ -21,7 +21,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 8. **Sidebar "search in this text" briefly searches the whole library.** Its first query runs before `/api/search-path-filter` returns, with `filtersValid` false, so no path filter is applied. A second, filtered query follows (`SidebarSearch.jsx:17-53`; `ElasticSearchQuerier.jsx:365`).
 9. **Sidebar search history URL bug.** For panels after the first, the history URL uses the literal `` `&sbsq{i}=` `` (the `$` is missing), so the param name is literally `sbsq{i}` (`ReaderApp.jsx:857-858`). The server reads `sbsq` / `sbsq<N>` (`reader/views.py:850,890`).
 10. **`SearchState.makeURL({isStart:true})` does nothing.** It calls `url.replace(...)` and throws the result away (`searchState.js:154-156`). Callers always pass `isStart:false`, so there is no visible impact.
-11. **Backend sheet-filter `agg_types` bug.** `get_search_params` builds `agg_types += [filter_type] * len(filters)` from the *cumulative* `filters` list (`reader/views.py:1074-1076`). A deep link that mixes collection and topic filters gets mismatched agg types.
+11. **Backend sheet-filter `agg_types` bug.** `get_search_params` builds `agg_types += [filter_type] * len(filters)` from the _cumulative_ `filters` list (`reader/views.py:1074-1076`). A deep link that mixes collection and topic filters gets mismatched agg types.
 12. **Text-filter search box ignores Hebrew.** `hasWordStartingWithOrSelected` strips `[^\w\s\-]` without the `u` flag, which deletes Hebrew letters. A Hebrew query in "Find a filter" therefore matches everything (`SearchFilters.jsx:167-178`). `FilterNode.getLeafNodes` uses the raw, unescaped text as a regex, so special characters can throw (`FilterNode.js:53-55`).
 13. **Error states mostly look like empty states.** A failed sources query sets `error: true`, which nothing renders. The total stays 0, so the "No sources found" page appears (`ElasticSearchQuerier.jsx:409-418`; `SearchPage.jsx:744-746`). A failed "load next page" only logs to the console and never clears `isQueryRunning`, so scrolling can get stuck (`ElasticSearchQuerier.jsx:381-401`).
 14. **Sources paging has no 10k cap.** Entity tabs stop at Elasticsearch's 10,000-result window (`SearchPage.jsx:92-94,511-517`). Sources infinite scroll pages by 100 until `pagesLoaded*100 >= total` and would request offsets past 10,000, which ES rejects (`ElasticSearchQuerier.jsx:391`).
@@ -31,27 +31,28 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 
 ## 1. Entry points into search
 
-| Entry point | Component | Behavior |
-|---|---|---|
-| Desktop header search box | `HeaderAutocomplete` in `Header.jsx:292-297` | Autocomplete plus submit, see §2 |
-| Mobile nav-menu search box | `HeaderAutocomplete` in `Header.jsx:434-441` | Same, with `onNavigate={close}` (closes the menu after navigating) and `hideHebrewKeyboard` |
-| Search-page in-page search bar | `SearchPageSearchBar`, `SearchPage.jsx:30-86` | Plain input, **no autocomplete**, see §5.2 |
-| Compare-panel search | `ComparePanelHeader` (`search` prop), `ComparePanelHeader.jsx:19-43` | Plain input. Enter or button calls `openSearch(query)` → `updateQuery`. No autocomplete. Display-settings dropdown shown when the interface is not Hebrew |
-| Sidebar "Search in this Text" tool | ConnectionsPanel tools button `ConnectionsPanel.jsx:295` → `SidebarSearch` `ConnectionsPanel.jsx:579-586` | Search scoped to the current book, see §9 |
-| Dictionary book TOC / Lexicon sidebar / sidebar search on a dictionary | `DictionarySearch` (`BookPage.jsx:431-438`, `LexiconBox.jsx:188-191`, `SidebarSearch.jsx:85-90`) | Headword autocomplete, see §10 |
-| Topics landing page search | `TopicLandingSearch` (`TopicLandingPage/TopicLandingSearch.jsx`) | Topic-only autocomplete, see §11 |
-| Collection page "Search the full text of this collection for …" | `CollectionPage.jsx:180-190` → `ReaderApp.searchInCollection` (`ReaderApp.jsx:2043-2048`) | Opens a sheet search pre-filtered to the collection, see §8.4 |
-| Moderator "Add Topic" on a ref | `TopicSearch` in `ConnectionsPanel.jsx:850` | See §12 |
-| Browser omnibox (OpenSearch) | `templates/base.html:19` → `static/files/opensearch.xml` | `/search-autocomplete-redirecter?q=` and `/api/opensearch-suggestions?q=`, see §13.6 |
-| Google sitelinks search box | `templates/static/home.html:21-23` (JSON-LD `SearchAction`) | Target `/search?q={search_term_string}` |
-| Direct URL | `/search?q=…` (`sefaria/urls_shared.py:37` → `reader/views.py:1114`) | See §4 |
-| Legacy s1 pages | `HeaderAutocomplete.showSearchWrapper`, `HeaderAutocomplete.jsx:505-515` | When the global `sjs` is defined, does a full page load to `/search?q=<encoded>` |
+| Entry point                                                            | Component                                                                                                 | Behavior                                                                                                                                                  |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Desktop header search box                                              | `HeaderAutocomplete` in `Header.jsx:292-297`                                                              | Autocomplete plus submit, see §2                                                                                                                          |
+| Mobile nav-menu search box                                             | `HeaderAutocomplete` in `Header.jsx:434-441`                                                              | Same, with `onNavigate={close}` (closes the menu after navigating) and `hideHebrewKeyboard`                                                               |
+| Search-page in-page search bar                                         | `SearchPageSearchBar`, `SearchPage.jsx:30-86`                                                             | Plain input, **no autocomplete**, see §5.2                                                                                                                |
+| Compare-panel search                                                   | `ComparePanelHeader` (`search` prop), `ComparePanelHeader.jsx:19-43`                                      | Plain input. Enter or button calls `openSearch(query)` → `updateQuery`. No autocomplete. Display-settings dropdown shown when the interface is not Hebrew |
+| Sidebar "Search in this Text" tool                                     | ConnectionsPanel tools button `ConnectionsPanel.jsx:295` → `SidebarSearch` `ConnectionsPanel.jsx:579-586` | Search scoped to the current book, see §9                                                                                                                 |
+| Dictionary book TOC / Lexicon sidebar / sidebar search on a dictionary | `DictionarySearch` (`BookPage.jsx:431-438`, `LexiconBox.jsx:188-191`, `SidebarSearch.jsx:85-90`)          | Headword autocomplete, see §10                                                                                                                            |
+| Topics landing page search                                             | `TopicLandingSearch` (`TopicLandingPage/TopicLandingSearch.jsx`)                                          | Topic-only autocomplete, see §11                                                                                                                          |
+| Collection page "Search the full text of this collection for …"        | `CollectionPage.jsx:180-190` → `ReaderApp.searchInCollection` (`ReaderApp.jsx:2043-2048`)                 | Opens a sheet search pre-filtered to the collection, see §8.4                                                                                             |
+| Moderator "Add Topic" on a ref                                         | `TopicSearch` in `ConnectionsPanel.jsx:850`                                                               | See §12                                                                                                                                                   |
+| Browser omnibox (OpenSearch)                                           | `templates/base.html:19` → `static/files/opensearch.xml`                                                  | `/search-autocomplete-redirecter?q=` and `/api/opensearch-suggestions?q=`, see §13.6                                                                      |
+| Google sitelinks search box                                            | `templates/static/home.html:21-23` (JSON-LD `SearchAction`)                                               | Target `/search?q={search_term_string}`                                                                                                                   |
+| Direct URL                                                             | `/search?q=…` (`sefaria/urls_shared.py:37` → `reader/views.py:1114`)                                      | See §4                                                                                                                                                    |
+| Legacy s1 pages                                                        | `HeaderAutocomplete.showSearchWrapper`, `HeaderAutocomplete.jsx:505-515`                                  | When the global `sjs` is defined, does a full page load to `/search?q=<encoded>`                                                                          |
 
 ---
 
 ## 2. Header autocomplete (`static/js/HeaderAutocomplete.jsx`, `GeneralAutocomplete.jsx`)
 
 ### 2.1 Engine
+
 - Built on **Downshift `useCombobox`** (`GeneralAutocomplete.jsx:2,29-43`). Item to string is `item.name`.
 - Every input change calls `getSuggestions(inputValue)` and awaits it, with **no debounce and no stale-response guard** (`GeneralAutocomplete.jsx:40-42`). Responses are cached per name and query string in `Sefaria._lookups` (`sefaria.js:1529-1544`).
 - `wrappedGetInputProps` lets the caller intercept Enter through `onEnter` (`GeneralAutocomplete.jsx:47-59`). The header does not use `onEnter`; it overrides `onKeyDown` itself.
@@ -59,6 +60,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - Keyboard: Downshift's defaults handle ArrowUp/ArrowDown highlighting and Escape to close/clear. Highlighting uses one `universalIndex` across all groups (`HeaderAutocomplete.jsx:311-331,378`).
 
 ### 2.2 Fetching suggestions (`fetchSuggestions`, `HeaderAutocomplete.jsx:403-438`)
+
 - **Minimum 3 characters.** Fewer returns `[]`.
 - Calls `Sefaria.getName(input, undefined, types, topic_pool)`:
   - `types = MODULE_ALLOWED_SEARCH_TYPES[activeModule]` (`HeaderAutocomplete.jsx:42-45`).
@@ -71,18 +73,20 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - Errors are logged with `console.error` and return `[]`.
 
 ### 2.3 URL per result type (`getURLForObject`, `HeaderAutocomplete.jsx:104-116`)
-| type | URL | Module restriction |
-|---|---|---|
-| Collection | `/collections/<key>` | Voices only |
-| TocCategory | `/texts/<key.join('/')>` (key is a path array/tuple) | Library only |
-| Topic / PersonTopic / AuthorTopic | `/topics/<key>` | any |
-| ref | `/<key with spaces→_>` | Library only |
-| User | `/profile/<key>` | Voices only |
-| anything else (Term) | `undefined` (latent crash, see §0.7) | |
+
+| type                              | URL                                                  | Module restriction |
+| --------------------------------- | ---------------------------------------------------- | ------------------ |
+| Collection                        | `/collections/<key>`                                 | Voices only        |
+| TocCategory                       | `/texts/<key.join('/')>` (key is a path array/tuple) | Library only       |
+| Topic / PersonTopic / AuthorTopic | `/topics/<key>`                                      | any                |
+| ref                               | `/<key with spaces→_>`                               | Library only       |
+| User                              | `/profile/<key>`                                     | Voices only        |
+| anything else (Term)              | `undefined` (latent crash, see §0.7)                 |                    |
 
 `?` in URLs is encoded as `%3F` (`HeaderAutocomplete.jsx:167,520`).
 
 ### 2.4 Grouping, ordering, icons, labels
+
 - `groupByType` keeps type groups in order of first appearance (`HeaderAutocomplete.jsx:55-73`).
 - `sortByTypeOrder` (`:75-102`) runs first. As noted in §0.6, it effectively orders `Term > User > AuthorTopic > PersonTopic > Topic > TocCategory > Collection > ref`, with `search` pinned first by prepending.
 - Group headers (`SuggestionsGroup`, `:363-399`). The `search` row has no header. Labels come from `type_title_id_map` (`:31-40`):
@@ -106,6 +110,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - "Search for" row (`TextualSearchSuggestion`, `:143-161`) renders as `Search for: “<label>”`. In the Hebrew interface the quote marks become ״.
 
 ### 2.5 Submitting (Enter / button / click)
+
 - **Enter** (`SearchInputBox.handleSearchKeyDown`, `:210-228`):
   1. Downshift's `onKeyDown` runs first.
   2. If a suggestion is highlighted and it is not the `search` row: fire gtag `search_navto` (`feature_name: "Nav To by Keyboard"`, `link_type`, `text`, `to`) and call `redirectToObject(item)`.
@@ -128,6 +133,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - `ReaderApp.showSearch` (`ReaderApp.jsx:2027-2042`): sets the analytics flow source `nav_bar` only if search is not already open. Keeps the existing `searchState` but with `filtersValid:false`, or creates a new one for the module's search type. Calls `setSinglePanelState({mode:"Menu", menuOpen:"search", searchQuery, searchState})`, which collapses all panels into one.
 
 ### 2.6 Focus, blur and the virtual Hebrew keyboard
+
 - In the English interface, the input gets class `keyboardInput`, so `static/js/lib/keyboard.js` (loaded in `templates/base.html:255`) attaches an on-screen Hebrew keyboard. In the Hebrew interface the class is `hebrewSearch` instead (`HeaderAutocomplete.jsx:278-283`).
 - The keyboard-launcher icon (`.keyboardInputInitiator`) is hidden at mount, shown on focus, and hidden on blur, but only in the English interface and when `hideHebrewKeyboard` is false. Mobile passes `true` (`:205-207, 239-249`). It is never toggled while the keyboard is open (`#keyboardInputMaster`).
 - Focus sets `searchFocused` (adds class `searchFocused`) and fires gtag `search_focus` (`:250-256`).
@@ -142,6 +148,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 ## 3. `/api/name` and the autocomplete backend
 
 ### 3.1 Endpoint
+
 - Routes: `api/name/<path:name>` (`sefaria/urls_shared.py:107`, plus the standalone name service `sefaria/urls_name.py:20`). The view is `reader/views.py:3143-3199`.
 - Query params:
   - `limit` (default 10, 0 means unlimited)
@@ -158,12 +165,14 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - Client helper: `Sefaria.getName(name, limit, types, topicPool, exactContinuations, orderByMatchedLength)` trims the name, builds the query string (repeated `type=`), and caches in `_lookups` (`sefaria.js:1516-1544`).
 
 ### 3.2 `get_name_completions` (`reader/views.py:3084-3141`)
+
 - `lang = he` if the name contains Hebrew, else `en`. Uses `library.full_auto_completer(lang)`.
 - Tries `Ref(name)` first. Sheet refs are excluded (`SheetLibraryNode` raises `InputError`).
 - **Dictionary refs.** On a virtual lexicon node, or on `DictionaryEntryNotFoundError`, it returns lexicon headword completions in the form `"<Dictionary>, <word>"`, with duplicates removed.
 - Otherwise it calls `completer.complete(...)` and `completer.get_object(name)` (an exact normalized match).
 
 ### 3.3 `AutoCompleter` (`sefaria/model/autospell.py`)
+
 - Full completer config (`sefaria/model/text.py:4967`): titles, categories, topics, users and collections are on; parasha is off.
 - **Indexed object types and base order.** Lower order means higher rank. `PAD = 1,000,000` (`autospell.py:182-277`):
   - Book/ref titles: `1*PAD`. Sheet nodes are excluded.
@@ -189,6 +198,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 ## 4. `/search` URL handling and state
 
 ### 4.1 Server (`reader/views.py:1112-1132`, `get_search_params` `:1054-1088`)
+
 - Renders `base.html` with props `initialMenu:"search"`, `initialQuery`, `initialSearchTab`, `initialSearchFilters`, `initialSearchFilterAggTypes`, `initialSearchField`, `initialSearchSortType`.
 - Page title is `"<q> | Search"` or `"Search"`. Description "Search 3,000 years of Jewish texts…". **`noindex: True`**.
 - URL params (any can carry a numeric panel suffix `i`):
@@ -206,11 +216,12 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - `@sanitize_get_params`, `@ensure_csrf_cookie`.
 
 ### 4.2 Client state (`ReaderApp.jsx`)
+
 - Initial panel (`ReaderApp.jsx:58-74`): `menuOpen` from `initialMenu`, `searchQuery`, `tab = initialSearchTab`. `searchState = new SearchState({type: moduleToSearchType(activeModule), appliedFilters, field, appliedFilterAggTypes, sortType})`.
   - **The search type comes from the active module (`library`→`text`, otherwise `sheet`), not from the `tab` URL param** (`searchState.js:123-125`).
 - History serialization (`ReaderApp.jsx:550-560`): `search&q=<enc>&tab=<text|sheet>&search_tab=<tab>` + `searchState.makeURL({prefix:'t'|'s'})`. The first `&` becomes `?` (`:889`). Title is `getPageTitle(query.stripHtml())`. `addTab` skips `&tab=` for search (`:503-509`).
 - `makeURL` (`searchState.js:127-158`) emits `&<p><aggType>Filters=<enc|joined>` per agg type (sheet types expanded with `_en`/`_he` suffixes), `&<p>var=<1 if field != fieldExact else 0>`, `&<p>sort=<sortType>`.
-- Back/forward: `handlePopState` rehydrates `SearchState` from plain objects. FilterNodes restore `parent` links via `restoreFromSerialization` (`ReaderApp.jsx:324-327`; `FilterNode.js:19-29`). Going back *into* search sets the analytics flow source to `back_click` (`ReaderApp.jsx:332-338`).
+- Back/forward: `handlePopState` rehydrates `SearchState` from plain objects. FilterNodes restore `parent` links via `restoreFromSerialization` (`ReaderApp.jsx:324-327`; `FilterNode.js:19-29`). Going back _into_ search sets the analytics flow source to `back_click` (`ReaderApp.jsx:332-338`).
 - The history push trigger compares `searchQuery`, `tab`, and SearchState `appliedFilters`/`field`/`sortType` (`ReaderApp.jsx:453-459`).
 - Results-tab state is panel `tab`, changed via `ReaderPanel.setTab`. It uses replace-vs-push logic for the TabView mount race (`ReaderPanel.jsx:595-606`).
 - `ReaderPanel` renders `ElasticSearchQuerier` only when `menuOpen==="search" && searchQuery` (`ReaderPanel.jsx:964-982`). **`/search` with no `q` renders no search menu body.**
@@ -225,6 +236,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
   - `updateSearchOptionSort`.
 
 ### 4.3 `SearchState` (`static/js/sefaria/searchState.js`)
+
 - Fields: `type`, `appliedFilters`, `appliedFilterAggTypes`, `availableFilters` (FilterNodes), `filterRegistry` (aggKey→node), `filtersValid`, `orphanFilters`, `fieldExact`, `fieldBroad`, `field`, `sortType`.
 - `update()` merges partial updates. When `aggregationsToUpdate` is given and filters are valid, it replaces only the available filters of those agg types (`:80-88`).
 - `isEqual({other, fields})` does a shallow array compare.
@@ -241,6 +253,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 ## 5. Search page (Library): `static/js/SearchPage.jsx`
 
 ### 5.1 Container: `ElasticSearchQuerier` (`static/js/ElasticSearchQuerier.jsx`)
+
 - Page size: **text 100, sheet 20** (`:97`).
 - On construction it **restores every consecutively cached page** of the same query args from `Sefaria.search` cache, for instant back-navigation (`:109-127`).
 - Mount: starts analytics (main page only), then `_executeAllQueries` (topic query, skipped in searchInBook, plus the main query) (`:129-141,279-284`).
@@ -260,12 +273,14 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - Renders `SearchInVoicesPage` in the Voices module, otherwise `SearchPage` (`:432-465`).
 
 ### 5.2 In-page search bar (`SearchPageSearchBar`, `SearchPage.jsx:30-86`)
+
 - Controlled input, synced to the `query` prop.
 - Enter or magnifier (Enter/Space on the icon) submits the **trimmed** value, only if non-empty **and different** from the current query → `onQueryChange` (= `ReaderApp.updateQuery`).
 - Clear X appears when the value is non-empty. It **clears the input only**, with no search. Keyboard accessible.
 - `maxLength 75`, `enterKeyHint="search"`, `role="search"`. aria-labels: "Submit search", "Clear search term".
 
 ### 5.3 Layout and tabs
+
 - Tabs: `sources` ("Sources", count = `totalResults.asString()`, e.g. "1,234" or "10,000+" when ES relation is `gte`) plus entity tabs Books/Authors/Topics with counts from `formatEntityCount` (≥10000 → "10,000+") (`SearchPage.jsx:721-728,560-565`; `searchTotal.js`).
 - An invalid or missing `tab` falls back to Sources (`activeTab`, `:399-401`). The desktop TabView gets `currTabName=null` and then calls `setTab(first, replaceHistory=true)` on mount (`Misc.jsx TabView ~403-411`).
 - **Desktop vs mobile tabs.** Desktop `TabView` (`largeTabs`) is used when `Sefaria.multiPanel` (server User-Agent) **and** `window.innerWidth > 985`. That width is re-measured on resize (`:89-90, 271-281, 437-438, 596`). Otherwise `SearchTabsMobileWeb` (§5.10).
@@ -275,6 +290,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - Two-column layout: `.sidebarLayout` → `.contentInner` + `.navSidebar` (desktop, non-compare). On mobile or compare, the sidebar shows as a `.mobileSearchFilters` overlay only while `mobileFiltersOpen` (`:813-821`).
 
 ### 5.4 Sources tab
+
 - Top matter (`:730-747`):
   - **Exact-match toggle** (`SearchToggle`), on desktop, non-compare, text type only. Labels "All Results" / "Exact Phrase". Segmented control with an animated slider; `useLayoutEffect` sets the initial position so it does not flash; `aria-pressed`; `role="group"` (`SearchToggle.jsx`).
   - Sort/filter control: desktop non-compare `SearchSortBox`, otherwise `MobileFilterIconButton` (sliders icon, aria "Sort & filter results"). On desktop it is disabled when total is 0 or unknown; on mobile it is never disabled (`:612-622,741`).
@@ -284,12 +300,14 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - Sidebar for Sources: `SearchFilters`, shown when total > 0 **or** on mobile. On mobile, `topSection` is the "Search Type" group containing the exact toggle (`:656-679`).
 
 ### 5.5 `SearchSortBox` (sources sort dropdown, `SearchResultList.jsx:195-252`)
+
 - Button: sort icon, current option label (bilingual), chevron. `aria-haspopup`, `aria-expanded`.
 - `DropdownModal` closes on outside click. `DropdownOptionList` lists options.
 - Choosing the current option is a no-op.
 - Disabled variant is a non-interactive div with `aria-disabled`.
 
 ### 5.6 Sources result list (`SearchResultList.jsx:112-193`)
+
 - Returns null with no query.
 - Text type:
   - **`Sefaria.search.mergeTextResultsVersions(hits)`** (`search.js:430-453`): removes duplicate `_id`s, groups **all loaded hits by ref** (across pages, so a later page's version folds into an earlier card), sorts each group by `version_priority`, keeps the first as the card, and puts the rest in `duplicates`.
@@ -299,6 +317,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - Wrapped in `InfiniteScroll` (§5.9). Initial-load "Searching..." when running with no results. "0 results." `LoadingMessage` when done with none (seen in sidebar search; the main page shows NoSearchResults instead).
 
 ### 5.7 Sources result card (`SearchResultCard.jsx`, mode `sources`; props from `sourceHitCardProps` `SearchResultList.jsx:60-103`)
+
 - **Snippet**: ES highlight fragments (`<b>` tags, `fragment_size` 200) joined with `...`, leading punctuation `[ .,;:!-)\]]` stripped. Falls back to `_source.exact`. Rendered as HTML. Gets `he`/`en` class by Hebrew detection (`SearchResultList.jsx:20-28`).
 - **Title**: ref (English) / heRef (Hebrew) via `InterfaceText`, following interface language.
 - **Accent bar**: category color via `Sefaria.palette.refColor(name)`. No icon circle in sources mode (`SearchResultCard.jsx:253-261`).
@@ -321,6 +340,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
   - The highlight is cleared (`unsetTextHighlight`) when the highlighted segment changes (`TextRange.jsx:454-457`).
 
 ### 5.8 Entity tabs: Books, Authors, Topics (`SearchPage.jsx`)
+
 - Data per type: `{hits, total, moreToLoad, isLoadingMore}`, or `null` while a fetch is in flight (`:111,263`).
 - **All three are fetched in parallel on mount**, so every tab badge fills regardless of the active tab. Not fetched in searchInBook (`:467-506`).
 - **Stale-response guard**: a per-type fetch token is bumped on every reset (query, sort or filter change). Responses with an old token are dropped (`:282-287,362,482,487,533,542`).
@@ -367,17 +387,20 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
   - Cards navigate by **`openURL(href)`** (in-app router). If that is unhandled, `window.location.href` (`SearchResultCard.jsx:167-176`). Breadcrumb and author sub-links use the same pattern and stop propagation (`:228-234`).
 
 ### 5.9 Infinite scroll (`static/js/InfiniteScroll.jsx`)
+
 - Listens to scroll on the closest `.content` ancestor. Loads more when within **300 px** of the bottom, if `hasMore && !isLoading` and nothing is pending.
 - A pending flag prevents duplicate dispatches until `isLoading` flips (`:30-53`).
 - Bottom message "Loading more results..." only while appending (`isLoadingMore`).
 - Shared by Sources and entity tabs.
 
 ### 5.10 Mobile tab strip (`SearchTabsMobileWeb.jsx`)
+
 - Horizontally scrollable `role=tablist` of buttons (`role=tab`, `aria-selected`), each with title and count (count hidden if empty).
 - Left and right fade gradients appear depending on scroll position.
 - The active tab auto-scrolls into view smoothly (`:11-33`). A trailing spacer element.
 
 ### 5.11 Mobile filter panels
+
 - **Sources** (`SearchFilters`, non-multiPanel or compare branch, `SearchFilters.jsx:68-96`):
   - Header: Close X, "Filters".
   - `topSection` ("Search Type" + exact toggle).
@@ -389,6 +412,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - Switching tab closes the panel (`SearchPage.jsx:581`).
 
 ### 5.12 Empty state (`NoSearchResults.jsx`)
+
 - Illustration per mode: `/static/img/no-results-search-illustrations/NoResults{Source|Books|Authors|Topics}.svg`.
 - Heading `search.null.<mode>.h1` with `{userquery}` / `[query]` replaced by the query, e.g. "No sources found for “X”".
 - Body: "Try a different spelling or shorter search term…"
@@ -396,6 +420,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - Caption "Something seems wrong? Report a bug or contact us." links to `search.null.caption.bug.link` (Formstack form) and `mailto:hello@sefaria.org` (`:13-26`).
 
 ### 5.13 Compare-panel search
+
 - `ComparePanelHeader` with a search box. The back button closes or converts the panel (`SearchPage.jsx:774-779`).
 - In compare:
   - No desktop sidebar.
@@ -410,15 +435,18 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 ## 6. Sources (text) search backend
 
 ### 6.1 `/api/search-wrapper[/es8|/es6]` (`reader/views.py:4927-4951`; routes `sefaria/urls_shared.py:192-194`)
+
 - POST JSON (or form `json=`). Builds an elasticsearch-dsl `Search` on index `type` (`text`/`sheet`) with a 5 s timeout.
 - `/es6` and bare `/api/search-wrapper` flatten `hits.total` to an int for old clients. The web client uses `/es8` (`search.js:43`).
 - An ES failure returns `{"error": "..."}`.
 - `/api/dummy-search` is a canned "please upgrade your app" response for old mobile apps (`reader/views.py:4863-4924`).
 
 ### 6.2 Request body built client-side (`Search.get_query_object`, `search.js:399-429`)
+
 `{type, query, field, source_proj:true, slop: exact?0:10, start, size, filters, filter_fields, aggs, sort_method, sort_fields, sort_reverse, sort_score_missing}`. Cached by sorted JSON key (`sefariaQuery|…`).
 
 ### 6.3 Query construction (`get_query_obj`, `sefaria/helper/search.py:73-140`)
+
 - Replaces an internal `"` between non-space characters with gershayim `״` (רמב"ם → רמב״ם).
 - `match_phrase` on `field` with `slop`. "All Results" uses `naive_lemmatizer` with slop 10. "Exact Phrase" uses `exact` with slop 0.
 - Sort:
@@ -433,9 +461,11 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - Highlight `field`, `fragment_size=200`, `<b>`/`</b>`.
 
 ### 6.4 Text index document fields (`sefaria/search.py:1543-1565`)
+
 `ref, heRef, version, lang, version_priority (default 1000), hebrew_version_title, categories, order, path ("<search cats>/<Index title>"), pagesheetrank, comp_date, exact, naive_lemmatizer, languageFamilyName, isPrimary, linked_refs`. Categories may be rewritten under a TOC `searchRoot` (`sefaria/search.py:858-874`).
 
 ### 6.5 Dicta merge (client, `search.js`)
+
 - Active when `type==='text'`, the query is Hebrew, **and** not exact (`isDictaQuery`, `:238-240`). Reset per new query (`:336-345`).
 - `dictaQuery` (`:92-189`) POSTs to Dicta `/search` with `{query, from, size, limitedToBooks: filters with '/'→'.' and ' '→'_', sort: relevance→'pagerank' else 'corpus_order_path', smallUnitsOnly:true}`.
   - Hits are adapted to Sefaria's shape: version "Tanach with Ta'amei Hamikra", `lang:'he'`, `isPrimary`, `heRef` reformatted from Dicta's path (`reformatDictaRef`, `:84-91`), `comp_date = -10000 + i` (keeps them first chronologically), score = -pagerank.
@@ -449,6 +479,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - Sefaria scores are negated (`score = -_score`) so that ascending sort means best first (`:64-68`).
 
 ### 6.6 Filter tree (`buildFilterTree`, `search.js:466-534`; `FilterNode.js`)
+
 - Combines **applied filters**, which always appear and are seeded with their bucket count (fix sc-44603), with aggregation buckets.
 - **Drops paths not present in the client TOC** (`Sefaria._tocOrderLookup`). This covers a TOC that updated before ES did.
 - Sorted by TOC order (`Sefaria.compareSearchCatPaths`, `sefaria.js:1420-1438`, built in `_cacheFromToc` with `searchRoot` rewriting, `:1389-1419`).
@@ -494,6 +525,7 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 ## 8. Voices module search (sheets): `SearchInVoicesPage.jsx`
 
 ### 8.1 Page
+
 - Heading: "Results for “<query>”" (`search_page.results_for`, Hebrew quotes ״). Optional `AiInfoTooltip` badge if `aiBadgeText` is passed (`:77-88`). **Nothing currently passes `aiBadgeText`.**
 - Result count "N Results" when > 0 (`:41-46`).
 - Controls:
@@ -504,9 +536,11 @@ These are behaviors a rebuild could easily get wrong, either by copying a bug or
 - searchInBook returns only the list (`:59-61`).
 
 ### 8.2 Analytics
+
 Out of scope: `_searchAnalyticsInScope` excludes Voices (`ElasticSearchQuerier.jsx:200-203`).
 
 ### 8.3 Sheet result (`SearchSheetResult.jsx`)
+
 - Title: HTML stripped via jQuery, `dir` by Hebrew detection.
 - Snippet: the content highlight, leading punctuation stripped, language-directional.
 - Owner row: `ProfilePic` (30 px), owner name (Hebrew/English class), bullet, **date created formatted `en-US` "Month D, YYYY" regardless of interface language** (`:28-32`).
@@ -514,13 +548,16 @@ Out of scope: `_searchAnalyticsInScope` excludes Voices (`ElasticSearchQuerier.j
 - Click → `onResultClick("Sheet <id>")` (in-app). Tracks `Search Result Sheet Click`. Owner click tracks `Search Result Sheet Owner Click`.
 
 ### 8.4 Search within a collection
+
 - `CollectionPage` shows "Search the full text of this collection for “<filter>” »" when a collection is **listed** and a sheet-list filter is typed. href `/search?q=<filter>&tab=sheet&scollectionsFilters=<name>`.
 - Click → `searchInCollection`, a sheet SearchState with `appliedFilters:[name]`, `appliedFilterAggTypes:['collections']` (`CollectionPage.jsx:180-190`; `ReaderApp.jsx:2043-2048`).
 
 ### 8.5 Sheet index document
+
 `title, content, owner_name, owner_image, profile_url, version ("Source Sheet by …"), topics_en, topics_he, sheetId, collections, dateCreated, views …` (`sefaria/search.py:201-264`).
 
 ### 8.6 Related reuse
+
 `SheetsWithRefPage` reuses `SearchFilters` and `SearchSortBox` for client-side filtering of "Sheets with <ref>", using filter nodes from `Sefaria.sheets.sheetsWithRefFilterNodes` (`sheets/SheetsWithRefPage.jsx:37,82`; `sefaria.js:3316-3350`). URL `sheets-with-ref/<ref>` + `makeURL({prefix:'s'})` (`ReaderApp.jsx:530-536`).
 
 ---
@@ -528,10 +565,12 @@ Out of scope: `_searchAnalyticsInScope` excludes Voices (`ElasticSearchQuerier.j
 ## 9. Search within a book (sidebar): `SidebarSearch.jsx`
 
 ### 9.1 Opening and URL state
+
 - ConnectionsPanel tool "Search in this Text" sets `connectionsMode="SidebarSearch"` (`ConnectionsPanel.jsx:295`).
 - The query is persisted in panel state `sidebarSearchQuery` and in the URL as `&sbsq=` (first connections panel) or `&sbsq<N>=` (buggy, see §0.9). It is restored server-side (`reader/views.py:850,890`; `ReaderApp.jsx:706-711,828-830`).
 
 ### 9.2 Behavior
+
 - If the book's index details have a `lexiconName` (a dictionary), it shows `DictionarySearch` instead (`:13,85-90`).
 - Otherwise:
   - `SearchButton` + input (`#searchQueryInput`, placeholder/title "Search in this text", maxLength 75, virtual keyboard attached).
@@ -543,6 +582,7 @@ Out of scope: `_searchAnalyticsInScope` excludes Voices (`ElasticSearchQuerier.j
 - Renders `ElasticSearchQuerier searchInBook` → `SearchPage` returns just the `SearchResultList` (`SearchPage.jsx:624-626`). No entity fetches and no topic query. Hebrew queries still go through the Dicta merge.
 
 ### 9.3 Results
+
 - Legacy `SearchTextResult.jsx`:
   - Ref title link (en ref / he heRef).
   - Snippet in `ColorBarBox`, colored by ref.
@@ -560,7 +600,7 @@ Out of scope: `_searchAnalyticsInScope` excludes Voices (`ElasticSearchQuerier.j
 ## 10. Dictionary search (`DictionarySearch.jsx`)
 
 - jQuery UI autocomplete on `input.search`, `minLength 1`, menu class `dictionary-toc-autocomplete` (`:67-122`).
-- **Hebrew only.** Input containing English shows a single non-selectable row "Invalid entry.  Please type a Hebrew word." (`:105-108`).
+- **Hebrew only.** Input containing English shows a single non-selectable row "Invalid entry. Please type a Hebrew word." (`:105-108`).
 - Source: `Sefaria.lexiconCompletion(term, lexiconName)`. Label = form with vowels (`e[1]`), value = `e[0]`.
 - **Polling**: checks every 330 ms for value changes (to catch virtual-keyboard typing) and re-triggers the search (`:33-60`).
 - Menu position and width adapt when the virtual keyboard (`#keyboardInputMaster`) is open (`:43-49,74-85`).
@@ -617,6 +657,7 @@ Out of scope: `_searchAnalyticsInScope` excludes Voices (`ElasticSearchQuerier.j
 ## 13. Entity search backend (`/api/entity-search`, `sefaria/helper/search.py`)
 
 ### 13.1 API (`reader/views.py:4953-5036`)
+
 - `GET ?q&type=topic|author|book&sort&filter=<path>(repeatable)&start&size`.
 - `size` defaults to 20 and is clamped to 1..100. `start` is clamped to `[0, 9999]`. The final page is **shortened** to stay inside the 10,000 window, never shifted backward.
 - Validation errors, returned as JSON `error`:
@@ -627,24 +668,29 @@ Out of scope: `_searchAnalyticsInScope` excludes Voices (`ElasticSearchQuerier.j
 - Exceptions are logged and return a generic error.
 
 ### 13.2 Sorts (`ENTITY_SORTS`, `:258-265`)
+
 - Topic: relevance, alpha. Author and book: relevance, alpha, year_asc, year_desc.
 - `alpha` sorts `title_en.sort`. Years sort on `sortYear` (authors: death year, else birth year) or `compDate` (books).
 - Missing values go last; `_score` breaks ties (`:470-493`).
 
 ### 13.3 Relevance tiers (`get_entity_query_obj`, `:496-604`)
+
 1. Exact case-insensitive keyword match: primary title (constant 1000) or variant / authored title (constant 100).
 2. Phrase on titles (×4).
 3. All words, cross_fields AND, with per-field boosts (×2).
 4. All words as prefixes within one title field (×1.5, multi-word only).
 5. phrase_prefix on titles (×1).
 6. Any word (×0.1).
+
 - Field boosts can be overridden through RemoteConfig keys `SEARCH_ENTITY_FIELD_BOOSTS_{TOPIC,AUTHOR,BOOK}`, validated against an allow-list (`:330-370`).
 - Descriptions are never searched.
 - Tokenization mirrors the `exact_english` analyzer: quote folding, combining-mark stripping, Hebrew ר׳ handling (`:400-434`).
 - Topic and author both live in the `topic` index, filtered by `subtype`.
 
 ### 13.4 Books resolution chain (`entity_search`, `:957-1006`)
+
 Only applies when no category filter is set.
+
 1. **Author resolution.** If the query exactly equals an author's title or variant, return **that author's works aggregated by category** (`_author_works_response`, `:855-933`). Relevance order: the eponymous work first, then category rows, then the rest. Explicit sorts order in code. Individual works carry `authors` and `author_names`.
 2. **Category resolution.** If the query exactly names TOC categories (including Term variants such as "Bible" → Tanakh, shallowest first), return:
    - eponymous books inside those categories (max 5),
@@ -652,12 +698,15 @@ Only applies when no category filter is set.
    - then flat book results **excluding** books under the matched categories.
    - Paging walks the lead rows first (`_resolve_categories` / `_category_response`, `:695-852`).
 3. Otherwise: flat book search.
+
 - Every book response includes **`categoryCounts`**: a per-category count over the whole match set, from a `terms` aggregation on `path` (size 10,000). The category filter is applied as a `post_filter`, so counts ignore it. The author and category paths compute counts via a separate flat aggregation-only query (`_book_category_counts`, `:935-955`; `_category_counts_from_response`, `:612-642`).
 
 ### 13.5 Topic index
+
 Only topics in the Postgres `library` TopicPool, with a title (`library_topic_slugs` / `make_topic_index_document`, `sefaria/search.py:1666-1879`). Authors add `era`, `birthYear`, `deathYear`, `sortYear`, `authored_titles_en/he`. The index is updated on topic, index and category save hooks (`sefaria/helper/search.py:1079+`).
 
 ### 13.6 Other search-adjacent endpoints
+
 - `/search-autocomplete-redirecter?q=` (`reader/views.py:2058-2075`; also `urls_name.py:24`). `#` means topic override. Redirect order:
   - ref → `/<ref.url()>`
   - Topic, PersonTopic or AuthorTopic object → `/topics/<key>`
@@ -672,6 +721,7 @@ Only topics in the Postgres `library` TopicPool, with a title (`library_topic_sl
 ## 14. Analytics
 
 ### 14.1 GA4 search funnel (`static/js/sefaria/searchAnalytics.js`, spec sc-46034)
+
 - **Scope**: the main search page only. Not the compare panel, sidebar search-in-book, or Voices (`ElasticSearchQuerier.jsx:200-203`; card `analyticsPosition` gating).
 - Events, sent with `transport_type: 'beacon'` and dropping undefined fields (`:329-336`):
   - `search_flow_started {flow_id, source}`. Source is one of:
@@ -694,12 +744,14 @@ Only topics in the Postgres `library` TopicPool, with a title (`library_topic_sl
 - Tab click reports `count` = the raw tab count. Filter clicks report `docCount`. Sort reports the English option label. Toggle reports "All Results" / "Exact Phrase".
 
 ### 14.2 Header gtag events (`HeaderAutocomplete.jsx`)
+
 - `search_focus`, `search_defocus {text}`
 - `search_submit {feature_name: "Search Results" | "Autolink", text, link_type}`
 - `search_navto {feature_name: "Nav To by Keyboard" | "Nav To by Mouse", link_type, text, to}`
 - All carry `project: "Global Search"`.
 
 ### 14.3 Legacy `Sefaria.track.event("Search", …)`
+
 - `Search Box Search`
 - `Search Box Navigation - Book | Citation | Topic | <type>`
 - `[SidebarSearch ]Query: <type>`
@@ -710,16 +762,19 @@ Only topics in the Postgres `library` TopicPool, with a title (`library_topic_sl
 - `Search Result Sheet Owner Click`
 
 ### 14.4 Topics landing
+
 `data-anl-event="navto_topic:click"` attributes, `feature_name="Search"`.
 
 ---
 
 ## 15. Caching and performance notes
+
 - `Sefaria.search._cache`: query results keyed by sorted args, cloned on write. Per-request ajax caches (`sefariaQuery|`, `dictaQuery|`, `dictaBooksQuery|`). Entity pages. All are in-memory for the session (`search.js:22-31,454-465,586-621`).
 - `_lookups` (`getName`), `_lexiconCompletions`, `_bookSearchPathFilter` caches (`sefaria.js:1516,1545,3060`). Reset in `Sefaria` init (`sefaria.js:4132-4172`).
 - `Sefaria.search = new Search(searchIndexText, searchIndexSheet)` (`sefaria.js:4113`).
 
 ## 16. Accessibility summary
+
 - Search containers use `role="search"` with aria-labels.
 - Clickable icons have `role=button` and handle Enter/Space.
 - Cards are `role=link` and focusable.
@@ -730,6 +785,7 @@ Only topics in the Postgres `library` TopicPool, with a title (`library_topic_sl
 - Some filter aria-labels are hardcoded English ("Press enter to toggle…", "Type to Filter X Shown", "Sort by X", "Open filter (n active)").
 
 ## 17. Edge cases and bugs checklist (for parity or intentional fixing)
+
 - Header suggestions need at least 3 characters; the topics landing needs at least 2. There is no "Search for" row when there are zero completions.
 - No debounce and no request cancellation in `GeneralAutocomplete`; out-of-order responses can show stale suggestions.
 - `#topic` prefix navigation is hidden behavior (§0.5).

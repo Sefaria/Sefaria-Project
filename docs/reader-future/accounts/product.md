@@ -4,9 +4,10 @@ title: Accounts & sign-in
 domain: Site & accounts
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Accounts & sign-in — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -51,33 +52,33 @@ Feature groups: Account settings (3); Login (2); SSO (2); In-app auth page (1); 
 
 ### Core (9)
 
-| ID | Feature | What it does |
-|---|---|---|
-| ACC-001 | In-app login/register page integration | Login and registration render inside the reader app instead of a separate page. |
-| ACC-006 | Login prompt and sign-up modal | When an anonymous user tries a signed-in feature (save, follow, notes, add to sheet...), a prompt explains the benefits and invites them to sign up or log in. |
-| ACC-007 | Auth routes and in-app auth page mounting | Login, register and password reset are one in-app page inside the reader app rather than separate server pages. |
-| ACC-008 | Auth page with choose / email views | A single card guides users through log in or sign up, offering Google, Apple or email. |
-| ACC-009 | Email and password login | Users log in with email and password, with a Forgot password link. |
-| ACC-010 | Email registration with reCAPTCHA | New users create an account with email, password and name, protected by a captcha. |
-| ACC-011 | Forgot and reset password | Users who forget their password can request a reset link, set a new password, and request a fresh link if the old one expired. |
-| ACC-012 | Sign in with Google and Apple | Users can log in or register with Google or Apple; the same email always links to one account. |
-| ACC-016 | Who is signed in, at first paint (rebuild) | The new client learns who is signed in from Django's session cookie while rendering on the server, so the header is right from the first frame. |
+| ID      | Feature                                    | What it does                                                                                                                                                   |
+| ------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ACC-001 | In-app login/register page integration     | Login and registration render inside the reader app instead of a separate page.                                                                                |
+| ACC-006 | Login prompt and sign-up modal             | When an anonymous user tries a signed-in feature (save, follow, notes, add to sheet...), a prompt explains the benefits and invites them to sign up or log in. |
+| ACC-007 | Auth routes and in-app auth page mounting  | Login, register and password reset are one in-app page inside the reader app rather than separate server pages.                                                |
+| ACC-008 | Auth page with choose / email views        | A single card guides users through log in or sign up, offering Google, Apple or email.                                                                         |
+| ACC-009 | Email and password login                   | Users log in with email and password, with a Forgot password link.                                                                                             |
+| ACC-010 | Email registration with reCAPTCHA          | New users create an account with email, password and name, protected by a captcha.                                                                             |
+| ACC-011 | Forgot and reset password                  | Users who forget their password can request a reset link, set a new password, and request a fresh link if the old one expired.                                 |
+| ACC-012 | Sign in with Google and Apple              | Users can log in or register with Google or Apple; the same email always links to one account.                                                                 |
+| ACC-016 | Who is signed in, at first paint (rebuild) | The new client learns who is signed in from Django's session cookie while rendering on the server, so the header is right from the first frame.                |
 
 ### Standard (5)
 
-| ID | Feature | What it does |
-|---|---|---|
-| ACC-002 | Google One Tap sign-in | Anonymous visitors may see a Google sign-in prompt, at most once per session. |
-| ACC-003 | Account settings page | The classic server-rendered account settings page lets users set notification frequency, languages, reading history, customs, assistant, experiments, email and Google Drive. |
-| ACC-004 | Change email and connected accounts | Users change their login email or disconnect Google Drive from settings. |
-| ACC-013 | Google One Tap | Logged-out visitors may see a Google One Tap prompt to sign in with one click. |
-| ACC-014 | Mobile app auth endpoints (JWT) | The native mobile apps log in and register through token-based endpoints. |
+| ID      | Feature                             | What it does                                                                                                                                                                  |
+| ------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ACC-002 | Google One Tap sign-in              | Anonymous visitors may see a Google sign-in prompt, at most once per session.                                                                                                 |
+| ACC-003 | Account settings page               | The classic server-rendered account settings page lets users set notification frequency, languages, reading history, customs, assistant, experiments, email and Google Drive. |
+| ACC-004 | Change email and connected accounts | Users change their login email or disconnect Google Drive from settings.                                                                                                      |
+| ACC-013 | Google One Tap                      | Logged-out visitors may see a Google One Tap prompt to sign in with one click.                                                                                                |
+| ACC-014 | Mobile app auth endpoints (JWT)     | The native mobile apps log in and register through token-based endpoints.                                                                                                     |
 
 ### Optional (2)
 
-| ID | Feature | What it does |
-|---|---|---|
-| ACC-005 | Delete account (API only) | An account-deletion endpoint exists but nothing in the web UI calls it. |
+| ID      | Feature                              | What it does                                                                                                |
+| ------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| ACC-005 | Delete account (API only)            | An account-deletion endpoint exists but nothing in the web UI calls it.                                     |
 | ACC-015 | Enable Library Assistant after login | A link can switch on the Library Assistant for a signed-in user and return them to the page they came from. |
 
 ### Flags from the audit (not to port as-is)

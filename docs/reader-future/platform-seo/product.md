@@ -4,9 +4,10 @@ title: SSR, SEO & platform
 domain: Platform
 document: product
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-15
 ---
+
 # SSR, SEO & platform — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -22,15 +23,15 @@ content and a stable page are a focus point of the upcoming arc.
 
 ## Who it is for and what they need
 
-- Mobile readers, the least patient group: they leave if the text is not on screen quickly, which likely costs real engagement. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489) · Hotjar [1](https://insights.hotjar.com/r?site=2695522&recording=112659731199) · [2](https://insights.hotjar.com/r?site=2695522&recording=112659747044) · [3](https://insights.hotjar.com/r?site=2695522&recording=112659758294) · [4](https://insights.hotjar.com/r?site=2695522&recording=112659767062) · PLT-019
-- Every reader: the page should not visibly repaint or shift on load, on scroll or on click. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
+- Mobile readers, the least patient group: they leave if the text is not on screen quickly, which likely costs real engagement. — _proposed_ · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489) · Hotjar [1](https://insights.hotjar.com/r?site=2695522&recording=112659731199) · [2](https://insights.hotjar.com/r?site=2695522&recording=112659747044) · [3](https://insights.hotjar.com/r?site=2695522&recording=112659758294) · [4](https://insights.hotjar.com/r?site=2695522&recording=112659767062) · PLT-019
+- Every reader: the page should not visibly repaint or shift on load, on scroll or on click. — _proposed_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 
 ## Target behaviour in the future reader
 
 - The text a reader asked for is visible fast on a phone; time to content is kept minimal. A target to consider is the "good"
-  Core Web Vitals band, LCP ≤ 2.5 s ([web.dev](https://web.dev/articles/lcp)). — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489)
-- No visible repaint, flicker or layout jump on load, nor when the reader scrolls or clicks. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · TXD-054 · TXD-068
-- Load speed and repaints are watched on the live site, so a regression is seen before readers report it. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
+  Core Web Vitals band, LCP ≤ 2.5 s ([web.dev](https://web.dev/articles/lcp)). — _proposed_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489)
+- No visible repaint, flicker or layout jump on load, nor when the reader scrolls or clicks. — _proposed_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · TXD-054 · TXD-068
+- Load speed and repaints are watched on the live site, so a regression is seen before readers report it. — _proposed_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 
 ## Changes from today (keep · change · drop · new)
 
@@ -64,50 +65,50 @@ Feature groups: Meta and SEO (5); Crawling & Indexing (5); SSR (3); PWA (3); Boo
 
 ### Core (14)
 
-| ID | Feature | What it does |
-|---|---|---|
-| PLT-002 | Health and readiness endpoints | Infrastructure probes check that the app and its dependencies are up. |
-| PLT-003 | Server-side rendering pipeline | Pages are rendered on a Node server for fast first paint and SEO, then hydrated in the browser. |
-| PLT-004 | Client hydration and bootstrapping | The browser takes over server HTML and seeds its caches from the page props. |
-| PLT-005 | Base props delivered to every page | Every page ships a standard bundle of user, locale, calendar and chatbot context. |
-| PLT-006 | Page titles and meta descriptions | Each page gets a title and description tailored to its type and module. |
-| PLT-007 | Noindex rules | Some pages are hidden from search engines. |
-| PLT-008 | Canonical URLs and hreflang | Pages declare a canonical address and language alternates so search engines pick the right version. |
-| PLT-011 | Page bootstrap template (base.html) | Every page shares one HTML shell that sets metadata, fonts, social cards and loads the app. |
-| PLT-012 | Client hydration, maintenance mode, health and error pages | The browser app hydrates server-rendered pages; special modes and error pages are handled. |
-| PLT-013 | Sefaria singleton bootstrap and server props | A global client object is seeded from server-rendered data so the app starts with user and site context. |
-| PLT-014 | Library and Voices module / domain helpers | The site is two modules, Library and Voices, on separate domains, with helpers that build the right cross-module links and cookies. |
-| PLT-019 | Mobile web specifics | On phones the site uses a single-panel layout and disables some desktop-only promos. |
-| PLT-026 | Sitemaps | Daily-generated sitemaps list texts, topics, sheets, categories and static pages in English and Hebrew sites. |
-| PLT-027 | Canonical, hreflang, Open Graph and JSON-LD | Every server-rendered page carries canonical, language-alternate and social metadata plus structured breadcrumbs. |
+| ID      | Feature                                                    | What it does                                                                                                                        |
+| ------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| PLT-002 | Health and readiness endpoints                             | Infrastructure probes check that the app and its dependencies are up.                                                               |
+| PLT-003 | Server-side rendering pipeline                             | Pages are rendered on a Node server for fast first paint and SEO, then hydrated in the browser.                                     |
+| PLT-004 | Client hydration and bootstrapping                         | The browser takes over server HTML and seeds its caches from the page props.                                                        |
+| PLT-005 | Base props delivered to every page                         | Every page ships a standard bundle of user, locale, calendar and chatbot context.                                                   |
+| PLT-006 | Page titles and meta descriptions                          | Each page gets a title and description tailored to its type and module.                                                             |
+| PLT-007 | Noindex rules                                              | Some pages are hidden from search engines.                                                                                          |
+| PLT-008 | Canonical URLs and hreflang                                | Pages declare a canonical address and language alternates so search engines pick the right version.                                 |
+| PLT-011 | Page bootstrap template (base.html)                        | Every page shares one HTML shell that sets metadata, fonts, social cards and loads the app.                                         |
+| PLT-012 | Client hydration, maintenance mode, health and error pages | The browser app hydrates server-rendered pages; special modes and error pages are handled.                                          |
+| PLT-013 | Sefaria singleton bootstrap and server props               | A global client object is seeded from server-rendered data so the app starts with user and site context.                            |
+| PLT-014 | Library and Voices module / domain helpers                 | The site is two modules, Library and Voices, on separate domains, with helpers that build the right cross-module links and cookies. |
+| PLT-019 | Mobile web specifics                                       | On phones the site uses a single-panel layout and disables some desktop-only promos.                                                |
+| PLT-026 | Sitemaps                                                   | Daily-generated sitemaps list texts, topics, sheets, categories and static pages in English and Hebrew sites.                       |
+| PLT-027 | Canonical, hreflang, Open Graph and JSON-LD                | Every server-rendered page carries canonical, language-alternate and social metadata plus structured breadcrumbs.                   |
 
 ### Standard (14)
 
-| ID | Feature | What it does |
-|---|---|---|
-| PLT-001 | Favicons, manifest and app-link files | Per-module icons, PWA manifest and app deep-link verification files are served dynamically. |
-| PLT-009 | Social sharing tags and JSON-LD | Shared links show a generated image and rich breadcrumbs. |
-| PLT-010 | Other head and third-party script items | The base template adds app banner, icons, theme color and conditional third-party scripts. |
-| PLT-015 | API helpers, breakpoints and page titles | Shared client helpers for network calls, responsive breakpoints and page titles. |
-| PLT-016 | Cookie and browser storage inventory | A catalog of the cookies and browser storage the client relies on. |
-| PLT-018 | Universal links, app links and app promotion | Links to the site open in the native apps when installed, and the site promotes the apps. |
-| PLT-020 | Per-module web manifest | The site serves a web app manifest tailored to the active module (Library or Voices) and language. |
-| PLT-021 | Module-specific favicons and app icons | Favicon, Apple touch icon and SVG icon vary by whether the user is on Library or Voices. |
-| PLT-023 | iOS universal links (apple-app-site-association) | Links to the website open in the Sefaria iOS app except for sign-in flows and URLs marked to stay in the browser. |
-| PLT-024 | Android asset links | Android app verification file lets links open in the Sefaria Android app. |
-| PLT-025 | robots.txt | Crawling rules are served by nginx from deployment config and block everything on non-production. |
-| PLT-030 | Print stylesheets | Printing a page hides interface chrome and lays text out in a clean flow with a Sefaria footer. |
-| PLT-031 | Health checks and operational endpoints | Health endpoints report readiness of database, Redis, Node SSR and the library for load balancers and rollouts. |
-| PLT-032 | Scheduled jobs (cron) overview | Background jobs refresh sitemaps, metrics, trends, caches, search indexes, topic data, web pages and embeddings on a schedule. |
+| ID      | Feature                                          | What it does                                                                                                                   |
+| ------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| PLT-001 | Favicons, manifest and app-link files            | Per-module icons, PWA manifest and app deep-link verification files are served dynamically.                                    |
+| PLT-009 | Social sharing tags and JSON-LD                  | Shared links show a generated image and rich breadcrumbs.                                                                      |
+| PLT-010 | Other head and third-party script items          | The base template adds app banner, icons, theme color and conditional third-party scripts.                                     |
+| PLT-015 | API helpers, breakpoints and page titles         | Shared client helpers for network calls, responsive breakpoints and page titles.                                               |
+| PLT-016 | Cookie and browser storage inventory             | A catalog of the cookies and browser storage the client relies on.                                                             |
+| PLT-018 | Universal links, app links and app promotion     | Links to the site open in the native apps when installed, and the site promotes the apps.                                      |
+| PLT-020 | Per-module web manifest                          | The site serves a web app manifest tailored to the active module (Library or Voices) and language.                             |
+| PLT-021 | Module-specific favicons and app icons           | Favicon, Apple touch icon and SVG icon vary by whether the user is on Library or Voices.                                       |
+| PLT-023 | iOS universal links (apple-app-site-association) | Links to the website open in the Sefaria iOS app except for sign-in flows and URLs marked to stay in the browser.              |
+| PLT-024 | Android asset links                              | Android app verification file lets links open in the Sefaria Android app.                                                      |
+| PLT-025 | robots.txt                                       | Crawling rules are served by nginx from deployment config and block everything on non-production.                              |
+| PLT-030 | Print stylesheets                                | Printing a page hides interface chrome and lays text out in a clean flow with a Sefaria footer.                                |
+| PLT-031 | Health checks and operational endpoints          | Health endpoints report readiness of database, Redis, Node SSR and the library for load balancers and rollouts.                |
+| PLT-032 | Scheduled jobs (cron) overview                   | Background jobs refresh sitemaps, metrics, trends, caches, search indexes, topic data, web pages and embeddings on a schedule. |
 
 ### Optional (4)
 
-| ID | Feature | What it does |
-|---|---|---|
-| PLT-017 | Web manifest and favicons | The site can be installed as a web app with module-specific name, icons and colors; no offline support. |
-| PLT-022 | No service worker (manifest-only PWA) | The site has a manifest and icons but no offline caching, push notifications or install prompt. |
-| PLT-028 | OpenSearch browser search integration | Browsers can add Sefaria as a search engine with suggestions. |
-| PLT-029 | No RSS or Atom feeds | The site offers no syndication feeds. |
+| ID      | Feature                               | What it does                                                                                            |
+| ------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| PLT-017 | Web manifest and favicons             | The site can be installed as a web app with module-specific name, icons and colors; no offline support. |
+| PLT-022 | No service worker (manifest-only PWA) | The site has a manifest and icons but no offline caching, push notifications or install prompt.         |
+| PLT-028 | OpenSearch browser search integration | Browsers can add Sefaria as a search engine with suggestions.                                           |
+| PLT-029 | No RSS or Atom feeds                  | The site offers no syndication feeds.                                                                   |
 
 ### Flags from the audit (not to port as-is)
 

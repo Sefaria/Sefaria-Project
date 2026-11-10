@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { focusRule, needsMore, nextToLoad, pickFocusSegment, pickVisibleSection, scrollCompensation } from "./column";
+import { focusRule, needsMore, nextToLoad, pickFocusSegment, pickVisibleSection, scrollCompensation, sectionsToTrim } from "./column";
 
 // @feature TXD-055
 describe("pickVisibleSection", () => {
@@ -90,4 +90,34 @@ describe("focusRule", () => {
   it("desktop: middle of the window, 140px threshold", () => expect(focusRule(860, { mobile: false })).toEqual({ middle: 430, threshold: 140 }));
   it("mobile: 70px threshold", () => expect(focusRule(800, { mobile: true })).toEqual({ middle: 400, threshold: 70 }));
   it("mobile with connections on screen: a quarter of the window", () => expect(focusRule(800, { mobile: true, connectionsOnScreen: true }).middle).toBe(200));
+});
+
+describe("sectionsToTrim (windowing)", () => {
+  // Psalms 1-8 as measured after a long read with no pause (Linux CI, 2026-11-08): the reader in Psalms 7, the view 284..900
+  const bottoms: Record<string, [number, number]> = {
+    "Psalms 1": [-12800, -11555], "Psalms 2": [-11500, -9329], "Psalms 3": [-9300, -7758], "Psalms 4": [-7700, -6151],
+    "Psalms 5": [-6100, -3766], "Psalms 6": [-3700, -1911], "Psalms 7": [-1850, 1200], "Psalms 8": [1250, 2931],
+  };
+  const refs = Object.keys(bottoms);
+  const box = (ref: string) => (bottoms[ref] ? { top: bottoms[ref]![0], bottom: bottoms[ref]![1] } : undefined);
+  const view = { top: 284, bottom: 900 };
+  const reading = (ref: string) => ref === "Psalms 7";
+
+  it("lets go of everything wholly out of reach above, down to the minimum, giving back the nearest first", () => {
+    // 1-6 are all out of reach (1,848 px); taking all six would leave two, so Psalms 6 stays
+    expect([...sectionsToTrim(refs, box, view, 1848, reading, 3)]).toEqual(["Psalms 1", "Psalms 2", "Psalms 3", "Psalms 4", "Psalms 5"]);
+  });
+  it("takes all of them when enough are left", () => {
+    expect([...sectionsToTrim(refs, box, view, 1848, reading, 2)]).toEqual(["Psalms 1", "Psalms 2", "Psalms 3", "Psalms 4", "Psalms 5", "Psalms 6"]);
+  });
+  it("stops at a kept section and at one within reach", () => {
+    expect([...sectionsToTrim(refs, box, view, 1848, (r) => r === "Psalms 3" || reading(r), 3)]).toEqual(["Psalms 1", "Psalms 2"]);
+    expect([...sectionsToTrim(refs, box, view, 9000, reading, 3)]).toEqual(["Psalms 1", "Psalms 2"]);
+  });
+  it("trims below as well, and nothing when there is nothing to spare", () => {
+    const far: Record<string, [number, number]> = { ...bottoms, "Psalms 9": [9000, 10000] };
+    const b = (ref: string) => (far[ref] ? { top: far[ref]![0], bottom: far[ref]![1] } : undefined);
+    expect([...sectionsToTrim(Object.keys(far), b, view, 1848, reading, 3)].sort()).toEqual(["Psalms 1", "Psalms 2", "Psalms 3", "Psalms 4", "Psalms 5", "Psalms 9"]);
+    expect(sectionsToTrim(["Psalms 1", "Psalms 7", "Psalms 8"], box, view, 1848, reading, 3).size).toBe(0);
+  });
 });

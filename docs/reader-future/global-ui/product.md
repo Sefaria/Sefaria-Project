@@ -4,9 +4,10 @@ title: Global UI
 domain: Site & accounts
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Global UI — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -51,50 +52,50 @@ Feature groups: Shared components (7); Header (3); Notices (3); Shared UI primit
 
 ### Core (12)
 
-| ID | Feature | What it does |
-|---|---|---|
-| GUI-002 | Desktop site header | The header gives access to main sections, search, donate, account and module switching. |
-| GUI-003 | Header right-side controls | Search box plus account/auth buttons, help, language and module switching. |
-| GUI-004 | Sign-up modal for anonymous users | When anonymous users try an account-only action, a modal explains the benefits and offers sign up or log in. |
-| GUI-007 | Cookie notice | A bar tells new visitors the site uses cookies and lets them accept with one click. |
-| GUI-008 | Accessible dropdown menu | Header and settings dropdowns are keyboard accessible. |
-| GUI-009 | Module switcher (Library / Voices / Developers) | A grid-icon menu switches between Sefaria products. |
-| GUI-010 | Profile / account dropdown | The profile icon opens account links that differ by login state and module. |
-| GUI-011 | Mobile navigation menu | A slide-out menu holds search, sections, account and cross-product links on mobile. |
-| GUI-012 | InterfaceText bilingual text component | Interface strings render in English or Hebrew by interface language with fallback. |
-| GUI-019 | Bilingual interface text rendering | Every label and message in the app shows in the user's interface language (English or Hebrew), with fallbacks when a translation is missing. |
-| GUI-020 | Loading messages and spinner | Pages and panels show a bilingual loading message or a spinner while content loads. |
-| GUI-023 | Responsive grid and layout boxes | Navigation cards flow into one, two or three columns depending on available width. |
+| ID      | Feature                                         | What it does                                                                                                                                 |
+| ------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| GUI-002 | Desktop site header                             | The header gives access to main sections, search, donate, account and module switching.                                                      |
+| GUI-003 | Header right-side controls                      | Search box plus account/auth buttons, help, language and module switching.                                                                   |
+| GUI-004 | Sign-up modal for anonymous users               | When anonymous users try an account-only action, a modal explains the benefits and offers sign up or log in.                                 |
+| GUI-007 | Cookie notice                                   | A bar tells new visitors the site uses cookies and lets them accept with one click.                                                          |
+| GUI-008 | Accessible dropdown menu                        | Header and settings dropdowns are keyboard accessible.                                                                                       |
+| GUI-009 | Module switcher (Library / Voices / Developers) | A grid-icon menu switches between Sefaria products.                                                                                          |
+| GUI-010 | Profile / account dropdown                      | The profile icon opens account links that differ by login state and module.                                                                  |
+| GUI-011 | Mobile navigation menu                          | A slide-out menu holds search, sections, account and cross-product links on mobile.                                                          |
+| GUI-012 | InterfaceText bilingual text component          | Interface strings render in English or Hebrew by interface language with fallback.                                                           |
+| GUI-019 | Bilingual interface text rendering              | Every label and message in the app shows in the user's interface language (English or Hebrew), with fallbacks when a translation is missing. |
+| GUI-020 | Loading messages and spinner                    | Pages and panels show a bilingual loading message or a spinner while content loads.                                                          |
+| GUI-023 | Responsive grid and layout boxes                | Navigation cards flow into one, two or three columns depending on available width.                                                           |
 
 ### Standard (11)
 
-| ID | Feature | What it does |
-|---|---|---|
-| GUI-001 | Mobile header bar | The mobile header shows hamburger, logo and a context-specific language toggle. |
-| GUI-013 | Category color line | A colored line indicates the category of the content. |
-| GUI-014 | Menu, search, close and display-settings buttons | Common icon buttons used across the shell. |
-| GUI-015 | Tabs, dropdowns, loading indicators | Shared layout components used by many pages. |
-| GUI-017 | Auth design-system inputs and cards | Form input, captcha wrapper and topic card components. |
-| GUI-021 | Filterable, sortable, paginated lists | Long lists (topics, sheets, collections) can be filtered by typing, sorted, and scrolled with infinite loading. |
-| GUI-022 | Accessible tabs | Tabbed views that can be used with keyboard and screen readers. |
-| GUI-024 | Text and sheet link cards | Reusable cards and links for texts and sheets, colored by category, used in saved, history and recommendation lists. |
-| GUI-025 | Shared UI primitives (Misc.jsx helpers) | Internal helper functions and small components shared across the client. |
-| GUI-026 | Header and panel chrome buttons | Small icon buttons used in headers and panels: search, menu, close, display settings, language toggle, guide, app store. |
-| GUI-027 | Feedback form in sidebar | Users can send feedback about a text (content issue, translation request, bug, feature idea, etc.) from the resources sidebar. |
+| ID      | Feature                                          | What it does                                                                                                                   |
+| ------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| GUI-001 | Mobile header bar                                | The mobile header shows hamburger, logo and a context-specific language toggle.                                                |
+| GUI-013 | Category color line                              | A colored line indicates the category of the content.                                                                          |
+| GUI-014 | Menu, search, close and display-settings buttons | Common icon buttons used across the shell.                                                                                     |
+| GUI-015 | Tabs, dropdowns, loading indicators              | Shared layout components used by many pages.                                                                                   |
+| GUI-017 | Auth design-system inputs and cards              | Form input, captcha wrapper and topic card components.                                                                         |
+| GUI-021 | Filterable, sortable, paginated lists            | Long lists (topics, sheets, collections) can be filtered by typing, sorted, and scrolled with infinite loading.                |
+| GUI-022 | Accessible tabs                                  | Tabbed views that can be used with keyboard and screen readers.                                                                |
+| GUI-024 | Text and sheet link cards                        | Reusable cards and links for texts and sheets, colored by category, used in saved, history and recommendation lists.           |
+| GUI-025 | Shared UI primitives (Misc.jsx helpers)          | Internal helper functions and small components shared across the client.                                                       |
+| GUI-026 | Header and panel chrome buttons                  | Small icon buttons used in headers and panels: search, menu, close, display settings, language toggle, guide, app store.       |
+| GUI-027 | Feedback form in sidebar                         | Users can send feedback about a text (content issue, translation request, bug, feature idea, etc.) from the resources sidebar. |
 
 ### Optional (4)
 
-| ID | Feature | What it does |
-|---|---|---|
-| GUI-006 | Global warning message | A site-wide warning set by the server can be shown to all users with a close button. |
-| GUI-016 | Popover | A floating popover positions itself differently on desktop and mobile. |
-| GUI-018 | Source / Translation language popover (non-reader) | A Source/Translation/Both popover used on sheets and topics outside the reader. |
-| GUI-028 | Like/dislike UI feedback prompt | A small in-reader prompt asks users whether they like a new UI change. |
+| ID      | Feature                                            | What it does                                                                         |
+| ------- | -------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| GUI-006 | Global warning message                             | A site-wide warning set by the server can be shown to all users with a close button. |
+| GUI-016 | Popover                                            | A floating popover positions itself differently on desktop and mobile.               |
+| GUI-018 | Source / Translation language popover (non-reader) | A Source/Translation/Both popover used on sheets and topics outside the reader.      |
+| GUI-028 | Like/dislike UI feedback prompt                    | A small in-reader prompt asks users whether they like a new UI change.               |
 
 ### Retire (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                           | What it does                                                                   |
+| ------- | --------------------------------- | ------------------------------------------------------------------------------ |
 | GUI-005 | Reader feedback message component | A generic like/dislike feedback prompt exists but is not mounted by the shell. |
 
 ### Flags from the audit (not to port as-is)

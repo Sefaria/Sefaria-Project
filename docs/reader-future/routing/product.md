@@ -4,11 +4,12 @@ title: URLs & routing
 domain: Platform
 document: product
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-15
 
 updated: 2026-10-28
 ---
+
 # URLs & routing — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -30,21 +31,21 @@ effect. [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339
 
 ## Target behaviour in the future reader
 
-- Shared panel layouts (splits, floating panels, sizes) would need URL support beyond sefaria.org's grammar, or a stored workspace id. See [Reader shell & panels](../reader-shell/architecture.md). — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
+- Shared panel layouts (splits, floating panels, sizes) would need URL support beyond sefaria.org's grammar, or a stored workspace id. See [Reader shell & panels](../reader-shell/architecture.md). — _idea_ · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
 
 _Items carry a status: idea · proposed · agreed · decided._
 
 - **Parity with today's integration events.** Every event subscription sefaria.org's reader has keeps working in the future reader,
   with the same name, payload and effect: first `sefaria:bootstrap-url` (the chatbot opens a ref or a page in the reader), then
   `sefaria:settings-updated` and the sheet editor's `refresh-editor` channel. Inventory and status: architecture → Integrations. —
-  *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) · RTE-057 · SHL-068 · VER-001 · SHE-020
+  _decided_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) · RTE-057 · SHL-068 · VER-001 · SHE-020
 - **Updating reader state is easy for any integration.** One documented way to open a ref or URL, open or close a sidebar, and
-  change display settings, usable by any script on the page. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339)
+  change display settings, usable by any script on the page. — _decided_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339)
 - **The URL stays the source of truth.** What an integration changes is a navigation: it lands in history, back/forward, reload and
-  shared links exactly as a click would. — *agreed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) · `reader-next/docs/WORKSPACE.md` ("The URL is still the state") ·
+  shared links exactly as a click would. — _agreed_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) · `reader-next/docs/WORKSPACE.md` ("The URL is still the state") ·
   DECISIONS 2026-10-06 (URLs as sefaria.org writes them)
 - Integrations can also be told when the reader's state changes (what is open, in which language), instead of reading
-  `window.location` as the chatbot does now. — *idea* (Claude Tag draft, not yet discussed) · architecture → Integrations
+  `window.location` as the chatbot does now. — _idea_ (Claude Tag draft, not yet discussed) · architecture → Integrations
 
 ## Changes from today (keep · change · drop · new)
 
@@ -52,7 +53,7 @@ _Items carry a status: idea · proposed · agreed · decided._
   `refresh-editor` BroadcastChannel when add-to-sheet and the sheet editor are rebuilt (SHE-020). · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339)
 - **Change**: none decided. `replaceHistory` in `sefaria:bootstrap-url` is ignored by sefaria.org for refs (RTE-057 bug) although the
   chatbot sends it: see Open questions.
-- **New**: a documented, versioned integration interface over the router (commands in, state-changed events out). — *proposed*
+- **New**: a documented, versioned integration interface over the router (commands in, state-changed events out). — _proposed_
   (Claude Tag draft) · architecture → Integrations
 
 ## Open questions
@@ -93,86 +94,86 @@ Feature groups: Shared page URLs (13); Library page URLs (12); Reader query para
 
 ### Core (29)
 
-| ID | Feature | What it does |
-|---|---|---|
-| RTE-001 | Library and Voices hosts split by domain | The site is two products on separate hostnames: Library (texts) and Voices (sheets/community, called chiburim in Hebrew). The host decides which pages exist. |
-| RTE-002 | URLconf composition and catchall order | Pages are matched in a fixed order, ending in a catchall that treats any single path segment as a text reference. |
-| RTE-004 | Edge redirects to Voices for sheets, collections, profile | On the library host, any /sheets, /collections or /profile path is bounced to the same path on the Voices host before it reaches Django. |
-| RTE-008 | Request middleware affecting URL behavior | A fixed middleware chain decides module, language, location, cookies and redirects before any view runs. |
-| RTE-009 | Library home and texts navigation URLs | Library has no separate home page: / sends visitors to /texts, and /texts/<category path> browses the table of contents. |
-| RTE-021 | Voices home and sheets-with-ref URLs | The Voices host's root is the Voices home; sheets that cite a given source are listed at /sheets-with-ref/<ref>. |
-| RTE-022 | Sheet URLs | Source sheets open at /sheets/<id>, optionally with a highlighted node, or /sheets/new to start a fresh one. |
-| RTE-026 | Text reader URL (catchall) | Any single-segment path that is not another route is treated as a text reference and opens the reader, book page, or a sheet. |
-| RTE-027 | Ref URL normalization to canonical form | Any variant of a citation (case, alt title, Hebrew title, 'Genesis 1:1', 'Gen.1.1') redirects to one canonical URL. |
-| RTE-028 | Version parameter normalization redirect | Version choices in the URL are checked against the text's real versions; stale or legacy values are rewritten or dropped. |
-| RTE-029 | Search URL | /search runs a query; query, tabs, filters and sort are all in the URL so results are shareable. |
-| RTE-030 | Topics URLs | Topics are browsed at /topics, by category, by letter, and individual topic pages. |
-| RTE-032 | Login, register and logout URLs | Sign-in, sign-up and logout have their own addresses and open the in-app auth page. |
-| RTE-033 | SSO and auth API endpoints | Social and email login use dedicated endpoints under /accounts, /_allauth and /api/auth. |
-| RTE-034 | Language switch URL (/interface) | /interface/english and /interface/hebrew switch interface language and then return to the page. |
-| RTE-035 | Global JS data and plugin file URLs | Several JS files are served by Django for the app, third parties, and caching. |
-| RTE-039 | Cross-module redirect rules | Moving between Library and Voices is done with permanent redirects from Django and temporary redirects from nginx. |
-| RTE-040 | 404 and error pages | Missing pages show a bilingual, header-only 404; server errors show a 500 page. |
-| RTE-042 | Version selection params (ven, vhe) | The URL records which English-side/translation and Hebrew/primary version is displayed. |
-| RTE-043 | Display language param (lang, lang2) | The URL records bilingual/Hebrew/English display for the text panel and a separate language for the connections panel. |
-| RTE-044 | Connections sidebar param (with) | The URL records which sidebar view or commentary filter is open next to the text. |
-| RTE-049 | Multiple panels in the URL (p<N> params) | Side-by-side panels are encoded in the URL as numbered params so a multi-panel session can be shared. |
-| RTE-053 | URL generation per panel type (makeHistoryState) | Every panel state is turned into a URL and title, so each screen is addressable. |
-| RTE-054 | Push vs replace history behavior | Browser history only gets a new entry for meaningful navigation; scrolling and refinements quietly update the current entry. |
-| RTE-055 | Back/forward and scroll restoration | Using the browser back button restores previous panels, search state and scroll position. |
-| RTE-056 | In-app link interception (openURL) | Clicking a link inside the app navigates within the app instead of reloading, for known internal paths. |
-| RTE-058 | Panel open/close operations and widths | Opening and closing panels follows rules that change the URL and layout. |
-| RTE-059 | Language-domain redirect | A user whose language does not match the language-specific domain is bounced to the other-language domain. |
-| RTE-062 | Sidebar mode in URL (with= param) | Sidebar state is encoded in the URL so a specific tool, filter or category can be shared or opened in a new tab. |
+| ID      | Feature                                                   | What it does                                                                                                                                                  |
+| ------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RTE-001 | Library and Voices hosts split by domain                  | The site is two products on separate hostnames: Library (texts) and Voices (sheets/community, called chiburim in Hebrew). The host decides which pages exist. |
+| RTE-002 | URLconf composition and catchall order                    | Pages are matched in a fixed order, ending in a catchall that treats any single path segment as a text reference.                                             |
+| RTE-004 | Edge redirects to Voices for sheets, collections, profile | On the library host, any /sheets, /collections or /profile path is bounced to the same path on the Voices host before it reaches Django.                      |
+| RTE-008 | Request middleware affecting URL behavior                 | A fixed middleware chain decides module, language, location, cookies and redirects before any view runs.                                                      |
+| RTE-009 | Library home and texts navigation URLs                    | Library has no separate home page: / sends visitors to /texts, and /texts/<category path> browses the table of contents.                                      |
+| RTE-021 | Voices home and sheets-with-ref URLs                      | The Voices host's root is the Voices home; sheets that cite a given source are listed at /sheets-with-ref/<ref>.                                              |
+| RTE-022 | Sheet URLs                                                | Source sheets open at /sheets/<id>, optionally with a highlighted node, or /sheets/new to start a fresh one.                                                  |
+| RTE-026 | Text reader URL (catchall)                                | Any single-segment path that is not another route is treated as a text reference and opens the reader, book page, or a sheet.                                 |
+| RTE-027 | Ref URL normalization to canonical form                   | Any variant of a citation (case, alt title, Hebrew title, 'Genesis 1:1', 'Gen.1.1') redirects to one canonical URL.                                           |
+| RTE-028 | Version parameter normalization redirect                  | Version choices in the URL are checked against the text's real versions; stale or legacy values are rewritten or dropped.                                     |
+| RTE-029 | Search URL                                                | /search runs a query; query, tabs, filters and sort are all in the URL so results are shareable.                                                              |
+| RTE-030 | Topics URLs                                               | Topics are browsed at /topics, by category, by letter, and individual topic pages.                                                                            |
+| RTE-032 | Login, register and logout URLs                           | Sign-in, sign-up and logout have their own addresses and open the in-app auth page.                                                                           |
+| RTE-033 | SSO and auth API endpoints                                | Social and email login use dedicated endpoints under /accounts, /_allauth and /api/auth.                                                                      |
+| RTE-034 | Language switch URL (/interface)                          | /interface/english and /interface/hebrew switch interface language and then return to the page.                                                               |
+| RTE-035 | Global JS data and plugin file URLs                       | Several JS files are served by Django for the app, third parties, and caching.                                                                                |
+| RTE-039 | Cross-module redirect rules                               | Moving between Library and Voices is done with permanent redirects from Django and temporary redirects from nginx.                                            |
+| RTE-040 | 404 and error pages                                       | Missing pages show a bilingual, header-only 404; server errors show a 500 page.                                                                               |
+| RTE-042 | Version selection params (ven, vhe)                       | The URL records which English-side/translation and Hebrew/primary version is displayed.                                                                       |
+| RTE-043 | Display language param (lang, lang2)                      | The URL records bilingual/Hebrew/English display for the text panel and a separate language for the connections panel.                                        |
+| RTE-044 | Connections sidebar param (with)                          | The URL records which sidebar view or commentary filter is open next to the text.                                                                             |
+| RTE-049 | Multiple panels in the URL (p<N> params)                  | Side-by-side panels are encoded in the URL as numbered params so a multi-panel session can be shared.                                                         |
+| RTE-053 | URL generation per panel type (makeHistoryState)          | Every panel state is turned into a URL and title, so each screen is addressable.                                                                              |
+| RTE-054 | Push vs replace history behavior                          | Browser history only gets a new entry for meaningful navigation; scrolling and refinements quietly update the current entry.                                  |
+| RTE-055 | Back/forward and scroll restoration                       | Using the browser back button restores previous panels, search state and scroll position.                                                                     |
+| RTE-056 | In-app link interception (openURL)                        | Clicking a link inside the app navigates within the app instead of reloading, for known internal paths.                                                       |
+| RTE-058 | Panel open/close operations and widths                    | Opening and closing panels follows rules that change the URL and layout.                                                                                      |
+| RTE-059 | Language-domain redirect                                  | A user whose language does not match the language-specific domain is bounced to the other-language domain.                                                    |
+| RTE-062 | Sidebar mode in URL (with= param)                         | Sidebar state is encoded in the URL so a specific tool, filter or category can be shared or opened in a new tab.                                              |
 
 ### Standard (17)
 
-| ID | Feature | What it does |
-|---|---|---|
-| RTE-003 | Maintenance mode | When the site is flagged down for maintenance, every page returns a 503 maintenance message except health and admin-cache endpoints. |
-| RTE-005 | Bare root domain redirects to www | Visiting sefaria.org without www sends the user to www.sefaria.org, except for iOS app-link verification files. |
-| RTE-006 | Mobile message and sitemap passthrough at edge | The app's in-app message files and the sitemaps are served by nginx rather than Django. |
-| RTE-007 | robots.txt rules | Crawlers are told to skip activity pages and login/register next-links. |
-| RTE-010 | Learning schedules and calendar URLs | /calendars opens the Learning Schedules page; daily shortcuts jump straight to today's reading. |
-| RTE-011 | Translations page URLs | /translations/<language> lists texts available in a given translation language. |
-| RTE-013 | Account settings URL | Signed-in users manage account preferences at /settings/account, a server-rendered page under the React header. |
-| RTE-020 | Download URLs | Text versions can be downloaded as files from stable URLs. |
-| RTE-023 | Collections URLs | Collections have a public list, per-collection pages, and creation/settings pages. |
-| RTE-024 | Profile URLs | Public user profiles live at /profile/<username>; own-profile shortcuts redirect there. |
-| RTE-031 | Saved, history and notifications URLs | Signed-in users have URLs for saved items, reading history and notifications. |
-| RTE-037 | Legacy redirects (complete list) | A single reference list of every legacy URL that is redirected. |
-| RTE-045 | Sidebar sub-state params (vside, lookup, sbsq, namedEntity) | Sidebar details like version filter, looked-up words, in-book search query and selected named entity are stored in the URL. |
-| RTE-046 | Aliyot param | Torah books record whether aliyot (Torah portion divisions) are shown. |
-| RTE-048 | Menu tab param (tab) | Pages with tabs (book TOC, topics, profile, collections) record the open tab in the URL. |
-| RTE-052 | Other page params (login/next, activity, topic, profile) | Non-reader pages have small param conventions. |
-| RTE-063 | Commentary URL converts to base text plus filter | Opening a commentary ref from inside the app (a link, a citation, search) — e.g. Rashi on Genesis 1:1:4 — shows the base text with that commentator selected in the sidebar. Loading the commentary's URL directly does not convert. |
+| ID      | Feature                                                     | What it does                                                                                                                                                                                                                         |
+| ------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| RTE-003 | Maintenance mode                                            | When the site is flagged down for maintenance, every page returns a 503 maintenance message except health and admin-cache endpoints.                                                                                                 |
+| RTE-005 | Bare root domain redirects to www                           | Visiting sefaria.org without www sends the user to www.sefaria.org, except for iOS app-link verification files.                                                                                                                      |
+| RTE-006 | Mobile message and sitemap passthrough at edge              | The app's in-app message files and the sitemaps are served by nginx rather than Django.                                                                                                                                              |
+| RTE-007 | robots.txt rules                                            | Crawlers are told to skip activity pages and login/register next-links.                                                                                                                                                              |
+| RTE-010 | Learning schedules and calendar URLs                        | /calendars opens the Learning Schedules page; daily shortcuts jump straight to today's reading.                                                                                                                                      |
+| RTE-011 | Translations page URLs                                      | /translations/<language> lists texts available in a given translation language.                                                                                                                                                      |
+| RTE-013 | Account settings URL                                        | Signed-in users manage account preferences at /settings/account, a server-rendered page under the React header.                                                                                                                      |
+| RTE-020 | Download URLs                                               | Text versions can be downloaded as files from stable URLs.                                                                                                                                                                           |
+| RTE-023 | Collections URLs                                            | Collections have a public list, per-collection pages, and creation/settings pages.                                                                                                                                                   |
+| RTE-024 | Profile URLs                                                | Public user profiles live at /profile/<username>; own-profile shortcuts redirect there.                                                                                                                                              |
+| RTE-031 | Saved, history and notifications URLs                       | Signed-in users have URLs for saved items, reading history and notifications.                                                                                                                                                        |
+| RTE-037 | Legacy redirects (complete list)                            | A single reference list of every legacy URL that is redirected.                                                                                                                                                                      |
+| RTE-045 | Sidebar sub-state params (vside, lookup, sbsq, namedEntity) | Sidebar details like version filter, looked-up words, in-book search query and selected named entity are stored in the URL.                                                                                                          |
+| RTE-046 | Aliyot param                                                | Torah books record whether aliyot (Torah portion divisions) are shown.                                                                                                                                                               |
+| RTE-048 | Menu tab param (tab)                                        | Pages with tabs (book TOC, topics, profile, collections) record the open tab in the URL.                                                                                                                                             |
+| RTE-052 | Other page params (login/next, activity, topic, profile)    | Non-reader pages have small param conventions.                                                                                                                                                                                       |
+| RTE-063 | Commentary URL converts to base text plus filter            | Opening a commentary ref from inside the app (a link, a citation, search) — e.g. Rashi on Genesis 1:1:4 — shows the base text with that commentator selected in the sidebar. Loading the commentary's URL directly does not convert. |
 
 ### Optional (12)
 
-| ID | Feature | What it does |
-|---|---|---|
-| RTE-012 | Random text URLs | Random links send readers to a random segment or a random-text page. |
-| RTE-015 | Torah tracker and notes URLs | /torahtracker shows a user's learning stats and /texts/notes shows 'My Notes'; both need login. |
-| RTE-016 | Staff tool URLs (modtools, linker editor) | Moderators and staff reach their tools at fixed URLs that load dedicated CSS. |
-| RTE-018 | Activity feed and leaderboard URLs | Contribution history pages show recent edits globally, per user, and per text segment. |
-| RTE-019 | Version compare tool URL | A separate page diffs two versions of a text. |
-| RTE-036 | Admin and ops URLs | Django admin and staff operational endpoints are mounted under ADMIN_PATH and /admin/*. |
-| RTE-038 | Help-center redirects for specific sheets | A set of sheets that were turned into help articles redirect to the Zendesk help center. |
-| RTE-041 | External and donation redirects | Memorable short URLs forward to donation, help, docs and campaign destinations. |
-| RTE-047 | Version notes param (notes) | A book-level URL with notes=1 opens the 'extended notes' page for a version. |
-| RTE-050 | Layout and debug params (mobile, embed, debug_mode) | A few params force layout or developer modes. |
-| RTE-051 | Cookie, tracking and chatbot params | Utility params change cookies, applink behavior, chatbot version or profile output. |
-| RTE-057 | Bootstrap URL event and settings-updated event | External code like the chatbot can steer the app through DOM events. |
+| ID      | Feature                                             | What it does                                                                                    |
+| ------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| RTE-012 | Random text URLs                                    | Random links send readers to a random segment or a random-text page.                            |
+| RTE-015 | Torah tracker and notes URLs                        | /torahtracker shows a user's learning stats and /texts/notes shows 'My Notes'; both need login. |
+| RTE-016 | Staff tool URLs (modtools, linker editor)           | Moderators and staff reach their tools at fixed URLs that load dedicated CSS.                   |
+| RTE-018 | Activity feed and leaderboard URLs                  | Contribution history pages show recent edits globally, per user, and per text segment.          |
+| RTE-019 | Version compare tool URL                            | A separate page diffs two versions of a text.                                                   |
+| RTE-036 | Admin and ops URLs                                  | Django admin and staff operational endpoints are mounted under ADMIN_PATH and /admin/*.         |
+| RTE-038 | Help-center redirects for specific sheets           | A set of sheets that were turned into help articles redirect to the Zendesk help center.        |
+| RTE-041 | External and donation redirects                     | Memorable short URLs forward to donation, help, docs and campaign destinations.                 |
+| RTE-047 | Version notes param (notes)                         | A book-level URL with notes=1 opens the 'extended notes' page for a version.                    |
+| RTE-050 | Layout and debug params (mobile, embed, debug_mode) | A few params force layout or developer modes.                                                   |
+| RTE-051 | Cookie, tracking and chatbot params                 | Utility params change cookies, applink behavior, chatbot version or profile output.             |
+| RTE-057 | Bootstrap URL event and settings-updated event      | External code like the chatbot can steer the app through DOM events.                            |
 
 ### Retire (6)
 
-| ID | Feature | What it does |
-|---|---|---|
-| RTE-014 | Library-side legacy redirects to Voices | Old community and profile-settings addresses on the library host forward to Voices. |
-| RTE-017 | Legacy S1 text editor URLs | Old add/edit/translate text pages still exist on the original Django-template editor. |
-| RTE-025 | Voices getting-started and sheets redirects | The Voices marketing page is /getstarted and /sheets itself redirects there. |
-| RTE-060 | Regex anchoring quirks in URL patterns | Several URL patterns accept typos or lack end anchors. |
-| RTE-061 | Reader URL parsing gaps (client/server mismatch) | Some URL params the client writes are never read by the server, so they are lost on reload. |
+| ID      | Feature                                              | What it does                                                                                                                                               |
+| ------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RTE-014 | Library-side legacy redirects to Voices              | Old community and profile-settings addresses on the library host forward to Voices.                                                                        |
+| RTE-017 | Legacy S1 text editor URLs                           | Old add/edit/translate text pages still exist on the original Django-template editor.                                                                      |
+| RTE-025 | Voices getting-started and sheets redirects          | The Voices marketing page is /getstarted and /sheets itself redirects there.                                                                               |
+| RTE-060 | Regex anchoring quirks in URL patterns               | Several URL patterns accept typos or lack end anchors.                                                                                                     |
+| RTE-061 | Reader URL parsing gaps (client/server mismatch)     | Some URL params the client writes are never read by the server, so they are lost on reload.                                                                |
 | RTE-064 | Query parameters rewritten on load (aliyot=0, lang2) | After load the old reader rewrites the address bar's query string: Torah pages gain aliyot=0, and opening the sidebar adds lang2 (the sidebar's language). |
 
 ### Flags from the audit (not to port as-is)

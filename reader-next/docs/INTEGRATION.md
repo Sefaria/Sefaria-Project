@@ -6,10 +6,10 @@ TARGET_ARCHITECTURE §6.12. The reader team owns this interface and its tests; t
 
 Installed once per page by the shell (`src/routes/__root.tsx`), as sefaria.org's `ReaderApp` receives them.
 
-| Event (on `document`) | `detail` | What the reader does |
-|---|---|---|
-| `sefaria:bootstrap-url` | a URL, or `{url, replaceHistory?}` | A page of this client (a text, the library, search): a navigation in the app, replacing the history entry when `replaceHistory` is set. The address is the whole workspace, so a ref closes all panels, as on sefaria.org. A page Django serves (`src/lib/routing/django-paths.ts`: topics, sheets, profiles…) or another Sefaria site: a full page load. Any other site, or a non-http(s) URL: ignored. |
-| `sefaria:settings-updated` | the changed settings | What was read about the reader (account, settings) is read again. |
+| Event (on `document`)      | `detail`                           | What the reader does                                                                                                                                                                                                                                                                                                                                                                                     |
+| -------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sefaria:bootstrap-url`    | a URL, or `{url, replaceHistory?}` | A page of this client (a text, the library, search): a navigation in the app, replacing the history entry when `replaceHistory` is set. The address is the whole workspace, so a ref closes all panels, as on sefaria.org. A page Django serves (`src/lib/routing/django-paths.ts`: topics, sheets, profiles…) or another Sefaria site: a full page load. Any other site, or a non-http(s) URL: ignored. |
+| `sefaria:settings-updated` | the changed settings               | What was read about the reader (account, settings) is read again.                                                                                                                                                                                                                                                                                                                                        |
 
 ## The Library Assistant (`<lc-chatbot>`)
 
@@ -19,26 +19,26 @@ only for those readers, in the browser, once per page. Nothing is rendered on th
 
 **What it sends** (from its build, `lc-chatbot.umd.cjs`):
 
-| Event | Payload | Handled by |
-|---|---|---|
-| `sefaria:bootstrap-url` | `{url: path+query+hash, replaceHistory: true}` (a source in an answer) | navigation in the app, replacing the entry |
-| `sefaria:bootstrap-url` | `{url}` (a full Sefaria URL) | navigation in the app, or a page load for Django's pages and other Sefaria sites |
-| `sefaria:bootstrap-url` | `{url: "/topics/<slug>"}` (a topic suggestion) | a page load (topics are Django's) |
-| `appetizer_click` | `{topicSlug, sessionId}`, on the element (bubbles, composed) | not the page's: the assistant's own analytics. sefaria.org has no listener; the topic navigation it goes with is the `sefaria:bootstrap-url` above. |
+| Event                   | Payload                                                                | Handled by                                                                                                                                          |
+| ----------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sefaria:bootstrap-url` | `{url: path+query+hash, replaceHistory: true}` (a source in an answer) | navigation in the app, replacing the entry                                                                                                          |
+| `sefaria:bootstrap-url` | `{url}` (a full Sefaria URL)                                           | navigation in the app, or a page load for Django's pages and other Sefaria sites                                                                    |
+| `sefaria:bootstrap-url` | `{url: "/topics/<slug>"}` (a topic suggestion)                         | a page load (topics are Django's)                                                                                                                   |
+| `appetizer_click`       | `{topicSlug, sessionId}`, on the element (bubbles, composed)           | not the page's: the assistant's own analytics. sefaria.org has no listener; the topic navigation it goes with is the `sefaria:bootstrap-url` above. |
 
 Links to other sites the assistant opens in a new tab itself.
 
 **Its attributes** (`src/lib/assistant/config.ts` `assistantAttributes`, as sefaria.org's ReaderApp sets them):
 
-| Attribute | From |
-|---|---|
-| `user-id` | the encrypted token from `GET /api/library-assistant` (Django: `library_assistant.is_enabled`, `build_chatbot_user_token`) |
-| `api-base-url` | the build (below) |
-| `origin` | `sefaria-<SENTRY_ENVIRONMENT>` |
-| `is-moderator` | staff readers |
-| `placement`, `default-open`, `mode` | `right`, `true`, `floating` |
-| `max-input-chars`, `max-prompts` | remote config `feature.chatbot.max_input_chars` / `max_prompts` (10000 / 100) |
-| `interface-lang` | `en` / `he` |
+| Attribute                           | From                                                                                                                       |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `user-id`                           | the encrypted token from `GET /api/library-assistant` (Django: `library_assistant.is_enabled`, `build_chatbot_user_token`) |
+| `api-base-url`                      | the build (below)                                                                                                          |
+| `origin`                            | `sefaria-<SENTRY_ENVIRONMENT>`                                                                                             |
+| `is-moderator`                      | staff readers                                                                                                              |
+| `placement`, `default-open`, `mode` | `right`, `true`, `floating`                                                                                                |
+| `max-input-chars`, `max-prompts`    | remote config `feature.chatbot.max_input_chars` / `max_prompts` (10000 / 100)                                              |
+| `interface-lang`                    | `en` / `he`                                                                                                                |
 
 **Which build** (first match wins), the same rules as Django's context processor:
 

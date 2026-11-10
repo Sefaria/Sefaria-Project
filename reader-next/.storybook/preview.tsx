@@ -16,7 +16,7 @@ const preview: Preview = {
     },
   },
   // The story tests run as a matrix (CODE_REVIEW §3.8): `npm run test:stories` (English, light), `test:stories:hebrew` (Hebrew, RTL)
-  // and `test:stories:dark` (dark theme; not yet a gate until every colour is a token). A story can pin its own globals.
+  // and `test:stories:dark` (dark theme). A story can pin its own globals.
   initialGlobals: { interfaceLang: import.meta.env.VITE_SB_LANG ?? "english", theme: import.meta.env.VITE_SB_THEME ?? "light" },
   decorators: [
     (Story, ctx) => {

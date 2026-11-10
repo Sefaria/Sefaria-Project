@@ -4,9 +4,10 @@ title: Global UI
 domain: Site & accounts
 document: architecture
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-16
 ---
+
 # Global UI — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -25,7 +26,7 @@ _Not discussed yet: how `master` does it, how `reader-next` does it, and what di
 
 - The `Modal`, cookie notice and sign-up modal are shown through the notice manager in
   [Promotions & CMS](../promotions/architecture.md#target-architecture), not mounted by each feature, so caps, auto-close and
-  "don't show again" apply to them too. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+  "don't show again" apply to them too. — _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Dependencies on other areas
 
@@ -70,23 +71,23 @@ Implemented in (most features first):
 
 ### Gaps: core and standard features not done (15)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| GUI-003 | core | Header right-side controls | partial |
-| GUI-008 | core | Accessible dropdown menu | not started |
-| GUI-011 | core | Mobile navigation menu | partial |
-| GUI-020 | core | Loading messages and spinner | not started |
-| GUI-023 | core | Responsive grid and layout boxes | not started |
-| GUI-001 | standard | Mobile header bar | not started |
-| GUI-014 | standard | Menu, search, close and display-settings buttons | not started |
-| GUI-015 | standard | Tabs, dropdowns, loading indicators | not started |
-| GUI-017 | standard | Auth design-system inputs and cards | not started |
-| GUI-021 | standard | Filterable, sortable, paginated lists | not started |
-| GUI-022 | standard | Accessible tabs | not started |
-| GUI-024 | standard | Text and sheet link cards | not started |
-| GUI-025 | standard | Shared UI primitives (Misc.jsx helpers) | not started |
-| GUI-026 | standard | Header and panel chrome buttons | not started |
-| GUI-027 | standard | Feedback form in sidebar | not started |
+| ID      | Tier     | Feature                                          | Rebuild status |
+| ------- | -------- | ------------------------------------------------ | -------------- |
+| GUI-003 | core     | Header right-side controls                       | partial        |
+| GUI-008 | core     | Accessible dropdown menu                         | not started    |
+| GUI-011 | core     | Mobile navigation menu                           | partial        |
+| GUI-020 | core     | Loading messages and spinner                     | not started    |
+| GUI-023 | core     | Responsive grid and layout boxes                 | not started    |
+| GUI-001 | standard | Mobile header bar                                | not started    |
+| GUI-014 | standard | Menu, search, close and display-settings buttons | not started    |
+| GUI-015 | standard | Tabs, dropdowns, loading indicators              | not started    |
+| GUI-017 | standard | Auth design-system inputs and cards              | not started    |
+| GUI-021 | standard | Filterable, sortable, paginated lists            | not started    |
+| GUI-022 | standard | Accessible tabs                                  | not started    |
+| GUI-024 | standard | Text and sheet link cards                        | not started    |
+| GUI-025 | standard | Shared UI primitives (Misc.jsx helpers)          | not started    |
+| GUI-026 | standard | Header and panel chrome buttons                  | not started    |
+| GUI-027 | standard | Feedback form in sidebar                         | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

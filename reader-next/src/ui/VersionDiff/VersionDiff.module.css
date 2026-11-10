@@ -8,6 +8,8 @@
   display: block;
   /* compare.html sets no dir in either interface language: the page is left-to-right in Hebrew too (`all` leaves direction alone) */
   direction: ltr;
+  /* `all: initial` also resets color-scheme to `normal` (light), which would resolve every light-dark() token below as light */
+  color-scheme: inherit;
   color: var(--sefaria-color-diff-text);
 }
 .page.page * {

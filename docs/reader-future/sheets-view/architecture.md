@@ -7,6 +7,7 @@ owner: unassigned
 status: baseline  # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Sheets: viewing — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -69,29 +70,29 @@ Rebuild status of this area's features: not started 27.
 
 ### Gaps: core and standard features not done (21)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| SHV-001 | core | Voices sheets home page | not started |
-| SHV-002 | core | Sheet URL routes and legacy redirects | not started |
-| SHV-003 | core | Sheet page server rendering and indexing | not started |
-| SHV-004 | core | Sheet panel client routing and history | not started |
-| SHV-005 | core | Read a source sheet | not started |
-| SHV-007 | core | Source blocks in sheets | not started |
-| SHV-008 | core | Comments, headers and outside text | not started |
-| SHV-018 | core | Sheet options (...) menu | not started |
-| SHV-026 | core | Sheet and collection listing components | not started |
-| SHV-006 | standard | Link handling inside sheets | not started |
-| SHV-009 | standard | Embedded media in sheets | not started |
-| SHV-010 | standard | Highlight and scroll tracking in sheets | not started |
-| SHV-011 | standard | Add sheet node to my sheet | not started |
-| SHV-012 | standard | Sheet sidebar: author and topics | not started |
-| SHV-013 | standard | Sheet display settings (language, layout, size) | not started |
-| SHV-017 | standard | Sheet view counts | not started |
-| SHV-019 | standard | Share sheet | not started |
-| SHV-020 | standard | Copy sheet | not started |
-| SHV-021 | standard | Save sheet to my saved items | not started |
-| SHV-023 | standard | Delete sheet | not started |
-| SHV-024 | standard | Sheets-with-ref page | not started |
+| ID      | Tier     | Feature                                         | Rebuild status |
+| ------- | -------- | ----------------------------------------------- | -------------- |
+| SHV-001 | core     | Voices sheets home page                         | not started    |
+| SHV-002 | core     | Sheet URL routes and legacy redirects           | not started    |
+| SHV-003 | core     | Sheet page server rendering and indexing        | not started    |
+| SHV-004 | core     | Sheet panel client routing and history          | not started    |
+| SHV-005 | core     | Read a source sheet                             | not started    |
+| SHV-007 | core     | Source blocks in sheets                         | not started    |
+| SHV-008 | core     | Comments, headers and outside text              | not started    |
+| SHV-018 | core     | Sheet options (...) menu                        | not started    |
+| SHV-026 | core     | Sheet and collection listing components         | not started    |
+| SHV-006 | standard | Link handling inside sheets                     | not started    |
+| SHV-009 | standard | Embedded media in sheets                        | not started    |
+| SHV-010 | standard | Highlight and scroll tracking in sheets         | not started    |
+| SHV-011 | standard | Add sheet node to my sheet                      | not started    |
+| SHV-012 | standard | Sheet sidebar: author and topics                | not started    |
+| SHV-013 | standard | Sheet display settings (language, layout, size) | not started    |
+| SHV-017 | standard | Sheet view counts                               | not started    |
+| SHV-019 | standard | Share sheet                                     | not started    |
+| SHV-020 | standard | Copy sheet                                      | not started    |
+| SHV-021 | standard | Save sheet to my saved items                    | not started    |
+| SHV-023 | standard | Delete sheet                                    | not started    |
+| SHV-024 | standard | Sheets-with-ref page                            | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

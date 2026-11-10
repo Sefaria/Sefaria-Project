@@ -48,6 +48,21 @@
   --sefaria-color-highlight-soft: light-dark(#f0f7ff, #1f2b38);
   --sefaria-color-highlight-voices: light-dark(#f1fcf5, #1d2d22);
   --sefaria-color-selection: light-dark(#d2dcff, #3b4a78);
+  /* the old site's link blue (--commentary-blue #4B71B7: topic descriptions, "Select" on versions); --sefaria-color-link is #4871BF */
+  --sefaria-color-link-blue: light-dark(#4b71b7, #86a9e8);
+  /* the old grey chip and band greys (#EDEDEC buttons and counts, #EDEDED sidebar header) and the #595959 text on them */
+  --sefaria-color-chip: light-dark(#ededec, #333331);
+  --sefaria-color-chip-hover: light-dark(#e4e4e2, #3d3d3a);
+  --sefaria-color-text-on-chip: light-dark(#595959, #c9c9c5);
+  --sefaria-color-band: light-dark(#ededed, #2a2a29);
+  --sefaria-color-key: light-dark(#fafaf9, #2a2a29);
+  --sefaria-color-key-hover: light-dark(#f0f0ef, #333331);
+  --sefaria-color-key-active: light-dark(#e4e4e2, #3d3d3a);
+  --sefaria-color-key-pressed: light-dark(#d2dcff, #3b4a78);
+  --sefaria-color-key-pressed-border: light-dark(#9aaee8, #6b7fbf);
+  /* the cookie notice: a grey card with white text (the old #666-ish card; #707070 is what rendered) */
+  --sefaria-color-notice: light-dark(#707070, #3a3a38);
+  --sefaria-color-on-notice: #ffffff;
 
   /* ── Colour: semantic ─────────────────────────────── */
   --sefaria-color-danger: light-dark(#c03522, #f0897a);

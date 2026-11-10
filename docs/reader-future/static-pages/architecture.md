@@ -4,9 +4,10 @@ title: Static pages
 domain: Site & accounts
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Static pages — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -64,15 +65,15 @@ Rebuild status of this area's features: not started 19.
 
 ### Gaps: core and standard features not done (7)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| STA-005 | core | Static page serving and About sidebar | not started |
-| STA-007 | core | Terms and privacy policy | not started |
-| STA-001 | standard | Static content pages | not started |
-| STA-002 | standard | Voices sends About pages to Library | not started |
-| STA-006 | standard | About, strategy, story and supporters pages | not started |
-| STA-013 | standard | Ways to give / donate page | not started |
-| STA-018 | standard | Short links and external redirects | not started |
+| ID      | Tier     | Feature                                     | Rebuild status |
+| ------- | -------- | ------------------------------------------- | -------------- |
+| STA-005 | core     | Static page serving and About sidebar       | not started    |
+| STA-007 | core     | Terms and privacy policy                    | not started    |
+| STA-001 | standard | Static content pages                        | not started    |
+| STA-002 | standard | Voices sends About pages to Library         | not started    |
+| STA-006 | standard | About, strategy, story and supporters pages | not started    |
+| STA-013 | standard | Ways to give / donate page                  | not started    |
+| STA-018 | standard | Short links and external redirects          | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

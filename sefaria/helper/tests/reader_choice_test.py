@@ -2,6 +2,7 @@
 The legacy-or-new reader choice (sefaria/helper/reader_choice.py): the routing cookie nginx reads in the chart's
 nodejs.mode "optin", and its sync from the profile.
 """
+
 from unittest import mock
 
 import pytest
@@ -11,7 +12,18 @@ from django.test import RequestFactory, override_settings
 from sefaria.helper import reader_choice
 
 
-@pytest.mark.parametrize("posted,stored", [("next", "next"), (True, "next"), ("true", "next"), ("classic", "classic"), (False, "classic"), ("", "classic"), ("anything", "classic")])
+@pytest.mark.parametrize(
+    "posted,stored",
+    [
+        ("next", "next"),
+        (True, "next"),
+        ("true", "next"),
+        ("classic", "classic"),
+        (False, "classic"),
+        ("", "classic"),
+        ("anything", "classic"),
+    ],
+)
 def test_normalize(posted, stored):
     assert reader_choice.normalize(posted) == stored
 
@@ -49,8 +61,11 @@ def _middleware_response(profile_choice, cookie=None, synced=False):
     request.user = _User()
     request.session = {reader_choice.SESSION_SYNCED_KEY: True} if synced else {}
     profile = mock.Mock(settings={"reader_version": profile_choice} if profile_choice else {})
-    with override_settings(READER_OPTIN=True), mock.patch("sefaria.model.user_profile.UserProfile", return_value=profile), \
-            mock.patch.object(reader_choice, "_cookie_domain", return_value=None):
+    with (
+        override_settings(READER_OPTIN=True),
+        mock.patch("sefaria.model.user_profile.UserProfile", return_value=profile),
+        mock.patch.object(reader_choice, "_cookie_domain", return_value=None),
+    ):
         response = reader_choice.ReaderChoiceMiddleware(lambda r: HttpResponse())(request)
     return request, response
 

@@ -119,7 +119,8 @@ export function prepareSegmentHtml(raw: string, opts: PrepareOptions = {}): Prep
         class: "note-marker",
         "data-note": String(key),
         role: "button",
-        tabindex: "0",
+        // not a tab stop: Tab goes verse to verse; on a focused verse the arrow keys reach its markers and links (TextColumn)
+        tabindex: "-1",
         "aria-expanded": "false",
       };
       setChildrenFromHtml(el, note?.markerHtml ?? "*");
@@ -136,6 +137,8 @@ export function prepareSegmentHtml(raw: string, opts: PrepareOptions = {}): Prep
         textChild(el, shown);
       }
     }
+    // any other link in the text (a translation's own <a href>) is not a tab stop either: Tab goes verse to verse
+    if (el.name === "a") el.attribs.tabindex = "-1";
   });
 
   if (opts.stripPunctuation) walkText(nodes, stripTalmudPunctuation);

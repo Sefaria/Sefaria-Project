@@ -4,11 +4,12 @@ title: Language & accessibility
 domain: Site & accounts
 document: architecture
 owner: unassigned
-status: exploring  # baseline → exploring → proposed → agreed
+status: exploring # baseline → exploring → proposed → agreed
 updated: 2026-10-19
 
 updated: 2026-10-28
 ---
+
 # Language & accessibility — architecture
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -19,12 +20,12 @@ updated: 2026-10-28
 
 No target architecture yet. Research in the thread mapped how each client decides the **interface language** (UI strings,
 direction, site domain) and the **content language** (Hebrew, English or bilingual text), what `reader-next` ports and what it
-leaves out. Below: the rules in each client, legacy behaviour not to port, and open questions, all *ideas* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639). Version and
+leaves out. Below: the rules in each client, legacy behaviour not to port, and open questions, all _ideas_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639). Version and
 translation preferences are in [Versions](../versions/architecture.md).
 
 Akiva asked for every default behind interface language, content language and version selection to be mapped and gathered into
 one object, saved in the user's settings when signed in and in the session (cookies) otherwise, so a future settings page can give
-readers more control. The way preferences are stored stays as it is · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629). Below are the inventory, a *proposed* object and
+readers more control. The way preferences are stored stays as it is · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629). Below are the inventory, a _proposed_ object and
 resolver, and the gaps. Nothing here is decided. The step-by-step walkthrough of each client's language rules is in PR #3826
 (2026-10-19, still open).
 
@@ -92,7 +93,7 @@ resolver, and the gaps. Nothing here is decided. The step-by-step walkthrough of
 
 ## Legacy behaviour not to port
 
-Each is an *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+Each is an _idea_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
 
 - **Browser language is effectively ignored.** Cloudflare sends `cf-ipcountry` on every request, so the chain stops there and
   any country but Israel gives English; a Hebrew browser outside Israel gets English ([`sefaria/system/middleware.py:89-96`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/sefaria/system/middleware.py#L89-L96)).
@@ -110,17 +111,17 @@ Each "sources" cell lists sources in order, and the first one with a value wins.
 [`e18dacc`](https://github.com/Sefaria/Sefaria-Project/tree/e18dacc0d3b2781fb2bacff89406a4d718fcac69). New-client citations are under `reader-next/` @ [`837d585`](https://github.com/Sefaria/Sefaria-Project/tree/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next). Both were read from
 the code, not tested in a browser.
 
-| Setting | Legacy: sources | New client: sources | Signed in: stored in | Anonymous: stored in | Written by |
-|---|---|---|---|---|---|
-| **Interface language** | profile `settings.interface_language` → `interfaceLang` cookie → `cf-ipcountry` (`IL` gives hebrew) → Accept-Language → `english` (`sefaria/system/middleware.py:90-96`, `:121-128`). Then the domain rule: a person whose language differs from the host's is redirected (302) to the other domain, and a bot gets the host's language (`:130-150`). Non-Torah sites are always English (`:161-163`). | `interfaceLang` cookie → `english` (`src/routes/__root.tsx:36-42`) | `settings.interface_language` (`sefaria/model/user_profile.py:408`) | `interfaceLang` cookie, on the parent domain (`.sefaria.org`; `sefaria/utils/domains_and_languages.py:137`) | Legacy: `/interface/<lang>` (`reader/views.py:1687-1721`), `?set-language-cookie` after a domain redirect (`sefaria/system/middleware.py:211-235`), registration copies the request's language (`sefaria/views.py:210-211`, `sso/adapters.py:176-177`), account settings (profile only; `templates/account_settings.html:268-292`). New: its own `/interface/<lang>`, which sets a host-only cookie and does not touch the profile (`src/lib/shell/interface-language.ts:16-26`). |
-| **Content language** (panel default) | `?lang` → `contentLang` cookie → `hebrew` if the interface is Hebrew, else `bilingual` (`sefaria/system/middleware.py:153-158`). Each panel's `lang` / `lang<n>` overrides it (`reader/views.py:857`, `:877` sheets) | panel `lang` → `language` cookie → `contentLang` cookie → `bilingual` (`src/lib/reader/url-state.ts:79-85`, `src/lib/reader/settings.ts:34`, `:65`) | **none** | `contentLang` and `language` cookies, host-only (`static/js/ReaderPanel.jsx:542-547`; new `src/features/reader/settings-context.tsx:14-36`) | the display-settings menu |
-| **Translation language** | profile `settings.translation_language_preference` → cookie of the same name → none (`sefaria/system/middleware.py:166`). If neither is set and the reader has not been asked yet, a suggestion is made from the country's languages that are in `en, es, fr, de`, never English (`:167-178`) | cookie → none (`src/lib/versions/preferences.ts:50-51`) | `settings.translation_language_preference`, `settings.translation_language_preference_suggested` | cookies `translation_language_preference`, `translation_language_preference_suggested` (host-only) | Legacy: the translation banner and the globe menu (`static/js/ReaderApp.jsx:2152-2165`), account settings. New: **nothing writes it** |
-| **Translation version** | `ven` → corpus preference `{corpus: {en: title}}` if this text has that version → best translation in the translation language → API default (`static/js/sefaria/sefaria.js:790-821`). Server rendering ignores preferences (`reader/views.py:629-633`); the client fetches again (`:649`). | the same order, applied in the route loader, so it holds for server rendering too (`src/lib/versions/preferences.ts:86-103`, `src/features/reader/reader-route.ts:55-67`) | `version_preferences_by_corpus`, a top-level profile field, not under `settings` (`sefaria/model/user_profile.py:413`) | cookie `version_preferences_by_corpus` (URL-encoded JSON, host-only) | Picking a translation. Legacy: cookie + `POST /api/profile` (`static/js/sefaria/sefaria.js:1114-1121`). New: cookie only, kept for a year (`src/lib/versions/prefs-source.ts:21-25`) |
-| **Source version** | `vhe` → API `primary` (highest `priority` with `isPrimary`) (`static/js/sefaria/sefaria.js:795-799`; `sefaria/model/text_request_adapter.py:15-34`, `:96-121`) | `vhe` → API `primary` (`src/lib/text/queries.ts:30`) | **none**: a source choice is never stored (`static/js/sefaria/sefaria.js:1115`) | **none** | — |
-| **API default** (apps, embeds, new client) | `/api/v3/texts`: with no `version` param it returns `primary`. The keywords `primary`, `source`, `translation`, `<language>` and `all` take the highest `priority` match. No user preference is applied (`api/views.py:68-70`; `sefaria/model/text_request_adapter.py:96-121`). The v1 `/api/texts` takes `transLangPref` (`reader/views.py:1797`). | same API | — | — | — |
-| **Textual custom** (calendars) | profile `settings.textual_custom` (default `sephardi`) → for anonymous readers `ashkenazi` (`sefaria/model/user_profile.py:409`, `reader/views.py:1334-1340`) | not sent: `/api/calendars?diaspora=1` (`src/lib/library/calendars.ts:31`) | `settings.textual_custom` | **none** | account settings |
-| **Israel / diaspora** (calendars) | `cf-ipcountry` → `PINNED_IPCOUNTRY` → `us`; diaspora unless the country is `il` (`sefaria/system/middleware.py:66-83`) | always diaspora (`src/lib/library/calendars.ts:31`) | **none** | **none** | — |
-| **Display settings**: layout ×3, `biLayout`, `vowels`, `punctuationTalmud`, `aliyotTorah`, `fontSize`, `color` | cookie of the same name → site default (`reader/views.py:351-362`). Panel `aliyot` overrides (`reader/views.py:868-869`). | the same cookies and defaults (`src/lib/reader/settings.ts:33-76`) | **none** | cookies of the same names, host-only (`static/js/ReaderPanel.jsx:547`; new `src/features/reader/settings-context.tsx:14-36`) | the display-settings menu |
+| Setting                                                                                                        | Legacy: sources                                                                                                                                                                                                                                                                                                                                                                                        | New client: sources                                                                                                                                                       | Signed in: stored in                                                                                                   | Anonymous: stored in                                                                                                                        | Written by                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Interface language**                                                                                         | profile `settings.interface_language` → `interfaceLang` cookie → `cf-ipcountry` (`IL` gives hebrew) → Accept-Language → `english` (`sefaria/system/middleware.py:90-96`, `:121-128`). Then the domain rule: a person whose language differs from the host's is redirected (302) to the other domain, and a bot gets the host's language (`:130-150`). Non-Torah sites are always English (`:161-163`). | `interfaceLang` cookie → `english` (`src/routes/__root.tsx:36-42`)                                                                                                        | `settings.interface_language` (`sefaria/model/user_profile.py:408`)                                                    | `interfaceLang` cookie, on the parent domain (`.sefaria.org`; `sefaria/utils/domains_and_languages.py:137`)                                 | Legacy: `/interface/<lang>` (`reader/views.py:1687-1721`), `?set-language-cookie` after a domain redirect (`sefaria/system/middleware.py:211-235`), registration copies the request's language (`sefaria/views.py:210-211`, `sso/adapters.py:176-177`), account settings (profile only; `templates/account_settings.html:268-292`). New: its own `/interface/<lang>`, which sets a host-only cookie and does not touch the profile (`src/lib/shell/interface-language.ts:16-26`). |
+| **Content language** (panel default)                                                                           | `?lang` → `contentLang` cookie → `hebrew` if the interface is Hebrew, else `bilingual` (`sefaria/system/middleware.py:153-158`). Each panel's `lang` / `lang<n>` overrides it (`reader/views.py:857`, `:877` sheets)                                                                                                                                                                                   | panel `lang` → `language` cookie → `contentLang` cookie → `bilingual` (`src/lib/reader/url-state.ts:79-85`, `src/lib/reader/settings.ts:34`, `:65`)                       | **none**                                                                                                               | `contentLang` and `language` cookies, host-only (`static/js/ReaderPanel.jsx:542-547`; new `src/features/reader/settings-context.tsx:14-36`) | the display-settings menu                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| **Translation language**                                                                                       | profile `settings.translation_language_preference` → cookie of the same name → none (`sefaria/system/middleware.py:166`). If neither is set and the reader has not been asked yet, a suggestion is made from the country's languages that are in `en, es, fr, de`, never English (`:167-178`)                                                                                                          | cookie → none (`src/lib/versions/preferences.ts:50-51`)                                                                                                                   | `settings.translation_language_preference`, `settings.translation_language_preference_suggested`                       | cookies `translation_language_preference`, `translation_language_preference_suggested` (host-only)                                          | Legacy: the translation banner and the globe menu (`static/js/ReaderApp.jsx:2152-2165`), account settings. New: **nothing writes it**                                                                                                                                                                                                                                                                                                                                             |
+| **Translation version**                                                                                        | `ven` → corpus preference `{corpus: {en: title}}` if this text has that version → best translation in the translation language → API default (`static/js/sefaria/sefaria.js:790-821`). Server rendering ignores preferences (`reader/views.py:629-633`); the client fetches again (`:649`).                                                                                                            | the same order, applied in the route loader, so it holds for server rendering too (`src/lib/versions/preferences.ts:86-103`, `src/features/reader/reader-route.ts:55-67`) | `version_preferences_by_corpus`, a top-level profile field, not under `settings` (`sefaria/model/user_profile.py:413`) | cookie `version_preferences_by_corpus` (URL-encoded JSON, host-only)                                                                        | Picking a translation. Legacy: cookie + `POST /api/profile` (`static/js/sefaria/sefaria.js:1114-1121`). New: cookie only, kept for a year (`src/lib/versions/prefs-source.ts:21-25`)                                                                                                                                                                                                                                                                                              |
+| **Source version**                                                                                             | `vhe` → API `primary` (highest `priority` with `isPrimary`) (`static/js/sefaria/sefaria.js:795-799`; `sefaria/model/text_request_adapter.py:15-34`, `:96-121`)                                                                                                                                                                                                                                         | `vhe` → API `primary` (`src/lib/text/queries.ts:30`)                                                                                                                      | **none**: a source choice is never stored (`static/js/sefaria/sefaria.js:1115`)                                        | **none**                                                                                                                                    | —                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **API default** (apps, embeds, new client)                                                                     | `/api/v3/texts`: with no `version` param it returns `primary`. The keywords `primary`, `source`, `translation`, `<language>` and `all` take the highest `priority` match. No user preference is applied (`api/views.py:68-70`; `sefaria/model/text_request_adapter.py:96-121`). The v1 `/api/texts` takes `transLangPref` (`reader/views.py:1797`).                                                    | same API                                                                                                                                                                  | —                                                                                                                      | —                                                                                                                                           | —                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **Textual custom** (calendars)                                                                                 | profile `settings.textual_custom` (default `sephardi`) → for anonymous readers `ashkenazi` (`sefaria/model/user_profile.py:409`, `reader/views.py:1334-1340`)                                                                                                                                                                                                                                          | not sent: `/api/calendars?diaspora=1` (`src/lib/library/calendars.ts:31`)                                                                                                 | `settings.textual_custom`                                                                                              | **none**                                                                                                                                    | account settings                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **Israel / diaspora** (calendars)                                                                              | `cf-ipcountry` → `PINNED_IPCOUNTRY` → `us`; diaspora unless the country is `il` (`sefaria/system/middleware.py:66-83`)                                                                                                                                                                                                                                                                                 | always diaspora (`src/lib/library/calendars.ts:31`)                                                                                                                       | **none**                                                                                                               | **none**                                                                                                                                    | —                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **Display settings**: layout ×3, `biLayout`, `vowels`, `punctuationTalmud`, `aliyotTorah`, `fontSize`, `color` | cookie of the same name → site default (`reader/views.py:351-362`). Panel `aliyot` overrides (`reader/views.py:868-869`).                                                                                                                                                                                                                                                                              | the same cookies and defaults (`src/lib/reader/settings.ts:33-76`)                                                                                                        | **none**                                                                                                               | cookies of the same names, host-only (`static/js/ReaderPanel.jsx:547`; new `src/features/reader/settings-context.tsx:14-36`)                | the display-settings menu                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 Account-only settings that a settings page would also show: `email_notifications`, `reading_history`, `library_assistant`
 (`sefaria/model/user_profile.py:406-412`, `templates/account_settings.html:268-286`). The mobile app syncs a free-form `settings` dict
@@ -131,49 +132,65 @@ in this repository (**unverified**).
 
 _Items carry a status: idea · proposed · agreed · decided._
 
-### Effective preferences: one object, one resolver — *proposed* (Claude Tag draft) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629)
+### Effective preferences: one object, one resolver — _proposed_ (Claude Tag draft) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629)
 
 Every default in the inventory is computed in one place, as a value plus where it came from, so the reader and a settings page
 read the same thing. Storage does not change. Each field reads and writes the stores listed in the inventory.
 
 ```ts
 type Source =
-  | "url"            // ?lang, ven/vhe: this view only, never saved
-  | "profile"        // UserProfile.settings / version_preferences_by_corpus
-  | "cookie"         // anonymous (or signed-in fallback) cookie
-  | "domain"         // host pinned to a language (bots; .org.il)
-  | "geo"            // cf-ipcountry
-  | "browser"        // Accept-Language
-  | "interface"      // derived from the interface language (content default)
-  | "text"           // the text's own default (API priority)
-  | "site";          // hard-coded default
+  | 'url' // ?lang, ven/vhe: this view only, never saved
+  | 'profile' // UserProfile.settings / version_preferences_by_corpus
+  | 'cookie' // anonymous (or signed-in fallback) cookie
+  | 'domain' // host pinned to a language (bots; .org.il)
+  | 'geo' // cf-ipcountry
+  | 'browser' // Accept-Language
+  | 'interface' // derived from the interface language (content default)
+  | 'text' // the text's own default (API priority)
+  | 'site'; // hard-coded default
 
-interface Pref<T> { value: T; source: Source }
+interface Pref<T> {
+  value: T;
+  source: Source;
+}
 
 interface ReaderPreferences {
-  interfaceLang: Pref<"english" | "hebrew">;
-  contentLang: Pref<"bilingual" | "hebrew" | "english">;    // default for new panels
-  translationLanguage: Pref<string | null>;                 // ISO code
-  translationLanguageSuggestion?: string;                   // derived, never stored
+  interfaceLang: Pref<'english' | 'hebrew'>;
+  contentLang: Pref<'bilingual' | 'hebrew' | 'english'>; // default for new panels
+  translationLanguage: Pref<string | null>; // ISO code
+  translationLanguageSuggestion?: string; // derived, never stored
   versionsByCorpus: Pref<Record<string, { en?: string; he?: string }>>;
-  textualCustom: Pref<"ashkenazi" | "sephardi">;
+  textualCustom: Pref<'ashkenazi' | 'sephardi'>;
   diaspora: Pref<boolean>;
-  display: {                                                // the existing ReaderSettings fields
-    [K in keyof ReaderSettings as Exclude<K, "language">]: Pref<ReaderSettings[K]>;
+  display: {
+    // the existing ReaderSettings fields
+    [K in keyof ReaderSettings as Exclude<K, 'language'>]: Pref<ReaderSettings[K]>;
   };
 }
 
 // Pure: same code on the server (root beforeLoad, where getRequestPrefs runs today) and in the browser.
-function resolvePreferences(req: {
-  host: string; domainLang?: "english" | "hebrew"; country?: string; acceptLanguage?: string;
-  isBot: boolean; torahSpecific: boolean; query: { lang?: string };
-}, stored: { profile?: ProfileSettingsSubset; cookies: Record<string, string> }): ReaderPreferences;
+function resolvePreferences(
+  req: {
+    host: string;
+    domainLang?: 'english' | 'hebrew';
+    country?: string;
+    acceptLanguage?: string;
+    isBot: boolean;
+    torahSpecific: boolean;
+    query: { lang?: string };
+  },
+  stored: { profile?: ProfileSettingsSubset; cookies: Record<string, string> }
+): ReaderPreferences;
 
 // Per panel, per text: which versions to request and why.
-function resolvePanelVersions(prefs: ReaderPreferences, text: { corpus?: string; versions: VersionMeta[] },
-  url: { ven?: string; vhe?: string }): {
-  primary: Pref<string>; translation: Pref<string>;          // "family|title" or an API keyword
-  fallback?: "preferred-version-missing" | "no-translation-in-language" | "no-translation";
+function resolvePanelVersions(
+  prefs: ReaderPreferences,
+  text: { corpus?: string; versions: VersionMeta[] },
+  url: { ven?: string; vhe?: string }
+): {
+  primary: Pref<string>;
+  translation: Pref<string>; // "family|title" or an API keyword
+  fallback?: 'preferred-version-missing' | 'no-translation-in-language' | 'no-translation';
 };
 ```
 
@@ -209,7 +226,7 @@ storage design.
 
 ## Risks and open questions
 
-All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+All _ideas_, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
 
 - `/interface/*`: pass it through to Django (add `interface` to `DJANGO_PREFIXES`), or reimplement it in the new client with
   profile save, domain switch and the parent-domain cookie?
@@ -221,16 +238,16 @@ All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGT
 - Interface and content language as entries in the proposed settings registry ("Settings → display model (proposal)" in Text
   display, PR #3822), with their scope (per user; content language with a per-panel URL override) declared there?
 
-**Gaps and silent overrides** (read from the code; *ideas* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629)).
+**Gaps and silent overrides** (read from the code; _ideas_ · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629)).
 
 1. **Every profile has an interface language.** The default `"english"` (`sefaria/model/user_profile.py:408`) means the profile
    always wins for a signed-in reader (`sefaria/system/middleware.py:125-126`). A reader who never chose cannot be told apart from
-   one who chose English, so cookie, location and browser are never used for them. *[Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609): should be fixed.*
+   one who chose English, so cookie, location and browser are never used for them. _[Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609): should be fixed._
 2. **Guesses are saved as if the reader chose them.** A location-based domain redirect sets `interfaceLang` and, when signed in,
    the profile (`sefaria/system/middleware.py:229-234`). Registration copies the request's language, which may come from location,
    into the profile (`sefaria/views.py:210-211`). Neither store keeps where a value came from, so `source` is `profile` /
    `cookie` for existing data. The only "was it chosen" flag today is `translation_language_preference_suggested`.
-   *[Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609): should be fixed.*
+   _[Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609): should be fixed._
 3. **Browser language is ignored behind Cloudflare.** `cf-ipcountry` is always present, so any country but `IL` gives English
    before Accept-Language is read (`sefaria/system/middleware.py:93-96`).
 4. **Domain vs choice.** The language picks the domain, not the reverse. An explicit English choice opened on sefaria.org.il
@@ -247,14 +264,14 @@ All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGT
    `/interface` is answered by the new client, not Django (`interface` is not in `src/server/pass-through.ts:17-23`, RTE-034).
 7. **Sign-in does not merge.** Registration copies only the interface language. Translation language, corpus versions and
    display cookies are not saved to the new profile. At read time the profile replaces the whole cookie object instead of
-   merging per corpus (`sefaria/system/middleware.py:166`, `:183`). *[Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609): should be addressed.*
+   merging per corpus (`sefaria/system/middleware.py:166`, `:183`). _[Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609): should be addressed._
 8. **Cookie and profile disagree silently.** Legacy picks the profile. The new client picks the cookie. The same signed-in reader
    can see different languages on Django pages and on new-client pages.
 9. **Host-only cookies split the site.** Only `interfaceLang` is set on the parent domain. Content language, display, translation
    language and corpus cookies are host-only (`static/js/ReaderPanel.jsx:543-547`, `static/js/sefaria/VersionPreferences.js:28`,
    `static/js/ReaderApp.jsx:2159-2160`; new `settings-context.tsx:16`, `prefs-source.ts:24`). So a choice made on
    www.sefaria.org does not carry to voices.sefaria.org (sheets) or to sefaria.org.il. Legacy cookies have no `expires` and last
-   only for the browser session. The new client's last a year. *[Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609): should be addressed.*
+   only for the browser session. The new client's last a year. _[Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609): should be addressed._
 10. **Translation language with no translation in that language.** Falling back to the API's `translation`, the
     highest-priority non-source version in another language, is by design (`sefaria/model/text_request_adapter.py:102-103`;
     [Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609)). Open point only: the reader is not told a fallback happened, which matters once a settings page shows an
@@ -327,18 +344,18 @@ Implemented in (most features first):
 
 ### Gaps: core and standard features not done (10)
 
-| ID | Tier | Feature | Rebuild status |
-|---|---|---|---|
-| I18-001 | core | Content, translation and version preferences | partial |
-| I18-003 | core | Tabbing detection and panel focus management | partial |
-| I18-008 | core | Interface language switcher | partial |
-| I18-009 | core | Interface string translation system | not started |
-| I18-010 | core | Interface and content language resolution | not started |
-| I18-011 | core | Accessible custom dropdown and toggles | not started |
-| I18-013 | core | Right-to-left layout and Hebrew numerals | not started |
-| I18-004 | standard | Legacy toggle sets, tab view, radio, button a11y | not started |
-| I18-005 | standard | ARIA landmarks and headings in shell | not started |
-| I18-006 | standard | Interface language menu (anonymous) | not started |
+| ID      | Tier     | Feature                                          | Rebuild status |
+| ------- | -------- | ------------------------------------------------ | -------------- |
+| I18-001 | core     | Content, translation and version preferences     | partial        |
+| I18-003 | core     | Tabbing detection and panel focus management     | partial        |
+| I18-008 | core     | Interface language switcher                      | partial        |
+| I18-009 | core     | Interface string translation system              | not started    |
+| I18-010 | core     | Interface and content language resolution        | not started    |
+| I18-011 | core     | Accessible custom dropdown and toggles           | not started    |
+| I18-013 | core     | Right-to-left layout and Hebrew numerals         | not started    |
+| I18-004 | standard | Legacy toggle sets, tab view, radio, button a11y | not started    |
+| I18-005 | standard | ARIA landmarks and headings in shell             | not started    |
+| I18-006 | standard | Interface language menu (anonymous)              | not started    |
 
 _Generated 2026-10-14 from the atlas and `rebuild-status.json`. Architecture of each client as a whole: `reader-next/docs/ARCHITECTURE.md`._
 

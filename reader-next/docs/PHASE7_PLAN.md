@@ -15,11 +15,11 @@ answered the decision attached to it.
 Signed-in features, the feedback form and the analytics cookies all depend on whether the browser treats the new client and
 `www.sefaria.org` as the same site. Three options:
 
-| Option | How | Sign-in | Feedback | Cost |
-|---|---|---|---|---|
-| **A. Same origin (recommended)** | The edge (Cloudflare / nginx) sends reader and library paths to the new client and everything else (`/api/*`, `/login`, `/sheets/*`, admin) to Django, all on `www.sefaria.org` | Django's session cookie just works; API calls are same-origin, no CORS | Works as today (same-origin form POST with the CSRF cookie) | Path routing rules at the edge; a list of paths owned by each app |
-| B. Subdomain (`reader.sefaria.org`) | New client on its own host; API stays on `www` | Session cookie must be scoped to `.sefaria.org`; API needs credentialed CORS for that one origin (nginx today sends `Access-Control-Allow-Origin: *`, which browsers refuse with credentials); `CSRF_TRUSTED_ORIGINS` | Needs CORS + CSRF changes (the preflight to `/api/send_feedback` returns 500 today) | Django and nginx changes, cross-origin bugs |
-| C. Tokens (JWT) | `POST api/login/` (`MobileTokenObtainPairView`, simplejwt) + `api/login/refresh/`, as the native app does | Only DRF views accept the bearer token; most user endpoints (`api/profile`, `api/notes`, `api/user_history`) are plain Django views using the session | Same as B | Token storage in the browser (XSS exposure); endpoint changes |
+| Option                              | How                                                                                                                                                                             | Sign-in                                                                                                                                                                                                               | Feedback                                                                            | Cost                                                              |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **A. Same origin (recommended)**    | The edge (Cloudflare / nginx) sends reader and library paths to the new client and everything else (`/api/*`, `/login`, `/sheets/*`, admin) to Django, all on `www.sefaria.org` | Django's session cookie just works; API calls are same-origin, no CORS                                                                                                                                                | Works as today (same-origin form POST with the CSRF cookie)                         | Path routing rules at the edge; a list of paths owned by each app |
+| B. Subdomain (`reader.sefaria.org`) | New client on its own host; API stays on `www`                                                                                                                                  | Session cookie must be scoped to `.sefaria.org`; API needs credentialed CORS for that one origin (nginx today sends `Access-Control-Allow-Origin: *`, which browsers refuse with credentials); `CSRF_TRUSTED_ORIGINS` | Needs CORS + CSRF changes (the preflight to `/api/send_feedback` returns 500 today) | Django and nginx changes, cross-origin bugs                       |
+| C. Tokens (JWT)                     | `POST api/login/` (`MobileTokenObtainPairView`, simplejwt) + `api/login/refresh/`, as the native app does                                                                       | Only DRF views accept the bearer token; most user endpoints (`api/profile`, `api/notes`, `api/user_history`) are plain Django views using the session                                                                 | Same as B                                                                           | Token storage in the browser (XSS exposure); endpoint changes     |
 
 **Recommendation: A.** It needs no change to Django's auth, keeps every old URL working, and lets the move happen path by path
 (reader first, library pages next, the rest later). B is the fallback if the edge cannot route by path. C is not recommended for
@@ -37,6 +37,7 @@ Sefaria-Project branch `reader-next`; see `docs/DEPLOYMENT.md`.
 ## 1. Sign-in (atlas ACC-001…015, GUI-004, CON-011)
 
 What exists on the old site (verified):
+
 - Session auth (`SESSION_COOKIE_*`, `CSRF_COOKIE_HTTPONLY = False` so scripts can read the token); `AUTHENTICATION_BACKENDS`
   email + allauth; Google One Tap and Apple SSO (the SSO project, `sso/` app); the new React login/register page (`AuthPage`,
   `api/auth/login` JSON + session, password reset `api/auth/password/reset`); JWT endpoints for the native app.
@@ -44,6 +45,7 @@ What exists on the old site (verified):
   current user's profile.
 
 Plan (with option A):
+
 1. **Who am I.** A `user` query (`src/lib/cache/policies.ts` already has a `user` class: never persisted, always fresh) on
    `GET /api/profile`. Server render: forward the request's cookie to the API in the route loader so the first paint knows the
    reader is signed in (no sign-up modal flash). Verify the endpoint's anonymous answer first.
@@ -74,6 +76,7 @@ Verified: `POST /api/send_feedback` → `sefaria.views.generate_feedback`. It re
 returns HTTP 500 today. The rebuild's form already builds exactly this body (`src/lib/feedback.ts`) but has never sent it.
 
 Plan:
+
 1. With option A the form posts same-origin with the CSRF header: no server change.
 2. Verify on a **local** Django with `EMAIL_BACKEND = console` (the email appears in the server log): body shape, CSRF, the three
    recipients, the error path.
@@ -89,6 +92,7 @@ Plan:
 ## 3. Analytics (atlas ANL-001…017, SRC-104…108)
 
 What the old site loads (templates/base.html, verified):
+
 - **Google Tag Manager** (`GOOGLE_TAG_MANAGER_CODE`) and **GA4 gtag** (`GOOGLE_GTAG`) configured with `user_id`, `traffic_type`
   (`sefariaemail` for staff), `site_lang`, `site_version`.
 - **AnalyticsEventTracker** attached to `#s2` for click, scrollIntoView, toggle, mouseover, input, inputStart — the declarative
@@ -98,6 +102,7 @@ What the old site loads (templates/base.html, verified):
 - **Simple Analytics** (cookieless) with a custom session id; **Sentry** for browser errors (ANL-017).
 
 Plan:
+
 1. **One module, one catalog.** `src/lib/analytics/`: a typed catalog of every old event name and its parameters (from the atlas
    entries and the old code), and adapters for gtag/GTM, Simple Analytics and Sentry. Components never call a vendor directly.
 2. **Same names, same parameters**, so GA4 reports and dashboards keep working across the switch. Add one dimension,
@@ -122,27 +127,27 @@ sign-in lands), the sign-up funnel (ANL-013, with the AuthPage port).
 
 Counts are atlas features outside `retire`. "Read-only" means the public API only; "signed-in" needs section 1.
 
-| Step | Area | Features | Kind | Depends on | Notes |
-|---|---|---|---|---|---|
-| 7a | Platform: deployment, SEO | 30 (14 core) | infra | 7-0 | Canonical URLs, sitemaps, robots, OpenSearch (SRC-028…030), meta tags; done with the deployment |
-| 7a | Analytics | 16 | infra | 7-3 | Section 3 |
-| 7a | Feedback | — | write | 7-0, 7-2 | Section 2 |
-| 7a | Sign-in basics | 14 | signed-in | 7-0, 7-1 | Section 1, steps 1–4 |
-| 7b | Topics pages | 31 (9 core) | read-only | topic TOC endpoint | The topic TOC exists only in Django's page context (`library.get_topic_toc_json()`; `/api/topics/toc` answers `{}`). Needs one small public endpoint in Sefaria-Project. Also finishes the Author/Topic card crumbs in search (SRC-070) |
-| 7b | Calendars | 3 | read-only | — | `/api/calendars` is public |
-| 7b | Sheets (reading) | 25 (9 core) | read-only | — | Public sheets through the API; the Voices module's look |
-| 7b | Collections (reading) | 10 | read-only | — | `api/collections/<slug>` |
-| 7b | Profiles (public) | 11 | read-only | — | `api/profile/<slug>`, followers/following |
-| 7c | Saved, history, notes | 11 (5 core) | signed-in | 7a sign-in | `api/user_history/saved`, `api/profile/user_history`, `api/notes`; history sync `api/profile/sync` |
-| 7c | Notifications | 11 | signed-in | 7a sign-in | `api/notifications`, `…/read` |
-| 7c | Sheet editor | 28 (14 core) | signed-in | 7a sign-in, sheets reading | The biggest piece; plan it separately |
-| 7c | Collections and profile editing, following | — | signed-in | 7a sign-in | |
-| 7d | Promotions | 16 | CMS | owner | Strapi-driven banners and sidebar slots; decide whether the new client reads Strapi |
-| 7d | AI (Library Assistant) | 20 | signed-in + third party | owner | Sends data to Sefaria's assistant service; separate decision |
-| 7d | Linker and embeds | 14 | stays in Django | — | `linker.js` and embeds are served to other sites; no reason to move |
-| 7d | Admin and moderator tools | 55 | stays in Django | — | Not part of the reading app |
-| 7d | Static pages | 18 | link out or port | owner | Mostly content; porting is low value |
-| — | Legacy pages | 25 (12 retire) | retire | — | Keep redirects only |
+| Step | Area                                       | Features       | Kind                    | Depends on                 | Notes                                                                                                                                                                                                                                   |
+| ---- | ------------------------------------------ | -------------- | ----------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 7a   | Platform: deployment, SEO                  | 30 (14 core)   | infra                   | 7-0                        | Canonical URLs, sitemaps, robots, OpenSearch (SRC-028…030), meta tags; done with the deployment                                                                                                                                         |
+| 7a   | Analytics                                  | 16             | infra                   | 7-3                        | Section 3                                                                                                                                                                                                                               |
+| 7a   | Feedback                                   | —              | write                   | 7-0, 7-2                   | Section 2                                                                                                                                                                                                                               |
+| 7a   | Sign-in basics                             | 14             | signed-in               | 7-0, 7-1                   | Section 1, steps 1–4                                                                                                                                                                                                                    |
+| 7b   | Topics pages                               | 31 (9 core)    | read-only               | topic TOC endpoint         | The topic TOC exists only in Django's page context (`library.get_topic_toc_json()`; `/api/topics/toc` answers `{}`). Needs one small public endpoint in Sefaria-Project. Also finishes the Author/Topic card crumbs in search (SRC-070) |
+| 7b   | Calendars                                  | 3              | read-only               | —                          | `/api/calendars` is public                                                                                                                                                                                                              |
+| 7b   | Sheets (reading)                           | 25 (9 core)    | read-only               | —                          | Public sheets through the API; the Voices module's look                                                                                                                                                                                 |
+| 7b   | Collections (reading)                      | 10             | read-only               | —                          | `api/collections/<slug>`                                                                                                                                                                                                                |
+| 7b   | Profiles (public)                          | 11             | read-only               | —                          | `api/profile/<slug>`, followers/following                                                                                                                                                                                               |
+| 7c   | Saved, history, notes                      | 11 (5 core)    | signed-in               | 7a sign-in                 | `api/user_history/saved`, `api/profile/user_history`, `api/notes`; history sync `api/profile/sync`                                                                                                                                      |
+| 7c   | Notifications                              | 11             | signed-in               | 7a sign-in                 | `api/notifications`, `…/read`                                                                                                                                                                                                           |
+| 7c   | Sheet editor                               | 28 (14 core)   | signed-in               | 7a sign-in, sheets reading | The biggest piece; plan it separately                                                                                                                                                                                                   |
+| 7c   | Collections and profile editing, following | —              | signed-in               | 7a sign-in                 |                                                                                                                                                                                                                                         |
+| 7d   | Promotions                                 | 16             | CMS                     | owner                      | Strapi-driven banners and sidebar slots; decide whether the new client reads Strapi                                                                                                                                                     |
+| 7d   | AI (Library Assistant)                     | 20             | signed-in + third party | owner                      | Sends data to Sefaria's assistant service; separate decision                                                                                                                                                                            |
+| 7d   | Linker and embeds                          | 14             | stays in Django         | —                          | `linker.js` and embeds are served to other sites; no reason to move                                                                                                                                                                     |
+| 7d   | Admin and moderator tools                  | 55             | stays in Django         | —                          | Not part of the reading app                                                                                                                                                                                                             |
+| 7d   | Static pages                               | 18             | link out or port        | owner                      | Mostly content; porting is low value                                                                                                                                                                                                    |
+| —    | Legacy pages                               | 25 (12 retire) | retire                  | —                          | Keep redirects only                                                                                                                                                                                                                     |
 
 Suggested sequence: **7a** (infrastructure and sign-in, so later steps can be tested end to end) → **7b** (read-only pages, which can
 ship behind the edge routing one path at a time) → **7c** (signed-in features) → **7d** (decisions and leftovers).
@@ -154,13 +159,13 @@ screenshots and computed styles (not only text), write a parity script for the a
 
 ## 5. Decisions needed from the owner (summary)
 
-| # | Decision | Recommendation |
-|---|---|---|
-| 7-0 | Where the client is served | DECIDED: replaces the Node server; requests reach it first (`docs/DEPLOYMENT.md`) |
-| 7-1 | Login page | DECIDED: port the SSO AuthPage |
-| 7-1 | e2e test accounts | DECIDED: the accounts in Sefaria-Project's e2e `.env` |
-| 7-2 | Feedback live test | DECIDED: not yet |
-| 7-3 | Analytics | DECIDED: one module, same property, same event names and parameters |
-| 7b | A public topic TOC endpoint in Sefaria-Project | Open (explained to the owner 2026-10-06) |
-| 7d | Promotions (Strapi), Library Assistant, static pages | DECIDED: later |
-| — | Adobe Fonts kit domains | Add the new client's host to kit `aeg8div` before launch |
+| #   | Decision                                             | Recommendation                                                                    |
+| --- | ---------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 7-0 | Where the client is served                           | DECIDED: replaces the Node server; requests reach it first (`docs/DEPLOYMENT.md`) |
+| 7-1 | Login page                                           | DECIDED: port the SSO AuthPage                                                    |
+| 7-1 | e2e test accounts                                    | DECIDED: the accounts in Sefaria-Project's e2e `.env`                             |
+| 7-2 | Feedback live test                                   | DECIDED: not yet                                                                  |
+| 7-3 | Analytics                                            | DECIDED: one module, same property, same event names and parameters               |
+| 7b  | A public topic TOC endpoint in Sefaria-Project       | Open (explained to the owner 2026-10-06)                                          |
+| 7d  | Promotions (Strapi), Library Assistant, static pages | DECIDED: later                                                                    |
+| —   | Adobe Fonts kit domains                              | Add the new client's host to kit `aeg8div` before launch                          |

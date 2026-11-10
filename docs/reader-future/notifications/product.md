@@ -4,9 +4,10 @@ title: Notifications & email
 domain: Voices (sheets & community)
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
+status: baseline # baseline → exploring → proposed → agreed
 updated: 2026-10-14
 ---
+
 # Notifications & email — product specification
 
 > Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
@@ -51,28 +52,28 @@ Feature groups: Emails (6); Panel (3); Global (1); Email (1).
 
 ### Core (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature              | What it does                                                   |
+| ------- | -------------------- | -------------------------------------------------------------- |
 | NTF-008 | Password reset email | Users get a password reset email from web or mobile/SSO flows. |
 
 ### Standard (9)
 
-| ID | Feature | What it does |
-|---|---|---|
-| NTF-001 | Notifications page | Users see a feed of activity such as new sheets from people they follow, likes, new followers and collection invitations. |
-| NTF-002 | Notification types and rendering | Each notification type has its own wording, image and links. |
-| NTF-003 | Mark notifications read | Notifications are marked read automatically as they load, and the unread badge updates. |
-| NTF-005 | Email notification digest | Users receive a daily or weekly email summarizing unread activity. |
-| NTF-006 | Notification digest emails | Users receive a daily or weekly email summarizing new activity such as messages, likes, follows and collection additions. |
-| NTF-007 | Collection invitation email | Inviting someone by email to a collection sends them an invitation with a sign-up link. |
-| NTF-009 | Feedback and corrections email | Feedback, content corrections and user-testing sign-ups from the site are emailed to the right team. |
-| NTF-010 | Account deletion follow-up email | An internal email is sent to support when an account is deleted. |
-| NTF-011 | CRM-driven emails and sync | Newsletter subscription, welcome flows and chatbot opt-ins are handled by the external CRM, not Django. |
+| ID      | Feature                          | What it does                                                                                                              |
+| ------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| NTF-001 | Notifications page               | Users see a feed of activity such as new sheets from people they follow, likes, new followers and collection invitations. |
+| NTF-002 | Notification types and rendering | Each notification type has its own wording, image and links.                                                              |
+| NTF-003 | Mark notifications read          | Notifications are marked read automatically as they load, and the unread badge updates.                                   |
+| NTF-005 | Email notification digest        | Users receive a daily or weekly email summarizing unread activity.                                                        |
+| NTF-006 | Notification digest emails       | Users receive a daily or weekly email summarizing new activity such as messages, likes, follows and collection additions. |
+| NTF-007 | Collection invitation email      | Inviting someone by email to a collection sends them an invitation with a sign-up link.                                   |
+| NTF-009 | Feedback and corrections email   | Feedback, content corrections and user-testing sign-ups from the site are emailed to the right team.                      |
+| NTF-010 | Account deletion follow-up email | An internal email is sent to support when an account is deleted.                                                          |
+| NTF-011 | CRM-driven emails and sync       | Newsletter subscription, welcome flows and chatbot opt-ins are handled by the external CRM, not Django.                   |
 
 ### Optional (1)
 
-| ID | Feature | What it does |
-|---|---|---|
+| ID      | Feature                               | What it does                                                                                         |
+| ------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | NTF-004 | Global notifications and site updates | Staff post site-wide announcements that appear in each user's notifications and in an updates panel. |
 
 _Generated 2026-10-14. Full behaviour for every ID: `reader-next/docs/features/FEATURES.md` and the atlas page._

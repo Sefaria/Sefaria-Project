@@ -33,8 +33,8 @@ browser ──wss://rooms.sefaria.org/r/<sessionId>──▶ Worker (checks path
    and `rooms-staging.sefaria.org` if you want a separate staging relay). Durable Objects work on the Workers Free plan
    (SQLite-backed only, which is what this uses) and on Paid. Use Paid for production: the Free plan's daily limits would cut
    sessions off.
-2. **A Cloudflare API token** for whoever deploys (or CI), with *Workers Scripts: Edit*, *Workers Routes: Edit* and, for the custom
-   domain, *Zone: DNS Edit* on `sefaria.org`. Locally, `npx wrangler login` is enough.
+2. **A Cloudflare API token** for whoever deploys (or CI), with _Workers Scripts: Edit_, _Workers Routes: Edit_ and, for the custom
+   domain, _Zone: DNS Edit_ on `sefaria.org`. Locally, `npx wrangler login` is enough.
 3. **WebSockets on for the zone** (Network → WebSockets). On by default.
 
 ## 1. The relay in the repo
@@ -94,11 +94,11 @@ instead of `migrations`; once a Worker is deployed with `exports` it cannot go b
 
 The reader reads `PUBLIC_ROOM_URL` at run time, so this is configuration, not a build:
 
-| Where | `PUBLIC_ROOM_URL` | Labs |
-| --- | --- | --- |
-| Cauldron | `wss://rooms-staging.sefaria.org` | `PUBLIC_LABS=follow_me,recording` on the node deployment |
-| Staging | `wss://rooms-staging.sefaria.org` | remote config `feature.reader.labs.follow_me` = true |
-| Production | `wss://rooms.sefaria.org` | remote config, when ready; set it to false to turn follow me off at once |
+| Where      | `PUBLIC_ROOM_URL`                 | Labs                                                                     |
+| ---------- | --------------------------------- | ------------------------------------------------------------------------ |
+| Cauldron   | `wss://rooms-staging.sefaria.org` | `PUBLIC_LABS=follow_me,recording` on the node deployment                 |
+| Staging    | `wss://rooms-staging.sefaria.org` | remote config `feature.reader.labs.follow_me` = true                     |
+| Production | `wss://rooms.sefaria.org`         | remote config, when ready; set it to false to turn follow me off at once |
 
 In the helm chart that is two env entries on the node (reader) deployment, e.g. `nodejs.env.PUBLIC_ROOM_URL` and
 `nodejs.env.PUBLIC_LABS`. Without `PUBLIC_ROOM_URL` follow me falls back to the in-browser room (tabs of one browser only).
