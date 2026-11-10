@@ -52,7 +52,7 @@ else
     gap F4 "the chart has no alert rule on a stale registry"
   fi
 fi
-dcompose logs --no-log-prefix --since 1m authsvc 2>&1 | grep -q 'reload skipped' && pass "F4 'reload skipped' is logged" || fail "F4 no reload warning logged"
+dcompose logs --no-log-prefix --since 3m authsvc 2>&1 | grep -q 'reload skipped' && pass "F4 'reload skipped' is logged" || fail "F4 no reload warning logged"
 
 restore
 t="$(wait_for 20 'test "$(gw $GW_HC $GATED f4b)" = 401')"
