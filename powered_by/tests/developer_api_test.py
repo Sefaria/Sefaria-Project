@@ -550,7 +550,9 @@ class KeyTest(DeveloperApiTestCase):
         api_key = ApiKey.objects.get(id=state["keyId"])
         self.assertRegex(api_key.key, r"^sfr_[A-Za-z0-9]{32}$")
         self.assertEqual(api_key.allowed_origins, [])
-        self.assertEqual(state["projects"][0]["keys"][0]["value"], api_key.key)
+        self.assertEqual(state["keyValue"], api_key.key)
+        self.assertEqual(state["projects"][0]["keys"][0]["prefix"], api_key.key[:10])
+        self.assertNotIn(api_key.key, json.dumps(state["projects"]))
 
     def test_a_project_has_at_most_five_active_keys(self):
         for i in range(5):

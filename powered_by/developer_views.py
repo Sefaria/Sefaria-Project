@@ -12,7 +12,7 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils.cache import patch_cache_control
+from django.utils.cache import patch_cache_control, patch_vary_headers
 from django.views.decorators.clickjacking import xframe_options_deny
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
@@ -48,8 +48,8 @@ def developer_api(func=None, login=True):
     """
     JSON endpoints, logged in through the browser session unless login=False: parses a JSON body into request.json, and maps
     input errors to 400, missing setup to 403, unknown or unowned objects to 404 and a repeated
-    request to 429. Every response, errors included, is "private, no-store": developer state carries full key values,
-    which no HTTP cache may keep.
+    request to 429. Every response, errors included, is "private, no-store" and varies on the cookie: the key value
+    endpoint answers with a full key value, which no HTTP cache may keep.
     """
     if func is None:
         return lambda f: developer_api(f, login=login)
@@ -58,6 +58,7 @@ def developer_api(func=None, login=True):
     def wrapper(request, *args, **kwargs):
         response = handle(request, *args, **kwargs)
         patch_cache_control(response, private=True, no_store=True)
+        patch_vary_headers(response, ["Cookie"])
         return response
 
     def handle(request, *args, **kwargs):
@@ -239,7 +240,8 @@ def project_api(request, project_id):
 def project_keys_api(request, project_id):
     developer.require_verified_developer(request)
     api_key = developer.create_key(request.user, project_id, request.json.get("label"))
-    return state_response(request, keyId=str(api_key.id))
+    # The one response that carries the new key's value, so its owner can copy it without a second request.
+    return state_response(request, keyId=str(api_key.id), keyValue=api_key.key)
 
 
 @requires_developer_settings
@@ -252,3 +254,12 @@ def key_api(request, key_id):
     else:
         developer.set_key_restriction(request.user, key_id, bool(request.json.get("restrictToWebsite")))
     return state_response(request)
+
+
+@requires_developer_settings
+@require_http_methods(["POST"])
+@developer_api
+def key_value_api(request, key_id):
+    """The value of one key, for its owner: the only way a key's value is sent after creation."""
+    developer.require_developer(request)
+    return jsonResponse({"value": developer.reveal_key(request.user, key_id)})

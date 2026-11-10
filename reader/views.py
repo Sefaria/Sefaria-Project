@@ -5306,7 +5306,7 @@ def settings_page(request, tab="account", project_id=None):
     }
     response = menu_page(request, props=props, page="settings", title=titles[tab], desc=descs[tab])
     if props["initialDeveloper"] is not None:
-        # The page embeds the developer state, which carries full key values: no HTTP cache may keep it.
+        # The page embeds the developer state (key display prefixes, never values), private to the account: no HTTP cache may keep it.
         patch_cache_control(response, private=True, no_store=True)
     return response
 

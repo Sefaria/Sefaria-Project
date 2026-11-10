@@ -69,6 +69,7 @@ urlpatterns = [
     path("api/developer/projects/<str:project_id>", developer_views.project_api),
     path("api/developer/projects/<str:project_id>/keys", developer_views.project_keys_api),
     path("api/developer/keys/<str:key_id>", developer_views.key_api),
+    path("api/developer/keys/<str:key_id>/value", developer_views.key_value_api),
     re_path(r"^community/?$", reader_views.community_to_voices_redirect),
     path("parashat-hashavua", reader_views.parashat_hashavua_redirect),
     path("todays-daf-yomi", reader_views.daf_yomi_redirect),
