@@ -47,6 +47,7 @@ def purge_test_profiles(*users):
     real = [i for i in ids if i < SYNTHETIC_USER_ID_FLOOR]
     assert not real, f"refusing to delete profile docs for non-synthetic user ids {real}"
     db.profiles.delete_many({"id": {"$in": ids}})
+    db.developer_confirmation_throttle.delete_many({"uid": {"$in": ids}})
 
 
 def make_profile_missing_la_setting(user):

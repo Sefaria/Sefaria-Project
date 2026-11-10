@@ -20,6 +20,8 @@ from django.utils import timezone
 
 from powered_by import developer
 from powered_by.models import ApiKey, ApiProject, ApiTier, Project, SubmissionSource
+from sefaria.model.user_profile import UserProfile
+from sefaria.system.database import db
 from reader.conftest import create_test_user, page_props, purge_test_profiles
 
 PROFILE = {"developerName": "Tova Levi", "description": "Daily study tools.", "termsAccepted": True}
@@ -341,6 +343,50 @@ class ResendLimitTest(DeveloperApiTestCase):
         self.assertEqual(int(refused["Retry-After"]), 23 * 60 * 60 + 1)
         self.assertEqual(self.send_at(start + timedelta(days=1, seconds=1)).status_code, 200)
         self.assertEqual(len(mail.outbox), 6)
+
+
+class ThrottleStorageTest(DeveloperApiTestCase):
+    """The limits live outside the profile settings, so a whole-profile save cannot reset them."""
+
+    def send(self):
+        return self.client.post("/api/developer/confirmation", "", content_type="application/json").status_code
+
+    def test_a_stale_profile_save_cannot_erase_the_cooldown(self):
+        stale = UserProfile(id=self.user.id)
+        self.assertEqual(self.send(), 200)
+
+        stale.save()
+
+        self.assertEqual(self.send(), 429)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_a_stale_profile_save_cannot_erase_the_daily_limit(self):
+        start = timezone.now()
+        stale = UserProfile(id=self.user.id)
+        for i in range(5):
+            with patch("powered_by.developer.timezone.now", return_value=start + timedelta(minutes=2 * i)):
+                self.assertEqual(self.send(), 200)
+
+        stale.save()
+
+        with patch("powered_by.developer.timezone.now", return_value=start + timedelta(minutes=30)):
+            self.assertEqual(self.send(), 429)
+
+    def test_sends_an_older_version_recorded_in_the_profile_still_count(self):
+        start = timezone.now() - timedelta(hours=2)
+        profile = UserProfile(id=self.user.id)
+        profile.settings[developer.CONFIRMATION_SENDS_SETTING] = [
+            developer.iso(start + timedelta(minutes=2 * i)) for i in range(5)
+        ]
+        profile.save()
+
+        self.assertEqual(self.send(), 429)
+
+    def test_a_send_is_stored_in_the_throttle_collection_and_not_in_the_profile(self):
+        self.assertEqual(self.send(), 200)
+
+        self.assertEqual(len(db.developer_confirmation_throttle.find_one({"uid": self.user.id})["sends"]), 1)
+        self.assertNotIn(developer.CONFIRMATION_SENDS_SETTING, UserProfile(id=self.user.id).settings)
 
 
 class EmailChangeTest(DeveloperApiTestCase):

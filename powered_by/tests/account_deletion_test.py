@@ -74,6 +74,17 @@ class DeleteAccountTest(TestCase):
 
         self.assert_account_gone()
 
+    @override_settings(DEVELOPER_SETTINGS_ENABLED=False)
+    def test_deleting_an_account_removes_its_confirmation_throttle_document(self):
+        db.developer_confirmation_throttle.insert_one({"uid": self.uid, "sends": []})
+        db.developer_confirmation_throttle.insert_one({"uid": self.uid + 1, "sends": []})
+
+        self.assertTrue(delete_user_account(self.uid, confirm=False))
+
+        self.assertIsNone(db.developer_confirmation_throttle.find_one({"uid": self.uid}))
+        self.assertIsNotNone(db.developer_confirmation_throttle.find_one({"uid": self.uid + 1}))
+        db.developer_confirmation_throttle.delete_many({"uid": self.uid + 1})
+
     def test_N_M5_an_owners_keys_are_revoked_and_projects_soft_deleted(self):
         project, keys = self.developer_project()
 
