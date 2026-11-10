@@ -39,6 +39,23 @@ class ClientWebVitalsMigrationTestCase(TestCase):
         entry = self.run_migration()
         self.assertEqual(json.loads(entry.raw_value), {"showPromo": True, "nested": {"a": 1}, "webVitals": OFF})
 
+    def test_the_admins_text_is_kept_as_written(self):
+        pretty = '{\n    "promo": "שבת שלום",\n    "b": [1, 2]\n}'
+        self.row(pretty)
+        self.assertEqual(
+            self.run_migration().raw_value,
+            '{\n    "promo": "שבת שלום",\n    "b": [1, 2],\n    "webVitals": {"enabled": 0, "sampleRate": 0.1}\n}',
+        )
+        compact = '{"z": 1, "a": "אור"}'
+        RemoteConfigEntry.objects.filter(key=KEY).delete()
+        self.row(compact)
+        self.assertEqual(
+            self.run_migration().raw_value, '{"z": 1, "a": "אור", "webVitals": {"enabled": 0, "sampleRate": 0.1}}'
+        )
+        RemoteConfigEntry.objects.filter(key=KEY).delete()
+        self.row("{ }")
+        self.assertEqual(json.loads(self.run_migration().raw_value), {"webVitals": OFF})
+
     def test_admin_web_vitals_never_overwritten(self):
         raw = json.dumps({"webVitals": {"enabled": 1, "sampleRate": 0.5}})
         self.row(raw)
