@@ -17,7 +17,8 @@ IGNORED_EXCEPTIONS = (
     SuspiciousOperation,
 )
 
-API_KEY_RE = re.compile(r"sfr_[A-Za-z0-9]+")
+# The prefix may be percent-encoded, as in a URL.
+API_KEY_RE = re.compile(r"(?i)(?:s|%73)(?:f|%66)(?:r|%72)(?:_|%5f)[A-Za-z0-9]+")
 API_KEY_REPLACEMENT = "sfr_[Filtered]"
 
 
@@ -123,7 +124,8 @@ def init_sentry(sentry_dsn, sentry_code_version, sentry_environment):
 
     def before_send_transaction(event: Event, hint: Hint) -> Event:
         # Sentry calls this hook with (event, hint), unlike our one-argument scrub function.
-        return remove_webhook_secrets_and_payloads(event)
+        event = remove_webhook_secrets_and_payloads(event)
+        return scrub_api_keys(event) if event is not None else None
 
     sentry_config = remoteConfigCache.get(SENTRY_CONFIG_JSON) or {}
     sample_rate = sentry_config.get("sample_rate", 0.01)

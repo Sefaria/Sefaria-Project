@@ -78,3 +78,41 @@ def test_names_count_only_at_the_start_of_the_query_or_after_an_ampersand():
         scrub_api_key_query("/x?next=https://e.org/?q=1&apikey=sfr_test1")
         == "/x?next=https://e.org/?q=1&apikey=[REDACTED]"
     )
+
+
+FULL_KEY = "sfr_" + "Ab1Cd2Ef3Gh4Ij5Kl6Mn7Op8Qr9St0Uv"  # the real shape: sfr_ + 32 letters and digits
+
+
+def test_a_full_key_is_redacted_in_any_parameter_the_path_or_a_referer():
+    cases = {
+        f"/admin/powered_by/apiproject/?q={FULL_KEY}": "/admin/powered_by/apiproject/?q=sfr_[REDACTED]",
+        f"/admin/powered_by/apiproject/?o=1&q={FULL_KEY}&p=2": "/admin/powered_by/apiproject/?o=1&q=sfr_[REDACTED]&p=2",
+        f"/api/{FULL_KEY}/texts": "/api/sfr_[REDACTED]/texts",
+        f"https://www.sefaria.org/admin/powered_by/apiproject/?q={FULL_KEY}": (
+            "https://www.sefaria.org/admin/powered_by/apiproject/?q=sfr_[REDACTED]"
+        ),
+        "/admin/?q=sfr%5FAb1Cd2Ef3Gh4Ij5Kl6Mn7Op8Qr9St0Uv": "/admin/?q=sfr_[REDACTED]",
+        "/admin/?q=%73fr_Ab1Cd2Ef3Gh4Ij5Kl6Mn7Op8Qr9St0Uv": "/admin/?q=sfr_[REDACTED]",
+        f"/admin/?q=x&q={FULL_KEY}#top": "/admin/?q=x&q=sfr_[REDACTED]#top",
+    }
+    for raw, want in cases.items():
+        got = scrub_api_key_query(raw)
+        assert got == want, (raw, got)
+        assert "Ab1Cd2" not in got
+
+
+def test_the_displayed_key_prefix_is_not_a_secret_and_stays_searchable_in_logs():
+    url = "/admin/powered_by/apiproject/?q=sfr_Ab1Cd2"  # sfr_ + the 6 characters the admin shows
+    assert scrub_api_key_query(url) == url
+
+
+def test_the_structlog_request_processor_redacts_a_full_key_in_any_parameter():
+    from django.test import RequestFactory
+
+    from sefaria.system.logging import decompose_request_info
+
+    request = RequestFactory().get("/admin/powered_by/apiproject/", {"q": FULL_KEY})
+    event = decompose_request_info(None, "info", {"request": request})
+
+    assert "Ab1Cd2" not in str(event)
+    assert "sfr_[REDACTED]" in event["httpRequest"]["requestUrl"]

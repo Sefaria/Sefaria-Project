@@ -15,7 +15,7 @@ class ScrubbingLogger(Logger):
                 scrub_api_key_query(environ["RAW_URI"]),
                 environ["SERVER_PROTOCOL"],
             )
-        for key in ("f", "{referer}i", "{raw_uri}e", "{http_referer}e"):  # full URLs
+        for key in ("U", "f", "{referer}i", "{raw_uri}e", "{http_referer}e"):  # full URLs
             if isinstance(atoms.get(key), str):
                 atoms[key] = scrub_api_key_query(atoms[key])
         for key in ("q", "{query_string}e"):  # bare query strings, no leading "?"
