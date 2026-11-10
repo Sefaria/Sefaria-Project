@@ -73,6 +73,11 @@ export interface RawTextsResponse {
   addressTypes: string[];
   lengths?: number[];
   alts?: RawAlts;
+  /**
+   * Where numbering starts in sections that continue their parent's count (Zohar's paragraphs run on from one section to the next):
+   * per depth, the offset of each section at the level above (a number, or nested lists). Old Sefaria._get_offsets / makeSegments.
+   */
+  index_offsets_by_depth?: Record<string, unknown>;
   versions: RawVersion[];
   available_versions?: VersionMeta[];
   warnings?: unknown[];
@@ -157,19 +162,36 @@ type Tree<T> = T | Tree<T>[];
  * outermost varying level and from 1 at deeper levels. Works for text (leaves are strings) and for
  * `alts` (leaves are markers or null), which share the text's shape.
  */
-function flatten<T>(tree: Tree<T>, prefix: string[], start: string[], types: string[], out: Leaf<T>[]): void {
+function flatten<T>(tree: Tree<T>, prefix: string[], start: string[], types: string[], out: Leaf<T>[], seg?: SegmentStarts): void {
   if (!Array.isArray(tree)) {
     out.push({ address: prefix, value: tree });
     return;
   }
   const level = prefix.length;
   const type = types[level];
-  let addr = start[level] ?? (type === "Talmud" ? "2a" : "1");
+  // A section of segments not started by the request begins after its offset (old makeSegments: 1 + index_offsets_by_depth[n])
+  const segmentLevel = seg !== undefined && level === seg.level;
+  const offset = segmentLevel ? seg.offsets[seg.next++] ?? 0 : 0;
+  let addr = start[level] ?? (type === "Talmud" ? "2a" : String(1 + offset));
   tree.forEach((child, i) => {
     if (i > 0) addr = nextAddress(addr, type);
     // Only the first child inherits the requested start for deeper levels.
-    flatten(child, [...prefix, addr], i === 0 ? start : [], types, out);
+    flatten(child, [...prefix, addr], i === 0 ? start : [], types, out, seg);
   });
+}
+
+/** The segment level and each section's numbering offset, in order (old Sefaria._get_offsets). */
+interface SegmentStarts {
+  level: number;
+  offsets: number[];
+  next: number;
+}
+
+function segmentStarts(raw: RawTextsResponse): SegmentStarts | undefined {
+  const byDepth = raw.index_offsets_by_depth?.[String(raw.textDepth)];
+  if (byDepth === undefined || byDepth === null) return undefined;
+  const flat = (typeof byDepth === "number" ? [byDepth] : Array.isArray(byDepth) ? (byDepth.flat(Infinity) as unknown[]) : []).map((n) => (typeof n === "number" ? n : 0));
+  return flat.some((n) => n > 0) ? { level: raw.textDepth - 1, offsets: flat, next: 0 } : undefined;
 }
 
 /** Leaves of a text-shaped tree for one response, with their addresses. */
@@ -190,7 +212,7 @@ function leavesOf<T>(raw: RawTextsResponse, tree: Tree<T> | undefined): Leaf<T>[
   // only the first child at each level starts mid-way. (`spanningRefs` cannot place it: they skip empty sections, and splitting them by
   // section level broke every commentary range — CODE_REVIEW R-18 and its follow-up.)
   const fixedLevels = sectionsFixed(given, raw.toSections ?? given, depth);
-  flatten(tree, given.slice(0, fixedLevels), given, types, out);
+  flatten(tree, given.slice(0, fixedLevels), given, types, out, segmentStarts(raw));
   return out;
 }
 
