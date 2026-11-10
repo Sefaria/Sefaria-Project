@@ -4726,7 +4726,8 @@ def segment_history(request, tref, lang, version, page=1):
     )
 
 
-SEGMENT_HISTORY_MAX_PAGE = 10_000
+# Each page is an $or of $regex clauses over history with a skip of (page - 1) * 100: 100 pages bound the skip at ~10,000 rows.
+SEGMENT_HISTORY_MAX_PAGE = 100
 
 
 @catch_error_as_json
@@ -4741,7 +4742,12 @@ def segment_history_api(request, tref, lang, version):
 
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
-    # `page` counts from 1, in pages of 100 (text_history); the bound keeps Mongo's skip in range
+    # Signed in only, as the page (segment_history is @login_required, which sends a signed-out visitor to /login?next=).
+    if not request.user.is_authenticated:
+        response = jsonResponse({"error": "You must be signed in to see revision history."}, status=401)
+        patch_cache_control(response, private=True, no_store=True)
+        return response
+    # `page` counts from 1, in pages of 100 (text_history)
     try:
         page = int(request.GET.get("page", 1))
     except ValueError:
@@ -4816,7 +4822,7 @@ def segment_history_api(request, tref, lang, version):
                 "sheet": a.get("sheet"),
             }
         )
-    return jsonResponse(
+    response = jsonResponse(
         {
             "ref": oref.normal(),
             "heRef": oref.he_normal(),
@@ -4826,10 +4832,12 @@ def segment_history_api(request, tref, lang, version):
             "versionTitleInHebrew": getattr(version_record, "versionTitleInHebrew", version_record.versionTitle),
             "filterType": filter_type,
             "page": page,
-            "hasMore": len(history) >= 100,
+            "hasMore": len(history) >= 100 and page < SEGMENT_HISTORY_MAX_PAGE,
             "items": items,
         }
     )
+    patch_cache_control(response, private=True)  # for signed-in readers only: never in a shared cache
+    return response
 
 
 @catch_error_as_json
@@ -4938,7 +4946,10 @@ def profile_api(request, slug=None):
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
 
-        reader_choice_posted = reader_choice.SETTING_KEY in profileUpdate.get("settings", {})
+        # Library host only (the switch is on the Library's account settings); a Voices request is handled as before
+        reader_choice_posted = reader_choice.on_library(request) and reader_choice.SETTING_KEY in profileUpdate.get(
+            "settings", {}
+        )
         if reader_choice_posted:
             profileUpdate["settings"][reader_choice.SETTING_KEY] = reader_choice.normalize(
                 profileUpdate["settings"][reader_choice.SETTING_KEY]
@@ -5021,6 +5032,7 @@ def library_assistant_api(request):
     return response
 
 
+@ensure_csrf_cookie  # a GET hands a signed-out reader with no csrftoken yet the cookie its POST needs (answers are private)
 @catch_error_as_json
 def reader_choice_api(request):
     """
@@ -5032,6 +5044,8 @@ def reader_choice_api(request):
       canChooseNext  this user may switch to the new reader (signed in, and staff unless the remote-config audience is "all")
       reader         what this browser gets now: "next" when it holds the routing cookie, else "classic"
       saved          the signed-in user's stored choice ("next" / "classic"), null when they never chose or are signed out
+
+    Every answer sets the csrftoken cookie if the browser has none (ensure_csrf_cookie): GET first, then POST.
 
     POST {"reader": "classic" | "legacy" | "next"} (JSON body, or a form field), with the CSRF token (X-CSRFToken):
       - "classic" (alias "legacy") always works, signed in or out: the response clears the cookie, and a signed-in user's
@@ -6067,10 +6081,8 @@ _ABOUT_SIDEBAR_PATHS = {p["path"] for p in SITE_SETTINGS.get("ABOUT_SIDEBAR_PAGE
 
 def serve_static(request, page, by_lang=False):
     # ?format=json: only the page's content, for the new reader's own shell (reader/static_content.py, LAUNCH_PLAN T-B06).
-    # A Voices request for a Library page keeps its redirect below.
-    if static_content.requested(request) and not (
-        request.active_module == VOICES_MODULE and page in _ABOUT_SIDEBAR_PATHS
-    ):
+    # Library host only (requested() is False on Voices, which keeps its behaviour below unchanged).
+    if static_content.requested(request):
         return static_content.respond(
             request, lambda lang_code: f"static/{lang_code + '/' if by_lang else ''}{page}.html"
         )

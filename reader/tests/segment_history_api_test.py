@@ -95,6 +95,7 @@ class SegmentHistoryApiTest(TestCase):
         purge_test_profiles(self.user)
 
     def get(self, url=URL, **params):
+        self.client.force_login(self.user)
         return self.client.get(url, params)
 
     def test_answers_the_history_with_what_the_template_computed(self):
@@ -135,6 +136,7 @@ class SegmentHistoryApiTest(TestCase):
     def test_has_more_when_a_full_page_came_back(self):
         self.history = self.history * 50
         self.assertTrue(self.get().json()["hasMore"])
+        self.assertFalse(self.get(page="100").json()["hasMore"])  # no "Older Activity" past the last page served
 
     def test_the_same_data_the_revision_history_page_is_given(self):
         self.client.force_login(self.user)
@@ -153,12 +155,19 @@ class SegmentHistoryApiTest(TestCase):
             self.assertEqual(item["diff_html"], event.get("diff_html"))
             self.assertEqual(item["history_url"], event.get("history_url"))
 
-    def test_signed_out_and_signed_in_get_the_same_answer(self):
-        anonymous = self.get()
-        self.client.force_login(self.user)
-        signed_in = self.get()
-        self.assertEqual(anonymous.json(), signed_in.json())
-        self.assertEqual(dict(anonymous.cookies), {})
+    def test_signed_out_is_refused_as_the_page_refuses_them(self):
+        res = self.client.get(URL)
+        self.assertEqual(res.status_code, 401)
+        self.assertIn("error", res.json())
+        self.assertIn("no-store", res["Cache-Control"])
+        self.assertEqual(self.calls, [])
+        # the page itself (login_required) sends them to sign in
+        page = self.client.get("/activity/Genesis.1.1/en/Test_Version")
+        self.assertEqual(page.status_code, 302)
+        self.assertIn("/login", page["Location"])
+
+    def test_signed_in_answers_are_private(self):
+        self.assertIn("private", self.get()["Cache-Control"])
 
     def test_an_unknown_ref_or_version_is_a_404(self):
         res = self.get("/api/activity/Nowhere.1.1/en/Test_Version")
@@ -169,12 +178,13 @@ class SegmentHistoryApiTest(TestCase):
         self.assertEqual(self.calls, [])
 
     def test_page_must_be_in_bounds(self):
-        for page in ("0", "-3", "two", "10001", "99999999999999999999999"):
+        for page in ("0", "-3", "two", "101", "10000", "99999999999999999999999"):
             res = self.get(page=page)
             self.assertEqual(res.status_code, 400, page)
             self.assertIn("error", res.json())
         self.assertEqual(self.calls, [])
-        self.assertEqual(self.get(page="10000").status_code, 200)
+        self.assertEqual(self.get(page="100").status_code, 200)
 
     def test_only_get(self):
+        self.client.force_login(self.user)
         self.assertEqual(self.client.post(URL).status_code, 405)
