@@ -220,6 +220,7 @@ http {
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Forwarded-Host $host;
       proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
       proxy_http_version 1.1;
       proxy_set_header Connection "";
       proxy_pass http://nodeupstream;
@@ -240,6 +241,7 @@ http {
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
       proxy_pass http://varnishupstream;
     }
 
@@ -290,6 +292,7 @@ http {
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
       proxy_pass http://varnishupstream;
     }
 
@@ -311,6 +314,7 @@ http {
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Forwarded-Host $host;
       proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
       proxy_http_version 1.1;
       proxy_set_header Connection "";
       proxy_pass http://readerupstream;
@@ -329,6 +333,7 @@ http {
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Forwarded-Host $host;
       proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
       proxy_http_version 1.1;
       proxy_set_header Connection "";
       proxy_pass http://readerupstream;
@@ -354,6 +359,7 @@ http {
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
       proxy_pass http://varnishupstream;
     }
     {{- end }}
@@ -407,6 +413,7 @@ http {
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
       proxy_pass http://varnishupstream;
     }
     {{- end }}

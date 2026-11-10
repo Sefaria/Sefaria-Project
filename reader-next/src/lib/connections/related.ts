@@ -1,6 +1,6 @@
 /**
  * Everything attached to a section besides its links: sheets, topics, manuscripts, Torah-reading audio and
- * guides (`/api/related/<section>?with_sheet_links=1`, as the old client requests it), grouped by the verse each
+ * guides (`/api/related/<section>?with_links=0&sheets=count`: no links, sheets as id + anchors only), grouped by the verse each
  * item is anchored to, plus the web pages (`/api/related/<ref>/websites`). Fetched when the Resources view is
  * open; cached like links. Counts follow the old ConnectionsPanel exactly.
  *
@@ -19,7 +19,8 @@ interface Anchored {
   anchorRef?: string;
   anchorRefExpanded?: string[];
 }
-export interface RelatedSheet extends Anchored { id: string | number; title?: string; owner?: number; sheetUrl?: string }
+/** A sheet as `sheets=count` answers it: only what counting needs (the Sheets row opens Voices; nothing lists them here). */
+export interface RelatedSheet extends Anchored { id: string | number }
 export interface RelatedTopic extends Anchored { topic: string; title?: { en: string; he: string }; order?: { pr?: number } }
 export type RelatedItem = Anchored & Record<string, unknown>;
 
@@ -101,11 +102,11 @@ interface RawRelated {
 }
 
 export async function fetchSectionResources(sectionRef: string, signal?: AbortSignal): Promise<SectionResources> {
-  const result = await related.getRelated({ client: getSefariaClient(), path: { tref: sectionRef }, query: { with_sheet_links: "1" } as never, signal });
+  const result = await related.getRelated({ client: getSefariaClient(), path: { tref: sectionRef }, query: { with_links: "0", sheets: "count" } as never, signal });
   const raw = unwrap(result, `Related to ${sectionRef}`) as unknown as RawRelated;
   // Links are not kept here (the links query has them); only what the Resources rows need is cached.
   return {
-    sheets: groupByRef(raw.sheets?.map(({ id, title, owner, sheetUrl, anchorRef, anchorRefExpanded }) => ({ id, title, owner, sheetUrl, anchorRef, anchorRefExpanded }))),
+    sheets: groupByRef(raw.sheets?.map(({ id, anchorRef, anchorRefExpanded }) => ({ id, anchorRef, anchorRefExpanded }))),
     topics: groupByRef(raw.topics),
     manuscripts: groupByRef(raw.manuscripts),
     media: groupByRef(raw.media),

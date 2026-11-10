@@ -99,6 +99,10 @@ export function TextColumn(props: TextColumnProps) {
   const propsRef = useRef(props);
   propsRef.current = props;
 
+  // Text the reader selects in this column: on mouseup for a mouse, and when the selection rests for one made by keyboard (Shift+arrows)
+  // or touch (a long press and its handles), which end in no mouseup. One report per selection either way (lane R, D4).
+  useEffect(() => listenForSelections(() => contentRef.current, (words, refs) => propsRef.current.onSelectWords?.(words, refs)), []);
+
   // Development aid: count column mounts (a remount while reading would be a visible reset).
   useEffect(() => {
     if (import.meta.env?.DEV) {
@@ -399,15 +403,6 @@ export function TextColumn(props: TextColumnProps) {
           e.clipboardData.setData("text/plain", text);
           e.preventDefault();
         }}
-        onMouseUp={() => {
-          const sel = window.getSelection();
-          const root = contentRef.current;
-          if (!sel || sel.isCollapsed || !sel.rangeCount || !root) return;
-          const range = sel.getRangeAt(0);
-          if (!root.contains(range.commonAncestorContainer)) return;
-          const words = selectedText(range);
-          if (words) props.onSelectWords?.(words, segmentsInRange(root, range));
-        }}
       >
         <div className={styles.edge} aria-hidden={!loading.up}>
           {first.prev ? (
@@ -440,4 +435,108 @@ export function TextColumn(props: TextColumnProps) {
       <script dangerouslySetInnerHTML={{ __html: INITIAL_POSITION_SCRIPT }} />
     </div>
   );
+}
+
+/** How long a selection made by keyboard must rest before it counts. */
+export const SELECTION_SETTLE_MS = 300;
+/** The same for touch or a pen: longer, as a reader pauses while dragging a handle. */
+export const TOUCH_SELECTION_SETTLE_MS = 700;
+/** How long after a selecting key a selection change is the reader's. */
+const KEY_GESTURE_MS = 1000;
+/** How long after a touch or pen goes down a selection change is the reader's (a long press, then the handles). */
+const TOUCH_GESTURE_MS = 10_000;
+
+/** Keys that extend a selection: Shift with an arrow, Page Up/Down or Home/End. */
+function selectsByKey(e: KeyboardEvent): boolean {
+  return e.shiftKey && /^(Arrow(Up|Down|Left|Right)|Page(Up|Down)|Home|End)$/.test(e.key);
+}
+
+/**
+ * Report text selected inside `root()`: the words and the segments they touch (the old handleTextSelection, which listened to mouseup
+ * only). A mouse selection is reported on mouseup. One made by keyboard (Shift+arrows) or touch (a long press and its handles) ends in
+ * no mouseup: it is reported when `selectionchange` has been quiet for a while, but only soon after such a gesture, so a selection
+ * made by script or by the browser (find in page moves it to each match, Chrome sets it when the find bar closes) changes nothing.
+ * While a mouse button is down the changes of a drag are not reported; a selection already reported (by either path) is not reported
+ * again, and a selection outside the column is never reported. Returns the cleanup.
+ */
+export function listenForSelections(root: () => Element | null, report: (words: string, refs: string[]) => void, doc: Document = document): () => void {
+  let last = "";
+  let mouseDown = false;
+  let keyAt = -Infinity;
+  let touchAt = -Infinity;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const now = () => performance.now();
+  const check = () => {
+    timer = undefined;
+    const sel = doc.getSelection();
+    const el = root();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) {
+      last = "";
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    if (!el || !el.contains(range.commonAncestorContainer)) return;
+    const words = selectedText(range);
+    if (!words) return;
+    const refs = segmentsInRange(el, range);
+    const key = `${words}\u0000${refs.join("|")}`;
+    if (key === last) return;
+    last = key;
+    report(words, refs);
+  };
+  const onDown = (e: PointerEvent) => {
+    if (e.pointerType === "touch" || e.pointerType === "pen") {
+      touchAt = now();
+      return;
+    }
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    mouseDown = true;
+    clearTimeout(timer);
+  };
+  const onUp = (e: MouseEvent) => {
+    // (pointerup, which comes first, has already released the button: see `release`)
+    if (e.button !== 0) return;
+    mouseDown = false;
+    clearTimeout(timer);
+    check();
+  };
+  // a mouseup that never comes (Ctrl+click's context menu on a Mac, the button released outside the window) must not leave the
+  // listener deaf
+  const release = () => void (mouseDown = false);
+  const onKey = (e: KeyboardEvent) => {
+    if (selectsByKey(e)) keyAt = now();
+  };
+  const onChange = () => {
+    if (mouseDown) return;
+    const t = now();
+    const byKey = t - keyAt < KEY_GESTURE_MS;
+    const byTouch = t - touchAt < TOUCH_GESTURE_MS;
+    clearTimeout(timer);
+    if (!byKey && !byTouch) {
+      // not the reader's doing; a collapse still forgets what was reported, so the same text selected again counts
+      if (doc.getSelection()?.isCollapsed) last = "";
+      return;
+    }
+    timer = setTimeout(check, byKey ? SELECTION_SETTLE_MS : TOUCH_SELECTION_SETTLE_MS);
+  };
+  const view = doc.defaultView;
+  doc.addEventListener("pointerdown", onDown, true);
+  doc.addEventListener("mouseup", onUp, true);
+  doc.addEventListener("pointerup", release, true);
+  doc.addEventListener("pointercancel", release, true);
+  doc.addEventListener("contextmenu", release, true);
+  view?.addEventListener("blur", release);
+  doc.addEventListener("keydown", onKey, true);
+  doc.addEventListener("selectionchange", onChange);
+  return () => {
+    clearTimeout(timer);
+    doc.removeEventListener("pointerdown", onDown, true);
+    doc.removeEventListener("mouseup", onUp, true);
+    doc.removeEventListener("pointerup", release, true);
+    doc.removeEventListener("pointercancel", release, true);
+    doc.removeEventListener("contextmenu", release, true);
+    view?.removeEventListener("blur", release);
+    doc.removeEventListener("keydown", onKey, true);
+    doc.removeEventListener("selectionchange", onChange);
+  };
 }

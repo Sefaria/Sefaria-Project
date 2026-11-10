@@ -52,12 +52,17 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
         purge_url(f"{FRONT_END_URL}/api/related/{oref.url()}")
         purge_url(f"{FRONT_END_URL}/api/related/{oref.url()}?with_sheet_links=1")
         purge_url(f"{FRONT_END_URL}/api/related/{oref.url()}?with_sheet_links=0")
+        for section in related_client_sections(oref):  # the new reader's Resources, in the form its client sends
+            purge_url(f"{FRONT_END_URL}/api/related/{encode_uri_component(section)}?with_links=0&sheets=count")
 
     # Ban anything underneath this section
     ban_url(f"/api/texts/{url_regex(oref)}")
     ban_url(f"/api/v3/texts/{url_regex(oref)}")
     ban_url(f"/api/links/{url_regex(oref)}")
     ban_url(f"/api/related/{url_regex(oref)}")
+    # the new reader asks for /api/related/<encodeURIComponent(section ref)> (its generated client encodes the path parameter),
+    # e.g. Genesis%201?with_links=0&sheets=count, which the dotted pattern above never matches
+    ban_url(f"/api/related/{client_url_regex(related_client_sections(oref))}")
 
 
 def invalidate_linked(oref):
@@ -120,6 +125,35 @@ def invalidate_title(title):
 
 def invalidate_all():
     ban_url(".*")
+
+
+def encode_uri_component(text):
+    """JavaScript's encodeURIComponent: what the new reader's generated client does to a path parameter."""
+    return urllib.parse.quote(text, safe="-_.!~*'()")
+
+
+def related_client_sections(oref):
+    """The section refs (normal form) whose /api/related the new reader may have cached for an edit of `oref`."""
+    names = [oref.normal()]
+    try:
+        if oref.is_range():
+            names += sorted({r.section_ref().normal() for r in oref.range_list()})
+    except InputError:
+        pass
+    return list(dict.fromkeys(names))
+
+
+def client_url_regex(normals):
+    """
+    A non-anchored, hyper-slashed regular expression (as url_regex) matching the new reader's URL for each of `normals` and any
+    more specific ref: `Genesis 1` matches `Genesis%201`, `Genesis%201?…`, `Genesis%201%3A3`, never `Genesis%2010`. Pure: no
+    library lookup, so it is unit-tested against the URLs the client builds (reader/tests/related_api_test.py).
+    """
+    patterns = []
+    for normal in normals:
+        encoded = re.escape(encode_uri_component(normal)).replace("\\", "\\\\")
+        patterns.append(r"%s($|\\?|\\/|%%3A|%%20[0-9])" % encoded)
+    return "(%s)" % "|".join(patterns)
 
 
 def url_regex(ref):

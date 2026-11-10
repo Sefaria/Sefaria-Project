@@ -1,25 +1,18 @@
 import { devices, expect, test, type Page } from "@playwright/test";
 import { open } from "./helpers";
+import { AUTH_BASE_URL } from "./auth-helpers";
 
 type Logged = { channel: string; name: string; params?: Record<string, unknown> };
 const log = (page: Page) => page.evaluate(() => (window as unknown as { __SEFARIA_ANALYTICS__?: Logged[] }).__SEFARIA_ANALYTICS__ ?? []);
 
-/** The page's runtime config with an error endpoint, as a deployment with PUBLIC_ERROR_ENDPOINT set would write it. */
-async function withErrorEndpoint(page: Page, pathname: string, endpoint = "/__test/errors") {
-  await page.route(
-    (url) => url.pathname === pathname,
-    async (route) => {
-      if (route.request().resourceType() !== "document") return route.fallback();
-      const res = await route.fetch();
-      // where the server writes the key when PUBLIC_ERROR_ENDPOINT is set (src/lib/config.ts), so the hydrating client's config script matches
-      const html = (await res.text()).replace(/(window\.__SEFARIA_CONFIG__=\{.*?"labs":\[[^\]]*\],)/, `$1"errorEndpoint":${JSON.stringify(endpoint)},`);
-      await route.fulfill({ response: res, body: html });
-    },
-  );
-}
+/**
+ * The second dev server (AUTH_BASE_URL) reports browser errors to this path, as a deployment with PUBLIC_ERROR_ENDPOINT does
+ * (playwright.config.ts); the main server has no endpoint.
+ */
+const ERROR_ENDPOINT = "/__e2e/errors";
 
 /** Every error beacon the page sends (intercepted: nothing leaves the browser). */
-async function captureBeacons(page: Page, endpoint = "/__test/errors") {
+async function captureBeacons(page: Page, endpoint = ERROR_ENDPOINT) {
   const beacons: Record<string, unknown>[] = [];
   await page.route(`**${endpoint}`, async (route) => {
     beacons.push(JSON.parse(route.request().postData() ?? "{}"));
@@ -31,9 +24,8 @@ async function captureBeacons(page: Page, endpoint = "/__test/errors") {
 // @feature ANL-017
 test.describe("browser error reports", () => {
   test("an induced error and an unhandled rejection are beaconed with the agreed fields, without query or text", async ({ page }) => {
-    await withErrorEndpoint(page, "/Genesis.1");
     const beacons = await captureBeacons(page);
-    await open(page, "/Genesis.1?lang=bi&with=Rashi");
+    await open(page, `${AUTH_BASE_URL}/Genesis.1?lang=bi&with=Rashi`);
     await page.evaluate(() => {
       setTimeout(() => {
         throw new Error("induced failure at /search?q=secret-words for reader@example.com");
@@ -71,14 +63,12 @@ test.describe("browser error reports", () => {
       async (route) => {
         if (route.request().resourceType() !== "document") return route.fallback();
         const res = await route.fetch();
-        const html = (await res.text())
-          .replace(/(window\.__SEFARIA_CONFIG__=\{.*?"labs":\[[^\]]*\],)/, `$1"errorEndpoint":"/__test/errors",`)
-          .replace("Browse the Library</span></h1>", "Browse the Librarx</span></h1>");
+        const html = (await res.text()).replace("Browse the Library</span></h1>", "Browse the Librarx</span></h1>");
         await route.fulfill({ response: res, body: html });
       },
     );
     const beacons = await captureBeacons(page);
-    await page.goto("/texts"); // not open(): that helper fails on the hydration error this test causes on purpose
+    await page.goto(`${AUTH_BASE_URL}/texts`); // not open(): that helper fails on the hydration error this test causes on purpose
     await page.waitForSelector("html[data-hydrated='true']");
     await expect.poll(() => beacons.map((b) => b.kind)).toContain("hydration");
     expect(beacons.find((b) => b.kind === "hydration")).toMatchObject({ route: "texts", path: "/texts" });

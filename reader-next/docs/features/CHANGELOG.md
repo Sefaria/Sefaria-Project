@@ -577,3 +577,40 @@ Script: `tools/apply_2026_11_10_f-atlas.py` (rebuild-status.json only; idempoten
 - **RTE-027** The ref torture corpus (`scripts/ref-corpus.mjs`, 63 addresses compared with www.sefaria.org; 43 the same, 20 recorded
   with their reason) and its e2e replay. _Verified_ 2026-11-10.
 - **PLT-016** IndexedDB missing, throwing, hanging, full or evicted: reading works (unit-tested; no WebKit run yet).
+
+## 2026-11-10 — ranges lane (wave 2): long ranges, keys that do not scroll, keyboard and touch selection
+
+### Corrected
+
+- **TXD-070** A range of whole sections longer than what loads with the page (`/Genesis.1-50`) is all blue at once and its address is
+  written by its segments (`/Genesis.1.1-50.26`) in place once its last chapter is known, as on sefaria.org. It kept its address with
+  no blue. _Verified_ 2026-11-10.
+- **TXD-055** Only keys that scroll count as reading on, and a settled scroll ends it: Cmd+C or Shift after selecting a range no
+  longer lets a later reflow drop the range. _Verified_ 2026-11-10 (sefaria.org keeps it).
+- **CAL-002** The Daf Yomi card and `/todays-daf-yomi` land on both amudim written by segments (`/Bekhorot.53a.1-53b.17`), now
+  required by the tests. _Verified_ 2026-11-10 for `/todays-daf-yomi`; sefaria.org's in-app card click shows `/Bekhorot.53a-53b`
+  (one rule here, recorded).
+- **RTE-027** A title with a backslash opens (was a 404): h3 decoded `%5C` in the request URL it shares with srvx; the server entry
+  (`src/server.ts`) hands such a request on with its own URL, in dev and production.
+
+### Added
+
+- **TXD-057** A selection made by keyboard (Shift+arrows) or touch (a long press) makes a range as a mouse one does; one made by
+  script or by find in page does not. A deliberate difference: sefaria.org listens to mouseup only.
+
+## 2026-11-10 — platform lane (wave 2): lighter /api/related, error-beacon receiver, chart and CI carry-overs
+
+### Corrected
+
+- **CON-071** SB-03: the Resources rows ask `/api/related/<section>?with_links=0&sheets=count` (no links; sheets as id + anchors).
+  Genesis 1: 12.4 MB / 1.30 MB gzip → 0.61 MB / 46 KB gzip once the Django change is deployed. Other callers and the Voices
+  host unchanged; Varnish invalidation covers the client's own (percent-encoded) URLs.
+- **RTE-059** The reader pods get `DOMAIN_MODULES`, so the language-domain bounce works in the cluster.
+
+### Added
+
+- **ANL-017** Django receives the browser error beacons at `/api/reader-errors` (Library host; 204; 16 KB; rate limited; one log
+  line); the chart sets `PUBLIC_ERROR_ENDPOINT` and `PUBLIC_ERROR_SAMPLE_RATE` for the reader pods.
+- **ANL-014** Remote config row `feature.client.remote_config_json` gets `webVitals` (off) for admins to turn on.
+- **PLT-031** nginx sends its own `X-Request-Id` to the reader and to Varnish on the reader/optin locations.
+- **RTE-040 / RTE-059** `e2e/routing-pass-through.spec.ts` runs in every e2e suite (a third dev server with pass-through).
