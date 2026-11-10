@@ -6,6 +6,8 @@ what the auth service work must and must not render:
 - Off: no auth-service object, no x-sefaria-* header handling, and no x-sefaria-* nginx log fields.
 - On: the listener strips client-sent x-sefaria-* headers, so a fail-open pass cannot carry a forged tier or project;
   nginx logs the x-sefaria-* fields that ext_authz sets; ext_authz fails open with an explicit timeout.
+- Phase 1 policy, per environment file: mode observe, ext_authz fails open, no rate limiting; the flag-on render hands
+  the auth service container the same mode. A self-test proves the policy check rejects a prod copy set to enforce.
 - Both: the nginx access log records the scrubbed request URI and referer, never the raw ones, and no key header.
 
 Needs helm and PyYAML. Run from the repository root: python3 helm-chart/tests/auth_service_render_test.py
@@ -45,8 +47,8 @@ def check(condition, message):
         failures.append(message)
 
 
-def helm_release(env):
-    with open(ROOT / "envs" / env / "helmrelease.yaml") as f:
+def helm_release(env, path=None):
+    with open(path or ROOT / "envs" / env / "helmrelease.yaml") as f:
         return next(d for d in yaml.safe_load_all(f) if d and d.get("kind") == "HelmRelease")
 
 
@@ -195,8 +197,42 @@ def check_on(env, objects):
     check_log_format_never_logs_a_key(where, log_format, allowed)
 
 
+def policy_problems(release):
+    """What is wrong with this env file's authService values for phase 1 (empty list: nothing)."""
+    auth = release["spec"]["values"]["authService"]
+    problems = []
+    if auth.get("mode") != "observe":
+        problems.append(f"authService.mode is {auth.get('mode')!r}, not 'observe'")
+    if (auth.get("extAuth") or {}).get("failOpen") is not True:
+        problems.append("authService.extAuth.failOpen is not true")
+    if (auth.get("rateLimit") or {}).get("enabled") is not False:
+        problems.append("authService.rateLimit.enabled is not false")
+    return problems
+
+
+def self_test_policy_check():
+    """A temp copy of the prod env file with mode enforce must be rejected, or the policy check proves nothing."""
+    prod = helm_release("prod")
+    prod["spec"]["values"]["authService"]["mode"] = "enforce"
+    with tempfile.NamedTemporaryFile("w", suffix=".yaml") as copy:
+        yaml.safe_dump(prod, copy)
+        copy.flush()
+        mutated = helm_release("prod", copy.name)
+    problems = policy_problems(mutated)
+    check(any("mode" in p for p in problems), "self-test: a prod copy with mode enforce is rejected by the policy check")
+    check(not policy_problems(helm_release("prod")), "self-test: the real prod file passes the same policy check")
+
+
 def check_release_rules(env, release, rendered_on):
     values = release["spec"]["values"]
+    problems = policy_problems(release)
+    check(not problems, f"{env}: phase 1 policy: mode observe, failOpen true, rateLimit off ({'; '.join(problems)})")
+    deployment = find(rendered_on, "Deployment", r"-auth-service$")
+    container_env = {e["name"]: e.get("value") for e in deployment[0]["spec"]["template"]["spec"]["containers"][0]["env"]}
+    check(
+        container_env.get("AUTH_MODE") == "observe",
+        f"{env} on: the auth-service container runs with AUTH_MODE={container_env.get('AUTH_MODE')!r} (want 'observe')",
+    )
     # Phase 1 ships no 429s (D3): prod has no rate-limit backend, and the templates are untested on a cluster.
     check(
         values["authService"].get("rateLimit", {}).get("enabled") is False,
@@ -232,6 +268,7 @@ def main():
         rendered_on = render(release, enabled=True)
         check_on(env, rendered_on)
         check_release_rules(env, release, rendered_on)
+    self_test_policy_check()
     if failures:
         sys.exit(f"{len(failures)} check(s) failed")
 
