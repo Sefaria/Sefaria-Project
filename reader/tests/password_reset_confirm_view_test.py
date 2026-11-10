@@ -34,9 +34,20 @@ from django.utils.http import urlsafe_base64_encode
 INTERNAL_RESET_SESSION_TOKEN = "set-password"
 
 
-@override_settings(ROOT_URLCONF="sefaria.urls_library")
+# The resend's rate limit and proof live in Django's default cache. CI configures a DummyCache (stores nothing), so the tests pin a
+# real in-memory cache, as production has Redis, and clear it before each test so one test's count never limits the next.
+@override_settings(
+    ROOT_URLCONF="sefaria.urls_library",
+    CACHES={
+        "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "password-reset-confirm-test"},
+        "shared": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "password-reset-confirm-test-shared"},
+    },
+)
 class CustomPasswordResetConfirmViewTest(TestCase):
     def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()
         self.user = User.objects.create_user(
             username="reset-confirm@test.com",
             email="reset-confirm@test.com",
