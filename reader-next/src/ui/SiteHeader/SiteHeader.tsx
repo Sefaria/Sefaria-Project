@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FocusEvent as ReactFocusEvent, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { useLibraryHref } from "~/lib/routing/library-href";
 import { bothEvent, gtagEvent, useOnceFullyVisible } from "~/lib/analytics";
 import { DEVELOPERS, HELP, LIBRARY, VOICES, donateHref, interfaceHref } from "~/lib/shell/links";
@@ -86,8 +86,23 @@ function Menu({ icon, label, children, anlFeature, picture, optionsClassName }: 
     byButton.current = false;
     setOpen(o);
   };
+  // Focus that leaves the menu (Tab past its last item, Shift+Tab before its button) closes it (v-a11y N9). The Popover gives focus
+  // back to its button when it closes; this effect runs after the Popover's (a parent's effects run after its children's) and puts it
+  // where the reader was going.
+  const leftTo = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (open || !leftTo.current) return;
+    leftTo.current.focus();
+    leftTo.current = null;
+  }, [open]);
+  const onBlur = (e: ReactFocusEvent<HTMLDivElement>) => {
+    const to = e.relatedTarget;
+    if (!open || !(to instanceof HTMLElement) || e.currentTarget.contains(to)) return;
+    leftTo.current = to;
+    change(false);
+  };
   return (
-    <div className={styles.menuWrap} data-anl-feature_name={anlFeature}>
+    <div className={styles.menuWrap} data-anl-feature_name={anlFeature} onBlur={onBlur}>
       <Popover
         open={open}
         onOpenChange={change}

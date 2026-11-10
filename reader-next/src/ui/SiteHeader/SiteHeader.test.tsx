@@ -62,6 +62,20 @@ describe("SiteHeader", () => {
     expect(within(dialog).getByRole("link", { name: "עברית" })).toHaveAttribute("href", "/interface/hebrew?next=%2FGenesis.1%3Flang%3Dbi");
     expect(within(dialog).getByRole("link", { name: "English" })).toHaveAttribute("aria-current", "true");
   });
+  // v-a11y N9: Tab out of the globe's menu and it closes; focus goes on to where it was going, not back to the button
+  it("the language menu closes when focus leaves it", async () => {
+    render(<SiteHeader next="/" search={STUB_SEARCH} />);
+    const button = screen.getByRole("button", { name: "Toggle Interface Language Menu" });
+    await userEvent.click(button);
+    const dialog = screen.getByRole("dialog", { name: "Toggle Interface Language Menu" });
+    const items = within(dialog).getAllByRole("link");
+    items[items.length - 1]!.focus();
+    await userEvent.tab();
+    expect(screen.queryByRole("dialog", { name: "Toggle Interface Language Menu" })).toBeNull();
+    expect(button).toHaveAttribute("aria-expanded", "false");
+    expect(document.activeElement).not.toBe(button);
+    expect(document.activeElement).not.toBe(document.body);
+  });
   it("the module switcher offers Library, Voices and Developers", async () => {
     render(<SiteHeader next="/" search={STUB_SEARCH} />);
     await userEvent.click(screen.getByRole("button", { name: "Library" }));
