@@ -75,7 +75,9 @@ def from_gh_log(text, job_match="PyTest"):
         if found and ("::" in found.group("id") or found.group("id").endswith(".py")):
             failing.append(found.group("id"))
     if not seen_job:
-        raise Unusable("the log has no lines of a job named like '%s' (did the job run? is it still running?)" % job_match)
+        raise Unusable(
+            "the log has no lines of a job named like '%s' (did the job run? is it still running?)" % job_match
+        )
     if not final:
         raise Unusable(
             "the %s job log has no pytest final summary line ('=== N passed, M failed in Ts ==='): the run crashed, "
@@ -86,7 +88,7 @@ def from_gh_log(text, job_match="PyTest"):
 
 def detect(text):
     head = text.lstrip()[:200]
-    if head.startswith("<?xml") or head.startswith("<testsuite"):
+    if head.startswith(("<?xml", "<testsuite")):
         return "junit"
     if "\t" in text.split("\n", 1)[0] and _GH_LINE.match(text.split("\n", 1)[0]):
         return "gh-log"
