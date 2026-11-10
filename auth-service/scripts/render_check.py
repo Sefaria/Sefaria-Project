@@ -5,6 +5,7 @@ the names, wiring and listener attachments that Envoy Gateway accepts. Pair it w
 must contain none of them (render-check.sh does both per environment).
 
   render_check.py RENDERED.yaml [--dsn-secret auth-service-registry]   exit 0 when every check passes
+  render_check.py RENDERED.yaml --rate-limit                            the render has authService.rateLimit.enabled=true
   render_check.py --off RENDERED.yaml                                   the flag-off render: no auth-service objects
 
 Needs PyYAML only. helm-chart/tests/auth_service_render_test.py checks the header strip, the nginx log fields and the
@@ -26,6 +27,9 @@ SEFARIA_HEADERS = {
     "x-sefaria-key-status",
 }
 AUTH_KINDS = ("SecurityPolicy",)
+# Kinds the chart also renders without the auth service (the client-IP EnvoyExtensionPolicy, the KEDA splash
+# BackendTrafficPolicy): one of them is an auth or rate-limit object only by its name or by x-sefaria-* / auth content.
+SHARED_POLICY_KINDS = ("BackendTrafficPolicy", "EnvoyExtensionPolicy")
 
 failures = []
 
@@ -45,11 +49,22 @@ def objects(docs, kind, name=None):
     return [d for d in docs if d.get("kind") == kind and (name is None or d["metadata"]["name"] == name)]
 
 
+def is_auth_policy(d):
+    """A BackendTrafficPolicy or EnvoyExtensionPolicy that belongs to auth or rate limiting: named for it, or its
+    spec reads an x-sefaria-* header or the auth service."""
+    if d.get("kind") not in SHARED_POLICY_KINDS:
+        return False
+    name = d["metadata"]["name"]
+    spec = yaml.safe_dump(d.get("spec") or {})
+    return "auth" in name or "ratelimit" in name or "x-sefaria-" in spec or "auth-service" in spec
+
+
 def auth_objects(docs):
     return [
         d
         for d in docs
         if d.get("kind") in AUTH_KINDS
+        or is_auth_policy(d)
         or "auth-service" in d["metadata"]["name"]
         or (d.get("kind") == "HTTPRoute" and d["metadata"]["name"].endswith("-http-redirect"))
     ]
@@ -66,7 +81,7 @@ def check_off(docs):
         )
 
 
-def check_on(docs, dsn_secret):
+def check_on(docs, dsn_secret, rate_limit=False):
     gateways = objects(docs, "Gateway")
     check(len(gateways) == 1, f"exactly one Gateway (got {len(gateways)})")
     if not gateways:
@@ -187,6 +202,22 @@ def check_on(docs, dsn_secret):
         annotations = p["metadata"].get("annotations") or {}
         check("cert-manager.io/cluster-issuer" not in annotations, "no cert-manager annotation on the SecurityPolicy")
 
+    # The rate-limit BackendTrafficPolicy exists exactly when authService.rateLimit.enabled is true (the env files ship it
+    # false); any other auth-looking BackendTrafficPolicy or EnvoyExtensionPolicy is unexpected.
+    rl_names = sorted(
+        d["metadata"]["name"] for d in docs if is_auth_policy(d) and d.get("kind") == "BackendTrafficPolicy"
+    )
+    check(
+        rl_names == ([env + "-auth-ratelimit"] if rate_limit else []),
+        "rate limiting {}: auth BackendTrafficPolicies are {} (got {})".format(
+            "on" if rate_limit else "off (no rate-limit BackendTrafficPolicy)",
+            [env + "-auth-ratelimit"] if rate_limit else "none",
+            rl_names or "none",
+        ),
+    )
+    extra = sorted(d["metadata"]["name"] for d in docs if is_auth_policy(d) and d.get("kind") == "EnvoyExtensionPolicy")
+    check(not extra, "no auth-specific EnvoyExtensionPolicy (got {})".format(extra or "none"))
+
     ctps = objects(docs, "ClientTrafficPolicy")
     check(len(ctps) == 1, f"one ClientTrafficPolicy (got {len(ctps)})")
     for ctp in ctps:
@@ -242,13 +273,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("rendered")
     parser.add_argument("--off", action="store_true", help="the render has authService.enabled=false")
+    parser.add_argument("--rate-limit", action="store_true", help="the render has authService.rateLimit.enabled=true")
     parser.add_argument("--dsn-secret", default="auth-service-registry")
     args = parser.parse_args()
     docs = load(args.rendered)
     if args.off:
         check_off(docs)
     else:
-        check_on(docs, args.dsn_secret)
+        check_on(docs, args.dsn_secret, args.rate_limit)
     print(f"{args.rendered}: {len(failures)} failure(s)")
     return 1 if failures else 0
 

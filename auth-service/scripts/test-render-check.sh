@@ -20,6 +20,41 @@ helm template prod "$root/helm-chart/sefaria" -f "$tmp/values.yaml" --set authSe
 "$PY" "$here/render_check.py" --off "$tmp/off.yaml" >/dev/null && echo "ok: the real flag-off render passes" || { echo "FAIL: the real off render fails"; fail=1; }
 "$PY" "$here/render_check.py" --off "$tmp/on.yaml" >/dev/null && { echo "FAIL: --off accepts a flag-on render"; fail=1; } || echo "ok: --off rejects a flag-on render"
 
+# The flag-off render must hold no auth or rate-limit policy of any kind.
+inject() {  # inject LABEL OFF|ON PYTHON-EXPRESSION-ON-docs: add objects to a copy of the real render, expect a failure
+  "$PY" - "$tmp/$2.yaml" "$tmp/bad.yaml" "$3" <<'PY'
+import sys, yaml
+docs = [d for d in yaml.safe_load_all(open(sys.argv[1])) if d]
+exec(sys.argv[3])
+yaml.safe_dump_all(docs, open(sys.argv[2], "w"))
+PY
+  local flag=(); [ "$2" = off ] && flag=(--off)
+  if "$PY" "$here/render_check.py" ${flag[@]+"${flag[@]}"} "$tmp/bad.yaml" >"$tmp/out" 2>&1; then echo "FAIL: not caught: $1"; fail=1; else echo "ok: caught: $1"; fi
+}
+btp='{"apiVersion": "gateway.envoyproxy.io/v1alpha1", "kind": "BackendTrafficPolicy", "metadata": {"name": "production-auth-ratelimit"}, "spec": {}}'
+inject "flag off, a rate-limit BackendTrafficPolicy renders" off "docs.append($btp)"
+inject "flag off, a BackendTrafficPolicy reading x-sefaria-tier renders" off 'docs.append({"kind": "BackendTrafficPolicy", "metadata": {"name": "x"}, "spec": {"rateLimit": {"match": "x-sefaria-tier"}}})'
+inject "flag off, an auth EnvoyExtensionPolicy renders" off 'docs.append({"kind": "EnvoyExtensionPolicy", "metadata": {"name": "production-auth"}, "spec": {}})'
+inject "rate limiting off, a rate-limit BackendTrafficPolicy renders" on "docs.append($btp)"
+"$PY" "$here/render_check.py" --off "$tmp/off.yaml" >/dev/null && echo "ok: the real off render (client-IP EnvoyExtensionPolicy, splash BackendTrafficPolicy) still passes" || { echo "FAIL: shared policies read as auth objects"; fail=1; }
+
+# render-check.sh renders the off-case from the env file as shipped: an env file that ships the flag on, or not as a
+# YAML boolean, must fail it, and a forced --set must not hide that.
+for variant in "true" '"false"'; do
+  rm -rf "$tmp/envs"; mkdir -p "$tmp/envs"; cp -R "$root/envs/prod" "$tmp/envs/prod"
+  "$PY" - "$tmp/envs/prod/helmrelease.yaml" "$variant" <<'PY'
+import re, sys
+text = open(sys.argv[1]).read()
+new, n = re.subn(r"(\n    authService:\n(?:      #[^\n]*\n)*      enabled: )false", r"\g<1>" + sys.argv[2], text, count=1)
+assert n == 1, "authService.enabled not found"
+open(sys.argv[1], "w").write(new)
+PY
+  if ENVS_DIR="$tmp/envs" PY="$PY" bash "$here/render-check.sh" prod >"$tmp/rc.out" 2>&1; then echo "FAIL: render-check.sh passes an env file shipping authService.enabled: $variant"; fail=1
+  else grep -q "does not ship authService.enabled as a YAML false" "$tmp/rc.out" && echo "ok: render-check.sh fails an env file shipping authService.enabled: $variant" || { echo "FAIL: wrong failure for $variant"; cat "$tmp/rc.out"; fail=1; }; fi
+done
+rm -rf "$tmp/envs"; mkdir -p "$tmp/envs"; cp -R "$root/envs/prod" "$tmp/envs/prod"
+ENVS_DIR="$tmp/envs" PY="$PY" bash "$here/render-check.sh" prod >/dev/null 2>&1 && echo "ok: render-check.sh passes the shipped prod env file" || { echo "FAIL: render-check.sh fails the shipped prod env file"; fail=1; }
+
 # mutate LABEL PYTHON-EXPRESSION-ON-docs: applies the edit to a copy of the flag-on render and expects a failure.
 mutate() {
   "$PY" - "$tmp/on.yaml" "$tmp/bad.yaml" "$2" <<'PY'

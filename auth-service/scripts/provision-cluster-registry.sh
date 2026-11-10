@@ -134,18 +134,23 @@ OUT="$OUT_DIR/$SECRET.yaml"
 printf 'probe: x\n' | sops --encrypt --gcp-kms "$KMS" --input-type yaml --output-type yaml /dev/stdin >/dev/null \
   || { echo "refusing: sops cannot encrypt with $KMS (gcloud auth application-default login?)"; exit 1; }
 
-# The password is encrypted into a temporary file next to the output before the role exists, and the role, its
-# setting and every grant are one transaction: a failure at any point leaves neither a role nor a plaintext file.
+# The password is encrypted before the role exists, and the role, its setting and every grant are one transaction: a
+# failure at any point leaves neither a role nor a plaintext file. The plaintext Secret YAML (it holds the reader
+# password) only ever travels through a pipe into sops; the only file written is the ciphertext, mode 0600.
+set +x
 umask 077
 TMP="$(mktemp "$OUT_DIR/.$SECRET.tmp.XXXXXX")"
 # Phase 1, before anything can have been created: an interruption or failure removes the temporary file.
 trap 'rm -f "$TMP"' EXIT
 trap 'rm -f "$TMP"; exit 130' INT TERM HUP
+chmod 600 "$TMP"
 PW=$(openssl rand -hex 24)
-printf 'apiVersion: v1\nkind: Secret\nmetadata:\n  name: %s\n  namespace: %s\ntype: Opaque\nstringData:\n  AUTH_PG_DSN: postgres://%s:%s@postgres-18.%s.svc.cluster.local:5432/%s?sslmode=disable\n' \
-  "$SECRET" "$SECRET_NS" "$ROLE" "$PW" "$PG_NS" "$DB" >"$TMP"
-sops --encrypt --gcp-kms "$KMS" --input-type yaml --output-type yaml --encrypted-regex '^(data|stringData)$' --in-place "$TMP" \
-  || { unset PW; echo "FAIL: sops encryption failed; nothing created, the temporary file is removed"; exit 1; }
+# sops reports on stderr; whatever it says is shown with the password and the DSN masked, never raw.
+SOPS_ERR="$(printf 'apiVersion: v1\nkind: Secret\nmetadata:\n  name: %s\n  namespace: %s\ntype: Opaque\nstringData:\n  AUTH_PG_DSN: postgres://%s:%s@postgres-18.%s.svc.cluster.local:5432/%s?sslmode=disable\n' \
+    "$SECRET" "$SECRET_NS" "$ROLE" "$PW" "$PG_NS" "$DB" \
+  | sops --encrypt --gcp-kms "$KMS" --input-type yaml --output-type yaml --encrypted-regex '^(data|stringData)$' /dev/stdin 2>&1 >"$TMP")" \
+  || { echo "FAIL: sops encryption failed; nothing created, the temporary file is removed"; printf '%s\n' "${SOPS_ERR//"$PW"/***}" | head -5; unset PW SOPS_ERR; exit 1; }
+unset SOPS_ERR
 grep -q '^sops:' "$TMP" && ! grep -qF -f <(printf '%s\n' "$PW") "$TMP" || { unset PW; echo "FAIL: the Secret file is not encrypted; nothing created"; exit 1; }
 # Phase 2, from here until the file is in place: the role may be created (and committed) at any moment, so the encrypted
 # file is the only copy of its password and no signal or exit may delete it. An interruption keeps it and says so.

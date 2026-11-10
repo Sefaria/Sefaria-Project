@@ -228,6 +228,129 @@ class ResetSendLimits(unittest.TestCase):
         self.assertEqual(self.throttle_deletes, [])
 
 
+class ReadPassword(unittest.TestCase):
+    """Every password source gets the same strip and the same minimum length."""
+
+    def test_a_short_preamble_password_is_refused(self):
+        with self.assertRaises(SystemExit):
+            seed.read_password("short")
+
+    def test_a_preamble_password_is_stripped_before_the_length_check(self):
+        with self.assertRaises(SystemExit):
+            seed.read_password("   short-pw   \n")  # 8 characters once stripped
+        self.assertEqual(seed.read_password("  a-long-enough-password \n"), "a-long-enough-password")
+
+    def test_the_file_source_is_checked_the_same_way(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "pw"
+            for text, ok in (("short\n", False), ("  a-long-enough-password\n", True)):
+                path.write_text(text)
+                with mock.patch.dict(os.environ, {"APIKEYS_E2E_PASSWORD_FILE": str(path)}):
+                    if ok:
+                        self.assertEqual(seed.read_password(), "a-long-enough-password")
+                    else:
+                        with self.assertRaises(SystemExit):
+                            seed.read_password()
+
+
+class Leftovers(unittest.TestCase):
+    """leftovers() counts what teardown() deletes: same project selection, same ids, the throttle collection too."""
+
+    def setUp(self):
+        test = self
+        self.calls = []
+
+        class Counted:
+            def __init__(self, label, n):
+                self.label, self.n = label, n
+
+            def count(self):
+                return self.n
+
+        class Manager:
+            def __init__(self, label, n):
+                self.label, self.n = label, n
+
+            def filter(self, *args, **kwargs):
+                test.calls.append((self.label, kwargs))
+                return Counted(self.label, self.n)
+
+        class Collection:
+            def __init__(self, n):
+                self.n = n
+
+            def count_documents(self, query):
+                test.calls.append(("mongo", query))
+                return self.n
+
+        developer = types.SimpleNamespace(THROTTLE_COLLECTION="developer_confirmation_throttle")
+        powered_by = types.ModuleType("powered_by")
+        powered_by.developer = developer
+        models = types.ModuleType("powered_by.models")
+        models.ApiKey = types.SimpleNamespace(objects=Manager("keys", 4))
+        django = types.ModuleType("django")
+        contrib = types.ModuleType("django.contrib")
+        auth = types.ModuleType("django.contrib.auth")
+        auth_models = types.ModuleType("django.contrib.auth.models")
+        auth_models.User = types.SimpleNamespace(objects=Manager("users", 3))
+        patcher = mock.patch.dict(
+            sys.modules,
+            {
+                "powered_by": powered_by,
+                "powered_by.developer": developer,
+                "powered_by.models": models,
+                "django": django,
+                "django.contrib": contrib,
+                "django.contrib.auth": auth,
+                "django.contrib.auth.models": auth_models,
+            },
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        mapping = {"profiles": Collection(1), "apikeys": Collection(2), developer.THROTTLE_COLLECTION: Collection(5)}
+
+        class DB(dict):
+            profiles = mapping["profiles"]
+            apikeys = mapping["apikeys"]
+
+        patch_db = mock.patch.object(seed, "_legacy_db", return_value=DB(mapping))
+        patch_db.start()
+        self.addCleanup(patch_db.stop)
+        self.selected = []
+
+        class Projects:
+            def count(inner):
+                return 7
+
+        def fake_fixture_projects(include_sentinel=False, base=None):
+            self.selected.append((include_sentinel, base))
+            return Projects()
+
+        patch_sel = mock.patch.object(seed, "_fixture_projects", side_effect=fake_fixture_projects)
+        patch_sel.start()
+        self.addCleanup(patch_sel.stop)
+
+    def test_it_uses_the_teardown_project_selection_with_the_same_arguments(self):
+        seed.leftovers(True, None)
+        seed.leftovers(False, None)
+        self.assertEqual(self.selected, [(True, None), (False, None)])
+
+    def test_it_counts_the_throttle_collection_for_fixture_uids(self):
+        counts = seed.leftovers()
+        self.assertEqual(counts["throttle"], 5)
+        ids = seed.fixture_ids()
+        self.assertIn(("mongo", {"uid": {"$in": ids}}), self.calls)
+        self.assertEqual(counts["projects"], 7)
+
+    def test_the_sentinel_account_is_only_counted_when_asked(self):
+        sentinel = seed.account_id(seed.SENTINEL[0])
+        self.assertNotIn(sentinel, seed.fixture_ids(False))
+        self.assertIn(sentinel, seed.fixture_ids(True))
+        seed.leftovers(False)
+        users_kwargs = [kw for label, kw in self.calls if label == "users"]
+        self.assertTrue(users_kwargs and sentinel not in users_kwargs[0]["id__in"])
+
+
 class ManifestMode(unittest.TestCase):
     def test_rewritten_file_ends_0600(self):
         with tempfile.TemporaryDirectory() as d:

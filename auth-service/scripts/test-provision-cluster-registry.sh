@@ -31,19 +31,29 @@ CREATE TRIGGER apikeys_notify_c AFTER UPDATE ON api_project FOR EACH STATEMENT E
 CREATE TRIGGER apikeys_notify_d AFTER UPDATE ON api_tier FOR EACH STATEMENT EXECUTE FUNCTION apikeys_notify();
 SQL
 
-# fake sops (no `sed -i`: its argument differs between GNU and BSD sed): the probe passes; --in-place replaces stringData values and appends a sops: block, like the real one.
+# fake sops: the probe passes. The real encryption must read the Secret YAML on stdin (never a file: --in-place is
+# refused), and writes the ciphertext to stdout, replacing the DSN value and appending a sops: block, like the real one.
+# While it runs it records what a plaintext leak would look like: the password it was handed (to SOPS_SEEN, outside
+# OUT_DIR), whether any file under OUT_DIR already contains it, and whether the output file is not mode 0600.
 mkdir -p "$tmp/bin" "$tmp/out"
 cat >"$tmp/bin/sops" <<'FAKE'
 #!/usr/bin/env bash
-[ "${FAKE_SOPS_FAIL:-}" = 1 ] && exit 1
-for a in "$@"; do f=$a; done
-case " $* " in
-  *" --in-place "*) [ -n "${FAKE_SOPS_SLEEP:-}" ] && sleep "$FAKE_SOPS_SLEEP"; sed -E 's/^(  AUTH_PG_DSN: ).*/\1ENC[AES256_GCM,data:fake,type:str]/' "$f" >"$f.sed" && mv "$f.sed" "$f"; printf 'sops:\n  version: fake\n' >>"$f" ;;
-  *) cat >/dev/null ;;
-esac
+case " $* " in *" --encrypted-regex "*) ;; *) cat >/dev/null; [ "${FAKE_SOPS_FAIL:-}" = 1 ] && exit 1; exit 0 ;; esac
+case " $* " in *" --in-place "*) echo "fake sops: --in-place would need the plaintext on disk" >&2; exit 3 ;; esac
+[ "${!#}" = /dev/stdin ] || { echo "fake sops: the input must be /dev/stdin" >&2; exit 3; }
+in=$(cat)
+if [ "${FAKE_SOPS_FAIL_ENCRYPT:-}" = 1 ]; then printf 'sops error, input was:\n%s\n' "$in" >&2; exit 1; fi
+pw=$(printf '%s\n' "$in" | sed -n 's|.*postgres://[^:]*:\([^@]*\)@.*|\1|p')
+printf '%s\n' "$pw" >"$SOPS_SEEN"
+[ -n "$pw" ] && grep -rlF -- "$pw" "$OUT_DIR" >>"$SOPS_SEEN.leak" 2>/dev/null
+find "$OUT_DIR" -maxdepth 1 -name '.auth-service-registry.tmp.*' ! -perm 600 >>"$SOPS_SEEN.mode" 2>/dev/null
+[ -n "${FAKE_SOPS_SLEEP:-}" ] && sleep "$FAKE_SOPS_SLEEP"
+printf '%s\n' "$in" | sed -E 's/^(  AUTH_PG_DSN: ).*/\1ENC[AES256_GCM,data:fake,type:str]/'
+printf 'sops:\n  version: fake\n'
 FAKE
 chmod +x "$tmp/bin/sops"
-run() { PATH="$tmp/bin:$PATH" PG_EXEC="docker exec -i $name" OUT_DIR="$tmp/out" KMS=projects/x/locations/global/keyRings/k/cryptoKeys/k \
+export SOPS_SEEN="$tmp/seen-pw"
+run() { PATH="$tmp/bin:$PATH" OUT_DIR="$tmp/out" SOPS_SEEN="$SOPS_SEEN" PG_EXEC="docker exec -i $name" OUT_DIR="$tmp/out" KMS=projects/x/locations/global/keyRings/k/cryptoKeys/k \
   SECRET_NS="${SECRET_NS:-default}" bash "$here/provision-cluster-registry.sh" "$@" >"$tmp/log" 2>&1; }
 
 run --verify && bad "--verify passes before the role exists" || ok "--verify fails before the role exists"
@@ -57,6 +67,14 @@ run && bad "create succeeded with a missing column" || ok "create fails when a g
 psql_ -d sefaria_auth -c "ALTER TABLE powered_by_apikey RENAME COLUMN label_gone TO label"
 FAKE_SOPS_FAIL=1 run && bad "create ran with a broken sops" || ok "create refuses when sops cannot encrypt"
 [ "$(psql_ -c "SELECT count(*) FROM pg_roles WHERE rolname = 'auth_service_reader'")" = 0 ] && ok "no role is left behind after a sops failure" || bad "a role was created despite the sops failure"
+# A failure of the real encryption step (the probe passed): no file, no role, and the output never shows the password or the DSN even
+# when sops echoes its input on stderr.
+FAKE_SOPS_FAIL_ENCRYPT=1 run && bad "create ran with a failing encryption" || ok "create refuses when the encryption step fails"
+[ -z "$(ls -A "$tmp/out")" ] && ok "a failed encryption leaves no file in OUT_DIR (no plaintext, no temporary file)" || bad "files left after a failed encryption: $(ls -A "$tmp/out")"
+[ "$(psql_ -c "SELECT count(*) FROM pg_roles WHERE rolname = 'auth_service_reader'")" = 0 ] && ok "no role after a failed encryption" || bad "a role was created despite the failed encryption"
+fpw="$(cat "$SOPS_SEEN" 2>/dev/null)"
+[ -z "$fpw" ] || { grep -qF -- "$fpw" "$tmp/log" && bad "the sops error output shows the password" || ok "the sops error output is masked (no password)"; }
+grep -q 'postgres://[^:]*:[^*]' "$tmp/log" && bad "the failure output shows the DSN with its password" || ok "no DSN with a password in the failure output"
 # An interruption (INT/TERM, as Ctrl-C sends to the whole foreground group) in the two phases of create:
 #  - before the role can exist (the encryption step): the temporary file is removed and no role exists;
 #  - while the role is being created (the SQL has been sent and its answer is pending): the encrypted file is the only copy
@@ -110,6 +128,14 @@ grep -q 'verify: PASS' "$tmp/log" && ok "create ends with a passing verify" || b
 grep -q '^sops:' "$tmp/out/auth-service-registry.yaml" && ok "the Secret file is encrypted" || bad "Secret file not encrypted"
 grep -q 'namespace: preprod' "$tmp/out/auth-service-registry.yaml" && ok "the Secret is for namespace preprod" || bad "Secret namespace"
 grep -qE 'postgres://|[0-9a-f]{48}' "$tmp/out/auth-service-registry.yaml" "$tmp/log" && bad "the password or DSN appears in clear" || ok "no password or DSN in clear in the file or the output"
+# No plaintext on disk: the fake sops saw the password on stdin, and at no point did a file under OUT_DIR hold it, the
+# temporary output file was always mode 0600, and nothing under the test directory holds it after the run.
+pw="$(cat "$SOPS_SEEN")"
+[ "${#pw}" = 48 ] && ok "the encryption step received the Secret on stdin" || bad "sops was not given the Secret on stdin (saw '${#pw}' chars)"
+[ ! -s "$SOPS_SEEN.leak" ] && ok "no file under OUT_DIR ever held the plaintext password while sops ran" || bad "plaintext password on disk in OUT_DIR: $(cat "$SOPS_SEEN.leak")"
+[ ! -s "$SOPS_SEEN.mode" ] && ok "the temporary output file was mode 0600" || bad "the temporary file was not mode 0600: $(cat "$SOPS_SEEN.mode")"
+! grep -rqF --exclude='seen-pw*' --exclude=slowpg -- "$pw" "$tmp" 2>/dev/null && ok "no file anywhere under the test directory contains the password" || bad "the password is on disk: $(grep -rlF --exclude='seen-pw*' -- "$pw" "$tmp")"
+[ "$(stat -c %a "$tmp/out/auth-service-registry.yaml" 2>/dev/null || stat -f %Lp "$tmp/out/auth-service-registry.yaml")" = 600 ] && ok "the Secret file is mode 0600" || bad "the Secret file is not mode 0600"
 run && bad "a second create ran" || ok "a second create refuses (the file exists)"
 rm -f "$tmp/out/auth-service-registry.yaml"
 run && bad "a create ran with an existing role" || ok "a create refuses when the role exists"
