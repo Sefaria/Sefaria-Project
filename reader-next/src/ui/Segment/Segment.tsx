@@ -2,6 +2,7 @@ import { memo, type KeyboardEvent, type MouseEvent } from "react";
 import type { VocalizationMode } from "@vendor/sefaria-toolkit/text-transform/index";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { linkDotOpacity, numberLang, segmentNumber, visibleSides } from "~/lib/reader/labels";
+import { isFullSegmentImage } from "~/lib/text/prepare";
 import type { ContentLanguage } from "~/lib/reader/settings";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { SegmentText, type SegmentTextProps } from "../SegmentText/SegmentText";
@@ -79,6 +80,10 @@ function SegmentImpl({
       : onlyDir === "rtl" ? "he" : numberLang(language, interfaceLang)
     : numberLang(language, interfaceLang);
 
+  // Both sides are a picture (e.g. a diagram and its translated copy): show one, the translation's (legacy VersionContent); the
+  // source side stays as an empty column so the layout does not change.
+  const oneImage = !!(showPrimary && showTranslation && isFullSegmentImage(primary.html) && isFullSegmentImage(translation.html));
+
   const activate = (e: MouseEvent | KeyboardEvent) => {
     if ((e.target as Element).closest("a, [data-note]")) return;
     // The click that ends a drag-selection is part of selecting words, not of choosing the verse (old TextRange).
@@ -113,7 +118,7 @@ function SegmentImpl({
       }
     >
       {address !== undefined ? (
-        <span className={styles.number} aria-hidden="true" data-number="true">
+        <span className={styles.number} aria-hidden="true" data-number="true" data-lang={numLang}>
           {segmentNumber(address, numLang)}
         </span>
       ) : null}
@@ -130,7 +135,7 @@ function SegmentImpl({
       <p className={styles.body}>
         {showPrimary ? (
           <span className={`${styles.side} ${styles.primary}`} dir={primary.dir} data-side="primary">
-            <SegmentText {...common} stripPunctuation={stripPunctuation && primary.dir === "rtl"} html={primary.html} lang={primary.lang} dir={primary.dir} />
+            {oneImage ? null : <SegmentText {...common} stripPunctuation={stripPunctuation && primary.dir === "rtl"} html={primary.html} lang={primary.lang} dir={primary.dir} />}
           </span>
         ) : null}
         {showTranslation ? (

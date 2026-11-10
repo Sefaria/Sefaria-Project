@@ -8,12 +8,18 @@
  *   footnote marker   → <sup role=button data-note>                    (click toggles the note body)
  *   page overlay      → <span class=page-marker data-value="1a">      (Vilna Pages / Venice Columns)
  *   itag (commentary) → <sup class=itag>label</sup>                    (only while that commentator is filtered)
+ *   image             → <img> inline; a segment that is only an image → <span class=image-in-text><img><span caption>
+ *   category mention  → <a class=category-link href="/texts/<path>">
+ *   plain link        → <a href> (http(s) or a site path; anything else is unwrapped by the sanitiser)
  *
  * @feature TXD-021 Inline citation links in text (refLink)
  * @feature TXD-025 Footnotes toggle inline
  * @feature TXD-051 Poetry line formatting
  * @feature TXD-027 Inline commentary markers (itags)
  * @feature TXD-028 TXT-008 Page-transition overlay markers (Vilna / Venice)
+ * @feature TXD-026 Inline images in text
+ * @feature TXD-023 Inline category links in text
+ * @feature TXD-020 Allowed inline HTML in stored text
  */
 import { type ChildNode, type Element, isTag, isText } from "domhandler";
 import { parseHtml, serializeNodes } from "@vendor/sefaria-toolkit/text-transform/html";
@@ -25,7 +31,6 @@ import {
 import { refToUrl } from "~/lib/ref/url";
 import { encodeHebrewNumeral } from "~/lib/ref/hebrew-numerals";
 import { repairHtml } from "~/lib/html/repair";
-import { SITE_ORIGIN } from "~/lib/config";
 
 /**
  * Talmud punctuation removal (Hebrew side only, when the reader turns punctuation off).
@@ -44,6 +49,12 @@ export interface PrepareOptions {
   lang?: string;
   /** href for a citation. Default: Sefaria's canonical path. */
   refHref?: (ref: string) => string;
+  /** href for a plain site path in the text ("/Genesis.1.1"). Default: as written; pass libraryHref's on another host. */
+  siteHref?: (path: string) => string;
+  /** href for a category mention's library page. Default: /texts/<path>. */
+  categoryHref?: (path: string) => string;
+  /** href for a named entity's topic page. Default: /topics/<slug> (this client's page; pass libraryHref's on another host). */
+  topicHref?: (slug: string) => string;
   /** Show itag superscripts for this commentator (exact `data-commentator` name). */
   itagCommentator?: string;
 }
@@ -58,10 +69,17 @@ export interface PreparedNote {
 
 export interface PreparedSegment {
   html: string;
+  /** The segment is only an image (rendered with its caption; legacy VersionImageSpan). */
+  fullImage: boolean;
   notes: PreparedNote[];
 }
 
 const defaultRefHref = (ref: string) => `/${refToUrl(ref)}`;
+const defaultTopicHref = (slug: string) => `/topics/${slug}`;
+const defaultCategoryHref = (path: string) => `/texts/${path}`;
+
+/** A segment that is exactly one <img> (legacy Sefaria.isFullSegmentImage): shown as a captioned image, not inline. */
+export const isFullSegmentImage = (raw: string | null | undefined): boolean => !!raw && /^\s*<img\b[^>]*>\s*$/i.test(raw);
 
 function walk(nodes: ChildNode[], visit: (el: Element) => void): void {
   for (const n of nodes) {
@@ -96,6 +114,7 @@ export function prepareSegmentHtml(raw: string, opts: PrepareOptions = {}): Prep
     body = applyVocalizationToHtml(body, opts.vocalization);
   }
   const refHref = opts.refHref ?? defaultRefHref;
+  const full = isFullSegmentImage(raw);
   const nodes = parseHtml(body);
   const used = new Set<number>();
 
@@ -107,9 +126,9 @@ export function prepareSegmentHtml(raw: string, opts: PrepareOptions = {}): Prep
       a.class = "ref-link";
     } else if (el.name === "span" && a["data-sefaria-slug"]) {
       el.name = "a";
-      // the topic page is the library's until this client has topic pages; a plain click opens the sidebar instead
+      // a plain click opens the sidebar instead; the href is the topic page (new tab, crawlers)
       a["data-slug"] = a["data-sefaria-slug"];
-      a.href = `${SITE_ORIGIN}/topics/${a["data-sefaria-slug"]}`;
+      a.href = (opts.topicHref ?? defaultTopicHref)(a["data-sefaria-slug"]);
       a.class = "entity-link";
     } else if (el.name === "span" && a["data-sefaria-note"] !== undefined) {
       const key = Number(a["data-sefaria-note"]);
@@ -137,6 +156,40 @@ export function prepareSegmentHtml(raw: string, opts: PrepareOptions = {}): Prep
         textChild(el, shown);
       }
     }
+    else if (el.name === "span" && a["data-sefaria-image"] !== undefined) {
+      const alt = a["data-sefaria-alt"] ?? "";
+      // no size is known before it loads: lazy below the screen, decoded off the main thread
+      const imgAttribs: Record<string, string> = { src: a["data-sefaria-image"], alt, loading: full ? "eager" : "lazy", decoding: "async" };
+      // the stored size (when given) reserves the image's box before it loads: an image above the reading place must not move it
+      if (a["data-sefaria-width"] && a["data-sefaria-height"]) {
+        imgAttribs.width = a["data-sefaria-width"];
+        imgAttribs.height = a["data-sefaria-height"];
+      }
+      if (full) {
+        // legacy VersionImageSpan: the image, centred, with its alt text as the caption under it
+        el.attribs = { class: "image-in-text" };
+        setChildrenFromHtml(el, '<img><span class="image-in-text-title"></span>');
+        const [img, caption] = el.children as Element[];
+        // the caption says what the alt text says: the image itself is not announced twice (axe image-redundant-alt)
+        img!.attribs = { ...imgAttribs, alt: "" };
+        textChild(caption!, alt);
+      } else {
+        el.name = "img";
+        el.attribs = imgAttribs;
+        el.children = [];
+      }
+    } else if (el.name === "span" && a["data-sefaria-category"]) {
+      const path = a["data-sefaria-category"];
+      el.name = "a";
+      el.attribs = { class: "category-link", href: (opts.categoryHref ?? defaultCategoryHref)(path.split("/").map(encodeURIComponent).join("/")), "data-category-path": path };
+    } else if (el.name === "span" && a["data-sefaria-href"]) {
+      el.name = "a";
+      const raw = a["data-sefaria-href"];
+      const external = /^https?:/i.test(raw);
+      // a site path goes through libraryHref like category and topic links (absolute on a host that does not serve it)
+      el.attribs = { href: external ? raw : (opts.siteHref ?? ((p: string) => p))(raw), class: external ? "external-link" : "site-link" };
+      if (external) el.attribs.rel = "noopener noreferrer";
+    }
     // any other link in the text (a translation's own <a href>) is not a tab stop either: Tab goes verse to verse
     if (el.name === "a") el.attribs.tabindex = "-1";
   });
@@ -145,6 +198,7 @@ export function prepareSegmentHtml(raw: string, opts: PrepareOptions = {}): Prep
 
   return {
     html: serializeNodes(nodes),
+    fullImage: full,
     notes: normalised.notes
       .filter((n) => used.has(n.key))
       .map((n) => ({ key: n.key, markerHtml: n.markerHtml, contentHtml: n.contentHtml })),

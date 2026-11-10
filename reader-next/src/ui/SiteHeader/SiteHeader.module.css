@@ -70,3 +70,6 @@
 .assistantShort { display: none; }
 @media (width <= 1158px) { .assistantLabel { display: none; } .assistantShort { display: inline; } }
 @media (width <= 899px) { .assistantPill { display: none; } }
+
+/* Print (legacy s2-print.css .header): the site header is not printed */
+@media print { .header { display: none !important; } }

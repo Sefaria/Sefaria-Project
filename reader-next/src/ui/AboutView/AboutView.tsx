@@ -10,6 +10,7 @@ import { LoadingState } from "../Feedback/Feedback";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { PanelSectionHeading } from "../ConnectionsPanel/FilterRow";
 import { RelatedTopics } from "../RelatedTopics/RelatedTopics";
+import { Link } from "../Link/Link";
 import { AboutVersionBlock } from "./AboutVersionBlock";
 import styles from "./AboutView.module.css";
 import { SITE_ORIGIN } from "~/lib/config";
@@ -83,7 +84,7 @@ export function AboutView(p: AboutViewProps) {
               <LangText as="div" className={styles.authors} lang={p.lang}>
                 <span className={styles.authorLabel}>{p.lang === "he" ? "מחבר:" : "Author:"}</span>
                 {authors.map((a, i) => (
-                  <span key={a.slug}>{i > 0 ? ", " : ""}<a href={p.authorHref(a.slug)}>{a[p.lang]}</a></span>
+                  <span key={a.slug}>{i > 0 ? ", " : ""}<Link href={p.authorHref(a.slug)}>{a[p.lang]}</Link></span>
                 ))}
               </LangText>
             ) : null}

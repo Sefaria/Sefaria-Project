@@ -27,6 +27,11 @@ describe("UserHistoryPage (the old UserHistoryPanel)", () => {
     expect(screen.getByText("5m")).toBeInTheDocument();
     expect(screen.getByText("In the beginning")).toBeInTheDocument();
   });
+  it("an item's Save button sits between the title and the time stamp (the old SaveLine)", () => {
+    const { container } = render(<TextPassageItem href="/Genesis.1.1" citation={{ en: "Genesis 1:1" }} text={{ en: "x" }} color="red" timeStamp="5m" save={<button type="button">Remove</button>} />);
+    const line = [...container.querySelector("article > div")!.children].map((c) => c.textContent);
+    expect(line).toEqual(["Genesis 1:1", "Remove", "5m"]);
+  });
   it("a note: the citation, the text with links, delete; none yet is the old message", async () => {
     const onDelete = vi.fn();
     const { rerender } = render(<NotesList notes={[<NoteListing key="1" citation="Genesis 1:3" href="/Genesis.1.3?with=Notes" text={"see https://example.com"} onDelete={onDelete} />]} />);

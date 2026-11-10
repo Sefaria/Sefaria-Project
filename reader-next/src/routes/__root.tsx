@@ -48,6 +48,8 @@ import { analyticsHeadScripts, attachDeclarativeAnalytics, saMetadataScript, sea
 import { GARAMOND_FILES, TYPEKIT_CSS } from "~/lib/fonts/typekit";
 import robotoLatin from "@fontsource/roboto/files/roboto-latin-400-normal.woff2?url";
 import heeboHebrewBold from "@fontsource/heebo/files/heebo-hebrew-700-normal.woff2?url";
+// Hebrew verse numbers (and the Hebrew interface) are Heebo 400: on screen at first paint
+import heeboHebrew from "@fontsource/heebo/files/heebo-hebrew-400-normal.woff2?url";
 
 /** Reader settings and interface language from a cookie string (same names as the old site); `diaspora` as decided for this visit. */
 const prefsFromCookies = (header: string, diaspora: boolean, host?: string) => {
@@ -109,7 +111,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       // The faces on screen at first paint, preloaded with the page: a face that arrives later reflows the
       // text under the reader (see TXD-054). Everything else in fonts.css loads on demand.
-      ...[robotoLatin, heeboHebrewBold].map((href) => ({ rel: "preload", href, as: "font", type: "font/woff2", crossOrigin: "anonymous" as const })),
+      ...[robotoLatin, heeboHebrew, heeboHebrewBold].map((href) => ({ rel: "preload", href, as: "font", type: "font/woff2", crossOrigin: "anonymous" as const })),
       // Adobe Garamond Pro (English text) from the old site's own Adobe Fonts kit: its stylesheet, and the files on screen at first paint
       { rel: "preconnect", href: "https://use.typekit.net", crossOrigin: "anonymous" as const },
       ...[GARAMOND_FILES.regular, GARAMOND_FILES.italic, GARAMOND_FILES.bold].map((href) => ({ rel: "preload", href, as: "font", type: "font/woff2", crossOrigin: "anonymous" as const })),

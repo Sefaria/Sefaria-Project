@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { sourcesFor } from "~/lib/user/sheets";
 import { AddToSheetView } from "./AddToSheetView";
+import { GDocAdvert } from "./GDocAdvert";
 
 const base = { citation: { en: "Genesis 1:1", he: "בראשית א׳:א׳" }, citationHref: "/Genesis.1.1", sheetHref: (id: number) => `/sheets/${id}` };
 
@@ -43,5 +44,19 @@ describe("sourcesFor (the versions sent with the source)", () => {
       { refs: ["Philo 1"], "version-en": "A" },
       { refs: ["Philo 1"], "version-en": "B" },
     ]);
+  });
+});
+
+// @feature CON-057 The Google Docs extension promotion (old GDocAdvertBox)
+describe("GDocAdvert", () => {
+  it("links Learn more and Install Now (with the old campaign parameters) and reports the click", async () => {
+    const onInstall = vi.fn((e: Event) => e.preventDefault());
+    render(<AddToSheetView {...base} sheets={[]} onAdd={vi.fn()} onCreate={vi.fn()} footer={<GDocAdvert onInstall={onInstall as never} />} />);
+    expect(screen.getByText(/Add texts directly to your Google Docs/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Learn more" })).toHaveAttribute("href", "https://voices.sefaria.org/sheets/529099?origin=AddToSheetsPromo");
+    const install = screen.getByRole("link", { name: "Install Now" });
+    expect(install.getAttribute("href")).toContain("utm_campaign=AddToSheetPromotion&utm_content=InstallFromAddToSheet");
+    await userEvent.click(install);
+    expect(onInstall).toHaveBeenCalled();
   });
 });

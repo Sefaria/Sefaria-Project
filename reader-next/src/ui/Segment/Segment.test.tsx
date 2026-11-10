@@ -163,3 +163,23 @@ describe("rules found by comparing with sefaria.org (parity run)", () => {
     expect(screen.getByText("3")).toBeInTheDocument();
   });
 });
+
+// @feature TXD-026 Bilingual image rule (legacy VersionContent): both sides a picture → only the translation's is shown
+describe("images", () => {
+  const heImg = { ...he, html: '<img src="https://textimages.sefaria.org/a-he.png" alt="תרשים">' };
+  const enImg = { ...en, html: '<img src="https://textimages.sefaria.org/a-en.png" alt="Diagram">' };
+  it("bilingual with an image on both sides shows the translation's only", () => {
+    const { container } = render(<Segment {...base} primary={heImg} translation={enImg} />);
+    const imgs = [...container.querySelectorAll("img")].map((i) => i.getAttribute("src"));
+    expect(imgs).toEqual(["https://textimages.sefaria.org/a-en.png"]);
+    expect(screen.getByText("Diagram")).toBeInTheDocument(); // the caption
+    expect(container.querySelector('[data-side="primary"]')).toBeEmptyDOMElement(); // the column stays
+  });
+  it("one side alone shows its own image; an image beside text keeps both", () => {
+    const { container: heOnly } = render(<Segment {...base} primary={heImg} translation={enImg} language="hebrew" />);
+    expect(heOnly.querySelector("img")!.getAttribute("src")).toBe("https://textimages.sefaria.org/a-he.png");
+    const { container: mixed } = render(<Segment {...base} primary={heImg} />);
+    expect(mixed.querySelectorAll("img")).toHaveLength(1);
+    expect(screen.getAllByText("When God began to create").length).toBeGreaterThan(0);
+  });
+});

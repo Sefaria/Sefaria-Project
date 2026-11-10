@@ -1,5 +1,5 @@
 import { dirFor } from "~/lib/i18n/direction";
-import type { MouseEvent } from "react";
+import { useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { previewHtml, type TranslationVersion } from "~/lib/versions/translations";
 import { VersionInfo } from "../VersionInfo/VersionInfo";
@@ -80,10 +80,14 @@ export function TranslationsView({ languages, currentTitle, selectHref, onSelect
             return (
               <article key={v.versionTitle} className={styles.version} data-current={current ? "true" : undefined}>
                 {html ? (
-                  <div className={styles.previewBox}>
-                    <div className={styles.preview} lang={l.code} dir={v.direction ?? dirFor(l.code)} data-dir-from={v.direction ? "version" : undefined}>
-                      <SegmentText html={html} lang={l.code} dir={v.direction ?? "ltr"} />
-                    </div>
+                  <TruncatedPreview
+                    dir={v.direction ?? dirFor(l.code)}
+                    preview={(cut) => (
+                      <div className={styles.preview} lang={l.code} dir={v.direction ?? dirFor(l.code)} data-dir-from={v.direction ? "version" : undefined} data-cut={cut || undefined}>
+                        <SegmentText html={html} lang={l.code} dir={v.direction ?? "ltr"} />
+                      </div>
+                    )}
+                  >
                     {/* The whole preview opens it in the sidebar. An overlay link, not a wrapping one: the preview
                         can contain citations and footnotes, and a link inside a link is invalid. */}
                     {previewHref ? (
@@ -99,7 +103,7 @@ export function TranslationsView({ languages, currentTitle, selectHref, onSelect
                         }}
                       />
                     ) : null}
-                  </div>
+                  </TruncatedPreview>
                 ) : null}
                 {/* Select sits beside the disclosure, not inside its summary: a link inside the toggle would be a
                     control nested in a control (the old markup did that). */}
@@ -148,6 +152,43 @@ export function TranslationsView({ languages, currentTitle, selectHref, onSelect
           })}
         </section>
       ))}
+    </div>
+  );
+}
+
+/**
+ * A preview cut after five lines (old VersionBlockHeaderText): when it is longer, a "…" under it shows the rest (the address does not
+ * change). VERIFIED on sefaria.org 2026-11-10 (Genesis 1:1-5, Translations): max-height 110px (5 × 22px); 44 of 47 previews cut; the
+ * "…" an 18px black inline run on the next line; a click shows the whole preview (253px) and removes the "…".
+ *
+ * @feature VER-010
+ */
+function TruncatedPreview({ dir, preview, children }: { dir: string; preview: (cut: boolean) => ReactNode; children?: ReactNode }) {
+  const more = useInterfaceLang() === "hebrew" ? "הצגת הקטע כולו" : "Show the whole passage";
+  const box = useRef<HTMLDivElement>(null);
+  const [whole, setWhole] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  useLayoutEffect(() => {
+    const el = box.current?.firstElementChild as HTMLElement | null;
+    if (!el || whole) return;
+    const measure = () => setOverflows(el.scrollHeight > el.clientHeight + 1);
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [whole]);
+  return (
+    <div className={styles.previewWrap} dir={dir}>
+      <div ref={box} className={styles.previewBox}>
+        {preview(!whole)}
+        {children}
+      </div>
+      {overflows && !whole ? (
+        <button type="button" className={styles.ellipsis} onClick={() => setWhole(true)} aria-label={more} title={more}>
+          …
+        </button>
+      ) : null}
     </div>
   );
 }

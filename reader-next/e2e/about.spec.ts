@@ -32,7 +32,7 @@ test.describe("About this Text (verified against sefaria.org)", () => {
   test("a commentary shows its author", async ({ page }) => {
     await open(page, "/Rashi_on_Genesis.1.1.1?lang=en&with=About");
     await expect(about(page).getByText("Author:")).toBeVisible({ timeout: 20_000 });
-    await expect(about(page).getByRole("link", { name: "Rashi", exact: true })).toHaveAttribute("href", "https://www.sefaria.org/topics/rashi");
+    await expect(about(page).getByRole("link", { name: "Rashi", exact: true })).toHaveAttribute("href", "/topics/rashi");
   });
 
   test("it is one click from Resources, and back", async ({ page }) => {

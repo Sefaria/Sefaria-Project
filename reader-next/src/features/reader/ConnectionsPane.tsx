@@ -1,9 +1,9 @@
 import { useInfiniteQuery, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { tocQueryOptions } from "~/lib/catalog/toc";
 import { filterLinks, linksForRefs, makeIndexLookup, sortLinks, withoutEssays, type RelatedLink } from "~/lib/connections/links";
 import { linksQueryOptions } from "~/lib/connections/queries";
-import { resourceCounts, resourcesQueryOptions } from "~/lib/connections/related";
+import { privateSheetsQueryOptions, resourceCounts, resourcesQueryOptions } from "~/lib/connections/related";
 import { refToUrl } from "~/lib/ref/url";
 import { forgetBeforeEditor, invalidateAfterWrite } from "~/lib/cache/invalidate";
 import { categoryView, essaysFor, linkSummary, topLevelSummary } from "~/lib/connections/summary";
@@ -31,7 +31,7 @@ import { entriesForCategories, lexiconQueryOptions, shouldActivateLookup } from 
 import { useDictionarySearch } from "../shared/useDictionarySearch";
 import { DictionarySearch } from "~/ui/DictionarySearch/DictionarySearch";
 import { LexiconView } from "~/ui/LexiconView/LexiconView";
-import { readerAnalytics, uaEvent } from "~/lib/analytics";
+import { gtagEvent, readerAnalytics, uaEvent } from "~/lib/analytics";
 import { useViewer } from "~/features/auth/viewer";
 import { deleteNote, notesQuery, refsForSave, saveNote } from "~/lib/user/notes";
 import { syncHistory } from "~/lib/user/history";
@@ -66,6 +66,11 @@ import { SidebarSearch } from "~/ui/SidebarSearch/SidebarSearch";
 import { AutocorrectBanner } from "~/ui/SearchPage/SearchPage";
 import { autocorrectQueryOptions, decideAutocorrect, NO_AUTOCORRECT } from "~/lib/search/autocorrect";
 import { useLocation } from "@tanstack/react-router";
+import { useLibraryHref } from "~/lib/routing/library-href";
+import { useSidebarScroll } from "./use-sidebar-scroll";
+import { GDocAdvert } from "~/ui/AddToSheetView/GDocAdvert";
+
+import { IMAGE_NOT_SUPPORTED, anyFullImage, refsHaveImage } from "~/lib/text/sheet-source";
 import { currVersionsOf, sendFeedback } from "~/lib/feedback/feedback";
 import { ShareView } from "~/ui/ShareView/ShareView";
 import type { SignUpKind } from "~/lib/auth/signup-content";
@@ -147,7 +152,7 @@ const textOf = (segs: Segment[], side: "primary" | "translation") => segs.map((s
  *
  * @feature CON-012 @feature CON-019 @feature CON-025 @feature CON-030 @feature CON-032 @feature CON-071
  */
-function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: SignUpKind) => void }) {
+function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: SignUpKind) => void; recentFilters: readonly string[]; onRecentChip: () => void }) {
   const { view, hrefFor, sectionRef, selectedRefs, settings, onNavigate, onOpenText, onClose } = props;
   // signed in: the reader's notes on the selection (the Notes tool and its count in Tools)
   const viewer = useViewer();
@@ -156,6 +161,9 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const notesQ = useQuery(notesQuery(uid, notesRefs));
   const qcNotes = useQueryClient();
   const interfaceLang = useInterfaceLang();
+  // topic pages are this client's (absolute only on a host that does not serve them)
+  const libHref = useLibraryHref();
+  const topicHref = (slug: string) => libHref(`/topics/${slug}`);
   const hebrew = interfaceLang === "hebrew";
   const catalogQ = useQuery(tocQueryOptions());
   const linksQ = useQuery(linksQueryOptions(sectionRef));
@@ -165,6 +173,9 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const [sheetItem, setSheetItem] = useState<LinkedTextItem | null>(null);
   const viewKey = JSON.stringify(view);
   useEffect(() => setSheetItem(null), [viewKey]);
+  // Translation Open's Add to Sheet (VER-013), until the view changes
+  const [translationSheet, setTranslationSheet] = useState(false);
+  useEffect(() => setTranslationSheet(false), [viewKey, props.versionFilter]);
 
   const selected = useMemo(() => (sectionLinks ? linksForRefs(sectionLinks, selectedRefs) : []), [sectionLinks, selectedRefs]);
   const lookup = useMemo(() => makeIndexLookup(catalog, sectionLinks ?? []), [catalog, sectionLinks]);
@@ -244,7 +255,12 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   // The translations of this verse (not of the whole section): Berakhot 2a:1 has 5, the amud 6.
   const verseVersionsQ = useQuery({ ...versionsQueryOptions(selectionRef), enabled: onResources });
   const translations = (verseVersionsQ.data ?? []).filter((v) => !v.isSource).length;
-  const counts = resourcesQ.data && verseVersionsQ.data ? resourceCounts(resourcesQ.data, selectedRefs, { webpages: webQ.data ? webQ.data.length : null, translations }) : undefined;
+  // signed in, the Sheets count includes the reader's own sheets, private ones too (old sheetsTotalCount)
+  const mySheetsQ = useQuery({ ...privateSheetsQueryOptions(uid, sectionRef), enabled: onResources && uid !== null });
+  const counts =
+    resourcesQ.data && verseVersionsQ.data
+      ? resourceCounts(resourcesQ.data, selectedRefs, { webpages: webQ.data ? webQ.data.length : null, translations, mine: uid !== null && mySheetsQ.data ? { uid, sheets: mySheetsQ.data } : undefined })
+      : undefined;
   const sheetsHref = `${hebrew ? "https://chiburim.sefaria.org.il" : VOICES}/sheets-with-ref/${refToUrl(selectionRef)}`;
 
   const onTranslations = view.view === "mode" && view.mode === "Translations";
@@ -373,7 +389,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           topics={topics}
           loading={resourcesQ.isPending}
           refLabel={localizedRef(selectionRef, props.section, hebrew ? "he" : "en")}
-          topicHref={(slug) => `${SITE_ORIGIN}/topics/${slug}`}
+          topicHref={topicHref}
           lang={language === "hebrew" ? "he" : "en"}
           search={
             // moderators only, as the old TopicList (Sefaria.is_moderator = is_staff, which the server checks too)
@@ -415,7 +431,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     const note = entitySourceNote(selectionRef, { en: localizedRef(selectionRef, props.section, "en"), he: localizedRef(selectionRef, props.section, "he") });
     return (
       <ConnectionsPanel label="Dictionaries" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
-        <NamedEntityView answer={entityQ.data} text={props.entity.text} topicHref={(slug) => `${SITE_ORIGIN}/topics/${slug}`} sourceNote={interfaceLang === "hebrew" ? note.he : note.en} />
+        <NamedEntityView answer={entityQ.data} text={props.entity.text} topicHref={topicHref} sourceNote={interfaceLang === "hebrew" ? note.he : note.en} />
       </ConnectionsPanel>
     );
   }
@@ -518,6 +534,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           refs={notesRefs}
           primary={sv(props.section?.primaryVersion)}
           translation={sv(props.section?.translationVersion)}
+          hasImage={refsHaveImage(props.section, notesRefs)}
         />
       </ConnectionsPanel>
     );
@@ -576,8 +593,8 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           category={category}
           lang={language === "hebrew" ? "he" : "en"}
           titleHref={`/${refToUrl(indexTitle)}`}
-          authorHref={(slug) => `${SITE_ORIGIN}/topics/${slug}`}
-          topicHref={(slug) => `${SITE_ORIGIN}/topics/${slug}`}
+          authorHref={topicHref}
+          topicHref={topicHref}
           versions={aboutVersions(available, { translationTitle: props.section?.translationVersion?.versionTitle, sourceTitle: props.currentSourceTitle })}
           order={versionSectionOrder(settings.language)}
           // a dictionary's About names its section, not the entry chosen (master AboutBox, #3730)
@@ -612,6 +629,22 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   if (onTranslationOpen) {
     const wanted = parseVersionKey(props.versionFilter);
     const previewed = translationsQ.data?.find((v) => v.versionTitle === wanted?.title);
+    if (translationSheet && previewed && viewer) {
+      const last = notesRefs.at(-1)!;
+      const citationEn = notesRefs.length === 1 ? notesRefs[0]! : `${notesRefs[0]}-${last.slice(last.lastIndexOf(":") + 1)}`;
+      return (
+        <ConnectionsPanel
+          label="Add to Sheet"
+          back={{ href: hrefFor(view), label: <InterfaceText en={previewed.versionTitle} he={previewed.versionTitleInHebrew || previewed.versionTitle} />, onClick: (e) => (e.preventDefault(), setTranslationSheet(false)) }}
+          lang={shownLang}
+          onLang={props.onLang}
+          onClose={onClose}
+        >
+          {/* the old VersionsTextList's AddToSheet: versions {[language]: this translation} only */}
+          <AddToSheetSection uid={uid} citation={{ en: citationEn, he: citationEn }} citationHref={`/${refToUrl(citationEn)}`} refs={notesRefs} hasImage={refsHaveImage(props.section, notesRefs) || anyFullImage([previewed.text].flat(Infinity).filter((t): t is string => typeof t === "string"))} translation={{ versionTitle: previewed.versionTitle, direction: previewed.direction === "rtl" ? "rtl" : "ltr" }} />
+        </ConnectionsPanel>
+      );
+    }
     return (
       <ConnectionsPanel label="Translation" back={{ href: hrefFor({ view: "mode", mode: "Translations" }), label: <InterfaceText en="Translations" he="תרגומים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
         <TranslationOpenView
@@ -620,6 +653,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           lang={previewed ? bucketLanguage(previewed) : "en"}
           openHref={previewed ? props.translationHref(previewed) : hrefFor({ view: "resources" })}
           onOpen={() => previewed && props.onOpenTranslation(previewed)}
+          onAddToSheet={viewer && previewed ? () => setTranslationSheet(true) : undefined}
         />
       </ConnectionsPanel>
     );
@@ -784,7 +818,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
         onClose={onClose}
       >
         {/* the connected text in its default versions, as the old AddConnectionToSheetButton (versions null) */}
-        <AddToSheetSection uid={uid} citation={{ en: sheetItem.sourceRef, he: sheetItem.sourceHeRef || sheetItem.sourceRef }} citationHref={`/${refToUrl(sheetItem.sourceRef)}`} refs={[sheetItem.sourceRef]} />
+        <AddToSheetSection uid={uid} citation={{ en: sheetItem.sourceRef, he: sheetItem.sourceHeRef || sheetItem.sourceRef }} citationHref={`/${refToUrl(sheetItem.sourceRef)}`} refs={[sheetItem.sourceRef]} hasImage={anyFullImage([sheetItem.primary?.html, sheetItem.translation?.html])} />
       </ConnectionsPanel>
     );
   }
@@ -792,6 +826,22 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   return (
     <ConnectionsPanel label={title.en} back={{ href: link(backView), label: <InterfaceText en={backLabel.en} he={backLabel.he} /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
       <TextList
+        recent={props.recentFilters.map((f) => {
+          // a commentator or book as the links name it (collective title), else a book of the catalog, else a category (upper-case)
+          const fname = f.split("|")[0]!;
+          const named = sectionLinks?.find((l) => l.collectiveTitle.en === fname);
+          const book = named ? undefined : catalog?.books.get(fname);
+          const fcat = named?.category ?? (book ? (book.primary_category ?? book.categories[0]) : undefined) ?? fname;
+          return {
+            key: f,
+            label: named ? { en: named.collectiveTitle.en, he: named.collectiveTitle.he } : book ? { en: fname, he: book.heTitle ?? fname } : categoryLabel(fname, catalog),
+            category: !named && !book,
+            color: categoryColor(fcat === "Quoting Commentary" ? "Commentary" : fcat),
+            href: link({ view: "texts", filter: f }),
+            current: f === filter,
+          };
+        })}
+        onRecent={(href) => (props.onRecentChip(), nav(href))}
         title={title}
         categoryTitle={isCategoryFilter}
         color={categoryColor(category)}
@@ -861,30 +911,69 @@ export function ConnectionsPane(props: ConnectionsPaneProps) {
     setAsked(undefined);
     if (gated) props.onNavigate(props.hrefFor(resources));
   };
+  const root = useRef<HTMLDivElement>(null);
+  useSidebarScroll(root, gated ? resources : props.view);
+  // The filters used in this sidebar, newest first (the old panel's recentFilters: set from the address on load, each new filter put
+  // in front; a recent filter's own link keeps the order: setConnectionsFilter with updateRecent false)
+  const filterNow = props.view.view === "texts" ? props.view.filter : undefined;
+  const [recent, setRecent] = useState<string[]>(filterNow ? [filterNow] : []);
+  const fromChip = useRef(false);
+  useEffect(() => {
+    if (!filterNow) return;
+    const chip = fromChip.current;
+    fromChip.current = false;
+    setRecent((prev) => (chip && prev.includes(filterNow) ? prev : [filterNow, ...prev.filter((f) => f !== filterNow)]));
+  }, [filterNow]);
+  const recentShown = filterNow && !recent.includes(filterNow) ? [filterNow, ...recent] : recent;
   return (
     <>
-      <ConnectionsPaneInner {...props} view={gated ? resources : props.view} onSignUp={setAsked} />
+      {/* display: contents: the panel stays the flex child it was; this only gives the scroll memory its element */}
+      <div ref={root} style={{ display: "contents" }}>
+        <ConnectionsPaneInner {...props} view={gated ? resources : props.view} onSignUp={setAsked} recentFilters={recentShown} onRecentChip={() => (fromChip.current = true)} />
+      </div>
       <SignUpModal kind={kind} onClose={close} next={location.href} />
     </>
   );
 }
 
+const GDOC_CAMPAIGN = "GDocs_Promo_AddToSheet";
+// the old trackSidebarAdImpression / trackSidebarAdClick (Promotions.jsx), the campaign of GDocAdvertBox
+const GDOC_SEEN = () => gtagEvent("promo_viewed", { campaignID: GDOC_CAMPAIGN, adType: "sidebar" });
+
 /** The Add to Sheet tool's data: the reader's sheets, adding, creating (lib/user/sheets.ts). */
-function AddToSheetSection({ uid, citation, citationHref, refs, primary, translation }: { uid: number | null; citation: { en: string; he: string }; citationHref: string; refs: string[]; primary?: SheetVersion; translation?: SheetVersion }) {
+function AddToSheetSection({ uid, citation, citationHref, refs, primary, translation, hasImage }: { uid: number | null; citation: { en: string; he: string }; citationHref: string; refs: string[]; primary?: SheetVersion; translation?: SheetVersion; hasImage?: boolean }) {
+  const he = useInterfaceLang() === "hebrew";
   const qc = useQueryClient();
   const sheets = useQuery(userSheetsQuery(uid));
+  // the Google Docs promotion, until its Install Now was clicked once (gdoc_installed cookie); read after hydration
+  const [gdoc, setGdoc] = useState(false);
+  useEffect(() => setGdoc(!/(?:^|;\s*)gdoc_installed=/.test(document.cookie)), []);
   return (
     <AddToSheetView
       citation={citation}
       citationHref={citationHref}
       sheets={sheets.data}
       sheetHref={(id) => `${VOICES}/sheets/${id}`}
+      footer={
+        gdoc ? (
+          <GDocAdvert
+            onSeen={GDOC_SEEN}
+            onInstall={() => {
+              document.cookie = "gdoc_installed=1; path=/";
+              gtagEvent("promo_clicked", { campaignID: GDOC_CAMPAIGN, adType: "sidebar" });
+            }}
+          />
+        ) : null
+      }
       onCreate={async (title) => {
         const sheet = await createSheet(title);
         qc.setQueryData(userSheetsQuery(uid).queryKey, (list = []) => [sheet, ...list]);
         return sheet;
       }}
       onAdd={async (sheet) => {
+        // the old checkContentForImages, run before every add (the selected verses, a previewed translation, a connected text)
+        if (hasImage) throw new Error(he ? IMAGE_NOT_SUPPORTED.he : IMAGE_NOT_SUPPORTED.en);
+        // the whole verses, whatever words are selected in them (as sefaria.org: owner decision 2026-11-10)
         await addToSheet(sheet.id, sourcesFor(refs, primary, translation));
         uaEvent("Tools", "Add to Source Sheet Save", refs.join("/"));
         // a sheet open in the editor in another tab reloads its sources (the old refresh-editor broadcast)
@@ -895,6 +984,8 @@ function AddToSheetSection({ uid, citation, citationHref, refs, primary, transla
         }
         // the sheet just used moves to the front (updateUserSheets)
         qc.setQueryData(userSheetsQuery(uid).queryKey, (list = []) => [sheet, ...list.filter((s) => s.id !== sheet.id)]);
+        // the Sheets count on Resources includes this sheet now
+        void qc.invalidateQueries({ queryKey: ["user", "related-private", uid] });
       }}
     />
   );

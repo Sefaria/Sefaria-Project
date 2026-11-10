@@ -48,7 +48,9 @@ describe("TranslationsView (Genesis 1:1, recorded)", () => {
   it("each preview is a link that opens it in the sidebar (an overlay: previews may contain links)", async () => {
     const onPreview = vi.fn();
     renderView({ previewHref: (v) => `/Genesis.1.1?vside=${v.versionTitle.replace(/ /g, "_")}|en&with=Translation Open`, onPreview });
-    const link = screen.getByRole("link", { name: "Preview The Koren Jerusalem Bible" });
+    // by its label, not getByRole: computing every accessible name of ~50 previews took over 5 s on a loaded machine
+    const link = screen.getByLabelText("Preview The Koren Jerusalem Bible");
+    expect(link.tagName).toBe("A");
     expect(link).toHaveAttribute("href", "/Genesis.1.1?vside=The_Koren_Jerusalem_Bible|en&with=Translation Open");
     await userEvent.click(link);
     expect(onPreview).toHaveBeenCalledWith(expect.objectContaining({ versionTitle: "The Koren Jerusalem Bible" }), expect.anything());

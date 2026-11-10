@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { AddToSheetView } from "./AddToSheetView";
+import { GDocAdvert } from "./GDocAdvert";
 
 const meta = {
   title: "Connections/AddToSheetView",
@@ -20,3 +21,5 @@ type Story = StoryObj<typeof meta>;
 export const WithSheets: Story = {};
 export const NoSheetsYet: Story = { args: { sheets: [] } };
 export const Loading: Story = { args: { sheets: undefined } };
+/** CON-057: the Google Docs extension promotion under the button (old GDocAdvertBox), until Install Now has been clicked once. */
+export const WithGoogleDocsPromo: Story = { args: { footer: <GDocAdvert /> } };

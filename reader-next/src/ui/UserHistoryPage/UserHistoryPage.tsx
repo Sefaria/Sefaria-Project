@@ -61,16 +61,19 @@ export interface TextPassageItemProps {
   color: string;
   /** The time since (History only). */
   timeStamp?: string;
+  /** The item's Save button (the old SaveLine): after the title, before the time stamp; shown on hover. */
+  save?: ReactNode;
 }
 
 /** A text on the list (the old TextPassage in its StoryFrame): the citation, the time since, then the text with its colour bar. */
-export function TextPassageItem({ href, citation, text, color, timeStamp }: TextPassageItemProps) {
+export function TextPassageItem({ href, citation, text, color, timeStamp, save }: TextPassageItemProps) {
   return (
     <article className={styles.story} data-user-history-item="text">
       <div className={styles.titleLine}>
         <Link href={href} className={styles.storyTitle}>
           <InterfaceText en={citation.en} he={citation.he || citation.en} />
         </Link>
+        {save ? <span className={styles.save}>{save}</span> : null}
         {timeStamp ? <span className={styles.timeStamp}>{timeStamp}</span> : null}
       </div>
       <div className={styles.colorBar} style={{ borderInlineStartColor: color }}>
@@ -89,16 +92,18 @@ export interface SheetItemProps {
   ownerName?: string;
   ownerHref?: string;
   timeStamp?: string;
+  save?: ReactNode;
 }
 
 /** A sheet on the list (the old SheetBlock, small): its title, the time since and its author. */
-export function SheetItem({ href, title, ownerName, ownerHref, timeStamp }: SheetItemProps) {
+export function SheetItem({ href, title, ownerName, ownerHref, timeStamp, save }: SheetItemProps) {
   return (
     <article className={styles.story} data-user-history-item="sheet">
       <div className={styles.titleLine}>
         <Link href={href} className={styles.storyTitle}>
           {title}
         </Link>
+        {save ? <span className={styles.save}>{save}</span> : null}
         {timeStamp ? <span className={styles.timeStamp}>{timeStamp}</span> : null}
       </div>
       {ownerName ? <div className={styles.owner}>{ownerHref ? <Link href={ownerHref}>{ownerName}</Link> : ownerName}</div> : null}

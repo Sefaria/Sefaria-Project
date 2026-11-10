@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type Mo
 import type { VocalizationMode } from "@vendor/sefaria-toolkit/text-transform/index";
 import { highlightTerms } from "~/lib/text/highlight-terms";
 import { prepareSegmentHtml, type PrepareOptions } from "~/lib/text/prepare";
+import { useLibraryHref } from "~/lib/routing/library-href";
 import styles from "./SegmentText.module.css";
 
 export interface SegmentTextProps {
@@ -36,10 +37,11 @@ const isPlainClick = (e: MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlK
  * @feature TXD-020 @feature TXD-021 @feature TXD-025 @feature TXD-027 @feature TXD-028 @feature TXD-051
  */
 export function SegmentText({ html, lang, dir, vocalization, stripPunctuation, itagCommentator, refHref, terms, onRefClick, onEntityClick, className }: SegmentTextProps) {
+  const libHref = useLibraryHref();
   const prepared = useMemo(() => {
-    const p = prepareSegmentHtml(html, { vocalization, stripPunctuation, lang, itagCommentator, refHref });
+    const p = prepareSegmentHtml(html, { vocalization, stripPunctuation, lang, itagCommentator, refHref, topicHref: (slug) => libHref(`/topics/${slug}`), categoryHref: (path) => libHref(`/texts/${path}`), siteHref: libHref });
     return terms?.length ? { ...p, html: highlightTerms(p.html, terms) } : p;
-  }, [html, lang, vocalization, stripPunctuation, itagCommentator, refHref, terms]);
+  }, [html, lang, vocalization, stripPunctuation, itagCommentator, refHref, terms, libHref]);
   const [open, setOpen] = useState<ReadonlySet<number>>(new Set());
 
   const toggle = (key: number) =>
@@ -106,10 +108,11 @@ export function SegmentText({ html, lang, dir, vocalization, stripPunctuation, i
       {openNotes.length > 0 ? (
         <span className={styles.notes} role="note" lang={lang} dir={dir}>
           {openNotes.map((n) => (
-            <p key={n.key}>
+            // a block span, not <p>: the segment's body is a <p> already (<p> in <p> is invalid and React warns on every open note)
+            <span key={n.key} className={styles.note}>
               <span className={styles.noteLabel} dangerouslySetInnerHTML={{ __html: n.markerHtml }} />
               <span dangerouslySetInnerHTML={{ __html: n.contentHtml ?? "" }} />
-            </p>
+            </span>
           ))}
         </span>
       ) : null}

@@ -25,6 +25,9 @@ import { PromoSlot, SidebarFooter, SupportSefaria } from "~/ui/NavSidebar/NavSid
 import { GetTheApp } from "~/ui/NavSidebar/TopicModules";
 import { bookColor } from "~/ui/tokens/category-color";
 import { NoteListing, NotesList, SheetItem, TextPassageItem, UserHistoryList, UserHistoryPage } from "~/ui/UserHistoryPage/UserHistoryPage";
+import { SaveTextButton } from "~/ui/ReaderControls/ReaderControls";
+import { useSaved, type PanelPlace } from "~/features/reader/use-reader-history";
+import type { LegacyVersions } from "~/lib/user/history";
 
 /** The pages' heads (reader/views.py saved_content, user_history_content, notes: get_page_title(<title>, module=library) and desc). */
 export const USER_HISTORY_HEAD: Record<UserHistoryTab, { title: string; description: string }> = {
@@ -112,10 +115,31 @@ function ItemsTab({ tab, lang }: { tab: "saved" | "history"; lang: "en" | "he" }
   );
 }
 
+/** An item's versions as the old currVersions (a version given only as a string has no family: it is not a choice). */
+function itemVersions(item: UserHistoryEntry): LegacyVersions {
+  const one = (v: NonNullable<UserHistoryEntry["versions"]>["en"]) =>
+    v && typeof v === "object" && v.versionTitle ? { versionTitle: v.versionTitle, languageFamilyName: v.languageFamilyName ?? "" } : null;
+  return { en: one(item.versions?.en), he: one(item.versions?.he) };
+}
+
+/**
+ * Each item's bookmark (the old SaveLine's SaveButton): filled while the item is saved; a click removes or saves it again. The item
+ * stays on the list until the page is reloaded, as on sefaria.org.
+ *
+ * @feature USL-008 @feature USL-011
+ */
+export function ItemSave({ item, label }: { item: UserHistoryEntry; label: string }) {
+  const viewer = useViewer();
+  const place: PanelPlace = { ref: item.ref, versions: item.is_sheet ? { en: null, he: null } : itemVersions(item), book: item.book ?? "", language: "bilingual" };
+  const save = useSaved(viewer, place, () => undefined);
+  return <SaveTextButton saved={save.isSaved} label={save.isSaved ? `Remove "${label}"` : `Save "${label}"`} onClick={save.click} />;
+}
+
 function renderItem(item: UserHistoryEntry, key: string, tab: "saved" | "history", lang: "en" | "he", books: ReadonlyMap<string, { primary_category?: string; categories: string[] }> | undefined) {
   const timeStamp = tab === "history" && item.time_stamp ? naturalTimeShort(item.time_stamp, lang) : undefined;
   if (item.is_sheet) {
-    return <SheetItem key={key} href={`/sheets/${item.sheet_id}`} title={item.title ?? item.ref} ownerName={item.ownerName} ownerHref={item.ownerProfileUrl} timeStamp={timeStamp} />;
+    const title = item.title ?? item.ref;
+    return <SheetItem key={key} href={`/sheets/${item.sheet_id}`} title={title} ownerName={item.ownerName} ownerHref={item.ownerProfileUrl} timeStamp={timeStamp} save={<ItemSave item={item} label={title.replace(/<[^>]*>/g, "")} />} />;
   }
   if (!item.text) return null;
   return (
@@ -126,6 +150,7 @@ function renderItem(item: UserHistoryEntry, key: string, tab: "saved" | "history
       text={{ en: item.text.en ? sanitizeHtml(item.text.en) : undefined, he: item.text.he ? sanitizeHtml(item.text.he) : undefined }}
       color={bookColor(item.book ? books?.get(item.book) : undefined)}
       timeStamp={timeStamp}
+      save={<ItemSave item={item} label={lang === "he" && item.he_ref ? item.he_ref : item.ref} />}
     />
   );
 }

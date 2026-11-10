@@ -80,3 +80,28 @@ describe("normaliseTexts across book types", () => {
     expect(new Set(p.segments.map((s) => s.ref)).size).toBe(p.segments.length);
   });
 });
+
+// @feature TXD-010 Zohar's paragraphs run on from section to section (index_offsets_by_depth; old makeSegments, T-G05)
+describe("numbering offsets", () => {
+  const zohar = (over: Partial<RawTextsResponse>): RawTextsResponse =>
+    ({
+      ref: "Zohar, Bereshit 2", heRef: "", sectionRef: "Zohar, Bereshit 2", heSectionRef: "", book: "Zohar, Bereshit", indexTitle: "Zohar", heIndexTitle: "", categories: ["Kabbalah", "Zohar"],
+      primary_category: "Kabbalah", isComplex: true, isDependant: false, isSpanning: false, textDepth: 2, sectionNames: ["Chapter", "Paragraph"], addressTypes: ["Integer", "Integer"],
+      sections: ["2"], toSections: ["2"], next: null, prev: null,
+      versions: [{ text: ["a", "b", "c"], isPrimary: true, isSource: true, direction: "rtl", language: "he", versionTitle: "v", languageFamilyName: "hebrew" }],
+      index_offsets_by_depth: { "2": [2] },
+      ...over,
+    }) as unknown as RawTextsResponse;
+  it("a section starts after its offset (VERIFIED on sefaria.org 2026-11-10: Zohar, Bereshit 2 opens at 2:3)", () => {
+    expect(normaliseTexts(zohar({})).segments.map((s) => s.ref)).toEqual(["Zohar, Bereshit 2:3", "Zohar, Bereshit 2:4", "Zohar, Bereshit 2:5"]);
+  });
+  it("a requested paragraph keeps its own number; a range across sections takes each section's offset", () => {
+    expect(normaliseTexts(zohar({ ref: "Zohar, Bereshit 2:4-5", sections: ["2", "4"], toSections: ["2", "5"], versions: [{ text: ["b", "c"], isPrimary: true, isSource: true, direction: "rtl", language: "he", versionTitle: "v", languageFamilyName: "hebrew" }] as never })).segments.map((s) => s.ref)).toEqual(["Zohar, Bereshit 2:4", "Zohar, Bereshit 2:5"]);
+    const range = zohar({ ref: "Zohar, Bereshit 2:5-3:15", sections: ["2", "5"], toSections: ["3", "15"], isSpanning: true, index_offsets_by_depth: { "2": [2, 13] }, versions: [{ text: [["c"], ["d", "e"]], isPrimary: true, isSource: true, direction: "rtl", language: "he", versionTitle: "v", languageFamilyName: "hebrew" }] as never });
+    expect(normaliseTexts(range).segments.map((s) => s.ref)).toEqual(["Zohar, Bereshit 2:5", "Zohar, Bereshit 3:14", "Zohar, Bereshit 3:15"]);
+  });
+  it("no offsets (or all zero): numbering from 1, as before", () => {
+    expect(normaliseTexts(zohar({ index_offsets_by_depth: { "2": [0] } })).segments[0]!.ref).toBe("Zohar, Bereshit 2:1");
+    expect(normaliseTexts(zohar({ index_offsets_by_depth: undefined })).segments[0]!.ref).toBe("Zohar, Bereshit 2:1");
+  });
+});

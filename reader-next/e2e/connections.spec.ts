@@ -215,10 +215,12 @@ test("clicking a name in the text opens who or what it is in the sidebar; anothe
   await open(page, "/Berakhot.2a?lang=en");
   const link = page.locator('[role="group"] a[data-slug="rabbi-eliezer-b-hyrcanus"]').first();
   await expect(link).toBeVisible({ timeout: 25_000 });
+  // the topic page is this client's: a relative address (absolute only on a host that does not serve it)
+  await expect(link).toHaveAttribute("href", "/topics/rabbi-eliezer-b-hyrcanus");
   await link.click();
   await expect(page).toHaveURL(/namedEntity=rabbi-eliezer-b-hyrcanus.*with=Lexicon|with=Lexicon.*namedEntity=rabbi-eliezer-b-hyrcanus/);
   const side = page.getByRole("complementary");
-  await expect(side.getByRole("link", { name: "Rabbi Eliezer b. Hyrcanus" })).toHaveAttribute("href", "https://www.sefaria.org/topics/rabbi-eliezer-b-hyrcanus");
+  await expect(side.getByRole("link", { name: "Rabbi Eliezer b. Hyrcanus" })).toHaveAttribute("href", "/topics/rabbi-eliezer-b-hyrcanus");
   await expect(side).toContainText("Tannaim - Third Generation");
   await expect(side).toContainText("rabbinic sage");
   // (inline segments overlap in running text, so choose the verse with the keyboard)

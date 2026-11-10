@@ -16,16 +16,18 @@ export interface TranslationOpenViewProps {
   /** The reader with the passage in this translation (a real link). */
   openHref: string;
   onOpen?: (e: MouseEvent) => void;
+  /** Signed in: "Add to Sheet" beside Open, which adds the passage in this translation to a sheet. */
+  onAddToSheet?: () => void;
 }
 
 /**
  * One translation, previewed in the sidebar: its name, the selected passage in only that translation, and an
- * Open link that shows the passage in the main panel in that translation. ("Add to Sheet", next to Open on the
- * old site, needs sign-in and arrives with the signed-in tools.)
+ * Open link that shows the passage in the main panel in that translation; signed in, Add to Sheet beside it (the old
+ * VersionsTextList: the source carries only this version).
  *
  * @feature VER-013 Translation Open sub-mode
  */
-export function TranslationOpenView({ version, lang, loading, openHref, onOpen }: TranslationOpenViewProps) {
+export function TranslationOpenView({ version, lang, loading, openHref, onOpen, onAddToSheet }: TranslationOpenViewProps) {
   if (loading) return <LoadingState />;
   if (!version) {
     return (
@@ -55,6 +57,12 @@ export function TranslationOpenView({ version, lang, loading, openHref, onOpen }
           <Icon name="external-link" size="1em" />
           <InterfaceText en="Open" he="פתח" />
         </Link>
+        {onAddToSheet ? (
+          <button type="button" className={styles.open} onClick={onAddToSheet}>
+            <Icon name="circle-plus" size="1em" />
+            <InterfaceText en="Add to Sheet" he="הוספה לדף מקורות" />
+          </button>
+        ) : null}
       </div>
     </div>
   );

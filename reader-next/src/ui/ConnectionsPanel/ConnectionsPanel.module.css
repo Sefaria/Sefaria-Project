@@ -17,3 +17,9 @@
    letter-spacing 1px; the chevron #6f6f6f, 10px before the word) */
 .back { gap: 10px; font-size: 16px; font-weight: 100; letter-spacing: 1px; color: var(--sefaria-color-text-dark-grey); }
 .back > :first-child { color: var(--sefaria-color-text-muted); }
+/* Phone (one panel): a header with a title and no back link (Resources) centres it. VERIFIED on sefaria.org 2026-11-10 (Pixel 7,
+   English and Hebrew interface): .connectionsPanelHeader justify-content: center on Resources, flex-start elsewhere (CON-002). */
+@media (max-width: 842px) { .headerTitle { text-align: center; } }
+
+/* Print (legacy s2-print.css .connectionsPanel, .connectionsHeader): the sidebar is not printed */
+@media print { .panel { display: none !important; } }

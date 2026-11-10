@@ -194,8 +194,11 @@ const MAM_VALUES = new Map([
 /**
  * Converts untrusted Sefaria text markup into safe, directly renderable HTML.
  *
- * The operation parses once, removes unsupported attributes, emits no URLs,
- * and extracts footnotes into result-local records. Options can narrow but
+ * The operation parses once, removes unsupported attributes, emits no
+ * executable URLs, and extracts footnotes into result-local records.
+ * (SEFARIA-READER EXTENSION: upstream emits no URLs at all; this copy keeps
+ * vetted http(s)/data:image image sources and http(s)/site-relative link
+ * addresses as data-sefaria-image / data-sefaria-href values — see below.) Options can narrow but
  * never widen the fixed output grammar.
  *
  * @remarks
@@ -419,6 +422,24 @@ function classifyElement(
     return { kind: "remove" };
   }
   if (name === "img") {
+    // SEFARIA-READER EXTENSION: keep an image whose source is an http(s) address, as an empty marker span the reader turns into an
+    // <img> (TXD-026: full-segment images with their caption, inline images). Upstream keeps only the alt text. Any other source
+    // (javascript:, relative, a data: URI that is not a base64 raster/svg image) still becomes the alt text.
+    const src = (element.attribs.src ?? "").trim();
+    if (/^https?:\/\/[^\s"'<>]+$/i.test(src) || /^data:image\/(?:png|jpe?g|gif|webp|svg\+xml);base64,[a-z0-9+/=\s]+$/i.test(src)) {
+      return {
+        kind: "element",
+        name: "span",
+        attributes: {
+          "data-sefaria-image": src,
+          "data-sefaria-alt": element.attribs.alt ?? "",
+          // its size, when the markup gives one, so the reader reserves the space before it loads
+          ...(/^\d{1,5}$/.test(element.attribs.width ?? "") ? { "data-sefaria-width": element.attribs.width! } : {}),
+          ...(/^\d{1,5}$/.test(element.attribs.height ?? "") ? { "data-sefaria-height": element.attribs.height! } : {}),
+        },
+        suppressChildren: true,
+      };
+    }
     return { kind: "text", text: element.attribs.alt ?? "" };
   }
   if (BLOCK_TAGS.has(name)) {
@@ -618,6 +639,25 @@ function classifyAnchor(
       attributes,
       direction,
     };
+  }
+
+  // SEFARIA-READER EXTENSION: a category mention (the linker's CategoryMUTCSpan: a.categoryLink[data-category-path]) and a plain
+  // link with an http(s) or site-relative address are kept as marker spans (TXD-023, TXD-020); the reader makes them links.
+  // Upstream unwraps both.
+  if (hasClass(element, "categoryLink")) {
+    const path = (element.attribs["data-category-path"] ?? "").trim();
+    if (path.length > 0) {
+      return { kind: "element", name: "span", attributes: { "data-sefaria-category": path } };
+    }
+    return { kind: "unwrap" };
+  }
+  if (!hasClass(element, "namedEntityLink")) {
+    const href = (element.attribs.href ?? "").trim();
+    // a site path is "/" not followed by "/" or a backslash (browsers read "/" + backslash + "evil.org" as "//evil.org");
+    // no backslash or %5C anywhere in the address
+    if (/^(?:https?:\/\/|\/(?![\/\\]))[^\s"'<>\\]*$/i.test(href) && !/%5c/i.test(href)) {
+      return { kind: "element", name: "span", attributes: { "data-sefaria-href": href } };
+    }
   }
 
   if (hasClass(element, "namedEntityLink")) {
