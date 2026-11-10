@@ -12,6 +12,11 @@
 #        prod:     CTX=<prod cluster context> NS=default ENV=production
 #        cauldron: CTX=gke_development-205018_us-east1-b_cluster-1 NS=default ENV=<cauldron>
 #
+# A policy must also be accepted for every target it names: each spec.targetRefs entry (or the older targetRef) needs an
+# Envoy Gateway ancestor status that is Accepted=True for the current generation. A Gateway target (with its
+# sectionName) is its own ancestor; an HTTPRoute target's ancestors are the Gateways in that route's parentRefs. A target
+# with no status at all fails, as does a policy whose only accepted ancestor is an unrelated one.
+#
 # Checked: SecurityPolicy <env>-auth (required: the auth service is on), ClientTrafficPolicy <env> (required: the header
 # strip), HTTPRoute <env> and <env>-http-redirect (Accepted and ResolvedRefs for every parentRef), EnvoyExtensionPolicy
 # <env> and BackendTrafficPolicy <env>-auth-ratelimit (each when deployed). Needs kubectl and python3.
@@ -68,6 +73,46 @@ if shape == "policy":
         where = "ancestor " + "/".join(str(ref.get(k)) for k in ("kind", "name", "sectionName") if ref.get(k))
         need(a.get("conditions") or [], "Accepted", where)
     count, what = len(ancestors), "ancestors"
+
+    # Coverage: every target the policy names needs its own accepted, current ancestor status.
+    spec = obj.get("spec") or {}
+    targets = list(spec.get("targetRefs") or [])
+    if spec.get("targetRef"):
+        targets.append(spec["targetRef"])
+    routes = json.loads(os.environ.get("ROUTES_JSON") or "{}")
+    if spec.get("targetSelectors"):
+        fails.append("spec.targetSelectors cannot be checked for coverage (use targetRefs)")
+    if not targets and not spec.get("targetSelectors"):
+        fails.append("no targetRefs in spec: nothing says what the policy applies to")
+    for t in targets:
+        tkind, tname, tsection = t.get("kind"), t.get("name"), t.get("sectionName")
+        if tkind == "Gateway":
+            expected = [(tname, tsection)]
+        elif tkind == "HTTPRoute":
+            route = routes.get(tname)
+            if not route:
+                fails.append("target HTTPRoute/%s: not found, so its ancestors cannot be derived" % tname)
+                continue
+            expected = [(r.get("name"), r.get("sectionName")) for r in (route.get("spec") or {}).get("parentRefs") or []]
+            if not expected:
+                fails.append("target HTTPRoute/%s has no parentRefs" % tname)
+                continue
+        else:
+            fails.append("target %s/%s: kind not supported by this gate, coverage cannot be shown" % (tkind, tname))
+            continue
+        for gw, section in expected:
+            # An ancestor covers a (Gateway, listener) when it names the Gateway and either no listener or that listener.
+            match = [a for a in ancestors if (a.get("ancestorRef") or {}).get("name") == gw
+                     and (a.get("ancestorRef") or {}).get("sectionName") in (None, "", section)]
+            where = "target %s/%s%s (ancestor Gateway %s%s)" % (tkind, tname, ("/" + tsection) if tsection else "", gw,
+                                                                ("/" + section) if section else "")
+            accepted = [a for a in match
+                        if any(c.get("type") == "Accepted" and c.get("status") == "True" and current(c)
+                               for c in a.get("conditions") or [])]
+            if not match:
+                fails.append("%s: no Envoy Gateway status at all" % where)
+            elif not accepted:
+                fails.append("%s: no current Accepted=True status" % where)
 else:
     parents = ours(status.get("parents") or [])
     refs = (obj.get("spec") or {}).get("parentRefs") or []
@@ -108,7 +153,23 @@ check() {
     if [[ $4 == required ]]; then echo "FAIL $1/$2: not found"; rc=1; else echo "skip $1/$2: not deployed"; fi
     return
   fi
-  judge "$1" "$2" "$3" "$json" || rc=1
+  # A policy's route targets: their parentRefs say which Gateways must show an accepted status for it.
+  local routes_json="{}" rname rj
+  if [[ $3 == policy ]]; then
+    while IFS= read -r rname; do
+      [[ -n "$rname" ]] || continue
+      if ! rj=$(kubectl --context "$CTX" -n "$NS" get httproute "$rname" -o json --ignore-not-found 2>"$ERR"); then
+        echo "FAIL $1/$2: kubectl get httproute/$rname failed: $(head -c 300 "$ERR" | tr '\n' ' ')"; rc=1; return
+      fi
+      routes_json=$(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); d[sys.argv[2]]=json.loads(sys.argv[3]) if sys.argv[3].strip() else None; print(json.dumps(d))' "$routes_json" "$rname" "$rj")
+    done < <(python3 -c '
+import json, sys
+spec = json.loads(sys.argv[1]).get("spec") or {}
+for t in list(spec.get("targetRefs") or []) + ([spec["targetRef"]] if spec.get("targetRef") else []):
+    if t.get("kind") == "HTTPRoute" and t.get("name"):
+        print(t["name"])' "$json")
+  fi
+  ROUTES_JSON="$routes_json" judge "$1" "$2" "$3" "$json" || rc=1
 }
 
 echo "policy-gate: context $CTX, namespace $NS, environment $ENV"
