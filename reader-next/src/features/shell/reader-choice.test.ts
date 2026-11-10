@@ -53,12 +53,35 @@ describe("back to the classic reader", () => {
     const post = vi.fn(async () => ({ ok: false, status: 404, data: {}, networkError: false }));
     const reload = vi.fn();
     const { doc, writes } = fakeDoc("reader_version=next");
-    expect(await backToClassic({ post, reload, doc, hostname: "localhost" })).toEqual({ ok: false, status: 404 });
+    expect(await backToClassic({ post, reload, doc, hostname: "localhost" })).toEqual({ ok: false, status: 404, timedOut: false });
     expect(post).toHaveBeenCalledWith(READER_CHOICE_URL, { reader: "legacy" });
     expect(writes).toEqual(["reader_version=; path=/; max-age=0; samesite=lax"]);
     expect(reload).toHaveBeenCalled();
   });
   it("the opt-in is the cookie", () => {
     expect([optedIn("reader_version=next"), optedIn("reader_version=classic"), optedIn("x=reader_version=next")]).toEqual([true, false, false]);
+  });
+});
+
+describe("rework: interval and timeout", () => {
+  it("the kill switch may reload again after ten minutes", () => {
+    const reload = vi.fn();
+    const storage = memory();
+    let now = 1_000_000;
+    const run = () => applyKillSwitch({ "feature.reader.next.disabled": true }, { ...fakeDoc("reader_version=next"), hostname: "x.org", reload, storage, now: () => now });
+    expect(run()).toBe(true);
+    now += 9 * 60_000;
+    expect(run()).toBe(false);
+    now += 2 * 60_000;
+    expect(run()).toBe(true);
+    expect(reload).toHaveBeenCalledTimes(2);
+  });
+  it("back to classic goes anyway when Django does not answer in time", async () => {
+    const post = vi.fn(() => new Promise<never>(() => {}));
+    const reload = vi.fn();
+    const { doc, writes } = fakeDoc("reader_version=next");
+    expect(await backToClassic({ post: post as never, reload, doc, hostname: "localhost", timeoutMs: 20 })).toEqual({ ok: false, status: 0, timedOut: true });
+    expect(writes).toEqual(["reader_version=; path=/; max-age=0; samesite=lax"]);
+    expect(reload).toHaveBeenCalled();
   });
 });

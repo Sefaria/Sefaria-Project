@@ -5,18 +5,24 @@
  *
  *  - Back to the classic reader: POST READER_CHOICE_URL {reader: "legacy"} (Django stores the profile choice and clears the cookie;
  *    the endpoint is lane B's), then clear the cookie here too and reload: the next request goes to the classic reader.
- *  - Kill switch: remote config `feature.reader.next.disabled` true clears the cookie and reloads into the classic reader, once per
- *    browser session (a deployment that still serves this client without the cookie must not reload forever).
+ *  - Kill switch: remote config `feature.reader.next.disabled` true clears the cookie and reloads into the classic reader, at most once
+ *    every RELOAD_INTERVAL_MS per browser session (a deployment that still serves this client must not reload forever, and a switch
+ *    flipped again later still takes effect). Django must not set the cookie again meanwhile (lane B: ReaderChoiceMiddleware).
  *
  * @feature ACC-003 Account settings page (the reader choice, T-D05)
  */
-import { postJson } from "~/lib/auth/http";
+import { postJson, type PostResult } from "~/lib/auth/http";
+import { reportError } from "~/lib/monitoring/error-reporter";
 
 /** Lane B's endpoint (one constant, so the integrator can adjust it). */
 export const READER_CHOICE_URL = "/api/reader-choice";
 export const READER_COOKIE = "reader_version";
 export const KILL_SWITCH_KEY = "feature.reader.next.disabled";
 const KILLED_KEY = "reader_next_kill_switch_reloaded";
+/** The kill switch reloads at most this often (per browser session). */
+export const RELOAD_INTERVAL_MS = 10 * 60_000;
+/** Back to classic waits this long for Django, then goes anyway. */
+export const BACK_TIMEOUT_MS = 3_000;
 
 export function readerCookie(cookie: string): string | null {
   for (const part of cookie.split(/;\s*/)) {
@@ -56,19 +62,23 @@ export interface LeaveDeps {
   hostname?: string;
   reload?: () => void;
   storage?: Pick<Storage, "getItem" | "setItem"> | null;
+  now?: () => number;
 }
 
 /**
- * The kill switch's client half: when the switch is on and this reader came by the cookie, clear it and reload (once per session).
+ * The kill switch's client half: when the switch is on and this reader came by the cookie, clear it and reload (at most once per
+ * RELOAD_INTERVAL_MS in a session; the time of the last reload is kept in sessionStorage).
  * Returns whether it reloaded.
  */
 export function applyKillSwitch(remote: Record<string, unknown> | undefined, deps: LeaveDeps = {}): boolean {
   const doc = deps.doc ?? document;
   if (!killSwitchOn(remote) || !readerCookie(doc.cookie)) return false;
   const storage = deps.storage === undefined ? safeSession() : deps.storage;
+  const now = (deps.now ?? Date.now)();
   try {
-    if (storage?.getItem(KILLED_KEY)) return false;
-    storage?.setItem(KILLED_KEY, "1");
+    const last = Number(storage?.getItem(KILLED_KEY));
+    if (last && now - last < RELOAD_INTERVAL_MS) return false;
+    storage?.setItem(KILLED_KEY, String(now));
   } catch {
     /* storage blocked: still leave once */
   }
@@ -85,11 +95,21 @@ function safeSession(): Storage | null {
   }
 }
 
-/** Back to the classic reader: tell Django (profile + cookie), clear the cookie here as well, reload. */
-export async function backToClassic(deps: LeaveDeps & { post?: typeof postJson } = {}): Promise<{ ok: boolean; status: number }> {
-  const res = await (deps.post ?? postJson)(READER_CHOICE_URL, { reader: "legacy" });
-  // even when the endpoint is missing or refuses, the cookie is ours to clear: this browser goes back now
+/**
+ * Back to the classic reader: tell Django (profile + cookie), waiting at most BACK_TIMEOUT_MS, then clear the cookie here as well and
+ * reload, whatever Django answered. A failure or a timeout is reported (src/lib/monitoring/error-reporter.ts).
+ */
+export async function backToClassic(deps: LeaveDeps & { post?: typeof postJson; timeoutMs?: number } = {}): Promise<{ ok: boolean; status: number; timedOut: boolean }> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<"timeout">((r) => (timer = setTimeout(() => r("timeout"), deps.timeoutMs ?? BACK_TIMEOUT_MS)));
+  const res: PostResult | "timeout" = await Promise.race([(deps.post ?? postJson)(READER_CHOICE_URL, { reader: "legacy" }), timeout]);
+  clearTimeout(timer);
+  const timedOut = res === "timeout";
+  const ok = !timedOut && res.ok;
+  const status = timedOut ? 0 : res.status;
+  if (!ok) reportError("error", new Error(`reader-choice: back to classic ${timedOut ? "timed out" : `failed (HTTP ${status})`}`));
+  // the cookie is ours to clear whatever Django said: this browser goes back now
   clearReaderCookie(deps.doc ?? document, deps.hostname ?? location.hostname);
   (deps.reload ?? (() => location.reload()))();
-  return { ok: res.ok, status: res.status };
+  return { ok, status, timedOut };
 }
