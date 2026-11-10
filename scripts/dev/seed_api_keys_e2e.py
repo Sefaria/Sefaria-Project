@@ -293,11 +293,34 @@ def parse_hosts(value, default_port=None):
     return pairs
 
 
-def is_in_cluster_name(host):
-    """A single DNS label, or <service>[.<namespace>].svc[.cluster.local]. Never an IP, loopback or external FQDN."""
+def is_in_cluster_name(host, pod_namespace=None):
+    """
+    A single DNS label, <service>[.<namespace>].svc[.cluster.local], or the short form <service>.<namespace> when the
+    namespace is the pod's own (so it resolves through the pod's search path; a two-label external name such as
+    db.com never matches). Never an IP, loopback or external FQDN.
+    """
     if host in LOOPBACK_NAMES or host.isdigit():
         return False
-    return bool(_SINGLE_LABEL_RE.match(host) or _SERVICE_FQDN_RE.match(host))
+    if _SINGLE_LABEL_RE.match(host) or _SERVICE_FQDN_RE.match(host):
+        return True
+    if pod_namespace and _SINGLE_LABEL_RE.match(pod_namespace):
+        service, dot, namespace = host.partition(".")
+        return bool(dot) and namespace == pod_namespace and bool(_SINGLE_LABEL_RE.match(service))
+    return False
+
+
+POD_NAMESPACE_FILE = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+
+
+def pod_namespace(environ=None, path=POD_NAMESPACE_FILE):
+    """The namespace this pod runs in (service account file, else POD_NAMESPACE), or None outside a pod."""
+    environ = os.environ if environ is None else environ
+    try:
+        with open(path) as f:
+            value = f.read().strip()
+    except OSError:
+        value = environ.get("POD_NAMESPACE", "").strip()
+    return value.lower() or None
 
 
 def _extra_allowed_hosts(environ):
@@ -318,7 +341,7 @@ def check_cauldron_domains(domain_hosts, name):
         raise SystemExit(f"Refusing: DOMAIN_MODULES names {host}, which is not under {own}.")
 
 
-def check_destinations(label, pairs, target, extra_allowed=frozenset()):
+def check_destinations(label, pairs, target, extra_allowed=frozenset(), namespace=None):
     """The Postgres or Mongo destinations: loopback for local, in-cluster names (or explicit extras) for a cauldron."""
     if not pairs:
         raise SystemExit(f"Refusing: no {label} host is configured.")
@@ -328,10 +351,11 @@ def check_destinations(label, pairs, target, extra_allowed=frozenset()):
                 raise SystemExit(f"Refusing: --target local needs a loopback {label} host, not {host!r}.")
         elif host in LOOPBACK_NAMES:
             raise SystemExit(f"Refusing: --target cauldron but the {label} host {host!r} is on this machine.")
-        elif not is_in_cluster_name(host) and host not in extra_allowed:
+        elif not is_in_cluster_name(host, namespace) and host not in extra_allowed:
             raise SystemExit(
                 f"Refusing: the {label} host {host!r} is not an in-cluster Kubernetes name "
-                f"(a service name, or <service>.<namespace>.svc[.cluster.local]). "
+                f"(a service name, <service>.<namespace>.svc[.cluster.local], or <service>.<this pod's namespace>; "
+                f"this pod's namespace: {namespace or 'unknown'}). "
                 f"{UNSAFE_ALLOW_HOSTS_ENV} can add a host, at your own risk."
             )
 
@@ -349,6 +373,7 @@ def check_target(
     domain_hosts=None,
     cauldron=None,
     environ=None,
+    pod_namespace=None,
 ):
     """
     Pure guard over the effective settings of the process (no database, no Django). Refuses with SystemExit
@@ -383,8 +408,8 @@ def check_target(
             raise SystemExit(f"Refusing: {name!r} is not a cauldron name.")
         check_cauldron_domains(set(domain_hosts or ()), name)
         extra = _extra_allowed_hosts(environ)
-        check_destinations("Postgres", pg_pairs, target, extra)
-        check_destinations("Mongo", mongo_pairs, target, extra)
+        check_destinations("Postgres", pg_pairs, target, extra, pod_namespace)
+        check_destinations("Mongo", mongo_pairs, target, extra, pod_namespace)
         where = f"the {name} cauldron"
     return "target ok: {} (Postgres {} / {}, Mongo {} / database {!r})".format(
         where,
@@ -411,6 +436,7 @@ def guard_target(target, out=None):
         mongo_db=getattr(settings, "SEFARIA_DB", None),
         domain_hosts=_domain_hosts(getattr(settings, "DOMAIN_MODULES", None)),
         cauldron=cauldron_name() if target == "cauldron" else None,
+        pod_namespace=pod_namespace() if target == "cauldron" else None,
     )
     print(line, file=out or sys.stderr)
 
