@@ -278,6 +278,8 @@ test.describe('account settings: developer', () => {
       await page.waitForURL(/\/settings\/developer/, { timeout: t(30000) });
       expect(await sameDocument(page), 'the header link and Back stayed in one document').toBe(true);
       const stateAfterBack = await page.evaluate(() => JSON.stringify(history.state ?? null));
+      // After Back the page shows developer content only once the server has confirmed the session, so wait for it.
+      await dev.keyRow(dev.projectCard(project.name), label).first().waitFor({ state: 'attached', timeout: t(15000) }).catch(() => {});
       const keyListed = await dev.keyRow(dev.projectCard(project.name), label).count();
       const valueKept = [stateWhileAway, stateAfterBack].some(s => s.includes(madeKey.value) || s.includes(baselineKey.value));
       const anyValueKept = /sfr_[A-Za-z0-9]{8,}/.test(stateAfterBack);

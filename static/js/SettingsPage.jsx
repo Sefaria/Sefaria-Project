@@ -2743,8 +2743,10 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
 
   const [gauthEmail, setGauthEmail] = useState((settings.sheetsExport && settings.sheetsExport.gauthEmail) || '');
   const [gauthError, setGauthError] = useState('');
+  const [saveError, setSaveError] = useState('');
 
   const save = () => {
+    setSaveError('');
     const transPref = translationLanguages.length ? translationLanguage : undefined;
     const profile = {
       settings: {
@@ -2813,7 +2815,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
         saved.current.textualCustom = newTextualCustom;
       }
       document.dispatchEvent(new CustomEvent('sefaria:settings-updated', { detail }));
-    });
+    }).fail(() => setSaveError(Sefaria._v(SAVE_FAILED)));
   };
 
   const updateEmail = () => {
@@ -2831,6 +2833,9 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
       }
       setEmailOk(Sefaria._('Email was successfully changed!'));
       setEditingEmail(false);
+    }).fail(() => {
+      setEmailOk('');
+      setEmailError(Sefaria._v(SAVE_FAILED));
     });
   };
 
@@ -2843,7 +2848,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
         setGauthError('');
         setGauthEmail('');
       }
-    });
+    }).fail(() => setGauthError(Sefaria._v(SAVE_FAILED)));
   };
 
   const saveButton = (
@@ -2869,6 +2874,11 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
             {saveButton}
           </div>
         </div>
+        {saveError ? (
+          <p id="account-save-error" role="alert">
+            {saveError}
+          </p>
+        ) : null}
         <SettingSection
           id="emailNotifications"
           label={
@@ -2939,7 +2949,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
                   },
                 ]}
               >
-                <span id="reading-history-warning" className={readingHistory === 'false' ? 'on' : null}>
+                <span id="reading-history-warning" className={readingHistory === 'false' ? 'active' : null}>
                   {readingHistory === 'false'
                     ? Sefaria._('Turning this feature off will permanently delete your reading history.')
                     : null}
@@ -3038,7 +3048,9 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
                 <button id="update-email" type="button" className="button blue fillWidth" onClick={updateEmail}>
                   <InterfaceText text={{ en: 'Update Email', he: 'עדכון כתובת דוא"ל' }} />
                 </button>
-                <span id="email-edit-errors">{emailError}</span>
+                <span id="email-edit-errors" role={emailError ? 'alert' : undefined}>
+                  {emailError}
+                </span>
               </div>
             </React.Fragment>
           )}
@@ -3060,7 +3072,9 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
             >
               <InterfaceText text={{ en: 'Disconnect', he: 'ניתוק' }} />
             </button>
-            <span id="gauth-disconnect-messages">{gauthError}</span>
+            <span id="gauth-disconnect-messages" role={gauthError ? 'alert' : undefined}>
+              {gauthError}
+            </span>
           </div>
         </div>
         <div id="gauth-email-disconnected" className="section" style={gauthEmail ? { display: 'none' } : null}>
@@ -3114,6 +3128,11 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
   const [expandedProjectId, setExpandedProjectId] = useState(() =>
     projectId && developerState.projects.some((p) => p.id === projectId) ? projectId : null
   );
+  /* Cached developer state, API keys included, is only shown once the server has confirmed the
+     session: until then a restored page shows no developer content. */
+  const [verified, setVerified] = useState(() => !(restored && hasDeveloper));
+  const [verifyFailed, setVerifyFailed] = useState(false);
+  const [sessionEnded, setSessionEnded] = useState(false);
   const [showNewProject, setShowNewProject] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
   const [confirm, setConfirm] = useState(null);
@@ -3146,6 +3165,38 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
     []
   );
 
+  /* The session ended (401 or 403): nothing cached survives, and the visitor is sent to log in. */
+  const endSession = () => {
+    latestSettings.account = undefined;
+    latestSettings.developer = undefined;
+    if (pageMounted.current) {
+      setDeveloperState(emptyState());
+      setSessionEnded(true);
+    }
+    window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+  };
+
+  /* Asks the server whether the session is still the one the cached state belongs to. Developer
+     content appears only after an answer; a refusal clears everything. */
+  const revalidate = () => {
+    setVerifyFailed(false);
+    readState().then(
+      (server) => {
+        if (pageMounted.current) {
+          setDeveloperState(server);
+          setVerified(true);
+        }
+      },
+      (err) => {
+        if (err.status === 401 || err.status === 403) {
+          endSession();
+        } else if (pageMounted.current) {
+          setVerifyFailed(true);
+        }
+      }
+    );
+  };
+
   /* Restored with nothing remembered, the page can't know the current settings, so it reloads them. */
   useEffect(() => {
     if (!settings) {
@@ -3156,19 +3207,38 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
       latestSettings.account = settings;
     }
     if (restored && hasDeveloper) {
-      readState().then(
-        (server) => {
-          if (pageMounted.current) {
-            setDeveloperState(server);
-          }
-        },
-        () => {}
-      );
+      revalidate();
     }
   }, []);
   useEffect(() => {
     latestSettings.developer = hasDeveloper ? developerState : null;
   }, [developerState]);
+
+  /* The back/forward cache keeps the page as it was, keys and all, however long ago and whoever
+     is logged in by then. Leaving clears the developer content from the snapshot, and a page
+     brought back from the cache asks the server again before showing it. */
+  useEffect(() => {
+    if (!hasDeveloper) {
+      return undefined;
+    }
+    const hide = () => {
+      latestSettings.developer = emptyState();
+      setVerified(false);
+      setDeveloperState(emptyState());
+    };
+    const show = (e) => {
+      if (e.persisted) {
+        hide();
+        revalidate();
+      }
+    };
+    window.addEventListener('pagehide', hide);
+    window.addEventListener('pageshow', show);
+    return () => {
+      window.removeEventListener('pagehide', hide);
+      window.removeEventListener('pageshow', show);
+    };
+  }, []);
 
   /* Every API call answers with the whole developer state, which replaces the page's copy. A
      failure leaves a notice, unless the caller shows the error itself ({quiet: true}); either
@@ -3362,7 +3432,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
     );
   };
 
-  if (!settings) {
+  if (!settings || sessionEnded) {
     return null;
   }
 
@@ -3377,7 +3447,20 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
         onEmailChanged={hasDeveloper ? developerEmailChanged : null}
       />
     ),
-    developer: (
+    developer: !verified ? (
+      <div className="devPocPage">
+        {verifyFailed ? (
+          <p className="devPocWarning" role="alert">
+            <InterfaceText
+              text={{
+                en: "We couldn't check your session. Reload the page to see developer settings.",
+                he: 'לא הצלחנו לבדוק את ההתחברות. טענו את הדף מחדש כדי לראות את הגדרות המפתחים.',
+              }}
+            />
+          </p>
+        ) : null}
+      </div>
+    ) : (
       <DeveloperTab
         state={developerState}
         developerOn={developerOn}

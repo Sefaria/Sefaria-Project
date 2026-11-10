@@ -1,3 +1,4 @@
+/* global __dirname */
 /**
  * The Account tab of SettingsPage: saving, email change and Google Drive disconnect.
  * Expectations follow the behaviour of the Django account settings template it replaced.
@@ -17,7 +18,14 @@ jest.mock('../sefaria/sefaria', () => {
 
 jest.mock('../sefaria/sefariaJquery', () => ({
   __esModule: true,
-  default: { cookie: jest.fn(), post: jest.fn(), get: jest.fn() },
+  // a request returns an object like jQuery's, which keeps the callbacks given to .fail()
+  default: (() => {
+    const request = () => {
+      const xhr = { failHandlers: [], fail: (fn) => (xhr.failHandlers.push(fn), xhr) };
+      return xhr;
+    };
+    return { cookie: jest.fn(), post: jest.fn(request), get: jest.fn(request) };
+  })(),
 }));
 
 jest.mock('../Misc', () => {
@@ -250,11 +258,26 @@ describe('Account tab save', () => {
     mount();
     choose('readingHistory', 'false');
     const warning = container.querySelector('#reading-history-warning');
-    expect(warning.classList.contains('on')).toBe(true);
+    expect(warning.classList.contains('active')).toBe(true);
     expect(warning.textContent).toContain('permanently delete your reading history');
     const { payload } = save();
     expect(payload.settings.reading_history).toBe(false);
     expect(settingsUpdated.mock.calls[0][0].detail.readingHistory).toBe(false);
+  });
+
+  it('gives the warning the class that the stylesheet shows it for, and none while reading history is on', () => {
+    // jsdom loads no CSS, so read the rules: the warning is hidden by default and shown by one class.
+    const css = require('fs').readFileSync(require('path').join(__dirname, '../../css/s2.css'), 'utf8');
+    const shownBy = css.match(/#reading-history-warning\.(\w+)\s*\{[^}]*display:\s*inline-block/);
+    expect(css).toMatch(/#reading-history-warning\s*\{\s*display:\s*none/);
+    expect(shownBy).toBeTruthy();
+    mount();
+    const warning = container.querySelector('#reading-history-warning');
+    expect(warning.classList.contains(shownBy[1])).toBe(false);
+    choose('readingHistory', 'false');
+    expect(container.querySelector('#reading-history-warning').classList.contains(shownBy[1])).toBe(true);
+    choose('readingHistory', 'true');
+    expect(container.querySelector('#reading-history-warning').classList.contains(shownBy[1])).toBe(false);
   });
 
   it('shows the server error and does nothing else when the save is refused', () => {
@@ -413,6 +436,64 @@ describe('Account tab Google Drive disconnect', () => {
     mount({ sheetsExport: { gauthEmail: 'tova@gmail.com' } });
     disconnect({ error: 'Could not unlink' });
     expect(container.querySelector('#gauth-disconnect-messages').textContent).toBe('Could not unlink');
+    expect(container.querySelector('#gauth-email-change').style.display).toBe('');
+  });
+});
+
+/* A request that fails (network down, 403, 500) never reaches its success callback. */
+describe('Account tab when a request fails', () => {
+  const failLast = (mock) => {
+    const xhr = mock.mock.results[mock.mock.results.length - 1].value;
+    expect(xhr.failHandlers).toHaveLength(1);
+    act(() => {
+      xhr.failHandlers[0]();
+    });
+  };
+  const alertText = () => Array.from(container.querySelectorAll('[role="alert"]')).map((el) => el.textContent);
+
+  it('says a failed save was not saved, and keeps the page as it was', () => {
+    mount();
+    choose('emailNotifications', 'weekly');
+    act(() => {
+      saveButton().click();
+    });
+    failLast($.post);
+    expect(alertText().join(' ')).toContain("your change wasn't saved");
+    expect(window.alert).not.toHaveBeenCalledWith('Settings Saved');
+    expect(settingsUpdated).not.toHaveBeenCalled();
+    // the next save clears the message
+    act(() => {
+      saveButton().click();
+    });
+    expect(container.querySelector('#account-save-error')).toBeNull();
+  });
+
+  it('says a failed email change was not saved, and keeps the form open', () => {
+    mount();
+    act(() => {
+      container.querySelector('#change-email').click();
+    });
+    typeInto(container.querySelector('#username-change-edit #email'), 'new@example.org');
+    act(() => {
+      container.querySelector('#update-email').click();
+    });
+    failLast($.post);
+    const error = container.querySelector('#email-edit-errors');
+    expect(error.getAttribute('role')).toBe('alert');
+    expect(error.textContent).toContain("your change wasn't saved");
+    expect(container.querySelector('#username-change-edit').style.display).toBe('');
+    expect(container.querySelector('#email-display').value).toBe('tova@example.org');
+  });
+
+  it('says a failed Google Drive disconnect did not happen, and keeps the connection on show', () => {
+    mount({ sheetsExport: { gauthEmail: 'tova@gmail.com' } });
+    act(() => {
+      container.querySelector('#disconnect-gauth-email').click();
+    });
+    failLast($.get);
+    const error = container.querySelector('#gauth-disconnect-messages');
+    expect(error.getAttribute('role')).toBe('alert');
+    expect(error.textContent).toContain("your change wasn't saved");
     expect(container.querySelector('#gauth-email-change').style.display).toBe('');
   });
 });
