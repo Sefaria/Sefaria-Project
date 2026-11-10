@@ -41,8 +41,14 @@ test.describe("the library (verified against sefaria.org)", () => {
     await open(page, "/Genesis");
     await expect(page).toHaveTitle("Genesis | The Sefaria Library");
     await expect(page.locator('meta[property="og:description"]')).toHaveAttribute("content", /^Genesis \(“Bereshit”\).* Read the text of Genesis online with commentaries and connections\.$/);
+    // PLT-008: og:url, canonical and alternates as base.html (configured canonical origin: www.sefaria.org)
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /^https:\/\/www\.sefaria\.org\/Genesis$/);
+    await expect(page.locator('link[rel="alternate"][hreflang="he"]')).toHaveAttribute("href", /\/\/www\.sefaria\.org\.il\/Genesis$/);
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", /\/Genesis$/);
     await open(page, "/search?q=moses");
     await expect(page).toHaveTitle("moses | The Sefaria Library");
+    await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", /\/search\?q=moses$/);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
   });
 });
@@ -119,6 +125,24 @@ test.describe("Recently Viewed on the library home", () => {
     await page.getByRole("banner").getByRole("link", { name: "Texts" }).first().click();
     await expect(page.getByRole("heading", { level: 1, name: "Browse the Library" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Recently Viewed" })).toHaveCount(0);
+  });
+
+  test("a history of sheets only: the title and All history with an empty list, as the old module", async ({ page }) => {
+    await page.route(/\/api\/profile\/user_history\?secondary=0&annotate=1&limit=20/, (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([HISTORY[2]]) }));
+    await open(page, "/topics");
+    await page.getByRole("banner").getByRole("link", { name: "Texts" }).first().click();
+    const side = page.locator("section", { has: page.getByRole("heading", { name: "Recently Viewed" }) }).first();
+    await expect(side.getByRole("link", { name: /All history/ })).toBeVisible();
+    await expect(side.getByRole("listitem")).toHaveCount(0);
+  });
+
+  // L4: the server's own path: a full page load with a history cookie. The cassette's answer for the history request is replaced by
+  // the e2e API stand-in only in the browser, so the server render is checked for its headers (never shared) and for hydrating cleanly
+  test("loaded as a page with a history cookie: private, no-store, and the page hydrates without a mismatch", async ({ page, context }) => {
+    await context.addCookies([{ name: "user_history", value: encodeURIComponent(JSON.stringify(HISTORY.slice(0, 1))), domain: "localhost", path: "/" }]);
+    const res = await open(page, "/texts");
+    expect(res!.headers()["cache-control"]).toBe("private, no-store");
+    await expect(page.getByRole("heading", { level: 1, name: "Browse the Library" })).toBeVisible();
   });
 
   test.describe("on a phone", () => {

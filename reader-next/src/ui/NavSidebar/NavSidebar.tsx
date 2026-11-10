@@ -320,14 +320,15 @@ export interface RecentlyViewedItem {
 }
 
 /**
- * The old RecentlyViewed: the newest item of the reader's last three books and "All history". Nothing when there is no history.
+ * The old RecentlyViewed: the newest item of the reader's last three books and "All history". Nothing when there is no history
+ * (`hasHistory` false); a history of sheets only shows the title and "All history" with an empty list, as the old module.
  * `phone`: the old single-panel layout, above the categories: a grey band whose header row holds the title and the link, the list
  * under it. `onItem` / `onAllHistory`: the old gtag events; `onAllHistory` may cancel the link (signed out: the sign-up modal).
  *
  * @feature LIB-025 Sidebar module: Recently viewed
  */
-export function RecentlyViewed({ items, phone, onItem, onAllHistory }: { items: readonly RecentlyViewedItem[]; phone?: boolean; onItem?: (item: RecentlyViewedItem) => void; onAllHistory?: (e: MouseEvent<HTMLAnchorElement>) => void }) {
-  if (!items.length) return null;
+export function RecentlyViewed({ items, hasHistory = items.length > 0, phone, onItem, onAllHistory }: { items: readonly RecentlyViewedItem[]; hasHistory?: boolean; phone?: boolean; onItem?: (item: RecentlyViewedItem) => void; onAllHistory?: (e: MouseEvent<HTMLAnchorElement>) => void }) {
+  if (!hasHistory) return null;
   const list = (
     <div className={styles.recentList}>
       <ul>

@@ -37,7 +37,7 @@ export function RecentlyViewedModule({ phone }: { phone?: boolean }) {
   };
   return (
     <>
-      <RecentlyViewed items={items} phone={phone} onAllHistory={onAllHistory} onItem={(x) => gtagEvent("recently_viewed", { link_text: refOf.get(x.href), link_type: "ref" })} />
+      <RecentlyViewed items={items} hasHistory={(data?.length ?? 0) > 0} phone={phone} onAllHistory={onAllHistory} onItem={(x) => gtagEvent("recently_viewed", { link_text: refOf.get(x.href), link_type: "ref" })} />
       {asked ? <SignUpModal kind="view-history" onClose={() => setAsked(false)} next={typeof window === "undefined" ? "/texts" : window.location.href} /> : null}
     </>
   );
