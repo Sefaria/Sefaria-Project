@@ -10,7 +10,8 @@
  *  - PUBLIC_SITE_ORIGIN   where links to the pages this client does not render (topics, sheets, login…) go; "" = same origin.
  *  - PUBLIC_CANONICAL_ORIGIN  the absolute origin of canonical and Open Graph URLs (`<link rel="canonical">`, og:url), which must
  *                         never be relative, so not PUBLIC_SITE_ORIGIN (empty in the cluster on purpose). Default (and when unset,
- *                         empty or not an http(s) origin) "https://www.sefaria.org"; the chart sets it (reader.canonicalOrigin).
+ *                         empty or not an http(s) origin) "https://www.sefaria.org"; the chart sets it (reader.canonicalOrigin). On
+ *                         the Hebrew site's host a page names its Hebrew twin (www.sefaria.org.il), as Django: src/lib/routing/canonical.ts.
  *  - PUBLIC_ROOM_URL      the follow-me room server as the browser reaches it ("ws://<lan-ip>:3199" for scripts/dev-room-server.mjs);
  *                         unset = follow runs in an in-browser room shared over BroadcastChannel (tabs of one browser only).
  *  - PUBLIC_LABS          the labs on by default in this deployment, comma-separated ("follow_me,recording"); remote config
@@ -69,8 +70,11 @@ const DEFAULT_CANONICAL = "https://www.sefaria.org";
 /** The canonical origin for a configured value: an absolute http(s) origin without its trailing slash, else sefaria.org's. */
 export function canonicalOriginFrom(value: string | null | undefined): string {
   const v = (value ?? "").trim().replace(/\/+$/, "");
-  return /^https?:\/\/[^/?#]+$/.test(v) ? v : DEFAULT_CANONICAL;
+  return isOrigin(v) ? v : DEFAULT_CANONICAL;
 }
+
+/** An absolute http(s) origin and nothing more (no path, query or fragment): what canonicalOriginFrom accepts once a trailing "/" is gone. */
+export const isOrigin = (v: string): boolean => /^https?:\/\/[^/?#]+$/.test(v.trim().replace(/\/+$/, ""));
 /** Django's CHATBOT_API_BASE_URL default (sefaria/local_settings_example.py, the helm chart). */
 const DEFAULT_ASSISTANT_API = "https://chat-dev.sefaria.org/api";
 const isServer = typeof window === "undefined";
@@ -155,10 +159,14 @@ export function serverConfigProblems(e: Record<string, string | undefined>): str
   const absolute = (v: string) => /^https?:\/\/[^/]+/.test(v);
   const apiForServer = e.SEFARIA_API_ORIGIN ?? e.PUBLIC_API_ORIGIN ?? DEFAULT_ORIGIN;
   if (!absolute(apiForServer)) problems.push(`the server has no absolute API origin (SEFARIA_API_ORIGIN=${JSON.stringify(e.SEFARIA_API_ORIGIN)}, PUBLIC_API_ORIGIN=${JSON.stringify(e.PUBLIC_API_ORIGIN)})`);
-  for (const k of ["PUBLIC_API_ORIGIN", "PUBLIC_SITE_ORIGIN", "PUBLIC_VOICES_ORIGIN", "PUBLIC_CANONICAL_ORIGIN"] as const) {
+  for (const k of ["PUBLIC_API_ORIGIN", "PUBLIC_SITE_ORIGIN", "PUBLIC_VOICES_ORIGIN"] as const) {
     const v = e[k];
     if (v !== undefined && v !== "" && !absolute(v)) problems.push(`${k} must be "" (this site) or an absolute http(s) origin, not ${JSON.stringify(v)}`);
   }
+  // the same test canonicalOriginFrom applies (which would otherwise fall back to sefaria.org's without a word)
+  const canonical = e.PUBLIC_CANONICAL_ORIGIN;
+  if (canonical !== undefined && canonical !== "" && !isOrigin(canonical))
+    problems.push(`PUBLIC_CANONICAL_ORIGIN must be an http(s) origin without a path, not ${JSON.stringify(canonical)}`);
   if (e.SEFARIA_API_HOST !== undefined && !e.SEFARIA_API_ORIGIN) problems.push("SEFARIA_API_HOST is set but SEFARIA_API_ORIGIN is not: the Host rewrite would never apply");
   for (const k of ["SEFARIA_API_TIMEOUT_MS", "SEFARIA_PASS_THROUGH_TIMEOUT_MS"] as const) {
     const v = e[k];
