@@ -15,7 +15,13 @@ from unittest.mock import MagicMock, patch
 from django.test import Client, TestCase
 
 URL = "/api/related/Genesis.1"
-FULL_SHEET = {"id": "7", "title": "A sheet", "owner": 1, "anchorRef": "Genesis 1:1", "anchorRefExpanded": ["Genesis 1:1"]}
+FULL_SHEET = {
+    "id": "7",
+    "title": "A sheet",
+    "owner": 1,
+    "anchorRef": "Genesis 1:1",
+    "anchorRefExpanded": ["Genesis 1:1"],
+}
 ANCHOR = {"id": "7", "anchorRef": "Genesis 1:1", "anchorRefExpanded": ["Genesis 1:1"]}
 LINK = {"_id": "l1", "ref": "Rashi on Genesis 1:1:1", "anchorRef": "Genesis 1:1"}
 
@@ -120,8 +126,12 @@ class SheetAnchorsTestCase(TestCase):
             ],
         )
         query, projection = fake_db.sheets.find.call_args.args
-        self.assertEqual(query, {"expandedRefs": {"$in": ["Genesis 1:1", "Genesis 1:2", "Genesis 1:3"]}, "status": "public"})
+        self.assertEqual(
+            query, {"expandedRefs": {"$in": ["Genesis 1:1", "Genesis 1:2", "Genesis 1:3"]}, "status": "public"}
+        )
         self.assertEqual(projection, {"id": 1, "includedRefs": 1, "expandedRefs": 1})
         oref.get_all_anchor_refs.assert_called_once_with(
-            ["Genesis 1:1", "Genesis 1:2", "Genesis 1:3"], ["Genesis 1:1", "Genesis 1:2-3"], ["Genesis 1:1", "Genesis 1:2"]
+            ["Genesis 1:1", "Genesis 1:2", "Genesis 1:3"],
+            ["Genesis 1:1", "Genesis 1:2-3"],
+            ["Genesis 1:1", "Genesis 1:2"],
         )
