@@ -15,14 +15,14 @@ Django :8100/:8101 (host, runserver) ─► pg :55432 sefaria_auth (migrated by 
 
 ## Use
 
-| Command                                                  | Does                                                                                                                                           |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `./up.sh`                                                | Brings it up, or repairs whatever is down. Idempotent: data survives, running Django servers are left alone                                    |
-| `./status.sh`                                            | One screen of health; non-zero exit when something is down                                                                                     |
-| `./smoke.sh`                                             | Four end-to-end checks (anonymous page, gated path, ORM key accepted, revoke → 401 within 2 s)                                                 |
-| `./envoy-variant.sh keepunchanged`                       | Restarts only Envoy with `path_with_escaped_slashes_action: KEEP_UNCHANGED` (N-A1). `default` switches back                                    |
-| `DJANGO_RESTART=1 ./up.sh`                               | Restarts both Django servers                                                                                                                   |
-| `./down.sh`                                              | Stops our two Django servers, then removes only this compose project's containers, network and volume. `--keep-data` keeps the Postgres volume |
+| Command                            | Does                                                                                                                                           |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `./up.sh`                          | Brings it up, or repairs whatever is down. Idempotent: data survives, running Django servers are left alone                                    |
+| `./status.sh`                      | One screen of health; non-zero exit when something is down                                                                                     |
+| `./smoke.sh`                       | Four end-to-end checks (anonymous page, gated path, ORM key accepted, revoke → 401 within 2 s)                                                 |
+| `./envoy-variant.sh keepunchanged` | Restarts only Envoy with `path_with_escaped_slashes_action: KEEP_UNCHANGED` (N-A1). `default` switches back                                    |
+| `DJANGO_RESTART=1 ./up.sh`         | Restarts both Django servers                                                                                                                   |
+| `./down.sh`                        | Stops our two Django servers, then removes only this compose project's containers, network and volume. `--keep-data` keeps the Postgres volume |
 
 `up.sh` also takes `AUTHSVC_REBUILD=1`, `AUTH_MODE`, `GATED_PATHS`, `RELOAD_INTERVAL`, `PG_NOTIFY_CHANNEL` and `PG_DSN` for the auth
 service, and `SKIP_WEBPACK=1`. Requests by hand:
