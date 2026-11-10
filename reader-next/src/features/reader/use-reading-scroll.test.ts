@@ -23,3 +23,14 @@ describe("isScrollKey", () => {
     expect(isScrollKey(key("PageDown", { target: button }))).toBe(true);
   });
 });
+
+describe("isScrollKey on a verse", () => {
+  it("does not count Space on a verse (it chooses the verse), but counts arrows there", () => {
+    const verse = document.createElement("div");
+    verse.setAttribute("role", "group");
+    verse.dataset.selectable = "true";
+    document.body.append(verse);
+    expect(isScrollKey({ key: " ", shiftKey: false, altKey: false, target: verse })).toBe(false);
+    expect(isScrollKey({ key: "ArrowDown", shiftKey: false, altKey: false, target: verse })).toBe(true);
+  });
+});

@@ -282,7 +282,7 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
       const t = e.target;
       const col = optsRef.current.scrollerRef.current;
       if (t === document || t === col) {
-        if (performance.now() - tabAt < TAB_SCROLL_MS) intent();
+        if (performance.now() - keyAt < KEY_SCROLL_MS) intent();
         schedule();
       }
     };
@@ -291,14 +291,14 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
       s.userScrolled = true;
       s.lastIntent = performance.now();
     };
-    // Only keys that scroll count: Shift, Cmd+C or Shift+arrows (extending a selection) are not reading on, and taking them for it let
-    // a later reflow settle on a verse and drop a selected range (lane R, D3). Tab scrolls only when the focus it moves is off screen:
-    // it counts when a scroll follows it at once.
-    let tabAt = -Infinity;
+    // Only keys that scroll count, and only when a scroll follows them: Shift, Cmd+C or Shift+arrows (extending a selection) are not
+    // reading on, nor is End at the bottom or ArrowDown on the last verse (nothing scrolls); taking them for it let a later reflow
+    // settle on a verse and drop a selected range (lane R, D3). Tab counts the same way (it scrolls only when the focus it moves is off
+    // screen).
+    let keyAt = -Infinity;
     const keyIntent = (e: KeyboardEvent) => {
       if (e.defaultPrevented && !(e.target instanceof Element && e.target.closest('[role="group"][data-selectable="true"]'))) return;
-      if (isScrollKey(e)) intent();
-      else if (e.key === "Tab") tabAt = performance.now();
+      if (isScrollKey(e) || e.key === "Tab") keyAt = performance.now();
     };
     // Grabbing the scrollbar is scrolling too. (A click on a segment also lands here, but it is pinned
     // after this, in the click handler, so it still wins.)
@@ -436,8 +436,11 @@ place();var f=document.fonts;if(f&&f.status!=="loaded"){c.style.visibility="hidd
 var ro=new ResizeObserver(place),live=1,tick=function(){if(live){place();requestAnimationFrame(tick);}},stop=function(){live=0;show();ro.disconnect();["wheel","touchmove","keydown","pointerdown"].forEach(function(e){removeEventListener(e,stop,true)});};requestAnimationFrame(tick);
 ro.observe(c);ro.observe(c.firstElementChild||c);["wheel","touchmove","keydown","pointerdown"].forEach(function(e){addEventListener(e,stop,true)});c.__keepPlace=stop;}catch(e){show();}})();`;
 
-/** How soon after Tab a scroll counts as the reader's (the browser scrolls a newly focused control into view in the same task). */
-const TAB_SCROLL_MS = 150;
+/**
+ * How soon after a key a scroll counts as the reader's: the browser starts a key's scroll (smooth or not) within a frame or two, and
+ * scrolls a newly focused control into view at once. Held keys repeat, so a long press keeps counting.
+ */
+const KEY_SCROLL_MS = 300;
 
 /**
  * Does this key scroll the reader's text? Arrows up and down, Page Up/Down, Home/End and Space (Shift+Space too), not inside a field or
@@ -446,7 +449,8 @@ const TAB_SCROLL_MS = 150;
 export function isScrollKey(e: Pick<KeyboardEvent, "key" | "shiftKey" | "altKey" | "target">): boolean {
   const t = e.target instanceof Element ? e.target : null;
   if (t?.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]')) return false;
-  if (e.key === " " || e.key === "Spacebar") return !t?.closest('button, a[href], [role="button"], [role="checkbox"], [role="menuitem"], [role="tab"], summary');
+  // Space on a verse chooses it (its default is prevented), on a control presses it
+  if (e.key === " " || e.key === "Spacebar") return !t?.closest('button, a[href], [role="button"], [role="checkbox"], [role="menuitem"], [role="tab"], summary, [role="group"][data-selectable="true"]');
   if (!["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End"].includes(e.key)) return false;
   return !e.shiftKey;
 }
