@@ -9,7 +9,8 @@ confirmed; existing keys keep working, but no new project or key can be created.
 """
 
 import ipaddress
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
+from datetime import timezone as dt_timezone
 from urllib.parse import urlsplit
 
 import idna
@@ -24,6 +25,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from sefaria.model.user_profile import UserProfile
+from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
 from .models import ApiKey, ApiProject, Project, SubmissionSource
@@ -41,9 +43,11 @@ PROFILE_SETTING = "developer_profile"
 CONFIRMATION_SENT_SETTING = "developer_confirmation_sent_at"
 # The address that pending link went to: a link sent before the account email changed doesn't count.
 CONFIRMATION_SENT_TO_SETTING = "developer_confirmation_sent_to"
-# The times of the sends in the last day. Never cleared by cancelling or confirming, so neither
-# resets the limits.
+# The times of the sends in the last day now live in their own Mongo collection (THROTTLE_COLLECTION), where a
+# whole-profile save cannot overwrite them; this setting is only read, for sends an older version recorded. Never
+# cleared by cancelling or confirming, so neither resets the limits.
 CONFIRMATION_SENDS_SETTING = "developer_confirmation_sends"
+THROTTLE_COLLECTION = "developer_confirmation_throttle"
 CONFIRMATION_COOLDOWN = timedelta(seconds=60)
 CONFIRMATION_DAILY_LIMIT = 5
 CONFIRMATION_LINK_MAX_AGE = timedelta(days=account_settings.EMAIL_CONFIRMATION_EXPIRE_DAYS)
@@ -233,26 +237,36 @@ def confirm_email(request, key):
     Confirms the address behind an emailed link and turns developer settings on for its
     account. Opening it needs no login. Returns a LinkStatus: a link for an address that is no
     longer the account email is refused, as is one older than the link lifetime.
+
+    The account's auth row is locked from the check to the confirmation, and the address and the account email
+    are read again under that lock: allauth's confirmation sets the account email to the address it confirms, so a
+    link for a previous address, checked just before an email change, would otherwise undo that change.
     """
-    if _address_id_of_link(key) is None:
+    pk = _address_id_of_link(key)
+    if pk is None:
         return LinkStatus.INVALID
-    address = address_of_link(key)
+    owner_id = EmailAddress.objects.filter(pk=pk).values_list("user_id", flat=True).first()
     # A missing address was removed from its account when the account email changed.
-    if address is None or not is_account_email(address):
+    if owner_id is None:
         return LinkStatus.NOT_ACCOUNT_EMAIL
-    if address.verified:
-        return LinkStatus.ALREADY_CONFIRMED
-    if link_expired(key):
-        return LinkStatus.EXPIRED
-    if verified_elsewhere(address):
-        return LinkStatus.ADDRESS_IN_USE
-    if EmailConfirmationHMAC(address).confirm(request) is None:
-        return LinkStatus.INVALID
-    profile = UserProfile(id=address.user_id)
-    profile.settings[ENABLED_SETTING] = True
-    profile.settings.pop(CONFIRMATION_SENT_SETTING, None)
-    profile.settings.pop(CONFIRMATION_SENT_TO_SETTING, None)
-    profile.save()
+    with transaction.atomic():
+        get_user_model().objects.select_for_update().filter(pk=owner_id).first()
+        address = address_of_link(key)
+        if address is None or address.user_id != owner_id or not is_account_email(address):
+            return LinkStatus.NOT_ACCOUNT_EMAIL
+        if address.verified:
+            return LinkStatus.ALREADY_CONFIRMED
+        if link_expired(key):
+            return LinkStatus.EXPIRED
+        if verified_elsewhere(address):
+            return LinkStatus.ADDRESS_IN_USE
+        if EmailConfirmationHMAC(address).confirm(request) is None:
+            return LinkStatus.INVALID
+        profile = UserProfile(id=address.user_id)
+        profile.settings[ENABLED_SETTING] = True
+        profile.settings.pop(CONFIRMATION_SENT_SETTING, None)
+        profile.settings.pop(CONFIRMATION_SENT_TO_SETTING, None)
+        profile.save()
     return LinkStatus.CONFIRMED
 
 
@@ -423,6 +437,7 @@ def require_verified_developer(request):
 
 
 def _recent_sends(profile, now):
+    """The sends an older version kept in the profile settings: still counted, never written any more."""
     sends = []
     for sent in profile.settings.get(CONFIRMATION_SENDS_SETTING, []):
         try:
@@ -438,31 +453,66 @@ def _seconds(delta):
     return int(delta.total_seconds()) + 1
 
 
-def check_confirmation_limits(user):
-    """
-    Raises CooldownError if this account was sent a confirmation email less than a minute ago,
-    or already had CONFIRMATION_DAILY_LIMIT in the last day.
-    """
-    now = timezone.now()
-    sends = _recent_sends(UserProfile(id=user.id), now)
+def _aware(moment):
+    """Mongo returns UTC datetimes without a zone."""
+    return moment if moment.tzinfo else moment.replace(tzinfo=UTC)
+
+
+def _ceil_to_millisecond(moment):
+    """Mongo keeps milliseconds; rounding a send up never shortens a wait."""
+    micro = -(-moment.microsecond // 1000) * 1000
+    return moment.replace(microsecond=0) + timedelta(microseconds=micro)
+
+
+def _throttle_error(sends, now):
+    """The CooldownError for these send times, or None if another email may go."""
     if sends and now - sends[-1] < CONFIRMATION_COOLDOWN:
-        raise CooldownError(_seconds(CONFIRMATION_COOLDOWN - (now - sends[-1])))
+        return CooldownError(_seconds(CONFIRMATION_COOLDOWN - (now - sends[-1])))
     if len(sends) >= CONFIRMATION_DAILY_LIMIT:
-        raise CooldownError(
+        return CooldownError(
             _seconds(timedelta(days=1) - (now - sends[-CONFIRMATION_DAILY_LIMIT])),
             f"You've asked for {CONFIRMATION_DAILY_LIMIT} links today. Try again tomorrow, or contact hello@sefaria.org.",
         )
+    return None
+
+
+def _reserve_throttle_slot(user, now):
+    """
+    Atomically checks the limits and records a send in the account's throttle document. The throttle lives in its
+    own Mongo collection, not in the profile settings: UserProfile.save() rewrites the whole settings object, so a
+    stale profile save could erase it. The check and the record are one conditional update, so they cannot be split.
+    Raises CooldownError.
+    """
+    throttle = db[THROTTLE_COLLECTION]
+    day_ago = now - timedelta(days=1)
+    # The first use takes over whatever an older version kept in the profile settings.
+    legacy = _recent_sends(UserProfile(id=user.id), now)
+    throttle.update_one({"uid": user.id}, {"$setOnInsert": {"sends": legacy}}, upsert=True)
+    throttle.update_one({"uid": user.id}, {"$pull": {"sends": {"$lte": day_ago}}})
+    reserved = throttle.update_one(
+        {
+            "uid": user.id,
+            "sends": {"$not": {"$elemMatch": {"$gt": now - CONFIRMATION_COOLDOWN}}},
+            f"sends.{CONFIRMATION_DAILY_LIMIT - 1}": {"$exists": False},
+        },
+        {"$push": {"sends": _ceil_to_millisecond(now)}},
+    )
+    if reserved.modified_count == 1:
+        return
+    document = throttle.find_one({"uid": user.id}) or {}
+    sends = sorted(_aware(sent) for sent in document.get("sends", []))
+    raise _throttle_error(sends, now) or CooldownError(_seconds(CONFIRMATION_COOLDOWN))
 
 
 def reserve_confirmation_send(user):
     """
     Atomically checks the limits and records this send, so concurrent requests for one account
-    cannot both pass. The account's auth row is locked for the check and the write; the caller
+    cannot both pass. The account's auth row is locked around the check and the write; the caller
     sends the email afterwards, so a failed send still throttles. Raises CooldownError.
     """
     with transaction.atomic():
         _lock_account(user)
-        check_confirmation_limits(user)
+        _reserve_throttle_slot(user, timezone.now())
         mark_confirmation_sent(user, True)
 
 
@@ -482,7 +532,6 @@ def mark_confirmation_sent(user, sent):
             now = timezone.now()
             profile.settings[CONFIRMATION_SENT_SETTING] = iso(now)
             profile.settings[CONFIRMATION_SENT_TO_SETTING] = (user.email or "").lower()
-            profile.settings[CONFIRMATION_SENDS_SETTING] = [iso(t) for t in _recent_sends(profile, now)] + [iso(now)]
         else:
             profile.settings.pop(CONFIRMATION_SENT_SETTING, None)
             profile.settings.pop(CONFIRMATION_SENT_TO_SETTING, None)
