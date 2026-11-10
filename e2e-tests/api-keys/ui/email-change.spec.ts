@@ -41,7 +41,6 @@ test.describe('onboarding.ssoUnverified: email changes', () => {
 
   test.beforeEach(async ({ target }) => {
     test.skip(target.name !== 'local' || !target.hasMailbox, 'needs the local stack: Mailpit and direct fixture resets');
-    test.skip(target.mocks, 'mocks are on, so no mail is sent');
     test.setTimeout(t(180000));
     await sessionReady(ROLE);
   });
