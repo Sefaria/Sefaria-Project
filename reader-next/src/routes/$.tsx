@@ -3,6 +3,7 @@ import { loadWorkspaceRoute } from "~/features/reader/reader-route";
 // Each page kind (the reader, a book's page) is its own chunk, loaded before anything renders: see page-kinds.tsx (T-H03)
 import { loadPageKind, PAGE_KIND_META, preloadRenderedPageKind, ReaderRoute as PageKindRoute, type PageData } from "~/features/reader/page-kinds";
 import { loadBookRoute } from "~/features/book/book-route";
+import { bookMeta } from "~/lib/library/page-head";
 import { decodeVtitle, encodeVtitle, validateReaderSearch, type ReaderSearch } from "~/lib/reader/url-state";
 import type { VersionMeta } from "~/lib/text/model";
 import { versionsQueryOptions } from "~/lib/versions/book-versions";
@@ -52,7 +53,7 @@ export const Route = createFileRoute("/$")({
     const book = !Object.keys(deps).some((k) => /^p\d+$/.test(k)) ? await loadBookRoute(context.queryClient, splat, location.searchStr ?? "") : null;
     if (book) {
       await loadPageKind("book"); // the page's code is in before it renders (no Suspense boundary: page-kinds.tsx)
-      return { kind: "book" as const, ...book };
+      return { kind: "book" as const, ...book, interfaceLang: context.interfaceLang };
     }
     const [text] = await Promise.all([loadWorkspaceRoute({ queryClient: context.queryClient, splat, search: deps as ReaderSearch, fullSearch: location.search as ReaderSearch }), loadPageKind("text")]);
     return { kind: "text" as const, ...text };
@@ -60,7 +61,7 @@ export const Route = createFileRoute("/$")({
   head: ({ loaderData, params }) => {
     // which kind the server rendered, for the hydrating client to load that kind's code first (page-kinds.tsx)
     const kindMeta = loaderData ? [{ name: PAGE_KIND_META, content: loaderData.kind }] : [];
-    if (loaderData?.kind === "book") return { meta: [{ title: `${loaderData.title} | Sefaria Reader` }, ...kindMeta] };
+    if (loaderData?.kind === "book") return { meta: [...bookMeta(loaderData, loaderData.interfaceLang), ...kindMeta] };
     const panels = loaderData && loaderData.kind === "text" ? Object.values(loaderData.panels) : [];
     const first = panels[0];
     return {

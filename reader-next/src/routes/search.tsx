@@ -1,3 +1,4 @@
+import { searchMeta } from "~/lib/library/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 import { SearchRoute } from "~/features/search/SearchRoute";
 import { autocorrectQueryOptions, decideAutocorrect } from "~/lib/search/autocorrect";
@@ -35,6 +36,7 @@ export const Route = createFileRoute("/search")({
     ]);
     if (!decision.pending && decision.corrected) await prefetch({ ...p, q: decision.corrected });
   },
-  head: ({ match }) => ({ meta: [{ title: `${(match.search as { q?: string }).q ?? "Search"} | Sefaria Search` }] }),
+  // reader/views.py search's description and noindex (PLT-007, RTE-029); the title the old client sets
+  head: ({ match }) => ({ meta: searchMeta((match.search as { q?: string }).q, (match.context as { interfaceLang?: "english" | "hebrew" }).interfaceLang ?? "english") }),
   component: SearchRoute,
 });

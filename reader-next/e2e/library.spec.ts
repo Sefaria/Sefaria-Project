@@ -33,9 +33,17 @@ test.describe("the library (verified against sefaria.org)", () => {
     // /texts/history (where Django's /texts/recent goes) is the library home with its own title, as on sefaria.org (not "history | …")
     await open(page, "/texts/history");
     await expect(page.getByRole("heading", { level: 1, name: "Browse the Library" })).toBeVisible();
-    await expect(page).toHaveTitle("Browse the Library | Sefaria Reader");
-    await open(page, "/texts/Tanakh");
-    await expect(page).toHaveTitle("Tanakh | Sefaria Reader");
+    await expect(page).toHaveTitle("Sefaria: a Living Library of Jewish Texts Online");
+    // PLT-006: the title the reader sees on sefaria.org and the description its server writes (VERIFIED 2026-11-10)
+    await open(page, "/texts/Tanakh/Torah");
+    await expect(page).toHaveTitle("Tanakh, Torah | The Sefaria Library");
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", "Five Books of Moses");
+    await open(page, "/Genesis");
+    await expect(page).toHaveTitle("Genesis | The Sefaria Library");
+    await expect(page.locator('meta[property="og:description"]')).toHaveAttribute("content", /^Genesis \(“Bereshit”\).* Read the text of Genesis online with commentaries and connections\.$/);
+    await open(page, "/search?q=moses");
+    await expect(page).toHaveTitle("moses | The Sefaria Library");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
   });
 });
 
@@ -71,3 +79,4 @@ test("library and search pages carry their slice of the catalog, not all of it",
   await open(page, "/search?q=light&tab=text&search_tab=sources&tvar=1&tsort=relevance");
   await expect(page.getByRole("checkbox", { name: "Tanakh", exact: true })).toBeVisible({ timeout: 15_000 });
 });
+
