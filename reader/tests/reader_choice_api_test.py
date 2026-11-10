@@ -15,7 +15,7 @@ from django.test import Client, TestCase, override_settings
 
 from reader.conftest import create_test_user, purge_test_profiles
 from remote_config import remoteConfigCache
-from remote_config.keys import READER_OPTIN_AUDIENCE
+from remote_config.keys import READER_NEXT_DISABLED, READER_OPTIN_AUDIENCE
 from remote_config.models import RemoteConfigEntry, ValueType
 from sefaria.model.user_profile import UserProfile
 
@@ -42,7 +42,15 @@ class ReaderChoiceTestCase(TestCase):
 
     def tearDown(self):
         purge_test_profiles(self.staff, self.member)
-        RemoteConfigEntry.objects.filter(key=READER_OPTIN_AUDIENCE).delete()
+        RemoteConfigEntry.objects.filter(key__in=[READER_OPTIN_AUDIENCE, READER_NEXT_DISABLED]).delete()
+        remoteConfigCache.reload()
+
+    def set_disabled(self, value):
+        """The kill switch, as an admin sets it: a bool entry."""
+        RemoteConfigEntry.objects.filter(key=READER_NEXT_DISABLED).delete()
+        RemoteConfigEntry.objects.create(
+            key=READER_NEXT_DISABLED, raw_value="1" if value else "0", value_type=ValueType.BOOL, is_active=True
+        )
         remoteConfigCache.reload()
 
     def set_audience(self, value):
@@ -149,12 +157,16 @@ class ReaderChoiceApiTest(ReaderChoiceTestCase):
 
     def test_get_tells_the_client_what_it_can_offer(self):
         res = self.client.get(URL)
-        self.assertEqual(res.json(), {"available": True, "canChooseNext": False, "reader": "classic", "saved": None})
+        self.assertEqual(
+            res.json(),
+            {"available": True, "disabled": False, "canChooseNext": False, "reader": "classic", "saved": None},
+        )
         self.assertIn("no-store", res["Cache-Control"])
         self.client.force_login(self.staff)
         self.post("next")
         self.assertEqual(
-            self.client.get(URL).json(), {"available": True, "canChooseNext": True, "reader": "next", "saved": "next"}
+            self.client.get(URL).json(),
+            {"available": True, "disabled": False, "canChooseNext": True, "reader": "next", "saved": "next"},
         )
 
     def test_other_methods_are_refused(self):
@@ -290,3 +302,84 @@ class VoicesUntouchedTest(ReaderChoiceTestCase):
         )
         self.assertEqual(res.status_code, 200)
         self.assertNotIn("reader_version", res.cookies)
+
+
+class KillSwitchTest(ReaderChoiceTestCase):
+    """feature.reader.next.disabled: Django never undoes the client's switch back to the classic reader."""
+
+    def test_off_by_default(self):
+        self.client.force_login(self.staff)
+        self.assertFalse(self.client.get(URL).json()["disabled"])
+        self.assertEqual(self.post("next").status_code, 200)
+
+    def test_the_switch_to_next_is_refused_and_back_to_classic_still_works(self):
+        self.set_disabled(True)
+        self.client.force_login(self.staff)
+        res = self.post("next")
+        self.assertEqual(res.status_code, 403)
+        self.assertTrue(res.json()["disabled"])
+        self.assertIn("switched off", res.json()["error"])
+        self.assertNotEqual(self.saved(self.staff), "next")
+        state = self.client.get(URL).json()
+        self.assertTrue(state["disabled"])
+        self.assertFalse(state["canChooseNext"])
+        self.assertTrue(_cleared(self.post("classic")))
+
+    def test_the_middleware_clears_next_for_staff_and_does_not_sync_it_back(self):
+        profile = UserProfile(id=self.staff.id)
+        profile.update({"settings": {"reader_version": "next"}})
+        profile.save()
+        self.set_disabled(True)
+        self.client.force_login(self.staff)
+        self.client.cookies["reader_version"] = "next"
+        self.assertTrue(_cleared(self.client.get("/api/library-assistant")))
+        del self.client.cookies["reader_version"]
+        self.assertNotIn(
+            "reader_version", self.client.get("/api/library-assistant").cookies
+        )  # the sync hands out nothing
+
+    def test_a_signed_out_next_cookie_is_cleared_even_with_the_audience_all(self):
+        self.set_audience("all")
+        self.set_disabled(True)
+        self.client.cookies["reader_version"] = "next"
+        self.assertTrue(_cleared(self.client.get("/api/library-assistant")))
+
+    def test_voices_responses_are_untouched(self):
+        self.set_disabled(True)
+        self.client.force_login(self.staff)
+        self.client.cookies["reader_version"] = "next"
+        self.assertNotIn("reader_version", self.client.get("/api/library-assistant", **VOICES).cookies)
+
+    def test_the_profile_api_drops_an_opt_in(self):
+        self.set_disabled(True)
+        self.client.force_login(self.staff)
+        res = self.client.post(
+            "/api/profile",
+            {"json": json.dumps({"settings": {"reader_version": "next"}})},
+            HTTP_X_CSRFTOKEN=self.csrf(),
+        )
+        self.assertNotIn("reader_version", res.cookies)
+        self.assertNotEqual(self.saved(self.staff), "next")
+
+
+class AccountSettingsKillSwitchTest(AccountSettingsSwitchTest):
+    """While the kill switch is on, the switch is replaced by a short explanation, for those who would have seen it."""
+
+    def test_the_switch_is_hidden_and_explained(self):
+        self.set_disabled(True)
+        ctx = self.context(self.staff)
+        self.assertFalse(ctx["reader_choice_available"])
+        self.assertTrue(ctx["new_reader_paused"])
+        self.assertFalse(self.context(self.member)["new_reader_paused"])  # never offered it: nothing to explain
+
+    def test_no_explanation_while_it_is_off(self):
+        self.assertFalse(self.context(self.staff)["new_reader_paused"])
+
+    def test_the_template_explains_without_a_toggle(self):
+        from django.conf import settings
+
+        with open(f"{settings.BASE_DIR}/templates/account_settings.html") as f:
+            html = f.read()
+        paused = html.split("{% elif new_reader_paused %}", 1)[1].split("{% endif %}", 1)[0]
+        self.assertIn("switched off for now", paused)
+        self.assertNotIn("toggleOption", paused)
