@@ -6,15 +6,24 @@ page HTML or a log line.
 import json
 import logging
 
+from django.conf import settings
 from django.core.cache import cache
 from django.test import Client, override_settings
 from django.utils import timezone
 
 from powered_by import developer
 from powered_by.models import ApiKey
-from powered_by.tests.developer_api_test import DeveloperApiTestCase, create_test_user, purge_test_profiles
+from powered_by.tests.developer_api_test import PROFILE, DeveloperApiTestCase, create_test_user, purge_test_profiles
+from sefaria.model.user_profile import UserProfile
+
+# The throttle needs a working cache; the one this suite runs against may be a Redis that is not there.
+LOCAL_CACHES = {
+    alias: {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "key-value-" + alias}
+    for alias in settings.CACHES
+}
 
 
+@override_settings(CACHES=LOCAL_CACHES)
 class KeyValueTestCase(DeveloperApiTestCase):
     def setUp(self):
         super().setUp()
@@ -31,6 +40,18 @@ class KeyValueTestCase(DeveloperApiTestCase):
 
     def url(self, key_id=None):
         return f"/api/developer/keys/{key_id or self.key_id}/value"
+
+    def other_developer_client(self):
+        """A client logged in as another account that has set up developer settings."""
+        other = create_test_user("devapiother")
+        self.addCleanup(purge_test_profiles, other)
+        profile = UserProfile(id=other.id)
+        profile.settings[developer.ENABLED_SETTING] = True
+        profile.settings[developer.PROFILE_SETTING] = PROFILE
+        profile.save()
+        client = Client()
+        client.force_login(other)
+        return client
 
     def reveal(self, key_id=None, client=None):
         return (client or self.client).post(self.url(key_id), "{}", content_type="application/json")
@@ -98,10 +119,7 @@ class KeyValueEndpointTest(KeyValueTestCase):
         self.assertNotIn(self.value, response.content.decode())
 
     def test_another_accounts_key_and_an_unknown_key_are_the_same_404(self):
-        other = create_test_user("devapiother")
-        self.addCleanup(purge_test_profiles, other)
-        other_client = Client()
-        other_client.force_login(other)
+        other_client = self.other_developer_client()
         unknown = "00000000-0000-4000-8000-000000000000"
 
         not_yours = self.reveal(client=other_client)
@@ -147,14 +165,11 @@ class KeyValueEndpointTest(KeyValueTestCase):
         self.assertEqual(self.reveal().status_code, 429)
 
     def test_the_limit_is_per_account(self):
-        other = create_test_user("devapiother")
-        self.addCleanup(purge_test_profiles, other)
+        other_client = self.other_developer_client()
         for _ in range(developer.REVEAL_LIMIT + 1):
             self.reveal()
 
         self.assertEqual(self.reveal().status_code, 429)
-        other_client = Client()
-        other_client.force_login(other)
         self.assertEqual(self.reveal(client=other_client).status_code, 404)
 
     def test_the_account_must_have_developer_settings_set_up(self):

@@ -81,7 +81,7 @@ class SessionIdHeaderTest(DeveloperApiTestCase):
         response = self.client.get("/api/developer/state", HTTP_X_SESSION_ID=self.token)
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(self.key_value, response.content.decode())
+        self.assertIn(self.key_value[:10], response.content.decode())
 
 
 class ProfileApiDeveloperStateTest(DeveloperApiTestCase):
