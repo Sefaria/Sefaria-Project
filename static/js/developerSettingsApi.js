@@ -29,6 +29,7 @@ const SERVER_ERRORS_HE = {
   'The project must be a JSON object.': 'לא הצלחנו לקרוא את הבקשה.',
   'Wait a minute before asking for another email.': 'נא להמתין דקה לפני שמבקשים הודעה נוספת.',
   "This link can't be renewed.": 'אי אפשר לחדש את הקישור הזה.',
+  'The link key must be text.': 'מפתח הקישור חייב להיות טקסט.',
   'Accept the API terms to continue.': 'כדי להמשיך יש לאשר את תנאי השימוש ב־API.',
   'The additional email is not a valid address.': 'כתובת הדוא״ל הנוספת אינה תקינה.',
   'The contact email is not a valid address.': 'כתובת הדוא״ל ליצירת קשר אינה תקינה.',
