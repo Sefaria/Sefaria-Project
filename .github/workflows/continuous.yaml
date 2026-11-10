@@ -451,6 +451,8 @@ jobs:
       - sandbox-deploy
       - sandbox-ready
       - pytest-job
+      - jest-tests
+      - auth-service-tests
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -465,6 +467,12 @@ jobs:
             exit 1
           fi
           if [ "${{ github.event.pull_request.draft }}" == "false" ]; then
+            # jest-tests is skipped only on drafts; auth-service-tests always runs (it passes vacuously off-path).
+            if [ "${{ needs.jest-tests.result }}" != "success" ] || \
+               [ "${{ needs.auth-service-tests.result }}" != "success" ]; then
+              echo "Jest or auth-service tests failed"
+              exit 1
+            fi
             if [ "${{ needs.check-python-files.outputs.python_files_changed }}" == "true" ]; then
               if [ "${{ needs.sandbox-deploy.result }}" != "success" ] || \
                  [ "${{ needs.sandbox-ready.result }}" != "success" ] || \
