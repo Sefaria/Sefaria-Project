@@ -8,12 +8,12 @@ describe("pageCacheHeaders", () => {
   it("a signed-in reader's page is private and never stored", () => {
     const h = pageCacheHeaders("csrftoken=a; sessionid=xyz; interfaceLang=english", html());
     expect(h.get("cache-control")).toBe("private, no-store");
-    expect(h.get("vary")).toBe("Origin, Cookie, CF-IPCountry");
+    expect(h.get("vary")).toBe("Origin, Cookie, CF-IPCountry, Accept-Language");
   });
   it("an anonymous page varies on cookies and is revalidated", () => {
     const h = pageCacheHeaders("interfaceLang=hebrew", html());
     expect(h.get("cache-control")).toBe("no-cache");
-    expect(h.get("vary")).toBe("Origin, Cookie, CF-IPCountry");
+    expect(h.get("vary")).toBe("Origin, Cookie, CF-IPCountry, Accept-Language");
     expect(pageCacheHeaders(null, html()).get("cache-control")).toBe("no-cache");
   });
   it("a redirect or an error page is not marked no-cache (a permanent redirect stays cacheable)", () => {

@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useLocation, useMatches, useRouter } from "@tanstack/react-router";
+import { HeadContent, Outlet, Scripts, createRootRouteWithContext, notFound, useLocation, useMatches, useRouter } from "@tanstack/react-router";
 import { useQuery, type QueryClient } from "@tanstack/react-query";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { createServerFn } from "@tanstack/react-start";
@@ -13,6 +13,8 @@ import { ReaderStateProvider } from "~/features/reader-state/ReaderStateProvider
 import { isReaderPath } from "~/lib/reader/paths";
 import { isStandalonePage } from "~/lib/routing/standalone";
 import { markLoadEntry } from "~/lib/routing/load-entry";
+import { isForcedNotFound, isNotFoundMatch } from "~/lib/routing/not-found";
+import { NotFoundPage } from "~/features/routing/NotFoundPage";
 import { forgetTopicSortOff } from "~/lib/topics/topic-sort-carry";
 import { useHeaderSearch } from "~/features/shell/useHeaderSearch";
 import { SiteHeader } from "~/ui/SiteHeader/SiteHeader";
@@ -67,18 +69,28 @@ const pageDiaspora = () => (window as unknown as { __SEFARIA_REQUEST__?: { diasp
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   // Every navigation runs this: in the browser the cookies are right here (a server function was an HTTP round trip per navigation,
   // scroll-driven address updates included: CODE_REVIEW R-09)
-  beforeLoad: async () => (typeof document === "undefined" ? getRequestPrefs() : prefsFromCookies(document.cookie, pageDiaspora())),
+  // (neither this client nor Django has a page here: the server asks for the reader's own 404 page, src/lib/routing/not-found.ts)
+  beforeLoad: async (opts) => {
+    if (isForcedNotFound(opts)) throw notFound();
+    return typeof document === "undefined" ? getRequestPrefs() : prefsFromCookies(document.cookie, pageDiaspora());
+  },
   // who is signed in, in the first paint (the query forwards the request's cookie on the server: src/features/auth/viewer.ts)
   // and the remote-config switches (the promo banner is in the first paint, so it cannot push the page down later)
   loader: async ({ context }) => {
     const [viewer] = await Promise.all([context.queryClient.ensureQueryData(viewerQuery), context.queryClient.ensureQueryData(remoteConfigQueryOptions()).catch(() => undefined)]);
     return { viewer };
   },
+  notFoundComponent: NotFoundPage,
   head: ({ matches }) => {
     // a standalone page (compare.html) has no viewport meta and loads no site fonts: the browser's own Times, laid out 980px wide on a phone
     if (isStandalonePage(matches[matches.length - 1]?.pathname ?? "")) return { meta: [{ charSet: "utf-8" }, { title: "Sefaria Reader" }], links: [{ rel: "stylesheet", href: tokens }, { rel: "stylesheet", href: base }] };
     return {
-    meta: [{ charSet: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1" }, { title: "Sefaria Reader" }],
+    meta: [
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      // a page nobody has (the reader's 404, T-F28): titled as the old site's 404 and kept out of search engines
+      ...(matches.some(isNotFoundMatch) ? [{ title: "Page Not Found | Sefaria" }, { name: "robots", content: "noindex" }] : [{ title: "Sefaria Reader" }]),
+    ],
     links: [
       // The faces on screen at first paint, preloaded with the page: a face that arrives later reflows the
       // text under the reader (see TXD-054). Everything else in fonts.css loads on demand.
@@ -137,7 +149,8 @@ function Shell() {
   // a book's own page is a library page: it keeps the site header on a phone (a text hides it, the panel has its own)
   const matches = useMatches();
   const book = (matches.find((m) => m.routeId === "/$")?.loaderData as { kind?: string } | undefined)?.kind === "book";
-  const reading = isReaderPath(loc.pathname) && !book;
+  // the not-found page is a site page, not a text (the header stays on a phone)
+  const reading = isReaderPath(loc.pathname) && !book && !matches.some(isNotFoundMatch);
   const search = useHeaderSearch();
   const menuOpen = useMobileMenuOpen();
   const viewer = useViewer();

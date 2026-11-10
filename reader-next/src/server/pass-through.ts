@@ -9,6 +9,7 @@
  */
 import { API_ORIGIN, PUBLIC_CONFIG } from "~/lib/config";
 import type { DeadlineInit } from "./internal-fetch";
+import { unavailableResponse } from "./error-page";
 import { isDjangoPage, isLibraryOnlyPage } from "~/lib/routing/django-paths";
 
 export { DJANGO_PREFIXES } from "~/lib/routing/django-paths";
@@ -40,12 +41,11 @@ export const isDjangoRequest = passesToDjango;
 
 const PASS_THROUGH_TIMEOUT_MS = Number((typeof process !== "undefined" && process.env.SEFARIA_PASS_THROUGH_TIMEOUT_MS) || 30000);
 
-/** What a page answers when what it needs upstream is down or too slow: 503 (try again), never a 500 (a bug) or a hang. */
-export const upstreamUnavailable = () =>
-  new Response("The library is not answering right now. Please try again in a moment.", {
-    status: 503,
-    headers: { "content-type": "text/plain; charset=utf-8", "retry-after": "5", "cache-control": "no-store" },
-  });
+/**
+ * What a page answers when what it needs upstream is down or too slow: 503 (try again), never a 500 (a bug) or a hang — a real page
+ * in the interface language (src/server/error-page.ts) when the request is known.
+ */
+export const upstreamUnavailable = (request?: Request) => unavailableResponse(request);
 
 const HOP_BY_HOP = ["connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade"];
 
@@ -66,7 +66,7 @@ export async function passThrough(request: Request): Promise<Response> {
   try {
     res = await fetch(`${API_ORIGIN}${url.pathname}${url.search}`, init);
   } catch {
-    return upstreamUnavailable();
+    return upstreamUnavailable(request);
   }
   const out = new Headers(res.headers);
   // fetch has already decoded the body: the length and encoding no longer describe it
