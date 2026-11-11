@@ -135,23 +135,42 @@ test("every language Django accepts has its page, its title and its description;
 });
 
 // @feature LIB-021
-test("Hebrew: the list API fails on sefaria.org (500 after ~16s); the page does not wait for it, shows its title and an empty tab", async ({ page, request }) => {
-  test.setTimeout(90_000);
+test("Hebrew: the list API fails on sefaria.org (500 after ~16s); the page does not wait for it, shows its title and an empty tab", async ({ page }) => {
+  test.setTimeout(60_000);
   // a language whose list answers renders its list (so an empty list below is the failure, not a broken page)
   await open(page, "/translations/fr");
   await expect(page.getByRole("tabpanel").getByRole("heading", { level: 2 }).first()).toHaveText("Tanakh");
-  // sefaria.org answers /translations/he in ~1.1s; the server's page does not wait for the failing API (it waited 7s)
+  // The list is built on the server, by a server function the browser calls when it navigates in the app. sefaria.org's
+  // /api/texts/translations/he answers 500 after ~16s; the cassette never records a failure, so that answer is stubbed here, on the
+  // browser's call: it fails after FAIL_AFTER_MS.
+  const FAIL_AFTER_MS = 8_000;
+  let failed!: () => void;
+  const failure = new Promise<void>((resolve) => (failed = resolve));
+  const asked: string[] = [];
+  await page.route(/\/_serverFn\//, async (route) => {
+    if (!decodeURIComponent(route.request().url()).includes('"he"')) return route.fallback();
+    asked.push(route.request().url());
+    await new Promise((resolve) => setTimeout(resolve, FAIL_AFTER_MS));
+    await route.fulfill({ status: 500, contentType: "text/plain", body: "Internal Server Error" });
+    failed();
+  });
   const t0 = Date.now();
-  const r = await request.get("/translations/he");
-  expect(r.status()).toBe(200);
-  expect(Date.now() - t0).toBeLessThan(5_000);
-  expect(await r.text()).toContain('data-translations-list="empty"');
-  await open(page, "/translations/he");
+  await page.evaluate(() => {
+    void (window as unknown as { __TSR_ROUTER__: { navigate: (o: { to: string }) => Promise<void> } }).__TSR_ROUTER__.navigate({ to: "/translations/he" });
+  });
+  // the page shows without the list, long before the list's answer (the route waits LIST_WAIT_MS, 1.5s, for it)
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("ספריה בעברית");
   await expect(page.getByRole("tab", { name: "Texts" })).toBeVisible();
   await expect(page.getByRole("tabpanel")).toHaveAttribute("data-translations-list", "empty");
+  expect(Date.now() - t0).toBeLessThan(FAIL_AFTER_MS / 2);
+  expect(asked).toHaveLength(1);
+  // the failure arrives: still the title and an empty tab, with the About module, not an error page
+  await failure;
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("ספריה בעברית");
+  await expect(page.getByRole("tabpanel")).toHaveAttribute("data-translations-list", "empty");
   await expect(page.getByRole("tabpanel").locator("h2")).toHaveCount(0);
   await expect(page.getByRole("complementary").getByRole("heading", { name: "A Living Library of Torah" })).toBeVisible();
+  expect(asked).toHaveLength(1);
 });
 
 // @feature LIB-020
