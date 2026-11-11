@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 
 // the server function, stubbed: what Django's profile API would say about the signed-in reader's custom
 const serverCustom = vi.fn<(args: { data: string }) => Promise<string>>();
-vi.mock("@tanstack/react-start", () => ({
+vi.mock("@tanstack/react-start", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
   createServerFn: () => ({ validator: () => ({ handler: () => (args: { data: string }) => serverCustom(args) }) }),
 }));
 vi.mock("@tanstack/react-start/server", () => ({ getRequestHeader: () => "" }));

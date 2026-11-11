@@ -1,6 +1,6 @@
 // Component tests of the ported auth page against mocked Django endpoints (MSW). Never a real account.
 // @feature ACC-001 @feature ACC-008 @feature ACC-009 @feature ACC-010 @feature ACC-011 @feature ACC-012 @feature ANL-013 @feature ANL-002
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -91,6 +91,21 @@ describe("login", () => {
     await user.click(screen.getByRole("button", { name: "Log in" }));
     await waitFor(() => expect(navigate).toHaveBeenCalledWith("/Genesis.1"));
     expect(sent[0]).toEqual({ url: "/api/auth/login", body: JSON.stringify({ email: "a@example.org", password: "pw" }), csrf: "tok123", type: "application/json" });
+  });
+
+  it("success with a next that holds DEL or C1 characters: a full load of the home page, never the joined scheme or host", async () => {
+    for (const next of ["java%7Fscript:alert(document.cookie)", "%7F//evil.example", "%C2%85//evil.example"]) {
+      answer("/api/auth/login", 200, {});
+      navigate.mockClear();
+      const user = setup({ initialPath: `/login?next=${next}` });
+      await toEmail(user);
+      await user.type(screen.getByLabelText("Email Address"), "a@example.org");
+      await user.type(screen.getByLabelText("Password"), "pw");
+      await user.click(screen.getByRole("button", { name: "Log in" }));
+      await waitFor(() => expect(navigate).toHaveBeenCalled());
+      expect(navigate.mock.calls.map((c) => c[0]), next).toEqual(["/"]);
+      cleanup();
+    }
   });
 
   // CODE_REVIEW R-08: master tracks email login in the auth funnel (it used to send nothing)

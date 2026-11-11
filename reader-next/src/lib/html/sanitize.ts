@@ -9,12 +9,15 @@
  */
 import { Parser } from "htmlparser2";
 import { escapeAttribute as escapeAttributeLoose, escapeText } from "entities";
+import { isLocalPath } from "./local-path";
 
 /** Attribute values with `<` and `>` escaped as well, so no later scan of the HTML can mistake one for the end of a tag (CODE_REVIEW R-02). */
 const escapeAttribute = (v: string) => escapeAttributeLoose(v).replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 const ALLOWED = new Set(["a", "abbr", "b", "blockquote", "br", "code", "div", "em", "h3", "h4", "h5", "h6", "i", "li", "ol", "p", "small", "span", "strong", "sub", "sup", "u", "ul"]);
 const VOID = new Set(["br"]);
+/** Attributes that hold an address or styles: never kept through keepAttributes (a link's href goes through safeHref only). */
+const URL_ATTRIBUTES = new Set(["href", "src", "srcset", "action", "formaction", "poster", "background", "style"]);
 /** Tags whose whole content is dropped, not just the tag. */
 const DROP_CONTENT = new Set(["script", "style", "iframe", "object", "embed", "template", "noscript", "svg", "math"]);
 
@@ -31,10 +34,13 @@ export interface SanitizeOptions {
 function safeHref(href: string | undefined, baseUrl: string | undefined): string | undefined {
   if (!href) return undefined;
   const h = href.trim();
+  // a control character inside is dropped by the browser while it reads the address ("java\tscript:", "/\t/evil.org")
+  if (!h || /[\u0000-\u001f\u007f-\u009f]/.test(h)) return undefined; // eslint-disable-line no-control-regex
   if (/^(https?:|mailto:)/i.test(h)) return h;
-  if (h.startsWith("//") || /^[a-z][a-z0-9+.-]*:/i.test(h)) return undefined; // javascript:, data:, protocol-relative
-  if (h.startsWith("/") || h.startsWith("#")) return baseUrl && h.startsWith("/") ? baseUrl.replace(/\/$/, "") + h : h;
-  return undefined; // bare relative paths are ambiguous: drop
+  if (h.startsWith("#")) return h;
+  // a path of this site: never //host, /\host, \\host or their encoded forms, which browsers read as another site
+  if (isLocalPath(h)) return baseUrl ? baseUrl.replace(/\/$/, "") + h : h;
+  return undefined; // a scheme (javascript:, data:), protocol-relative, or a bare relative path (ambiguous): drop
 }
 
 export function sanitizeHtml(html: string, opts: SanitizeOptions = {}): string {
@@ -61,7 +67,7 @@ export function sanitizeHtml(html: string, opts: SanitizeOptions = {}): string {
         }
         for (const attr of opts.keepAttributes?.[name] ?? []) {
           const v = attribs[attr];
-          if (v !== undefined && /^[a-z][a-z0-9-]*$/.test(attr) && !attr.startsWith("on")) attrs += ` ${attr}="${escapeAttribute(v)}"`;
+          if (v !== undefined && /^[a-z][a-z0-9-]*$/.test(attr) && !attr.startsWith("on") && !URL_ATTRIBUTES.has(attr)) attrs += ` ${attr}="${escapeAttribute(v)}"`;
         }
         if (attribs.lang && /^[a-zA-Z-]{2,12}$/.test(attribs.lang)) attrs += ` lang="${attribs.lang}"`;
         if (attribs.dir === "rtl" || attribs.dir === "ltr") attrs += ` dir="${attribs.dir}"`;

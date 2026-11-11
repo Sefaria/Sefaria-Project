@@ -22,10 +22,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { queryOptions } from "@tanstack/react-query";
 import { SEFARIA_API_ORIGIN, SefariaApiError, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
+import { isSafeSegment, oneOf, record, segment } from "~/lib/server-fn/input";
 import { postJson } from "~/lib/auth/http";
 import { sanitizeHtml } from "~/lib/html/sanitize";
 import { isCategory, serverCatalogTree, type TocNode } from "~/lib/catalog/toc";
-import { serverListedTopicSlugs, serverTopicToc } from "./toc-source";
+import { categoryPathOf, serverListedTopicSlugs, serverTopicToc } from "./toc-source";
 import { topicTocCategoryPaths, topicTocPage, type TopicTocNode } from "./topic-toc";
 import type { AzLang } from "./topic-model";
 import {
@@ -222,6 +223,16 @@ async function inLibraryPool(slug: string, title: { en?: string; he?: string } |
   return false;
 }
 
+/** The topic languages; a slug is one path segment (it goes into /api/v2/topics/<slug> on the internal origin). */
+export const TOPIC_LANGS = ["en", "he"] as const satisfies readonly AzLang[];
+export const isTopicSlug = (slug: unknown): slug is string => isSafeSegment(slug, 200);
+
+/** readTopicPage's input, checked. */
+export function validateTopicPageInput(d: unknown): { slug: string; lang: AzLang } {
+  const o = record(d, "topic page");
+  return { slug: segment(o.slug, "slug", 200), lang: oneOf(o.lang, TOPIC_LANGS, "lang") };
+}
+
 /**
  * The page, on the server. reader/views.py topic_page answers 404 for a topic that does not exist or is not in the Library's pool.
  * A topic in the A–Z list is in the pool; one that is not (some 300: authors' students, ambiguous names…) is decided by its `pools`
@@ -229,11 +240,11 @@ async function inLibraryPool(slug: string, title: { en?: string; he?: string } |
  * opted-in reader must not land in the old client (TOP-036); noindex unless it passes should_display, as on live.
  */
 const readTopicPage = createServerFn({ method: "GET" })
-  .validator((d: { slug: string; lang: AzLang }) => d)
+  .validator(validateTopicPageInput)
   .handler(async ({ data }): Promise<TopicPageResult> => {
     const [toc, listed, tree] = await Promise.all([serverTopicToc().catch(() => [] as TopicTocNode[]), serverListedTopicSlugs().catch(() => undefined), serverCatalogTree().catch(() => [] as TocNode[])]);
     const tocPaths = topicTocCategoryPaths(toc);
-    const filters = refLinkTypeFilters(tocPaths[data.slug]?.at(-1)?.slug);
+    const filters = refLinkTypeFilters(categoryPathOf(tocPaths, data.slug)?.at(-1)?.slug);
     const r = await fetch(`${SEFARIA_API_ORIGIN}${topicApiPath(data.slug, filters)}`, {
       // the server's order of the sources follows the reader's interface language (get_topic's sort_and_group_similar_refs)
       headers: { cookie: `interfaceLang=${data.lang === "he" ? "hebrew" : "english"}` },
@@ -252,7 +263,11 @@ const readTopicPage = createServerFn({ method: "GET" })
 /** The topic page in the interface language (the server's source order depends on it). Search class: memory only, five minutes. */
 export const topicPageQueryOptions = (slug: string, lang: AzLang) =>
   queryOptions<TopicPageResult>({
-    ...withPolicy("search", { queryKey: ["topics", "page", slug, lang] as const, queryFn: (): Promise<TopicPageResult> => readTopicPage({ data: { slug, lang } }) }),
+    ...withPolicy("search", {
+      queryKey: ["topics", "page", slug, lang] as const,
+      // a slug the server function refuses ("..", a slash) is no topic: Django's 404, without asking
+      queryFn: (): Promise<TopicPageResult> => (isTopicSlug(slug) ? readTopicPage({ data: { slug, lang } }) : Promise.resolve({ kind: "missing" })),
+    }),
     retry: false,
   });
 

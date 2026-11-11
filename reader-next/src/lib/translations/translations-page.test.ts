@@ -156,7 +156,7 @@ describe("the server function's input and memory", () => {
   });
   it("loadOnServer validates with it (not a pass-through)", () => {
     const src = readFileSync(join(__dirname, "translations-page.ts"), "utf8");
-    expect(src).toMatch(/const loadOnServer = createServerFn\(\{ method: "GET" \}\)\s*\.inputValidator\(validateTranslationSlug\)/);
+    expect(src).toMatch(/const loadOnServer = createServerFn\(\{ method: "GET" \}\)\s*\.validator\(validateTranslationSlug\)/);
   });
   it("keeps at most SHARED_MODELS_MAX models, the oldest leaving first", async () => {
     const load = vi.fn(async (slug: string): Promise<TranslationsPageModel> => ({ slug, sections: [] }));

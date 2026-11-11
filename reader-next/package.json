@@ -12,6 +12,7 @@
     "start": "node server/index.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
+    "pretest": "npm run fixtures:check",
     "test": "vitest run --project unit",
     "test:stories": "vitest run --project storybook",
     "test:stories:hebrew": "VITE_SB_LANG=hebrew vitest run --project storybook",
@@ -20,7 +21,10 @@
     "test:watch": "vitest --project unit",
     "storybook": "storybook dev -p ${PORT:-6006} --no-open",
     "build-storybook": "storybook build",
-    "fixtures:record": "node scripts/record-fixtures.mjs",
+    "fixtures:record": "node scripts/record-fixtures.mjs && npm run fixtures:scrub",
+    "fixtures:record-search": "node scripts/record-search-fixtures.mjs && npm run fixtures:scrub",
+    "fixtures:scrub": "node scripts/fixtures/scrub.mjs --prune",
+    "fixtures:check": "node scripts/fixtures/scrub.mjs --check && node --test scripts/fixtures/scrub.test.mjs",
     "features:coverage": "node scripts/feature-coverage.mjs",
     "test:e2e": "playwright test --project=desktop",
     "test:e2e:ui": "playwright test --ui",
@@ -88,5 +92,8 @@
     "vitest": "^5.0.3",
     "wrangler": "^4.156.1",
     "ws": "^8.22.0"
+  },
+  "overrides": {
+    "js-yaml": "^4.3.2"
   }
 }

@@ -7,6 +7,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { API_ORIGIN, SITE_ORIGIN } from "~/lib/config";
+import { refuse, oneOf, record } from "~/lib/server-fn/input";
 import { fetchStaticPage, type StaticPageResult } from "./content";
 import { STATIC_PAGES } from "./pages";
 
@@ -29,10 +30,13 @@ export function cachedStaticPage(page: string, lang: "en" | "he", load: () => Pr
 /** Tests only. */
 export const clearStaticPageCache = () => cache.clear();
 
+/** loadStaticPage's input: only the pages of the list (the server never asks Django for an address a visitor made up), "en" or "he". */
+export function validateStaticPageInput(d: unknown): { page: string; lang: "en" | "he" } {
+  const o = record(d, "static page");
+  if (typeof o.page !== "string" || !Object.hasOwn(STATIC_PAGES, o.page)) throw refuse("page: not a static page");
+  return { page: o.page, lang: oneOf(o.lang, ["en", "he"] as const, "lang") };
+}
+
 export const loadStaticPage = createServerFn({ method: "GET" })
-  .validator((d: { page: string; lang: "en" | "he" }) => {
-    // only the pages of the list: the server never asks Django for an address a visitor made up
-    if (!d || typeof d.page !== "string" || !Object.hasOwn(STATIC_PAGES, d.page)) throw new Error("not a static page");
-    return { page: d.page, lang: d.lang === "he" ? ("he" as const) : ("en" as const) };
-  })
+  .validator(validateStaticPageInput)
   .handler(({ data }): Promise<StaticPageResult> => cachedStaticPage(data.page, data.lang, () => fetchStaticPage(data.page, data.lang, API_ORIGIN, SITE_ORIGIN)));

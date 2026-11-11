@@ -14,9 +14,13 @@ import { POLICIES } from "~/lib/cache/policies";
 import { hasSessionCookie } from "~/lib/auth/session";
 import { SIGNED_OUT_CUSTOM } from "~/lib/library/calendars";
 import { fetchTextualCustom, profileSlug } from "~/lib/user/textual-custom";
+import { segment } from "~/lib/server-fn/input";
+
+/** The slug goes into /api/profile/<slug> on the internal origin with the reader's cookie: one segment, never "." or "..". */
+export const validateProfileSlug = (slug: unknown): string => (slug === "" ? "" : segment(slug, "profile slug", 200));
 
 const getCustomOnServer = createServerFn({ method: "GET" })
-  .validator((slug: unknown) => (typeof slug === "string" ? slug : ""))
+  .validator(validateProfileSlug)
   .handler(async ({ data: slug }): Promise<string> => {
     const cookie = getRequestHeader("cookie") ?? "";
     if (!slug || !hasSessionCookie(cookie)) return SIGNED_OUT_CUSTOM;
