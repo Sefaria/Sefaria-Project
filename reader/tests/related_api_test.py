@@ -13,12 +13,15 @@ import json
 import re
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+from urllib.parse import urlparse
 
 import pytest
+from django.conf import settings
 from django.test import Client, TestCase
 
 URL = "/api/related/Genesis.1"
-VOICES_HOST = "voices.localhost:8000"
+# The Voices host is whatever this deployment's DOMAIN_MODULES says it is (sefaria/hosts.py routes on it at import).
+VOICES_HOST = urlparse(settings.DOMAIN_MODULES["en"]["voices"]).netloc
 FULL_SHEET = {
     "id": "7",
     "title": "A sheet",
