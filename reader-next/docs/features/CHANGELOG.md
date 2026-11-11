@@ -17,7 +17,7 @@ Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader ha
   Guided Learning AI-008, AI-010.
 - References to planning documents that left the repository were replaced by the decision they cite (`docs/DECISIONS.md`).
 
-### 2026-11-10 — wave 4, lane d-shell (shell, static pages, a11y)
+### 2026-11-10 — shell, static pages and accessibility
 
 - **Library Assistant for signed-out visitors** (parity S3): shown when remote config's `feature.chatbot.anonymous_enabled` is not off,
   without a token, with Sign up / Log in in its login prompt; not on /login and /register. Still missing vs sefaria.org: the phone sheet
@@ -35,7 +35,7 @@ Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader ha
   `set-language-cookie`; the dictionary editor keeps `<big>` and raster `data:` images (never SVG); the Library Assistant only in the
   Library (never on the Voices host) and not on a password reset, as legacy. (RTE-034, CON-072, AI-011)
 
-## 2026-11-10 — wave 4, lane a-route: first paint, titles, Hebrew-interface text language, node addresses
+## 2026-11-10 — first paint, titles, Hebrew-interface text language, node addresses
 
 ### Fixed
 
@@ -52,7 +52,7 @@ Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader ha
 
 - Deliberate differences: two panels' title writes the suffix once (legacy repeated it); a node address answers 301 to its first section (as every ref above section level here), where legacy answers 200 at the node's address.
 
-## 2026-11-10 — wave 4, lane b-surface: reading surface parity and keyboard behaviour
+## 2026-11-10 — reading surface parity and keyboard behaviour
 
 ### Corrected (verified on www.sefaria.org the same day)
 
@@ -69,7 +69,7 @@ Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader ha
 - **I18-013** Hebrew accessible names for the text panel's bar, its section regions and verse groups in the Hebrew interface.
 - **SHL-017** Tab wraps inside the Text display options menu.
 
-### 2026-11-10 — wave 4, lane e-platform (security and exits fixes)
+### 2026-11-10 — security and exits fixes
 
 - **Chart: no mutable reader image.** With `nodejs.mode` `optin` or `reader`, `helm template` now refuses a reader image tagged `latest`
   (or untagged) unless `reader.allowMutableImage: true` (dev environments and cauldrons only). `legacy` renders exactly as before.
@@ -87,7 +87,7 @@ Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader ha
   credentials; the staging relay no longer allows localhost; the vendored toolkit's local patches are listed
   (`vendor/sefaria-toolkit/LOCAL_PATCHES.md`). (nits 2, 4, 7)
 
-## 2026-11-10 — the sidebar against sefaria.org (wave 4, lane c-sidebar)
+## 2026-11-10 — the sidebar against sefaria.org
 
 ### Fixed
 
@@ -241,7 +241,7 @@ Early tests and components were tagged with IDs written from memory; most pointe
 
 - Scrolling fast to the top of a text restarted the column at its first page (a visible jump). Cause: the panel reset its record of the sections the column holds on EVERY render of a history entry that carries no `nav` state (the first one), not once per entry; it only showed when Taamey Frank made the page scroll fast enough to reach the top before another render. Now decided once per history entry (`TextPanel`), and the column reports its sections in a layout effect. The Talmud smoothness test that had flaked for a day was this bug.
 
-## 2026-10-05 — Phase 4 shell: header, mobile menu, skip link, cookie notice, interface language
+## 2026-10-05 — shell: header, mobile menu, skip link, cookie notice, interface language
 
 - **GUI-002/003/009/010/011**: live header and mobile menu structure read off the DOM (labels, links, aria names, breakpoint 842/900px); the desktop header is hidden while reading on a phone.
 - **RTE-034**: the language switch route, with an open-redirect guard the old route lacks. **GUI-007**, **I18-002**, **SHL-071** verified/built.
@@ -268,7 +268,7 @@ Early tests and components were tagged with IDs written from memory; most pointe
 
 ## 2026-10-05 — search bookkeeping
 
-- Search entries that describe the server API, dead code or old-site bugs are marked n/a / replaced; Compare, Phase 7 and analytics items deferred with reasons. **SRC-087**: the old Hebrew-filter bug is not ported, but our box does not yet match Hebrew titles (open).
+- Search entries that describe the server API, dead code or old-site bugs are marked n/a / replaced; Compare and analytics items deferred with reasons. **SRC-087**: the old Hebrew-filter bug is not ported, but our box does not yet match Hebrew titles (open).
 
 ## 2026-10-05 — matched words highlighted after a search click
 
@@ -300,9 +300,9 @@ Early tests and components were tagged with IDs written from memory; most pointe
 
 - **SRC-050 / 065 / 087 / 060 / 044 / 109**: skeleton while the first query runs, errors said out loud with Try again (the old client shows "No sources found" for a failure), the filter box matches Hebrew titles, touch pressed state, cache behaviour tested.
 
-## 2026-10-05 — Phase 6 closed
+## 2026-10-05 — search area complete
 
-- Search area: 67 done, 21 deferred (Compare Text, Phase 7, analytics, Dicta, browser integration), 19 n/a (server/dead), 1 replaced, 2 partial (topic crumb; SRC-094 closed afterwards). `scripts/parity-search.mjs`: all tabs equal to sefaria.org except the Author/Topic parent crumb.
+- Search area: 67 done, 21 deferred (Compare Text, analytics, Dicta, browser integration), 19 n/a (server/dead), 1 replaced, 2 partial (topic crumb; SRC-094 closed afterwards). `scripts/parity-search.mjs`: all tabs equal to sefaria.org except the Author/Topic parent crumb.
 
 ## 2026-10-05 — hardening: phone UA, Save, banner
 
@@ -507,7 +507,7 @@ The topic page (/topics/<slug>, /topics/b/<slug>) ported to the new reader on th
 
 ## 2026-11-04 — topics (review fixes)
 
-After an independent review of the topics lane, measured element by element against sefaria.org / sefaria.org.il (computed styles and `CSS.getPlatformFontsForNode`, desktop 1280 and phone User-Agent).
+After an independent review of the topic pages, measured element by element against sefaria.org / sefaria.org.il (computed styles and `CSS.getPlatformFontsForNode`, desktop 1280 and phone User-Agent).
 
 - **TOP-003 / TOP-004 / TOP-006 / TOP-007 / TOP-014 Found (Hebrew interface)**: the landing search is Heebo at 1280 but the English sans on a phone; "Explore all Topics ›" and a Hebrew featured description are the Hebrew serif (Heebo made the description a line longer and the phone page 43px taller); the Sign Up button stays Roboto; the portion/calendar links keep serif lines; the A–Z filter is Heebo; the magnifier is `search_mdl.svg` everywhere. Heebo 600 is now loaded (a 600 title drew the 700 face). _Verified._
 - **TOP-005 Found**: sefaria.org places the cloud's bullets once, when the sample arrives (often before the web fonts): 1–2 of ~40 can end a line. The same-line rule on the final lines stays (closest to live, reproducible). _Verified over four loads._
@@ -519,7 +519,7 @@ After an independent review of the topics lane, measured element by element agai
 - **Tests**: the topics e2e specs (49) now pin what sefaria.org shows (related order, Top Citations order, next-reading dates, portal modules, every filtered source, the day's featured topic, every category description), check GA4 events, the 404 hand-off and Hebrew typography; phone tests send a phone User-Agent.
 - **Parity** (`scripts/parity-page.mjs` + `parity-diff-page.py`, `FREEZE_RANDOM=1`; landing, authors category, A–Z, Moses, Rashi, Bereshit, Jonathan Sacks, Love): English 0.00–0.05% at 1280 and 0.00–0.08% on a phone (full pages). Hebrew interface, before → after: desktop whole pages 2–11% → 0.12–1.2% (the 1.79% header strip is the shell header's Hebrew link row); phone landing 4.13% / 13.1% full → 0.01% / 0.21%; Moses phone 0.50% / 3.55% full → 0.01% / 0.82%; Rashi phone full 7.7% → 0.21%. Left: synthetic vs real bold (TOP-023), the live "undefined" Learn More links, cloud bullets by timing, 2px per multi-line Hebrew text block (sefaria.org's first Hebrew face is the typekit "EnglishInHebrew Serif Font", not loaded here), and Bereshit's phone full-page shot (14%: a capture-time shift above y≈744 — element by element the page lines up at offset 0).
 
-## 2026-11-04 — the ports' major review gaps (reader-next-ports)
+## 2026-11-04 — gaps found in review of the ported pages
 
 The seven gaps the independent reviews left open as major, fixed on the integration branch.
 
@@ -531,7 +531,7 @@ The seven gaps the independent reviews left open as major, fixed on the integrat
 - **TOP-036**: the server decides before rendering which /topics pages are this client's (A–Z slugs, TOC categories) and passes the rest, and `?editor=1`, to Django without fetching the topic (`src/server/topics-owner.ts`). The backend `pools` field is no longer needed for the decision.
 - **Tests**: e2e for each (calendars, translations head, topic addresses), unit tests for the load entry and the topics rule. Full suite: unit 2265 passed (the known server-catalog failure only); e2e 385 passed, 7 skipped.
 
-## 2026-11-05 — no way out to the legacy client: topics, notes, revision history (reader-next-ports)
+## 2026-11-05 — no way out to the legacy client: topics, notes, revision history
 
 Owner rule: an opted-in reader must never land in the old client from inside the new reader (wiki `projects/reader-next/exits-to-legacy`). First three groups of exits ported.
 
@@ -551,17 +551,17 @@ Applied to rebuild-status.json only.
   names the source files; each `partial` says what is missing). After the script: 429 done, 99 partial, 62 todo, 190 deferred,
   135 n/a, 46 replaced; 961 of 961 statused.
 - **Voices** (sheets-view, sheets-editor, collections, profile-social, Voices search, Voices-only sidebar modules and host features):
-  `deferred`, "Voices out of scope (owner 2026-11-10)". PRO-010 (Torah Tracker stats) is a Library page: `todo` (T-F21).
+  `deferred`, "Voices out of scope (owner 2026-11-10)". PRO-010 (Torah Tracker stats) is a Library page: `todo`.
 - **Admin tools**: Django tools (modtools, linker admin and editor, staff URLs, Django admin) `deferred` per the launch scope (2026-11-09). The
   category editor (ADM-006), book-page Index Editor (ADM-008) and version editor (ADM-009) are ported and `done`; the shared
   moderator buttons and forms are `partial`, because topic and topic-source editing still opens Django's `?editor=1`.
   the launch scope (2026-11-09) lists "index and version editors" as staying Django, but the book-page ones are already built.
-- **Static pages**: `todo` under T-F31 (D-5). Jobs, team and products (STA-009…011) are React pages fed by the CMS inside a
-  static template, so Django's content block alone will not render them (T-F32).
+- **Static pages**: `todo` (D-5). Jobs, team and products (STA-009…011) are React pages fed by the CMS inside a
+  static template, so Django's content block alone will not render them.
 - **Linker and embeds** `deferred` (the launch scope, 2026-11-09). **API** entries `n/a`, because they are server behaviour; API-016 (version
   download links) is `done`. **Emails** (NTF-005…011) `n/a`.
 - **Legacy pages**: /explore and visualizations `deferred` (D-6); leaderboard, /random, /metrics, /digitized-by-sefaria and the
-  404/error pages `todo` (T-F25, T-F26, T-F31, T-F28).
+  404/error pages `todo`.
 - Features that are themselves legacy bugs or dead code (SHL-001…005, RTE-060/061, CON-010, CON-018, GUI-005/016/028, LIB-032/047/056/057,
   SRC-008, SRC-065, …) are `n/a` ("legacy bug, not ported" / "dead in legacy").
 
@@ -572,10 +572,10 @@ Applied to rebuild-status.json only.
 - The 10 `todo`: **RTE-009** → done (`/` 302 to `/texts`, Tanach → Tanakh). **RTE-029** → partial (`/search` has no robots noindex).
   **PLT-007** → partial (noindex on sparse topics and revision history only). **PLT-008, PLT-026, PLT-027** → deferred (SEO head
   builder and sitemaps wait, the launch scope (2026-11-09); bots never get the opt-in reader). **SHL-032** → deferred (Voices). **SHL-034, SHL-060**
-  → partial (pages are routes; the compare panel's menus, notifications and Torah Tracker are missing). **LIB-005** stays todo (T-G03).
+  → partial (pages are routes; the compare panel's menus, notifications and Torah Tracker are missing). **LIB-005** stays todo.
 - Voices entries deferred earlier as "owner decides" (RTE-001/004/021/022/039, PLT-014, SRC-027, SRC-088…093) now say "Voices
   out of scope (owner 2026-11-10)". SRC-099/100 are deferred because the sheet editor and the Django admin editors use them.
-- **RTE-059** (language-domain redirect) deferred → todo: it is task T-E07, not a Voices question.
+- **RTE-059** (language-domain redirect) deferred → todo: it is a routing task, not a Voices question.
 - **SRC-025/026** (compare-panel search) deferred → todo, in line with the other in-reader Compare Text entries (SHL-037/038, CON-066,
   BOK-004, LIB-003, LIB-018). Compare Text is not built and was not in the launch scope's list: the owner should confirm whether it is in scope.
 - Stale `partial` notes found on the way: **GUI-003** (autocomplete, keyboard and account menu are built; only the notifications link is
@@ -590,16 +590,16 @@ Applied to rebuild-status.json only.
 - **Deferred:** SRC-025, SRC-026, BOK-004, CON-066, LIB-003, LIB-018, SHL-037, SHL-038 (`todo` → `deferred`): the in-reader Compare
   Text panel is not in this launch (launch scope). The standalone `/compare` page is built and unaffected.
 
-## 2026-11-10 — wave 1 lane B: the Django side
+## 2026-11-10 — the Django side: reader choice, topics, activity, static-page content
 
 ### Corrected (server details)
 
-- **ACC-003** Account settings page: the New Reader switch now follows the remote-config audience `feature.reader.optin.audience` (`staff` by default, or `all`; pods must be restarted after a change, remote config has no pub/sub); a stale `reader_version=next` cookie of someone outside it is cleared, on the Library host only. New `/api/reader-choice` (Library host; GET state and the CSRF cookie, POST `classic` / `next` with CSRF) lets the new reader switch back to the classic reader without a legacy page (T-D05 server half).
+- **ACC-003** Account settings page: the New Reader switch now follows the remote-config audience `feature.reader.optin.audience` (`staff` by default, or `all`; pods must be restarted after a change, remote config has no pub/sub); a stale `reader_version=next` cookie of someone outside it is cleared, on the Library host only. New `/api/reader-choice` (Library host; GET state and the CSRF cookie, POST `classic` / `next` with CSRF) lets the new reader switch back to the classic reader without a legacy page (the server half).
 - **TOP-033** Topics TOC delivery: `/api/topics-toc` and `/api/topics/library-count` GET only and the same for everyone; the v2 topic answer's `pools` (already on the branch, unchanged) is now covered by a test.
 - **LEG-019** Text edit activity feed: `/api/activity/...` now requires sign-in as the legacy page does (401 signed out), bounds `page` to 1..100, GET only, private, 404 for an unknown ref or version, parity with the page's data.
-- **STA-005** Static page serving: `?format=json[&lang=en|he]` answers a static page's content block, title and CSS for the new reader's shell, on the Library host only (T-B06, D-5).
+- **STA-005** Static page serving: `?format=json[&lang=en|he]` answers a static page's content block, title and CSS for the new reader's shell, on the Library host only (D-5).
 
-## 2026-11-10 — platform (wave 1, lane A)
+## 2026-11-10 — platform: error reporting, web vitals, request logs, reader choice
 
 ### Updated
 
@@ -611,7 +611,7 @@ Applied to rebuild-status.json only.
   `llms.txt`, `.well-known` and `robots.txt` without consulting the `reader_version` cookie.
 - **PLT-031** Health checks and operational endpoints: nginx falls back to Varnish within 5 s when the reader cannot be reached.
 
-## 2026-11-10 — lane C: observability (wave 1)
+## 2026-11-10 — observability
 
 ### Corrected
 
@@ -626,10 +626,10 @@ Applied to rebuild-status.json only.
 
 - **ANL-017** Browser error reporting: a first-party beacon reporter replaces Sentry (D-8); `partial` until the receiving endpoint exists.
 - **ANL-014** Web vitals: `web_vitals` GA4 event (D1), first-party measurement, behind remote config `webVitals.enabled`.
-- **PLT-031** Request logs: JSON line per request with `X-Request-Id` (module built; start.ts wiring is lane E's).
+- **PLT-031** Request logs: JSON line per request with `X-Request-Id` (module built; start.ts wires it in).
 - **ACC-003** Account settings: "Back to the classic reader" and "Report a problem" in the new reader's menus while the opt-in exists; the remote-config kill switch `feature.reader.next.disabled`.
 
-## 2026-11-10 — routing (wave 1, lane E)
+## 2026-11-10 — routing
 
 ### Built
 
@@ -643,7 +643,7 @@ Applied to rebuild-status.json only.
 - **RTE-040** the 404 page is noindex (live's is not).
 - **VER-017** a version source that is not an address is plain text, not a link to Django's 404.
 
-## 2026-11-10 — data lane: freshness, ref corpus, history rules, storage, slow sidebar, page-kind chunks
+## 2026-11-10 — freshness, ref corpus, history rules, storage, slow sidebar, page-kind chunks
 
 ### Corrected
 
@@ -651,7 +651,7 @@ Applied to rebuild-status.json only.
   refetched behind it (it was used as is for 30 days), and writes (links, topic links, lexicon, notes, a return from a Django editor)
   forget what they changed in memory and on disk.
 - **TXD-068** Opening the sidebar below ~1075px moved the chosen verse (35–105px): fixed; tested at 1280, 1000 and 900px.
-- **RTE-054** History rules tested (T-E03): rewrites replace the entry; a range of whole chapters becomes its first chapter in place.
+- **RTE-054** History rules tested: rewrites replace the entry; a range of whole chapters becomes its first chapter in place.
 - **RTE-028** The old `/<ref>/<lang>/<version>` address redirects as on sefaria.org (was a 404). _Verified_ by the ref corpus.
 - **TXD-003 / PLT-016** Review fixes: a stale cached copy never blocks a navigation; a hanging IndexedDB never blocks a write and is
   skipped for the session after one timeout; more editor returns recognised, only on a navigation.
@@ -672,7 +672,7 @@ Applied to rebuild-status.json only.
   with their reason) and its e2e replay. _Verified_ 2026-11-10.
 - **PLT-016** IndexedDB missing, throwing, hanging, full or evicted: reading works (unit-tested; no WebKit run yet).
 
-## 2026-11-10 — ranges lane (wave 2): long ranges, keys that do not scroll, keyboard and touch selection
+## 2026-11-10 — long ranges, keys that do not scroll, keyboard and touch selection
 
 ### Corrected
 
@@ -692,7 +692,7 @@ Applied to rebuild-status.json only.
 - **TXD-057** A selection made by keyboard (Shift+arrows) or touch (a long press) makes a range as a mouse one does; one made by
   script or by find in page does not. A deliberate difference: sefaria.org listens to mouseup only.
 
-## 2026-11-10 — platform lane (wave 2): lighter /api/related, error-beacon receiver, chart and CI carry-overs
+## 2026-11-10 — lighter /api/related, error-beacon receiver, chart and CI fixes
 
 ### Corrected
 
@@ -709,23 +709,23 @@ Applied to rebuild-status.json only.
 - **PLT-031** nginx sends its own `X-Request-Id` to the reader and to Varnish on the reader/optin locations.
 - **RTE-040 / RTE-059** `e2e/routing-pass-through.spec.ts` runs in every e2e suite (a third dev server with pass-through).
 
-### Wave 2, lane P — small Library pages (2026-11-10)
+### 2026-11-10 — small Library pages: notifications, Torah Tracker, New Additions, settings
 
-- **Notifications** (`/notifications`, T-F20): the reader's Library notifications in the new reader, all seven kinds, ten at a time
+- **Notifications** (`/notifications`): the reader's Library notifications in the new reader, all seven kinds, ten at a time
   as the reader scrolls, every loaded one marked read; signed out, sign in and back. No header badge: sefaria.org's Library header has
   none (owner question). NTF-001, NTF-002, NTF-003 done.
-- **Torah Tracker** (`/torahtracker`, T-F21): from the account menu in the app; the old d3 charts ported without d3 (identical
+- **Torah Tracker** (`/torahtracker`): from the account menu in the app; the old d3 charts ported without d3 (identical
   geometry). PRO-010 done.
-- **New Additions** (`/updates`, T-F22): the About sidebar and the site's announcements, signed out too; the moderators' form.
+- **New Additions** (`/updates`): the About sidebar and the site's announcements, signed out too; the moderators' form.
   Measured against sefaria.org at 1280px and a phone, English and Hebrew. LIB-022, NTF-004 done.
-- **Settings** (`/settings/account`, T-F23): stays Django's, recorded as an accepted exit with its way back (allowlist
+- **Settings** (`/settings/account`): stays Django's, recorded as an accepted exit with its way back (allowlist
   `settings-account`). ACC-003, ACC-004, RTE-013 deferred.
-- **Explore and Visualizations** (T-F24, D-6): open in a new tab from the category sidebars and Resources.
-- **Activity lists and leaderboard** (T-F25): not linked from any page of the new reader; they stay Django's. LEG-020 deferred.
-- **Editors** (T-F27): Add Translation and Edit Text verified to return with `?next=` to the new reader; a gap after the index
+- **Explore and Visualizations** (D-6): open in a new tab from the category sidebars and Resources.
+- **Activity lists and leaderboard**: not linked from any page of the new reader; they stay Django's. LEG-020 deferred.
+- **Editors**: Add Translation and Edit Text verified to return with `?next=` to the new reader; a gap after the index
   editor's `/admin/reset` (referrer lost on the redirect) reported for the book page's owner.
 
-## 2026-11-10 — wave 2, lane GS (shell, library nav, book pages, search, topics)
+## 2026-11-10 — shell, library navigation, book pages, search, topics
 
 ### Built
 
@@ -734,7 +734,7 @@ Applied to rebuild-status.json only.
 - **PLT-028, PLT-017, PLT-020, PLT-021, PLT-001** The head links OpenSearch, the Library's icons and (same origin) the manifest; apple-itunes-app, theme-color and the home-screen title as base.html. _Verified (curl)._
 - **PLT-006, PLT-007, RTE-029** Library home, category, book and search titles and descriptions as sefaria.org's (titles as its client leaves them, descriptions as its server writes them); /search is noindex. _Verified._
 - **SRC-012** The header's Enter repairs a miscapitalised name first ("pirkei avot" opens the book). _Verified (name API)._
-- **GUI-003 / PRM-004 (T-G02)** Hebrew interface: desktop "טקסטים", phone menu "מקורות", Donate to the Hebrew campaign, the search box in Heebo, right to left. _Verified._
+- **GUI-003 / PRM-004** Hebrew interface: desktop "טקסטים", phone menu "מקורות", Donate to the Hebrew campaign, the search box in Heebo, right to left. _Verified._
 
 ### Corrected
 
@@ -745,9 +745,9 @@ Applied to rebuild-status.json only.
 
 ### Found
 
-- sefaria.org's CMS query fails today: production Strapi has no showToDonor / showToNonDonor fields, so /api/strapi/graphql-cache answers 500 ("Strapi request failed with status 400") and no banner, modal or sidebar ad renders, although three November fundraising modals are published. The CMS reader (PRM-001…003, 006…008, 010…013) is not built here; see the lane report.
+- sefaria.org's CMS query fails today: production Strapi has no showToDonor / showToNonDonor fields, so /api/strapi/graphql-cache answers 500 ("Strapi request failed with status 400") and no banner, modal or sidebar ad renders, although three November fundraising modals are published. The CMS reader (PRM-001…003, 006…008, 010…013) is not built here.
 
-## 2026-11-10 — wave 2, lane GR (reader, sidebar, versions, text types)
+## 2026-11-10 — reader, sidebar, versions, text types
 
 ### Built
 
@@ -774,14 +774,14 @@ Applied to rebuild-status.json only.
 - **CON-002**: the phone header's category border is 0px wide (invisible); Resources' title is centred; recent filters move into the header after in-app navigation. _Verified._
 - **USL-004**: "Add to Sheet on a note" is unreachable on sefaria.org (NoteListing.jsx renders no button; MyNotesPanel.jsx is imported nowhere).
 
-## 2026-11-10 — static information pages in the new shell (wave 2, lane S: T-F31, T-F32)
+## 2026-11-10 — static information pages in the new shell
 
 ### Built
 
 - **STA-001 / STA-005** One static-page route (`src/routes/$page.tsx`) for the 44 `static_pages` of `sites/sefaria/urls.py` (the plan said 46), `/about` and `/ways-to-give` by language, and `/digitized-by-sefaria`: Django's content block (`?format=json&lang=…`) fetched by the server, sanitised, rendered inside the new header, server-rendered; styled by the old site's own stylesheets scoped to `#staticContentWrapper`; About sidebar's selected item; in-app links. _Verified_ against www.sefaria.org (desktop 1280 and phone UA, English and Hebrew): visible text identical, measured layout within 2px, except as listed under each entry.
 - **STA-006, STA-007, STA-013, LEG-024** done; **STA-008, STA-012, STA-003, STA-017** partial (what stays Django's is listed in each).
-- Ported (T-F32): **STA-008** `/mobile` (UTM-aware store buttons from the first paint, newsletter sign-up, **PRM-016**), **STA-012** `/educators`, **STA-013** the English `/ways-to-give` (DonatePage).
-- Hardening (review round 1): addresses judged as a browser reads their scheme; inline CSS escaped after scoping; the shell's own font faces kept; Google Docs frames sandboxed; the Linker bookmarklet matched exactly; no unscoped stylesheet loaded.
+- Ported: **STA-008** `/mobile` (UTM-aware store buttons from the first paint, newsletter sign-up, **PRM-016**), **STA-012** `/educators`, **STA-013** the English `/ways-to-give` (DonatePage).
+- Hardening: addresses judged as a browser reads their scheme; inline CSS escaped after scoping; the shell's own font faces kept; Google Docs frames sandboxed; the Linker bookmarklet matched exactly; no unscoped stylesheet loaded.
 
 ### Recorded
 
