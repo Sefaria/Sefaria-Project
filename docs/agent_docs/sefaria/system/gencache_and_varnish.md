@@ -39,6 +39,8 @@ Coordinates cache invalidation across multiple application server instances and 
   - If `purge=True`: PURGEs the specific section-level ref across multiple API endpoint patterns (v3/texts, links, related -- with various query param combinations).
   - Always BANs the ref and everything beneath it using regex patterns.
   - Normalizes refs to section level before invalidating.
+  - After the existing purges and bans, `_invalidate_related_for_client` also covers the new reader's `/api/related` URLs, which its generated client builds as `/api/related/<encodeURIComponent(section ref)>?with_links=0&sheets=count` (e.g. `Genesis%201`), a form the dotted `url_regex` never matches: with `purge=True` it PURGEs that URL for the section (and each section of a range), and it always BANs `client_url_regex(...)` (matches `Genesis%201`, `Genesis%201?...`, `Genesis%201%3A3`, never `Genesis%2010`). Its own failures are logged and never skip the existing bans. So each `invalidate_ref` issues five bans.
+- **`related_client_sections(oref)` / `encode_uri_component(text)` / `client_url_regex(normals)`**: Helpers for the above; `encode_uri_component` mirrors JavaScript's `encodeURIComponent`, and `client_url_regex` is pure (unit-tested in `reader/tests/related_api_test.py`).
 - **`invalidate_linked(oref)`**: Finds all refs linked to `oref` and invalidates each one. Handles UnicodeDecodeError gracefully.
 - **`invalidate_counts(indx)`**: Purges preview, counts, and v2 index endpoints for a given index.
 - **`invalidate_index(indx)`**: Purges index API endpoints (v1, v2, v2/raw).

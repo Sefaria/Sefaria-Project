@@ -1,6 +1,6 @@
 """
-POST /api/reader-errors (reader/browser_errors.py): what the rate limit is keyed on, and the cap for everyone together (wave-3
-security review S-4; rework round 1). The tests build request.META the way the chart's chain delivers it (helm-chart/sefaria):
+POST /api/reader-errors (reader/browser_errors.py): what the rate limit is keyed on, and the cap for everyone together. The
+tests build request.META the way the chart's chain delivers it (helm-chart/sefaria):
 
   visitor → [Cloudflare] → Envoy Gateway → nginx → Varnish → Django
 

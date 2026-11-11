@@ -10,6 +10,7 @@ container's entrypoint substitutes, points the cluster-only upstreams at two loc
 runs `nginx -t` and then nginx itself on :18080, and asks it for a set of paths with and without the cookie reader_version=next.
 Needs helm and nginx on PATH (and nothing but the standard library). Ports are fixed; nothing else may listen on them.
 """
+
 import http.server
 import os
 import re
@@ -36,7 +37,12 @@ OPTIN = [
     ("/texts", LIBRARY, "varnish", "reader"),
     ("/topics/light", LIBRARY, "varnish", "reader"),  # LIBRARY_ONLY_PREFIXES: the client's on the Library host
     ("/login", LIBRARY, "varnish", "reader"),
-    ("/activity/Genesis.1/en/The_Koren_Jerusalem_Bible", LIBRARY, "varnish", "reader"),  # rendered by the client under a Django prefix
+    (
+        "/activity/Genesis.1/en/The_Koren_Jerusalem_Bible",
+        LIBRARY,
+        "varnish",
+        "reader",
+    ),  # rendered by the client under a Django prefix
     ("/activity", LIBRARY, "varnish", "varnish"),
     ("/settings/account", LIBRARY, "varnish", "varnish"),
     ("/admin/", LIBRARY, "varnish", "varnish"),
@@ -54,7 +60,12 @@ OPTIN = [
     ("/robots.txt", LIBRARY, "static", "static"),
     ("/sheets/1", LIBRARY, "307", "307"),  # the Voices module redirects stay first
     ("/profile/x", LIBRARY, "307", "307"),
-    ("/assets/index-x.js", LIBRARY, "reader", "reader"),  # optin: the reader's bundles, cookie or not (an open page's lazy chunks)
+    (
+        "/assets/index-x.js",
+        LIBRARY,
+        "reader",
+        "reader",
+    ),  # optin: the reader's bundles, cookie or not (an open page's lazy chunks)
     ("/Genesis.1", VOICES, "varnish", "varnish"),  # the Voices server block never sees the reader
     ("/topics/light", VOICES, "varnish", "varnish"),
 ]
@@ -63,7 +74,10 @@ MODES = {
     "legacy": ([], [(p, h, "varnish", "varnish") if p == ASSETS else (p, h, a, a) for p, h, a, _ in OPTIN]),
     "optin": (["--set", "nodejs.mode=optin"], OPTIN),
     # the kill switch: the cookie changes nothing; the reader's bundles still come from it
-    "optin-killed": (["--set", "nodejs.mode=optin", "--set", "reader.optin.enabled=false"], [(p, h, a, a) for p, h, a, _ in OPTIN]),
+    "optin-killed": (
+        ["--set", "nodejs.mode=optin", "--set", "reader.optin.enabled=false"],
+        [(p, h, a, a) for p, h, a, _ in OPTIN],
+    ),
     "reader": (["--set", "nodejs.mode=reader"], [(p, h, b, b) for p, h, _, b in OPTIN]),
 }
 
@@ -77,8 +91,10 @@ class Stub(http.server.BaseHTTPRequestHandler):
         self.do_GET()
 
     def do_GET(self):
-        body = (f"{self.server.name} {self.path} body={getattr(self, 'posted', '')} rid={self.headers.get('x-request-id')} "
-                f"xfh={self.headers.get('x-forwarded-host')}").encode()
+        body = (
+            f"{self.server.name} {self.path} body={getattr(self, 'posted', '')} rid={self.headers.get('x-request-id')} "
+            f"xfh={self.headers.get('x-forwarded-host')}"
+        ).encode()
         self.send_response(200)
         self.send_header("content-type", "text/plain")
         self.send_header("x-stub", self.server.name)
@@ -111,19 +127,42 @@ def literal_block(manifest, key):
 
 
 def render(args, work):
-    out = subprocess.run(["helm", "template", "t", CHART, "--set", f"deployEnv={ENV}", "--show-only", "templates/configmap/nginx.yaml",
-                          # optin/reader refuse the default mutable reader image tag (sefaria.readerImage); this check is about nginx
-                          "--set", "reader.allowMutableImage=true", *args],
-                         check=True, capture_output=True, text=True).stdout
+    out = subprocess.run(
+        [
+            "helm",
+            "template",
+            "t",
+            CHART,
+            "--set",
+            f"deployEnv={ENV}",
+            "--show-only",
+            "templates/configmap/nginx.yaml",
+            # optin/reader refuse the default mutable reader image tag (sefaria.readerImage); this check is about nginx
+            "--set",
+            "reader.allowMutableImage=true",
+            *args,
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
     conf = literal_block(out, "nginx.template.conf")
-    subst = {"ENV_NAME": ENV, "VARNISH_HOST": "127.0.0.1", "SEARCH_HOST": "127.0.0.1", "RELEASE_TAG": "1",
-             "STRAPI_LOCATION": "https://strapi.example", "ELASTIC_AUTH_HEADER": "eDp5"}
+    subst = {
+        "ENV_NAME": ENV,
+        "VARNISH_HOST": "127.0.0.1",
+        "SEARCH_HOST": "127.0.0.1",
+        "RELEASE_TAG": "1",
+        "STRAPI_LOCATION": "https://strapi.example",
+        "ELASTIC_AUTH_HEADER": "eDp5",
+    }
     for k, v in subst.items():
         conf = conf.replace("${%s}" % k, v)
     conf = conf.replace("server 127.0.0.1:8040;", f"server 127.0.0.1:{VARNISH_PORT};")
     conf = re.sub(r"server (node|reader)-%s:3000;" % ENV, f"server 127.0.0.1:{READER_PORT};", conf)
     conf = conf.replace("user www-data;", "").replace("resolver 8.8.8.8 8.8.4.4;", "")
-    conf = conf.replace("/var/log/nginx/error.log", f"{work}/error.log").replace("/var/run/nginx.pid", f"{work}/nginx.pid")
+    conf = conf.replace("/var/log/nginx/error.log", f"{work}/error.log").replace(
+        "/var/run/nginx.pid", f"{work}/nginx.pid"
+    )
     conf = conf.replace("access_log /dev/stdout structured;", f"access_log {work}/access.log structured;")
     conf = re.sub(r"listen 80;", f"listen {NGINX_PORT};", conf).replace("listen [::]:80;", "")
     conf = conf.replace("alias /app/", f"alias {work}/app/")
@@ -140,8 +179,12 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def fetch(path, host, cookie, method="GET", headers=None):
-    req = urllib.request.Request(f"http://127.0.0.1:{NGINX_PORT}{path}", method=method, data=b"x=1" if method == "POST" else None,
-                                 headers={"Host": host, **({"Cookie": "reader_version=next"} if cookie else {}), **(headers or {})})
+    req = urllib.request.Request(
+        f"http://127.0.0.1:{NGINX_PORT}{path}",
+        method=method,
+        data=b"x=1" if method == "POST" else None,
+        headers={"Host": host, **({"Cookie": "reader_version=next"} if cookie else {}), **(headers or {})},
+    )
     try:
         with urllib.request.build_opener(NoRedirect).open(req, timeout=15) as r:
             return r.headers.get("x-stub") or "static", r.read().decode()
@@ -171,7 +214,9 @@ def main():
         for mode, (args, cases) in MODES.items():
             work = tempfile.mkdtemp(prefix=f"reader-nginx-{mode}-")
             conf = render(args, work)
-            t = subprocess.run(["nginx", "-t", "-p", work, "-e", f"{work}/error.log", "-c", conf], capture_output=True, text=True)
+            t = subprocess.run(
+                ["nginx", "-t", "-p", work, "-e", f"{work}/error.log", "-c", conf], capture_output=True, text=True
+            )
             print(f"[{mode}] nginx -t: {'ok' if t.returncode == 0 else t.stderr.strip()}")
             if t.returncode:
                 failures += 1
@@ -184,7 +229,10 @@ def main():
                     ok = got == (plain, opted)
                     failures += not ok
                     if table or not ok:
-                        print(f"  {'ok ' if ok else 'BAD'} {host:32} {path:52} no cookie → {got[0]:8} cookie → {got[1]:8}" + ("" if ok else f" (expected {plain}, {opted})"))
+                        print(
+                            f"  {'ok ' if ok else 'BAD'} {host:32} {path:52} no cookie → {got[0]:8} cookie → {got[1]:8}"
+                            + ("" if ok else f" (expected {plain}, {opted})")
+                        )
                 print(f"[{mode}] {len(cases)} paths checked")
                 if mode in ("optin", "reader"):
                     # nginx sets X-Forwarded-Host itself: a value the client sends never reaches the reader
@@ -197,7 +245,9 @@ def main():
                     for path, cookie in (("/Genesis.1", True), ("/api/v3/texts/Genesis.1", True), ("/admin/", False)):
                         who, seen = fetch(path, LIBRARY, cookie, headers={"X-Request-Id": "client-chosen-id"})
                         rids.append((who, re.search(r" rid=(\S+) ", seen).group(1)))
-                    ok = [w for w, _ in rids] == ["reader", "varnish", "varnish"] and all(re.fullmatch(r"[0-9a-f]{32}", r) for _, r in rids)
+                    ok = [w for w, _ in rids] == ["reader", "varnish", "varnish"] and all(
+                        re.fullmatch(r"[0-9a-f]{32}", r) for _, r in rids
+                    )
                     failures += not ok
                     print(f"  {'ok ' if ok else 'BAD'} X-Request-Id to the reader, /api/ and a Django path: {rids}")
                     # a write with the cookie reaches the reader, body and all
@@ -209,11 +259,27 @@ def main():
                     # the reader down (nothing listening): a read falls back to Varnish/Django; a write is never replayed (502)
                     stubs[1].shutdown()
                     stubs[1].server_close()
-                    down = [(p, m, ask(p, LIBRARY, True, m)) for p, m in (("/Genesis.1", "GET"), ("/Genesis.1", "HEAD"), (ASSETS, "GET"), ("/Genesis.1", "POST"))]
-                    want = [("/Genesis.1", "GET", "varnish"), ("/Genesis.1", "HEAD", "varnish"), (ASSETS, "GET", "varnish"), ("/Genesis.1", "POST", "502")]
+                    down = [
+                        (p, m, ask(p, LIBRARY, True, m))
+                        for p, m in (
+                            ("/Genesis.1", "GET"),
+                            ("/Genesis.1", "HEAD"),
+                            (ASSETS, "GET"),
+                            ("/Genesis.1", "POST"),
+                        )
+                    ]
+                    want = [
+                        ("/Genesis.1", "GET", "varnish"),
+                        ("/Genesis.1", "HEAD", "varnish"),
+                        (ASSETS, "GET", "varnish"),
+                        ("/Genesis.1", "POST", "502"),
+                    ]
                     ok = down == want
                     failures += not ok
-                    print(f"  {'ok ' if ok else 'BAD'} reader down, with the cookie: {down}" + ("" if ok else f" (expected {want})"))
+                    print(
+                        f"  {'ok ' if ok else 'BAD'} reader down, with the cookie: {down}"
+                        + ("" if ok else f" (expected {want})")
+                    )
                     seen = fetch("/Genesis.1", LIBRARY, True, headers={"X-Request-Id": "client-chosen-id"})[1]
                     ok = bool(re.search(r" rid=[0-9a-f]{32} ", seen))
                     failures += not ok

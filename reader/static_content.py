@@ -1,5 +1,5 @@
 """
-Content-only rendering of the static information pages (LAUNCH_PLAN D-5 / T-B06): the new reader renders its own header and
+Content-only rendering of the static information pages: the new reader renders its own header and
 footer and asks Django for a page's content only.
 
     GET /<static page>?format=json[&lang=en|he]

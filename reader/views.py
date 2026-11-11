@@ -3125,10 +3125,10 @@ def related_api(request, tref):
         # `with_links=0` leaves out the links (a client that already has them from /api/links); `sheets=count` gives only each
         # sheet's id and anchors, enough to count the sheets on the verses shown. Both are new URLs, so new Varnish keys:
         # every other caller gets the same answer as before. Invalidated by sefaria/system/varnish/wrapper.py invalidate_ref.
-        # Library host only: on the Voices host (the owner's rule: nothing changes there) both are ignored.
-        library = reader_choice.on_library(request)
-        with_links = not library or request.GET.get("with_links", "1") != "0"
-        sheets_count_only = library and request.GET.get("sheets") == "count"
+        # The answer depends on the URL only, never on the host: Varnish keys this endpoint on the URL alone, so a host-specific
+        # answer requested on one host would be served from the cache on the other.
+        with_links = request.GET.get("with_links", "1") != "0"
+        sheets_count_only = request.GET.get("sheets") == "count"
         sheets = get_sheet_anchors_for_ref(tref) if sheets_count_only else get_sheets_for_ref(tref)
         response = {}
         if with_links:
@@ -5046,7 +5046,7 @@ def library_assistant_api(request):
 def reader_choice_api(request):
     """
     /api/reader-choice: which reader this browser gets (the legacy one or the new one), read and switched without a legacy page
-    (LAUNCH_PLAN T-D05; account settings stays the other place to switch).
+    (account settings stays the other place to switch).
 
     GET answers {"available", "canChooseNext", "reader", "saved"}:
       available      this deployment offers the choice (READER_OPTIN, chart nodejs.mode "optin")
@@ -6099,7 +6099,7 @@ _ABOUT_SIDEBAR_PATHS = {p["path"] for p in SITE_SETTINGS.get("ABOUT_SIDEBAR_PAGE
 
 
 def serve_static(request, page, by_lang=False):
-    # ?format=json: only the page's content, for the new reader's own shell (reader/static_content.py, LAUNCH_PLAN T-B06).
+    # ?format=json: only the page's content, for the new reader's own shell (reader/static_content.py).
     # Library host only (requested() is False on Voices, which keeps its behaviour below unchanged).
     if static_content.requested(request):
         return static_content.respond(

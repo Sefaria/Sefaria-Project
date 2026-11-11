@@ -1,0 +1,2 @@
+{{- /* Renders no object: it fails the render when a value is invalid (see the helpers it includes). */ -}}
+{{- include "sefaria.checkNodejsMode" . -}}
