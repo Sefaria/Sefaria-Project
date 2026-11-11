@@ -2,7 +2,7 @@
  * The login / register / reset experience (Sefaria-Project spec 1602), ported from static/js/auth/AuthPage.jsx.
  *
  * One state machine swaps the card in place — view ∈ {choose, email, forgot, forgot-sent, reset, reset-checking, reset-expired,
- * reset-success}; flow ∈ {login, register, reset} comes from the path. The card's own back arrow returns to `choose`; the URL stays
+ * resend-requested, reset-success}; flow ∈ {login, register, reset} comes from the path. The card's own back arrow returns to `choose`; the URL stays
  * /login, /register or the reset link. Switching between login and register goes through `onNavigate` (the router), and lands on
  * `choose`, as on the old site.
  *
@@ -28,7 +28,16 @@ import { useProviderTriggers } from "./use-provider-triggers";
 import { AuthPrimaryButton, ChooseView, ForgotView, LoginView, MessageView, RegisterView, ResetExpiredView, ResetView, type AuthFields } from "./views";
 import styles from "./AuthPage.module.css";
 
-export type AuthView = "choose" | "email" | "forgot" | "forgot-sent" | "reset" | "reset-checking" | "reset-expired" | "reset-success";
+export type AuthView =
+  | "choose"
+  | "email"
+  | "forgot"
+  | "forgot-sent"
+  | "reset"
+  | "reset-checking"
+  | "reset-expired"
+  | "resend-requested"
+  | "reset-success";
 
 export interface AuthPageProps {
   /** pathname + search (e.g. "/register?next=%2FGenesis.1"). */
@@ -159,7 +168,19 @@ export function AuthPage({
   } else if (view === "reset") {
     content = <ResetView resetUrl={resetUrl} onLinkExpired={() => setView("reset-expired")} onSuccess={() => setView("reset-success")} />;
   } else if (view === "reset-expired") {
-    content = <ResetExpiredView resetUrl={resetUrl} onResendSuccess={() => setView("forgot-sent")} onRequestNewLink={requestNewLink} />;
+    content = <ResetExpiredView resetUrl={resetUrl} onResendSuccess={() => setView("resend-requested")} onRequestNewLink={requestNewLink} />;
+  } else if (view === "resend-requested") {
+    // Django sends a new link only for a link that really expired (not one already used, nor past the hourly limit) and answers the
+    // same either way, so this card must not promise an email. Same card and words as the legacy page.
+    content = (
+      <MessageView heading="auth.new_link_requested_title" sub="auth.new_link_requested_sub">
+        <AuthStack>
+          <AuthPrimaryButton type="button" onClick={requestNewLink}>
+            <AuthText k="auth.request_link_with_email" />
+          </AuthPrimaryButton>
+        </AuthStack>
+      </MessageView>
+    );
   } else if (view === "reset-success") {
     content = (
       <MessageView heading="auth.password_reset_success_title" sub="auth.password_reset_success_sub">

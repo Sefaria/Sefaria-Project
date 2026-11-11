@@ -40,6 +40,20 @@ export const ForgotPassword: Story = { args: { initialPath: "/login", initialVie
 export const ResetLinkSent: Story = { args: { initialPath: "/login", initialView: "forgot-sent" } };
 export const ResetPassword: Story = { args: { initialPath: "/password/reset/confirm/MTI/set-password/", resetValid: true } };
 export const ResetLinkExpired: Story = { args: { initialPath: "/password/reset/confirm/MTI/set-password/", resetValid: false } };
+export const NewLinkRequested: Story = { args: { initialPath: "/password/reset/confirm/MTI/set-password/", initialView: "resend-requested" } };
+/** Request New Link on an expired link: the card says a link was requested and never promises an email (Django answers the same either way). */
+export const RequestNewLinkOnExpired: Story = {
+  args: { initialPath: "/password/reset/confirm/MTI/set-password/", resetValid: false },
+  globals: { interfaceLang: "english" }, // the play function finds controls by their English labels
+  beforeEach: stubFetch({ "/password/reset/confirm/MTI/set-password/": [200, {}] }),
+  play: async ({ canvasElement }) => {
+    const c = within(canvasElement);
+    await userEvent.click(c.getByRole("button", { name: "Request New Link" }));
+    await expect(await c.findByRole("heading", { name: "New Link Requested" })).toBeInTheDocument();
+    await expect(c.queryByText(/Check your email/)).toBeNull();
+    await expect(c.getByRole("button", { name: "Request a Link with Your Email" })).toBeInTheDocument();
+  },
+};
 export const ResetSuccess: Story = { args: { initialPath: "/password/reset/confirm/MTI/set-password/", initialView: "reset-success" } };
 export const Hebrew: Story = { args: { initialPath: "/register", initialView: "email" }, globals: { interfaceLang: "hebrew" } };
 export const Phone: Story = { args: { initialPath: "/login", googleClientId: "g", appleClientId: "a" }, globals: { viewport: { value: "mobile" } } };
