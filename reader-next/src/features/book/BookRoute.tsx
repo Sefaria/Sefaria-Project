@@ -62,7 +62,9 @@ export function BookRoute({ title }: { title: string }) {
 
   const first = details.firstSectionRef ?? details.title;
   const cat = primaryCategory(details.categories, details.dependence);
-  const label = categoryLabel(cat, catalog);
+  // until the catalog arrives, the index's own Hebrew categories name it (the label read "Midrash" in the Hebrew interface for a moment)
+  const heCategory = (details as { heCategories?: string[] }).heCategories?.[details.categories.indexOf(cat)];
+  const label = catalog || !heCategory ? categoryLabel(cat, catalog) : { en: cat, he: heCategory };
   const tab: BookTab = search.tab === "versions" ? "versions" : "contents";
   const bookUrl = `/${refToUrl(details.title)}`;
   return (
