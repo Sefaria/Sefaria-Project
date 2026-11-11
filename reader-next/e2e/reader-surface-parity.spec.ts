@@ -56,7 +56,7 @@ test("Hebrew daf headings read ב׳ א / ב׳ ב (parity S7)", async ({ page }) 
   await expect(page.locator('section[data-ref="Berakhot 2a"] h2')).toHaveText("ב׳ א");
 });
 
-/** Number glyphs (their text, not their 30px box) that touch any line of verse text, as boxes. */
+/** Number glyphs (their text, not their 30px box) that touch any line of verse text, and numbers whose boxes touch each other. */
 const NUMBERS_ON_TEXT = () => {
   const lines: DOMRect[] = [];
   for (const side of document.querySelectorAll('[role="group"][data-ref] [data-side]')) {
@@ -71,14 +71,20 @@ const NUMBERS_ON_TEXT = () => {
     const b = g.getBoundingClientRect();
     if (lines.some((t) => b.left < t.right - 0.5 && b.right > t.left + 0.5 && b.top < t.bottom - 0.5 && b.bottom > t.top + 0.5)) hits.push(n.closest<HTMLElement>("[data-ref]")!.dataset.ref!);
   }
-  return { hits, stepped: [...document.querySelectorAll<HTMLElement>("[data-number]")].filter((n) => n.style.translate).length, scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth };
+  // and numbers on numbers: their whole boxes (30px wide, one number line tall), pairwise
+  const nums = [...document.querySelectorAll<HTMLElement>('[role="group"][data-ref] [data-number]')].map((n) => ({ ref: n.closest<HTMLElement>("[data-ref]")!.dataset.ref!, b: n.getBoundingClientRect() }));
+  const clashes: string[] = [];
+  nums.forEach((x, i) => nums.slice(i + 1).forEach((y) => {
+    if (x.b.left < y.b.right - 0.5 && x.b.right > y.b.left + 0.5 && x.b.top < y.b.bottom - 0.5 && x.b.bottom > y.b.top + 0.5) clashes.push(`${x.ref} / ${y.ref}`);
+  }));
+  return { hits, clashes, stepped: [...document.querySelectorAll<HTMLElement>("[data-number]")].filter((n) => n.style.translate).length, scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth };
 };
 
 test.describe("on a phone", () => {
   test.use({ viewport: { width: 320, height: 700 }, hasTouch: true, isMobile: true });
   // @feature TXD-046 @feature TXD-045
   for (const lang of ["he", "en", "bi"] as const) {
-    test(`Talmud ${lang}: no sideways scroll, and no verse number on the text, at 320-414px (parity S6, review nit 3)`, async ({ page }) => {
+    test(`Talmud ${lang}: no sideways scroll, no verse number on the text or on another number, at 320-414px (parity S6, review nits)`, async ({ page }) => {
       let stepped = 0;
       for (const width of [320, 360, 390, 414]) {
         await page.setViewportSize({ width, height: 700 });
@@ -89,6 +95,7 @@ test.describe("on a phone", () => {
         const m = await page.evaluate(NUMBERS_ON_TEXT);
         expect(m.scroll, `${width}px`).toBeLessThanOrEqual(m.client);
         expect(m.hits, `${width}px: numbers on the text`).toEqual([]);
+        expect(m.clashes, `${width}px: numbers on numbers`).toEqual([]);
         stepped += m.stepped;
       }
       // continuous Hebrew at these widths starts several segments on one line: the spreading really ran
@@ -104,5 +111,6 @@ test.describe("on a phone", () => {
     const m = await page.evaluate(NUMBERS_ON_TEXT);
     expect(m.scroll).toBeLessThanOrEqual(m.client);
     expect(m.hits).toEqual([]);
+    expect(m.clashes).toEqual([]);
   });
 });
