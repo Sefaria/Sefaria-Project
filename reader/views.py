@@ -3125,10 +3125,10 @@ def related_api(request, tref):
         # `with_links=0` leaves out the links (a client that already has them from /api/links); `sheets=count` gives only each
         # sheet's id and anchors, enough to count the sheets on the verses shown. Both are new URLs, so new Varnish keys:
         # every other caller gets the same answer as before. Invalidated by sefaria/system/varnish/wrapper.py invalidate_ref.
-        # Library host only: on the Voices host (the owner's rule: nothing changes there) both are ignored.
-        library = reader_choice.on_library(request)
-        with_links = not library or request.GET.get("with_links", "1") != "0"
-        sheets_count_only = library and request.GET.get("sheets") == "count"
+        # The answer depends on the URL only, never on the host: Varnish keys this endpoint on the URL alone, so a host-specific
+        # answer requested on one host would be served from the cache on the other.
+        with_links = request.GET.get("with_links", "1") != "0"
+        sheets_count_only = request.GET.get("sheets") == "count"
         sheets = get_sheet_anchors_for_ref(tref) if sheets_count_only else get_sheets_for_ref(tref)
         response = {}
         if with_links:
