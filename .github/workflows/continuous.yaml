@@ -50,7 +50,10 @@ jobs:
           elif [ -n "$BEFORE" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
             range="$BEFORE..$SHA"
           fi
-          if [ -n "$range" ] && ! git diff --name-only $range | grep -q '^reader-next/'; then reader=false; fi
+          # no pipe here: under pipefail, `git diff --name-only | grep -q` fails whenever grep exits on its first match before git
+          # has finished writing (SIGPIPE), which skipped the reader image exactly when reader-next/ changed. `git diff --quiet`
+          # exits 0 for no change, 1 for a change and >1 on error, so only a clean "no change" skips the image.
+          if [ -n "$range" ] && git diff --quiet $range -- reader-next/; then reader=false; fi
           apps='{"app":"web"},{"app":"node"}'
           if [ "$reader" = true ]; then apps="$apps"',{"app":"reader","context":"./reader-next","dockerfile":"./reader-next/Dockerfile"}'; fi
           echo "reader image: $reader (${range:-no range})"
