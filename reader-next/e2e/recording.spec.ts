@@ -84,10 +84,10 @@ const fontSize = (page: Page) => page.locator("[data-language]").first().evaluat
 const recClock = (page: Page) => page.evaluate(() => performance.now() - (window as unknown as { __recT0: number }).__recT0);
 
 /**
- * Two PNGs compared pixel by pixel: the share that differs noticeably (1 when the sizes differ), and a picture of where (red). A pixel
- * that has its match at most one pixel away counts as the same: a restored scroll anchor can land a fraction of a pixel from where the
- * recording was, which moves every line of text by one device pixel without the reader showing anything different. A different state
- * (another place, size, sidebar or panel) still differs by whole lines and blocks.
+ * Two PNGs compared pixel by pixel, by brightness: the share that differs noticeably (1 when the sizes differ), and a picture of where
+ * (red). A pixel that has its match at most one pixel away counts as the same: a restored scroll anchor can land a fraction of a pixel
+ * from where the recording was, which moves every line of text by one device pixel without the reader showing anything different. A
+ * different state (another place, size, sidebar or panel) still differs by whole lines and blocks.
  */
 async function compareShots(browser: Browser, a: Buffer, b: Buffer): Promise<{ ratio: number; diff: Buffer | null }> {
   const page = await browser.newPage();
@@ -107,8 +107,13 @@ async function compareShots(browser: Browser, a: Buffer, b: Buffer): Promise<{ r
         const w = x.width;
         const h = x.height;
         const out = new ImageData(w, h);
-        const close = (p: ImageData, i: number, q: ImageData, j: number) =>
-          Math.abs(p.data[i]! - q.data[j]!) <= 48 && Math.abs(p.data[i + 1]! - q.data[j + 1]!) <= 48 && Math.abs(p.data[i + 2]! - q.data[j + 2]!) <= 48;
+        // Brightness, not each channel: Chromium on Linux draws text with LCD (subpixel) anti-aliasing when the text's layer allows it
+        // and in grey otherwise, and that choice follows the page's compositing, which a fresh load and the replay's end need not share,
+        // without the reader showing anything different. CI run 42961568786, "back home": the recorded text had coloured fringes, the replayed text was
+        // grey at the very same pixels (best alignment at 0,0); per channel that was 0.0205 of the picture, by brightness 0.00001.
+        // A 2px shift still counts (0.018 on that picture): a different place, size, sidebar or panel differs by whole lines and blocks.
+        const luma = (d: Uint8ClampedArray, i: number) => 0.299 * d[i]! + 0.587 * d[i + 1]! + 0.114 * d[i + 2]!;
+        const close = (p: ImageData, i: number, q: ImageData, j: number) => Math.abs(luma(p.data, i) - luma(q.data, j)) <= 48;
         /** Does pixel (px, py) of p appear in q at most one pixel away? */
         const near = (p: ImageData, q: ImageData, px: number, py: number) => {
           const i = (py * w + px) * 4;
