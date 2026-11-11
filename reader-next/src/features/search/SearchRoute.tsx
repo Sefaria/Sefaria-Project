@@ -223,6 +223,7 @@ export function SearchRoute() {
   const skeleton = hasQuery && (!decided || (params.tab === "sources" && !hits && !sources.isError));
   return (
     <NavPage
+      layout="search"
       top={{ main: 64, side: 142 }}
       sidebar={
         // the filters need the catalog's order and names, which are not in the page: they appear once it is here

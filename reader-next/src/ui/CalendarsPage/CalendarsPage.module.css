@@ -28,6 +28,7 @@
 /* Hebrew interface: the old `.int-he { font-size: 122% }` on a 24px line (`.hebrew .navBlockDescription`) */
 .description [lang="he"] { font-family: var(--sefaria-font-ui-he); font-size: 122%; line-height: 24px; }
 
-@media (max-width: 842px) {
+/* the phone layout (700px or less, where the sidebar goes under the page) */
+@media (max-width: 700px) {
   .heading { margin-block-end: 10px; }
 }

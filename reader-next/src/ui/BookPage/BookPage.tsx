@@ -104,7 +104,7 @@ export function BookPage({ title, category, attribution, dedication, readHref, c
     </>
   );
   return (
-    <NavPage fluid colorCategory={colorCategory} sidebarLabel={he ? "אודות הספר" : "About this book"} footer={<SidebarFooter />} sidebar={<>
+    <NavPage colorCategory={colorCategory} sidebarLabel={he ? "אודות הספר" : "About this book"} footer={<SidebarFooter />} sidebar={<>
         {hasAbout ? (
           <section className={styles.desktopOnly}>
             <h2 className={styles.sideTitle}><InterfaceText en="About This Text" he="אודות ספר זה" /></h2>

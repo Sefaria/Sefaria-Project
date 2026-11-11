@@ -22,7 +22,8 @@ import { AZTopicsLink, BrowseTopics, TrendingTopics, topicPageHref } from "~/ui/
 import { FeaturedTopic, ParashaCard, SeasonalCard, TopicDeck, TopicLandingSearch, TopicNewsletter, TopicSalad } from "~/ui/TopicsNav/TopicLanding";
 import { TopicsLandingPage } from "~/ui/TopicsNav/TopicsPages";
 
-const PHONE = "(max-width: 842px)";
+/** The phone layout of the library pages (NavPage): 700px or less. */
+const PHONE = "(max-width: 700px)";
 
 /** What the server puts in the landing page: everything but the random samples (the cloud and the cards, as the old page fetched them). */
 export async function loadTopicsLanding(queryClient: QueryClient, lang: AzLang, diaspora: boolean) {

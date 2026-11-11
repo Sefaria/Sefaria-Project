@@ -24,7 +24,7 @@ function Frame({ anl, children }: { anl: Record<string, string>; children: React
 export function TopicsLandingPage({ search, salad, featured, newsletter, deck, parasha, seasonal, sidebar, footer }: Record<"search" | "salad" | "featured" | "newsletter" | "deck" | "parasha" | "seasonal" | "sidebar" | "footer", ReactNode>) {
   return (
     <Frame anl={{ project: "topics", panel_name: "Explore by Topic", panel_type: "Topic Landing" }}>
-      <NavPage measure={783} top={{ main: 60, side: 60 }} sidebar={sidebar} footer={footer}>
+      <NavPage layout="landing" top={{ main: 60, side: 60 }} sidebar={sidebar} footer={footer}>
         <div className={styles.landing}>
           <h1 className={styles.landingHeader}>
             <InterfaceText en="Explore by Topic" he="למדו לפי נושא" />

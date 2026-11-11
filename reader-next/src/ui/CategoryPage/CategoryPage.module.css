@@ -19,7 +19,9 @@
 .attribution[lang="he"], .attribution :lang(he) { font-family: var(--sefaria-font-text-he); font-style: normal; }
 .attribution a { color: inherit; text-decoration: none; }
 /* the old .gridBox of .navBlock items: two columns, 10px apart (5px margins between items), rows 6px apart */
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 10px; row-gap: 6px; margin-block-end: 40px; }
+.grid { container-type: inline-size; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 10px; row-gap: 6px; margin-block-end: 40px; }
+/* ...where the page column is wider than 500px; one column below (the old ResponsiveNBox measured its own width) */
+@container (max-width: 500px) { .grid > * { grid-column: 1 / -1; } }
 /* a grid outside any section: each old .gridBoxItem had 5px over and under it, so rows are 16px apart (the last row's 6px margin folds into the 40px) */
 .grid[data-loose] { row-gap: 16px; padding-block: 5px; }
 .block { padding-block-end: 12px; border-block-start: 1px solid var(--sefaria-color-border-light); }
@@ -38,7 +40,7 @@
 .inlineDesc { margin-inline-start: 5px; font-family: var(--sefaria-font-text-en); font-size: 18px; text-transform: none; color: var(--sefaria-color-text-dark-grey); }
 .longDesc { margin: -8px 0 20px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: normal; color: var(--sefaria-color-text-dark-grey); }
 
-@media (max-width: 842px) {
-  .grid { grid-template-columns: 1fr; }
+/* the phone layout (700px or less, where the sidebar goes under the page): the description under the title */
+@media (max-width: 700px) {
   .topDesc { display: block; }
 }

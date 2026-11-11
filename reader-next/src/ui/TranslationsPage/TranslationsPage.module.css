@@ -35,8 +35,8 @@
 .corpusTitle [lang="he"], .summary [lang="he"], .item [lang="he"] { font-family: var(--sefaria-font-text-he); }
 .item [lang="en"] { font-family: var(--sefaria-font-text-en); }
 
-@media (max-width: 842px) {
-  /* .singlePanel: the title 10px over the tabs, a 16px tab with 18px under its label */
+@media (max-width: 700px) {
+  /* the phone layout (700px or less, where the sidebar goes under the page; the old .singlePanel): the title 10px over the tabs, a 16px tab with 18px under its label */
   .title { margin-block-end: 10px; }
   .tab { padding-block-end: 18px; font-size: 16px; }
 }
