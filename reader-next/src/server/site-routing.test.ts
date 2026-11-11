@@ -117,6 +117,15 @@ describe("siteRoute: the reader's server with Django stubbed", () => {
     expect(dj.asked).toEqual([]);
   });
 
+  it("a signed-in arrival with ?set-language-cookie goes to Django, and the stale host-only interfaceLang is expired", async () => {
+    const dj = django({ "/texts": () => new Response("ok", { status: 200, headers: { "set-cookie": "interfaceLang=hebrew; Domain=.sefaria.org.il; Path=/" } }) });
+    const res = await route("https://www.sefaria.org.il/texts?set-language-cookie=", deps({ passThrough: dj.pass }), router(), { cookie: "sessionid=abc; interfaceLang=english", host: "www.sefaria.org.il" });
+    expect(dj.asked).toEqual(["/texts?set-language-cookie="]);
+    const cookies = res.headers.getSetCookie();
+    expect(cookies).toContain("interfaceLang=hebrew; Domain=.sefaria.org.il; Path=/");
+    expect(cookies).toContain("interfaceLang=; Max-Age=0; Path=/");
+  });
+
   describe("on the Voices host every new behaviour is skipped: the request goes to Django exactly as before", () => {
     for (const [host, path] of [
       ["voices.sefaria.org", "/texts/recent"],

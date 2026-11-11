@@ -58,7 +58,7 @@ export function editableHtml(html: string): string {
           drop++;
           return;
         }
-        const allowed = ALLOWED[name];
+        const allowed = Object.hasOwn(ALLOWED, name) ? ALLOWED[name] : undefined;
         if (!allowed) return;
         let attrs = "";
         if (name === "img") {
@@ -83,7 +83,7 @@ export function editableHtml(html: string): string {
           drop--;
           return;
         }
-        if (VOID.has(name) || !ALLOWED[name]) return;
+        if (VOID.has(name) || !Object.hasOwn(ALLOWED, name)) return;
         const at = open.lastIndexOf(name);
         if (at < 0) return;
         while (open.length > at) out += `</${open.pop()}>`;

@@ -5,6 +5,9 @@ const PNG = "data:image/png;base64,iVBORw0KGgo=";
 
 // @feature CON-072 — v-security nit 3 and rework round 1: the server's allowlist for an entry, nothing that runs
 describe("editableHtml (the dictionary editor's box)", () => {
+  it("an element named like an Object property (constructor, toString, hasOwnProperty) is dropped, not a crash", () => {
+    expect(editableHtml("<constructor>a</constructor><tostring>b</tostring><hasownproperty>c</hasownproperty>")).toBe("abc");
+  });
   it("keeps <big>, which the server keeps", () => {
     expect(editableHtml("a <big>b</big> c")).toBe("a <big>b</big> c");
   });
