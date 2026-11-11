@@ -1,5 +1,6 @@
 // ESLint for the reader client: the recommended JavaScript and TypeScript rules and React's two hook rules (the rules of hooks, and
-// complete effect/memo/callback dependency lists). Formatting is Prettier's, not ESLint's. `npm run lint`; CI runs it in the checks job.
+// complete effect/memo/callback dependency lists). No formatting rules, and this folder is not Prettier-formatted (the root
+// .prettierignore excludes it). `npm run lint`; CI runs it in the checks job.
 import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
