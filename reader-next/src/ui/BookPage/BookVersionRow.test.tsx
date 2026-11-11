@@ -60,6 +60,14 @@ describe("BookVersionRow", () => {
     expect(screen.queryByText(/English/)).toBeNull();
     expect(screen.getByRole("link", { name: "בנחלת הכלל" })).toBeInTheDocument();
   });
+  it("Hebrew interface: the pencil's name is Hebrew", () => {
+    render(
+      <InterfaceLangProvider lang="hebrew">
+        <BookVersionRow {...props} onEdit={() => undefined} />
+      </InterfaceLangProvider>,
+    );
+    expect(screen.getByRole("button", { name: "עריכת רבי מייק פוייר, לקט ירושלים" })).toBeInTheDocument();
+  });
   it("no notes paragraph when the interface language has none (no fallback to the other, as there)", () => {
     const { container } = render(
       <InterfaceLangProvider lang="hebrew">

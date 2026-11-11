@@ -11,7 +11,7 @@ describe("bookVersionOrder (the old book page's VersionsList sort)", () => {
     const out = bookVersionOrder([v("b", ""), v("Zed", 1), v("Alpha", ""), v("Mid", 3.0), v("א", "", "he"), v("Beta", 1)]);
     expect(out.map((x) => x.versionTitle)).toEqual(["Mid", "Beta", "Zed", "Alpha", "b", "א"]);
   });
-  it("orders the recorded Genesis versions as sefaria.org lists them (measured 2026-11-11, first ten)", () => {
+  it("orders the recorded Genesis versions as sefaria.org lists them (measured 2026-11-11, first eight)", () => {
     expect(bookVersionOrder(genesis as unknown as BookVersion[]).slice(0, 8).map((x) => x.versionTitle.slice(0, 30))).toEqual([
       "THE JPS TANAKH: Gender-Sensiti",
       "The Contemporary Torah, Jewish",

@@ -2,7 +2,7 @@ import { sanitizeHtml } from "~/lib/html/sanitize";
 import { dirFor } from "~/lib/i18n/direction";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { encodeTitle } from "~/lib/ref/url";
-import { languageName, licenseUrl } from "~/lib/versions/translations";
+import { languageName, licenseName as translateLicense, licenseUrl } from "~/lib/versions/translations";
 import { Icon } from "../Icon/Icon";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { Link } from "../Link/Link";
@@ -21,9 +21,6 @@ export interface BookVersionRowProps {
   /** Moderators: the pencil beside the title, which opens the version editor. */
   onEdit?: () => void;
 }
-
-/** The old licence names in the Hebrew interface (its `licenses.*` strings); the others read the same in both. */
-const LICENSE_HE: Record<string, string> = { "Public Domain": "בנחלת הכלל", "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985" };
 
 const sourceHref = (s: string) => (/^www\./i.test(s.trim()) ? `https://${s.trim()}` : s.trim());
 const hostOf = (url: string) => {
@@ -49,7 +46,7 @@ export function BookVersionRow({ version: v, href, bookUrl, origin = "", onEdit 
   const titleLang = /[֐-׿]/.test(title) ? "he" : "en";
   const notes = he ? v.versionNotesInHebrew : v.versionNotes;
   const license = licenseUrl(v.license);
-  const licenseName = v.license && he ? (LICENSE_HE[v.license] ?? v.license) : v.license;
+  const licenseName = v.license ? translateLicense(v.license, lang) : v.license;
   const imageHref = v.purchaseInformationURL || (v.versionSource && isSourceAddress(v.versionSource) ? sourceHref(v.versionSource) : undefined);
   return (
     <div className={styles.row} data-version-row="">
@@ -58,7 +55,7 @@ export function BookVersionRow({ version: v, href, bookUrl, origin = "", onEdit 
           <Link href={href} lang={titleLang} dir={dirFor(titleLang)}>{title}</Link>
         </h2>
         {onEdit ? (
-          <button type="button" className={styles.edit} aria-label={`Edit ${title}`} onClick={onEdit}>
+          <button type="button" className={styles.edit} aria-label={he ? `עריכת ${title}` : `Edit ${title}`} onClick={onEdit}>
             <Icon name="pencil" size="14px" />
           </button>
         ) : null}
