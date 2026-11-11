@@ -2,6 +2,7 @@
 Unit tests for GenCache (sefaria/system/cache.py), run against an in-memory Redis stand-in.
 """
 
+import threading
 import uuid
 
 import pytest
@@ -390,3 +391,105 @@ def test_no_key_prefix_writes_bare_keys(fake_redis):
     gc = make_gen_cache(fake_redis)
     gc.invalidate("index_map")
     assert list(fake_redis.store) == ["gen:index_map"]
+
+
+# ---------------------------------------------------------------------------
+# Concurrency: one thread refreshes a key at a time
+# ---------------------------------------------------------------------------
+
+
+def _run_in_threads(targets, timeout=5):
+    threads = [threading.Thread(target=t) for t in targets]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout)
+        assert not t.is_alive(), "thread hung: lock was never released"
+
+
+def test_concurrent_first_access_runs_refresh_fn_once_and_waiters_get_the_value(fake_redis):
+    gc = make_gen_cache(fake_redis)
+    started, release = threading.Event(), threading.Event()
+    calls = []
+
+    def slow_refresh():
+        calls.append(True)
+        started.set()
+        release.wait(5)
+        return "built"
+
+    gc.register("toc", slow_refresh)
+    results = []
+
+    def first():
+        results.append(gc.get("toc"))
+
+    def second():
+        started.wait(5)  # the first thread is now inside refresh_fn, holding the lock
+        # release it shortly, by which time this thread is almost certainly waiting on the lock;
+        # either way, calls == 1 below fails if this thread runs refresh_fn itself
+        threading.Timer(0.2, release.set).start()
+        results.append(gc.get("toc"))
+
+    _run_in_threads([first, second])
+    assert results == ["built", "built"]
+    assert len(calls) == 1
+
+
+def test_thread_arriving_mid_refresh_serves_current_value_without_refreshing(fake_redis):
+    gc = make_gen_cache(fake_redis, throttle=False)
+    gc.register("toc", lambda: "v1")
+    assert gc.get("toc") == "v1"
+
+    started, release = threading.Event(), threading.Event()
+    calls = []
+
+    def slow_refresh():
+        calls.append(True)
+        started.set()
+        release.wait(5)
+        return "v2"
+
+    gc.register("toc", slow_refresh)
+    simulate_peer_bump(fake_redis, "gen:toc")
+    seen_by_refresher, seen_by_other = [], []
+
+    # assert in the main thread: a failed assert inside a worker thread doesn't fail the test
+    def refresher():
+        seen_by_refresher.append(gc.get("toc"))
+
+    def other():
+        started.wait(5)
+        seen_by_other.append(gc.get("toc"))  # must not block on, or duplicate, the refresh
+        release.set()
+
+    _run_in_threads([refresher, other])
+    assert seen_by_refresher == ["v2"]
+    assert seen_by_other == ["v1"]
+    assert len(calls) == 1
+    assert gc.get("toc") == "v2"
+
+
+def test_refresh_fn_exception_releases_lock_so_next_get_retries(fake_redis):
+    gc = make_gen_cache(fake_redis)
+    attempts = []
+
+    def flaky():
+        attempts.append(True)
+        if len(attempts) == 1:
+            raise RuntimeError("build failed")
+        return "built"
+
+    gc.register("toc", flaky)
+    with pytest.raises(RuntimeError):
+        gc.get("toc")
+    assert gc.get("toc") == "built"
+    assert len(attempts) == 2
+
+
+def test_refresh_fn_may_get_other_keys(fake_redis):
+    gc = make_gen_cache(fake_redis)
+    gc.register("index_map", lambda: "map")
+    gc.register("toc_tree", lambda: f"tree-of-{gc.get('index_map')}")
+    gc.register("toc", lambda: f"toc-of-{gc.get('toc_tree')}")
+    assert gc.get("toc") == "toc-of-tree-of-map"

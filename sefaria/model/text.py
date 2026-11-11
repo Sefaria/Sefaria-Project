@@ -32,6 +32,7 @@ from sefaria.system.cache import gen_cache
 from sefaria.system.database import db
 from sefaria.system.exceptions import (
     BookNameError,
+    BuildDegradationError,
     ComplexBookLevelRefError,
     DictionaryEntryNotFoundError,
     IndexSchemaError,
@@ -4713,6 +4714,11 @@ class Ref(metaclass=RefCacheType):
                 return matched_ref
 
 
+def _count_toc_leaves(nodes):
+    """Number of text (non-category) nodes in a serialized TOC."""
+    return sum(_count_toc_leaves(n["contents"]) if "contents" in n else 1 for n in nodes or [])
+
+
 class Library:
     """
     Operates as a singleton, through the instance called ``library``.
@@ -4846,6 +4852,11 @@ class Library:
             ),
             "virtual_books": ("_virtual_books", "virtualBooks", self.build_virtual_books),
         }
+        # Checks run on a freshly built value before it is stored; one that raises keeps the old value.
+        self._shared_cache_validators = {
+            "toc": self._check_toc_plausible,
+            "toc_with_authors": self._check_toc_plausible,
+        }
         for key in self._shared_cache_objects:
             gen_cache.register(key, lambda key=key: self._refresh_shared_cache_object(key))
         gen_cache.register("toc_tree", self._refresh_toc_tree)
@@ -4862,9 +4873,29 @@ class Library:
         """Builds a shared-cache-backed object from Mongo and stores it locally and in the shared cache."""
         attr, scache_key, build_fn = self._shared_cache_objects[key]
         value = build_fn()
+        validate = self._shared_cache_validators.get(key)
+        if validate:
+            validate(key, value)
         setattr(self, attr, value)
         self._store_in_shared_cache({scache_key: value}, fail_open)
         return value
+
+    # Backstop: a TOC with fewer leaves than this fraction of Mongo's Index count is not published.
+    TOC_MIN_FRACTION_OF_INDEXES = 0.8
+
+    def _check_toc_plausible(self, key, toc):
+        """
+        Raises BuildDegradationError rather than let a truncated TOC replace the shared one (every
+        peer, and the data.<last_cached>.js bundle Cloudflare caches for a year, would inherit it).
+        Compares against Mongo, not process memory, which is what may be half-built.
+        """
+        leaves = _count_toc_leaves(toc)
+        index_count = db.index.estimated_document_count()
+        if index_count and leaves < self.TOC_MIN_FRACTION_OF_INDEXES * index_count:
+            logger.error(
+                "Refusing to publish truncated %s: %d leaves for %d Index records in Mongo", key, leaves, index_count
+            )
+            raise BuildDegradationError(f"{key} has {leaves} leaves but Mongo has {index_count} Index records")
 
     def _store_in_shared_cache(self, items, fail_open):
         """
@@ -4916,7 +4947,9 @@ class Library:
             # with_skip_guard() call guards CONSTRUCTING each Index (a bad `schema` or missing
             # `categories` raises inside IndexSet's own materialization, before this loop body ever
             # runs), and the inner `with` guards USING it (.title/.nodes raising).
-            self._index_map = {}
+            # Build into locals and swap at the end: other threads read these maps without a lock
+            # (e.g. TocTree via all_index_records), so they must never see them emptied or half-filled.
+            index_map = {}
             for i in IndexSet().with_skip_guard(
                 skip_bad_record, "reset_cache,startup", "_build_index_maps index record", level="error"
             ):
@@ -4927,10 +4960,10 @@ class Library:
                     level="error",
                 ):
                     if i.nodes:
-                        self._index_map[i.title] = i
-            forest = [i.nodes for i in list(self._index_map.values())]
-            self._title_node_maps = {lang: {} for lang in self.langs}
-            self._index_title_maps = {lang: {} for lang in self.langs}
+                        index_map[i.title] = i
+            forest = [i.nodes for i in list(index_map.values())]
+            title_node_maps = {lang: {} for lang in self.langs}
+            index_title_maps = {lang: {} for lang in self.langs}
 
             for tree in forest:
                 # IndexSchemaError is a subclass of InputError, so the guard's BAD_RECORD_EXCEPTIONS
@@ -4943,8 +4976,12 @@ class Library:
                 ):
                     for lang in self.langs:
                         tree_titles = tree.title_dict(lang)
-                        self._index_title_maps[lang][tree.key] = list(tree_titles.keys())
-                        self._title_node_maps[lang].update(tree_titles)
+                        index_title_maps[lang][tree.key] = list(tree_titles.keys())
+                        title_node_maps[lang].update(tree_titles)
+
+            self._index_map = index_map
+            self._title_node_maps = title_node_maps
+            self._index_title_maps = index_title_maps
 
     def autocorrect_query(self, query):
         """See sefaria.helper.top_n_grams_for_search_autocorrect.autocorrect_query."""
@@ -4993,8 +5030,8 @@ class Library:
         with build_pathway("rebuild_toc"):
             if not skip_toc_tree:
                 self._toc_tree = self.get_toc_tree(rebuild=True)
-            self._toc_with_authors = None
-            scache.delete_shared_cache_elem("toc_with_authors")
+            # Each rebuild below overwrites its shared value only once the new one is built and
+            # validated, so nothing is deleted up front: a refused TOC must leave the old copies in place.
             self._toc = self.get_toc(rebuild=True)
             self._toc_with_authors = self.get_toc_with_authors(rebuild=True)
             self._toc_json = self.get_toc_json(rebuild=True)
