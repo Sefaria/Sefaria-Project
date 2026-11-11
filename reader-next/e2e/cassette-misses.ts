@@ -14,14 +14,13 @@ import type { FullConfig } from "@playwright/test";
  * why. An entry a run does not make is only reported (a subset of the specs, or a background request that did not happen this time).
  */
 export const ALLOWED_MISSES: readonly (string | RegExp)[] = [
-  // Background requests the reader makes on its own after the page a test checks has rendered: the next section's links and text
-  // (prefetched), and the versions of verses scrolled past. Whether one goes out before the test ends depends on timing, so which
-  // of them a run makes varies (seen: Fox's Leviticus Part III links and Klein Dictionary neighbours from ref-corpus.spec.ts, Psalms
-  // 7:2 and 7:4 versions from search-page.spec.ts). No assertion depends on their answers. The pinned bundle lacks them; once a
-  // re-recorded bundle holds them, these patterns come off the list.
-  /^GET \/api\/links\/[^?]+\?with_text=0&with_sheet_links=1$/,
-  /^GET \/api\/texts\/versions\/[^?]+$/,
-  /^GET \/api\/v3\/texts\/Klein%20Dictionary%2C%20/,
+  // Deliberate: www.sefaria.org answers this with a 500, and the cassette never records a server error. translations.spec.ts checks
+  // that the server's page still answers at once, with the title and an empty list, when the list API fails.
+  "GET /api/texts/translations/he",
+  // ref-corpus.spec.ts lands on single Klein Dictionary and Jastrow entries. An entry is a few lines, so the column keeps adding
+  // the next entries (their text and links) to fill the screen until the test ends, and how far it gets depends on timing: each of
+  // five recording runs added entries the others had not reached. Only those two dictionaries' entry requests are allowed.
+  /^GET \/api\/(?:links|v3\/texts)\/(?:Klein%20Dictionary|Jastrow)%2C%20[^/?]+\?(?:with_text=0&with_sheet_links=1|version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities)$/,
 ];
 
 const apiOrigin = () => `http://localhost:${Number(process.env.E2E_API_PORT) || 3998}`;

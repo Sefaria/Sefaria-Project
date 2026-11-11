@@ -135,6 +135,19 @@ test("every language Django accepts has its page, its title and its description;
 });
 
 // @feature LIB-021
+test("Hebrew, the server's page: the list API fails (a 500 on sefaria.org); the page answers at once with its title and an empty tab", async ({ request }) => {
+  // the cassette cannot hold the failure (it never records a server error): in replay the request is answered 504 at once, an
+  // allowed miss (e2e/cassette-misses.ts); the page must still render, without the list
+  const t0 = Date.now();
+  const r = await request.get("/translations/he");
+  expect(r.status()).toBe(200);
+  expect(Date.now() - t0).toBeLessThan(5_000);
+  const html = await r.text();
+  expect(html).toContain("<title>ספריה בעברית</title>");
+  expect(html).toContain('data-translations-list="empty"');
+});
+
+// @feature LIB-021
 test("Hebrew: the list API fails on sefaria.org (500 after ~16s); the page does not wait for it, shows its title and an empty tab", async ({ page }) => {
   test.setTimeout(60_000);
   // a language whose list answers renders its list (so an empty list below is the failure, not a broken page)
