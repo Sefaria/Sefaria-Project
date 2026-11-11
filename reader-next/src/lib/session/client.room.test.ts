@@ -75,9 +75,9 @@ async function settle() {
   for (let i = 0; i < 10; i++) await new Promise((r) => setTimeout(r, 0));
 }
 
-const host: Participant = { id: "dana", name: "Dana", isHost: true, canLead: true };
+const host: Participant = { id: "reader1", name: "Reader One", isHost: true, canLead: true };
 const guest: Participant = { id: "guest", isHost: false, canLead: true };
-const sarah: Participant = { id: "sarah", name: "Sarah", isHost: false, canLead: true };
+const reader2: Participant = { id: "reader2", name: "Reader Two", isHost: false, canLead: true };
 
 describe("session client with the real room", () => {
   it("a follower lands on the host's state, follows, breaks away and follows again", async () => {
@@ -88,7 +88,7 @@ describe("session client with the real room", () => {
 
     const follower = h.connect(guest, "/Psalms.1");
     await settle();
-    expect(follower.client.getState()).toMatchObject({ status: "live", following: "dana" });
+    expect(follower.client.getState()).toMatchObject({ status: "live", following: "reader1" });
     expect(follower.reader.urls().at(-1)).toBe("/Genesis.1");
 
     h.advance(1000);
@@ -108,23 +108,23 @@ describe("session client with the real room", () => {
     follower.client.followAgain();
     await settle();
     expect(follower.reader.urls().at(-1)).toBe("/Genesis.3");
-    expect(h.room.snapshot().participants.find((p) => p.id === "guest")?.following).toBe("dana");
+    expect(h.room.snapshot().participants.find((p) => p.id === "guest")?.following).toBe("reader1");
   });
 
   it("switches to a new spotlight holder and lands on their state", async () => {
     const h = harness();
     const leader = h.connect(host, "/Genesis.1");
     await settle();
-    const s = h.connect(sarah, "/Ruth.1");
+    const s = h.connect(reader2, "/Ruth.1");
     const follower = h.connect(guest, "/Psalms.1");
     await settle();
     expect(follower.reader.urls().at(-1)).toBe("/Genesis.1");
 
-    leader.client.spotlight("sarah");
+    leader.client.spotlight("reader2");
     await settle();
     expect(s.client.getState().status).toBe("leading");
-    expect(follower.client.getState().following).toBe("sarah");
-    // Sarah was following Dana, so her state is Genesis.1 too: the new leader does not jump.
+    expect(follower.client.getState().following).toBe("reader2");
+    // Reader Two was following Reader One, so her state is Genesis.1 too: the new leader does not jump.
     expect(follower.reader.urls().at(-1)).toBe("/Genesis.1");
 
     h.advance(1000);

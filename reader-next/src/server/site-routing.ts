@@ -2,7 +2,7 @@
  * Which server answers a page request, and how (src/start.ts's request middleware, here so it can be tested with Django stubbed).
  *
  *  - `/healthz-reader`: this server's own probe.
- *  - On a Library host only (never on the Voices host — Voices is out of scope, its requests go on exactly as before this lane):
+ *  - On a Library host only (never on the Voices host — Voices is out of scope, its requests go on exactly as before):
  *    the language-domain bounce (language-domain.ts) and the old addresses that are only a redirect (redirects.ts).
  *  - The trailing-slash redirect, the calendar shortcuts, and the hand-over to Django of every path this client does not render
  *    (pass-through.ts, route-manifest.ts, topics-owner.ts).

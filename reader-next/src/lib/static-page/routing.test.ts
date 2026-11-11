@@ -43,7 +43,7 @@ describe("the static pages' routing", () => {
     expect(staticPageName("/about/")).toBe("about");
     expect(staticPageName("/about/team")).toBeNull();
     expect(isStaticPagePath("/Genesis")).toBe(false);
-    // the object's inherited names are not pages (review round 2)
+    // the object's inherited names are not pages
     for (const name of ["constructor", "toString", "__proto__", "hasOwnProperty", "valueOf"]) {
       expect(staticPageOwner(name, "en"), name).toBeNull();
       expect(rendersStaticPage(name), name).toBe(false);

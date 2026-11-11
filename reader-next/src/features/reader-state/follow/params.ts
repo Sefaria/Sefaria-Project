@@ -95,7 +95,7 @@ export function clearStoredFollow(storage: Storage | null): void {
 // ── Labels ────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /**
- * Where someone is, for "Dana is reading Exodus 3": the ref decoded from the first path segment of their snapshot url ("/Exodus.3?lang=bi"
+ * Where someone is, for "Reader One is reading Exodus 3": the ref decoded from the first path segment of their snapshot url ("/Exodus.3?lang=bi"
  * → "Exodus 3"). Not a canonical title (that would need the API); good enough to recognise. Null for the home page or a non-path.
  */
 export function locationLabel(url: string | null | undefined): string | null {

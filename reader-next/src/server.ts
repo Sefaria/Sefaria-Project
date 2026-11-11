@@ -6,7 +6,7 @@
  * of the URL object it shares with srvx's NodeRequest: `%5C` becomes `\`, the URL setter turns that into `/`, and `request.url` reached
  * the router as `…Subject/Object`: a 404 (`%2F` survives, being reserved for `decodeURI`). Upstream bug in h3 (it should not mutate
  * `req._url`). Such a request is handed on as a plain Request with its own URL (body and signal kept, so a POST works too); every
- * other request passes untouched. Lane R, 2026-11-10.
+ * other request passes untouched.
  */
 import { createStartHandler, defaultStreamHandler, type RequestHandler } from "@tanstack/react-start/server";
 import type { Register } from "@tanstack/react-router";

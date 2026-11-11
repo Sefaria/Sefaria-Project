@@ -30,7 +30,7 @@ describe("sanitizeStaticHtml: the static page's content block", () => {
     expect(clean(fine)).toBe(fine);
   });
 
-  // review round 2: the address is judged and returned as ONE normalised string (trim() also removes Unicode whitespace)
+  // The address is judged and returned as ONE normalised string (trim() also removes Unicode whitespace)
   const UNICODE_PREFIXES = ["&nbsp;", "&#xA0;", "&#x2028;", "&#x2029;", "&#xFEFF;", "&#x3000;", "&#x1680;"];
   const PLACES: [string, (u: string) => string, string][] = [
     ["a href", (u) => `<a href="${u}">x</a>`, "<a>x</a>"],

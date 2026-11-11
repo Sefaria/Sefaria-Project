@@ -48,7 +48,7 @@ export interface FollowSession {
 
 export interface FollowControllerState {
   session: FollowSession | null;
-  /** Each participant's latest address, from their stream: what "Dana is reading Exodus 3" names. */
+  /** Each participant's latest address, from their stream: what "Reader One is reading Exodus 3" names. */
   locations: Readonly<Record<ParticipantId, string>>;
   /** The room could not be reached again after it went away (in-browser room only); shown until dismissed. */
   lost: boolean;

@@ -95,7 +95,7 @@ describe("follow controller", () => {
     const guestStorage = memoryStorage();
     const hostReader = fakeApi("/Genesis.1");
     const guestReader = fakeApi("/Psalms.1");
-    const host = controller({ api: hostReader.api, connect: net.connect, storage: hostStorage, viewerName: () => "Dana Levi" });
+    const host = controller({ api: hostReader.api, connect: net.connect, storage: hostStorage, viewerName: () => "Reader One" });
     const guest = controller({ api: guestReader.api, connect: net.connect, storage: guestStorage });
 
     expect(host.followMe.getState()).toEqual({ status: "idle", following: 0 });
@@ -103,7 +103,7 @@ describe("follow controller", () => {
     expect(readStoredFollow(hostStorage)).toMatchObject({ sessionId, role: "host" });
     await settle();
     const hostClient = host.getState().session!.client;
-    expect(hostClient.getState()).toMatchObject({ status: "leading", self: { name: "Dana Levi", isHost: true, canLead: true } });
+    expect(hostClient.getState()).toMatchObject({ status: "leading", self: { name: "Reader One", isHost: true, canLead: true } });
     expect(host.followMe.getState().status).toBe("sharing");
     expect(followParamOf(new URL(host.followMe.linkFor("https://www.sefaria.org/Genesis.1?lang=bi")!).search)).toBe(sessionId);
 

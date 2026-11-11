@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { withOwnUrl } from "./server";
 
-// Lane R, R3: a request whose address holds %5C (a backslash in a title) is handed on with a URL of its own, body and all; any other
+// A request whose address holds %5C (a backslash in a title) is handed on with a URL of its own, body and all; any other
 // request passes untouched.
 describe("withOwnUrl", () => {
   it("passes a request without %5C through as it is", () => {

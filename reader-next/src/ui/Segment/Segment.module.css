@@ -27,7 +27,7 @@
 
 /* Bilingual, stacked. VERIFIED on sefaria.org (2026-11-10, Genesis 1:1 at 1280): Hebrew ends at 396, English starts at 406 (10px, the
    translation's `margin: 10px 0 20px`); the next verse starts 20px below (the translation's 20px bottom margin wins over the segment's
-   14px); a verse without a translation is 14px from the next. The Hebrew is right-aligned in every bilingual layout. Parity S5. */
+   14px); a verse without a translation is 14px from the next. The Hebrew is right-aligned in every bilingual layout. */
 [data-language="bilingual"] .body { display: flex; flex-direction: column; gap: 10px; }
 [data-language="bilingual"][data-bilayout="stacked"] .segment { margin-block-end: 14px; }
 [data-language="bilingual"][data-bilayout="stacked"] .segment:is([data-sides="both"], [data-sides="translation"]) { margin-block-end: 20px; }
@@ -58,8 +58,7 @@
 [data-layout="continuous"] .number { inset-inline-start: calc(var(--_pad, 30px) - 48px); }
 [data-layout="continuous"] .dot { inset-inline-end: calc(var(--_pad, 30px) - 48px + 4px); }
 /* A phone (34px of padding, the old singlePanel): the number and dot sit in the padding, 4px from the screen's edges, as on sefaria.org
-   (Berakhot 2a, Hebrew, 390px: numbers at 356-386, dots at 4-34). 48px out put them past the edge and the page scrolled sideways
-  . */
+   (Berakhot 2a, Hebrew, 390px: numbers at 356-386, dots at 4-34). 48px out put them past the edge and the page scrolled sideways. */
 @media (max-width: 842px) and (pointer: coarse) {
   [data-layout="continuous"] .number { inset-inline-start: 4px; }
   [data-layout="continuous"] .dot { inset-inline-end: 4px; }

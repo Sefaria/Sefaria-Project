@@ -1,6 +1,6 @@
 /**
  * Ranges and multi-segment selection, as the old reader does them (owner decision 2026-11-10: legacy parity; VERIFIED on
- * www.sefaria.org the same day, scripts in the lane-D report):
+ * www.sefaria.org the same day):
  *
  *  - A pasted range that crosses sections (Genesis 1:30-2:3, Berakhot 2b:5-3a:2, Rashi on Genesis 1:31:1-2:2:1) stays in the address
  *    and every segment in it is highlighted (blue), with the sidebar open or closed.

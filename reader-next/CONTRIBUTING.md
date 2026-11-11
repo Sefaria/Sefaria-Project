@@ -20,7 +20,7 @@ Start with [`README.md`](README.md) (run, test, add a page) and [`docs/ARCHITECT
 - Comments say what the code does and why. Do not cite tickets, review rounds or planning documents that are not in the
   repository.
 - The repository is public: no personal data in fixtures, recordings, tests or comments (use placeholders such as
-  `Dana Levi` or `user1@example.com`), no local paths, no internal links.
+  `Reader One` or `user1@example.com`), no local paths, no internal links.
 
 ## Before you open a pull request
 

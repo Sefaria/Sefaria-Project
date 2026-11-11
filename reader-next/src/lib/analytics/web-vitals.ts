@@ -1,7 +1,7 @@
 /**
  * Core Web Vitals to GA4: one `web_vitals` event per metric through the
- * existing gtag, no new `config`, no new property. The `web-vitals` package is not a dependency (no new npm dependency in this
- * wave), so this is a small first-party measurement on PerformanceObserver following the package's definitions:
+ * existing gtag, no new `config`, no new property. The `web-vitals` package is not a dependency (kept out to avoid
+ * a dependency), so this is a small first-party measurement on PerformanceObserver following the package's definitions:
  *
  *  - LCP  last `largest-contentful-paint` entry before the first input or the page being hidden
  *  - CLS  largest session window (shifts < 1 s apart, window ≤ 5 s) of layout shifts without recent input

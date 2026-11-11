@@ -19,19 +19,19 @@ Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader ha
 
 ### 2026-11-10 — shell, static pages and accessibility
 
-- **Library Assistant for signed-out visitors** (parity S3): shown when remote config's `feature.chatbot.anonymous_enabled` is not off,
+- **Library Assistant for signed-out visitors**: shown when remote config's `feature.chatbot.anonymous_enabled` is not off,
   without a token, with Sign up / Log in in its login prompt; not on /login and /register. Still missing vs sefaria.org: the phone sheet
   and menu row, the search no-results pointer. (AI-003, AI-011)
-- **Static pages start where they do on sefaria.org** (parity S12): 60px higher, build-time CSS only. (STA-001)
-- **/mobile, /educators, English /ways-to-give need no Django content mode** (exits F-9). (STA-008, STA-012)
-- **Hebrew-interface category descriptions 17.08px / 24px** (parity S12b); library pages mark `dir` with `lang` (a11y N7). (LIB-001, LIB-008)
-- **interfaceLang cookie exactly as legacy** (security nit 5): `Domain` per host from DOMAIN_MODULES, session cookie, a stale host-only
+- **Static pages start where they do on sefaria.org**: 60px higher, build-time CSS only. (STA-001)
+- **/mobile, /educators, English /ways-to-give need no Django content mode**. (STA-008, STA-012)
+- **Hebrew-interface category descriptions 17.08px / 24px**; library pages mark `dir` with `lang`. (LIB-001, LIB-008)
+- **interfaceLang cookie exactly as legacy**: `Domain` per host from DOMAIN_MODULES, session cookie, a stale host-only
   cookie expired; cross-domain switch with `set-language-cookie`; signed-in switches go to Django (profile). (RTE-034)
-- **Accessibility**: phone menu opened from the text panel takes focus (S6); Sort & filter dialog returns focus (S7); no page scroll on
-  /topics Hebrew at 320px and /updates at 200% (S8); /calendars h1 (N1); one `<main>` on /updates and static pages (N2); topic card
-  links underlined (N3); header menus close when focus leaves (N9). (GUI-011, SRC-063, TOP-003, LIB-022, CAL-001, STA-001, TOP-012, I18-007)
-- **Dictionary editor** sanitises the stored entry before editing (security nit 3). (CON-072)
-- **Rework round 1**: the stale host-only `interfaceLang` is expired on the signed-in switch and on the arrival host's
+- **Accessibility**: phone menu opened from the text panel takes focus; Sort & filter dialog returns focus; no page scroll on
+  /topics Hebrew at 320px and /updates at 200%; /calendars h1; one `<main>` on /updates and static pages; topic card
+  links underlined; header menus close when focus leaves. (GUI-011, SRC-063, TOP-003, LIB-022, CAL-001, STA-001, TOP-012, I18-007)
+- **Dictionary editor** sanitises the stored entry before editing. (CON-072)
+- **Stale cookie**: the stale host-only `interfaceLang` is expired on the signed-in switch and on the arrival host's
   `set-language-cookie`; the dictionary editor keeps `<big>` and raster `data:` images (never SVG); the Library Assistant only in the
   Library (never on the Voices host) and not on a password reset, as legacy. (RTE-034, CON-072, AI-011)
 
@@ -39,14 +39,14 @@ Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader ha
 
 ### Fixed
 
-- **PLT-003** The server-rendered head links each page kind's stylesheets (v-exits F-2): the reader's classes no longer arrive with the JS. Production build, Pixel 7 / CPU 4× / Slow 4G, median of 3: `/Genesis.1` CLS **0.484 → 0**, LCP 13,992 → 3,644 ms. The book page's CSS is now linked by the server and loaded in the browser too (a merged preload had dropped it: unstyled /Sefer_HaBahir on staging); a guard test covers nine routes.
-- **TXT-023** A complex text's node address (`/Arukh_HaShulchan,_Orach_Chaim`) opens its first section via `/api/ref` instead of downloading the whole node (was a 503) (v-exits F-4).
-- **BOK-013** The book TOC no longer throws `counts.forEach is not a function` on counts shallower than the node's depth (v-exits F-5).
+- **PLT-003** The server-rendered head links each page kind's stylesheets: the reader's classes no longer arrive with the JS. Production build, Pixel 7 / CPU 4× / Slow 4G, median of 3: `/Genesis.1` CLS **0.484 → 0**, LCP 13,992 → 3,644 ms. The book page's CSS is now linked by the server and loaded in the browser too (a merged preload had dropped it: unstyled /Sefer_HaBahir on staging); a guard test covers nine routes.
+- **TXT-023** A complex text's node address (`/Arukh_HaShulchan,_Orach_Chaim`) opens its first section via `/api/ref` instead of downloading the whole node (was a 503).
+- **BOK-013** The book TOC no longer throws `counts.forEach is not a function` on counts shallower than the node's depth.
 
 ### Built
 
-- **PLT-006** Reader page titles as www.sefaria.org: `Genesis 1 | The Sefaria Library`, `בראשית א׳ | האוסף של ספריא`, `… with Rashi` / `עם רש"י` while a sidebar names a source; a missing text titled as Django's 404 in either interface (v-parity S2, v-a11y S4). _Verified_ live 2026-11-10.
-- **I18-001** The Hebrew interface opens texts in Hebrew when the reader has chosen nothing (legacy middleware.py:194); an explicit choice still wins (v-parity B1).
+- **PLT-006** Reader page titles as www.sefaria.org: `Genesis 1 | The Sefaria Library`, `בראשית א׳ | האוסף של ספריא`, `… with Rashi` / `עם רש"י` while a sidebar names a source; a missing text titled as Django's 404 in either interface. _Verified_ live 2026-11-10.
+- **I18-001** The Hebrew interface opens texts in Hebrew when the reader has chosen nothing (legacy middleware.py:194); an explicit choice still wins.
 
 ### Recorded
 
@@ -74,15 +74,15 @@ Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader ha
 - **Chart: no mutable reader image.** With `nodejs.mode` `optin` or `reader`, `helm template` now refuses a reader image tagged `latest`
   (or untagged) unless `reader.allowMutableImage: true` (dev environments and cauldrons only). `legacy` renders exactly as before.
   CI: only the branch named `master` (or `prod`/`preprod`) writes those image names; `tj-actions/branch-names` pinned to v9.0.2 by
-  commit, and the branch name reaches the shell through `env:` only. (security S-1, nit 1)
-- **Translations server function** takes only the languages the page has and keeps a bounded cache — LIB-021. (S-2)
-- **Dependencies:** seroval 1.6.11, zod 4.6.6, vite 8.3.3 (published advisories; lockfile-only patch bumps). (S-3)
-- **Error beacons' rate limit** keyed on nginx's address, with a cap for everyone together — ANL-017. (S-4)
+  commit, and the branch name reaches the shell through `env:` only.
+- **Translations server function** takes only the languages the page has and keeps a bounded cache — LIB-021.
+- **Dependencies:** seroval 1.6.11, zod 4.6.6, vite 8.3.3 (published advisories; lockfile-only patch bumps).
+- **Error beacons' rate limit** keyed on nginx's address, with a cap for everyone together — ANL-017.
 - **DEPLOYMENT.md:** the opt-in cookie is open to anyone (accepted for L0); `reader.optin.enabled: false` is the server-side kill
-  switch. (S-5)
+  switch.
 - **Exits allowlist:** `/add/…` needs `?next=`; `/admin/reset/…` only the book page's own form; `updates-about-sidebar` removed;
   `/community` and `/dedication/<slug>` cite the owner's decision; a dated entry for revision history (`/activity/<ref>/<lang>/<version>`)
-  until the reader-next Django is deployed. (exits F-1, F-3, F-8)
+  until the reader-next Django is deployed.
 - Dev tools: the API cassette and the dev room server listen on loopback only and the cassette no longer reflects any Origin with
   credentials; the staging relay no longer allows localhost; the vendored toolkit's local patches are listed
   (`vendor/sefaria-toolkit/LOCAL_PATCHES.md`). (nits 2, 4, 7)
@@ -422,7 +422,7 @@ Compared side by side with sefaria.org at 1280px, `lang2=en` and `lang2=he`, by 
 - **LIB-021 Found**: `/api/texts/translations/he` answers 500 after ~16 s, so /translations/he is a title, an empty tab and the About module. Unknown slugs (ro, tr — both linked from the library sidebar —, xx, DE) are Django 404s. Title/description/og/twitter per language recorded.
 - **LIB-029 Added detail**: the About module's title follows the interface font, its body is a bare Roboto text node; English and Hebrew fall back to "A Living Library of Torah" without Learn More or the video.
 - **LIB-070 New**: the texts' links open the reader at the first section with `ven=<family>|<versionTitle>&lang=bi`; English/Hebrew commentaries bundled under their category page.
-- **RTE-065 New**: pages the new reader renders for the Library stay Django's on the Voices host (`LIBRARY_HOST_ONLY`), until Q-E1 is decided.
+- **RTE-065 New**: pages the new reader renders for the Library stay Django's on the Voices host (`LIBRARY_HOST_ONLY`), until it is decided which host serves which pages.
 - **Built**: `src/routes/translations.$slug.tsx`, `features/library/TranslationsRoute.tsx`, `ui/TranslationsPage`, `ui/NavSidebar/AboutTranslatedText.tsx`, `lib/translations` (languages, model built on the server from the shared catalog + API + the terms of `/data.js`, so the browser never downloads either), `features/shared/RouterLink.tsx` `VerbatimRouterLink` (hrefs byte for byte as the API writes them, in-app navigation). `translations` left `DJANGO_PREFIXES`; the library sidebar's language links are in-app. Tests: `e2e/translations.spec.ts`, `src/lib/translations/translations-page.test.ts`, pass-through/route-manifest/paths tests, story `Pages/TranslationsPage`.
 - **Parity** (`scripts/parity-page.mjs`, `scripts/parity-diff-page.py`; `INTERFACE_LANG=hebrew` added to parity-page): English interface, all 14 languages: de, en, eo, es, fi, fr, he, it, pl, pt, ru 0.00–0.01% at 1280 (top/middle/bottom) and on a phone (full page) — only the header's search box; ar 0.10% / phone 0.12–0.14%, fa 0.09% / 0.02%, yi 0.10% / 0.19%: the right-to-left About text, whose span now carries lang and dir (Chromium then picks another fallback face for Arabic script, and the final period sits at the sentence's end instead of the old wrong side) — deliberate. Hebrew interface /translations/de: phone full page 0.05% (the header's icon, outside the page); desktop main column 0.00% once aligned — the site-wide Library Assistant banner is 9px taller in the Hebrew interface on our side and the Hebrew header labels differ (shell, not this lane), and the About body's final period sits at the end of its line (deliberate: the old page showed it at the start).
 
@@ -655,8 +655,8 @@ Applied to rebuild-status.json only.
 - **RTE-028** The old `/<ref>/<lang>/<version>` address redirects as on sefaria.org (was a 404). _Verified_ by the ref corpus.
 - **TXD-003 / PLT-016** Review fixes: a stale cached copy never blocks a navigation; a hanging IndexedDB never blocks a write and is
   skipped for the session after one timeout; more editor returns recognised, only on a navigation.
-- **CON-071** A slow or failing `/api/related` or `/api/links` shows what arrived, says it is still loading, and offers a retry (SB-02).
-  SB-03 measured: Resources downloads Genesis 1's links a second time inside `/api/related` (633 KB gzip); needs a server parameter.
+- **CON-071** A slow or failing `/api/related` or `/api/links` shows what arrived, says it is still loading, and offers a retry.
+  Measured: Resources downloads Genesis 1's links a second time inside `/api/related` (633 KB gzip); needs a server parameter.
 
 - **TXD-050 / TXD-055** Corrected (owner decision 2026-11-10, _verified_): several highlighted segments show blue with the sidebar
   closed; no range collapses (owner decision: legacy's occasional collapse inside one section is a race, not ported).
@@ -696,7 +696,7 @@ Applied to rebuild-status.json only.
 
 ### Corrected
 
-- **CON-071** SB-03: the Resources rows ask `/api/related/<section>?with_links=0&sheets=count` (no links; sheets as id + anchors).
+- **CON-071** The Resources rows ask `/api/related/<section>?with_links=0&sheets=count` (no links; sheets as id + anchors).
   Genesis 1: 12.4 MB / 1.30 MB gzip → 0.61 MB / 46 KB gzip once the Django change is deployed. Other callers and the Voices
   host unchanged; Varnish invalidation covers the client's own (percent-encoded) URLs.
 - **RTE-059** The reader pods get `DOMAIN_MODULES`, so the language-domain bounce works in the cluster.
