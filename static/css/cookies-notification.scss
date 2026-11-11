@@ -1,0 +1,72 @@
+// The cookie banner (CookiesNotification in Misc.jsx). It hides when printing (see s2-print.css
+// and sheets-print.css).
+
+@import 'breakpoints';
+
+$banner-inset: 10px;
+
+.cookiesNotification {
+  position: fixed;
+  z-index: 9999;
+  color: var(--white);
+  background-color: #212e50;
+  border-top: 1px solid var(--light-grey);
+  bottom: 0;
+  box-sizing: border-box;
+  width: 100%;
+  padding: $banner-inset 0;
+  line-height: 1.1;
+  text-align: center;
+  unicode-bidi: plaintext;
+
+  a {
+    text-decoration: underline;
+    color: inherit;
+    margin-inline-start: 5px;
+  }
+
+  .button {
+    margin-inline-start: 12px;
+  }
+}
+
+@include breakpoint(mobile) {
+  // Here the banner spans the bottom of the screen, so keep the page's bottom above it.
+  // --bottom-bar-height is set while the banner shows (see launcherOffset.js)
+  // Template pages, where only the header is React and the document scrolls
+  body:has(#s2.headerOnly) {
+    padding-bottom: var(--bottom-bar-height, 0);
+  }
+
+  /* stylelint-disable selector-id-pattern -- existing ids from the React app */
+  #s2:not(.headerOnly) #readerAppWrap,
+  .mobileNavMenu {
+    padding-bottom: var(--bottom-bar-height, 0);
+  }
+
+  #s2:not(.headerOnly) #readerAppWrap {
+    box-sizing: border-box;
+  }
+  /* stylelint-enable selector-id-pattern */
+}
+
+@media (min-width: $bp-tablet-min) {
+  // Here the banner is a card in the corner, clear of the Library Assistant's button
+  :root {
+    --lc-launcher-bottom-offset: 0px !important;
+  }
+
+  .cookiesNotification {
+    width: 360px;
+    margin: $banner-inset;
+    padding: 15px;
+    text-align: start;
+    border-radius: 10px;
+    border-top: none;
+
+    .button {
+      display: block;
+      margin: $banner-inset 0 0;
+    }
+  }
+}
