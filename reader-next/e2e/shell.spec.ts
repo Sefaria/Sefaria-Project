@@ -12,7 +12,7 @@ test.describe("the page around the reader (verified against sefaria.org)", () =>
     const header = page.getByRole("banner");
     await expect(header.getByRole("search")).toBeVisible();
     await expect(header.getByRole("link", { name: "Sign Up" })).toHaveAttribute("href", /\/register\?next=/);
-    for (const name of ["Help", "Toggle Interface Language Menu", "Library", "Account menu"]) await expect(header.getByRole(name === "Help" ? "link" : "button", { name })).toBeVisible();
+    for (const name of ["Help", "Toggle Interface Language Menu", "Library", "Account menu"]) await expect(header.getByRole(name === "Help" ? "link" : "button", { name, exact: true })).toBeVisible();
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: "Skip to main content" })).toBeFocused();
     await page.keyboard.press("Enter");
@@ -21,7 +21,7 @@ test.describe("the page around the reader (verified against sefaria.org)", () =>
 
   test("the module switcher lists Library, Voices, Developers and More from Sefaria", async ({ page }) => {
     await open(page, "/Genesis.1?lang=en");
-    await page.getByRole("banner").getByRole("button", { name: "Library" }).click();
+    await page.getByRole("banner").getByRole("button", { name: "Library", exact: true }).click();
     const menu = page.getByRole("dialog", { name: "Library" });
     await expect(menu.getByRole("link", { name: "Voices" })).toHaveAttribute("href", "https://voices.sefaria.org/");
     await expect(menu.getByRole("link", { name: "Developers" })).toHaveAttribute("href", "https://developers.sefaria.org");

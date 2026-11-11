@@ -430,9 +430,9 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
  * in the fallback font for a frame, then jumps.
  * Kept tiny and dependency-free. Thresholds match FOCUS_THRESHOLD.
  */
-export const INITIAL_POSITION_SCRIPT = `(function(){var c,shown=0;function show(){if(!shown&&c){shown=1;c.style.visibility="";}}try{var s=document.currentScript;c=s&&s.closest("[data-reader-scroller]");if(!c)return;var t=c.querySelector('[data-scroll-target="true"]');if(!t)return;
-function place(){var o=getComputedStyle(c).overflowY,w=!(o==="auto"||o==="scroll"),th=(w?70:140)+2,d=t.getBoundingClientRect().top-(w?0:c.getBoundingClientRect().top)-th;if(Math.abs(d)<0.5)return;if(w)window.scrollTo(0,window.scrollY+d);else c.scrollTop+=d;}
-place();var f=document.fonts;if(f&&f.status!=="loaded"){c.style.visibility="hidden";f.ready.then(function(){place();show();});setTimeout(show,600);}if(!window.ResizeObserver){show();return;}
+export const INITIAL_POSITION_SCRIPT = `(function(){var c,shown=0;function show(){if(!shown&&c){shown=1;c.style.visibility="";}}try{var s=document.currentScript;c=s&&s.closest("[data-reader-scroller]");if(!c)return;var t=c.querySelector('[data-scroll-target="true"]'),e=t?null:c.querySelector("[data-column-start]");if(!t&&!e)return;
+function place(){var o=getComputedStyle(c).overflowY,w=!(o==="auto"||o==="scroll"),d;if(t){var th=(w?70:140)+2;d=t.getBoundingClientRect().top-(w?0:c.getBoundingClientRect().top)-th;}else{var h=w&&c.parentElement&&c.parentElement.querySelector("header"),hs=h&&getComputedStyle(h),line=w?(hs&&hs.position==="sticky"?(parseFloat(hs.top)||0)+h.offsetHeight:0):c.getBoundingClientRect().top;d=e.getBoundingClientRect().bottom-line;}if(Math.abs(d)<0.5)return;if(w)window.scrollTo(0,window.scrollY+d);else c.scrollTop+=d;}
+place();var f=document.fonts;if(t&&f&&f.status!=="loaded"){c.style.visibility="hidden";f.ready.then(function(){place();show();});setTimeout(show,600);}if(!window.ResizeObserver){show();return;}
 var ro=new ResizeObserver(place),live=1,tick=function(){if(live){place();requestAnimationFrame(tick);}},stop=function(){live=0;show();ro.disconnect();["wheel","touchmove","keydown","pointerdown"].forEach(function(e){removeEventListener(e,stop,true)});};requestAnimationFrame(tick);
 ro.observe(c);ro.observe(c.firstElementChild||c);["wheel","touchmove","keydown","pointerdown"].forEach(function(e){addEventListener(e,stop,true)});c.__keepPlace=stop;}catch(e){show();}})();`;
 

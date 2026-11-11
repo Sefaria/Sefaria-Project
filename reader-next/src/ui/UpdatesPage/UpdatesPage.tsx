@@ -60,7 +60,8 @@ export function UpdatesPage({ he, sidebar, form, children }: UpdatesPageProps) {
   return (
     <div className={styles.page} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
       <div className={styles.sidebar}>{sidebar}</div>
-      <main id="updatesPage" className={styles.main}>
+      {/* not a second <main>: the shell's is the page's one (v-a11y N2) */}
+      <div id="updatesPage" className={styles.main}>
         <div className={styles.inner}>
           <h1 className={styles.title}>
             <InterfaceText en="Updates" he="עדכונים" />
@@ -68,7 +69,7 @@ export function UpdatesPage({ he, sidebar, form, children }: UpdatesPageProps) {
           {form}
           <div className={form ? `${styles.list} ${styles.afterForm}` : styles.list}>{children}</div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

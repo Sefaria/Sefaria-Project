@@ -1,6 +1,6 @@
 import { Fragment, memo, useMemo } from "react";
 import { parashahHeader } from "~/lib/reader/parashah";
-import { sectionTitle, showsSegmentNumbers } from "~/lib/reader/labels";
+import { showsSegmentNumbers } from "~/lib/reader/labels";
 import {
   effectiveBiLayout,
   effectiveLayout,
@@ -13,6 +13,8 @@ import { parseHumanRef } from "~/lib/ref/url";
 import { ReaderSurface } from "../ReaderSurface/ReaderSurface";
 import { Segment, type SegmentProps, type SegmentSide } from "../Segment/Segment";
 import { ParashahHeader, SectionTitle } from "../SectionTitle/SectionTitle";
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
+import { hebrewSegmentRef, laterHebrewSectionRef, sectionHeading } from "./section-heading";
 
 export interface TextSectionProps {
   passage: TextPassage;
@@ -54,6 +56,8 @@ function TextSectionImpl({
   const stripPunctuation = passage.primaryCategory === "Talmud" && !settings.punctuationTalmud && settings.language !== "english";
   const numbered = showsSegmentNumbers(passage.book, passage.categories);
   const isDictionary = passage.categories[0] === "Reference";
+  // the regions and verse groups are named in the interface's language (a11y S5): "בראשית א׳", "בראשית א׳:ג׳"
+  const he = useInterfaceLang() === "hebrew";
 
   const bySection = useMemo(() => {
     const m = new Map<string, SegmentModel[]>();
@@ -80,16 +84,25 @@ function TextSectionImpl({
     <ReaderSurface language={settings.language} layout={layout} biLayout={biLayout} fontSize={settings.fontSize}>
       {passage.sectionRefs.map((sectionRef, idx) => {
         const parsed = parseHumanRef(sectionRef);
-        const title = sectionTitle({
+        // as sefaria.org prints it (parity S7, S13); a later section of a spanning passage has no Hebrew ref of its own: the first's,
+        // with its numbers swapped
+        const heSectionRef = idx === 0 ? passage.heSectionRef : laterHebrewSectionRef({ heSectionRef: passage.heSectionRef, sections: parseHumanRef(passage.sectionRefs[0]!).sections }, parsed.sections, passage.addressTypes, passage.heIndexTitle);
+        const title = sectionHeading({
           primaryCategory: passage.primaryCategory,
-          address: parsed.sections.length ? parsed.sections.join(":") : undefined,
-          addressType: passage.addressTypes[parsed.sections.length - 1],
           sectionRef,
-          heSectionRef: idx === 0 ? passage.heSectionRef : sectionRef,
+          heSectionRef,
+          indexTitle: passage.indexTitle,
+          heIndexTitle: passage.heIndexTitle,
+          book: passage.book,
+          isComplex: passage.isComplex,
+          sectionNames: passage.sectionNames,
+          sections: parsed.sections,
+          addressTypes: passage.addressTypes,
         });
+        const segDepth = parsed.sections.length;
         return (
-          <section key={sectionRef} data-ref={sectionRef} aria-label={sectionRef}>
-            {hideTitle || isDictionary ? null : <SectionTitle en={title.en} he={title.he} language={settings.language} />}
+          <section key={sectionRef} data-ref={sectionRef} aria-label={he ? heSectionRef : sectionRef}>
+            {hideTitle || isDictionary || (!title.en && !title.he) ? null : <SectionTitle en={title.en} he={title.he} language={settings.language} />}
             {(bySection.get(sectionRef) ?? []).map((seg) => {
               const header = parashahHeader(passage, seg, settings.aliyotTorah);
               return (
@@ -99,6 +112,7 @@ function TextSectionImpl({
                   ) : null}
                   <Segment
                     segmentRef={seg.ref}
+                    label={he ? hebrewSegmentRef(heSectionRef, seg.address[segDepth], passage.addressTypes[segDepth]) : undefined}
                     address={numbered ? seg.address.at(-1) : undefined}
                     primary={sides.get(seg.ref)?.primary}
                     translation={sides.get(seg.ref)?.translation}

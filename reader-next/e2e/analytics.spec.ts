@@ -45,7 +45,7 @@ test.describe("analytics", () => {
 
   test("the module switcher reports open and item clicks through data-anl", async ({ page }) => {
     await open(page, "/texts");
-    await page.getByRole("button", { name: "Library" }).click();
+    await page.getByRole("button", { name: "Library", exact: true }).click();
     await expect.poll(() => log(page)).toContainEqual({ channel: "gtag", name: "modswitch_open", params: { feature_name: "module_switcher" } });
   });
 

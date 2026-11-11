@@ -537,7 +537,7 @@
  },
  "TXD-046": {
   "status": "done",
-  "note": "Gutter placement matches; collisions step apart (live's fix misplaces them)",
+  "note": "Gutter placement matches (phone: 4px from the edges); collisions step apart, inwards where outwards would leave the text (live's fix misplaces them)",
   "by": "src/ui/Segment/Segment.module.css, src/lib/reader/spread-numbers.ts"
  },
  "TXD-047": {
@@ -1061,8 +1061,8 @@
   "by": "src/features/reader/TextPanel.tsx"
  },
  "I18-003": {
-  "status": "partial",
-  "note": "New-panel focus done; sidebar focus on verse click intentionally not",
+  "status": "done",
+  "note": "New-panel focus; focus back to the verse when the sidebar closes and to the panel beside when one closes; sidebar focus on verse click intentionally not",
   "by": "src/features/reader/TextPanel.tsx"
  },
  "BOK-001": {
@@ -2226,8 +2226,8 @@
   "note": "Guided Learning sidebar view not built: the Resources row opens a 'not built yet' placeholder (CON-068, T-G03)"
  },
  "AI-011": {
-  "status": "done",
-  "note": "Library Assistant widget (<lc-chatbot>) on Library pages for eligible users",
+  "status": "partial",
+  "note": "Signed in and signed out (remote-config switch) on wide screens; not on phones (sefaria.org's full-screen sheet and menu row), no search no-results pointer",
   "by": "src/features/assistant/LibraryAssistant.tsx, src/lib/assistant"
  },
  "AI-012": {

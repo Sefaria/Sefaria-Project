@@ -16,7 +16,8 @@
 .aboutSidebar a.selected { padding: 5px; margin-left: -5px; border-radius: 6px; background-color: var(--sefaria-color-chip); color: var(--sefaria-color-text-strong); }
 
 .main { display: block; min-width: 0; }
-.inner { box-sizing: border-box; width: 725px; max-width: 100%; margin-top: 80px; margin-inline-start: 70px; padding: 0 30px 70px; }
+/* never wider than the room beside its margin: at 1280px zoomed to 200% the 725px column ran 20px past the window (v-a11y S8) */
+.inner { box-sizing: border-box; width: 725px; max-width: calc(100% - 70px); margin-top: 80px; margin-inline-start: 70px; padding: 0 30px 70px; }
 .title { margin: 0 0 30px; padding-top: 2px; font-size: 22px; font-weight: 500; line-height: 26px; color: var(--sefaria-color-text-dark-grey); }
 .page[lang="he"] .title { padding-top: 5px; }
 .list { margin-top: -20px; }
@@ -38,11 +39,11 @@
 
 @media (max-width: 1000px) {
   .page { flex-direction: column; }
-  .inner { margin-top: 0; margin-inline-start: 20px; }
+  .inner { max-width: calc(100% - 20px); margin-top: 0; margin-inline-start: 20px; }
 }
 @media (max-width: 480px) {
   .sidebar { display: none; }
-  .inner { width: auto; margin: 0; }
+  .inner { width: auto; max-width: 100%; margin: 0; }
   /* the phone rule's padding-top: 0 loses to .interface-english/-hebrew h1.aboutHeader on sefaria.org: the 2px / 5px stay */
   .title { margin: 40px 0; }
   .form { width: 270px; margin-top: 50px; }

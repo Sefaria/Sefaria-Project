@@ -18,7 +18,8 @@ import { parseCookieHeader } from "~/lib/reader/settings";
 import { hasSessionCookie } from "~/lib/auth/session";
 import { calendarShortcut, voicesNotFound } from "./calendar-shortcuts";
 import { fixedRedirect, randomLinkRedirect } from "./redirects";
-import { languageDomainAnswer, languageRedirect, signedInBounce, type DomainModules } from "./language-domain";
+import { languageDomainAnswer, languageRedirect, signedInBounce, withHostOnlyLangCookieExpired, type DomainModules } from "./language-domain";
+import { interfaceCookieDomain } from "~/lib/shell/interface-language";
 import { passesToDjango, passResetLink, requestHost, resetLinkUid, trailingSlashRedirect, upstreamUnavailable } from "./pass-through";
 import type { RouteOwner } from "./route-manifest";
 
@@ -76,7 +77,10 @@ export async function siteRoute(request: Request, pathname: string, render: Rend
         { url: new URL(request.url), method: request.method, host, cookies: parseCookieHeader(cookie), headers: request.headers, signedIn: hasSessionCookie(cookie) },
         deps.domainModules,
       );
-      if (answer === "django") return deps.passThroughEnabled ? deps.passThrough(request) : render();
+      // a signed-in arrival with ?set-language-cookie is Django's (it saves the profile); its answer also expires a stale host-only
+      // interfaceLang, as /interface/<lang> does (wave 4, lane d-shell's request)
+      if (answer === "django")
+        return deps.passThroughEnabled ? withHostOnlyLangCookieExpired(await deps.passThrough(request), interfaceCookieDomain(host, deps.domainModules)) : render();
       if (answer instanceof Response) return answer;
       if (answer === "ask-django" && deps.passThroughEnabled) {
         const to = await signedInBounce(request, deps.passThrough);

@@ -49,3 +49,8 @@ button.open { padding: 0; border: 0; background: none; cursor: pointer; }
 .recentChip { margin-block: 6px; margin-inline: 0 14px; padding-block-end: 9px; border-block-end: 4px solid transparent; font-size: 18px; line-height: 21.6px; color: var(--sefaria-color-text-strong); text-decoration: none; }
 .recentChip[data-upper] { text-transform: uppercase; }
 .recentChip:hover { text-decoration: none; border-block-end-color: var(--sefaria-color-border); }
+
+/* A ranged link (VERIFIED on sefaria.org 2026-11-10, Genesis 1:1 with Commentary: "Abarbanel on Torah, Genesis 1:1" is three
+   block `.segment`s, each starting 6px below the last one's end) */
+.part { margin: 0; }
+.part + .part { margin-block-start: 6px; }

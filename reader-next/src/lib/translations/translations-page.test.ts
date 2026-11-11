@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { readFixture } from "../../../test/msw/fixtures";
 import type { TocNode } from "~/lib/catalog/toc";
@@ -5,12 +7,15 @@ import { parseDataJsTerms } from "./terms";
 import {
   ABOUT_TRANSLATED_TEXT,
   IN_APP_TRANSLATION_LANGUAGES,
+  SHARED_MODELS_MAX,
   TRANSLATION_LANGUAGES,
   buildTranslationsPage,
   clearSharedTranslationsModels,
   isTranslationSlug,
   sharedTranslationsModel,
+  sharedTranslationsModelCount,
   translationLanguage,
+  validateTranslationSlug,
   type RawTranslations,
   type TranslationsPageModel,
 } from "./translations-page";
@@ -135,5 +140,31 @@ describe("sharedTranslationsModel (the server's copy of a page's model)", () => 
     expect(load).toHaveBeenCalledTimes(2);
     await sharedTranslationsModel("he", load, t0 + 5 * 60_000);
     expect(load).toHaveBeenCalledTimes(2);
+  });
+});
+
+// @feature LIB-021 (security S-2: the server function is a public GET endpoint)
+describe("the server function's input and memory", () => {
+  afterEach(() => clearSharedTranslationsModels());
+  it("accepts every language the route accepts, Django's and the in-app-only ones", () => {
+    for (const slug of [...Object.keys(TRANSLATION_LANGUAGES), ...Object.keys(IN_APP_TRANSLATION_LANGUAGES)]) expect(validateTranslationSlug(slug)).toBe(slug);
+  });
+  it("refuses any other slug, an upper-case code, an inherited key and a non-string before any upstream call", () => {
+    for (const bad of ["xx", "DE", "", "constructor", "__proto__", "de/../en", 7, null, undefined, { slug: "de" }]) {
+      expect(() => validateTranslationSlug(bad)).toThrow("Unknown translations language");
+    }
+  });
+  it("loadOnServer validates with it (not a pass-through)", () => {
+    const src = readFileSync(join(__dirname, "translations-page.ts"), "utf8");
+    expect(src).toMatch(/const loadOnServer = createServerFn\(\{ method: "GET" \}\)\s*\.inputValidator\(validateTranslationSlug\)/);
+  });
+  it("keeps at most SHARED_MODELS_MAX models, the oldest leaving first", async () => {
+    const load = vi.fn(async (slug: string): Promise<TranslationsPageModel> => ({ slug, sections: [] }));
+    for (let i = 0; i < SHARED_MODELS_MAX * 3; i++) await sharedTranslationsModel(`s${i}`, load, i);
+    expect(sharedTranslationsModelCount()).toBe(SHARED_MODELS_MAX);
+    await sharedTranslationsModel(`s${SHARED_MODELS_MAX * 3 - 1}`, load, 1000);
+    expect(load).toHaveBeenCalledTimes(SHARED_MODELS_MAX * 3);
+    await sharedTranslationsModel("s0", load, 1001);
+    expect(load).toHaveBeenCalledTimes(SHARED_MODELS_MAX * 3 + 1);
   });
 });

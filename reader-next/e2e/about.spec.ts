@@ -29,6 +29,42 @@ test.describe("About this Text (verified against sefaria.org)", () => {
     await expect(topics.getByRole("button", { name: "More" })).toBeVisible();
   });
 
+  // parity S9 (VERIFIED on sefaria.org 2026-11-10): bilingual shows the source version the text shows, before the translation;
+  // the description is 16px/19px #666
+  test("bilingual: 'Current Version' (the source shown) leads, then 'Current Translation'; the description's type", async ({ page }) => {
+    await open(page, "/Genesis.1.1?lang=bi&with=About");
+    const current = side(page).getByRole("region", { name: "Current Version" });
+    await expect(current.getByRole("heading", { name: "Miqra according to the Masorah" })).toBeVisible({ timeout: 20_000 });
+    const regions = await side(page).getByRole("region").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
+    expect(regions.indexOf("Current Version")).toBeGreaterThan(-1);
+    expect(regions.indexOf("Current Version")).toBeLessThan(regions.indexOf("Current Translation"));
+    const type = await about(page).getByText("is the first book of the Torah").first().evaluate((e) => {
+      const box = e.closest("[lang]")!;
+      const c = getComputedStyle(box);
+      return [c.fontSize, c.lineHeight, c.color];
+    });
+    expect(type).toEqual(["16px", "19px", "rgb(102, 102, 102)"]);
+  });
+
+  test("English text: no 'Current Version'; Hebrew text: no 'Current Translation' (as on sefaria.org)", async ({ page }) => {
+    await open(page, "/Genesis.1.1?lang=en&with=About");
+    await expect(side(page).getByRole("region", { name: "Current Translation" })).toBeVisible({ timeout: 20_000 });
+    await expect(side(page).getByRole("region", { name: "Current Version" })).toHaveCount(0);
+    await open(page, "/Genesis.1.1?lang=he&with=About");
+    await expect(side(page).getByRole("region", { name: "Current Version" })).toBeVisible({ timeout: 20_000 });
+    await expect(side(page).getByRole("region", { name: "Current Translation" })).toHaveCount(0);
+  });
+
+  test("Hebrew interface: the book's Hebrew title, description and composition, whatever the sidebar's language", async ({ page, context }) => {
+    await context.addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
+    await open(page, "/Genesis.1.1?lang=en&with=About&lang2=en");
+    const box = side(page).getByRole("region", { name: "אודות ספר זה" });
+    await expect(box.getByRole("link", { name: "בראשית" })).toBeVisible({ timeout: 20_000 });
+    await expect(box).toContainText("ספר בראשית הוא הספר הראשון");
+    await expect(box).toContainText("נוצר/נערך:");
+    await expect(box).not.toContainText("Composed:");
+  });
+
   test("a commentary shows its author", async ({ page }) => {
     await open(page, "/Rashi_on_Genesis.1.1.1?lang=en&with=About");
     await expect(about(page).getByText("Author:")).toBeVisible({ timeout: 20_000 });

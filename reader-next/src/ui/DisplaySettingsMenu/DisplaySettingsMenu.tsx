@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 import {
   MAX_FONT_SIZE,
   MIN_FONT_SIZE,
@@ -88,7 +88,7 @@ export function DisplaySettingsMenu({ settings, availability: a, layoutKey, onCh
 
   // The order sefaria.org uses (VERIFIED 2026-10-05): language, layout, aliyot, font size, vowels, cantillation (Talmud's punctuation with the aliyot)
   return (
-    <div className={styles.menu}>
+    <div className={styles.menu} onKeyDown={wrapTab}>
       <section className={styles.languages}>
         <SegmentedControl<ContentLanguage>
           block
@@ -163,4 +163,24 @@ export function DisplaySettingsMenu({ settings, availability: a, layoutKey, onCh
       ) : null}
     </div>
   );
+}
+
+const TABBABLE = 'a[href], button, input, select, textarea, [tabindex]';
+
+/**
+ * Tab stays inside the menu while it is open, wrapping from its last control to its first and back, as legacy's (I18-004): before, Tab
+ * went on into the text behind it with the menu still covering it (a11y S9). Escape (the Popover's) closes it and returns focus.
+ */
+function wrapTab(e: KeyboardEvent<HTMLElement>) {
+  if (e.key !== "Tab" || e.altKey || e.ctrlKey || e.metaKey) return;
+  const stops = [...e.currentTarget.querySelectorAll<HTMLElement>(TABBABLE)].filter(
+    (el) => el.tabIndex >= 0 && !(el as HTMLButtonElement).disabled && el.getAttribute("aria-disabled") !== "true" && el.getClientRects().length > 0,
+  );
+  if (!stops.length) return;
+  const first = stops[0]!, last = stops.at(-1)!;
+  const at = document.activeElement;
+  if (e.shiftKey ? at === first || !e.currentTarget.contains(at) : at === last) {
+    e.preventDefault();
+    (e.shiftKey ? last : first).focus();
+  }
 }

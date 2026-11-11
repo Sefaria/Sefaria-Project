@@ -25,7 +25,9 @@ name = "sefaria-room-relay-staging"
 routes = [{ pattern = "rooms-staging.sefaria.org", custom_domain = true }]
 
 [env.staging.vars]
-ALLOWED_ORIGINS = "https://*.sefariastaging.org,https://*.sefariastaging-il.org,https://*.cauldron.sefaria.org,http://localhost:3100"
+# no localhost: the relay's only gate is the Origin (and the room id), and any page served on anyone's localhost:3100 would pass; use
+# the local relay for development (npm run relay:dev, relay/.dev.vars)
+ALLOWED_ORIGINS = "https://*.sefariastaging.org,https://*.sefariastaging-il.org,https://*.cauldron.sefaria.org"
 
 [[env.staging.durable_objects.bindings]]
 name = "ROOMS"

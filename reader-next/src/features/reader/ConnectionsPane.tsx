@@ -134,6 +134,19 @@ export interface ConnectionsPaneProps {
   onLang?: (lang: "en" | "he") => void;
 }
 
+/**
+ * The About box's current versions: the ones the text shows (the old AboutBox's currObjectVersions). The source version the
+ * text shows leads in Hebrew and bilingual, named or not; English text shows no source version and Hebrew text no translation
+ * (VERIFIED on sefaria.org 2026-11-10, Genesis 1:1 with=About: lang=bi "Current Version: Miqra according to the Masorah" then
+ * "Current Translation"; lang=en the translation only; lang=he the version only; parity S9).
+ */
+function aboutCurrent(language: ReaderSettings["language"], section: Pick<TextPassage, "primaryVersion" | "translationVersion"> | undefined, namedSource?: string) {
+  return {
+    translationTitle: language === "hebrew" ? undefined : section?.translationVersion?.versionTitle,
+    sourceTitle: language === "english" ? undefined : (namedSource ?? section?.primaryVersion?.versionTitle),
+  };
+}
+
 /** What the sidebar names when it is slow or failed (SB-02). */
 const CONNECTIONS = { en: "connections", he: "קשרים" };
 const RESOURCES = { en: "sheets, topics and other resources", he: "דפי מקורות, נושאים ומשאבים נוספים" };
@@ -143,7 +156,7 @@ function sidebarLanguage(language: ReaderSettings["language"], interfaceLang: "e
   return language === "bilingual" ? interfaceLang : language;
 }
 
-const textOf = (segs: Segment[], side: "primary" | "translation") => segs.map((s) => s[side]).filter(Boolean).join(" ");
+const partsOf = (segs: Segment[], side: "primary" | "translation") => segs.map((s) => s[side]).filter((h): h is string => Boolean(h));
 
 /**
  * The resources sidebar for the selected verse(s). Loads the section's links (once; cached), the catalog,
@@ -201,14 +214,16 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const listLinks = useMemo(() => {
     if (!filter) return [] as RelatedLink[];
     const filtered = filterLinks(filter.endsWith("|Essay") ? selected : withoutEssays(selected), [filter], lookup);
-    return sortLinks(filtered, hebrew);
-  }, [filter, selected, lookup, hebrew]);
+    // in the sidebar's language, as the books (the old TextList sorts by its contentLang: VERIFIED on sefaria.org.il 2026-11-10,
+    // Genesis 1:1 with=Commentary: lang2=en starts "Abarbanel on Torah", lang2=he "Avi Ezer"; parity S11)
+    return sortLinks(filtered, sidebarHebrew);
+  }, [filter, selected, lookup, sidebarHebrew]);
 
   // Each link's text needs its whole section: load them a page at a time, the next page as the list nears its end (CODE_REVIEW
   // R-22: Genesis 1:1's commentary list started 235 section requests at once, and showed nothing until the last one came back)
   // back to the first page only when the list itself changes (another filter, verse or language) — not when a re-render merely
   // rebuilds the same list, which would shrink it under the reader
-  const listKey = `${filter ?? ""}|${selectedRefs.join(",")}|${hebrew}`;
+  const listKey = `${filter ?? ""}|${selectedRefs.join(",")}|${sidebarHebrew}`;
   const [page, setPage] = useState({ key: listKey, shown: LINKED_TEXTS_PAGE });
   const shown = page.key === listKey ? page.shown : LINKED_TEXTS_PAGE;
   const showMore = () => setPage({ key: listKey, shown: shown + LINKED_TEXTS_PAGE });
@@ -225,15 +240,17 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     const segs = passage ? segmentsInRef(passage, l.sourceRef) : [];
     const primary = passage?.primaryVersion;
     const translation = passage?.translationVersion;
-    const p = textOf(segs, "primary");
-    const t = textOf(segs, "translation");
+    const pParts = partsOf(segs, "primary");
+    const tParts = partsOf(segs, "translation");
+    const p = pParts.join(" ");
+    const t = tParts.join(" ");
     return {
       id: l._id,
       sourceRef: l.sourceRef,
       sourceHeRef: l.sourceHeRef,
       href: `/${refToUrl(l.sourceRef)}`,
-      primary: p && primary ? { html: p, lang: primary.actualLanguage, dir: primary.direction } : undefined,
-      translation: t && translation ? { html: t, lang: translation.actualLanguage, dir: translation.direction } : undefined,
+      primary: p && primary ? { html: p, parts: pParts, lang: primary.actualLanguage, dir: primary.direction } : undefined,
+      translation: t && translation ? { html: t, parts: tParts, lang: translation.actualLanguage, dir: translation.direction } : undefined,
       number: l.category === "Commentary" ? String(l.anchorVerse) : undefined,
       loading: !passage,
     };
@@ -591,11 +608,13 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           details={detailsQ.data}
           loading={detailsQ.isPending}
           category={category}
-          lang={language === "hebrew" ? "he" : "en"}
+          // the Hebrew interface shows the book in Hebrew whatever the sidebar's language (the old AboutBox's ContentText;
+          // VERIFIED on sefaria.org.il 2026-11-10, lang2=en: "בראשית", the Hebrew description, "נוצר/נערך: …"; parity S9)
+          lang={hebrew || language === "hebrew" ? "he" : "en"}
           titleHref={`/${refToUrl(indexTitle)}`}
           authorHref={topicHref}
           topicHref={topicHref}
-          versions={aboutVersions(available, { translationTitle: props.section?.translationVersion?.versionTitle, sourceTitle: props.currentSourceTitle })}
+          versions={aboutVersions(available, aboutCurrent(settings.language, props.section, props.currentSourceTitle))}
           order={versionSectionOrder(settings.language)}
           // a dictionary's About names its section, not the entry chosen (master AboutBox, #3730)
           urlRef={refToUrl(lexiconName ? sectionRef : selectionRef)}
@@ -791,7 +810,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   if (view.view === "category") {
     const label = categoryLabel(view.category, catalog);
     return (
-      <ConnectionsPanel label={view.category} back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
+      <ConnectionsPanel label={{ en: view.category, he: label.he }} back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
         {!sectionLinks ? <ViewLoad q={linksQ} what={CONNECTIONS} /> : <CategoryView categories={categoryView(summary, view.category)} catalog={catalog} hrefFor={hrefFor} onNavigate={nav} current={view.category} lang={shownLang} />}
       </ConnectionsPanel>
     );
@@ -824,7 +843,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   }
 
   return (
-    <ConnectionsPanel label={title.en} back={{ href: link(backView), label: <InterfaceText en={backLabel.en} he={backLabel.he} /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
+    <ConnectionsPanel label={title} back={{ href: link(backView), label: <InterfaceText en={backLabel.en} he={backLabel.he} /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
       <TextList
         recent={props.recentFilters.map((f) => {
           // a commentator or book as the links name it (collective title), else a book of the catalog, else a category (upper-case)

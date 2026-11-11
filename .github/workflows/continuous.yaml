@@ -99,15 +99,23 @@ jobs:
           password: '${{ steps.auth.outputs.access_token }}'
       - name: Get branch name
         id: branch-raw
-        uses: tj-actions/branch-names@v5.1
+        uses: tj-actions/branch-names@5250492686b253f06fa55861556d1027b067aeb5 # v9.0.2
       - name: Format branch name
         id: branch-name
-        run: >-
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
-          | awk '{print tolower($0)}'
-          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
-          | sed 's/[^a-z0-9\.\-]//g')
-          >> $GITHUB_OUTPUT
+        # the branch name reaches the script through env, never interpolated into it (a branch name is attacker-chosen text).
+        # Only the branch named exactly master/prod/preprod may write those images (and their latest tag): the sed keeps the middle
+        # segment of a/b/c, so a branch like anything/master/x would otherwise publish sefaria-<app>-master.
+        env:
+          RAW_BRANCH: ${{ steps.branch-raw.outputs.current_branch }}
+        run: |
+          branch=$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|' | sed 's/[^a-z0-9\.\-]//g')
+          case "$branch" in
+            master|prod|preprod)
+              if [ "$RAW_BRANCH" != "$branch" ]; then
+                branch="branch-$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|/|-|g; s/[^a-z0-9\.\-]//g')"
+              fi ;;
+          esac
+          echo "current_branch=$branch" >> "$GITHUB_OUTPUT"
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
@@ -169,15 +177,23 @@ jobs:
           password: '${{ steps.auth.outputs.access_token }}'
       - name: Get branch name
         id: branch-raw
-        uses: tj-actions/branch-names@v5.1
+        uses: tj-actions/branch-names@5250492686b253f06fa55861556d1027b067aeb5 # v9.0.2
       - name: Format branch name
         id: branch-name
-        run: >-
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
-          | awk '{print tolower($0)}'
-          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
-          | sed 's/[^a-z0-9\.\-]//g')
-          >> $GITHUB_OUTPUT
+        # the branch name reaches the script through env, never interpolated into it (a branch name is attacker-chosen text).
+        # Only the branch named exactly master/prod/preprod may write those images (and their latest tag): the sed keeps the middle
+        # segment of a/b/c, so a branch like anything/master/x would otherwise publish sefaria-<app>-master.
+        env:
+          RAW_BRANCH: ${{ steps.branch-raw.outputs.current_branch }}
+        run: |
+          branch=$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|' | sed 's/[^a-z0-9\.\-]//g')
+          case "$branch" in
+            master|prod|preprod)
+              if [ "$RAW_BRANCH" != "$branch" ]; then
+                branch="branch-$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|/|-|g; s/[^a-z0-9\.\-]//g')"
+              fi ;;
+          esac
+          echo "current_branch=$branch" >> "$GITHUB_OUTPUT"
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
@@ -278,15 +294,23 @@ jobs:
           install_components: 'gke-gcloud-auth-plugin'
       - name: Get branch name
         id: branch-raw
-        uses: tj-actions/branch-names@v5.1
+        uses: tj-actions/branch-names@5250492686b253f06fa55861556d1027b067aeb5 # v9.0.2
       - name: Format branch name
         id: branch-name
-        run: >-
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
-          | awk '{print tolower($0)}'
-          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
-          | sed 's/[^a-z0-9\.\-]//g')
-          >> $GITHUB_OUTPUT
+        # the branch name reaches the script through env, never interpolated into it (a branch name is attacker-chosen text).
+        # Only the branch named exactly master/prod/preprod may write those images (and their latest tag): the sed keeps the middle
+        # segment of a/b/c, so a branch like anything/master/x would otherwise publish sefaria-<app>-master.
+        env:
+          RAW_BRANCH: ${{ steps.branch-raw.outputs.current_branch }}
+        run: |
+          branch=$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|' | sed 's/[^a-z0-9\.\-]//g')
+          case "$branch" in
+            master|prod|preprod)
+              if [ "$RAW_BRANCH" != "$branch" ]; then
+                branch="branch-$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|/|-|g; s/[^a-z0-9\.\-]//g')"
+              fi ;;
+          esac
+          echo "current_branch=$branch" >> "$GITHUB_OUTPUT"
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -362,15 +386,23 @@ jobs:
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Get branch name
         id: branch-raw
-        uses: tj-actions/branch-names@v5.1
+        uses: tj-actions/branch-names@5250492686b253f06fa55861556d1027b067aeb5 # v9.0.2
       - name: Format branch name
         id: branch-name
-        run: >-
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
-          | awk '{print tolower($0)}'
-          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
-          | sed 's/[^a-z0-9\.\-]//g')
-          >> $GITHUB_OUTPUT
+        # the branch name reaches the script through env, never interpolated into it (a branch name is attacker-chosen text).
+        # Only the branch named exactly master/prod/preprod may write those images (and their latest tag): the sed keeps the middle
+        # segment of a/b/c, so a branch like anything/master/x would otherwise publish sefaria-<app>-master.
+        env:
+          RAW_BRANCH: ${{ steps.branch-raw.outputs.current_branch }}
+        run: |
+          branch=$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|' | sed 's/[^a-z0-9\.\-]//g')
+          case "$branch" in
+            master|prod|preprod)
+              if [ "$RAW_BRANCH" != "$branch" ]; then
+                branch="branch-$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|/|-|g; s/[^a-z0-9\.\-]//g')"
+              fi ;;
+          esac
+          echo "current_branch=$branch" >> "$GITHUB_OUTPUT"
       - name: Start Job
         run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV
         env:

@@ -190,6 +190,12 @@ export async function fetchTranslations(slug: string, signal?: AbortSignal): Pro
 /** How long the server keeps a page's model (the list changes when a translation is added), and a failure (the API's 500 for "he"). */
 const MODEL_TTL_MS = 10 * 60_000;
 const FAILURE_TTL_MS = 60_000;
+/**
+ * At most this many models are kept (the oldest goes first), as the other module caches (route-manifest NAME_MAX, language-domain
+ * PROBE_MAX). The server function only lets the known languages through (validateTranslationSlug), so this is a second guard: the Map
+ * can never grow with what a caller sends.
+ */
+export const SHARED_MODELS_MAX = 32;
 const shared = new Map<string, { at: number; ttl: number; model: Promise<TranslationsPageModel> }>();
 
 /**
@@ -202,6 +208,8 @@ export function sharedTranslationsModel(slug: string, load: (slug: string) => Pr
   if (hit && now - hit.at < hit.ttl) return hit.model;
   const model = load(slug);
   const entry = { at: now, ttl: MODEL_TTL_MS, model };
+  shared.delete(slug);
+  while (shared.size >= SHARED_MODELS_MAX) shared.delete(shared.keys().next().value as string);
   shared.set(slug, entry);
   model.catch(() => {
     if (shared.get(slug) === entry) entry.ttl = Date.now() - entry.at + FAILURE_TTL_MS;
@@ -210,13 +218,25 @@ export function sharedTranslationsModel(slug: string, load: (slug: string) => Pr
 }
 /** Tests only. */
 export const clearSharedTranslationsModels = () => shared.clear();
+/** Tests only. */
+export const sharedTranslationsModelCount = () => shared.size;
+
+/**
+ * The server function's input: a slug that has a page, Django's languages or the in-app-only ones (translationLanguage(slug, true)),
+ * as the route accepts. The function is a public GET endpoint (`/_serverFn/<id>?payload=…`), so anything else is refused before any
+ * upstream call or cache entry.
+ */
+export function validateTranslationSlug(slug: unknown): string {
+  if (typeof slug !== "string" || !translationLanguage(slug, true)) throw new Error("Unknown translations language");
+  return slug;
+}
 
 /**
  * The model is always built on the server, from the catalog and terms it keeps for every request: the browser gets only the page's
  * few kilobytes, never the catalog (3.5 MB) or the terms (in the 9 MB `/data.js`), also when it navigates here.
  */
 const loadOnServer = createServerFn({ method: "GET" })
-  .inputValidator((slug: string) => slug)
+  .inputValidator(validateTranslationSlug)
   .handler(({ data: slug }): Promise<TranslationsPageModel> =>
     sharedTranslationsModel(slug, async (lang) => {
       const [tree, raw, terms] = await Promise.all([serverCatalogTree(), fetchTranslations(lang), serverTerms()]);

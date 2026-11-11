@@ -7,9 +7,12 @@ const hydrationErrors = new WeakMap<Page, string[]>();
  * server and the browser rendering different text: a Node-only value, an ICU difference) fails the test: React silently re-renders
  * the client's version, so the page "works" while the server render was wrong.
  */
-export async function open(page: Page, path: string, opts: { cookieNotice?: boolean } = {}) {
+export async function open(page: Page, path: string, opts: { cookieNotice?: boolean; assistantScript?: boolean } = {}) {
   // The cookie notice is a bar over the bottom left of the page: tests that are not about it have already accepted it
   if (!opts.cookieNotice) await page.context().addCookies([{ name: "cookiesNotificationAccepted", value: "1", domain: "localhost", path: "/" }]);
+  // The Library Assistant's widget is the AI team's script from another server (chat-dev): the suite never loads it, so a signed-out
+  // page (which gets <lc-chatbot>, as on sefaria.org) is not covered by a live third-party window. The element stays undefined.
+  if (!opts.assistantScript) await page.context().route("**/lc-chatbot.umd.cjs", (r) => r.fulfill({ contentType: "text/javascript", body: "" }));
   if (!hydrationErrors.has(page)) {
     const seen: string[] = [];
     hydrationErrors.set(page, seen);
