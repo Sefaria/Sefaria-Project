@@ -36,11 +36,24 @@ describe("BookPage", () => {
     await userEvent.click(within(nav).getByRole("link", { name: "Versions" }));
     expect(onTab).toHaveBeenCalledWith("versions");
   });
-  it("the versions tab lists them by priority, each with Select Version", () => {
+  it("the versions tab lists them by priority, then title; each title is the link to read it (no Select button, as there)", () => {
     render(<BookPage {...base} tab="versions" versions={[version("B edition", 1), version("A edition", 5), version("C edition", 5)]} />);
-    const titles = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    const titles = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
     expect(titles).toEqual(["A edition", "C edition", "B edition"]);
-    expect(screen.getAllByRole("link", { name: /Select/ })[0]).toHaveAttribute("href", "/Genesis.1?ven=english|A edition");
+    expect(screen.getByRole("link", { name: "A edition" })).toHaveAttribute("href", "/Genesis.1?ven=english|A edition");
+    expect(screen.queryByRole("link", { name: /Select/ })).toBeNull();
+  });
+  it("the versions tab keeps the sidebar", () => {
+    render(<BookPage {...base} tab="versions" versions={[version("A edition", 1)]} description={{ en: "About it" }} sidebar={<div>download text</div>} />);
+    const side = screen.getByRole("complementary");
+    expect(within(side).getByText("download text")).toBeInTheDocument();
+    expect(within(side).getByText("About it")).toBeInTheDocument();
+  });
+  it("an error answer from the versions API (an object, or strings from it) lists nothing instead of failing", () => {
+    render(<BookPage {...base} tab="versions" versions={["Could not find title in reference: X"] as never} />);
+    expect(screen.queryAllByRole("heading", { level: 2 })).toEqual([]);
+    render(<BookPage {...base} tab="versions" versions={{ error: "Could not find title" } as never} />);
+    expect(screen.queryAllByRole("heading", { level: 2 })).toEqual([]);
   });
   it("the sidebar: the description as markdown, and what the caller adds", () => {
     render(<BookPage {...base} description={{ en: "A **great** book" }} sidebar={<div>related topics here</div>} />);

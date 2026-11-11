@@ -15,6 +15,7 @@ import { tocStructures, type TocIndexRecord } from "~/lib/toc/model";
 import { bookVersionsQueryOptions } from "~/lib/versions/book-versions";
 import type { VersionMeta } from "~/lib/text/model";
 import { BookPage, type BookTab } from "~/ui/BookPage/BookPage";
+import { versionRecords } from "~/ui/BookPage/version-order";
 import { DownloadVersions } from "~/ui/DownloadVersions/DownloadVersions";
 import { RelatedTopics } from "~/ui/RelatedTopics/RelatedTopics";
 import { aboutTextMeta } from "~/lib/book/about-text";
@@ -83,7 +84,9 @@ export function BookRoute({ title }: { title: string }) {
         </>
       }
       versions={versions}
-      versionHref={(v) => `/${refToUrl(first)}?${v.isPrimary ? "vhe" : "ven"}=${v.languageFamilyName}|${encodeVtitle(v.versionTitle)}`}
+      // a version's title opens its own first section (the versions API's firstSectionRef: a translation may start later in the book)
+      versionHref={(v) => `/${refToUrl(v.firstSectionRef || first)}?${v.isPrimary ? "vhe" : "ven"}=${v.languageFamilyName}|${encodeVtitle(v.versionTitle)}`}
+      siteOrigin={SITE_ORIGIN}
       // moderators: the pencil on each version (the old VersionBlock editor, book page only)
       editVersion={
         viewer?.isStaff
@@ -180,7 +183,7 @@ export function BookRoute({ title }: { title: string }) {
       sidebar={
         <>
           <RelatedTopics topics={details.relatedTopics ?? []} topicHref={(slug) => lib(`/topics/${slug}`)} />
-          {details.lexiconName ? null : <DownloadVersions title={details.title} versions={(versions ?? []) as never} />}
+          {details.lexiconName ? null : <DownloadVersions title={details.title} versions={versionRecords(versions) as never} />}
         </>
       }
     />

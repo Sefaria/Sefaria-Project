@@ -5,7 +5,6 @@ import { sanitizeHtml } from "~/lib/html/sanitize";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import type { AboutTextMeta } from "~/lib/book/about-text";
 import type { VersionMeta } from "~/lib/text/model";
-import { AboutVersionBlock } from "../AboutView/AboutVersionBlock";
 import { Button } from "../Button/Button";
 import { ContentLanguage } from "../ContentLanguage/ContentLanguage";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
@@ -14,6 +13,9 @@ import { NavPage } from "../NavPage/NavPage";
 import { SidebarFooter } from "../NavSidebar/NavSidebar";
 import styles from "./BookPage.module.css";
 import { dirFor } from "~/lib/i18n/direction";
+import { encodeTitle } from "~/lib/ref/url";
+import { BookVersionRow } from "./BookVersionRow";
+import { bookVersionOrder, versionRecords, type BookVersion } from "./version-order";
 
 export type BookTab = "contents" | "versions";
 
@@ -34,10 +36,12 @@ export interface BookPageProps {
   onTab?: (tab: BookTab) => void;
   /** The contents: a TocView. */
   contents: ReactNode;
-  /** Every version of the text; undefined while loading. */
+  /** Every version of the text; undefined while loading. Anything that is not a version record (an API error) is left out. */
   versions?: readonly VersionMeta[];
-  /** Reading a text in a given version. */
-  versionHref: (v: VersionMeta) => string;
+  /** Reading a text in a given version: the version's title links there. */
+  versionHref: (v: BookVersion) => string;
+  /** Where the site's own pages live ("" = this origin): the digitization page, relative links in version notes. */
+  siteOrigin?: string;
   /** Authors and composition shown above the description in the sidebar (LIB-036). */
   meta?: AboutTextMeta;
   /** Book description (markdown) by language; sidebar. `heShort` (the index's heShortDesc) stands in for a missing Hebrew one. */
@@ -68,7 +72,7 @@ const plain = (e: React.MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlKe
  * @feature BOK-006 Book page sidebar
  * @feature BOK-007 Versions list tab
  */
-export function BookPage({ title, category, attribution, dedication, readHref, continueReading, tab, tabHref, onTab, contents, versions, versionHref, meta, description, sidebar, colorCategory, editVersion, admin }: BookPageProps) {
+export function BookPage({ title, category, attribution, dedication, readHref, continueReading, tab, tabHref, onTab, contents, versions, versionHref, siteOrigin, meta, description, sidebar, colorCategory, editVersion, admin }: BookPageProps) {
   const lang = useInterfaceLang();
   const he = lang === "hebrew";
   const lib = useLibraryHref();
@@ -111,17 +115,17 @@ export function BookPage({ title, category, attribution, dedication, readHref, c
       </>}>
       {admin?.editor ?? (
         <ContentLanguage>
-          <BookMain aboutInline={hasAbout ? <div className={styles.phoneOnly}>{aboutBody}</div> : undefined} {...{ title, category, attribution, dedication, readHref, continueReading, tab, tabHref, onTab, contents, versions, versionHref, editVersion, admin }} />
+          <BookMain aboutInline={hasAbout ? <div className={styles.phoneOnly}>{aboutBody}</div> : undefined} {...{ title, category, attribution, dedication, readHref, continueReading, tab, tabHref, onTab, contents, versions, versionHref, siteOrigin, editVersion, admin }} />
         </ContentLanguage>
       )}
     </NavPage>
   );
 }
 
-type BookMainProps = { aboutInline?: ReactNode } & Pick<BookPageProps, "title" | "category" | "attribution" | "dedication" | "readHref" | "continueReading" | "tab" | "tabHref" | "onTab" | "contents" | "versions" | "versionHref" | "editVersion" | "admin">;
+type BookMainProps = { aboutInline?: ReactNode } & Pick<BookPageProps, "title" | "category" | "attribution" | "dedication" | "readHref" | "continueReading" | "tab" | "tabHref" | "onTab" | "contents" | "versions" | "versionHref" | "siteOrigin" | "editVersion" | "admin">;
 
 /** The header, Start Reading and the tabs: the part of the page the language button turns to Hebrew. */
-function BookMain({ aboutInline, title, category, attribution, dedication, readHref, continueReading, tab, tabHref, onTab, contents, versions, versionHref, editVersion, admin }: BookMainProps) {
+function BookMain({ aboutInline, title, category, attribution, dedication, readHref, continueReading, tab, tabHref, onTab, contents, versions, versionHref, siteOrigin, editVersion, admin }: BookMainProps) {
   const [editing, setEditing] = useState<string | null>(null);
   const lang = useInterfaceLang();
   const he = lang === "hebrew";
@@ -130,7 +134,7 @@ function BookMain({ aboutInline, title, category, attribution, dedication, readH
     { id: "contents", en: "Contents", he: "תוכן" },
     { id: "versions", en: "Versions", he: "מהדורות" },
   ];
-  const sorted = [...(versions ?? [])].sort((a, b) => (Number(b.priority) || 0) - (Number(a.priority) || 0) || a.versionTitle.localeCompare(b.versionTitle));
+  const sorted = bookVersionOrder(versionRecords(versions));
   return (
     <article>
         <h1 className={styles.title} lang={code} dir={dirFor(code)}>{he ? title.he : title.en}</h1>
@@ -186,7 +190,7 @@ function BookMain({ aboutInline, title, category, attribution, dedication, readH
                 return editVersion && editing === key ? (
                   <div key={key}>{editVersion(v, () => setEditing(null))}</div>
                 ) : (
-                  <AboutVersionBlock key={key} version={v} urlRef={readHref.replace(/^\//, "")} select={{ href: versionHref(v) }} onEdit={editVersion ? () => setEditing(key) : undefined} />
+                  <BookVersionRow key={key} version={v} href={versionHref(v)} bookUrl={encodeTitle(title.en)} origin={siteOrigin} onEdit={editVersion ? () => setEditing(key) : undefined} />
                 );
               })
             )}
