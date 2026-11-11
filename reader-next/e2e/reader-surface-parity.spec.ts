@@ -83,13 +83,20 @@ const NUMBERS_ON_TEXT = () => {
 test.describe("on a phone", () => {
   test.use({ viewport: { width: 320, height: 700 }, hasTouch: true, isMobile: true });
   // @feature TXD-046 @feature TXD-045
-  for (const lang of ["he", "en", "bi"] as const) {
-    test(`Talmud ${lang}: no sideways scroll, no verse number on the text or on another number, at 320-414px (parity S6, review nits)`, async ({ page }) => {
+  // Berakhot 2a (Talmud, continuous in one language) and I Chronicles 1 in continuous layout, whose one-name verses put three and more
+  // verse starts on a line: numbers stepped down could reach the next line's number (final-check nit)
+  const CASES = [
+    ...(["he", "en", "bi"] as const).map((lang) => ({ name: `Talmud ${lang}`, path: `/Berakhot.2a?lang=${lang}`, last: "Berakhot 2a:6", continuousTanakh: false, mustStep: lang === "he" })),
+    ...(["he", "en"] as const).map((lang) => ({ name: `I Chronicles 1 continuous ${lang}`, path: `/I_Chronicles.1?lang=${lang}`, last: "I Chronicles 1:8", continuousTanakh: true, mustStep: lang === "he" })),
+  ];
+  for (const c of CASES) {
+    test(`${c.name}: no sideways scroll, no verse number on the text or on another number, at 320-414px (parity S6, review nits)`, async ({ page }) => {
+      if (c.continuousTanakh) await page.context().addCookies([{ name: "layoutTanakh", value: "continuous", domain: "localhost", path: "/" }]);
       let stepped = 0;
       for (const width of [320, 360, 390, 414]) {
         await page.setViewportSize({ width, height: 700 });
-        await open(page, `/Berakhot.2a?lang=${lang}`);
-        await expect(page.locator('[role="group"][data-ref="Berakhot 2a:6"]')).toBeVisible({ timeout: 25_000 });
+        await open(page, c.path);
+        await expect(page.locator(`[role="group"][data-ref="${c.last}"]`)).toBeVisible({ timeout: 25_000 });
         await page.evaluate(() => document.fonts.ready);
         await page.waitForTimeout(300); // the numbers are spread after the fonts arrive
         const m = await page.evaluate(NUMBERS_ON_TEXT);
@@ -98,8 +105,8 @@ test.describe("on a phone", () => {
         expect(m.clashes, `${width}px: numbers on numbers`).toEqual([]);
         stepped += m.stepped;
       }
-      // continuous Hebrew at these widths starts several segments on one line: the spreading really ran
-      if (lang === "he") expect(stepped).toBeGreaterThan(0);
+      // several segments begin on one line here: the spreading really ran
+      if (c.mustStep) expect(stepped).toBeGreaterThan(0);
     });
   }
   test("Hebrew interface, Hebrew Talmud at 320px: no sideways scroll, no number on the text", async ({ page }) => {
