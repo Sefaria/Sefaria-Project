@@ -1,7 +1,7 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { DjangoHandoff } from "~/features/topics/DjangoHandoff";
 import { RevisionHistoryRoute } from "~/features/activity/RevisionHistoryRoute";
-import { isSignedOut, parseSegmentHistoryPath, segmentHistoryQueryOptions } from "~/lib/activity/segment-history";
+import { isActivityFilterType, isSignedOut, parseSegmentHistoryPath, segmentHistoryQueryOptions } from "~/lib/activity/segment-history";
 
 interface ActivitySearch {
   type?: string;
@@ -16,7 +16,7 @@ interface ActivitySearch {
  */
 export const Route = createFileRoute("/activity/$")({
   notFoundComponent: DjangoHandoff,
-  validateSearch: (s: Record<string, unknown>): ActivitySearch => (typeof s.type === "string" && s.type ? { type: s.type } : {}),
+  validateSearch: (s: Record<string, unknown>): ActivitySearch => (typeof s.type === "string" && isActivityFilterType(s.type) ? { type: s.type } : {}),
   loaderDeps: ({ search }) => ({ type: search.type }),
   loader: async ({ context, params, deps, location }) => {
     const address = parseSegmentHistoryPath(params._splat ?? "");

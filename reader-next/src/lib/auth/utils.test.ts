@@ -16,6 +16,23 @@ describe("safeNext", () => {
     expect(safeNext(undefined)).toBe("/");
   });
   it("rejects a backslash that browsers normalize into //", () => expect(safeNext("/\\evil.example.com")).toBe("/"));
+  it("rejects encoded slashes and backslashes that a decoding router would follow to another site", () => {
+    for (const bad of ["/%2F%2Fevil.example.com", "/%2fevil.example.com", "/%5Cevil.example.com", "/x/%5c/y", "\\\\evil.example.com", " //evil.example.com", "\u0001//evil.example.com", "a\\b"]) {
+      expect(safeNext(bad), bad).toBe("/");
+    }
+    expect(safeNext("/Genesis.1?q=a%5Cb")).toBe("/Genesis.1?q=a%5Cb");
+  });
+  it("refuses, never strips, DEL and C1 controls: none can join a scheme or // after the checks", () => {
+    for (const bad of ["\x7f//evil.example", "\u0085//evil.example", "\x7fhttps://evil.example", "java\x7fscript:alert(1)", "java\u0085script:alert(1)", "/a\x7f", "sheets\u009f/1"]) {
+      expect(safeNext(bad), JSON.stringify(bad)).toBe("/");
+    }
+  });
+  it("refuses a dot segment or // that resolves into //host, and a bare scheme or encoded slash", () => {
+    for (const bad of ["/..//evil.org", "/x/..//evil.org", "/.%2e//evil.org", "/%2e%2e/%2f%2fevil.org", "..//evil.org", "./x", "../x", "a//b", "%2f%2fevil.org", "%2Fx", "mailto:x@y", "javascript:alert(1)", "sheets\ud800"]) {
+      expect(safeNext(bad), JSON.stringify(bad)).toBe("/");
+    }
+    expect(safeNext("sheets/123?x=1")).toBe("sheets/123?x=1");
+  });
   it("rejects embedded tabs/newlines that browsers strip into //", () => {
     expect(safeNext("/\t/evil.example.com")).toBe("/");
     expect(safeNext("/\n/evil.example.com")).toBe("/");

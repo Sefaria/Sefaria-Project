@@ -8,6 +8,7 @@
  * @feature LIB-029 Sidebar module: About translated text
  * @feature RTE-011 Translations page URLs
  */
+import { refuse } from "~/lib/server-fn/input";
 import { queryOptions, type QueryClient } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
@@ -227,7 +228,7 @@ export const sharedTranslationsModelCount = () => shared.size;
  * upstream call or cache entry.
  */
 export function validateTranslationSlug(slug: unknown): string {
-  if (typeof slug !== "string" || !translationLanguage(slug, true)) throw new Error("Unknown translations language");
+  if (typeof slug !== "string" || !translationLanguage(slug, true)) throw refuse("Unknown translations language");
   return slug;
 }
 
@@ -236,7 +237,7 @@ export function validateTranslationSlug(slug: unknown): string {
  * few kilobytes, never the catalog (3.5 MB) or the terms (in the 9 MB `/data.js`), also when it navigates here.
  */
 const loadOnServer = createServerFn({ method: "GET" })
-  .inputValidator(validateTranslationSlug)
+  .validator(validateTranslationSlug)
   .handler(({ data: slug }): Promise<TranslationsPageModel> =>
     sharedTranslationsModel(slug, async (lang) => {
       const [tree, raw, terms] = await Promise.all([serverCatalogTree(), fetchTranslations(lang), serverTerms()]);

@@ -22,6 +22,7 @@
  * @feature RTE-015 Torah tracker and notes URLs
  */
 import { SEFARIA_API_ORIGIN } from "~/lib/api/client";
+import { isLocalPath } from "~/lib/html/local-path";
 
 // No Cache-Control on a permanent redirect, as Django sends none (the cache policy adds Vary; a signed-in reader's is made private)
 const permanent = (location: string) =>
@@ -56,7 +57,8 @@ export async function randomLinkRedirect(pathname: string, method: string, fetch
     if (r.status < 300 || r.status >= 400 || !loc) return "fallback";
     const path = new URL(loc, "https://x").pathname;
     const m = /^\/api\/texts\/(.+)$/.exec(path);
-    return m ? temporary(`/${m[1]}`) : "fallback";
+    // a Location is never another site's ("/api/texts//host" would make "//host"): anything but a path of this one goes to Django
+    return m && isLocalPath(`/${m[1]}`) ? temporary(`/${m[1]}`) : "fallback";
   } catch {
     return "fallback";
   }
