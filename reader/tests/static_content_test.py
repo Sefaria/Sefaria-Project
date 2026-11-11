@@ -1,5 +1,5 @@
 """
-Content-only rendering of the static information pages (reader/static_content.py, LAUNCH_PLAN T-B06): `?format=json` answers the
+Content-only rendering of the static information pages (reader/static_content.py): `?format=json` answers the
 page's content block, title and stylesheets instead of the page, for the new reader's own shell. Three kinds of page: one from
 sites/sefaria/urls.py static_pages (/terms), one by language (/about), and one with its own view (/digitized-by-sefaria).
 

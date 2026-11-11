@@ -1,6 +1,6 @@
 """
-POST /api/reader-errors (reader/browser_errors.py): the new reader's browser error beacons, lane C's contract
-(reports/c-observability.md "Error beacon contract"). Needs Postgres for the middleware only; no library data.
+POST /api/reader-errors (reader/browser_errors.py): the new reader's browser error beacons, in the contract of
+reader-next/src/lib/monitoring/error-reporter.ts. Needs Postgres for the middleware only; no library data.
 """
 
 import json

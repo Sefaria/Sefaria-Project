@@ -1,7 +1,7 @@
 """
 The MongoDB indexes the code relies on (sefaria/system/database.py ensure_indices) and the command that creates them where a
-database lacks them (reader/management/commands/ensure_mongo_indexes.py; LAUNCH_PLAN T-B07: a cauldron without
-expandedRefs_1 answered /api/links/<ref>?with_sheet_links=1 with a 500 while sefaria/sheets.py hinted it).
+database lacks them (reader/management/commands/ensure_mongo_indexes.py; a test
+environment without expandedRefs_1 answered /api/links/<ref>?with_sheet_links=1 with a 500 while sefaria/sheets.py hinted it).
 
 No Mongo needed: the database is a stand-in.
 """

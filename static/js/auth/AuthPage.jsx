@@ -19,7 +19,7 @@ import { getCsrfToken } from '../sefaria/csrf';
  * AuthPage — the React login / register / reset experience (spec 1602).
  *
  * A single state machine that swaps the card content in place (no page navigation):
- *   view ∈ { choose, email, forgot, forgot-sent, reset, reset-expired, reset-success }
+ *   view ∈ { choose, email, forgot, forgot-sent, reset, reset-expired, resend-requested, reset-success }
  *   and flow ∈ { login, register, reset }, derived from `initialPath` (ReaderApp only
  *   knows this is an auth route, not what flow it represents).
  * The card's own back button returns to `choose`; the browser URL stays /login, /register,
@@ -154,7 +154,23 @@ const AuthPage = ({ initialPath = '/login', authSource = null, initialView = nul
     );
   } else if (view === 'reset-expired') {
     content = (
-      <ResetExpiredView csrf={csrf} onResendSuccess={() => setView('forgot-sent')} onRequestNewLink={requestNewLink} />
+      <ResetExpiredView
+        csrf={csrf}
+        onResendSuccess={() => setView('resend-requested')}
+        onRequestNewLink={requestNewLink}
+      />
+    );
+  } else if (view === 'resend-requested') {
+    // The server sends a new link only for a link that genuinely expired (not one already used or otherwise invalid)
+    // and answers the same either way, so this card must not promise an email.
+    content = (
+      <MessageView heading="auth.new_link_requested_title" sub="auth.new_link_requested_sub">
+        <div className="sefaria-auth-stack">
+          <Button variant="sefaria-common-button auth-primary" size="fullwidth" onClick={requestNewLink}>
+            <InterfaceText>auth.request_link_with_email</InterfaceText>
+          </Button>
+        </div>
+      </MessageView>
     );
   } else if (view === 'reset-success') {
     content = (

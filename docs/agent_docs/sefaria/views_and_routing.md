@@ -38,6 +38,7 @@ Library-specific routes followed by `shared_patterns`. Key groups:
 - **Downloads**: `/download/version/...` -> `sefaria_views.text_download_api`
 - **Mod tools**: `/modtools/` for text upload, link management (staff-only)
 - **Compare**: `/compare/` -> `sefaria_views.compare`
+- **New-reader endpoints (Library host only)**: `/api/reader-choice` -> `reader_views.reader_choice_api`; `/api/reader-errors` -> `reader.browser_errors.reader_errors_api` (CSRF-exempt beacon sink, logs only)
 
 Appends `shared_patterns` at the end. If `DOWN_FOR_MAINTENANCE` is set, replaces all patterns with `maintenance_patterns`.
 
@@ -67,6 +68,12 @@ The bulk of the URL patterns live here. Included by both `urls_library` and `url
 - `/api/links/<ref>`, `/api/link-summary/<ref>`
 - `/api/related/<tref>`, `/api/notes/*`
 - `/api/versions/`, `/api/texts/versions/<tref>`
+
+**Endpoints added for the new reader** (served on both hosts; additive):
+
+- `/api/library-assistant` -> `reader_views.library_assistant_api` (private, no-store)
+- `/api/topics-toc` -> `reader_views.topics_toc_api`; `/api/topics/library-count` -> `reader_views.num_library_topics_api` (placed before `api/topics/<topic>`, which used to swallow it)
+- `/api/activity/<tref>/<lang>/<version>` -> `reader_views.segment_history_api` (signed-in only)
 
 **Sheets API** (`sheets_views`):
 
@@ -133,6 +140,7 @@ The bulk of the URL patterns live here. Included by both `urls_library` and `url
 
 - `CustomLoginView`, `CustomLogoutView` -- class-based views extending Django auth, mixed with `StaticViewMixin` for SSR context.
 - `CustomPasswordResetView` -- overrides `form_valid` to set correct domain for multi-subdomain email links.
+- `CustomPasswordResetConfirmView` -- JSON POSTs for the React auth page. `{"action": "resend"}` on an invalid link mails a fresh link only when the URL's token recomputes for the account with only its age failing (or, from the `<uid>/set-password/` address the new reader uses, when the session recorded such a link within the hour), at most 3 per hour per account and per client address; every resend answers `200 {}`, mailed or not, so it cannot be used to probe uids or mail arbitrary accounts. An already-used link (password or last login changed since) gets no mail, so the pages say a link was requested, not sent.
 - `register(request)` -- form-based registration (session auth).
 - `register_api(request)` -- DRF `@api_view(["POST"])`, returns JWT tokens.
 - `process_register_form(request, auth_method)` -- shared logic for both. Creates user, profile, assigns slug, joins invited collections, fetches Gravatar.
