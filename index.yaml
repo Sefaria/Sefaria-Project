@@ -603,6 +603,21 @@ entries:
     version: 0.93.0-reader-next-library-assistant.1
   - apiVersion: v2
     appVersion: v7.11.6
+    created: "2026-11-11T04:50:17.508588487Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 6bc18026f6945cce35bddc8e474d2c734b20af7d3310b4209836d32a7e5d2e3e
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.93.0-reader-next.6.tgz
+    version: 0.93.0-reader-next.6
+  - apiVersion: v2
+    appVersion: v7.11.6
     created: "2026-11-10T19:02:24.47472232Z"
     description: Chart to deploy complete Sefaria environment
     digest: 870682191f36621053bb5f6f9a2f4c337494b9f6bb3fc9792ea5a26a8d33f72b
@@ -24810,4 +24825,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-10T19:02:24.471591811Z"
+generated: "2026-11-11T04:50:17.504825656Z"
