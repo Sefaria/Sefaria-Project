@@ -33,6 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.pick.outputs.matrix }}
+      nginx_paths: ${{ steps.pick.outputs.nginx_paths }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -54,14 +55,23 @@ jobs:
           # has finished writing (SIGPIPE), which skipped the reader image exactly when reader-next/ changed. `git diff --quiet`
           # exits 0 for no change, 1 for a change and >1 on error, so only a clean "no change" skips the image.
           if [ -n "$range" ] && git diff --quiet $range -- reader-next/; then reader=false; fi
+          # the inputs of build/ci/reader-nginx-paths.mjs (it reads only reader-next/src) and its output
+          nginx_paths=true
+          if [ -n "$range" ] && git diff --quiet $range -- reader-next/src/ build/ci/reader-nginx-paths.mjs \
+            helm-chart/sefaria/templates/_reader-django-paths.tpl; then nginx_paths=false; fi
           apps='{"app":"web"},{"app":"node"}'
           if [ "$reader" = true ]; then apps="$apps"',{"app":"reader","context":"./reader-next","dockerfile":"./reader-next/Dockerfile"}'; fi
-          echo "reader image: $reader (${range:-no range})"
+          echo "reader image: $reader; nginx paths check: $nginx_paths (${range:-no range})"
           echo "matrix={\"include\":[$apps]}" >> "$GITHUB_OUTPUT"
+          echo "nginx_paths=$nginx_paths" >> "$GITHUB_OUTPUT"
   # nginx's copy of the reader's Django paths (helm-chart/sefaria/templates/_reader-django-paths.tpl) must match
-  # reader-next/src/lib/routing/django-paths.ts, on master too
+  # reader-next/src/lib/routing/django-paths.ts. Checked only when one of its inputs or the generated file changed (images.pick), so a
+  # stale file can only fail the change that made it stale, never someone else's unrelated pull request. Helm's lint does not run
+  # it: the chart is linted and its routing tested from the checked-in template alone. continuous-branch-protection fails with it.
   reader-nginx-paths:
-    if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+    needs:
+      - images
+    if: ${{ (github.event_name == 'pull_request' || github.event_name == 'push') && needs.images.outputs.nginx_paths == 'true' }}
     name: "Reader nginx paths are current"
     runs-on: ubuntu-latest
     steps:
@@ -487,6 +497,7 @@ jobs:
         if: steps.get-helm.outputs.count > 0
   continuous-branch-protection:
     needs:
+      - reader-nginx-paths
       - build-generic
       - build-derived
       - check-python-files
@@ -504,6 +515,11 @@ jobs:
           if [ "${{ needs.build-generic.result }}" != "success" ] || \
              [ "${{ needs.build-derived.result }}" != "success" ]; then
             echo "One or more build jobs failed"
+            exit 1
+          fi
+          # skipped (no input changed) is fine; failure or cancelled is not
+          if [ "${{ needs.reader-nginx-paths.result }}" = "failure" ] || [ "${{ needs.reader-nginx-paths.result }}" = "cancelled" ]; then
+            echo "Reader nginx paths are stale: run node --experimental-strip-types build/ci/reader-nginx-paths.mjs and commit the result"
             exit 1
           fi
           if [ "${{ github.event.pull_request.draft }}" == "false" ]; then
