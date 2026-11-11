@@ -1,12 +1,13 @@
-# Bulk linting cleanup commits. This prevents git blame from attributing every line to them.
-# Usage: git config blame.ignoreRevsFile .git-blame-ignore-revs
-# Or set globally: git config --global blame.ignoreRevsFile .git-blame-ignore-revs
+# Bulk formatting/linting commits that `git blame` should skip, so lines keep
+# pointing at the commit that last meaningfully changed them.
 #
-# NOTE: these SHAs only exist on master if the PR is merged with a merge commit or
-# rebase-and-merge. If it is squash-merged, add the resulting single SHA here in a follow-up commit.
+# GitHub's blame view reads this file automatically. Locally, run once per clone:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# List the SHA as it exists on master. Master's merge queue squash-merges, so a
+# PR's own commit SHAs never reach master; add the squash commit's SHA in a
+# follow-up after the PR lands. Only list formatting-only commits: anything in an
+# ignored commit disappears from blame.
 
-# chore(linter): linting the codebase
-594d5ca3536970361bf6df8804dcc6f0589d2bdf
-
-# fix(linter): fix ruff cid/cd issue (re-sorted imports in 16 scripts/tests after adding isort known-first-party)
-f33d9322ce2afb24c4a12c1082ca8849404bed7b
+# chore(linting): repo-wide Ruff/Prettier/ESLint/Stylelint reformat (#3943, squash-merged)
+981e6461a9d7a7466940099d6ba83863ae1e9443
