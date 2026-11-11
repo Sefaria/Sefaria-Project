@@ -271,7 +271,7 @@ test("a long list of connected texts loads a page at a time, and the next as the
   expect(await items.count()).toBeGreaterThanOrEqual(grown);
 });
 
-// Pre-deploy list SB-02 (LAUNCH_PLAN T-H02): a cold /api/related answers 504 after ~15 s, a cold /api/links takes ~11 s. The sidebar
+// A cold /api/related answers 504 after ~15 s, a cold /api/links takes ~11 s. The sidebar
 // shows what /api/links gave, says it is still loading the rest, and offers a retry; never an endless spinner.
 test.describe("a slow or failing server (SB-02)", () => {
   test("/api/related failing: the connections from /api/links stay, the rest says so, and Try again loads it", async ({ page }) => {

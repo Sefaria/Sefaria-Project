@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { open } from "./helpers";
 
 // Layout of the reading surface against www.sefaria.org (wave-3 parity report v-parity.md, S4 S5 S6 S7). The numbers in the comments
-// were measured on www.sefaria.org on 2026-11-10 (reports/w4-b-surface.md).
+// were measured on www.sefaria.org on 2026-11-10.
 const box = (page: Page, sel: string) => page.locator(sel).first().evaluate((e) => { const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom, height: b.height }; });
 const scrollerTop = (page: Page) => page.locator("[data-reader-scroller]").evaluate((e) => e.getBoundingClientRect().top);
 
@@ -90,7 +90,7 @@ test.describe("on a phone", () => {
     ...(["he", "en"] as const).map((lang) => ({ name: `I Chronicles 1 continuous ${lang}`, path: `/I_Chronicles.1?lang=${lang}`, last: "I Chronicles 1:8", continuousTanakh: true, mustStep: lang === "he" })),
   ];
   for (const c of CASES) {
-    test(`${c.name}: no sideways scroll, no verse number on the text or on another number, at 320-414px (parity S6, review nits)`, async ({ page }) => {
+    test(`${c.name}: no sideways scroll, no verse number on the text or on another number, at 320-414px`, async ({ page }) => {
       if (c.continuousTanakh) await page.context().addCookies([{ name: "layoutTanakh", value: "continuous", domain: "localhost", path: "/" }]);
       let stepped = 0;
       for (const width of [320, 360, 390, 414]) {

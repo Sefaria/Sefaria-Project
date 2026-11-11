@@ -3,7 +3,7 @@ import { open, wheel } from "./helpers";
 
 /**
  * Ranges and multi-segment selection with legacy parity (owner decision 2026-11-10). Every case was VERIFIED on www.sefaria.org on
- * 2026-11-10 with the same steps (lane-D report: legacy-ranges probe); the expected address and highlighted segments are what it did.
+ * 2026-11-10 with the same steps; the expected address and highlighted segments are what it did.
  * lib/text/range-selection.ts has the rules. Owner decision 2026-11-10: every range of several segments is kept and highlighted.
  */
 const highlighted = (page: Page) =>
@@ -144,7 +144,7 @@ test.describe("a daf without its amud is both amudim, all highlighted (sefaria.o
   });
 });
 
-// sefaria.org (VERIFIED 2026-11-10, Playwright, read-only; lane-R report): /Genesis.1-50 is written /Genesis.1.1-50.26 before any text
+// sefaria.org (VERIFIED 2026-11-10, Playwright, read-only): /Genesis.1-50 is written /Genesis.1.1-50.26 before any text
 // shows, and every verse is blue as its chapter arrives (it then sometimes loses the race described above and collapses to a verse).
 test.describe("a range of whole sections longer than what loads with the page", () => {
   test("is all highlighted and written by its verses once its last chapter is known, in place, without moving the text", async ({ page }) => {
@@ -288,7 +288,7 @@ async function selectByScript(page: Page, from: string, to?: string) {
   );
 }
 
-// Lane R (wave 2). sefaria.org (VERIFIED 2026-11-10, Playwright, read-only): after a drag over 1:3-1:5 (or 1:30-2:2), Cmd+C, Shift and a
+// sefaria.org (VERIFIED 2026-11-10, Playwright, read-only): after a drag over 1:3-1:5 (or 1:30-2:2), Cmd+C, Shift and a
 // reflow (the window narrowed) leave the range and its blue as they were. Here a key that does not scroll is no longer taken for
 // reading on (use-reading-scroll.ts), so a later reflow cannot settle on a verse and drop the range.
 test.describe("keys that do not scroll leave a selected range alone", () => {
@@ -317,9 +317,9 @@ test.describe("keys that do not scroll leave a selected range alone", () => {
   }
 });
 
-// Lane R (wave 2): a selection made without a mouse makes a range too. sefaria.org listens to mouseup only (static/js/TextColumn.jsx),
+// A selection made without a mouse makes a range too. sefaria.org listens to mouseup only (static/js/TextColumn.jsx),
 // so there Shift+arrows or a long press make no range (VERIFIED 2026-11-10: Shift+Down in 1:3, no blue); a deliberate
-// difference, asked for by the owner's wave-2 list (D4).
+// difference, asked for by the owner.
 test.describe("a selection made by keyboard or touch makes a range, as a mouse selection does", () => {
   test.use({ viewport: { width: 1280, height: 1300 } });
   test("Shift+Down from a word selected in 1:3: the segments it reaches are highlighted and the address follows, in place", async ({ page }) => {

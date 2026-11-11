@@ -96,9 +96,9 @@ test("following a card opens the reading in the reader; Back returns to the sche
   await page.evaluate(() => ((window as unknown as { __sameDoc: boolean }).__sameDoc = true));
   const sameDoc = () => page.evaluate(() => (window as unknown as { __sameDoc?: boolean }).__sameDoc === true);
   await page.locator('[data-calendar="Daf Yomi"]').getByRole("link", { name: daf.displayValue.en }).click();
-  // a daf without its amud is written as both amudim once the reader has it (/Berakhot.2 → /Berakhot.2a.1-2b.19; lane D, owner decision
+  // a daf without its amud is written as both amudim once the reader has it (/Berakhot.2 → /Berakhot.2a.1-2b.19; owner decision
   // 2026-11-10, e2e/ranges.spec.ts). sefaria.org writes that form on a page load; after this in-app click it shows /Bekhorot.53a-53b
-  // (VERIFIED 2026-11-10, lane R): one rule here, recorded as a difference.
+  // (VERIFIED 2026-11-10): one rule here, recorded as a difference.
   const at = new RegExp(`/${dafAddress(daf.url, await spansBothAmudim(request, daf.url))}(\\?|$)`);
   await expect(page).toHaveURL(at);
   // the reader shows the daf: its title in the reader's header and text in the column
@@ -288,7 +288,7 @@ test("Hebrew interface: Hebrew headings and titles, no (Talmud), cards laid out 
 
 /**
  * "Bekhorot.53" as the address the reader writes once it has the daf: both amudim written by their segments ("Bekhorot.53a.1-53b.17"),
- * as sefaria.org does on a page load (VERIFIED 2026-11-10, /todays-daf-yomi → /Bekhorot.53a.1-53b.17, 28 lines blue; lane R). A
+ * as sefaria.org does on a page load (VERIFIED 2026-11-10, /todays-daf-yomi → /Bekhorot.53a.1-53b.17, 28 lines blue). A
  * tractate's last daf may end on amud a (Berakhot 64a, Eruvin 105a): the server answers it as one amud, nothing spans, and the address
  * stays as asked. `spans` is the server's word on that.
  */

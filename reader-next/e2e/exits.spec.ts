@@ -9,7 +9,7 @@ import { expect, test } from "@playwright/test";
  * phone, signed out and signed in, and fails on any same-site link Django answers that is not in scripts/exits-allowlist.json.
  *
  * It reads the live site (through its own read-only proxy) and takes several minutes, so it runs only when asked: EXITS_CRAWL=1.
- * EXITS_REPORT_ONLY=1 (CI until wave 2 has ported what the list names) records the list as an annotation instead of failing.
+ * EXITS_REPORT_ONLY=1 (CI, until the pages it names are ported) records the list as an annotation instead of failing.
  */
 test.describe("ways out to the legacy client", () => {
   test.skip(!process.env.EXITS_CRAWL, "needs EXITS_CRAWL=1: starts its own stand-in Django in front of www.sefaria.org (read only) and a dev server on EXITS_PORT (3366), ~45 min; EXITS_REPORT_ONLY=1 to list instead of fail");

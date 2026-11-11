@@ -2,7 +2,7 @@ import { devices, expect, test, type Page, type Route } from "@playwright/test";
 import { open } from "./helpers";
 
 /**
- * The small Library pages of wave 2, lane P: New Additions (/updates), the notifications page (/notifications) and Torah Tracker
+ * The small Library pages: New Additions (/updates), the notifications page (/notifications) and Torah Tracker
  * (/torahtracker), plus the ways out that stay (Explore and Visualizations in a new tab, D-6).
  *
  * The numbers asserted are sefaria.org's own (VERIFIED 2026-11-10 with Playwright, desktop 1280px and a phone User-Agent at 390px, in

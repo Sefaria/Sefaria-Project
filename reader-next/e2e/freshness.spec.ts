@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { open, sectionRefs, setScrollTop } from "./helpers";
 
 /**
- * D-7 (LAUNCH_PLAN T-E01): text is asked again at most an hour after it was fetched, and a return from one of Django's editors leaves
+ * Text is asked again at most an hour after it was fetched, and a return from one of Django's editors leaves
  * no stale copy of the edited book on disk.
  */
 

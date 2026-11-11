@@ -434,7 +434,7 @@ test.describe("topics outside the A–Z list", () => {
   });
 });
 
-// Carry-over (wave 2, lane GS): Berakhot 2a's sidebar links an ambiguous name; sefaria.org renders its page (VERIFIED 2026-11-10 with
+// Berakhot 2a's sidebar links an ambiguous name; sefaria.org renders its page (VERIFIED 2026-11-10 with
 // Playwright: the title as h1, an empty "Explore Topics" side column, robots noindex, nofollow), where this client answered 404
 test("an ambiguous name's topic page renders, as on sefaria.org (title only, noindex)", async ({ page }) => {
   const res = await open(page, "/topics/%D7%A8%D7%92-(ambiguous)");
