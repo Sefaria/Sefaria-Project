@@ -2,7 +2,7 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**962 features**, 4113 documented behaviors. Proposed tiers: core 323, standard 419, optional 156, retire 61.
+**962 features**, 4147 documented behaviors. Proposed tiers: core 323, standard 419, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
 - **Rebuild status** (new reader): done 468 · partial 88 · todo 19 · replaced 47 · deferred 204 · n/a 136; 426 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
@@ -242,6 +242,7 @@ A text-display options button in the panel header opens a dropdown of reading se
 - Menu is role=dialog aria-label 'common.text_display_options', tabIndex -1, data-prevent-close so inside clicks do not close (ReaderDisplayOptionsMenu.jsx:122-131).
 - On mount focuses checked radio, else first enabled button/switch (100-104); arrow keys not propagated; Tab/Escape trapped via Util.trapFocusWithTab; close via document.body.click() (15-21,106-120).
 - Toggle rows are ToggleSwitchLine (checkbox role=switch, aria-labelledby).
+- FIXED 2026-11-10 (wave 4, b-surface, a11y S9): Tab and Shift+Tab wrap inside the open menu as legacy's trapFocusWithTab does (Tab went on into the text behind it); Escape closes it and returns focus to the button (legacy drops it to <body>). Tests: e2e/reader-keyboard.spec.ts.
 
 Code: [`static/js/ReaderDisplayOptionsMenu.jsx:122`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderDisplayOptionsMenu.jsx#L122), [`static/js/ReaderPanel.jsx:1463`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L1463)
 
@@ -1003,6 +1004,7 @@ Pressing Escape inside a panel closes it.
 
 - handleKeyPress keyCode 27 -> closePanel (ReaderPanel.jsx:646-650); applies to ANY panel including the text panel.
 - Rebuild: Escape in a panel closes it unless a menu, dialog or input already used the key.
+- FIXED 2026-11-10 (wave 4, b-surface, a11y S1): with the sidebar open, Escape inside the panel closes the sidebar only, from the sidebar or from the text, and the reader keeps its place (it closed the whole panel and went to /texts). VERIFIED 2026-11-10 on www.sefaria.org (Playwright, read-only; reports/w4-b-surface.md): Escape from a sidebar control closes only the sidebar (the sidebar is a panel of its own there). Deliberate difference: legacy's Escape on a verse with the sidebar open closes both and goes to /texts; here the first Escape closes the sidebar and a second closes the panel. Tests: e2e/reader-keyboard.spec.ts.
 
 Code: [`static/js/ReaderPanel.jsx:646`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L646)
 
@@ -1249,6 +1251,7 @@ Each section gets a title such as 'Chapter 4' or '2a' in English and Hebrew.
 - Sefaria.sectionString returns {en:{named,numbered},he:{named,numbered}}.
 - English named prepends sectionNames[0] when depth > 1; complex texts prepend the named node path ('Introduction, Chapter 2').
 - Hebrew uses heSectionRef minus heIndexTitle; Hebrew section names are commented out.
+- Section headings VERIFIED 2026-11-10 on www.sefaria.org (Playwright, read-only; reports/w4-b-surface.md): Berakhot 2a 'ב׳ א' (Hebrew), Zohar 'Bereshit, Chapter 1' / 'בראשית, א׳', Siddur Ashkenaz 'Weekday, Shacharit, Preparatory Prayers, Modeh Ani', Guide for the Perplexed 'Part 1, Chapter 1', Mishneh Torah 'Chapter 1' / 'א׳', Shulchan Arukh 'Siman 1'. FIXED 2026-11-10 (wave 4, b-surface): the rebuild printed 'ב.' for a daf and the full ref ('Zohar, Bereshit 1', 'Siddur Ashkenaz, Weekday, …', 'Shulchan Arukh, Orach Chayim 1') outside the short-title categories; src/ui/TextSection/section-heading.ts ports Sefaria.sectionString. Tests: src/ui/TextSection/section-heading.test.ts, e2e/reader-surface-parity.spec.ts.
 
 Code: [`static/js/sefaria/sefaria.js:2556-2602`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2556-L2602)
 
@@ -1583,6 +1586,7 @@ In bilingual mode the translation can sit under the source or beside it, with ei
 - Layout buttons hidden when width <= 600 and bilingual, or on a sheet not bilingual.
 - Stacked CSS: 14px gap between segments; translation margin 10/20px and dark grey. heLeft/heRight: each side 50% width with floats keyed by primary/translation.
 - Link dots hidden (visibility) in heLeft/heRight; segment number centered between columns (left 50%).
+- Stacked VERIFIED 2026-11-10 on www.sefaria.org (Playwright, read-only; reports/w4-b-surface.md) (Genesis 1:1 at 1280): Hebrew block 42.9px (the enlarged first letter's <big> has line-height 1.2), English 10px below, the next verse 20px below (the translation's bottom margin), Hebrew text-align right; segment 88.1px. FIXED 2026-11-10 (wave 4, b-surface): ours was 106.7px (a 20px Hebrew-English gap from a flex gap plus a margin, the first letter at the reader's 1.6 line-height, 26px between verses, Hebrew justified); now 88.1px with the same gaps. Tests: e2e/reader-surface-parity.spec.ts.
 
 Code: [`static/js/ReaderPanel.jsx:637-645`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L637-L645), [`static/js/LayoutButtons.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/LayoutButtons.jsx), [`static/js/constants.js:1-13`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/constants.js#L1-L13), [`static/js/ReaderDisplayOptionsMenu.jsx:44-47`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderDisplayOptionsMenu.jsx#L44-L47)
 
@@ -1745,7 +1749,7 @@ Code: [`static/js/TextRange.jsx:256-260`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_03_text_rendering.md#5.2, 5.3, 5.6`
 
 #### TXD-046 · Segment number and dot positioning in continuous mode
-`core` `live` · rebuild: **done** — Gutter placement matches; collisions step apart (live's fix misplaces them) · *tested*
+`core` `live` · rebuild: **done** — Gutter placement matches (phone: 4px from the edges); collisions step apart, inwards where outwards would leave the text (live's fix misplaces them) · *tested*
 
 In continuous layout, numbers and link dots are positioned at their segment's start line without overlapping.
 
@@ -1754,6 +1758,7 @@ In continuous layout, numbers and link dots are positioned at their segment's st
 - Re-run on window resize, layout/setting changes, after images load and after a footnote toggle.
 - VERIFIED 2026-10-05 (Berakhot 2a, Hebrew, panel class `readerPanel serif hebrew continuous`): segments, their <p> and the rangeSpan are all display:inline. Numbers sit in the gutter just past the text on the reading-start side (x=1006 for text ending at 990) at the top of the line where their segment begins; link-count dots in the gutter on the other side (x≈258). Two segments beginning on one line (2a:3 and 2a:4): their numbers are moved by script — in the live DOM they ended at x=295 and x=284, i.e. over the text, not in the gutter (the collision fix of placeSegmentNumbers goes wrong here).
 - Rebuild: the segment is not positioned in continuous layout, so its absolutely positioned number and dot keep the line they would have been on (top:auto) and take their horizontal place from the surface; numbers sharing a line step outward by 20px (src/lib/reader/spread-numbers.ts) instead of landing on the text.
+- Phone VERIFIED 2026-11-10 on www.sefaria.org (Playwright, read-only; reports/w4-b-surface.md) (Berakhot 2a, Hebrew, 390px): numbers at x=356-386, dots at 4-34, no sideways scroll. FIXED 2026-11-10 (wave 4, b-surface): on a phone the rebuild placed them 48px out (past the screen's edge; the page was 425px wide) and stepped colliding numbers further out; now 4px from the edges, and a step that would leave the text's surface goes inwards. No page scroll at 320, 360, 390, 414px in either interface. Tests: e2e/reader-surface-parity.spec.ts, e2e/continuous-numbers.spec.ts.
 
 Code: [`static/js/TextRange.jsx:188-226`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L188-L226)
 
@@ -1867,6 +1872,7 @@ On opening, the reader scrolls to the cited segment, leaving room above to scrol
 - scrollToHighlighted: top = highlighted.top + 90 + 30 - threshold; focuses highlighted segment only in last panel.
 - componentDidUpdate triggers: mobile connections opened; new single ref outside current refs; changed highlight; changed language/versions (no focus steal); width change restores scroll by percentage.
 - VERIFIED 2026-10-04: on load the old reader paints the top of the chapter first, then scrolls to the linked segment after hydration (a visible jump); the rebuild places it before first paint (TXD-068).
+- First screen with no verse to place (a section URL): VERIFIED 2026-11-10 on www.sefaria.org (Playwright, read-only; reports/w4-b-surface.md): the column opens scrolled past its top strip (90px), the section's title ~33-38px under the reader bar (Psalms 23 at 1280: title y=213, 23:1 y=283; Genesis 1: the book title strip scrolled out of view). FIXED 2026-11-10 (wave 4, b-surface): the rebuild showed the strip, and once the previous section loaded above it the end of that section (Psalms 22:31) sat where the strip had been. Now the inline script scrolls past the strip before first paint and the column keeps the section's title at the top of the text through the previous section loading, a short chapter growing, and the fonts, until the reader scrolls, presses a key or touches the page. Ours at 1280: Psalms 23 title y=212, 23:1 y=283; phone 390: below the sticky 60px reader bar (legacy's bar is not sticky). Tests: e2e/reader-surface-parity.spec.ts.
 
 Code: [`static/js/TextColumn.jsx:75-112`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextColumn.jsx#L75-L112), [`static/js/TextColumn.jsx:208-240`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextColumn.jsx#L208-L240)
 
@@ -1899,6 +1905,7 @@ Above and below the loaded text the column shows a book title at the start of a 
 - Rendered only after mount to avoid SSR layout shift. Consecutive loading textRanges hidden.
 - TextRange with no data shows LoadingMessage ('Loading...' / hebrew) as title and .loading class.
 - data.error -> onTextLoad returns early; nothing rendered (no user-facing error).
+- Since 2026-11-10 the top strip (book title / previous-section spinner) is scrolled out of view on a section's first screen, as on sefaria.org (TXD-054).
 
 Code: [`static/js/TextColumn.jsx:33-35`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextColumn.jsx#L33-L35), [`static/js/TextColumn.jsx:485-508`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextColumn.jsx#L485-L508), [`static/css/s2.css:1238-1255`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/css/s2.css#L1238-L1255), [`static/js/Misc.jsx:2588-2602`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L2588-L2602)
 
@@ -3663,6 +3670,8 @@ On a dictionary entry, moderators get Advanced → Change Lexicon Headword and E
 - Headword: PATCH /api/lexicon-entry/headword/<lexicon>/<headword> {new_headword}; 'Saved as "X".' or '(adjusted from "Y")' when the server disambiguated or normalized it.
 - Content: GET /api/lexicon-entry/<lexicon>/<headword> → the content_attr_names fields as a tree (no adding or deleting keys); each string a WYSIWYG field (bold, italic, superscript, subscript, Sefaria ref link with display text) with Cancel; Save PATCHes {content}.
 - Errors come back with a real status and {error}, shown as is.
+- FIXED 2026-11-10 (wave 4, v-security nit 3): the editing box gets the stored entry through the display's sanitiser (keeping every attribute the server keeps on save: LexiconEntry.ALLOWED_ATTRS), not raw into innerHTML. The server's big tags and data: images are not in that sanitiser's list: their text is kept, the tag is not (an open question in the lane report).
+- FIXED 2026-11-11 (wave 4 rework 1): the editor's box uses the server's own allowlist (src/ui/LexiconEditView/editable-html.ts): <big> kept, data: images kept only as raster (png, jpeg, gif, webp; never SVG), javascript:/data:/protocol-relative link addresses dropped, a bare relative href kept as stored. Legacy did not sanitise the box: deliberate difference.
 
 Code: [`static/js/LexiconHeadwordEditBox.jsx:7`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/LexiconHeadwordEditBox.jsx#L7), [`static/js/LexiconContentEditBox.jsx:30`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/LexiconContentEditBox.jsx#L30), [`static/js/LexiconWysiwygValue.jsx:70`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/LexiconWysiwygValue.jsx#L70), [`static/js/ConnectionsPanel.jsx:1092`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L1092)
 
@@ -4051,6 +4060,7 @@ The texts home page shows every top-level category as a colored card with a shor
 - Layout (1280px): main column x=98…763 (665px), sidebar from x=860, 420px wide, 44px padding; same frame as book pages; category-coloured 4px line on category and book pages.
 - `/` answers 302 → /texts (any query dropped): Browse the Library is the site's home. Verified on www.sefaria.org with Playwright, 2026-10-29.
 - Desktop geometry (1280px): the page scrolls inside .readerNavMenu .content under a fixed header (and promo banner); .contentInner is a 725px column centred beside the 420px sidebar, so the grid starts at x=97.5 with two 327.5px columns 10px apart and rows 6px apart; each .navBlock is a 4px colour line, a 24px/1.3 title (15px over, 8px under, margin-inline-end 20px) and a 14px/18px #666 description; the title row is 22px/500 #666 with 15px under it. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- FIXED 2026-11-10 (wave 4, parity S12b): in the Hebrew interface the descriptions are the old 17.08px (the .int-he span's 122%) on a 24px line, not 14px/18px. v-a11y N7: the title, category links and descriptions carry dir with lang, and a Hebrew-interface fallback to the English description is marked English.
 
 Code: [`static/js/TextsPage.jsx:42-67`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextsPage.jsx#L42-L67), [`static/js/TextsPage.jsx:25-39`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextsPage.jsx#L25-L39), [`static/js/TextsPage.jsx:53`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextsPage.jsx#L53)
 
@@ -4156,6 +4166,7 @@ Each category page lists its sub-categories and texts, with a colored top line, 
 - VERIFIED geometry (1280px): page title 30px/500 black upper-case; part headings ('TORAH (The Five Books of Moses)') 18px grey serif, the parenthetical in the same style; block titles 24px on a 31.2px line; descriptions 14px on an 18px line; the About text in the sidebar 16px on its natural ~19px line (was 23px). Note: the live face for these is Adobe Garamond Pro (computed font-family 'adobe-garamond-pro'), Cardo here — owner decision pending, which is also why 'TANAKH' is 138px wide against 123px on the live page. Rebuilt for sizes and weights.
 - Geometry (1280px): title row (.navTitle) 40px over the contents; the h1 is 30px/500 uppercase serif, black. Items are .navBlock: a 1px #EDEDEC top line, 24px/1.3 title (15px over, 8px under, 20px end margin), 14px/18px #666 description, 12px under; two 327.5px columns 10px apart, rows 6px apart. A grid NOT inside a section (e.g. /texts/Tanakh/Torah, the top of /texts/Kabbalah) keeps the old .gridBoxItem's 5px top/bottom padding — the zero-padding override only targeted .readerNavCategories and .category grids — so its rows are 16px apart and its first block starts 5px down; the last row's 6px margin collapses into the grid's 40px. Verified on www.sefaria.org with Playwright, 2026-10-29.
 - Phone (singlePanel): the category's long description shows under the title (.categoryDescription.top: 14px #666, margin -26px 0 40px) and the sidebar has no About module. The description is the page category's (tocObjectByCategories(cats), so Talmud → Bavli's), rendered as plain text by ContentText text={…}: Markdown is NOT rendered there (live shows '*masekhtot*' with its asterisks on /texts/Mishnah) — a live bug, reproduced for parity. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- FIXED 2026-11-10 (wave 4, parity S12b, v-a11y N7): Hebrew-interface descriptions 17.08px / 24px as on sefaria.org; lang with dir, and the language of what is shown (an English fallback is marked English).
 
 Code: [`static/js/TextCategoryPage.jsx:59-99`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextCategoryPage.jsx#L59-L99)
 
@@ -4355,6 +4366,7 @@ The server supplies translation lists and per-language page titles; some linked 
 - VERIFIED 2026-11-04: loaded from the server, an unknown slug (/translations/ro, /tr, /xx, /DE — the lookup is case-sensitive) is Django's 404 'Page Not Found | Sefaria' (in-app navigation is different: LIB-037). A trailing slash is a 404 too (/translations/de/, /translations/: Django's ^translations/(?P<slug>[^.]+)$ reads the slug 'de/'). Head: <title> and og:title / twitter:title = the language's title; description / og:description / twitter:description = its description; og:url, hreflang alternates and the img-gen og:image are the site-wide head (not per page in the new reader yet).
 - BUILT 2026-11-04: src/lib/translations/translations-page.ts holds the 14 languages (title, description, direction); loaded from the server the route answers 404 for any other slug (passed to Django in the cluster), and a Library-only path with a trailing slash is Django's (django-paths isDjangoPage) rather than the 308 the reader's trailing-slash rule gives its own pages — so /translations/de/ is Django's 404, as on sefaria.org. The page's title, description, og:title/description and twitter:title/description are written per language.
 - BUILT 2026-11-04 (review fix): the head is sefaria.org's tag for tag (VERIFIED for de, en, he): og:title and twitter:title, description, og:description and twitter:description, og:type website, og:image and twitter:image (api/img-gen/translations/<lang>, facebook / twitter), og:image type and size, og:url, twitter:card summary_large_image, twitter:site @sefariaproject, hreflang alternates for www.sefaria.org and www.sefaria.org.il; no canonical, as live. Tests: e2e/translations.spec.ts ('the head').
+- 2026-11-10 (security S-2): the page's server function (a public GET endpoint) accepts only the slugs the route accepts (translationLanguage(slug, true): Django's languages and the in-app-only ones); any other input is refused before an upstream call or a cache entry. The server's shared model cache keeps at most 32 languages, oldest first. Tests: src/lib/translations/translations-page.test.ts.
 
 Code: [`reader/views.py:1257-1294`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1257-L1294), [`reader/views.py:4752-4841`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4752-L4841)
 
@@ -4377,6 +4389,7 @@ A feed of newly added texts, versions and announcements with infinite scroll; mo
 - BUILT 2026-11-10 (T-F22): /updates is this client's page on the Library host (the Voices host keeps Django's): the About sidebar (wide screens; a phone has none, as sefaria.org leaves it out for a phone User-Agent), 'Updates', and the site's global notifications from /api/updates, ten at a time as the reader nears the end (the first ten with the page). Moderators: the old add form (index / version / general) and a delete button on each (POST and DELETE /api/updates with CSRF). Layout VERIFIED against www.sefaria.org with Playwright 2026-11-10 at 1280px and a phone User-Agent at 390px, English and Hebrew, computed styles and positions (e2e/library-pages.spec.ts asserts them).
 - Deliberate differences: the old page stopped asking for more only when the API's total count was under ten, so at the end it kept requesting empty pages on every scroll (not ported: a short page is the last); the old Hebrew phone page pushed its title off the left of the screen (a 725px column in a 390px window), here it is on screen; on a phone the list is the full width less 30px each side (the old one was a fixed 332.5px, 50% of its 665px column).
 - Tests: src/lib/updates/updates.test.ts, src/ui/UpdatesPage/UpdatesPage.test.tsx, src/features/notifications/view.test.ts, e2e/library-pages.spec.ts.
+- FIXED 2026-11-10 (wave 4, v-a11y S8, N2): the 725px column never runs past the window (1280px at 200% zoom had a 20px page scroll; e2e/reflow.spec.ts); the page's own <main id=updatesPage> is a <div> inside the shell's main (sefaria.org has both: deliberate difference).
 
 Code: [`static/js/UpdatesPanel.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/UpdatesPanel.jsx), [`static/js/NotificationsPanel.jsx:117-130`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NotificationsPanel.jsx#L117-L130), [`reader/views.py:3271-3333`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3271-L3333)
 
@@ -5368,6 +5381,7 @@ The library's topics home presents search, a word cloud of topics, a featured to
 - Sidebar order: TopicLandingTopicCatList (Browse Topics: the 15 top-level TOC categories, unfiltered by module, 18px serif links on a 20px line), TrendingTopics, AZTopicsLink (a module whose h1 is the 'All Topics A-Z ›' link), Promo (empty unless the CMS fills it). Analytics: data-anl-project='topics', panel_name='Explore by Topic', panel_type='Topic Landing' on the whole panel (sidebar included); feature_name per section: Search, Topic Salad, Featured Topic, Multi-Cards, Parashah, Calendar; the newsletter's in its data-anl-batch. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 - The old page fetched everything after mount (blank sections first); the new reader server-renders the search's count, Browse Topics, Trending, the featured topic and both calendar cards, and fetches only the random samples (cloud, cards) in the browser.
 - Hebrew interface faces (sefaria.org.il): the page title 30px/600 Heebo on a phone (the new reader now loads Heebo 600; it drew the 700 face, 4px wider); 'Explore all Topics ›' (לדפדוף בכל הנושאים) is a 14px span in the HEBREW SERIF (it inherits the column's serif, only English is set to sans) on an 18px line, 21px tall; the portion's 'Browse All Torah Portions' and the calendar's 'Explore the Jewish Calendar' links keep the English serif line (Cardo stack, 16px → 21px tall), the reading link the 18px serif line (23px) — the new reader had Heebo there (the global :lang(he) rule) and each row grew 2–3px. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
+- FIXED 2026-11-10 (wave 4, v-a11y S8): at 320px in Hebrew the newsletter band's 300px teaser no longer runs past the window (no horizontal page scroll; e2e/reflow.spec.ts).
 
 Code: [`static/js/TopicLandingPage/TopicsLandingPage.jsx:14-57`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicsLandingPage.jsx#L14-L57)
 
@@ -5509,6 +5523,7 @@ A card represents a topic or category with title, description and link.
 - Card (common/Card.jsx): analytics title link; markdown disallowed elements ['p'] plus 'a' in Voices (links stored with library domain; sefaria.js:3946-3950); optional bottom link.
 - Card (TOC grid): title 24px/1.3 Roboto black (15px over, 8px under), description 14px/18px #666 clamped to 3 lines with 20px end margin, links #4B71B7 unstyled; in the Hebrew interface both take Heebo at 122% and the description a 24px line — whatever the text's language (an English-only description in the Hebrew interface is Heebo, left-to-right, left-aligned: .int-he.enInHe in a -webkit-box). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 - Analytics quirk: TopicTOCCard passes analyticsEventName 'navto_topic:click' and Card appends ':click', so the attribute is data-anl-event='navto_topic:click:click' (the tracker reads it as navto_topic on click); analyticsLinkType is passed but never rendered. Kept byte for byte.
+- FIXED 2026-11-10 (wave 4, v-a11y N3): links in a card's description are underlined, not told apart by colour alone (sefaria.org underlines only on hover: deliberate difference).
 
 Code: [`static/js/common/TopicTOCCard.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/common/TopicTOCCard.jsx), [`static/js/common/Card.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/common/Card.jsx), [`static/js/sefaria/sefaria.js:3946-3950`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3946-L3950)
 
@@ -5935,6 +5950,7 @@ One page lists today's and this week's learning schedules (portion, Daf Yomi, Mi
 - Known differences (2026-11-04): the UA dimension5 page type 'calendars' is not sent (UA is retired; the shell sends no page types); the sidebar footer links are absolute (pre-existing footer).
 - Once the page loads, the old app replaced the address and set the tab title (ReaderApp.jsx:630, hist.url 'calendars'): '/calendars/' and any query become '/calendars' (the hash stays), and the title becomes 'Learning Schedules | The Sefaria Library' / 'לוח לימוד יומי | האוסף של ספריא'. The server HTML keeps 'Learning Schedules | Sefaria Library' and its own canonical. VERIFIED 2026-11-04.
 - BUILT 2026-11-04 (review fix): CalendarsRoute replaces the address once on arrival through the router's history and sets the title in the interface language. Tests: e2e/calendars.spec.ts ('once loaded, the address becomes /calendars').
+- FIXED 2026-11-10 (wave 4, v-a11y N1): a visually hidden h1 'Learning Schedules' / 'לוח לימוד יומי' (sefaria.org has an empty h1).
 
 Code: [`static/js/CalendarsPage.jsx:17-27`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/CalendarsPage.jsx#L17-L27), [`static/js/sefaria/sefaria.js:3643-3650`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3643-L3650), [`reader/views.py:1340-1359`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1340-L1359)
 
@@ -6887,6 +6903,7 @@ On mobile, filters and sort open in a full-screen panel with a Show Results butt
 - Authors/Topics (EntitySortPanel): header 'Sort', radios, Show Results.
 - Switching tab closes panel; MobileFilterIconButton aria 'Sort & filter results'.
 - VERIFIED: panel headings Filters (Sources) / Filter (Books) / Sort (Authors, Topics); Sources sections 'Search Type' (the toggle full width), 'Sort by' (radios Relevance / Chronological), 'Filters' (Find a filter box + the categories); Books 'Sort by' (Relevance, Composition Date (Oldest/Newest First), A-Z) + Filters; Authors 'Year (Oldest/Newest First)'; Topics Relevance / A-Z. 'Show Results' closes it. Rebuild deviation: the Show Results button is fixed at the bottom of the panel instead of after the last filter (4,700px down on the live panel).
+- FIXED 2026-11-10 (wave 4, v-a11y S7): closing the phone's Sort & filter dialog (Escape, x, Show Results) puts focus back on its 'Sort & filter results' button; a re-render inside the dialog (a filter ticked) no longer pulls focus back to the dialog.
 
 Code: [`static/js/SearchFilters.jsx:68`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SearchFilters.jsx#L68), [`static/js/SearchFilters.jsx:328`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SearchFilters.jsx#L328), [`static/js/SearchFilters.jsx:428`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SearchFilters.jsx#L428), [`static/js/SearchPage.jsx:581`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SearchPage.jsx#L581)
 
@@ -9319,6 +9336,7 @@ A slide-out menu holds search, sections, account and cross-product links on mobi
 - REBUILD: signed in, the phone menu has Saved, History & Notes, Account Settings and Logout instead of Sign up / Log in.
 - Layout: a fixed white sheet under the header filling the screen; search line 15px/10px with a #ededec rule; full-width rows 16px #666, 15px padding, 16px icons (book, topic, calendar, heart.png inverted on the blue Donate row) 15px from the label; the account part on #fbfbfa between #ccc rules: language row (globe, 'English • עברית'), Get Help, About, Voices/Developers with 16px dots, More from Sefaria (chevron), Sign up (login.svg) / Log in, groups split by #ededec hr lines. Verified on www.sefaria.org with Playwright, 2026-10-29.
 - 2026-11-04: the menu's 'Learning Schedules' writes '/calendars' (relative, as sefaria.org) and opens the new reader's page (CAL-001).
+- FIXED 2026-11-10 (wave 4, v-a11y S6): opened by the text panel's Menu button (which comes after the menu in the page), the menu takes focus (the menu itself, so a phone's keyboard does not open) and Escape gives it back to that button; opened by the header's own button, focus stays on the button. sefaria.org's phone hamburger is not focusable at all: deliberate difference.
 
 Code: [`static/js/Header.jsx:425`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L425)
 
@@ -10168,6 +10186,8 @@ Many informational pages (about, team, jobs, terms, etc.) are served as static t
 - Parity 2026-11-10 (scripts in the lane report; www.sefaria.org vs the new shell, desktop 1280 and phone UA 390, English and Hebrew): visible text of the content block identical and the measured layout (widths, x offsets, font sizes and families, weights, line heights, colours, margins of headings, paragraphs, .inner, sidebar, frames, images) equal within 2px on the content pages, except as noted under each page's entry.
 - Ported (T-F32, the old components' markup and classes in features/static-page/ports): /mobile, /educators, the English /ways-to-give (DonatePage). Not rendered here (Django's page on every host (lib/static-page/pages.ts; an accepted exit in scripts/exits-allowlist.json)): jobs, team, products (legacy React filled from the CMS), word-by-word, ramban-sponsorships (legacy React mount points), contest, powered-by-sefaria-contest-2020/2021 (finished contests, not linked from the reader), newsletter (a 1,700-line legacy React flow), aramaic-translation-contest (jQuery form), random-walk-through-torah and cloudflare_site_is_down_en/he (whole documents), metrics (its own view).
 - Tests: src/lib/static-page/*.test.ts (routing incl. Voices, sanitiser, content, scoped CSS), src/features/static-page/static-page.test.tsx, e2e/static-pages.spec.ts (Django's answers from e2e/fixtures/static-pages written into the cassette: www.sefaria.org does not serve ?format=json yet).
+- FIXED 2026-11-10 (wave 4, parity S12): every static page sat 60px lower than on sefaria.org (the legacy page starts under its fixed 60px header and its first block clears it; ours starts below the header). The scoped legacy CSS now moves #staticContentWrapper up 60px (lib/static-page/legacy-css.ts LEGACY_BODY_DEFAULTS, build-time CSS only); its first 60px sit under the header, as there. e2e/static-pages.spec.ts measures the h1 at sefaria.org's y (/terms, /about 140; /educators, /mobile 130).
+- FIXED 2026-11-10 (wave 4, v-a11y N2): a page's own <main> (about, team, jobs, products, the Hebrew ways-to-give...) is written as a <div> by the sanitiser, so the shell's <main> is the page's only one (sefaria.org has the duplicate: deliberate difference).
 
 Code: [`sites/sefaria/urls.py:11-77`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sites/sefaria/urls.py#L11-L77), [`reader/views.py:5049-5057`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5049-L5057)
 
@@ -10284,6 +10304,7 @@ Marketing pages for Sefaria's apps, tools and special editions and projects.
 - BUILT 2026-11-10 (T-F32): /mobile ported (features/static-page/ports/MobileAppPage.tsx: the old MobileAppPage's markup and classes, styled by the scoped static.css): the store buttons carry a full UTM campaign to the App Store and Google Play from the server's first paint (the old page set them after mounting), and the newsletter sign-up at the bottom (src/ui/NewsletterSignUp, 'Subscribe from Mobile Landing Page').
 - Still Django's: /random-walk-through-torah and the Cloudflare outage pages (whole documents of their own), /aramaic-translation-contest (a 2019 contest page whose mailing-list form runs on jQuery).
 - /mobile-about-menu (the app's About menu): rendered as Django renders it for a desktop; the old page's phone variant (a title heading, the sidebar as a full-width overlay) is not reproduced — deliberate difference.
+- FIXED 2026-11-10 (wave 4, v-exits F-9): /mobile, /educators and the English /ways-to-give are rendered without asking Django at all (lib/static-page/port-model.ts: their title, description and body class, checked against Django's answers in e2e/fixtures/static-pages), so a Django without the content mode no longer sends them to Django's page (src/routes/page-route.test.ts).
 
 Code: [`sites/sefaria/urls.py:10`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sites/sefaria/urls.py#L10)
 
@@ -10343,6 +10364,7 @@ Landing pages for educators, a writing fellowship, newsletter signup and parasha
 - /updates UpdatesPanel (New Additions feed)
 - BUILT 2026-11-10 (T-F32): /educators ported (features/static-page/ports/EducatorsPage.tsx: the old EducatorsPage's markup and classes inside the static-page frame, styled by the scoped static.css; its newsletter sign-up is this client's, 'Subscribe from educators').
 - 2026-11-10 (T-F32): /word-by-word, /ramban-sponsorships (legacy React mount points) and /newsletter (the 1,700-line NewsletterSignUpPage flow: survey, confirmation, marketing toggles) stay Django's page on every host (lib/static-page/pages.ts; an accepted exit in scripts/exits-allowlist.json). /updates is the new reader's own page (lane P).
+- FIXED 2026-11-10 (wave 4, v-exits F-9): /educators no longer needs Django's content mode (lib/static-page/port-model.ts).
 
 Code: [`static/js/StaticPages.jsx:521`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/StaticPages.jsx#L521), [`static/js/StaticPages.jsx:1455`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/StaticPages.jsx#L1455), [`static/js/StaticPages.jsx:3068`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/StaticPages.jsx#L3068), [`static/js/StaticPages.jsx:256`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/StaticPages.jsx#L256), [`sefaria/urls_sheets.py:22`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_sheets.py#L22)
 
@@ -10494,7 +10516,7 @@ Code: [`static/js/ReaderApp.jsx:2583`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#15`
 
 #### I18-003 · Tabbing detection and panel focus management
-`core` `live` · rebuild: **partial** — New-panel focus done; sidebar focus on verse click intentionally not
+`core` `live` · rebuild: **done** — New-panel focus; focus back to the verse when the sidebar closes and to the panel beside when one closes; sidebar focus on verse click intentionally not
 
 Focus moves sensibly into new panels, and tab users get visible focus styling.
 
@@ -10502,6 +10524,7 @@ Focus moves sensibly into new panels, and tab users get visible focus styling.
 - Panel mounted at position > 0 focuses first focusable element (79-82); segment-click-opened sidebar does too (ReaderApp.jsx:1059-1064).
 - When display settings open, focus goes to .on option in .readerOptionsPanel (legacy selector) (ReaderPanel.jsx:105-107).
 - Rebuild: a panel opened beside the first takes keyboard focus on its first control; focus-visible rings replace the old 'user-is-tabbing' body class. Not rebuilt: focus into the sidebar when a verse opens it (it would take focus from the verse the reader just chose).
+- BUILT 2026-11-10 (wave 4, b-surface, a11y S2): closing the sidebar from inside it (Close, Escape) returns keyboard focus to the verse it was open on; closing one of several panels leaves focus on the panel beside it (its current verse); neither moves the text. Legacy leaves focus on <body> or the panel's Close link. Tests: e2e/reader-keyboard.spec.ts.
 
 Code: [`static/js/Header.jsx:206`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L206), [`static/js/ReaderPanel.jsx:79`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L79), [`static/js/ReaderPanel.jsx:100`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L100)
 
@@ -10532,6 +10555,7 @@ Header, nav, search and panel title carry ARIA roles/labels.
 
 - ReaderControls title role=heading aria-level=1 aria-live=polite; link aria-label 'Show Connection Panel contents for {title}' (ReaderPanel.jsx:1424-1425).
 - Header role=banner; nav aria-labels 'Primary navigation' and 'Mobile navigation menu'; search box role=search (Header.jsx:286,356,432; HeaderAutocomplete.jsx:288-291).
+- BUILT 2026-11-10 (wave 4, b-surface, a11y S3): legacy's reader title is aria-live=polite; the rebuild has a polite live region in each text panel that names the section the reader has moved into (Hebrew in the Hebrew interface), once per section after 700ms in it, never per verse and not on arrival. Tests: e2e/reader-keyboard.spec.ts.
 
 Code: [`static/js/ReaderPanel.jsx:1424`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L1424), [`static/js/Header.jsx:286`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L286)
 
@@ -10557,6 +10581,7 @@ Source: `inv_02_reader_shell.md#16`
 Changing interface language is a server round trip, not client state.
 
 - DropdownLanguageToggle: 'Site language' with English/עברית links (active state); NextRedirectAnchor to /interface/{lang}?next= (common/DropdownMenu.jsx:292-316). Full page reload.
+- FIXED 2026-11-10 (wave 4, v-a11y N9): the header's menus (language, Library, account) close when focus leaves them, and focus goes on to where the reader was going.
 
 Code: [`static/js/common/DropdownMenu.jsx:292`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/common/DropdownMenu.jsx#L292)
 
@@ -10658,6 +10683,7 @@ The interface mirrors for Hebrew, with Hebrew numerals and dates.
 - Manifest dir rtl, lang he for Hebrew
 - Old client: direction comes from CSS classes, not attributes — `.he` / `.int-he` / `.contentText.he` / `.readerPanel .he` set `direction: rtl` (and `text-align: right` in a panel); a connected text's block (`.segment.heOnly`) is rtl + justify, so a Hebrew commentary's short last line sits at the right. VERIFIED on sefaria.org Exodus 18:1 with=Rashi lang2=he, 2026-10-29.
 - BUILT 2026-10-29: src/ui/LangText — LangText sets `lang` and `dir` together on any element (dir from the data, e.g. a version's `direction`, else lib/i18n/direction dirFor: he, arc, yi, jrb, ar, fa…); InterfaceText renders through it. The architecture rule `lang-with-dir` counts elements that set lang without dir (baseline may only shrink). Found: the sidebar's text list tagged only the inline text span, so Hebrew Rashi in an English-interface page laid out left-to-right (owner's screenshot, 2026-10-29).
+- BUILT 2026-11-10 (wave 4, b-surface, a11y S5): in the Hebrew interface the text panel's bar ('אפשרויות תצוגת טקסט', 'חזרה לספריה' / 'סגירת הטקסט', 'שמירת "בראשית א׳"', 'תפריט'), the section regions ('בראשית א׳') and the verse groups ('בראשית א׳:ג׳') have Hebrew accessible names (legacy's are English). The sidebar's names are not covered here. Tests: e2e/reader-keyboard.spec.ts.
 
 Code: [`static/js/ReaderApp.jsx:118`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L118), [`static/js/sefaria/util.js:113`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/util.js#L113)
 
@@ -10709,6 +10735,7 @@ The server issues a short-lived encrypted token identifying the user to the assi
 - reader/views.py:365-407 base_props: chatbot_user_token (AES-GCM via build_chatbot_user_token(user_id, CHATBOT_USER_ID_SECRET), 72h TTL, payload id=sha256(user id), user_id, expiration),
 - chatbot_enabled, chatbot_api_base_url, chatbot_version, max input chars (default 10000), max prompts (100), promo urls/maybe-later json/session length (default 30 min) from remote config.
 - Decrypt helper get_user_id_from_chatbot_user_token in sefaria/utils/chatbot.py.
+- FIXED 2026-11-10 (wave 4, parity S3): a signed-out visitor gets the assistant when remote config's feature.chatbot.anonymous_enabled is not off (src/lib/assistant/access.ts assistantOnForAnonymous: Django's is_enabled_for_anonymous + normalize, read from /api/remote-config; no Django change), without a token; feature.chatbot.anonymous_free_answers goes to the widget as anon-free-answers.
 
 Code: [`reader/views.py:365`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L365), [`sefaria/utils/chatbot.py:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/utils/chatbot.py#L1)
 
@@ -10825,7 +10852,7 @@ Source: `inv_08b_admin_linker_apps.md#4.3`
 ### Chatbot
 
 #### AI-011 · Library Assistant chatbot widget
-`standard` `live` · rebuild: **done** — Library Assistant widget (<lc-chatbot>) on Library pages for eligible users · *tested* `signed-in` `desktop only`
+`standard` `live` · rebuild: **partial** — Signed in and signed out (remote-config switch) on wide screens; not on phones (sefaria.org's full-screen sheet and menu row), no search no-results pointer · *tested* `signed-in` `desktop only`
 
 Eligible users on the Library module get a floating AI assistant chat widget embedded in the reader.
 
@@ -10844,6 +10871,10 @@ Eligible users on the Library module get a floating AI assistant chat widget emb
 - Attributes: user-id, api-base-url, origin, is-moderator, placement=right, default-open, mode=floating, max-input-chars, max-prompts, interface-lang (short code).
 - When chatbot_version prop is set, API base URL becomes https://{version}.ai-server.coolifydev.sefaria.org/api (2575).
 - copy events from LC-CHATBOT are ignored by the copy handler (2241).
+- FIXED 2026-11-10 (wave 4, parity S3): <lc-chatbot> for signed-out visitors (the remote-config switch), no user-id attribute, its login prompt's signup-options slot holding Sign up / Log in links to this client's auth pages with data-signup-source=rate_limit_login_button (the old slot had round Google/Apple/Email buttons: deliberate difference, the auth page offers the same three); the slot is hidden until the widget defines itself (the old library-assistant.scss rule). Not on /login and /register, as the old ReaderApp's !showAuth.
+- Still different from sefaria.org (2026-11-10): sefaria.org now shows the widget on phones too (a full-screen sheet, and a 'Library Assistant' row in the phone menu); here not below 843px. Search's no-results text does not point to the assistant (NoSearchResults' library_assistant body and the chatbot:launcher event).
+- e2e: the suite never loads the widget's script (e2e/helpers.ts open() answers lc-chatbot.umd.cjs with an empty script); the element and its attributes are unit-tested (src/features/assistant/LibraryAssistant.test.tsx).
+- FIXED 2026-11-11 (wave 4 rework 1): only in the Library, as the old ReaderApp's isLibraryModule (static/js/ReaderApp.jsx:2641-2648): never on the Voices host, signed in or out; and not on a password reset (the old authResetUid), besides /login and /register.
 
 Code: [`static/js/ReaderApp.jsx:2609`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2609), [`static/js/ReaderApp.jsx:2574`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2574), [`sefaria/utils/chatbot.py`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/utils/chatbot.py), [`static/js/ReaderApp.jsx:2573`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2573), [`sefaria/system/context_processors.py:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/system/context_processors.py#L1), [`static/js/ReaderApp.jsx:2608`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2608)
 
@@ -11541,6 +11572,8 @@ Source: `inv_01_urls_routing.md#1.3`
 - If a domain switch is needed, next becomes absolute on the target domain plus set-language-cookie.
 - Header links use NextRedirectAnchor -> window.location.href = /interface/<lang>?next=<encoded current path> (DropdownMenu.jsx:39-54, Header.jsx:599-607).
 - Rebuild: GET /interface/english|hebrew?next=<path> sets the interfaceLang cookie (1 year, Lax) and 302s to next. next must be a path on this site (a '//host', backslash or absolute URL falls back to '/'): the old route's open-redirect exposure is not copied.
+- FIXED 2026-11-10 (wave 4, v-security nit 5; owner decision 2026-11-10: the cookie exactly as legacy): interfaceLang=<lang>; Domain=<get_cookie_domain of the host's language, or of all languages on an unpinned host>; Path=/ (a session cookie, no SameSite/Secure, as Django's set_cookie; curl on www.sefaria.org and www.sefaria.org.il); host-only on localhost; a stale host-only cookie is expired in the same response so it cannot shadow the domain one. A language on another domain for this module goes there with set-language-cookie (needs_domain_switch). A signed-in switch is passed to Django when pass-through is on, so the profile's interface_language (which outranks the cookie for them) is saved, as the old view does.
+- FIXED 2026-11-11 (wave 4 rework 1): the stale host-only interfaceLang is also expired when the signed-in switch is Django's (the route appends the expiry to Django's answer) and on the arrival host's ?set-language-cookie for signed-out readers (src/server/language-domain.ts). Still open: a signed-in reader's ?set-language-cookie on the arrival host is passed to Django by src/server/site-routing.ts without it (request to that file's owner: wrap it with withHostOnlyLangCookieExpired).
 
 Code: [`reader/views.py:1663-1697`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1663-L1697), [`static/js/common/DropdownMenu.jsx:39-54`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/common/DropdownMenu.jsx#L39-L54), [`static/js/Header.jsx:599-607`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L599-L607)
 
@@ -13172,6 +13205,7 @@ Front-end errors and performance traces are reported to Sentry.
 - RETIRED 2026-11-04 (owner): Sentry is no longer used. The new reader loads no Sentry SDK and sends no errors, traces or replays; CLIENT_SENTRY_DSN is no longer passed to the reader pods. Its removal also ends the browser's /api/remote-config fetch on every page (Sentry was its only reader).
 - BUILT 2026-11-10 (decision D-8; Sentry stays out): a first-party reporter (src/lib/monitoring/error-reporter.ts) beacons window errors, unhandled rejections, React boundary errors (root, route via RouteError, each text panel) and hydration errors to PUBLIC_ERROR_ENDPOINT with navigator.sendBeacon; off when unset. Payload: message and stack (truncated; query strings, fragments and e-mail addresses scrubbed), release (APP_VERSION), route kind, signed-in flag, path without query, user-agent class, sample rate, ms since load. Installed at module load, before hydration (src/lib/monitoring/browser.ts). Path secrets collapsed (src/lib/monitoring/redact-path.ts); a non-Error throw reported by its type only; off for bots; 4xx API answers not reported; sampled per page load (PUBLIC_ERROR_SAMPLE_RATE), at most 10 per page and 30 per session, duplicates once. PUBLIC_ERROR_ENDPOINT must be same-origin. The old track.js window.onerror 'Javascript Errors' UA event is not ported (no UA hits, owner decision 2026-11-10). The receiving endpoint is not built yet (contract in rn-shared/reports/c-observability.md). Tests: src/lib/monitoring/error-reporter.test.ts, e2e/analytics-observability.spec.ts.
 - 2026-11-10: the receiver is built: POST /api/reader-errors (reader/browser_errors.py, Library host only), CSRF-exempt and unauthenticated (a beacon carries no header), 204; 16 KB cap (413), 30 per client address per minute (429), schema-validated (400), unknown fields dropped, query strings and e-mails re-scrubbed, one line on the `reader-browser` logger (JSON for Datadog), no database write, never cookies or the client address. The chart gives the reader pods PUBLIC_ERROR_ENDPOINT=/api/reader-errors and PUBLIC_ERROR_SAMPLE_RATE (values reader.errors). e2e: the second dev server reports to an intercepted path (playwright.config.ts). Tests: reader/tests/reader_errors_api_test.py, e2e/analytics-observability.spec.ts.
+- 2026-11-10 (security S-4): /api/reader-errors' rate limit is keyed on the visitor's address as the Envoy Gateway sets it (X-Original-Forwarded-For, which the gateway overwrites and nginx and Varnish pass on; nginx's X-Real-IP only without the gateway, as behind it that is the gateway pod; REMOTE_ADDR locally), not on CF-Connecting-IP or X-Forwarded-For as sent by the client. CF-Connecting-IP is read directly only with the Django setting ORIGIN_LOCKED_TO_CLOUDFLARE = True (off by default). A beacon within its own limit also counts against a cap for everyone together (600 a minute). Tests: reader/tests/reader_errors_rate_limit_test.py.
 
 Code: [`static/js/client.jsx:21`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/client.jsx#L21), [`sefaria/settings_utils.py`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/settings_utils.py)
 

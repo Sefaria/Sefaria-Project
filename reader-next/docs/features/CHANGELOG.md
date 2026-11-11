@@ -4,6 +4,59 @@ The atlas (`features.json`) is the source of truth for the rebuild. Whenever bui
 
 Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader has that the old client did not, so the atlas also describes what we ship.
 
+### 2026-11-10 — wave 4, lane d-shell (shell, static pages, a11y)
+
+- **Library Assistant for signed-out visitors** (parity S3): shown when remote config's `feature.chatbot.anonymous_enabled` is not off,
+  without a token, with Sign up / Log in in its login prompt; not on /login and /register. Still missing vs sefaria.org: the phone sheet
+  and menu row, the search no-results pointer. (AI-003, AI-011)
+- **Static pages start where they do on sefaria.org** (parity S12): 60px higher, build-time CSS only. (STA-001)
+- **/mobile, /educators, English /ways-to-give need no Django content mode** (exits F-9). (STA-008, STA-012)
+- **Hebrew-interface category descriptions 17.08px / 24px** (parity S12b); library pages mark `dir` with `lang` (a11y N7). (LIB-001, LIB-008)
+- **interfaceLang cookie exactly as legacy** (security nit 5): `Domain` per host from DOMAIN_MODULES, session cookie, a stale host-only
+  cookie expired; cross-domain switch with `set-language-cookie`; signed-in switches go to Django (profile). (RTE-034)
+- **Accessibility**: phone menu opened from the text panel takes focus (S6); Sort & filter dialog returns focus (S7); no page scroll on
+  /topics Hebrew at 320px and /updates at 200% (S8); /calendars h1 (N1); one `<main>` on /updates and static pages (N2); topic card
+  links underlined (N3); header menus close when focus leaves (N9). (GUI-011, SRC-063, TOP-003, LIB-022, CAL-001, STA-001, TOP-012, I18-007)
+- **Dictionary editor** sanitises the stored entry before editing (security nit 3). (CON-072)
+- **Rework round 1**: the stale host-only `interfaceLang` is expired on the signed-in switch and on the arrival host's
+  `set-language-cookie`; the dictionary editor keeps `<big>` and raster `data:` images (never SVG); the Library Assistant only in the
+  Library (never on the Voices host) and not on a password reset, as legacy. (RTE-034, CON-072, AI-011)
+
+## 2026-11-10 — wave 4, lane b-surface: reading surface parity and keyboard behaviour
+
+### Corrected (verified on www.sefaria.org the same day)
+
+- **TXD-054 / TXD-056** First screen of a section opened with no verse: the column opens scrolled past its top strip, the section's title at the top of the text, and stays so while the previous section loads above (Psalms 23 opened on the end of Psalm 22; Genesis 1 showed the book-title strip). _Verified._
+- **TXD-034** Stacked bilingual spacing: 10px Hebrew to English, 20px to the next verse, Hebrew right-aligned, the enlarged first letter at line-height 1.2 (Genesis 1:1 is 88px as live, was 107px). _Verified._
+- **TXD-046** Phone continuous gutter: numbers and dots 4px from the screen's edges; colliding numbers step inwards where outwards would leave the page. No sideways scroll at 320-414px. _Verified._
+- **TXD-011** Section headings: daf "ב׳ א" (not "ב."); complex books show their nodes without the book title ("Bereshit, Chapter 1", "Weekday, Shacharit, …"); other simple books "Chapter 1" / "Siman 1". _Verified._
+
+### Built
+
+- **SHL-071** With the sidebar open, Escape closes the sidebar only (it closed the panel and went to /texts). Recorded difference: from a verse with the sidebar open legacy closes both.
+- **I18-003** Focus returns to the verse when the sidebar closes, and to the panel beside when one of several closes (status → done).
+- **I18-005** A polite live region names the section the reader has moved into, once per section.
+- **I18-013** Hebrew accessible names for the text panel's bar, its section regions and verse groups in the Hebrew interface.
+- **SHL-017** Tab wraps inside the Text display options menu.
+
+### 2026-11-10 — wave 4, lane e-platform (security and exits fixes)
+
+- **Chart: no mutable reader image.** With `nodejs.mode` `optin` or `reader`, `helm template` now refuses a reader image tagged `latest`
+  (or untagged) unless `reader.allowMutableImage: true` (dev environments and cauldrons only). `legacy` renders exactly as before.
+  CI: only the branch named `master` (or `prod`/`preprod`) writes those image names; `tj-actions/branch-names` pinned to v9.0.2 by
+  commit, and the branch name reaches the shell through `env:` only. (security S-1, nit 1)
+- **Translations server function** takes only the languages the page has and keeps a bounded cache — LIB-021. (S-2)
+- **Dependencies:** seroval 1.6.11, zod 4.6.6, vite 8.3.3 (published advisories; lockfile-only patch bumps). (S-3)
+- **Error beacons' rate limit** keyed on nginx's address, with a cap for everyone together — ANL-017. (S-4)
+- **DEPLOYMENT.md:** the opt-in cookie is open to anyone (accepted for L0); `reader.optin.enabled: false` is the server-side kill
+  switch. (S-5)
+- **Exits allowlist:** `/add/…` needs `?next=`; `/admin/reset/…` only the book page's own form; `updates-about-sidebar` removed;
+  `/community` and `/dedication/<slug>` cite the owner's decision; a dated entry for revision history (`/activity/<ref>/<lang>/<version>`)
+  until the reader-next Django is deployed. (exits F-1, F-3, F-8)
+- Dev tools: the API cassette and the dev room server listen on loopback only and the cassette no longer reflects any Origin with
+  credentials; the staging relay no longer allows localhost; the vendored toolkit's local patches are listed
+  (`vendor/sefaria-toolkit/LOCAL_PATCHES.md`). (nits 2, 4, 7)
+
 ## 2026-11-10 — the sidebar against sefaria.org (wave 4, lane c-sidebar)
 
 ### Fixed
