@@ -177,12 +177,6 @@
     ]
   },
   "lang-with-dir": {
-    "src/ui/CategoryPage/CategoryPage.tsx": [
-      "5 element(s)"
-    ],
-    "src/ui/LibraryHome/LibraryHome.tsx": [
-      "3 element(s)"
-    ],
     "src/ui/NavSidebar/NavSidebar.tsx": [
       "1 element(s)"
     ],

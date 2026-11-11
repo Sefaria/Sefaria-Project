@@ -274,3 +274,11 @@ test.describe("the landing page in the Hebrew interface on a phone", () => {
     expect(await featured.locator("h3 + div > span").first().evaluate((e) => getComputedStyle(e).fontFamily)).toMatch(/Taamey Frank/);
   });
 });
+
+// @feature TOP-012 — v-a11y N3 (axe link-in-text-block): a link in a card's description is underlined, not told apart by colour alone
+test("topic card description links are underlined", async ({ page }) => {
+  await open(page, "/topics/category/torah-portions");
+  const links = page.locator('[class*="_cardDescription_"] a');
+  await expect(links.first()).toBeVisible();
+  expect(await links.evaluateAll((as) => [...new Set(as.map((a) => getComputedStyle(a).textDecorationLine))])).toEqual(["underline"]);
+});

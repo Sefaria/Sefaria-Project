@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { sanitizeHtml } from "~/lib/html/sanitize";
+import { editableHtml } from "./editable-html";
 import styles from "./LexiconEditView.module.css";
 
 /** What a stored entry's markup uses (LexiconWysiwygValue's display allowlist); `a` keeps its ref attributes. */
@@ -27,8 +28,8 @@ const closestLink = (node: Node | null) => (node instanceof Element ? node : nod
 /**
  * One string of a dictionary entry, as the old WysiwygValueNode: shown as rendered HTML (click to edit); editing is a
  * contentEditable box with Bold, Italic, Superscript, Subscript and "Ref" (a Sefaria ref link with its own display text,
- * `<a class="refLink" data-ref href>`), and Cancel, which puts the field back. The stored value is edited as it is —
- * sanitizing happens on save, on the server (LexiconEntry._sanitize).
+ * `<a class="refLink" data-ref href>`), and Cancel, which puts the field back. The stored value is put in the box sanitised
+ * (editableHtml), and sanitised again on save, on the server (LexiconEntry._sanitize).
  *
  * @feature CON-072 Edit a dictionary entry (moderator)
  */
@@ -41,7 +42,7 @@ export function WysiwygField({ value, onChange, resolveRef, label }: WysiwygFiel
   useEffect(() => {
     if (!editing || !box.current) return;
     before.current = value;
-    box.current.innerHTML = value;
+    box.current.innerHTML = editableHtml(value);
     box.current.focus();
     // Enter inserts <br> (the only break the server keeps), not a new block
     document.execCommand?.("defaultParagraphSeparator", false, "br");

@@ -148,7 +148,7 @@ test("the sidebar: About Learning Schedules, Stay Connected, Support Sefaria, th
   await expect(side.getByRole("link", { name: "Make a Donation" })).toHaveAttribute("href", "https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=NavSidebar-SupportSefaria");
   await expect(side.getByRole("link", { name: "Privacy Policy" })).toBeVisible();
   // the phone's copy at the top of the page is not shown on a wide screen
-  await expect(page.locator("main > div > div").first().getByRole("heading", { name: "Learning Schedules" })).toBeHidden();
+  await expect(page.locator("main > div > div").first().getByRole("heading", { name: "Learning Schedules", level: 2 })).toBeHidden(); // (the page's own h1, for assistive technology only, has the same name)
   // the arrow and the heart keep the old images' alt texts
   await expect(side.getByRole("img", { name: "Submit" })).toBeVisible();
   await expect(side.getByRole("img", { name: "donation icon" })).toBeVisible();

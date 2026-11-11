@@ -117,6 +117,17 @@ test.describe("static pages in the new shell", () => {
     await expect(content(page).getByPlaceholder("Sign up for Newsletter")).toBeVisible();
   });
 
+  // parity S12: measured on www.sefaria.org at 1280px (2026-11-10, the first visible h1 of #content): /terms and /about 140,
+  // /educators and /mobile 130. The legacy page starts under its fixed 60px header; ours below the header, 60px lower before the fix.
+  test("the page starts where it does on sefaria.org (the content under the header, not 60px below it)", async ({ page }) => {
+    for (const [path, y] of [["/terms", 140], ["/about", 140], ["/educators", 130], ["/mobile", 130]] as const) {
+      await quiet(page);
+      await open(page, path);
+      const box = await content(page).locator("h1:visible").first().boundingBox();
+      expect(Math.round(box!.y), path).toBe(y);
+    }
+  });
+
   test("/linker keeps its bookmarklet; /digitized-by-sefaria lists its texts", async ({ page }) => {
     await open(page, "/linker");
     await expect(content(page).locator('a[href^="javascript:"]')).toHaveCount(1);

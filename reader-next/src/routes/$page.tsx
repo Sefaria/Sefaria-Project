@@ -5,6 +5,7 @@ import { CANONICAL_ORIGIN, SITE_ORIGIN, canonicalUrl } from "~/lib/config";
 import { hebrewSiteOrigin } from "~/lib/routing/site-origins";
 import { pageCanonicalOrigin } from "~/lib/routing/canonical";
 import { loadStaticPage } from "~/lib/static-page/load";
+import { portModel } from "~/lib/static-page/port-model";
 import { rendersStaticPage, staticPageOwner } from "~/lib/static-page/pages";
 import { LEGACY_STATIC_CSS_HREF } from "~/lib/static-page/styles-response";
 
@@ -15,7 +16,8 @@ import { LEGACY_STATIC_CSS_HREF } from "~/lib/static-page/styles-response";
  *
  * Django's content block, title, description and stylesheets are fetched on the server, in the interface language, and rendered in this
  * client's shell (features/static-page); the ports (/mobile, /educators, the English /ways-to-give) render their own markup in the same
- * frame. A page Django does not have is this client's 404; a Django without the content mode (an older deploy) is handed to Django: from the
+ * frame, with their head from lib/static-page/port-model.ts: Django is not asked for them at all (v-exits F-9). A page Django does not
+ * have is this client's 404; for a content page, a Django without the content mode (an older deploy) is handed to Django: from the
  * server by answering 404 (src/server/site-routing.ts then serves Django's page), in the app by loading the page in full.
  *
  * @feature STA-001 Static content pages
@@ -36,6 +38,11 @@ export const Route = createFileRoute("/$page")({
       throw notFound();
     };
     if (owner !== "content" && owner !== "port") return toDjango();
+    const port = owner === "port" ? portModel(params.page, lang) : null;
+    if (port) {
+      await preloadStylesheets([LEGACY_STATIC_CSS_HREF]);
+      return { model: port, owner, canonicalOrigin: await pageCanonicalOrigin() };
+    }
     const result = await loadStaticPage({ data: { page: params.page, lang } });
     if (result.kind === "missing") throw notFound();
     if (result.kind === "unsupported") return toDjango();

@@ -114,14 +114,24 @@ export function MobileFilterPanel({ title, onClose, children }: { title: ReactNo
   const he = useInterfaceLang() === "hebrew";
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  const close = useRef(onClose);
+  close.current = onClose;
+  // once, while it is open: focus moves in, and when it closes (Escape, ×, Show Results) goes back to what opened it — the "Sort &
+  // filter results" button (v-a11y S7: it was left on <body>). The latest onClose is read through a ref, so a re-render (a filter
+  // ticked) does not pull focus back to the panel.
   useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
     ref.current?.focus();
-    const key = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const key = (e: KeyboardEvent) => e.key === "Escape" && close.current();
     document.addEventListener("keydown", key);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", key); document.body.style.overflow = prev; };
-  }, [onClose]);
+    return () => {
+      document.removeEventListener("keydown", key);
+      document.body.style.overflow = prev;
+      if (opener?.isConnected) opener.focus();
+    };
+  }, []);
   return (
     <div ref={ref} tabIndex={-1} className={styles.panel} role="dialog" aria-modal="true" aria-labelledby={titleId} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
       <div className={styles.panelBar}>

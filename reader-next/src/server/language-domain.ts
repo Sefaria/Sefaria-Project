@@ -93,6 +93,22 @@ export function cookieDomain(lang: Lang, modules: DomainModules | null): string 
 }
 
 /**
+ * Expires a host-only `interfaceLang` (rework round 1 of wave 4). An earlier version of this client set the cookie without a Domain;
+ * the browser then sends both it and the domain cookie Django sets, and every parser here and in Django keeps the last, which is the
+ * stale host-only one (cookies of one path are ordered by creation, and replacing a cookie keeps its creation time): the switch looks
+ * stuck. Sent with every response that sets the domain cookie; it never touches the domain cookie (another cookie: no Domain).
+ */
+export const EXPIRE_HOST_ONLY_LANG_COOKIE = "interfaceLang=; Max-Age=0; Path=/";
+
+/** `res` with the stale host-only cookie expired too, when the cookie is set on a domain from this host (else unchanged). */
+export function withHostOnlyLangCookieExpired(res: Response, domain: string | undefined): Response {
+  if (!domain) return res;
+  const headers = new Headers(res.headers);
+  headers.append("set-cookie", EXPIRE_HOST_ONLY_LANG_COOKIE);
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+}
+
+/**
  * Django's LocaleMiddleware (get_language_from_request) for LANGUAGES = (en, he): the `django_language` cookie when it names a supported
  * language, else the Accept-Language entries by quality — "*" ends the search, "he-IL" / "en-US" match through their generic code
  * (get_supported_language_variant), anything else ("iw", "fr") is skipped — else LANGUAGE_CODE, "en".
@@ -173,12 +189,14 @@ export function languageDomainAnswer(req: LanguageRequest, modules: DomainModule
       const domain = cookieDomain(pinned, modules);
       return new Response(null, {
         status: 302,
-        headers: {
-          location,
-          "set-cookie": `interfaceLang=${pinned}; ${domain ? `Domain=${domain}; ` : ""}Path=/`,
-          "content-type": "text/html; charset=utf-8",
-          "cache-control": "private, no-store",
-        },
+        headers: [
+          ["location", location],
+          // the stale host-only cookie first (another cookie, so the order does not matter), then Django's
+          ...(domain ? [["set-cookie", EXPIRE_HOST_ONLY_LANG_COOKIE] as [string, string]] : []),
+          ["set-cookie", `interfaceLang=${pinned}; ${domain ? `Domain=${domain}; ` : ""}Path=/`],
+          ["content-type", "text/html; charset=utf-8"],
+          ["cache-control", "private, no-store"],
+        ],
       });
     }
   }

@@ -60,9 +60,9 @@ export function assistantBuild(readerVersion: string | null, env: AssistantEnv):
 
 /** What the server says about this reader (GET /api/library-assistant, reader/views.py). */
 export interface AssistantAccess {
-  /** Signed in and the assistant is on for them (their setting, or the old experiments rule). */
+  /** The assistant is on for them: signed in, their setting (or the old experiments rule); signed out, remote config's switch. */
   enabled: boolean;
-  /** The encrypted, short-lived token that names them to the assistant (`user-id`). */
+  /** The encrypted, short-lived token that names them to the assistant (`user-id`); null for a signed-out visitor. */
   userToken: string | null;
   isModerator: boolean;
 }
@@ -72,11 +72,12 @@ export function assistantAttributes(
   access: AssistantAccess,
   build: AssistantBuild,
   env: AssistantEnv,
-  opts: { interfaceLang: "en" | "he"; maxInputChars?: unknown; maxPrompts?: unknown },
+  opts: { interfaceLang: "en" | "he"; maxInputChars?: unknown; maxPrompts?: unknown; anonFreeAnswers?: unknown },
 ): Record<string, string> {
   const num = (v: unknown, fallback: number) => String(typeof v === "number" && v > 0 ? v : fallback);
   return {
-    "user-id": access.userToken ?? "",
+    // a signed-out visitor has no token: the attribute is left off (the old ReaderApp's `user-id={token || undefined}`)
+    ...(access.userToken ? { "user-id": access.userToken } : {}),
     "api-base-url": build.apiBaseUrl,
     origin: env.origin,
     ...(access.isModerator ? { "is-moderator": "true" } : {}),
@@ -86,5 +87,8 @@ export function assistantAttributes(
     "max-input-chars": num(opts.maxInputChars, 10000),
     "max-prompts": num(opts.maxPrompts, 100),
     "interface-lang": opts.interfaceLang,
+    // signed out only: the free answers remote config allows (for the widget's analytics; the chat server enforces it)
+    // (any value remote config holds, as the old `chatbot_anon_free_answers ?? undefined`)
+    ...(!access.userToken && opts.anonFreeAnswers !== undefined && opts.anonFreeAnswers !== null ? { "anon-free-answers": String(opts.anonFreeAnswers) } : {}),
   };
 }

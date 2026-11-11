@@ -10,6 +10,7 @@ import {
   languageDomainAnswer,
   resetLanguageProbes,
   signedInBounce,
+  withHostOnlyLangCookieExpired,
   withLanguageParam,
   type DomainModules,
   type LanguageRequest,
@@ -91,10 +92,11 @@ describe("the language-domain bounce (T-E07)", () => {
     const a = answer(req("https://www.sefaria.org.il/Genesis.1?lang=he&set-language-cookie=")) as Response;
     expect(a.status).toBe(302);
     expect(a.headers.get("location")).toBe("https://www.sefaria.org.il/Genesis.1?lang=he");
-    expect(a.headers.get("set-cookie")).toBe("interfaceLang=hebrew; Domain=.sefaria.org.il; Path=/");
+    // the stale host-only cookie an earlier reader-next left is expired first (rework round 1), then the domain cookie
+    expect(a.headers.getSetCookie()).toEqual(["interfaceLang=; Max-Age=0; Path=/", "interfaceLang=hebrew; Domain=.sefaria.org.il; Path=/"]);
     const b = answer(req("https://www.sefaria.org/texts?set-language-cookie")) as Response;
     expect(b.headers.get("location")).toBe("https://www.sefaria.org/texts");
-    expect(b.headers.get("set-cookie")).toBe("interfaceLang=english; Domain=.sefaria.org; Path=/");
+    expect(b.headers.getSetCookie()).toEqual(["interfaceLang=; Max-Age=0; Path=/", "interfaceLang=english; Domain=.sefaria.org; Path=/"]);
     // signed in, Django also saves it in the profile: theirs
     expect(answer(req("https://www.sefaria.org.il/texts?set-language-cookie=", { signedIn: true }))).toBe("django");
   });
@@ -169,5 +171,20 @@ describe("a signed-in reader: Django's middleware is asked with a probe", () => 
     expect(bounceFromProbe(new Response(null, { status: 302, headers: { location: "https://www.sefaria.org.il/people?set-language-cookie=" } }), u)).toBe("https://www.sefaria.org.il/x?a=1&set-language-cookie=");
     expect(bounceFromProbe(new Response(null, { status: 301, headers: { location: "/topics/category/authors" } }), u)).toBeNull();
     expect(bounceFromProbe(new Response("", { status: 200 }), u)).toBeNull();
+  });
+});
+
+// wave 4 rework round 1: a response that sets the domain cookie also expires a stale host-only one (never on a host-only setup)
+describe("withHostOnlyLangCookieExpired", () => {
+  it("appends the expiry, keeping the status, the location and Django's own cookie", () => {
+    const django = new Response(null, { status: 302, headers: [["location", "/texts"], ["set-cookie", "interfaceLang=hebrew; Domain=.sefaria.org; Path=/"]] });
+    const r = withHostOnlyLangCookieExpired(django, ".sefaria.org");
+    expect(r.status).toBe(302);
+    expect(r.headers.get("location")).toBe("/texts");
+    expect(r.headers.getSetCookie()).toEqual(["interfaceLang=hebrew; Domain=.sefaria.org; Path=/", "interfaceLang=; Max-Age=0; Path=/"]);
+  });
+  it("no domain (localhost): unchanged", () => {
+    const res = new Response("x");
+    expect(withHostOnlyLangCookieExpired(res, undefined)).toBe(res);
   });
 });
