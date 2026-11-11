@@ -9,10 +9,12 @@ import { authError, postJson } from './utils.js';
 /**
  * Shown whenever the reset-confirm link is (or turns out to be) invalid —
  * expired, already used, or malformed — either from the initial page load
- * or discovered mid-session when ResetView's submit fails. One click resends
- * a new link to the account's existing email (no email field): dispatch()
- * already resolves the account from the URL's uid before checking the token
- * itself, so it's known even though the link has expired.
+ * or discovered mid-session when ResetView's submit fails. One click asks for
+ * a new link to the account's existing email (no email field): it posts to this
+ * page's own address, whose token lets the server confirm the link was real and
+ * only too old. The server mails a new link only in that case (and at most a few
+ * times an hour) and answers the same either way, so the next card must not
+ * promise an email.
  */
 const ResetExpiredView = ({ csrf, onResendSuccess, onRequestNewLink }) => {
   const [noAccountForLink, setNoAccountForLink] = useState(false);
