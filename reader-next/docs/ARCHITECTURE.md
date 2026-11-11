@@ -50,6 +50,21 @@ vendor/sefaria-toolkit/   Vendored snapshot of sefaria-frontend-toolkit (now Sef
 fixtures/api/        Recorded real API responses per book type (unit tests never hit the network)
 ```
 
+### Enforced rules
+
+`test/architecture/architecture.test.ts` checks these on every unit run (rules in `test/architecture/rules.ts`). Violations that
+existed when a rule was added are listed in `test/architecture/baseline.json` and tolerated; a new one fails, and a fixed one must
+leave the baseline (`node scripts/architecture-baseline.mjs`), so the list only shrinks.
+
+| Rule                    | What it means                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| `adapter-boundary`      | Only `src/lib` adapters see API response shapes; features, routes and `src/ui` get the reader's types. |
+| `ui-boundary`           | `src/ui` never reads settings, the router, config, analytics, the API or features: it receives props.  |
+| `url-through-router`    | Every URL change goes through the router, never `history.replaceState`/`pushState`.                    |
+| `literal-colours`       | Every colour is a token with light and dark values (`src/ui/tokens/tokens.css`).                       |
+| `writes-through-helper` | Every write to Django goes through `src/lib/auth/http.ts` (session cookie and CSRF).                   |
+| `lang-with-dir`         | An element that sets `lang` sets `dir` too (`src/ui/LangText`).                                        |
+
 ## Library cache
 
 The cache engine is TanStack Query. On top of it sits a small domain layer (`src/lib/cache`).

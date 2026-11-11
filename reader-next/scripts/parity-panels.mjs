@@ -1,4 +1,4 @@
-// Multi-panel parity: the same clicks on www.sefaria.org and on this client (docs/MULTIPANEL_PLAN.md, Step 0).
+// Multi-panel parity: the same clicks on www.sefaria.org and on this client (scenarios below).
 //   node scripts/parity-panels.mjs [scenario …] [--base=http://localhost:3100]
 // After every step it compares: the address (decoded), the boxes on screen in order (a text panel's column, a sidebar) with their
 // widths (±4px), and which boxes are sidebars. The live site is the reference; our side is expected to equal it.
