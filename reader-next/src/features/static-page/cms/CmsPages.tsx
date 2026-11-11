@@ -89,7 +89,6 @@ export function TeamMembersView({ state }: { state: CmsState<Team> }) {
   );
 }
 
-
 /* ------------------------------------------------------------ products */
 
 /** The old productsAnalytics: `products_clicked` with the product's rank, name and the link's text. */
@@ -170,7 +169,7 @@ function ProductEntry({ product }: { product: Product }) {
         </div>
         {/* the description's links are the CMS's; a click on one is counted, as on the old page */}
         <div className="productDescWrapper" onClick={onDescClick}>
-          <span className={langClass(product.description, hebrew)} dangerouslySetInnerHTML={{ __html: `<div class="reactMarkdown">${inlineMarkdownToHtml(pick(product.description, hebrew))}</div>` }} />
+          <span className={langClass(product.description, hebrew)} dangerouslySetInnerHTML={{ __html: `<div class="reactMarkdown">${inlineMarkdownToHtml(pick(product.description, hebrew), false, { newTab: false })}</div>` }} />
         </div>
       </div>
     </div>
@@ -201,7 +200,6 @@ export function ProductsView({ state }: { state: CmsState<Product[]> }) {
     </>
   );
 }
-
 
 /* ---------------------------------------------------------------- jobs */
 
