@@ -187,7 +187,7 @@ describe("display menu availability (inv_02 §7)", () => {
   });
 });
 
-// v-parity B1: legacy sefaria/system/middleware.py:194, default_content_lang = "hebrew" if interface == "hebrew" else "bilingual"
+// As legacy sefaria/system/middleware.py:194: default_content_lang = "hebrew" if interface == "hebrew" else "bilingual"
 describe("the text language a reader has not chosen follows the interface", () => {
   // @feature I18-001
   it("Hebrew interface, no choice: Hebrew", () => {

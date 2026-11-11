@@ -16,7 +16,7 @@ import { LEGACY_STATIC_CSS_HREF } from "~/lib/static-page/styles-response";
  *
  * Django's content block, title, description and stylesheets are fetched on the server, in the interface language, and rendered in this
  * client's shell (features/static-page); the ports (/mobile, /educators, the English /ways-to-give) render their own markup in the same
- * frame, with their head from lib/static-page/port-model.ts: Django is not asked for them at all (v-exits F-9). A page Django does not
+ * frame, with their head from lib/static-page/port-model.ts: Django is not asked for them at all. A page Django does not
  * have is this client's 404; for a content page, a Django without the content mode (an older deploy) is handed to Django: from the
  * server by answering 404 (src/server/site-routing.ts then serves Django's page), in the app by loading the page in full.
  *

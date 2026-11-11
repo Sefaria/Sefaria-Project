@@ -94,7 +94,7 @@ export function metaFromPassage(p: TextPassage): BookMeta {
  * Where a ref above section level that names no section (a complex text's node: "Arukh HaShulchan, Orach Chaim") opens: its first
  * available section, from the small `/api/ref` answer (Django's RefView: `navigation_refs.first_available_section_ref`), as legacy's
  * server does (reader/views.py first_available_section_ref). Asking the texts API for the node itself downloads the whole node
- * (5.9 MB in 13.5 s for Orach Chaim: past the server's deadline, a 503; v-exits F-4). Null when the API knows no such ref.
+ * (5.9 MB in 13.5 s for Orach Chaim: past the server's deadline, a 503). Null when the API knows no such ref.
  */
 export async function fetchFirstSection(ref: string, signal?: AbortSignal): Promise<string | null> {
   const r = await globalThis.fetch(`${SEFARIA_API_ORIGIN}/api/ref/${encodeURIComponent(ref)}`, { signal });

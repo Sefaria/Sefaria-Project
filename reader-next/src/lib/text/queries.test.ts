@@ -218,7 +218,7 @@ describe("a stale cached section never blocks a navigation", () => {
   });
 });
 
-// v-exits F-4: a complex text's node address (/Arukh_HaShulchan,_Orach_Chaim) answered 503: the whole node (5.9 MB) was asked for
+// Regression: a complex text's node address (/Arukh_HaShulchan,_Orach_Chaim) answered 503: the whole node (5.9 MB) was asked for
 describe("a node address with no section", () => {
   // @feature TXT-023
   it("opens the node's first available section from /api/ref, never downloading the node", async () => {

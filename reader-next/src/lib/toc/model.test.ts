@@ -112,7 +112,7 @@ describe("deep and zoomed arrays (ported rules; synthetic records: no recorded b
   });
 });
 
-// v-exits F-5: SSR `TypeError: counts.forEach is not a function` (jaggedSection) from the book page. The input: a node three levels
+// Regression: SSR `TypeError: counts.forEach is not a function` (jaggedSection) from the book page. The input: a node three levels
 // deep whose counts stop short of its depth, a number where a level of sections is expected: a node with no content counts (countsOf
 // falls back to `lengths`, one 1 per top section), or ragged counts.
 describe("counts shallower than the node's depth", () => {

@@ -12,7 +12,7 @@ import type { VersionMeta } from "~/lib/text/model";
 import { versionsQueryOptions } from "~/lib/versions/book-versions";
 import { refToUrl, urlToRef } from "~/lib/ref/url";
 import { ErrorState } from "~/ui/Feedback/Feedback";
-// each page kind's stylesheets, linked in the server-rendered head (vite-plugins/page-kind-css.ts, v-exits F-2)
+// each page kind's stylesheets, linked in the server-rendered head (vite-plugins/page-kind-css.ts)
 import pageKindCss from "virtual:page-kind-css";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { notFoundTitle, readerPageTitle, type TitleLang } from "~/lib/reader/page-title";

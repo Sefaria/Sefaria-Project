@@ -1,5 +1,5 @@
 /**
- * The stylesheets of each page kind's chunk, for the server-rendered head (v-exits F-2).
+ * The stylesheets of each page kind's chunk, for the server-rendered head.
  *
  * The `$` route renders two kinds of page, each its own dynamically imported chunk (src/features/reader/page-kinds.tsx, T-H03).
  * TanStack Start's route manifest lists the CSS of a route's static imports only, so the reader's own stylesheet (the Workspace

@@ -4,7 +4,7 @@ import { pageKindCss, type BundleChunk } from "../../vite-plugins/page-kind-css"
 /** A client bundle's chunks as Rollup hands them to generateBundle (the parts the plugin reads). */
 const chunk = (fileName: string, facadeModuleId: string | null, imports: string[], css: string[]): BundleChunk => ({ type: "chunk", fileName, facadeModuleId, imports, viteMetadata: { importedCss: new Set(css) } });
 
-// v-exits F-2: the reader's own stylesheet (the Workspace chunk) was not in the server-rendered head
+// Regression: the reader's own stylesheet (the Workspace chunk) was not in the server-rendered head
 describe("each page kind's stylesheets, from the client bundle", () => {
   const bundle: Record<string, BundleChunk> = {
     "assets/Workspace-a.js": chunk("assets/Workspace-a.js", "/repo/reader-next/src/features/workspace/Workspace.tsx", ["assets/SearchPage-b.js", "assets/shared-c.js"], ["assets/Workspace-CKvE1TEM.css"]),
