@@ -26,6 +26,17 @@ data:
 
     loglevel = "warning"
     preload_app = True
+
+    # Redacts api_key query parameters from the access log (request line, query string, referer).
+    # This ConfigMap is shared by every image the chart can run, and an image built before the module existed would
+    # crash-loop on an unknown logger class. So the class is set only when the module file is on disk in the app
+    # directory (the container's working directory, /app), without importing sefaria, and the check can never raise.
+    # An older image keeps gunicorn's default logger.
+    try:
+        if os.path.exists(os.path.join(os.getcwd(), "sefaria", "system", "gunicorn_logger.py")):
+            logger_class = "sefaria.system.gunicorn_logger.ScrubbingLogger"
+    except Exception:
+        pass
     
     # Gunicorn worker restart policy (infreq restarts, protect from leaks)
     if os.getenv("MAX_REQUESTS") and os.getenv("MAX_REQUESTS_JITTER"):

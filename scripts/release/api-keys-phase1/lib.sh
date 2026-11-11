@@ -1,0 +1,446 @@
+# shellcheck shell=bash
+# Shared helpers for the API keys phase 1 release scripts. Sourced, never run.
+#
+# Every kubectl and helm call names its context explicitly (never the current context), and the
+# context must match the environment-to-cluster table below. Nothing here prints a Secret value or a
+# full API key.
+
+set -euo pipefail
+
+if ((BASH_VERSINFO[0] < 4)); then
+  echo "ERROR: bash 4 or newer is required (macOS: brew install bash)" >&2
+  exit 1
+fi
+
+RELEASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RELEASE_PY="${RELEASE_DIR}/release_lib.py"
+PYTHON="${APIKEYS_RELEASE_PYTHON3:-python3}"
+
+# Environment table. Sources: envs/<env>/helmrelease.yaml (names, namespaces, postgres.host/db),
+# the infrastructure repo (prod/cluster-1/spec/{preprod,prod}/*-repo.yaml, dev/cluster-1/spec/staging/staging-repo.yaml,
+# prod/cluster-1/spec/postgres-18/statefulset.yaml) and the wiki runbooks (cluster context names).
+PROD_CONTEXT="gke_production-deployment_us-east1-b_cluster-1"
+DEV_CONTEXT="gke_development-205018_us-east1-b_cluster-1"
+
+# code_migrations REPO REF: app<TAB>migration of every Django migration at REF, as preflight's pending check reads it.
+code_migrations() {
+  git -C "$1" ls-tree -r --name-only "$2" | { grep '/migrations/' || true; } | "$PYTHON" "$RELEASE_PY" migrations-from-paths
+}
+
+# refuse_tracked_dir DIR: dies when DIR (it may not exist yet) is inside a git work tree and not git-ignored there, so a
+# `git add .` cannot pick up what is written into it (a snapshot holds a dump of the database).
+refuse_tracked_dir() {
+  local dir="$1" probe top
+  [[ "$dir" == /* ]] || dir="$PWD/$dir"
+  probe="$dir"
+  while [[ ! -d "$probe" ]]; do probe="$(dirname "$probe")"; done
+  top="$(git -C "$probe" rev-parse --show-toplevel 2>/dev/null)" || return 0
+  if git -C "$probe" check-ignore -q "$dir/x" 2>/dev/null; then
+    return 0
+  fi
+  die "$dir is inside the git work tree $top and is not git-ignored; use a directory outside the checkout (the default is \$HOME/.local/state/api-keys-phase1-snapshots) or git-ignore this one"
+}
+
+env_known() { [[ "$1" == staging || "$1" == preprod || "$1" == prod ]]; }
+
+env_context() {
+  case "$1" in
+    staging) echo "$DEV_CONTEXT" ;;
+    preprod | prod) echo "$PROD_CONTEXT" ;;
+  esac
+}
+env_namespace() {
+  case "$1" in
+    staging | prod) echo default ;;
+    preprod) echo preprod ;;
+  esac
+}
+# HelmRelease name, which is also the chart's deployEnv (pod label app=web-<deployEnv>, Rollout <deployEnv>-web).
+env_hr() {
+  case "$1" in
+    staging) echo sefariastaging ;;
+    preprod) echo preprod ;;
+    prod) echo production ;;
+  esac
+}
+env_db() {
+  case "$1" in
+    staging) echo sefariastaging ;;
+    preprod | prod) echo sefaria_auth ;;
+  esac
+}
+# The branch whose push deploys the env (deploy-static.yaml).
+env_branch() {
+  case "$1" in
+    staging) echo master ;;
+    preprod) echo preprod ;;
+    prod) echo prod ;;
+  esac
+}
+# Flux GitRepository (namespace/name) that pins the env to a release tag of this repo.
+env_gitrepo() {
+  case "$1" in
+    staging) echo default/sefaria-project-staging ;;
+    preprod) echo preprod/sefaria-project-preprod ;;
+    prod) echo default/sefaria-project-prod ;;
+  esac
+}
+# Envs whose web pods use the same database: preprod and prod both use sefaria_auth on postgres-18.default.
+env_sharing() {
+  case "$1" in
+    staging) echo staging ;;
+    preprod | prod) echo "preprod prod" ;;
+  esac
+}
+
+# The Postgres StatefulSet pod. Prod: prod/cluster-1/spec/postgres-18/statefulset.yaml. Staging (dev cluster) is
+# assumed to follow the same layout; override with --pg-pod / --pg-namespace / --pg-container if it does not.
+PG_POD="${PG_POD:-postgres-18-0}"
+PG_NS="${PG_NS:-default}"
+PG_CONTAINER="${PG_CONTAINER:-postgres-18}"
+
+# Phase 1 objects in sefaria_auth, and the scope of a scoped restore: every powered_by_* table plus these.
+PHASE1_EXTRA_TABLES="api_project api_tier api_tier_meter_limit api_key_project_remap"
+PHASE1_MIGRATIONS="0003_developer_settings 0004_api_key_notify_triggers 0005_api_key_origins_strings 0006_api_project_schema 0007_api_project_backfill 0008_api_key_project_triggers_grants 0009_cleanup_abandoned_project_limits 0010_seed_mcp_tier"
+READER_ROLE="auth_service_reader"
+
+log() { printf '%s\n' "$*" >&2; }
+die() {
+  printf 'ERROR: %s\n' "$*" >&2
+  exit 1
+}
+step() { printf '\n== %s\n' "$*" >&2; }
+
+# Prints a command; runs it only when EXECUTE=1.
+run() {
+  printf '+ %s\n' "$(printf '%q ' "$@")" >&2
+  if [[ "${EXECUTE:-0}" == 1 ]]; then
+    "$@"
+  fi
+}
+
+need() {
+  local tool
+  for tool in "$@"; do
+    command -v "$tool" >/dev/null 2>&1 || die "$tool is required and was not found on PATH"
+  done
+}
+
+# Refuses a context that does not belong to the environment. APIKEYS_RELEASE_TEST_CONTEXT lets the kind test suite
+# stand in for every cluster, and only a kind- context is accepted there, so the override cannot redirect a real env
+# at the wrong real cluster.
+check_context() {
+  local env="$1" ctx="$2" expected
+  env_known "$env" || die "unknown env '$env' (staging, preprod or prod)"
+  [[ -n "$ctx" ]] || die "--context is required (expected $(env_context "$env") for $env)"
+  expected="$(env_context "$env")"
+  if [[ -n "${APIKEYS_RELEASE_TEST_CONTEXT:-}" ]]; then
+    [[ "$APIKEYS_RELEASE_TEST_CONTEXT" == kind-* ]] || die "APIKEYS_RELEASE_TEST_CONTEXT must name a kind- context"
+    expected="$APIKEYS_RELEASE_TEST_CONTEXT"
+  fi
+  [[ "$ctx" == "$expected" ]] || die "context '$ctx' is not the cluster of $env (expected '$expected'); refusing"
+  kubectl config get-contexts -o name 2>/dev/null | grep -qxF "$ctx" || die "context '$ctx' is not in your kubeconfig"
+}
+
+kc() { kubectl --context "$CTX" "$@"; }
+
+# psql inside the Postgres pod as the container's superuser (POSTGRES_USER), over the local socket.
+# pg_ro forces a read-only session; pg_rw is only used by restore.sh db --scoped --execute. Stdin is forwarded only
+# when no -c is given (SQL on stdin), so a -c query never swallows the script's own stdin (the typed confirmation).
+_pg_exec() {
+  local mode="$1" db="$2" stdin_flag=-i a
+  shift 2
+  for a in "$@"; do [[ "$a" == -c ]] && stdin_flag=""; done
+  # shellcheck disable=SC2016
+  kc -n "$PG_NS" exec $stdin_flag "$PG_POD" -c "$PG_CONTAINER" -- sh -c \
+    'mode="$1"; db="$2"; u="${3:-${POSTGRES_USER:-postgres}}"; shift 3
+     if [ "$mode" = ro ]; then export PGOPTIONS="-c default_transaction_read_only=on"; fi
+     exec psql -X -q -v ON_ERROR_STOP=1 -U "$u" -d "$db" "$@"' \
+    sh "$mode" "$db" "${PG_USER:-}" "$@"
+}
+pg_ro() { _pg_exec ro "$@"; }
+pg_rw() { _pg_exec rw "$@"; }
+pg_dump_pod() {
+  local db="$1"
+  shift
+  kc -n "$PG_NS" exec "$PG_POD" -c "$PG_CONTAINER" -- sh -c \
+    'db="$1"; u="${2:-${POSTGRES_USER:-postgres}}"; shift 2; exec pg_dump -U "$u" "$@" "$db"' \
+    sh "$db" "${PG_USER:-}" "$@"
+}
+
+# pg_restore on a local file: a local pg_restore 18+, else the postgres:18 image through docker. The dump is fed on
+# stdin, so no mount is needed.
+pg_restore_local() {
+  local file="$1"
+  shift
+  local v
+  if command -v pg_restore >/dev/null 2>&1; then
+    v="$(pg_restore --version | sed -E 's/[^0-9]*([0-9]+).*/\1/')"
+    if [[ "$v" -ge 18 ]]; then
+      pg_restore "$@" <"$file"
+      return
+    fi
+  fi
+  command -v docker >/dev/null 2>&1 || die "pg_restore 18+ or docker is required to read dumps"
+  docker run --rm -i "${APIKEYS_RELEASE_PG_IMAGE:-postgres:18}" pg_restore "$@" <"$file"
+}
+
+sha256_of() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  else
+    shasum -a 256 "$1" | awk '{print $1}'
+  fi
+}
+
+# SQL: the tables a scoped restore owns, one per line.
+scoped_tables_sql() {
+  local extra="" t
+  for t in $PHASE1_EXTRA_TABLES; do extra+="'$t',"; done
+  extra="${extra%,}"
+  cat <<SQL
+SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p')
+  AND (c.relname LIKE 'powered\_by\_%' OR c.relname IN ($extra))
+ORDER BY 1;
+SQL
+}
+
+# SQL: count and an order-independent checksum of each named table's rows (table<TAB>count<TAB>md5).
+checksums_sql() {
+  local t sql=""
+  for t in "$@"; do
+    sql+="SELECT '$t', count(*), coalesce(md5(string_agg(h, '' ORDER BY h)), '') FROM (SELECT md5(x::text) AS h FROM public.\"$t\" x) s UNION ALL "
+  done
+  sql+="SELECT '__powered_by_migrations__', count(*), coalesce(md5(string_agg(app || '/' || name || '/' || applied::text, ',' ORDER BY name)), '') FROM public.django_migrations WHERE app = 'powered_by';"
+  printf '%s\n' "$sql"
+}
+
+# SQL: md5 of apikeys_notify()'s definition, or "absent". The function is not part of any table, so the table schema
+# comparison does not see it.
+notify_fn_sql() {
+  echo "SELECT coalesce((SELECT md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public' AND p.proname = 'apikeys_notify'), 'absent');"
+}
+
+# Normalised schema of the named tables (pg_dump --schema-only), comparable across dump and restore.
+scoped_schema() {
+  local db="$1"
+  shift
+  local args=() t
+  for t in "$@"; do args+=(-t "public.\"$t\""); done
+  [[ ${#args[@]} -gt 0 ]] || return 0
+  pg_dump_pod "$db" --schema-only "${args[@]}" | "$PYTHON" "$RELEASE_PY" normalise-schema
+}
+
+# The scoped tables' normalised schema as a restore from the snapshot recreates it. Postgres re-deparses some
+# expressions (a CHECK ... IN list, for one) on every dump and restore, so a restored table never prints exactly like the
+# original. The reference is therefore the snapshot's full dump restored (schema only) into a scratch postgres:18 container
+# and dumped again; cached as db/scoped-schema.roundtrip.sql.
+# Exit status: 0 = printed; 1 = no docker (the caller may compare the weaker canonical form instead); 2 = the round trip
+# was attempted and failed (never fall back to a weaker comparison for that). This function is called inside `if`, where
+# `set -e` does not apply to its body, so every step checks its own status and the build runs in a subshell whose EXIT,
+# INT and TERM traps remove the scratch container on every path. $out.tmp becomes $out only when every step succeeded.
+expected_scoped_schema() {
+  local snap="$1" out="$1/db/scoped-schema.roundtrip.sql"
+  if [[ -s "$out" ]]; then cat "$out"; return 0; fi
+  command -v docker >/dev/null 2>&1 || return 1
+  (build_scoped_schema_roundtrip "$snap" "$out") || { rm -f "$out.tmp"; return 2; }
+  cat "$out"
+}
+
+# The body of expected_scoped_schema; run in a subshell. Exits nonzero (after logging why) on the first failed step.
+build_scoped_schema_roundtrip() {
+  local snap="$1" out="$2" name="apikeys-schema-check-$$" t r full roles dump_err role_err
+  local args=() tables=()
+  # The values are expanded here, not when the trap runs: after a normal return the function's locals are gone.
+  # shellcheck disable=SC2064
+  trap "$(printf 'docker rm -f %q >/dev/null 2>&1 || true; rm -f %q %q' "$name" "$out.tmp" "$out.raw")" EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+  full="$(ls "$snap"/db/*.dump 2>/dev/null | grep -v '/scoped\.dump$' | head -n 1)" || true
+  [[ -n "$full" && -s "$full" ]] || { log "  round trip: no full dump in $snap/db"; exit 1; }
+  [[ -r "$snap/db/scoped-tables.txt" ]] || { log "  round trip: $snap/db/scoped-tables.txt is missing"; exit 1; }
+  while read -r t; do [[ -z "$t" ]] || { args+=(-t "public.\"$t\""); tables+=("$t"); }; done <"$snap/db/scoped-tables.txt"
+  roles="$(pg_restore_local "$full" --schema-only --file=- | "$PYTHON" "$RELEASE_PY" roles-from-sql)" \
+    || { log "  round trip: could not read the roles out of $full"; exit 1; }
+  docker run -d --rm --name "$name" -e POSTGRES_PASSWORD=check "${APIKEYS_RELEASE_PG_IMAGE:-postgres:18}" >/dev/null \
+    || { log "  round trip: could not start the scratch postgres container"; exit 1; }
+  local ready=0 _
+  for _ in $(seq 1 60); do
+    if docker exec "$name" psql -U postgres -Atc 'SELECT 1' >/dev/null 2>&1; then ready=1; break; fi
+    sleep 1
+  done
+  [[ "$ready" == 1 ]] || { log "  round trip: the scratch postgres container was not ready after 60 s"; exit 1; }
+  for r in $roles; do
+    role_err="$(docker exec "$name" psql -q -U postgres -c "CREATE ROLE \"$r\" NOLOGIN" 2>&1 >/dev/null)" \
+      || [[ "$role_err" == *"already exists"* ]] \
+      || { log "  round trip: could not create role $r in the scratch container: $role_err"; exit 1; }
+  done
+  docker exec "$name" createdb -U postgres check || { log "  round trip: createdb failed"; exit 1; }
+  # pg_restore may report errors that do not matter here (ownership, extensions); what matters is that the scoped tables
+  # exist afterwards, and that is checked below against the dump of them.
+  docker exec -i "$name" pg_restore -U postgres -d check --schema-only <"$full" >/dev/null 2>&1 || true
+  if [[ ${#args[@]} -gt 0 ]]; then
+    dump_err="$(mktemp)"
+    docker exec "$name" pg_dump -U postgres --schema-only "${args[@]}" check >"$out.raw" 2>"$dump_err" \
+      || { log "  round trip: pg_dump of the scoped tables failed: $(tail -n 2 "$dump_err" | tr '\n' ' ')"; rm -f "$dump_err" "$out.raw"; exit 1; }
+    rm -f "$dump_err"
+    "$PYTHON" "$RELEASE_PY" normalise-schema <"$out.raw" >"$out.tmp" || { log "  round trip: normalise-schema failed"; rm -f "$out.raw"; exit 1; }
+    rm -f "$out.raw"
+    for t in "${tables[@]}"; do
+      grep -qF -e "CREATE TABLE public.$t " -e "CREATE TABLE public.\"$t\" " "$out.tmp" || { log "  round trip: table $t is not in the restored schema"; exit 1; }
+    done
+  else
+    : >"$out.tmp" || exit 1
+  fi
+  mv "$out.tmp" "$out" || exit 1
+  exit 0
+}
+
+# Compares the live scoped schema (file $2) with the snapshot ($1): exact against the round-tripped reference, or, without
+# docker, the weaker canonical form against the snapshot's original. Prints a diff on mismatch.
+schema_matches() {
+  local snap="$1" live="$2" ref
+  ref="$(mktemp)"
+  if cmp -s "$live" "$snap/db/scoped-schema.sql"; then rm -f "$ref"; return 0; fi
+  local rc=0
+  expected_scoped_schema "$snap" >"$ref" || rc=$?
+  if [[ "$rc" == 0 ]]; then
+    diff -u "$ref" "$live" >&2 && { rm -f "$ref"; return 0; }
+  elif [[ "$rc" == 2 ]]; then
+    log "  the schema round trip failed (see above); not falling back to the weaker comparison"
+  else
+    log "  (no docker: comparing CHECK expressions without casts or parentheses)"
+    diff -u <("$PYTHON" "$RELEASE_PY" canonical-schema <"$snap/db/scoped-schema.sql") <("$PYTHON" "$RELEASE_PY" canonical-schema <"$live") >&2 \
+      && { rm -f "$ref"; return 0; }
+  fi
+  rm -f "$ref"
+  return 1
+}
+
+# Web pods of a deployEnv: name<TAB>phase<TAB>image of the web container.
+web_pods() {
+  local ns="$1" deploy="$2"
+  kc -n "$ns" get pods -l "app=web-${deploy}" -o json | "$PYTHON" "$RELEASE_PY" pod-images
+}
+
+# current_database() as one web pod of the env sees it. A real web pod runs Django (the database name is in its
+# local_settings); a test stand-in has no manage.py and answers through psql and its PG* environment.
+web_current_database() {
+  local ns="$1" pod="$2"
+  kc -n "$ns" exec "$pod" -c web -- sh -c '
+    if [ -f manage.py ]; then
+      python manage.py shell -c "from django.db import connection
+c = connection.cursor(); c.execute(\"SELECT current_database()\"); print(c.fetchone()[0])" 2>/dev/null | tail -n 1
+    else
+      psql -X -Atc "SELECT current_database()"
+    fi'
+}
+
+confirm_env() {
+  local env="$1" answer=""
+  printf 'Type the environment name (%s) to continue: ' "$env" >&2
+  if [[ -t 0 ]]; then
+    read -r answer </dev/tty
+  else
+    read -r answer || true
+  fi
+  [[ "$answer" == "$env" ]] || die "confirmation did not match '$env'; nothing was changed"
+}
+
+# ---------------------------------------------------------------------------------------------------------------
+# One-off web pods (premigrate.sh, preflight.sh --stage promote)
+# ---------------------------------------------------------------------------------------------------------------
+# The environment's live web Rollout, as JSON on stdout; fails when it is missing (the pod spec is copied from it).
+web_rollout_json() {
+  local env="$1"
+  kc -n "$(env_namespace "$env")" get rollouts.argoproj.io "$(env_hr "$env")-web" -o json
+}
+
+# Pods created by run_web_pod that may still exist; the calling script's EXIT/INT/TERM trap calls web_pod_cleanup.
+WEB_PODS_LIVE=()
+# shellcheck disable=SC2034
+LAST_POD_NAME="" # the last pod run_web_pod created
+web_pod_cleanup() {
+  local p
+  for p in "${WEB_PODS_LIVE[@]:-}"; do
+    [[ -n "$p" ]] || continue
+    kc -n "${WEB_PODS_NS:-default}" delete pod "$p" --ignore-not-found --wait=false >/dev/null 2>&1 \
+      || log "WARNING: could not delete pod ${WEB_PODS_NS:-default}/$p; it may still be running. Delete it by hand: kubectl -n ${WEB_PODS_NS:-default} delete pod $p"
+  done
+  WEB_PODS_LIVE=()
+}
+
+# run_web_pod ENV IMAGE_TAG PURPOSE LOGFILE SCRIPT [TIMEOUT_SECONDS]
+# Creates a pod whose spec is copied from ENV's live web Rollout (volumes, env, envFrom, Secrets, serviceAccount,
+# imagePullSecrets; the web container only) with the image tag replaced and SCRIPT (bash) as its command, waits for it
+# to end, saves its log in LOGFILE, deletes it, and returns the container's exit code. 125: the pod could not start
+# (nothing ran); 124: it did not finish in time (the pod is deleted, so the process is gone; what it did is unknown).
+# The pod name is unique (purpose, env, UTC time, random), and its labels never include the web Rollout's app label.
+run_web_pod() {
+  local env="$1" tag="$2" purpose="$3" logfile="$4" script="$5" timeout="${6:-900}"
+  local ns name rollout script_file manifest start phase reason code now
+  ns="$(env_namespace "$env")"
+  WEB_PODS_NS="$ns"
+  name="${purpose}-${env}-$(date -u +%Y%m%d%H%M%S)-${RANDOM}${RANDOM}"
+  LAST_POD_NAME="$name"
+  script_file="$(mktemp)"
+  manifest="$(mktemp)"
+  printf '%s\n' "$script" >"$script_file"
+  if ! rollout="$(web_rollout_json "$env")"; then
+    rm -f "$script_file" "$manifest"
+    log "  could not read the web Rollout $ns/$(env_hr "$env")-web"
+    return 125
+  fi
+  if ! "$PYTHON" "$RELEASE_PY" oneoff-pod --image-tag "$tag" --script-file "$script_file" --name "$name" --namespace "$ns" \
+    --label "${purpose}-${env}" --purpose "$purpose" --deadline "$((timeout + 120))" <<<"$rollout" >"$manifest"; then
+    rm -f "$script_file" "$manifest"
+    log "  could not build the pod from the web Rollout"
+    return 125
+  fi
+  rm -f "$script_file"
+  if ! kc -n "$ns" create -f "$manifest" >/dev/null; then
+    rm -f "$manifest"
+    log "  could not create pod $ns/$name"
+    return 125
+  fi
+  rm -f "$manifest"
+  WEB_PODS_LIVE+=("$name")
+  start="$(date +%s)"
+  code=124
+  while :; do
+    phase="$(kc -n "$ns" get pod "$name" -o jsonpath='{.status.phase}' 2>/dev/null || true)"
+    reason="$(kc -n "$ns" get pod "$name" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}' 2>/dev/null || true)"
+    case "$phase" in
+      Succeeded | Failed)
+        code="$(kc -n "$ns" get pod "$name" -o jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}' 2>/dev/null || true)"
+        [[ -n "$code" ]] || code=125
+        break
+        ;;
+    esac
+    case "$reason" in
+      ImagePullBackOff | ErrImagePull | CreateContainerConfigError | InvalidImageName | CreateContainerError)
+        log "  pod $name cannot start: $reason ($(kc -n "$ns" get pod "$name" -o jsonpath='{.status.containerStatuses[0].state.waiting.message}' 2>/dev/null | head -c 300))"
+        code=125
+        break
+        ;;
+    esac
+    now="$(date +%s)"
+    if ((now - start > timeout)); then
+      log "  pod $name did not finish in ${timeout}s; deleting it"
+      code=124
+      break
+    fi
+    sleep 1
+  done
+  kc -n "$ns" logs "$name" >"$logfile" 2>&1 || log "  WARNING: could not read the log of pod $name ($logfile holds the error)"
+  # run_web_pod is called inside `||`, where set -e does not apply: check the delete. A pod that is not gone stays in
+  # WEB_PODS_LIVE, so the caller's exit trap tries again and names it if that fails too.
+  if kc -n "$ns" delete pod "$name" --ignore-not-found --wait=true --timeout=90s >/dev/null 2>&1; then
+    WEB_PODS_LIVE=("${WEB_PODS_LIVE[@]/$name/}")
+  else
+    log "  WARNING: could not delete pod $ns/$name; it may still be running (the exit trap retries)"
+  fi
+  return "$code"
+}

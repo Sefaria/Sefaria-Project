@@ -129,7 +129,7 @@ export default [
   },
   {
     // Jest test files — need access to the `global` object and `require` for JSDOM setup and JSON imports
-    files: ["**/*.test.{js,jsx}", "**/__mocks__/**/*.{js,jsx}"],
+    files: ["**/*.test.{js,jsx}", "**/*.gaps.js", "**/__mocks__/**/*.{js,jsx}"],
     languageOptions: {
       globals: {
         ...globals.jest,

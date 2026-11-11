@@ -31,10 +31,12 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import Resolver404, resolve
 from django.utils import timezone
+from django.utils.cache import patch_cache_control
 from django.utils.encoding import iri_to_uri
 from django.utils.html import strip_tags
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
+from django.views.decorators.clickjacking import xframe_options_deny
 from django.views.decorators.csrf import csrf_exempt, csrf_protect, ensure_csrf_cookie, requires_csrf_token
 from django_hosts.resolvers import get_host
 from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
@@ -44,6 +46,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 import sefaria.tracker as tracker
+from powered_by.developer import developer_state, drop_developer_settings, session_login
+from powered_by.developer import settings_enabled as developer_settings_enabled
 from reader.models import UserExperimentSettings, _set_user_experiments, user_has_experiments
 from remote_config import remoteConfigCache
 from remote_config.keys import (
@@ -4807,6 +4811,7 @@ def profile_api(request, slug=None):
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
 
+        drop_developer_settings(profileUpdate.get("settings"))
         la_key = library_assistant.SETTING_KEY
         if la_key in profileUpdate.get("settings", {}):
             # Public endpoint — coerce so a posted "false" can't read as truthy.
@@ -5035,6 +5040,7 @@ def profile_sync_api(request):
             field_data = json.loads(post[field])
             if field == "settings":
                 settings_time_stamp = field_data.pop("time_stamp")  # don't save time_stamp as a field of profile
+                drop_developer_settings(field_data)
                 try:
                     # mobile app is sending time_stamps as strings. for now, patch by casting server-side. can be None if user hasn't updated settings yet.
                     settings_time_stamp = 0 if settings_time_stamp is None else int(settings_time_stamp)
@@ -5243,43 +5249,66 @@ def edit_profile(request):
     )
 
 
+def _account_settings_props(request, profile):
+    """
+    The values the account tab of the settings page renders.
+    """
+    translation_languages = [
+        {"code": lang, "name": Locale(lang).languages[lang].capitalize()}
+        for lang in SITE_SETTINGS["SUPPORTED_TRANSLATION_LANGUAGES"]
+    ]
+    return {
+        "emailNotifications": profile.settings.get("email_notifications"),
+        "interfaceLanguage": profile.settings.get("interface_language"),
+        "translationLanguagePreference": profile.settings.get("translation_language_preference")
+        or request.COOKIES.get("translation_language_preference", None),
+        "translationLanguages": translation_languages,
+        "readingHistory": profile.settings.get("reading_history", True),
+        "textualCustom": profile.settings.get("textual_custom"),
+        # The toggle must render the *effective* value: a user who is on through the
+        # legacy rule has no setting key yet, and must still see "On".
+        "libraryAssistantEnabled": library_assistant.is_enabled(profile),
+        # TEMPORARY (goes with the experiments framework): only gates the parked
+        # Experiments toggle.
+        "experimentsAvailable": user_has_experiments(request.user),
+        "email": request.user.email,
+        "socialProviders": list(request.user.socialaccount_set.values_list("provider", flat=True)),
+        "sheetsExport": {"gauthEmail": profile.gauth_email or None},
+        "torahSpecific": SITE_SETTINGS["TORAH_SPECIFIC"],
+        "diaspora": request.diaspora,
+    }
+
+
+@xframe_options_deny
 @login_required
 @ensure_csrf_cookie
-def account_settings(request):
+def settings_page(request, tab="account", project_id=None):
     """
-    Page for managing a user's account settings.
+    Account and developer settings, as one React page. Without DEVELOPER_SETTINGS_ENABLED
+    (or for non-staff, with DEVELOPER_SETTINGS_STAFF_ONLY) there is no developer tab: its URLs are a 404 (gated in urls_library.py, before the login
+    check) and the page gets no developer state.
     """
+    developer_on = developer_settings_enabled(request.user)
     profile = UserProfile(id=request.user.id)
-    # TEMPORARY (goes with the experiments framework): only gates the parked
-    # Experiments toggle in the template, not the Library Assistant one.
-    experiments_available = user_has_experiments(request.user)
-    return render_template(
-        request,
-        "account_settings.html",
-        {"headerMode": True},
-        {
-            "user": request.user,
-            "profile": profile,
-            "experiments_available": experiments_available,
-            "social_providers": list(request.user.socialaccount_set.values_list("provider", flat=True)),
-            # The toggle must render the *effective* value: a user who is on through the
-            # legacy rule has no setting key yet, and must still see "On".
-            "library_assistant_enabled": library_assistant.is_enabled(profile),
-            "lang_names_and_codes": zip(
-                [
-                    Locale(lang).languages[lang].capitalize()
-                    for lang in SITE_SETTINGS["SUPPORTED_TRANSLATION_LANGUAGES"]
-                ],
-                SITE_SETTINGS["SUPPORTED_TRANSLATION_LANGUAGES"],
-            ),
-            "translation_language_preference": (
-                profile is not None and profile.settings.get("translation_language_preference", None)
-            )
-            or request.COOKIES.get("translation_language_preference", None),
-            "diaspora": request.diaspora,
-            "renderStatic": True,
-        },
-    )
+    props = {
+        "initialSettingsTab": tab,
+        "initialDeveloperProjectId": project_id,
+        "initialAccountSettings": _account_settings_props(request, profile),
+        "initialDeveloper": developer_state(request) if developer_on and session_login(request) else None,
+    }
+    titles = {
+        "account": "Account Settings",
+        "developer": "Developer Settings",
+    }
+    descs = {
+        "account": "Manage your Sefaria account settings.",
+        "developer": "Register your projects and manage keys for the Sefaria API.",
+    }
+    response = menu_page(request, props=props, page="settings", title=titles[tab], desc=descs[tab])
+    if props["initialDeveloper"] is not None:
+        # The page embeds the developer state (key display prefixes, never values), private to the account: no HTTP cache may keep it.
+        patch_cache_control(response, private=True, no_store=True)
+    return response
 
 
 @ensure_csrf_cookie

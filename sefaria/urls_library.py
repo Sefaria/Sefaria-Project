@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.urls import path, re_path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+import powered_by.developer_views as developer_views
 import reader.views as reader_views
 import remote_config.views as remote_config_views
 import sefaria.views as sefaria_views
@@ -46,9 +47,29 @@ urlpatterns = [
     path("visualize/sefer-hachinukh-mitzvot", reader_views.sefer_hachinukh_mitzvot),
     path("visualize/timeline", reader_views.visualize_timeline),
     re_path(r"^visualize/unique-words-by-commentator", reader_views.unique_words_viz),
-    re_path(r"^settings/account?$", reader_views.account_settings),
+    re_path(r"^settings/account/?$", partial(reader_views.settings_page, tab="account")),
     path("settings/account/user", reader_views.account_user_update),
     re_path(r"^settings/profile/?$", reader_views.settings_profile_redirect),
+    re_path(
+        r"^settings/developer/?$",
+        developer_views.requires_developer_settings(partial(reader_views.settings_page, tab="developer")),
+    ),
+    path(
+        "settings/developer/projects/<str:project_id>",
+        developer_views.requires_developer_settings(partial(reader_views.settings_page, tab="developer")),
+    ),
+    path("settings/developer/confirm-email/<str:key>", developer_views.confirm_email, name="developer_confirm_email"),
+    path("settings/developer/email-confirmed", developer_views.email_confirmed_page),
+    path("api/developer/state", developer_views.state_api),
+    path("api/developer/enable", developer_views.enable_api),
+    path("api/developer/profile", developer_views.profile_api),
+    path("api/developer/confirmation", developer_views.confirmation_api),
+    path("api/developer/confirmation/new-link", developer_views.new_link_api),
+    path("api/developer/projects", developer_views.projects_api),
+    path("api/developer/projects/<str:project_id>", developer_views.project_api),
+    path("api/developer/projects/<str:project_id>/keys", developer_views.project_keys_api),
+    path("api/developer/keys/<str:key_id>", developer_views.key_api),
+    path("api/developer/keys/<str:key_id>/value", developer_views.key_value_api),
     re_path(r"^community/?$", reader_views.community_to_voices_redirect),
     path("parashat-hashavua", reader_views.parashat_hashavua_redirect),
     path("todays-daf-yomi", reader_views.daf_yomi_redirect),

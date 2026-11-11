@@ -15,6 +15,7 @@ from django.test import RequestFactory, override_settings
 
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from sefaria.system.middleware import (
+    ApiCorsPreflightMiddleware,
     LocationSettingsMiddleware,
     ModuleMiddleware,
     SessionCookieDomainMiddleware,
@@ -985,3 +986,81 @@ class TestWebSessionRedirectMiddleware:
         result = self._middleware().process_response(request, HttpResponseRedirect("https://example.com/"))
 
         assert "no_applink" not in result["Location"]
+
+
+class TestApiCorsPreflightMiddleware:
+    def setup_method(self):
+        self.factory = RequestFactory()
+        self.middleware = ApiCorsPreflightMiddleware(get_response=lambda r: HttpResponse("view"))
+
+    def preflight(self, path, method="GET"):
+        return self.factory.options(
+            path,
+            HTTP_ORIGIN="https://site-a.example.org",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD=method,
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="x-api-key",
+        )
+
+    def test_an_api_preflight_allows_the_x_api_key_header_from_any_origin(self):
+        for path, method in (
+            ("/api/v3/texts/Genesis.1.1", "GET"),
+            ("/api/texts/Genesis.1.1", "GET"),
+            ("/api/knn-search", "POST"),
+        ):
+            response = self.middleware(self.preflight(path, method))
+
+            assert response.status_code == 204
+            assert response["Access-Control-Allow-Origin"] == "*"
+            assert "x-api-key" in [h.strip().lower() for h in response["Access-Control-Allow-Headers"].split(",")]
+            assert method in response["Access-Control-Allow-Methods"]
+
+    def test_other_requests_reach_the_view(self):
+        requests = (
+            self.preflight("/texts/Genesis.1.1"),
+            self.factory.options("/api/v3/texts/Genesis.1.1"),
+            self.factory.get("/api/v3/texts/Genesis.1.1", HTTP_ORIGIN="https://site-a.example.org"),
+        )
+        for request in requests:
+            assert self.middleware(request).content == b"view"
+
+    def test_an_options_request_outside_api_falls_through_to_the_next_middleware(self):
+        for path in ("/texts/Genesis.1.1", "/apiary", "/admin/", "/"):
+            for method in ("GET", "POST"):
+                response = self.middleware(self.preflight(path, method))
+
+                assert response.content == b"view", path
+                assert "Access-Control-Allow-Origin" not in response
+
+    def test_a_write_preflight_with_custom_headers_gets_the_documented_answer(self):
+        request = self.factory.options(
+            "/api/profile",
+            HTTP_ORIGIN="https://site-a.example.org",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="content-type, x-api-key",
+        )
+
+        response = self.middleware(request)
+
+        assert response.status_code == 204
+        assert response["Access-Control-Allow-Origin"] == "*"
+        assert response["Access-Control-Allow-Methods"] == "GET, POST, OPTIONS"
+        allowed = [h.strip().lower() for h in response["Access-Control-Allow-Headers"].split(",")]
+        assert "content-type" in allowed and "x-api-key" in allowed
+        assert response["Access-Control-Max-Age"] == "86400"
+
+    def test_a_preflight_for_a_method_other_than_get_or_post_is_answered_without_allowing_it(self):
+        response = self.middleware(self.preflight("/api/profile", "DELETE"))
+
+        assert response.status_code == 204
+        assert "DELETE" not in response["Access-Control-Allow-Methods"]
+
+    def test_the_middleware_is_installed(self, client):
+        response = client.options(
+            "/api/knn-search",
+            HTTP_ORIGIN="https://site-a.example.org",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="x-api-key",
+        )
+
+        assert response.status_code == 204
+        assert "X-API-Key" in response["Access-Control-Allow-Headers"]
