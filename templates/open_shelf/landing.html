@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% block meta_title %}Open Shelf | Sefaria{% endblock %}
+{% load sefaria_tags %}
+{% block meta_title %}{% meta_title %}Open Shelf | Sefaria{% endmeta_title %}{% endblock %}
 {% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 {% block content %}
 {% include "open_shelf/_style.html" %}
