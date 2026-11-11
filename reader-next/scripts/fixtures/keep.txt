@@ -1,5 +1,7 @@
 # Fixture files (relative to fixtures/) that unit tests, stories and scripts read. scrub.mjs --prune deletes everything else.
 # Found by tracing every read in a full unit run (test/msw/fixtures.ts) plus the imports and direct reads in src/ and scripts/.
+api/_cms/products.json
+api/_cms/team.json
 api/_toc/toc.json
 api/_translations/ar.json
 api/_translations/de.json
