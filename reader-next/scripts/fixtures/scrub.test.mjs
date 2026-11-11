@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { findPersonalData, scrubFiles } from "./scrub.mjs";
+import { findPersonalData, findPersonalKeys, scrubFiles } from "./scrub.mjs";
 
 const SCRIPT = new URL("./scrub.mjs", import.meta.url).pathname;
 
@@ -119,4 +119,22 @@ test("--check fails on an unscrubbed tree and passes once it is scrubbed", () =>
   assert.equal(spawnSync(process.execPath, [SCRIPT], { env: { ...process.env, FIXTURES_DIR: root }, encoding: "utf8" }).status, 0);
   const after = check();
   assert.equal(after.status, 0, after.stderr);
+});
+
+test("upper-case addresses are scrubbed, Sefaria's role addresses are kept", () => {
+  const root = mkdtempSync(join(tmpdir(), "scrub-test-"));
+  const shouty = ["Editor", "Publisher.ORG"].join("@");
+  writeFileSync(join(root, "v.json"), JSON.stringify({ versionNotes: `Write to ${shouty}, donate@sefaria.org or notifications@sefaria.org` }));
+  const [[, , after]] = scrubFiles(root);
+  assert.equal(JSON.parse(after).versionNotes, "Write to user1@example.com, donate@sefaria.org or notifications@sefaria.org");
+  assert.deepEqual(findPersonalData(JSON.stringify({ note: shouty })), [shouty]);
+});
+
+test("a person field the scrub has no rule for is still reported", () => {
+  assert.deepEqual(findPersonalKeys({ users: [{ phone: "555-0100", email: "user1@example.com", ownerName: "Sheet Author 2", firstName: null }] }), ["phone: 555-0100"]);
+  const root = mkdtempSync(join(tmpdir(), "scrub-test-"));
+  writeFileSync(join(root, "p.json"), JSON.stringify({ phone: "555-0100" }) + "\n");
+  const check = spawnSync(process.execPath, [SCRIPT, "--check"], { env: { ...process.env, FIXTURES_DIR: root }, encoding: "utf8" });
+  assert.equal(check.status, 1);
+  assert.match(check.stderr, /p\.json: phone: 555-0100/);
 });
