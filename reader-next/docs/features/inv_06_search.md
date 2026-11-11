@@ -1,6 +1,6 @@
 # Inventory 06: Search and Autocomplete (Sefaria web client)
 
-Repo: `/Users/akiva/Sefaria/dev/Sefaria-Project` (branch `master`, read-only audit, 2026-10-04).
+Repo: `Sefaria-Project` (branch `master`, read-only audit, 2026-10-04).
 All paths are relative to the repo root. `file:line` citations point at current `master`.
 
 ---

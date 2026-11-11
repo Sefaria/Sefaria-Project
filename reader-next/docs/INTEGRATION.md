@@ -1,6 +1,6 @@
 # Integration: what other apps on the page can ask of the reader
 
-TARGET_ARCHITECTURE §6.12. The reader team owns this interface and its tests; the AI team owns the Library Assistant's side.
+Decided 2026-10-28 (`docs/DECISIONS.md`, "Integrations"). The reader team owns this interface and its tests; the AI team owns the Library Assistant's side.
 
 ## Events the reader receives (`src/lib/integration/legacy-events.ts`)
 

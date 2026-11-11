@@ -2,7 +2,7 @@
 
 Scope: auth, static pages, promotions/banners/CMS (Strapi), admin & editorial tools, cross-cutting client infrastructure, Django-template (non-React) pages, embeddable widgets (linker), visualizations, Django apps (api/, guides/, chatbot/, remote_config/, promotions/, django_topics/, emailusernames/).
 
-Repo root: `/Users/akiva/Sefaria/dev/Sefaria-Project`. All citations are `path:line` relative to repo root.
+Repo root: `Sefaria-Project`. All citations are `path:line` relative to repo root.
 
 ---
 
