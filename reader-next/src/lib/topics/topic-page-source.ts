@@ -26,7 +26,7 @@ import { isSafeSegment, oneOf, record, segment } from "~/lib/server-fn/input";
 import { postJson } from "~/lib/auth/http";
 import { sanitizeHtml } from "~/lib/html/sanitize";
 import { isCategory, serverCatalogTree, type TocNode } from "~/lib/catalog/toc";
-import { serverListedTopicSlugs, serverTopicToc } from "./toc-source";
+import { categoryPathOf, serverListedTopicSlugs, serverTopicToc } from "./toc-source";
 import { topicTocCategoryPaths, topicTocPage, type TopicTocNode } from "./topic-toc";
 import type { AzLang } from "./topic-model";
 import {
@@ -244,7 +244,7 @@ const readTopicPage = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<TopicPageResult> => {
     const [toc, listed, tree] = await Promise.all([serverTopicToc().catch(() => [] as TopicTocNode[]), serverListedTopicSlugs().catch(() => undefined), serverCatalogTree().catch(() => [] as TocNode[])]);
     const tocPaths = topicTocCategoryPaths(toc);
-    const filters = refLinkTypeFilters(Object.hasOwn(tocPaths, data.slug) ? tocPaths[data.slug]?.at(-1)?.slug : undefined);
+    const filters = refLinkTypeFilters(categoryPathOf(tocPaths, data.slug)?.at(-1)?.slug);
     const r = await fetch(`${SEFARIA_API_ORIGIN}${topicApiPath(data.slug, filters)}`, {
       // the server's order of the sources follows the reader's interface language (get_topic's sort_and_group_similar_refs)
       headers: { cookie: `interfaceLang=${data.lang === "he" ? "hebrew" : "english"}` },

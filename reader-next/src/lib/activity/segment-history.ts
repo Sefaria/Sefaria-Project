@@ -12,7 +12,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { decodeHTML } from "entities";
 import { SEFARIA_API_ORIGIN, SefariaApiError, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
-import { ServerInputError, intIn, oneOf, path, record, segment, text } from "~/lib/server-fn/input";
+import { refuse, intIn, oneOf, path, record, segment, text } from "~/lib/server-fn/input";
 
 /** JSON as the API sent it (an index or term change's `new` / `old`). */
 export type Json = string | number | boolean | null | Json[] | { [k: string]: Json };
@@ -101,7 +101,7 @@ export interface SegmentHistoryInput extends SegmentHistoryAddress {
 export function validateSegmentHistoryInput(d: unknown): SegmentHistoryInput {
   const o = record(d, "history");
   const type = o.type === undefined || o.type === "" ? undefined : text(o.type, "type", 40, 1);
-  if (type !== undefined && !isActivityFilterType(type)) throw new ServerInputError("type: expected a filter name");
+  if (type !== undefined && !isActivityFilterType(type)) throw refuse("type: expected a filter name");
   return {
     ref: path(o.ref, "ref", 1000),
     lang: oneOf(o.lang, SEGMENT_HISTORY_LANGS, "lang"),

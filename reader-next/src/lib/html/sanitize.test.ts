@@ -24,6 +24,9 @@ describe("sanitizeHtml", () => {
     expect(sanitizeHtml('<a href=" /Genesis.1.1 ">x</a>')).toBe('<a href="/Genesis.1.1">x</a>');
     expect(sanitizeHtml('<a href="/search?q=a%5Cb">x</a>')).toBe('<a href="/search?q=a%5Cb">x</a>'); // in the query, not the path
   });
+  it("drops a link with a control character anywhere, an absolute one too", () => {
+    for (const href of ["https://a.example/&#1;x", "https://a.example/&#127;", "mailto:a&#9;@b.example"]) expect(sanitizeHtml(`<a href="${href}">x</a>`), href).toBe("<a>x</a>");
+  });
   it("never keeps an address or styles through keepAttributes", () => {
     expect(sanitizeHtml('<a href="/\\evil.org" src="x" style="a">x</a>', { keepAttributes: { a: ["href", "src", "style"] } })).toBe("<a>x</a>");
   });

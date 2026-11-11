@@ -23,6 +23,14 @@ describe("server function input checks", () => {
     expect(isSafeText("a\rb", 5)).toBe(false);
     expect(() => text(3, "letter", 5)).toThrow(ServerInputError);
   });
+  it("a lone surrogate is refused (encodeURIComponent would throw a 500), a whole pair is text", () => {
+    for (const bad of ["\ud800", "a\udc00", "\ud800x"]) {
+      expect(isSafeText(bad, 10)).toBe(false);
+      expect(isSafeSegment(bad)).toBe(false);
+    }
+    expect(isSafeSegment("\ud83d\ude00")).toBe(true);
+    expect(() => encodeURIComponent("\ud800")).toThrow(URIError);
+  });
   it("fixed values and numbers", () => {
     expect(oneOf("he", ["en", "he"] as const, "lang")).toBe("he");
     for (const bad of ["fr", "EN", "", undefined, ["en"]]) expect(() => oneOf(bad, ["en", "he"] as const, "lang")).toThrow(/lang/);

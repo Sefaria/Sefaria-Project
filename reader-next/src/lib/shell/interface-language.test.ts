@@ -18,6 +18,11 @@ describe("interface language switch", () => {
     expect(interfaceLanguageResponse("english", "/a\r\nSet-Cookie: x=1").headers.get("Location")).not.toMatch(/[\r\n]/);
     expect(safeNext("/Berakhot.2a?lang=bi&with=all")).toBe("/Berakhot.2a?lang=bi&with=all");
   });
+  it("a DEL or C1 character never turns next into another site or a scheme in the Location (/interface/english?next=%7F//evil.example)", () => {
+    for (const bad of ["\x7f//evil.example", "\u0085//evil.example", "\x7fhttps://evil.example", "java\x7fscript:alert(1)", "/..//evil.example"]) {
+      expect(interfaceLanguageResponse("english", bad).headers.get("Location"), JSON.stringify(bad)).toBe("/");
+    }
+  });
   it("only the two languages exist", () => {
     expect(interfaceLanguageResponse("klingon", "/").status).toBe(404);
   });

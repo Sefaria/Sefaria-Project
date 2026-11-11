@@ -18,7 +18,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { SEFARIA_API_ORIGIN, SefariaApiError } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 import { isSafeSegment, isSafeText, oneOf, record, segment, text } from "~/lib/server-fn/input";
-import { findTopicTocNode, topicTocCategoryPaths, topicTocPage, type TopicTocEntry, type TopicTocNode } from "./topic-toc";
+import { findTopicTocNode, topicTocCategoryPaths, topicTocPage, type TopicCategory, type TopicTocEntry, type TopicTocNode } from "./topic-toc";
 import { azSlice, type AzLang, type TopicListItem } from "./topic-model";
 
 const TTL_MS = 60 * 60_000;
@@ -131,6 +131,11 @@ export interface TopicTocPageData {
 }
 
 /** A category's page of the TOC, or null when the slug is not a category there. */
+/** The categories above a slug, looked up as an own key only: "__proto__" or "constructor" is no topic (not Object.prototype). */
+export function categoryPathOf(paths: Record<string, TopicCategory[]>, slug: string): TopicCategory[] | undefined {
+  return Object.hasOwn(paths, slug) ? paths[slug] : undefined;
+}
+
 /** readTopicTocPage's input: "" (the landing's top level) or a category slug (one segment, bounded; looked up, never a path). */
 export function validateTopicTocSlug(slug: unknown): string {
   return slug === "" ? "" : segment(slug, "category slug", 200);
@@ -149,8 +154,7 @@ const readTopicTocPage = createServerFn({ method: "GET" })
     const entries = topicTocPage(toc, slug || undefined);
     if (!entries) return null;
     const node = slug ? findTopicTocNode(toc, slug) : undefined;
-    const paths = slug ? topicTocCategoryPaths(toc) : {};
-    const path = slug && Object.hasOwn(paths, slug) ? (paths[slug] ?? []).map((c) => c.slug) : [];
+    const path = slug ? (categoryPathOf(topicTocCategoryPaths(toc), slug) ?? []).map((c) => c.slug) : [];
     return { title: node ? node.primaryTitle : null, entries, topLevel: toc.map((n) => n.slug), path };
   });
 

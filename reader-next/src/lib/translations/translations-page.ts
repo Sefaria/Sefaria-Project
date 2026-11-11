@@ -8,6 +8,7 @@
  * @feature LIB-029 Sidebar module: About translated text
  * @feature RTE-011 Translations page URLs
  */
+import { refuse } from "~/lib/server-fn/input";
 import { queryOptions, type QueryClient } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
@@ -227,7 +228,7 @@ export const sharedTranslationsModelCount = () => shared.size;
  * upstream call or cache entry.
  */
 export function validateTranslationSlug(slug: unknown): string {
-  if (typeof slug !== "string" || !translationLanguage(slug, true)) throw new Error("Unknown translations language");
+  if (typeof slug !== "string" || !translationLanguage(slug, true)) throw refuse("Unknown translations language");
   return slug;
 }
 

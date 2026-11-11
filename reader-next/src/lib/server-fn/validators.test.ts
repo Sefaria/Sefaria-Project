@@ -4,7 +4,7 @@ import { parseSegmentHistoryPath, validateSegmentHistoryInput } from "~/lib/acti
 import { validateProfileSlug } from "~/features/calendars/textual-custom";
 import { validateStaticPageInput } from "~/lib/static-page/load";
 import { validateTopicPageInput } from "~/lib/topics/topic-page-source";
-import { validateAzSliceInput, validateTopicTocSlug } from "~/lib/topics/toc-source";
+import { categoryPathOf, validateAzSliceInput, validateTopicTocSlug } from "~/lib/topics/toc-source";
 import { validateTranslationSlug } from "~/lib/translations/translations-page";
 
 const ORIGIN = "http://api.internal";
@@ -23,6 +23,10 @@ describe("readSegmentHistory's input", () => {
     for (const ref of ["../../x/y", "Genesis/../../../admin", "..", ".", "a//b", "a\\..\\b"]) {
       expect(() => validateSegmentHistoryInput({ ...ok, ref }), ref).toThrow(ServerInputError);
     }
+  });
+  it("refuses a lone surrogate in the ref or version (a 400, not encodeURIComponent's 500)", () => {
+    expect(() => validateSegmentHistoryInput({ ...ok, ref: "\ud800" })).toThrow(ServerInputError);
+    expect(() => validateSegmentHistoryInput({ ...ok, version: "v\udc00" })).toThrow(ServerInputError);
   });
   it("refuses a version that is a dot segment or holds a slash", () => {
     for (const version of ["..", ".", "a/b", "", "v\u0000"]) expect(() => validateSegmentHistoryInput({ ...ok, version }), version).toThrow(ServerInputError);
@@ -66,6 +70,11 @@ describe("the other server functions' inputs", () => {
     expect(validateTopicTocSlug("prayer")).toBe("prayer");
     expect(validateTopicTocSlug("__proto__")).toBe("__proto__"); // looked up with Object.hasOwn, never as an inherited key
     for (const bad of ["..", "a/b", 5, null, "x".repeat(201)]) expect(() => validateTopicTocSlug(bad)).toThrow(ServerInputError);
+  });
+  it("the TOC's category paths are looked up as own keys only (\"__proto__\" was Object.prototype, then a 500 on .map)", () => {
+    const paths = { shabbat: [{ slug: "jewish-calendar2", en: "Jewish Calendar", he: "מועדי השנה" }] };
+    expect(categoryPathOf(paths, "shabbat")?.[0]?.slug).toBe("jewish-calendar2");
+    for (const k of ["__proto__", "constructor", "toString", "missing"]) expect(categoryPathOf(paths, k), k).toBeUndefined();
   });
   it("readAzSlice: a short letter and en/he", () => {
     expect(validateAzSliceInput({ letter: "a", lang: "en" })).toEqual({ letter: "a", lang: "en" });

@@ -19,6 +19,13 @@ describe("isLocalPath", () => {
     for (const b of bad) expect(isLocalPath(b), JSON.stringify(b)).toBe(false);
     for (const b of [null, undefined, 7, ["/x"]]) expect(isLocalPath(b)).toBe(false);
   });
+  it("refuses a dot segment that resolves into //host, and a lone surrogate", () => {
+    for (const b of ["/..//evil.org", "/x/..//evil.org", "/.%2e//evil.org", "/%2e%2e/%2f%2fevil.org", "/./%2fevil.org", "/\ud800", "/x\udc00y"]) {
+      expect(isLocalPath(b), JSON.stringify(b)).toBe(false);
+    }
+    expect(isLocalPath("/x/../Genesis.1")).toBe(true);
+    expect(isLocalPath("/topics/\ud83d\ude00")).toBe(true);
+  });
   it("what it refuses includes what the URL parser takes off this site", () => {
     for (const b of ["//evil.org", "/\\evil.org", "\\\\evil.org", "/\t/evil.org", " //evil.org", "\u0001//evil.org"]) expect(new URL(b, BASE).origin, JSON.stringify(b)).not.toBe(BASE);
   });

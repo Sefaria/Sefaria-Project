@@ -64,26 +64,32 @@ export function pickFirstError(data: unknown): string | null {
 }
 
 const SAFE_NEXT_BASE = "http://sefaria-safenext.invalid"; // fake base, never sent anywhere — just lets URL parsing compare origins
+// C0 controls, DEL and C1 controls
+const CONTROL = /[\u0000-\u001f\u007f-\u009f]/; // eslint-disable-line no-control-regex
 
 /**
  * `next` if it stays on this site, else "/". Rejects absolute URLs, `//host`, and what browsers normalise into `//host` (tabs and
- * newlines are dropped by URL parsing: "/\t/evil.com" is https://evil.com/). Returns the parsed path, so no control character ever
- * reaches a Location header or a navigation. The one implementation for every `next` (CODE_REVIEW R-03).
+ * newlines are dropped by URL parsing: "/\t/evil.com" is https://evil.com/). Any control character (C0, DEL, C1) is a refusal, never
+ * stripped, so the value returned is the value checked. The one implementation for every `next` (CODE_REVIEW R-03).
  */
 export function safeNext(next: unknown): string {
   if (!next || typeof next !== "string") return "/";
+  // refused, never stripped: a character taken out after the checks could join what they judged apart ("java\x7fscript:",
+  // "\x7f//host"); the value returned is always exactly the value checked
+  if (CONTROL.test(next)) return "/";
   try {
     const u = new URL(next, SAFE_NEXT_BASE);
     if (u.origin !== SAFE_NEXT_BASE) return "/";
-    // an absolute path comes back as parsed, and only if it is still a path of this site as written (no "/%2F%2Fhost", "/%5Chost",
-    // which a router that decodes its path would follow); a bare relative one ("sheets/123", as the old client allowed) minus
-    // control characters, and never with a backslash
+    // an absolute path comes back as parsed, and only if it is still a path of this site (no "/%2F%2Fhost", "/%5Chost", "/..//host")
     if (next.startsWith("/")) {
       const path = `${u.pathname}${u.search}${u.hash}`;
       return isLocalPath(path) ? path : "/";
     }
-    const bare = next.replace(/[\u0000-\u001f\u007f-\u009f]/g, "");
-    return bare.includes("\\") || /%5c/i.test(bare) ? "/" : bare;
+    // a bare relative one ("sheets/123", as the old client allowed): no scheme, no backslash, no edge space, no "." or ".." segment
+    // or "//" (which resolve into "//…"), no encoded slash or backslash, nothing that is not well-formed
+    if (/^[a-z][a-z0-9+.-]*:/i.test(next) || /\\|%5c|%2f/i.test(next) || next.trim() !== next) return "/";
+    if (/(^|\/)\.{1,2}(\/|$|[?#])|\/\//.test(next.split(/[?#]/, 1)[0]!) || !isLocalPath(`/${next}`)) return "/";
+    return next;
   } catch {
     return "/";
   }
