@@ -189,7 +189,7 @@ nodejs:
   #          reader client (reader-next/Dockerfile, sefaria-reader). A visitor who chose it in account settings carries the cookie
   #          `reader_version=next`, and nginx sends their page requests to it; everyone else is served as in legacy.
   #          `reader.optin.enabled: false` is the kill switch: nginx ignores the cookie and the switch is hidden.
-  #  reader: replace (not deployed anywhere shared, LAUNCH_PLAN D-1): the node pods run the new reader image (`reader.containerImage`),
+  #  reader: replace (not deployed anywhere shared): the node pods run the new reader image (`reader.containerImage`),
   #          nginx sends every page request to it first, and Django's own SSR is switched off (USE_NODE = False).
   #  Any other value fails the render (templates/values-check.yaml).
   mode: legacy

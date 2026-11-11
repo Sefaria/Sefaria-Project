@@ -281,13 +281,6 @@ spec:
 {{- end }}
 
 {{/*
-The new reader client's image, "<imageRegistry>:<tag>", for its pods in either layout (nodejs.mode "reader" or "optin"). The chart
-refuses to render when the tag is mutable ("latest", or empty, which pulls "latest"): every pod restart would pull whatever was pushed
-to it last (imagePullPolicy Always), and continuous.yaml pushes sefaria-reader-<branch>:latest on every build. Pin an immutable tag
-(the sha-<short sha>-<date> or sha-<short sha> tag continuous.yaml pushes beside latest). reader.allowMutableImage: true is the escape
-for dev environments and cauldrons. Only nodejs.mode "optin" and "reader" render the reader image, so "legacy" is never refused.
-*/}}
-{{/*
 nodejs.mode must be one of legacy, optin, reader. The templates compare it with eq, so any other value (a typo such as "opt-in")
 would otherwise render legacy without a word. Included by templates/values-check.yaml, which renders nothing.
 */}}
@@ -298,6 +291,13 @@ would otherwise render legacy without a word. Included by templates/values-check
 {{- end -}}
 {{- end -}}
 
+{{/*
+The new reader client's image, "<imageRegistry>:<tag>", for its pods in either layout (nodejs.mode "reader" or "optin"). The chart
+refuses to render when the tag is mutable ("latest", or empty, which pulls "latest"): every pod restart would pull whatever was pushed
+to it last (imagePullPolicy Always), and continuous.yaml pushes sefaria-reader-<branch>:latest on every build. Pin an immutable tag
+(the sha-<short sha>-<date> or sha-<short sha> tag continuous.yaml pushes beside latest). reader.allowMutableImage: true is the escape
+for dev environments and cauldrons. Only nodejs.mode "optin" and "reader" render the reader image, so "legacy" is never refused.
+*/}}
 {{- define "sefaria.readerImage" -}}
 {{- $img := .Values.reader.containerImage -}}
 {{- $tag := toString (default "" $img.tag) | trim -}}
