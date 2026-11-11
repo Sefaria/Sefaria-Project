@@ -49,7 +49,8 @@
  },
  "I18-001": {
   "status": "partial",
-  "note": "Translation and version preferences from cookies; content-language and country suggestion not yet"
+  "note": "Translation and version preferences from cookies; content language defaults to Hebrew in the Hebrew interface; country suggestion not yet",
+  "by": "src/lib/reader/settings.ts, src/lib/versions/prefs-source.ts"
  },
  "LIB-046": {
   "status": "partial",
@@ -81,7 +82,8 @@
  },
  "PLT-006": {
   "status": "partial",
-  "note": "Library home, category, book, search, topics, calendars and translations as sefaria.org; text pages' titles and descriptions not yet (reader route)"
+  "note": "Library, book, search, topics, calendars, translations and reader titles as sefaria.org; text pages' meta descriptions not yet",
+  "by": "src/lib/library/page-head.ts, src/lib/reader/page-title.ts, src/routes/$.tsx"
  },
  "PLT-007": {
   "status": "done",

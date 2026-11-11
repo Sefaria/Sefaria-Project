@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**962 features**, 4147 documented behaviors. Proposed tiers: core 323, standard 419, optional 156, retire 61.
+**962 features**, 4153 documented behaviors. Proposed tiers: core 323, standard 419, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 468 · partial 88 · todo 19 · replaced 47 · deferred 204 · n/a 136; 426 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 468 · partial 88 · todo 19 · replaced 47 · deferred 204 · n/a 136; 429 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -2442,7 +2442,7 @@ Source: `inv_03_text_rendering.md#6.8`
 ### Complex texts
 
 #### TXT-023 · Complex texts, default nodes and book-level refs
-`core` `live` · rebuild: **done**
+`core` `live` · rebuild: **done** · *tested*
 
 Texts with multiple sections or intros resolve to their first readable section, and bare book names open the table of contents.
 
@@ -2452,6 +2452,7 @@ Texts with multiple sections or intros resolve to their first readable section, 
 - Alt structures render inline only as parashah/aliyah headers; others (e.g. Talmud chapters) only in BookPage TOC (BookPage.jsx:370-396).
 - Super-sections (textDepth - sections.length > 1) redirect to firstAvailableSectionRef.
 - VERIFIED 2026-10-05: a bare book name (Genesis, Rashi on Genesis, Pesach Haggadah) is the book page, not a text; the reader's header title links to it in the rebuild.
+- FIXED 2026-11-10 (wave 4, v-exits F-4): a node address with no section (/Arukh_HaShulchan,_Orach_Chaim) asked /api/v3/texts for the whole node (5.9 MB, 13.5 s: a 503). It now asks /api/ref for first_available_section_ref and opens that section (301 to /Arukh_HaShulchan,_Orach_Chaim.1, as other refs above section level here; legacy answers 200 at the node's address). Code: src/lib/text/queries.ts. Tests: src/lib/text/queries.test.ts, e2e/node-address.spec.ts.
 
 Code: [`sefaria/model/text_request_adapter.py:340`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/text_request_adapter.py#L340), [`reader/views.py:550-569`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L550-L569), [`static/js/ReaderApp.jsx:1748-1749`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1748-L1749), [`static/js/BookPage.jsx:370-396`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/BookPage.jsx#L370-L396)
 
@@ -5186,6 +5187,7 @@ Some texts' contents are shown at a coarser level than their full depth so links
 - toc_zoom: zooms TOC out by N levels - shows depth-zoom levels, trims sectionNames/addressTypes, current ref zoomed via Sefaria.zoomOutRef.
 - refPathTerminal for zoomed TOCs appends first non-empty deeper address so links land at section level.
 - Ported and unit-tested on a synthetic record; links end at the first branch the old refPathTerminal finds (arrays count as non-empty even when all zeros — kept).
+- FIXED 2026-11-10 (wave 4, v-exits F-5): counts shallower than the node's depth (a depth-3 node with only lengths, or ragged counts) threw 'counts.forEach is not a function' in SSR; such a level now draws nothing, as the old page's loop did. Code: src/lib/toc/model.ts. Tests: src/lib/toc/model.test.ts.
 
 Code: [`static/js/BookPage.jsx:729-742`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/BookPage.jsx#L729-L742), [`static/js/BookPage.jsx:776-849`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/BookPage.jsx#L776-L849)
 
@@ -10486,7 +10488,7 @@ Source: `inv_08_other.md#3.3`
 ### Language domains
 
 #### I18-001 · Content, translation and version preferences
-`core` `live` · rebuild: **partial** — Translation and version preferences from cookies; content-language and country suggestion not yet
+`core` `live` · rebuild: **partial** — Translation and version preferences from cookies; content language defaults to Hebrew in the Hebrew interface; country suggestion not yet
 
 Reading language, translation language and per-corpus version choices are resolved from cookies, profile and country.
 
@@ -10495,6 +10497,7 @@ Reading language, translation language and per-corpus version choices are resolv
 - suggestion from country languages ∩ SUPPORTED_TRANSLATION_LANGUAGES (en, es, fr, de), never 'en', unless already suggested (translation_language_preference_suggested).
 - Client setter writes both cookies and profile.
 - Version preferences by corpus: profile attr -> version_preferences_by_corpus cookie (URL-encoded JSON).
+- BUILT 2026-11-10 (wave 4, v-parity B1): with no choice made, the Hebrew interface opens texts in Hebrew, the English one bilingual (legacy sefaria/system/middleware.py:194 default_content_lang); the language/contentLang cookie and the URL's lang still win. Code: src/lib/reader/settings.ts (defaultContentLanguage). Tests: src/lib/reader/settings.test.ts, e2e/reader-titles.spec.ts.
 
 Code: [`sefaria/system/middleware.py:151-182`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/system/middleware.py#L151-L182), [`static/js/ReaderApp.jsx:2144-2157`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2144-L2157)
 
@@ -12126,7 +12129,7 @@ Source: `inv_01_urls_routing.md#1.4`
 ### SSR
 
 #### PLT-003 · Server-side rendering pipeline
-`core` `live` · rebuild: **done** — Server-rendered text, canonical redirects, prev/next links; in the cluster the client answers first and passes Django's pages through (docs/DEPLOYMENT.md) `system`
+`core` `live` · rebuild: **done** — Server-rendered text, canonical redirects, prev/next links; in the cluster the client answers first and passes Django's pages through (docs/DEPLOYMENT.md) · *tested* `system`
 
 Pages are rendered on a Node server for fast first paint and SEO, then hydrated in the browser.
 
@@ -12137,6 +12140,8 @@ Pages are rendered on a Node server for fast first paint and SEO, then hydrated 
 - Sefaria.setup(data, props, resetCache=true), unpackDataFromProps, renderToString(ReaderApp).
 - templates/base.html: #s2 holds SSR HTML; static pages use #staticContentWrapper/#content and #s2.headerOnly; DJANGO_VARS = {props, inReaderApp:!renderStatic}; STRAPI_INSTANCE.
 - OWNER DECISION 2026-10-06: the client replaces node/server.js in the node pods. Requests reach it FIRST (nginx `location /` → node); it renders reader/library pages reading the API through Varnish (http://varnish-<env>-<rev>:8040 with the public Host), and passes Django's pages, every write and its own 404s to Varnish (src/start.ts, src/server/pass-through.ts; header x-served-by: django). Django's own SSR is switched off in that mode (USE_NODE = False): Django pages render client-side only until moved. BUILT on Sefaria-Project branch reader-next (helm values nodejs.mode reader|legacy; build/node/Dockerfile builds reader-next/). Verified locally: rendered nginx config passes nginx -t; nginx → client → stand-in Varnish routes reader pages, Django pages, /api and the 404 correctly, and falls back to Django when the client is down. docs/DEPLOYMENT.md.
+- FIXED 2026-11-10 (wave 4, v-exits F-2): the server-rendered head links each page kind's stylesheets. The $ route's kinds (reader, book page) are dynamic chunks and Start's route manifest lists only static imports' CSS, so the reader's classes (Workspace chunk) came with the JS: an unstyled first paint, a 0.39 shift at hydration. vite-plugins/page-kind-css.ts reads each kind's CSS from the client build into virtual:page-kind-css for the server build; src/routes/$.tsx links it. Measured on a production build (Pixel 7, CPU 4x, Slow 4G, median of 3, API www.sefaria.org): /Genesis.1 CLS 0.484 -> 0, LCP 13,992 -> 3,644 ms. Tests: test/build/page-kind-css.test.ts, e2e/ssr-styles.spec.ts (also against a built server with E2E_SSR_BASE_URL).
+- FIXED 2026-11-10 (wave 4, staging /Sefer_HaBahir): the book page's CSS was never requested in the browser either: the minifier merged `kind === 'book' ? import(BookRoute) : import(Workspace)` into one preload with the Workspace chunk's dependencies only. Each kind's import is now its own function (src/features/reader/page-kinds.tsx). Guard: e2e/ssr-styles.spec.ts checks, for nine representative routes, that every CSS module in the SSR HTML has rules in a linked stylesheet, and in the browser after an in-app move to the book page.
 
 Code: [`reader/views.py:206-285`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L206-L285), [`node/server.js:103-138`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/node/server.js#L103-L138), [`templates/base.html:230-273`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/base.html#L230-L273)
 
@@ -12179,7 +12184,7 @@ Source: `inv_01_urls_routing.md#5.1`
 ### Meta and SEO
 
 #### PLT-006 · Page titles and meta descriptions
-`core` `live` · rebuild: **partial** — Library home, category, book, search, topics, calendars and translations as sefaria.org; text pages' titles and descriptions not yet (reader route) `system`
+`core` `live` · rebuild: **partial** — Library, book, search, topics, calendars, translations and reader titles as sefaria.org; text pages' meta descriptions not yet · *tested* `system`
 
 Each page gets a title and description tailored to its type and module.
 
@@ -12191,6 +12196,7 @@ Each page gets a title and description tailored to its type and module.
 - sheets = summary or default; topics, categories, search, translations have specific descriptions.
 - VERIFIED 2026-11-10 on www.sefaria.org (lane GS, Playwright at 1280px and with a phone User-Agent; descriptions with curl, titles as document.title after load): the old client replaces the server's title after hydration ('Genesis | Sefaria Library' → 'Genesis | The Sefaria Library'; Hebrew 'בראשית | האוסף של ספריא'); /texts 'Sefaria: a Living Library of Jewish Texts Online' (he 'ספריא: ספרייה חיה של טקסטים יהודיים'); a category 'Tanakh, Torah | The Sefaria Library', its description its enDesc, else its short description, else 'Read <cats> texts online with commentaries and connections.'; a book its description then 'Read the text of <book> online with commentaries and connections.' (English in both interfaces); search '<q> | The Sefaria Library' or 'Search'/'חיפוש'. The descriptions repeat as og:description and twitter:description, the titles as og:title and twitter:title (base.html meta_desc/meta_title).
 - BUILT 2026-11-10 for the library home, category, book and search pages: src/lib/library/page-head.ts. Not ported: the Hebrew category description's doubled escaping ('התנ&quot;ך'), and a book without a Hebrew title in the old client's cache titled in English (Pesach Haggadah). Tests: src/lib/library/page-head.test.ts, e2e/library.spec.ts. Text pages keep '<ref> | Sefaria Reader' and no description (the reader route, lane GR).
+- BUILT 2026-11-10 (wave 4, v-parity S2 / v-a11y S4): reader titles as www.sefaria.org's client writes them (VERIFIED 2026-11-10): 'Genesis 1 | The Sefaria Library', Hebrew interface 'בראשית א׳ | האוסף של ספריא'; with a sidebar naming a source 'Genesis 1:1 with Rashi' / 'עם רש"י' (Translations, About, Sheets, Web Pages, Commentary, Quoting Commentary…), none for with=all or a category's list; a missing text is titled as Django's 404 in either interface ('הדף שביקשתם איננו נמצא | ספריא'). Deliberate difference: two panels write the suffix once ('Genesis 1 & Exodus 1 | The Sefaria Library'); legacy repeated it. A book's Hebrew name after 'עם' comes from the catalog when it is in memory (the sidebar loads it); on a cold deep link it stays in English until the next navigation. Code: src/lib/reader/page-title.ts, src/routes/$.tsx, src/routes/__root.tsx. Tests: src/lib/reader/page-title.test.ts, e2e/reader-titles.spec.ts.
 
 Code: [`reader/views.py:137-195`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L137-L195), [`reader/views.py:917-943`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L917-L943), [`sefaria/templatetags/sefaria_tags.py:64-108`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/templatetags/sefaria_tags.py#L64-L108), [`static/js/sefaria/sefaria.js:3903-3947`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3903-L3947)
 
