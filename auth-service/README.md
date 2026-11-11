@@ -30,8 +30,8 @@ What ships in Phase 1 besides the service:
 - Helm: the gateway templates under `templates/gateway/` (the ClientTrafficPolicy header strip, and the
   BackendTrafficPolicy rate limit, which renders only when `authService.rateLimit.enabled` is set and is off by
   default), and the nginx log fields.
-- `dev/local-stack/`: a local stack of Envoy, nginx, Django and this service, with its smoke script, the scenario
-  drills and the revoke timing drill (`scenarios/perf-revoke.sh`).
+- `scripts/`: the release gates (`policy-gate.sh`, `crd-gate.sh`, `render-check.sh`) and the per-cluster registry
+  provisioning (`provision-cluster-registry.sh`).
 
 Out (later phases): first-party JWT minting and verification, the legacy body-borne `apikey`, the HTTP ext_authz
 transport, Redis/HTTP push, and the HTTPRoute changes. A bearer token is not verified in Phase 1: it rides the
@@ -55,5 +55,6 @@ Sefaria wiki page `projects/api-key-program/tooling`. A new column in the load q
 
 `make test` (Go vet and race tests; the Postgres tests run when `PG_TEST_DSN` is set, as they do in
 the Continuous workflow's auth-service job),
-`make helm-matrix`. The local stack and its drills are in `dev/local-stack/`; the end-to-end suites are in
-`e2e-tests/api-keys/`. The Sefaria wiki page `projects/api-key-program/tooling` covers the cluster steps.
+`make helm-matrix`. The local stack, its failure drills, the end-to-end suites and the tests of the scripts in
+`scripts/` live on the branch `tooling/api-keys-phase1-testing`, not on master. The Sefaria wiki page
+`projects/api-key-program/tooling` covers the cluster steps.
