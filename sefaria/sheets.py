@@ -274,20 +274,25 @@ def annotate_user_collections(sheets, user_id):
     return sheets
 
 
-def annotate_displayed_collections(sheets):
+def annotate_displayed_collections(sheets, fields=None):
     """
-    Adds `displayedCollectionName` field to each sheet in `sheets` that has `displayedCollection`.
+    Adds fields of its displayed collection to each sheet in `sheets` that has `displayedCollection`,
+    reading the collections in one query.
+    `fields` maps a collection field to the sheet key it is written to. Default: the name, as `displayedCollectionName`.
     """
+    fields = fields or {"name": "displayedCollectionName"}
     slugs = list({sheet["displayedCollection"] for sheet in sheets if sheet.get("displayedCollection", None)})
     if len(slugs) == 0:
         return sheets
-    displayed_collections = CollectionSet({"slug": {"$in": slugs}})
+    proj = {"slug": 1, **dict.fromkeys(fields, 1)}
+    displayed_collections = {
+        collection.slug: collection for collection in CollectionSet({"slug": {"$in": slugs}}, proj=proj)
+    }
     for sheet in sheets:
-        if not sheet.get("displayedCollection", None):
-            continue
-        for collection in displayed_collections:
-            if sheet["displayedCollection"] == collection.slug:
-                sheet["displayedCollectionName"] = collection.name
+        collection = displayed_collections.get(sheet.get("displayedCollection", None))
+        if collection:
+            for field, key in fields.items():
+                sheet[key] = getattr(collection, field, None)
 
     return sheets
 
@@ -1053,12 +1058,7 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
         except:
             user_profiles[profile]["profile_pic_url_small"] = ""
 
-    collection_slugs = list({sheet["displayedCollection"] for sheet in sheets if "displayedCollection" in sheet})
-    collection_tocs = {
-        collection["slug"]: collection.get("toc")
-        for collection in db.groups.find({"slug": {"$in": collection_slugs}}, {"slug": 1, "toc": 1})
-    }
-
+    sheets = annotate_displayed_collections(sheets, {"toc": "collectionTOC"})
     results = []
     for sheet in sheets:
         anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(
@@ -1085,8 +1085,6 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
             sheet["viaOwnerName"] = viaOwnerData["name"]
             sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
 
-        if "displayedCollection" in sheet:
-            sheet["collectionTOC"] = collection_tocs.get(sheet["displayedCollection"])
         topics = add_langs_to_topics(sheet.get("topics", []))
         for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
             sheet_data = {
