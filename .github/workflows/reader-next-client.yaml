@@ -82,7 +82,7 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     needs: checks
     steps:
       - uses: actions/checkout@v4
@@ -108,6 +108,11 @@ jobs:
           restore-keys: e2e-cassette-
       - name: End-to-end (desktop, API cassette ${{ steps.cassette.outputs.mode }})
         run: npx playwright test --project=desktop
+        env:
+          CI: "1"
+          E2E_API_MODE: ${{ steps.cassette.outputs.mode }}
+      - name: End-to-end (phone, the @mobile tests, API cassette ${{ steps.cassette.outputs.mode }})
+        run: npx playwright test --project=mobile
         env:
           CI: "1"
           E2E_API_MODE: ${{ steps.cassette.outputs.mode }}
