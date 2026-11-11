@@ -16,6 +16,9 @@
 // Recordings live in e2e/.cassette/ (not in git: tens of MB). CI downloads the bundle pinned by e2e/cassette.lock and replays it
 // (scripts/cassette/bundle.mjs); without a bundle it restores them from its cache and records what is missing.
 // E2E_API_PORT (default 3998), E2E_API_UPSTREAM (default https://www.sefaria.org).
+//
+// Local only: it listens on the loopback addresses (127.0.0.1 and ::1), never on the network, and answers CORS with credentials only
+// for a loopback page origin (http://[<sub>.]localhost|127.0.0.1|[::1]:<port>), never for an arbitrary Origin.
 import { createServer } from "node:http";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -35,12 +38,18 @@ const misses = new Set();
 
 const keyOf = (method, url, body) => createHash("sha1").update(`${method} ${url}\n${body ?? ""}`).digest("hex");
 
+// localhost and its subdomains (he.localhost, voices.localhost: the e2e hosts; browsers resolve *.localhost to loopback)
+const LOOPBACK_ORIGIN = /^http:\/\/(?:(?:[a-z0-9-]+\.)*localhost|127\.0\.0\.1|\[::1\])(?::\d{1,5})?$/;
+
 function cors(req, headers) {
-  headers["access-control-allow-origin"] = req.headers.origin || "*";
+  headers["vary"] = "Origin";
+  const origin = req.headers.origin;
+  // the e2e pages run on a loopback origin; any other page gets no CORS answer, so the browser keeps the response from it
+  if (!origin || !LOOPBACK_ORIGIN.test(origin)) return headers;
+  headers["access-control-allow-origin"] = origin;
   headers["access-control-allow-credentials"] = "true";
   headers["access-control-allow-methods"] = "GET, POST, OPTIONS";
   headers["access-control-allow-headers"] = req.headers["access-control-request-headers"] || "content-type";
-  headers["vary"] = "Origin";
   return headers;
 }
 
@@ -77,7 +86,7 @@ function replay(file) {
   return { ...JSON.parse(raw.subarray(0, nl).toString()), body: raw.subarray(nl + 1) };
 }
 
-createServer(async (req, res) => {
+async function handle(req, res) {
   try {
     if (req.method === "OPTIONS") return res.writeHead(204, cors(req, {})).end();
     if (req.url === "/__cassette/health") return res.writeHead(200, { "content-type": "text/plain" }).end(`ok ${MODE}`);
@@ -99,4 +108,16 @@ createServer(async (req, res) => {
     if (!res.headersSent) res.writeHead(502, cors(req, { "content-type": "text/plain" }));
     res.end(String(e));
   }
-}).listen(PORT, () => console.log(`[cassette] ${MODE} on :${PORT} → ${UPSTREAM} (and ${DICTA_PREFIX}/ → ${DICTA_UPSTREAM}), recordings in ${DIR}`));
+}
+
+// both loopback addresses, as "localhost" may resolve to either; ::1 is skipped where the machine has no IPv6 loopback
+for (const host of ["127.0.0.1", "::1"]) {
+  const server = createServer(handle);
+  server.on("error", (e) => {
+    if (host === "::1" && (e.code === "EADDRNOTAVAIL" || e.code === "EAFNOSUPPORT")) return;
+    throw e;
+  });
+  server.listen(PORT, host, () =>
+    console.log(`[cassette] ${MODE} on ${host === "::1" ? "[::1]" : host}:${PORT} → ${UPSTREAM} (and ${DICTA_PREFIX}/ → ${DICTA_UPSTREAM}), recordings in ${DIR}`),
+  );
+}

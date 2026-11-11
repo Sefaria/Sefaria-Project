@@ -64,7 +64,7 @@ spec:
       - name: node
         {{- if eq .Values.nodejs.mode "reader" }}
         # nodejs.mode "reader": the node pods are the new reader client
-        image: "{{ .Values.reader.containerImage.imageRegistry }}:{{ .Values.reader.containerImage.tag }}"
+        image: {{ include "sefaria.readerImage" . | quote }}
         {{- else }}
         image: "{{ .Values.nodejs.containerImage.imageRegistry }}:{{ .Values.nodejs.containerImage.tag }}"
         {{- end }}

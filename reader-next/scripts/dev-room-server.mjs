@@ -4,9 +4,11 @@
 //
 // Usage:  npm run room:dev            (or: node scripts/dev-room-server.mjs)
 //   ROOM_PORT=3199                     port to listen on (default 3199)
-//   ROOM_ORIGINS=http://a:3100,...     browser origins allowed to connect (default: localhost/127.0.0.1 and this machine's LAN IPv4
-//                                      addresses, on port 3100)
-// Then point the reader at it: PUBLIC_ROOM_URL=ws://<lan-ip>:3199 npm run dev -- --host
+//   ROOM_HOST=127.0.0.1                address to listen on (default: loopback only, this machine). For the LAN (a phone following a
+//                                      laptop) set ROOM_HOST=0.0.0.0 on a network you trust: anyone on it can then reach the server
+//   ROOM_ORIGINS=http://a:3100,...     browser origins allowed to connect (default: localhost/127.0.0.1 on port 3100, plus this
+//                                      machine's LAN IPv4 addresses when ROOM_HOST is not loopback)
+// On the LAN, point the reader at it: ROOM_HOST=0.0.0.0 npm run room:dev, then PUBLIC_ROOM_URL=ws://<lan-ip>:3199 npm run dev -- --host
 //
 // Development only: there is no authentication (a joiner says whether it is the host), which is why connections are limited to
 // known origins.
@@ -17,6 +19,8 @@ import { build } from "esbuild";
 import { WebSocketServer } from "ws";
 
 const PORT = Number(process.env.ROOM_PORT || 3199);
+const HOST = process.env.ROOM_HOST || "127.0.0.1";
+const LOOPBACK = HOST === "127.0.0.1" || HOST === "localhost" || HOST === "::1";
 const ROOM_PATH = /^\/r\/([A-Za-z0-9_-]{8,128})$/;
 /** Rooms nobody is connected to are dropped after this (the in-tab room's grace is 30 s; this only frees memory). */
 const IDLE_ROOM_MS = 10 * 60_000;
@@ -24,8 +28,10 @@ const HEARTBEAT_MS = 30_000;
 
 function defaultOrigins() {
   const hosts = ["localhost", "127.0.0.1"];
-  for (const addrs of Object.values(networkInterfaces())) {
-    for (const a of addrs ?? []) if (a.family === "IPv4" && !a.internal) hosts.push(a.address);
+  if (!LOOPBACK) {
+    for (const addrs of Object.values(networkInterfaces())) {
+      for (const a of addrs ?? []) if (a.family === "IPv4" && !a.internal) hosts.push(a.address);
+    }
   }
   return hosts.map((h) => `http://${h}:3100`);
 }
@@ -137,7 +143,7 @@ setInterval(() => {
   }
 }, HEARTBEAT_MS);
 
-server.listen(PORT, "0.0.0.0", () => {
-  log(`listening on ws://0.0.0.0:${PORT}/r/<sessionId>`);
+server.listen(PORT, HOST, () => {
+  log(`listening on ws://${HOST}:${PORT}/r/<sessionId>${LOOPBACK ? " (this machine only; ROOM_HOST=0.0.0.0 for the LAN)" : ""}`);
   log(`allowed origins: ${[...ORIGINS].join(", ")}`);
 });

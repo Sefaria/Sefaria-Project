@@ -75,8 +75,10 @@ The Voices server blocks (`voices.*`, `chiburim.*`) never consult the cookie and
 | Value                          | Default                                                            | Meaning                                                                                                    |
 | ------------------------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
 | `nodejs.mode`                  | `legacy`                                                           | see above                                                                                                  |
-| `reader.containerImage`        | `…/development-205018/containers/sefaria-reader-master:latest`     | the reader image (optin rollout; the node pods in reader mode): what CI pushes for master (see "Images")    |
+| `reader.containerImage`        | `…/development-205018/containers/sefaria-reader-master:latest`     | the reader image (optin rollout; the node pods in reader mode). The default tag is mutable on purpose: in `optin`/`reader` the chart **refuses to render** while the tag is `latest` or empty (see "Images") |
+| `reader.allowMutableImage`     | `false`                                                            | escape for dev environments and cauldrons only: `true` lets `optin`/`reader` run a `latest` (or empty) tag. Never in preprod or production |
 | `reader.optin.enabled`         | `true`                                                             | the kill switch (optin): `false` = nginx ignores the cookie, `READER_OPTIN = False`; the rollout stays    |
+| `reader.errors.endpoint`, `.sampleRate` | `/api/reader-errors`, `1`                              | browser error beacons to Django (`reader/browser_errors.py`): 30 a minute per visitor address and 600 a minute from everyone together. The address is `X-Original-Forwarded-For`, which the Envoy Gateway's Lua sets (replacing any client value) to CF-Connecting-IP or Envoy's resolved client, and nginx and Varnish pass on (nginx's access log uses it too); without the gateway, nginx's `X-Real-IP`; locally `REMOTE_ADDR`. nginx's `X-Real-IP` is never the key behind the gateway: it is the gateway pod for everyone. Django's `ORIGIN_LOCKED_TO_CLOUDFLARE = True` (a Django setting, not in this chart; off by default) makes it read `CF-Connecting-IP` directly: set it only where nothing but Cloudflare can reach the origin. Residual: the gateway trusts CF-Connecting-IP, so a client bypassing Cloudflare can choose its key; the global cap bounds that |
 | `reader.canonicalOrigin`       | `https://www.sefaria.org`                                          | `PUBLIC_CANONICAL_ORIGIN` (templated)                                                                      |
 | `reader.replicaCount`, `reader.resources`, `reader.heapSize` | 1, 256Mi/100m → 768Mi/1 CPU, 384 MB          | optin rollout sizing, not yet measured (T-C06 below)                                                       |
 
@@ -126,6 +128,16 @@ Target: every reader back on the legacy reader within two minutes, without remov
    (`flux reconcile helmrelease <name>`). nginx's `location /` is then legacy's byte for byte (no cookie check), `READER_OPTIN`
    becomes `False` (the account switch is hidden), and the reader rollout keeps running (its `/assets/` still serve pages that are
    already open). A release rolls nginx and web blue/green, so this takes as long as a deploy, not two minutes.
+
+**The opt-in is a routing cookie, not an access boundary (accepted for L0, DECISIONS.md 2026-11-10).** Anyone can set
+`reader_version=next` in their own browser (devtools) and nginx routes on the cookie alone (`map $cookie_reader_version`). Django's
+`ReaderChoiceMiddleware` clears the cookie of someone outside the audience only on responses **Django** sends, and the reader itself
+never checks the audience: a signed-out visitor who sets the cookie gets the new reader on every page it renders (a signed-in non-staff
+visitor loses the cookie at their next Django response). This is not a data exposure (the reader serves only what the visitor could read
+anyway), but it means: (a) "staff only" at L0 limits who is invited, not who can reach the reader's pages and its `/_serverFn/…`
+endpoints; treat the reader server as public from L0 on; (b) lever 1 (remote config) reaches only tabs whose client code runs and
+responses Django sends. **The server-side kill switch is lever 3, `reader.optin.enabled: false`**: nginx stops reading the cookie, so
+no request reaches the reader whatever cookie it carries (lever 2 does the same at once, until the next release).
 
 Restore: undo in reverse order (`reader.optin.enabled: true`; `kubectl … scale … --replicas=<n>` or remove the KEDA annotation;
 the remote-config key back to `true`). Rehearse 2 and 3 on a cauldron before L0 (LAUNCH_PLAN §7).
@@ -217,7 +229,7 @@ publish a prerelease chart for that branch (channel = the branch name, e.g. `0.9
 3. In the cauldrons repository: `./create-cauldron.sh -n reader-next -b reader-next -c <chart version>` (add `-d` to review the
    HelmRelease first), then set in its HelmRelease values `nodejs.mode: optin` and
    `reader.containerImage.imageRegistry: us-east1-docker.pkg.dev/<dev project>/containers/sefaria-reader-reader-next` (tag as for the
-   other images). The script knows only the node image: until it learns `reader.containerImage`, add these by hand, and an image policy
+   other images; with `latest`, also `reader.allowMutableImage: true`, or the chart refuses to render). The script knows only the node image: until it learns `reader.containerImage`, add these by hand, and an image policy
    for `sefaria-reader-<branch>` if the cauldron should follow new builds.
 4. Opt in: sign in, Account Settings → the new reader (sets `reader_version=next`). Open `https://www.reader-next.cauldron.sefaria.org/Genesis.1`
    (this client) and `/topics` (Django through the client). Response header `x-served-by: django` marks a page the client passed on;
@@ -234,8 +246,13 @@ mkdir -p /tmp/master && git archive origin/master helm-chart | tar -x -C /tmp/ma
 mask() { sed -E '/randomstringtoforceredeployments/{n;s/value: .*/value: RANDOM/;}'; }
 diff <(helm template t /tmp/master/helm-chart/sefaria --set deployEnv=t | mask) <(helm template t helm-chart/sefaria --set deployEnv=t | mask)
 
-# every mode: nginx -t, then who answers which path with and without the cookie (and with the reader down)
+# every mode: nginx -t, then who answers which path with and without the cookie (and with the reader down). optin and reader
+# need an immutable reader tag or reader.allowMutableImage=true (the script passes the escape value)
 python3 build/ci/reader-nginx-routing.py --table
+
+# optin/reader refuse the default mutable tag (expect the "mutable tag" error), and render with a sha tag
+helm template t helm-chart/sefaria --set deployEnv=t --set nodejs.mode=optin >/dev/null
+helm template t helm-chart/sefaria --set deployEnv=t --set nodejs.mode=optin --set reader.containerImage.tag=sha-abc1234 | grep sefaria-reader
 
 # nginx's Django paths are current
 node --experimental-strip-types build/ci/reader-nginx-paths.mjs --check
@@ -279,7 +296,24 @@ same time.
 
 What exists today: `continuous.yaml` pushes `us-east1-docker.pkg.dev/<DEV_PROJECT>/containers/sefaria-reader-<branch>` (tags
 `latest`, `sha-<short>-<date>`, `<branch>`) whenever `reader-next/` changes, so `sefaria-reader-master:latest` exists once a
-`reader-next/` change has landed on master. The chart's default, `…/development-205018/containers/sefaria-reader-master:latest`,
+`reader-next/` change has landed on master. Only the branch named exactly `master` (or `prod`/`preprod`) writes those image names: the
+branch-name step used to keep the middle segment of `a/b/c`, so `anything/master/x` wrote `sefaria-reader-master:latest`; such a branch
+is now published as `sefaria-reader-branch-anything-master-x`.
+
+**Mutable tags are refused (`sefaria.readerImage` in `templates/_helpers.tpl`).** In `nodejs.mode` `optin` or `reader`, `helm template`
+fails while `reader.containerImage.tag` is `latest` or empty: a `latest` tag is pulled again on every pod restart
+(`imagePullPolicy: Always`) and is overwritten by every build, unreviewed. The message:
+
+```
+Error: execution error at (sefaria/templates/rollout/reader.yaml:41:18): nodejs.mode "optin" runs the reader image
+us-east1-docker.pkg.dev/development-205018/containers/sefaria-reader-master with the mutable tag "latest". Set
+reader.containerImage.tag to an immutable tag (a commit sha from continuous.yaml), or, for a dev environment or cauldron only, set
+reader.allowMutableImage: true (reader-next/docs/DEPLOYMENT.md, "Images").
+```
+
+Set the tag to a `sha-<short>-<date>` (or `sha-<short>`) tag of a reviewed master build, or let the environment's Flux image policy
+write it, as for `sefaria-node`. `reader.allowMutableImage: true` is the escape for a dev environment or cauldron that should follow a
+branch's `latest`; never set it in preprod or production. `legacy` mode never renders the reader image and is not affected. The chart's default, `…/development-205018/containers/sefaria-reader-master:latest`,
 assumes `DEV_PROJECT` is `development-205018` (as `build/ci/integration-values.yaml` does for the other images): check it. Nothing pushes
 a reader image to the production registry. Owner actions before the reader runs anywhere shared:
 
@@ -287,7 +321,8 @@ a reader image to the production registry. Owner actions before the reader runs 
    as `us-east1-docker.pkg.dev/production-deployment/containers/sefaria-reader`, tagged like `sefaria-node`.
 2. In each environment that runs `nodejs.mode: optin` (staging, production), set `reader.containerImage.imageRegistry` and `.tag` to that
    image, and add an image policy for it in the environment's Flux image automation, as for `sefaria-node`.
-3. Cauldrons: `reader.containerImage.imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-reader-<branch>`.
+3. Cauldrons: `reader.containerImage.imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-reader-<branch>`,
+   and either a `sha-…` tag or `reader.allowMutableImage: true` to follow the branch's `latest`.
 4. Upload the pinned e2e cassette bundle (command in `scripts/cassette/bundle.mjs pack`'s output) **before** the lock reaches a pushed
    branch: with a lock, a push whose bundle cannot be fetched fails the e2e job.
 

@@ -38,7 +38,7 @@ spec:
           {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       containers:
       - name: reader
-        image: "{{ .Values.reader.containerImage.imageRegistry }}:{{ .Values.reader.containerImage.tag }}"
+        image: {{ include "sefaria.readerImage" . | quote }}
         imagePullPolicy: Always
         env:
           - name: randomstringtoforceredeployments
