@@ -19,6 +19,8 @@ export interface SegmentSide {
 export interface SegmentProps {
   /** Full ref of this segment, e.g. "Genesis 1:3". Used for identity, scrolling and the accessible name. */
   segmentRef: string;
+  /** Accessible name when it is not the ref itself (the Hebrew interface names a verse by its Hebrew ref). */
+  label?: string;
   /** Last address component shown in the gutter ("3", "2a"). Omit to hide the number (e.g. liturgy). */
   address?: string;
   primary?: SegmentSide;
@@ -50,7 +52,7 @@ export interface SegmentProps {
  * @feature TXD-043 @feature TXD-045 @feature TXD-047 @feature TXD-049 @feature TXD-050
  */
 function SegmentImpl({
-  segmentRef, address, primary, translation, language, vocalization, stripPunctuation, highlighted, isScrollTarget, linkCount, itagCommentator, terms,
+  segmentRef, label, address, primary, translation, language, vocalization, stripPunctuation, highlighted, isScrollTarget, linkCount, itagCommentator, terms,
   onSelect, onRefClick, onEntityClick,
 }: SegmentProps) {
   if (import.meta.env?.DEV && typeof window !== "undefined") {
@@ -96,7 +98,7 @@ function SegmentImpl({
     <div
       className={styles.segment}
       role="group"
-      aria-label={segmentRef}
+      aria-label={label ?? segmentRef}
       // every verse is a tab stop, as on sefaria.org: Tab reads down the text verse by verse (the links and note markers inside it
       // are not stops; the column reaches them with the arrow keys). The skip link and the panel's own controls come before the text.
       tabIndex={onSelect ? 0 : undefined}

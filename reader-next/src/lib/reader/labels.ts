@@ -1,15 +1,14 @@
 /**
- * Labels the reader prints next to and above text: segment numbers and section titles.
+ * Labels the reader prints next to text: segment numbers, which books show them, and the link dot.
  *
  * Rules from the old client (inv_03 §5.2): numbers are Arabic in English, Hebrew numerals in Hebrew; in a
- * bilingual panel they follow the interface language; short numeric titles are used for Tanakh, Mishnah,
- * Talmud, Tanaitic and Commentary books; other categories print the full section reference.
+ * bilingual panel they follow the interface language. Section titles live in src/ui/TextSection/section-heading.ts.
  *
  * @feature TXD-045 Segment numbers
- * @feature TXD-011 TXD-012 Section titles; TXD-047 link dot; TXT-019 TXT-020 TXT-021 no numbers for some books
+ * @feature TXD-047 link dot; TXT-019 TXT-020 TXT-021 no numbers for some books
  */
 import type { InterfaceLang } from "~/lib/i18n/interface-lang";
-import { encodeHebrewDaf, encodeHebrewNumeral } from "~/lib/ref/hebrew-numerals";
+import { encodeHebrewNumeral } from "~/lib/ref/hebrew-numerals";
 import type { ContentLanguage } from "./settings";
 
 export type LabelLang = "en" | "he";
@@ -44,28 +43,6 @@ export function numberLang(language: ContentLanguage, interfaceLang: InterfaceLa
 export function segmentNumber(address: string, lang: LabelLang): string {
   if (lang === "he" && /^\d+$/.test(address) && Number(address) > 0) return encodeHebrewNumeral(Number(address), { punctuation: false });
   return address;
-}
-
-const SHORT_TITLE_CATEGORIES = new Set(["Tanakh", "Mishnah", "Talmud", "Tanaitic", "Commentary"]);
-
-export interface SectionTitleInput {
-  primaryCategory: string;
-  /** Last address of the section (e.g. "4", "2a"). */
-  address: string | undefined;
-  addressType?: string;
-  sectionRef: string;
-  heSectionRef: string;
-}
-
-/** Title above a section, in both languages. */
-export function sectionTitle(i: SectionTitleInput): { en: string; he: string; short: boolean } {
-  const short = SHORT_TITLE_CATEGORIES.has(i.primaryCategory) && i.address !== undefined;
-  if (!short) return { en: i.sectionRef, he: i.heSectionRef, short: false };
-  const addr = i.address!;
-  if (i.addressType === "Talmud") return { en: addr, he: encodeHebrewDaf(addr), short };
-  // Multi-part addresses (commentary on a verse: "1:1") convert each part.
-  const he = addr.split(":").map((part) => (/^\d+$/.test(part) && Number(part) > 0 ? encodeHebrewNumeral(Number(part)) : part)).join(":");
-  return { en: addr, he, short };
 }
 
 /** Segments are numbered unless the book is a dictionary, liturgy, or the Guide for the Perplexed. */

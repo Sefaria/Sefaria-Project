@@ -25,9 +25,16 @@
 .primary[dir="ltr"], .translation[dir="ltr"] { font-family: var(--sefaria-font-text-en); }
 .translation { color: var(--sefaria-color-text-secondary); }
 
-/* Bilingual, stacked */
+/* Bilingual, stacked. VERIFIED on sefaria.org (2026-11-10, Genesis 1:1 at 1280): Hebrew ends at 396, English starts at 406 (10px, the
+   translation's `margin: 10px 0 20px`); the next verse starts 20px below (the translation's 20px bottom margin wins over the segment's
+   14px); a verse without a translation is 14px from the next. The Hebrew is right-aligned in every bilingual layout. Parity S5. */
 [data-language="bilingual"] .body { display: flex; flex-direction: column; gap: 10px; }
-[data-language="bilingual"][data-bilayout="stacked"] .translation { margin-block-start: 10px; }
+[data-language="bilingual"][data-bilayout="stacked"] .segment { margin-block-end: 14px; }
+[data-language="bilingual"][data-bilayout="stacked"] .segment:is([data-sides="both"], [data-sides="translation"]) { margin-block-end: 20px; }
+[data-language="bilingual"] .primary[dir="rtl"] { text-align: right; text-align-last: auto; }
+/* The enlarged first word (legacy <big>) keeps legacy's line-height of 1.2: with the reader's 1.6 it made the first line of every
+   chapter 9px taller than sefaria.org's (Genesis 1:1's Hebrew 51.5px against 42.9px). */
+.side :global(big), .side :global([style*="larger"]) { line-height: 1.2; }
 
 /* Bilingual, side by side. Physical columns regardless of reading direction. */
 [data-bilayout="heLeft"] .body, [data-bilayout="heRight"] .body { flex-direction: row; direction: ltr; gap: 24px; align-items: flex-start; }
@@ -50,6 +57,13 @@
 [data-layout="continuous"] .number, [data-layout="continuous"] .dot { top: auto; margin-top: 0; }
 [data-layout="continuous"] .number { inset-inline-start: calc(var(--_pad, 30px) - 48px); }
 [data-layout="continuous"] .dot { inset-inline-end: calc(var(--_pad, 30px) - 48px + 4px); }
+/* A phone (34px of padding, the old singlePanel): the number and dot sit in the padding, 4px from the screen's edges, as on sefaria.org
+   (Berakhot 2a, Hebrew, 390px: numbers at 356-386, dots at 4-34). 48px out put them past the edge and the page scrolled sideways
+   (parity S6). */
+@media (max-width: 842px) and (pointer: coarse) {
+  [data-layout="continuous"] .number { inset-inline-start: 4px; }
+  [data-layout="continuous"] .dot { inset-inline-end: 4px; }
+}
 
 /* Gutter: number on the reading-start side, link dot on the other */
 .number, .dot { position: absolute; top: 0; width: 30px; text-align: center; line-height: 1.9; user-select: none; }
