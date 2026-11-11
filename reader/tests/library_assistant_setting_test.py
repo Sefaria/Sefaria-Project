@@ -267,13 +267,13 @@ class LoggedInFreeAnswerLimitTest(LibraryAssistantUserTestCase):
         self.assertNotIn("chatbot_anon_free_answers", props)
 
 
-class AskButtonHiddenTest(LibraryAssistantUserTestCase):
+class FloatingButtonHiddenTest(LibraryAssistantUserTestCase):
     """
     The assistant's "Hide Ask button" switch, saved to the account through /api/profile
     and passed back to the widget as `chatbot_hide_launcher`.
     """
 
-    KEY = library_assistant.ASK_BUTTON_HIDDEN_KEY
+    KEY = library_assistant.FLOATING_BUTTON_HIDDEN_KEY
 
     def access_props(self):
         request = mock.Mock()

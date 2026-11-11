@@ -1396,7 +1396,7 @@ class ReaderApp extends Component {
   // Logged out, the assistant keeps it in that browser on its own.
   handleChatbotLauncherVisibility(event) {
     if (!Sefaria._uid || typeof event?.detail?.hidden !== 'boolean') return;
-    Sefaria.editProfileAPI({ settings: { library_assistant_ask_button_hidden: event.detail.hidden } });
+    Sefaria.editProfileAPI({ settings: { library_assistant_floating_button_hidden: event.detail.hidden } });
   }
   handleSettingsUpdatedEvent(event) {
     const detail = event?.detail;
