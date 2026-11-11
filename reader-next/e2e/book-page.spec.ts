@@ -59,16 +59,20 @@ test.describe("a book's own page (verified against sefaria.org)", () => {
     expect(Math.abs(row!.x + row!.width - (pill!.x + pill!.width))).toBeLessThan(2);
     // the sidebar stays on this tab
     await expect(page.getByRole("complementary")).toContainText("Download Text");
-    // tabs: 22px, the current one black over a 4px #ccc bar; a mouse click leaves no focus ring, the keyboard's shows
-    const versionsTab = page.getByRole("navigation", { name: "Book sections" }).getByRole("link", { name: "Versions" });
+    // tabs: 22px, the current one black over a 4px #ccc bar
+    const nav = page.getByRole("navigation", { name: "Book sections" });
+    const versionsTab = nav.getByRole("link", { name: "Versions" });
     expect(await versionsTab.evaluate((el) => [getComputedStyle(el).fontSize, getComputedStyle(el).color, getComputedStyle(el).borderBottom])).toEqual(["22px", "rgb(0, 0, 0)", "4px solid rgb(204, 204, 204)"]);
-    await page.getByRole("navigation", { name: "Book sections" }).getByRole("link", { name: "Contents" }).click();
+    // a mouse click does not focus the tab (the old tabs could not take focus): the next key press, an arrow to scroll, shows no ring
+    await nav.getByRole("link", { name: "Contents" }).click();
     await versionsTab.click();
     await expect(page).toHaveURL(/\?tab=versions/);
-    expect(await versionsTab.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe("none");
-    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("ArrowDown");
+    expect(await versionsTab.evaluate((el) => [el === document.activeElement, getComputedStyle(el).outlineStyle])).toEqual([false, "none"]);
+    // the keyboard still reaches it, with its ring
+    await nav.getByRole("link", { name: "Contents" }).focus();
     await page.keyboard.press("Tab");
-    expect(await versionsTab.evaluate((el) => (el.matches(":focus-visible") ? getComputedStyle(el).outlineStyle : "not focused"))).toBe("solid");
+    expect(await versionsTab.evaluate((el) => [el === document.activeElement, getComputedStyle(el).outlineStyle])).toEqual([true, "solid"]);
   });
 
   test("the Versions tab in the Hebrew interface: Hebrew titles and language names", async ({ page }) => {
@@ -116,6 +120,37 @@ test.describe("the language button on library pages", () => {
 });
 
 // @feature BOK-002 @feature BOK-006 @feature LIB-036
+// the old .sidebarLayout on a desktop (measured on sefaria.org, Sifrei Bamidbar): the sidebar stays beside the content down to 701px, both
+// columns shrinking in the ratio 665:420 under 1145px (at 800px: content 514, sidebar 286); at 700px they stack
+test.describe("a book page in a narrow desktop window", () => {
+  for (const lang of ["english", "hebrew"] as const) {
+    for (const tab of ["contents", "versions"] as const) {
+      test(`800px, ${lang}, ${tab}: the sidebar beside the content, at the old widths`, async ({ page }) => {
+        await page.setViewportSize({ width: 800, height: 900 });
+        if (lang === "hebrew") await page.context().addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
+        await open(page, `/Berakhot?tab=${tab}`);
+        await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+        const side = (await page.getByRole("complementary").boundingBox())!;
+        const main = (await page.locator("main article").boundingBox())!;
+        expect(Math.round(side.width)).toBeGreaterThanOrEqual(285);
+        expect(Math.round(side.width)).toBeLessThanOrEqual(287);
+        expect(side.y).toBeLessThan(main.y); // beside it, from the top of the page
+        expect(lang === "hebrew" ? side.x : side.x + side.width).toBeCloseTo(lang === "hebrew" ? 0 : 800, -1);
+        expect(await page.locator("main article nav a").first().evaluate((el) => getComputedStyle(el).fontSize)).toBe("22px");
+      });
+    }
+  }
+  test("700px: one column, the sidebar under the page", async ({ page }) => {
+    await page.setViewportSize({ width: 700, height: 900 });
+    await open(page, "/Berakhot?tab=versions");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    const side = (await page.getByRole("complementary").boundingBox())!;
+    const main = (await page.locator("main article").boundingBox())!;
+    expect(side.width).toBeGreaterThan(690);
+    expect(side.y).toBeGreaterThan(main.y + main.height - 1);
+  });
+});
+
 test.describe("a book page on a phone", () => {
   test.use({ viewport: { width: 390, height: 844 } });
   test("keeps the site header; the About text sits under Start Reading, with no 'About This Text' module", async ({ page }) => {
