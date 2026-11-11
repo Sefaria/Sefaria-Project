@@ -191,6 +191,7 @@ nodejs:
   #          `reader.optin.enabled: false` is the kill switch: nginx ignores the cookie and the switch is hidden.
   #  reader: replace (not deployed anywhere shared, LAUNCH_PLAN D-1): the node pods run the new reader image (`reader.containerImage`),
   #          nginx sends every page request to it first, and Django's own SSR is switched off (USE_NODE = False).
+  #  Any other value fails the render (templates/values-check.yaml).
   mode: legacy
   containerImage:
     # Full path of the image registry inclusive of the image name

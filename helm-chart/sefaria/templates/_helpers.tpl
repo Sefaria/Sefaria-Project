@@ -287,6 +287,17 @@ to it last (imagePullPolicy Always), and continuous.yaml pushes sefaria-reader-<
 (the sha-<short sha>-<date> or sha-<short sha> tag continuous.yaml pushes beside latest). reader.allowMutableImage: true is the escape
 for dev environments and cauldrons. Only nodejs.mode "optin" and "reader" render the reader image, so "legacy" is never refused.
 */}}
+{{/*
+nodejs.mode must be one of legacy, optin, reader. The templates compare it with eq, so any other value (a typo such as "opt-in")
+would otherwise render legacy without a word. Included by templates/values-check.yaml, which renders nothing.
+*/}}
+{{- define "sefaria.checkNodejsMode" -}}
+{{- $mode := .Values.nodejs.mode -}}
+{{- if not (has $mode (list "legacy" "optin" "reader")) -}}
+{{- fail (printf "nodejs.mode must be \"legacy\", \"optin\" or \"reader\", not %q (reader-next/docs/DEPLOYMENT.md)." (toString $mode)) -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "sefaria.readerImage" -}}
 {{- $img := .Values.reader.containerImage -}}
 {{- $tag := toString (default "" $img.tag) | trim -}}
