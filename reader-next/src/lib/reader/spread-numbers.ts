@@ -14,22 +14,32 @@ export function spreadNumbers(root: HTMLElement): void {
   for (const n of nums) n.style.translate = "";
   const boxes = nums.map((n) => n.getBoundingClientRect());
   const tops = boxes.map((b) => b.top);
-  // what each number may not leave: its column, and the page (on a phone the gutter is the screen's edge). A step that would leave it
-  // goes down instead, one number's height per step, staying in the gutter: inwards it would sit on the text, outwards the page would
-  // scroll sideways (parity S6)
+  // what each number may not leave: its column, and the page (on a phone the gutter is the screen's edge). Where a step outwards would
+  // leave it, the numbers stack down the gutter instead: each sits at its own line, or just below the number above it when that one
+  // reaches lower, so no number is ever on the text (inwards), off the page (outwards), or on another number (parity S6, review nits)
   const page = root.ownerDocument.documentElement.clientWidth;
   const edges = nums.map((n) => {
     const r = (n.closest("[data-reader-scroller]") ?? root).getBoundingClientRect();
     return { left: Math.max(0, r.left), right: Math.min(page, r.right) };
   });
   const sign = getComputedStyle(nums[0]!).direction === "rtl" ? 1 : -1; // outwards: right in Hebrew, left otherwise
+  const fitsOutwards = (i: number, by: number) => {
+    const b = boxes[i]!, edge = edges[i]!;
+    return sign > 0 ? b.right + by <= edge.right + 0.5 : b.left - by >= edge.left - 0.5;
+  };
+  if (!nums.every((_, i) => fitsOutwards(i, STEP))) {
+    let below = -Infinity; // the lowest edge of the numbers placed so far
+    nums.forEach((n, i) => {
+      const b = boxes[i]!;
+      const dy = Math.max(0, below - b.top);
+      if (dy) n.style.translate = `0 ${dy}px`;
+      below = b.bottom + dy;
+    });
+    return;
+  }
   let run = 0;
   nums.forEach((n, i) => {
     run = i > 0 && Math.abs(tops[i]! - tops[i - 1]!) < 2 ? run + 1 : 0;
-    if (!run) return;
-    const out = sign * run * STEP;
-    const b = boxes[i]!, edge = edges[i]!;
-    const fits = (out > 0 ? b.right + out <= edge.right + 0.5 : b.left + out >= edge.left - 0.5);
-    n.style.translate = fits ? `${out}px 0` : `0 ${run * b.height}px`;
+    if (run) n.style.translate = `${sign * run * STEP}px 0`;
   });
 }
