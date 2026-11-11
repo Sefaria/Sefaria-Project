@@ -118,7 +118,7 @@ export function useSignUpTracking({ flow, source }: { flow: AuthFlow; source?: s
     if (prevFlow === flow) return;
     if (isTrackedFlow(prevFlow)) endFlow();
     if (isTrackedFlow(flow)) startFlow(source);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- a flow starts and ends when flow or source change; startFlow and endFlow are rebuilt every render and work through refs
   }, [flow, source]);
 
   useEffect(() => {
@@ -145,11 +145,11 @@ export function useSignUpTracking({ flow, source }: { flow: AuthFlow; source?: s
       window.removeEventListener("popstate", onPopState);
       window.removeEventListener("pageshow", onPageShow);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- listeners per flow and source; startFlow and endFlow are rebuilt every render and work through refs
   }, [flow, source]);
 
   // unmount (an in-app navigation away) concludes the flow too
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- on unmount only; endFlow works through refs
   useEffect(() => endFlow, []);
 
   return { chooseMethod, startProcess, endProcess, getIds, suppressFlowEndRef };

@@ -24,6 +24,7 @@ function fakeSource(): FollowMeSource & { set(s: FollowMeState): void } {
 describe("lazyFollowMe", () => {
   it("reads idle and loads nothing until started; Start loads, attaches and starts the real source", async () => {
     const real = fakeSource();
+    // eslint-disable-next-line prefer-const -- declared first: the loader below refers to it before it is assigned
     let lazySource!: ReturnType<typeof lazyFollowMe>;
     const load = vi.fn(async () => lazySource.attach(real));
     lazySource = lazyFollowMe(load);

@@ -75,6 +75,7 @@ export function safeNext(next: unknown): string {
     const u = new URL(next, SAFE_NEXT_BASE);
     if (u.origin !== SAFE_NEXT_BASE) return "/";
     // an absolute path comes back as parsed; a bare relative one ("sheets/123", as the old client allowed) minus control characters
+    // eslint-disable-next-line no-control-regex -- removes control characters on purpose
     return next.startsWith("/") ? `${u.pathname}${u.search}${u.hash}` : next.replace(/[\u0000-\u001f\u007f]/g, "");
   } catch {
     return "/";

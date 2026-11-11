@@ -118,7 +118,7 @@ export function useProviderTriggers({
         activeErrorHandlerRef.current(authError(null, "auth.generic_error"));
       }
     },
-    [googleClientId],
+    [],
   );
 
   const onGoogleButtonClicked = useCallback(() => {

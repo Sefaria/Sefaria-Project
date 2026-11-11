@@ -101,6 +101,7 @@ describe("downloadRecording", () => {
     URL.revokeObjectURL = revoke;
     let clicked: HTMLAnchorElement | null = null;
     vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+      // eslint-disable-next-line @typescript-eslint/no-this-alias -- the spy records the anchor it was called on
       clicked = this;
     });
     try {

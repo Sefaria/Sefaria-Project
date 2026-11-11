@@ -38,7 +38,8 @@ export function AddConnectionView({ refs, onAdd, onBrowse }: AddConnectionViewPr
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  useEffect(() => setSaved(false), [refs.join("|")]); // eslint-disable-line react-hooks/exhaustive-deps
+  const refsKey = refs.join("|");
+  useEffect(() => setSaved(false), [refsKey]);
 
   if (saved) return <p className={styles.view} role="status"><InterfaceText en="Connection added." he="הקישור נוסף." /></p>;
   if (refs.length === 1) {

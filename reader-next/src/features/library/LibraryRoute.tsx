@@ -44,7 +44,8 @@ export function LibraryRoute({ path }: { path: string[] }) {
   const viewer = useViewer();
   const staff = !!viewer?.isStaff;
   const [editor, setEditor] = useState<null | "add" | "edit" | "reorder">(null);
-  useEffect(() => setEditor(null), [path.join("/")]);
+  const pathKey = path.join("/");
+  useEffect(() => setEditor(null), [pathKey]);
   const fullTree = useQuery({ ...tocQueryOptions(), select: (t) => t, enabled: staff && !!editor }).data;
   if (!catalog) return <LoadingState />;
   // after a change the catalog everyone caches is stale: drop it, then go where the old editors went

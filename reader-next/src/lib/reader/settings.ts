@@ -188,8 +188,8 @@ export function supportsAliyot(book: string | undefined): boolean {
 }
 
 /** Nikud / te'amim detection used to decide whether vowel controls apply. */
-export const hasNikud = (s: string) => /[ְ-׃ׇ]/.test(s);
-export const hasTaamim = (s: string) => /[֑-֯]/.test(s);
+export const hasNikud = (s: string) => /[\u05B0-\u05C3]|\u05C7/.test(s);
+export const hasTaamim = (s: string) => /[\u0591-\u05AF]/.test(s);
 
 export interface DisplayMenuAvailability {
   language: boolean;

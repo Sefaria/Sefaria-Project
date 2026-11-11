@@ -1,4 +1,4 @@
-import { createElement, type ComponentPropsWithoutRef, type ElementType, type ReactNode } from "react";
+import { createElement, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { useContentLang, type ContentLang } from "~/lib/i18n/content-lang";
 import { dirFor } from "~/lib/i18n/direction";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";

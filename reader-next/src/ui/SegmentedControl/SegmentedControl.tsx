@@ -53,8 +53,13 @@ export function SegmentedControl<T extends string>({ value, onValueChange, optio
   const onKeyDown = (e: KeyboardEvent, index: number) => {
     const forward = rtl ? "ArrowLeft" : "ArrowRight";
     const backward = rtl ? "ArrowRight" : "ArrowLeft";
-    if (e.key === forward || e.key === "ArrowDown") (e.preventDefault(), move(index, 1));
-    else if (e.key === backward || e.key === "ArrowUp") (e.preventDefault(), move(index, -1));
+    if (e.key === forward || e.key === "ArrowDown") {
+      e.preventDefault();
+      move(index, 1);
+    } else if (e.key === backward || e.key === "ArrowUp") {
+      e.preventDefault();
+      move(index, -1);
+    }
   };
 
   const checkedIndex = Math.max(0, options.findIndex((o) => o.value === value));

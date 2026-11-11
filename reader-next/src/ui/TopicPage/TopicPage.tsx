@@ -20,13 +20,6 @@ export interface BilingualText {
   he: string;
 }
 
-const anlAttrs = (anl: Record<string, string | number | undefined>) =>
-  Object.fromEntries(
-    Object.entries(anl)
-      .filter(([, v]) => v !== undefined)
-      .map(([k, v]) => [`data-anl-${k}`, String(v)]),
-  );
-
 /**
  * The topic page's frame (the old .topicPanel): the analytics batch on its root, the page's column and the side column beside it
  * (under it on a phone).
@@ -204,7 +197,7 @@ export function TopicHeader({
         </div>
       ) : null}
       {description && (description.en || description.he) ? (
-        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- delegates link clicks only
+        // a click handler on a div: it only delegates clicks on the links inside (which have their own keyboard behaviour)
         <div className={styles.description} onClick={onDescriptionClick}>
           <InterfaceMarkdown text={description} />
         </div>

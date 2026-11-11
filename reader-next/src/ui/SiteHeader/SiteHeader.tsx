@@ -222,6 +222,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- set up when the menu opens: setMobileOpen is rebuilt every render, and re-running would move focus into the menu again
   }, [mobileOpen]);
   const logo = he ? "/brand/library-logo-hebrew.svg" : "/brand/library-logo-english.svg";
   const logoLabel = he ? "לוגו ספריית ספריא" : "Sefaria library logo";

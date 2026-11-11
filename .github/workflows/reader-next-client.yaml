@@ -46,6 +46,8 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Type check
         run: npx tsc --noEmit
+      - name: Lint (ESLint, eslint.config.mjs)
+        run: npm run lint
       - name: Unit and architecture tests
         run: npm test
       - name: Atlas tags exist

@@ -1,4 +1,4 @@
-import { devices, expect, test, type Page } from "@playwright/test";
+import { devices, expect, test } from "@playwright/test";
 import { open } from "./helpers";
 
 // /translations/<lang>: the texts available in one translation language (the old TranslationsPage). Data from the API cassette

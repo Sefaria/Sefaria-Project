@@ -9,7 +9,6 @@ import { ContentLanguage } from "../ContentLanguage/ContentLanguage";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { Link } from "../Link/Link";
 import { NavPage } from "../NavPage/NavPage";
-import { categoryColor } from "../tokens/category-color";
 import { AdminButtons, type PageAdmin } from "../AdminButtons/AdminButtons";
 import styles from "./CategoryPage.module.css";
 
@@ -98,7 +97,7 @@ function Block({ href, title, desc, line, hebrewUi }: { href: string; title: Bil
   );
 }
 
-function Contents({ contents, cats, category, nest, he, hebrewContent, hebrewUi, inSection }: { contents: readonly TocNode[]; cats: readonly string[]; category: string; nest: number; he: (c: string) => string; hebrewContent: boolean; hebrewUi: boolean; inSection?: boolean }) {
+function Contents({ contents, cats, nest, he, hebrewContent, hebrewUi, inSection }: { contents: readonly TocNode[]; cats: readonly string[]; category: string; nest: number; he: (c: string) => string; hebrewContent: boolean; hebrewUi: boolean; inSection?: boolean }) {
   const items = hebrewContent ? hebrewContentSort(contents) : contents;
   const out: ReactNode[] = [];
   let run: ReactNode[] = [];

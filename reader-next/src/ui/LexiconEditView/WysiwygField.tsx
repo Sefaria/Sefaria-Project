@@ -163,7 +163,7 @@ function RefLinkForm({ initialRef, initialLabel, canRemove, resolveRef, onSave, 
     <div className={styles.linkForm} role="group" aria-label="Sefaria ref link">
       <label>
         Reference
-        {/* eslint-disable-next-line jsx-a11y/no-autofocus -- the form opens for this field */}
+        {/* autoFocus: the form opens for this field */}
         <input type="text" value={refText} placeholder="Genesis 1:1" autoFocus onChange={(e) => (setRefText(e.target.value), setError(null))} />
       </label>
       <label>

@@ -211,7 +211,10 @@ export function SortMenu<V extends string = SearchSort>({ sort, onChange, disabl
     else if (e.key === "ArrowUp") to(at - 1);
     else if (e.key === "Home") to(0);
     else if (e.key === "End") to(items.length - 1);
-    else if (e.key === "Escape") (e.preventDefault(), close(true));
+    else if (e.key === "Escape") {
+      e.preventDefault();
+      close(true);
+    }
     else if (e.key === "Tab") close(false);
   };
   return (
@@ -334,7 +337,6 @@ function Checkbox({ state, onChange, label }: { state: "none" | "selected" | "pa
   return <input ref={ref} type="checkbox" checked={state === "selected"} aria-checked={state === "partial" ? "mixed" : state === "selected"} aria-label={label} onChange={onChange} />;
 }
 
-const isAbsolute = (h: string) => /^https?:/.test(h);
 /** The category path above a book's name: one line; when it does not fit, the middle becomes "…" (as on sefaria.org). */
 function Crumbs({ items }: { items: { label: string; href?: string }[] }) {
   const ref = useRef<HTMLDivElement>(null);

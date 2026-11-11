@@ -352,7 +352,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     if (!lexiconEntries || !lookingUp) return;
     const where = props.section ? ` / ${props.section.categories.join("/")}/${props.section.indexTitle}` : "";
     readerAnalytics.lexiconLookup(`${lexiconEntries.length === 0 ? "Open No Result" : "Open"}${where}`, lookingUp);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per lookup answer and word; lexiconEntries and the section are derived from that answer
   }, [lexiconQ.data, lookingUp]);
 
   // Web pages: one request per selected verse (the old client did the same), merged, sorted, grouped by site.

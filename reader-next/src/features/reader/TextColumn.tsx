@@ -86,7 +86,7 @@ export function TextColumn(props: TextColumnProps) {
   useEffect(() => {
     const p = initial[0];
     if (p) readerAnalytics.textOpened(p.indexTitle, p.primaryCategory);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mounted column: the text it opened with
   }, []);
   const qc = useQueryClient();
   const [sections, setSections] = useState(initial);
@@ -111,7 +111,7 @@ export function TextColumn(props: TextColumnProps) {
       w.__columnMounts.n++;
       w.__columnMounts.keys.push(initial.map((p) => p.ref).join("|"));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- counts mounts, so once per mount
   }, []);
 
   const passageOf = useCallback((segmentRef: string) => sectionsRef.current.find((p) => p.segments.some((s) => s.ref === segmentRef)), []);
@@ -127,7 +127,7 @@ export function TextColumn(props: TextColumnProps) {
     // with the sidebar open the highlighted verse is the selected one: say so to assistive technology too (R-31)
     if (showFocusRef.current) el?.setAttribute("aria-current", "true");
     focusedEl.current = el;
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const showFocusRef = useRef(showFocus);
   showFocusRef.current = showFocus;
@@ -202,7 +202,7 @@ export function TextColumn(props: TextColumnProps) {
       cancelled = true;
       if (frame) cancelAnimationFrame(frame);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- versionKey is the chosen versions' content (`versions` is a new object each render); qc is stable
   }, [versionKey]);
 
   const load = useCallback(
@@ -272,7 +272,7 @@ export function TextColumn(props: TextColumnProps) {
     const offset = textStartLine(sc) + startGap.current + seg.getBoundingClientRect().top - sec.getBoundingClientRect().top;
     engine.restorePosition({ ref: seg.dataset.ref!, offset });
     placedAt.current = { ref: seg.dataset.ref!, top: seg.getBoundingClientRect().top };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `engine` is a new object each render; its methods are stable (use-reading-scroll's callbacks over refs)
   }, [startSection]);
   useLayoutEffect(() => {
     if (!atStart.current) return;
@@ -289,14 +289,14 @@ export function TextColumn(props: TextColumnProps) {
     void document.fonts?.ready.then(placeAtStart);
     // (an unmount only stops listening: StrictMode's second mount must still place)
     return unlisten;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- placed once on mount; later placing is the [sections] effect's and fonts.ready's (placeAtStart changes with startSection)
   }, []);
 
   // Arriving at a linked segment (client-side navigation; the inline script handles the server-rendered load).
   useLayoutEffect(() => {
     if (target) atStart.current = false;
     if (target) engine.scrollToSegment(target);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- scrolls when the target changes; `engine` is a new object each render, its methods are stable
   }, [target]);
 
   // A clicked segment becomes the anchor at the moment of the click, before the sidebar opens and the
@@ -306,7 +306,7 @@ export function TextColumn(props: TextColumnProps) {
       engine.setFocus(args[0]);
       onSelectSegment?.(...args);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `engine` is a new object each render; its setFocus is stable
     [onSelectSegment],
   );
 
@@ -314,7 +314,7 @@ export function TextColumn(props: TextColumnProps) {
   useEffect(() => {
     if (selected) atStart.current = false;
     if (selected) engine.setFocus(selected);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- focuses when the selection changes; `engine` is a new object each render, its methods are stable
   }, [selected]);
 
   // Back/forward: put the reader back at the saved place (layout effect: before paint, so nothing flashes).
@@ -322,17 +322,18 @@ export function TextColumn(props: TextColumnProps) {
   useLayoutEffect(() => {
     if (props.restore) atStart.current = false;
     if (props.restore) engine.restorePosition(props.restore.position);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- applied once per history entry (restoreToken), not each time the panel rebuilds the position object
   }, [restoreToken]);
 
   // the engine's own placing, so a position put from outside (the reader state API) also becomes the engine's focus and anchor
-  useEffect(() => props.registerPosition?.(engine.getPosition, { restorePosition: engine.restorePosition, scrollToSegment: engine.scrollToSegment }), [props.registerPosition, engine.getPosition, engine.restorePosition, engine.scrollToSegment]); // eslint-disable-line react-hooks/exhaustive-deps
+  const registerPosition = props.registerPosition;
+  useEffect(() => registerPosition?.(engine.getPosition, { restorePosition: engine.restorePosition, scrollToSegment: engine.scrollToSegment }), [registerPosition, engine.getPosition, engine.restorePosition, engine.scrollToSegment]);
   // In a layout effect, before the one below that looks at the edges and may move the URL: the panel must know which
   // sections the column holds before the URL it is about to write comes back (reaching the top of a tractate on a fast
   // scroll used to restart the column at its first page).
   useLayoutEffect(() => {
     props.onSections?.(sections.map((p) => p.ref));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reports when the sections change; a new onSections callback alone has nothing new to report
   }, [sections]);
 
   // Windowing (CODE_REVIEW R-25): the column used to keep every section it ever loaded, so a long reading session paid more on every
@@ -370,7 +371,7 @@ export function TextColumn(props: TextColumnProps) {
     const box = (ref: string) => content.querySelector(`section[data-ref="${CSS.escape(ref)}"]`)?.getBoundingClientRect();
     const drop = sectionsToTrim(sections.map((p) => p.ref), box, view, reach, keep, MIN_SECTIONS_KEPT);
     if (drop.size) setSections((prev) => prev.filter((p) => !drop.has(p.ref)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- trims when the sections change or the trim timer fires; passageOf is stable, and pinning alone never needs a trim
   }, [sections, trimTick]);
 
   // Sections were added: put the reader back in the same task (before any paint), then look at the edges again.
@@ -386,7 +387,7 @@ export function TextColumn(props: TextColumnProps) {
       paintFocus(f);
       propsRef.current.onFocus?.(f, p);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when the sections change only: re-running it for a new placeAtStart (startSection) would restore a stale anchor; the other helpers are stable
   }, [sections]);
 
   // Connection counts for the dots: one links request per loaded section (cached; fetched after hydration).
@@ -412,7 +413,7 @@ export function TextColumn(props: TextColumnProps) {
     });
     countsCache.current = next;
     return out;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- linksUpdatedKey is linkQueries' content (each query's dataUpdatedAt); the array itself is new each render
   }, [sections, filterKey, linksUpdatedKey]);
 
   // Continuous layout: numbers of segments that begin on one line step apart (TXD-046)

@@ -17,7 +17,7 @@ import { useMediaQuery } from "~/lib/ui/use-media-query";
 import { setAssistantShown } from "~/features/shell/assistant-pill";
 
 declare module "react" {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
+  // eslint-disable-next-line @typescript-eslint/no-namespace -- the JSX namespace is how a custom element is typed
   namespace JSX {
     interface IntrinsicElements {
       "lc-chatbot": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & { children?: React.ReactNode } & Record<string, string | React.ReactNode | undefined>;

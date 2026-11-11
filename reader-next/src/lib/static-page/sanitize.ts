@@ -129,6 +129,7 @@ function safeUrl(raw: string, attr: string, tag: string, opts: StaticSanitizeOpt
   const head = url.split(/[/?#]/, 1)[0]!;
   if (!scheme && head.includes(":")) return undefined;
   if (ANY_EDGE_CHAR.test(head) && (scheme || head.includes(":"))) return undefined;
+  // eslint-disable-next-line no-control-regex -- looks for control characters on purpose
   if (/[\u0000-\u001f\u007f]/.test(url)) return undefined; // a control character left inside is never one of the templates' addresses
   let parsed: URL;
   try {

@@ -16,7 +16,7 @@ import { isHighlighted } from "~/lib/text/plan";
 import { highlightOf, keepsRange as rangeIsKept, selectionAddress, wholeSectionRange } from "~/lib/text/range-selection";
 import { prefetchNeighbours, selectionKey, textQueryOptions } from "~/lib/text/queries";
 import { close, closeAside, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
-import type { AsideId, PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
+import type { AsideId, TextPanelState, Workspace } from "~/lib/workspace/types";
 import { DisplaySettingsMenu } from "~/ui/DisplaySettingsMenu/DisplaySettingsMenu";
 import { IconButton } from "~/ui/IconButton/IconButton";
 import { CloseTextButton, DisplayOptionsButton, SaveTextButton } from "~/ui/ReaderControls/ReaderControls";
@@ -99,7 +99,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // useDeferredValue schedule an extra render (CODE_REVIEW R-12)
   const initialQueries = useSuspenseQueries({ queries: data.sectionRefs.map((r) => textQueryOptions(r, data.versions)) });
   const initialKey = initialQueries.map((q) => q.dataUpdatedAt).join(",");
-  const initial = useMemo(() => initialQueries.map((q) => q.data), [initialKey, data.sectionRefs.join("|"), selectionKey(data.versions)]); // eslint-disable-line react-hooks/exhaustive-deps
+  const initial = useMemo(() => initialQueries.map((q) => q.data), [initialKey, data.sectionRefs.join("|"), selectionKey(data.versions)]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the answers (dataUpdatedAt), the sections and the versions; useSuspenseQueries returns a new array each render
   // A text with nothing in Hebrew (an English-original work, no source version) cannot be shown "Hebrew only": the old
   // reader turns the panel bilingual (VERIFIED: Philo, Teshuvot haRashba with lang=he → lang=bi, English text, Latin numerals).
   const first = initial[0];
@@ -157,14 +157,14 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     // and, when the row of panels overflows, the row scrolls to show it (SHL-040)
     rootEl.current?.scrollIntoView({ inline: "nearest", block: "nearest" });
     rootEl.current?.querySelector<HTMLElement>('a[href], button:not([aria-disabled="true"]), input, [tabindex]:not([tabindex="-1"])')?.focus({ preventScroll: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- on mount only: a panel that arrives beside the first takes focus once
   }, []);
   const selected = kind === "select" ? (navState.ref ?? urlSegments[0]) : undefined;
 
   // Back/forward: the place this panel's reader had at this entry (see WorkspaceNavProvider).
   const saved = nav.restoreFor(entryKey(location.state), id);
   const key = entryKey(location.state);
-  const restore = useMemo(() => (saved && key ? { token: key, position: saved } : undefined), [key, saved?.ref, saved?.offset]); // eslint-disable-line react-hooks/exhaustive-deps
+  const restore = useMemo(() => (saved && key ? { token: key, position: saved } : undefined), [key, saved?.ref, saved?.offset]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the saved position's content; `saved` is a new object each render
   // Also how the reader state API's scroll slice puts this panel's reader somewhere (a replay, a followed leader), by the panel's
   // stable key. Through the column's scroll engine when it offers it (so the placed segment becomes the engine's focus and anchor, and
   // anchor keeping holds it through reflows); else measured on the panel's own DOM (lib/reader-state/sefaria/slices/dom-position.ts).
@@ -627,7 +627,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     translationVersion: titled.translationVersion, primaryVersion: titled.primaryVersion, language: settings.language, interfaceLang,
   }, chosenVerses.length ? chosenVerses : rangeVerses));
   const shownVersions = { he: sidebarSection.primaryVersion?.versionTitle, en: sidebarSection.translationVersion?.versionTitle };
-  const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps
+  const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the filter string; `view` is a new object each render
 
   // Main view and side panels, arranged by the panel's own layout (default: side panels in a column).
   // Without a sidebar the frame is still a row (of one): a bare leaf there and a row once the sidebar opens put the reading column

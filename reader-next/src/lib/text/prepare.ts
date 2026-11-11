@@ -38,7 +38,7 @@ import { repairHtml } from "~/lib/html/repair";
  * immediately followed by a single Hebrew letter and then a boundary: that protects abbreviations such
  * as ר״א. Port of the old client's `punctuationre`; unlike the old code it runs on text nodes only.
  */
-const TALMUD_PUNCTUATION = /[.!?:,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05ea](?:[.!?:,\u05F4\s]|$))|[—–]\s/g;
+const TALMUD_PUNCTUATION = /[.!?:,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u05d0-\u05ea\u200d](?:[.!?:,\u05F4\s]|$))|[—–]\s/g;
 export const stripTalmudPunctuation = (text: string): string => text.replace(TALMUD_PUNCTUATION, "");
 
 export interface PrepareOptions {

@@ -34,7 +34,7 @@ export const Disabled: Story = { args: { disabled: true } };
 
 /** A working player: the clock advances while playing, and the keyboard moves it. */
 export const Interactive: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [time, setTime] = useState(0);
     const [playing, setPlaying] = useState(false);
     const [rate, setRate] = useState(1);
