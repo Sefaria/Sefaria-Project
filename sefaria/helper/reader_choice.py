@@ -10,7 +10,7 @@ reader exactly when the request carries the cookie ``reader_version=next``
   is sent to the new reader;
 - ``audience()`` -- who may take the new reader while it is offered: remote config
   ``feature.reader.optin.audience``, ``"staff"`` (the default: only ``is_staff`` users) or ``"all"``
-  (every signed-in user, launch stage L1). Signed-out visitors never opt in (LAUNCH_PLAN D-12);
+  (every signed-in user). Signed-out visitors never opt in;
 - the choice is a profile setting, ``profile.settings["reader_version"]`` ("next" or "classic"), set from
   account settings through ``/api/profile`` or from the new reader through ``/api/reader-choice``
   (reader/views.py reader_choice_api) -- both set or clear the cookie on their response;
@@ -62,7 +62,7 @@ def next_disabled():
     """
     The kill switch: remote config ``feature.reader.next.disabled``. True only for a bool true (or the text "true"); missing or
     anything else is False. While it is on, nobody is sent to the new reader: the client clears its cookie and reloads into the
-    legacy one (lane C), and Django never sets it again (may_use_next is False, the middleware clears it).
+    legacy one, and Django never sets it again (may_use_next is False, the middleware clears it).
     """
     from remote_config import remoteConfigCache
     from remote_config.keys import READER_NEXT_DISABLED

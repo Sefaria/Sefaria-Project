@@ -5046,7 +5046,7 @@ def library_assistant_api(request):
 def reader_choice_api(request):
     """
     /api/reader-choice: which reader this browser gets (the legacy one or the new one), read and switched without a legacy page
-    (LAUNCH_PLAN T-D05; account settings stays the other place to switch).
+    (account settings stays the other place to switch).
 
     GET answers {"available", "canChooseNext", "reader", "saved"}:
       available      this deployment offers the choice (READER_OPTIN, chart nodejs.mode "optin")
@@ -6099,7 +6099,7 @@ _ABOUT_SIDEBAR_PATHS = {p["path"] for p in SITE_SETTINGS.get("ABOUT_SIDEBAR_PAGE
 
 
 def serve_static(request, page, by_lang=False):
-    # ?format=json: only the page's content, for the new reader's own shell (reader/static_content.py, LAUNCH_PLAN T-B06).
+    # ?format=json: only the page's content, for the new reader's own shell (reader/static_content.py).
     # Library host only (requested() is False on Voices, which keeps its behaviour below unchanged).
     if static_content.requested(request):
         return static_content.respond(

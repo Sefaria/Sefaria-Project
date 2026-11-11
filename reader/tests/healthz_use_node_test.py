@@ -1,7 +1,7 @@
 """
 /healthz (reader/views.py application_health_api) checks Node only when Django renders through it (USE_NODE). With USE_NODE
 off (Helm nodejs.mode "reader"), the node pods are the new reader, which sends /healthz back to Django: checking them would
-wait on ourselves (LAUNCH_PLAN T-B05).
+wait on ourselves.
 """
 
 from unittest import mock
