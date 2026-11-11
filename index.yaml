@@ -962,6 +962,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.5-mobile-menu-login-buttons.1.tgz
     version: 0.92.5-mobile-menu-login-buttons.1
   - apiVersion: v2
+    appVersion: v7.11.9
+    created: "2026-11-11T16:45:44.526598613Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 6c11d6943d01c57f9ccfbe7afcbb1522faab7e2d789d5c1aba32996d4d890b03
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.5-mf2.1.tgz
+    version: 0.92.5-mf2.1
+  - apiVersion: v2
     appVersion: v7.11.2
     created: "2026-11-05T09:41:00.543276124Z"
     description: Chart to deploy complete Sefaria environment
@@ -24870,4 +24885,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-11T12:32:35.551334117Z"
+generated: "2026-11-11T16:45:44.522974841Z"
