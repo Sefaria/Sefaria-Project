@@ -1,9 +1,9 @@
 """
 The reader choice from the server's side (sefaria/helper/reader_choice.py), end to end through Django:
 
-- /api/reader-choice (reader/views.py reader_choice_api): the new reader's own switch back to the classic reader (T-D05), and
+- /api/reader-choice (reader/views.py reader_choice_api): the new reader's own switch back to the classic reader, and
   the switch to the new one for whom the remote-config audience includes;
-- /api/profile and /settings/account: the Account Settings switch, shown and honoured only for that audience (T-B05);
+- /api/profile and /settings/account: the Account Settings switch, shown and honoured only for that audience;
 - ReaderChoiceMiddleware: a stale `reader_version=next` cookie of someone the audience no longer includes is cleared.
 
 Needs Postgres and the (empty) test Mongo for profiles; no library data.

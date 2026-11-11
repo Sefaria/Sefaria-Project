@@ -1,6 +1,6 @@
 # Inventory 04 — Connections / Resources Sidebar + Version Selection
 
-Repo: `/Users/akiva/Sefaria/dev/Sefaria-Project`, branch `master` @ `bb47dd77a`. All paths are relative to the repo root; JS paths are under `static/js/` unless stated otherwise.
+Repo: `Sefaria-Project`, branch `master` @ `bb47dd77a`. All paths are relative to the repo root; JS paths are under `static/js/` unless stated otherwise.
 I read the sidebar files in full. I read the supporting code (ReaderApp / ReaderPanel / sefaria.js / reader/views.py / wrapper.py) in the relevant sections.
 
 ---

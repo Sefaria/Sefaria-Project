@@ -81,7 +81,7 @@ view and every new link works on the old site:
 ```
 
 - Panel _n_ ≥ 2: `p{n}` (ref), `w{n}` (its aside), `lang{n}`, `aliyot{n}`, `ven{n}`, `vhe{n}`.
-- Numbers follow sefaria.org's flat list exactly, a sidebar taking a slot of its own (decided 2026-10-06, MULTIPANEL_PLAN §3):
+- Numbers follow sefaria.org's flat list exactly, a sidebar taking a slot of its own (decided 2026-10-06, `docs/DECISIONS.md`):
   `[A + sidebar, B]` writes B as `p3`, its sidebar's language as `lang2`. Its own server stops reading at the first missing `p<n>`
   (atlas SHL-066); reading here accepts the gaps. (This section said "sequential" until 2026-10-29; the codec never was.)
 - Only a single row of panels with at most one aside each has an old-style URL. Arrangements the old reader

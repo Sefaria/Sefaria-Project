@@ -1,9 +1,11 @@
 """Builds the Feature Atlas outputs from docs/features/features.json (the source of truth):
-  - docs/features/FEATURES.md (+ mirrors features.json, FEATURES.md, CHANGELOG.md into Sefaria-Project/client-rebuild-inventory)
-  - the single-file HTML atlas (published as an Artifact), path from $ATLAS_HTML or docs/features/build/atlas.html
+  - docs/features/FEATURES.md (generated, not committed)
+  - the single-file HTML atlas, path from --html, $ATLAS_HTML or docs/features/build/atlas.html
+  - optionally, copies of features.json, FEATURES.md and CHANGELOG.md in a mirror directory (--mirror or $ATLAS_MIRROR)
 Marks each feature `rebuild: true` when tests in this repo carry its `@feature` tag.
-Usage: python3 docs/features/tools/build.py"""
+Usage (from reader-next/): python3 docs/features/tools/build.py [--html PATH] [--mirror DIR]"""
 
+import argparse
 import collections
 import datetime
 import html as H
@@ -18,10 +20,12 @@ HERE = pathlib.Path(__file__).resolve().parent
 FEAT = HERE.parent
 ROOT = FEAT.parents[1]
 SHA = "bb47dd77a5d92b55814ba221199f1e39ad66d021"  # Sefaria-Project commit the atlas was read from
-MIRROR = pathlib.Path(
-    os.environ.get("ATLAS_MIRROR", "/Users/akiva/Sefaria/dev/Sefaria-Project/client-rebuild-inventory")
-)
-OUT_HTML = pathlib.Path(os.environ.get("ATLAS_HTML", FEAT / "build" / "atlas.html"))
+ARGS = argparse.ArgumentParser(description="Build FEATURES.md and the HTML atlas from features.json.")
+ARGS.add_argument("--html", default=os.environ.get("ATLAS_HTML", str(FEAT / "build" / "atlas.html")))
+ARGS.add_argument("--mirror", default=os.environ.get("ATLAS_MIRROR"), help="directory that receives copies (optional)")
+OPTS = ARGS.parse_args()
+MIRROR = pathlib.Path(OPTS.mirror) if OPTS.mirror else None
+OUT_HTML = pathlib.Path(OPTS.html)
 items = json.load(open(FEAT / "features.json"))
 covered = set(
     json.loads(
@@ -220,7 +224,8 @@ out.insert(
     f"- **Rebuild status** (new reader): done {RBC['done']} · partial {RBC['partial']} · todo {RBC['todo']} · replaced {RBC['replaced']} · deferred {RBC['deferred']} · n/a {RBC['n/a']}; {sum(i['rebuild'] for i in items)} are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).",
 )
 open(REPO + "FEATURES.md", "w").write("\n".join(out))
-if MIRROR.exists():
+if MIRROR is not None:
+    MIRROR.mkdir(parents=True, exist_ok=True)
     for n in ["features.json", "FEATURES.md", "CHANGELOG.md"]:
         shutil.copy(FEAT / n, MIRROR / n)
 print(len(html) // 1024, "KB html")

@@ -1,6 +1,6 @@
 # Inventory 05 — Library browsing (TOC), Book pages, Calendars, Translations, Topics, Nav sidebar
 
-Repo: `/Users/akiva/Sefaria/dev/Sefaria-Project` (master @ bb47dd77a). All paths below are relative to repo root; JS paths relative to `static/js/` unless stated.
+Repo: `Sefaria-Project` (master @ bb47dd77a). All paths below are relative to repo root; JS paths relative to `static/js/` unless stated.
 Read in full: TextsPage.jsx, TextCategoryPage.jsx, BookPage.jsx, NavSidebar.jsx, CalendarsPage.jsx, TranslationsPage.jsx, TopicsPage.jsx, TopicPage.jsx, TopicPageAll.jsx, TopicLandingPage/*.jsx, TopicsLaunchBanner.jsx (graphics files skimmed), TopicEditor.jsx, CategoryEditor.jsx, AdminEditor.jsx, common/TopicTOCCard.jsx, WordSalad.jsx, RowedWordSalad.jsx, Story.jsx, UpdatesPanel.jsx, relevant Misc.jsx components, relevant sefaria.js functions, reader/views.py views, sefaria/model/topic.py client-relevant behavior.
 
 ---

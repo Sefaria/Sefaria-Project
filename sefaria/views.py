@@ -194,7 +194,9 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
                 # A new link goes only to the owner of a real link that expired (its token checks out for this
                 # account; only its age fails), at most a few times an hour. Every other request gets the same
                 # answer, sent or not, so the endpoint can't be used to email arbitrary accounts by uid or to
-                # learn which uids exist (reader-next CODE_REVIEW R-34).
+                # learn which uids exist. A link that was already used, or that a later sign-in or password change
+                # invalidated, gets no email either: its token no longer recomputes for the account. The pages say a link
+                # was requested, not that one was sent.
                 if self._may_resend():
                     form = SefariaPasswordResetForm(data={"email": self.user.email})
                     if form.is_valid():
@@ -213,9 +215,10 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
                 },
                 status=400,
             )
-        # The expired-link page offers "Request New Link". The new reader shows it from the uid/set-password address (its node server
-        # redirects there), so the resend POST no longer carries the link's token. Remember, in this browser's session and for a
-        # short while, that this visitor did hold a real (expired) token for this account (review F06; R-34 needs that proof).
+        # The expired-link page offers "Request New Link". The legacy page posts it to the link's own address, so the token
+        # travels with it. The new reader shows the page from the uid/set-password address (its node server redirects there),
+        # so its POST carries no token: remember, in this browser's session and for a short while, that this visitor did hold
+        # a real (expired) token for this account.
         if self._expired_token_of_user():
             self.request.session[self.RESEND_PROOF_SESSION_KEY] = {"uid": self.user.pk, "at": int(time.time())}
         return render_template(
