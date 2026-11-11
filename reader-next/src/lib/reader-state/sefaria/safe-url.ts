@@ -10,7 +10,7 @@ import { browserHost, leavesClient } from "~/lib/routing/django-paths";
 
 const BASE = "https://x.invalid";
 // C0 controls, DEL and C1 controls: the URL parser strips some (tab, newline) silently, so "/\t/evil.com" would become "//evil.com"
-const CONTROL = /[\u0000-\u001f\u007f-\u009f]/; // eslint-disable-line no-control-regex
+const CONTROL = /[\u0000-\u001f\u007f-\u009f]/; // eslint-disable-line no-control-regex -- looks for control characters on purpose
 
 /** The path part of a url: before its query or fragment. */
 const pathPart = (url: string) => url.split(/[?#]/, 1)[0]!;

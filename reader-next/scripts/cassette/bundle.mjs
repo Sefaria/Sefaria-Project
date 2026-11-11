@@ -1,5 +1,5 @@
 // The e2e API cassette (e2e/.cassette/, scripts/api-cassette.mjs) as a versioned bundle, so CI replays exactly the recordings the
-// repository pins (LAUNCH_PLAN T-A04) instead of whatever its cache holds.
+// repository pins instead of whatever its cache holds.
 //
 //   node scripts/cassette/bundle.mjs hash                 the content hash of e2e/.cassette (names and bytes of every recording)
 //   node scripts/cassette/bundle.mjs pack [--out <dir>]   scrub e2e/.cassette of personal data (scrub.mjs), then write
@@ -7,7 +7,8 @@
 //   node scripts/cassette/bundle.mjs unpack <file>        replace e2e/.cassette with a bundle; fails unless it matches the lock's hash
 //   node scripts/cassette/bundle.mjs fetch [--strict]     CI: download the pinned bundle and unpack it; prints mode=replay, or
 //                                                         mode=auto (with a warning) when there is no lock or no bundle yet.
-//                                                         --strict (CI on push): a lock whose bundle cannot be used fails
+//                                                         --strict (CI, pull requests and pushes): a lock whose bundle cannot be
+//                                                         used fails
 //   node scripts/cassette/bundle.mjs verify               does e2e/.cassette match the lock?
 //
 // The hash covers the recordings, not the tarball's bytes (tar is not byte-reproducible across platforms): sha256 over the sorted lines
@@ -96,7 +97,7 @@ function unpack(file, expected) {
 }
 
 /**
- * CI: the pinned bundle, or today's fallback (cache + auto), saying which with mode=…. With `strict` (pushes), a lock whose bundle
+ * CI: the pinned bundle, or the fallback (cache + auto), saying which with mode=…. With `strict` (what CI passes), a lock whose bundle
  * cannot be fetched or does not match is an error: the branch's e2e would otherwise quietly stop being deterministic.
  */
 async function fetchPinned(strict = false) {
@@ -124,7 +125,7 @@ async function fetchPinned(strict = false) {
       process.exitCode = 1;
       return;
     }
-    // a pull request keeps today's behaviour, with a warning
+    // without --strict (by hand): fall back, with a warning
     console.log(`::warning title=e2e cassette::the pinned bundle could not be used (${url}: ${e.message}); falling back to the CI cache and E2E_API_MODE=auto`);
     return output("auto");
   }

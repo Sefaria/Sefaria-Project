@@ -5,7 +5,7 @@ import { open } from "./helpers";
 import { normalize } from "../scripts/ref-corpus.cases.mjs";
 
 /**
- * The ref torture corpus (LAUNCH_PLAN T-E02, T-E08), replayed through the cassette: every case where this reader matched
+ * The ref torture corpus, replayed through the cassette: every case where this reader matched
  * www.sefaria.org when scripts/ref-corpus.mjs last compared them (scripts/ref-corpus.expected.json) must keep landing on the same
  * address and highlighting the same segments. The cases that differ, and why, are KNOWN_DIFFERENCES in scripts/ref-corpus.cases.mjs.
  */

@@ -33,6 +33,8 @@ const API_ENV: Record<string, string> = {
 };
 export default defineConfig({
   testDir: "e2e",
+  // replay: a request with no recording fails the run (the setup returns that check as the run's teardown)
+  globalSetup: "./e2e/cassette-misses.ts",
   timeout: 45_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,

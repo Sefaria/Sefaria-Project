@@ -77,8 +77,12 @@ const HOOKS = () => {
         };
         for (const k of Object.keys(f)) w[k] = f[k];
         w.getAll = (...x) => (f.getAll ? f.getAll(...x) : []);
-        Object.defineProperty(w, "q", { get: () => f.q, set: (v) => (f.q = v) });
-        Object.defineProperty(w, "l", { get: () => f.l, set: (v) => (f.l = v) });
+        Object.defineProperty(w, "q", { get: () => f.q, set: (v) => {
+            f.q = v;
+          } });
+        Object.defineProperty(w, "l", { get: () => f.l, set: (v) => {
+            f.l = v;
+          } });
         inner = w;
       },
     });

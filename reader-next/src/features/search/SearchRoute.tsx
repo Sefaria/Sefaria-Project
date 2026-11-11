@@ -88,7 +88,7 @@ export function SearchRoute() {
   useEffect(() => { setEntitySort({ book: "relevance", author: "relevance", topic: "relevance" }); setBookFilters([]); }, [searchedQ]);
   const topicParents = useQuery({ ...topicTocQueryOptions(), enabled: entityType === "author" || entityType === "topic" }).data;
   const entities = useInfiniteQuery({ ...entitySearchInfiniteOptions(searchedQ, entityType ?? "book", entityType ? entitySort[entityType] : "relevance", entityType === "book" ? bookFilters : []), enabled: hasQuery && decided && !!entityType });
-  const bookTree = useMemo(() => (catalog ? buildBookFilterTree(catalog.tree, entityCounts[0]?.data?.categoryCounts, bookFilters) : []), [catalog, entityCounts[0]?.data, bookFilters]); // eslint-disable-line react-hooks/exhaustive-deps
+  const bookTree = useMemo(() => (catalog ? buildBookFilterTree(catalog.tree, entityCounts[0]?.data?.categoryCounts, bookFilters) : []), [catalog, entityCounts[0]?.data, bookFilters]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the first entity count's answer; entityCounts is a new array each render
 
   const tree = useMemo(() => (treeQ.data ? buildFilterTree(treeQ.data.buckets, params.filters, order, (c) => names.get(c) ?? c) : []), [treeQ.data, params.filters, order, names]);
   // A Hebrew "All Results" search merges Dicta's Tanakh verses in (SRC-082), re-sorting everything loaded so far, as sefaria.org does
@@ -186,7 +186,7 @@ export function SearchRoute() {
     const io = new IntersectionObserver((es) => es.some((e) => e.isIntersecting) && void active.fetchNextPage(), { rootMargin: "300px" });
     io.observe(el);
     return () => io.disconnect();
-  }, [active.hasNextPage, active.isFetchingNextPage, active.fetchNextPage, hits?.length, entities.data]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [active.hasNextPage, active.isFetchingNextPage, active.fetchNextPage, hits?.length, entities.data]); // eslint-disable-line react-hooks/exhaustive-deps -- the fields that decide whether to observe; `active` is a new object each render
 
   const hitHref = (h: SearchHit) => {
     const s = h._source;

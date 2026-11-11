@@ -6,7 +6,7 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
  * arrived with the JS, so the first paint was unstyled (its panel header stacked to 228px) and hydration shifted the page by ~0.4.
  * The fix is vite-plugins/page-kind-css.ts. Dev links every module's CSS itself, so the production build is the case that matters:
  * E2E_SSR_BASE_URL points this spec at a built server (`npm run build`, then `PUBLIC_API_ORIGIN=<the cassette> PORT=… node
- * server/index.mjs`): reports/w4-a-route.md.
+ * server/index.mjs`).
  */
 if (process.env.E2E_SSR_BASE_URL) test.use({ baseURL: process.env.E2E_SSR_BASE_URL });
 
@@ -63,7 +63,7 @@ function moduleClasses(html: string): Map<string, string[]> {
 /**
  * Every CSS module used in the server's HTML has its stylesheet linked by that HTML. Per module, not per class: a class whose rule is
  * empty (`.secondary { }`) is dropped by the minifier, but a module with none of its classes defined is a stylesheet that never came.
- * Wave 4 (integrator, owner on staging): /Sefer_HaBahir rendered BookPage's classes with none of its rules linked.
+ * Seen on staging: /Sefer_HaBahir rendered BookPage's classes with none of its rules linked.
  */
 const ROUTES = ["/Genesis.1", "/Sefer_HaBahir", "/texts", "/texts/Tanakh", "/topics", "/topics/light", "/search?q=light", "/calendars", "/about"];
 for (const path of ROUTES) {

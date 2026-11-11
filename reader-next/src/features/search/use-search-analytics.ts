@@ -54,7 +54,7 @@ export function useSearchFlowAnalytics(q: string, tab: SearchTab, apis: Record<S
     if (lastQ.current === q) return;
     lastQ.current = q;
     searchFlow.startQuery(q, tab);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one event per query: a tab change alone is not a new query
   }, [q]);
 
   useApiResult("sources", apis.sources, q);
@@ -65,7 +65,7 @@ export function useSearchFlowAnalytics(q: string, tab: SearchTab, apis: Record<S
   // the old per-query Track event, once per first page of results
   useEffect(() => {
     if (sourcesFirstPage) searchFlow.sourcesQuery(q, sourcesFirstPage.filters, sourcesFirstPage.total);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per first page of results (its key); q and the page are read then
   }, [sourcesFirstPage?.key]);
 }
 

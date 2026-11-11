@@ -347,8 +347,7 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
       s.frame = 0;
       s.settleTimer = 0;
     };
-    // The engine is set up once per column; options are read through optsRef.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the engine is set up once per column; options are read through optsRef and the helpers are stable
   }, []);
 
   const setFocus = useCallback(

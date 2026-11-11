@@ -1,28 +1,67 @@
-# The new reader client (reader-next/): every change is type-checked and tested before it lands.
-# Unit, architecture and component (Storybook) tests, in English/LTR and Hebrew/RTL; then the end-to-end suite against the API
-# cassette (scripts/api-cassette.mjs): the bundle pinned by e2e/cassette.lock, replayed (scripts/cassette/bundle.mjs); without one, the
-# CI cache, recording anything missing from the live API. A budgets job holds the reader page's initial JS/CSS (scripts/budgets/).
+# The new reader client (reader-next/): type check, lint, unit, architecture and component (Storybook) tests in English/LTR and
+# Hebrew/RTL; then the end-to-end suite against the API cassette (scripts/api-cassette.mjs): the bundle pinned by e2e/cassette.lock,
+# replayed (scripts/cassette/bundle.mjs), never the live API; a request with no recording fails the run (e2e/cassette-misses.ts).
+# A budgets job holds the reader page's initial JS/CSS (scripts/budgets/).
 # The ways out to the legacy client are listed by its own workflow, reader-next-exits.yaml (weekly and on demand).
+#
+# The workflow starts for every pull request and push, so its last job, "reader-next client: result", always reports and can be a
+# required check. The `changes` job decides whether the reader is touched (READER_PATHS: the reader, and what its tests read from
+# the rest of the repository: the legacy stylesheets and static-page templates it serves scoped, the interface strings); when it is
+# not, the heavy jobs are skipped and the result passes at once. (A `paths:` filter on the trigger would leave a required check
+# waiting forever on every other pull request.)
 name: reader-next client
 
 on:
   pull_request:
-    branches: [reader-next]
-    paths: ["reader-next/**", ".github/workflows/reader-next-client.yaml", "build/ci/reader-nginx-paths.mjs", "helm-chart/sefaria/templates/_reader-django-paths.tpl"]
+    branches: [master, reader-next]
   push:
-    branches: [reader-next]
-    paths: ["reader-next/**", ".github/workflows/reader-next-client.yaml", "build/ci/reader-nginx-paths.mjs", "helm-chart/sefaria/templates/_reader-django-paths.tpl"]
+    branches: [master, reader-next]
 
 concurrency:
   group: reader-next-client-${{ github.ref }}
-  cancel-in-progress: true
+  # a newer push to a pull request replaces its run; every push to master is checked
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 defaults:
   run:
     working-directory: reader-next
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      reader: ${{ steps.diff.outputs.reader }}
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+          READER_PATHS: '^(reader-next/|\.github/workflows/reader-next-client\.yaml$|build/ci/reader-nginx-paths\.mjs$|helm-chart/sefaria/templates/_reader-django-paths\.tpl$|static/css/|static/font-awesome/css/|templates/static/|static/js/sefaria/i18n/interface/[^/]+\.json$)'
+        run: |
+          # when the range cannot be told (a new branch, a force push), run everything
+          reader=true
+          range=
+          if [ "$EVENT" = pull_request ]; then
+            git fetch -q origin "$BASE_REF" && range="origin/$BASE_REF...HEAD"
+          elif [ -n "$BEFORE" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            range="$BEFORE..$SHA"
+          fi
+          if [ -n "$range" ] && ! git diff --name-only $range | grep -qE "$READER_PATHS"; then reader=false; fi
+          echo "reader touched: $reader (${range:-no range})"
+          echo "reader=$reader" >> "$GITHUB_OUTPUT"
+
   checks:
+    needs: changes
+    if: ${{ needs.changes.outputs.reader == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -36,6 +75,8 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Type check
         run: npx tsc --noEmit
+      - name: Lint (ESLint, eslint.config.mjs)
+        run: npm run lint
       - name: Unit and architecture tests
         run: npm test
       - name: Atlas tags exist
@@ -51,8 +92,10 @@ jobs:
       - name: Component tests (dark theme)
         run: npm run test:stories:dark
 
-  # Budgets: the reader page's initial JS and CSS (scripts/budgets/measure.mjs) against scripts/budgets/baseline.json
+  # the reader page's initial JS and CSS (scripts/budgets/measure.mjs) against scripts/budgets/baseline.json
   budgets:
+    needs: changes
+    if: ${{ needs.changes.outputs.reader == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -70,8 +113,9 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: checks
+    timeout-minutes: 35
+    needs: [changes, checks]
+    if: ${{ needs.changes.outputs.reader == 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -81,12 +125,12 @@ jobs:
           cache-dependency-path: reader-next/package-lock.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      # The pinned recordings (e2e/cassette.lock → a release asset, scripts/cassette/bundle.mjs): replayed, never the network. Without
-      # a lock the step warns and CI keeps the cache + auto behaviour below; with one, a bundle that cannot be used fails a push and
-      # warns (then falls back) on a pull request.
+      # The pinned recordings (e2e/cassette.lock → a release asset, scripts/cassette/bundle.mjs): replayed, never the network. A lock
+      # whose bundle cannot be downloaded or does not match fails the job, on pull requests as on pushes: falling back would record
+      # from the live site and test whatever it answers today. Only without a lock does CI use the cache + auto steps below.
       - name: Fetch the pinned API cassette
         id: cassette
-        run: node scripts/cassette/bundle.mjs fetch ${{ github.event_name == 'push' && '--strict' || '' }}
+        run: node scripts/cassette/bundle.mjs fetch --strict
       - name: Restore the API cassette (fallback)
         if: steps.cassette.outputs.mode != 'replay'
         uses: actions/cache@v4
@@ -96,6 +140,11 @@ jobs:
           restore-keys: e2e-cassette-
       - name: End-to-end (desktop, API cassette ${{ steps.cassette.outputs.mode }})
         run: npx playwright test --project=desktop
+        env:
+          CI: "1"
+          E2E_API_MODE: ${{ steps.cassette.outputs.mode }}
+      - name: End-to-end (phone, the @mobile tests, API cassette ${{ steps.cassette.outputs.mode }})
+        run: npx playwright test --project=mobile
         env:
           CI: "1"
           E2E_API_MODE: ${{ steps.cassette.outputs.mode }}
@@ -113,3 +162,18 @@ jobs:
           name: playwright-traces
           path: reader-next/test-results
           retention-days: 7
+
+  # The one check to require: passes when the reader was not touched (the jobs above skipped) or when every job passed.
+  result:
+    name: "reader-next client: result"
+    if: ${{ always() }}
+    needs: [changes, checks, budgets, e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        working-directory: .
+        run: |
+          echo "jobs: $RESULTS"
+          for r in $RESULTS; do case "$r" in success|skipped) ;; *) exit 1 ;; esac; done

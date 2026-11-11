@@ -188,7 +188,10 @@ function TagList({ label, hint, items, onAdd, onRemove, rtl }: {
     if (!v) return;
     const err = await onAdd(v);
     if (err) setError(err);
-    else (setValue(""), setError(null));
+    else {
+      setValue("");
+      setError(null);
+    }
   };
   return (
     <div className={styles.section}>

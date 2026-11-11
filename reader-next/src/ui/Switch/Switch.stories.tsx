@@ -17,4 +17,4 @@ export const On: Story = {};
 export const Off: Story = { args: { checked: false } };
 export const DisabledWithReason: Story = { args: { label: "Cantillation", checked: false, disabled: true, disabledReason: "Turn on vowels first" } };
 export const WithDescription: Story = { args: { label: "Aliyot", checked: false, description: "Show the seven aliyot inside each parasha" } };
-export const Interactive: Story = { render: () => { const [c, setC] = useState(false); return <Switch label="Punctuation" checked={c} onCheckedChange={setC} />; } };
+export const Interactive: Story = { render: function Render() { const [c, setC] = useState(false); return <Switch label="Punctuation" checked={c} onCheckedChange={setC} />; } };

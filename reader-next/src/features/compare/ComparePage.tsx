@@ -130,7 +130,7 @@ function CompareTable({ secRef, lang, v1, v2, filters }: { secRef: string; lang:
       // the old page stayed blocked after a failure ("Another Change in Progress" until a reload); here another try is allowed
       if (result.status !== "skipped") posting.current.delete(segRef);
     },
-    [diffs, queryClient, secRef, lang, v1, v2],
+    [diffs, queryClient, lang, v1, v2],
   );
 
   return <DiffTable secRef={secRef} v1={v1} v2={v2} lang={lang} rows={rows} filters={filters} editing={{ canEdit, apply: (s, side, i, t) => void apply(s, side, i, t) }} />;

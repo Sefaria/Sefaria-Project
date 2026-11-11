@@ -115,7 +115,7 @@ export function trailingSlashRedirect(url: URL, method: string, host: string = u
   const { pathname } = url;
   if ((method !== "GET" && method !== "HEAD") || pathname === "/" || !pathname.endsWith("/")) return null;
   // a path starting with two slashes would make the Location protocol-relative (//evil.com: an open redirect); never redirect one
-  if (/^\/[\/\\]/.test(pathname)) return null;
+  if (/^\/[/\\]/.test(pathname)) return null;
   // "/calendars/" is a page of its own on sefaria.org (200, its canonical with the slash) and "/parashat-hashavua/" a 404: neither redirects;
   // the version-diff tool's address means something different with and without its last slash (/compare/Genesis.1/ is the ref)
   if (isDjangoPath(pathname, method, host) || isLibraryOnlyPage(pathname) || resetLinkUid(pathname) || /^\/(login|register|password|compare)\//.test(pathname)) return null;

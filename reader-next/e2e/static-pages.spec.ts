@@ -3,7 +3,7 @@ import { open } from "./helpers";
 import { recordStaticAnswer, seedStaticPages, staticContentUrl } from "./static-pages-cassette";
 
 /**
- * The static information pages in the new shell (LAUNCH_PLAN T-F31, T-F32): Django's content block (?format=json&lang=…) rendered
+ * The static information pages in the new shell: Django's content block (?format=json&lang=…) rendered
  * by the server inside this client's header, with the legacy static-page CSS scoped to it.
  *
  * Django's answers come from e2e/fixtures/static-pages (rendered by Django from this branch's templates), written into the cassette

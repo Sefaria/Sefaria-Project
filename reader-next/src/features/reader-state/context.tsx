@@ -18,7 +18,7 @@ export function useReaderState(): ReaderStateContextValue | null {
 }
 
 /** Register a slice for as long as the component is mounted. Pass a stable slice (useMemo); no-op outside the provider. */
-export function useRegisterSlice(slice: StateSlice<any> | null): void { // eslint-disable-line @typescript-eslint/no-explicit-any
+export function useRegisterSlice(slice: StateSlice<any> | null): void { // eslint-disable-line @typescript-eslint/no-explicit-any -- the registry holds slices of every state type
   const ctx = useContext(ReaderStateContext);
   useEffect(() => (ctx && slice ? ctx.registry.register(slice) : undefined), [ctx, slice]);
 }

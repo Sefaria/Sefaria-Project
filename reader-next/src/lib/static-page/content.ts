@@ -9,9 +9,8 @@
  * @feature STA-001 Static content pages
  * @feature STA-005 Static page serving and About sidebar
  */
-import { LEGACY_SOURCES, SHELL_FONT_FAMILIES, STATIC_SCOPE } from "./legacy-css";
+import { LEGACY_SOURCES } from "./legacy-css";
 import { sanitizeStaticHtml } from "./sanitize";
-import { scopeCss } from "./scope-css";
 
 /** Django's answer, as reader/static_content.py documents it. */
 export interface StaticContentAnswer {

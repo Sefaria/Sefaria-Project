@@ -40,6 +40,7 @@ export const RASTER_DATA_IMAGE = /^data:image\/(?:png|jpeg|jpg|gif|webp)(?:;[a-z
 function safeHref(raw: string): string | undefined {
   const h = raw.trim();
   // a tab or newline inside is dropped by the browser while it reads the address ("java\tscript:"): never one of ours
+  // eslint-disable-next-line no-control-regex -- looks for control characters on purpose
   if (!h || /[\u0000-\u001f\u007f]/.test(h)) return undefined;
   const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(h)?.[1]?.toLowerCase();
   if (scheme) return scheme === "http" || scheme === "https" || scheme === "mailto" ? h : undefined;

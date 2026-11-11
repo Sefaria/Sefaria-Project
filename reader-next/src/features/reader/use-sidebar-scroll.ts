@@ -27,7 +27,7 @@ export function useSidebarScroll(root: RefObject<HTMLElement | null>, view: Conn
     if (!el) return;
     el.scrollTop = monitored(view) && remembered.current !== null ? remembered.current : 0;
     set.current = el.scrollTop;
-  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps -- per view (key is its content); `view` and `body` are new each render
 
   useEffect(() => {
     const el = body();
@@ -56,5 +56,5 @@ export function useSidebarScroll(root: RefObject<HTMLElement | null>, view: Conn
       ro?.disconnect();
       el.removeEventListener("scroll", onScroll);
     };
-  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps -- per view (key is its content); `view` and `body` are new each render
 }

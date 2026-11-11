@@ -69,7 +69,7 @@ export interface StateSlice<T = unknown> {
 }
 
 export interface SliceRegistry {
-  register(slice: StateSlice<any>): () => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+  register(slice: StateSlice<any>): () => void; // eslint-disable-line @typescript-eslint/no-explicit-any -- the registry holds slices of every state type
   get(id: SliceId): StateSlice | undefined;
   list(): StateSlice[];
   /** Fires when a slice is registered or unregistered. */

@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { expect, test } from "@playwright/test";
 
-// Lane B's contract (2026-11-10): /api/activity answers 401 to a reader who is not signed in. The revision-history page then sends
+// Django's contract (2026-11-10): /api/activity answers 401 to a reader who is not signed in. The revision-history page then sends
 // them to log in and back, as Django's login_required page did. The 401 is written into the API cassette (scripts/api-cassette.mjs).
 const DIR = new URL("./.cassette/", import.meta.url).pathname;
 function cassette(url: string, status: number, body: unknown) {

@@ -49,7 +49,7 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const location = useLocation();
   const { settings } = useReaderSettings();
-  const defaults = useMemo(() => urlDefaultsFor(settings), [settings.language, settings.aliyotTorah]); // eslint-disable-line react-hooks/exhaustive-deps
+  const defaults = useMemo(() => urlDefaultsFor(settings), [settings.language, settings.aliyotTorah]); // eslint-disable-line react-hooks/exhaustive-deps -- only these two settings shape the URL defaults; `settings` is a new object on any change
   const defaultsRef = useRef(defaults);
   defaultsRef.current = defaults;
   const commands = useMemo(() => createWorkspaceCommands(router as unknown as WorkspaceRouter, () => defaultsRef.current), [router]);
@@ -135,7 +135,7 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   useRegisterSlice(scrollSlice);
   const restoreFor = useCallback<WorkspaceNav["restoreFor"]>((key, id) => (key && poppedKey.current === key ? store.current!.get(key)?.[id] : undefined), []);
   const go = useCallback<WorkspaceNav["go"]>((ws, opts) => void commands.go(ws, opts), [commands]);
-  const href = useCallback((ws: Workspace) => commands.href(ws), [commands, defaults]); // eslint-disable-line react-hooks/exhaustive-deps
+  const href = useCallback((ws: Workspace) => commands.href(ws), [commands, defaults]); // eslint-disable-line react-hooks/exhaustive-deps -- commands reads the defaults through a ref: a new href when they change re-renders the links built with it
 
   // The address bar shows the full form sefaria.org writes (its defaults filled in), on arrival and when a setting it carries changes:
   // a replace navigation through the router, keeping the entry's state (never history.replaceState).

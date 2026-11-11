@@ -10,7 +10,6 @@ import { Button } from "../Button/Button";
 import { ContentLanguage } from "../ContentLanguage/ContentLanguage";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { Link } from "../Link/Link";
-import { categoryColor } from "../tokens/category-color";
 import { NavPage } from "../NavPage/NavPage";
 import { SidebarFooter } from "../NavSidebar/NavSidebar";
 import styles from "./BookPage.module.css";

@@ -52,7 +52,7 @@ export function useReaderHistory(viewer: Viewer | null, place: PanelPlace | null
       record(viewerRef.current, place);
     }, INTENT_MS);
     return () => clearTimeout(t);
-  }, [place?.ref, place && JSON.stringify(place.versions), hasSidebar]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [place?.ref, place && JSON.stringify(place.versions), hasSidebar]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the place's content (ref, versions); `place` is a new object each render
 }
 
 /**

@@ -93,7 +93,7 @@ const goInApp = (page: import("@playwright/test").Page, url: string) =>
   page.evaluate((u) => document.dispatchEvent(new CustomEvent("sefaria:bootstrap-url", { detail: { url: u } })), url);
 const historyLength = (page: import("@playwright/test").Page) => page.evaluate(() => history.length);
 
-// LAUNCH_PLAN T-E03: a ref the reader rewrites to what it shows replaces the history entry, never adds one; Back never walks verse by verse
+// A ref the reader rewrites to what it shows replaces the history entry, never adds one; Back never walks verse by verse
 test.describe("history rules (T-E03)", () => {
   for (const [label, asked, shown] of [
     ["a non-canonical spelling", "/Gen.1.3?lang=en", /\/Genesis\.1\.3\?/],
@@ -141,7 +141,7 @@ test.describe("history rules (T-E03)", () => {
   });
 });
 
-// LAUNCH_PLAN T-E03: below ~1075px the old reader overlays nothing; the column narrows beside the sidebar. The verse the reader chose
+// Below ~1075px the old reader overlays nothing; the column narrows beside the sidebar. The verse the reader chose
 // must stay where it was on screen when the sidebar opens.
 for (const width of [1280, 1000, 900]) {
   test(`opening the sidebar at ${width}px does not move the chosen verse`, async ({ page }) => {
