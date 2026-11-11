@@ -49,6 +49,29 @@ describe("the team, as the old TeamMembersPage ordered it", () => {
     expect(he).toEqual([...he].sort((a, b) => a.localeCompare(b, "he")));
   });
 
+  it("orders by the last word of the name, not the whole name, ignoring spaces around it", () => {
+    const m = (id: string, en: string, he: string, board = false, title = "") => ({
+      documentId: id,
+      teamName: en,
+      teamTitle: title,
+      isTeamBoardMember: board,
+      teamMemberImage: null,
+      localizations: [{ locale: "he", teamName: he, teamTitle: "" }],
+    });
+    const data = {
+      teamMembers: [
+        m("1", "Zed Able", "תמר אלף"),
+        m("2", "Amy Van Zant", "אבי בן תו "), // a trailing space: still under its last word
+        m("3", "Bea Middle ", "גיל למד"),
+        m("4", "Ann Young", "דן יוד", true),
+        m("5", "Zoe Brook", "הלל בית", true),
+      ],
+    };
+    expect(shapeTeam(data, "en").members.map((x) => x.id)).toEqual(["1", "3", "2"]); // Able, Middle, Zant (by whole name: 2, 3, 1)
+    expect(shapeTeam(data, "he").members.map((x) => x.id)).toEqual(["1", "3", "2"]); // אלף, למד, תו (by whole name: 2, 3, 1)
+    expect(shapeTeam(data, "en").board.map((x) => x.id)).toEqual(["5", "4"]); // Brook, Young (by whole name: 4, 5)
+  });
+
   it("a member with no Hebrew localization keeps the English (the old page failed the whole list)", () => {
     const t = shapeTeam({ teamMembers: [{ documentId: "x", teamName: "A B", teamTitle: "T", isTeamBoardMember: false, teamMemberImage: null, localizations: [] }] }, "he");
     expect(t.members[0]).toEqual({ id: "x", name: { en: "A B", he: "" }, title: { en: "T", he: "" }, image: null });
