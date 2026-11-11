@@ -25,6 +25,61 @@ class Test_get_sheets_for_ref_hint:
         cursor.hint.assert_not_called()
 
 
+def _stored_sheet(sheet_id, **fields):
+    return {
+        "_id": sheet_id,
+        "id": sheet_id,
+        "title": f"Sheet {sheet_id}",
+        "owner": 1,
+        "status": "public",
+        "options": {},
+        "views": 0,
+        "includedRefs": ["Genesis 1:1"],
+        "expandedRefs": ["Genesis 1:1"],
+        **fields,
+    }
+
+
+class Test_get_sheets_for_ref_collections:
+    def _run(self, stored_sheets, stored_collections):
+        with (
+            patch("sefaria.sheets.db") as db,
+            patch("sefaria.sheets.User"),
+            patch("sefaria.sheets.calculate_combined_score", side_effect=lambda sheets, tref: sheets),
+        ):
+            db.sheets.find.return_value = iter(stored_sheets)
+            db.profiles.find.return_value = []
+            db.groups.find.return_value = iter(stored_collections)
+            results = get_sheets_for_ref("Genesis 1:1")
+        return db, {result["id"]: result["collectionTOC"] for result in results}
+
+    def test_displayed_collections_are_read_in_one_query(self):
+        toc_a, toc_b = {"title": "A"}, {"title": "B"}
+        db, tocs = self._run(
+            [
+                _stored_sheet(1, displayedCollection="a"),
+                _stored_sheet(2, displayedCollection="b"),
+                _stored_sheet(3, displayedCollection="a"),
+                _stored_sheet(4),
+            ],
+            [{"slug": "a", "toc": toc_a}, {"slug": "b", "toc": toc_b}],
+        )
+
+        db.groups.find.assert_called_once()
+        query, projection = db.groups.find.call_args.args
+        assert sorted(query["slug"]["$in"]) == ["a", "b"]
+        assert projection == {"slug": 1, "toc": 1}
+        assert tocs == {"1": toc_a, "2": toc_b, "3": toc_a, "4": None}
+
+    def test_a_collection_without_toc_or_not_found_gives_none(self):
+        _, tocs = self._run(
+            [_stored_sheet(1, displayedCollection="no-toc"), _stored_sheet(2, displayedCollection="deleted")],
+            [{"slug": "no-toc"}],
+        )
+
+        assert tocs == {"1": None, "2": None}
+
+
 def _sheet(sheet_id):
     return {
         "id": str(sheet_id),

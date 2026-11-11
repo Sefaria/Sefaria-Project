@@ -1053,6 +1053,12 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
         except:
             user_profiles[profile]["profile_pic_url_small"] = ""
 
+    collection_slugs = list({sheet["displayedCollection"] for sheet in sheets if "displayedCollection" in sheet})
+    collection_tocs = {
+        collection["slug"]: collection.get("toc")
+        for collection in db.groups.find({"slug": {"$in": collection_slugs}}, {"slug": 1, "toc": 1})
+    }
+
     results = []
     for sheet in sheets:
         anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(
@@ -1080,8 +1086,7 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
             sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
 
         if "displayedCollection" in sheet:
-            collection = Collection().load({"slug": sheet["displayedCollection"]})
-            sheet["collectionTOC"] = getattr(collection, "toc", None)
+            sheet["collectionTOC"] = collection_tocs.get(sheet["displayedCollection"])
         topics = add_langs_to_topics(sheet.get("topics", []))
         for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
             sheet_data = {
