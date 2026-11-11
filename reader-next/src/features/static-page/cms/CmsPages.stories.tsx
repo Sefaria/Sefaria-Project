@@ -9,8 +9,8 @@ import { JobsView, ProductsView, TeamMembersView, type CmsState } from "./CmsPag
 
 /**
  * The CMS parts of /team, /products and /jobs, inside the frame and scoped legacy CSS of a static page, filled from the CMS answers
- * recorded from www.sefaria.org (fixtures/api/_cms). The pictures are replaced by a local placeholder, so the stories never reach the
- * CMS's media host.
+ * recorded from www.sefaria.org (fixtures/api/_cms; the team's names and pictures are the scrub's placeholders). The pictures are
+ * replaced by a local placeholder, so the stories never load an image from another site.
  */
 const PICTURE = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="#ccc"/></svg>')}`;
 

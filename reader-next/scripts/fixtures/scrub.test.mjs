@@ -138,3 +138,31 @@ test("a person field the scrub has no rule for is still reported", () => {
   assert.equal(check.status, 1);
   assert.match(check.stderr, /p\.json: phone: 555-0100/);
 });
+
+test("the CMS's team members become numbered placeholders (name, Hebrew name, headshot); titles and the board flag are kept", () => {
+  const root = mkdtempSync(join(tmpdir(), "scrub-test-"));
+  const member = (id, name, he, board) => ({
+    documentId: id,
+    teamName: name,
+    teamTitle: board ? "Chairman" : "Engineer",
+    isTeamBoardMember: board,
+    teamMemberImage: { url: `https://cms.example/media/${name.replace(" ", "_")}.jpg` },
+    localizations: [{ locale: "he", teamName: he, teamTitle: "מהנדס" }],
+  });
+  const answer = { data: { teamMembers: [member("a", "Dana Example", "דנה דוגמה ", false), member("b", "Eli Sample", "אלי דוגמה", true)] } };
+  writeFileSync(join(root, "team.json"), JSON.stringify(answer));
+  const [[, , after]] = scrubFiles(root);
+  const out = JSON.parse(after).data.teamMembers;
+  assert.deepEqual(
+    out.map((m) => [m.documentId, m.teamName, m.localizations[0].teamName, m.teamMemberImage.url, m.teamTitle, m.isTeamBoardMember, m.localizations[0].teamTitle]),
+    [
+      ["a", "Team Member 1", "חבר צוות 1", "https://example.org/team-member-1.jpg", "Engineer", false, "מהנדס"],
+      ["b", "Team Member 2", "חבר צוות 2", "https://example.org/team-member-2.jpg", "Chairman", true, "מהנדס"],
+    ],
+  );
+  assert.deepEqual(findPersonalKeys(JSON.parse(after)), []);
+  // a second run changes nothing; an unscrubbed name is reported by --check
+  writeFileSync(join(root, "team.json"), after);
+  assert.equal(scrubFiles(root)[0][2], after);
+  assert.deepEqual(findPersonalKeys(answer).length, 4);
+});

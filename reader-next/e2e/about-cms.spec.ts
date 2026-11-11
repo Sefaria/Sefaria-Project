@@ -1,4 +1,9 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { gunzipSync } from "node:zlib";
 import { devices, expect, test, type Page } from "@playwright/test";
+import { TEAM_QUERY, UNDATED_RANGE } from "../src/lib/cms/cms";
 import { open } from "./helpers";
 import { seedStaticPages } from "./static-pages-cassette";
 
@@ -8,6 +13,9 @@ import { seedStaticPages } from "./static-pages-cassette";
  * asked for in the browser through Django's proxy, POST /api/strapi/graphql-cache. The team's and the products' answers are recorded
  * in the cassette from www.sefaria.org; the jobs query names the current hour, so its answers are given here. "The CMS cannot be
  * reached" is the proxy failing (a 500, or GraphQL errors in a 200 as a CMS that forbids the query answers).
+ *
+ * What the team page must show is read from the recorded answer itself (no names in this file): its counts, and the old page's
+ * ordering rules checked on the page (staff by last name, the board's chairman and co-founders first, then by last name).
  */
 test.beforeAll(() => {
   seedStaticPages();
@@ -16,14 +24,25 @@ test.beforeAll(() => {
 const CMS = "**/api/strapi/graphql-cache?**";
 const content = (page: Page) => page.locator("#staticContentWrapper #content");
 const hebrew = (page: Page) => page.context().addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
-/** The images are the CMS's media host's: not needed here. */
-const noMedia = (page: Page) => page.route(/media\.strapiapp\.com/, (r) => r.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>' }));
+/** The images are the CMS's media host's (placeholders on example.org in the scrubbed recording): not needed here. */
+const noMedia = (page: Page) => page.route(/media\.strapiapp\.com|example\.org\//, (r) => r.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>' }));
 const cmsFails = (page: Page, how: "http" | "graphql") =>
   page.route(CMS, (r) =>
     how === "http"
       ? r.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "Strapi request failed with status 403" }) })
       : r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: null, errors: [{ message: "Forbidden access" }] }) }),
   );
+
+type RecordedMember = { teamName: string; teamTitle: string; isTeamBoardMember: boolean; localizations: { teamName: string }[] };
+/** The team answer the cassette replays (scripts/api-cassette.mjs: sha1 of "POST <url>\n<body>", gzip of a header line and the body). */
+function recordedTeam(): RecordedMember[] {
+  const dir = process.env.E2E_CASSETTE_DIR || new URL("./.cassette/", import.meta.url).pathname;
+  const url = `/api/strapi/graphql-cache?start_date=${UNDATED_RANGE.start}&end_date=${UNDATED_RANGE.end}`;
+  const raw = gunzipSync(readFileSync(join(dir, `${createHash("sha1").update(`POST ${url}\n${TEAM_QUERY}`).digest("hex")}.gz`)));
+  return JSON.parse(raw.subarray(raw.indexOf(10) + 1).toString()).data.teamMembers;
+}
+const lastName = (name: string) => name.trim().split(/\s+/).pop()!;
+const byLastName = (locale: string) => (names: string[]) => [...names].sort((a, b) => lastName(a).localeCompare(lastName(b), locale));
 
 // @feature STA-010
 test.describe("/team", () => {
@@ -33,19 +52,25 @@ test.describe("/team", () => {
     await expect(page).toHaveTitle("The Sefaria Team");
     await expect(content(page).locator("#aboutSidebar a.selected")).toHaveText("Team", { useInnerText: true });
     await expect(content(page).getByRole("heading", { level: 1, name: "Team" })).toBeVisible();
+    const recorded = recordedTeam();
+    const staffCount = recorded.filter((m) => !m.isTeamBoardMember).length;
+    const boardCount = recorded.length - staffCount;
+    expect(staffCount).toBeGreaterThan(10);
     const members = content(page).locator("#teamMembersPageContent .teamMember");
-    await expect(members).toHaveCount(38); // the recorded answer: 51 people, 13 of them on the board
-    await expect(members.first().locator(".teamName")).toHaveText("Akiva Berger");
-    await expect(members.first().locator("img")).toHaveAttribute("src", /media\.strapiapp\.com\/.+\.jpg$/);
-    await expect(members.first().locator("img")).toHaveAttribute("alt", "Headshot of Akiva Berger");
+    await expect(members).toHaveCount(staffCount);
+    const staff = await content(page).locator(".team-members .teamName").allInnerTexts();
+    expect(staff).toEqual(byLastName("en")(staff));
+    expect(new Set(staff)).toEqual(new Set(recorded.filter((m) => !m.isTeamBoardMember).map((m) => m.teamName.trim())));
+    const first = members.first();
+    await expect(first.locator("img")).toHaveAttribute("src", /^https:\/\/.+\.jpg$/);
+    await expect(first.locator("img")).toHaveAttribute("alt", `Headshot of ${staff[0]}`);
     await expect(content(page).getByRole("heading", { level: 2, name: "BOARD OF DIRECTORS" })).toBeVisible();
-    const board = content(page).locator(".board-members .teamBoardMember .teamName");
-    await expect(board).toHaveCount(13);
+    await expect(content(page).locator(".board-members .teamBoardMember")).toHaveCount(boardCount);
     // the chairman, the co-founders, then the others by last name
-    await expect(board.nth(0)).toHaveText("Samuel Moed");
-    await expect(board.nth(1)).toHaveText("Joshua Foer");
-    await expect(board.nth(2)).toHaveText("Brett Lockspeiser");
-    await expect(board.nth(3)).toHaveText("Raanan Agus");
+    const titles = await content(page).locator(".board-members .teamTitle").allInnerTexts();
+    expect(titles.slice(0, 3)).toEqual(["Chairman", "Co-Founder", "Co-Founder"]);
+    const rest = (await content(page).locator(".board-members .teamName").allInnerTexts()).slice(3);
+    expect(rest).toEqual(byLastName("en")(rest));
     await expect(content(page).locator("#teamContact a").first()).toHaveAttribute("href", "mailto:hello@sefaria.org");
     // laid out by the old site's rules: 202px pictures, three to a row in the 660px column
     const boxes = await members.evaluateAll((els) => els.slice(0, 4).map((e) => e.getBoundingClientRect()).map((r) => [Math.round(r.x), Math.round(r.width)]));
@@ -58,9 +83,13 @@ test.describe("/team", () => {
     await hebrew(page);
     await open(page, "/team");
     await expect(content(page).getByRole("heading", { level: 2, name: "מועצת המנהלים" })).toBeVisible();
-    await expect(content(page).locator(".team-members .teamMember")).toHaveCount(38);
-    await expect(content(page).locator(".team-members .teamName").first()).toHaveText("אלי אוהיסו");
-    await expect(content(page).locator(".board-members .teamName").first()).toHaveText("שמואל מועד");
+    const recorded = recordedTeam();
+    const he = (m: RecordedMember) => m.localizations[0]!.teamName.trim();
+    await expect(content(page).locator(".team-members .teamMember")).toHaveCount(recorded.filter((m) => !m.isTeamBoardMember).length);
+    const staff = await content(page).locator(".team-members .teamName").allInnerTexts();
+    expect(staff).toEqual(byLastName("he")(recorded.filter((m) => !m.isTeamBoardMember).map(he)));
+    const chairman = recorded.find((m) => m.isTeamBoardMember && m.teamTitle.trim().toLowerCase() === "chairman")!;
+    await expect(content(page).locator(".board-members .teamName").first()).toHaveText(he(chairman));
   });
 
   test("the CMS cannot be reached: the old page's error instead of the team, the rest of the page as it is", async ({ page }) => {
@@ -91,7 +120,7 @@ test.describe("/team", () => {
     await page.evaluate(() => ((window as unknown as { __stay: number }).__stay = 1));
     await content(page).locator("#aboutSidebar").getByRole("link", { name: "Team" }).click();
     await expect(page).toHaveURL(/\/team$/);
-    await expect(content(page).locator(".teamMember")).toHaveCount(38);
+    await expect(content(page).locator(".teamMember")).toHaveCount(recordedTeam().filter((m) => !m.isTeamBoardMember).length);
     expect(await page.evaluate(() => (window as unknown as { __stay?: number }).__stay)).toBe(1);
   });
 });
@@ -103,7 +132,7 @@ test.describe("/team on a phone @mobile", () => {
     await noMedia(page);
     await open(page, "/team");
     const members = content(page).locator(".team-members .teamMember");
-    await expect(members).toHaveCount(38);
+    await expect(members).toHaveCount(recordedTeam().filter((m) => !m.isTeamBoardMember).length);
     const [a, b] = await members.evaluateAll((els) => els.slice(0, 2).map((e) => Math.round(e.getBoundingClientRect().x)));
     expect(a).toBe(b);
     expect(a).toBe(105); // as www.sefaria.org at 412px: a 202px column in the middle
@@ -124,6 +153,12 @@ test.describe("/products", () => {
     await expect(first.locator(".productsTypeLabel")).toHaveText("Experiment");
     await expect(first.locator(".cta a")).toHaveAttribute("href", "https://www.sefaria.org/Pirkei_Avot.1.1?lang=bi&with=Guide&lang2=en");
     await expect(first.locator(".productDescWrapper strong")).toContainText("Pirkei Avot");
+    // the description's links open in the same tab, as on the old page (the old InterfaceText markdown: rel only)
+    const descLinks = content(page).locator(".productDescWrapper a[href]");
+    expect(await descLinks.count()).toBeGreaterThan(0);
+    expect(await descLinks.evaluateAll((as) => as.map((a) => [a.getAttribute("target"), a.getAttribute("rel")]))).toEqual(
+      Array(await descLinks.count()).fill([null, "noopener noreferrer"]),
+    );
     await expect(content(page).locator(".product").nth(2).locator(".productsCTAIcon")).toHaveCount(2); // the store icons
   });
 

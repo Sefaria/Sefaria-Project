@@ -1,9 +1,9 @@
 {
   "format": 1,
-  "hash": "b9a3fba792203bb7bd1b3005485278ff50f6a59663a30c957a94e9a2af9c2665",
+  "hash": "54e71c870ac457fdc74f3945f50d3bc581e317e6cdcdc114c3581fb33bbe7c8a",
   "files": 1910,
-  "bytes": 38090498,
-  "asset": "reader-next-e2e-cassette-b9a3fba792203bb7.tar.gz",
+  "bytes": 38089002,
+  "asset": "reader-next-e2e-cassette-54e71c870ac457fd.tar.gz",
   "release": "reader-next-e2e-cassette",
-  "url": "https://github.com/Sefaria/Sefaria-Project/releases/download/reader-next-e2e-cassette/reader-next-e2e-cassette-b9a3fba792203bb7.tar.gz"
+  "url": "https://github.com/Sefaria/Sefaria-Project/releases/download/reader-next-e2e-cassette/reader-next-e2e-cassette-54e71c870ac457fd.tar.gz"
 }

@@ -15,6 +15,8 @@
 //   - a sheet's own text (title, summary, attribution), which users write and may name people -> "Source Sheet <id>", "", ""
 //   - a sheet's topic tags, which its owner types                                         -> "Sheet Topic 5" (slug sheet-topic-5)
 //   - authors of web pages (Resources > Web Pages)                                        -> "Web Author 3"
+//   - Sefaria's team as the CMS lists it (teamMembers: teamName, its Hebrew localization, the headshot) -> "Team Member 4",
+//     "חבר צוות 4", https://example.org/team-member-4.jpg (job titles and the board flag are kept)
 //   - email addresses, anywhere in a string                                               -> user7@example.com
 //     (except Sefaria's service addresses in SERVICE_EMAILS)
 // Numbering follows first appearance, walking files in sorted path order, so running it twice changes nothing and the same person gets
@@ -67,6 +69,7 @@ export function createScrubber() {
   const webAuthors = new Registry(/^Web Author (\d+)$/);
   const sheetTopics = new Registry(/^(?:Sheet Topic |sheet-topic-)(\d+)$/);
   const emails = new Registry(/^user(\d+)@example\.com$/);
+  const team = new Registry(/^Team Member (\d+)$/);
   const ids = new Map(); // real user id -> person number
   const realNames = new Map(); // a user's name among name completions -> their key, to replace it in the plain "completions" list too
 
@@ -101,6 +104,7 @@ export function createScrubber() {
     }
     if (typeof node === "string") {
       people.reserve(node);
+      team.reserve(node);
       webAuthors.reserve(node);
       sheetTopics.reserve(node);
       emails.reserve(node);
@@ -120,6 +124,19 @@ export function createScrubber() {
       const n = people.number(personKey(node.title, `/profile/${node.key}`));
       return Object.fromEntries(
         Object.entries(node).map(([k, v]) => [k, k === "title" ? `Sheet Author ${n}` : k === "key" ? `sheet-author-${n}` : k === "pic" ? null : scrub(v)]),
+      );
+    }
+    // A member of Sefaria's team as the CMS (Strapi) lists them: { documentId, teamName, teamTitle, isTeamBoardMember,
+    // teamMemberImage: { url }, localizations: [{ locale, teamName, teamTitle }] }.
+    if (typeof node.teamName === "string" && "isTeamBoardMember" in node) {
+      const n = team.number(/^Team Member \d+$/.test(node.teamName) ? node.teamName : `team:${node.teamName.trim().toLowerCase()}`);
+      return Object.fromEntries(
+        Object.entries(node).map(([k, v]) => {
+          if (k === "teamName") return [k, `Team Member ${n}`];
+          if (k === "teamMemberImage" && v && typeof v === "object") return [k, { ...v, ...("url" in v ? { url: `https://example.org/team-member-${n}.jpg` } : {}) }];
+          if (k === "localizations" && Array.isArray(v)) return [k, v.map((l) => (l && typeof l === "object" && "teamName" in l ? { ...scrub(l), teamName: `חבר צוות ${n}` } : scrub(l)))];
+          return [k, scrub(v)];
+        }),
       );
     }
     const isWebPage = typeof node.domain === "string" && typeof node.url === "string" && "linkerHits" in node;
@@ -199,8 +216,8 @@ export function scrubFiles(root = ROOT, files = listJson(root)) {
 
 // Fields that only ever hold data about a person. --check fails on any of them holding something other than a placeholder, so a
 // recording with a new kind of person field is caught even before the scrub has a rule for it.
-const PERSONAL_KEYS = new Set([...PERSON_NAME_KEYS, ...PROFILE_URL_KEYS, "ownerImageUrl", "profile_pic_url", "profilePicUrl", "profile_pic_url_small", "author_image", "email", "emailAddress", "email_address", "phone", "phone_number", "phoneNumber"]);
-const PLACEHOLDER = /^(Sheet Author \d+|\/profile\/sheet-author-\d+|user\d+@example\.com)$/;
+const PERSONAL_KEYS = new Set([...PERSON_NAME_KEYS, ...PROFILE_URL_KEYS, "ownerImageUrl", "profile_pic_url", "profilePicUrl", "profile_pic_url_small", "author_image", "email", "emailAddress", "email_address", "phone", "phone_number", "phoneNumber", "teamName"]);
+const PLACEHOLDER = /^(Sheet Author \d+|\/profile\/sheet-author-\d+|user\d+@example\.com|Team Member \d+|חבר צוות \d+)$/;
 
 /** Person fields (PERSONAL_KEYS) in a parsed value that hold anything but a placeholder, as "key: value". */
 export function findPersonalKeys(value) {
