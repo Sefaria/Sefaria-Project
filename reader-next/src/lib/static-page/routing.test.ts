@@ -57,17 +57,19 @@ describe("the static pages' routing", () => {
     expect(staticPageOwner("ways-to-give", "he")).toBe("content");
     expect(staticPageOwner("ways-to-give", "en")).toBe("port");
     expect(staticPageOwner("educators", "en")).toBe("port");
-    expect(staticPageOwner("team", "en")).toBe("django");
+    expect(staticPageOwner("team", "en")).toBe("content"); // Django's content, its CMS part filled here
+    expect(staticPageOwner("products", "he")).toBe("content");
+    expect(staticPageOwner("newsletter", "en")).toBe("django");
     expect(rendersStaticPage("ways-to-give")).toBe(true);
     expect(rendersStaticPage("metrics")).toBe(false);
   });
 
   it("on the Library host this client's pages are its own; the unported ones are Django's (full loads from the app)", () => {
-    for (const p of ["/about", "/about/", "/terms", "/privacy-policy", "/linker", "/mobile", "/educators", "/ways-to-give", "/digitized-by-sefaria"]) {
+    for (const p of ["/about", "/about/", "/terms", "/privacy-policy", "/linker", "/mobile", "/educators", "/ways-to-give", "/digitized-by-sefaria", "/team", "/jobs", "/products"]) {
       expect(isDjangoPage(p, "www.sefaria.org"), p).toBe(false);
       expect(leavesClient(p, "www.sefaria.org"), p).toBe(false);
     }
-    for (const p of ["/team", "/jobs", "/products", "/newsletter", "/word-by-word", "/metrics", "/random-walk-through-torah", "/contest/"]) {
+    for (const p of ["/newsletter", "/word-by-word", "/metrics", "/random-walk-through-torah", "/contest/"]) {
       expect(isDjangoPage(p, "www.sefaria.org"), p).toBe(true);
       expect(leavesClient(p, "www.sefaria.org"), p).toBe(true);
     }
@@ -97,7 +99,7 @@ describe("the static pages' routing", () => {
   });
 
   it("the server hands the unported pages straight to Django, without rendering", async () => {
-    for (const p of ["/team", "/newsletter", "/metrics"]) {
+    for (const p of ["/newsletter", "/word-by-word", "/metrics"]) {
       const d = django();
       const { res, renders } = await route(`https://www.sefaria.org${p}`, d);
       expect([res.headers.get("x-served-by"), renders, d.asked], p).toEqual(["django", [], [p]]);

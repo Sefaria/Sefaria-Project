@@ -1,8 +1,11 @@
 import { useRouter } from "@tanstack/react-router";
-import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { PUBLIC_CONFIG } from "~/lib/config";
 import { browserHost, leavesClient } from "~/lib/routing/django-paths";
 import type { StaticPageModel } from "~/lib/static-page/content";
+import { staticPageEntry, type CmsPart } from "~/lib/static-page/pages";
+import { JobsPart, ProductsPart, TeamMembersPart } from "./cms/CmsParts";
 
 /**
  * A static information page: Django's content block, sanitised on the server (lib/static-page), inside this
@@ -17,6 +20,27 @@ import type { StaticPageModel } from "~/lib/static-page/content";
  */
 export function StaticPage({ model }: { model: StaticPageModel }) {
   return <StaticPageFrame model={model} html={model.html} />;
+}
+
+const CMS_PARTS: Record<CmsPart, () => ReactNode> = { team: TeamMembersPart, products: ProductsPart, jobs: JobsPart };
+
+/**
+ * The part of an About page the old page filled from the CMS (lib/static-page/pages.ts `mount`), rendered into its mount point in
+ * Django's content once the page is in the browser: the server's page shows what Django's content has there (the old page's own
+ * "Loading..." for /team), as the old page did before its script ran.
+ */
+function CmsMount({ page, html, root }: { page: string; html: string; root: React.RefObject<HTMLDivElement | null> }) {
+  const mount = staticPageEntry(page)?.mount;
+  const [target, setTarget] = useState<HTMLElement | null>(null);
+  // a passive effect: the frame's ref is attached by then (a child's layout effect runs before its parent's ref is set)
+  useEffect(() => {
+    const el = mount ? root.current?.querySelector<HTMLElement>(`#${mount.id}`) ?? null : null;
+    el?.replaceChildren(); // Django's placeholder: the part shows its own loading state
+    setTarget(el);
+  }, [mount, html, root]);
+  if (!mount || !target) return null;
+  const Part = CMS_PARTS[mount.part];
+  return createPortal(<Part />, target);
 }
 
 /**
@@ -41,7 +65,10 @@ export function StaticPageFrame({ model, html, children }: { model: StaticPageMo
       {model.inlineCss ? <style dangerouslySetInnerHTML={{ __html: model.inlineCss }} /> : null}
       <div id="staticContentWrapper" ref={ref} className={model.bodyClass || lang} data-active-module="library" data-static-page={model.page} dir={he ? "rtl" : "ltr"} onClick={onClick}>
         {html !== undefined ? (
-          <div id="content" className={lang} data-active-module="library" dangerouslySetInnerHTML={{ __html: html }} />
+          <>
+            <div id="content" className={lang} data-active-module="library" dangerouslySetInnerHTML={{ __html: html }} />
+            <CmsMount page={model.page} html={html} root={ref} />
+          </>
         ) : (
           <div id="content" className={lang} data-active-module="library">
             {children}
