@@ -1,7 +1,7 @@
 # Sefaria Reader (next) — Architecture
 
 A from-scratch web client for the Sefaria library, built with React 19 and TanStack Start.
-The feature scope is the **Feature Atlas** (`docs/features/features.json`, 961 features with IDs like `TXD-012`),
+The feature scope is the **Feature Atlas** (`docs/features/features.json`, 962 features with IDs like `TXD-012`),
 extracted from a full read of the current client in `Sefaria-Project`; each feature's rebuild status is in
 `docs/features/rebuild-status.json`. Decisions: `docs/DECISIONS.md`; deployment: `docs/DEPLOYMENT.md`.
 

@@ -144,7 +144,7 @@
  },
  "RTE-009": {
   "status": "done",
-  "note": "/ 302 to /texts, /texts/<category path>, Tanach to Tanakh 301; /texts/recent is T-F26",
+  "note": "/ 302 to /texts, /texts/<category path>, Tanach to Tanakh 301; /texts/recent answers 301 to /texts/history in the reader's server (src/server/redirects.ts)",
   "by": "src/routes/index.tsx, src/routes/texts.$.tsx, src/routes/texts.index.tsx"
  },
  "RTE-021": {
@@ -1008,7 +1008,7 @@
  },
  "GUI-003": {
   "status": "partial",
-  "note": "Search with autocomplete and Hebrew keyboard, account menu, help, language and module switcher built; no notifications link or unread count (T-F20)",
+  "note": "Search with autocomplete and Hebrew keyboard, account menu, help, language and module switcher built; no notifications link or unread count",
   "by": "src/ui/SiteHeader"
  },
  "GUI-009": {
@@ -1927,12 +1927,12 @@
  },
  "ACC-003": {
   "status": "deferred",
-  "note": "Stays Django (accepted exit with a way back, T-F23); the reader switch is also in the new menus",
+  "note": "Stays Django (accepted exit with a way back); the reader switch is also in the new menus",
   "by": "scripts/exits-allowlist.json"
  },
  "ACC-004": {
   "status": "deferred",
-  "note": "Part of /settings/account: stays Django (T-F23)"
+  "note": "Part of /settings/account: stays Django"
  },
  "ACC-005": {
   "status": "n/a",
@@ -2199,7 +2199,7 @@
  },
  "AI-004": {
   "status": "partial",
-  "note": "Banner and /enable-library-assistant link built; the Account Settings toggle stays Django (T-F23)",
+  "note": "Banner and /enable-library-assistant link built; the Account Settings toggle stays Django",
   "by": "src/features/shell/SiteWideBanner, src/lib/assistant/config.ts"
  },
  "AI-005": {
@@ -2217,7 +2217,7 @@
  },
  "AI-008": {
   "status": "todo",
-  "note": "AI disclosure tooltip comes with the Guided Learning view, not built (CON-068, T-G03)"
+  "note": "AI disclosure tooltip comes with the Guided Learning view, not built (CON-068)"
  },
  "AI-009": {
   "status": "deferred",
@@ -2225,7 +2225,7 @@
  },
  "AI-010": {
   "status": "todo",
-  "note": "Guided Learning sidebar view not built: the Resources row opens a 'not built yet' placeholder (CON-068, T-G03)"
+  "note": "Guided Learning sidebar view not built: the Resources row opens a 'not built yet' placeholder (CON-068)"
  },
  "AI-011": {
   "status": "partial",
@@ -2504,7 +2504,7 @@
  },
  "CON-068": {
   "status": "partial",
-  "note": "Guided Learning row and guide counts from /api/related exist; the Key Questions/summaries view is not built (T-G03)",
+  "note": "Guided Learning row and guide counts from /api/related exist; the Key Questions/summaries view is not built",
   "by": "src/ui/ConnectionsPanel/ResourcesView.tsx, src/lib/connections/related.ts"
  },
  "CON-069": {
@@ -2589,7 +2589,7 @@
  },
  "GUI-027": {
   "status": "done",
-  "note": "Feedback form with types, email validation and POST /api/send_feedback; never run against production (T-E06).",
+  "note": "Feedback form with types, email validation and POST /api/send_feedback; never run against production.",
   "by": "src/ui/FeedbackView, src/lib/feedback/feedback.ts"
  },
  "GUI-028": {
@@ -2661,7 +2661,7 @@
  },
  "LEG-007": {
   "status": "deferred",
-  "note": "Stays Django (launch scope, 2026-11-09); /edit, /add, /translate must return into the new reader with ?next= (T-F27)"
+  "note": "Stays Django (launch scope, 2026-11-09); /edit, /add, /translate must return into the new reader with ?next="
  },
  "LEG-008": {
   "status": "deferred",
@@ -2705,7 +2705,7 @@
  },
  "LEG-020": {
   "status": "deferred",
-  "note": "Stays Django; not reachable from the new reader (T-F25)"
+  "note": "Stays Django; not reachable from the new reader"
  },
  "LEG-021": {
   "status": "deferred",
@@ -2722,7 +2722,7 @@
  },
  "LEG-024": {
   "status": "done",
-  "note": "Rendered in the new shell (T-F31)",
+  "note": "Rendered in the new shell",
   "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page"
  },
  "LEG-025": {
@@ -3085,15 +3085,15 @@
  },
  "PRM-001": {
   "status": "todo",
-  "note": "CMS interrupting modal (delay, eligibility, dismissal in localStorage, analytics) not built; T-G03 minimal CMS reader."
+  "note": "CMS interrupting modal (delay, eligibility, dismissal in localStorage, analytics) not built; a minimal CMS reader is the planned next step."
  },
  "PRM-002": {
   "status": "todo",
-  "note": "CMS top banner above the header not built; T-G03."
+  "note": "CMS top banner above the header not built."
  },
  "PRM-003": {
   "status": "todo",
-  "note": "Strapi GraphQL fetch via /api/strapi/graphql-cache and per-viewer content selection not built; T-G03."
+  "note": "Strapi GraphQL fetch via /api/strapi/graphql-cache and per-viewer content selection not built."
  },
  "PRM-004": {
   "status": "done",
@@ -3106,15 +3106,15 @@
  },
  "PRM-006": {
   "status": "todo",
-  "note": "Keyword-targeting context (categories, books, refs, topics of open panels) for sidebar ads not built; T-G03."
+  "note": "Keyword-targeting context (categories, books, refs, topics of open panels) for sidebar ads not built."
  },
  "PRM-007": {
   "status": "todo",
-  "note": "Strapi sidebar ads (and ad newsletter forms) in nav sidebars and topic pages not built; PromoSlot is empty; T-G03."
+  "note": "Strapi sidebar ads (and ad newsletter forms) in nav sidebars and topic pages not built; PromoSlot is empty."
  },
  "PRM-008": {
   "status": "todo",
-  "note": "Targeted sidebar ad cards (matching, impressions, blue/newsletter variants) not built; T-G03."
+  "note": "Targeted sidebar ad cards (matching, impressions, blue/newsletter variants) not built."
  },
  "PRM-009": {
   "status": "done",
@@ -3123,11 +3123,11 @@
  },
  "PRM-010": {
   "status": "todo",
-  "note": "Strapi interrupting modal not built; T-G03 minimal CMS reader."
+  "note": "Strapi interrupting modal not built; a minimal CMS reader is the planned next step."
  },
  "PRM-011": {
   "status": "todo",
-  "note": "Strapi top banner not built; T-G03."
+  "note": "Strapi top banner not built."
  },
  "PRM-012": {
   "status": "todo",
@@ -3135,7 +3135,7 @@
  },
  "PRM-013": {
   "status": "todo",
-  "note": "Promo eligibility, ranking, country targeting and path exclusions not built; T-G03."
+  "note": "Promo eligibility, ranking, country targeting and path exclusions not built."
  },
  "PRM-015": {
   "status": "n/a",
@@ -3192,7 +3192,7 @@
  },
  "RTE-003": {
   "status": "partial",
-  "note": "API failures answer 503 with Retry-After; the maintenance page itself is not shown on reader-rendered pages (plain-text 503 until T-F28).",
+  "note": "API failures answer 503 with Retry-After; the maintenance page itself is not shown on reader-rendered pages (an upstream failure gets the reader's own 503 page, src/server/error-page.ts).",
   "by": "src/start.ts, src/server/pass-through.ts"
  },
  "RTE-005": {
@@ -3214,12 +3214,12 @@
  },
  "RTE-013": {
   "status": "deferred",
-  "note": "Stays Django (accepted exit, T-F23)",
+  "note": "Stays Django (accepted exit)",
   "by": "scripts/exits-allowlist.json"
  },
  "RTE-014": {
   "status": "n/a",
-  "note": "Retired legacy redirects to Voices; Django keeps them via pass-through (community, settings prefixes). T-F26 may answer /community."
+  "note": "Retired legacy redirects to Voices; Django keeps them via pass-through (community, settings prefixes). /community stays Django's (an accepted exit)."
  },
  "RTE-016": {
   "status": "deferred",
@@ -3227,7 +3227,7 @@
  },
  "RTE-017": {
   "status": "n/a",
-  "note": "Retired S1 editor; /edit, /add, /translate stay Django and return with ?next= (T-F27)."
+  "note": "Retired S1 editor; /edit, /add, /translate stay Django and return with ?next=."
  },
  "RTE-020": {
   "status": "n/a",
@@ -3239,7 +3239,7 @@
  },
  "RTE-024": {
   "status": "deferred",
-  "note": "Voices out of scope (owner 2026-11-10); /my/notes and /contributors redirects are T-F26."
+  "note": "Voices out of scope (owner 2026-11-10); /my/notes and /contributors/<uid> redirects are answered by the reader's server (src/server/redirects.ts)."
  },
  "RTE-025": {
   "status": "n/a",
@@ -3478,7 +3478,7 @@
  },
  "SHL-024": {
   "status": "deferred",
-  "note": "Static pages via one mechanism, T-F31 (D-5)"
+  "note": "Static pages via one mechanism (D-5)"
  },
  "SHL-037": {
   "status": "deferred",
@@ -3906,7 +3906,7 @@
  },
  "STA-001": {
   "status": "partial",
-  "note": "Content pages rendered in the new shell (T-F31); /mobile, /educators, English /ways-to-give ported; CMS and other legacy-React pages still Django's (pages.ts)",
+  "note": "Content pages rendered in the new shell; /mobile, /educators, English /ways-to-give ported; CMS and other legacy-React pages still Django's (pages.ts)",
   "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page"
  },
  "STA-002": {
@@ -3929,12 +3929,12 @@
  },
  "STA-006": {
   "status": "done",
-  "note": "Rendered in the new shell (T-F31)",
+  "note": "Rendered in the new shell",
   "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page"
  },
  "STA-007": {
   "status": "done",
-  "note": "Rendered in the new shell (T-F31)",
+  "note": "Rendered in the new shell",
   "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page"
  },
  "STA-008": {
@@ -4066,7 +4066,7 @@
  },
  "TXD-062": {
   "status": "partial",
-  "note": "Legacy print rules ported; the text column's fixed-height scroll box still cuts the printout (TextColumn, lane R)",
+  "note": "Legacy print rules ported; the text column's fixed-height scroll box still cuts the printout (TextColumn)",
   "by": "src/ui/Segment/Segment.module.css, src/ui/SegmentText/SegmentText.module.css, src/ui/ConnectionsPanel/ConnectionsPanel.module.css, src/ui/ReaderControls/ReaderControls.module.css, src/ui/SiteHeader/SiteHeader.module.css"
  },
  "TXD-066": {

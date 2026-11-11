@@ -558,7 +558,7 @@ Applied to rebuild-status.json only.
   the launch scope (2026-11-09) lists "index and version editors" as staying Django, but the book-page ones are already built.
 - **Static pages**: `todo` under T-F31 (D-5). Jobs, team and products (STA-009…011) are React pages fed by the CMS inside a
   static template, so Django's content block alone will not render them (T-F32).
-- **Linker and embeds** `deferred` (the launch scope (2026-11-09)). **API** entries `n/a`, because they are server behaviour; API-016 (version
+- **Linker and embeds** `deferred` (the launch scope, 2026-11-09). **API** entries `n/a`, because they are server behaviour; API-016 (version
   download links) is `done`. **Emails** (NTF-005…011) `n/a`.
 - **Legacy pages**: /explore and visualizations `deferred` (D-6); leaderboard, /random, /metrics, /digitized-by-sefaria and the
   404/error pages `todo` (T-F25, T-F26, T-F31, T-F28).
