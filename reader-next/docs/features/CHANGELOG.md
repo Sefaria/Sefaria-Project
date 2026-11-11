@@ -4,6 +4,19 @@ The atlas (`features.json`) is the source of truth for the rebuild. Whenever bui
 
 Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader has that the old client did not, so the atlas also describes what we ship.
 
+## 2026-11-11 — statuses checked against their notes and the code
+
+- **`done` → `partial`** where the note states a gap: BOK-010 (the book-page overlay is not built), BOK-002 (dedication not
+  verified live), ANL-017 (not yet seen in Datadog from a cluster), CAL-004 (the library sidebar sends no custom).
+- **`todo` → `partial`**, notes were stale: LEG-025 (the reader's own 404 and 503 pages exist; maintenance and Cloudflare-down
+  pages stay Django's), LEG-023 (`/random/link` is answered by the reader's server; `/random` stays Django's).
+- **`todo` → `deferred`**: the accepted exits ADM-056 (`/dedication/<slug>`), LEG-022 (`/metrics`), STA-009, STA-010, STA-011
+  (`/jobs`, `/team`, `/products`), as ACC-003 and RTE-013 already were (owner 2026-11-10, `scripts/exits-allowlist.json`).
+- **TXD-046** note corrected: colliding numbers stack downwards (not inwards) when outwards would leave the text.
+- Still `todo` (12): promotions PRM-001, PRM-002, PRM-003, PRM-006, PRM-007, PRM-008, PRM-010, PRM-011, PRM-012, PRM-013, and
+  Guided Learning AI-008, AI-010.
+- References to planning documents that left the repository were replaced by the decision they cite (`docs/DECISIONS.md`).
+
 ### 2026-11-10 — wave 4, lane d-shell (shell, static pages, a11y)
 
 - **Library Assistant for signed-out visitors** (parity S3): shown when remote config's `feature.chatbot.anonymous_enabled` is not off,
@@ -289,7 +302,7 @@ Early tests and components were tagged with IDs written from memory; most pointe
 
 ## 2026-10-05 — Phase 6 closed
 
-- Search area: 67 done, 21 deferred (Compare Text, Phase 7, analytics, Dicta, browser integration), 19 n/a (server/dead), 1 replaced, 2 partial (topic crumb; SRC-094 closed afterwards). `scripts/parity-search.mjs`: all tabs equal to sefaria.org except the Author/Topic parent crumb. `docs/PHASE7_PROPOSAL.md` and `docs/OWNER_QUESTIONS.md` written.
+- Search area: 67 done, 21 deferred (Compare Text, Phase 7, analytics, Dicta, browser integration), 19 n/a (server/dead), 1 replaced, 2 partial (topic crumb; SRC-094 closed afterwards). `scripts/parity-search.mjs`: all tabs equal to sefaria.org except the Author/Topic parent crumb.
 
 ## 2026-10-05 — hardening: phone UA, Save, banner
 
@@ -328,7 +341,7 @@ Early tests and components were tagged with IDs written from memory; most pointe
 - **Bugs recorded**: **ACC-011** — "Request New Link" for a link with no account lands on the choice instead of Forgot Password (code reading; not reproducible without a real reset link). Fixed in the rebuild.
 - **Rebuild differences**: CSRF from the last `csrftoken` cookie (no meta tag) with an allauth bootstrap GET; reset-link validity asked by a side-effect-free probe; visible focus ring on inputs; the phone page scrolls instead of an inner box.
 
-## 2026-10-06 — multi-panel parity, Steps 0–1 (docs/MULTIPANEL_PLAN.md)
+## 2026-10-06 — multi-panel parity, Steps 0–1
 
 - `scripts/parity-panels.mjs` runs the same clicks on sefaria.org and here and compares the address, the panels and their widths after every step.
 - **SHL-066 / RTE-049 / RTE-043**: URLs are now read and written exactly as sefaria.org (owner decision), including its numbering (a sidebar takes a number slot: `?with=all&lang2=en&p3=…`), the defaults it writes on arrival (`lang`, `aliyot` for the Torah, `lang2`) and its quirks. A recorded corpus round-trips byte for byte. **RTE-027**: canonical redirects keep the request's query.
@@ -353,7 +366,7 @@ Early tests and components were tagged with IDs written from memory; most pointe
 ## 2026-10-29 — the three-dots source note (old ToolTipped)
 
 - **Found**: the three dots beside a topic (**CON-046**) and a named entity (**CON-045**) used the browser's `title` tooltip (a grey system box) and outline stroke dots. sefaria.org draws a white CSS card (`.tooltip-toggle::before` printing `aria-label`: 13px Roboto, #6f6f6f, 180px, beside the button) on a 22px #ededec circle with solid dots (`three-dots.svg`). Code reading of Misc.jsx:1458 / s2.css plus the owner's screenshot (Genesis 1:2, "Depths").
-- **Built**: `ui/Tooltip` (the planned `Tooltip` from COMPONENT_AUDIT C, replacing `ToolTipped`) and `ui/Tooltip/SourceNote` (the dots button). TopicsView and NamedEntityView use it. It is a real button named by its tooltip, shows on keyboard focus too, and Escape hides it. Stories `Primitives/Tooltip`; `e2e/topics.spec.ts` checks the card on hover.
+- **Built**: `ui/Tooltip` (the planned `Tooltip` from the component audit, replacing `ToolTipped`) and `ui/Tooltip/SourceNote` (the dots button). TopicsView and NamedEntityView use it. It is a real button named by its tooltip, shows on keyboard focus too, and Escape hides it. Stories `Primitives/Tooltip`; `e2e/topics.spec.ts` checks the card on hover.
 - **Not ported**: the `onclick_ToolTipped` gtag click event (ask the owner).
 
 ## 2026-10-29 — sidebar parity: the category book list (Mishnah Peah 4:1, `with=Commentary ConnectionsList`)
@@ -463,7 +476,7 @@ Compared side by side with sefaria.org at 1280px, `lang2=en` and `lang2=he`, by 
 
 ## 2026-11-04 — topics
 
-The topics navigation pages (/topics, /topics/category/<slug>, /topics/all/<letter>) ported to the new reader on the Library host, surveyed against the legacy code (TopicsLandingPage/*, TopicPage.jsx TopicCategory, TopicPageAll, NavSidebar, s2.css) and www.sefaria.org at 1280px, with a phone User-Agent and in the Hebrew interface (`tools/apply_2026_11_04_topics.py`).
+The topics navigation pages (/topics, /topics/category/<slug>, /topics/all/<letter>) ported to the new reader on the Library host, surveyed against the legacy code (TopicsLandingPage/*, TopicPage.jsx TopicCategory, TopicPageAll, NavSidebar, s2.css) and www.sefaria.org at 1280px, with a phone User-Agent and in the Hebrew interface.
 
 - **TOP-001 / RTE-030 Added detail**: the three pages' titles in both interface languages; unknown categories and `/topics/category` are Django 404s; the legacy redirects (/people, /people/Talmud, /person/<name>) and where they land. _Verified._
 - **TOP-003 … TOP-010, TOP-012 Added detail**: measured geometry of every landing section (843px column, 60px between sections, the search pill, the five-line cloud in the zero-width-ellipsis font with serif bullets, the featured picture on its serif text line, the newsletter's 16px gaps, the 361px cards, the two calendar columns 67px from their divider) and the phone variants. _Verified._
@@ -478,7 +491,7 @@ The topics navigation pages (/topics, /topics/category/<slug>, /topics/all/<lett
 
 ## 2026-11-04 — topics (the single topic page)
 
-The topic page (/topics/<slug>, /topics/b/<slug>) ported to the new reader on the Library host, surveyed against the legacy code (TopicPage.jsx, Story.jsx, sefaria.js getTopic / processTopicsTabsData, Misc.jsx TabView / FilterableList / LangSelectInterface, reader/views.py topic_page, s2.css) and www.sefaria.org at 1280px, with a phone User-Agent and in the Hebrew interface (`tools/apply_2026_11_04_topic_page.py`).
+The topic page (/topics/<slug>, /topics/b/<slug>) ported to the new reader on the Library host, surveyed against the legacy code (TopicPage.jsx, Story.jsx, sefaria.js getTopic / processTopicsTabsData, Misc.jsx TabView / FilterableList / LangSelectInterface, reader/views.py topic_page, s2.css) and www.sefaria.org at 1280px, with a phone User-Agent and in the Hebrew interface.
 
 - **TOP-001 / RTE-030 Found**: the address is `?sort=<sort>&tab=<tab>` (sort always, tab once the tabs mount, the entry replaced); a `?tab=` on load is ignored and the parameters reordered; tab and sort clicks push history; the Hebrew page's meta description stays English (obsolete msgstr). _Verified._ **Changed**: the new reader honours a `?tab=` that names one of the page's tabs.
 - **TOP-015 Added detail**: every request the page makes (an author under Authors asks only for `popular-writing-of`; 17 bulk-text requests for Moses); the topic answer is 683 KB and sorted by the request's interface language. _Verified._
@@ -494,7 +507,7 @@ The topic page (/topics/<slug>, /topics/b/<slug>) ported to the new reader on th
 
 ## 2026-11-04 — topics (review fixes)
 
-After an independent review of the topics lane, measured element by element against sefaria.org / sefaria.org.il (computed styles and `CSS.getPlatformFontsForNode`, desktop 1280 and phone User-Agent; `tools/apply_2026_11_04_topics_review.py`).
+After an independent review of the topics lane, measured element by element against sefaria.org / sefaria.org.il (computed styles and `CSS.getPlatformFontsForNode`, desktop 1280 and phone User-Agent).
 
 - **TOP-003 / TOP-004 / TOP-006 / TOP-007 / TOP-014 Found (Hebrew interface)**: the landing search is Heebo at 1280 but the English sans on a phone; "Explore all Topics ›" and a Hebrew featured description are the Hebrew serif (Heebo made the description a line longer and the phone page 43px taller); the Sign Up button stays Roboto; the portion/calendar links keep serif lines; the A–Z filter is Heebo; the magnifier is `search_mdl.svg` everywhere. Heebo 600 is now loaded (a 600 title drew the 700 face). _Verified._
 - **TOP-005 Found**: sefaria.org places the cloud's bullets once, when the sample arrives (often before the web fonts): 1–2 of ~40 can end a line. The same-line rule on the final lines stays (closest to live, reproducible). _Verified over four loads._
@@ -508,7 +521,7 @@ After an independent review of the topics lane, measured element by element agai
 
 ## 2026-11-04 — the ports' major review gaps (reader-next-ports)
 
-The seven gaps the independent reviews left open as major, fixed on the integration branch (`tools/apply_2026_11_04_review_majors.py`).
+The seven gaps the independent reviews left open as major, fixed on the integration branch.
 
 - **CAL-001**: once loaded, the address becomes `/calendars` (no trailing slash, no query; the hash stays) and the tab title the app's own, "Learning Schedules | The Sefaria Library" / "לוח לימוד יומי | האוסף של ספריא", as the old ReaderApp. The server HTML keeps its title and canonical. _Verified._
 - **CAL-002**: a card's links follow inside the app (the href as the old page wrote it, through the router); the card, Back and Forward stay in one document. _Verified._
@@ -520,7 +533,7 @@ The seven gaps the independent reviews left open as major, fixed on the integrat
 
 ## 2026-11-05 — no way out to the legacy client: topics, notes, revision history (reader-next-ports)
 
-Owner rule: an opted-in reader must never land in the old client from inside the new reader (wiki `projects/reader-next/exits-to-legacy`). First three groups of exits ported (`tools/apply_2026_11_05_no_exits.py`).
+Owner rule: an opted-in reader must never land in the old client from inside the new reader (wiki `projects/reader-next/exits-to-legacy`). First three groups of exits ported.
 
 - **TOP-036** (replaces yesterday's hand-off): every Library-pool topic is rendered here, also the ~300 outside the A–Z list (Rashi's students, ambiguous names…). The pool comes from the API's `pools` where given (this branch's Django), else from the name completer's `topic_pool=library` filter, which sefaria.org already has. _Verified_ (rabbenu-tam, rivan, yehuda-herzl-henkin in; youth out, 404 on live). Only `?editor=1` still goes to Django.
 - **TOP-013**: `/topics/category/<a topic>` goes on to `/topics/<slug>`. Live crashes there (blank page). _Verified._ Deliberate deviation.
@@ -528,9 +541,9 @@ Owner rule: an opted-in reader must never land in the old client from inside the
 - **LEG-019, RTE-018**: a text's revision history, `/activity/<ref>/<lang>/<version>[/<page>]?type=`, from a new JSON twin of Django's page, `GET /api/activity/…` (`reader/views.py segment_history_api`, this branch). Until it is deployed the page is a 404 that goes to Django. The rest of /activity stays Django's.
 - **Tests**: e2e `activity.spec.ts`, `user-history-page.spec.ts`, three new cases in `topic-page.spec.ts`; unit tests for the history parsing and the routes. Unit 2283 passed (the known server-catalog failure only). `topics-landing.spec.ts` "arrow keys move the highlight" fails on the committed code too (not from this change).
 
-## 2026-11-10 — triage: every feature has a rebuild status (wave 1, lane f-atlas; LAUNCH_PLAN T-A07)
+## 2026-11-10 — triage: every feature has a rebuild status
 
-Script: `tools/apply_2026_11_10_f-atlas.py` (rebuild-status.json only; idempotent, prints each change).
+Applied to rebuild-status.json only.
 
 ### Statused
 
@@ -539,13 +552,13 @@ Script: `tools/apply_2026_11_10_f-atlas.py` (rebuild-status.json only; idempoten
   135 n/a, 46 replaced; 961 of 961 statused.
 - **Voices** (sheets-view, sheets-editor, collections, profile-social, Voices search, Voices-only sidebar modules and host features):
   `deferred`, "Voices out of scope (owner 2026-11-10)". PRO-010 (Torah Tracker stats) is a Library page: `todo` (T-F21).
-- **Admin tools**: Django tools (modtools, linker admin and editor, staff URLs, Django admin) `deferred` per LAUNCH_PLAN §8. The
+- **Admin tools**: Django tools (modtools, linker admin and editor, staff URLs, Django admin) `deferred` per the launch scope (2026-11-09). The
   category editor (ADM-006), book-page Index Editor (ADM-008) and version editor (ADM-009) are ported and `done`; the shared
   moderator buttons and forms are `partial`, because topic and topic-source editing still opens Django's `?editor=1`.
-  LAUNCH_PLAN §8 lists "index and version editors" as staying Django, but the book-page ones are already built.
+  the launch scope (2026-11-09) lists "index and version editors" as staying Django, but the book-page ones are already built.
 - **Static pages**: `todo` under T-F31 (D-5). Jobs, team and products (STA-009…011) are React pages fed by the CMS inside a
   static template, so Django's content block alone will not render them (T-F32).
-- **Linker and embeds** `deferred` (LAUNCH_PLAN §8). **API** entries `n/a`, because they are server behaviour; API-016 (version
+- **Linker and embeds** `deferred` (the launch scope (2026-11-09)). **API** entries `n/a`, because they are server behaviour; API-016 (version
   download links) is `done`. **Emails** (NTF-005…011) `n/a`.
 - **Legacy pages**: /explore and visualizations `deferred` (D-6); leaderboard, /random, /metrics, /digitized-by-sefaria and the
   404/error pages `todo` (T-F25, T-F26, T-F31, T-F28).
@@ -558,13 +571,13 @@ Script: `tools/apply_2026_11_10_f-atlas.py` (rebuild-status.json only; idempoten
   `CategoryEditor`) are built; the note said they were not.
 - The 10 `todo`: **RTE-009** → done (`/` 302 to `/texts`, Tanach → Tanakh). **RTE-029** → partial (`/search` has no robots noindex).
   **PLT-007** → partial (noindex on sparse topics and revision history only). **PLT-008, PLT-026, PLT-027** → deferred (SEO head
-  builder and sitemaps wait, LAUNCH_PLAN §8; bots never get the opt-in reader). **SHL-032** → deferred (Voices). **SHL-034, SHL-060**
+  builder and sitemaps wait, the launch scope (2026-11-09); bots never get the opt-in reader). **SHL-032** → deferred (Voices). **SHL-034, SHL-060**
   → partial (pages are routes; the compare panel's menus, notifications and Torah Tracker are missing). **LIB-005** stays todo (T-G03).
 - Voices entries deferred earlier as "owner decides" (RTE-001/004/021/022/039, PLT-014, SRC-027, SRC-088…093) now say "Voices
   out of scope (owner 2026-11-10)". SRC-099/100 are deferred because the sheet editor and the Django admin editors use them.
 - **RTE-059** (language-domain redirect) deferred → todo: it is task T-E07, not a Voices question.
 - **SRC-025/026** (compare-panel search) deferred → todo, in line with the other in-reader Compare Text entries (SHL-037/038, CON-066,
-  BOK-004, LIB-003, LIB-018). Compare Text is not built and is not in LAUNCH_PLAN §8: the owner should confirm whether it is in scope.
+  BOK-004, LIB-003, LIB-018). Compare Text is not built and was not in the launch scope's list: the owner should confirm whether it is in scope.
 - Stale `partial` notes found on the way: **GUI-003** (autocomplete, keyboard and account menu are built; only the notifications link is
   missing), **BOK-016** → done (the dictionary search box is on the book page), **ANL-014** (Sentry is removed, not built), **TOP-002**
   → done and **TOP-024** → deferred (their open part was the Voices host); **CON-047, CON-048, CON-055** → done (topic creation, notes
@@ -575,12 +588,11 @@ Script: `tools/apply_2026_11_10_f-atlas.py` (rebuild-status.json only; idempoten
 ## 2026-11-10 — In-reader Compare Text deferred (owner)
 
 - **Deferred:** SRC-025, SRC-026, BOK-004, CON-066, LIB-003, LIB-018, SHL-037, SHL-038 (`todo` → `deferred`): the in-reader Compare
-  Text panel is not in this launch (LAUNCH_PLAN §8). The standalone `/compare` page is built and unaffected. Script:
-  `tools/apply_2026_11_10_compare-deferral.py`.
+  Text panel is not in this launch (launch scope). The standalone `/compare` page is built and unaffected.
 
 ## 2026-11-10 — wave 1 lane B: the Django side
 
-### Corrected (server details; applied by `tools/apply_2026_11_10_b_django.py`)
+### Corrected (server details)
 
 - **ACC-003** Account settings page: the New Reader switch now follows the remote-config audience `feature.reader.optin.audience` (`staff` by default, or `all`; pods must be restarted after a change, remote config has no pub/sub); a stale `reader_version=next` cookie of someone outside it is cleared, on the Library host only. New `/api/reader-choice` (Library host; GET state and the CSRF cookie, POST `classic` / `next` with CSRF) lets the new reader switch back to the classic reader without a legacy page (T-D05 server half).
 - **TOP-033** Topics TOC delivery: `/api/topics-toc` and `/api/topics/library-count` GET only and the same for everyone; the v2 topic answer's `pools` (already on the branch, unchanged) is now covered by a test.

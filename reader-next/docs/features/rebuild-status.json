@@ -120,11 +120,11 @@
  },
  "PLT-026": {
   "status": "deferred",
-  "note": "Default-on/SEO head builder/sitemaps wait (LAUNCH_PLAN §8); sitemaps stay Django's"
+  "note": "Default-on/SEO head builder/sitemaps wait (launch scope, 2026-11-09); sitemaps stay Django's"
  },
  "PLT-027": {
   "status": "deferred",
-  "note": "Default-on/SEO head builder waits (LAUNCH_PLAN §8); see PLT-008, PLT-009"
+  "note": "Default-on/SEO head builder waits (launch scope, 2026-11-09); see PLT-008, PLT-009"
  },
  "RTE-001": {
   "status": "deferred",
@@ -539,7 +539,7 @@
  },
  "TXD-046": {
   "status": "done",
-  "note": "Gutter placement matches (phone: 4px from the edges); collisions step apart, inwards where outwards would leave the text (live's fix misplaces them)",
+  "note": "Gutter placement matches (phone: 4px from the edges); colliding numbers step outwards, and when outwards would leave the text they stack downwards instead (live's fix misplaces them)",
   "by": "src/ui/Segment/Segment.module.css, src/lib/reader/spread-numbers.ts"
  },
  "TXD-047": {
@@ -670,8 +670,8 @@
   "by": "src/ui/TocView/TocView.tsx, src/lib/toc/"
  },
  "BOK-010": {
-  "status": "done",
-  "note": "Done in TocView; the book-page overlay not built",
+  "status": "partial",
+  "note": "Collapsible sections done in TocView; the book-page overlay is not built",
   "by": "src/ui/TocView/TocView.tsx, src/lib/toc/"
  },
  "BOK-011": {
@@ -1073,8 +1073,8 @@
   "by": "src/ui/BookPage, src/features/book"
  },
  "BOK-002": {
-  "status": "done",
-  "note": "Done; dedication unverified live",
+  "status": "partial",
+  "note": "Built; the dedication is not verified on the live site",
   "by": "src/ui/BookPage, src/features/book"
  },
  "BOK-003": {
@@ -1354,11 +1354,11 @@
  },
  "SRC-025": {
   "status": "deferred",
-  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10); the standalone /compare page is built"
  },
  "SRC-026": {
   "status": "deferred",
-  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10); the standalone /compare page is built"
  },
  "SRC-027": {
   "status": "deferred",
@@ -1394,11 +1394,11 @@
  },
  "SRC-099": {
   "status": "deferred",
-  "note": "Its users are the sheet editor (Voices out of scope, owner 2026-11-10) and Django admin editors (LAUNCH_PLAN §8)"
+  "note": "Its users are the sheet editor (Voices out of scope, owner 2026-11-10) and Django admin editors (launch scope, 2026-11-09)"
  },
  "SRC-100": {
   "status": "deferred",
-  "note": "Its users are the sheet editor (Voices out of scope, owner 2026-11-10) and Django admin editors (LAUNCH_PLAN §8)"
+  "note": "Its users are the sheet editor (Voices out of scope, owner 2026-11-10) and Django admin editors (launch scope, 2026-11-09)"
  },
  "SRC-104": {
   "status": "done",
@@ -1545,7 +1545,7 @@
   "by": "src/lib/analytics/core.ts"
  },
  "ANL-017": {
-  "status": "done",
+  "status": "partial",
   "note": "First-party beacon reporter (no Sentry) with Django's receiver /api/reader-errors and the chart env; not yet seen in Datadog from a cluster",
   "by": "src/lib/monitoring/error-reporter.ts, reader/browser_errors.py, helm-chart/sefaria/templates/_helpers.tpl"
  },
@@ -1695,7 +1695,7 @@
   "by": "src/server/calendar-shortcuts.ts"
  },
  "CAL-004": {
-  "status": "done",
+  "status": "partial",
   "note": "On /calendars; the library sidebar still sends no custom",
   "by": "src/features/calendars/textual-custom.ts"
  },
@@ -1945,11 +1945,11 @@
  },
  "ADM-001": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); linker admin"
  },
  "ADM-002": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); linker admin"
  },
  "ADM-003": {
   "status": "partial",
@@ -1963,7 +1963,7 @@
  },
  "ADM-005": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); topic editor stays Django (?editor=1)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); topic editor stays Django (?editor=1)"
  },
  "ADM-006": {
   "status": "done",
@@ -1972,7 +1972,7 @@
  },
  "ADM-007": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); topic source editor stays Django (?editor=1)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); topic source editor stays Django (?editor=1)"
  },
  "ADM-008": {
   "status": "done",
@@ -2006,51 +2006,51 @@
  },
  "ADM-014": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); /modtools"
  },
  "ADM-015": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); /modtools"
  },
  "ADM-016": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); /modtools"
  },
  "ADM-017": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); /modtools"
  },
  "ADM-018": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); /modtools"
  },
  "ADM-019": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); /modtools"
  },
  "ADM-020": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); /modtools"
  },
  "ADM-021": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); /modtools"
  },
  "ADM-022": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); /modtools"
  },
  "ADM-023": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); /modtools"
  },
  "ADM-024": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); /modtools"
  },
  "ADM-025": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); /modtools"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); /modtools"
  },
  "ADM-026": {
   "status": "n/a",
@@ -2080,19 +2080,19 @@
  },
  "ADM-032": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)"
  },
  "ADM-033": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)"
  },
  "ADM-034": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)"
  },
  "ADM-035": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)"
  },
  "ADM-036": {
   "status": "n/a",
@@ -2100,11 +2100,11 @@
  },
  "ADM-037": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)"
  },
  "ADM-038": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)"
  },
  "ADM-039": {
   "status": "n/a",
@@ -2112,55 +2112,55 @@
  },
  "ADM-040": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)"
  },
  "ADM-041": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)"
  },
  "ADM-042": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)"
  },
  "ADM-043": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)"
  },
  "ADM-044": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)"
  },
  "ADM-045": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); linker admin"
  },
  "ADM-046": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); linker admin"
  },
  "ADM-047": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); linker admin"
  },
  "ADM-048": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); linker admin"
  },
  "ADM-049": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); linker admin"
  },
  "ADM-050": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); linker admin"
  },
  "ADM-051": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); linker admin"
  },
  "ADM-052": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); linker admin"
  },
  "ADM-053": {
   "status": "done",
@@ -2169,15 +2169,15 @@
  },
  "ADM-054": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)"
  },
  "ADM-055": {
   "status": "n/a",
   "note": "Server behaviour; Django keeps it"
  },
  "ADM-056": {
-  "status": "todo",
-  "note": "/dedication/<slug>: Django's page, an accepted exit; needs ?format=json on the dedications view"
+  "status": "deferred",
+  "note": "Accepted exit (owner 2026-11-10, scripts/exits-allowlist.json): /dedication/<slug>: Django's page; needs ?format=json on the dedications view"
  },
  "ADM-057": {
   "status": "n/a",
@@ -2239,7 +2239,7 @@
  },
  "AI-013": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); linker admin"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); linker admin"
  },
  "AI-014": {
   "status": "n/a",
@@ -2341,7 +2341,7 @@
  },
  "BOK-004": {
   "status": "deferred",
-  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10); the standalone /compare page is built"
  },
  "BOK-019": {
   "status": "done",
@@ -2403,7 +2403,7 @@
  },
  "CON-001": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool, linker admin (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool, linker admin (launch scope, 2026-11-09)"
  },
  "CON-002": {
   "status": "partial",
@@ -2496,11 +2496,11 @@
  },
  "CON-064": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool, linker admin (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool, linker admin (launch scope, 2026-11-09)"
  },
  "CON-066": {
   "status": "deferred",
-  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10); the standalone /compare page is built"
  },
  "CON-068": {
   "status": "partial",
@@ -2661,15 +2661,15 @@
  },
  "LEG-007": {
   "status": "deferred",
-  "note": "Stays Django (LAUNCH_PLAN §8); /edit, /add, /translate must return into the new reader with ?next= (T-F27)"
+  "note": "Stays Django (launch scope, 2026-11-09); /edit, /add, /translate must return into the new reader with ?next= (T-F27)"
  },
  "LEG-008": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8); the book page's Index Editor is ported (BOK-030)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09); the book page's Index Editor is ported (BOK-030)"
  },
  "LEG-009": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)"
  },
  "LEG-011": {
   "status": "deferred",
@@ -2712,12 +2712,13 @@
   "note": "Stays Django: /dashboard is a standalone legacy page, not linked from the new reader"
  },
  "LEG-022": {
-  "status": "todo",
-  "note": "/metrics: Django's page, an accepted exit; needs a metrics API to port"
+  "status": "deferred",
+  "note": "Accepted exit (owner 2026-11-10, scripts/exits-allowlist.json): /metrics: Django's page; needs a metrics API to port"
  },
  "LEG-023": {
-  "status": "todo",
-  "note": "/random and /random/link are Django's; answer the redirect in the reader's server (T-F26)"
+  "status": "partial",
+  "note": "/random/link is answered by the reader's server (302 to a random segment); the /random page stays Django's",
+  "by": "src/server/redirects.ts"
  },
  "LEG-024": {
   "status": "done",
@@ -2725,8 +2726,9 @@
   "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page"
  },
  "LEG-025": {
-  "status": "todo",
-  "note": "The reader's own 404 and error pages: every miss and a 503 still reach Django or plain text (T-F28)"
+  "status": "partial",
+  "note": "The reader's own 404 and 503 pages are built (RTE-040); maintenance.html and the Cloudflare-down pages stay Django's standalone documents (an accepted exit)",
+  "by": "src/features/routing/NotFoundPage.tsx, src/server/error-page.ts"
  },
  "LEG-026": {
   "status": "n/a",
@@ -2750,7 +2752,7 @@
  },
  "LIB-003": {
   "status": "deferred",
-  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10); the standalone /compare page is built"
  },
  "LIB-004": {
   "status": "done",
@@ -2771,7 +2773,7 @@
  },
  "LIB-018": {
   "status": "deferred",
-  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10); the standalone /compare page is built"
  },
  "LIB-022": {
   "status": "done",
@@ -2898,51 +2900,51 @@
  },
  "LNK-001": {
   "status": "deferred",
-  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+  "note": "Stays Django: linker/embeds/share images (launch scope, 2026-11-09)"
  },
  "LNK-002": {
   "status": "deferred",
-  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+  "note": "Stays Django: linker/embeds/share images (launch scope, 2026-11-09)"
  },
  "LNK-003": {
   "status": "deferred",
-  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+  "note": "Stays Django: linker/embeds/share images (launch scope, 2026-11-09)"
  },
  "LNK-004": {
   "status": "deferred",
-  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+  "note": "Stays Django: linker/embeds/share images (launch scope, 2026-11-09)"
  },
  "LNK-005": {
   "status": "deferred",
-  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+  "note": "Stays Django: linker/embeds/share images (launch scope, 2026-11-09)"
  },
  "LNK-006": {
   "status": "deferred",
-  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+  "note": "Stays Django: linker/embeds/share images (launch scope, 2026-11-09)"
  },
  "LNK-007": {
   "status": "deferred",
-  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+  "note": "Stays Django: linker/embeds/share images (launch scope, 2026-11-09)"
  },
  "LNK-008": {
   "status": "deferred",
-  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+  "note": "Stays Django: linker/embeds/share images (launch scope, 2026-11-09)"
  },
  "LNK-009": {
   "status": "n/a",
-  "note": "Retired linker v1/v2; Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+  "note": "Retired linker v1/v2; Stays Django: linker/embeds/share images (launch scope, 2026-11-09)"
  },
  "LNK-010": {
   "status": "deferred",
-  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+  "note": "Stays Django: linker/embeds/share images (launch scope, 2026-11-09)"
  },
  "LNK-011": {
   "status": "deferred",
-  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+  "note": "Stays Django: linker/embeds/share images (launch scope, 2026-11-09)"
  },
  "LNK-012": {
   "status": "deferred",
-  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+  "note": "Stays Django: linker/embeds/share images (launch scope, 2026-11-09)"
  },
  "LNK-013": {
   "status": "deferred",
@@ -2950,7 +2952,7 @@
  },
  "LNK-014": {
   "status": "deferred",
-  "note": "Stays Django: linker/embeds/share images (LAUNCH_PLAN §8)"
+  "note": "Stays Django: linker/embeds/share images (launch scope, 2026-11-09)"
  },
  "NTF-001": {
   "status": "done",
@@ -3007,7 +3009,7 @@
  },
  "PLT-009": {
   "status": "deferred",
-  "note": "Default-on/SEO head builder/sitemaps wait (LAUNCH_PLAN §8); OG/Twitter tags exist only on /calendars and /translations, no JSON-LD.",
+  "note": "Default-on/SEO head builder/sitemaps wait (launch scope, 2026-11-09); OG/Twitter tags exist only on /calendars and /translations, no JSON-LD.",
   "by": "src/routes/calendars.tsx, src/routes/translations.$slug.tsx"
  },
  "PLT-010": {
@@ -3221,7 +3223,7 @@
  },
  "RTE-016": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)."
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)."
  },
  "RTE-017": {
   "status": "n/a",
@@ -3245,7 +3247,7 @@
  },
  "RTE-036": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8)."
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09)."
  },
  "RTE-037": {
   "status": "partial",
@@ -3480,11 +3482,11 @@
  },
  "SHL-037": {
   "status": "deferred",
-  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10); the standalone /compare page is built"
  },
  "SHL-038": {
   "status": "deferred",
-  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10, LAUNCH_PLAN §8); the standalone /compare page is built"
+  "note": "Not in launch: in-reader Compare Text deferred (owner 2026-11-10); the standalone /compare page is built"
  },
  "SHL-041": {
   "status": "partial",
@@ -3941,16 +3943,16 @@
   "by": "src/routes/$page.tsx, src/features/static-page, src/lib/static-page, src/features/static-page/ports/MobileAppPage.tsx"
  },
  "STA-009": {
-  "status": "todo",
-  "note": "/jobs: Django's page (CMS-driven legacy React), an accepted exit; port needs the CMS query"
+  "status": "deferred",
+  "note": "Accepted exit (owner 2026-11-10, scripts/exits-allowlist.json): /jobs: Django's page (CMS-driven legacy React); port needs the CMS query"
  },
  "STA-010": {
-  "status": "todo",
-  "note": "/team: Django's page (CMS-driven legacy React), an accepted exit; port needs the CMS query"
+  "status": "deferred",
+  "note": "Accepted exit (owner 2026-11-10, scripts/exits-allowlist.json): /team: Django's page (CMS-driven legacy React); port needs the CMS query"
  },
  "STA-011": {
-  "status": "todo",
-  "note": "/products: Django's page (CMS-driven legacy React), an accepted exit; port needs the CMS query"
+  "status": "deferred",
+  "note": "Accepted exit (owner 2026-11-10, scripts/exits-allowlist.json): /products: Django's page (CMS-driven legacy React); port needs the CMS query"
  },
  "STA-012": {
   "status": "partial",
@@ -4042,7 +4044,7 @@
  },
  "TXD-030": {
   "status": "deferred",
-  "note": "Not in launch: admin/moderator Django tool (LAUNCH_PLAN §8), linker admin"
+  "note": "Not in launch: admin/moderator Django tool (launch scope, 2026-11-09), linker admin"
  },
  "TXD-032": {
   "status": "done",

@@ -1121,7 +1121,7 @@
   "details": [
    "notes=1 on a book-level ref -> menuOpen 'extended notes' with currVersions.",
    "Client hist.url = '<Book>&notes[i]=1' (ReaderApp.jsx:544-549).",
-   "Deferred 2026-11-10 (owner, LAUNCH_PLAN §8): no version on www.sefaria.org with extendedNotes/extendedNotesHebrew was found among 26 titles checked through /api/texts/versions/<title> (lane GR)."
+   "Deferred 2026-11-10 (owner, launch scope): no version on www.sefaria.org with extendedNotes/extendedNotesHebrew was found among 26 titles checked through /api/texts/versions/<title> (lane GR)."
   ],
   "audience": "all",
   "platform": "all",
@@ -2702,7 +2702,7 @@
   "summary": "Books with extended notes can open them from the book page or the sidebar.",
   "details": [
    "viewExtendedNotes(n,method,title,vLang,vTitle,family) sets bookRef and single version, then opens 'extended notes' as a menu ('toc') or connectionsMode ('Connections'); backFromExtendedNotes returns to 'book toc' (1687-1706).",
-   "Deferred 2026-11-10 (owner, LAUNCH_PLAN §8): no version on www.sefaria.org with extendedNotes/extendedNotesHebrew was found among 26 titles checked through /api/texts/versions/<title> (lane GR)."
+   "Deferred 2026-11-10 (owner, launch scope): no version on www.sefaria.org with extendedNotes/extendedNotesHebrew was found among 26 titles checked through /api/texts/versions/<title> (lane GR)."
   ],
   "audience": "all",
   "platform": "all",
@@ -3202,7 +3202,7 @@
    "If filterRef set, matching [data-ref] element in connections panel is scrolled into view.",
    "shouldComponentUpdate re-renders on sref, filter, highlight, versions, translation pref, language, layouts, aliyot, vowels, biLayout, fontSize, punctuation, layoutWidth, data.",
    "DEAD: prefetchMultiple (20 for dictionaries) passed but never read; showActionLinks renders undefined actionLinks (would throw).",
-   "Freshness (D-7, LAUNCH_PLAN T-E01, 2026-11-10): text and catalog are fresh for 1 hour (were 7 days and 1 day); the disk keeps them 30 days, so a page still paints from IndexedDB and refreshes behind. Staff and moderators: text is never fresh (learned from the viewer query). A copy restored from disk past its hour is refetched behind what shows (TanStack only did that for an observer, and the reader reads text through loaders: a stored copy was used as is for 30 days). Tests: src/lib/cache/invalidate.test.ts, storage-failure.test.ts, e2e/freshness.spec.ts (faked clock: 50 min no request, 61 min a request).",
+   "Freshness (D-7, 2026-11-10): text and catalog are fresh for 1 hour (were 7 days and 1 day); the disk keeps them 30 days, so a page still paints from IndexedDB and refreshes behind. Staff and moderators: text is never fresh (learned from the viewer query). A copy restored from disk past its hour is refetched behind what shows (TanStack only did that for an observer, and the reader reads text through loaders: a stored copy was used as is for 30 days). Tests: src/lib/cache/invalidate.test.ts, storage-failure.test.ts, e2e/freshness.spec.ts (faked clock: 50 min no request, 61 min a request).",
    "Writes forget what they changed (T-E01): src/lib/cache/invalidate.ts maps each write (links, topic links, lexicon, notes, a text edit, a book change) to its queries, invalidates them in memory and deletes their IndexedDB entries. A page reached from a Django editor (/edit, /translate, /add, /admin/reset, by document.referrer) forgets the edited book on disk before any disk read; the sidebar's Edit Text and Add Translation forget it before leaving. Tests: e2e/freshness.spec.ts ('back from a Django editor').",
    "Review fix 2026-11-10: loaders read text and catalog with ensureQueryData(revalidateIfStale): a stale cached copy shows at once and is refetched behind it, so Back and section navigation never wait on the network (staff's 0 applies to revalidation only); neighbours are prefetched only when not in memory."
   ],
@@ -6026,8 +6026,8 @@
   "summary": "Each connection has an Open button that jumps the main panel to that source.",
   "details": [
    "OpenConnectionTabButton is a link to /<sref>; click calls onTextClick([sourceRef]) (handleTextListClick: opens in main panel without commentary-to-base conversion); tracks 'Click Text from TextList'.",
-   "CORRECTION 2026-10-06 (VERIFIED 2026-10-06 on sefaria.org (scripts/probes/multipanel-probe*.mjs, scripts/parity-panels.mjs):): 'Open' on a connected text does NOT move the main panel. It replaces the sidebar with a new text panel showing that text as itself (/Genesis.1.1?lang=bi&aliyot=0&p2=Rashi_on_Genesis.1.1.1&lang2=bi, 50/50). The rebuild followed the old atlas text (this panel goes there): wrong, fixed in MULTIPANEL_PLAN Step 2.",
-   "VERIFIED 2026-10-07 on sefaria.org (scripts/parity-panels.mjs): BUILT (MULTIPANEL_PLAN Step 2): 'Open' replaces the sidebar with a new text panel right after the reader's, the text as itself, bilingual when the reader's panel is (else the sidebar's language); parity equal for open-from-sidebar. A connected text's title is not a link (VERIFIED: on sefaria.org clicking it does nothing; ours was a link that left the workspace)."
+   "CORRECTION 2026-10-06 (VERIFIED 2026-10-06 on sefaria.org (scripts/probes/multipanel-probe*.mjs, scripts/parity-panels.mjs):): 'Open' on a connected text does NOT move the main panel. It replaces the sidebar with a new text panel showing that text as itself (/Genesis.1.1?lang=bi&aliyot=0&p2=Rashi_on_Genesis.1.1.1&lang2=bi, 50/50). The rebuild followed the old atlas text (this panel goes there): wrong, fixed in multi-panel step 2.",
+   "VERIFIED 2026-10-07 on sefaria.org (scripts/parity-panels.mjs): BUILT (multi-panel step 2): 'Open' replaces the sidebar with a new text panel right after the reader's, the text as itself, bilingual when the reader's panel is (else the sidebar's language); parity equal for open-from-sidebar. A connected text's title is not a link (VERIFIED: on sefaria.org clicking it does nothing; ours was a link that left the workspace)."
   ],
   "audience": "all",
   "platform": "all",
@@ -6763,7 +6763,7 @@
    "POST /api/links/ {json:{refs,type}}; success: track 'Add Connection', clearLinks, onSave, flash message; errors via alert.",
    "Server: login or API key; saved async via save_changes/LinkChange (reader/views.py:2392-2455).",
    "Signed-out behaviour verified: Advanced > Add Connection opens the AddConnection modal ('Want to document a connection to another text?').",
-   "BUILT 2026-10-07 (src/ui/AddConnectionView): signed in, Advanced → Add Connection with the texts open in the panels: one → 'Choose a text to connect.' (Browse waits for Compare Text, MULTIPANEL_PLAN Step 4); two → both refs, the type (None, Commentary, Quotation, Midrash, Ein Mishpat / Ner Mitsvah, Mesorat HaShas, Reference, Related Passage), Add Connection → POST /api/links/ json={refs, type}; more → 'We currently only understand connections between two texts.'"
+   "BUILT 2026-10-07 (src/ui/AddConnectionView): signed in, Advanced → Add Connection with the texts open in the panels: one → 'Choose a text to connect.' (Browse waits for Compare Text, multi-panel step 4); two → both refs, the type (None, Commentary, Quotation, Midrash, Ein Mishpat / Ner Mitsvah, Mesorat HaShas, Reference, Related Passage), Add Connection → POST /api/links/ json={refs, type}; more → 'We currently only understand connections between two texts.'"
   ],
   "audience": "signed-in",
   "platform": "all",
@@ -6917,7 +6917,7 @@
    "SB-03 (measured 2026-11-10 through the cassette, Genesis 1:1): the page's /api/links is 6.19 MB raw / 638 KB gzip; opening the sidebar and Resources adds /api/related 12.09 MB / 1.27 MB gzip, of which its links are 8.2 MB / 633 KB gzip already loaded and its sheets 6.1 MB / 613 KB gzip used only for a count. No URL is fetched twice. The links cannot be dropped from the client side: related_api has no parameter to omit them (request: with_links=0, and a count-only sheets mode).",
    "2026-11-10 (review round 1): the two parameters are honoured on the Library host only (Voices answers exactly as before). Varnish: invalidate_ref also bans and purges /api/related/<encodeURIComponent(section ref)>, the form the generated client sends (the dotted pattern never matched it); the client's URLs are pinned in fixtures/varnish/related-client-urls.json and tested on both sides (src/lib/connections/related.test.ts, reader/tests/related_api_test.py).",
    "2026-11-10 (SB-03): /api/related/<ref> takes ?with_links=0 (no links: the client has them from /api/links) and ?sheets=count (each sheet as {id, anchorRef, anchorRefExpanded} only, from sefaria/sheets.py get_sheet_anchors_for_ref: no sheet records, owner profiles, collections or scores). New URLs, so new Varnish keys; without them the answer is unchanged for every other caller; the new reader's URL is purged on a text save with the others. The Resources rows ask `?with_links=0&sheets=count` (src/lib/connections/related.ts); counts are unchanged (distinct sheet ids per selected verse). Genesis 1: 12.4 MB raw / 1.30 MB gzip before, 0.61 MB / 46 KB after (the recorded answer projected the way the new modes answer; production answers the new URL in full until this Django change is deployed). Tests: reader/tests/related_api_test.py.",
-   "2026-11-10 (V-EXITS SB-05): the Resources request (/api/related) is no longer aborted when the sidebar pane unmounts: opening the sidebar mounted the pane twice and sent it twice (the first aborted), and closing the sidebar while it loaded made the next opening fetch it again. It now finishes into the cache; an in-page reopen sends nothing. A reload still refetches (connections memory-only, CODE_REVIEW R-10). Test: related.test.ts."
+   "2026-11-10 (V-EXITS SB-05): the Resources request (/api/related) is no longer aborted when the sidebar pane unmounts: opening the sidebar mounted the pane twice and sent it twice (the first aborted), and closing the sidebar while it loaded made the next opening fetch it again. It now finishes into the cache; an in-page reopen sends nothing. A reload still refetches (connections memory-only). Test: related.test.ts."
   ],
   "audience": "system",
   "platform": "all",
@@ -7425,7 +7425,7 @@
    "Language toggle 'עברית'/'English' when both exist; missing-language messages.",
    "Back link only if backFromExtendedNotes passed; BUG: not passed in sidebar so ExtendedNotes.jsx:30 calls undefined prop and can crash when version has no extended notes; header back goes to 'Translations'.",
    "Book-TOC variant (menuOpen 'extended notes') served at ?notes=1 via make_panel_dict (reader/views.py:551-559).",
-   "Deferred 2026-11-10 (owner, LAUNCH_PLAN §8): no version on www.sefaria.org with extendedNotes/extendedNotesHebrew was found among 26 titles checked through /api/texts/versions/<title> (lane GR)."
+   "Deferred 2026-11-10 (owner, launch scope): no version on www.sefaria.org with extendedNotes/extendedNotesHebrew was found among 26 titles checked through /api/texts/versions/<title> (lane GR)."
   ],
   "audience": "all",
   "platform": "all",
@@ -15479,7 +15479,7 @@
   "name": "Feedback and corrections email",
   "summary": "Feedback, content corrections and user-testing sign-ups from the site are emailed to the right team.",
   "details": [
-   "POST /api/send_feedback (sefaria/views.py:387-418): content_issue -> corrections@sefaria.org ('Correction from website - <refs>'); user_testing -> gabriel@sefaria.org ('User Testing Sign Up');",
+   "POST /api/send_feedback (sefaria/views.py:387-418): content_issue -> corrections@sefaria.org ('Correction from website - <refs>'); user_testing -> a staff address ('User Testing Sign Up');",
    "else hello@sefaria.org ('Feedback from website - <type>'); From 'Sefaria <hello@sefaria.org>', reply-to user; via send_email (sefaria/client/util.py:49)."
   ],
   "audience": "all",
@@ -20010,7 +20010,7 @@
    "client.jsx:21-34: @sentry/react with BrowserTracing + Replay; sample rates from remoteConfig.sentry.*; release = appVersion; DSN CLIENT_SENTRY_DSN",
    "Server Sentry config in sefaria/settings_utils.py",
    "RETIRED 2026-11-04 (owner): Sentry is no longer used. The new reader loads no Sentry SDK and sends no errors, traces or replays; CLIENT_SENTRY_DSN is no longer passed to the reader pods. Its removal also ends the browser's /api/remote-config fetch on every page (Sentry was its only reader).",
-   "BUILT 2026-11-10 (decision D-8; Sentry stays out): a first-party reporter (src/lib/monitoring/error-reporter.ts) beacons window errors, unhandled rejections, React boundary errors (root, route via RouteError, each text panel) and hydration errors to PUBLIC_ERROR_ENDPOINT with navigator.sendBeacon; off when unset. Payload: message and stack (truncated; query strings, fragments and e-mail addresses scrubbed), release (APP_VERSION), route kind, signed-in flag, path without query, user-agent class, sample rate, ms since load. Installed at module load, before hydration (src/lib/monitoring/browser.ts). Path secrets collapsed (src/lib/monitoring/redact-path.ts); a non-Error throw reported by its type only; off for bots; 4xx API answers not reported; sampled per page load (PUBLIC_ERROR_SAMPLE_RATE), at most 10 per page and 30 per session, duplicates once. PUBLIC_ERROR_ENDPOINT must be same-origin. The old track.js window.onerror 'Javascript Errors' UA event is not ported (no UA hits, owner decision 2026-11-10). The receiving endpoint is not built yet (contract in rn-shared/reports/c-observability.md). Tests: src/lib/monitoring/error-reporter.test.ts, e2e/analytics-observability.spec.ts.",
+   "BUILT 2026-11-10 (decision D-8; Sentry stays out): a first-party reporter (src/lib/monitoring/error-reporter.ts) beacons window errors, unhandled rejections, React boundary errors (root, route via RouteError, each text panel) and hydration errors to PUBLIC_ERROR_ENDPOINT with navigator.sendBeacon; off when unset. Payload: message and stack (truncated; query strings, fragments and e-mail addresses scrubbed), release (APP_VERSION), route kind, signed-in flag, path without query, user-agent class, sample rate, ms since load. Installed at module load, before hydration (src/lib/monitoring/browser.ts). Path secrets collapsed (src/lib/monitoring/redact-path.ts); a non-Error throw reported by its type only; off for bots; 4xx API answers not reported; sampled per page load (PUBLIC_ERROR_SAMPLE_RATE), at most 10 per page and 30 per session, duplicates once. PUBLIC_ERROR_ENDPOINT must be same-origin. The old track.js window.onerror 'Javascript Errors' UA event is not ported (no UA hits, owner decision 2026-11-10). The receiving endpoint was built the same day (next entry). Tests: src/lib/monitoring/error-reporter.test.ts, e2e/analytics-observability.spec.ts.",
    "2026-11-10: the receiver is built: POST /api/reader-errors (reader/browser_errors.py, Library host only), CSRF-exempt and unauthenticated (a beacon carries no header), 204; 16 KB cap (413), 30 per client address per minute (429), schema-validated (400), unknown fields dropped, query strings and e-mails re-scrubbed, one line on the `reader-browser` logger (JSON for Datadog), no database write, never cookies or the client address. The chart gives the reader pods PUBLIC_ERROR_ENDPOINT=/api/reader-errors and PUBLIC_ERROR_SAMPLE_RATE (values reader.errors). e2e: the second dev server reports to an intercepted path (playwright.config.ts). Tests: reader/tests/reader_errors_api_test.py, e2e/analytics-observability.spec.ts.",
    "2026-11-10 (security S-4): /api/reader-errors' rate limit is keyed on the visitor's address as the Envoy Gateway sets it (X-Original-Forwarded-For, which the gateway overwrites and nginx and Varnish pass on; nginx's X-Real-IP only without the gateway, as behind it that is the gateway pod; REMOTE_ADDR locally), not on CF-Connecting-IP or X-Forwarded-For as sent by the client. CF-Connecting-IP is read directly only with the Django setting ORIGIN_LOCKED_TO_CLOUDFLARE = True (off by default). A beacon within its own limit also counts against a cap for everyone together (600 a minute). Tests: reader/tests/reader_errors_rate_limit_test.py."
   ],
@@ -21562,7 +21562,7 @@
   "summary": "A page the new reader renders for the Library (sefaria.org) is still passed to Django when it is requested on the Voices host, until the Library/Voices host model is decided.",
   "details": [
    "src/lib/routing/django-paths.ts LIBRARY_HOST_ONLY (first segment 'translations') + isVoicesHost: the hosts Django's DOMAIN_MODULES gives the voices module — voices.* (voices.sefaria.org) and the Hebrew Voices host chiburim.* (chiburim.sefaria.org.il, staging chiburim.sef-stage-il.org; sefaria/system/middleware.py). isDjangoRequest(request) in the request middleware takes the host from X-Forwarded-Host (its first value), else the request URL; the trailing-slash redirect uses the same host. Tests: src/server/pass-through.test.ts (both Voices hosts, X-Forwarded-Host, the Hebrew Library host www.sefaria.org.il keeps the page).",
-   "Open question Q-E1 (TARGET_ARCHITECTURE): which pages each module serves. Added 2026-11-04 by the translations port."
+   "Open question Q-E1 (since decided: docs/DECISIONS.md, 2026-11-09 D-3 and 2026-11-10 \"Voices is out of scope\"): which pages each module serves. Added 2026-11-04 by the translations port."
   ],
   "audience": "all",
   "platform": "all",
