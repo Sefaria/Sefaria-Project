@@ -9,6 +9,7 @@ The full pages need the webpack build (render_template), the content answer does
 import re
 from pathlib import Path
 from unittest import mock
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -36,7 +37,8 @@ class StaticContentTest(TestCase):
         self.assertNotIn("<html", body["html"])
         self.assertNotIn('id="s2"', body["html"])  # no legacy header
         self.assertNotIn("<title>", body["html"])
-        self.assertTrue(any(href.startswith("/static/css/static.css") for href in body["css"]))
+        static_css = f"{settings.STATIC_URL}css/static.css"  # "/static/" locally, the front-end host's in a deployment
+        self.assertTrue(any(href.startswith(static_css) for href in body["css"]), body["css"])
         self.assertEqual(body["bodyClass"], "interface-english")
         self.assertFalse(body["hasScript"])
         self.assertEqual(len(body["baseCss"]), len(static_content.BASE_CSS))
@@ -136,7 +138,8 @@ class EveryStaticPageTest(TestCase):
         self.assertTrue(res.json()["standalone"])
 
 
-VOICES = {"HTTP_HOST": "voices.localhost:8000"}
+# The Voices host is whatever this deployment's DOMAIN_MODULES says it is (sefaria/hosts.py routes on it at import).
+VOICES = {"HTTP_HOST": urlparse(settings.DOMAIN_MODULES["en"]["voices"]).netloc}
 
 
 class VoicesUnchangedTest(TestCase):

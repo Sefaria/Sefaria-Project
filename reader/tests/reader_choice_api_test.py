@@ -10,7 +10,9 @@ Needs Postgres and the (empty) test Mongo for profiles; no library data.
 """
 
 import json
+from urllib.parse import urlparse
 
+from django.conf import settings
 from django.test import Client, TestCase, override_settings
 
 from reader.conftest import create_test_user, purge_test_profiles
@@ -264,7 +266,8 @@ class AccountSettingsSwitchTest(ReaderChoiceTestCase):
         self.assertIn('id="newReaderSetting"', guarded)
 
 
-VOICES = {"HTTP_HOST": "voices.localhost:8000"}
+# The Voices host is whatever this deployment's DOMAIN_MODULES says it is (sefaria/hosts.py routes on it at import).
+VOICES = {"HTTP_HOST": urlparse(settings.DOMAIN_MODULES["en"]["voices"]).netloc}
 
 
 class VoicesUntouchedTest(ReaderChoiceTestCase):
