@@ -260,4 +260,6 @@ spec:
       SERVER_EMAIL: "dev@sefaria.org"
       CRM_TYPE: "SALESFORCE"
       FAIL_GRACEFULLY: "True"
+      # The chart default is also "False". Pinned here on purpose: preprod shares prod's database, and
+      # scripts/release/api-keys-phase1/preflight.sh requires this explicit "False" until prod runs the release.
       DEVELOPER_SETTINGS_ENABLED: "False"

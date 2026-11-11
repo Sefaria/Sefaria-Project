@@ -290,4 +290,6 @@ spec:
       CSRF_COOKIE_SECURE: true
       CSRF_COOKIE_HTTPONLY: false
       CSRF_COOKIE_SAMESITE: "Lax"
+      # The chart default is also "False". Pinned here on purpose, so that turning developer settings on in prod
+      # is a change to this file, never a side effect of a chart default.
       DEVELOPER_SETTINGS_ENABLED: "False"

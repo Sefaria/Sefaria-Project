@@ -16,10 +16,10 @@
 # Built-in mutations (staging): the same run with scrub maps removed must FAIL, so the test is proven able to fail.
 # Also probes the nginx ERROR log (not governed by log_format) on an upstream failure; see KNOWN GAPS below.
 #
-# Run from anywhere on a host with docker, helm, python3 and PyYAML: bash helm-chart/tests/nginx_conf_test.sh
+# Run from anywhere on a host with docker, helm, python3 and PyYAML: bash helm-chart/sefaria/tests/nginx_conf_test.sh
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 # build/asset/Dockerfile builds FROM opentracing/nginx-opentracing:nginx-1.23.3, which is nginx 1.23.3 plus the
 # opentracing module. The chart loads that module only with instrumentation.enabled (false in every env), so the public
 # image at the same version runs the same config.
