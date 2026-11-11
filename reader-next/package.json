@@ -23,6 +23,7 @@
     "features:coverage": "node scripts/feature-coverage.mjs",
     "test:e2e": "playwright test --project=desktop",
     "test:e2e:ui": "playwright test --ui",
+    "test:e2e:prod": "playwright test -c playwright.prod.config.ts",
     "room:dev": "node scripts/dev-room-server.mjs",
     "relay:dev": "wrangler dev --config relay/wrangler.toml --env staging --ip 0.0.0.0 --port 3199",
     "relay:deploy": "wrangler deploy --config relay/wrangler.toml",

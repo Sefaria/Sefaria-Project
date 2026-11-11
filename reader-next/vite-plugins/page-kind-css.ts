@@ -27,22 +27,25 @@ export const PAGE_KIND_ENTRIES: Record<string, string> = {
 export interface BundleChunk {
   type: "chunk" | "asset";
   fileName: string;
+  isEntry?: boolean;
   facadeModuleId?: string | null;
   imports?: string[];
   viteMetadata?: { importedCss: Set<string> };
 }
 
+/** Routes whose stylesheets Start's manifest already links on a page of the `$` route (the root and the route itself). */
+const MANIFEST_ROUTE = /\/src\/routes\/(\$|__root)\.tsx/;
+
 /**
- * Each page kind's stylesheets, in import order (a chunk's static imports first, then its own), from a client bundle.
- * A kind whose chunk is not in the bundle is left out.
+ * Each page kind's own stylesheets, in import order (a chunk's static imports first, then its own), from a client bundle: what the
+ * kind's chunk and its static imports bring, less what the page links anyway (the client entry's static graph and the root and `$`
+ * route chunks', which Start's manifest links). So the head adds only the kind's sheets, after the shell's, in one order on every
+ * page (review nit 1). A kind whose chunk is not in the bundle is left out.
  */
 export function pageKindCss(bundle: Record<string, BundleChunk>, entries: Record<string, string> = PAGE_KIND_ENTRIES, base = "/"): Record<string, string[]> {
   const chunks = Object.values(bundle).filter((c) => c.type === "chunk");
   const byFile = new Map(chunks.map((c) => [c.fileName, c]));
-  const out: Record<string, string[]> = {};
-  for (const [kind, suffix] of Object.entries(entries)) {
-    const entry = chunks.find((c) => c.facadeModuleId?.replace(/\\/g, "/").endsWith(suffix));
-    if (!entry) continue;
+  const cssOf = (start: BundleChunk[]): string[] => {
     const css: string[] = [];
     const seen = new Set<string>();
     const walk = (c: BundleChunk) => {
@@ -54,11 +57,21 @@ export function pageKindCss(bundle: Record<string, BundleChunk>, entries: Record
       }
       for (const f of c.viteMetadata?.importedCss ?? []) if (!css.includes(f)) css.push(f);
     };
-    walk(entry);
-    out[kind] = css.map((f) => `${base.replace(/\/?$/, "/")}${f}`);
+    start.forEach(walk);
+    return css;
+  };
+  const shared = new Set(cssOf(chunks.filter((c) => c.isEntry || MANIFEST_ROUTE.test(c.facadeModuleId?.replace(/\\/g, "/") ?? ""))));
+  const out: Record<string, string[]> = {};
+  for (const [kind, suffix] of Object.entries(entries)) {
+    const entry = chunks.find((c) => c.facadeModuleId?.replace(/\\/g, "/").endsWith(suffix));
+    if (!entry) continue;
+    out[kind] = cssOf([entry]).filter((f) => !shared.has(f)).map((f) => `${base.replace(/\/?$/, "/")}${f}`);
   }
   return out;
 }
+
+/** The file the server build carries the lists in too, for the bundle budget (scripts/budgets/measure.mjs). */
+export const PAGE_KIND_CSS_FILE = "page-kind-css.json";
 
 export function pageKindCssPlugin(): Plugin {
   let found: Record<string, string[]> = {};
@@ -78,6 +91,10 @@ export function pageKindCssPlugin(): Plugin {
       return `export default ${JSON.stringify(server ? found : {})};`;
     },
     generateBundle(_options, bundle) {
+      if (this.environment?.name === "ssr" && this.environment.config.command === "build") {
+        this.emitFile({ type: "asset", fileName: PAGE_KIND_CSS_FILE, source: JSON.stringify(found) });
+        return;
+      }
       if (this.environment?.name !== "client") return;
       found = pageKindCss(bundle as unknown as Record<string, BundleChunk>, PAGE_KIND_ENTRIES, base);
       // a renamed or moved page kind must not silently bring the unstyled first paint back

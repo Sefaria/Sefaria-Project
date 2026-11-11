@@ -99,6 +99,14 @@ jobs:
         env:
           CI: "1"
           E2E_API_MODE: ${{ steps.cassette.outputs.mode }}
+      # the stylesheet guard against the production build: dev inlines every module's CSS, so only a build can fail it (v-exits F-2)
+      - name: Build
+        run: npm run build
+      - name: Stylesheets of the server-rendered pages (production build)
+        run: npm run test:e2e:prod
+        env:
+          CI: "1"
+          E2E_API_MODE: ${{ steps.cassette.outputs.mode }}
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

@@ -9,6 +9,9 @@
 // `scripts`); a reader page matches __root__ and "/$". The root's own stylesheets imported with `?url` (tokens, fonts, base:
 // src/routes/__root.tsx head links) are not in that manifest: they are the "/assets/*.css" names written into the server's root chunk
 // (router-*.js, __root-*.js). Checked against a server-rendered /Genesis.1 on 2026-11-10: the same 56 scripts and 17 stylesheets.
+// The `$` route's page kinds (reader, book page) are dynamic chunks whose stylesheets the route's head links itself
+// (vite-plugins/page-kind-css.ts, v-exits F-2): the build writes them per kind to dist/server/page-kind-css.json, and a page is
+// charged for its own kind's list only (PAGE_KINDS). Their names also sit in the server's router chunk, so the root sweep skips them.
 // Sizes are bytes on disk and gzip -9 bytes (what the wire roughly carries).
 // Tolerance: TOLERANCE (2%) of the baseline, so a small change passes and a real regression does not; shrinking always passes and
 // prints the --write command to lock the gain in.
@@ -21,6 +24,14 @@ const HERE = new URL("../../", import.meta.url).pathname;
 export const TOLERANCE = 0.02;
 /** The pages held to a budget: name → the manifest routes a server render of it links. */
 export const PAGES = { "reader page (/Genesis.1)": ["__root__", "/$"] };
+/** The page kind each page renders (its stylesheets come from dist/server/page-kind-css.json). */
+export const PAGE_KINDS = { "reader page (/Genesis.1)": "text" };
+
+/** Each page kind's stylesheets, as the build wrote them ({} for a build without the file). */
+export function pageKindStylesheets(dist) {
+  const file = join(dist, "server/page-kind-css.json");
+  return existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : {};
+}
 
 export async function readManifest(dist) {
   const dir = join(dist, "server/assets");
@@ -31,11 +42,12 @@ export async function readManifest(dist) {
 }
 
 /** Stylesheets the root route links by URL (`import x from "….css?url"`), as named in the server's root chunks. */
-export function rootUrlStylesheets(dist) {
+export function rootUrlStylesheets(dist, exclude = []) {
   const dir = join(dist, "server/assets");
+  const skip = new Set(exclude);
   const found = new Set();
   for (const f of readdirSync(dir).filter((f) => /^(router|__root)-.*\.js$/.test(f))) {
-    for (const m of readFileSync(join(dir, f), "utf8").matchAll(/["'](\/assets\/[\w.-]+\.css)["']/g)) found.add(m[1]);
+    for (const m of readFileSync(join(dir, f), "utf8").matchAll(/["'](\/assets\/[\w.-]+\.css)["']/g)) if (!skip.has(m[1])) found.add(m[1]);
   }
   return [...found];
 }
@@ -67,9 +79,12 @@ function sizes(dist, paths) {
 
 export async function measure(dist = join(HERE, "dist")) {
   const manifest = await readManifest(dist);
+  const kinds = pageKindStylesheets(dist);
+  const kindCss = Object.values(kinds).flat();
   const out = {};
   for (const [page, routes] of Object.entries(PAGES)) {
-    const a = initialAssets(manifest, routes, routes.includes("__root__") ? rootUrlStylesheets(dist) : []);
+    const own = kinds[PAGE_KINDS[page]] ?? [];
+    const a = initialAssets(manifest, routes, [...(routes.includes("__root__") ? rootUrlStylesheets(dist, kindCss) : []), ...own]);
     out[page] = { routes, js: sizes(dist, a.js), css: sizes(dist, a.css) };
   }
   return out;

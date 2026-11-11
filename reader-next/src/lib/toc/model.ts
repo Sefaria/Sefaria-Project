@@ -95,6 +95,8 @@ function countsOf(node: TocNodeRecord): unknown {
   if (node.content_counts !== undefined) return node.content_counts;
   const first = node.lengths?.[0];
   if (first === undefined) return [];
+  // a node 3+ deep without content counts draws no section links (asList): name it on the server, where v-exits F-5 was seen once
+  if ((node.depth ?? 1) >= 3 && typeof window === "undefined") console.warn(`[toc] no content_counts for "${node.title ?? "?"}" (depth ${node.depth}): its sections have no links`);
   return node.depth === 1 ? first : new Array(first).fill(1);
 }
 

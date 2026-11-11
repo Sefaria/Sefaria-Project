@@ -29,4 +29,13 @@ describe("each page kind's stylesheets, from the client bundle", () => {
   it("leaves out a kind whose chunk is not in the bundle (the plugin then fails the build)", () => {
     expect(pageKindCss({ "assets/BookRoute-d.js": bundle["assets/BookRoute-d.js"]!, "assets/shared-c.js": bundle["assets/shared-c.js"]!, "assets/SearchPage-b.js": bundle["assets/SearchPage-b.js"]! })).not.toHaveProperty("text");
   });
+
+  it("leaves out what the page links anyway: the client entry's static graph and the root and $ route chunks' (review nit 1)", () => {
+    const withShell: Record<string, BundleChunk> = {
+      ...bundle,
+      "assets/index-e.js": { ...chunk("assets/index-e.js", "/repo/reader-next/node_modules/.virtual/client-entry.js", ["assets/shared-c.js"], ["assets/tokens.css"]), isEntry: true },
+      "assets/$-f.js": chunk("assets/$-f.js", "/repo/reader-next/src/routes/$.tsx?tsr-split=component", [], ["assets/SearchPage-x.css"]),
+    };
+    expect(pageKindCss(withShell)).toEqual({ text: ["/assets/Workspace-CKvE1TEM.css"], book: ["/assets/BookRoute-z.css"] });
+  });
 });
