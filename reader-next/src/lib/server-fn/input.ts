@@ -4,6 +4,7 @@
  * these checks pass are safe to put, URL-encoded, into a path on the internal API origin: no `.`/`..` segment (which a URL parser
  * resolves, turning `/api/activity/../../x` into `/x`), no slash or backslash inside a segment, no control character, bounded length.
  */
+import { createIsomorphicFn } from "@tanstack/react-start";
 import { setResponseStatus } from "@tanstack/react-start/server";
 
 /** A server function's input was not what it accepts (a caller's mistake, not the server's). */
@@ -20,12 +21,17 @@ export class ServerInputError extends Error {
  */
 export function refuse(message: string): ServerInputError {
   try {
-    setResponseStatus(400);
+    markBadRequest();
   } catch {
     // no request (a unit test, a direct call)
   }
   return new ServerInputError(message);
 }
+
+// the response status exists on the server only (this module is in the browser's bundle too, for the predicates)
+const markBadRequest = createIsomorphicFn()
+  .server(() => setResponseStatus(400))
+  .client(() => undefined);
 
 // a UTF-16 half without its other half: encodeURIComponent throws on one (a 500 where a 400 belongs)
 const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;

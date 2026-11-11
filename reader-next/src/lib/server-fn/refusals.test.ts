@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 
 // every server function, stubbed: a call reaching one is recorded
 const called = vi.fn();
-vi.mock("@tanstack/react-start", () => {
+vi.mock("@tanstack/react-start", async (importOriginal) => {
   const chain = { validator: () => chain, handler: () => (args: unknown) => (called(args), Promise.resolve("server")) };
-  return { createServerFn: () => chain };
+  return { ...(await importOriginal<object>()), createServerFn: () => chain };
 });
 const setResponseStatus = vi.fn();
 vi.mock("@tanstack/react-start/server", () => ({ setResponseStatus: (code: number) => setResponseStatus(code), getRequestHeader: () => "" }));
