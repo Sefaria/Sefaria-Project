@@ -7,17 +7,17 @@ Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
 Licensed under the terms of any of the following licenses at your
 choice:
 
- - GNU General Public License Version 2 or later (the "GPL")
-   http://www.gnu.org/licenses/gpl.html
-   (See Appendix A)
+- GNU General Public License Version 2 or later (the "GPL")
+  http://www.gnu.org/licenses/gpl.html
+  (See Appendix A)
 
- - GNU Lesser General Public License Version 2.1 or later (the "LGPL")
-   http://www.gnu.org/licenses/lgpl.html
-   (See Appendix B)
+- GNU Lesser General Public License Version 2.1 or later (the "LGPL")
+  http://www.gnu.org/licenses/lgpl.html
+  (See Appendix B)
 
- - Mozilla Public License Version 1.1 or later (the "MPL")
-   http://www.mozilla.org/MPL/MPL-1.1.html
-   (See Appendix C)
+- Mozilla Public License Version 1.1 or later (the "MPL")
+  http://www.mozilla.org/MPL/MPL-1.1.html
+  (See Appendix C)
 
 You are not required to, but if you want to explicitly declare the
 license you have chosen to be bound to when using, reproducing,
@@ -37,23 +37,22 @@ done by developers outside of CKSource with their express permission.
 
 The following libraries are included in CKEditor under the MIT license (see Appendix D):
 
-* CKSource Samples Framework (included in the samples) - Copyright (c) 2014-2017, CKSource - Frederico Knabben.
-* PicoModal (included in `samples/js/sf.js`) - Copyright (c) 2012 James Frasca.
-* CodeMirror (included in the samples) - Copyright (C) 2014 by Marijn Haverbeke <marijnh@gmail.com> and others.
+- CKSource Samples Framework (included in the samples) - Copyright (c) 2014-2017, CKSource - Frederico Knabben.
+- PicoModal (included in `samples/js/sf.js`) - Copyright (c) 2012 James Frasca.
+- CodeMirror (included in the samples) - Copyright (C) 2014 by Marijn Haverbeke <marijnh@gmail.com> and others.
 
 Parts of code taken from the following libraries are included in CKEditor under the MIT license (see Appendix D):
 
-* jQuery (inspired the domReady function, ckeditor_base.js) - Copyright (c) 2011 John Resig, http://jquery.com/
+- jQuery (inspired the domReady function, ckeditor_base.js) - Copyright (c) 2011 John Resig, http://jquery.com/
 
 The following libraries are included in CKEditor under the SIL Open Font License, Version 1.1 (see Appendix E):
 
-* Font Awesome (included in the toolbar configurator) - Copyright (C) 2012 by Dave Gandy.
+- Font Awesome (included in the toolbar configurator) - Copyright (C) 2012 by Dave Gandy.
 
 The following libraries are included in CKEditor under the BSD-3 License (see Appendix F):
 
-* highlight.js (included in the `codesnippet` plugin) - Copyright (c) 2006, Ivan Sagalaev.
-* YUI Library (included in the `uicolor` plugin) - Copyright (c) 2009, Yahoo! Inc.
-
+- highlight.js (included in the `codesnippet` plugin) - Copyright (c) 2006, Ivan Sagalaev.
+- YUI Library (included in the `uicolor` plugin) - Copyright (c) 2009, Yahoo! Inc.
 
 Trademarks
 ----------
@@ -1417,4 +1416,3 @@ Redistribution and use in source and binary forms, with or without modification,
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
-

@@ -1,7 +1,5 @@
 import Sefaria from '../sefaria/sefaria';
 
-export const ALLAUTH_PROVIDER_TOKEN_URL = '/_allauth/browser/v1/auth/provider/token';
-
 export function makeUuid() {
   if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
     return window.crypto.randomUUID();
@@ -15,7 +13,10 @@ export function whenReady(check, cb) {
   let timer = null;
   const tick = () => {
     if (cancelled) return;
-    if (check()) { cb(); return; }
+    if (check()) {
+      cb();
+      return;
+    }
     if (--tries <= 0) return;
     timer = setTimeout(tick, 100);
   };
@@ -29,8 +30,7 @@ export function whenReady(check, cb) {
 export function pickFirstError(data) {
   if (!data || typeof data !== 'object') return null;
   if (typeof data.error === 'string') return data.error;
-  if (typeof data.errors?.[0]?.message === 'string')
-    return data.errors[0].message;
+  if (typeof data.errors?.[0]?.message === 'string') return data.errors[0].message;
   for (const k of Object.keys(data)) {
     if (k === '_auth' || k === 'errors') continue;
     if (typeof data[k] === 'string') return data[k];
@@ -62,7 +62,7 @@ export function resolveInitialAuthState(initialPath, authResetUid) {
   const pathname = typeof window !== 'undefined' ? window.location.pathname : initialPath.split('?')[0];
   return {
     showAuth: isAuthPath(pathname.replace(/\/$/, '')) || !!authResetUid,
-    authPath: typeof window !== 'undefined' ? (window.location.pathname + window.location.search) : initialPath,
+    authPath: typeof window !== 'undefined' ? window.location.pathname + window.location.search : initialPath,
   };
 }
 
@@ -85,7 +85,7 @@ export function nextFromPath(path) {
 }
 
 export function checkPasswordsMatch(p1, p2) {
-  return (p2 && p1 !== p2) ? 'auth.passwords_dont_match' : null;
+  return p2 && p1 !== p2 ? 'auth.passwords_dont_match' : null;
 }
 
 export function requiredFieldValidate(value) {

@@ -15,6 +15,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from google.cloud.exceptions import GoogleCloudError
 from PIL import Image
 
+from api.tasks import dispatch_copy_learning_level_from_ac
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.file import get_resized_file
@@ -95,14 +96,20 @@ class SefariaAccountAdapter(DefaultAccountAdapter):
         return next_url if self.is_safe_url(next_url) else None
 
     def get_login_redirect_url(self, request):
+        # allauth calls this vs. get_signup_redirect_url below based on whether the SSO
+        # redirect that's concluding was a login or a signup — the only place that
+        # distinction is available for redirect-mode SSO (mobile web), so it's captured
+        # here for ClearSsoNextCookieMiddleware to relay to the frontend as an outcome
+        # cookie, read by authAnalytics.js's resumePendingAuthAttempt().
+        request._sefaria_sso_outcome = "existing_user_login"
         return self._next_from_cookie(request) or super().get_login_redirect_url(request)
 
     def get_signup_redirect_url(self, request):
+        request._sefaria_sso_outcome = "created_new_account"
         return self._next_from_cookie(request) or super().get_signup_redirect_url(request)
 
 
 class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
-
     def pre_social_login(self, request, sociallogin):
         """
         Called after sociallogin.lookup() has run (so is_existing already
@@ -149,7 +156,9 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
 
         After the base implementation creates the Django User and SocialAccount
         row, we:
-        1. Create the MongoDB UserProfile (slug, language setting, Gravatar pic)
+        1. Create the MongoDB UserProfile (slug, language setting, Gravatar pic),
+           then start copying their newsletter learning level from ActiveCampaign
+           in the background
         2. Register the user in Salesforce CRM — wrapped in its own try/except
            so a CRM outage doesn't affect the user or profile already created above
 
@@ -158,6 +167,8 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
         too, instead of leaving a user who can authenticate via SSO but has no
         profile (mirrors sefaria/views.py's process_register_form).
         """
+        # Read by sso.views._social_login_or_error to report outcome=created_new_account.
+        request._sefaria_new_social_user = True
         with transaction.atomic():
             user = super().save_user(request, sociallogin, form)
 
@@ -170,6 +181,8 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
 
         import_gravatar(p)
         p.save()  # import_gravatar runs outside the transaction (slow network call) and only mutates p, so it must be saved again here
+        # After the last save: the copy runs in the background and only fills in an empty learning level
+        dispatch_copy_learning_level_from_ac(p)
 
         try:
             CrmMediator().create_crm_user(

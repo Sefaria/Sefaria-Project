@@ -10,7 +10,6 @@ Shortcut story ids.
 import json
 
 import pytest
-
 import triage_explainer as te
 
 FULL_REPORT = {
@@ -18,26 +17,47 @@ FULL_REPORT = {
     "applied": False,
     "counts": {"total": 3, "shipped": 1, "pending": 1, "triage": 1},
     "shipped": [
-        {"id": 11111, "name": "Shipped story", "url": "https://app.shortcut.com/org/story/11111",
-         "shipped_via_prs": [3606], "qualifying_prs": [3606], "transitioned": True,
-         "shipping_release_tag": "prod/7.1.3-prod.1+chart.0.88.2-prod.1",
-         "hydrated_story": {"id": 11111, "name": "Shipped story", "description": "should never leak",
-                             "url": "https://app.shortcut.com/org/story/11111"}},
+        {
+            "id": 11111,
+            "name": "Shipped story",
+            "url": "https://app.shortcut.com/org/story/11111",
+            "shipped_via_prs": [3606],
+            "qualifying_prs": [3606],
+            "transitioned": True,
+            "shipping_release_tag": "prod/7.1.3-prod.1+chart.0.88.2-prod.1",
+            "hydrated_story": {
+                "id": 11111,
+                "name": "Shipped story",
+                "description": "should never leak",
+                "url": "https://app.shortcut.com/org/story/11111",
+            },
+        },
     ],
     "pending": [
-        {"id": 22222, "name": "Pending story", "url": "https://app.shortcut.com/org/story/22222",
-         "qualifying_prs": [3670]},
+        {
+            "id": 22222,
+            "name": "Pending story",
+            "url": "https://app.shortcut.com/org/story/22222",
+            "qualifying_prs": [3670],
+        },
     ],
     "triage": [
-        {"id": 33333, "name": "Triage story", "url": "https://app.shortcut.com/org/story/33333",
-         "reason": "no_qualifying_pr", "linked_pr_numbers": [3698],
-         "linked_prs": [{"number": 3698, "failed_guards": ["wrong target branch ('preprod', expected 'master')"]}],
-         "description": "A story description", "comments": ["why is this stuck?"]},
+        {
+            "id": 33333,
+            "name": "Triage story",
+            "url": "https://app.shortcut.com/org/story/33333",
+            "reason": "no_qualifying_pr",
+            "linked_pr_numbers": [3698],
+            "linked_prs": [{"number": 3698, "failed_guards": ["wrong target branch ('preprod', expected 'master')"]}],
+            "description": "A story description",
+            "comments": ["why is this stuck?"],
+        },
     ],
 }
 
 
 # --- extract_triage_only: the structural isolation guarantee ------------
+
 
 def test_extract_triage_only_excludes_shipped_and_pending_entirely():
     result = te.extract_triage_only(FULL_REPORT)
@@ -92,6 +112,7 @@ def test_extract_triage_only_missing_triage_key_degrades_to_empty():
 
 # --- main(): reads --report, writes --out ---------------------------------
 
+
 def test_main_reads_report_and_writes_triage_only_document(tmp_path, monkeypatch):
     report_path = tmp_path / "reconcile-deploy-ready-report.json"
     report_path.write_text(json.dumps(FULL_REPORT), encoding="utf-8")
@@ -113,8 +134,14 @@ def test_main_reads_report_and_writes_triage_only_document(tmp_path, monkeypatch
 def test_main_missing_report_file_dies_cleanly(tmp_path, monkeypatch):
     monkeypatch.setattr(
         "sys.argv",
-        ["triage_explainer.py", "extract", "--report", str(tmp_path / "does-not-exist.json"),
-         "--out", str(tmp_path / "out.json")],
+        [
+            "triage_explainer.py",
+            "extract",
+            "--report",
+            str(tmp_path / "does-not-exist.json"),
+            "--out",
+            str(tmp_path / "out.json"),
+        ],
     )
     with pytest.raises(SystemExit):
         te.main()
@@ -133,6 +160,7 @@ def test_main_malformed_report_json_dies_cleanly(tmp_path, monkeypatch):
 
 # --- resolve_enabled: the opt-in decision, single-sourced and tested ----
 # --- ("disabled path" coverage) -------------------------------------------
+
 
 def test_resolve_enabled_defaults_to_disabled_with_no_input_at_all():
     assert te.resolve_enabled("workflow_dispatch", "", "") is False
@@ -175,8 +203,16 @@ def test_resolve_enabled_only_exact_true_enables(value):
 def test_resolve_enabled_cli_prints_true_or_false(capsys, monkeypatch):
     monkeypatch.setattr(
         "sys.argv",
-        ["triage_explainer.py", "resolve-enabled", "--event-name", "workflow_dispatch",
-         "--explain-triage-input", "true", "--enable-var", ""],
+        [
+            "triage_explainer.py",
+            "resolve-enabled",
+            "--event-name",
+            "workflow_dispatch",
+            "--explain-triage-input",
+            "true",
+            "--enable-var",
+            "",
+        ],
     )
     te.main()
     assert capsys.readouterr().out.strip() == "true"
@@ -185,8 +221,16 @@ def test_resolve_enabled_cli_prints_true_or_false(capsys, monkeypatch):
 def test_resolve_enabled_cli_prints_false_when_disabled(capsys, monkeypatch):
     monkeypatch.setattr(
         "sys.argv",
-        ["triage_explainer.py", "resolve-enabled", "--event-name", "repository_dispatch",
-         "--explain-triage-input", "", "--enable-var", ""],
+        [
+            "triage_explainer.py",
+            "resolve-enabled",
+            "--event-name",
+            "repository_dispatch",
+            "--explain-triage-input",
+            "",
+            "--enable-var",
+            "",
+        ],
     )
     te.main()
     assert capsys.readouterr().out.strip() == "false"
@@ -194,6 +238,7 @@ def test_resolve_enabled_cli_prints_false_when_disabled(capsys, monkeypatch):
 
 # --- structural no-mutation / no-network guarantee ("NO mutation occurs --
 # --- on any path" coverage for the Python side of this feature) ----------
+
 
 def test_triage_explainer_module_never_imports_network_or_subprocess():
     """Architectural guarantee, not just a convention: this script is a

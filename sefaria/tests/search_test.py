@@ -1,5 +1,6 @@
 """Tests that the ES reindex job survives transient connection failures
 instead of aborting the entire multi-hour run."""
+
 import types
 
 import pytest
@@ -28,6 +29,7 @@ class _FakeIndex:
     def best_time_period(self):
         class _TP:
             start = 0
+
         return _TP()
 
 
@@ -54,31 +56,36 @@ def test_index_all_continues_past_bulk_connection_timeout(monkeypatch):
 
     # Stub heavyweight setup so we only exercise the per-book flush loop
     monkeypatch.setattr(
-        TextIndexer, "create_version_priority_map",
+        TextIndexer,
+        "create_version_priority_map",
         classmethod(lambda cls: None),
     )
     monkeypatch.setattr(
-        TextIndexer, "create_terms_dict",
+        TextIndexer,
+        "create_terms_dict",
         classmethod(lambda cls: None),
     )
     monkeypatch.setattr(
-        TextIndexer, "get_all_versions",
+        TextIndexer,
+        "get_all_versions",
         classmethod(lambda cls: list(all_versions)),
     )
     TextIndexer.version_priority_map = {
-        (v.title, v.versionTitle, v.language): (i, None)
-        for i, v in enumerate(all_versions)
+        (v.title, v.versionTitle, v.language): (i, None) for i, v in enumerate(all_versions)
     }
     monkeypatch.setattr(
-        TextIndexer, "excluded_from_search",
+        TextIndexer,
+        "excluded_from_search",
         classmethod(lambda cls, v: False),
     )
     monkeypatch.setattr("sefaria.search.Ref.clear_cache", lambda: None)
 
     def fake_index_version(cls, version, tries=0, action=None):
         cls._bulk_actions.append({"_op_type": "index", "_id": version.title})
+
     monkeypatch.setattr(
-        TextIndexer, "index_version",
+        TextIndexer,
+        "index_version",
         classmethod(fake_index_version),
     )
 
@@ -91,6 +98,7 @@ def test_index_all_continues_past_bulk_connection_timeout(monkeypatch):
         if len(bulk_calls) == 2:
             raise ConnectionTimeout("Connection timed out")
         return (len(actions), [])
+
     monkeypatch.setattr("sefaria.search.bulk", flaky_bulk)
 
     TextIndexer.index_all(index_name="text-b", debug=False, for_es=True)
@@ -132,6 +140,7 @@ def test_heartbeat_loop_warns_when_no_progress_between_polls(monkeypatch, caplog
     """A wedged shard must SAY SO: if cls._last_progress_monotonic hasn't advanced
     between heartbeat polls, the heartbeat thread logs a WARNING naming the stuck title."""
     import logging as _logging
+
     from sefaria import search
 
     TextIndexer._current_title = "StuckBook"
@@ -180,6 +189,7 @@ def test_heartbeat_loop_silent_when_progress_advances(monkeypatch, caplog):
 
 class _FakeAuthoredIndex:
     """An Index as seen by the authored_titles denormalization: primary titles + EN variants."""
+
     def __init__(self, title_en, title_he=None, variants_en=None, authors=None):
         self._title_en = title_en
         self._title_he = title_he
@@ -203,10 +213,12 @@ class _FakeAuthoredIndex:
     def get_title(self, lang="en"):
         return self._title_he if lang == "he" else self._title_en
 
+
 def test_authored_index_titles_include_english_variants():
     """An author must be findable by every title its book is findable by — incl. variants."""
     index = _FakeAuthoredIndex(
-        "Guide for the Perplexed", "מורה נבוכים",
+        "Guide for the Perplexed",
+        "מורה נבוכים",
         variants_en=["Moreh Nevukhim", "The Guide to the Perplexed"],
     )
     en, he = _authored_index_titles(index)
@@ -222,10 +234,10 @@ def test_authored_index_titles_missing_hebrew():
 
 def test_build_authored_titles_map_collects_variants_per_author(monkeypatch):
     indexes = [
-        _FakeAuthoredIndex("Guide for the Perplexed", "מורה נבוכים",
-                           variants_en=["Moreh Nevukhim"], authors=["rambam"]),
-        _FakeAuthoredIndex("Mishneh Torah", "משנה תורה",
-                           variants_en=["Yad HaChazakah"], authors=["rambam"]),
+        _FakeAuthoredIndex(
+            "Guide for the Perplexed", "מורה נבוכים", variants_en=["Moreh Nevukhim"], authors=["rambam"]
+        ),
+        _FakeAuthoredIndex("Mishneh Torah", "משנה תורה", variants_en=["Yad HaChazakah"], authors=["rambam"]),
         _FakeAuthoredIndex("Unattributed Book"),  # no authors -> ignored
     ]
     monkeypatch.setattr(sefaria.search, "IndexSet", lambda *a, **k: iter(indexes))
@@ -233,7 +245,10 @@ def test_build_authored_titles_map_collects_variants_per_author(monkeypatch):
     titles_map = _build_authored_titles_map()
 
     assert titles_map["rambam"]["en"] == [
-        "Guide for the Perplexed", "Moreh Nevukhim", "Mishneh Torah", "Yad HaChazakah",
+        "Guide for the Perplexed",
+        "Moreh Nevukhim",
+        "Mishneh Torah",
+        "Yad HaChazakah",
     ]
     assert titles_map["rambam"]["he"] == ["מורה נבוכים", "משנה תורה"]
     assert list(titles_map.keys()) == ["rambam"]
@@ -249,7 +264,7 @@ class _FakeAuthorTopic:
     numSources = 100
 
     def get_primary_title(self, lang):
-        return "רמב\"ם" if lang == "he" else "Rambam"
+        return 'רמב"ם' if lang == "he" else "Rambam"
 
     def get_titles(self, lang, with_disambiguation=False):
         return ["Rambam", "Maimonides"]
@@ -261,8 +276,9 @@ class _FakeAuthorTopic:
 def test_make_topic_index_document_authored_titles_include_variants(monkeypatch):
     """The per-topic fallback path (no precomputed map) must carry book title variants too."""
     indexes = [
-        _FakeAuthoredIndex("Guide for the Perplexed", "מורה נבוכים",
-                           variants_en=["Moreh Nevukhim", "Guide for the Perplexed"]),
+        _FakeAuthoredIndex(
+            "Guide for the Perplexed", "מורה נבוכים", variants_en=["Moreh Nevukhim", "Guide for the Perplexed"]
+        ),
     ]
     monkeypatch.setattr(sefaria.search, "IndexSet", lambda *a, **k: iter(indexes))
 
@@ -274,8 +290,7 @@ def test_make_topic_index_document_authored_titles_include_variants(monkeypatch)
 
 
 def test_make_topic_index_document_authored_titles_from_map():
-    titles_map = {"rambam": {"en": ["Mishneh Torah", "Yad HaChazakah", "Mishneh Torah"],
-                             "he": ["משנה תורה"]}}
+    titles_map = {"rambam": {"en": ["Mishneh Torah", "Yad HaChazakah", "Mishneh Torah"], "he": ["משנה תורה"]}}
     doc = make_topic_index_document(_FakeAuthorTopic(), titles_map)
     assert doc["authored_titles_en"] == ["Mishneh Torah", "Yad HaChazakah"]
     assert doc["authored_titles_he"] == ["משנה תורה"]
@@ -306,6 +321,7 @@ class _FakeYearAuthorTopic(_FakeAuthorTopic):
 
 class _FakePlainTopic:
     """A non-author topic: no year properties, so no sortYear."""
+
     slug = "prayer"
     subclass = "topic"
     description = {"en": "", "he": ""}
@@ -320,22 +336,25 @@ class _FakePlainTopic:
         return None
 
 
-@pytest.mark.parametrize("properties, expected", [
-    # the ordinary case: a death year wins outright
-    ({"birthYear": 1138, "deathYear": 1204}, 1204),
-    # the bug this field exists to fix — a birth-year-only author used to sort on a missing
-    # deathYear and land in the undated tail, even though their card displays 1138
-    ({"birthYear": 1138}, 1138),
-    ({"deathYear": 1204}, 1204),
-    # years are free-form Topic properties, so numeric strings must coerce...
-    ({"birthYear": "1138", "deathYear": "1204"}, 1204),
-    # ...and unusable values must fall through to the next candidate rather than poison the sort
-    ({"birthYear": 1138, "deathYear": ""}, 1138),
-    ({"birthYear": 1138, "deathYear": "c. 1204"}, 1138),
-    # BCE years are negative and year 0 is a real value: both must survive a truthiness-free check
-    ({"deathYear": -50}, -50),
-    ({"deathYear": 0}, 0),
-])
+@pytest.mark.parametrize(
+    "properties, expected",
+    [
+        # the ordinary case: a death year wins outright
+        ({"birthYear": 1138, "deathYear": 1204}, 1204),
+        # the bug this field exists to fix — a birth-year-only author used to sort on a missing
+        # deathYear and land in the undated tail, even though their card displays 1138
+        ({"birthYear": 1138}, 1138),
+        ({"deathYear": 1204}, 1204),
+        # years are free-form Topic properties, so numeric strings must coerce...
+        ({"birthYear": "1138", "deathYear": "1204"}, 1204),
+        # ...and unusable values must fall through to the next candidate rather than poison the sort
+        ({"birthYear": 1138, "deathYear": ""}, 1138),
+        ({"birthYear": 1138, "deathYear": "c. 1204"}, 1138),
+        # BCE years are negative and year 0 is a real value: both must survive a truthiness-free check
+        ({"deathYear": -50}, -50),
+        ({"deathYear": 0}, 0),
+    ],
+)
 def test_make_topic_index_document_sort_year(properties, expected):
     """
     sortYear is the single derived year the chronological sort keys on: deathYear, falling
@@ -343,8 +362,7 @@ def test_make_topic_index_document_sort_year(properties, expected):
     deathYear field sort, so it only ever happened client-side (and only within one page of
     hits). Deriving it at index time makes the server sort agree with the displayed year.
     """
-    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties),
-                                    {"rambam": {"en": [], "he": []}})
+    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties), {"rambam": {"en": [], "he": []}})
     assert doc["sortYear"] == expected
 
 
@@ -355,22 +373,24 @@ def test_make_topic_index_document_omits_unusable_sort_year(properties):
     rather than a null or a 0 that would sort as year zero. Such authors then trail via the
     sort clause's `missing: "_last"`, in both directions.
     """
-    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties),
-                                    {"rambam": {"en": [], "he": []}})
+    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties), {"rambam": {"en": [], "he": []}})
     assert "sortYear" not in doc
 
 
-@pytest.mark.parametrize("properties, expected", [
-    # already ints: passed through untouched
-    ({"birthYear": 1138, "deathYear": 1204}, {"birthYear": 1138, "deathYear": 1204}),
-    # numeric strings coerce to the ints the `integer` mapping expects
-    ({"birthYear": "1138", "deathYear": "1204"}, {"birthYear": 1138, "deathYear": 1204}),
-    # unusable values are dropped entirely rather than sent as-is
-    ({"birthYear": 1138, "deathYear": ""}, {"birthYear": 1138}),
-    ({"birthYear": "c. 1138", "deathYear": "c. 1204"}, {}),
-    # BCE years are negative and year 0 is real: neither may be dropped as falsy
-    ({"birthYear": -100, "deathYear": 0}, {"birthYear": -100, "deathYear": 0}),
-])
+@pytest.mark.parametrize(
+    "properties, expected",
+    [
+        # already ints: passed through untouched
+        ({"birthYear": 1138, "deathYear": 1204}, {"birthYear": 1138, "deathYear": 1204}),
+        # numeric strings coerce to the ints the `integer` mapping expects
+        ({"birthYear": "1138", "deathYear": "1204"}, {"birthYear": 1138, "deathYear": 1204}),
+        # unusable values are dropped entirely rather than sent as-is
+        ({"birthYear": 1138, "deathYear": ""}, {"birthYear": 1138}),
+        ({"birthYear": "c. 1138", "deathYear": "c. 1204"}, {}),
+        # BCE years are negative and year 0 is real: neither may be dropped as falsy
+        ({"birthYear": -100, "deathYear": 0}, {"birthYear": -100, "deathYear": 0}),
+    ],
+)
 def test_make_topic_index_document_coerces_display_years(properties, expected):
     """
     birthYear/deathYear are mapped as `integer` (put_topic_mapping) but come from free-form
@@ -378,8 +398,7 @@ def test_make_topic_index_document_coerces_display_years(properties, expected):
     *entire document* on a type mismatch, which silently dropped those authors from the
     index. They must be coerced like sortYear, and omitted when unparseable.
     """
-    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties),
-                                    {"rambam": {"en": [], "he": []}})
+    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties), {"rambam": {"en": [], "he": []}})
     for field in ("birthYear", "deathYear"):
         if field in expected:
             assert doc[field] == expected[field]
@@ -393,10 +412,13 @@ def test_make_topic_index_document_no_sort_year_on_plain_topics():
     assert "sortYear" not in doc
 
 
-@pytest.mark.parametrize("bad_exc", [
-    TypeError("programming bug"),
-    ApiError("400 mapping_parser_exception", meta=None, body=None),
-])
+@pytest.mark.parametrize(
+    "bad_exc",
+    [
+        TypeError("programming bug"),
+        ApiError("400 mapping_parser_exception", meta=None, body=None),
+    ],
+)
 def test_flush_propagates_non_connection_errors(monkeypatch, bad_exc):
     """Programming errors and ES API errors must NOT be silently absorbed."""
     TextIndexer._failed_versions = []
@@ -404,6 +426,7 @@ def test_flush_propagates_non_connection_errors(monkeypatch, bad_exc):
 
     def boom(*args, **kwargs):
         raise bad_exc
+
     monkeypatch.setattr("sefaria.search.bulk", boom)
 
     versions = [_FakeVersion("BookA", "v1", "en")]
@@ -415,10 +438,13 @@ def test_flush_propagates_non_connection_errors(monkeypatch, bad_exc):
 
 def test_flush_passes_retry_kwargs(monkeypatch):
     from sefaria import search
+
     captured = {}
+
     def fake_bulk(client, actions, **kwargs):
         captured.update(kwargs)
         return (len(actions), [])
+
     monkeypatch.setattr(search, "bulk", fake_bulk)
     search.TextIndexer._bulk_actions = [{"_id": "x"}]
     search.TextIndexer._flush_bulk_actions([])
@@ -431,11 +457,13 @@ def test_flush_passes_bounded_max_chunk_bytes(monkeypatch):
     """A whole-request 429 happens because N parallel shards can each send up to the
     default 100MB chunk; the fix is to always cap max_chunk_bytes on the bulk() call."""
     from sefaria import search
+
     captured = {}
 
     def fake_bulk(client, actions, **kwargs):
         captured.update(kwargs)
         return (len(actions), [])
+
     monkeypatch.setattr(search, "bulk", fake_bulk)
     search.TextIndexer._bulk_actions = [{"_id": "x"}]
     search.TextIndexer._flush_bulk_actions([])
@@ -461,6 +489,7 @@ def test_flush_retries_and_succeeds_after_whole_request_429(monkeypatch):
         if len(calls) == 1:
             raise _make_es_api_error(429)
         return (len(list(actions)), [])
+
     monkeypatch.setattr(search, "bulk", flaky_bulk)
 
     result = TextIndexer._flush_bulk_actions([])
@@ -484,6 +513,7 @@ def test_flush_gives_up_after_429_retry_budget_exhausted(monkeypatch):
     def always_429(client, actions, **kwargs):
         calls.append(1)
         raise _make_es_api_error(429)
+
     monkeypatch.setattr(search, "bulk", always_429)
 
     with pytest.raises(ESApiError):
@@ -506,6 +536,7 @@ def test_flush_propagates_non_429_api_error_without_retrying(monkeypatch):
     def bad_request(client, actions, **kwargs):
         calls.append(1)
         raise _make_es_api_error(400, "mapping_parser_exception")
+
     monkeypatch.setattr(search, "bulk", bad_request)
 
     with pytest.raises(ESApiError):
@@ -517,8 +548,9 @@ def test_flush_propagates_non_429_api_error_without_retrying(monkeypatch):
 
 def test_index_sheet_indexes_legacy_sheet_without_summary(monkeypatch):
     """Legacy sheets missing summary/dates must still index; only owner is required."""
-    from sefaria import search
     from unittest.mock import MagicMock
+
+    from sefaria import search
 
     legacy_sheet = {"id": 7, "owner": 42, "title": "Old Sheet", "sources": []}
 
@@ -528,15 +560,13 @@ def test_index_sheet_indexes_legacy_sheet_without_summary(monkeypatch):
     mock_db.sheets.find_one.return_value = legacy_sheet
     monkeypatch.setattr(search, "db", mock_db)
 
-    monkeypatch.setattr(search, "public_user_data",
-                        lambda uid: {"name": "A", "imageUrl": "", "profileUrl": ""})
+    monkeypatch.setattr(search, "public_user_data", lambda uid: {"name": "A", "imageUrl": "", "profileUrl": ""})
     monkeypatch.setattr(search, "user_link", lambda uid: "<a>A</a>")
     monkeypatch.setattr(search, "make_sheet_topics", lambda s: [])
     monkeypatch.setattr(search, "CollectionSet", lambda q: [])
 
     created = {}
-    monkeypatch.setattr(search.es_client, "index",
-                        lambda index, id, body: created.update({"id": id, "body": body}))
+    monkeypatch.setattr(search.es_client, "index", lambda index, id, body: created.update({"id": id, "body": body}))
 
     result = search.index_sheet("sheet-a", 7)
     assert result is True
@@ -546,8 +576,9 @@ def test_index_sheet_indexes_legacy_sheet_without_summary(monkeypatch):
 
 def test_index_sheet_returns_false_without_owner(monkeypatch):
     """A sheet with no owner must return False — owner is the only hard requirement."""
-    from sefaria import search
     from unittest.mock import MagicMock
+
+    from sefaria import search
 
     ownerless_sheet = {"id": 99, "title": "No Owner Sheet", "sources": []}
     mock_db = MagicMock()
@@ -564,25 +595,25 @@ def test_index_sheet_overwrites_an_already_indexed_sheet(monkeypatch):
     `create` fails with a conflict when the id already exists; index_sheet caught that and
     returned False, so edits to published sheets never reached search until a full rebuild.
     """
-    from sefaria import search
     from unittest.mock import MagicMock
+
+    from sefaria import search
 
     sheet = {"id": 8, "owner": 42, "title": "Edited title", "sources": []}
     mock_db = MagicMock()
     mock_db.sheets.find_one.return_value = sheet
     monkeypatch.setattr(search, "db", mock_db)
-    monkeypatch.setattr(search, "public_user_data",
-                        lambda uid: {"name": "A", "imageUrl": "", "profileUrl": ""})
+    monkeypatch.setattr(search, "public_user_data", lambda uid: {"name": "A", "imageUrl": "", "profileUrl": ""})
     monkeypatch.setattr(search, "user_link", lambda uid: "<a>A</a>")
     monkeypatch.setattr(search, "make_sheet_topics", lambda s: [])
     monkeypatch.setattr(search, "CollectionSet", lambda q: [])
 
     stored = {}
-    monkeypatch.setattr(search.es_client, "index",
-                        lambda index, id, body: stored.update({id: body}))
+    monkeypatch.setattr(search.es_client, "index", lambda index, id, body: stored.update({id: body}))
 
     def create_conflicts(index, id, body):
         raise AssertionError("index_sheet must not use create; it 409s on existing docs")
+
     monkeypatch.setattr(search.es_client, "create", create_conflicts)
 
     stored[8] = {"title": "Old title"}
@@ -593,6 +624,7 @@ def test_index_sheet_overwrites_an_already_indexed_sheet(monkeypatch):
 class _Pymongo4Collection:
     """Just the pymongo 4 surface index_from_queue may use. No `remove`: pymongo 4 dropped
     it, and a MagicMock would silently accept it, which is how the drained-queue bug hid."""
+
     def __init__(self, records):
         self.records = [dict(r, _id=i) for i, r in enumerate(records)]
 
@@ -611,6 +643,7 @@ class _FakeCursor:
     """find().sort().limit() over _Pymongo4Collection. Yields copies, like a real cursor.
     Iterating past one server batch without a limit raises, standing in for the
     CursorNotFound a long-lived cursor gets once Mongo reaps it mid-run."""
+
     SERVER_BATCH = 2
 
     def __init__(self, collection, query):
@@ -627,10 +660,9 @@ class _FakeCursor:
 
     def __iter__(self):
         gt = self.query.get("_id", {}).get("$gt")
-        rows = [dict(r) for r in sorted(self.collection.records, key=lambda r: r["_id"])
-                if gt is None or r["_id"] > gt]
+        rows = [dict(r) for r in sorted(self.collection.records, key=lambda r: r["_id"]) if gt is None or r["_id"] > gt]
         if self._limit is not None:
-            rows = rows[:self._limit]
+            rows = rows[: self._limit]
         for i, row in enumerate(rows):
             if self._limit is None and i >= self.SERVER_BATCH:
                 raise RuntimeError("CursorNotFound: cursor reaped during a long-running iteration")
@@ -638,8 +670,10 @@ class _FakeCursor:
 
 
 def _queue_db(monkeypatch, records, sheets=None):
-    from sefaria import search
     from types import SimpleNamespace
+
+    from sefaria import search
+
     sheets = sheets or {}
     fake = SimpleNamespace(
         index_queue=_Pymongo4Collection(records),
@@ -653,14 +687,22 @@ def test_index_from_queue_resolves_current_index_per_item_and_drains_queue(monke
     """An alias swap mid-run must redirect later items, and processed records must leave the queue."""
     from sefaria import search
 
-    fake = _queue_db(monkeypatch, [{"type": "ref", "ref": "Genesis 1:1", "version": "v", "lang": "en"},
-                                   {"type": "ref", "ref": "Genesis 1:2", "version": "v", "lang": "en"}])
+    fake = _queue_db(
+        monkeypatch,
+        [
+            {"type": "ref", "ref": "Genesis 1:1", "version": "v", "lang": "en"},
+            {"type": "ref", "ref": "Genesis 1:2", "version": "v", "lang": "en"},
+        ],
+    )
     monkeypatch.setattr(search, "Ref", lambda tref: tref)
     live = iter(["text-a", "text-b"])  # swap happens between the two items
     monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": next(live)})
     written = []
-    monkeypatch.setattr(search.TextIndexer, "index_ref",
-                        classmethod(lambda cls, index_name, oref, *a: written.append((index_name, oref))))
+    monkeypatch.setattr(
+        search.TextIndexer,
+        "index_ref",
+        classmethod(lambda cls, index_name, oref, *a: written.append((index_name, oref))),
+    )
 
     search.index_from_queue()
 
@@ -683,6 +725,7 @@ def test_index_from_queue_walks_bounded_batches_and_skips_failures_within_a_run(
         attempts.append(oref)
         if oref == "Genesis 1:3":
             raise RuntimeError("503 no master")
+
     monkeypatch.setattr(search.TextIndexer, "index_ref", classmethod(index_ref))
 
     search.index_from_queue()
@@ -700,6 +743,7 @@ def test_index_from_queue_keeps_record_when_text_write_fails(monkeypatch):
 
     def boom(cls, *a):
         raise RuntimeError("503 no master")
+
     monkeypatch.setattr(search.TextIndexer, "index_ref", classmethod(boom))
 
     search.index_from_queue()
@@ -711,17 +755,22 @@ def test_index_from_queue_indexes_public_sheet_and_removes_others(monkeypatch):
     """Sheet records sync to the sheet's current state: public -> index, otherwise -> delete."""
     from sefaria import search
 
-    records = [{"type": "sheet", "sheet_id": 1, "ref": "Sheet 1", "version": "sheet", "lang": "sheet"},
-               {"type": "sheet", "sheet_id": 2, "ref": "Sheet 2", "version": "sheet", "lang": "sheet"},
-               {"type": "sheet", "sheet_id": 3, "ref": "Sheet 3", "version": "sheet", "lang": "sheet"}]
-    sheets = {1: {"id": 1, "status": "public", "owner": 5},
-              2: {"id": 2, "status": "unlisted", "owner": 5}}  # 3 was deleted from Mongo
+    records = [
+        {"type": "sheet", "sheet_id": 1, "ref": "Sheet 1", "version": "sheet", "lang": "sheet"},
+        {"type": "sheet", "sheet_id": 2, "ref": "Sheet 2", "version": "sheet", "lang": "sheet"},
+        {"type": "sheet", "sheet_id": 3, "ref": "Sheet 3", "version": "sheet", "lang": "sheet"},
+    ]
+    sheets = {
+        1: {"id": 1, "status": "public", "owner": 5},
+        2: {"id": 2, "status": "unlisted", "owner": 5},
+    }  # 3 was deleted from Mongo
     fake = _queue_db(monkeypatch, records, sheets)
-    monkeypatch.setattr(search, "get_new_and_current_index_names",
-                        lambda type: {"current": f"{type}-b"})
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": f"{type}-b"})
     calls = []
     monkeypatch.setattr(search, "index_sheet", lambda index_name, sid: calls.append(("index", index_name, sid)) or True)
-    monkeypatch.setattr(search, "delete_sheet", lambda index_name, sid: calls.append(("delete", index_name, sid)) or True)
+    monkeypatch.setattr(
+        search, "delete_sheet", lambda index_name, sid: calls.append(("delete", index_name, sid)) or True
+    )
 
     search.index_from_queue()
 
@@ -732,9 +781,11 @@ def test_index_from_queue_indexes_public_sheet_and_removes_others(monkeypatch):
 def test_index_from_queue_keeps_sheet_record_when_sync_fails(monkeypatch):
     from sefaria import search
 
-    fake = _queue_db(monkeypatch,
-                     [{"type": "sheet", "sheet_id": 1, "ref": "Sheet 1", "version": "sheet", "lang": "sheet"}],
-                     {1: {"id": 1, "status": "public", "owner": 5}})
+    fake = _queue_db(
+        monkeypatch,
+        [{"type": "sheet", "sheet_id": 1, "ref": "Sheet 1", "version": "sheet", "lang": "sheet"}],
+        {1: {"id": 1, "status": "public", "owner": 5}},
+    )
     monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": "sheet-b"})
     monkeypatch.setattr(search, "index_sheet", lambda index_name, sid: False)  # e.g. ES 403/503
 
@@ -744,15 +795,20 @@ def test_index_from_queue_keeps_sheet_record_when_sync_fails(monkeypatch):
 
 
 def test_queue_sheets_sync_upserts_one_deduplicated_record_per_sheet(monkeypatch):
-    from sefaria import search
     from types import SimpleNamespace
+
+    from sefaria import search
+
     written = []
-    monkeypatch.setattr(search, "db", SimpleNamespace(index_queue=SimpleNamespace(
-        bulk_write=lambda ops, ordered: written.append((ops, ordered)))))
+    monkeypatch.setattr(
+        search,
+        "db",
+        SimpleNamespace(index_queue=SimpleNamespace(bulk_write=lambda ops, ordered: written.append((ops, ordered)))),
+    )
 
     assert search.queue_sheets_sync(["747331", 747331, 5]) == 2
 
-    (ops, ordered), = written
+    ((ops, ordered),) = written
     assert ordered is False
     by_id = {op._doc["$setOnInsert"]["sheet_id"]: op for op in ops}
     assert set(by_id) == {747331, 5}
@@ -768,15 +824,26 @@ def test_index_from_queue_keeps_sheet_record_requeued_while_it_was_being_synced(
     """A save landing between the consumer's Mongo read and its delete must not be lost."""
     from sefaria import search
 
-    fake = _queue_db(monkeypatch,
-                     [{"type": "sheet", "sheet_id": 1, "ref": "Sheet 1", "version": "sheet", "lang": "sheet",
-                       "generation": "gen-1"}],
-                     {1: {"id": 1, "status": "public", "owner": 5}})
+    fake = _queue_db(
+        monkeypatch,
+        [
+            {
+                "type": "sheet",
+                "sheet_id": 1,
+                "ref": "Sheet 1",
+                "version": "sheet",
+                "lang": "sheet",
+                "generation": "gen-1",
+            }
+        ],
+        {1: {"id": 1, "status": "public", "owner": 5}},
+    )
     monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": "sheet-b"})
 
     def sync_then_user_saves(index_name, sid):
         fake.index_queue.records[0]["generation"] = "gen-2"  # queue_sheets_sync during sync
         return True
+
     monkeypatch.setattr(search, "index_sheet", sync_then_user_saves)
 
     search.index_from_queue()
@@ -785,23 +852,33 @@ def test_index_from_queue_keeps_sheet_record_requeued_while_it_was_being_synced(
 
 
 def test_clear_index_queue_keeps_sheet_records(monkeypatch):
-    from sefaria import search
     from types import SimpleNamespace
+
+    from sefaria import search
+
     filters = []
-    monkeypatch.setattr(search, "db", SimpleNamespace(index_queue=SimpleNamespace(
-        delete_many=lambda flt: filters.append(flt) or SimpleNamespace(deleted_count=0))))
+    monkeypatch.setattr(
+        search,
+        "db",
+        SimpleNamespace(
+            index_queue=SimpleNamespace(delete_many=lambda flt: filters.append(flt) or SimpleNamespace(deleted_count=0))
+        ),
+    )
     search.clear_index_queue()
     assert filters == [{"type": {"$ne": "sheet"}}]
 
 
 def test_purge_spammer_account_data_queues_quarantined_sheets(monkeypatch):
-    from sefaria import views
-    import sefaria.search as search
     from types import SimpleNamespace
     from unittest.mock import MagicMock
 
-    sheets = [{"_id": "a", "id": 11, "owner": 7, "status": "public"},
-              {"_id": "b", "id": 12, "owner": 7, "status": "unlisted"}]
+    import sefaria.search as search
+    from sefaria import views
+
+    sheets = [
+        {"_id": "a", "id": 11, "owner": 7, "status": "public"},
+        {"_id": "b", "id": 12, "owner": 7, "status": "unlisted"},
+    ]
     fake_db = MagicMock()
     fake_db.profiles.find_one.return_value = {"id": 7}
     fake_db.sheets.find.return_value = iter(sheets)
@@ -811,6 +888,7 @@ def test_purge_spammer_account_data_queues_quarantined_sheets(monkeypatch):
     monkeypatch.setattr(search, "queue_sheets_sync", lambda ids: queued.append(list(ids)))
     fake_user = SimpleNamespace(is_active=True, save=lambda: None)
     from django.contrib.auth.models import User
+
     monkeypatch.setattr(User.objects, "get", lambda id: fake_user)
 
     views.purge_spammer_account_data(7, delete_from_crm=False)
@@ -820,38 +898,46 @@ def test_purge_spammer_account_data_queues_quarantined_sheets(monkeypatch):
 
 
 def test_queue_sheets_sync_skips_empty_input(monkeypatch):
-    from sefaria import search
     from types import SimpleNamespace
+
+    from sefaria import search
+
     def must_not_write(*a, **k):
         raise AssertionError("no bulk_write for an empty id list")
+
     monkeypatch.setattr(search, "db", SimpleNamespace(index_queue=SimpleNamespace(bulk_write=must_not_write)))
     assert search.queue_sheets_sync([]) == 0
 
 
 def test_index_queue_persists_sheet_id():
     from sefaria.model.queue import IndexQueue
+
     assert "sheet_id" in IndexQueue.optional_attrs
 
 
 def test_delete_sheet_treats_missing_doc_as_success_and_reports_other_errors(monkeypatch):
-    from sefaria import search
     from unittest.mock import MagicMock
+
+    from sefaria import search
 
     def not_found(index, id):
         # the exact class delete_sheet catches, constructed the way the ES 8 client raises it
         raise search.NotFoundError("not_found", meta=MagicMock(status=404), body={"found": False})
+
     monkeypatch.setattr(search.es_client, "delete", not_found)
     assert search.delete_sheet("sheet-b", 1) is True
 
     def forbidden(index, id):
         raise RuntimeError("403 security_exception")
+
     monkeypatch.setattr(search.es_client, "delete", forbidden)
     assert search.delete_sheet("sheet-b", 1) is False
 
 
 def test_index_sheet_reports_lookup_failures_instead_of_raising(monkeypatch):
-    from sefaria import search
     from unittest.mock import MagicMock
+
+    from sefaria import search
 
     mock_db = MagicMock()
     mock_db.sheets.find_one.return_value = {"id": 9, "owner": 42, "title": "T", "sources": []}
@@ -859,6 +945,7 @@ def test_index_sheet_reports_lookup_failures_instead_of_raising(monkeypatch):
 
     def mongo_down(uid):
         raise RuntimeError("profile lookup failed")
+
     monkeypatch.setattr(search, "public_user_data", mongo_down)
 
     assert search.index_sheet("sheet-b", 9) is False
@@ -866,8 +953,9 @@ def test_index_sheet_reports_lookup_failures_instead_of_raising(monkeypatch):
 
 def test_web_code_never_writes_sheets_to_elasticsearch_directly():
     """Web pods authenticate to ES read-only; sheet writes must go through the index queue."""
-    import re
     import pathlib
+    import re
+
     offenders = []
     for path in ["sefaria/sheets.py", "sefaria/views.py", "sefaria/utils/user.py", "reader/views.py"]:
         for n, line in enumerate(pathlib.Path(path).read_text().splitlines(), 1):
@@ -880,9 +968,11 @@ def test_web_code_never_writes_sheets_to_elasticsearch_directly():
 
 def test_bulk_load_settings_disable_refresh_and_replicas(monkeypatch):
     from sefaria import search
+
     calls = {}
-    monkeypatch.setattr(search.index_client, "put_settings",
-                        lambda index, body: calls.update({"settings": body, "index": index}))
+    monkeypatch.setattr(
+        search.index_client, "put_settings", lambda index, body: calls.update({"settings": body, "index": index})
+    )
     search.set_index_bulk_load_settings("text-a")
     assert calls["settings"]["index"]["refresh_interval"] == "-1"
     assert calls["settings"]["index"]["number_of_replicas"] == 0
@@ -890,6 +980,7 @@ def test_bulk_load_settings_disable_refresh_and_replicas(monkeypatch):
 
 def test_shard_selection_is_deterministic_partition():
     from sefaria.search import TextIndexer
+
     # 20 fake groups with varied sizes; keys are (title, lang)
     vbi = {(f"Book{i}", "en"): list(range(i % 5 + 1)) for i in range(20)}
     N = 4
@@ -923,8 +1014,7 @@ def test_index_all_calls_select_shard_keys_when_sharding(monkeypatch):
     monkeypatch.setattr(TextIndexer, "create_version_priority_map", classmethod(lambda cls: None))
     monkeypatch.setattr(TextIndexer, "create_terms_dict", classmethod(lambda cls: None))
     TextIndexer.version_priority_map = {
-        (v.title, v.versionTitle, v.language): (i, None)
-        for i, v in enumerate(all_versions)
+        (v.title, v.versionTitle, v.language): (i, None) for i, v in enumerate(all_versions)
     }
     monkeypatch.setattr(TextIndexer, "excluded_from_search", classmethod(lambda cls, v: False))
     monkeypatch.setattr("sefaria.search.Ref.clear_cache", lambda: None)
@@ -1007,6 +1097,7 @@ def test_select_shard_keys_agrees_with_select_shard_groups():
 def test_shard_selection_partitions_disjoint_and_covering(N):
     """Every (title, lang) group must be assigned to exactly one shard, for any shard count."""
     from sefaria.search import TextIndexer
+
     vbi = {(f"Book{i}", "en"): list(range(i % 5 + 1)) for i in range(23)}
     shards = [TextIndexer._select_shard_groups(vbi, i, N) for i in range(N)]
 
@@ -1023,6 +1114,7 @@ def test_shard_selection_balances_by_weight_not_just_count():
     total WEIGHT roughly even - this is the property that silently broke when
     _index_size_map raised AttributeError on every call and fed uniform weights in."""
     from sefaria.search import TextIndexer
+
     # A few huge titles alongside many small ones, mimicking real corpus skew.
     vbi = {(f"Book{i}", "en"): [i] for i in range(40)}
     size_map = {f"Book{i}": (5_000_000 if i < 4 else 10_000) for i in range(40)}
@@ -1040,6 +1132,7 @@ def test_shard_selection_falls_back_to_uniform_weights_without_raising(caplog):
     """An empty/failed size map must not raise - it should fall back to uniform
     weighting (by group size) and just warn."""
     from sefaria.search import TextIndexer
+
     vbi = {(f"Book{i}", "en"): list(range(i % 3 + 1)) for i in range(10)}
     N = 3
 
@@ -1069,10 +1162,8 @@ def test_reindex_finalize_sanity_gate(monkeypatch):
 
     put_alias_calls = []
     update_alias_calls = []
-    monkeypatch.setattr(search.index_client, "put_alias",
-                        lambda index, name: put_alias_calls.append((index, name)))
-    monkeypatch.setattr(search.index_client, "update_aliases",
-                        lambda body: update_alias_calls.append(body))
+    monkeypatch.setattr(search.index_client, "put_alias", lambda index, name: put_alias_calls.append((index, name)))
+    monkeypatch.setattr(search.index_client, "update_aliases", lambda body: update_alias_calls.append(body))
 
     with pytest.raises(ValueError, match="sanity"):
         search.reindex_finalize("text", min_doc_ratio=0.9)
@@ -1099,10 +1190,8 @@ def test_reindex_finalize_fails_closed_on_unreadable_current(monkeypatch):
 
     put_alias_calls = []
     update_alias_calls = []
-    monkeypatch.setattr(search.index_client, "put_alias",
-                        lambda index, name: put_alias_calls.append((index, name)))
-    monkeypatch.setattr(search.index_client, "update_aliases",
-                        lambda body: update_alias_calls.append(body))
+    monkeypatch.setattr(search.index_client, "put_alias", lambda index, name: put_alias_calls.append((index, name)))
+    monkeypatch.setattr(search.index_client, "update_aliases", lambda body: update_alias_calls.append(body))
 
     with pytest.raises(ValueError, match="sanity"):
         search.reindex_finalize("text", min_doc_ratio=0.9)
@@ -1118,10 +1207,12 @@ def test_restore_index_settings_refreshes_after_put(monkeypatch):
     put_settings_calls = []
     refresh_calls = []
 
-    monkeypatch.setattr(search.index_client, "put_settings",
-                        lambda index, body: put_settings_calls.append({"index": index, "body": body}))
-    monkeypatch.setattr(search.index_client, "refresh",
-                        lambda index: refresh_calls.append(index))
+    monkeypatch.setattr(
+        search.index_client,
+        "put_settings",
+        lambda index, body: put_settings_calls.append({"index": index, "body": body}),
+    )
+    monkeypatch.setattr(search.index_client, "refresh", lambda index: refresh_calls.append(index))
 
     search.restore_index_settings("text-a")
 
@@ -1143,8 +1234,7 @@ def test_reindex_finalize_success_calls_update_aliases_atomically(monkeypatch):
     monkeypatch.setattr(search, "clear_index", lambda name: None)
 
     update_alias_calls = []
-    monkeypatch.setattr(search.index_client, "update_aliases",
-                        lambda body: update_alias_calls.append(body))
+    monkeypatch.setattr(search.index_client, "update_aliases", lambda body: update_alias_calls.append(body))
 
     search.reindex_finalize("text", min_doc_ratio=0.9)
 
@@ -1186,8 +1276,7 @@ def test_reindex_finalize_empty_first_run_raises_value_error(monkeypatch):
     monkeypatch.setattr(search, "_index_doc_count", lambda name: 0)
 
     update_alias_calls = []
-    monkeypatch.setattr(search.index_client, "update_aliases",
-                        lambda body: update_alias_calls.append(body))
+    monkeypatch.setattr(search.index_client, "update_aliases", lambda body: update_alias_calls.append(body))
 
     with pytest.raises(ValueError, match="empty"):
         search.reindex_finalize("text", min_doc_ratio=0.9)
@@ -1208,8 +1297,7 @@ def test_reindex_finalize_refuses_shared_alias_without_opt_in(monkeypatch):
     monkeypatch.setattr(search, "_index_doc_count", lambda name: 1000)
 
     update_alias_calls = []
-    monkeypatch.setattr(search.index_client, "update_aliases",
-                        lambda body: update_alias_calls.append(body))
+    monkeypatch.setattr(search.index_client, "update_aliases", lambda body: update_alias_calls.append(body))
 
     with pytest.raises(ValueError, match="shared"):
         search.reindex_finalize("text", min_doc_ratio=0.9)
@@ -1231,8 +1319,7 @@ def test_reindex_finalize_proceeds_for_isolated_alias_without_opt_in(monkeypatch
     monkeypatch.setattr(search, "clear_index", lambda name: None)
 
     update_alias_calls = []
-    monkeypatch.setattr(search.index_client, "update_aliases",
-                        lambda body: update_alias_calls.append(body))
+    monkeypatch.setattr(search.index_client, "update_aliases", lambda body: update_alias_calls.append(body))
 
     search.reindex_finalize("text", min_doc_ratio=0.9)
 
@@ -1253,66 +1340,37 @@ def test_reindex_finalize_proceeds_for_shared_alias_with_opt_in(monkeypatch):
     monkeypatch.setattr(search, "clear_index", lambda name: None)
 
     update_alias_calls = []
-    monkeypatch.setattr(search.index_client, "update_aliases",
-                        lambda body: update_alias_calls.append(body))
+    monkeypatch.setattr(search.index_client, "update_aliases", lambda body: update_alias_calls.append(body))
 
     search.reindex_finalize("text", min_doc_ratio=0.9)
 
     assert len(update_alias_calls) == 1
 
 
-def test_reindex_init_reuses_in_progress_index_with_docs(monkeypatch):
+@pytest.mark.parametrize("doc_count", [0, 3400000, None])
+def test_reindex_init_recreates_existing_in_progress_index(monkeypatch, doc_count):
+    """An existing in-progress index is always recreated, never reused: a retry that reused a
+    3.4M-doc partial text-b in prod (2026-09-24) doubled it on disk and filled the node."""
     from sefaria import search
 
     monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
-    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    names = {"new": "text-b", "current": "text-a", "alias": "text"}
     monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
-    monkeypatch.setattr(search.index_client, "exists", lambda index: index == "text-new")
-
+    monkeypatch.setattr(search.index_client, "exists", lambda index: index == "text-b")
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: doc_count)
     create_calls = []
     bulk_setting_calls = []
-
-    monkeypatch.setattr(search, "_index_doc_count", lambda name: 500)
-    monkeypatch.setattr(search, "_index_has_managed_settings", lambda name: True)
-    monkeypatch.setattr(search, "create_index",
-                        lambda index_name, type, force=False: create_calls.append((index_name, force)))
-    monkeypatch.setattr(search, "set_index_bulk_load_settings",
-                        lambda index_name: bulk_setting_calls.append(index_name))
-
-    search.reindex_init("text", debug=False)
-
-    assert create_calls == []
-    assert bulk_setting_calls == ["text-new"]
-
-
-def test_reindex_init_recreates_auto_created_index_instead_of_reusing_it(monkeypatch):
-    """Prod 2026-09-11: text-a had 2957 docs but a dynamic mapping (auto-created by a stale
-    writer). Reusing it bulk-loaded the corpus into an unsearchable index until the disk filled."""
-    from sefaria import search
-
-    monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
-    names = {"new": "text-a", "current": "text-b", "alias": "text"}
-    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
-    monkeypatch.setattr(search.index_client, "exists", lambda index: index == "text-a")
-    monkeypatch.setattr(search, "_index_doc_count", lambda name: 2957)
-    monkeypatch.setattr(search.index_client, "get_settings", lambda index, filter_path: {})
-    create_calls = []
-    monkeypatch.setattr(search, "create_index",
-                        lambda index_name, type, force=False: create_calls.append((index_name, force)))
-    monkeypatch.setattr(search, "set_index_bulk_load_settings", lambda index_name: None)
+    monkeypatch.setattr(
+        search, "create_index", lambda index_name, type, force=False: create_calls.append((index_name, force))
+    )
+    monkeypatch.setattr(
+        search, "set_index_bulk_load_settings", lambda index_name: bulk_setting_calls.append(index_name)
+    )
 
     search.reindex_init("text", debug=False)
 
-    assert create_calls == [("text-a", True)]
-
-
-def test_index_has_managed_settings_detects_our_analysis_settings(monkeypatch):
-    from sefaria import search
-    monkeypatch.setattr(search.index_client, "get_settings", lambda index, filter_path: {
-        "text-b": {"settings": {"index": {"analysis": {"analyzer": {"exact_english": {}}}}}}})
-    assert search._index_has_managed_settings("text-b") is True
-    monkeypatch.setattr(search.index_client, "get_settings", lambda index, filter_path: {})
-    assert search._index_has_managed_settings("text-a") is False
+    assert create_calls == [("text-b", True)]
+    assert bulk_setting_calls == ["text-b"]
 
 
 def test_reindex_init_creates_fresh_index_when_missing(monkeypatch):
@@ -1324,8 +1382,9 @@ def test_reindex_init_creates_fresh_index_when_missing(monkeypatch):
     monkeypatch.setattr(search.index_client, "exists", lambda index: False)
 
     create_calls = []
-    monkeypatch.setattr(search, "create_index",
-                        lambda index_name, type, force=False: create_calls.append((index_name, force)))
+    monkeypatch.setattr(
+        search, "create_index", lambda index_name, type, force=False: create_calls.append((index_name, force))
+    )
     monkeypatch.setattr(search, "set_index_bulk_load_settings", lambda index_name: None)
     monkeypatch.setattr(search, "_index_doc_count", lambda name: 0)
 
@@ -1347,8 +1406,9 @@ def test_reindex_init_refuses_shared_alias_without_opt_in(monkeypatch):
     monkeypatch.setattr(search.index_client, "exists", lambda index: False)
 
     create_calls = []
-    monkeypatch.setattr(search, "create_index",
-                        lambda index_name, type, force=False: create_calls.append((index_name, force)))
+    monkeypatch.setattr(
+        search, "create_index", lambda index_name, type, force=False: create_calls.append((index_name, force))
+    )
     monkeypatch.setattr(search, "set_index_bulk_load_settings", lambda index_name: None)
     monkeypatch.setattr(search, "_index_doc_count", lambda name: 0)
 
@@ -1370,8 +1430,9 @@ def test_reindex_init_proceeds_for_isolated_alias_without_opt_in(monkeypatch):
     monkeypatch.setattr(search.index_client, "exists", lambda index: False)
 
     create_calls = []
-    monkeypatch.setattr(search, "create_index",
-                        lambda index_name, type, force=False: create_calls.append((index_name, force)))
+    monkeypatch.setattr(
+        search, "create_index", lambda index_name, type, force=False: create_calls.append((index_name, force))
+    )
     monkeypatch.setattr(search, "set_index_bulk_load_settings", lambda index_name: None)
     monkeypatch.setattr(search, "_index_doc_count", lambda name: 0)
 
@@ -1395,7 +1456,9 @@ def test_reindex_index_shard_dispatches_each_entity_type(monkeypatch):
     calls = {}
     monkeypatch.setattr(search, "index_topics", lambda index_name: calls.setdefault("topic", []).append(index_name))
     monkeypatch.setattr(search, "index_books", lambda index_name: calls.setdefault("book", []).append(index_name))
-    monkeypatch.setattr(search, "index_categories", lambda index_name: calls.setdefault("category", []).append(index_name))
+    monkeypatch.setattr(
+        search, "index_categories", lambda index_name: calls.setdefault("category", []).append(index_name)
+    )
 
     for entity_type in ("topic", "book", "category"):
         search.reindex_index_shard(entity_type)
@@ -1488,6 +1551,7 @@ class TestSharedIndexGuardCoversEntities:
     @pytest.mark.parametrize("alias", ["text", "sheet", "topic", "book", "category"])
     def test_rejects_every_shared_alias(self, alias, monkeypatch):
         from sefaria import search
+
         monkeypatch.delenv("REINDEX_ALLOW_SHARED_INDEX", raising=False)
         with pytest.raises(ValueError, match="shared default index"):
             search._assert_not_shared_index(alias, alias)
@@ -1495,6 +1559,7 @@ class TestSharedIndexGuardCoversEntities:
     @pytest.mark.parametrize("alias", ["text-mycauldron", "esreindexv2_text", "topic-mycauldron"])
     def test_allows_isolated_names(self, alias, monkeypatch):
         from sefaria import search
+
         monkeypatch.delenv("REINDEX_ALLOW_SHARED_INDEX", raising=False)
         search._assert_not_shared_index(alias, "text")  # must not raise
 
@@ -1502,5 +1567,6 @@ class TestSharedIndexGuardCoversEntities:
     def test_explicit_opt_in_still_permits_prod(self, alias, monkeypatch):
         """prod/preprod legitimately swap the shared aliases via allowSharedIndex: true."""
         from sefaria import search
+
         monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
         search._assert_not_shared_index(alias, alias)  # must not raise

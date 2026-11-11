@@ -1,31 +1,30 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from 'react';
 import {
   SUPPORTED_LOCALES,
   LOCALIZED_FIELDS,
   mapLocales,
   groupByDocumentIdWithDiagnostics,
   buildInterfaceTextDoc,
-} from "./sefaria/strapiLocalization";
-import {
-  ContentType,
-  CONTENT_FIELDS,
-  selectContent,
-  buildViewerContext,
-} from "./sefaria/strapiSelection";
+} from './sefaria/strapiLocalization';
+import { ContentType, CONTENT_FIELDS, selectContent, buildViewerContext } from './sefaria/strapiSelection';
 
 const ReaderPanelContext = React.createContext({
-  language: "english",
+  language: 'english',
 });
-ReaderPanelContext.displayName = "ContentLanguageContext"; //This lets us see this name in the devtools
+ReaderPanelContext.displayName = 'ContentLanguageContext'; //This lets us see this name in the devtools
 
 const AdContext = React.createContext({});
-AdContext.displayName = "AdContext";
+AdContext.displayName = 'AdContext';
 
 const StrapiDataContext = React.createContext({});
-StrapiDataContext.displayName = "StrapiDataContext";
+StrapiDataContext.displayName = 'StrapiDataContext';
 
-// Each content type's fields, queried per locale (below) instead of a single default-locale query with a `localizations` child - 
-// that older shape could only ever discover documents that have an English version, since a Strapi collection query with no `locale` argument returns only the default locale. 
+// Whether ReaderApp puts the Library Assistant's widget (<lc-chatbot>) on the page
+const LibraryAssistantContext = React.createContext(false);
+LibraryAssistantContext.displayName = 'LibraryAssistantContext';
+
+// Each content type's fields, queried per locale (below) instead of a single default-locale query with a `localizations` child -
+// that older shape could only ever discover documents that have an English version, since a Strapi collection query with no `locale` argument returns only the default locale.
 // `documentId` is stable across every locale of a document (Strapi v5), so it's the join key used to recombine the per-locale rows after the fetch.
 const bannerFields = `
             documentId
@@ -45,6 +44,8 @@ const bannerFields = `
             showToNonSustainers
             showToReturningVisitors
             showToSustainers
+            showToDonor
+            showToNonDonor
             showTo
             countriesToTarget {
               countryMode
@@ -74,6 +75,8 @@ const modalFields = `
             showToNonSustainers
             showToReturningVisitors
             showToSustainers
+            showToDonor
+            showToNonDonor
             showTo
             countriesToTarget {
               countryMode
@@ -85,33 +88,45 @@ const modalFields = `
             updatedAt
 `;
 
-const sidebarAdFields = `
-            documentId
-            buttonAboveOrBelow
-            title
-            bodyText
-            buttonText
-            buttonURL
-            buttonIcon {
-              url
-              alternativeText
-            }
-            createdAt
-            debug
-            endTime
-            hasBlueBackground
-            internalCampaignId
-            keywords
-            locale
-            publishedAt
-            showTo
-            startTime
-            updatedAt
-            isNewsletterSubscriptionInputForm
-            newsletterMailingLists {
-              newsletterName
-            }
-`;
+// Sidebar-ad fields as a LIST rather than a template string like bannerFields/modalFields above:
+// one entry per field keeps additions reviewable line-by-line, and the e2e suite asserts the
+// assembled query actually names its fields (the synthetic Strapi route matches the URL alone,
+// so without that assertion a dropped field would leave every e2e test green — see
+// strapi-sidebar-ad-page-type.spec.js).
+const SIDEBAR_AD_FIELD_LIST = [
+  'documentId',
+  'buttonAboveOrBelow',
+  'title',
+  'bodyText',
+  'buttonText',
+  'buttonURL',
+  'buttonIcon {\n              url\n              alternativeText\n            }',
+  'createdAt',
+  'debug',
+  'endTime',
+  'sidebarAdBackgroundColor',
+  'internalCampaignId',
+  'keywords',
+  'locale',
+  'pageType',
+  'publishedAt',
+  'showTo',
+  'startTime',
+  'updatedAt',
+  'isNewsletterSubscriptionInputForm',
+  'newsletterMailingLists {\n              newsletterName\n            }',
+];
+
+// COMPATIBILITY CONTRACT: every field above must exist on the Strapi schema of every deployed
+// environment. Querying a field the schema lacks makes GraphQL reject the WHOLE query, so an
+// out-of-date Strapi means NO promotions render (banners, modals, and ads all stay dark) and the
+// failure is logged — see the schema-mismatch note in the error guard below. This is deliberate
+// (decision 2026-09-01): frontend and Strapi are always deployed compatibly, and a brief dark
+// window during a deploy beats a silent-degradation mechanism whose fallback responses could be
+// cached and served to healthy clients.
+const buildFieldsSelection = (fieldList) => `\n            ${fieldList.join('\n            ')}\n`;
+
+const sidebarAdFields = buildFieldsSelection(SIDEBAR_AD_FIELD_LIST);
 
 // Emits one aliased query field per supported locale (e.g. `en_banners`, `he_banners`), so adding a locale to SUPPORTED_LOCALES fans out to every content type automatically.
 // The `en_banners:` before the real `banners` field is a GraphQL alias:
@@ -127,8 +142,8 @@ const buildLocalizedQueryBlock = (contentType, filtersExpression, fieldsSelectio
           ) {
             ${fieldsSelection}
           }
-`,
-  ).join("\n");
+`
+  ).join('\n');
 
 // Gets data from a Strapi CMS instance to be used for displaying static content
 function StrapiDataProvider({ children }) {
@@ -137,11 +152,11 @@ function StrapiDataProvider({ children }) {
   const [modal, setModal] = useState(null);
   const [banner, setBanner] = useState(null);
   useEffect(() => {
-    if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
+    if (typeof STRAPI_INSTANCE !== 'undefined' && STRAPI_INSTANCE) {
       const getStrapiData = async () => {
-        let getDateWithoutTime = (date) => date.toISOString().split("T")[0];
+        let getDateWithoutTime = (date) => date.toISOString().split('T')[0];
         let getJSONDateStringInLocalTimeZone = (date) => {
-          let parts = getDateWithoutTime(date).split("-");
+          let parts = getDateWithoutTime(date).split('-');
           return new Date(parts[0], parts[1] - 1, parts[2]).toJSON();
         };
         let [currentDate, twoWeeksAgo, twoWeeksFromNow] = Array(3)
@@ -159,40 +174,40 @@ function StrapiDataProvider({ children }) {
         const query = `
         query {
           ${buildLocalizedQueryBlock(
-            "banners",
+            'banners',
             `{
               bannerStartDate: { gte: "${startDate}" }
               and: [{ bannerEndDate: { lte: "${endDate}" } }]
             }`,
-            bannerFields,
+            bannerFields
           )}
           ${buildLocalizedQueryBlock(
-            "modals",
+            'modals',
             `{
               modalStartDate: { gte: "${startDate}" }
               and: [{ modalEndDate: { lte: "${endDate}" } }]
             }`,
-            modalFields,
+            modalFields
           )}
           ${buildLocalizedQueryBlock(
-            "sidebarAds",
+            'sidebarAds',
             `{
               startTime: { gte: "${startDate}" }
               and: [{ endTime: { lte: "${endDate}" } }]
             }`,
-            sidebarAdFields,
+            sidebarAdFields
           )}
         }
         `;
         // Use the new cache endpoint instead of calling Strapi directly to minimize API calls
-        const url = new URL("/api/strapi/graphql-cache", window.location.origin);
-        url.searchParams.append("start_date", startDate.split("T")[0]); // Only use date part
-        url.searchParams.append("end_date", endDate.split("T")[0]);
+        const url = new URL('/api/strapi/graphql-cache', window.location.origin);
+        url.searchParams.append('start_date', startDate.split('T')[0]); // Only use date part
+        url.searchParams.append('end_date', endDate.split('T')[0]);
 
         const result = fetch(url, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "text/plain",
+            'Content-Type': 'text/plain',
           },
           body: query,
         })
@@ -211,9 +226,19 @@ function StrapiDataProvider({ children }) {
             // moment the error clears. A REAL nothing-published response still carries a data
             // OBJECT (with empty per-locale arrays), so it passes this check and proceeds.
             if (!result?.data || result.errors) {
+              const errorsJson = result?.errors ? JSON.stringify(result.errors) : '';
+              // "Cannot query field" is GraphQL's schema-validation wording: the server's Strapi
+              // does not have a field this frontend asks for (most likely a frontend deployed
+              // ahead of a Strapi schema update — see the COMPATIBILITY CONTRACT note above).
+              // Naming the diagnosis here saves whoever reads the log from hunting a transient
+              // outage that is actually a version mismatch. Detection is diagnostics only — the
+              // failure handling is identical either way: nothing renders until the fetch works.
+              const schemaMismatchHint = /cannot query field/i.test(errorsJson)
+                ? ' (LIKELY SCHEMA MISMATCH: this frontend queries a field the Strapi environment lacks)'
+                : '';
               throw new Error(
-                "Strapi response carried no data" +
-                  (result?.errors ? `: ${JSON.stringify(result.errors).slice(0, 200)}` : ""),
+                `Strapi response carried no data${schemaMismatchHint}` +
+                  (errorsJson ? `: ${errorsJson.slice(0, 500)}` : '')
               );
             }
             setDataFromStrapiHasBeenReceived(true);
@@ -222,17 +247,11 @@ function StrapiDataProvider({ children }) {
             const rowsByLocale = (contentType) =>
               mapLocales((locale) => result.data?.[`${locale}_${contentType}`] || []);
 
-            const groupedModals = groupByDocumentIdWithDiagnostics(
-              rowsByLocale("modals"),
-              LOCALIZED_FIELDS.modal,
-            );
-            const groupedBanners = groupByDocumentIdWithDiagnostics(
-              rowsByLocale("banners"),
-              LOCALIZED_FIELDS.banner,
-            );
+            const groupedModals = groupByDocumentIdWithDiagnostics(rowsByLocale('modals'), LOCALIZED_FIELDS.modal);
+            const groupedBanners = groupByDocumentIdWithDiagnostics(rowsByLocale('banners'), LOCALIZED_FIELDS.banner);
             const groupedSidebarAds = groupByDocumentIdWithDiagnostics(
-              rowsByLocale("sidebarAds"),
-              LOCALIZED_FIELDS.sidebarAd,
+              rowsByLocale('sidebarAds'),
+              LOCALIZED_FIELDS.sidebarAd
             );
 
             // Promotions is the only consumer of strapiData; it iterates each grouped ad's `locales`/`byLocale` directly, so no InterfaceText normalization needed here.
@@ -274,7 +293,7 @@ function StrapiDataProvider({ children }) {
             setBanner(chooseContent(groupedBanners, ContentType.BANNER, LOCALIZED_FIELDS.banner));
           })
           .catch((error) => {
-            console.error("Failed to get strapi data: ", error);
+            console.error('Failed to get strapi data: ', error);
           });
       };
       getStrapiData();
@@ -295,4 +314,4 @@ function StrapiDataProvider({ children }) {
   );
 }
 
-export { ReaderPanelContext, AdContext, StrapiDataProvider, StrapiDataContext };
+export { ReaderPanelContext, AdContext, StrapiDataProvider, StrapiDataContext, LibraryAssistantContext };
