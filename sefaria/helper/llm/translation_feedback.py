@@ -6,7 +6,9 @@ the web process. Cauldrons don't run Celery workers (tasks.enabled is false by d
 Celery task would never execute there; the dashboard also calls `assess_stale_in_background()` so
 anything a restarted pod dropped gets picked up later.
 
-Needs ANTHROPIC_API_KEY (Django setting or env var) in the *web* pod. Without it, records get
+Needs an Anthropic key in the *web* pod: DEV_ANTHROPIC_API_KEY (the capped team key every dev
+cauldron gets from local-settings-secrets) if set, else ANTHROPIC_API_KEY. The dev key comes first
+because the ANTHROPIC_API_KEY some cauldron web pods get is stale. Without a key, records get
 assessment "?" and a note explaining why, instead of an error.
 """
 import json
@@ -54,10 +56,14 @@ def get_model_name():
     return _setting("TRANSLATION_FEEDBACK_LLM_MODEL", DEFAULT_MODEL)
 
 
+def get_api_key():
+    return _setting("DEV_ANTHROPIC_API_KEY") or _setting("ANTHROPIC_API_KEY")
+
+
 def _get_llm():
-    api_key = _setting("ANTHROPIC_API_KEY")
+    api_key = get_api_key()
     if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY is not configured on this server")
+        raise RuntimeError("Neither DEV_ANTHROPIC_API_KEY nor ANTHROPIC_API_KEY is configured on this server")
     from langchain_anthropic import ChatAnthropic
     return ChatAnthropic(model=get_model_name(), max_tokens=1024, api_key=api_key, timeout=60, max_retries=2)
 

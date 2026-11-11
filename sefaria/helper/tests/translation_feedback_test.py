@@ -10,7 +10,7 @@ from sefaria.model import Index, Ref, Version, VersionSet, TextChunk
 from sefaria.model.translation_feedback import (
     TranslationFeedback, TranslationFeedbackSet, STATUS_ACCEPTED, STATUS_REJECTED, STATUS_NEW,
 )
-from sefaria.helper.llm.translation_feedback import parse_response, assess, build_prompt
+from sefaria.helper.llm.translation_feedback import parse_response, assess, build_prompt, get_api_key
 from sefaria.helper.translation_feedback import (
     create_feedback, accept_feedback, reject_feedback, reopen_feedback, get_segment_texts, segment_marks,
 )
@@ -24,6 +24,19 @@ SEGMENT_EN = "And God saw the light, that it was <b>good</b>; and the light was 
 SEGMENT_EN_PLAIN = "And God saw the light, that it was good; and the light was good."
 SUGGESTION = "And God saw the light, that it was good; and the radiance was good & bright."
 SEGMENT_HE = "וַיַּרְא אֱלֹהִים אֶת־הָאוֹר כִּי־טוֹב"
+
+
+class TestApiKey:
+    @pytest.mark.parametrize("dev,main,expected", [
+        ("dev-key", "stale-key", "dev-key"),  # dev cauldrons: the shared dev key wins
+        ("", "main-key", "main-key"),
+        ("", "", None),
+    ])
+    def test_prefers_dev_key(self, dev, main, expected):
+        with patch.dict("os.environ", {"DEV_ANTHROPIC_API_KEY": dev, "ANTHROPIC_API_KEY": main}), \
+             patch("django.conf.settings.DEV_ANTHROPIC_API_KEY", None, create=True), \
+             patch("django.conf.settings.ANTHROPIC_API_KEY", None, create=True):
+            assert get_api_key() == expected
 
 
 class TestParseResponse:
@@ -235,8 +248,9 @@ def test_assess_without_api_key(synthetic_text):
     assert "<suggested_translation>\n" + SUGGESTION in prompt
     assert "<current_translation>\n" + SEGMENT_EN_PLAIN in prompt
     assert "וַיַּרְא" in prompt
-    with patch.dict("os.environ", {"ANTHROPIC_API_KEY": ""}), \
-         patch("django.conf.settings.ANTHROPIC_API_KEY", None, create=True):
+    with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "", "DEV_ANTHROPIC_API_KEY": ""}), \
+         patch("django.conf.settings.ANTHROPIC_API_KEY", None, create=True), \
+         patch("django.conf.settings.DEV_ANTHROPIC_API_KEY", None, create=True):
         assessment, note = assess(fb)
     assert assessment == "?"
     assert note.startswith("LLM unavailable")
