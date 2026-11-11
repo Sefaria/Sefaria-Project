@@ -274,25 +274,22 @@ def annotate_user_collections(sheets, user_id):
     return sheets
 
 
-def annotate_displayed_collections(sheets, fields=None):
+def annotate_displayed_collections(sheets, field="name", key="displayedCollectionName"):
     """
-    Adds fields of its displayed collection to each sheet in `sheets` that has `displayedCollection`,
-    reading the collections in one query.
-    `fields` maps a collection field to the sheet key it is written to. Default: the name, as `displayedCollectionName`.
+    Adds `field` of its displayed collection, as `key`, to each sheet in `sheets` that has `displayedCollection`.
+    The collections are read in one query.
     """
-    fields = fields or {"name": "displayedCollectionName"}
     slugs = list({sheet["displayedCollection"] for sheet in sheets if sheet.get("displayedCollection", None)})
     if len(slugs) == 0:
         return sheets
-    proj = {"slug": 1, **dict.fromkeys(fields, 1)}
     displayed_collections = {
-        collection.slug: collection for collection in CollectionSet({"slug": {"$in": slugs}}, proj=proj)
+        collection.slug: collection
+        for collection in CollectionSet({"slug": {"$in": slugs}}, proj={"slug": 1, field: 1})
     }
     for sheet in sheets:
         collection = displayed_collections.get(sheet.get("displayedCollection", None))
         if collection:
-            for field, key in fields.items():
-                sheet[key] = getattr(collection, field, None)
+            sheet[key] = getattr(collection, field, None)
 
     return sheets
 
@@ -1058,7 +1055,7 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
         except:
             user_profiles[profile]["profile_pic_url_small"] = ""
 
-    sheets = annotate_displayed_collections(sheets, {"toc": "collectionTOC"})
+    sheets = annotate_displayed_collections(sheets, field="toc", key="collectionTOC")
     results = []
     for sheet in sheets:
         anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(
