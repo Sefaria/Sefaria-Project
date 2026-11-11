@@ -104,7 +104,7 @@ export function BookPage({ title, category, attribution, dedication, readHref, c
     </>
   );
   return (
-    <NavPage colorCategory={colorCategory} sidebarLabel={he ? "אודות הספר" : "About this book"} footer={<SidebarFooter />} sidebar={<>
+    <NavPage fluid colorCategory={colorCategory} sidebarLabel={he ? "אודות הספר" : "About this book"} footer={<SidebarFooter />} sidebar={<>
         {hasAbout ? (
           <section className={styles.desktopOnly}>
             <h2 className={styles.sideTitle}><InterfaceText en="About This Text" he="אודות ספר זה" /></h2>
@@ -167,6 +167,9 @@ function BookMain({ aboutInline, title, category, attribution, dedication, readH
               href={tabHref(t.id)}
               aria-current={tab === t.id ? "page" : undefined}
               data-current={tab === t.id || undefined}
+              // a mouse press does not focus the tab (the old tabs were not focusable): otherwise the next key press, an arrow to
+              // scroll, turns on its focus ring; the keyboard still reaches it with Tab
+              onMouseDown={(e) => e.preventDefault()}
               onClick={(e) => {
                 if (onTab && plain(e)) {
                   e.preventDefault();

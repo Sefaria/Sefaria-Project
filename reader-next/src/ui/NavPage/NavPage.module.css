@@ -16,3 +16,21 @@
   /* the old .singlePanel .navSidebar: 20px under the page, 30px in (VERIFIED on sefaria.org with a phone User-Agent, 2026-10-29) */
   .side { margin-block-start: 20px; padding: 30px 15px 0; }
 }
+/* `fluid` (the book page): the old .sidebarLayout on a desktop, measured on sefaria.org. Both columns shrink with the window, in the ratio of
+   their inner widths (665 content : 420 sidebar; the content's 2 x 30px padding does not shrink), from 1145px down to 701px; at 700px or
+   less they stack (here: the phone layout above). Over 1485px the two columns stay 1485px wide, centred. Under 730px the content column has
+   15px either side (the old .narrowColumn). */
+.fluid { --_gutter: max(0px, calc((100% - 1485px) / 2)); grid-template-columns: var(--_gutter) minmax(0, 1fr) min(420px, calc((100% - 2 * var(--_gutter) - 60px) * 420 / 1085)) var(--_gutter); }
+.fluid > .main { grid-column: 2; }
+.fluid > .side { grid-column: 3; }
+@media (min-width: 701px) and (max-width: 842px) {
+  .fluid > .main { padding: var(--_top, 56px) 30px 70px; }
+  .fluid > .colorLine { position: sticky; top: 0; margin-block-end: 0; }
+  .fluid > .side { margin-block-start: 0; padding: var(--_top, 56px) 44px 120px; }
+}
+/* …and with 15px padding the shrink shares 695 : 420 (measured at 701px: sidebar 253, content 418) */
+@media (min-width: 701px) and (max-width: 729px) { .fluid { grid-template-columns: 0 minmax(0, 1fr) calc((100% - 30px) * 420 / 1115) 0; } .fluid > .main { padding-inline: 15px; } }
+@media (max-width: 700px) {
+  .fluid { grid-template-columns: 1fr; }
+  .fluid > .main, .fluid > .side { grid-column: 1; }
+}

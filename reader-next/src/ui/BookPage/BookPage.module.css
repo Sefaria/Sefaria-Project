@@ -9,9 +9,7 @@ a.read { display: inline-flex; margin-block-end: 32px; padding: 10px 14px; heigh
 .tabs { display: flex; align-items: flex-start; gap: 30px; border-block-end: 1px solid var(--sefaria-color-border-strong); margin-block-end: 18px; }
 .tab { padding: 10px 0; font-size: var(--sefaria-text-sans-h3); color: var(--sefaria-color-text-dark-grey); text-decoration: none; }
 .tab[data-current] { color: var(--sefaria-color-text-strong); border-block-end: 4px solid var(--sefaria-color-border-strong); }
-/* a mouse click leaves no focus ring (as there, where the tabs are not focusable); the keyboard's ring stays (base :focus-visible) */
-.tab:focus:not(:focus-visible) { outline: none; }
-@media (max-width: 842px) { .tab { font-size: var(--sefaria-text-sans-body); } .tab[data-current] { padding-block-end: 18px; } }
+@media (max-width: 700px) { .tab { font-size: var(--sefaria-text-sans-body); } .tab[data-current] { padding-block-end: 18px; } }
 .sideTitle { margin: 0 0 12px; padding-block-end: 12px; border-block-end: 1px solid var(--sefaria-color-border); font-size: 22px; font-weight: 500; color: var(--sefaria-color-text-secondary); }
 .about { font-size: 16px; line-height: 1.5; color: var(--sefaria-color-text-secondary); }
 .about p { margin: 0 0 12px; }
@@ -25,9 +23,9 @@ a.read { display: inline-flex; margin-block-end: 32px; padding: 10px 14px; heigh
 .meta a { color: inherit; text-decoration: none; }
 .meta a:hover { text-decoration: underline; }
 
-/* On a phone the About text is part of the page (no sidebar module): metadata and description under Start Reading (VERIFIED, phone User-Agent) */
+/* On a phone (700px or less, where the old .sidebarLayout stacks) the About text is part of the page (no sidebar module): metadata and description under Start Reading (VERIFIED, phone User-Agent) */
 .phoneOnly { display: none; margin-block-end: 32px; }
-@media (max-width: 842px) { .phoneOnly { display: block; } .desktopOnly { display: none; } }
+@media (max-width: 700px) { .phoneOnly { display: block; } .desktopOnly { display: none; } }
 
 /* the moderators' admin buttons under the title (the old CategoryHeader's adminButtons) */
 .adminButtons { display: flex; gap: var(--sefaria-space-2); margin-block: var(--sefaria-space-2); }
