@@ -95,6 +95,8 @@ function countsOf(node: TocNodeRecord): unknown {
   if (node.content_counts !== undefined) return node.content_counts;
   const first = node.lengths?.[0];
   if (first === undefined) return [];
+  // a node 3+ deep without content counts draws no section links (asList): name it on the server, where v-exits F-5 was seen once
+  if ((node.depth ?? 1) >= 3 && typeof window === "undefined") console.warn(`[toc] no content_counts for "${node.title ?? "?"}" (depth ${node.depth}): its sections have no links`);
   return node.depth === 1 ? first : new Array(first).fill(1);
 }
 
@@ -107,6 +109,14 @@ interface Ctx {
   current: Current;
 }
 
+/**
+ * A level's counts as a list. Counts shallower than the node's depth (a number where a level of sections is expected) come from a
+ * node with no content counts, whose `lengths` say only how many top sections it has (countsOf), or from ragged counts: the old
+ * page's loop over `contentCounts.length` drew nothing for such a level, and so does this, rather than `counts.forEach is not a
+ * function` (v-exits F-5, an SSR TypeError on the book page).
+ */
+const asList = (counts: unknown): unknown[] => (Array.isArray(counts) ? counts : []);
+
 function jaggedSection(
   node: { depth: number; sectionNames: string[]; addressTypes: string[]; counts: unknown; refPath: string; offset: number },
   ctx: Ctx,
@@ -114,7 +124,7 @@ function jaggedSection(
   currentSection: string | undefined,
 ): TocItem {
   if (node.depth > 2) {
-    const counts = node.counts as unknown[];
+    const counts = asList(node.counts);
     const children: TocItem[] = [];
     counts.forEach((count, i) => {
       if (isEmptyCount(count)) return;
@@ -135,7 +145,7 @@ function jaggedSection(
     });
     return { kind: "section", id: idPrefix, name: { en: "", he: "" }, children };
   }
-  const counts: unknown[] = node.depth === 1 && typeof node.counts === "number" ? new Array(node.counts).fill(1) : (node.counts as unknown[]);
+  const counts: unknown[] = node.depth === 1 && typeof node.counts === "number" ? new Array(node.counts).fill(1) : asList(node.counts);
   const links: TocLink[] = [];
   counts.forEach((count, i) => {
     if (isEmptyCount(count)) return;

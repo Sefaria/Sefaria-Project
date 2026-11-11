@@ -16,6 +16,7 @@ import { markLoadEntry } from "~/lib/routing/load-entry";
 import { isNotFoundMatch, prefsOfForcedNotFound, throwIfForcedNotFound } from "~/lib/routing/not-found";
 import { SiteHostProvider } from "~/lib/routing/library-href";
 import { NotFoundPage } from "~/features/routing/NotFoundPage";
+import { notFoundTitle, type TitleLang } from "~/lib/reader/page-title";
 import { forgetTopicSortOff } from "~/lib/topics/topic-sort-carry";
 import { useHeaderSearch } from "~/features/shell/useHeaderSearch";
 import { SiteHeader } from "~/ui/SiteHeader/SiteHeader";
@@ -78,6 +79,13 @@ const getRequestPrefs = createServerFn({ method: "GET" }).handler(async () =>
 /** In the browser: what the server decided for this page (written into it by RootDocument). */
 const pageDiaspora = () => (window as unknown as { __SEFARIA_REQUEST__?: { diaspora?: boolean } }).__SEFARIA_REQUEST__?.diaspora ?? true;
 
+/** The interface language in head(): the root's context, or the preferences the forced not-found carries. */
+function headLang(matches: readonly { context?: unknown; error?: unknown }[]): TitleLang {
+  const root = matches[0];
+  const fromCtx = (root?.context as Partial<RootPrefs> | undefined)?.interfaceLang;
+  return fromCtx ?? (prefsOfForcedNotFound(root?.error) as Partial<RootPrefs> | null)?.interfaceLang ?? "english";
+}
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   // Every navigation runs this: in the browser the cookies are right here (a server function was an HTTP round trip per navigation,
   // scroll-driven address updates included: CODE_REVIEW R-09)
@@ -106,7 +114,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       // a page nobody has (the reader's 404, T-F28): titled as the old site's 404 and kept out of search engines
-      ...(matches.some(isNotFoundMatch) ? [{ title: "Page Not Found | Sefaria" }, { name: "robots", content: "noindex" }] : [{ title: "Sefaria Reader" }]),
+      // in the reader's interface language, as Django's 404 page ("הדף שביקשתם איננו נמצא | ספריא")
+      ...(matches.some(isNotFoundMatch) ? [{ title: notFoundTitle(headLang(matches)) }, { name: "robots", content: "noindex" }] : [{ title: "Sefaria Reader" }]),
     ],
     links: [
       // The faces on screen at first paint, preloaded with the page: a face that arrives later reflows the

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { compare, initialAssets, measure, rootUrlStylesheets } from "./measure.mjs";
+import { compare, initialAssets, measure, pageKindStylesheets, rootUrlStylesheets } from "./measure.mjs";
 
 function fakeBuild() {
   const dist = mkdtempSync(join(tmpdir(), "budgets-"));
@@ -32,6 +32,18 @@ test("a reader page's initial assets: the root's and the splat route's, once eac
   assert.equal(page.css.files, 3);
   assert.equal(page.css.raw, 600);
   assert.throws(() => initialAssets({ __root__: {} }, ["__root__", "/$"]), /not in the build's manifest/);
+});
+
+test("page kinds: the reader page is charged its own kind's stylesheets, not the book page's (their names sit in the router chunk too)", async () => {
+  const dist = fakeBuild();
+  writeFileSync(join(dist, "server/assets/router-abc.js"), `const tokens = "/assets/tokens.css"; const k = {"text":["/assets/Workspace.css"],"book":["/assets/BookRoute.css"]};`);
+  writeFileSync(join(dist, "server/page-kind-css.json"), JSON.stringify({ text: ["/assets/Workspace.css"], book: ["/assets/BookRoute.css"] }));
+  for (const [f, n] of [["Workspace.css", 50], ["BookRoute.css", 7000]]) writeFileSync(join(dist, "client/assets", f), "x".repeat(n));
+  assert.deepEqual(pageKindStylesheets(dist).text, ["/assets/Workspace.css"]);
+  assert.deepEqual(rootUrlStylesheets(dist, ["/assets/Workspace.css", "/assets/BookRoute.css"]), ["/assets/tokens.css"]);
+  const page = (await measure(dist))["reader page (/Genesis.1)"];
+  assert.equal(page.css.files, 4); // root.css, reader.css, tokens.css, Workspace.css
+  assert.equal(page.css.raw, 650);
 });
 
 test("growth within the tolerance passes, beyond it fails; shrinking is reported", () => {

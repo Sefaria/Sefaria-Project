@@ -9,6 +9,7 @@ import { indexMetaQueryOptions } from "~/lib/text/commentary";
 import { loadReaderPassage, passageUrl, selectionKey, type VersionSelection } from "~/lib/text/queries";
 import { hasVersionPrefs, resolveTranslation, toApiVersion, type VersionPrefs } from "~/lib/versions/preferences";
 import { readVersionPrefs } from "~/lib/versions/prefs-source";
+import { hebrewRefOf } from "~/lib/reader/page-title";
 import { panelOrder, updatePanel } from "~/lib/workspace/ops";
 import type { PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
 import { decodeWorkspace, type RawSearch } from "~/lib/workspace/url";
@@ -17,6 +18,8 @@ import { decodeWorkspace, type RawSearch } from "~/lib/workspace/url";
 export interface ReaderRouteData {
   /** Canonical ref the panel shows. */
   ref: string;
+  /** The same in Hebrew, when it can be named from the loaded sections (the page title in the Hebrew interface). */
+  heRef?: string;
   sectionRefs: string[];
   highlight: { from: string[]; to: string[] } | null;
   /** Neighbouring sections, for `<link rel=prev|next>` (crawlers follow these; readers use scroll). */
@@ -74,6 +77,7 @@ async function loadTextPanel(queryClient: QueryClient, panel: TextPanelState, pr
   const next = result.sections.at(-1)!.next;
   return {
     ref: result.canonicalRef,
+    heRef: hebrewRefOf(result.canonicalRef, result.sections),
     sectionRefs: result.sections.map((s) => s.ref),
     highlight: result.highlight,
     prev,

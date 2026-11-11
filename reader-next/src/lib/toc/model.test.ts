@@ -111,3 +111,25 @@ describe("deep and zoomed arrays (ported rules; synthetic records: no recorded b
     expect(l.filter((x) => x.current)).toEqual([]);
   });
 });
+
+// v-exits F-5: SSR `TypeError: counts.forEach is not a function` (jaggedSection) from the book page. The input: a node three levels
+// deep whose counts stop short of its depth, a number where a level of sections is expected: a node with no content counts (countsOf
+// falls back to `lengths`, one 1 per top section), or ragged counts.
+describe("counts shallower than the node's depth", () => {
+  const book = (schema: Record<string, unknown>): TocIndexRecord => ({
+    title: "Deep",
+    schema: { nodeType: "JaggedArrayNode", title: "Deep", heTitle: "עמוק", depth: 3, addressTypes: ["Integer", "Integer", "Integer"], sectionNames: ["Volume", "Chapter", "Paragraph"], ...schema },
+  });
+  // @feature BOK-001
+  it("a depth-3 node with only `lengths` draws its volumes, no chapter links, and does not throw", () => {
+    const [s] = tocStructures(book({ lengths: [2, 5, 20] }), {});
+    const sections = flat(s!.items).filter((i) => i.kind === "section" && i.name.en);
+    expect(sections.map((i) => (i.kind === "section" ? i.name.en : ""))).toEqual(["Volume 1", "Volume 2"]);
+    expect(links(s!.items)).toEqual([]);
+  });
+
+  it("ragged counts: a number at the chapter level is skipped like the old page, the other volume keeps its links", () => {
+    const [s] = tocStructures(book({ content_counts: [3, [2, 4]] }), {});
+    expect(links(s!.items).map((l) => l.ref)).toEqual(["Deep 2:1", "Deep 2:2"]);
+  });
+});

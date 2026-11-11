@@ -9,7 +9,7 @@
  */
 import { queryOptions, type QueryClient } from "@tanstack/react-query";
 import { text } from "@vendor/sefaria-toolkit/client/runtime";
-import { getSefariaClient, unwrap } from "~/lib/api/client";
+import { apiJson, getSefariaClient, SEFARIA_API_ORIGIN, SefariaApiError, unwrap } from "~/lib/api/client";
 import { PUBLIC_CONFIG } from "~/lib/config";
 import { withPolicy } from "~/lib/cache/query-options";
 import { RefIndex } from "~/lib/cache/ref-index";
@@ -89,6 +89,23 @@ export function metaFromPassage(p: TextPassage): BookMeta {
     isComplex: p.isComplex,
   };
 }
+
+/**
+ * Where a ref above section level that names no section (a complex text's node: "Arukh HaShulchan, Orach Chaim") opens: its first
+ * available section, from the small `/api/ref` answer (Django's RefView: `navigation_refs.first_available_section_ref`), as legacy's
+ * server does (reader/views.py first_available_section_ref). Asking the texts API for the node itself downloads the whole node
+ * (5.9 MB in 13.5 s for Orach Chaim: past the server's deadline, a 503; v-exits F-4). Null when the API knows no such ref.
+ */
+export async function fetchFirstSection(ref: string, signal?: AbortSignal): Promise<string | null> {
+  const r = await globalThis.fetch(`${SEFARIA_API_ORIGIN}/api/ref/${encodeURIComponent(ref)}`, { signal });
+  if (r.status >= 500) throw new SefariaApiError(`Ref ${ref}: HTTP ${r.status}`, r.status);
+  if (!r.ok) return null;
+  const data = await apiJson<{ is_ref?: boolean; navigation_refs?: { first_available_section_ref?: string | null } }>(r, `Ref ${ref}`).catch(() => null);
+  return (data?.is_ref && data.navigation_refs?.first_available_section_ref) || null;
+}
+
+export const firstSectionQueryOptions = (ref: string) =>
+  queryOptions<string | null>({ ...withPolicy("text", { queryKey: ["first-section", ref] as const, queryFn: ({ signal }: { signal: AbortSignal }) => fetchFirstSection(ref, signal) }) });
 
 export interface ReaderPassage {
   /** The ref the reader should show in the URL (canonical spelling). */
@@ -170,6 +187,15 @@ export async function loadReaderPassage(
     }
     return p;
   };
+  // A node address with no section (a complex text's part): open its first section without downloading the whole node (F-4)
+  if (plan.kind === "resolve" && !isRangedRef(ref) && !parseHumanRef(ref).sections.length) {
+    const first = await qc.ensureQueryData(firstSectionQueryOptions(ref)).catch(() => null);
+    if (first && parseHumanRef(first).sections.length) {
+      const opened = await loadReaderPassage(qc, refIndex, first, sel);
+      await refIndex.setAlias(requestedRef, opened.canonicalRef);
+      return opened;
+    }
+  }
   if (plan.kind === "resolve") plan = await askServer();
 
   // A long range (Psalms 1-150, Shabbat 2a-157b: hundreds of sections) loads only its first sections; the column loads the rest as

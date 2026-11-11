@@ -186,3 +186,23 @@ describe("display menu availability (inv_02 §7)", () => {
     expect(displayMenuAvailability({ ...base, panelWidth: 400, settings: { ...DEFAULT_SETTINGS, language: "hebrew" } }).layout).toBe(true);
   });
 });
+
+// v-parity B1: legacy sefaria/system/middleware.py:194, default_content_lang = "hebrew" if interface == "hebrew" else "bilingual"
+describe("the text language a reader has not chosen follows the interface", () => {
+  // @feature I18-001
+  it("Hebrew interface, no choice: Hebrew", () => {
+    expect(parseCookieSettings({ interfaceLang: "hebrew" }).language).toBe("hebrew");
+  });
+  it("English interface or none: bilingual", () => {
+    expect(parseCookieSettings({ interfaceLang: "english" }).language).toBe("bilingual");
+    expect(parseCookieSettings({}).language).toBe("bilingual");
+  });
+  it("the reader's own choice wins in either interface", () => {
+    expect(parseCookieSettings({ interfaceLang: "hebrew", contentLang: "bilingual" }).language).toBe("bilingual");
+    expect(parseCookieSettings({ interfaceLang: "hebrew", language: "english" }).language).toBe("english");
+    expect(parseCookieSettings({ interfaceLang: "english", contentLang: "hebrew" }).language).toBe("hebrew");
+  });
+  it("a corrupt choice falls back to the interface's default", () => {
+    expect(parseCookieSettings({ interfaceLang: "hebrew", contentLang: "klingon" }).language).toBe("hebrew");
+  });
+});

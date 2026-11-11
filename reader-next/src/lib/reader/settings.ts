@@ -55,6 +55,17 @@ const oneOf = <T extends string>(v: string | undefined, allowed: readonly T[], f
   allowed.includes(v as T) ? (v as T) : fallback;
 
 /**
+ * The text language when the reader has chosen none: Hebrew in the Hebrew interface, else bilingual (legacy
+ * sefaria/system/middleware.py: `default_content_lang = "hebrew" if interface == "hebrew" else "bilingual"`; v-parity B1). A choice
+ * the reader made (the `language`/`contentLang` cookie, the URL's `lang`) still wins.
+ *
+ * @feature I18-001 Content, translation and version preferences
+ */
+export function defaultContentLanguage(interfaceLang: string | undefined): ContentLanguage {
+  return interfaceLang === "hebrew" ? "hebrew" : DEFAULT_SETTINGS.language;
+}
+
+/**
  * Read settings from cookies (name → value). Unknown or missing values fall back to defaults, so a
  * corrupt cookie can never break the reader.
  */
@@ -62,7 +73,7 @@ export function parseCookieSettings(cookies: Record<string, string | undefined>)
   const d = DEFAULT_SETTINGS;
   const size = Number.parseFloat(cookies.fontSize ?? "");
   return {
-    language: oneOf(cookies.language ?? cookies.contentLang, ["hebrew", "english", "bilingual"], d.language),
+    language: oneOf(cookies.language ?? cookies.contentLang, ["hebrew", "english", "bilingual"], defaultContentLanguage(cookies.interfaceLang)),
     layoutDefault: oneOf(cookies.layoutDefault, ["segmented", "continuous"], d.layoutDefault),
     layoutTalmud: oneOf(cookies.layoutTalmud, ["segmented", "continuous"], d.layoutTalmud),
     layoutTanakh: oneOf(cookies.layoutTanakh, ["segmented", "continuous"], d.layoutTanakh),

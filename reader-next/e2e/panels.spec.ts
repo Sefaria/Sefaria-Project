@@ -15,7 +15,8 @@ test.describe("several texts side by side (old multi-panel URLs)", () => {
     await expect(page.getByRole("group", { name: "Open texts" })).toBeVisible();
     await expect(page.locator('section[data-panel-id="p2"] [role="group"][data-ref="Exodus 1:1"]')).toBeVisible();
     expect(Math.abs((await width(page, "p1")) - (await width(page, "p2")))).toBeLessThan(2); // even split
-    await expect(page).toHaveTitle(/Genesis 1 and Exodus 1/);
+    // live joins panels with " & " (reader_app.and): src/lib/reader/page-title.ts
+    await expect(page).toHaveTitle("Genesis 1 & Exodus 1 | The Sefaria Library");
   });
 
   test("a text with its sidebar beside another text: 37/26/37, as sefaria.org lays it out (592/416/592 at 1600px)", async ({ page }) => {
