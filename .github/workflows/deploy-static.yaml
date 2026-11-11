@@ -268,6 +268,12 @@ jobs:
           echo "${APP_VERSION}" > promotions/${ENV_NAME}
 
           git add "$ENV_FILE" helm-chart/promotions/${ENV_NAME} promotions/${ENV_NAME}
+          # A push that changes neither the app nor the chart (e.g. an edit to another
+          # env's helmrelease.yaml) leaves this env's state as it was: nothing to deploy.
+          if git diff --cached --quiet; then
+            echo "Deployment state for ${ENV_NAME} unchanged (app=${APP_VERSION} chart=${CHART_VERSION}); skipping commit, tag and deploy"
+            exit 0
+          fi
           git commit -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION} [skip ci]"
           git tag -a "${RELEASE_TAG}" -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION}"
           git push origin "${GITHUB_REF_NAME}" --follow-tags
@@ -276,7 +282,7 @@ jobs:
 
   trigger-deploy:
     needs: [detect, update-deployment-state]
-    if: always() && !failure() && !cancelled()
+    if: always() && !failure() && !cancelled() && needs.update-deployment-state.outputs.release_tag != ''
     uses: ./.github/workflows/trigger-infra-deploy.yml
     with:
       tag: ${{ needs.update-deployment-state.outputs.release_tag }}
