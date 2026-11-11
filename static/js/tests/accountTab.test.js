@@ -424,8 +424,8 @@ describe('Account tab Google Drive disconnect', () => {
   });
 
   it('disconnects and then shows that nothing is connected', () => {
-    mount({ sheetsExport: { gauthEmail: 'tova@gmail.com' } });
-    expect(container.querySelector('#gauth-email-display').value).toBe('tova@gmail.com');
+    mount({ sheetsExport: { gauthEmail: 'reader@example.com' } });
+    expect(container.querySelector('#gauth-email-display').value).toBe('reader@example.com');
     const url = disconnect({ status: 'ok' });
     expect(url).toBe('/unlink-gauth?redirect=0');
     expect(container.querySelector('#gauth-email-change').style.display).toBe('none');
@@ -433,7 +433,7 @@ describe('Account tab Google Drive disconnect', () => {
   });
 
   it('keeps the connection on show with the server error when disconnecting fails', () => {
-    mount({ sheetsExport: { gauthEmail: 'tova@gmail.com' } });
+    mount({ sheetsExport: { gauthEmail: 'reader@example.com' } });
     disconnect({ error: 'Could not unlink' });
     expect(container.querySelector('#gauth-disconnect-messages').textContent).toBe('Could not unlink');
     expect(container.querySelector('#gauth-email-change').style.display).toBe('');
@@ -486,7 +486,7 @@ describe('Account tab when a request fails', () => {
   });
 
   it('says a failed Google Drive disconnect did not happen, and keeps the connection on show', () => {
-    mount({ sheetsExport: { gauthEmail: 'tova@gmail.com' } });
+    mount({ sheetsExport: { gauthEmail: 'reader@example.com' } });
     act(() => {
       container.querySelector('#disconnect-gauth-email').click();
     });
@@ -532,7 +532,7 @@ describe('Account tab after Back', () => {
   });
 
   it('shows a changed email and a disconnected Google Drive', () => {
-    mount({ sheetsExport: { gauthEmail: 'tova@gmail.com' } });
+    mount({ sheetsExport: { gauthEmail: 'reader@example.com' } });
     act(() => {
       container.querySelector('#change-email').click();
     });
@@ -615,7 +615,7 @@ describe('Account tab when the session has ended', () => {
   });
 
   it('Disconnect Drive: the login page as a 200 sends the visitor to log in and clears the cached settings', () => {
-    mount({ sheetsExport: { gauthEmail: 'tova@gmail.com' } });
+    mount({ sheetsExport: { gauthEmail: 'reader@example.com' } });
     act(() => {
       container.querySelector('#disconnect-gauth-email').click();
     });

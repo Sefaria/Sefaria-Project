@@ -60,7 +60,6 @@ migrations pending.
 | `watch-promotion.sh`                                        | Read-only watch while preprod is promoted: lock waits and long queries on `sefaria_auth`, the newest `powered_by` migration, prod web pods' readiness and restarts, prod nginx 5xx rate and latency; one line per tick, JSON lines on disk, an ALARM and exit 2 past the thresholds.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `rehearse-migration.sh`                                     | Restores a dump into a scratch local Postgres (docker), runs the checkout's pending migrations one at a time with their durations, samples `pg_locks`/`pg_stat_activity` every 0.2 s. Never a cluster.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `release_lib.py`, `pytest_failures.py`, `lib.sh`, `django/` | Shared helpers; the Django settings overlay for running a checkout's migrations against a local port.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `tests/run-tests.sh`                                        | The end-to-end test on a kind cluster (below).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 Requirements: bash 4+ (macOS: `brew install bash`), kubectl, helm, git, python3, docker (or a local `pg_restore` 18+ and
 no schema round trip), gcloud for `--upload` and the image check, gh for the staging release check. The rehearsal and the
@@ -88,8 +87,9 @@ The order follows the [release plan](https://github.com/Sefaria/Sefaria-Project/
 ### Before the master merge
 
 ```bash
-# 1. The test suite (about 3 minutes; creates and deletes kind cluster apikeys-release-test):
-scripts/release/api-keys-phase1/tests/run-tests.sh --master-code ~/sefaria/worktrees/apikeys-master --python <venv>/bin/python
+# 1. The test suite (about 3 minutes; creates and deletes kind cluster apikeys-release-test), from a checkout of
+#    the branch tooling/api-keys-phase1-testing, with MASTER_CHECKOUT a checkout of master:
+scripts/release/api-keys-phase1/tests/run-tests.sh --master-code "$MASTER_CHECKOUT" --python <venv>/bin/python
 
 # 2. Prod numbers for the go/no-go (read-only; needs gcloud auth for the prod context):
 C=gke_production-deployment_us-east1-b_cluster-1
@@ -283,61 +283,6 @@ read something (or nginx lines arrived but none parsed), else 0.
 
 ## The test suite
 
-`tests/run-tests.sh --master-code DIR [--phase1-code DIR] --python PY` builds kind cluster `apikeys-release-test` with
-namespaces `default`, `preprod` and `flux-system`; a `postgres:18` StatefulSet `postgres-18` (pod `postgres-18-0`);
-minimal Flux HelmRelease/GitRepository and Argo Rollout CRDs (objects only, no controllers); the preprod and production
-web Rollouts and stand-in web pods installed as helm releases `preprod` and `production`, so helm history and helm
-rollback are real; HelmReleases from the env files; GitRepositories at release tags of a fixture repository; the
-Secrets by name. Then, in order:
-
-1. master's migrations and listing rows (one published row asked not to be published); wrong-context and dry-run checks;
-   listing count (3 listed, 1 hidden, 2 after); snapshot, with the manifest and dump checksums checked;
-2. phase 1's migrations and a tier, a project and a key; the preprod release flipped to a phase 1 image (helm revision 2);
-3. preflight: fails without the grant on `powered_by_apikey`, passes with it, warns (not needed yet) on a missing Secret
-   while `authService.enabled` is false and fails on it with `--require-auth-service`;
-4. `restore db --scoped` refused while the phase 1 image runs (database unchanged); `db --full` refused;
-5. `restore chart`: dry run (no branch), `--execute` (branch with the snapshot's env file, nothing pushed), emergency dry
-   run and wrong confirmation (no change), `--emergency --execute` (HelmRelease suspended, helm revision 3 = revision 1,
-   Rollout and pods back on the snapshot image); then the git side applied as Flux would: HelmRelease spec and
-   GitRepository tag equal to the snapshot's;
-6. `restore db --scoped`: dry run (no change), `--execute`; tables, row checksums, `powered_by` migrations and schema equal
-   to the snapshot; `apikeys_notify()` and the triggers gone; a fresh dump taken; master's code has no unapplied
-   migration and creates, lists and deletes a listing; a second restore is a no-op; phase 1 migrates forward again and
-   master's code still works on that schema;
-7. `rehearse-migration.sh` on the snapshot dump with a concurrent reader;
-8. staging-smoke's legacy apikey write against a stub of the two endpoints (MANUAL without the flag, refused without a
-   session to delete with, then create, refuse an unknown key, delete; the key never printed); staging-smoke with a fake
-   `curl` (no credential on any command line, the Authorization header in a private file); `pytest-failure-diff.sh` on
-   JUnit, plain-list and run-id fixtures;
-9. concurrent migrate: two `manage.py migrate` processes started together on a copy of the database at master's schema
-   with rows (at least one exits 0, a loser fails with an "already exists" error, a third run exits 0, each `powered_by`
-   migration is recorded once, the leaf is 0010), and `SHOW lock_timeout` on the project's own Django connection prints
-   `5s` under `PGOPTIONS='-c lock_timeout=5s'`;
-10. premigrate.sh with a stand-in web image (Django 6 and a fixture app): the pod spec is a copy of the Rollout's; refusals
-    (no manifest, an old one, an idle-in-transaction session); `migrate` exiting 0 with a migration pending ends in
-    `premigrate: FAILED` without `premigrate: ok`; a lock held on the altered table fails an attempt within about 5 s and the
-    run retries and ends in `premigrate: ok`; a lock held for the whole run ends in FAILED; a second run with the running tag
-    is a no-op; `preflight.sh --stage promote` fails with a migration pending and passes after.
-
-The restore step also covers the maintenance fence (HelmRelease not suspended, an unsuspended web-image CronJob, a Rollout
-template on the phase 1 image, a session holding a write lock, a session writing in short transactions: each refuses and
-changes nothing) and the restore SQL (no timeout reset from the dump, bounds set again after it, locks and queued-writer
-check first). The listing count runs with each `--listing` value on the phase 1 schema; the preflight also checks a stale
-HelmRelease Ready.
-
-The preflight step (3) also covers the prod-only checks against stand-ins built from the real chart's prod render
-(CronJobs with the same names and schedules, the Datadog labels and annotations on the production web pods): they
-pass, then fail with a CronJob deleted and with an annotation removed; and the namespace check (its own
-`namespace.yaml`, `namespaces.yaml`, neither, and MANUAL without `--infra-repo`). Between steps 3 and 4,
-`watch-promotion.sh` runs a clean short window (exit 0, every tick's JSON checked), then fires its lock-wait alarm
-while a transaction holds ACCESS EXCLUSIVE on `powered_by_project` and a reader waits (the reader's query literal must
-not reach the output), its 5xx alarm while a stand-in nginx (`app=nginx-production`) logs 503s, and exits 1 when it
-cannot read the database; the database is unchanged by the watches.
-
-Not covered by the kind suite: the real web image's start-up (the fixture image stands in for it; the pod spec copy is
-tested, the real image's `manage.py` is not), real nginx log volume and real Argo-managed web pods for the watch, the real Django
-`/api/collections` endpoints for the legacy write (the stub follows `sourcesheets/views.py`; the POST path is covered by
-`reader/tests/legacy_api_key_test.py`), the Django branch of the `current_database()` probe (stand-in pods answer through
-psql), real Flux and Argo controllers, `gcloud storage cp` and the Artifact Registry check, the `trigger-infra-deploy.yml`
-dispatch, and the rehearsal on a real copy of prod (it needs a prod snapshot). `pg_dump` runs inside the `postgres-18`
-container, under its 4 GiB memory limit; the dump of `sefaria_auth` (hundreds of MB) streams out through `kubectl exec`.
+The kind-cluster test suite for these scripts (`tests/run-tests.sh` and its fixtures) lives on the branch
+`tooling/api-keys-phase1-testing`, together with the local stack, the failure drills and the end-to-end suites. It is
+test tooling, not part of the release, so it is kept off master. Its README there describes every step it checks.
