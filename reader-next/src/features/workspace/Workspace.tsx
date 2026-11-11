@@ -118,7 +118,7 @@ function PanelHost({ panel, data, innerSizes, alone }: { panel: PanelState; data
   switch (panel.kind) {
     case "text":
       return (
-        // a panel that fails to render is reported (T-D01) and shows the error message in its place; the other panels keep working
+        // a panel that fails to render is reported and shows the error message in its place; the other panels keep working
         <ReportingBoundary name="panel" resetKey={panel.ref} fallback={() => <ErrorState title={<InterfaceText en="Something went wrong!" he="ארעה תקלה במערכת." />}><InterfaceText en="Please use the back button or the menus above to get back on track." he="אנא חזרו לתפריט הראשי או אחורנית על ידי שימוש בכפתורי התפריט או החזור." /></ErrorState>}>
           <Suspense fallback={<LoadingState />}>
             <TextPanel panel={panel} data={panelData} innerSizes={innerSizes} alone={alone} />

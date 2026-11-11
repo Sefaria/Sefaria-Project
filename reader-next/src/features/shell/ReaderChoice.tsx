@@ -3,7 +3,7 @@
  * `useReaderOptIn` gives the header its two actions (or null: no opt-in, no items) and the feedback dialog to render.
  * "Report a problem" reuses the sidebar's Feedback form (FeedbackView → POST /api/send_feedback), in a dialog.
  *
- * @feature ACC-003 Account settings page (the reader choice, T-D05)
+ * @feature ACC-003 Account settings page (the reader choice)
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { readerAnalytics, readerChoiceAnalytics, type ReaderChoiceSource } from "~/lib/analytics";

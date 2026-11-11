@@ -147,7 +147,7 @@ function aboutCurrent(language: ReaderSettings["language"], section: Pick<TextPa
   };
 }
 
-/** What the sidebar names when it is slow or failed (SB-02). */
+/** What the sidebar names when it is slow or failed. */
 const CONNECTIONS = { en: "connections", he: "קשרים" };
 const RESOURCES = { en: "sheets, topics and other resources", he: "דפי מקורות, נושאים ומשאבים נוספים" };
 
@@ -707,7 +707,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           const path = `${encodeURIComponent(shown.languageFamilyName)}/${encodeURIComponent(shown.versionTitle)}`;
           uaEvent("Tools", "Edit Text Click", `${notesRefs[0]}/${path}`);
           const next = window.location.pathname + window.location.search;
-          // Django's editor comes back with a full page load: what it may change must not be painted from disk then (T-E01)
+          // Django's editor comes back with a full page load: what it may change must not be painted from disk then
           void forgetBeforeEditor({ kind: "text", ref: notesRefs[0]! }).finally(() => window.location.assign(`${SITE_ORIGIN}/edit/${refToUrl(notesRefs[0]!)}/${path}?next=${encodeURIComponent(next)}`));
         }
       : undefined;
@@ -716,7 +716,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
         <AdvancedToolsView
           onAddTranslation={() =>
             viewer
-              ? // the old addTranslation: Django's translation page, coming back here (what it changes is forgotten on disk first: T-E01)
+              ? // the old addTranslation: Django's translation page, coming back here (what it changes is forgotten on disk first)
                 void forgetBeforeEditor({ kind: "text", ref: notesRefs[0]! }).finally(() =>
                   window.location.assign(`${SITE_ORIGIN}/translate/${refToUrl(notesRefs[0]!)}?next=${encodeURIComponent(window.location.pathname + window.location.search)}`),
                 )
@@ -784,7 +784,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     return (
       <ConnectionsPanel label="Resources" title={<ResourcesTitle />} lang={shownLang} onLang={props.onLang} onClose={onClose}>
         {!sectionLinks ? (
-          // SB-02: a cold /api/links can take 11 s; say so, and offer a retry if it fails
+          // a cold /api/links can take 11 s; say so, and offer a retry if it fails
           <ViewLoad q={linksQ} what={CONNECTIONS} />
         ) : (
           <>
@@ -799,7 +799,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
               moderator={!!viewer?.isStaff}
               notesCount={notesQ.data?.length ?? 0}
             />
-            {/* SB-02: the connections above came from /api/links; a cold /api/related (sheets, topics…) can end in a 504 after 15 s */}
+            {/* the connections above came from /api/links; a cold /api/related (sheets, topics…) can end in a 504 after 15 s */}
             <PartLoad q={resourcesQ} what={RESOURCES} />
           </>
         )}

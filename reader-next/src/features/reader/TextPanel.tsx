@@ -589,7 +589,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
 
   // ── signed-in: reading history and Save (USL-010, USL-011) ──────────────────────────────────────────────
   const viewer = useViewer();
-  // Continue Reading on the book page resumes from here (BOK-003), for this reader only (R-29)
+  // Continue Reading on the book page resumes from here (BOK-003), for this reader only
   const viewerId = viewer?.id ?? null;
   useEffect(() => {
     if (current.ref) rememberPlace(current.passage.indexTitle, current.ref, viewerId);

@@ -28,7 +28,7 @@ const ALLOWED = new Set([
 ]);
 /**
  * Written as another element: a page's own `<main>` (about, team, jobs, products, the Hebrew ways-to-give…) sits inside the shell's
- * `<main>`, and a page has one (v-a11y N2: landmark-main-is-top-level, landmark-no-duplicate-main). No stylesheet selects on the tag.
+ * `<main>`, and a page has one (landmark-main-is-top-level, landmark-no-duplicate-main). No stylesheet selects on the tag.
  */
 const RENAMED: Record<string, string> = { main: "div" };
 const closeTag = (name: string) => `</${RENAMED[name] ?? name}>`;

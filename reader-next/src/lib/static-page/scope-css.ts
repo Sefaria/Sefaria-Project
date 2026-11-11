@@ -1,6 +1,6 @@
 /**
  * Scopes a legacy stylesheet to one element (`#staticContentWrapper`): every rule's selectors are put under it, so the old site's
- * static-page CSS (static/css/static.css, common.css…) styles the content block in this client's shell and nothing else (T-F31). Rules
+ * static-page CSS (static/css/static.css, common.css…) styles the content block in this client's shell and nothing else. Rules
  * for the document (`html`, `body`, `:root`) apply to the wrapper itself (`body.interface-hebrew .x` → `#staticContentWrapper.interface-hebrew .x`).
  *
  * Every legacy rule gains the same one id of specificity, so the legacy rules keep their order among themselves; inside @media and

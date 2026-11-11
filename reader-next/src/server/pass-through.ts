@@ -32,7 +32,7 @@ export const requestHost = (request: Request): string =>
 
 /**
  * The request-level decision src/start.ts makes first: does this request go to Django whatever this client renders? (Its path as sent,
- * its method, and the host asked for: the Voices host keeps the Library-only pages, Q-E1.)
+ * its method, and the host asked for: the Voices host keeps the Library-only pages.)
  */
 export const passesToDjango = (request: Request, pathname: string = new URL(request.url).pathname): boolean =>
   isDjangoPath(pathname, request.method, requestHost(request));

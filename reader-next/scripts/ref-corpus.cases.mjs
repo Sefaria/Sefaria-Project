@@ -73,7 +73,7 @@ export const CASES = [
   // titles with / and \ (master #3790)
   { path: "/The_Five_Books_of_Moses,_by_Everett_Fox,_Leviticus,_Part_II;_Ritual_Pollution_and_Purification,_The_Day_of_Purgation%2FAtonement", why: "a title with /" },
   { path: "/Judaism's_Life_Changing_Ideas;_A_Weekly_Reading_of_the_Jewish_Bible,_Matot;_Subject%5CObject", why: "a title with \\" },
-  // legacy URL forms this reader claims because the first segment is a ref (T-E08)
+  // legacy URL forms this reader claims because the first segment is a ref
   { path: "/Genesis.1/en/The_Contemporary_Torah,_Jewish_Publication_Society,_2006", why: "old_versions_redirect: /<ref>/<lang>/<version>" },
   { path: "/Genesis.1.3/he/Miqra_according_to_the_Masorah", why: "old_versions_redirect, Hebrew version" },
   { path: "/Berakhot.2a/en/William_Davidson_Edition_-_English", why: "old_versions_redirect, Talmud" },

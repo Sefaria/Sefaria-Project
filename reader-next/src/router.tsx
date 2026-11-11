@@ -24,7 +24,7 @@ export function getRouter() {
     // Library data is immutable-ish and cached by the library cache; route matches need not reload.
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: RouteError,
-    // an address no route matches: the reader's own 404 page (T-F28)
+    // an address no route matches: the reader's own 404 page
     defaultNotFoundComponent: NotFoundPage,
     // Old-site query strings (no JSON quoting; `+` literal): every existing link keeps working.
     parseSearch,

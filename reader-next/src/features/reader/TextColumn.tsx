@@ -73,7 +73,7 @@ export interface TextColumnProps {
  * @feature TXD-055 Visible-ref tracking drives URL and header
  * @feature TXD-056 Loading placeholders and book title header
  */
-/** Sections further than this many screens from the reader are let go (R-25). */
+/** Sections further than this many screens from the reader are let go. */
 const WINDOW_SCREENS = 3;
 /** Never fewer than this many sections in the column. */
 const MIN_SECTIONS_KEPT = 3;
@@ -124,7 +124,7 @@ export function TextColumn(props: TextColumnProps) {
     focusedEl.current?.removeAttribute("data-focused");
     focusedEl.current?.removeAttribute("aria-current");
     el?.setAttribute("data-focused", "true");
-    // with the sidebar open the highlighted verse is the selected one: say so to assistive technology too (R-31)
+    // with the sidebar open the highlighted verse is the selected one: say so to assistive technology too
     if (showFocusRef.current) el?.setAttribute("aria-current", "true");
     focusedEl.current = el;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

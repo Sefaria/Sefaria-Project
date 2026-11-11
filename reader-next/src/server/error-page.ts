@@ -70,7 +70,7 @@ p a { color: var(--link); }
 </html>`;
 }
 
-/** The plain-text answer this server gave before T-F28: kept on the Voices host (Voices is out of scope: nothing new there). */
+/** The plain-text answer this server gave before this page existed: kept on the Voices host (Voices is out of scope: nothing new there). */
 const plainUnavailable = () =>
   new Response("The library is not answering right now. Please try again in a moment.", {
     status: 503,

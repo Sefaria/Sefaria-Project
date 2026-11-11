@@ -187,7 +187,7 @@ export async function loadReaderPassage(
     }
     return p;
   };
-  // A node address with no section (a complex text's part): open its first section without downloading the whole node (F-4)
+  // A node address with no section (a complex text's part): open its first section without downloading the whole node
   if (plan.kind === "resolve" && !isRangedRef(ref) && !parseHumanRef(ref).sections.length) {
     const first = await qc.ensureQueryData(firstSectionQueryOptions(ref)).catch(() => null);
     if (first && parseHumanRef(first).sections.length) {

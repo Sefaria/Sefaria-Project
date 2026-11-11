@@ -28,7 +28,7 @@ let store: UseStore | undefined;
 let metaStore: UseStore | undefined;
 
 /**
- * Set once a disk call has timed out (T-E04): IndexedDB that hangs once in a session hangs again, so for the rest of the visit the
+ * Set once a disk call has timed out: IndexedDB that hangs once in a session hangs again, so for the rest of the visit the
  * cache is memory-only and nothing waits on the disk again.
  */
 let diskDead = false;
@@ -58,7 +58,7 @@ function sizeOf(value: unknown, depth = 0): number {
 /**
  * How long a disk read may take before the reader stops waiting for it and goes to the network. IndexedDB can hang rather than fail
  * (WebKit has shipped versions whose first `open` after launch never answered; a busy disk on a cheap phone): the text must never wait
- * on the cache (T-E04).
+ * on the cache.
  */
 export const DISK_READ_TIMEOUT_MS = 1_500;
 

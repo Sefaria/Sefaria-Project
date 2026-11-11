@@ -5,7 +5,7 @@ const loc = (r: Response | null) => [r?.status, r?.headers.get("location")];
 
 // Each checked against www.sefaria.org on 2026-11-10 (curl -sI): same status, same Location.
 // @feature RTE-037 @feature RTE-012 @feature RTE-015
-describe("redirects answered by the reader's server (T-F26)", () => {
+describe("redirects answered by the reader's server", () => {
   it("as Django answers them", () => {
     expect(loc(fixedRedirect("/people", "GET"))).toEqual([301, "/topics/category/authors"]);
     expect(loc(fixedRedirect("/people/", "GET"))).toEqual([301, "/topics/category/authors"]);

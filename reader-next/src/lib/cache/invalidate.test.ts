@@ -65,7 +65,7 @@ describe("what a write makes wrong", () => {
     expect(matches({ kind: "lexicon" }, ["lexicon", "v2", "אור", "Genesis 1:3"])).toBe(true);
     expect(matches({ kind: "topic", slug: "light" }, ["topics", "topic", "light"])).toBe(true);
     expect(matches({ kind: "topic", slug: "light" }, ["topics", "topic", "dark"])).toBe(false);
-    expect(matches({ kind: "topic", slug: "light" }, ["resources", "Genesis 1"])).toBe(false); // patched in place, not refetched (SB-03)
+    expect(matches({ kind: "topic", slug: "light" }, ["resources", "Genesis 1"])).toBe(false); // patched in place, not refetched
     expect(matches({ kind: "notes" }, ["user", "notes", 1, ["Genesis 1:1"]])).toBe(true);
     expect(matches({ kind: "notes" }, ["user", "viewer"])).toBe(false);
   });

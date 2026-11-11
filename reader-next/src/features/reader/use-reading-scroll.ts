@@ -356,7 +356,7 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
       const s = state.current;
       // Already the anchor (the click made it so, and the column's `selected` effect says it again): keep the anchor where the click
       // found it. Re-recording here measured the column after the sidebar had narrowed it — React runs a discrete event's effects
-      // before the browser's ResizeObserver — so the reflow was taken for the place to keep, and the verse moved (T-E03, below
+      // before the browser's ResizeObserver — so the reflow was taken for the place to keep, and the verse moved (below
       // ~1075px, where the narrower column rewraps).
       const keep = s.focus === ref && s.anchor?.ref === ref;
       s.focus = ref;

@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { loadWorkspaceRoute } from "~/features/reader/reader-route";
-// Each page kind (the reader, a book's page) is its own chunk, loaded before anything renders: see page-kinds.tsx (T-H03)
+// Each page kind (the reader, a book's page) is its own chunk, loaded before anything renders: see page-kinds.tsx
 import { loadPageKind, PAGE_KIND_META, preloadRenderedPageKind, ReaderRoute as PageKindRoute, type PageData } from "~/features/reader/page-kinds";
 import { loadBookRoute } from "~/features/book/book-route";
 import { bookMeta, pageUrls } from "~/lib/library/page-head";

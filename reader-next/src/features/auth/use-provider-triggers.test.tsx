@@ -73,7 +73,7 @@ describe("Google button", () => {
     expect(persisted).toHaveBeenCalledWith({ flowId: "flow-1", attemptId: "attempt-1", method: "google" });
     expect(tracking.suppressFlowEndRef.current).toBe(true);
   });
-  it("a credential is posted to master's Google callback as {id_token} (R-37); its outcome ends the attempt; success goes to next", async () => {
+  it("a credential is posted to master's Google callback as {id_token}; its outcome ends the attempt; success goes to next", async () => {
     let body: unknown;
     server.use(http.post("*/api/auth/google/callback", async ({ request }) => {
       body = await request.json();

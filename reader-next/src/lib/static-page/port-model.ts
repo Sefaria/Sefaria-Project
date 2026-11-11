@@ -1,5 +1,5 @@
 /**
- * The model of a page this client has its own version of (T-F32: /mobile, /educators, the English /ways-to-give), without asking Django:
+ * The model of a page this client has its own version of (/mobile, /educators, the English /ways-to-give), without asking Django:
  * the port renders its whole markup, so all it needs from the old page is its head — the title and description of
  * templates/static/<page>.html (`{% trans %}` in each language) — and base.html's body class. Django's content block for these pages
  * is only an empty React mount point, so a Django without the content mode is no reason to hand them over.

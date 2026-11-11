@@ -82,7 +82,7 @@ export async function fetchCatalog(signal?: AbortSignal): Promise<Catalog> {
 }
 
 /**
- * On the server one catalog serves every request for a while (R-14): each request has its own query client, so without this every
+ * On the server one catalog serves every request for a while: each request has its own query client, so without this every
  * library page fetched and parsed 3.5 MB. Shared, so no request's abort signal cuts it short; a failure is not kept.
  */
 const SERVER_CATALOG_TTL_MS = 10 * 60_000;

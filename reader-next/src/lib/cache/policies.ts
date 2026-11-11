@@ -32,7 +32,7 @@ export const POLICIES: Record<DataClass, CachePolicy> = {
 /**
  * Bump when a cached data shape changes. Disk entries written under a different buster are discarded.
  */
-export const CACHE_BUSTER = "2026-10-29.2"; // R-18 and its follow-up: spanning ranges (commentary ones too) were cached with wrong segment refs
+export const CACHE_BUSTER = "2026-10-29.2"; // bumped when spanning ranges (commentary ones too) were cached with wrong segment refs
 
 /**
  * Staff and moderators edit texts and indexes and check the result: for them text and catalog are never fresh (D-7: "staff always revalidate"). Known in the

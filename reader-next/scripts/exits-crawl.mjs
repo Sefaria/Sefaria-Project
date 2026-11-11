@@ -1,4 +1,4 @@
-// Ways out to the legacy client (T-F01; wiki projects/reader-next/exits-to-legacy.md). Crawls the new reader's page types, desktop and
+// Ways out to the legacy client. Crawls the new reader's page types, desktop and
 // phone, signed out and signed in; collects every same-site link; asks the reader's server (with pass-through to Django on) for each
 // and follows its redirects; a link that ends on a page Django renders (`x-served-by: django`) is a way out. Ways out that are not
 // in scripts/exits-allowlist.json fail the run (exit 1), unless --report-only.

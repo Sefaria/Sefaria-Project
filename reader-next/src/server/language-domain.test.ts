@@ -38,7 +38,7 @@ const loc = (a: ReturnType<typeof answer>) => (a instanceof Response ? a.headers
 
 // sefaria/system/middleware.py LanguageSettingsMiddleware / LanguageCookieMiddleware, branch by branch
 // @feature RTE-059
-describe("the language-domain bounce (T-E07)", () => {
+describe("the language-domain bounce", () => {
   it("the Hebrew interface cookie on sefaria.org goes to sefaria.org.il, with the full path and set-language-cookie", () => {
     const a = answer(req("https://www.sefaria.org/Genesis.1?lang=he&x=a%20b", { cookie: "interfaceLang=hebrew" }));
     expect(a).toBeInstanceOf(Response);

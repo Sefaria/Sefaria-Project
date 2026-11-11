@@ -86,7 +86,7 @@ function Menu({ icon, label, children, anlFeature, picture, optionsClassName }: 
     byButton.current = false;
     setOpen(o);
   };
-  // Focus that leaves the menu (Tab past its last item, Shift+Tab before its button) closes it (v-a11y N9). The Popover gives focus
+  // Focus that leaves the menu (Tab past its last item, Shift+Tab before its button) closes it. The Popover gives focus
   // back to its button when it closes; this effect runs after the Popover's (a parent's effects run after its children's) and puts it
   // where the reader was going.
   const leftTo = useRef<HTMLElement | null>(null);

@@ -31,7 +31,7 @@ export interface CategoryPageProps {
 
 const catHref = (path: readonly string[]) => `/texts/${path.map(encodeURIComponent).join("/")}`;
 const pick = (b: Bilingual, he: boolean) => (he ? b.he || b.en : b.en);
-/** The language and direction of what is shown (v-a11y N7: lang with dir; and a Hebrew-interface fallback to English is English). */
+/** The language and direction of what is shown (lang with dir; and a Hebrew-interface fallback to English is English). */
 const langDir = (he: boolean) => ({ lang: he ? "he" : "en", dir: he ? "rtl" : "ltr" }) as const;
 const pickedLangDir = (b: Bilingual, he: boolean) => langDir(he && !!b.he);
 

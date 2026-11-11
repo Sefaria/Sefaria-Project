@@ -28,7 +28,7 @@ const withSaved = (saved: unknown[]) => {
   return qc;
 };
 
-// @feature USL-008 Per-item save button on /saved and /history (the old SaveLine's SaveButton, T-G04)
+// @feature USL-008 Per-item save button on /saved and /history (the old SaveLine's SaveButton)
 describe("each item's bookmark on Saved and History", () => {
   it("a saved text shows filled; a click removes it with its versions; another click saves it again", async () => {
     const versions = { en: { versionTitle: "The Contemporary Torah, Jewish Publication Society, 2006", languageFamilyName: "english" }, he: null };

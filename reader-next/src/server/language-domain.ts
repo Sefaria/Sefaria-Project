@@ -1,5 +1,5 @@
 /**
- * The language-domain bounce (T-E07): what Django's LanguageCookieMiddleware and LanguageSettingsMiddleware
+ * The language-domain bounce: what Django's LanguageCookieMiddleware and LanguageSettingsMiddleware
  * (sefaria/system/middleware.py, sefaria/utils/domains_and_languages.py) do to a page request, done here for the page requests this
  * server answers itself. Every other request goes to Django, whose middleware does it.
  *

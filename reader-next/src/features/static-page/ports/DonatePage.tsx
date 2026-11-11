@@ -13,7 +13,7 @@ import {
 } from './legacy-blocks';
 
 /**
- * The English /ways-to-give, "Donate to Sefaria" (T-F32): the old DonatePage (static/js/StaticPages.jsx), which Django's English content
+ * The English /ways-to-give, "Donate to Sefaria": the old DonatePage (static/js/StaticPages.jsx), which Django's English content
  * block only mounts — copied from it with the same markup and classes, so the scoped static.css styles it as on sefaria.org. (The
  * Hebrew /ways-to-give is a plain template, rendered from Django's content.) The FAQ is the browser's own <details>.
  *

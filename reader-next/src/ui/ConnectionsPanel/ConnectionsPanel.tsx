@@ -35,7 +35,7 @@ export function ConnectionsPanel({ title, back, onClose, actions, lang, onLang, 
   // names in the interface's language (the Hebrew interface read "Resources", "Close", "… Language Toggle Icon")
   const he = useInterfaceLang() === "hebrew";
   const name = typeof label === "string" ? (he ? (VIEW_NAMES_HE[label] ?? label) : label) : he ? label.he || label.en : label.en;
-  // the sidebar's language button says what it does (a11y N8; it was "Hebrew Language Toggle Icon")
+  // the sidebar's language button says what it does (it was "Hebrew Language Toggle Icon")
   const toggleName = lang === "en" ? (he ? "הצגה בעברית" : "Show in Hebrew") : he ? "הצגה באנגלית" : "Show in English";
   return (
     <aside className={styles.panel} aria-label={name}>

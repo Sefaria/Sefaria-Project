@@ -73,7 +73,7 @@ export function matchersFor(write: Write): KeyMatch[] {
       return [prefix(["links"]), prefix(["resources"])];
     case "topic":
       // the sidebar's own Topics list is patched in place by the caller (addLinkToResources): refetching /api/related for it would
-      // download the section's links again (SB-03)
+      // download the section's links again
       return write.slug ? [prefix(["topics", "topic", write.slug]), prefix(["topics", "page", write.slug])] : [prefix(["topics"])];
     case "catalog":
       return [prefix(["catalog"]), prefix(["versions"])];

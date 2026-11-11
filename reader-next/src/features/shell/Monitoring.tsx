@@ -1,7 +1,7 @@
 /**
  * The shell's watchers, mounted once (src/routes/__root.tsx Shell): keeps the error reporter's page facts current (the reporter
- * itself is installed before hydration: src/lib/monitoring/browser.ts), web vitals when remote config turns them on (T-D03), and the
- * kill switch's client half (T-C03). Renders nothing.
+ * itself is installed before hydration: src/lib/monitoring/browser.ts), web vitals when remote config turns them on, and the
+ * kill switch's client half. Renders nothing.
  *
  * @feature ANL-017 Browser error reporting
  */

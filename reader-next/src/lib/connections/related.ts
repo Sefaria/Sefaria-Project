@@ -80,7 +80,7 @@ export function resourceCounts(
 ): ResourceCounts {
   const publicSheets = pick(res?.sheets ?? {}, refs);
   // the reader's public sheets are in both lists under the same id: one set of ids counts each once (public sheets come as ids and
-  // anchors only, SB-03, so there is no owner to filter on)
+  // anchors only, so there is no owner to filter on)
   const all = extra.mine ? [...pick(extra.mine.sheets, refs), ...publicSheets] : publicSheets;
   const sheets = new Set(all.map((s) => String(s.id))).size; // spanning anchors duplicate
   const topics = new Set(pick(res?.topics ?? {}, refs).map((t) => t.topic)).size;
@@ -138,7 +138,7 @@ export const privateSheetsQueryOptions = (uid: number | null, sectionRef: string
  * The Resources rows' data. The request is never aborted (its AbortSignal is not passed on): a query whose function reads the
  * signal is cancelled and reset when its last observer goes, so opening the sidebar (where the pane mounts twice) aborted the first
  * `/api/related` and sent it again, and closing the sidebar before it answered threw it away for the next opening to send once more
- * (V-EXITS SB-05: one `/api/related` refetch over three in-page reopens). Left to finish, the answer lands in the cache, and the next
+ * (one `/api/related` refetch over three in-page reopens). Left to finish, the answer lands in the cache, and the next
  * observer joins the request in flight. A reload still asks again: connections are kept in memory only.
  */
 export const resourcesQueryOptions = (sectionRef: string) =>

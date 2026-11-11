@@ -5,7 +5,7 @@ import { EducatorsPage } from "./ports/EducatorsPage";
 import { MobileAppPage } from "./ports/MobileAppPage";
 import { StaticPage, StaticPageFrame } from "./StaticPage";
 
-/** The pages this client has its own version of (T-F32): Django's content block for them is only an empty mount point. */
+/** The pages this client has its own version of: Django's content block for them is only an empty mount point. */
 const PORTS: Record<string, () => React.ReactNode> = {
   mobile: MobileAppPage,
   educators: EducatorsPage,

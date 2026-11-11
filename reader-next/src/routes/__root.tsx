@@ -113,7 +113,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      // a page nobody has (the reader's 404, T-F28): titled as the old site's 404 and kept out of search engines
+      // a page nobody has (the reader's 404): titled as the old site's 404 and kept out of search engines
       // in the reader's interface language, as Django's 404 page ("הדף שביקשתם איננו נמצא | ספריא")
       ...(matches.some(isNotFoundMatch) ? [{ title: notFoundTitle(headLang(matches)) }, { name: "robots", content: "noindex" }] : [{ title: "Sefaria Reader" }]),
     ],
@@ -217,7 +217,7 @@ function Shell() {
   // Keep the disk cache bounded: once per visit, well after the page has settled, when the browser is idle
   const queryClient = useRouter().options.context.queryClient as QueryClient;
   useEffect(() => {
-    // what the server rendered goes to disk too (R-20), once the browser is idle after hydration
+    // what the server rendered goes to disk too, once the browser is idle after hydration
     const idle = (fn: () => void) => ("requestIdleCallback" in window ? window.requestIdleCallback(fn, { timeout: 5_000 }) : setTimeout(fn, 1_000));
     idle(() => void persistHydrated(queryClient).catch(() => undefined));
   }, [queryClient]);

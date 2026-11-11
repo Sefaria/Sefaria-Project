@@ -70,7 +70,7 @@ const requestLog = createMiddleware({ type: "request" }).server(async ({ request
 const cachePolicy = createMiddleware({ type: "request" }).server(async ({ request, next }) => {
   const result = await next();
   const res = result.response;
-  // Accept-Language decides the page only on a host pinned to a language (the bounce, T-E07)
+  // Accept-Language decides the page only on a host pinned to a language (the bounce)
   const pinned = !!domainLang(requestHost(request), ROUTING_DEPS.domainModules);
   const headers = pageCacheHeaders(request.headers.get("cookie"), res.headers, res.status, pinned);
   return headers === res.headers ? result : new Response(res.body, { status: res.status, statusText: res.statusText, headers });

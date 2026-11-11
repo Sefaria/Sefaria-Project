@@ -1,7 +1,7 @@
 import { notFound } from "@tanstack/react-router";
 
 /**
- * The reader's own 404 (T-F28). A path this client does not render is still handed to Django first (it may be one of Django's pages,
+ * The reader's own 404. A path this client does not render is still handed to Django first (it may be one of Django's pages,
  * or a redirect); only when Django also answers 404 does the reader answer — with its own "Page Not Found" page in the new shell, so an
  * opted-in reader who followed a dead link or mistyped an address never lands in the legacy client.
  *

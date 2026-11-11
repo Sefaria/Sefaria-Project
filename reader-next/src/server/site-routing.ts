@@ -3,10 +3,10 @@
  *
  *  - `/healthz-reader`: this server's own probe.
  *  - On a Library host only (never on the Voices host — Voices is out of scope, its requests go on exactly as before this lane):
- *    the language-domain bounce (T-E07, language-domain.ts) and the old addresses that are only a redirect (T-F26, redirects.ts).
+ *    the language-domain bounce (language-domain.ts) and the old addresses that are only a redirect (redirects.ts).
  *  - The trailing-slash redirect, the calendar shortcuts, and the hand-over to Django of every path this client does not render
  *    (pass-through.ts, route-manifest.ts, topics-owner.ts).
- *  - When Django has no page either (404), the reader's own 404 page, rendered at the same address (T-F28, lib/routing/not-found.ts);
+ *  - When Django has no page either (404), the reader's own 404 page, rendered at the same address (lib/routing/not-found.ts);
  *    on the Voices host Django's 404 is passed on untouched.
  *
  * @feature RTE-040 404 and error pages
@@ -87,7 +87,7 @@ export async function siteRoute(request: Request, pathname: string, render: Rend
         if (to) return languageRedirect(to);
       }
     }
-    // old addresses that are only a redirect, answered here (T-F26)
+    // old addresses that are only a redirect, answered here
     const fixed = fixedRedirect(pathname, request.method);
     if (fixed) return fixed;
     const random = await randomLinkRedirect(pathname, request.method, deps.fetcher);
@@ -97,7 +97,7 @@ export async function siteRoute(request: Request, pathname: string, render: Rend
   const slash = trailingSlashRedirect(new URL(request.url), request.method, host);
   if (slash) return slash;
   // the Library-only pages (translations, calendars and their shortcuts, compare, topics) are this client's on the Library host only
-  // (Voices: Django's, Q-E1)
+  // (Voices: Django's)
   const voicesOnly = isLibraryOnlyPage(pathname) && voices;
   if (!voicesOnly) {
     const shortcut = await calendarShortcut(pathname, request.method, pass, deps.fetcher);
@@ -109,14 +109,14 @@ export async function siteRoute(request: Request, pathname: string, render: Rend
   if (voicesOnly || toDjango) return djangoOrNotFound();
   const resetUid = request.method === "GET" ? resetLinkUid(pathname) : null;
   if (resetUid) return passResetLink(request, resetUid, deps.passThrough);
-  // not a page of this client nor a text: Django's, without rendering it first (R-36)
+  // not a page of this client nor a text: Django's, without rendering it first
   // (the path as sent, still encoded: a title's escaped "/" must not split it)
   if (read && (await deps.routeOwner(new URL(request.url).pathname)) === "django") return djangoOrNotFound();
   // the topic editors (?editor=1) are still Django's, before the topic is fetched (TOP-036)
   if (read && (await deps.topicsOwner(new URL(request.url))) === "django") return deps.passThrough(request);
   const result = await render();
   if (result.status !== 404) return result;
-  // this client has no page here: Django's, if it has one; else this client's own 404, as it was rendered (T-F28)
+  // this client has no page here: Django's, if it has one; else this client's own 404, as it was rendered
   const django = await deps.passThrough(request);
   if (!replaceable(request, pathname, django, voices)) {
     await result.body?.cancel().catch(() => undefined);

@@ -42,7 +42,7 @@ describe("SiteHeader", () => {
   it("primary links go to the library's pages", () => {
     render(<SiteHeader next="/Genesis.1" search={STUB_SEARCH} />);
     const nav = screen.getByRole("navigation", { name: "Primary navigation" });
-    // relative: this client's own pages, navigated in the app (T-F02)
+    // relative: this client's own pages, navigated in the app
     expect(within(nav).getByRole("link", { name: "Texts" })).toHaveAttribute("href", "/texts");
     expect(within(nav).getByRole("link", { name: "Topics" })).toHaveAttribute("href", "/topics");
     expect(within(nav).getByRole("link", { name: "Donate" })).toHaveAttribute("href", expect.stringContaining("c_src=Header"));
@@ -62,7 +62,7 @@ describe("SiteHeader", () => {
     expect(within(dialog).getByRole("link", { name: "עברית" })).toHaveAttribute("href", "/interface/hebrew?next=%2FGenesis.1%3Flang%3Dbi");
     expect(within(dialog).getByRole("link", { name: "English" })).toHaveAttribute("aria-current", "true");
   });
-  // v-a11y N9: Tab out of the globe's menu and it closes; focus goes on to where it was going, not back to the button
+  // Tab out of the globe's menu and it closes; focus goes on to where it was going, not back to the button
   it("the language menu closes when focus leaves it", async () => {
     render(<SiteHeader next="/" search={STUB_SEARCH} />);
     const button = screen.getByRole("button", { name: "Toggle Interface Language Menu" });
@@ -134,7 +134,7 @@ describe("SiteHeader", () => {
   it("Hebrew interface: Hebrew labels, right-to-left, and the phone menu's language row goes to English", () => {
     render(<InterfaceLangProvider lang="hebrew"><SiteHeader next="/" search={STUB_SEARCH} /></InterfaceLangProvider>);
     expect(screen.getAllByRole("banner")[0]).toHaveAttribute("dir", "rtl");
-    // T-G02, VERIFIED on sefaria.org 2026-11-10 (Playwright, /interface/hebrew): the desktop bar says טקסטים, the phone menu מקורות,
+    // VERIFIED on sefaria.org 2026-11-10 (Playwright, /interface/hebrew): the desktop bar says טקסטים, the phone menu מקורות,
     // and Donate goes to the Hebrew campaign (468442) from both
     const nav = within(screen.getByRole("navigation", { name: "ניווט ראשי" }));
     expect(nav.getByRole("link", { name: "טקסטים" })).toBeInTheDocument();

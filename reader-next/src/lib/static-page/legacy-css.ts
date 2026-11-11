@@ -1,5 +1,5 @@
 /**
- * The legacy stylesheets a static page's content leans on (T-F31), scoped to `#staticContentWrapper` (scope-css.ts) so they style the
+ * The legacy stylesheets a static page's content leans on, scoped to `#staticContentWrapper` (scope-css.ts) so they style the
  * content block in this client's shell and nothing else — the header, the footer and the other pages never see them.
  *
  * What is in it: every stylesheet templates/base.html loads (the colour names, font stacks and font choice, the interface-language

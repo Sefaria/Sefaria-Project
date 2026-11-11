@@ -14,7 +14,7 @@ import { onDisk } from "./storage";
 
 /**
  * A disk call that can neither throw (idb-keyval throws synchronously when `indexedDB.open` does: a blocked or broken IndexedDB) nor
- * hang the reader (T-E04): undefined instead.
+ * hang the reader: undefined instead.
  */
 async function disk<T>(op: () => Promise<T>): Promise<T | undefined> {
   return onDisk<T | undefined>(op, undefined); // one timeout and the disk is skipped for the rest of the visit (storage.ts)
