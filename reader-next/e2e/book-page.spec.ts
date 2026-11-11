@@ -28,8 +28,61 @@ test.describe("a book's own page (verified against sefaria.org)", () => {
     await open(page, "/Genesis");
     await page.getByRole("link", { name: "Versions" }).click();
     await expect(page).toHaveURL(/\/Genesis\?tab=versions/);
-    await expect(page.getByRole("heading", { level: 3 }).first()).toBeVisible({ timeout: 25_000 });
-    await expect(page.getByRole("link", { name: /Select/ }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2 }).first()).toBeVisible({ timeout: 25_000 });
+    // the title is the link (sefaria.org has no Select button on this page)
+    await expect(page.getByRole("link", { name: /Select/ })).toHaveCount(0);
+  });
+
+  // sefaria.org's book-page VersionBlock, measured with getComputedStyle on /Berakhot?tab=versions (2026-11-11)
+  test("the Versions tab looks as on sefaria.org: rows, title links, language pills, plain grey facts, the sidebar, the tabs", async ({ page }) => {
+    await open(page, "/Berakhot?tab=versions");
+    const rows = page.locator("[data-version-row]");
+    await expect(rows.first()).toBeVisible({ timeout: 25_000 });
+    // order: priority, then title (the old VersionsList); the title links to the version's own first section
+    const titles = (await rows.locator("[data-version-row-title]").allTextContents()).slice(0, 4);
+    expect(titles).toEqual(["William Davidson Edition - Vocalized Aramaic", "William Davidson Edition - Aramaic", "William Davidson Edition - English", expect.stringMatching(/^Tractate Berakot/)]);
+    await expect(rows.first().getByRole("link").first()).toHaveAttribute("href", "/Berakhot.2a?vhe=hebrew|William_Davidson_Edition_-_Vocalized_Aramaic");
+    await expect(rows.locator("[data-version-row-badge]").first()).toHaveText("Hebrew");
+    await expect(rows.nth(2).locator("[data-version-row-badge]")).toHaveText("English");
+    const style = (sel: string, props: string[]) =>
+      page.locator(sel).first().evaluate((el, ps) => Object.fromEntries(ps.map((p) => [p, getComputedStyle(el).getPropertyValue(p)])), props);
+    expect(await style("[data-version-row-title] a", ["color", "text-decoration-line", "font-size", "line-height"])).toEqual({ color: "rgb(0, 0, 0)", "text-decoration-line": "none", "font-size": "24px", "line-height": "29px" });
+    const badge = await style("[data-version-row-badge]", ["background-color", "color", "font-size", "padding"]);
+    expect(badge).toEqual({ "background-color": "rgb(237, 237, 236)", color: "rgb(102, 102, 102)", "font-size": "14px", padding: "5px 10px" });
+    expect(await style("[data-version-row-details] a", ["color", "text-decoration-line", "font-size"])).toEqual({ color: "rgb(102, 102, 102)", "text-decoration-line": "none", "font-size": "14px" });
+    expect(await style("[data-version-row-notes]", ["color", "font-size", "line-height"])).toEqual({ color: "rgb(102, 102, 102)", "font-size": "16px", "line-height": "19px" });
+    // a 1px #ccc rule between rows, none above the first
+    expect(await rows.nth(0).evaluate((el) => getComputedStyle(el).borderTopStyle)).toBe("none");
+    expect(await rows.nth(1).evaluate((el) => [getComputedStyle(el).borderTopWidth, getComputedStyle(el).borderTopStyle, getComputedStyle(el).borderTopColor, getComputedStyle(el).paddingTop])).toEqual(["1px", "solid", "rgb(204, 204, 204)", "20px"]);
+    // the badge sits at the far side of the title's line
+    const [row, pill] = [await rows.first().boundingBox(), await rows.first().locator("[data-version-row-badge]").boundingBox()];
+    expect(Math.abs(row!.x + row!.width - (pill!.x + pill!.width))).toBeLessThan(2);
+    // the sidebar stays on this tab
+    await expect(page.getByRole("complementary")).toContainText("Download Text");
+    // tabs: 22px, the current one black over a 4px #ccc bar
+    const nav = page.getByRole("navigation", { name: "Book sections" });
+    const versionsTab = nav.getByRole("link", { name: "Versions" });
+    expect(await versionsTab.evaluate((el) => [getComputedStyle(el).fontSize, getComputedStyle(el).color, getComputedStyle(el).borderBottom])).toEqual(["22px", "rgb(0, 0, 0)", "4px solid rgb(204, 204, 204)"]);
+    // a mouse click does not focus the tab (the old tabs could not take focus): the next key press, an arrow to scroll, shows no ring
+    await nav.getByRole("link", { name: "Contents" }).click();
+    await versionsTab.click();
+    await expect(page).toHaveURL(/\?tab=versions/);
+    await page.keyboard.press("ArrowDown");
+    expect(await versionsTab.evaluate((el) => [el === document.activeElement, getComputedStyle(el).outlineStyle])).toEqual([false, "none"]);
+    // the keyboard still reaches it, with its ring
+    await nav.getByRole("link", { name: "Contents" }).focus();
+    await page.keyboard.press("Tab");
+    expect(await versionsTab.evaluate((el) => [el === document.activeElement, getComputedStyle(el).outlineStyle])).toEqual([true, "solid"]);
+  });
+
+  test("the Versions tab in the Hebrew interface: Hebrew titles and language names", async ({ page }) => {
+    await page.context().addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
+    await open(page, "/Berakhot?tab=versions");
+    const rows = page.locator("[data-version-row]");
+    await expect(rows.first().locator("[data-version-row-title]")).toHaveText("מהדורת וויליאם דייוידסון - ארמית המנוקד", { timeout: 25_000 });
+    await expect(rows.first().locator("[data-version-row-badge]")).toHaveText("עברית");
+    await expect(rows.nth(2).locator("[data-version-row-badge]")).toHaveText("אנגלית");
+    await expect(page.getByRole("complementary")).toContainText("הורדת טקסט");
   });
 
   test("Talmud: the William Davidson Edition credit and chapters of dafs; a mis-spelt title goes to the real one; a node is a text", async ({ page }) => {
@@ -67,6 +120,37 @@ test.describe("the language button on library pages", () => {
 });
 
 // @feature BOK-002 @feature BOK-006 @feature LIB-036
+// the old .sidebarLayout on a desktop (measured on sefaria.org, Sifrei Bamidbar): the sidebar stays beside the content down to 701px, both
+// columns shrinking in the ratio 665:420 under 1145px (at 800px: content 514, sidebar 286); at 700px they stack
+test.describe("a book page in a narrow desktop window", () => {
+  for (const lang of ["english", "hebrew"] as const) {
+    for (const tab of ["contents", "versions"] as const) {
+      test(`800px, ${lang}, ${tab}: the sidebar beside the content, at the old widths`, async ({ page }) => {
+        await page.setViewportSize({ width: 800, height: 900 });
+        if (lang === "hebrew") await page.context().addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
+        await open(page, `/Berakhot?tab=${tab}`);
+        await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+        const side = (await page.getByRole("complementary").boundingBox())!;
+        const main = (await page.locator("main article").boundingBox())!;
+        expect(Math.round(side.width)).toBeGreaterThanOrEqual(285);
+        expect(Math.round(side.width)).toBeLessThanOrEqual(287);
+        expect(side.y).toBeLessThan(main.y); // beside it, from the top of the page
+        expect(lang === "hebrew" ? side.x : side.x + side.width).toBeCloseTo(lang === "hebrew" ? 0 : 800, -1);
+        expect(await page.locator("main article nav a").first().evaluate((el) => getComputedStyle(el).fontSize)).toBe("22px");
+      });
+    }
+  }
+  test("700px: one column, the sidebar under the page", async ({ page }) => {
+    await page.setViewportSize({ width: 700, height: 900 });
+    await open(page, "/Berakhot?tab=versions");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    const side = (await page.getByRole("complementary").boundingBox())!;
+    const main = (await page.locator("main article").boundingBox())!;
+    expect(side.width).toBeGreaterThan(690);
+    expect(side.y).toBeGreaterThan(main.y + main.height - 1);
+  });
+});
+
 test.describe("a book page on a phone", () => {
   test.use({ viewport: { width: 390, height: 844 } });
   test("keeps the site header; the About text sits under Start Reading, with no 'About This Text' module", async ({ page }) => {
@@ -80,5 +164,14 @@ test.describe("a book page on a phone", () => {
     expect(c!.y).toBeGreaterThan(start!.y);
     expect(c!.y).toBeLessThan(tabs!.y);
     await expect(page.getByRole("heading", { name: "About This Text" })).toBeHidden();
+  });
+
+  test("the Versions tab: 16px tabs, rows with their pills, the sidebar under the page", async ({ page }) => {
+    await open(page, "/Berakhot?tab=versions");
+    await expect(page.locator("[data-version-row]").first()).toBeVisible({ timeout: 25_000 });
+    const tab = page.getByRole("navigation", { name: "Book sections" }).getByRole("link", { name: "Versions" });
+    expect(await tab.evaluate((el) => [getComputedStyle(el).fontSize, getComputedStyle(el).paddingBottom])).toEqual(["16px", "18px"]);
+    await expect(page.locator("[data-version-row-badge]").first()).toBeVisible();
+    await expect(page.getByRole("complementary")).toContainText("Download Text");
   });
 });

@@ -81,6 +81,9 @@ const LICENSES: Record<string, string> = {
 export const LICENSE_NAMES = Object.keys(LICENSES);
 /** Old Sefaria.getLicenseMap. */
 export const licenseUrl = (license: string | undefined): string | undefined => (license ? LICENSES[license] : undefined);
+/** A licence's name in the interface language (the old Sefaria.translateLicense, its `licenses.*` strings): two differ in Hebrew. */
+const LICENSE_HE: Record<string, string> = { "Public Domain": "בנחלת הכלל", "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985" };
+export const licenseName = (license: string, interfaceLang: "english" | "hebrew"): string => (interfaceLang === "hebrew" ? (LICENSE_HE[license] ?? license) : license);
 
 /** The old site's language names (its `languages.*` interface strings and Sefaria.ISOMap). */
 const LANGUAGE_NAMES: Record<string, { en: string; he: string }> = {

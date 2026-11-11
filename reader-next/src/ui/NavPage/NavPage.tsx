@@ -19,6 +19,8 @@ export interface NavPageProps {
   anlBatch?: Readonly<Record<string, unknown>>;
   /** Width of the page's content column (without its 30px padding): 665 by default (the old .contentInner); the topics landing page is 783. */
   measure?: number;
+  /** The book page's old .sidebarLayout: the sidebar shrinks with the window and stays beside the content down to 701px (see the CSS). */
+  fluid?: boolean;
 }
 
 /**
@@ -28,10 +30,10 @@ export interface NavPageProps {
  * @feature LIB-023 Nav sidebar container and module registry
  * @feature LIB-019 Category and text color coding
  */
-export function NavPage({ children, sidebar, footer, colorCategory, sidebarLabel, top, anlBatch, measure }: NavPageProps) {
+export function NavPage({ children, sidebar, footer, colorCategory, sidebarLabel, top, anlBatch, measure, fluid }: NavPageProps) {
   const he = useInterfaceLang() === "hebrew";
   return (
-    <div className={styles.page} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"} data-anl-batch={anlBatch ? JSON.stringify(anlBatch) : undefined}>
+    <div className={fluid ? `${styles.page} ${styles.fluid}` : styles.page} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"} data-anl-batch={anlBatch ? JSON.stringify(anlBatch) : undefined}>
       {/* the old .categoryColorLine: over the top of the page, and it stays there while the page scrolls under it */}
       {colorCategory ? <div className={styles.colorLine} style={{ background: categoryColor(colorCategory) }} aria-hidden="true" /> : null}
       <div className={styles.main} style={top?.main || measure ? ({ ...(top?.main ? { "--_top": `${top.main}px` } : {}), ...(measure ? { "--_measure": `${measure}px` } : {}) } as React.CSSProperties) : undefined}>{children}</div>
