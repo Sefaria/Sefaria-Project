@@ -15,7 +15,9 @@ The `e2e` job of `.github/workflows/reader-next-client.yaml`, on every pull requ
 
 All three replay the bundle pinned by `cassette.lock` (`scripts/cassette/bundle.mjs fetch --strict`): a lock whose bundle cannot be
 downloaded fails the job rather than recording from the live site. In replay, a request with no recording is answered 504 and fails
-the run at the end (`cassette-misses.ts`), unless it is listed in that file's `ALLOWED_MISSES` with the reason (the list is empty).
+the run at the end (`cassette-misses.ts`), unless it is listed in that file's `ALLOWED_MISSES` with the reason. Today the list holds three patterns for background
+prefetches (the next section's links and text, the versions of verses scrolled past) that the pinned bundle lacks and that a test
+makes or not depending on timing; a re-recorded bundle should hold them, and the list should then be empty.
 To run locally the way CI does: `E2E_API_MODE=replay npx playwright test --project=desktop` once `e2e/.cassette` matches the lock
 (`node scripts/cassette/bundle.mjs verify`).
 
