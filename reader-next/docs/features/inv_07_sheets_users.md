@@ -1,6 +1,6 @@
 # Inventory 07 — Source Sheets ("Voices"), Collections, User / Profile / Social
 
-Repo: `/Users/akiva/Sefaria/dev/Sefaria-Project` (branch `master`, HEAD `bb47dd77a`). All paths relative to repo root.
+Repo: `Sefaria-Project` (branch `master`, HEAD `bb47dd77a`). All paths relative to repo root.
 Citations are `file:line`. "JSX" = React client; "legacy" = jQuery/CKEditor code still shipped.
 
 ---

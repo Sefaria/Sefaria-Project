@@ -246,7 +246,7 @@ Depth 2 `Chapter/Mishnah`, `["Perek","Mishnah"]` (uses the Mishnah address type 
 - `next` is the next _named node_, not a number: `Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Netilat Yadayim`, `Pesach Haggadah, Urchatz`. `prev null` at the start of the node list.
 - No segment numbers shown in the old client (inv_03 6.6). Text is array of paragraphs (2 and 13).
 - Inline: Haggadah he `<small>` ×11 (rubrics/instructions), en `<small>` ×8, `<i>` ×8, and **`<br>` ×52** (line breaks within paragraphs). Siddur he `<b>` ×2. No refLinks.
-- Haggadah has a TOC page with nested named nodes (see `docs/reference/haggadah-toc.png`).
+- Haggadah has a TOC page with nested named nodes.
 
 ---
 

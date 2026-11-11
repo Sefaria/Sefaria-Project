@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { collect, ROOT, RULES, type Violations } from "./rules";
 
 /**
- * Architecture rules, enforced (CODE_REVIEW §3.1). Today's violations are in baseline.json and tolerated; anything new fails, and a
+ * Architecture rules, enforced (docs/ARCHITECTURE.md, "Enforced rules"). Today's violations are in baseline.json and tolerated; anything new fails, and a
  * fixed violation must be removed from the baseline (run `node scripts/architecture-baseline.mjs`), so the debt only goes down.
  */
 const baseline = JSON.parse(readFileSync(join(ROOT, "test/architecture/baseline.json"), "utf8")) as Violations;

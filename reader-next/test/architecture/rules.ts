@@ -1,5 +1,5 @@
 /**
- * The architecture rules (TARGET_ARCHITECTURE §5, CODE_REVIEW §3.1) as data, shared by the test and by
+ * The architecture rules (docs/ARCHITECTURE.md, "Enforced rules") as data, shared by the test and by
  * `scripts/architecture-baseline.mjs`, which writes today's violations to baseline.json. A violation in the baseline is tolerated;
  * a new one fails the test, and so does a baseline entry that has since been fixed (the baseline only shrinks).
  */
@@ -80,26 +80,26 @@ export interface Rule {
   check: (file: string, src: string) => string[];
 }
 
-/** UI components receive props: no settings, router, config, analytics, API or workspace imports (rule 2). */
+/** UI components receive props: no settings, router, config, analytics, API or workspace imports (ui-boundary). */
 const UI_FORBIDDEN = [/^~\/lib\/reader\/settings/, /^@tanstack\/react-router/, /^~\/lib\/config/, /^~\/lib\/analytics/, /^~\/lib\/api/, /^@vendor\/sefaria-toolkit\/client/, /^~\/features\//, /^~\/lib\/workspace/];
-/** Only lib adapters see API shapes (rule 1): ui and features import none of the client or the generated types. */
+/** Only lib adapters see API shapes (adapter-boundary): ui and features import none of the client or the generated types. */
 const API_SHAPES = [/^~\/lib\/api(\/|$)/, /^@vendor\/sefaria-toolkit\/client/];
 
 export const RULES: Rule[] = [
   {
     id: "ui-boundary",
-    why: "src/ui never reads settings, the router, config, analytics, the API or features (TARGET_ARCHITECTURE §5 rule 2)",
+    why: "src/ui never reads settings, the router, config, analytics, the API or features",
     check: (f, src) => (rel(f).startsWith("src/ui/") && /\.tsx?$/.test(f) ? importsOf(src).filter((i) => UI_FORBIDDEN.some((r) => r.test(i))) : []),
   },
   {
     id: "adapter-boundary",
-    why: "only src/lib adapters see API response shapes (TARGET_ARCHITECTURE §5 rule 1)",
+    why: "only src/lib adapters see API response shapes",
     check: (f, src) => (/^src\/(ui|features|routes)\//.test(rel(f)) && /\.tsx?$/.test(f) ? importsOf(src).filter((i) => API_SHAPES.some((r) => r.test(i))) : []),
   },
   {
     id: "literal-colours",
     counted: true,
-    why: "every colour is a token with light and dark values (TARGET_ARCHITECTURE §5 rule 5, §6.6 dark mode)",
+    why: "every colour is a token with light and dark values",
     check: (f, src) => {
       if (!f.endsWith(".css") || /\/tokens\/tokens\.css$/.test(f)) return [];
       const n = literalColours(src);
@@ -108,12 +108,12 @@ export const RULES: Rule[] = [
   },
   {
     id: "url-through-router",
-    why: "every URL change goes through the router, never history.replaceState/pushState (TARGET_ARCHITECTURE §5 rule 3)",
+    why: "every URL change goes through the router, never history.replaceState/pushState",
     check: (f, src) => (/\.tsx?$/.test(f) ? [...src.matchAll(/\b(?:window\.)?history\.(replaceState|pushState)\s*\(/g)].map((m) => m[1]!) : []),
   },
   {
     id: "writes-through-helper",
-    why: "every write to Django goes through src/lib/auth/http.ts (session cookie + CSRF): CODE_REVIEW R-23",
+    why: "every write to Django goes through src/lib/auth/http.ts (session cookie + CSRF)",
     check: (f, src) =>
       /\.tsx?$/.test(f) && !rel(f).startsWith("src/lib/auth/http.ts") && !rel(f).startsWith("src/server/")
         ? fetchCalls(src).flatMap((c) => [...c.matchAll(/method:\s*["'](POST|PUT|PATCH|DELETE)["']/g)].map((m) => `fetch ${m[1]}`))
