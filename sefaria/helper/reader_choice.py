@@ -3,7 +3,7 @@ The choice between the legacy reader and the new one (reader-next), in one place
 
 With the chart's ``nodejs.mode: optin`` both readers run, and nginx sends a page request to the new
 reader exactly when the request carries the cookie ``reader_version=next``
-(helm-chart/sefaria/conf/nginx.template.conf.tpl, ``$page_upstream``). This module owns that cookie:
+(helm-chart/sefaria/conf/nginx.template.conf.tpl, ``$reader_page``). This module owns that cookie:
 
 - ``available()`` -- whether this deployment offers the choice (``READER_OPTIN``, set by the chart);
 - ``next_disabled()`` -- the kill switch, remote config ``feature.reader.next.disabled`` (default false): while true nobody
@@ -153,7 +153,7 @@ class ReaderChoiceMiddleware:
         signed_in = bool(user is not None and user.is_authenticated)
 
         if cookie_next and not signed_in:
-            # D-12: the opt-in is for signed-in readers. With the audience "all", a reader who signed out keeps the reader
+            # The opt-in is for signed-in readers. With the audience "all", a reader who signed out keeps the reader
             # they chose (their next sign-in syncs it again); with "staff" no anonymous visitor can be told apart from staff.
             # The kill switch sends everyone back.
             if audience() != AUDIENCE_ALL or next_disabled():
