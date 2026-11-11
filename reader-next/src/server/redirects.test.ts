@@ -31,6 +31,11 @@ describe("redirects answered by the reader's server (T-F26)", () => {
     }) as unknown as typeof fetch;
     expect(loc((await randomLinkRedirect("/random/link", "GET", api)) as Response)).toEqual([302, "/II%20Chronicles%2031:8"]);
     expect(await randomLinkRedirect("/random", "GET", api)).toBeNull();
+    // an answer naming another site is never a Location here
+    for (const location of ["/api/texts//evil.example/x", "/api/texts/%2F%2Fevil.example", "/api/texts/%5Cevil.example", "https://evil.example/api/texts//evil.example"]) {
+      const odd = (async () => new Response(null, { status: 302, headers: { location } })) as unknown as typeof fetch;
+      expect(await randomLinkRedirect("/random/link", "GET", odd), location).toBe("fallback");
+    }
     const down = (async () => new Response("", { status: 502 })) as unknown as typeof fetch;
     expect(await randomLinkRedirect("/random/link", "GET", down)).toBe("fallback");
     const fails = (async () => { throw new Error("x"); }) as unknown as typeof fetch;

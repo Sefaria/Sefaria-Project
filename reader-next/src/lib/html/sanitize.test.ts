@@ -15,6 +15,18 @@ describe("sanitizeHtml", () => {
   it("refuses javascript:, data: and protocol-relative links but keeps the text", () => {
     expect(sanitizeHtml('<a href="javascript:alert(1)">a</a><a href="data:text/html,x">b</a><a href="//evil.example">c</a><a href=" JaVaScRiPt:alert(1)">d</a>')).toBe("<a>a</a><a>b</a><a>c</a><a>d</a>");
   });
+  it("refuses every form browsers read as another site, with or without a base URL", () => {
+    const bad = ["/\\evil.org", "\\\\evil.org", "\\/evil.org", "//evil.org", " //evil.org", "/%2F%2Fevil.org", "/%2fevil.org", "/%5Cevil.org", "/%5cevil.org/x", "/x/%5c..", "/&#9;/evil.org", "/&#10;/evil.org", "&#1;//evil.org", "/\u0085/evil.org", "evil.org", "./x"];
+    for (const href of bad) {
+      expect(sanitizeHtml(`<a href="${href}">x</a>`), href).toBe("<a>x</a>");
+      expect(sanitizeHtml(`<a href="${href}">x</a>`, { baseUrl: "https://www.sefaria.org" }), href).toBe("<a>x</a>");
+    }
+    expect(sanitizeHtml('<a href=" /Genesis.1.1 ">x</a>')).toBe('<a href="/Genesis.1.1">x</a>');
+    expect(sanitizeHtml('<a href="/search?q=a%5Cb">x</a>')).toBe('<a href="/search?q=a%5Cb">x</a>'); // in the query, not the path
+  });
+  it("never keeps an address or styles through keepAttributes", () => {
+    expect(sanitizeHtml('<a href="/\\evil.org" src="x" style="a">x</a>', { keepAttributes: { a: ["href", "src", "style"] } })).toBe("<a>x</a>");
+  });
   it("makes paths absolute against the base URL, and leaves anchors alone", () => {
     expect(sanitizeHtml('<a href="/Genesis/en/Foo/notes">notes</a><a href="#top">up</a>', { baseUrl: "https://www.sefaria.org" })).toBe(
       '<a href="https://www.sefaria.org/Genesis/en/Foo/notes" target="_blank" rel="noopener noreferrer">notes</a><a href="#top">up</a>',

@@ -16,6 +16,12 @@ describe("safeNext", () => {
     expect(safeNext(undefined)).toBe("/");
   });
   it("rejects a backslash that browsers normalize into //", () => expect(safeNext("/\\evil.example.com")).toBe("/"));
+  it("rejects encoded slashes and backslashes that a decoding router would follow to another site", () => {
+    for (const bad of ["/%2F%2Fevil.example.com", "/%2fevil.example.com", "/%5Cevil.example.com", "/x/%5c/y", "\\\\evil.example.com", " //evil.example.com", "\u0001//evil.example.com", "a\\b"]) {
+      expect(safeNext(bad), bad).toBe("/");
+    }
+    expect(safeNext("/Genesis.1?q=a%5Cb")).toBe("/Genesis.1?q=a%5Cb");
+  });
   it("rejects embedded tabs/newlines that browsers strip into //", () => {
     expect(safeNext("/\t/evil.example.com")).toBe("/");
     expect(safeNext("/\n/evil.example.com")).toBe("/");

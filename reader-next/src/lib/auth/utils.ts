@@ -5,6 +5,7 @@
  * @feature ACC-008 Auth page with choose / email views
  * @feature RTE-052 Other page params (login/next …)
  */
+import { isLocalPath } from "~/lib/html/local-path";
 
 /**
  * Google sign-in (the button's popup and One Tap) posts `{id_token}` here (master's sso/urls.py `google_web`, in place of allauth's stock
@@ -74,8 +75,15 @@ export function safeNext(next: unknown): string {
   try {
     const u = new URL(next, SAFE_NEXT_BASE);
     if (u.origin !== SAFE_NEXT_BASE) return "/";
-    // an absolute path comes back as parsed; a bare relative one ("sheets/123", as the old client allowed) minus control characters
-    return next.startsWith("/") ? `${u.pathname}${u.search}${u.hash}` : next.replace(/[\u0000-\u001f\u007f]/g, "");
+    // an absolute path comes back as parsed, and only if it is still a path of this site as written (no "/%2F%2Fhost", "/%5Chost",
+    // which a router that decodes its path would follow); a bare relative one ("sheets/123", as the old client allowed) minus
+    // control characters, and never with a backslash
+    if (next.startsWith("/")) {
+      const path = `${u.pathname}${u.search}${u.hash}`;
+      return isLocalPath(path) ? path : "/";
+    }
+    const bare = next.replace(/[\u0000-\u001f\u007f-\u009f]/g, "");
+    return bare.includes("\\") || /%5c/i.test(bare) ? "/" : bare;
   } catch {
     return "/";
   }
