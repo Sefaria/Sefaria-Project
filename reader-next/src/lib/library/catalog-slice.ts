@@ -1,5 +1,5 @@
 /**
- * The catalog slice a library page renders (R-14), as a query of its own: the server puts it in the page instead of the whole catalog,
+ * The catalog slice a library page renders, as a query of its own: the server puts it in the page instead of the whole catalog,
  * and both sides render from it, so the first render on the client matches the server's. Derived from the full catalog, which the
  * client keeps on disk and the server keeps once for all requests (toc.ts).
  */

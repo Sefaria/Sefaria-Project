@@ -1,4 +1,4 @@
-// Ways out to the legacy client (T-F01; wiki projects/reader-next/exits-to-legacy.md). Crawls the new reader's page types, desktop and
+// Ways out to the legacy client. Crawls the new reader's page types, desktop and
 // phone, signed out and signed in; collects every same-site link; asks the reader's server (with pass-through to Django on) for each
 // and follows its redirects; a link that ends on a page Django renders (`x-served-by: django`) is a way out. Ways out that are not
 // in scripts/exits-allowlist.json fail the run (exit 1), unless --report-only.
@@ -16,7 +16,7 @@
 //     links as in production (PUBLIC_SITE_ORIGIN="", PUBLIC_API_ORIGIN="").
 // EXITS_BASE=<url> uses a running reader server instead (e.g. a cauldron in optin mode with EXITS_COOKIE for a real session).
 //
-// CI: run with --report-only until wave 2 has ported what the list names (LAUNCH_PLAN §5 F); then without it, as a gate.
+// CI runs it weekly with --report-only (.github/workflows/reader-next-exits.yaml); without that flag it is a gate.
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
@@ -35,7 +35,7 @@ const ALLOW = JSON.parse(readFileSync(new URL("./exits-allowlist.json", import.m
 const FAKE_SESSION = "exits-crawl";
 const CRAWL_UA = "Mozilla/5.0 (exits-crawl; Sefaria/reader-next)";
 
-/** The new reader's page types (LAUNCH_PLAN T-F01). */
+/** The new reader's page types. */
 const SIDEBAR = ["all", "Sheets", "Topics", "Translations", "About", "WebPages", "Notes"];
 const PAGES = QUICK
   ? ["/texts", "/Genesis.1.1?with=all", "/topics"]

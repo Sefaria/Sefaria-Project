@@ -1,5 +1,5 @@
 /**
- * T-E04: the reader must work whatever IndexedDB does: missing (some private modes, the server), throwing on open (blocked storage),
+ * The reader must work whatever IndexedDB does: missing (some private modes, the server), throwing on open (blocked storage),
  * hanging (WebKit's open that never answers), failing mid-session (quota), or emptied (iOS Safari evicts script-written storage after
  * 7 days without a visit). Each case reads a text through the real cache layer (policy, persister, storage) and the ref index.
  */

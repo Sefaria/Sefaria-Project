@@ -60,7 +60,7 @@ export function UpdatesPage({ he, sidebar, form, children }: UpdatesPageProps) {
   return (
     <div className={styles.page} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
       <div className={styles.sidebar}>{sidebar}</div>
-      {/* not a second <main>: the shell's is the page's one (v-a11y N2) */}
+      {/* not a second <main>: the shell's is the page's one */}
       <div id="updatesPage" className={styles.main}>
         <div className={styles.inner}>
           <h1 className={styles.title}>

@@ -3,7 +3,7 @@ import { errorPageLang, retryHref, unavailableResponse } from "./error-page";
 import { upstreamUnavailable } from "./pass-through";
 
 // @feature RTE-040
-describe("the page for an upstream failure (T-F28)", () => {
+describe("the page for an upstream failure", () => {
   it("is a real page, still 503 with Retry-After, never stored, never indexed", async () => {
     const r = upstreamUnavailable(new Request("http://x/Genesis.1?lang=he"));
     expect(r.status).toBe(503);

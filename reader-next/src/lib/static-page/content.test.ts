@@ -103,7 +103,7 @@ describe("scopeCss: the legacy stylesheets under the static page's wrapper", () 
 @charset "UTF-8";`;
     expect(scopeCss(css, S)).toBe(`#w a,\n#w p:not(.x, .y) { color: red; content: "}{"; }\n@media (max-width: 480px) {\n#w .a { b: c }\n}\n@font-face { font-family: X; src: url(x.woff); }\n@keyframes k { from { opacity: 0 } to { opacity: 1 } }\n`);
   });
-  it("nothing reaches outside the wrapper: sibling combinators from the document or the wrapper are dropped (review round 2)", () => {
+  it("nothing reaches outside the wrapper: sibling combinators from the document or the wrapper are dropped", () => {
     for (const sel of [":root ~ *", "body + div", "html ~ footer", "html + body", "body.interface-hebrew ~ main", ":root:not(.x) ~ *", "#w ~ footer", "#w.x + nav", "html body + div"])
       expect(scopeSelector(sel, S), sel).toBe("");
     expect(scopeCss(":root ~ *, .a { color: red }", S)).toBe("#w .a { color: red }\n");

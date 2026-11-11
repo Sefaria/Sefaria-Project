@@ -1,5 +1,5 @@
 /**
- * Browser error reporting (LAUNCH_PLAN T-D01, decision D-8: required before real users; Sentry stays out). A small first-party
+ * Browser error reporting (docs/DECISIONS.md, D-8: required before real users; Sentry stays out). A small first-party
  * reporter: uncaught errors, unhandled rejections, React error boundaries and hydration mismatches, each sent as one JSON beacon
  * (`navigator.sendBeacon`) to PUBLIC_ERROR_ENDPOINT. Off when that is unset (development, tests that do not ask for it).
  *
@@ -18,7 +18,7 @@
  * per page load and MAX_PER_SESSION per browser session; an identical error (kind, message, first stack frame) once; a 4xx API answer
  * (an unknown ref, a missing page) is the reader's request, not a bug, and is not reported.
  *
- * The receiving endpoint's contract is in the lane-C report (rn-shared/reports/c-observability.md, "Error beacon contract").
+ * The receiving endpoint is Django's `/api/reader-errors` (reader/browser_errors.py; docs/DEPLOYMENT.md).
  *
  * @feature ANL-017 Browser error reporting
  */

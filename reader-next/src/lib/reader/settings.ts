@@ -56,7 +56,7 @@ const oneOf = <T extends string>(v: string | undefined, allowed: readonly T[], f
 
 /**
  * The text language when the reader has chosen none: Hebrew in the Hebrew interface, else bilingual (legacy
- * sefaria/system/middleware.py: `default_content_lang = "hebrew" if interface == "hebrew" else "bilingual"`; v-parity B1). A choice
+ * sefaria/system/middleware.py: `default_content_lang = "hebrew" if interface == "hebrew" else "bilingual"`). A choice
  * the reader made (the `language`/`contentLang` cookie, the URL's `lang`) still wins.
  *
  * @feature I18-001 Content, translation and version preferences

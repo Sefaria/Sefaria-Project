@@ -45,7 +45,7 @@ export function currVersionsOf(primary?: string, translation?: string): Feedback
 
 /**
  * Through the one write helper (same origin, session cookie, `X-CSRFToken`): Django's send_feedback is CSRF-protected, so a bare
- * fetch was refused with 403 on every submit (CODE_REVIEW R-23; the old client got the header from jQuery's ajaxSetup).
+ * fetch was refused with 403 on every submit (the old client got the header from jQuery's ajaxSetup).
  */
 export async function sendFeedback(payload: FeedbackPayload): Promise<void> {
   const r = await postForm("/api/send_feedback", new URLSearchParams({ json: JSON.stringify(payload) }));

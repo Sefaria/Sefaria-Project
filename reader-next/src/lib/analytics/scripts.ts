@@ -7,11 +7,11 @@
  *    is rendered (the root loader's viewer), as the old page knew it from DJANGO_VARS.
  *  - Simple Analytics (SIMPLE_ANALYTICS_HOSTNAME): the sa_event queue stub, sa_metadata, the script with data-collect-dnt.
  *
- * Not ported (owner decision pending, see docs/PHASE7_PLAN.md §3): VWO (hides <body> until loaded), Hotjar, Unbounce.
+ * Not ported (owner decision pending): VWO (hides <body> until loaded), Hotjar, Unbounce.
  *
  * They run once per document: they are rendered as plain <script> tags in the document shell (src/routes/__root.tsx), never through
  * the router's head(), which re-injects its scripts on client navigation (GTM loaded again, an extra gtag 'config' = an extra page
- * view). Each inline snippet is also guarded, so a second execution is a no-op (CODE_REVIEW R-01).
+ * view). Each inline snippet is also guarded, so a second execution is a no-op.
  *
  * @feature ANL-014 Third-party analytics and testing scripts
  */

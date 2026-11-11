@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * End-to-end tests run the real app (dev server) against recorded API answers: the node server and the browser both reach the API
  * through the cassette proxy (scripts/api-cassette.mjs; E2E_API_MODE auto | replay | record), so live data changes cannot turn the
- * suite red (CODE_REVIEW R-13). E2E_LIVE=1 runs against the live API instead.
+ * suite red. E2E_LIVE=1 runs against the live API instead.
  * E2E_PORT moves the main dev server (default 3100). The auth specs use a second dev server (E2E_AUTH_PORT, default 3112) started
  * with test sign-in provider keys, so the Google/Apple buttons and the captcha render; their SDKs are stubbed in the specs. It also
  * reports browser errors (PUBLIC_ERROR_ENDPOINT, as a deployment does) to a path the error-report specs intercept; the main server

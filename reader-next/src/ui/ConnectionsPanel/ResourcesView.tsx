@@ -73,7 +73,7 @@ const visible = (r: ToolRow) => r.count === undefined || r.count === null || r.c
 export function ResourcesView({ hrefFor, summary, catalog, basePath, search = "", onNavigate, counts, notesCount = 0, sheetsHref, showCompare, signedIn = false, moderator = false }: ResourcesViewProps) {
   const href_ = (v: ConnectionsView) => (hrefFor ? hrefFor(v) : withHref(basePath ?? "", v, search));
   const [expanded, setExpanded] = useState(false);
-  // section names in the interface's language (a11y S5), the old client's words (parity S11)
+  // section names in the interface's language, the old client's words
   const ui = useInterfaceLang() === "hebrew" ? "he" : "en";
   const rows = expanded ? summary.categories : summary.visible;
   const none = summary.categories.length === 0 && summary.essays.length === 0;

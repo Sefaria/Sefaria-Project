@@ -40,6 +40,6 @@
 .details[open] > .summary::before { transform: translateY(1px) rotate(-135deg); }
 .previewWrap { display: block; }
 
-/* A version's facts may hold a long bare link ("modernizedtanakh.blogspot.com"): at 320px it ended 1.5px past the screen
-   (a11y N10). It breaks inside its column instead. */
+/* A version's facts may hold a long bare link ("modernizedtanakh.blogspot.com"): at 320px it ended 1.5px past the screen.
+   It breaks inside its column instead. */
 .view :global(dd) { min-width: 0; overflow-wrap: anywhere; }

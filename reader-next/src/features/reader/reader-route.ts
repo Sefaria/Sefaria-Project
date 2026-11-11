@@ -49,7 +49,7 @@ async function loadTextPanel(queryClient: QueryClient, panel: TextPanelState, pr
       return await loadReaderPassage(queryClient, getRefIndex(), panel.ref, sel);
     } catch (e) {
       // a client error is "no such text" (404); a refusal for now (429), a timeout (408) or a server error is the API's trouble, answered
-      // 503 by the request middleware — as a 404 the page went to Django, which served the old reader for a text that exists (R-36)
+      // 503 by the request middleware — as a 404 the page went to Django, which served the old reader for a text that exists
       if (e instanceof SefariaApiError && e.status !== undefined && e.status >= 400 && e.status < 500 && e.status !== 408 && e.status !== 429) throw notFound();
       throw e;
     }
@@ -143,8 +143,8 @@ export async function loadWorkspaceRoute(args: {
 
 /**
  * The versions a panel shows. While the URL still names exactly what the loader was given, the loader's resolution wins: it filled in
- * what the URL left open from the reader's preferences (a URL naming only the source, `vhe`, keeps the saved translation:
- * CODE_REVIEW R-07; it used to be dropped after hydration). When the URL names something newer, that is the reader's new choice.
+ * what the URL left open from the reader's preferences (a URL naming only the source, `vhe`, keeps the saved translation;
+ * it used to be dropped after hydration). When the URL names something newer, that is the reader's new choice.
  */
 export function shownVersions(urlVersions: VersionSelection, data: Pick<ReaderRouteData, "versions" | "requested">): VersionSelection {
   if (selectionKey(urlVersions) === selectionKey(data.requested)) return data.versions;

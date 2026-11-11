@@ -48,7 +48,7 @@ export class PositionStore {
     this.schedule();
   }
 
-  // The trail is written to storage once things are quiet, and when the page goes away (CODE_REVIEW R-29: every scroll pause
+  // The trail is written to storage once things are quiet, and when the page goes away (every scroll pause
   // serialised all 80 entries, twice); reads come from memory, so a late write loses nothing.
   private timer: ReturnType<typeof setTimeout> | undefined;
   private listening = false;

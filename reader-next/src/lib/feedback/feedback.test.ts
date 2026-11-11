@@ -8,7 +8,7 @@ describe("sendFeedback", () => {
     document.cookie = "csrftoken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
   });
 
-  // CODE_REVIEW R-23: Django's send_feedback is CSRF-protected; without the header every submit was a 403
+  // Regression: Django's send_feedback is CSRF-protected; without the header every submit was a 403
   it("posts the old form body to this site with the session cookie and the CSRF token", async () => {
     document.cookie = "csrftoken=tok123; path=/";
     const fetch = vi.fn(async () => new Response(JSON.stringify({ status: "ok" }), { status: 200 }));

@@ -9,7 +9,7 @@ beforeEach(() => {
   globalThis.indexedDB = new IDBFactory();
 });
 
-// CODE_REVIEW R-19: what the client learned about books and spellings never expired
+// Regression: what the client learned about books and spellings never expired
 describe("RefIndex lifetimes", () => {
   it("what was learned comes back from disk after a reload, while fresh", async () => {
     let now = 1_000_000;
@@ -42,7 +42,7 @@ describe("RefIndex lifetimes", () => {
   });
 });
 
-// review F12: the ref index's own disk stores were outside the query cache's sweep, so they only grew
+// Regression: the ref index's own disk stores were outside the query cache's sweep, so they only grew
 describe("sweepRefIndexDisk", () => {
   it("removes expired and busted rows from both stores and keeps the rest", async () => {
     const { sweepRefIndexDisk } = await import("./ref-index");

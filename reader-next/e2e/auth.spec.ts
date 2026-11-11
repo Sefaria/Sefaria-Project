@@ -157,7 +157,7 @@ test.describe("flows", () => {
     await open(page, "/password/reset/confirm/MTI/set-password/");
     await expect(page.getByRole("heading", { name: "Password Reset Link Expired" })).toBeVisible();
     await page.getByRole("button", { name: "Request New Link" }).click();
-    await expect(page.getByRole("heading", { name: "Reset Link Sent" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "New Link Requested" })).toBeVisible();
     expect(bodies.at(-1)).toBe(JSON.stringify({ action: "resend" }));
   });
 });

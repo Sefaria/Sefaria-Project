@@ -66,7 +66,7 @@ describe("LibraryAssistant", () => {
     expect(el.getAttribute("api-base-url")).toBe("https://chat-dev.sefaria.org/api");
   });
 
-  // parity S3: sefaria.org shows it to signed-out visitors unless remote config's feature.chatbot.anonymous_enabled is off
+  // sefaria.org shows it to signed-out visitors unless remote config's feature.chatbot.anonymous_enabled is off
   it("for a signed-out visitor: <lc-chatbot> without a token, with the free answers and the sign-up prompt's options", async () => {
     const { container } = setup({ viewer: null, search: "?q=1", pathname: "/Genesis.1", remote: { "feature.chatbot.anonymous_free_answers": 3 } });
     const el = await waitFor(() => container.querySelector("lc-chatbot")!);

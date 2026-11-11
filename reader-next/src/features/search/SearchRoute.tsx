@@ -225,7 +225,7 @@ export function SearchRoute() {
     <NavPage
       top={{ main: 64, side: 142 }}
       sidebar={
-        // the filters need the catalog's order and names, which are not in the page (R-14): they appear once it is here
+        // the filters need the catalog's order and names, which are not in the page: they appear once it is here
         mobile || !catalog ? undefined
         : params.tab === "sources" && hasQuery && tree.length ? <SearchFilters tree={tree} applied={params.filters} onToggle={onToggle} />
         : params.tab === "books" && hasQuery && bookTree.length ? <SearchFilters tree={bookTree} applied={bookFilters} onToggle={onToggleBook} />

@@ -30,7 +30,7 @@ export interface FollowBarProps {
   onDismiss: () => void;
 }
 
-/** How long "Now following Sarah" stays before the bar goes back to the steady state. */
+/** How long "Now following Reader Two" stays before the bar goes back to the steady state. */
 export const NOTICE_MS = 3_000;
 /** Faces shown before "+N". */
 const MAX_FACES = 6;
@@ -150,7 +150,7 @@ function displayName(participants: PresentParticipant[], id: ParticipantId | nul
 }
 
 /**
- * "Now following Sarah" for a moment when whom this tab follows changes from one person to another (the spotlight moved, or a face was
+ * "Now following Reader Two" for a moment when whom this tab follows changes from one person to another (the spotlight moved, or a face was
  * picked), and "You are leading" when the spotlight comes to this tab. Compared across states by `following`, the spotlight and its term.
  */
 function useSpotlightNotice(state: SessionState | null): ReactNode {

@@ -74,7 +74,7 @@ export function BookPage({ title, category, attribution, dedication, readHref, c
   const lib = useLibraryHref();
   const code = he ? "he" : "en";
   // the Hebrew interface: the Hebrew description, else the short Hebrew one, before any English (the old AboutBox's
-  // `heDesc || heShortDesc`; VERIFIED on sefaria.org.il 2026-11-10: Berakhot shows "ברכות ותפילות, בדגש על קריאת שמע…"; parity S9)
+  // `heDesc || heShortDesc`; VERIFIED on sefaria.org.il 2026-11-10: Berakhot shows "ברכות ותפילות, בדגש על קריאת שמע…")
   const heAbout = description?.he || description?.heShort;
   const about = he ? heAbout || description?.en : description?.en || heAbout;
   const aboutLang = about && about === heAbout ? "he" : "en";

@@ -1,9 +1,9 @@
 /**
- * "Back to the classic reader" and "Report a problem", in the account menu and the phone menu while the opt-in exists (LAUNCH_PLAN
- * T-D05). `useReaderOptIn` gives the header its two actions (or null: no opt-in, no items) and the feedback dialog to render.
+ * "Back to the classic reader" and "Report a problem", in the account menu and the phone menu while the opt-in exists.
+ * `useReaderOptIn` gives the header its two actions (or null: no opt-in, no items) and the feedback dialog to render.
  * "Report a problem" reuses the sidebar's Feedback form (FeedbackView → POST /api/send_feedback), in a dialog.
  *
- * @feature ACC-003 Account settings page (the reader choice, T-D05)
+ * @feature ACC-003 Account settings page (the reader choice)
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { readerAnalytics, readerChoiceAnalytics, type ReaderChoiceSource } from "~/lib/analytics";

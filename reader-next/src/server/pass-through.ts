@@ -32,7 +32,7 @@ export const requestHost = (request: Request): string =>
 
 /**
  * The request-level decision src/start.ts makes first: does this request go to Django whatever this client renders? (Its path as sent,
- * its method, and the host asked for: the Voices host keeps the Library-only pages, Q-E1.)
+ * its method, and the host asked for: the Voices host keeps the Library-only pages.)
  */
 export const passesToDjango = (request: Request, pathname: string = new URL(request.url).pathname): boolean =>
   isDjangoPath(pathname, request.method, requestHost(request));
@@ -60,7 +60,7 @@ export async function passThrough(request: Request): Promise<Response> {
     init.body = request.body;
     init.duplex = "half";
   }
-  // a read gets a deadline (Django pages can be slow, so longer than the API's); a write is never cut short (CODE_REVIEW R-05)
+  // a read gets a deadline (Django pages can be slow, so longer than the API's); a write is never cut short
   if (request.method === "GET" || request.method === "HEAD") (init as DeadlineInit).deadlineMs = PASS_THROUGH_TIMEOUT_MS;
   let res: Response;
   try {

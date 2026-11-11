@@ -1,11 +1,11 @@
 /**
- * What the dictionary editor's box is filled with (v-security nit 3: the stored entry went into innerHTML raw). The server's own
+ * What the dictionary editor's box is filled with (the stored entry went into innerHTML raw). The server's own
  * allowlist for an entry (sefaria/model/lexicon.py LexiconEntry.ALLOWED_TAGS / ALLOWED_ATTRS), so editing a field keeps everything the
  * server would keep on save (`big` included) and nothing that runs:
  *  - no script, style and the like (dropped with their content), no `on*` handlers, no attribute outside the server's list;
  *  - a link's href: a path (with or without a leading slash, as stored), http(s) or mailto — never javascript:, data: or `//host`;
  *  - an image only as the server keeps it (a `data:image/` src and nothing else), and only a raster one: png, jpeg, gif, webp — never
- *    SVG (rework round 1).
+ *    SVG.
  * Legacy did not sanitise the box at all (LexiconWysiwygValue.jsx: "would rewrite untouched markup on any edit"): a deliberate difference.
  * Works the same on the server and in the browser (htmlparser2, no DOM).
  *

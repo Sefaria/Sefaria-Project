@@ -66,7 +66,7 @@ const prefsFromCookies = (header: string, diaspora: boolean, host?: string) => {
 type RootPrefs = ReturnType<typeof prefsFromCookies>;
 /**
  * The old LocationSettingsMiddleware: a reader in Israel (Cloudflare's cf-ipcountry "IL") is not in the diaspora; an unknown country
- * ("XX" or none) is PINNED_IPCOUNTRY, else the diaspora (CODE_REVIEW R-21).
+ * ("XX" or none) is PINNED_IPCOUNTRY, else the diaspora.
  */
 export function diasporaFor(country: string | undefined, pinned = typeof process !== "undefined" ? process.env.PINNED_IPCOUNTRY : undefined): boolean {
   const c = (!country || country.toUpperCase() === "XX" ? pinned || "us" : country).toLowerCase();
@@ -88,7 +88,7 @@ function headLang(matches: readonly { context?: unknown; error?: unknown }[]): T
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   // Every navigation runs this: in the browser the cookies are right here (a server function was an HTTP round trip per navigation,
-  // scroll-driven address updates included: CODE_REVIEW R-09)
+  // scroll-driven address updates included)
   beforeLoad: async (opts): Promise<RootPrefs> => {
     const prefs = typeof document === "undefined" ? await getRequestPrefs() : prefsFromCookies(document.cookie, pageDiaspora(), window.location.host);
     // Neither this client nor Django has a page here: the server asks for the reader's own 404 page (src/lib/routing/not-found.ts).
@@ -113,7 +113,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      // a page nobody has (the reader's 404, T-F28): titled as the old site's 404 and kept out of search engines
+      // a page nobody has (the reader's 404): titled as the old site's 404 and kept out of search engines
       // in the reader's interface language, as Django's 404 page ("הדף שביקשתם איננו נמצא | ספריא")
       ...(matches.some(isNotFoundMatch) ? [{ title: notFoundTitle(headLang(matches)) }, { name: "robots", content: "noindex" }] : [{ title: "Sefaria Reader" }]),
     ],
@@ -214,10 +214,10 @@ function Shell() {
   // data-anl-* declarations anywhere in the page (the old attach("#s2, #staticContentWrapper", …))
   const appRef = useRef<HTMLDivElement>(null);
   useEffect(() => (appRef.current ? attachDeclarativeAnalytics(appRef.current) : undefined), []);
-  // Keep the disk cache bounded (CODE_REVIEW R-11): once per visit, well after the page has settled, when the browser is idle
+  // Keep the disk cache bounded: once per visit, well after the page has settled, when the browser is idle
   const queryClient = useRouter().options.context.queryClient as QueryClient;
   useEffect(() => {
-    // what the server rendered goes to disk too (R-20), once the browser is idle after hydration
+    // what the server rendered goes to disk too, once the browser is idle after hydration
     const idle = (fn: () => void) => ("requestIdleCallback" in window ? window.requestIdleCallback(fn, { timeout: 5_000 }) : setTimeout(fn, 1_000));
     idle(() => void persistHydrated(queryClient).catch(() => undefined));
   }, [queryClient]);
@@ -238,7 +238,7 @@ function Shell() {
       }),
     [router],
   );
-  // what other apps on the page ask of the reader — the Library Assistant's links above all (src/lib/integration, §6.12): a page of
+  // what other apps on the page ask of the reader — the Library Assistant's links above all (src/lib/integration): a page of
   // this client is a navigation in the app, a page Django serves is loaded in full
   useEffect(
     () =>
@@ -281,12 +281,12 @@ function RootDocument({ children, lang, dir, standalone }: Readonly<{ children: 
   const { interfaceLang, diaspora } = useRootPrefs();
   const saMetadata = saMetadataScript(PUBLIC_CONFIG.analytics, { loggedIn: !!viewer, staff: !!viewer?.email?.includes("sefaria.org") });
   // The runtime config (before any module runs: src/lib/config.ts), then the analytics vendors, each only when configured. Plain
-  // <script> tags here run once per document; the router's head() would re-inject them on every navigation (CODE_REVIEW R-01).
+  // <script> tags here run once per document; the router's head() would re-inject them on every navigation.
   // a standalone page (compare.html) loads Google Tag Manager only
   const headScripts = [{ children: configScript() }, { children: `window.__SEFARIA_REQUEST__=${JSON.stringify({ diaspora: diaspora !== false })};` }, ...analyticsHeadScripts(standalone ? { ...PUBLIC_CONFIG.analytics, gtag: null, simpleAnalyticsHost: null } : PUBLIC_CONFIG.analytics, interfaceLang ?? "english", viewer ? { uid: viewer.id, email: viewer.email } : null)];
   return (
-    // Pinned light (CODE_REVIEW R-06): with no theme the tokens follow the OS, but ~200 literal colours do not, so dark-OS readers got a
-    // half-dark page. Dark mode arrives behind its remote-config flag once every colour is a token (TARGET_ARCHITECTURE §6.6).
+    // Pinned light: with no theme the tokens follow the OS, but ~200 literal colours do not, so dark-OS readers got a
+    // half-dark page. Dark mode arrives behind its remote-config flag once every colour is a token.
     <html lang={lang} dir={dir} data-theme="light">
       <head>
         {headScripts.map(({ children: code, ...attrs }, i) => (code ? <script key={i} {...attrs} dangerouslySetInnerHTML={{ __html: code }} /> : <script key={i} {...attrs} />))}

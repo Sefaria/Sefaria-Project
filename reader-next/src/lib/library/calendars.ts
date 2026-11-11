@@ -41,7 +41,7 @@ export const SIGNED_OUT_CUSTOM = "ashkenazi";
 
 /**
  * `diaspora`: the old site's request.diaspora — false for readers in Israel, whose weekly portion differs in some weeks (decided by
- * the server from the request's country: src/routes/__root.tsx). Kept in memory only (CODE_REVIEW R-21: it was kept 90 days on
+ * the server from the request's country: src/routes/__root.tsx). Kept in memory only (it was kept 90 days on
  * disk, so a reader offline or back after a week saw last week's portion first).
  * `custom`: sent only when given (the library sidebar sends none, as it always has here; the Learning Schedules page sends the reader's).
  */

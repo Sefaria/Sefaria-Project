@@ -1,4 +1,4 @@
-// An API cassette for the end-to-end tests (CODE_REVIEW R-13): both the node server (server-side rendering) and the browser reach the
+// An API cassette for the end-to-end tests: both the node server (server-side rendering) and the browser reach the
 // Sefaria API through this local proxy, which answers from recordings on disk, so the suite does not change when live data does
 // (a site's page count went 145 → 144 and turned the suite red).
 //

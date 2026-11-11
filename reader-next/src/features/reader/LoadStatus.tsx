@@ -1,5 +1,5 @@
 /**
- * What the sidebar says while its data is slow or failed (pre-deploy list SB-02, LAUNCH_PLAN T-H02). A cold `/api/related` can take
+ * What the sidebar says while its data is slow or failed. A cold `/api/related` can take
  * 15 seconds and end in a 504, and a cold `/api/links` 11: the reader must never be left with a spinner that says nothing. After a
  * few seconds the wait says so; a failure says what is missing and offers to try again. What did arrive stays on screen.
  */

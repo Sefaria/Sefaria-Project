@@ -26,7 +26,7 @@ describe("assistantAccessQuery", () => {
   });
 });
 
-// @feature AI-003 — sefaria/helper/library_assistant.py is_enabled_for_anonymous + normalize (parity S3)
+// @feature AI-003 — sefaria/helper/library_assistant.py is_enabled_for_anonymous + normalize
 describe("assistantOnForAnonymous", () => {
   it("on when remote config does not set it", () => {
     expect(assistantOnForAnonymous({})).toBe(true);

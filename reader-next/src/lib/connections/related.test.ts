@@ -39,7 +39,7 @@ describe("related resources", () => {
     expect(resourceCounts(res, ["Genesis 1:3", "Genesis 1:4"], { webpages: 0, translations: 0 }).topics).toBe(1);
   });
 
-  // @feature CON-014 Sheets count with the reader's own sheets (old sheetsTotalCount, T-G04)
+  // @feature CON-014 Sheets count with the reader's own sheets (old sheetsTotalCount)
   it("signed in, counts the reader's own sheets (private too) without counting their public ones twice", () => {
     const res = {
       sheets: groupByRef([
@@ -68,7 +68,7 @@ describe("related resources", () => {
   });
 });
 
-// V-EXITS SB-05: an in-page reopen of the sidebar must not ask /api/related again
+// Regression: an in-page reopen of the sidebar must not ask /api/related again
 describe("the Resources request outlives the sidebar that asked for it", () => {
   it("closing the sidebar while it loads neither aborts it nor makes the next opening send it again", async () => {
     let sent = 0;

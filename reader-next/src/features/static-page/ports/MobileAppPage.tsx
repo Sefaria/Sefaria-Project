@@ -7,7 +7,7 @@ import { isValidEmailAddress, subscribeNewsletter } from "~/lib/user/newsletter"
 import { NewsletterSignUp, type NewsletterSubscription } from "~/ui/NewsletterSignUp/NewsletterSignUp";
 
 /**
- * /mobile, the Sefaria app's page (T-F32): the old MobileAppPage (static/js/StaticPages.jsx), which Django's content block only mounts,
+ * /mobile, the Sefaria app's page: the old MobileAppPage (static/js/StaticPages.jsx), which Django's content block only mounts,
  * with the same markup and class names so static.css styles it as on sefaria.org. Its behaviour: the store buttons carry the visit's
  * UTM campaign to the App Store and Google Play (decided from the address on the server too, so the first paint has them), and the
  * newsletter sign-up at the bottom ("Subscribe from Mobile Landing Page").

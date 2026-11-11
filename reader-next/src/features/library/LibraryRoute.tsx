@@ -27,7 +27,7 @@ import { DedicationBanner } from "./DedicationBanner";
  * @feature LIB-069 Library category URL handling (server)
  */
 export function LibraryRoute({ path }: { path: string[] }) {
-  // the page's slice of the catalog, not all of it (R-14): what the server put in the page, or what the loader derived here
+  // the page's slice of the catalog, not all of it: what the server put in the page, or what the loader derived here
   const queryClient = useQueryClient();
   const tree = useQuery(catalogSliceQueryOptions(queryClient, path)).data;
   const catalog = useMemo(() => (tree ? { tree } : undefined), [tree]);

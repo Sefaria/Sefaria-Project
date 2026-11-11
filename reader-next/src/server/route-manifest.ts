@@ -1,5 +1,5 @@
 /**
- * Which server answers a path, decided before rendering (CODE_REVIEW R-36: every path this client did not know was rendered in full —
+ * Which server answers a path, decided before rendering (every path this client did not know was rendered in full —
  * its API calls made and thrown away — and only its 404 sent it on to Django).
  *
  *  - this client's own pages (the library, search, sign-in, assets…, the static information pages it renders) render here;

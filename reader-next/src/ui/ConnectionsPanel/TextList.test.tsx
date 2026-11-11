@@ -125,7 +125,7 @@ describe("TextList dwell (the old checkVisibleSegments)", () => {
     expect(onRemove).toHaveBeenCalledWith(expect.objectContaining({ id: "i1" }));
   });
 
-  // parity S8: sefaria.org shows "Abarbanel on Torah, Genesis 1:1" (segments 1:1:1-3) as three paragraphs, not one
+  // sefaria.org shows "Abarbanel on Torah, Genesis 1:1" (segments 1:1:1-3) as three paragraphs, not one
   it("shows each segment of a ranged link as its own paragraph", () => {
     const ranged = item(1, {
       sourceRef: "Abarbanel on Torah, Genesis 1:1",

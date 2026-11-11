@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SefariaApiError } from "~/lib/api/client";
 import { shouldRetry } from "./query-client";
 
-// CODE_REVIEW R-17: every 404 was retried (≈ +1 s on every bad or old link)
+// Regression: every 404 was retried (≈ +1 s on every bad or old link)
 describe("shouldRetry", () => {
   it("never retries an answer that will not change", () => {
     expect(shouldRetry(0, new SefariaApiError("no", 404))).toBe(false);
@@ -18,7 +18,7 @@ describe("shouldRetry", () => {
   });
 });
 
-// CODE_REVIEW R-39: an observer unmounting mid-fetch cancelled the fetch a route loader was awaiting ("CancelledError" page)
+// Regression: an observer unmounting mid-fetch cancelled the fetch a route loader was awaiting ("CancelledError" page)
 describe("a fetch cancelled under its callers", () => {
   it("is fetched again for a caller that was waiting on it (fetchQuery and ensureQueryData)", async () => {
     const { makeQueryClient } = await import("./query-client");

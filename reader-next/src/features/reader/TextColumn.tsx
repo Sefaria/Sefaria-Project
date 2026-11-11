@@ -73,7 +73,7 @@ export interface TextColumnProps {
  * @feature TXD-055 Visible-ref tracking drives URL and header
  * @feature TXD-056 Loading placeholders and book title header
  */
-/** Sections further than this many screens from the reader are let go (R-25). */
+/** Sections further than this many screens from the reader are let go. */
 const WINDOW_SCREENS = 3;
 /** Never fewer than this many sections in the column. */
 const MIN_SECTIONS_KEPT = 3;
@@ -100,7 +100,7 @@ export function TextColumn(props: TextColumnProps) {
   propsRef.current = props;
 
   // Text the reader selects in this column: on mouseup for a mouse, and when the selection rests for one made by keyboard (Shift+arrows)
-  // or touch (a long press and its handles), which end in no mouseup. One report per selection either way (lane R, D4).
+  // or touch (a long press and its handles), which end in no mouseup. One report per selection either way.
   useEffect(() => listenForSelections(() => contentRef.current, (words, refs) => propsRef.current.onSelectWords?.(words, refs)), []);
 
   // Development aid: count column mounts (a remount while reading would be a visible reset).
@@ -124,7 +124,7 @@ export function TextColumn(props: TextColumnProps) {
     focusedEl.current?.removeAttribute("data-focused");
     focusedEl.current?.removeAttribute("aria-current");
     el?.setAttribute("data-focused", "true");
-    // with the sidebar open the highlighted verse is the selected one: say so to assistive technology too (R-31)
+    // with the sidebar open the highlighted verse is the selected one: say so to assistive technology too
     if (showFocusRef.current) el?.setAttribute("aria-current", "true");
     focusedEl.current = el;
   }, []);
@@ -166,8 +166,8 @@ export function TextColumn(props: TextColumnProps) {
   const versionKey = selectionKey(versions);
   const shownVersions = useRef(props.initialVersionsKey ?? versionKey);
   // Each section is swapped as soon as it arrives, merged into the column as it is NOW (a section the reader scrolled to meanwhile,
-  // loaded in the new versions already, is kept); a section that fails keeps its text and the others still change (CODE_REVIEW
-  // R-26: all-or-nothing, nothing until the farthest section came back, a failure left the old text under the new version's name,
+  // loaded in the new versions already, is kept); a section that fails keeps its text and the others still change
+  // (it used to be all-or-nothing: nothing until the farthest section came back, a failure left the old text under the new version's name,
   // and a section appended mid-swap was dropped by a snapshot).
   useEffect(() => {
     if (versionKey === shownVersions.current) return;
@@ -213,7 +213,7 @@ export function TextColumn(props: TextColumnProps) {
       busy.current[direction] = true;
       setLoading((l) => ({ ...l, [direction]: true }));
       try {
-        // in the versions wanted when it arrives (a version change meanwhile swapped only what the column held: review F04)
+        // in the versions wanted when it arrives (a version change meanwhile swapped only what the column held)
         const passage = await fetchInWantedVersions((sel) => qc.ensureQueryData({ ...textQueryOptions(ref, sel), revalidateIfStale: true }), () => propsRef.current.versions);
         // Adding above is safe: the engine puts the reader back before the next paint.
         setSections((prev) => (prev.some((p) => p.ref === passage.ref) ? prev : direction === "up" ? [passage, ...prev] : [...prev, passage]));
@@ -245,7 +245,7 @@ export function TextColumn(props: TextColumnProps) {
     onNearEdge: (direction) => void load(direction),
   });
 
-  // The first screen of a section opened with no verse to bring to the reading line (parity S4): as on sefaria.org, the column opens
+  // The first screen of a section opened with no verse to bring to the reading line: as on sefaria.org, the column opens
   // scrolled past its top edge (the book's title, or the strip where the previous section loads), the section's title at the top of
   // the text (Psalms 23 opens on "23", not on the end of Psalm 22). It stays so through what arrives before the reader moves — the
   // previous section loading above, a short chapter that could not scroll that far until the next one came — and stands down the
@@ -336,12 +336,12 @@ export function TextColumn(props: TextColumnProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reports when the sections change; a new onSections callback alone has nothing new to report
   }, [sections]);
 
-  // Windowing (CODE_REVIEW R-25): the column used to keep every section it ever loaded, so a long reading session paid more on every
+  // Windowing: the column used to keep every section it ever loaded, so a long reading session paid more on every
   // scroll frame (segment lookups over the whole column), held every section's links, and refetched them all on a version change.
   // After each load, sections more than WINDOW_SCREENS screens away go; scrolling back loads them again from the cache. Kept always:
   // the section the reader is in, and the sections the address names now (`pinned`: the panel compares the address's sections with
   // what the column holds, and dropping them would restart the column). Not the sections the page opened with: keeping those stopped
-  // every trim behind the reader at the first of them, so a long read kept everything (review F03). Removal above is not movement:
+  // every trim behind the reader at the first of them, so a long read kept everything. Removal above is not movement:
   // the anchor engine keeps the reader's verse still, as it does when a section is added above.
   const pinnedKey = (props.pinned ?? initial.map((p) => p.ref)).join("|");
   const pinnedRefs = useMemo(() => new Set(pinnedKey.split("|")), [pinnedKey]);
@@ -396,7 +396,7 @@ export function TextColumn(props: TextColumnProps) {
   // One string, not a spread: the number of queries grows with the sections, and React's deps must keep their length.
   const linksUpdatedKey = linkQueries.map((q) => q.dataUpdatedAt).join(",");
   // Counted per section and kept while that section's links and the filter are unchanged: a section added (or one section's links
-  // arriving) leaves every other section's counts — and so its rendered verses — untouched (CODE_REVIEW R-12)
+  // arriving) leaves every other section's counts — and so its rendered verses — untouched
   const countsCache = useRef(new Map<string, { key: string; counts: Record<string, number> }>());
   const countsBySection = useMemo(() => {
     const out = new Map<string, Record<string, number>>();

@@ -11,7 +11,7 @@ import { Parser } from "htmlparser2";
 import { escapeAttribute as escapeAttributeLoose, escapeText } from "entities";
 import { isLocalPath } from "./local-path";
 
-/** Attribute values with `<` and `>` escaped as well, so no later scan of the HTML can mistake one for the end of a tag (CODE_REVIEW R-02). */
+/** Attribute values with `<` and `>` escaped as well, so no later scan of the HTML can mistake one for the end of a tag. */
 const escapeAttribute = (v: string) => escapeAttributeLoose(v).replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 const ALLOWED = new Set(["a", "abbr", "b", "blockquote", "br", "code", "div", "em", "h3", "h4", "h5", "h6", "i", "li", "ol", "p", "small", "span", "strong", "sub", "sup", "u", "ul"]);

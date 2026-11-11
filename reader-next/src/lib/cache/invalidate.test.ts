@@ -17,7 +17,7 @@ beforeEach(() => {
   setStaffFreshness(false);
 });
 
-// D-7 (LAUNCH_PLAN T-E01): text was fresh for 7 days, so an edit could stay invisible for a week
+// Regression (docs/DECISIONS.md, D-7): text was fresh for 7 days, so an edit could stay invisible for a week
 describe("freshness", () => {
   it("text and catalog are asked again after an hour; the disk still keeps them for 30 days", () => {
     expect(POLICIES.text.staleTime).toBe(HOUR);
@@ -65,7 +65,7 @@ describe("what a write makes wrong", () => {
     expect(matches({ kind: "lexicon" }, ["lexicon", "v2", "אור", "Genesis 1:3"])).toBe(true);
     expect(matches({ kind: "topic", slug: "light" }, ["topics", "topic", "light"])).toBe(true);
     expect(matches({ kind: "topic", slug: "light" }, ["topics", "topic", "dark"])).toBe(false);
-    expect(matches({ kind: "topic", slug: "light" }, ["resources", "Genesis 1"])).toBe(false); // patched in place, not refetched (SB-03)
+    expect(matches({ kind: "topic", slug: "light" }, ["resources", "Genesis 1"])).toBe(false); // patched in place, not refetched
     expect(matches({ kind: "notes" }, ["user", "notes", 1, ["Genesis 1:1"]])).toBe(true);
     expect(matches({ kind: "notes" }, ["user", "viewer"])).toBe(false);
   });

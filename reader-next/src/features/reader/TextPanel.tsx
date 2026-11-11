@@ -34,7 +34,7 @@ import { rememberTranslation } from "~/lib/versions/prefs-source";
 import { entryKey, navFor, panelKeysOf, readNavState, useWorkspaceNav, type NavState } from "../workspace/navigation";
 import { panelForRef } from "../workspace/open-ref";
 import { toRouterLocation } from "../shared/RouterLink";
-// Not a lazy chunk (tried for CODE_REVIEW R-15): a server-rendered sidebar whose chunk was still loading at hydration left a Suspense
+// Not a lazy chunk (tried once to shrink the first load): a server-rendered sidebar whose chunk was still loading at hydration left a Suspense
 // boundary that React later hid, unmounting query observers mid-fetch; the cancelled fetch surfaced as a "CancelledError" page (seen
 // on /Genesis.1.3-5?with=all). Split it with the route manifest, where the router loads a page's chunks before it hydrates.
 import { ConnectionsPane } from "./ConnectionsPane";
@@ -96,7 +96,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // In the versions the loader loaded: when the URL names new ones the column swaps them in itself, so the
   // panel never suspends (no loading flash) and never loses the reader's place.
   // one array per change of the data, not per render: a new array each render made every memo below recompute and
-  // useDeferredValue schedule an extra render (CODE_REVIEW R-12)
+  // useDeferredValue schedule an extra render
   const initialQueries = useSuspenseQueries({ queries: data.sectionRefs.map((r) => textQueryOptions(r, data.versions)) });
   const initialKey = initialQueries.map((q) => q.dataUpdatedAt).join(",");
   const initial = useMemo(() => initialQueries.map((q) => q.data), [initialKey, data.sectionRefs.join("|"), selectionKey(data.versions)]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the answers (dataUpdatedAt), the sections and the versions; useSuspenseQueries returns a new array each render
@@ -276,7 +276,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   }, [selection, urlSegments, section]);
   // Keep the sidebar from competing with scrolling: it catches up when the main thread is free. The verses and the section they
   // were chosen in are deferred together: deferring the verses alone looked the last chapter's verses up in the next chapter's
-  // links at a chapter boundary, and the sidebar said "no connections" for a moment (CODE_REVIEW low).
+  // links at a chapter boundary, and the sidebar said "no connections" for a moment.
   const sidebarInput = useMemo(() => ({ refs: selectedRefs, section }), [selectedRefs, section]);
   const deferredInput = useDeferredValue(sidebarInput);
   const deferredRefs = deferredInput.refs;
@@ -298,14 +298,14 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     (href: string) => {
       const loc = toRouterLocation(href);
       // the panels keep their stable keys (as every workspace command writes them): without them a panel renumbered by an earlier
-      // close was rebuilt by a mere change of sidebar view (review F07)
+      // close was rebuilt by a mere change of sidebar view
       const state: NavState = { nav: "stay", panel: id, panelKeys: panelKeysOf(nav.current()) };
       void router.navigate({ to: loc.to as never, search: loc.search as never, resetScroll: false, state: state as never });
     },
     [router, id, nav],
   );
   // Keyboard focus that was in the sidebar goes back to the verse it was open on (the one marked current) when the sidebar closes,
-  // so Tab carries on from there; legacy left it on <body> or the panel's Close link (a11y S2).
+  // so Tab carries on from there; legacy left it on <body> or the panel's Close link.
   const asideBox = useRef<HTMLDivElement>(null);
   const closeSidebar = useCallback(() => {
     const ref = current.ref ?? data.ref;
@@ -535,7 +535,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   );
 
   // The header's close button closes this panel; closing the only panel goes back to the library (SHL-048).
-  // Closing one of several panels leaves keyboard focus on the panel beside it (its current verse), not on <body> (a11y S2).
+  // Closing one of several panels leaves keyboard focus on the panel beside it (its current verse), not on <body>.
   const closePanel = useCallback(() => {
     const panels = [...document.querySelectorAll<HTMLElement>("section[data-panel-id]")];
     const at = rootEl.current ? panels.indexOf(rootEl.current) : -1;
@@ -570,10 +570,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const availability = displayMenuAvailability({ settings, book: section.book, primaryCategory: section.primaryCategory, hebrewSample: sample, showsSource });
   const interfaceLang = useInterfaceLang();
   const he = interfaceLang === "hebrew";
-  // the bar's accessible names in the interface's language (a11y S5; strings from legacy's interface/he.json where it has them)
+  // the bar's accessible names in the interface's language (strings from legacy's interface/he.json where it has them)
   const displayOptionsLabel = he ? "אפשרויות תצוגת טקסט" : "Text display options";
 
-  // A polite live region names the section the reader has moved into, once it is settled (legacy's header was aria-live: a11y S3).
+  // A polite live region names the section the reader has moved into, once it is settled (legacy's header was aria-live).
   // Once per section, never per verse, and not on arrival (the page's title and heading say where the reader is).
   const sectionName = he ? section.heSectionRef : section.sectionRef;
   const [announced, setAnnounced] = useState("");
@@ -589,7 +589,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
 
   // ── signed-in: reading history and Save (USL-010, USL-011) ──────────────────────────────────────────────
   const viewer = useViewer();
-  // Continue Reading on the book page resumes from here (BOK-003), for this reader only (R-29)
+  // Continue Reading on the book page resumes from here (BOK-003), for this reader only
   const viewerId = viewer?.id ?? null;
   useEffect(() => {
     if (current.ref) rememberPlace(current.passage.indexTitle, current.ref, viewerId);
@@ -601,7 +601,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       ref: chosen ?? section.sectionRef,
       heRef: chosen ? undefined : section.heSectionRef,
       // the versions shown (the address's, completed by the reader's preferences as the loader resolved them), as the old reader's
-      // currVersions carried its preferences: a preferred translation not named in the address was saved as none (review F11)
+      // currVersions carried its preferences: a preferred translation not named in the address was saved as none
       versions: legacyVersions(versions),
       book: section.indexTitle,
       language: settings.language,
@@ -632,7 +632,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // Main view and side panels, arranged by the panel's own layout (default: side panels in a column).
   // Without a sidebar the frame is still a row (of one): a bare leaf there and a row once the sidebar opens put the reading column
   // under different elements, and React rebuilt it — loaded sections, scroll engine, footnotes and selection — on every open and
-  // close (review F02; the workspace keeps its row of panels the same way, R-24). Not split(): it normalises a row of one to a leaf.
+  // close (the workspace keeps its row of panels the same way). Not split(): it normalises a row of one to a leaf.
   const frame: LayoutNode<typeof MAIN | AsideId> = useMemo(() => {
     if (!panel.asides.length) return { type: "split", direction: "row", children: [leaf(MAIN)], sizes: [1] } as LayoutNode<typeof MAIN | AsideId>;
     const asides = panel.asideLayout ?? split("column", panel.asides.map((a) => leaf(a.id)));
@@ -734,7 +734,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       aria-label={interfaceLang === "hebrew" ? `חלון קריאה: ${section.heSectionRef}` : `Reading panel: ${section.sectionRef}`}
       // Escape inside a panel closes it (SHL-071) — unless something inside already used the key (a menu, a dialog, a box). With the
       // sidebar open it closes the sidebar only, wherever the focus is (in legacy the sidebar is a panel of its own, so Escape there
-      // closed just it): Escape never throws a reader with the sidebar open out to the library (a11y S1).
+      // closed just it): Escape never throws a reader with the sidebar open out to the library.
       onKeyDown={(e) => {
         if (e.key !== "Escape" || e.defaultPrevented || e.isPropagationStopped()) return;
         if ((e.target as Element).closest("input, textarea, select, [role=dialog], dialog, [aria-expanded=true]")) return;

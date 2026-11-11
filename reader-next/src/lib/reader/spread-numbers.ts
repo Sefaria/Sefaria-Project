@@ -16,7 +16,7 @@ export function spreadNumbers(root: HTMLElement): void {
   const tops = boxes.map((b) => b.top);
   // what each number may not leave: its column, and the page (on a phone the gutter is the screen's edge). Where a step outwards would
   // leave it, the numbers stack down the gutter instead: each sits at its own line, or just below the number above it when that one
-  // reaches lower, so no number is ever on the text (inwards), off the page (outwards), or on another number (parity S6, review nits)
+  // reaches lower, so no number is ever on the text (inwards), off the page (outwards), or on another number
   const page = root.ownerDocument.documentElement.clientWidth;
   const edges = nums.map((n) => {
     const r = (n.closest("[data-reader-scroller]") ?? root).getBoundingClientRect();

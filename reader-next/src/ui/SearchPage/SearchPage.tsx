@@ -117,7 +117,7 @@ export function MobileFilterPanel({ title, onClose, children }: { title: ReactNo
   const close = useRef(onClose);
   close.current = onClose;
   // once, while it is open: focus moves in, and when it closes (Escape, ×, Show Results) goes back to what opened it — the "Sort &
-  // filter results" button (v-a11y S7: it was left on <body>). The latest onClose is read through a ref, so a re-render (a filter
+  // filter results" button (it was left on <body>). The latest onClose is read through a ref, so a re-render (a filter
   // ticked) does not pull focus back to the panel.
   useEffect(() => {
     const opener = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
@@ -196,7 +196,7 @@ export function SortMenu<V extends string = SearchSort>({ sort, onChange, disabl
     if (!open) return;
     const off = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
     document.addEventListener("pointerdown", off);
-    // the ARIA menu pattern (CODE_REVIEW R-31: it said "menu" but focus stayed on the button and the arrows did nothing):
+    // the ARIA menu pattern (it said "menu" but focus stayed on the button and the arrows did nothing):
     // opening focuses the chosen item (or the first)
     (menu.current?.querySelector<HTMLElement>('[aria-checked="true"]') ?? menu.current?.querySelector<HTMLElement>('[role="menuitemradio"]'))?.focus();
     return () => document.removeEventListener("pointerdown", off);

@@ -24,7 +24,7 @@ export function getRouter() {
     // Library data is immutable-ish and cached by the library cache; route matches need not reload.
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: RouteError,
-    // an address no route matches: the reader's own 404 page (T-F28)
+    // an address no route matches: the reader's own 404 page
     defaultNotFoundComponent: NotFoundPage,
     // Old-site query strings (no JSON quoting; `+` literal): every existing link keeps working.
     parseSearch,
@@ -38,7 +38,7 @@ export function getRouter() {
     trailingSlash: "preserve",
   });
   // Dehydrates server-fetched queries into the page and hydrates them on the client (no refetch).
-  // ...except the whole catalog (3.5 MB, CODE_REVIEW R-14): library pages carry their slice instead; others load it on the client
+  // ...except the whole catalog (3.5 MB): library pages carry their slice instead; others load it on the client
   setupRouterSsrQueryIntegration({ router, queryClient, dehydrateOptions: { shouldDehydrateQuery: (q) => !isFullCatalogQuery(q.queryKey) } });
   return router;
 }

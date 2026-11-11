@@ -32,7 +32,7 @@ export function CalendarsPage({ weeklyPortion, daily, weekly, intro, sidebar, fo
   const he = useInterfaceLang() === "hebrew";
   return (
     <NavPage sidebar={sidebar} footer={footer} top={{ main: 60, side: 60 }} anlBatch={{ panel_number: 1, content_lang: he ? "hebrew" : "bilingual" }}>
-      {/* the page's name for assistive technology (v-a11y N1): sefaria.org has an empty h1 here and nothing on screen, so neither do we */}
+      {/* the page's name for assistive technology: sefaria.org has an empty h1 here and nothing on screen, so neither do we */}
       <VisuallyHidden as="h1"><InterfaceText en="Learning Schedules" he="לוח לימוד יומי" /></VisuallyHidden>
       {intro}
       <Section heading={<InterfaceText en="Weekly Torah Portion" he="פרשת השבוע" />} listings={weeklyPortion} />

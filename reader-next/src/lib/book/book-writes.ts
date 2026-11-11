@@ -1,5 +1,5 @@
 /**
- * What the book page's moderator tools forget after a write (carry-over R2, D-7): the version editor's save and delete, the index
+ * What the book page's moderator tools forget after a write (docs/DECISIONS.md, D-7): the version editor's save and delete, the index
  * editor's save (then Django's /admin/reset) and delete, and Add Section (Django's add-text editor).
  * - A write that stays on the page marks the book's queries stale and deletes their stored copies, then refetches only the versions
  *   list it shows (refetching every active match would wait on the whole catalog first).

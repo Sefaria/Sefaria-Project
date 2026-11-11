@@ -1,5 +1,5 @@
 /**
- * The language-domain bounce (T-E07): what Django's LanguageCookieMiddleware and LanguageSettingsMiddleware
+ * The language-domain bounce: what Django's LanguageCookieMiddleware and LanguageSettingsMiddleware
  * (sefaria/system/middleware.py, sefaria/utils/domains_and_languages.py) do to a page request, done here for the page requests this
  * server answers itself. Every other request goes to Django, whose middleware does it.
  *
@@ -93,7 +93,7 @@ export function cookieDomain(lang: Lang, modules: DomainModules | null): string 
 }
 
 /**
- * Expires a host-only `interfaceLang` (rework round 1 of wave 4). An earlier version of this client set the cookie without a Domain;
+ * Expires a host-only `interfaceLang`. An earlier version of this client set the cookie without a Domain;
  * the browser then sends both it and the domain cookie Django sets, and every parser here and in Django keeps the last, which is the
  * stale host-only one (cookies of one path are ordered by creation, and replacing a cookie keeps its creation time): the switch looks
  * stuck. Sent with every response that sets the domain cookie; it never touches the domain cookie (another cookie: no Domain).

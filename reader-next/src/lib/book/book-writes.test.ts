@@ -16,7 +16,7 @@ beforeEach(async () => {
   for (const k of [["text", "Genesis 1", "~"], ["text", "Exodus 1", "~"]]) await s.setItem(`sr-text-${hashKey(k)}`, entry(k));
 });
 
-// carry-over R2 (wave 2): the book page's moderator writes forget the book, in memory and on disk
+// the book page's moderator writes forget the book, in memory and on disk
 describe("the book page's writes", () => {
   it("a version save marks the book stale (not another book) and refetches only the versions list, even when the catalog never answers", async () => {
     const qc = new QueryClient();

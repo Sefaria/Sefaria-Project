@@ -46,7 +46,7 @@ function HomeMain({ tree, admin, beforeGrid }: { tree: readonly TocNode[]; admin
         {tree.filter(isCategory).map((c) => (
           <div key={c.category} className={styles.block} style={{ ["--_line" as string]: categoryColor(c.category) } as React.CSSProperties} data-cat={c.category}>
             <Link className={styles.blockTitle} href={`/texts/${encodeURIComponent(c.category)}`} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>{he ? c.heCategory : c.category}</Link>
-            {/* the language and direction of what is shown (v-a11y N7): a Hebrew interface without a Hebrew description shows the English */}
+            {/* the language and direction of what is shown: a Hebrew interface without a Hebrew description shows the English */}
             <div className={styles.desc} {...(he && c.heShortDesc ? { lang: "he", dir: "rtl" } : { lang: "en", dir: "ltr" })}>{he ? c.heShortDesc || c.enShortDesc : c.enShortDesc}</div>
           </div>
         ))}

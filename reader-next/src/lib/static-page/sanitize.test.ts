@@ -30,7 +30,7 @@ describe("sanitizeStaticHtml: the static page's content block", () => {
     expect(clean(fine)).toBe(fine);
   });
 
-  // review round 2: the address is judged and returned as ONE normalised string (trim() also removes Unicode whitespace)
+  // The address is judged and returned as ONE normalised string (trim() also removes Unicode whitespace)
   const UNICODE_PREFIXES = ["&nbsp;", "&#xA0;", "&#x2028;", "&#x2029;", "&#xFEFF;", "&#x3000;", "&#x1680;"];
   const PLACES: [string, (u: string) => string, string][] = [
     ["a href", (u) => `<a href="${u}">x</a>`, "<a>x</a>"],
@@ -115,7 +115,7 @@ describe("sanitizeStaticHtml: the static page's content block", () => {
   });
 });
 
-// v-a11y N2: the shell has the page's <main>; a page's own (about, team, the Hebrew ways-to-give…) would be a second one inside it
+// the shell has the page's <main>; a page's own (about, team, the Hebrew ways-to-give…) would be a second one inside it
 describe("sanitizeStaticHtml: one main", () => {
   it("a page's <main> is written as a <div>, with its id and classes, closed in the right place", () => {
     const { html } = sanitizeStaticHtml('<main id="aboutPage" class="biReady container static"><div><p>x</p></div><p>y</p></main><p>z</p>', { page: "about" });

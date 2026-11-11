@@ -13,7 +13,7 @@ import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
  */
 export function RouteError({ error, reported }: { error: unknown; reported?: boolean }) {
   const router = useRouter();
-  // a route's error (render or loader) goes to the browser error reports (T-D01), unless a boundary above already sent it
+  // a route's error (render or loader) goes to the browser error reports, unless a boundary above already sent it
   useEffect(() => {
     if (!reported) reportError("boundary", error, { boundary: "route" });
   }, [error, reported]);

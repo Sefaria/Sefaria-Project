@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPlaces, lastPlace, MAX_BOOKS, rememberPlace } from "./last-place";
 
-// CODE_REVIEW R-29: places stayed forever, unowned (the next person on a shared machine saw them), written once per verse
+// Regression: places stayed forever, unowned (the next person on a shared machine saw them), written once per verse
 describe("the last place in each book", () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => vi.restoreAllMocks());

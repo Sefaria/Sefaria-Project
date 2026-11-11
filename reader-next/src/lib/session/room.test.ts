@@ -22,7 +22,7 @@ function setup(opts: { graceMs?: number; limits?: Partial<RoomLimits> } = {}) {
 }
 
 const host: Participant = { id: "host", name: "Rabbi", isHost: true, canLead: true };
-const sarah: Participant = { id: "sarah", name: "Sarah", isHost: false, canLead: true };
+const reader2: Participant = { id: "reader2", name: "Reader Two", isHost: false, canLead: true };
 const dan: Participant = { id: "dan", name: "Dan", isHost: false, canLead: false };
 const host2: Participant = { id: "host2", isHost: true, canLead: true };
 
@@ -73,24 +73,24 @@ describe("join and leave", () => {
   it("refuses joins beyond maxParticipants, but lets an existing participant rejoin", () => {
     const { room } = setup({ limits: { maxParticipants: 2 } });
     enter(room, "c1", host);
-    enter(room, "c2", sarah);
+    enter(room, "c2", reader2);
     expect(refusedOf(enter(room, "c3", dan))).toEqual([{ type: "refused", of: "join", reason: "room full" }]);
-    expect(refusedOf(enter(room, "c4", sarah))).toEqual([]);
-    expect(room.snapshot().participants.map((p) => [p.id, p.conn])).toEqual([["host", "c1"], ["sarah", "c4"]]);
+    expect(refusedOf(enter(room, "c4", reader2))).toEqual([]);
+    expect(room.snapshot().participants.map((p) => [p.id, p.conn])).toEqual([["host", "c1"], ["reader2", "c4"]]);
   });
 
   it("a participant reconnecting on a new connection replaces the old one; the old connection's close does not remove them", () => {
     const { room } = setup();
-    enter(room, "c1", sarah);
-    enter(room, "c2", sarah);
+    enter(room, "c1", reader2);
+    enter(room, "c2", reader2);
     expect(room.disconnect("c1")).toEqual([]);
-    expect(room.snapshot().participants.map((p) => p.id)).toEqual(["sarah"]);
+    expect(room.snapshot().participants.map((p) => p.id)).toEqual(["reader2"]);
   });
 
   it("leave and disconnect remove the participant and broadcast participants", () => {
     const { room } = setup();
     enter(room, "c1", host);
-    enter(room, "c2", sarah);
+    enter(room, "c2", reader2);
     enter(room, "c3", dan);
     const out = room.handle("c2", ctl({ type: "leave" }));
     expect(bodies(out)).toContainEqual(expect.objectContaining({ type: "participants" }));
@@ -117,15 +117,15 @@ describe("spotlight rules", () => {
   function three() {
     const s = setup();
     enter(s.room, "h", host);
-    enter(s.room, "s", sarah);
+    enter(s.room, "s", reader2);
     enter(s.room, "d", dan);
     return s;
   }
 
   it("a host may move it anywhere a leader can go, and clear it", () => {
     const { room } = three();
-    let out = room.handle("h", ctl({ type: "spotlight", to: "sarah" }));
-    expect(roomMsgs(out)[0]).toMatchObject({ to: "all", envelope: { body: { spotlight: "sarah", term: 2 } } });
+    let out = room.handle("h", ctl({ type: "spotlight", to: "reader2" }));
+    expect(roomMsgs(out)[0]).toMatchObject({ to: "all", envelope: { body: { spotlight: "reader2", term: 2 } } });
     out = room.handle("h", ctl({ type: "spotlight", to: null }));
     expect(room.snapshot()).toMatchObject({ spotlight: null, term: 3 });
   });
@@ -139,7 +139,7 @@ describe("spotlight rules", () => {
 
   it("the holder may hand it over; others may not take it in presenter mode", () => {
     const { room } = three();
-    room.handle("h", ctl({ type: "spotlight", to: "sarah" }));
+    room.handle("h", ctl({ type: "spotlight", to: "reader2" }));
     expect(refusedOf(room.handle("d", ctl({ type: "spotlight", to: "dan" })))[0]).toEqual({
       type: "refused",
       of: "spotlight",
@@ -147,7 +147,7 @@ describe("spotlight rules", () => {
     });
     room.handle("s", ctl({ type: "spotlight", to: "host" }));
     expect(room.snapshot()).toMatchObject({ spotlight: "host", term: 3 });
-    expect(refusedOf(room.handle("s", ctl({ type: "spotlight", to: "sarah" })))[0]?.reason).toBe("not permitted");
+    expect(refusedOf(room.handle("s", ctl({ type: "spotlight", to: "reader2" })))[0]?.reason).toBe("not permitted");
   });
 
   it("in open mode anyone who canLead takes it for themself (but cannot hand it to others)", () => {
@@ -155,8 +155,8 @@ describe("spotlight rules", () => {
     expect(refusedOf(room.handle("s", ctl({ type: "mode", mode: "open" })))[0]?.reason).toBe("host only");
     room.handle("h", ctl({ type: "mode", mode: "open" }));
     expect(room.snapshot().mode).toBe("open");
-    room.handle("s", ctl({ type: "spotlight", to: "sarah" }));
-    expect(room.snapshot().spotlight).toBe("sarah");
+    room.handle("s", ctl({ type: "spotlight", to: "reader2" }));
+    expect(room.snapshot().spotlight).toBe("reader2");
     expect(refusedOf(room.handle("d", ctl({ type: "spotlight", to: "dan" })))[0]?.reason).toBe("not permitted");
   });
 
@@ -172,8 +172,8 @@ describe("spotlight rules", () => {
     room.handle("h", ctl({ type: "mode", mode: "hand-raise" }));
     expect(refusedOf(room.handle("d", ctl({ type: "raise-hand" })))[0]?.reason).toBe("cannot lead");
     const out = room.handle("s", ctl({ type: "raise-hand" }));
-    expect(roomMsgs(out)[0]).toMatchObject({ to: "all", envelope: { body: { hands: ["sarah"] } } });
-    room.handle("h", ctl({ type: "spotlight", to: "sarah" }));
+    expect(roomMsgs(out)[0]).toMatchObject({ to: "all", envelope: { body: { hands: ["reader2"] } } });
+    room.handle("h", ctl({ type: "spotlight", to: "reader2" }));
     expect(room.snapshot().hands).toEqual([]);
     room.handle("h", ctl({ type: "spotlight", to: "host" }));
     room.handle("s", ctl({ type: "raise-hand" }));
@@ -201,8 +201,8 @@ describe("grace when the holder leaves", () => {
   it("clears it when no host is left", () => {
     const s = setup({ graceMs: 1000 });
     enter(s.room, "h", host);
-    enter(s.room, "s", sarah);
-    s.room.handle("h", ctl({ type: "spotlight", to: "sarah" }));
+    enter(s.room, "s", reader2);
+    s.room.handle("h", ctl({ type: "spotlight", to: "reader2" }));
     s.room.disconnect("s");
     s.room.disconnect("h");
     s.advance(1000);
@@ -240,7 +240,7 @@ describe("state relay", () => {
   function pair() {
     const s = setup();
     enter(s.room, "h", host);
-    enter(s.room, "s", sarah);
+    enter(s.room, "s", reader2);
     return s;
   }
 
@@ -254,20 +254,20 @@ describe("state relay", () => {
         envelope: { ch: "state", from: "host", t: s.now, term: 1, body: { type: "keyframe", seq: 0, t: 0, snapshot: snap("/Genesis.1") } },
       },
     ]);
-    // Sarah does not hold the spotlight: her stream goes only to whoever follows her.
+    // Reader Two does not hold the spotlight: her stream goes only to whoever follows her.
     expect(s.room.handle("s", keyframe(0, 0, snap("/Exodus.1")))).toEqual([]);
-    s.room.handle("h", { ch: "presence", body: { type: "status", following: "sarah", away: false } });
+    s.room.handle("h", { ch: "presence", body: { type: "status", following: "reader2", away: false } });
     const fromSarah = s.room.handle("s", keyframe(1, 0, snap("/Exodus.1")));
     expect(fromSarah).toHaveLength(1);
     expect(fromSarah[0]?.to).toBe("h");
     expect(fromSarah[0]?.envelope).not.toHaveProperty("term");
-    expect(fromSarah[0]?.envelope.from).toBe("sarah");
+    expect(fromSarah[0]?.envelope.from).toBe("reader2");
   });
 
   it("sends a non-spotlight stream only to its followers, never to those who wandered off", () => {
     const s = pair();
     enter(s.room, "d", dan);
-    s.room.handle("d", { ch: "presence", body: { type: "status", following: "sarah", away: false } });
+    s.room.handle("d", { ch: "presence", body: { type: "status", following: "reader2", away: false } });
     const out = s.room.handle("s", change(1, 1, { url: "/search?q=x" }));
     expect(out.map((o) => o.to)).toEqual(["d"]);
     s.room.handle("d", { ch: "presence", body: { type: "status", following: null, away: false } });
@@ -276,15 +276,15 @@ describe("state relay", () => {
 
   it("ignores client-sent from, seq, t and term", () => {
     const s = pair();
-    s.room.handle("h", { ch: "presence", body: { type: "status", following: "sarah", away: false } });
+    s.room.handle("h", { ch: "presence", body: { type: "status", following: "reader2", away: false } });
     const out = s.room.handle("s", { ...keyframe(0, 0, snap("/a")), from: "host", seq: 99, t: 1, term: 42 });
-    expect(out[0]?.envelope).toEqual({ ch: "state", from: "sarah", t: s.now, body: expect.anything() });
+    expect(out[0]?.envelope).toEqual({ ch: "state", from: "reader2", t: s.now, body: expect.anything() });
   });
 
   it("stamps the term current when relayed, after the spotlight moves", () => {
     const s = pair();
-    s.room.handle("h", ctl({ type: "spotlight", to: "sarah" }));
-    s.room.handle("h", { ch: "presence", body: { type: "status", following: "sarah", away: false } });
+    s.room.handle("h", ctl({ type: "spotlight", to: "reader2" }));
+    s.room.handle("h", { ch: "presence", body: { type: "status", following: "reader2", away: false } });
     s.room.handle("s", { ch: "presence", body: { type: "status", following: "host", away: false } });
     expect(s.room.handle("s", change(1, 10, { url: "/b" }))[0]?.envelope.term).toBe(2);
     expect(s.room.handle("h", change(1, 10, { url: "/c" }))[0]?.envelope).not.toHaveProperty("term");
@@ -391,8 +391,8 @@ describe("rate limit", () => {
   it("is per participant", () => {
     const s = setup({ limits: { stateMessagesPerSecond: 1 } });
     enter(s.room, "h", host);
-    enter(s.room, "s", sarah);
-    s.room.handle("h", { ch: "presence", body: { type: "status", following: "sarah", away: false } });
+    enter(s.room, "s", reader2);
+    s.room.handle("h", { ch: "presence", body: { type: "status", following: "reader2", away: false } });
     expect(s.room.handle("h", change(1, 1, { url: "/b" }))).toHaveLength(1);
     expect(s.room.handle("s", change(1, 1, { url: "/b" }))).toHaveLength(1);
     expect(s.room.handle("h", change(2, 2, { url: "/c" }))).toHaveLength(0);
@@ -486,11 +486,11 @@ describe("end", () => {
   it("is host-only; broadcasts ended, then refuses control and drops everything else", () => {
     const s = setup();
     enter(s.room, "h", host);
-    enter(s.room, "s", sarah);
+    enter(s.room, "s", reader2);
     expect(refusedOf(s.room.handle("s", ctl({ type: "end" })))[0]?.reason).toBe("host only");
     const out = s.room.handle("h", ctl({ type: "end" }));
     expect(roomMsgs(out)[0]).toMatchObject({ to: "all", envelope: { body: { ended: true } } });
-    expect(refusedOf(s.room.handle("h", ctl({ type: "spotlight", to: "sarah" })))[0]?.reason).toBe("ended");
+    expect(refusedOf(s.room.handle("h", ctl({ type: "spotlight", to: "reader2" })))[0]?.reason).toBe("ended");
     expect(s.room.handle("h", keyframe(0, 0, snap("/a")))).toEqual([]);
     expect(s.room.handle("s", { ch: "presence", body: { type: "status", following: null, away: false } })).toEqual([]);
     expect(s.room.tick()).toEqual([]);
@@ -513,7 +513,7 @@ describe("envelope stamping and recipients", () => {
   it("resolves recipients to joined connections", () => {
     const s = setup();
     enter(s.room, "h", host);
-    enter(s.room, "s", sarah);
+    enter(s.room, "s", reader2);
     s.room.connect("lurker");
     expect(s.room.recipients("all")).toEqual(["h", "s"]);
     expect(s.room.recipients({ except: "h" })).toEqual(["s"]);

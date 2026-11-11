@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 /**
  * The stylesheet guard (e2e/ssr-styles.spec.ts) against the PRODUCTION build: in dev, Start's dev styles inline every module's CSS,
- * so the check passes whatever the build does (review of wave 4 lane a-route, Q2). Run after `npm run build`:
+ * so the check passes whatever the build does. Run after `npm run build`:
  *   npm run test:e2e:prod
  * The built server (server/index.mjs) reaches the API through the same cassette as the dev suite (scripts/api-cassette.mjs).
  * E2E_PORT (default 3150) and E2E_API_PORT (default 3998) as in playwright.config.ts.

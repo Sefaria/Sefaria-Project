@@ -7,7 +7,7 @@ import { NewsletterSignUp, type NewsletterSubscription } from "~/ui/NewsletterSi
 
 /**
  * The old static pages' building blocks (static/js/StaticPages.jsx, Misc.jsx), with the same markup and class names, so the ported
- * pages (T-F32) are styled by the scoped legacy static.css exactly as on sefaria.org. Strings given as HTML are the pages' own literals
+ * pages are styled by the scoped legacy static.css exactly as on sefaria.org. Strings given as HTML are the pages' own literals
  * (never data from elsewhere).
  */
 

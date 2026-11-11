@@ -16,7 +16,7 @@ const flat = (o: Record<string, unknown>): Record<string, string> => {
 };
 
 describe("the sidebar's section headings", () => {
-  it("are legacy's connection_panel_section strings, word for word (parity S11)", () => {
+  it("are legacy's connection_panel_section strings, word for word", () => {
     const en = flat(legacy("en"));
     const he = flat(legacy("he"));
     for (const [key, s] of Object.entries(CONNECTION_PANEL_SECTION)) {

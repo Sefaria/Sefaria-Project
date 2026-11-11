@@ -49,7 +49,7 @@ HINTED = [
     (
         "sheets",
         "expandedRefs_1",
-    ),  # sefaria/sheets.py get_sheets_for_ref until #3936; still what cauldrons lacked (T-B07)
+    ),  # sefaria/sheets.py get_sheets_for_ref until #3936; still what cauldrons lacked
     ("topic_links", "expandedRefs_1"),  # sefaria/sheets.py update_sheet_topic_links
     ("webpages", "expandedRefs_1"),  # sefaria/model/webpage.py
     ("manuscript_pages", "expanded_refs_1"),  # sefaria/model/manuscript.py

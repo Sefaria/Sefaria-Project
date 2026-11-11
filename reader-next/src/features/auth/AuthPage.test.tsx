@@ -108,7 +108,7 @@ describe("login", () => {
     }
   });
 
-  // CODE_REVIEW R-08: master tracks email login in the auth funnel (it used to send nothing)
+  // Regression: master tracks email login in the auth funnel (it used to send nothing)
   it("funnel: login is a flow with intent login; success carries outcome existing_user_login, a failure its code", async () => {
     answer("/api/auth/login", 401, { error: "auth.invalid_credentials" });
     const user = setup({ initialPath: "/login", authSource: "nav_bar" });
@@ -312,7 +312,7 @@ describe("reset link", () => {
     expect(onNavigate).toHaveBeenCalledWith("/login", undefined);
   });
 
-  it("an expired link: Request New Link re-sends to the account's email", async () => {
+  it("an expired link: Request New Link asks for a new one and does not promise an email", async () => {
     server.use(
       http.post("*/password/reset/confirm/MTI/set-password/", async ({ request }) => {
         const body = (await request.json()) as Record<string, string>;
@@ -323,7 +323,14 @@ describe("reset link", () => {
     const user = setup({ initialPath: PATH });
     expect(await screen.findByRole("heading", { name: "Password Reset Link Expired" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Request New Link" }));
-    expect(await screen.findByRole("heading", { name: "Reset Link Sent" })).toBeInTheDocument();
+    // Django answers the same whether or not it sent anything (a used link, or the hourly limit), so the card says a link was
+    // requested, as the legacy page does, never "Reset Link Sent"
+    expect(await screen.findByRole("heading", { name: "New Link Requested" })).toBeInTheDocument();
+    expect(screen.getByText(/If this link can be renewed, a new one will be sent to the address on the account\./)).toBeInTheDocument();
+    expect(screen.queryByText(/Check your email/)).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Request a Link with Your Email" }));
+    expect(onNavigate).toHaveBeenCalledWith("/login");
+    expect(screen.getByRole("heading", { name: "Forgot Password?" })).toBeInTheDocument();
   });
 
   it("no account for the link: the banner's Request New Link goes to Forgot Password (fixed: the old page fell back to the choice)", async () => {

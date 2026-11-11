@@ -1,5 +1,5 @@
 /**
- * Cache headers for the pages this server renders (CODE_REVIEW R-27). A page depends on the request's cookies (interface language,
+ * Cache headers for the pages this server renders. A page depends on the request's cookies (interface language,
  * reader settings, version preferences) and, for a signed-in reader, carries who they are (the viewer in the page's data, the gtag
  * user id). So every page says `Vary: Cookie`, and a signed-in reader's page is `private, no-store`: no shared cache in front of
  * this server may keep it and hand one reader's page to another. Django's own pages (passed through) keep their own headers.
@@ -13,8 +13,8 @@ const PERSONAL_COOKIE = /(?:^|;\s*)(?:sessionid|user_history)=[^;]+/;
 export function pageCacheHeaders(requestCookie: string | null, response: Headers, status = 200, languagePinned = false): Headers {
   if (response.get("x-served-by") === "django" || !(response.get("content-type") ?? "").includes("text/html")) return response;
   const out = new Headers(response);
-  // a page depends on the cookies, and on the visitor's country (diaspora or Israel: the calendars, CODE_REVIEW R-21); on a host pinned
-  // to a language, whether it is a page at all or the bounce to the other language's domain depends on Accept-Language too (T-E07)
+  // a page depends on the cookies, and on the visitor's country (diaspora or Israel: the calendars); on a host pinned
+  // to a language, whether it is a page at all or the bounce to the other language's domain depends on Accept-Language too
   for (const h of ["Cookie", "CF-IPCountry", ...(languagePinned ? ["Accept-Language"] : [])]) {
     const vary = out.get("vary");
     if (!vary || !new RegExp(`\\b${h}\\b`, "i").test(vary)) out.set("vary", vary ? `${vary}, ${h}` : h);
