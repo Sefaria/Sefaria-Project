@@ -29,6 +29,11 @@ export interface SanitizeOptions {
   keepAttributes?: Partial<Record<string, readonly string[]>>;
   /** Origin that relative links are resolved against ("https://www.sefaria.org"). Without it relative links are kept relative. */
   baseUrl?: string;
+  /**
+   * Absolute http(s) links open in a new tab (`target="_blank" rel="noopener noreferrer"`) unless this is false: then they open
+   * where they are, as in content the old site rendered without a target (the CMS's product descriptions).
+   */
+  newTab?: boolean;
 }
 
 function safeHref(href: string | undefined, baseUrl: string | undefined): string | undefined {
@@ -63,7 +68,7 @@ export function sanitizeHtml(html: string, opts: SanitizeOptions = {}): string {
         if (name === "a") {
           const href = safeHref(attribs.href, opts.baseUrl);
           if (href) attrs += ` href="${escapeAttribute(href)}"`;
-          if (href && /^https?:/i.test(href)) attrs += ' target="_blank" rel="noopener noreferrer"';
+          if (href && /^https?:/i.test(href) && opts.newTab !== false) attrs += ' target="_blank" rel="noopener noreferrer"';
         }
         for (const attr of opts.keepAttributes?.[name] ?? []) {
           const v = attribs[attr];

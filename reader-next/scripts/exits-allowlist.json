@@ -16,7 +16,6 @@
     { "id": "editor-topic", "match": "^/topics/[^?]+\\?(?:.*&)?editor=1", "reason": "Moderators' topic editor" },
     { "id": "settings-account", "match": "^/settings/account(?:[/?]|$)", "reason": "Account settings stay a Django form; the way back is its Cancel (history back, else /texts) and the header, and the switch back to the classic reader is also in the new reader's menus" },
     { "id": "auth-logout", "match": "^/logout(?:[/?]|$)", "reason": "Signs out and redirects back" },
-    { "id": "static-cms-pages", "match": "^/(?:team|jobs|products)/?(?:\\?|$)", "reason": "About-sidebar pages built by legacy React from the CMS (Strapi): Django's content block has no data; not ported yet (lib/static-page/pages.ts)" },
     { "id": "static-legacy-react", "match": "^/(?:word-by-word|ramban-sponsorships|contest|powered-by-sefaria-contest-2020|powered-by-sefaria-contest-2021)/?(?:\\?|$)", "reason": "Django's content block is only a mount point for a legacy React page (StaticPages.jsx); not ported yet" },
     { "id": "static-newsletter", "match": "^/newsletter/?(?:\\?|$)", "reason": "The newsletter sign-up page is a 1,700-line legacy React flow (static/js/NewsletterSignUpPage): its own task" },
     { "id": "static-metrics", "match": "^/metrics/?(?:\\?|$)", "reason": "/metrics is its own Django view (charts from the database), no content answer (LEG-022)" },

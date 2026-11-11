@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { markdownToHtml } from "./markdown";
+import { inlineMarkdownToHtml, markdownToHtml } from "./markdown";
 import { sanitizeHtml } from "./sanitize";
 
 describe("sanitizeHtml", () => {
@@ -62,5 +62,13 @@ describe("markdownToHtml", () => {
     );
     expect(markdownToHtml("hi <script>alert(1)</script>")).not.toContain("script");
     expect(markdownToHtml(undefined)).toBe("");
+  });
+
+  it("newTab: false keeps links in the same tab (the old InterfaceText markdown: rel only, no target)", () => {
+    expect(sanitizeHtml('<a href="https://www.sefaria.org/mobile">m</a>', { newTab: false })).toBe('<a href="https://www.sefaria.org/mobile">m</a>');
+    expect(inlineMarkdownToHtml("**New!** [Learn more](https://www.sefaria.org/mobile).", false, { newTab: false })).toBe(
+      '<strong>New!</strong> <a rel="noopener noreferrer" href="https://www.sefaria.org/mobile">Learn more</a>.',
+    );
+    expect(inlineMarkdownToHtml("[x](https://example.org)")).toBe('<a href="https://example.org" target="_blank" rel="noopener noreferrer">x</a>');
   });
 });

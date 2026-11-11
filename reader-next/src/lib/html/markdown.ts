@@ -12,10 +12,11 @@ export function markdownToHtml(md: string | null | undefined, opts: SanitizeOpti
 
 /**
  * Markdown as the old InterfaceText `markdown` rendered it (ReactMarkdown with `p` unwrapped): inline HTML without paragraphs, every
- * link opened with rel="noopener noreferrer"; `noLinks` drops the links but keeps their text (the Voices cards, a card's bottom link).
+ * link opened with rel="noopener noreferrer"; `noLinks` drops the links but keeps their text (the Voices cards, a card's bottom link);
+ * `opts` go to the sanitizer (`newTab: false`: links open in the same tab, as the old InterfaceText's did).
  */
-export function inlineMarkdownToHtml(md: string | null | undefined, noLinks = false): string {
-  let html = markdownToHtml(md).replace(/<\/?p>/g, "").trim();
+export function inlineMarkdownToHtml(md: string | null | undefined, noLinks = false, opts: SanitizeOptions = {}): string {
+  let html = markdownToHtml(md, opts).replace(/<\/?p>/g, "").trim();
   if (noLinks) html = html.replace(/<\/?a\b[^>]*>/g, "");
   return html.replace(/<a (?![^>]*\brel=)/g, '<a rel="noopener noreferrer" ');
 }

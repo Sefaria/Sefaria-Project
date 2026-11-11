@@ -45,6 +45,22 @@ E2E_API_MODE=replay node scripts/api-cassette.mjs &                # the cassett
 PUBLIC_API_ORIGIN=http://localhost:3998 npm run dev
 ```
 
+The static information pages (`/about`, `/team`, `/products`, `/jobs`, `/terms`…) are rendered from Django's content answer
+(`/<page>?format=json&lang=en|he`, `reader/static_content.py`), which only a Django from this repository serves (www.sefaria.org
+does not serve the content mode yet and answers it with the page's HTML), so against the live API these pages are handed to Django (this client's 404 page without
+`SEFARIA_PASS_THROUGH=1`). To see them locally, either point both origins at a local Django from this repository (the static
+pages need no library data), or serve the answers rendered from the repository's templates (`e2e/fixtures/static-pages`) from a cassette
+that records everything else from the live API, in a directory of its own:
+
+```bash
+export E2E_CASSETTE_DIR=$PWD/.dev-cassette E2E_API_PORT=3998
+node -e 'import("./e2e/static-pages-cassette.ts").then((m) => m.seedStaticPages())'   # Node 23.6+ (TypeScript types stripped)
+E2E_API_MODE=auto node scripts/api-cassette.mjs &
+PUBLIC_API_ORIGIN=http://localhost:3998 SEFARIA_API_ORIGIN=http://localhost:3998 npm run dev   # http://localhost:3100 (PORT to change)
+```
+
+`/team`, `/products` and `/jobs` then fill their CMS part from www.sefaria.org's CMS proxy (`/api/strapi/graphql-cache`).
+
 ## Test it
 
 | Command                                                              | What it checks                                                                                                          |

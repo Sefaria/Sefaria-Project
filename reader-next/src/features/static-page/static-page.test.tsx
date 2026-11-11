@@ -22,7 +22,7 @@ describe("links inside a static page's content", () => {
     expect(inAppHref(link('<a href="/texts#top">t</a>'), plain, here)).toBe("/texts#top");
   });
   it("Django's pages, other sites, Voices, new windows, downloads, modified clicks and this page's anchors are the browser's", () => {
-    expect(inAppHref(link('<a href="/team">team</a>'), plain, here)).toBeNull();
+    expect(inAppHref(link('<a href="/metrics">metrics</a>'), plain, here)).toBeNull();
     expect(inAppHref(link('<a href="/static/files/a.pdf">pdf</a>'), plain, here)).toBeNull();
     expect(inAppHref(link('<a href="https://voices.sefaria.org/collections/x">v</a>'), plain, here)).toBeNull();
     expect(inAppHref(link('<a href="https://www.sefaria.org.il/about">he</a>'), plain, here)).toBeNull();

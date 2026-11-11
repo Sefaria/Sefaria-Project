@@ -14,6 +14,8 @@ docs/features/build/
 
 # e2e API recordings (scripts/api-cassette.mjs): restored from the CI cache, recorded on a fresh checkout
 e2e/.cassette/
+# a local cassette for running the static pages in development (README "Run it")
+.dev-cassette/
 
 # screenshots written by scripts/parity-*.mjs, reference-shots.mjs, app-shots.mjs, story-shots.mjs: local only
 docs/parity/

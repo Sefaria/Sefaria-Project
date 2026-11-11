@@ -5,6 +5,8 @@
  *  - "content": Django's content block (`/<page>?format=json&lang=en|he`, reader/static_content.py) rendered inside this client's
  *    shell (features/static-page). Its scripts are not run; the few that matter are done here (the About sidebar's selected item,
  *    the strategy deck's width).
+ *    The About pages /team, /products and /jobs are "content" with a `mount`: Django's content block around the part the old page
+ *    filled from the CMS (Strapi), which this client fills itself (features/static-page/cms).
  *  - "port": this client has its own version of the page (Django's content block is only an empty mount point for a legacy React
  *    component): features/static-page/ports.
  *  - "django": still Django's page, passed through as before, for the reason given (a legacy React component or CMS page not ported
@@ -25,18 +27,24 @@ export interface StaticPageEntry {
   /** A "content" page whose English and Hebrew versions differ in who renders them: the Hebrew one is "content", the English one this. */
   enOwner?: StaticPageOwner;
   enReason?: string;
+  /**
+   * A "content" page whose content block has a mount point the old page filled from the CMS: the element's id, and the part of
+   * features/static-page/cms that fills it here.
+   */
+  mount?: { id: string; part: CmsPart };
 }
+
+export type CmsPart = "team" | "products" | "jobs";
 
 const LEGACY_REACT = "Django's content block is only a mount point for a legacy React component (StaticPages.jsx); not ported yet";
 const CONTEST = "a finished contest's landing page (legacy React, StaticPages.jsx), not linked from the reader; not ported";
-const CMS = "a legacy React page filled from the CMS (Strapi) or an API; Django's content block has no data; not ported yet";
 
 export const STATIC_PAGES: Readonly<Record<string, StaticPageEntry>> = {
   // sites/sefaria/urls.py static_pages, in its order
   strategy: { owner: "content" },
   supporters: { owner: "content" },
   visualizations: { owner: "content" },
-  jobs: { owner: "django", reason: CMS },
+  jobs: { owner: "content", mount: { id: "jobsPageContent", part: "jobs" } },
   terms: { owner: "content" },
   "privacy-policy": { owner: "content" },
   "coming-soon": { owner: "content" },
@@ -68,8 +76,8 @@ export const STATIC_PAGES: Readonly<Record<string, StaticPageEntry>> = {
   "word-by-word": { owner: "django", reason: LEGACY_REACT },
   cloudflare_site_is_down_en: { owner: "django", reason: "a whole document of its own (Cloudflare's outage page)" },
   cloudflare_site_is_down_he: { owner: "django", reason: "a whole document of its own (Cloudflare's outage page)" },
-  team: { owner: "django", reason: CMS },
-  products: { owner: "django", reason: CMS },
+  team: { owner: "content", mount: { id: "teamMembersPageContent", part: "team" } },
+  products: { owner: "content", mount: { id: "productsPageContent", part: "products" } },
   "link-to-annual-report": { owner: "content" },
   "mobile-about-menu": { owner: "content" },
   // "updates" (/updates, New Additions) is a page of the new reader of its own, not one of these
