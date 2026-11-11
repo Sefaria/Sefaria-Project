@@ -11,8 +11,9 @@ import { authError, postJson } from './utils.js';
  * expired, already used, or malformed — either from the initial page load
  * or discovered mid-session when ResetView's submit fails. One click asks for
  * a new link to the account's existing email (no email field): it posts to this
- * page's own address, whose token lets the server confirm the link was real and
- * only too old. The server mails a new link only in that case (and at most a few
+ * page's own address, and the server checks that the link's token (from the
+ * address, or from the session on the set-password address) was real and only
+ * too old. The server mails a new link only in that case (and at most a few
  * times an hour) and answers the same either way, so the next card must not
  * promise an email.
  */
