@@ -82,10 +82,10 @@ test.describe("static pages in the new shell", () => {
     // the stylesheet came with it (fetched before the page showed)
     expect(await content(page).locator(".inner").evaluate((el) => Math.round(el.getBoundingClientRect().width))).toBe(660);
 
-    const team = content(page).locator("#aboutSidebar").getByRole("link", { name: "Team" });
-    await expect(team).toHaveAttribute("href", "/team");
-    await Promise.all([page.waitForEvent("load"), team.click()]);
-    await expect(page).toHaveURL(/\/team$/);
+    const metrics = content(page).locator("#aboutSidebar").getByRole("link", { name: "Metrics" });
+    await expect(metrics).toHaveAttribute("href", "/metrics");
+    await Promise.all([page.waitForEvent("load"), metrics.click()]);
+    await expect(page).toHaveURL(/\/metrics$/);
     expect(await page.evaluate(() => (window as unknown as { __stay?: number }).__stay)).toBeUndefined(); // a full load
   });
 
