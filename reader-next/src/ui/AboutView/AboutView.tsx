@@ -51,7 +51,7 @@ export interface AboutViewProps {
  * @feature VER-016 Version block display
  */
 export function AboutView(p: AboutViewProps) {
-  // region names in the interface's language (a11y S5: the Hebrew interface read English names)
+  // region names in the interface's language (the Hebrew interface read English names)
   const he = useInterfaceLang() === "hebrew";
   const d = p.details;
   const desc = d ? descriptionFor(d, p.lang) : undefined;

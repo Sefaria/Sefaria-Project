@@ -1,5 +1,5 @@
 /**
- * One vocabulary for "what kind of page is this", shared by error reports, server logs and web vitals (TARGET_ARCHITECTURE §6.5:
+ * One vocabulary for "what kind of page is this", shared by error reports, server logs and web vitals (so
  * scripts and analytics name pages the same way). Pure: works from a pathname on the server and in the browser.
  *
  * The analytics dimension5 page type is a different, older vocabulary (the legacy ReaderApp's `menuOpen || mode`): see

@@ -138,7 +138,7 @@ export interface ConnectionsPaneProps {
  * The About box's current versions: the ones the text shows (the old AboutBox's currObjectVersions). The source version the
  * text shows leads in Hebrew and bilingual, named or not; English text shows no source version and Hebrew text no translation
  * (VERIFIED on sefaria.org 2026-11-10, Genesis 1:1 with=About: lang=bi "Current Version: Miqra according to the Masorah" then
- * "Current Translation"; lang=en the translation only; lang=he the version only; parity S9).
+ * "Current Translation"; lang=en the translation only; lang=he the version only).
  */
 function aboutCurrent(language: ReaderSettings["language"], section: Pick<TextPassage, "primaryVersion" | "translationVersion"> | undefined, namedSource?: string) {
   return {
@@ -147,7 +147,7 @@ function aboutCurrent(language: ReaderSettings["language"], section: Pick<TextPa
   };
 }
 
-/** What the sidebar names when it is slow or failed (SB-02). */
+/** What the sidebar names when it is slow or failed. */
 const CONNECTIONS = { en: "connections", he: "קשרים" };
 const RESOURCES = { en: "sheets, topics and other resources", he: "דפי מקורות, נושאים ומשאבים נוספים" };
 
@@ -215,12 +215,12 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     if (!filter) return [] as RelatedLink[];
     const filtered = filterLinks(filter.endsWith("|Essay") ? selected : withoutEssays(selected), [filter], lookup);
     // in the sidebar's language, as the books (the old TextList sorts by its contentLang: VERIFIED on sefaria.org.il 2026-11-10,
-    // Genesis 1:1 with=Commentary: lang2=en starts "Abarbanel on Torah", lang2=he "Avi Ezer"; parity S11)
+    // Genesis 1:1 with=Commentary: lang2=en starts "Abarbanel on Torah", lang2=he "Avi Ezer")
     return sortLinks(filtered, sidebarHebrew);
   }, [filter, selected, lookup, sidebarHebrew]);
 
-  // Each link's text needs its whole section: load them a page at a time, the next page as the list nears its end (CODE_REVIEW
-  // R-22: Genesis 1:1's commentary list started 235 section requests at once, and showed nothing until the last one came back)
+  // Each link's text needs its whole section: load them a page at a time, the next page as the list nears its end
+  // (Genesis 1:1's commentary list started 235 section requests at once, and showed nothing until the last one came back)
   // back to the first page only when the list itself changes (another filter, verse or language) — not when a re-render merely
   // rebuilds the same list, which would shrink it under the reader
   const listKey = `${filter ?? ""}|${selectedRefs.join(",")}|${sidebarHebrew}`;
@@ -609,7 +609,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           loading={detailsQ.isPending}
           category={category}
           // the Hebrew interface shows the book in Hebrew whatever the sidebar's language (the old AboutBox's ContentText;
-          // VERIFIED on sefaria.org.il 2026-11-10, lang2=en: "בראשית", the Hebrew description, "נוצר/נערך: …"; parity S9)
+          // VERIFIED on sefaria.org.il 2026-11-10, lang2=en: "בראשית", the Hebrew description, "נוצר/נערך: …")
           lang={hebrew || language === "hebrew" ? "he" : "en"}
           titleHref={`/${refToUrl(indexTitle)}`}
           authorHref={topicHref}
@@ -707,7 +707,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           const path = `${encodeURIComponent(shown.languageFamilyName)}/${encodeURIComponent(shown.versionTitle)}`;
           uaEvent("Tools", "Edit Text Click", `${notesRefs[0]}/${path}`);
           const next = window.location.pathname + window.location.search;
-          // Django's editor comes back with a full page load: what it may change must not be painted from disk then (T-E01)
+          // Django's editor comes back with a full page load: what it may change must not be painted from disk then
           void forgetBeforeEditor({ kind: "text", ref: notesRefs[0]! }).finally(() => window.location.assign(`${SITE_ORIGIN}/edit/${refToUrl(notesRefs[0]!)}/${path}?next=${encodeURIComponent(next)}`));
         }
       : undefined;
@@ -716,7 +716,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
         <AdvancedToolsView
           onAddTranslation={() =>
             viewer
-              ? // the old addTranslation: Django's translation page, coming back here (what it changes is forgotten on disk first: T-E01)
+              ? // the old addTranslation: Django's translation page, coming back here (what it changes is forgotten on disk first)
                 void forgetBeforeEditor({ kind: "text", ref: notesRefs[0]! }).finally(() =>
                   window.location.assign(`${SITE_ORIGIN}/translate/${refToUrl(notesRefs[0]!)}?next=${encodeURIComponent(window.location.pathname + window.location.search)}`),
                 )
@@ -784,7 +784,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     return (
       <ConnectionsPanel label="Resources" title={<ResourcesTitle />} lang={shownLang} onLang={props.onLang} onClose={onClose}>
         {!sectionLinks ? (
-          // SB-02: a cold /api/links can take 11 s; say so, and offer a retry if it fails
+          // a cold /api/links can take 11 s; say so, and offer a retry if it fails
           <ViewLoad q={linksQ} what={CONNECTIONS} />
         ) : (
           <>
@@ -799,7 +799,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
               moderator={!!viewer?.isStaff}
               notesCount={notesQ.data?.length ?? 0}
             />
-            {/* SB-02: the connections above came from /api/links; a cold /api/related (sheets, topics…) can end in a 504 after 15 s */}
+            {/* the connections above came from /api/links; a cold /api/related (sheets, topics…) can end in a 504 after 15 s */}
             <PartLoad q={resourcesQ} what={RESOURCES} />
           </>
         )}

@@ -1,4 +1,4 @@
-# The new reader client (reader-next/): every change is type-checked and tested before it lands (CODE_REVIEW §3.1).
+# The new reader client (reader-next/): every change is type-checked and tested before it lands.
 # Unit, architecture and component (Storybook) tests, in English/LTR and Hebrew/RTL; then the end-to-end suite against the API
 # cassette (scripts/api-cassette.mjs): the bundle pinned by e2e/cassette.lock, replayed (scripts/cassette/bundle.mjs); without one, the
 # CI cache, recording anything missing from the live API. A budgets job holds the reader page's initial JS/CSS (scripts/budgets/).
@@ -51,7 +51,7 @@ jobs:
       - name: Component tests (dark theme)
         run: npm run test:stories:dark
 
-  # LAUNCH_PLAN T-H04: the reader page's initial JS and CSS (scripts/budgets/measure.mjs) against scripts/budgets/baseline.json
+  # Budgets: the reader page's initial JS and CSS (scripts/budgets/measure.mjs) against scripts/budgets/baseline.json
   budgets:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -99,7 +99,7 @@ jobs:
         env:
           CI: "1"
           E2E_API_MODE: ${{ steps.cassette.outputs.mode }}
-      # the stylesheet guard against the production build: dev inlines every module's CSS, so only a build can fail it (v-exits F-2)
+      # the stylesheet guard against the production build: dev inlines every module's CSS, so only a build can fail it
       - name: Build
         run: npm run build
       - name: Stylesheets of the server-rendered pages (production build)

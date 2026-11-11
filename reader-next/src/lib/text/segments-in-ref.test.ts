@@ -36,7 +36,7 @@ describe("segmentsInRef", () => {
   });
 });
 
-// review F10: a link to a range across chapters fetched only its first chapter, so the rest of its text never showed
+// Regression: a link to a range across chapters fetched only its first chapter, so the rest of its text never showed
 describe("loadRefFor", () => {
   it("a link inside one section loads that section (shared by every link on the verse)", async () => {
     const { loadRefFor } = await import("./segments-in-ref");

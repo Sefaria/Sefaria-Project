@@ -4,7 +4,7 @@
  *   /<ref1>?lang=&aliyot=&ven=&vhe=&vside=&lookup=&sbsq=&namedEntity=&namedEntityText=&with=&lang2=
  *          &p2=<ref2>&w2=&lang2=&aliyot2=&ven2=&vhe2=&vside2=&lookup2=&sbsq2=  &p3=…
  *
- * Owner decision 2026-10-06 (docs/MULTIPANEL_PLAN.md §3): URLs are read and written exactly as www.sefaria.org writes them.
+ * Owner decision 2026-10-06: URLs are read and written exactly as www.sefaria.org writes them.
  * The old client numbers panels by its flat panel list, where a sidebar is a panel of its own: it takes a number slot, but is
  * written into the panel it belongs to (`with` / `w<k>`), and its language is `lang<k+1>`. So `[A+sidebar, B]` is
  * `?…&with=all&lang2=en&p3=B&lang3=bi`, and `[A, B+sidebar]` is `?…&p2=B&lang2=bi&w2=all&lang3=en`. encodeWorkspace is a port of
@@ -60,7 +60,7 @@ function panelFrom(id: PanelId, ref: string, s: RawSearch, suffix: string, aside
 
 /**
  * The most panels a URL opens. Each panel is loaded on the server, so an address with p2…p500 would turn one request into hundreds
- * of API calls (CODE_REVIEW R-05); sefaria.org's layout shows far fewer side by side. Panels past the cap are dropped.
+ * of API calls; sefaria.org's layout shows far fewer side by side. Panels past the cap are dropped.
  */
 export const MAX_PANELS = 6;
 
@@ -128,7 +128,7 @@ function histories(ws: Workspace, d: UrlDefaults): Hist[] {
 }
 
 /**
- * One query parameter, built once (CODE_REVIEW §3.3): `value` is what the router receives; `wire` is how the old client wrote it into
+ * One query parameter, built once: `value` is what the router receives; `wire` is how the old client wrote it into
  * the address (some values percent-encoded, some raw), used only to assemble the byte-exact legacy string. The router's query is
  * built from values directly, never by re-parsing a string — so no value ("100%", "a&p2=Exodus.1") can break or inject anything.
  */

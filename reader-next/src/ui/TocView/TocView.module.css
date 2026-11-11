@@ -47,7 +47,7 @@ a.groupTitle { text-decoration: none; }
 .view:not([data-variant="page"]) .heading { font-size: 16px; color: var(--sefaria-color-text-dark-grey); }
 .view:not([data-variant="page"]) .group[data-fixed-group="heading"] > .groupTitle { font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 400; color: var(--sefaria-color-text-dark-grey); }
 
-/* The sidebar's Torah portions (with=Navigation; parity S10), VERIFIED on sefaria.org 2026-11-10 at 1280px (Genesis 1:1): as the
+/* The sidebar's Torah portions (with=Navigation), VERIFIED on sefaria.org 2026-11-10 at 1280px (Genesis 1:1): as the
    book page, not tiles — "Torah Portions" 16px #666 sans 30px below the chapters and 10px above two 50% columns; each portion its
    24px black serif name over its aliyot as inline 14px/30px sans numbers 4px apart in #6f6f6f, the reader's in the brand blue */
 .view:not([data-variant="page"]) .group[data-fixed-group="heading"] { border: 0; padding-block-start: 0; margin-block-start: calc(30px - var(--sefaria-space-3)); }

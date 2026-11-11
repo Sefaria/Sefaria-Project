@@ -44,8 +44,7 @@ export async function loadBookRoute(queryClient: QueryClient, splat: string, sea
 
 /**
  * The book page's description by language. The Hebrew interface falls back to the short Hebrew description when the index has no long
- * one (Berakhot: `heDesc` null, `heShortDesc` set), as legacy's AboutBox (`heDesc || heShortDesc`); BookPage reads `heShort` (lane
- * c-sidebar, wave 4 S9). Built as a value, not a literal, so it also fits a BookPage that does not declare `heShort` yet.
+ * one (Berakhot: `heDesc` null, `heShortDesc` set), as legacy's AboutBox (`heDesc || heShortDesc`); BookPage reads `heShort`. Built as a value, not a literal, so it also fits a BookPage that does not declare `heShort` yet.
  */
 export function bookDescription(d: { enDesc?: string | null; heDesc?: string | null; heShortDesc?: string | null }): { en?: string | null; he?: string | null; heShort?: string | null } {
   return { en: d.enDesc, he: d.heDesc, heShort: d.heShortDesc };

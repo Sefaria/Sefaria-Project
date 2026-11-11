@@ -15,7 +15,7 @@ describe("the API client when the site is down or starting", () => {
   });
 });
 
-// CODE_REVIEW low: direct fetches (calendars, name, topics-toc, search, completion) bypassed the error model
+// Regression: direct fetches (calendars, name, topics-toc, search, completion) bypassed the error model
 describe("apiJson", () => {
   it("returns the JSON of a good answer", async () => {
     const { apiJson } = await import("./client");

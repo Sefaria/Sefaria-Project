@@ -26,7 +26,7 @@ export interface SiteHeaderProps {
   /** The signed-in reader (null or absent: signed out). */
   viewer?: HeaderViewer | null;
   /** While the reader has opted in to the new reader: "Back to the classic reader" and "Report a problem" in the account and phone
-   *  menus (LAUNCH_PLAN T-D05). Absent: no items. */
+   *  menus. Absent: no items. */
   optIn?: HeaderOptInActions | null;
   /** While the Library Assistant is on the page: the "✦ Library Assistant" pill before the search box opens it (the old
    *  LibraryAssistantHeaderLink, sefaria.org #3934). Absent: no pill. */
@@ -86,7 +86,7 @@ function Menu({ icon, label, children, anlFeature, picture, optionsClassName }: 
     byButton.current = false;
     setOpen(o);
   };
-  // Focus that leaves the menu (Tab past its last item, Shift+Tab before its button) closes it (v-a11y N9). The Popover gives focus
+  // Focus that leaves the menu (Tab past its last item, Shift+Tab before its button) closes it. The Popover gives focus
   // back to its button when it closes; this effect runs after the Popover's (a parent's effects run after its children's) and puts it
   // where the reader was going.
   const leftTo = useRef<HTMLElement | null>(null);
@@ -208,12 +208,12 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
   useEffect(() => {
     if (!mobileOpen) return;
     // Opened from elsewhere (the text panel's own Menu button while reading, whose button comes after the menu in the page): focus goes
-    // into the menu, so Tab reaches its items and not the page behind it (v-a11y S6). The menu itself takes focus, not its search box,
+    // into the menu, so Tab reaches its items and not the page behind it. The menu itself takes focus, not its search box,
     // so a phone's keyboard does not open. The header's own button stays focused: the menu follows it.
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const nav = document.getElementById("mobile-nav");
     if (nav && opener !== menuButton.current && !nav.contains(opener)) nav.focus({ preventScroll: true });
-    // Escape closes the menu; focus that was inside it goes back to the button that opened it (CODE_REVIEW R-31: it was lost to <body>)
+    // Escape closes the menu; focus that was inside it goes back to the button that opened it (it was lost to <body>)
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       const inside = document.getElementById("mobile-nav")?.contains(document.activeElement);

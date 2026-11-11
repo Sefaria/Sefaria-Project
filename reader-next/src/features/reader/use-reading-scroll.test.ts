@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isScrollKey } from "./use-reading-scroll";
 
-// Lane R D3: only keys that scroll mark the reader's intent; copying a selection (Cmd+C), Shift, or extending a selection
+// Only keys that scroll mark the reader's intent; copying a selection (Cmd+C), Shift, or extending a selection
 // (Shift+arrows) never does, so a later reflow cannot settle on a verse and drop a selected range.
 describe("isScrollKey", () => {
   const key = (k: string, o: { shiftKey?: boolean; target?: EventTarget | null } = {}) => ({ key: k, shiftKey: !!o.shiftKey, altKey: false, target: o.target ?? document.body });

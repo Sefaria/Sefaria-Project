@@ -26,7 +26,7 @@ export interface VersionInfoProps {
 
 /**
  * Is a version's source an address? Some are a book's name ("Biblia Judaica Completa", "La Torá Con Rashi"): the old client wrote them
- * as a relative link that ended at Django's 404; here they are plain text (deliberate difference, T-F03). An address (http(s)://…,
+ * as a relative link that ended at Django's 404; here they are plain text (deliberate difference). An address (http(s)://…,
  * www.…, or a path of the site such as /shraga-silverstein) stays a link.
  */
 export const isSourceAddress = (source: string): boolean => /^(?:https?:\/\/[^\s/]+\.[^\s]+|www\.[^\s]+\.[^\s]+|\/[^\s/][^\s]*)$/i.test(source.trim());

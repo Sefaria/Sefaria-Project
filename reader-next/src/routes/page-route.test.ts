@@ -9,7 +9,7 @@ const { Route } = await import("./$page");
 type Loader = (ctx: { params: { page: string }; context: { interfaceLang: string }; location: { href: string } }) => Promise<{ model: { page: string; title: string }; owner: string }>;
 const load = (page: string, interfaceLang = "english") => (Route.options.loader as unknown as Loader)({ params: { page }, context: { interfaceLang }, location: { href: `/${page}` } });
 
-// @feature STA-008 — v-exits F-9: the ports are rendered without Django, even when Django has no content mode
+// @feature STA-008 — the ports are rendered without Django, even when Django has no content mode
 describe("the static pages' route", () => {
   beforeEach(() => {
     loadStaticPage.mockReset();

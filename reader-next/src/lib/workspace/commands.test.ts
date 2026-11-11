@@ -11,7 +11,7 @@ const fakeRouter = (pathname: string, search: Record<string, string>, state: unk
 const defaults = () => ({ lang: "bi" as const, aliyot: 0 as const });
 
 // @feature SHL-066 @feature RTE-043
-describe("workspace commands (outside React: CODE_REVIEW §3.3)", () => {
+describe("workspace commands (outside React)", () => {
   it("current() reads the workspace from the router's location", () => {
     const { router } = fakeRouter("/Genesis.1", { lang: "en", p2: "Exodus.1" });
     const ws = createWorkspaceCommands(router, defaults).current();
@@ -47,7 +47,7 @@ describe("workspace commands (outside React: CODE_REVIEW §3.3)", () => {
     expect(elsewhere.navigate).not.toHaveBeenCalled();
   });
 
-  // CODE_REVIEW R-24: closing panel 1 must not hand its component (scroll, selection) to the panel that takes its place
+  // Regression: closing panel 1 must not hand its component (scroll, selection) to the panel that takes its place
   it("panels keep their key through operations; closing the first one leaves the second its own", async () => {
     const { router, navigate } = fakeRouter("/Genesis.1", { lang: "bi", p2: "Exodus.1" }, { panelKeys: ["kA", "kB"] });
     const cmd = createWorkspaceCommands(router, defaults);

@@ -124,7 +124,7 @@ export function LoginView({
   startProcess: () => void;
   endProcess: (status: string, error?: string | null, outcome?: string | null) => void;
 }) {
-  // email login is part of the auth funnel too, as on master's LoginView (CODE_REVIEW R-08)
+  // email login is part of the auth funnel too, as on master's LoginView
   const onSubmit = async () => {
     startProcess();
     const { ok, data } = await postJson("/api/auth/login", { email: fields.email, password: fields.password });

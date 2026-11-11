@@ -1,5 +1,5 @@
 /**
- * The events other apps on the page send the reader, as sefaria.org's ReaderApp receives them (TARGET_ARCHITECTURE §6.12, D4).
+ * The events other apps on the page send the reader, as sefaria.org's ReaderApp receives them.
  * Outside React: installed once per page by the shell, it acts through the functions it is given.
  *
  *  - `sefaria:bootstrap-url` — "go here" (the Library Assistant's links: a text, a search, a topic). `detail` is a URL, or

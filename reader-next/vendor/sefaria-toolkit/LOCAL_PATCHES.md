@@ -6,7 +6,7 @@ changes below were made in this repository since. Every one is marked in the cod
 an upstream equivalent, and keep the tests named below green. Several are security-relevant (the sanitiser's URL rules): dropping
 them silently would either break text display or, worse, loosen what the sanitiser lets through.
 
-Recorded 2026-11-10 (wave-3 security review, nit 4). Update this list in the same commit as any change under this folder.
+Recorded 2026-11-10. Update this list in the same commit as any change under this folder.
 
 ## text-transform (the sanitiser and the HTML writer)
 
@@ -18,7 +18,7 @@ Recorded 2026-11-10 (wave-3 security review, nit 4). Update this list in the sam
 | `normalize.ts` (module doc comment) | States that this copy emits vetted image and link addresses (upstream: "emits no URLs") | keeps the contract honest | `52992ec5b5` |
 | `normalize.ts` (`classifySpan`) | Keeps the poetry indentation classes (`indentAll`, `indentAllDouble`) and muted emphasis instead of unwrapping them | Psalms and Isaiah lose their line indents otherwise | inherited (sefaria-reader history) |
 | `html.ts` | `img` is a void element | the reader turns image markers into `<img>` (TXD-026) | `52992ec5b5` |
-| `html.ts` (attribute escaping) | `<` and `>` escaped in attribute values as well as `&` and `"` | CODE_REVIEW R-02: a raw `>` in a value misleads anything that scans the output for tags | inherited (sefaria-reader history) |
+| `html.ts` (attribute escaping) | `<` and `>` escaped in attribute values as well as `&` and `"` | A raw `>` in a value misleads anything that scans the output for tags | inherited (sefaria-reader history) |
 
 Tests that pin these: `src/lib/text/normalize-extensions.test.ts` (links, backslash addresses, images, categories) and the
 SegmentText stories.

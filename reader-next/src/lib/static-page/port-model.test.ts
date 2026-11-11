@@ -7,7 +7,7 @@ import { portModel } from "./port-model";
 const fixture = (page: string, lang: string) =>
   JSON.parse(readFileSync(join(__dirname, "..", "..", "..", "e2e", "fixtures", "static-pages", `${page}.${lang}.json`), "utf8")) as { title: string; description: string; bodyClass: string };
 
-// @feature STA-008 — v-exits F-9: a port needs nothing from Django; its head is what Django renders from the template
+// @feature STA-008 — a port needs nothing from Django; its head is what Django renders from the template
 describe("portModel", () => {
   for (const [page, lang] of [["mobile", "en"], ["mobile", "he"], ["educators", "en"], ["educators", "he"], ["ways-to-give", "en"]] as const) {
     it(`${page} (${lang}): every port has one, with Django's title, description and body class`, () => {

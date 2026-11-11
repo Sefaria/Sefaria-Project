@@ -210,7 +210,7 @@ function leavesOf<T>(raw: RawTextsResponse, tree: Tree<T> | undefined): Leaf<T>[
   // ("Genesis 1:1-5") fixes the chapter; the varying level starts at sections[last]. A range across sections is the same tree from
   // the first level that varies ("Genesis 1:30-2:3": [[30, 31], [1, 2, 3]]; "Rashi on Genesis 1:31:1-2:2:1": [[[31:1]], [[], [2:1]]]):
   // only the first child at each level starts mid-way. (`spanningRefs` cannot place it: they skip empty sections, and splitting them by
-  // section level broke every commentary range — CODE_REVIEW R-18 and its follow-up.)
+  // section level broke every commentary range.)
   const fixedLevels = sectionsFixed(given, raw.toSections ?? given, depth);
   flatten(tree, given.slice(0, fixedLevels), given, types, out, segmentStarts(raw));
   return out;

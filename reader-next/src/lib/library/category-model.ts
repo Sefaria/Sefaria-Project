@@ -130,7 +130,7 @@ const slimBook = (b: TocBook): TocBook => Object.fromEntries(BOOK_FIELDS.filter(
 const slimNode = (n: TocNode): TocNode => (isCategory(n) ? { ...n, contents: (n.contents ?? []).map(slimNode) } : slimBook(n));
 
 /**
- * What a library page shows of the catalog, and no more (CODE_REVIEW R-14: the whole 3.5 MB catalog was serialised into the HTML of
+ * What a library page shows of the catalog, and no more (the whole 3.5 MB catalog was serialised into the HTML of
  * every /texts page): the top-level categories (the home grid); the categories along the page's path, with their long descriptions
  * (the crumbs and the About box); and the page's own category in full, its texts trimmed to what the list shows.
  */

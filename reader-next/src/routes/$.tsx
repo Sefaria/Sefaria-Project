@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { loadWorkspaceRoute } from "~/features/reader/reader-route";
-// Each page kind (the reader, a book's page) is its own chunk, loaded before anything renders: see page-kinds.tsx (T-H03)
+// Each page kind (the reader, a book's page) is its own chunk, loaded before anything renders: see page-kinds.tsx
 import { loadPageKind, PAGE_KIND_META, preloadRenderedPageKind, ReaderRoute as PageKindRoute, type PageData } from "~/features/reader/page-kinds";
 import { loadBookRoute } from "~/features/book/book-route";
 import { bookMeta, pageUrls } from "~/lib/library/page-head";
@@ -12,7 +12,7 @@ import type { VersionMeta } from "~/lib/text/model";
 import { versionsQueryOptions } from "~/lib/versions/book-versions";
 import { refToUrl, urlToRef } from "~/lib/ref/url";
 import { ErrorState } from "~/ui/Feedback/Feedback";
-// each page kind's stylesheets, linked in the server-rendered head (vite-plugins/page-kind-css.ts, v-exits F-2)
+// each page kind's stylesheets, linked in the server-rendered head (vite-plugins/page-kind-css.ts)
 import pageKindCss from "virtual:page-kind-css";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { notFoundTitle, readerPageTitle, type TitleLang } from "~/lib/reader/page-title";
@@ -24,7 +24,7 @@ import type { QueryClient } from "@tanstack/react-query";
 
 /**
  * The old address for a text in one version, `/<ref>/<lang>/<version>` (Django's `old_versions_redirect`, sefaria/urls_shared.py):
- * a 301 to `/<ref>?v<lang>=<version>` with the request's own query after it (LAUNCH_PLAN T-E08). A title that itself contains
+ * a 301 to `/<ref>?v<lang>=<version>` with the request's own query after it. A title that itself contains
  * "/<two letters>/" would be read the same way; Django checks the joined string against its catalog first, and no such title exists.
  */
 export function oldVersionsRedirect(splat: string): { ref: string; lang: string; version: string } | null {

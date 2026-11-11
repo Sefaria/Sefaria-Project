@@ -1,6 +1,6 @@
 /**
  * Links to the Library's pages (the logo, Texts, Topics, search, topic pages) from the header and the library's own pages. On the
- * Library host they are relative, so they navigate inside this client (T-F02). On a Voices host (voices.sefaria.org,
+ * Library host they are relative, so they navigate inside this client. On a Voices host (voices.sefaria.org,
  * chiburim.sefaria.org.il) they keep the address they always had, `${SITE_ORIGIN}${path}` — a relative "/" or "/topics" there is a
  * Voices page (the Voices home, Django's Voices topics), and Voices is out of scope.
  *

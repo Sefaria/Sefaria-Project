@@ -41,7 +41,7 @@ describe("which translation the loader shows (verified on sefaria.org)", () => {
   });
 });
 
-// CODE_REVIEW R-07: a URL naming only the source version kept the saved translation on the server, then dropped it after hydration
+// Regression: a URL naming only the source version kept the saved translation on the server, then dropped it after hydration
 describe("shownVersions", () => {
   const SRC = "hebrew|Miqra according to the Masorah";
   const KOREN = "english|The Koren Jerusalem Bible";

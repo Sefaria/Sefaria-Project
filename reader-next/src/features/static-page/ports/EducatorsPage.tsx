@@ -1,7 +1,7 @@
 import { ButtonRow, EnBlock, Feature, GreyBox, H2Block, HeBlock, Mount, PageNewsletter, Section, SimpleButton, SimpleInterfaceBlock, Spacer, StaticPageBody, UserQuote } from "./legacy-blocks";
 
 /**
- * /educators, "Teach with Sefaria" (T-F32): the old EducatorsPage (static/js/StaticPages.jsx), which Django's content block only mounts,
+ * /educators, "Teach with Sefaria": the old EducatorsPage (static/js/StaticPages.jsx), which Django's content block only mounts,
  * with the same markup and classes; its newsletter sign-up ("Subscribe from educators") is this client's.
  *
  * @feature STA-012 Educators, Word-by-Word, newsletter and sponsorship pages

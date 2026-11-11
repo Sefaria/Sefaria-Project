@@ -75,7 +75,7 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
       }
       store.current!.set(lastKey, positions);
       if (action.type === "REPLACE") store.current!.set(next, positions);
-      // a replace of the entry just reached by back/forward (the address completed, CODE_REVIEW R-16) is still that arrival:
+      // a replace of the entry just reached by back/forward (the address completed) is still that arrival:
       // its panels must restore their saved place, so the popped key follows the entry to its new key
       if (action.type === "BACK" || action.type === "FORWARD" || action.type === "GO") poppedKey.current = next;
       // (only that replace: a scroll pause also replaces the entry, and must not count as arriving again, or every pause re-restores)
@@ -138,7 +138,7 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   const href = useCallback((ws: Workspace) => commands.href(ws), [commands, defaults]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The address bar shows the full form sefaria.org writes (its defaults filled in), on arrival and when a setting it carries changes:
-  // a replace navigation through the router, keeping the entry's state (CODE_REVIEW R-16; never history.replaceState).
+  // a replace navigation through the router, keeping the entry's state (never history.replaceState).
   useEffect(() => {
     void commands.canonicalize();
   }, [commands, location.href, defaults]);

@@ -1,7 +1,7 @@
 /**
  * Drives the auth funnel for the auth page: flow start on arriving at /login or /register (any sub-view), method/process events, flow
  * end on leaving (flow change, popstate, beforeunload unless an SSO redirect is in flight, bfcache restore, unmount). Ported from
- * master's static/js/auth/useAuthTracking.js, same behaviour (CODE_REVIEW R-08; it replaced useSignUpTracking.js).
+ * master's static/js/auth/useAuthTracking.js, same behaviour (it replaced useSignUpTracking.js).
  *
  * @feature ANL-013 Sign-up funnel analytics
  */

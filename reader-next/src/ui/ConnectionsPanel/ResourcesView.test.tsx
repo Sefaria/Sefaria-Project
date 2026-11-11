@@ -69,7 +69,7 @@ describe("ResourcesView", () => {
     view(topLevelSummary([cat("Commentary", 2), cat("Talmud", 1)]), "hebrew");
     expect(screen.getByRole("link", { name: /מפרשים/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /תלמוד/ })).toBeInTheDocument();
-    // legacy's connection_panel_section strings (parity S11), and the sections named in Hebrew (a11y S5)
+    // legacy's connection_panel_section strings, and the sections named in Hebrew
     expect(screen.getByRole("heading", { name: "מקורות לעיון" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "מקורות לעיון" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "כלים" })).toBeInTheDocument();

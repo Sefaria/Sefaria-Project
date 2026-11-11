@@ -8,7 +8,7 @@ const simple = (o: Partial<SectionHeadingInput>): SectionHeadingInput => ({
 });
 
 // @feature TXD-011 @feature TXD-012
-describe("sectionHeading (parity S7, S13)", () => {
+describe("sectionHeading", () => {
   it("Tanakh: the chapter number", () => {
     expect(sectionHeading(simple({ sectionRef: "Psalms 23", heSectionRef: "תהילים כ״ג", indexTitle: "Psalms", heIndexTitle: "תהילים", book: "Psalms", sections: ["23"] }))).toEqual({ en: "23", he: "כ״ג" });
   });
@@ -47,7 +47,7 @@ describe("hebrewAddress", () => {
   });
 });
 
-// review nit 1: www.sefaria.org /Zohar%2C_Bereshit.1.5-2.3?lang=he prints "בראשית, ב׳" above the second section
+// www.sefaria.org /Zohar%2C_Bereshit.1.5-2.3?lang=he prints "בראשית, ב׳" above the second section
 describe("a later section of a range across sections", () => {
   it("keeps a complex book's node names in Hebrew (Zohar 1:5-2:3)", () => {
     const heSectionRef = laterHebrewSectionRef({ heSectionRef: "ספר הזהר, בראשית א׳", sections: ["1"] }, ["2"], ["Integer", "Integer"], "ספר הזהר");

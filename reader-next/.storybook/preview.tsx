@@ -15,7 +15,7 @@ const preview: Preview = {
       toolbar: { title: "Theme", icon: "circlehollow", items: [{ value: "light", title: "Light" }, { value: "dark", title: "Dark" }, { value: "sepia", title: "Sepia" }], dynamicTitle: true },
     },
   },
-  // The story tests run as a matrix (CODE_REVIEW §3.8): `npm run test:stories` (English, light), `test:stories:hebrew` (Hebrew, RTL)
+  // The story tests run as a matrix: `npm run test:stories` (English, light), `test:stories:hebrew` (Hebrew, RTL)
   // and `test:stories:dark` (dark theme). A story can pin its own globals.
   initialGlobals: { interfaceLang: import.meta.env.VITE_SB_LANG ?? "english", theme: import.meta.env.VITE_SB_THEME ?? "light" },
   decorators: [

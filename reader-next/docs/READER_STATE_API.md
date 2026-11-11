@@ -342,7 +342,7 @@ and "the leader" is whoever holds the room's spotlight, which can move. Nothing 
    Breaking away is decided by the person's input alone (pointer, wheel, key, touch, back/forward); a change with no
    input is the reader settling itself. Input on the reader state's own controls (marked `data-reader-state-ui`: the
    follow bar and its menus, the recording dock) is not breaking away.
-4. A bar shows the state: "Following Dana · Stop following".
+4. A bar shows the state: "Following Reader One · Stop following".
 
 ### Breaking away and returning
 
@@ -351,7 +351,7 @@ verse, opening the sidebar, typing in search, back/forward. Figma does the same.
 
 - The transport **stays open**. The stream reader stops applying but keeps folding messages, so it always holds the
   leader's latest state.
-- The bar turns into "Dana is reading Exodus 3 · Follow again". Clicking it applies the held state at once — no
+- The bar turns into "Reader One is reading Exodus 3 · Follow again". Clicking it applies the held state at once — no
   round trip — and resumes.
 - "Stop following" closes the transport and clears the token. The reader stays where it is.
 
@@ -360,16 +360,16 @@ nobody who has not chosen to follow them.
 
 ### Connection states
 
-| State          | Follower sees                   | What happens                                                     |
-| -------------- | ------------------------------- | ---------------------------------------------------------------- |
-| connecting     | "Joining…"                      | the server-rendered page is already showing the link's URL       |
-| live           | "Following …"                   | messages applied as they come                                    |
-| paused         | "… is reading X · Follow again" | the follower broke away; messages folded, not applied            |
-| leader away    | "Waiting for … to come back"    | the leader's tab is hidden or disconnected; the reader stays put |
-| no leader      | "Waiting for a leader"          | the spotlight was cleared; the reader stays put                  |
-| leader changed | "Now following Sarah" (brief)   | the spotlight moved; Sarah's last keyframe is applied            |
-| reconnecting   | small spinner on the bar        | transport back-off; on reopen, a `resync` gets a fresh keyframe  |
-| ended          | "… stopped sharing"             | the leader stopped or the session expired; the token is cleared  |
+| State          | Follower sees                      | What happens                                                     |
+| -------------- | ---------------------------------- | ---------------------------------------------------------------- |
+| connecting     | "Joining…"                         | the server-rendered page is already showing the link's URL       |
+| live           | "Following …"                      | messages applied as they come                                    |
+| paused         | "… is reading X · Follow again"    | the follower broke away; messages folded, not applied            |
+| leader away    | "Waiting for … to come back"       | the leader's tab is hidden or disconnected; the reader stays put |
+| no leader      | "Waiting for a leader"             | the spotlight was cleared; the reader stays put                  |
+| leader changed | "Now following Reader Two" (brief) | the spotlight moved; Reader Two's last keyframe is applied       |
+| reconnecting   | small spinner on the bar           | transport back-off; on reopen, a `resync` gets a fresh keyframe  |
+| ended          | "… stopped sharing"                | the leader stopped or the session expired; the token is cleared  |
 
 ### Protocol
 
@@ -512,7 +512,7 @@ As in Figma, anyone can be followed:
 - **Every participant's client publishes its own state stream** to the room. State messages are tiny, so the cost
   is negligible.
 - The room keeps each participant's latest snapshot.
-- **Following is chosen on the client**: "follow Sarah" points the stream reader at Sarah's stream. Clicking any face
+- **Following is chosen on the client**: "follow Reader Two" points the stream reader at Reader Two's stream. Clicking any face
   in the presence list does it.
 - The room holds a **spotlight** (`ParticipantId | null`). Everyone who has not picked someone follows whoever holds
   it. "The leader" in the follow-me section is the spotlight holder.
@@ -520,10 +520,10 @@ As in Figma, anyone can be followed:
 Changing the leader is one control message:
 
 ```ts
-{ ch: "control", body: { type: "spotlight", to: "sarah" } }   // room checks permission, bumps term, tells everyone
+{ ch: "control", body: { type: "spotlight", to: "reader2" } }   // room checks permission, bumps term, tells everyone
 ```
 
-Followers switch streams and apply Sarah's latest snapshot at once — the room already has it. Nothing reconnects;
+Followers switch streams and apply Reader Two's latest snapshot at once — the room already has it. Nothing reconnects;
 no tokens change.
 
 Who may move it:
@@ -537,7 +537,7 @@ Who may move it:
 - **Terms.** Every spotlight change increments `term`; the room stamps it on what it relays and followers drop
   spotlight-stream messages from an older term, so a lagging message from the previous leader cannot pull everyone
   back.
-- **The new leader does not jump.** If Sarah was following, her reader already shows the room's state, so her first
+- **The new leader does not jump.** If Reader Two was following, her reader already shows the room's state, so her first
   keyframe matches what everyone sees. If she was elsewhere, followers go where she is — which is the point.
 - **The leader leaves.** The spotlight returns to the host, or clears after a 30 s grace period; followers stay where
   they are ("Waiting for a leader").

@@ -1,4 +1,4 @@
-// Ported from Sefaria-Project static/js/auth/tests/useSignUpTracking.test.js, updated for master's useAuthTracking (CODE_REVIEW R-08)
+// Ported from Sefaria-Project static/js/auth/tests/useSignUpTracking.test.js, updated for master's useAuthTracking
 // @feature ANL-013
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";

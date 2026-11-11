@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { listenForSelections } from "./TextColumn";
 
-// Lane R D4: a selection made by keyboard (Shift+arrows) or touch (a long press, then its handles) ends in no mouseup; it is reported
+// A selection made by keyboard (Shift+arrows) or touch (a long press, then its handles) ends in no mouseup; it is reported
 // when `selectionchange` rests soon after such a gesture, once, exactly as a mouse selection is on mouseup, and never for text outside
 // the column or for a selection made by script or the browser.
 describe("listenForSelections", () => {

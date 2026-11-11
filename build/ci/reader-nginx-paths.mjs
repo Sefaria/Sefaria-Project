@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// The nginx side of "which paths are Django's" for the new reader (LAUNCH_PLAN T-C04), generated from the one source of truth:
+// The nginx side of "which paths are Django's" for the new reader, generated from the one source of truth:
 // DJANGO_PREFIXES in reader-next/src/lib/routing/django-paths.ts. With nodejs.mode "optin" (and "reader"), nginx sends these paths
 // straight to Varnish instead of through the reader client (which would only pass them on), and with them the site's well-known
 // files (favicon, manifests, llms.txt, /.well-known/*), which the client would first try to render.

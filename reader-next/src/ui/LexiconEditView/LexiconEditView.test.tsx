@@ -62,7 +62,7 @@ describe("LexiconContentEdit", () => {
     expect(onSave).toHaveBeenCalledWith(id, { notes: "old" });
   });
 
-  // v-security nit 3: the stored entry is sanitised before it goes into the editing box, keeping what the server keeps
+  // Regression: the stored entry is sanitised before it goes into the editing box, keeping what the server keeps
   it("the editing box gets the stored entry sanitised: no script, no handler, the ref links and footnote markers kept", async () => {
     const stored = '<b onclick="alert(1)">x</b><img src=x onerror="alert(2)"><script>alert(3)</script><a class="refLink" data-ref="Proverbs 4:18" href="/Proverbs.4.18">P</a><i class="footnote" data-commentator="Rashi">n</i><sup class="footnote-marker">1</sup>';
     render(<LexiconContentEdit identity={id} draft={{ notes: stored }} onSave={vi.fn()} resolveRef={resolveRef} />);

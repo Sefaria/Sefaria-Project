@@ -9,7 +9,7 @@ import { siteRoute, type RoutingDeps } from "./server/site-routing";
 import { passThrough, passThroughEnabled, requestHost, upstreamUnavailable } from "./server/pass-through";
 import { beginRequestLog } from "~/lib/monitoring/server-log";
 
-// A misconfigured server fails at start, loudly, instead of answering every request with a broken page (CODE_REVIEW R-35)
+// A misconfigured server fails at start, loudly, instead of answering every request with a broken page
 if (typeof window === "undefined" && typeof process !== "undefined") {
   const problems = serverConfigProblems(process.env);
   if (problems.length) {
@@ -37,7 +37,7 @@ const siteRouting = createMiddleware({ type: "request" }).server(async ({ reques
 
 /**
  * A page that failed because the API did (a timeout, a network error, a 5xx) answers 503 with Retry-After — the truth for crawlers
- * and the signal a proxy can fall back on — instead of the 500 that means a bug here (CODE_REVIEW R-05).
+ * and the signal a proxy can fall back on — instead of the 500 that means a bug here.
  */
 const upstreamStatus = createMiddleware({ type: "request" }).server(async ({ request, next }) => {
   const health = { failed: false };
@@ -50,7 +50,7 @@ const upstreamStatus = createMiddleware({ type: "request" }).server(async ({ req
 });
 
 /**
- * One structured log line per request, with its X-Request-Id answered (src/lib/monitoring/server-log.ts, LAUNCH_PLAN T-D02): the
+ * One structured log line per request, with its X-Request-Id answered (src/lib/monitoring/server-log.ts): the
  * outermost middleware, so it records the status the reader actually got. The cluster's health probes are not logged (one every few
  * seconds per pod, nothing to learn from them).
  */
@@ -70,7 +70,7 @@ const requestLog = createMiddleware({ type: "request" }).server(async ({ request
 const cachePolicy = createMiddleware({ type: "request" }).server(async ({ request, next }) => {
   const result = await next();
   const res = result.response;
-  // Accept-Language decides the page only on a host pinned to a language (the bounce, T-E07)
+  // Accept-Language decides the page only on a host pinned to a language (the bounce)
   const pinned = !!domainLang(requestHost(request), ROUTING_DEPS.domainModules);
   const headers = pageCacheHeaders(request.headers.get("cookie"), res.headers, res.status, pinned);
   return headers === res.headers ? result : new Response(res.body, { status: res.status, statusText: res.statusText, headers });

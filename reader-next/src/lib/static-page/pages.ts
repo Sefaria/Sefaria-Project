@@ -1,6 +1,6 @@
 /**
  * The site's static information pages (sites/sefaria/urls.py `static_pages` and `static_pages_by_lang`, plus /digitized-by-sefaria)
- * and who renders each in the new reader (LAUNCH_PLAN D-5, T-F31, T-F32).
+ * and who renders each in the new reader.
  *
  *  - "content": Django's content block (`/<page>?format=json&lang=en|he`, reader/static_content.py) rendered inside this client's
  *    shell (features/static-page). Its scripts are not run; the few that matter are done here (the About sidebar's selected item,
@@ -72,7 +72,7 @@ export const STATIC_PAGES: Readonly<Record<string, StaticPageEntry>> = {
   products: { owner: "django", reason: CMS },
   "link-to-annual-report": { owner: "content" },
   "mobile-about-menu": { owner: "content" },
-  // "updates" (/updates, New Additions) is a page of the new reader of its own (lane P), not one of these
+  // "updates" (/updates, New Additions) is a page of the new reader of its own, not one of these
   pioneers: { owner: "content" },
   ai: { owner: "content" },
   metrics: { owner: "django", reason: "its own view (reader/views.py metrics: charts from the database), no content answer" },

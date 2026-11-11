@@ -1,7 +1,7 @@
 /*
  * Design tokens. Public names are `--sefaria-*` (same convention as the Sefaria frontend toolkit) so an
  * embedder can override any of them. Values come from the old client's css/color-palette.css, fonts.scss
- * and s2.css; see docs/COMPONENT_AUDIT.md section A for sources and the frequency data behind each choice.
+ * and s2.css, picking for each token the value the old client used most often.
  *
  * Themes: set `data-theme="light" | "dark" | "sepia"` on any ancestor (usually <html>). With no attribute
  * the user's OS preference applies. `color-scheme` is set so native controls and `light-dark()` follow.

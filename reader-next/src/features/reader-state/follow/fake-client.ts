@@ -4,9 +4,9 @@
  */
 import type { PresentParticipant, SessionClient, SessionState } from "~/lib/session/client";
 
-export const AKIVA: PresentParticipant = { id: "akiva", name: "Akiva Berger", isHost: true, canLead: true, following: null, away: false };
-export const SARAH: PresentParticipant = { id: "sarah", name: "Sarah Cohen", isHost: false, canLead: true, following: "akiva", away: false };
-export const GUEST: PresentParticipant = { id: "guestx7k", name: "Guest X7K", isHost: false, canLead: true, following: "akiva", away: false };
+export const READER_ONE: PresentParticipant = { id: "reader1", name: "Reader One", isHost: true, canLead: true, following: null, away: false };
+export const READER_TWO: PresentParticipant = { id: "reader2", name: "Reader Two", isHost: false, canLead: true, following: "reader1", away: false };
+export const GUEST: PresentParticipant = { id: "guestx7k", name: "Guest X7K", isHost: false, canLead: true, following: "reader1", away: false };
 
 export type FakeCall = { cmd: keyof SessionClient; arg?: unknown };
 
@@ -15,13 +15,13 @@ export interface FakeSessionClient extends SessionClient {
   calls: FakeCall[];
 }
 
-/** A follower (GUEST) live behind AKIVA, the host and spotlight holder, with SARAH also following; override with `patch`. */
+/** A follower (GUEST) live behind READER_ONE, the host and spotlight holder, with READER_TWO also following; override with `patch`. */
 export function fakeSessionState(patch: Partial<SessionState> = {}): SessionState {
   return {
     status: "live",
-    room: { spotlight: AKIVA.id, term: 1, mode: "presenter", hands: [], ended: false },
-    participants: [AKIVA, SARAH, GUEST],
-    following: AKIVA.id,
+    room: { spotlight: READER_ONE.id, term: 1, mode: "presenter", hands: [], ended: false },
+    participants: [READER_ONE, READER_TWO, GUEST],
+    following: READER_ONE.id,
     chosen: null,
     self: { id: GUEST.id, name: GUEST.name, isHost: false, canLead: true },
     warnings: [],
@@ -30,9 +30,9 @@ export function fakeSessionState(patch: Partial<SessionState> = {}): SessionStat
   };
 }
 
-/** The host's view: AKIVA leads, SARAH and GUEST follow. */
+/** The host's view: READER_ONE leads, READER_TWO and GUEST follow. */
 export function fakeLeaderState(patch: Partial<SessionState> = {}): SessionState {
-  return fakeSessionState({ status: "leading", following: null, self: { id: AKIVA.id, name: AKIVA.name, isHost: true, canLead: true }, ...patch });
+  return fakeSessionState({ status: "leading", following: null, self: { id: READER_ONE.id, name: READER_ONE.name, isHost: true, canLead: true }, ...patch });
 }
 
 export function createFakeSessionClient(initial: SessionState = fakeSessionState()): FakeSessionClient {

@@ -169,7 +169,7 @@ const TABBABLE = 'a[href], button, input, select, textarea, [tabindex]';
 
 /**
  * Tab stays inside the menu while it is open, wrapping from its last control to its first and back, as legacy's (I18-004): before, Tab
- * went on into the text behind it with the menu still covering it (a11y S9). Escape (the Popover's) closes it and returns focus.
+ * went on into the text behind it with the menu still covering it. Escape (the Popover's) closes it and returns focus.
  */
 function wrapTab(e: KeyboardEvent<HTMLElement>) {
   if (e.key !== "Tab" || e.altKey || e.ctrlKey || e.metaKey) return;

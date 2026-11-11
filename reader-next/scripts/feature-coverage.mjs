@@ -21,7 +21,7 @@ const files = [];
 files.push(...(function () { try { return readdirSync(join(root, "e2e")).filter((n) => /\.spec\.ts$/.test(n)).map((n) => join(root, "e2e", n)); } catch { return []; } })());
 files.push(...(function () { try { return readdirSync(join(root, "test")).filter((n) => /\.test\./.test(n)).map((n) => join(root, "test", n)); } catch { return []; } })());
 
-// A tag counts only for a test that actually runs (CODE_REVIEW R-33). A tag belongs to the next test/describe declared after it
+// A tag counts only for a test that actually runs. A tag belongs to the next test/describe declared after it
 // (a file-level tag, before any declaration, to the whole file); it does not count when that declaration is skipped, a todo or an
 // expected failure, nor anywhere in a file that skips itself at run time (e.g. without credentials: `test.skip(!process.env…)`).
 const DECL = /^\s*(?:it|test|describe)((?:\.(?:describe|each|only|skip|todo|fails|fixme|concurrent|serial|parallel)\b)+[^(]*)?\s*\(/;

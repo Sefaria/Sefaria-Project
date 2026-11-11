@@ -1,7 +1,7 @@
 /**
- * The stylesheets of each page kind's chunk, for the server-rendered head (v-exits F-2).
+ * The stylesheets of each page kind's chunk, for the server-rendered head.
  *
- * The `$` route renders two kinds of page, each its own dynamically imported chunk (src/features/reader/page-kinds.tsx, T-H03).
+ * The `$` route renders two kinds of page, each its own dynamically imported chunk (src/features/reader/page-kinds.tsx).
  * TanStack Start's route manifest lists the CSS of a route's static imports only, so the reader's own stylesheet (the Workspace
  * chunk: every reader class) reached the browser only when the JS chunk loaded: the first paint was unstyled and its hydration a
  * layout shift of ~0.4 on a phone. This plugin reads, from the client build, the CSS of each page kind's chunk and of the chunks it
@@ -40,7 +40,7 @@ const MANIFEST_ROUTE = /\/src\/routes\/(\$|__root)\.tsx/;
  * Each page kind's own stylesheets, in import order (a chunk's static imports first, then its own), from a client bundle: what the
  * kind's chunk and its static imports bring, less what the page links anyway (the client entry's static graph and the root and `$`
  * route chunks', which Start's manifest links). So the head adds only the kind's sheets, after the shell's, in one order on every
- * page (review nit 1). A kind whose chunk is not in the bundle is left out.
+ * page. A kind whose chunk is not in the bundle is left out.
  */
 export function pageKindCss(bundle: Record<string, BundleChunk>, entries: Record<string, string> = PAGE_KIND_ENTRIES, base = "/"): Record<string, string[]> {
   const chunks = Object.values(bundle).filter((c) => c.type === "chunk");

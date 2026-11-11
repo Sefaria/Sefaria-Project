@@ -1,6 +1,6 @@
 /**
- * The page a reader gets when the library behind this server is not answering (T-F28): status 503 with Retry-After (the truth for
- * crawlers, and the signal a proxy can fall back on, CODE_REVIEW R-05) and a real page instead of a line of plain text.
+ * The page a reader gets when the library behind this server is not answering: status 503 with Retry-After (the truth for
+ * crawlers, and the signal a proxy can fall back on) and a real page instead of a line of plain text.
  *
  * It is a fixed document, not a render of the app: the app's render needs the API that just failed (the signed-in reader, the
  * remote config, the catalog). It carries the site's logo linking home, the message in the interface language (the `interfaceLang`
@@ -70,7 +70,7 @@ p a { color: var(--link); }
 </html>`;
 }
 
-/** The plain-text answer this server gave before T-F28: kept on the Voices host (Voices is out of scope: nothing new there). */
+/** The plain-text answer this server gave before this page existed: kept on the Voices host (Voices is out of scope: nothing new there). */
 const plainUnavailable = () =>
   new Response("The library is not answering right now. Please try again in a moment.", {
     status: 503,

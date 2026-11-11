@@ -1,5 +1,5 @@
 /**
- * Follow me (docs/READER_STATE_API.md, "Follow me"; docs/READER_STATE_PLAN.md, task I), mounted by ReaderStateProvider beside the app.
+ * Follow me (docs/READER_STATE_API.md, "Follow me"), mounted by ReaderStateProvider beside the app.
  *
  * Mounted on every page, so it stays small: in the browser only (effects) it registers a stand-in for Share's "Follow me" entry
  * (./lazy.ts) and loads the follow controller — with the session client, the transports, the in-browser room when no room server is

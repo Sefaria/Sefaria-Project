@@ -2,7 +2,7 @@
  * Where the reader last was in each book, kept in this browser (the old client kept the same in `user_history`). The
  * book page's "Continue Reading" resumes from it. Nothing leaves the device.
  *
- * The places belong to whoever was reading (CODE_REVIEW R-29): a signed-in reader's places are not shown to the next person
+ * The places belong to whoever was reading: a signed-in reader's places are not shown to the next person
  * on a shared machine after sign-out, nor a guest's to someone who signs in; a different reader starts afresh. At most
  * {@link MAX_BOOKS} books are kept (oldest go first), and a place is written when reading settles, not once per verse.
  *

@@ -56,7 +56,7 @@ function SegmentImpl({
   onSelect, onRefClick, onEntityClick,
 }: SegmentProps) {
   if (import.meta.env?.DEV && typeof window !== "undefined") {
-    // renders per verse, read by e2e/scroll.spec.ts: adding a section must not re-render the verses already there (CODE_REVIEW R-12)
+    // renders per verse, read by e2e/scroll.spec.ts: adding a section must not re-render the verses already there
     const w = window as unknown as { __segmentRenders?: Record<string, number> };
     (w.__segmentRenders ??= {})[segmentRef] = (w.__segmentRenders[segmentRef] ?? 0) + 1;
   }

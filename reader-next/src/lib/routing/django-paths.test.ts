@@ -16,7 +16,7 @@ describe("the calendars port's paths", () => {
     // /topics is this client's since the topics port (Library host)
     expect(leavesClient("/topics")).toBe(false);
   });
-  it("on the Voices host the browser leaves the app for /calendars too (Django answers it there, Q-E1)", () => {
+  it("on the Voices host the browser leaves the app for /calendars too (Django answers it there)", () => {
     expect(leavesClient("/calendars", "voices.sefaria.org")).toBe(true);
     expect(leavesClient("/calendars/", "voices.localhost:3335")).toBe(true);
     expect(leavesClient("/calendars", "sheets.example.org", "https://sheets.example.org")).toBe(true);
@@ -66,7 +66,7 @@ describe("revision history under /activity", () => {
 });
 
 // @feature NTF-001 @feature PRO-010 @feature LIB-022 @feature RTE-031 @feature RTE-015
-describe("notifications, Torah Tracker and New Additions (wave 2, lane P)", () => {
+describe("notifications, Torah Tracker and New Additions", () => {
   const pages = ["/notifications", "/notifications/", "/torahtracker", "/torahtracker/", "/updates"];
   it("are this client's on the Library host: a click stays in the app", () => {
     for (const p of pages) {
@@ -85,7 +85,7 @@ describe("notifications, Torah Tracker and New Additions (wave 2, lane P)", () =
     expect(isDjangoPage("/updates")).toBe(false);
     expect(leavesClient("/updates", "www.sefaria.org")).toBe(false);
   });
-  it("the account settings page stays Django's (an accepted exit, T-F23)", () => {
+  it("the account settings page stays Django's (an accepted exit)", () => {
     expect(leavesClient("/settings/account")).toBe(true);
   });
 });

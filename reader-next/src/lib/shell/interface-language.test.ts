@@ -11,7 +11,7 @@ describe("interface language switch", () => {
   });
   it("only a path on this site is ever followed", () => {
     for (const bad of ["https://evil.example/", "//evil.example", "/\\evil.example", "javascript:alert(1)", "", null]) expect(safeNext(bad as string)).toBe("/");
-    // CODE_REVIEW R-03: browsers drop tabs and newlines while parsing, so these are //evil.example
+    // Regression: browsers drop tabs and newlines while parsing, so these are //evil.example
     for (const bad of ["/\t/evil.example", "/\n/evil.example", "/\r\n/evil.example", "\t//evil.example"]) expect(safeNext(bad)).toBe("/");
     expect(interfaceLanguageResponse("english", "/\t/evil.example").headers.get("Location")).toBe("/");
     // a control character inside an allowed path never reaches the Location header
@@ -43,7 +43,7 @@ const CAULDRON = {
 const LOCAL = { en: { library: "http://localhost:8000", voices: "http://voices.localhost:8000" }, he: { library: "http://localhost:8000", voices: "http://voices.localhost:8000" } };
 const cookies = (r: Response) => r.headers.getSetCookie();
 
-// v-security nit 5, owner decision 2026-11-10: the cookie exactly as reader/views.py interface_language_redirect sets it
+// Owner decision 2026-11-10: the cookie exactly as reader/views.py interface_language_redirect sets it
 // (curl https://www.sefaria.org/interface/english: "interfaceLang=english; Domain=.sefaria.org; Path=/")
 describe("the interfaceLang cookie, as legacy sets it", () => {
   it("www.sefaria.org: on .sefaria.org, a session cookie, after expiring a host-only one that would shadow it", () => {

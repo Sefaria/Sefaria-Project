@@ -28,8 +28,7 @@ const unavailableAware: typeof fetch = async (input, init) => {
 
 export function getSefariaClient(): SefariaClient {
   // Responses are checked against the API's contracts in development and tests, where a drift should fail loudly; production skips
-  // the check (~58 KB gzip of zod validators off every page, and no second parse of multi-MB responses on the main thread:
-  // CODE_REVIEW R-10, R-15)
+  // the check (~58 KB gzip of zod validators off every page, and no second parse of multi-MB responses on the main thread)
   client ??= createSefariaClient({ baseUrl: SEFARIA_API_ORIGIN, cache: false, fetch: unavailableAware, validate: Boolean(import.meta.env?.DEV) });
   return client;
 }
@@ -55,7 +54,7 @@ export const POST_READ_DEADLINE_MS = Number((typeof process !== "undefined" && p
 /**
  * Read a direct `fetch` of the Sefaria API through the same error model as the toolkit client ({@link unwrap}): a non-2xx answer, a
  * body that is not JSON (a proxy's HTML error page) and a 200 `{"error": "..."}` all throw {@link SefariaApiError}, so retry and
- * 404 decisions see them the same way (CODE_REVIEW low: these calls bypassed it).
+ * 404 decisions see them the same way (these calls bypassed it).
  */
 export async function apiJson<T>(r: Response, what: string): Promise<T> {
   if (!r.ok) throw new SefariaApiError(`${what}: HTTP ${r.status}`, r.status);

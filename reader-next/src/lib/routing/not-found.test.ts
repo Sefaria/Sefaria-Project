@@ -4,7 +4,7 @@ import { FORCE_NOT_FOUND, asNotFound, isForcedNotFound, isNotFoundMatch, replace
 const html404 = () => new Response("<h1>Page Not Found</h1>", { status: 404, headers: { "content-type": "text/html; charset=utf-8", "x-served-by": "django" } });
 
 // @feature RTE-040
-describe("the reader's own 404 (T-F28)", () => {
+describe("the reader's own 404", () => {
   it("replaces Django's page 404, never an API's, a non-read's, another status or the Voices host's", () => {
     expect(replaceDjangoNotFound("/nonexistent", "GET", html404(), false)).toBe(true);
     expect(replaceDjangoNotFound("/person/Nobody", "HEAD", html404(), false)).toBe(true);

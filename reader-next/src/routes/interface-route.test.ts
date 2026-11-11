@@ -24,7 +24,7 @@ const get = (lang: string, cookie: string, host = "www.sefaria.org") =>
     params: { lang },
   });
 
-// @feature RTE-034 — v-security nit 5, rework round 1: the signed-in switch is Django's (profile), and the stale host-only cookie goes too
+// @feature RTE-034 — the signed-in switch is Django's (profile), and the stale host-only cookie goes too
 describe("/interface/<lang>, signed in", () => {
   beforeEach(() => {
     passOn = true;

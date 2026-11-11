@@ -1,7 +1,7 @@
 /**
- * Workspace navigation without React (CODE_REVIEW §3.3, TARGET_ARCHITECTURE §6.1): read the workspace from the router's location, go
+ * Workspace navigation without React: read the workspace from the router's location, go
  * to a new one, link to one, and bring the address to its full form. The React provider (features/workspace/navigation.tsx) wraps
- * these; the integration layer (§6.12: commands from the Library Assistant and other apps) will call them directly.
+ * these; the integration layer (commands from the Library Assistant and other apps) will call them directly.
  *
  * Every URL change goes through the router (rule 3): the full form sefaria.org writes is put in place by a replace navigation that
  * keeps the entry's own history state, never by history.replaceState behind the router's back.
@@ -51,7 +51,7 @@ export function withPanelKeys(ws: Workspace, keys: readonly string[] | undefined
 /**
  * The panels' stable keys for a history entry: the ones it records; or, for a navigation that recorded none (a plain link: a sidebar
  * view, a citation) and kept the number of panels, the keys the panels already had. Without the carry-over every such link rebuilt a
- * panel renumbered by an earlier close (review F07). Browser only: on the server there is no "already" to carry from.
+ * panel renumbered by an earlier close. Browser only: on the server there is no "already" to carry from.
  */
 let carriedKeys: readonly string[] | undefined;
 export function panelKeysFor(state: unknown, panelCount: number): readonly string[] | undefined {

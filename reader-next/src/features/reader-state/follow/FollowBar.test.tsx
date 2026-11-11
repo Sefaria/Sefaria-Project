@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { InterfaceLangProvider } from "~/lib/i18n/interface-lang";
 import { FollowBar, NOTICE_MS } from "./FollowBar";
-import { AKIVA, GUEST, SARAH, createFakeSessionClient, fakeLeaderState, fakeSessionState } from "./fake-client";
+import { READER_ONE, GUEST, READER_TWO, createFakeSessionClient, fakeLeaderState, fakeSessionState } from "./fake-client";
 
 function bar(client: ReturnType<typeof createFakeSessionClient> | null, extra: Partial<Parameters<typeof FollowBar>[0]> = {}) {
   const handlers = { onLeave: vi.fn(), onEndSharing: vi.fn(), onDismiss: vi.fn() };
@@ -31,29 +31,29 @@ describe("FollowBar states", () => {
 
   it("live: Following <name> + Stop following", async () => {
     const { onLeave } = bar(createFakeSessionClient());
-    expect(message()).toContain("Following Akiva Berger");
+    expect(message()).toContain("Following Reader One");
     await userEvent.click(screen.getByRole("button", { name: "Stop following" }));
     expect(onLeave).toHaveBeenCalled();
   });
 
   it("paused: <name> is reading <place> · Follow again resumes", async () => {
     const client = createFakeSessionClient(fakeSessionState({ status: "paused" }));
-    bar(client, { locations: { akiva: "/Exodus.3?lang=bi" } });
-    expect(message()).toContain("Akiva Berger is reading Exodus 3");
+    bar(client, { locations: { reader1: "/Exodus.3?lang=bi" } });
+    expect(message()).toContain("Reader One is reading Exodus 3");
     await userEvent.click(screen.getByRole("button", { name: "Follow again" }));
     expect(client.calls).toContainEqual({ cmd: "followAgain" });
   });
 
   it("paused without a known place still offers Follow again", () => {
     bar(createFakeSessionClient(fakeSessionState({ status: "paused" })));
-    expect(message()).toContain("You stopped following Akiva Berger");
+    expect(message()).toContain("You stopped following Reader One");
     expect(screen.getByRole("button", { name: "Follow again" })).toBeInTheDocument();
   });
 
   it("leader-away, no-leader and reconnecting", () => {
     const client = createFakeSessionClient(fakeSessionState({ status: "leader-away" }));
     bar(client);
-    expect(message()).toContain("Waiting for Akiva Berger to come back");
+    expect(message()).toContain("Waiting for Reader One to come back");
     act(() => client.set({ status: "no-leader", following: null, room: { ...client.getState().room, spotlight: null } }));
     expect(message()).toContain("Waiting for a leader");
     act(() => client.set({ status: "reconnecting" }));
@@ -63,7 +63,7 @@ describe("FollowBar states", () => {
 
   it("ended: <name> stopped sharing, dismissable; no faces", async () => {
     const { onDismiss } = bar(createFakeSessionClient(fakeSessionState({ status: "ended" })));
-    expect(message()).toContain("Akiva Berger stopped sharing");
+    expect(message()).toContain("Reader One stopped sharing");
     expect(screen.queryByRole("list", { name: "Participants" })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(onDismiss).toHaveBeenCalled();
@@ -77,13 +77,13 @@ describe("FollowBar states", () => {
   });
 
   it("ended names the host, even when someone else held the spotlight", () => {
-    bar(createFakeSessionClient(fakeSessionState({ status: "ended", room: { spotlight: SARAH.id, term: 4, mode: "presenter", hands: [], ended: true } })));
-    expect(message()).toContain("Akiva Berger stopped sharing");
+    bar(createFakeSessionClient(fakeSessionState({ status: "ended", room: { spotlight: READER_TWO.id, term: 4, mode: "presenter", hands: [], ended: true } })));
+    expect(message()).toContain("Reader One stopped sharing");
   });
 
   it("the host following someone they made leader still stops the session, not just their following", async () => {
-    const { onEndSharing, onLeave } = bar(createFakeSessionClient(fakeLeaderState({ status: "live", following: SARAH.id, room: { spotlight: SARAH.id, term: 3, mode: "presenter", hands: [], ended: false } })));
-    expect(message()).toContain("Following Sarah Cohen");
+    const { onEndSharing, onLeave } = bar(createFakeSessionClient(fakeLeaderState({ status: "live", following: READER_TWO.id, room: { spotlight: READER_TWO.id, term: 3, mode: "presenter", hands: [], ended: false } })));
+    expect(message()).toContain("Following Reader Two");
     expect(screen.queryByRole("button", { name: "Stop following" })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "Stop sharing" }));
     expect(onEndSharing).toHaveBeenCalled();
@@ -95,10 +95,10 @@ describe("FollowBar states", () => {
     try {
       const client = createFakeSessionClient();
       bar(client);
-      act(() => client.set({ room: { ...client.getState().room, spotlight: SARAH.id, term: 2 }, following: SARAH.id }));
-      expect(message()).toContain("Now following Sarah Cohen");
+      act(() => client.set({ room: { ...client.getState().room, spotlight: READER_TWO.id, term: 2 }, following: READER_TWO.id }));
+      expect(message()).toContain("Now following Reader Two");
       act(() => void vi.advanceTimersByTime(NOTICE_MS));
-      expect(message()).toContain("Following Sarah Cohen");
+      expect(message()).toContain("Following Reader Two");
       expect(message()).not.toContain("Now");
     } finally {
       vi.useRealTimers();
@@ -110,8 +110,8 @@ describe("FollowBar states", () => {
     try {
       const client = createFakeSessionClient();
       bar(client);
-      act(() => client.set({ room: { ...client.getState().room, spotlight: SARAH.id, term: 2 }, following: SARAH.id }));
-      expect(message()).toContain("Now following Sarah Cohen");
+      act(() => client.set({ room: { ...client.getState().room, spotlight: READER_TWO.id, term: 2 }, following: READER_TWO.id }));
+      expect(message()).toContain("Now following Reader Two");
       act(() => void vi.advanceTimersByTime(NOTICE_MS / 2));
       act(() => client.set({ status: "paused" }));
       act(() => void vi.advanceTimersByTime(NOTICE_MS));
@@ -127,7 +127,7 @@ describe("FollowBar states", () => {
         <FollowBar client={createFakeSessionClient()} onLeave={() => {}} onEndSharing={() => {}} onDismiss={() => {}} />
       </InterfaceLangProvider>,
     );
-    expect(screen.getByRole("region", { name: "מעקב" })).toHaveTextContent("עוקבים אחרי Akiva Berger");
+    expect(screen.getByRole("region", { name: "מעקב" })).toHaveTextContent("עוקבים אחרי Reader One");
     expect(screen.getByRole("button", { name: "הפסקת המעקב" })).toBeInTheDocument();
   });
 });
@@ -138,29 +138,29 @@ describe("FollowBar presence", () => {
     bar(client);
     const faces = screen.getByRole("list", { name: "Participants" });
     expect(within(faces).getAllByRole("listitem")).toHaveLength(3);
-    const akiva = within(faces).getByRole("button", { name: /^Follow Akiva Berger · leading/ });
-    expect(akiva).toHaveAttribute("aria-pressed", "true");
-    expect(within(faces).getByRole("img", { name: "Guest X7K (you) · following Akiva Berger" })).toHaveTextContent("GX");
-    await userEvent.click(within(faces).getByRole("button", { name: "Follow Sarah Cohen · following Akiva Berger" }));
-    expect(client.calls).toContainEqual({ cmd: "follow", arg: SARAH.id });
+    const reader1 = within(faces).getByRole("button", { name: /^Follow Reader One · leading/ });
+    expect(reader1).toHaveAttribute("aria-pressed", "true");
+    expect(within(faces).getByRole("img", { name: "Guest X7K (you) · following Reader One" })).toHaveTextContent("GX");
+    await userEvent.click(within(faces).getByRole("button", { name: "Follow Reader Two · following Reader One" }));
+    expect(client.calls).toContainEqual({ cmd: "follow", arg: READER_TWO.id });
   });
 
   it("the host's menu on a face offers Follow and Make leader", async () => {
     const client = createFakeSessionClient(fakeLeaderState());
     bar(client);
-    await userEvent.click(screen.getByRole("button", { name: "Sarah Cohen · following Akiva Berger" }));
+    await userEvent.click(screen.getByRole("button", { name: "Reader Two · following Reader One" }));
     const menu = screen.getByRole("menu");
-    expect(within(menu).getByRole("menuitem", { name: "Follow Sarah Cohen" })).toBeInTheDocument();
+    expect(within(menu).getByRole("menuitem", { name: "Follow Reader Two" })).toBeInTheDocument();
     await userEvent.click(within(menu).getByRole("menuitem", { name: "Make leader" }));
-    expect(client.calls).toContainEqual({ cmd: "spotlight", arg: SARAH.id });
+    expect(client.calls).toContainEqual({ cmd: "spotlight", arg: READER_TWO.id });
     expect(screen.queryByRole("menu")).toBeNull();
   });
 
   it("the host can take the spotlight back from their own face", async () => {
-    const client = createFakeSessionClient(fakeLeaderState({ status: "live", following: SARAH.id, room: { spotlight: SARAH.id, term: 3, mode: "presenter", hands: [], ended: false }, participants: [{ ...AKIVA, following: SARAH.id }, { ...SARAH, following: null }, GUEST] }));
+    const client = createFakeSessionClient(fakeLeaderState({ status: "live", following: READER_TWO.id, room: { spotlight: READER_TWO.id, term: 3, mode: "presenter", hands: [], ended: false }, participants: [{ ...READER_ONE, following: READER_TWO.id }, { ...READER_TWO, following: null }, GUEST] }));
     bar(client);
-    await userEvent.click(screen.getByRole("button", { name: "Akiva Berger (you) · following Sarah Cohen" }));
+    await userEvent.click(screen.getByRole("button", { name: "Reader One (you) · following Reader Two" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Lead again" }));
-    expect(client.calls).toContainEqual({ cmd: "spotlight", arg: AKIVA.id });
+    expect(client.calls).toContainEqual({ cmd: "spotlight", arg: READER_ONE.id });
   });
 });

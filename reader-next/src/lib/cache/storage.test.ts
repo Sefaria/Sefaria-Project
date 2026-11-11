@@ -12,7 +12,7 @@ beforeEach(() => {
   resetIdbStore();
 });
 
-// CODE_REVIEW R-11: the disk cache was never swept; it grew until the quota silently stopped every write
+// Regression: the disk cache was never swept; it grew until the quota silently stopped every write
 describe("the disk cache is bounded", () => {
   it("a sweep clears what was written before the index existed, and keeps what this visit wrote", async () => {
     const legacy = createStore("sefaria-reader", "queries");
@@ -58,7 +58,7 @@ describe("the disk cache is bounded", () => {
   });
 });
 
-// CODE_REVIEW R-20: queries seeded by the server render never ran their queryFn, so they were never written to disk
+// Regression: queries seeded by the server render never ran their queryFn, so they were never written to disk
 describe("persistHydrated", () => {
   it("writes the server-rendered data of persisted classes, and nothing else", async () => {
     const { QueryClient } = await import("@tanstack/react-query");

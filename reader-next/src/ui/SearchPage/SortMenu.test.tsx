@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { SortMenu } from "./SearchPage";
 
-// CODE_REVIEW R-31: the sort menu said role="menu" but kept focus on its button and ignored the arrow keys
+// Regression: the sort menu said role="menu" but kept focus on its button and ignored the arrow keys
 describe("SortMenu keyboard (the ARIA menu pattern)", () => {
   it("opening focuses the chosen item; arrows, Home and End move; Escape closes and returns to the button", async () => {
     const user = userEvent.setup();

@@ -1,4 +1,4 @@
-// CI budgets (LAUNCH_PLAN T-H04): the JS and CSS a reader page (/Genesis.1, the "/$" route) loads up front, measured from the
+// CI budgets: the JS and CSS a reader page (/Genesis.1, the "/$" route) loads up front, measured from the
 // `npm run build` output and held against the committed baseline (scripts/budgets/baseline.json).
 //
 //   npm run build && node scripts/budgets/measure.mjs            compare; exit 1 when a number grew beyond the tolerance
@@ -10,7 +10,7 @@
 // src/routes/__root.tsx head links) are not in that manifest: they are the "/assets/*.css" names written into the server's root chunk
 // (router-*.js, __root-*.js). Checked against a server-rendered /Genesis.1 on 2026-11-10: the same 56 scripts and 17 stylesheets.
 // The `$` route's page kinds (reader, book page) are dynamic chunks whose stylesheets the route's head links itself
-// (vite-plugins/page-kind-css.ts, v-exits F-2): the build writes them per kind to dist/server/page-kind-css.json, and a page is
+// (vite-plugins/page-kind-css.ts): the build writes them per kind to dist/server/page-kind-css.json, and a page is
 // charged for its own kind's list only (PAGE_KINDS). Their names also sit in the server's router chunk, so the root sweep skips them.
 // Sizes are bytes on disk and gzip -9 bytes (what the wire roughly carries).
 // Tolerance: TOLERANCE (2%) of the baseline, so a small change passes and a real regression does not; shrinking always passes and

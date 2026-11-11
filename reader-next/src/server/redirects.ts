@@ -1,5 +1,5 @@
 /**
- * Old addresses Django answers with nothing but a redirect, answered here instead of a trip through Django's page stack (T-F26).
+ * Old addresses Django answers with nothing but a redirect, answered here instead of a trip through Django's page stack.
  * Each is Django's view as it is (reader/views.py, sefaria/urls_shared.py, sefaria/urls_library.py; VERIFIED on www.sefaria.org
  * 2026-11-10: status and Location), except where noted:
  *

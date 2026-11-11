@@ -22,7 +22,7 @@ describe("VersionInfo", () => {
     expect(screen.queryByRole("link", { name: "Buy in Print" })).toBeNull();
     expect(screen.getByRole("link", { name: "Revision History" })).toBeInTheDocument();
   });
-  // T-F03: a source that is a book's name, not an address, was a relative link to Django's 404 on the old site
+  // Regression: a source that is a book's name, not an address, was a relative link to Django's 404 on the old site
   it("a source that is not an address is plain text; addresses stay links", () => {
     const { rerender } = render(<VersionInfo urlRef="x" version={{ ...base, versionSource: "Biblia Judaica Completa", purchaseInformationImage: "https://img.example/c.png" }} showImage />);
     expect(screen.getByText("Biblia Judaica Completa").closest("a")).toBeNull();

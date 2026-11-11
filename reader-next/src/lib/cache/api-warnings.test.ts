@@ -13,7 +13,7 @@ beforeEach(() => {
 const settle = () => new Promise((r) => setTimeout(r, 50));
 const onDisk = () => keys<string>(createStore("sefaria-reader", "queries"));
 
-// CODE_REVIEW low: an answer with API warnings (a translation the URL named that does not exist) was kept as fresh and on disk
+// Regression: an answer with API warnings (a translation the URL named that does not exist) was kept as fresh and on disk
 // for days, so the reader kept getting the fallback even after the version appeared
 describe("an API answer with warnings", () => {
   it("is used, but neither kept fresh nor written to disk", async () => {

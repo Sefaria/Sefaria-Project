@@ -293,7 +293,7 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     };
     // Only keys that scroll count, and only when a scroll follows them: Shift, Cmd+C or Shift+arrows (extending a selection) are not
     // reading on, nor is End at the bottom or ArrowDown on the last verse (nothing scrolls); taking them for it let a later reflow
-    // settle on a verse and drop a selected range (lane R, D3). Tab counts the same way (it scrolls only when the focus it moves is off
+    // settle on a verse and drop a selected range. Tab counts the same way (it scrolls only when the focus it moves is off
     // screen).
     let keyAt = -Infinity;
     const keyIntent = (e: KeyboardEvent) => {
@@ -356,7 +356,7 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
       const s = state.current;
       // Already the anchor (the click made it so, and the column's `selected` effect says it again): keep the anchor where the click
       // found it. Re-recording here measured the column after the sidebar had narrowed it — React runs a discrete event's effects
-      // before the browser's ResizeObserver — so the reflow was taken for the place to keep, and the verse moved (T-E03, below
+      // before the browser's ResizeObserver — so the reflow was taken for the place to keep, and the verse moved (below
       // ~1075px, where the narrower column rewraps).
       const keep = s.focus === ref && s.anchor?.ref === ref;
       s.focus = ref;

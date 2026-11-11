@@ -38,7 +38,7 @@ describe("PositionStore", () => {
     expect(new PositionStore(storage).get("a")?.p1).toEqual({ ref: "Genesis 1:8", offset: 140 });
   });
 
-  // CODE_REVIEW R-29: every scroll pause serialised the whole trail to storage (twice)
+  // Regression: every scroll pause serialised the whole trail to storage (twice)
   it("writes to storage once things are quiet, not on every save", () => {
     vi.useFakeTimers();
     try {

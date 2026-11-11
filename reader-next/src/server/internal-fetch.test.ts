@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// CODE_REVIEW R-05: a hung API used to hold page renders open until nginx gave up; a failed upstream made the page a 500
+// Regression: a hung API used to hold page renders open until nginx gave up; a failed upstream made the page a 500
 describe("server-side fetch: read deadline and upstream health", () => {
   const original = globalThis.fetch;
   afterEach(() => {
@@ -70,7 +70,7 @@ describe("server-side fetch: read deadline and upstream health", () => {
     expect(fine.failed).toBe(false);
   });
 
-  // review F05: the search wrapper and Dicta are reads sent as POST, and the search page's loader waited on them without a deadline
+  // Regression: the search wrapper and Dicta are reads sent as POST, and the search page's loader waited on them without a deadline
   it("a read sent as POST that says so (deadlineMs) is cut off too", async () => {
     const { withUpstreamHealth } = await install(hanging as unknown as typeof fetch);
     const health = { failed: false };
@@ -82,7 +82,7 @@ describe("server-side fetch: read deadline and upstream health", () => {
     expect(health.failed).toBe(true);
   });
 
-  // review F14: the reader's loader rethrows 408/429 to be answered 503, but they did not mark the request, so they ended as a 500
+  // Regression: the reader's loader rethrows 408/429 to be answered 503, but they did not mark the request, so they ended as a 500
   it("a 408 or 429 from upstream marks the request like a 5xx", async () => {
     for (const status of [408, 429]) {
       const { withUpstreamHealth } = await install((async () => new Response("x", { status })) as typeof fetch);

@@ -16,7 +16,7 @@ export const Route = createFileRoute("/texts/$")({
   loader: async ({ context, params, location }) => {
     const path = pathOf(params._splat);
     // the old site's spelling
-    // the router encodes the splat itself: encoding it here too made a permanent redirect to /texts/Tanakh/A%2520B (CODE_REVIEW R-28)
+    // the router encodes the splat itself: encoding it here too made a permanent redirect to /texts/Tanakh/A%2520B
     if (path[0] === "Tanach") throw redirect({ to: "/texts/$", params: { _splat: ["Tanakh", ...path.slice(1).map((p) => p.replace(/\//g, "%2F"))].join("/") }, statusCode: 301 });
     const [tree] = await Promise.all([context.queryClient.ensureQueryData(catalogSliceQueryOptions(context.queryClient, path)), context.queryClient.ensureQueryData(calendarsQueryOptions(context.diaspora)).catch(() => undefined)]);
     // a path that names no category (/texts/history, where Django's /texts/recent redirects) is the library's home, titled as it

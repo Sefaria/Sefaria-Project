@@ -53,7 +53,7 @@ describe("BookPage", () => {
     expect(screen.getByRole("link", { name: "The William Davidson Edition" })).toHaveAttribute("href", "/wd");
     expect(screen.getByText("In memory of")).toBeInTheDocument();
   });
-  it("the dedication is sanitized like every other HTML from the API (CODE_REVIEW low: it was set raw)", () => {
+  it("the dedication is sanitized like every other HTML from the API (it was set raw)", () => {
     const { container } = render(<BookPage {...base} dedication={{ en: '<img src=x onerror="alert(1)"><script>alert(2)</script>In honor of Y' }} />);
     expect(screen.getByText("In honor of Y")).toBeInTheDocument();
     expect(container.querySelector("script")).toBeNull();
@@ -75,7 +75,7 @@ describe("BookPage", () => {
     expect(screen.getByRole("button", { name: "Edit A edition" })).toBeInTheDocument();
   });
 
-  // parity S9: Berakhot has no heDesc; sefaria.org.il shows its heShortDesc, not the English description
+  // Berakhot has no heDesc; sefaria.org.il shows its heShortDesc, not the English description
   it("Hebrew interface: the short Hebrew description stands in for a missing Hebrew one, before the English", () => {
     render(
       <InterfaceLangProvider lang="hebrew">

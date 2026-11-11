@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 const meta = {
   title: "Foundations/Tokens",
-  parameters: { layout: "padded", docs: { description: { component: "Design tokens ported from the old client (see docs/COMPONENT_AUDIT.md §A). Switch Theme in the toolbar." } } },
+  parameters: { layout: "padded", docs: { description: { component: "Design tokens ported from the old client. Switch Theme in the toolbar." } } },
 } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

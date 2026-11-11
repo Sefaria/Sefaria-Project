@@ -3,7 +3,7 @@ import { pageCacheHeaders } from "./cache-policy";
 
 const html = (extra: Record<string, string> = {}) => new Headers({ "content-type": "text/html; charset=utf-8", vary: "Origin", ...extra });
 
-// CODE_REVIEW R-27: a signed-in reader's page must never be kept by a shared cache
+// Regression: a signed-in reader's page must never be kept by a shared cache
 describe("pageCacheHeaders", () => {
   it("a signed-in reader's page is private and never stored", () => {
     const h = pageCacheHeaders("csrftoken=a; sessionid=xyz; interfaceLang=english", html());
@@ -21,7 +21,7 @@ describe("pageCacheHeaders", () => {
     expect(pageCacheHeaders(null, html(), 404).get("cache-control")).toBeNull();
     expect(pageCacheHeaders("sessionid=1", html(), 301).get("cache-control")).toBe("private, no-store");
   });
-  it("on a host pinned to a language the page also varies on Accept-Language (the bounce, T-E07)", () => {
+  it("on a host pinned to a language the page also varies on Accept-Language (the bounce)", () => {
     expect(pageCacheHeaders(null, html(), 200, true).get("vary")).toBe("Origin, Cookie, CF-IPCountry, Accept-Language");
   });
   it("a signed-out reader with a reading history: private and never stored (the library home draws it, Recently Viewed)", () => {

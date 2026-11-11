@@ -13,7 +13,7 @@ describe("isDjangoPath (PLT deployment: which requests go to Django)", () => {
     }
   });
   // @feature RTE-011 @feature RTE-065
-  it("/translations/<lang> is rendered here on the Library host; on the Voices host it stays Django's (Q-E1)", () => {
+  it("/translations/<lang> is rendered here on the Library host; on the Voices host it stays Django's", () => {
     for (const host of [undefined, "www.sefaria.org", "localhost:3100", "www.sefaria.org.il"]) {
       expect(isDjangoPath("/translations/de", "GET", host)).toBe(false);
     }
@@ -61,7 +61,7 @@ describe("isDjangoPath (PLT deployment: which requests go to Django)", () => {
 
 // @feature ACC-011 @feature ACC-007
 describe("the reset link (auth port)", () => {
-  it("this client's own server functions are never Django's, even a POST (CODE_REVIEW low)", () => {
+  it("this client's own server functions are never Django's, even a POST", () => {
     expect(isDjangoPath("/_serverFn/abc123", "POST")).toBe(false);
     expect(isDjangoPath("/_serverFn/abc123", "GET")).toBe(false);
     expect(isDjangoPath("/_serverFnX", "POST")).toBe(true);
@@ -90,7 +90,7 @@ describe("the reset link (auth port)", () => {
   });
 });
 
-// low list (CODE_REVIEW): a Django failure on the reset link is passed on, not hidden behind a redirect to "link expired"
+// Regression: a Django failure on the reset link is passed on, not hidden behind a redirect to "link expired"
 describe("passResetLink when Django fails", () => {
   it("passes a 5xx on as it is", async () => {
     const res = await passResetLink(new Request("http://x/password/reset/confirm/MTI/tok/"), "MTI", async () => new Response("down", { status: 502 }));
@@ -127,7 +127,7 @@ describe("trailing slashes of the calendars pages (sefaria.org: /calendars/ is a
 
 // @feature LEG-010 @feature RTE-019
 describe("the version-diff tool (/compare) is this client's on the Library host only", () => {
-  it("renders here on the Library host, and stays Django's on the Voices host (Q-E1)", () => {
+  it("renders here on the Library host, and stays Django's on the Voices host", () => {
     expect(isDjangoPath("/compare/Genesis.1/he/a/b", "GET", "www.sefaria.org")).toBe(false);
     expect(isDjangoPath("/compare", "GET", "www.sefaria.org")).toBe(false);
     expect(isDjangoPath("/compare/Genesis.1/he/a/b", "GET", "voices.sefaria.org")).toBe(true);
@@ -170,7 +170,7 @@ describe("the topics port: which /topics pages are this client's", () => {
   it("the legacy redirects that land on the topics pages stay Django's (/people, /people/Talmud, /person/<name>, /sheets/tags)", () => {
     for (const p of ["/people", "/people/Talmud", "/person/Rashi", "/sheets/tags", "/sheets/tags/Shabbat"]) expect(isDjangoPath(p, "GET"), p).toBe(true);
   });
-  it("on the Voices host every /topics page is Django's (Q-E1: the host model is undecided)", () => {
+  it("on the Voices host every /topics page is Django's (the host model is undecided)", () => {
     const voices = (path: string, host = "voices.sefaria.org") => new Request(`http://${host}${path}`);
     for (const p of ["/topics", "/topics/category/authors", "/topics/all/a", "/topics/moses", "/topics/b/moses"]) {
       expect(isDjangoRequest(voices(p), p), p).toBe(true);

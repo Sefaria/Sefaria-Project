@@ -1,5 +1,5 @@
 /**
- * Sanitiser for a static page's content block (Django's `{% block content %}` of templates/static/*, LAUNCH_PLAN T-F31). The content
+ * Sanitiser for a static page's content block (Django's `{% block content %}` of templates/static/*). The content
  * is the site's own templates, so the allowlist is wide — everything the templates use (sections, headings, tables, images, video and
  * audio, embedded documents and videos) with their classes, ids and inline styles, which static.css and the pages' own CSS select on —
  * but nothing that runs: scripts, inline event handlers, `javascript:` and `data:` addresses, and frames from anywhere but the few
@@ -28,7 +28,7 @@ const ALLOWED = new Set([
 ]);
 /**
  * Written as another element: a page's own `<main>` (about, team, jobs, products, the Hebrew ways-to-give…) sits inside the shell's
- * `<main>`, and a page has one (v-a11y N2: landmark-main-is-top-level, landmark-no-duplicate-main). No stylesheet selects on the tag.
+ * `<main>`, and a page has one (landmark-main-is-top-level, landmark-no-duplicate-main). No stylesheet selects on the tag.
  */
 const RENAMED: Record<string, string> = { main: "div" };
 const closeTag = (name: string) => `</${RENAMED[name] ?? name}>`;

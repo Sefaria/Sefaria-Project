@@ -1,6 +1,6 @@
 /**
  * The sidebar's section headings, in the old client's words: `connection_panel_section.*` of
- * static/js/sefaria/i18n/interface/{en,he}.json (strings.test.ts holds them to those files). Parity S11: the Hebrew interface
+ * static/js/sefaria/i18n/interface/{en,he}.json (strings.test.ts holds them to those files). The Hebrew interface
  * says "מקורות לעיון" / "עזרים", not "טקסטים קשורים" / "משאבים".
  *
  * @feature CON-012 Resources home view
