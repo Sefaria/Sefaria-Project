@@ -2,7 +2,7 @@
 # Checks the prerelease channel helm-chart/release-rules.sh derives from a branch name.
 # Two branches of one ticket must get different channels, or their chart releases tag the same versions.
 set -euo pipefail
-script="$(cd "$(dirname "$0")/.." && pwd)/release-rules.sh"
+script="$(cd "$(dirname "$0")/../.." && pwd)/release-rules.sh"
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 channel_for() {
   (cd "$tmp" && rm -rf repo && git init -q -b "$1" repo && cd repo && mkdir helm-chart && bash "$script" \

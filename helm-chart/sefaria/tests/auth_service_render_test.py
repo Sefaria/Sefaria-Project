@@ -10,7 +10,7 @@ what the auth service work must and must not render:
   the auth service container the same mode. A self-test proves the policy check rejects a prod copy set to enforce.
 - Both: the nginx access log records the scrubbed request URI and referer, never the raw ones, and no key header.
 
-Needs helm and PyYAML. Run from the repository root: python3 helm-chart/tests/auth_service_render_test.py
+Needs helm and PyYAML. Run from the repository root: python3 helm-chart/sefaria/tests/auth_service_render_test.py
 """
 
 import re
@@ -21,7 +21,7 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 CHART = ROOT / "helm-chart" / "sefaria"
 ENVS = ("staging", "preprod", "prod")
 SEFARIA_HEADERS = {

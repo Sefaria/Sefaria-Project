@@ -9,10 +9,10 @@
 # Before that it proves the test can fail: case (a) against the old unconditional line must be rejected.
 #
 # Needs helm, python3 and PyYAML. No gunicorn, structlog or database: the config runs against stub modules.
-# Run from anywhere: bash helm-chart/tests/gunicorn_conf_test.sh
+# Run from anywhere: bash helm-chart/sefaria/tests/gunicorn_conf_test.sh
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 OLD_REF="${OLD_REF:-aa2a8bc71a}"   # the commit that still has the unconditional logger_class line
 WANT="sefaria.system.gunicorn_logger.ScrubbingLogger"
 TMP="$(mktemp -d)"

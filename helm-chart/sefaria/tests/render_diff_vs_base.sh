@@ -6,12 +6,12 @@
 # Differences that arise on every render (the randAlphaNum redeploy string) are normalised first; the base is rendered
 # twice and must match itself after normalising, which proves nothing else varies.
 #
-# Usage (from anywhere inside the repository): bash helm-chart/tests/render_diff_vs_base.sh <base-ref>
+# Usage (from anywhere inside the repository): bash helm-chart/sefaria/tests/render_diff_vs_base.sh <base-ref>
 # Needs helm, git, python3 and PyYAML. Both renders use the HEAD chart's env values; the base chart ignores keys it lacks.
 set -euo pipefail
 
 BASE_REF="${1:?usage: render_diff_vs_base.sh <base-ref>}"
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 git -C "$ROOT" rev-parse --verify --quiet "$BASE_REF^{commit}" >/dev/null || { echo "unknown ref: $BASE_REF"; exit 2; }
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT

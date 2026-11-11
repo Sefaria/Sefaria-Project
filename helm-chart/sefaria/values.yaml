@@ -203,8 +203,12 @@ authService:
     repository: us-east1-docker.pkg.dev/development-205018/containers/sefaria-auth-service-master
     tag: ""
   resources:
-    requests: {cpu: 100m, memory: 64Mi}
-    limits: {cpu: "1", memory: 256Mi}
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: "1"
+      memory: 256Mi
   extAuth:
     failOpen: true
     timeout: 200ms  # Envoy Gateway's default is 10s
@@ -670,7 +674,8 @@ localSettings:
   SERVER_EMAIL: "dev@sefaria.org"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
-  # The developer tab in settings and its routes; off means they return 404.
+  # The developer tab in settings and its routes; off means they return 404. Off by default; preprod and prod also
+  # pin it off in their env files on purpose (see the comment there).
   DEVELOPER_SETTINGS_ENABLED: "False"
   # With DEVELOPER_SETTINGS_ENABLED on, limits the developer tab and its routes to staff.
   DEVELOPER_SETTINGS_STAFF_ONLY: "False"
