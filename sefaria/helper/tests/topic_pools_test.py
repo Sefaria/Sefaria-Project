@@ -39,7 +39,9 @@ class TopicPoolsInV2Test(TestCase):
         DjangoTopic.objects.build_slug_to_pools_cache(rebuild=True)
 
     def test_v2_answers_the_topics_pools(self):
-        library, sheets = TopicPool.objects.create(name="library"), TopicPool.objects.create(name="sheets")
+        # get_or_create: pools other tests create outside a transaction (or a reused test database) may already be there
+        library, _ = TopicPool.objects.get_or_create(name="library")
+        sheets, _ = TopicPool.objects.get_or_create(name="sheets")
         DjangoTopic.objects.create(slug="rn-pools-test").pools.add(library, sheets)
         self.assertEqual(sorted(self.get(True, "rn-pools-test")["pools"]), ["library", "sheets"])
 
