@@ -39,8 +39,14 @@ INTERNAL_RESET_SESSION_TOKEN = "set-password"
 @override_settings(
     ROOT_URLCONF="sefaria.urls_library",
     CACHES={
-        "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "password-reset-confirm-test"},
-        "shared": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "password-reset-confirm-test-shared"},
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "password-reset-confirm-test",
+        },
+        "shared": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "password-reset-confirm-test-shared",
+        },
     },
 )
 class CustomPasswordResetConfirmViewTest(TestCase):
@@ -78,8 +84,8 @@ class CustomPasswordResetConfirmViewTest(TestCase):
         self.assertEqual(res.status_code, 400)
         self.assertEqual(res.json()["_auth"]["code"], "invalid_reset_link")
 
-    # Resend (reader-next CODE_REVIEW R-34): a new link only for the owner of a real link that expired, rate limited;
-    # every other request gets the same 200 and no email, so uids can't be probed or their owners emailed.
+    # Resend: a new link only for the owner of a real link that expired, rate limited; every other request gets the
+    # same 200 and no email, so uids can't be probed or their owners emailed.
 
     def _expired_token(self):
         ts = default_token_generator._num_seconds(default_token_generator._now()) - 10 * 24 * 3600
@@ -118,7 +124,7 @@ class CustomPasswordResetConfirmViewTest(TestCase):
         with mock.patch("sefaria.views.render_template", return_value=HttpResponse("page")):
             return self.client.get(url)
 
-    # review F06: the new reader shows the expired-link page from the uid/set-password address (its node server redirects there), so
+    # The new reader shows the expired-link page from the uid/set-password address (its node server redirects there), so
     # the resend no longer carries the token. Opening the real expired link leaves proof in the session for the resend that follows.
     def test_resend_from_the_set_password_address_after_opening_a_real_expired_link(self):
         from django.core.cache import cache
@@ -136,6 +142,40 @@ class CustomPasswordResetConfirmViewTest(TestCase):
         self._visit(self._url("bogus-token"))
         res = self._post_json(self._url(INTERNAL_RESET_SESSION_TOKEN), {"action": "resend"})
         self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(mail.outbox), 0)
+
+    # The legacy page (static/js/auth/ResetExpiredView.jsx) posts the resend to window.location.pathname. Django does not
+    # redirect an expired link, so that address is the link itself and still carries the token the server checks.
+    def test_legacy_page_resend_from_the_expired_links_own_address_sends_a_new_link(self):
+        from unittest import mock
+
+        from django.http import HttpResponse
+
+        mail.outbox = []
+        link = self._url(self._expired_token())
+        with mock.patch("sefaria.views.render_template", return_value=HttpResponse("page")) as render:
+            page = self.client.get(link)
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(page.request["PATH_INFO"], link)
+        props = render.call_args.args[2]
+        self.assertEqual(props["authResetUid"], self.uidb64)
+        self.assertFalse(props["authResetValid"])
+
+        self.client.session.flush()  # the proof must come from the address alone, not from the session
+        res = self._post_json(page.request["PATH_INFO"], {"action": "resend"})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {})
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(self.user.email, mail.outbox[0].to)
+
+    def test_resend_for_an_already_used_link_sends_nothing_and_answers_the_same(self):
+        mail.outbox = []
+        link = self._url(self.real_token)
+        self.user.set_password("N3wPassw0rd!")  # using the link changes the password, so its token no longer recomputes
+        self.user.save()
+        res = self._post_json(link, {"action": "resend"})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {})
         self.assertEqual(len(mail.outbox), 0)
 
     def test_resend_is_rate_limited_per_account(self):

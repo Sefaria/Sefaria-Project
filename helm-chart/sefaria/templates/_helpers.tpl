@@ -281,6 +281,17 @@ spec:
 {{- end }}
 
 {{/*
+nodejs.mode must be one of legacy, optin, reader. The templates compare it with eq, so any other value (a typo such as "opt-in")
+would otherwise render legacy without a word. Included by templates/values-check.yaml, which renders nothing.
+*/}}
+{{- define "sefaria.checkNodejsMode" -}}
+{{- $mode := .Values.nodejs.mode -}}
+{{- if not (has $mode (list "legacy" "optin" "reader")) -}}
+{{- fail (printf "nodejs.mode must be \"legacy\", \"optin\" or \"reader\", not %q (reader-next/docs/DEPLOYMENT.md)." (toString $mode)) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 The new reader client's image, "<imageRegistry>:<tag>", for its pods in either layout (nodejs.mode "reader" or "optin"). The chart
 refuses to render when the tag is mutable ("latest", or empty, which pulls "latest"): every pod restart would pull whatever was pushed
 to it last (imagePullPolicy Always), and continuous.yaml pushes sefaria-reader-<branch>:latest on every build. Pin an immutable tag

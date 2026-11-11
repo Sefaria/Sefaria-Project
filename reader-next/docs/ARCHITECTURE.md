@@ -1,9 +1,9 @@
 # Sefaria Reader (next) — Architecture
 
 A from-scratch web client for the Sefaria library, built with React 19 and TanStack Start.
-The feature scope is the **Feature Atlas** (`docs/features/features.json`, 961 features with IDs like `TXD-012`),
+The feature scope is the **Feature Atlas** (`docs/features/features.json`, 962 features with IDs like `TXD-012`),
 extracted from a full read of the current client in `Sefaria-Project`; each feature's rebuild status is in
-`docs/features/rebuild-status.json`. Plan to launch: `docs/reader-future/LAUNCH_PLAN.md` (repo root); deployment: `docs/DEPLOYMENT.md`.
+`docs/features/rebuild-status.json`. Decisions: `docs/DECISIONS.md`; deployment: `docs/DEPLOYMENT.md`.
 
 ## Tenets
 
@@ -14,7 +14,7 @@ extracted from a full read of the current client in `Sefaria-Project`; each feat
    writes are plain requests followed by invalidating the affected cache entries. No optimistic CRDTs, no live sync.
 3. **The URL is the reader state.** Every panel, ref, version, language and sidebar mode is encoded in the URL using
    Sefaria's existing scheme (`/Genesis.1.1?lang=bi&with=Rashi&ven=...`), so old links keep working and
-   back/forward is free. See `inv_01_urls_routing.md` in the atlas.
+   back/forward is free. See `docs/features/inv_01_urls_routing.md`.
    Panels and side panels: a workspace of panels arranged by a layout tree, each panel owning its side panels,
    encoded in the old `p2=`/`w2=` grammar. See `docs/WORKSPACE.md`.
 4. **Every book type is a first-class citizen.** Tanakh, Talmud (daf/amud), Yerushalmi, Mishnah, commentary,
@@ -22,7 +22,7 @@ extracted from a full read of the current client in `Sefaria-Project`; each feat
    (`textDepth`, `addressTypes`, `sectionNames`, `alts`, schema nodes), never by hard-coded titles, except where the
    old client deliberately special-cases a title and the atlas records it. See `docs/BOOK_TYPES.md`.
 5. **One component per job.** The component library in `src/ui` is catalogued in Storybook. Before adding a
-   component, find it in Storybook; prefer a variant over a near-duplicate. See `docs/COMPONENT_AUDIT.md`.
+   component, find it in Storybook; prefer a variant over a near-duplicate. Design tokens are in `src/ui/tokens/`.
 6. **Everything is tested, and tests point at features.** Tests and stories reference atlas IDs
    (`// @feature TXD-012`). `npm run features:coverage` reports which atlas features have coverage.
 7. **Server-rendered first paint.** Text pages render on the server (SEO, first paint), then hydrate. The server
@@ -50,6 +50,21 @@ vendor/sefaria-toolkit/   Vendored snapshot of sefaria-frontend-toolkit (now Sef
 fixtures/api/        Recorded real API responses per book type (unit tests never hit the network)
 ```
 
+### Enforced rules
+
+`test/architecture/architecture.test.ts` checks these on every unit run (rules in `test/architecture/rules.ts`). Violations that
+existed when a rule was added are listed in `test/architecture/baseline.json` and tolerated; a new one fails, and a fixed one must
+leave the baseline (`node scripts/architecture-baseline.mjs`), so the list only shrinks.
+
+| Rule                    | What it means                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| `adapter-boundary`      | Only `src/lib` adapters see API response shapes; features, routes and `src/ui` get the reader's types. |
+| `ui-boundary`           | `src/ui` never reads settings, the router, config, analytics, the API or features: it receives props.  |
+| `url-through-router`    | Every URL change goes through the router, never `history.replaceState`/`pushState`.                    |
+| `literal-colours`       | Every colour is a token with light and dark values (`src/ui/tokens/tokens.css`).                       |
+| `writes-through-helper` | Every write to Django goes through `src/lib/auth/http.ts` (session cookie and CSRF).                   |
+| `lang-with-dir`         | An element that sets `lang` sets `dir` too (`src/ui/LangText`).                                        |
+
 ## Library cache
 
 The cache engine is TanStack Query. On top of it sits a small domain layer (`src/lib/cache`).
@@ -64,19 +79,19 @@ The cache engine is TanStack Query. On top of it sits a small domain layer (`src
 
 **Data classes and policies** (`src/lib/cache/policies.ts`):
 
-| Class       | Examples                                | staleTime | Kept on disk  |
-| ----------- | --------------------------------------- | --------- | ------------- |
-| catalog     | TOC, index, shape, versions list        | 1 hour    | 30 days       |
-| text        | v3 texts by section + version selection | 1 hour (staff: 0) | 30 days |
-| connections | related, links, link counts             | 1 hour    | not persisted |
-| reference   | lexicon, dictionary entries             | 30 days   | 90 days       |
-| search      | search results, autocomplete            | 5 min     | not persisted |
-| user        | profile, saved, history, notes          | 0         | not persisted |
+| Class       | Examples                                | staleTime         | Kept on disk  |
+| ----------- | --------------------------------------- | ----------------- | ------------- |
+| catalog     | TOC, index, shape, versions list        | 1 hour            | 30 days       |
+| text        | v3 texts by section + version selection | 1 hour (staff: 0) | 30 days       |
+| connections | related, links, link counts             | 1 hour            | not persisted |
+| reference   | lexicon, dictionary entries             | 30 days           | 90 days       |
+| search      | search results, autocomplete            | 5 min             | not persisted |
+| user        | profile, saved, history, notes          | 0                 | not persisted |
 
-Connections are memory-only since CODE_REVIEW R-10 (a chapter's links are megabytes).
+Connections are memory-only (a chapter's links are megabytes).
 
-Stale data is shown immediately and revalidated in the background (stale-while-revalidate). Freshness is D-7 (LAUNCH_PLAN
-T-E01): text and catalog are asked again at most an hour after they were fetched; staff and moderators always ask again for text.
+Stale data is shown immediately and revalidated in the background (stale-while-revalidate). Freshness is D-7 (`docs/DECISIONS.md`,
+2026-11-09): text and catalog are asked again at most an hour after they were fetched; staff and moderators always ask again for text.
 After a write this client makes, or a return from a Django editor (`/edit/`, `/translate/`, `/add/`, `/admin/reset/`, found by the
 page's referrer), the affected queries are invalidated in memory and their disk entries deleted (`src/lib/cache/invalidate.ts`). A cache _buster_
 (app schema version) invalidates disk entries when response shapes change.

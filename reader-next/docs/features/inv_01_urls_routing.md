@@ -1,6 +1,6 @@
 # Inventory 01 — URLs, Routing, SSR, Client History / URL State
 
-Repo: `/Users/akiva/Sefaria/dev/Sefaria-Project` @ master (`bb47dd77a`). All citations are `path:line`.
+Repo: `Sefaria-Project` @ master (`bb47dd77a`). All citations are `path:line`.
 Scope: every user-facing URL, every query param the reader understands, redirect/normalization rules,
 client history behavior, SSR/meta/SEO, and legacy/surprising behavior. API endpoints are listed briefly
 (the client calls them) but are not described in depth.

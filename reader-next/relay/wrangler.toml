@@ -3,7 +3,8 @@
 #   npm run relay:deploy -- --env staging    rooms-staging.sefaria.org
 #   npm run relay:deploy                     rooms.sefaria.org
 name = "sefaria-room-relay"
-account_id = "b006a0acd05a164603538fdb99335318"   # the account that holds the sefaria.org zone; deploys fail rather than land elsewhere
+# No account_id here: wrangler reads CLOUDFLARE_ACCOUNT_ID from the environment. Set it to the account that holds the sefaria.org
+# zone before `relay:deploy`; with several accounts and no variable, wrangler asks, and a wrong account fails on the custom domain.
 main = "worker.ts"
 compatibility_date = "2026-10-01"
 routes = [{ pattern = "rooms.sefaria.org", custom_domain = true }]   # top-level keys must come before any [table]

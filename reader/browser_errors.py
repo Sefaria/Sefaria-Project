@@ -1,6 +1,6 @@
 """
-POST /api/reader-errors: the new reader's browser error beacons (lane C's contract, reader-next/src/lib/monitoring/error-reporter.ts;
-LAUNCH_PLAN T-D01). The reader's pods are told the path through PUBLIC_ERROR_ENDPOINT (helm-chart `sefaria.readerEnv`).
+POST /api/reader-errors: the new reader's browser error beacons (the contract is the client's
+reader-next/src/lib/monitoring/error-reporter.ts). The reader's pods are told the path through PUBLIC_ERROR_ENDPOINT (helm-chart `sefaria.readerEnv`).
 
 A beacon (`navigator.sendBeacon`) cannot carry a CSRF header and is often sent while the page unloads, so this endpoint:
   - is CSRF-exempt and needs no session: it writes nothing but one log line, so there is nothing to forge;
@@ -110,7 +110,7 @@ def _number(value, low, high):
 
 
 def validate(report):
-    """The fields this endpoint logs, from a decoded beacon, or None when it is not one (lane C's schema, version 1)."""
+    """The fields this endpoint logs, from a decoded beacon, or None when it is not one (the client's schema, version 1)."""
     if not isinstance(report, dict) or report.get("v") != 1 or report.get("kind") not in KINDS:
         return None
     message, path = report.get("message"), report.get("path")

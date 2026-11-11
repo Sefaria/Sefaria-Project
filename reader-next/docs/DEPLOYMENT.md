@@ -1,15 +1,17 @@
 # Deployment: the reader client in the cluster
 
-Written 2026-10-06; rewritten 2026-11-10 for the launch topology (LAUNCH_PLAN §4 D-1: `optin` only in shared environments). Everything
-below lives on the Sefaria-Project branch `reader-next`; the client is the folder `reader-next/`.
+How the new reader client (the folder `reader-next/`) runs beside Django in the Helm chart (`helm-chart/sefaria`). Shared
+environments run `legacy` or `optin`, never `reader`.
 
 ## Three modes (`nodejs.mode` in `helm-chart/sefaria/values.yaml`)
 
-| Mode               | Who gets the new reader                                                         | Node pods                     | Reader pods                       | Django SSR (`USE_NODE`) |
-| ------------------ | ------------------------------------------------------------------------------- | ----------------------------- | --------------------------------- | ----------------------- |
-| `legacy` (default) | nobody                                                                          | legacy SSR (`sefaria-node`)   | none                              | on                      |
-| `optin` (launch)   | page requests that carry the cookie `reader_version=next` (set by Django)       | legacy SSR (`sefaria-node`)   | `reader-<env>` (`sefaria-reader`) | on                      |
+| Mode               | Who gets the new reader                                                        | Node pods                     | Reader pods                       | Django SSR (`USE_NODE`) |
+| ------------------ | ------------------------------------------------------------------------------ | ----------------------------- | --------------------------------- | ----------------------- |
+| `legacy` (default) | nobody                                                                         | legacy SSR (`sefaria-node`)   | none                              | on                      |
+| `optin` (launch)   | page requests that carry the cookie `reader_version=next` (set by Django)      | legacy SSR (`sefaria-node`)   | `reader-<env>` (`sefaria-reader`) | on                      |
 | `reader`           | everyone (not deployed anywhere shared: Django's own SSR is off for its pages) | the reader (`sefaria-reader`) | none                              | off                     |
+
+Any other value of `nodejs.mode` (a typo such as `opt-in`) fails the render (`templates/values-check.yaml`).
 
 `legacy` renders the same chart as `origin/master` byte for byte (randomised redeploy strings aside; checked 2026-11-10 with
 `helm template`, see "Verifying locally"). Only `optin` writes `READER_OPTIN` into Django's settings, which shows the switch in account
@@ -23,7 +25,7 @@ Cloudflare → nginx (www server block of each root domain)
                ├─ /static/…, /robots.txt         → nginx's own files                   (unchanged, cookie never consulted)
                ├─ /api/…                         → Varnish → Django, cookie or not     (its own location in optin)
                ├─ /sheets, /collections, /profile → 307 to the Voices host             (unchanged; Voices block untouched)
-               ├─ Django's prefixes, favicon,    → Varnish → Django, cookie or not     (T-C04; generated from DJANGO_PREFIXES)
+               ├─ Django's prefixes, favicon,    → Varnish → Django, cookie or not     (generated from DJANGO_PREFIXES)
                │  manifests, llms.txt, .well-known
                ├─ /assets/…                      → the reader, cookie or not           (its hashed bundles; Django has none)
                └─ everything else (pages): location /, legacy's
@@ -60,59 +62,78 @@ The Voices server blocks (`voices.*`, `chiburim.*`) never consult the cookie and
 
 ## Pieces
 
-| Piece                                                                     | Where                                                                                                                                           |
-| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Runtime config (env → server, `window.__SEFARIA_CONFIG__` → browser)      | `src/lib/config.ts`                                                                                                                             |
-| Pass-through to Django, `/healthz-reader`                                 | `src/start.ts`, `src/server/pass-through.ts`                                                                                                    |
-| Host header on internal API reads                                         | `src/server/internal-fetch.ts`                                                                                                                  |
-| Production server (srvx: static files with long-lived cache headers, SSR) | `server/index.mjs`, `npm start`                                                                                                                 |
-| Image                                                                     | `reader-next/Dockerfile`, context `reader-next/`; CI (`continuous.yaml`) builds `sefaria-reader-<branch>`. `build/node/Dockerfile` is the legacy SSR image (`sefaria-node`) |
-| Chart                                                                     | `values.yaml` (`nodejs.mode`, `reader.*`), `conf/nginx.template.conf.tpl`, `templates/rollout/reader.yaml` + `service/reader.yaml` (optin), `templates/rollout/nodejs.yaml` (reader mode), `templates/_helpers.tpl` (`sefaria.readerEnv`), `templates/configmap/local-settings-file.yaml` (`USE_NODE`, `READER_OPTIN`), `templates/keda/scaledobject.yaml` |
-| nginx routing check (all modes, no cluster)                               | `build/ci/reader-nginx-routing.py` (CI: `helm.yaml`)                                                                                            |
+| Piece                                                                     | Where                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime config (env → server, `window.__SEFARIA_CONFIG__` → browser)      | `src/lib/config.ts`                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Pass-through to Django, `/healthz-reader`                                 | `src/start.ts`, `src/server/pass-through.ts`, `src/server/site-routing.ts`                                                                                                                                                                                                                                                                                                                                                   |
+| Host header on internal API reads                                         | `src/server/internal-fetch.ts`                                                                                                                                                                                                                                                                                                                                                                                               |
+| Production server (srvx: static files with long-lived cache headers, SSR) | `server/index.mjs`, `npm start`                                                                                                                                                                                                                                                                                                                                                                                              |
+| Image                                                                     | `reader-next/Dockerfile`, context `reader-next/`; CI (`continuous.yaml`) builds `sefaria-reader-<branch>`. `build/node/Dockerfile` is the legacy SSR image (`sefaria-node`)                                                                                                                                                                                                                                                  |
+| Chart                                                                     | `values.yaml` (`nodejs.mode`, `reader.*`), `conf/nginx.template.conf.tpl`, `templates/rollout/reader.yaml` + `service/reader.yaml` (optin), `templates/rollout/nodejs.yaml` (reader mode), `templates/_helpers.tpl` (`sefaria.readerEnv`), `templates/configmap/local-settings-file.yaml` (`USE_NODE`, `READER_OPTIN`), `templates/keda/scaledobject.yaml`, `templates/values-check.yaml` (rejects an unknown `nodejs.mode`) |
+| nginx routing check (all modes, no cluster)                               | `build/ci/reader-nginx-routing.py` (CI: `helm.yaml`)                                                                                                                                                                                                                                                                                                                                                                         |
 
 ### Values
 
-| Value                          | Default                                                            | Meaning                                                                                                    |
-| ------------------------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| `nodejs.mode`                  | `legacy`                                                           | see above                                                                                                  |
-| `reader.containerImage`        | `…/development-205018/containers/sefaria-reader-master:latest`     | the reader image (optin rollout; the node pods in reader mode). The default tag is mutable on purpose: in `optin`/`reader` the chart **refuses to render** while the tag is `latest` or empty (see "Images") |
-| `reader.allowMutableImage`     | `false`                                                            | escape for dev environments and cauldrons only: `true` lets `optin`/`reader` run a `latest` (or empty) tag. Never in preprod or production |
-| `reader.optin.enabled`         | `true`                                                             | the kill switch (optin): `false` = nginx ignores the cookie, `READER_OPTIN = False`; the rollout stays    |
-| `reader.errors.endpoint`, `.sampleRate` | `/api/reader-errors`, `1`                              | browser error beacons to Django (`reader/browser_errors.py`): 30 a minute per visitor address and 600 a minute from everyone together. The address is `X-Original-Forwarded-For`, which the Envoy Gateway's Lua sets (replacing any client value) to CF-Connecting-IP or Envoy's resolved client, and nginx and Varnish pass on (nginx's access log uses it too); without the gateway, nginx's `X-Real-IP`; locally `REMOTE_ADDR`. nginx's `X-Real-IP` is never the key behind the gateway: it is the gateway pod for everyone. Django's `ORIGIN_LOCKED_TO_CLOUDFLARE = True` (a Django setting, not in this chart; off by default) makes it read `CF-Connecting-IP` directly: set it only where nothing but Cloudflare can reach the origin. Residual: the gateway trusts CF-Connecting-IP, so a client bypassing Cloudflare can choose its key; the global cap bounds that |
-| `reader.canonicalOrigin`       | `https://www.sefaria.org`                                          | `PUBLIC_CANONICAL_ORIGIN` (templated)                                                                      |
-| `reader.replicaCount`, `reader.resources`, `reader.heapSize` | 1, 256Mi/100m → 768Mi/1 CPU, 384 MB          | optin rollout sizing, not yet measured (T-C06 below)                                                       |
+| Value                                                        | Default                                                        | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nodejs.mode`                                                | `legacy`                                                       | see above                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `reader.containerImage`                                      | `…/development-205018/containers/sefaria-reader-master:latest` | the reader image (optin rollout; the node pods in reader mode). The default tag is mutable on purpose: in `optin`/`reader` the chart **refuses to render** while the tag is `latest` or empty (see "Images")                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `reader.allowMutableImage`                                   | `false`                                                        | escape for dev environments and cauldrons only: `true` lets `optin`/`reader` run a `latest` (or empty) tag. Never in preprod or production                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `reader.optin.enabled`                                       | `true`                                                         | the kill switch (optin): `false` = nginx ignores the cookie, `READER_OPTIN = False`; the rollout stays                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `reader.errors.endpoint`, `.sampleRate`                      | `/api/reader-errors`, `1`                                      | browser error beacons to Django (`reader/browser_errors.py`): 30 a minute per visitor address and 600 a minute from everyone together. The address is `X-Original-Forwarded-For`, which the Envoy Gateway's Lua sets (replacing any client value) to CF-Connecting-IP or Envoy's resolved client, and nginx and Varnish pass on (nginx's access log uses it too); without the gateway, nginx's `X-Real-IP`; locally `REMOTE_ADDR`. nginx's `X-Real-IP` is never the key behind the gateway: it is the gateway pod for everyone. Django's `ORIGIN_LOCKED_TO_CLOUDFLARE = True` (a Django setting, not in this chart; off by default) makes it read `CF-Connecting-IP` directly: set it only where nothing but Cloudflare can reach the origin. Residual: the gateway trusts CF-Connecting-IP, so a client bypassing Cloudflare can choose its key; the global cap bounds that |
+| `reader.canonicalOrigin`                                     | `https://www.sefaria.org`                                      | `PUBLIC_CANONICAL_ORIGIN` (templated)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `reader.replicaCount`, `reader.resources`, `reader.heapSize` | 1, 256Mi/100m → 768Mi/1 CPU, 384 MB                            | optin rollout sizing, not yet measured ("Load test and sizing" below)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
-### The reader pods' environment (T-C02)
+### The reader pods' environment
 
 Both layouts (the `reader-<env>` rollout in optin, the node pods in reader mode) get it from one helper, `sefaria.readerEnv`; checked
 against `src/lib/config.ts` and against what the web pods read (2026-11-10).
 
-| Variable                                                                 | Value                                                          | Source / note                                                                                                   |
-| ------------------------------------------------------------------------ | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `SEFARIA_API_ORIGIN`                                                     | `http://varnish-<env>-<revision>:8040`                         | this release's Varnish                                                                                          |
-| `SEFARIA_API_HOST`                                                       | `www.<first root domain>`                                      | `domains.root[0]` (so `www.sefaria.org` on the `.org.il` host too)                                              |
-| `PUBLIC_API_ORIGIN`, `PUBLIC_SITE_ORIGIN`                                | `""`                                                           | same origin                                                                                                     |
-| `PUBLIC_CANONICAL_ORIGIN`                                                | `reader.canonicalOrigin`                                       | canonical, og:url and hreflang alternates are absolute (T-C08); on the Hebrew site's host (`*.org.il`, `*-il.org`) a page names the origin's Hebrew twin (`www.sefaria.org.il`), as Django's `canonical_url` (`src/lib/routing/canonical.ts`) |
-| `PUBLIC_VOICES_ORIGIN`                                                   | `https://voices.<first root domain>`                           |                                                                                                                 |
-| `SEFARIA_PASS_THROUGH`, `PORT`                                           | `1`, `3000`                                                    |                                                                                                                 |
-| `APP_VERSION`                                                            | the reader image tag                                           | gtag `site_version`                                                                                             |
-| `SIMPLE_ANALYTICS_HOSTNAME`                                              | `sefaria.org`, or `sa-dev.sefaria.org` when `DEBUG`            | as Django's `base.html`                                                                                         |
-| `SENTRY_ENVIRONMENT`                                                     | `deployEnv`                                                    | the Library Assistant's `origin`, as the web pods' configmap                                                    |
-| `GOOGLE_TAG_MANAGER_CODE` (GTM), `GOOGLE_GTAG` (GA4), `GOOGLE_SSO_CLIENT_ID`, `APPLE_SSO_CLIENT_ID`, `RECAPTCHA_PUBLIC_KEY`, `CHATBOT_API_BASE_URL`, `PINNED_IPCOUNTRY` | key by key, optional | `secretKeyRef` on `secrets.localSettings.ref`, the secret the web pods load with `envFrom`. Not the whole secret: it also holds database and API credentials. The CI-only override secret (`secrets.localSettings.data` → `local-settings-secrets-<env>`) is not read |
-| optin rollout only: `NODE_OPTIONS`, `DEBUG`; `envFrom` `local-settings-node-<env>` (+ `-secrets-`) | | per-deployment extras such as `PUBLIC_LABS`, `PUBLIC_ROOM_URL` (labs stay off in production, D-10)              |
+| Variable                                                                                                                                                                | Value                                                | Source / note                                                                                                                                                                                                                                                         |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SEFARIA_API_ORIGIN`                                                                                                                                                    | `http://varnish-<env>-<revision>:8040`               | this release's Varnish                                                                                                                                                                                                                                                |
+| `SEFARIA_API_HOST`                                                                                                                                                      | `www.<first root domain>`                            | `domains.root[0]` (so `www.sefaria.org` on the `.org.il` host too)                                                                                                                                                                                                    |
+| `PUBLIC_API_ORIGIN`, `PUBLIC_SITE_ORIGIN`                                                                                                                               | `""`                                                 | same origin                                                                                                                                                                                                                                                           |
+| `PUBLIC_CANONICAL_ORIGIN`                                                                                                                                               | `reader.canonicalOrigin`                             | canonical, og:url and hreflang alternates are absolute; on the Hebrew site's host (`*.org.il`, `*-il.org`) a page names the origin's Hebrew twin (`www.sefaria.org.il`), as Django's `canonical_url` (`src/lib/routing/canonical.ts`)                                 |
+| `PUBLIC_VOICES_ORIGIN`                                                                                                                                                  | `https://voices.<first root domain>`                 |                                                                                                                                                                                                                                                                       |
+| `SEFARIA_PASS_THROUGH`, `PORT`                                                                                                                                          | `1`, `3000`                                          |                                                                                                                                                                                                                                                                       |
+| `DOMAIN_MODULES`                                                                                                                                                        | each language's module hosts, as JSON                | `config.domainModules` in `_helpers.tpl`, the same map Django gets (`DOMAIN_MODULES` in its local settings)                                                                                                                                                           |
+| `PUBLIC_ERROR_ENDPOINT`, `PUBLIC_ERROR_SAMPLE_RATE`                                                                                                                     | `reader.errors.endpoint`, `reader.errors.sampleRate` | browser error beacons (`src/lib/monitoring/error-reporter.ts`)                                                                                                                                                                                                        |
+| `APP_VERSION`                                                                                                                                                           | the reader image tag                                 | gtag `site_version`                                                                                                                                                                                                                                                   |
+| `SIMPLE_ANALYTICS_HOSTNAME`                                                                                                                                             | `sefaria.org`, or `sa-dev.sefaria.org` when `DEBUG`  | as Django's `base.html`                                                                                                                                                                                                                                               |
+| `SENTRY_ENVIRONMENT`                                                                                                                                                    | `deployEnv`                                          | the Library Assistant's `origin`, as the web pods' configmap                                                                                                                                                                                                          |
+| `GOOGLE_TAG_MANAGER_CODE` (GTM), `GOOGLE_GTAG` (GA4), `GOOGLE_SSO_CLIENT_ID`, `APPLE_SSO_CLIENT_ID`, `RECAPTCHA_PUBLIC_KEY`, `CHATBOT_API_BASE_URL`, `PINNED_IPCOUNTRY` | key by key, optional                                 | `secretKeyRef` on `secrets.localSettings.ref`, the secret the web pods load with `envFrom`. Not the whole secret: it also holds database and API credentials. The CI-only override secret (`secrets.localSettings.data` → `local-settings-secrets-<env>`) is not read |
+| optin rollout only: `NODE_OPTIONS`, `DEBUG`; `envFrom` `local-settings-node-<env>` (+ `-secrets-`)                                                                      |                                                      | per-deployment extras such as `PUBLIC_LABS`, `PUBLIC_ROOM_URL` (labs stay off in production)                                                                                                                                                                          |
 
 Not set (unset on both sides, defaults match Django's): `CHATBOT_VERSION`, `CHATBOT_USE_LOCAL_SCRIPT`.
 
-## Kill switch and rollback (T-C03)
+## Kill switch and rollback
 
-Target: every reader back on the legacy reader within two minutes, without removing the reader rollout. Three levers, fastest first.
+Target: every reader back on the legacy reader within two minutes, without removing the reader rollout. Three levers.
 
-1. **Remote config (no deploy; needs lane C's client half).** Set `feature.reader.optin.enabled` = `false` in Django admin → Remote
-   config. Interface the chart side expects: when the key is `false`, the reader's **server** answers any page request with a `302` to
-   the same URL plus `Set-Cookie` clearing `reader_version` (on the domain Django set it on, `get_cookie_domain`, and host-only), and its
-   **browser** code, on its next remote-config read, clears the cookie the same way and reloads. nginx then sends the reload to the
-   legacy reader. Saved profile choices are untouched (the account switch stays), so turning the key back on restores everyone at
-   their next sign-in sync. Until lane C lands this, use 2 or 3.
+1. **Remote config (no chart change, but a web restart).** In Django admin → Remote config (`/admin/remote_config/remoteconfigentry/`),
+   set `feature.reader.next.disabled` to `true` (a bool entry, created off by migration `remote_config/0004_reader_next_disabled`;
+   read by `sefaria/helper/reader_choice.py` `next_disabled()` and the client's `src/features/shell/reader-choice.ts`). While it is
+   true: Django stops setting `reader_version=next`, clears a `next` cookie on the Library responses it sends
+   (`ReaderChoiceMiddleware`) and refuses the switch to the new reader (`/api/profile`, `/api/reader-choice`); the reader's browser
+   code, on a page load that reads `/api/remote-config`, clears the cookie (on the host and its parent domains) and reloads, so nginx
+   sends the reload to the legacy reader. It reloads at most once every 10 minutes per browser session. The reader's server does not
+   act on the key: until the browser code runs, nginx keeps routing by the cookie. Saved profile choices are untouched, so turning
+   the key back off restores the opted-in readers at their next sign-in sync.
+
+   **A save reaches only the process that served it.** `remoteConfigCache` (`remote_config/cache.py`) is a per-process copy, loaded
+   when Django starts and reloaded only by the process that saves an entry (`RemoteConfigEntry.save()`); nothing tells the other
+   gunicorn workers or the other web pods. Until they restart they answer with the old value, so the switch flickers from request to
+   request. Restart the web pods after every change to this key (and to `feature.reader.optin.audience`):
+
+   ```
+   kubectl -n <namespace> argo rollouts restart <env>-web
+   kubectl -n <namespace> argo rollouts status <env>-web        # wait for Healthy: every pod has loaded the new value
+   curl -s https://www.<root domain>/api/reader-choice           # repeat a few times: "disabled": true on every answer
+   ```
+
+   Allow for the restart time of the web rollout in the two-minute target; lever 2 is immediate.
+
 2. **Emergency, kubectl (seconds).** Take the reader's endpoints away; nginx's connect fails (5 s timeout at worst) and every page
    falls back to Varnish/Django (`@reader_down`, GET/HEAD; a write gets a 502), checked by `reader-nginx-routing.py`. Opted-in
    readers pay at most one failed connect per page.
@@ -129,45 +150,47 @@ Target: every reader back on the legacy reader within two minutes, without remov
    becomes `False` (the account switch is hidden), and the reader rollout keeps running (its `/assets/` still serve pages that are
    already open). A release rolls nginx and web blue/green, so this takes as long as a deploy, not two minutes.
 
-**The opt-in is a routing cookie, not an access boundary (accepted for L0, DECISIONS.md 2026-11-10).** Anyone can set
+**The opt-in is a routing cookie, not an access boundary (accepted for the staff-only stage).** Anyone can set
 `reader_version=next` in their own browser (devtools) and nginx routes on the cookie alone (`map $cookie_reader_version`). Django's
 `ReaderChoiceMiddleware` clears the cookie of someone outside the audience only on responses **Django** sends, and the reader itself
 never checks the audience: a signed-out visitor who sets the cookie gets the new reader on every page it renders (a signed-in non-staff
 visitor loses the cookie at their next Django response). This is not a data exposure (the reader serves only what the visitor could read
-anyway), but it means: (a) "staff only" at L0 limits who is invited, not who can reach the reader's pages and its `/_serverFn/…`
-endpoints; treat the reader server as public from L0 on; (b) lever 1 (remote config) reaches only tabs whose client code runs and
+anyway), but it means: (a) "staff only" limits who is invited, not who can reach the reader's pages and its `/_serverFn/…`
+endpoints; treat the reader server as public from the first opt-in on; (b) lever 1 (remote config) reaches only tabs whose client code runs and
 responses Django sends. **The server-side kill switch is lever 3, `reader.optin.enabled: false`**: nginx stops reading the cookie, so
 no request reaches the reader whatever cookie it carries (lever 2 does the same at once, until the next release).
 
 Restore: undo in reverse order (`reader.optin.enabled: true`; `kubectl … scale … --replicas=<n>` or remove the KEDA annotation;
-the remote-config key back to `true`). Rehearse 2 and 3 on a cauldron before L0 (LAUNCH_PLAN §7).
+`feature.reader.next.disabled` back to `false`, then restart the web pods as in lever 1). Rehearse all three on a cauldron before the
+first opt-in anywhere shared.
 
-## Hosts and the cookie (T-C05, Library hosts only)
+## Hosts and the cookie (Library hosts only)
 
 Read from the rendered chart (`helm template … -f build/ci/preprod-values.yaml --set nodejs.mode=optin`, and the default cauldron
-values), `sefaria/helper/reader_choice.py` and `sefaria/utils/domains_and_languages.py` on 2026-11-10; no cluster access. Production's
-values are not in this repository: they are assumed to have preprod's shape (an English root and a Hebrew root, Voices on `voices.` /
-`chiburim.`). Verify on staging (LAUNCH_PLAN T-C05 "done when").
+values), `sefaria/helper/reader_choice.py` and `sefaria/utils/domains_and_languages.py`; no cluster access. Production's values
+(`envs/prod/helmrelease.yaml`) have preprod's shape: an English root and a Hebrew root, Voices on `voices.` / `chiburim.`; staging's
+(`envs/staging/helmrelease.yaml`) too. Verify on staging before the first opt-in.
 
 **The cookie.** `reader_version=next`, set or cleared by Django only (`/api/profile` when the switch changes; `ReaderChoiceMiddleware`
 once per signed-in session), `Max-Age` one year, `Path=/`, `SameSite=Lax`, `Secure` (nginx sends `X-Forwarded-Proto: https`, which
 `SECURE_PROXY_SSL_HEADER` trusts), not `HttpOnly` (the client can clear it). Its domain is `get_cookie_domain(current_domain_lang())`:
 the longest common suffix of the language's module hosts.
 
-| Host (Library)                                   | `reader_version` domain                                    | Opted-in reader gets                                                                                                                                                         | Not opted in |
-| ------------------------------------------------ | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| `www.sefaria.org`                                | `.sefaria.org` (en: www + voices)                          | the new reader for reader, library, search, auth, topics (Library pool), translations, calendars, compare, saved/history, revision history; Django for `DJANGO_PREFIXES` and everything the reader passes on; 307 to `voices.sefaria.org` for `/sheets`, `/collections`, `/profile` | legacy       |
-| `www.sefaria.org.il`                             | `.sefaria.org.il` (he: www + chiburim)                     | the same, 307s to `chiburim.sefaria.org.il`. Caveats: the reader's own API reads use `Host: www.sefaria.org` and its Voices links `voices.sefaria.org` (both from the first root domain; see Open questions) | legacy       |
-| `sefaria.org`, `sefaria.org.il` (bare)           | (cookie sent, unused)                                      | 301 to `www.`; `/apple-app-site-association` → Varnish                                                                                                                         | same         |
-| `www.sefariapreprod.org`, `www.sefariapreprod-il.org` | `.sefariapreprod.org`, `.sefariapreprod-il.org`        | as production                                                                                                                                                                | legacy       |
-| `www.<name>.cauldron.sefaria.org`                | `.<name>.cauldron.sefaria.org` (en and he share the host, so the cross-language suffix) | as production, one host for both languages                                                                                                    | legacy       |
+| Host (Library)                                        | `reader_version` domain                                                                 | Opted-in reader gets                                                                                                                                                                                                                                                                | Not opted in |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| `www.sefaria.org`                                     | `.sefaria.org` (en: www + voices)                                                       | the new reader for reader, library, search, auth, topics (Library pool), translations, calendars, compare, saved/history, revision history; Django for `DJANGO_PREFIXES` and everything the reader passes on; 307 to `voices.sefaria.org` for `/sheets`, `/collections`, `/profile` | legacy       |
+| `www.sefaria.org.il`                                  | `.sefaria.org.il` (he: www + chiburim)                                                  | the same, 307s to `chiburim.sefaria.org.il`. Caveats: the reader's own API reads use `Host: www.sefaria.org` and its Voices links `voices.sefaria.org` (both from the first root domain; see Open questions)                                                                        | legacy       |
+| `sefaria.org`, `sefaria.org.il` (bare)                | (cookie sent, unused)                                                                   | 301 to `www.`; `/apple-app-site-association` → Varnish                                                                                                                                                                                                                              | same         |
+| `www.sefariapreprod.org`, `www.sefariapreprod-il.org` | `.sefariapreprod.org`, `.sefariapreprod-il.org`                                         | as production                                                                                                                                                                                                                                                                       | legacy       |
+| `www.sefariastaging.org`, `www.sefariastaging-il.org` | `.sefariastaging.org`, `.sefariastaging-il.org`                                         | as production                                                                                                                                                                                                                                                                       | legacy       |
+| `www.<name>.cauldron.sefaria.org`                     | `.<name>.cauldron.sefaria.org` (en and he share the host, so the cross-language suffix) | as production, one host for both languages                                                                                                                                                                                                                                          | legacy       |
 
 - **Separate per root domain.** The `.org` and `.org.il` cookies are independent: a reader who opted in is synced on each domain by
   the middleware when they sign in there (sessions are per domain too).
 - **Production's cookie reaches cauldrons.** `.sefaria.org` is also sent to `*.cauldron.sefaria.org`: a staff member opted in on
   production gets the new reader on any cauldron running `optin` (a cauldron's own cookie, `.<name>.cauldron.sefaria.org`, never reaches
   production). Harmless, but remember it when comparing readers on a cauldron.
-- **Shared static files stay out of the split.** The cookie is consulted only in the www block's `location /` (`$page_upstream`).
+- **Shared static files stay out of the split.** The cookie is consulted only in the www block's `location /` (`$reader_page`, mapped from `$cookie_reader_version`).
   `/static/…` (nginx's files), `/static/sitemaps/` (GCS), `/robots.txt` (nginx's file), `/api/…` and `/api/search/…` have their own
   locations; `/favicon.ico`, `/site.webmanifest`, `/manifest.json`, `/llms.txt` and `/.well-known/…` go to Varnish whatever the cookie;
   `/assets/…` (the reader's bundles) to the reader whatever the cookie. `build/ci/reader-nginx-routing.py --table` asserts each of these
@@ -175,13 +198,13 @@ the longest common suffix of the language's module hosts.
 
 ## CI
 
-| Workflow                 | What it does for the reader                                                                                                                                       |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `continuous.yaml`        | builds `sefaria-web-<branch>`, `sefaria-node-<branch>` (legacy SSR) and, only when `reader-next/` changed in the push or pull request (or a new branch, where that cannot be told), `sefaria-reader-<branch>` (`reader-next/Dockerfile`, context `reader-next/`; job `images` picks the matrix). Job `reader-nginx-paths` runs the generated-paths `--check` on master and every pull request |
-| `helm.yaml` (lint job)   | `ct lint`; `reader-nginx-paths.mjs --check`; `reader-nginx-routing.py --table` (helm + nginx on the runner)                                                       |
-| `reader-next-client.yaml`| checks (types, unit, atlas, stories, the nginx paths check, the scripts' `node --test`), `budgets` (initial JS/CSS of a reader page, `scripts/budgets/`), `e2e` (below) |
+| Workflow                  | What it does for the reader                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `continuous.yaml`         | builds `sefaria-web-<branch>`, `sefaria-node-<branch>` (legacy SSR) and, only when `reader-next/` changed in the push or pull request (or a new branch, where that cannot be told), `sefaria-reader-<branch>` (`reader-next/Dockerfile`, context `reader-next/`; job `images` picks the matrix). Job `reader-nginx-paths` runs the generated-paths `--check` only when `reader-next/src/`, `build/ci/reader-nginx-paths.mjs` or `_reader-django-paths.tpl` changed (decided by `images`), so a stale template fails only the change that made it stale; `continuous-branch-protection` fails with it. The `images` step compares with `git diff --quiet` (no pipe: `grep -q` under `pipefail` used to skip the reader image at random) |
+| `helm.yaml` (lint job)    | `ct lint`; `reader-nginx-routing.py --table` (helm + nginx on the runner). It uses the checked-in `_reader-django-paths.tpl` and runs no node, so its result depends on the chart alone                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `reader-next-client.yaml` | checks (types, unit, atlas, stories, the nginx paths check, the scripts' `node --test`), `budgets` (initial JS/CSS of a reader page, `scripts/budgets/`), `e2e` (below)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
-**Deterministic e2e (T-A04).** The e2e job downloads the API cassette bundle pinned by `e2e/cassette.lock` (a release asset named by
+**Deterministic e2e.** The e2e job downloads the API cassette bundle pinned by `e2e/cassette.lock` (a release asset named by
 the recordings' content hash, `scripts/cassette/bundle.mjs fetch`) and runs `E2E_API_MODE=replay`: a missing recording is a 504 and a
 `[cassette] MISS` line in the log, never a network call. With no lock it warns and keeps the old behaviour (Actions cache + `auto`).
 With a lock whose bundle cannot be fetched or does not match, a **push fails** (`fetch --strict`) and a pull request warns and falls
@@ -190,10 +213,10 @@ back: so upload a new bundle before pushing its lock. When a change needs new re
 only) and commit the new `e2e/cassette.lock`. Dicta (Hebrew search) is recorded under the cassette's `/__dicta/` prefix once the specs
 route it there (`scripts/cassette/dicta-route.mjs`).
 
-**Budgets (T-H04).** `node scripts/budgets/measure.mjs` after `npm run build`: the JS and CSS a server-rendered `/Genesis.1` links
+**Budgets.** `node scripts/budgets/measure.mjs` after `npm run build`: the JS and CSS a server-rendered `/Genesis.1` links
 (TanStack Start's manifest for `__root__` + `/$`, plus the root's `?url` stylesheets), raw and gzip, against
 `scripts/budgets/baseline.json`; more than 2% over fails. Re-baseline a deliberate change with `--write` and say why in the commit.
-Baseline 2026-11-10: JS 56 files, 1,339,866 B (gzip 434,242); CSS 17 files, 239,813 B (gzip 57,081). Who may raise it: the owner (or
+The current numbers and the date they were measured are in `baseline.json`. Who may raise it: the owner (or
 whoever reviews performance) should approve every change to `baseline.json`; a CODEOWNERS entry for
 `reader-next/scripts/budgets/baseline.json` would enforce that (not added here).
 
@@ -222,20 +245,20 @@ Cauldrons do not use the chart from the branch: they install a published chart v
 non-master branch that changes `helm-chart/**` with a conventional `helm:`/`feat:`/`fix:` commit makes `.github/workflows/helm.yaml`
 publish a prerelease chart for that branch (channel = the branch name, e.g. `0.90.0-reader-next.1`).
 
-1. Push the branch: `git push -u origin reader-next`. CI (`continuous.yaml`) builds `sefaria-web-reader-next`,
-   `sefaria-node-reader-next` (legacy SSR), `sefaria-reader-reader-next` (this client) and `sefaria-asset-reader-next`; `helm.yaml`
+1. Push the branch: `git push -u origin <branch>`. CI (`continuous.yaml`) builds `sefaria-web-<branch>`, `sefaria-node-<branch>`
+   (legacy SSR), `sefaria-reader-<branch>` (this client, when `reader-next/` changed) and `sefaria-asset-<branch>`; `helm.yaml`
    publishes the prerelease chart.
 2. Read the chart version from the workflow's "Get chartVersion" step or the `helm-chart-*` tag it creates.
-3. In the cauldrons repository: `./create-cauldron.sh -n reader-next -b reader-next -c <chart version>` (add `-d` to review the
+3. In the cauldrons repository: `./create-cauldron.sh -n <name> -b <branch> -c <chart version>` (add `-d` to review the
    HelmRelease first), then set in its HelmRelease values `nodejs.mode: optin` and
-   `reader.containerImage.imageRegistry: us-east1-docker.pkg.dev/<dev project>/containers/sefaria-reader-reader-next` (tag as for the
+   `reader.containerImage.imageRegistry: us-east1-docker.pkg.dev/<dev project>/containers/sefaria-reader-<branch>` (tag as for the
    other images; with `latest`, also `reader.allowMutableImage: true`, or the chart refuses to render). The script knows only the node image: until it learns `reader.containerImage`, add these by hand, and an image policy
    for `sefaria-reader-<branch>` if the cauldron should follow new builds.
-4. Opt in: sign in, Account Settings → the new reader (sets `reader_version=next`). Open `https://www.reader-next.cauldron.sefaria.org/Genesis.1`
+4. Opt in: sign in, Account Settings → the new reader (sets `reader_version=next`). Open `https://www.<name>.cauldron.sefaria.org/Genesis.1`
    (this client) and `/topics` (Django through the client). Response header `x-served-by: django` marks a page the client passed on;
    a Django prefix (e.g. `/settings`) now comes straight from Varnish, without that header.
 
-Updating: commit to the `reader-next` branch and push; the image policy picks up the new reader image. Chart changes need a new
+Updating: commit to the branch and push; the image policy picks up the new reader image. Chart changes need a new
 prerelease (another `helm:` commit) and `-c` / `repoint-cauldron.sh`.
 
 ## Verifying locally (no cluster)
@@ -254,6 +277,9 @@ python3 build/ci/reader-nginx-routing.py --table
 helm template t helm-chart/sefaria --set deployEnv=t --set nodejs.mode=optin >/dev/null
 helm template t helm-chart/sefaria --set deployEnv=t --set nodejs.mode=optin --set reader.containerImage.tag=sha-abc1234 | grep sefaria-reader
 
+# an unknown mode fails ("nodejs.mode must be \"legacy\", \"optin\" or \"reader\"")
+helm template t helm-chart/sefaria --set deployEnv=t --set nodejs.mode=opt-in >/dev/null
+
 # nginx's Django paths are current
 node --experimental-strip-types build/ci/reader-nginx-paths.mjs --check
 ```
@@ -265,7 +291,7 @@ sandbox ("unable to verify the first certificate"); the container and the cluste
 
 ## Owner and integrator actions (need a cluster, an account or write access)
 
-### Load test and sizing (T-C06): the plan
+### Load test and sizing: the plan
 
 Run on staging in `optin` (or a production-sized cauldron), against nginx's service from a pod in the cluster (so Cloudflare and the
 office network are not measured), every request with `Cookie: reader_version=next` and `Host: www.<root>`. Tool: k6 or vegeta.
@@ -274,7 +300,7 @@ office network are not measured), every request with `Cookie: reader_version=nex
   `/Genesis.1`, `/Berakhot.2a`, `/texts`, `/search?q=light&tab=text` — plus a cold variant of each with a new ref per request
   (`/Genesis.<1-50>`, `/Berakhot.<2-64>a`) so Varnish misses are measured too.
 - **Load.** Expected opt-in traffic = the week's p95 page requests per second at nginx (Datadog: non-`/api`, non-`/static` requests on
-  the www hosts) × the expected opt-in share (L0: staff only, negligible; L1: assume 5% of signed-in page views). Ramp in 5-minute
+  the www hosts) × the expected opt-in share (staff only: negligible; open to every signed-in reader: assume 5% of signed-in page views). Ramp in 5-minute
   steps to ×1, ×3, ×10 that rate, hold ×10 for 15 minutes, then a spike to ×20 for 2 minutes. During the hold, roll the reader
   (`kubectl argo rollouts restart <env>-reader`) once to measure graceful shutdown.
 - **Measure.** TTFB and full-response p50/p95/p99 per page; error rate (any 5xx, and nginx falling back to `@reader_down`, visible as
@@ -285,11 +311,11 @@ office network are not measured), every request with `Cookie: reader_version=nex
 - **Output** into this file: `reader.resources` requests/limits, `reader.heapSize`, min/max replicas and the scale trigger, probe
   timings (readiness `/healthz-reader` every 10 s, liveness after 30 s today), and the restart result.
 
-### Adobe Fonts (T-C07)
+### Adobe Fonts
 
 Kit `aeg8div` (Adobe Garamond for the English face): add these domains in the kit's web project settings, or the English face falls
 back to the system serif on them: `www.sefaria.org`, `www.sefaria.org.il`, `www.sefariapreprod.org`, `www.sefariapreprod-il.org`, the
-staging hosts, `*.cauldron.sefaria.org`, and `localhost` for development. Decide Q-P2 (self-hosting, if the licence allows) at the
+staging hosts, `*.cauldron.sefaria.org`, and `localhost` for development. Decide whether to self-host the fonts (if the licence allows) at the
 same time.
 
 ### Images

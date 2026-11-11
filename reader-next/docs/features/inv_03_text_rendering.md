@@ -1,6 +1,6 @@
 # Inventory 03 — Reader Text Rendering & Text-Type Special Cases
 
-Scope: how text is fetched, shaped and rendered in the reader (`TextColumn` → `TextRange` → `TextSegment` → `VersionContent`/`ContentSpan`), every display setting, and every special case keyed by category / title / address type. Repo: `/Users/akiva/Sefaria/dev/Sefaria-Project` (master @ bb47dd77a). All paths relative to repo root.
+Scope: how text is fetched, shaped and rendered in the reader (`TextColumn` → `TextRange` → `TextSegment` → `VersionContent`/`ContentSpan`), every display setting, and every special case keyed by category / title / address type. Repo: `Sefaria-Project` (master @ bb47dd77a). All paths relative to repo root.
 
 ---
 

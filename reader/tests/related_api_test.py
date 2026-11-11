@@ -1,5 +1,5 @@
 """
-/api/related/<ref> (reader/views.py related_api): the two lighter modes the new reader asks for (SB-03, lane D R1).
+/api/related/<ref> (reader/views.py related_api): the two lighter modes the new reader asks for.
 
 - `?with_links=0` leaves the links out (the client has them from /api/links);
 - `?sheets=count` answers the sheets with only id + anchors (sefaria/sheets.py get_sheet_anchors_for_ref), enough to count them
@@ -92,8 +92,20 @@ class RelatedApiModesTestCase(TestCase):
         self.assertEqual(body["links"], [LINK])
         self.assertIsNone(self.stubs["get_links"].call_args.kwargs["public_sheets"])
 
-    def test_voices_host_ignores_both_and_answers_as_before(self):
-        response = self.client.get(URL + "?with_links=0&sheets=count", HTTP_HOST=VOICES_HOST)
+    # Varnish keys /api/related on the URL alone, so an answer must not depend on the host: a request to the Voices host for
+    # the same URL would otherwise fill the cache entry the Library reader reads.
+    def test_same_answer_on_both_hosts_for_the_lighter_modes(self):
+        for query in ("?with_links=0&sheets=count", "?with_links=0", "?sheets=count"):
+            library = self.client.get(URL + query)
+            voices = self.client.get(URL + query, HTTP_HOST=VOICES_HOST)
+            self.assertEqual(library.status_code, 200)
+            self.assertEqual(voices.status_code, 200)
+            self.assertEqual(voices.content, library.content, query)
+        body = json.loads(voices.content)
+        self.assertEqual(body["sheets"], [ANCHOR])
+
+    def test_voices_host_default_is_unchanged(self):
+        response = self.client.get(URL, HTTP_HOST=VOICES_HOST)
         self.assertEqual(response.status_code, 200)
         body = json.loads(response.content)
         self.assertEqual(list(body), ["links", "sheets", "notes", "topics", "manuscripts", "media", "guides"])

@@ -4,7 +4,7 @@
 /.idea
 /.pytest_cache
 /.secrets
-/reader-next/node_modules
-/reader-next/dist
-/reader-next/test-results
-/reader-next/playwright-report
+# The new reader is its own image (reader-next/Dockerfile, built with reader-next/ as context and its own .dockerignore). The web
+# and node images need one file of it: reader/tests/related_api_test.py reads it, and PyTest runs in the web image.
+/reader-next
+!/reader-next/fixtures/varnish/related-client-urls.json

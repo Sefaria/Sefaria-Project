@@ -41,7 +41,7 @@ browser ──wss://rooms.sefaria.org/r/<sessionId>──▶ Worker (checks path
 
 ```
 relay/
-  wrangler.toml   # the ROOMS binding, the v1 migration (new_sqlite_classes), ALLOWED_ORIGINS, the custom domains, the pinned account_id
+  wrangler.toml   # the ROOMS binding, the v1 migration (new_sqlite_classes), ALLOWED_ORIGINS, the custom domains (no account id)
   worker.ts       # the Worker (path + Origin check, /health) and the Room Durable Object
   tsconfig.json   # Workers types; `npm run relay:typecheck`
 ```
@@ -50,12 +50,12 @@ It sits next to the reader so it bundles the same `src/lib/session/room.ts` the 
 esbuild; `room.ts` imports only relative paths). In Sefaria-Project it is under `reader-next/relay/`: run every command below from
 `reader-next/`, not from the Sefaria-Project root.
 
-- `account_id` pins the account that holds the `sefaria.org` zone (`b006a0acd05a164603538fdb99335318`), so a deploy fails rather
-  than lands in another account.
+- The account is not in the file: set `CLOUDFLARE_ACCOUNT_ID` to the account that holds the `sefaria.org` zone before deploying
+  (wrangler reads it from the environment; `npx wrangler whoami` lists the accounts your login can use).
 - `ALLOWED_ORIGINS`: exact origins, or `https://*.suffix` for any subdomain of suffix (`www` included, not the bare domain).
   Production allows `www.sefaria.org`, `www.sefaria.org.il` and cauldrons; staging allows `*.sefariastaging.org`,
-  `*.sefariastaging-il.org`, cauldrons and `http://localhost:3100`.
-- Top-level keys (`routes`, `account_id`) must come before the first `[table]` in `wrangler.toml`, or TOML files them under it.
+  `*.sefariastaging-il.org` and cauldrons (no localhost: use `relay:dev` locally).
+- Top-level keys (such as `routes`) must come before the first `[table]` in `wrangler.toml`, or TOML files them under it.
 
 Scripts: `relay:dev` (wrangler dev, staging settings, on port 3199 on all interfaces), `relay:deploy`, `relay:typecheck`.
 

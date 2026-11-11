@@ -52,17 +52,29 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
         purge_url(f"{FRONT_END_URL}/api/related/{oref.url()}")
         purge_url(f"{FRONT_END_URL}/api/related/{oref.url()}?with_sheet_links=1")
         purge_url(f"{FRONT_END_URL}/api/related/{oref.url()}?with_sheet_links=0")
-        for section in related_client_sections(oref):  # the new reader's Resources, in the form its client sends
-            purge_url(f"{FRONT_END_URL}/api/related/{encode_uri_component(section)}?with_links=0&sheets=count")
 
     # Ban anything underneath this section
     ban_url(f"/api/texts/{url_regex(oref)}")
     ban_url(f"/api/v3/texts/{url_regex(oref)}")
     ban_url(f"/api/links/{url_regex(oref)}")
     ban_url(f"/api/related/{url_regex(oref)}")
-    # the new reader asks for /api/related/<encodeURIComponent(section ref)> (its generated client encodes the path parameter),
-    # e.g. Genesis%201?with_links=0&sheets=count, which the dotted pattern above never matches
-    ban_url(f"/api/related/{client_url_regex(related_client_sections(oref))}")
+    _invalidate_related_for_client(oref, purge)
+
+
+def _invalidate_related_for_client(oref, purge):
+    """
+    The new reader asks for /api/related/<encodeURIComponent(section ref)> (its generated client encodes the path parameter),
+    e.g. Genesis%201?with_links=0&sheets=count, which the dotted patterns in invalidate_ref never match. Runs after the
+    existing purges and bans, and a failure here is logged without affecting them.
+    """
+    try:
+        sections = related_client_sections(oref)
+        if purge:
+            for section in sections:
+                purge_url(f"{FRONT_END_URL}/api/related/{encode_uri_component(section)}?with_links=0&sheets=count")
+        ban_url(f"/api/related/{client_url_regex(sections)}")
+    except Exception:
+        logger.exception("Could not invalidate the new reader's /api/related URLs", ref=str(oref))
 
 
 def invalidate_linked(oref):

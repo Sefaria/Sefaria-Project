@@ -11,7 +11,7 @@
   this copy (GPL-3.0 is also Sefaria-Project's licence).
 - Taken: `packages/client/src` (typed, response-validated API client, 60 operations) and
   `packages/text-transform/src` (HTML sanitiser/normaliser, vocalization transforms).
-- **Not taken:** the Lit web components. See `docs/ARCHITECTURE.md` and the decision record in the session notes:
+- **Not taken:** the Lit web components. See `docs/ARCHITECTURE.md`. Why:
   they target embedding, have no Talmud/aliyot/poetry/dictionary/alt-structure support, forbid a persistent cache
   by design, and don't server-render in React.
 - The client's own response cache is switched off (`cache: false`); TanStack Query owns caching.
@@ -24,8 +24,8 @@
 
 | `client/generated/zod.gen.ts` (`zWebPagesJson`) | `authors`, `articleSource`, `description` accept `null`; `authors` may be an array of strings; `articleSource` may be an object | The live `/api/related/<ref>/websites` sends `authors: null, articleSource: null`, which upstream's contract rejected, so every web-pages response failed validation |
 | `client/client.ts` (response interceptor) | The validator gets a `clone()` taken before the lazy `import("./validation.js")` yields | The lazy import (our extension) put an await between receiving the response and cloning it; an in-flight request at teardown failed with "Response.clone: Body has already been consumed" (`server-catalog.test.ts`, ~2 in 5 runs) |
-| `text-transform/normalize.ts` (`classifyElement` img, `classifyAnchor`) | An `<img>` with an http(s) or base64 `data:image/` source becomes `<span data-sefaria-image data-sefaria-alt [data-sefaria-width data-sefaria-height]>` (numeric sizes only; other sources: the alt text, as upstream); `a.categoryLink[data-category-path]` becomes `<span data-sefaria-category>`; a plain `<a>` with an http(s) or site-relative href (`/…`; not `//…`, and no backslash or `%5C` anywhere: `/\evil.org` is `//evil.org` to a browser) becomes `<span data-sefaria-href>`; the header comment now says it emits no *executable* URLs | Upstream drops images to their alt text and unwraps every other link; Sefaria texts carry full-segment images with captions, inline images, linker category mentions and translators' links (TXD-026, TXD-023, TXD-020). `src/lib/text/prepare.ts` turns the markers into `<img>` / `<a>` |
+| `text-transform/normalize.ts` (`classifyElement` img, `classifyAnchor`) | An `<img>` with an http(s) or base64 `data:image/` source becomes `<span data-sefaria-image data-sefaria-alt [data-sefaria-width data-sefaria-height]>` (numeric sizes only; other sources: the alt text, as upstream); `a.categoryLink[data-category-path]` becomes `<span data-sefaria-category>`; a plain `<a>` with an http(s) or site-relative href (`/…`; not `//…`, and no backslash or `%5C` anywhere: `/\evil.org` is `//evil.org` to a browser) becomes `<span data-sefaria-href>`; the header comment now says it emits no _executable_ URLs | Upstream drops images to their alt text and unwraps every other link; Sefaria texts carry full-segment images with captions, inline images, linker category mentions and translators' links (TXD-026, TXD-023, TXD-020). `src/lib/text/prepare.ts` turns the markers into `<img>` / `<a>` |
 | `text-transform/html.ts` (`VOID_TAGS`) | `img` is void | So the reader's `<img>` serialises without a closing tag |
-| `text-transform/html.ts` (`serializeOpenTag`) | Attribute values also escape `<` and `>` | Security (CODE_REVIEW R-02): a raw `>` from API text let search-term highlighting break out of an attribute (stored XSS). Worth upstreaming |
+| `text-transform/html.ts` (`serializeOpenTag`) | Attribute values also escape `<` and `>` | Security: a raw `>` from API text let search-term highlighting break out of an attribute (stored XSS). Worth upstreaming |
 
 Keep modifications small and marked so upstream fixes can still be merged.

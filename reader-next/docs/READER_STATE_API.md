@@ -1,6 +1,8 @@
 # Reader state API: snapshots, streams, recording, replay and follow
 
-Status: **proposal** (2026-11-01). Nothing here is built yet.
+Status: design, proposed 2026-11-01 and partly built since. Passages marked **As built** describe the code in
+`src/lib/reader-state/`, `src/lib/session/` and `src/features/reader-state/`; the rest is design. These features are labs,
+off in production (`PUBLIC_LABS` unset; `docs/DECISIONS.md`, D-10).
 
 An API that reads the reader's complete state at any moment, reports every change to it, and puts the reader back
 into a given state. Several features are built on that one API without adding to it:
@@ -340,7 +342,7 @@ and "the leader" is whoever holds the room's spotlight, which can move. Nothing 
    Breaking away is decided by the person's input alone (pointer, wheel, key, touch, back/forward); a change with no
    input is the reader settling itself. Input on the reader state's own controls (marked `data-reader-state-ui`: the
    follow bar and its menus, the recording dock) is not breaking away.
-4. A bar shows the state: "Following Akiva · Stop following".
+4. A bar shows the state: "Following Dana · Stop following".
 
 ### Breaking away and returning
 
@@ -349,7 +351,7 @@ verse, opening the sidebar, typing in search, back/forward. Figma does the same.
 
 - The transport **stays open**. The stream reader stops applying but keeps folding messages, so it always holds the
   leader's latest state.
-- The bar turns into "Akiva is reading Exodus 3 · Follow again". Clicking it applies the held state at once — no
+- The bar turns into "Dana is reading Exodus 3 · Follow again". Clicking it applies the held state at once — no
   round trip — and resumes.
 - "Stop following" closes the transport and clears the token. The reader stays where it is.
 
