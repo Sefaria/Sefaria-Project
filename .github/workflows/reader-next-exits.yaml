@@ -1,10 +1,9 @@
-# T-F01 (owner rule 2026-11-05: no way out to the legacy client): crawl the new reader's page types (desktop and phone, signed out and
-# in) through a read-only stand-in for Django in front of www.sefaria.org (reader-next/scripts/exits-crawl.mjs: it never forwards a
-# write) and list every same-site link Django answers that is not in scripts/exits-allowlist.json. Report-only: it fails only when the
-# crawl cannot run; the list is the artifact "exits" (exits.json, exits.md) and the job summary. It reads the live site for ~45
-# minutes, so it runs weekly and on demand, never on a push or pull request. Drop --report-only to make it a gate once wave 2 has
-# ported what it names (LAUNCH_PLAN §5 F).
-# GitHub runs schedules from the default branch's copy of this file: until it is on master, use "Run workflow" (choose reader-next).
+# Ways out to the legacy client: crawl the new reader's page types (desktop and phone, signed out and in) through a read-only stand-in
+# for Django in front of www.sefaria.org (reader-next/scripts/exits-crawl.mjs: it never forwards a write) and list every same-site
+# link Django answers that is not in scripts/exits-allowlist.json. Report-only: it fails only when the crawl cannot run; the list is
+# the artifact "exits" (exits.json, exits.md) and the job summary. It reads the live site for ~45 minutes, so it runs weekly and on
+# demand, never on a push or pull request. Drop --report-only to make it a gate.
+# GitHub runs schedules from the default branch's copy of this file, against the default branch's code (master).
 name: reader-next exits to legacy
 
 on:
@@ -24,11 +23,10 @@ jobs:
   exits:
     runs-on: ubuntu-latest
     timeout-minutes: 75
+    # forks' schedules never crawl the live site; "Run workflow" still works anywhere
+    if: ${{ github.event_name != 'schedule' || github.repository == 'Sefaria/Sefaria-Project' }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          # a scheduled run starts on the default branch; the client under test is reader-next's
-          ref: ${{ github.event_name == 'schedule' && 'reader-next' || github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
