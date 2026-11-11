@@ -17,6 +17,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { queryOptions } from "@tanstack/react-query";
 import { SEFARIA_API_ORIGIN, SefariaApiError } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
+import { isSafeSegment, isSafeText, oneOf, record, segment, text } from "~/lib/server-fn/input";
 import { findTopicTocNode, topicTocCategoryPaths, topicTocPage, type TopicTocEntry, type TopicTocNode } from "./topic-toc";
 import { azSlice, type AzLang, type TopicListItem } from "./topic-model";
 
@@ -130,14 +131,26 @@ export interface TopicTocPageData {
 }
 
 /** A category's page of the TOC, or null when the slug is not a category there. */
+/** readTopicTocPage's input: "" (the landing's top level) or a category slug (one segment, bounded; looked up, never a path). */
+export function validateTopicTocSlug(slug: unknown): string {
+  return slug === "" ? "" : segment(slug, "category slug", 200);
+}
+
+/** readAzSlice's input: a letter as the address has it (bounded text) and "en" or "he". */
+export function validateAzSliceInput(d: unknown): { letter: string; lang: AzLang } {
+  const o = record(d, "topics A-Z");
+  return { letter: text(o.letter, "letter", 20), lang: oneOf(o.lang, ["en", "he"] as const, "lang") };
+}
+
 const readTopicTocPage = createServerFn({ method: "GET" })
-  .validator((slug: string) => slug)
+  .validator(validateTopicTocSlug)
   .handler(async ({ data: slug }): Promise<TopicTocPageData | null> => {
     const toc = await serverToc();
     const entries = topicTocPage(toc, slug || undefined);
     if (!entries) return null;
     const node = slug ? findTopicTocNode(toc, slug) : undefined;
-    const path = slug ? (topicTocCategoryPaths(toc)[slug] ?? []).map((c) => c.slug) : [];
+    const paths = slug ? topicTocCategoryPaths(toc) : {};
+    const path = slug && Object.hasOwn(paths, slug) ? (paths[slug] ?? []).map((c) => c.slug) : [];
     return { title: node ? node.primaryTitle : null, entries, topLevel: toc.map((n) => n.slug), path };
   });
 
@@ -162,13 +175,13 @@ const readTopicTocIndex = createServerFn({ method: "GET" }).handler(async (): Pr
 const readNumLibraryTopics = createServerFn({ method: "GET" }).handler(async (): Promise<number | null> => serverCount());
 
 const readAzSlice = createServerFn({ method: "GET" })
-  .validator((d: { letter: string; lang: AzLang }) => d)
+  .validator(validateAzSliceInput)
   .handler(async ({ data }): Promise<TopicListItem[]> => azSlice(await serverList(), data.letter, data.lang));
 
 /** A page of the topics TOC (the server's tree; the browser asks the server for the slice). Null: not a category. */
 export const topicTocPageQueryOptions = (slug = "") =>
   queryOptions<TopicTocPageData | null>({
-    ...withPolicy("catalog", { queryKey: ["catalog", "topic-toc-page", slug] as const, queryFn: (): Promise<TopicTocPageData | null> => readTopicTocPage({ data: slug }) }),
+    ...withPolicy("catalog", { queryKey: ["catalog", "topic-toc-page", slug] as const, queryFn: (): Promise<TopicTocPageData | null> => (slug === "" || isSafeSegment(slug, 200) ? readTopicTocPage({ data: slug }) : Promise.resolve(null)) }),
   });
 
 /** Every topic's category path (the landing search's "(Category > Sub)" after each suggestion). */
@@ -181,4 +194,4 @@ export const numLibraryTopicsQueryOptions = () =>
 
 /** The topics an A–Z letter page lists before any filter (the server's list, filtered and sorted there). */
 export const azSliceQueryOptions = (letter: string, lang: AzLang) =>
-  queryOptions<TopicListItem[]>({ ...withPolicy("catalog", { queryKey: ["catalog", "topics-az", lang, letter] as const, queryFn: (): Promise<TopicListItem[]> => readAzSlice({ data: { letter, lang } }) }) });
+  queryOptions<TopicListItem[]>({ ...withPolicy("catalog", { queryKey: ["catalog", "topics-az", lang, letter] as const, queryFn: (): Promise<TopicListItem[]> => (isSafeText(letter, 20) ? readAzSlice({ data: { letter, lang } }) : Promise.resolve([])) }) });

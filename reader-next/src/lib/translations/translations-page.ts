@@ -236,7 +236,7 @@ export function validateTranslationSlug(slug: unknown): string {
  * few kilobytes, never the catalog (3.5 MB) or the terms (in the 9 MB `/data.js`), also when it navigates here.
  */
 const loadOnServer = createServerFn({ method: "GET" })
-  .inputValidator(validateTranslationSlug)
+  .validator(validateTranslationSlug)
   .handler(({ data: slug }): Promise<TranslationsPageModel> =>
     sharedTranslationsModel(slug, async (lang) => {
       const [tree, raw, terms] = await Promise.all([serverCatalogTree(), fetchTranslations(lang), serverTerms()]);

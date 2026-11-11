@@ -12,6 +12,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { decodeHTML } from "entities";
 import { SEFARIA_API_ORIGIN, SefariaApiError, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
+import { ServerInputError, intIn, oneOf, path, record, segment, text } from "~/lib/server-fn/input";
 
 /** JSON as the API sent it (an index or term change's `new` / `old`). */
 export type Json = string | number | boolean | null | Json[] | { [k: string]: Json };
@@ -77,8 +78,47 @@ export function parseSegmentHistoryPath(splat: string): SegmentHistoryAddress | 
   if (!m) return null;
   const [, ref, lang, version, page] = m;
   if (!ref || !lang || !version || version.includes("/")) return null;
-  return { ref, lang, version, page: page ? Math.max(1, Number(page)) : 1 };
+  const address = { ref, lang, version, page: page ? Math.max(1, Number(page)) : 1 };
+  // what the server function would refuse (another language, a "." or ".." segment, a page past the API's last) is Django's to answer
+  return isSegmentHistoryInput(address) ? address : null;
 }
+
+/** A filter name as sefaria/history.py filter_type_to_query reads it ("edit_text", "index_change"…). */
+export const isActivityFilterType = (t: string): boolean => /^[a-z_]{1,40}$/.test(t);
+
+/** The languages a version is stored in, and the API's last page (reader/views.py SEGMENT_HISTORY_MAX_PAGE). */
+export const SEGMENT_HISTORY_LANGS = ["en", "he"] as const;
+export const SEGMENT_HISTORY_MAX_PAGE = 100;
+
+export interface SegmentHistoryInput extends SegmentHistoryAddress {
+  type?: string;
+}
+
+/**
+ * readSegmentHistory's input, checked: the ref and version go into the API's path on the internal origin, so neither may carry a
+ * "." or ".." segment (the URL parser would resolve it to another Django path, fetched with the reader's cookie).
+ */
+export function validateSegmentHistoryInput(d: unknown): SegmentHistoryInput {
+  const o = record(d, "history");
+  const type = o.type === undefined || o.type === "" ? undefined : text(o.type, "type", 40, 1);
+  if (type !== undefined && !isActivityFilterType(type)) throw new ServerInputError("type: expected a filter name");
+  return {
+    ref: path(o.ref, "ref", 1000),
+    lang: oneOf(o.lang, SEGMENT_HISTORY_LANGS, "lang"),
+    version: segment(o.version, "version", 500),
+    page: intIn(o.page, 1, SEGMENT_HISTORY_MAX_PAGE, "page"),
+    ...(type ? { type } : {}),
+  };
+}
+
+const isSegmentHistoryInput = (a: SegmentHistoryAddress): boolean => {
+  try {
+    validateSegmentHistoryInput(a);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 /** The address of a page of the history ("Older Activity »" and the filter keep the ref and version as the server normalised them). */
 export function segmentHistoryHref(h: Pick<SegmentHistory, "url" | "lang" | "version">, page: number, filterType: string | null | undefined): string {
@@ -196,7 +236,7 @@ export interface SignedOut {
 export const isSignedOut = (h: SegmentHistory | SignedOut | null | undefined): h is SignedOut => !!h && "signedOut" in h;
 
 export const readSegmentHistory = createServerFn({ method: "GET" })
-  .validator((d: { ref: string; lang: string; version: string; page: number; type?: string }) => d)
+  .validator(validateSegmentHistoryInput)
   .handler(async ({ data }): Promise<SegmentHistory | SignedOut | null> => {
     const q = new URLSearchParams({ page: String(data.page), ...(data.type ? { type: data.type } : {}) });
     const path = `/api/activity/${data.ref.split("/").map(encodeURIComponent).join("/")}/${encodeURIComponent(data.lang)}/${encodeURIComponent(data.version)}?${q}`;
