@@ -1,20 +1,20 @@
 /**
- * The reader's choice between this client and the classic one, as the new reader sees it (LAUNCH_PLAN T-D05 client half, T-C03
- * client half). The routing cookie `reader_version=next` (set by Django: sefaria/helper/reader_choice.py) is what sends a page
+ * The reader's choice between this client and the classic one, as the new reader sees it (the
+ * client half; Django owns the other). The routing cookie `reader_version=next` (set by Django: sefaria/helper/reader_choice.py) is what sends a page
  * request here in the chart's `optin` mode; while it is present the opt-in exists for this reader, so the menus offer the way back.
  *
  *  - Back to the classic reader: POST READER_CHOICE_URL {reader: "legacy"} (Django stores the profile choice and clears the cookie;
- *    the endpoint is lane B's), then clear the cookie here too and reload: the next request goes to the classic reader.
+ *    sefaria/helper/reader_choice.py), then clear the cookie here too and reload: the next request goes to the classic reader.
  *  - Kill switch: remote config `feature.reader.next.disabled` true clears the cookie and reloads into the classic reader, at most once
  *    every RELOAD_INTERVAL_MS per browser session (a deployment that still serves this client must not reload forever, and a switch
- *    flipped again later still takes effect). Django must not set the cookie again meanwhile (lane B: ReaderChoiceMiddleware).
+ *    flipped again later still takes effect). Django must not set the cookie again meanwhile (Django's ReaderChoiceMiddleware).
  *
- * @feature ACC-003 Account settings page (the reader choice, T-D05)
+ * @feature ACC-003 Account settings page (the reader choice)
  */
 import { postJson, type PostResult } from "~/lib/auth/http";
 import { reportError } from "~/lib/monitoring/error-reporter";
 
-/** Lane B's endpoint (one constant, so the integrator can adjust it). */
+/** Django's reader-choice endpoint (one constant, so it changes in one place). */
 export const READER_CHOICE_URL = "/api/reader-choice";
 export const READER_COOKIE = "reader_version";
 export const KILL_SWITCH_KEY = "feature.reader.next.disabled";

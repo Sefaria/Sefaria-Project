@@ -38,7 +38,7 @@ export function Workspace({ data }: { data: WorkspaceRouteData }) {
   const layout = useMemo(() => {
     if (!ws.layout) return null;
     // One panel is still a row of one: the tree keeps its shape as panels open and close, so the panels that stay keep their
-    // components (a bare leaf at the root would rebuild everything: CODE_REVIEW R-24)
+    // components (a bare leaf at the root would rebuild everything)
     if (ws.layout.type === "leaf") return { type: "split", direction: "row", children: [ws.layout], sizes: [1] } as LayoutNode<PanelId>; // not row(): it normalises a row of one back to a leaf
     // A single row (everything the old reader could show) gets the old reader's widths; other shapes split evenly.
     const isRow = ws.layout.type === "split" && ws.layout.direction === "row" && ws.layout.children.every((c) => c.type === "leaf");
@@ -131,7 +131,7 @@ function PanelHost({ panel, data, innerSizes, alone }: { panel: PanelState; data
 /**
  * The loader's data for a panel. The address changes before the loader's data does, and data is filed by position: right after the
  * first of two panels closes, position p1 is the second text while the data's p1 is still the first. So a panel takes the data whose
- * ref it shows, wherever it was filed, and only otherwise the data at its position (CODE_REVIEW R-24: the panel that stayed kept its
+ * ref it shows, wherever it was filed, and only otherwise the data at its position (the panel that stayed kept its
  * component but rendered the closed panel's text until the load finished, then restarted its column).
  */
 export function panelDataFor(panel: PanelState, data: WorkspaceRouteData) {

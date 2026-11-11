@@ -1,5 +1,5 @@
 /**
- * Events of the new reader's own controls for the opt-in (LAUNCH_PLAN T-D05): the only new event names this client adds, allowed
+ * Events of the new reader's own controls for the opt-in: the only new event names this client adds, allowed
  * because the controls are new. `source` says which menu ("account_menu" | "mobile_menu"). Sent with transport beacon: "back to
  * classic" reloads the page right after.
  *

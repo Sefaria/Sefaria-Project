@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { hebrewRefOf, notFoundTitle, readerPageTitle, sidebarTitlePart } from "./page-title";
 
-// v-parity S2, v-a11y S4: the strings below are www.sefaria.org's document.title, read 2026-11-10 (page-title.ts)
+// The strings below are www.sefaria.org's document.title, read 2026-11-10 (page-title.ts)
 describe("the reader's <title>, as sefaria.org's", () => {
   // @feature PLT-006
   it("a section, in each interface", () => {

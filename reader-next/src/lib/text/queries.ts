@@ -129,7 +129,7 @@ export async function loadReaderPassage(
   let canonicalRef = ref;
 
   // A range in a book not met yet: learn the book's shape from the range's first point (one verse), then plan its sections, rather
-  // than download the whole range (Genesis 1:1-10:5: ten chapters) before the first-sections cap applies (review F09). Shapes the
+  // than download the whole range (Genesis 1:1-10:5: ten chapters) before the first-sections cap applies. Shapes the
   // planner cannot enumerate (a commentary range across chapters) still ask the API for the range below.
   if (plan.kind === "resolve" && isRangedRef(ref)) {
     const asked = parseHumanRef(ref);
@@ -169,7 +169,7 @@ export async function loadReaderPassage(
     const asked = parseHumanRef(canonicalRef);
     if (p.kind === "resolve" && asked.title === meta.book && asked.sections.length === meta.textDepth) {
       // A segment range whose sections cannot be enumerated here (a commentary range across chapters: how many verses chapter 1 has is
-      // the API's to say): show the sections the API names, and highlight the range by address (CODE_REVIEW low: it lost its highlight)
+      // the API's to say): show the sections the API names, and highlight the range by address (it lost its highlight)
       p = { kind: "sections", sectionRefs: passage.sectionRefs, highlight: { from: asked.sections, to: asked.toSections }, canonicalRef };
     } else if (p.kind === "resolve") {
       // A ref above section level (a book, a commentary chapter) opens at its first available section,
@@ -199,7 +199,7 @@ export async function loadReaderPassage(
   if (plan.kind === "resolve") plan = await askServer();
 
   // A long range (Psalms 1-150, Shabbat 2a-157b: hundreds of sections) loads only its first sections; the column loads the rest as
-  // the reader scrolls, and the range's highlight is by address, so it carries on (CODE_REVIEW R-05).
+  // the reader scrolls, and the range's highlight is by address, so it carries on.
   const load = (p: Extract<DisplayPlan, { kind: "sections" }>) =>
     Promise.all(p.sectionRefs.slice(0, MAX_INITIAL_SECTIONS).map((r) => qc.ensureQueryData({ ...textQueryOptions(r, sel), revalidateIfStale: true })));
   let sections = await load(plan);
@@ -246,8 +246,8 @@ export function prefetchNeighbours(qc: QueryClient, passage: TextPassage, sel: V
 
 /**
  * Fetch a section in the versions wanted when it arrives, not when it was asked for: while it loads the reader may change version,
- * and the column swaps only the sections it already holds, so a late section in the old versions stayed in the old edition
- * (review F04). `wanted()` is read again after each answer; the answer that matches what is wanted now is returned.
+ * and the column swaps only the sections it already holds, so a late section in the old versions stayed in the old edition.
+ * `wanted()` is read again after each answer; the answer that matches what is wanted now is returned.
  */
 export async function fetchInWantedVersions(
   fetchIn: (sel: VersionSelection) => Promise<TextPassage>,

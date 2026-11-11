@@ -11,7 +11,7 @@ import { LEGACY_STATIC_CSS_HREF } from "~/lib/static-page/styles-response";
 
 /**
  * The static information pages (/about, /terms, /privacy-policy, /linker, /ways-to-give…: lib/static-page/pages.ts), one route for all
- * of them (LAUNCH_PLAN T-F31, D-5). Only a name of the list matches (`params.parse` turns every other single-segment address away, so
+ * of them. Only a name of the list matches (`params.parse` turns every other single-segment address away, so
  * `/Genesis` is still the reader's); the router ranks this above the reader's `$` catch-all.
  *
  * Django's content block, title, description and stylesheets are fetched on the server, in the interface language, and rendered in this

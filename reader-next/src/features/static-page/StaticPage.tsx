@@ -5,7 +5,7 @@ import { browserHost, leavesClient } from "~/lib/routing/django-paths";
 import type { StaticPageModel } from "~/lib/static-page/content";
 
 /**
- * A static information page (LAUNCH_PLAN D-5, T-F31): Django's content block, sanitised on the server (lib/static-page), inside this
+ * A static information page: Django's content block, sanitised on the server (lib/static-page), inside this
  * client's header and footer — wrapped as templates/base.html wraps it (`#staticContentWrapper > #content`, which static.css selects
  * on), with the page's own stylesheets in the head (the route's) and its `{% block css %}` inline.
  *

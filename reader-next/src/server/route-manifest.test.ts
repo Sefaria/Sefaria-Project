@@ -8,7 +8,7 @@ const nameApi = (refs: Record<string, boolean>) =>
     return new Response(JSON.stringify({ is_ref: refs[title] ?? false }));
   }) as unknown as typeof fetch;
 
-// CODE_REVIEW R-36: a path this client does not have was rendered in full (API calls and all) before its 404 sent it to Django
+// Regression: a path this client does not have was rendered in full (API calls and all) before its 404 sent it to Django
 describe("routeOwner", () => {
   beforeEach(async () => {
     resetRouteManifest();

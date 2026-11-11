@@ -6,7 +6,7 @@ import { setStaffFreshness } from "./policies";
 /**
  * Retry a read once when that could help: never an answer that will not change ("no such text" 4xx — retrying every 404 added a
  * second to every bad link), never a contract mismatch, and never on the server, where a page render has a deadline and the request
- * middleware turns an upstream failure into a 503 (CODE_REVIEW R-17).
+ * middleware turns an upstream failure into a 503.
  */
 export function shouldRetry(failureCount: number, error: unknown): boolean {
   if (typeof window === "undefined" || failureCount >= 1) return false;
@@ -32,8 +32,8 @@ export function makeQueryClient(): QueryClient {
     },
   });
   // A fetch is cancelled when its last observer unmounts (a hidden Suspense boundary, a closed panel) and it read its AbortSignal; every
-  // other caller awaiting the same fetch then rejects with CancelledError, a route loader included, which showed the error page
-  // (CODE_REVIEW R-39). Nothing here cancels a query on purpose, so a caller whose fetch was cancelled under it simply asks again, once.
+  // other caller awaiting the same fetch then rejects with CancelledError, a route loader included, which showed the error page.
+  // Nothing here cancels a query on purpose, so a caller whose fetch was cancelled under it simply asks again, once.
   const fetchQuery = client.fetchQuery.bind(client);
   client.fetchQuery = (async (options: Parameters<typeof fetchQuery>[0]) => {
     try {

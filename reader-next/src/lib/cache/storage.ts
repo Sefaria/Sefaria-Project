@@ -3,7 +3,7 @@
  * Returns `undefined` where IndexedDB is unavailable (server render, some private modes) so the cache
  * degrades to memory-only.
  *
- * Disk use is bounded (CODE_REVIEW R-11): every write also records a small metadata row (size, last use) in a separate database, so
+ * Disk use is bounded: every write also records a small metadata row (size, last use) in a separate database, so
  * a sweep can expire and evict entries without reading the values themselves (TanStack's own persisterGc loads every value, and was
  * never called at all: the disk cache only grew, until the browser's quota stopped every write — silently).
  */

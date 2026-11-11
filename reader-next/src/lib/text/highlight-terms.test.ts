@@ -30,7 +30,7 @@ describe("highlightTerms", () => {
   });
 });
 
-// CODE_REVIEW R-02: attribute values from API text may hold `>`; highlighting must never break out of an attribute
+// Regression: attribute values from API text may hold `>`; highlighting must never break out of an attribute
 describe("highlighting cannot inject markup", () => {
   const live = (html: string) => {
     const d = document.createElement("div");

@@ -143,8 +143,8 @@ export async function loadWorkspaceRoute(args: {
 
 /**
  * The versions a panel shows. While the URL still names exactly what the loader was given, the loader's resolution wins: it filled in
- * what the URL left open from the reader's preferences (a URL naming only the source, `vhe`, keeps the saved translation:
- * CODE_REVIEW R-07; it used to be dropped after hydration). When the URL names something newer, that is the reader's new choice.
+ * what the URL left open from the reader's preferences (a URL naming only the source, `vhe`, keeps the saved translation;
+ * it used to be dropped after hydration). When the URL names something newer, that is the reader's new choice.
  */
 export function shownVersions(urlVersions: VersionSelection, data: Pick<ReaderRouteData, "versions" | "requested">): VersionSelection {
   if (selectionKey(urlVersions) === selectionKey(data.requested)) return data.versions;

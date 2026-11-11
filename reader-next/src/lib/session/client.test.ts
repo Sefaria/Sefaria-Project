@@ -169,7 +169,7 @@ function controllableTransport(initial: TransportStatus = "connecting") {
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
 const me: Participant = { id: "me", isHost: false, canLead: true };
-const akiva: Participant = { id: "akiva", name: "Akiva", isHost: true, canLead: true };
+const dana: Participant = { id: "dana", name: "Dana", isHost: true, canLead: true };
 const sarah: Participant = { id: "sarah", name: "Sarah", isHost: false, canLead: true };
 
 function roomMsg(spotlight: ParticipantId | null, term: number, extra: { ended?: boolean; mode?: LeadershipMode } = {}): AnyEnvelope {
@@ -227,18 +227,18 @@ describe("createSessionClient", () => {
 
   it("publishes its moment stream while it holds the spotlight or someone follows it, and stops when nobody does", () => {
     const { t, s } = setup();
-    t.deliver(people(me, akiva));
-    t.deliver(roomMsg("akiva", 1));
+    t.deliver(people(me, dana));
+    t.deliver(roomMsg("dana", 1));
     expect(s.writers).toHaveLength(0);
     // Sarah picks this reader to follow: her presence says so.
     t.deliver({
       ch: "presence",
-      body: { type: "participants", participants: [{ ...me, following: "akiva", away: false }, { ...akiva, following: null, away: false }, { ...sarah, following: "me", away: false }] },
+      body: { type: "participants", participants: [{ ...me, following: "dana", away: false }, { ...dana, following: null, away: false }, { ...sarah, following: "me", away: false }] },
     });
     expect(s.writers).toHaveLength(1);
     expect(s.writers[0]!.opts).toMatchObject({ filter: { scope: "moment" }, sampleMs: { "sefaria.scroll": 100 } });
     expect(t.sent.filter((e) => e.ch === "state" && e.body.type === "keyframe")).toMatchObject([{ body: { snapshot: { url: "/Genesis.1" } } }]);
-    t.deliver(people(me, akiva, sarah));
+    t.deliver(people(me, dana, sarah));
     expect(s.writers[0]!.stopped).toBe(true);
     t.deliver(roomMsg("me", 2));
     expect(s.writers).toHaveLength(2);
@@ -247,29 +247,29 @@ describe("createSessionClient", () => {
 
   it("drops what is not a room message instead of trusting its shape", () => {
     const { t, client } = setup();
-    t.deliver(people(me, akiva));
-    t.deliver(roomMsg("akiva", 1));
+    t.deliver(people(me, dana));
+    t.deliver(roomMsg("dana", 1));
     const before = client.getState();
     t.deliver({ ch: "presence", body: { type: "participants", participants: null } } as unknown as AnyEnvelope);
     t.deliver({ ch: "control", body: { type: "room", spotlight: "sarah", term: "9", mode: "presenter", hands: [], ended: false } } as unknown as AnyEnvelope);
     t.deliver({ ch: "control", body: { type: "room", spotlight: "sarah", term: 9, mode: "presenter", hands: "x", ended: false } } as unknown as AnyEnvelope);
     expect(client.getState()).toBe(before);
     // A bad entry costs only itself.
-    t.deliver({ ch: "presence", body: { type: "participants", participants: [{ ...akiva, following: null, away: false }, { id: 5 }] } } as unknown as AnyEnvelope);
-    expect(client.getState().participants.map((p) => p.id)).toEqual(["akiva"]);
+    t.deliver({ ch: "presence", body: { type: "participants", participants: [{ ...dana, following: null, away: false }, { id: 5 }] } } as unknown as AnyEnvelope);
+    expect(client.getState().participants.map((p) => p.id)).toEqual(["dana"]);
     expect(client.getState().status).toBe("live");
   });
 
   it("follows the spotlight holder and applies their moves with origin follow, persist false", async () => {
     const { a, t, client, resyncs, presence } = setup();
-    t.deliver(people(me, akiva));
-    t.deliver(roomMsg("akiva", 1));
-    expect(client.getState()).toMatchObject({ status: "live", following: "akiva", chosen: null });
-    expect(resyncs()).toEqual(["akiva"]);
-    expect(presence().at(-1)).toEqual({ type: "status", following: "akiva", away: false });
+    t.deliver(people(me, dana));
+    t.deliver(roomMsg("dana", 1));
+    expect(client.getState()).toMatchObject({ status: "live", following: "dana", chosen: null });
+    expect(resyncs()).toEqual(["dana"]);
+    expect(presence().at(-1)).toEqual({ type: "status", following: "dana", away: false });
 
-    t.deliver(keyframe("akiva", "/Exodus.3", 0, 1));
-    t.deliver(change("akiva", "/Exodus.4", 1, 1));
+    t.deliver(keyframe("dana", "/Exodus.3", 0, 1));
+    t.deliver(change("dana", "/Exodus.4", 1, 1));
     // Someone else's stream is not ours to apply.
     t.deliver(keyframe("sarah", "/Ruth.1", 0));
     await flush();
@@ -279,16 +279,16 @@ describe("createSessionClient", () => {
 
   it("switches streams when the spotlight moves and drops older-term messages", async () => {
     const { a, t, client, resyncs } = setup();
-    t.deliver(people(me, akiva, sarah));
-    t.deliver(roomMsg("akiva", 1));
-    t.deliver(keyframe("akiva", "/Exodus.3", 0, 1));
+    t.deliver(people(me, dana, sarah));
+    t.deliver(roomMsg("dana", 1));
+    t.deliver(keyframe("dana", "/Exodus.3", 0, 1));
     await flush();
 
     t.deliver(roomMsg("sarah", 2));
     expect(client.getState().following).toBe("sarah");
-    expect(resyncs()).toEqual(["akiva", "sarah"]);
-    // A lagging message from Akiva's term is ignored; Sarah's keyframe applies at once.
-    t.deliver(change("akiva", "/Exodus.5", 1, 1));
+    expect(resyncs()).toEqual(["dana", "sarah"]);
+    // A lagging message from Dana's term is ignored; Sarah's keyframe applies at once.
+    t.deliver(change("dana", "/Exodus.5", 1, 1));
     t.deliver(keyframe("sarah", "/Ruth.2", 0, 2));
     await flush();
     expect(a.urls()).toEqual(["/Exodus.3", "/Ruth.2"]);
@@ -303,16 +303,16 @@ describe("createSessionClient", () => {
 
   it("breaks away on local input (not on a change without input), keeps folding, and Follow again applies the latest", async () => {
     const { a, t, client, presence } = setup();
-    t.deliver(people(me, akiva));
-    t.deliver(roomMsg("akiva", 1));
-    t.deliver(keyframe("akiva", "/Exodus.3", 0, 1));
+    t.deliver(people(me, dana));
+    t.deliver(roomMsg("dana", 1));
+    t.deliver(keyframe("dana", "/Exodus.3", 0, 1));
     await flush();
 
     a.input();
     expect(client.getState().status).toBe("paused");
     expect(presence().at(-1)).toEqual({ type: "status", following: null, away: false });
-    t.deliver(change("akiva", "/Exodus.4", 1, 1));
-    t.deliver(change("akiva", "/Exodus.5", 2, 1));
+    t.deliver(change("dana", "/Exodus.4", 1, 1));
+    t.deliver(change("dana", "/Exodus.5", 2, 1));
     await flush();
     expect(a.urls()).toEqual(["/Exodus.3"]);
 
@@ -320,7 +320,7 @@ describe("createSessionClient", () => {
     await flush();
     expect(client.getState().status).toBe("live");
     expect(a.urls()).toEqual(["/Exodus.3", "/Exodus.5"]);
-    expect(presence().at(-1)).toEqual({ type: "status", following: "akiva", away: false });
+    expect(presence().at(-1)).toEqual({ type: "status", following: "dana", away: false });
 
     // the reader settling itself (a first position report after joining) is not the person: no break-away
     a.localChange("/Psalms.23");
@@ -329,8 +329,8 @@ describe("createSessionClient", () => {
 
   it("stays paused when the spotlight moves while broken away", async () => {
     const { a, t, client } = setup();
-    t.deliver(people(me, akiva, sarah));
-    t.deliver(roomMsg("akiva", 1));
+    t.deliver(people(me, dana, sarah));
+    t.deliver(roomMsg("dana", 1));
     a.input();
     t.deliver(roomMsg("sarah", 2));
     t.deliver(keyframe("sarah", "/Ruth.1", 0, 2));
@@ -344,26 +344,26 @@ describe("createSessionClient", () => {
 
   it("follows a chosen participant regardless of the spotlight, and null returns to the spotlight", async () => {
     const { a, t, client, resyncs } = setup();
-    t.deliver(people(me, akiva, sarah));
-    t.deliver(roomMsg("akiva", 1));
+    t.deliver(people(me, dana, sarah));
+    t.deliver(roomMsg("dana", 1));
     client.follow("sarah");
     expect(client.getState()).toMatchObject({ status: "live", following: "sarah", chosen: "sarah" });
-    expect(resyncs()).toEqual(["akiva", "sarah"]);
+    expect(resyncs()).toEqual(["dana", "sarah"]);
     // Chosen streams are not term-filtered (terms belong to the spotlight).
     t.deliver(keyframe("sarah", "/Ruth.1", 0, 0));
-    t.deliver(roomMsg("akiva", 5));
+    t.deliver(roomMsg("dana", 5));
     t.deliver(change("sarah", "/Ruth.2", 1, 0));
     await flush();
     expect(a.urls()).toEqual(["/Ruth.1", "/Ruth.2"]);
 
     client.follow(null);
-    expect(client.getState().following).toBe("akiva");
-    expect(resyncs().at(-1)).toBe("akiva");
+    expect(client.getState().following).toBe("dana");
+    expect(resyncs().at(-1)).toBe("dana");
   });
 
   it("never follows itself; holding the spotlight is leading, and taking it refreshes the room's keyframe", () => {
     const { t, s, client } = setup();
-    t.deliver(people(me, akiva));
+    t.deliver(people(me, dana));
     t.deliver(roomMsg(null, 0));
     expect(client.getState()).toMatchObject({ status: "no-leader", following: null });
     expect(s.writers).toHaveLength(0);
@@ -386,20 +386,20 @@ describe("createSessionClient", () => {
 
   it("asks for a resync on a gap", async () => {
     const { t, resyncs } = setup();
-    t.deliver(people(me, akiva));
-    t.deliver(roomMsg("akiva", 1));
-    t.deliver(keyframe("akiva", "/Exodus.3", 0, 1));
-    t.deliver(change("akiva", "/Exodus.9", 5, 1));
+    t.deliver(people(me, dana));
+    t.deliver(roomMsg("dana", 1));
+    t.deliver(keyframe("dana", "/Exodus.3", 0, 1));
+    t.deliver(change("dana", "/Exodus.9", 5, 1));
     await flush();
-    expect(resyncs()).toEqual(["akiva", "akiva"]);
+    expect(resyncs()).toEqual(["dana", "dana"]);
   });
 
   it("shows leader-away when the followed participant is hidden or gone", () => {
     const { t, client } = setup();
-    t.deliver(people(me, { ...akiva, away: true }));
-    t.deliver(roomMsg("akiva", 1));
+    t.deliver(people(me, { ...dana, away: true }));
+    t.deliver(roomMsg("dana", 1));
     expect(client.getState().status).toBe("leader-away");
-    t.deliver(people(me, akiva));
+    t.deliver(people(me, dana));
     expect(client.getState().status).toBe("live");
     t.deliver(people(me));
     expect(client.getState().status).toBe("leader-away");
@@ -407,9 +407,9 @@ describe("createSessionClient", () => {
 
   it("reconnects: status reconnecting, then re-joins, keyframes and resyncs on reopen", () => {
     const { t, s, client, resyncs } = setup();
-    t.deliver({ ch: "presence", body: { type: "participants", participants: [{ ...me, following: null, away: false }, { ...akiva, following: "me", away: false }] } });
-    t.deliver(roomMsg("akiva", 1));
-    expect(s.writers).toHaveLength(1); // Akiva follows this reader
+    t.deliver({ ch: "presence", body: { type: "participants", participants: [{ ...me, following: null, away: false }, { ...dana, following: "me", away: false }] } });
+    t.deliver(roomMsg("dana", 1));
+    expect(s.writers).toHaveLength(1); // Dana follows this reader
     t.setStatus("connecting");
     expect(client.getState().status).toBe("reconnecting");
 
@@ -421,9 +421,9 @@ describe("createSessionClient", () => {
     expect(after.some((e) => e.ch === "state" && e.body.type === "hello")).toBe(true);
     expect(s.writers).toHaveLength(1);
     expect(s.writers[0]!.keyframes).toBe(keyframesBefore + 1);
-    expect(resyncs()).toEqual(["akiva", "akiva"]);
+    expect(resyncs()).toEqual(["dana", "dana"]);
     expect(client.getState().status).toBe("reconnecting");
-    t.deliver(roomMsg("akiva", 1));
+    t.deliver(roomMsg("dana", 1));
     expect(client.getState().status).toBe("live");
   });
 
@@ -431,22 +431,22 @@ describe("createSessionClient", () => {
     const { a, t, s, client } = setup();
     const cb = vi.fn();
     client.subscribe(cb);
-    t.deliver(people(me, akiva));
+    t.deliver(people(me, dana));
     t.deliver(roomMsg("me", 1));
-    t.deliver(roomMsg("akiva", 1, { ended: true }));
+    t.deliver(roomMsg("dana", 1, { ended: true }));
     expect(client.getState().status).toBe("ended");
     expect(s.writers[0]!.stopped).toBe(true);
     expect(t.transport.status).toBe("closed");
     expect(a.listenerCount()).toBe(0);
     expect(cb).toHaveBeenCalled();
-    t.deliver(keyframe("akiva", "/Exodus.3", 0, 1));
+    t.deliver(keyframe("dana", "/Exodus.3", 0, 1));
     await flush();
     expect(a.urls()).toEqual([]);
   });
 
   it("stop() sends leave and ends", () => {
     const { t, client } = setup();
-    t.deliver(roomMsg("akiva", 1));
+    t.deliver(roomMsg("dana", 1));
     client.stop();
     expect(t.sent.at(-1)).toEqual({ ch: "control", body: { type: "leave" } });
     expect(client.getState().status).toBe("ended");
@@ -479,7 +479,7 @@ describe("createSessionClient", () => {
 
   it("keeps the state object stable between changes (useSyncExternalStore)", () => {
     const { t, client } = setup();
-    t.deliver(roomMsg("akiva", 1));
+    t.deliver(roomMsg("dana", 1));
     const s1 = client.getState();
     expect(client.getState()).toBe(s1);
     t.deliver(roomMsg("sarah", 2));
@@ -493,13 +493,13 @@ describe("createSessionClient", () => {
     const fromClient: AnyEnvelope[] = [];
     roomEnd.onMessage((m) => {
       fromClient.push(m);
-      if (m.ch === "state" && m.body.type === "resync" && m.body.of === "akiva") roomEnd.send(keyframe("akiva", "/Exodus.3", 0, 1));
+      if (m.ch === "state" && m.body.type === "resync" && m.body.of === "dana") roomEnd.send(keyframe("dana", "/Exodus.3", 0, 1));
     });
     const client = createSessionClient({ api: a.api, transport: clientEnd, self: me, streams: s.factories });
     await flush();
     expect(fromClient[0]).toMatchObject({ ch: "control", body: { type: "join" } });
-    roomEnd.send(people(me, akiva));
-    roomEnd.send(roomMsg("akiva", 1));
+    roomEnd.send(people(me, dana));
+    roomEnd.send(roomMsg("dana", 1));
     await flush();
     await flush();
     expect(client.getState().status).toBe("live");

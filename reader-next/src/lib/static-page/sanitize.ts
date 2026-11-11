@@ -1,5 +1,5 @@
 /**
- * Sanitiser for a static page's content block (Django's `{% block content %}` of templates/static/*, LAUNCH_PLAN T-F31). The content
+ * Sanitiser for a static page's content block (Django's `{% block content %}` of templates/static/*). The content
  * is the site's own templates, so the allowlist is wide — everything the templates use (sections, headings, tables, images, video and
  * audio, embedded documents and videos) with their classes, ids and inline styles, which static.css and the pages' own CSS select on —
  * but nothing that runs: scripts, inline event handlers, `javascript:` and `data:` addresses, and frames from anywhere but the few

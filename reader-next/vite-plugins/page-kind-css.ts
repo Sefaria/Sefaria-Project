@@ -40,7 +40,7 @@ const MANIFEST_ROUTE = /\/src\/routes\/(\$|__root)\.tsx/;
  * Each page kind's own stylesheets, in import order (a chunk's static imports first, then its own), from a client bundle: what the
  * kind's chunk and its static imports bring, less what the page links anyway (the client entry's static graph and the root and `$`
  * route chunks', which Start's manifest links). So the head adds only the kind's sheets, after the shell's, in one order on every
- * page (review nit 1). A kind whose chunk is not in the bundle is left out.
+ * page. A kind whose chunk is not in the bundle is left out.
  */
 export function pageKindCss(bundle: Record<string, BundleChunk>, entries: Record<string, string> = PAGE_KIND_ENTRIES, base = "/"): Record<string, string[]> {
   const chunks = Object.values(bundle).filter((c) => c.type === "chunk");

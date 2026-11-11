@@ -1,4 +1,4 @@
-// Ref corpus parity (LAUNCH_PLAN T-E02, T-E08): for each address in scripts/ref-corpus.cases.mjs, where www.sefaria.org lands (the
+// Ref corpus parity: for each address in scripts/ref-corpus.cases.mjs, where www.sefaria.org lands (the
 // final address, after its redirects and its client's own rewrites) and which segments it highlights, against the same on this reader.
 // Read-only on www.sefaria.org (page loads, with the interfaceLang=english cookie).
 //

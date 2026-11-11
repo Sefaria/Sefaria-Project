@@ -1,5 +1,5 @@
 /**
- * The canonical origin of the page being rendered, per request (LAUNCH_PLAN T-C08): as Django's canonical_url (reader/views.py), the
+ * The canonical origin of the page being rendered, per request: as Django's canonical_url (reader/views.py), the
  * Hebrew site names www.sefaria.org.il and the English site www.sefaria.org. Here the host decides (Django: the interface language,
  * which the .org.il host pins to Hebrew), from the configured origin (PUBLIC_CANONICAL_ORIGIN, src/lib/config.ts) and its Hebrew twin
  * (hebrewSiteOrigin). The same answer on the server (the request's Host, which nginx sets) and in the browser (location.host).

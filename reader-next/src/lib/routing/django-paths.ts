@@ -27,7 +27,7 @@ const PREFIX_RE = new RegExp(`^/(?:${DJANGO_PREFIXES.map(escapeRe).join("|")})(?
 
 /**
  * First path segments this client renders on the Library host only. On the Voices host (voices.sefaria.org, chiburim.sefaria.org.il)
- * they stay Django's: which pages each module serves is not decided yet (TARGET_ARCHITECTURE Q-E1), so a Voices request for them is
+ * they stay Django's: which pages each module serves is not decided yet, so a Voices request for them is
  * passed through as before (src/start.ts).
  */
 export const LIBRARY_ONLY_PREFIXES = ["translations", "calendars", "parashat-hashavua", "todays-daf-yomi", "compare", "topics", "saved", "history", "notifications", "torahtracker", "updates"];

@@ -92,7 +92,7 @@ describe("the language-domain bounce (T-E07)", () => {
     const a = answer(req("https://www.sefaria.org.il/Genesis.1?lang=he&set-language-cookie=")) as Response;
     expect(a.status).toBe(302);
     expect(a.headers.get("location")).toBe("https://www.sefaria.org.il/Genesis.1?lang=he");
-    // the stale host-only cookie an earlier reader-next left is expired first (rework round 1), then the domain cookie
+    // the stale host-only cookie an earlier reader-next left is expired first, then the domain cookie
     expect(a.headers.getSetCookie()).toEqual(["interfaceLang=; Max-Age=0; Path=/", "interfaceLang=hebrew; Domain=.sefaria.org.il; Path=/"]);
     const b = answer(req("https://www.sefaria.org/texts?set-language-cookie")) as Response;
     expect(b.headers.get("location")).toBe("https://www.sefaria.org/texts");
@@ -174,7 +174,7 @@ describe("a signed-in reader: Django's middleware is asked with a probe", () => 
   });
 });
 
-// wave 4 rework round 1: a response that sets the domain cookie also expires a stale host-only one (never on a host-only setup)
+// A response that sets the domain cookie also expires a stale host-only one (never on a host-only setup)
 describe("withHostOnlyLangCookieExpired", () => {
   it("appends the expiry, keeping the status, the location and Django's own cookie", () => {
     const django = new Response(null, { status: 302, headers: [["location", "/texts"], ["set-cookie", "interfaceLang=hebrew; Domain=.sefaria.org; Path=/"]] });

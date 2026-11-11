@@ -293,7 +293,7 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     };
     // Only keys that scroll count, and only when a scroll follows them: Shift, Cmd+C or Shift+arrows (extending a selection) are not
     // reading on, nor is End at the bottom or ArrowDown on the last verse (nothing scrolls); taking them for it let a later reflow
-    // settle on a verse and drop a selected range (lane R, D3). Tab counts the same way (it scrolls only when the focus it moves is off
+    // settle on a verse and drop a selected range. Tab counts the same way (it scrolls only when the focus it moves is off
     // screen).
     let keyAt = -Infinity;
     const keyIntent = (e: KeyboardEvent) => {

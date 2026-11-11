@@ -1,4 +1,4 @@
-// CI budgets (LAUNCH_PLAN T-H04): the JS and CSS a reader page (/Genesis.1, the "/$" route) loads up front, measured from the
+// CI budgets: the JS and CSS a reader page (/Genesis.1, the "/$" route) loads up front, measured from the
 // `npm run build` output and held against the committed baseline (scripts/budgets/baseline.json).
 //
 //   npm run build && node scripts/budgets/measure.mjs            compare; exit 1 when a number grew beyond the tolerance

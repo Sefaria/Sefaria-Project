@@ -59,7 +59,7 @@
 [data-layout="continuous"] .dot { inset-inline-end: calc(var(--_pad, 30px) - 48px + 4px); }
 /* A phone (34px of padding, the old singlePanel): the number and dot sit in the padding, 4px from the screen's edges, as on sefaria.org
    (Berakhot 2a, Hebrew, 390px: numbers at 356-386, dots at 4-34). 48px out put them past the edge and the page scrolled sideways
-   (parity S6). */
+  . */
 @media (max-width: 842px) and (pointer: coarse) {
   [data-layout="continuous"] .number { inset-inline-start: 4px; }
   [data-layout="continuous"] .dot { inset-inline-end: 4px; }

@@ -1,5 +1,5 @@
 // @vitest-environment node
-// LAUNCH_PLAN T-C08: the canonical origin on the server (PUBLIC_CANONICAL_ORIGIN from the environment) and per host (the Hebrew site
+// The canonical origin on the server (PUBLIC_CANONICAL_ORIGIN from the environment) and per host (the Hebrew site
 // names www.sefaria.org.il, as Django's canonical_url).
 import { afterEach, describe, expect, it, vi } from "vitest";
 

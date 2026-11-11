@@ -57,7 +57,7 @@ export function FilterRow({ label, count, color, icon = "book", hasEnglish, desc
   const desc = description && (contentLang ? description[contentLang] : lang === "hebrew" ? description.he || description.en : description.en || description.he);
   const list = variant === "list";
   // the old EnglishAvailableTag sits in a `span.en`, which the Hebrew interface hides (VERIFIED on sefaria.org.il 2026-11-10:
-  // `.englishAvailableTag` computes display:none; parity S11)
+  // `.englishAvailableTag` computes display:none)
   const showTag = hasEnglish && contentLang !== "he" && interfaceLang !== "hebrew";
   const tag = showTag ? (
     <>

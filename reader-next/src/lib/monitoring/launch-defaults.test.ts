@@ -4,7 +4,7 @@ import { vitalsEnabled } from "~/lib/analytics/web-vitals";
 import { killSwitchOn } from "~/features/shell/reader-choice";
 import { ErrorReporter } from "./error-reporter";
 
-// LAUNCH_PLAN decisions D-8, D-10 and the T-C03/T-D03 switches: what a deployment with nothing configured does
+// docs/DECISIONS.md D-8, D-10 and the reader-choice and web-vitals switches: what a deployment with nothing configured does
 describe("launch defaults", () => {
   it("D-10: PUBLIC_LABS unset and no remote-config keys: every lab is off", () => {
     expect(parseLabs(undefined)).toEqual([]);

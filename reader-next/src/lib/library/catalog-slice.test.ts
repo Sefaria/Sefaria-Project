@@ -6,7 +6,7 @@ import { catalogSlice, hebrewCategoryNames, tocItemsByCategories, tocObjectByCat
 const tree = readFixture<TocNode[]>("_toc/toc.json");
 const size = (x: unknown) => JSON.stringify(x).length;
 
-// CODE_REVIEW R-14: every /texts page carried the whole catalog (3.5 MB) in its HTML
+// Regression: every /texts page carried the whole catalog (3.5 MB) in its HTML
 describe("catalogSlice", () => {
   it("the home page: the top-level categories only, a small fraction of the catalog", () => {
     const s = catalogSlice(tree, []);

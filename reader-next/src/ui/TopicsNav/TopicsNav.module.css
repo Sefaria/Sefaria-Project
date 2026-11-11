@@ -205,7 +205,7 @@
   .featuredPhoto { display: block; max-width: 92vw; margin: 0 auto 10px; }
   .featuredText { margin-inline-start: 0; }
   .newsletter, :global(html[lang="he"]) .newsletter { flex-direction: column; align-items: stretch; padding: 36px 31px; }
-  /* never wider than the band: the Hebrew teaser's 300px ran past a 320px window (v-a11y S8) */
+  /* never wider than the band: the Hebrew teaser's 300px ran past a 320px window */
   .newsletterText, :global(html[lang="he"]) .newsletterText { max-width: 100%; margin-block-end: 20px; }
   .newsletterInputs { display: flex; flex-direction: column; width: 100%; }
   .newsletterRow { flex-direction: column; align-items: stretch; }

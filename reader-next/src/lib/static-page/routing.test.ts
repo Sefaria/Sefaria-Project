@@ -71,7 +71,7 @@ describe("the static pages' routing (T-F31)", () => {
       expect(isDjangoPage(p, "www.sefaria.org"), p).toBe(true);
       expect(leavesClient(p, "www.sefaria.org"), p).toBe(true);
     }
-    // /updates is the new reader's own page (lane P), not a static page here, and not Django's on the Library host
+    // /updates is the new reader's own page, not a static page here, and not Django's on the Library host
     expect(isStaticPagePath("/updates")).toBe(false);
     expect(isDjangoPage("/updates", "www.sefaria.org")).toBe(false);
     // the rest of /linker… stays Django's

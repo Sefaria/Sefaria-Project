@@ -23,7 +23,7 @@ async function disk<T>(op: () => Promise<T>): Promise<T | undefined> {
 const DB = "sefaria-reader-refs";
 const DAY = 86_400_000;
 /**
- * How long what was learned stays trusted (CODE_REVIEW R-19: nothing ever expired, so a book whose structure changed, or a ref
+ * How long what was learned stays trusted (nothing ever expired, so a book whose structure changed, or a ref
  * whose first available section moved, was planned wrongly forever). Memory is bounded too: on the server this index is shared by
  * every request, and each distinct spelling a crawler asks for used to stay for the life of the process.
  */
@@ -44,7 +44,7 @@ const fresh = <T>(s: Stamped<T> | T | undefined, maxAge: number, now: number): T
 };
 
 /**
- * Clean the index's disk stores (review F12: the query cache's sweep did not cover them, so expired and busted rows, and every
+ * Clean the index's disk stores (the query cache's sweep did not cover them, so expired and busted rows, and every
  * spelling ever resolved, stayed on disk for good): rows past their lifetime or from another cache buster go, and of the rest only the
  * most recently learned are kept, as many as the memory index holds. Returns how many rows went. Run with the query cache's sweep.
  */

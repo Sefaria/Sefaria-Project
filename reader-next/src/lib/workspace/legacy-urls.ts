@@ -1,7 +1,7 @@
 /**
  * Multi-panel URLs exactly as www.sefaria.org writes them, recorded with scripts/probes/multipanel-probe*.mjs (desktop,
  * 2026-10-06). The decoded form (decodeURIComponent) is what is compared. Owner decision 2026-10-06: this client reads every one
- * of these and writes them back byte for byte (docs/MULTIPANEL_PLAN.md §3).
+ * of these and writes them back byte for byte.
  */
 export interface LegacyUrlCase {
   /** What was on screen, as the old flat panel list ("+sidebar" = a connections panel right after it). */
@@ -9,7 +9,7 @@ export interface LegacyUrlCase {
   /** How sefaria.org got there. */
   how: string;
   url: string;
-  /** Not yet written back exactly: which plan step fixes it (docs/MULTIPANEL_PLAN.md). The test expects it to fail until then. */
+  /** Not yet written back exactly: what is still missing. The test expects it to fail until then. */
   todo?: string;
 }
 

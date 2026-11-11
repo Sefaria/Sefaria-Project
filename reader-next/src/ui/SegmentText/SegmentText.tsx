@@ -85,7 +85,7 @@ export function SegmentText({ html, lang, dir, vocalization, stripPunctuation, i
   };
 
   // Keep the markers' aria-expanded in step with state (the markers live inside a string of HTML). An effect on what it depends on,
-  // not a new callback ref per render — that re-ran querySelectorAll on every render of every segment (CODE_REVIEW R-12).
+  // not a new callback ref per render — that re-ran querySelectorAll on every render of every segment.
   const markerRef = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {
     markerRef.current?.querySelectorAll<HTMLElement>("[data-note]").forEach((m) => m.setAttribute("aria-expanded", String(open.has(Number(m.dataset.note)))));

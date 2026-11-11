@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isPageKindLoaded, loadPageKind, PAGE_KIND_META, renderedPageKind } from "./page-kinds";
 
-// LAUNCH_PLAN T-H03: each page kind is its own chunk, loaded before the page renders (never behind a Suspense boundary)
+// Each page kind is its own chunk, loaded before the page renders (never behind a Suspense boundary)
 describe("page kinds", () => {
   it("reads the kind the server rendered from its meta tag", () => {
     const doc = (content: string | null) => ({ querySelector: (sel: string) => (sel.includes(PAGE_KIND_META) && content !== null ? { getAttribute: () => content } : null) }) as unknown as Document;

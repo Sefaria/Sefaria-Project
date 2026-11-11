@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, fn, userEvent, within } from "storybook/test";
 import { InterfaceLangProvider } from "~/lib/i18n/interface-lang";
 import { FollowBar } from "./FollowBar";
-import { AKIVA, GUEST, SARAH, createFakeSessionClient, fakeLeaderState, fakeSessionState } from "./fake-client";
+import { DANA, GUEST, SARAH, createFakeSessionClient, fakeLeaderState, fakeSessionState } from "./fake-client";
 
 const meta = {
   title: "Reader State/FollowBar",
@@ -18,7 +18,7 @@ const meta = {
   },
   // The bar is position: fixed; a transformed box makes it fixed to the story, not the page, so stories do not stack on each other.
   decorators: [(Story) => <div style={{ transform: "translateZ(0)", height: 120, ["--sefaria-header-height" as string]: "0px" }}><Story /></div>],
-  args: { client: createFakeSessionClient(), locations: { akiva: "/Exodus.3?lang=bi" }, onLeave: fn(), onEndSharing: fn(), onDismiss: fn() },
+  args: { client: createFakeSessionClient(), locations: { dana: "/Exodus.3?lang=bi" }, onLeave: fn(), onEndSharing: fn(), onDismiss: fn() },
 } satisfies Meta<typeof FollowBar>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -32,13 +32,13 @@ export const Live: Story = {
   play: async ({ canvasElement, args, globals }) => {
     const c = within(canvasElement);
     const he = inHebrew(globals);
-    await expect(c.getByText(he ? "עוקבים אחרי Akiva Berger" : "Following Akiva Berger")).toBeInTheDocument();
+    await expect(c.getByText(he ? "עוקבים אחרי Dana Levi" : "Following Dana Levi")).toBeInTheDocument();
     await userEvent.click(c.getByRole("button", { name: he ? "הפסקת המעקב" : "Stop following" }));
     await expect(args.onLeave).toHaveBeenCalled();
   },
 };
 export const Paused: Story = { args: { client: createFakeSessionClient(fakeSessionState({ status: "paused" })) } };
-export const LeaderAway: Story = { args: { client: createFakeSessionClient(fakeSessionState({ status: "leader-away", participants: [{ ...AKIVA, away: true }, SARAH, GUEST] })) } };
+export const LeaderAway: Story = { args: { client: createFakeSessionClient(fakeSessionState({ status: "leader-away", participants: [{ ...DANA, away: true }, SARAH, GUEST] })) } };
 export const NoLeader: Story = {
   args: { client: createFakeSessionClient(fakeSessionState({ status: "no-leader", following: null, room: { spotlight: null, term: 2, mode: "presenter", hands: [], ended: false }, participants: [SARAH, GUEST] })) },
 };
@@ -50,7 +50,7 @@ export const HostFaceMenu: Story = {
   play: async ({ canvasElement, globals }) => {
     const c = within(canvasElement);
     const he = inHebrew(globals);
-    await userEvent.click(c.getByRole("button", { name: he ? "Sarah Cohen · עוקב/ת אחרי Akiva Berger" : "Sarah Cohen · following Akiva Berger" }));
+    await userEvent.click(c.getByRole("button", { name: he ? "Sarah Cohen · עוקב/ת אחרי Dana Levi" : "Sarah Cohen · following Dana Levi" }));
     await expect(c.getByRole("menuitem", { name: he ? "הפיכה למוביל/ה" : "Make leader" })).toBeInTheDocument();
   },
 };

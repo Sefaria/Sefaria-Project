@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-// CODE_REVIEW R-01: scripts declared in the router's head() are re-injected on client navigation (GTM loaded again, an extra gtag
+// Regression: scripts declared in the router's head() are re-injected on client navigation (GTM loaded again, an extra gtag
 // 'config' = an extra page view). Third-party bootstraps belong in RootDocument as plain <script> tags.
 describe("the root route's head()", () => {
   it("declares no scripts", () => {

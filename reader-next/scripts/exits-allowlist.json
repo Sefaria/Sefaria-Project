@@ -1,5 +1,5 @@
 {
-  "about": "Accepted ways out of the new reader (LAUNCH_PLAN §4, owner 2026-11-10). scripts/exits-crawl.mjs fails on any same-site link answered by Django that matches none of these. Each wave that ports a page removes its entry; nothing is added without the owner. `match` is a regular expression on the path and query of the address as linked (or, for a host entry, on the host).",
+  "about": "Accepted ways out of the new reader (owner decision 2026-11-10; docs/DECISIONS.md). scripts/exits-crawl.mjs fails on any same-site link answered by Django that matches none of these. A change that ports a page removes its entry; nothing is added without the owner. `match` is a regular expression on the path and query of the address as linked (or, for a host entry, on the host).",
   "entries": [
     { "id": "voices-host", "host": "^(voices|chiburim)\\.", "reason": "Voices is out of scope (owner 2026-11-10): links to the Voices site stay as they are" },
     { "id": "voices-sheets", "match": "^/sheets(?:[/.?]|$)", "reason": "Voices: a source sheet (www answers 307 to Voices)" },
@@ -14,7 +14,7 @@
     { "id": "editor-add", "match": "^/add/.*[?&]next=", "reason": "Django editor that returns with ?next= (T-F27): the book page's Add section (static/js/s1/editor.js goes to ?next= after saving)" },
     { "id": "editor-admin-reset", "match": "^/admin/reset/(?!(?:cache|counts|toc|ac|linker-resolvers|varnish)(?:/|$))[^/?#]+$", "reason": "Staff tool (T-F27), only the book page's own form /admin/reset/<title>: Django's reset_ref (sefaria/views.py) redirects back to the book (/<title>?m=Reset-Index), so it needs no ?next=; the other /admin/reset/... tools do not return" },
     { "id": "editor-topic", "match": "^/topics/[^?]+\\?(?:.*&)?editor=1", "reason": "Moderators' topic editor (T-F26 note, recorded)" },
-    { "id": "settings-account", "match": "^/settings/account(?:[/?]|$)", "reason": "T-F23 (LAUNCH_PLAN, lane P): account settings stay a Django form; the way back is its Cancel (history back, else /texts) and the header, and the switch back to the classic reader is also in the new reader's menus" },
+    { "id": "settings-account", "match": "^/settings/account(?:[/?]|$)", "reason": "Account settings stay a Django form; the way back is its Cancel (history back, else /texts) and the header, and the switch back to the classic reader is also in the new reader's menus" },
     { "id": "auth-logout", "match": "^/logout(?:[/?]|$)", "reason": "Signs out and redirects back" },
     { "id": "static-cms-pages", "match": "^/(?:team|jobs|products)/?(?:\\?|$)", "reason": "T-F32: About-sidebar pages built by legacy React from the CMS (Strapi): Django's content block has no data; not ported yet (lib/static-page/pages.ts)" },
     { "id": "static-legacy-react", "match": "^/(?:word-by-word|ramban-sponsorships|contest|powered-by-sefaria-contest-2020|powered-by-sefaria-contest-2021)/?(?:\\?|$)", "reason": "T-F32: Django's content block is only a mount point for a legacy React page (StaticPages.jsx); not ported yet" },

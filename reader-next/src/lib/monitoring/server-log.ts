@@ -1,5 +1,5 @@
 /**
- * Structured server logs for the reader's Node process (LAUNCH_PLAN T-D02, Node side): one JSON line per page request on stdout, the
+ * Structured server logs for the reader's Node process: one JSON line per page request on stdout, the
  * shape Datadog's log pipeline parses without a custom grok rule (`status`, `duration` in nanoseconds, `http.*`, `network.*`). The
  * fields operations alert on: request id, path kind, status, duration, upstream status, pass-through flag.
  *
@@ -7,7 +7,7 @@
  * the response and should be forwarded to Django on every upstream call (internal fetch and pass-through), so a reader 5xx can be
  * joined with Django's own log line.
  *
- * The API (src/start.ts belongs to lane E; these are the two calls it makes):
+ * The API (src/start.ts makes these two calls):
  *
  *     const log = beginRequestLog(request);                          // first thing in the outermost request middleware
  *     return log.finish(response, { upstreamStatus, passThrough });  // on the way out (also sets X-Request-Id on the response)

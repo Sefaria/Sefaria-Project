@@ -17,7 +17,7 @@ export interface SplitViewProps<Id extends string> {
   className?: string;
   /** Accessible name for the outermost group, if it is a split. */
   label?: string;
-  /** A leaf's identity for React when its id follows its position (the workspace's panels: CODE_REVIEW R-24). Default: the id. */
+  /** A leaf's identity for React when its id follows its position (the workspace's panels). Default: the id. */
   leafKey?: (id: Id) => string;
 }
 

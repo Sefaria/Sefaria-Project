@@ -6,7 +6,7 @@ import { TranslationsView } from "./TranslationsView";
 import { CURRENT, storyLanguages } from "./story-data";
 
 // These render the whole recorded list of Genesis 1:1's translations (about 2.5 s a test with userEvent): the default 5 s timed out
-// in every lane's gate under parallel load (wave 2), while each passed in 18 s for the file at load 34. A real hang still fails.
+// in gate runs under heavy parallel load, while each passed in 18 s for the file at load 34. A real hang still fails.
 vi.setConfig({ testTimeout: 20_000 });
 
 const href = (v: { languageFamilyName: string; versionTitle: string }) => `/Genesis.1.1?ven=${v.languageFamilyName}|${v.versionTitle.replace(/ /g, "_")}`;
@@ -71,7 +71,7 @@ describe("TranslationsView (Genesis 1:1, recorded)", () => {
     expect(screen.getByRole("heading", { name: "תרגומים" })).toBeInTheDocument();
     expect(screen.getByText("נוכחי")).toBeInTheDocument();
     expect(screen.getAllByRole("region")[0]).toHaveAccessibleName("אנגלית");
-    // a11y S5: Select and Preview are named in Hebrew too
+    // Regression: Select and Preview are named in Hebrew too
     expect(screen.getAllByRole("link", { name: /^בחירה: / }).length).toBeGreaterThan(0);
     expect(screen.queryAllByRole("link", { name: /^Select / })).toHaveLength(0);
   });

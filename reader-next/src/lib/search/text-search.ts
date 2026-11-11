@@ -82,7 +82,7 @@ export async function fetchTextSearchPage(query: string, path: string, start: nu
     headers: { "content-type": "text/plain" },
     body: JSON.stringify(textQueryBody(query, path, start)),
     signal,
-    deadlineMs: POST_READ_DEADLINE_MS, // a read: bounded on the server like a GET (review F05)
+    deadlineMs: POST_READ_DEADLINE_MS, // a read: bounded on the server like a GET
   } as RequestInit);
   const d = await apiJson<{ hits?: { total?: { value?: number } | number; hits?: SearchHit[] } }>(r, `Search for "${query}"`);
   const total = typeof d.hits?.total === "number" ? d.hits.total : (d.hits?.total?.value ?? 0);

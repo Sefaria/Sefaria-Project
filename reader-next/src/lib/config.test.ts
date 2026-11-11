@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { serverConfigProblems } from "./config";
 
-// CODE_REVIEW R-35: a broken configuration fails at start, not on every request
+// Regression: a broken configuration fails at start, not on every request
 describe("serverConfigProblems", () => {
   it("accepts local development (no settings) and the cluster's settings", () => {
     expect(serverConfigProblems({})).toEqual([]);
@@ -18,7 +18,7 @@ describe("serverConfigProblems", () => {
   });
 });
 
-// LAUNCH_PLAN T-C08: canonical and Open Graph URLs are absolute, from their own origin (PUBLIC_SITE_ORIGIN is "" in the cluster)
+// Canonical and Open Graph URLs are absolute, from their own origin (PUBLIC_SITE_ORIGIN is "" in the cluster)
 describe("the canonical origin", () => {
   it("is the configured absolute origin, else sefaria.org's", async () => {
     const { canonicalOriginFrom, canonicalUrl } = await import("./config");

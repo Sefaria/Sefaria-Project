@@ -160,7 +160,7 @@ export const SSO_CONFIG = {
 export const configScript = () => `window.__SEFARIA_CONFIG__=${JSON.stringify(PUBLIC_CONFIG).replace(/</g, "\\u003c")};`;
 
 /**
- * Problems with the server's configuration, checked once at start (CODE_REVIEW R-35): the server must reach the API at an absolute
+ * Problems with the server's configuration, checked once at start: the server must reach the API at an absolute
  * http(s) origin — an empty SEFARIA_API_ORIGIN with a same-origin PUBLIC_API_ORIGIN ("") gave relative URLs on the server, which
  * fail on every request. Pure, so it can be tested; src/start.ts decides what to do with the answer.
  */

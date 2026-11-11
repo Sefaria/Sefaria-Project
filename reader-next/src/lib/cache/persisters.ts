@@ -85,7 +85,7 @@ export function maxAgeForKey(key: string): number | undefined {
  */
 export async function collectGarbage(budgetBytes?: number): Promise<SweepResult> {
   const result = await sweepOnce({ maxAgeFor: maxAgeForKey, budgetBytes });
-  await sweepRefIndexDisk().catch(() => 0); // the ref index keeps its own stores (review F12)
+  await sweepRefIndexDisk().catch(() => 0); // the ref index keeps its own stores
   return result;
 }
 
@@ -96,7 +96,7 @@ export function resetPersisters(): void {
 }
 
 /**
- * Write to disk what the server rendered (CODE_REVIEW R-20): the persister writes a query when its queryFn runs, and queries seeded
+ * Write to disk what the server rendered: the persister writes a query when its queryFn runs, and queries seeded
  * by the server render never run theirs — so the very page a reader landed on was the one page not kept for next time. Run once
  * after hydration; only classes that are persisted, only successful data.
  */
@@ -107,7 +107,7 @@ export async function persistHydrated(queryClient: QueryClient): Promise<number>
     if (!dataClass || query.state.status !== "success" || query.state.data === undefined) continue;
     const persister = getPersister(dataClass);
     if (!persister) continue;
-    // already on disk, as new (fetched on this page and written then, or restored from disk): no second write (CODE_REVIEW low)
+    // already on disk, as new (fetched on this page and written then, or restored from disk): no second write
     const onDisk = await storedDataUpdatedAt(`sr-${dataClass}-${query.queryHash}`);
     if (onDisk !== undefined && onDisk >= query.state.dataUpdatedAt) continue;
     await persister.persistQuery(query).catch(() => undefined);

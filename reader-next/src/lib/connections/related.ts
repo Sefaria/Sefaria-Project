@@ -139,7 +139,7 @@ export const privateSheetsQueryOptions = (uid: number | null, sectionRef: string
  * signal is cancelled and reset when its last observer goes, so opening the sidebar (where the pane mounts twice) aborted the first
  * `/api/related` and sent it again, and closing the sidebar before it answered threw it away for the next opening to send once more
  * (V-EXITS SB-05: one `/api/related` refetch over three in-page reopens). Left to finish, the answer lands in the cache, and the next
- * observer joins the request in flight. A reload still asks again: connections are kept in memory only (CODE_REVIEW R-10).
+ * observer joins the request in flight. A reload still asks again: connections are kept in memory only.
  */
 export const resourcesQueryOptions = (sectionRef: string) =>
   queryOptions<SectionResources>({

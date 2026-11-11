@@ -1,5 +1,5 @@
 /**
- * A static page's content from Django (LAUNCH_PLAN D-5, T-B06/T-F31): `GET /<page>?format=json&lang=en|he` (reader/static_content.py)
+ * A static page's content from Django (docs/DECISIONS.md, D-5): `GET /<page>?format=json&lang=en|he` (reader/static_content.py)
  * answers the page's content block, title, description and stylesheets instead of the page. Always with `lang`, so the answer is
  * the same for everyone and Django marks it public (Varnish and Cloudflare can keep it).
  *

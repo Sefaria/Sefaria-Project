@@ -24,7 +24,7 @@ export function containingSectionRef(ref: string): string {
 /**
  * What to fetch to show a linked ref: its containing section (shared by every link on that verse), or — for a range whose ends lie in
  * different sections ("Genesis 1:31-2:3") — the range itself, which the API answers with every segment it covers. The section of its
- * start alone lost the rest (review F10).
+ * start alone lost the rest.
  */
 export function loadRefFor(ref: string): string {
   const p = parseHumanRef(ref);

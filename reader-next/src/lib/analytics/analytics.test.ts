@@ -91,7 +91,7 @@ describe("head scripts (templates/base.html)", () => {
     expect(s[1]!.src).toBe("https://www.googletagmanager.com/gtag/js?id=G-5S6RP1RFZ2");
     expect(s[2]!.children).toContain(`gtag('config',"G-5S6RP1RFZ2",{"user_id":null,"traffic_type":null,"site_lang":"english","site_version":"v7.2.3"})`);
   });
-  // CODE_REVIEW R-01: a second execution (a re-injected script) must not load GTM again or send another config (= page view)
+  // Regression: a second execution (a re-injected script) must not load GTM again or send another config (= page view)
   it("the GTM and gtag snippets run once per document, however often they execute", () => {
     const w = window as unknown as Record<string, unknown> & { dataLayer?: unknown[] };
     delete window.gtag;

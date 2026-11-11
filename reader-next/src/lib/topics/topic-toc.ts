@@ -49,7 +49,7 @@ export const topicTocQueryOptions = () =>
       queryFn: async ({ signal }: { signal: AbortSignal }): Promise<TopicTocNode[]> => {
         const r = await fetch(`${SEFARIA_API_ORIGIN}/api/topics-toc`, { signal });
         // a backend without the endpoint is an error (not retried, not kept), not an empty list kept on disk for 30 days — which hid
-        // the endpoint for a month once the backend gained it (CODE_REVIEW low list); callers read the data as optional
+        // the endpoint for a month once the backend gained it; callers read the data as optional
         return apiJson<TopicTocNode[]>(r, `Topic TOC`);
       },
     }),

@@ -1,7 +1,7 @@
 /**
- * The `$` route renders two kinds of page: the reader (a text) and a book's page. Each kind's code is its own chunk (LAUNCH_PLAN
- * T-H03), and a page never renders before its kind's chunk is in — never behind a Suspense boundary, which is how the two earlier
- * attempts failed (CODE_REVIEW §6):
+ * The `$` route renders two kinds of page: the reader (a text) and a book's page. Each kind's code is its own chunk,
+ * and a page never renders before its kind's chunk is in — never behind a Suspense boundary, which is how the two earlier
+ * attempts failed:
  *  - typing into a book page's server-rendered dictionary box was lost when the box hydrated late, behind a lazy boundary;
  *  - a lazy boundary that React hid unmounted query observers, which cancelled a fetch a loader was awaiting ("CancelledError").
  *
@@ -24,7 +24,7 @@ const loading: Partial<Record<PageKind, Promise<void>>> = {};
 /**
  * Each kind's import, in its own function: the build's minifier merged `kind === "book" ? import(A) : import(B)` into ONE preload
  * call carrying B's dependency list only, so the book page's stylesheet was never requested in the browser (the page stayed
- * unstyled after hydration; integrator report on /Sefer_HaBahir, wave 4). Separate statements keep separate dependency lists.
+ * unstyled after hydration, e.g. /Sefer_HaBahir). Separate statements keep separate dependency lists.
  */
 const IMPORTS: Record<PageKind, () => Promise<void>> = {
   book: () => import("~/features/book/BookRoute").then((m) => void (loaded.book = m.BookRoute)),

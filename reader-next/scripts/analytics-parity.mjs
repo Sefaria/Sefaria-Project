@@ -1,4 +1,4 @@
-// Analytics parity harness (LAUNCH_PLAN T-D04, TARGET_ARCHITECTURE §6.10 "launch gate per page type"): the same scripted session on
+// Analytics parity harness (a launch check for each page type): the same scripted session on
 // the legacy site (www.sefaria.org, read-only) and on the new reader, every analytics call captured in the page, then a diff of event
 // names and parameters, step by step.
 //

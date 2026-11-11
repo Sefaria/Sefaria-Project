@@ -9,7 +9,7 @@ import { isLocalPath } from "~/lib/html/local-path";
 
 /**
  * Google sign-in (the button's popup and One Tap) posts `{id_token}` here (master's sso/urls.py `google_web`, in place of allauth's stock
- * provider-token endpoint, which had no `outcome` for the auth funnel): 200 `{outcome}`, 400 `{error}` (CODE_REVIEW R-37).
+ * provider-token endpoint, which had no `outcome` for the auth funnel): 200 `{outcome}`, 400 `{error}`.
  */
 export const GOOGLE_CALLBACK_URL = "/api/auth/google/callback";
 
@@ -70,7 +70,7 @@ const CONTROL = /[\u0000-\u001f\u007f-\u009f]/; // eslint-disable-line no-contro
 /**
  * `next` if it stays on this site, else "/". Rejects absolute URLs, `//host`, and what browsers normalise into `//host` (tabs and
  * newlines are dropped by URL parsing: "/\t/evil.com" is https://evil.com/). Any control character (C0, DEL, C1) is a refusal, never
- * stripped, so the value returned is the value checked. The one implementation for every `next` (CODE_REVIEW R-03).
+ * stripped, so the value returned is the value checked. The one implementation for every `next`.
  */
 export function safeNext(next: unknown): string {
   if (!next || typeof next !== "string") return "/";

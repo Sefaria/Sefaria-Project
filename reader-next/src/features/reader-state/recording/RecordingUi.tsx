@@ -1,5 +1,5 @@
 /**
- * Record, download, load and replay reading sessions (docs/READER_STATE_API.md, "Recording and replay"; docs/READER_STATE_PLAN.md, task H).
+ * Record, download, load and replay reading sessions (docs/READER_STATE_API.md, "Recording and replay").
  *
  * A small floating dock (./RecordingDock.tsx), shown only while there is something to show. It starts from the display settings menu
  * ("Record session", "Load recording…", useRecordSessionEntry in ./entry.ts).

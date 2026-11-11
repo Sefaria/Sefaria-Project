@@ -56,7 +56,7 @@ function TextSectionImpl({
   const stripPunctuation = passage.primaryCategory === "Talmud" && !settings.punctuationTalmud && settings.language !== "english";
   const numbered = showsSegmentNumbers(passage.book, passage.categories);
   const isDictionary = passage.categories[0] === "Reference";
-  // the regions and verse groups are named in the interface's language (a11y S5): "בראשית א׳", "בראשית א׳:ג׳"
+  // the regions and verse groups are named in the interface's language: "בראשית א׳", "בראשית א׳:ג׳"
   const he = useInterfaceLang() === "hebrew";
 
   const bySection = useMemo(() => {
@@ -68,7 +68,7 @@ function TextSectionImpl({
   const primaryMeta = passage.primaryVersion;
   const translationMeta = passage.translationVersion;
   // Each segment's sides, built once per passage: inline objects were new on every render and defeated Segment's memo, so a new
-  // section (or a links update) re-rendered every verse already on screen (CODE_REVIEW R-12)
+  // section (or a links update) re-rendered every verse already on screen
   const sides = useMemo(() => {
     const m = new Map<string, { primary?: SegmentSide; translation?: SegmentSide }>();
     for (const seg of passage.segments) {
@@ -84,7 +84,7 @@ function TextSectionImpl({
     <ReaderSurface language={settings.language} layout={layout} biLayout={biLayout} fontSize={settings.fontSize}>
       {passage.sectionRefs.map((sectionRef, idx) => {
         const parsed = parseHumanRef(sectionRef);
-        // as sefaria.org prints it (parity S7, S13); a later section of a spanning passage has no Hebrew ref of its own: the first's,
+        // as sefaria.org prints it; a later section of a spanning passage has no Hebrew ref of its own: the first's,
         // with its numbers swapped
         const heSectionRef = idx === 0 ? passage.heSectionRef : laterHebrewSectionRef({ heSectionRef: passage.heSectionRef, sections: parseHumanRef(passage.sectionRefs[0]!).sections }, parsed.sections, passage.addressTypes, passage.heIndexTitle);
         const title = sectionHeading({

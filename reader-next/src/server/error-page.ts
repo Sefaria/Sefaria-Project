@@ -1,6 +1,6 @@
 /**
- * The page a reader gets when the library behind this server is not answering (T-F28): status 503 with Retry-After (the truth for
- * crawlers, and the signal a proxy can fall back on, CODE_REVIEW R-05) and a real page instead of a line of plain text.
+ * The page a reader gets when the library behind this server is not answering: status 503 with Retry-After (the truth for
+ * crawlers, and the signal a proxy can fall back on) and a real page instead of a line of plain text.
  *
  * It is a fixed document, not a render of the app: the app's render needs the API that just failed (the signed-in reader, the
  * remote config, the catalog). It carries the site's logo linking home, the message in the interface language (the `interfaceLang`

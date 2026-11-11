@@ -60,7 +60,7 @@ export async function passThrough(request: Request): Promise<Response> {
     init.body = request.body;
     init.duplex = "half";
   }
-  // a read gets a deadline (Django pages can be slow, so longer than the API's); a write is never cut short (CODE_REVIEW R-05)
+  // a read gets a deadline (Django pages can be slow, so longer than the API's); a write is never cut short
   if (request.method === "GET" || request.method === "HEAD") (init as DeadlineInit).deadlineMs = PASS_THROUGH_TIMEOUT_MS;
   let res: Response;
   try {

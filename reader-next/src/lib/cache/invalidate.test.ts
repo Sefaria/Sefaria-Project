@@ -17,7 +17,7 @@ beforeEach(() => {
   setStaffFreshness(false);
 });
 
-// D-7 (LAUNCH_PLAN T-E01): text was fresh for 7 days, so an edit could stay invisible for a week
+// Regression (docs/DECISIONS.md, D-7): text was fresh for 7 days, so an edit could stay invisible for a week
 describe("freshness", () => {
   it("text and catalog are asked again after an hour; the disk still keeps them for 30 days", () => {
     expect(POLICIES.text.staleTime).toBe(HOUR);

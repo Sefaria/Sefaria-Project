@@ -2,8 +2,8 @@
  * Auth funnel analytics (auth_flow_started / auth_method_chosen / auth_process_started / auth_process_ended / auth_flow_ended), for
  * login and registration alike, every method (email, Google, Apple, Google One Tap). Ported from master's
  * static/js/auth/authAnalytics.js: same event names, same parameters (flow_intent, outcome), same sessionStorage keys and the
- * sefaria_sso_outcome cookie. (It replaced the sign_up_* funnel of signupAnalytics.js, which this client first ported:
- * CODE_REVIEW R-08 — parity follows master.)
+ * sefaria_sso_outcome cookie. (It replaced the sign_up_* funnel of signupAnalytics.js, which this client first ported;
+ * parity follows master.)
  *
  * Everything goes through `trackAuthEvent`, which hands the event to the shared analytics module (src/lib/analytics: gtag, and the
  * in-memory log tests read).

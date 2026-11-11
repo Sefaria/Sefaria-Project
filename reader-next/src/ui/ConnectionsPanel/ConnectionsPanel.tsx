@@ -32,7 +32,7 @@ export interface ConnectionsPanelProps {
  * @feature CON-070 Sidebar header title, back and close
  */
 export function ConnectionsPanel({ title, back, onClose, actions, lang, onLang, label, children }: ConnectionsPanelProps) {
-  // names in the interface's language (a11y S5: the Hebrew interface read "Resources", "Close", "… Language Toggle Icon")
+  // names in the interface's language (the Hebrew interface read "Resources", "Close", "… Language Toggle Icon")
   const he = useInterfaceLang() === "hebrew";
   const name = typeof label === "string" ? (he ? (VIEW_NAMES_HE[label] ?? label) : label) : he ? label.he || label.en : label.en;
   // the sidebar's language button says what it does (a11y N8; it was "Hebrew Language Toggle Icon")

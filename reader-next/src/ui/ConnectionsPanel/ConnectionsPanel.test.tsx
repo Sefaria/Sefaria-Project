@@ -31,7 +31,7 @@ describe("ConnectionsPanel", () => {
     expect(screen.queryByRole("button", { name: "Close" })).toBeNull();
   });
 
-  // a11y S5 and N8: the Hebrew interface names the panel, Close and the language button in Hebrew; the button says what it does
+  // Regression: the Hebrew interface names the panel, Close and the language button in Hebrew; the button says what it does
   it("is named in the interface's language, its language button by what it does", () => {
     const { rerender } = render(<ConnectionsPanel label="Resources" title="R" lang="en" onLang={() => {}} onClose={() => {}}>x</ConnectionsPanel>);
     expect(screen.getByRole("button", { name: "Show in Hebrew" })).toBeInTheDocument();

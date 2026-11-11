@@ -24,7 +24,7 @@ import type { QueryClient } from "@tanstack/react-query";
 
 /**
  * The old address for a text in one version, `/<ref>/<lang>/<version>` (Django's `old_versions_redirect`, sefaria/urls_shared.py):
- * a 301 to `/<ref>?v<lang>=<version>` with the request's own query after it (LAUNCH_PLAN T-E08). A title that itself contains
+ * a 301 to `/<ref>?v<lang>=<version>` with the request's own query after it. A title that itself contains
  * "/<two letters>/" would be read the same way; Django checks the joined string against its catalog first, and no such title exists.
  */
 export function oldVersionsRedirect(splat: string): { ref: string; lang: string; version: string } | null {

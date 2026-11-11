@@ -1,4 +1,4 @@
-// The ref torture corpus (LAUNCH_PLAN T-E02, T-E08): addresses whose resolution is easy to get wrong, from the server's own ref tests
+// The ref torture corpus: addresses whose resolution is easy to get wrong, from the server's own ref tests
 // (sefaria/model/tests/ref_test.py, he_ref_test.py) and the categories in the wiki's consultation-questions.md / ref-resolution.md.
 // scripts/ref-corpus.mjs opens each on www.sefaria.org and on this reader and compares where it lands and what it highlights;
 // e2e/ref-corpus.spec.ts replays the stable ones through the cassette against what www.sefaria.org did (scripts/ref-corpus.expected.json).

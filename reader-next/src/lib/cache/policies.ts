@@ -17,12 +17,12 @@ export interface CachePolicy {
 }
 
 export const POLICIES: Record<DataClass, CachePolicy> = {
-  // Text and catalog are revalidated at most an hour after they were fetched (D-7, LAUNCH_PLAN T-E01). The disk keeps them for 30 days,
+  // Text and catalog are revalidated at most an hour after they were fetched (docs/DECISIONS.md, D-7). The disk keeps them for 30 days,
   // so a page still paints from disk at once; past the hour the stored copy shows and a fetch (through Varnish) refreshes it behind.
   catalog: { staleTime: HOUR, gcTime: 6 * HOUR, maxAge: 30 * DAY },
   text: { staleTime: HOUR, gcTime: 6 * HOUR, maxAge: 30 * DAY },
-  // memory only (CODE_REVIEW R-10): a chapter's link rows are megabytes (Genesis 1: 6.3 MB), cheap to refetch through Varnish and
-  // never worth a disk write; counts per segment will come from the server instead (TARGET_ARCHITECTURE §6.7)
+  // memory only: a chapter's link rows are megabytes (Genesis 1: 6.3 MB), cheap to refetch through Varnish and
+  // never worth a disk write; counts per segment will come from the server instead
   connections: { staleTime: HOUR, gcTime: 30 * MINUTE, maxAge: 0 },
   reference: { staleTime: 30 * DAY, gcTime: 6 * HOUR, maxAge: 90 * DAY },
   search: { staleTime: 5 * MINUTE, gcTime: 30 * MINUTE, maxAge: 0 },

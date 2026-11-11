@@ -66,7 +66,7 @@ describe("revision history under /activity", () => {
 });
 
 // @feature NTF-001 @feature PRO-010 @feature LIB-022 @feature RTE-031 @feature RTE-015
-describe("notifications, Torah Tracker and New Additions (wave 2, lane P)", () => {
+describe("notifications, Torah Tracker and New Additions", () => {
   const pages = ["/notifications", "/notifications/", "/torahtracker", "/torahtracker/", "/updates"];
   it("are this client's on the Library host: a click stays in the app", () => {
     for (const p of pages) {

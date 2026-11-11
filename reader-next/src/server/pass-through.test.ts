@@ -61,7 +61,7 @@ describe("isDjangoPath (PLT deployment: which requests go to Django)", () => {
 
 // @feature ACC-011 @feature ACC-007
 describe("the reset link (auth port)", () => {
-  it("this client's own server functions are never Django's, even a POST (CODE_REVIEW low)", () => {
+  it("this client's own server functions are never Django's, even a POST", () => {
     expect(isDjangoPath("/_serverFn/abc123", "POST")).toBe(false);
     expect(isDjangoPath("/_serverFn/abc123", "GET")).toBe(false);
     expect(isDjangoPath("/_serverFnX", "POST")).toBe(true);
@@ -90,7 +90,7 @@ describe("the reset link (auth port)", () => {
   });
 });
 
-// low list (CODE_REVIEW): a Django failure on the reset link is passed on, not hidden behind a redirect to "link expired"
+// Regression: a Django failure on the reset link is passed on, not hidden behind a redirect to "link expired"
 describe("passResetLink when Django fails", () => {
   it("passes a 5xx on as it is", async () => {
     const res = await passResetLink(new Request("http://x/password/reset/confirm/MTI/tok/"), "MTI", async () => new Response("down", { status: 502 }));

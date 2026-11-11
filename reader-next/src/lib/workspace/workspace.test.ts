@@ -33,7 +33,7 @@ describe("workspace operations", () => {
     expect(panelOrder(ws)).toEqual(["p1", "p2"]);
   });
 
-  // The URL numbers panels by position: ids must too, or a navigation aimed at a panel reaches another (MULTIPANEL_PLAN Step 1)
+  // The URL numbers panels by position: ids must too, or a navigation aimed at a panel reaches another
   it("ids follow position after every change, so a workspace and its URL name panels the same way", () => {
     let ws = openAtEnd(openOnly(EMPTY_WORKSPACE, text("Genesis 1")), text("Exodus 1"));
     const [opened, id] = openNextToWithId(ws, "p1", text("Leviticus 1"));
@@ -152,7 +152,7 @@ describe("URL codec (old grammar)", () => {
     expect(workspaceUrl(decodeWorkspace("Rashi on Genesis 2:1:1", { lang: "bi", aliyot: "1" }))).toBe("/Rashi_on_Genesis.2.1.1?lang=bi");
   });
 
-  // CODE_REVIEW R-04: free text in the URL ("100%", "a&b", "a&p2=Exodus.1") must come back exactly and never add a panel
+  // Regression: free text in the URL ("100%", "a&b", "a&p2=Exodus.1") must come back exactly and never add a panel
   it.each(["100%", "a&b", "a&p2=Exodus.1", "%E0%A4%A", "50% & more = ?", "שלום & 100%", "a+b#c"])("sidebar values round-trip exactly: %s", (v) => {
     for (const [first, extra] of [["Genesis 1:1", {}], ["Genesis 1", { p2: "Exodus.1.1" }]] as const) {
       const suffix = Object.keys(extra).length ? "2" : "";
@@ -169,7 +169,7 @@ describe("URL codec (old grammar)", () => {
     }
   });
 
-  // CODE_REVIEW R-05: every panel is loaded on the server, so the URL may not open an unbounded number of them
+  // Regression: every panel is loaded on the server, so the URL may not open an unbounded number of them
   it(`opens at most ${MAX_PANELS} panels, the first ones`, () => {
     const search: Record<string, string> = { lang: "bi" };
     for (let n = 2; n <= 500; n++) search[`p${n}`] = `Exodus.${n}`;
@@ -178,7 +178,7 @@ describe("URL codec (old grammar)", () => {
     expect((ws.panels.p2 as TextPanelState).ref).toBe("Exodus 2");
   });
 
-  // review of R-04: values the encoders already escape (";" → %3B in version titles) must keep their legacy bytes
+  // Values the encoders already escape (";" → %3B in version titles) must keep their legacy bytes
   it("the legacy string form escapes free text, so it parses back without extra panels", () => {
     const ws = decodeWorkspace("Genesis 1:1", { lang: "bi", with: "SidebarSearch", sbsq: "a&p2=Exodus.1" });
     const url = workspaceUrl(ws)!;

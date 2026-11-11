@@ -1,4 +1,4 @@
-// Writes today's architecture-rule violations to test/architecture/baseline.json (CODE_REVIEW §3.1). Run it only to SHRINK the
+// Writes today's architecture-rule violations to test/architecture/baseline.json. Run it only to SHRINK the
 // baseline after fixing violations; the test fails on anything new.  Usage: node scripts/architecture-baseline.mjs
 import { writeFileSync } from "node:fs";
 import { createJiti } from "jiti";

@@ -3,7 +3,7 @@ import { pageCacheHeaders } from "./cache-policy";
 
 const html = (extra: Record<string, string> = {}) => new Headers({ "content-type": "text/html; charset=utf-8", vary: "Origin", ...extra });
 
-// CODE_REVIEW R-27: a signed-in reader's page must never be kept by a shared cache
+// Regression: a signed-in reader's page must never be kept by a shared cache
 describe("pageCacheHeaders", () => {
   it("a signed-in reader's page is private and never stored", () => {
     const h = pageCacheHeaders("csrftoken=a; sessionid=xyz; interfaceLang=english", html());

@@ -127,7 +127,7 @@ describe("neighbour preload", () => {
   });
 });
 
-// CODE_REVIEW R-05: a long range used to load every one of its sections at once (Psalms 1-150 → 150 requests in one page render)
+// Regression: a long range used to load every one of its sections at once (Psalms 1-150 → 150 requests in one page render)
 describe("a long range loads only its first sections", () => {
   it("Genesis 1:1-10:5 loads Genesis 1–4 up front and keeps the whole range's highlight", async () => {
     const qc = makeQueryClient();
@@ -142,7 +142,7 @@ describe("a long range loads only its first sections", () => {
   });
 });
 
-// CODE_REVIEW low: a commentary range across chapters (its sections cannot be enumerated without the API) lost its highlight
+// Regression: a commentary range across chapters (its sections cannot be enumerated without the API) lost its highlight
 describe("a commentary range across chapters", () => {
   it("shows the sections the API names and highlights the range", async () => {
     const qc = makeQueryClient();
@@ -154,7 +154,7 @@ describe("a commentary range across chapters", () => {
   });
 });
 
-// review F04: a section that arrived after a version change was added in the old versions, and stayed in them
+// Regression: a section that arrived after a version change was added in the old versions, and stayed in them
 describe("fetchInWantedVersions", () => {
   it("fetches again in the versions wanted now when they changed while the section loaded", async () => {
     const { fetchInWantedVersions } = await import("./queries");
@@ -179,7 +179,7 @@ describe("fetchInWantedVersions", () => {
   });
 });
 
-// review F09: a range in a book not met yet downloaded the whole range before the first-sections cap applied
+// Regression: a range in a book not met yet downloaded the whole range before the first-sections cap applied
 describe("a cold long range", () => {
   it("learns the book from the range's first point and asks for no more than its first sections", async () => {
     const { http, HttpResponse } = await import("msw");
@@ -196,7 +196,7 @@ describe("a cold long range", () => {
   });
 });
 
-// Review of lane D: a stale cached section must show at once and be refetched behind, never make the navigation wait on the network
+// A stale cached section must show at once and be refetched behind, never make the navigation wait on the network
 describe("a stale cached section never blocks a navigation", () => {
   it("staff (text never fresh): the cached copy comes back with the server not answering, and is asked for again behind it", { timeout: 3_000 }, async () => {
     const { setStaffFreshness } = await import("~/lib/cache/policies");

@@ -78,7 +78,7 @@ export async function siteRoute(request: Request, pathname: string, render: Rend
         deps.domainModules,
       );
       // a signed-in arrival with ?set-language-cookie is Django's (it saves the profile); its answer also expires a stale host-only
-      // interfaceLang, as /interface/<lang> does (wave 4, lane d-shell's request)
+      // interfaceLang, as /interface/<lang> does
       if (answer === "django")
         return deps.passThroughEnabled ? withHostOnlyLangCookieExpired(await deps.passThrough(request), interfaceCookieDomain(host, deps.domainModules)) : render();
       if (answer instanceof Response) return answer;

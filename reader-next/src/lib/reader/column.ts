@@ -78,7 +78,7 @@ export function scrollCompensation(heightBefore: number, heightAfter: number): n
 }
 
 /**
- * Windowing (CODE_REVIEW R-25): which sections to let go. From each end, the run of sections lying wholly more than `reach` px
+ * Windowing: which sections to let go. From each end, the run of sections lying wholly more than `reach` px
  * beyond the view (stopping at the first one that is kept or not measured); then, if that would leave fewer than `minKept`, the
  * ones nearest the reader are given back until it does not. All-or-nothing was the bug: after a long read with no pause, every
  * section above qualified at once, taking them all would leave too few, so none went and the column only grew.

@@ -1,7 +1,7 @@
 /**
  * After a write, forget what it made wrong: in memory (the queries are invalidated, so what is on screen refetches) and on disk (the
- * stored copies are deleted, so a reload or another tab never paints the old answer for up to the class's 30 days). D-7, LAUNCH_PLAN
- * T-E01.
+ * stored copies are deleted, so a reload or another tab never paints the old answer for up to the class's 30 days). See
+ * docs/DECISIONS.md, D-7.
  *
  * Two ways in:
  * - a write this client makes (`invalidateAfterWrite`): link add/remove, a topic link, a lexicon edit, version flags, notes;

@@ -19,7 +19,7 @@ function Harness() {
   );
 }
 
-// @feature SRC-063 — v-a11y S7: the phone's Sort & filter dialog gives focus back to its button
+// @feature SRC-063 — the phone's Sort & filter dialog gives focus back to its button
 describe("MobileFilterPanel", () => {
   for (const how of ["Escape", "Close", "Show Results"] as const) {
     it(`closed with ${how}, focus goes back to "Sort & filter results"`, async () => {

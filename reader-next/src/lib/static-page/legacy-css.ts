@@ -57,7 +57,7 @@ export const LEGACY_BODY_DEFAULTS = `#staticContentWrapper,
 /* sefaria.org's header is fixed over the page (60px, header.css) and the page starts at the top of the window under it: its first
    block clears the header with its own space (.staticPageHeader's margin-top: 60px, #aboutSidebar's 120px…). Here the header is in
    the flow and the page starts below it, so the content goes up by the header's height and its first 60px sit under the header, as
-   there (parity S12: every static page was 60px lower). The header paints over it (SiteHeader: position relative, z-index). With the
+   there (without it every static page was 60px lower). The header paints over it (SiteHeader: position relative, z-index). With the
    attribute, so the legacy "body { margin: 0 }" (s2.css, scoped to the wrapper below) does not undo it. */
 #staticContentWrapper[data-static-page] {
   margin-top: -60px;

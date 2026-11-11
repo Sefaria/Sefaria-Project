@@ -38,7 +38,7 @@ describe("normaliseTexts across book types", () => {
     expect(p.segments[0]!.ref).toBe("Berakhot 2a:1");
   });
 
-  // CODE_REVIEW R-18: a segment range across chapters gave refs like "Genesis 1:30-31:1"
+  // Regression: a segment range across chapters gave refs like "Genesis 1:30-31:1"
   it("a segment range across chapters: each part starts at its own verse", () => {
     const p = load("genesis-1-30-2-3");
     expect(p.isSpanning).toBe(true);

@@ -53,7 +53,7 @@ export const nameQueryOptions = (text: string, types: readonly string[] = LIBRAR
   if (topicPool !== null) params.append("topic_pool", topicPool);
   return queryOptions<NameResponse>({
     // memory only: every prefix typed into the search box was kept on disk for 90 days (bloat, and search history left behind on a
-    // shared machine — CODE_REVIEW low list)
+    // shared machine)
     ...withPolicy("search", {
       queryKey: ["name", t, [...types], topicPool] as const,
       queryFn: async ({ signal }: { signal: AbortSignal }): Promise<NameResponse> => {
