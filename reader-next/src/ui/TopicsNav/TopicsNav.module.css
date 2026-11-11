@@ -186,8 +186,8 @@
 .alphabet :lang(he) { font-family: var(--sefaria-font-ui-he); }
 .allTopicsList { min-height: 500px; }
 
-/* ---- a phone (the old .singlePanel) ---- */
-@media (max-width: 842px) {
+/* ---- a phone (the old .singlePanel): the library pages' phone layout, 700px or less ---- */
+@media (max-width: 700px) {
   .landingHeader { margin-block-end: 10px; font-size: 30px; font-weight: 600; }
   .firstSection { margin-block-start: 18px; }
   .afterSearch { margin-block-start: 36px; }

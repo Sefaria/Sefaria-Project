@@ -11,8 +11,8 @@
 .button { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 221px; height: 39px; margin: 22px 0 0; padding: 16px 30px; border-radius: 6px; background: var(--sefaria-color-brand, var(--sefaria-color-brand)); box-shadow: var(--sefaria-shadow-1); color: var(--sefaria-color-on-brand); font-size: 16px; line-height: 19px; text-decoration: none; white-space: nowrap; }
 .button:hover { color: var(--sefaria-color-on-brand); }
 .button img { width: 18px; height: 18px; margin-block-start: -2px; margin-inline-end: 10px; vertical-align: middle; }
-/* the old .button.small (Make a Donation): as wide as its label, 10px 14px, 12px under the text, the heart inverted */
-.button.auto { display: inline-block; width: fit-content; height: auto; margin-block-start: 12px; padding: 10px 14px; }
+/* the old .button.small (Make a Donation): as wide as its label, 10px 14px, 12px under the text, the heart inverted; it wraps (no nowrap, as the old button), so a narrow sidebar can narrow past the label as on sefaria.org */
+.button.auto { display: inline-block; width: fit-content; height: auto; margin-block-start: 12px; padding: 10px 14px; white-space: normal; }
 .button.auto img { filter: invert(1); }
 /* .navSidebarLink with its .navSidebarIcon */
 .links { margin-block-start: 20px; }
@@ -47,7 +47,8 @@
 .socialButton { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; width: 40px; height: 40px; border: 1px solid var(--sefaria-color-border-strong); border-radius: 6px; background: var(--sefaria-color-surface); }
 .socialButton img { width: 18px; height: 18px; }
 .phoneOnly { display: none; }
-@media (max-width: 842px) {
+/* the phone layout (700px or less, where NavPage puts the sidebar under the page) */
+@media (max-width: 700px) {
   .wideOnly { display: none; }
   /* the old phone Learning Schedules page: its About module at the top of the page, the title without the rule (measured) */
   .phoneOnly { display: block; }
@@ -82,6 +83,6 @@
 .recentHeader .allHistory { margin-block-start: 5px; color: var(--sefaria-color-text-muted); }
 .recentPhone .recentList { margin: 0 10px; }
 .recentPhone { display: none; }
-@media (max-width: 842px) {
+@media (max-width: 700px) {
   .recentPhone { display: block; }
 }

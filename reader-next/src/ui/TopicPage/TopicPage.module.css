@@ -9,11 +9,14 @@
 .columns { display: flex; flex-direction: row; padding-block-start: 60px; }
 /* .storyFeedInner: a 760px column (40px padding) centred beside the 420px side column */
 .main { box-sizing: border-box; width: 760px; max-width: 100%; margin: 0 auto; padding: 0 40px 80px; min-height: 500px; min-width: 0; }
-/* the side column's grey runs to the bottom of the page (a flex item, stretched) and 80px above its top (the old negative margin) */
-.side { flex: 0 0 420px; width: 420px; box-sizing: border-box; background: var(--sefaria-color-surface-subtle); border-block-start: 80px solid var(--sefaria-color-surface-subtle); margin-block-start: -80px; }
+/* the side column's grey runs to the bottom of the page (a flex item, stretched) and 80px above its top (the old negative margin); under
+   1180px it shrinks with the page column in the ratio of their inner widths (680 : 420), as the old .columnLayout flex row did */
+.side { flex: 0 1 420px; width: 420px; box-sizing: border-box; background: var(--sefaria-color-surface-subtle); border-block-start: 80px solid var(--sefaria-color-surface-subtle); margin-block-start: -80px; }
 .sideInner { margin-block-end: 20px; }
 /* a portal's side column is the library's NavSidebar (44px in, modules and the footer) */
-.sideNav { padding: 0 44px 120px; }
+/* (44px in on each module, not on the column, so the column shrinks in the old ratio: its inner width is 420, as the old .navSidebar's) */
+.sideNav { padding: 0 0 120px; }
+.sideNav > * { margin-inline: 44px; }
 
 /* ---------------------------------------------------------------- the header */
 .navTitle { display: flex; align-items: flex-start; justify-content: space-between; margin-block-end: 15px; }
@@ -213,8 +216,8 @@ a.meta { text-decoration: none; }
    1-2px per row) */
 :global(html[lang="he"]) .readings, :global(html[lang="he"]) .readings > div, :global(html[lang="he"]) .refLink a { font-family: var(--sefaria-font-text-en); }
 
-/* ---------------------------------------------------------------- a phone (the old single panel) */
-@media (max-width: 842px) {
+/* ---------------------------------------------------------------- a phone (the old single panel): the library pages' phone layout, 700px or less */
+@media (max-width: 700px) {
   .columns { padding-block-start: 25px; }
   .title { margin: 0; }
   .tab { font-size: 16px; }
@@ -263,6 +266,7 @@ a.meta { text-decoration: none; }
 @media (max-width: 540px) {
   /* .topicPanel .navSidebar on a phone: 30px of grey over it, then the single panel's 30px padding */
   .sideNav { width: auto; padding: 30px 15px 0; border-block-start: 30px solid var(--sefaria-color-surface-subtle); }
+  .sideNav > * { margin-inline: 0; }
 }
 @media (max-width: 600px) {
   /* the old (max-width: 600px) .imageWithCaptionPhoto / .topicImage rules reach a portal's picture too: centred, two thirds wide */
