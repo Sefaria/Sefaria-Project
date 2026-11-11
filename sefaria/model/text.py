@@ -2618,7 +2618,7 @@ class Ref(metaclass=RefCacheType):
                     assert isinstance(
                         check_node, JaggedArrayNode
                     )  # Initially used with Mishnah records.  Assumes JaggedArray.
-                    reg = check_node.ref_regex(self._lang, strict=True)
+                    reg = check_node.after_title_regex(self._lang, strict=True)
                     self.sections = self.__get_sections(reg, base, title, use_node=check_node)
                 except InputError:  # Regex doesn't work
                     pass
@@ -2654,7 +2654,7 @@ class Ref(metaclass=RefCacheType):
 
         reg = None
         try:
-            reg = self.index_node.ref_regex(self._lang, terminated=True)  # Try to treat this as a JaggedArray
+            reg = self.index_node.after_title_regex(self._lang, terminated=True)  # Try to treat this as a JaggedArray
         except AttributeError:
             if self.index_node.is_virtual:
                 # The line below will raise InputError (or DictionaryEntryNotFoundError) if no match
@@ -2681,13 +2681,13 @@ class Ref(metaclass=RefCacheType):
         # Numbered Structure node - try numbered structure parsing
         if reg and self.index_node.children and getattr(self.index_node, "_addressTypes", None):
             try:
-                loose_reg = self.index_node.ref_regex(self._lang)
+                loose_reg = self.index_node.after_title_regex(self._lang)
                 struct_indexes = self.__get_sections(loose_reg, base, title)
                 self.index_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], self.index_node)
                 address_end = loose_reg.match(base, len(title)).end()
                 title = self.book = self.index_node.full_title("en")
                 base = title + base[address_end:]
-                reg = self.index_node.ref_regex(self._lang, terminated=True)
+                reg = self.index_node.after_title_regex(self._lang, terminated=True)
             except InputError:
                 pass
             # TODO: ranges that cross structures
@@ -2722,7 +2722,7 @@ class Ref(metaclass=RefCacheType):
 
                     try:  # Some structure nodes don't have .regex() methods.
                         # Not strict, since the array map portion will go beyond
-                        reg = alt_struct_node.ref_regex(self._lang)
+                        reg = alt_struct_node.after_title_regex(self._lang)
                     except AttributeError:
                         pass
                     else:
@@ -2736,7 +2736,7 @@ class Ref(metaclass=RefCacheType):
                                 address_end = reg.match(base, len(title)).end()
                                 title = alt_struct_node.full_title("en")
                                 base = title + base[address_end:]
-                                reg = alt_struct_node.ref_regex(self._lang, terminated=True)
+                                reg = alt_struct_node.after_title_regex(self._lang, terminated=True)
                             except InputError:
                                 pass
 
@@ -2800,7 +2800,9 @@ class Ref(metaclass=RefCacheType):
         return JaggedArrayNode.get_index_offset(section_indexes, index_offsets_by_depth)
 
     def __get_sections(self, reg, tref, title, use_node=None):
-        """reg is a ref_regex() of use_node, matched after `title`, which tref starts with."""
+        """reg is an after_title_regex() of use_node, matched after `title`, which tref starts with."""
+        if not tref.startswith(title):
+            raise InputError(f"Can not parse sections from ref: {tref} does not start with {title}")
         use_node = use_node or self.index_node
         sections = []
         ref_match = reg.match(tref, len(title))

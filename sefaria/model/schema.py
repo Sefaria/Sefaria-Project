@@ -1,6 +1,6 @@
 import copy
 import dataclasses
-from functools import reduce
+from functools import cache, reduce
 from typing import Optional
 
 import re2 as re
@@ -958,7 +958,10 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
 """
 
 
-_shared_after_title_regexes = {}  # pattern string -> compiled regex, see NumberedTitledTreeNode.ref_regex()
+@cache
+def _compile_after_title_regex(pattern):
+    """One compiled object per pattern string, shared by nodes. See NumberedTitledTreeNode.after_title_regex()."""
+    return regex.compile(pattern, regex.VERBOSE)
 
 
 class NumberedTitledTreeNode(TitledTreeNode):
@@ -1120,24 +1123,20 @@ class NumberedTitledTreeNode(TitledTreeNode):
             )
         return reg
 
-    def ref_regex(self, lang, strict=False, terminated=False):
+    def after_title_regex(self, lang, strict=False, terminated=False):
         """
         The compiled form of what follows the title in full_regex(title, lang, strict=strict, terminated=terminated),
         for parsing a ref string whose title the caller already found: match it at the end of the title,
-        e.g. ref_regex(lang).match(tref, len(title)).
+        e.g. after_title_regex(lang).match(tref, len(title)).
 
         It depends on the address structure alone, so nodes with the same structure share one compiled object
         (Genesis 1 links to ~2,000 titles, with 42 such regexes), instead of compiling one per title.
         """
         key = ("after_title", lang, strict, terminated)
-        compiled = self._regexes.get(key)
-        if compiled is None:
+        if key not in self._regexes:
             reg = self._regex_after_title(lang, strict=strict, terminated=terminated)
-            compiled = _shared_after_title_regexes.get(reg)
-            if compiled is None:
-                compiled = _shared_after_title_regexes[reg] = regex.compile(reg, regex.VERBOSE)
-            self._regexes[key] = compiled
-        return compiled
+            self._regexes[key] = _compile_after_title_regex(reg)
+        return self._regexes[key]
 
     def address_regex(self, lang, **kwargs):
         group = "a0"
