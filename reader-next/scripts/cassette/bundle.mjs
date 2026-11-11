@@ -2,7 +2,8 @@
 // repository pins (LAUNCH_PLAN T-A04) instead of whatever its cache holds.
 //
 //   node scripts/cassette/bundle.mjs hash                 the content hash of e2e/.cassette (names and bytes of every recording)
-//   node scripts/cassette/bundle.mjs pack [--out <dir>]   write reader-next-e2e-cassette-<hash>.tar.gz and pin it in e2e/cassette.lock
+//   node scripts/cassette/bundle.mjs pack [--out <dir>]   scrub e2e/.cassette of personal data (scrub.mjs), then write
+//                                                         reader-next-e2e-cassette-<hash>.tar.gz and pin it in e2e/cassette.lock
 //   node scripts/cassette/bundle.mjs unpack <file>        replace e2e/.cassette with a bundle; fails unless it matches the lock's hash
 //   node scripts/cassette/bundle.mjs fetch [--strict]     CI: download the pinned bundle and unpack it; prints mode=replay, or
 //                                                         mode=auto (with a warning) when there is no lock or no bundle yet.
@@ -18,6 +19,7 @@ import { execFileSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { scrubCassette } from "./scrub.mjs";
 
 const HERE = new URL("../../", import.meta.url).pathname;
 export const DIR = process.env.E2E_CASSETTE_DIR || join(HERE, "e2e/.cassette");
@@ -57,8 +59,12 @@ export function readLock() {
 }
 
 function pack(outDir) {
+  if (!recordings(DIR).length) throw new Error(`${DIR} has no recordings: run the e2e suite first (E2E_API_MODE=auto records what it needs)`);
+  // A bundle is a public release asset: recordings are scrubbed in place first, and a recording the scrub cannot clean stops the pack.
+  const scrubbed = scrubCassette(DIR);
+  if (scrubbed.leaks.length) throw new Error(`personal data the scrub rules do not cover:\n  ${scrubbed.leaks.slice(0, 20).join("\n  ")}`);
+  console.log(`scrubbed ${scrubbed.changed.length} of ${scrubbed.recordings} JSON recordings`);
   const { hash, files, bytes } = hashDir();
-  if (!files) throw new Error(`${DIR} has no recordings: run the e2e suite first (E2E_API_MODE=auto records what it needs)`);
   mkdirSync(outDir, { recursive: true });
   const out = join(outDir, assetName(hash));
   const list = join(mkdtempSync(join(tmpdir(), "cassette-")), "files");

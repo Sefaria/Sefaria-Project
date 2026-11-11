@@ -26,12 +26,14 @@ const HERE = new URL("../../", import.meta.url).pathname;
 export const ROOT = process.env.FIXTURES_DIR || join(HERE, "fixtures");
 const KEEP = new URL("./keep.txt", import.meta.url).pathname;
 
-export const SERVICE_EMAILS = new Set(["hello@sefaria.org", "help@sefaria.org", "contact@sefaria.org", "corrections@sefaria.org", "developers@sefaria.org", "info@sefaria.org"]);
-const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-z]{2,}/g;
+export const SERVICE_EMAILS = new Set(
+  ["hello", "help", "contact", "corrections", "developers", "info", "donate", "education", "notifications"].map((role) => `${role}@sefaria.org`),
+);
+const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 const PROFILE = /\/profile\/([A-Za-z0-9._~%-]+)/g;
 const PROFILE_PICTURE = /^https?:\/\/(storage\.googleapis\.com\/sefaria-profile-pictures|(www\.|secure\.)?gravatar\.com)\//;
 
-const PERSON_NAME_KEYS = ["ownerName", "viaOwnerName", "assignerName", "full_name", "fullName", "author_name", "authorName", "username"];
+const PERSON_NAME_KEYS = ["ownerName", "viaOwnerName", "assignerName", "full_name", "fullName", "first_name", "firstName", "last_name", "lastName", "owner_name", "author_name", "authorName", "username"];
 const PROFILE_URL_KEYS = ["ownerProfileUrl", "viaOwnerProfileUrl", "assignerProfileUrl", "profileUrl", "profile_url", "authorUrl", "author_url"];
 const IMAGE_KEYS = ["ownerImageUrl", "imageUrl", "profile_pic_url", "profilePicUrl", "profile_pic_url_small", "author_image", "ownerImage"];
 const USER_ID_KEYS = ["owner", "assigner", "uid", "user_id", "userId"];
@@ -195,6 +197,26 @@ export function scrubFiles(root = ROOT, files = listJson(root)) {
   return parsed.map(([f, text, data]) => [f, text, serialise(s.scrub(data))]);
 }
 
+// Fields that only ever hold data about a person. --check fails on any of them holding something other than a placeholder, so a
+// recording with a new kind of person field is caught even before the scrub has a rule for it.
+const PERSONAL_KEYS = new Set([...PERSON_NAME_KEYS, ...PROFILE_URL_KEYS, "ownerImageUrl", "profile_pic_url", "profilePicUrl", "profile_pic_url_small", "author_image", "email", "emailAddress", "email_address", "phone", "phone_number", "phoneNumber"]);
+const PLACEHOLDER = /^(Sheet Author \d+|\/profile\/sheet-author-\d+|user\d+@example\.com)$/;
+
+/** Person fields (PERSONAL_KEYS) in a parsed value that hold anything but a placeholder, as "key: value". */
+export function findPersonalKeys(value) {
+  const hits = [];
+  const walk = (node) => {
+    if (Array.isArray(node)) return node.forEach(walk);
+    if (!node || typeof node !== "object") return;
+    for (const [k, v] of Object.entries(node)) {
+      if (PERSONAL_KEYS.has(k) && typeof v === "string" && v && !PLACEHOLDER.test(v)) hits.push(`${k}: ${v}`);
+      else walk(v);
+    }
+  };
+  walk(value);
+  return hits;
+}
+
 /** Personal data left in a string of JSON text: real-looking emails, profile links, profile pictures, owner names. */
 export function findPersonalData(text) {
   const hits = [];
@@ -246,7 +268,7 @@ function main(argv) {
   const leaks = [];
   for (const [f, before, after] of scrubFiles()) {
     bytes += Buffer.byteLength(after);
-    for (const hit of findPersonalData(after)) leaks.push(`${f}: ${hit}`);
+    for (const hit of [...findPersonalData(after), ...findPersonalKeys(JSON.parse(after))]) leaks.push(`${f}: ${hit}`);
     if (before === after) continue;
     changed++;
     if (!check) writeFileSync(join(ROOT, f), after);
