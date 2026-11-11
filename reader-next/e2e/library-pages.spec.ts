@@ -25,6 +25,15 @@ const style = (page: Page, selector: string, props: string[]) =>
     return { ...Object.fromEntries(props.map((p) => [p, cs.getPropertyValue(p)])), x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) };
   }, props);
 
+/**
+ * A position that follows the About list's width: the list is as wide as its widest link's text (max-content, as on sefaria.org), and
+ * the same Roboto/Heebo text measures differently per platform: macOS lays glyphs out at fractional advances ("Sefaria's Products" is
+ * 128.34px, so "Updates" sits at x=288.34), Linux Chromium rounds each advance to a whole pixel, which made the list a fraction narrower
+ * (x=287.x, CI run 42961568786) or, in Hebrew, wider (309.x). Not a fractional layout of ours: everything else is whole pixels. So these
+ * x/w values, and only these, are checked to 1px.
+ */
+const textWide = (actual: number, expected: number, what: string) => expect(Math.abs(actual - expected), `${what}: ${actual} is ${expected} ± 1px`).toBeLessThanOrEqual(1);
+
 const headerBottom = (page: Page) => page.getByRole("banner").evaluate((el) => Math.round(el.getBoundingClientRect().bottom));
 
 const lang = async (page: Page, l: "english" | "hebrew") => page.context().addCookies([{ name: "interfaceLang", value: l, domain: "localhost", path: "/" }]);
@@ -44,13 +53,15 @@ test.describe("New Additions (/updates)", () => {
     const top = await headerBottom(page);
     // sefaria.org at 1280px: the list from x=0 (its links at 50), "Updates" at x=288, 80px under the header, 22px/500 #666
     const h1 = await style(page, "#updatesPage h1", ["font-size", "font-weight", "color", "padding-top", "margin-bottom"]);
-    expect(h1).toMatchObject({ x: 288, y: top + 80, "font-size": "22px", "font-weight": "500", color: "rgb(102, 102, 102)", "padding-top": "2px", "margin-bottom": "30px" });
+    textWide(h1.x, 288, "'Updates' x");
+    expect(h1).toMatchObject({ y: top + 80, "font-size": "22px", "font-weight": "500", color: "rgb(102, 102, 102)", "padding-top": "2px", "margin-bottom": "30px" });
     const first = await style(page, "nav[aria-label='About Sefaria'] a", ["font-size", "color"]);
     expect(first).toMatchObject({ x: 50, y: top + 86, "font-size": "16px", color: "rgb(102, 102, 102)" });
     const chip = await style(page, "nav[aria-label='About Sefaria'] a[aria-current]", ["background-color", "color", "border-radius"]);
     expect(chip).toMatchObject({ x: 45, h: 29, "background-color": "rgb(237, 237, 236)", color: "rgb(0, 0, 0)", "border-radius": "6px" });
     const row = await style(page, "[data-notification]", ["padding-top", "border-bottom-width", "border-bottom-color", "line-height"]);
-    expect(row).toMatchObject({ x: 288, y: top + 118, w: 665, "padding-top": "25px", "border-bottom-width": "1px", "border-bottom-color": "rgb(204, 204, 204)", "line-height": "22.4px" });
+    textWide(row.x, 288, "the first announcement's x");
+    expect(row).toMatchObject({ y: top + 118, w: 665, "padding-top": "25px", "border-bottom-width": "1px", "border-bottom-color": "rgb(204, 204, 204)", "line-height": "22.4px" });
     const date = await style(page, "[data-notification] > div:nth-child(2) > div > div:nth-child(2)", ["font-size", "color"]);
     expect(date).toMatchObject({ "font-size": "14px", color: "rgb(111, 111, 111)" });
     await expect(page.locator("[data-notification]").first()).toContainText(/\d+ (?:second|minute|hour|day|week|month|year)s? ago/);
@@ -64,9 +75,15 @@ test.describe("New Additions (/updates)", () => {
     await expect(page).toHaveTitle("חידושים בארון הספרים של ספריא");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("עדכונים");
     const top = await headerBottom(page);
-    expect(await style(page, "#updatesPage h1", ["padding-top"])).toMatchObject({ x: 310, y: top + 80, "padding-top": "5px" });
-    expect(await style(page, "nav[aria-label='About Sefaria']", [])).toMatchObject({ x: 1075, w: 205 });
-    expect(await style(page, "nav[aria-label='About Sefaria'] a[aria-current]", [])).toMatchObject({ x: 1168, h: 29 });
+    const h1 = await style(page, "#updatesPage h1", ["padding-top"]);
+    textWide(h1.x, 310, "'עדכונים' x");
+    expect(h1).toMatchObject({ y: top + 80, "padding-top": "5px" });
+    const list = await style(page, "nav[aria-label='About Sefaria']", []);
+    textWide(list.x, 1075, "the list's x");
+    textWide(list.w, 205, "the list's width");
+    const chip = await style(page, "nav[aria-label='About Sefaria'] a[aria-current]", []);
+    textWide(chip.x, 1168, "the chip's x");
+    expect(chip).toMatchObject({ h: 29 });
     await expect(page.locator("[data-notification]").first()).toContainText("לפני");
   });
 
