@@ -27,15 +27,33 @@ def test_helm_workflow_runs_on_pull_requests():
     assert "push" in triggers  # the push trigger stays
 
 
-def test_helm_lint_job_runs_the_new_chart_tests():
-    steps = " ".join(str(step.get("run", "")) for step in load("helm.yaml")["jobs"]["lint"]["steps"])
+def run_steps(job):
+    return " ".join(str(step.get("run", "")) for step in job["steps"])
+
+
+def test_helm_release_waits_for_lint_and_the_chart_tests():
+    jobs = load("helm.yaml")["jobs"]
+    assert " ".join(str(jobs["lint"]["if"]).split()) == "github.event_name == 'push'"
+    assert "lint" in jobs["chart"]["needs"]
+    steps = run_steps(jobs["lint"])
+    assert "ct lint" in steps
     for script in (
+        "release-rules-channel.test.sh",
         "gunicorn_conf_test.sh",
         "nginx_conf_test.sh",
-        "render_diff_vs_base.sh",
         "auth_service_render_test.py",
     ):
-        assert script in steps, script
+        assert f"helm-chart/sefaria/tests/{script}" in steps, script
+
+
+def test_helm_pr_job_runs_only_what_needs_the_base_branch():
+    jobs = load("helm.yaml")["jobs"]
+    assert " ".join(str(jobs["render"]["if"]).split()) == "github.event_name == 'pull_request'"
+    steps = run_steps(jobs["render"])
+    assert "helm-chart/sefaria/tests/render_diff_vs_base.sh" in steps
+    assert "helm-chart/sefaria/tests/auth_service_render_test.py" in steps
+    for slow in ("ct lint", "nginx_conf_test.sh", "gunicorn_conf_test.sh"):
+        assert slow not in steps, slow
 
 
 def test_branch_protection_needs_jest_and_auth_service_tests():
