@@ -589,8 +589,11 @@ def async_task_status_api(request, task_id: str):
     }
 
     # Include progress/meta if your task updates self.update_state(meta=...)
-    # Celery exposes that as `result.info` even while running
-    if result.info is not None and state not in ("SUCCESS", "FAILURE"):
+    # Celery exposes that as `result.info` even while running. Only dict-shaped
+    # progress meta is safe to serialize: terminal states (SUCCESS, FAILURE,
+    # REVOKED) and RETRY store the task's return value or a Celery exception in
+    # `result.info`, which jsonResponse cannot JSON-encode.
+    if state not in ("SUCCESS", "FAILURE", "REVOKED") and isinstance(result.info, dict):
         payload["meta"] = result.info
 
     if result.failed():
@@ -619,6 +622,14 @@ def async_task_status_api(request, task_id: str):
             title_results=title_results,
             body_results=body_results,
         )
+        return jsonResponse(payload, status=200)
+
+    if state == "REVOKED":
+        # A revoked task (for example one that expired before a worker picked it
+        # up) is a normal terminal state, not a server error. `result.info` is a
+        # TaskRevokedError instance, so report its message as a plain string.
+        payload["error"] = str(result.info)
+        logger.info("async_task_status_api:revoked", task_id=task_id, state=state)
         return jsonResponse(payload, status=200)
 
     # PENDING / STARTED / RETRY
