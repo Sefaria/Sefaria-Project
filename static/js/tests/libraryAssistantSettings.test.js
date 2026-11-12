@@ -89,6 +89,19 @@ describe('LibraryAssistantSettings', () => {
     expect(q('#personalization').textContent).toContain('Last updated: Never');
   });
 
+  it('renders Profile headings and paragraphs as text', async () => {
+    global.fetch.mockImplementation(() =>
+      reply(
+        state({ profile: { ...state().profile, text: '# Background\nReads Rashi.\n\n# Focus\nBerakhot <b>1</b>' } })
+      )
+    );
+    await render();
+    const headings = [...container.querySelectorAll('.laProfileHeading')].map((h) => h.textContent);
+    expect(headings).toEqual(['Background', 'Focus']);
+    expect(container.querySelectorAll('.laProfileBody')).toHaveLength(2);
+    expect(container.querySelector('.laProfileBody b')).toBeNull();
+  });
+
   it('counts characters and disables Save at 301', async () => {
     await render();
     const area = q('textarea.laInstructions');

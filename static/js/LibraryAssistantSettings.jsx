@@ -39,6 +39,11 @@ const STRINGS = {
   quota: 'Too many changes. Try again in a while.',
   unreachable: 'Could not reach the Library Assistant. Try again.',
   settingFailed: 'Could not save the setting. Try again.',
+  personalization: 'Personalization',
+  settingDescription: 'Turn the assistant on or off for your account.',
+  instructionsDescription: 'Standing instructions that shape how the assistant answers you. You write these.',
+  profileDescription: 'What the assistant has learned about how you learn. It writes this from your questions.',
+  testingNote: 'These tools appear only on test deployments.',
 };
 
 const errorMessage = (e) => {
@@ -59,6 +64,50 @@ const lastUpdated = (updatedAt, by) => {
 };
 
 const PROFILE_AUTHOR = { la: 'LA', you_la: 'You/LA' };
+
+// The Profile is markdown-ish text: "# Heading" lines and paragraphs under them. Rendered as headings and
+// paragraphs of plain text nodes (never as HTML).
+const parseProfile = (text) => {
+  const blocks = [];
+  let lines = [];
+  const flush = () => {
+    if (lines.length) blocks.push({ type: 'p', text: lines.join('\n') });
+    lines = [];
+  };
+  text.split('\n').forEach((line) => {
+    const heading = /^\s*#{1,6}\s+(.*\S)\s*$/.exec(line);
+    if (heading) {
+      flush();
+      blocks.push({ type: 'h', text: heading[1] });
+    } else if (line.trim() === '') {
+      flush();
+    } else {
+      lines.push(line);
+    }
+  });
+  flush();
+  return blocks;
+};
+
+const ProfileText = ({ text }) => (
+  <div className="laProfileText">
+    {text ? (
+      parseProfile(text).map((block, i) =>
+        block.type === 'h' ? (
+          <h4 key={i} className="laProfileHeading">
+            {block.text}
+          </h4>
+        ) : (
+          <p key={i} className="laProfileBody">
+            {block.text}
+          </p>
+        )
+      )
+    ) : (
+      <p className="laMuted">{STRINGS.profileEmpty}</p>
+    )}
+  </div>
+);
 
 const isRtl = (el) =>
   (typeof document !== 'undefined' && (document.dir === 'rtl' || document.documentElement.dir === 'rtl')) ||
@@ -183,8 +232,11 @@ const AssistantSwitch = ({ initial }) => {
     if (request && request.fail) request.fail(() => fail(STRINGS.settingFailed));
   };
   return (
-    <section id="libraryAssistantSetting" className="section">
-      <h2 id="laSettingTitle">{STRINGS.title}</h2>
+    <section id="libraryAssistantSetting" className="section laCard">
+      <h2 id="laSettingTitle" className="laCardTitle">
+        {STRINGS.title}
+      </h2>
+      <p className="laDescription">{STRINGS.settingDescription}</p>
       <div className="laSwitchRow">
         <OnOffGroup
           on={value}
@@ -198,7 +250,7 @@ const AssistantSwitch = ({ initial }) => {
         </button>
       </div>
       {error && (
-        <p className="laError" role="alert">
+        <p className="laMessage laError" role="alert">
           {error}
         </p>
       )}
@@ -300,11 +352,11 @@ const Personalization = ({ base, token }) => {
     return (
       <>
         {error ? (
-          <p className="laError" role="alert">
+          <p className="laMessage laError" role="alert">
             {error}
           </p>
         ) : (
-          <p>{STRINGS.loading}</p>
+          <p className="laMuted">{STRINGS.loading}</p>
         )}
       </>
     );
@@ -315,22 +367,28 @@ const Personalization = ({ base, token }) => {
   return (
     <>
       {error && (
-        <p className="laError" role="alert">
+        <p className="laMessage laError" role="alert">
           {error}
         </p>
       )}
 
-      <div className="laBlock" id="instructions">
-        <h3 id="laInstructionsTitle">{STRINGS.instructions}</h3>
+      <div className="laBlock laCard" id="instructions">
+        <h3 id="laInstructionsTitle" className="laCardTitle">
+          {STRINGS.instructions}
+        </h3>
+        <p className="laDescription">{STRINGS.instructionsDescription}</p>
         <textarea
-          className="laInstructions"
+          className="sefaria-input-control laTextarea laInstructions"
           aria-labelledby="laInstructionsTitle"
           rows={4}
           value={draft}
           placeholder={STRINGS.instructionsPlaceholder}
           onChange={(e) => setDraft(e.target.value)}
         />
-        <div className="laInstructionsCount" aria-live="polite">{`${draft.length} / ${MAX_TEXT}`}</div>
+        <div
+          className={`laInstructionsCount${overLimit ? ' laError' : ''}`}
+          aria-live="polite"
+        >{`${draft.length} / ${MAX_TEXT}`}</div>
         <OnOff
           on={instructions.enabled}
           toggleName="instructions"
@@ -338,15 +396,20 @@ const Personalization = ({ base, token }) => {
           disabled={busy}
           onChange={(enabled) => act('toggle', { target: 'instructions', enabled })}
         />
-        <button type="button" className="button small blue" disabled={overLimit || busy} onClick={saveInstructions}>
-          {STRINGS.saveInstructions}
-        </button>
+        <div className="laActions">
+          <button type="button" className="button small blue" disabled={overLimit || busy} onClick={saveInstructions}>
+            {STRINGS.saveInstructions}
+          </button>
+        </div>
         <div className="laUpdated">{lastUpdated(instructions.updatedAt, 'You')}</div>
       </div>
 
-      <div className="laBlock" id="profile">
-        <h3 id="laProfileTitle">{STRINGS.profile}</h3>
-        <div className="laProfileText">{profile.text || STRINGS.profileEmpty}</div>
+      <div className="laBlock laCard" id="profile">
+        <h3 id="laProfileTitle" className="laCardTitle">
+          {STRINGS.profile}
+        </h3>
+        <p className="laDescription">{STRINGS.profileDescription}</p>
+        <ProfileText text={profile.text} />
         <OnOff
           on={profile.enabled}
           toggleName="profile"
@@ -356,45 +419,64 @@ const Personalization = ({ base, token }) => {
         />
         <div className="laUpdated">{lastUpdated(profile.updatedAt, PROFILE_AUTHOR[profile.updatedBy])}</div>
         {confirmClear ? (
-          <div role="alertdialog">
+          <div role="alertdialog" className="laConfirm">
             <p>{STRINGS.clearConfirm}</p>
-            <button type="button" className="button small blue" disabled={busy} onClick={clearProfile}>
-              {STRINGS.clearYes}
-            </button>
-            <button type="button" className="button small transparent" onClick={() => setConfirmClear(false)}>
-              {STRINGS.cancel}
-            </button>
+            <div className="laActions">
+              <button type="button" className="button small blue" disabled={busy} onClick={clearProfile}>
+                {STRINGS.clearYes}
+              </button>
+              <button type="button" className="button small transparent" onClick={() => setConfirmClear(false)}>
+                {STRINGS.cancel}
+              </button>
+            </div>
           </div>
         ) : (
-          <button type="button" className="button small transparent" onClick={() => setConfirmClear(true)}>
-            {STRINGS.clear}
-          </button>
+          <div className="laActions">
+            <button type="button" className="button small transparent" onClick={() => setConfirmClear(true)}>
+              {STRINGS.clear}
+            </button>
+          </div>
         )}
-        <h4 id="laEditTitle">{STRINGS.editTitle}</h4>
+        <h4 id="laEditTitle" className="laSubheading">
+          {STRINGS.editTitle}
+        </h4>
         <textarea
-          className="laEditRequest"
+          className="sefaria-input-control laTextarea laEditRequest"
           aria-labelledby="laEditTitle"
           rows={2}
           maxLength={MAX_TEXT}
           value={editRequest}
           onChange={(e) => setEditRequest(e.target.value)}
         />
-        <button type="button" className="button small blue" disabled={busy || !editRequest.trim()} onClick={sendEdit}>
-          {STRINGS.send}
-        </button>
-        {editResult && <div className="laEditResult">{editResult}</div>}
+        <div className="laActions">
+          <button type="button" className="button small blue" disabled={busy || !editRequest.trim()} onClick={sendEdit}>
+            {STRINGS.send}
+          </button>
+        </div>
+        {editResult && (
+          <div className="laMessage laEditResult" role="status">
+            {editResult}
+          </div>
+        )}
       </div>
 
       {data.labEnabled && (
-        <div className="laBlock" id="testing-tools">
-          <h3>{STRINGS.testing}</h3>
-          <button type="button" className="button small" disabled={busy} onClick={() => runNow('session')}>
-            {STRINGS.runNow}
-          </button>
-          <button type="button" className="button small" disabled={busy} onClick={() => runNow('dream')}>
-            {STRINGS.dreamNow}
-          </button>
-          {runResult && <div className="laRunResult">{runResult}</div>}
+        <div className="laBlock laCard laCardTools" id="testing-tools">
+          <h3 className="laCardTitle">{STRINGS.testing}</h3>
+          <p className="laDescription">{STRINGS.testingNote}</p>
+          <div className="laActions">
+            <button type="button" className="button small" disabled={busy} onClick={() => runNow('session')}>
+              {STRINGS.runNow}
+            </button>
+            <button type="button" className="button small" disabled={busy} onClick={() => runNow('dream')}>
+              {STRINGS.dreamNow}
+            </button>
+          </div>
+          {runResult && (
+            <div className="laMessage laRunResult" role="status">
+              {runResult}
+            </div>
+          )}
           <div className="laTestRow">
             <span className="laTestLabel" id="laUpdateEveryLabel">
               {STRINGS.updateEvery}
@@ -447,10 +529,18 @@ const LibraryAssistantSettings = (props) => {
   return (
     <div className="libraryAssistantSettings">
       <AssistantSwitch initial={readInitialEnabled(props.libraryAssistantEnabled)} />
-      <section id="personalization" className="section">
-        <h2>Personalization</h2>
-        <p id="about-personalization">{STRINGS.about}</p>
-        {hasAccess ? <Personalization base={base} token={token} /> : <p>{STRINGS.turnOn}</p>}
+      <section id="personalization" className="section laSection">
+        <h2 className="laSectionTitle">{STRINGS.personalization}</h2>
+        <p id="about-personalization" className="laSectionAbout">
+          {STRINGS.about}
+        </p>
+        {hasAccess ? (
+          <Personalization base={base} token={token} />
+        ) : (
+          <div className="laCard">
+            <p className="laMuted">{STRINGS.turnOn}</p>
+          </div>
+        )}
       </section>
     </div>
   );

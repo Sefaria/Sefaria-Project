@@ -17129,19 +17129,185 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   .settingsNav a { gap: 8px; padding: 10px 12px; border-radius: 0; border-bottom: 3px solid transparent; }
   .settingsNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
 }
-.libraryAssistantSettings .laBlock { margin: 0 0 28px; }
-.libraryAssistantSettings .laBlock > * { margin-top: 10px; }
-.libraryAssistantSettings textarea { width: 100%; box-sizing: border-box; }
+/* ---- The Library Assistant settings page: the login page's frame (blue page, white 16px cards) ---- */
+.laSettingsPage {
+  --la-error: #c03522; /* the login page's error red; the palette has no token for it */
+  --la-space-1: 8px;
+  --la-space-2: 16px;
+  --la-space-3: 24px;
+  --la-space-4: 40px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: var(--sefaria-blue);
+  background-image: url("/static/img/auth/auth-bg-desktop.png");
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  font-family: var(--english-sans-serif-font-family);
+}
+.interface-hebrew .laSettingsPage { font-family: var(--hebrew-sans-serif-font-family); }
+#accountSettingsPage.laSettingsPage .inner {
+  max-width: 1040px;
+  margin-inline: auto;
+  box-sizing: border-box;
+  padding: 56px var(--la-space-4) 80px;
+}
+.laSettingsPage .headerWithButtons { margin-top: var(--la-space-4); margin-bottom: var(--la-space-3); }
+#accountSettingsPage.laSettingsPage .headerWithButtons h1 {
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0;
+  color: var(--white);
+}
+.laSettingsPage .settingsShell { max-width: none; gap: var(--la-space-3); grid-template-columns: 224px minmax(0, 1fr); }
+.laSettingsPage .settingsNav {
+  box-sizing: border-box;
+  padding: var(--la-space-1);
+  background: var(--white);
+  border-radius: 16px;
+}
+.laSettingsPage .settingsNav a { color: var(--near-black); }
+.laSettingsPage .settingsNav a:hover { background: var(--lighter-grey); }
+.laSettingsPage .settingsNav a:focus-visible { outline-color: var(--focus-blue); }
+.laSettingsPage .settingsNav a[aria-current="page"] { background: var(--highlight-blue-light); color: var(--sefaria-blue); }
+.laSettingsPage .settingsPanels { max-width: 640px; }
+@media (max-width: 842px) {
+  .laSettingsPage { background-image: url("/static/img/auth/auth-bg-mobile.png"); background-position: center top; }
+}
+@media (max-width: 760px) {
+  #accountSettingsPage.laSettingsPage .inner { padding: 32px var(--la-space-2) 56px; }
+  .laSettingsPage .headerWithButtons { margin-top: var(--la-space-3); }
+  #accountSettingsPage.laSettingsPage .headerWithButtons h1 { font-size: 30px; }
+  .laSettingsPage .settingsShell { display: block; }
+  .laSettingsPage .settingsNav { flex-wrap: nowrap; margin-bottom: var(--la-space-2); border-bottom: 0; }
+  .laSettingsPage .settingsNav a { flex: 1 1 0; justify-content: center; white-space: normal; text-align: center; border-radius: 8px; border-bottom: 0; padding: 10px 8px; }
+  .laSettingsPage .settingsNav a[aria-current="page"] { background: var(--highlight-blue-light); }
+}
+
+.libraryAssistantSettings { display: flex; flex-direction: column; gap: var(--la-space-3); min-width: 0; color: var(--near-black); }
+.libraryAssistantSettings .laSection,
+.libraryAssistantSettings .laSection > div { display: flex; flex-direction: column; gap: var(--la-space-3); }
+.libraryAssistantSettings .laSection { margin: 0; }
+.libraryAssistantSettings .laSectionTitle,
+.libraryAssistantSettings .laSectionAbout { margin: 0; padding: 0; border: 0; text-transform: none; letter-spacing: 0; }
+.libraryAssistantSettings .laSectionTitle { font-size: 22px; font-weight: 500; line-height: 1.3; color: var(--white); margin-bottom: calc(var(--la-space-1) * -1); }
+.libraryAssistantSettings .laSectionAbout { font-size: 16px; line-height: 1.5; color: var(--white); opacity: 0.85; margin-top: calc(var(--la-space-1) * -1); }
+
+.libraryAssistantSettings .laCard {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--la-space-2);
+  box-sizing: border-box;
+  margin: 0;
+  padding: var(--la-space-3);
+  background: var(--white);
+  border-radius: 16px;
+  text-align: start;
+  min-width: 0;
+}
+.libraryAssistantSettings .laCard > * { margin: 0; }
+.libraryAssistantSettings .laCardTitle,
+.libraryAssistantSettings .laSubheading {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--near-black);
+}
+.libraryAssistantSettings .laCardTitle { font-size: 20px; font-weight: 500; line-height: 1.3; }
+.libraryAssistantSettings .laSubheading { font-size: 16px; font-weight: 600; line-height: 1.3; margin-top: var(--la-space-1); }
+.libraryAssistantSettings .laDescription,
+.libraryAssistantSettings .laMuted { margin: 0; font-size: 14px; line-height: 1.45; color: var(--secondary-text-grey); }
+.libraryAssistantSettings .laDescription { margin-top: calc(var(--la-space-1) * -1); }
+.libraryAssistantSettings .laCardTools { background: transparent; border: 1.5px dashed var(--light-blue-border); }
+.libraryAssistantSettings .laCardTools .laCardTitle { font-size: 16px; color: var(--white); }
+.libraryAssistantSettings .laCardTools .laDescription { color: var(--light-blue-border); }
+.libraryAssistantSettings .laCardTools { color: var(--white); }
+.libraryAssistantSettings .laCardTools .laMessage,
+.libraryAssistantSettings .laCardTools .laHealthResult { background: var(--white); color: var(--near-black); }
+
+/* The site's own input (see .sefaria-input-control in common-component.css), grown to a text area */
+.libraryAssistantSettings textarea.laTextarea {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 12px 16px;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.45;
+  resize: vertical;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.libraryAssistantSettings textarea.laInstructions { min-height: calc(4 * 1.45em + 26px); }
+.libraryAssistantSettings textarea.laEditRequest { min-height: calc(2 * 1.45em + 26px); }
+.libraryAssistantSettings textarea.laTextarea:focus {
+  border-color: var(--sefaria-blue);
+  box-shadow: 0 0 0 3px var(--highlight-blue);
+}
+.libraryAssistantSettings textarea.laTextarea:focus-visible { outline: 2px solid transparent; }
+
 .libraryAssistantSettings .laInstructionsCount,
-.libraryAssistantSettings .laUpdated { font-size: 14px; color: #666; }
-.libraryAssistantSettings .laError { color: #b3261e; }
-.libraryAssistantSettings .laProfileText { white-space: pre-wrap; }
-.libraryAssistantSettings .laSwitchRow { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-.libraryAssistantSettings .toggleSet button.toggleOption { border: 0; font: inherit; cursor: pointer; }
-.libraryAssistantSettings #about-personalization { margin-bottom: 28px; }
-.libraryAssistantSettings .laBlock > h4 { margin: 24px 0 12px; }
+.libraryAssistantSettings .laUpdated { font-size: 14px; line-height: 1.3; color: var(--secondary-text-grey); }
+.libraryAssistantSettings .laInstructionsCount { text-align: end; margin-top: calc(var(--la-space-1) * -1); }
+.interface-hebrew .libraryAssistantSettings .laInstructionsCount { direction: ltr; text-align: left; } /* keeps "113 / 300" in reading order */
+.libraryAssistantSettings .laInstructionsCount.laError { color: var(--la-error); font-weight: 600; }
+
+.libraryAssistantSettings .laMessage {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.45;
+  border-radius: 4px;
+  background: var(--highlight-green-light);
+  border: 1px solid var(--sheets-green);
+  color: var(--near-black);
+  white-space: pre-wrap;
+}
+.libraryAssistantSettings .laMessage.laError { background: var(--white); border-color: var(--la-error); color: var(--la-error); }
+
+.libraryAssistantSettings .laProfileText {
+  box-sizing: border-box;
+  padding: var(--la-space-2);
+  background: var(--lightest-grey);
+  border: 1px solid var(--skeleton-grey);
+  border-radius: 8px;
+}
+.libraryAssistantSettings .laProfileText > :first-child { margin-top: 0; }
+.libraryAssistantSettings .laProfileText > :last-child { margin-bottom: 0; }
+.libraryAssistantSettings .laProfileHeading { margin: var(--la-space-2) 0 4px; padding: 0; border: 0; font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--sefaria-blue); text-transform: none; letter-spacing: 0; }
+.libraryAssistantSettings .laProfileBody { margin: 0; font-size: 15px; line-height: 1.5; color: var(--near-black); white-space: pre-wrap; }
+
+.libraryAssistantSettings .laSwitchRow { display: flex; gap: var(--la-space-2); align-items: center; flex-wrap: wrap; }
+.libraryAssistantSettings .laActions { display: flex; gap: var(--la-space-1); align-items: center; flex-wrap: wrap; }
+.libraryAssistantSettings .toggleSet { width: 100%; max-width: 280px; margin: 0; box-sizing: border-box; }
+.libraryAssistantSettings .toggleSet button.toggleOption { border: 0; font: inherit; font-size: 16px; cursor: pointer; }
+.libraryAssistantSettings .toggleSet.blueStyle { box-shadow: none; border: 1px solid var(--skeleton-grey); border-radius: 6px; overflow: hidden; background: var(--lightest-grey); }
+.libraryAssistantSettings .toggleSet.blueStyle .toggleOption { height: 44px; margin: 0; color: var(--dark-grey); }
+.libraryAssistantSettings .toggleSet.blueStyle .toggleOption.on { color: var(--white); }
+.libraryAssistantSettings .toggleSet button.toggleOption:focus-visible { outline: 2px solid var(--focus-blue); outline-offset: -2px; }
+
+.libraryAssistantSettings .button { margin: 0; font-family: inherit; font-weight: 600; }
+.libraryAssistantSettings .button.small { padding: 0 20px; height: 44px; border-radius: 4px; font-size: 16px; line-height: 1; }
+.libraryAssistantSettings .button.small.blue:hover { background-color: #132b4c; }
+.libraryAssistantSettings .button.small.blue:disabled { background-color: var(--skeleton-grey); color: var(--medium-grey-legacy); box-shadow: none; cursor: not-allowed; }
+.libraryAssistantSettings .button.small.transparent { background: var(--white); color: var(--near-black); border: 1.5px solid var(--sefaria-blue); box-shadow: none; }
+.libraryAssistantSettings .button.small.transparent:hover { background: var(--highlight-blue-light); color: var(--near-black); }
+.libraryAssistantSettings .button:focus-visible { outline: 2px solid var(--focus-blue); outline-offset: 2px; }
+.libraryAssistantSettings .laCardTools .button.small:not(.transparent) { background: var(--white); color: var(--sefaria-blue); }
+.libraryAssistantSettings .laCardTools .button.small:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.libraryAssistantSettings .laConfirm { display: flex; flex-direction: column; gap: var(--la-space-2); padding: var(--la-space-2); border: 1px solid var(--la-error); border-radius: 8px; }
+.libraryAssistantSettings .laConfirm p { margin: 0; font-size: 15px; line-height: 1.45; }
+
 .libraryAssistantSettings .laTestRow,
-.libraryAssistantSettings .laHealthRow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; }
-.libraryAssistantSettings .laTestRow .laTestLabel { flex: 1 1 200px; }
+.libraryAssistantSettings .laHealthRow { display: flex; align-items: center; flex-wrap: wrap; gap: var(--la-space-1) var(--la-space-2); }
+.libraryAssistantSettings .laTestRow .laTestLabel { flex: 1 1 200px; font-size: 16px; }
 .libraryAssistantSettings .laTestRow .toggleSet { flex: 0 1 200px; }
-.libraryAssistantSettings .laHealthResult > div { margin-top: 4px; }
+.libraryAssistantSettings .laTestRow .toggleSet.blueStyle { background: var(--white); }
+.libraryAssistantSettings .laHealthRow strong { font-size: 16px; font-weight: 600; }
+.libraryAssistantSettings .laHealthResult { display: flex; flex-direction: column; gap: 4px; font-size: 14px; padding: 12px 16px; border-radius: 4px; overflow-wrap: anywhere; }
