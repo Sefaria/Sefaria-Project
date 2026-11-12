@@ -50,6 +50,53 @@ test.describe("panel title and the address's language", () => {
   // A range of lines inside one daf ("Berakhot 2a:3-5") is covered by src/lib/reader/header.test.ts: its text request is not in the
   // recorded API cassette.
 
+  test("a range of whole sections is titled with its first section", async ({ page }) => {
+    await open(page, "/Genesis.6-8?lang=en");
+    await expect(title(page)).toHaveText("Genesis 6");
+  });
+
+  test("a segment range is titled as written, even when it covers its whole section", async ({ page }) => {
+    await open(page, "/Genesis.1.1-31?lang=en");
+    await expect(title(page)).toHaveText("Genesis 1:1-31");
+  });
+
+  test("with two panels, only the last panel's verse is tinted on arrival", async ({ page }) => {
+    await open(page, "/Genesis.1.4?lang=en&p2=Genesis.6.16&lang2=en");
+    const bg = (panel: string, ref: string) =>
+      page.locator(`section[data-panel-id="${panel}"] [data-reader-scroller] [role="group"][data-ref="${ref}"]`).evaluate((el) => getComputedStyle(el).backgroundColor);
+    await expect.poll(() => bg("p2", "Genesis 6:16")).toBe("rgb(245, 250, 255)");
+    expect(await bg("p1", "Genesis 1:4")).toBe("rgba(0, 0, 0, 0)");
+  });
+
+  test("under a Hebrew interface the version's name stays English, left to right, its start in view", async ({ page }) => {
+    await page.context().addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
+    await open(page, "/Genesis.1?lang=bi");
+    const line = page.locator('section[data-panel-id="p1"] header').getByText("Revised JPS, 2023");
+    await expect(line).toHaveAttribute("lang", "en");
+    const style = await line.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return { dir: cs.direction, font: cs.fontFamily, width: Math.round(el.closest("header")!.querySelector("h1")!.parentElement!.getBoundingClientRect().width) };
+    });
+    expect(style.dir).toBe("ltr");
+    expect(style.font).toMatch(/Cardo/);
+    expect(style.width).toBe(420);
+  });
+
+  test("the verse the address named is tinted on arrival, through scrolling, until the reader clicks elsewhere", async ({ page }) => {
+    await open(page, "/Genesis.1.4?lang=en");
+    const verse = page.locator('[data-reader-scroller] [role="group"][data-ref="Genesis 1:4"]');
+    const tint = () => verse.evaluate((el) => getComputedStyle(el).backgroundColor);
+    // sefaria.org's focus tint, #f5faff
+    await expect.poll(tint).toBe("rgb(245, 250, 255)");
+    await expect(page.locator('[data-reader-scroller] [role="group"][data-ref="Genesis 1:5"]')).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await verse.hover();
+    await page.mouse.wheel(0, 200);
+    await page.waitForTimeout(400);
+    expect(await tint()).toBe("rgb(245, 250, 255)");
+    await page.locator('section[data-panel-id="p1"] header').first().click({ position: { x: 4, y: 30 } });
+    await expect.poll(tint).toBe("rgba(0, 0, 0, 0)");
+  });
+
   test("lang=he-en and lang=en-he open the text bilingual", async ({ page }) => {
     for (const lang of ["he-en", "en-he"]) {
       await open(page, `/Genesis.1?lang=${lang}`);
