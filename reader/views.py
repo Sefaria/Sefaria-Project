@@ -3097,12 +3097,19 @@ def related_api(request, tref):
     elif bool(int(request.GET.get("private", False))) and not request.user.is_authenticated:
         response = {"error": "You must be logged in to access private content."}
     else:
-        sheets = get_sheets_for_ref(tref)
+        with_sheet_links = bool(int(request.GET.get("with_sheet_links", False)))
+        # with_sheet_links is used here as a marker for "the request comes from our web reader", the only client that
+        # sends it. The reader only counts the public sheets, so slim ones are enough. Other clients (the mobile app,
+        # third parties) still get full sheets: we don't know whether they use them at all (probably not), so we keep
+        # the response they had. We don't add a slim param, because changing the reader's URL would make every
+        # chapter start uncached in Varnish, and heavy chapters time out when uncached.
+        slim_sheets = with_sheet_links
+        sheets = get_sheets_for_ref(tref, slim=slim_sheets)
         response = {
             "links": get_links(
                 tref,
                 with_text=False,
-                with_sheet_links=bool(int(request.GET.get("with_sheet_links", False))),
+                with_sheet_links=with_sheet_links,
                 public_sheets=sheets,
             ),
             "sheets": sheets,
