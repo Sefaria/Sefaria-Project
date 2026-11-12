@@ -18,6 +18,7 @@
  * @feature I18-001 Content, translation and version preferences
  */
 import type { VersionMeta } from "~/lib/text/model";
+import { decodeVtitle, encodeVtitle } from "~/lib/reader/url-state";
 import { bucketLanguage } from "./translations";
 
 export interface VersionPrefs {
@@ -109,29 +110,34 @@ export function resolveTranslation({ explicit, corpus, prefs, available }: Resol
  *   1. the version itself, when the text has it under that language and title;
  *   2. else the first version (highest priority) in the same language family: `english|<missing>` on Ibn Ezra becomes Ibn Ezra's
  *      English translation, `german|<missing>` on Genesis its first German one;
- *   3. else a version with that title under another family (`vhe=english|Tanach with Nikkud` → `hebrew|Tanach with Nikkud`);
+ *   3. else a version with that title under another family (`vhe=english|Tanach with Nikkud` → `hebrew|Tanach with Nikkud`; also an
+ *      old link naming only the title);
  *   4. else nothing: the parameter is dropped and the reader's preferences, then the default, decide (see {@link resolveTranslation}).
  *
  * Steps 2–4 look only at versions written in the side's direction (left-to-right for `ven`, right-to-left for `vhe`), as the old
  * server does. Step 1 also accepts a translation written right to left (Yiddish) for `ven`, and a primary written left to right for
  * `vhe`: the old server drops those, so a link to a Yiddish translation never opens it; that bug is not ported.
  *
- * `requested` and the answer are in the API form, "family|Title". `available` is the text's versions in the API's order (priority
- * first, as the old server's version list).
+ * `requested.title` is as the address spells it once decoded (`_` read as a space), so a title is also matched in that spelling: a
+ * title with `_` or a non-breaking space in it would otherwise never match its own link. The answer is in the API form,
+ * "family|Title". `available` is the text's versions in the API's order (priority first, as the old server's version list).
  *
  * @feature VER-014 Version resolution order
  */
-export function normalizeRequestedVersion(requested: string | undefined, side: "primary" | "translation", available: readonly VersionMeta[]): string | undefined {
+export function normalizeRequestedVersion(
+  requested: { family?: string; title: string } | undefined,
+  side: "primary" | "translation",
+  available: readonly VersionMeta[],
+): string | undefined {
   if (!requested) return undefined;
-  const i = requested.indexOf("|");
-  const family = i < 0 ? undefined : requested.slice(0, i);
-  const title = i < 0 ? requested : requested.slice(i + 1);
+  const { family, title } = requested;
+  const sameTitle = (v: VersionMeta) => v.versionTitle === title || decodeVtitle(encodeVtitle(v.versionTitle)) === title;
   const direction = side === "translation" ? "ltr" : "rtl";
   const ofRole = (v: VersionMeta) => (side === "translation" ? !v.isSource : v.isPrimary);
   const inDirection = available.filter((v) => v.direction === direction);
   const found =
-    available.find((v) => v.versionTitle === title && v.languageFamilyName === family && (v.direction === direction || ofRole(v))) ??
+    available.find((v) => sameTitle(v) && v.languageFamilyName === family && (v.direction === direction || ofRole(v))) ??
     inDirection.find((v) => v.languageFamilyName === family) ??
-    inDirection.find((v) => v.versionTitle === title);
+    inDirection.find(sameTitle);
   return found ? toApiVersion(found) : undefined;
 }

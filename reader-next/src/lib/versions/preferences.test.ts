@@ -58,10 +58,15 @@ const GENESIS = [
   v("Yehoyesh's Yiddish Tanakh Translation [yi]", { language: "he", actualLanguage: "yi", languageFamilyName: "yiddish", direction: "rtl" }),
   v("Miqra Mevoar, trans. and edited by David Kokhav, Jerusalem 2020", { language: "he", actualLanguage: "he", languageFamilyName: "hebrew", direction: "rtl" }),
 ];
-const norm = (requested: string | undefined, side: "primary" | "translation") => normalizeRequestedVersion(requested, side, GENESIS);
+/** "family|Title" (or a bare title) → the parts the normalizer takes. */
+const req = (x: string) => {
+  const i = x.indexOf("|");
+  return i < 0 ? { title: x } : { family: x.slice(0, i), title: x.slice(i + 1) };
+};
+const norm = (requested: string | undefined, side: "primary" | "translation") => normalizeRequestedVersion(requested === undefined ? undefined : req(requested), side, GENESIS);
 
 // @feature VER-014
-describe("a version the address names that the text lacks (R-VER-1, measured on sefaria.org)", () => {
+describe("a version the address names that the text lacks (measured on sefaria.org)", () => {
   it("a version the text has stays", () => {
     expect(norm("english|The Koren Jerusalem Bible", "translation")).toBe("english|The Koren Jerusalem Bible");
     expect(norm("hebrew|Tanach with Nikkud", "primary")).toBe("hebrew|Tanach with Nikkud");
@@ -72,7 +77,7 @@ describe("a version the address names that the text lacks (R-VER-1, measured on 
     expect(norm("english|No Such Version", "translation")).toBe("english|THE JPS TANAKH: Gender-Sensitive Edition");
     expect(norm("hebrew|No Such Version", "primary")).toBe("hebrew|Miqra according to the Masorah");
     const ibnEzra = [v("Ibn Ezra's commentary on the Pentateuch, tran. and annot. by H. Norman Strickman and Arthur M. Silver. Menorah Pub., 1988-2004"), v("Piotrkow, 1907-1911", { languageFamilyName: "hebrew", direction: "rtl", isSource: true, isPrimary: true })];
-    expect(normalizeRequestedVersion("english|THE JPS TANAKH: Gender-Sensitive Edition", "translation", ibnEzra)).toBe(
+    expect(normalizeRequestedVersion(req("english|THE JPS TANAKH: Gender-Sensitive Edition"), "translation", ibnEzra)).toBe(
       "english|Ibn Ezra's commentary on the Pentateuch, tran. and annot. by H. Norman Strickman and Arthur M. Silver. Menorah Pub., 1988-2004",
     );
   });
@@ -87,6 +92,16 @@ describe("a version the address names that the text lacks (R-VER-1, measured on 
     expect(norm("klingon|No Such Version", "translation")).toBeUndefined();
     expect(norm("klingon|No Such Version", "primary")).toBeUndefined();
     expect(norm("hebrew|Miqra according to the Masorah", "translation")).toBeUndefined(); // the source is no translation
+  });
+  it("an old link naming only the title, or an empty language or title, resolves as on sefaria.org", () => {
+    expect(norm("The Koren Jerusalem Bible", "translation")).toBe("english|The Koren Jerusalem Bible");
+    expect(norm("|The Koren Jerusalem Bible", "translation")).toBe("english|The Koren Jerusalem Bible");
+    expect(norm("english|", "translation")).toBe("english|THE JPS TANAKH: Gender-Sensitive Edition");
+  });
+  it("a title with `_` or a non-breaking space matches its own link (the address reads `_` as a space), even when not first", () => {
+    const odd = [...GENESIS, v("Title_With_Underscore"), v("Title\u00a0NBSP")];
+    expect(normalizeRequestedVersion({ family: "english", title: "Title With Underscore" }, "translation", odd)).toBe("english|Title_With_Underscore");
+    expect(normalizeRequestedVersion({ family: "english", title: "Title NBSP" }, "translation", odd)).toBe("english|Title\u00a0NBSP");
   });
   it("a right-to-left translation named as one stays (the old server drops it, so a Yiddish link never opened: not ported)", () => {
     expect(norm("yiddish|Yehoyesh's Yiddish Tanakh Translation [yi]", "translation")).toBe("yiddish|Yehoyesh's Yiddish Tanakh Translation [yi]");

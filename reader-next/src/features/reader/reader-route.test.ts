@@ -6,7 +6,7 @@ import { server } from "../../../test/msw/server";
 import { resetPersisters } from "~/lib/cache/persisters";
 import { makeQueryClient } from "~/lib/cache/query-client";
 import { NO_PREFS } from "~/lib/versions/preferences";
-import { loadWorkspaceRoute, shownVersions } from "./reader-route";
+import { loadWorkspaceRoute, shownVersions, versionRedirectTarget } from "./reader-route";
 
 beforeEach(() => {
   globalThis.indexedDB = new IDBFactory();
@@ -29,7 +29,7 @@ describe("which translation the loader shows (verified on sefaria.org)", () => {
   });
 
   it("an explicit translation in the URL beats the preference", async () => {
-    const data = await load({ ven: "english|The Koren Jerusalem Bible" }, { byCorpus: { Tanakh: { en: "The Contemporary Torah, Jewish Publication Society, 2006" } } });
+    const data = await load({ ven: "english|The_Koren_Jerusalem_Bible" }, { byCorpus: { Tanakh: { en: "The Contemporary Torah, Jewish Publication Society, 2006" } } });
     expect(data.panels.p1!.versions.translation).toBe("english|The Koren Jerusalem Bible");
   });
 
@@ -44,14 +44,21 @@ describe("which translation the loader shows (verified on sefaria.org)", () => {
   });
 });
 
-// The API answers a version this text lacks by leaving it out (warning 101), as it does for Ibn Ezra asked for the JPS Tanakh
+// The API answers a version this text lacks by leaving it out (warning 101), as it does for Ibn Ezra asked for the JPS Tanakh. `extra`
+// versions are added to the text's list (titles that do not survive the address: `_`, a non-breaking space).
+const ODD_TITLES = ["Title_With_Underscore", "Title\u00a0NBSP", "Semi;colon & hash#"];
 function serveMissingVersions() {
   server.use(
     http.get("https://www.sefaria.org/api/v3/texts/:tref", ({ request }) => {
       const asked = new URL(request.url).searchParams.getAll("version");
-      if (!asked.some((x) => /No Such|Nope/.test(x))) return undefined; // the recorded fixtures answer the rest
-      const body = readFixture<{ versions: { languageFamilyName: string; versionTitle: string }[] }>("genesis-1/v3-texts.json");
-      return HttpResponse.json({ ...body, versions: body.versions.filter((v) => asked.includes(`${v.languageFamilyName}|${v.versionTitle}`) || asked.includes(v.languageFamilyName === "hebrew" ? "primary" : "translation")) });
+      if (!asked.some((x) => /No Such|Nope|Title|Semi/.test(x))) return undefined; // the recorded fixtures answer the rest
+      const body = readFixture<{ versions: { languageFamilyName: string; versionTitle: string }[]; available_versions: Record<string, unknown>[] }>("genesis-1/v3-texts.json");
+      const english = body.available_versions.find((v) => v.languageFamilyName === "english")!;
+      return HttpResponse.json({
+        ...body,
+        available_versions: [...body.available_versions, ...ODD_TITLES.map((versionTitle) => ({ ...english, versionTitle, priority: "" }))],
+        versions: body.versions.filter((v) => asked.includes(`${v.languageFamilyName}|${v.versionTitle}`) || asked.includes(v.languageFamilyName === "hebrew" ? "primary" : "translation")),
+      });
     }),
   );
 }
@@ -60,7 +67,7 @@ const redirectOf = async (search: Record<string, string>, prefs = NO_PREFS) => {
   return (thrown as { options?: { search?: Record<string, unknown>; statusCode?: number } } | null)?.options ?? null;
 };
 
-// @feature VER-014 R-VER-1: the address is rewritten to the version shown, as sefaria.org's server does before rendering
+// @feature VER-014 The address is rewritten to the version shown, as sefaria.org's server does before rendering
 describe("a version the address names that this text lacks", () => {
   it("a missing translation: redirect (302) to the first translation in its language, keeping the rest of the query", async () => {
     serveMissingVersions();
@@ -83,8 +90,44 @@ describe("a version the address names that this text lacks", () => {
     const r = await redirectOf({ p3: "Genesis.1", ven3: "english|Nope", ven: "english|The_Koren_Jerusalem_Bible" });
     expect(r?.search).toEqual({ p3: "Genesis.1", ven3: "english|THE_JPS_TANAKH:_Gender-Sensitive_Edition", ven: "english|The_Koren_Jerusalem_Bible" });
   });
+  it("an old link naming only the title, or no language, redirects to the version with that title", async () => {
+    serveMissingVersions();
+    expect((await redirectOf({ ven: "The_Koren_Jerusalem_Bible" }))?.search).toEqual({ ven: "english|The_Koren_Jerusalem_Bible" });
+    expect((await redirectOf({ ven: "|The_Koren_Jerusalem_Bible" }))?.search).toEqual({ ven: "english|The_Koren_Jerusalem_Bible" });
+  });
+  it("a title with `_`, a non-breaking space or an escaped character loads from its own address: no redirect to itself", async () => {
+    serveMissingVersions();
+    expect(await redirectOf({ ven: "english|Title_With_Underscore" })).toBeNull();
+    expect(await redirectOf({ ven: "english|Title_NBSP" })).toBeNull();
+    // and loads the version by its real title, which the address's `_` hides
+    expect((await load({ ven: "english|Title_With_Underscore" })).panels.p1!.versions.translation).toBe("english|Title_With_Underscore");
+    expect((await load({ ven: "english|Title_NBSP" })).panels.p1!.versions.translation).toBe("english|Title\u00a0NBSP");
+    expect(await redirectOf({ ven: "english|Semi;colon_&_hash#" })).toBeNull(); // the parsed query has decoded %3B, %26, %23
+  });
+  it("the address a redirect leads to does not redirect again", async () => {
+    serveMissingVersions();
+    for (const ven of ["english|No_Such_Version", "klingon|No_Such_Version", "The_Koren_Jerusalem_Bible"]) {
+      const first = await redirectOf({ ven, lang: "bi" });
+      expect(first, ven).not.toBeNull();
+      expect(await redirectOf(first!.search as Record<string, string>)).toBeNull();
+    }
+  });
   it("versions the text has load without a redirect", async () => {
     expect(await redirectOf({ ven: "english|The_Koren_Jerusalem_Bible" })).toBeNull();
+  });
+});
+
+describe("versionRedirectTarget", () => {
+  it("rewrites each panel's parameters under its own number and keeps the rest", () => {
+    expect(versionRedirectTarget({ ven: "english|X", lang: "bi", p2: "Exodus.1", vhe2: "hebrew|Y" }, [
+      { suffix: "", rewrite: { ven: "english|THE_JPS" } },
+      { suffix: "2", rewrite: { vhe: null } },
+    ])).toEqual({ ven: "english|THE_JPS", lang: "bi", p2: "Exodus.1" });
+  });
+  it("never answers the address asked for: a rewrite that names the same versions is no redirect", () => {
+    expect(versionRedirectTarget({ ven: "english|A_B" }, [{ suffix: "", rewrite: { ven: "english|A_B" } }])).toBeNull();
+    expect(versionRedirectTarget({ ven: "english|Semi;colon" }, [{ suffix: "", rewrite: { ven: "english|Semi%3Bcolon" } }])).toBeNull();
+    expect(versionRedirectTarget({ lang: "bi" }, [{ suffix: "", rewrite: { ven: null } }])).toBeNull();
   });
 });
 

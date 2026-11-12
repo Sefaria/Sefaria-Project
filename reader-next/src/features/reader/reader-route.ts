@@ -13,6 +13,8 @@ import { hebrewRefOf } from "~/lib/reader/page-title";
 import { panelOrder, updatePanel } from "~/lib/workspace/ops";
 import type { PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
 import { decodeWorkspace, versionApiToParam, type RawSearch } from "~/lib/workspace/url";
+import { decodeVtitle } from "~/lib/reader/url-state";
+import type { VersionMeta } from "~/lib/text/model";
 
 /** What one text panel needs to render, from the library cache the loader filled. */
 export interface ReaderRouteData {
@@ -43,12 +45,54 @@ export interface WorkspaceRouteData {
   panels: Record<PanelId, ReaderRouteData>;
 }
 
-/** A panel whose address names versions this text does not have: the versions the address should name instead (see `rewrite`). */
-interface VersionRewrite {
-  rewrite: VersionSelection;
+/** The `ven`/`vhe` values a panel's address carries, as spelled there (`family|Title_With_Underscores`). */
+interface AddressVersions {
+  ven?: string;
+  vhe?: string;
 }
 
-async function loadTextPanel(queryClient: QueryClient, panel: TextPanelState, prefs: VersionPrefs, bannerDismissed: boolean): Promise<ReaderRouteData | VersionRewrite> {
+/** A panel whose address names versions this text does not have: each value to write instead (null: drop the parameter). */
+interface VersionRewrite {
+  rewrite: Partial<Record<keyof AddressVersions, string | null>>;
+}
+
+/** An address value → its language (none in an old link naming only the title) and its title, decoded as the address spells it. */
+function parseVersionParam(raw: string): { family?: string; title: string } {
+  const i = raw.indexOf("|");
+  return i < 0 ? { title: decodeVtitle(raw) } : { family: raw.slice(0, i), title: decodeVtitle(raw.slice(i + 1)) };
+}
+
+/** One address value however it reached us: the parsed query has already turned the escapes `encodeVtitle` writes back into characters. */
+const unescapeParam = (v: string) => v.replace(/%3B|%26|%23|%2B/gi, (c) => decodeURIComponent(c));
+const sameParam = (a: string, b: string) => unescapeParam(a) === unescapeParam(b);
+
+/**
+ * What the address's `ven`/`vhe` should say for this text, compared in address form as sefaria.org does: a value that already names
+ * the version it resolves to is left alone, so a title that does not survive the trip through the address (`_`, a non-breaking space)
+ * never redirects to itself. `resolved` is the versions to load for an address that stays (such a title, by its real spelling).
+ */
+function versionRewrite(address: AddressVersions, available: readonly VersionMeta[]): { rewrite: VersionRewrite["rewrite"] | null; resolved: VersionSelection } {
+  const out: VersionRewrite["rewrite"] = {};
+  const resolved: VersionSelection = {};
+  for (const [key, side] of [["ven", "translation"], ["vhe", "primary"]] as const) {
+    const raw = address[key];
+    if (raw === undefined) continue;
+    const api = normalizeRequestedVersion(parseVersionParam(raw), side, available);
+    const target = versionApiToParam(api) ?? null;
+    if (target === null || !sameParam(target, raw)) out[key] = target;
+    else resolved[side] = api;
+  }
+  return { rewrite: Object.keys(out).length ? out : null, resolved };
+}
+
+async function loadTextPanel(
+  queryClient: QueryClient,
+  panel: TextPanelState,
+  prefs: VersionPrefs,
+  bannerDismissed: boolean,
+  /** The versions the address names, to rewrite when this text lacks them; null to load as is. */
+  address: AddressVersions | null,
+): Promise<ReaderRouteData | VersionRewrite> {
   const load = async (sel: VersionSelection) => {
     try {
       return await loadReaderPassage(queryClient, getRefIndex(), panel.ref, sel);
@@ -62,15 +106,16 @@ async function loadTextPanel(queryClient: QueryClient, panel: TextPanelState, pr
   let versions = panel.versions;
   let result = await load(versions);
 
-  // A `ven`/`vhe` naming a version this text lacks (a translation carried over from another book) is rewritten in the address to the
-  // version sefaria.org would show, or dropped so the preferences and the default decide (normalizeRequestedVersion, R-VER-1).
-  if (versions.primary || versions.translation) {
-    const available = result.sections[0]!.availableVersions;
-    const rewrite: VersionSelection = {
-      primary: normalizeRequestedVersion(versions.primary, "primary", available),
-      translation: normalizeRequestedVersion(versions.translation, "translation", available),
-    };
-    if (selectionKey(rewrite) !== selectionKey(versions)) return { rewrite };
+  // A `ven`/`vhe` naming a version this text lacks (a translation carried over from another book), or spelled as an old link spells it,
+  // is rewritten in the address to the version sefaria.org would show, or dropped so the preferences and the default decide.
+  if (address) {
+    const { rewrite, resolved } = versionRewrite(address, result.sections[0]!.availableVersions);
+    if (rewrite) return { rewrite };
+    const named = { primary: resolved.primary ?? versions.primary, translation: resolved.translation ?? versions.translation };
+    if (selectionKey(named) !== selectionKey(versions)) {
+      versions = named;
+      result = await load(versions);
+    }
   }
 
   // No translation named in the URL (or one this text lacks): the reader's preferences decide (VER-014). Only
@@ -106,6 +151,30 @@ async function loadTextPanel(queryClient: QueryClient, panel: TextPanelState, pr
   };
 }
 
+/** Whether two queries name the same versions, in address form. */
+function sameVersionParams(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)].filter((k) => /^v(en|he)\d*$/.test(k)));
+  return [...keys].every((k) => (a[k] === undefined) === (b[k] === undefined) && (a[k] === undefined || sameParam(String(a[k]), String(b[k]))));
+}
+
+/**
+ * The query to redirect to after each panel's version rewrite (panel n>1 under the suffix of its p<n>), every other parameter kept in
+ * place; null when it would name the same versions as the address asked for, so the loader can never redirect to itself.
+ */
+export function versionRedirectTarget(
+  query: Record<string, unknown>,
+  panels: readonly { suffix: string; rewrite: Partial<Record<"ven" | "vhe", string | null>> | null }[],
+): Record<string, unknown> | null {
+  const target = { ...query };
+  for (const { suffix, rewrite } of panels) {
+    for (const [key, value] of Object.entries(rewrite ?? {})) {
+      if (value === null || value === undefined) delete target[`${key}${suffix}`];
+      else target[`${key}${suffix}`] = value;
+    }
+  }
+  return sameVersionParams(target, query) ? null : target;
+}
+
 /**
  * Route loader for a text URL: every panel in it (lib/workspace/url.ts). Fills the library cache (so the page
  * renders from cache, on the server and again on the client without a refetch), and redirects (301) to the
@@ -127,28 +196,28 @@ export async function loadWorkspaceRoute(args: {
   const ids = panelOrder(ws);
   const prefs = args.prefs ?? (await readVersionPrefs());
   const dismissed = await readBannerDismissed();
-  const loaded = await Promise.all(ids.map((id) => loadTextPanel(args.queryClient, ws.panels[id] as TextPanelState, prefs, dismissed)));
-
   const query = { ...((args.fullSearch ?? args.search) as Record<string, unknown>) };
   const extra = Object.keys(query)
     .map((k) => /^p(\d+)$/.exec(k))
     .filter((m): m is RegExpExecArray => !!m && Number(m[1]) >= 2 && String(query[m[0]] ?? "") !== "")
     .map((m) => Number(m[1]))
     .sort((a, b) => a - b);
+  // Panel n>1 reads ven<n>/vhe<n> with the n of its p<n>
+  const suffixOf = (i: number) => (i === 0 ? "" : String(extra[i - 1]));
+  const param = (key: string) => {
+    const v = query[key];
+    return (typeof v === "string" || typeof v === "number") && String(v) !== "" ? String(v) : undefined;
+  };
+  const addressOf = (i: number): AddressVersions => ({ ven: param(`ven${suffixOf(i)}`), vhe: param(`vhe${suffixOf(i)}`) });
+  const loadAll = (rewrite: boolean) => Promise.all(ids.map((id, i) => loadTextPanel(args.queryClient, ws.panels[id] as TextPanelState, prefs, dismissed, rewrite ? addressOf(i) : null)));
+  let loaded = await loadAll(true);
 
   // Versions this text lacks: redirect (302, as sefaria.org) to the address naming what will be shown, before anything renders.
-  // Panel n>1 reads ven<n>/vhe<n> with the n of its p<n>.
   if (loaded.some((l) => "rewrite" in l)) {
-    loaded.forEach((l, i) => {
-      if (!("rewrite" in l)) return;
-      const suffix = i === 0 ? "" : String(extra[i - 1]);
-      for (const [key, api] of [[`ven${suffix}`, l.rewrite.translation], [`vhe${suffix}`, l.rewrite.primary]] as const) {
-        const param = versionApiToParam(api);
-        if (param) query[key] = param;
-        else delete query[key];
-      }
-    });
-    throw redirect({ to: `/${args.splat}` as never, search: query as never, statusCode: 302, replace: true });
+    const target = versionRedirectTarget(query, loaded.map((l, i) => ({ suffix: suffixOf(i), rewrite: "rewrite" in l ? l.rewrite : null })));
+    if (target) throw redirect({ to: `/${args.splat}` as never, search: target as never, statusCode: 302, replace: true });
+    // the rewrite names what the address already says: load the versions as asked
+    loaded = await loadAll(false);
   }
   const panels = Object.fromEntries(ids.map((id, i) => [id, loaded[i] as ReaderRouteData])) as Record<PanelId, ReaderRouteData>;
   for (const id of ids) ws = updatePanel(ws, id, { ref: panels[id]!.ref });
