@@ -17,6 +17,13 @@ const state = (over = {}) => ({
 });
 const reply = (body, status = 200) => Promise.resolve({ ok: status < 400, status, json: () => Promise.resolve(body) });
 
+// A jQuery-like request: the component chains .fail on what $.post returns.
+const jqXHR = () => {
+  const req = { fail: jest.fn((fn) => ((req.failFn = fn), req)), done: jest.fn(() => req) };
+  return req;
+};
+const lastRequest = () => global.$.post.mock.results[global.$.post.mock.results.length - 1].value;
+
 let container;
 const flush = () => act(() => new Promise((r) => setTimeout(r, 0)));
 const render = async (props = {}, enabled = 'true') => {
@@ -38,7 +45,7 @@ const sent = (i) => JSON.parse(global.fetch.mock.calls[i][1].body);
 
 beforeEach(() => {
   global.fetch = jest.fn(() => reply(state()));
-  global.$ = { post: jest.fn() };
+  global.$ = { post: jest.fn(() => jqXHR()) };
 });
 afterEach(() => {
   ReactDOM.unmountComponentAtNode(container);
@@ -180,5 +187,174 @@ describe('LibraryAssistantSettings', () => {
     const [url, data] = global.$.post.mock.calls[0];
     expect(url).toBe('/api/profile');
     expect(JSON.parse(data.json)).toEqual({ settings: { library_assistant: false } });
+  });
+
+  const key = (el, k) => act(async () => Simulate.keyDown(el, { key: k }));
+  const radios = (group) => [...group.querySelectorAll('[role="radio"]')];
+
+  it('keeps one tab stop per radio group', async () => {
+    global.fetch.mockImplementation(() => reply(state({ labEnabled: true })));
+    await render();
+    const groups = [...container.querySelectorAll('[role="radiogroup"]')];
+    expect(groups.length).toBe(5);
+    groups.forEach((g) => expect(radios(g).filter((r) => r.tabIndex === 0).length).toBe(1));
+    const first = radios(groups[0]);
+    expect(first[0].getAttribute('aria-checked')).toBe('true');
+    expect(first[0].tabIndex).toBe(0);
+    expect(first[1].tabIndex).toBe(-1);
+  });
+
+  it('arrow keys move and select inside the page switch', async () => {
+    await render();
+    const [on, off] = radios(q('#libraryAssistantSetting [role="radiogroup"]'));
+    await key(on, 'ArrowRight');
+    expect(off.getAttribute('aria-checked')).toBe('true');
+    expect(off.tabIndex).toBe(0);
+    expect(on.tabIndex).toBe(-1);
+    expect(document.activeElement).toBe(off);
+    await key(off, 'ArrowUp');
+    expect(on.getAttribute('aria-checked')).toBe('true');
+    await key(on, 'ArrowDown');
+    expect(off.getAttribute('aria-checked')).toBe('true');
+    await key(off, 'ArrowLeft');
+    expect(on.getAttribute('aria-checked')).toBe('true');
+    await key(on, 'Enter');
+    expect(on.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('arrow keys on a Personalization group call the right handler; Space selects', async () => {
+    await render();
+    const [on, off] = radios(q('#instructions [role="radiogroup"]'));
+    await key(on, 'ArrowRight');
+    await flush();
+    expect(sent(1)).toEqual({ userId: 'tok', action: 'toggle', target: 'instructions', enabled: false });
+    await key(off, ' ');
+    await flush();
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(sent(2)).toEqual({ userId: 'tok', action: 'toggle', target: 'instructions', enabled: false });
+  });
+
+  it('flips Left and Right in RTL', async () => {
+    document.documentElement.setAttribute('dir', 'rtl');
+    try {
+      await render();
+      const [on, off] = radios(q('#libraryAssistantSetting [role="radiogroup"]'));
+      await key(on, 'ArrowRight'); // toward the start in RTL: nothing before "On"
+      expect(on.getAttribute('aria-checked')).toBe('true');
+      await key(on, 'ArrowLeft');
+      expect(off.getAttribute('aria-checked')).toBe('true');
+      await key(off, 'ArrowLeft'); // nothing after "Off"
+      expect(off.getAttribute('aria-checked')).toBe('true');
+      await key(off, 'ArrowRight');
+      expect(on.getAttribute('aria-checked')).toBe('true');
+    } finally {
+      document.documentElement.removeAttribute('dir');
+    }
+  });
+
+  it('gives every radiogroup and textarea an accessible name', async () => {
+    global.fetch.mockImplementation(() => reply(state({ labEnabled: true })));
+    await render();
+    const nameOf = (el) =>
+      el
+        .getAttribute('aria-labelledby')
+        .split(' ')
+        .map((id) => document.getElementById(id).textContent)
+        .join(' ');
+    const named = [...container.querySelectorAll('[role="radiogroup"], textarea')];
+    expect(named.length).toBe(7);
+    named.forEach((el) => expect(nameOf(el).trim()).not.toBe(''));
+    expect(nameOf(q('textarea.laInstructions'))).toBe('Instructions');
+    expect(nameOf(q('textarea.laEditRequest'))).toBe('Tell LA what to change');
+  });
+
+  it('a 200 for set_instructions without instructions shows the generic error and clears busy', async () => {
+    await render();
+    await act(async () => Simulate.change(q('textarea.laInstructions'), { target: { value: 'Be brief' } }));
+    global.fetch.mockImplementationOnce(() => reply({}));
+    await act(async () => Simulate.click(byText('button', 'Save instructions')));
+    await flush();
+    expect(q('.laError').textContent).toBe('Could not reach the Library Assistant. Try again.');
+    expect(q('textarea.laInstructions').value).toBe('Be brief');
+    expect(q('[aria-disabled="true"][role="radio"]')).toBeNull();
+  });
+
+  it('a 200 for edit_profile without profile shows the generic error, not Processing', async () => {
+    await render();
+    await act(async () => Simulate.change(q('textarea.laEditRequest'), { target: { value: 'Add a note' } }));
+    global.fetch.mockImplementationOnce(() => reply({}));
+    await act(async () => Simulate.click(byText('button', 'Send')));
+    await flush();
+    expect(q('.laError').textContent).toBe('Could not reach the Library Assistant. Try again.');
+    expect(container.textContent).not.toContain('Processing…');
+    expect(q('.laEditResult')).toBeNull();
+  });
+
+  it('a double click on the page Save posts once', async () => {
+    await render();
+    await act(async () => Simulate.click(q('[data-la-value="false"]')));
+    const save = byText('button', 'Save assistant setting');
+    await act(async () => {
+      Simulate.click(save);
+      Simulate.click(save);
+    });
+    expect(global.$.post).toHaveBeenCalledTimes(1);
+    expect(save.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('shows an error and allows a retry when the $.post request fails', async () => {
+    await render();
+    await act(async () => Simulate.click(q('[data-la-value="false"]')));
+    await act(async () => Simulate.click(byText('button', 'Save assistant setting')));
+    await act(async () => lastRequest().failFn());
+    expect(q('#libraryAssistantSetting .laError').textContent).toBe('Could not save the setting. Try again.');
+    expect(byText('button', 'Save assistant setting').getAttribute('aria-disabled')).toBeNull();
+    await act(async () => Simulate.click(byText('button', 'Save assistant setting')));
+    expect(global.$.post).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows the server error from a 200 body with an error field', async () => {
+    await render();
+    await act(async () => Simulate.click(q('[data-la-value="false"]')));
+    await act(async () => Simulate.click(byText('button', 'Save assistant setting')));
+    await act(async () => global.$.post.mock.calls[0][2]({ error: 'Nope' }));
+    expect(q('#libraryAssistantSetting .laError').textContent).toBe('Nope');
+  });
+
+  it('reloads the page after a successful save', async () => {
+    const original = window.location;
+    delete window.location;
+    window.location = { reload: jest.fn() };
+    try {
+      await render();
+      await act(async () => Simulate.click(q('[data-la-value="false"]')));
+      await act(async () => Simulate.click(byText('button', 'Save assistant setting')));
+      await act(async () => global.$.post.mock.calls[0][2]({ status: 'ok' }));
+      expect(window.location.reload).toHaveBeenCalledTimes(1);
+    } finally {
+      window.location = original;
+    }
+  });
+
+  it('shows the too_long message on a 400', async () => {
+    await render();
+    await act(async () => Simulate.change(q('textarea.laInstructions'), { target: { value: 'Be brief' } }));
+    global.fetch.mockImplementationOnce(() => reply({ error: 'too_long', max: 300 }, 400));
+    await act(async () => Simulate.click(byText('button', 'Save instructions')));
+    await flush();
+    expect(q('.laError').textContent).toBe('Keep it to 300 characters.');
+  });
+
+  it('does not update state after unmount', async () => {
+    global.fetch.mockImplementation(() => reply(state({ labEnabled: true })));
+    await render();
+    const errors = jest.spyOn(console, 'error').mockImplementation(() => {});
+    let resolve;
+    global.fetch.mockImplementationOnce(() => new Promise((r) => (resolve = r)));
+    await act(async () => Simulate.click(byText('button', 'Check job health')));
+    ReactDOM.unmountComponentAtNode(container);
+    await act(async () => resolve({ ok: true, status: 200, json: () => Promise.resolve({ jobs: [] }) }));
+    expect(errors).not.toHaveBeenCalled();
+    errors.mockRestore();
   });
 });

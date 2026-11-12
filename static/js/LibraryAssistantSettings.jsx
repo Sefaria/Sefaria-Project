@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { chatbotApiBaseUrl, laSettings } from './chatbotApi';
 
 // The Library Assistant tab of Settings. The assistant's on/off is a Sefaria profile setting;
@@ -60,24 +60,69 @@ const lastUpdated = (updatedAt, by) => {
 
 const PROFILE_AUTHOR = { la: 'LA', you_la: 'You/LA' };
 
-const OnOff = ({ on, onChange, toggleName, disabled }) => (
-  <div className="toggleSet toggleSetToggleBox blueStyle doubleOption" role="radiogroup">
-    {[true, false].map((value) => (
-      <button
-        key={String(value)}
-        type="button"
-        role="radio"
-        className={`toggleOption${on === value ? ' on' : ''}`}
-        aria-checked={on === value}
-        tabIndex={on === value ? 0 : -1}
-        disabled={disabled}
-        data-toggle={on === value ? undefined : toggleName}
-        onClick={() => on !== value && onChange(value)}
-      >
-        {value ? STRINGS.on : STRINGS.off}
-      </button>
-    ))}
-  </div>
+const isRtl = (el) =>
+  (typeof document !== 'undefined' && (document.dir === 'rtl' || document.documentElement.dir === 'rtl')) ||
+  (!!el && typeof window !== 'undefined' && window.getComputedStyle(el).direction === 'rtl');
+
+// The site's radio-group pattern (see templates/account_settings.html): one tab stop per group,
+// arrows move and select (Left/Right flipped in RTL), Space/Enter select. Busy uses aria-disabled
+// so that focus stays on the control.
+const OnOffGroup = ({ on, onSelect, disabled, labelledBy, optionAttrs }) => {
+  const refs = useRef([]);
+  const values = [true, false];
+  const tabbable = on === false ? 1 : 0;
+  const select = (i) => {
+    if (!disabled && values[i] !== on) onSelect(values[i]);
+  };
+  const onKeyDown = (e, i) => {
+    if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter') {
+      e.preventDefault();
+      select(i);
+      return;
+    }
+    const rtl = isRtl(e.currentTarget);
+    const steps = { ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1, ArrowDown: 1, ArrowUp: -1 };
+    const step = steps[e.key];
+    if (!step) return;
+    e.preventDefault();
+    if (disabled) return;
+    const next = Math.min(values.length - 1, Math.max(0, i + step));
+    if (refs.current[next]) refs.current[next].focus();
+    select(next);
+  };
+  return (
+    <div className="toggleSet toggleSetToggleBox blueStyle doubleOption" role="radiogroup" aria-labelledby={labelledBy}>
+      {values.map((value, i) => (
+        <button
+          key={String(value)}
+          ref={(el) => {
+            refs.current[i] = el;
+          }}
+          type="button"
+          role="radio"
+          className={`toggleOption${on === value ? ' on' : ''}`}
+          aria-checked={on === value}
+          aria-disabled={disabled ? 'true' : undefined}
+          tabIndex={i === tabbable ? 0 : -1}
+          onClick={() => select(i)}
+          onKeyDown={(e) => onKeyDown(e, i)}
+          {...optionAttrs(value)}
+        >
+          {value ? STRINGS.on : STRINGS.off}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+const OnOff = ({ on, onChange, toggleName, disabled, labelledBy }) => (
+  <OnOffGroup
+    on={on}
+    onSelect={onChange}
+    disabled={disabled}
+    labelledBy={labelledBy}
+    optionAttrs={(value) => ({ 'data-toggle': on === value ? undefined : toggleName })}
+  />
 );
 
 const readInitialEnabled = (prop) => {
@@ -90,8 +135,25 @@ const AssistantSwitch = ({ initial }) => {
   const [saved] = useState(initial);
   const [value, setValue] = useState(initial);
   const [error, setError] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const inFlight = useRef(false);
+  const mounted = useRef(true);
+  useEffect(
+    () => () => {
+      mounted.current = false;
+    },
+    []
+  );
+  const fail = (message) => {
+    inFlight.current = false;
+    if (!mounted.current) return;
+    setSaving(false);
+    setError(message);
+  };
   const save = () => {
-    if (value === saved) return;
+    if (value === saved || inFlight.current) return;
+    inFlight.current = true;
+    setSaving(true);
     setError(null);
     // jQuery, so the page's CSRF setup applies; the endpoint takes a form field named "json".
     const request = $.post(
@@ -99,36 +161,26 @@ const AssistantSwitch = ({ initial }) => {
       { json: JSON.stringify({ settings: { library_assistant: value } }) },
       (data) => {
         if (data && data.error) {
-          setError(data.error);
+          fail(data.error);
           return;
         }
         // A fresh page mints a fresh token (and the widget script) for the new setting.
         window.location.reload();
       }
     );
-    if (request && request.fail) request.fail(() => setError(STRINGS.settingFailed));
+    if (request && request.fail) request.fail(() => fail(STRINGS.settingFailed));
   };
   return (
     <section id="libraryAssistantSetting" className="section">
-      <h2>{STRINGS.title}</h2>
+      <h2 id="laSettingTitle">{STRINGS.title}</h2>
       <div className="laSwitchRow">
-        <div className="toggleSet toggleSetToggleBox blueStyle doubleOption" role="radiogroup">
-          {[true, false].map((v) => (
-            <button
-              key={String(v)}
-              type="button"
-              role="radio"
-              className={`toggleOption${value === v ? ' on' : ''}`}
-              aria-checked={value === v}
-              tabIndex={value === v ? 0 : -1}
-              data-la-value={String(v)}
-              onClick={() => setValue(v)}
-            >
-              {v ? STRINGS.on : STRINGS.off}
-            </button>
-          ))}
-        </div>
-        <button type="button" className="button small blue" onClick={save}>
+        <OnOffGroup
+          on={value}
+          onSelect={setValue}
+          labelledBy="laSettingTitle"
+          optionAttrs={(v) => ({ 'data-la-value': String(v) })}
+        />
+        <button type="button" className="button small blue" aria-disabled={saving ? 'true' : undefined} onClick={save}>
           {STRINGS.saveSetting}
         </button>
       </div>
@@ -151,6 +203,13 @@ const Personalization = ({ base, token }) => {
   const [editResult, setEditResult] = useState(null);
   const [runResult, setRunResult] = useState(null);
   const [health, setHealth] = useState(null);
+  const mounted = useRef(true);
+  useEffect(
+    () => () => {
+      mounted.current = false;
+    },
+    []
+  );
 
   // Runs one action. On success returns the response (and keeps `data` as the latest State);
   // on failure sets the message, leaves the form as it was and returns null.
@@ -162,17 +221,17 @@ const Personalization = ({ base, token }) => {
         const res = await laSettings(base, token, action, body);
         return res;
       } catch (e) {
-        setError(errorMessage(e));
+        if (mounted.current) setError(errorMessage(e));
         return null;
       } finally {
-        setBusy(false);
+        if (mounted.current) setBusy(false);
       }
     },
     [base, token]
   );
 
   const applyState = (res) => {
-    if (res && res.instructions && res.profile) setData(res);
+    if (mounted.current && res && res.instructions && res.profile) setData(res);
   };
 
   useEffect(() => {
@@ -196,7 +255,9 @@ const Personalization = ({ base, token }) => {
 
   const saveInstructions = async () => {
     const res = await act('set_instructions', { text: draft });
-    if (res) setDraft(res.instructions.text || '');
+    if (!res || !mounted.current) return;
+    if (!res.instructions) return setError(STRINGS.unreachable);
+    setDraft(res.instructions.text || '');
   };
   const clearProfile = async () => {
     setConfirmClear(false);
@@ -205,17 +266,24 @@ const Personalization = ({ base, token }) => {
   const sendEdit = async () => {
     setEditResult(STRINGS.processing);
     const res = await act('edit_profile', { request: editRequest });
+    if (!mounted.current) return;
     if (!res) return setEditResult(null);
-    setEditResult(res.edit && res.edit.status === 'refused' ? res.edit.reason : res.profile.text || '');
+    const refused = res.edit && res.edit.status === 'refused';
+    if (!refused && !res.profile) {
+      setEditResult(null);
+      return setError(STRINGS.unreachable);
+    }
+    setEditResult(refused ? res.edit.reason : res.profile.text || '');
     if (res.edit && res.edit.status === 'applied') setEditRequest('');
   };
   const runNow = async (kind) => {
     const res = await act('run_now', { kind });
-    if (res && res.run) setRunResult(`${res.run.status}${res.run.reason ? `: ${res.run.reason}` : ''}`);
+    if (mounted.current && res && res.run)
+      setRunResult(`${res.run.status}${res.run.reason ? `: ${res.run.reason}` : ''}`);
   };
   const checkHealth = async () => {
     const res = await call('health');
-    if (res) setHealth(res.jobs || []);
+    if (mounted.current && res) setHealth(res.jobs || []);
   };
 
   if (!data) {
@@ -243,9 +311,10 @@ const Personalization = ({ base, token }) => {
       )}
 
       <div className="laBlock" id="instructions">
-        <h3>{STRINGS.instructions}</h3>
+        <h3 id="laInstructionsTitle">{STRINGS.instructions}</h3>
         <textarea
           className="laInstructions"
+          aria-labelledby="laInstructionsTitle"
           rows={4}
           value={draft}
           placeholder={STRINGS.instructionsPlaceholder}
@@ -255,6 +324,7 @@ const Personalization = ({ base, token }) => {
         <OnOff
           on={instructions.enabled}
           toggleName="instructions"
+          labelledBy="laInstructionsTitle"
           disabled={busy}
           onChange={(enabled) => act('toggle', { target: 'instructions', enabled })}
         />
@@ -265,11 +335,12 @@ const Personalization = ({ base, token }) => {
       </div>
 
       <div className="laBlock" id="profile">
-        <h3>{STRINGS.profile}</h3>
+        <h3 id="laProfileTitle">{STRINGS.profile}</h3>
         <div className="laProfileText">{profile.text || STRINGS.profileEmpty}</div>
         <OnOff
           on={profile.enabled}
           toggleName="profile"
+          labelledBy="laProfileTitle"
           disabled={busy}
           onChange={(enabled) => act('toggle', { target: 'profile', enabled })}
         />
@@ -289,9 +360,10 @@ const Personalization = ({ base, token }) => {
             {STRINGS.clear}
           </button>
         )}
-        <h4>{STRINGS.editTitle}</h4>
+        <h4 id="laEditTitle">{STRINGS.editTitle}</h4>
         <textarea
           className="laEditRequest"
+          aria-labelledby="laEditTitle"
           rows={2}
           maxLength={MAX_TEXT}
           value={editRequest}
@@ -314,19 +386,25 @@ const Personalization = ({ base, token }) => {
           </button>
           {runResult && <div className="laRunResult">{runResult}</div>}
           <div className="laTestRow">
-            <span className="laTestLabel">{STRINGS.updateEvery}</span>
+            <span className="laTestLabel" id="laUpdateEveryLabel">
+              {STRINGS.updateEvery}
+            </span>
             <OnOff
               on={!!testing.updateEveryMessage}
               toggleName="updateEveryMessage"
+              labelledBy="laUpdateEveryLabel"
               disabled={busy}
               onChange={(updateEveryMessage) => act('set_testing', { updateEveryMessage })}
             />
           </div>
           <div className="laTestRow">
-            <span className="laTestLabel">{STRINGS.plainResponse}</span>
+            <span className="laTestLabel" id="laPlainResponseLabel">
+              {STRINGS.plainResponse}
+            </span>
             <OnOff
               on={!!testing.showPlainResponse}
               toggleName="showPlainResponse"
+              labelledBy="laPlainResponseLabel"
               disabled={busy}
               onChange={(showPlainResponse) => act('set_testing', { showPlainResponse })}
             />
