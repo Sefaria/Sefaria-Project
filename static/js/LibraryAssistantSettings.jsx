@@ -64,9 +64,9 @@ const isRtl = (el) =>
   (typeof document !== 'undefined' && (document.dir === 'rtl' || document.documentElement.dir === 'rtl')) ||
   (!!el && typeof window !== 'undefined' && window.getComputedStyle(el).direction === 'rtl');
 
-// The site's radio-group pattern (see templates/account_settings.html): one tab stop per group,
-// arrows move and select (Left/Right flipped in RTL), Space/Enter select. Busy uses aria-disabled
-// so that focus stays on the control.
+// Follows the WAI-ARIA radio group pattern: one tab stop per group, arrows move and select and wrap
+// at the ends (Left/Right flipped in RTL), Space/Enter select. Busy uses aria-disabled so that focus
+// stays on the control.
 const OnOffGroup = ({ on, onSelect, disabled, labelledBy, optionAttrs }) => {
   const refs = useRef([]);
   const values = [true, false];
@@ -86,7 +86,7 @@ const OnOffGroup = ({ on, onSelect, disabled, labelledBy, optionAttrs }) => {
     if (!step) return;
     e.preventDefault();
     if (disabled) return;
-    const next = Math.min(values.length - 1, Math.max(0, i + step));
+    const next = (i + step + values.length) % values.length;
     if (refs.current[next]) refs.current[next].focus();
     select(next);
   };
@@ -124,6 +124,18 @@ const OnOff = ({ on, onChange, toggleName, disabled, labelledBy }) => (
     optionAttrs={(value) => ({ 'data-toggle': on === value ? undefined : toggleName })}
   />
 );
+
+// Whether a server reply is a usable State: everything the panel reads on render must be there.
+const isState = (res) =>
+  !!res &&
+  !!res.instructions &&
+  typeof res.instructions === 'object' &&
+  !!res.profile &&
+  typeof res.profile === 'object' &&
+  (!res.labEnabled || (!!res.testing && typeof res.testing === 'object'));
+
+// A refused edit may come back without a State; anything else must be one.
+const acceptEdit = (res) => isState(res) || (!!res && !!res.edit && res.edit.status === 'refused');
 
 const readInitialEnabled = (prop) => {
   if (typeof prop === 'boolean') return prop;
@@ -177,6 +189,7 @@ const AssistantSwitch = ({ initial }) => {
         <OnOffGroup
           on={value}
           onSelect={setValue}
+          disabled={saving}
           labelledBy="laSettingTitle"
           optionAttrs={(v) => ({ 'data-la-value': String(v) })}
         />
@@ -211,14 +224,16 @@ const Personalization = ({ base, token }) => {
     []
   );
 
-  // Runs one action. On success returns the response (and keeps `data` as the latest State);
-  // on failure sets the message, leaves the form as it was and returns null.
+  // Runs one action. On success returns the response; `accept` says what a usable reply looks like
+  // (a State by default). On failure, or a reply that is not usable, sets the message, leaves the
+  // form as it was and returns null.
   const call = useCallback(
-    async (action, body) => {
+    async (action, body, accept = isState) => {
       setError(null);
       setBusy(true);
       try {
         const res = await laSettings(base, token, action, body);
+        if (!accept(res)) throw new Error('unexpected response');
         return res;
       } catch (e) {
         if (mounted.current) setError(errorMessage(e));
@@ -231,7 +246,7 @@ const Personalization = ({ base, token }) => {
   );
 
   const applyState = (res) => {
-    if (mounted.current && res && res.instructions && res.profile) setData(res);
+    if (mounted.current && isState(res)) setData(res);
   };
 
   useEffect(() => {
@@ -247,8 +262,8 @@ const Personalization = ({ base, token }) => {
     };
   }, [call]);
 
-  const act = async (action, body) => {
-    const res = await call(action, body);
+  const act = async (action, body, accept) => {
+    const res = await call(action, body, accept);
     applyState(res);
     return res;
   };
@@ -256,7 +271,6 @@ const Personalization = ({ base, token }) => {
   const saveInstructions = async () => {
     const res = await act('set_instructions', { text: draft });
     if (!res || !mounted.current) return;
-    if (!res.instructions) return setError(STRINGS.unreachable);
     setDraft(res.instructions.text || '');
   };
   const clearProfile = async () => {
@@ -265,14 +279,10 @@ const Personalization = ({ base, token }) => {
   };
   const sendEdit = async () => {
     setEditResult(STRINGS.processing);
-    const res = await act('edit_profile', { request: editRequest });
+    const res = await act('edit_profile', { request: editRequest }, acceptEdit);
     if (!mounted.current) return;
     if (!res) return setEditResult(null);
     const refused = res.edit && res.edit.status === 'refused';
-    if (!refused && !res.profile) {
-      setEditResult(null);
-      return setError(STRINGS.unreachable);
-    }
     setEditResult(refused ? res.edit.reason : res.profile.text || '');
     if (res.edit && res.edit.status === 'applied') setEditRequest('');
   };
@@ -282,7 +292,7 @@ const Personalization = ({ base, token }) => {
       setRunResult(`${res.run.status}${res.run.reason ? `: ${res.run.reason}` : ''}`);
   };
   const checkHealth = async () => {
-    const res = await call('health');
+    const res = await call('health', undefined, (r) => !!r);
     if (mounted.current && res) setHealth(res.jobs || []);
   };
 

@@ -218,7 +218,23 @@ describe('LibraryAssistantSettings', () => {
     expect(off.getAttribute('aria-checked')).toBe('true');
     await key(off, 'ArrowLeft');
     expect(on.getAttribute('aria-checked')).toBe('true');
-    await key(on, 'Enter');
+    await key(off, 'Enter'); // Enter on a focused, unselected option selects it
+    expect(off.getAttribute('aria-checked')).toBe('true');
+    expect(on.getAttribute('aria-checked')).toBe('false');
+  });
+
+  it('arrow keys wrap at the ends of a radio group', async () => {
+    await render();
+    const [on, off] = radios(q('#libraryAssistantSetting [role="radiogroup"]'));
+    await key(on, 'ArrowLeft'); // before "On" wraps to "Off"
+    expect(off.getAttribute('aria-checked')).toBe('true');
+    expect(document.activeElement).toBe(off);
+    await key(off, 'ArrowRight'); // after "Off" wraps to "On"
+    expect(on.getAttribute('aria-checked')).toBe('true');
+    expect(document.activeElement).toBe(on);
+    await key(on, 'ArrowUp');
+    expect(off.getAttribute('aria-checked')).toBe('true');
+    await key(off, 'ArrowDown');
     expect(on.getAttribute('aria-checked')).toBe('true');
   });
 
@@ -239,17 +255,53 @@ describe('LibraryAssistantSettings', () => {
     try {
       await render();
       const [on, off] = radios(q('#libraryAssistantSetting [role="radiogroup"]'));
-      await key(on, 'ArrowRight'); // toward the start in RTL: nothing before "On"
+      await key(on, 'ArrowRight'); // toward the start in RTL: wraps from "On" to "Off"
+      expect(off.getAttribute('aria-checked')).toBe('true');
+      await key(off, 'ArrowRight'); // back to "On"
       expect(on.getAttribute('aria-checked')).toBe('true');
-      await key(on, 'ArrowLeft');
+      await key(on, 'ArrowLeft'); // toward the end in RTL: "Off"
       expect(off.getAttribute('aria-checked')).toBe('true');
-      await key(off, 'ArrowLeft'); // nothing after "Off"
-      expect(off.getAttribute('aria-checked')).toBe('true');
-      await key(off, 'ArrowRight');
+      await key(off, 'ArrowLeft');
       expect(on.getAttribute('aria-checked')).toBe('true');
     } finally {
       document.documentElement.removeAttribute('dir');
     }
+  });
+
+  it('flips Left and Right when only the computed direction is rtl (body.interface-hebrew)', async () => {
+    expect(document.documentElement.getAttribute('dir')).toBeNull();
+    await render();
+    const [on, off] = radios(q('#libraryAssistantSetting [role="radiogroup"]'));
+    const computed = jest.spyOn(window, 'getComputedStyle').mockReturnValue({ direction: 'rtl' });
+    try {
+      await key(on, 'ArrowRight'); // RTL: toward the start, wraps to "Off"
+      expect(off.getAttribute('aria-checked')).toBe('true');
+      await key(off, 'ArrowLeft'); // RTL: toward the end, wraps to "On"
+      expect(on.getAttribute('aria-checked')).toBe('true');
+      await key(on, 'ArrowLeft'); // RTL: toward the end, "Off"
+      expect(off.getAttribute('aria-checked')).toBe('true');
+      expect(computed).toHaveBeenCalled();
+    } finally {
+      computed.mockRestore();
+    }
+  });
+
+  it('the page switch is aria-disabled and ignores input while its Save is in flight', async () => {
+    await render();
+    const [on, off] = radios(q('#libraryAssistantSetting [role="radiogroup"]'));
+    await act(async () => Simulate.click(off));
+    await act(async () => Simulate.click(byText('button', 'Save assistant setting')));
+    expect(on.getAttribute('aria-disabled')).toBe('true');
+    expect(off.getAttribute('aria-disabled')).toBe('true');
+    expect(on.disabled).toBe(false);
+    await act(async () => Simulate.click(on));
+    await key(off, 'ArrowRight');
+    expect(off.getAttribute('aria-checked')).toBe('true');
+    // a failed save frees the group again
+    await act(async () => lastRequest().failFn());
+    expect(on.getAttribute('aria-disabled')).toBeNull();
+    await act(async () => Simulate.click(on));
+    expect(on.getAttribute('aria-checked')).toBe('true');
   });
 
   it('gives every radiogroup and textarea an accessible name', async () => {
@@ -266,6 +318,15 @@ describe('LibraryAssistantSettings', () => {
     named.forEach((el) => expect(nameOf(el).trim()).not.toBe(''));
     expect(nameOf(q('textarea.laInstructions'))).toBe('Instructions');
     expect(nameOf(q('textarea.laEditRequest'))).toBe('Tell LA what to change');
+  });
+
+  it('an initial load that returns 200 {} shows the generic error and keeps the tab mounted', async () => {
+    global.fetch.mockImplementation(() => reply({}));
+    await render();
+    expect(q('#personalization .laError').textContent).toBe('Could not reach the Library Assistant. Try again.');
+    expect(q('#libraryAssistantSetting')).not.toBeNull();
+    expect(q('textarea.laInstructions')).toBeNull();
+    expect(q('.libraryAssistantSettings')).not.toBeNull();
   });
 
   it('a 200 for set_instructions without instructions shows the generic error and clears busy', async () => {
