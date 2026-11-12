@@ -117,6 +117,10 @@ export interface ReaderPassage {
 /**
  * Load everything the reader needs to display `ref`, using cache layers in order
  * (memory → IndexedDB → network) and learning book metadata/aliases along the way.
+ *
+ * An address the library knows but with no text at or in it (a verse a commentary skips, "Rashi on Genesis 1:3"; a segment past the
+ * end of its section, "Genesis 1:35") opens the first section with text after it, as sefaria.org does (reader/views.py
+ * first_available_section_ref): the reader is never sent away for an address that names a real place in a book.
  */
 export async function loadReaderPassage(
   qc: QueryClient,
@@ -124,6 +128,38 @@ export async function loadReaderPassage(
   requestedRef: string,
   sel: VersionSelection = {},
 ): Promise<ReaderPassage> {
+  try {
+    return await loadAsAddressed(qc, refIndex, requestedRef, sel);
+  } catch (e) {
+    if (!isEmptySection(e)) throw e;
+    const ref = (await refIndex.resolveAlias(requestedRef)) ?? requestedRef;
+    const next = await nextSectionWithText(qc, refIndex, ref);
+    if (!next) throw e;
+    const opened = await loadAsAddressed(qc, refIndex, next, sel);
+    await refIndex.setAlias(requestedRef, opened.canonicalRef);
+    return opened;
+  }
+}
+
+/**
+ * The first section with text at or after the start of `ref` (`/api/ref`'s `first_available_section_ref`), or null when the API does
+ * not know the address (a misspelt title: a real "no such text"). Asked for the start as a segment address: Django's answer for an
+ * empty section itself is a server error, for a segment in it the next section with text.
+ */
+async function nextSectionWithText(qc: QueryClient, refIndex: RefIndex, ref: string): Promise<string | null> {
+  const p = parseHumanRef(ref);
+  if (!p.sections.length) return null;
+  const depth = (await refIndex.getMeta(p.title))?.textDepth;
+  const point = (n: number) => toHumanRef({ title: p.title, sections: [...p.sections, ...Array(n).fill("1")], toSections: [...p.sections, ...Array(n).fill("1")] });
+  const probes = depth !== undefined ? [point(Math.max(depth - p.sections.length, 0))] : [point(0), point(1)];
+  for (const probe of probes) {
+    const first = await qc.ensureQueryData(firstSectionQueryOptions(probe)).catch(() => null);
+    if (first && first !== ref && parseHumanRef(first).sections.length) return first;
+  }
+  return null;
+}
+
+async function loadAsAddressed(qc: QueryClient, refIndex: RefIndex, requestedRef: string, sel: VersionSelection): Promise<ReaderPassage> {
   const ref = (await refIndex.resolveAlias(requestedRef)) ?? requestedRef;
   let plan = planDisplay(ref, await refIndex.getMeta(parseHumanRef(ref).title));
   let canonicalRef = ref;
@@ -200,8 +236,17 @@ export async function loadReaderPassage(
 
   // A long range (Psalms 1-150, Shabbat 2a-157b: hundreds of sections) loads only its first sections; the column loads the rest as
   // the reader scrolls, and the range's highlight is by address, so it carries on.
-  const load = (p: Extract<DisplayPlan, { kind: "sections" }>) =>
-    Promise.all(p.sectionRefs.slice(0, MAX_INITIAL_SECTIONS).map((r) => qc.ensureQueryData({ ...textQueryOptions(r, sel), revalidateIfStale: true })));
+  // A section with nothing in it (a verse a commentary does not comment on: Rashi on Genesis 1:3) is answered "no text" (404); a range
+  // over it shows the sections that have text, as sefaria.org does. Only when none of them has text is the range "no such text".
+  const load = async (p: Extract<DisplayPlan, { kind: "sections" }>) => {
+    const settled = await Promise.allSettled(p.sectionRefs.slice(0, MAX_INITIAL_SECTIONS).map((r) => qc.ensureQueryData({ ...textQueryOptions(r, sel), revalidateIfStale: true })));
+    const failed = settled.filter((s): s is PromiseRejectedResult => s.status === "rejected");
+    const fatal = failed.find((s) => !isEmptySection(s.reason));
+    if (fatal) throw fatal.reason;
+    const loaded = settled.flatMap((s) => (s.status === "fulfilled" ? [s.value] : []));
+    if (!loaded.length) throw failed[0]!.reason;
+    return loaded;
+  };
   let sections = await load(plan);
   // The book's shape says which section a segment would be in, not that the segment exists (Genesis 1:35: chapter 1 has 31 verses,
   // and the server answers "We have no text"). When the first highlighted segment is not in what loaded, the server decides.
@@ -234,6 +279,9 @@ function spannedPlan(passage: TextPassage): Extract<DisplayPlan, { kind: "sectio
   const p = planDisplay(spanned, meta);
   return p.kind === "sections" ? { ...p, canonicalRef: spanned } : null;
 }
+
+/** The API's answer for a section that exists in the book's shape but has no text in any version ("We have no text for …"). */
+const isEmptySection = (e: unknown): boolean => e instanceof SefariaApiError && e.status === 404;
 
 /** The most sections a page loads up front for one panel (a range's first sections). */
 export const MAX_INITIAL_SECTIONS = 4;
