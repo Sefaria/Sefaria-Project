@@ -93,6 +93,7 @@
    Side by side keeps the number in the gap. */
 [data-language="english"] .segment:has(> .body > .translation[dir="rtl"]) :is(.number, .dot) { direction: rtl; --_start: var(--_right); --_end: var(--_left); }
 [data-language="hebrew"] .segment:has(> .body > .primary[dir="ltr"]) :is(.number, .dot),
+[data-language="hebrew"] .segment[data-sides="translation"]:has(> .body > .translation[dir="ltr"]) :is(.number, .dot),
 [data-language="bilingual"][data-bilayout="stacked"] .segment[data-sides="primary"]:has(> .body > .primary[dir="ltr"]) :is(.number, .dot) { direction: ltr; --_start: var(--_left); --_end: var(--_right); }
 .dotInner { display: inline-block; width: var(--sefaria-link-dot-size); height: var(--sefaria-link-dot-size); border-radius: var(--sefaria-radius-round); background: var(--sefaria-color-text-muted); vertical-align: middle; }
 

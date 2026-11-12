@@ -167,6 +167,17 @@ export const EnglishModeHebrewTranslation: Story = {
   },
 };
 
+/** Hebrew mode on an English-only work served as a translation (Teshuvot haRashba: no source version): the number is on the left, as on
+ * sefaria.org (242px at 1280, beside the English). */
+export const HebrewModeEnglishTranslationOnly: Story = {
+  args: { language: "hebrew", biLayout: "stacked", rows: [{ ref: "teshuva", translation: en }, { ref: "hebrew-source", primary: he }] },
+  play: async ({ canvasElement }) => {
+    await expect(numberSide(seg(canvasElement, "teshuva"))).toBe("left");
+    near(rect(seg(canvasElement, "teshuva").querySelector("[data-number]")).left, rect(seg(canvasElement, "teshuva")).left - 48);
+    await expect(numberSide(seg(canvasElement, "hebrew-source"))).toBe("right");
+  },
+};
+
 /** Hebrew mode on an English-only work: the number is on the left. */
 export const HebrewModeEnglishSource: Story = {
   args: { language: "hebrew", biLayout: "stacked", rows: [{ ref: "english-source", primary: en }, { ref: "hebrew-source", primary: he }] },

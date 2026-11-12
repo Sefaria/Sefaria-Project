@@ -48,6 +48,6 @@ export function passageLabelLanguage(
     interfaceLang,
     primaryVersion: passage.primaryVersion,
     translationVersion: passage.translationVersion,
-    hasTranslation: !!passage.translationVersion && passage.segments.some((s) => s.translation !== undefined),
+    hasTranslation: !!passage.translationVersion && passage.segments.some((s) => s.translation !== undefined && s.translation !== ""),
   });
 }

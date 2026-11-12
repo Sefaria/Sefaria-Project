@@ -68,7 +68,9 @@ function SegmentImpl({
   const sides = visibleSides(language, { primary: hasP, translation: hasT });
   // English-only and the translation has an EMPTY entry for this segment: the row stays, with its number and no text
   // (VERIFIED, Arukh HaShulchan 1:11). A segment past the end of the translation falls back to the Hebrew (1:13).
-  const blank = language === "english" && translation !== undefined && !hasT && hasP;
+  // An entry that is an empty string is no entry: the translation stops before this segment, so the Hebrew shows (VERIFIED, Arukh
+  // HaShulchan 5:1); only a whitespace entry is a deliberately blank row.
+  const blank = language === "english" && translation !== undefined && translation.html !== "" && !hasT && hasP;
   if (blank) sides.primary = false;
   if (!blank && !sides.primary && !sides.translation) return null;
 

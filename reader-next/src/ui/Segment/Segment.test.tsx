@@ -148,11 +148,15 @@ describe("selecting a segment", () => {
 
 // @feature TXD-045 @feature TXT-025
 describe("rules found by comparing with sefaria.org (parity run)", () => {
-  it("English only, the translation has an EMPTY entry here: the row stays blank (Arukh HaShulchan 1:11)", () => {
-    render(<Segment {...base} language="english" translation={{ ...en, html: "" }} />);
+  it("English only, the translation has a blank (whitespace) entry here: the row stays blank (Arukh HaShulchan 1:11)", () => {
+    render(<Segment {...base} language="english" translation={{ ...en, html: "  " }} />);
     expect(screen.getByRole("group")).toBeInTheDocument();
     expect(screen.queryByText("בְּרֵאשִׁית בָּרָא")).toBeNull();
     expect(screen.getByText("1")).toBeInTheDocument();
+  });
+  it("English only, the translation entry is an empty string: no entry, the Hebrew shows (Arukh HaShulchan 5:1)", () => {
+    render(<Segment {...base} language="english" translation={{ ...en, html: "" }} />);
+    expect(screen.getByText("בְּרֵאשִׁית בָּרָא")).toBeInTheDocument();
   });
   it("a Hebrew translation on its own is numbered in Hebrew even in an English panel (Zohar: the panel's label language)", () => {
     render(<Segment {...base} language="english" labelLang="he" primary={undefined} translation={he} address="3" />);

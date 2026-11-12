@@ -636,5 +636,5 @@ export function listenForSelections(root: () => Element | null, report: (words: 
 
 /** A section whose source is Hebrew and that has no translation text at all. */
 export function hebrewOnly(p: Pick<TextPassage, "primaryVersion" | "translationVersion" | "segments">): boolean {
-  return p.primaryVersion?.direction === "rtl" && !(p.translationVersion && p.segments.some((s) => s.translation !== undefined));
+  return p.primaryVersion?.direction === "rtl" && !(p.translationVersion && p.segments.some((s) => s.translation !== undefined && s.translation !== ""));
 }

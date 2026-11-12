@@ -52,6 +52,10 @@ describe("passageLabelLanguage", () => {
     const p = { primaryVersion: he, translationVersion: en, segments: [seg(), seg()] } as never;
     expect(passageLabelLanguage(p, "english", "english")).toBe("he");
   });
+  it("empty-string translation entries count as missing (the translation stops before them)", () => {
+    const p = { primaryVersion: he, translationVersion: en, segments: [seg(""), seg("")] } as never;
+    expect(passageLabelLanguage(p, "english", "english")).toBe("he");
+  });
   it("a section with translation text uses the translation in English mode", () => {
     const p = { primaryVersion: he, translationVersion: en, segments: [seg(), seg({ html: "x" })] } as never;
     expect(passageLabelLanguage(p, "english", "hebrew")).toBe("en");

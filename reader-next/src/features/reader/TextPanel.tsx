@@ -642,7 +642,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const labelMode = settings.language === "english" && hebrewOnly(section) ? "hebrew" : settings.language;
   const header = headerLabels(narrowToVerses({
     sectionRef: section.sectionRef, heSectionRef: section.heSectionRef, categories: section.categories,
-    translationVersion: section.translationVersion, primaryVersion: section.primaryVersion, language: labelMode, interfaceLang,
+    // a work with no source version (Teshuvot haRashba: English only, served as the translation) is labelled from what it shows
+    translationVersion: section.translationVersion, primaryVersion: section.primaryVersion ?? (labelMode === "hebrew" ? section.translationVersion : undefined), language: labelMode, interfaceLang,
   }, verses, separator));
   const shownVersions = { he: sidebarSection.primaryVersion?.versionTitle, en: sidebarSection.translationVersion?.versionTitle };
   const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the filter string; `view` is a new object each render
