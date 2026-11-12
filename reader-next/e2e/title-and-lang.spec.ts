@@ -55,6 +55,19 @@ test.describe("panel title and the address's language", () => {
     await expect(title(page)).toHaveText("Genesis 6");
   });
 
+  test("a segment range is titled as written, even when it covers its whole section", async ({ page }) => {
+    await open(page, "/Genesis.1.1-31?lang=en");
+    await expect(title(page)).toHaveText("Genesis 1:1-31");
+  });
+
+  test("with two panels, only the last panel's verse is tinted on arrival", async ({ page }) => {
+    await open(page, "/Genesis.1.4?lang=en&p2=Genesis.6.16&lang2=en");
+    const bg = (panel: string, ref: string) =>
+      page.locator(`section[data-panel-id="${panel}"] [data-reader-scroller] [role="group"][data-ref="${ref}"]`).evaluate((el) => getComputedStyle(el).backgroundColor);
+    await expect.poll(() => bg("p2", "Genesis 6:16")).toBe("rgb(245, 250, 255)");
+    expect(await bg("p1", "Genesis 1:4")).toBe("rgba(0, 0, 0, 0)");
+  });
+
   test("under a Hebrew interface the version's name stays English, left to right, its start in view", async ({ page }) => {
     await page.context().addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
     await open(page, "/Genesis.1?lang=bi");

@@ -621,13 +621,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   }, [view, deferredRefs, sidebarSection, section.sectionRef, section.heSectionRef, section.indexTitle, versions, settings.language]);
   useReaderHistory(viewer, place, Boolean(view));
   const save = useSaved(viewer, place, () => setSaveAsked(true));
-  // a kept Torah portion / aliyah range names its verses in this section, as the old header does
-  const rangeVerses = useMemo(
-    () => (rangeHighlight ? section.segments.filter((s) => isHighlighted(s.address, rangeHighlight, section.addressTypes)).map((s) => Number(s.address[s.address.length - 1])).filter(Number.isFinite) : []),
-    [rangeHighlight, section],
-  );
   // The title names the panel's current ref (lib/reader/header.ts titleVerses): what the address named on arrival (a segment, a range's
-  // verses in this section) until the reader scrolls, then the section in view. Choosing a verse does not change it.
+  // verses in this section; an address of whole sections names none, so the section) until the reader scrolls, then the section in
+  // view. Choosing a verse does not change it.
   const moved = movedFrom === entry.current.id;
   const arrival = entry.current.arrival;
   const arrivalVerses = useMemo(() => {
@@ -640,7 +636,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const arrivalId = entry.current.id;
   useEffect(() => {
     const root = rootEl.current;
-    if (!arrivalTarget || !root) return;
+    // sefaria.org's tint is the focused verse: one at a time, in the last panel to arrive (TextColumn.scrollToHighlighted focuses only in
+    // the last panel)
+    if (!arrivalTarget || !root || panelOrder(nav.current()).at(-1) !== id) return;
+    for (const other of document.querySelectorAll("[data-arrival]")) other.removeAttribute("data-arrival");
     const el = root.querySelector<HTMLElement>(`[data-reader-scroller] [role="group"][data-ref="${CSS.escape(arrivalTarget)}"]`);
     if (!el) return;
     el.setAttribute("data-arrival", "true");
@@ -659,8 +658,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       stop();
       el.removeAttribute("data-arrival");
     };
-  }, [arrivalTarget, arrivalId]);
-  const verses = titleVerses({ moved, arrivalVerses, rangeVerses, sectionSegments: section.segments.length, range: arrival.length > 1 || rangeVerses.length > 1 });
+  }, [arrivalTarget, arrivalId]); // eslint-disable-line react-hooks/exhaustive-deps -- once per column start; the panel's place among the others is read then
+  const verses = titleVerses({ moved, arrivalVerses });
   // A numbered section's verses follow a colon ("Genesis 1:3"); a named one's, a space ("Pesach Haggadah, Magid, The Four Sons 2")
   const firstNamed = section.segments.find((s) => arrival.includes(s.ref));
   const separator = firstNamed && !firstNamed.ref.startsWith(`${section.sectionRef}:`) ? " " : ":";

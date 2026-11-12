@@ -150,6 +150,7 @@ test.describe("linked verses", () => {
     // no highlight (the old .highlight); only the arrival tint, which the old reader's focus gives the verse and a click elsewhere removes
     await expect(verse).not.toHaveAttribute("data-highlighted", "true");
     await expect(verse).toHaveAttribute("data-arrival", "true");
+    await expect(verse).toHaveCSS("background-color", "rgb(245, 250, 255)"); // the focus tint, not the highlight (#f0f7ff)
     await page.locator('section[data-panel-id="p1"] header').first().click({ position: { x: 4, y: 30 } });
     await expect(verse).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   });

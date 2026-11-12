@@ -98,26 +98,17 @@ export function narrowToVerses<T extends Pick<HeaderInput, "sectionRef" | "heSec
 export interface TitleVersesInput {
   /** The reader has scrolled since the column started. */
   moved: boolean;
-  /** The verses of this section the address named when the column started (one segment, or a range's verses here). */
+  /** The verses of this section the address named when the column started: one segment, or a range's verses here. None when the
+   *  address named whole sections ("Genesis 1", "Genesis 1-2", "Rashi on Genesis 1:1-3"). */
   arrivalVerses: readonly number[];
-  /** The verses of this section in a range the address keeps now (a range of whole sections, written out by its segments). */
-  rangeVerses: readonly number[];
-  /** How many segments the section has. */
-  sectionSegments: number;
-  /** The address named more than one segment (a range). */
-  range: boolean;
 }
 
 /**
- * Which verses the title names. The old header names the panel's current ref: the address it arrived at ("Genesis 1:3", "Rashi on
- * Genesis 1:1:1", "Berakhot 2a:3-5", a Torah portion's "Genesis 6:9-22") until the reader scrolls, then the section in view.
- * Choosing a verse (which opens the sidebar) does not change it. A range that covers all of this section (a range of whole
- * sections, "Genesis 1-2" or "Rashi on Genesis 1:1-3") names the section ("Genesis 1", "Rashi on Genesis 1:1"), as its first
- * section is the ref the old header shows. The same rule holds in every language mode, interface and device.
+ * Which verses the title names. The old header names the panel's current ref: the address as written ("Genesis 1:3", "Rashi on Genesis
+ * 1:1:1", "Berakhot 2a:3-5", "Genesis 1:1-31", a Torah portion's "Genesis 6:9-22" in its first chapter) until the reader scrolls, then
+ * the section in view. An address of whole sections names its first section ("Genesis 1" for Genesis 1-2). Choosing a verse (which
+ * opens the sidebar) does not change it. The same rule holds in every language mode, interface and device.
  */
 export function titleVerses(i: TitleVersesInput): readonly number[] {
-  if (i.moved) return [];
-  const verses = i.arrivalVerses.length ? i.arrivalVerses : i.rangeVerses;
-  if (i.range && verses.length > 1 && verses.length >= i.sectionSegments) return [];
-  return verses;
+  return i.moved ? [] : i.arrivalVerses;
 }
