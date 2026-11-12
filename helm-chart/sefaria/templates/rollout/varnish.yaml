@@ -40,6 +40,14 @@ spec:
         deployEnv: "{{ .Values.deployEnv }}"
         stackRole: varnish
         releaseRevision: "{{ .Release.Revision }}"
+      {{- if and .Values.varnish.monitoring.enabled .Values.varnish.monitoring.datadog.enabled }}
+        tags.datadoghq.com/env: {{ .Values.deployEnv | quote }}
+        tags.datadoghq.com/service: "varnish"
+      annotations:
+        # Datadog OpenMetrics check against the metrics-exporter sidecar. Only the metrics
+        # listed in values are collected; each one is a billed custom metric.
+        ad.datadoghq.com/metrics-exporter.checks: {{ dict "openmetrics" (dict "init_config" (dict) "instances" (list (dict "openmetrics_endpoint" "http://%%host%%:9131/metrics" "namespace" "varnish" "metrics" (list .Values.varnish.monitoring.datadog.metrics) "tags" (list (printf "env:%s" .Values.deployEnv))))) | toJson | quote }}
+      {{- end }}
     spec:
       affinity:
         podAntiAffinity:

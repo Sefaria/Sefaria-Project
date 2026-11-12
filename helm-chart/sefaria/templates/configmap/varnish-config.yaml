@@ -126,6 +126,7 @@ data:
     sub vcl_backend_response {
         # Put URL on response object to help ban lurker - https://www.varnish-cache.org/docs/trunk/users-guide/purging.html#bans
         set beresp.http.url = bereq.url;
+        {{- if $.Values.varnish.gzipJson }}
 
         # Store JSON gzipped. Django sends it uncompressed and it shrinks ~5-10x, so the same
         # malloc storage holds several times more objects. Varnish sends the stored gzip to
@@ -139,6 +140,7 @@ data:
             bereq.http.Accept-Encoding ~ "gzip") {
             set beresp.do_gzip = true;
         }
+        {{- end }}
 
         # This conditional is default behavior for vcl_backend_response
         if (beresp.ttl <= 0s ||
