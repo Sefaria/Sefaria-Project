@@ -2,7 +2,7 @@
  * Reader state carried in the URL query string, using the old site's parameter names and encodings so
  * every existing Sefaria link keeps working.
  *
- *   ?lang=bi|he|en            content language for this view (`he-en` and `en-he` are read as `bi`, as the old site does)
+ *   ?lang=bi|he|en            content language for this view (`he-en` and `en-he` are read as `bi`, `he-il` as `he`, as the old site does)
  *   ?aliyot=0|1               aliyot display for Torah
  *   ?ven=english|Title_With_Underscores     translation version (family | title, `_`=space, `;`=%3B)
  *   ?vhe=hebrew|Title                       primary version
@@ -16,13 +16,13 @@ import type { VersionSelection } from "~/lib/text/queries";
 
 const LANG_PARAM: Record<string, ContentLanguage> = { bi: "bilingual", he: "hebrew", en: "english" };
 /** The old site's other spellings of a `lang` value (short_to_long_lang_code in sefaria/utils/util.py). */
-const LANG_ALIASES: Record<string, "bi" | "he" | "en"> = { "he-en": "bi", "en-he": "bi" };
+const LANG_ALIASES: Record<string, "bi" | "he" | "en"> = { "he-en": "bi", "en-he": "bi", "he-il": "he" };
 /** A `lang` value in its short form ("bi", "he", "en"), or undefined when it is not one. */
 const langParam = (v: unknown): "bi" | "he" | "en" | undefined => {
   const s = typeof v === "string" ? v : undefined;
   if (s === undefined) return undefined;
-  if (s in LANG_PARAM) return s as "bi" | "he" | "en";
-  return LANG_ALIASES[s];
+  if (Object.hasOwn(LANG_PARAM, s)) return s as "bi" | "he" | "en";
+  return Object.hasOwn(LANG_ALIASES, s) ? LANG_ALIASES[s] : undefined;
 };
 const LANG_TO_PARAM: Record<ContentLanguage, string> = { bilingual: "bi", hebrew: "he", english: "en" };
 
