@@ -184,6 +184,21 @@ describe('LibraryAssistantSettings', () => {
     expect(q('#personalization').textContent).toContain(message);
   });
 
+  it.each([['Run now'], ['Dream now']])(
+    'shows the hourly limit in the result area when %s is refused with 429',
+    async (label) => {
+      global.fetch.mockImplementation((url, init) => {
+        const { action } = JSON.parse(init.body);
+        return action === 'run_now' ? reply({ error: 'quota' }, 429) : reply(state({ labEnabled: true }));
+      });
+      await render();
+      await act(async () => Simulate.click(byText('button', label)));
+      await flush();
+      expect(q('.laRunResult').textContent).toBe('Hourly limit reached. Try again later.');
+      expect(q('.laError')).toBeNull();
+    }
+  );
+
   it('shows the network-failure message', async () => {
     global.fetch.mockImplementation(() => Promise.reject(new Error('down')));
     await render();

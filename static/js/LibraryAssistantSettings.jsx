@@ -37,6 +37,7 @@ const STRINGS = {
   notAvailable: 'Personalization is not available here.',
   signIn: 'Reload the page to sign in again.',
   quota: 'Too many changes. Try again in a while.',
+  jobQuota: 'Hourly limit reached. Try again later.',
   unreachable: 'Could not reach the Library Assistant. Try again.',
   settingFailed: 'Could not save the setting. Try again.',
   personalization: 'Personalization',
@@ -280,7 +281,7 @@ const Personalization = ({ base, token }) => {
   // (a State by default). On failure, or a reply that is not usable, sets the message, leaves the
   // form as it was and returns null.
   const call = useCallback(
-    async (action, body, accept = isState) => {
+    async (action, body, accept = isState, onQuota) => {
       setError(null);
       setBusy(true);
       try {
@@ -288,7 +289,10 @@ const Personalization = ({ base, token }) => {
         if (!accept(res)) throw new Error('unexpected response');
         return res;
       } catch (e) {
-        if (mounted.current) setError(errorMessage(e));
+        // `onQuota`: a caller with its own result area shows the hourly limit there, not as the page error
+        if (e && e.status === 429 && onQuota) {
+          if (mounted.current) onQuota();
+        } else if (mounted.current) setError(errorMessage(e));
         return null;
       } finally {
         if (mounted.current) setBusy(false);
@@ -314,8 +318,8 @@ const Personalization = ({ base, token }) => {
     };
   }, [call]);
 
-  const act = async (action, body, accept) => {
-    const res = await call(action, body, accept);
+  const act = async (action, body, accept, onQuota) => {
+    const res = await call(action, body, accept, onQuota);
     applyState(res);
     return res;
   };
@@ -339,7 +343,8 @@ const Personalization = ({ base, token }) => {
     if (res.edit && res.edit.status === 'applied') setEditRequest('');
   };
   const runNow = async (kind) => {
-    const res = await act('run_now', { kind });
+    setRunResult(null);
+    const res = await act('run_now', { kind }, undefined, () => setRunResult(STRINGS.jobQuota));
     if (mounted.current && res && res.run)
       setRunResult(`${res.run.status}${res.run.reason ? `: ${res.run.reason}` : ''}`);
   };
