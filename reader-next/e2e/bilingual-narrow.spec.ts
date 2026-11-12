@@ -1,0 +1,52 @@
+import { expect, test, type Page } from "@playwright/test";
+import { open } from "./helpers";
+
+// sefaria.org shows Hebrew and English side by side only in a panel wider than 500px (ReaderPanel.currentLayout); a narrower panel, a
+// phone included, is stacked whatever the reader chose. Measured on www.sefaria.org (2026-11-12): two panels in a 1000px window are 500px
+// each and stacked, in a 1010px window 505px and side by side; a Pixel 7 is stacked.
+const layout = (page: Page, biLayout: "heLeft" | "heRight") =>
+  page.context().addCookies([{ name: "biLayout", value: biLayout, domain: "localhost", path: "/" }]);
+
+/** Whether Genesis 1:1 (first panel) shows its two sides on one row, and the panel's content width. */
+async function arrangement(page: Page) {
+  const seg = page.locator('[role="group"][data-ref="Genesis 1:1"]').first();
+  await expect(seg.locator('[data-side="translation"]')).toBeVisible({ timeout: 25_000 });
+  return seg.evaluate((s) => {
+    const he = s.querySelector('[data-side="primary"]')!.getBoundingClientRect();
+    const en = s.querySelector('[data-side="translation"]')!.getBoundingClientRect();
+    const scroller = s.closest<HTMLElement>("[data-reader-scroller]")!;
+    const cs = getComputedStyle(scroller);
+    return {
+      sideBySide: Math.abs(he.top - en.top) < 2,
+      panel: scroller.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight),
+      overlap: he.right > en.left && en.right > he.left && he.bottom > en.top && en.bottom > he.top,
+    };
+  });
+}
+
+for (const biLayout of ["heLeft", "heRight"] as const) {
+  // @feature TXD-043
+  test(`${biLayout}: two panels of 500px are stacked, of 505px side by side`, async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 600, "desktop project only");
+    await layout(page, biLayout);
+    await page.setViewportSize({ width: 1000, height: 900 });
+    await open(page, "/Genesis.1?lang=bi&p2=Exodus.1&lang2=bi");
+    const narrow = await arrangement(page);
+    expect(narrow.panel).toBeLessThanOrEqual(500);
+    expect(narrow.sideBySide).toBe(false);
+    expect(narrow.overlap).toBe(false);
+    await page.setViewportSize({ width: 1010, height: 900 });
+    await expect.poll(async () => (await arrangement(page)).sideBySide).toBe(true);
+    expect((await arrangement(page)).panel).toBeGreaterThan(500);
+  });
+
+  // @feature TXD-043
+  test(`${biLayout}: a phone is stacked @mobile`, async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) > 600, "phone project only");
+    await layout(page, biLayout);
+    await open(page, "/Genesis.1?lang=bi");
+    const phone = await arrangement(page);
+    expect(phone.sideBySide).toBe(false);
+    expect(phone.overlap).toBe(false);
+  });
+}
