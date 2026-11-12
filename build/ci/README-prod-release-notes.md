@@ -21,6 +21,17 @@ Argo post-promotion analysis (prod)
 Only the release-notes prose step and the opt-in triage explainer are LLM
 steps; everything else is deterministic Python or a REST call.
 
+## Post-deploy steps
+
+A manual step that must happen after a change reaches prod goes on its
+Shortcut story as a checklist item starting with `Post-deploy:`. While such
+an item is unticked, neither `mark_stories_deployed.py` nor
+`reconcile_deploy_ready.py` moves the story to Done, and
+`build/ci/post_deploy.py` lists the item verbatim in the tech release
+notes, in the release that shipped the story. Once it's ticked, the next
+release's reconcile sweep moves the story to Done. Nothing runs the steps
+automatically.
+
 ## Running the scripts
 
 ```

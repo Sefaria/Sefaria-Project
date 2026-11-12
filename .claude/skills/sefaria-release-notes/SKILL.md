@@ -33,6 +33,7 @@ The JSON has this shape:
 
 - **`release_date`** — ISO 8601 creation timestamp of the resolved current tag, or `null` if it couldn't be resolved (e.g. an explicit `--range` against a non-tag ref). This is the header date's only legitimate source — see "Header date" below.
 - **`reverted_commits`** — commits whose subject matched the `Revert "..."` / `revert:` / `revert(...)` convention, each with the story ids THAT REVERT COMMIT referenced. **Never list a story appearing here as shipped**, even if you spot it elsewhere while reading the JSON — `shipped_stories.py` has already excluded it (and, where the reverted original is also in this range, excluded that original's ids too) from `story_ids` / `stories` for exactly this reason, unless another independent, non-reverted commit also carries the same id.
+- **`stories[].post_deploy_items`** — do not render these; the pipeline appends them to the tech file itself, verbatim.
 
 ## Phase 1 — Read and summarise
 
