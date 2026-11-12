@@ -34,9 +34,6 @@
     "src/ui/ReaderSurface/ReaderSurface.tsx": [
       "~/lib/reader/settings"
     ],
-    "src/ui/SectionTitle/SectionTitle.tsx": [
-      "~/lib/reader/settings"
-    ],
     "src/ui/Segment/Segment.tsx": [
       "~/lib/reader/settings"
     ],
