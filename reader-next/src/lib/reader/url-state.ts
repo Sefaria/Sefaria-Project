@@ -2,7 +2,7 @@
  * Reader state carried in the URL query string, using the old site's parameter names and encodings so
  * every existing Sefaria link keeps working.
  *
- *   ?lang=bi|he|en            content language for this view
+ *   ?lang=bi|he|en            content language for this view (`he-en` and `en-he` are read as `bi`, as the old site does)
  *   ?aliyot=0|1               aliyot display for Torah
  *   ?ven=english|Title_With_Underscores     translation version (family | title, `_`=space, `;`=%3B)
  *   ?vhe=hebrew|Title                       primary version
@@ -15,6 +15,15 @@ import type { ContentLanguage } from "./settings";
 import type { VersionSelection } from "~/lib/text/queries";
 
 const LANG_PARAM: Record<string, ContentLanguage> = { bi: "bilingual", he: "hebrew", en: "english" };
+/** The old site's other spellings of a `lang` value (short_to_long_lang_code in sefaria/utils/util.py). */
+const LANG_ALIASES: Record<string, "bi" | "he" | "en"> = { "he-en": "bi", "en-he": "bi" };
+/** A `lang` value in its short form ("bi", "he", "en"), or undefined when it is not one. */
+const langParam = (v: unknown): "bi" | "he" | "en" | undefined => {
+  const s = typeof v === "string" ? v : undefined;
+  if (s === undefined) return undefined;
+  if (s in LANG_PARAM) return s as "bi" | "he" | "en";
+  return LANG_ALIASES[s];
+};
 const LANG_TO_PARAM: Record<ContentLanguage, string> = { bilingual: "bi", hebrew: "he", english: "en" };
 
 export interface ReaderSearch {
@@ -41,7 +50,8 @@ const PANEL_PARAM = /^(p|w|lang|aliyot|ven|vhe|vside|lookup)\d+$/;
 /** TanStack Router `validateSearch`: keep only well-formed values, ignore everything else. */
 export function validateReaderSearch(raw: Record<string, unknown>): ReaderSearch {
   const out: ReaderSearch = {};
-  if (typeof raw.lang === "string" && raw.lang in LANG_PARAM) out.lang = raw.lang as ReaderSearch["lang"];
+  const lang = langParam(raw.lang);
+  if (lang) out.lang = lang;
   if (raw.aliyot === 0 || raw.aliyot === 1 || raw.aliyot === "0" || raw.aliyot === "1") out.aliyot = Number(raw.aliyot) as 0 | 1;
   if (typeof raw.vside === "string" && raw.vside) out.vside = raw.vside;
   if (typeof raw.lookup === "string" && raw.lookup) out.lookup = raw.lookup;
@@ -53,7 +63,9 @@ export function validateReaderSearch(raw: Record<string, unknown>): ReaderSearch
     if (typeof v === "string" && v.includes("|")) out[k] = v;
   }
   for (const [k, v] of Object.entries(raw)) {
-    if (PANEL_PARAM.test(k) && (typeof v === "string" || typeof v === "number") && String(v) !== "") (out as Record<string, string>)[k] = String(v);
+    if (!PANEL_PARAM.test(k) || !(typeof v === "string" || typeof v === "number") || String(v) === "") continue;
+    // a further panel's language in its short form (lang2=he-en → bi)
+    (out as Record<string, string>)[k] = (k.startsWith("lang") && langParam(v)) || String(v);
   }
   return out;
 }

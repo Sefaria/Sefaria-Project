@@ -15,6 +15,13 @@ describe("validateReaderSearch", () => {
       lang: "he", aliyot: 1, ven: "english|The_JPS", vhe: "hebrew|Miqra",
     });
   });
+  // R-SET-4: the old site reads he-en and en-he as bilingual (short_to_long_lang_code)
+  it("reads lang=he-en and lang=en-he as bilingual, for every panel", () => {
+    expect(validateReaderSearch({ lang: "he-en" })).toEqual({ lang: "bi" });
+    expect(validateReaderSearch({ lang: "en-he" })).toEqual({ lang: "bi" });
+    expect(validateReaderSearch({ p2: "Exodus.1", lang2: "en-he" })).toEqual({ p2: "Exodus.1", lang2: "bi" });
+    expect(applySearchToSettings(DEFAULT_SETTINGS, validateReaderSearch({ lang: "he-en" })).language).toBe("bilingual");
+  });
   it("drops invalid and unknown values", () => {
     expect(validateReaderSearch({ lang: "klingon", aliyot: "2", ven: "no-pipe", other: "x" })).toEqual({});
   });
