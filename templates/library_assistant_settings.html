@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block js %}
+<script>
+    {% autoescape off %}
+    DJANGO_VARS.containerId = 'libraryAssistantSettings';
+    DJANGO_VARS.reactComponentName = 'LibraryAssistantSettings';
+    {% endautoescape %}
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="accountSettingsPage" class="static biReady">
+	<div class="inner">
+		<div class="headerWithButtons">
+			<h1>
+				<span class="int-en">Library Assistant</span>
+				<span class="int-he">עוזר הספרייה</span>
+			</h1>
+		</div>
+		<div class="settingsShell">
+			{% include "elements/settings_tabs.html" %}
+			<div class="settingsPanels">
+				<div id="libraryAssistantSettings" data-library-assistant-enabled="{% if library_assistant_enabled %}true{% else %}false{% endif %}"></div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

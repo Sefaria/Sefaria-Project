@@ -5261,10 +5261,8 @@ def account_settings(request):
             "user": request.user,
             "profile": profile,
             "experiments_available": experiments_available,
+            "settings_tab": "account",
             "social_providers": list(request.user.socialaccount_set.values_list("provider", flat=True)),
-            # The toggle must render the *effective* value: a user who is on through the
-            # legacy rule has no setting key yet, and must still see "On".
-            "library_assistant_enabled": library_assistant.is_enabled(profile),
             "lang_names_and_codes": zip(
                 [
                     Locale(lang).languages[lang].capitalize()
@@ -5277,6 +5275,28 @@ def account_settings(request):
             )
             or request.COOKIES.get("translation_language_preference", None),
             "diaspora": request.diaspora,
+            "renderStatic": True,
+        },
+    )
+
+
+@login_required
+@ensure_csrf_cookie
+def library_assistant_settings(request):
+    """
+    Settings tab for the Library Assistant: its on/off setting and personalization.
+    The page is client-rendered by LibraryAssistantSettings, which calls the assistant's own service.
+    """
+    profile = UserProfile(id=request.user.id)
+    return render_template(
+        request,
+        "library_assistant_settings.html",
+        {"headerMode": True},
+        {
+            "settings_tab": "library-assistant",
+            # The toggle must show the *effective* value: a user who is on through the
+            # legacy rule has no setting key yet, and must still see "On".
+            "library_assistant_enabled": library_assistant.is_enabled(profile),
             "renderStatic": True,
         },
     )

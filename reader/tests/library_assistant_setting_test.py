@@ -174,7 +174,7 @@ class ScriptTagGateTest(LibraryAssistantUserTestCase):
 
 class AccountSettingsPageTest(LibraryAssistantUserTestCase):
     """
-    The toggle is available to every logged-in user and renders the effective value.
+    The account page no longer carries the toggle; it moved to the Library Assistant tab.
     """
 
     url = "/settings/account"
@@ -183,31 +183,69 @@ class AccountSettingsPageTest(LibraryAssistantUserTestCase):
         self.client.force_login(self.user)
         return self.client.get(self.url).content.decode("utf-8")
 
-    def assertToggleShows(self, html, on):
-        section = html.split('id="libraryAssistantSetting"', 1)[1]
-        checked = re.search(r'data-value=true[^>]*aria-checked="(true|false)"', section)
-        self.assertIsNotNone(checked, "Library Assistant toggle not found on the page")
-        self.assertEqual(checked.group(1) == "true", on)
+    def test_toggle_is_no_longer_on_the_account_page(self):
+        html = self.get_page()
 
-    def test_toggle_is_rendered_without_any_enrollment(self):
-        self.assertIn('id="libraryAssistantSetting"', self.get_page())
+        self.assertNotIn('id="libraryAssistantSetting"', html)
+        self.assertNotIn("library_assistant", html)
+
+    def test_tab_bar_marks_account_settings_as_current(self):
+        html = self.get_page()
+
+        self.assertIn('<a href="/settings/account" aria-current="page">', html)
+        self.assertIn('<a href="/settings/library-assistant">', html)
+
+
+class LibraryAssistantSettingsPageTest(LibraryAssistantUserTestCase):
+    """
+    The Library Assistant tab mounts the React panel and hands it the *effective* on/off value.
+    """
+
+    url = "/settings/library-assistant"
+
+    def get_page(self):
+        self.client.force_login(self.user)
+        return self.client.get(self.url).content.decode("utf-8")
+
+    def assertMountShows(self, html, on):
+        found = re.search(r'id="libraryAssistantSettings"\s+data-library-assistant-enabled="(true|false)"', html)
+        self.assertIsNotNone(found, "Library Assistant mount point not found on the page")
+        self.assertEqual(found.group(1) == "true", on)
+
+    def test_requires_login(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("login", response["Location"])
+
+    def test_mounts_the_react_component(self):
+        html = self.get_page()
+
+        self.assertIn("DJANGO_VARS.reactComponentName = 'LibraryAssistantSettings'", html)
+        self.assertIn("DJANGO_VARS.containerId = 'libraryAssistantSettings'", html)
+
+    def test_tab_bar_marks_library_assistant_as_current(self):
+        html = self.get_page()
+
+        self.assertIn('<a href="/settings/library-assistant" aria-current="page">', html)
+        self.assertIn('<a href="/settings/account">', html)
 
     def test_never_enrolled_user_sees_off(self):
         make_profile_missing_la_setting(self.user)
 
-        self.assertToggleShows(self.get_page(), on=False)
+        self.assertMountShows(self.get_page(), on=False)
 
     def test_legacy_enrolled_user_sees_on(self):
         self.enroll_in_experiments(True)
         make_profile_missing_la_setting(self.user)
 
-        self.assertToggleShows(self.get_page(), on=True)
+        self.assertMountShows(self.get_page(), on=True)
 
     def test_setting_beats_legacy_enrollment_in_the_rendered_value(self):
         self.enroll_in_experiments(True)
         library_assistant.set_enabled(self.user, False)
 
-        self.assertToggleShows(self.get_page(), on=False)
+        self.assertMountShows(self.get_page(), on=False)
 
 
 class LoggedOutVisitorTest(TestCase):

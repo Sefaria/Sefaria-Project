@@ -17077,3 +17077,64 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   pointer-events: none;
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
+
+/* The settings tabs: one vertical list in a left column, beside the panel of the tab that is open. */
+.settingsShell {
+  display: grid;
+  grid-template-columns: 224px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+  max-width: 924px;
+}
+.settingsPanels { min-width: 0; }
+.settingsNav {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
+  font-size: 16px;
+  text-align: start;
+}
+.settingsNavTitle {
+  padding: 0 12px 12px;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 100%;
+  color: var(--dark-grey);
+}
+.settingsNav { display: flex; flex-direction: column; gap: 4px; }
+.settingsNav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  text-decoration: none;
+  color: #121212;
+}
+.settingsNav a:hover { background: #eeeeee; }
+.settingsNav a:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.settingsNav a[aria-current="page"] {
+  background: #f2f5fa;
+  color: #18345d;
+  font-weight: 600;
+}
+@media (max-width: 760px) {
+  .settingsShell { display: block; max-width: none; }
+  .settingsNav { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
+  .settingsNavTitle { width: 100%; padding: 0 0 8px; }
+  .settingsNav a { gap: 8px; padding: 10px 12px; border-radius: 0; border-bottom: 3px solid transparent; }
+  .settingsNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
+}
+.libraryAssistantSettings .laBlock { margin: 0 0 28px; }
+.libraryAssistantSettings .laBlock > * { margin-top: 10px; }
+.libraryAssistantSettings textarea { width: 100%; box-sizing: border-box; }
+.libraryAssistantSettings .laInstructionsCount,
+.libraryAssistantSettings .laUpdated { font-size: 14px; color: #666; }
+.libraryAssistantSettings .laError { color: #b3261e; }
+.libraryAssistantSettings .laProfileText { white-space: pre-wrap; }
+.libraryAssistantSettings .laSwitchRow { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.libraryAssistantSettings .toggleSet button.toggleOption { border: 0; font: inherit; cursor: pointer; }
