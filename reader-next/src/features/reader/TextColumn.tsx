@@ -4,7 +4,7 @@ import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { makeIndexLookup } from "~/lib/connections/links";
 import { linkCountsBySegment, linksQueryOptions } from "~/lib/connections/queries";
-import { nextToLoad, sectionsToTrim } from "~/lib/reader/column";
+import { focusRule, nextToLoad, sectionsToTrim } from "~/lib/reader/column";
 import type { ReaderSettings } from "~/lib/reader/settings";
 import { passageLabelLanguage } from "~/lib/reader/label-language";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
@@ -434,75 +434,103 @@ export function TextColumn(props: TextColumnProps) {
     return () => ro.disconnect();
   }, [sections, settings]);
 
+  // English mode, a section with no translation at all (Arukh HaShulchan, Orach Chaim 4; Peri Megadim; Ralbag): that section is
+  // shown as Hebrew (its text, letters, numbers on the right, as sefaria.org's panel while the section is current). Per section,
+  // never the whole column: the English sections around it keep their text, and nothing above the reader reflows.
+  const hebrewSettings = useMemo(() => ({ ...settings, language: "hebrew" as const }), [settings]);
   const first = sections[0]!;
   // One label language for the column: section and parashah headers, segment numbers and the book's name above its first section
   // (the old useContentLang(defaultToInterfaceOnBilingual) reading the panel's text data)
   const labelLang = passageLabelLanguage(sections.find((p) => p.ref === labelRef) ?? first, settings.language, interfaceLang);
   const bookTitleLang = (labelLang === "he" ? first.heIndexTitle : first.indexTitle) ? labelLang : labelLang === "he" ? "en" : "he";
   // The labels changed language (the reader moved into a section shown in another language): headers and numbers change size, so
-  // put the reader back in the same commit, before anything can measure or paint the shifted page.
+  // put the reader back in the same commit, before anything can measure or paint the shifted page. The engine keeps its focus verse
+  // in place; the verse on the focus line can be an earlier one (a long last verse of the section above, the focus having moved on
+  // to the next section's first verse), and the header between the two changes size too. That verse is the one being read, so it is
+  // the one kept: measured here, before the switch is committed, and put back after.
+  const labelsWere = useRef(labelLang);
+  const onLine = useRef<{ ref: string; top: number } | null>(null);
+  if (labelsWere.current !== labelLang) {
+    labelsWere.current = labelLang;
+    onLine.current = segmentOnFocusLine(scrollerRef.current);
+  }
   useLayoutEffect(() => {
     engine.restore();
+    const was = onLine.current;
+    onLine.current = null;
+    const scroller = scrollerRef.current;
+    const el = was && scroller ? scroller.querySelector<HTMLElement>(`[role="group"][data-ref="${CSS.escape(was.ref)}"]`) : null;
+    if (!was || !el || !scroller) return;
+    const delta = el.getBoundingClientRect().top - was.top;
+    if (Math.abs(delta) < 0.5) return;
+    if (isWindowScrolled(scroller)) window.scrollTo(0, window.scrollY + delta);
+    else scroller.scrollTop += delta;
+    // a deliberate correction, reported like the engine's own in development (the smoothness tests subtract them)
+    if (import.meta.env?.DEV) (window as unknown as { __readingScroll?: { corrections: number[] } }).__readingScroll?.corrections.push(Math.round(delta));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the label language changes; engine.restore is stable
   }, [labelLang]);
   const last = sections.at(-1)!;
   return (
-    <div ref={scrollerRef} className={styles.scroller} data-reader-scroller data-show-focus={showFocus ? "true" : "false"} data-testid="text-column">
-      <div
-        ref={contentRef}
-        className={styles.content}
-        onKeyDown={onSegmentKeys}
-        onCopy={(e) => {
-          const t = e.target as Element | null;
-          if (t?.closest("input, textarea")) return;
-          const sel = window.getSelection();
-          if (!sel || sel.isCollapsed || !sel.rangeCount) return;
-          const range = sel.getRangeAt(0);
-          const anchor = range.commonAncestorContainer instanceof Element ? range.commonAncestorContainer : range.commonAncestorContainer.parentElement;
-          const surface = anchor?.closest("[data-layout]") ?? anchor?.querySelector("[data-layout]");
-          const fragment = range.cloneContents();
-          // the old handleGACopyEvents: copy_text with the panel's book, and whether the selection spans languages or segments (ANL-011)
-          const book = sections[0]?.indexTitle ?? null;
-          copyEvents(
-            { length: sel.toString().length, panelType: connectionsOnScreen ? "TextAndConnections" : "Text", book, category: book ? (sections[0]?.primaryCategory ?? null) : null },
-            { en: fragment.querySelectorAll('[data-side="translation"]').length, he: fragment.querySelectorAll('[data-side="primary"]').length },
-          );
-          const { html, text } = cleanCopy(fragment, document, { continuous: surface?.getAttribute("data-layout") === "continuous", hebrewPanel: settings.language === "hebrew" });
-          e.clipboardData.setData("text/html", html);
-          e.clipboardData.setData("text/plain", text);
-          e.preventDefault();
-        }}
-      >
-        <div className={styles.edge} aria-hidden={!loading.up} data-column-start={atStart.current ? "" : undefined}>
-          {first.prev ? (
-            loading.up ? <Spinner /> : null
-          ) : (
-            <p className={styles.bookTitle} lang={bookTitleLang} dir={bookTitleLang === "he" ? "rtl" : "ltr"}>
-              {bookTitleLang === "he" ? first.heIndexTitle : first.indexTitle}
-            </p>
-          )}
+    // The panel's outer box, a size container: the layouts that follow the panel's width (side by side only above 500px) read the
+    // width with the scrollbar included, as sefaria.org does; the scroller's own box leaves a classic scrollbar out.
+    <div className={styles.frame} data-reader-frame>
+      <div ref={scrollerRef} className={styles.scroller} data-reader-scroller data-show-focus={showFocus ? "true" : "false"} data-testid="text-column">
+        <div
+          ref={contentRef}
+          className={styles.content}
+          onKeyDown={onSegmentKeys}
+          onCopy={(e) => {
+            const t = e.target as Element | null;
+            if (t?.closest("input, textarea")) return;
+            const sel = window.getSelection();
+            if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            const anchor = range.commonAncestorContainer instanceof Element ? range.commonAncestorContainer : range.commonAncestorContainer.parentElement;
+            const surface = anchor?.closest("[data-layout]") ?? anchor?.querySelector("[data-layout]");
+            const fragment = range.cloneContents();
+            // the old handleGACopyEvents: copy_text with the panel's book, and whether the selection spans languages or segments (ANL-011)
+            const book = sections[0]?.indexTitle ?? null;
+            copyEvents(
+              { length: sel.toString().length, panelType: connectionsOnScreen ? "TextAndConnections" : "Text", book, category: book ? (sections[0]?.primaryCategory ?? null) : null },
+              { en: fragment.querySelectorAll('[data-side="translation"]').length, he: fragment.querySelectorAll('[data-side="primary"]').length },
+            );
+            const { html, text } = cleanCopy(fragment, document, { continuous: surface?.getAttribute("data-layout") === "continuous", hebrewPanel: settings.language === "hebrew" });
+            e.clipboardData.setData("text/html", html);
+            e.clipboardData.setData("text/plain", text);
+            e.preventDefault();
+          }}
+        >
+          <div className={styles.edge} aria-hidden={!loading.up} data-column-start={atStart.current ? "" : undefined}>
+            {first.prev ? (
+              loading.up ? <Spinner /> : null
+            ) : (
+              <p className={styles.bookTitle} lang={bookTitleLang} dir={bookTitleLang === "he" ? "rtl" : "ltr"}>
+                {bookTitleLang === "he" ? first.heIndexTitle : first.indexTitle}
+              </p>
+            )}
+          </div>
+          {sections.map((p) => (
+            <TextSection
+              key={p.ref}
+              passage={p}
+              settings={settings.language === "english" && hebrewOnly(p) ? hebrewSettings : settings}
+              labelLang={labelLang}
+              scrollTargetRef={target}
+              terms={terms}
+              highlight={highlight}
+              linkCounts={countsBySection.get(p.ref)}
+              onSelectSegment={handleSelect}
+              onRefClick={onRefClick}
+              onEntityClick={onEntityClick}
+            />
+          ))}
+          <div className={styles.edge} data-testid={last.next ? undefined : "end-of-text"}>
+            {last.next ? (loading.down ? <Spinner /> : null) : <InterfaceText en="End" he="סוף" />}
+          </div>
         </div>
-        {sections.map((p) => (
-          <TextSection
-            key={p.ref}
-            passage={p}
-            settings={settings}
-            labelLang={labelLang}
-            scrollTargetRef={target}
-            terms={terms}
-            highlight={highlight}
-            linkCounts={countsBySection.get(p.ref)}
-            onSelectSegment={handleSelect}
-            onRefClick={onRefClick}
-            onEntityClick={onEntityClick}
-          />
-        ))}
-        <div className={styles.edge} data-testid={last.next ? undefined : "end-of-text"}>
-          {last.next ? (loading.down ? <Spinner /> : null) : <InterfaceText en="End" he="סוף" />}
-        </div>
+        {/* Runs during HTML parsing on a server-rendered load: places a linked verse before first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: INITIAL_POSITION_SCRIPT }} />
       </div>
-      {/* Runs during HTML parsing on a server-rendered load: places a linked verse before first paint. */}
-      <script dangerouslySetInnerHTML={{ __html: INITIAL_POSITION_SCRIPT }} />
     </div>
   );
 }
@@ -517,7 +545,7 @@ const STOP_EVENTS = ["wheel", "touchmove", "keydown", "pointerdown"] as const;
 function textStartLine(scroller: HTMLElement): number {
   const o = getComputedStyle(scroller).overflowY;
   if (o === "auto" || o === "scroll") return 0;
-  const header = scroller.parentElement?.querySelector("header");
+  const header = scroller.closest("[data-reader-frame]")?.parentElement?.querySelector("header");
   const hs = header ? getComputedStyle(header) : null;
   return header && hs?.position === "sticky" ? (parseFloat(hs.top) || 0) + header.offsetHeight : 0;
 }
@@ -624,4 +652,25 @@ export function listenForSelections(root: () => Element | null, report: (words: 
     doc.removeEventListener("keydown", onKey, true);
     doc.removeEventListener("selectionchange", onChange);
   };
+}
+
+/** A section whose source is Hebrew and that has no translation text at all. */
+export function hebrewOnly(p: Pick<TextPassage, "primaryVersion" | "translationVersion" | "segments">): boolean {
+  return p.primaryVersion?.direction === "rtl" && !(p.translationVersion && p.segments.some((s) => s.translation !== undefined && s.translation !== ""));
+}
+
+const isWindowScrolled = (scroller: HTMLElement) => !["auto", "scroll"].includes(getComputedStyle(scroller).overflowY);
+
+/** The verse under the reading engine's focus line (its threshold), with its top on screen; null when none is there. */
+function segmentOnFocusLine(scroller: HTMLElement | null): { ref: string; top: number } | null {
+  if (!scroller || typeof window === "undefined") return null;
+  const phone = isWindowScrolled(scroller);
+  // measured as the engine measures: from the scroller's top, or from the window's on a phone, where the page scrolls
+  const line = (phone ? 0 : scroller.getBoundingClientRect().top) + focusRule(window.innerHeight, { mobile: phone }).threshold;
+  for (const el of scroller.querySelectorAll<HTMLElement>('[role="group"][data-ref]')) {
+    const r = el.getBoundingClientRect();
+    if (r.top <= line && r.bottom > line) return { ref: el.dataset.ref!, top: r.top };
+    if (r.top > line) return null;
+  }
+  return null;
 }

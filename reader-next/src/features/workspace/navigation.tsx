@@ -3,7 +3,7 @@
  * produces a new workspace, which is encoded and navigated to. History state records why the URL changed and
  * which panel caused it, so only that panel reacts (docs/WORKSPACE.md, "The URL is still the state").
  */
-import { useLocation, useRouter } from "@tanstack/react-router";
+import { useLocation, useRouter, type RouterHistory } from "@tanstack/react-router";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { PositionStore, type EntryPositions, type SavedPosition } from "~/lib/reader/position-store";
 import { createWorkspaceCommands, entryKey, readNavState, urlDefaultsFor, type NavState, type WorkspaceRouter } from "~/lib/workspace/commands";
@@ -45,6 +45,29 @@ interface WorkspaceNav {
 
 const Ctx = createContext<WorkspaceNav | null>(null);
 
+/**
+ * The last history change, per history object, kept outside the provider: a page outside the workspace (the library's /texts, a topic)
+ * unmounts the provider, so its own listener is gone when the reader comes Back, and the entry would not know it arrived by
+ * back/forward (its saved place was then ignored and the column placed the address's verse instead). Subscribed once, for the
+ * page's lifetime.
+ */
+const lastChange = new WeakMap<RouterHistory, { key: string | undefined; popped: boolean }>();
+function trackHistory(history: RouterHistory) {
+  if (lastChange.has(history)) return;
+  lastChange.set(history, { key: entryKey(history.location.state), popped: false });
+  history.subscribe(({ location, action }) => {
+    lastChange.set(history, { key: entryKey(location.state), popped: action.type === "BACK" || action.type === "FORWARD" || action.type === "GO" });
+  });
+}
+/** The places kept per history entry, for the page's lifetime (in the browser only). */
+let pageStore: PositionStore | undefined;
+
+/** The entry the provider mounts on, when it was reached by back/forward. */
+function arrivedByPop(history: RouterHistory): string | undefined {
+  const c = lastChange.get(history);
+  return c?.popped && c.key === entryKey(history.location.state) ? c.key : undefined;
+}
+
 export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const location = useLocation();
@@ -54,12 +77,17 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   defaultsRef.current = defaults;
   const commands = useMemo(() => createWorkspaceCommands(router as unknown as WorkspaceRouter, () => defaultsRef.current), [router]);
   const store = useRef<PositionStore | null>(null);
-  store.current ??= new PositionStore(safeSessionStorage());
+  // one store per page, not per provider: the provider is unmounted while a page outside the workspace shows, and a new store would
+  // read sessionStorage before the last place was written there (it is written a second later)
+  store.current ??= typeof window !== "undefined" ? (pageStore ??= new PositionStore(safeSessionStorage())) : new PositionStore(null);
   const readers = useRef(new Map<PanelId, () => SavedPosition | undefined>());
   const placements = useRef(new Map<PanelId, { read: () => SavedPosition | undefined; placement: PanelPlacement }>());
   const moveListeners = useRef(new Set<() => void>());
   const moveFrame = useRef(0);
-  const poppedKey = useRef<string | undefined>(undefined);
+  // the entry reached by back/forward, whose panels restore their saved place; on a remount (back from a page outside the workspace)
+  // it comes from the history tracker, since this provider's own listener was not there to see the change
+  if (typeof window !== "undefined") trackHistory(router.history);
+  const poppedKey = useRef<string | undefined>(typeof window !== "undefined" ? arrivedByPop(router.history) : undefined);
 
   // Save every panel's place at each history change — while the page still shows what is being left — and
   // remember which entry arrived by back/forward (its panels restore their saved place). A replaced entry

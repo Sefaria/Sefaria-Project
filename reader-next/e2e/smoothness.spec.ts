@@ -134,6 +134,76 @@ test("labels changing language as the reader scrolls into the next section never
   expect(frames).toEqual([]);
 });
 
+/** Start recording, every frame, how far the verse on the focus line (140px below the column's top, the engine's threshold) moved
+ * against the reader's own scroll (the scroll change minus the deliberate corrections development builds report). Unlike the test
+ * above, it follows the verse the reader's eyes are on, which can be an earlier one than the engine's focus verse. */
+async function startFrameTrace(page: Page) {
+  await page.evaluate(() => {
+    type Rs = { focus?: string; corrections: number[] };
+    const w = window as unknown as { __readingScroll?: Rs; __frames?: string[]; __tracing?: boolean };
+    const c = document.querySelector("[data-reader-scroller]") as HTMLElement;
+    const scroller = ["auto", "scroll"].includes(getComputedStyle(c).overflowY) ? c : document.scrollingElement!;
+    w.__frames = [];
+    w.__tracing = true;
+    let prev: { tops: Map<string, number>; st: number; corr: number } | undefined;
+    const sample = () => {
+      const rs = w.__readingScroll;
+      const corr = rs ? rs.corrections.reduce((a, b) => a + b, 0) : 0;
+      const tops = new Map<string, number>();
+      for (const el of document.querySelectorAll<HTMLElement>('[role="group"][data-ref]')) {
+        const r = el.getBoundingClientRect();
+        if (r.bottom > -200 && r.top < innerHeight + 200) tops.set(el.dataset.ref!, r.top);
+      }
+      const line = c.getBoundingClientRect().top + 140;
+      const ref = [...document.querySelectorAll<HTMLElement>('[role="group"][data-ref]')].find((el) => {
+        const r = el.getBoundingClientRect();
+        return r.top <= line && r.bottom > line;
+      })?.dataset.ref;
+      if (prev && ref && tops.has(ref) && prev.tops.has(ref)) {
+        const moved = tops.get(ref)! - prev.tops.get(ref)!;
+        const own = scroller.scrollTop - prev.st - (corr - prev.corr);
+        if (Math.abs(moved + own) > 1.5) w.__frames!.push(`${ref}: moved ${moved.toFixed(1)} vs own scroll ${own.toFixed(1)}`);
+      }
+      prev = { tops, st: scroller.scrollTop, corr };
+    };
+    const loop = () => requestAnimationFrame(() => { sample(); if (w.__tracing) loop(); });
+    loop();
+  });
+}
+const stopFrameTrace = (page: Page) =>
+  page.evaluate(() => {
+    const w = window as unknown as { __frames?: string[]; __tracing?: boolean };
+    w.__tracing = false;
+    return w.__frames ?? [];
+  });
+
+test("English mode through a section with no translation: that section shows its Hebrew, the rest stays English, nothing jumps", async ({ page }) => {
+  // Arukh HaShulchan, Orach Chaim 4 has no translation; 3 and 5 have one. On sefaria.org (measured 2026-11-12) the reader passing
+  // through Siman 4 sees its Hebrew while Siman 3 keeps its English text. Here that section alone is shown as Hebrew: the column never
+  // switches language as a whole, so nothing above the reading line reflows.
+  await open(page, "/Arukh_HaShulchan,_Orach_Chaim.3?lang=en");
+  await page.waitForTimeout(1000);
+  const side = (ref: string) => page.locator(`[role="group"][data-ref="Arukh HaShulchan, Orach Chaim ${ref}"] [data-side]`).first();
+  await expect(side("3:1")).toHaveAttribute("data-side", "translation");
+  await startFrameTrace(page);
+  const box = await page.locator("[data-reader-scroller]").boundingBox();
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + 300);
+  for (let i = 0; i < 120 && !(await readingVerse(page)).startsWith("Arukh HaShulchan, Orach Chaim 4:"); i++) {
+    await page.mouse.wheel(0, 150);
+    await page.waitForTimeout(80);
+  }
+  for (let i = 0; i < 4; i++) {
+    await page.mouse.wheel(0, 150);
+    await page.waitForTimeout(80);
+  }
+  await page.waitForTimeout(300);
+  const frames = await stopFrameTrace(page);
+  expect(await readingVerse(page)).toMatch(/^Arukh HaShulchan, Orach Chaim 4:/);
+  await expect(side("4:1")).toHaveAttribute("data-side", "primary");
+  await expect(side("3:1")).toHaveAttribute("data-side", "translation"); // Siman 3 keeps its English
+  expect(frames).toEqual([]);
+});
+
 test("labels changing language leave the active verse where the reader is", async ({ page }) => {
   // The column follows the section being read to pick its labels; the verse it marks as active (the reading line's, or the one
   // chosen with the sidebar open) must stay that verse, and only that one, through the switch.

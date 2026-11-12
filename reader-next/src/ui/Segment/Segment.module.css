@@ -93,6 +93,7 @@
    Side by side keeps the number in the gap. */
 [data-language="english"] .segment:has(> .body > .translation[dir="rtl"]) :is(.number, .dot) { direction: rtl; --_start: var(--_right); --_end: var(--_left); }
 [data-language="hebrew"] .segment:has(> .body > .primary[dir="ltr"]) :is(.number, .dot),
+[data-language="hebrew"] .segment[data-sides="translation"]:has(> .body > .translation[dir="ltr"]) :is(.number, .dot),
 [data-language="bilingual"][data-bilayout="stacked"] .segment[data-sides="primary"]:has(> .body > .primary[dir="ltr"]) :is(.number, .dot) { direction: ltr; --_start: var(--_left); --_end: var(--_right); }
 .dotInner { display: inline-block; width: var(--sefaria-link-dot-size); height: var(--sefaria-link-dot-size); border-radius: var(--sefaria-radius-round); background: var(--sefaria-color-text-muted); vertical-align: middle; }
 
@@ -105,5 +106,24 @@
 .translation { color: var(--sefaria-color-text-dark-grey); }
 [data-language="english"] .translation { color: var(--sefaria-color-text-strong); text-align: justify; }
 /* sefaria.org greys a translation only when it is stacked under its source and is not Hebrew (`.stacked.bilingual .translation`,
-   `.he.translation` black): side by side, and a Hebrew translation stacked (the Zohar's), it is black. */
-[data-bilayout="heLeft"] .translation, [data-bilayout="heRight"] .translation, [data-language="bilingual"] .translation[dir="rtl"] { color: var(--sefaria-color-text-strong); }
+   `.he.translation` black): side by side, and a Hebrew translation stacked (the Zohar's), it has the source's colour (one token, so
+   the two sides also match in the dark theme). */
+[data-bilayout="heLeft"] .translation, [data-bilayout="heRight"] .translation, [data-language="bilingual"] .translation[dir="rtl"] { color: var(--sefaria-color-text); }
+
+/* A panel 500px wide or less is always stacked, whatever the side-by-side setting (sefaria.org ReaderPanel.currentLayout: side by side
+   only when the panel is wider than 500px; a phone, two panels in a narrow window, a panel beside the sidebar). The panel is the
+   reading column's `panel` container, so this holds from the server render on, without measuring in script. sefaria.org reads the
+   width as a whole number (jQuery 2's offsetWidth), so a 500.47px panel is still "500" there: stacked below 500.5px. It undoes the
+   side-by-side rules above and applies the stacked ones. */
+@container panel (width < 500.5px) {
+  [data-bilayout="heLeft"] .body, [data-bilayout="heRight"] .body { flex-direction: column; direction: inherit; gap: 10px; align-items: stretch; }
+  [data-bilayout="heLeft"] .side, [data-bilayout="heRight"] .side { flex: none; order: 0; padding: 0; margin: 0; }
+  [data-bilayout="heRight"] .segment[data-sides="primary"] .primary, [data-bilayout="heLeft"] .segment[data-sides="translation"] .translation { margin-left: 0; }
+  [data-bilayout="heLeft"] .number, [data-bilayout="heRight"] .number { left: auto; right: auto; inset-inline-start: calc(-1 * var(--_start)); }
+  [data-bilayout="heLeft"] .dot, [data-bilayout="heRight"] .dot { visibility: visible; }
+  [data-bilayout="heLeft"] .translation, [data-bilayout="heRight"] .translation { color: var(--sefaria-color-text-dark-grey); }
+  [data-language="bilingual"] .translation[dir="rtl"] { color: var(--sefaria-color-text); }
+  [data-language="bilingual"]:is([data-bilayout="heLeft"], [data-bilayout="heRight"]) .segment { margin-block-end: 14px; }
+  [data-language="bilingual"]:is([data-bilayout="heLeft"], [data-bilayout="heRight"]) .segment:is([data-sides="both"], [data-sides="translation"]) { margin-block-end: 20px; }
+  [data-language="bilingual"]:is([data-bilayout="heLeft"], [data-bilayout="heRight"]) .segment[data-sides="primary"]:has(> .body > .primary[dir="ltr"]) :is(.number, .dot) { direction: ltr; --_start: var(--_left); --_end: var(--_right); }
+}

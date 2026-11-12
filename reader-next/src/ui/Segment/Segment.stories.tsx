@@ -12,12 +12,14 @@ interface RowsProps {
   language: ContentLanguage;
   biLayout: BiLayout;
   rows: { ref: string; primary?: SegmentSide; translation?: SegmentSide }[];
+  /** Width of the panel (the reading column's `panel` container) around the surface. */
+  panelWidth?: number;
 }
 
 /** A few segments on a 700px reading surface, as the reader lays them out. */
-function Rows({ language, biLayout, rows }: RowsProps) {
+function Rows({ language, biLayout, rows, panelWidth = 760 }: RowsProps) {
   return (
-    <div style={{ width: 760 }}>
+    <div style={{ width: panelWidth, container: "panel / inline-size" }}>
       <ReaderSurface language={language} layout="segmented" biLayout={biLayout} fontSize={62.5}>
         {rows.map((r, i) => (
           <Segment key={r.ref} segmentRef={r.ref} address={String(i + 1)} primary={r.primary} translation={r.translation} language={language} linkCount={3} />
@@ -116,20 +118,21 @@ const computed = (root: HTMLElement, value: string) => {
 };
 const colorOf = (row: HTMLElement, side: string) => getComputedStyle(row.querySelector(`[data-side='${side}']`)!).color;
 
-/** sefaria.org: a translation beside the source is black side by side (grey only when stacked). */
-export const SideBySideTranslationIsBlack: Story = {
+/** sefaria.org: side by side the translation has the source's colour (grey only when stacked), in every theme. */
+export const SideBySideTranslationLikeSource: Story = {
   args: { language: "bilingual", biLayout: "heLeft", rows: [{ ref: "both", primary: he, translation: en }] },
   play: async ({ canvasElement }) => {
-    await expect(colorOf(seg(canvasElement, "both"), "translation")).toBe(computed(canvasElement, "var(--sefaria-color-text-strong)"));
+    const row = seg(canvasElement, "both");
+    await expect(colorOf(row, "translation")).toBe(colorOf(row, "primary"));
+    await expect(colorOf(row, "translation")).toBe(computed(canvasElement, "var(--sefaria-color-text)"));
   },
 };
 
 /** Stacked, a Hebrew translation (Zohar) is black too; an English one stays grey. */
-export const StackedHebrewTranslationIsBlack: Story = {
+export const StackedHebrewTranslationLikeSource: Story = {
   args: { language: "bilingual", biLayout: "stacked", rows: [{ ref: "zohar", primary: { ...heTranslation, html: "ויהי מקץ" }, translation: heTranslation }, { ref: "tanakh", primary: he, translation: en }] },
   play: async ({ canvasElement }) => {
-    const black = computed(canvasElement, "var(--sefaria-color-text-strong)");
-    await expect(colorOf(seg(canvasElement, "zohar"), "translation")).toBe(black);
+    await expect(colorOf(seg(canvasElement, "zohar"), "translation")).toBe(colorOf(seg(canvasElement, "zohar"), "primary"));
     await expect(colorOf(seg(canvasElement, "tanakh"), "translation")).toBe(computed(canvasElement, "var(--sefaria-color-text-dark-grey)"));
   },
 };
@@ -164,11 +167,66 @@ export const EnglishModeHebrewTranslation: Story = {
   },
 };
 
+/** Hebrew mode on an English-only work served as a translation (Teshuvot haRashba: no source version): the number is on the left, as on
+ * sefaria.org (242px at 1280, beside the English). */
+export const HebrewModeEnglishTranslationOnly: Story = {
+  args: { language: "hebrew", biLayout: "stacked", rows: [{ ref: "teshuva", translation: en }, { ref: "hebrew-source", primary: he }] },
+  play: async ({ canvasElement }) => {
+    await expect(numberSide(seg(canvasElement, "teshuva"))).toBe("left");
+    near(rect(seg(canvasElement, "teshuva").querySelector("[data-number]")).left, rect(seg(canvasElement, "teshuva")).left - 48);
+    await expect(numberSide(seg(canvasElement, "hebrew-source"))).toBe("right");
+  },
+};
+
 /** Hebrew mode on an English-only work: the number is on the left. */
 export const HebrewModeEnglishSource: Story = {
   args: { language: "hebrew", biLayout: "stacked", rows: [{ ref: "english-source", primary: en }, { ref: "hebrew-source", primary: he }] },
   play: async ({ canvasElement }) => {
     await expect(numberSide(seg(canvasElement, "english-source"))).toBe("left");
     await expect(numberSide(seg(canvasElement, "hebrew-source"))).toBe("right");
+  },
+};
+
+/** Stacked as sefaria.org shows it: the sides one under the other at full width, the number in the right gutter. */
+async function looksStacked(row: HTMLElement) {
+  const body = rect(row.querySelector("p"));
+  for (const side of row.querySelectorAll("[data-side]")) {
+    near(rect(side).left, body.left);
+    near(rect(side).right, body.right);
+  }
+  await expect(rect(row.querySelector("[data-number]")).left).toBeGreaterThanOrEqual(rect(row).right);
+  await expect(getComputedStyle(row.querySelector("[data-no-select]")!).visibility).toBe("visible");
+  await expect(colorOf(row, "translation")).toBe(computed(row, "var(--sefaria-color-text-dark-grey)"));
+}
+
+/** A panel 500px wide or less is stacked whatever the side-by-side setting (sefaria.org: side by side only above 500px). */
+export const NarrowPanelHebrewLeftIsStacked: Story = {
+  args: { language: "bilingual", biLayout: "heLeft", rows: sideBySideRows, panelWidth: 500 },
+  play: async ({ canvasElement }) => {
+    await looksStacked(seg(canvasElement, "both"));
+    near(rect(seg(canvasElement, "hebrew-only").querySelector("[data-side]")).left, rect(seg(canvasElement, "hebrew-only").querySelector("p")).left);
+    near(rect(seg(canvasElement, "translation-only").querySelector("[data-side]")).left, rect(seg(canvasElement, "translation-only").querySelector("p")).left);
+  },
+};
+export const NarrowPanelHebrewRightIsStacked: Story = {
+  args: { language: "bilingual", biLayout: "heRight", rows: sideBySideRows, panelWidth: 500 },
+  play: async ({ canvasElement }) => {
+    await looksStacked(seg(canvasElement, "both"));
+    // the source comes first, as when stacked
+    await expect(rect(seg(canvasElement, "both").querySelector("[data-side='primary']")).top).toBeLessThan(rect(seg(canvasElement, "both").querySelector("[data-side='translation']")).top);
+  },
+};
+/** A fractional width that sefaria.org rounds to 500 (a panel beside the sidebar at a 736px window is 500.47px there): still stacked. */
+export const PanelOf500Point4IsStacked: Story = {
+  args: { language: "bilingual", biLayout: "heLeft", rows: sideBySideRows, panelWidth: 500.4 },
+  play: async ({ canvasElement }) => {
+    await looksStacked(seg(canvasElement, "both"));
+  },
+};
+/** One pixel wider and the setting applies. */
+export const PanelJustOver500IsSideBySide: Story = {
+  args: { language: "bilingual", biLayout: "heLeft", rows: sideBySideRows, panelWidth: 501 },
+  play: async ({ canvasElement }) => {
+    await numberInGap(seg(canvasElement, "both"));
   },
 };
