@@ -101,3 +101,33 @@ def test_append_version_reports_sources_on_genuine_multi_version_merge():
         for v in VersionSet({"title": title}):
             v.delete()
         idx.delete()
+
+
+def test_first_available_section_ref_is_null_when_no_section_holds_text():
+    """
+    A ref whose addressed section has no text and no following section has text makes
+    Ref.first_available_section_ref() return None (see its docstring). The payload adapter
+    used to call .normal() on that None, so every reader page for such a ref answered 500.
+    The adapter must publish null for the field, as it already does for next/prev.
+    """
+    title = "Adapter First Available Test Book"
+    idx = _fresh_synthetic_index(title)
+    vt_a = "Adapter Test A"
+    try:
+        chunk = Ref(f"{title} 1:1").text(direction="ltr", lang="en", vtitle=vt_a)
+        chunk.text = "Only verse"
+        chunk.save()
+
+        oref = Ref(f"{title} 2")
+        assert oref.first_available_section_ref() is None
+
+        adapter = TextRequestAdapter(oref, [[TextRequestAdapter.PRIMARY, ""]], fill_in_missing_segments=False)
+        result = adapter.get_versions_for_query()
+
+        assert result["firstAvailableSectionRef"] is None
+        assert result["next"] is None
+        assert result["prev"] is None
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()

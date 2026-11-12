@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from sefaria.model import *
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, PartialRefInputError
 
 
 class Test_Ref:
@@ -1238,3 +1238,52 @@ class Test_ref_manipulations():
         assert t.list_refs_in_range("Job 4:5-9") == ["Job 4:5","Job 4:6","Job 4:7","Job 4:8","Job 4:9"]
         assert t.list_refs_in_range("Genesis 2:3") == ["Genesis 2:3"]
 """
+
+
+def test_instantiate_ref_with_legacy_parse_fallback_handles_cached_ref_without_lang():
+    """
+    Ref.__init__ sets the private _lang slot only on the tref construction path, so a Ref
+    that the ref cache returns as an _obj-built instance has no _lang. The legacy parse
+    fallback read that slot and so raised AttributeError on partial refs such as
+    "Sefat Emet.3", which the reader answered with HTTP 500. The fallback must derive the
+    language from the partial input instead of the uninitialized slot.
+    """
+    title = "Legacy Fallback Test Book"
+    try:
+        Index().load({"title": title}).delete()
+    except Exception:
+        pass
+    idx = Index(
+        {
+            "title": title,
+            "categories": ["Liturgy"],
+            "schema": {
+                "titles": [
+                    {"lang": "en", "text": title, "primary": True},
+                    {"lang": "he", "text": "ספר בדיקה", "primary": True},
+                ],
+                "nodeType": "JaggedArrayNode",
+                "depth": 2,
+                "sectionNames": ["Chapter", "Verse"],
+                "addressTypes": ["Integer", "Integer"],
+                "key": title,
+            },
+        }
+    )
+    idx.save()
+    try:
+        # Start from an empty ref cache so the book-level Ref below is built from an _obj dict,
+        # which never sets _lang, rather than reusing a tref-built instance.
+        Ref.clear_cache()
+        cached = Ref(f"{title} 1:1").context_ref(2)
+        assert cached.normal() == title
+        assert not hasattr(cached, "_lang")
+        assert Ref(title) is cached
+
+        # A depth-3 ref against a depth-2 index fails with the book title as matched_part.
+        with pytest.raises(PartialRefInputError):
+            Ref(f"{title} 1.2.3")
+
+        assert Ref.instantiate_ref_with_legacy_parse_fallback(f"{title} 1.2.3") == cached
+    finally:
+        idx.delete()

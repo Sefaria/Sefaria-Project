@@ -296,7 +296,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             contents = self.nodes.as_index_contents()
             if with_content_counts:
                 contents["schema"] = self.annotate_schema_with_content_counts(contents["schema"])
-                contents["firstSectionRef"] = Ref(self.title).first_available_section_ref().normal()
+                first_section = Ref(self.title).first_available_section_ref()
+                contents["firstSectionRef"] = first_section.normal() if first_section else None
 
             contents = self.expand_metadata_on_contents(contents)
         return contents
@@ -4704,7 +4705,11 @@ class Ref(metaclass=RefCacheType):
         except PartialRefInputError as e:
             matched_ref = Ref(e.matched_part)
             try:
-                tref = Ref.__clean_tref(tref, matched_ref._lang)
+                # Ref._lang is set only on the tref construction path, and the ref cache can
+                # return an _obj-built Ref that never set it. Derive the language from the
+                # partial input the way Ref.__init__ does.
+                lang = "he" if is_all_hebrew(e.matched_part) else "en"
+                tref = Ref.__clean_tref(tref, lang)
                 # replace input title with normalized title in case input was an alt title
                 tref = tref.replace(e.matched_part, matched_ref.normal())
                 legacy_ref_parser = legacy_ref_parser_handler[matched_ref.index.title]
