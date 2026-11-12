@@ -434,6 +434,10 @@ export function TextColumn(props: TextColumnProps) {
     return () => ro.disconnect();
   }, [sections, settings]);
 
+  // English mode, a section with no translation at all (Arukh HaShulchan, Orach Chaim 4; Peri Megadim; Ralbag): that section is
+  // shown as Hebrew (its text, letters, numbers on the right, as sefaria.org's panel while the section is current). Per section,
+  // never the whole column: the English sections around it keep their text, and nothing above the reader reflows.
+  const hebrewSettings = useMemo(() => ({ ...settings, language: "hebrew" as const }), [settings]);
   const first = sections[0]!;
   // One label language for the column: section and parashah headers, segment numbers and the book's name above its first section
   // (the old useContentLang(defaultToInterfaceOnBilingual) reading the panel's text data)
@@ -489,7 +493,7 @@ export function TextColumn(props: TextColumnProps) {
             <TextSection
               key={p.ref}
               passage={p}
-              settings={settings}
+              settings={settings.language === "english" && hebrewOnly(p) ? hebrewSettings : settings}
               labelLang={labelLang}
               scrollTargetRef={target}
               terms={terms}
@@ -628,4 +632,9 @@ export function listenForSelections(root: () => Element | null, report: (words: 
     doc.removeEventListener("keydown", onKey, true);
     doc.removeEventListener("selectionchange", onChange);
   };
+}
+
+/** A section whose source is Hebrew and that has no translation text at all. */
+export function hebrewOnly(p: Pick<TextPassage, "primaryVersion" | "translationVersion" | "segments">): boolean {
+  return p.primaryVersion?.direction === "rtl" && !(p.translationVersion && p.segments.some((s) => s.translation !== undefined));
 }

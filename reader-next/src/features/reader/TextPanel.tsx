@@ -45,7 +45,7 @@ import { VisuallyHidden } from "~/ui/VisuallyHidden/VisuallyHidden";
 import { shownVersions as panelVersionsShown, type ReaderRouteData } from "./reader-route";
 import { useReaderSettings } from "./settings-context";
 import { placeSegment, scrollSegmentToLine } from "~/lib/reader-state/sefaria/slices/dom-position";
-import { TextColumn } from "./TextColumn";
+import { hebrewOnly, TextColumn } from "./TextColumn";
 import { readerAnalytics } from "~/lib/analytics";
 import { useViewer } from "~/features/auth/viewer";
 import { legacyVersions } from "~/lib/user/history";
@@ -100,22 +100,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const initialQueries = useSuspenseQueries({ queries: data.sectionRefs.map((r) => textQueryOptions(r, data.versions)) });
   const initialKey = initialQueries.map((q) => q.dataUpdatedAt).join(",");
   const initial = useMemo(() => initialQueries.map((q) => q.data), [initialKey, data.sectionRefs.join("|"), selectionKey(data.versions)]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the answers (dataUpdatedAt), the sections and the versions; useSuspenseQueries returns a new array each render
-  // A text with nothing in Hebrew (an English-original work, no source version) cannot be shown "Hebrew only": the column shows it
-  // as bilingual (VERIFIED: Philo, Teshuvot haRashba with lang=he, English text, Latin numerals). Its title still follows the
-  // mode the reader asked for (`labelMode` below), as on sefaria.org, where the panel stays in Hebrew mode and labels the work in
-  // its source's language, English. Once the column's labels follow one rule that reads the source's language in Hebrew mode, this
-  // switch can go and `labelMode` becomes `settings.language`.
-  const first = initial[0];
-  const noHebrew = !!first && (!!first.primaryVersion || !!first.translationVersion) && first.primaryVersion?.direction !== "rtl" && first.translationVersion?.direction !== "rtl";
-  // And the other way round: nothing in English (no translation at all) makes an English panel a Hebrew one (Peri Megadim,
-  // VERIFIED: its segments are numbered א, ב in English mode).
-  const noEnglish = !!first && !first.translationVersion && first.primaryVersion?.direction === "rtl";
-  const settings = useMemo(
-    () => (noHebrew && settings0.language === "hebrew" ? { ...settings0, language: "bilingual" as const } : noEnglish && settings0.language === "english" ? { ...settings0, language: "hebrew" as const } : settings0),
-    [settings0, noHebrew, noEnglish],
-  );
-  // The mode the panel's title follows: the one asked for, except an English panel with nothing in English, labelled as Hebrew
-  const labelMode = noEnglish && settings0.language === "english" ? "hebrew" : settings0.language;
+  // The panel keeps the mode the reader asked for. An English-original work in Hebrew mode shows its English source, labelled in
+  // English (the labels follow the language of the source on screen); a section with no translation in English mode shows its
+  // Hebrew, decided per section by the column, so the rest of the column stays English as on sefaria.org.
+  const settings = settings0;
 
   /** Apply an operation to the workspace as it is now, and go there. */
   const apply = useCallback(
@@ -650,6 +638,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // A numbered section's verses follow a colon ("Genesis 1:3"); a named one's, a space ("Pesach Haggadah, Magid, The Four Sons 2")
   const firstNamed = section.segments.find((s) => arrival.includes(s.ref));
   const separator = firstNamed && !firstNamed.ref.startsWith(`${section.sectionRef}:`) ? " " : ":";
+  // The mode the title follows: the panel's, except a section with no translation in English mode, which the column shows as Hebrew
+  const labelMode = settings.language === "english" && hebrewOnly(section) ? "hebrew" : settings.language;
   const header = headerLabels(narrowToVerses({
     sectionRef: section.sectionRef, heSectionRef: section.heSectionRef, categories: section.categories,
     translationVersion: section.translationVersion, primaryVersion: section.primaryVersion, language: labelMode, interfaceLang,

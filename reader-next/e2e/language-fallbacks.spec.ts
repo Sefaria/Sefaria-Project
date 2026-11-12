@@ -10,6 +10,19 @@ test.describe("language fallbacks and number rules (verified against sefaria.org
     await expect(seg).toContainText(/^1\b/);
   });
 
+  test("an English-original work in Hebrew mode with a Hebrew interface keeps Hebrew mode and English labels", async ({ page }) => {
+    // sefaria.org (measured 2026-11-12, interface Hebrew, lang=he): the panel stays in Hebrew mode and labels the work in its source's
+    // language, English: an English section header and title. The panel is not turned bilingual.
+    await page.context().addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
+    await open(page, "/On_the_Account_of_the_World's_Creation.1?lang=he");
+    const seg = page.locator('[role="group"][data-ref="On the Account of the World\'s Creation 1:1"]');
+    await expect(seg).toContainText("While among other lawgivers", { timeout: 25_000 });
+    await expect(seg.locator("[data-number]")).toHaveText("1");
+    await expect(page.locator(`section[data-ref="On the Account of the World's Creation 1"] h2`)).toHaveAttribute("lang", "en");
+    await expect(page.locator("header h1 [lang], header h2 [lang]").first()).toHaveAttribute("lang", "en");
+    await expect(page.locator("[data-language]").first()).toHaveAttribute("data-language", "hebrew");
+  });
+
   test("a Hebrew text with no translation, asked for in English, shows the Hebrew with Hebrew numerals", async ({ page }) => {
     await open(page, "/Peri_Megadim_on_Orach_Chayim,_Mishbezot_Zahav.1?lang=en");
     const seg = page.locator('[role="group"][data-ref="Peri Megadim on Orach Chayim, Mishbezot Zahav 1:1:1"]');
