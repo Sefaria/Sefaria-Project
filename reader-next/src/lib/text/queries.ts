@@ -133,7 +133,7 @@ export async function loadReaderPassage(
   } catch (e) {
     if (!isEmptySection(e)) throw e;
     const ref = (await refIndex.resolveAlias(requestedRef)) ?? requestedRef;
-    const next = await nextSectionWithText(qc, refIndex, ref);
+    const next = await sectionToOpenInstead(qc, ref);
     if (!next) throw e;
     const opened = await loadAsAddressed(qc, refIndex, next, sel);
     await refIndex.setAlias(requestedRef, opened.canonicalRef);
@@ -141,22 +141,53 @@ export async function loadReaderPassage(
   }
 }
 
+/** Where the texts API (v1, `/api/texts/<ref>`) places an address: its section, whether that section has text, and its neighbours with text. */
+interface SectionNeighbours {
+  known: boolean;
+  sectionRef?: string;
+  hasText?: boolean;
+  prev?: string | null;
+  next?: string | null;
+}
+
+const anyText = (x: unknown): boolean => (Array.isArray(x) ? x.some(anyText) : !!x);
+
 /**
- * The first section with text at or after the start of `ref` (`/api/ref`'s `first_available_section_ref`), or null when the API does
- * not know the address (a misspelt title: a real "no such text"). Asked for the start as a segment address: Django's answer for an
- * empty section itself is a server error, for a segment in it the next section with text.
+ * `/api/texts/<ref>` (Django's texts view): it answers for an empty section too (the v3 API says "no text"), with `prev`/`next` that skip
+ * the sections with no text (Ref.prev_section_ref/next_section_ref). A server failure throws (the API's trouble, 503); an address the
+ * library does not know (a misspelt title, a chapter past the book's end) is `known: false`.
  */
-async function nextSectionWithText(qc: QueryClient, refIndex: RefIndex, ref: string): Promise<string | null> {
+async function fetchSectionNeighbours(ref: string, signal?: AbortSignal): Promise<SectionNeighbours> {
+  const r = await globalThis.fetch(`${SEFARIA_API_ORIGIN}/api/texts/${encodeURIComponent(ref)}?commentary=0&pad=0`, { signal });
+  if (r.status >= 500) throw new SefariaApiError(`Texts ${ref}: HTTP ${r.status}`, r.status);
+  if (!r.ok) return { known: false };
+  // an address it does not know is answered 200 with an `error`
+  const d = await apiJson<{ sectionRef?: string; prev?: string | null; next?: string | null; text?: unknown; he?: unknown }>(r, `Texts ${ref}`).catch((e: unknown) => {
+    if (e instanceof SefariaApiError && e.payload) return null;
+    throw e;
+  });
+  if (!d?.sectionRef) return { known: false };
+  return { known: true, sectionRef: d.sectionRef, hasText: anyText(d.text) || anyText(d.he), prev: d.prev, next: d.next };
+}
+
+const sectionNeighboursQueryOptions = (ref: string) =>
+  queryOptions<SectionNeighbours>({ ...withPolicy("text", { queryKey: ["section-neighbours", ref] as const, queryFn: ({ signal }: { signal: AbortSignal }) => fetchSectionNeighbours(ref, signal) }) });
+
+/**
+ * Where to open an address that has no text, as sefaria.org does (reader/views.py first_available_section_ref): the next section
+ * with text after it (/Rashi_on_Genesis.1.3 → 1:4, /Genesis.1.35 → Genesis 2). Past the book's last text, sefaria.org shows an endless
+ * "Loading…" (/Genesis.50.27) or a server error (/Rashi_on_Genesis.50.26.1); the reader is shown the end of the book instead: the
+ * address's own section when it has text (Genesis 50), else the last section with text before it (Rashi on Genesis 50:23). Null when
+ * the library does not know the address (a real "no such text"). A server failure on the way is thrown, not taken for "no such text".
+ */
+async function sectionToOpenInstead(qc: QueryClient, ref: string): Promise<string | null> {
   const p = parseHumanRef(ref);
   if (!p.sections.length) return null;
-  const depth = (await refIndex.getMeta(p.title))?.textDepth;
-  const point = (n: number) => toHumanRef({ title: p.title, sections: [...p.sections, ...Array(n).fill("1")], toSections: [...p.sections, ...Array(n).fill("1")] });
-  const probes = depth !== undefined ? [point(Math.max(depth - p.sections.length, 0))] : [point(0), point(1)];
-  for (const probe of probes) {
-    const first = await qc.ensureQueryData(firstSectionQueryOptions(probe)).catch(() => null);
-    if (first && first !== ref && parseHumanRef(first).sections.length) return first;
-  }
-  return null;
+  const start = toHumanRef({ title: p.title, sections: p.sections, toSections: p.sections });
+  const at = await qc.ensureQueryData(sectionNeighboursQueryOptions(start));
+  if (!at.known) return null;
+  const target = at.next ?? (at.hasText ? at.sectionRef : at.prev) ?? null;
+  return target && target !== ref && parseHumanRef(target).sections.length ? target : null;
 }
 
 async function loadAsAddressed(qc: QueryClient, refIndex: RefIndex, requestedRef: string, sel: VersionSelection): Promise<ReaderPassage> {
