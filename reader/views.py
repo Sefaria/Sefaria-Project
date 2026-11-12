@@ -139,6 +139,7 @@ from sefaria.settings import (
 from sefaria.sheets import annotate_user_links, get_sheet_for_panel, get_sheets_for_ref
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.cache import django_cache, gen_cache
+from sefaria.system.context_processors import apply_chatbot_version_param
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_json, json_response_decorator, sanitize_get_params
 from sefaria.system.exceptions import (
@@ -475,6 +476,7 @@ def base_props(request):
         }
     )
 
+    apply_chatbot_version_param(request)  # a ?chatbot_version=N on this very request must reach the props
     chatbot_version = request.session.get("chatbot_version")
     chatbot_version = chatbot_version if is_int(chatbot_version) else None
 
@@ -5261,10 +5263,8 @@ def account_settings(request):
             "user": request.user,
             "profile": profile,
             "experiments_available": experiments_available,
+            "settings_tab": "account",
             "social_providers": list(request.user.socialaccount_set.values_list("provider", flat=True)),
-            # The toggle must render the *effective* value: a user who is on through the
-            # legacy rule has no setting key yet, and must still see "On".
-            "library_assistant_enabled": library_assistant.is_enabled(profile),
             "lang_names_and_codes": zip(
                 [
                     Locale(lang).languages[lang].capitalize()
@@ -5277,6 +5277,28 @@ def account_settings(request):
             )
             or request.COOKIES.get("translation_language_preference", None),
             "diaspora": request.diaspora,
+            "renderStatic": True,
+        },
+    )
+
+
+@login_required
+@ensure_csrf_cookie
+def library_assistant_settings(request):
+    """
+    Settings tab for the Library Assistant: its on/off setting and personalization.
+    The page is client-rendered by LibraryAssistantSettings, which calls the assistant's own service.
+    """
+    profile = UserProfile(id=request.user.id)
+    return render_template(
+        request,
+        "library_assistant_settings.html",
+        {"headerMode": True},
+        {
+            "settings_tab": "library-assistant",
+            # The toggle must show the *effective* value: a user who is on through the
+            # legacy rule has no setting key yet, and must still see "On".
+            "library_assistant_enabled": library_assistant.is_enabled(profile),
             "renderStatic": True,
         },
     )

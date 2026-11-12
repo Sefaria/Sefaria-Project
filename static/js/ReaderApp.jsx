@@ -37,6 +37,8 @@ import {
   MobileAppPage,
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
+import LibraryAssistantSettings from './LibraryAssistantSettings';
+import { chatbotApiBaseUrl } from './chatbotApi';
 import { SignUpModal, InterruptingMessage, Banner, CookiesNotification } from './Misc';
 import Button from './common/Button';
 import GoogleOneTap from './auth/GoogleOneTap';
@@ -2810,9 +2812,7 @@ class ReaderApp extends Component {
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
-    const chatBotApiBaseUrl = this.props.chatbot_version
-      ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api`
-      : this.props.chatbot_api_base_url;
+    const chatBotApiBaseUrl = chatbotApiBaseUrl(this.props);
 
     return (
       // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
@@ -2952,4 +2952,5 @@ export {
   NewsletterPage,
   MobileAppPage,
   UpdatesPanel,
+  LibraryAssistantSettings,
 };
