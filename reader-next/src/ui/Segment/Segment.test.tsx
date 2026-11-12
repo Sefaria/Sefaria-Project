@@ -154,13 +154,21 @@ describe("rules found by comparing with sefaria.org (parity run)", () => {
     expect(screen.queryByText("בְּרֵאשִׁית בָּרָא")).toBeNull();
     expect(screen.getByText("1")).toBeInTheDocument();
   });
-  it("a Hebrew translation on its own is numbered in Hebrew even in an English panel (Zohar)", () => {
-    render(<Segment {...base} language="english" primary={undefined} translation={he} address="3" />);
+  it("a Hebrew translation on its own is numbered in Hebrew even in an English panel (Zohar: the panel's label language)", () => {
+    render(<Segment {...base} language="english" labelLang="he" primary={undefined} translation={he} address="3" />);
     expect(screen.getByText("ג")).toBeInTheDocument();
   });
   it("a Hebrew primary on its own (no translation) is numbered in English in an English panel", () => {
     render(<Segment {...base} language="english" translation={undefined} address="3" />);
     expect(screen.getByText("3")).toBeInTheDocument();
+  });
+  it("a Hebrew primary on its own keeps digits even when the panel's labels are Hebrew (legacy would show no number)", () => {
+    render(<Segment {...base} language="english" labelLang="he" translation={undefined} address="3" />);
+    expect(screen.getByText("3")).toBeInTheDocument();
+  });
+  it("numbers follow the panel's label language in a bilingual panel", () => {
+    render(<Segment {...base} language="bilingual" labelLang="he" address="3" />);
+    expect(screen.getByText("ג")).toBeInTheDocument();
   });
 });
 

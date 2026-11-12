@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { linkDotOpacity, numberLang, segmentNumber, showsSegmentNumbers, visibleSides } from "./labels";
+import { linkDotOpacity, numberLang, segmentNumber, segmentNumberLang, showsSegmentNumbers, visibleSides } from "./labels";
 
 // @feature TXD-043 @feature TXD-045
 describe("visibleSides", () => {
@@ -39,4 +39,22 @@ describe("which books show segment numbers", () => {
 
 describe("link-count dot opacity", () => {
   it.each([[0, 0], [1, 0.21], [10, 0.3], [50, 0.7], [500, 0.7]])("%i links → %f", (n, o) => expect(linkDotOpacity(n)).toBeCloseTo(o, 5));
+});
+
+describe("segmentNumberLang", () => {
+  it("follows the panel's label language", () => {
+    expect(segmentNumberLang("bilingual", "he")).toBe("he");
+    expect(segmentNumberLang("english", "he")).toBe("he"); // Zohar: the Hebrew Translation
+  });
+  it("a Hebrew source alone in an English or bilingual panel is numbered in digits", () => {
+    expect(segmentNumberLang("english", "he", "rtl")).toBe("en");
+    expect(segmentNumberLang("bilingual", "he", "rtl")).toBe("en");
+  });
+  it("an English source alone in a Hebrew panel is numbered in Hebrew letters", () => {
+    expect(segmentNumberLang("hebrew", "en", "ltr")).toBe("he");
+  });
+  it("a source alone that agrees with the panel keeps the label language", () => {
+    expect(segmentNumberLang("hebrew", "he", "rtl")).toBe("he");
+    expect(segmentNumberLang("english", "en", "ltr")).toBe("en");
+  });
 });

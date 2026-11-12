@@ -6,6 +6,8 @@ import { makeIndexLookup } from "~/lib/connections/links";
 import { linkCountsBySegment, linksQueryOptions } from "~/lib/connections/queries";
 import { nextToLoad, sectionsToTrim } from "~/lib/reader/column";
 import type { ReaderSettings } from "~/lib/reader/settings";
+import { passageLabelLanguage } from "~/lib/reader/label-language";
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { cleanCopy } from "~/lib/reader/copy";
 import { spreadNumbers } from "~/lib/reader/spread-numbers";
 import type { TextPassage } from "~/lib/text/model";
@@ -89,7 +91,11 @@ export function TextColumn(props: TextColumnProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mounted column: the text it opened with
   }, []);
   const qc = useQueryClient();
+  const interfaceLang = useInterfaceLang();
   const [sections, setSections] = useState(initial);
+  // The section whose text decides the language of every label in the column (the old panel's `textsData`: the currently visible
+  // ref's text, loaded in the panel's versions). It moves with the reading place, not with each section drawn.
+  const [labelRef, setLabelRef] = useState(initial[0]?.ref);
   const [loading, setLoading] = useState({ up: false, down: false });
   const scrollerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -236,6 +242,7 @@ export function TextColumn(props: TextColumnProps) {
       focusRef.current = ref;
       paintFocus(ref);
       const p = passageOf(ref);
+      if (p) setLabelRef(p.ref);
       if (p) propsRef.current.onFocus?.(ref, p);
     },
     onSettled: (ref) => {
@@ -428,6 +435,10 @@ export function TextColumn(props: TextColumnProps) {
   }, [sections, settings]);
 
   const first = sections[0]!;
+  // One label language for the column: section and parashah headers, segment numbers and the book's name above its first section
+  // (the old useContentLang(defaultToInterfaceOnBilingual) reading the panel's text data)
+  const labelLang = passageLabelLanguage(sections.find((p) => p.ref === labelRef) ?? first, settings.language, interfaceLang);
+  const bookTitleLang = (labelLang === "he" ? first.heIndexTitle : first.indexTitle) ? labelLang : labelLang === "he" ? "en" : "he";
   const last = sections.at(-1)!;
   return (
     <div ref={scrollerRef} className={styles.scroller} data-reader-scroller data-show-focus={showFocus ? "true" : "false"} data-testid="text-column">
@@ -460,8 +471,8 @@ export function TextColumn(props: TextColumnProps) {
           {first.prev ? (
             loading.up ? <Spinner /> : null
           ) : (
-            <p className={styles.bookTitle}>
-              <InterfaceText en={first.indexTitle} he={first.heIndexTitle} />
+            <p className={styles.bookTitle} lang={bookTitleLang} dir={bookTitleLang === "he" ? "rtl" : "ltr"}>
+              {bookTitleLang === "he" ? first.heIndexTitle : first.indexTitle}
             </p>
           )}
         </div>
@@ -470,6 +481,7 @@ export function TextColumn(props: TextColumnProps) {
             key={p.ref}
             passage={p}
             settings={settings}
+            labelLang={labelLang}
             scrollTargetRef={target}
             terms={terms}
             highlight={highlight}
