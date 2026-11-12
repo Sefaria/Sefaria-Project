@@ -113,6 +113,42 @@ logger = structlog.get_logger(__name__)
 
 MAX_SYNC_RESPONSE_HISTORY = 1000  # max recent history items returned by a single profile sync
 
+# Name of the user_history index that get_sync_items hints. It is also registered in
+# sefaria.system.database.ensure_indices(), but that function is dead code (its only
+# caller is a one-off migration script), so a database whose indices were restored
+# without it has no such index.
+SYNC_HISTORY_INDEX_NAME = "uid_1_server_time_stamp_1"
+
+
+def _ensure_sync_history_index():
+    """Guarantee the user_history (uid, server_time_stamp) index that get_sync_items hints.
+
+    get_sync_items passes hint="uid_1_server_time_stamp_1" so the query planner uses the
+    (uid, server_time_stamp) index for a delta sync. A database without that index (a dev
+    cauldron, the CI sandbox, or any Mongo restored without secondary indexes) makes Mongo
+    raise OperationFailure: "hint provided does not correspond to an existing index", which
+    turns every profile sync into a 500.
+
+    Registering the index in sefaria.system.database.ensure_indices() documents the
+    requirement but does NOT satisfy it: the ensure_indices function only has a one-off
+    migration script as its caller, so nothing in app startup, the Helm chart, or any cron
+    ever runs it. Rather than depend on someone having run a manual command in every
+    environment, create the index here. create_index is idempotent and costs nothing once it
+    exists.
+
+    The index must stay non-unique -- many user_history rows share a uid.
+    """
+    import pymongo
+    from pymongo.errors import OperationFailure
+
+    try:
+        db.user_history.create_index([("uid", pymongo.ASCENDING), ("server_time_stamp", pymongo.ASCENDING)])
+    except OperationFailure:
+        # a restricted database user may be unable to create indexes; that is only
+        # survivable if the index is already there
+        if SYNC_HISTORY_INDEX_NAME not in db.user_history.index_information():
+            raise
+
 
 class UserHistory(abst.AbstractMongoRecord):
     collection = "user_history"
@@ -360,7 +396,8 @@ class UserHistory(abst.AbstractMongoRecord):
         unsaved_filter = {"delete_saved": True}
         last_place_filter = {"last_place": True}
 
-        by_time_index = "uid_1_server_time_stamp_1"
+        by_time_index = SYNC_HISTORY_INDEX_NAME
+        _ensure_sync_history_index()
         recent_items = UserHistorySet(changed_query, sort=[("server_time_stamp", -1)], limit=limit, hint=by_time_index)
         if last_sync:
             flagged_items = UserHistorySet(
