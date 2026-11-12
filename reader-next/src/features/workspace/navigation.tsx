@@ -3,7 +3,7 @@
  * produces a new workspace, which is encoded and navigated to. History state records why the URL changed and
  * which panel caused it, so only that panel reacts (docs/WORKSPACE.md, "The URL is still the state").
  */
-import { useLocation, useRouter, type RouterHistory } from "@tanstack/react-router";
+import { useLocation, useRouter, useRouterState, type RouterHistory } from "@tanstack/react-router";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { PositionStore, type EntryPositions, type SavedPosition } from "~/lib/reader/position-store";
 import { createWorkspaceCommands, entryKey, readNavState, urlDefaultsFor, type NavState, type WorkspaceRouter } from "~/lib/workspace/commands";
@@ -54,10 +54,18 @@ const Ctx = createContext<WorkspaceNav | null>(null);
 const lastChange = new WeakMap<RouterHistory, { key: string | undefined; popped: boolean }>();
 function trackHistory(history: RouterHistory) {
   if (lastChange.has(history)) return;
-  lastChange.set(history, { key: entryKey(history.location.state), popped: false });
+  // a document loaded by Back/Forward (the reader had left by a full page load: the book's page, a sheet) arrived by back/forward too
+  lastChange.set(history, { key: entryKey(history.location.state), popped: loadedByBackForward() });
   history.subscribe(({ location, action }) => {
     lastChange.set(history, { key: entryKey(location.state), popped: action.type === "BACK" || action.type === "FORWARD" || action.type === "GO" });
   });
+}
+function loadedByBackForward(): boolean {
+  try {
+    return (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined)?.type === "back_forward";
+  } catch {
+    return false;
+  }
 }
 /** The places kept per history entry, for the page's lifetime (in the browser only). */
 let pageStore: PositionStore | undefined;
@@ -115,6 +123,22 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
     });
   }, [router]);
 
+  // Leaving by a full page load (a plain link to another document) is no history change here: keep this entry's places now, and write
+  // them to storage, so Back to this entry (a new document) finds them.
+  useEffect(() => {
+    const keep = () => {
+      const positions: EntryPositions = {};
+      for (const [id, read] of readers.current) {
+        const pos = read();
+        if (pos) positions[id] = pos;
+      }
+      store.current!.set(entryKey(router.history.location.state), positions);
+      store.current!.flush();
+    };
+    window.addEventListener("pagehide", keep);
+    return () => window.removeEventListener("pagehide", keep);
+  }, [router]);
+
   const registerPanel = useCallback<WorkspaceNav["registerPanel"]>((id, read, placement) => {
     readers.current.set(id, read);
     const entry = placement ? { read, placement } : undefined;
@@ -167,9 +191,11 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
 
   // The address bar shows the full form sefaria.org writes (its defaults filled in), on arrival and when a setting it carries changes:
   // a replace navigation through the router, keeping the entry's state (never history.replaceState).
+  // Again once the route has loaded the address: a bare title is completed only when it turns out to be a text, not a book's page.
+  const resolvedHref = useRouterState({ select: (s) => s.resolvedLocation?.href });
   useEffect(() => {
     void commands.canonicalize();
-  }, [commands, location.href, defaults]);
+  }, [commands, location.href, resolvedHref, defaults]);
 
   const value = useMemo(() => ({ current: commands.current, href, go, registerPanel, panelMoved, restoreFor }), [commands, href, go, registerPanel, panelMoved, restoreFor]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
