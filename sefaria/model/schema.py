@@ -1,6 +1,6 @@
 import copy
 import dataclasses
-from functools import reduce
+from functools import cache, reduce
 from typing import Optional
 
 import re2 as re
@@ -958,6 +958,12 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
 """
 
 
+@cache
+def _compile_after_title_regex(pattern):
+    """One compiled object per pattern string, shared by nodes. See NumberedTitledTreeNode.after_title_regex()."""
+    return regex.compile(pattern, regex.VERBOSE)
+
+
 class NumberedTitledTreeNode(TitledTreeNode):
     """
     A :class:`TreeNode` that can address its :class:`TreeNode` children by Integer, or other :class:`AddressType`.
@@ -1091,24 +1097,45 @@ class NumberedTitledTreeNode(TitledTreeNode):
             if kwargs.get("for_js"):
                 reg += r"("  # use capture group to distinguish prefixes from captured ref
             reg += r"(?P<title>" + title_block + r")" if capture_title else title_block
-            reg += self.after_title_delimiter_re
-            addr_regex = self.address_regex(lang, **kwargs)
-            reg += (
-                r"(?:(?:" + addr_regex + r")|(?:[\[({]" + addr_regex + r"[\])}]))"
-            )  # Match expressions with internal parentheses around the address portion
-            if kwargs.get("for_js"):
-                reg += r")"  # use capture group to distinguish prefixes from captured ref
-            if parentheses:
-                reg += r"(?=(?:[)\]])|(?:[.,:;?!\s<][^\])]*?[)\]]))"
-            else:
-                reg += (
-                    r"(?=[-/.,:;?!\s})\]<]|$)"
-                    if kwargs.get("for_js")
-                    else r"(?=\W|$)"
-                    if not kwargs.get("terminated")
-                    else r"$"
-                )
+            reg += self._regex_after_title(lang, **kwargs)
             self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
+        return self._regexes[key]
+
+    def _regex_after_title(self, lang, **kwargs):
+        """The part of full_regex() that follows the title: the delimiter, the address and what may come after it."""
+        parentheses = kwargs.get("parentheses", False)
+        reg = self.after_title_delimiter_re
+        addr_regex = self.address_regex(lang, **kwargs)
+        reg += (
+            r"(?:(?:" + addr_regex + r")|(?:[\[({]" + addr_regex + r"[\])}]))"
+        )  # Match expressions with internal parentheses around the address portion
+        if kwargs.get("for_js"):
+            reg += r")"  # use capture group to distinguish prefixes from captured ref
+        if parentheses:
+            reg += r"(?=(?:[)\]])|(?:[.,:;?!\s<][^\])]*?[)\]]))"
+        else:
+            reg += (
+                r"(?=[-/.,:;?!\s})\]<]|$)"
+                if kwargs.get("for_js")
+                else r"(?=\W|$)"
+                if not kwargs.get("terminated")
+                else r"$"
+            )
+        return reg
+
+    def after_title_regex(self, lang, strict=False, terminated=False):
+        """
+        The compiled form of what follows the title in full_regex(title, lang, strict=strict, terminated=terminated),
+        for parsing a ref string whose title the caller already found: match it at the end of the title,
+        e.g. after_title_regex(lang).match(tref, len(title)).
+
+        It depends on the address structure alone, so nodes with the same structure share one compiled object
+        (Genesis 1 links to ~2,000 titles, with 42 such regexes), instead of compiling one per title.
+        """
+        key = ("after_title", lang, strict, terminated)
+        if key not in self._regexes:
+            reg = self._regex_after_title(lang, strict=strict, terminated=terminated)
+            self._regexes[key] = _compile_after_title_regex(reg)
         return self._regexes[key]
 
     def address_regex(self, lang, **kwargs):
