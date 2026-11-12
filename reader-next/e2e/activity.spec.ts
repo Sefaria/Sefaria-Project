@@ -15,8 +15,10 @@ function cassette(url: string, status: number, body: unknown) {
   writeFileSync(`${DIR}${key}.gz`, gzipSync(Buffer.concat([Buffer.from(head + "\n"), Buffer.from(JSON.stringify(body))])));
 }
 
+// The profile link is already the placeholder the cassette's scrub gave it (scripts/fixtures/scrub.mjs): written raw before every run, it
+// was numbered afresh at each pack, changing a recording that had not changed.
 const item = (over: Record<string, unknown>) => ({
-  rev_type: "edit text", date: "2020-01-01T00:00:00", user: { name: "Ada Reader", profileUrl: "/profile/ada-reader" }, method: null,
+  rev_type: "edit text", date: "2020-01-01T00:00:00", user: { name: "Ada Reader", profileUrl: "/profile/sheet-author-2358" }, method: null,
   ref: { en: "Genesis 1:1", he: "בראשית א׳:א׳", url: "/Genesis.1.1" }, title: null, version: "The Koren Jerusalem Bible", versionHe: "תנ״ך קורן",
   language: "en", diff_html: null, history_url: "/activity/Genesis.1.1/en/The_Koren_Jerusalem_Bible", summary: false, updates_count: null,
   linkRefs: [], noteRef: null, new: null, old: null, score: null, comment: null, sheet: null, ...over,

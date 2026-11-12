@@ -20,7 +20,8 @@
 //   - email addresses, anywhere in a string                                               -> user7@example.com
 //     (except Sefaria's service addresses in SERVICE_EMAILS)
 // Numbering follows first appearance, walking files in sorted path order, so running it twice changes nothing and the same person gets
-// the same number in every file. Placeholders already in the tree keep their numbers; new people get the next free one.
+// the same number in every file. Placeholders already in the tree keep their numbers; new people are numbered after the highest one,
+// so adding recordings never renumbers the ones already there.
 import { readdirSync, readFileSync, rmSync, statSync, writeFileSync, existsSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -32,7 +33,12 @@ export const SERVICE_EMAILS = new Set(
   ["hello", "help", "contact", "corrections", "developers", "info", "donate", "education", "notifications"].map((role) => `${role}@sefaria.org`),
 );
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
-const PROFILE = /\/profile\/([A-Za-z0-9._~%-]+)/g;
+// A Sefaria profile link: "/profile/<slug>", or one on a Sefaria host. "/profile/" on another site (a charity's page on GuideStar) is
+// not a person here and is kept as recorded.
+const PROFILE = /(?:https?:\/\/([A-Za-z0-9.-]+))?\/profile\/([A-Za-z0-9._~%-]+)/g;
+const SEFARIA_HOST = /(^|\.)(sefaria\.org(\.il)?|localhost)$/i;
+/** The slugs of the Sefaria profile links in a string, with each match: [match, slug]. */
+const profileLinks = (s) => [...s.matchAll(PROFILE)].filter(([, host]) => !host || SEFARIA_HOST.test(host)).map(([m, , slug]) => [m, slug]);
 const PROFILE_PICTURE = /^https?:\/\/(storage\.googleapis\.com\/sefaria-profile-pictures|(www\.|secure\.)?gravatar\.com)\//;
 
 const PERSON_NAME_KEYS = ["ownerName", "viaOwnerName", "assignerName", "full_name", "fullName", "first_name", "firstName", "last_name", "lastName", "owner_name", "author_name", "authorName", "username"];
@@ -41,7 +47,11 @@ const IMAGE_KEYS = ["ownerImageUrl", "imageUrl", "profile_pic_url", "profilePicU
 const USER_ID_KEYS = ["owner", "assigner", "uid", "user_id", "userId"];
 const PERSON_PARTS = { ownerName: ["owner", "ownerProfileUrl"], viaOwnerName: [null, "viaOwnerProfileUrl"], assignerName: ["assigner", "assignerProfileUrl"] };
 
-/** Placeholder registries: real key -> number, numbered by first appearance after any placeholders already present. */
+/**
+ * Placeholder registries: real key -> number. A new key gets the number after the highest placeholder already present, never a gap: a
+ * recording that a test writes afresh before each run (its person not yet a placeholder) or one that was deleted frees its number,
+ * and handing that number to someone else renumbered recordings that had not changed.
+ */
 class Registry {
   constructor(pattern) {
     this.pattern = pattern;
@@ -56,8 +66,7 @@ class Registry {
     const own = typeof key === "string" ? key.match(this.pattern) : null;
     if (own) return Number(own[1]);
     if (this.map.has(key)) return this.map.get(key);
-    let n = 1;
-    while (this.used.has(n)) n++;
+    const n = Math.max(0, ...this.used) + 1;
     this.used.add(n);
     this.map.set(key, n);
     return n;
@@ -73,7 +82,7 @@ export function createScrubber() {
   const ids = new Map(); // real user id -> person number
   const realNames = new Map(); // a user's name among name completions -> their key, to replace it in the plain "completions" list too
 
-  const slugOf = (url) => (typeof url === "string" ? [...url.matchAll(PROFILE)][0]?.[1] : undefined);
+  const slugOf = (url) => (typeof url === "string" ? profileLinks(url)[0]?.[1] : undefined);
   const personKey = (name, url) => {
     const slug = slugOf(url);
     if (slug) return slug.startsWith("sheet-author-") ? slug : `slug:${slug}`;
@@ -93,7 +102,7 @@ export function createScrubber() {
   const scrubString = (s) =>
     s
       .replace(EMAIL, (e) => (SERVICE_EMAILS.has(e.toLowerCase()) || /@example\.com$/i.test(e) ? e : `user${emails.number(e.toLowerCase())}@example.com`))
-      .replace(PROFILE, (_m, slug) => `/profile/sheet-author-${people.number(slug.startsWith("sheet-author-") ? slug : `slug:${slug}`)}`);
+      .replace(PROFILE, (m, host, slug) => (host && !SEFARIA_HOST.test(host) ? m : `${m.slice(0, m.length - slug.length - "/profile/".length)}/profile/sheet-author-${people.number(slug.startsWith("sheet-author-") ? slug : `slug:${slug}`)}`));
 
   /** First pass: note placeholders already present so new people never reuse their numbers. */
   function reserve(node) {
@@ -108,7 +117,7 @@ export function createScrubber() {
       webAuthors.reserve(node);
       sheetTopics.reserve(node);
       emails.reserve(node);
-      for (const [, slug] of node.matchAll(PROFILE)) people.reserve(slug);
+      for (const [, slug] of profileLinks(node)) people.reserve(slug);
       for (const [e] of node.matchAll(EMAIL)) emails.reserve(e);
     }
   }
@@ -238,7 +247,7 @@ export function findPersonalKeys(value) {
 export function findPersonalData(text) {
   const hits = [];
   for (const [e] of text.matchAll(EMAIL)) if (!SERVICE_EMAILS.has(e.toLowerCase()) && !/@example\.com$/i.test(e)) hits.push(e);
-  for (const [m, slug] of text.matchAll(PROFILE)) if (!/^sheet-author-\d+$/.test(slug)) hits.push(m);
+  for (const [m, slug] of profileLinks(text)) if (!/^sheet-author-\d+$/.test(slug)) hits.push(m);
   for (const [m] of text.matchAll(/https?:\/\/(storage\.googleapis\.com\/sefaria-profile-pictures|(www\.|secure\.)?gravatar\.com)\/[^"\s]*/g)) hits.push(m);
   for (const [m, name] of text.matchAll(/"(?:ownerName|viaOwnerName|assignerName|full_name)":"([^"]*)"/g)) if (!/^Sheet Author \d+$/.test(name)) hits.push(m);
   for (const [m, name] of text.matchAll(/"title":"([^"]*)","type":"User"/g)) if (!/^Sheet Author \d+$/.test(name)) hits.push(m);
