@@ -46,6 +46,9 @@
   --sefaria-color-focus: light-dark(#1976d2, #6fb1ff);
   --sefaria-color-highlight: light-dark(#ddeeff, #243649);
   --sefaria-color-highlight-soft: light-dark(#f0f7ff, #1f2b38);
+  /* the verse the address named, on arrival (sefaria.org's .segment:focus #f5faff); dark: two thirds of the way from the surface to
+     highlight-soft, as #f5faff is from white to #f0f7ff */
+  --sefaria-color-focus-tint: light-dark(#f5faff, #1e262e);
   --sefaria-color-highlight-voices: light-dark(#f1fcf5, #1d2d22);
   --sefaria-color-selection: light-dark(#d2dcff, #3b4a78);
   /* the old site's link blue (--commentary-blue #4B71B7: topic descriptions, "Select" on versions); --sefaria-color-link is #4871BF */

@@ -14,9 +14,8 @@
 [data-language="english"] .segment { --_start: var(--_left); --_end: var(--_right); }
 
 /* The verse the address named, on arrival: sefaria.org focuses it and tints it (.segment:focus) until focus goes elsewhere (the panel
-   sets data-arrival and clears it on a click or focus elsewhere). Colour: the soft highlight token (#f0f7ff; sefaria.org's focus tint
-   is #f5faff, which has no token yet). A highlight, below, wins. */
-.segment[data-arrival="true"] { background: var(--sefaria-color-highlight-soft); }
+   sets data-arrival and clears it on a click or focus elsewhere), in its colour, #f5faff. A highlight, below, wins. */
+.segment[data-arrival="true"] { background: var(--sefaria-color-focus-tint); }
 .segment[data-highlighted="true"] { background: var(--sefaria-color-highlight-soft); }
 /* The reading focus: set by the column as the reader scrolls; visible only while the sidebar is open. */
 :global([data-show-focus="true"]) .segment[data-focused="true"] { background: var(--sefaria-color-highlight-soft); }

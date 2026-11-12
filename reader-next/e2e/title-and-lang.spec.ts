@@ -73,13 +73,13 @@ test.describe("panel title and the address's language", () => {
     await open(page, "/Genesis.1.4?lang=en");
     const verse = page.locator('[data-reader-scroller] [role="group"][data-ref="Genesis 1:4"]');
     const tint = () => verse.evaluate((el) => getComputedStyle(el).backgroundColor);
-    // the soft highlight token, #f0f7ff (sefaria.org's focus tint is #f5faff; no token for it yet)
-    await expect.poll(tint).toBe("rgb(240, 247, 255)");
+    // sefaria.org's focus tint, #f5faff
+    await expect.poll(tint).toBe("rgb(245, 250, 255)");
     await expect(page.locator('[data-reader-scroller] [role="group"][data-ref="Genesis 1:5"]')).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
     await verse.hover();
     await page.mouse.wheel(0, 200);
     await page.waitForTimeout(400);
-    expect(await tint()).toBe("rgb(240, 247, 255)");
+    expect(await tint()).toBe("rgb(245, 250, 255)");
     await page.locator('section[data-panel-id="p1"] header').first().click({ position: { x: 4, y: 30 } });
     await expect.poll(tint).toBe("rgba(0, 0, 0, 0)");
   });
