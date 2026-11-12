@@ -4271,6 +4271,10 @@ def topics_api(request, topic, v2=False):
     """
     API to get data or edit data for an existing topic
     """
+    if request.method == "OPTIONS":
+        # CORS preflight. Without this branch the view falls through and returns
+        # None, which Django turns into a 500 for every cross-origin client.
+        return http.HttpResponse(status=204)
     if request.method == "GET":
         with_html = bool(int(request.GET.get("with_html", False)))
         with_links = bool(int(request.GET.get("with_links", False)))
@@ -4316,6 +4320,8 @@ def topics_api(request, topic, v2=False):
             return jsonResponse(topic.contents())
 
         return protected_index_post(request)
+
+    return http.HttpResponseNotAllowed(["GET", "POST", "OPTIONS"])
 
 
 @catch_error_as_json
