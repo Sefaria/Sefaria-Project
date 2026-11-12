@@ -127,6 +127,19 @@ data:
         # Put URL on response object to help ban lurker - https://www.varnish-cache.org/docs/trunk/users-guide/purging.html#bans
         set beresp.http.url = bereq.url;
 
+        # Store JSON gzipped. Django sends it uncompressed and it shrinks ~5-10x, so the same
+        # malloc storage holds several times more objects. Varnish sends the stored gzip to
+        # clients that accept it (Cloudflare does; nginx passes Accept-Encoding through) and
+        # gunzips on delivery for the rest. Varnish skips responses that already carry a
+        # Content-Encoding. On a miss bereq Accept-Encoding is always "gzip"; on a pass it is
+        # the client's, so passes from clients without gzip are left alone instead of being
+        # compressed and immediately decompressed. Placed before the uncacheable branch so
+        # passed and hit-for-pass bodies, which go to Transient storage, shrink too.
+        if (beresp.http.Content-Type ~ "application/json" &&
+            bereq.http.Accept-Encoding ~ "gzip") {
+            set beresp.do_gzip = true;
+        }
+
         # This conditional is default behavior for vcl_backend_response
         if (beresp.ttl <= 0s ||
             beresp.http.Set-Cookie ||

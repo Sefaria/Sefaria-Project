@@ -77,6 +77,10 @@ spec:
           - thread_pool_max={{ .Values.varnish.tuning.thread_pool_max }}
           - -s
           - malloc,{{ .Values.varnish.tuning.malloc }}
+          {{- if .Values.varnish.tuning.transient }}
+          - -s
+          - Transient=malloc,{{ .Values.varnish.tuning.transient }}
+          {{- end }}
         ports:
         - containerPort: 8040
         - containerPort: 6082

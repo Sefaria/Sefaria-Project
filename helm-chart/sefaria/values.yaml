@@ -232,6 +232,13 @@ varnish:
     # are unaffected by this default; this change only takes effect for staging/dev/
     # cauldrons/local, which inherit the chart default.
     malloc: "512m"
+    # Cap for Transient storage (passed, hit-for-pass and short-lived objects), e.g. "1g".
+    # Empty keeps Varnish's default, which is unlimited. A full Transient truncates or 503s a
+    # response that does not fit, so size it above the largest passed response times its
+    # concurrency. Note that malloc counts object bytes only: measured on prod (2026-11-12),
+    # the process used ~24% more than the malloc size (allocator overhead), so leave
+    # malloc * 1.25 + transient well under the memory limit.
+    transient: ""
     nuke_limit: "400"
     # Threading
     # http://book.varnish-software.com/4.0/chapters/Tuning.html#details-of-threading-parameters
