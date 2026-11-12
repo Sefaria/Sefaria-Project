@@ -8,6 +8,8 @@ import AuthCard from '../AuthCard.jsx';
 
 // AuthCard.jsx imports the Sefaria singleton; mock the module rather than
 // setting a `global.Sefaria`, which the import would ignore.
+// AuthCard's notice uses InterfaceText from Misc, which pulls in CSS Jest can't load.
+jest.mock('../../Misc.jsx', () => ({ InterfaceText: ({ text }) => text.en }));
 jest.mock('../../sefaria/sefaria', () => ({
   __esModule: true,
   default: { _: (key) => key },

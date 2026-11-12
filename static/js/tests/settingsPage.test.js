@@ -1,976 +1,573 @@
 /* global __dirname */
 /**
- * SettingsPage: the settings tabs and developer settings.
- *
- * No React Testing Library in this repo -- react-dom directly, same pattern as
- * static/js/tests/searchResultCardAuxClick.test.js.
+ * SettingsPage: the settings tabs, Developer Settings setup (welcome, email confirmation, About you, the first project
+ * and key), the pages an emailed confirmation link lands on, arriving from the Powered by link, the Hebrew interface,
+ * and the developer API helpers. The home page once set up is in developerSettingsHome.test.js; refusals and the
+ * confirmation poll in developerSettingsRefusals.test.js.
  */
+import {
+  EMAIL_NEW,
+  READY,
+  SSO_NEW,
+  advance,
+  blur,
+  button,
+  choose,
+  cleanup,
+  click,
+  fakeServer,
+  field,
+  heading,
+  key,
+  loadSettings,
+  project,
+  projectSection,
+  queryButton,
+  renderElement,
+  renderSettings,
+  screen,
+  settle,
+  type,
+  within,
+} from './developerSettingsTestUtils';
 
-jest.mock('../sefaria/sefaria', () => {
-  const sefaria = {
-    interfaceLang: 'english',
-    full_name: 'Tova Levi',
-    _email: 'tova@example.org',
-    _: (k) => k,
-    track: { event: () => {} },
-  };
-  sefaria._v = (options) => options[sefaria.interfaceLang === 'hebrew' ? 'he' : 'en'];
-  return { __esModule: true, default: sefaria };
-});
-
-jest.mock('../sefaria/sefariaJquery', () => ({
-  __esModule: true,
-  default: { cookie: () => {}, post: () => {}, get: () => {} },
-}));
-
-jest.mock('../Misc', () => {
-  const Sefaria = require('../sefaria/sefaria').default;
-  return {
-    __esModule: true,
-    InterfaceText: ({ text, children }) =>
-      text ? text[Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en'] : (children ?? null),
-  };
-});
-
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { act } from 'react-dom/test-utils';
-import Sefaria from '../sefaria/sefaria';
-import SettingsPage, { EmailConfirmedPage, EmailLinkPage } from '../SettingsPage.jsx';
-import { parseWebsite, serverErrorText } from '../developerSettingsApi';
+jest.mock('../sefaria/sefaria', () => require('./developerSettingsTestUtils').sefariaMock());
+jest.mock('../sefaria/sefariaJquery', () => require('./developerSettingsTestUtils').jqueryMock());
+jest.mock('../Misc', () => require('./developerSettingsTestUtils').miscMock());
 // The profile card's ProfilePic pulls in the image cropper's CSS, which Jest can't parse.
 jest.mock('../ProfilePic', () => ({ ProfilePic: () => null }));
 
 const HEBREW = /[֐-׿]/;
 
-let container = null;
+let lib = null;
+let server = null;
 
-const DEVELOPER_ON = { developerEnabled: true, ssoConnected: true };
-const PROFILE = {
-  developerName: 'Tova Levi',
-  description: '',
-  additionalEmail: '',
-  termsAccepted: true,
-  developerNews: false,
-  notADeveloper: false,
+/* The Developer tab, with the server holding the same state. */
+const open = (developer, extra) => {
+  server = fakeServer(developer || {});
+  return renderSettings('developer', developer, extra);
 };
-
-/* developer is the server's developer state; null is what the server sends where developer settings are off. */
-function mount(tab, developer = {}, props = {}) {
-  container = document.createElement('div');
-  document.body.appendChild(container);
-  act(() => {
-    ReactDOM.render(
-      <SettingsPage
-        tab={tab}
-        projectId={null}
-        accountSettings={{ socialProviders: [], email: 'tova@example.org' }}
-        initialDeveloper={developer}
-        setTab={() => {}}
-        setProjectId={() => {}}
-        {...props}
-      />,
-      container
-    );
-  });
-}
-
-const typeInto = (input, value) => {
-  const proto = input.tagName === 'SELECT' ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
-  act(() => {
-    Object.getOwnPropertyDescriptor(proto, 'value').set.call(input, value);
-    input.dispatchEvent(new Event(input.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true }));
-  });
-};
-
-/* The server answers every call with the developer state; respondWith sets what it answers. */
-let serverState = {};
-const respondWith = (state) => {
-  serverState = state;
-  global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve(serverState) }));
-};
-const lastRequest = () => {
-  const [url, options] = global.fetch.mock.calls[global.fetch.mock.calls.length - 1];
-  return { url, method: options.method, body: options.body ? JSON.parse(options.body) : null };
-};
-const flush = async () => {
-  for (let i = 0; i < 5; i++) {
-    await Promise.resolve();
-  }
-};
-const clickAndSettle = async (element) => {
-  await act(async () => {
-    element.click();
-    await flush();
-  });
-};
-
-const developerPanel = () => container.querySelectorAll('.settingsPanel')[1];
-const buttonNamed = (root, name) =>
-  Array.from(root.querySelectorAll('button')).find((b) => b.textContent.trim() === name);
 
 beforeEach(() => {
-  Sefaria.interfaceLang = 'english';
-  respondWith({});
+  lib = loadSettings();
   window.scrollTo = jest.fn();
+  Element.prototype.scrollIntoView = jest.fn();
+  window.localStorage.clear();
 });
 
 afterEach(() => {
-  if (!container) {
-    return;
-  }
-  ReactDOM.unmountComponentAtNode(container);
-  container.remove();
-  container = null;
+  cleanup();
+  jest.clearAllTimers();
+  jest.useRealTimers();
 });
 
 describe('settings tabs', () => {
-  it('shows both tabs to a user who never opened developer settings', () => {
-    mount('account');
-    const links = Array.from(container.querySelectorAll('nav.settingsNav a'));
-    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/settings/account', '/settings/developer']);
+  it('has an Account tab and a Developer tab, marking the open one', () => {
+    fakeServer();
+    renderSettings('account');
+    const nav = screen.getByRole('navigation', { name: 'Settings' });
+    const links = within(nav).getAllByRole('link');
+    expect(links.map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
+      ['Account Settings', '/settings/account'],
+      ['Developer Settings', '/settings/developer'],
+    ]);
     expect(links[0].getAttribute('aria-current')).toBe('page');
+    expect(links[1].getAttribute('aria-current')).toBeNull();
   });
 
-  it('keeps developer settings out of the account tab', () => {
-    mount('account');
-    const accountPanel = container.querySelectorAll('.settingsPanel')[0];
-    expect(accountPanel.querySelector('#developerSettings')).toBeNull();
-    expect(accountPanel.textContent).not.toContain('Get started');
+  it('switches tabs in place, without following the link', async () => {
+    fakeServer();
+    const page = renderSettings('account');
+    await click(screen.getByRole('link', { name: 'Developer Settings' }));
+    expect(page.props.setTab).toHaveBeenCalledWith('developer');
   });
 
-  it('has no developer tab or agent instructions where developer settings are off', () => {
-    mount('account', null);
-    const links = Array.from(container.querySelectorAll('nav.settingsNav a'));
-    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/settings/account']);
+  it('keeps developer settings out of the Account tab', () => {
+    fakeServer();
+    renderSettings('account');
+    expect(screen.queryByRole('heading', { name: 'Get a free API key' })).toBeNull();
+    expect(queryButton('Get started')).toBeNull();
+  });
+
+  it('has no Developer tab or agent instructions where developer settings are off', () => {
+    fakeServer();
+    const { container } = renderSettings('account', null);
+    const nav = screen.getByRole('navigation', { name: 'Settings' });
+    expect(
+      within(nav)
+        .getAllByRole('link')
+        .map((a) => a.getAttribute('href'))
+    ).toEqual(['/settings/account']);
     expect(container.querySelectorAll('.settingsPanel').length).toBe(1);
     expect(container.querySelector('[data-agent-instructions]')).toBeNull();
   });
 
-  it('gates the developer tab behind Get started', () => {
-    mount('developer');
-    expect(buttonNamed(developerPanel(), 'Get started')).toBeTruthy();
-    expect(container.querySelectorAll('nav.settingsNav a')[1].getAttribute('aria-current')).toBe('page');
-  });
-});
-
-describe('developer onboarding', () => {
-  it('shows the account name and email locked', () => {
-    mount('developer', DEVELOPER_ON);
-    const name = container.querySelector('#devPocName');
-    const email = container.querySelector('#devPocEmail');
-    expect(name.value).toBe('Tova Levi');
-    expect(name.readOnly).toBe(true);
-    expect(email.value).toBe('tova@example.org');
-    expect(email.readOnly).toBe(true);
-    expect(container.querySelector('#devPocEmail2').readOnly).toBe(false);
-  });
-
-  it('has no info tips on the locked fields, but describes them to assistive tech', () => {
-    mount('developer', DEVELOPER_ON);
-    ['#devPocName', '#devPocEmail'].forEach((selector) => {
-      const input = container.querySelector(selector);
-      expect(input.closest('.devPocField').querySelector('.devPocInfoButton')).toBeNull();
-      expect(document.getElementById(input.getAttribute('aria-describedby')).textContent).toContain(
-        'From your Sefaria account'
-      );
-    });
-  });
-
-  it('keeps info tips out of the tab order, with their text on the field', () => {
-    mount('developer', DEVELOPER_ON);
-    const buttons = Array.from(container.querySelectorAll('.devPocInfoButton'));
-    expect(buttons.length).toBeGreaterThan(0);
-    buttons.forEach((b) => {
-      expect(b.tabIndex).toBe(-1);
-      expect(b.getAttribute('aria-hidden')).toBe('true');
-    });
-    const extra = container.querySelector('#devPocEmail2');
-    const note = document.getElementById(extra.getAttribute('aria-describedby'));
-    expect(note.textContent).toContain('Add another address');
-    expect(note.hidden).toBe(true);
-
-    act(() => {
-      extra.focus();
-    });
-    expect(extra.closest('.devPocField').querySelector('.devPocPopover').textContent).toContain('Add another address');
-    act(() => {
-      extra.blur();
-    });
-    expect(extra.closest('.devPocField').querySelector('.devPocPopover')).toBeNull();
-  });
-
-  it("doesn't change the copy when the user doesn't write code", () => {
-    mount('developer', DEVELOPER_ON);
-    const before = developerPanel().textContent;
-    const checkbox = Array.from(container.querySelectorAll('.devPocChoice'))
-      .find((label) => label.textContent.includes("I don't write code myself"))
-      .querySelector('input');
-    act(() => {
-      checkbox.click();
-    });
-    expect(checkbox.checked).toBe(true);
-    expect(developerPanel().textContent).toBe(before);
-  });
-});
-
-const openNewProject = (state = {}, props = {}) => {
-  mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], ...state }, props);
-  act(() => {
-    container.querySelector('[data-agent-action="new-project"]').click();
-  });
-  typeInto(container.querySelector('#devPocProjectName'), 'Daf Tracker');
-};
-
-const visibilityRadio = (value) => container.querySelector(`input[name="devPocVisibility"][value="${value}"]`);
-const submitProject = () =>
-  act(() => {
-    container.querySelector('[data-agent-action="create-project"]').click();
-  });
-
-describe('project visibility', () => {
-  it('has nothing preselected, and recommends neither option', () => {
-    openNewProject();
-    expect(container.querySelector('input[name="devPocVisibility"]:checked')).toBeNull();
-    expect(container.querySelector('.devPocFieldset').textContent).not.toContain('Recommended');
-  });
-
-  it("won't save until a visibility is chosen", () => {
-    openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
-    submitProject();
-    expect(container.querySelector('[role="alert"]').textContent).toContain(
-      'Choose whether the project is public or private'
-    );
-    expect(container.querySelector('.devPocNewProject')).toBeTruthy();
-  });
-
-  it('chooses Public without a confirmation', () => {
-    openNewProject();
-    act(() => {
-      visibilityRadio('public').click();
-    });
-    expect(visibilityRadio('public').checked).toBe(true);
-    expect(container.querySelector('[role="dialog"]')).toBeNull();
-  });
-
-  it('shows what will be public on request, with only a Close button', () => {
-    openNewProject();
-    act(() => {
-      buttonNamed(container, 'Show me what will be public').click();
-    });
-    const dialog = container.querySelector('[aria-labelledby="devPocPublicTitle"]');
-    expect(dialog.textContent).toContain('Daf Tracker');
-    expect(dialog.textContent).not.toContain('Tova Levi');
-    expect(dialog.textContent).not.toContain('Made by');
-    expect(Array.from(dialog.querySelectorAll('button')).map((b) => b.textContent.trim())).toEqual(['Close']);
-    expect(dialog.querySelector('a')).toBeNull();
-
-    act(() => {
-      buttonNamed(dialog, 'Close').click();
-    });
-    expect(container.querySelector('[aria-labelledby="devPocPublicTitle"]')).toBeNull();
-    expect(container.querySelector('input[name="devPocVisibility"]:checked')).toBeNull();
-  });
-});
-
-describe('short description', () => {
-  it('is limited to 150 characters, with a counter', () => {
-    openNewProject();
-    const description = container.querySelector('#devPocProjectDescription');
-    expect(description.maxLength).toBe(150);
-    typeInto(description, 'A daily tracker');
-    expect(container.querySelector('#devPocProjectDescriptionCount').textContent).toBe('15/150');
-  });
-});
-
-describe('project website', () => {
-  it('accepts a bare domain and adds https://', () => {
-    expect(parseWebsite('example.com')).toEqual({ valid: true, url: 'https://example.com' });
-    expect(parseWebsite('  www.example.co.il/app ')).toEqual({ valid: true, url: 'https://www.example.co.il/app' });
-    expect(parseWebsite('http://example.org')).toEqual({ valid: true, url: 'http://example.org' });
-    expect(parseWebsite('')).toEqual({ valid: true, url: '' });
-  });
-
-  it('rejects input that is not a plausible address', () => {
-    ['example', 'localhost', 'my site.com', 'ftp://example.com', 'https://', 'example.c', 'exa_mple.com'].forEach(
-      (input) => {
-        expect(parseWebsite(input).valid).toBe(false);
-      }
-    );
-  });
-
-  it('saves a bare domain as an https address', () => {
-    openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
-    act(() => {
-      visibilityRadio('private').click();
-    });
-    submitProject();
-    expect(lastRequest().url).toBe('/api/developer/projects');
-    expect(lastRequest().body.project.websiteUrl).toBe('https://daftracker.org');
-  });
-
-  it("won't save a website without a dot", () => {
-    openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker');
-    act(() => {
-      visibilityRadio('private').click();
-    });
-    submitProject();
-    expect(container.querySelector('[role="alert"]').textContent).toContain('Enter a website address like example.com');
-    expect(container.querySelector('.devPocNewProject')).toBeTruthy();
-  });
-  it("doesn't promise that a website restriction makes a copied key useless", () => {
-    openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    act(() => {
-      visibilityRadio('private').click();
-    });
-    submitProject();
-    const dialog = container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]');
-    expect(dialog.textContent).not.toMatch(/no use anywhere else/i);
-    expect(dialog.textContent).toContain('outside a browser');
-  });
-});
-
-const yourListingDialog = () => container.querySelector('[aria-labelledby="devPocYourListingTitle"]');
-
-const LISTING = {
-  id: '42',
-  name: 'Mishnah Yomit Tracker',
-  url: 'https://mishnahtracker.app',
-  description: 'Track your daily two mishnayot and share progress with a study group.',
-};
-
-describe('"Is this your project?"', () => {
-  const mountWithListing = (state = {}) =>
-    mount('developer', {
-      ...DEVELOPER_ON,
-      profile: PROFILE,
-      projects: [],
-      yourListing: LISTING,
-      ...state,
-    });
-
-  it('asks about a listing submitted with the account email, showing only its public fields', () => {
-    mountWithListing();
-    const dialog = yourListingDialog();
-    expect(dialog.textContent).toContain('Is this your project?');
-    expect(dialog.textContent).toContain('Mishnah Yomit Tracker');
-    expect(dialog.textContent).toContain('mishnahtracker.app');
-    expect(dialog.textContent).not.toContain('tova@example.org');
-  });
-
-  it('asks nothing when no listing has the account email', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [] });
-    expect(yourListingDialog()).toBeNull();
-  });
-
-  it('asks nothing before developer settings are set up', () => {
-    mountWithListing({ profile: null });
-    expect(yourListingDialog()).toBeNull();
-  });
-
-  it('claims the listing and opens it as a project', async () => {
-    const setProjectId = jest.fn();
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING }, { setProjectId });
-    respondWith({
-      ...DEVELOPER_ON,
-      profile: PROFILE,
-      yourListing: null,
-      projectId: '42',
-      projects: [publicProject({ id: '42', name: LISTING.name, linkedListing: true })],
-    });
-    await clickAndSettle(buttonNamed(yourListingDialog(), 'Yes, add it'));
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/listings/42/claim', method: 'POST' });
-    expect(setProjectId).toHaveBeenLastCalledWith('42');
-    expect(yourListingDialog()).toBeNull();
-    expect(container.querySelector('[data-agent-action="new-key"]')).toBeTruthy();
-    expect(developerPanel().textContent).toContain('this is the Mishnah Yomit Tracker listing');
-  });
-
-  it('stops asking once the developer says it is not theirs', async () => {
-    mountWithListing();
-    respondWith({ ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: null });
-    await clickAndSettle(buttonNamed(yourListingDialog(), "No, it's not mine"));
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/listings/42/dismiss', method: 'POST' });
-    expect(yourListingDialog()).toBeNull();
-  });
-
-  it('can be put off until the next visit with Not now', () => {
-    mountWithListing();
-    act(() => {
-      buttonNamed(yourListingDialog(), 'Not now').click();
-    });
-    expect(yourListingDialog()).toBeNull();
-    expect(global.fetch).not.toHaveBeenCalled();
-  });
-
-  it('no longer asks about websites that are already listed', () => {
-    openNewProject();
-    typeInto(container.querySelector('#devPocProjectUrl'), 'dafyomicompanion.org');
-    expect(container.textContent).not.toContain('already on Powered by Sefaria');
-    expect(container.querySelector('[data-agent-action="request-listing-link"]')).toBeNull();
-  });
-});
-
-describe('saving a project', () => {
-  const fillProject = async (visibility) => {
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
-    act(() => {
-      visibilityRadio(visibility).click();
-    });
-    respondWith({
-      ...DEVELOPER_ON,
-      profile: PROFILE,
-      projectId: '7',
-      projects: [publicProject({ id: '7', visibility })],
-    });
-    await clickAndSettle(container.querySelector('[data-agent-action="create-project"]'));
-  };
-
-  it('opens the new project, ready for a key', async () => {
-    const setProjectId = jest.fn();
-    openNewProject({}, { setProjectId });
-    await fillProject('public');
-    expect(lastRequest().body.project.visibility).toBe('public');
-    expect(setProjectId).toHaveBeenLastCalledWith('7');
-    expect(container.querySelector('.devPocNewProject')).toBeNull();
-    expect(container.querySelector('[data-agent-action="new-key"]')).toBeTruthy();
-  });
-
-  it('keeps the form open with the server error when saving fails', async () => {
-    openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
-    act(() => {
-      visibilityRadio('private').click();
-    });
-    global.fetch = jest.fn(() =>
-      Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Give the project a name.' }) })
-    );
-    await clickAndSettle(container.querySelector('[data-agent-action="create-project"]'));
-    expect(container.querySelector('.devPocNewProject')).toBeTruthy();
-    expect(container.querySelector('[role="alert"]').textContent).toContain('Give the project a name.');
-  });
-
-  it('keeps the edit form and its empty website when the server refuses clearing the website', async () => {
-    // The page is stale: a key was restricted elsewhere, so only the server knows to refuse.
-    const refusal =
-      'A key is restricted to this website. Turn off the restriction on every key before removing the website.';
-    mount(
-      'developer',
-      {
-        ...DEVELOPER_ON,
-        profile: PROFILE,
-        projects: [
-          {
-            id: 'proj01',
-            name: 'Daf Tracker',
-            description: 'A tracker',
-            visibility: 'public',
-            organization: '',
-            websiteUrl: 'https://daftracker.org',
-            aiAssisted: false,
-            linkedListing: false,
-            consentWithdrawnAt: null,
-            keys: [{ id: 'k1', label: 'Site key', value: 'sfr_test_x', created: null, restrictToWebsite: false }],
-          },
-        ],
-      },
-      { projectId: 'proj01' }
-    );
-    act(() => {
-      buttonNamed(container, 'Edit project').click();
-    });
-    typeInto(container.querySelector('#devPocProjectUrl'), '');
-    global.fetch = jest.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ error: refusal }) }));
-    act(() => {
-      container.querySelector('[data-agent-action="save-project"]').click();
-    });
-    await clickAndSettle(buttonNamed(container, 'Save without a website'));
-    expect(container.querySelector('[role="alert"]').textContent).toContain(refusal);
-    expect(container.querySelector('#devPocProjectUrl').value).toBe('');
-    expect(container.querySelector('[data-agent-action="save-project"]')).toBeTruthy();
-  });
-});
-
-const publicProject = (extra = {}) => ({
-  id: 'proj01',
-  name: 'Daf Tracker',
-  description: 'A tracker',
-  visibility: 'public',
-  organization: '',
-  websiteUrl: 'https://daftracker.org',
-  aiAssisted: false,
-  linkedListing: false,
-  consentWithdrawnAt: null,
-  keys: [],
-  ...extra,
-});
-
-describe('making a public project private', () => {
-  const editPublicProject = () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject()] }, { projectId: 'proj01' });
-    act(() => {
-      buttonNamed(container, 'Edit project').click();
-    });
-    act(() => {
-      visibilityRadio('private').click();
-    });
-    return container.querySelector('[aria-labelledby="devPocPrivateTitle"]');
-  };
-
-  it('warns only that published copies may remain, without promising a take-down', () => {
-    const dialog = editPublicProject();
-    expect(dialog.textContent).toContain('The project will be marked private.');
-    expect(dialog.textContent).toContain("we can't guarantee it's removed everywhere");
-    expect(dialog.textContent).not.toContain('take it down');
-    expect(dialog.querySelector('a[href="mailto:hello@sefaria.org"]')).toBeTruthy();
-    expect(visibilityRadio('public').checked).toBe(true);
-  });
-
-  it('keeps the project public when dismissed', () => {
-    const dialog = editPublicProject();
-    act(() => {
-      buttonNamed(dialog, 'Keep public').click();
-    });
-    expect(visibilityRadio('public').checked).toBe(true);
-  });
-
-  it('saves the project as private', async () => {
-    const dialog = editPublicProject();
-    act(() => {
-      buttonNamed(dialog, 'Make private').click();
-    });
-    respondWith({ ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ visibility: 'private' })] });
-    await clickAndSettle(container.querySelector('[data-agent-action="save-project"]'));
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/projects/proj01', method: 'POST' });
-    expect(lastRequest().body.project.visibility).toBe('private');
-    expect(developerPanel().textContent).toContain('Private: not shown on Powered by Sefaria.');
-    expect(developerPanel().textContent).not.toContain('taken down');
-  });
-
-  it("doesn't ask for a project that was never public", () => {
-    openNewProject();
-    act(() => {
-      visibilityRadio('private').click();
-    });
-    expect(container.querySelector('[aria-labelledby="devPocPrivateTitle"]')).toBeNull();
-    expect(visibilityRadio('private').checked).toBe(true);
-  });
-});
-
-describe('removing the website', () => {
-  const clearWebsite = (keys) => {
-    mount(
-      'developer',
-      { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ keys })] },
-      { projectId: 'proj01' }
-    );
-    act(() => {
-      buttonNamed(container, 'Edit project').click();
-    });
-    typeInto(container.querySelector('#devPocProjectUrl'), '');
-    respondWith({});
-    act(() => {
-      container.querySelector('[data-agent-action="save-project"]').click();
-    });
-  };
-  const restricted = { id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: true };
-
-  it('is refused while a key is restricted to it, before anything is sent', () => {
-    clearWebsite([restricted]);
-    expect(container.querySelector('[role="alert"]').textContent).toContain('Turn off the restriction on every key');
-    expect(container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]')).toBeNull();
-    expect(global.fetch).not.toHaveBeenCalled();
-  });
-
-  it('asks the usual question when no key is restricted', () => {
-    clearWebsite([{ ...restricted, restrictToWebsite: false }]);
-    expect(container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]')).toBeTruthy();
-  });
-});
-
-describe('deleting a project', () => {
-  const withKey = (extra) =>
-    publicProject({
-      keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: false }],
-      ...extra,
-    });
-  const deleteFromEditor = (projects) => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects }, { projectId: 'proj01' });
-    act(() => {
-      buttonNamed(container, 'Edit project').click();
-    });
-    act(() => {
-      buttonNamed(container, 'Delete project').click();
-    });
-    return container.querySelector('[aria-labelledby="devPocConfirmTitle"]');
-  };
-  const other = { ...publicProject({ id: 'proj02', name: 'Other' }) };
-
-  it('deletes the project, naming the keys that stop working', async () => {
-    const dialog = deleteFromEditor([withKey(), other]);
-    expect(dialog.textContent).toContain('These keys stop working right away: Production');
-    respondWith({ ...DEVELOPER_ON, profile: PROFILE, projects: [other] });
-    await clickAndSettle(buttonNamed(dialog, 'Delete project'));
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/projects/proj01', method: 'DELETE' });
-    expect(developerPanel().textContent).not.toContain('Daf Tracker');
-    expect(developerPanel().textContent).toContain('Other');
-  });
-
-  it('warns about published copies only for a public project', () => {
-    expect(deleteFromEditor([withKey()]).textContent).toContain("we can't guarantee it's removed everywhere");
-    ReactDOM.unmountComponentAtNode(container);
-    container.remove();
-    expect(deleteFromEditor([withKey({ visibility: 'private' })]).textContent).not.toContain("can't guarantee");
-  });
-});
-
-describe('key cards', () => {
-  const projectWithKey = () =>
-    publicProject({
-      keys: [
-        {
-          id: 'k1',
-          label: 'Production',
-          value: 'sfr_test_x',
-          created: '2026-09-01T00:00:00Z',
-          restrictToWebsite: false,
-        },
-      ],
-    });
-
-  it('leads the website restriction with the allowed-origin rule, explained on request', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] }, { projectId: 'proj01' });
-    const restriction = container.querySelector('.devPocRestriction');
-    const summary = restriction.querySelector('.devPocRestrictionSummary');
-    expect(summary.textContent).toContain('Allowed origin');
-    expect(summary.textContent).toContain('Origin header is https://daftracker.org');
-    expect(restriction.querySelector('input').getAttribute('aria-describedby')).toBe(summary.id);
-    expect(restriction.querySelector('.devPocExplainer')).toBeNull();
-    act(() => {
-      buttonNamed(restriction, 'What does this mean?').click();
-    });
-    expect(restriction.querySelector('.devPocExplainer').textContent).toContain('only works on your website');
-  });
-
-  it('give each control a spoken name that starts with its visible text and names the key', () => {
-    const twoKeys = publicProject({
-      keys: [
-        { id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: false },
-        { id: 'k2', label: 'Staging', value: 'sfr_test_y', created: null, restrictToWebsite: false },
-      ],
-    });
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [twoKeys] }, { projectId: 'proj01' });
-    const visibleSwitchText = container.querySelector('.devPocRestrictionRow label > span').textContent;
-    expect(visibleSwitchText).toBe('Only accept requests from daftracker.org');
-    const switches = Array.from(container.querySelectorAll('.devPocSwitch')).map((s) => s.getAttribute('aria-label'));
-    expect(switches).toEqual([visibleSwitchText + ' (Production)', visibleSwitchText + ' (Staging)']);
-    const deletes = Array.from(container.querySelectorAll('.devPocKeyHeading button')).map((b) =>
-      b.getAttribute('aria-label')
-    );
-    expect(deletes).toEqual(['Delete key Production', 'Delete key Staging']);
-  });
-
-  it("names the origin with the website's own scheme", () => {
-    const httpProject = publicProject({ websiteUrl: 'http://example.org/app', keys: projectWithKey().keys });
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [httpProject] }, { projectId: 'proj01' });
-    const summary = container.querySelector('.devPocRestrictionSummary');
-    expect(summary.textContent).toContain('Origin header is http://example.org.');
-    expect(summary.textContent).not.toContain('https://example.org');
-  });
-
-  it('show when a key was created, with no usage information', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] }, { projectId: 'proj01' });
-    const meta = container.querySelector('.devPocKeyMeta').textContent;
-    expect(meta).toContain('Created');
-    const body = container.querySelector('.devPocProjectBody').textContent;
-    expect(body).not.toContain('Last used');
-    expect(body).not.toMatch(/requests in the last|requests per day|requests by key/i);
-  });
-});
-
-describe('keys', () => {
-  const projectWithKey = () =>
-    publicProject({
-      keys: [
-        { id: 'k1', label: 'Production', value: 'sfr_x', created: '2026-09-01T00:00:00Z', restrictToWebsite: false },
-      ],
-    });
-  const mountProject = (project) =>
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [project] }, { projectId: 'proj01' });
-
-  it('creates a key and shows it once the setup wait is over', async () => {
-    jest.useFakeTimers();
-    mountProject(publicProject());
-    act(() => {
-      container.querySelector('[data-agent-action="new-key"]').click();
-    });
-    typeInto(container.querySelector('#devPocKeyLabel'), 'Production');
-    respondWith({ ...DEVELOPER_ON, profile: PROFILE, keyId: 'k1', projects: [projectWithKey()] });
-    await act(async () => {
-      container.querySelector('[data-agent-action="create-key"]').click();
-      await flush();
-    });
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/projects/proj01/keys', body: { label: 'Production' } });
-    expect(developerPanel().textContent).toContain('Setting up your key');
-    await act(async () => {
-      jest.advanceTimersByTime(4000);
-      await flush();
-    });
-    expect(developerPanel().textContent).toContain('Ready to use');
-    jest.useRealTimers();
-  });
-
-  it('announces setting up and ready through a live region that was already in the page', async () => {
-    jest.useFakeTimers();
-    mountProject(publicProject());
-    act(() => {
-      container.querySelector('[data-agent-action="new-key"]').click();
-    });
-    const region = container.querySelector('.devPocSection p.sr-only[role="status"]');
-    expect(region.textContent).toBe('');
-    typeInto(container.querySelector('#devPocKeyLabel'), 'Production');
-    respondWith({ ...DEVELOPER_ON, profile: PROFILE, keyId: 'k1', projects: [projectWithKey()] });
-    await act(async () => {
-      container.querySelector('[data-agent-action="create-key"]').click();
-      await flush();
-    });
-    expect(container.querySelector('.devPocSection p.sr-only[role="status"]')).toBe(region);
-    expect(region.textContent).toBe('Setting up your key…');
-    await act(async () => {
-      jest.advanceTimersByTime(4000);
-      await flush();
-    });
-    expect(region.textContent).toBe('Ready to use. Copy it into your tool.');
-    expect(container.querySelector('.devPocKeyReady').getAttribute('role')).toBeNull();
-    jest.useRealTimers();
-  });
-
-  it('says so when the key could not be created', async () => {
-    jest.useFakeTimers();
-    mountProject(publicProject());
-    act(() => {
-      container.querySelector('[data-agent-action="new-key"]').click();
-    });
-    typeInto(container.querySelector('#devPocKeyLabel'), 'Production');
-    global.fetch = jest.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Nope' }) }));
-    await act(async () => {
-      container.querySelector('[data-agent-action="create-key"]').click();
-      await flush();
-    });
-    await act(async () => {
-      jest.advanceTimersByTime(4000);
-      await flush();
-    });
-    expect(developerPanel().textContent).toContain("We couldn't create your key.");
-    jest.useRealTimers();
-  });
-
-  it('restricts a key to the website', async () => {
-    mountProject(projectWithKey());
-    respondWith({ ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] });
-    await clickAndSettle(container.querySelector('.devPocRestriction input'));
-    expect(lastRequest()).toMatchObject({
-      url: '/api/developer/keys/k1',
-      method: 'POST',
-      body: { restrictToWebsite: true },
-    });
-  });
-
-  it('deletes a key after confirming', async () => {
-    mountProject(projectWithKey());
-    act(() => {
-      buttonNamed(container.querySelector('.devPocKey'), 'Delete key').click();
-    });
-    respondWith({ ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject()] });
-    await clickAndSettle(buttonNamed(container.querySelector('[aria-labelledby="devPocConfirmTitle"]'), 'Delete key'));
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/keys/k1', method: 'DELETE' });
-    expect(container.querySelector('.devPocKey')).toBeNull();
-  });
-});
-
-describe('dialog keyboard behaviour', () => {
-  const projectWithKey = () =>
-    publicProject({
-      keys: [{ id: 'k1', label: 'Production', value: 'sfr_x', created: null, restrictToWebsite: false }],
-    });
-  const openDeleteKey = () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] }, { projectId: 'proj01' });
-    const opener = buttonNamed(container.querySelector('.devPocKey'), 'Delete key');
-    act(() => {
-      opener.focus();
-      opener.click();
-    });
-    return { opener, dialog: container.querySelector('[aria-labelledby="devPocConfirmTitle"]') };
-  };
-  const press = (key, init = {}) =>
-    act(() => {
-      document.activeElement.dispatchEvent(
-        new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init })
-      );
-    });
-
-  const description = (dialog) =>
-    dialog
-      .getAttribute('aria-describedby')
-      .split(' ')
-      .map((id) => dialog.querySelector('#' + id).textContent)
-      .join(' ');
-
-  it('read their body as the description when they open', () => {
-    expect(description(openDeleteKey().dialog)).toContain('The key stops working right away');
-    ReactDOM.unmountComponentAtNode(container);
-    container.remove();
-
-    openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    act(() => {
-      visibilityRadio('public').click();
-    });
-    act(() => {
-      buttonNamed(container, 'Show me what will be public').click();
-    });
-    expect(description(container.querySelector('[aria-labelledby="devPocPublicTitle"]'))).toContain(
-      'anyone will be able to see'
-    );
-    act(() => {
-      buttonNamed(container, 'Close').click();
-    });
-    submitProject();
-    const noWebsite = description(container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]'));
-    expect(noWebsite).toContain('A website helps your project');
-    expect(noWebsite).toContain('You can add it later');
-    ReactDOM.unmountComponentAtNode(container);
-    container.remove();
-
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING });
-    expect(description(yourListingDialog())).toContain('Mishnah Yomit Tracker');
-  });
-
-  it('returns focus to the button that opened the new-project form when it is cancelled', () => {
-    openNewProject();
-    act(() => {
-      buttonNamed(container.querySelector('.devPocNewProject'), 'Cancel').click();
-    });
-    expect(document.activeElement.textContent).toBe('Create your first project');
-    ReactDOM.unmountComponentAtNode(container);
-    container.remove();
-
-    openNewProject({ projects: [publicProject()] });
-    act(() => {
-      buttonNamed(container.querySelector('.devPocNewProject'), 'Cancel').click();
-    });
-    expect(document.activeElement.textContent).toBe('New project');
-  });
-
-  it('closes on Escape without the key reaching the panel around the page', () => {
-    const outer = jest.fn();
-    container = document.createElement('div');
-    document.body.appendChild(container);
-    act(() => {
-      ReactDOM.render(
-        <div
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              outer();
-            }
-          }}
-        >
-          <SettingsPage
-            tab="developer"
-            projectId="proj01"
-            accountSettings={{ socialProviders: [] }}
-            initialDeveloper={{ ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] }}
-            setTab={() => {}}
-            setProjectId={() => {}}
-          />
-        </div>,
-        container
-      );
-    });
-    act(() => {
-      buttonNamed(container.querySelector('.devPocKey'), 'Delete key').click();
-    });
-    press('Escape');
-    expect(container.querySelector('[aria-labelledby="devPocConfirmTitle"]')).toBeNull();
-    expect(outer).not.toHaveBeenCalled();
-  });
-
-  it('keeps Tab inside the dialog and returns focus to the opener on close', () => {
-    const { opener, dialog } = openDeleteKey();
-    const buttons = Array.from(dialog.querySelectorAll('button'));
-    expect(document.activeElement).toBe(buttons[0]);
-    act(() => {
-      buttons[buttons.length - 1].focus();
-    });
-    press('Tab');
-    expect(document.activeElement).toBe(buttons[0]);
-    press('Tab', { shiftKey: true });
-    expect(document.activeElement).toBe(buttons[buttons.length - 1]);
-    act(() => {
-      buttonNamed(dialog, 'Cancel').click();
-    });
-    expect(document.activeElement).toBe(opener);
+  it('reads the developer state again when the Developer tab is opened', async () => {
+    const page = open(SSO_NEW, { tab: 'account' });
+    expect(server.count('GET', 'state')).toBe(0);
+    page.update({ tab: 'developer' });
+    await settle();
+    expect(server.count('GET', 'state')).toBe(1);
   });
 });
 
 describe('agent instructions', () => {
-  it('are in the DOM, visually hidden but not hidden from the accessibility tree', () => {
-    mount('account');
-    const block = container.querySelector('[data-agent-instructions]');
-    expect(block.className).toBe('sr-only');
-    expect(block.getAttribute('aria-hidden')).toBeNull();
-    expect(block.textContent).toContain('AI agents are permitted to complete this whole process');
-    expect(block.textContent).toContain('generating an API key');
-    expect(block.textContent).toContain(
-      'free to download, with no key, from https://github.com/Sefaria/Sefaria-Export'
+  it('are in the page, visually hidden but not hidden from assistive tech', () => {
+    const { container } = open(SSO_NEW);
+    const instructions = container.querySelector('[data-agent-instructions]');
+    expect(instructions.className).toBe('sr-only');
+    expect(instructions.closest('[aria-hidden="true"]')).toBeNull();
+    expect(within(instructions).getByRole('heading', { name: 'Instructions for AI agents' })).toBeTruthy();
+    expect(instructions.textContent).toContain('https://github.com/Sefaria/Sefaria-Export');
+  });
+});
+
+describe('the welcome screen', () => {
+  const steps = () =>
+    within(screen.getByRole('region', { name: 'Get a free API key' }))
+      .getAllByRole('listitem')
+      .map((li) => li.textContent.replace(/^\d/, ''));
+
+  it('lists the steps, with confirming the email first for an email account', () => {
+    open(EMAIL_NEW);
+    expect(heading('Get a free API key')).toBeTruthy();
+    expect(steps()).toEqual([
+      'Confirm your email',
+      'Tell us about yourself',
+      'Share your project details',
+      'Create your API key',
+    ]);
+    expect(button('Get started')).toBeTruthy();
+  });
+
+  it('leaves out confirming the email for a Google or Apple account', () => {
+    open(SSO_NEW);
+    expect(steps()).toEqual(['Tell us about yourself', 'Share your project details', 'Create your API key']);
+  });
+
+  it('links to the API docs and the library download', () => {
+    open(SSO_NEW);
+    expect(screen.getByRole('link', { name: 'Technical documentation' }).getAttribute('href')).toBe(
+      'https://developers.sefaria.org/reference/getting-started'
+    );
+    expect(screen.getByRole('link', { name: 'Download the library' }).getAttribute('href')).toBe(
+      'https://github.com/Sefaria/Sefaria-Export'
+    );
+  });
+});
+
+describe('confirming the email', () => {
+  it('asks to send a link to the account email as step 1', async () => {
+    open(EMAIL_NEW);
+    await click(button('Get started'));
+    expect(heading('Step 1 of 4: Confirm your email')).toBeTruthy();
+    expect(screen.getByText('tova@example.org')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Change it in Account Settings' }).getAttribute('href')).toBe(
+      '/settings/account#username-change'
     );
   });
 
-  it('point heavy users to the free library download on the page too', () => {
-    mount('developer');
-    const note = developerPanel().querySelector('.devPocExportNote');
-    expect(note.textContent).toContain('The whole library is free to download');
-    expect(note.querySelector('a').getAttribute('href')).toBe('https://github.com/Sefaria/Sefaria-Export');
+  it('sends the link, then waits on "Check your email" with a resend countdown', async () => {
+    jest.useFakeTimers();
+    open(EMAIL_NEW);
+    await click(button('Get started'));
+    await click(button('Send confirmation link'));
+    expect(server.count('POST', 'confirmation')).toBe(1);
+    expect(heading('Check your email')).toBeTruthy();
+    expect(screen.getByText(/We sent a confirmation link to/).textContent).toContain('tova@example.org');
+    expect(button('Resend in 60s').disabled).toBe(true);
+    await advance(60000);
+    expect(button('Resend link').disabled).toBe(false);
+    await click(button('Resend link'));
+    expect(server.count('POST', 'confirmation')).toBe(2);
+  });
+
+  it('goes back to the welcome screen from the confirm step', async () => {
+    open(EMAIL_NEW);
+    await click(button('Get started'));
+    await click(button('Back to Developer Settings'));
+    expect(heading('Get a free API key')).toBeTruthy();
+    expect(server.requests).toEqual([]);
+  });
+
+  it('goes straight to "Check your email" while a link sent earlier still works', async () => {
+    open({ ...EMAIL_NEW, confirmationSentAt: new Date().toISOString() });
+    await click(button('Get started'));
+    expect(heading('Check your email')).toBeTruthy();
+    expect(button('Resend link')).toBeTruthy();
+  });
+
+  it('asks for a new link once the one sent has expired', async () => {
+    open({ ...EMAIL_NEW, confirmationSentAt: new Date(Date.now() - 4 * 24 * 3600 * 1000).toISOString() });
+    await click(button('Get started'));
+    expect(heading('Step 1 of 4: Confirm your email')).toBeTruthy();
+  });
+
+  it('notices the link was opened, and carries on to About you as step 2', async () => {
+    jest.useFakeTimers();
+    open({ ...EMAIL_NEW, confirmationSentAt: new Date().toISOString() });
+    await click(button('Get started'));
+    server.state.emailVerified = true;
+    server.state.developerEnabled = true;
+    await advance(3000);
+    expect(server.count('GET', 'state')).toBe(1);
+    await advance(1200);
+    expect(heading('Step 2 of 4: About you')).toBeTruthy();
+  });
+
+  it('checks at once when another tab in this browser signals the link was opened', async () => {
+    open({ ...EMAIL_NEW, confirmationSentAt: new Date().toISOString() });
+    await lib.act(async () => {
+      window.dispatchEvent(new StorageEvent('storage', { key: lib.api.CONFIRMATION_SIGNAL_KEY }));
+    });
+    await settle();
+    expect(server.count('GET', 'state')).toBe(1);
+  });
+});
+
+describe('About you', () => {
+  const startSso = async () => {
+    open(SSO_NEW);
+    await click(button('Get started'));
+  };
+
+  it('is step 1 of 3 for a Google or Apple account, with the account name and email', async () => {
+    await startSso();
+    expect(heading('Step 1 of 3: About you')).toBeTruthy();
+    expect(screen.getByText(/Signed in as/).textContent).toBe('Signed in as Tova Levi (tova@example.org)');
+    // The account has a name, so there is no name field.
+    expect(screen.queryByLabelText('Name')).toBeNull();
+    expect(screen.getByRole('link', { name: 'Sefaria API terms' }).getAttribute('href')).toBe('/api-terms');
+  });
+
+  it('asks for a name when the account has none', async () => {
+    lib.Sefaria.full_name = '';
+    await startSso();
+    await choose('What best describes you?', 'Very technical');
+    await click(button('Continue'));
+    expect(field('Name').getAttribute('aria-invalid')).toBe('true');
+    expect(server.requests).toEqual([]);
+  });
+
+  it('requires what best describes you, and a valid additional email', async () => {
+    await startSso();
+    await click(button('Continue'));
+    expect(screen.getByRole('button', { name: /What best describes you\?/ }).getAttribute('aria-invalid')).toBe('true');
+    await choose('What best describes you?', 'Not technical');
+    const extra = field(/Additional email address/);
+    type(extra, 'not-an-email');
+    blur(extra);
+    expect(extra.getAttribute('aria-invalid')).toBe('true');
+    await click(button('Continue'));
+    expect(server.requests).toEqual([]);
+  });
+
+  it('explains the additional email in a tip read with the field', async () => {
+    await startSso();
+    const extra = field(/Additional email address/);
+    const tip = extra.getAttribute('aria-describedby').split(' ')[0];
+    expect(document.getElementById(tip).textContent).toContain("Emails will be sent to your Sefaria account's email");
+  });
+
+  it('counts the characters about yourself, up to 250', async () => {
+    await startSso();
+    const about = field(/Tell us about yourself/);
+    expect(about.getAttribute('maxLength')).toBe('250');
+    type(about, 'Hello');
+    expect(screen.getByText('5/250')).toBeTruthy();
+  });
+
+  it('turns developer settings on and saves the profile, then asks for the project', async () => {
+    await startSso();
+    await choose('What best describes you?', 'Somewhat technical');
+    type(field(/Tell us about yourself/), ' I teach ');
+    type(field(/Additional email address/), ' tova@work.example ');
+    await click(field(/developer newsletter/));
+    expect(screen.getByRole('link', { name: 'Join our Discord' })).toBeTruthy();
+    await click(button('Continue'));
+    expect(server.calls()).toEqual(['POST enable', 'POST profile']);
+    expect(server.sent('POST', 'profile')[0].profile).toEqual(
+      expect.objectContaining({
+        developerName: 'Tova Levi',
+        description: 'I teach',
+        additionalEmail: 'tova@work.example',
+        termsAccepted: true,
+        developerNews: true,
+        notADeveloper: true,
+      })
+    );
+    expect(heading('Step 2 of 3: Your project')).toBeTruthy();
+  });
+
+  it('goes back to the welcome screen on Cancel, saving nothing', async () => {
+    await startSso();
+    await click(button('Cancel'));
+    expect(heading('Get a free API key')).toBeTruthy();
+    expect(server.requests).toEqual([]);
+  });
+
+  it("keeps the form with the server's reason when saving fails", async () => {
+    await startSso();
+    server.fail('POST', 'profile', 400, 'Accept the API terms to continue.');
+    await choose('What best describes you?', 'Very technical');
+    await click(button('Continue'));
+    expect(screen.getByRole('alert').textContent).toContain('Accept the API terms to continue.');
+    expect(heading('Step 1 of 3: About you')).toBeTruthy();
+    expect(button('Continue').disabled).toBe(false);
+  });
+
+  it('picks up at About you when arriving from the email-confirmed page', () => {
+    lib = loadSettings({ search: '?continue' });
+    open({ developerEnabled: true, ssoConnected: false, emailVerified: true });
+    expect(heading('Step 2 of 4: About you')).toBeTruthy();
+  });
+});
+
+describe('the first project and key', () => {
+  /* At "Your project", with a profile saved. */
+  const atProjectStep = async () => {
+    open(SSO_NEW);
+    await click(button('Get started'));
+    await choose('What best describes you?', 'Very technical');
+    await click(button('Continue'));
+  };
+  const fillProject = async () => {
+    type(field(/Project name/), 'Daf Tracker');
+    await choose('What are you building?', 'Just exploring the API');
+    type(field(/Short description/), 'Tracks the daf');
+  };
+  const newProject = () => server.state.projects[0];
+
+  it("says a project can't be moved to another account", async () => {
+    await atProjectStep();
+    expect(screen.getByText("Projects created in this account can't be moved to another account.")).toBeTruthy();
+  });
+
+  it('can be skipped, landing on the projects page with a message', async () => {
+    await atProjectStep();
+    await click(button('Skip for now'));
+    expect(screen.getByText("Your profile is saved. Create a project whenever you're ready.")).toBeTruthy();
+    expect(heading('No projects or keys yet')).toBeTruthy();
+  });
+
+  it('goes back to About you, filled in, and forward again', async () => {
+    await atProjectStep();
+    await click(button('Back'));
+    expect(heading('Step 1 of 3: About you')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /What best describes you\?/ }).textContent).toContain('Very technical');
+    await click(button('Continue'));
+    expect(server.calls()).toEqual(['POST enable', 'POST profile', 'POST profile']);
+    expect(heading('Step 2 of 3: Your project')).toBeTruthy();
+  });
+
+  it('creates the project, then names its first key as step 3', async () => {
+    await atProjectStep();
+    await fillProject();
+    await click(button('Continue'));
+    expect(server.sent('POST', 'projects')[0].project).toEqual(
+      expect.objectContaining({ name: 'Daf Tracker', purpose: 'exploring', websiteUrl: '', visibility: 'private' })
+    );
+    expect(heading('Step 3 of 3: Create an API key for Daf Tracker')).toBeTruthy();
+    expect(field(/API key name/).getAttribute('placeholder')).toBe('My key');
+  });
+
+  it('creates the key, waits a moment, and shows it on the projects page', async () => {
+    jest.useFakeTimers();
+    await atProjectStep();
+    await fillProject();
+    await click(button('Continue'));
+    type(field(/API key name/), 'Website key');
+    await click(button('Create API key'));
+    expect(server.sent('POST', 'projects/' + newProject().id + '/keys')).toEqual([{ label: 'Website key' }]);
+    expect(screen.getByText('Creating your key…')).toBeTruthy();
+    await advance(3999);
+    expect(screen.getByText('Creating your key…')).toBeTruthy();
+    await advance(1);
+    const section = projectSection('Daf Tracker');
+    expect(within(section).getByRole('row', { name: /Website key/ }).className).toContain('is-new');
+  });
+
+  it('asks for the website when the new key is limited to one, and saves it to the project first', async () => {
+    jest.useFakeTimers();
+    await atProjectStep();
+    await fillProject();
+    await click(button('Continue'));
+    type(field(/API key name/), 'Website key');
+    await click(screen.getByRole('switch', { name: 'Limit this key to your website' }));
+    await click(button('Create API key'));
+    expect(field(/Your website/).getAttribute('aria-invalid')).toBe('true');
+    type(field(/Your website/), 'daftracker.org');
+    await click(button('Create API key'));
+    await advance(4000);
+    const id = newProject().id;
+    expect(server.calls().slice(-3)).toEqual([
+      'POST projects/' + id,
+      'POST projects/' + id + '/keys',
+      'POST keys/' + newProject().keys[0].id,
+    ]);
+    expect(newProject().websiteUrl).toBe('https://daftracker.org');
+    expect(
+      screen.getByRole('switch', { name: 'Only accept requests with Website key from daftracker.org' }).checked
+    ).toBe(true);
+  });
+
+  it('names the website in the switch when the project has one', async () => {
+    await atProjectStep();
+    await fillProject();
+    type(field(/^Website/), 'daftracker.org');
+    await click(button('Continue'));
+    expect(screen.getByRole('switch', { name: 'Limit this key to daftracker.org' })).toBeTruthy();
+    expect(screen.getByText(/Leave it switched/).textContent).toContain('server or an AI tool');
+  });
+
+  it('goes back from the key step to edit the project, not to make another', async () => {
+    await atProjectStep();
+    await fillProject();
+    await click(button('Continue'));
+    await click(button('Back'));
+    expect(heading('Step 2 of 3: Your project')).toBeTruthy();
+    expect(field(/Project name/).value).toBe('Daf Tracker');
+    type(field(/Project name/), 'Daf Tracker 2');
+    await click(button('Save and continue'));
+    expect(server.count('POST', 'projects')).toBe(1);
+    expect(server.sent('POST', 'projects/' + newProject().id)[0].project.name).toBe('Daf Tracker 2');
+    expect(heading('Step 3 of 3: Create an API key for Daf Tracker 2')).toBeTruthy();
+  });
+
+  it('can skip the key, landing on the projects page', async () => {
+    await atProjectStep();
+    await fillProject();
+    await click(button('Continue'));
+    await click(button('Skip for now'));
+    expect(projectSection('Daf Tracker')).toBeTruthy();
+    expect(server.calls().filter((c) => c.includes('keys'))).toEqual([]);
+  });
+
+  it("goes back to the key step when the key can't be made, saying so and keeping the name", async () => {
+    await atProjectStep();
+    await fillProject();
+    await click(button('Continue'));
+    server.fail('POST', /^projects\/[^/]+\/keys$/, 500);
+    type(field(/API key name/), 'Website key');
+    await click(button('Create API key'));
+    expect(heading('Step 3 of 3: Create an API key for Daf Tracker')).toBeTruthy();
+    expect(button('Create API key').disabled).toBe(false);
+    expect(newProject().keys).toEqual([]);
+    expect(screen.getByText("We couldn't create your key. Please try again.")).toBeTruthy();
+    expect(field(/API key name/).value).toBe('Website key');
+  });
+});
+
+describe('the email-confirmed page', () => {
+  it('thanks the user, signals other tabs, and continues to developer settings', () => {
+    renderElement(lib.React.createElement(lib.EmailConfirmedPage));
+    expect(heading('Thank you for confirming your email')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Continue to Developer Settings' }).getAttribute('href')).toBe(
+      '/settings/developer?continue'
+    );
+    expect(window.localStorage.getItem(lib.api.CONFIRMATION_SIGNAL_KEY)).toBeTruthy();
+  });
+});
+
+describe('a confirmation link that cannot confirm', () => {
+  const show = (status) => {
+    server = fakeServer();
+    return renderElement(lib.React.createElement(lib.EmailLinkPage, { link: { status, key: 'abc123' } }));
+  };
+
+  it('offers a new link when it has expired, then says to check the inbox', async () => {
+    jest.useFakeTimers();
+    show('expired');
+    expect(heading('This link no longer works')).toBeTruthy();
+    await click(button('Send a new link'));
+    expect(server.sent('POST', 'confirmation/new-link')).toEqual([{ key: 'abc123' }]);
+    expect(heading('Check your email')).toBeTruthy();
+    expect(button('Resend in 60s').disabled).toBe(true);
+  });
+
+  it("shows the server's reason when a new link is refused", async () => {
+    show('expired');
+    server.fail('POST', 'confirmation/new-link', 400, "This link can't be renewed.");
+    await click(button('Send a new link'));
+    expect(screen.getByRole('alert').textContent).toBe("This link can't be renewed.");
+  });
+
+  it('sends a link for a former address to developer settings for a new one', () => {
+    show('not-account-email');
+    expect(heading('This link no longer works')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Send a new link' }).getAttribute('href')).toBe('/settings/developer');
+  });
+
+  it('says a used link is already confirmed', () => {
+    show('already-confirmed');
+    expect(heading('Already confirmed')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Continue to Developer Settings' })).toBeTruthy();
+  });
+
+  it('says a link for an address another account uses is no longer valid, with where to get help', () => {
+    show('address-in-use');
+    expect(heading('This link is no longer valid')).toBeTruthy();
+    expect(screen.getByText(/This address can't be confirmed for this account/)).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'hello@sefaria.org' }).getAttribute('href')).toBe(
+      'mailto:hello@sefaria.org'
+    );
+    expect(screen.getByRole('link', { name: 'Continue to Developer Settings' })).toBeTruthy();
+    expect(queryButton('Send a new link')).toBeNull();
+  });
+
+  it('renders nothing for a status it does not know', () => {
+    const { container } = show('something-else');
+    expect(container.innerHTML).toBe('');
+  });
+});
+
+describe('arriving from the Powered by link (?share)', () => {
+  it('explains that setup comes first when there is no developer profile', async () => {
+    lib = loadSettings({ search: '?share' });
+    open(SSO_NEW);
+    const dialog = screen.getByRole('dialog', { name: 'Looking to share your project with Sefaria?' });
+    await click(within(dialog).getByRole('button', { name: 'Got it' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(heading('Get a free API key')).toBeTruthy();
+  });
+
+  it('opens the publish page with a project choice once set up', () => {
+    lib = loadSettings({ search: '?share' });
+    open({ ...READY, projects: [project(1)] });
+    expect(heading('Publish your project')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Which project do you want to publish\?/ })).toBeTruthy();
   });
 });
 
 describe('Hebrew interface', () => {
-  it('renders the developer tab in Hebrew', () => {
-    Sefaria.interfaceLang = 'hebrew';
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [] });
-    expect(developerPanel().textContent).toContain('הגדרות מפתחים');
-    expect(developerPanel().textContent).toContain('עדיין אין פרויקטים');
-    expect(developerPanel().textContent).not.toContain('No projects yet');
+  beforeEach(() => {
+    lib.Sefaria.interfaceLang = 'hebrew';
   });
 
-  it('asks "Is this your project?" in Hebrew', () => {
-    Sefaria.interfaceLang = 'hebrew';
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING });
-    expect(yourListingDialog().textContent).toContain('האם זה הפרויקט שלך?');
+  it('shows the welcome screen in Hebrew', () => {
+    open(SSO_NEW);
+    expect(heading('קבלו מפתח API בחינם')).toBeTruthy();
+    expect(button('בואו נתחיל')).toBeTruthy();
+  });
+
+  it('names the key buttons in Hebrew', () => {
+    open({ ...READY, projects: [project(1, { keys: [key(1)] })] });
+    expect(button('הצגת המפתח, Key 1')).toBeTruthy();
+    expect(button('העתקת המפתח, Key 1')).toBeTruthy();
+    expect(button('מחיקת המפתח, Key 1')).toBeTruthy();
   });
 
   it('shows a server error from the developer API in Hebrew', async () => {
-    Sefaria.interfaceLang = 'hebrew';
-    openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
-    act(() => {
-      visibilityRadio('private').click();
-    });
-    global.fetch = jest.fn(() =>
-      Promise.resolve({ ok: false, status: 400, json: () => Promise.resolve({ error: 'Give the project a name.' }) })
-    );
-    await clickAndSettle(container.querySelector('[data-agent-action="create-project"]'));
-    expect(developerPanel().querySelector('[role="alert"]').textContent).toBe('נא לתת לפרויקט שם.');
+    open({ ...READY, projects: [project(1, { keys: [key(1)] })] });
+    server.fail('DELETE', 'keys/k1', 404, 'No such key.');
+    await click(button('מחיקת המפתח, Key 1'));
+    await click(button('מחיקה'));
+    expect(screen.getByText('המפתח לא נמצא.')).toBeTruthy();
+  });
+
+  it('says the project limit in Hebrew', () => {
+    open({ ...READY, projects: [project(1)], maxProjects: 1 });
+    expect(screen.getByText(/הגעתם למספר המרבי של 1 פרויקטים/)).toBeTruthy();
   });
 });
 
@@ -984,361 +581,95 @@ describe('server errors in Hebrew', () => {
     serverSource.matchAll(/(?:InputError|PermissionError|LookupError)\("([^"{}]+)"\)|"error": "([^"{}]+)"/g),
     (match) => match[1] || match[2]
   );
-  beforeEach(() => {
-    Sefaria.interfaceLang = 'hebrew';
-  });
 
   it('translates every fixed message the developer API sends', () => {
+    lib.Sefaria.interfaceLang = 'hebrew';
     expect(fixedMessages.length).toBeGreaterThan(15);
     fixedMessages.forEach((message) =>
-      expect([message, serverErrorText(message)]).toEqual([message, expect.stringMatching(HEBREW)])
+      expect([message, lib.api.serverErrorText(message)]).toEqual([message, expect.stringMatching(HEBREW)])
     );
   });
 
-  it('translates messages that carry a number or a field name', () => {
-    [
-      'An account can have at most 10 projects. To add more, contact hello@sefaria.org.',
-      'A project can have at most 5 keys.',
-      "You've asked for 5 links today. Try again tomorrow, or contact hello@sefaria.org.",
-      'The project name can be at most 255 characters.',
-      'The website must be text.',
-      'Wait a minute before asking for another email.',
-      'A key is restricted to this website. Turn off the restriction on every key before removing the website.',
-    ].forEach((message) => expect(serverErrorText(message)).toMatch(HEBREW));
-    expect(serverErrorText('A project can have at most 5 keys.')).toContain('5');
+  it('translates messages that carry a number, an address or a field name', () => {
+    lib.Sefaria.interfaceLang = 'hebrew';
+    const { serverErrorText } = lib.api;
+    expect(
+      serverErrorText('An account can have at most 10 projects. To add more, contact developers@sefaria.org.')
+    ).toBe('בחשבון אפשר ליצור עד 10 פרויקטים. כדי להוסיף עוד, כתבו אל developers@sefaria.org.');
+    expect(serverErrorText('A project can have at most 5 keys.')).toBe('לפרויקט יכולים להיות עד 5 מפתחות.');
+    expect(
+      serverErrorText("You've asked for 5 links today. Try again tomorrow, or contact hello@sefaria.org.")
+    ).toMatch(/^ביקשת היום 5 קישורים/);
+    expect(serverErrorText('The project name can be at most 200 characters.')).toBe(
+      'בשם הפרויקט אפשר להזין עד 200 תווים.'
+    );
+    expect(serverErrorText('The website must be text.')).toBe('יש להזין טקסט בכתובת האתר.');
   });
 
   it('leaves an unknown message, and every message on the English site, as it is', () => {
-    expect(serverErrorText('Something new.')).toBe('Something new.');
-    Sefaria.interfaceLang = 'english';
+    const { serverErrorText } = lib.api;
     expect(serverErrorText('Give the project a name.')).toBe('Give the project a name.');
+    lib.Sefaria.interfaceLang = 'hebrew';
+    expect(serverErrorText('Something new went wrong.')).toBe('Something new went wrong.');
+    expect(serverErrorText('The colour can be at most 3 characters.')).toBe('The colour can be at most 3 characters.');
+    expect(serverErrorText('')).toBe('');
   });
 });
 
-describe('confirming the email', () => {
-  const unverified = { developerEnabled: false, ssoConnected: false, emailVerified: false };
-  const linkSent = { ...unverified, confirmationSentAt: new Date().toISOString() };
-
-  it('offers only the emailed link, never a change of sign-in method', () => {
-    mount('developer', unverified);
-    act(() => {
-      buttonNamed(developerPanel(), 'Get started').click();
-    });
-    expect(buttonNamed(developerPanel(), 'Email me a confirmation link')).toBeTruthy();
-    expect(developerPanel().textContent).not.toContain('Google');
-    expect(developerPanel().textContent).not.toContain('Apple');
-    expect(developerPanel().textContent).toContain('you keep signing in the way you do now');
+describe('website addresses', () => {
+  it('adds https:// to a bare domain and keeps a typed scheme', () => {
+    const { parseWebsite } = lib.api;
+    expect(parseWebsite('daftracker.org')).toEqual({ valid: true, url: 'https://daftracker.org' });
+    expect(parseWebsite(' http://daftracker.org/app ')).toEqual({ valid: true, url: 'http://daftracker.org/app' });
+    expect(parseWebsite('')).toEqual({ valid: true, url: '' });
   });
 
-  it('asks the server to send the link, then shows the check-your-email step', async () => {
-    mount('developer', unverified);
-    act(() => {
-      buttonNamed(developerPanel(), 'Get started').click();
-    });
-    respondWith(linkSent);
-    await clickAndSettle(buttonNamed(developerPanel(), 'Email me a confirmation link'));
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/confirmation', method: 'POST' });
-    expect(developerPanel().textContent).toContain('Check your email');
-    expect(developerPanel().textContent).toContain('tova@example.org');
-    expect(buttonNamed(developerPanel(), 'Resend the link')).toBeTruthy();
-  });
-
-  it('lets an account with a confirmed email straight in', async () => {
-    jest.useFakeTimers();
-    mount('developer', { ...unverified, emailVerified: true });
-    respondWith({ ...unverified, emailVerified: true, developerEnabled: true });
-    await clickAndSettle(buttonNamed(developerPanel(), 'Get started'));
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/enable', method: 'POST' });
-    expect(developerPanel().textContent).toContain('Setting up developer settings');
-    act(() => {
-      jest.runAllTimers();
-    });
-    expect(developerPanel().textContent).toContain('About you');
-    jest.useRealTimers();
-  });
-
-  it('saves the profile and moves on to projects', async () => {
-    mount('developer', DEVELOPER_ON);
-    act(() => {
-      container.querySelector('.devPocLegal input[type="checkbox"]').click();
-    });
-    respondWith({ ...DEVELOPER_ON, profile: PROFILE, projects: [] });
-    await clickAndSettle(container.querySelector('[data-agent-action="save-profile"]'));
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/profile', method: 'POST' });
-    expect(lastRequest().body.profile.termsAccepted).toBe(true);
-    expect(developerPanel().textContent).toContain('No projects yet');
-  });
-});
-
-describe('the confirmation link', () => {
-  const linkSent = {
-    developerEnabled: false,
-    ssoConnected: false,
-    emailVerified: false,
-    confirmationSentAt: new Date().toISOString(),
-  };
-
-  it('is noticed by the waiting tab within a few seconds', async () => {
-    jest.useFakeTimers();
-    mount('developer', linkSent);
-    respondWith(linkSent);
-    await act(async () => {
-      jest.advanceTimersByTime(3000);
-      await flush();
-    });
-    expect(developerPanel().textContent).toContain('Check your email');
-
-    respondWith({ ...linkSent, emailVerified: true, developerEnabled: true, confirmationSentAt: null });
-    await act(async () => {
-      jest.advanceTimersByTime(3000);
-      await flush();
-    });
-    act(() => {
-      jest.runOnlyPendingTimers();
-    });
-    expect(developerPanel().textContent).toContain('Your email is confirmed.');
-    expect(developerPanel().textContent).toContain('About you');
-    jest.useRealTimers();
-  });
-
-  it('is checked at once when another tab in this browser signals it', async () => {
-    mount('developer', linkSent);
-    respondWith({ ...linkSent, emailVerified: true, developerEnabled: true });
-    await act(async () => {
-      window.dispatchEvent(new StorageEvent('storage', { key: 'sefariaDeveloperEmailConfirmed', newValue: '1' }));
-      await flush();
-    });
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/state', method: 'GET' });
-    expect(developerPanel().textContent).toContain('Setting up developer settings');
-  });
-
-  it('lands on a thank-you page that signals other tabs', () => {
-    window.localStorage.removeItem('sefariaDeveloperEmailConfirmed');
-    container = document.createElement('div');
-    document.body.appendChild(container);
-    act(() => {
-      ReactDOM.render(<EmailConfirmedPage />, container);
-    });
-    expect(container.textContent).toContain('Thank you for confirming your email');
-    expect(container.textContent).toContain('You can close this tab');
-    const next = container.querySelector('[data-agent-action="continue-to-developer-settings"]');
-    expect(next.textContent).toBe('Continue to Developer Settings');
-    expect(next.getAttribute('href')).toBe('/settings/developer');
-    expect(window.localStorage.getItem('sefariaDeveloperEmailConfirmed')).toBeTruthy();
-  });
-});
-
-describe('test controls', () => {
-  const MOCK = { ssoOverride: null, realSsoProviders: [], confirmationKey: null };
-
-  it('are hidden unless the server has them on', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE });
-    expect(container.querySelector('.devPocPanel')).toBeNull();
-  });
-
-  it('start over through the mock API', async () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, mock: MOCK });
-    respondWith({
-      developerEnabled: false,
-      ssoConnected: false,
-      emailVerified: false,
-      mock: { ...MOCK, ssoOverride: false },
-    });
-    await clickAndSettle(container.querySelector('[data-scenario="email"]'));
-    expect(lastRequest()).toMatchObject({
-      url: '/api/developer/mock',
-      body: { action: 'start-over', ssoOverride: false, emailVerified: false },
-    });
-    expect(container.querySelector('.devPocPanelStatus').textContent).toContain('Email account · email not confirmed');
-  });
-
-  it('add a listing submitted with the account email, which is then offered', async () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], mock: MOCK });
-    respondWith({ ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING, mock: MOCK });
-    await clickAndSettle(container.querySelector('[data-poc-control="create-listing"]'));
-    expect(lastRequest().body).toEqual({ action: 'create-listing' });
-    expect(yourListingDialog().textContent).toContain('Mishnah Yomit Tracker');
-  });
-
-  it('open the mock email, whose button is the real confirmation link', () => {
-    mount('developer', {
-      developerEnabled: false,
-      ssoConnected: false,
-      emailVerified: false,
-      confirmationSentAt: new Date().toISOString(),
-      mock: { ...MOCK, confirmationKey: 'abc:123' },
-    });
-    act(() => {
-      container.querySelector('[data-agent-action="mock-open-email"]').click();
-    });
-    const link = container.querySelector('[data-agent-action="mock-confirm-email"]');
-    expect(link.getAttribute('href')).toBe('/settings/developer/confirm-email/abc:123');
-    expect(link.getAttribute('target')).toBe('_blank');
-  });
-});
-
-describe('a confirmation link that cannot confirm', () => {
-  const renderLink = (status) => {
-    container = document.createElement('div');
-    document.body.appendChild(container);
-    act(() => {
-      ReactDOM.render(<EmailLinkPage link={{ status, key: 'abc:123' }} />, container);
-    });
-  };
-
-  it('offers a new link when it has expired', async () => {
-    renderLink('expired');
-    expect(container.querySelector('h1').textContent).toBe('This link has expired');
-    respondWith({ sent: true });
-    await clickAndSettle(buttonNamed(container, 'Send a new link'));
-    expect(lastRequest()).toEqual({
-      url: '/api/developer/confirmation/new-link',
-      method: 'POST',
-      body: { key: 'abc:123' },
-    });
-    expect(container.textContent).toContain('We sent a new link. Check your email.');
-    expect(buttonNamed(container, 'Send a new link')).toBeUndefined();
-  });
-
-  it("shows the server's reason when a new link is refused", async () => {
-    renderLink('expired');
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        ok: false,
-        json: () => Promise.resolve({ error: 'Wait a minute before asking for another email.' }),
-      })
-    );
-    await clickAndSettle(buttonNamed(container, 'Send a new link'));
-    expect(container.querySelector('[role="alert"]').textContent).toBe(
-      'Wait a minute before asking for another email.'
+  it('rejects what is not a web address on a dotted host name', () => {
+    const { parseWebsite } = lib.api;
+    ['localhost', 'daf tracker.org', 'ftp://daftracker.org', 'https://-bad-.org', 'https://daftracker.c'].forEach(
+      (input) => {
+        expect([input, parseWebsite(input).valid]).toEqual([input, false]);
+      }
     );
   });
 
-  it('says a used link is already confirmed', () => {
-    renderLink('already-confirmed');
-    expect(container.querySelector('h1').textContent).toBe('Already confirmed');
-    expect(container.querySelector('[data-agent-action="continue-to-developer-settings"]')).toBeTruthy();
-  });
-
-  it('says a link for an address another account confirmed is no longer valid', () => {
-    renderLink('address-in-use');
-    expect(container.querySelector('h1').textContent).toBe('This link is no longer valid');
-    expect(container.querySelector('a[href="mailto:hello@sefaria.org"]')).toBeTruthy();
-    expect(container.querySelector('[data-agent-action="continue-to-developer-settings"]')).toBeTruthy();
-  });
-
-  it('rejects a link for an address that is no longer the account email', () => {
-    renderLink('not-account-email');
-    expect(container.querySelector('h1').textContent).toBe('This link is no longer valid');
-    expect(container.textContent).toContain('no longer your account email');
-    expect(buttonNamed(container, 'Send a new link')).toBeUndefined();
+  it("reads a website's host and the origin a browser sends from it", () => {
+    const { websiteHost, websiteOrigin } = lib.api;
+    expect(websiteHost('https://www.daftracker.org/app')).toBe('www.daftracker.org');
+    expect(websiteHost('daftracker.org')).toBe('daftracker.org');
+    expect(websiteHost('')).toBe('');
+    expect(websiteOrigin('http://daftracker.org/app')).toBe('http://daftracker.org');
+    expect(websiteOrigin('daftracker.org')).toBe('https://daftracker.org');
   });
 });
 
-describe('after the account email changes', () => {
-  const changedEmail = {
-    developerEnabled: true,
-    ssoConnected: false,
-    emailVerified: false,
-    profile: PROFILE,
-    projects: [
-      publicProject({
-        keys: [
-          {
-            id: 'k1',
-            label: 'Production',
-            value: 'sfr_test_x',
-            created: '2026-09-01T00:00:00Z',
-            restrictToWebsite: false,
-          },
-        ],
-      }),
-    ],
-  };
-
-  it('keeps projects and keys on show but offers no new ones', () => {
-    mount('developer', changedEmail, { projectId: 'proj01' });
-    const panel = developerPanel();
-    expect(panel.textContent).toContain('Confirm your new email address');
-    expect(panel.textContent).toContain('Your projects and keys keep working');
-    expect(panel.textContent).toContain('Daf Tracker');
-    expect(panel.textContent).toContain('Production');
-    expect(panel.textContent).not.toContain('Get started');
-    expect(panel.querySelector('[data-agent-action="new-project"]')).toBeNull();
-    expect(panel.querySelector('[data-agent-action="new-key"]')).toBeNull();
-  });
-
-  it('shows no create-first buttons on an empty account', () => {
-    mount('developer', { ...changedEmail, projects: [] });
-    expect(developerPanel().textContent).toContain('No projects yet');
-    expect(developerPanel().querySelector('[data-agent-action="new-project"]')).toBeNull();
-  });
-
-  it('emails a link to the new address', async () => {
-    mount('developer', changedEmail);
-    respondWith({ ...changedEmail, confirmationSentAt: '2026-10-12T00:00:00Z' });
-    await clickAndSettle(buttonNamed(developerPanel(), 'Email me a confirmation link'));
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/confirmation', method: 'POST' });
-    expect(developerPanel().textContent).toContain('We sent a confirmation link to tova@example.org');
-    expect(buttonNamed(developerPanel(), 'Resend the link')).toBeTruthy();
-  });
-
-  it('offers new projects again once the new address is confirmed', () => {
-    mount('developer', { ...changedEmail, emailVerified: true });
-    expect(developerPanel().textContent).not.toContain('Confirm your new email address');
-    expect(developerPanel().querySelector('[data-agent-action="new-project"]')).toBeTruthy();
-  });
-});
-
-/* Back brings the page back from browser history, which holds no settings. */
 describe('developer settings after Back', () => {
-  const remount = () => {
-    ReactDOM.unmountComponentAtNode(container);
-    act(() => {
-      ReactDOM.render(
-        <SettingsPage tab="developer" projectId={null} setTab={() => {}} setProjectId={() => {}} />,
-        container
-      );
-    });
-  };
-
-  it('shows the latest projects at once, then reloads them from the server', async () => {
-    openNewProject();
-    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
-    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
-    act(() => {
-      visibilityRadio('public').click();
-    });
-    respondWith({ ...DEVELOPER_ON, profile: PROFILE, projectId: 'proj01', projects: [publicProject()] });
-    await clickAndSettle(container.querySelector('[data-agent-action="create-project"]'));
-
-    let answer;
-    global.fetch = jest.fn(
-      () =>
-        new Promise((resolve) => {
-          answer = resolve;
-        })
-    );
-    remount();
-    expect(lastRequest()).toMatchObject({ url: '/api/developer/state', method: 'GET' });
-    expect(container.querySelectorAll('nav.settingsNav a')).toHaveLength(2);
-    expect(developerPanel().textContent).toContain('Daf Tracker');
-
-    const server = { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ name: 'Mishnah Tracker' })] };
-    await act(async () => {
-      answer({ ok: true, json: () => Promise.resolve(server) });
-      await flush();
-    });
-    expect(developerPanel().textContent).toContain('Mishnah Tracker');
+  it('shows the projects it last showed at once, then reloads them from the server', async () => {
+    open({ ...READY, projects: [project(1)] });
+    cleanup();
+    server = fakeServer({ ...READY, projects: [project(2)] });
+    renderSettings('developer', undefined, { accountSettings: undefined });
+    // The state request is still in flight: the page shows what it remembered.
+    expect(projectSection('Project 1')).toBeTruthy();
+    await settle();
+    expect(server.count('GET', 'state')).toBe(1);
+    expect(projectSection('Project 1')).toBeUndefined();
+    expect(projectSection('Project 2')).toBeTruthy();
   });
 
-  it('has no developer tab where developer settings are off', async () => {
-    mount('account', null);
-    await act(async () => {
-      remount();
-      await flush();
-    });
-    expect(container.querySelectorAll('nav.settingsNav a')).toHaveLength(1);
-    expect(global.fetch).not.toHaveBeenCalled();
+  it('has no Developer tab where developer settings are off', async () => {
+    fakeServer();
+    renderSettings('account', null);
+    cleanup();
+    server = fakeServer();
+    renderSettings('account', undefined, { accountSettings: undefined });
+    await settle();
+    const nav = screen.getByRole('navigation', { name: 'Settings' });
+    expect(
+      within(nav)
+        .getAllByRole('link')
+        .map((a) => a.getAttribute('href'))
+    ).toEqual(['/settings/account']);
+    expect(server.requests).toEqual([]);
   });
 });
