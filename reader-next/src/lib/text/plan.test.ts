@@ -92,6 +92,11 @@ describe("isHighlighted", () => {
     expect(isHighlighted(["2b", "3"], h, berakhot.addressTypes)).toBe(false);
     expect(isHighlighted(["2a", "4"], h, berakhot.addressTypes)).toBe(false);
   });
+  it("never highlights a shallower node of the same book (a commentary's Foreword above its range)", () => {
+    const h = { from: ["1", "1", "1"], to: ["1", "1", "3"] };
+    expect(isHighlighted(["1"], h, ["Integer"])).toBe(false);
+    expect(isHighlighted(["1", "1", "2"], h, ["Perek", "Pasuk", "Integer"])).toBe(true);
+  });
   it("returns false without a highlight", () => {
     expect(isHighlighted(["1", "1"], null, genesis.addressTypes)).toBe(false);
   });

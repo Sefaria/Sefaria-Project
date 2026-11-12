@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { IDBFactory } from "fake-indexeddb";
 import { http } from "msw";
 import { server } from "../../../test/msw/server";
+import { readFixture } from "../../../test/msw/fixtures";
 import { makeQueryClient } from "~/lib/cache/query-client";
 import { resetPersisters } from "~/lib/cache/persisters";
 import { RefIndex } from "~/lib/cache/ref-index";
@@ -95,9 +96,13 @@ describe("library cache (core tenet: never fetch twice)", () => {
     const idx = new RefIndex();
     await loadReaderPassage(qc, idx, "Genesis 1");
     requests = [];
-    // chapter 1 has 31 verses; the server answers 404 "We have no text for Genesis 1:35"
-    await expect(loadReaderPassage(qc, idx, "Genesis 1:35")).rejects.toThrow();
-    expect(requests).toEqual(["/api/v3/texts/Genesis 1:35"]);
+    // chapter 1 has 31 verses; the server answers 404 "We have no text for Genesis 1:35", and sefaria.org opens the next chapter
+    const { HttpResponse } = await import("msw");
+    server.use(http.get("*/api/ref/*", () => HttpResponse.json({ is_ref: true, navigation_refs: { first_available_section_ref: "Genesis 2" } })));
+    const r = await loadReaderPassage(qc, idx, "Genesis 1:35");
+    expect(requests.slice(0, 2)).toEqual(["/api/v3/texts/Genesis 1:35", "/api/ref/Genesis 1:35"]);
+    expect(r.canonicalRef).toBe("Genesis 2");
+    expect(r.highlight).toBeNull();
   });
 
   it("prefetches the next section so paging forward is instant", async () => {
@@ -258,5 +263,67 @@ describe("a node address with no section", () => {
     );
     await expect(loadReaderPassage(makeQueryClient(), new RefIndex(), "Nonsense")).rejects.toThrow();
     expect(requests).toContain("/api/v3/texts/Nonsense");
+  });
+});
+
+// Regression: a commentary range over a verse it does not comment on (Rashi on Genesis 1:1-3: nothing on 1:3) was "no such text", and the
+// page went to the old site. sefaria.org shows the verses that have comments.
+describe("a range over a section with no text", () => {
+  const rashi = (ref: string) => {
+    const raw = readFixture<Record<string, unknown>>("rashi-on-genesis-1/section-first.json");
+    const [, sec] = /1:(\d+)$/.exec(ref)!;
+    return { ...raw, ref, sectionRef: ref, sections: ["1", sec], toSections: ["1", sec], firstAvailableSectionRef: ref };
+  };
+  const texts = (empty: string[], fail: string[] = []) =>
+    http.get("*/api/v3/texts/*", async ({ request }) => {
+      const { HttpResponse } = await import("msw");
+      const ref = decodeURIComponent(new URL(request.url).pathname).replace(/^.*\/api\/v3\/texts\//, "").replace(/_/g, " ");
+      if (fail.includes(ref)) return HttpResponse.json({ error: "down" }, { status: 502 });
+      if (empty.includes(ref)) return HttpResponse.json({ error: `We have no text for ${ref}.` }, { status: 404 });
+      if (/^Rashi on Genesis 1:\d+$/.test(ref)) return HttpResponse.json(rashi(ref));
+      return HttpResponse.json({ error: "unexpected" }, { status: 500 });
+    });
+
+  it("shows the sections that have text, under the address as asked", async () => {
+    server.use(texts(["Rashi on Genesis 1:3"]));
+    const r = await loadReaderPassage(makeQueryClient(), new RefIndex(), "Rashi on Genesis 1:1-3");
+    expect(r.canonicalRef).toBe("Rashi on Genesis 1:1-3");
+    expect(r.sections.map((s) => s.ref)).toEqual(["Rashi on Genesis 1:1", "Rashi on Genesis 1:2"]);
+  });
+
+  it("an empty section in the middle is left out (Ramban on Genesis 1:1-3: nothing on 1:2)", async () => {
+    server.use(texts(["Rashi on Genesis 1:2"]));
+    const r = await loadReaderPassage(makeQueryClient(), new RefIndex(), "Rashi on Genesis 1:1-3");
+    expect(r.sections.map((s) => s.ref)).toEqual(["Rashi on Genesis 1:1", "Rashi on Genesis 1:3"]);
+  });
+
+  it("a server failure on one section is still an error, not a gap", async () => {
+    server.use(texts([], ["Rashi on Genesis 1:3"]));
+    await expect(loadReaderPassage(makeQueryClient(), new RefIndex(), "Rashi on Genesis 1:1-3")).rejects.toThrow();
+  });
+
+  it("an address with no text at all opens the next section with text, as sefaria.org does (Rashi on Genesis 1:3 → 1:4)", async () => {
+    const { HttpResponse } = await import("msw");
+    server.use(
+      texts(["Rashi on Genesis 1:3"]),
+      // Django answers 500 for the empty section itself, and the next section with text for a segment in it
+      http.get("*/api/ref/*", ({ request }) =>
+        decodeURIComponent(new URL(request.url).pathname).endsWith("Rashi on Genesis 1:3:1")
+          ? HttpResponse.json({ is_ref: true, navigation_refs: { first_available_section_ref: "Rashi on Genesis 1:4" } })
+          : HttpResponse.text("Internal Server Error", { status: 500 }),
+      ),
+    );
+    const qc = makeQueryClient();
+    const idx = new RefIndex();
+    const r = await loadReaderPassage(qc, idx, "Rashi on Genesis 1:3");
+    expect(r.canonicalRef).toBe("Rashi on Genesis 1:4");
+    expect(r.sections.map((s) => s.ref)).toEqual(["Rashi on Genesis 1:4"]);
+    expect(r.highlight).toBeNull();
+  });
+
+  it("a title the API does not know is still no such text", async () => {
+    const { HttpResponse } = await import("msw");
+    server.use(texts(["Rashi on Genesis 1:3"]), http.get("*/api/ref/*", () => HttpResponse.json({ is_ref: false })));
+    await expect(loadReaderPassage(makeQueryClient(), new RefIndex(), "Rashi on Genesis 1:3")).rejects.toThrow();
   });
 });
