@@ -83,6 +83,29 @@ for (const [path, lang, biLayout, next] of [
   });
 }
 
+// @feature TXD-045 @feature TXD-061
+// Continuous Talmud (the default), sefaria.org 2026-11-12, Berakhot 2a, 1280px: English lines every 35.2px, the first 23.7px under the
+// heading box (the daf 3799.6px tall); Hebrew lines every 42.9px, the first 21.7px under it. In the interface face the English lines
+// were 37px apart (281px over the daf).
+for (const [lang, step, first] of [["en", 35.2, 23.7], ["he", 42.94, 21.67]] as const) {
+  test(`continuous Talmud ${lang}: the lines are as far apart as on sefaria.org`, async ({ page }) => {
+    await open(page, `/Berakhot.2a?lang=${lang}`);
+    const sec = page.locator('section[data-ref="Berakhot 2a"]');
+    await expect(sec.locator('[role="group"][data-ref="Berakhot 2a:6"]')).toBeAttached({ timeout: 25_000 });
+    await page.evaluate(() => document.fonts.ready);
+    const m = await sec.evaluate((s) => {
+      const tops = new Set<number>();
+      for (const g of s.querySelectorAll('[role="group"][data-ref]')) for (const r of g.getClientRects()) if (r.height > 1) tops.add(Math.round(r.top * 10) / 10);
+      const t = [...tops].sort((a, b) => a - b);
+      const firstLine = s.querySelector('[role="group"][data-ref]')!.getClientRects()[0]!;
+      return { lines: t.length, avg: (t.at(-1)! - t[0]!) / (t.length - 1), first: firstLine.top - s.querySelector("h2")!.getBoundingClientRect().bottom };
+    });
+    expect(m.lines).toBeGreaterThan(10);
+    expect(Math.abs(m.avg - step), `${m.avg}px between lines`).toBeLessThan(0.3);
+    expect(m.first).toBeCloseTo(first, 0);
+  });
+}
+
 // @feature TXD-012
 test("Hebrew daf headings read ב׳ א / ב׳ ב (parity S7)", async ({ page }) => {
   await open(page, "/Berakhot.2a?lang=he");
