@@ -1453,11 +1453,11 @@ const EKeyNameField = ({ label, setLabel, error, hint, placeholder }) => (
   />
 );
 
-const ENewKey = ({ project, onBack, onCreate }) => {
+const ENewKey = ({ project, onBack, onCreate, failure, initialLabel }) => {
   const restrict = useKeyRestrict(project);
-  const [label, setLabel] = useState(''); // empty, with the "My key" placeholder, first key or not (2026-11-05)
+  const [label, setLabel] = useState(initialLabel || ''); // empty, with the "My key" placeholder (2026-11-05)
   const [error, setError] = useState(null);
-  const [banner, setBanner] = useState(null);
+  const [banner, setBanner] = useState(failure || null);
   const [busy, setBusy] = useState(false);
   const submit = (e) => {
     e.preventDefault();
@@ -1698,11 +1698,11 @@ const useKeyRestrict = (project) => {
   };
 };
 
-const ESetupKey = ({ dots, project, onBack, backLabel, onSkip, onCreate }) => {
+const ESetupKey = ({ dots, project, onBack, backLabel, onSkip, onCreate, failure, initialLabel }) => {
   const restrict = useKeyRestrict(project);
-  const [label, setLabel] = useState('');
+  const [label, setLabel] = useState(initialLabel || '');
   const [error, setError] = useState(null);
-  const [banner, setBanner] = useState(null);
+  const [banner, setBanner] = useState(failure || null);
   const [busy, setBusy] = useState(false);
   const submit = (e) => {
     e.preventDefault();
@@ -3921,6 +3921,7 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
   /* Create a project (when given) and a key, keep the loader up long enough, then go to the table
      with the new key marked. */
   const createWithKey = (projectBody, label, inSetup, existingProjectId, keyOptions, afterKey) => {
+    const keyView = view;
     const { restrict, websiteUrl } = keyOptions || {};
     const minimum = new Promise((resolve) => setTimeout(resolve, KEY_SETUP_MS));
     const projectReady = existingProjectId
@@ -3963,14 +3964,11 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
           home(); // no message: the new key's row shows it, tinted for a moment
         },
         (err) => {
+          /* Back to the key form that was open, with the name typed and the reason it failed: the form itself was
+             replaced by the waiting screen, so it can't show the error. */
           if (mounted.current) {
-            setView(
-              inSetup
-                ? { screen: 'setupKey', projectId, inSetup: true, withConfirm: confirmStep }
-                : { screen: 'newkey', projectId }
-            );
+            setView({ ...keyView, keyFailure: keyFailure(err), keyLabel: label });
           }
-          throw err;
         }
       );
     });
@@ -4300,6 +4298,8 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
       <ESetupKey
         dots={dots(2)}
         project={project}
+        failure={view.keyFailure}
+        initialLabel={view.keyLabel}
         backLabel={tE('Back', 'חזרה')}
         onBack={() =>
           setView({ screen: 'setupProjectEdit', projectId: project.id, inSetup: true, withConfirm: view.withConfirm })
@@ -4347,6 +4347,8 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
     body = (
       <ESetupKey
         project={project}
+        failure={view.keyFailure}
+        initialLabel={view.keyLabel}
         onBack={toShare ? backToShare : () => home()}
         onSkip={toShare ? backToShare : () => home()}
         onCreate={(label, opts) => createWithKey(null, label, false, project.id, opts, toShare ? backToShare : null)}
@@ -4356,6 +4358,8 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
     body = (
       <ENewKey
         project={projectById(view.projectId)}
+        failure={view.keyFailure}
+        initialLabel={view.keyLabel}
         onBack={() => home()}
         onCreate={(label, opts) => createWithKey(null, label, false, view.projectId, opts)}
       />
