@@ -134,7 +134,9 @@ test("labels changing language as the reader scrolls into the next section never
   expect(frames).toEqual([]);
 });
 
-/** Start recording, every frame, how far the verse at the reading line moved against the reader's own scroll (see the test above). */
+/** Start recording, every frame, how far the verse on the focus line (140px below the column's top, the engine's threshold) moved
+ * against the reader's own scroll (the scroll change minus the deliberate corrections development builds report). Unlike the test
+ * above, it follows the verse the reader's eyes are on, which can be an earlier one than the engine's focus verse. */
 async function startFrameTrace(page: Page) {
   await page.evaluate(() => {
     type Rs = { focus?: string; corrections: number[] };
@@ -152,7 +154,11 @@ async function startFrameTrace(page: Page) {
         const r = el.getBoundingClientRect();
         if (r.bottom > -200 && r.top < innerHeight + 200) tops.set(el.dataset.ref!, r.top);
       }
-      const ref = rs?.focus;
+      const line = c.getBoundingClientRect().top + 140;
+      const ref = [...document.querySelectorAll<HTMLElement>('[role="group"][data-ref]')].find((el) => {
+        const r = el.getBoundingClientRect();
+        return r.top <= line && r.bottom > line;
+      })?.dataset.ref;
       if (prev && ref && tops.has(ref) && prev.tops.has(ref)) {
         const moved = tops.get(ref)! - prev.tops.get(ref)!;
         const own = scroller.scrollTop - prev.st - (corr - prev.corr);

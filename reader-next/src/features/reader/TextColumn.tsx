@@ -4,7 +4,7 @@ import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { makeIndexLookup } from "~/lib/connections/links";
 import { linkCountsBySegment, linksQueryOptions } from "~/lib/connections/queries";
-import { nextToLoad, sectionsToTrim } from "~/lib/reader/column";
+import { focusRule, nextToLoad, sectionsToTrim } from "~/lib/reader/column";
 import type { ReaderSettings } from "~/lib/reader/settings";
 import { passageLabelLanguage } from "~/lib/reader/label-language";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
@@ -444,9 +444,29 @@ export function TextColumn(props: TextColumnProps) {
   const labelLang = passageLabelLanguage(sections.find((p) => p.ref === labelRef) ?? first, settings.language, interfaceLang);
   const bookTitleLang = (labelLang === "he" ? first.heIndexTitle : first.indexTitle) ? labelLang : labelLang === "he" ? "en" : "he";
   // The labels changed language (the reader moved into a section shown in another language): headers and numbers change size, so
-  // put the reader back in the same commit, before anything can measure or paint the shifted page.
+  // put the reader back in the same commit, before anything can measure or paint the shifted page. The engine keeps its focus verse
+  // in place; the verse on the focus line can be an earlier one (a long last verse of the section above, the focus having moved on
+  // to the next section's first verse), and the header between the two changes size too. That verse is the one being read, so it is
+  // the one kept: measured here, before the switch is committed, and put back after.
+  const labelsWere = useRef(labelLang);
+  const onLine = useRef<{ ref: string; top: number } | null>(null);
+  if (labelsWere.current !== labelLang) {
+    labelsWere.current = labelLang;
+    onLine.current = segmentOnFocusLine(scrollerRef.current);
+  }
   useLayoutEffect(() => {
     engine.restore();
+    const was = onLine.current;
+    onLine.current = null;
+    const scroller = scrollerRef.current;
+    const el = was && scroller ? scroller.querySelector<HTMLElement>(`[role="group"][data-ref="${CSS.escape(was.ref)}"]`) : null;
+    if (!was || !el || !scroller) return;
+    const delta = el.getBoundingClientRect().top - was.top;
+    if (Math.abs(delta) < 0.5) return;
+    if (isWindowScrolled(scroller)) window.scrollTo(0, window.scrollY + delta);
+    else scroller.scrollTop += delta;
+    // a deliberate correction, reported like the engine's own in development (the smoothness tests subtract them)
+    if (import.meta.env?.DEV) (window as unknown as { __readingScroll?: { corrections: number[] } }).__readingScroll?.corrections.push(Math.round(delta));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the label language changes; engine.restore is stable
   }, [labelLang]);
   const last = sections.at(-1)!;
@@ -637,4 +657,20 @@ export function listenForSelections(root: () => Element | null, report: (words: 
 /** A section whose source is Hebrew and that has no translation text at all. */
 export function hebrewOnly(p: Pick<TextPassage, "primaryVersion" | "translationVersion" | "segments">): boolean {
   return p.primaryVersion?.direction === "rtl" && !(p.translationVersion && p.segments.some((s) => s.translation !== undefined && s.translation !== ""));
+}
+
+const isWindowScrolled = (scroller: HTMLElement) => !["auto", "scroll"].includes(getComputedStyle(scroller).overflowY);
+
+/** The verse under the reading engine's focus line (its threshold), with its top on screen; null when none is there. */
+function segmentOnFocusLine(scroller: HTMLElement | null): { ref: string; top: number } | null {
+  if (!scroller || typeof window === "undefined") return null;
+  const phone = isWindowScrolled(scroller);
+  // measured as the engine measures: from the scroller's top, or from the window's on a phone, where the page scrolls
+  const line = (phone ? 0 : scroller.getBoundingClientRect().top) + focusRule(window.innerHeight, { mobile: phone }).threshold;
+  for (const el of scroller.querySelectorAll<HTMLElement>('[role="group"][data-ref]')) {
+    const r = el.getBoundingClientRect();
+    if (r.top <= line && r.bottom > line) return { ref: el.dataset.ref!, top: r.top };
+    if (r.top > line) return null;
+  }
+  return null;
 }
