@@ -312,7 +312,9 @@ function spannedPlan(passage: TextPassage): Extract<DisplayPlan, { kind: "sectio
 }
 
 /** The API's answer for a section that exists in the book's shape but has no text in any version ("We have no text for …"). */
-const isEmptySection = (e: unknown): boolean => e instanceof SefariaApiError && e.status === 404;
+// An unknown title ("Could not find title…") or a chapter past the book's end ("Genesis ends at Chapter 50.") is also a 404, with
+// another message: those are no such text, and no further request is made for them (sefaria.org makes none either).
+const isEmptySection = (e: unknown): boolean => e instanceof SefariaApiError && e.status === 404 && /We have no text/.test(e.message);
 
 /** The most sections a page loads up front for one panel (a range's first sections). */
 export const MAX_INITIAL_SECTIONS = 4;

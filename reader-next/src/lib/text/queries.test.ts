@@ -98,7 +98,10 @@ describe("library cache (core tenet: never fetch twice)", () => {
     requests = [];
     // chapter 1 has 31 verses; the server answers 404 "We have no text for Genesis 1:35", and sefaria.org opens the next chapter
     const { HttpResponse } = await import("msw");
-    server.use(http.get("*/api/texts/*", () => HttpResponse.json({ sectionRef: "Genesis 1", prev: null, next: "Genesis 2", text: ["In the beginning"], he: [] })));
+    server.use(
+      http.get("*/api/v3/texts/Genesis%201%3A35", () => HttpResponse.json({ error: "We have no text for Genesis 1:35." }, { status: 404 })),
+      http.get("*/api/texts/*", () => HttpResponse.json({ sectionRef: "Genesis 1", prev: null, next: "Genesis 2", text: ["In the beginning"], he: [] })),
+    );
     const r = await loadReaderPassage(qc, idx, "Genesis 1:35");
     expect(requests.slice(0, 2)).toEqual(["/api/v3/texts/Genesis 1:35", "/api/texts/Genesis 1:35"]);
     expect(r.canonicalRef).toBe("Genesis 2");
@@ -334,6 +337,16 @@ describe("a range over a section with no text", () => {
     server.use(texts(["Rashi on Genesis 1:3"]), neighbours({ error: "Could not find title in reference: Rashi on Genesis 1:3" }));
     const err = await loadReaderPassage(makeQueryClient(), new RefIndex(), "Rashi on Genesis 1:3").catch((e: unknown) => e);
     expect((err as { status?: number }).status).toBe(404);
+  });
+
+  it("a title the texts API does not know, or a chapter past the book's end, asks nothing more (as sefaria.org)", async () => {
+    const { HttpResponse } = await import("msw");
+    for (const error of ["Could not find title in reference: Definitely Not A Book 1", "Genesis ends at Chapter 50."]) {
+      requests = [];
+      server.use(http.get("*/api/v3/texts/*", () => HttpResponse.json({ error }, { status: 404 })), neighbours(502));
+      await expect(loadReaderPassage(makeQueryClient(), new RefIndex(), "Definitely Not A Book 1")).rejects.toThrow();
+      expect(requests.filter((r) => r.startsWith("/api/texts/"))).toEqual([]);
+    }
   });
 
   it("a server failure while looking for where to open is the API's trouble (5xx), not no such text", async () => {
