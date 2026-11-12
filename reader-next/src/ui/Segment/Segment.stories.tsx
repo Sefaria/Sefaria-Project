@@ -205,6 +205,13 @@ export const NarrowPanelHebrewRightIsStacked: Story = {
     await expect(rect(seg(canvasElement, "both").querySelector("[data-side='primary']")).top).toBeLessThan(rect(seg(canvasElement, "both").querySelector("[data-side='translation']")).top);
   },
 };
+/** A fractional width that sefaria.org rounds to 500 (a panel beside the sidebar at a 736px window is 500.47px there): still stacked. */
+export const PanelOf500Point4IsStacked: Story = {
+  args: { language: "bilingual", biLayout: "heLeft", rows: sideBySideRows, panelWidth: 500.4 },
+  play: async ({ canvasElement }) => {
+    await looksStacked(seg(canvasElement, "both"));
+  },
+};
 /** One pixel wider and the setting applies. */
 export const PanelJustOver500IsSideBySide: Story = {
   args: { language: "bilingual", biLayout: "heLeft", rows: sideBySideRows, panelWidth: 501 },

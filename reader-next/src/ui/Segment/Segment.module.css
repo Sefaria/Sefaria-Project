@@ -111,9 +111,10 @@
 
 /* A panel 500px wide or less is always stacked, whatever the side-by-side setting (sefaria.org ReaderPanel.currentLayout: side by side
    only when the panel is wider than 500px; a phone, two panels in a narrow window, a panel beside the sidebar). The panel is the
-   reading column's `panel` container, so this holds from the server render on, without measuring in script. It undoes the side-by-side
-   rules above and applies the stacked ones. */
-@container panel (width <= 500px) {
+   reading column's `panel` container, so this holds from the server render on, without measuring in script. sefaria.org reads the
+   width as a whole number (jQuery 2's offsetWidth), so a 500.47px panel is still "500" there: stacked below 500.5px. It undoes the
+   side-by-side rules above and applies the stacked ones. */
+@container panel (width < 500.5px) {
   [data-bilayout="heLeft"] .body, [data-bilayout="heRight"] .body { flex-direction: column; direction: inherit; gap: 10px; align-items: stretch; }
   [data-bilayout="heLeft"] .side, [data-bilayout="heRight"] .side { flex: none; order: 0; padding: 0; margin: 0; }
   [data-bilayout="heRight"] .segment[data-sides="primary"] .primary, [data-bilayout="heLeft"] .segment[data-sides="translation"] .translation { margin-left: 0; }
