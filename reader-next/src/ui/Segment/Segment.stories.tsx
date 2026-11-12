@@ -49,6 +49,10 @@ const rect = (el: Element | null) => {
   return el.getBoundingClientRect();
 };
 const seg = (root: HTMLElement, ref: string) => root.querySelector(`[data-ref="${ref}"]`) as HTMLElement;
+const contentBox = (el: Element) => {
+  const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+  return { left: r.left + parseFloat(cs.paddingLeft), right: r.right - parseFloat(cs.paddingRight) };
+};
 const near = (a: number, b: number) => expect(Math.abs(a - b)).toBeLessThanOrEqual(1);
 
 /** The number is centred on the body and lies in the gap, clear of every side's text box. */
@@ -57,8 +61,9 @@ async function numberInGap(row: HTMLElement) {
   const num = rect(row.querySelector("[data-number]"));
   const mid = body.left + body.width / 2;
   near(num.left + num.width / 2, mid);
+  // the text (each side's content box) stays clear of the number
   for (const side of row.querySelectorAll("[data-side]")) {
-    const s = side.getBoundingClientRect();
+    const s = contentBox(side);
     await expect(s.right <= num.left + 5 || s.left >= num.right - 5).toBe(true);
   }
   return { body, mid };
@@ -80,8 +85,8 @@ export const SideBySideHebrewLeftOneSideMissing: Story = {
       const p = row.querySelector("[data-side='primary']");
       const t = row.querySelector("[data-side='translation']");
       // sefaria.org: 50% columns with 20px toward the middle, so text at [0, 50%-20] and [50%+20, 100%]
-      if (p) { near(rect(p).left, body.left); near(rect(p).right, mid - 20); }
-      if (t) { near(rect(t).left, mid + 20); near(rect(t).right, body.right); }
+      if (p) { near(rect(p).left, body.left); near(rect(p).right, mid); near(contentBox(p).right, mid - 20); }
+      if (t) { near(rect(t).left, mid); near(contentBox(t).left, mid + 20); near(rect(t).right, body.right); }
     }
   },
 };
@@ -94,8 +99,8 @@ export const SideBySideHebrewRightOneSideMissing: Story = {
       const { body, mid } = await numberInGap(row);
       const p = row.querySelector("[data-side='primary']");
       const t = row.querySelector("[data-side='translation']");
-      if (p) { near(rect(p).left, mid + 20); near(rect(p).right, body.right); }
-      if (t) { near(rect(t).left, body.left); near(rect(t).right, mid - 20); }
+      if (p) { near(rect(p).left, mid); near(contentBox(p).left, mid + 20); near(rect(p).right, body.right); }
+      if (t) { near(rect(t).left, body.left); near(rect(t).right, mid); near(contentBox(t).right, mid - 20); }
     }
   },
 };
@@ -141,6 +146,12 @@ export const StackedEnglishSourceOnly: Story = {
   play: async ({ canvasElement }) => {
     await expect(numberSide(seg(canvasElement, "english-source"))).toBe("left");
     await expect(numberSide(seg(canvasElement, "hebrew-source"))).toBe("right");
+    // sefaria.org's gutters: a number on the left starts 48px out, one on the right ends 46px out (the dots opposite)
+    const en = seg(canvasElement, "english-source"), he = seg(canvasElement, "hebrew-source");
+    near(rect(en.querySelector("[data-number]")).left, rect(en).left - 48);
+    near(rect(en.querySelector("[data-no-select]")).right, rect(en).right + 46);
+    near(rect(he.querySelector("[data-number]")).right, rect(he).right + 46);
+    near(rect(he.querySelector("[data-no-select]")).left, rect(he).left - 48);
   },
 };
 
