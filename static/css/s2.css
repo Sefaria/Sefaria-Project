@@ -17138,3 +17138,10 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .libraryAssistantSettings .laProfileText { white-space: pre-wrap; }
 .libraryAssistantSettings .laSwitchRow { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .libraryAssistantSettings .toggleSet button.toggleOption { border: 0; font: inherit; cursor: pointer; }
+.libraryAssistantSettings #about-personalization { margin-bottom: 28px; }
+.libraryAssistantSettings .laBlock > h4 { margin: 24px 0 12px; }
+.libraryAssistantSettings .laTestRow,
+.libraryAssistantSettings .laHealthRow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; }
+.libraryAssistantSettings .laTestRow .laTestLabel { flex: 1 1 200px; }
+.libraryAssistantSettings .laTestRow .toggleSet { flex: 0 1 200px; }
+.libraryAssistantSettings .laHealthResult > div { margin-top: 4px; }

@@ -313,37 +313,39 @@ const Personalization = ({ base, token }) => {
             {STRINGS.dreamNow}
           </button>
           {runResult && <div className="laRunResult">{runResult}</div>}
-          <label>
-            <input
-              type="checkbox"
-              checked={!!testing.updateEveryMessage}
-              onChange={(e) => act('set_testing', { updateEveryMessage: e.target.checked })}
-            />{' '}
-            {STRINGS.updateEvery}
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={!!testing.showPlainResponse}
-              onChange={(e) => act('set_testing', { showPlainResponse: e.target.checked })}
-            />{' '}
-            {STRINGS.plainResponse}
-          </label>
-          <div>
-            <strong>{STRINGS.health}</strong>{' '}
+          <div className="laTestRow">
+            <span className="laTestLabel">{STRINGS.updateEvery}</span>
+            <OnOff
+              on={!!testing.updateEveryMessage}
+              toggleName="updateEveryMessage"
+              disabled={busy}
+              onChange={(updateEveryMessage) => act('set_testing', { updateEveryMessage })}
+            />
+          </div>
+          <div className="laTestRow">
+            <span className="laTestLabel">{STRINGS.plainResponse}</span>
+            <OnOff
+              on={!!testing.showPlainResponse}
+              toggleName="showPlainResponse"
+              disabled={busy}
+              onChange={(showPlainResponse) => act('set_testing', { showPlainResponse })}
+            />
+          </div>
+          <div className="laHealthRow">
+            <strong>{STRINGS.health}</strong>
             <button type="button" className="button small transparent" disabled={busy} onClick={checkHealth}>
               {STRINGS.checkHealth}
             </button>
-            {health && (
-              <ul>
-                {health.map((j) => (
-                  <li key={j.name}>
-                    {`${j.name}: last run ${j.lastRunAt || 'never'}, last write ${j.lastWriteAt || 'never'}${j.parked ? ' (parked)' : ''}`}
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
+          {health && (
+            <div className="laHealthResult">
+              {health.map((j) => (
+                <div key={j.name}>
+                  {`${j.name}: last run ${j.lastRunAt || 'never'}, last write ${j.lastWriteAt || 'never'}${j.parked ? ' (parked)' : ''}`}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </>
