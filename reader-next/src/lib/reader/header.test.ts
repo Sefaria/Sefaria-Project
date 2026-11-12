@@ -71,7 +71,8 @@ describe("titleVerses", () => {
   const genesis1 = { sectionRef: "Genesis 1", heSectionRef: "בראשית א׳" };
   const daf = { sectionRef: "Berakhot 2a", heSectionRef: "ברכות ב׳ א" };
   const title = (i: Parameters<typeof titleVerses>[0], base = genesis1, sep: ":" | " " = ":") => narrowToVerses(base, titleVerses(i), sep);
-  const arrived = (arrivalVerses: number[]) => ({ moved: false, arrivalVerses, rangeVerses: [] as number[] });
+  // a section of 31 segments unless a test says otherwise
+  const arrived = (arrivalVerses: number[], sectionSegments = 31) => ({ moved: false, arrivalVerses, rangeVerses: [] as number[], sectionSegments, range: arrivalVerses.length > 1 });
   it("names the address's segment on arrival (Genesis 1:3, Rashi on Genesis 1:1:1, Berakhot 2a:3)", () => {
     expect(title(arrived([3]))).toEqual({ sectionRef: "Genesis 1:3", heSectionRef: "בראשית א׳:ג׳" });
     expect(title(arrived([1]), { sectionRef: "Rashi on Genesis 1:1", heSectionRef: 'רש"י על בראשית א׳:א׳' })).toEqual({
@@ -84,10 +85,20 @@ describe("titleVerses", () => {
     expect(title(arrived([9, 10, 22]), { sectionRef: "Genesis 6", heSectionRef: "בראשית ו׳" })).toEqual({ sectionRef: "Genesis 6:9-22", heSectionRef: "בראשית ו׳:ט׳-כ״ב" });
   });
   it("names the section once the reader has scrolled, whatever the address named", () => {
-    expect(title({ moved: true, arrivalVerses: [3], rangeVerses: [] })).toEqual(genesis1);
-    expect(title({ moved: true, arrivalVerses: [9, 22], rangeVerses: [9, 22] })).toEqual(genesis1);
+    expect(title({ moved: true, arrivalVerses: [3], rangeVerses: [], sectionSegments: 31, range: false })).toEqual(genesis1);
+    expect(title({ moved: true, arrivalVerses: [9, 22], rangeVerses: [9, 22], sectionSegments: 22, range: true })).toEqual(genesis1);
   });
   it("names the section when the address named a whole section", () => expect(title(arrived([]))).toEqual(genesis1));
+  it("names the first section of a range of whole sections (Genesis 1-2, Rashi on Genesis 1:1-3), not all its verses", () => {
+    const all = Array.from({ length: 31 }, (_, k) => k + 1);
+    expect(title(arrived(all))).toEqual(genesis1);
+    expect(title({ moved: false, arrivalVerses: [], rangeVerses: all, sectionSegments: 31, range: true })).toEqual(genesis1);
+    const rashi = { sectionRef: "Rashi on Genesis 1:1", heSectionRef: 'רש"י על בראשית א׳:א׳' };
+    expect(title(arrived([1, 2, 3], 3), rashi)).toEqual(rashi);
+  });
+  it("still names a single segment that is all of its section", () => {
+    expect(title(arrived([1], 1), { sectionRef: "Rashi on Genesis 1:5", heSectionRef: 'רש"י על בראשית א׳:ה׳' }).sectionRef).toBe("Rashi on Genesis 1:5:1");
+  });
 });
 
 describe("narrowToVerses separator", () => {

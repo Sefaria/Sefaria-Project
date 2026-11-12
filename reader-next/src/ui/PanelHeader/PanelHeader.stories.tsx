@@ -52,3 +52,30 @@ export const HebrewTitleSize: Story = {
     await expect(Math.round((canvasElement.querySelector("header > div:last-child") as HTMLElement).getBoundingClientRect().height)).toBe(60);
   },
 };
+
+const STRICKMAN = "H. Norman Strickman and Arthur M. Silver. Menorah Pub., 1988-2004";
+/** The title's column is 3/5 of the 700px text column, 420px, as sefaria.org's; a long version name ends in an ellipsis. */
+export const TitleColumnWidth: Story = {
+  args: { title: "Ibn Ezra on Genesis 8:12", subtitle: <span lang="en" dir="ltr">{STRICKMAN}</span> },
+  play: async ({ canvasElement }) => {
+    const h = canvasElement.querySelector("h1, h2") as HTMLElement;
+    await expect(Math.round(h.parentElement!.getBoundingClientRect().width)).toBe(420);
+  },
+};
+/** Under a Hebrew interface the version's name stays English: Cardo, left to right, cut at its end (sefaria.org's `.en` span). */
+export const VersionNameUnderHebrewInterface: Story = {
+  globals: { interfaceLang: "hebrew" },
+  args: { title: <InterfaceText en="Ibn Ezra on Genesis 8:12" he="אבן עזרא על בראשית ח׳:י״ב" />, subtitle: <span lang="en" dir="ltr">{STRICKMAN}</span> },
+  play: async ({ canvasElement }) => {
+    const line = canvasElement.querySelector("[lang='en']") as HTMLElement;
+    const cs = getComputedStyle(line);
+    await expect(cs.direction).toBe("ltr");
+    await expect(cs.fontFamily).toMatch(/Cardo/);
+    await expect(cs.textOverflow).toBe("ellipsis");
+    // the start of the name is in view: the line's text begins at its left edge
+    const range = document.createRange();
+    range.setStart(line.firstChild!, 0);
+    range.setEnd(line.firstChild!, 1);
+    await expect(Math.abs(range.getBoundingClientRect().left - line.getBoundingClientRect().left)).toBeLessThan(2);
+  },
+};

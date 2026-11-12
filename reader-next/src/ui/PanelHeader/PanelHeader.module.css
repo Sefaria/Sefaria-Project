@@ -1,6 +1,7 @@
 .header { background: var(--sefaria-color-surface-subtle); box-shadow: var(--sefaria-shadow-1); }
 .sticky { position: sticky; top: 0; z-index: var(--sefaria-z-panel-chrome); }
-.bar { display: grid; grid-template-columns: minmax(48px, 1fr) minmax(0, 3fr) minmax(48px, 1fr); align-items: center; min-height: var(--sefaria-reader-controls-height); max-width: 700px; margin-inline: auto; padding-inline: 0; gap: var(--sefaria-space-2); box-sizing: border-box; }
+.bar { display: grid; grid-template-columns: minmax(48px, 1fr) minmax(0, 3fr) minmax(48px, 1fr); align-items: center; min-height: var(--sefaria-reader-controls-height); max-width: 700px; margin-inline: auto; padding-inline: 0; gap: 0; box-sizing: border-box; }
+/* No gap between the columns: the title's column is 3/5 of the 700px text column, 420px, as sefaria.org's .readerTextToc */
 .start { display: flex; justify-content: flex-start; }
 .end { display: flex; justify-content: flex-end; gap: var(--sefaria-space-1); }
 .center { text-align: center; min-width: 0; }
