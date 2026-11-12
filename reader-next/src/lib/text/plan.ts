@@ -92,6 +92,8 @@ export function planDisplay(ref: string, meta: BookMeta | undefined): DisplayPla
 /** Is a segment address within the highlight range (inclusive)? */
 export function isHighlighted(address: string[], h: Highlight | null, types: string[]): boolean {
   if (!h) return false;
+  // a shallower address is another node of the same book (Ramban on Genesis, Foreword 1 above "Ramban on Genesis 1:1:1-3"), never in it
+  if (address.length < h.from.length) return false;
   const cmp = (a: string[], b: string[]) => {
     for (let i = 0; i < Math.min(a.length, b.length); i++) {
       const d = addressToNumber(a[i]!, types[i]) - addressToNumber(b[i]!, types[i]);
