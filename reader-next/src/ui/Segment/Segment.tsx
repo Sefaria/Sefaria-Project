@@ -1,7 +1,7 @@
 import { memo, type KeyboardEvent, type MouseEvent } from "react";
 import type { VocalizationMode } from "@vendor/sefaria-toolkit/text-transform/index";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
-import { linkDotOpacity, numberLang, segmentNumber, visibleSides } from "~/lib/reader/labels";
+import { linkDotOpacity, numberLang, segmentNumber, segmentNumberLang, visibleSides, type LabelLang } from "~/lib/reader/labels";
 import { isFullSegmentImage } from "~/lib/text/prepare";
 import type { ContentLanguage } from "~/lib/reader/settings";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
@@ -26,6 +26,8 @@ export interface SegmentProps {
   primary?: SegmentSide;
   translation?: SegmentSide;
   language: ContentLanguage;
+  /** The panel's label language (lib/reader/label-language), which numbers follow. Omitted: the mode's, bilingual → interface. */
+  labelLang?: LabelLang;
   vocalization?: VocalizationMode;
   /** Remove Talmud punctuation from the Hebrew side. */
   stripPunctuation?: boolean;
@@ -52,7 +54,7 @@ export interface SegmentProps {
  * @feature TXD-043 @feature TXD-045 @feature TXD-047 @feature TXD-049 @feature TXD-050
  */
 function SegmentImpl({
-  segmentRef, label, address, primary, translation, language, vocalization, stripPunctuation, highlighted, isScrollTarget, linkCount, itagCommentator, terms,
+  segmentRef, label, address, primary, translation, language, labelLang, vocalization, stripPunctuation, highlighted, isScrollTarget, linkCount, itagCommentator, terms,
   onSelect, onRefClick, onEntityClick,
 }: SegmentProps) {
   if (import.meta.env?.DEV && typeof window !== "undefined") {
@@ -72,15 +74,9 @@ function SegmentImpl({
 
   const showPrimary = sides.primary && primary;
   const showTranslation = sides.translation && translation;
-  const onlyDir = (showPrimary ? primary : (translation ?? primary))!.dir;
-  // A segment shown on one side only takes the numeral language of that side (see numberLang rules). A Hebrew PRIMARY on
-  // its own in an English/bilingual panel (translation missing) is numbered in English, but a Hebrew TRANSLATION (Zohar's
-  // "Hebrew Translation" in English mode) is numbered in Hebrew — VERIFIED on sefaria.org.
-  const numLang = !(showPrimary && showTranslation)
-    ? showPrimary
-      ? onlyDir === "rtl" && language !== "hebrew" ? "en" : onlyDir === "ltr" && language === "hebrew" ? "he" : numberLang(language, interfaceLang)
-      : onlyDir === "rtl" ? "he" : numberLang(language, interfaceLang)
-    : numberLang(language, interfaceLang);
+  // numbers follow the panel's label language; a source shown alone (no translation text here) keeps the exception in
+  // segmentNumberLang
+  const numLang = segmentNumberLang(language, labelLang ?? numberLang(language, interfaceLang), hasP && !hasT ? primary!.dir : undefined);
 
   // Both sides are a picture (e.g. a diagram and its translated copy): show one, the translation's (legacy VersionContent); the
   // source side stays as an empty column so the layout does not change.

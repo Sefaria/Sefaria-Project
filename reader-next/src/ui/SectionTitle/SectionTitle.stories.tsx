@@ -8,10 +8,10 @@ function Pair() {
   return (
     <div style={{ width: 700 }}>
       <ReaderSurface language="english" layout="segmented" biLayout="stacked" fontSize={62.5}>
-        <SectionTitle en="8:12" he="ח׳:י״ב" language="english" />
+        <SectionTitle en="8:12" he="ח׳:י״ב" lang="en" />
       </ReaderSurface>
       <ReaderSurface language="hebrew" layout="segmented" biLayout="stacked" fontSize={62.5}>
-        <SectionTitle en="8:12" he="ח׳:י״ב" language="hebrew" />
+        <SectionTitle en="8:12" he="ח׳:י״ב" lang="he" />
       </ReaderSurface>
     </div>
   );

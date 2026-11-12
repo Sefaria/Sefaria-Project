@@ -1,6 +1,7 @@
 import { Fragment, memo, useMemo } from "react";
 import { parashahHeader } from "~/lib/reader/parashah";
-import { showsSegmentNumbers } from "~/lib/reader/labels";
+import { showsSegmentNumbers, type LabelLang } from "~/lib/reader/labels";
+import { passageLabelLanguage } from "~/lib/reader/label-language";
 import {
   effectiveBiLayout,
   effectiveLayout,
@@ -19,6 +20,9 @@ import { hebrewSegmentRef, laterHebrewSectionRef, sectionHeading } from "./secti
 export interface TextSectionProps {
   passage: TextPassage;
   settings: ReaderSettings;
+  /** The panel's label language (lib/reader/label-language), decided by the column from the section being read. Omitted: this
+   * section's own (a section shown on its own, e.g. in the sidebar). */
+  labelLang?: LabelLang;
   /** Segments to highlight (a verse range from the URL, or the segment whose connections are open). */
   highlight?: Highlight | null;
   /** Segment a link pointed at; the column scrolls it into place on arrival. */
@@ -45,7 +49,7 @@ export interface TextSectionProps {
  * @feature TXD-010 @feature TXD-012 @feature TXD-043 @feature TXD-045 @feature TXT-002
  */
 function TextSectionImpl({
-  passage, settings, highlight, scrollTargetRef, terms, linkCounts, panelWidth, inSidebar, hideTitle, itagCommentator,
+  passage, settings, labelLang: labelLangProp, highlight, scrollTargetRef, terms, linkCounts, panelWidth, inSidebar, hideTitle, itagCommentator,
   onSelectSegment, onRefClick, onEntityClick,
 }: TextSectionProps) {
   const ctx = { primaryCategory: passage.primaryCategory, panelWidth, inSidebar };
@@ -57,7 +61,11 @@ function TextSectionImpl({
   const numbered = showsSegmentNumbers(passage.book, passage.categories);
   const isDictionary = passage.categories[0] === "Reference";
   // the regions and verse groups are named in the interface's language: "בראשית א׳", "בראשית א׳:ג׳"
-  const he = useInterfaceLang() === "hebrew";
+  const interfaceLang = useInterfaceLang();
+  const he = interfaceLang === "hebrew";
+  // headers and numbers are in the language on screen (bilingual: the interface's): the column's, else this section's
+  const ownLabelLang = useMemo(() => passageLabelLanguage(passage, settings.language, interfaceLang), [passage, settings.language, interfaceLang]);
+  const labelLang = labelLangProp ?? ownLabelLang;
 
   const bySection = useMemo(() => {
     const m = new Map<string, SegmentModel[]>();
@@ -102,13 +110,13 @@ function TextSectionImpl({
         const segDepth = parsed.sections.length;
         return (
           <section key={sectionRef} data-ref={sectionRef} aria-label={he ? heSectionRef : sectionRef}>
-            {hideTitle || isDictionary || (!title.en && !title.he) ? null : <SectionTitle en={title.en} he={title.he} language={settings.language} />}
+            {hideTitle || isDictionary || (!title.en && !title.he) ? null : <SectionTitle en={title.en} he={title.he} lang={labelLang} />}
             {(bySection.get(sectionRef) ?? []).map((seg) => {
               const header = parashahHeader(passage, seg, settings.aliyotTorah);
               return (
                 <Fragment key={seg.ref}>
                   {header ? (
-                    <ParashahHeader en={header.en} he={header.he} language={settings.language} aliyah={!header.parashaTitle} />
+                    <ParashahHeader en={header.en} he={header.he} lang={labelLang} aliyah={!header.parashaTitle} />
                   ) : null}
                   <Segment
                     segmentRef={seg.ref}
@@ -117,6 +125,7 @@ function TextSectionImpl({
                     primary={sides.get(seg.ref)?.primary}
                     translation={sides.get(seg.ref)?.translation}
                     language={settings.language}
+                    labelLang={labelLang}
                     vocalization={vocalization}
                     stripPunctuation={stripPunctuation}
                     highlighted={isHighlighted(seg.address, highlight ?? null, passage.addressTypes)}

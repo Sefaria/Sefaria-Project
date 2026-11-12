@@ -53,6 +53,42 @@ export const GenesisFootnoteOpens: Story = {
 };
 export const OnkelosHasParashaHeaders: Story = { args: { passage: PASSAGES.onkelosGenesis1, settings: s({ language: "bilingual" }) } };
 
+/* ── Label language (TXD-012, TXD-045): headers and numbers in one language ── */
+const firstNumber = (el: HTMLElement) => el.querySelector<HTMLElement>("[data-number]")!;
+const firstHeader = (el: HTMLElement) => el.querySelector<HTMLElement>("section h2")!;
+export const LabelsHebrewInBilingual: Story = {
+  args: { settings: s({ language: "bilingual" }), labelLang: "he" },
+  parameters: { docs: { description: { story: "Bilingual with a Hebrew interface: the header and the numbers are Hebrew (letters), as on sefaria.org." } } },
+  play: async ({ canvasElement }) => {
+    await expect(firstNumber(canvasElement)).toHaveTextContent("א");
+    await expect(firstHeader(canvasElement)).toHaveAttribute("lang", "he");
+  },
+};
+export const LabelsEnglishInBilingual: Story = {
+  args: { settings: s({ language: "bilingual" }), labelLang: "en" },
+  parameters: { docs: { description: { story: "Bilingual with an English interface: the header and the numbers are English (digits)." } } },
+  play: async ({ canvasElement }) => {
+    await expect(firstNumber(canvasElement)).toHaveTextContent("1");
+    await expect(firstHeader(canvasElement)).toHaveAttribute("lang", "en");
+  },
+};
+export const LabelsFollowHebrewMode: Story = {
+  args: { settings: s({ language: "hebrew" }) },
+  parameters: { docs: { description: { story: "Hebrew mode labels in Hebrew whatever the interface language." } } },
+  play: async ({ canvasElement }) => {
+    await expect(firstNumber(canvasElement)).toHaveTextContent("א");
+    await expect(firstHeader(canvasElement)).toHaveAttribute("lang", "he");
+  },
+};
+export const LabelsFollowEnglishMode: Story = {
+  args: { settings: s({ language: "english" }) },
+  parameters: { docs: { description: { story: "English mode with an English translation labels in English whatever the interface language." } } },
+  play: async ({ canvasElement }) => {
+    await expect(firstNumber(canvasElement)).toHaveTextContent("1");
+    await expect(firstHeader(canvasElement)).toHaveAttribute("lang", "en");
+  },
+};
+
 /* ── Poetry ─────────────────────────────────────────────────── */
 export const PsalmsPoetry: Story = { args: { passage: PASSAGES.psalms23, settings: s({ language: "english" }) }, parameters: { docs: { description: { story: "Poetic line indentation is carried by markup, kept by the normaliser extension (TXT-007)." } } } };
 

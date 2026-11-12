@@ -1,8 +1,8 @@
 /**
  * Labels the reader prints next to text: segment numbers, which books show them, and the link dot.
  *
- * Rules from the old client (inv_03 §5.2): numbers are Arabic in English, Hebrew numerals in Hebrew; in a
- * bilingual panel they follow the interface language. Section titles live in src/ui/TextSection/section-heading.ts.
+ * Numbers are digits or Hebrew letters by the panel's label language (./label-language), with a per-segment exception in
+ * `segmentNumberLang`. Section titles live in src/ui/TextSection/section-heading.ts.
  *
  * @feature TXD-045 Segment numbers
  * @feature TXD-047 link dot; TXT-019 TXT-020 TXT-021 no numbers for some books
@@ -28,15 +28,29 @@ export function visibleSides(language: ContentLanguage, has: { primary: boolean;
 }
 
 /**
- * Language of the numeral printed beside a segment.
- *  - Hebrew panel → Hebrew; English panel → English; bilingual → interface language
- *  - except: a segment with only an English (LTR) side in a Hebrew panel shows Hebrew, and a Hebrew-only
- *    (RTL) segment in an English/bilingual panel shows English.
+ * Language of the numeral printed beside a segment when the panel's label language is not known: Hebrew panel → Hebrew;
+ * English panel → English; bilingual → interface language. The reader passes the panel's label language instead
+ * (./label-language); this is the fallback for a segment rendered on its own.
  */
 export function numberLang(language: ContentLanguage, interfaceLang: InterfaceLang): LabelLang {
   if (language === "hebrew") return "he";
   if (language === "english") return "en";
   return interfaceLang === "hebrew" ? "he" : "en";
+}
+
+/**
+ * Language of one segment's number. It is the panel's label language (`labelLang`), except for a segment that has no
+ * translation text and shows its source alone:
+ *  - a Hebrew (rtl) source alone in an English or bilingual panel is numbered in digits (VERIFIED on sefaria.org);
+ *  - an English (ltr) source alone is numbered in digits, in a Hebrew panel too: the number follows the language of the text it
+ *    labels (an English-original work in Hebrew mode).
+ * The old client draws the number in the label language and then, with CSS, shows only these languages' spans on such a
+ * segment, so where the two disagree it shows no number at all. That lost number is a bug not carried over.
+ */
+export function segmentNumberLang(language: ContentLanguage, labelLang: LabelLang, sourceAloneDir?: "rtl" | "ltr"): LabelLang {
+  if (sourceAloneDir === "rtl" && language !== "hebrew") return "en";
+  if (sourceAloneDir === "ltr") return "en";
+  return labelLang;
 }
 
 /** A segment's number in the margin: Hebrew letters without geresh/gershayim (VERIFIED on sefaria.org: Psalms 119 runs א … קיט). */
