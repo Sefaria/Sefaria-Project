@@ -1,5 +1,7 @@
 .title { margin: var(--sefaria-space-8) 0 var(--sefaria-space-6); text-align: center; font-weight: lighter; letter-spacing: 1px; font-size: 1.1em; }
-.box { display: inline-block; padding-block-end: var(--sefaria-space-1); border-block-end: 4px solid var(--sefaria-color-border-title); margin: 0; font-weight: inherit; font-size: inherit; }
+/* sefaria.org .titleBox: `padding: 0 6px 3px`; aligned to the top of its line so the header is exactly the box (45.7px English,
+   54.25px Hebrew at the default size), with no gap under it */
+.box { display: inline-block; padding: 0 6px 3px; vertical-align: top; border-block-end: 4px solid var(--sefaria-color-border-title); margin: 0; font-weight: inherit; font-size: inherit; }
 /* As sefaria.org (s2.css .title, `.he` at 122%): weight `lighter`, and a Hebrew header in the Hebrew text face at 122% of 1.1em
    (29.5px against 24.2px at the default size). */
 .title [lang="he"] { font-family: var(--sefaria-font-text-he); font-size: calc(1em * var(--sefaria-reader-body-he-ratio)); }
