@@ -447,62 +447,66 @@ export function TextColumn(props: TextColumnProps) {
   }, [labelLang]);
   const last = sections.at(-1)!;
   return (
-    <div ref={scrollerRef} className={styles.scroller} data-reader-scroller data-show-focus={showFocus ? "true" : "false"} data-testid="text-column">
-      <div
-        ref={contentRef}
-        className={styles.content}
-        onKeyDown={onSegmentKeys}
-        onCopy={(e) => {
-          const t = e.target as Element | null;
-          if (t?.closest("input, textarea")) return;
-          const sel = window.getSelection();
-          if (!sel || sel.isCollapsed || !sel.rangeCount) return;
-          const range = sel.getRangeAt(0);
-          const anchor = range.commonAncestorContainer instanceof Element ? range.commonAncestorContainer : range.commonAncestorContainer.parentElement;
-          const surface = anchor?.closest("[data-layout]") ?? anchor?.querySelector("[data-layout]");
-          const fragment = range.cloneContents();
-          // the old handleGACopyEvents: copy_text with the panel's book, and whether the selection spans languages or segments (ANL-011)
-          const book = sections[0]?.indexTitle ?? null;
-          copyEvents(
-            { length: sel.toString().length, panelType: connectionsOnScreen ? "TextAndConnections" : "Text", book, category: book ? (sections[0]?.primaryCategory ?? null) : null },
-            { en: fragment.querySelectorAll('[data-side="translation"]').length, he: fragment.querySelectorAll('[data-side="primary"]').length },
-          );
-          const { html, text } = cleanCopy(fragment, document, { continuous: surface?.getAttribute("data-layout") === "continuous", hebrewPanel: settings.language === "hebrew" });
-          e.clipboardData.setData("text/html", html);
-          e.clipboardData.setData("text/plain", text);
-          e.preventDefault();
-        }}
-      >
-        <div className={styles.edge} aria-hidden={!loading.up} data-column-start={atStart.current ? "" : undefined}>
-          {first.prev ? (
-            loading.up ? <Spinner /> : null
-          ) : (
-            <p className={styles.bookTitle} lang={bookTitleLang} dir={bookTitleLang === "he" ? "rtl" : "ltr"}>
-              {bookTitleLang === "he" ? first.heIndexTitle : first.indexTitle}
-            </p>
-          )}
+    // The panel's outer box, a size container: the layouts that follow the panel's width (side by side only above 500px) read the
+    // width with the scrollbar included, as sefaria.org does; the scroller's own box leaves a classic scrollbar out.
+    <div className={styles.frame} data-reader-frame>
+      <div ref={scrollerRef} className={styles.scroller} data-reader-scroller data-show-focus={showFocus ? "true" : "false"} data-testid="text-column">
+        <div
+          ref={contentRef}
+          className={styles.content}
+          onKeyDown={onSegmentKeys}
+          onCopy={(e) => {
+            const t = e.target as Element | null;
+            if (t?.closest("input, textarea")) return;
+            const sel = window.getSelection();
+            if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            const anchor = range.commonAncestorContainer instanceof Element ? range.commonAncestorContainer : range.commonAncestorContainer.parentElement;
+            const surface = anchor?.closest("[data-layout]") ?? anchor?.querySelector("[data-layout]");
+            const fragment = range.cloneContents();
+            // the old handleGACopyEvents: copy_text with the panel's book, and whether the selection spans languages or segments (ANL-011)
+            const book = sections[0]?.indexTitle ?? null;
+            copyEvents(
+              { length: sel.toString().length, panelType: connectionsOnScreen ? "TextAndConnections" : "Text", book, category: book ? (sections[0]?.primaryCategory ?? null) : null },
+              { en: fragment.querySelectorAll('[data-side="translation"]').length, he: fragment.querySelectorAll('[data-side="primary"]').length },
+            );
+            const { html, text } = cleanCopy(fragment, document, { continuous: surface?.getAttribute("data-layout") === "continuous", hebrewPanel: settings.language === "hebrew" });
+            e.clipboardData.setData("text/html", html);
+            e.clipboardData.setData("text/plain", text);
+            e.preventDefault();
+          }}
+        >
+          <div className={styles.edge} aria-hidden={!loading.up} data-column-start={atStart.current ? "" : undefined}>
+            {first.prev ? (
+              loading.up ? <Spinner /> : null
+            ) : (
+              <p className={styles.bookTitle} lang={bookTitleLang} dir={bookTitleLang === "he" ? "rtl" : "ltr"}>
+                {bookTitleLang === "he" ? first.heIndexTitle : first.indexTitle}
+              </p>
+            )}
+          </div>
+          {sections.map((p) => (
+            <TextSection
+              key={p.ref}
+              passage={p}
+              settings={settings}
+              labelLang={labelLang}
+              scrollTargetRef={target}
+              terms={terms}
+              highlight={highlight}
+              linkCounts={countsBySection.get(p.ref)}
+              onSelectSegment={handleSelect}
+              onRefClick={onRefClick}
+              onEntityClick={onEntityClick}
+            />
+          ))}
+          <div className={styles.edge} data-testid={last.next ? undefined : "end-of-text"}>
+            {last.next ? (loading.down ? <Spinner /> : null) : <InterfaceText en="End" he="סוף" />}
+          </div>
         </div>
-        {sections.map((p) => (
-          <TextSection
-            key={p.ref}
-            passage={p}
-            settings={settings}
-            labelLang={labelLang}
-            scrollTargetRef={target}
-            terms={terms}
-            highlight={highlight}
-            linkCounts={countsBySection.get(p.ref)}
-            onSelectSegment={handleSelect}
-            onRefClick={onRefClick}
-            onEntityClick={onEntityClick}
-          />
-        ))}
-        <div className={styles.edge} data-testid={last.next ? undefined : "end-of-text"}>
-          {last.next ? (loading.down ? <Spinner /> : null) : <InterfaceText en="End" he="סוף" />}
-        </div>
+        {/* Runs during HTML parsing on a server-rendered load: places a linked verse before first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: INITIAL_POSITION_SCRIPT }} />
       </div>
-      {/* Runs during HTML parsing on a server-rendered load: places a linked verse before first paint. */}
-      <script dangerouslySetInnerHTML={{ __html: INITIAL_POSITION_SCRIPT }} />
     </div>
   );
 }
@@ -517,7 +521,7 @@ const STOP_EVENTS = ["wheel", "touchmove", "keydown", "pointerdown"] as const;
 function textStartLine(scroller: HTMLElement): number {
   const o = getComputedStyle(scroller).overflowY;
   if (o === "auto" || o === "scroll") return 0;
-  const header = scroller.parentElement?.querySelector("header");
+  const header = scroller.closest("[data-reader-frame]")?.parentElement?.querySelector("header");
   const hs = header ? getComputedStyle(header) : null;
   return header && hs?.position === "sticky" ? (parseFloat(hs.top) || 0) + header.offsetHeight : 0;
 }

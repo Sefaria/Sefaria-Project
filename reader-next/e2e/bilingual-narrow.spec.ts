@@ -80,3 +80,30 @@ test("menu: a phone offers no layout in bilingual @mobile", async ({ page }) => 
   await expect(page.locator('[role="group"][data-ref="Genesis 1:1"] [data-side="translation"]')).toBeVisible({ timeout: 25_000 });
   expect(await layoutOffered(page)).toBe(0);
 });
+
+// A classic scrollbar (Windows, Linux, macOS "always show") takes 15px out of the scroller but not out of sefaria.org's panel width:
+// two panels in a 1010px window are 505px there with or without it, and side by side. Measured on www.sefaria.org with
+// `::-webkit-scrollbar { width: 15px }` forced on both sites: 1010-1030px side by side, 1000px stacked.
+for (const width of [1010, 1030]) {
+  // @feature TXD-043
+  test(`classic 15px scrollbar: two panels in a ${width}px window stay side by side`, async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 600, "desktop project only");
+    await layout(page, "heLeft");
+    await page.setViewportSize({ width, height: 900 });
+    await open(page, "/Genesis.1?lang=bi&p2=Exodus.1&lang2=bi");
+    await page.addStyleTag({ content: "::-webkit-scrollbar { width: 15px; height: 15px; } ::-webkit-scrollbar-thumb { background: #888; }" });
+    const scrollbar = await page.locator("[data-reader-scroller]").first().evaluate((e) => (e as HTMLElement).offsetWidth - (e as HTMLElement).clientWidth);
+    expect(scrollbar).toBe(15);
+    await expect.poll(async () => (await arrangement(page)).sideBySide).toBe(true);
+  });
+}
+
+// @feature TXD-043
+test("classic 15px scrollbar: two panels in a 1000px window are stacked", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) < 600, "desktop project only");
+  await layout(page, "heLeft");
+  await page.setViewportSize({ width: 1000, height: 900 });
+  await open(page, "/Genesis.1?lang=bi&p2=Exodus.1&lang2=bi");
+  await page.addStyleTag({ content: "::-webkit-scrollbar { width: 15px; height: 15px; } ::-webkit-scrollbar-thumb { background: #888; }" });
+  await expect.poll(async () => (await arrangement(page)).sideBySide).toBe(false);
+});

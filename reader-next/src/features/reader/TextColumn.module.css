@@ -1,6 +1,8 @@
 /* Desktop: the column is its own scroll container (like the old reader; panels scroll independently). */
 /* Place keeping is ours (the inline script, then the engine); the browser's own anchoring would fight it. */
-.scroller { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; overflow-anchor: none; container: panel / inline-size; }
+.scroller { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; overflow-anchor: none; }
+/* The panel's outer box (scroller and scrollbar): the `panel` size container, so width rules match sefaria.org's panel width. */
+.frame { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; container: panel / inline-size; }
 :global(html):has(.scroller) { overflow-anchor: none; }
 .content { overflow-anchor: none; padding-block-end: var(--sefaria-space-12); }
 /* Placeholders at each end have a constant height, whatever they show, so loading never moves the text. */
@@ -10,4 +12,5 @@
 /* Phone: the page scrolls, so the browser can collapse its address bar. */
 @media (max-width: 842px) {
   .scroller { overflow: visible; flex: none; }
+  .frame { display: block; flex: none; }
 }
