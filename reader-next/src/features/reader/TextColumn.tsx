@@ -439,6 +439,12 @@ export function TextColumn(props: TextColumnProps) {
   // (the old useContentLang(defaultToInterfaceOnBilingual) reading the panel's text data)
   const labelLang = passageLabelLanguage(sections.find((p) => p.ref === labelRef) ?? first, settings.language, interfaceLang);
   const bookTitleLang = (labelLang === "he" ? first.heIndexTitle : first.indexTitle) ? labelLang : labelLang === "he" ? "en" : "he";
+  // The labels changed language (the reader moved into a section shown in another language): headers and numbers change size, so
+  // put the reader back in the same commit, before anything can measure or paint the shifted page.
+  useLayoutEffect(() => {
+    engine.restore();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the label language changes; engine.restore is stable
+  }, [labelLang]);
   const last = sections.at(-1)!;
   return (
     <div ref={scrollerRef} className={styles.scroller} data-reader-scroller data-show-focus={showFocus ? "true" : "false"} data-testid="text-column">
