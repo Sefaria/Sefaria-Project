@@ -67,7 +67,7 @@ describe('settings tabs', () => {
     renderSettings('account');
     const nav = screen.getByRole('navigation', { name: 'Settings' });
     const links = within(nav).getAllByRole('link');
-    expect(links.map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
+    expect(links.map((a) => [a.getAttribute('aria-label'), a.getAttribute('href')])).toEqual([
       ['Account Settings', '/settings/account'],
       ['Developer Settings', '/settings/developer'],
     ]);
@@ -134,7 +134,7 @@ describe('the welcome screen', () => {
     expect(steps()).toEqual([
       'Confirm your email',
       'Tell us about yourself',
-      'Share your project details',
+      'Add your project details',
       'Create your API key',
     ]);
     expect(button('Get started')).toBeTruthy();
@@ -142,15 +142,15 @@ describe('the welcome screen', () => {
 
   it('leaves out confirming the email for a Google or Apple account', () => {
     open(SSO_NEW);
-    expect(steps()).toEqual(['Tell us about yourself', 'Share your project details', 'Create your API key']);
+    expect(steps()).toEqual(['Tell us about yourself', 'Add your project details', 'Create your API key']);
   });
 
-  it('links to the API docs and the library download', () => {
+  it('links to the API docs and the library download, each saying it opens a new tab', () => {
     open(SSO_NEW);
-    expect(screen.getByRole('link', { name: 'Technical documentation' }).getAttribute('href')).toBe(
-      'https://developers.sefaria.org/reference/getting-started'
-    );
-    expect(screen.getByRole('link', { name: 'Download the library' }).getAttribute('href')).toBe(
+    expect(
+      screen.getByRole('link', { name: 'Technical documentation (opens in a new tab)' }).getAttribute('href')
+    ).toBe('https://developers.sefaria.org/reference/getting-started');
+    expect(screen.getByRole('link', { name: 'Download the library (opens in a new tab)' }).getAttribute('href')).toBe(
       'https://github.com/Sefaria/Sefaria-Export'
     );
   });
@@ -525,7 +525,7 @@ describe('arriving from the Powered by link (?share)', () => {
   it('explains that setup comes first when there is no developer profile', async () => {
     lib = loadSettings({ search: '?share' });
     open(SSO_NEW);
-    const dialog = screen.getByRole('dialog', { name: 'Looking to share your project with Sefaria?' });
+    const dialog = screen.getByRole('dialog', { name: 'Looking to publish your project?' });
     await click(within(dialog).getByRole('button', { name: 'Got it' }));
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(heading('Get a free API key')).toBeTruthy();

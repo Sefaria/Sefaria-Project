@@ -699,7 +699,7 @@ describe('publishing a project', () => {
   it('creates a new project from the choice and comes back to publish it', async () => {
     openHome({ projects: [] });
     await click(screen.getAllByRole('button', { name: 'Publish a project' })[0]);
-    expect(screen.getByText(/To share a project with Sefaria, first create it/)).toBeTruthy();
+    expect(screen.getByText(/To publish a project, first create it/)).toBeTruthy();
     await choose('Which project do you want to publish?', '+ Create a new project');
     expect(heading('New project')).toBeTruthy();
     type(field(/Project name/), 'Daf Tracker');

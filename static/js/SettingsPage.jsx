@@ -480,8 +480,18 @@ const TestPanel = ({ state, mock, onOpenMockEmail }) => {
 /* One entry per settings section. A new section is an entry here, a panel in
    SettingsPage, and a URL in urls_library.py and ReaderApp's history. */
 const SETTINGS_TABS = [
-  { tab: 'account', url: '/settings/account', label: { en: 'Account Settings', he: 'הגדרות חשבון' } },
-  { tab: 'developer', url: '/settings/developer', label: { en: 'Developer Settings', he: 'הגדרות מפתחים' } },
+  {
+    tab: 'account',
+    url: '/settings/account',
+    label: { en: 'Account Settings', he: 'הגדרות חשבון' },
+    shortLabel: { en: 'Account', he: 'חשבון' },
+  },
+  {
+    tab: 'developer',
+    url: '/settings/developer',
+    label: { en: 'Developer Settings', he: 'הגדרות מפתחים' },
+    shortLabel: { en: 'Developer', he: 'מפתחים' },
+  },
 ];
 
 /* Tabs, not links: clicking switches the mounted tab and pushes the matching URL. The
@@ -529,6 +539,7 @@ const SettingsNav = ({ tabs, tab, highlightTab, onSelect }) => (
         key={t.tab}
         href={t.url}
         aria-current={tab === t.tab ? 'page' : null}
+        aria-label={Sefaria._v(t.label)}
         className={highlightTab === t.tab ? 'settingsHighlight' : null}
         data-agent-action={'open-' + t.tab + '-settings'}
         onClick={(e) => {
@@ -540,7 +551,13 @@ const SettingsNav = ({ tabs, tab, highlightTab, onSelect }) => (
         }}
       >
         <SettingsTabIcon tab={t.tab} />
-        <InterfaceText text={t.label} />
+        {/* Phones show the short label: two equal tabs under the "Settings" title (Penina, 2026-11-12). */}
+        <span className="settingsNavLong">
+          <InterfaceText text={t.label} />
+        </span>
+        <span className="settingsNavShort">
+          <InterfaceText text={t.shortLabel} />
+        </span>
       </a>
     ))}
   </nav>
@@ -971,7 +988,7 @@ const EEntry = ({ onStart, withConfirm, share }) => {
   const items = [
     ...(withConfirm ? [tE('Confirm your email', 'אשרו את כתובת הדוא״ל')] : []),
     tE('Tell us about yourself', 'ספרו לנו על עצמכם'),
-    tE('Share your project details', 'שתפו את פרטי הפרויקט'),
+    tE('Add your project details', 'הוסיפו את פרטי הפרויקט'),
     tE('Create your API key', 'צרו את מפתח ה־API שלכם'),
   ];
   return (
@@ -1010,13 +1027,16 @@ const EEntry = ({ onStart, withConfirm, share }) => {
             {tE('Get started', 'בואו נתחיל')}
           </button>
           <p className="devE-links">
+            {/* Leading icon only, like the home's header links (rule, Penina 2026-11-08). */}
             <a href={API_DOCS_URL} target="_blank" rel="noreferrer">
+              <EBookIcon size={12} />
               {tE('Technical documentation', 'תיעוד טכני')}
-              <ExternalIcon />
+              <span className="sr-only">{tE(' (opens in a new tab)', ' (נפתח בכרטיסייה חדשה)')}</span>
             </a>
             <a href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">
+              <EDownloadIcon size={12} />
               {tE('Download the library', 'הורדת הספרייה')}
-              <ExternalIcon />
+              <span className="sr-only">{tE(' (opens in a new tab)', ' (נפתח בכרטיסייה חדשה)')}</span>
             </a>
           </p>
         </div>
@@ -1042,13 +1062,11 @@ const EShareFirstDialog = ({ onClose }) => {
       }}
     >
       <section className="devE-deleteModal">
-        <h3 id="devEShareFirstTitle">
-          {tE('Looking to share your project with Sefaria?', 'רוצים לשתף את הפרויקט עם ספריא?')}
-        </h3>
+        <h3 id="devEShareFirstTitle">{tE('Looking to publish your project?', 'רוצים לפרסם את הפרויקט שלכם?')}</h3>
         <p id="devEShareFirstText">
           {tE(
-            "First, set up your developer profile and create your project. Then you can share it with Sefaria. You don't need an API key.",
-            'קודם הגדירו את פרופיל המפתחים שלכם וצרו את הפרויקט. אחר כך תוכלו לשתף אותו עם ספריא. אין צורך במפתח API.'
+            "First, set up your developer profile and create your project. Then you can publish it. You don't need an API key.",
+            'קודם הגדירו את פרופיל המפתחים שלכם וצרו את הפרויקט. אחר כך תוכלו לפרסם אותו. אין צורך במפתח API.'
           )}
         </p>
         <div className="devE-deleteActions">
@@ -1288,7 +1306,7 @@ const EProjectFields = ({ fields, set, errors, check, showcase }) => (
       required
       dir="auto"
       label={tE('Project name', 'שם הפרויקט')}
-      placeholder={vE('e.g. Shabbat Table Questions', 'למשל: שאלות לשולחן השבת')}
+      placeholder={vE('Verse a Day', 'פסוק ליום')}
       value={fields.name}
       onChange={(e) => set('name', e.target.value)}
       error={errors.name}
@@ -1322,8 +1340,8 @@ const EProjectFields = ({ fields, set, errors, check, showcase }) => (
       maxLength={MAX_DESCRIPTION_LENGTH}
       label={tE('Short description', 'תיאור קצר')}
       placeholder={vE(
-        "e.g. A site that turns each week's parashah into three discussion questions for the Shabbat table, with a printable version.",
-        'למשל: אתר שהופך את פרשת השבוע לשלוש שאלות לדיון סביב שולחן השבת, עם גרסה להדפסה.'
+        'A free email that sends one verse from the Hebrew Bible each morning, in Hebrew and English, with a short note on what it means.',
+        'מייל חינמי ששולח כל בוקר פסוק אחד מהתנ״ך, בעברית ובאנגלית, עם הסבר קצר על משמעותו.'
       )}
       value={fields.description}
       onChange={(e) => set('description', e.target.value)}
@@ -1783,112 +1801,6 @@ const EWaiting = ({ dots }) => (
       </React.Fragment>
     }
   />
-);
-
-const EReveal = ({ dots, apiKey, projectName, onContinue, continueLabel, onBack }) => {
-  const [copied, setCopied] = useState('');
-  const value = apiKey ? apiKey.value : '';
-  return (
-    <EStep
-      dots={dots}
-      icon="</>"
-      onBack={onBack}
-      backLabel={tE('Back', 'חזרה')}
-      title={tE('Your API key is ready', 'מפתח ה־API שלך מוכן')}
-      lead={
-        <p className="devE-lead">
-          {tE(
-            'It works now. You can always see it again in Developer Settings.',
-            'הוא עובד עכשיו. תמיד אפשר לראות אותו שוב בהגדרות המפתחים.'
-          )}
-        </p>
-      }
-    >
-      <div className="devE-form">
-        <div className="sefaria-input">
-          <div className="sefaria-input-labelRow">
-            <label className="sefaria-input-label" htmlFor="devEKeyOut" dir="auto">
-              {apiKey ? apiKey.label : ''}
-            </label>
-          </div>
-          <div className="devE-keyRow">
-            <input
-              id="devEKeyOut"
-              className="sefaria-input-control devE-mono"
-              readOnly
-              value={value}
-              dir="ltr"
-              onFocus={(e) => e.target.select()}
-            />
-            <button
-              type="button"
-              className="devE-keyCopy"
-              aria-label={vE('Copy key', 'העתקת המפתח')}
-              onClick={() =>
-                eCopy(value, () => {
-                  setCopied('key');
-                  setTimeout(() => setCopied((c) => (c === 'key' ? '' : c)), 2000);
-                })
-              }
-            >
-              <ECopyIcon size={18} />
-            </button>
-            <span className="devE-keyCopied" aria-live="polite">
-              {copied === 'key' ? tE('Copied', 'הועתק') : null}
-            </span>
-          </div>
-        </div>
-        <div className="devE-try">
-          <p className="devE-hint">
-            {tE(
-              'Paste this into ChatGPT, Claude, Cursor or whatever you build with.',
-              'הדביקו את זה ב־ChatGPT, ‏Claude, ‏Cursor או בכל כלי שאתם בונים איתו.'
-            )}
-          </p>
-          <pre className="devE-code" dir="ltr">
-            <code>{eSnippet(value, projectName)}</code>
-          </pre>
-          <button
-            type="button"
-            className="devE-textBtn devE-start"
-            onClick={() => eCopy(eSnippet(value, projectName), () => setCopied('code'))}
-          >
-            {copied === 'code' ? tE('Copied', 'הועתק') : tE('Copy instructions', 'העתקת ההוראות')}
-          </button>
-        </div>
-        <EPrimary type="button" onClick={onContinue}>
-          {continueLabel}
-        </EPrimary>
-      </div>
-    </EStep>
-  );
-};
-
-const EFeature = ({ dots, project, onFeature, onLater, onBack }) => (
-  <EStep
-    dots={dots}
-    icon="</>"
-    onBack={onBack}
-    backLabel={tE('Back', 'חזרה')}
-    title={<InterfaceText text={{ en: 'Publish ' + project.name + '?', he: 'לפרסם את ' + project.name + '?' }} />}
-    lead={
-      <p className="devE-lead">
-        {tE(
-          "We love seeing what people build with Sefaria's data. It's optional, and you can do it any time from your project.",
-          'אנחנו אוהבים לראות מה אנשים בונים עם הנתונים של ספריא. זה לא חובה, ואפשר לעשות את זה בכל עת מהפרויקט.'
-        )}
-      </p>
-    }
-  >
-    <div className="devE-form">
-      <EPrimary type="button" onClick={onFeature}>
-        {tE('Publish project', 'פרסום הפרויקט')}
-      </EPrimary>
-      <button type="button" className="devE-textBtn" onClick={onLater}>
-        {tE('Not now', 'לא עכשיו')}
-      </button>
-    </div>
-  </EStep>
 );
 
 /* Removing a project's website turns off "Limit to website" on its keys (product spec, 2026-09-16), so say so before
@@ -3169,8 +3081,8 @@ const ESharePick = ({ projects, onPick, onBack, canAddNew }) => (
         {projects.length ? null : (
           <p className="devE-shareNote">
             {tE(
-              "To share a project with Sefaria, first create it. It only takes a minute, and you'll come straight back here to finish.",
-              'כדי לשתף פרויקט עם ספריא, קודם צריך ליצור אותו. זה לוקח רק דקה, ומיד אחר כך תחזרו לכאן כדי לסיים.'
+              "To publish a project, first create it. It only takes a minute, and you'll come straight back here to finish.",
+              'כדי לפרסם פרויקט, קודם צריך ליצור אותו. זה לוקח רק דקה, ומיד אחר כך תחזרו לכאן כדי לסיים.'
             )}
           </p>
         )}
@@ -3347,8 +3259,8 @@ const EHome = ({
                     <h3>{tE('No projects or keys yet', 'אין עדיין פרויקטים או מפתחות')}</h3>
                     <p>
                       {tE(
-                        "Create a project and we'll give you its first API key. Your projects and keys will show up here.",
-                        'צרו פרויקט וניצור לכם את מפתח ה־API הראשון שלו. הפרויקטים והמפתחות שלכם יופיעו כאן.'
+                        'Create a project, then add an API key to it. Your projects and keys will show up here.',
+                        'צרו פרויקט ואז הוסיפו לו מפתח API. הפרויקטים והמפתחות שלכם יופיעו כאן.'
                       )}
                     </p>
                     <span className="devE-tipWrap">
@@ -4366,79 +4278,6 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
     );
   } else if (view && view.screen === 'wait') {
     body = <EWaiting dots={view.inSetup ? dots(2) : null} />;
-  } else if (view && view.screen === 'reveal' && projectById(view.projectId)) {
-    const project = projectById(view.projectId);
-    const apiKey = project.keys.find((k) => k.id === view.keyId);
-    body = (
-      <EReveal
-        dots={view.inSetup ? dots(2) : null}
-        apiKey={apiKey}
-        projectName={project.name}
-        onBack={
-          view.inSetup
-            ? () =>
-                setView({
-                  screen: 'setupProjectEdit',
-                  projectId: project.id,
-                  keyId: view.keyId,
-                  inSetup: true,
-                  withConfirm: view.withConfirm,
-                })
-            : null
-        }
-        continueLabel={view.inSetup ? tE('Continue', 'המשך') : tE('Back to Developer Settings', 'חזרה להגדרות המפתחים')}
-        onContinue={() =>
-          view.inSetup
-            ? setView({ screen: 'feature', projectId: project.id, inSetup: true, withConfirm: view.withConfirm })
-            : home(
-                vE(
-                  (apiKey ? apiKey.label : 'Your key') + ' works now.',
-                  (apiKey ? apiKey.label : 'המפתח') + ' עובד עכשיו.'
-                )
-              )
-        }
-      />
-    );
-  } else if (view && view.screen === 'feature' && projectById(view.projectId)) {
-    const project = projectById(view.projectId);
-    body = (
-      <EFeature
-        dots={dots(3)}
-        project={project}
-        onBack={() =>
-          setView({
-            screen: 'reveal',
-            projectId: project.id,
-            keyId: freshKeyId,
-            inSetup: true,
-            withConfirm: view.withConfirm,
-          })
-        }
-        onLater={() =>
-          home(
-            vE(
-              "You're set up. Your key for " + project.name + ' works now.',
-              'הכול מוכן. המפתח של ' + project.name + ' עובד עכשיו.'
-            )
-          )
-        }
-        onFeature={() =>
-          run(
-            updateProject(project.id, {
-              name: project.name,
-              description: project.description,
-              organization: project.organization || '',
-              websiteUrl: project.websiteUrl || '',
-              aiAssisted: !!project.aiAssisted,
-              visibility: 'public',
-            })
-          ).then(
-            () => setView({ screen: 'submitted', projectId: project.id }),
-            () => {}
-          )
-        }
-      />
-    );
   } else if (view && view.screen === 'share' && view.fromLink && !projectById(view.projectId)) {
     body = (
       <ESharePick

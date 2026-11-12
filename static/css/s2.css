@@ -17527,6 +17527,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   font-weight: 600;
 }
 .settingsNavIcon { flex: 0 0 18px; width: 18px; height: 18px; /* icon size 18 */ }
+.settingsNavShort { display: none; }
 /* Marks what a deep link pointed at: a background that fades out once. */
 .settingsHighlight { animation: settingsHighlight 2.4s ease-out; }
 @keyframes settingsHighlight {
@@ -17996,9 +17997,12 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 @media (max-width: 842px) { /* the header's mobile breakpoint, $bp-mobile-max */
   .settingsShell { display: block; max-width: none; }
   .readerNavMenu.settingsPage .content .contentInner { padding: 24px 16px 60px; }
-  .settingsNav { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
-  .settingsNavTitle { width: 100%; padding: 0 0 8px; }
-  .settingsNav a { gap: 8px; padding: 10px 12px; border-radius: 0; border-bottom: 3px solid transparent; }
+  /* Phones: two equal tabs with short labels, each half the row (Penina, 2026-11-12). */
+  .settingsNav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
+  .settingsNavTitle { grid-column: 1 / -1; padding: 0 0 8px; }
+  .settingsNav a { justify-content: center; gap: 8px; min-height: 44px; padding: 10px 8px; border-radius: 0; border-bottom: 3px solid transparent; }
+  .settingsNavLong { display: none; }
+  .settingsNavShort { display: inline; }
   .settingsNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
   .settingsNavIcon { flex-basis: 18px; width: 18px; height: 18px; }
   .devPocPageHeader { flex-direction: column; gap: var(--devPoc-s2); }
