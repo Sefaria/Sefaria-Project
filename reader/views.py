@@ -139,6 +139,7 @@ from sefaria.settings import (
 from sefaria.sheets import annotate_user_links, get_sheet_for_panel, get_sheets_for_ref
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.cache import django_cache, gen_cache
+from sefaria.system.context_processors import apply_chatbot_version_param
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_json, json_response_decorator, sanitize_get_params
 from sefaria.system.exceptions import (
@@ -475,6 +476,7 @@ def base_props(request):
         }
     )
 
+    apply_chatbot_version_param(request)  # a ?chatbot_version=N on this very request must reach the props
     chatbot_version = request.session.get("chatbot_version")
     chatbot_version = chatbot_version if is_int(chatbot_version) else None
 

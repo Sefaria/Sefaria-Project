@@ -1,9 +1,31 @@
 // Helpers for calling the Library Assistant's server (ai-chatbot) from a Sefaria page.
 
-// The API base the page's widget uses: a ?chatbot_version=N preview deployment when one is set,
-// else the configured base, else null.
-export const chatbotApiBaseUrl = ({ chatbot_version, chatbot_api_base_url } = {}) =>
-  chatbot_version ? `https://${chatbot_version}.ai-server.coolifydev.sefaria.org/api` : chatbot_api_base_url || null;
+const isIntegerString = (value) => /^-?\d+$/.test(String(value).trim());
+
+// The ?chatbot_version of the page URL, or null (also outside a browser).
+const urlParam = () => {
+  try {
+    return new URLSearchParams(window.location.search).get('chatbot_version');
+  } catch (e) {
+    return null;
+  }
+};
+
+// The API base the page's widget and settings panel use: a ?chatbot_version=N preview deployment when
+// one is set (on the page URL itself, else in the props), else the configured base, else null.
+// Integers only, like the server; `?chatbot_version=clear` in the URL means no preview.
+export const chatbotApiBaseUrl = ({ chatbot_version, chatbot_api_base_url } = {}) => {
+  const param = (urlParam() || '').trim();
+  let version = null;
+  if (param === 'clear') {
+    version = null;
+  } else if (isIntegerString(param)) {
+    version = param;
+  } else if (chatbot_version && isIntegerString(chatbot_version)) {
+    version = String(chatbot_version).trim();
+  }
+  return version ? `https://${version}.ai-server.coolifydev.sefaria.org/api` : chatbot_api_base_url || null;
+};
 
 // One call to the personalization settings endpoint. The signed user token goes in the JSON body
 // as `userId`, exactly as the widget sends it; no custom header (the server's CORS list refuses one).

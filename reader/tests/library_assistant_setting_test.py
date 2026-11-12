@@ -248,6 +248,46 @@ class LibraryAssistantSettingsPageTest(LibraryAssistantUserTestCase):
         self.assertMountShows(self.get_page(), on=False)
 
 
+class ChatbotVersionPropTest(LibraryAssistantUserTestCase):
+    """
+    ?chatbot_version=N points the widget and the settings panel at a preview deployment. The request that
+    carries it must already expose it in the page props, not only the next one.
+    """
+
+    url = "/settings/library-assistant"
+
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+
+    def props_version(self, query):
+        html = self.client.get(self.url + query).content.decode("utf-8")
+        found = re.search(r'"chatbot_version":\s*(null|"[^"]*"|-?\d+)', html)
+        self.assertIsNotNone(found, "chatbot_version not found in the page props")
+        return json.loads(found.group(1))
+
+    def test_version_is_in_the_props_of_the_request_that_carries_it(self):
+        self.assertEqual(str(self.props_version("?chatbot_version=9298")), "9298")
+        self.assertEqual(self.client.session["chatbot_version"], "9298")
+
+    def test_version_persists_to_the_next_request(self):
+        self.props_version("?chatbot_version=9298")
+
+        self.assertEqual(str(self.props_version("")), "9298")
+
+    def test_no_parameter_means_no_version(self):
+        self.assertIsNone(self.props_version(""))
+
+    def test_clear_removes_the_version_on_that_request(self):
+        self.props_version("?chatbot_version=9298")
+
+        self.assertIsNone(self.props_version("?chatbot_version=clear"))
+        self.assertNotIn("chatbot_version", self.client.session)
+
+    def test_non_integer_is_not_exposed(self):
+        self.assertIsNone(self.props_version("?chatbot_version=abc"))
+
+
 class LoggedOutVisitorTest(TestCase):
     """
     Logged-out visitors get the assistant unless the remote config switch

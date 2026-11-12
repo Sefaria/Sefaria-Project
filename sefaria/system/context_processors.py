@@ -149,10 +149,14 @@ def _chatbot_script_url_and_type(chatbot_version):
     )
 
 
-@user_only
-def chatbot_user_token(request):
+def apply_chatbot_version_param(request):
+    """
+    Apply ?chatbot_version=N|clear to the session and return the effective version string (or "").
+    Idempotent, so it may run both while a view builds its props and later in the context processor:
+    the props must see the parameter on the very request that carries it.
+    """
     chatbot_version = request.GET.get("chatbot_version", "").strip()
-    # if chatbot_version add it to cookies so it can be used in subsequent requests
+    # if chatbot_version add it to the session so it can be used in subsequent requests
     if chatbot_version:
         if chatbot_version == "clear":
             if "chatbot_version" in request.session:
@@ -162,6 +166,12 @@ def chatbot_user_token(request):
     # if chatbot_version is not in request.GET, check if it's in session (from previous requests)
     elif "chatbot_version" in request.session:
         chatbot_version = request.session["chatbot_version"]
+    return chatbot_version
+
+
+@user_only
+def chatbot_user_token(request):
+    chatbot_version = apply_chatbot_version_param(request)
 
     clearing = _chatbot_storage_clearing(request)
     if not library_assistant.is_enabled_for_user(request.user):
