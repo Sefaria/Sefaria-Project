@@ -50,3 +50,33 @@ for (const biLayout of ["heLeft", "heRight"] as const) {
     expect(phone.overlap).toBe(false);
   });
 }
+
+// The display menu offers no layout choice for a bilingual panel 600px wide or less (sefaria.org ReaderDisplayOptionsMenu
+// showLayoutsToggle: `width <= 600 && bilingual`). Measured on www.sefaria.org: Pixel 7 and two panels at 1100px (550 each) have no
+// layout row; one panel at 1280px has it. Without this a phone could write a side-by-side setting that changes the desktop.
+async function layoutOffered(page: Page) {
+  await page.getByRole("button", { name: "Text display options" }).first().click();
+  await expect(page.getByText("Font Size").first()).toBeVisible();
+  return page.getByRole("radiogroup", { name: "text layout toggle" }).count();
+}
+
+// @feature TXD-043
+test("menu: one wide panel offers the layout; two 550px panels do not", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) < 600, "desktop project only");
+  await open(page, "/Genesis.1?lang=bi");
+  await expect(page.locator('[role="group"][data-ref="Genesis 1:1"] [data-side="translation"]')).toBeVisible({ timeout: 25_000 });
+  expect(await layoutOffered(page)).toBe(1);
+  await page.keyboard.press("Escape");
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await open(page, "/Genesis.1?lang=bi&p2=Exodus.1&lang2=bi");
+  await expect(page.locator('[role="group"][data-ref="Genesis 1:1"] [data-side="translation"]')).toBeVisible({ timeout: 25_000 });
+  expect(await layoutOffered(page)).toBe(0);
+});
+
+// @feature TXD-043
+test("menu: a phone offers no layout in bilingual @mobile", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) > 600, "phone project only");
+  await open(page, "/Genesis.1?lang=bi");
+  await expect(page.locator('[role="group"][data-ref="Genesis 1:1"] [data-side="translation"]')).toBeVisible({ timeout: 25_000 });
+  expect(await layoutOffered(page)).toBe(0);
+});

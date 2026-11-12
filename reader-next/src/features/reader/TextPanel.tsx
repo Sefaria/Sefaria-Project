@@ -577,7 +577,21 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
 
   const showsSource = settings.language !== "english";
   const sample = section.segments.find((s) => s.primary && hasNikud(s.primary))?.primary ?? section.segments[0]?.primary ?? "";
-  const availability = displayMenuAvailability({ settings, book: section.book, primaryCategory: section.primaryCategory, hebrewSample: sample, showsSource });
+  // The text panel's width, as sefaria.org reads it for its display menu (jQuery's whole-pixel width of the panel, scrollbar included):
+  // a bilingual panel 600px wide or less offers no layout choice, so a phone never writes a side-by-side setting that would then
+  // change the desktop. Measured after mount; the menu only opens after hydration.
+  const textBox = useRef<HTMLDivElement>(null);
+  const [panelWidth, setPanelWidth] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    const el = textBox.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const measure = () => setPanelWidth(Math.round(el.getBoundingClientRect().width));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const availability = displayMenuAvailability({ settings, book: section.book, primaryCategory: section.primaryCategory, hebrewSample: sample, showsSource, panelWidth });
   const interfaceLang = useInterfaceLang();
   const he = interfaceLang === "hebrew";
   // the bar's accessible names in the interface's language (strings from legacy's interface/he.json where it has them)
@@ -654,7 +668,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   }, [panel.asides, panel.asideLayout, innerSizes]);
 
   const main = (
-    <div className={styles.text}>
+    <div className={styles.text} ref={textBox}>
       <PanelHeader
         sticky
         category={section.categories}
