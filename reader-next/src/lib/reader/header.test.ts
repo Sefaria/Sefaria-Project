@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { categoryAttribution, headerLabels, type HeaderInput, narrowToVerses } from "./header";
+import { categoryAttribution, headerLabels, type HeaderInput, narrowToVerses, titleLanguage, titleVerses } from "./header";
 
 const genesis: HeaderInput = {
   sectionRef: "Genesis 1", heSectionRef: "בראשית א׳", categories: ["Tanakh", "Torah"],
@@ -64,4 +64,41 @@ describe("narrowToVerses", () => {
     expect(narrowToVerses(base, [9])).toEqual({ sectionRef: "Genesis 6:9", heSectionRef: "בראשית ו׳:ט׳" });
   });
   it("leaves the section alone when none of it is in the range", () => expect(narrowToVerses(base, [])).toBe(base));
+});
+
+// R-TITLE-2: the title is sefaria.org's current ref (@feature TXD-013)
+describe("titleVerses", () => {
+  const none = { rangeVerses: [] as number[], talmud: false, rangeWithinSection: false, language: "hebrew" as const };
+  const genesis1 = { sectionRef: "Genesis 1", heSectionRef: "בראשית א׳" };
+  const daf = { sectionRef: "Berakhot 2a", heSectionRef: "ברכות ב׳ א" };
+  const title = (i: Parameters<typeof titleVerses>[0], base = genesis1) => narrowToVerses(base, titleVerses(i));
+  it("names the address's segment on arrival in Hebrew or English mode (Genesis 1:3, Rashi on Genesis 1:1:1, Berakhot 2a:3)", () => {
+    expect(title({ ...none, entrySegment: 3 })).toEqual({ sectionRef: "Genesis 1:3", heSectionRef: "בראשית א׳:ג׳" });
+    expect(title({ ...none, language: "english", entrySegment: 1 }, { sectionRef: "Rashi on Genesis 1:1", heSectionRef: 'רש"י על בראשית א׳:א׳' })).toEqual({
+      sectionRef: "Rashi on Genesis 1:1:1", heSectionRef: 'רש"י על בראשית א׳:א׳:א׳',
+    });
+    expect(title({ ...none, talmud: true, entrySegment: 3 }, daf)).toEqual({ sectionRef: "Berakhot 2a:3", heSectionRef: "ברכות ב׳ א:ג׳" });
+  });
+  it("names the section in bilingual mode, once the reader has moved, or when no segment was named", () => {
+    expect(title({ ...none, language: "bilingual", entrySegment: 3 })).toEqual(genesis1);
+    expect(title(none)).toEqual(genesis1);
+  });
+  it("keeps a Torah portion's verses in this section, in every mode", () => {
+    for (const language of ["hebrew", "english", "bilingual"] as const)
+      expect(titleVerses({ rangeVerses: [9, 10, 22], talmud: false, rangeWithinSection: false, language })).toEqual([9, 10, 22]);
+  });
+  it("names the daf for a range of lines inside it (Berakhot 2a:3-5 → Berakhot 2a), the range itself in Hebrew mode", () => {
+    const range = { rangeVerses: [3, 4, 5], talmud: true, rangeWithinSection: true };
+    expect(title({ ...range, language: "english" }, daf)).toEqual(daf);
+    expect(title({ ...range, language: "bilingual" }, daf)).toEqual(daf);
+    expect(title({ ...range, language: "hebrew" }, daf)).toEqual({ sectionRef: "Berakhot 2a:3-5", heSectionRef: "ברכות ב׳ א:ג׳-ה׳" });
+  });
+});
+
+// R-SET-8: an English-original work stays in Hebrew mode; its title is in English, the source's language
+describe("titleLanguage for an English-only work in Hebrew mode", () => {
+  it("is English with either interface", () => {
+    for (const interfaceLang of ["english", "hebrew"] as const)
+      expect(titleLanguage({ language: "hebrew", interfaceLang, primaryVersion: { languageFamilyName: "english" } })).toBe("en");
+  });
 });
