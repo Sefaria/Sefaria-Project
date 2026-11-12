@@ -33,7 +33,7 @@ import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations
 import { rememberTranslation } from "~/lib/versions/prefs-source";
 import { entryKey, navFor, panelKeysOf, readNavState, useWorkspaceNav, type NavState } from "../workspace/navigation";
 import { panelForRef } from "../workspace/open-ref";
-import { toRouterLocation } from "../shared/RouterLink";
+import { RouterLink, toRouterLocation } from "../shared/RouterLink";
 // Not a lazy chunk (tried once to shrink the first load): a server-rendered sidebar whose chunk was still loading at hydration left a Suspense
 // boundary that React later hid, unmounting query observers mid-fetch; the cancelled fetch surfaced as a "CancelledError" page (seen
 // on /Genesis.1.3-5?with=all). Split it with the route manifest, where the router loads a page's chunks before it hydrates.
@@ -688,7 +688,12 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       <PanelHeader
         sticky
         category={section.categories}
-        title={<a href={`/${refToUrl(section.indexTitle)}`} lang={header.lang} dir={header.lang === "he" ? "rtl" : "ltr"} style={{ color: "inherit", textDecoration: "none" }}>{header.title}</a>}
+        title={
+          // the book's page in the app (sefaria.org opens its contents in the panel), so Back returns to this reader with its place kept
+          <RouterLink href={`/${refToUrl(section.indexTitle)}`} lang={header.lang} dir={header.lang === "he" ? "rtl" : "ltr"} style={{ color: "inherit", textDecoration: "none" }}>
+            {header.title}
+          </RouterLink>
+        }
         subtitle={
           header.attribution || header.version ? (
             <>

@@ -104,11 +104,8 @@ async function readToLastVerses(page: Page, last: RegExp) {
   await page.waitForTimeout(1200); // the address has settled
 }
 
-// The panel title's link is a full page load of the book's page; Back is then a new document of the reader. The place kept on pagehide
-// is put back before the first paint (the inline script) and held by the app: the verse never shows anywhere else.
-// @feature SHL-064 @feature SHL-065
-test("Back from the book's page (the panel title) puts the reader where they were, with no jump", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) < 600, "desktop project only");
+/** Read a little way into Genesis 1-2 (bilingual, desktop); the verse being read and where it is. */
+async function readOn(page: Page) {
   await open(page, "/Genesis.1.20?lang=bi");
   await page.waitForTimeout(800);
   const box = await page.locator("[data-reader-scroller]").boundingBox();
@@ -120,9 +117,37 @@ test("Back from the book's page (the panel title) puts the reader where they wer
   await page.waitForTimeout(1200);
   const ref = await focusVerse(page);
   await expect.poll(() => refOfPath(page.url())).toBe(ref);
-  const before = await segmentTop(page, ref);
-  await traceVerse(page, ref);
+  return { ref, before: await segmentTop(page, ref) };
+}
+
+// The panel title opens the book's page in the app, as sefaria.org opens the book's contents in the panel (no new document), at the
+// book's own address; Back puts the reader where they were.
+// @feature SHL-064 @feature SHL-065
+test("the panel title opens the book's page in the app, and Back puts the reader where they were", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) < 600, "desktop project only");
+  const { ref, before } = await readOn(page);
+  await page.evaluate(() => ((window as unknown as { __samePage?: boolean }).__samePage = true));
   await page.locator('a[href="/Genesis"]').first().click();
+  await expect(page).toHaveURL(/\/Genesis$/); // not "/Genesis?lang=bi&aliyot=0": the book's page is no reader address
+  await expect(page.locator("[data-reader-scroller]")).toHaveCount(0);
+  expect(await page.evaluate(() => (window as unknown as { __samePage?: boolean }).__samePage)).toBe(true);
+  await page.waitForTimeout(500);
+  await expect(page).toHaveURL(/\/Genesis$/);
+  await page.goBack();
+  await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
+  await page.waitForTimeout(1000);
+  const after = await segmentTop(page, ref);
+  expect(Math.abs(after - before), `${ref}: ${before} before, ${after} after`).toBeLessThan(2);
+});
+
+// Leaving by a full page load (a link to a page served by the server, as Django's pages are), Back is a new document of the reader. The
+// place kept on pagehide is put back before the first paint (the inline script) and held by the app: the verse never shows elsewhere.
+// @feature SHL-064 @feature SHL-065
+test("Back to the reader after a full page load puts the reader where they were, with no jump", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) < 600, "desktop project only");
+  const { ref, before } = await readOn(page);
+  await traceVerse(page, ref);
+  await page.evaluate(() => location.assign("/Genesis"));
   await expect(page).toHaveURL(/\/Genesis$/);
   await page.goBack();
   await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
@@ -160,7 +185,7 @@ test("Back to a reader at a chapter's last verses puts the reader where they wer
 
 // The same two on a phone, where the page itself scrolls.
 // @feature SHL-064 @feature SHL-065
-test("Back from the book's page and to a chapter's last verses, on a phone @mobile", async ({ page }) => {
+test("Back after a full page load and to a chapter's last verses, on a phone @mobile", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 0) > 600, "phone project only");
   await open(page, "/Genesis.1.20?lang=bi");
   await page.waitForTimeout(800);
@@ -169,10 +194,9 @@ test("Back from the book's page and to a chapter's last verses, on a phone @mobi
   let ref = refOfPath(page.url());
   // (the next chapter may still be arriving above or below as the reader leaves: the place kept is the reader's, not the text's
   // passing position while it is being put back)
-  const title = page.locator('a[href="/Genesis"]:visible').first();
   let before = await segmentTop(page, ref);
   await traceVerse(page, ref);
-  await title.click();
+  await page.evaluate(() => location.assign("/Genesis")); // a full page load (the panel title itself opens the book's page in the app)
   await expect(page).toHaveURL(/\/Genesis$/);
   await page.goBack();
   await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
