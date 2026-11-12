@@ -17,9 +17,9 @@ test.describe("canonical URLs", () => {
     expect(html).toContain('href="/Genesis.1"');
   });
 
-  test("a commentary chapter opens at its first available section", async ({ request }) => {
+  test("a commentary chapter opens at its first available section (a temporary redirect: only respellings are permanent)", async ({ request }) => {
     const res = await request.get("/Rashi_on_Genesis.1", { maxRedirects: 0 });
-    expect(res.status()).toBe(301);
+    expect(res.status()).toBe(302);
     expect(res.headers().location).toMatch(/Rashi_on_Genesis\.1\.1$/);
   });
 

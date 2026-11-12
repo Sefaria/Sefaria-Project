@@ -5,8 +5,9 @@ import { readFixture } from "../../../test/msw/fixtures";
 import { server } from "../../../test/msw/server";
 import { resetPersisters } from "~/lib/cache/persisters";
 import { makeQueryClient } from "~/lib/cache/query-client";
+import { getRefIndex } from "~/lib/cache/ref-index-singleton";
 import { NO_PREFS } from "~/lib/versions/preferences";
-import { loadWorkspaceRoute, shownVersions, versionRedirectTarget } from "./reader-route";
+import { isRespelling, loadWorkspaceRoute, shownVersions, versionRedirectTarget } from "./reader-route";
 
 beforeEach(() => {
   globalThis.indexedDB = new IDBFactory();
@@ -114,6 +115,41 @@ describe("a version the address names that this text lacks", () => {
   });
   it("versions the text has load without a redirect", async () => {
     expect(await redirectOf({ ven: "english|The_Koren_Jerusalem_Bible" })).toBeNull();
+  });
+});
+
+// @feature RTE-027 sefaria.org answers 301 only for another spelling of the same ref (/Gen.1.1, /genesis.1.1, /Rashi_on_Gen.1.1) and 200 at
+// the address for a ref it opens elsewhere (/Rashi_on_Genesis.1, /Genesis.1.35, /Berakhot.2, /Mishnah_Berakhot): measured 2026-11-12
+describe("the canonical redirect: permanent for a respelling, temporary for another place", () => {
+  it("isRespelling: the same sections under another spelling", () => {
+    expect(isRespelling("Gen 1:1", "Genesis 1:1")).toBe(true);
+    expect(isRespelling("genesis 1:1", "Genesis 1:1")).toBe(true);
+    expect(isRespelling("Rashi on Gen 1:1", "Rashi on Genesis 1:1")).toBe(true);
+    expect(isRespelling("Genesis 1:1-1:3", "Genesis 1:1-3")).toBe(true);
+    expect(isRespelling("Rashi on Genesis 1", "Rashi on Genesis 1:1")).toBe(false);
+    expect(isRespelling("Berakhot 2", "Berakhot 2a-2b")).toBe(false);
+    expect(isRespelling("Mishnah Berakhot", "Mishnah Berakhot 1")).toBe(false);
+    expect(isRespelling("Genesis 1:35", "Genesis 2:1")).toBe(false);
+  });
+  const statusOf = async (splat: string, search: Record<string, string> = {}) => {
+    const thrown: unknown = await loadWorkspaceRoute({ queryClient: makeQueryClient(), splat, search, prefs: NO_PREFS }).then(() => null, (e: unknown) => e);
+    return (thrown as { options?: { statusCode?: number; to?: string; search?: Record<string, unknown> } } | null)?.options ?? null;
+  };
+  it("a commentary chapter sent to its first comment: 302", async () => {
+    const r = await statusOf("Rashi_on_Genesis.1");
+    expect(r?.statusCode).toBe(302);
+    expect(r?.to).toBe("/Rashi_on_Genesis.1.1");
+  });
+  it("a second panel sent elsewhere makes the redirect temporary too", async () => {
+    const r = await statusOf("Genesis.1", { p2: "Rashi_on_Genesis.1" });
+    expect(r?.statusCode).toBe(302);
+    expect(r?.search).toEqual({ p2: "Rashi_on_Genesis.1.1" });
+  });
+  it("another spelling of the same ref: 301", async () => {
+    await getRefIndex().setAlias("Gen 1", "Genesis 1"); // what an earlier answer from the API taught the reader
+    const r = await statusOf("Gen.1");
+    expect(r?.statusCode).toBe(301);
+    expect(r?.to).toBe("/Genesis.1");
   });
 });
 

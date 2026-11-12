@@ -3,7 +3,7 @@ import { notFound, redirect } from "@tanstack/react-router";
 import type { QueryClient } from "@tanstack/react-query";
 import { SefariaApiError } from "~/lib/api/client";
 import { getRefIndex } from "~/lib/cache/ref-index-singleton";
-import { isSplatOf, refToUrl, urlToRef } from "~/lib/ref/url";
+import { isSplatOf, parseHumanRef, refToUrl, urlToRef } from "~/lib/ref/url";
 import type { ReaderSearch } from "~/lib/reader/url-state";
 import { indexMetaQueryOptions } from "~/lib/text/commentary";
 import { loadReaderPassage, passageUrl, selectionKey, type VersionSelection } from "~/lib/text/queries";
@@ -151,6 +151,16 @@ async function loadTextPanel(
   };
 }
 
+/**
+ * Whether the canonical ref is only another spelling of the ref asked for (a title's alias or case, `_` and `:` for `.`): the same
+ * sections. Anything else sends the reader to another place.
+ */
+export function isRespelling(asked: string, canonical: string): boolean {
+  const a = parseHumanRef(asked);
+  const c = parseHumanRef(canonical);
+  return a.sections.join(":") === c.sections.join(":") && a.toSections.join(":") === c.toSections.join(":");
+}
+
 /** Whether two queries name the same versions, in address form. */
 function sameVersionParams(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
   const keys = new Set([...Object.keys(a), ...Object.keys(b)].filter((k) => /^v(en|he)\d*$/.test(k)));
@@ -222,22 +232,29 @@ export async function loadWorkspaceRoute(args: {
   const panels = Object.fromEntries(ids.map((id, i) => [id, loaded[i] as ReaderRouteData])) as Record<PanelId, ReaderRouteData>;
   for (const id of ids) ws = updatePanel(ws, id, { ref: panels[id]!.ref });
 
-  // A ref that is not in canonical form redirects (301) to the canonical ref with the request's own query, as sefaria.org
-  // does (VERIFIED: /Gen.1.1?lang=en → /Genesis.1.1?lang=en). Only the refs change: the path and any p<n> (the old numbering).
+  // A ref that is not in canonical form redirects to the canonical ref with the request's own query. Only the refs change: the path
+  // and any p<n> (the old numbering). A respelling of the same ref is permanent (301), as sefaria.org answers it (VERIFIED:
+  // /Gen.1.1?lang=en → /Genesis.1.1?lang=en). Being sent to another section (a commentary chapter to its first comment, a ref above
+  // section level or with no text to a section that has one) is temporary (302): sefaria.org answers those 200 at the address asked
+  // for, and a 301 would be kept by browsers for good although the texts can change.
   let panelsDiffer = false;
+  let moved = false;
   extra.forEach((n, i) => {
     const id = ids[i + 1];
     if (!id) return;
     const canon = refToUrl(panels[id]!.ref);
-    if (urlToRef(String(query[`p${n}`])) !== panels[id]!.ref) {
+    const asked = urlToRef(String(query[`p${n}`]));
+    if (asked !== panels[id]!.ref) {
       panelsDiffer = true;
+      moved ||= !isRespelling(asked, panels[id]!.ref);
       query[`p${n}`] = canon;
     }
   });
   const canonicalPath = refToUrl(panels[ids[0]!]!.ref);
   const pathDiffers = !isSplatOf(args.splat, canonicalPath);
+  if (pathDiffers) moved ||= !isRespelling(urlToRef(args.splat), panels[ids[0]!]!.ref);
   if (pathDiffers || panelsDiffer) {
-    throw redirect({ to: `/${canonicalPath}` as never, search: query as never, statusCode: 301 });
+    throw redirect({ to: `/${canonicalPath}` as never, search: query as never, statusCode: moved ? 302 : 301 });
   }
   return { workspace: ws, panels };
 }
