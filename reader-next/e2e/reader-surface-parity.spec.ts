@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { open } from "./helpers";
+import { open, setScrollTop } from "./helpers";
 
 // Layout of the reading surface against www.sefaria.org (wave-3 parity report v-parity.md, S4 S5 S6 S7). The numbers in the comments
 // were measured on www.sefaria.org on 2026-11-10.
@@ -49,6 +49,39 @@ test("stacked bilingual: 10px from the Hebrew to the English, 20px to the next v
   expect(m.heHeight).toBeLessThan(m.heLine * 1.5);
   expect(m.align).toBe("right");
 });
+
+// @feature TXD-012
+// sefaria.org, 2026-11-12, 1280px and Pixel 7: 30px from a section's last verse to the next section's title box in every case here
+// (the verse's 26px margin collapses into the title's 30px), then 24px from the box to the first verse.
+for (const [path, lang, biLayout, next] of [
+  ["/Genesis.1", "en", "stacked", "Genesis 2"],
+  ["/Genesis.1", "he", "stacked", "Genesis 2"],
+  ["/Genesis.1", "bi", "stacked", "Genesis 2"],
+  ["/Genesis.1", "bi", "heLeft", "Genesis 2"],
+  ["/Berakhot.2a", "en", "stacked", "Berakhot 2b"],
+  ["/Berakhot.2a", "he", "stacked", "Berakhot 2b"],
+  ["/Berakhot.2a", "bi", "heRight", "Berakhot 2b"],
+] as const) {
+  test(`${path} ${lang} ${biLayout}: 30px from a section's last verse to the next section's title, as sefaria.org @mobile`, async ({ page }) => {
+    // Talmud segmented: continuous Talmud lines end differently inside the section (inline segments), not at the boundary
+    await page.context().addCookies([{ name: "biLayout", value: biLayout, domain: "localhost", path: "/" }, { name: "layoutTalmud", value: "segmented", domain: "localhost", path: "/" }]);
+    await open(page, `${path}?lang=${lang}`);
+    const sec = page.locator(`section[data-ref="${next}"]`);
+    await expect(async () => {
+      await setScrollTop(page, "bottom");
+      await expect(sec.locator("h2")).toBeAttached({ timeout: 1000 });
+    }).toPass({ timeout: 25_000 });
+    const m = await sec.evaluate((s) => {
+      const prev = [...document.querySelectorAll<HTMLElement>('[data-language] section[data-ref]')][[...document.querySelectorAll('[data-language] section[data-ref]')].indexOf(s) - 1]!;
+      const last = [...prev.querySelectorAll('[role="group"][data-ref]')].at(-1)!.getBoundingClientRect();
+      const box = s.querySelector("h2")!.getBoundingClientRect();
+      const first = s.querySelector('[role="group"][data-ref]')!.getBoundingClientRect();
+      return { above: box.top - last.bottom, below: first.top - box.bottom };
+    });
+    expect(m.above).toBeCloseTo(30, 0);
+    expect(m.below).toBeCloseTo(24, 0);
+  });
+}
 
 // @feature TXD-012
 test("Hebrew daf headings read ב׳ א / ב׳ ב (parity S7)", async ({ page }) => {

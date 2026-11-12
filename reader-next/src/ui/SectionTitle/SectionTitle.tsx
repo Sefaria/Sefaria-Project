@@ -21,7 +21,7 @@ export interface SectionTitleProps {
 export function SectionTitle({ en, he, lang, level = 2 }: SectionTitleProps) {
   const Heading = `h${level}` as "h2" | "h3";
   return (
-    <div className={styles.title}>
+    <div className={styles.title} data-section-title="">
       <Heading className={styles.box} lang={lang} dir={lang === "he" ? "rtl" : "ltr"}>
         {lang === "he" ? he : en}
       </Heading>
