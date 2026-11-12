@@ -3,7 +3,7 @@ import { open } from "./helpers";
 
 /**
  * A complex text's node address opens its first section (v-exits F-4: it answered 503 after asking for the whole node, 5.9 MB).
- * www.sefaria.org answers 200 and shows "Arukh HaShulchan, Orach Chaim 1"; here the address is the section's (the 301 every ref above
+ * www.sefaria.org answers 200 and shows "Arukh HaShulchan, Orach Chaim 1"; here the address is the section's (the 302 every ref above
  * section level gets in this client: TXT-016).
  */
 // @feature TXT-023
