@@ -40,6 +40,7 @@ import UpdatesPanel from './UpdatesPanel';
 import { SignUpModal, InterruptingMessage, Banner, CookiesNotification } from './Misc';
 import Button from './common/Button';
 import GoogleOneTap from './auth/GoogleOneTap';
+import AddToHomeScreen from './AddToHomeScreen';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import { io } from 'socket.io-client';
@@ -2551,6 +2552,15 @@ class ReaderApp extends Component {
     this.setContainerMode();
   }
 
+  getMobileTextRef() {
+    // The ref the mobile reader is showing, or null when a menu or non-text page is open.
+    const panel = this.state.panels[0];
+    if (!panel || panel.menuOpen || !(panel.mode === 'Text' || panel.mode === 'TextAndConnections')) {
+      return null;
+    }
+    return panel.currentlyVisibleRef || (panel.refs && panel.refs.slice(-1)[0]) || null;
+  }
+
   getUserContext() {
     const returnNullIfEmpty = (value) => {
       if (Array.isArray(value)) {
@@ -2872,6 +2882,7 @@ class ReaderApp extends Component {
                 </main>
                 {signUpModal}
                 <CookiesNotification />
+                {!this.props.multiPanel && <AddToHomeScreen currentRef={this.getMobileTextRef()} />}
               </div>
               <BannerImpressionProbe />
             </div>
