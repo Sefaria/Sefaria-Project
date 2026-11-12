@@ -5,7 +5,7 @@ import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, use
 import { leaf, split, type LayoutNode } from "~/lib/layout/tree";
 import { formatWith, parseWith, type ConnectionsView } from "~/lib/connections/url";
 import { displayMenuAvailability, hasNikud, layoutKeyFor, type ReaderSettings } from "~/lib/reader/settings";
-import { headerLabels, narrowToVerses } from "~/lib/reader/header";
+import { headerLabels, narrowToVerses, titleVerses } from "~/lib/reader/header";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { applySearchToSettings, languageToParam } from "~/lib/reader/url-state";
 import type { TextPassage, VersionMeta } from "~/lib/text/model";
@@ -100,8 +100,11 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const initialQueries = useSuspenseQueries({ queries: data.sectionRefs.map((r) => textQueryOptions(r, data.versions)) });
   const initialKey = initialQueries.map((q) => q.dataUpdatedAt).join(",");
   const initial = useMemo(() => initialQueries.map((q) => q.data), [initialKey, data.sectionRefs.join("|"), selectionKey(data.versions)]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the answers (dataUpdatedAt), the sections and the versions; useSuspenseQueries returns a new array each render
-  // A text with nothing in Hebrew (an English-original work, no source version) cannot be shown "Hebrew only": the old
-  // reader turns the panel bilingual (VERIFIED: Philo, Teshuvot haRashba with lang=he → lang=bi, English text, Latin numerals).
+  // A text with nothing in Hebrew (an English-original work, no source version) cannot be shown "Hebrew only": the column shows it
+  // as bilingual (VERIFIED: Philo, Teshuvot haRashba with lang=he, English text, Latin numerals). Its title still follows the
+  // mode the reader asked for (`labelMode` below), as on sefaria.org, where the panel stays in Hebrew mode and labels the work in
+  // its source's language, English. Once the column's labels follow one rule that reads the source's language in Hebrew mode, this
+  // switch can go and `labelMode` becomes `settings.language`.
   const first = initial[0];
   const noHebrew = !!first && (!!first.primaryVersion || !!first.translationVersion) && first.primaryVersion?.direction !== "rtl" && first.translationVersion?.direction !== "rtl";
   // And the other way round: nothing in English (no translation at all) makes an English panel a Hebrew one (Peri Megadim,
@@ -111,6 +114,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     () => (noHebrew && settings0.language === "hebrew" ? { ...settings0, language: "bilingual" as const } : noEnglish && settings0.language === "english" ? { ...settings0, language: "hebrew" as const } : settings0),
     [settings0, noHebrew, noEnglish],
   );
+  // The mode the panel's title follows: the one asked for, except an English panel with nothing in English, labelled as Hebrew
+  const labelMode = noEnglish && settings0.language === "english" ? "hebrew" : settings0.language;
 
   /** Apply an operation to the workspace as it is now, and go there. */
   const apply = useCallback(
@@ -138,7 +143,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // The sections the column holds right now (it adds them as the reader scrolls). If the URL names sections the
   // column does not hold — back to another text, say — the column starts over, whatever kind of entry it is.
   const columnSections = useRef(data.sectionRefs);
-  const entry = useRef({ key: data.sectionRefs.join("|"), target: urlSegments[0] });
+  // `arrival`: the segments the address named when the column started (the title names them until the reader scrolls); `id` counts
+  // the column's starts, so "the reader scrolled since this start" is a number to compare
+  const entry = useRef({ key: data.sectionRefs.join("|"), target: urlSegments[0], arrival: urlSegments, id: 0 });
   const heldByColumn = data.sectionRefs.every((r) => columnSections.current.includes(r));
   // "Starts over" is decided once per history entry: re-rendering the same entry (the initial one carries no `nav` at all)
   // must not throw away what the column has since added, or reaching the top of a tractate restarts it.
@@ -147,7 +154,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const newEntry = seenEntry.current !== thisEntry;
   seenEntry.current = thisEntry;
   if ((newEntry && (kind === undefined || kind === "go")) || !heldByColumn) {
-    entry.current = { key: data.sectionRefs.join("|"), target: urlSegments[0] };
+    entry.current = { key: data.sectionRefs.join("|"), target: urlSegments[0], arrival: urlSegments, id: entry.current.id + 1 };
     columnSections.current = data.sectionRefs;
   }
   // A panel that arrives beside the first takes keyboard focus on its first control (I18-003), so tabbing carries on there.
@@ -226,9 +233,12 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   useEffect(() => {
     if (kind === undefined || kind === "go") setPicked(null);
   }, [thisEntry, kind]);
+  // The column start (entry.current.id) the reader has scrolled away from: the title then names the section in view
+  const [movedFrom, setMovedFrom] = useState(-1);
   const onSettled = useCallback(
     (ref: string) => {
       setPicked(null);
+      setMovedFrom(entry.current.id);
       if (asideRef.current.length) setSelection([ref]);
       nav.panelMoved();
       // The address bar always names the verse being read (like the old reader), without moving anything.
@@ -614,18 +624,22 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     () => (rangeHighlight ? section.segments.filter((s) => isHighlighted(s.address, rangeHighlight, section.addressTypes)).map((s) => Number(s.address[s.address.length - 1])).filter(Number.isFinite) : []),
     [rangeHighlight, section],
   );
-  // With the sidebar open on verses narrower than their section, the title names them ("Genesis 6:16"), as sefaria.org's header shows
-  // the panel's current ref (the selected segment); otherwise the section being read, or a kept portion's verses
-  const chosenVerses = useMemo(() => {
-    if (!view || !deferredRefs.length || deferredRefs.length >= sidebarSection.segments.length) return [];
-    const chosen = new Set(deferredRefs);
-    return sidebarSection.segments.filter((s) => chosen.has(s.ref)).map((s) => Number(s.address[s.address.length - 1])).filter(Number.isFinite);
-  }, [view, deferredRefs, sidebarSection]);
-  const titled = chosenVerses.length ? sidebarSection : section;
+  // The title names the panel's current ref (lib/reader/header.ts titleVerses): what the address named on arrival (a segment, a range's
+  // verses in this section) until the reader scrolls, then the section in view. Choosing a verse does not change it.
+  const moved = movedFrom === entry.current.id;
+  const arrival = entry.current.arrival;
+  const arrivalVerses = useMemo(() => {
+    const named = new Set(arrival);
+    return section.segments.filter((s) => named.has(s.ref)).map((s) => Number(s.address[s.address.length - 1])).filter(Number.isFinite);
+  }, [arrival, section]);
+  const verses = titleVerses({ moved, arrivalVerses, rangeVerses });
+  // A numbered section's verses follow a colon ("Genesis 1:3"); a named one's, a space ("Pesach Haggadah, Magid, The Four Sons 2")
+  const firstNamed = section.segments.find((s) => arrival.includes(s.ref));
+  const separator = firstNamed && !firstNamed.ref.startsWith(`${section.sectionRef}:`) ? " " : ":";
   const header = headerLabels(narrowToVerses({
-    sectionRef: titled.sectionRef, heSectionRef: titled.heSectionRef, categories: titled.categories,
-    translationVersion: titled.translationVersion, primaryVersion: titled.primaryVersion, language: settings.language, interfaceLang,
-  }, chosenVerses.length ? chosenVerses : rangeVerses));
+    sectionRef: section.sectionRef, heSectionRef: section.heSectionRef, categories: section.categories,
+    translationVersion: section.translationVersion, primaryVersion: section.primaryVersion, language: labelMode, interfaceLang,
+  }, verses, separator));
   const shownVersions = { he: sidebarSection.primaryVersion?.versionTitle, en: sidebarSection.translationVersion?.versionTitle };
   const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the filter string; `view` is a new object each render
 
