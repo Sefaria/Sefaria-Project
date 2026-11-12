@@ -2,8 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 import { open } from "./helpers";
 
 /**
- * The panel title names the panel's current ref as www.sefaria.org's header does (lib/reader/header.ts titleVerses), and the
- * address's `lang` (R-TITLE-2, R-SET-4, R-SET-6, R-SET-8 in the language parity rules).
+ * The panel title names the panel's current ref as www.sefaria.org's header does (lib/reader/header.ts titleVerses): the address it
+ * arrived at until the reader scrolls, then the section in view. And the address's `lang`: its other spellings, and written on change.
  */
 const title = (page: Page) => page.locator('section[data-panel-id="p1"] header h1').first();
 
@@ -17,10 +17,27 @@ test.describe("panel title and the address's language", () => {
     await expect(title(page)).toHaveText("Genesis 1");
   });
 
-  test("bilingual: the title names the section, as sefaria.org's does once both sides are laid out", async ({ page }) => {
+  test("the same rule in bilingual mode and with a Hebrew interface", async ({ page }) => {
     await open(page, "/Genesis.1.4?lang=bi");
-    await expect(page.locator('[role="group"][data-ref="Genesis 1:4"]')).toBeVisible();
-    await expect(title(page)).toHaveText("Genesis 1");
+    await expect(title(page)).toHaveText("Genesis 1:4");
+    await page.context().addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
+    await open(page, "/Genesis.1.4?lang=bi");
+    await expect(title(page)).toHaveText("בראשית א׳:ד׳");
+  });
+
+  test("a Torah portion keeps its verses in the title when the reader chooses one of them", async ({ page }) => {
+    // the sidebar's version list for the chosen verse is not recorded; it plays no part here
+    await page.route("**/api/texts/versions/Genesis%206%3A12", (r) => r.fulfill({ json: [] }));
+    await open(page, "/Genesis.6.9-11.32?lang=en");
+    await expect(title(page)).toHaveText("Genesis 6:9-22");
+    await page.locator('[data-reader-scroller] [role="group"][data-ref="Genesis 6:12"]').click();
+    await expect(page).toHaveURL(/with=/);
+    await expect(title(page)).toHaveText("Genesis 6:9-22");
+  });
+
+  test("a segment of a named section follows it with a space", async ({ page }) => {
+    await open(page, "/Pesach_Haggadah,_Magid,_First_Fruits_Declaration.2?lang=en");
+    await expect(title(page)).toHaveText("Pesach Haggadah, Magid, First Fruits Declaration 2");
   });
 
   test("choosing a verse opens the sidebar and leaves the title on the section", async ({ page }) => {
@@ -30,8 +47,8 @@ test.describe("panel title and the address's language", () => {
     await expect(title(page)).toHaveText("Genesis 1");
   });
 
-  // A range of lines inside one daf (Berakhot 2a:3-5 → "Berakhot 2a") is covered by src/lib/reader/header.test.ts: its text request
-  // is not in the recorded API cassette.
+  // A range of lines inside one daf ("Berakhot 2a:3-5") is covered by src/lib/reader/header.test.ts: its text request is not in the
+  // recorded API cassette.
 
   test("lang=he-en and lang=en-he open the text bilingual", async ({ page }) => {
     for (const lang of ["he-en", "en-he"]) {
@@ -40,7 +57,7 @@ test.describe("panel title and the address's language", () => {
     }
   });
 
-  test("changing the language writes lang= into the address, even when it had none", async ({ page }) => {
+  test("changing the language writes lang= into the address, even when it had none (the address is completed on every change)", async ({ page }) => {
     await open(page, "/Genesis.1");
     await page.getByRole("button", { name: "Text display options" }).click();
     await page.getByRole("radio", { name: "Source", exact: true }).click();

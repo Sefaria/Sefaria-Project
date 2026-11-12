@@ -103,7 +103,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // A text with nothing in Hebrew (an English-original work, no source version) cannot be shown "Hebrew only": the column shows it
   // as bilingual (VERIFIED: Philo, Teshuvot haRashba with lang=he, English text, Latin numerals). Its title still follows the
   // mode the reader asked for (`labelMode` below), as on sefaria.org, where the panel stays in Hebrew mode and labels the work in
-  // its source's language, English (R-SET-8).
+  // its source's language, English. Once the column's labels follow one rule that reads the source's language in Hebrew mode, this
+  // switch can go and `labelMode` becomes `settings.language`.
   const first = initial[0];
   const noHebrew = !!first && (!!first.primaryVersion || !!first.translationVersion) && first.primaryVersion?.direction !== "rtl" && first.translationVersion?.direction !== "rtl";
   // And the other way round: nothing in English (no translation at all) makes an English panel a Hebrew one (Peri Megadim,
@@ -142,7 +143,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // The sections the column holds right now (it adds them as the reader scrolls). If the URL names sections the
   // column does not hold — back to another text, say — the column starts over, whatever kind of entry it is.
   const columnSections = useRef(data.sectionRefs);
-  const entry = useRef({ key: data.sectionRefs.join("|"), target: urlSegments[0] });
+  // `arrival`: the segments the address named when the column started (the title names them until the reader scrolls); `id` counts
+  // the column's starts, so "the reader scrolled since this start" is a number to compare
+  const entry = useRef({ key: data.sectionRefs.join("|"), target: urlSegments[0], arrival: urlSegments, id: 0 });
   const heldByColumn = data.sectionRefs.every((r) => columnSections.current.includes(r));
   // "Starts over" is decided once per history entry: re-rendering the same entry (the initial one carries no `nav` at all)
   // must not throw away what the column has since added, or reaching the top of a tractate restarts it.
@@ -151,7 +154,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const newEntry = seenEntry.current !== thisEntry;
   seenEntry.current = thisEntry;
   if ((newEntry && (kind === undefined || kind === "go")) || !heldByColumn) {
-    entry.current = { key: data.sectionRefs.join("|"), target: urlSegments[0] };
+    entry.current = { key: data.sectionRefs.join("|"), target: urlSegments[0], arrival: urlSegments, id: entry.current.id + 1 };
     columnSections.current = data.sectionRefs;
   }
   // A panel that arrives beside the first takes keyboard focus on its first control (I18-003), so tabbing carries on there.
@@ -230,12 +233,12 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   useEffect(() => {
     if (kind === undefined || kind === "go") setPicked(null);
   }, [thisEntry, kind]);
-  // The entry the reader has scrolled away from (the title then names the section in view rather than the address's segment)
-  const [movedFrom, setMovedFrom] = useState<object | null>(null);
+  // The column start (entry.current.id) the reader has scrolled away from: the title then names the section in view
+  const [movedFrom, setMovedFrom] = useState(-1);
   const onSettled = useCallback(
     (ref: string) => {
       setPicked(null);
-      setMovedFrom(entry.current);
+      setMovedFrom(entry.current.id);
       if (asideRef.current.length) setSelection([ref]);
       nav.panelMoved();
       // The address bar always names the verse being read (like the old reader), without moving anything.
@@ -483,11 +486,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [apply, id, newSidebarLang],
   );
 
-  // A stored setting changed from the menu must win over the same setting in the URL. The language is always written to the address,
-  // as the old reader writes `lang=` into every history entry (ReaderApp.updateHistoryState)
+  // A stored setting changed from the menu must win over the same setting in the URL.
   const onChange = (patch: Partial<ReaderSettings>) => {
     update(patch);
-    if (patch.language !== undefined) apply((ws) => updatePanel(ws, id, { lang: languageToParam(patch.language!) }), { replace: true, state: { nav: "stay", panel: id } });
+    if (patch.language !== undefined && panel.lang) apply((ws) => updatePanel(ws, id, { lang: languageToParam(patch.language!) }), { replace: true, state: { nav: "stay", panel: id } });
     if (patch.aliyotTorah !== undefined && panel.aliyot !== undefined) apply((ws) => updatePanel(ws, id, { aliyot: patch.aliyotTorah ? 1 : 0 }), { replace: true, state: { nav: "stay", panel: id } });
   };
 
@@ -622,25 +624,22 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     () => (rangeHighlight ? section.segments.filter((s) => isHighlighted(s.address, rangeHighlight, section.addressTypes)).map((s) => Number(s.address[s.address.length - 1])).filter(Number.isFinite) : []),
     [rangeHighlight, section],
   );
-  // The title names the panel's current ref as the old header does (lib/reader/header.ts titleVerses): the address's segment until
-  // the reader scrolls, then the section in view; a kept range's verses in this section
-  const entrySegment = useMemo(() => {
-    if (movedFrom === entry.current || keepsRange || !entry.current.target) return undefined;
-    const seg = section.segments.find((s) => s.ref === entry.current.target);
-    const n = seg ? Number(seg.address[seg.address.length - 1]) : NaN;
-    return Number.isFinite(n) ? n : undefined;
-  }, [movedFrom, keepsRange, section, entry.current]); // eslint-disable-line react-hooks/exhaustive-deps -- entry.current is replaced (a new object) whenever the column starts over
-  const verses = titleVerses({
-    entrySegment,
-    rangeVerses,
-    talmud: section.addressTypes[section.addressTypes.length - 2] === "Talmud",
-    rangeWithinSection: urlSegments.length > 0 && urlSegments.every((r) => section.segments.some((s) => s.ref === r)),
-    language: settings.language,
-  });
+  // The title names the panel's current ref (lib/reader/header.ts titleVerses): what the address named on arrival (a segment, a range's
+  // verses in this section) until the reader scrolls, then the section in view. Choosing a verse does not change it.
+  const moved = movedFrom === entry.current.id;
+  const arrival = entry.current.arrival;
+  const arrivalVerses = useMemo(() => {
+    const named = new Set(arrival);
+    return section.segments.filter((s) => named.has(s.ref)).map((s) => Number(s.address[s.address.length - 1])).filter(Number.isFinite);
+  }, [arrival, section]);
+  const verses = titleVerses({ moved, arrivalVerses, rangeVerses });
+  // A numbered section's verses follow a colon ("Genesis 1:3"); a named one's, a space ("Pesach Haggadah, Magid, The Four Sons 2")
+  const firstNamed = section.segments.find((s) => arrival.includes(s.ref));
+  const separator = firstNamed && !firstNamed.ref.startsWith(`${section.sectionRef}:`) ? " " : ":";
   const header = headerLabels(narrowToVerses({
     sectionRef: section.sectionRef, heSectionRef: section.heSectionRef, categories: section.categories,
     translationVersion: section.translationVersion, primaryVersion: section.primaryVersion, language: labelMode, interfaceLang,
-  }, verses));
+  }, verses, separator));
   const shownVersions = { he: sidebarSection.primaryVersion?.versionTitle, en: sidebarSection.translationVersion?.versionTitle };
   const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the filter string; `view` is a new object each render
 
