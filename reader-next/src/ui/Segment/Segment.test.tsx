@@ -183,3 +183,20 @@ describe("images", () => {
     expect(screen.getAllByText("When God began to create").length).toBeGreaterThan(0);
   });
 });
+
+// The gutter CSS (Segment.module.css) places the number from these attributes: which sides show, and each side's direction.
+// @feature TXD-045
+describe("attributes the number's placement reads", () => {
+  it("a lone side says which side it is and its direction", () => {
+    const { container } = render(<Segment {...base} translation={undefined} primary={en} />);
+    expect(container.querySelector("[data-sides='primary'] > p > [data-side='primary'][dir='ltr']")).not.toBeNull();
+  });
+  it("a lone Hebrew translation in English mode is marked rtl", () => {
+    const { container } = render(<Segment {...base} translation={{ ...he }} language="english" />);
+    expect(container.querySelector("[data-sides='translation'] > p > [data-side='translation'][dir='rtl']")).not.toBeNull();
+  });
+  it("both sides are marked for side-by-side columns", () => {
+    const { container } = render(<Segment {...base} />);
+    expect(container.querySelectorAll("[data-sides='both'] > p > [data-side]")).toHaveLength(2);
+  });
+});
