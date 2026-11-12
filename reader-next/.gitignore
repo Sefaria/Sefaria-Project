@@ -1,0 +1,34 @@
+node_modules
+.output
+.vinxi
+.tanstack
+dist
+storybook-static
+*.log
+.DS_Store
+coverage
+test-results
+playwright-report
+debug-storybook.log
+docs/features/build/
+
+# e2e API recordings (scripts/api-cassette.mjs): restored from the CI cache, recorded on a fresh checkout
+e2e/.cassette/
+# a local cassette for running the static pages in development (README "Run it")
+.dev-cassette/
+
+# screenshots written by scripts/parity-*.mjs, reference-shots.mjs, app-shots.mjs, story-shots.mjs: local only
+docs/parity/
+docs/compare/
+docs/reference/
+
+# generated from docs/features/features.json by docs/features/tools/build.py
+docs/features/FEATURES.md
+
+# per-machine editor and agent settings
+.claude/
+
+# wrangler: local state and per-machine vars (relay/.dev.vars overrides ALLOWED_ORIGINS for relay:dev)
+.wrangler/
+relay/.wrangler/
+relay/.dev.vars

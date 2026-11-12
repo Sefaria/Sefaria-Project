@@ -3,6 +3,7 @@ import io
 import json
 import os
 import re
+import time
 import zipfile
 from collections import defaultdict
 from dataclasses import asdict
@@ -23,6 +24,7 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import INTERNAL_RESET_SESSION_TOKEN, LoginView, LogoutView, PasswordResetConfirmView
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.cache import cache
 from django.db import transaction
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import redirect, render, resolve_url
@@ -31,7 +33,8 @@ from django.template.response import TemplateResponse
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
 from django.utils.cache import patch_cache_control
-from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.crypto import constant_time_compare
+from django.utils.http import base36_to_int, url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
@@ -188,26 +191,22 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             except (json.JSONDecodeError, ValueError):
                 data = {}
             if data.get("action") == "resend":
-                # dispatch() already resolved self.user from the URL's uidb64
-                # before checking token validity, so the account is known
-                # even though the link itself has expired.
-                if self.user is None:
-                    return jsonResponse(
-                        {
-                            "error": "We couldn't find an account for this link.",
-                            "_auth": {"code": "no_account_for_link"},
-                        },
-                        status=400,
-                    )
-                form = SefariaPasswordResetForm(data={"email": self.user.email})
-                if form.is_valid():
-                    form.save(
-                        request=self.request,
-                        domain_override=self.request.get_host(),
-                        use_https=self.request.is_secure(),
-                        email_template_name="registration/password_reset_email.txt",
-                        html_email_template_name="registration/password_reset_email.html",
-                    )
+                # A new link goes only to the owner of a real link that expired (its token checks out for this
+                # account; only its age fails), at most a few times an hour. Every other request gets the same
+                # answer, sent or not, so the endpoint can't be used to email arbitrary accounts by uid or to
+                # learn which uids exist. A link that was already used, or that a later sign-in or password change
+                # invalidated, gets no email either: its token no longer recomputes for the account. The pages say a link
+                # was requested, not that one was sent.
+                if self._may_resend():
+                    form = SefariaPasswordResetForm(data={"email": self.user.email})
+                    if form.is_valid():
+                        form.save(
+                            request=self.request,
+                            domain_override=self.request.get_host(),
+                            use_https=self.request.is_secure(),
+                            email_template_name="registration/password_reset_email.txt",
+                            html_email_template_name="registration/password_reset_email.html",
+                        )
                 return jsonResponse({})
             return jsonResponse(
                 {
@@ -216,6 +215,12 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
                 },
                 status=400,
             )
+        # The expired-link page offers "Request New Link". The legacy page posts it to the link's own address, so the token
+        # travels with it. The new reader shows the page from the uid/set-password address (its node server redirects there),
+        # so its POST carries no token: remember, in this browser's session and for a short while, that this visitor did hold
+        # a real (expired) token for this account.
+        if self._expired_token_of_user():
+            self.request.session[self.RESEND_PROOF_SESSION_KEY] = {"uid": self.user.pk, "at": int(time.time())}
         return render_template(
             self.request,
             "base.html",
@@ -226,6 +231,59 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             },
             {"title": _("Reset Your Password"), "desc": _("Reset your Sefaria account password.")},
         )
+
+    RESEND_LIMIT = 3  # per account, and per client address, per hour
+    RESEND_WINDOW_SECONDS = 60 * 60
+    RESEND_PROOF_SESSION_KEY = "pw_reset_resend_proof"
+    RESEND_PROOF_MAX_AGE_SECONDS = 60 * 60
+
+    def _expired_token_of_user(self):
+        """Was the link's token a real reset token for this account, now only too old? (check_token without the age limit)"""
+        token = self.kwargs.get("token")
+        if token == self.reset_url_token:
+            token = self.request.session.get(INTERNAL_RESET_SESSION_TOKEN)
+        if not (self.user and token):
+            return False
+        try:
+            ts_b36, _ = token.split("-")
+            ts = base36_to_int(ts_b36)
+        except ValueError:
+            return False
+        generator = self.token_generator
+        return any(
+            constant_time_compare(generator._make_token_with_timestamp(self.user, ts, secret), token)
+            for secret in [generator.secret, *generator.secret_fallbacks]
+        )
+
+    def _under_resend_limit(self):
+        meta = self.request.META
+        # behind Cloudflare and nginx: the visitor's address as Cloudflare saw it (per-account is the real limit; this is best effort)
+        client = (
+            meta.get("HTTP_CF_CONNECTING_IP")
+            or meta.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
+            or meta.get("REMOTE_ADDR", "")
+        )
+        keys = [f"pw-reset-resend:user:{self.user.pk}", f"pw-reset-resend:ip:{client}"]
+        for key in keys:
+            cache.add(key, 0, self.RESEND_WINDOW_SECONDS)
+            try:
+                if cache.incr(key) > self.RESEND_LIMIT:
+                    return False
+            except ValueError:  # evicted between add and incr
+                cache.set(key, 1, self.RESEND_WINDOW_SECONDS)
+        return True
+
+    def _resend_proof_in_session(self):
+        """Did this session open a real (expired) link for this account recently? (see render_to_response)"""
+        proof = self.request.session.get(self.RESEND_PROOF_SESSION_KEY) or {}
+        return (
+            self.user is not None
+            and proof.get("uid") == self.user.pk
+            and time.time() - proof.get("at", 0) <= self.RESEND_PROOF_MAX_AGE_SECONDS
+        )
+
+    def _may_resend(self):
+        return (self._expired_token_of_user() or self._resend_proof_in_session()) and self._under_resend_limit()
 
     def post(self, request, *args, **kwargs):
         # Only reached when dispatch() already confirmed validlink=True.

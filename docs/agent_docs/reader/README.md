@@ -72,7 +72,7 @@ These functions build the data structures that define what the React reader disp
 | `texts_api`            | ~1547 | `/api/texts/<ref>`             | GET/POST text content. The primary text retrieval API        |
 | `index_api`            | ~1892 | `/api/index/<title>`           | GET/POST/DELETE text index (metadata/schema)                 |
 | `links_api`            | ~2163 | `/api/links/<ref>`             | GET/POST/DELETE intertextual links                           |
-| `related_api`          | ~2388 | `/api/related/<ref>`           | All related data for a ref (links, sheets, topics, webpages) |
+| `related_api`          | ~3112 | `/api/related/<ref>`           | All related data for a ref (links, sheets, topics, webpages) |
 | `versions_api`         | ~2432 | `/api/texts/versions/<ref>`    | List available versions for a text                           |
 | `shape_api`            | ~2023 | `/api/shape/<title>`           | Text structure/shape data                                    |
 | `complete_version_api` | ~1722 | `/api/texts/complete-version/` | Batch version data                                           |
@@ -80,18 +80,22 @@ These functions build the data structures that define what the React reader disp
 | `category_api`         | ~2627 | `/api/category/<path>`         | Category metadata CRUD                                       |
 | `modify_bulk_text_api` | ~1504 | `/api/texts/<title>`           | Bulk text modification                                       |
 
+`related_api` takes two lighter modes, used by the new reader (`reader-next/`): `?with_links=0` leaves `links` out (the client has them from `/api/links`), and `?sheets=count` answers `sheets` with only each sheet's id and anchors (`sefaria.sheets.get_sheet_anchors_for_ref`), enough to count them per verse. Without either parameter the answer, and its key order, is unchanged. The answer depends on the URL only, never on the host: Varnish keys `/api/related` on the URL alone. `sefaria/system/varnish/wrapper.py` `invalidate_ref` purges and bans the client's encoded form of these URLs (see [gencache_and_varnish.md](../sefaria/system/gencache_and_varnish.md)).
+
 #### Topic APIs
 
-| Function               | Line  | URL Pattern                 | Purpose                  |
-| ---------------------- | ----- | --------------------------- | ------------------------ |
-| `topics_api`           | ~3459 | `/api/topics/<topic>`       | Topic CRUD               |
-| `topics_list_api`      | ~3357 | `/api/topics/list`          | List topics              |
-| `topic_ref_api`        | ~3610 | `/api/topics/ref/<ref>`     | Topics linked to a ref   |
-| `bulk_topic_api`       | ~3664 | `/api/topics/bulk`          | Batch topic retrieval    |
-| `recommend_topics_api` | ~3679 | `/api/topics/recommend`     | Topic recommendations    |
-| `add_new_topic_api`    | ~3406 | POST `/api/topics/new`      | Create topic             |
-| `topic_graph_api`      | ~3491 | `/api/topics/graph/<topic>` | Topic relationship graph |
-| `reorder_sources`      | ~3641 | POST `/api/topics/reorder`  | Reorder topic sources    |
+| Function                 | Line  | URL Pattern                 | Purpose                                                                                          |
+| ------------------------ | ----- | --------------------------- | ------------------------------------------------------------------------------------------------ |
+| `topics_api`             | ~3459 | `/api/topics/<topic>`       | Topic CRUD                                                                                       |
+| `topics_list_api`        | ~3357 | `/api/topics/list`          | List topics                                                                                      |
+| `topic_ref_api`          | ~3610 | `/api/topics/ref/<ref>`     | Topics linked to a ref                                                                           |
+| `bulk_topic_api`         | ~3664 | `/api/topics/bulk`          | Batch topic retrieval                                                                            |
+| `recommend_topics_api`   | ~3679 | `/api/topics/recommend`     | Topic recommendations                                                                            |
+| `add_new_topic_api`      | ~3406 | POST `/api/topics/new`      | Create topic                                                                                     |
+| `topic_graph_api`        | ~3491 | `/api/topics/graph/<topic>` | Topic relationship graph                                                                         |
+| `reorder_sources`        | ~3641 | POST `/api/topics/reorder`  | Reorder topic sources                                                                            |
+| `topics_toc_api`         | ~2531 | `/api/topics-toc`           | Topics table of contents (the `topic_toc_json` legacy pages carry); not in Varnish's cached list |
+| `num_library_topics_api` | ~2543 | `/api/topics/library-count` | `{"count": N}`, the library topic pool size (`numLibraryTopics` in `base_props`)                 |
 
 #### Search APIs
 
@@ -106,18 +110,25 @@ These functions build the data structures that define what the React reader disp
 
 #### User & Profile APIs
 
-| Function                  | Line  | Purpose                    |
-| ------------------------- | ----- | -------------------------- |
-| `profile_api`             | ~3885 | Profile GET/POST           |
-| `account_user_update`     | ~3942 | Update user account fields |
-| `follow_api`              | ~3164 | Follow/unfollow user       |
-| `block_api`               | ~3196 | Block/unblock user         |
-| `notifications_api`       | ~3104 | Get notifications          |
-| `user_history_api`        | ~4197 | Reading history            |
-| `profile_sync_api`        | ~4049 | Sync user settings/history |
-| `experiments_opt_in_api`  | ~3927 | Opt in/out of experiments  |
-| `delete_user_account_api` | ~4139 | Account deletion           |
-| `profile_upload_photo`    | ~4025 | Profile photo upload       |
+| Function                  | Line  | Purpose                                                                                  |
+| ------------------------- | ----- | ---------------------------------------------------------------------------------------- |
+| `profile_api`             | ~3885 | Profile GET/POST                                                                         |
+| `account_user_update`     | ~3942 | Update user account fields                                                               |
+| `follow_api`              | ~3164 | Follow/unfollow user                                                                     |
+| `block_api`               | ~3196 | Block/unblock user                                                                       |
+| `notifications_api`       | ~3104 | Get notifications                                                                        |
+| `user_history_api`        | ~4197 | Reading history                                                                          |
+| `profile_sync_api`        | ~4049 | Sync user settings/history                                                               |
+| `experiments_opt_in_api`  | ~3927 | Opt in/out of experiments                                                                |
+| `delete_user_account_api` | ~4139 | Account deletion                                                                         |
+| `profile_upload_photo`    | ~4025 | Profile photo upload                                                                     |
+| `reader_choice_api`       | ~5046 | `/api/reader-choice` (Library host only): which reader this browser gets, and the switch |
+| `library_assistant_api`   | ~5015 | `/api/library-assistant`: Library Assistant access and token                             |
+| `segment_history_api`     | ~4743 | `/api/activity/<ref>/<lang>/<version>`: JSON twin of `segment_history`                   |
+
+`reader_choice_api`: GET answers `{available, disabled, canChooseNext, reader, saved}`; POST `{"reader": "classic" | "next"}` (CSRF-protected) sets or clears the `reader_version` cookie and records the choice on the profile; `"next"` is refused (403) outside the opt-in audience or while the kill switch is on. Never cached. See `sefaria/helper/reader_choice.py`. `library_assistant_api`: the same rule and chatbot token as the page props, for clients that do not render through `base_props`; `private, no-store`. `segment_history_api`: signed-in only (401 otherwise), `?type=&page=` in pages of 100, an unknown ref or version is a 404.
+
+`profile_api` POST also accepts `settings.reader_version` on the Library host: normalized, dropped when it is `"next"` and the user may not use the new reader, and, when the deployment offers the choice (`READER_OPTIN`), the response sets or clears the routing cookie (`reader_choice.apply_cookie`).
 
 #### Calendar & Liturgical APIs
 
@@ -129,11 +140,21 @@ These functions build the data structures that define what the React reader disp
 
 #### Infrastructure & Health
 
-| Function                 | Line  | Purpose                                                         |
-| ------------------------ | ----- | --------------------------------------------------------------- |
-| `application_health_api` | ~5120 | `/healthz` -- Checks Redis (via GenCache's client), Node.js, DB |
-| `rollout_health_api`     | ~5104 | `/healthz-rollout` -- Deployment health check                   |
-| `background_data_api`    | ~3216 | Background data loading for client                              |
+| Function                 | Line  | Purpose                                                                                       |
+| ------------------------ | ----- | --------------------------------------------------------------------------------------------- |
+| `application_health_api` | ~6594 | `/healthz` -- Checks Redis (via GenCache's client), Node.js (only while `USE_NODE` is on), DB |
+| `rollout_health_api`     | ~5104 | `/healthz-rollout` -- Deployment health check                                                 |
+| `background_data_api`    | ~3216 | Background data loading for client                                                            |
+
+With `USE_NODE` off (Helm `nodejs.mode: reader`) the node pods are the new reader, which sends `/healthz` back to Django, so `/healthz` skips the Node check rather than wait on itself.
+
+#### Static pages as JSON
+
+`serve_static` (and `digitized_by_sefaria`) answer `?format=json[&lang=en|he]` with the page's content only (title, description, the `{% block content %}` HTML, its stylesheets) for the new reader's own shell; the page rendering itself moved to `_serve_static_page`. The JSON is built by `reader/static_content.py` (`requested(request)`, `respond(...)`): rendered for an anonymous visitor, `Cache-Control: public` only when `lang` is explicit, a 404 `{"standalone": true}` for pages that do not extend `base.html`. A query parameter, not a header, so Varnish and Cloudflare (URL-keyed) never confuse the JSON with the page. Library host only: on Voices `?format=json` is ignored.
+
+#### Browser error beacons
+
+`reader/browser_errors.py` `reader_errors_api`, routed at `/api/reader-errors` in `sefaria/urls_library.py` (Library host only): the new reader's `navigator.sendBeacon` error reports. CSRF-exempt and session-free (it writes only one structured log line on the `reader-browser` logger, no database write), validates a fixed schema, scrubs query strings and email addresses, answers 204 (or 400/405/413/415/429). Rate limited per client address and globally in Django's default cache; the client address is taken from the header the gateway overwrites, never from one the client can append to.
 
 #### Redirects
 
@@ -164,6 +185,10 @@ Called during `runserver` startup. Two functions:
 
 - **`init_sentry_from_settings()`** -- Initializes Sentry error tracking
 - **`init_library_cache()`** -- Warms critical caches: TOC tree, shared cache, autocompleter, lexicon completers, linker. This is why the dev server takes a while to start.
+
+### management/commands/ensure_mongo_indexes.py
+
+`./manage.py ensure_mongo_indexes [--create] [--collection NAME ...]`: lists (default; exit 1 if any) or creates the MongoDB indexes registered in `sefaria/system/database.py` `ensure_indices` that the database lacks. Nothing else creates them. See [database_and_caching.md](../sefaria/system/database_and_caching.md).
 
 ### management/commands/runserver.py
 

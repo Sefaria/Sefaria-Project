@@ -1,0 +1,4 @@
+.page { max-width: 760px; margin: 0 auto; padding: var(--sefaria-space-12) var(--sefaria-space-6); color: var(--sefaria-color-text); }
+.title { margin: 0 0 var(--sefaria-space-5); font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-h2); font-weight: 400; }
+:global([dir="rtl"]) .title { font-family: var(--sefaria-font-text-he); }
+.body { margin: 0; font-size: var(--sefaria-text-serif-body); line-height: 1.5; }

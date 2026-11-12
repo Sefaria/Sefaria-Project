@@ -23,16 +23,74 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Which images to build: web and node (the legacy SSR server, build/node/Dockerfile) always; the new reader client
+  # (sefaria-reader-<branch>, reader-next/Dockerfile with reader-next/ as context, for helm nodejs.mode "optin"/"reader") only when
+  # reader-next/ changed in this push or pull request, or when that cannot be told (a new branch): it is a separate app with its own
+  # build, so other changes do not need a new reader image (its last one, tag latest, stays current).
+  images:
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+    name: "Images to build"
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.pick.outputs.matrix }}
+      nginx_paths: ${{ steps.pick.outputs.nginx_paths }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: pick
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+        run: |
+          reader=true
+          if [ "$EVENT" = pull_request ]; then
+            git fetch -q origin "$BASE_REF" && range="origin/$BASE_REF...HEAD"
+          elif [ -n "$BEFORE" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            range="$BEFORE..$SHA"
+          fi
+          # no pipe here: under pipefail, `git diff --name-only | grep -q` fails whenever grep exits on its first match before git
+          # has finished writing (SIGPIPE), which skipped the reader image exactly when reader-next/ changed. `git diff --quiet`
+          # exits 0 for no change, 1 for a change and >1 on error, so only a clean "no change" skips the image.
+          if [ -n "$range" ] && git diff --quiet $range -- reader-next/; then reader=false; fi
+          # the inputs of build/ci/reader-nginx-paths.mjs (it reads only reader-next/src) and its output
+          nginx_paths=true
+          if [ -n "$range" ] && git diff --quiet $range -- reader-next/src/ build/ci/reader-nginx-paths.mjs \
+            helm-chart/sefaria/templates/_reader-django-paths.tpl; then nginx_paths=false; fi
+          apps='{"app":"web"},{"app":"node"}'
+          if [ "$reader" = true ]; then apps="$apps"',{"app":"reader","context":"./reader-next","dockerfile":"./reader-next/Dockerfile"}'; fi
+          echo "reader image: $reader; nginx paths check: $nginx_paths (${range:-no range})"
+          echo "matrix={\"include\":[$apps]}" >> "$GITHUB_OUTPUT"
+          echo "nginx_paths=$nginx_paths" >> "$GITHUB_OUTPUT"
+  # nginx's copy of the reader's Django paths (helm-chart/sefaria/templates/_reader-django-paths.tpl) must match
+  # reader-next/src/lib/routing/django-paths.ts. Checked only when one of its inputs or the generated file changed (images.pick), so a
+  # stale file can only fail the change that made it stale, never someone else's unrelated pull request. Helm's lint does not run
+  # it: the chart is linted and its routing tested from the checked-in template alone. continuous-branch-protection fails with it.
+  reader-nginx-paths:
+    needs:
+      - images
+    if: ${{ (github.event_name == 'pull_request' || github.event_name == 'push') && needs.images.outputs.nginx_paths == 'true' }}
+    name: "Reader nginx paths are current"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --experimental-strip-types build/ci/reader-nginx-paths.mjs --check
   build-generic:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
     name: "Continuous Image Build"
+    needs:
+      - images
     permissions:
       contents: 'read'
       id-token: 'write'
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        app: [ web, node ]
+      matrix: ${{ fromJSON(needs.images.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up QEMU
@@ -54,15 +112,23 @@ jobs:
           password: '${{ steps.auth.outputs.access_token }}'
       - name: Get branch name
         id: branch-raw
-        uses: tj-actions/branch-names@v5.1
+        uses: tj-actions/branch-names@5250492686b253f06fa55861556d1027b067aeb5 # v9.0.2
       - name: Format branch name
         id: branch-name
-        run: >-
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
-          | awk '{print tolower($0)}'
-          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
-          | sed 's/[^a-z0-9\.\-]//g')
-          >> $GITHUB_OUTPUT
+        # the branch name reaches the script through env, never interpolated into it (a branch name is attacker-chosen text).
+        # Only the branch named exactly master/prod/preprod may write those images (and their latest tag): the sed keeps the middle
+        # segment of a/b/c, so a branch like anything/master/x would otherwise publish sefaria-<app>-master.
+        env:
+          RAW_BRANCH: ${{ steps.branch-raw.outputs.current_branch }}
+        run: |
+          branch=$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|' | sed 's/[^a-z0-9\.\-]//g')
+          case "$branch" in
+            master|prod|preprod)
+              if [ "$RAW_BRANCH" != "$branch" ]; then
+                branch="branch-$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|/|-|g; s/[^a-z0-9\.\-]//g')"
+              fi ;;
+          esac
+          echo "current_branch=$branch" >> "$GITHUB_OUTPUT"
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
@@ -84,11 +150,11 @@ jobs:
         with:
 #         cache-from: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache
 #         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache, mode=max
-          context: .
+          context: ${{ matrix.context || '.' }}
           push: true
           build-args: |
             TYPE=build
-          file: ./build/${{ matrix.app }}/Dockerfile
+          file: ${{ matrix.dockerfile || format('./build/{0}/Dockerfile', matrix.app) }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   build-derived:
@@ -124,15 +190,23 @@ jobs:
           password: '${{ steps.auth.outputs.access_token }}'
       - name: Get branch name
         id: branch-raw
-        uses: tj-actions/branch-names@v5.1
+        uses: tj-actions/branch-names@5250492686b253f06fa55861556d1027b067aeb5 # v9.0.2
       - name: Format branch name
         id: branch-name
-        run: >-
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
-          | awk '{print tolower($0)}'
-          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
-          | sed 's/[^a-z0-9\.\-]//g')
-          >> $GITHUB_OUTPUT
+        # the branch name reaches the script through env, never interpolated into it (a branch name is attacker-chosen text).
+        # Only the branch named exactly master/prod/preprod may write those images (and their latest tag): the sed keeps the middle
+        # segment of a/b/c, so a branch like anything/master/x would otherwise publish sefaria-<app>-master.
+        env:
+          RAW_BRANCH: ${{ steps.branch-raw.outputs.current_branch }}
+        run: |
+          branch=$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|' | sed 's/[^a-z0-9\.\-]//g')
+          case "$branch" in
+            master|prod|preprod)
+              if [ "$RAW_BRANCH" != "$branch" ]; then
+                branch="branch-$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|/|-|g; s/[^a-z0-9\.\-]//g')"
+              fi ;;
+          esac
+          echo "current_branch=$branch" >> "$GITHUB_OUTPUT"
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
@@ -233,15 +307,23 @@ jobs:
           install_components: 'gke-gcloud-auth-plugin'
       - name: Get branch name
         id: branch-raw
-        uses: tj-actions/branch-names@v5.1
+        uses: tj-actions/branch-names@5250492686b253f06fa55861556d1027b067aeb5 # v9.0.2
       - name: Format branch name
         id: branch-name
-        run: >-
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
-          | awk '{print tolower($0)}'
-          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
-          | sed 's/[^a-z0-9\.\-]//g')
-          >> $GITHUB_OUTPUT
+        # the branch name reaches the script through env, never interpolated into it (a branch name is attacker-chosen text).
+        # Only the branch named exactly master/prod/preprod may write those images (and their latest tag): the sed keeps the middle
+        # segment of a/b/c, so a branch like anything/master/x would otherwise publish sefaria-<app>-master.
+        env:
+          RAW_BRANCH: ${{ steps.branch-raw.outputs.current_branch }}
+        run: |
+          branch=$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|' | sed 's/[^a-z0-9\.\-]//g')
+          case "$branch" in
+            master|prod|preprod)
+              if [ "$RAW_BRANCH" != "$branch" ]; then
+                branch="branch-$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|/|-|g; s/[^a-z0-9\.\-]//g')"
+              fi ;;
+          esac
+          echo "current_branch=$branch" >> "$GITHUB_OUTPUT"
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -317,15 +399,23 @@ jobs:
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Get branch name
         id: branch-raw
-        uses: tj-actions/branch-names@v5.1
+        uses: tj-actions/branch-names@5250492686b253f06fa55861556d1027b067aeb5 # v9.0.2
       - name: Format branch name
         id: branch-name
-        run: >-
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
-          | awk '{print tolower($0)}'
-          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
-          | sed 's/[^a-z0-9\.\-]//g')
-          >> $GITHUB_OUTPUT
+        # the branch name reaches the script through env, never interpolated into it (a branch name is attacker-chosen text).
+        # Only the branch named exactly master/prod/preprod may write those images (and their latest tag): the sed keeps the middle
+        # segment of a/b/c, so a branch like anything/master/x would otherwise publish sefaria-<app>-master.
+        env:
+          RAW_BRANCH: ${{ steps.branch-raw.outputs.current_branch }}
+        run: |
+          branch=$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|' | sed 's/[^a-z0-9\.\-]//g')
+          case "$branch" in
+            master|prod|preprod)
+              if [ "$RAW_BRANCH" != "$branch" ]; then
+                branch="branch-$(printf '%s\n' "$RAW_BRANCH" | awk '{print tolower($0)}' | sed 's|/|-|g; s/[^a-z0-9\.\-]//g')"
+              fi ;;
+          esac
+          echo "current_branch=$branch" >> "$GITHUB_OUTPUT"
       - name: Start Job
         run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV
         env:
@@ -407,6 +497,7 @@ jobs:
         if: steps.get-helm.outputs.count > 0
   continuous-branch-protection:
     needs:
+      - reader-nginx-paths
       - build-generic
       - build-derived
       - check-python-files
@@ -424,6 +515,11 @@ jobs:
           if [ "${{ needs.build-generic.result }}" != "success" ] || \
              [ "${{ needs.build-derived.result }}" != "success" ]; then
             echo "One or more build jobs failed"
+            exit 1
+          fi
+          # skipped (no input changed) is fine; failure or cancelled is not
+          if [ "${{ needs.reader-nginx-paths.result }}" = "failure" ] || [ "${{ needs.reader-nginx-paths.result }}" = "cancelled" ]; then
+            echo "Reader nginx paths are stale: run node --experimental-strip-types build/ci/reader-nginx-paths.mjs and commit the result"
             exit 1
           fi
           if [ "${{ github.event.pull_request.draft }}" == "false" ]; then

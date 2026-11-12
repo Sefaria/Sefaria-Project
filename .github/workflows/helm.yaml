@@ -9,6 +9,7 @@ on:
     paths:
       - "helm-chart/**"
       - ".github/workflows/helm.yaml"
+      - "build/ci/reader-nginx-routing.py"
 
 jobs:
   lint:
@@ -27,6 +28,13 @@ jobs:
           version: v3.5.1
       - name: Lint chart
         run: ct lint --charts helm-chart/sefaria
+      # the new reader's nginx routing (reader-next/docs/DEPLOYMENT.md): every nodejs.mode renders a config nginx accepts and
+      # routes as documented. The generated Django paths are checked for freshness in continuous.yaml, only on changes that can
+      # make them stale.
+      - name: Reader nginx routing (legacy, optin, optin with the kill switch, reader)
+        run: |
+          command -v nginx >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq nginx)
+          python3 build/ci/reader-nginx-routing.py --table
 
   chart:
     name: Release Chart

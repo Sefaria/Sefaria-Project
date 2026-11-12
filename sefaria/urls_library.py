@@ -7,6 +7,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 import reader.views as reader_views
 import remote_config.views as remote_config_views
 import sefaria.views as sefaria_views
+from reader import browser_errors
 from sefaria.heapdump import heapdump_view
 from sefaria.settings import DOWN_FOR_MAINTENANCE
 from sefaria.urls_shared import maintenance_patterns, shared_patterns
@@ -47,6 +48,10 @@ urlpatterns = [
     path("visualize/timeline", reader_views.visualize_timeline),
     re_path(r"^visualize/unique-words-by-commentator", reader_views.unique_words_viz),
     re_path(r"^settings/account?$", reader_views.account_settings),
+    # the new reader's switch between readers (Library host only: Voices is untouched)
+    re_path(r"^api/reader-choice/?$", reader_views.reader_choice_api, name="reader_choice_api"),
+    # the new reader's browser error beacons (PUBLIC_ERROR_ENDPOINT; Library host only)
+    re_path(r"^api/reader-errors/?$", browser_errors.reader_errors_api, name="reader_errors_api"),
     path("settings/account/user", reader_views.account_user_update),
     re_path(r"^settings/profile/?$", reader_views.settings_profile_redirect),
     re_path(r"^community/?$", reader_views.community_to_voices_redirect),

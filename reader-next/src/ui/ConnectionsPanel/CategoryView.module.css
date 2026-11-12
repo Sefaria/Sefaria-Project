@@ -1,0 +1,4 @@
+/* VERIFIED on sefaria.org (1280px): the list starts flush under the header; each category is topped by a 4px rule in
+   its colour, 15px in from the panel's edges (wider than the rows' rules, which sit 49px in) */
+.root { margin-top: calc(-1 * var(--sefaria-space-6)); }
+.group { margin-inline: -34px; padding-inline: 34px; border-top: 4px solid var(--_color); }

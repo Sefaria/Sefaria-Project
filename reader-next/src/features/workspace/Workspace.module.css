@@ -1,0 +1,11 @@
+/* Desktop: a fixed-height page; panels sit side by side and scroll on their own. Past the minimum panel
+   width the row scrolls sideways (old panel cap). */
+.workspace { height: 100%; overflow: hidden; }
+
+/* Phone: one panel at a time (the first), and the page scrolls. */
+@media (max-width: 842px) {
+  .workspace { height: auto; overflow: visible; }
+  .workspace > :global([data-direction]) { display: block; overflow: visible; }
+  .workspace > :global([data-direction]) > div { display: block; min-width: 0 !important; }
+  .workspace > :global([data-direction]) > div:not(:first-child) { display: none; }
+}

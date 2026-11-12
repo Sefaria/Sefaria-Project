@@ -1,0 +1,2 @@
+.chooser { display: grid; gap: 6px; }
+.chooser select { box-sizing: border-box; width: 100%; padding: 8px 10px; border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); font: inherit; font-size: 16px; background: var(--sefaria-color-surface); color: inherit; }

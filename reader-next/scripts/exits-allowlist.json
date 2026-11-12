@@ -1,0 +1,27 @@
+{
+  "about": "Accepted ways out of the new reader (owner decision 2026-11-10; docs/DECISIONS.md). scripts/exits-crawl.mjs fails on any same-site link answered by Django that matches none of these. A change that ports a page removes its entry; nothing is added without the owner. `match` is a regular expression on the path and query of the address as linked (or, for a host entry, on the host).",
+  "entries": [
+    { "id": "voices-host", "host": "^(voices|chiburim)\\.", "reason": "Voices is out of scope (owner 2026-11-10): links to the Voices site stay as they are" },
+    { "id": "voices-sheets", "match": "^/sheets(?:[/.?]|$)", "reason": "Voices: a source sheet (www answers 307 to Voices)" },
+    { "id": "voices-sheets-with-ref", "match": "^/sheets-with-ref(?:[/?]|$)", "reason": "Voices: sheets citing a ref" },
+    { "id": "voices-collections", "match": "^/collections(?:[/?]|$)", "reason": "Voices: a collection" },
+    { "id": "voices-profile", "match": "^/profile(?:[/?]|$)", "reason": "Voices: a profile (/contributors/<uid> redirects here)" },
+    { "id": "voices-community", "match": "^/community/?(?:\\?|$)", "reason": "Accepted exit (owner, DECISIONS.md 2026-11-10): /community lands on Voices, which is out of scope" },
+    { "id": "d6-explore", "match": "^/explore(?:[-/?]|$)", "reason": "D-6: Link Explorer stays Django, opens in a new tab" },
+    { "id": "d6-visualizations", "match": "^/(?:visualizations|visualize)(?:[/?]|$)", "reason": "D-6: Visualizations stay Django, open in a new tab" },
+    { "id": "editor-edit", "match": "^/edit/.*[?&]next=", "reason": "Django editor that returns with ?next=" },
+    { "id": "editor-translate", "match": "^/translate/.*[?&]next=", "reason": "Django editor that returns with ?next=" },
+    { "id": "editor-add", "match": "^/add/.*[?&]next=", "reason": "Django editor that returns with ?next=: the book page's Add section (static/js/s1/editor.js goes to ?next= after saving)" },
+    { "id": "editor-admin-reset", "match": "^/admin/reset/(?!(?:cache|counts|toc|ac|linker-resolvers|varnish)(?:/|$))[^/?#]+$", "reason": "Staff tool, only the book page's own form /admin/reset/<title>: Django's reset_ref (sefaria/views.py) redirects back to the book (/<title>?m=Reset-Index), so it needs no ?next=; the other /admin/reset/... tools do not return" },
+    { "id": "editor-topic", "match": "^/topics/[^?]+\\?(?:.*&)?editor=1", "reason": "Moderators' topic editor" },
+    { "id": "settings-account", "match": "^/settings/account(?:[/?]|$)", "reason": "Account settings stay a Django form; the way back is its Cancel (history back, else /texts) and the header, and the switch back to the classic reader is also in the new reader's menus" },
+    { "id": "auth-logout", "match": "^/logout(?:[/?]|$)", "reason": "Signs out and redirects back" },
+    { "id": "static-legacy-react", "match": "^/(?:word-by-word|ramban-sponsorships|contest|powered-by-sefaria-contest-2020|powered-by-sefaria-contest-2021)/?(?:\\?|$)", "reason": "Django's content block is only a mount point for a legacy React page (StaticPages.jsx); not ported yet" },
+    { "id": "static-newsletter", "match": "^/newsletter/?(?:\\?|$)", "reason": "The newsletter sign-up page is a 1,700-line legacy React flow (static/js/NewsletterSignUpPage): its own task" },
+    { "id": "static-metrics", "match": "^/metrics/?(?:\\?|$)", "reason": "/metrics is its own Django view (charts from the database), no content answer (LEG-022)" },
+    { "id": "static-standalone", "match": "^/(?:random-walk-through-torah|cloudflare_site_is_down_en|cloudflare_site_is_down_he|aramaic-translation-contest)/?(?:\\?|$)", "reason": "Whole documents of their own (no content block), and a 2019 contest page whose mailing-list form runs on jQuery" },
+    { "id": "dedication", "match": "^/dedication/", "reason": "Accepted exit (owner, DECISIONS.md 2026-11-10): /dedication/<slug> stays a Django page (dedications app, ADM-056) for this launch" },
+    { "id": "revision-history-pending-django", "match": "^/activity/[^/?#]+/(?:en|he)/[^/?#]+(?:\\?|$)", "added": "2026-11-10", "reason": "Temporary, until the reader-next Django is deployed: the reader renders /activity/<ref>/<lang>/<version> (src/routes/activity.$.tsx) from /api/activity, which production Django does not have yet, so it hands the page to Django. Remove this entry once that Django is deployed" },
+    { "id": "auth-accounts", "match": "^/(?:accounts|_allauth)/", "reason": "Provider sign-in endpoints; they redirect back" }
+  ]
+}

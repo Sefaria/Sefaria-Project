@@ -1,0 +1,15 @@
+/* The old .versionEditForm (s2.css): labels over full-width fields, checkboxes inline, Delete Version on the left, SAVE on the right */
+.form { position: relative; display: grid; gap: var(--sefaria-space-3); padding: var(--sefaria-space-4); border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); font-family: var(--sefaria-font-ui-en); font-size: 14px; color: var(--sefaria-color-text); }
+.field { display: grid; gap: 4px; }
+.field input, .field select, .field textarea { box-sizing: border-box; width: 100%; padding: 6px 8px; border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); font: inherit; }
+.check { display: flex; align-items: center; gap: var(--sefaria-space-2); }
+.check label { order: 2; }
+.close { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; padding: 0; border: 0; background: none; color: var(--sefaria-color-text-secondary); cursor: pointer; }
+.heading { margin: var(--sefaria-space-2) 0 0; font-size: 16px; }
+.actions { display: flex; justify-content: space-between; margin-block-start: var(--sefaria-space-2); }
+.save, .delete { height: 32px; padding: 0 var(--sefaria-space-4); border-radius: var(--sefaria-radius-md); font: inherit; cursor: pointer; }
+.save { border: 0; background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); }
+.delete { border: 1px solid var(--sefaria-color-danger); background: var(--sefaria-color-surface); color: var(--sefaria-color-danger); }
+.save:disabled, .delete:disabled { opacity: 0.6; cursor: progress; }
+.error { color: var(--sefaria-color-danger); }
+.info { color: var(--sefaria-color-text-secondary); }

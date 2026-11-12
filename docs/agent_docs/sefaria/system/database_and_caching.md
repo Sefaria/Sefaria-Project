@@ -14,7 +14,10 @@ Provides the foundational data layer: MongoDB connectivity, a multi-tier caching
 - **Replica set support**: When `MONGO_REPLICASET_NAME` is set (production), connects via a URI with `readPreference=primaryPreferred`. Otherwise uses simple host/port (development).
 - **Test mode**: When `sys._called_from_test` is set (by pytest conftest), connects to `TEST_DB` instead.
 - **Doc build guard**: When `sys._doc_build` is set, `db` is set to an empty string to avoid connecting during documentation generation.
-- **`ensure_indices()`**: Defines all MongoDB indexes for every collection (links, texts, sheets, topics, user_history, etc.). Called during setup/migration. Indexes are defined as `(collection_name, field_spec, kwargs)` triples.
+- **`ensure_indices(active_db=None, collections=None, dry_run=False)`**: The registry of every MongoDB index the code relies on (links, texts, sheets, topics, user_history, marked_up_text_chunks, etc.), as `(collection_name, field_spec, kwargs)` triples. Without `dry_run` it creates them (`create_index` is idempotent); with `dry_run` it only returns the specs. `collections` limits it to some collections. **Nothing calls it at startup, in the Helm chart or in a cron**: indexes are created by hand with the management command below.
+- **`missing_indices(active_db=None, collections=None)`**: The registered specs the database lacks, compared by key only (not by name, and options such as `unique`/`sparse` are not compared).
+- **`create_indices(specs, active_db=None)`**: `create_index` for each spec; a failure is printed and the rest continue.
+- **`./manage.py ensure_mongo_indexes [--create] [--collection NAME ...]`** (`reader/management/commands/ensure_mongo_indexes.py`): lists the missing indexes and exits 1 if there are any; `--create` builds them and checks again. Run it on any database built another way (e.g. restored from a dump): queries that `hint` an index (`expandedRefs_1` in `sefaria/sheets.py` and `sefaria/model/webpage.py`, `ref_1` on `marked_up_text_chunks` in the linker tasks) fail where it is missing.
 
 ### cache.py -- Django Cache Abstraction
 
@@ -71,7 +74,7 @@ Provides the foundational data layer: MongoDB connectivity, a multi-tier caching
 
 ## Common Tasks
 
-- **Add a new MongoDB index**: Add a tuple to the `indices` list in `ensure_indices()` in `database.py`, then run the function.
+- **Add a new MongoDB index**: Add a tuple to the `indices` list in `ensure_indices()` in `database.py`, then run `./manage.py ensure_mongo_indexes` to list what is missing and `--create` to build it in each environment (nothing builds it automatically).
 - **Cache a function result**: Apply `@django_cache(timeout=3600)` to the function. Use `cache_prefix` to namespace keys.
 - **Invalidate cached data by pattern**: Call `invalidate_cache_by_pattern("*pattern*")`. Only works with Redis backends.
 - **Purge Cloudflare for specific URLs**: Use `SefariaCloudflareManager().purge_cloudflare_url(path)` or `purge_batch_cloudflare_urls(files)`.

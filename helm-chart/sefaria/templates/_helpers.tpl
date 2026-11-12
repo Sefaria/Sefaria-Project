@@ -279,3 +279,89 @@ spec:
 {{- end }}
 {{- toYaml $map }}
 {{- end }}
+
+{{/*
+nodejs.mode must be one of legacy, optin, reader. The templates compare it with eq, so any other value (a typo such as "opt-in")
+would otherwise render legacy without a word. Included by templates/values-check.yaml, which renders nothing.
+*/}}
+{{- define "sefaria.checkNodejsMode" -}}
+{{- $mode := .Values.nodejs.mode -}}
+{{- if not (has $mode (list "legacy" "optin" "reader")) -}}
+{{- fail (printf "nodejs.mode must be \"legacy\", \"optin\" or \"reader\", not %q (reader-next/docs/DEPLOYMENT.md)." (toString $mode)) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+The new reader client's image, "<imageRegistry>:<tag>", for its pods in either layout (nodejs.mode "reader" or "optin"). The chart
+refuses to render when the tag is mutable ("latest", or empty, which pulls "latest"): every pod restart would pull whatever was pushed
+to it last (imagePullPolicy Always), and continuous.yaml pushes sefaria-reader-<branch>:latest on every build. Pin an immutable tag
+(the sha-<short sha>-<date> or sha-<short sha> tag continuous.yaml pushes beside latest). reader.allowMutableImage: true is the escape
+for dev environments and cauldrons. Only nodejs.mode "optin" and "reader" render the reader image, so "legacy" is never refused.
+*/}}
+{{- define "sefaria.readerImage" -}}
+{{- $img := .Values.reader.containerImage -}}
+{{- $tag := toString (default "" $img.tag) | trim -}}
+{{- if and (or (eq $tag "") (eq $tag "latest")) (not .Values.reader.allowMutableImage) -}}
+{{- fail (printf "nodejs.mode %q runs the reader image %s with the mutable tag %q. Set reader.containerImage.tag to an immutable tag (a commit sha from continuous.yaml), or, for a dev environment or cauldron only, set reader.allowMutableImage: true (reader-next/docs/DEPLOYMENT.md, \"Images\")." .Values.nodejs.mode $img.imageRegistry (default "" $img.tag | toString)) -}}
+{{- end -}}
+{{- printf "%s:%s" $img.imageRegistry $tag -}}
+{{- end -}}
+
+{{/*
+The new reader client's environment (reader-next/src/lib/config.ts), for its pods in either layout: nodejs.mode "reader" (the node
+pods are the reader) or "optin" (a separate reader rollout beside the legacy node pods). Args: (list $ctx $imageTag).
+*/}}
+{{- define "sefaria.readerEnv" -}}
+{{- $ctx := index . 0 -}}
+{{- $tag := index . 1 -}}
+# reader-next/src/lib/config.ts: the API through this release's Varnish, with the public Host Django routes by
+- name: SEFARIA_API_ORIGIN
+  value: "http://varnish-{{ $ctx.Values.deployEnv }}-{{ $ctx.Release.Revision }}:8040"
+- name: SEFARIA_API_HOST
+  value: {{ printf "www.%s" (tpl (index $ctx.Values.domains.root 0).url $ctx) | quote }}
+- name: PUBLIC_API_ORIGIN
+  value: ""
+- name: PUBLIC_SITE_ORIGIN
+  value: ""
+# canonical and og:url must be absolute (PUBLIC_SITE_ORIGIN is "" on purpose): reader.canonicalOrigin, www.sefaria.org by default
+- name: PUBLIC_CANONICAL_ORIGIN
+  value: {{ tpl $ctx.Values.reader.canonicalOrigin $ctx | quote }}
+# this deployment's Voices (sheets made here live there)
+- name: PUBLIC_VOICES_ORIGIN
+  value: {{ printf "https://voices.%s" (tpl (index $ctx.Values.domains.root 0).url $ctx) | quote }}
+- name: SEFARIA_PASS_THROUGH
+  value: "1"
+- name: PORT
+  value: "3000"
+# the hosts of each interface language, the JSON Django reads (configmap local-settings): the reader's language-domain bounce
+# (reader-next/src/server/language-domain.ts) is inert without it
+- name: DOMAIN_MODULES
+  value: {{ include "config.domainModules" $ctx | fromYaml | toJson | quote }}
+# browser error reports (reader.errors; reader-next/src/lib/config.ts errorEndpoint, errorSampleRate)
+{{- if $ctx.Values.reader.errors.endpoint }}
+- name: PUBLIC_ERROR_ENDPOINT
+  value: {{ $ctx.Values.reader.errors.endpoint | quote }}
+- name: PUBLIC_ERROR_SAMPLE_RATE
+  value: {{ $ctx.Values.reader.errors.sampleRate | toString | quote }}
+{{- end }}
+# analytics IDs and the sign-in providers' public keys, as Django's pages use them (each optional; reader-next/src/lib/config.ts)
+- name: APP_VERSION
+  value: {{ $tag | quote }}
+- name: SIMPLE_ANALYTICS_HOSTNAME
+  value: {{ if eq (toString $ctx.Values.localSettings.DEBUG) "true" }}"sa-dev.sefaria.org"{{ else }}"sefaria.org"{{ end }}
+# the Library Assistant's `origin` ("sefaria-<env>"), as Django's pages send it (configmap local-settings: SENTRY_ENVIRONMENT)
+- name: SENTRY_ENVIRONMENT
+  value: {{ $ctx.Values.deployEnv | quote }}
+{{- /* From the secret the web pods read their settings from (envFrom secrets.localSettings.ref), key by key rather than the whole
+       secret, which also holds database and API credentials the reader has no use for. GOOGLE_GTAG is the GA4 id, GOOGLE_TAG_MANAGER_CODE
+       the GTM container; CHATBOT_API_BASE_URL the Library Assistant's server (reader-next/src/lib/assistant/config.ts); PINNED_IPCOUNTRY
+       the country Django pins the diaspora/Israel choice to (reader-next/src/routes/__root.tsx diasporaFor). */}}
+{{- range list "GOOGLE_TAG_MANAGER_CODE" "GOOGLE_GTAG" "GOOGLE_SSO_CLIENT_ID" "APPLE_SSO_CLIENT_ID" "RECAPTCHA_PUBLIC_KEY" "CHATBOT_API_BASE_URL" "PINNED_IPCOUNTRY" }}
+- name: {{ . }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $ctx.Values.secrets.localSettings.ref }}
+      key: {{ . }}
+      optional: true
+{{- end }}
+{{- end -}}

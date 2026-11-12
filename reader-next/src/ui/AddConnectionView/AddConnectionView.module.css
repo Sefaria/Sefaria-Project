@@ -1,0 +1,4 @@
+.view { display: flex; flex-direction: column; gap: 10px; margin: 0; font-family: var(--sefaria-font-ui-en); }
+.summary { text-align: center; font-family: var(--sefaria-font-text-en, "adobe-garamond-pro", Georgia, serif); font-size: 18px; margin-bottom: 10px; }
+.select { width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1px solid var(--sefaria-color-border, #ccc); border-radius: 6px; background: #fff; font: inherit; font-size: 16px; }
+.error { margin: 0; color: var(--sefaria-color-error, #b3261e); }

@@ -182,6 +182,17 @@ nameService:
 
 
 nodejs:
+  # Which reader the site serves (runbook: reader-next/docs/DEPLOYMENT.md).
+  #  legacy: (default) the node pods run the old SSR server (build/node/Dockerfile, sefaria-node) that Django calls for its first
+  #          paint (USE_NODE). Nothing of the new reader is rendered.
+  #  optin:  the launch topology. The node pods stay legacy, and a second rollout (reader-<env>, values `reader` below) runs the new
+  #          reader client (reader-next/Dockerfile, sefaria-reader). A visitor who chose it in account settings carries the cookie
+  #          `reader_version=next`, and nginx sends their page requests to it; everyone else is served as in legacy.
+  #          `reader.optin.enabled: false` is the kill switch: nginx ignores the cookie and the switch is hidden.
+  #  reader: replace (not deployed anywhere shared): the node pods run the new reader image (`reader.containerImage`),
+  #          nginx sends every page request to it first, and Django's own SSR is switched off (USE_NODE = False).
+  #  Any other value fails the render (templates/values-check.yaml).
+  mode: legacy
   containerImage:
     # Full path of the image registry inclusive of the image name
     imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
@@ -205,6 +216,44 @@ nodejs:
   # Node's non-heap overhead is ~75-100MB, so keep limits.memory >= heapSize + ~200Mi or the
   # container is OOMKilled before V8 reports anything. prod/preprod override this (1250/1500Mi).
   heapSize: 300
+
+# The new reader client (reader-next/). Its image is used by the reader-<env> rollout (nodejs.mode "optin") and by the node pods in
+# nodejs.mode "reader"; the rest of this block is the optin rollout's.
+reader:
+  containerImage:
+    # The image .github/workflows/continuous.yaml pushes for master (sefaria-reader-<branch> in the development project, built from
+    # reader-next/Dockerfile when reader-next/ changes). Nothing builds a production-registry reader image yet: an environment that
+    # runs the reader sets this to its own image (reader-next/docs/DEPLOYMENT.md, "Images").
+    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-reader-master
+    # Mutable on purpose, so nobody runs it by accident: with nodejs.mode "optin" or "reader" the chart refuses to render ("helm
+    # template" fails) while the tag is "latest" or empty, unless allowMutableImage below is true. Set an immutable tag (a
+    # "sha-<short sha>-<date>" or "sha-<short sha>" tag that continuous.yaml pushes for a reviewed master commit).
+    tag: latest
+  # Escape for dev environments and cauldrons only: true lets nodejs.mode "optin"/"reader" run a mutable tag ("latest" or empty),
+  # which every pod restart pulls again (imagePullPolicy Always) and which any build can overwrite. Never in preprod or prod.
+  allowMutableImage: false
+  # Absolute origin of the reader's canonical and og:url links (PUBLIC_CANONICAL_ORIGIN); templated. A cauldron or staging keeps
+  # production's, so search engines are pointed at www.sefaria.org.
+  canonicalOrigin: "https://www.sefaria.org"
+  # Browser error reports (reader-next/src/lib/monitoring/error-reporter.ts): the beacons go to Django's /api/reader-errors on the
+  # page's own origin (reader/browser_errors.py: one log line each, rate limited); sampleRate is the share of page loads that report
+  # (0..1). endpoint "" turns the reports off.
+  errors:
+    endpoint: "/api/reader-errors"
+    sampleRate: "1"
+  optin:
+    # Kill switch (nodejs.mode "optin"): false makes nginx ignore the reader_version cookie, so everyone gets the legacy reader, and
+    # hides the account-settings switch (READER_OPTIN). The reader rollout keeps running. Rollback steps: reader-next/docs/DEPLOYMENT.md.
+    enabled: true
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "768Mi"
+      cpu: "1000m"
+  heapSize: 384
 
 varnish:
   containerImage:

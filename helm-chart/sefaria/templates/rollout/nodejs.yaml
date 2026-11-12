@@ -62,7 +62,12 @@ spec:
           {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       containers:
       - name: node
+        {{- if eq .Values.nodejs.mode "reader" }}
+        # nodejs.mode "reader": the node pods are the new reader client
+        image: {{ include "sefaria.readerImage" . | quote }}
+        {{- else }}
         image: "{{ .Values.nodejs.containerImage.imageRegistry }}:{{ .Values.nodejs.containerImage.tag }}"
+        {{- end }}
         imagePullPolicy: Always
         env:
           - name: randomstringtoforceredeployments
@@ -78,6 +83,9 @@ spec:
           {{- if .Values.datadog.enabled }}
           - name: DD_LOGS_INJECTION
             value: "true"
+          {{- end }}
+          {{- if eq .Values.nodejs.mode "reader" }}
+          {{- include "sefaria.readerEnv" (list . .Values.reader.containerImage.tag) | nindent 10 }}
           {{- end }}
           {{- if .Values.mongo.enabled }}
           - name: MONGO_HOST
@@ -96,4 +104,19 @@ spec:
               optional: true
         ports:
         - containerPort: 3000
+        {{- if eq .Values.nodejs.mode "reader" }}
+        readinessProbe:
+          httpGet:
+            path: /healthz-reader
+            port: 3000
+          periodSeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /healthz-reader
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+        {{- end }}
         resources: {{ toYaml .Values.nodejs.resources | nindent 10 }}

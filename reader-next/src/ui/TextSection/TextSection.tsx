@@ -1,0 +1,142 @@
+import { Fragment, memo, useMemo } from "react";
+import { parashahHeader } from "~/lib/reader/parashah";
+import { showsSegmentNumbers } from "~/lib/reader/labels";
+import {
+  effectiveBiLayout,
+  effectiveLayout,
+  vocalizationMode,
+  type ReaderSettings,
+} from "~/lib/reader/settings";
+import { isHighlighted, type Highlight } from "~/lib/text/plan";
+import type { Segment as SegmentModel, TextPassage } from "~/lib/text/model";
+import { parseHumanRef } from "~/lib/ref/url";
+import { ReaderSurface } from "../ReaderSurface/ReaderSurface";
+import { Segment, type SegmentProps, type SegmentSide } from "../Segment/Segment";
+import { ParashahHeader, SectionTitle } from "../SectionTitle/SectionTitle";
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
+import { hebrewSegmentRef, laterHebrewSectionRef, sectionHeading } from "./section-heading";
+
+export interface TextSectionProps {
+  passage: TextPassage;
+  settings: ReaderSettings;
+  /** Segments to highlight (a verse range from the URL, or the segment whose connections are open). */
+  highlight?: Highlight | null;
+  /** Segment a link pointed at; the column scrolls it into place on arrival. */
+  scrollTargetRef?: string;
+  /** Words a search matched, highlighted in the scroll target segment (SRC-058). */
+  terms?: readonly string[];
+  /** Connections per segment ref; omit while counts load. */
+  linkCounts?: Readonly<Record<string, number>>;
+  /** Panel width in px (for responsive bilingual layout); omit on the server. */
+  panelWidth?: number;
+  inSidebar?: boolean;
+  hideTitle?: boolean;
+  itagCommentator?: string;
+  onSelectSegment?: SegmentProps["onSelect"];
+  onRefClick?: SegmentProps["onRefClick"];
+  onEntityClick?: SegmentProps["onEntityClick"];
+}
+
+/**
+ * A rendered section of text: title, parasha/aliyah headers, and its segments, arranged by the
+ * reader's display settings. The same component serves every book type; behaviour that differs by
+ * type is driven by the passage's metadata (categories, address types, alt structures).
+ *
+ * @feature TXD-010 @feature TXD-012 @feature TXD-043 @feature TXD-045 @feature TXT-002
+ */
+function TextSectionImpl({
+  passage, settings, highlight, scrollTargetRef, terms, linkCounts, panelWidth, inSidebar, hideTitle, itagCommentator,
+  onSelectSegment, onRefClick, onEntityClick,
+}: TextSectionProps) {
+  const ctx = { primaryCategory: passage.primaryCategory, panelWidth, inSidebar };
+  const layout = effectiveLayout(settings, ctx);
+  const biLayout = effectiveBiLayout(settings, ctx);
+  const vocalization = vocalizationMode(settings.vowels);
+  // Talmud punctuation can be removed from the Hebrew side when the reader turns it off.
+  const stripPunctuation = passage.primaryCategory === "Talmud" && !settings.punctuationTalmud && settings.language !== "english";
+  const numbered = showsSegmentNumbers(passage.book, passage.categories);
+  const isDictionary = passage.categories[0] === "Reference";
+  // the regions and verse groups are named in the interface's language: "בראשית א׳", "בראשית א׳:ג׳"
+  const he = useInterfaceLang() === "hebrew";
+
+  const bySection = useMemo(() => {
+    const m = new Map<string, SegmentModel[]>();
+    for (const s of passage.segments) (m.get(s.sectionRef) ?? m.set(s.sectionRef, []).get(s.sectionRef)!).push(s);
+    return m;
+  }, [passage]);
+
+  const primaryMeta = passage.primaryVersion;
+  const translationMeta = passage.translationVersion;
+  // Each segment's sides, built once per passage: inline objects were new on every render and defeated Segment's memo, so a new
+  // section (or a links update) re-rendered every verse already on screen
+  const sides = useMemo(() => {
+    const m = new Map<string, { primary?: SegmentSide; translation?: SegmentSide }>();
+    for (const seg of passage.segments) {
+      m.set(seg.ref, {
+        primary: seg.primary !== undefined && primaryMeta ? { html: seg.primary, lang: primaryMeta.actualLanguage, dir: primaryMeta.direction } : undefined,
+        translation: seg.translation !== undefined && translationMeta ? { html: seg.translation, lang: translationMeta.actualLanguage, dir: translationMeta.direction } : undefined,
+      });
+    }
+    return m;
+  }, [passage, primaryMeta, translationMeta]);
+
+  return (
+    <ReaderSurface language={settings.language} layout={layout} biLayout={biLayout} fontSize={settings.fontSize}>
+      {passage.sectionRefs.map((sectionRef, idx) => {
+        const parsed = parseHumanRef(sectionRef);
+        // as sefaria.org prints it; a later section of a spanning passage has no Hebrew ref of its own: the first's,
+        // with its numbers swapped
+        const heSectionRef = idx === 0 ? passage.heSectionRef : laterHebrewSectionRef({ heSectionRef: passage.heSectionRef, sections: parseHumanRef(passage.sectionRefs[0]!).sections }, parsed.sections, passage.addressTypes, passage.heIndexTitle);
+        const title = sectionHeading({
+          primaryCategory: passage.primaryCategory,
+          sectionRef,
+          heSectionRef,
+          indexTitle: passage.indexTitle,
+          heIndexTitle: passage.heIndexTitle,
+          book: passage.book,
+          isComplex: passage.isComplex,
+          sectionNames: passage.sectionNames,
+          sections: parsed.sections,
+          addressTypes: passage.addressTypes,
+        });
+        const segDepth = parsed.sections.length;
+        return (
+          <section key={sectionRef} data-ref={sectionRef} aria-label={he ? heSectionRef : sectionRef}>
+            {hideTitle || isDictionary || (!title.en && !title.he) ? null : <SectionTitle en={title.en} he={title.he} language={settings.language} />}
+            {(bySection.get(sectionRef) ?? []).map((seg) => {
+              const header = parashahHeader(passage, seg, settings.aliyotTorah);
+              return (
+                <Fragment key={seg.ref}>
+                  {header ? (
+                    <ParashahHeader en={header.en} he={header.he} language={settings.language} aliyah={!header.parashaTitle} />
+                  ) : null}
+                  <Segment
+                    segmentRef={seg.ref}
+                    label={he ? hebrewSegmentRef(heSectionRef, seg.address[segDepth], passage.addressTypes[segDepth]) : undefined}
+                    address={numbered ? seg.address.at(-1) : undefined}
+                    primary={sides.get(seg.ref)?.primary}
+                    translation={sides.get(seg.ref)?.translation}
+                    language={settings.language}
+                    vocalization={vocalization}
+                    stripPunctuation={stripPunctuation}
+                    highlighted={isHighlighted(seg.address, highlight ?? null, passage.addressTypes)}
+                    isScrollTarget={seg.ref === scrollTargetRef}
+                    terms={seg.ref === scrollTargetRef ? terms : undefined}
+                    linkCount={linkCounts ? (linkCounts[seg.ref] ?? 0) : undefined}
+                    itagCommentator={itagCommentator}
+                    onSelect={onSelectSegment}
+                    onRefClick={onRefClick}
+                    onEntityClick={onEntityClick}
+                  />
+                </Fragment>
+              );
+            })}
+          </section>
+        );
+      })}
+    </ReaderSurface>
+  );
+}
+
+/** Memoised: adding a section to the column never re-renders the sections already there. */
+export const TextSection = memo(TextSectionImpl);

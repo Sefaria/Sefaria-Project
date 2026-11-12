@@ -215,7 +215,13 @@ data:
     SEARCH_INDEX_NAME_BOOK = os.getenv("SEARCH_INDEX_NAME_BOOK", "book")
     SEARCH_INDEX_NAME_CATEGORY = os.getenv("SEARCH_INDEX_NAME_CATEGORY", "category")
     
-    USE_NODE = True
+    {{/* nodejs.mode "reader": the node pods are the new client, which sends requests to Django rather than rendering for it */ -}}
+    USE_NODE = {{ if eq .Values.nodejs.mode "reader" }}False{{ else }}True{{ end }}
+    {{- if eq .Values.nodejs.mode "optin" }}
+    # nodejs.mode "optin": account settings offer the new reader (its cookie routes page requests to it at nginx), unless the kill
+    # switch reader.optin.enabled is off (then nginx ignores the cookie and the switch is hidden: reader-next/docs/DEPLOYMENT.md)
+    READER_OPTIN = {{ if .Values.reader.optin.enabled }}True{{ else }}False{{ end }}
+    {{- end }}
     NODE_HOST = "http://{}:3000".format(nodejsHost)
     NODE_TIMEOUT = 5
     FAIL_IF_NODE_SSR_UNAVAILABLE = False   # set to True for debugging purposes only if USE_NODE

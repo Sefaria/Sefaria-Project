@@ -1,0 +1,34 @@
+{
+ "path": "/strategy",
+ "lang": "en",
+ "title": "Sefaria Strategy",
+ "description": "",
+ "html": "<div id=\"strategy\" class=\"biReady\">\n\n  <div id=\"deckBox\">\n    <iframe class=\"deck en\" src=\"https://docs.google.com/viewer?url=http%3A%2F%2Fwww.sefaria.org%2Fstatic%2Ffiles%2FSefaria.Deck.v3.for.web.pdf&embedded=true\" width=\"100%\" height=\"680\"></iframe>\n\n    <iframe class=\"deck he\" src=\"https://docs.google.com/viewer?url=http%3A%2F%2Fwww.sefaria.org%2Fstatic%2Ffiles%2FSefaria.Deck.Hebrew.v1.for.web.pdf&embedded=true\" width=\"100%\" height=\"680\"></iframe>\n  </div>\n\n<h2>Make a Donation</h2>\n<div>Sefaria is a 501(c)(3) charitable organization; donations are tax-deductible as allowed by law.</div>\n<a id=\"donateButton\" class=\"btn btn-large btn-primary\" href=\"/donate\">Donate to Sefaria</a>\n</div>\n\n\n<div id=\"overlay\"></div>",
+ "css": [
+  "/static/css/static.css?v=0c99bbc2"
+ ],
+ "inlineCss": "html, body {\n    height: auto;\n    overflow-x: hidden;\n  }\n  #languageToggle {\n    display: inline;\n  }\n  #languageToggle #bilingual {\n    display: none;\n  }",
+ "baseCss": [
+  "/static/css/common.css?v=305af3bd",
+  "/static/font-awesome/css/font-awesome.css?v=151bd7ea",
+  "/static/css/fonts.css?v=a59e92d4",
+  "/static/css/header.css?v=94d8702a",
+  "/static/css/popover.css?v=90bfaaa4",
+  "/static/css/breakpoints.css?v=a38385e0",
+  "/static/css/keyboard.css?v=2c0640d3",
+  "/static/css/font-faces.css?v=8d5bcc01",
+  "/static/css/color-palette.css?v=51569dd8",
+  "/static/css/themes/library-theme.css?v=75488c0c",
+  "/static/css/themes/sheets-theme.css?v=ac584759",
+  "/static/css/common-components.css?v=0de1860f",
+  "/static/css/common-component.css?v=c7b2475e",
+  "/static/css/auth.css?v=b5f43058",
+  "/static/css/s2.css?v=798c0cdb",
+  "/static/css/cookies-notification.css?v=5f0dbbcd",
+  "/static/css/library-assistant.css?v=6b484388",
+  "/static/css/lexicon-edit.css?v=eb309c33",
+  "/static/css/unbounce-banner.css?v=7cb47188"
+ ],
+ "bodyClass": "interface-english",
+ "hasScript": true
+}

@@ -1,0 +1,474 @@
+<title>Sefaria Client Feature Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: library catalog — a shelf list of areas on the left, call-numbered feature cards on the right, overview ledger on top. */
+:root {
+  --paper: #F4F6F8;
+  --surface: #FFFFFF;
+  --ink: #16212E;
+  --muted: #5A6574;
+  --line: #DCE1E7;
+  --accent: #1D3F66;
+  --accent-soft: #E4EBF4;
+  --on-accent: #FFFFFF;
+  --core: #1D3F66;
+  --standard: #2C7472;
+  --optional: #858C96;
+  --retire: #A5463A;
+  --live: #2E7A4E;
+  --legacy: #A8730E;
+  --unused: #7A8390;
+  --broken: #B1372D;
+  --branch: #6A4E9E;
+  --flag-bg: #FBEDEA;
+  --flag-ink: #8F2F25;
+  --display: "Frank Ruhl Libre", "Times New Roman", Georgia, serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0F151C; --surface: #161F29; --ink: #E5EAF0; --muted: #98A4B2; --line: #283340;
+    --accent: #8FB4E3; --accent-soft: #1D2B3B; --on-accent: #0F151C;
+    --core: #8FB4E3; --standard: #69C0BB; --optional: #98A1AB; --retire: #E2887C;
+    --live: #6CC491; --legacy: #E2B14E; --unused: #98A1AB; --broken: #EE7A6F; --branch: #B49DE2;
+    --flag-bg: #3A2421; --flag-ink: #F3B1A8; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0F151C; --surface: #161F29; --ink: #E5EAF0; --muted: #98A4B2; --line: #283340;
+  --accent: #8FB4E3; --accent-soft: #1D2B3B; --on-accent: #0F151C;
+  --core: #8FB4E3; --standard: #69C0BB; --optional: #98A1AB; --retire: #E2887C;
+  --live: #6CC491; --legacy: #E2B14E; --unused: #98A1AB; --broken: #EE7A6F; --branch: #B49DE2;
+  --flag-bg: #3A2421; --flag-ink: #F3B1A8; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font: 14px/1.5 var(--body); padding-inline: 16px; padding-block: 0 48px; }
+a { color: var(--accent); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1280px; margin: 0 auto; }
+
+header.top { padding-block: 32px 20px; display: grid; gap: 10px; }
+.eyebrow { font: 500 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font: 700 clamp(28px, 4vw, 40px)/1.1 var(--display); margin: 0; text-wrap: balance; }
+.lede { max-width: 72ch; color: var(--muted); margin: 0; }
+.lede b { color: var(--ink); font-weight: 600; }
+
+.ledger { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; }
+.totals { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: baseline; }
+.total { display: grid; gap: 2px; }
+.total .n { font: 700 26px/1 var(--display); font-variant-numeric: tabular-nums; }
+.total .l { font-size: 12px; color: var(--muted); }
+.tierbar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--line); }
+.tierbar span { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--muted); }
+.legend b { color: var(--ink); font-weight: 600; }
+.sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.t-core { background: var(--core); } .t-standard { background: var(--standard); } .t-optional { background: var(--optional); } .t-retire { background: var(--retire); }
+
+.overview-wrap { overflow-x: auto; }
+table.overview { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 620px; }
+.overview th, .overview td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--line); }
+.overview th { font: 500 11px/1.2 var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.overview td.num { font-variant-numeric: tabular-nums; text-align: right; width: 64px; }
+.overview th.num { text-align: right; }
+.overview tr.domain td { font: 600 12px/1.2 var(--body); color: var(--muted); padding-top: 14px; border-bottom: none; }
+.overview tr.arow { cursor: pointer; }
+.overview tr.arow:hover td { background: var(--accent-soft); }
+.overview .mini { width: 140px; }
+.overview .mini .tierbar { height: 7px; }
+.ovtoggle { justify-self: start; background: none; border: none; padding: 0; color: var(--accent); cursor: pointer; font-size: 13px; }
+
+.layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; margin-top: 20px; align-items: start; }
+nav.shelf { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - 24px); overflow-y: auto; padding-right: 4px; }
+.shelf h3 { font: 500 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 16px 0 6px; }
+.shelf button { display: flex; justify-content: space-between; gap: 8px; width: 100%; text-align: left; background: none; border: none; padding: 5px 8px; border-radius: 6px; cursor: pointer; color: var(--ink); }
+.shelf button:hover { background: var(--accent-soft); }
+.shelf button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.shelf .c { font: 12px var(--mono); opacity: .75; font-variant-numeric: tabular-nums; }
+.areaselect { display: none; }
+
+.toolbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--paper); padding-block: 10px; display: grid; gap: 8px; border-bottom: 1px solid var(--line); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.search { flex: 1 1 260px; min-width: 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.chipset { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.chipset .lab { font: 500 10px/1 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-right: 4px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); font-weight: 500; }
+.chip[aria-pressed="false"] { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
+select.sm { padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font-size: 12px; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.toast { font-size: 12px; color: var(--live); }
+
+section.area { margin-top: 26px; }
+section.area > h2 { font: 700 22px/1.2 var(--display); margin: 0; }
+section.area > .adesc { color: var(--muted); margin: 2px 0 8px; font-size: 13px; }
+h4.group { font: 500 11px/1 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 18px 0 6px; }
+.feats { display: grid; gap: 6px; }
+article.feat { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+article.feat.hit { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.fh { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; gap: 4px 12px; width: 100%; text-align: left; background: none; border: none; padding: 10px 12px; cursor: pointer; align-items: start; }
+.fid { font: 500 12px/1.6 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.fname { font-weight: 600; }
+.fsum { grid-column: 2 / 4; color: var(--muted); font-size: 13px; }
+.pills { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.pill { font: 500 11px/1 var(--body); padding: 3px 7px; border-radius: 4px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.tier-core { background: var(--core); border-color: var(--core); color: var(--on-accent); }
+.pill.tier-standard { color: var(--standard); }
+.pill.tier-optional { color: var(--optional); }
+.pill.tier-retire { color: var(--retire); border-style: dashed; }
+.pill.st { border: none; padding-left: 0; display: inline-flex; align-items: center; gap: 5px; color: var(--muted); }
+.pill.st::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.st-live { color: var(--live) !important; } .st-legacy { color: var(--legacy) !important; } .st-unused { color: var(--unused) !important; } .st-broken { color: var(--broken) !important; } .st-branch-only { color: var(--branch) !important; }
+.pill.meta { border-color: var(--line); color: var(--muted); }
+.pill.flag { background: var(--flag-bg); color: var(--flag-ink); border-color: transparent; }
+.fbody { padding: 0 12px 12px 108px; display: grid; gap: 10px; }
+.fbody ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.fbody li { overflow-wrap: anywhere; }
+.fbody li.flagged { background: var(--flag-bg); color: var(--flag-ink); border-radius: 4px; padding: 2px 6px; list-style-position: inside; margin-left: -18px; }
+.tag { font: 600 10px/1 var(--mono); letter-spacing: .05em; margin-right: 4px; }
+.refs { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 12px var(--mono); }
+.refs a, .refs span { overflow-wrap: anywhere; }
+.src { font-size: 12px; color: var(--muted); }
+.src code { font-family: var(--mono); }
+.empty { padding: 40px 0; color: var(--muted); text-align: center; }
+.copybox { width: 100%; height: 120px; font: 12px var(--mono); }
+footer { margin-top: 40px; font-size: 12px; color: var(--muted); }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  nav.shelf { display: none; }
+  .areaselect { display: block; }
+  .fh { grid-template-columns: minmax(0, 1fr); }
+  .fsum { grid-column: 1; }
+  .pills { justify-content: flex-start; }
+  .fbody { padding-left: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+.pill.rb-done { color: var(--core); border-color: var(--core); }
+.pill.rb-partial { color: var(--standard); }
+.pill.rb-todo, .pill.rb-deferred { color: var(--optional); }
+.pill.rb-replaced, .pill.rb-n\/a { color: var(--retire); border-style: dashed; }
+.rbbtn[aria-pressed="true"] { outline: 2px solid var(--core); }
+.st-rebuild-only { border-style: dotted; }
+.rebuildline { margin: 8px 0 0; color: var(--muted, inherit); }
+.rebuildline button { font: inherit; }
+#changelog { margin: 48px 0 24px; }
+#changelog h2 { font-size: 1.25rem; }
+#changelog h3 { font-size: 1rem; margin-top: 1.5em; }
+#changelog li { margin: 4px 0; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Sefaria-Project · client rebuild · commit <span id="sha"></span></div>
+    <h1>Sefaria Client Feature Atlas</h1>
+    <p class="lede">Every feature the current web client offers, read from source, and the source of truth for the rebuild: corrections found while rebuilding are folded in and logged under <a href="#changelog">Changes</a>. <b>Product</b> can scan names, summaries and proposed tiers. <b>Engineering</b> can open any card for the exact rules, edge cases and code lines. Tiers are a proposal from the code read, not a decision.</p>
+  </header>
+
+  <div class="ledger" id="ledger"></div>
+  <p class="rebuildline" id="rebuildLine"></p>
+
+  <div class="layout">
+    <nav class="shelf" id="shelf" aria-label="Areas"></nav>
+    <main>
+      <div class="toolbar">
+        <div class="row">
+          <label class="areaselect" for="areaSel"><span class="eyebrow">Area</span>
+            <select id="areaSel" class="sm"></select></label>
+          <input id="q" class="search" type="search" placeholder="Search features, rules, files… e.g. Talmud, aliyot, ?with=, ReaderPanel.jsx" aria-label="Search features">
+        </div>
+        <div class="row">
+          <div class="chipset" id="tierChips"><span class="lab">Tier</span></div>
+          <div class="chipset" id="statusChips"><span class="lab">Status</span></div>
+        </div>
+        <div class="row">
+          <label class="chipset"><span class="lab">Audience</span><select id="aud" class="sm"></select></label>
+          <label class="chipset"><span class="lab">Platform</span><select id="plat" class="sm"></select></label>
+          <button class="chip" id="flags" aria-pressed="false" type="button">Bugs, dead code &amp; security only</button>
+          <button class="btn" id="expand" type="button">Expand all</button>
+          <button class="btn" id="copyMd" type="button">Copy as Markdown</button>
+          <button class="btn" id="copyCsv" type="button">Copy as CSV</button>
+          <button class="btn" id="reset" type="button">Reset</button>
+          <span class="count" id="count" aria-live="polite"></span>
+          <span class="toast" id="toast" aria-live="polite"></span>
+        </div>
+        <textarea id="copybox" class="copybox" hidden aria-label="Copied text"></textarea>
+      </div>
+      <div id="list"></div>
+    </main>
+  </div>
+  <footer id="foot"></footer>
+  <section id="changelog" aria-labelledby="changelogTitle">__CHANGELOG__</section>
+</div>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(function () {
+  const SHA = "__SHA__";
+  const REPO = "https://github.com/Sefaria/Sefaria-Project/blob/" + SHA + "/";
+  const DATA = JSON.parse(document.getElementById("data").textContent);
+  const CHANGELOG = document.getElementById("changelog-src") ? document.getElementById("changelog-src").innerHTML : "";
+
+  const DOMAINS = [
+    ["Reader", [
+      ["reader-shell", "Reader shell & panels", "Multi-panel reader, panel modes, compare, layout, focus and keyboard"],
+      ["text-display", "Text display & reading settings", "How text renders and every reading setting: language, layout, font, vowels, aliyot, punctuation"],
+      ["text-types", "Text types & special cases", "Treatment keyed on category, title or structure: Talmud, Tanakh, Torah, Mishnah, liturgy, dictionaries, complex schemas"],
+      ["connections", "Connections & resources sidebar", "Commentary and links, filters, sheets, topics, web pages, manuscripts, media, lexicon, notes, share, tools"],
+      ["versions", "Versions & translations", "Choosing versions per language, version info, translation preferences"]]],
+    ["Library & discovery", [
+      ["library-nav", "Library navigation", "Texts home, categories, table-of-contents browsing, sidebar modules"],
+      ["book-pages", "Book pages", "Index pages: contents tabs, alternate structures, about, downloads"],
+      ["topics", "Topics", "Topics landing, topic pages, authors, topic sources and sheets"],
+      ["calendars", "Calendars", "Learning schedules, parasha, daily learning"],
+      ["search", "Search & autocomplete", "Search page, filters, results, header autocomplete, in-book and dictionary search"]]],
+    ["Voices (sheets & community)", [
+      ["sheets-view", "Sheets: viewing", "Reading source sheets, sheets home, sheets citing a text"],
+      ["sheets-editor", "Sheets: editing & publishing", "Creating and editing sheets, autosave, publishing"],
+      ["collections", "Collections", "Collection pages, membership, editing, public listing"],
+      ["profile-social", "Profiles & social", "Profiles, following, user stats"],
+      ["user-library", "Saved, history & notes", "Saved items, reading history, personal notes"],
+      ["notifications", "Notifications & email", "Notifications panel, digests, system emails"]]],
+    ["Site & accounts", [
+      ["global-ui", "Global UI", "Site header and footer, module switcher, shared components, modals, cookie notice"],
+      ["accounts", "Accounts & sign-in", "Login, register, SSO, One Tap, password reset, account settings"],
+      ["promotions", "Promotions & CMS", "Strapi banners, modals, sidebar ads, newsletter, donate"],
+      ["static-pages", "Static pages", "About, team, jobs and other content pages"],
+      ["i18n-a11y", "Language & accessibility", "Hebrew/English interface, RTL, language domains, accessibility"],
+      ["ai", "AI features", "Library Assistant chatbot, AI translation POC, AI disclosure"]]],
+    ["Platform", [
+      ["routing", "URLs & routing", "Every URL, query parameter, redirect and history rule"],
+      ["platform-seo", "SSR, SEO & platform", "Server rendering, meta tags, sitemaps, manifest, app deep links, caching, cron"],
+      ["api-data", "Public API & data exports", "API endpoints the client and third parties depend on, downloads"],
+      ["analytics", "Analytics", "GA4 events, impressions, tracking infrastructure"],
+      ["linker-embeds", "Linker & embeds", "Third-party citation linker, embeds, share images"]]],
+    ["Internal & legacy", [
+      ["admin-tools", "Admin & moderator tools", "Modtools, inline editors, linker admin, ops pages"],
+      ["legacy-pages", "Legacy pages", "Old-stack pages still served: visualizations, diff tool, old editors, Django templates"]]]
+  ];
+  const AREA = {}; const AREA_ORDER = [];
+  DOMAINS.forEach(([dn, list]) => list.forEach(([k, label, desc]) => { AREA[k] = { label, desc, domain: dn }; AREA_ORDER.push(k); }));
+
+  const TIERS = [["core", "Core"], ["standard", "Standard"], ["optional", "Optional"], ["retire", "Retire"]];
+  const TIER_HELP = { core: "Can't launch without it", standard: "Expected for parity, can follow core", optional: "Niche or worth rethinking", retire: "Unused, broken or superseded" };
+  const RBL = { done: "Rebuilt", partial: "Partly rebuilt", todo: "Not yet", replaced: "Replaced", deferred: "Deferred", "n/a": "Not applicable" };
+  const STATUSES = [["live", "Live"], ["legacy", "Legacy stack"], ["unused", "Unused"], ["broken", "Broken"], ["branch-only", "Branch only"], ["rebuild-only", "Rebuild only"]];
+  const AUDS = ["all", "signed-in", "owner", "moderator", "staff", "third-party", "system"];
+  const PLATS = ["all", "desktop", "mobile"];
+  const FLAG_RE = /^(BUG|DEAD|SECURITY):\s*/;
+
+  DATA.forEach(f => {
+    f.flags = f.details.filter(d => FLAG_RE.test(d)).length;
+    f.hay = [f.id, f.name, f.summary, f.group, f.details.join(" "), f.refs.join(" "), f.src].join(" ").toLowerCase();
+  });
+  DATA.sort((a, b) => AREA_ORDER.indexOf(a.area) - AREA_ORDER.indexOf(b.area));
+  const byId = Object.fromEntries(DATA.map(f => [f.id, f]));
+
+  const DEF = () => ({ rebuilt: "", q: "", area: "all", tiers: TIERS.map(t => t[0]), statuses: STATUSES.map(s => s[0]), aud: "any", plat: "any", flags: false });
+  let S = DEF();
+  try { const saved = JSON.parse(localStorage.getItem("atlas-filters") || "null"); if (saved) S = Object.assign(DEF(), saved); } catch (e) {}
+  const save = () => { try { localStorage.setItem("atlas-filters", JSON.stringify(S)); } catch (e) {} };
+  let expandAll = false;
+  const open = new Set();
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const $ = id => document.getElementById(id);
+
+  // ---------- ledger ----------
+  function tierBar(list) {
+    const n = list.length || 1;
+    return '<div class="tierbar" role="img" aria-label="' + TIERS.map(([t, l]) => l + " " + list.filter(f => f.tier === t).length).join(", ") + '">' +
+      TIERS.map(([t]) => { const c = list.filter(f => f.tier === t).length; return c ? '<span class="t-' + t + '" style="width:' + (100 * c / n) + '%"></span>' : ""; }).join("") + "</div>";
+  }
+  function renderLedger() {
+    const flags = DATA.reduce((a, f) => a + f.flags, 0);
+    const behaviors = DATA.reduce((a, f) => a + f.details.length, 0);
+    const tot = (n, l) => '<div class="total"><span class="n">' + n.toLocaleString() + '</span><span class="l">' + l + "</span></div>";
+    let h = '<div class="totals">' + tot(DATA.length, "features") + tot(behaviors, "documented behaviors") + tot(AREA_ORDER.length, "areas") +
+      TIERS.map(([t, l]) => tot(DATA.filter(f => f.tier === t).length, l + " (proposed)")).join("") + tot(flags, "bug / dead / security notes") + "</div>";
+    h += tierBar(DATA);
+    h += '<div class="legend">' + TIERS.map(([t, l]) => '<span><i class="sw t-' + t + '"></i><b>' + l + "</b> · " + TIER_HELP[t] + "</span>").join("") + "</div>";
+    h += '<div class="legend">' + STATUSES.map(([s, l]) => '<span class="pill st st-' + s + '">' + l + "</span>").join("") +
+      '<span>Legacy stack = served by Django templates, jQuery or the old CKEditor sheet editor</span></div>';
+    h += '<button class="ovtoggle" id="ovt" type="button" aria-expanded="false">Show breakdown by area</button>';
+    h += '<div class="overview-wrap" id="ovw" hidden><table class="overview"><thead><tr><th>Area</th><th class="num">Features</th>' +
+      TIERS.map(([, l]) => '<th class="num">' + l + "</th>").join("") + '<th class="num">Flags</th><th>Tier mix</th></tr></thead><tbody>';
+    DOMAINS.forEach(([dn, list]) => {
+      h += '<tr class="domain"><td colspan="8">' + esc(dn) + "</td></tr>";
+      list.forEach(([k, label]) => {
+        const fs = DATA.filter(f => f.area === k);
+        h += '<tr class="arow" data-area="' + k + '" tabindex="0"><td>' + esc(label) + '</td><td class="num">' + fs.length + "</td>" +
+          TIERS.map(([t]) => '<td class="num">' + fs.filter(f => f.tier === t).length + "</td>").join("") +
+          '<td class="num">' + fs.reduce((a, f) => a + f.flags, 0) + '</td><td class="mini">' + tierBar(fs) + "</td></tr>";
+      });
+    });
+    h += "</tbody></table></div>";
+    $("ledger").innerHTML = h;
+    $("ovt").onclick = () => { const w = $("ovw"); w.hidden = !w.hidden; $("ovt").setAttribute("aria-expanded", String(!w.hidden)); $("ovt").textContent = w.hidden ? "Show breakdown by area" : "Hide breakdown by area"; };
+    $("ledger").querySelectorAll("tr.arow").forEach(tr => {
+      const go = () => { S.area = tr.dataset.area; update(); $("list").scrollIntoView({ block: "start" }); };
+      tr.onclick = go; tr.onkeydown = e => { if (e.key === "Enter") go(); };
+    });
+  }
+
+  // ---------- controls ----------
+  function renderControls() {
+    const counts = k => DATA.filter(f => f.area === k).length;
+    let sh = '<button type="button" data-area="all" aria-pressed="' + (S.area === "all") + '"><span>All areas</span><span class="c">' + DATA.length + "</span></button>";
+    DOMAINS.forEach(([dn, list]) => {
+      sh += "<h3>" + esc(dn) + "</h3>";
+      list.forEach(([k, label]) => { sh += '<button type="button" data-area="' + k + '" aria-pressed="' + (S.area === k) + '"><span>' + esc(label) + '</span><span class="c">' + counts(k) + "</span></button>"; });
+    });
+    $("shelf").innerHTML = sh;
+    $("shelf").querySelectorAll("button").forEach(b => b.onclick = () => { S.area = b.dataset.area; update(); window.scrollTo({ top: $("list").offsetTop - 120 }); });
+    $("areaSel").innerHTML = '<option value="all">All areas</option>' + DOMAINS.map(([dn, list]) => '<optgroup label="' + esc(dn) + '">' + list.map(([k, l]) => '<option value="' + k + '">' + esc(l) + "</option>").join("") + "</optgroup>").join("");
+    $("areaSel").value = S.area;
+    $("areaSel").onchange = e => { S.area = e.target.value; update(); };
+
+    const chips = (el, items, key) => {
+      el.querySelectorAll(".chip").forEach(c => c.remove());
+      items.forEach(([v, l]) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = l;
+        b.setAttribute("aria-pressed", String(S[key].includes(v)));
+        b.onclick = () => { S[key] = S[key].includes(v) ? S[key].filter(x => x !== v) : S[key].concat(v); update(); };
+        el.appendChild(b);
+      });
+    };
+    chips($("tierChips"), TIERS, "tiers");
+    chips($("statusChips"), STATUSES, "statuses");
+    $("aud").innerHTML = '<option value="any">Any</option>' + AUDS.map(a => '<option>' + a + "</option>").join("");
+    $("plat").innerHTML = '<option value="any">Any</option>' + PLATS.map(a => '<option>' + a + "</option>").join("");
+    $("aud").value = S.aud; $("plat").value = S.plat;
+    $("flags").setAttribute("aria-pressed", String(S.flags));
+    if ($("q").value !== S.q) $("q").value = S.q;
+  }
+  $("q").addEventListener("input", e => { S.q = e.target.value; clearTimeout(window.__t); window.__t = setTimeout(update, 120); });
+  $("aud").onchange = e => { S.aud = e.target.value; update(); };
+  $("plat").onchange = e => { S.plat = e.target.value; update(); };
+  $("flags").onclick = () => { S.flags = !S.flags; update(); };
+  $("reset").onclick = () => { S = DEF(); open.clear(); expandAll = false; update(); };
+  $("expand").onclick = () => { expandAll = !expandAll; open.clear(); update(); };
+
+  // ---------- filtering ----------
+  function filtered() {
+    const terms = S.q.toLowerCase().split(/\s+/).filter(Boolean);
+    return DATA.filter(f =>
+      (S.area === "all" || f.area === S.area) &&
+      S.tiers.includes(f.tier) && S.statuses.includes(f.status) &&
+      (S.aud === "any" || f.audience === S.aud) && (S.plat === "any" || f.platform === S.plat) &&
+      (!S.flags || f.flags > 0 || f.status === "broken" || f.status === "unused") &&
+      (!S.rebuilt || S.rebuilt === f.rb) &&
+      terms.every(t => f.hay.includes(t)));
+  }
+
+  // ---------- list ----------
+  function refHtml(r) {
+    const m = /^([\w.\-\/]+\.[\w]+|[\w.\-\/]+\/)(?::(\d+)(?:\s*[-–]\s*(\d+))?)?$/.exec(r.trim());
+    if (!m) return "<span>" + esc(r) + "</span>";
+    let url = REPO + m[1];
+    if (m[2]) url += "#L" + m[2] + (m[3] ? "-L" + m[3] : "");
+    return '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(r) + "</a>";
+  }
+  function bodyHtml(f) {
+    const lis = f.details.map(d => {
+      const m = FLAG_RE.exec(d);
+      return m ? '<li class="flagged"><span class="tag">' + m[1] + "</span>" + esc(d.replace(FLAG_RE, "")) + "</li>" : "<li>" + esc(d) + "</li>";
+    }).join("");
+    return (lis ? "<ul>" + lis + "</ul>" : "") +
+      (f.refs.length ? '<div class="refs">' + f.refs.map(refHtml).join("") + "</div>" : "") +
+      '<div class="src">Full write-up: <code>client-rebuild-inventory/' + esc(f.src.split("#")[0]) + "</code>" + (f.src.includes("#") ? " §" + esc(f.src.split("#").slice(1).join("#")) : "") + "</div>";
+  }
+  function featHtml(f) {
+    const isOpen = expandAll || open.has(f.id);
+    const st = STATUSES.find(s => s[0] === f.status)[1];
+    let pills = '<span class="pill tier-' + f.tier + '" title="Proposed tier: ' + TIER_HELP[f.tier] + '">' + TIERS.find(t => t[0] === f.tier)[1] + "</span>";
+    pills += '<span class="pill st st-' + f.status + '">' + st + "</span>";
+    if (f.audience !== "all") pills += '<span class="pill meta">' + esc(f.audience) + "</span>";
+    if (f.platform !== "all") pills += '<span class="pill meta">' + esc(f.platform) + " only</span>";
+    if (f.flags) pills += '<span class="pill flag">' + f.flags + " flag" + (f.flags > 1 ? "s" : "") + "</span>";
+    pills += '<span class="pill rb rb-' + f.rb + '" title="' + esc(f.rbNote || ("Rebuild status: " + f.rb)) + '">' + RBL[f.rb] + (f.rebuild ? " ✓" : "") + "</span>";
+    return '<article class="feat" id="' + f.id + '"><button class="fh" type="button" aria-expanded="' + isOpen + '" data-id="' + f.id + '">' +
+      '<span class="fid">' + f.id + '</span><span class="fname">' + esc(f.name) + '</span><span class="pills">' + pills + "</span>" +
+      '<span class="fsum">' + esc(f.summary) + "</span></button>" +
+      (isOpen ? '<div class="fbody">' + bodyHtml(f) + "</div>" : "") + "</article>";
+  }
+  function renderList(list) {
+    if (!list.length) { $("list").innerHTML = '<p class="empty">No features match these filters. Try removing a filter or use Reset.</p>'; return; }
+    let h = "", area = null, group = null;
+    list.forEach(f => {
+      if (f.area !== area) {
+        if (area) h += "</div></section>";
+        area = f.area; group = null;
+        const n = list.filter(x => x.area === area).length;
+        h += '<section class="area"><h2>' + esc(AREA[area].label) + '</h2><p class="adesc">' + esc(AREA[area].desc) + " · " + n + " shown</p><div>";
+      }
+      if (f.group !== group) { if (group !== null) h += "</div>"; group = f.group; h += '<h4 class="group">' + esc(group) + '</h4><div class="feats">'; }
+      h += featHtml(f);
+    });
+    h += "</div></div></section>";
+    $("list").innerHTML = h;
+  }
+  $("list").addEventListener("click", e => {
+    const b = e.target.closest(".fh"); if (!b) return;
+    const f = byId[b.dataset.id]; const art = b.parentElement;
+    const isOpen = b.getAttribute("aria-expanded") === "true";
+    if (isOpen) { open.delete(f.id); const body = art.querySelector(".fbody"); if (body) body.remove(); b.setAttribute("aria-expanded", "false"); }
+    else { open.add(f.id); art.insertAdjacentHTML("beforeend", '<div class="fbody">' + bodyHtml(f) + "</div>"); b.setAttribute("aria-expanded", "true"); }
+  });
+
+  // ---------- copy ----------
+  function flash(msg) { $("toast").textContent = msg; clearTimeout(window.__f); window.__f = setTimeout(() => $("toast").textContent = "", 2500); }
+  function copy(text, label) {
+    const fallback = () => { const box = $("copybox"); box.hidden = false; box.value = text; box.focus(); box.select(); flash("Clipboard blocked here. The text is selected below; press Ctrl/Cmd+C."); };
+    try { navigator.clipboard.writeText(text).then(() => { $("copybox").hidden = true; flash("Copied " + label + "."); }, fallback); } catch (e) { fallback(); }
+  }
+  $("copyMd").onclick = () => {
+    const list = filtered(); let md = "", area = null, group = null;
+    list.forEach(f => {
+      if (f.area !== area) { area = f.area; group = null; md += (md ? "\n" : "") + "## " + AREA[area].label + "\n"; }
+      if (f.group !== group) { group = f.group; md += "\n### " + group + "\n"; }
+      md += "- **" + f.id + " · " + f.name + "** (" + f.tier + ", " + f.status + ") — " + f.summary + "\n";
+    });
+    copy(md, list.length + " features as Markdown");
+  };
+  $("copyCsv").onclick = () => {
+    const list = filtered(); const q = s => '"' + String(s).replace(/"/g, '""') + '"';
+    const rows = [["id", "area", "group", "name", "summary", "tier", "status", "audience", "platform", "flags", "details", "refs", "source"].join(",")];
+    list.forEach(f => rows.push([f.id, AREA[f.area].label, f.group, f.name, f.summary, f.tier, f.status, f.audience, f.platform, f.flags, f.details.join(" | "), f.refs.join(" "), f.src].map(q).join(",")));
+    copy(rows.join("\n"), list.length + " features as CSV");
+  };
+
+  // ---------- update ----------
+  function update() {
+    save(); renderControls();
+    const list = filtered();
+    $("count").textContent = list.length + " of " + DATA.length + " features";
+    renderList(list);
+  }
+  $("sha").textContent = SHA.slice(0, 7);
+  $("foot").innerHTML = "Built from a full read of the client and Django views at commit <code>" + SHA.slice(0, 7) + "</code> (master, 4 Oct 2026). Code links open that exact commit on GitHub. Detailed write-ups per area live in <code>client-rebuild-inventory/</code> in the repo.";
+  renderLedger();
+  const rbCount = k => DATA.filter(f => f.rb === k).length;
+  $("rebuildLine").innerHTML = "<b>Rebuild</b> (<code>sefaria-reader</code>, updated __BUILT__): " +
+    Object.keys(RBL).map(k => '<button type="button" class="sm rbbtn" data-rb="' + k + '" aria-pressed="false">' + RBL[k] + " " + rbCount(k) + "</button>").join(" ") +
+    ' · <a href="#changelog">Changes to this atlas</a>';
+  $("rebuildLine").onclick = e => { const b = e.target.closest(".rbbtn"); if (!b) return; S.rebuilt = S.rebuilt === b.dataset.rb ? "" : b.dataset.rb;
+    document.querySelectorAll(".rbbtn").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.rb === S.rebuilt))); update(); };
+  update();
+
+  function openHash() {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const f = byId[id]; if (!f) return; // (also ignores #changelog)
+    S = DEF(); S.area = f.area; open.add(id); update();
+    const el = $(id); if (el) { el.classList.add("hit"); el.scrollIntoView({ block: "center" }); }
+  }
+  window.addEventListener("hashchange", openHash);
+  openHash();
+})();
+</script>

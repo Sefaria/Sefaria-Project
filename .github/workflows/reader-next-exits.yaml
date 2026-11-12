@@ -1,0 +1,50 @@
+# Ways out to the legacy client: crawl the new reader's page types (desktop and phone, signed out and in) through a read-only stand-in
+# for Django in front of www.sefaria.org (reader-next/scripts/exits-crawl.mjs: it never forwards a write) and list every same-site
+# link Django answers that is not in scripts/exits-allowlist.json. Report-only: it fails only when the crawl cannot run; the list is
+# the artifact "exits" (exits.json, exits.md) and the job summary. It reads the live site for ~45 minutes, so it runs weekly and on
+# demand, never on a push or pull request. Drop --report-only to make it a gate.
+# GitHub runs schedules from the default branch's copy of this file, against the default branch's code (master).
+name: reader-next exits to legacy
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * 1" # Mondays 03:17 UTC
+
+concurrency:
+  group: reader-next-exits
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: reader-next
+
+jobs:
+  exits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    # forks' schedules never crawl the live site; "Run workflow" still works anywhere
+    if: ${{ github.event_name != 'schedule' || github.repository == 'Sefaria/Sefaria-Project' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: reader-next/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Ways out to the legacy client (report only)
+        run: node scripts/exits-crawl.mjs --report-only --out exits.json --md exits.md
+      - name: Summary
+        if: always()
+        run: if [ -f exits.md ]; then cat exits.md >> "$GITHUB_STEP_SUMMARY"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: exits
+          path: |
+            reader-next/exits.json
+            reader-next/exits.md
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,2 @@
+.buttons { display: flex; flex-wrap: wrap; gap: var(--sefaria-space-2); margin-block: var(--sefaria-space-2); }
+.button { height: 28px; padding: 0 var(--sefaria-space-3); border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); background: var(--sefaria-color-surface); color: var(--sefaria-color-text); font-family: var(--sefaria-font-ui-en); font-size: 14px; cursor: pointer; }

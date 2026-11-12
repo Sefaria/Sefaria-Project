@@ -81,6 +81,31 @@ http {
     keepalive 32;
   }
 
+  {{- if eq .Values.nodejs.mode "reader" }}
+  # the new reader client (values: nodejs.mode reader) answers page requests first
+  upstream nodeupstream {
+    server node-{{ .Values.deployEnv }}:3000;
+    keepalive 32;
+  }
+  {{- else if eq .Values.nodejs.mode "optin" }}
+  # nodejs.mode optin: the new reader client runs beside the legacy node pods; it answers the page requests of a visitor who chose
+  # it in account settings (the reader_version=next cookie, set by Django); everyone else is served exactly as in legacy mode
+  upstream readerupstream {
+    server reader-{{ .Values.deployEnv }}:3000;
+    keepalive 32;
+  }
+  {{- if .Values.reader.optin.enabled }}
+  # "1" for a page request that goes to the new reader (location / hands it to @reader); empty for everyone else
+  map $cookie_reader_version $reader_page {
+    default "";
+    next    1;
+  }
+  {{- else }}
+  # reader.optin.enabled is false (the kill switch): the cookie is ignored, location / is legacy's, and the reader rollout keeps
+  # running (reader-next/docs/DEPLOYMENT.md, "Kill switch and rollback")
+  {{- end }}
+  {{- end }}
+
   upstream elasticsearch_upstream {
     server ${SEARCH_HOST}:9200;
     keepalive 32;
@@ -175,7 +200,64 @@ http {
       alias /app/robots.txt;
     }
 
+    {{- if eq $.Values.nodejs.mode "reader" }}
+    # nodejs.mode reader: pages go to the new reader client first; it hands what it does not render (Django's pages, its 404s,
+    # writes) to Varnish. A reader that cannot be reached: see @reader_down. A response the reader sends itself (its 503 too) is
+    # passed on as it is (no proxy_intercept_errors).
     location / {
+      {{- if $.Values.instrumentation.enabled }}
+      opentracing on;
+      opentracing_propagate_context;
+      {{- end }}
+      # a reader that cannot be reached (scaled to zero, no endpoints) is given up on within seconds, not nginx's default 60
+      proxy_connect_timeout 5s;
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Forwarded-Host $host;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
+      proxy_pass http://nodeupstream;
+      error_page 502 504 = @reader_down;
+    }
+
+    # The API never needs the client
+    location /api/ {
+      {{- if $.Values.instrumentation.enabled }}
+      opentracing on;
+      opentracing_propagate_context;
+      {{- end }}
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
+      proxy_pass http://varnishupstream;
+    }
+
+    {{- else }}
+
+    location / {
+      {{- if and (eq $.Values.nodejs.mode "optin") $.Values.reader.optin.enabled }}
+      # nodejs.mode optin: a visitor who chose the new reader ($reader_page, from the reader_version cookie) is handed to @reader;
+      # for everyone else this location is legacy's, unchanged (no other error_page here, so recursive_error_pages only lets
+      # @reader's own error_page work: nginx checks it in the location where the first error_page fired)
+      recursive_error_pages on;
+      error_page 418 = @reader;
+      if ($reader_page) {
+        return 418;
+      }
+      {{- end }}
       {{- if $.Values.instrumentation.enabled }}
       opentracing on;
       opentracing_propagate_context;
@@ -190,6 +272,97 @@ http {
       proxy_set_header X-Internal-Proxy 1;
       proxy_pass http://varnishupstream;
     }
+
+    {{- end }}
+
+    {{- if or (eq $.Values.nodejs.mode "reader") (eq $.Values.nodejs.mode "optin") }}
+    {{- if eq $.Values.nodejs.mode "optin" }}
+
+    # optin: the API never goes to the reader, cookie or not (legacy's location / body, without the cookie check)
+    location /api/ {
+      {{- if $.Values.instrumentation.enabled }}
+      opentracing on;
+      opentracing_propagate_context;
+      {{- end }}
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
+      proxy_pass http://varnishupstream;
+    }
+
+    # optin: an opted-in visitor's page request. The reader renders it, or hands it (Django's pages, its 404s, writes) to Varnish.
+    # A response the reader sends itself (its 503 too) is passed on as it is (no proxy_intercept_errors); nginx's own 502/504 (the
+    # reader cannot be reached or timed out) goes to @reader_down.
+    location @reader {
+      {{- if $.Values.instrumentation.enabled }}
+      opentracing on;
+      opentracing_propagate_context;
+      {{- end }}
+      proxy_connect_timeout 5s;
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Forwarded-Host $host;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
+      proxy_pass http://readerupstream;
+      error_page 502 504 = @reader_down;
+    }
+
+    # The reader's own hashed bundles (Django has no /assets/): always from the reader, cookie or not, so a reader page that is
+    # already open keeps loading its lazy chunks after its reader left the opt-in or the kill switch was thrown (it lands on the
+    # legacy reader at its next full page load). If the reader is down, Varnish/Django answers (a 404).
+    location /assets/ {
+      proxy_connect_timeout 5s;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Forwarded-Host $host;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
+      proxy_pass http://readerupstream;
+      error_page 502 504 = @reader_down;
+    }
+    {{- end }}
+
+    # The reader could not be reached (nginx's own 502/504): a read is answered by Varnish/Django instead; a write is never
+    # replayed (the reader may already have passed it on), so it gets the 502
+    location @reader_down {
+      if ($request_method !~ ^(GET|HEAD)$) {
+        return 502;
+      }
+      {{- if $.Values.instrumentation.enabled }}
+      opentracing on;
+      opentracing_propagate_context;
+      {{- end }}
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
+      proxy_pass http://varnishupstream;
+    }
+    {{- end }}
 
     location /static/mobile/message-en.json {
       return 301 ${STRAPI_LOCATION}/api/mobile-message;
@@ -220,6 +393,29 @@ http {
     }
     {{- end }}
     {{- end }}
+    {{- end }}
+    {{- if or (eq $.Values.nodejs.mode "reader") (eq $.Values.nodejs.mode "optin") }}
+
+    # Django's own pages (DJANGO_PREFIXES in reader-next/src/lib/routing/django-paths.ts, except /api/ and /static/, which have their
+    # own locations) and the site's well-known files go straight to Varnish: the reader client would only pass them on (or first try
+    # to render a favicon). Generated: templates/_reader-django-paths.tpl (build/ci/reader-nginx-paths.mjs; CI checks it is current).
+    # After the module redirects above on purpose: regex locations are tried in order, so those keep their 307s.
+    location ~ "{{ include "sefaria.readerDjangoPathRegex" $ }}" {
+      {{- if $.Values.instrumentation.enabled }}
+      opentracing on;
+      opentracing_propagate_context;
+      {{- end }}
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_set_header X-Request-Id $request_id;
+      proxy_pass http://varnishupstream;
+    }
     {{- end }}
   }
 
