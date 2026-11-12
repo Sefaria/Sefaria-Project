@@ -98,9 +98,12 @@ describe("library cache (core tenet: never fetch twice)", () => {
     requests = [];
     // chapter 1 has 31 verses; the server answers 404 "We have no text for Genesis 1:35", and sefaria.org opens the next chapter
     const { HttpResponse } = await import("msw");
-    server.use(http.get("*/api/ref/*", () => HttpResponse.json({ is_ref: true, navigation_refs: { first_available_section_ref: "Genesis 2" } })));
+    server.use(
+      http.get("*/api/v3/texts/Genesis%201%3A35", () => HttpResponse.json({ error: "We have no text for Genesis 1:35." }, { status: 404 })),
+      http.get("*/api/texts/*", () => HttpResponse.json({ sectionRef: "Genesis 1", prev: null, next: "Genesis 2", text: ["In the beginning"], he: [] })),
+    );
     const r = await loadReaderPassage(qc, idx, "Genesis 1:35");
-    expect(requests.slice(0, 2)).toEqual(["/api/v3/texts/Genesis 1:35", "/api/ref/Genesis 1:35"]);
+    expect(requests.slice(0, 2)).toEqual(["/api/v3/texts/Genesis 1:35", "/api/texts/Genesis 1:35"]);
     expect(r.canonicalRef).toBe("Genesis 2");
     expect(r.highlight).toBeNull();
   });
@@ -302,28 +305,55 @@ describe("a range over a section with no text", () => {
     await expect(loadReaderPassage(makeQueryClient(), new RefIndex(), "Rashi on Genesis 1:1-3")).rejects.toThrow();
   });
 
+  /** The v1 texts API's answer for an address: its section, that section's text, and its neighbours with text. */
+  const neighbours = (answer: Record<string, unknown> | number) =>
+    http.get("*/api/texts/*", async () => {
+      const { HttpResponse } = await import("msw");
+      return typeof answer === "number" ? HttpResponse.text("Bad Gateway", { status: answer }) : HttpResponse.json(answer);
+    });
+
   it("an address with no text at all opens the next section with text, as sefaria.org does (Rashi on Genesis 1:3 → 1:4)", async () => {
-    const { HttpResponse } = await import("msw");
-    server.use(
-      texts(["Rashi on Genesis 1:3"]),
-      // Django answers 500 for the empty section itself, and the next section with text for a segment in it
-      http.get("*/api/ref/*", ({ request }) =>
-        decodeURIComponent(new URL(request.url).pathname).endsWith("Rashi on Genesis 1:3:1")
-          ? HttpResponse.json({ is_ref: true, navigation_refs: { first_available_section_ref: "Rashi on Genesis 1:4" } })
-          : HttpResponse.text("Internal Server Error", { status: 500 }),
-      ),
-    );
-    const qc = makeQueryClient();
-    const idx = new RefIndex();
-    const r = await loadReaderPassage(qc, idx, "Rashi on Genesis 1:3");
+    server.use(texts(["Rashi on Genesis 1:3"]), neighbours({ sectionRef: "Rashi on Genesis 1:3", prev: "Rashi on Genesis 1:2", next: "Rashi on Genesis 1:4", text: [], he: [] }));
+    const r = await loadReaderPassage(makeQueryClient(), new RefIndex(), "Rashi on Genesis 1:3");
     expect(r.canonicalRef).toBe("Rashi on Genesis 1:4");
     expect(r.sections.map((s) => s.ref)).toEqual(["Rashi on Genesis 1:4"]);
     expect(r.highlight).toBeNull();
+    expect(requests).toContain("/api/texts/Rashi on Genesis 1:3");
   });
 
-  it("a title the API does not know is still no such text", async () => {
+  it("past the book's last text, in a section with text (Genesis 50:27): that section", async () => {
+    server.use(texts(["Rashi on Genesis 1:2:9"]), neighbours({ sectionRef: "Rashi on Genesis 1:2", prev: "Rashi on Genesis 1:1", next: null, text: ["a comment"], he: [] }));
+    const r = await loadReaderPassage(makeQueryClient(), new RefIndex(), "Rashi on Genesis 1:2:9");
+    expect(r.canonicalRef).toBe("Rashi on Genesis 1:2");
+  });
+
+  it("past the book's last text, in a section without (Rashi on Genesis 50:25:9): the last section with text before it", async () => {
+    server.use(texts(["Rashi on Genesis 1:3:9"]), neighbours({ sectionRef: "Rashi on Genesis 1:3", prev: "Rashi on Genesis 1:2", next: null, text: [], he: [""] }));
+    const r = await loadReaderPassage(makeQueryClient(), new RefIndex(), "Rashi on Genesis 1:3:9");
+    expect(r.canonicalRef).toBe("Rashi on Genesis 1:2");
+  });
+
+  it("a title the API does not know is still no such text (the texts API answers 200 with an error)", async () => {
+    server.use(texts(["Rashi on Genesis 1:3"]), neighbours({ error: "Could not find title in reference: Rashi on Genesis 1:3" }));
+    const err = await loadReaderPassage(makeQueryClient(), new RefIndex(), "Rashi on Genesis 1:3").catch((e: unknown) => e);
+    expect((err as { status?: number }).status).toBe(404);
+  });
+
+  it("a title the texts API does not know, or a chapter past the book's end, asks nothing more (as sefaria.org)", async () => {
     const { HttpResponse } = await import("msw");
-    server.use(texts(["Rashi on Genesis 1:3"]), http.get("*/api/ref/*", () => HttpResponse.json({ is_ref: false })));
-    await expect(loadReaderPassage(makeQueryClient(), new RefIndex(), "Rashi on Genesis 1:3")).rejects.toThrow();
+    for (const error of ["Could not find title in reference: Definitely Not A Book 1", "Genesis ends at Chapter 50."]) {
+      requests = [];
+      server.use(http.get("*/api/v3/texts/*", () => HttpResponse.json({ error }, { status: 404 })), neighbours(502));
+      await expect(loadReaderPassage(makeQueryClient(), new RefIndex(), "Definitely Not A Book 1")).rejects.toThrow();
+      expect(requests.filter((r) => r.startsWith("/api/texts/"))).toEqual([]);
+    }
+  });
+
+  it("a server failure while looking for where to open is the API's trouble (5xx), not no such text", async () => {
+    const { SefariaApiError } = await import("~/lib/api/client");
+    server.use(texts(["Rashi on Genesis 1:3"]), neighbours(502));
+    const err = await loadReaderPassage(makeQueryClient(), new RefIndex(), "Rashi on Genesis 1:3").catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(SefariaApiError);
+    expect((err as InstanceType<typeof SefariaApiError>).status).toBe(502);
   });
 });

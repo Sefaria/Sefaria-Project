@@ -89,6 +89,8 @@
 .saladContainer { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--num-lines); overflow: hidden; text-overflow: clip; font-family: hide-ellipsis-char-font; }
 .saladItemBox { white-space: nowrap; font-family: var(--sefaria-font-text-en); } /* the bullet and the space after an item are serif, as the old span inherited */
 .saladItemBox[data-bullet]::after { content: "•"; margin-inline-start: 0.2em; }
+/* the end of a line, kept where it was laid out with every bullet in (TopicLanding.tsx placeBullets) */
+.saladItemBox[data-break]::after { content: "\A"; white-space: pre; }
 .saladItem { margin: 11px; font-family: var(--sefaria-font-ui-en); line-height: 40px; color: var(--sefaria-color-text-strong); text-decoration: none; }
 .saladItem :lang(he) { font-family: var(--sefaria-font-ui-he); }
 .saladItem:hover { text-decoration: underline; }

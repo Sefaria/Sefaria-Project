@@ -17,35 +17,48 @@ export function RainbowLine({ animated, position }: { animated?: boolean; positi
 }
 
 /**
- * The old WordSalad: the items in centred lines, clamped to `numLines`, a bullet after every item that has another after it on
- * the same line (the old offsetTop check). sefaria.org measures once, when the random sample arrives — often before the web fonts
- * are in — so after the fonts re-wrap the lines 1–2 of its ~40 bullets can end a line ("Shavuot •"; measured 2026-11-04, 4 loads,
- * timing-dependent). The rule on the final lines is what it shows otherwise, and what is reproducible. The bullets are placed on
- * the laid-out lines and placed again until the lines stop moving (a bullet can push the next item down), once the fonts are in,
- * and on resize.
+ * Bullets for the cloud's items: a bullet after every item that has another after it on the same line (the old WordSalad's
+ * offsetTop rule), and none after the last item of a line. sefaria.org measures once with no bullets and then adds them, so a bullet
+ * that widens an item can push the next item to the next line and leave a bullet ending a line ("Shavuot •"). Placing them
+ * again until the lines stop moving does not settle either: with the bullet the next item wraps, without it it fits, and the passes
+ * flip between the two. So every item but the last gets its bullet first; then each item that ends a line loses its bullet and keeps
+ * the line break where it is (`data-break`). Dropping a bullet at a line's end only shortens that line, and the kept break stops the
+ * next item from moving up into the room it frees, so no line changes and one pass is final, whatever the sample.
+ */
+export function placeBullets(spans: readonly HTMLElement[]): void {
+  spans.forEach((span, i) => {
+    span.removeAttribute("data-break");
+    span.toggleAttribute("data-bullet", i < spans.length - 1);
+  });
+  const tops = spans.map((s) => s.offsetTop);
+  spans.forEach((span, i) => {
+    if (i < spans.length - 1 && tops[i] !== tops[i + 1]) {
+      span.removeAttribute("data-bullet");
+      span.setAttribute("data-break", "");
+    }
+  });
+}
+
+/**
+ * The old WordSalad: the items in centred lines, clamped to `numLines`, a bullet between items on the same line
+ * ({@link placeBullets}). Placed on the laid-out lines once the fonts are in, and again on resize.
  */
 export function WordSalad({ items, numLines, renderItem }: { items: readonly LandingTopic[]; numLines: number; renderItem: (t: LandingTopic) => ReactNode }) {
   const box = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const el = box.current;
     if (!el) return;
+    let width = -1;
     const place = () => {
-      const spans = [...el.querySelectorAll<HTMLElement>("[data-salad-item]")];
-      for (let pass = 0; pass < 5; pass++) {
-        let changed = false;
-        spans.forEach((span, i) => {
-          const want = i < spans.length - 1 && span.offsetTop === spans[i + 1]!.offsetTop;
-          if (want !== span.hasAttribute("data-bullet")) {
-            span.toggleAttribute("data-bullet", want);
-            changed = true;
-          }
-        });
-        if (!changed) break;
-      }
+      width = el.clientWidth;
+      placeBullets([...el.querySelectorAll<HTMLElement>("[data-salad-item]")]);
     };
     place();
     void document.fonts?.ready.then(place);
-    const ro = new ResizeObserver(place);
+    // only a change of width re-wraps the lines (placing the bullets can change the box's height, which must not place them again)
+    const ro = new ResizeObserver(() => {
+      if (el.clientWidth !== width) place();
+    });
     ro.observe(el);
     return () => ro.disconnect();
   }, [items]);
