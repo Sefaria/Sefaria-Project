@@ -15,6 +15,15 @@ describe("validateReaderSearch", () => {
       lang: "he", aliyot: 1, ven: "english|The_JPS", vhe: "hebrew|Miqra",
     });
   });
+  // the old site's other spellings: he-en and en-he are bilingual, he-il is Hebrew
+  it("reads lang=he-en and lang=en-he as bilingual and he-il as Hebrew, for every panel", () => {
+    expect(validateReaderSearch({ lang: "he-il" })).toEqual({ lang: "he" });
+    expect(validateReaderSearch({ lang: "toString", lang2: "constructor", p2: "Exodus.1" })).toEqual({ p2: "Exodus.1", lang2: "constructor" });
+    expect(validateReaderSearch({ lang: "he-en" })).toEqual({ lang: "bi" });
+    expect(validateReaderSearch({ lang: "en-he" })).toEqual({ lang: "bi" });
+    expect(validateReaderSearch({ p2: "Exodus.1", lang2: "en-he" })).toEqual({ p2: "Exodus.1", lang2: "bi" });
+    expect(applySearchToSettings(DEFAULT_SETTINGS, validateReaderSearch({ lang: "he-en" })).language).toBe("bilingual");
+  });
   it("drops invalid and unknown values", () => {
     expect(validateReaderSearch({ lang: "klingon", aliyot: "2", ven: "no-pipe", other: "x" })).toEqual({});
   });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { categoryAttribution, headerLabels, type HeaderInput, narrowToVerses } from "./header";
+import { categoryAttribution, headerLabels, type HeaderInput, narrowToVerses, titleLanguage, titleVerses } from "./header";
 
 const genesis: HeaderInput = {
   sectionRef: "Genesis 1", heSectionRef: "בראשית א׳", categories: ["Tanakh", "Torah"],
@@ -64,4 +64,48 @@ describe("narrowToVerses", () => {
     expect(narrowToVerses(base, [9])).toEqual({ sectionRef: "Genesis 6:9", heSectionRef: "בראשית ו׳:ט׳" });
   });
   it("leaves the section alone when none of it is in the range", () => expect(narrowToVerses(base, [])).toBe(base));
+});
+
+// The title names the panel's current ref: the address on arrival until the reader scrolls (@feature TXD-013)
+describe("titleVerses", () => {
+  const genesis1 = { sectionRef: "Genesis 1", heSectionRef: "בראשית א׳" };
+  const daf = { sectionRef: "Berakhot 2a", heSectionRef: "ברכות ב׳ א" };
+  const title = (i: Parameters<typeof titleVerses>[0], base = genesis1, sep: ":" | " " = ":") => narrowToVerses(base, titleVerses(i), sep);
+  const arrived = (arrivalVerses: number[]) => ({ moved: false, arrivalVerses, rangeVerses: [] as number[] });
+  it("names the address's segment on arrival (Genesis 1:3, Rashi on Genesis 1:1:1, Berakhot 2a:3)", () => {
+    expect(title(arrived([3]))).toEqual({ sectionRef: "Genesis 1:3", heSectionRef: "בראשית א׳:ג׳" });
+    expect(title(arrived([1]), { sectionRef: "Rashi on Genesis 1:1", heSectionRef: 'רש"י על בראשית א׳:א׳' })).toEqual({
+      sectionRef: "Rashi on Genesis 1:1:1", heSectionRef: 'רש"י על בראשית א׳:א׳:א׳',
+    });
+    expect(title(arrived([3]), daf)).toEqual({ sectionRef: "Berakhot 2a:3", heSectionRef: "ברכות ב׳ א:ג׳" });
+  });
+  it("names an arrival range's verses in this section: a daf's lines, a Torah portion's verses", () => {
+    expect(title(arrived([3, 4, 5]), daf)).toEqual({ sectionRef: "Berakhot 2a:3-5", heSectionRef: "ברכות ב׳ א:ג׳-ה׳" });
+    expect(title(arrived([9, 10, 22]), { sectionRef: "Genesis 6", heSectionRef: "בראשית ו׳" })).toEqual({ sectionRef: "Genesis 6:9-22", heSectionRef: "בראשית ו׳:ט׳-כ״ב" });
+  });
+  it("names the section once the reader has scrolled, whatever the address named", () => {
+    expect(title({ moved: true, arrivalVerses: [3], rangeVerses: [] })).toEqual(genesis1);
+    expect(title({ moved: true, arrivalVerses: [9, 22], rangeVerses: [9, 22] })).toEqual(genesis1);
+  });
+  it("names the section when the address named a whole section", () => expect(title(arrived([]))).toEqual(genesis1));
+});
+
+describe("narrowToVerses separator", () => {
+  it("a named section takes a space (Pesach Haggadah, Magid, The Four Sons 2)", () => {
+    expect(narrowToVerses({ sectionRef: "Pesach Haggadah, Magid, The Four Sons", heSectionRef: "הגדה של פסח, מגיד, כנגד ארבעה בנים" }, [2], " ")).toEqual({
+      sectionRef: "Pesach Haggadah, Magid, The Four Sons 2", heSectionRef: "הגדה של פסח, מגיד, כנגד ארבעה בנים ב׳",
+    });
+  });
+  it("a numbered section of a complex book takes a colon (Mishneh Torah, Shulchan Arukh)", () => {
+    expect(narrowToVerses({ sectionRef: "Mishneh Torah, Repentance 1", heSectionRef: "משנה תורה, הלכות תשובה א׳" }, [3]).sectionRef).toBe("Mishneh Torah, Repentance 1:3");
+    expect(narrowToVerses({ sectionRef: "Shulchan Arukh, Orach Chayim 1", heSectionRef: "שולחן ערוך, אורח חיים א׳" }, [2]).heSectionRef).toBe("שולחן ערוך, אורח חיים א׳:ב׳");
+  });
+});
+
+// An English-original work asked for in Hebrew: its title is in English, the source's language
+describe("titleLanguage for an English-only work in Hebrew mode", () => {
+  it("is English with either interface", () => {
+    for (const interfaceLang of ["english", "hebrew"] as const)
+      expect(titleLanguage({ language: "hebrew", interfaceLang, primaryVersion: { languageFamilyName: "english" } })).toBe("en");
+  });
 });

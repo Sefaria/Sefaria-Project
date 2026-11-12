@@ -83,13 +83,33 @@ export function headerLabels(i: HeaderInput): HeaderLabels {
 }
 
 /**
- * The section's name narrowed to the verses of a kept range that it shows, as the old header does for a Torah portion or aliyah
- * ("Genesis 6:9-22" / "בראשית ו׳:ט׳-כ״ב" while chapter 6 of Genesis 6:9-11:32 is on screen). `verses` are the section's
- * highlighted verse numbers, in order.
+ * The section's name narrowed to some of its verses, as the old header names the panel's current ref: a segment ("Genesis 1:3"), or a
+ * kept range's verses in this section ("Genesis 6:9-22" / "בראשית ו׳:ט׳-כ״ב" while chapter 6 of Genesis 6:9-11:32 is on screen).
+ * `verses` are the section's verse numbers, in order. `separator` is ":" after a numbered section and " " after a named one
+ * ("Pesach Haggadah, Magid, The Four Sons 2").
  */
-export function narrowToVerses<T extends Pick<HeaderInput, "sectionRef" | "heSectionRef">>(i: T, verses: readonly number[]): T {
+export function narrowToVerses<T extends Pick<HeaderInput, "sectionRef" | "heSectionRef">>(i: T, verses: readonly number[], separator: ":" | " " = ":"): T {
   const first = verses[0], last = verses[verses.length - 1];
   if (first === undefined || last === undefined) return i;
   const span = (f: (n: number) => string) => (first === last ? f(first) : `${f(first)}-${f(last)}`);
-  return { ...i, sectionRef: `${i.sectionRef}:${span(String)}`, heSectionRef: `${i.heSectionRef}:${span((n) => encodeHebrewNumeral(n))}` };
+  return { ...i, sectionRef: `${i.sectionRef}${separator}${span(String)}`, heSectionRef: `${i.heSectionRef}${separator}${span((n) => encodeHebrewNumeral(n))}` };
+}
+
+export interface TitleVersesInput {
+  /** The reader has scrolled since the column started. */
+  moved: boolean;
+  /** The verses of this section the address named when the column started (one segment, or a range's verses here). */
+  arrivalVerses: readonly number[];
+  /** The verses of this section in a range the address keeps now (a range of whole sections, written out by its segments). */
+  rangeVerses: readonly number[];
+}
+
+/**
+ * Which verses the title names. The old header names the panel's current ref: the address it arrived at ("Genesis 1:3", "Rashi on
+ * Genesis 1:1:1", "Berakhot 2a:3-5", a Torah portion's "Genesis 6:9-22") until the reader scrolls, then the section in view.
+ * Choosing a verse (which opens the sidebar) does not change it. The same rule holds in every language mode, interface and device.
+ */
+export function titleVerses(i: TitleVersesInput): readonly number[] {
+  if (i.moved) return [];
+  return i.arrivalVerses.length ? i.arrivalVerses : i.rangeVerses;
 }
