@@ -77,7 +77,7 @@ from random import randint
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext_lazy
 
-from sefaria.constants.model import LIBRARY_ASSISTANT_SETTING_KEY, VOICES_MODULE
+from sefaria.constants.model import LIBRARY_ASSISTANT_SETTING_KEY, READING_HISTORY_PAUSED_SETTING_KEY, VOICES_MODULE
 from sefaria.donors.types import DonorStatus
 from sefaria.system.exceptions import InputError, SheetNotFoundError
 
@@ -852,6 +852,13 @@ class UserProfile:
 
     def process_history_item(self, hist, time_stamp):
         action = hist.pop("action", None)
+        if (
+            self.settings.get(READING_HISTORY_PAUSED_SETTING_KEY, False)
+            and action is None
+            and self.settings.get("reading_history", True)
+        ):
+            # history paused: keep what is stored, record no new reads (saving/unsaving still works)
+            return None
         if (
             self.settings.get("reading_history", True) or action == "add_saved"
         ):  # regular case where history enabled, save/unsave saved item etc. or save history in either case

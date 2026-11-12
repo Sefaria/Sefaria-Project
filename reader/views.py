@@ -67,7 +67,7 @@ from sefaria.constants.model import (
 )
 from sefaria.donors.types import DonorStatus
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.helper import library_assistant
+from sefaria.helper import library_assistant, your_data
 from sefaria.helper.category import update_order_of_category_children
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.file import get_resized_file
@@ -5280,6 +5280,60 @@ def account_settings(request):
             "renderStatic": True,
         },
     )
+
+
+@login_required
+@ensure_csrf_cookie
+def your_data_page(request):
+    """
+    "Your data" page (proof of concept): what Sefaria stores about the signed-in user,
+    grouped into what they told us and what we infer from their reading.
+    """
+    profile = UserProfile(id=request.user.id)
+    social_providers = list(request.user.socialaccount_set.values_list("provider", flat=True))
+    return render_template(
+        request,
+        "your_data.html",
+        {"headerMode": True},
+        {
+            "data": your_data.get_your_data_summary(profile, request.user, request.COOKIES, social_providers),
+            "library_assistant_enabled": library_assistant.is_enabled(profile),
+            "renderStatic": True,
+        },
+    )
+
+
+@login_required
+def your_data_export(request):
+    """Download everything the "Your data" page describes as one JSON file."""
+    profile = UserProfile(id=request.user.id)
+    payload = your_data.export_user_data(profile, request.user, request.COOKIES)
+    response = http.HttpResponse(
+        json.dumps(payload, indent=2, ensure_ascii=False, default=str), content_type="application/json; charset=utf-8"
+    )
+    response["Content-Disposition"] = 'attachment; filename="sefaria-your-data.json"'
+    response["Cache-Control"] = "private, no-store"
+    return response
+
+
+@login_required
+@csrf_protect
+def your_data_history_api(request):
+    """
+    POST action=clear|pause|resume. Clear deletes reading history (saved items are kept)
+    and the traits inferred from it; pause stops recording new reads without deleting.
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+    action = request.POST.get("action")
+    profile = UserProfile(id=request.user.id)
+    if action == "clear":
+        your_data.clear_reading_history(profile)
+    elif action in ("pause", "resume"):
+        your_data.set_history_paused(profile, action == "pause")
+    else:
+        return jsonResponse({"error": "Unknown action."})
+    return jsonResponse({"status": "ok", "history": your_data.get_history_summary(profile)})
 
 
 @ensure_csrf_cookie
