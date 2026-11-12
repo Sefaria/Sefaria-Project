@@ -146,8 +146,12 @@ test.describe("linked verses", () => {
 
   test("with the sidebar closed, a linked verse is not highlighted (old reader's behaviour)", async ({ page }) => {
     await open(page, "/Genesis.1.3?lang=en");
-    const bg = await page.locator('[data-ref="Genesis 1:3"]').evaluate((el) => getComputedStyle(el).backgroundColor);
-    expect(bg).toBe("rgba(0, 0, 0, 0)");
+    const verse = page.locator('[data-reader-scroller] [role="group"][data-ref="Genesis 1:3"]');
+    // no highlight (the old .highlight); only the arrival tint, which the old reader's focus gives the verse and a click elsewhere removes
+    await expect(verse).not.toHaveAttribute("data-highlighted", "true");
+    await expect(verse).toHaveAttribute("data-arrival", "true");
+    await page.locator('section[data-panel-id="p1"] header').first().click({ position: { x: 4, y: 30 } });
+    await expect(verse).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   });
 });
 
