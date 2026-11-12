@@ -50,8 +50,9 @@ describe("segmentNumberLang", () => {
     expect(segmentNumberLang("english", "he", "rtl")).toBe("en");
     expect(segmentNumberLang("bilingual", "he", "rtl")).toBe("en");
   });
-  it("an English source alone in a Hebrew panel is numbered in Hebrew letters", () => {
-    expect(segmentNumberLang("hebrew", "en", "ltr")).toBe("he");
+  it("an English source alone in a Hebrew panel is numbered in digits (an English-original work in Hebrew mode)", () => {
+    expect(segmentNumberLang("hebrew", "en", "ltr")).toBe("en");
+    expect(segmentNumberLang("hebrew", "he", "ltr")).toBe("en");
   });
   it("a source alone that agrees with the panel keeps the label language", () => {
     expect(segmentNumberLang("hebrew", "he", "rtl")).toBe("he");

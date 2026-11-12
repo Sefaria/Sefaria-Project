@@ -41,15 +41,15 @@ export function numberLang(language: ContentLanguage, interfaceLang: InterfaceLa
 /**
  * Language of one segment's number. It is the panel's label language (`labelLang`), except for a segment that has no
  * translation text and shows its source alone:
- *  - a Hebrew (rtl) source alone in an English or bilingual panel is numbered in digits;
- *  - an English (ltr) source alone in a Hebrew panel is numbered in Hebrew letters.
+ *  - a Hebrew (rtl) source alone in an English or bilingual panel is numbered in digits (VERIFIED on sefaria.org);
+ *  - an English (ltr) source alone is numbered in digits, in a Hebrew panel too: the number follows the language of the text it
+ *    labels (an English-original work in Hebrew mode).
  * The old client draws the number in the label language and then, with CSS, shows only these languages' spans on such a
- * segment, so where the two disagree it shows no number at all. That lost number is a bug not carried over: this reader
- * shows the number its CSS meant to show.
+ * segment, so where the two disagree it shows no number at all. That lost number is a bug not carried over.
  */
 export function segmentNumberLang(language: ContentLanguage, labelLang: LabelLang, sourceAloneDir?: "rtl" | "ltr"): LabelLang {
   if (sourceAloneDir === "rtl" && language !== "hebrew") return "en";
-  if (sourceAloneDir === "ltr" && language === "hebrew") return "he";
+  if (sourceAloneDir === "ltr") return "en";
   return labelLang;
 }
 

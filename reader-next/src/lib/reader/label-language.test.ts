@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { labelLanguage, passageLabelLanguage, type LabelLanguageInput } from "./label-language";
+import { segmentNumberLang } from "./labels";
 
 const he = { languageFamilyName: "hebrew" };
 const en = { languageFamilyName: "english", versionTitle: "JPS", shortVersionTitle: "" };
@@ -36,7 +37,7 @@ describe("labelLanguage", () => {
   it("English mode with no translation text is labelled from the source", () => {
     expect(labelLanguage(tanakh({ language: "english", hasTranslation: false }))).toBe("he");
   });
-  it("Hebrew mode with an English source (an English-original work) is English (R-SET-8)", () => {
+  it("Hebrew mode with an English source (an English-original work) is English", () => {
     expect(labelLanguage(tanakh({ language: "hebrew", interfaceLang: "hebrew", primaryVersion: enSrc, translationVersion: undefined, hasTranslation: false }))).toBe("en");
   });
   it("nothing loaded yet: the mode's own language", () => {
@@ -54,5 +55,14 @@ describe("passageLabelLanguage", () => {
   it("a section with translation text uses the translation in English mode", () => {
     const p = { primaryVersion: he, translationVersion: en, segments: [seg(), seg({ html: "x" })] } as never;
     expect(passageLabelLanguage(p, "english", "hebrew")).toBe("en");
+  });
+});
+
+describe("an English-only work in Hebrew mode", () => {
+  it("labels in English and numbers its English text in digits", () => {
+    const p = { primaryVersion: { languageFamilyName: "english" }, translationVersion: undefined, segments: [{ primary: "x" }] } as never;
+    const lang = passageLabelLanguage(p, "hebrew", "hebrew");
+    expect(lang).toBe("en");
+    expect(segmentNumberLang("hebrew", lang, "ltr")).toBe("en");
   });
 });
