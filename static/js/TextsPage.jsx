@@ -17,6 +17,7 @@ import {
   CategoryHeader,
 } from './Misc';
 import { ContentText } from './ContentText';
+import { BookshelfHome } from './Bookshelf';
 
 const TextsPage = ({
   categories,
@@ -123,6 +124,7 @@ const TextsPage = ({
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
+            {!compare ? <BookshelfHome /> : null}
             {title}
             {about}
             {dedication}

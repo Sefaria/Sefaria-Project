@@ -421,6 +421,7 @@ def base_props(request):
             "last_place": profile.get_history(
                 last_place=True, secondary=False, sheets_only=sheets_only, serialized=True
             ),
+            "bookshelf": profile.bookshelf,
         }
     else:
         user_data = {
@@ -444,6 +445,7 @@ def base_props(request):
             "notifications": [],
             "saved": {"loaded": False, "items": []},
             "last_place": [],
+            "bookshelf": [],
         }
     user_data.update(
         {
@@ -4773,6 +4775,27 @@ def user_profile(request, username):
     )
 
 
+def _clean_bookshelf(bookshelf):
+    """
+    Bookshelf POC: keep only {book, added} entries whose book is a library index, without duplicates.
+    """
+    if not isinstance(bookshelf, list):
+        raise InputError("bookshelf must be a list")
+    cleaned, seen = [], set()
+    for item in bookshelf:
+        book = item.get("book") if isinstance(item, dict) else None
+        if not isinstance(book, str) or book in seen:
+            continue
+        try:
+            library.get_index(book)
+        except BookNameError:
+            continue
+        seen.add(book)
+        added = item.get("added")
+        cleaned.append({"book": book, "added": added if isinstance(added, (int, float)) else None})
+    return cleaned
+
+
 @catch_error_as_json
 def profile_api(request, slug=None):
     """
@@ -4811,6 +4834,9 @@ def profile_api(request, slug=None):
         if la_key in profileUpdate.get("settings", {}):
             # Public endpoint — coerce so a posted "false" can't read as truthy.
             profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
+
+        if "bookshelf" in profileUpdate:
+            profileUpdate["bookshelf"] = _clean_bookshelf(profileUpdate["bookshelf"])
 
         profile = UserProfile(id=request.user.id)
         profile.update(profileUpdate)

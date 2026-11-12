@@ -562,6 +562,9 @@ class UserProfile:
         self.learning_level = None  # numeric 1-5 for user learning level in Sefaria, None if not set
         self.wants_marketing_emails = True  # whether user wants marketing emails; default opted-in
 
+        # Bookshelf POC: books the user keeps on the homepage, newest first
+        self.bookshelf = []
+
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
         if profile:  # overwrite if fake profile in db
@@ -942,6 +945,7 @@ class UserProfile:
             "donor_status": self.donor_status,
             "became_donor_at": self.became_donor_at,
             "experiments": self.experiments,
+            "bookshelf": self.bookshelf,
             "tag_order": getattr(self, "tag_order", None),
             "last_sync_web": self.last_sync_web,
             "profile_pic_url": self.profile_pic_url,
