@@ -17173,7 +17173,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .laSettingsPage .settingsNav a[aria-current="page"] { background: var(--highlight-blue-light); color: var(--sefaria-blue); }
 .laSettingsPage .settingsPanels { max-width: 640px; }
 @media (max-width: 842px) {
-  .laSettingsPage { background-image: url("/static/img/auth/auth-bg-mobile.png"); background-position: center top; }
+  .laSettingsPage { background-image: url("/static/img/auth/auth-bg-mobile.png"); background-size: 100% auto; background-position: center bottom; }
 }
 @media (max-width: 760px) {
   #accountSettingsPage.laSettingsPage .inner { padding: 32px var(--la-space-2) 56px; }
@@ -17191,8 +17191,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .libraryAssistantSettings .laSection { margin: 0; }
 .libraryAssistantSettings .laSectionTitle,
 .libraryAssistantSettings .laSectionAbout { margin: 0; padding: 0; border: 0; text-transform: none; letter-spacing: 0; }
-.libraryAssistantSettings .laSectionTitle { font-size: 22px; font-weight: 500; line-height: 1.3; color: var(--white); margin-bottom: calc(var(--la-space-1) * -1); }
-.libraryAssistantSettings .laSectionAbout { font-size: 16px; line-height: 1.5; color: var(--white); opacity: 0.85; margin-top: calc(var(--la-space-1) * -1); }
+.libraryAssistantSettings .laSectionTitle { font-size: 22px; font-weight: 500; line-height: 1.3; color: var(--near-black); }
+.libraryAssistantSettings .laSectionAbout { font-size: 15px; line-height: 1.5; color: var(--dark-grey); }
 
 .libraryAssistantSettings .laCard {
   display: flex;
@@ -17222,12 +17222,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .libraryAssistantSettings .laDescription,
 .libraryAssistantSettings .laMuted { margin: 0; font-size: 14px; line-height: 1.45; color: var(--secondary-text-grey); }
 .libraryAssistantSettings .laDescription { margin-top: calc(var(--la-space-1) * -1); }
-.libraryAssistantSettings .laCardTools { background: transparent; border: 1.5px dashed var(--light-blue-border); }
-.libraryAssistantSettings .laCardTools .laCardTitle { font-size: 16px; color: var(--white); }
-.libraryAssistantSettings .laCardTools .laDescription { color: var(--light-blue-border); }
-.libraryAssistantSettings .laCardTools { color: var(--white); }
-.libraryAssistantSettings .laCardTools .laMessage,
-.libraryAssistantSettings .laCardTools .laHealthResult { background: var(--white); color: var(--near-black); }
+.libraryAssistantSettings .laCardTools { border: 1.5px dashed var(--light-grey); }
+.libraryAssistantSettings .laCardTools .laCardTitle { font-size: 16px; color: var(--dark-grey); }
 
 /* The site's own input (see .sefaria-input-control in common-component.css), grown to a text area */
 .libraryAssistantSettings textarea.laTextarea {
@@ -17298,8 +17294,9 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .libraryAssistantSettings .button.small.transparent { background: var(--white); color: var(--near-black); border: 1.5px solid var(--sefaria-blue); box-shadow: none; }
 .libraryAssistantSettings .button.small.transparent:hover { background: var(--highlight-blue-light); color: var(--near-black); }
 .libraryAssistantSettings .button:focus-visible { outline: 2px solid var(--focus-blue); outline-offset: 2px; }
-.libraryAssistantSettings .laCardTools .button.small:not(.transparent) { background: var(--white); color: var(--sefaria-blue); }
 .libraryAssistantSettings .laCardTools .button.small:disabled { opacity: 0.6; cursor: not-allowed; }
+.libraryAssistantSettings .laCardTools .button.small:not(.blue):not(.transparent) { background: var(--white); color: var(--near-black); border: 1.5px solid var(--sefaria-blue); box-shadow: none; }
+.libraryAssistantSettings .laCardTools .button.small:not(.blue):not(.transparent):hover { background: var(--highlight-blue-light); color: var(--near-black); }
 
 .libraryAssistantSettings .laConfirm { display: flex; flex-direction: column; gap: var(--la-space-2); padding: var(--la-space-2); border: 1px solid var(--la-error); border-radius: 8px; }
 .libraryAssistantSettings .laConfirm p { margin: 0; font-size: 15px; line-height: 1.45; }
@@ -17308,6 +17305,5 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .libraryAssistantSettings .laHealthRow { display: flex; align-items: center; flex-wrap: wrap; gap: var(--la-space-1) var(--la-space-2); }
 .libraryAssistantSettings .laTestRow .laTestLabel { flex: 1 1 200px; font-size: 16px; }
 .libraryAssistantSettings .laTestRow .toggleSet { flex: 0 1 200px; }
-.libraryAssistantSettings .laTestRow .toggleSet.blueStyle { background: var(--white); }
 .libraryAssistantSettings .laHealthRow strong { font-size: 16px; font-weight: 600; }
 .libraryAssistantSettings .laHealthResult { display: flex; flex-direction: column; gap: 4px; font-size: 14px; padding: 12px 16px; border-radius: 4px; overflow-wrap: anywhere; }

@@ -530,10 +530,12 @@ const LibraryAssistantSettings = (props) => {
     <div className="libraryAssistantSettings">
       <AssistantSwitch initial={readInitialEnabled(props.libraryAssistantEnabled)} />
       <section id="personalization" className="section laSection">
-        <h2 className="laSectionTitle">{STRINGS.personalization}</h2>
-        <p id="about-personalization" className="laSectionAbout">
-          {STRINGS.about}
-        </p>
+        <div className="laCard laIntro">
+          <h2 className="laSectionTitle">{STRINGS.personalization}</h2>
+          <p id="about-personalization" className="laSectionAbout">
+            {STRINGS.about}
+          </p>
+        </div>
         {hasAccess ? (
           <Personalization base={base} token={token} />
         ) : (
