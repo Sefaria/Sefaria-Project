@@ -230,3 +230,15 @@ export const PanelJustOver500IsSideBySide: Story = {
     await numberInGap(seg(canvasElement, "both"));
   },
 };
+
+/** The verse an address names, on arrival (the panel sets `data-arrival`): sefaria.org's focus tint, #f5faff; a darker blue-grey in dark. */
+export const ArrivalTint: Story = {
+  args: { language: "english", biLayout: "stacked", rows: [{ ref: "Genesis 8:6", translation: en }, { ref: "Genesis 8:7", translation: en }] },
+  play: async ({ canvasElement }) => {
+    const row = seg(canvasElement, "Genesis 8:6");
+    row.setAttribute("data-arrival", "true");
+    const dark = document.documentElement.dataset.theme === "dark";
+    await expect(getComputedStyle(row).backgroundColor).toBe(dark ? "rgb(30, 38, 46)" : "rgb(245, 250, 255)");
+    await expect(getComputedStyle(seg(canvasElement, "Genesis 8:7")).backgroundColor).toBe("rgba(0, 0, 0, 0)");
+  },
+};

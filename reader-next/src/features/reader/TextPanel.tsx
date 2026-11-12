@@ -621,20 +621,45 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   }, [view, deferredRefs, sidebarSection, section.sectionRef, section.heSectionRef, section.indexTitle, versions, settings.language]);
   useReaderHistory(viewer, place, Boolean(view));
   const save = useSaved(viewer, place, () => setSaveAsked(true));
-  // a kept Torah portion / aliyah range names its verses in this section, as the old header does
-  const rangeVerses = useMemo(
-    () => (rangeHighlight ? section.segments.filter((s) => isHighlighted(s.address, rangeHighlight, section.addressTypes)).map((s) => Number(s.address[s.address.length - 1])).filter(Number.isFinite) : []),
-    [rangeHighlight, section],
-  );
   // The title names the panel's current ref (lib/reader/header.ts titleVerses): what the address named on arrival (a segment, a range's
-  // verses in this section) until the reader scrolls, then the section in view. Choosing a verse does not change it.
+  // verses in this section; an address of whole sections names none, so the section) until the reader scrolls, then the section in
+  // view. Choosing a verse does not change it.
   const moved = movedFrom === entry.current.id;
   const arrival = entry.current.arrival;
   const arrivalVerses = useMemo(() => {
     const named = new Set(arrival);
     return section.segments.filter((s) => named.has(s.ref)).map((s) => Number(s.address[s.address.length - 1])).filter(Number.isFinite);
   }, [arrival, section]);
-  const verses = titleVerses({ moved, arrivalVerses, rangeVerses });
+  // The verse the address named is tinted on arrival, as sefaria.org focuses it (its `.segment:focus` tint), until the reader clicks
+  // or moves focus anywhere else; scrolling keeps it. Once per column start.
+  const arrivalTarget = entry.current.arrival.length ? entry.current.target : undefined;
+  const arrivalId = entry.current.id;
+  useEffect(() => {
+    const root = rootEl.current;
+    // sefaria.org's tint is the focused verse: one at a time, in the last panel to arrive (TextColumn.scrollToHighlighted focuses only in
+    // the last panel)
+    if (!arrivalTarget || !root || panelOrder(nav.current()).at(-1) !== id) return;
+    for (const other of document.querySelectorAll("[data-arrival]")) other.removeAttribute("data-arrival");
+    const el = root.querySelector<HTMLElement>(`[data-reader-scroller] [role="group"][data-ref="${CSS.escape(arrivalTarget)}"]`);
+    if (!el) return;
+    el.setAttribute("data-arrival", "true");
+    const clear = (e: Event) => {
+      if (e.target instanceof Node && el.contains(e.target)) return;
+      el.removeAttribute("data-arrival");
+      stop();
+    };
+    const stop = () => {
+      document.removeEventListener("pointerdown", clear, true);
+      document.removeEventListener("focusin", clear, true);
+    };
+    document.addEventListener("pointerdown", clear, true);
+    document.addEventListener("focusin", clear, true);
+    return () => {
+      stop();
+      el.removeAttribute("data-arrival");
+    };
+  }, [arrivalTarget, arrivalId]); // eslint-disable-line react-hooks/exhaustive-deps -- once per column start; the panel's place among the others is read then
+  const verses = titleVerses({ moved, arrivalVerses });
   // A numbered section's verses follow a colon ("Genesis 1:3"); a named one's, a space ("Pesach Haggadah, Magid, The Four Sons 2")
   const firstNamed = section.segments.find((s) => arrival.includes(s.ref));
   const separator = firstNamed && !firstNamed.ref.startsWith(`${section.sectionRef}:`) ? " " : ":";
@@ -668,7 +693,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           header.attribution || header.version ? (
             <>
               {header.attribution ? <span lang={header.lang} dir={dirFor(header.lang)}>{header.attribution.text}</span> : null}
-              {header.version ? <span>{header.version}</span> : null}
+              {/* the version's name is always set as English, left to right (sefaria.org's `.en` span), whatever the interface */}
+              {header.version ? <span lang="en" dir="ltr">{header.version}</span> : null}
             </>
           ) : undefined
         }

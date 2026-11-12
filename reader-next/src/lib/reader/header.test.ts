@@ -66,12 +66,12 @@ describe("narrowToVerses", () => {
   it("leaves the section alone when none of it is in the range", () => expect(narrowToVerses(base, [])).toBe(base));
 });
 
-// The title names the panel's current ref: the address on arrival until the reader scrolls (@feature TXD-013)
+// The title names the panel's current ref: the address as written on arrival, until the reader scrolls (@feature TXD-013)
 describe("titleVerses", () => {
   const genesis1 = { sectionRef: "Genesis 1", heSectionRef: "בראשית א׳" };
   const daf = { sectionRef: "Berakhot 2a", heSectionRef: "ברכות ב׳ א" };
   const title = (i: Parameters<typeof titleVerses>[0], base = genesis1, sep: ":" | " " = ":") => narrowToVerses(base, titleVerses(i), sep);
-  const arrived = (arrivalVerses: number[]) => ({ moved: false, arrivalVerses, rangeVerses: [] as number[] });
+  const arrived = (arrivalVerses: number[]) => ({ moved: false, arrivalVerses });
   it("names the address's segment on arrival (Genesis 1:3, Rashi on Genesis 1:1:1, Berakhot 2a:3)", () => {
     expect(title(arrived([3]))).toEqual({ sectionRef: "Genesis 1:3", heSectionRef: "בראשית א׳:ג׳" });
     expect(title(arrived([1]), { sectionRef: "Rashi on Genesis 1:1", heSectionRef: 'רש"י על בראשית א׳:א׳' })).toEqual({
@@ -83,11 +83,16 @@ describe("titleVerses", () => {
     expect(title(arrived([3, 4, 5]), daf)).toEqual({ sectionRef: "Berakhot 2a:3-5", heSectionRef: "ברכות ב׳ א:ג׳-ה׳" });
     expect(title(arrived([9, 10, 22]), { sectionRef: "Genesis 6", heSectionRef: "בראשית ו׳" })).toEqual({ sectionRef: "Genesis 6:9-22", heSectionRef: "בראשית ו׳:ט׳-כ״ב" });
   });
-  it("names the section once the reader has scrolled, whatever the address named", () => {
-    expect(title({ moved: true, arrivalVerses: [3], rangeVerses: [] })).toEqual(genesis1);
-    expect(title({ moved: true, arrivalVerses: [9, 22], rangeVerses: [9, 22] })).toEqual(genesis1);
+  it("names a segment range as written even when it covers the whole section (Genesis 1:1-31)", () => {
+    expect(title(arrived(Array.from({ length: 31 }, (_, k) => k + 1))).sectionRef).toBe("Genesis 1:1-31");
   });
-  it("names the section when the address named a whole section", () => expect(title(arrived([]))).toEqual(genesis1));
+  it("names the section for an address of whole sections (Genesis 1, Genesis 1-2, Rashi on Genesis 1:1-3)", () => {
+    expect(title(arrived([]))).toEqual(genesis1);
+  });
+  it("names the section once the reader has scrolled, whatever the address named", () => {
+    expect(title({ moved: true, arrivalVerses: [3] })).toEqual(genesis1);
+    expect(title({ moved: true, arrivalVerses: [9, 22] })).toEqual(genesis1);
+  });
 });
 
 describe("narrowToVerses separator", () => {
