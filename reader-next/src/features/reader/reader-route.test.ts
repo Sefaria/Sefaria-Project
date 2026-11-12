@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { IDBFactory } from "fake-indexeddb";
+import { http, HttpResponse } from "msw";
+import { readFixture } from "../../../test/msw/fixtures";
+import { server } from "../../../test/msw/server";
 import { resetPersisters } from "~/lib/cache/persisters";
 import { makeQueryClient } from "~/lib/cache/query-client";
 import { NO_PREFS } from "~/lib/versions/preferences";
@@ -38,6 +41,50 @@ describe("which translation the loader shows (verified on sefaria.org)", () => {
   it("a preference for another corpus changes nothing", async () => {
     const data = await load({}, { byCorpus: { Bavli: { en: "The Koren Jerusalem Bible" } } });
     expect(data.panels.p1!.versions.translation).toBeUndefined();
+  });
+});
+
+// The API answers a version this text lacks by leaving it out (warning 101), as it does for Ibn Ezra asked for the JPS Tanakh
+function serveMissingVersions() {
+  server.use(
+    http.get("https://www.sefaria.org/api/v3/texts/:tref", ({ request }) => {
+      const asked = new URL(request.url).searchParams.getAll("version");
+      if (!asked.some((x) => /No Such|Nope/.test(x))) return undefined; // the recorded fixtures answer the rest
+      const body = readFixture<{ versions: { languageFamilyName: string; versionTitle: string }[] }>("genesis-1/v3-texts.json");
+      return HttpResponse.json({ ...body, versions: body.versions.filter((v) => asked.includes(`${v.languageFamilyName}|${v.versionTitle}`) || asked.includes(v.languageFamilyName === "hebrew" ? "primary" : "translation")) });
+    }),
+  );
+}
+const redirectOf = async (search: Record<string, string>, prefs = NO_PREFS) => {
+  const thrown: unknown = await load(search, prefs).then(() => null, (e: unknown) => e);
+  return (thrown as { options?: { search?: Record<string, unknown>; statusCode?: number } } | null)?.options ?? null;
+};
+
+// @feature VER-014 R-VER-1: the address is rewritten to the version shown, as sefaria.org's server does before rendering
+describe("a version the address names that this text lacks", () => {
+  it("a missing translation: redirect (302) to the first translation in its language, keeping the rest of the query", async () => {
+    serveMissingVersions();
+    const r = await redirectOf({ ven: "english|No_Such_Version", lang: "bi" });
+    expect(r?.statusCode).toBe(302);
+    expect(r?.search).toEqual({ ven: "english|THE_JPS_TANAKH:_Gender-Sensitive_Edition", lang: "bi" });
+  });
+  it("a language this text has no translation in: the parameter is dropped, so the preferences decide on the next load", async () => {
+    serveMissingVersions();
+    expect((await redirectOf({ ven: "klingon|No_Such_Version", lang: "en" }))?.search).toEqual({ lang: "en" });
+    const next = await load({ lang: "en" }, { byCorpus: { Tanakh: { en: "The Koren Jerusalem Bible" } } });
+    expect(next.panels.p1!.versions.translation).toBe("english|The Koren Jerusalem Bible");
+  });
+  it("a missing primary: the first source version in its language", async () => {
+    serveMissingVersions();
+    expect((await redirectOf({ vhe: "hebrew|No_Such_Version" }))?.search).toEqual({ vhe: "hebrew|Miqra_according_to_the_Masorah" });
+  });
+  it("a second panel's versions are rewritten under its own number", async () => {
+    serveMissingVersions();
+    const r = await redirectOf({ p3: "Genesis.1", ven3: "english|Nope", ven: "english|The_Koren_Jerusalem_Bible" });
+    expect(r?.search).toEqual({ p3: "Genesis.1", ven3: "english|THE_JPS_TANAKH:_Gender-Sensitive_Edition", ven: "english|The_Koren_Jerusalem_Bible" });
+  });
+  it("versions the text has load without a redirect", async () => {
+    expect(await redirectOf({ ven: "english|The_Koren_Jerusalem_Bible" })).toBeNull();
   });
 });
 

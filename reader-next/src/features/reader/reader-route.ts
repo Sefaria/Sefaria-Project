@@ -7,12 +7,12 @@ import { isSplatOf, refToUrl, urlToRef } from "~/lib/ref/url";
 import type { ReaderSearch } from "~/lib/reader/url-state";
 import { indexMetaQueryOptions } from "~/lib/text/commentary";
 import { loadReaderPassage, passageUrl, selectionKey, type VersionSelection } from "~/lib/text/queries";
-import { hasVersionPrefs, resolveTranslation, toApiVersion, type VersionPrefs } from "~/lib/versions/preferences";
+import { hasVersionPrefs, normalizeRequestedVersion, resolveTranslation, toApiVersion, type VersionPrefs } from "~/lib/versions/preferences";
 import { readVersionPrefs } from "~/lib/versions/prefs-source";
 import { hebrewRefOf } from "~/lib/reader/page-title";
 import { panelOrder, updatePanel } from "~/lib/workspace/ops";
 import type { PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
-import { decodeWorkspace, type RawSearch } from "~/lib/workspace/url";
+import { decodeWorkspace, versionApiToParam, type RawSearch } from "~/lib/workspace/url";
 
 /** What one text panel needs to render, from the library cache the loader filled. */
 export interface ReaderRouteData {
@@ -43,7 +43,12 @@ export interface WorkspaceRouteData {
   panels: Record<PanelId, ReaderRouteData>;
 }
 
-async function loadTextPanel(queryClient: QueryClient, panel: TextPanelState, prefs: VersionPrefs, bannerDismissed: boolean): Promise<ReaderRouteData> {
+/** A panel whose address names versions this text does not have: the versions the address should name instead (see `rewrite`). */
+interface VersionRewrite {
+  rewrite: VersionSelection;
+}
+
+async function loadTextPanel(queryClient: QueryClient, panel: TextPanelState, prefs: VersionPrefs, bannerDismissed: boolean): Promise<ReaderRouteData | VersionRewrite> {
   const load = async (sel: VersionSelection) => {
     try {
       return await loadReaderPassage(queryClient, getRefIndex(), panel.ref, sel);
@@ -56,6 +61,17 @@ async function loadTextPanel(queryClient: QueryClient, panel: TextPanelState, pr
   };
   let versions = panel.versions;
   let result = await load(versions);
+
+  // A `ven`/`vhe` naming a version this text lacks (a translation carried over from another book) is rewritten in the address to the
+  // version sefaria.org would show, or dropped so the preferences and the default decide (normalizeRequestedVersion, R-VER-1).
+  if (versions.primary || versions.translation) {
+    const available = result.sections[0]!.availableVersions;
+    const rewrite: VersionSelection = {
+      primary: normalizeRequestedVersion(versions.primary, "primary", available),
+      translation: normalizeRequestedVersion(versions.translation, "translation", available),
+    };
+    if (selectionKey(rewrite) !== selectionKey(versions)) return { rewrite };
+  }
 
   // No translation named in the URL (or one this text lacks): the reader's preferences decide (VER-014). Only
   // worth any work when preferences exist; and only a second load when the choice differs from the default.
@@ -112,17 +128,33 @@ export async function loadWorkspaceRoute(args: {
   const prefs = args.prefs ?? (await readVersionPrefs());
   const dismissed = await readBannerDismissed();
   const loaded = await Promise.all(ids.map((id) => loadTextPanel(args.queryClient, ws.panels[id] as TextPanelState, prefs, dismissed)));
-  const panels = Object.fromEntries(ids.map((id, i) => [id, loaded[i]!])) as Record<PanelId, ReaderRouteData>;
-  for (const id of ids) ws = updatePanel(ws, id, { ref: panels[id]!.ref });
 
-  // A ref that is not in canonical form redirects (301) to the canonical ref with the request's own query, as sefaria.org
-  // does (VERIFIED: /Gen.1.1?lang=en → /Genesis.1.1?lang=en). Only the refs change: the path and any p<n> (the old numbering).
   const query = { ...((args.fullSearch ?? args.search) as Record<string, unknown>) };
   const extra = Object.keys(query)
     .map((k) => /^p(\d+)$/.exec(k))
     .filter((m): m is RegExpExecArray => !!m && Number(m[1]) >= 2 && String(query[m[0]] ?? "") !== "")
     .map((m) => Number(m[1]))
     .sort((a, b) => a - b);
+
+  // Versions this text lacks: redirect (302, as sefaria.org) to the address naming what will be shown, before anything renders.
+  // Panel n>1 reads ven<n>/vhe<n> with the n of its p<n>.
+  if (loaded.some((l) => "rewrite" in l)) {
+    loaded.forEach((l, i) => {
+      if (!("rewrite" in l)) return;
+      const suffix = i === 0 ? "" : String(extra[i - 1]);
+      for (const [key, api] of [[`ven${suffix}`, l.rewrite.translation], [`vhe${suffix}`, l.rewrite.primary]] as const) {
+        const param = versionApiToParam(api);
+        if (param) query[key] = param;
+        else delete query[key];
+      }
+    });
+    throw redirect({ to: `/${args.splat}` as never, search: query as never, statusCode: 302, replace: true });
+  }
+  const panels = Object.fromEntries(ids.map((id, i) => [id, loaded[i] as ReaderRouteData])) as Record<PanelId, ReaderRouteData>;
+  for (const id of ids) ws = updatePanel(ws, id, { ref: panels[id]!.ref });
+
+  // A ref that is not in canonical form redirects (301) to the canonical ref with the request's own query, as sefaria.org
+  // does (VERIFIED: /Gen.1.1?lang=en → /Genesis.1.1?lang=en). Only the refs change: the path and any p<n> (the old numbering).
   let panelsDiffer = false;
   extra.forEach((n, i) => {
     const id = ids[i + 1];
