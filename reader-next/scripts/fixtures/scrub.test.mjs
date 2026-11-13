@@ -99,7 +99,7 @@ test("the output is minified, holds no personal data, and a second run changes n
   for (const [f, before, after] of scrubFiles(root)) assert.equal(after, before, `${f} changed on the second run`);
 });
 
-test("a new person added to a scrubbed tree gets the next free number", () => {
+test("a new person added to a scrubbed tree gets the number after the highest one", () => {
   const root = tree();
   for (const [f, , after] of scrubFiles(root)) writeFileSync(join(root, f), after);
   const p = join(root, "api", "a", "related.json");
