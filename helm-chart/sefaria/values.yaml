@@ -117,6 +117,12 @@ web:
     web:
       gunicornWorkerCount: 1
       gunicornThreadCount: 1
+      # Restart a gunicorn worker after this many requests, plus a random
+      # jitter of up to maxRequestsJitter, so a worker releases the memory it
+      # accumulates over its lifetime. The gunicorn config turns the restart
+      # policy on only when both environment variables are set.
+      maxRequests: 50000
+      maxRequestsJitter: 10000
       resources:
         requests:
           memory: "1Gi"
@@ -256,6 +262,10 @@ varnish:
 tasks:
   localsettings: {}
   enabled: false
+  # Replace a celery worker child once its resident memory reaches this many
+  # KiB, so a child releases the memory it accumulates across tasks. The
+  # container memory limit is tasks.resources.limits.memory.
+  maxMemoryPerChildKiB: 6291456
   resources:
     requests:
       memory: "2Gi"
