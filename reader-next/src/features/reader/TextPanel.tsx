@@ -33,7 +33,7 @@ import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations
 import { rememberTranslation } from "~/lib/versions/prefs-source";
 import { entryKey, navFor, panelKeysOf, readNavState, useWorkspaceNav, type NavState } from "../workspace/navigation";
 import { panelForRef } from "../workspace/open-ref";
-import { RouterLink, toRouterLocation } from "../shared/RouterLink";
+import { toRouterLocation } from "../shared/RouterLink";
 // Not a lazy chunk (tried once to shrink the first load): a server-rendered sidebar whose chunk was still loading at hydration left a Suspense
 // boundary that React later hid, unmounting query observers mid-fetch; the cancelled fetch surfaced as a "CancelledError" page (seen
 // on /Genesis.1.3-5?with=all). Split it with the route manifest, where the router loads a page's chunks before it hydrates.
@@ -670,6 +670,21 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     // a work with no source version (Teshuvot haRashba: English only, served as the translation) is labelled from what it shows
     translationVersion: section.translationVersion, primaryVersion: section.primaryVersion ?? (labelMode === "hebrew" ? section.translationVersion : undefined), language: labelMode, interfaceLang,
   }, verses, separator));
+  // The title opens the connections of the ref it names (the arrival address, or the section in view), as sefaria.org's header does
+  // (ReaderControls.openTextConnectionsPanel): a plain click or Enter, with nothing highlighted. Its href is the book's page, which a
+  // modified or middle click opens in a new tab, as there.
+  const titleRef = narrowToVerses({ sectionRef: section.sectionRef, heSectionRef: section.heSectionRef }, verses, separator).sectionRef;
+  const onTitleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    apply(
+      (ws) => {
+        const existing = ws.panels[id]?.asides.find((a) => a.kind === "connections");
+        return openAside(updatePanel(ws, id, { ref: titleRef }), id, { kind: "connections", view: existing?.entity ? formatWith({ view: "resources" }) : (existing?.view ?? formatWith({ view: "resources" })), ...(existing ? {} : { lang: newSidebarLang }) });
+      },
+      { state: { nav: "stay", panel: id } },
+    );
+  };
   const shownVersions = { he: sidebarSection.primaryVersion?.versionTitle, en: sidebarSection.translationVersion?.versionTitle };
   const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the filter string; `view` is a new object each render
 
@@ -689,10 +704,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         sticky
         category={section.categories}
         title={
-          // the book's page in the app (sefaria.org opens its contents in the panel), so Back returns to this reader with its place kept
-          <RouterLink href={`/${refToUrl(section.indexTitle)}`} lang={header.lang} dir={header.lang === "he" ? "rtl" : "ltr"} style={{ color: "inherit", textDecoration: "none" }}>
+          <a href={`/${refToUrl(section.indexTitle)}`} onClick={onTitleClick} lang={header.lang} dir={header.lang === "he" ? "rtl" : "ltr"} style={{ color: "inherit", textDecoration: "none" }}>
             {header.title}
-          </RouterLink>
+          </a>
         }
         subtitle={
           header.attribution || header.version ? (

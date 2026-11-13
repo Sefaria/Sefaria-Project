@@ -120,26 +120,6 @@ async function readOn(page: Page) {
   return { ref, before: await segmentTop(page, ref) };
 }
 
-// The panel title opens the book's page in the app, as sefaria.org opens the book's contents in the panel (no new document), at the
-// book's own address; Back puts the reader where they were.
-// @feature SHL-064 @feature SHL-065
-test("the panel title opens the book's page in the app, and Back puts the reader where they were", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) < 600, "desktop project only");
-  const { ref, before } = await readOn(page);
-  await page.evaluate(() => ((window as unknown as { __samePage?: boolean }).__samePage = true));
-  await page.locator('a[href="/Genesis"]').first().click();
-  await expect(page).toHaveURL(/\/Genesis$/); // not "/Genesis?lang=bi&aliyot=0": the book's page is no reader address
-  await expect(page.locator("[data-reader-scroller]")).toHaveCount(0);
-  expect(await page.evaluate(() => (window as unknown as { __samePage?: boolean }).__samePage)).toBe(true);
-  await page.waitForTimeout(500);
-  await expect(page).toHaveURL(/\/Genesis$/);
-  await page.goBack();
-  await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
-  await page.waitForTimeout(1000);
-  const after = await segmentTop(page, ref);
-  expect(Math.abs(after - before), `${ref}: ${before} before, ${after} after`).toBeLessThan(2);
-});
-
 // Leaving by a full page load (a link to a page served by the server, as Django's pages are), Back is a new document of the reader. The
 // place kept on pagehide is put back before the first paint (the inline script) and held by the app: the verse never shows elsewhere.
 // @feature SHL-064 @feature SHL-065
@@ -158,6 +138,38 @@ test("Back to the reader after a full page load puts the reader where they were,
   expect(tops.length).toBeGreaterThan(0);
   expect(Math.max(...tops.map((t) => Math.abs(t - before))), `drawn at ${[...new Set(tops.map(Math.round))].join(", ")}`).toBeLessThan(2);
 });
+
+// The same after a full page load: the new document's first paint must already have the room under the text that the kept place
+// needs (the next chapter is not loaded yet); without it the verse was drawn low for the first frames, then moved (English 211px,
+// bilingual 58px, two panels 42px).
+// @feature SHL-064 @feature SHL-065
+for (const [name, start] of [
+  ["bilingual", "/Genesis.1.20?lang=bi"],
+  ["English", "/Genesis.1.20?lang=en"],
+  ["two panels", "/Genesis.1.20?lang=bi&p2=Exodus.1&lang2=bi"],
+] as const) {
+  test(`Back after a full page load at a chapter's last verses, ${name}: the verse is drawn only where it was`, async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 600, "desktop project only");
+    await open(page, start);
+    await page.waitForTimeout(800);
+    const box = await page.locator("[data-reader-scroller]").first().boundingBox();
+    await page.mouse.move(box!.x + box!.width / 2, box!.y + 300);
+    await readToLastVerses(page, /\/Genesis\.1\.31\?/);
+    const ref = "Genesis 1:31";
+    const before = await segmentTop(page, ref);
+    await traceVerse(page, ref);
+    await page.evaluate(() => location.assign("/Genesis"));
+    await expect(page).toHaveURL(/\/Genesis$/);
+    await page.goBack();
+    await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
+    await page.waitForTimeout(1500);
+    const tops = await page.evaluate(() => (window as unknown as { __verseTops: number[] }).__verseTops);
+    expect(tops.length).toBeGreaterThan(10);
+    expect(Math.max(...tops.map((t) => Math.abs(t - before))), `${ref} at ${before}, drawn at ${[...new Set(tops.map(Math.round))].join(", ")}`).toBeLessThan(2);
+    // and the reader can read on: the next chapter arrives below and the room goes
+    await expect(page.locator('section[data-ref="Genesis 2"]').first()).toBeAttached({ timeout: 25_000 });
+  });
+}
 
 // At a chapter's last verses the next chapter had loaded below; on the way back it has not yet, so the column could not scroll that far
 // and the verse came back lower (Genesis 1:31: 506 before, 564 after). Room is kept under the text until the next chapter is in.
