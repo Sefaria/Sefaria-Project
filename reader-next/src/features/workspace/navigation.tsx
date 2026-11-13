@@ -25,6 +25,8 @@ export interface PanelPlacement {
   restorePosition: (pos: SavedPosition) => boolean;
   /** Bring a segment to the reading line; false when it is not loaded. */
   scrollToSegment: (ref: string) => boolean;
+  /** Where the reader is on screen, for the scroll slice; else the registered reader (the place history keeps). */
+  getPosition?: () => SavedPosition | undefined;
 }
 
 interface WorkspaceNav {
@@ -184,7 +186,7 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
           [...placements.current.values()].map(
             ({ read, placement }): ScrollPanel => ({
               key: placement.key,
-              getPosition: read,
+              getPosition: placement.getPosition ?? read,
               restorePosition: placement.restorePosition,
               scrollToSegment: placement.scrollToSegment,
             }),

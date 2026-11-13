@@ -44,6 +44,8 @@ export interface ReadingScroll {
   scrollToSegment: (segmentRef: string) => void;
   /** Where the reader is: the current segment and its distance from the top of the scrolling area. */
   getPosition: () => SavedPosition | undefined;
+  /** The place to keep for history: the reader's, by the anchor (see keptPosition). */
+  keptPosition: () => SavedPosition | undefined;
   /** Put the reader back where {@link getPosition} found them. False when that segment is not loaded. */
   restorePosition: (pos: SavedPosition) => boolean;
   /** Re-run edge detection (after new content arrives). */
@@ -422,13 +424,23 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
   const getPosition = useCallback((): SavedPosition | undefined => {
     const s = state.current;
     const content = optsRef.current.contentRef.current;
-    // The place is where the anchor says, after the reader's own scrolling, not where the verse happens to be drawn: the text can move
-    // under the reader for a moment without the engine having run (a section arriving while the page is being left), or for a reason
-    // that is not reading at all (a phone's menu showing the site's header above the text, 60px, just before the reader leaves).
-    if (s.anchor && content && (s.anchor.ref === s.focus || content.offsetHeight !== s.height)) return { ref: s.anchor.ref, offset: s.anchor.offset - (scrollTopNow() - s.anchor.scrollTop) };
+    // Content changed and anchor keeping has not run yet (a section arriving while the page is being left): the text has moved under
+    // the reader for a moment, so the place is where the anchor says, after the reader's own scrolling, not where the verse is drawn.
+    if (s.anchor && content && content.offsetHeight !== s.height) return { ref: s.anchor.ref, offset: s.anchor.offset - (scrollTopNow() - s.anchor.scrollTop) };
     const el = s.focus ? content?.querySelector(segmentSelector(s.focus)) : null;
     return s.focus && el ? { ref: s.focus, offset: offsetOf(el) } : undefined;
   }, [offsetOf, scrollTopNow]);
+
+  /**
+   * The place to keep when the reader leaves (history): where they were reading, after their own scrolling, by the anchor, not where the
+   * verse happens to be drawn. A phone's menu shows the site's header above the text (60px) just before the reader leaves, which moves
+   * the text without the engine running. (The reader state API's position is getPosition: what is on screen.)
+   */
+  const keptPosition = useCallback((): SavedPosition | undefined => {
+    const s = state.current;
+    if (s.anchor && s.anchor.ref === s.focus) return { ref: s.anchor.ref, offset: s.anchor.offset - (scrollTopNow() - s.anchor.scrollTop) };
+    return getPosition();
+  }, [getPosition, scrollTopNow]);
 
   const restorePosition = useCallback(
     (pos: SavedPosition): boolean => {
@@ -457,7 +469,7 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     state.current.height = content.offsetHeight;
   }, [restoreAnchor]);
 
-  return { setFocus, scrollToSegment, getPosition, restorePosition, check: schedule, restore };
+  return { setFocus, scrollToSegment, getPosition, keptPosition, restorePosition, check: schedule, restore };
 }
 
 /**

@@ -166,9 +166,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const panelKey = panel.key ?? id;
   const connectionsOnScreenRef = useRef(false);
   const registerPosition = useCallback(
-    (get: () => SavedPosition | undefined, engine?: { restorePosition: (pos: SavedPosition) => boolean; scrollToSegment: (ref: string) => void }) =>
+    (get: () => SavedPosition | undefined, engine?: { restorePosition: (pos: SavedPosition) => boolean; scrollToSegment: (ref: string) => void; getPosition?: () => SavedPosition | undefined }) =>
       nav.registerPanel(id, get, {
         key: panelKey,
+        getPosition: engine?.getPosition,
         restorePosition: (pos) => (engine ? engine.restorePosition(pos) : !!rootEl.current && placeSegment(rootEl.current, pos)),
         scrollToSegment: (ref) => {
           if (!engine) return !!rootEl.current && scrollSegmentToLine(rootEl.current, ref, { connectionsOnScreen: connectionsOnScreenRef.current });
