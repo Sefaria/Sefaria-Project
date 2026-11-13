@@ -13,6 +13,11 @@ from sefaria.system.exceptions import InputError
 
 logger = structlog.get_logger(__name__)
 
+# Bound every HTTP call to the GPU NER server. The find-refs task runs under a 60s Celery
+# soft time limit, so a stalled NER server must fail the task promptly instead of blocking
+# a worker until the limit fires.
+GPU_SERVER_REQUEST_TIMEOUT_SECONDS = 30
+
 
 def get_linker_normalizer(lang: str) -> NormalizerComposer:
     """
@@ -80,12 +85,21 @@ class LinkerEntityRecognizer:
         return self._parse_recognize_response(normalized_input, data)
 
     def _recognize_entities_api_request(self, input_str: str):
-        resp = requests.post(f"{GPU_SERVER_URL}/recognize-entities", json={"text": input_str, "lang": self._lang})
-        return self._parse_api_response(resp, "recognize-entities")
+        return self._post_to_gpu_server("recognize-entities", {"text": input_str, "lang": self._lang})
 
     def _bulk_recognize_entities_api_request(self, inputs: list[str]):
-        resp = requests.post(f"{GPU_SERVER_URL}/bulk-recognize-entities", json={"texts": inputs, "lang": self._lang})
-        return self._parse_api_response(resp, "bulk-recognize-entities")
+        return self._post_to_gpu_server("bulk-recognize-entities", {"texts": inputs, "lang": self._lang})
+
+    def _post_to_gpu_server(self, endpoint: str, payload: dict) -> dict:
+        try:
+            resp = requests.post(
+                f"{GPU_SERVER_URL}/{endpoint}", json=payload, timeout=GPU_SERVER_REQUEST_TIMEOUT_SECONDS
+            )
+        except requests.exceptions.Timeout:
+            raise InputError(
+                f"Linker NER server request to {endpoint} timed out after {GPU_SERVER_REQUEST_TIMEOUT_SECONDS} seconds"
+            )
+        return self._parse_api_response(resp, endpoint)
 
     @staticmethod
     def _parse_api_response(resp: requests.Response, endpoint: str) -> dict:
