@@ -3467,6 +3467,10 @@ def parasha_data_api(request):
 @catch_error_as_json
 @csrf_exempt
 def calendars_api(request):
+    if request.method == "OPTIONS":
+        # CORS preflight. Without this branch the view falls through and returns
+        # None, which Django turns into a 500 for every cross-origin client.
+        return http.HttpResponse(status=204)
     if request.method == "GET":
         diaspora = request.GET.get("diaspora", "1")
         custom = request.GET.get("custom", None)
@@ -3496,6 +3500,8 @@ def calendars_api(request):
             callback=request.GET.get("callback", None),
         )
 
+    return http.HttpResponseNotAllowed(["GET", "OPTIONS"])
+
 
 @catch_error_as_json
 @csrf_exempt
@@ -3506,11 +3512,17 @@ def parasha_next_read_api(request, parasha):
     :param request:
     :return:
     """
+    if request.method == "OPTIONS":
+        # CORS preflight. Without this branch the view falls through and returns
+        # None, which Django turns into a 500 for every cross-origin client.
+        return http.HttpResponse(status=204)
     if request.method == "GET":
         datetimeobj = timezone.localtime(timezone.now())
         return jsonResponse(
             parashat_hashavua_and_haftara(datetimeobj, request.diaspora, parasha=parasha, ret_type="dict")
         )
+
+    return http.HttpResponseNotAllowed(["GET", "OPTIONS"])
 
 
 @catch_error_as_json
