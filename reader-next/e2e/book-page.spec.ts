@@ -19,7 +19,9 @@ test.describe("a book's own page (verified against sefaria.org)", () => {
     await page.getByRole("link", { name: "5", exact: true }).first().click();
     await expect(page).toHaveURL(/\/Genesis\.5/);
     await expect(page.locator('[role="group"][data-ref="Genesis 5:1"]')).toBeVisible({ timeout: 25_000 });
-    await page.getByRole("link", { name: "Genesis 5" }).click(); // the header's title leads to the book page
+    // back to the book's page (the header's title opens the connections, as on sefaria.org; its href is this page)
+    await expect(page.getByRole("link", { name: "Genesis 5" })).toHaveAttribute("href", "/Genesis");
+    await page.goBack();
     await expect(page).toHaveURL(/\/Genesis$/);
     await expect(page.getByRole("link", { name: "Continue Reading" })).toHaveAttribute("href", /\/Genesis\.5/);
   });
