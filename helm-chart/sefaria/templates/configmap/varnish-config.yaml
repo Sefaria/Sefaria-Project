@@ -149,5 +149,14 @@ data:
         set beresp.grace = 10d;
 
     }
+
+    sub vcl_deliver {
+        # Keep the ban-lurker URL header on the stored object (obj.http.url, matched by
+        # `ban obj.http.url ~ ...` in sefaria/system/varnish/common.py) but do not send it
+        # downstream. The value is the whole request URL, which for /api/bulktext can be
+        # several kilobytes - larger than the proxy header buffer in front of Varnish.
+        unset resp.http.url;
+    }
+
 {{ end }}
 {{ end }}
