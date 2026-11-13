@@ -12,6 +12,7 @@ spec:
   jobTemplate:
     spec:
       backoffLimit: 1
+      activeDeadlineSeconds: {{ .Values.cronJobs.indexFromQueue.activeDeadlineSeconds }}
       template:
         spec:
           affinity:
@@ -23,7 +24,7 @@ spec:
                     operator: In
                     values:
                     - mongo
-                topologyKey: kubernetes.io.hostname
+                topologyKey: kubernetes.io/hostname
           containers:
           - name: index-from-queue
             image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"

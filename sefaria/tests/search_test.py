@@ -1570,3 +1570,34 @@ class TestSharedIndexGuardCoversEntities:
 
         monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
         search._assert_not_shared_index(alias, alias)  # must not raise
+
+
+@pytest.mark.parametrize("force", [False, True])
+def test_create_index_validates_shard_count_before_deleting_anything(monkeypatch, force):
+    """A bad SEARCH_TEXT_PRIMARY_SHARDS must fail before clear_index, or the old index is gone with no replacement."""
+    search = sefaria.search
+    deleted, created = [], []
+    monkeypatch.setenv("SEARCH_TEXT_PRIMARY_SHARDS", "0")
+    monkeypatch.setattr(search.index_client, "exists", lambda index: True)
+    monkeypatch.setattr(search.index_client, "stats", lambda index: {"_all": {"primaries": {"docs": {"count": 0}}}})
+    monkeypatch.setattr(search, "clear_index", lambda name: deleted.append(name))
+    monkeypatch.setattr(search.index_client, "create", lambda **kw: created.append(kw))
+    with pytest.raises(ValueError):
+        search.create_index("text-b", "text", force=force)
+    assert deleted == []
+    assert created == []
+
+
+def test_create_index_builds_text_with_three_primaries(monkeypatch):
+    search = sefaria.search
+    created = []
+    monkeypatch.delenv("SEARCH_TEXT_PRIMARY_SHARDS", raising=False)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: False)
+    monkeypatch.setattr(search, "clear_index", lambda name: None)
+    monkeypatch.setattr(search.index_client, "create", lambda **kw: created.append(kw))
+    monkeypatch.setattr(search, "put_text_mapping", lambda name: None)
+    monkeypatch.setattr(search, "put_sheet_mapping", lambda name: None)
+    search.create_index("text-b", "text")
+    search.create_index("sheet-b", "sheet")
+    assert created[0]["settings"]["index"]["number_of_shards"] == 3
+    assert created[1]["settings"]["index"]["number_of_shards"] == 1
