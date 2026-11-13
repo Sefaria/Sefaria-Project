@@ -99,7 +99,7 @@ spec:
         image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
         imagePullPolicy: Always
         command: ["celery"]
-        args: ["-A", "sefaria.celery_setup.app","worker", "-Q", "{{ $pool.queue }}", "--concurrency=1", "-l", "INFO"]
+        args: ["-A", "sefaria.celery_setup.app","worker", "-Q", "{{ $pool.queue }}", "--concurrency=1", "--max-memory-per-child={{ int .Values.tasks.maxMemoryPerChildKiB }}", "-l", "INFO"]
         env:
           - name: ENV_NAME
             value: "{{ .Values.deployEnv }}"
