@@ -89,6 +89,9 @@ export function decodeWorkspace(firstRef: string, search: RawSearch): Workspace 
 export interface UrlDefaults {
   lang: "bi" | "he" | "en";
   aliyot: 0 | 1;
+  /** One panel at a time (a phone): the sidebar is shown in place of its panel, and its language is not written (no `lang2`), as the
+   *  old client's isMobileConnectionsOpen (ReaderApp.jsx makeHistoryState). The sidebar then follows the panel's language. */
+  singlePanel?: boolean;
 }
 export const DEFAULT_URL_DEFAULTS: UrlDefaults = { lang: "bi", aliyot: 0 };
 
@@ -208,6 +211,7 @@ function workspaceParams(ws: Workspace, d: UrlDefaults): { path: string; params:
     } else {
       params.push(encoded(`p${i + 1}`, cur.url), ...(cur.mode === "Text" ? vparams(cur.versions, i + 1) : []));
     }
+    if (d.singlePanel && i === 1 && cur.mode === "Connections" && prev.mode === "Text") continue;
     params.push(raw(`lang${i + 1}`, cur.lang), ...("aliyot" in cur ? [raw(`aliyot${i + 1}`, cur.aliyot!)] : []));
   }
   return { path, params };

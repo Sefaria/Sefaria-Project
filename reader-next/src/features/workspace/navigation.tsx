@@ -8,6 +8,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, typ
 import { PositionStore, type EntryPositions, type SavedPosition } from "~/lib/reader/position-store";
 import { createWorkspaceCommands, entryKey, readNavState, urlDefaultsFor, type NavState, type WorkspaceRouter } from "~/lib/workspace/commands";
 import { useReaderSettings } from "../reader/settings-context";
+import { useMediaQuery } from "~/lib/ui/use-media-query";
 import { useRegisterSlice } from "~/features/reader-state/context";
 import { createScrollSlice, type ScrollPanel } from "~/lib/reader-state/sefaria/slices/scroll";
 import type { PanelId, Workspace } from "~/lib/workspace/types";
@@ -42,6 +43,9 @@ interface WorkspaceNav {
   href: (ws: Workspace) => string;
   go: (ws: Workspace, opts?: { replace?: boolean; state?: NavState }) => void;
 }
+
+/** One panel at a time: sefaria.org's MOBILE breakpoint, as the panel's own single-panel rules (TextPanel.tsx). */
+const SINGLE_PANEL_QUERY = "(max-width: 842px)";
 
 const Ctx = createContext<WorkspaceNav | null>(null);
 
@@ -80,7 +84,9 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const location = useLocation();
   const { settings } = useReaderSettings();
-  const defaults = useMemo(() => urlDefaultsFor(settings), [settings.language, settings.aliyotTorah]); // eslint-disable-line react-hooks/exhaustive-deps -- only these two settings shape the URL defaults; `settings` is a new object on any change
+  // a phone (one panel at a time) writes no sidebar language, as the old client; false on the server and in the hydrating render
+  const singlePanel = useMediaQuery(SINGLE_PANEL_QUERY);
+  const defaults = useMemo(() => ({ ...urlDefaultsFor(settings), singlePanel }), [settings.language, settings.aliyotTorah, singlePanel]); // eslint-disable-line react-hooks/exhaustive-deps -- only these two settings shape the URL defaults; `settings` is a new object on any change
   const defaultsRef = useRef(defaults);
   defaultsRef.current = defaults;
   const commands = useMemo(() => createWorkspaceCommands(router as unknown as WorkspaceRouter, () => defaultsRef.current), [router]);

@@ -371,8 +371,13 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [apply, id],
   );
   // The aleph / ayin button in the sidebar's header: its own language (`lang2`), the text's language untouched (SHL-014)
+  // The sidebar's language button. On a phone the sidebar is shown in place of its panel and follows the panel's language (no `lang2`
+  // in the address, as sefaria.org), so the button changes the panel's language, as the old ReaderPanel.toggleLanguage did there.
   const onSidebarLang = useCallback(
-    (l: "en" | "he") => (readerAnalytics.languageToggled(l === "he" ? "hebrew" : "english"), apply((ws) => (aside ? updateAside(ws, id, aside.id, { lang: l }) : ws), { replace: true, state: { nav: "stay", panel: id } })),
+    (l: "en" | "he") => (
+      readerAnalytics.languageToggled(l === "he" ? "hebrew" : "english"),
+      apply((ws) => (isSinglePanel() ? updatePanel(ws, id, { lang: l }) : aside ? updateAside(ws, id, aside.id, { lang: l }) : ws), { replace: true, state: { nav: "stay", panel: id } })
+    ),
     [apply, id, aside],
   );
   const openSearchHit = useCallback(

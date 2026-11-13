@@ -15,7 +15,8 @@ test.describe("the panel title", () => {
     await expect(title(page)).toHaveAttribute("href", "/Genesis");
     await page.evaluate(() => ((window as unknown as { __samePage?: boolean }).__samePage = true));
     await title(page).click();
-    await expect(page).toHaveURL(/\/Genesis\.1\?lang=bi&with=all(&lang2=en)?$/);
+    // a phone writes no sidebar language (sefaria.org: `/Genesis.1?lang=bi&with=all` on a Pixel 7)
+    await expect(page).toHaveURL((page.viewportSize()?.width ?? 0) < 600 ? /\/Genesis\.1\?lang=bi&with=all$/ : /\/Genesis\.1\?lang=bi&with=all&lang2=en$/);
     await expect(sidebar(page)).toBeVisible();
     expect(await page.evaluate(() => (window as unknown as { __samePage?: boolean }).__samePage)).toBe(true);
   });
