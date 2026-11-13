@@ -53,35 +53,39 @@ test("Back from a library page puts the reader where they were", async ({ page }
   expect(Math.abs(after - before), `${ref}: ${before} before, ${after} after`).toBeLessThan(2);
 });
 
-// The same on a phone, where the page itself scrolls.
+// The same on a phone, where the page itself scrolls, in each language mode, reading to a chapter's last verses in the same page. In
+// Hebrew the labels settle again as the reader comes back; that settling once "put back" a verse measured while the menu's site header
+// was still above the text, 60px off.
 // @feature SHL-064 @feature SHL-065
-test("Back from a library page puts the reader where they were, on a phone @mobile", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) > 600, "phone project only");
-  await open(page, "/Genesis.1.20?lang=bi");
-  await page.waitForTimeout(800);
-  for (let i = 0; i < 6; i++) {
-    await page.mouse.wheel(0, 400);
-    await page.waitForTimeout(150);
-  }
-  await expect.poll(() => new URL(page.url()).pathname).not.toBe("/Genesis.1.20");
-  await page.waitForTimeout(800);
-  const ref = refOfPath(page.url());
-  // on a phone the library link is in the menu; opening it shows the site header above the panel, and the place kept is the one on
-  // screen when the reader leaves
-  await page.getByRole("button", { name: "Menu" }).first().click();
-  await page.waitForTimeout(300);
-  const before = await segmentTop(page, ref);
-  await page.locator('a[href="/texts"]:visible').first().click();
-  await expect(page).toHaveURL(/\/texts$/);
-  await expect(page.locator("[data-reader-scroller]")).toHaveCount(0); // the reader has left the page (a quick Back could beat it)
-  await page.goBack();
-  await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
-  await page.waitForTimeout(800);
-  const after = await segmentTop(page, ref);
-  expect(Math.abs(after - before), `${ref}: ${before} before, ${after} after`).toBeLessThan(2);
-});
+for (const lang of ["bi", "he", "en"] as const) {
+  test(`Back from a library page puts the reader where they were, on a phone, ${lang} @mobile`, async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) > 600, "phone project only");
+    await open(page, `/Genesis.1.20?lang=${lang}`);
+    await page.waitForTimeout(800);
+    await page.mouse.move(200, 400);
+    await readToLastVerses(page, /\/Genesis\.1\.3[01]\?/);
+    const ref = refOfPath(page.url());
+    // on a phone the library link is in the menu; opening it shows the site header above the panel (the text moves down 60px), but the
+    // place kept is the one the reader was reading
+    const before = await segmentTop(page, ref);
+    await page.getByRole("button", { name: "Menu" }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('a[href="/texts"]:visible').first().click();
+    await expect(page).toHaveURL(/\/texts$/);
+    await expect(page.locator("[data-reader-scroller]")).toHaveCount(0); // the reader has left the page (a quick Back could beat it)
+    await page.goBack();
+    await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
+    await page.waitForTimeout(1200);
+    const after = await segmentTop(page, ref);
+    expect(Math.abs(after - before), `${ref}: ${before} before, ${after} after`).toBeLessThan(2);
+  });
+}
 
-/** Where a verse is drawn on every frame from the document's start (installed before a Back that loads a new document). */
+/**
+ * Where a verse is drawn on every frame from the document's start (installed before a Back that loads a new document). Read after
+ * each frame's callbacks (a task queued from the frame), so it is what was painted: read inside the frame, it can run before the
+ * page's own placing in that frame and see a position that is never shown.
+ */
 const traceVerse = (page: Page, ref: string) =>
   page.addInitScript((r) => {
     const out: number[] = ((window as unknown as { __verseTops: number[] }).__verseTops = []);
@@ -89,9 +93,9 @@ const traceVerse = (page: Page, ref: string) =>
       const e = document.querySelector(`[role="group"][data-ref="${r}"]`);
       // drawn: the column is not held invisible while the fonts arrive
       if (e && getComputedStyle(e).visibility !== "hidden") out.push(e.getBoundingClientRect().top);
-      if (out.length < 240) requestAnimationFrame(f);
+      if (out.length < 240) requestAnimationFrame(() => setTimeout(f));
     };
-    requestAnimationFrame(f);
+    requestAnimationFrame(() => setTimeout(f));
   }, ref);
 
 /** Read on until the address names the chapter's last verse (the next chapter loaded below), so little of what is read stays loaded. */
@@ -195,39 +199,60 @@ test("Back to a reader at a chapter's last verses puts the reader where they wer
   await expect(page.locator('section[data-ref="Genesis 2"]')).toBeAttached({ timeout: 25_000 });
 });
 
-// The same two on a phone, where the page itself scrolls.
-// @feature SHL-064 @feature SHL-065
-test("Back after a full page load and to a chapter's last verses, on a phone @mobile", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) > 600, "phone project only");
-  await open(page, "/Genesis.1.20?lang=bi");
-  await page.waitForTimeout(800);
-  await page.mouse.move(200, 400);
-  await readToLastVerses(page, /\/Genesis\.1\.3[01]\?/);
-  let ref = refOfPath(page.url());
-  // (the next chapter may still be arriving above or below as the reader leaves: the place kept is the reader's, not the text's
-  // passing position while it is being put back)
-  let before = await segmentTop(page, ref);
-  await traceVerse(page, ref);
-  await page.evaluate(() => location.assign("/Genesis")); // a full page load (the panel title itself opens the book's page in the app)
-  await expect(page).toHaveURL(/\/Genesis$/);
-  await page.goBack();
-  await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
-  await page.waitForTimeout(1000);
-  let after = await segmentTop(page, ref);
+/** Where a verse is drawn on every frame from now on, in this document (a Back within the app). */
+const traceVerseHere = (page: Page, ref: string) =>
+  page.evaluate((r) => {
+    const out: number[] = ((window as unknown as { __verseTops: number[] }).__verseTops = []);
+    const f = () => {
+      const e = document.querySelector(`[role="group"][data-ref="${r}"]`);
+      if (e && getComputedStyle(e).visibility !== "hidden") out.push(e.getBoundingClientRect().top);
+      if (out.length < 240) requestAnimationFrame(() => setTimeout(f));
+    };
+    requestAnimationFrame(() => setTimeout(f));
+  }, ref);
+
+const drawnOnlyAt = async (page: Page, ref: string, before: number, what: string) => {
   const tops = await page.evaluate(() => (window as unknown as { __verseTops: number[] }).__verseTops);
-  expect(Math.max(...tops.map((t) => Math.abs(t - before))), `${ref} at ${before}, drawn at ${[...new Set(tops.map(Math.round))].join(", ")}`).toBeLessThan(2);
-  expect(Math.abs(after - before), `book page, ${ref}: ${before} before, ${after} after`).toBeLessThan(2);
-  // now from the library, through the menu
-  await page.getByRole("button", { name: "Menu" }).first().click();
-  await page.waitForTimeout(300);
-  ref = refOfPath(page.url());
-  before = await segmentTop(page, ref);
-  await page.locator('a[href="/texts"]:visible').first().click();
-  await expect(page).toHaveURL(/\/texts$/);
-  await expect(page.locator("[data-reader-scroller]")).toHaveCount(0);
-  await page.goBack();
-  await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
-  await page.waitForTimeout(1000);
-  after = await segmentTop(page, ref);
-  expect(Math.abs(after - before), `library, ${ref}: ${before} before, ${after} after`).toBeLessThan(2);
-});
+  expect(tops.length, what).toBeGreaterThan(10);
+  expect(Math.max(...tops.map((t) => Math.abs(t - before))), `${what}: ${ref} at ${before}, drawn at ${[...new Set(tops.map(Math.round))].join(", ")}`).toBeLessThan(2);
+};
+
+// The same on a phone, where the page itself scrolls, in each language mode: Back after a full page load, then from the library through
+// the menu, at a chapter's last verses (English and Hebrew came back 12-60px low, after about 10 frames in the right place).
+// @feature SHL-064 @feature SHL-065
+for (const lang of ["en", "he", "bi"] as const) {
+  test(`Back after a full page load and from the menu, at a chapter's last verses, on a phone, ${lang} @mobile`, async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) > 600, "phone project only");
+    await open(page, `/Genesis.1.20?lang=${lang}`);
+    await page.waitForTimeout(800);
+    await page.mouse.move(200, 400);
+    await readToLastVerses(page, /\/Genesis\.1\.3[01]\?/);
+    let ref = refOfPath(page.url());
+    let before = await segmentTop(page, ref);
+    await traceVerse(page, ref);
+    // a full page load of the search page (leaving for it, the room under the text was trimmed bit by bit on the way back, and English
+    // and Hebrew came back 12-29px low after about 10 frames)
+    await page.evaluate(() => location.assign("/search?q=light"));
+    await expect(page).toHaveURL(/\/search\?q=light/);
+    await page.waitForTimeout(1000);
+    await page.goBack();
+    await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
+    await page.waitForTimeout(1500);
+    await drawnOnlyAt(page, ref, before, "full page load");
+    expect(Math.abs((await segmentTop(page, ref)) - before), "full page load, final").toBeLessThan(2);
+    // now from the library, through the menu (which shows the site header and moves the text down 60px before the reader leaves)
+    ref = refOfPath(page.url());
+    before = await segmentTop(page, ref);
+    await page.getByRole("button", { name: "Menu" }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('a[href="/texts"]:visible').first().click();
+    await expect(page).toHaveURL(/\/texts$/);
+    await expect(page.locator("[data-reader-scroller]")).toHaveCount(0);
+    await traceVerseHere(page, ref);
+    await page.goBack();
+    await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
+    await page.waitForTimeout(1500);
+    await drawnOnlyAt(page, ref, before, "library");
+    expect(Math.abs((await segmentTop(page, ref)) - before), "library, final").toBeLessThan(2);
+  });
+}

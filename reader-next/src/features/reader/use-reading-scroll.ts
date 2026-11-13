@@ -152,8 +152,10 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
   const trimTailPad = useCallback(() => {
     const s = state.current;
     if (!s.tailPad) return;
-    // what the place on screen still needs once the content's own height is counted
-    setTailPad(Math.min(s.tailPad, Math.max(0, scrollTopNow() - (maxScrollNow() - s.tailPad))));
+    // dropped whole, once the content's own height holds the place on screen (the next section is in, or the reader went up): trimmed
+    // bit by bit, a placeholder that grew below and then went before the next section was laid out left the page too short for a
+    // frame, the browser pulled the scroll back, and the verse stayed that much lower (a phone, 29px)
+    if (scrollTopNow() - (maxScrollNow() - s.tailPad) <= 0.5) setTailPad(0);
   }, [setTailPad, scrollTopNow, maxScrollNow]);
 
   const rule = useCallback(() => focusRule(window.innerHeight, { mobile: scroller() === window, connectionsOnScreen: optsRef.current.connectionsOnScreen }), [scroller]);
@@ -420,9 +422,10 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
   const getPosition = useCallback((): SavedPosition | undefined => {
     const s = state.current;
     const content = optsRef.current.contentRef.current;
-    // Content changed and anchor keeping has not run yet (a section arriving while the page is being left): the text has moved under
-    // the reader for a moment, so the place is where the anchor says, after the reader's own scrolling, not where the verse is drawn.
-    if (s.anchor && content && content.offsetHeight !== s.height) return { ref: s.anchor.ref, offset: s.anchor.offset - (scrollTopNow() - s.anchor.scrollTop) };
+    // The place is where the anchor says, after the reader's own scrolling, not where the verse happens to be drawn: the text can move
+    // under the reader for a moment without the engine having run (a section arriving while the page is being left), or for a reason
+    // that is not reading at all (a phone's menu showing the site's header above the text, 60px, just before the reader leaves).
+    if (s.anchor && content && (s.anchor.ref === s.focus || content.offsetHeight !== s.height)) return { ref: s.anchor.ref, offset: s.anchor.offset - (scrollTopNow() - s.anchor.scrollTop) };
     const el = s.focus ? content?.querySelector(segmentSelector(s.focus)) : null;
     return s.focus && el ? { ref: s.focus, offset: offsetOf(el) } : undefined;
   }, [offsetOf, scrollTopNow]);

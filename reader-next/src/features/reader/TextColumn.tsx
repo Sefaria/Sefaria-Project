@@ -324,9 +324,22 @@ export function TextColumn(props: TextColumnProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- focuses when the selection changes; `engine` is a new object each render, its methods are stable
   }, [selected]);
 
+  // Has the reader scrolled, pressed a key or touched the page since the column started or was last put back? A label switch is
+  // corrected only then (below): labels settling as the column starts or comes back (Back to a Hebrew text) are the engine's to keep, and
+  // the measurement taken while rendering can predate the rest of that commit (a phone's site header going away with the page that
+  // showed it), so "putting back" that verse moved the reader 60px.
+  const readerActed = useRef(false);
+  useEffect(() => {
+    const acted = () => void (readerActed.current = true);
+    for (const e of STOP_EVENTS) window.addEventListener(e, acted, { capture: true, passive: true });
+    return () => {
+      for (const e of STOP_EVENTS) window.removeEventListener(e, acted, true);
+    };
+  }, []);
   // Back/forward: put the reader back at the saved place (layout effect: before paint, so nothing flashes).
   const restoreToken = props.restore?.token;
   useLayoutEffect(() => {
+    if (props.restore) readerActed.current = false;
     if (props.restore) atStart.current = false;
     if (props.restore) engine.restorePosition(props.restore.position);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- applied once per history entry (restoreToken), not each time the panel rebuilds the position object
@@ -460,7 +473,7 @@ export function TextColumn(props: TextColumnProps) {
     onLine.current = null;
     const scroller = scrollerRef.current;
     const el = was && scroller ? scroller.querySelector<HTMLElement>(`[role="group"][data-ref="${CSS.escape(was.ref)}"]`) : null;
-    if (!was || !el || !scroller) return;
+    if (!was || !el || !scroller || !readerActed.current) return;
     const delta = el.getBoundingClientRect().top - was.top;
     if (Math.abs(delta) < 0.5) return;
     if (isWindowScrolled(scroller)) window.scrollTo(0, window.scrollY + delta);
