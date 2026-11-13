@@ -300,6 +300,12 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     if (sc) sc.style.overflowAnchor = "none";
     // Take over place keeping from the pre-hydration script.
     (sc as (HTMLElement & { __keepPlace?: () => void }) | null)?.__keepPlace?.();
+    // room the script put under the text for a kept place the loaded text could not reach yet: the engine trims it from here
+    const scriptPad = (content as HTMLElement & { __tailPad?: number }).__tailPad;
+    if (scriptPad) {
+      s.tailPad = scriptPad;
+      delete (content as HTMLElement & { __tailPad?: number }).__tailPad;
+    }
     document.documentElement.style.overflowAnchor = "none";
 
     // Scroll events don't bubble, but a capturing listener on the document hears every container's — so it
@@ -463,11 +469,12 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
  * A document reached by Back/Forward (the reader had left by a full page load) puts the verse where the reader left it instead: the
  * place the workspace kept for this history entry and panel (sessionStorage, written on pagehide), as the app's restore will; the
  * browser's own scroll restoration, which would move a phone's page later in the load, is turned off for it, and the text waits for
- * the fonts the same way.
+ * the fonts the same way. A place further down than the loaded text reaches (a chapter's last verses, the next chapter not loaded
+ * again yet) gets room under the text, as the engine's restore gives it, which the engine then takes over and trims.
  * Kept tiny and dependency-free. Thresholds match FOCUS_THRESHOLD.
  */
 export const INITIAL_POSITION_SCRIPT = `(function(){var c,shown=0;function show(){if(!shown&&c){shown=1;c.style.visibility="";}}try{var s=document.currentScript;c=s&&s.closest("[data-reader-scroller]");if(!c)return;var sv=saved(),g=sv&&c.querySelector('[role="group"][data-ref="'+CSS.escape(sv.ref)+'"]'),t=g?null:c.querySelector('[data-scroll-target="true"]'),e=g||t?null:c.querySelector("[data-column-start]");if(!g&&!t&&!e)return;if(g)try{history.scrollRestoration="manual";}catch(x){}
-function place(){var o=getComputedStyle(c).overflowY,w=!(o==="auto"||o==="scroll"),d;if(g){d=g.getBoundingClientRect().top-(w?0:c.getBoundingClientRect().top)-sv.offset;}else if(t){var th=(w?70:140)+2;d=t.getBoundingClientRect().top-(w?0:c.getBoundingClientRect().top)-th;}else{var f=c.closest("[data-reader-frame]"),h=w&&f&&f.parentElement&&f.parentElement.querySelector("header"),hs=h&&getComputedStyle(h),line=w?(hs&&hs.position==="sticky"?(parseFloat(hs.top)||0)+h.offsetHeight:0):c.getBoundingClientRect().top;d=e.getBoundingClientRect().bottom-line;}if(Math.abs(d)<0.5)return;if(w)window.scrollTo(0,window.scrollY+d);else c.scrollTop+=d;}
+function place(){var o=getComputedStyle(c).overflowY,w=!(o==="auto"||o==="scroll"),d;if(g){d=g.getBoundingClientRect().top-(w?0:c.getBoundingClientRect().top)-sv.offset;var se=w?document.scrollingElement:c,sh=(w?scrollY:c.scrollTop)+d-(se.scrollHeight-se.clientHeight),ct=c.firstElementChild;if(sh>0.5&&ct){var tp=(ct.__tailPad||0)+Math.ceil(sh);ct.style.paddingBottom="";ct.style.paddingBottom=parseFloat(getComputedStyle(ct).paddingBottom)+tp+"px";ct.__tailPad=tp;}}else if(t){var th=(w?70:140)+2;d=t.getBoundingClientRect().top-(w?0:c.getBoundingClientRect().top)-th;}else{var f=c.closest("[data-reader-frame]"),h=w&&f&&f.parentElement&&f.parentElement.querySelector("header"),hs=h&&getComputedStyle(h),line=w?(hs&&hs.position==="sticky"?(parseFloat(hs.top)||0)+h.offsetHeight:0):c.getBoundingClientRect().top;d=e.getBoundingClientRect().bottom-line;}if(Math.abs(d)<0.5)return;if(w)window.scrollTo(0,window.scrollY+d);else c.scrollTop+=d;}
 place();var f=document.fonts;if((t||g)&&f&&f.status!=="loaded"){c.style.visibility="hidden";f.ready.then(function(){place();show();});setTimeout(show,600);}if(!window.ResizeObserver){show();return;}
 var ro=new ResizeObserver(place),live=1,tick=function(){if(live){place();requestAnimationFrame(tick);}},stop=function(){live=0;show();ro.disconnect();["wheel","touchmove","keydown","pointerdown"].forEach(function(e){removeEventListener(e,stop,true)});};requestAnimationFrame(tick);
 ro.observe(c);ro.observe(c.firstElementChild||c);["wheel","touchmove","keydown","pointerdown"].forEach(function(e){addEventListener(e,stop,true)});c.__keepPlace=stop;}catch(e){show();}
