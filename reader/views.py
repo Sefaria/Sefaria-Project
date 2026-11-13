@@ -966,6 +966,11 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImagePageType:
     return SocialImagePageType.MODULE_FALLBACK
 
 
+def _int_or_default(value, default):
+    """Return int(value), or default when value is absent or not a whole number."""
+    return int(value) if is_int(value) else default
+
+
 @sanitize_get_params
 def text_panels(request, ref, version=None, lang=None, sheet=None):
     """
@@ -1000,7 +1005,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
         kwargs = {
             "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
-            "extended notes": int(request.GET.get("notes", 0)),
+            "extended notes": _int_or_default(request.GET.get("notes"), 0),
             "translationLanguagePreference": request.translation_language_preference,
         }
         if filter is not None:
@@ -1013,7 +1018,9 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             kwargs["highlightedRefs"] = [oref.normal()]
             kwargs["showHighlight"] = True
         if request.GET.get("aliyot", None):
-            kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot")) == 1 else "aliyotOff"
+            kwargs["aliyotOverride"] = (
+                "aliyotOn" if _int_or_default(request.GET.get("aliyot"), None) == 1 else "aliyotOff"
+            )
         kwargs["selectedWords"] = request.GET.get("lookup", None)
         kwargs["sidebarSearchQuery"] = request.GET.get("sbsq", None)
         kwargs["selectedNamedEntity"] = request.GET.get("namedEntity", None)
@@ -1053,11 +1060,13 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
             kwargs = {
                 "panelDisplayLanguage": request.GET.get(f"lang{i}", request.contentLang),
-                "extended notes": int(request.GET.get(f"notes{i}", 0)),
+                "extended notes": _int_or_default(request.GET.get(f"notes{i}"), 0),
                 "translationLanguagePreference": request.translation_language_preference,
             }
             if request.GET.get(f"aliyot{i}", None):
-                kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get(f"aliyot{i}")) == 1 else "aliyotOff"
+                kwargs["aliyotOverride"] = (
+                    "aliyotOn" if _int_or_default(request.GET.get(f"aliyot{i}"), None) == 1 else "aliyotOff"
+                )
             kwargs["selectedWords"] = request.GET.get(f"lookup{i}", None)
             kwargs["sidebarSearchQuery"] = request.GET.get(f"sbsq{i}", None)
             kwargs["selectedNamedEntity"] = request.GET.get(f"namedEntity{i}", None)
