@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load sefaria_tags %}
+{% block meta_title %}{% meta_title %}{{ shelf.en }} | Open Shelf{% endmeta_title %}{% endblock %}
+{% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block content %}
+{% include "open_shelf/_style.html" %}
+<div class="os">
+  <div class="os-crumbs"><a href="/open-shelf">Open Shelf</a> &rsaquo; {{ shelf.en }}</div>
+  <h1>{{ shelf.en }} <span class="he" dir="rtl" style="font-size:28px;color:var(--os-muted)">{{ shelf.he }}</span></h1>
+  <p style="color:var(--os-muted)">{{ shelf.blurb }} {{ total|intcomma }} book{{ total|pluralize }}.</p>
+  <ul class="os-books">
+    {% for b in books %}
+    <li>
+      <span><a class="bt" dir="{{ b.dir|default:'ltr' }}" href="{{ b.url }}">{{ b.display_title }}</a>
+        {% if b.authors %}<span class="meta" dir="auto">&nbsp;· {{ b.authors|join:", " }}</span>{% endif %}</span>
+      <span class="meta">{% if b.date %}{{ b.date }} · {% endif %}{{ b.words|intcomma }} words · {{ b.source_name }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% if pages > 1 %}
+  <div class="os-pager">
+    {% if prev_page %}<a href="?page={{ prev_page }}">&larr; Previous</a>{% endif %}
+    <span>Page {{ page }} of {{ pages }}</span>
+    {% if next_page %}<a href="?page={{ next_page }}">Next &rarr;</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

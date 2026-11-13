@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load sefaria_tags %}
+{% block meta_title %}{% meta_title %}{{ book.display_title }} | Open Shelf{% endmeta_title %}{% endblock %}
+{% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block content %}
+{% include "open_shelf/_style.html" %}
+<div class="os">
+  <div class="os-reader">
+    <div class="os-crumbs"><a href="/open-shelf">Open Shelf</a> &rsaquo; <a href="/open-shelf/shelf/{{ shelf.key }}">{{ shelf.en }}</a></div>
+    <div class="titles">
+      <h1 dir="{{ book.dir|default:'ltr' }}" class="{% if book.dir == 'rtl' %}he{% endif %}">{{ book.display_title }}</h1>
+      {% if book.title.en and book.title.en != book.display_title %}<div class="authors">{{ book.title.en }}</div>{% endif %}
+      {% if book.authors %}<div class="authors" dir="auto">{{ book.authors|join:", " }}</div>{% endif %}
+    </div>
+
+    <div class="os-toolbar">
+      <span>{% if toc %}<button class="os-btn" type="button" onclick="var t=document.getElementById('osToc');t.style.display=t.style.display==='none'?'block':'none'">Contents</button>{% endif %}</span>
+      <span>Page {{ p }} of {{ num_pages }}</span>
+      <span><button class="os-btn" type="button" onclick="document.getElementById('osDrawer').classList.add('open')">About this text</button></span>
+    </div>
+
+    {% if toc %}
+    <div class="os-toc" id="osToc" style="display:none" dir="{{ book.dir|default:'ltr' }}">
+      {% for t in toc %}<a href="{{ url }}?p={{ t.p }}" style="padding-inline-start:{{ t.d }}em">{{ t.l }}</a>{% endfor %}
+    </div>
+    {% endif %}
+
+    {% if preamble %}
+    <div class="os-preamble" dir="{% if preamble.lang == 'he' %}rtl{% else %}ltr{% endif %}">{{ preamble.html|safe }}</div>
+    {% endif %}
+
+    <div class="os-text" dir="{{ book.dir|default:'ltr' }}">
+      {% if ctx and p > 1 %}<div class="ctx">{{ ctx|join:" › " }}</div>{% endif %}
+      {% for blk in blocks %}
+        {% if blk.h %}<div class="hd hd{{ blk.d }}">{{ blk.h }}</div>{% else %}<p>{{ blk.s|safe }}</p>{% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="os-pager" style="justify-content:space-between">
+      <span>{% if prev_p %}<a href="{{ url }}?p={{ prev_p }}">&larr; Previous page</a>{% endif %}</span>
+      <span>{{ p }} / {{ num_pages }}</span>
+      <span>{% if next_p %}<a href="{{ url }}?p={{ next_p }}">Next page &rarr;</a>{% endif %}</span>
+    </div>
+  </div>
+
+  <aside class="os-drawer" id="osDrawer" aria-label="About this text">
+    <button class="close" type="button" onclick="document.getElementById('osDrawer').classList.remove('open')" aria-label="Close">&times;</button>
+    <h2 style="margin-top:0">About this text</h2>
+    <dl>
+      <dt>Source</dt><dd>{% if book.source_url %}<a href="{{ book.source_url }}" target="_blank" rel="noopener">{{ book.source_name }}</a>{% else %}{{ book.source_name }}{% endif %}</dd>
+      {% if book.item_url %}<dt>Original item</dt><dd><a href="{{ book.item_url }}" target="_blank" rel="noopener">{{ book.item_url }}</a></dd>{% endif %}
+      <dt>Licence</dt><dd>{{ book.licence.id|default:"unknown" }}{% if book.licence.class %} ({{ book.licence.class }}){% endif %}</dd>
+      {% if book.licence.evidence_url %}<dt>Licence evidence</dt><dd><a href="{{ book.licence.evidence_url }}" target="_blank" rel="noopener">{{ book.licence.evidence_url }}</a></dd>{% endif %}
+      {% if book.licence.attribution %}<dt>Attribution</dt><dd>{{ book.licence.attribution }}</dd>{% endif %}
+      {% if book.licence.note %}<dt>Licence note</dt><dd>{{ book.licence.note }}</dd>{% endif %}
+      {% if book.date %}<dt>Date</dt><dd>{{ book.date }}</dd>{% endif %}
+      {% if book.language_names %}<dt>Languages</dt><dd>{{ book.language_names|join:", " }}</dd>{% endif %}
+      {% if book.quality.origin %}<dt>Text origin</dt><dd>{{ book.quality.origin }}{% if book.quality.structure_method %}; structure: {{ book.quality.structure_method }}{% endif %}{% if book.quality.structure_confidence %} ({{ book.quality.structure_confidence }} confidence){% endif %}</dd>{% endif %}
+      {% if book.quality.notes %}<dt>Notes</dt><dd>{{ book.quality.notes }}</dd>{% endif %}
+      <dt>Size</dt><dd>{{ book.words|intcomma }} words</dd>
+    </dl>
+  </aside>
+</div>
+{% endblock %}
