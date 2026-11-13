@@ -4,11 +4,10 @@
  * which panel caused it, so only that panel reacts (docs/WORKSPACE.md, "The URL is still the state").
  */
 import { useLocation, useRouter, useRouterState, type RouterHistory } from "@tanstack/react-router";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { PositionStore, type EntryPositions, type SavedPosition } from "~/lib/reader/position-store";
-import { createWorkspaceCommands, entryKey, readNavState, urlDefaultsFor, type NavState, type WorkspaceRouter } from "~/lib/workspace/commands";
+import { createWorkspaceCommands, entryKey, readNavState, urlDefaultsFor, workspaceHref, type NavState, type WorkspaceRouter } from "~/lib/workspace/commands";
 import { useReaderSettings } from "../reader/settings-context";
-import { useMediaQuery } from "~/lib/ui/use-media-query";
 import { useRegisterSlice } from "~/features/reader-state/context";
 import { createScrollSlice, type ScrollPanel } from "~/lib/reader-state/sefaria/slices/scroll";
 import type { PanelId, Workspace } from "~/lib/workspace/types";
@@ -84,8 +83,15 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const location = useLocation();
   const { settings } = useReaderSettings();
-  // a phone (one panel at a time) writes no sidebar language, as the old client; false on the server and in the hydrating render
-  const singlePanel = useMediaQuery(SINGLE_PANEL_QUERY);
+  // a phone (one panel at a time) writes no sidebar language into its address, as the old client (read after mount)
+  const [singlePanel, setSinglePanel] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(SINGLE_PANEL_QUERY);
+    const update = () => setSinglePanel(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
   const defaults = useMemo(() => ({ ...urlDefaultsFor(settings), singlePanel }), [settings.language, settings.aliyotTorah, singlePanel]); // eslint-disable-line react-hooks/exhaustive-deps -- only these two settings shape the URL defaults; `settings` is a new object on any change
   const defaultsRef = useRef(defaults);
   defaultsRef.current = defaults;
@@ -193,7 +199,9 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   useRegisterSlice(scrollSlice);
   const restoreFor = useCallback<WorkspaceNav["restoreFor"]>((key, id) => (key && poppedKey.current === key ? store.current!.get(key)?.[id] : undefined), []);
   const go = useCallback<WorkspaceNav["go"]>((ws, opts) => void commands.go(ws, opts), [commands]);
-  const href = useCallback((ws: Workspace) => commands.href(ws), [commands, defaults]); // eslint-disable-line react-hooks/exhaustive-deps -- commands reads the defaults through a ref: a new href when they change re-renders the links built with it
+  // Links are written in the one form the server writes too (with the sidebar's language): a phone's form only in the address the app
+  // navigates to (go, canonicalize), so a link's href never changes between the server's markup and hydration
+  const href = useCallback((ws: Workspace) => workspaceHref(ws, { ...defaults, singlePanel: false }), [defaults]);
 
   // The address bar shows the full form sefaria.org writes (its defaults filled in), on arrival and when a setting it carries changes:
   // a replace navigation through the router, keeping the entry's state (never history.replaceState).
