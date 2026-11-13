@@ -81,6 +81,55 @@ for (const lang of ["bi", "he", "en"] as const) {
   });
 }
 
+// Hebrew on a phone with slow answers (as from the live site): the column's labels settle again as the reader comes back from the menu,
+// while the place is put back. Corrected for the verse on the focus line as if the reader had moved, that settling measured the verse
+// with the menu's site header still above the text and moved the reader 60px.
+// @feature SHL-064 @feature SHL-065
+test("Back from the menu with slow answers, Hebrew on a phone: every frame where it was @mobile", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) > 600, "phone project only");
+  await open(page, "/Genesis.1.20?lang=he");
+  await page.waitForTimeout(800);
+  await page.mouse.move(200, 400);
+  await readToLastVerses(page, /\/Genesis\.1\.3[01]\?/);
+  const ref = refOfPath(page.url());
+  const before = await segmentTop(page, ref);
+  await page.getByRole("button", { name: "Menu" }).first().click();
+  await page.waitForTimeout(300);
+  await page.locator('a[href="/texts"]:visible').first().click();
+  await expect(page).toHaveURL(/\/texts$/);
+  await expect(page.locator("[data-reader-scroller]")).toHaveCount(0);
+  const slow = (r: import("@playwright/test").Route) => void setTimeout(() => void r.continue().catch(() => {}), 400);
+  await page.route("**/api/v3/texts/**", slow);
+  await page.route("**/api/texts/versions/**", slow);
+  await traceVerseHere(page, ref);
+  await page.goBack();
+  await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
+  await page.waitForTimeout(2500);
+  await drawnOnlyAt(page, ref, before, "library, slow answers");
+  expect(Math.abs((await segmentTop(page, ref)) - before), "final").toBeLessThan(2);
+});
+
+// Desktop, in the app, with a library page that is slow to load: the reader stays on screen while it loads, and Back can come before it
+// shows. The address of a page outside the reader was taken for a new entry of the panel's, which put the address's verse on the reading
+// line (78px) as the reader left, and showed that on the frame before Back put the place back. Every painted frame, from the click on.
+// @feature SHL-064 @feature SHL-065
+for (const wait of [300, 2500] as const) {
+  test(`Back from a slow library page (Back after ${wait}ms): the verse is drawn only where it was`, async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 600, "desktop project only");
+    const { ref, before } = await readOn(page);
+    // the library home's data arrives late, so the page stays on the reader while it loads
+    await page.route("**/api/calendars**", (r) => void setTimeout(() => void r.continue().catch(() => {}), 1500));
+    await traceVerseHere(page, ref);
+    await page.locator('a[href="/texts"]:visible').first().click();
+    await page.waitForTimeout(wait);
+    await page.goBack();
+    await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
+    await page.waitForTimeout(1500);
+    await drawnOnlyAt(page, ref, before, `Back after ${wait}ms`);
+    expect(Math.abs((await segmentTop(page, ref)) - before), "final").toBeLessThan(2);
+  });
+}
+
 /**
  * Where a verse is drawn on every frame from the document's start (installed before a Back that loads a new document). Read after
  * each frame's callbacks (a task queued from the frame), so it is what was painted: read inside the frame, it can run before the

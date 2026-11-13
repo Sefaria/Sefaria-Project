@@ -328,14 +328,7 @@ export function TextColumn(props: TextColumnProps) {
   // corrected only then (below): labels settling as the column starts or comes back (Back to a Hebrew text) are the engine's to keep, and
   // the measurement taken while rendering can predate the rest of that commit (a phone's site header going away with the page that
   // showed it), so "putting back" that verse moved the reader 60px.
-  const readerActed = useRef(false);
-  useEffect(() => {
-    const acted = () => void (readerActed.current = true);
-    for (const e of STOP_EVENTS) window.addEventListener(e, acted, { capture: true, passive: true });
-    return () => {
-      for (const e of STOP_EVENTS) window.removeEventListener(e, acted, true);
-    };
-  }, []);
+  const readerActed = useReaderActed();
   // Back/forward: put the reader back at the saved place (layout effect: before paint, so nothing flashes).
   const restoreToken = props.restore?.token;
   useLayoutEffect(() => {
@@ -473,10 +466,8 @@ export function TextColumn(props: TextColumnProps) {
     const was = onLine.current;
     onLine.current = null;
     const scroller = scrollerRef.current;
-    const el = was && scroller ? scroller.querySelector<HTMLElement>(`[role="group"][data-ref="${CSS.escape(was.ref)}"]`) : null;
-    if (!was || !el || !scroller || !readerActed.current) return;
-    const delta = el.getBoundingClientRect().top - was.top;
-    if (Math.abs(delta) < 0.5) return;
+    const delta = labelSwitchCorrection(was, scroller, readerActed.current);
+    if (!delta || !scroller) return;
     if (isWindowScrolled(scroller)) window.scrollTo(0, window.scrollY + delta);
     else scroller.scrollTop += delta;
     // a deliberate correction, reported like the engine's own in development (the smoothness tests subtract them)
@@ -551,6 +542,33 @@ export function TextColumn(props: TextColumnProps) {
 
 /** The reader's own input: any of these ends the column's opening placement. */
 const STOP_EVENTS = ["wheel", "touchmove", "keydown", "pointerdown"] as const;
+
+/** Whether the reader has scrolled, pressed a key or touched the page since the column started (the caller resets it on a restore). */
+export function useReaderActed() {
+  const acted = useRef(false);
+  useEffect(() => {
+    const on = () => void (acted.current = true);
+    for (const e of STOP_EVENTS) window.addEventListener(e, on, { capture: true, passive: true });
+    return () => {
+      for (const e of STOP_EVENTS) window.removeEventListener(e, on, true);
+    };
+  }, []);
+  return acted;
+}
+
+/**
+ * How far to scroll after the labels changed language, to keep the verse that was on the focus line (`was`, measured while rendering)
+ * where it was: 0 unless the switch came from the reader's own scrolling. Labels settling as the column starts or comes back are the
+ * engine's to keep, and `was` can predate the rest of that commit (a phone's site header going away with the page that showed it):
+ * "putting back" that verse moved the reader 60px.
+ */
+export function labelSwitchCorrection(was: { ref: string; top: number } | null, scroller: HTMLElement | null, readerActed: boolean): number {
+  if (!was || !scroller || !readerActed) return 0;
+  const el = scroller.querySelector<HTMLElement>(`[role="group"][data-ref="${CSS.escape(was.ref)}"]`);
+  if (!el) return 0;
+  const delta = el.getBoundingClientRect().top - was.top;
+  return Math.abs(delta) < 0.5 ? 0 : delta;
+}
 
 /**
  * Where the text starts on screen, as the reading engine measures it (from the top of whatever scrolls): 0 for the column on desktop;
