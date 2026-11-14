@@ -650,13 +650,91 @@ const TermsLink = () => (
   </a>
 );
 
+/* The server's messages never reach people word for word (Penina, 2026-11-14; design-notes/error-copy.md): each known
+   one maps to the page's own copy, and technical ones become the generic save message. Unknown messages (for example
+   the 10-project limit, waiting on Daniel) still show as sent. */
+const E_SERVER_COPY = [
+  [
+    /^Could not parse JSON|^Request (is too large|must be a JSON object)|must be a JSON object|^Submission (is too large|must be)|^Unknown test action|^Unsupported HTTP method|^Accept the API terms|^Choose whether the project is public or private/,
+    null,
+  ],
+  [
+    /^Log in to use developer settings/,
+    { en: "You've been logged out. Log in again to continue.", he: 'התנתקתם מהחשבון. התחברו שוב כדי להמשיך.' },
+  ],
+  [
+    /^No such project/,
+    {
+      en: 'This project no longer exists. Refresh the page to see your projects.',
+      he: 'הפרויקט הזה כבר לא קיים. רעננו את הדף כדי לראות את הפרויקטים שלכם.',
+    },
+  ],
+  [
+    /^No such key/,
+    {
+      en: 'This key no longer exists. Refresh the page to see your keys.',
+      he: 'המפתח הזה כבר לא קיים. רעננו את הדף כדי לראות את המפתחות שלכם.',
+    },
+  ],
+  [
+    /^A project can have at most (\d+) keys/,
+    (m) => ({
+      en:
+        'You have reached the maximum of ' +
+        m[1] +
+        ' keys for this project. To add another key, delete one no longer in use.',
+      he: 'הגעתם למספר המרבי של ' + m[1] + ' מפתחות לפרויקט הזה. כדי להוסיף מפתח, מחקו מפתח שכבר לא בשימוש.',
+    }),
+  ],
+  [
+    /^Add the project's website before restricting/,
+    { en: "Add your project's website first.", he: 'קודם הוסיפו את האתר של הפרויקט.' },
+  ],
+  [
+    /^Confirm your email address to create projects/,
+    {
+      en: 'Confirm your email in the banner above to create projects and keys.',
+      he: 'אשרו את כתובת הדוא״ל בבאנר שלמעלה כדי ליצור פרויקטים ומפתחות.',
+    },
+  ],
+  [
+    /^Wait a minute before asking for another email/,
+    { en: 'Wait a minute before asking for another link.', he: 'המתינו דקה לפני שתבקשו קישור נוסף.' },
+  ],
+  [
+    /^Your account has no email address/,
+    {
+      en: 'Your account has no email address. Add one in Account Settings.',
+      he: 'לחשבון שלכם אין כתובת דוא״ל. הוסיפו כתובת בהגדרות החשבון.',
+    },
+  ],
+  [/^The website is not a valid web address/, { en: 'Invalid website', he: 'כתובת אתר לא תקינה' }],
+  [
+    /^The key name can be at most 100 characters/,
+    { en: 'Use 100 characters or fewer.', he: 'השתמשו ב־100 תווים לכל היותר.' },
+  ],
+];
+const eMessage = (err, fallback = SAVE_FAILED) => {
+  const raw = err && err.message;
+  if (!raw) {
+    return Sefaria._v(fallback);
+  }
+  for (const [pattern, copy] of E_SERVER_COPY) {
+    const m = raw.match(pattern);
+    if (m) {
+      return Sefaria._v(copy === null ? SAVE_FAILED : typeof copy === 'function' ? copy(m) : copy);
+    }
+  }
+  return raw;
+};
 /* A failed save: the sign-in forms' error banner, at the top of the form. */
-const saveFailure = (err) => ({ message: (err && err.message) || Sefaria._v(SAVE_FAILED) });
+const saveFailure = (err) => ({ message: eMessage(err) });
 /* A key that couldn't be made: say so, and nothing more (Penina, 2026-11-05). */
 const keyFailure = (err) => ({
-  message:
-    (err && err.message) ||
-    Sefaria._v({ en: "We couldn't create your key. Please try again.", he: 'לא הצלחנו ליצור את המפתח. נסו שוב.' }),
+  message: eMessage(err, {
+    en: "We couldn't create your key. Please try again.",
+    he: 'לא הצלחנו ליצור את המפתח. נסו שוב.',
+  }),
 });
 
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
@@ -3674,7 +3752,7 @@ const EReconfirmBanner = ({ sentAt, run }) => {
           setSentHere(true);
           setWait(60);
         } else {
-          setError(err.message || Sefaria._v(SAVE_FAILED));
+          setError(eMessage(err));
         }
       }
     );
@@ -3971,7 +4049,7 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
             setSentThisVisit(true);
             setResendWait(60);
           } else {
-            setSendError(err.message || Sefaria._v(SAVE_FAILED));
+            setSendError(eMessage(err));
           }
         }
       );
@@ -5031,7 +5109,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
       },
       (err) => {
         if (!quiet && pageMounted.current) {
-          setNotice(err.message || Sefaria._v(SAVE_FAILED));
+          setNotice(eMessage(err));
         }
         if (refresh) {
           readState().then(
@@ -5338,11 +5416,10 @@ export const EmailLinkPage = ({ link }) => {
       },
       (err) =>
         setError(
-          err.message ||
-            Sefaria._v({
-              en: "We couldn't send a new link. Ask for one in Developer Settings.",
-              he: 'לא הצלחנו לשלוח קישור חדש. בקשו קישור בהגדרות המפתחים.',
-            })
+          eMessage(err, {
+            en: "We couldn't send a new link. Ask for one in Developer Settings.",
+            he: 'לא הצלחנו לשלוח קישור חדש. בקשו קישור בהגדרות המפתחים.',
+          })
         )
     );
   const continueLink = (

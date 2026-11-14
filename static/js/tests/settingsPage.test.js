@@ -311,7 +311,9 @@ describe('About you', () => {
     server.fail('POST', 'profile', 400, 'Accept the API terms to continue.');
     await choose('What best describes you?', 'Very technical');
     await click(button('Continue'));
-    expect(screen.getByRole('alert').textContent).toContain('Accept the API terms to continue.');
+    expect(screen.getByRole('alert').textContent).toContain(
+      "Something went wrong and your change wasn't saved. Please try again."
+    );
     expect(heading('Step 1 of 3: About you')).toBeTruthy();
     expect(button('Continue').disabled).toBe(false);
   });

@@ -69,7 +69,7 @@ describe('refused confirmation emails during setup', () => {
     await atConfirmStep();
     server.fail('POST', 'confirmation', 429, ONE_A_MINUTE);
     await click(button('Send confirmation link'));
-    expect(screen.getByRole('alert').textContent).toBe(ONE_A_MINUTE);
+    expect(screen.getByRole('alert').textContent).toBe('Wait a minute before asking for another link.');
     expect(heading('Step 1 of 4: Confirm your email')).toBeTruthy();
   });
 
@@ -143,7 +143,11 @@ describe('refused saves', () => {
     await click(button('Create API key'));
     expect(heading('Create an API key for Project 1')).toBeTruthy();
     expect(server.state.projects[0].keys).toEqual([]);
-    expect(screen.getByText('A project can have at most 5 keys.')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'You have reached the maximum of 5 keys for this project. To add another key, delete one no longer in use.'
+      )
+    ).toBeTruthy();
     expect(field(/API key name/).value).toBe('One too many');
   });
 
@@ -153,7 +157,7 @@ describe('refused saves', () => {
     await click(button('Add website'));
     type(field('Your website'), 'daftracker.org');
     await click(button('Save website'));
-    expect(screen.getByText('The website is not a valid web address.')).toBeTruthy();
+    expect(screen.getByText('Invalid website')).toBeTruthy();
     expect(screen.getByRole('dialog', { name: 'Add your website' })).toBeTruthy();
     expect(button('Save website').disabled).toBe(false);
   });
@@ -165,7 +169,7 @@ describe('refused saves', () => {
     type(field('Your website'), 'daftracker.org');
     await click(button('Limit key'));
     expect(server.calls()).toEqual(['POST projects/p1']);
-    expect(screen.getByText('The website is not a valid web address.')).toBeTruthy();
+    expect(screen.getByText('Invalid website')).toBeTruthy();
   });
 });
 

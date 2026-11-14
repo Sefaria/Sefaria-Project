@@ -278,9 +278,13 @@ describe('keys', () => {
     server.fail('DELETE', 'keys/k1', 404, 'No such key.');
     await click(button('Delete key, Key 1'));
     await click(button('Delete'));
-    expect(screen.getByText('No such key.')).toBeTruthy();
-    await click(within(screen.getByText('No such key.').closest('[role="alert"]')).getByRole('button'));
-    expect(screen.queryByText('No such key.')).toBeNull();
+    expect(screen.getByText('This key no longer exists. Refresh the page to see your keys.')).toBeTruthy();
+    await click(
+      within(
+        screen.getByText('This key no longer exists. Refresh the page to see your keys.').closest('[role="alert"]')
+      ).getByRole('button')
+    );
+    expect(screen.queryByText('This key no longer exists. Refresh the page to see your keys.')).toBeNull();
   });
 
   it('adds a key to a project, with a short wait before it shows', async () => {
@@ -409,7 +413,7 @@ describe('Limit to website', () => {
     openHome({ projects: [project(1, { websiteUrl: SITE, keys: [key(1)] })] });
     server.fail('POST', 'keys/k1', 400, "Add the project's website before restricting a key to it.");
     await click(screen.getByRole('switch', { name: /Only accept requests with Key 1/ }));
-    expect(screen.getByText("Add the project's website before restricting a key to it.")).toBeTruthy();
+    expect(screen.getByText("Add your project's website first.")).toBeTruthy();
   });
 });
 
@@ -484,7 +488,7 @@ describe('editing a project', () => {
     await openEdit();
     server.fail('POST', 'projects/p1', 400, 'The website is not a valid web address.');
     await click(button('Save project'));
-    expect(screen.getByRole('alert').textContent).toContain('The website is not a valid web address.');
+    expect(screen.getByRole('alert').textContent).toContain('Invalid website');
     expect(heading('Edit Project 1')).toBeTruthy();
   });
 
@@ -592,7 +596,9 @@ describe('deleting a project', () => {
     await click(button('Delete this project'));
     await click(button('Delete project'));
     expect(screen.queryByRole('alertdialog')).toBeNull();
-    expect(screen.getByRole('alert').textContent).toContain('No such project.');
+    expect(screen.getByRole('alert').textContent).toContain(
+      'This project no longer exists. Refresh the page to see your projects.'
+    );
     expect(heading('Edit Project 1')).toBeTruthy();
   });
 });
@@ -662,7 +668,7 @@ describe('publishing a project', () => {
     server.fail('POST', 'projects/p1', 400, 'The website is not a valid web address.');
     await click(field('Learning & Study Tools'));
     await click(button('Submit for review'));
-    expect(screen.getAllByRole('alert')[0].textContent).toContain('The website is not a valid web address.');
+    expect(screen.getAllByRole('alert')[0].textContent).toContain('Invalid website');
     expect(heading('Publish your project')).toBeTruthy();
     expect(button('Submit for review').disabled).toBe(false);
   });
