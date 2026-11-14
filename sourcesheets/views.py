@@ -1089,7 +1089,11 @@ def get_aliyot_by_parasha_api(request, parasha):
         )
 
     p = db.parshiot.find({"parasha": parasha}, limit=1).sort([("date", 1)])
-    p = next(p)
+    p = next(p, None)
+    if p is None:
+        # No parasha matched the request. Return the empty response body rather than
+        # letting StopIteration escape as an HTTP 500.
+        return jsonResponse(response, callback=request.GET.get("callback", None))
 
     for aliyah in p["aliyot"]:
         response["ref"].append(aliyah)
