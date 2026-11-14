@@ -31,7 +31,10 @@ plugins:
     - "successComment": false
 EOF
 export branch=$(git branch --show-current)
-export channel=$(echo $branch | awk '{print tolower($0)}' | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|' | sed 's/[^a-z0-9\.\-]//g')
+# Derive the prerelease channel from the whole branch name so that two
+# branches never share a channel: branches that share a channel compute the
+# same chart version and the second one fails on an existing tag.
+export channel=$(echo $branch | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g')
 if [[ $branch != "master" ]]; then
 cat << EOF >> helm-chart/.releaserc
 branches: [
