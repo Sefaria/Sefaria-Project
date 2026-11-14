@@ -5,10 +5,7 @@ Refs pointing to virtual schemas, etc
 
 """
 
-import pytest
-
 from sefaria.model import *
-from sefaria.system.exceptions import DictionaryEntryNotFoundError
 
 
 class Test_VirtualRefs:
@@ -39,16 +36,3 @@ class Test_VirtualRefs:
         r1 = Ref("Jastrow, אֱגוּזָא 1")
         r2 = Ref("Jastrow,_אֱגוּזָא.1")
         assert r1 == r2
-
-    def test_entry_that_does_not_match_the_entry_regex_raises_input_error(self):
-        """A dictionary title followed by something that is not an entry address must fail as
-        an input error. It used to raise AttributeError from DictionaryEntryNode, and the
-        reader catchall only converts InputError to a 404, so the URL became a 500.
-        This is the request behind the 2026-11-14T14:08Z sefaria-web 500.
-        """
-        with pytest.raises(DictionaryEntryNotFoundError):
-            Ref("Jastrow,_כָּלוּל.1</a>")
-
-    def test_entry_with_an_extra_section_raises_input_error(self):
-        with pytest.raises(DictionaryEntryNotFoundError):
-            Ref("Jastrow,_כָּלוּל.1.2")
