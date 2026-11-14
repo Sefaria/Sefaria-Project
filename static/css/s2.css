@@ -19162,6 +19162,63 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   font-size: 22px; font-weight: 600; line-height: 1.4; color: var(--darker-grey); /* en-system-h3-strong, text-secondary */
 }
 
+/* Spacing and border widths snapped to the dimension scale (Penina, 2026-11-14). Kept on purpose: the checkbox
+   description's 30px indent (lines up under the label: 18px box + 12px gap) and the banner's 56px end padding (clears
+   the 44px close button). */
+.devPocPage .devE-quiet, .devPocPage .devE-chip { gap: 8px; /* spacing-small */ }
+.devPocPage .devE-chips { margin-top: 8px; }
+.devPocPage .devE-projExtras { margin-top: -8px; }
+.settingsNav a { padding-inline: 12px; /* spacing-medium */ }
+.devPocPage .devE-table thead th { padding-inline: 12px; }
+.devPocPage .devE-quiet { padding-inline: 12px; }
+.devE-dialogList { padding-inline-start: 16px; /* spacing-large */ }
+.devPocPage .devE-banner { gap: 16px; }
+.devE-deleteModal { padding: 24px; /* spacing-2xlarge */ }
+.devPocPage .devE-bannerActions { padding-inline-start: 24px; }
+.devPocPage .devE-recBadge { padding-block: 2px; /* spacing-2xsmall */ }
+@media (max-width: 842px) {
+  .settingsNav { margin-bottom: 24px; }
+  .settingsNav a { border-bottom-width: 2px; /* border-width-thick */ }
+}
+.devPocPage .devE-spinner { border-width: 2px; /* border-width-thick */ }
+.devPocPage .devE-recBadge { margin-inline-start: 8px; }
+/* Show/hide key eye at 18px, the same as the Copy key icon beside it (Lucide sizes 12/18/24; was 16px). */
+.devPocPage .devE-eye { width: 18px; height: 18px; -webkit-mask-size: 18px; mask-size: 18px; }
+
+/* Tap targets (Penina, 2026-11-14): at least 24×24px everywhere (WCAG 2.5.8, AA) and 44×44px on phones (2.5.5 and our
+   phone rule). Icons and text keep their size; only the tappable area grows. */
+/* (?) help icons: an invisible hit area around the 18px icon, so labels don't move. */
+.devPocInfoButton { position: relative; }
+.devPocInfoButton::after { content: ""; position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; transform: translate(-50%, -50%); }
+/* Header links: 24px tall on desktop. */
+.devPocPage .devE-docs, .devPocPage .devE-docsMinor, .devPocPage .devE-headLinks .devE-linkBtn { min-height: 24px; }
+@media (max-width: 842px) {
+  .devPocInfoButton::after { width: 44px; height: 44px; }
+  /* Key row icons and delete: 44px boxes, icon centered. */
+  .devPocPage .devE-table .devE-keyCell .devE-ico, .devPocPage .devE-table button.devE-ico { width: 44px; height: 44px; }
+  /* Edit profile and the project chips (Add website, Publish project): 44px tall. */
+  .devPocPage .devE-quiet, .devPocPage .devE-chip { min-height: 44px; }
+  .devPocPage .devE-resourcesLinks > a, .devPocPage .devE-resourcesLinks > button { min-height: 44px; display: inline-flex; align-items: center; }
+}
+@media (max-width: 842px) { .devPocPage .devE-siteLink { min-height: 44px; } }
+/* Tap targets on the forms, dialogs and publish form (Penina, 2026-11-14). Links inside a sentence (Learn more, Join our
+   Discord, developers@sefaria.org, the donation link) are exempt under WCAG 2.5.8 and 2.5.5 and stay inline. */
+.devPocPage .devE-radio { min-height: 24px; }
+.devPocPage .devE-toolLink { position: relative; }
+.devPocPage .devE-toolLink::after { content: ""; position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; transform: translate(-50%, -50%); }
+@media (max-width: 842px) {
+  .devPocPage .devE-back { min-height: 44px; }
+  .devE-deleteBtn, .devE-deleteActions .devE-pill { min-height: 44px; }
+  .devPocPage .devE-radio, .devPocPage .devE-form .sefaria-checkbox-row { min-height: 44px; align-items: center; }
+  .devPocPage .devE-toolLink { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; vertical-align: middle; }
+  .devPocPage .devE-toolLink::after { content: none; }
+}
+/* Publish form ↗ links on phones: the icon sits right after its text; the 44px tap area extends to the end side,
+   into empty space (Penina, 2026-11-14). */
+@media (max-width: 842px) {
+  .devPocPage .devE-toolLink { justify-content: flex-start; padding-inline-start: 2px; margin-inline-start: -2px; }
+}
+
 /* Publish form: one calm text hierarchy (Penina, 2026-11-14). Section headings body-strong; every question and field
    label small-strong; "Optional" and "Select all that apply" caption, text-muted; every answer, option and summary value
    body-regular; intro, notes and help small-comfortable, text-secondary; links take the size and weight of the text

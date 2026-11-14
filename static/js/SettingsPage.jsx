@@ -71,9 +71,9 @@ const ExternalIcon = () => (
     aria-hidden="true"
     focusable="false"
   >
-    <path d="M14 4h6v6" />
-    <path d="M20 4 10 14" />
-    <path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" />
+    <path d="M15 3h6v6" />
+    <path d="M10 14 21 3" />
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
   </svg>
 );
 
@@ -498,11 +498,12 @@ const SETTINGS_TABS = [
    anchors keep the addresses linkable, so opening one in a new tab still works. */
 /* Tab icons: Lucide circle-user-round and code-xml, used from Lucide directly, not yet in our
    icon library. 18px, the design system's icon size. */
+/* Lucide icons, current versions (lucide-static 1.49, as in sefaria-design-foundations), 2026-11-14. */
 const SETTINGS_TAB_ICONS = {
   account: [
-    <circle key="a" cx="12" cy="12" r="10" />,
-    <circle key="b" cx="12" cy="10" r="4" />,
-    <path key="c" d="M18 20a6 6 0 0 0-12 0" />,
+    <path key="a" d="M17.925 20.056a6 6 0 0 0-11.851.001" />,
+    <circle key="b" cx="12" cy="11" r="4" />,
+    <circle key="c" cx="12" cy="12" r="10" />,
   ],
   developer: [
     <path key="a" d="m18 16 4-4-4-4" />,
@@ -686,7 +687,7 @@ const E_ROLES = [
 const eSnippet = (key, projectName) =>
   `I'm building ${projectName} with the Sefaria API.\nMy Sefaria API key is ${key}.\nSend it in an x-api-key header on every request to https://www.sefaria.org/api/.\nKeep the key out of public code. API docs: ${API_DOCS_URL}`;
 
-const ECopyIcon = ({ size = 14 }) => (
+const ECopyIcon = ({ size = 18 }) => (
   <svg
     viewBox="0 0 24 24"
     width={size}
@@ -699,8 +700,8 @@ const ECopyIcon = ({ size = 14 }) => (
     aria-hidden="true"
     focusable="false"
   >
-    <rect x="9" y="9" width="13" height="13" rx="2" />
-    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
   </svg>
 );
 
@@ -759,8 +760,8 @@ const EXIcon = ({ size } = {}) =>
 const EBookIcon = ({ size } = {}) =>
   eLucide(
     <React.Fragment>
-      <path d="M12 7v14" />
-      <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
+      <path d="M12 5v16" />
+      <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" />
     </React.Fragment>,
     size
   );
@@ -776,8 +777,9 @@ const EDownloadIcon = ({ size } = {}) =>
 const EMegaphoneIcon = ({ size } = {}) =>
   eLucide(
     <React.Fragment>
-      <path d="m3 11 18-5v12L3 14v-3z" />
-      <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+      <path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />
+      <path d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14" />
+      <path d="M8 6v8" />
     </React.Fragment>,
     size
   );
@@ -793,8 +795,8 @@ const EArrowLeftIcon = ({ size } = {}) =>
 const EMailIcon = ({ size } = {}) =>
   eLucide(
     <React.Fragment>
-      <rect width="20" height="16" x="2" y="4" rx="2" />
-      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+      <path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7" />
+      <rect x="2" y="4" width="20" height="16" rx="2" />
     </React.Fragment>,
     size
   );
@@ -802,8 +804,8 @@ const ETrashIcon = ({ size } = {}) =>
   eLucide(
     <React.Fragment>
       <path d="M3 6h18" />
-      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
       <path d="M10 11v6" />
       <path d="M14 11v6" />
     </React.Fragment>,
