@@ -6,6 +6,8 @@ trailing dot (`/sheets/129389.`), which used to reach
 the empty segment after the dot, answering HTTP 500.
 """
 
+from types import SimpleNamespace
+
 import pytest
 from django.http import Http404
 
@@ -32,11 +34,26 @@ def test_split_sheet_id_and_node_rejects_empty():
         _split_sheet_id_and_node(".")
 
 
-def test_make_sheet_panel_dict_trailing_dot_is_handled():
-    """A trailing-dot id resolves the sheet and 404s when it does not exist.
+def test_make_sheet_panel_dict_trailing_dot_reaches_sheet_lookup(monkeypatch):
+    """A trailing-dot id looks up the sheet instead of raising ValueError.
 
-    Before the fix this raised `ValueError` (an unhandled 500) instead of
-    reaching the sheet lookup.
+    Before the fix, `make_sheet_panel_dict("129389.")` raised `ValueError` while
+    parsing the id, so the sheet lookup below was never reached. This stubs the
+    lookup and the counter write, because the CI sandbox Mongo holds production
+    data: a real sheet id may exist there, and a test must not increment a real
+    sheet's view count.
     """
+    looked_up = []
+
+    def fake_get_sheet_for_panel(sheet_id):
+        looked_up.append(sheet_id)
+        return {"error": "Sheet not found."}
+
+    fake_db = SimpleNamespace(sheets=SimpleNamespace(update_one=lambda *args, **kwargs: None))
+    monkeypatch.setattr("reader.views.db", fake_db)
+    monkeypatch.setattr("reader.views.get_sheet_for_panel", fake_get_sheet_for_panel)
+
     with pytest.raises(Http404):
         make_sheet_panel_dict("129389.", None)
+
+    assert looked_up == [129389]
