@@ -69,7 +69,7 @@ describe('the home page', () => {
     expect(button('Edit profile')).toBeTruthy();
   });
 
-  it('edits the profile in the About you form and comes back with a message', async () => {
+  it('edits the profile in the About you form and comes back, with no message', async () => {
     openHome();
     await click(button('Edit profile'));
     expect(heading('About you')).toBeTruthy();
@@ -80,7 +80,7 @@ describe('the home page', () => {
     expect(server.sent('POST', 'profile')[0].profile).toEqual(
       expect.objectContaining({ developerName: 'Tova Levi', description: 'I teach Talmud', termsAccepted: true })
     );
-    expect(screen.getByText('Your profile is saved.')).toBeTruthy();
+    expect(screen.queryByText('Your profile is saved.')).toBeNull();
     expect(heading('Projects and API keys')).toBeTruthy();
   });
 

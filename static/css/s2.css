@@ -17528,18 +17528,6 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 }
 .settingsNavIcon { flex: 0 0 18px; width: 18px; height: 18px; /* icon size 18 */ }
 .settingsNavShort { display: none; }
-/* Marks what a deep link pointed at: a background that fades out once. */
-.settingsHighlight { animation: settingsHighlight 2.4s ease-out; }
-@keyframes settingsHighlight {
-  0%, 35% { background-color: #d5e4f4; box-shadow: 0 0 0 4px #d5e4f4; }
-  100% { box-shadow: 0 0 0 4px transparent; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .settingsHighlight { animation: none; outline: 2px solid #93b6d6; outline-offset: 2px; }
-}
-/* Muted text darkens while the highlight is on, to keep 4.5:1 on its blue. */
-.settingsHighlight { --devPoc-muted: #575d64; }
-.devPocPage .settingsHighlight .devPocHelp, .devPocPage .settingsHighlight .devPocMuted { color: #575d64; }
 
 .devPocPageHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--devPoc-s3); margin-bottom: var(--devPoc-s4); }
 /* Same heading as the Account Settings tab (#accountSettingsPage .headerWithButtons h1). */

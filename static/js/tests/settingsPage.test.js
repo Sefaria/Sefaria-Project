@@ -343,10 +343,16 @@ describe('the first project and key', () => {
     expect(screen.getByText("Projects created in this account can't be moved to another account.")).toBeTruthy();
   });
 
-  it('can be skipped, landing on the projects page with a message', async () => {
+  it('can be skipped, landing on the projects page with no message', async () => {
     await atProjectStep();
     await click(button('Skip for now'));
-    expect(screen.getByText("Your profile is saved. Create a project whenever you're ready.")).toBeTruthy();
+    expect(screen.queryByText(/Your profile is saved/)).toBeNull();
+    expect(heading('No projects or keys yet')).toBeTruthy();
+  });
+
+  it('leaves setup for the main page when the Developer Settings tab is clicked', async () => {
+    await atProjectStep();
+    await click(screen.getByRole('link', { name: 'Developer Settings' }));
     expect(heading('No projects or keys yet')).toBeTruthy();
   });
 

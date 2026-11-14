@@ -530,7 +530,7 @@ const SettingsTabIcon = ({ tab }) =>
     </svg>
   ) : null;
 
-const SettingsNav = ({ tabs, tab, highlightTab, onSelect }) => (
+const SettingsNav = ({ tabs, tab, onSelect }) => (
   <nav className="settingsNav" aria-label={Sefaria._v({ en: 'Settings', he: 'הגדרות' })}>
     <div className="settingsNavTitle">
       <InterfaceText text={{ en: 'Settings', he: 'הגדרות' }} />
@@ -541,7 +541,6 @@ const SettingsNav = ({ tabs, tab, highlightTab, onSelect }) => (
         href={t.url}
         aria-current={tab === t.tab ? 'page' : null}
         aria-label={Sefaria._v(t.label)}
-        className={highlightTab === t.tab ? 'settingsHighlight' : null}
         data-agent-action={'open-' + t.tab + '-settings'}
         onClick={(e) => {
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) {
@@ -887,9 +886,11 @@ const EStep = ({ icon, iconOk, title, lead, dots, onBack, backLabel, children })
     if (!title) {
       return;
     }
-    const scroller = title.closest('.content');
-    if (scroller) {
-      scroller.scrollTop = 0;
+    /* Every scrolling box above the title goes back to the top: which one scrolls depends on the page width. */
+    for (let el = title.parentElement; el; el = el.parentElement) {
+      if (el.scrollTop) {
+        el.scrollTop = 0;
+      }
     }
     if (typeof window !== 'undefined') {
       window.scrollTo(0, 0);
@@ -3757,7 +3758,7 @@ const EReconfirmBanner = ({ sentAt, run }) => {
 let eSentThisVisit = false;
 let eStarted = E_CONTINUE;
 
-const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessage }) => {
+const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessage, homeSignal }) => {
   const [view, setView] = useState(null); // {screen, projectId, keyId, inSetup}
   const [toast, setToast] = useState('');
   const [freshKeyId, setFreshKeyId] = useState(null);
@@ -3788,6 +3789,15 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
     setStartedState(v);
   };
   const [cancelled, setCancelled] = useState(false);
+  /* The Developer Settings tab always leads to the main page (Penina, 2026-11-12): out of any step or screen, back to
+     the home, or to the welcome screen while About you isn't saved yet. Unsaved answers are dropped. */
+  useEffect(() => {
+    if (!homeSignal) {
+      return;
+    }
+    setView(null);
+    setStarted(false);
+  }, [homeSignal]);
   const mounted = useRef(true);
   useEffect(
     () => () => {
@@ -4115,9 +4125,7 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
         edit
         initial={state.profile}
         onCancel={() => home()}
-        onSave={(profile) =>
-          run(saveProfile(profile), { quiet: true }).then(() => home(vE('Your profile is saved.', 'הפרופיל שלך נשמר.')))
-        }
+        onSave={(profile) => run(saveProfile(profile), { quiet: true }).then(() => home())}
       />
     );
   } else if (view && view.screen === 'setupProfile') {
@@ -4176,12 +4184,8 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
         onSkip={() =>
           E_SHARE_LINK
             ? open({ screen: 'share', fromLink: true })
-            : home(
-                vE(
-                  "Your profile is saved. Create a project whenever you're ready.",
-                  'הפרופיל שלך נשמר. צרו פרויקט מתי שתרצו.'
-                )
-              )
+            : /* No message: the home's empty state already asks for a first project (Penina, 2026-11-12). */
+              home()
         }
         onCreate={(projectBody) =>
           run(createProject(projectBody), { quiet: true })
@@ -4933,9 +4937,9 @@ const CONFIRMATION_MAX_POLL_MS = 60 * 1000;
 /* How long an emailed confirmation link works, as the server's CONFIRMATION_LINK_MAX_AGE. */
 const CONFIRMATION_LINK_MS = 3 * 24 * 60 * 60 * 1000;
 const SETUP_MS = 1200;
-const ARRIVAL_HIGHLIGHT_MS = 2400;
 
 const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTab, setProjectId }) => {
+  const [developerHome, setDeveloperHome] = useState(0);
   /* Restored from the browser's back/forward cache, the page has no fresh props: it reuses the settings it last
      remembered, or reloads when it remembers nothing (from the API keys branch, b7468aae8). */
   const [restored] = useState(() => !accountSettings);
@@ -4950,23 +4954,16 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
   const [notice, setNotice] = useState('');
   const [mockEmailOpen, setMockEmailOpen] = useState(false);
   const [connectedMessage, setConnectedMessage] = useState('');
-  const [arrivalHighlight, setArrivalHighlight] = useState(false);
   const connectedTimer = useRef(null);
   const setupTimer = useRef(null);
-  const highlightTimer = useRef(null);
 
-  /* Arriving on a settings URL other than the default tab marks where the link pointed. */
-  useEffect(() => {
-    if (tab !== SETTINGS_TABS[0].tab) {
-      setArrivalHighlight(true);
-      highlightTimer.current = setTimeout(() => setArrivalHighlight(false), ARRIVAL_HIGHLIGHT_MS);
-    }
-    return () => {
+  useEffect(
+    () => () => {
       clearTimeout(connectedTimer.current);
       clearTimeout(setupTimer.current);
-      clearTimeout(highlightTimer.current);
-    };
-  }, []);
+    },
+    []
+  );
 
   const pageMounted = useRef(true);
   useEffect(
@@ -5218,6 +5215,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
         notice={notice}
         setNotice={setNotice}
         connectedMessage={connectedMessage}
+        homeSignal={developerHome}
       />
     ),
   };
@@ -5235,7 +5233,16 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
       <div className="content">
         <div className="contentInner">
           <div className="settingsShell">
-            <SettingsNav tabs={tabs} tab={tab} highlightTab={arrivalHighlight ? tab : null} onSelect={setTab} />
+            <SettingsNav
+              tabs={tabs}
+              tab={tab}
+              onSelect={(t) => {
+                if (t === 'developer') {
+                  setDeveloperHome((n) => n + 1);
+                }
+                setTab(t);
+              }}
+            />
             <div className="settingsPanels">
               {tabs.map((t) => (
                 <div key={t.tab} className="settingsPanel" hidden={tab !== t.tab}>
