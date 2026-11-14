@@ -94,6 +94,14 @@ spec:
           # WEB_CONCURRENCY is used for determining the number of server workers
           - name: WEB_CONCURRENCY
             value: "{{ .Values.web.resources.web.gunicornWorkerCount }}"
+          # Recycle each gunicorn worker after it serves MAX_REQUESTS requests (plus up
+          # to MAX_REQUESTS_JITTER of random jitter) so unbounded per-worker memory growth
+          # is reclaimed instead of accumulating until the container is OOMKilled.
+          # gunicorn.conf.py only sets max_requests when BOTH variables are present.
+          - name: MAX_REQUESTS
+            value: "{{ .Values.web.resources.web.maxRequests }}"
+          - name: MAX_REQUESTS_JITTER
+            value: "{{ .Values.web.resources.web.maxRequestsJitter }}"
           - name: randomstringtoforceredeployments
             value: {{ randAlphaNum 8 }}
           - name: GOOGLE_APPLICATION_CREDENTIALS

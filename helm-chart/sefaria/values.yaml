@@ -117,6 +117,12 @@ web:
     web:
       gunicornWorkerCount: 1
       gunicornThreadCount: 1
+      # Recycle a gunicorn worker after it serves maxRequests requests, plus up to
+      # maxRequestsJitter of random jitter. This bounds per-worker memory growth so it
+      # cannot accumulate up to the container memory limit and get the pod OOMKilled.
+      # gunicorn.conf.py only sets max_requests when BOTH values are non-empty.
+      maxRequests: 10000
+      maxRequestsJitter: 1000
       resources:
         requests:
           memory: "1Gi"
