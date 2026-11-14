@@ -17120,11 +17120,11 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 
 /* Settings page: the settings tabs, and the developer tab POC */
 .devPocPage {
-  --devPoc-ink: #252b32;
-  --devPoc-muted: #626971;
-  --devPoc-blue: #18345d;
-  --devPoc-line: #dce0e4;
-  --devPoc-surface: #f4f2ee;
+  --devPoc-ink: var(--near-black); /* text-primary (2026-11-14) */
+  --devPoc-muted: var(--secondary-text-grey); /* text-muted (2026-11-14) */
+  --devPoc-blue: var(--sefaria-blue); /* action-primary */
+  --devPoc-line: var(--lighter-grey); /* border-default (2026-11-14) */
+  --devPoc-surface: var(--background-grey); /* surface-subtle (2026-11-14) */
   /* One spacing scale for every devPoc rule below. */
   --devPoc-s1: 6px;
   --devPoc-s2: 12px;
@@ -17517,13 +17517,13 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   line-height: 1.4;               /* en-system-body */
   white-space: nowrap;
   text-decoration: none;
-  color: #121212;                 /* text-primary */
+  color: var(--near-black);                 /* text-primary */
 }
 .settingsNav a:hover { background: #eeeeee; /* surface-hover */ }
 .settingsNav a:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; /* functional-focus-blue */ }
 .settingsNav a[aria-current="page"] {
   background: #f2f5fa;            /* surface-selected */
-  color: #18345d;                 /* action-primary */
+  color: var(--sefaria-blue);                 /* action-primary */
   font-weight: 600;
 }
 .settingsNavIcon { flex: 0 0 18px; width: 18px; height: 18px; /* icon size 18 */ }
@@ -17571,12 +17571,11 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   text-decoration: none;
   border-bottom: 2px solid currentColor;
 }
-.devPocPage a.devPocDocsLink:hover { color: #0d2443; border-bottom-width: 3px; padding-bottom: 1px; }
 .devPocCard {
   padding: var(--devPoc-s3);
   border: 1px solid var(--devPoc-line);
   border-radius: 6px;
-  background: #fff;
+  background: var(--white); /* surface-page */
 }
 .devPocCard > h2, .devPocEmpty h2 { margin: 0 0 var(--devPoc-s1); }
 .devPocEmailConfirmed { max-width: 560px; margin: var(--devPoc-s4) auto; }
@@ -17584,10 +17583,10 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocEmailConfirmed .devPocHelp { margin: var(--devPoc-s3) 0 0; }
 .devPocLead { margin: 0 0 var(--devPoc-s3); font-size: 14px; }
 
-.devPocHelp { display: block; font-size: 13px; color: #626971; line-height: 1.5; margin-top: var(--devPoc-s1); }
+.devPocHelp { display: block; font-size: 13px; color: var(--devPoc-muted); line-height: 1.5; margin-top: var(--devPoc-s1); }
 /* outranks the page's reset, which gives paragraphs the inherited colour */
-.devPocPage p.devPocHelp { color: #626971; }
-.devPocMuted { color: #626971; font-weight: 400; }
+.devPocPage p.devPocHelp { color: var(--devPoc-muted); }
+.devPocMuted { color: var(--devPoc-muted); font-weight: 400; }
 /* A live region waiting for its message takes no space. */
 .devPocPage .devPocStatus:empty { margin: 0; }
 
@@ -17619,7 +17618,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
    the eye reads project > section > key. */
 .devPocProject {
   border: 1px solid #cfd5db;
-  background: #fff;
+  background: var(--white); /* surface-page */
   border-radius: 8px;
   margin-bottom: var(--devPoc-s4);
   overflow: hidden;
@@ -17676,8 +17675,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   border-radius: 20px;
   padding: 2px 9px;
   font-size: 12px;
-  color: #626971;
-  background: #fff;
+  color: var(--devPoc-muted);
+  background: var(--white); /* surface-page */
 }
 /* Sections are subordinate to the project: a small uppercase label, no surface of their
    own, separated by a hairline. */
@@ -17706,7 +17705,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocKeyList { display: grid; gap: var(--devPoc-s2); }
 .devPocKey {
   padding: var(--devPoc-s2);
-  background: #fff;
+  background: var(--white); /* surface-page */
   border: 1px solid #e3e6e9;
   border-radius: 6px;
   min-width: 0;
@@ -17725,13 +17724,13 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   padding: 0;
   border: 1px solid var(--devPoc-line);
   border-radius: 5px;
-  background: #fff;
+  background: var(--white); /* surface-page */
   color: var(--devPoc-muted);
   cursor: pointer;
 }
 .devPocIconButton:hover { border-color: var(--devPoc-blue); color: var(--devPoc-blue); }
 .devPocCopied { font-size: 12px; color: #2a6b45; min-width: 52px; }
-.devPocKeyMeta { display: flex; flex-wrap: wrap; gap: 2px var(--devPoc-s3); font-size: 12px; color: #626971; }
+.devPocKeyMeta { display: flex; flex-wrap: wrap; gap: 2px var(--devPoc-s3); font-size: 12px; color: var(--devPoc-muted); }
 .devPocKeyReady { margin-top: var(--devPoc-s1); font-size: 13px; color: #2a6b45; animation: devPocFade 4s ease-out forwards; }
 .devPocKey.devPocKeyNew { animation: devPocKeyPulse 4s ease-out forwards; }
 @keyframes devPocKeyPulse {
@@ -17787,12 +17786,12 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   padding: 0;
   border: 0;
   background: transparent;
-  color: #575757; /* text-secondary */
+  color: var(--darker-grey); /* text-secondary */
   line-height: 1;
   cursor: pointer;
 }
 .devPocInfoButton svg { display: block; width: 18px; height: 18px; }
-.devPocInfoButton:hover { color: #18345d; /* action-primary */ }
+.devPocInfoButton:hover { color: var(--sefaria-blue); /* action-primary */ }
 /* An info tip after an Input's label sits on the label's centre line. */
 .devPocPage .sefaria-input-labelGroup { align-items: center; }
 .devPocPage .sefaria-input-labelGroup .devPocTip { margin-inline-start: 0; }
@@ -17816,14 +17815,14 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   width: max-content;
   max-width: min(300px, calc(100vw - 32px));
   padding: var(--devPoc-s2);
-  background: #fff;
+  background: var(--white); /* surface-page */
   border: 1px solid var(--devPoc-line);
   border-radius: 4px;
   box-shadow: 0 4px 14px rgba(20, 35, 55, 0.14);
   font-size: 13px;
   font-weight: 400;
   line-height: 1.5;
-  color: #3c444c;
+  color: var(--darker-grey); /* text-secondary (Penina, 2026-11-14) */
   text-align: start;
   text-transform: none;
   letter-spacing: normal;
@@ -17838,8 +17837,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocListingSearch { margin-top: var(--devPoc-s2); }
 .devPocListingArea { margin: var(--devPoc-s2) 0 0 26px; }
 
-.devPocEmpty { padding: var(--devPoc-s3); border: 1px solid var(--devPoc-line); border-radius: 6px; background: #fff; }
-.devPocEmpty p { color: #626971; max-width: 530px; }
+.devPocEmpty { padding: var(--devPoc-s3); border: 1px solid var(--devPoc-line); border-radius: 6px; background: var(--white); /* surface-page */ }
+.devPocEmpty p { color: var(--devPoc-muted); max-width: 530px; }
 .devPocEmpty .devPocActions { margin-top: var(--devPoc-s2); }
 .devPocList { margin: var(--devPoc-s2) 0 0; padding-inline-start: 22px; font-size: 14px; }
 .devPocList li { margin-bottom: var(--devPoc-s1); }
@@ -17860,7 +17859,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   border: 1px solid #e3e5e8;
   border-radius: 7px;
   background: #fbfbfa;
-  color: #252b32;
+  color: var(--devPoc-ink);
   font: inherit;
   font-size: 14px;
   box-shadow: none;
@@ -17868,7 +17867,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocField select { padding-inline-end: 8px; }
 .devPocField textarea:not(.sefaria-input-control) { height: auto; min-height: 84px; padding: 10px 12px; line-height: 1.5; resize: vertical; }
 .devPocField input.devPocLocked { background: #f2f3f4; color: #4a5058; cursor: default; }
-.devPocField input:disabled { background: #f2f3f4; color: #6f6f6f; }
+.devPocField input:disabled { background: #f2f3f4; color: var(--medium-grey); /* icon-muted */ }
 .devPocProfile .devPocField input, .devPocProfile .devPocField textarea, .devPocSection .devPocField input { max-width: 520px; }
 .devPocChoice { display: flex; align-items: flex-start; gap: 10px; height: auto; min-height: 0; margin: 0; font-size: 14px; font-weight: 400; line-height: 1.5; }
 .devPocChoice + .devPocChoice { margin-top: var(--devPoc-s2); }
@@ -17881,7 +17880,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   padding: 0;
   box-shadow: none;
   border-radius: 0;
-  accent-color: #18345d;
+  accent-color: var(--sefaria-blue); /* action-primary */
   cursor: pointer;
 }
 input.devPocSwitch {
@@ -17909,9 +17908,9 @@ input.devPocSwitch::after {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--white); /* surface-page */
 }
-input.devPocSwitch:checked { background: #18345d; }
+input.devPocSwitch:checked { background: var(--sefaria-blue); /* action-primary */ }
 input.devPocSwitch:checked::after { transform: translateX(16px); }
 .interface-hebrew .settingsPanel input.devPocSwitch::after { left: auto; right: 3px; }
 .interface-hebrew .settingsPanel input.devPocSwitch:checked::after { transform: translateX(-16px); }
@@ -17948,9 +17947,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocActions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--devPoc-s2); }
 .devPocActions > .devPocDanger { margin-inline-start: auto; }
 .devPocPage .button { margin: 0; flex-shrink: 0; }
-.devPocPage .button.white { border: 1px solid #ccc; }
-.devPocPage .button.devPocDanger { background-color: #a43632; color: #fff; }
-.devPocPage .button.transparent.devPocDanger { background-color: transparent; color: #a43632; box-shadow: none; }
+.devPocPage .button.white { border: 1px solid var(--light-grey); /* gray-300 */ }
 .devPocPage .button:disabled {
   background-color: var(--lightest-grey);
   border: 1px solid var(--light-grey);
@@ -17975,11 +17972,11 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   max-height: 90vh;
   overflow-y: auto;
   padding: var(--devPoc-s3);
-  background: #fff;
+  background: var(--white); /* surface-page */
   border: 1px solid #d9dee3;
   border-radius: 6px;
   text-align: start;
-  color: #252b32;
+  color: var(--devPoc-ink);
   font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
   font-size: 15px;
 }
@@ -17998,12 +17995,12 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   .settingsShell { display: block; max-width: none; }
   .readerNavMenu.settingsPage .content .contentInner { padding: 24px 16px 60px; }
   /* Phones: two equal tabs with short labels, each half the row (Penina, 2026-11-12). */
-  .settingsNav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
+  .settingsNav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-bottom: 1px solid var(--lighter-grey); /* border-default */ margin-bottom: 22px; }
   .settingsNavTitle { grid-column: 1 / -1; padding: 0 0 8px; }
   .settingsNav a { justify-content: center; gap: 8px; min-height: 44px; padding: 10px 8px; border-radius: 0; border-bottom: 3px solid transparent; }
   .settingsNavLong { display: none; }
   .settingsNavShort { display: inline; }
-  .settingsNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
+  .settingsNav a[aria-current="page"] { background: transparent; border-bottom-color: var(--sefaria-blue); /* action-primary */ }
   .settingsNavIcon { flex-basis: 18px; width: 18px; height: 18px; }
   .devPocPageHeader { flex-direction: column; gap: var(--devPoc-s2); }
   .devPocResult { flex-wrap: wrap; }
@@ -18051,7 +18048,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   position: relative;
   width: 400px;
   max-width: 100%;
-  background: #fff;
+  background: var(--white); /* surface-page */
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
@@ -18061,7 +18058,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   margin: 0;
   padding: 10px 16px;
   background: #ff2d95;
-  color: #fff;
+  color: var(--white); /* text-inverse */
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
   font-size: 12px;
   font-weight: 700;
@@ -18069,7 +18066,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   text-align: center;
   text-transform: uppercase;
 }
-.devPocMockSsoBody { padding: 28px 28px 22px; color: #252b32; }
+.devPocMockSsoBody { padding: 28px 28px 22px; color: var(--devPoc-ink); }
 .devPocMockSso h2 { margin: 0; font-size: 22px; font-weight: 400; text-align: left; text-transform: none; }
 .devPocMockSsoActions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 26px; }
 .devPocMockSsoCancel, .devPocMockSsoContinue {
@@ -18078,11 +18075,11 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   font-size: 15px;
   cursor: pointer;
 }
-.devPocMockSsoCancel { background: transparent; border: none; color: #18345d; }
-.devPocMockSsoContinue { background: #18345d; border: 1px solid #18345d; color: #fff; }
+.devPocMockSsoCancel { background: transparent; border: none; color: var(--sefaria-blue); /* action-primary */ }
+.devPocMockSsoContinue { background: var(--sefaria-blue); /* action-primary */ border: 1px solid var(--sefaria-blue); /* action-primary */ color: var(--white); /* text-inverse */ }
 .devPocMockEmail h2 { font-size: 20px; margin: 8px 0 12px; }
-.devPocMockEmailMeta { font-size: 12px; color: #626971; margin: 0; }
-.devPocMockEmailFoot { font-size: 12px; color: #626971; margin-top: 16px; }
+.devPocMockEmailMeta { font-size: 12px; color: var(--devPoc-muted); margin: 0; }
+.devPocMockEmailFoot { font-size: 12px; color: var(--devPoc-muted); margin-top: 16px; }
 
 /* Developer settings setup (design trial): the entry state and "About you" as one white card in
    the sign-in pages' style, built from the Sefaria Product Design tokens. Token names are in
@@ -18097,11 +18094,11 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   flex-direction: column;
   gap: 32px; /* spacing-3xlarge */
   padding: 48px 40px; /* spacing-5xlarge, spacing-4xlarge */
-  background: #ffffff; /* surface-page */
-  border: 1px solid #ededec; /* border-width-thin, border-default */
+  background: var(--white); /* surface-page */
+  border: 1px solid var(--lighter-grey); /* border-width-thin, border-default */
   border-radius: 16px; /* the sign-in card's radius */
   box-shadow: 0 8px 16px 0 rgba(31, 31, 31, 0.05), 0 1px 2px 0 rgba(31, 31, 31, 0.04), 0 0 10px -1px rgba(83, 83, 83, 0.04); /* shadow-small */
-  color: #121212; /* text-primary */
+  color: var(--near-black); /* text-primary */
   font-size: 16px;
   line-height: 1.4; /* en-system-body-regular */
 }
@@ -18132,12 +18129,12 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   font-size: 30px;
   font-weight: 400;
   line-height: 1.4; /* en-content-h2 */
-  color: #121212; /* text-primary */
+  color: var(--near-black); /* text-primary */
 }
 .devPocPage .devSetupTitle:focus { outline: none; } /* a programmatic focus target only */
-.devPocPage .devSetupLead { font-size: 16px; line-height: 1.5; color: #575757; /* text-secondary */ }
-.devPocPage .devSetupLead strong { color: #121212; font-weight: 600; }
-.devPocPage .devSetupNote { font-size: 14px; line-height: 1.5; color: #575757; /* en-system-small, text-secondary */ }
+.devPocPage .devSetupLead { font-size: 16px; line-height: 1.5; color: var(--darker-grey); /* text-secondary */ }
+.devPocPage .devSetupLead strong { color: var(--near-black); /* text-primary */ font-weight: 600; }
+.devPocPage .devSetupNote { font-size: 14px; line-height: 1.5; color: var(--darker-grey); /* en-system-small, text-secondary */ }
 .devPocPage .devSetupNote:empty { display: none; }
 
 /* The three steps: a plain list on the way in, a progress row while setting up. */
@@ -18161,12 +18158,12 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   justify-content: center;
   border-radius: 50%;
   background: #e4eaf3; /* surface-highlighted (navy-200) */
-  color: #18345d; /* action-primary */
+  color: var(--sefaria-blue); /* action-primary */
   font-size: 14px;
   font-weight: 600;
 }
 .devPocPage .devSetupStepNum svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.devPocPage .devSetupStepLabel { font-size: 16px; color: #121212; }
+.devPocPage .devSetupStepLabel { font-size: 16px; color: var(--near-black); /* text-primary */ }
 
 .devPocPage .devSetupSteps--compact {
   flex-direction: row;
@@ -18183,29 +18180,29 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   width: 24px;
   height: 1px;
   margin-inline-end: 4px;
-  background: #cccccc; /* gray-300 */
+  background: var(--light-grey); /* gray-300 */
 }
 .devPocPage .devSetupSteps--compact .devSetupStepNum { flex-basis: 24px; width: 24px; height: 24px; font-size: 12px; }
-.devPocPage .devSetupSteps--compact .devSetupStepLabel { font-size: 14px; color: #575757; }
-.devPocPage .devSetupSteps--compact .is-current .devSetupStepNum { background: #18345d; color: #ffffff; /* action-primary, text-inverse */ }
-.devPocPage .devSetupSteps--compact .is-current .devSetupStepLabel { color: #121212; font-weight: 600; }
-.devPocPage .devSetupSteps--compact .is-next .devSetupStepNum { background: #ffffff; color: #707070; box-shadow: inset 0 0 0 1px #cccccc; /* text-muted, gray-300 */ }
+.devPocPage .devSetupSteps--compact .devSetupStepLabel { font-size: 14px; color: var(--darker-grey); /* text-secondary */ }
+.devPocPage .devSetupSteps--compact .is-current .devSetupStepNum { background: var(--sefaria-blue); color: var(--white); /* action-primary, text-inverse */ }
+.devPocPage .devSetupSteps--compact .is-current .devSetupStepLabel { color: var(--near-black); /* text-primary */ font-weight: 600; }
+.devPocPage .devSetupSteps--compact .is-next .devSetupStepNum { background: var(--white); /* surface-page */ color: var(--secondary-text-grey); box-shadow: inset 0 0 0 1px var(--light-grey); /* text-muted, gray-300 */ }
 
 .devPocPage .devSetupEntry .sefaria-common-button.auth-primary,
 .devPocPage .devSetup .sefaria-common-button.fullwidth { height: 51px; /* the sign-in button */ }
 .devPocPage .devSetupActions { display: flex; flex-direction: column; gap: 8px; }
 /* Secondary button: an outline version of auth-primary. */
 .devPocPage button.sefaria-common-button.devSetupSecondary {
-  background: #ffffff;
-  border: 1.5px solid #18345d; /* border-width-medium, action-primary */
+  background: var(--white); /* surface-page */
+  border: 1.5px solid var(--sefaria-blue); /* border-width-medium, action-primary */
   border-radius: 4px;
-  color: #18345d;
+  color: var(--sefaria-blue);
   font-size: 16px;
   font-weight: 600; /* en-system-body-strong */
 }
-.devPocPage button.sefaria-common-button.devSetupSecondary * { color: #18345d; }
+.devPocPage button.sefaria-common-button.devSetupSecondary * { color: var(--sefaria-blue); /* action-primary */ }
 .devPocPage button.sefaria-common-button.devSetupSecondary:hover { background: #f2f5fa; /* surface-selected */ }
-.devPocPage .devSetup .sefaria-common-button:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devPocPage .devSetup .sefaria-common-button:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; }
 
 .devPocPage .devSetupLinks {
   display: flex;
@@ -18214,11 +18211,11 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   align-items: center;
   gap: 8px 12px;
   font-size: 14px;
-  color: #575757;
+  color: var(--darker-grey); /* text-secondary */
 }
-.devPocPage .devSetupLinks a { display: inline-flex; align-items: center; gap: 4px; color: #575757; text-decoration: underline; }
-.devPocPage .devSetupLinks a:hover { color: #121212; }
-.devPocPage .devSetupLinksDot { color: #999999; }
+.devPocPage .devSetupLinks a { display: inline-flex; align-items: center; gap: 4px; color: var(--darker-grey); /* text-secondary */ text-decoration: underline; }
+.devPocPage .devSetupLinks a:hover { color: var(--near-black); /* text-primary */ }
+.devPocPage .devSetupLinksDot { color: var(--medium-grey-legacy); /* gray-400 */ }
 
 .devPocPage .devSetupLoading { flex-direction: row; align-items: center; gap: 12px; }
 
@@ -18233,17 +18230,17 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   background: #fafafa; /* surface-subtle */
   border-radius: 12px;
 }
-.devPocPage .devSetupAccountLabel { font-size: 12px; line-height: 20px; color: #575757; margin-bottom: 4px; /* en-system-caption */ }
-.devPocPage .devSetupAccountName { font-size: 16px; font-weight: 600; color: #121212; }
-.devPocPage .devSetupAccountEmail { font-size: 16px; color: #121212; }
+.devPocPage .devSetupAccountLabel { font-size: 12px; line-height: 20px; color: var(--darker-grey); /* text-secondary */ margin-bottom: 4px; /* en-system-caption */ }
+.devPocPage .devSetupAccountName { font-size: 16px; font-weight: 600; color: var(--near-black); /* text-primary */ }
+.devPocPage .devSetupAccountEmail { font-size: 16px; color: var(--near-black); /* text-primary */ }
 .devPocPage .devSetupAccount .devSetupNote { margin-top: 8px; }
-.devPocPage .devSetupOptional { font-size: 12px; font-weight: 400; color: #707070; /* en-system-caption, text-muted: 12px is the smallest DS size; #707070 is the lightest grey that still passes AA for text */ }
+.devPocPage .devSetupOptional { font-size: 12px; font-weight: 400; color: var(--secondary-text-grey); /* en-system-caption, text-muted: 12px is the smallest DS size; #707070 is the lightest grey that still passes AA for text */ }
 .devPocPage .devSetupLegal {
   display: flex;
   flex-direction: column;
   gap: 20px;
   padding-top: 24px;
-  border-top: 1px solid #ededec; /* border-default */
+  border-top: 1px solid var(--lighter-grey); /* border-default */
 }
 
 @media (max-width: 842px) { /* the header's mobile breakpoint, $bp-mobile-max */
@@ -18261,138 +18258,136 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
    Values are Sefaria Product Design tokens (names in comments); the codebase has no variables for them. */
 .devPocPage.devE { max-width: 760px; }
 .devPocPage .devE-pageHeader { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 32px; }
-.devPocPage .devE-docs { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #18345d; }
+.devPocPage .devE-docs { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: var(--sefaria-blue); /* action-primary */ }
 
 /* steps */
 .devPocPage .devE-wrap { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 8px 0 40px; }
 .devPocPage .devE-dots { display: flex; gap: 8px; /* spacing-small */ }
-.devPocPage .devE-dots span { width: 24px; height: 4px; border-radius: 2px; background: #ededec; /* border-default */ }
-.devPocPage .devE-dots span.on { background: #121212; /* text-primary */ }
-.devPocPage .devE-back { align-self: flex-start; border: 0; background: none; padding: 8px; margin-inline-start: -8px; border-radius: 4px; font: 500 14px/1 var(--english-sans-serif-font-family); color: #18345d; cursor: pointer; }
+.devPocPage .devE-dots span { width: 24px; height: 4px; border-radius: 2px; background: var(--lighter-grey); /* border-default */ }
+.devPocPage .devE-dots span.on { background: var(--near-black); /* text-primary */ }
+.devPocPage .devE-back { align-self: flex-start; border: 0; background: none; padding: 8px; margin-inline-start: -8px; border-radius: 4px; font: 500 14px/1 var(--english-sans-serif-font-family); color: var(--sefaria-blue); /* action-primary */ cursor: pointer; }
 .devPocPage .devE-back:hover { background: #f2f5fa; /* surface-selected */ }
 .devPocPage .devE-card { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 24px; }
 .devPocPage .devE-head { display: flex; flex-direction: column; align-items: center; gap: 12px; /* spacing-medium */ text-align: center; }
-.devPocPage .devE-ico { width: 48px; height: 48px; border-radius: 8px; border: 1px solid #ededec; display: grid; place-items: center; font: 600 14px/1 ui-monospace, Menlo, monospace; color: #18345d; background: #fff; }
-.devPocPage .devE-ico.ok { width: 48px; height: 48px; border-radius: 50%; background: #eaf3ec; border-color: #eaf3ec; color: #1f4d29; font-size: 18px; /* a circle: 24px Lucide check with 12px all round */ }
-.devPocPage .devE-title { margin: 0; font-family: var(--english-sans-serif-font-family); font-size: 22px; font-weight: 400; line-height: 1.4; color: #121212; text-wrap: balance; /* en-system-h3, text-primary */ }
+.devPocPage .devE-ico { width: 48px; height: 48px; border-radius: 8px; border: 1px solid var(--lighter-grey); /* border-default */ display: grid; place-items: center; font: 600 14px/1 ui-monospace, Menlo, monospace; color: var(--sefaria-blue); /* action-primary */ background: var(--white); /* surface-page */ }
+.devPocPage .devE-ico.ok { width: 48px; height: 48px; border-radius: 50%; background: #eaf2ed; border-color: #eaf2ed; color: #518159; /* green-200; feedback-success */ font-size: 18px; /* a circle: 24px Lucide check with 12px all round */ }
+.devPocPage .devE-title { margin: 0; font-family: var(--english-sans-serif-font-family); font-size: 22px; font-weight: 400; line-height: 1.4; color: var(--near-black); text-wrap: balance; /* en-system-h3, text-primary */ }
 .devPocPage .devE-title:focus { outline: none; }
-.devPocPage .devE-lead { margin: 0; font-size: 16px; line-height: 1.5; color: #575757; /* text-secondary */ }
-.devPocPage .devE-signed { margin: 8px 0 0; /* with the head gap: 16px under the title */ padding: 8px 16px; border-radius: 8px; background: #fafafa; /* surface-subtle */ font-size: 14px; color: #575757; }
-.devPocPage .devE-signed strong { color: #121212; font-weight: 600; }
+.devPocPage .devE-lead { margin: 0; font-size: 16px; line-height: 1.5; color: var(--darker-grey); /* text-secondary */ }
+.devPocPage .devE-signed { margin: 8px 0 0; /* with the head gap: 16px under the title */ padding: 8px 16px; border-radius: 8px; background: #fafafa; /* surface-subtle */ font-size: 14px; color: var(--darker-grey); /* text-secondary */ }
+.devPocPage .devE-signed strong { color: var(--near-black); /* text-primary */ font-weight: 600; }
 .devPocPage .devE-form { display: flex; flex-direction: column; gap: 20px; }
 .devPocPage .devE-form .sefaria-common-button.fullwidth { height: 51px; }
-.devPocPage .devE-legal { margin: -8px 0 0; text-align: center; font-size: 14px; line-height: 1.5; color: #575757; }
-.devPocPage .devE-legal a { color: #18345d; text-decoration: underline; }
-.devPocPage .devE-hint { margin: 0; font-size: 14px; line-height: 1.5; color: #575757; }
-.devPocPage .devE-textBtn { align-self: center; border: 0; background: none; padding: 4px; font: 500 14px/1.4 var(--english-sans-serif-font-family); color: #18345d; cursor: pointer; }
-.devPocPage .devE-textBtn:hover { color: #132b4c; text-decoration: underline; }
+.devPocPage .devE-legal { margin: -8px 0 0; text-align: center; font-size: 14px; line-height: 1.5; color: var(--darker-grey); /* text-secondary */ }
+.devPocPage .devE-legal a { color: var(--sefaria-blue); /* action-primary */ text-decoration: underline; }
+.devPocPage .devE-hint { margin: 0; font-size: 14px; line-height: 1.5; color: var(--darker-grey); /* text-secondary */ }
+.devPocPage .devE-textBtn { align-self: center; border: 0; background: none; padding: 4px; font: 500 14px/1.4 var(--english-sans-serif-font-family); color: var(--sefaria-blue); /* action-primary */ cursor: pointer; }
+.devPocPage .devE-textBtn:hover { color: #132b4c; /* action-primary-hover */ text-decoration: underline; }
 .devPocPage .devE-start { align-self: flex-start; }
 .devPocPage .devE-select { appearance: auto; -webkit-appearance: auto; cursor: pointer; }
 .devPocPage .devE-countField { display: flex; flex-direction: column; gap: 4px; }
-.devPocPage .devE-count { align-self: flex-end; font: 400 12px/20px var(--english-sans-serif-font-family); font-variant-numeric: tabular-nums; color: #707070; /* en-system-caption, text-muted */ }
+.devPocPage .devE-count { align-self: flex-end; font: 400 12px/20px var(--english-sans-serif-font-family); font-variant-numeric: tabular-nums; color: var(--secondary-text-grey); /* en-system-caption, text-muted */ }
 .devPocPage .devE-keyRow { display: flex; align-items: center; gap: 8px; }
 .devPocPage .devE-mono { font-family: ui-monospace, Menlo, monospace; font-size: 14px; min-width: 0; }
-.devPocPage .devE-keyCopy { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 0; border-radius: 4px; background: none; color: #6f6f6f; cursor: pointer; /* icon-muted */ }
-.devPocPage .devE-keyCopy:hover { background: #eee; color: #121212; }
-.devPocPage .devE-keyCopy:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devPocPage .devE-keyCopy { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 0; border-radius: 4px; background: none; color: var(--medium-grey); cursor: pointer; /* icon-muted */ }
+.devPocPage .devE-keyCopy:hover { background: #eee; /* surface-hover */ color: var(--near-black); /* text-primary */ }
+.devPocPage .devE-keyCopy:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; }
 .devPocPage .devE-keyCopied { flex: none; min-width: 56px; font: 400 14px/18px var(--english-sans-serif-font-family); color: #518159; /* feedback-success */ }
-.devPocPage .devE-try { display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid #ededec; border-radius: 12px; }
+.devPocPage .devE-try { display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid var(--lighter-grey); /* border-default */ border-radius: 12px; }
 .devPocPage .devE-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
-.devPocPage .devE-tabs button { border: 0; background: none; padding: 8px 12px; border-radius: 4px; font: 500 14px/18px var(--english-sans-serif-font-family); color: #575757; cursor: pointer; }
-.devPocPage .devE-tabs button[aria-selected="true"] { background: #f2f5fa; color: #18345d; }
-.devPocPage .devE-code { margin: 0; padding: 12px 16px; background: #fafafa; /* surface-subtle */ border-radius: 8px; overflow-x: auto; font: 400 12px/20px ui-monospace, Menlo, monospace; color: #121212; white-space: pre; text-align: left; }
-.devPocPage .devE-danger { padding-top: 20px; border-top: 1px solid #ededec; display: flex; flex-direction: column; gap: 12px; }
+.devPocPage .devE-tabs button { border: 0; background: none; padding: 8px 12px; border-radius: 4px; font: 500 14px/18px var(--english-sans-serif-font-family); color: var(--darker-grey); /* text-secondary */ cursor: pointer; }
+.devPocPage .devE-tabs button[aria-selected="true"] { background: #f2f5fa; /* surface-selected */ color: var(--sefaria-blue); /* action-primary */ }
+.devPocPage .devE-code { margin: 0; padding: 12px 16px; background: #fafafa; /* surface-subtle */ border-radius: 8px; overflow-x: auto; font: 400 12px/20px ui-monospace, Menlo, monospace; color: var(--near-black); /* text-primary */ white-space: pre; text-align: left; }
+.devPocPage .devE-danger { padding-top: 20px; border-top: 1px solid var(--lighter-grey); /* border-default */ display: flex; flex-direction: column; gap: 12px; }
 .devPocPage .devE-danger p { margin: 0; font-size: 14px; }
 .devPocPage .devE-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .devPocPage .devE-red { color: #c03522 !important; /* feedback-error */ }
-.devPocPage .devE-muted { color: #707070 !important; }
+.devPocPage .devE-muted { color: var(--secondary-text-grey) !important; /* text-muted */ }
 
 /* pills */
-.devPocPage .devE-pill { height: 40px; padding: 0 16px; border-radius: 4px; border: 1.5px solid #18345d; background: #18345d; color: #fff; /* action-primary, text-inverse; radius as auth-primary */ font: 600 14px/1 var(--english-sans-serif-font-family); cursor: pointer; white-space: nowrap; }
+.devPocPage .devE-pill { height: 40px; padding: 0 16px; border-radius: 4px; border: 1.5px solid var(--sefaria-blue); background: var(--sefaria-blue); color: var(--white); /* action-primary, text-inverse; radius as auth-primary */ font: 600 14px/1 var(--english-sans-serif-font-family); cursor: pointer; white-space: nowrap; }
 .devPocPage .devE-pill:hover { background: #132b4c; border-color: #132b4c; /* action-primary-hover */ }
-.devPocPage .devE-pillSec { background: #ffffff; border-color: #575757; color: #575757; /* surface-page, action-secondary */ }
-.devPocPage .devE-pillSec:hover { background: #eeeeee; border-color: #333333; color: #333333; /* surface-hover, action-secondary-hover */ }
+.devPocPage .devE-pillSec { background: var(--white); border-color: var(--darker-grey); /* text-secondary */ color: var(--darker-grey); /* surface-page, action-secondary */ }
+.devPocPage .devE-pillSec:hover { background: #eeeeee; border-color: var(--darkest-grey); /* no DS token */ color: var(--darkest-grey); /* surface-hover, action-secondary-hover */ }
 .devPocPage .devE-pillDanger { background: #c03522; border-color: #c03522; /* feedback-error-border: the DS has no danger action token */ }
 .devPocPage .devE-pillDanger:hover { background: #a02c1c; border-color: #a02c1c; /* red-800 primitive */ }
-.devPocPage .devE-pill:disabled { background: #ededec; border-color: #ededec; color: #999999; cursor: not-allowed; /* text-disabled */ }
+.devPocPage .devE-pill:disabled { background: var(--lighter-grey); /* border-default */ border-color: var(--lighter-grey); /* border-default */ color: var(--medium-grey-legacy); /* gray-400 */ cursor: not-allowed; /* text-disabled */ }
 .devPocPage .devE-wide { width: 100%; height: 48px; }
 .devPocPage .devE-pill:focus-visible, .devPocPage .devE-link:focus-visible, .devPocPage .devE-textBtn:focus-visible,
-.devPocPage .devE-back:focus-visible, .devPocPage .devE-ico:focus-visible, .devPocPage .devE-tabs button:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devPocPage .devE-back:focus-visible, .devPocPage .devE-ico:focus-visible, .devPocPage .devE-tabs button:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; }
 
 /* home */
 .devPocPage .devE-home { display: flex; flex-direction: column; }
-.devPocPage .devE-toast { display: flex; align-items: center; gap: 8px; padding: 12px 16px; margin-bottom: 24px; border-radius: 8px; border: 1px solid #ededec; background: #fafafa; color: #121212; font-size: 14px; /* surface-subtle, border-default, text-primary */ }
+.devPocPage .devE-toast { display: flex; align-items: center; gap: 8px; padding: 12px 16px; margin-bottom: 24px; border-radius: 8px; border: 1px solid var(--lighter-grey); background: #fafafa; color: var(--near-black); font-size: 14px; /* surface-subtle, border-default, text-primary */ }
 .devPocPage .devE-toastText { flex: 1; min-width: 0; }
 .devPocPage .devE-toastIcon { flex: 0 0 auto; width: 16px; height: 16px; color: #518159; font-weight: 700; /* feedback-success */ }
 .devPocPage .devE-toastWarn { background: #f9ebe9; border-color: #c03522; color: #c03522; /* feedback-error-background, -border, -text */ }
-.devPocPage .devE-toast .devE-textBtn { color: #18345d; }
-.devPocPage .devE-profile { margin: 0 0 32px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 14px; color: #575757; }
+.devPocPage .devE-toast .devE-textBtn { color: var(--sefaria-blue); /* action-primary */ }
+.devPocPage .devE-profile { margin: 0 0 32px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 14px; color: var(--darker-grey); /* text-secondary */ }
 .devPocPage .devE-profile .devE-link { margin-inline-start: 8px; }
-.devPocPage .devE-profileEdit { margin-bottom: 32px; padding: 20px; border: 1px solid #ededec; border-radius: 12px; }
+.devPocPage .devE-profileEdit { margin-bottom: 32px; padding: 20px; border: 1px solid var(--lighter-grey); /* border-default */ border-radius: 12px; }
 .devPocPage .devE-profileEdit h2 { margin-bottom: 16px; }
-.devPocPage .devE-link { border: 0; background: none; padding: 0; font: 500 14px/1.4 var(--english-sans-serif-font-family); color: #18345d; cursor: pointer; text-decoration: none; }
-.devPocPage .devE-link:hover { color: #132b4c; text-decoration: underline; /* text-link-hovered */ }
-.devPocPage .devE-dot { color: #cccccc; }
+.devPocPage .devE-link { border: 0; background: none; padding: 0; font: 500 14px/1.4 var(--english-sans-serif-font-family); color: var(--sefaria-blue); /* action-primary */ cursor: pointer; text-decoration: none; }
+.devPocPage .devE-link:hover { color: #132b4c; /* action-primary-hover */ text-decoration: underline; /* text-link-hovered */ }
+.devPocPage .devE-dot { color: var(--light-grey); /* gray-300 */ }
 /* trial E: the whole home reads as one table (toolbar, column heads, project group rows, key rows) */
-.devPocPage .devE-board { border: 1px solid #ededec; border-radius: 8px; background: #ffffff; /* border-default, surface-page */ }
+.devPocPage .devE-board { border: 1px solid var(--lighter-grey); border-radius: 8px; background: var(--white); /* border-default, surface-page */ }
 .devPocPage .devE-boardTop { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px 24px; flex-wrap: wrap; padding: 20px 16px; }
 .devPocPage .devE-boardTop > div { flex: 1 1 320px; min-width: 0; }
 .devPocPage .devE-h { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
-.devPocPage .devE-sub { margin: 0; font-size: 14px; line-height: 1.5; color: #575757; max-width: 62ch; }
+.devPocPage .devE-sub { margin: 0; font-size: 14px; line-height: 1.5; color: var(--darker-grey); /* text-secondary */ max-width: 62ch; }
 .devPocPage .devE-sub code, .devPocPage .devE-sub .devE-link { font-size: 14px; }
-.devPocPage .devE-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px 16px 32px; border-top: 1px solid #ededec; }
+.devPocPage .devE-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px 16px 32px; border-top: 1px solid var(--lighter-grey); /* border-default */ }
 .devPocPage .devE-empty h3 { margin: 0; font-size: 16px; font-weight: 600; }
-.devPocPage .devE-empty p { margin: 0 0 8px; font-size: 14px; color: #575757; }
+.devPocPage .devE-empty p { margin: 0 0 8px; font-size: 14px; color: var(--darker-grey); /* text-secondary */ }
 .devPocPage .devE-tableWrap { overflow: visible; /* lets the column tip show; the table stacks on narrow screens instead of scrolling */ }
 .devPocPage .devE-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.devPocPage .devE-table thead th { text-align: start; font: 500 12px/20px var(--english-sans-serif-font-family); color: #575757; padding: 8px 16px; white-space: nowrap; border-top: 1px solid #ededec; /* en-system-caption, text-secondary */ }
-.devPocPage .devE-table .devE-projRow th { text-align: start; font-weight: 400; padding: 16px; background: #fafafa; border-top: 1px solid #ededec; /* surface-subtle */ }
+.devPocPage .devE-table thead th { text-align: start; font: 500 12px/20px var(--english-sans-serif-font-family); color: var(--darker-grey); padding: 8px 16px; white-space: nowrap; border-top: 1px solid var(--lighter-grey); /* en-system-caption, text-secondary */ }
+.devPocPage .devE-table .devE-projRow th { text-align: start; font-weight: 400; padding: 16px; background: #fafafa; border-top: 1px solid var(--lighter-grey); /* surface-subtle */ }
 .devPocPage .devE-projHead { display: flex; justify-content: space-between; align-items: center; gap: 12px 24px; flex-wrap: wrap; }
 .devPocPage .devE-projInfo { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.devPocPage .devE-projName { font-size: 16px; font-weight: 600; line-height: 1.3; color: #121212; }
-.devPocPage .devE-desc { font-size: 14px; line-height: 1.5; color: #575757; }
-.devPocPage .devE-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 14px; color: #575757; }
+.devPocPage .devE-projName { font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--near-black); /* text-primary */ }
+.devPocPage .devE-desc { font-size: 14px; line-height: 1.5; color: var(--darker-grey); /* text-secondary */ }
+.devPocPage .devE-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 14px; color: var(--darker-grey); /* text-secondary */ }
 .devPocPage .devE-meta .devE-link { font-size: 14px; }
 .devPocPage .devE-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.devPocPage .devE-table td { padding: 12px 16px; border-top: 1px solid #ededec; vertical-align: middle; }
+.devPocPage .devE-table td { padding: 12px 16px; border-top: 1px solid var(--lighter-grey); /* border-default */ vertical-align: middle; }
 .devPocPage .devE-table .devE-keyRowT:hover td { background: #fafafa; }
-.devPocPage .devE-table td:nth-child(3) { white-space: nowrap; color: #575757; /* text-secondary */ }
+.devPocPage .devE-table td:nth-child(3) { white-space: nowrap; color: var(--darker-grey); /* text-secondary */ }
 .devPocPage .devE-table td .devE-keyCopied { margin-inline-start: 8px; min-width: 0; }
 .devPocPage .devE-table .devE-end { text-align: end; white-space: nowrap; }
 .devPocPage .devE-table .devE-end .devE-link + .devE-link { margin-inline-start: 16px; }
-.devPocPage .devE-emptyRow td { color: #707070; }
+.devPocPage .devE-emptyRow td { color: var(--secondary-text-grey); /* text-muted */ }
 .devPocPage .devE-thTip { display: inline-flex; align-items: center; gap: 4px; }
 .devPocPage.devE .devE-thTip .devPocTip { align-self: center; }
 .devPocPage.devE .devE-thTip .devPocPopover { font-weight: 400; white-space: normal; inset-inline-start: auto; inset-inline-end: 0; }
-.devPocPage .devE-noSite { font-size: 14px; color: #707070; /* text-muted */ }
-.devPocPage .devE-new { margin-inline-start: 8px; font-size: 12px; line-height: 20px; font-weight: 500; color: #18345d; background: #e4eaf3; padding: 0 8px; border-radius: 4px; /* en-system-caption, surface-highlighted */ }
-.devPocPage .devE-chip { display: inline-flex; align-items: center; gap: 4px; background: #fafafa; border: 1px solid #ededec; border-radius: 4px; padding: 4px 4px 4px 8px; /* surface-subtle, border-default */ }
-.devPocPage .devE-chip code { font: 400 14px/18px ui-monospace, Menlo, monospace; color: #121212; white-space: nowrap; background: none; padding: 0; }
-.devPocPage .devE-ico { display: inline-grid; place-items: center; width: 24px; height: 24px; border: 0; background: none; color: #575757; border-radius: 4px; cursor: pointer; }
-.devPocPage .devE-ico:hover { background: #eeeeee; color: #121212; /* surface-hover */ }
+.devPocPage .devE-noSite { font-size: 14px; color: var(--secondary-text-grey); /* text-muted */ }
+.devPocPage .devE-new { margin-inline-start: 8px; font-size: 12px; line-height: 20px; font-weight: 500; color: var(--sefaria-blue); /* action-primary */ background: #e4eaf3; padding: 0 8px; border-radius: 4px; /* en-system-caption, surface-highlighted */ }
+.devPocPage .devE-chip { display: inline-flex; align-items: center; gap: 4px; background: #fafafa; border: 1px solid var(--lighter-grey); border-radius: 4px; padding: 4px 4px 4px 8px; /* surface-subtle, border-default */ }
+.devPocPage .devE-chip code { font: 400 14px/18px ui-monospace, Menlo, monospace; color: var(--near-black); /* text-primary */ white-space: nowrap; background: none; padding: 0; }
+.devPocPage .devE-ico { display: inline-grid; place-items: center; width: 24px; height: 24px; border: 0; background: none; color: var(--darker-grey); /* text-secondary */ border-radius: 4px; cursor: pointer; }
+.devPocPage .devE-ico:hover { background: #eeeeee; color: var(--near-black); /* surface-hover */ }
 .devPocPage .devE-tog { display: inline-flex; align-items: center; vertical-align: middle; }
 @media (max-width: 842px) { /* the header's mobile breakpoint, $bp-mobile-max */
   .devPocPage .devE-title { font-size: 22px; }
 }
 @container devEBoard (max-width: 599px) {
   .devPocPage .devE-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-  .devPocPage .devE-table .devE-keyRowT { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; padding: 12px 16px; border-top: 1px solid #ededec; }
+  .devPocPage .devE-table .devE-keyRowT { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; padding: 12px 16px; border-top: 1px solid var(--lighter-grey); /* border-default */ }
   .devPocPage .devE-table .devE-keyRowT td { padding: 0; border: 0; background: none !important; }
   .devPocPage .devE-table .devE-projRow, .devPocPage .devE-table .devE-projRow th { display: block; }
   .devPocPage .devE-table td:first-child { font-weight: 500; }
-  .devPocPage .devE-table td[data-l]::before { content: attr(data-l); display: block; font-size: 12px; color: #707070; }
+  .devPocPage .devE-table td[data-l]::before { content: attr(data-l); display: block; font-size: 12px; color: var(--secondary-text-grey); /* text-muted */ }
   .devPocPage .devE-table td:first-child::before { display: none; }
   .devPocPage .devE-emptyRow { display: block !important; }
 }
 /* trial E: the way in */
 .devPocPage .devE-path { list-style: none; margin: 0; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; /* spacing-large, spacing-xlarge, spacing-medium */ background: #fafafa; /* surface-subtle */ border-radius: 12px; }
-.devPocPage .devE-path li { display: flex; align-items: center; gap: 12px; font-size: 16px; color: #121212; }
-.devPocPage .devE-path .devE-n { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #e4eaf3; /* surface-highlighted */ color: #18345d; font-size: 14px; font-weight: 600; }
-.devPocPage .devE-links { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; font-size: 14px; color: #999999; }
-.devPocPage .devE-links a { display: inline-flex; align-items: center; gap: 4px; color: #575757; text-decoration: underline; }
-.devPocPage .devE-links a:hover { color: #121212; }
+.devPocPage .devE-path li { display: flex; align-items: center; gap: 12px; font-size: 16px; color: var(--near-black); /* text-primary */ }
+.devPocPage .devE-path .devE-n { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #e4eaf3; /* surface-highlighted */ color: var(--sefaria-blue); /* action-primary */ font-size: 14px; font-weight: 600; }
+.devPocPage .devE-links { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; font-size: 14px; color: var(--medium-grey-legacy); /* gray-400 */ }
 /* trial E: optional fields say "Optional"; required fields carry no mark */
-.devPocPage .devE-opt { margin-inline-start: 4px; font: italic 400 12px/20px var(--english-sans-serif-font-family); color: #707070; /* en-system-caption, text-muted: the quietest text that still passes AA */ }
+.devPocPage .devE-opt { margin-inline-start: 4px; font: italic 400 12px/20px var(--english-sans-serif-font-family); color: var(--secondary-text-grey); /* en-system-caption, text-muted: the quietest text that still passes AA */ }
 /* A tip that opens over its label, so it never covers the field being typed in. */
 .devPocPopover.devPocPopoverAbove { top: auto; bottom: calc(100% + 8px); }
 .devPocPage.devE .devPocTip { position: relative; display: inline-flex; align-self: center; }
@@ -18402,28 +18397,28 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 /* trial E: the labelled stepper (replaces the plain dashes) */
 .devPocPage .devE-steps { list-style: none; margin: 0; padding: 0; width: 100%; max-width: 440px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; /* spacing-small */ }
 .devPocPage .devE-steps li { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.devPocPage .devE-stepBar { display: block; height: 4px; border-radius: 2px; background: #ededec; /* border-default */ }
-.devPocPage .devE-steps .is-done .devE-stepBar, .devPocPage .devE-steps .is-current .devE-stepBar { background: #18345d; /* action-primary */ }
-.devPocPage .devE-stepLabel { font: 400 12px/20px var(--english-sans-serif-font-family); color: #707070; /* en-system-caption, text-muted */ overflow-wrap: anywhere; }
-.devPocPage .devE-steps .is-done .devE-stepLabel { color: #575757; /* text-secondary */ }
-.devPocPage .devE-steps .is-current .devE-stepLabel { color: #121212; font-weight: 600; /* text-primary */ }
+.devPocPage .devE-stepBar { display: block; height: 4px; border-radius: 2px; background: var(--lighter-grey); /* border-default */ }
+.devPocPage .devE-steps .is-done .devE-stepBar, .devPocPage .devE-steps .is-current .devE-stepBar { background: var(--sefaria-blue); /* action-primary */ }
+.devPocPage .devE-stepLabel { font: 400 12px/20px var(--english-sans-serif-font-family); color: var(--secondary-text-grey); /* en-system-caption, text-muted */ overflow-wrap: anywhere; }
+.devPocPage .devE-steps .is-done .devE-stepLabel { color: var(--darker-grey); /* text-secondary */ }
+.devPocPage .devE-steps .is-current .devE-stepLabel { color: var(--near-black); font-weight: 600; /* text-primary */ }
 @media (max-width: 480px) {
   .devPocPage .devE-steps li:not(.is-current) .devE-stepLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
 /* trial E: a note to read before acting */
-.devPocPage .devE-note { margin: 0; display: flex; gap: 8px; align-items: flex-start; padding: 12px 16px; border-radius: 8px; background: #fafafa; /* surface-subtle */ font-size: 14px; line-height: 21px; color: #575757; /* en-system-small-comfortable, text-secondary */ }
-.devPocPage .devE-noteIcon { flex: 0 0 18px; display: inline-flex; margin-top: 2px; color: #6f6f6f; /* icon-muted */ }
+.devPocPage .devE-note { margin: 0; display: flex; gap: 8px; align-items: flex-start; padding: 12px 16px; border-radius: 8px; background: #fafafa; /* surface-subtle */ font-size: 14px; line-height: 21px; color: var(--darker-grey); /* en-system-small-comfortable, text-secondary */ }
+.devPocPage .devE-noteIcon { flex: 0 0 18px; display: inline-flex; margin-top: 2px; color: var(--medium-grey); /* icon-muted */ }
 .devPocPage .devE-noteIcon svg { width: 18px; height: 18px; }
 /* trial E: Back beside the step's main button */
 .devPocPage .devE-footer { display: flex; gap: 12px; /* spacing-medium */ }
 .devPocPage .devE-footer .sefaria-common-button.fullwidth { flex: 1; width: auto; }
-.devPocPage .devE-backBtn { flex: 0 0 auto; height: 51px; padding: 0 24px; border-radius: 4px; border: 1.5px solid #575757; background: #ffffff; color: #575757; font: 600 16px/1 var(--english-sans-serif-font-family); cursor: pointer; /* action-secondary, en-system-body-strong */ }
-.devPocPage .devE-backBtn:hover { border-color: #333333; color: #333333; background: #eeeeee; /* action-secondary-hover, surface-hover */ }
-.devPocPage .devE-backBtn:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
-.devPocPage .devE-ghostBtn { display: inline-flex; align-items: center; gap: 8px; align-self: center; min-height: 44px; /* tap target; nothing drawn around it */ padding: 0 8px; border: 0; background: none; color: #575757; font: 500 16px/1 var(--english-sans-serif-font-family); cursor: pointer; }
+.devPocPage .devE-backBtn { flex: 0 0 auto; height: 51px; padding: 0 24px; border-radius: 4px; border: 1.5px solid var(--darker-grey); /* text-secondary */ background: var(--white); /* surface-page */ color: var(--darker-grey); /* text-secondary */ font: 600 16px/1 var(--english-sans-serif-font-family); cursor: pointer; /* action-secondary, en-system-body-strong */ }
+.devPocPage .devE-backBtn:hover { border-color: var(--darkest-grey); /* no DS token */ color: var(--darkest-grey); /* no DS token */ background: #eeeeee; /* action-secondary-hover, surface-hover */ }
+.devPocPage .devE-backBtn:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; }
+.devPocPage .devE-ghostBtn { display: inline-flex; align-items: center; gap: 8px; align-self: center; min-height: 44px; /* tap target; nothing drawn around it */ padding: 0 8px; border: 0; background: none; color: var(--darker-grey); /* text-secondary */ font: 500 16px/1 var(--english-sans-serif-font-family); cursor: pointer; }
 .interface-hebrew .devPocPage .devE-ghostBtn svg { transform: scaleX(-1); } /* the arrow points back in RTL */
-.devPocPage .devE-ghostBtn:hover { color: #333333; text-decoration: underline; }
-.devPocPage .devE-ghostBtn:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devPocPage .devE-ghostBtn:hover { color: var(--darkest-grey); /* no DS token */ text-decoration: underline; }
+.devPocPage .devE-ghostBtn:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; }
 /* trial E: tighter steps, so a setup step fits one laptop screen (spacing tokens in comments) */
 .devPocPage .devE-pageHeader { margin-bottom: 24px; /* spacing-2xlarge */ }
 .devPocPage .devE-wrap { gap: 16px; padding: 0 0 24px; /* spacing-large */ }
@@ -18437,7 +18432,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-head { position: relative; }
 .devPocPage .devE-stepBack { position: absolute; top: 0; inset-inline-start: -8px; display: inline-flex; width: 40px; height: 40px; padding: 8px; margin: 0; border: 0; border-radius: 4px; background: none; cursor: pointer; }
 .devPocPage .devE-stepBack:hover { background: #eeeeee; /* surface-hover */ }
-.devPocPage .devE-stepBack:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devPocPage .devE-stepBack:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; }
 .devPocPage .devE-stepBack img { width: 24px; height: 24px; display: block; }
 .interface-hebrew .devPocPage .devE-stepBack img { transform: scaleX(-1); }
 .devPocPage .devE-form { gap: 12px; /* spacing-medium */ }
@@ -18451,88 +18446,88 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .settingsPanel #accountSettingsPage .headerWithButtons { align-items: flex-start; }
 /* trial E: the step's number in a circle beside its title (replaces the stepper) */
 .devPocPage .devE-title:has(.devE-stepN) { display: inline-flex; align-items: center; gap: 12px; /* spacing-medium */ }
-.devPocPage .devE-stepN { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; display: inline-grid; place-items: center; background: #e4eaf3; color: #18345d; font: 600 14px/1 var(--english-sans-serif-font-family); /* surface-highlighted, action-primary: as the welcome list */ }
+.devPocPage .devE-stepN { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; display: inline-grid; place-items: center; background: #e4eaf3; color: var(--sefaria-blue); font: 600 14px/1 var(--english-sans-serif-font-family); /* surface-highlighted, action-primary: as the welcome list */ }
 /* trial E: the empty table, before the first project */
 .devPocPage .devE-table .devE-emptyTableRow td { padding: 32px 16px; /* spacing scale top step */ }
 .devPocPage .devE-table .devE-emptyTableRow:hover td { background: none; }
 .devPocPage .devE-emptyState { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
-.devPocPage .devE-emptyState h3 { margin: 0; font: 600 16px/1.4 var(--english-sans-serif-font-family); color: #121212; }
-.devPocPage .devE-emptyState p { margin: 0 0 8px; max-width: 44ch; font-size: 14px; line-height: 21px; color: #575757; /* en-system-small-comfortable, text-secondary */ }
+.devPocPage .devE-emptyState h3 { margin: 0; font: 600 16px/1.4 var(--english-sans-serif-font-family); color: var(--near-black); /* text-primary */ }
+.devPocPage .devE-emptyState p { margin: 0 0 8px; max-width: 44ch; font-size: 14px; line-height: 21px; color: var(--darker-grey); /* en-system-small-comfortable, text-secondary */ }
 @container devEBoard (max-width: 599px) { /* the header's mobile breakpoint, $bp-mobile-max */
   .devPocPage .devE-table .devE-emptyTableRow, .devPocPage .devE-table .devE-emptyTableRow td { display: block; }
 }
 /* trial E: a link inside running text is underlined, so it doesn't rely on colour alone */
-.devPocPage .devE-inlineLink { color: #18345d; text-decoration: underline; /* text-link */ }
+.devPocPage .devE-inlineLink { color: var(--sefaria-blue); /* action-primary */ text-decoration: underline; /* text-link */ }
 .devPocPage .devE-inlineLink:hover { color: #132b4c; /* text-link-hovered */ }
 /* A button that reads as an inline link: same weight and size as the text around it. */
 .devPocPage .devE-linkBtn { border: 0; background: none; padding: 0; font: inherit; cursor: pointer; }
 .devPocPage .devE-hintCenter { text-align: center; }
-.devPocPage .devE-errorText { color: #c03522; } /* feedback-error-text */
+.devPocPage .devE-errorText { color: #c03522; /* feedback-error */ } /* feedback-error-text */
 .devPocPage .devE-leadCenter { text-align: center; text-wrap: balance; }
 .devPocPage .devE-noWrap { white-space: nowrap; } /* keep an email address on one line */
 .devPocPage .devE-formCenter { align-items: center; }
 .devPocPage .devE-resendLink { min-height: 44px; font-size: 14px; /* mobile tap target */ }
-.devPocPage .devE-resendLink:disabled { color: #707070; text-decoration: none; cursor: default; font-variant-numeric: tabular-nums; /* text-disabled */ }
+.devPocPage .devE-resendLink:disabled { color: var(--secondary-text-grey); /* text-muted */ text-decoration: none; cursor: default; font-variant-numeric: tabular-nums; /* text-disabled */ }
 /* trial E: more room (was 12px throughout, squeezed to fit one laptop screen) */
 .devPocPage .devE-wrap { gap: 24px; /* spacing-2xlarge */ }
 .devPocPage .devE-card { gap: 24px; /* spacing-2xlarge: head to first field */ }
 .devPocPage .devE-form { gap: 20px; /* spacing-xlarge: between fields */ }
 /* ---- trial E: the projects table, cleaner pass (after Grok, ElevenLabs, WorkOS, Cohere API key pages) ---- */
-.devPocPage .devE-back { display: inline-flex; align-items: center; gap: 8px; padding: 4px 8px 4px 4px; margin-inline-start: -4px; color: #575757; /* text-secondary */ }
+.devPocPage .devE-back { display: inline-flex; align-items: center; gap: 8px; padding: 4px 8px 4px 4px; margin-inline-start: -4px; color: var(--darker-grey); /* text-secondary */ }
 .devPocPage .devE-back img { width: 18px; height: 18px; opacity: .75; }
-.devPocPage .devE-back:hover { background: #eeeeee; color: #121212; /* surface-hover, text-primary */ }
+.devPocPage .devE-back:hover { background: #eeeeee; color: var(--near-black); /* surface-hover, text-primary */ }
 .devPocPage .devE-sectionHead { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px 24px; flex-wrap: wrap; margin-bottom: 16px; }
 .devPocPage .devE-sectionHead > div { flex: 1 1 320px; min-width: 0; }
 .devPocPage .devE-pill { display: inline-flex; align-items: center; gap: 8px; }
-.devPocPage .devE-board { border: 1px solid #ededec; border-radius: 8px; background: #ffffff; /* border-default, surface-page */ }
-.devPocPage .devE-table thead th { background: #fafafa; border-top: 0; border-bottom: 1px solid #ededec; padding: 10px 16px; font: 500 12px/20px var(--english-sans-serif-font-family); color: #707070; /* surface-subtle, en-system-caption, text-muted */ }
+.devPocPage .devE-board { border: 1px solid var(--lighter-grey); border-radius: 8px; background: var(--white); /* border-default, surface-page */ }
+.devPocPage .devE-table thead th { background: #fafafa; border-top: 0; border-bottom: 1px solid var(--lighter-grey); /* border-default */ padding: 10px 16px; font: 500 12px/20px var(--english-sans-serif-font-family); color: var(--secondary-text-grey); /* surface-subtle, en-system-caption, text-muted */ }
 .devPocPage .devE-table thead th:first-child { border-start-start-radius: 8px; }
 .devPocPage .devE-table thead th:last-child { border-start-end-radius: 8px; }
-.devPocPage .devE-table .devE-projRow th { background: #ffffff; padding: 20px 16px 12px; border-top: 1px solid #ededec; }
+.devPocPage .devE-table .devE-projRow th { background: var(--white); /* surface-page */ padding: 20px 16px 12px; border-top: 1px solid var(--lighter-grey); /* border-default */ }
 .devPocPage .devE-table tbody:first-of-type .devE-projRow th { border-top: 0; }
 .devPocPage .devE-projHead { align-items: flex-start; }
 .devPocPage .devE-projInfo { gap: 2px; }
-.devPocPage .devE-projName { font-size: 16px; font-weight: 600; color: #121212; }
-.devPocPage .devE-meta { gap: 2px 8px; font-size: 14px; color: #707070; }
-.devPocPage .devE-meta .devE-desc { color: #575757; }
+.devPocPage .devE-projName { font-size: 16px; font-weight: 600; color: var(--near-black); /* text-primary */ }
+.devPocPage .devE-meta { gap: 2px 8px; font-size: 14px; color: var(--secondary-text-grey); /* text-muted */ }
+.devPocPage .devE-meta .devE-desc { color: var(--darker-grey); /* text-secondary */ }
 .devPocPage .devE-actions { gap: 4px; }
-.devPocPage .devE-quiet { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid #ededec; border-radius: 4px; background: #ffffff; font: 500 14px/1 var(--english-sans-serif-font-family); color: #121212; cursor: pointer; /* border-default, text-primary */ }
-.devPocPage .devE-quiet svg { color: #6f6f6f; /* icon-muted */ }
+.devPocPage .devE-quiet { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid var(--lighter-grey); border-radius: 4px; background: var(--white); /* surface-page */ font: 500 14px/1 var(--english-sans-serif-font-family); color: var(--near-black); cursor: pointer; /* border-default, text-primary */ }
+.devPocPage .devE-quiet svg { color: var(--medium-grey); /* icon-muted */ }
 .devPocPage .devE-quiet:hover:not(:disabled) { background: #eeeeee; /* surface-hover */ }
-.devPocPage .devE-quiet:disabled { color: #999999; cursor: not-allowed; /* text-disabled */ }
-.devPocPage .devE-quiet:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devPocPage .devE-quiet:disabled { color: var(--medium-grey-legacy); /* gray-400 */ cursor: not-allowed; /* text-disabled */ }
+.devPocPage .devE-quiet:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; }
 .devPocPage .devE-table td { padding: 10px 16px; border-top: 1px solid #eeeeee; /* border-subtle */ }
 .devPocPage .devE-table .devE-projRow + .devE-keyRowT td { border-top: 0; }
-.devPocPage .devE-table .devE-keyRowT td:first-child { color: #121212; font-weight: 400; }
+.devPocPage .devE-table .devE-keyRowT td:first-child { color: var(--near-black); /* text-primary */ font-weight: 400; }
 .devPocPage .devE-table .devE-keyRowT:hover td { background: #fafafa; }
 .devPocPage .devE-table .devE-group:last-child tr:last-child td:first-child { border-end-start-radius: 8px; }
 .devPocPage .devE-table .devE-group:last-child tr:last-child td:last-child { border-end-end-radius: 8px; }
 .devPocPage .devE-keyCell { display: inline-flex; align-items: center; gap: 4px; }
-.devPocPage .devE-keyText { font: 400 13px/20px ui-monospace, Menlo, monospace; color: #575757; background: none; padding: 0; letter-spacing: 0; white-space: nowrap; }
-.devPocPage .devE-ico { color: #6f6f6f; width: 32px; height: 32px; }
+.devPocPage .devE-keyText { font: 400 13px/20px ui-monospace, Menlo, monospace; color: var(--darker-grey); /* text-secondary */ background: none; padding: 0; letter-spacing: 0; white-space: nowrap; }
+.devPocPage .devE-ico { color: var(--medium-grey); /* icon-muted */ width: 32px; height: 32px; }
 .devPocPage .devE-icoDanger:hover { color: #c03522; background: #f9ebe9; /* feedback-error-text, feedback-error-background */ }
-.devPocPage .devE-table .devE-emptyRow td { padding: 12px 16px 16px; border-top: 0; font-size: 14px; color: #707070; }
+.devPocPage .devE-table .devE-emptyRow td { padding: 12px 16px 16px; border-top: 0; font-size: 14px; color: var(--secondary-text-grey); /* text-muted */ }
 @container devEBoard (max-width: 599px) { /* the header's mobile breakpoint, $bp-mobile-max */
   .devPocPage .devE-table .devE-keyRowT { border-top: 1px solid #eeeeee; /* border-subtle */ }
   .devPocPage .devE-table .devE-projRow + .devE-keyRowT { border-top: 0; }
 }
-.devPocPage .devE-projInfo .devE-desc { max-width: 60ch; font-size: 14px; line-height: 21px; color: #575757; /* en-system-small-comfortable, text-secondary */ }
+.devPocPage .devE-projInfo .devE-desc { max-width: 60ch; font-size: 14px; line-height: 21px; color: var(--darker-grey); /* en-system-small-comfortable, text-secondary */ }
 .devPocPage .devE-projInfo .devE-meta { margin-top: 4px; }
 /* trial E: the sign-in flow's spinner (auth.css .sefaria-auth-loading-spinner), at step size */
-.devPocPage .devE-spinner { display: block; order: -1; width: 32px; height: 32px; border: 3px solid rgba(24, 52, 93, 0.25); border-top-color: #18345d; border-radius: 50%; animation: sefaria-auth-spin 0.8s linear infinite; /* action-primary */ }
+.devPocPage .devE-spinner { display: block; order: -1; width: 32px; height: 32px; border: 3px solid #e4eaf3; /* track: surface-highlighted, navy-200 */ border-top-color: var(--sefaria-blue); border-radius: 50%; animation: sefaria-auth-spin 0.8s linear infinite; /* action-primary */ }
 @media (prefers-reduced-motion: reduce) { .devPocPage .devE-spinner { animation-duration: 2.4s; } }
-.devPocPage .devE-projName .devE-org { font-weight: 400; color: #575757; /* text-secondary */ }
+.devPocPage .devE-projName .devE-org { font-weight: 400; color: var(--darker-grey); /* text-secondary */ }
 /* trial E: the delete-key modal, as the AI chatbot's "Delete chat?" modal (LCChatbot.svelte .delete-modal) */
 .devE-deleteStage { background: rgba(0, 0, 0, 0.4); animation: devEFadeIn .15s ease; }
-.devE-deleteModal { width: 300px; max-width: calc(100% - 32px); padding: 16px; border-radius: 8px; background: #ffffff; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); text-align: center; font-family: var(--english-sans-serif-font-family); animation: devESlideUp .2s ease; }
-.devE-deleteModal h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; line-height: 18px; color: #121212; }
-.devE-deleteModal p { margin: 0 0 16px; font-size: 12px; line-height: 16px; color: #575757; /* text-secondary */ }
+.devE-deleteModal { width: 300px; max-width: calc(100% - 32px); padding: 16px; border-radius: 8px; background: var(--white); /* surface-page */ box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); text-align: center; font-family: var(--english-sans-serif-font-family); animation: devESlideUp .2s ease; }
+.devE-deleteModal h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; line-height: 18px; color: var(--near-black); /* text-primary */ }
+.devE-deleteModal p { margin: 0 0 16px; font-size: 12px; line-height: 16px; color: var(--darker-grey); /* text-secondary */ }
 .devE-deleteActions { display: flex; flex-direction: row-reverse; justify-content: center; gap: 20px; }
-.devE-deleteBtn { flex: 0 0 auto; min-width: 65px; height: 34px; padding: 0 12px; border-radius: 4px; border: 1px solid #cccccc; background: #ffffff; color: #575757; font: 600 12px/1 var(--english-sans-serif-font-family); cursor: pointer; }
+.devE-deleteBtn { flex: 0 0 auto; min-width: 65px; height: 34px; padding: 0 12px; border-radius: 4px; border: 1px solid var(--light-grey); /* gray-300 */ background: var(--white); /* surface-page */ color: var(--darker-grey); /* text-secondary */ font: 600 12px/1 var(--english-sans-serif-font-family); cursor: pointer; }
 .devE-deleteBtn:hover { background: #eeeeee; /* surface-hover */ }
-.devE-deleteBtnDanger { border: 0; background: #c03522; color: #ffffff; /* feedback-error-text as the chatbot's --lc-danger */ }
-.devE-deleteBtnDanger:hover { background: #a02c1c; }
-.devE-deleteBtn:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devE-deleteBtnDanger { border: 0; background: #c03522; color: var(--white); /* feedback-error-text as the chatbot's --lc-danger */ }
+.devE-deleteBtnDanger:hover { background: #a02c1c; /* red-800 */ }
+.devE-deleteBtn:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; }
 @keyframes devEFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes devESlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .devE-deleteStage, .devE-deleteModal { animation: none; } }
@@ -18541,32 +18536,32 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 @keyframes devENewRow { 0%, 40% { background: #e4eaf3; } 100% { background: transparent; } /* surface-highlighted, fading */ }
 /* trial E: project row extras as chips; Add key is the row's primary action */
 .devPocPage .devE-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.devPocPage .devE-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border: 1px dashed #4f6f9a; border-radius: 14px; background: #ffffff; font: 500 14px/1 var(--english-sans-serif-font-family); color: #18345d; cursor: pointer; /* border-strong, text-link */ }
+.devPocPage .devE-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border: 1px dashed #4f6f9a; border-radius: 14px; background: var(--white); /* surface-page */ font: 500 14px/1 var(--english-sans-serif-font-family); color: var(--sefaria-blue); /* action-primary */ cursor: pointer; /* border-strong, text-link */ }
 .devPocPage .devE-chip:hover { background: #f2f5fa; border-style: solid; /* surface-selected */ }
-.devPocPage .devE-chip:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
-.devPocPage .devE-chipDone { border: 1px solid #ededec; background: #fafafa; color: #575757; cursor: default; /* border-default, surface-subtle, text-secondary */ }
+.devPocPage .devE-chip:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; }
+.devPocPage .devE-chipDone { border: 1px solid var(--lighter-grey); background: #fafafa; color: var(--darker-grey); cursor: default; /* border-default, surface-subtle, text-secondary */ }
 .devPocPage .devE-chipDone svg { color: #518159; /* feedback-success */ }
-.devPocPage .devE-chipDone:first-child svg { color: #6f6f6f; /* icon-muted: the globe */ }
+.devPocPage .devE-chipDone:first-child svg { color: var(--medium-grey); /* icon-muted: the globe */ }
 .devPocPage .devE-pillSm { height: 32px; padding: 0 12px; font-size: 14px; }
 /* trial E: "Copied" appears beside the icons without taking room, so the column never widens */
 .devPocPage .devE-keyCell { position: relative; }
 .devPocPage .devE-table .devE-keyCell .devE-keyCopied { position: absolute; inset-inline-start: 100%; top: 50%; transform: translateY(-50%); margin-inline-start: 4px; white-space: nowrap; pointer-events: none; }
 /* trial E: the extras as icon text buttons (ghost), not outlined chips */
 .devPocPage .devE-chips { gap: 4px 16px; margin-top: 6px; margin-inline-start: -8px; }
-.devPocPage .devE-chip { height: 32px; padding: 0 8px; border: 0; border-radius: 4px; background: none; gap: 6px; font: 500 14px/1 var(--english-sans-serif-font-family); color: #18345d; /* text-link */ }
-.devPocPage .devE-chip svg { color: #18345d; }
+.devPocPage .devE-chip { height: 32px; padding: 0 8px; border: 0; border-radius: 4px; background: none; gap: 6px; font: 500 14px/1 var(--english-sans-serif-font-family); color: var(--sefaria-blue); /* text-link */ }
+.devPocPage .devE-chip svg { color: var(--sefaria-blue); /* action-primary */ }
 .devPocPage .devE-chip:hover { background: #eeeeee; border: 0; /* surface-hover */ }
-.devPocPage .devE-chipDone, .devPocPage .devE-chipDone:hover { background: none; color: #575757; font-weight: 400; cursor: default; /* text-secondary */ }
+.devPocPage .devE-chipDone, .devPocPage .devE-chipDone:hover { background: none; color: var(--darker-grey); font-weight: 400; cursor: default; /* text-secondary */ }
 /* trial E: the outlined button's edge has to show for it to read as the same height as the filled one beside it */
-.devPocPage .devE-quiet { border: 1px solid #cccccc; /* gray-300, as the AI chatbot's Cancel */ }
-.devE-deleteBtnPrimary { border: 0; background: #18345d; color: #ffffff; /* action-primary */ }
+.devPocPage .devE-quiet { border: 1px solid var(--light-grey); /* gray-300, as the AI chatbot's Cancel */ }
+.devE-deleteBtnPrimary { border: 0; background: var(--sefaria-blue); color: var(--white); /* action-primary */ }
 .devE-deleteBtnPrimary:hover { background: #132b4c; /* action-primary-hover */ }
 
 .devPocPage .devE-projSide { display: flex; flex-direction: column; align-items: stretch; gap: 12px; min-width: 0; }
 
 /* Trial E header links (D57): API docs first, the library download beside it in a quieter color. */
 .devPocPage .devE-headLinks { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; }
-.devPocPage .devE-docsMinor { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #18345d; /* text-link, the same as Technical documentation (2026-11-05) */ }
+.devPocPage .devE-docsMinor { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: var(--sefaria-blue); /* text-link, the same as Technical documentation (2026-11-05) */ }
 
 /* 2026-11-01 review fixes */
 .devPocPage .devE-head { gap: 12px; /* spacing-medium: more room between a step's title and its lead */ }
@@ -18574,9 +18569,9 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 /* In-flow back: only the arrow changes color on hover; no filled hover area. The arrow is the same SVG, drawn as a
    mask so it can take a color. */
 .devPocPage .devE-stepBack, .devPocPage .devE-stepBack:hover { background: none; }
-.devPocPage .devE-stepBack .devE-arrow { display: block; width: 24px; height: 24px; background-color: #575757; /* text-secondary */
+.devPocPage .devE-stepBack .devE-arrow { display: block; width: 24px; height: 24px; background-color: var(--darker-grey); /* text-secondary */
   -webkit-mask: url(/static/icons/arrow-left.svg) center / 24px no-repeat; mask: url(/static/icons/arrow-left.svg) center / 24px no-repeat; }
-.devPocPage .devE-stepBack:hover .devE-arrow { background-color: #18345d; /* action-primary */ }
+.devPocPage .devE-stepBack:hover .devE-arrow { background-color: var(--sefaria-blue); /* action-primary */ }
 .interface-hebrew .devPocPage .devE-stepBack .devE-arrow { transform: scaleX(-1); }
 
 /* Trial E home, 2026-11-01: one block per project. Its details and actions sit above a table of only its keys,
@@ -18584,7 +18579,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-projects { display: flex; flex-direction: column; gap: 32px; }
 .devPocPage .devE-project { display: flex; flex-direction: column; gap: 12px; }
 .devPocPage .devE-project > .devE-projHead { padding: 0; }
-.devPocPage h3.devE-projName { margin: 0; font-size: 18px; line-height: 1.3; font-weight: 600; color: #121212; }
+.devPocPage h3.devE-projName { margin: 0; font-size: 18px; line-height: 1.3; font-weight: 600; color: var(--near-black); /* text-primary */ }
 .devPocPage .devE-table { table-layout: fixed; }
 .devPocPage .devE-table .devE-cName { width: 22%; }
 .devPocPage .devE-table .devE-cKey { width: 34%; }
@@ -18601,7 +18596,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 /* Website's "Recommended" (D54), as a badge so it reads as advice, not as a quiet "Optional". Navy on surface-highlighted.
    The DS has no badge component; shape follows .devPocBadge (pill, 12px). */
 .devPocPage .devE-recBadge { display: inline-flex; align-items: center; margin-inline-start: 6px; padding: 1px 8px; border-radius: 20px;
-  background: #e4eaf3; color: #18345d; font: 500 12px/18px var(--english-sans-serif-font-family); /* surface-highlighted, action-primary */ }
+  background: #e4eaf3; color: var(--sefaria-blue); font: 500 12px/18px var(--english-sans-serif-font-family); /* surface-highlighted, action-primary */ }
 
 /* Mobile, at the header's breakpoint ($bp-mobile-max, 842px in breakpoints.scss): a step's buttons stack full width,
    the primary on top and Cancel or Skip for now under it. */
@@ -18616,33 +18611,33 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 }
 
 /* Trial E: "Limit this key to your website" in the key forms (2026-11-01). */
-.devPocPage .devE-restrict { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid #ededec; border-radius: 8px; background: #fafafa; /* border-default, surface-subtle */ }
+.devPocPage .devE-restrict { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid var(--lighter-grey); border-radius: 8px; background: #fafafa; /* border-default, surface-subtle */ }
 .devPocPage .devE-restrictRow { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-.devPocPage .devE-restrictLabel { font-size: 14px; font-weight: 500; color: #121212; }
-.devPocPage .devE-restrict .devE-hint { margin: 0; font-size: 14px; line-height: 1.5; color: #575757; }
+.devPocPage .devE-restrictLabel { font-size: 14px; font-weight: 500; color: var(--near-black); /* text-primary */ }
+.devPocPage .devE-restrict .devE-hint { margin: 0; font-size: 14px; line-height: 1.5; color: var(--darker-grey); /* text-secondary */ }
 .devPocPage .devE-restrict .sefaria-input { margin-top: 8px; }
 
 /* Each project and its keys share one card (2026-11-01): the details on top, the key table below a divider, so the
    table reads as belonging to that project. */
-.devPocPage .devE-project { gap: 0; border: 1px solid #ededec; border-radius: 8px; background: #ffffff; /* border-default, surface-page */ }
+.devPocPage .devE-project { gap: 0; border: 1px solid var(--lighter-grey); border-radius: 8px; background: var(--white); /* border-default, surface-page */ }
 .devPocPage .devE-project > .devE-projHead { padding: 20px 16px 16px; }
-.devPocPage .devE-project > .devE-board { border: 0; border-top: 1px solid #ededec; border-radius: 0 0 8px 8px; }
+.devPocPage .devE-project > .devE-board { border: 0; border-top: 1px solid var(--lighter-grey); /* border-default */ border-radius: 0 0 8px 8px; }
 .devPocPage .devE-project .devE-table thead th:first-child, .devPocPage .devE-project .devE-table thead th:last-child { border-radius: 0; }
 .devPocPage .devE-projects { gap: 24px; }
 /* The project's details sit on a tinted band (surface-selected); its key table below is plain white with a white
    header row, so the card reads as two layers: the project, then its keys. */
 .devPocPage .devE-project > .devE-projHead { background: #f2f5fa; border-radius: 8px 8px 0 0; /* surface-selected */ }
-.devPocPage .devE-project .devE-table thead th { background: #ffffff; }
+.devPocPage .devE-project .devE-table thead th { background: var(--white); /* surface-page */ }
 /* Revised (2026-11-01): one tinted card per project, with the project's details on the tint and the key table inset
    in it as its own white, bordered panel. */
 .devPocPage .devE-project { gap: 16px; padding: 20px; background: #f2f5fa; border: 1px solid #e4eaf3; border-radius: 12px; /* surface-selected, surface-highlighted */ }
 .devPocPage .devE-project > .devE-projHead { padding: 0; background: none; border-radius: 0; }
-.devPocPage .devE-project > .devE-board { background: #ffffff; border: 1px solid #ededec; border-radius: 8px; /* surface-page, border-default */ }
+.devPocPage .devE-project > .devE-board { background: var(--white); border: 1px solid var(--lighter-grey); border-radius: 8px; /* surface-page, border-default */ }
 .devPocPage .devE-project .devE-table thead th:first-child { border-start-start-radius: 8px; }
 .devPocPage .devE-project .devE-table thead th:last-child { border-start-end-radius: 8px; }
 @media (max-width: 842px) { .devPocPage .devE-project { padding: 16px; } }
 /* The remove-website dialog's list of affected keys */
-.devE-dialogList { margin: -8px 0 16px; padding-inline-start: 18px; font-size: 12px; line-height: 18px; color: #121212; }
+.devE-dialogList { margin: -8px 0 16px; padding-inline-start: 18px; font-size: 12px; line-height: 18px; color: var(--near-black); /* text-primary */ }
 
 /* Confirmation windows scaled to the page (2026-11-01): the AI chatbot's sizes (300px, 12-14px text, 34px buttons)
    looked tiny beside developer settings. Text now matches the page (title like a section heading, body 16px), and
@@ -18673,13 +18668,13 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   .devPocPage .devE-table .devE-keyRowT td { display: block; width: auto; padding: 0; border: 0; }
   .devPocPage .devE-table .devE-keyRowT td:nth-child(1) { grid-area: name; font-weight: 600; font-size: 16px; }
   .devPocPage .devE-table .devE-keyRowT td:nth-child(2) { grid-area: key; }
-  .devPocPage .devE-table .devE-keyRowT td:nth-child(3) { grid-area: date; font-size: 14px; color: #575757; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(3) { grid-area: date; font-size: 14px; color: var(--darker-grey); /* text-secondary */ }
   .devPocPage .devE-table .devE-keyRowT td:nth-child(4) { grid-area: limit; }
   .devPocPage .devE-table .devE-keyRowT td:nth-child(5) { grid-area: end; }
   .devPocPage .devE-table .devE-keyRowT td[data-l]::before { display: none; }
-  .devPocPage .devE-table .devE-keyRowT td:nth-child(3)::before { content: attr(data-l) " "; display: inline; color: #707070; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(3)::before { content: attr(data-l) " "; display: inline; color: var(--secondary-text-grey); /* text-muted */ }
   .devPocPage .devE-table .devE-keyRowT td:nth-child(4) { display: flex; align-items: center; gap: 8px; justify-self: end; }
-  .devPocPage .devE-table .devE-keyRowT td:nth-child(4)::before { content: attr(data-l); display: inline; font-size: 14px; color: #575757; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(4)::before { content: attr(data-l); display: inline; font-size: 14px; color: var(--darker-grey); /* text-secondary */ }
   .devPocPage .devE-table .devE-keyCell { flex-wrap: nowrap; }
   .devPocPage .devE-table .devE-emptyRow { display: block; }
   .devPocPage .devE-table .devE-emptyRow td { display: block; }
@@ -18713,7 +18708,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-tipWrap { position: relative; display: inline-flex; }
 .devPocPage .devE-tipWrap .devE-tip { display: none; top: calc(100% + 8px); inset-inline-start: auto; inset-inline-end: 0; width: max-content; max-width: min(280px, calc(100vw - 32px)); }
 .devPocPage .devE-tipWrap:hover .devE-tip, .devPocPage .devE-tipWrap:focus-within .devE-tip { display: block; }
-.devPocPage .devE-pill[aria-disabled="true"] { background: #ededec; border-color: #ededec; color: #999999; cursor: not-allowed; /* same as .devE-pill:disabled */ }
+.devPocPage .devE-pill[aria-disabled="true"] { background: var(--lighter-grey); /* border-default */ border-color: var(--lighter-grey); /* border-default */ color: var(--medium-grey-legacy); /* gray-400 */ cursor: not-allowed; /* same as .devE-pill:disabled */ }
 @media (max-width: 842px) { .devPocPage .devE-tipWrap .devE-tip { inset-inline-end: auto; inset-inline-start: 0; } }
 
 /* 2026-11-01: 12px (on the 4px scale) between "Edit project details" and "Add key". */
@@ -18732,19 +18727,19 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 /* Share your project with Sefaria (Powered by page), 2026-11-01 */
 .devPocPage .devE-shareForm { gap: 32px; }
 .devPocPage .devE-shareSection { display: flex; flex-direction: column; gap: 20px; }
-.devPocPage .devE-shareSection + .devE-shareSection { padding-top: 32px; border-top: 1px solid #ededec; /* border-default */ }
-.devPocPage .devE-shareSection h3 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; color: #121212; }
-.devPocPage .devE-shareNote { margin: -12px 0 0; font-size: 14px; line-height: 1.5; color: #575757; }
+.devPocPage .devE-shareSection + .devE-shareSection { padding-top: 32px; border-top: 1px solid var(--lighter-grey); /* border-default */ }
+.devPocPage .devE-shareSection h3 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; color: var(--near-black); /* text-primary */ }
+.devPocPage .devE-shareNote { margin: -12px 0 0; font-size: 14px; line-height: 1.5; color: var(--darker-grey); /* text-secondary */ }
 .devPocPage .devE-choices { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.devPocPage .devE-choices legend { padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: #121212; }
-.devPocPage .devE-hintInline { margin-inline-start: 4px; font-weight: 400; font-size: 12px; color: #707070; }
-.devPocPage .devE-radio { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: #121212; cursor: pointer; }
-.devPocPage .devE-radio input { width: 16px; height: 16px; margin: 0; accent-color: #18345d; }
+.devPocPage .devE-choices legend { padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: var(--near-black); /* text-primary */ }
+.devPocPage .devE-hintInline { margin-inline-start: 4px; font-weight: 400; font-size: 12px; color: var(--secondary-text-grey); /* text-muted */ }
+.devPocPage .devE-radio { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--near-black); /* text-primary */ cursor: pointer; }
+.devPocPage .devE-radio input { width: 16px; height: 16px; margin: 0; accent-color: var(--sefaria-blue); /* action-primary */ }
 .devPocPage .devE-shareLead { display: flex; flex-direction: column; gap: 12px; }
 .devPocPage .devE-shareNoteTight { margin: 4px 0 0; }
 .devPocPage .devE-galleryLink { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; }
 /* Rule 14 banner: the design system's AnnouncementBanner, Warning variant (Figma, Components library). */
-.devPocPage .devE-banner { display: flex; align-items: center; gap: 18px; padding: 16px 24px; border: 1.5px solid #ededec; border-radius: 12px; background: #fdf8e9; margin-block-end: 24px; /* Feedback/Warning/Background; Border/Default; dimension-200 / -150 */ }
+.devPocPage .devE-banner { display: flex; align-items: center; gap: 18px; padding: 16px 24px; border: 1.5px solid var(--lighter-grey); /* border-default */ border-radius: 12px; background: #fdf8e9; margin-block-end: 24px; /* Feedback/Warning/Background; Border/Default; dimension-200 / -150 */ }
 .devPocPage .devE-bannerContent { flex: 1; min-width: 0; display: flex; align-items: flex-start; gap: 8px; }
 .devPocPage .devE-bannerIcon { flex: none; display: grid; place-items: center; width: 18px; height: 22px; color: #0f223b; /* Lucide mail, 18px */ }
 .devPocPage .devE-bannerText { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 16px; line-height: 1.4; color: #0f223b; /* Feedback/Info/Text, as the Warning variant uses */ }
@@ -18753,9 +18748,9 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-bannerTitle { font-weight: 600; }
 .devPocPage .devE-bannerText .devE-resendLink { min-height: 0; font-size: 16px; }
 .devPocPage .devE-bannerActions { flex: none; display: flex; gap: 12px; }
-.devPocPage .devE-bannerBtn { height: 34px; padding: 8px 12px; border: 1px solid #18345d; border-radius: 4px; background: #18345d; color: #ffffff; font: 500 14px/1 var(--english-sans-serif-font-family); cursor: pointer; white-space: nowrap; /* Action/Primary; Space/200, Space/300; dimension-50 */ }
-.devPocPage .devE-bannerBtn:hover { background: #132b4c; border-color: #132b4c; }
-.devPocPage .devE-bannerBtn:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devPocPage .devE-bannerBtn { height: 34px; padding: 8px 12px; border: 1px solid var(--sefaria-blue); /* action-primary */ border-radius: 4px; background: var(--sefaria-blue); /* action-primary */ color: var(--white); /* text-inverse */ font: 500 14px/1 var(--english-sans-serif-font-family); cursor: pointer; white-space: nowrap; /* Action/Primary; Space/200, Space/300; dimension-50 */ }
+.devPocPage .devE-bannerBtn:hover { background: #132b4c; /* action-primary-hover */ border-color: #132b4c; /* action-primary-hover */ }
+.devPocPage .devE-bannerBtn:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; }
 /* Mobile variant: buttons drop under the text. */
 @media (max-width: 600px) {
   .devPocPage .devE-banner { flex-direction: column; align-items: stretch; gap: 12px; }
@@ -18764,16 +18759,18 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 }
 /* The confirmation link's landing page: the developer steps' layout on a page of its own. */
 .devPocPage .devE-standalone { padding-block: 64px; }
-.devPocPage a.sefaria-common-button.auth-primary { display: flex; align-items: center; justify-content: center; text-decoration: none; color: #ffffff; }
+.devPocPage a.sefaria-common-button.auth-primary { display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--white); /* text-inverse */ }
 /* Developer forms: design system colors where the shared form components differ. */
-.devPocPage .devE-form .sefaria-input input::placeholder, .devPocPage .devE-form .sefaria-input textarea::placeholder { color: #707070; /* text-muted */ }
-.devPocPage .devE-form .sefaria-input input, .devPocPage .devE-form .sefaria-input textarea, .devPocPage .devE-form .sefaria-select select, .devPocPage .devE-form .sefaria-select-field > button { border-color: #999999; /* gray-400: visible without reading as focused (focus is navy). 2.85:1 on white, just under WCAG 1.4.11's 3:1; gray-550 #707070 passes but looked focused (Penina, 2026-11-05) */ }
-.devPocPage .devE-form .sefaria-checkbox label, .devPocPage .devE-form .sefaria-checkbox-label { color: #121212; font-size: 16px; line-height: 1.4; /* text-primary, en-system-body-regular */ }
+.devPocPage .devE-form .sefaria-input input::placeholder, .devPocPage .devE-form .sefaria-input textarea::placeholder { color: var(--secondary-text-grey); /* text-muted */ }
+/* Field borders match the login and sign-up fields (the shared component, gray-250 #e6e6e6) for now (Penina, 2026-11-12).
+   Known gap: about 1.2:1 on white, under WCAG 1.4.11's 3:1 for field borders. To fix for every form in the design system
+   project. The darker gray-400 override (2026-11-05) is removed. */
+.devPocPage .devE-form .sefaria-checkbox label, .devPocPage .devE-form .sefaria-checkbox-label { color: var(--near-black); font-size: 16px; line-height: 1.4; /* text-primary, en-system-body-regular */ }
 /* "Join the developer community": a quiet, secondary panel under Additional email, so it's seen without pulling focus. */
 .devPocPage .devE-community { flex-direction: column; align-items: stretch; gap: 12px; /* the same gray box as ENote (.devE-note: surface-subtle, 8px radius, padding); only the layout differs. spacing-medium */ }
-.devPocPage .devE-communityTitle { margin: 0; font: 500 14px/18px var(--english-sans-serif-font-family); color: #575757; /* en-system-small-compact at 500, text-secondary */ }
+.devPocPage .devE-communityTitle { margin: 0; font: 500 14px/18px var(--english-sans-serif-font-family); color: var(--darker-grey); /* en-system-small-compact at 500, text-secondary */ }
 .devPocPage .devE-community .sefaria-checkbox label, .devPocPage .devE-community .sefaria-checkbox-label { font-size: 14px; line-height: 21px; /* en-system-small-comfortable */ }
-.devPocPage .devE-communityLink { margin: 0; padding-block-start: 12px; border-block-start: 1px solid #ededec; font-size: 14px; line-height: 21px; color: #121212; /* a divider (border-default) between the two options; en-system-small-comfortable */ }
+.devPocPage .devE-communityLink { margin: 0; padding-block-start: 12px; border-block-start: 1px solid var(--lighter-grey); font-size: 14px; line-height: 21px; color: var(--near-black); /* a divider (border-default) between the two options; en-system-small-comfortable */ }
 .devPocPage .devE-communityJoin { display: inline-flex; align-items: center; gap: 4px; font-weight: 500; white-space: nowrap; /* the link stays on one line */ }
 /* The shared ToggleSwitch (common/ToggleSwitch.jsx) in developer settings: a quicker slide (0.3s ease-in felt slow), and
    its focus ring only for keyboard focus, not after a click. The shared rule outlines on :focus everywhere on the site. */
@@ -18781,13 +18778,13 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .focus-visible:has(input:focus):not(:has(input:focus-visible)) { outline: none; }
 @media (prefers-reduced-motion: reduce) { .devPocPage .toggle-switch-inner, .devPocPage .toggle-switch-switch { transition: none; } }
 .devPocPage .devE-restrictHint span { display: block; }
-.devPocPage .devE-restrictHint strong { font-weight: 600; color: #121212; /* text-primary */ }
+.devPocPage .devE-restrictHint strong { font-weight: 600; color: var(--near-black); /* text-primary */ }
 /* "Limit this key to your website" window, opened from the key table: stacked with design system gaps; the hint and the
    field's help text at the dialog's 14px. */
 .devPocPage .devE-limitModal { display: flex; flex-direction: column; gap: 16px; /* dimension-200 */ }
 .devPocPage .devE-limitModal h3, .devPocPage .devE-limitModal .devE-deleteActions { margin: 0; }
-.devPocPage .devE-limitModal .devE-restrictHint, .devPocPage .devE-limitModal .sefaria-input-hint { font-size: 14px; line-height: 21px; color: #575757; /* en-system-small-comfortable, text-secondary */ }
-.devE-deleteBtnPrimary:disabled { background: #ededec; color: #999999; cursor: not-allowed; /* same disabled look as .devE-pill:disabled: gray-200, text-disabled */ }
+.devPocPage .devE-limitModal .devE-restrictHint, .devPocPage .devE-limitModal .sefaria-input-hint { font-size: 14px; line-height: 21px; color: var(--darker-grey); /* en-system-small-comfortable, text-secondary */ }
+.devE-deleteBtnPrimary:disabled { background: var(--lighter-grey); /* border-default */ color: var(--medium-grey-legacy); /* gray-400 */ cursor: not-allowed; /* same disabled look as .devE-pill:disabled: gray-200, text-disabled */ }
 /* Developer settings: a field's error sits right under the field, above its help text (Penina, 2026-11-05). The
    shared Input renders help text first; screen readers still get both through aria-describedby. */
 .devPocPage .sefaria-input .sefaria-input-error { order: 1; }
@@ -18804,26 +18801,26 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 /* UI pass, 2026-11-05 */
 /* Delete-key trash: red at rest, deeper red on hover, as the AI chatbot's chat-history delete (--lc-danger /
    --lc-danger-hover). red-700 = feedback-error-text, red-800. */
-.devPocPage .devE-icoDanger { color: #c03522; }
-.devPocPage .devE-icoDanger:hover { color: #a02c1c; background: none; }
+.devPocPage .devE-icoDanger { color: #c03522; /* feedback-error */ }
+.devPocPage .devE-icoDanger:hover { color: #a02c1c; /* red-800 */ background: none; }
 /* Add website and Share your project: underline on hover, no fill. */
 .devPocPage .devE-chip:hover { background: none; text-decoration: underline; }
 /* Primary buttons: a hover dark enough to see. The design system's action-primary-hover (navy-800 #132b4c) is barely
    different from navy-700, so this uses action-primary-pressed (navy-1000) for hover: a deliberate divergence. */
 .devPocPage .devE-pill:hover:not(:disabled):not([aria-disabled="true"]),
 .devPocPage .sefaria-common-button.auth-primary:hover:not(:disabled),
-.devPocPage .devE-bannerBtn:hover, .devPocPage .devE-deleteBtnPrimary:hover:not(:disabled) { background: #0b1a2d; border-color: #0b1a2d; }
+.devPocPage .devE-bannerBtn:hover, .devPocPage .devE-deleteBtnPrimary:hover:not(:disabled) { background: #0b1a2d; /* action-primary-pressed */ border-color: #0b1a2d; /* action-primary-pressed */ }
 /* Edit project details and Add key: one size, border width, padding and weight, so they read as a pair. */
 .devPocPage .devE-quiet, .devPocPage .devE-pillSm { height: 32px; padding: 0 12px; border-width: 1px; font: 500 14px/1 var(--english-sans-serif-font-family); }
-.devPocPage .devE-quiet { border-color: #cccccc; /* gray-300, as the design system's small secondary button */ }
+.devPocPage .devE-quiet { border-color: var(--light-grey); /* gray-300, as the design system's small secondary button */ }
 .devPocPage .devE-quiet:hover { background: #eeeeee; /* surface-hover */ }
 /* Profile card at the top of the projects page (option B): the note box, a 32px ProfilePic, name over email, and Edit
    profile as the card's secondary button. */
 .devPocPage .devE-profileCard { align-items: center; gap: 16px; margin-block-end: 32px; padding: 16px; }
 .devPocPage .devE-profileCard .profile-pic { flex: none; }
 .devPocPage .devE-profileWho { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.devPocPage .devE-profileName { font: 600 16px/1.4 var(--english-sans-serif-font-family); color: #121212; /* en-system-body-strong */ }
-.devPocPage .devE-profileEmail { font-size: 14px; line-height: 21px; color: #575757; overflow-wrap: anywhere; /* text-secondary */ }
+.devPocPage .devE-profileName { font: 600 16px/1.4 var(--english-sans-serif-font-family); color: var(--near-black); /* en-system-body-strong */ }
+.devPocPage .devE-profileEmail { font-size: 14px; line-height: 21px; color: var(--darker-grey); overflow-wrap: anywhere; /* text-secondary */ }
 @media (max-width: 600px) { .devPocPage .devE-profileCard { flex-wrap: wrap; } }
 /* A project just made: a navy-200 ring that fades, instead of a "saved" message (2026-11-05). */
 @keyframes devENewProject { 0%, 50% { box-shadow: 0 0 0 3px #e4eaf3, 0 0 0 4px #4f6f9a; } 100% { box-shadow: 0 0 0 0 transparent; } }
@@ -18857,8 +18854,8 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
    than the label before; gray-400 would be lighter still but fails the 3:1 contrast icons need (2.8:1 on white). */
 .devPocPage .devE-thTip { gap: 4px; }
 .devPocPage .devE-thTip .devPocTip { margin-inline-start: 4px; /* + the 4px gap = 8px, dimension-100 */ }
-.devPocPage .devE-thTip .devPocInfoButton { color: #707070; /* text-muted, as the header label */ }
-.devPocPage .devE-thTip .devPocInfoButton:hover, .devPocPage .devE-thTip .devPocInfoButton:focus-visible { color: #575757; /* text-secondary */ }
+.devPocPage .devE-thTip .devPocInfoButton { color: var(--secondary-text-grey); /* text-muted, as the header label */ }
+.devPocPage .devE-thTip .devPocInfoButton:hover, .devPocPage .devE-thTip .devPocInfoButton:focus-visible { color: var(--darker-grey); /* text-secondary */ }
 
 /* Window corners use the dimension scale: 12px = dimension-150 (the codebase has no radius variables, so the value
    is written out). */
@@ -18891,12 +18888,12 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
    label beside them (en-system-small, text-secondary) (2026-11-05). */
 @container devEBoard (max-width: 599px) {
   .devPocPage .devE-table .devE-keyRowT td:nth-child(3),
-  .devPocPage .devE-table .devE-keyRowT td:nth-child(3)::before { font-size: 14px; line-height: 20px; font-weight: 400; color: #575757; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(3)::before { font-size: 14px; line-height: 20px; font-weight: 400; color: var(--darker-grey); /* text-secondary */ }
 }
 
 /* Show/hide and copy in a key row (2026-11-05): no background on hover, only a color change, from the gray to
    action-primary (navy-700). */
-.devPocPage .devE-table .devE-keyCell .devE-ico:hover { background: none; color: #18345d; /* action-primary */ }
+.devPocPage .devE-table .devE-keyCell .devE-ico:hover { background: none; color: var(--sefaria-blue); /* action-primary */ }
 
 /* "Limit to website" header (2026-11-05): no shield; the label sits inside the tip's hover area, so hovering the
    words opens the same tooltip as the ?. 8px between the words and the ? (dimension-100). */
@@ -18910,11 +18907,11 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 
 /* Share form (2026-11-08): About you and the project as filled-in summaries with an Edit link, and the optional
    questions behind one "Tell us more" toggle. Summary card = surface-subtle with border-default, like the chips. */
-.devPocPage .devE-summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 12px 16px; border: 1px solid #ededec; border-radius: 8px; background: #fafafa; }
+.devPocPage .devE-summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 12px 16px; border: 1px solid var(--lighter-grey); /* border-default */ border-radius: 8px; background: #fafafa; }
 .devPocPage .devE-summaryBody { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.devPocPage .devE-summaryTitle { font-size: 16px; line-height: 24px; font-weight: 600; color: #121212; overflow-wrap: anywhere; }
-.devPocPage .devE-summaryMeta { font-size: 14px; line-height: 20px; font-weight: 400; color: #575757; overflow-wrap: anywhere; }
-.devPocPage .devE-summaryText { font-size: 14px; line-height: 21px; color: #121212; overflow-wrap: anywhere; }
+.devPocPage .devE-summaryTitle { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--near-black); /* text-primary */ overflow-wrap: anywhere; }
+.devPocPage .devE-summaryMeta { font-size: 14px; line-height: 20px; font-weight: 400; color: var(--darker-grey); /* text-secondary */ overflow-wrap: anywhere; }
+.devPocPage .devE-summaryText { font-size: 14px; line-height: 21px; color: var(--near-black); /* text-primary */ overflow-wrap: anywhere; }
 .devPocPage .devE-summaryEdit { flex: none; }
 .devPocPage .devE-moreToggle { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: start; cursor: pointer; }
 .devPocPage .devE-moreChevron { display: inline-grid; transition: transform .15s ease; }
@@ -18927,9 +18924,9 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 
 /* Website as a link to the site (idea G, 2026-11-08): text-secondary with a gray-300 underline and the external
    icon, darkening on hover; same row and height as before. */
-.devPocPage .devE-siteLink { display: inline-flex; align-items: center; gap: 4px; height: 32px; font-size: 14px; line-height: 20px; color: #575757; text-decoration: underline; text-decoration-color: #cccccc; text-underline-offset: 3px; }
-.devPocPage .devE-siteLink:hover { color: #121212; text-decoration-color: currentColor; }
-.devPocPage .devE-siteLink:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; border-radius: 2px; }
+.devPocPage .devE-siteLink { display: inline-flex; align-items: center; gap: 4px; height: 32px; font-size: 14px; line-height: 20px; color: var(--darker-grey); /* text-secondary */ text-decoration: underline; text-decoration-color: var(--light-grey); /* gray-300 */ text-underline-offset: 3px; }
+.devPocPage .devE-siteLink:hover { color: var(--near-black); /* text-primary */ text-decoration-color: currentColor; }
+.devPocPage .devE-siteLink:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; border-radius: 2px; }
 .devPocPage .devE-siteLink svg { width: 12px; height: 12px; flex: none; }
 .devPocPage .devE-siteLink { padding: 0 8px; /* lines the text up with the name, like the text buttons' padding */ }
 
@@ -18940,14 +18937,14 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 
 /* Question titles match the design system's input label (common/Input .sefaria-input-label: 14px regular,
    text-primary) whether the question is a text field, radio buttons or checkboxes (2026-11-08). */
-.devPocPage .devE-choices legend { font-size: 14px; font-weight: 400; line-height: 1.3; color: #121212; }
+.devPocPage .devE-choices legend { font-size: 14px; font-weight: 400; line-height: 1.3; color: var(--near-black); /* text-primary */ }
 
 
 /* Repo link after a tool's name in the publish form (2026-11-08): just the external icon, text-secondary. */
-.devPocPage .devE-toolLink { display: inline-flex; align-items: center; vertical-align: middle; color: #575757; padding: 2px; }
-.devPocPage .devE-toolLink:hover { color: #18345d; }
+.devPocPage .devE-toolLink { display: inline-flex; align-items: center; vertical-align: middle; color: var(--darker-grey); /* text-secondary */ padding: 2px; }
+.devPocPage .devE-toolLink:hover { color: var(--sefaria-blue); /* action-primary */ }
 
-.devPocPage .devE-headLinks .devE-linkBtn { padding: 0; border: 0; background: none; font: inherit; font-size: 14px; color: #18345d; cursor: pointer; }
+.devPocPage .devE-headLinks .devE-linkBtn { padding: 0; border: 0; background: none; font: inherit; font-size: 14px; color: var(--sefaria-blue); /* action-primary */ cursor: pointer; }
 .devPocPage .devE-headLinks .devE-linkBtn:hover { text-decoration: underline; }
 
 /* Publish nudge (2026-11-08): the reconfirmation banner's layout in the DevPortal purple, like the publish form's
@@ -18956,9 +18953,9 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-bannerPromo { position: relative; padding-inline-end: 56px; background: #f7eef5; border-color: #eedbea; /* purple-100, purple-200 */ }
 .devPocPage .devE-bannerPromo .devE-bannerIcon { color: #7c416f; /* purple-700, brand-devportal-purple */ }
 .devPocPage .devE-bannerActions { display: flex; align-items: center; gap: 8px; }
-.devPocPage .devE-bannerClose { position: absolute; top: 8px; inset-inline-end: 8px; display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 4px; background: none; color: #575757; cursor: pointer; }
-.devPocPage .devE-bannerClose:hover { background: rgba(0, 0, 0, 0.05); color: #121212; }
-.devPocPage .devE-bannerClose:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devPocPage .devE-bannerClose { position: absolute; top: 8px; inset-inline-end: 8px; display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 4px; background: none; color: var(--darker-grey); /* text-secondary */ cursor: pointer; }
+.devPocPage .devE-bannerClose:hover { background: rgba(0, 0, 0, 0.05); color: var(--near-black); /* text-primary */ }
+.devPocPage .devE-bannerClose:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; }
 @media (max-width: 600px) {
   .devPocPage .devE-bannerPromo { padding-inline-end: 24px; }
   .devPocPage .devE-bannerPromo .devE-bannerTitle { padding-inline-end: 40px; }
@@ -18975,10 +18972,10 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-resources { display: none; }
 @media (max-width: 842px) {
   .devPocPage .devE-pageHeader .devE-headLinks { display: none; }
-  .devPocPage .devE-resources { display: block; margin-top: 32px; padding-top: 24px; border-top: 1px solid #ededec; /* border-default */ }
-  .devPocPage .devE-resourcesTitle { margin: 0 0 12px; font-size: 16px; line-height: 24px; font-weight: 600; color: #121212; }
+  .devPocPage .devE-resources { display: block; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--lighter-grey); /* border-default */ }
+  .devPocPage .devE-resourcesTitle { margin: 0 0 12px; font-size: 16px; line-height: 24px; font-weight: 600; color: var(--near-black); /* text-primary */ }
   .devPocPage .devE-resourcesLinks { margin: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
-  .devPocPage .devE-resourcesLinks > a, .devPocPage .devE-resourcesLinks > button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; /* tap target */ padding: 0; border: 0; background: none; font: inherit; font-size: 16px; color: #18345d; cursor: pointer; }
+  .devPocPage .devE-resourcesLinks > a, .devPocPage .devE-resourcesLinks > button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; /* tap target */ padding: 0; border: 0; background: none; font: inherit; font-size: 16px; color: var(--sefaria-blue); /* action-primary */ cursor: pointer; }
 }
 
 /* A textarea's character count (Developer Settings only, 2026-11-09): under the box, end-aligned, sharing a line with
