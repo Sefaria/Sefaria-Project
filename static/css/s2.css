@@ -18985,3 +18985,140 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .sefaria-input-field.has-addon .sefaria-input-control--multiline { padding-bottom: 12px; }
 .devPocPage .sefaria-input-field.has-addon:has(textarea) .sefaria-input-fieldAddon { position: static; align-self: flex-end; margin-top: 4px; }
 .devPocPage .sefaria-input:has(.has-addon textarea) .sefaria-input-error { margin-top: -28px; min-height: 20px; padding-inline-end: 64px; }
+
+/* Developer Settings button and link states, made consistent (Penina, 2026-11-12). Scoped to .devPocPage: nothing here
+   changes the site's common components on other pages. */
+/* 1. Full-width primary: our focus ring, and a disabled look while saving. */
+.devPocPage .sefaria-common-button.auth-primary:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; }
+.devPocPage .sefaria-common-button.auth-primary:disabled { background: var(--lighter-grey); /* border-default */ border-color: var(--lighter-grey); /* border-default */ color: var(--medium-grey-legacy); /* gray-400 */ }
+.devPocPage .sefaria-common-button.auth-primary:disabled * { color: var(--medium-grey-legacy); /* gray-400 */ }
+/* 2 and 3. Header links and the welcome screen's links: one style, plain until hover, then underlined. */
+.devPocPage .devE-docs:hover, .devPocPage .devE-docsMinor:hover { text-decoration: underline; }
+/* 4. "← Projects and API keys" underlines on hover like the other text buttons, with no gray box. */
+.devPocPage .devE-back:hover { background: none; color: var(--darkest-grey); /* no DS token */ text-decoration: underline; }
+/* 5. One secondary outline: the full-width Cancel takes the same light border as the dialog and small ones. */
+.devPocPage .devE-backBtn { border-color: var(--light-grey); /* gray-300 */ }
+.devPocPage .devE-backBtn:hover { border-color: var(--light-grey); /* gray-300 */ }
+/* 6. Small outline disabled: border and icon grey out with the text. */
+.devPocPage .devE-quiet:disabled, .devPocPage .devE-quiet[aria-disabled="true"] { border-color: var(--lighter-grey); /* border-default */ color: var(--medium-grey-legacy); /* gray-400 */ cursor: not-allowed; }
+.devPocPage .devE-quiet:disabled svg, .devPocPage .devE-quiet[aria-disabled="true"] svg { color: var(--medium-grey-legacy); /* gray-400 */ }
+/* 7. Links: hover darkens to the primary hover, and every link gets our focus ring. */
+.devPocPage .devE-inlineLink:hover { color: #0b1a2d; /* action-primary-pressed */ }
+.devPocPage .devE-inlineLink:focus-visible, .devPocPage .devE-docs:focus-visible, .devPocPage .devE-docsMinor:focus-visible,
+.devPocPage .devE-toolLink:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; border-radius: 2px; }
+/* 8. Icon buttons change color only on hover: no gray box behind the banner close. */
+.devPocPage .devE-bannerClose:hover { background: none; color: var(--near-black); /* text-primary */ }
+.devPocPage .devE-quiet:disabled:hover, .devPocPage .devE-quiet[aria-disabled="true"]:hover { background: var(--white); /* surface-page */ }
+/* Every focus ring in Developer Settings: the same blue ring, always with rounded corners (Penina, 2026-11-12). */
+.devPocPage .devE-linkBtn:focus-visible, .devPocPage .devE-headLinks .devE-linkBtn:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; /* functional-focus-blue */ }
+.devPocPage :is(a, button, [role="button"]):focus-visible { border-radius: 4px; }
+/* Primary buttons, every size (Penina, 2026-11-12): action-primary at rest, action-primary-pressed on hover and press,
+   one disabled look. */
+.devPocPage .sefaria-common-button.auth-primary:active:not(:disabled), .devPocPage .devE-pill:active:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-bannerBtn:active:not(:disabled), .devPocPage .devE-deleteBtnPrimary:active:not(:disabled) { background: #0b1a2d; border-color: #0b1a2d; /* action-primary-pressed */ }
+.devPocPage .devE-bannerBtn:disabled { background: var(--lighter-grey); border-color: var(--lighter-grey); color: var(--medium-grey-legacy); cursor: not-allowed; /* border-default, gray-400 */ }
+/* Danger (Delete, Remove the website): the AI chatbot's delete confirm, #C03522 at rest and #A02C1C on hover. */
+.devPocPage .devE-deleteBtnDanger:active { background: #a02c1c; /* red-800, the chatbot's --lc-danger-hover */ }
+/* Banner buttons are the regular small primary now (Penina, 2026-11-12): one fewer button style. On phones the small
+   primary is 44px tall for tapping. */
+@media (max-width: 842px) { .devPocPage .devE-pill:not(.devE-pillSm) { height: 44px; } }
+/* Two primary styles only (Penina, 2026-11-12): full-width and small. Add key is the small primary, and Edit project
+   details beside it grows to the same 40px. Dialog primaries (Got it, Limit key) are the small primary too. */
+.devPocPage .devE-actions .devE-quiet { height: 40px; padding: 0 16px; }
+@media (max-width: 842px) { .devPocPage .devE-actions .devE-quiet { height: 44px; } }
+.devE-deleteActions .devE-pill { justify-content: center; min-width: 96px; }
+@media (max-width: 842px) { .devE-deleteActions .devE-pill { width: 100%; } }
+/* Header and welcome links are one component (devE-docs): navy, leading icon, underlined on hover (Penina, 2026-11-12). */
+.devPocPage .devE-docs:hover, .devPocPage .devE-docsMinor:hover, .devPocPage .devE-headLinks .devE-linkBtn:hover { text-decoration: underline; }
+/* Icon buttons change color on hover, never a background: the banner close turns navy like the step arrow. */
+.devPocPage .devE-ico:hover, .devPocPage .devE-bannerClose:hover, .devPocPage .devE-stepBack:hover { background: none; }
+.devPocPage .devE-bannerClose:hover { color: var(--sefaria-blue); /* action-primary */ }
+/* Resend link is the inline link (one link style): same size as the text around it, same colors and focus. It keeps
+   only its 44px tap height and the countdown look while it waits. */
+.devPocPage .devE-resendLink { font-size: inherit; }
+/* Secondary (outline) buttons, hover option A (Penina, 2026-11-12): hover makes it darker, the design-system rule.
+   No fill; the border darkens to text-secondary and the text to text-primary. */
+.devPocPage .devE-quiet:hover:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-backBtn:hover,
+.devE-deleteBtn:not(.devE-deleteBtnDanger):hover {
+  background: var(--white); /* surface-page */
+  border-color: var(--darker-grey); /* text-secondary */
+  color: var(--near-black); /* text-primary */
+}
+/* Outline buttons: text-primary text with an icon-default icon, both #121212 (Penina, 2026-11-12). */
+.devPocPage .devE-quiet:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-quiet:not(:disabled):not([aria-disabled="true"]) svg,
+.devPocPage .devE-backBtn,
+.devE-deleteBtn:not(.devE-deleteBtnDanger) { color: var(--near-black); /* text-primary, icon-default */ }
+/* Outline buttons, option B (Penina, 2026-11-12): the quiet version of the primary, all in its navy. Text, icon and
+   border are action-primary; on hover all three go to action-primary-pressed, like the primary itself. */
+.devPocPage .devE-quiet:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-quiet:not(:disabled):not([aria-disabled="true"]) svg,
+.devPocPage .devE-backBtn,
+.devE-deleteBtn:not(.devE-deleteBtnDanger) { color: var(--sefaria-blue); border-color: var(--sefaria-blue); /* action-primary */ }
+.devPocPage .devE-quiet:not(:disabled):not([aria-disabled="true"]) svg { border-color: transparent; }
+.devPocPage .devE-quiet:hover:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-backBtn:hover,
+.devE-deleteBtn:not(.devE-deleteBtnDanger):hover { background: var(--white); color: #0b1a2d; border-color: #0b1a2d; /* surface-page, action-primary-pressed */ }
+/* Outline buttons, option A after all (Penina, 2026-11-12): navy text and icon, but a quiet gray-300 border at rest,
+   so they don't compete with the primary. Hover keeps text, icon and border at action-primary-pressed. */
+.devPocPage .devE-quiet:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-backBtn,
+.devE-deleteBtn:not(.devE-deleteBtnDanger) { border-color: var(--light-grey); /* gray-300 */ }
+.devPocPage .devE-quiet:hover:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-backBtn:hover,
+.devE-deleteBtn:not(.devE-deleteBtnDanger):hover { border-color: #0b1a2d; /* action-primary-pressed */ }
+/* Outline button hover, option B (Penina, 2026-11-12): a light navy fill, navy border, navy-1000 text and icon.
+   The fill is action-secondary-hover, a new semantic to define in the design system, set to navy-100 (the same value as
+   surface-selected). Hover and press are one state. */
+.devPocPage .devE-quiet:hover:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-quiet:active:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-backBtn:hover, .devPocPage .devE-backBtn:active,
+.devE-deleteBtn:not(.devE-deleteBtnDanger):hover, .devE-deleteBtn:not(.devE-deleteBtnDanger):active {
+  background: #f2f5fa; /* action-secondary-hover (to define) = navy-100, as surface-selected */
+  border-color: var(--sefaria-blue); /* action-primary */
+  color: #0b1a2d; /* navy-1000, action-primary hover/pressed */
+}
+.devPocPage .devE-quiet:hover:not(:disabled):not([aria-disabled="true"]) svg { color: #0b1a2d; /* navy-1000 */ }
+/* The project card is navy-100 (surface-selected), so the outline hover fill steps up to navy-200 to show on it
+   (Penina, 2026-11-12). Icons never get a fill of their own. */
+.devPocPage .devE-quiet:hover:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-quiet:active:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-backBtn:hover, .devPocPage .devE-backBtn:active,
+.devE-deleteBtn:not(.devE-deleteBtnDanger):hover, .devE-deleteBtn:not(.devE-deleteBtnDanger):active {
+  background: #e4eaf3; /* action-secondary-hover (to define) = navy-200, as surface-highlighted */
+}
+.devPocPage .devE-quiet svg, .devPocPage .devE-quiet:hover svg, .devPocPage .devE-quiet:active svg { background: none; }
+/* Outline button hover, final for now (Penina, 2026-11-12): surface-hover fill, navy border, navy-1000 text and icon.
+   Hover and press are one state. No new token needed. */
+.devPocPage .devE-quiet:hover:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-quiet:active:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-backBtn:hover, .devPocPage .devE-backBtn:active,
+.devE-deleteBtn:not(.devE-deleteBtnDanger):hover, .devE-deleteBtn:not(.devE-deleteBtnDanger):active {
+  background: #eeeeee; /* surface-hover */
+}
+/* Outline buttons back to gray, on the design system's action-secondary tokens (Penina, 2026-11-14).
+   Rest: text and icon action-secondary (gray-700), border gray-300. Hover and press: surface-hover fill, text, icon and
+   border action-secondary-hover (gray-800). */
+.devPocPage .devE-quiet:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-quiet:not(:disabled):not([aria-disabled="true"]) svg,
+.devPocPage .devE-backBtn,
+.devE-deleteBtn:not(.devE-deleteBtnDanger) { color: var(--darker-grey); /* action-secondary */ }
+.devPocPage .devE-quiet:hover:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-quiet:active:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-quiet:hover:not(:disabled):not([aria-disabled="true"]) svg,
+.devPocPage .devE-quiet:active:not(:disabled):not([aria-disabled="true"]) svg,
+.devPocPage .devE-backBtn:hover, .devPocPage .devE-backBtn:active,
+.devE-deleteBtn:not(.devE-deleteBtnDanger):hover, .devE-deleteBtn:not(.devE-deleteBtnDanger):active {
+  color: var(--darkest-grey); border-color: var(--darkest-grey); /* action-secondary-hover */
+}
+.devPocPage .devE-quiet svg, .devPocPage .devE-quiet:hover svg, .devPocPage .devE-quiet:active svg { background: none; border-color: transparent; }
+
+/* Outline button hover, option A (Penina, 2026-11-14): surface-hover fill and action-secondary-hover text and icon;
+   the border stays gray-300, like the AI chatbot's Cancel. */
+.devPocPage .devE-quiet:hover:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-quiet:active:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .devE-backBtn:hover, .devPocPage .devE-backBtn:active,
+.devE-deleteBtn:not(.devE-deleteBtnDanger):hover, .devE-deleteBtn:not(.devE-deleteBtnDanger):active {
+  border-color: var(--light-grey); /* gray-300 */
+}

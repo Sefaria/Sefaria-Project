@@ -1028,12 +1028,12 @@ const EEntry = ({ onStart, withConfirm, share }) => {
           </button>
           <p className="devE-links">
             {/* Leading icon only, like the home's header links (rule, Penina 2026-11-08). */}
-            <a href={API_DOCS_URL} target="_blank" rel="noreferrer">
+            <a className="devE-docs" href={API_DOCS_URL} target="_blank" rel="noreferrer">
               <EBookIcon size={12} />
               {tE('Technical documentation', 'תיעוד טכני')}
               <span className="sr-only">{tE(' (opens in a new tab)', ' (נפתח בכרטיסייה חדשה)')}</span>
             </a>
-            <a href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">
+            <a className="devE-docsMinor" href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">
               <EDownloadIcon size={12} />
               {tE('Download the library', 'הורדת הספרייה')}
               <span className="sr-only">{tE(' (opens in a new tab)', ' (נפתח בכרטיסייה חדשה)')}</span>
@@ -1070,7 +1070,7 @@ const EShareFirstDialog = ({ onClose }) => {
           )}
         </p>
         <div className="devE-deleteActions">
-          <button type="button" className="devE-deleteBtn devE-deleteBtnPrimary" ref={okRef} onClick={onClose}>
+          <button type="button" className="devE-pill" ref={okRef} onClick={onClose}>
             {tE('Got it', 'הבנתי')}
           </button>
         </div>
@@ -2196,7 +2196,7 @@ const ELimitKeyDialog = ({ project, apiKey, run, onDone, onCancel }) => {
           error={error}
         />
         <div className="devE-deleteActions">
-          <button type="submit" className="devE-deleteBtn devE-deleteBtnPrimary" disabled={busy || !site.trim()}>
+          <button type="submit" className="devE-pill" disabled={busy || !site.trim()}>
             {apiKey ? tE('Limit key', 'הגבלת המפתח') : tE('Save website', 'שמירת האתר')}
           </button>
           <button type="button" className="devE-deleteBtn" onClick={onCancel}>
@@ -3347,7 +3347,7 @@ const EHome = ({
                         way as New project at the project limit (2026-11-05). aria-disabled so it can be hovered and focused. */}
                       <button
                         type="button"
-                        className="devE-pill devE-pillSm"
+                        className="devE-pill"
                         data-agent-action="new-key"
                         aria-disabled={!canCreate || atLimit ? 'true' : null}
                         aria-describedby={!canCreate || atLimit ? 'devEKeyTip-' + project.id : null}
@@ -3622,7 +3622,7 @@ const EPublishNudge = ({ projects, onPublish }) => {
         </div>
       </div>
       <div className="devE-bannerActions">
-        <button type="button" className="devE-bannerBtn" onClick={() => onPublish(project)}>
+        <button type="button" className="devE-pill" onClick={() => onPublish(project)}>
           <InterfaceText
             text={{
               en: (
@@ -3741,7 +3741,7 @@ const EReconfirmBanner = ({ sentAt, run }) => {
       </div>
       {sent ? null : (
         <div className="devE-bannerActions">
-          <button type="button" className="devE-bannerBtn" data-agent-action="send-confirmation" onClick={send}>
+          <button type="button" className="devE-pill" data-agent-action="send-confirmation" onClick={send}>
             {tE('Send confirmation link', 'שליחת קישור לאישור')}
           </button>
         </div>
