@@ -38,6 +38,8 @@ from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt, csrf_protect, ensure_csrf_cookie, requires_csrf_token
 from django_hosts.resolvers import get_host
 from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
+from elastic_transport import ConnectionError as ESConnectionError
+from elastic_transport import ConnectionTimeout
 from elasticsearch_dsl import Search
 from PIL import Image
 from rest_framework.decorators import api_view, permission_classes
@@ -2386,7 +2388,6 @@ def texts_api(request, tref):
 @catch_error_as_json
 @csrf_exempt
 def complete_version_api(request):
-
     def internal_do_post():
         skip_links = bool(int(request.POST.get("skip_links", 0)))
         count_after = int(request.POST.get("count_after", 0))
@@ -3069,7 +3070,6 @@ def notes_api(request, note_id_or_ref):
 @api_view(["GET"])
 @catch_error_as_json
 def all_notes_api(request):
-
     private = bool(int(request.GET.get("private", False)))
     if private:
         if not request.user.is_authenticated:
@@ -3174,7 +3174,6 @@ def version_status_tree_api(request, lang=None):
 
 @sanitize_get_params
 def visualize_library(request, lang=None, cats=None):
-
     template_vars = {"lang": lang or "", "cats": json.dumps(cats.replace("_", " ").split("/") if cats else [])}
 
     return render_template(request, "visual_library.html", None, template_vars)
@@ -3783,7 +3782,6 @@ def dictionary_api(request, word):
 
 @login_required
 def user_stats_api(request, uid):
-
     assert request.method == "GET", "Unsupported Method"
     u = request.user
     assert (u.is_active and u.is_staff) or (int(uid) == u.id)
@@ -5704,7 +5702,18 @@ def search_wrapper_api(request, es6_compat=False):
         es_client = get_elasticsearch_client_for_online_search()
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
-        response = search_obj.execute()
+        try:
+            response = search_obj.execute()
+        except (ESConnectionError, ConnectionTimeout) as e:
+            # A transport failure (the connection timed out or dropped) raises instead of
+            # returning a response. That is the same condition the unsuccessful-response
+            # branch below answers, so answer it the same way instead of letting an
+            # unhandled exception become an HTTP 500.
+            logger.warning(f"search_wrapper_api: Elasticsearch transport failure: {type(e).__name__}: {e}")
+            return jsonResponse(
+                {"error": f"Error with connection to Elasticsearch. {type(e).__name__}"},
+                callback=request.GET.get("callback", None),
+            )
         if response.success():
             response_json = response.to_dict().body
             if es6_compat and isinstance(response_json["hits"]["total"], dict):
