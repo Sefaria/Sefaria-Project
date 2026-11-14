@@ -19114,6 +19114,40 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 }
 .devPocPage .devE-quiet svg, .devPocPage .devE-quiet:hover svg, .devPocPage .devE-quiet:active svg { background: none; border-color: transparent; }
 
+/* Text styles snapped to the design system's English system styles (Penina, 2026-11-14). The design system has no
+   500 weight and no 13, 15, 18 or 20px style. Project names and dialog titles use body-strong. The masked key stays
+   monospace as an exception (a code style is on the design-system follow-up). */
+/* en-system-h3: 22 / 400 / 1.4 */
+.settingsNavTitle, .devPocPage .devPocPageHeader h1 { font-size: 22px; font-weight: 400; line-height: 1.4; }
+/* en-system-body-regular: 16 / 400 / 1.4; the open tab is body-strong */
+.settingsNav a { font-size: 16px; font-weight: 400; line-height: 1.4; }
+.settingsNav a[aria-current="page"] { font-weight: 600; }
+.devPocPage .devE-lead, .devE-deleteModal p, .devE-dialogList { font-size: 16px; font-weight: 400; line-height: 1.4; }
+/* en-system-body-strong: 16 / 600 / 1.4 */
+.devPocPage .devE-projName, .devPocPage h3.devE-projName, .devE-deleteModal h3, .devPocPage .devE-shareSection h3,
+.devPocPage .devE-summaryTitle, .devPocPage .devE-resourcesTitle, .devPocPage .devE-ghostBtn,
+.devPocPage .devE-emptyState h3, .devPocPage .devE-profileName { font-size: 16px; font-weight: 600; line-height: 1.4; }
+/* en-system-small-strong: 14 / 600 / 18px — every smaller button, chip, link-button and form legend */
+.devPocPage .devE-quiet, .devPocPage .devE-chip, .devPocPage .devE-back, .devPocPage .devE-textBtn, .devPocPage .devE-link,
+.devPocPage .devE-pill, .devE-deleteBtn, .devPocPage .devE-tabs button, .devPocPage .devE-choices legend,
+.devPocPage .devE-restrictLabel, .devPocPage .devE-galleryLink, .devPocPage .devE-communityTitle {
+  font-size: 14px; font-weight: 600; line-height: 18px;
+}
+/* en-system-small-comfortable: 14 / 400 / 21px */
+.devPocPage .devE-docs, .devPocPage .devE-docsMinor, .devPocPage .devE-headLinks .devE-linkBtn, .devPocPage .devE-links,
+.devPocPage .devE-links a, .devPocPage .devE-emptyState p, .devPocPage .devE-summaryMeta, .devPocPopover {
+  font-size: 14px; font-weight: 400; line-height: 21px;
+}
+/* en-system-small-compact: 14 / 400 / 18px */
+.devPocPage .devE-table td, .devPocPage .devE-siteLink { font-size: 14px; line-height: 18px; }
+.devPocPage .devE-table .devE-keyRowT td:nth-child(1), .devPocPage .devE-table .devE-keyRowT td:nth-child(1) .devE-keyNameText { font-size: 16px; font-weight: 400; line-height: 1.4; /* body-regular: key names (Penina, 2026-11-14) */ }
+/* en-system-caption: 12 / 400 / 20px */
+.devPocPage .devE-table thead th, .devPocPage .devE-new, .devPocPage .devE-recBadge, .devPocPage .devE-hintInline {
+  font-size: 12px; font-weight: 400; line-height: 20px;
+}
+/* Phones: the Resources list at the bottom is body-regular. */
+.devPocPage .devE-resourcesLinks > a, .devPocPage .devE-resourcesLinks > button,
+.devPocPage .devE-resourcesLinks .devE-docs, .devPocPage .devE-resourcesLinks .devE-docsMinor { font-size: 16px; font-weight: 400; line-height: 1.4; }
 /* Outline button hover, option A (Penina, 2026-11-14): surface-hover fill and action-secondary-hover text and icon;
    the border stays gray-300, like the AI chatbot's Cancel. */
 .devPocPage .devE-quiet:hover:not(:disabled):not([aria-disabled="true"]),
@@ -19122,3 +19156,45 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devE-deleteBtn:not(.devE-deleteBtnDanger):hover, .devE-deleteBtn:not(.devE-deleteBtnDanger):active {
   border-color: var(--light-grey); /* gray-300 */
 }
+/* Settings page headings (Penina, 2026-11-14, trying it): "Settings", "Developer Settings" and "Account Settings" use
+   en-system-h3-strong at 600 (the tokens file exports it at 400 and notes it likely should be heavier), text-primary. */
+.settingsNavTitle, .devPocPage .devPocPageHeader h1, .settingsPage #accountSettingsPage .headerWithButtons h1 {
+  font-size: 22px; font-weight: 600; line-height: 1.4; color: var(--darker-grey); /* en-system-h3-strong, text-secondary */
+}
+
+/* Publish form: one calm text hierarchy (Penina, 2026-11-14). Section headings body-strong; every question and field
+   label small-strong; "Optional" and "Select all that apply" caption, text-muted; every answer, option and summary value
+   body-regular; intro, notes and help small-comfortable, text-secondary; links take the size and weight of the text
+   around them, in text-link. Emphasis inside sentences is 600. Three colors: text-primary, text-secondary, text-link. */
+.devPocPage .devE-shareForm h3 { font-size: 16px; font-weight: 600; line-height: 1.4; color: var(--near-black); /* body-strong, text-primary */ }
+.devPocPage .devE-shareForm .sefaria-input-label, .devPocPage .devE-shareForm .sefaria-select-label,
+.devPocPage .devE-shareForm label.sefaria-input-label, .devPocPage .devE-shareForm legend,
+.devPocPage .devE-shareForm .devE-communityTitle {
+  font-size: 14px; font-weight: 600; line-height: 18px; color: var(--near-black); /* small-strong, text-primary */
+}
+.devPocPage .devE-shareForm .sefaria-input-labelAddon, .devPocPage .devE-shareForm .devE-hintInline {
+  font-size: 12px; font-weight: 400; line-height: 20px; color: var(--secondary-text-grey); /* caption, text-muted */
+}
+.devPocPage .devE-shareForm .devE-radio, .devPocPage .devE-shareForm .sefaria-checkbox-label,
+.devPocPage .devE-shareForm .sefaria-checkbox label, .devPocPage .devE-shareForm .devE-summaryText,
+.devPocPage .devE-shareForm .devE-summaryText strong, .devPocPage .devE-shareForm .devE-summaryMeta,
+.devPocPage .devE-shareForm .devE-summaryBody bdi {
+  font-size: 16px; font-weight: 400; line-height: 1.4; color: var(--near-black); /* body-regular, text-primary */
+}
+.devPocPage .devE-shareLead p, .devPocPage .devE-shareLead .devE-lead, .devPocPage .devE-shareForm .devE-shareNote,
+.devPocPage .devE-shareForm .devE-signed, .devPocPage .devE-shareForm .devE-communityLink,
+.devPocPage .devE-shareForm .sefaria-input-hint {
+  font-size: 14px; font-weight: 400; line-height: 21px; color: var(--darker-grey); /* small-comfortable, text-secondary */
+}
+.devPocPage .devE-shareLead strong, .devPocPage .devE-shareForm .devE-shareNote strong { font-weight: 600; color: inherit; }
+.devPocPage .devE-shareLead a, .devPocPage .devE-shareForm .devE-inlineLink, .devPocPage .devE-shareForm .devE-communityJoin {
+  font-size: inherit; font-weight: inherit; line-height: inherit; color: var(--sefaria-blue); /* text-link */
+}
+.devPocPage .devE-shareForm .devE-toolLink { color: var(--sefaria-blue); }
+/* Publish form checkbox and radio answers: small-comfortable (14 / 400 / 21px), text-primary, the same size as the
+   question above them (Penina, 2026-11-14; 16px read too large). */
+.devPocPage .devE-shareForm .devE-radio, .devPocPage .devE-shareForm .sefaria-checkbox-label,
+.devPocPage .devE-shareForm .sefaria-checkbox label { font-size: 14px; font-weight: 400; line-height: 21px; color: var(--near-black); }
+/* Publish form summary values (email, project details): small-comfortable 14 / 400 / 21px too (Penina, 2026-11-14). */
+.devPocPage .devE-shareForm .devE-summaryText, .devPocPage .devE-shareForm .devE-summaryText strong,
+.devPocPage .devE-shareForm .devE-summaryMeta, .devPocPage .devE-shareForm .devE-summaryBody bdi { font-size: 14px; line-height: 21px; }
