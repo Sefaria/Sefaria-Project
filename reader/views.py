@@ -2043,7 +2043,16 @@ def interface_language_redirect(request, language):
     """
     next = request.GET.get("next")
 
-    if not next or not url_has_allowed_host_and_scheme(url=next, allowed_hosts=set(ALLOWED_HOSTS)):
+    # The language switcher always sends `next` as a site-relative path (e.g. "/Genesis.1").
+    # `url_has_allowed_host_and_scheme` only rejects off-site absolute URLs: it accepts any
+    # slash-less relative value, which `django.shortcuts.redirect` then treats as a view name
+    # and raises NoReverseMatch. Reject anything that is not a path or a scheme-qualified URL,
+    # so only a real redirect target reaches `redirect`.
+    if (
+        not next
+        or not next.startswith(("/", "http://", "https://"))
+        or not url_has_allowed_host_and_scheme(url=next, allowed_hosts=set(ALLOWED_HOSTS))
+    ):
         next = "/"
 
     # Look up the target domain based on current module + target language
