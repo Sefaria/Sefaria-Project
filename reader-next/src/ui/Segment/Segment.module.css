@@ -62,7 +62,10 @@
 .segment[data-sides="primary"] .primary[dir="rtl"], .segment[data-sides="translation"] .translation[dir="rtl"] { text-align: justify; }
 
 /* Continuous flow (single language only): segments run together as a paragraph */
-[data-layout="continuous"] .segment { display: inline; margin: 0; padding-block: 0.1em; }
+/* sefaria.org (s2.css .continuous .segment): 0.3333em above and below, 0.15em in an English panel; on an inline box it only sizes the
+   tint behind the words, it does not move the lines */
+[data-layout="continuous"] .segment { display: inline; margin: 0; padding-block: 0.3333em; }
+[data-layout="continuous"][data-language="english"] .segment { padding-block: 0.15em; }
 [data-layout="continuous"] .body, [data-layout="continuous"] .side { display: inline; }
 [data-layout="continuous"] .body :global(br) { display: none; }
 /* In running text a segment is not a box: its number and dot are placed against the surface's edges, at the line where the
@@ -70,7 +73,7 @@
 [data-layout="continuous"] .segment { position: static; }
 [data-layout="continuous"] .number, [data-layout="continuous"] .dot { top: auto; margin-top: 0; }
 [data-layout="continuous"] .number { inset-inline-start: calc(var(--_pad, 30px) - 48px); }
-[data-layout="continuous"] .dot { inset-inline-end: calc(var(--_pad, 30px) - 48px + 4px); }
+[data-layout="continuous"] .dot { inset-inline-end: calc(var(--_pad, 30px) - 48px + 4px); font-family: var(--sefaria-font-ui-en); }
 /* A phone (34px of padding, the old singlePanel): the number and dot sit in the padding, 4px from the screen's edges, as on sefaria.org
    (Berakhot 2a, Hebrew, 390px: numbers at 356-386, dots at 4-34). 48px out put them past the edge and the page scrolled sideways. */
 @media (max-width: 842px) and (pointer: coarse) {

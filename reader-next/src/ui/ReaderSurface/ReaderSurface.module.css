@@ -15,6 +15,10 @@
   --_pad: var(--sefaria-segment-gutter);
   position: relative;
 }
+/* Running text (continuous layout): the lines are the text face's, as on sefaria.org, where the segment and its paragraph are
+   set in it. In the interface face, whose ascent and descent differ, each line of Cardo grew from 35.2 to 37px (Berakhot 2a: 281px
+   over the daf). */
+.surface[data-layout="continuous"] { font-family: var(--sefaria-font-text-en); }
 /* Hebrew and bilingual panels read right-to-left; English-only reads left-to-right. */
 .surface[data-language="english"] { direction: ltr; }
 .surface[data-language="hebrew"], .surface[data-language="bilingual"] { direction: rtl; }

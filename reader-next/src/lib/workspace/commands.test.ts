@@ -85,3 +85,26 @@ describe("on a library address", () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 });
+
+// a link from the reader to the book's page: the reader's match is still listed while the address is already "/Exodus" (the book page
+// then showed "/Exodus?lang=bi&aliyot=0", and Back was a different entry from the one the reader had left)
+describe("on a book's address", () => {
+  it("canonicalize leaves /Exodus alone while the reader's match is another address's", async () => {
+    const { router, navigate } = fakeRouter("/Exodus", {});
+    (router.state as { matches?: unknown[] }).matches = [{ routeId: "__root__" }, { routeId: "/$", pathname: "/Exodus.2", loaderData: { kind: "text" } }];
+    expect(await createWorkspaceCommands(router, defaults).canonicalize()).toBe(false);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+  it("and when the route has made it the book's page", async () => {
+    const { router, navigate } = fakeRouter("/Exodus", {});
+    (router.state as { matches?: unknown[] }).matches = [{ routeId: "__root__" }, { routeId: "/$", pathname: "/Exodus", loaderData: { kind: "book" } }];
+    expect(await createWorkspaceCommands(router, defaults).canonicalize()).toBe(false);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+  it("but completes a bare title the route loaded as a text (a book's node)", async () => {
+    const { router, navigate } = fakeRouter("/Pesach_Haggadah,_Kadesh", {});
+    (router.state as { matches?: unknown[] }).matches = [{ routeId: "__root__" }, { routeId: "/$", pathname: "/Pesach_Haggadah,_Kadesh", loaderData: { kind: "text" } }];
+    expect(await createWorkspaceCommands(router, defaults).canonicalize()).toBe(true);
+    expect(navigate).toHaveBeenCalledTimes(1);
+  });
+});

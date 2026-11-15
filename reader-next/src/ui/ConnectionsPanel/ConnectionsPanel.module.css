@@ -19,7 +19,9 @@
 .back > :first-child { color: var(--sefaria-color-text-muted); }
 /* Phone (one panel): a header with a title and no back link (Resources) centres it. VERIFIED on sefaria.org 2026-11-10 (Pixel 7,
    English and Hebrew interface): .connectionsPanelHeader justify-content: center on Resources, flex-start elsewhere (CON-002). */
-@media (max-width: 842px) { .headerTitle { text-align: center; } }
+/* and no language button: sefaria.org builds it for several panels only (ConnectionsPanelHeader.jsx: `if (this.props.multiPanel)`);
+   on a phone the sidebar follows the panel's language */
+@media (max-width: 842px) { .headerTitle { text-align: center; } .langToggle { display: none; } }
 
 /* Print (legacy s2-print.css .connectionsPanel, .connectionsHeader): the sidebar is not printed */
 @media print { .panel { display: none !important; } }

@@ -3,10 +3,10 @@
  * produces a new workspace, which is encoded and navigated to. History state records why the URL changed and
  * which panel caused it, so only that panel reacts (docs/WORKSPACE.md, "The URL is still the state").
  */
-import { useLocation, useRouter, type RouterHistory } from "@tanstack/react-router";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useLocation, useRouter, useRouterState, type RouterHistory } from "@tanstack/react-router";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { PositionStore, type EntryPositions, type SavedPosition } from "~/lib/reader/position-store";
-import { createWorkspaceCommands, entryKey, readNavState, urlDefaultsFor, type NavState, type WorkspaceRouter } from "~/lib/workspace/commands";
+import { createWorkspaceCommands, entryKey, readNavState, urlDefaultsFor, workspaceHref, type NavState, type WorkspaceRouter } from "~/lib/workspace/commands";
 import { useReaderSettings } from "../reader/settings-context";
 import { useRegisterSlice } from "~/features/reader-state/context";
 import { createScrollSlice, type ScrollPanel } from "~/lib/reader-state/sefaria/slices/scroll";
@@ -25,6 +25,8 @@ export interface PanelPlacement {
   restorePosition: (pos: SavedPosition) => boolean;
   /** Bring a segment to the reading line; false when it is not loaded. */
   scrollToSegment: (ref: string) => boolean;
+  /** Where the reader is on screen, for the scroll slice; else the registered reader (the place history keeps). */
+  getPosition?: () => SavedPosition | undefined;
 }
 
 interface WorkspaceNav {
@@ -43,6 +45,9 @@ interface WorkspaceNav {
   go: (ws: Workspace, opts?: { replace?: boolean; state?: NavState }) => void;
 }
 
+/** One panel at a time: sefaria.org's MOBILE breakpoint, as the panel's own single-panel rules (TextPanel.tsx). */
+const SINGLE_PANEL_QUERY = "(max-width: 842px)";
+
 const Ctx = createContext<WorkspaceNav | null>(null);
 
 /**
@@ -54,10 +59,18 @@ const Ctx = createContext<WorkspaceNav | null>(null);
 const lastChange = new WeakMap<RouterHistory, { key: string | undefined; popped: boolean }>();
 function trackHistory(history: RouterHistory) {
   if (lastChange.has(history)) return;
-  lastChange.set(history, { key: entryKey(history.location.state), popped: false });
+  // a document loaded by Back/Forward (the reader had left by a full page load: the book's page, a sheet) arrived by back/forward too
+  lastChange.set(history, { key: entryKey(history.location.state), popped: loadedByBackForward() });
   history.subscribe(({ location, action }) => {
     lastChange.set(history, { key: entryKey(location.state), popped: action.type === "BACK" || action.type === "FORWARD" || action.type === "GO" });
   });
+}
+function loadedByBackForward(): boolean {
+  try {
+    return (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined)?.type === "back_forward";
+  } catch {
+    return false;
+  }
 }
 /** The places kept per history entry, for the page's lifetime (in the browser only). */
 let pageStore: PositionStore | undefined;
@@ -72,7 +85,16 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const location = useLocation();
   const { settings } = useReaderSettings();
-  const defaults = useMemo(() => urlDefaultsFor(settings), [settings.language, settings.aliyotTorah]); // eslint-disable-line react-hooks/exhaustive-deps -- only these two settings shape the URL defaults; `settings` is a new object on any change
+  // a phone (one panel at a time) writes no sidebar language into its address, as the old client (read after mount)
+  const [singlePanel, setSinglePanel] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(SINGLE_PANEL_QUERY);
+    const update = () => setSinglePanel(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  const defaults = useMemo(() => ({ ...urlDefaultsFor(settings), singlePanel }), [settings.language, settings.aliyotTorah, singlePanel]); // eslint-disable-line react-hooks/exhaustive-deps -- only these two settings shape the URL defaults; `settings` is a new object on any change
   const defaultsRef = useRef(defaults);
   defaultsRef.current = defaults;
   const commands = useMemo(() => createWorkspaceCommands(router as unknown as WorkspaceRouter, () => defaultsRef.current), [router]);
@@ -115,6 +137,22 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
     });
   }, [router]);
 
+  // Leaving by a full page load (a plain link to another document) is no history change here: keep this entry's places now, and write
+  // them to storage, so Back to this entry (a new document) finds them.
+  useEffect(() => {
+    const keep = () => {
+      const positions: EntryPositions = {};
+      for (const [id, read] of readers.current) {
+        const pos = read();
+        if (pos) positions[id] = pos;
+      }
+      store.current!.set(entryKey(router.history.location.state), positions);
+      store.current!.flush();
+    };
+    window.addEventListener("pagehide", keep);
+    return () => window.removeEventListener("pagehide", keep);
+  }, [router]);
+
   const registerPanel = useCallback<WorkspaceNav["registerPanel"]>((id, read, placement) => {
     readers.current.set(id, read);
     const entry = placement ? { read, placement } : undefined;
@@ -148,7 +186,7 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
           [...placements.current.values()].map(
             ({ read, placement }): ScrollPanel => ({
               key: placement.key,
-              getPosition: read,
+              getPosition: placement.getPosition ?? read,
               restorePosition: placement.restorePosition,
               scrollToSegment: placement.scrollToSegment,
             }),
@@ -163,13 +201,17 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   useRegisterSlice(scrollSlice);
   const restoreFor = useCallback<WorkspaceNav["restoreFor"]>((key, id) => (key && poppedKey.current === key ? store.current!.get(key)?.[id] : undefined), []);
   const go = useCallback<WorkspaceNav["go"]>((ws, opts) => void commands.go(ws, opts), [commands]);
-  const href = useCallback((ws: Workspace) => commands.href(ws), [commands, defaults]); // eslint-disable-line react-hooks/exhaustive-deps -- commands reads the defaults through a ref: a new href when they change re-renders the links built with it
+  // Links are written in the one form the server writes too (with the sidebar's language): a phone's form only in the address the app
+  // navigates to (go, canonicalize), so a link's href never changes between the server's markup and hydration
+  const href = useCallback((ws: Workspace) => workspaceHref(ws, { ...defaults, singlePanel: false }), [defaults]);
 
   // The address bar shows the full form sefaria.org writes (its defaults filled in), on arrival and when a setting it carries changes:
   // a replace navigation through the router, keeping the entry's state (never history.replaceState).
+  // Again once the route has loaded the address: a bare title is completed only when it turns out to be a text, not a book's page.
+  const resolvedHref = useRouterState({ select: (s) => s.resolvedLocation?.href });
   useEffect(() => {
     void commands.canonicalize();
-  }, [commands, location.href, defaults]);
+  }, [commands, location.href, resolvedHref, defaults]);
 
   const value = useMemo(() => ({ current: commands.current, href, go, registerPanel, panelMoved, restoreFor }), [commands, href, go, registerPanel, panelMoved, restoreFor]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

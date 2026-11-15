@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { open } from "./helpers";
+import { open, setScrollTop } from "./helpers";
 
 // Layout of the reading surface against www.sefaria.org (wave-3 parity report v-parity.md, S4 S5 S6 S7). The numbers in the comments
 // were measured on www.sefaria.org on 2026-11-10.
@@ -49,6 +49,62 @@ test("stacked bilingual: 10px from the Hebrew to the English, 20px to the next v
   expect(m.heHeight).toBeLessThan(m.heLine * 1.5);
   expect(m.align).toBe("right");
 });
+
+// @feature TXD-012
+// sefaria.org, 2026-11-12, 1280px and Pixel 7: 30px from a section's last verse to the next section's title box in every case here
+// (the verse's 26px margin collapses into the title's 30px), then 24px from the box to the first verse.
+for (const [path, lang, biLayout, next] of [
+  ["/Genesis.1", "en", "stacked", "Genesis 2"],
+  ["/Genesis.1", "he", "stacked", "Genesis 2"],
+  ["/Genesis.1", "bi", "stacked", "Genesis 2"],
+  ["/Genesis.1", "bi", "heLeft", "Genesis 2"],
+  ["/Berakhot.2a", "en", "stacked", "Berakhot 2b"],
+  ["/Berakhot.2a", "he", "stacked", "Berakhot 2b"],
+  ["/Berakhot.2a", "bi", "heRight", "Berakhot 2b"],
+] as const) {
+  test(`${path} ${lang} ${biLayout}: 30px from a section's last verse to the next section's title, as sefaria.org @mobile`, async ({ page }) => {
+    // Talmud segmented: continuous Talmud lines end differently inside the section (inline segments), not at the boundary
+    await page.context().addCookies([{ name: "biLayout", value: biLayout, domain: "localhost", path: "/" }, { name: "layoutTalmud", value: "segmented", domain: "localhost", path: "/" }]);
+    await open(page, `${path}?lang=${lang}`);
+    const sec = page.locator(`section[data-ref="${next}"]`);
+    await expect(async () => {
+      await setScrollTop(page, "bottom");
+      await expect(sec.locator("h2")).toBeAttached({ timeout: 1000 });
+    }).toPass({ timeout: 25_000 });
+    const m = await sec.evaluate((s) => {
+      const prev = [...document.querySelectorAll<HTMLElement>('[data-language] section[data-ref]')][[...document.querySelectorAll('[data-language] section[data-ref]')].indexOf(s) - 1]!;
+      const last = [...prev.querySelectorAll('[role="group"][data-ref]')].at(-1)!.getBoundingClientRect();
+      const box = s.querySelector("h2")!.getBoundingClientRect();
+      const first = s.querySelector('[role="group"][data-ref]')!.getBoundingClientRect();
+      return { above: box.top - last.bottom, below: first.top - box.bottom };
+    });
+    expect(m.above).toBeCloseTo(30, 0);
+    expect(m.below).toBeCloseTo(24, 0);
+  });
+}
+
+// @feature TXD-045 @feature TXD-061
+// Continuous Talmud (the default), sefaria.org 2026-11-12, Berakhot 2a, 1280px: English lines every 35.2px, the first 23.7px under the
+// heading box (the daf 3799.6px tall); Hebrew lines every 42.9px, the first 21.7px under it. In the interface face the English lines
+// were 37px apart (281px over the daf).
+for (const [lang, step, first] of [["en", 35.2, 23.7], ["he", 42.94, 21.67]] as const) {
+  test(`continuous Talmud ${lang}: the lines are as far apart as on sefaria.org`, async ({ page }) => {
+    await open(page, `/Berakhot.2a?lang=${lang}`);
+    const sec = page.locator('section[data-ref="Berakhot 2a"]');
+    await expect(sec.locator('[role="group"][data-ref="Berakhot 2a:6"]')).toBeAttached({ timeout: 25_000 });
+    await page.evaluate(() => document.fonts.ready);
+    const m = await sec.evaluate((s) => {
+      const tops = new Set<number>();
+      for (const g of s.querySelectorAll('[role="group"][data-ref]')) for (const r of g.getClientRects()) if (r.height > 1) tops.add(Math.round(r.top * 10) / 10);
+      const t = [...tops].sort((a, b) => a - b);
+      const firstLine = s.querySelector('[role="group"][data-ref]')!.getClientRects()[0]!;
+      return { lines: t.length, avg: (t.at(-1)! - t[0]!) / (t.length - 1), first: firstLine.top - s.querySelector("h2")!.getBoundingClientRect().bottom };
+    });
+    expect(m.lines).toBeGreaterThan(10);
+    expect(Math.abs(m.avg - step), `${m.avg}px between lines`).toBeLessThan(0.3);
+    expect(m.first).toBeCloseTo(first, 0);
+  });
+}
 
 // @feature TXD-012
 test("Hebrew daf headings read ב׳ א / ב׳ ב (parity S7)", async ({ page }) => {

@@ -3,6 +3,7 @@ import { useQuery, useQueryClient, useSuspenseQueries } from "@tanstack/react-qu
 import { useLocation, useRouter } from "@tanstack/react-router";
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { leaf, split, type LayoutNode } from "~/lib/layout/tree";
+import { isReaderPath } from "~/lib/reader/paths";
 import { formatWith, parseWith, type ConnectionsView } from "~/lib/connections/url";
 import { displayMenuAvailability, hasNikud, layoutKeyFor, type ReaderSettings } from "~/lib/reader/settings";
 import { headerLabels, narrowToVerses, titleVerses } from "~/lib/reader/header";
@@ -137,10 +138,13 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const heldByColumn = data.sectionRefs.every((r) => columnSections.current.includes(r));
   // "Starts over" is decided once per history entry: re-rendering the same entry (the initial one carries no `nav` at all)
   // must not throw away what the column has since added, or reaching the top of a tractate restarts it.
-  const thisEntry = entryKey(location.state) ?? "initial";
-  const seenEntry = useRef(thisEntry);
-  const newEntry = seenEntry.current !== thisEntry;
-  seenEntry.current = thisEntry;
+  // An address that is not a reader's (a link to the library while its page loads, the reader still on screen) is no entry of this
+  // panel's: taken for one, it put the address's verse back on the reading line, and the text moved (78px) as the reader left, and
+  // again on the frame before Back restored it.
+  const thisEntry = isReaderPath(location.pathname) ? (entryKey(location.state) ?? "initial") : null;
+  const seenEntry = useRef(thisEntry ?? "initial");
+  const newEntry = thisEntry !== null && seenEntry.current !== thisEntry;
+  if (thisEntry !== null) seenEntry.current = thisEntry;
   if ((newEntry && (kind === undefined || kind === "go")) || !heldByColumn) {
     entry.current = { key: data.sectionRefs.join("|"), target: urlSegments[0], arrival: urlSegments, id: entry.current.id + 1 };
     columnSections.current = data.sectionRefs;
@@ -166,9 +170,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const panelKey = panel.key ?? id;
   const connectionsOnScreenRef = useRef(false);
   const registerPosition = useCallback(
-    (get: () => SavedPosition | undefined, engine?: { restorePosition: (pos: SavedPosition) => boolean; scrollToSegment: (ref: string) => void }) =>
+    (get: () => SavedPosition | undefined, engine?: { restorePosition: (pos: SavedPosition) => boolean; scrollToSegment: (ref: string) => void; getPosition?: () => SavedPosition | undefined }) =>
       nav.registerPanel(id, get, {
         key: panelKey,
+        getPosition: engine?.getPosition,
         restorePosition: (pos) => (engine ? engine.restorePosition(pos) : !!rootEl.current && placeSegment(rootEl.current, pos)),
         scrollToSegment: (ref) => {
           if (!engine) return !!rootEl.current && scrollSegmentToLine(rootEl.current, ref, { connectionsOnScreen: connectionsOnScreenRef.current });
@@ -371,6 +376,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [apply, id],
   );
   // The aleph / ayin button in the sidebar's header: its own language (`lang2`), the text's language untouched (SHL-014)
+  // (on a phone there is no such button, as on sefaria.org: the sidebar follows the panel's language there, with no `lang2`)
   const onSidebarLang = useCallback(
     (l: "en" | "he") => (readerAnalytics.languageToggled(l === "he" ? "hebrew" : "english"), apply((ws) => (aside ? updateAside(ws, id, aside.id, { lang: l }) : ws), { replace: true, state: { nav: "stay", panel: id } })),
     [apply, id, aside],
@@ -670,6 +676,21 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     // a work with no source version (Teshuvot haRashba: English only, served as the translation) is labelled from what it shows
     translationVersion: section.translationVersion, primaryVersion: section.primaryVersion ?? (labelMode === "hebrew" ? section.translationVersion : undefined), language: labelMode, interfaceLang,
   }, verses, separator));
+  // The title opens the connections of the ref it names (the arrival address, or the section in view), as sefaria.org's header does
+  // (ReaderControls.openTextConnectionsPanel): a plain click or Enter, with nothing highlighted. Its href is the book's page, which a
+  // modified or middle click opens in a new tab, as there.
+  const titleRef = narrowToVerses({ sectionRef: section.sectionRef, heSectionRef: section.heSectionRef }, verses, separator).sectionRef;
+  const onTitleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    apply(
+      (ws) => {
+        const existing = ws.panels[id]?.asides.find((a) => a.kind === "connections");
+        return openAside(updatePanel(ws, id, { ref: titleRef }), id, { kind: "connections", view: existing?.entity ? formatWith({ view: "resources" }) : (existing?.view ?? formatWith({ view: "resources" })), ...(existing ? {} : { lang: newSidebarLang }) });
+      },
+      { state: { nav: "stay", panel: id } },
+    );
+  };
   const shownVersions = { he: sidebarSection.primaryVersion?.versionTitle, en: sidebarSection.translationVersion?.versionTitle };
   const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the filter string; `view` is a new object each render
 
@@ -688,7 +709,11 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       <PanelHeader
         sticky
         category={section.categories}
-        title={<a href={`/${refToUrl(section.indexTitle)}`} lang={header.lang} dir={header.lang === "he" ? "rtl" : "ltr"} style={{ color: "inherit", textDecoration: "none" }}>{header.title}</a>}
+        title={
+          <a href={`/${refToUrl(section.indexTitle)}`} onClick={onTitleClick} lang={header.lang} dir={header.lang === "he" ? "rtl" : "ltr"} style={{ color: "inherit", textDecoration: "none" }}>
+            {header.title}
+          </a>
+        }
         subtitle={
           header.attribution || header.version ? (
             <>

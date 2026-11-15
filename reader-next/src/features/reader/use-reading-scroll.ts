@@ -44,6 +44,8 @@ export interface ReadingScroll {
   scrollToSegment: (segmentRef: string) => void;
   /** Where the reader is: the current segment and its distance from the top of the scrolling area. */
   getPosition: () => SavedPosition | undefined;
+  /** The place to keep for history: the reader's, by the anchor (see keptPosition). */
+  keptPosition: () => SavedPosition | undefined;
   /** Put the reader back where {@link getPosition} found them. False when that segment is not loaded. */
   restorePosition: (pos: SavedPosition) => boolean;
   /** Re-run edge detection (after new content arrives). */
@@ -94,6 +96,8 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     lastScrollTop: 0,
     /** Sub-pixel padding above the content, in [0, 1): the part of a correction scrolling can't make. */
     pad: 0,
+    /** Room added under the content so a restored place near the end of what is loaded can be reached before the rest arrives. */
+    tailPad: 0,
     frame: 0,
     settleTimer: 0 as ReturnType<typeof setTimeout> | 0,
   });
@@ -130,6 +134,31 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     const el = s === window ? document.scrollingElement! : (s as HTMLElement);
     return el.scrollHeight - el.clientHeight;
   }, [scroller]);
+
+  /**
+   * Room under the content (px, beyond its own bottom padding), kept only as long as the place on screen needs it: a saved place near
+   * the end of the loaded text (Back to the last verses of a chapter, before the next chapter has loaded again) could otherwise not be
+   * scrolled to, and the reader would come back lower on the page. As text arrives below, the room shrinks to nothing; nothing above
+   * it moves.
+   */
+  const setTailPad = useCallback((px: number) => {
+    const content = optsRef.current.contentRef.current;
+    const s = state.current;
+    if (!content) return;
+    const next = px < 0.5 ? 0 : px;
+    if (next === s.tailPad) return;
+    content.style.paddingBottom = "";
+    s.tailPad = next;
+    if (next) content.style.paddingBottom = `${parseFloat(getComputedStyle(content).paddingBottom) + next}px`;
+  }, []);
+  const trimTailPad = useCallback(() => {
+    const s = state.current;
+    if (!s.tailPad) return;
+    // dropped whole, once the content's own height holds the place on screen (the next section is in, or the reader went up): trimmed
+    // bit by bit, a placeholder that grew below and then went before the next section was laid out left the page too short for a
+    // frame, the browser pulled the scroll back, and the verse stayed that much lower (a phone, 29px)
+    if (scrollTopNow() - (maxScrollNow() - s.tailPad) <= 0.5) setTailPad(0);
+  }, [setTailPad, scrollTopNow, maxScrollNow]);
 
   const rule = useCallback(() => focusRule(window.innerHeight, { mobile: scroller() === window, connectionsOnScreen: optsRef.current.connectionsOnScreen }), [scroller]);
 
@@ -245,6 +274,7 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
       optsRef.current.onFocus?.(focus);
     }
     recordAnchor();
+    trimTailPad();
     checkEdges();
     if (s.userScrolled) {
       if (s.settleTimer) clearTimeout(s.settleTimer);
@@ -258,7 +288,7 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
         }
       }, SETTLE_MS);
     }
-  }, [computeFocus, recordAnchor, checkEdges, restoreAnchor, scrollTopNow]);
+  }, [computeFocus, recordAnchor, checkEdges, restoreAnchor, scrollTopNow, trimTailPad]);
 
   const schedule = useCallback(() => {
     if (!state.current.frame) state.current.frame = requestAnimationFrame(step);
@@ -274,6 +304,12 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     if (sc) sc.style.overflowAnchor = "none";
     // Take over place keeping from the pre-hydration script.
     (sc as (HTMLElement & { __keepPlace?: () => void }) | null)?.__keepPlace?.();
+    // room the script put under the text for a kept place the loaded text could not reach yet: the engine trims it from here
+    const scriptPad = (content as HTMLElement & { __tailPad?: number }).__tailPad;
+    if (scriptPad) {
+      s.tailPad = scriptPad;
+      delete (content as HTMLElement & { __tailPad?: number }).__tailPad;
+    }
     document.documentElement.style.overflowAnchor = "none";
 
     // Scroll events don't bubble, but a capturing listener on the document hears every container's — so it
@@ -387,15 +423,33 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
 
   const getPosition = useCallback((): SavedPosition | undefined => {
     const s = state.current;
-    const el = s.focus ? optsRef.current.contentRef.current?.querySelector(segmentSelector(s.focus)) : null;
+    const content = optsRef.current.contentRef.current;
+    // Content changed and anchor keeping has not run yet (a section arriving while the page is being left): the text has moved under
+    // the reader for a moment, so the place is where the anchor says, after the reader's own scrolling, not where the verse is drawn.
+    if (s.anchor && content && content.offsetHeight !== s.height) return { ref: s.anchor.ref, offset: s.anchor.offset - (scrollTopNow() - s.anchor.scrollTop) };
+    const el = s.focus ? content?.querySelector(segmentSelector(s.focus)) : null;
     return s.focus && el ? { ref: s.focus, offset: offsetOf(el) } : undefined;
-  }, [offsetOf]);
+  }, [offsetOf, scrollTopNow]);
+
+  /**
+   * The place to keep when the reader leaves (history): where they were reading, after their own scrolling, by the anchor, not where the
+   * verse happens to be drawn. A phone's menu shows the site's header above the text (60px) just before the reader leaves, which moves
+   * the text without the engine running. (The reader state API's position is getPosition: what is on screen.)
+   */
+  const keptPosition = useCallback((): SavedPosition | undefined => {
+    const s = state.current;
+    if (s.anchor && s.anchor.ref === s.focus) return { ref: s.anchor.ref, offset: s.anchor.offset - (scrollTopNow() - s.anchor.scrollTop) };
+    return getPosition();
+  }, [getPosition, scrollTopNow]);
 
   const restorePosition = useCallback(
     (pos: SavedPosition): boolean => {
       const el = optsRef.current.contentRef.current?.querySelector(segmentSelector(pos.ref));
       if (!el) return false;
       const delta = offsetOf(el) - pos.offset;
+      // not enough text loaded below to scroll that far yet: room under it, so the place is reached now, not after a later jump
+      const short = scrollTopNow() + delta - maxScrollNow();
+      if (delta > 0 && short > 0.5) setTailPad(state.current.tailPad + Math.ceil(short));
       if (Math.abs(delta) >= 0.5) scrollBy(delta);
       const s = state.current;
       s.focus = pos.ref;
@@ -405,7 +459,7 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
       optsRef.current.onFocus?.(pos.ref);
       return true;
     },
-    [offsetOf, scrollBy, scrollTopNow],
+    [offsetOf, scrollBy, scrollTopNow, maxScrollNow, setTailPad],
   );
 
   const restore = useCallback(() => {
@@ -415,7 +469,7 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     state.current.height = content.offsetHeight;
   }, [restoreAnchor]);
 
-  return { setFocus, scrollToSegment, getPosition, restorePosition, check: schedule, restore };
+  return { setFocus, scrollToSegment, getPosition, keptPosition, restorePosition, check: schedule, restore };
 }
 
 /**
@@ -427,13 +481,19 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
  * arriving (the first layout, forced by the first placement, is what requests them), the text stays invisible (the header is not) until they are in and the verse is placed — at most
  * 600ms; with the fonts preloaded it is usually a frame or two. Without this a first visit shows the verse
  * in the fallback font for a frame, then jumps.
+ * A document reached by Back/Forward (the reader had left by a full page load) puts the verse where the reader left it instead: the
+ * place the workspace kept for this history entry and panel (sessionStorage, written on pagehide), as the app's restore will; the
+ * browser's own scroll restoration, which would move a phone's page later in the load, is turned off for it, and the text waits for
+ * the fonts the same way. A place further down than the loaded text reaches (a chapter's last verses, the next chapter not loaded
+ * again yet) gets room under the text, as the engine's restore gives it, which the engine then takes over and trims.
  * Kept tiny and dependency-free. Thresholds match FOCUS_THRESHOLD.
  */
-export const INITIAL_POSITION_SCRIPT = `(function(){var c,shown=0;function show(){if(!shown&&c){shown=1;c.style.visibility="";}}try{var s=document.currentScript;c=s&&s.closest("[data-reader-scroller]");if(!c)return;var t=c.querySelector('[data-scroll-target="true"]'),e=t?null:c.querySelector("[data-column-start]");if(!t&&!e)return;
-function place(){var o=getComputedStyle(c).overflowY,w=!(o==="auto"||o==="scroll"),d;if(t){var th=(w?70:140)+2;d=t.getBoundingClientRect().top-(w?0:c.getBoundingClientRect().top)-th;}else{var f=c.closest("[data-reader-frame]"),h=w&&f&&f.parentElement&&f.parentElement.querySelector("header"),hs=h&&getComputedStyle(h),line=w?(hs&&hs.position==="sticky"?(parseFloat(hs.top)||0)+h.offsetHeight:0):c.getBoundingClientRect().top;d=e.getBoundingClientRect().bottom-line;}if(Math.abs(d)<0.5)return;if(w)window.scrollTo(0,window.scrollY+d);else c.scrollTop+=d;}
-place();var f=document.fonts;if(t&&f&&f.status!=="loaded"){c.style.visibility="hidden";f.ready.then(function(){place();show();});setTimeout(show,600);}if(!window.ResizeObserver){show();return;}
+export const INITIAL_POSITION_SCRIPT = `(function(){var c,shown=0;function show(){if(!shown&&c){shown=1;c.style.visibility="";}}try{var s=document.currentScript;c=s&&s.closest("[data-reader-scroller]");if(!c)return;var sv=saved(),g=sv&&c.querySelector('[role="group"][data-ref="'+CSS.escape(sv.ref)+'"]'),t=g?null:c.querySelector('[data-scroll-target="true"]'),e=g||t?null:c.querySelector("[data-column-start]");if(!g&&!t&&!e)return;if(g)try{history.scrollRestoration="manual";}catch(x){}
+function place(){var o=getComputedStyle(c).overflowY,w=!(o==="auto"||o==="scroll"),d;if(g){d=g.getBoundingClientRect().top-(w?0:c.getBoundingClientRect().top)-sv.offset;var se=w?document.scrollingElement:c,sh=(w?scrollY:c.scrollTop)+d-(se.scrollHeight-se.clientHeight),ct=c.firstElementChild;if(sh>0.5&&ct){var tp=(ct.__tailPad||0)+Math.ceil(sh);ct.style.paddingBottom="";ct.style.paddingBottom=parseFloat(getComputedStyle(ct).paddingBottom)+tp+"px";ct.__tailPad=tp;}}else if(t){var th=(w?70:140)+2;d=t.getBoundingClientRect().top-(w?0:c.getBoundingClientRect().top)-th;}else{var f=c.closest("[data-reader-frame]"),h=w&&f&&f.parentElement&&f.parentElement.querySelector("header"),hs=h&&getComputedStyle(h),line=w?(hs&&hs.position==="sticky"?(parseFloat(hs.top)||0)+h.offsetHeight:0):c.getBoundingClientRect().top;d=e.getBoundingClientRect().bottom-line;}if(Math.abs(d)<0.5)return;if(w)window.scrollTo(0,window.scrollY+d);else c.scrollTop+=d;}
+place();var f=document.fonts;if((t||g)&&f&&f.status!=="loaded"){c.style.visibility="hidden";f.ready.then(function(){place();show();});setTimeout(show,600);}if(!window.ResizeObserver){show();return;}
 var ro=new ResizeObserver(place),live=1,tick=function(){if(live){place();requestAnimationFrame(tick);}},stop=function(){live=0;show();ro.disconnect();["wheel","touchmove","keydown","pointerdown"].forEach(function(e){removeEventListener(e,stop,true)});};requestAnimationFrame(tick);
-ro.observe(c);ro.observe(c.firstElementChild||c);["wheel","touchmove","keydown","pointerdown"].forEach(function(e){addEventListener(e,stop,true)});c.__keepPlace=stop;}catch(e){show();}})();`;
+ro.observe(c);ro.observe(c.firstElementChild||c);["wheel","touchmove","keydown","pointerdown"].forEach(function(e){addEventListener(e,stop,true)});c.__keepPlace=stop;}catch(e){show();}
+function saved(){try{var n=performance.getEntriesByType("navigation")[0];if(!n||n.type!=="back_forward")return null;var k=history.state&&history.state.__TSR_key,p=c.closest("[data-panel-id]"),id=p&&p.getAttribute("data-panel-id"),a=JSON.parse(sessionStorage.getItem("reader.positions")||"[]");for(var i=0;i<a.length;i++)if(a[i][0]===k&&a[i][1]&&a[i][1][id])return a[i][1][id];}catch(x){}return null;}})();`;
 
 /**
  * How soon after a key a scroll counts as the reader's: the browser starts a key's scroll (smooth or not) within a frame or two, and

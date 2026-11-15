@@ -99,7 +99,7 @@ test("the output is minified, holds no personal data, and a second run changes n
   for (const [f, before, after] of scrubFiles(root)) assert.equal(after, before, `${f} changed on the second run`);
 });
 
-test("a new person added to a scrubbed tree gets the next free number", () => {
+test("a new person added to a scrubbed tree gets the number after the highest one", () => {
   const root = tree();
   for (const [f, , after] of scrubFiles(root)) writeFileSync(join(root, f), after);
   const p = join(root, "api", "a", "related.json");
@@ -165,4 +165,31 @@ test("the CMS's team members become numbered placeholders (name, Hebrew name, he
   writeFileSync(join(root, "team.json"), after);
   assert.equal(scrubFiles(root)[0][2], after);
   assert.deepEqual(findPersonalKeys(answer).length, 4);
+});
+
+// Adding recordings must not renumber the ones already scrubbed: a recording written afresh before each test run frees its number
+// until the next scrub, and a new person filed earlier used to take it (one re-pack changed three recordings that had not changed).
+test("a new person is numbered after the highest placeholder, never in a gap, so existing files keep their bytes", () => {
+  const root = mkdtempSync(join(tmpdir(), "scrub-test-"));
+  mkdirSync(join(root, "api"), { recursive: true });
+  const kept = { sheets: [{ sheetUrl: "/sheets/7", ownerName: "Sheet Author 1", ownerProfileUrl: "/profile/sheet-author-1" }, { sheetUrl: "/sheets/8", ownerName: "Sheet Author 3", ownerProfileUrl: "/profile/sheet-author-3" }] };
+  writeFileSync(join(root, "api", "b-kept.json"), JSON.stringify(kept) + "\n");
+  // filed before the kept one, with a person not yet scrubbed; number 2 is free
+  writeFileSync(join(root, "api", "a-new.json"), JSON.stringify({ sheets: [{ sheetUrl: "/sheets/9", ownerName: "Dov New", ownerProfileUrl: "/profile/dov-new" }] }));
+  const out = Object.fromEntries(scrubFiles(root).map(([f, before, after]) => [f, { before, after }]));
+  assert.equal(out["api/b-kept.json"].after, out["api/b-kept.json"].before);
+  assert.match(out["api/a-new.json"].after, /"ownerName":"Sheet Author 4"/);
+  assert.match(out["api/a-new.json"].after, /"ownerProfileUrl":"\/profile\/sheet-author-4"/);
+});
+
+test("a /profile/ link on another site is not a person here and is kept", () => {
+  const root = mkdtempSync(join(tmpdir(), "scrub-test-"));
+  mkdirSync(join(root, "api"), { recursive: true });
+  const html = '<a href="https://www.guidestar.org/profile/46-4406454">GuideStar</a> <a href="https://www.sefaria.org/profile/ada-reader">Ada</a> <a href="/profile/ben-writer">Ben</a>';
+  writeFileSync(join(root, "api", "page.json"), JSON.stringify({ html }));
+  const after = JSON.parse(scrubFiles(root)[0][2]).html;
+  assert.match(after, /https:\/\/www\.guidestar\.org\/profile\/46-4406454/);
+  assert.match(after, /https:\/\/www\.sefaria\.org\/profile\/sheet-author-1"/);
+  assert.match(after, /href="\/profile\/sheet-author-2"/);
+  assert.deepEqual(findPersonalData(JSON.stringify({ html: after })), []);
 });

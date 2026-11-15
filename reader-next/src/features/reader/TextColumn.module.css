@@ -5,6 +5,11 @@
 .frame { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; container: panel / inline-size; }
 :global(html):has(.scroller) { overflow-anchor: none; }
 .content { overflow-anchor: none; padding-block-end: var(--sefaria-space-12); }
+/* Each loaded section is its own surface, a size container, so a verse's bottom margin cannot collapse into the next section title's
+   top margin as it does on sefaria.org (one flow there: 30px between a section's last verse and the next title, not 26 + 30). The
+   last verse before a titled section drops its margin, leaving the title's 30px. Only the verse above the new section changes, so a
+   section arriving below moves nothing on screen, and one arriving above is measured with it already in place. */
+.content > :has(+ * > section:first-child > [data-section-title]:first-child) > section:last-child > :last-child { margin-block-end: 0; }
 /* Placeholders at each end have a constant height, whatever they show, so loading never moves the text. */
 .edge { display: grid; place-items: center; height: 90px; color: var(--sefaria-color-text-muted); font-size: var(--sefaria-text-sans-small); }
 .bookTitle { margin: 0; text-align: center; font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); color: var(--sefaria-color-text-secondary); letter-spacing: 0.04em; }

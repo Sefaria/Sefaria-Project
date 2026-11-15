@@ -8,6 +8,7 @@
  */
 import { urlToRef } from "~/lib/ref/url";
 import { isReaderPath } from "~/lib/reader/paths";
+import { bookTitleOf } from "~/lib/book/book-page";
 import { stringifySearch } from "~/lib/reader/search-serializer";
 import type { ReaderSettings } from "~/lib/reader/settings";
 import { leaves } from "~/lib/layout/tree";
@@ -101,7 +102,7 @@ const sameAddress = (a: string, b: string) => {
 
 /** The slice of TanStack's router these commands use (so tests can pass a fake). */
 export interface WorkspaceRouter {
-  state: { location: { pathname: string; search: unknown; searchStr?: string; state?: unknown }; matches?: { routeId: string }[] };
+  state: { location: { pathname: string; search: unknown; searchStr?: string; state?: unknown }; matches?: { routeId: string; pathname?: string; loaderData?: unknown }[] };
   navigate: (opts: Record<string, unknown>) => Promise<void> | void;
 }
 
@@ -164,6 +165,12 @@ export function createWorkspaceCommands(router: WorkspaceRouter, getDefaults: ()
       if (!isReaderPath(loc.pathname)) return false;
       const splat = splatOf(loc.pathname);
       if (!splat) return false;
+      // a bare title ("/Exodus") is a book's page unless the route, once it has loaded this address, made it a text: on a link from the
+      // reader to the book's page the matches are still the reader's while the address is already the book's, which is no workspace
+      if (bookTitleOf(urlToRef(splat))) {
+        const match = router.state.matches?.find((m) => m.routeId === READER_ROUTE);
+        if (match?.pathname !== loc.pathname || (match.loaderData as { kind?: string } | undefined)?.kind !== "text") return false;
+      }
       const enc = encodeWorkspace(decodeWorkspace(urlToRef(splat), loc.search as RawSearch), getDefaults());
       if (!enc) return false;
       const searchStr = loc.searchStr ?? stringifySearch(loc.search as Record<string, unknown>);

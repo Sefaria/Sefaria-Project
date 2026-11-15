@@ -286,3 +286,24 @@ describe("version titles with query delimiters (master's encodeVtitle)", () => {
     expect((decodeWorkspace("Genesis 1", enc.search).panels.p1 as TextPanelState).versions.translation).toBe("english|A;B & C#1+2 100%");
   });
 });
+
+// sefaria.org on a phone (ReaderApp.jsx makeHistoryState, isMobileConnectionsOpen): the sidebar is shown in place of its panel and its
+// language is not in the address. Measured 2026-11-13, Pixel 7: a verse or the title opens `/Genesis.1?lang=bi&with=all`.
+// @feature RTE-043 @feature SHL-033
+describe("the sidebar's language on a phone", () => {
+  const withSidebar = decodeWorkspace("Genesis 1", { lang: "bi", with: "all", lang2: "en" });
+  it("is not written on a phone, and is on a wider screen", () => {
+    expect(workspaceUrl(withSidebar, { lang: "bi", aliyot: 0, singlePanel: true })).toBe("/Genesis.1?lang=bi&with=all");
+    expect(workspaceUrl(withSidebar, { lang: "bi", aliyot: 0 })).toBe("/Genesis.1?lang=bi&with=all&lang2=en");
+  });
+  it("a phone address without it reads back with no sidebar language (the sidebar follows the panel's) and writes the same address", () => {
+    const ws = decodeWorkspace("Genesis 1:3", { lang: "he", with: "all" });
+    const p = ws.panels[Object.keys(ws.panels)[0] as keyof typeof ws.panels]!;
+    expect(p.kind === "text" && p.asides[0]?.lang).toBeFalsy();
+    expect(workspaceUrl(ws, { lang: "bi", aliyot: 0, singlePanel: true })).toBe("/Genesis.1.3?lang=he&with=all");
+  });
+  it("a second panel still writes its language on a wide screen", () => {
+    const two = decodeWorkspace("Genesis 1", { lang: "bi", p2: "Exodus.1", lang2: "en" });
+    expect(workspaceUrl(two, { lang: "bi", aliyot: 0, singlePanel: true })).toContain("lang2=en");
+  });
+});
