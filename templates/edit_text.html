@@ -1,5 +1,7 @@
 {% load render_bundle from webpack_loader %}
 {% load static %}
+{# sefaria_tags' static adds a content hash (?v=), so a new design-system release isn't served stale. #}
+{% load sefaria_tags %}
 {% get_static_prefix as STATIC_PREFIX %}
 
 <!DOCTYPE html>

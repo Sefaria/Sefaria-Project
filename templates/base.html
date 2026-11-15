@@ -126,6 +126,26 @@
     <link rel="stylesheet" href="{%  static 'css/font-faces.css' %}">
     <link rel="stylesheet" href="{% static 'design-system/core.css' %}">
     <link rel="stylesheet" href="{% static 'design-system/semantic.css' %}">
+    {% if design_system_preview %}
+    <script>
+      // Design-system preview, outside production only (sefaria/utils/design_system.py): load
+      // Sefaria/design-system at this branch or commit over the pinned tokens, as text.
+      (function () {
+        var source = "https://raw.githubusercontent.com/Sefaria/design-system/{{ design_system_preview|escapejs }}/";
+        var after = document.currentScript;
+        ["core.css", "semantic.css"].forEach(function (file) {
+          var style = document.createElement("style");
+          style.setAttribute("data-design-system-preview", file);
+          after.parentNode.insertBefore(style, after.nextSibling);
+          after = style;
+          fetch(source + file)
+            .then(function (response) { if (!response.ok) throw new Error("HTTP " + response.status); return response.text(); })
+            .then(function (css) { style.textContent = css; })
+            .catch(function (error) { console.warn("Design system preview: couldn't load " + file, error); });
+        });
+      })();
+    </script>
+    {% endif %}
     <link rel="stylesheet" href="{%  static 'css/color-palette.css' %}">
     <link rel="stylesheet" href="{%  static 'css/themes/library-theme.css' %}">
     <link rel="stylesheet" href="{%  static 'css/themes/sheets-theme.css' %}">
