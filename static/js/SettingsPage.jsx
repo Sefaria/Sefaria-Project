@@ -655,7 +655,7 @@ const TermsLink = () => (
    the 10-project limit, waiting on Daniel) still show as sent. */
 const E_SERVER_COPY = [
   [
-    /^Could not parse JSON|^Request (is too large|must be a JSON object)|must be a JSON object|^Submission (is too large|must be)|^Unknown test action|^Unsupported HTTP method|^Accept the API terms|^Choose whether the project is public or private/,
+    /^Failed to fetch|NetworkError|^Load failed|^Network request failed|^Could not parse JSON|^Request (is too large|must be a JSON object)|must be a JSON object|^Submission (is too large|must be)|^Unknown test action|^Unsupported HTTP method|^Accept the API terms|^Choose whether the project is public or private/,
     null,
   ],
   [
@@ -727,15 +727,45 @@ const eMessage = (err, fallback = SAVE_FAILED) => {
   }
   return raw;
 };
+/* A server rejection about one field shows on that field, not in the banner (Penina, 2026-11-15;
+   design-notes/error-copy.md). Returns the form's field key and the field's own error copy, or null. */
+const eFieldError = (err) => {
+  const raw = (err && err.message) || '';
+  if (/^The website is not a valid web address/.test(raw)) {
+    return { field: 'websiteUrl', error: E_SITE_INVALID };
+  }
+  if (/^Give the project a name/.test(raw)) {
+    return { field: 'name', error: 'auth.required_field' };
+  }
+  if (/^Give the key a name/.test(raw)) {
+    return { field: 'label', error: 'auth.required_field' };
+  }
+  if (/^The key name can be at most/.test(raw)) {
+    return {
+      field: 'label',
+      error: <InterfaceText text={{ en: 'Use 100 characters or fewer.', he: 'השתמשו ב־100 תווים לכל היותר.' }} />,
+    };
+  }
+  if (/^The additional email is not a valid address/.test(raw)) {
+    return { field: 'additionalEmail', error: 'auth.invalid_email' };
+  }
+  return null;
+};
 /* A failed save: the sign-in forms' error banner, at the top of the form. */
 const saveFailure = (err) => ({ message: eMessage(err) });
 /* A key that couldn't be made: say so, and nothing more (Penina, 2026-11-05). */
-const keyFailure = (err) => ({
-  message: eMessage(err, {
-    en: "We couldn't create your key. Please try again.",
-    he: 'לא הצלחנו ליצור את המפתח. נסו שוב.',
-  }),
-});
+const keyFailure = (err) => {
+  const onField = eFieldError(err);
+  if (onField && onField.field === 'label') {
+    return { labelError: onField.error };
+  }
+  return {
+    message: eMessage(err, {
+      en: "We couldn't create your key. Please try again.",
+      he: 'לא הצלחנו ליצור את המפתח. נסו שוב.',
+    }),
+  };
+};
 
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
 
@@ -1205,7 +1235,12 @@ const EWelcome = ({ dots, onSave, initial, onCancel, edit }) => {
         })
       )
     ).catch((err) => {
-      setBanner(saveFailure(err));
+      const onField = eFieldError(err);
+      if (onField && onField.field === 'additionalEmail') {
+        setErrors((x) => ({ ...x, additionalEmail: onField.error }));
+      } else {
+        setBanner(saveFailure(err));
+      }
       setSaving(false);
     });
   };
@@ -1531,7 +1566,18 @@ const useEProjectForm = (initial, withKey, initialLabel) => {
     organization: fields.organization.trim(),
     websiteUrl: parseWebsite(fields.websiteUrl).url,
   });
-  return { fields, set, check, errors, label, setKeyLabel, validate, projectBody };
+  /* A server rejection for one field: show it there and move focus to it. */
+  const setFieldError = (key, error) => {
+    setErrors((e) => ({ ...e, [key]: error }));
+    // After the render, so a field in a section that just opened can take focus.
+    setTimeout(() => {
+      const el = document.getElementById(E_FIELD_IDS[key]);
+      if (el) {
+        el.focus();
+      }
+    }, 0);
+  };
+  return { fields, set, check, errors, label, setKeyLabel, validate, projectBody, setFieldError };
 };
 
 /* Key names stop at 100 characters, the server's limit (powered_by ApiKey.label), so a long name can't fail on save
@@ -1555,8 +1601,8 @@ const EKeyNameField = ({ label, setLabel, error, hint, placeholder }) => (
 const ENewKey = ({ project, onBack, onCreate, failure, initialLabel }) => {
   const restrict = useKeyRestrict(project);
   const [label, setLabel] = useState(initialLabel || ''); // empty, with the "My key" placeholder (2026-11-05)
-  const [error, setError] = useState(null);
-  const [banner, setBanner] = useState(failure || null);
+  const [error, setError] = useState((failure && failure.labelError) || null);
+  const [banner, setBanner] = useState(failure && failure.message ? failure : null);
   const [busy, setBusy] = useState(false);
   const submit = (e) => {
     e.preventDefault();
@@ -1572,7 +1618,12 @@ const ENewKey = ({ project, onBack, onCreate, failure, initialLabel }) => {
     setBusy(true);
     setBanner(null);
     Promise.resolve(onCreate(label.trim(), restrict.options())).catch((err) => {
-      setBanner(keyFailure(err));
+      const failed = keyFailure(err);
+      if (failed.labelError) {
+        setError(failed.labelError);
+      } else {
+        setBanner(failed);
+      }
       setBusy(false);
     });
   };
@@ -1633,7 +1684,12 @@ const ESetupProject = ({ dots, title, onBack, backLabel, onSkip, skipLabel, onCr
     setBusy(true);
     setBanner(null);
     Promise.resolve(onCreate(form.projectBody())).catch((err) => {
-      setBanner(saveFailure(err));
+      const onField = eFieldError(err);
+      if (onField && onField.field !== 'label' && onField.field !== 'additionalEmail') {
+        form.setFieldError(onField.field, onField.error);
+      } else {
+        setBanner(saveFailure(err));
+      }
       setBusy(false);
     });
   };
@@ -1800,8 +1856,8 @@ const useKeyRestrict = (project) => {
 const ESetupKey = ({ dots, project, onBack, backLabel, onSkip, onCreate, failure, initialLabel }) => {
   const restrict = useKeyRestrict(project);
   const [label, setLabel] = useState(initialLabel || '');
-  const [error, setError] = useState(null);
-  const [banner, setBanner] = useState(failure || null);
+  const [error, setError] = useState((failure && failure.labelError) || null);
+  const [banner, setBanner] = useState(failure && failure.message ? failure : null);
   const [busy, setBusy] = useState(false);
   const submit = (e) => {
     e.preventDefault();
@@ -1817,7 +1873,12 @@ const ESetupKey = ({ dots, project, onBack, backLabel, onSkip, onCreate, failure
     setBusy(true);
     setBanner(null);
     Promise.resolve(onCreate(label.trim(), restrict.options())).catch((err) => {
-      setBanner(keyFailure(err));
+      const failed = keyFailure(err);
+      if (failed.labelError) {
+        setError(failed.labelError);
+      } else {
+        setBanner(failed);
+      }
       setBusy(false);
     });
   };
@@ -2053,7 +2114,14 @@ const EEditProject = ({ project, onBack, backLabel, onSave, onDelete, dots, inSe
         ...form.projectBody({ aiAssisted: !!project.aiAssisted, visibility: project.visibility || 'private' }),
         ...override,
       })
-    ).catch((err) => setBanner(saveFailure(err)));
+    ).catch((err) => {
+      const onField = eFieldError(err);
+      if (onField && onField.field !== 'label' && onField.field !== 'additionalEmail') {
+        form.setFieldError(onField.field, onField.error);
+      } else {
+        setBanner(saveFailure(err));
+      }
+    });
   };
   const submit = (e) => {
     e.preventDefault();
@@ -2670,7 +2738,13 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
         form.projectBody({ aiAssisted: builtWithAi === 'yes', visibility: 'public' })
       )
     ).catch((err) => {
-      setBanner(saveFailure(err));
+      const onField = eFieldError(err);
+      if (onField && (onField.field === 'websiteUrl' || onField.field === 'name')) {
+        setEditProject(true); // open "Your project" so the field with the problem shows
+        form.setFieldError(onField.field, onField.error);
+      } else {
+        setBanner(saveFailure(err));
+      }
       setBusy(false);
     });
   };

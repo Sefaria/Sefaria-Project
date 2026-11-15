@@ -114,7 +114,7 @@ describe('refused saves', () => {
     server.fail('POST', 'profile', 400, 'The additional email is not a valid address.');
     await click(button('Edit profile'));
     await click(button('Save'));
-    expect(screen.getByRole('alert').textContent).toContain('The additional email is not a valid address.');
+    expect(screen.getByRole('alert').textContent).toContain('auth.invalid_email'); // on the field, not the banner
     expect(heading('About you')).toBeTruthy();
   });
 

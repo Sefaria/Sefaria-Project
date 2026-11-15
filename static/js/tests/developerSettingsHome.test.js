@@ -195,7 +195,7 @@ describe('a new project', () => {
     await choose('What are you building?', 'Research');
     type(field(/Short description/), 'Tracks the daf');
     await click(button('Continue'));
-    expect(screen.getByRole('alert').textContent).toContain('Give the project a name.');
+    expect(screen.getByRole('alert').textContent).toContain('auth.required_field'); // on the field, not the banner
     expect(heading('New project')).toBeTruthy();
     expect(button('Continue').disabled).toBe(false);
   });
