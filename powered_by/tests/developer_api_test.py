@@ -106,6 +106,15 @@ class VerificationTest(DeveloperApiTestCase):
         self.assertEqual(status, 200)
         self.assertTrue(state["developerEnabled"])
 
+    def test_the_confirmation_email_has_an_html_version_with_the_same_link(self):
+        self.call("post", "confirmation")
+
+        message = mail.outbox[0]
+        link = re.search(r"https?://\S+/settings/developer/confirm-email/\S+", message.body).group(0)
+        html, mimetype = message.alternatives[0]
+        self.assertEqual(mimetype, "text/html")
+        self.assertIn('href="%s"' % link, html)
+
     def test_the_emailed_link_confirms_the_address_without_a_login_and_turns_developer_settings_on(self):
         status, state = self.call("post", "confirmation")
 

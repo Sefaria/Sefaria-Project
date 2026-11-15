@@ -174,6 +174,9 @@ def send_confirmation_email(request, user):
         render_to_string("developer/email_confirmation_message.txt", context),
         None,
         [user.email],
+        html_message=render_to_string(
+            "developer/email_confirmation_message.html", {**context, "request": request}  # for its lang attribute
+        ),
     )
 
 
