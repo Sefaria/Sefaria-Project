@@ -438,3 +438,48 @@ def test_catchall_redirect_version_both_invalid(client, monkeypatch):
     params = _get_redirect_params(response)
     assert "ven" not in params
     assert "vhe2" not in params
+
+
+class _UnresolvableRef:
+    """A Ref stand-in whose title cannot be parsed, like ``Ref("undefined")``."""
+
+    def __init__(self, tref, *args, **kwargs):
+        raise InputError(f"Could not find title in reference: {tref}")
+
+    @staticmethod
+    def instantiate_ref_with_legacy_parse_fallback(tref):
+        raise InputError(f"Could not find title in reference: {tref}")
+
+
+def test_catchall_unresolvable_tref_with_version_param_is_404(monkeypatch):
+    """
+    An unresolvable title with a version query param must return 404, not 500.
+
+    Version normalization resolves the tref with Ref(); for a title that cannot
+    be parsed it raised InputError before catchall validated the ref, so the
+    request returned an unhandled 500 (seen on /undefined?vhe=... in production).
+    """
+    from django.http import Http404
+    from django.test import RequestFactory
+
+    from reader.views import catchall
+
+    monkeypatch.setattr("reader.views.Ref", _UnresolvableRef)
+    request = RequestFactory().get("/undefined", {"vhe": "Tosefta Chagigah - Machon Mamre/notes"})
+
+    with pytest.raises(Http404):
+        catchall(request, "undefined")
+
+
+def test_catchall_unresolvable_tref_without_version_param_is_404(monkeypatch):
+    """Control: an unresolvable title with no version param already returned 404."""
+    from django.http import Http404
+    from django.test import RequestFactory
+
+    from reader.views import catchall
+
+    monkeypatch.setattr("reader.views.Ref", _UnresolvableRef)
+    request = RequestFactory().get("/undefined")
+
+    with pytest.raises(Http404):
+        catchall(request, "undefined")
