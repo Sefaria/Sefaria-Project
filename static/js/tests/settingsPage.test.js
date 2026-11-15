@@ -237,7 +237,8 @@ describe('About you', () => {
     expect(screen.getByText(/Signed in as/).closest('p').textContent).toBe('Signed in as Tova Levi (tova@example.org)');
     // The account has a name, so there is no name field.
     expect(screen.queryByLabelText('Name')).toBeNull();
-    expect(screen.getByRole('link', { name: 'Sefaria API terms' }).getAttribute('href')).toBe('/api-terms');
+    // No terms line under Continue (removed after the 2026-11-15 meeting with Daniel).
+    expect(screen.queryByRole('link', { name: 'Sefaria API terms' })).toBeNull();
   });
 
   it('asks for a name when the account has none', async () => {
@@ -414,9 +415,7 @@ describe('the first project and key', () => {
       'POST keys/' + newProject().keys[0].id,
     ]);
     expect(newProject().websiteUrl).toBe('https://daftracker.org');
-    expect(
-      screen.getByRole('switch', { name: 'Only accept requests with Website key from daftracker.org' }).checked
-    ).toBe(true);
+    expect(screen.getByRole('switch', { name: 'Limit Website key to your website' }).checked).toBe(true);
   });
 
   it('names the website in the switch when the project has one', async () => {
@@ -425,7 +424,9 @@ describe('the first project and key', () => {
     type(field(/^Website/), 'daftracker.org');
     await click(button('Continue'));
     expect(screen.getByRole('switch', { name: 'Limit this key to daftracker.org' })).toBeTruthy();
-    expect(screen.getByText(/Leave it switched/).textContent).toContain('server or an AI tool');
+    expect(document.querySelector('.devE-restrictHint').textContent).toContain(
+      'Leave it off if your key is going in a server or an AI tool.'
+    );
   });
 
   it('goes back from the key step to edit the project, not to make another', async () => {
@@ -493,11 +494,13 @@ describe('a confirmation link that cannot confirm', () => {
     expect(button('Resend in 60s').disabled).toBe(true);
   });
 
-  it("shows the server's reason when a new link is refused", async () => {
+  it('says a new link could not be sent when one is refused', async () => {
     show('expired');
     server.fail('POST', 'confirmation/new-link', 400, "This link can't be renewed.");
     await click(button('Send a new link'));
-    expect(screen.getByRole('alert').textContent).toBe("This link can't be renewed.");
+    expect(screen.getByRole('alert').textContent).toBe(
+      "We couldn't send a new link. Ask for one in Developer Settings."
+    );
   });
 
   it('sends a link for a former address to developer settings for a new one', () => {
@@ -512,15 +515,10 @@ describe('a confirmation link that cannot confirm', () => {
     expect(screen.getByRole('link', { name: 'Continue to Developer Settings' })).toBeTruthy();
   });
 
-  it('says a link for an address another account uses is no longer valid, with where to get help', () => {
+  it('gives a link for an address another account uses the same page as any link that no longer works', () => {
     show('address-in-use');
-    expect(heading('This link is no longer valid')).toBeTruthy();
-    expect(screen.getByText(/This address can't be confirmed for this account/)).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'hello@sefaria.org' }).getAttribute('href')).toBe(
-      'mailto:hello@sefaria.org'
-    );
-    expect(screen.getByRole('link', { name: 'Continue to Developer Settings' })).toBeTruthy();
-    expect(queryButton('Send a new link')).toBeNull();
+    expect(heading('This link no longer works')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Send a new link' }).getAttribute('href')).toBe('/settings/developer');
   });
 
   it('renders nothing for a status it does not know', () => {
@@ -570,57 +568,12 @@ describe('Hebrew interface', () => {
     server.fail('DELETE', 'keys/k1', 404, 'No such key.');
     await click(button('מחיקת המפתח, Key 1'));
     await click(button('מחיקה'));
-    expect(screen.getByText('המפתח לא נמצא.')).toBeTruthy();
+    expect(screen.getByText('המפתח הזה כבר לא קיים. רעננו את הדף כדי לראות את המפתחות שלכם.')).toBeTruthy();
   });
 
   it('says the project limit in Hebrew', () => {
     open({ ...READY, projects: [project(1)], maxProjects: 1 });
     expect(screen.getByText(/הגעתם למספר המרבי של 1 פרויקטים/)).toBeTruthy();
-  });
-});
-
-describe('server errors in Hebrew', () => {
-  const fs = require('fs');
-  const path = require('path');
-  const serverSource = ['developer.py', 'developer_views.py']
-    .map((file) => fs.readFileSync(path.join(__dirname, '../../../powered_by', file), 'utf8'))
-    .join('\n');
-  const fixedMessages = Array.from(
-    serverSource.matchAll(/(?:InputError|PermissionError|LookupError)\("([^"{}]+)"\)|"error": "([^"{}]+)"/g),
-    (match) => match[1] || match[2]
-  );
-
-  it('translates every fixed message the developer API sends', () => {
-    lib.Sefaria.interfaceLang = 'hebrew';
-    expect(fixedMessages.length).toBeGreaterThan(15);
-    fixedMessages.forEach((message) =>
-      expect([message, lib.api.serverErrorText(message)]).toEqual([message, expect.stringMatching(HEBREW)])
-    );
-  });
-
-  it('translates messages that carry a number, an address or a field name', () => {
-    lib.Sefaria.interfaceLang = 'hebrew';
-    const { serverErrorText } = lib.api;
-    expect(
-      serverErrorText('An account can have at most 10 projects. To add more, contact developers@sefaria.org.')
-    ).toBe('בחשבון אפשר ליצור עד 10 פרויקטים. כדי להוסיף עוד, כתבו אל developers@sefaria.org.');
-    expect(serverErrorText('A project can have at most 5 keys.')).toBe('לפרויקט יכולים להיות עד 5 מפתחות.');
-    expect(
-      serverErrorText("You've asked for 5 links today. Try again tomorrow, or contact hello@sefaria.org.")
-    ).toMatch(/^ביקשת היום 5 קישורים/);
-    expect(serverErrorText('The project name can be at most 200 characters.')).toBe(
-      'בשם הפרויקט אפשר להזין עד 200 תווים.'
-    );
-    expect(serverErrorText('The website must be text.')).toBe('יש להזין טקסט בכתובת האתר.');
-  });
-
-  it('leaves an unknown message, and every message on the English site, as it is', () => {
-    const { serverErrorText } = lib.api;
-    expect(serverErrorText('Give the project a name.')).toBe('Give the project a name.');
-    lib.Sefaria.interfaceLang = 'hebrew';
-    expect(serverErrorText('Something new went wrong.')).toBe('Something new went wrong.');
-    expect(serverErrorText('The colour can be at most 3 characters.')).toBe('The colour can be at most 3 characters.');
-    expect(serverErrorText('')).toBe('');
   });
 });
 
@@ -652,13 +605,13 @@ describe('website addresses', () => {
 });
 
 describe('developer settings after Back', () => {
-  it('shows the projects it last showed at once, then reloads them from the server', async () => {
+  it("shows no projects until the server confirms the session, then shows the server's", async () => {
     open({ ...READY, projects: [project(1)] });
     cleanup();
     server = fakeServer({ ...READY, projects: [project(2)] });
     renderSettings('developer', undefined, { accountSettings: undefined });
-    // The state request is still in flight: the page shows what it remembered.
-    expect(projectSection('Project 1')).toBeTruthy();
+    // The state request is still in flight: nothing cached shows, keys included (the API keys branch's rule).
+    expect(screen.queryAllByRole('region')).toEqual([]);
     await settle();
     expect(server.count('GET', 'state')).toBe(1);
     expect(projectSection('Project 1')).toBeUndefined();

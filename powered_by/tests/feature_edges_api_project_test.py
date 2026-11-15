@@ -293,18 +293,17 @@ class ApiProjectWriterEdgesTest(DeveloperApiTestCase):
         listing = Project.objects.create(
             submission_source=SubmissionSource.FORMSTACK,
             creator_email=self.user.email,
-            project_name="Claimable",
-            project_link="https://claimable.example.org",
+            project_name="Linked legacy",
+            project_link="https://linked.example.org",
             request_not_to_publish=False,
             is_published=True,
         )
-        status, state = self.call("post", f"listings/{listing.id}/claim")
-        self.assertEqual(status, 200, state)
+        linked_id = str(ApiProject.objects.create(profile=listing, owner=self.user).id)
         self.assertEqual(
             self.call(
                 "post",
-                "projects/" + state["projectId"],
-                {"project": {**PROJECT, "name": "Claimed", "visibility": "public"}},
+                "projects/" + linked_id,
+                {"project": {**PROJECT, "name": "Linked", "visibility": "public"}},
             )[0],
             200,
         )

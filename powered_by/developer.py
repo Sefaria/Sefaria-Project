@@ -9,7 +9,9 @@ confirmed; existing keys keep working, but no new project or key can be created.
 """
 
 import ipaddress
-from datetime import datetime, timedelta
+import logging
+from datetime import UTC, datetime, timedelta
+from datetime import timezone as dt_timezone
 from urllib.parse import urlsplit
 
 import idna
@@ -18,15 +20,17 @@ from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 from django.conf import settings
 from django.contrib.auth import SESSION_KEY, get_user_model
 from django.core import signing
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator, validate_email
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.utils import timezone
 
 from sefaria.model.user_profile import UserProfile
+from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-from .models import ApiKey, ApiProject, Project, SubmissionSource
+from .models import KEY_DISPLAY_PREFIX, ApiKey, ApiProject, Project, SubmissionSource
 
 MAX_KEYS_PER_PROJECT = 5
 MAX_PROJECTS_PER_ACCOUNT = 10
@@ -38,17 +42,21 @@ MAX_PROFILE_DESCRIPTION_LENGTH = 300
 
 ENABLED_SETTING = "developer_enabled"
 PROFILE_SETTING = "developer_profile"
+# Set on the request while confirm_email holds the account lock: sso.adapters.SefariaAccountAdapter confirms an
+# address for no other caller (allauth's own confirm page and headless endpoint would skip the lock and its checks).
+EMAIL_CONFIRMATION_FLAG = "developer_email_confirmation_locked"
 CONFIRMATION_SENT_SETTING = "developer_confirmation_sent_at"
 # The address that pending link went to: a link sent before the account email changed doesn't count.
 CONFIRMATION_SENT_TO_SETTING = "developer_confirmation_sent_to"
-# The times of the sends in the last day. Never cleared by cancelling or confirming, so neither
-# resets the limits.
+# The times of the sends in the last day now live in their own Mongo collection (THROTTLE_COLLECTION), where a
+# whole-profile save cannot overwrite them; this setting is only read, for sends an older version recorded. Never
+# cleared by cancelling or confirming, so neither resets the limits.
 CONFIRMATION_SENDS_SETTING = "developer_confirmation_sends"
+THROTTLE_COLLECTION = "developer_confirmation_throttle"
 CONFIRMATION_COOLDOWN = timedelta(seconds=60)
 CONFIRMATION_DAILY_LIMIT = 5
 CONFIRMATION_LINK_MAX_AGE = timedelta(days=account_settings.EMAIL_CONFIRMATION_EXPIRE_DAYS)
 SSO_PROVIDERS = ("google", "apple")
-DISMISSED_LISTINGS_SETTING = "developer_dismissed_listings"
 
 # Written only through developer settings; the generic profile APIs drop them.
 DEVELOPER_PROFILE_SETTINGS = (
@@ -57,10 +65,15 @@ DEVELOPER_PROFILE_SETTINGS = (
     CONFIRMATION_SENT_SETTING,
     CONFIRMATION_SENT_TO_SETTING,
     CONFIRMATION_SENDS_SETTING,
-    DISMISSED_LISTINGS_SETTING,
 )
 
-MOCK_SSO_SESSION_KEY = "developer_mock_sso"
+# A key's value is sent only when its owner asks, at most REVEAL_LIMIT times per REVEAL_WINDOW seconds per account.
+# Every attempt counts, a failed one included, so guessing key ids is throttled too.
+REVEAL_LIMIT = 20
+REVEAL_WINDOW = 60
+REVEAL_THROTTLE_PREFIX = "developer-key-reveal:"
+
+audit_logger = logging.getLogger("powered_by.key_reveal")
 
 _url_validator = URLValidator(schemes=["http", "https"])
 
@@ -90,8 +103,14 @@ def settings_enabled(user):
     return not getattr(settings, "DEVELOPER_SETTINGS_STAFF_ONLY", False) or bool(getattr(user, "is_staff", False))
 
 
-def mocks_enabled():
-    return bool(getattr(settings, "DEVELOPER_SETTINGS_MOCKS", False))
+def login_may_enable_settings(request):
+    """True when developer settings are on for staff only and the visitor, being logged out, may be staff."""
+    return (
+        getattr(settings, "DEVELOPER_SETTINGS_ENABLED", False)
+        and getattr(settings, "DEVELOPER_SETTINGS_STAFF_ONLY", False)
+        and not request.user.is_authenticated
+        and request.method == "GET"
+    )
 
 
 def iso(dt):
@@ -138,19 +157,12 @@ def session_login(request):
 # --- Verification ------------------------------------------------------------
 
 
-def mock_sso_override(request):
-    return request.session.get(MOCK_SSO_SESSION_KEY) if mocks_enabled() else None
-
-
 def sso_connected(request):
     """
     Whether a Google or Apple login of this account vouches for the account email: the provider
     marked that address verified at the last sign-in. Signing in with an address the provider
     hasn't verified doesn't count; that account confirms by link instead.
     """
-    override = mock_sso_override(request)
-    if override is not None:
-        return override
     email = (request.user.email or "").lower()
     if not email:
         return False
@@ -234,26 +246,37 @@ def confirm_email(request, key):
     Confirms the address behind an emailed link and turns developer settings on for its
     account. Opening it needs no login. Returns a LinkStatus: a link for an address that is no
     longer the account email is refused, as is one older than the link lifetime.
+
+    The account's auth row is locked from the check to the confirmation, and the address and the account email
+    are read again under that lock: allauth's confirmation sets the account email to the address it confirms, so a
+    link for a previous address, checked just before an email change, would otherwise undo that change.
     """
-    if _address_id_of_link(key) is None:
+    pk = _address_id_of_link(key)
+    if pk is None:
         return LinkStatus.INVALID
-    address = address_of_link(key)
+    owner_id = EmailAddress.objects.filter(pk=pk).values_list("user_id", flat=True).first()
     # A missing address was removed from its account when the account email changed.
-    if address is None or not is_account_email(address):
+    if owner_id is None:
         return LinkStatus.NOT_ACCOUNT_EMAIL
-    if address.verified:
-        return LinkStatus.ALREADY_CONFIRMED
-    if link_expired(key):
-        return LinkStatus.EXPIRED
-    if verified_elsewhere(address):
-        return LinkStatus.ADDRESS_IN_USE
-    if EmailConfirmationHMAC(address).confirm(request) is None:
-        return LinkStatus.INVALID
-    profile = UserProfile(id=address.user_id)
-    profile.settings[ENABLED_SETTING] = True
-    profile.settings.pop(CONFIRMATION_SENT_SETTING, None)
-    profile.settings.pop(CONFIRMATION_SENT_TO_SETTING, None)
-    profile.save()
+    with transaction.atomic():
+        get_user_model().objects.select_for_update().filter(pk=owner_id).first()
+        address = address_of_link(key)
+        if address is None or address.user_id != owner_id or not is_account_email(address):
+            return LinkStatus.NOT_ACCOUNT_EMAIL
+        if address.verified:
+            return LinkStatus.ALREADY_CONFIRMED
+        if link_expired(key):
+            return LinkStatus.EXPIRED
+        if verified_elsewhere(address):
+            return LinkStatus.ADDRESS_IN_USE
+        setattr(request, EMAIL_CONFIRMATION_FLAG, True)
+        if EmailConfirmationHMAC(address).confirm(request) is None:
+            return LinkStatus.INVALID
+        profile = UserProfile(id=address.user_id)
+        profile.settings[ENABLED_SETTING] = True
+        profile.settings.pop(CONFIRMATION_SENT_SETTING, None)
+        profile.settings.pop(CONFIRMATION_SENT_TO_SETTING, None)
+        profile.save()
     return LinkStatus.CONFIRMED
 
 
@@ -275,7 +298,8 @@ def serialize_key(api_key):
     return {
         "id": str(api_key.id),
         "label": api_key.label,
-        "value": api_key.key,
+        # Never the value: that comes from the reveal endpoint, so no state response, page or cache holds it.
+        "prefix": api_key.key[:KEY_DISPLAY_PREFIX],
         "created": iso(api_key.created_at),
         "restrictToWebsite": bool(api_key.allowed_origins),
     }
@@ -299,15 +323,6 @@ def serialize_project(api_project):
     }
 
 
-def public_listing(project):
-    return {
-        "id": str(project.id),
-        "name": project.project_name,
-        "url": project.project_link,
-        "description": project.project_desc,
-    }
-
-
 def owned_projects(user):
     """The account's live API projects, each with its profile and keys."""
     return (
@@ -318,32 +333,10 @@ def owned_projects(user):
     )
 
 
-def unclaimed_listings(user, profile):
-    """
-    Powered by listings submitted with this account's email that no account manages yet.
-    """
-    dismissed = profile.settings.get(DISMISSED_LISTINGS_SETTING, [])
-    return listings_submitted_by(user).exclude(id__in=dismissed).order_by("-created_at")
-
-
-def listings_submitted_by(user):
-    """
-    Profiles submitted outside developer settings with this account's email and no API project. A listing whose
-    API project was deleted was deleted with it, so it is not offered again. A profile an older image or staff soft-deleted (its frozen deleted_at, which the public endpoint also honours) is
-    not offered: claiming it would hand out a listing that stays hidden from the public endpoint for good.
-    """
-    return (
-        Project.objects.filter(creator_email__iexact=user.email, deleted_at__isnull=True)
-        .exclude(submission_source=SubmissionSource.DEVELOPER_SETTINGS)
-        .exclude(id__in=ApiProject.objects.values("profile_id"))
-    )
-
-
 def developer_state(request):
     user = request.user
     profile = UserProfile(id=user.id)
     verified = account_verified(request)
-    listing = unclaimed_listings(user, profile).first() if verified and user.email else None
     sent_at = None
     if not verified and profile.settings.get(CONFIRMATION_SENT_TO_SETTING) == (user.email or "").lower():
         sent_at = profile.settings.get(CONFIRMATION_SENT_SETTING)
@@ -354,17 +347,9 @@ def developer_state(request):
         "confirmationSentAt": sent_at,
         "profile": profile.settings.get(PROFILE_SETTING),
         "projects": [serialize_project(p) for p in owned_projects(user)],
-        "yourListing": public_listing(listing) if listing else None,
         "maxKeysPerProject": MAX_KEYS_PER_PROJECT,
         "maxProjects": max_projects(user),
-        "mock": None,
     }
-    if mocks_enabled():
-        state["mock"] = {
-            "ssoOverride": mock_sso_override(request),
-            "realSsoProviders": list(user.socialaccount_set.values_list("provider", flat=True)),
-            "confirmationKey": confirmation_for(user).key if sent_at else None,
-        }
     return state
 
 
@@ -464,6 +449,7 @@ def require_verified_developer(request):
 
 
 def _recent_sends(profile, now):
+    """The sends an older version kept in the profile settings: still counted, never written any more."""
     sends = []
     for sent in profile.settings.get(CONFIRMATION_SENDS_SETTING, []):
         try:
@@ -479,31 +465,66 @@ def _seconds(delta):
     return int(delta.total_seconds()) + 1
 
 
-def check_confirmation_limits(user):
-    """
-    Raises CooldownError if this account was sent a confirmation email less than a minute ago,
-    or already had CONFIRMATION_DAILY_LIMIT in the last day.
-    """
-    now = timezone.now()
-    sends = _recent_sends(UserProfile(id=user.id), now)
+def _aware(moment):
+    """Mongo returns UTC datetimes without a zone."""
+    return moment if moment.tzinfo else moment.replace(tzinfo=UTC)
+
+
+def _ceil_to_millisecond(moment):
+    """Mongo keeps milliseconds; rounding a send up never shortens a wait."""
+    micro = -(-moment.microsecond // 1000) * 1000
+    return moment.replace(microsecond=0) + timedelta(microseconds=micro)
+
+
+def _throttle_error(sends, now):
+    """The CooldownError for these send times, or None if another email may go."""
     if sends and now - sends[-1] < CONFIRMATION_COOLDOWN:
-        raise CooldownError(_seconds(CONFIRMATION_COOLDOWN - (now - sends[-1])))
+        return CooldownError(_seconds(CONFIRMATION_COOLDOWN - (now - sends[-1])))
     if len(sends) >= CONFIRMATION_DAILY_LIMIT:
-        raise CooldownError(
+        return CooldownError(
             _seconds(timedelta(days=1) - (now - sends[-CONFIRMATION_DAILY_LIMIT])),
             f"You've asked for {CONFIRMATION_DAILY_LIMIT} links today. Try again tomorrow, or contact hello@sefaria.org.",
         )
+    return None
+
+
+def _reserve_throttle_slot(user, now):
+    """
+    Atomically checks the limits and records a send in the account's throttle document. The throttle lives in its
+    own Mongo collection, not in the profile settings: UserProfile.save() rewrites the whole settings object, so a
+    stale profile save could erase it. The check and the record are one conditional update, so they cannot be split.
+    Raises CooldownError.
+    """
+    throttle = db[THROTTLE_COLLECTION]
+    day_ago = now - timedelta(days=1)
+    # The first use takes over whatever an older version kept in the profile settings.
+    legacy = _recent_sends(UserProfile(id=user.id), now)
+    throttle.update_one({"uid": user.id}, {"$setOnInsert": {"sends": legacy}}, upsert=True)
+    throttle.update_one({"uid": user.id}, {"$pull": {"sends": {"$lte": day_ago}}})
+    reserved = throttle.update_one(
+        {
+            "uid": user.id,
+            "sends": {"$not": {"$elemMatch": {"$gt": now - CONFIRMATION_COOLDOWN}}},
+            f"sends.{CONFIRMATION_DAILY_LIMIT - 1}": {"$exists": False},
+        },
+        {"$push": {"sends": _ceil_to_millisecond(now)}},
+    )
+    if reserved.modified_count == 1:
+        return
+    document = throttle.find_one({"uid": user.id}) or {}
+    sends = sorted(_aware(sent) for sent in document.get("sends", []))
+    raise _throttle_error(sends, now) or CooldownError(_seconds(CONFIRMATION_COOLDOWN))
 
 
 def reserve_confirmation_send(user):
     """
     Atomically checks the limits and records this send, so concurrent requests for one account
-    cannot both pass. The account's auth row is locked for the check and the write; the caller
+    cannot both pass. The account's auth row is locked around the check and the write; the caller
     sends the email afterwards, so a failed send still throttles. Raises CooldownError.
     """
     with transaction.atomic():
         _lock_account(user)
-        check_confirmation_limits(user)
+        _reserve_throttle_slot(user, timezone.now())
         mark_confirmation_sent(user, True)
 
 
@@ -523,7 +544,6 @@ def mark_confirmation_sent(user, sent):
             now = timezone.now()
             profile.settings[CONFIRMATION_SENT_SETTING] = iso(now)
             profile.settings[CONFIRMATION_SENT_TO_SETTING] = (user.email or "").lower()
-            profile.settings[CONFIRMATION_SENDS_SETTING] = [iso(t) for t in _recent_sends(profile, now)] + [iso(now)]
         else:
             profile.settings.pop(CONFIRMATION_SENT_SETTING, None)
             profile.settings.pop(CONFIRMATION_SENT_TO_SETTING, None)
@@ -690,31 +710,6 @@ def soft_delete(api_project):
 
 
 @transaction.atomic
-def claim_listing(user, listing_id):
-    """
-    Makes an unclaimed Powered by listing submitted with this account's email one of its projects.
-    Returns the new API project. The listing profile itself is not changed.
-    """
-    _check_project_limit(user)
-    try:
-        listing_id = int(listing_id)
-        # Locked before the check: a concurrent claim, or a staff-made API project's foreign key, waits for this one.
-        Project.objects.select_for_update().get(id=listing_id)
-        listing = unclaimed_listings(user, UserProfile(id=user.id)).get(id=listing_id)
-    except (Project.DoesNotExist, ValueError):
-        raise LookupError("No such listing.")
-    # The savepoint keeps the request's transaction usable when another claim or an admin made a live API project
-    # for this profile after the check above; that is the partial unique index, and the listing is simply taken.
-    try:
-        with transaction.atomic():
-            return ApiProject.objects.create(profile=listing, owner=user)
-    except IntegrityError as error:
-        if "api_project_one_live_per_profile" not in str(error) and "api_project.profile_id" not in str(error):
-            raise
-        raise LookupError("No such listing.")
-
-
-@transaction.atomic
 def release_account_projects(user):
     """
     For an account being deleted: every key of its API projects is revoked and live API projects are
@@ -728,20 +723,6 @@ def release_account_projects(user):
         soft_delete(api_project)
         api_project.owner = None
         api_project.save()
-
-
-def dismiss_listing(user, listing_id):
-    profile = UserProfile(id=user.id)
-    dismissed = profile.settings.get(DISMISSED_LISTINGS_SETTING, [])
-    try:
-        listing_id = int(listing_id)
-    except ValueError:
-        raise LookupError("No such listing.")
-    if not listings_submitted_by(user).filter(id=listing_id).exists():
-        raise LookupError("No such listing.")
-    if listing_id not in dismissed:
-        profile.settings[DISMISSED_LISTINGS_SETTING] = dismissed + [listing_id]
-        profile.save()
 
 
 # --- Keys --------------------------------------------------------------------
@@ -782,6 +763,30 @@ def set_key_restriction(user, key_id, restrict):
     api_key.allowed_origins = [origin_of(website)] if restrict else []
     api_key.save(update_fields=["allowed_origins"])
     return api_key
+
+
+def _reserve_reveal(user):
+    """Counts one reveal against the account's limit. Raises CooldownError over it."""
+    name = REVEAL_THROTTLE_PREFIX + str(user.id)
+    cache.add(name, 0, REVEAL_WINDOW)
+    try:
+        count = cache.incr(name)
+    except ValueError:  # expired between the add and the incr
+        cache.set(name, 1, REVEAL_WINDOW)
+        count = 1
+    if count > REVEAL_LIMIT:
+        raise CooldownError(REVEAL_WINDOW, "Too many requests for key values. Wait a minute and try again.")
+
+
+def reveal_key(user, key_id):
+    """
+    The value of a live key of one of the account's projects. An unknown key and another account's key are the
+    same LookupError. Logs the user id and the key's display prefix, never the value.
+    """
+    _reserve_reveal(user)
+    api_key = get_owned_key(user, key_id)
+    audit_logger.info("API key value revealed: user=%s key=%s", user.id, api_key.key[:KEY_DISPLAY_PREFIX])
+    return api_key.key
 
 
 def revoke_key(user, key_id):

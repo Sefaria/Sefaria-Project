@@ -777,11 +777,6 @@ class ReaderApp extends Component {
               'settings/developer/confirm-email/' + (state.developerEmailLink ? state.developerEmailLink.key : '');
             hist.mode = 'developerEmailLink';
             break;
-          case 'poweredByForm':
-            hist.title = Sefaria.getPageTitle('Powered by Sefaria Submission Form');
-            hist.url = 'powered-by/form';
-            hist.mode = 'poweredByForm';
-            break;
           case 'user_stats':
             hist.title = Sefaria.getPageTitle('user_stats.torah_tracker');
             hist.url = 'torahtracker';

@@ -60,10 +60,10 @@ def delete_user_account(uid, confirm=True):
     # Delete Following Relationships
     db.following.delete_many({"follower": uid})
     db.following.delete_many({"followee": uid})
-    # Delete Sheet Likes
-    db.sheets.update_many({"likes": uid}, {"$pull": {"likes": uid}})
     # Delete Profile
     db.profiles.delete_one({"id": uid})
+    # The developer settings' email-confirmation throttle
+    db.developer_confirmation_throttle.delete_many({"uid": uid})
     # Delete User Object
     user = User.objects.get(id=uid)
     user.delete()

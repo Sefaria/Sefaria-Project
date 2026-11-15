@@ -1,82 +1,101 @@
-//go:build knowngaps
-
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"net/http"
-	"net/url"
 	"os"
+	"os/exec"
+	"reflect"
+	"strings"
+	"syscall"
 	"testing"
 	"time"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
-// Desired behaviour that the service does not have yet. Run with: go test -tags knowngaps -run KnownGap ./...
-
-func TestKnownGapNA10GatedPathsTrimmed(t *testing.T) {
-	s := startService(t, map[string]string{"PG_DSN": unreachableDSN, "GATED_PATHS": "/api/a, /api/b", "RELOAD_INTERVAL": "1h"})
-	for _, p := range []string{"/api/a", "/api/b"} {
-		t.Run("@known-gap N-A10 "+p, func(t *testing.T) {
-			resp, err := s.check("POST", p, nil)
-			if err != nil || resp.GetDeniedResponse().GetStatus().GetCode() != 401 {
-				t.Fatalf("want 401 api_key_required, got %s", describe(resp, err))
+func TestParseGatedPaths(t *testing.T) {
+	cases := []struct {
+		name, in string
+		want     []string
+	}{
+		{"empty", "", nil},
+		{"blank", "  ", nil},
+		{"only commas", " , ,", nil},
+		{"one", "/api/knn-search", []string{"/api/knn-search"}},
+		{"space after comma", "/api/a, /api/b", []string{"/api/a", "/api/b"}},
+		{"empty entry", "/api/a,,/api/b", []string{"/api/a", "/api/b"}},
+		{"padded entries", "  /api/a  ,\t/api/b ,", []string{"/api/a", "/api/b"}},
+		{"chart default", "/api/knn-search", []string{"/api/knn-search"}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got, err := parseGatedPaths(c.in)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(got, c.want) {
+				t.Fatalf("parseGatedPaths(%q) = %q, want %q", c.in, got, c.want)
 			}
 		})
 	}
 }
 
-// emptySchemaDSN creates the registry tables, empty, in a private schema on PG_TEST_DSN and returns a DSN pinned to it.
-func emptySchemaDSN(t *testing.T) string {
-	t.Helper()
-	base := os.Getenv("PG_TEST_DSN")
-	if base == "" {
-		t.Skip("PG_TEST_DSN not set")
+func TestParseGatedPathsRejectsEntryWithoutLeadingSlash(t *testing.T) {
+	for _, in := range []string{"api/knn-search", "/api/a, api/b", "/api/a,knn-search", "https://x/api"} {
+		t.Run(in, func(t *testing.T) {
+			got, err := parseGatedPaths(in)
+			if err == nil {
+				t.Fatalf("parseGatedPaths(%q) = %q, want an error", in, got)
+			}
+			if !strings.Contains(err.Error(), "GATED_PATHS") || !strings.Contains(err.Error(), "must start with /") {
+				t.Fatalf("unclear error: %v", err)
+			}
+		})
 	}
-	db, err := sql.Open("pgx", base)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { db.Close() })
-	schema := fmt.Sprintf("authsvc_empty_%d", time.Now().UnixNano())
-	if _, err := db.Exec("CREATE SCHEMA " + schema); err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _, _ = db.Exec("DROP SCHEMA " + schema + " CASCADE") })
-	u, err := url.Parse(base)
-	if err != nil {
-		t.Fatal(err)
-	}
-	q := u.Query()
-	q.Set("search_path", schema)
-	u.RawQuery = q.Encode()
-	ddl, err := os.ReadFile("../../internal/registry/testdata/schema.sql")
-	if err != nil {
-		t.Fatal(err)
-	}
-	sdb, err := sql.Open("pgx", u.String())
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer sdb.Close()
-	if _, err := sdb.Exec(string(ddl)); err != nil {
-		t.Fatal(err)
-	}
-	return u.String()
 }
 
-// A pod that starts against an empty key table must either stay not ready or answer UNAVAILABLE, so that a valid
-// key is never denied because the registry is empty.
-func TestKnownGapNCR8EmptyTableAtStart(t *testing.T) {
-	s := startService(t, map[string]string{"PG_DSN": emptySchemaDSN(t), "GATED_PATHS": "/api/knn-search", "RELOAD_INTERVAL": "1h"})
-	t.Run("@known-gap N-CR8 empty start is not ready or UNAVAILABLE", func(t *testing.T) {
-		ready := s.readyStatus(t)
-		resp, err := s.check("POST", "/api/knn-search", map[string]string{"x-api-key": "sfr_valid_elsewhere_0000000000000001"})
-		if ready == http.StatusOK && status.Code(err) != codes.Unavailable {
-			t.Fatalf("/readyz=%d and Check answered %s", ready, describe(resp, err))
+// A malformed GATED_PATHS stops the process at startup instead of leaving a path ungated.
+func TestStartupFailsOnMalformedGatedPaths(t *testing.T) {
+	cmd := exec.Command(os.Args[0], "-test.run=^$")
+	addrs := freePorts(t, 2)
+	cmd.Env = append(os.Environ(), runMainEnv+"=1", "PG_DSN="+unreachableDSN, "GATED_PATHS=/api/a,api/b",
+		"GRPC_ADDR="+addrs[0], "HTTP_ADDR="+addrs[1])
+	var out strings.Builder
+	cmd.Stdout, cmd.Stderr = &out, &out
+	if err := cmd.Start(); err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan error, 1)
+	go func() { done <- cmd.Wait() }()
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatal("process exited 0 with a malformed GATED_PATHS")
 		}
-	})
+		if !strings.Contains(out.String(), `GATED_PATHS entry "api/b" must start with /`) {
+			t.Fatalf("output lacks the clear error:\n%s", out.String())
+		}
+	case <-time.After(10 * time.Second):
+		_ = cmd.Process.Signal(syscall.SIGKILL)
+		t.Fatal("process still running with a malformed GATED_PATHS")
+	}
+}
+
+func TestGatedPathsTrimmedEndToEnd(t *testing.T) {
+	for _, spec := range []string{"/api/a, /api/b", "/api/a,,/api/b"} {
+		s := startService(t, map[string]string{"PG_DSN": unreachableDSN, "GATED_PATHS": spec, "RELOAD_INTERVAL": "1h"})
+		for _, p := range []string{"/api/a", "/api/b"} {
+			t.Run(spec+" "+p, func(t *testing.T) {
+				resp, err := s.check("POST", p, nil)
+				if err != nil || resp.GetDeniedResponse().GetStatus().GetCode() != 401 {
+					t.Fatalf("want 401 api_key_required, got %s", describe(resp, err))
+				}
+			})
+		}
+	}
+}
+
+func TestBlankGatedPathsGatesNothing(t *testing.T) {
+	s := startService(t, map[string]string{"PG_DSN": unreachableDSN, "GATED_PATHS": "  ", "RELOAD_INTERVAL": "1h"})
+	resp, err := s.check("POST", "/api/knn-search", nil)
+	if err != nil || resp.GetOkResponse() == nil {
+		t.Fatalf("want allow on an ungated path, got %s", describe(resp, err))
+	}
 }

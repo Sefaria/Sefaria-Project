@@ -181,7 +181,9 @@ spec:
       enabled: false
       # observe: never denies; records what would be rejected in x-sefaria-auth-result. enforce only after the preprod pass.
       mode: observe
-      replicaCount: 1
+      # Two replicas so a drained or evicted pod never leaves /api/knn-search unprotected under enforce (the
+      # SecurityPolicy fails open); above one replica the chart also renders a PodDisruptionBudget (minAvailable 1).
+      replicaCount: 2
       image:
         # Release image, built by scripts/release-prepare.sh; deploy-static.yaml writes the tag on each release.
         repository: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-auth-service
@@ -288,5 +290,6 @@ spec:
       CSRF_COOKIE_SECURE: true
       CSRF_COOKIE_HTTPONLY: false
       CSRF_COOKIE_SAMESITE: "Lax"
+      # The chart default is also "False". Pinned here on purpose, so that turning developer settings on in prod
+      # is a change to this file, never a side effect of a chart default.
       DEVELOPER_SETTINGS_ENABLED: "False"
-      DEVELOPER_SETTINGS_MOCKS: "False"

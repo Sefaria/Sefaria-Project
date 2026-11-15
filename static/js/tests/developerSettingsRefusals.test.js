@@ -16,6 +16,7 @@ import {
   key,
   loadSettings,
   project,
+  projectSection,
   queryButton,
   renderSettings,
   screen,
@@ -131,23 +132,21 @@ describe('refused saves', () => {
     await choose('What are you building?', 'Research');
     type(field(/Short description/), 'Tracks the daf');
     await click(button('Continue'));
-    expect(screen.getByRole('alert').textContent).toContain('An account can have at most 10 projects.');
+    expect(screen.getByRole('alert').textContent).toContain(
+      "Something went wrong and your change wasn't saved. Please try again."
+    ); // the button prevents this
     expect(heading('New project')).toBeTruthy();
   });
 
   it("returns to the key form with the server's reason when a key is refused", async () => {
     open({ ...READY, projects: [project(1)] });
     server.fail('POST', 'projects/p1/keys', 400, 'A project can have at most 5 keys.');
-    await click(button('Add a key to Project 1'));
+    await click(within(projectSection('Project 1')).getByRole('button', { name: 'Add key' }));
     type(field(/API key name/), 'One too many');
     await click(button('Create API key'));
     expect(heading('Create an API key for Project 1')).toBeTruthy();
     expect(server.state.projects[0].keys).toEqual([]);
-    expect(
-      screen.getByText(
-        'You have reached the maximum of 5 keys for this project. To add another key, delete one no longer in use.'
-      )
-    ).toBeTruthy();
+    expect(screen.getByText("We couldn't create your key. Please try again.")).toBeTruthy(); // the button prevents this
     expect(field(/API key name/).value).toBe('One too many');
   });
 
@@ -165,7 +164,7 @@ describe('refused saves', () => {
   it('does not limit the key when saving its website was refused', async () => {
     open({ ...READY, projects: [project(1, { keys: [key(1)] })] });
     server.fail('POST', 'projects/p1', 400, 'The website is not a valid web address.');
-    await click(screen.getByRole('switch', { name: "Limit Key 1 to the project's website" }));
+    await click(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }));
     type(field('Your website'), 'daftracker.org');
     await click(button('Limit key'));
     expect(server.calls()).toEqual(['POST projects/p1']);
@@ -201,7 +200,7 @@ describe('after the account email changes', () => {
     open({ ...RECONFIRM, projects: [project(1, { keys: [key(1)] })] });
     expect(screen.getByText('To create new projects and keys, first confirm your email.')).toBeTruthy();
     const newProject = button('New project');
-    const addKey = button('Add a key to Project 1');
+    const addKey = within(projectSection('Project 1')).getByRole('button', { name: 'Add key' });
     [newProject, addKey].forEach((b) => {
       expect(b.getAttribute('aria-disabled')).toBe('true');
       expect(document.getElementById(b.getAttribute('aria-describedby')).textContent).toBe(CONFIRM_TIP);
@@ -211,7 +210,7 @@ describe('after the account email changes', () => {
     // What already exists still works.
     await click(button('Show key, Key 1'));
     expect(screen.getByText(key(1).value)).toBeTruthy();
-    expect(button('Edit details of Project 1')).toBeTruthy();
+    expect(within(projectSection('Project 1')).getByRole('button', { name: 'Edit project details' })).toBeTruthy();
   });
 
   it('offers no first project on an empty account', () => {

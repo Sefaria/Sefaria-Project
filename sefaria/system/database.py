@@ -305,6 +305,7 @@ def ensure_indices(active_db=None):
         ("linker_editor_history", ["index_title"], {}),
         ("linker_editor_history", ["slug"], {}),
         ("linker_editor_history", ["created"], {}),
+        ("developer_confirmation_throttle", ["uid"], {"unique": True}),
     ]
 
     for col, args, kwargs in indices:

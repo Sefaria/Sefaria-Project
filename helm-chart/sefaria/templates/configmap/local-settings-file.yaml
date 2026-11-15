@@ -204,7 +204,6 @@ data:
         "MANDRILL_API_KEY": os.getenv("MANDRILL_API_KEY"),
     }
     SERVER_EMAIL = os.getenv("SERVER_EMAIL")
-    DEVELOPER_SETTINGS_MOCKS = os.getenv("DEVELOPER_SETTINGS_MOCKS", "False").lower() == "true"
     DEVELOPER_SETTINGS_ENABLED = os.getenv("DEVELOPER_SETTINGS_ENABLED", "False").lower() == "true"
     DEVELOPER_SETTINGS_STAFF_ONLY = os.getenv("DEVELOPER_SETTINGS_STAFF_ONLY", "False").lower() == "true"
 

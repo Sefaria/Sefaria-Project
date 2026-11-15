@@ -47,3 +47,36 @@ def test_request_without_query_or_referer_is_unchanged():
     atoms, line = _build("/api/texts", "-", "")
     assert '"GET /api/texts HTTP/1.1"' in line
     assert '"-"' in line
+
+
+def test_a_full_key_pasted_into_an_admin_search_never_reaches_the_access_log():
+    key = "sfr_" + "Ab1Cd2Ef3Gh4Ij5Kl6Mn7Op8Qr9St0Uv"
+    query = "q=" + key
+    referer = "https://www.sefaria.org/admin/powered_by/apiproject/?" + query
+    atoms, line = _build("/admin/powered_by/apiproject/?" + query, referer, query)
+    assert "Ab1Cd2" not in line
+    assert '"GET /admin/powered_by/apiproject/?q=sfr_[REDACTED] HTTP/1.1"' in line
+    assert '"https://www.sefaria.org/admin/powered_by/apiproject/?q=sfr_[REDACTED]"' in line
+    for atom in ("r", "q", "f", "{referer}i", "{raw_uri}e", "{query_string}e", "{http_referer}e"):
+        assert "Ab1Cd2" not in str(atoms[atom]), atom
+
+
+def test_a_key_with_a_percent_encoded_body_never_reaches_any_access_log_atom():
+    for key, tail in (
+        ("sfr_%41" + "A" * 31, "AAAAAAAA"),
+        ("sfr_Ab%31Cd2Ef3Gh4Ij5Kl6Mn7Op8Qr9St0Uv", "Cd2Ef3Gh4"),
+        ("sfr_" + "%41" * 32, "%41%41%41%41"),
+        ("sfr_%2541b12Cd34Ef56Gh78Ij90Kl12Mn34Op", "Cd34Ef56"),
+    ):
+        query = "q=" + key
+        referer = "https://www.sefaria.org/admin/powered_by/apikey/?" + query
+        atoms, line = _build("/admin/powered_by/apikey/?" + query + "&x=1", referer, query + "&x=1")
+        assert tail not in line, line
+        assert '"GET /admin/powered_by/apikey/?q=sfr_[REDACTED]&x=1 HTTP/1.1"' in line
+        assert '"https://www.sefaria.org/admin/powered_by/apikey/?q=sfr_[REDACTED]"' in line
+        for atom in ("r", "q", "f", "{referer}i", "{raw_uri}e", "{query_string}e", "{http_referer}e"):
+            assert tail not in str(atoms[atom]), atom
+
+    path_key = "sfr_%41" + "A" * 31
+    atoms, line = _build("/" + path_key + "/x", "-", "")
+    assert "AAAAAAAA" not in line and "/sfr_[REDACTED]/x" in line

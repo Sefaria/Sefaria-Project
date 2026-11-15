@@ -22,7 +22,6 @@ import { UserProfile } from './UserProfile';
 import CalendarsPage from './CalendarsPage';
 import UserStats from './UserStats';
 import SettingsPage, { EmailConfirmedPage, EmailLinkPage } from './SettingsPage';
-import PoweredByFormPage from './poweredBy/PoweredByFormPage';
 import ModeratorToolsPanel from './ModeratorToolsPanel';
 import LinkerEditorPage from './LinkerEditorPage';
 import PublicCollectionsPage from './PublicCollectionsPage';
@@ -1182,8 +1181,6 @@ class ReaderPanel extends Component {
       menu = <EmailConfirmedPage />;
     } else if (this.state.menuOpen === 'developerEmailLink') {
       menu = <EmailLinkPage link={this.state.developerEmailLink} />;
-    } else if (this.state.menuOpen === 'poweredByForm') {
-      menu = <PoweredByFormPage />;
     } else if (this.state.menuOpen === 'user_stats') {
       menu = <UserStats />;
     } else if (this.state.menuOpen === 'settings') {

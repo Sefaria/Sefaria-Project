@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { unstable_batchedUpdates } from 'react-dom';
 import { ProfilePic } from './ProfilePic';
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
@@ -7,17 +8,16 @@ import {
   CONFIRMATION_SIGNAL_KEY,
   MAX_DESCRIPTION_LENGTH,
   accountVerified,
-  confirmationLink,
   createKey,
   createProject,
   deleteKey,
   deleteProject,
   emptyState,
   enableDeveloper,
-  mockAction,
   parseWebsite,
   readState,
   requestNewLink,
+  revealKey,
   saveProfile,
   sendConfirmation,
   setKeyRestriction,
@@ -40,7 +40,6 @@ const KEY_SETUP_MS = 4000;
 
 const API_DOCS_URL = 'https://developers.sefaria.org/reference/getting-started';
 const LIBRARY_EXPORT_URL = 'https://github.com/Sefaria/Sefaria-Export';
-const API_TERMS_URL = '/api-terms';
 
 const formatDate = (iso) => {
   if (!iso) {
@@ -271,6 +270,58 @@ const useEIsPhone = () => {
   }, []);
   return isPhone;
 };
+/* A disabled button with a tooltip saying why. Escape closes the tooltip without moving the pointer or focus, and it
+   comes back the next time the button is hovered or focused (WCAG 1.4.13, Penina 2026-11-15). */
+const ETipWrap = ({ children }) => {
+  const [dismissed, setDismissed] = useState(false);
+  const [active, setActive] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!active) {
+      return undefined;
+    }
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setDismissed(true);
+      }
+    };
+    // Capture, so the page's own Escape handling can't swallow it first.
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, [active]);
+  const start = () => {
+    setActive(true);
+    setDismissed(false);
+  };
+  const end = () => {
+    setActive(false);
+    setDismissed(false);
+  };
+  return (
+    <span
+      ref={ref}
+      className={'devE-tipWrap' + (dismissed ? ' is-dismissed' : '')}
+      onMouseEnter={start}
+      onMouseLeave={() => {
+        if (!ref.current || !ref.current.contains(document.activeElement)) {
+          end();
+        }
+      }}
+      onFocus={() => {
+        if (!active) {
+          start();
+        }
+      }}
+      onBlur={(e) => {
+        if (!ref.current || !ref.current.contains(e.relatedTarget)) {
+          end();
+        }
+      }}
+    >
+      {children}
+    </span>
+  );
+};
 const useDialogKeys = (focusRef, onEscape) => {
   useEffect(() => {
     const opener = typeof document !== 'undefined' ? document.activeElement : null;
@@ -311,188 +362,6 @@ const useDialogKeys = (focusRef, onEscape) => {
       }
     };
   }, []);
-};
-
-const PANEL_OPEN_KEY = 'sefariaDeveloperPocPanelOpen';
-
-const readPanelOpen = () => {
-  try {
-    return window.localStorage.getItem(PANEL_OPEN_KEY) === '1';
-  } catch (e) {
-    return false;
-  }
-};
-
-const writePanelOpen = (open) => {
-  try {
-    window.localStorage.setItem(PANEL_OPEN_KEY, open ? '1' : '0');
-  } catch (e) {
-    /* ignore */
-  }
-};
-
-/* Test controls, shown only where the server has DEVELOPER_SETTINGS_MOCKS on. Deliberately
-   unlike the product: a floating panel pinned to the corner of the viewport, in colours the
-   site never uses, and English only. They change the real data of the logged-in account. */
-/* Starting points for a walkthrough; each one clears developer settings back to "Get started". */
-const ACCOUNT_SCENARIOS = [
-  { id: 'sso', label: 'Google or Apple account', ssoOverride: true },
-  { id: 'email', label: 'Email account, unconfirmed', ssoOverride: false },
-  { id: 'email-confirmed', label: 'Email account, confirmed', ssoOverride: false, emailVerified: true },
-];
-
-const accountStatus = (state) => {
-  const kind = state.ssoConnected ? 'Google or Apple account' : 'Email account';
-  const email = state.emailVerified
-    ? 'email confirmed'
-    : state.confirmationSentAt
-      ? 'confirmation link sent'
-      : 'email not confirmed';
-  const dev = !state.developerEnabled
-    ? 'developer settings not started'
-    : !state.profile
-      ? 'at About you'
-      : state.projects.length + ' project' + (state.projects.length === 1 ? '' : 's');
-  return 'Now: ' + kind + ' · ' + email + ' · ' + dev;
-};
-
-const TestPanel = ({ state, mock, onOpenMockEmail }) => {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    setOpen(readPanelOpen());
-  }, []);
-
-  const toggle = (next) => {
-    setOpen(next);
-    writePanelOpen(next);
-  };
-
-  const realProviders = state.mock.realSsoProviders || [];
-  const realLabel = realProviders.length
-    ? 'Real account: ' + realProviders.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(' + ') + ' connected'
-    : 'Real account: no Google or Apple connection';
-  const pretending = state.mock.ssoOverride !== null;
-  const email = accountEmail();
-
-  return (
-    <div className="devPocPanel" data-open={open ? 'true' : 'false'} lang="en">
-      <button type="button" className="devPocPanelPill" aria-expanded={open} onClick={() => toggle(true)}>
-        🧪 Test controls
-      </button>
-      <div className="devPocPanelBody">
-        <div className="devPocPanelHeader">
-          <div>
-            <p className="devPocPanelTitle">TEST CONTROLS</p>
-            <p className="devPocPanelSub">
-              Test environments only. They change this account&apos;s real developer data.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="devPocPanelClose"
-            aria-label="Collapse test controls"
-            onClick={() => toggle(false)}
-          >
-            Hide
-          </button>
-        </div>
-
-        <div className="devPocPanelGroup">
-          <div className="devPocPanelGroupLabel">Start over as</div>
-          <div className="devPocPanelRow devPocPanelScenarios">
-            {ACCOUNT_SCENARIOS.map((sc) => (
-              <button
-                key={sc.id}
-                type="button"
-                className="devPocPanelButton"
-                data-scenario={sc.id}
-                onClick={() => mock('start-over', { ssoOverride: sc.ssoOverride, emailVerified: !!sc.emailVerified })}
-              >
-                {sc.label}
-              </button>
-            ))}
-          </div>
-          <p className="devPocPanelNote">
-            Each deletes this account&apos;s projects (revoking their keys), claimed listings included, and starts at
-            &quot;Get started&quot;. &quot;Add a listing submitted with my email&quot; makes a new one to claim.
-          </p>
-        </div>
-
-        <div className="devPocPanelGroup">
-          <div className="devPocPanelGroupLabel">Account state now</div>
-          <p className="devPocPanelNote devPocPanelStatus" role="status">
-            {accountStatus(state)}
-          </p>
-          <label className="devPocPanelChoice">
-            <input
-              type="checkbox"
-              className="devPocSwitch"
-              checked={!!state.ssoConnected}
-              onChange={(e) => mock('sso', { ssoOverride: e.target.checked })}
-              aria-label="Simulate Google or Apple connected"
-            />
-            <span>Google or Apple {state.ssoConnected ? 'connected' : 'not connected'}</span>
-          </label>
-          <label className="devPocPanelChoice">
-            <input
-              type="checkbox"
-              className="devPocSwitch"
-              checked={!!state.emailVerified}
-              onChange={(e) => mock('email-verified', { emailVerified: e.target.checked })}
-              aria-label="Email confirmed"
-            />
-            <span>Email {state.emailVerified ? 'confirmed' : 'not confirmed'}</span>
-          </label>
-          <p className="devPocPanelNote">
-            {realLabel}
-            {pretending ? ' (simulated value in use)' : ''}
-          </p>
-          {pretending ? (
-            <div className="devPocPanelRow">
-              <button type="button" className="devPocPanelButton" onClick={() => mock('sso', { ssoOverride: null })}>
-                Use real Google or Apple status
-              </button>
-            </div>
-          ) : null}
-          <div className="devPocPanelRow">
-            <button
-              type="button"
-              className="devPocPanelButton"
-              disabled={!state.mock.confirmationKey}
-              data-agent-action="mock-open-email"
-              onClick={onOpenMockEmail}
-            >
-              Open the confirmation email
-            </button>
-          </div>
-          <p className="devPocPanelNote">
-            {state.mock.confirmationKey
-              ? 'A link was "sent" (no email goes out here). Open the email: its button is the real link, and this tab moves on within a few seconds.'
-              : 'Enabled after "Email me a confirmation link".'}
-          </p>
-        </div>
-
-        <div className="devPocPanelGroup">
-          <div className="devPocPanelGroupLabel">Powered by listings</div>
-          <div className="devPocPanelRow">
-            <button
-              type="button"
-              className="devPocPanelButton"
-              data-poc-control="create-listing"
-              onClick={() => mock('create-listing')}
-            >
-              Add a listing submitted with my email
-            </button>
-          </div>
-          <p className="devPocPanelNote">
-            Creates an unclaimed Powered by row with {email || 'the account email'} as its submitter, as if it came in
-            through the public form. Once developer settings are set up, it asks &quot;Is this your project?&quot;.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 /* One entry per settings section. A new section is an entry here, a panel in
@@ -620,11 +489,9 @@ const AgentInstructions = () => (
       <li>
         Under &quot;Projects&quot;, press &quot;Create your first project&quot; or &quot;New project&quot;
         (new-project). Enter a project name and a short description of at most 150 characters (both required).
-        Organization, website and &quot;Built with help from AI tools&quot; are optional. Choose a visibility, which is
-        required: Public or Private. Ask the user which they want; &quot;Show me what will be public&quot;
-        (show-public-preview) lists exactly what a public project shows. Press &quot;Create project&quot;
-        (create-project). If there is no website, a dialog asks about it: choose &quot;Save without a website&quot;
-        (save-without-website) or add one.
+        Organization, website and &quot;Built with help from AI tools&quot; are optional. Press &quot;Create
+        project&quot; (create-project). If there is no website, a dialog asks about it: choose &quot;Save without a
+        website&quot; (save-without-website) or add one.
       </li>
       <li>
         In the project&apos;s &quot;API keys&quot; section, press &quot;Create your first key&quot; or &quot;Create
@@ -661,21 +528,12 @@ const emptyProfile = () => ({
   notADeveloper: false,
 });
 
-/* The terms open in a new tab, so the form keeps what has been typed. */
-const TermsLink = () => (
-  <a href={API_TERMS_URL} target="_blank" rel="noopener noreferrer">
-    <InterfaceText text={{ en: 'Sefaria API terms', he: 'תנאי השימוש ב־API של ספריא' }} />
-  </a>
-);
-
-/* The server's messages never reach people word for word (Penina, 2026-11-14; design-notes/error-copy.md): each known
-   one maps to the page's own copy, and technical ones become the generic save message. Unknown messages (for example
-   the 10-project limit, waiting on Daniel) still show as sent. */
+/* The server's messages never reach people word for word (Penina, 2026-11-14; design-notes/error-copy.md). Only the
+   ones a person can actually run into get copy of their own (Penina, 2026-11-15); every other message, including the
+   ones the form already prevents (field checks, limits, removed features) and technical ones, shows the general
+   message for what was being done: a save, a key, a new link. The server's English is matched here, before any
+   translation. */
 const E_SERVER_COPY = [
-  [
-    /^Failed to fetch|NetworkError|^Load failed|^Network request failed|^Could not parse JSON|^Request (is too large|must be a JSON object)|must be a JSON object|^Submission (is too large|must be)|^Unknown test action|^Unsupported HTTP method|^Accept the API terms|^Choose whether the project is public or private/,
-    null,
-  ],
   [
     /^Log in to use developer settings/,
     { en: "You've been logged out. Log in again to continue.", he: 'התנתקתם מהחשבון. התחברו שוב כדי להמשיך.' },
@@ -695,30 +553,18 @@ const E_SERVER_COPY = [
     },
   ],
   [
-    /^A project can have at most (\d+) keys/,
-    (m) => ({
-      en:
-        'You have reached the maximum of ' +
-        m[1] +
-        ' keys for this project. To add another key, delete one no longer in use.',
-      he: 'הגעתם למספר המרבי של ' + m[1] + ' מפתחות לפרויקט הזה. כדי להוסיף מפתח, מחקו מפתח שכבר לא בשימוש.',
-    }),
-  ],
-  [
-    /^Add the project's website before restricting/,
-    { en: "Add your project's website first.", he: 'קודם הוסיפו את האתר של הפרויקט.' },
-  ],
-  [
-    /^Confirm your email address to create projects/,
-    {
-      en: 'Confirm your email in the banner above to create projects and keys.',
-      he: 'אשרו את כתובת הדוא״ל בבאנר שלמעלה כדי ליצור פרויקטים ומפתחות.',
-    },
-  ],
-  [
     /^Wait a minute before asking for another email/,
     { en: 'Wait a minute before asking for another link.', he: 'המתינו דקה לפני שתבקשו קישור נוסף.' },
   ],
+  [
+    /^You've asked for (\d+) links today/,
+    (m) => ({
+      en: "You've asked for " + m[1] + ' links today. Try again tomorrow, or contact hello@sefaria.org.',
+      he: 'ביקשת היום ' + m[1] + ' קישורים. נסו שוב מחר, או כתבו ל־hello@sefaria.org.',
+    }),
+  ],
+  /* Same copy as the website field's own check. */
+  [/^The website is not a valid web address/, { en: 'Invalid website', he: 'כתובת אתר לא תקינה' }],
   [
     /^Your account has no email address/,
     {
@@ -726,24 +572,16 @@ const E_SERVER_COPY = [
       he: 'לחשבון שלכם אין כתובת דוא״ל. הוסיפו כתובת בהגדרות החשבון.',
     },
   ],
-  [/^The website is not a valid web address/, { en: 'Invalid website', he: 'כתובת אתר לא תקינה' }],
-  [
-    /^The key name can be at most 100 characters/,
-    { en: 'Use 100 characters or fewer.', he: 'השתמשו ב־100 תווים לכל היותר.' },
-  ],
 ];
 const eMessage = (err, fallback = SAVE_FAILED) => {
   const raw = err && err.message;
-  if (!raw) {
-    return Sefaria._v(fallback);
-  }
-  for (const [pattern, copy] of E_SERVER_COPY) {
+  for (const [pattern, copy] of raw ? E_SERVER_COPY : []) {
     const m = raw.match(pattern);
     if (m) {
-      return Sefaria._v(copy === null ? SAVE_FAILED : typeof copy === 'function' ? copy(m) : copy);
+      return Sefaria._v(typeof copy === 'function' ? copy(m) : copy);
     }
   }
-  return raw;
+  return Sefaria._v(fallback);
 };
 /* The sign-in forms' error banner, scrolled into view when it appears, so someone who pressed Save at the bottom of a
    long form sees why it failed (Penina, 2026-11-15). The shared ErrorBanner itself is unchanged. */
@@ -776,12 +614,6 @@ const eFieldError = (err) => {
   }
   if (/^Give the key a name/.test(raw)) {
     return { field: 'label', error: 'auth.required_field' };
-  }
-  if (/^The key name can be at most/.test(raw)) {
-    return {
-      field: 'label',
-      error: <InterfaceText text={{ en: 'Use 100 characters or fewer.', he: 'השתמשו ב־100 תווים לכל היותר.' }} />,
-    };
   }
   if (/^The additional email is not a valid address/.test(raw)) {
     return { field: 'additionalEmail', error: 'auth.invalid_email' };
@@ -827,10 +659,6 @@ const E_ROLES = [
   { value: 'none', en: 'Not technical', he: 'לא טכני/ת' },
 ];
 
-/* What a builder pastes into their AI tool so it can call the API with their key. */
-const eSnippet = (key, projectName) =>
-  `I'm building ${projectName} with the Sefaria API.\nMy Sefaria API key is ${key}.\nSend it in an x-api-key header on every request to https://www.sefaria.org/api/.\nKeep the key out of public code. API docs: ${API_DOCS_URL}`;
-
 const ECopyIcon = ({ size = 18 }) => (
   <svg
     viewBox="0 0 24 24"
@@ -844,6 +672,26 @@ const ECopyIcon = ({ size = 18 }) => (
     aria-hidden="true"
     focusable="false"
   >
+    <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+  </svg>
+);
+/* Lucide copy-check: the copy button's icon for 8 seconds after a copy, in place of the word "Copied" (Penina,
+   2026-11-15). Screen readers still hear "Copied" from the live region beside it. */
+const ECopyCheckIcon = ({ size = 18 }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d="m12 15 2 2 4-4" />
     <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
     <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
   </svg>
@@ -880,15 +728,6 @@ const EPlusIcon = ({ size } = {}) =>
     <React.Fragment>
       <path d="M5 12h14" />
       <path d="M12 5v14" />
-    </React.Fragment>,
-    size
-  );
-const EGlobeIcon = ({ size } = {}) =>
-  eLucide(
-    <React.Fragment>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-      <path d="M2 12h20" />
     </React.Fragment>,
     size
   );
@@ -985,10 +824,38 @@ const eCopyFallback = (text) => {
     return false;
   }
 };
-const eCopy = (text, done) => {
+/* Copy a value that has to be fetched first (a key's value, from the reveal endpoint). Where the browser supports it,
+   the clipboard write starts inside the tap and waits for the value, so Safari still allows it; elsewhere it copies
+   once the value arrives. */
+const eCopyFetched = (getValue, done, failed) => {
+  const secure = typeof window !== 'undefined' && window.isSecureContext !== false;
+  if (secure && typeof ClipboardItem !== 'undefined' && navigator.clipboard && navigator.clipboard.write) {
+    const value = getValue(); // one request, shared by the clipboard write and its fallback
+    const blob = value.then((v) => new Blob([v], { type: 'text/plain' }));
+    navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob })]).then(
+      () => done && done(),
+      () =>
+        value.then(
+          (v) => eCopy(v, done, failed),
+          () => {}
+        )
+    );
+    return;
+  }
+  getValue().then(
+    (v) => eCopy(v, done, failed),
+    () => {}
+  );
+};
+/* failed: the browser refused the copy (e.g. a plain-http page, where a copy after a request doesn't count as the tap). */
+const eCopy = (text, done, failed) => {
   const fallback = () => {
-    if (eCopyFallback(text) && done) {
-      done();
+    if (eCopyFallback(text)) {
+      if (done) {
+        done();
+      }
+    } else if (failed) {
+      failed();
     }
   };
   if (typeof navigator !== 'undefined' && navigator.clipboard && window.isSecureContext !== false) {
@@ -1014,7 +881,7 @@ const ECommunity = ({ id, checked, onChange }) => (
       onChange={(e) => onChange(e.target.checked)}
       label={tE(
         "I would like to receive Sefaria's developer newsletter to hear about new features, events and opportunities.",
-        'אשמח לקבל את הניוזלטר למפתחים של ספריא כדי לשמוע על תכונות חדשות, אירועים והזדמנויות.'
+        'אשמח לקבל את הניוזלטר למפתחים של ספריא כדי לשמוע על פיצ׳רים חדשים, אירועים והזדמנויות.'
       )}
     />
     <p className="devE-communityLink">
@@ -1359,11 +1226,10 @@ const EWelcome = ({ dots, onSave, initial, onCancel, edit }) => {
           maxLength={E_ABOUT_MAX}
           label={tE('Tell us about yourself', 'ספרו לנו על עצמכם')}
           labelAddon={EOpt}
-          hint={
-            <span className="devE-hintTop">
-              {tE('Where you work or study, what you like to build', 'איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות')}
-            </span>
-          }
+          placeholder={vE(
+            'e.g. where you work or study, what you like to build',
+            'לדוגמה: איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות'
+          )}
           aria-describedby="devEAboutCount"
           value={fields.description}
           onChange={(e) => set('description', e.target.value)}
@@ -1406,26 +1272,6 @@ const EWelcome = ({ dots, onSave, initial, onCancel, edit }) => {
             {edit ? tE('Save', 'שמירה') : tE('Continue', 'המשך')}
           </EPrimary>
         </div>
-        {edit ? null : (
-          <p className="devE-legal">
-            <InterfaceText
-              text={{
-                en: (
-                  <React.Fragment>
-                    By continuing, you accept the <TermsLink />, and agree that Sefaria may email you about your keys
-                    and projects.
-                  </React.Fragment>
-                ),
-                he: (
-                  <React.Fragment>
-                    בלחיצה על המשך, את/ה מאשר/ת את <TermsLink />, ומסכים/ה שספריא תשלח לך הודעות על המפתחות והפרויקטים
-                    שלך.
-                  </React.Fragment>
-                ),
-              }}
-            />
-          </p>
-        )}
       </form>
     </EStep>
   );
@@ -1767,7 +1613,7 @@ const ESetupProject = ({ dots, title, onBack, backLabel, onSkip, skipLabel, onCr
         </ENote>
         <div className="devE-footer">
           <button type="button" className="devE-backBtn" onClick={onSkip}>
-            {skipLabel || tE('Skip for now', 'דילוג בינתיים')}
+            {skipLabel || tE('Skip for now', 'דילוג')}
           </button>
           <EPrimary data-agent-action="save-project" disabled={busy}>
             {tE('Continue', 'המשך')}
@@ -1838,7 +1684,7 @@ const EKeyRestrictField = ({ project, on, setOn, site, setSite, siteError, setSi
   );
 };
 
-/* When to limit a key, in three lines with on and off in bold (Penina, 2026-11-05). Used in the key forms and in
+/* When to limit a key, in two lines with on and off in bold (Penina, 2026-11-05; two lines and "Leave it off", 2026-11-15). Used in the key forms and in
    the window that asks for a website from the key table. */
 const ERestrictHint = ({ id }) => (
   <div className="devE-hint devE-restrictHint" id={id}>
@@ -1847,23 +1693,19 @@ const ERestrictHint = ({ id }) => (
         en: (
           <React.Fragment>
             <span>
-              Turn this <strong>on</strong> if your key is going in your web page&apos;s code.
+              Turn this <strong>on</strong> if your key is going in your web page&apos;s code. Leave it{' '}
+              <strong>off</strong> if your key is going in a server or an AI tool.
             </span>
-            <span>
-              Leave it switched <strong>off</strong> if your key is going in a server or an AI tool.
-            </span>
-            <span>You can change this setting at any time from the Developer Settings dashboard.</span>
+            <span>You can change this setting at any time in Developer Settings.</span>
           </React.Fragment>
         ),
         he: (
           <React.Fragment>
             <span>
-              <strong>הפעילו</strong> אם המפתח שלכם נכנס לקוד של דף האינטרנט שלכם.
+              <strong>הפעילו</strong> אם המפתח שלכם נכנס לקוד של דף האינטרנט שלכם. השאירו <strong>כבוי</strong> אם המפתח
+              נכנס לשרת או לכלי AI.
             </span>
-            <span>
-              השאירו <strong>כבוי</strong> אם המפתח נכנס לשרת או לכלי AI.
-            </span>
-            <span>אפשר לשנות את ההגדרה הזו בכל עת מלוח הבקרה של הגדרות המפתחים.</span>
+            <span>אפשר לשנות את ההגדרה הזו בכל עת בהגדרות מפתחים.</span>
           </React.Fragment>
         ),
       }}
@@ -1980,7 +1822,7 @@ const ESetupKey = ({ dots, project, onBack, backLabel, onSkip, onCreate, failure
         {restrict.field}
         <div className="devE-footer">
           <button type="button" className="devE-backBtn" onClick={onSkip}>
-            {tE('Skip for now', 'דילוג בינתיים')}
+            {tE('Skip for now', 'דילוג')}
           </button>
           <EPrimary data-agent-action="create-key" disabled={busy}>
             {tE('Create API key', 'יצירת מפתח API')}
@@ -2451,13 +2293,6 @@ const EKeyName = ({ name }) => {
 };
 
 /* The home: a page header, then each project as a section with its keys in a plain table. */
-/* Usage is out of Phase 1 (Daniel, 2026-11-09): no usage bar or chip on the project. The earlier design (a quiet
-   bar and "36% of monthly limit · Resets Nov 10", a red chip near the limit) is saved on the local branch
-   archive/usage-bar-2026-11-09. eUsagePct reads real usage if the API ever sends project.usage; it never invents it. */
-const eUsagePct = (project) =>
-  project.usage && project.usage.limit
-    ? Math.min(100, Math.round((project.usage.used / project.usage.limit) * 100))
-    : 0;
 
 /* The key table's column heads, repeated over each project's keys. Fixed widths keep the columns lined up
    from one project to the next. */
@@ -2708,21 +2543,68 @@ const ESubmitted = ({ project, onDone }) => (
   >
     <div className="devE-form">
       <EPrimary type="button" onClick={onDone}>
-        {tE('Back to Developer Settings', 'חזרה להגדרות המפתחים')}
+        {tE('Back to Developer Settings', 'חזרה להגדרות מפתחים')}
       </EPrimary>
     </div>
   </EStep>
 );
 
-const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => {
+/* With no project chosen yet (opened from the Powered by page's link), the page already shows About you, then "Your
+   project" with only the project choice; the project's summary and the rest of the form appear under it once one is
+   chosen, so nothing moves in above the choice (Penina, 2026-11-15). About you keeps what was typed when the project
+   changes. */
+const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, dots, onBack, onSubmit }) => {
   const name = accountName();
   const email = accountEmail();
+  const p = project || {};
   const form = useEProjectForm({
-    name: project.name || '',
-    description: project.description || '',
-    organization: project.organization || '',
-    websiteUrl: project.websiteUrl || '',
+    name: p.name || '',
+    description: p.description || '',
+    organization: p.organization || '',
+    websiteUrl: p.websiteUrl || '',
   });
+  /* "+ Create a new project" (Penina, 2026-11-15): empty project fields open right here, and Submit creates the
+     project and sends it for review together. No detour through the new-project steps, and no key step; a key can be
+     added later from the projects page. With no projects yet, the form starts this way. */
+  const [creating, setCreating] = useState(() => !project && !(projects || []).length && !!canAddNew);
+  const picked = !!project || creating;
+  const emptyProject = () => {
+    form.set('name', '');
+    form.set('description', '');
+    form.set('organization', '');
+    form.set('websiteUrl', '');
+  };
+  const picker = (
+    <EProjectPicker
+      projects={projects || []}
+      value={creating ? E_NEW_PROJECT : project ? project.id : undefined}
+      canAddNew={canAddNew}
+      onPick={(id) => {
+        if (id === E_NEW_PROJECT) {
+          setCreating(true);
+          emptyProject();
+          setEditProject(true);
+          onPickProject(null);
+        } else {
+          setCreating(false);
+          onPickProject(id);
+        }
+      }}
+    />
+  );
+  const projectId = project ? project.id : null;
+  const firstProject = useRef(true);
+  useEffect(() => {
+    if (firstProject.current) {
+      firstProject.current = false;
+      return;
+    }
+    form.set('name', p.name || '');
+    form.set('description', p.description || '');
+    form.set('organization', p.organization || '');
+    form.set('websiteUrl', toDomain(p.websiteUrl || ''));
+    setEditProject(creating || (!!project && (!(p.websiteUrl || '').trim() || !(p.description || '').trim())));
+  }, [projectId]);
   const [person, setPerson] = useState({
     ...emptyProfile(),
     ...(profile || {}),
@@ -2745,7 +2627,8 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
      something in it is missing or wrong (2026-11-08). */
   const [editYou, setEditYou] = useState(!person.role);
   const [editProject, setEditProject] = useState(
-    !(project.websiteUrl || '').trim() || !(project.description || '').trim()
+    (!project && !(projects || []).length && !!canAddNew) ||
+      (!!project && (!(p.websiteUrl || '').trim() || !(p.description || '').trim()))
   );
   const [errors, setErrors] = useState({});
   const [banner, setBanner] = useState(null);
@@ -2763,6 +2646,9 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
   const required = (v) => ((v || '').trim() ? null : 'auth.required_field');
   const submit = (e) => {
     e.preventDefault();
+    if (!picked) {
+      return;
+    }
     const projectOk = form.validate(false);
     const next = {
       websiteUrl: required(form.fields.websiteUrl),
@@ -2785,13 +2671,28 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
       setEditYou(true);
     }
     if (!projectOk) {
+      setTimeout(() => {
+        const bad = document.querySelector('.devE-shareForm [aria-invalid="true"]');
+        if (bad) {
+          bad.focus({ preventScroll: true });
+          const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          bad.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+        }
+      }, 0);
       return;
     }
     if (first) {
-      const el = document.getElementById(first[1]);
-      if (el) {
-        el.focus();
-      }
+      /* After the sections above open, focus the first field with a problem and scroll its question into view (the
+         category checkboxes are visually hidden inputs, so focusing them alone doesn't scroll; Penina, 2026-11-15). */
+      setTimeout(() => {
+        const el = document.getElementById(first[1]);
+        if (!el) {
+          return;
+        }
+        el.focus({ preventScroll: true });
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        (el.closest('fieldset') || el).scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+      }, 0);
       return;
     }
     if (busy) {
@@ -2802,7 +2703,8 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
     Promise.resolve(
       onSubmit(
         cleanProfile({ ...person, termsAccepted: true, notADeveloper: person.role === 'ai' || person.role === 'none' }),
-        form.projectBody({ aiAssisted: builtWithAi === 'yes', visibility: 'public' })
+        form.projectBody({ aiAssisted: builtWithAi === 'yes', visibility: 'public' }),
+        creating
       )
     ).catch((err) => {
       const onField = eFieldError(err);
@@ -2816,8 +2718,8 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
     });
   };
   const role = E_ROLES.find((r) => r.value === person.role);
-  const editBtn = (onClick, label) => (
-    <button type="button" className="devE-quiet devE-summaryEdit" onClick={onClick} aria-label={label}>
+  const editBtn = (onClick) => (
+    <button type="button" className="devE-quiet devE-summaryEdit" onClick={onClick}>
       <EPencilIcon />
       {tE('Edit', 'עריכה')}
     </button>
@@ -2885,14 +2787,10 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
                 maxLength={E_ABOUT_MAX}
                 label={tE('Tell us about yourself', 'ספרו לנו על עצמכם')}
                 labelAddon={EOpt}
-                hint={
-                  <span className="devE-hintTop">
-                    {tE(
-                      'Where you work or study, what you like to build',
-                      'איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות'
-                    )}
-                  </span>
-                }
+                placeholder={vE(
+                  'e.g. where you work or study, what you like to build',
+                  'לדוגמה: איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות'
+                )}
                 aria-describedby="devEShareAboutCount"
                 value={person.description}
                 onChange={(e) => setP('description', e.target.value)}
@@ -2925,7 +2823,7 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
                   </span>
                 ) : null}
               </div>
-              {editBtn(() => setEditYou(true), vE('Edit details about you', 'עריכת הפרטים עליך'))}
+              {editBtn(() => setEditYou(true))}
             </div>
           )}
           <Input
@@ -2933,11 +2831,7 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
             dir="auto"
             label={tE('Current role', 'תפקיד נוכחי')}
             labelAddon={EOpt}
-            hint={
-              <span className="devE-hintTop">
-                {tE('Teacher, student, software engineer', 'מורה, סטודנט/ית, מהנדס/ת תוכנה')}
-              </span>
-            }
+            placeholder={vE('e.g. teacher, student, software engineer', 'לדוגמה: מורה, סטודנט/ית, מהנדס/ת תוכנה')}
             value={currentRole}
             onChange={(e) => setCurrentRole(e.target.value)}
           />
@@ -2957,21 +2851,21 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
               text={{
                 en: (
                   <React.Fragment>
-                    If we feature your project, these details <strong>will be shown</strong> on our site. Changes made
-                    here also update your project details.
+                    If we feature your project, these details <strong>will be shown</strong> on our site.
+                    {creating ? null : ' Changes made here also update your project details.'}
                   </React.Fragment>
                 ),
                 he: (
                   <React.Fragment>
-                    אם נציג את הפרויקט, הפרטים האלה <strong>יוצגו</strong> באתר שלנו. שינויים שתעשו כאן יעדכנו גם את
-                    פרטי הפרויקט.
+                    אם נציג את הפרויקט, הפרטים האלה <strong>יוצגו</strong> באתר שלנו.
+                    {creating ? null : ' שינויים שתעשו כאן יעדכנו גם את פרטי הפרויקט.'}
                   </React.Fragment>
                 ),
               }}
             />
           </p>
           {picker}
-          {editProject ? (
+          {!picked ? null : editProject ? (
             <EProjectFields
               showcase
               fields={form.fields}
@@ -3002,261 +2896,278 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
                   </bdi>
                 ) : null}
               </div>
-              {editBtn(() => setEditProject(true), vE('Edit project details', 'עריכת פרטי הפרויקט'))}
+              {editBtn(() => setEditProject(true))}
             </div>
           )}
         </section>
 
-        {/* 3. More about the project (2026-11-08): the required category first, then every optional question, each
+        {picked ? (
+          <React.Fragment>
+            {/* 3. More about the project (2026-11-08): the required category first, then every optional question, each
             marked Optional. Always open, since it holds a required field. */}
-        <section className="devE-shareSection devE-shareMore" aria-labelledby="devEShareMore">
-          <h3 id="devEShareMore">{tE('Tell us more about your project', 'ספרו לנו עוד על הפרויקט')}</h3>
-          {/* Order and wording follow the live Powered by form (wiki: Powered by Sefaria Submission Form, Project
+            <section className="devE-shareSection devE-shareMore" aria-labelledby="devEShareMore">
+              <h3 id="devEShareMore">{tE('Tell us more about your project', 'ספרו לנו עוד על הפרויקט')}</h3>
+              {/* Order and wording follow the live Powered by form (wiki: Powered by Sefaria Submission Form, Project
               Information), with the one required question first (2026-11-08). */}
-          <div className="devE-shareMoreBody">
-            <fieldset className="devE-choices" aria-describedby={errors.cats ? 'devEShareCats-error' : null}>
-              <legend>
-                {tE('What kind of project is it?', 'איזה סוג פרויקט זה?')}{' '}
-                <span className="devE-hintInline">{tE('Select all that apply.', 'בחרו את כל המתאימות.')}</span>
-              </legend>
-              {E_PB_CATEGORIES.map((c, i) => (
-                <Checkbox
-                  key={i}
-                  id={'devEShareCat' + i}
-                  checked={cats.includes(c.en)}
-                  onChange={() => {
-                    toggle(cats, setCats, c.en);
-                    clear('cats');
-                  }}
-                  label={<InterfaceText text={c} />}
-                />
-              ))}
-              <EFieldError id="devEShareCats-error" error={errors.cats} />
-            </fieldset>
-            <Input
-              id="devEShareSource"
-              inputDir="ltr"
-              label={tE('Link to source code', 'קישור לקוד המקור')}
-              labelAddon={EOpt}
-              value={sourceUrl}
-              onChange={(e) => setSourceUrl(e.target.value)}
-            />
-            <fieldset className="devE-choices">
-              <legend>
-                {tE(
-                  'Which Sefaria data or tools did you use for your project?',
-                  'באילו נתונים או כלים של ספריא השתמשתם בפרויקט?'
-                )}{' '}
-                {EOpt}
-              </legend>
-              {E_PB_TOOLS.map((t, i) => (
-                <Checkbox
-                  key={i}
-                  id={'devEShareTool' + i}
-                  checked={tools.includes(t.value)}
-                  onChange={() => toggle(tools, setTools, t.value)}
-                  label={
-                    <span dir="ltr">
-                      {t.label}
-                      {t.url ? (
-                        <React.Fragment>
-                          {' '}
-                          <a
-                            className="devE-inlineLink devE-toolLink"
-                            href={t.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            aria-label={t.label + ' (opens in a new tab)'}
-                          >
-                            <ExternalIcon />
-                          </a>
-                        </React.Fragment>
-                      ) : null}
-                    </span>
-                  }
-                />
-              ))}
-            </fieldset>
-            <Input
-              id="devEShareTech"
-              dir="auto"
-              labelAddon={EOpt}
-              label={tE(
-                'Which non-Sefaria technologies or tools did you use for your project?',
-                'באילו טכנולוגיות או כלים שאינם של ספריא השתמשתם בפרויקט?'
-              )}
-              hint={<span className="devE-hintTop">{tE('React, Python, Claude', 'React, Python, Claude')}</span>}
-              value={otherTech}
-              onChange={(e) => setOtherTech(e.target.value)}
-            />
-            <Input
-              id="devEShareInspired"
-              multiline
-              rows={3}
-              dir="auto"
-              labelAddon={EOpt}
-              label={tE(
-                'What inspired you to build this tool? What use case were you solving for?',
-                'מה נתן לכם השראה לבנות את הכלי הזה? איזה צורך רציתם לפתור?'
-              )}
-              value={inspired}
-              onChange={(e) => setInspired(e.target.value)}
-            />
-            <fieldset className="devE-choices">
-              <legend>
-                {tE('Was this project vibe-coded?', 'האם הפרויקט נבנה ב־vibe coding?')} {EOpt}
-              </legend>
-              {[
-                { v: 'yes', en: 'Yes', he: 'כן' },
-                { v: 'no', en: 'No', he: 'לא' },
-              ].map((o) => (
-                <label key={o.v} className="devE-radio">
-                  <input
-                    type="radio"
-                    name="devEShareAi"
-                    checked={builtWithAi === o.v}
-                    onChange={() => setBuiltWithAi(o.v)}
-                  />
-                  <InterfaceText text={{ en: o.en, he: o.he }} />
-                </label>
-              ))}
-            </fieldset>
-            <fieldset className="devE-choices">
-              <legend>
-                {tE(
-                  'Approximately how many users use this project on a monthly basis?',
-                  'בערך כמה משתמשים משתמשים בפרויקט בכל חודש?'
-                )}{' '}
-                {EOpt}
-              </legend>
-              {E_PB_USERS.map((o) => (
-                <label key={o.v} className="devE-radio">
-                  <input type="radio" name="devEShareUsers" checked={users === o.v} onChange={() => setUsers(o.v)} />
-                  <InterfaceText text={{ en: o.en, he: o.he }} />
-                </label>
-              ))}
-              {users === 'other' ? (
+              <div className="devE-shareMoreBody">
+                <fieldset className="devE-choices" aria-describedby={errors.cats ? 'devEShareCats-error' : null}>
+                  <legend>
+                    {tE('What kind of project is it?', 'איזה סוג פרויקט זה?')}{' '}
+                    <span className="devE-hintInline">{tE('Select all that apply.', 'בחרו את כל המתאימות.')}</span>
+                  </legend>
+                  {E_PB_CATEGORIES.map((c, i) => (
+                    <Checkbox
+                      key={i}
+                      id={'devEShareCat' + i}
+                      checked={cats.includes(c.en)}
+                      onChange={() => {
+                        toggle(cats, setCats, c.en);
+                        clear('cats');
+                      }}
+                      label={<InterfaceText text={c} />}
+                    />
+                  ))}
+                  <EFieldError id="devEShareCats-error" error={errors.cats} />
+                </fieldset>
                 <Input
-                  id="devEShareUsersOther"
-                  dir="auto"
-                  label={tE('How many?', 'כמה?')}
-                  value={usersOther}
-                  onChange={(e) => setUsersOther(e.target.value)}
+                  id="devEShareSource"
+                  inputDir="ltr"
+                  label={tE('Link to source code', 'קישור לקוד המקור')}
+                  labelAddon={EOpt}
+                  value={sourceUrl}
+                  onChange={(e) => setSourceUrl(e.target.value)}
                 />
-              ) : null}
-            </fieldset>
-            <Input
-              id="devEShareElse"
-              multiline
-              rows={3}
-              dir="auto"
-              labelAddon={EOpt}
-              label={tE('Anything else you would like to add?', 'יש עוד משהו שתרצו להוסיף?')}
-              value={anythingElse}
-              onChange={(e) => setAnythingElse(e.target.value)}
-            />
-          </div>
-        </section>
+                <fieldset className="devE-choices">
+                  <legend>
+                    {tE(
+                      'Which Sefaria data or tools did you use for your project?',
+                      'באילו נתונים או כלים של ספריא השתמשתם בפרויקט?'
+                    )}{' '}
+                    {EOpt}
+                  </legend>
+                  {E_PB_TOOLS.map((t, i) => (
+                    <Checkbox
+                      key={i}
+                      id={'devEShareTool' + i}
+                      checked={tools.includes(t.value)}
+                      onChange={() => toggle(tools, setTools, t.value)}
+                      label={
+                        <span dir="ltr">
+                          {t.label}
+                          {t.url ? (
+                            <React.Fragment>
+                              {' '}
+                              <a
+                                className="devE-inlineLink devE-toolLink"
+                                href={t.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                aria-label={t.label + ' (opens in a new tab)'}
+                              >
+                                <ExternalIcon />
+                              </a>
+                            </React.Fragment>
+                          ) : null}
+                        </span>
+                      }
+                    />
+                  ))}
+                </fieldset>
+                <Input
+                  id="devEShareTech"
+                  dir="auto"
+                  labelAddon={EOpt}
+                  label={tE(
+                    'Which non-Sefaria technologies or tools did you use for your project?',
+                    'באילו טכנולוגיות או כלים שאינם של ספריא השתמשתם בפרויקט?'
+                  )}
+                  placeholder={vE('e.g. React, Python, Claude', 'לדוגמה: React, Python, Claude')}
+                  value={otherTech}
+                  onChange={(e) => setOtherTech(e.target.value)}
+                />
+                <Input
+                  id="devEShareInspired"
+                  multiline
+                  rows={3}
+                  dir="auto"
+                  labelAddon={EOpt}
+                  label={tE(
+                    'What inspired you to build this tool? What use case were you solving for?',
+                    'מה נתן לכם השראה לבנות את הכלי הזה? איזה צורך רציתם לפתור?'
+                  )}
+                  value={inspired}
+                  onChange={(e) => setInspired(e.target.value)}
+                />
+                <fieldset className="devE-choices">
+                  <legend>
+                    {tE('Was this project vibe-coded?', 'האם הפרויקט נבנה ב־vibe coding?')} {EOpt}
+                  </legend>
+                  {[
+                    { v: 'yes', en: 'Yes', he: 'כן' },
+                    { v: 'no', en: 'No', he: 'לא' },
+                  ].map((o) => (
+                    <label key={o.v} className="devE-radio">
+                      <input
+                        type="radio"
+                        name="devEShareAi"
+                        checked={builtWithAi === o.v}
+                        onChange={() => setBuiltWithAi(o.v)}
+                      />
+                      <InterfaceText text={{ en: o.en, he: o.he }} />
+                    </label>
+                  ))}
+                </fieldset>
+                <fieldset className="devE-choices">
+                  <legend>
+                    {tE(
+                      'Approximately how many users use this project on a monthly basis?',
+                      'בערך כמה משתמשים משתמשים בפרויקט בכל חודש?'
+                    )}{' '}
+                    {EOpt}
+                  </legend>
+                  {E_PB_USERS.map((o) => (
+                    <label key={o.v} className="devE-radio">
+                      <input
+                        type="radio"
+                        name="devEShareUsers"
+                        checked={users === o.v}
+                        onChange={() => setUsers(o.v)}
+                      />
+                      <InterfaceText text={{ en: o.en, he: o.he }} />
+                    </label>
+                  ))}
+                  {users === 'other' ? (
+                    <Input
+                      id="devEShareUsersOther"
+                      dir="auto"
+                      label={tE('How many?', 'כמה?')}
+                      value={usersOther}
+                      onChange={(e) => setUsersOther(e.target.value)}
+                    />
+                  ) : null}
+                </fieldset>
+                <Input
+                  id="devEShareElse"
+                  multiline
+                  rows={3}
+                  dir="auto"
+                  labelAddon={EOpt}
+                  label={tE('Anything else you would like to add?', 'יש עוד משהו שתרצו להוסיף?')}
+                  value={anythingElse}
+                  onChange={(e) => setAnythingElse(e.target.value)}
+                />
+              </div>
+            </section>
 
-        {/* Support Sefaria (Sarah, 2026-11-08): the logo is encouraged, not required, so nothing here blocks submitting.
+            {/* Support Sefaria (Sarah, 2026-11-08): the logo is encouraged, not required, so nothing here blocks submitting.
             Points to the name-and-logo guidelines and asks for a donation link. Copy is a first draft for Sarah. */}
-        <section className="devE-shareSection" aria-labelledby="devEShareLogo">
-          <h3 id="devEShareLogo">
-            {tE('Support Sefaria', 'תמכו בספריא')} {EOpt}
-          </h3>
-          <p className="devE-shareNote">
-            {tE(
-              'We’re grateful you’re using our resources to share Torah.',
-              'תודה שאתם משתמשים במשאבים שלנו כדי להפיץ תורה.'
-            )}
-          </p>
-          <p className="devE-shareNote">
-            <InterfaceText
-              text={{
-                en: (
-                  <React.Fragment>
-                    We encourage you to add the Powered by Sefaria logo to your project. See our{' '}
-                    <a
-                      className="devE-inlineLink"
-                      href="https://developers.sefaria.org/docs/usage-of-our-name-and-logo"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      copyright and trademark guidelines
-                    </a>
-                    .
-                  </React.Fragment>
-                ),
-                he: (
-                  <React.Fragment>
-                    נשמח אם תוסיפו לפרויקט את הלוגו Powered by Sefaria. ראו את{' '}
-                    <a
-                      className="devE-inlineLink"
-                      href="https://developers.sefaria.org/docs/usage-of-our-name-and-logo"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      ההנחיות לזכויות יוצרים וסימני מסחר
-                    </a>
-                    .
-                  </React.Fragment>
-                ),
-              }}
-            />
-          </p>
-          <p className="devE-shareNote">
-            <InterfaceText
-              text={{
-                en: (
-                  <React.Fragment>
-                    Help us keep Sefaria free for everyone by adding a{' '}
-                    <DonateLink classes="devE-inlineLink" source="DeveloperSettingsPublish">
-                      donation link
-                    </DonateLink>{' '}
-                    to your project.
-                  </React.Fragment>
-                ),
-                he: (
-                  <React.Fragment>
-                    עזרו לנו לשמור על ספריא חינמית לכולם בהוספת{' '}
-                    <DonateLink classes="devE-inlineLink" source="DeveloperSettingsPublish">
-                      קישור לתרומה
-                    </DonateLink>{' '}
-                    לפרויקט שלכם.
-                  </React.Fragment>
-                ),
-              }}
-            />
-          </p>
-          <fieldset className="devE-choices">
-            <legend className="sr-only">{tE('What have you added to your project?', 'מה הוספתם לפרויקט?')}</legend>
-            <Checkbox
-              id="devEShareLogoYes"
-              checked={logo === 'yes'}
-              onChange={(e) => setLogo(e.target.checked ? 'yes' : '')}
-              label={tE("I've added the Powered by Sefaria logo", 'הוספתי את הלוגו Powered by Sefaria')}
-            />
-            <Checkbox
-              id="devEShareDonate"
-              checked={donateLink}
-              onChange={(e) => setDonateLink(e.target.checked)}
-              label={tE("I've added a link to donate to Sefaria", 'הוספתי קישור לתרומה לספריא')}
-            />
-          </fieldset>
-        </section>
+            <section className="devE-shareSection" aria-labelledby="devEShareLogo">
+              <h3 id="devEShareLogo">
+                {tE('Support Sefaria', 'תמכו בספריא')} {EOpt}
+              </h3>
+              <p className="devE-shareNote">
+                {tE(
+                  'We’re grateful you’re using our resources to share Torah.',
+                  'תודה שאתם משתמשים במשאבים שלנו כדי להפיץ תורה.'
+                )}
+              </p>
+              <p className="devE-shareNote">
+                <InterfaceText
+                  text={{
+                    en: (
+                      <React.Fragment>
+                        We encourage you to add the Powered by Sefaria logo to your project. See our{' '}
+                        <a
+                          className="devE-inlineLink"
+                          href="https://developers.sefaria.org/docs/usage-of-our-name-and-logo"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          copyright and trademark guidelines
+                        </a>
+                        .
+                      </React.Fragment>
+                    ),
+                    he: (
+                      <React.Fragment>
+                        נשמח אם תוסיפו לפרויקט את הלוגו Powered by Sefaria. ראו את{' '}
+                        <a
+                          className="devE-inlineLink"
+                          href="https://developers.sefaria.org/docs/usage-of-our-name-and-logo"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          ההנחיות לזכויות יוצרים וסימני מסחר
+                        </a>
+                        .
+                      </React.Fragment>
+                    ),
+                  }}
+                />
+              </p>
+              <p className="devE-shareNote">
+                <InterfaceText
+                  text={{
+                    en: (
+                      <React.Fragment>
+                        Help us keep Sefaria free for everyone by adding a{' '}
+                        <DonateLink classes="devE-inlineLink" source="DeveloperSettingsPublish">
+                          donation link
+                        </DonateLink>{' '}
+                        to your project.
+                      </React.Fragment>
+                    ),
+                    he: (
+                      <React.Fragment>
+                        עזרו לנו לשמור על ספריא חינמית לכולם בהוספת{' '}
+                        <DonateLink classes="devE-inlineLink" source="DeveloperSettingsPublish">
+                          קישור לתרומה
+                        </DonateLink>{' '}
+                        לפרויקט שלכם.
+                      </React.Fragment>
+                    ),
+                  }}
+                />
+              </p>
+              <fieldset className="devE-choices">
+                <legend className="sr-only">{tE('What have you added to your project?', 'מה הוספתם לפרויקט?')}</legend>
+                <Checkbox
+                  id="devEShareLogoYes"
+                  checked={logo === 'yes'}
+                  onChange={(e) => setLogo(e.target.checked ? 'yes' : '')}
+                  label={tE("I've added the Powered by Sefaria logo", 'הוספתי את הלוגו Powered by Sefaria')}
+                />
+                <Checkbox
+                  id="devEShareDonate"
+                  checked={donateLink}
+                  onChange={(e) => setDonateLink(e.target.checked)}
+                  label={tE("I've added a link to donate to Sefaria", 'הוספתי קישור לתרומה לספריא')}
+                />
+              </fieldset>
+            </section>
 
-        {/* The developer community panel right before submitting (2026-11-08), as in About you. The newsletter box
+            {/* The developer community panel right before submitting (2026-11-08), as in About you. The newsletter box
             starts from the profile and saves back to it (field review sheet: Elise and Genevieve want it here). */}
-        <ECommunity id="devEShareNews" checked={!!person.developerNews} onChange={(v) => setP('developerNews', v)} />
+            <ECommunity
+              id="devEShareNews"
+              checked={!!person.developerNews}
+              onChange={(v) => setP('developerNews', v)}
+            />
+          </React.Fragment>
+        ) : null}
 
         <div className="devE-footer">
           <button type="button" className="devE-backBtn" onClick={onBack}>
             {tE('Cancel', 'ביטול')}
           </button>
-          <EPrimary data-agent-action="share-project" disabled={busy}>
-            {tE('Submit for review', 'שליחה לבדיקה')}
-          </EPrimary>
+          {picked ? (
+            <EPrimary data-agent-action="share-project" disabled={busy}>
+              {creating
+                ? tE('Create project + submit', 'יצירת פרויקט + שליחה')
+                : tE('Submit for review', 'שליחה לבדיקה')}
+            </EPrimary>
+          ) : null}
         </div>
       </form>
     </EStep>
@@ -3278,11 +3189,7 @@ const EProjectPicker = ({ projects, value, onPick, canAddNew = true }) => (
     value={value || ''}
     onChange={onPick}
     label={tE('Which project do you want to publish?', 'איזה פרויקט תרצו לפרסם?')}
-    placeholder={
-      projects.length
-        ? { en: 'Choose a project', he: 'בחרו פרויקט' }
-        : { en: 'No projects yet', he: 'עדיין אין פרויקטים' }
-    }
+    placeholder={{ en: 'Choose a project', he: 'בחרו פרויקט' }}
     options={[
       ...projects.map((p) => ({ value: p.id, label: { en: p.name, he: p.name } })),
       ...(canAddNew
@@ -3291,37 +3198,6 @@ const EProjectPicker = ({ projects, value, onPick, canAddNew = true }) => (
     ]}
   />
 );
-const ESharePick = ({ projects, onPick, onBack, canAddNew }) => (
-  /* No project chosen yet: the page's intro and "Your project" with only the project choice. With no projects at all,
-     the choice offers just "+ Create a new project". */
-  <EStep
-    onBack={onBack}
-    iconOk
-    icon={
-      <span className="devE-icoDev">
-        <EPublishIcon size={24} />
-      </span>
-    }
-    title={tE('Publish your project', 'פרסום הפרויקט שלך')}
-    lead={<EShareLead />}
-  >
-    <div className="devE-form devE-shareForm">
-      <section className="devE-shareSection" aria-labelledby="devEShareProj">
-        <h3 id="devEShareProj">{tE('Your project', 'הפרויקט שלך')}</h3>
-        {/* No projects yet (PBS check-in, 2026-11-02): say why the only choice is a new project, and that they come back here. */}
-        {projects.length ? null : (
-          <p className="devE-shareNote">
-            {tE(
-              "To publish a project, first create it. It only takes a minute, and you'll come straight back here to finish.",
-              'כדי לפרסם פרויקט, קודם צריך ליצור אותו. זה לוקח רק דקה, ומיד אחר כך תחזרו לכאן כדי לסיים.'
-            )}
-          </p>
-        )}
-        <EProjectPicker projects={projects} onPick={onPick} canAddNew={canAddNew} />
-      </section>
-    </div>
-  </EStep>
-);
 
 const EHome = ({
   state,
@@ -3329,9 +3205,8 @@ const EHome = ({
   notice,
   setNotice,
   connectedMessage,
-  toast,
-  setToast,
   freshKeyId,
+  freshKeyValue,
   freshProjectId,
   open,
 }) => {
@@ -3339,23 +3214,94 @@ const EHome = ({
   const [needSite, setNeedSite] = useState(null); // the project whose key someone tried to limit before it had a website
   const [confirmDel, setConfirmDel] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const copiedTimer = useRef(null);
+  useEffect(() => () => clearTimeout(copiedTimer.current), []);
   const [shownIds, setShownIds] = useState([]); // keys shown in full; every key starts hidden
-  const toggleShown = (id) => setShownIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
+  /* Key values live only here, in memory, and only once asked for: the page loads with each key's display prefix,
+     and Show or Copy fetches that one key's value (Daniel's key reveal, #4003; kept 2026-11-15). Hiding a key forgets
+     its value, and Copy keeps nothing. A key just created arrives with its value, so its first Show or Copy needs no
+     request. */
+  /* A key just added scrolls into view (Penina, 2026-11-15), smoothly unless the visitor asks for reduced motion. */
+  useEffect(() => {
+    if (!freshKeyId) {
+      return;
+    }
+    // After the page's own scroll to the top when the home screen opens, which runs later in the same commit.
+    const timer = setTimeout(() => {
+      const row = document.querySelector('.devE-keyRowT.is-new');
+      if (row && row.scrollIntoView) {
+        const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        row.scrollIntoView({ block: 'center', behavior: still ? 'auto' : 'smooth' });
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [freshKeyId]);
+  const [keyValues, setKeyValues] = useState(() =>
+    freshKeyValue && freshKeyId ? { [freshKeyId]: freshKeyValue } : {}
+  );
+  const valueOf = (id, keep) =>
+    keyValues[id]
+      ? Promise.resolve(keyValues[id])
+      : revealKey(id).then((v) => {
+          if (keep) {
+            setKeyValues((m) => ({ ...m, [id]: v }));
+          }
+          return v;
+        });
+  const toggleShown = (id) => {
+    if (shownIds.includes(id)) {
+      setShownIds((ids) => ids.filter((x) => x !== id));
+      setKeyValues((m) => {
+        const next = { ...m };
+        delete next[id];
+        return next;
+      });
+      return;
+    }
+    // No error copy if the fetch fails: the key just stays hidden (Daniel, 2026-11-15).
+    valueOf(id, true).then(
+      () => setShownIds((ids) => (ids.includes(id) ? ids : [...ids, id])),
+      () => {}
+    );
+  };
   const profile = state.profile || {};
   const emails = [accountEmail(), profile.additionalEmail].filter(Boolean);
   const canCreate = accountVerified(state);
   const maxProjects = state.maxProjects || 10;
   const atProjectLimit = state.projects.length >= maxProjects;
+  /* At the limit: a tooltip on the New project button on desktop, a line under the section's header row on phones,
+     which have no tooltips (Penina, 2026-11-15); the confirm-your-email reason shows the same way. It goes away once a
+     project is deleted. */
+  const projectLimitText = tE(
+    <React.Fragment>
+      You have reached the maximum of {maxProjects} projects. To add another project, delete one no longer in use or
+      email{' '}
+      <a className="devE-inlineLink" href="mailto:developers@sefaria.org">
+        developers@sefaria.org
+      </a>
+      .
+    </React.Fragment>,
+    <React.Fragment>
+      הגעתם למספר המרבי של {maxProjects} פרויקטים. כדי להוסיף עוד פרויקט, מחקו פרויקט שאינו בשימוש או כתבו ל־
+      <a className="devE-inlineLink" href="mailto:developers@sefaria.org">
+        developers@sefaria.org
+      </a>
+      .
+    </React.Fragment>
+  );
+  const keyLimitText = tE(
+    'You have reached the maximum of ' +
+      (state.maxKeysPerProject || 5) +
+      ' keys for this project. To add another key, delete one no longer in use.',
+    'הגעתם למספר המרבי של ' +
+      (state.maxKeysPerProject || 5) +
+      ' מפתחות לפרויקט הזה. כדי להוסיף מפתח נוסף, מחקו מפתח שאינו בשימוש.'
+  );
   const removeKey = (apiKey) =>
     run(deleteKey(apiKey.id)).then(
       () => {
+        /* No confirmation message: the row disappearing is the confirmation (Penina, 2026-11-15). */
         setConfirmDel(null);
-        setToast(
-          vE(
-            apiKey.label + ' is deleted. Anything using it stops working.',
-            apiKey.label + ' נמחק. כל מה שמשתמש בו יפסיק לעבוד.'
-          )
-        );
       },
       () => {}
     );
@@ -3371,17 +3317,6 @@ const EHome = ({
           <img className="devE-toastIcon" src="/static/icons/info-error.svg" alt="" aria-hidden="true" />
           <span className="devE-toastText">{notice}</span>
           <button type="button" className="devE-textBtn" onClick={() => setNotice('')}>
-            {tE('Dismiss', 'סגירה')}
-          </button>
-        </div>
-      ) : null}
-      {toast ? (
-        <div className="devE-toast" role="status">
-          <span className="devE-toastIcon" aria-hidden="true">
-            ✓
-          </span>
-          <span className="devE-toastText">{toast}</span>
-          <button type="button" className="devE-textBtn devE-muted" onClick={() => setToast('')}>
             {tE('Dismiss', 'סגירה')}
           </button>
         </div>
@@ -3403,12 +3338,7 @@ const EHome = ({
         />
       ) : null}{' '}
       {/* no message: the switch turning on says it (Penina, 2026-11-05) */}
-      {/* Both banners can show at once, stacked: the email reconfirmation first, then the publish nudge (2026-11-08). */}
       {!canCreate ? <EReconfirmBanner sentAt={state.confirmationSentAt} run={run} /> : null}
-      <EPublishNudge
-        projects={state.projects}
-        onPublish={(project) => open({ screen: 'share', projectId: project.id })}
-      />
       {/* The profile as a card (option B, Penina 2026-11-05): the site's ProfilePic (photo, else initials), name over
           email(s), and Edit profile, which opens the setup's About you step on its own. */}
       <div className="devE-note devE-profileCard">
@@ -3433,7 +3363,8 @@ const EHome = ({
           onClick={() => open({ screen: 'profile' })}
         >
           <EPencilIcon />
-          {tE('Edit profile', 'עריכת פרופיל')}
+          {/* On phones only the pencil shows; the words stay for screen readers (s2.css). */}
+          <span className="devE-profileEditLabel">{tE('Edit profile', 'עריכת פרופיל')}</span>
         </button>
       </div>
       {/* The section header, then one block per project. */}
@@ -3444,7 +3375,7 @@ const EHome = ({
         {state.projects.length ? (
           /* At the project limit (10 per account, raisable by staff) the button stays, disabled, and its tooltip
              says why. aria-disabled rather than disabled, so it can still be hovered and focused to read that. */
-          <span className="devE-tipWrap">
+          <ETipWrap>
             <button
               type="button"
               className="devE-pill"
@@ -3460,25 +3391,25 @@ const EHome = ({
               <EPlusIcon />
               {tE('New project', 'פרויקט חדש')}
             </button>
-            {!canCreate ? (
+            {!canCreate && !isPhone ? (
               <span className="devPocPopover devE-tip" id="devEProjLimitTip" role="tooltip">
                 {E_CONFIRM_TIP()}
               </span>
-            ) : atProjectLimit ? (
+            ) : atProjectLimit && !isPhone ? (
               <span className="devPocPopover devE-tip" id="devEProjLimitTip" role="tooltip">
-                {tE(
-                  'You have reached the maximum of ' +
-                    maxProjects +
-                    ' projects. To add another project, delete one no longer in use.',
-                  'הגעתם למספר המרבי של ' +
-                    maxProjects +
-                    ' פרויקטים. כדי להוסיף פרויקט נוסף, מחקו פרויקט שאינו בשימוש עוד.'
-                )}
+                {/* The address is a link, so the tip stays open while the pointer is on it (s2.css). */}
+                {projectLimitText}
               </span>
             ) : null}
-          </span>
+          </ETipWrap>
         ) : null}
       </div>
+      {/* Phones have no tooltips: why New project is off shows as a line under the header row instead. */}
+      {isPhone && state.projects.length > 0 && (!canCreate || atProjectLimit) ? (
+        <p className="devE-limitNote" id="devEProjLimitTip">
+          {!canCreate ? E_CONFIRM_TIP() : projectLimitText}
+        </p>
+      ) : null}
       {/* No projects yet: the key table's columns, with its body asking for the first project. */}
       {!state.projects.length ? (
         <div className="devE-board">
@@ -3495,7 +3426,7 @@ const EHome = ({
                         'צרו פרויקט ואז הוסיפו לו מפתח API. הפרויקטים והמפתחות שלכם יופיעו כאן.'
                       )}
                     </p>
-                    <span className="devE-tipWrap">
+                    <ETipWrap>
                       <button
                         type="button"
                         className="devE-pill"
@@ -3510,12 +3441,17 @@ const EHome = ({
                       >
                         {tE('Create a project', 'יצירת פרויקט')}
                       </button>
-                      {!canCreate ? (
+                      {!canCreate && !isPhone ? (
                         <span className="devPocPopover devE-tip" id="devEFirstProjTip" role="tooltip">
                           {E_CONFIRM_TIP()}
                         </span>
                       ) : null}
-                    </span>
+                    </ETipWrap>
+                    {!canCreate && isPhone ? (
+                      <p className="devE-btnNote" id="devEFirstProjTip">
+                        {E_CONFIRM_TIP()}
+                      </p>
+                    ) : null}
                   </div>
                 </td>
               </tr>
@@ -3593,7 +3529,7 @@ const EHome = ({
                       <DropdownMenuItemWithCallback onClick={() => open({ screen: 'editproj', projectId: project.id })}>
                         <span className="devE-projMenuItem">
                           <EPencilIcon />
-                          {tE('Edit project details', 'עריכת פרטי הפרויקט')}
+                          {tE('Edit project details', 'עריכת פרטים')}
                         </span>
                       </DropdownMenuItemWithCallback>
                       {host ? null : (
@@ -3629,12 +3565,11 @@ const EHome = ({
                       className="devE-quiet"
                       data-agent-action="edit-project"
                       onClick={() => open({ screen: 'editproj', projectId: project.id })}
-                      aria-label={vE('Edit details of ' + project.name, 'עריכת הפרטים של ' + project.name)}
                     >
                       <EPencilIcon />
-                      {tE('Edit project details', 'עריכת פרטי הפרויקט')}
+                      {tE('Edit project details', 'עריכת פרטים')}
                     </button>
-                    <span className="devE-tipWrap">
+                    <ETipWrap>
                       {/* Disabled at the key limit or while the email needs confirming, with a tooltip saying which, the same
                         way as New project at the project limit (2026-11-05). aria-disabled so it can be hovered and focused. */}
                       <button
@@ -3643,7 +3578,6 @@ const EHome = ({
                         data-agent-action="new-key"
                         aria-disabled={!canCreate || atLimit ? 'true' : null}
                         aria-describedby={!canCreate || atLimit ? 'devEKeyTip-' + project.id : null}
-                        aria-label={vE('Add a key to ' + project.name, 'הוספת מפתח ל־' + project.name)}
                         onClick={() => {
                           if (canCreate && !atLimit) {
                             open({ screen: 'newkey', projectId: project.id });
@@ -3653,23 +3587,18 @@ const EHome = ({
                         <EPlusIcon />
                         {tE('Add key', 'הוספת מפתח')}
                       </button>
-                      {!canCreate ? (
+                      {(!canCreate || atLimit) && !isPhone ? (
                         <span className="devPocPopover devE-tip" id={'devEKeyTip-' + project.id} role="tooltip">
-                          {E_CONFIRM_TIP()}
-                        </span>
-                      ) : atLimit ? (
-                        <span className="devPocPopover devE-tip" id={'devEKeyTip-' + project.id} role="tooltip">
-                          {tE(
-                            'You have reached the maximum of ' +
-                              (state.maxKeysPerProject || 5) +
-                              ' keys for this project. To add another key, delete one no longer in use.',
-                            'הגעתם למספר המרבי של ' +
-                              (state.maxKeysPerProject || 5) +
-                              ' מפתחות לפרויקט הזה. כדי להוסיף מפתח נוסף, מחקו מפתח שאינו בשימוש עוד.'
-                          )}
+                          {!canCreate ? E_CONFIRM_TIP() : keyLimitText}
                         </span>
                       ) : null}
-                    </span>
+                    </ETipWrap>
+                    {/* Phones have no tooltips: the reason shows as a line under the button. */}
+                    {(!canCreate || atLimit) && isPhone ? (
+                      <p className="devE-btnNote" id={'devEKeyTip-' + project.id}>
+                        {!canCreate ? E_CONFIRM_TIP() : keyLimitText}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
                 {/* Website and Share chips on the left, the usage line all the way on the right, in one row
@@ -3729,13 +3658,23 @@ const EHome = ({
                         <tr key={apiKey.id} className={'devE-keyRowT' + (apiKey.id === freshKeyId ? ' is-new' : '')}>
                           <td data-l={vE('Name', 'שם')} dir="auto">
                             <EKeyName name={apiKey.label} />
+                            {/* Narrow desktop tables fold the Created column into this caption (s2.css). */}
+                            <span className="devE-keyDateSub" aria-hidden="true">
+                              {tE('Created ', 'נוצר ')}
+                              <span className="devE-nowrap">{formatDate(apiKey.created)}</span>
+                            </span>
                           </td>
                           <td data-l={vE('Key', 'מפתח')}>
-                            <span className="devE-keyCell">
+                            <span
+                              className={
+                                'devE-keyCell' +
+                                (shownIds.includes(apiKey.id) && keyValues[apiKey.id] ? ' is-shown' : '')
+                              }
+                            >
                               <code className="devE-keyText" dir="ltr">
-                                {shownIds.includes(apiKey.id)
-                                  ? apiKey.value
-                                  : apiKey.value.slice(0, 4) + '••••' + apiKey.value.slice(-4)}
+                                {shownIds.includes(apiKey.id) && keyValues[apiKey.id]
+                                  ? keyValues[apiKey.id]
+                                  : apiKey.prefix + '••••'}
                               </code>
                               {/* Show or hide the whole key: the eye from the sign-in password field. */}
                               {/* ARIA labels "Show key, [name]" / "Hide key, [name]" / "Copy key, [name]" (action first, then which key; Penina,
@@ -3758,18 +3697,33 @@ const EHome = ({
                               </button>
                               <button
                                 type="button"
-                                className="devE-ico"
+                                className={'devE-ico' + (copiedId === apiKey.id ? ' is-copied' : '')}
                                 aria-label={vE('Copy key, ' + apiKey.label, 'העתקת המפתח, ' + apiKey.label)}
                                 onClick={() =>
-                                  eCopy(apiKey.value, () => {
-                                    setCopiedId(apiKey.id);
-                                    setTimeout(() => setCopiedId(null), 2000);
-                                  })
+                                  /* A key already shown is on the page: copy it inside the tap (needed on http, e.g. a
+                                     phone on the local network). Otherwise fetch it first. */
+                                  (keyValues[apiKey.id]
+                                    ? (fn, done, failed) => eCopy(keyValues[apiKey.id], done, failed)
+                                    : eCopyFetched)(
+                                    () => valueOf(apiKey.id),
+                                    () => {
+                                      setCopiedId(apiKey.id);
+                                      // The copy-check icon stays 8 seconds (Penina, 2026-11-15); a new copy restarts it.
+                                      clearTimeout(copiedTimer.current);
+                                      copiedTimer.current = setTimeout(() => setCopiedId(null), 8000);
+                                    },
+                                    /* The browser refused: show the key, so it can be copied by hand. */
+                                    () => {
+                                      if (!shownIds.includes(apiKey.id)) {
+                                        toggleShown(apiKey.id);
+                                      }
+                                    }
+                                  )
                                 }
                               >
-                                <ECopyIcon />
+                                {copiedId === apiKey.id ? <ECopyCheckIcon /> : <ECopyIcon />}
                               </button>
-                              <span className="devE-keyCopied" aria-live="polite">
+                              <span className="devE-keyCopied sr-only" aria-live="polite">
                                 {copiedId === apiKey.id ? tE('Copied', 'הועתק') : null}
                               </span>
                             </span>
@@ -3779,15 +3733,11 @@ const EHome = ({
                             {/* Without a website the switch stays off; turning it on asks for the website first. */}
                             <span className="devE-tog">
                               <span className="sr-only" id={'devERes-' + apiKey.id + '-label'}>
-                                {host
-                                  ? vE(
-                                      'Only accept requests with ' + apiKey.label + ' from ' + host,
-                                      'לקבל בקשות עם ' + apiKey.label + ' רק מ־' + host
-                                    )
-                                  : vE(
-                                      'Limit ' + apiKey.label + " to the project's website",
-                                      'הגבלת ' + apiKey.label + ' לאתר הפרויקט'
-                                    )}
+                                {/* One label with or without a website (Penina, 2026-11-15). */}
+                                {vE(
+                                  'Limit ' + apiKey.label + ' to your website',
+                                  'הגבלת ' + apiKey.label + ' לאתר שלכם'
+                                )}
                               </span>
                               <ToggleSwitch
                                 name={'devERes-' + apiKey.id}
@@ -3799,6 +3749,16 @@ const EHome = ({
                                 }
                               />
                             </span>
+                            {/* Phone cards have no column header, so no ? beside "Limit to website": Learn more sits
+                                directly under it instead (Penina, 2026-11-15). Hidden at desktop widths (s2.css). */}
+                            <a
+                              className="devE-inlineLink devE-limitLearn"
+                              href={E_SITE_LEARN_MORE_URL}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {tE('Learn more', 'מידע נוסף')}
+                            </a>
                           </td>
                           <td className="devE-end">
                             <button
@@ -3841,103 +3801,6 @@ const eScrollTop = () => {
 
 /* Rule 14: the account email changed (or lost confirmation) after setup. Everything stays and keeps working; only
    creating projects and keys waits. The whole confirmation happens in this banner, so the projects stay in view. */
-/* "Publish it" nudge (Sarah's first point, Penina 2026-11-08): once a project is getting real use, the same banner as
-   the email reconfirmation suggests publishing that one project, with a button straight to its form. One project at a
-   time (the one with the most use); it stays away once dismissed or published. What counts as "real use" is still
-   open (asked Daniel, 2026-11-09): for now a share of the monthly limit, E_PUBLISH_NUDGE_PCT, so with usage out of
-   Phase 1 the nudge stays dormant until the API sends usage or the trigger changes. Kept separate from the
-   site's SiteWideBanner on purpose (Penina, 2026-11-08). */
-const E_PUBLISH_NUDGE_PCT = 25;
-const E_NUDGE_DISMISSED = 'devEPublishNudgeDismissed';
-const eNudgeDismissed = () => {
-  try {
-    return JSON.parse(localStorage.getItem(E_NUDGE_DISMISSED) || '[]');
-  } catch (e) {
-    return [];
-  }
-};
-const EPublishNudge = ({ projects, onPublish }) => {
-  const [dismissed, setDismissed] = useState(eNudgeDismissed);
-  const candidates = projects
-    .map((p) => ({ p, pct: eUsagePct(p) }))
-    .filter(
-      ({ p, pct }) =>
-        p.keys.length && p.visibility !== 'public' && pct >= E_PUBLISH_NUDGE_PCT && !dismissed.includes(p.id)
-    )
-    .sort((a, b) => b.pct - a.pct);
-  if (!candidates.length) {
-    return null;
-  }
-  const project = candidates[0].p;
-  const dismiss = () => {
-    const next = [...dismissed, project.id];
-    setDismissed(next);
-    try {
-      localStorage.setItem(E_NUDGE_DISMISSED, JSON.stringify(next));
-    } catch (e) {
-      /* storage unavailable: the banner just shows again next visit */
-    }
-  };
-  return (
-    <div
-      className="devE-banner devE-bannerPromo"
-      role="region"
-      aria-label={vE('Publish ' + project.name, 'פרסום ' + project.name)}
-    >
-      <div className="devE-bannerContent">
-        <span className="devE-bannerIcon" aria-hidden="true">
-          <EPublishIcon />
-        </span>
-        <div className="devE-bannerText">
-          <p className="devE-bannerTitle">
-            <InterfaceText
-              text={{
-                en: (
-                  <React.Fragment>
-                    People are using <bdi dir="auto">{project.name}</bdi>
-                  </React.Fragment>
-                ),
-                he: (
-                  <React.Fragment>
-                    אנשים משתמשים ב־<bdi dir="auto">{project.name}</bdi>
-                  </React.Fragment>
-                ),
-              }}
-            />
-          </p>
-          <p>
-            {tE(
-              'Publish it so more learners and developers can find it.',
-              'פרסמו אותו כדי שעוד לומדים ומפתחים יוכלו למצוא אותו.'
-            )}
-          </p>
-        </div>
-      </div>
-      <div className="devE-bannerActions">
-        <button type="button" className="devE-pill" onClick={() => onPublish(project)}>
-          <InterfaceText
-            text={{
-              en: (
-                <React.Fragment>
-                  Publish <bdi dir="auto">{project.name}</bdi>
-                </React.Fragment>
-              ),
-              he: (
-                <React.Fragment>
-                  פרסום <bdi dir="auto">{project.name}</bdi>
-                </React.Fragment>
-              ),
-            }}
-          />
-        </button>
-      </div>
-      {/* Close in the top corner, apart from the button (Penina, 2026-11-08). */}
-      <button type="button" className="devE-bannerClose" onClick={dismiss} aria-label={vE('Dismiss', 'סגירה')}>
-        <EXIcon />
-      </button>
-    </div>
-  );
-};
 
 const EReconfirmBanner = ({ sentAt, run }) => {
   const [sentHere, setSentHere] = useState(false);
@@ -3994,7 +3857,7 @@ const EReconfirmBanner = ({ sentAt, run }) => {
                 <InterfaceText
                   text={{
                     en: <React.Fragment>We sent a confirmation link to {email}.</React.Fragment>,
-                    he: <React.Fragment>שלחנו קישור לאישור אל {email}.</React.Fragment>,
+                    he: <React.Fragment>שלחנו קישור לאישור ל־{email}.</React.Fragment>,
                   }}
                 />
               </p>
@@ -4048,9 +3911,10 @@ let eSentThisVisit = false;
 let eStarted = E_CONTINUE;
 
 const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessage, homeSignal }) => {
-  const [view, setView] = useState(null); // {screen, projectId, keyId, inSetup}
-  const [toast, setToast] = useState('');
+  const [view, setViewRaw] = useState(null); // {screen, projectId, keyId, inSetup}
+  const setView = setViewRaw;
   const [freshKeyId, setFreshKeyId] = useState(null);
+  const [freshKeyValue, setFreshKeyValue] = useState(null); // a new key's value, from its creation answer only
   /* A project made during this visit gets a short highlight when the projects page shows it, in place of a
      "saved" message (Penina, 2026-11-05). */
   const [freshProjectId, setFreshProjectId] = useState(null);
@@ -4077,16 +3941,110 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
     eStarted = v;
     setStartedState(v);
   };
-  const [cancelled, setCancelled] = useState(false);
-  /* The Developer Settings tab always leads to the main page (Penina, 2026-11-12): out of any step or screen, back to
-     the home, or to the welcome screen while About you isn't saved yet. Unsaved answers are dropped. */
+
+  /* Browser history (Penina, 2026-11-15): every full-screen step adds a history entry, so Back (the browser's, or a
+     phone's back gesture) steps back through Developer Settings the way the steps' own back links do, on desktop and
+     phones alike. The address stays the same. The loader, a sent form's result and a failed key's retry replace their
+     entry instead, and going home goes back to the home entry, so Back from home then leaves the page. */
+  const hist = useRef({ idx: 0, keys: [], popped: false, goingHome: false });
+  const live = useRef({ view, started });
+  live.current = { view, started };
+  const histKey = (v, st) => JSON.stringify([v ? { ...v, keyFailure: undefined, keyLabel: undefined } : null, !!st]);
+  const writeHistory = (method, idx, v, st) => {
+    try {
+      window.history[method](
+        { ...(window.history.state || {}), devIdx: idx, devView: v, devStarted: !!st },
+        '',
+        window.location.href
+      );
+    } catch (e) {
+      /* history unavailable (e.g. in some embedded views): steps still work, Back just leaves the page */
+    }
+  };
+  useEffect(() => {
+    hist.current.keys = [histKey(view, started)];
+    writeHistory('replaceState', 0, view, started);
+    const onPop = (e) => {
+      const st = e.state || {};
+      if (typeof st.devIdx !== 'number') {
+        return; // an entry from before Developer Settings: the page is leaving
+      }
+      const h = hist.current;
+      if (h.goingHome) {
+        h.goingHome = false;
+      }
+      h.idx = st.devIdx;
+      const nextView = st.devView || null;
+      const nextStarted = !!st.devStarted;
+      if (histKey(nextView, nextStarted) !== histKey(live.current.view, live.current.started)) {
+        h.popped = true;
+      }
+      h.keys[h.idx] = histKey(nextView, nextStarted);
+      unstable_batchedUpdates(() => {
+        setViewRaw(nextView);
+        setStarted(nextStarted);
+      });
+      eScrollTop();
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+  useEffect(() => {
+    const h = hist.current;
+    const key = histKey(view, started);
+    if (h.popped) {
+      h.popped = false;
+      return;
+    }
+    if (h.keys[h.idx] === key) {
+      return;
+    }
+    if (!view) {
+      /* Home: back to the nearest home entry below, if there is one. */
+      let j = h.idx - 1;
+      while (j >= 0 && h.keys[j] !== key) {
+        j -= 1;
+      }
+      if (j >= 0) {
+        h.goingHome = true;
+        const steps = j - h.idx;
+        h.idx = j;
+        window.history.go(steps);
+        return;
+      }
+      h.keys[h.idx] = key;
+      writeHistory('replaceState', h.idx, view, started);
+      return;
+    }
+    const prev = h.keys[h.idx] ? JSON.parse(h.keys[h.idx])[0] : null;
+    const replace =
+      view.screen === 'wait' ||
+      view.screen === 'submitted' ||
+      (prev && prev.screen === 'wait') ||
+      (prev && prev.screen === 'share' && view.screen === 'share');
+    if (replace) {
+      h.keys[h.idx] = key;
+      writeHistory('replaceState', h.idx, view, started);
+      return;
+    }
+    h.idx += 1;
+    h.keys = h.keys.slice(0, h.idx).concat(key);
+    writeHistory('pushState', h.idx, view, started);
+  }, [view, started]);
   useEffect(() => {
     if (!homeSignal) {
       return;
     }
     setView(null);
     setStarted(false);
+    /* The tab switch added its own history entry: that entry is Developer Settings' home step. */
+    hist.current = { idx: 0, keys: [histKey(null, false)], popped: false, goingHome: false };
+    writeHistory('replaceState', 0, null, false);
   }, [homeSignal]);
+  const [cancelled, setCancelled] = useState(false);
+  /* The Developer Settings tab always leads to the main page (Penina, 2026-11-12): out of any step or screen, back to
+     the home, or to the welcome screen while About you isn't saved yet. Unsaved answers are dropped. */
+
   const mounted = useRef(true);
   useEffect(
     () => () => {
@@ -4118,15 +4076,13 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
   const dotsOf = stepLabels.length;
   const dots = (step) => ({ at: step + (confirmStep ? 1 : 0), of: dotsOf, labels: stepLabels });
   const open = (next) => {
-    setToast('');
     setView(next);
     eScrollTop();
   };
   /* Room for one more project: under the limit and with a confirmed email, as for New project. */
   const canAddProject = state.projects.length < (state.maxProjects || 10) && accountVerified(state);
-  const home = (message) => {
+  const home = () => {
     setView(null);
-    setToast(message || '');
     eScrollTop();
   };
   const projectById = (id) => state.projects.find((p) => p.id === id);
@@ -4170,6 +4126,7 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
             return;
           }
           setFreshKeyId(data.keyId);
+          setFreshKeyValue(data.keyValue || null);
           if (afterKey) {
             afterKey();
             return;
@@ -4303,6 +4260,18 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
         </bdi>
       </React.Fragment>
     );
+    /* Hebrew: ל־ goes on the address's own line, attached to it (Penina, 2026-11-15). */
+    const emailLineHe = (
+      <React.Fragment>
+        <br />
+        <span className="devE-noWrap">
+          ל־
+          <bdi dir="ltr">
+            <strong>{accountEmail()}</strong>
+          </bdi>
+        </span>
+      </React.Fragment>
+    );
     const cancel = (
       <button
         type="button"
@@ -4314,7 +4283,7 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
         }}
       >
         <EArrowLeftIcon />
-        {tE('Back to Developer Settings', 'חזרה להגדרות המפתחים')}
+        {tE('Back to Developer Settings', 'חזרה להגדרות מפתחים')}
       </button>
     );
     const sendButton = (
@@ -4338,7 +4307,7 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
               <InterfaceText
                 text={{
                   en: <React.Fragment>We sent a confirmation link to{emailLine}</React.Fragment>,
-                  he: <React.Fragment>שלחנו קישור לאישור אל{emailLine}</React.Fragment>,
+                  he: <React.Fragment>שלחנו קישור לאישור{emailLineHe}</React.Fragment>,
                 }}
               />
             </p>
@@ -4376,7 +4345,7 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
               <InterfaceText
                 text={{
                   en: <React.Fragment>We&apos;ll send a confirmation link to{emailLine}</React.Fragment>,
-                  he: <React.Fragment>נשלח קישור לאישור אל{emailLine}</React.Fragment>,
+                  he: <React.Fragment>נשלח קישור לאישור{emailLineHe}</React.Fragment>,
                 }}
               />
             </p>
@@ -4527,10 +4496,7 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
   } else if ((view && view.screen === 'firstkey') || (view && view.screen === 'newproj')) {
     /* A new project from the table: the same two steps as setup (project, then a key that can be skipped),
        without step numbers. */
-    /* From the Powered by page (view.toShare), Cancel and the finished steps go back to it, with the new project
-       chosen. */
-    const toShare = view.toShare;
-    const leave = () => (toShare ? open({ screen: 'share', fromLink: true }) : home());
+    const leave = () => home();
     body = (
       <ESetupProject
         title={tE('New project', 'פרויקט חדש')}
@@ -4543,22 +4509,20 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
               setFreshProjectId(data.projectId);
               return data;
             })
-            .then((data) => setView({ screen: 'projectKey', projectId: data.projectId, toShare }))
+            .then((data) => setView({ screen: 'projectKey', projectId: data.projectId }))
         }
       />
     );
   } else if (view && view.screen === 'projectKey' && projectById(view.projectId)) {
     const project = projectById(view.projectId);
-    const toShare = view.toShare;
-    const backToShare = () => open({ screen: 'share', projectId: project.id, fromLink: true });
     body = (
       <ESetupKey
         project={project}
         failure={view.keyFailure}
         initialLabel={view.keyLabel}
-        onBack={toShare ? backToShare : () => home()}
-        onSkip={toShare ? backToShare : () => home()}
-        onCreate={(label, opts) => createWithKey(null, label, false, project.id, opts, toShare ? backToShare : null)}
+        onBack={() => home()}
+        onSkip={() => home()}
+        onCreate={(label, opts) => createWithKey(null, label, false, project.id, opts)}
       />
     );
   } else if (view && view.screen === 'newkey' && projectById(view.projectId)) {
@@ -4573,29 +4537,19 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
     );
   } else if (view && view.screen === 'wait') {
     body = <EWaiting dots={view.inSetup ? dots(2) : null} />;
-  } else if (view && view.screen === 'share' && view.fromLink && !projectById(view.projectId)) {
-    body = (
-      <ESharePick
-        projects={state.projects}
-        onBack={() => home()}
-        canAddNew={canAddProject}
-        onPick={(id) =>
-          id === E_NEW_PROJECT
-            ? open({ screen: 'newproj', toShare: true })
-            : setView({ screen: 'share', projectId: id, fromLink: true })
-        }
-      />
-    );
-  } else if (view && view.screen === 'share' && projectById(view.projectId)) {
-    const project = projectById(view.projectId);
+  } else if (view && view.screen === 'share' && (projectById(view.projectId) || view.fromLink)) {
+    const project = projectById(view.projectId) || null;
     body = (
       <EShareProject
-        key={project.id}
+        key="share"
         project={project}
+        projects={state.projects}
+        canAddNew={canAddProject}
+        onPickProject={(id) => setView({ screen: 'share', projectId: id, fromLink: true })}
         profile={state.profile}
         dots={view.inSetup ? dots(2) : null}
         onBack={
-          view.inSetup
+          view.inSetup && project
             ? () =>
                 setView({
                   screen: 'setupProjectEdit',
@@ -4605,22 +4559,17 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
                 })
             : () => home()
         }
-        picker={
-          <EProjectPicker
-            projects={state.projects}
-            value={project.id}
-            canAddNew={canAddProject}
-            onPick={(id) =>
-              id === E_NEW_PROJECT
-                ? open({ screen: 'newproj', toShare: true })
-                : setView({ screen: 'share', projectId: id, fromLink: true })
-            }
-          />
-        }
-        onSubmit={(profile, fields) =>
+        onSubmit={(profile, fields, isNew) =>
           run(saveProfile(profile), { quiet: true })
-            .then(() => run(updateProject(project.id, fields), { quiet: true }))
-            .then(() => setView({ screen: 'submitted', projectId: project.id }))
+            .then(() =>
+              isNew
+                ? run(createProject(fields), { quiet: true }).then((data) => {
+                    setFreshProjectId(data.projectId);
+                    return data.projectId;
+                  })
+                : run(updateProject(project.id, fields), { quiet: true }).then(() => project.id)
+            )
+            .then((id) => setView({ screen: 'submitted', projectId: id }))
         }
       />
     );
@@ -4633,16 +4582,8 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
         project={project}
         onBack={() => home()}
         focusField={view.focus}
-        onSave={(fields) =>
-          run(updateProject(project.id, fields), { quiet: true }).then(() =>
-            home(vE(fields.name + ' is saved.', fields.name + ' נשמר.'))
-          )
-        }
-        onDelete={() =>
-          run(deleteProject(project.id), { quiet: true }).then(() =>
-            home(vE(project.name + ' and its keys are deleted.', project.name + ' והמפתחות שלו נמחקו.'))
-          )
-        }
+        onSave={(fields) => run(updateProject(project.id, fields), { quiet: true }).then(() => home())}
+        onDelete={() => run(deleteProject(project.id), { quiet: true }).then(() => home())}
       />
     );
   } else {
@@ -4653,9 +4594,8 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
         notice={notice}
         setNotice={setNotice}
         connectedMessage={connectedMessage}
-        toast={toast}
-        setToast={setToast}
         freshKeyId={freshKeyId}
+        freshKeyValue={freshKeyValue}
         freshProjectId={freshProjectId}
         open={open}
       />
@@ -4681,67 +4621,6 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
 
 /* The confirmation email as the user would get it, in the interface language, for copy
    review. Its button is the emailed link, and opens in a new tab as a mail client would. */
-const MockEmailDialog = ({ confirmationKey, onCancel }) => {
-  const confirmRef = useRef(null);
-  const email = accountEmail() || 'you@example.org';
-  useDialogKeys(confirmRef, onCancel);
-  return (
-    <div className="devPocMockSso" role="dialog" aria-modal="true" aria-label="Confirmation email">
-      <div className="devPocMockSsoBackdrop" onClick={onCancel} />
-      <div className="devPocMockSsoDialog devPocMockEmail">
-        <p className="devPocMockSsoBanner" lang="en" dir="ltr">
-          MOCK &mdash; the email the user receives; no email is sent
-        </p>
-        <div className="devPocMockSsoBody">
-          <p className="devPocMockEmailMeta" dir="ltr">
-            Sefaria &lt;hello@sefaria.org&gt; → {email}
-          </p>
-          <h2>
-            <InterfaceText
-              text={{
-                en: 'Confirm your email for Sefaria Developer Settings',
-                he: 'אישור כתובת הדוא״ל להגדרות המפתחים בספריא',
-              }}
-            />
-          </h2>
-          <p>
-            <InterfaceText
-              text={{
-                en: 'Someone, hopefully you, asked to set up Developer Settings on the Sefaria account that uses this address. Confirm it to continue. The link works for 3 days.',
-                he: 'מישהו, כנראה את/ה, ביקש להגדיר הגדרות מפתחים בחשבון ספריא שמשתמש בכתובת הזו. אשרו אותה כדי להמשיך. הקישור בתוקף 3 ימים.',
-              }}
-            />
-          </p>
-          <div className="devPocMockSsoActions">
-            <button type="button" className="devPocMockSsoCancel" onClick={onCancel}>
-              Close
-            </button>
-            <a
-              className="devPocMockSsoContinue"
-              href={confirmationLink(confirmationKey)}
-              target="_blank"
-              rel="noopener noreferrer"
-              ref={confirmRef}
-              data-agent-action="mock-confirm-email"
-              onClick={onCancel}
-            >
-              <InterfaceText text={{ en: 'Confirm my email', he: 'אישור כתובת הדוא״ל' }} />
-            </a>
-          </div>
-          <p className="devPocMockEmailFoot">
-            <InterfaceText
-              text={{
-                en: "Didn't ask for this? Ignore this email and nothing changes.",
-                he: 'לא ביקשת? אפשר להתעלם מההודעה, ושום דבר לא ישתנה.',
-              }}
-            />
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 /* ---- Account settings tab ---- */
 
 /* The settings this page last showed or saved. ReaderApp leaves them out of browser history, so
@@ -4842,7 +4721,12 @@ const loginMethod = (socialProviders) => {
   return { en: 'Apple Sign-In with', he: 'התחברות דרך אפל עם' };
 };
 
-const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
+/* The account endpoints answer JSON. A logged-out call to one that needs login is redirected by Django to the
+   login page, which jQuery hands over as an HTML string with status 200: anything that is not a JSON object means
+   the session ended. */
+const isJsonAnswer = (data) => typeof data === 'object' && data !== null;
+
+const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded }) => {
   const torahSpecific = !!settings.torahSpecific;
   const translationLanguages = settings.translationLanguages || [];
 
@@ -4852,6 +4736,8 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
   const [readingHistory, setReadingHistory] = useState(settings.readingHistory === false ? 'false' : 'true');
   const [textualCustom, setTextualCustom] = useState(settings.textualCustom);
   const [libraryAssistant, setLibraryAssistant] = useState(settings.libraryAssistantEnabled ? 'true' : 'false');
+  /* The warning belongs to the moment the visitor picks Off, not to a setting that was already Off on load. */
+  const [warnReadingHistory, setWarnReadingHistory] = useState(false);
 
   /* The values saving compares against. Textual custom moves to the saved value, because
      a second save should only re-fetch the calendars if it changed again. */
@@ -4870,8 +4756,10 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
 
   const [gauthEmail, setGauthEmail] = useState((settings.sheetsExport && settings.sheetsExport.gauthEmail) || '');
   const [gauthError, setGauthError] = useState('');
+  const [saveError, setSaveError] = useState('');
 
   const save = () => {
+    setSaveError('');
     const transPref = translationLanguages.length ? translationLanguage : undefined;
     const profile = {
       settings: {
@@ -4896,6 +4784,10 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
     }
     $.cookie('translation_language_preference_suggested', JSON.stringify(1), { path: '/' });
     $.post('/api/profile', { json: JSON.stringify(profile) }, (data) => {
+      if (!isJsonAnswer(data)) {
+        onSessionEnded();
+        return;
+      }
       if ('error' in data) {
         alert(data.error);
         return;
@@ -4940,11 +4832,15 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
         saved.current.textualCustom = newTextualCustom;
       }
       document.dispatchEvent(new CustomEvent('sefaria:settings-updated', { detail }));
-    });
+    }).fail(() => setSaveError(Sefaria._v(SAVE_FAILED)));
   };
 
   const updateEmail = () => {
     $.post('/settings/account/user', { json: JSON.stringify(emailFields) }, (data) => {
+      if (!isJsonAnswer(data)) {
+        onSessionEnded();
+        return;
+      }
       if ('error' in data) {
         setEmailError(data.error);
         return;
@@ -4958,11 +4854,18 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
       }
       setEmailOk(Sefaria._('Email was successfully changed!'));
       setEditingEmail(false);
+    }).fail(() => {
+      setEmailOk('');
+      setEmailError(Sefaria._v(SAVE_FAILED));
     });
   };
 
   const disconnectGauth = () => {
     $.get('/unlink-gauth?redirect=0', (data) => {
+      if (!isJsonAnswer(data)) {
+        onSessionEnded();
+        return;
+      }
       if ('error' in data) {
         setGauthError(data.error);
       } else {
@@ -4970,9 +4873,15 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
         setGauthError('');
         setGauthEmail('');
       }
-    });
+    }).fail(() => setGauthError(Sefaria._v(SAVE_FAILED)));
   };
 
+  const saveErrorMessage = (id) =>
+    saveError ? (
+      <p id={id} className="account-save-error" role="alert">
+        {saveError}
+      </p>
+    ) : null;
   const saveButton = (
     <button type="button" className="button small blue control-elem saveAccountSettingsBtn" onClick={save}>
       <InterfaceText text={{ en: 'Save', he: 'שמירה' }} />
@@ -4996,6 +4905,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
             {saveButton}
           </div>
         </div>
+        {saveErrorMessage('account-save-error')}
         <SettingSection
           id="emailNotifications"
           label={
@@ -5052,7 +4962,10 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
               <SettingToggle
                 optionClass="doubleOption"
                 value={readingHistory}
-                onChange={setReadingHistory}
+                onChange={(value) => {
+                  setReadingHistory(value);
+                  setWarnReadingHistory(value === 'false');
+                }}
                 options={[
                   {
                     value: 'true',
@@ -5066,8 +4979,8 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
                   },
                 ]}
               >
-                <span id="reading-history-warning" className={readingHistory === 'false' ? 'on' : null}>
-                  {readingHistory === 'false'
+                <span id="reading-history-warning" className={warnReadingHistory ? 'active' : null}>
+                  {warnReadingHistory
                     ? Sefaria._('Turning this feature off will permanently delete your reading history.')
                     : null}
                 </span>
@@ -5165,7 +5078,9 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
                 <button id="update-email" type="button" className="button blue fillWidth" onClick={updateEmail}>
                   <InterfaceText text={{ en: 'Update Email', he: 'עדכון כתובת דוא"ל' }} />
                 </button>
-                <span id="email-edit-errors">{emailError}</span>
+                <span id="email-edit-errors" role={emailError ? 'alert' : undefined}>
+                  {emailError}
+                </span>
               </div>
             </React.Fragment>
           )}
@@ -5187,7 +5102,9 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
             >
               <InterfaceText text={{ en: 'Disconnect', he: 'ניתוק' }} />
             </button>
-            <span id="gauth-disconnect-messages">{gauthError}</span>
+            <span id="gauth-disconnect-messages" role={gauthError ? 'alert' : undefined}>
+              {gauthError}
+            </span>
           </div>
         </div>
         <div id="gauth-email-disconnected" className="section" style={gauthEmail ? { display: 'none' } : null}>
@@ -5206,6 +5123,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged }) => {
           </div>
         </div>
 
+        {saveErrorMessage('account-save-error-bottom')}
         <div className="saveCancel">
           {saveButton}
           {cancelButton('transparent small')}
@@ -5232,7 +5150,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
   /* Restored from the browser's back/forward cache, the page has no fresh props: it reuses the settings it last
      remembered, or reloads when it remembers nothing (from the API keys branch, b7468aae8). */
   const [restored] = useState(() => !accountSettings);
-  const [settings] = useState(() => (restored ? latestSettings.account : accountSettings));
+  const [settings, setSettings] = useState(() => (restored ? latestSettings.account : accountSettings));
   const [hasDeveloper] = useState(() => !!(restored ? latestSettings.developer : initialDeveloper));
   const socialProviders = (settings && settings.socialProviders) || [];
 
@@ -5240,8 +5158,15 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
     ...emptyState(),
     ...((restored ? latestSettings.developer : initialDeveloper) || {}),
   }));
+  /* Cached developer state, API keys included, is only shown once the server has confirmed the
+     session: until then a restored page shows no developer content (from the API keys branch). */
+  const [verified, setVerified] = useState(() => !(restored && hasDeveloper));
+  const [verifyFailed, setVerifyFailed] = useState(false);
+  const [sessionEnded, setSessionEnded] = useState(false);
+  /* Set while the page is in the back/forward cache and until the server has confirmed the session again. */
+  const [paused, setPaused] = useState(false);
+  const pausedSettings = useRef(undefined);
   const [notice, setNotice] = useState('');
-  const [mockEmailOpen, setMockEmailOpen] = useState(false);
   const [connectedMessage, setConnectedMessage] = useState('');
   const connectedTimer = useRef(null);
   const setupTimer = useRef(null);
@@ -5261,6 +5186,51 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
     },
     []
   );
+
+  /* The session ended (401, 403, or a login page where JSON was due): nothing cached survives, and the visitor is sent to log in. */
+  const endSession = () => {
+    latestSettings.account = undefined;
+    latestSettings.developer = undefined;
+    if (pageMounted.current) {
+      setDeveloperState(emptyState());
+      setSessionEnded(true);
+    }
+    window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+  };
+
+  /* Brings back the account content that pagehide took down, as it was when the page left. */
+  const resumeAccount = () => {
+    if (pausedSettings.current) {
+      latestSettings.account = pausedSettings.current;
+      setSettings(pausedSettings.current);
+      pausedSettings.current = undefined;
+    }
+    setPaused(false);
+  };
+
+  /* Asks the server whether the session is still the one the cached state belongs to. Developer
+     content appears only after an answer; a refusal clears everything. */
+  const revalidate = () => {
+    setVerifyFailed(false);
+    readState().then(
+      (server) => {
+        if (pageMounted.current) {
+          setDeveloperState(server);
+          setVerified(true);
+          resumeAccount();
+        }
+      },
+      (err) => {
+        /* A 404 is the answer in staff-only mode once the visitor is no longer staff or no longer logged in. */
+        if (err.status === 401 || err.status === 403 || err.status === 404) {
+          endSession();
+        } else if (pageMounted.current) {
+          setVerifyFailed(true);
+          resumeAccount();
+        }
+      }
+    );
+  };
 
   /* N-C8: an email change on the Account tab resets confirmation (rule 14). Opening the Developer tab reads the
      state again, so its banner and disabled create buttons show without a reload. */
@@ -5292,19 +5262,46 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
       latestSettings.account = settings;
     }
     if (restored && hasDeveloper) {
-      readState().then(
-        (server) => {
-          if (pageMounted.current) {
-            setDeveloperState(server);
-          }
-        },
-        () => {}
-      );
+      revalidate();
     }
   }, []);
   useEffect(() => {
     latestSettings.developer = hasDeveloper ? developerState : null;
   }, [developerState]);
+
+  /* The back/forward cache keeps the page as it was, keys and all, however long ago and whoever
+     is logged in by then. Leaving clears the account and developer content from the snapshot, and a page
+     brought back from the cache asks the server again before showing it: the developer state endpoint where
+     there is a developer tab, and a reload (the settings page itself needs a login) where there is not. */
+  useEffect(() => {
+    const hide = () => {
+      pausedSettings.current = latestSettings.account || pausedSettings.current;
+      latestSettings.account = undefined;
+      setPaused(true);
+      if (hasDeveloper) {
+        latestSettings.developer = emptyState();
+        setVerified(false);
+        setDeveloperState(emptyState());
+      }
+    };
+    const show = (e) => {
+      if (!e.persisted) {
+        return;
+      }
+      hide();
+      if (hasDeveloper) {
+        revalidate();
+      } else {
+        window.location.reload();
+      }
+    };
+    window.addEventListener('pagehide', hide);
+    window.addEventListener('pageshow', show);
+    return () => {
+      window.removeEventListener('pagehide', hide);
+      window.removeEventListener('pageshow', show);
+    };
+  }, []);
 
   /* Every API call answers with the whole developer state, which replaces the page's copy. A
      failure leaves a notice, unless the caller shows the error itself ({quiet: true}); either
@@ -5446,7 +5443,6 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
   }, [confirmationSentAt]);
 
   const emailConfirmed = (server) => {
-    setMockEmailOpen(false);
     showDeveloper(() => {
       if (pageMounted.current) {
         setDeveloperState(server);
@@ -5471,17 +5467,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
     );
   };
 
-  const mock = (action, fields) =>
-    run(mockAction(action, fields)).then(
-      () => {
-        if (action === 'start-over') {
-          setNotice('');
-        }
-      },
-      () => {}
-    );
-
-  if (!settings) {
+  if (!settings || sessionEnded || paused) {
     return null;
   }
 
@@ -5494,9 +5480,23 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
         settings={settings}
         socialProviders={socialProviders}
         onEmailChanged={hasDeveloper ? developerEmailChanged : null}
+        onSessionEnded={endSession}
       />
     ),
-    developer: (
+    developer: !verified ? (
+      <div className="devPocPage">
+        {verifyFailed ? (
+          <p className="devPocWarning" role="alert">
+            <InterfaceText
+              text={{
+                en: "We couldn't check your session. Reload the page to see developer settings.",
+                he: 'לא הצלחנו לבדוק את ההתחברות. טענו את הדף מחדש כדי לראות את הגדרות מפתחים.',
+              }}
+            />
+          </p>
+        ) : null}
+      </div>
+    ) : (
       <DeveloperE
         state={developerState}
         developerOn={developerOn}
@@ -5543,17 +5543,6 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
           {hasDeveloper ? <AgentInstructions /> : null}
         </div>
       </div>
-      <div className="devPocPage">
-        {mockEmailOpen && developerState.mock && developerState.mock.confirmationKey ? (
-          <MockEmailDialog
-            confirmationKey={developerState.mock.confirmationKey}
-            onCancel={() => setMockEmailOpen(false)}
-          />
-        ) : null}
-        {developerState.mock ? (
-          <TestPanel state={developerState} mock={mock} onOpenMockEmail={() => setMockEmailOpen(true)} />
-        ) : null}
-      </div>
     </div>
   );
 };
@@ -5592,7 +5581,7 @@ export const EmailConfirmedPage = () => {
                     href="/settings/developer?continue"
                     data-agent-action="continue-to-developer-settings"
                   >
-                    <InterfaceText text={{ en: 'Continue to Developer Settings', he: 'המשך להגדרות המפתחים' }} />
+                    <InterfaceText text={{ en: 'Continue to Developer Settings', he: 'המשך להגדרות מפתחים' }} />
                   </a>
                 </div>
               </section>
@@ -5629,7 +5618,7 @@ export const EmailLinkPage = ({ link }) => {
         setError(
           eMessage(err, {
             en: "We couldn't send a new link. Ask for one in Developer Settings.",
-            he: 'לא הצלחנו לשלוח קישור חדש. בקשו קישור בהגדרות המפתחים.',
+            he: 'לא הצלחנו לשלוח קישור חדש. בקשו קישור בהגדרות מפתחים.',
           })
         )
     );
@@ -5639,7 +5628,7 @@ export const EmailLinkPage = ({ link }) => {
       href="/settings/developer?continue"
       data-agent-action="continue-to-developer-settings"
     >
-      <InterfaceText text={{ en: 'Continue to Developer Settings', he: 'המשך להגדרות המפתחים' }} />
+      <InterfaceText text={{ en: 'Continue to Developer Settings', he: 'המשך להגדרות מפתחים' }} />
     </a>
   );
   /* Expired and old-address links share one screen and one button. The server sends a fresh link for an expired
@@ -5706,30 +5695,8 @@ export const EmailLinkPage = ({ link }) => {
         },
         expired: deadLink,
         'not-account-email': deadLink,
-        'address-in-use': {
-          title: { en: 'This link is no longer valid', he: 'הקישור כבר אינו בתוקף' },
-          body: {
-            en: (
-              <React.Fragment>
-                This address can&apos;t be confirmed for this account. If you need help, email{' '}
-                <a className="devE-inlineLink" href="mailto:hello@sefaria.org">
-                  hello@sefaria.org
-                </a>
-                .
-              </React.Fragment>
-            ),
-            he: (
-              <React.Fragment>
-                אי אפשר לאשר את הכתובת הזו עבור החשבון הזה. לעזרה, כתבו אל{' '}
-                <a className="devE-inlineLink" href="mailto:hello@sefaria.org">
-                  hello@sefaria.org
-                </a>
-                .
-              </React.Fragment>
-            ),
-          },
-          action: continueLink,
-        },
+        /* An address another account uses gets the same page as any link that won't work (Penina, 2026-11-15). */
+        'address-in-use': deadLink,
       }[status];
   if (!content) {
     return null;

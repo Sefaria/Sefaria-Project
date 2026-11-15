@@ -1,6 +1,6 @@
 /**
  * Developer Settings once set up: the profile card, projects with their keys, the website and "Limit to website",
- * the project and key limits, publishing a project, and the publish nudge.
+ * the project and key limits, and publishing a project.
  */
 import {
   READY,
@@ -19,8 +19,10 @@ import {
   queryButton,
   renderSettings,
   screen,
+  settle,
   advance,
   blur,
+  focus,
   type,
   within,
 } from './developerSettingsTestUtils';
@@ -104,7 +106,7 @@ describe('the home page', () => {
   });
 
   it('shows no usage on a project', () => {
-    openHome({ projects: [project(1, { keys: [key(1)], usage: { used: 10, limit: 1000 } })] });
+    openHome({ projects: [project(1, { keys: [key(1)] })] });
     expect(screen.queryByText(/monthly limit/i)).toBeNull();
     expect(screen.queryByText(/%/)).toBeNull();
   });
@@ -207,10 +209,72 @@ describe('a new project', () => {
     expect(newProject.getAttribute('aria-disabled')).toBe('true');
     const tip = document.getElementById(newProject.getAttribute('aria-describedby'));
     expect(tip.textContent).toBe(
-      'You have reached the maximum of 3 projects. To add another project, delete one no longer in use.'
+      'You have reached the maximum of 3 projects. To add another project, delete one no longer in use or email developers@sefaria.org.'
+    );
+    expect(within(tip).getByRole('link', { name: 'developers@sefaria.org' }).getAttribute('href')).toBe(
+      'mailto:developers@sefaria.org'
     );
     await click(newProject);
     expect(heading('Projects and API keys')).toBeTruthy();
+  });
+
+  it('on a phone, says it in a line under the header row instead of a tooltip, until a project is deleted', async () => {
+    window.matchMedia = () => ({ matches: true, addEventListener: () => {}, removeEventListener: () => {} });
+    try {
+      const projects = [project(1), project(2), project(3)];
+      openHome({ projects, maxProjects: 3 });
+      const note = document.querySelector('.devE-limitNote');
+      expect(note.textContent).toMatch(/^You have reached the maximum of 3 projects\./);
+      expect(note.getAttribute('role')).toBeNull();
+      expect(document.querySelectorAll('[role="tooltip"]').length).toBe(0);
+      expect(button('New project').getAttribute('aria-describedby')).toBe(note.id);
+      await click(button('More for Project 1'));
+      await click(
+        within(projectSection('Project 1'))
+          .getAllByText('Edit project details')
+          .find((el) => el.classList.contains('devE-projMenuItem'))
+      );
+      await click(button('Delete this project'));
+      await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete project' }));
+      expect(document.querySelector('.devE-limitNote')).toBeNull();
+      expect(button('New project').getAttribute('aria-disabled')).toBeNull();
+    } finally {
+      delete window.matchMedia;
+    }
+  });
+
+  it('on a phone, says to confirm the email in the same line when that is why it is off', () => {
+    window.matchMedia = () => ({ matches: true, addEventListener: () => {}, removeEventListener: () => {} });
+    try {
+      openHome({ ssoConnected: false, emailVerified: false, projects: [project(1)] });
+      const note = document.querySelector('.devE-limitNote');
+      expect(note.textContent).toBe('Confirm your email in the banner above to create projects and keys.');
+      expect(document.querySelectorAll('[role="tooltip"]').length).toBe(0);
+      expect(button('New project').getAttribute('aria-describedby')).toBe(note.id);
+      const keyNote = document.getElementById(
+        within(projectSection('Project 1')).getByRole('button', { name: 'Add key' }).getAttribute('aria-describedby')
+      );
+      expect(keyNote.tagName).toBe('P');
+      expect(keyNote.textContent).toBe('Confirm your email in the banner above to create projects and keys.');
+    } finally {
+      delete window.matchMedia;
+    }
+  });
+
+  it('closes its tooltip with Escape, and shows it again the next time it is focused', async () => {
+    openHome({ projects: [project(1), project(2)], maxProjects: 2 });
+    const newProject = button('New project');
+    const wrap = newProject.closest('.devE-tipWrap');
+    focus(newProject);
+    await settle();
+    press(newProject, 'Escape');
+    await settle();
+    expect(wrap.classList.contains('is-dismissed')).toBe(true);
+    expect(document.activeElement).toBe(newProject);
+    focus(button('Edit profile'));
+    focus(newProject);
+    await settle();
+    expect(wrap.classList.contains('is-dismissed')).toBe(false);
   });
 
   it('allows 10 projects when the server sends no limit', () => {
@@ -225,8 +289,8 @@ describe('keys', () => {
   it('lists each key with its name, a masked value and when it was created', () => {
     openHome({ projects: [project(1, { keys: [key(1)] })] });
     const row = screen.getByRole('row', { name: /Key 1/ });
-    expect(within(row).getByText('sfr_••••xyz9')).toBeTruthy();
-    expect(within(row).getByText('5 Nov 2026')).toBeTruthy();
+    expect(within(row).getByText('sfr_1_secr••••')).toBeTruthy();
+    expect(row.querySelector('td[data-l="Created"]').textContent).toBe('5 Nov 2026');
     expect(screen.queryByText(key(1).value)).toBeNull();
   });
 
@@ -234,6 +298,7 @@ describe('keys', () => {
     openHome({ projects: [project(1, { keys: [key(1), key(2)] })] });
     await click(button('Show key, Key 1'));
     expect(screen.getByText(key(1).value)).toBeTruthy();
+    expect(server.calls()).toContain('POST keys/k1/value');
     expect(screen.queryByText(key(2).value)).toBeNull();
     await click(button('Hide key, Key 1'));
     expect(screen.queryByText(key(1).value)).toBeNull();
@@ -247,7 +312,7 @@ describe('keys', () => {
     expect(screen.getByText('Copied')).toBeTruthy();
   });
 
-  it('deletes a key after asking, and says anything using it stops working', async () => {
+  it('deletes a key after asking, with no confirmation message after', async () => {
     openHome({ projects: [project(1, { keys: [key(1), key(2)] })] });
     const opener = button('Delete key, Key 1');
     await click(opener);
@@ -257,7 +322,7 @@ describe('keys', () => {
     await click(within(dialog).getByRole('button', { name: 'Delete' }));
     expect(server.calls()).toContain('DELETE keys/k1');
     expect(screen.queryByRole('alertdialog')).toBeNull();
-    expect(screen.getByText('Key 1 is deleted. Anything using it stops working.')).toBeTruthy();
+    expect(screen.queryByText(/is deleted/)).toBeNull(); // no confirmation message
     expect(queryButton('Delete key, Key 1')).toBeNull();
     expect(button('Delete key, Key 2')).toBeTruthy();
   });
@@ -290,7 +355,7 @@ describe('keys', () => {
   it('adds a key to a project, with a short wait before it shows', async () => {
     jest.useFakeTimers();
     openHome({ projects: [project(1, { keys: [key(1)] })] });
-    await click(button('Add a key to Project 1'));
+    await click(within(projectSection('Project 1')).getByRole('button', { name: 'Add key' }));
     expect(heading(/Create an API key for Project 1/)).toBeTruthy();
     await click(button('Create API key'));
     expect(field(/API key name/).getAttribute('aria-invalid')).toBe('true');
@@ -308,13 +373,13 @@ describe('keys', () => {
 
   it('limits the key name to 100 characters', async () => {
     openHome({ projects: [project(1)] });
-    await click(button('Add a key to Project 1'));
+    await click(within(projectSection('Project 1')).getByRole('button', { name: 'Add key' }));
     expect(field(/API key name/).getAttribute('maxLength')).toBe('100');
   });
 
   it('goes back to the projects from the new key form', async () => {
     openHome({ projects: [project(1)] });
-    await click(button('Add a key to Project 1'));
+    await click(within(projectSection('Project 1')).getByRole('button', { name: 'Add key' }));
     await click(button('Projects and API keys'));
     expect(heading('Projects and API keys')).toBeTruthy();
   });
@@ -322,7 +387,7 @@ describe('keys', () => {
   it('is unavailable at the key limit, saying why', async () => {
     const keys = [1, 2, 3, 4, 5].map((n) => key(n));
     openHome({ projects: [project(1, { keys })] });
-    const add = button('Add a key to Project 1');
+    const add = within(projectSection('Project 1')).getByRole('button', { name: 'Add key' });
     expect(add.getAttribute('aria-disabled')).toBe('true');
     expect(document.getElementById(add.getAttribute('aria-describedby')).textContent).toBe(
       'You have reached the maximum of 5 keys for this project. To add another key, delete one no longer in use.'
@@ -333,7 +398,9 @@ describe('keys', () => {
 
   it('follows the key limit the server sends', () => {
     openHome({ projects: [project(1, { keys: [key(1), key(2)] })], maxKeysPerProject: 2 });
-    expect(button('Add a key to Project 1').getAttribute('aria-disabled')).toBe('true');
+    expect(
+      within(projectSection('Project 1')).getByRole('button', { name: 'Add key' }).getAttribute('aria-disabled')
+    ).toBe('true');
     expect(screen.getByText(/maximum of 2 keys/)).toBeTruthy();
   });
 });
@@ -348,7 +415,7 @@ describe('Limit to website', () => {
 
   it("limits a key to the project's website, and lifts the limit", async () => {
     openHome({ projects: [project(1, { websiteUrl: SITE, keys: [key(1)] })] });
-    const toggle = screen.getByRole('switch', { name: 'Only accept requests with Key 1 from daftracker.org' });
+    const toggle = screen.getByRole('switch', { name: 'Limit Key 1 to your website' });
     expect(toggle.checked).toBe(false);
     await click(toggle);
     expect(server.sent('POST', 'keys/k1')).toEqual([{ restrictToWebsite: true }]);
@@ -360,7 +427,7 @@ describe('Limit to website', () => {
 
   it('asks for the website first when the project has none, then limits the key', async () => {
     openHome({ projects: [project(1, { keys: [key(1)] })] });
-    await click(screen.getByRole('switch', { name: "Limit Key 1 to the project's website" }));
+    await click(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }));
     const dialog = screen.getByRole('dialog', { name: 'Limit this key to your website' });
     const site = within(dialog).getByLabelText('Your website');
     // Focus starts on the title, so a phone's keyboard doesn't open on its own (2026-11-15).
@@ -375,12 +442,12 @@ describe('Limit to website', () => {
     );
     expect(server.sent('POST', 'keys/k1')).toEqual([{ restrictToWebsite: true }]);
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(screen.getByRole('switch', { name: /Only accept requests with Key 1 from/ }).checked).toBe(true);
+    expect(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }).checked).toBe(true);
   });
 
   it('refuses a website that is not an address, and sends nothing', async () => {
     openHome({ projects: [project(1, { keys: [key(1)] })] });
-    await click(screen.getByRole('switch', { name: "Limit Key 1 to the project's website" }));
+    await click(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }));
     type(field('Your website'), 'localhost');
     await click(button('Limit key'));
     expect(screen.getByText('Invalid website')).toBeTruthy();
@@ -389,7 +456,7 @@ describe('Limit to website', () => {
 
   it('closes on Cancel or Escape without saving', async () => {
     openHome({ projects: [project(1, { keys: [key(1)] })] });
-    const toggle = screen.getByRole('switch', { name: "Limit Key 1 to the project's website" });
+    const toggle = screen.getByRole('switch', { name: 'Limit Key 1 to your website' });
     await click(toggle);
     await click(button('Cancel'));
     expect(screen.queryByRole('dialog')).toBeNull();
@@ -402,7 +469,7 @@ describe('Limit to website', () => {
 
   it('keeps Tab inside the window', async () => {
     openHome({ projects: [project(1, { keys: [key(1)] })] });
-    await click(screen.getByRole('switch', { name: "Limit Key 1 to the project's website" }));
+    await click(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }));
     const cancel = button('Cancel');
     cancel.focus();
     press(cancel, 'Tab');
@@ -413,8 +480,8 @@ describe('Limit to website', () => {
   it("shows the server's reason when the limit is refused", async () => {
     openHome({ projects: [project(1, { websiteUrl: SITE, keys: [key(1)] })] });
     server.fail('POST', 'keys/k1', 400, "Add the project's website before restricting a key to it.");
-    await click(screen.getByRole('switch', { name: /Only accept requests with Key 1/ }));
-    expect(screen.getByText("Add your project's website first.")).toBeTruthy();
+    await click(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }));
+    expect(screen.getByText("Something went wrong and your change wasn't saved. Please try again.")).toBeTruthy(); // the form prevents this, so no copy of its own
   });
 });
 
@@ -444,7 +511,7 @@ describe('the project website', () => {
 describe('editing a project', () => {
   const openEdit = async (extra = {}) => {
     openHome({ projects: [project(1, { websiteUrl: 'https://www.daftracker.org', ...extra })] });
-    await click(button('Edit details of Project 1'));
+    await click(within(projectSection('Project 1')).getByRole('button', { name: 'Edit project details' }));
   };
 
   it('opens the form filled in, with the website as its domain', async () => {
@@ -456,7 +523,7 @@ describe('editing a project', () => {
     expect(field(/^Website/).value).toBe('daftracker.org');
   });
 
-  it('saves the project and says so', async () => {
+  it('saves the project, with no confirmation message after', async () => {
     await openEdit();
     type(field(/Project name/), 'Daf Tracker');
     await click(button('Save project'));
@@ -473,7 +540,7 @@ describe('editing a project', () => {
         },
       },
     ]);
-    expect(screen.getByText('Daf Tracker is saved.')).toBeTruthy();
+    expect(screen.queryByText(/is saved/)).toBeNull(); // no confirmation message
     expect(projectSection('Daf Tracker')).toBeTruthy();
   });
 
@@ -524,8 +591,8 @@ describe('editing a project', () => {
     await click(button('Save project'));
     await click(button('Remove the website'));
     expect(server.sent('POST', 'projects/p1')[0].project.websiteUrl).toBe('');
-    expect(screen.getByText('Project 1 is saved.')).toBeTruthy();
-    const toggle = screen.getByRole('switch', { name: "Limit Key 1 to the project's website" });
+    expect(screen.queryByText(/is saved/)).toBeNull(); // no confirmation message
+    const toggle = screen.getByRole('switch', { name: 'Limit Key 1 to your website' });
     expect(toggle.checked).toBe(false);
   });
 
@@ -538,14 +605,14 @@ describe('editing a project', () => {
     expect(server.sent('POST', 'projects/p1')[0].project).toEqual(
       expect.objectContaining({ description: 'A new description', websiteUrl: 'https://www.daftracker.org' })
     );
-    expect(screen.getByRole('switch', { name: /Only accept requests with Key 1/ }).checked).toBe(true);
+    expect(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }).checked).toBe(true);
   });
 });
 
 describe('deleting a project', () => {
   it('names the keys that will stop working, then deletes', async () => {
     openHome({ projects: [project(1, { keys: [key(1), key(2)] }), project(2)] });
-    await click(button('Edit details of Project 1'));
+    await click(within(projectSection('Project 1')).getByRole('button', { name: 'Edit project details' }));
     await click(button('Delete this project'));
     const dialog = screen.getByRole('alertdialog', { name: /^Delete the project Project 1 ?\?$/ });
     expect(within(dialog).getByText('The following keys will stop working immediately:')).toBeTruthy();
@@ -557,21 +624,21 @@ describe('deleting a project', () => {
     expect(document.activeElement).toBe(within(dialog).getByRole('button', { name: 'Cancel' }));
     await click(within(dialog).getByRole('button', { name: 'Delete project' }));
     expect(server.calls()).toEqual(['DELETE projects/p1']);
-    expect(screen.getByText('Project 1 and its keys are deleted.')).toBeTruthy();
+    expect(screen.queryByText(/are deleted/)).toBeNull(); // no confirmation message
     expect(projectSection('Project 1')).toBeUndefined();
     expect(projectSection('Project 2')).toBeTruthy();
   });
 
   it('uses the singular for one key', async () => {
     openHome({ projects: [project(1, { keys: [key(1)] })] });
-    await click(button('Edit details of Project 1'));
+    await click(within(projectSection('Project 1')).getByRole('button', { name: 'Edit project details' }));
     await click(button('Delete this project'));
     expect(screen.getByText('The following key will stop working immediately:')).toBeTruthy();
   });
 
   it("says only that it can't be undone for a project with no keys", async () => {
     openHome({ projects: [project(1)] });
-    await click(button('Edit details of Project 1'));
+    await click(within(projectSection('Project 1')).getByRole('button', { name: 'Edit project details' }));
     await click(button('Delete this project'));
     const dialog = screen.getByRole('alertdialog');
     expect(within(dialog).getByText("You can't undo this action.")).toBeTruthy();
@@ -580,7 +647,7 @@ describe('deleting a project', () => {
 
   it('keeps the project when cancelled, or with Escape', async () => {
     openHome({ projects: [project(1)] });
-    await click(button('Edit details of Project 1'));
+    await click(within(projectSection('Project 1')).getByRole('button', { name: 'Edit project details' }));
     await click(button('Delete this project'));
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cancel' }));
     expect(screen.queryByRole('alertdialog')).toBeNull();
@@ -593,7 +660,7 @@ describe('deleting a project', () => {
   it("shows the server's reason when deleting fails", async () => {
     openHome({ projects: [project(1)] });
     server.fail('DELETE', 'projects/p1', 404, 'No such project.');
-    await click(button('Edit details of Project 1'));
+    await click(within(projectSection('Project 1')).getByRole('button', { name: 'Edit project details' }));
     await click(button('Delete this project'));
     await click(button('Delete project'));
     expect(screen.queryByRole('alertdialog')).toBeNull();
@@ -619,8 +686,7 @@ describe('publishing a project', () => {
     expect(screen.getByText('Very technical')).toBeTruthy();
     expect(screen.getByText('I teach Talmud')).toBeTruthy();
     expect(screen.getByText('What project 1 does')).toBeTruthy();
-    expect(button('Edit details about you')).toBeTruthy();
-    expect(button('Edit project details')).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: 'Edit' }).length).toBe(2);
     expect(screen.getByRole('button', { name: /Which project do you want to publish\?/ }).textContent).toContain(
       'Project 1'
     );
@@ -703,61 +769,51 @@ describe('publishing a project', () => {
     expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Project 1']);
   });
 
-  it('creates a new project from the choice and comes back to publish it', async () => {
-    openHome({ projects: [] });
+  it('creates a new project right in the form and sends it for review, with About you already showing', async () => {
+    openHome({ projects: [project(1, { websiteUrl: 'https://one.example.org' })] });
     await click(screen.getAllByRole('button', { name: 'Publish a project' })[0]);
-    expect(screen.getByText(/To publish a project, first create it/)).toBeTruthy();
+    expect(heading('About you')).toBeTruthy();
+    expect(screen.queryByText('Tell us more about your project')).toBeNull();
     await choose('Which project do you want to publish?', '+ Create a new project');
-    expect(heading('New project')).toBeTruthy();
+    expect(heading('Publish your project')).toBeTruthy();
+    expect(field(/Project name/).value).toBe('');
     type(field(/Project name/), 'Daf Tracker');
     await choose('What are you building?', 'Research');
     type(field(/Short description/), 'Tracks the daf');
-    await click(button('Continue'));
-    await click(button('Skip for now'));
-    expect(heading('Publish your project')).toBeTruthy();
-    expect(screen.getByRole('button', { name: /Which project do you want to publish\?/ }).textContent).toContain(
-      'Daf Tracker'
+    type(field(/^Website/), 'daftracker.org');
+    await click(document.getElementById('devEShareCat0'));
+    await click(button('Create project + submit'));
+    expect(server.calls()).toContain('POST projects');
+    expect(server.calls()).not.toContain('POST projects/p1');
+    expect(server.sent('POST', 'projects')[0].project).toEqual(
+      expect.objectContaining({ name: 'Daf Tracker', description: 'Tracks the daf' })
     );
   });
 });
 
-describe('the publish nudge', () => {
-  const used = (pct) => ({ used: pct * 10, limit: 1000 });
+describe('Back in Developer Settings', () => {
+  const back = async () => {
+    window.history.back();
+    // jsdom fires popstate on a later task
+    await new Promise((r) => setTimeout(r, 20));
+    await settle();
+  };
 
-  it('suggests publishing a private project once it has real use', async () => {
-    openHome({ projects: [project(1, { keys: [key(1)], usage: used(30) })] });
-    const nudge = screen.getByRole('region', { name: 'Publish Project 1' });
-    expect(within(nudge).getByText(/People are using/).textContent).toBe('People are using Project 1');
-    await click(within(nudge).getByRole('button', { name: 'Publish Project 1' }));
-    expect(heading('Publish your project')).toBeTruthy();
+  it('goes from Add key back to the projects page', async () => {
+    openHome({ projects: [project(1)] });
+    await click(within(projectSection('Project 1')).getByRole('button', { name: 'Add key' }));
+    expect(screen.getByText(/Create an API key for/)).toBeTruthy();
+    await back();
+    expect(screen.queryByText(/Create an API key for/)).toBeNull();
+    expect(within(projectSection('Project 1')).getByRole('button', { name: 'Add key' })).toBeTruthy();
   });
 
-  it('suggests only the most used project', () => {
-    openHome({
-      projects: [project(1, { keys: [key(1)], usage: used(30) }), project(2, { keys: [key(2)], usage: used(80) })],
-    });
-    expect(screen.getAllByText(/People are using/).map((p) => p.textContent)).toEqual(['People are using Project 2']);
-  });
-
-  it.each([
-    ['without usage from the server', {}],
-    ['under 25% of the limit', { usage: used(24) }],
-    ['already public', { usage: used(90), visibility: 'public' }],
-    ['with no keys', { usage: used(90), keys: [] }],
-  ])('stays away for a project %s', (_, extra) => {
-    openHome({ projects: [project(1, { keys: [key(1)], ...extra })] });
-    expect(screen.queryByText(/People are using/)).toBeNull();
-  });
-
-  it('stays away once dismissed, this visit and the next', async () => {
-    openHome({ projects: [project(1, { keys: [key(1)], usage: used(50) })] });
-    await click(
-      within(screen.getByRole('region', { name: 'Publish Project 1' })).getByRole('button', { name: 'Dismiss' })
-    );
-    expect(screen.queryByText(/People are using/)).toBeNull();
-    expect(JSON.parse(window.localStorage.getItem('devEPublishNudgeDismissed'))).toEqual(['p1']);
-    cleanup();
-    openHome({ projects: [project(1, { keys: [key(1)], usage: used(50) })] });
-    expect(screen.queryByText(/People are using/)).toBeNull();
+  it('leaves a partly filled form without asking', async () => {
+    openHome({ projects: [project(1)] });
+    await click(within(projectSection('Project 1')).getByRole('button', { name: 'Add key' }));
+    type(field(/^API key name/), 'Half typed');
+    await back();
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(within(projectSection('Project 1')).getByRole('button', { name: 'Add key' })).toBeTruthy();
   });
 });

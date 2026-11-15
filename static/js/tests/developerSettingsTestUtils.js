@@ -24,10 +24,14 @@ export const sefariaMock = () => {
   return { __esModule: true, default: sefaria };
 };
 
-export const jqueryMock = () => ({
-  __esModule: true,
-  default: { cookie: jest.fn(), post: jest.fn(), get: jest.fn() },
-});
+export const jqueryMock = () => {
+  // a request returns an object like jQuery's, which keeps the callbacks given to .fail() (as the API keys branch)
+  const request = () => {
+    const xhr = { failHandlers: [], fail: (fn) => (xhr.failHandlers.push(fn), xhr) };
+    return xhr;
+  };
+  return { __esModule: true, default: { cookie: jest.fn(), post: jest.fn(request), get: jest.fn(request) } };
+};
 
 export const miscMock = () => {
   const React = require('react');
@@ -93,6 +97,18 @@ export const renderElement = (element) => {
   };
 };
 
+/* Like the server: a key is listed with its first 10 characters, and its value only comes from keys/<id>/value. */
+export const listed = (st) =>
+  st && st.projects
+    ? {
+        ...st,
+        projects: st.projects.map((p) => ({
+          ...p,
+          keys: (p.keys || []).map(({ value, ...k }) => (value ? { ...k, prefix: value.slice(0, 10) } : k)),
+        })),
+      }
+    : st;
+
 /* The settings page on a tab, with the given developer state (null where developer settings are off). */
 export const renderSettings = (tab, developer = {}, extra = {}) => {
   const { React, SettingsPage } = current;
@@ -100,7 +116,7 @@ export const renderSettings = (tab, developer = {}, extra = {}) => {
     tab,
     projectId: null,
     accountSettings: ACCOUNT_SETTINGS,
-    initialDeveloper: developer,
+    initialDeveloper: listed(developer),
     setTab: jest.fn(),
     setProjectId: jest.fn(),
     ...extra,
@@ -147,7 +163,7 @@ export const READY = { developerEnabled: true, ssoConnected: true, emailVerified
 export const key = (n, extra = {}) => ({
   id: 'k' + n,
   label: 'Key ' + n,
-  value: 'sfr_' + n + '_secret_value_' + n + 'xyz9',
+  value: 'sfr_' + n + '_secret_value_' + n + 'xyz9', // the fake server keeps it and sends only the prefix
   created: '2026-11-05T10:00:00Z',
   restrictToWebsite: false,
   ...extra,
@@ -255,7 +271,7 @@ export const fakeServer = (initial = {}) => {
         seq += 1;
         const created = key(0, { id: 'newkey' + seq, label: body.label, value: 'sfr_new' + seq + '_value_abcd' });
         projectById(id).keys.push(created);
-        return { keyId: created.id };
+        return { keyId: created.id, keyValue: created.value };
       },
     ],
     [
@@ -288,11 +304,16 @@ export const fakeServer = (initial = {}) => {
       failure.times -= 1;
       return answer(failure.status, failure.error === undefined ? {} : { error: failure.error });
     }
+    const reveal = method === 'POST' && path.match(/^keys\/([^/]+)\/value$/);
+    if (reveal) {
+      const k = keyById(reveal[1]);
+      return k ? answer(200, { value: k.value }) : answer(404, { error: 'No such key.' });
+    }
     for (const [m, pattern, handle] of routes) {
       const match = m === method && path.match(pattern);
       if (match) {
         const extra = handle(body, ...match.slice(1));
-        return answer(200, { ...state, ...(extra || {}) });
+        return answer(200, { ...listed(state), ...(extra || {}) });
       }
     }
     return answer(404, { error: 'No such route.' });

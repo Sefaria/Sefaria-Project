@@ -1,6 +1,21 @@
+<!--
+Summary: 1-2 sentences, in your own words. What is this PR for, and should a
+reviewer dig in deeply or just skim? Please write this yourself rather than
+having an AI agent (or another agent) generate it - this line should reflect
+your own understanding of the change. Rough is fine!
+
+Mainly expected for PRs into master that someone else reviews/approves.
+Stacked PRs into feature branches (e.g. subagent PRs) can skip it.
+-->
+
+_Your one-line summary here_
+
+<details><summary>Full description</summary>
+<!-- Keep the blank line after <summary> so the markdown below renders. -->
+
 ## Description
 
-_A brief description of the PR_
+_A detailed description of the PR (AI-generated is fine here)_
 
 ## Code Changes
 
@@ -9,3 +24,5 @@ _The following changes were made to the files below_
 ## Notes
 
 _Any additional notes go here_
+
+</details>

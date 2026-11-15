@@ -22,7 +22,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 
 	"github.com/Sefaria/Sefaria-Project/auth-service/internal/authz"
 	"github.com/Sefaria/Sefaria-Project/auth-service/internal/registry"
@@ -38,6 +37,24 @@ func envOr(k, d string) string {
 		return v
 	}
 	return d
+}
+
+// parseGatedPaths parses GATED_PATHS, a comma-separated list of path prefixes. Each entry is trimmed and empty entries
+// are dropped, so "/api/a, /api/b" gates both. Empty or blank input gates nothing. An entry that does not start with
+// "/" can never match a request path, so it is an error: a typo must not silently leave a path ungated.
+func parseGatedPaths(spec string) ([]string, error) {
+	var out []string
+	for _, entry := range strings.Split(spec, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+		if !strings.HasPrefix(entry, "/") {
+			return nil, fmt.Errorf("GATED_PATHS entry %q must start with /", entry)
+		}
+		out = append(out, entry)
+	}
+	return out, nil
 }
 
 func main() {
@@ -59,9 +76,11 @@ func main() {
 		Mode:    authz.Mode(envOr("AUTH_MODE", "enforce")),
 		HelpURL: envOr("HELP_URL", "https://developers.sefaria.org/#"),
 	}
-	if gp := os.Getenv("GATED_PATHS"); gp != "" {
-		cfg.GatedPaths = strings.Split(gp, ",")
+	gatedPaths, err := parseGatedPaths(os.Getenv("GATED_PATHS"))
+	if err != nil {
+		panic(err)
 	}
+	cfg.GatedPaths = gatedPaths
 	meters, err := authz.ParseMeters(os.Getenv("METERED_PATHS"))
 	if err != nil {
 		panic(err)
@@ -74,8 +93,23 @@ func main() {
 	if err != nil || interval <= 0 {
 		panic(fmt.Sprintf("RELOAD_INTERVAL must be a positive Go duration such as 60s, got %q", os.Getenv("RELOAD_INTERVAL")))
 	}
+	// After SIGTERM the pod reports not ready but keeps answering for this long, so Envoy stops sending it checks before
+	// the servers close. Stopping at once lets the checks still in flight to this address fail open.
+	drain, err := time.ParseDuration(envOr("SHUTDOWN_DRAIN", "5s"))
+	if err != nil || drain < 0 {
+		panic(fmt.Sprintf("SHUTDOWN_DRAIN must be a Go duration of zero or more such as 5s, got %q", os.Getenv("SHUTDOWN_DRAIN")))
+	}
 
 	reg := registry.New()
+	// Unix time of the last accepted registry load; 0 until the first one. Its alert fires on a stale or never-set value.
+	promReg.MustRegister(prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{Name: "authsvc_registry_last_reload_success_timestamp_seconds"},
+		func() float64 {
+			// One atomic read: loadedAt is written only with each accepted load (and stays 0 before the first),
+			// so a scrape can't mix two loads the way separate Version() and LoadedAt() reads could.
+			return float64(reg.LoadedAt().UnixNano()) / 1e9
+		},
+	))
 	// A pending empty is confirmed only by an empty load about one reload interval later. The gap is 90% of
 	// the interval because firstEmptyAt is stamped after a load finishes, so the next tick can land just
 	// under a full interval later; an exact-interval gap would then slip confirmation by a whole extra tick.
@@ -106,7 +140,7 @@ func main() {
 		}
 		gauges()
 		reloads.WithLabelValues("ok").Inc()
-		ready.Store(true)
+		ready.Store(reg.Settled())
 		return nil
 	}
 	reloadLoad := func(ctx context.Context) ([]registry.Key, error) {
@@ -122,11 +156,10 @@ func main() {
 	if keys, err := load(ctx); err != nil {
 		slog.Error("initial load failed; serving empty set until a reload succeeds", "err", err)
 		reloads.WithLabelValues("error").Inc()
-	} else {
-		reg.Replace(keys)
-		gauges()
-		reloads.WithLabelValues("ok").Inc()
-		ready.Store(true)
+	} else if err := replace(keys); err != nil {
+		// A first load with zero keys is only an observation: the pod stays not ready (Envoy fails open) until a
+		// non-empty load or a confirming empty load, so an empty table never makes it deny every valid key.
+		slog.Warn("initial load returned no keys; not ready until a non-empty load or a confirming empty reload", "err", err)
 	}
 	startup.Set(time.Since(t0).Seconds())
 	slog.Info("registry loaded", "keys", reg.Len(), "took", time.Since(t0), "mode", cfg.Mode)
@@ -189,7 +222,6 @@ func main() {
 	}
 	gs := grpc.NewServer()
 	authv3.RegisterAuthorizationServer(gs, authz.NewGRPCServer(reg, opts, rec))
-	reflection.Register(gs)
 	go func() {
 		slog.Info("grpc listening", "addr", lis.Addr().String())
 		if err := gs.Serve(lis); err != nil {
@@ -206,8 +238,9 @@ func main() {
 	}()
 
 	<-ctx.Done()
-	slog.Info("shutting down")
+	slog.Info("shutting down", "drain", drain)
 	ready.Store(false)
+	time.Sleep(drain)
 	done := make(chan struct{})
 	go func() { gs.GracefulStop(); close(done) }()
 	select {
