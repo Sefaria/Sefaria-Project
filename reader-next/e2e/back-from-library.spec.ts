@@ -305,3 +305,38 @@ for (const lang of ["en", "he", "bi"] as const) {
     expect(Math.abs((await segmentTop(page, ref)) - before), "library, final").toBeLessThan(2);
   });
 }
+
+// The menu's site header above the text (60px) while the reading engine runs a frame: anything does that on a phone (the browser's bar
+// showing or hiding resizes the window, a section or font arriving), and on CI's slower machines it came while the menu was open. The
+// engine then took the verse's place with the header above it for the reader's, kept it for history, and Back drew the verse 60px low on
+// every frame (Genesis 1:30, Hebrew: 266 before, 326 after). The place is kept with where the column began in the page, so it is the same
+// line of the text with or without the header.
+// @feature SHL-064 @feature SHL-065
+for (const lang of ["he", "en"] as const) {
+  test(`Back from the menu after the window resized while it was open, on a phone, ${lang} @mobile`, async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) > 600, "phone project only");
+    await open(page, `/Genesis.1.20?lang=${lang}`);
+    await page.waitForTimeout(800);
+    await page.mouse.move(200, 400);
+    await readToLastVerses(page, /\/Genesis\.1\.3[01]\?/);
+    const ref = refOfPath(page.url());
+    const before = await segmentTop(page, ref);
+    await page.getByRole("button", { name: "Menu" }).first().click();
+    await expect.poll(() => segmentTop(page, ref)).toBeGreaterThan(before + 30); // the site header is above the text
+    // the browser's bar hides and shows again (the window is 50px taller, then as it was)
+    const size = page.viewportSize()!;
+    await page.setViewportSize({ width: size.width, height: size.height + 50 });
+    await page.waitForTimeout(200);
+    await page.setViewportSize(size);
+    await page.waitForTimeout(300);
+    await page.locator('a[href="/texts"]:visible').first().click();
+    await expect(page).toHaveURL(/\/texts$/);
+    await expect(page.locator("[data-reader-scroller]")).toHaveCount(0);
+    await traceVerseHere(page, ref);
+    await page.goBack();
+    await expect(page.locator(`[role="group"][data-ref="${ref}"]`)).toBeVisible({ timeout: 25_000 });
+    await page.waitForTimeout(1500);
+    await drawnOnlyAt(page, ref, before, "menu, window resized");
+    expect(Math.abs((await segmentTop(page, ref)) - before), "final").toBeLessThan(2);
+  });
+}
