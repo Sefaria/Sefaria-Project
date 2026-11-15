@@ -111,9 +111,15 @@ jobs:
       - name: Initial JS/CSS of the reader page within the baseline
         run: node scripts/budgets/measure.mjs
 
+  # desktop and phone run as parallel legs: one after the other they came within a minute of the time limit
   e2e:
+    name: e2e (${{ matrix.project }})
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [desktop, mobile]
     needs: [changes, checks]
     if: ${{ needs.changes.outputs.reader == 'true' }}
     steps:
@@ -138,20 +144,18 @@ jobs:
           path: reader-next/e2e/.cassette
           key: e2e-cassette-${{ hashFiles('reader-next/e2e/**/*.ts') }}
           restore-keys: e2e-cassette-
-      - name: End-to-end (desktop, API cassette ${{ steps.cassette.outputs.mode }})
-        run: npx playwright test --project=desktop
-        env:
-          CI: "1"
-          E2E_API_MODE: ${{ steps.cassette.outputs.mode }}
-      - name: End-to-end (phone, the @mobile tests, API cassette ${{ steps.cassette.outputs.mode }})
-        run: npx playwright test --project=mobile
+      # mobile is the phone project: the @mobile tests on a Pixel 7
+      - name: End-to-end (${{ matrix.project }}, API cassette ${{ steps.cassette.outputs.mode }})
+        run: npx playwright test --project=${{ matrix.project }}
         env:
           CI: "1"
           E2E_API_MODE: ${{ steps.cassette.outputs.mode }}
       # the stylesheet guard against the production build: dev inlines every module's CSS, so only a build can fail it
       - name: Build
+        if: matrix.project == 'desktop'
         run: npm run build
       - name: Stylesheets of the server-rendered pages (production build)
+        if: matrix.project == 'desktop'
         run: npm run test:e2e:prod
         env:
           CI: "1"
@@ -159,7 +163,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-traces
+          name: playwright-traces-${{ matrix.project }}
           path: reader-next/test-results
           retention-days: 7
 
