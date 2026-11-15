@@ -8,7 +8,7 @@ export const AuthNoticeContext = React.createContext(null);
 
 const AUTH_NOTICES = {
   developer: {
-    title: { en: 'Looking for Developer Settings?', he: 'מחפשים את הגדרות המפתחים?' },
+    title: { en: 'Looking for Developer Settings?', he: 'מחפשים את הגדרות מפתחים?' },
     body: { en: 'Log in or create a free Sefaria account first.', he: 'קודם צריך להתחבר או ליצור חשבון ספריא בחינם.' },
   },
 };
