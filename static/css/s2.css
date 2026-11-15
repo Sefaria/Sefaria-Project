@@ -19356,5 +19356,68 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .sefaria-input:has(.devE-hintTop) .sefaria-input-hint { order: -1; margin-top: -4px; }
 .devPocPage .sefaria-input:has(.devE-hintTop) .sefaria-input-labelRow, .devPocPage .sefaria-input:has(.devE-hintTop) > :first-child { order: -2; }
 
+/* Project card on phones, option B (Penina, 2026-11-15): Edit project details, Add website and Publish project move
+   into a ⋮ menu (the site's DropdownMenu) with the same icons as the desktop buttons; the website shows under the
+   description; Add key is one full-width button. Desktop is unchanged. */
+.devPocPage .devE-phoneOnly { display: none; }
+@media (max-width: 842px) {
+  .devPocPage .devE-phoneOnly { display: inline-flex; }
+  .devPocPage .devE-projHead { position: relative; }
+  .devPocPage .devE-projInfo { padding-inline-end: 44px; }
+  .devPocPage .devE-projInfo .devE-siteLink { margin-top: 4px; padding: 0; align-self: flex-start; }
+  .devPocPage .devE-projMenuWrap { position: absolute; top: -10px; inset-inline-end: -10px; }
+  .devPocPage .devE-projMenuBtn { width: 44px; height: 44px; color: var(--darker-grey); /* action-secondary */ }
+  .devPocPage .devE-projExtras, .devPocPage .devE-actions > .devE-quiet { display: none; }
+  .devPocPage .devE-projSide, .devPocPage .devE-actions, .devPocPage .devE-actions .devE-tipWrap { width: 100%; }
+  .devPocPage .devE-actions .devE-pill { width: 100%; justify-content: center; }
+  .devPocPage .devE-projMenu { position: relative; }
+  .devPocPage .devE-projMenu .dropdownLinks-menu.open {
+    display: flex; flex-direction: column; position: absolute; top: 44px; inset-inline-end: 0; z-index: 20; min-width: 220px;
+    padding: 4px 0; background: var(--white); border: 1px solid var(--lighter-grey); border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(20, 35, 55, 0.18); /* surface-page, border-default; shadow: no token yet */
+  }
+  .devPocPage .devE-projMenu .dropdownItem { padding: 0 16px; flex-direction: row; cursor: pointer; }
+  .devPocPage .devE-projMenuItem { display: flex; align-items: center; gap: 12px; min-height: 44px; font-size: 16px; line-height: 1.4; color: var(--near-black); /* body-regular, text-primary */ }
+  .devPocPage .devE-projMenuItem svg { width: 18px; height: 18px; color: var(--darker-grey); flex: none; }
+  .devPocPage .devE-projMenuDone .devE-projMenuItem { color: var(--darker-grey); cursor: default; }
+  .devPocPage .devE-projMenuDone .devE-projMenuItem svg { color: #518159; /* feedback-success */ }
+}
+
+/* Key card on phones, option B (Penina, 2026-11-15): name and delete on one line; the key in a light field with the
+   eye and copy inside it on the end side; a "Limit to website" row with the switch on the end side; the created date
+   as a caption at the bottom. */
+@media (max-width: 842px) {
+  .devPocPage .devE-table .devE-keyRowT { grid-template-areas: "name end" "key key" "limit limit" "date date"; gap: 12px; align-items: center; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(2) { width: 100%; }
+  .devPocPage .devE-table .devE-keyRowT .devE-keyCell {
+    display: flex; width: 100%; box-sizing: border-box; align-items: center; justify-content: space-between; gap: 4px;
+    padding: 0 0 0 12px; background: var(--background-grey); border: 1px solid var(--lighter-grey); border-radius: 4px;
+    /* surface-subtle, border-default */
+  }
+  .devPocPage .devE-table .devE-keyRowT .devE-keyCell .devE-keyText { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .devPocPage .devE-table .devE-keyRowT .devE-keyCell .devE-keyCopied { position: absolute; inset-inline-end: 0; top: calc(100% + 4px); }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(4) {
+    display: flex; justify-self: stretch; justify-content: space-between; align-items: center; width: 100%;
+    padding-top: 12px; border-top: 1px solid var(--lighter-grey); /* border-default */
+  }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(4)::before { font-size: 16px; line-height: 1.4; color: var(--near-black); /* body-regular, text-primary */ }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(3),
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(3)::before { font-size: 12px; line-height: 20px; color: var(--secondary-text-grey); /* caption, text-muted */ }
+}
+/* The ⋮ menu button follows the icon-button rule (Penina, 2026-11-12/15): hover, press and open change only the icon's
+   color, to the darker action-secondary-hover; never a background. */
+.devPocPage .devE-projMenuBtn, .devPocPage .devE-projMenuBtn:hover, .devPocPage .devE-projMenuBtn:active,
+.devPocPage .devE-projMenu .dropdownLinks-button, .devPocPage .devE-projMenu .dropdownLinks-button:hover,
+.devPocPage .devE-projMenu .dropdownLinks-button:active { background: none; }
+.devPocPage .devE-projMenuBtn:active, .devPocPage .devE-projMenu:has(.dropdownLinks-menu.open) .devE-projMenuBtn { color: var(--darkest-grey); /* action-secondary-hover */ }
+@media (hover: hover) { .devPocPage .devE-projMenuBtn:hover { color: var(--darkest-grey); } }
 /* Phones draw their own gray flash on tap; Developer Settings buttons show their designed press state instead. */
 .devPocPage button, .devPocPage a, .devPocPage [role="button"] { -webkit-tap-highlight-color: transparent; }
+/* Key field on phones (Penina, 2026-11-15): the eye and copy stay at the end of the field, and "Copied" isn't shown;
+   it is still announced to screen readers (the polite live region stays, visually hidden). */
+@media (max-width: 842px) {
+  .devPocPage .devE-table .devE-keyRowT .devE-keyCell .devE-keyCopied {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0);
+    white-space: nowrap; border: 0; transform: none;
+  }
+}

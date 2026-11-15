@@ -29,6 +29,7 @@ import Input from './common/Input.jsx';
 import Checkbox from './common/Checkbox.jsx';
 import ToggleSwitch from './common/ToggleSwitch.jsx';
 import Select from './common/Select.jsx';
+import { DropdownMenu, DropdownMenuItemWithCallback } from './common/DropdownMenu.jsx';
 import ErrorBanner from './auth/ErrorBanner.jsx';
 import { requiredFieldValidate } from './auth/utils';
 
@@ -253,6 +254,23 @@ const FOCUSABLE =
 
 /* A modal dialog: focus moves in on open and back to where it was on close, Tab stays inside,
    and Escape closes it. */
+/* True at the header's phone breakpoint (842px and below), updating on resize. False on the server and in tests. */
+const E_PHONE_QUERY = '(max-width: 842px)';
+const useEIsPhone = () => {
+  const get = () => typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia(E_PHONE_QUERY).matches;
+  const [isPhone, setIsPhone] = useState(get);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) {
+      return undefined;
+    }
+    const mq = window.matchMedia(E_PHONE_QUERY);
+    const onChange = () => setIsPhone(mq.matches);
+    onChange();
+    mq.addEventListener ? mq.addEventListener('change', onChange) : mq.addListener(onChange);
+    return () => (mq.removeEventListener ? mq.removeEventListener('change', onChange) : mq.removeListener(onChange));
+  }, []);
+  return isPhone;
+};
 const useDialogKeys = (focusRef, onEscape) => {
   useEffect(() => {
     const opener = typeof document !== 'undefined' ? document.activeElement : null;
@@ -909,6 +927,15 @@ const EPublishIcon = ({ size } = {}) =>
     size
   );
 const ECheckIcon = ({ size } = {}) => eLucide(<path d="M20 6 9 17l-5-5" />, size);
+const EKebabIcon = ({ size } = {}) =>
+  eLucide(
+    <React.Fragment>
+      <circle cx="12" cy="12" r="1" />
+      <circle cx="12" cy="5" r="1" />
+      <circle cx="12" cy="19" r="1" />
+    </React.Fragment>,
+    size
+  );
 const EArrowLeftIcon = ({ size } = {}) =>
   eLucide(
     <React.Fragment>
@@ -3308,6 +3335,7 @@ const EHome = ({
   freshProjectId,
   open,
 }) => {
+  const isPhone = useEIsPhone();
   const [needSite, setNeedSite] = useState(null); // the project whose key someone tried to limit before it had a website
   const [confirmDel, setConfirmDel] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
@@ -3533,7 +3561,67 @@ const EHome = ({
                       {project.description}
                     </span>
                   ) : null}
+                  {/* Phones: the website shows under the description; the rest of the project's actions are in the ⋮ menu
+                      (Penina, 2026-11-15, option B). */}
+                  {isPhone && host ? (
+                    <a
+                      className="devE-siteLink devE-phoneOnly"
+                      href={project.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={vE(host + ' (opens in a new tab)', host + ' (נפתח בכרטיסייה חדשה)')}
+                    >
+                      <bdi dir="ltr">{host}</bdi>
+                      <ExternalIcon />
+                    </a>
+                  ) : null}
                 </div>
+                {isPhone ? (
+                  <div className="devE-projMenuWrap devE-phoneOnly">
+                    <DropdownMenu
+                      positioningClass="devE-projMenu"
+                      buttonComponent={
+                        <button
+                          type="button"
+                          className="devE-ico devE-projMenuBtn"
+                          aria-label={vE('More for ' + project.name, 'עוד עבור ' + project.name)}
+                        >
+                          <EKebabIcon />
+                        </button>
+                      }
+                    >
+                      <DropdownMenuItemWithCallback onClick={() => open({ screen: 'editproj', projectId: project.id })}>
+                        <span className="devE-projMenuItem">
+                          <EPencilIcon />
+                          {tE('Edit project details', 'עריכת פרטי הפרויקט')}
+                        </span>
+                      </DropdownMenuItemWithCallback>
+                      {host ? null : (
+                        <DropdownMenuItemWithCallback onClick={() => setNeedSite({ project })}>
+                          <span className="devE-projMenuItem">
+                            <EPlusIcon />
+                            {tE('Add website', 'הוספת אתר')}
+                          </span>
+                        </DropdownMenuItemWithCallback>
+                      )}
+                      {project.visibility === 'public' ? (
+                        <div className="interfaceLinks-option int-bi dropdownItem devE-projMenuDone">
+                          <span className="devE-projMenuItem">
+                            <ECheckIcon />
+                            {tE('Submitted for review', 'נשלח לבדיקה')}
+                          </span>
+                        </div>
+                      ) : (
+                        <DropdownMenuItemWithCallback onClick={() => open({ screen: 'share', projectId: project.id })}>
+                          <span className="devE-projMenuItem">
+                            <EPublishIcon />
+                            {tE('Publish project', 'פרסום הפרויקט')}
+                          </span>
+                        </DropdownMenuItemWithCallback>
+                      )}
+                    </DropdownMenu>
+                  </div>
+                ) : null}
                 <div className="devE-projSide">
                   <div className="devE-actions">
                     <button
