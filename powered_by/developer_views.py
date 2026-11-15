@@ -182,9 +182,9 @@ def send_confirmation_email(request, user):
 
 LINK_PAGE_TITLES = {
     developer.LinkStatus.ALREADY_CONFIRMED: "Already confirmed",
-    developer.LinkStatus.EXPIRED: "This link has expired",
-    developer.LinkStatus.NOT_ACCOUNT_EMAIL: "This link is no longer valid",
-    developer.LinkStatus.ADDRESS_IN_USE: "This link is no longer valid",
+    developer.LinkStatus.EXPIRED: "This link no longer works",
+    developer.LinkStatus.NOT_ACCOUNT_EMAIL: "This link no longer works",
+    developer.LinkStatus.ADDRESS_IN_USE: "This link no longer works",
 }
 
 
