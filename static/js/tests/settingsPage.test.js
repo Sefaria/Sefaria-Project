@@ -376,7 +376,7 @@ describe('the first project and key', () => {
       expect.objectContaining({ name: 'Daf Tracker', purpose: 'exploring', websiteUrl: '', visibility: 'private' })
     );
     expect(heading('Step 3 of 3: Create an API key for Daf Tracker')).toBeTruthy();
-    expect(field(/API key name/).getAttribute('placeholder')).toBe('My key');
+    expect(field(/API key name/).getAttribute('placeholder')).toBeNull(); // no placeholder (2026-11-15)
   });
 
   it('creates the key, waits a moment, and shows it on the projects page', async () => {

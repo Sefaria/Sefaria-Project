@@ -874,7 +874,6 @@ const EGlobeIcon = ({ size } = {}) =>
     </React.Fragment>,
     size
   );
-/* Lucide "megaphone": the button to publish a project (2026-11-08, Penina's pick after trying send and rocket). */
 const EXIcon = ({ size } = {}) =>
   eLucide(
     <React.Fragment>
@@ -900,12 +899,12 @@ const EDownloadIcon = ({ size } = {}) =>
     </React.Fragment>,
     size
   );
-const EMegaphoneIcon = ({ size } = {}) =>
+/* Publish: Lucide badge-check (Penina, 2026-11-15; was megaphone). */
+const EPublishIcon = ({ size } = {}) =>
   eLucide(
     <React.Fragment>
-      <path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />
-      <path d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14" />
-      <path d="M8 6v8" />
+      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+      <path d="m16 9-5.5 5.5L8 12" />
     </React.Fragment>,
     size
   );
@@ -1310,10 +1309,11 @@ const EWelcome = ({ dots, onSave, initial, onCancel, edit }) => {
           maxLength={E_ABOUT_MAX}
           label={tE('Tell us about yourself', 'ספרו לנו על עצמכם')}
           labelAddon={EOpt}
-          placeholder={vE(
-            'Where you work or study, what you like to build',
-            'איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות'
-          )}
+          hint={
+            <span className="devE-hintTop">
+              {tE('Where you work or study, what you like to build', 'איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות')}
+            </span>
+          }
           aria-describedby="devEAboutCount"
           value={fields.description}
           onChange={(e) => set('description', e.target.value)}
@@ -1340,7 +1340,6 @@ const EWelcome = ({ dots, onSave, initial, onCancel, edit }) => {
             </React.Fragment>
           }
           aria-describedby={tipId('devEEmail2')}
-          placeholder="name@example.com"
           value={fields.additionalEmail}
           onChange={(e) => set('additionalEmail', e.target.value)}
           error={errors.additionalEmail}
@@ -1441,7 +1440,6 @@ const EProjectFields = ({ fields, set, errors, check, showcase }) => (
       required
       dir="auto"
       label={tE('Project name', 'שם הפרויקט')}
-      placeholder={vE('Verse a Day', 'פסוק ליום')}
       value={fields.name}
       onChange={(e) => set('name', e.target.value)}
       error={errors.name}
@@ -1450,9 +1448,8 @@ const EProjectFields = ({ fields, set, errors, check, showcase }) => (
     <Input
       id="devEProjOrg"
       dir="auto"
-      label={tE('Organization', 'ארגון')}
+      label={tE('Organization/Company', 'ארגון/חברה')}
       labelAddon={EOpt}
-      placeholder={vE('e.g. your company or organization', 'למשל: החברה או הארגון שלכם')}
       value={fields.organization}
       onChange={(e) => set('organization', e.target.value)}
       error={errors.organization}
@@ -1474,10 +1471,6 @@ const EProjectFields = ({ fields, set, errors, check, showcase }) => (
       dir="auto"
       maxLength={MAX_DESCRIPTION_LENGTH}
       label={tE('Short description', 'תיאור קצר')}
-      placeholder={vE(
-        'A free email that sends one verse from the Hebrew Bible each morning, in Hebrew and English, with a short note on what it means.',
-        'מייל חינמי ששולח כל בוקר פסוק אחד מהתנ״ך, בעברית ובאנגלית, עם הסבר קצר על משמעותו.'
-      )}
       value={fields.description}
       onChange={(e) => set('description', e.target.value)}
       error={errors.description}
@@ -1678,7 +1671,6 @@ const ENewKey = ({ project, onBack, onCreate, failure, initialLabel }) => {
             }
           }}
           error={error}
-          placeholder={vE('My key', 'המפתח שלי')}
         />
         {restrict.field}
         <EPrimary data-agent-action="create-key" disabled={busy}>
@@ -1934,7 +1926,6 @@ const ESetupKey = ({ dots, project, onBack, backLabel, onSkip, onCreate, failure
             }
           }}
           error={error}
-          placeholder={vE('My key', 'המפתח שלי')}
         />
         {restrict.field}
         <div className="devE-footer">
@@ -2782,7 +2773,7 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
       iconOk
       icon={
         <span className="devE-icoDev">
-          <EMegaphoneIcon size={24} />
+          <EPublishIcon size={24} />
         </span>
       }
       title={tE('Publish your project', 'פרסום הפרויקט שלך')}
@@ -2799,13 +2790,14 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
               text={{
                 en: (
                   <React.Fragment>
-                    These details <strong>won&apos;t be shown</strong> on our site or shared, except your name if you
-                    choose to show it.
+                    If we feature your project, these details <strong>will not be shown</strong> on our site. Changes
+                    made here also update your developer profile.
                   </React.Fragment>
                 ),
                 he: (
                   <React.Fragment>
-                    הפרטים האלה <strong>לא יוצגו</strong> באתר שלנו ולא ישותפו, מלבד השם שלך אם תבחרו להציג אותו.
+                    אם נציג את הפרויקט, הפרטים האלה <strong>לא יוצגו</strong> באתר שלנו. שינויים שתעשו כאן יעדכנו גם את
+                    פרופיל המפתחים שלכם.
                   </React.Fragment>
                 ),
               }}
@@ -2836,10 +2828,14 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
                 maxLength={E_ABOUT_MAX}
                 label={tE('Tell us about yourself', 'ספרו לנו על עצמכם')}
                 labelAddon={EOpt}
-                placeholder={vE(
-                  'Where you work or study, what you like to build',
-                  'איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות'
-                )}
+                hint={
+                  <span className="devE-hintTop">
+                    {tE(
+                      'Where you work or study, what you like to build',
+                      'איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות'
+                    )}
+                  </span>
+                }
                 aria-describedby="devEShareAboutCount"
                 value={person.description}
                 onChange={(e) => setP('description', e.target.value)}
@@ -2880,7 +2876,11 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
             dir="auto"
             label={tE('Current role', 'תפקיד נוכחי')}
             labelAddon={EOpt}
-            placeholder={vE('e.g. Teacher, student, software engineer', 'למשל: מורה, סטודנט/ית, מהנדס/ת תוכנה')}
+            hint={
+              <span className="devE-hintTop">
+                {tE('Teacher, student, software engineer', 'מורה, סטודנט/ית, מהנדס/ת תוכנה')}
+              </span>
+            }
             value={currentRole}
             onChange={(e) => setCurrentRole(e.target.value)}
           />
@@ -3029,7 +3029,7 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
                 'Which non-Sefaria technologies or tools did you use for your project?',
                 'באילו טכנולוגיות או כלים שאינם של ספריא השתמשתם בפרויקט?'
               )}
-              placeholder={vE('e.g. React, Python, Claude', 'למשל: React, Python, Claude')}
+              hint={<span className="devE-hintTop">{tE('React, Python, Claude', 'React, Python, Claude')}</span>}
               value={otherTech}
               onChange={(e) => setOtherTech(e.target.value)}
             />
@@ -3068,7 +3068,7 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
             <fieldset className="devE-choices">
               <legend>
                 {tE(
-                  'How many users approximately use this project on a monthly basis?',
+                  'Approximately how many users use this project on a monthly basis?',
                   'בערך כמה משתמשים משתמשים בפרויקט בכל חודש?'
                 )}{' '}
                 {EOpt}
@@ -3242,7 +3242,7 @@ const ESharePick = ({ projects, onPick, onBack, canAddNew }) => (
     iconOk
     icon={
       <span className="devE-icoDev">
-        <EMegaphoneIcon size={24} />
+        <EPublishIcon size={24} />
       </span>
     }
     title={tE('Publish your project', 'פרסום הפרויקט שלך')}
@@ -3594,7 +3594,7 @@ const EHome = ({
                         className="devE-chip"
                         onClick={() => open({ screen: 'share', projectId: project.id })}
                       >
-                        <EMegaphoneIcon />
+                        <EPublishIcon />
                         {tE('Publish project', 'פרסום הפרויקט')}
                       </button>
                     )}
@@ -3768,7 +3768,7 @@ const EPublishNudge = ({ projects, onPublish }) => {
     >
       <div className="devE-bannerContent">
         <span className="devE-bannerIcon" aria-hidden="true">
-          <EMegaphoneIcon />
+          <EPublishIcon />
         </span>
         <div className="devE-bannerText">
           <p className="devE-bannerTitle">
@@ -4080,7 +4080,7 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
         className="devE-docsMinor devE-linkBtn"
         onClick={() => open({ screen: 'share', fromLink: true })}
       >
-        <EMegaphoneIcon size={12} />
+        <EPublishIcon size={12} />
         {tE('Publish a project', 'פרסום פרויקט')}
       </button>
       <a className="devE-docs" href={API_DOCS_URL} target="_blank" rel="noreferrer">

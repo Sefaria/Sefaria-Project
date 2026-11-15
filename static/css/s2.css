@@ -19243,3 +19243,22 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 /* Publish form summary values (email, project details): small-comfortable 14 / 400 / 21px too (Penina, 2026-11-14). */
 .devPocPage .devE-shareForm .devE-summaryText, .devPocPage .devE-shareForm .devE-summaryText strong,
 .devPocPage .devE-shareForm .devE-summaryMeta, .devPocPage .devE-shareForm .devE-summaryBody bdi { font-size: 14px; line-height: 21px; }
+/* Field labels and questions are regular weight everywhere, the publish form included (Penina, 2026-11-15): the same
+   as the shared input labels. Section and panel titles stay bold. */
+.devPocPage .devE-shareForm .sefaria-input-label, .devPocPage .devE-shareForm .sefaria-select-label,
+.devPocPage .devE-shareForm label.sefaria-input-label, .devPocPage .devE-shareForm legend,
+.devPocPage .devE-choices legend, .devPocPage .devE-restrictLabel, .devPocPage .devE-form legend { font-weight: 400; }
+/* Publish form ↗ icons next to the Sefaria data and tools: 18px, the next Lucide size up from 12px (Penina,
+   2026-11-15, trying it). The website chip's ↗ stays 12px. */
+.devPocPage .devE-toolLink svg { width: 18px; height: 18px; }
+/* The 18px ↗ icon centered on the text beside it rather than sitting low (Penina, 2026-11-15). */
+.devPocPage .devE-toolLink { vertical-align: -4px; }
+@media (max-width: 842px) { .devPocPage .devE-toolLink { vertical-align: -4px; } }
+/* ↗ icons next to the data and tools: icon-muted gray, not link navy (Penina, 2026-11-15). */
+.devPocPage .devE-shareForm .devE-toolLink, .devPocPage .devE-toolLink { color: var(--medium-grey); /* icon-muted */ }
+@media (hover: hover) { .devPocPage .devE-toolLink:hover { color: var(--darkest-grey); /* action-secondary-hover */ } }
+/* Hints that sit under the label, above the field (Penina, 2026-11-15): the examples that used to be placeholders
+   ("Where you work or study…", "Teacher, student…", "React, Python…") stay visible while typing. */
+.devPocPage .sefaria-input:has(.devE-hintTop) .sefaria-input-hint { order: -1; margin-top: -4px; }
+.devPocPage .sefaria-input:has(.devE-hintTop) .sefaria-input-labelRow, .devPocPage .sefaria-input:has(.devE-hintTop) > :first-child { order: -2; }
+
