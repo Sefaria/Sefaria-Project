@@ -82,7 +82,8 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
 
   const state = useRef({
     focus: undefined as string | undefined,
-    anchor: undefined as { ref: string; offset: number; scrollTop: number } | undefined,
+    /** The segment kept in place: its offset and the scroll position then, and where the column began in the page (see columnTop). */
+    anchor: undefined as { ref: string; offset: number; scrollTop: number; top: number } | undefined,
     /** Development counters (read by tests): every correction applied, in px. */
     corrections: [] as number[],
     height: 0,
@@ -124,6 +125,17 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     [scroller],
   );
   const offsetOf = useCallback((el: Element) => el.getBoundingClientRect().top - viewportTop(), [viewportTop]);
+  /**
+   * Where the column begins in the page, when the page scrolls (a phone; 0 when the column scrolls itself). Something shown above the
+   * column moves it down the page, and the text on screen with it, while the reader has not moved: a phone's menu shows the site header
+   * above the panel (60px). Offsets are measured on screen, so each one is kept with this, and a change in it is not taken for the
+   * reader's place: an anchor recorded while the menu was open, or a place kept as the reader leaves from it, means the same verse on
+   * the same line once the header is gone.
+   */
+  const columnTop = useCallback((): number => {
+    const el = optsRef.current.scrollerRef.current;
+    return el && scroller() === window ? el.getBoundingClientRect().top + window.scrollY : 0;
+  }, [scroller]);
   const scrollTopNow = useCallback((): number => {
     const s = scroller();
     return s === window ? window.scrollY : (s as HTMLElement).scrollTop;
@@ -203,7 +215,8 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     const st = scrollTopNow();
     const max = maxScrollNow();
     const clamped = st >= max - 1 && s.anchor.scrollTop > max + 1;
-    const expected = clamped ? s.anchor.offset : s.anchor.offset - (st - s.anchor.scrollTop);
+    // (and chrome shown or gone above the column moved the text with it: that is not a content shift either)
+    const expected = (clamped ? s.anchor.offset : s.anchor.offset - (st - s.anchor.scrollTop)) + (columnTop() - s.anchor.top);
     const delta = offsetOf(el) - expected;
     if (Math.abs(delta) >= 0.5) {
       scrollBy(delta);
@@ -223,16 +236,16 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
       s.pad = pad;
       content.style.paddingTop = pad ? `${pad}px` : "";
     }
-    s.anchor = { ref: s.anchor.ref, offset: offsetOf(el), scrollTop: scrollTopNow() };
-  }, [offsetOf, scrollBy, scrollTopNow, maxScrollNow]);
+    s.anchor = { ref: s.anchor.ref, offset: offsetOf(el), scrollTop: scrollTopNow(), top: columnTop() };
+  }, [offsetOf, scrollBy, scrollTopNow, maxScrollNow, columnTop]);
 
   const recordAnchor = useCallback(() => {
     const s = state.current;
     const content = optsRef.current.contentRef.current;
     if (!s.focus || !content) return;
     const el = content.querySelector(segmentSelector(s.focus));
-    if (el) s.anchor = { ref: s.focus, offset: offsetOf(el), scrollTop: scrollTopNow() };
-  }, [offsetOf, scrollTopNow]);
+    if (el) s.anchor = { ref: s.focus, offset: offsetOf(el), scrollTop: scrollTopNow(), top: columnTop() };
+  }, [offsetOf, scrollTopNow, columnTop]);
 
   const checkEdges = useCallback(() => {
     const content = optsRef.current.contentRef.current;
@@ -415,10 +428,10 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
       s.focus = ref;
       s.settled = ref;
       s.pinnedAt = performance.now();
-      s.anchor = { ref, offset: offsetOf(el), scrollTop: scrollTopNow() };
+      s.anchor = { ref, offset: offsetOf(el), scrollTop: scrollTopNow(), top: columnTop() };
       optsRef.current.onFocus?.(ref);
     },
-    [offsetOf, rule, scrollBy, scrollTopNow],
+    [offsetOf, rule, scrollBy, scrollTopNow, columnTop],
   );
 
   const getPosition = useCallback((): SavedPosition | undefined => {
@@ -426,27 +439,32 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     const content = optsRef.current.contentRef.current;
     // Content changed and anchor keeping has not run yet (a section arriving while the page is being left): the text has moved under
     // the reader for a moment, so the place is where the anchor says, after the reader's own scrolling, not where the verse is drawn.
-    if (s.anchor && content && content.offsetHeight !== s.height) return { ref: s.anchor.ref, offset: s.anchor.offset - (scrollTopNow() - s.anchor.scrollTop) };
+    if (s.anchor && content && content.offsetHeight !== s.height) return { ref: s.anchor.ref, offset: s.anchor.offset - (scrollTopNow() - s.anchor.scrollTop) + (columnTop() - s.anchor.top) };
     const el = s.focus ? content?.querySelector(segmentSelector(s.focus)) : null;
     return s.focus && el ? { ref: s.focus, offset: offsetOf(el) } : undefined;
-  }, [offsetOf, scrollTopNow]);
+  }, [offsetOf, scrollTopNow, columnTop]);
 
   /**
    * The place to keep when the reader leaves (history): where they were reading, after their own scrolling, by the anchor, not where the
    * verse happens to be drawn. A phone's menu shows the site's header above the text (60px) just before the reader leaves, which moves
-   * the text without the engine running. (The reader state API's position is getPosition: what is on screen.)
+   * the text without the engine running; the place is kept with where the column began in the page when it was measured
+   * (`columnTop`), so it means the same whether or not the engine ran while the header was there. (The reader state API's position is
+   * getPosition: what is on screen.)
    */
   const keptPosition = useCallback((): SavedPosition | undefined => {
     const s = state.current;
-    if (s.anchor && s.anchor.ref === s.focus) return { ref: s.anchor.ref, offset: s.anchor.offset - (scrollTopNow() - s.anchor.scrollTop) };
-    return getPosition();
-  }, [getPosition, scrollTopNow]);
+    const paged = scroller() === window;
+    if (s.anchor && s.anchor.ref === s.focus) return { ref: s.anchor.ref, offset: s.anchor.offset - (scrollTopNow() - s.anchor.scrollTop), ...(paged ? { columnTop: s.anchor.top } : {}) };
+    const pos = getPosition();
+    return pos && paged ? { ...pos, columnTop: columnTop() } : pos;
+  }, [getPosition, scrollTopNow, scroller, columnTop]);
 
   const restorePosition = useCallback(
     (pos: SavedPosition): boolean => {
       const el = optsRef.current.contentRef.current?.querySelector(segmentSelector(pos.ref));
       if (!el) return false;
-      const delta = offsetOf(el) - pos.offset;
+      // a place kept with where the column began then (a phone: see columnTop) is the same line of the text with what is above it now
+      const delta = offsetOf(el) - pos.offset - (pos.columnTop !== undefined && scroller() === window ? columnTop() - pos.columnTop : 0);
       // not enough text loaded below to scroll that far yet: room under it, so the place is reached now, not after a later jump
       const short = scrollTopNow() + delta - maxScrollNow();
       if (delta > 0 && short > 0.5) setTailPad(state.current.tailPad + Math.ceil(short));
@@ -455,11 +473,11 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
       s.focus = pos.ref;
       s.settled = pos.ref;
       s.pinnedAt = performance.now(); // stays current until the reader scrolls
-      s.anchor = { ref: pos.ref, offset: offsetOf(el), scrollTop: scrollTopNow() };
+      s.anchor = { ref: pos.ref, offset: offsetOf(el), scrollTop: scrollTopNow(), top: columnTop() };
       optsRef.current.onFocus?.(pos.ref);
       return true;
     },
-    [offsetOf, scrollBy, scrollTopNow, maxScrollNow, setTailPad],
+    [offsetOf, scrollBy, scrollTopNow, maxScrollNow, setTailPad, scroller, columnTop],
   );
 
   const restore = useCallback(() => {
@@ -485,11 +503,12 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
  * place the workspace kept for this history entry and panel (sessionStorage, written on pagehide), as the app's restore will; the
  * browser's own scroll restoration, which would move a phone's page later in the load, is turned off for it, and the text waits for
  * the fonts the same way. A place further down than the loaded text reaches (a chapter's last verses, the next chapter not loaded
- * again yet) gets room under the text, as the engine's restore gives it, which the engine then takes over and trims.
+ * again yet) gets room under the text, as the engine's restore gives it, which the engine then takes over and trims. A place kept where
+ * the page scrolls is measured against where the column began then (`columnTop`: the menu's site header may have been above it).
  * Kept tiny and dependency-free. Thresholds match FOCUS_THRESHOLD.
  */
 export const INITIAL_POSITION_SCRIPT = `(function(){var c,shown=0;function show(){if(!shown&&c){shown=1;c.style.visibility="";}}try{var s=document.currentScript;c=s&&s.closest("[data-reader-scroller]");if(!c)return;var sv=saved(),g=sv&&c.querySelector('[role="group"][data-ref="'+CSS.escape(sv.ref)+'"]'),t=g?null:c.querySelector('[data-scroll-target="true"]'),e=g||t?null:c.querySelector("[data-column-start]");if(!g&&!t&&!e)return;if(g)try{history.scrollRestoration="manual";}catch(x){}
-function place(){var o=getComputedStyle(c).overflowY,w=!(o==="auto"||o==="scroll"),d;if(g){d=g.getBoundingClientRect().top-(w?0:c.getBoundingClientRect().top)-sv.offset;var se=w?document.scrollingElement:c,sh=(w?scrollY:c.scrollTop)+d-(se.scrollHeight-se.clientHeight),ct=c.firstElementChild;if(sh>0.5&&ct){var tp=(ct.__tailPad||0)+Math.ceil(sh);ct.style.paddingBottom="";ct.style.paddingBottom=parseFloat(getComputedStyle(ct).paddingBottom)+tp+"px";ct.__tailPad=tp;}}else if(t){var th=(w?70:140)+2;d=t.getBoundingClientRect().top-(w?0:c.getBoundingClientRect().top)-th;}else{var f=c.closest("[data-reader-frame]"),h=w&&f&&f.parentElement&&f.parentElement.querySelector("header"),hs=h&&getComputedStyle(h),line=w?(hs&&hs.position==="sticky"?(parseFloat(hs.top)||0)+h.offsetHeight:0):c.getBoundingClientRect().top;d=e.getBoundingClientRect().bottom-line;}if(Math.abs(d)<0.5)return;if(w)window.scrollTo(0,window.scrollY+d);else c.scrollTop+=d;}
+function place(){var o=getComputedStyle(c).overflowY,w=!(o==="auto"||o==="scroll"),d;if(g){d=g.getBoundingClientRect().top-(w?0:c.getBoundingClientRect().top)-sv.offset-(w&&sv.columnTop!=null?c.getBoundingClientRect().top+scrollY-sv.columnTop:0);var se=w?document.scrollingElement:c,sh=(w?scrollY:c.scrollTop)+d-(se.scrollHeight-se.clientHeight),ct=c.firstElementChild;if(sh>0.5&&ct){var tp=(ct.__tailPad||0)+Math.ceil(sh);ct.style.paddingBottom="";ct.style.paddingBottom=parseFloat(getComputedStyle(ct).paddingBottom)+tp+"px";ct.__tailPad=tp;}}else if(t){var th=(w?70:140)+2;d=t.getBoundingClientRect().top-(w?0:c.getBoundingClientRect().top)-th;}else{var f=c.closest("[data-reader-frame]"),h=w&&f&&f.parentElement&&f.parentElement.querySelector("header"),hs=h&&getComputedStyle(h),line=w?(hs&&hs.position==="sticky"?(parseFloat(hs.top)||0)+h.offsetHeight:0):c.getBoundingClientRect().top;d=e.getBoundingClientRect().bottom-line;}if(Math.abs(d)<0.5)return;if(w)window.scrollTo(0,window.scrollY+d);else c.scrollTop+=d;}
 place();var f=document.fonts;if((t||g)&&f&&f.status!=="loaded"){c.style.visibility="hidden";f.ready.then(function(){place();show();});setTimeout(show,600);}if(!window.ResizeObserver){show();return;}
 var ro=new ResizeObserver(place),live=1,tick=function(){if(live){place();requestAnimationFrame(tick);}},stop=function(){live=0;show();ro.disconnect();["wheel","touchmove","keydown","pointerdown"].forEach(function(e){removeEventListener(e,stop,true)});};requestAnimationFrame(tick);
 ro.observe(c);ro.observe(c.firstElementChild||c);["wheel","touchmove","keydown","pointerdown"].forEach(function(e){addEventListener(e,stop,true)});c.__keepPlace=stop;}catch(e){show();}

@@ -14,6 +14,11 @@ export interface SavedPosition {
   ref: string;
   /** Pixels from the top of the scrolling area to the top of that segment. */
   offset: number;
+  /**
+   * When the page itself scrolls (a phone): where the column began in the page when `offset` was measured. Something shown above the
+   * column then (the menu's site header) moved the text down the screen without the reader moving; restoring subtracts the difference.
+   */
+  columnTop?: number;
 }
 
 /** panel id → position */
