@@ -80,6 +80,9 @@ STATICFILES_FINDERS = (
 
 STATICFILES_DIRS = [
     relative_to_abs_path("../static/"),
+    # Sefaria design system tokens (Sefaria/design-system), installed by npm and served as
+    # static/design-system/core.css and semantic.css. Pinned in package.json.
+    ("design-system", relative_to_abs_path("../node_modules/@sefaria/design-system")),
 ]
 
 # Make this unique, and don't share it with anybody.

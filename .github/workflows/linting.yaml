@@ -20,6 +20,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  design-system-pin:
+    name: "Design system is pinned to a release"
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+      - run: node build/ci/check-design-system-pin.mjs
+
   lint-python:
     name: "Lint: Python (Ruff)"
     runs-on: ubuntu-latest

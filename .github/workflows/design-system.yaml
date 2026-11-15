@@ -1,0 +1,190 @@
+name: Design system updates
+
+# Driven by Sefaria/design-system (its preview.yml and release.yml). The same workflow lives in
+# Sefaria/ai-chatbot (.github/workflows/design-system.yml).
+#
+# design-system-preview (a design-system PR opened or pushed to):
+#   - Standalone PR: point the standing branch design-system/preview at master + its CSS. The
+#     design-system cauldron (https://design-system.cauldron.sefaria.org) tracks that branch, so it
+#     shows the most recently pushed standalone design-system PR. A draft PR from that branch stays
+#     open so the branch's images get built; never merge it.
+#   - "Ships with: Sefaria-Project#123": commit the design-system PR's CSS to #123's branch, so a
+#     cauldron of that branch shows it. The engineer pulls before pushing.
+#
+# design-system-release (a design-system PR merged and was tagged):
+#   - Update master to the release through a PR that merges itself once CI passes. Its title,
+#     "fix(design-system): update to vX", is the squash commit, so it deploys to staging and ships
+#     to prod with the next promotion.
+#   - "Ships with: Sefaria-Project#123": also move #123's branch from the design-system commit to the tag.
+#
+# Setup: DESIGN_SYSTEM_BOT_TOKEN (PRs opened with the default GITHUB_TOKEN don't run CI),
+# "Allow auto-merge" on, and the design-system cauldron created once, tracking design-system/preview.
+
+on:
+  repository_dispatch:
+    types: [design-system-preview, design-system-release]
+
+permissions:
+  contents: read
+
+env:
+  GH_TOKEN: ${{ secrets.DESIGN_SYSTEM_BOT_TOKEN }}
+  ACTION: ${{ github.event.client_payload.action }}
+  DS_PR: ${{ github.event.client_payload.pr }}
+  DS_SHA: ${{ github.event.client_payload.sha }}
+  TAG: ${{ github.event.client_payload.tag }}
+  SHIPS_WITH: ${{ github.event.client_payload.ships_with }}
+  THIS_REPO_NAME: Sefaria-Project
+
+jobs:
+  preview:
+    if: github.event.action == 'design-system-preview'
+    runs-on: ubuntu-latest
+    # One standing preview branch: previews of different design-system PRs run one at a time.
+    concurrency: design-system-preview
+    steps:
+      - name: Validate payload and pick what to do
+        run: |
+          [[ "$ACTION" =~ ^(open|close)$ && "$DS_PR" =~ ^[0-9]+$ && "$DS_SHA" =~ ^[0-9a-f]{40}$ ]] \
+            || { echo "Unexpected payload"; exit 1; }
+          [[ -z "$SHIPS_WITH" || "$SHIPS_WITH" =~ ^[A-Za-z-]+#[0-9]+$ ]] || { echo "Unexpected link: $SHIPS_WITH"; exit 1; }
+          if [[ "$ACTION" == close ]]; then
+            mode=none   # the cauldron keeps the last preview until the next one
+          elif [[ "$SHIPS_WITH" =~ ^$THIS_REPO_NAME#([0-9]+)$ ]]; then
+            mode=feature; echo "FEATURE_PR=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
+          elif [[ -n "$SHIPS_WITH" ]]; then
+            mode=none   # ships with another product's PR
+          else
+            mode=draft
+          fi
+          echo "MODE=$mode" >> "$GITHUB_ENV"
+
+      - name: Find the feature PR's branch
+        if: env.MODE == 'feature'
+        run: |
+          read -r branch cross state < <(gh pr view "$FEATURE_PR" --repo "${{ github.repository }}" \
+            --json headRefName,isCrossRepository,state --jq '"\(.headRefName) \(.isCrossRepository) \(.state)"')
+          [[ "$cross" == false && "$state" == OPEN ]] || { echo "::warning::#$FEATURE_PR isn't an open PR from this repo"; exit 1; }
+          echo "FEATURE_BRANCH=$branch" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v4
+        if: env.MODE != 'none'
+        with:
+          ref: ${{ env.MODE == 'feature' && env.FEATURE_BRANCH || 'master' }}
+          token: ${{ secrets.DESIGN_SYSTEM_BOT_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        if: env.MODE != 'none'
+        with:
+          node-version: 22
+
+      # --package-lock-only: update package.json and the lockfile without installing everything.
+      - name: Use the design-system PR's CSS
+        if: env.MODE != 'none'
+        run: npm install --package-lock-only "github:Sefaria/design-system#$DS_SHA"
+
+      - name: Commit it to the feature branch
+        if: env.MODE == 'feature'
+        run: |
+          git config user.name "design-system bot"
+          git config user.email "design-system-bot@users.noreply.github.com"
+          git add package.json package-lock.json
+          git diff --cached --quiet && { echo "Already on $DS_SHA"; exit 0; }
+          git commit -m "chore(design-system): use Sefaria/design-system#$DS_PR (${DS_SHA::7})"
+          git push origin "HEAD:$FEATURE_BRANCH"
+
+      - name: Point the standing preview branch at it
+        if: env.MODE == 'draft'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.DESIGN_SYSTEM_BOT_TOKEN }}
+          base: master
+          branch: design-system/preview
+          draft: true
+          commit-message: "chore(design-system): preview Sefaria/design-system#${{ env.DS_PR }}"
+          title: "Design system preview (design-system cauldron). Never merge"
+          body: |
+            The design-system cauldron (https://design-system.cauldron.sefaria.org) tracks this branch. It currently shows Sefaria/design-system#${{ env.DS_PR }}. This PR stays open so the branch's images get built; **never merge it**.
+
+            Updated by `.github/workflows/design-system.yaml`.
+
+      - name: Link the preview from the design-system PR (once)
+        if: env.MODE == 'feature'
+        run: |
+          marker="<!-- design-system-preview:$THIS_REPO_NAME#$FEATURE_PR -->"
+          gh pr view "$DS_PR" --repo Sefaria/design-system --json comments --jq '.comments[].body' \
+            | grep -qF "$marker" && exit 0
+          gh pr comment "$DS_PR" --repo Sefaria/design-system --body "$marker
+          **Sefaria preview:** the feature PR ${{ github.repository }}#$FEATURE_PR now uses your CSS and follows your pushes. See it on that branch's cauldron."
+
+  release:
+    if: github.event.action == 'design-system-release'
+    runs-on: ubuntu-latest
+    concurrency: design-system-release
+    steps:
+      - name: Validate payload
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Unexpected tag: $TAG"; exit 1; }
+          [[ -z "$SHIPS_WITH" || "$SHIPS_WITH" =~ ^[A-Za-z-]+#[0-9]+$ ]] || { echo "Unexpected link: $SHIPS_WITH"; exit 1; }
+          if [[ "$SHIPS_WITH" =~ ^$THIS_REPO_NAME#([0-9]+)$ ]]; then
+            echo "FEATURE_PR=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          token: ${{ secrets.DESIGN_SYSTEM_BOT_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Update to the release
+        run: npm install --package-lock-only "github:Sefaria/design-system#$TAG"
+
+      - name: Open or update the update PR
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.DESIGN_SYSTEM_BOT_TOKEN }}
+          base: master
+          branch: design-system/update
+          commit-message: "fix(design-system): update to ${{ env.TAG }}"
+          title: "fix(design-system): update to ${{ env.TAG }}"
+          body: |
+            Updates the Sefaria design system to [${{ env.TAG }}](https://github.com/Sefaria/design-system/releases/tag/${{ env.TAG }}). Merges itself once CI passes; it then deploys to staging, and to prod with the next promotion.
+
+            Opened by `.github/workflows/design-system.yaml`.
+
+      - name: Merge it once CI passes
+        if: steps.cpr.outputs.pull-request-number != ''
+        run: |
+          gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --repo "${{ github.repository }}" --auto --squash \
+            || echo "::warning::Couldn't turn on auto-merge (is 'Allow auto-merge' on?). Merge the PR by hand."
+
+      - name: Find the feature PR's branch
+        if: env.FEATURE_PR != ''
+        run: |
+          read -r branch cross state < <(gh pr view "$FEATURE_PR" --repo "${{ github.repository }}" \
+            --json headRefName,isCrossRepository,state --jq '"\(.headRefName) \(.isCrossRepository) \(.state)"')
+          [[ "$cross" == false && "$state" == OPEN ]] || { echo "::warning::#$FEATURE_PR isn't an open PR from this repo"; exit 0; }
+          echo "FEATURE_BRANCH=$branch" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v4
+        if: env.FEATURE_BRANCH != ''
+        with:
+          ref: ${{ env.FEATURE_BRANCH }}
+          token: ${{ secrets.DESIGN_SYSTEM_BOT_TOKEN }}
+
+      - name: Move the feature branch to the release
+        if: env.FEATURE_BRANCH != ''
+        run: |
+          npm install --package-lock-only "github:Sefaria/design-system#$TAG"
+          git config user.name "design-system bot"
+          git config user.email "design-system-bot@users.noreply.github.com"
+          git add package.json package-lock.json
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(design-system): use released $TAG"
+          git push origin "HEAD:$FEATURE_BRANCH"
+          gh pr comment "$FEATURE_PR" --repo "${{ github.repository }}" --body \
+            "The design-system change this PR ships with is released as $TAG, and this branch now uses it (pull before pushing)."
