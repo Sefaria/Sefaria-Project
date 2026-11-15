@@ -363,7 +363,8 @@ describe('Limit to website', () => {
     await click(screen.getByRole('switch', { name: "Limit Key 1 to the project's website" }));
     const dialog = screen.getByRole('dialog', { name: 'Limit this key to your website' });
     const site = within(dialog).getByLabelText('Your website');
-    expect(document.activeElement).toBe(site);
+    // Focus starts on the title, so a phone's keyboard doesn't open on its own (2026-11-15).
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Limit this key to your website' }));
     const limit = within(dialog).getByRole('button', { name: 'Limit key' });
     expect(limit.disabled).toBe(true);
     type(site, 'www.daftracker.org');

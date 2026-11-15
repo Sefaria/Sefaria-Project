@@ -19197,7 +19197,9 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 @media (max-width: 842px) {
   .devPocPage .devE-back { min-height: 44px; }
   .devE-deleteBtn, .devE-deleteActions .devE-pill { min-height: 44px; }
-  .devPocPage .devE-radio, .devPocPage .devE-form .sefaria-checkbox-row { min-height: 44px; align-items: center; }
+  .devPocPage .devE-radio { min-height: 44px; align-items: center; }
+  /* Checkboxes stay aligned to the first line of their label (Penina, 2026-11-15); the row is still 44px tall. */
+  .devPocPage .devE-form .sefaria-checkbox-row { min-height: 44px; align-items: flex-start; }
   .devPocPage .devE-toolLink { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; vertical-align: middle; }
   .devPocPage .devE-toolLink::after { content: none; }
 }
@@ -19243,11 +19245,91 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 /* Publish form summary values (email, project details): small-comfortable 14 / 400 / 21px too (Penina, 2026-11-14). */
 .devPocPage .devE-shareForm .devE-summaryText, .devPocPage .devE-shareForm .devE-summaryText strong,
 .devPocPage .devE-shareForm .devE-summaryMeta, .devPocPage .devE-shareForm .devE-summaryBody bdi { font-size: 14px; line-height: 21px; }
+/* Welcome screen on phones: more room around Get started (Penina, 2026-11-15). The steps box sits 32px above the
+   button (spacing-3xlarge) and the two links 24px below it (spacing-2xlarge); elsewhere fields stay 20px apart. */
+@media (max-width: 842px) {
+  .devPocPage .devE-form:has(> .devE-path) { gap: 24px; }
+  .devPocPage .devE-form:has(> .devE-path) > .devE-path { margin-bottom: 8px; }
+}
+/* "Signed in as" on phones: the label on its own line with a colon, then the name and email (Penina, 2026-11-15). */
+@media (max-width: 842px) {
+  .devPocPage .devE-signedLabel { display: block; }
+  .devPocPage .devE-signedLabel::after { content: ":"; }
+}
+/* Form fields on phones: 24px apart (spacing-2xlarge), up from 20px (Penina, 2026-11-15). */
+@media (max-width: 842px) { .devPocPage .devE-form { gap: 24px; } }
+/* Field labels on phones: 16px (body-regular; the publish form's bold labels body-strong), up from 14px, for
+   legibility (Penina, 2026-11-15, trying it). Desktop stays 14px, matching the login forms. */
+@media (max-width: 842px) {
+  .devPocPage .devE-form .sefaria-input-label, .devPocPage .devE-form .sefaria-select-label,
+  .devPocPage .devE-form legend, .devPocPage .devE-shareForm .sefaria-input-label,
+  .devPocPage .devE-shareForm .sefaria-select-label, .devPocPage .devE-shareForm label.sefaria-input-label,
+  .devPocPage .devE-shareForm legend { font-size: 16px; line-height: 1.4; }
+}
+/* Touch screens have no real hover: a touch while scrolling made the fields' hover border stick (Penina, 2026-11-15).
+   On devices without hover, fields keep their resting border; focus and error borders still show. Scoped to
+   Developer Settings; the shared components are unchanged. */
+@media (hover: none) {
+  .devPocPage .sefaria-input-control:hover:not(:focus):not(:disabled),
+  .devPocPage .sefaria-select-control:hover:not(:focus-visible):not(:disabled) { border-color: #e6e6e6; /* gray-250, the resting border */ }
+  .devPocPage .sefaria-input--error .sefaria-input-control:hover,
+  .devPocPage .sefaria-select--error .sefaria-select-control:hover { border-color: #c03522; /* feedback-error */ }
+}
+/* Buttons and links on touch screens: a tap leaves no sticky hover (Penina, 2026-11-15). Each hover goes back to its
+   resting look; the press state (:active) and focus ring still show. */
+@media (hover: none) {
+  .devPocPage .sefaria-common-button.auth-primary:hover:not(:disabled):not(:active),
+  .devPocPage .devE-pill:hover:not(:disabled):not([aria-disabled="true"]):not(:active) { background: var(--sefaria-blue); border-color: var(--sefaria-blue); /* action-primary */ }
+  .devPocPage .devE-quiet:hover:not(:disabled):not([aria-disabled="true"]):not(:active),
+  .devPocPage .devE-backBtn:hover:not(:active),
+  .devE-deleteBtn:not(.devE-deleteBtnDanger):hover:not(:active) { background: var(--white); border-color: var(--light-grey); color: var(--darker-grey); /* surface-page, gray-300, action-secondary */ }
+  .devPocPage .devE-quiet:hover:not(:disabled):not([aria-disabled="true"]):not(:active) svg { color: var(--darker-grey); }
+  .devE-deleteBtnDanger:hover:not(:active) { background: #c03522; /* feedback-error */ }
+  .devPocPage .devE-chip:hover, .devPocPage .devE-textBtn:hover, .devPocPage .devE-ghostBtn:hover,
+  .devPocPage .devE-docs:hover, .devPocPage .devE-docsMinor:hover, .devPocPage .devE-headLinks .devE-linkBtn:hover { text-decoration: none; background: none; }
+  .devPocPage .devE-textBtn:hover { color: var(--sefaria-blue); }
+  .devPocPage .devE-back:hover, .devPocPage .devE-ghostBtn:hover { color: var(--darker-grey); text-decoration: none; background: none; }
+  .devPocPage .devE-inlineLink:hover { color: var(--sefaria-blue); }
+  .devPocPage .devE-siteLink:hover { color: var(--darker-grey); text-decoration-color: var(--light-grey); }
+  .devPocPage .devE-ico:hover { color: var(--medium-grey); background: none; /* icon-muted */ }
+  .devPocPage .devE-icoDanger:hover { color: #c03522; }
+  .devPocPage .devE-table .devE-keyCell .devE-ico:hover { color: var(--medium-grey); }
+  .devPocPage .devE-stepBack:hover .devE-arrow { background-color: var(--darker-grey); }
+  .devPocPage .devE-bannerClose:hover { color: var(--darker-grey); }
+  .devPocPage .devE-toolLink:hover { color: var(--darker-grey); }
+  .settingsNav a:hover:not([aria-current="page"]) { background: transparent; }
+}
+.devE-deleteModal h3:focus { outline: none; } /* the title takes focus only so the window is read first; it is not interactive */
 /* Field labels and questions are regular weight everywhere, the publish form included (Penina, 2026-11-15): the same
    as the shared input labels. Section and panel titles stay bold. */
 .devPocPage .devE-shareForm .sefaria-input-label, .devPocPage .devE-shareForm .sefaria-select-label,
 .devPocPage .devE-shareForm label.sefaria-input-label, .devPocPage .devE-shareForm legend,
 .devPocPage .devE-choices legend, .devPocPage .devE-restrictLabel, .devPocPage .devE-form legend { font-weight: 400; }
+/* Checkboxes on touch screens: no sticky hover darkening of the empty box (Penina, 2026-11-15). */
+@media (hover: none) {
+  .devPocPage .sefaria-checkbox-input:hover:not(:disabled) ~ .sefaria-checkbox-icon--off { color: var(--medium-grey); /* icon-muted, the resting color */ }
+}
+/* Publish form ↗ links on phones, take 2 (Penina, 2026-11-15): the 44px box made each option's line taller, so the
+   checkboxes sat off from their labels. The icon now keeps the line height, and an invisible 44px tap area extends
+   past it into the empty space on the end side. */
+@media (max-width: 842px) {
+  .devPocPage .devE-toolLink { display: inline-flex; width: auto; height: auto; padding: 2px; margin-inline-start: 0; position: relative; vertical-align: middle; }
+  .devPocPage .devE-toolLink::after { content: ""; position: absolute; top: 50%; inset-inline-start: -4px; width: 44px; height: 44px; transform: translateY(-50%); }
+}
+/* Choice lists on phones (Penina, 2026-11-15): even spacing. Each option keeps a 44px tap area made of equal space
+   above and below its label (not extra height under it), with no gap between options, and the question sits the
+   same visual distance above the first option as the options sit from each other. */
+@media (max-width: 842px) {
+  .devPocPage .devE-choices { gap: 0; }
+  .devPocPage .devE-choices legend { margin-bottom: 12px; }
+  .devPocPage .devE-choices .devE-radio, .devPocPage .devE-choices .sefaria-checkbox-row {
+    min-height: 0; padding-block: 11px; align-items: flex-start;
+  }
+  .devPocPage .devE-choices .devE-radio input { margin-top: 2px; }
+}
+@media (max-width: 842px) {
+  .devPocPage .devE-choices .devE-radio, .devPocPage .devE-choices .sefaria-checkbox-row { min-height: 44px; box-sizing: border-box; }
+}
 /* Publish form ↗ icons next to the Sefaria data and tools: 18px, the next Lucide size up from 12px (Penina,
    2026-11-15, trying it). The website chip's ↗ stays 12px. */
 .devPocPage .devE-toolLink svg { width: 18px; height: 18px; }
@@ -19257,8 +19339,22 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 /* ↗ icons next to the data and tools: icon-muted gray, not link navy (Penina, 2026-11-15). */
 .devPocPage .devE-shareForm .devE-toolLink, .devPocPage .devE-toolLink { color: var(--medium-grey); /* icon-muted */ }
 @media (hover: hover) { .devPocPage .devE-toolLink:hover { color: var(--darkest-grey); /* action-secondary-hover */ } }
+/* Choice lists on phones, on the scale (Penina, 2026-11-15): 12px (spacing-medium) above and below each option's
+   label, so options sit 24px apart (spacing-2xlarge), and 12px under the question plus the first option's 12px also
+   makes 24px. Each option's tap area is 45px (12 + 21 + 12). */
+@media (max-width: 842px) {
+  .devPocPage .devE-choices .devE-radio, .devPocPage .devE-choices .sefaria-checkbox-row { padding-block: 12px; min-height: 0; }
+  .devPocPage .devE-choices legend { margin-bottom: 12px; }
+}
+/* Form fields on phones: 32px apart (spacing-3xlarge), up from 24px (Penina, 2026-11-15). Same inside the publish
+   form's sections. The welcome screen keeps its own spacing. */
+@media (max-width: 842px) {
+  .devPocPage .devE-form:not(:has(> .devE-path)), .devPocPage .devE-shareSection, .devPocPage .devE-shareMoreBody { gap: 32px; }
+}
 /* Hints that sit under the label, above the field (Penina, 2026-11-15): the examples that used to be placeholders
    ("Where you work or study…", "Teacher, student…", "React, Python…") stay visible while typing. */
 .devPocPage .sefaria-input:has(.devE-hintTop) .sefaria-input-hint { order: -1; margin-top: -4px; }
 .devPocPage .sefaria-input:has(.devE-hintTop) .sefaria-input-labelRow, .devPocPage .sefaria-input:has(.devE-hintTop) > :first-child { order: -2; }
 
+/* Phones draw their own gray flash on tap; Developer Settings buttons show their designed press state instead. */
+.devPocPage button, .devPocPage a, .devPocPage [role="button"] { -webkit-tap-highlight-color: transparent; }

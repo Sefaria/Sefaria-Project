@@ -234,7 +234,7 @@ describe('About you', () => {
   it('is step 1 of 3 for a Google or Apple account, with the account name and email', async () => {
     await startSso();
     expect(heading('Step 1 of 3: About you')).toBeTruthy();
-    expect(screen.getByText(/Signed in as/).textContent).toBe('Signed in as Tova Levi (tova@example.org)');
+    expect(screen.getByText(/Signed in as/).closest('p').textContent).toBe('Signed in as Tova Levi (tova@example.org)');
     // The account has a name, so there is no name field.
     expect(screen.queryByLabelText('Name')).toBeNull();
     expect(screen.getByRole('link', { name: 'Sefaria API terms' }).getAttribute('href')).toBe('/api-terms');

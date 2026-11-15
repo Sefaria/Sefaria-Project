@@ -937,14 +937,37 @@ const ETrashIcon = ({ size } = {}) =>
     size
   );
 
-const eCopy = (text, done) => {
+/* Copy: the Clipboard API where the page is allowed to use it (https, localhost), else the older copy command,
+   which also works on plain http and in older browsers (2026-11-15: copying silently failed on a phone testing over
+   http). "Copied" shows only when one of them worked. */
+const eCopyFallback = (text) => {
   try {
-    navigator.clipboard.writeText(text).then(
-      () => done && done(),
-      () => {}
-    );
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.top = '-1000px';
+    area.style.opacity = '0';
+    document.body.appendChild(area);
+    area.select();
+    area.setSelectionRange(0, text.length); // iOS needs an explicit range
+    const ok = document.execCommand('copy');
+    document.body.removeChild(area);
+    return ok;
   } catch (e) {
-    /* the key stays selectable */
+    return false;
+  }
+};
+const eCopy = (text, done) => {
+  const fallback = () => {
+    if (eCopyFallback(text) && done) {
+      done();
+    }
+  };
+  if (typeof navigator !== 'undefined' && navigator.clipboard && window.isSecureContext !== false) {
+    navigator.clipboard.writeText(text).then(() => done && done(), fallback);
+  } else {
+    fallback();
   }
 };
 
@@ -1271,8 +1294,8 @@ const EWelcome = ({ dots, onSave, initial, onCancel, edit }) => {
         <React.Fragment>
           {email ? (
             <p className="devE-signed">
-              {tE('Signed in as', 'מחובר/ת בתור')} {name ? <strong dir="auto">{name}</strong> : null}{' '}
-              <bdi dir="ltr">({email})</bdi>
+              <span className="devE-signedLabel">{tE('Signed in as', 'מחובר/ת בתור')}</span>{' '}
+              {name ? <strong dir="auto">{name}</strong> : null} <bdi dir="ltr">({email})</bdi>
             </p>
           ) : null}
         </React.Fragment>
@@ -2261,7 +2284,7 @@ const EDeleteKeyDialog = ({ apiKey, onDelete, onCancel }) => {
    forms, and the website asked for right here, saved to the project, then the key limited (Penina, 2026-11-05). */
 const ELimitKeyDialog = ({ project, apiKey, run, onDone, onCancel }) => {
   /* Without a key it's the plain "Add your website" window, opened from the project row's Add website. */
-  const formRef = useRef(null); // traps Tab inside the window; focus starts in the website field
+  const formRef = useRef(null); // traps Tab inside the window
   const [site, setSite] = useState('');
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -2272,7 +2295,14 @@ const ELimitKeyDialog = ({ project, apiKey, run, onDone, onCancel }) => {
       el.focus();
     }
   };
-  useEffect(focusSite, []);
+  /* Focus starts on the window's title, not the website field, so a phone's keyboard doesn't open on its own
+     (Penina, 2026-11-15). Screen readers still read the title first; Tab goes to the field. */
+  useEffect(() => {
+    const title = document.getElementById('devELimitTitle');
+    if (title) {
+      title.focus();
+    }
+  }, []);
   const save = (e) => {
     e.preventDefault();
     if (busy) {
@@ -2312,7 +2342,7 @@ const ELimitKeyDialog = ({ project, apiKey, run, onDone, onCancel }) => {
       }}
     >
       <form className="devE-deleteModal devE-limitModal" onSubmit={save} noValidate ref={formRef}>
-        <h3 id="devELimitTitle">
+        <h3 id="devELimitTitle" tabIndex={-1}>
           {apiKey
             ? tE('Limit this key to your website', 'הגבלת המפתח לאתר שלכם')
             : tE('Add your website', 'הוספת האתר שלכם')}
@@ -2807,8 +2837,8 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
             <React.Fragment>
               {email ? (
                 <p className="devE-signed">
-                  {tE('Signed in as', 'מחובר/ת בתור')} {name ? <strong dir="auto">{name}</strong> : null}{' '}
-                  <bdi dir="ltr">({email})</bdi>
+                  <span className="devE-signedLabel">{tE('Signed in as', 'מחובר/ת בתור')}</span>{' '}
+                  {name ? <strong dir="auto">{name}</strong> : null} <bdi dir="ltr">({email})</bdi>
                 </p>
               ) : null}
               <Select
