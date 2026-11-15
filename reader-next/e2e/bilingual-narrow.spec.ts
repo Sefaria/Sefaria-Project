@@ -7,18 +7,18 @@ import { open } from "./helpers";
 const layout = (page: Page, biLayout: "heLeft" | "heRight") =>
   page.context().addCookies([{ name: "biLayout", value: biLayout, domain: "localhost", path: "/" }]);
 
-/** Whether Genesis 1:1 (first panel) shows its two sides on one row, and the panel's content width. */
+/** Whether Genesis 1:1 (first panel) shows its two sides on one row, and the panel's width. */
 async function arrangement(page: Page) {
   const seg = page.locator('[role="group"][data-ref="Genesis 1:1"]').first();
   await expect(seg.locator('[data-side="translation"]')).toBeVisible({ timeout: 25_000 });
   return seg.evaluate((s) => {
     const he = s.querySelector('[data-side="primary"]')!.getBoundingClientRect();
     const en = s.querySelector('[data-side="translation"]')!.getBoundingClientRect();
-    const scroller = s.closest<HTMLElement>("[data-reader-scroller]")!;
-    const cs = getComputedStyle(scroller);
+    // the panel's outer box, scrollbar included, as sefaria.org measures it (a classic scrollbar, as on Linux CI, is 15px of it)
+    const frame = s.closest<HTMLElement>("[data-reader-frame]")!;
     return {
       sideBySide: Math.abs(he.top - en.top) < 2,
-      panel: scroller.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight),
+      panel: frame.getBoundingClientRect().width,
       overlap: he.right > en.left && en.right > he.left && he.bottom > en.top && en.bottom > he.top,
     };
   });
