@@ -727,6 +727,25 @@ const eMessage = (err, fallback = SAVE_FAILED) => {
   }
   return raw;
 };
+/* The sign-in forms' error banner, scrolled into view when it appears, so someone who pressed Save at the bottom of a
+   long form sees why it failed (Penina, 2026-11-15). The shared ErrorBanner itself is unchanged. */
+const EErrorBanner = ({ error }) => {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (error && ref.current) {
+      const reduce =
+        typeof window !== 'undefined' &&
+        window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      ref.current.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+    }
+  }, [error]);
+  return (
+    <div ref={ref}>
+      <ErrorBanner error={error} />
+    </div>
+  );
+};
 /* A server rejection about one field shows on that field, not in the banner (Penina, 2026-11-15;
    design-notes/error-copy.md). Returns the form's field key and the field's own error copy, or null. */
 const eFieldError = (err) => {
@@ -1261,7 +1280,7 @@ const EWelcome = ({ dots, onSave, initial, onCancel, edit }) => {
       }
     >
       <form className="devE-form" onSubmit={submit} noValidate>
-        <ErrorBanner error={banner} />
+        <EErrorBanner error={banner} />
         {name ? null : (
           <Input
             id="devEName"
@@ -1649,7 +1668,7 @@ const ENewKey = ({ project, onBack, onCreate, failure, initialLabel }) => {
       }
     >
       <form className="devE-form" onSubmit={submit} noValidate>
-        <ErrorBanner error={banner} />
+        <EErrorBanner error={banner} />
         <EKeyNameField
           label={label}
           setLabel={(v) => {
@@ -1696,7 +1715,7 @@ const ESetupProject = ({ dots, title, onBack, backLabel, onSkip, skipLabel, onCr
   return (
     <EStep dots={dots} onBack={onBack} backLabel={backLabel} title={title || tE('Your project', 'הפרויקט שלך')}>
       <form className="devE-form" onSubmit={submit} noValidate>
-        <ErrorBanner error={banner} />
+        <EErrorBanner error={banner} />
         <EProjectFields fields={form.fields} set={form.set} errors={form.errors} check={form.check} />
         <ENote>
           {tE(
@@ -1905,7 +1924,7 @@ const ESetupKey = ({ dots, project, onBack, backLabel, onSkip, onCreate, failure
       }
     >
       <form className="devE-form" onSubmit={submit} noValidate>
-        <ErrorBanner error={banner} />
+        <EErrorBanner error={banner} />
         <EKeyNameField
           label={label}
           setLabel={(v) => {
@@ -2169,7 +2188,7 @@ const EEditProject = ({ project, onBack, backLabel, onSave, onDelete, dots, inSe
         />
       ) : null}
       <form className="devE-form" onSubmit={submit} noValidate>
-        <ErrorBanner error={banner} />
+        <EErrorBanner error={banner} />
         <EProjectFields fields={form.fields} set={form.set} errors={form.errors} check={form.check} />
         <EPrimary data-agent-action="save-project">
           {inSetup ? tE('Save and continue', 'שמירה והמשך') : tE('Save project', 'שמירת הפרויקט')}
@@ -2770,7 +2789,7 @@ const EShareProject = ({ project, profile, picker, dots, onBack, onSubmit }) => 
       lead={<EShareLead />}
     >
       <form className="devE-form devE-shareForm" onSubmit={submit} noValidate>
-        <ErrorBanner error={banner} />
+        <EErrorBanner error={banner} />
 
         {/* 1. About you first: already filled in from the profile, so it's a summary to check, not questions. */}
         <section className="devE-shareSection" aria-labelledby="devEShareYou">
