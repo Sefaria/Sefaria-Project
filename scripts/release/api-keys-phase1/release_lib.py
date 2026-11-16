@@ -233,14 +233,29 @@ ENV_COMPONENTS = (
 )
 
 
+def auth_service_deployed(text):
+    """Whether the env file has an authService section at all. The env files deployed before the phase 1 promotion
+    (prod, preprod and master until then) have none: that means the service is not deployed, not that the file is
+    unreadable. A missing or non-mapping spec.values still raises EnvFileError, and so does anything wrong inside a
+    section that is there (the callers read it strictly)."""
+    values = env_value_any(text, "spec.values")
+    if not isinstance(values, dict):
+        raise EnvFileError(f"spec.values is {values!r} ({type(values).__name__}), expected a mapping")
+    return "authService" in values
+
+
 def env_images(_args):
     """component<TAB>repository<TAB>tag for web, nodejs, nginx and authService of an env file (stdin). A key that is
     missing or not a string exits 2 with nothing printed; an empty string is printed as an empty field (the caller
-    decides which components may have one)."""
+    decides which components may have one). authService is left out when the env file has no authService section
+    (not deployed yet); its keys are required once the section is there."""
     text = sys.stdin.read()
     lines = []
     try:
+        deployed = auth_service_deployed(text)
         for component, repo_path, tag_path in ENV_COMPONENTS:
+            if component == "authService" and not deployed:
+                continue
             lines.append(
                 f"{component}\t{env_value(text, repo_path, 'str-or-empty')}\t{env_value(text, tag_path, 'str-or-empty')}"
             )
@@ -251,9 +266,11 @@ def env_images(_args):
 
 
 def auth_service_enabled(_args):
-    """`true` or `false`: authService.enabled of an env file (stdin), a YAML boolean; exit 2 when it cannot be read."""
+    """`true` or `false`: authService.enabled of an env file (stdin), a YAML boolean; `false` when the env file has no
+    authService section (not deployed yet); exit 2 when it cannot be read or the section is there but malformed."""
+    text = sys.stdin.read()
     try:
-        value = env_value(sys.stdin.read(), "spec.values.authService.enabled", "bool")
+        value = auth_service_deployed(text) and env_value(text, "spec.values.authService.enabled", "bool")
     except EnvFileError as exc:
         return _env_fail(exc)
     print("true" if value else "false")

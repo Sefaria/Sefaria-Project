@@ -65,16 +65,41 @@ const formatDate = (iso) => {
   }
 };
 
-/* Writes to the clipboard and reports 'copied', or 'manual' where the browser refuses and the person must copy by hand. */
+/* Writes the text (a string, or a promise of one, such as a key still being fetched) to the clipboard and reports
+   'copied', or 'manual' where the browser refuses and the person must copy by hand. Call it inside the click: where
+   ClipboardItem exists the write starts at once with the text to follow, because Safari refuses a clipboard write
+   that starts after a network round trip (the click no longer counts). A refused ClipboardItem write is retried with
+   writeText once the text is there; nothing is reported when the text itself fails (the caller shows that error). */
 const copyToClipboard = (text, onDone) => {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(
-      () => onDone('copied'),
-      () => onDone('manual')
+  const pending = Promise.resolve(text);
+  const clipboard = navigator.clipboard;
+  const writeText = () =>
+    pending.then(
+      (value) =>
+        clipboard && clipboard.writeText
+          ? clipboard.writeText(value).then(
+              () => onDone('copied'),
+              () => onDone('manual')
+            )
+          : onDone('manual'),
+      () => {}
     );
-    return;
+  if (clipboard && clipboard.write && typeof window.ClipboardItem === 'function') {
+    let item = null;
+    const blob = pending.then((value) => new Blob([value], { type: 'text/plain' }));
+    /* Handled here too, so a constructor that throws leaves no unhandled rejection behind when the fetch fails. */
+    blob.catch(() => {});
+    try {
+      item = new window.ClipboardItem({ 'text/plain': blob });
+    } catch (e) {
+      item = null;
+    }
+    if (item) {
+      clipboard.write([item]).then(() => onDone('copied'), writeText);
+      return;
+    }
   }
-  onDone('manual');
+  writeText();
 };
 
 /* The name and email the account itself carries, which the developer profile shows locked. */
@@ -1915,29 +1940,33 @@ const KeyValue = ({ keyId, prefix, initialValue, nameId, describedBy, onForget }
     copyTimer.current = setTimeout(() => setCopied(''), KEY_COPIED_MS);
   };
 
+  /* The clipboard write starts in the click itself, with the key to follow (see copyToClipboard). When the key
+     cannot be fetched, fetchValue has already shown why, and no copy result is reported. */
   const copy = () => {
-    fetchValue().then(
-      (fetched) =>
-        copyToClipboard(fetched, (result) => {
-          if (!mounted.current) {
-            return;
-          }
-          if (result === 'copied') {
-            drop();
-            announce('copied');
-          } else {
-            /* Nothing was written: leave the key showing, to select and copy by hand. */
-            setShown(true);
-            setError(
-              Sefaria._v({
-                en: "Couldn't copy. Select the key and copy it.",
-                he: 'ההעתקה נכשלה. סמנו את המפתח והעתיקו אותו.',
-              })
-            );
-          }
-        }),
-      () => {}
-    );
+    let fetchFailed = false;
+    const fetched = fetchValue().catch((err) => {
+      fetchFailed = true;
+      throw err;
+    });
+    fetched.catch(() => {});
+    copyToClipboard(fetched, (result) => {
+      if (!mounted.current || fetchFailed) {
+        return;
+      }
+      if (result === 'copied') {
+        drop();
+        announce('copied');
+      } else {
+        /* Nothing was written: leave the key showing, to select and copy by hand. */
+        setShown(true);
+        setError(
+          Sefaria._v({
+            en: "Couldn't copy. Select the key and copy it.",
+            he: 'ההעתקה נכשלה. סמנו את המפתח והעתיקו אותו.',
+          })
+        );
+      }
+    });
   };
 
   const names = [nameId, describedBy].filter(Boolean).join(' ') || undefined;

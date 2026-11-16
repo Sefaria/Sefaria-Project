@@ -276,6 +276,104 @@ describe('Copy', () => {
   });
 });
 
+describe('Copy where the browser has ClipboardItem (Safari)', () => {
+  let write;
+  let written;
+  const RealBlob = global.Blob;
+
+  beforeEach(() => {
+    written = null;
+    /* jsdom's FileReader runs on the (fake) timers, so the Blob records its parts instead of being read back. */
+    global.Blob = function Blob(parts, options) {
+      this.parts = parts;
+      this.type = options && options.type;
+    };
+    window.ClipboardItem = class {
+      constructor(items) {
+        this.items = items;
+      }
+    };
+    write = jest.fn(async ([item]) => {
+      const blob = await item.items['text/plain'];
+      expect(blob.type).toBe('text/plain');
+      written = blob.parts.join('');
+    });
+    Object.defineProperty(navigator, 'clipboard', { value: { write, writeText }, configurable: true });
+  });
+
+  afterEach(() => {
+    delete window.ClipboardItem;
+    global.Blob = RealBlob;
+  });
+
+  it('starts the clipboard write inside the click, before the key arrives, and writes the key once it does', async () => {
+    let arrive;
+    global.fetch = jest.fn((url, options) => {
+      requests.push({ url, method: options.method });
+      return new Promise((resolve) => {
+        arrive = () => resolve({ ok: true, status: 200, json: () => Promise.resolve({ value: VALUE }) });
+      });
+    });
+
+    act(() => {
+      button('Copy').click();
+    });
+
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(revealedRequests()).toHaveLength(1);
+    expect(written).toBeNull();
+
+    await act(async () => {
+      arrive();
+      await flush();
+      await flush();
+    });
+
+    expect(written).toBe(VALUE);
+    expect(writeText).not.toHaveBeenCalled();
+    expect(liveRegion().textContent).toBe('Copied');
+    expect(keyText()).toBe(PREFIX + '••••••••••••');
+  });
+
+  it('falls back to writeText when the browser refuses the ClipboardItem write', async () => {
+    write.mockImplementation(() => Promise.reject(new Error('NotAllowedError')));
+
+    await click(button('Copy'));
+
+    expect(writeText).toHaveBeenCalledWith(VALUE);
+    expect(liveRegion().textContent).toBe('Copied');
+  });
+
+  it('shows the key to copy by hand when both writes are refused', async () => {
+    write.mockImplementation(() => Promise.reject(new Error('NotAllowedError')));
+    writeText.mockImplementation(() => Promise.reject(new Error('denied')));
+
+    await click(button('Copy'));
+
+    expect(liveRegion().textContent).toBe('');
+    expect(keyText()).toBe(VALUE);
+    expect(container.querySelector('.devPocKeyError').textContent).toContain("Couldn't copy");
+  });
+
+  it('shows only the reveal error when the key cannot be fetched', async () => {
+    global.fetch = jest.fn((url, options) => {
+      requests.push({ url, method: options.method });
+      return Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({}) });
+    });
+
+    await click(button('Copy'));
+    await act(async () => {
+      await flush();
+    });
+
+    expect(writeText).not.toHaveBeenCalled();
+    expect(liveRegion().textContent).toBe('');
+    const error = container.querySelector('.devPocKeyError').textContent;
+    expect(error).not.toContain("Couldn't copy");
+    expect(keyText()).toBe(PREFIX + '••••••••••••');
+  });
+});
+
 describe('nothing is stored', () => {
   it('writes the value to no storage and keeps it out of the history state, through reveal, copy and expiry', async () => {
     const setItem = jest.spyOn(Storage.prototype, 'setItem');
