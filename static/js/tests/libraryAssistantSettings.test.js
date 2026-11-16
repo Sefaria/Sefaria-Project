@@ -5,7 +5,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act, Simulate } from 'react-dom/test-utils';
-import LibraryAssistantSettings, { isPreviewBase } from '../LibraryAssistantSettings';
+import LibraryAssistantSettings, { isPreviewBase, LOAD_TIMEOUT_MS } from '../LibraryAssistantSettings';
 
 const BASE = 'https://la.example/api';
 const state = (over = {}) => ({
@@ -84,8 +84,9 @@ describe('LibraryAssistantSettings', () => {
   it('shows the empty Profile text and "Never" for Instructions', async () => {
     await render();
     expect(q('#personalization').textContent).toContain(
-      'LA will remember things about you as you move forward in your Sefaria career'
+      'LA will remember things about you as you move forward in your Sefaria career.'
     );
+    expect(q('#profile .laProfileHeading')).toBeNull();
     expect(q('#personalization').textContent).toContain('Last updated: Never');
   });
 
@@ -319,6 +320,75 @@ describe('LibraryAssistantSettings', () => {
       expect(q('.laError')).toBeNull();
     }
   );
+
+  it.each([
+    [
+      { status: 'no_change', reason: 'no_new_prompts' },
+      'No change to the Profile. No new questions since the last update. Instructions never change the Profile. (no_change: no_new_prompts)',
+    ],
+    [{ status: 'applied', reason: null }, 'Profile updated. (applied)'],
+    [{ status: 'something_new', reason: 'odd_code' }, 'something_new: odd_code'],
+  ])('says the Run now result %j in plain words, with its codes', async (run, text) => {
+    global.fetch.mockImplementation((url, init) => {
+      const { action } = JSON.parse(init.body);
+      return reply(action === 'run_now' ? { ...state({ labEnabled: true }), run } : state({ labEnabled: true }));
+    });
+    await render();
+    await act(async () => Simulate.click(byText('button', 'Run now')));
+    await flush();
+    expect(q('.laRunResult').textContent).toBe(text);
+  });
+
+  it('a first read that never answers ends in the error with Try again, not an endless Loading', async () => {
+    jest.useFakeTimers();
+    try {
+      global.fetch.mockImplementation(
+        (url, init) =>
+          new Promise((resolve, reject) => init.signal.addEventListener('abort', () => reject(new Error('aborted'))))
+      );
+      container = document.createElement('div');
+      document.body.appendChild(container);
+      await act(async () => {
+        ReactDOM.render(<LibraryAssistantSettings chatbot_user_token="tok" chatbot_api_base_url={BASE} />, container);
+      });
+      expect(q('#personalization').textContent).toContain('Loading…');
+      await act(async () => {
+        jest.advanceTimersByTime(LOAD_TIMEOUT_MS - 1);
+      });
+      expect(q('#personalization').textContent).toContain('Loading…');
+      await act(async () => {
+        jest.advanceTimersByTime(1);
+        await Promise.resolve();
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+    await flush();
+    expect(q('#personalization').textContent).toContain('Could not reach the Library Assistant. Try again.');
+    expect(q('#personalization').textContent).not.toContain('Loading…');
+
+    global.fetch.mockImplementation(() => reply(state()));
+    await act(async () => Simulate.click(byText('button', 'Try again')));
+    await flush();
+    expect(q('#profile')).not.toBeNull();
+    expect(q('.laError')).toBeNull();
+  });
+
+  it('only the first read has a time limit', async () => {
+    global.fetch.mockImplementation((url, init) => {
+      const { action } = JSON.parse(init.body);
+      return reply(
+        action === 'run_now'
+          ? { ...state({ labEnabled: true }), run: { status: 'applied' } }
+          : state({ labEnabled: true })
+      );
+    });
+    await render();
+    await act(async () => Simulate.click(byText('button', 'Run now')));
+    await flush();
+    expect(global.fetch.mock.calls[0][1].signal).toBeDefined();
+    expect(global.fetch.mock.calls[1][1].signal).toBeUndefined();
+  });
 
   it('shows the network-failure message', async () => {
     global.fetch.mockImplementation(() => Promise.reject(new Error('down')));

@@ -30,26 +30,34 @@ export const chatbotApiBaseUrl = ({ chatbot_version, chatbot_api_base_url } = {}
 // One call to the personalization settings endpoint. The signed user token goes in the JSON body
 // as `userId`, exactly as the widget sends it; no custom header (the server's CORS list refuses one).
 // Resolves to the parsed JSON; rejects with {status, body} on an error status, or {status: 0} when
-// the server cannot be reached.
-export const laSettings = async (base, token, action, body = {}) => {
-  let response;
+// the server cannot be reached or does not answer within `timeoutMs` (when given).
+export const laSettings = async (base, token, action, body = {}, { timeoutMs } = {}) => {
+  const controller = timeoutMs && typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
   try {
-    response = await fetch(`${base}/v2/personalization/settings`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: token, action, ...body }),
-    });
-  } catch (e) {
-    throw { status: 0, body: null };
+    let response;
+    try {
+      response = await fetch(`${base}/v2/personalization/settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: token, action, ...body }),
+        ...(controller ? { signal: controller.signal } : {}),
+      });
+    } catch (e) {
+      throw { status: 0, body: null };
+    }
+    let data = null;
+    try {
+      data = await response.json();
+    } catch (e) {
+      if (controller && controller.signal.aborted) throw { status: 0, body: null };
+      data = null;
+    }
+    if (!response.ok) {
+      throw { status: response.status, body: data };
+    }
+    return data;
+  } finally {
+    if (timer) clearTimeout(timer);
   }
-  let data = null;
-  try {
-    data = await response.json();
-  } catch (e) {
-    data = null;
-  }
-  if (!response.ok) {
-    throw { status: response.status, body: data };
-  }
-  return data;
 };

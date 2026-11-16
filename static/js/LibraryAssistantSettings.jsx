@@ -19,7 +19,7 @@ const STRINGS = {
   instructionsPlaceholder: 'Tell LA the way you like to work',
   saveInstructions: 'Save instructions',
   profile: 'Profile',
-  profileEmpty: 'LA will remember things about you as you move forward in your Sefaria career',
+  profileEmpty: 'LA will remember things about you as you move forward in your Sefaria career.',
   clear: 'Clear profile',
   clearConfirm: 'Clear your Profile? This cannot be undone.',
   clearYes: 'Yes, clear',
@@ -45,6 +45,7 @@ const STRINGS = {
   quota: 'Too many changes. Try again in a while.',
   jobQuota: 'Hourly limit reached. Try again later.',
   unreachable: 'Could not reach the Library Assistant. Try again.',
+  tryAgain: 'Try again',
   settingFailed: 'Could not save the setting. Try again.',
   personalization: 'Personalization',
   settingDescription: 'Turn the assistant on or off for your account.',
@@ -64,6 +65,35 @@ export const isPreviewBase = (base) => {
 
 const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const MAX_RUNS = 10;
+// The first read gives up after this long, so a server that never answers ends in an error with
+// Try again, not an endless "Loading…".
+export const LOAD_TIMEOUT_MS = 15000;
+
+// A Run now / Dream now result in plain words, then the codes testers can quote.
+const RUN_STATUS = {
+  applied: 'Profile updated.',
+  no_change: 'No change to the Profile.',
+  rejected: 'The new Profile failed a check and was not saved.',
+  failed: 'The run failed.',
+  busy: 'An update is already running. Try again in a moment.',
+};
+const RUN_REASON = {
+  no_new_prompts: 'No new questions since the last update. Instructions never change the Profile.',
+  not_relevant: 'The new questions said nothing about how you learn or what interests you.',
+  sensitive_only: 'The new questions held only sensitive details, which are never stored.',
+  nothing_to_write: 'Nothing new to add.',
+  all_screened: 'Every new question was screened out.',
+  dream_unchanged: 'The review found nothing to change.',
+  parked: 'Paused after repeated failures until you ask a new question.',
+  profile_off: 'The Profile is off.',
+  revision_moved: 'The Profile changed while the run was working.',
+  batch_skipped: 'These questions failed three times and were skipped.',
+};
+export const describeRun = ({ status, reason }) => {
+  const words = [RUN_STATUS[status], reason && RUN_REASON[reason]].filter(Boolean).join(' ');
+  const codes = `${status}${reason ? `: ${reason}` : ''}`;
+  return words ? `${words} (${codes})` : codes;
+};
 
 const errorMessage = (e, preview) => {
   if (e && e.status === 404) return preview ? STRINGS.notAvailable : STRINGS.notAvailableNoPreview;
@@ -312,7 +342,7 @@ const Personalization = ({ base, token }) => {
       setError(null);
       setBusy(true);
       try {
-        const res = await laSettings(base, token, action, body);
+        const res = await laSettings(base, token, action, body, action === 'get' ? { timeoutMs: LOAD_TIMEOUT_MS } : {});
         if (!accept(res)) throw new Error('unexpected response');
         return res;
       } catch (e) {
@@ -332,6 +362,7 @@ const Personalization = ({ base, token }) => {
     if (mounted.current && isState(res)) setData(res);
   };
 
+  const [loadAttempt, setLoadAttempt] = useState(0);
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -343,7 +374,7 @@ const Personalization = ({ base, token }) => {
     return () => {
       cancelled = true;
     };
-  }, [call]);
+  }, [call, loadAttempt]);
 
   const act = async (action, body, accept, onQuota) => {
     const res = await call(action, body, accept, onQuota);
@@ -372,8 +403,7 @@ const Personalization = ({ base, token }) => {
   const runNow = async (kind) => {
     setRunResult(null);
     const res = await act('run_now', { kind }, undefined, () => setRunResult(STRINGS.jobQuota));
-    if (mounted.current && res && res.run)
-      setRunResult(`${res.run.status}${res.run.reason ? `: ${res.run.reason}` : ''}`);
+    if (mounted.current && res && res.run) setRunResult(describeRun(res.run));
   };
   const checkHealth = async () => {
     const res = await call('health', undefined, (r) => !!r);
@@ -384,9 +414,21 @@ const Personalization = ({ base, token }) => {
     return (
       <>
         {error ? (
-          <p className="laMessage laError" role="alert">
-            {error}
-          </p>
+          <div className="laCard">
+            <p className="laMessage laError" role="alert">
+              {error}
+            </p>
+            <div className="laActions">
+              <button
+                type="button"
+                className="button small"
+                disabled={busy}
+                onClick={() => setLoadAttempt((n) => n + 1)}
+              >
+                {STRINGS.tryAgain}
+              </button>
+            </div>
+          </div>
         ) : (
           <p className="laMuted">{STRINGS.loading}</p>
         )}
