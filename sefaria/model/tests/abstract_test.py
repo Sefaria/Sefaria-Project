@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import contextlib
+from unittest.mock import patch
 
 import pytest
 
@@ -436,3 +437,37 @@ class TestPolymorphicSetsStillTypeTheirRecords(object):
         entries = LexiconEntrySet({"headword": zz_lexicon_entry}).array()
         assert len(entries) == 1
         assert type(entries[0]) is JastrowDictionaryEntry
+
+
+class Test_Load_By_Id_Validation(object):
+    """ load_by_id accepts only a string or ObjectId id; anything else is rejected before any query runs. """
+
+    VALID_HEX = "0123456789abcdef01234567"
+
+    @pytest.mark.parametrize("bad_id", [
+        {"$ne": None},          # operator dict used as an id
+        ["0123456789abcdef01234567"],
+        12345,
+        b"0123456789abcdef01234567",
+    ])
+    def test_rejects_non_string_non_objectid(self, bad_id):
+        with patch.object(abstract, "db") as fake_db:
+            with pytest.raises(InputError):
+                model.Note().load_by_id(bad_id)
+            getattr(fake_db, model.Note.collection).find_one.assert_not_called()
+
+    @pytest.mark.parametrize("bad_id", ["", "not-a-valid-id", "0123456789abcdef0123456"])
+    def test_rejects_malformed_hex_string(self, bad_id):
+        with patch.object(abstract, "db") as fake_db:
+            with pytest.raises(InputError):
+                model.Note().load_by_id(bad_id)
+            getattr(fake_db, model.Note.collection).find_one.assert_not_called()
+
+    def test_accepts_valid_string_and_objectid(self):
+        from bson.objectid import ObjectId
+        expected = ObjectId(self.VALID_HEX)
+        for given in (self.VALID_HEX, expected):
+            with patch.object(abstract, "db") as fake_db:
+                getattr(fake_db, model.Note.collection).find_one.return_value = None
+                assert model.Note().load_by_id(given) is None
+                getattr(fake_db, model.Note.collection).find_one.assert_called_once_with({"_id": expected}, None)

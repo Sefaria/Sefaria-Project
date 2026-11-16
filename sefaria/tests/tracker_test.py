@@ -10,7 +10,9 @@ migration, both only reachable via a real (non-en/he) language save:
    non-en/he version's title (e.g. "Foo" -> "Foo [de]") left both rows pointing at a version
    title that was never actually saved.
 """
+import pytest
 from unittest.mock import patch
+from sefaria.system.exceptions import InputError
 
 from sefaria.model import Index, IndexSet, Ref, Version, VersionSet
 import sefaria.tracker as tracker
@@ -75,3 +77,13 @@ def test_modify_text_real_language_history_and_index_queue_use_legacy_bucket_and
         idx.delete()
         db.history.delete_many({"ref": {"$regex": "^" + title}})
         db.index_queue.delete_many({"ref": {"$regex": "^" + title}})
+
+
+def test_update_of_missing_record_raises_input_error_without_logging():
+    import sefaria.model as model
+    missing_id = "0123456789abcdef01234567"
+    with patch.object(model.Note, "load_by_id", return_value=None), \
+            patch.object(tracker.model, "log_update") as fake_log_update:
+        with pytest.raises(InputError, match="Note record not found for update"):
+            tracker.update(1, model.Note, {"_id": missing_id, "text": "x"})
+    fake_log_update.assert_not_called()
