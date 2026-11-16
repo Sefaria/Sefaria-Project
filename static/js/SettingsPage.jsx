@@ -86,10 +86,11 @@ const copyToClipboard = (text, onDone) => {
     );
   if (clipboard && clipboard.write && typeof window.ClipboardItem === 'function') {
     let item = null;
+    const blob = pending.then((value) => new Blob([value], { type: 'text/plain' }));
+    /* Handled here too, so a constructor that throws leaves no unhandled rejection behind when the fetch fails. */
+    blob.catch(() => {});
     try {
-      item = new window.ClipboardItem({
-        'text/plain': pending.then((value) => new Blob([value], { type: 'text/plain' })),
-      });
+      item = new window.ClipboardItem({ 'text/plain': blob });
     } catch (e) {
       item = null;
     }
