@@ -27,7 +27,14 @@ const createSharedCache = function({ getAsync, cacheKeyMapping, logger }) {
     "virtualBooks": null,
   };
 
+  // Every refresh takes a generation number when it starts. Refreshes can finish in any order, so a
+  // refresh commits only if no refresh that started after it has already committed. The payload
+  // timestamp below is a second check, but it cannot order refreshes that carry none.
+  let nextGeneration = 0;
+  let committedGeneration = 0;
+
   const loadSharedData = async function({ last_cached_to_compare = null, startup = false } = {}){
+    const generation = ++nextGeneration;
     logger.debug("Load Shared Data - Input last cached timestamp to compare: " + last_cached_to_compare);
     //TODO: If the data wasnt placed in Redis by django to begin with, well, we're screwed.
     // Or you know, fix it so Node does send a signal to Django to populate cache.
@@ -50,14 +57,19 @@ const createSharedCache = function({ getAsync, cacheKeyMapping, logger }) {
       logger.error(`Shared cache load failed: ${e.message}`);
       throw e;
     }
-    // Refreshes can overlap. A load for an older timestamp that finishes after a newer one has
-    // been committed must not put its older data back, so it commits nothing.
+    // Refreshes can overlap. A load that started before one already committed must not put its
+    // older data back, whatever timestamp it carries (or lacks), so it commits nothing.
+    if(generation < committedGeneration){
+      logger.debug(`Load Shared Data - Discarding superseded refresh #${generation}; #${committedGeneration} is committed`);
+      return;
+    }
     const incoming = normalizeTimestamp(last_cached_to_compare);
     const committed = normalizeTimestamp(sharedCacheData["last_cached"]);
     if(incoming !== null && committed !== null && incoming < committed){
       logger.debug(`Load Shared Data - Discarding stale refresh for ${incoming}; cache is at ${committed}`);
       return;
     }
+    committedGeneration = generation;
     for (const [key, parsed] of fetched) {
       sharedCacheData[key] = parsed;
     }

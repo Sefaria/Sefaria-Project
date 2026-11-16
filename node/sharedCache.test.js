@@ -78,6 +78,54 @@ describe('overlapping refreshes', () => {
   });
 });
 
+describe('refresh generations', () => {
+  // Two overlapping loads; the second-started one finishes first, then the first-started one.
+  const overlap = async (firstTimestamp, secondTimestamp, firstStartup = false) => {
+    const resolvers = {};
+    const getAsync = jest.fn(key => new Promise(resolve => {
+      (resolvers[key] = resolvers[key] || []).push(resolve);
+    }));
+    const logger = { debug: jest.fn(), error: jest.fn() };
+    const cache = createSharedCache({ getAsync, cacheKeyMapping, logger });
+    const first = cache.loadSharedData({ last_cached_to_compare: firstTimestamp, startup: firstStartup });
+    const second = cache.loadSharedData({ last_cached_to_compare: secondTimestamp, startup: true });
+    for (const key of Object.values(cacheKeyMapping)) {
+      resolvers[key][1](JSON.stringify({ from: 'second' }));
+    }
+    await second;
+    for (const key of Object.values(cacheKeyMapping)) {
+      resolvers[key][0](JSON.stringify({ from: 'first' }));
+    }
+    await first;
+    return cache;
+  };
+
+  test('out-of-order completion keeps the later-started refresh', async () => {
+    const cache = await overlap(100, 200, true);
+    expect(cache.data.toc).toEqual({ from: 'second' });
+    expect(cache.data.last_cached).toBe(200);
+  });
+
+  test('a missing timestamp is still ordered by start', async () => {
+    const cache = await overlap(undefined, undefined, true);
+    expect(cache.data.toc).toEqual({ from: 'second' });
+    expect(cache.data.terms).toEqual({ from: 'second' });
+  });
+
+  test('an invalid timestamp is still ordered by start', async () => {
+    const cache = await overlap('not-a-timestamp', 'also-bad', true);
+    expect(cache.data.toc).toEqual({ from: 'second' });
+    expect(cache.data.last_cached).toBeNull();
+  });
+
+  test('refreshes completing in start order both commit', async () => {
+    const cache = makeCache(fullRedis());
+    await cache.loadSharedData({ last_cached_to_compare: 100 });
+    await cache.loadSharedData({ last_cached_to_compare: 200 });
+    expect(cache.data.last_cached).toBe(200);
+  });
+});
+
 describe('staleness comparison', () => {
   test('a newer timestamp refreshes every key and stores it as a number', async () => {
     const cache = makeCache(fullRedis());
