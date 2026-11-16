@@ -5,7 +5,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act, Simulate } from 'react-dom/test-utils';
-import LibraryAssistantSettings from '../LibraryAssistantSettings';
+import LibraryAssistantSettings, { isPreviewBase } from '../LibraryAssistantSettings';
 
 const BASE = 'https://la.example/api';
 const state = (over = {}) => ({
@@ -188,7 +188,7 @@ describe('LibraryAssistantSettings', () => {
   });
 
   it('shows date and time on Last updated for Profile and Instructions', async () => {
-    const at = '2026-11-16T09:02:00Z';
+    const at = '2026-11-16T12:00:00Z';
     global.fetch.mockImplementation(() =>
       reply(
         state({
@@ -198,10 +198,30 @@ describe('LibraryAssistantSettings', () => {
       )
     );
     await render();
-    const re = /Last updated: Nov 16, 2026, \d{1,2}:\d{2}[\s\u202f]?[AP]M by (You|LA)/;
+    const time = '\\d{1,2}:\\d{2}[\\s\\u202f]?[AP]M';
+    const row = (who) => new RegExp(`^Last updated: Nov 16, 2026, ${time} by ${who}$`);
     const texts = [...container.querySelectorAll('.laUpdated')].map((e) => e.textContent);
     expect(texts).toHaveLength(2);
-    texts.forEach((t) => expect(t).toMatch(re));
+    const profile = texts.find((t) => / by LA$/.test(t));
+    const instructions = texts.find((t) => / by You$/.test(t));
+    expect(profile).toMatch(row('LA'));
+    expect(instructions).toMatch(row('You'));
+  });
+
+  describe('isPreviewBase', () => {
+    it.each([
+      ['https://9298.ai-server.coolifydev.sefaria.org/api', true],
+      ['https://9298.ai-server.coolifydev.sefaria.org', true],
+      ['https://9298.ai-server.coolifydev.sefaria.org/', true],
+      ['https://9298.AI-Server.coolifydev.sefaria.org/api/', true],
+      ['https://chat.example.org/api', false],
+      ['https://x.ai-server.coolifydev.sefaria.org/api', false],
+      ['not a url', false],
+      ['', false],
+      [null, false],
+    ])('%s -> %s', (base, expected) => {
+      expect(isPreviewBase(base)).toBe(expected);
+    });
   });
 
   describe('testing tools job info', () => {
@@ -226,6 +246,39 @@ describe('LibraryAssistantSettings', () => {
       expect(t).toContain('skipped');
       expect(t).toContain('locked');
       expect(container.querySelectorAll('.laRunsRow')).toHaveLength(2);
+    });
+    it('does not render job state for an array or missing fields', async () => {
+      lab({ jobState: [1, 2] });
+      await render();
+      expect(q('.laJobState')).toBeNull();
+      ReactDOM.unmountComponentAtNode(container);
+      container.remove();
+      lab({ jobState: { lockHeld: true } });
+      await render();
+      expect(q('.laJobState')).toBeNull();
+    });
+    it('skips non-object runs without throwing', async () => {
+      lab({
+        recentRuns: [
+          null,
+          'junk',
+          7,
+          { startedAt: '2026-11-16T09:02:00Z', trigger: 'cron', window: 'dream', status: 'ok', reason: '' },
+        ],
+      });
+      await render();
+      expect(container.querySelectorAll('.laRunsRow')).toHaveLength(1);
+    });
+    it('caps recent runs at 10 rows', async () => {
+      const run = (i) => ({
+        startedAt: `2026-11-16T09:${String(i).padStart(2, '0')}:00Z`,
+        trigger: 'cron',
+        window: 'w',
+        status: 'ok',
+      });
+      lab({ recentRuns: Array.from({ length: 12 }, (_, i) => run(i)) });
+      await render();
+      expect(container.querySelectorAll('.laRunsRow')).toHaveLength(10);
     });
     it('shows neither when absent', async () => {
       lab({});

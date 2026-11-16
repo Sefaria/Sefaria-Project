@@ -54,7 +54,16 @@ const STRINGS = {
 };
 
 // A page with no preview server is one whose API base is not a `*.ai-server.coolifydev.sefaria.org` preview.
-const isPreviewBase = (base) => /^https:\/\/\d+\.ai-server\.coolifydev\.sefaria\.org\//.test(base || '');
+export const isPreviewBase = (base) => {
+  try {
+    return /^\d+\.ai-server\.coolifydev\.sefaria\.org$/.test(new URL(base).hostname.toLowerCase());
+  } catch (e) {
+    return false;
+  }
+};
+
+const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const MAX_RUNS = 10;
 
 const errorMessage = (e, preview) => {
   if (e && e.status === 404) return preview ? STRINGS.notAvailable : STRINGS.notAvailableNoPreview;
@@ -530,21 +539,32 @@ const Personalization = ({ base, token }) => {
               {STRINGS.checkHealth}
             </button>
           </div>
-          {testing.jobState && typeof testing.jobState === 'object' && (
-            <div className="laJobState">
-              <div>{`${STRINGS.jobsHour}: ${testing.jobState.hourUsed} of ${testing.jobState.hourLimit}`}</div>
-              <div>{`${STRINGS.jobRunning}: ${testing.jobState.lockHeld ? 'yes' : 'no'}`}</div>
-              <div>{`${STRINGS.jobParked}: ${testing.jobState.parked ? 'yes' : 'no'}`}</div>
-            </div>
-          )}
-          {Array.isArray(testing.recentRuns) && testing.recentRuns.length > 0 && (
+          {isPlainObject(testing.jobState) &&
+            typeof testing.jobState.hourUsed === 'number' &&
+            typeof testing.jobState.hourLimit === 'number' && (
+              <div className="laJobState">
+                <div>{`${STRINGS.jobsHour}: ${testing.jobState.hourUsed} of ${testing.jobState.hourLimit}`}</div>
+                {typeof testing.jobState.lockHeld === 'boolean' && (
+                  <div>{`${STRINGS.jobRunning}: ${testing.jobState.lockHeld ? 'yes' : 'no'}`}</div>
+                )}
+                {typeof testing.jobState.parked === 'boolean' && (
+                  <div>{`${STRINGS.jobParked}: ${testing.jobState.parked ? 'yes' : 'no'}`}</div>
+                )}
+              </div>
+            )}
+          {Array.isArray(testing.recentRuns) && testing.recentRuns.some(isPlainObject) && (
             <div className="laRuns">
               <strong>{STRINGS.recentRuns}</strong>
-              {testing.recentRuns.map((run, i) => (
-                <div className="laRunsRow" key={`${run.startedAt}-${i}`}>
-                  {`${formatTime(run.startedAt)} · ${run.trigger} · ${run.window} · ${run.status}${run.reason ? `: ${run.reason}` : ''}`}
-                </div>
-              ))}
+              {testing.recentRuns
+                .filter(isPlainObject)
+                .slice(0, MAX_RUNS)
+                .map((run, i) => (
+                  <div className="laRunsRow" key={`${String(run.startedAt)}-${i}`}>
+                    {`${formatTime(run.startedAt)} · ${String(run.trigger)} · ${String(run.window)} · ${String(run.status)}${
+                      run.reason ? `: ${String(run.reason)}` : ''
+                    }`}
+                  </div>
+                ))}
             </div>
           )}
           {health && (
