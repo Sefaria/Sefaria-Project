@@ -1,7 +1,25 @@
 import os
 
+from django.core.exceptions import ImproperlyConfigured
+
 SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
-ALLOWED_HOSTS = ['*']
+
+
+def resolve_allowed_hosts(debug):
+    """
+    ALLOWED_HOSTS from the comma-separated ALLOWED_HOSTS env var, e.g. "www.sefaria.org,.sefaria.org.il"
+    (a leading dot matches subdomains). With no hosts listed, startup fails unless both Django's effective
+    DEBUG (`debug`, passed in by settings.py) is on and the explicit ALLOWED_HOSTS_ALLOW_ALL opt-in is set.
+    DEBUG alone is not enough: an image without local_settings.py inherits DEBUG = True from the example file.
+    """
+    hosts = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "").split(",") if host.strip()]
+    if hosts:
+        return hosts
+    if debug and os.getenv("ALLOWED_HOSTS_ALLOW_ALL", "").strip().lower() in ("1", "true", "yes"):
+        return ['*']
+    raise ImproperlyConfigured("ALLOWED_HOSTS env var must list the served hostnames")
+
+
 CSRF_TRUSTED_ORIGINS = ['https://*.sefaria.org']
 
 MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
