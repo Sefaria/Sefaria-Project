@@ -5,7 +5,7 @@ import Modal from '../common/modal';
 import ReactTags from 'react-tag-autocomplete';
 import Button from '../common/Button';
 
-const PublishModal = ({ close, status, sheetID, postSheet }) => {
+const PublishModal = ({ close, status, sheetID, publishSheet }) => {
   // `status` is 'public' or 'unlisted'.  we are going to toggle the status.  if it's 'public' we want to unlist it
   // so this modal simply posts the new status.  If it's 'unlisted', we want to give the user the PublishMenu component
   // allowing them to specify title, summary, and tags and from there the user can choose to make the sheet public
@@ -29,10 +29,10 @@ const PublishModal = ({ close, status, sheetID, postSheet }) => {
   };
   const togglePublishStatus = async () => {
     sheet.status = status === 'public' ? 'unlisted' : 'public';
-    sheet.lastModified = sheet.dateModified;
+    // The editor sets lastModified when the request is sent, after any save already in flight.
     delete sheet._id;
     try {
-      await postSheet(JSON.stringify(sheet));
+      await publishSheet(sheet);
       setPostingText(postingState.posted);
     } catch (error) {
       setPostingText(`Error: ${error.message}`);

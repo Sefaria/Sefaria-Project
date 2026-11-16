@@ -35,3 +35,26 @@ export function classifySheetSaveResponse(res) {
 export function isCurrentRevision(saveRevision, currentRevision) {
   return saveRevision === currentRevision;
 }
+
+/*
+  Decides which parts of a stored save's response the editor applies to its local state.
+  - An autosave carries the editor document, so its response is applied only when no local change
+    happened since it started (`current`); otherwise the newer edits would be overwritten.
+  - A publish changes `status`, which is not part of the document the user types in, so the status is
+    applied always. Title and summary come from the editor too, so they follow the same rule as an
+    autosave.
+  `markSaved` says the editor may clear its unsaved state.
+*/
+export function planSavedResponseApplication(res, { kind, saveRevision, currentRevision }) {
+  const current = isCurrentRevision(saveRevision, currentRevision);
+  const plan = { status: undefined, title: undefined, summary: undefined, markSaved: false };
+  if (current) {
+    plan.status = res.status;
+    plan.title = res.title;
+    plan.summary = res.summary;
+    plan.markSaved = true;
+  } else if (kind === 'publish') {
+    plan.status = res.status;
+  }
+  return plan;
+}

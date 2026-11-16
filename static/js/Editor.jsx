@@ -7,7 +7,7 @@ import isHotkey from 'is-hotkey';
 import Sefaria from './sefaria/sefaria';
 import * as sheetsUtils from './sefaria/sheetsUtils';
 import { createSaveQueue } from './sefaria/sheetSaveQueue';
-import { classifySheetSaveResponse, isCurrentRevision, SAVE_RESPONSE } from './sefaria/sheetSaveResponse';
+import { classifySheetSaveResponse, planSavedResponseApplication, SAVE_RESPONSE } from './sefaria/sheetSaveResponse';
 
 import { SheetMetaDataBox, SheetTitle, InterfaceText, Autocompleter, ToolTipped } from './Misc';
 import { ProfilePic } from './ProfilePic';
@@ -2872,11 +2872,13 @@ function useSaveStateManagement({
 }
 
 const SefariaEditor = (props) => {
+  const editor = useMemo(() => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))), []);
   const editorContainer = useRef();
   const editorContentContainer = useRef();
   const editorTitleContainer = useRef();
   const [sheet, setSheet] = useState(props.data);
   const [status, setStatus] = useState(sheet?.status || 'unlisted');
+  const statusRef = useRef(status);
   const initValue = [{ type: 'sheet', children: [{ text: '' }] }];
   const renderElement = useCallback((props) => <Element {...props} />, []);
   const [value, setValue] = useState(initValue);
@@ -2892,10 +2894,20 @@ const SefariaEditor = (props) => {
   useEffect(() => {
     sendSaveRef.current = sendSave;
   });
-  const saveQueueRef = useRef(null);
-  if (!saveQueueRef.current) {
-    saveQueueRef.current = createSaveQueue((doc, revision) => sendSaveRef.current(doc, revision));
-  }
+  const [{ saveQueue, publishSheet }] = useState(() => {
+    const queue = createSaveQueue((payload, revision, kind) => sendSaveRef.current(payload, revision, kind), {
+      getRevision: () => docRevisionRef.current,
+    });
+    return {
+      saveQueue: queue,
+      // Publish or unpublish from the sheet options. It goes through the same queue as autosaves, so
+      // the two never overlap. Rejects when the server did not store it, which the publish dialog shows.
+      publishSheet: (sheetToPost) =>
+        queue
+          .requestPublish(sheetToPost)
+          .then((stored) => (stored ? undefined : Promise.reject(new Error('The sheet could not be saved.')))),
+    };
+  });
   const [blockEditing, setBlockEditing] = useState(false);
   const [lastModified, setlastModified] = useState(props.data.dateModified);
   const [canUseDOM, setCanUseDOM] = useState(false);
@@ -3109,7 +3121,7 @@ const SefariaEditor = (props) => {
       }
     });
     let sheet = {
-      status: status,
+      status: statusRef.current,
       id: doc.id,
       promptedToPublish: doc.promptedToPublish,
       lastModified: lastModified,
@@ -3131,11 +3143,16 @@ const SefariaEditor = (props) => {
   function saveDocument(doc) {
     // transition into saving state only if previous state is a valid "saved" state
     savingState === 'saved' && setSavingState(sheetsUtils.editorSaveStates.SAVING);
-    saveQueueRef.current.request(doc, docRevisionRef.current);
+    saveQueue.request(doc, docRevisionRef.current);
   }
 
   // Builds and posts one save. Resolves to true only when the server stored it.
-  async function sendSave(doc, saveRevision) {
+  async function sendSave(payload, saveRevision, kind = 'autosave') {
+    if (kind === 'publish') {
+      // Built at send time so it carries the modification time left by any save that ran before it.
+      return postSheet(JSON.stringify({ ...payload, lastModified: getLastModified() }), saveRevision, kind);
+    }
+    const doc = payload;
     const lastModified = getLastModified();
     const json = saveSheetContent(doc[0], lastModified);
     if (!json) {
@@ -3146,7 +3163,7 @@ const SefariaEditor = (props) => {
       console.log('Simulating unknown error');
       return false;
     }
-    return postSheet(json, saveRevision);
+    return postSheet(json, saveRevision, 'autosave');
   }
 
   function handlePostError(jqXHR, textStatus, errorThrown) {
@@ -3161,7 +3178,7 @@ const SefariaEditor = (props) => {
     }
   }
 
-  function postSheet(json, saveRevision) {
+  function postSheet(json, saveRevision, kind) {
     return new Promise((resolve) => {
       $.post('/api/sheets/', { json: json }, (res) => {
         // console.log("saved at: "+ res.dateModified);
@@ -3177,17 +3194,25 @@ const SefariaEditor = (props) => {
         // next save for conflict detection) are current whether or not the editor has changed since.
         const updatedSheet = { ...Sefaria.sheets._loadSheetByID[res.id], ...res };
         Sefaria.sheets._loadSheetByID[res.id] = updatedSheet;
-        if (!isCurrentRevision(saveRevision, docRevisionRef.current)) {
-          // Edited while this save was in flight: those edits are not stored yet. Keep them marked
-          // unsaved and do not overwrite the local title or summary; the queue sends them next.
-          resolve(true);
-          return;
+        // Apply only what is safe: edits made while this save was in flight are not stored yet, so their
+        // title and summary stay and they stay marked unsaved (the queue sends them next). A publish
+        // status is not part of the edited document, so it is always applied, and statusRef makes the
+        // very next save send it.
+        const plan = planSavedResponseApplication(res, {
+          kind,
+          saveRevision,
+          currentRevision: docRevisionRef.current,
+        });
+        if (plan.status !== undefined) {
+          statusRef.current = plan.status;
+          setStatus(plan.status);
         }
-        setHasUnsavedChanges(false);
-        setStatus(res.status);
-        setTitle(res.title);
-        setSummary(res.summary);
-        setSavingState(sheetsUtils.editorSaveStates.SAVED);
+        if (plan.markSaved) {
+          setHasUnsavedChanges(false);
+          setTitle(plan.title);
+          setSummary(plan.summary);
+          setSavingState(sheetsUtils.editorSaveStates.SAVED);
+        }
         resolve(true);
       }).fail((jqXHR, textStatus, errorThrown) => {
         handlePostError(jqXHR, textStatus, errorThrown);
@@ -3330,12 +3355,11 @@ const SefariaEditor = (props) => {
     );
   };
 
-  const editor = useMemo(() => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))), []);
   const sheetOptions = (
     <SheetOptions
       toggleSignUpModal={props.toggleSignUpModal}
       sheetID={sheet.id}
-      postSheet={postSheet}
+      publishSheet={publishSheet}
       historyObject={props.historyObject}
       editable={true}
       authorUrl={sheet.ownerProfileUrl}

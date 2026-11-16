@@ -9,27 +9,49 @@
   `send(doc, revision)` returns a promise of true when the server stored the save, false otherwise
   (error, conflict, network failure). After a save that was not stored the held save is dropped:
   a conflict must surface and block editing, and a lost connection is retried by the editor's polling.
+  A publish (an explicit user action with its own promise) is never replaced or dropped: publishes are
+  held in order and sent before the held autosave, and each settles its own promise with whether the
+  server stored it.
   The queue is independent of the component, so a save requested while another is in flight (for
   example the flush when the editor unmounts) is still sent after the in-flight one finishes.
 */
-export function createSaveQueue(send) {
+export function createSaveQueue(send, { getRevision } = {}) {
   let inFlight = false;
   let held = null;
+  let heldPublishes = [];
+
+  // `send(payload, revision, kind)`; kind is 'autosave' or 'publish'.
+  async function sendSafely(payload, revision, kind) {
+    try {
+      return (await send(payload, revision, kind)) === true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function drain(stored) {
+    inFlight = false;
+    const publishes = heldPublishes;
+    const next = held;
+    heldPublishes = [];
+    held = null;
+    let lastStored = stored;
+    // Publishes are explicit requests: they are sent whatever happened before them, so each one
+    // reports its own outcome. The held autosave follows only while saves are being stored.
+    for (const item of publishes) {
+      inFlight = true;
+      lastStored = await sendSafely(item.payload, item.revision, 'publish');
+      inFlight = false;
+      item.resolve(lastStored);
+    }
+    if (lastStored && next) {
+      await run(next.doc, next.revision);
+    }
+  }
 
   async function run(doc, revision) {
     inFlight = true;
-    let stored = false;
-    try {
-      stored = (await send(doc, revision)) === true;
-    } catch (e) {
-      stored = false;
-    }
-    inFlight = false;
-    const next = held;
-    held = null;
-    if (stored && next) {
-      await run(next.doc, next.revision);
-    }
+    await drain(await sendSafely(doc, revision, 'autosave'));
   }
 
   return {
@@ -40,7 +62,23 @@ export function createSaveQueue(send) {
       }
       return run(doc, revision);
     },
+    // Resolves to true when the server stored the publish, false otherwise. The revision defaults to
+    // the current one (`getRevision`), the document state the publish was requested against.
+    requestPublish(payload, revision = getRevision && getRevision()) {
+      return new Promise((resolve) => {
+        const item = { payload, revision, resolve };
+        if (inFlight) {
+          heldPublishes.push(item);
+          return;
+        }
+        inFlight = true;
+        sendSafely(payload, revision, 'publish').then((stored) => {
+          item.resolve(stored);
+          return drain(stored);
+        });
+      });
+    },
     isInFlight: () => inFlight,
-    hasHeld: () => held !== null,
+    hasHeld: () => held !== null || heldPublishes.length > 0,
   };
 }

@@ -38,7 +38,7 @@ const SheetOptions = ({
   sheetID,
   authorUrl,
   editable,
-  postSheet,
+  publishSheet,
   status,
   handleCollectionsChange,
 }) => {
@@ -100,7 +100,12 @@ const SheetOptions = ({
     return <DeleteModal close={() => setDeletingMode(false)} sheetID={sheetID} authorUrl={authorUrl} />;
   } else if (publishingMode) {
     return (
-      <PublishModal close={() => setPublishingMode(false)} sheetID={sheetID} status={status} postSheet={postSheet} />
+      <PublishModal
+        close={() => setPublishingMode(false)}
+        sheetID={sheetID}
+        status={status}
+        publishSheet={publishSheet}
+      />
     );
   }
   const publishModalButton = (
