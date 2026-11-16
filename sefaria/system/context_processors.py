@@ -17,6 +17,7 @@ from sefaria.model import library
 from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.chatbot import CLEAR_STORAGE_COOKIE
+from sefaria.utils.design_system import design_system_preview
 from sefaria.utils.util import is_int
 
 logger = structlog.get_logger(__name__)
@@ -177,6 +178,12 @@ def chatbot_user_token(request):
         "chatbot_script_type": script_type,
         **clearing,
     }
+
+
+@user_only
+def design_system(request):
+    """The unreleased design-system version to preview, outside production (sefaria/utils/design_system.py)."""
+    return {"design_system_preview": design_system_preview(request)}
 
 
 def _chatbot_storage_clearing(request):
