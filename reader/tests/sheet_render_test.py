@@ -1,5 +1,6 @@
 """Sheet pages print user-written fields as escaped text or as bleached HTML, and embed sheet JSON safely."""
 
+import re
 from unittest import mock
 
 import pytest
@@ -34,9 +35,20 @@ def _hostile_sheet():
 
 
 def _request(path):
+    """A request carrying everything reader.views.base_props() and the template context processors read."""
     request = RequestFactory().get(path)
     request.user = AnonymousUser()
+    request.session = {}
+    request.LANGUAGE_CODE = "en"
     request.interfaceLang = "english"
+    request.contentLang = "english"
+    request.active_module = "voices"
+    request.country_code = "us"
+    request.diaspora = True
+    request.user_agent = mock.MagicMock(is_mobile=False)
+    request.translation_language_preference = None
+    request.translation_language_preference_suggestion = None
+    request.version_preferences_by_corpus = {}
     return request
 
 
@@ -48,17 +60,31 @@ def hostile_sheet(monkeypatch):
     return _hostile_sheet
 
 
-def _assert_no_raw_injection(html):
-    assert "onerror=alert(1)" not in html
-    assert "<script>alert(2)" not in html
+SCRIPT_BLOCK = re.compile(r"<script\b.*?</script>", re.IGNORECASE | re.DOTALL)
+EVENT_HANDLER_ATTR = re.compile(r"<[^>]*\bon\w+\s*=", re.IGNORECASE)
+
+
+def _assert_no_executable_injection(html):
+    """
+    The sheet JSON blob is escaped inside a script block, so the payload text legitimately appears there.
+    Remove every script block and check what is left: any injected tag, event-handler attribute or
+    script-breakout would sit outside the blocks (a premature </script> ends the block early).
+    """
+    markup = SCRIPT_BLOCK.sub("", html)
+    assert "<img src=x" not in markup
+    assert not EVENT_HANDLER_ATTR.search(markup)
+    assert "alert(" not in markup
     assert "</script><img" not in html
+    # No script block may contain a second closing tag (a breakout would end it early).
+    for block in SCRIPT_BLOCK.findall(html):
+        assert block.lower().count("</script") == 1
 
 
 @pytest.mark.django_db
 def test_visual_sheet_page_escapes_hostile_fields(hostile_sheet):
-    response = views.view_visual_sheet(_request("/sheets/1/visual"), "1")
+    response = views.view_visual_sheet(_request("/sheets/visual/1"), "1")
     html = response.content.decode("utf8")
-    _assert_no_raw_injection(html)
+    _assert_no_executable_injection(html)
     # Bleached rich text and plain text still render.
     assert "<b>kept</b>" in html
     assert "note" in html
@@ -69,7 +95,7 @@ def test_visual_sheet_page_escapes_hostile_fields(hostile_sheet):
 def test_embedded_sheet_page_escapes_hostile_fields(hostile_sheet):
     response = views.view_sheet(_request("/sheets/1?embed=1"), "1")
     html = response.content.decode("utf8")
-    _assert_no_raw_injection(html)
+    _assert_no_executable_injection(html)
     assert "<b>kept</b>" in html
     assert "Credit" in html
 
