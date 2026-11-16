@@ -6,7 +6,7 @@ import { Slate, Editable, ReactEditor, withReact, useSlate, useSelected, useFocu
 import isHotkey from 'is-hotkey';
 import Sefaria from './sefaria/sefaria';
 import * as sheetsUtils from './sefaria/sheetsUtils';
-import { classifySheetSaveResponse, SAVE_RESPONSE } from './sefaria/sheetSaveResponse';
+import { classifySheetSaveResponse, isCurrentRevision, SAVE_RESPONSE } from './sefaria/sheetSaveResponse';
 
 import { SheetMetaDataBox, SheetTitle, InterfaceText, Autocompleter, ToolTipped } from './Misc';
 import { ProfilePic } from './ProfilePic';
@@ -2883,6 +2883,8 @@ const SefariaEditor = (props) => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
   hasUnsavedChangesRef.current = hasUnsavedChanges;
+  // Bumped on every local change; each save remembers the value it started with.
+  const docRevisionRef = useRef(0);
   const [blockEditing, setBlockEditing] = useState(false);
   const [lastModified, setlastModified] = useState(props.data.dateModified);
   const [canUseDOM, setCanUseDOM] = useState(false);
@@ -2920,7 +2922,10 @@ const SefariaEditor = (props) => {
   // Debounced autosave: re-runs (and restarts the 500ms timer) when the content, title or summary changes.
   useAutosaveDebounce(saveDocument, currentDocument, [currentDocument[0].children[0], title, summary], {
     enabled: canUseDOM,
-    onSchedule: () => setHasUnsavedChanges(true),
+    onSchedule: () => {
+      docRevisionRef.current += 1;
+      setHasUnsavedChanges(true);
+    },
   });
 
   useEffect(() => {
@@ -3125,7 +3130,7 @@ const SefariaEditor = (props) => {
       console.log('Simulating unknown error');
       return;
     }
-    postSheet(json);
+    postSheet(json, docRevisionRef.current);
   }
 
   function handlePostError(jqXHR, textStatus, errorThrown) {
@@ -3140,7 +3145,7 @@ const SefariaEditor = (props) => {
     }
   }
 
-  function postSheet(json) {
+  function postSheet(json, saveRevision) {
     $.post('/api/sheets/', { json: json }, (res) => {
       // console.log("saved at: "+ res.dateModified);
       if (classifySheetSaveResponse(res) !== SAVE_RESPONSE.SAVED) {
@@ -3150,12 +3155,19 @@ const SefariaEditor = (props) => {
         setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
         return;
       }
+      // The server stored this save, so the cached sheet and its modification time (sent with the
+      // next save for conflict detection) are current whether or not the editor has changed since.
+      const updatedSheet = { ...Sefaria.sheets._loadSheetByID[res.id], ...res };
+      Sefaria.sheets._loadSheetByID[res.id] = updatedSheet;
+      if (!isCurrentRevision(saveRevision, docRevisionRef.current)) {
+        // Edited while this save was in flight: those edits are not stored yet. Keep them marked
+        // unsaved and do not overwrite the local title or summary; the autosave they scheduled follows.
+        return;
+      }
       setHasUnsavedChanges(false);
       setStatus(res.status);
       setTitle(res.title);
       setSummary(res.summary);
-      const updatedSheet = { ...Sefaria.sheets._loadSheetByID[res.id], ...res };
-      Sefaria.sheets._loadSheetByID[res.id] = updatedSheet;
       setSavingState(sheetsUtils.editorSaveStates.SAVED);
     }).fail(handlePostError);
   }
