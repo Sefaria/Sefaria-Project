@@ -2558,11 +2558,23 @@ class Ref(metaclass=RefCacheType):
 
         return tref
 
-    def __reinit_tref(self, new_tref):
+    def __reinit_tref(self, new_tref, parts):
+        self.__raise_if_range_end_ignored(parts, new_tref)
         logger.debug(f"__reinit_tref from {self.tref} to {new_tref}")
         self.tref = self.__clean_tref(new_tref, self._lang)
         self._lang = "en"
         self.__init_tref()
+
+    def __raise_if_range_end_ignored(self, parts, matched):
+        """
+        Raises when `self.tref` has a range end but is parsed without it: a whole node, or a ref it is reinitialized to.
+        E.g. "Genesis-Exodus" would otherwise be parsed as "Genesis".
+        `matched` is a ref string for what was matched, for callers that fall back to the partial match.
+        """
+        if len(parts) == 2:
+            raise PartialRefInputError(
+                f"Couldn't understand ref '{self.tref}': a range end can't follow a whole node.", matched, None
+            )
 
     def __init_tref(self):
         """
@@ -2587,7 +2599,7 @@ class Ref(metaclass=RefCacheType):
         if not self.index_node:
             new_tref = termdict.get(base)  # Check if there's a term match, reinit w/ term
             if new_tref:
-                self.__reinit_tref(new_tref)
+                self.__reinit_tref(new_tref, parts)
                 return
 
         # Remove letter from end of base reference until TitleNode matched, set `title` variable with matched title
@@ -2645,6 +2657,7 @@ class Ref(metaclass=RefCacheType):
 
         self.primary_category = self.index.get_primary_category()
         if title == base:  # Bare book, like "Genesis" or "Rashi on Genesis".
+            self.__raise_if_range_end_ignored(parts, title)
             if (
                 self.index_node.is_default()
             ):  # Without any further specification, match the parent of the fall-through node
@@ -2693,6 +2706,7 @@ class Ref(metaclass=RefCacheType):
 
         # Numbered Structure node parsed - return. (Verify this comment.  Should this be indented?)
         if title == base:
+            self.__raise_if_range_end_ignored(parts, title)
             return
 
         # Content node -  Match primary structure address (may be stage two of numbered structure parsing)
@@ -2716,7 +2730,7 @@ class Ref(metaclass=RefCacheType):
                     if title == base:
                         new_tref = alt_struct_node.get_ref_from_sections([])
                         if new_tref:
-                            self.__reinit_tref(new_tref)
+                            self.__reinit_tref(new_tref, parts)
                             return
 
                     try:  # Some structure nodes don't have .regex() methods.
@@ -2753,7 +2767,7 @@ class Ref(metaclass=RefCacheType):
                                 f"Sections {alt_struct_indexes} not found in {alt_struct_node.full_title()}"
                             )
                         if new_tref:
-                            self.__reinit_tref(new_tref)
+                            self.__reinit_tref(new_tref, parts)
                             return
 
         if not self.sections:
@@ -4681,14 +4695,15 @@ class Ref(metaclass=RefCacheType):
         return list(expanded_set)
 
     @staticmethod
-    def instantiate_ref_with_legacy_parse_fallback(tref: str) -> "Ref":
+    def instantiate_ref_with_legacy_parse_fallback(tref: str, fallback_to_partial_match: bool = True) -> "Ref":
         """
         Tries the following in order and returns the first that works
         - Instantiate `tref` as is
         - Use appropriate `LegacyRefParser` to parse `tref`
-        - If ref has partial match, return partially matched ref
+        - If ref has partial match and `fallback_to_partial_match`, return partially matched ref
         Can raise an `InputError`
         @param tref: textual ref to parse
+        @param fallback_to_partial_match: if False, a partial match raises the `PartialRefInputError` instead
         @return: best `Ref` according to rules above
         """
         from sefaria.helper.legacy_ref import LegacyRefParserError, legacy_ref_parser_handler
@@ -4710,6 +4725,8 @@ class Ref(metaclass=RefCacheType):
                 legacy_ref_parser = legacy_ref_parser_handler[matched_ref.index.title]
                 return legacy_ref_parser.parse(tref)
             except LegacyRefParserError:
+                if not fallback_to_partial_match:
+                    raise e
                 return matched_ref
 
 

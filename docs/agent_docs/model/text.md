@@ -177,7 +177,7 @@ The gravitational center of the Sefaria model layer. Defines how texts are struc
   - **Range index/depth**: `range_index()` returns the depth at which the range begins (0 for chapter-level ranges). `range_depth()` returns how many levels the range covers. A non-range ref has `range_index = node.depth` and `range_depth = 0`.
   - **Spanning refs**: A ref that crosses section boundaries (e.g., "Genesis 2:3-4:5"). `is_spanning()` checks if `span_size() > 1`. Many methods require splitting spanning refs first.
   - **`_obj` construction**: When using `_obj`, sections are passed in directly (no parsing). The caller is responsible for correctness. Used extensively internally for efficiency.
-  - **`instantiate_ref_with_legacy_parse_fallback(tref)`**: Tries normal parsing, then legacy ref parser, then falls back to partial match. Sets `legacy_tref` attribute on successful legacy parse.
+  - **`instantiate_ref_with_legacy_parse_fallback(tref)`**: Tries normal parsing, then legacy ref parser, then falls back to partial match (unless `fallback_to_partial_match=False`, which re-raises the `PartialRefInputError`; the v3 texts, links and related APIs use that). Sets `legacy_tref` attribute on successful legacy parse.
 
 ### Library
 

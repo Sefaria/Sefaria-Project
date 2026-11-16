@@ -987,7 +987,7 @@
             }
           },
           "name": "tref",
-          "description": "A Sefaria-specific reference, `Ref`. This should be a segment `Ref` (the most specific reference possible), or bottom level section `Ref` (i.e.  a section of text one level up. A section is an array of segments). If a `Ref` which is not a segment or bottom level section is passed, the response will be to the first bottom level section `Ref` (e.g. `Genesis` will resolve to the bottom level section `Ref` of `Genesis 1`)",
+          "description": "A Sefaria-specific reference, `Ref`. This should be a segment `Ref` (the most specific reference possible), or bottom level section `Ref` (i.e.  a section of text one level up. A section is an array of segments). A `Ref` above the bottom level section (e.g. `Genesis`) returns the whole text it refers to. A `Ref` that cannot be fully parsed (e.g. `Genesis 1:1:1:1` or `Genesis-foo`) returns a 404 error.",
           "schema": {
             "type": "string",
             "default": "Esther 1.1"
