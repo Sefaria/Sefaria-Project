@@ -237,6 +237,19 @@ def parse_abort_disk_percent(raw, name="REINDEX_ABORT_DISK_PERCENT"):
     return value
 
 
+def parse_preflight_min_free_gb(raw, name="REINDEX_PREFLIGHT_MIN_FREE_GB"):
+    """Parse the pre-flight minimum free space per node, in GiB. Anything that is not a finite
+    number above 0 raises ValueError: a minimum of 0 or below makes every node pass the absolute
+    free-space check however full it is, and float() also accepts 'nan' and 'inf'."""
+    try:
+        value = float(str(raw).strip())
+    except ValueError:
+        value = math.nan
+    if not math.isfinite(value) or value <= 0:
+        raise ValueError(f"{name} must be a number above 0, got {raw!r}")
+    return value
+
+
 def _disk_percent(row):
     """A node's disk.percent if it is a real reading (finite, 0-100), else None."""
     percent = _as_number(row.get("disk.percent"))
@@ -316,6 +329,7 @@ def run_barrier_loop(
     log_fn=None,
     check_abort=None,
     abort_check_grace_seconds=600,
+    abort_reasons=None,
 ):
     """Poll the shard Job until it reaches a terminal state or the barrier timeout elapses.
 
@@ -328,6 +342,7 @@ def run_barrier_loop(
     returns 'aborted'. If it raises, the error is logged and the loop keeps waiting, but only
     for `abort_check_grace_seconds` without a successful check: after that it returns
     'aborted', because writers must not run unwatched until the shard deadline.
+    `abort_reasons`, if given, is a list that receives the reasons for an 'aborted' result.
     This loop used to be an unbounded `while True`, which meant a wedged shard (no crash, no
     log output, doc count frozen) held the barrier - and therefore the CronJob's
     concurrencyPolicy: Forbid slot - forever. The timeout here is a backstop behind the shard
@@ -363,16 +378,21 @@ def run_barrier_loop(
             except Exception as exc:
                 unwatched = now_fn() - last_good_check
                 if unwatched >= abort_check_grace_seconds:
-                    log(
-                        f"abort: no successful disk check for {unwatched:.0f}s "
+                    reason = (
+                        f"no successful disk check for {unwatched:.0f}s "
                         f"(limit {abort_check_grace_seconds}s); last error: {exc}"
                     )
+                    log(f"abort: {reason}")
+                    if abort_reasons is not None:
+                        abort_reasons.append(reason)
                     return "aborted", incomplete
                 log(f"abort check could not run, continuing ({unwatched:.0f}s unwatched): {exc}")
                 reasons = []
             if reasons:
                 for reason in reasons:
                     log(f"abort: {reason}")
+                if abort_reasons is not None:
+                    abort_reasons.extend(reasons)
                 return "aborted", incomplete
         if now_fn() >= deadline:
             return "timeout", incomplete
@@ -610,7 +630,8 @@ def main():
     image = os.environ["SHARD_JOB_IMAGE"]
     job_name = os.environ.get("SHARD_JOB_NAME", "reindex-shard")
     debug = os.environ.get("REINDEX_DEBUG", "").lower() in ("1", "true", "yes")
-    # Shards that completed took ~2-3h; 6h is generous but bounded, so a wedged shard
+    # On pd-standard disks the shard phase takes about 6-9h, so the 11h default is generous but
+    # bounded (it was 6h, which was marginal; see the guarded-reindex runbook), and a wedged shard
     # (observed spinning with zero progress and zero logs for hours) is force-terminated
     # instead of running forever.
     shard_active_deadline_seconds = int(os.environ.get("SHARD_ACTIVE_DEADLINE_SECONDS", "39600"))
@@ -684,7 +705,7 @@ def main():
             "or a non-green cluster will NOT be caught before the reindex starts"
         )
     else:
-        min_free_gb = float(os.environ.get("REINDEX_PREFLIGHT_MIN_FREE_GB", "12"))
+        min_free_gb = parse_preflight_min_free_gb(os.environ.get("REINDEX_PREFLIGHT_MIN_FREE_GB", "12"))
         max_disk_percent = parse_abort_disk_percent(
             os.environ.get("REINDEX_PREFLIGHT_MAX_DISK_PERCENT", "75"), name="REINDEX_PREFLIGHT_MAX_DISK_PERCENT"
         )
@@ -797,16 +818,19 @@ def main():
 
         # The guard's per-node grace matches the barrier's no-observation grace (600 s).
         disk_guard = DiskGuard(abort_disk_percent, grace_seconds=600, expected_nodes=preflight_nodes)
+        abort_reasons = []
         barrier_state, incomplete = run_barrier_loop(
             read_job_status=lambda: batch.read_namespaced_job_status(job_name, namespace).status,
             shard_count=shard_count,
             timeout_seconds=barrier_timeout_seconds,
             log_fn=lambda msg: logger.info(f"Orchestrator: {msg}"),
             check_abort=check_disk_abort,
+            abort_reasons=abort_reasons,
         )
         if barrier_state == "aborted":
             logger.error(
-                f"Orchestrator: aborted at {abort_disk_percent:.0f}% disk; incomplete shard "
+                f"Orchestrator: aborted ({'; '.join(abort_reasons) or 'no reason recorded'}; disk limit "
+                f"{abort_disk_percent:.0f}%); incomplete shard "
                 f"indexes: {incomplete}; NOT finalizing (alias unchanged); stopping shards and "
                 "cleaning up failed reindex targets"
             )
