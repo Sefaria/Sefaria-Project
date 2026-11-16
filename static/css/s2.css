@@ -19216,6 +19216,10 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
    their own alignment for what's typed. */
 .interface-hebrew .devPocPage [dir="auto"]:not(input):not(textarea):not(select),
 .interface-hebrew .devPocPage [dir="ltr"]:not(input):not(textarea):not(code):not(bdi) { text-align: right; }
+/* Empty fields: the placeholder sits on the right too (Daniel's review, 2026-11-16). An empty dir="auto" or dir="ltr"
+   field otherwise puts it on the left. Once something is typed, the field goes back to its own alignment. */
+.interface-hebrew .devPocPage input:placeholder-shown,
+.interface-hebrew .devPocPage textarea:placeholder-shown { text-align: right; }
 
 /* Icon buttons and the step back arrow: color change only on hover, no background (restored after removing the publish banner). */
 .devPocPage .devE-ico:hover, .devPocPage .devE-stepBack:hover { background: none; }

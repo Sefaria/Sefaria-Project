@@ -560,7 +560,7 @@ const E_SERVER_COPY = [
     /^You've asked for (\d+) links today/,
     (m) => ({
       en: "You've asked for " + m[1] + ' links today. Try again tomorrow, or contact hello@sefaria.org.',
-      he: 'ביקשת היום ' + m[1] + ' קישורים. נסו שוב מחר, או כתבו ל־hello@sefaria.org.',
+      he: 'ביקשת היום ' + m[1] + ' קישורים. אפשר לנסות שוב מחר, או לכתוב ל־hello@sefaria.org.',
     }),
   ],
   /* Same copy as the website field's own check. */
@@ -654,9 +654,9 @@ const vE = (en, he) => Sefaria._v({ en, he });
 /* "Tell us about yourself": 250 characters (the server allows up to 300). */
 const E_ABOUT_MAX = 250;
 const E_ROLES = [
-  { value: 'developer', en: 'Very technical', he: 'טכני/ת מאוד' },
-  { value: 'ai', en: 'Somewhat technical', he: 'טכני/ת במידה מסוימת' },
-  { value: 'none', en: 'Not technical', he: 'לא טכני/ת' },
+  { value: 'developer', en: 'Very technical', he: 'רקע טכני חזק' },
+  { value: 'ai', en: 'Somewhat technical', he: 'רקע טכני מסוים' },
+  { value: 'none', en: 'Not technical', he: 'ללא רקע טכני' },
 ];
 
 const ECopyIcon = ({ size = 18 }) => (
@@ -1188,7 +1188,7 @@ const EWelcome = ({ dots, onSave, initial, onCancel, edit }) => {
         <React.Fragment>
           {email ? (
             <p className="devE-signed">
-              <span className="devE-signedLabel">{tE('Signed in as', 'מחובר/ת בתור')}</span>{' '}
+              <span className="devE-signedLabel">{tE('Signed in as', 'התחברתם בתור')}</span>{' '}
               {name ? <strong dir="auto">{name}</strong> : null} <bdi dir="ltr">({email})</bdi>
             </p>
           ) : null}
@@ -1214,8 +1214,8 @@ const EWelcome = ({ dots, onSave, initial, onCancel, edit }) => {
           value={fields.role}
           onChange={(v) => set('role', v)}
           error={errors.role}
-          label={tE('What best describes you?', 'מה מתאר אותך הכי טוב?')}
-          placeholder={{ en: 'Choose one', he: 'בחרו אחת' }}
+          label={tE('What best describes you?', 'מה הרקע הטכני שלך?')}
+          placeholder={{ en: 'Choose one', he: 'בחרו אפשרות' }}
           options={E_ROLES.map((r) => ({ value: r.value, label: { en: r.en, he: r.he } }))}
         />
         <Input
@@ -1321,7 +1321,7 @@ const E_SITE_SECURITY_HINT = {
 /* "What are you building?" (PBS form check-in, 2026-11-02): a quick choice, so someone who is only trying the API
    has an honest answer, and the data is cleaner than free text. */
 const E_PURPOSES = [
-  { value: 'exploring', en: 'Just exploring the API', he: 'רק בודק/ת את ה־API' },
+  { value: 'exploring', en: 'Just exploring the API', he: 'רק בודקים את ה־API' },
   { value: 'personal', en: 'A personal project', he: 'פרויקט אישי' },
   { value: 'academic', en: 'An academic or school project', he: 'פרויקט אקדמי או לימודי' },
   { value: 'research', en: 'Research', he: 'מחקר' },
@@ -1356,7 +1356,7 @@ const EProjectFields = ({ fields, set, errors, check, showcase }) => (
       onChange={(v) => set('purpose', v)}
       error={errors.purpose}
       label={tE('What are you building?', 'מה אתם בונים?')}
-      placeholder={{ en: 'Choose one', he: 'בחרו אחת' }}
+      placeholder={{ en: 'Choose one', he: 'בחרו אפשרות' }}
       options={E_PURPOSES.map((o) => ({ value: o.value, label: { en: o.en, he: o.he } }))}
     />
     <Input
@@ -1570,7 +1570,7 @@ const ENewKey = ({ project, onBack, onCreate, failure, initialLabel }) => {
         />
         {restrict.field}
         <EPrimary data-agent-action="create-key" disabled={busy}>
-          {tE('Create API key', 'יצירת מפתח API')}
+          {tE('Create API key', 'יצירת המפתח')}
         </EPrimary>
       </form>
     </EStep>
@@ -1613,7 +1613,7 @@ const ESetupProject = ({ dots, title, onBack, backLabel, onSkip, skipLabel, onCr
         </ENote>
         <div className="devE-footer">
           <button type="button" className="devE-backBtn" onClick={onSkip}>
-            {skipLabel || tE('Skip for now', 'דילוג')}
+            {skipLabel || tE('Skip for now', 'דילוג בינתיים')}
           </button>
           <EPrimary data-agent-action="save-project" disabled={busy}>
             {tE('Continue', 'המשך')}
@@ -1702,8 +1702,8 @@ const ERestrictHint = ({ id }) => (
         he: (
           <React.Fragment>
             <span>
-              <strong>הפעילו</strong> אם המפתח שלכם נכנס לקוד של דף האינטרנט שלכם. השאירו <strong>כבוי</strong> אם המפתח
-              נכנס לשרת או לכלי AI.
+              <strong>הפעילו</strong> את ההגבלה אם המפתח ישולב בקוד של דף אינטרנט. השאירו אותה <strong>כבויה</strong> אם
+              המפתח ישמש בשרת או בכלי AI.
             </span>
             <span>אפשר לשנות את ההגדרה הזו בכל עת בהגדרות מפתחים.</span>
           </React.Fragment>
@@ -1822,10 +1822,10 @@ const ESetupKey = ({ dots, project, onBack, backLabel, onSkip, onCreate, failure
         {restrict.field}
         <div className="devE-footer">
           <button type="button" className="devE-backBtn" onClick={onSkip}>
-            {tE('Skip for now', 'דילוג')}
+            {tE('Skip for now', 'דילוג בינתיים')}
           </button>
           <EPrimary data-agent-action="create-key" disabled={busy}>
-            {tE('Create API key', 'יצירת מפתח API')}
+            {tE('Create API key', 'יצירת המפתח')}
           </EPrimary>
         </div>
       </form>
@@ -2341,7 +2341,7 @@ const EKeyColumns = ({ id }) => (
                   he: (
                     <React.Fragment>
                       הגבלת מפתח לאתר של הפרויקט ולתתי־הדומיינים שלו, כך שאף אחד אחר לא יוכל להשתמש בו.{' '}
-                      <strong>הפעילו</strong> אם המפתח נכנס לקוד של דף האינטרנט שלכם.{' '}
+                      <strong>הפעילו</strong> את ההגבלה אם המפתח ישולב בקוד של דף אינטרנט.{' '}
                       <a
                         className="devE-inlineLink"
                         href={E_SITE_LEARN_MORE_URL}
@@ -2380,7 +2380,7 @@ const E_PB_CATEGORIES = [
   { en: 'Learning & Study Tools', he: 'כלי לימוד' },
   { en: 'AI Projects, Apps, & Other Tools', he: 'פרויקטי AI, אפליקציות וכלים אחרים' },
   { en: 'Visualization & Data Analysis', he: 'ויזואליזציה וניתוח נתונים' },
-  { en: 'Community, Interaction, & Social', he: 'קהילה, אינטראקציה וחברה' },
+  { en: 'Community, Interaction, & Social', he: 'קהילה, אינטראקציה ורשתות חברתיות' },
   { en: 'Extensions and API Integrations', he: 'תוספים ושילובי API' },
   { en: 'Other', he: 'אחר' },
 ];
@@ -2469,9 +2469,9 @@ const EShareLead = () => (
           ),
           he: (
             <React.Fragment>
-              ספרו לנו על הפרויקט ואנחנו נבדוק אותו. אם הוא יאושר, הוא יוצג ב
+              ספרו לנו על הפרויקט ואנחנו נבדוק אותו. אם הוא יאושר, הוא יוצג באתר{' '}
               <a className="devE-inlineLink" href={E_PB_GALLERY_URL} target="_blank" rel="noopener noreferrer">
-                אתר Powered by Sefaria
+                Powered by Sefaria
               </a>
               , שבו לומדים ומפתחים מכל העולם יוכלו לגלות מה אנשים בונים עם ספריא.
             </React.Fragment>
@@ -2529,9 +2529,9 @@ const ESubmitted = ({ project, onDone }) => (
             ),
             he: (
               <React.Fragment>
-                הצוות שלנו יבדוק את <bdi dir="auto">{project.name}</bdi>. אם הוא יאושר, הוא יופיע ב
+                הצוות שלנו יבדוק את <bdi dir="auto">{project.name}</bdi>. אם הוא יאושר, הוא יופיע באתר{' '}
                 <a className="devE-inlineLink" href={E_PB_GALLERY_URL} target="_blank" rel="noopener noreferrer">
-                  אתר Powered by Sefaria
+                  Powered by Sefaria
                 </a>
                 .
               </React.Fragment>
@@ -2735,7 +2735,7 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
           <EPublishIcon size={24} />
         </span>
       }
-      title={tE('Publish your project', 'פרסום הפרויקט שלך')}
+      title={tE('Publish your project', 'פרסום הפרויקט')}
       lead={<EShareLead />}
     >
       <form className="devE-form devE-shareForm" onSubmit={submit} noValidate>
@@ -2766,7 +2766,7 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
             <React.Fragment>
               {email ? (
                 <p className="devE-signed">
-                  <span className="devE-signedLabel">{tE('Signed in as', 'מחובר/ת בתור')}</span>{' '}
+                  <span className="devE-signedLabel">{tE('Signed in as', 'התחברתם בתור')}</span>{' '}
                   {name ? <strong dir="auto">{name}</strong> : null} <bdi dir="ltr">({email})</bdi>
                 </p>
               ) : null}
@@ -2775,8 +2775,8 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
                 value={person.role}
                 onChange={(v) => setP('role', v)}
                 error={errors.role}
-                label={tE('What best describes you?', 'מה מתאר אותך הכי טוב?')}
-                placeholder={{ en: 'Choose one', he: 'בחרו אחת' }}
+                label={tE('What best describes you?', 'מה הרקע הטכני שלך?')}
+                placeholder={{ en: 'Choose one', he: 'בחרו אפשרות' }}
                 options={E_ROLES.map((r) => ({ value: r.value, label: { en: r.en, he: r.he } }))}
               />
               <Input
@@ -2839,7 +2839,10 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
             id="devEShareShowName"
             checked={showName}
             onChange={(e) => setShowName(e.target.checked)}
-            label={tE("Show my name with the project if it's featured", 'הצגת השם שלי עם הפרויקט אם יוצג')}
+            label={tE(
+              "Show my name with the project if it's featured",
+              'להציג את השם שלי ליד הפרויקט, אם הוא יוצג באתר'
+            )}
           />
         </section>
 
@@ -3022,7 +3025,7 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
                   <legend>
                     {tE(
                       'Approximately how many users use this project on a monthly basis?',
-                      'בערך כמה משתמשים משתמשים בפרויקט בכל חודש?'
+                      'בערך כמה אנשים משתמשים בפרויקט בחודש?'
                     )}{' '}
                     {EOpt}
                   </legend>
@@ -3520,7 +3523,7 @@ const EHome = ({
                         <button
                           type="button"
                           className="devE-ico devE-projMenuBtn"
-                          aria-label={vE('More for ' + project.name, 'עוד עבור ' + project.name)}
+                          aria-label={vE('More for ' + project.name, 'אפשרויות נוספות ל־' + project.name)}
                         >
                           <EKebabIcon />
                         </button>
@@ -3857,12 +3860,12 @@ const EReconfirmBanner = ({ sentAt, run }) => {
                 <InterfaceText
                   text={{
                     en: <React.Fragment>We sent a confirmation link to {email}.</React.Fragment>,
-                    he: <React.Fragment>שלחנו קישור לאישור ל־{email}.</React.Fragment>,
+                    he: <React.Fragment>שלחנו קישור אישור לכתובת {email}.</React.Fragment>,
                   }}
                 />
               </p>
               <p>
-                {tE("Didn't get the email?", 'המייל לא הגיע?')}{' '}
+                {tE("Didn't get the email?", 'הדוא״ל לא הגיע?')}{' '}
                 <button
                   type="button"
                   className="devE-inlineLink devE-linkBtn devE-resendLink"
@@ -4260,16 +4263,14 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
         </bdi>
       </React.Fragment>
     );
-    /* Hebrew: ל־ goes on the address's own line, attached to it (Penina, 2026-11-15). */
+    /* Hebrew: "…קישור אישור לכתובת" ends the first line and the address sits on its own line (Daniel's
+       preposition fix, taken by Penina 2026-11-16; replaces "לאישור ל־", which doubled the ל). */
     const emailLineHe = (
       <React.Fragment>
         <br />
-        <span className="devE-noWrap">
-          ל־
-          <bdi dir="ltr">
-            <strong>{accountEmail()}</strong>
-          </bdi>
-        </span>
+        <bdi dir="ltr" className="devE-noWrap">
+          <strong>{accountEmail()}</strong>
+        </bdi>
       </React.Fragment>
     );
     const cancel = (
@@ -4307,7 +4308,7 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
               <InterfaceText
                 text={{
                   en: <React.Fragment>We sent a confirmation link to{emailLine}</React.Fragment>,
-                  he: <React.Fragment>שלחנו קישור לאישור{emailLineHe}</React.Fragment>,
+                  he: <React.Fragment>שלחנו קישור אישור לכתובת{emailLineHe}</React.Fragment>,
                 }}
               />
             </p>
@@ -4316,7 +4317,7 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
           <div className="devE-form devE-formCenter">
             {/* Disabled with a countdown right after a send, then enabled (Clerk, Slack). */}
             <p className="devE-hint devE-hintCenter" aria-live="polite">
-              {tE("Didn't get the email?", 'המייל לא הגיע?')}{' '}
+              {tE("Didn't get the email?", 'הדוא״ל לא הגיע?')}{' '}
               <button
                 type="button"
                 className="devE-inlineLink devE-linkBtn devE-resendLink"
@@ -4345,7 +4346,7 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
               <InterfaceText
                 text={{
                   en: <React.Fragment>We&apos;ll send a confirmation link to{emailLine}</React.Fragment>,
-                  he: <React.Fragment>נשלח קישור לאישור{emailLineHe}</React.Fragment>,
+                  he: <React.Fragment>נשלח קישור אישור לכתובת{emailLineHe}</React.Fragment>,
                 }}
               />
             </p>
@@ -5447,7 +5448,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
       if (pageMounted.current) {
         setDeveloperState(server);
       }
-      setConnectedMessage(Sefaria._v({ en: 'Your email is confirmed.', he: 'כתובת הדוא״ל שלך אושרה.' }));
+      setConnectedMessage(Sefaria._v({ en: 'Your email is confirmed.', he: 'כתובת הדוא״ל אושרה.' }));
       clearTimeout(connectedTimer.current);
       connectedTimer.current = setTimeout(() => setConnectedMessage(''), CONNECTED_MS);
     });
@@ -5490,7 +5491,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
             <InterfaceText
               text={{
                 en: "We couldn't check your session. Reload the page to see developer settings.",
-                he: 'לא הצלחנו לבדוק את ההתחברות. טענו את הדף מחדש כדי לראות את הגדרות מפתחים.',
+                he: 'לא הצלחנו לבדוק את ההתחברות. רעננו את הדף כדי לראות את הגדרות מפתחים.',
               }}
             />
           </p>
@@ -5571,7 +5572,7 @@ export const EmailConfirmedPage = () => {
                   </span>
                   <h1 className="devE-title" id="devEConfirmedTitle">
                     <InterfaceText
-                      text={{ en: 'Thank you for confirming your email', he: 'תודה שאישרת את כתובת הדוא״ל' }}
+                      text={{ en: 'Thank you for confirming your email', he: 'תודה! כתובת הדוא״ל אושרה' }}
                     />
                   </h1>
                 </div>
@@ -5671,7 +5672,7 @@ export const EmailLinkPage = ({ link }) => {
     },
     action: (
       <p className="devE-hint devE-hintCenter" aria-live="polite">
-        {tE("Didn't get the email?", 'המייל לא הגיע?')}{' '}
+        {tE("Didn't get the email?", 'הדוא״ל לא הגיע?')}{' '}
         <button
           type="button"
           className="devE-inlineLink devE-linkBtn devE-resendLink"
@@ -5688,7 +5689,7 @@ export const EmailLinkPage = ({ link }) => {
     ? checkEmail
     : {
         'already-confirmed': {
-          title: { en: 'Already confirmed', he: 'כבר אושר' },
+          title: { en: 'Already confirmed', he: 'הכתובת כבר אושרה' },
           body: { en: 'This email address is already confirmed.', he: 'כתובת הדוא״ל הזו כבר אושרה.' },
           action: continueLink,
           ok: true,
