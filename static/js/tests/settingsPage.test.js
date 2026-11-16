@@ -336,7 +336,7 @@ describe('the first project and key', () => {
   };
   const fillProject = async () => {
     type(field(/Project name/), 'Daf Tracker');
-    await choose('What are you building?', 'Just exploring the API');
+    await choose('What are you building?', 'A personal project');
     type(field(/Short description/), 'Tracks the daf');
   };
   const newProject = () => server.state.projects[0];
@@ -374,7 +374,7 @@ describe('the first project and key', () => {
     await fillProject();
     await click(button('Continue'));
     expect(server.sent('POST', 'projects')[0].project).toEqual(
-      expect.objectContaining({ name: 'Daf Tracker', purpose: 'exploring', websiteUrl: '', visibility: 'private' })
+      expect.objectContaining({ name: 'Daf Tracker', purpose: 'personal', websiteUrl: '', visibility: 'private' })
     );
     expect(heading('Step 3 of 3: Create an API key for Daf Tracker')).toBeTruthy();
     expect(field(/API key name/).getAttribute('placeholder')).toBeNull(); // no placeholder (2026-11-15)

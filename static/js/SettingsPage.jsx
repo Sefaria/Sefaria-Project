@@ -1318,13 +1318,15 @@ const E_SITE_SECURITY_HINT = {
   ),
 };
 
-/* "What are you building?" (PBS form check-in, 2026-11-02): a quick choice, so someone who is only trying the API
-   has an honest answer, and the data is cleaner than free text. */
+/* "What are you building?" Shortlist from Penina's DM to Sarah (2026-11-16), pending Sarah's final OK: ordered from
+   one person to an organization, "Something else" last. "Just exploring the API" was dropped. Options draft:
+   design-notes/what-are-you-building-options.md. */
 const E_PURPOSES = [
-  { value: 'exploring', en: 'Just exploring the API', he: 'רק בודקים את ה־API' },
   { value: 'personal', en: 'A personal project', he: 'פרויקט אישי' },
-  { value: 'academic', en: 'An academic or school project', he: 'פרויקט אקדמי או לימודי' },
+  { value: 'school', en: 'A school project', he: 'פרויקט ללימודים' },
   { value: 'research', en: 'Research', he: 'מחקר' },
+  { value: 'community', en: 'For my community or organization', he: 'פרויקט עבור הקהילה או הארגון שלי' },
+  { value: 'commercial', en: 'A commercial app or product', he: 'אפליקציה או מוצר מסחרי' },
   { value: 'other', en: 'Something else', he: 'משהו אחר' },
 ];
 /* Project fields shared by the setup step and the single screens. No public/private choice:
