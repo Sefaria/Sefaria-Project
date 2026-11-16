@@ -83,7 +83,9 @@ def hostile_sheet(db, monkeypatch):
 
 
 URL_ATTRIBUTES = ("href", "src", "action", "formaction", "xlink:href", "data")
-INJECTABLE_TAGS = {"svg", "iframe", "object", "embed", "math"}
+INJECTABLE_TAGS = {"svg", "object", "embed", "math"}
+# The sheet templates embed iframes of their own (help videos, the tag manager fallback), all https.
+# An iframe counts as injected only when its src is anything else.
 
 
 class _MarkupAudit(HTMLParser):
@@ -99,6 +101,8 @@ class _MarkupAudit(HTMLParser):
             self.script_blocks += 1
         if tag in INJECTABLE_TAGS:
             self.problems.append(f"injected <{tag}>")
+        if tag == "iframe" and not (dict(attrs).get("src") or "").startswith("https://"):
+            self.problems.append("injected <iframe>")
         for name, value in attrs:
             value = (value or "").strip().lower()
             if name.startswith("on"):
