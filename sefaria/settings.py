@@ -78,7 +78,7 @@ STATICFILES_DIRS = [
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
-CHATBOT_USER_ID_SECRET = 'secret'
+CHATBOT_USER_ID_SECRET = None  # Must be set in local_settings / env; 'secret' is rejected outside DEBUG
 SESSION_ID_AUTH_HEADER = 'HTTP_X_SESSION_ID'
 # Secret shared with the AI chatbot for MCP sign-in (see api/mcp_auth_views.py and
 # SessionIDAuthMiddleware). Unset disables MCP sign-in and MCP token access. Read from the

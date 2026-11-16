@@ -7,6 +7,7 @@ from datetime import timedelta
 
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from django.conf import settings
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
@@ -19,6 +20,16 @@ MCP_LOGIN_TOKEN_AUDIENCE = "mcp-login"
 MCP_LOGIN_TOKEN_TTL_MINUTES = 5
 MCP_TOKEN_AUDIENCE = "mcp"
 NONCE_SIZE_BYTES = 12
+# Publicly known placeholder; tokens built with it are forgeable, so it is only accepted under DEBUG.
+INSECURE_DEFAULT_CHATBOT_USER_ID_SECRET = 'secret'
+
+
+def is_usable_chatbot_user_id_secret(secret):
+    if not secret:
+        return False
+    if secret == INSECURE_DEFAULT_CHATBOT_USER_ID_SECRET and not settings.DEBUG:
+        return False
+    return True
 
 # Set on logout from any module. The next Library page load clears the Library
 # Assistant's localStorage (templates/base.html) and deletes the cookie, so the next
@@ -65,7 +76,7 @@ def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HO
     (e.g. MCP_TOKEN_AUDIENCE); chatbot tokens carry no audience. `state` ties an mcp-login token to
     the one sign-in flow it was issued for, so it cannot complete another.
     """
-    if not user_id or not secret:
+    if not user_id or not is_usable_chatbot_user_id_secret(secret):
         return None
 
     expires_at = (now or timezone.now()) + timedelta(hours=ttl_hours)
@@ -92,7 +103,7 @@ def get_user_id_from_chatbot_user_token(token, secret, aud=None):
     Returns the user id in `token`, or None if the token is invalid, expired, or was issued for a
     different audience than `aud` (None means the chatbot, whose tokens carry no audience).
     """
-    if not token or not secret:
+    if not token or not is_usable_chatbot_user_id_secret(secret):
         return None
 
     try:
