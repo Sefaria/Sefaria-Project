@@ -319,14 +319,14 @@ def topics_with_varying_source_counts(django_db_setup, django_db_blocker):
 
 
 def test_get_all_topics_min_sources(topics_with_varying_source_counts):
-    from django.core.cache import caches
-
-    caches["default"].clear()  # get_all_topics is cached for 24h; bust it so fixture topics are picked up
+    # get_all_topics is cached for 24h in the default cache, which in CI is the dev cluster's
+    # shared Redis (FLUSHDB disabled). Call the undecorated function so fixture topics are seen.
+    get_all_topics = topic.get_all_topics.__wrapped__
 
     by_suffix = topics_with_varying_source_counts
     relevant_slugs = {t.slug for t in by_suffix.values()}
 
-    default_result = {t.slug for t in topic.get_all_topics(limit=0) if t.slug in relevant_slugs}
+    default_result = {t.slug for t in get_all_topics(limit=0) if t.slug in relevant_slugs}
     # without min_sources, any topic with text or sheet sources is returned. same result as before the split, when numSources included sheets
     assert default_result == {
         by_suffix["two"].slug,
@@ -336,7 +336,7 @@ def test_get_all_topics_min_sources(topics_with_varying_source_counts):
     }
 
     strict_result = {
-        t.slug for t in topic.get_all_topics(limit=0, min_sources=3, textual_only=True) if t.slug in relevant_slugs
+        t.slug for t in get_all_topics(limit=0, min_sources=3, textual_only=True) if t.slug in relevant_slugs
     }
     # 'two' has only 2 sources and no exemption, so it's hidden; 'curated' has 1 source but a
     # published description, so the curation exemption keeps it visible; 'three' clears the bar outright
