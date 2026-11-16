@@ -12,65 +12,105 @@
  */
 
 jest.mock('../sefaria/sefaria', () => {
-  const LIBRARY = 'library', VOICES = 'voices';
-  return { __esModule: true, default: {
-    LIBRARY_MODULE: LIBRARY,
-    VOICES_MODULE: VOICES,
-    activeModule: LIBRARY,
-    _: (k) => k,
-    _r: (r) => r,
-    _bilingual: (s) => ({ en: s, he: s }),
-    _getShortInterfaceLang: () => 'en',
-    interfaceLang: 'english',
-    apiHost: '',
-    toc: [],
-    terms: {},
-    _tocOrderLookup: {},
-    track: { event: () => {} },
-    _siteSettings: { ABOUT_SIDEBAR_PAGES: [] },
-    hebrew: { isHebrew: () => false },
-    search: { entitySearch: jest.fn() },
-    setup: () => {},
-    isRef: () => false,
-    humanRef: (r) => r,
-    getPageTitle: (t) => t,
-    normRef: (r) => (Array.isArray(r) ? r.join('; ') : r),
-    normRefList: (r) => (Array.isArray(r) ? r.join('; ') : r),
-    refContains: () => false,
-    titleIsTorah: (ref) => /^Genesis/.test(ref),
-    util: {
-      clone: (x) => x,
-      cookie: () => {},
-      getObjectFromUrlParam: () => null,
-      currentPath: () => '/',
-      encodeTitleForUrl: (t) => t.replace(/ /g, '_'),
-      getUrlVersionsParams: () => '',
-      encodeVtitle: (v) => v,
-      fullURL: (href) => (href.startsWith('http') ? href : `https://www.sefaria.org${href}`),
+  const LIBRARY = 'library',
+    VOICES = 'voices';
+  return {
+    __esModule: true,
+    default: {
+      LIBRARY_MODULE: LIBRARY,
+      VOICES_MODULE: VOICES,
+      activeModule: LIBRARY,
+      _: (k) => k,
+      _r: (r) => r,
+      _bilingual: (s) => ({ en: s, he: s }),
+      _getShortInterfaceLang: () => 'en',
+      interfaceLang: 'english',
+      apiHost: '',
+      toc: [],
+      terms: {},
+      _tocOrderLookup: {},
+      track: { event: () => {} },
+      _siteSettings: { ABOUT_SIDEBAR_PAGES: [] },
+      hebrew: { isHebrew: () => false },
+      search: { entitySearch: jest.fn() },
+      setup: () => {},
+      isRef: () => false,
+      humanRef: (r) => r,
+      getPageTitle: (t) => t,
+      normRef: (r) => (Array.isArray(r) ? r.join('; ') : r),
+      normRefList: (r) => (Array.isArray(r) ? r.join('; ') : r),
+      refContains: () => false,
+      titleIsTorah: (ref) => /^Genesis/.test(ref),
+      util: {
+        clone: (x) => x,
+        cookie: () => {},
+        getObjectFromUrlParam: () => null,
+        currentPath: () => '/',
+        encodeTitleForUrl: (t) => t.replace(/ /g, '_'),
+        getUrlVersionsParams: () => '',
+        encodeVtitle: (v) => v,
+        fullURL: (href) => (href.startsWith('http') ? href : `https://www.sefaria.org${href}`),
+      },
+      isSefariaURL: (url) => url.hostname.endsWith('sefaria.org'),
     },
-    isSefariaURL: (url) => url.hostname.endsWith('sefaria.org'),
-  }};
+  };
 });
 
-global.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+global.ResizeObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
 
 // Same heavy-import stubs as the other ReaderApp prototype tests.
-jest.mock("../Misc", () => new Proxy({}, {
-  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
-}));
-jest.mock("../ImageCropper", () => new Proxy({}, {
-  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
-}));
-jest.mock("json-edit-react", () => new Proxy({}, {
-  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
-}));
-jest.mock("react-simple-wysiwyg", () => new Proxy({}, {
-  get: (_t, prop) => {
-    if (prop === "__esModule") { return true; }
-    if (prop === "createButton") { return () => (() => null); }
-    return () => null;
-  },
-}));
+jest.mock(
+  '../Misc',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => (prop === '__esModule' ? true : () => null),
+      }
+    )
+);
+jest.mock(
+  '../ImageCropper',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => (prop === '__esModule' ? true : () => null),
+      }
+    )
+);
+jest.mock(
+  'json-edit-react',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => (prop === '__esModule' ? true : () => null),
+      }
+    )
+);
+jest.mock(
+  'react-simple-wysiwyg',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => {
+          if (prop === '__esModule') {
+            return true;
+          }
+          if (prop === 'createButton') {
+            return () => () => null;
+          }
+          return () => null;
+        },
+      }
+    )
+);
 
 import { ReaderApp } from '../ReaderApp.jsx';
 

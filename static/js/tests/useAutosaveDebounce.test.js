@@ -16,7 +16,9 @@ function Harness({ value, save, onSchedule, enabled = true }) {
 }
 
 function render(props) {
-  act(() => { ReactDOM.render(<Harness {...props} />, container); });
+  act(() => {
+    ReactDOM.render(<Harness {...props} />, container);
+  });
 }
 
 beforeEach(() => {
@@ -26,7 +28,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
   jest.useRealTimers();
@@ -41,7 +45,9 @@ describe('useAutosaveDebounce', () => {
     expect(onSchedule).toHaveBeenCalledTimes(1);
     expect(save).not.toHaveBeenCalled();
 
-    act(() => { jest.advanceTimersByTime(500); });
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
     expect(save).toHaveBeenCalledTimes(1);
     expect(save).toHaveBeenCalledWith('a');
   });
@@ -50,12 +56,18 @@ describe('useAutosaveDebounce', () => {
     const save = jest.fn();
     render({ value: 'a', save });
 
-    act(() => { jest.advanceTimersByTime(300); });
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
     render({ value: 'ab', save });
-    act(() => { jest.advanceTimersByTime(300); });
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
     expect(save).not.toHaveBeenCalled();
 
-    act(() => { jest.advanceTimersByTime(200); });
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
     expect(save).toHaveBeenCalledTimes(1);
     expect(save).toHaveBeenCalledWith('ab');
   });
@@ -63,26 +75,38 @@ describe('useAutosaveDebounce', () => {
   test('unmounting before the delay flushes the pending save with the latest value', () => {
     const save = jest.fn();
     render({ value: 'a', save });
-    act(() => { jest.advanceTimersByTime(200); });
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
     render({ value: 'ab', save });
-    act(() => { jest.advanceTimersByTime(100); });
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
 
-    act(() => { ReactDOM.unmountComponentAtNode(container); });
+    act(() => {
+      ReactDOM.unmountComponentAtNode(container);
+    });
     expect(save).toHaveBeenCalledTimes(1);
     expect(save).toHaveBeenCalledWith('ab');
 
     // The timer was flushed, not left running: nothing more is saved later.
-    act(() => { jest.advanceTimersByTime(1000); });
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
     expect(save).toHaveBeenCalledTimes(1);
   });
 
   test('unmounting after the save has fired does not save again', () => {
     const save = jest.fn();
     render({ value: 'a', save });
-    act(() => { jest.advanceTimersByTime(500); });
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
     expect(save).toHaveBeenCalledTimes(1);
 
-    act(() => { ReactDOM.unmountComponentAtNode(container); });
+    act(() => {
+      ReactDOM.unmountComponentAtNode(container);
+    });
     expect(save).toHaveBeenCalledTimes(1);
   });
 
@@ -90,8 +114,12 @@ describe('useAutosaveDebounce', () => {
     const save = jest.fn();
     render({ value: 'a', save, enabled: false });
 
-    act(() => { ReactDOM.unmountComponentAtNode(container); });
-    act(() => { jest.advanceTimersByTime(1000); });
+    act(() => {
+      ReactDOM.unmountComponentAtNode(container);
+    });
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
     expect(save).not.toHaveBeenCalled();
   });
 
@@ -100,7 +128,9 @@ describe('useAutosaveDebounce', () => {
     const onSchedule = jest.fn();
     render({ value: 'a', save, onSchedule, enabled: false });
 
-    act(() => { jest.advanceTimersByTime(1000); });
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
     expect(onSchedule).not.toHaveBeenCalled();
     expect(save).not.toHaveBeenCalled();
   });

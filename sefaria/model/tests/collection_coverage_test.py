@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Guards the model test suite against silently going dark.
 
@@ -39,9 +37,6 @@ def _modules_defining_tests():
 def test_every_model_test_module_is_collected():
     patterns = _python_files_patterns()
     uncollected = [
-        rel for rel in _modules_defining_tests()
-        if not any(fnmatch.fnmatch(rel, pattern) for pattern in patterns)
+        rel for rel in _modules_defining_tests() if not any(fnmatch.fnmatch(rel, pattern) for pattern in patterns)
     ]
-    assert uncollected == [], (
-        "test modules missing from pytest.ini python_files: " + ", ".join(uncollected)
-    )
+    assert uncollected == [], "test modules missing from pytest.ini python_files: " + ", ".join(uncollected)

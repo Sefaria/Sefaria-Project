@@ -1,11 +1,12 @@
 import subprocess
-from urllib.parse import urlparse
 from http.client import HTTPConnection
-from sefaria.settings import VARNISH_ADM_ADDR, VARNISH_HOST, VARNISH_FRNT_PORT, VARNISH_SECRET, FRONT_END_URL
-
-from sefaria.utils.util import graceful_exception
+from urllib.parse import urlparse
 
 import structlog
+
+from sefaria.settings import FRONT_END_URL, VARNISH_ADM_ADDR, VARNISH_FRNT_PORT, VARNISH_HOST, VARNISH_SECRET
+from sefaria.utils.util import graceful_exception
+
 logger = structlog.get_logger(__name__)
 
 # Upper bounds so a stalled Varnish admin or front-end socket cannot block the caller indefinitely.
@@ -15,7 +16,7 @@ VARNISH_BAN_TIMEOUT_SECONDS = 5
 
 @graceful_exception(logger=logger, return_value=None)
 def ban_url(url):
-    args = ["varnishadm", "-T", VARNISH_ADM_ADDR, "-S", VARNISH_SECRET, "ban", "obj.http.url ~ {}".format(url)]
+    args = ["varnishadm", "-T", VARNISH_ADM_ADDR, "-S", VARNISH_SECRET, "ban", f"obj.http.url ~ {url}"]
     subprocess.run(args, check=True, timeout=VARNISH_BAN_TIMEOUT_SECONDS)
 
 
@@ -27,15 +28,13 @@ def purge_url(url):
     """
     url = urlparse(url)
     connection = HTTPConnection(VARNISH_HOST, VARNISH_FRNT_PORT, timeout=VARNISH_HTTP_TIMEOUT_SECONDS)
-    path = url.path or '/'
-    connection.request('PURGE', '%s?%s' % (path, url.query) if url.query else path, '',
-                       {'Host': url.hostname})
+    path = url.path or "/"
+    connection.request("PURGE", "%s?%s" % (path, url.query) if url.query else path, "", {"Host": url.hostname})
     response = connection.getresponse()
     if response.status != 200:
-        logger.error('Purge of {}{} on host {} failed with status: {}'.format(path,
-                                                                                  "?" + url.query if url.query else '',
-                                                                                  url.hostname,
-                                                                                  response.status))
+        logger.error(
+            "Purge of {}{} on host {} failed with status: {}".format(
+                path, "?" + url.query if url.query else "", url.hostname, response.status
+            )
+        )
     return response
-
-

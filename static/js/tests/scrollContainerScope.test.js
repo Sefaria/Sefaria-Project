@@ -10,33 +10,66 @@ jest.mock('react-image-crop/dist/ReactCrop.css', () => ({}));
 // time. Nothing here renders them, so each import is stubbed with a module whose every
 // export is a no-op component.
 jest.mock('../ContentText', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
-jest.mock('../ConnectionFilters', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
+jest.mock(
+  '../ConnectionFilters',
+  () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) })
+);
 jest.mock('../context', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
 jest.mock('../SidebarSearch', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
 jest.mock('../TextList', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
-jest.mock('../ConnectionsPanelHeader', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
-jest.mock('../AddToSourceSheet', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
+jest.mock(
+  '../ConnectionsPanelHeader',
+  () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) })
+);
+jest.mock(
+  '../AddToSourceSheet',
+  () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) })
+);
 jest.mock('../LexiconBox', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
 jest.mock('../AboutBox', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
 jest.mock('../GuideBox', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
 jest.mock('../TranslationsBox', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
 jest.mock('../LinkerAdminBox', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
-jest.mock('../LexiconHeadwordEditBox', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
-jest.mock('../LexiconContentEditBox', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
+jest.mock(
+  '../LexiconHeadwordEditBox',
+  () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) })
+);
+jest.mock(
+  '../LexiconContentEditBox',
+  () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) })
+);
 jest.mock('../ExtendedNotes', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
 jest.mock('../BookPage', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
-jest.mock('../CollectionsWidget', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
+jest.mock(
+  '../CollectionsWidget',
+  () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) })
+);
 jest.mock('../TopicSearch', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
 jest.mock('../WebPage', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
-jest.mock('../sefaria/signupModalContent', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
+jest.mock(
+  '../sefaria/signupModalContent',
+  () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) })
+);
 jest.mock('../Misc', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
 jest.mock('../TextRange', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
-jest.mock('../LexiconEntryEditBox', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
-jest.mock('../LexiconWysiwygValue', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
+jest.mock(
+  '../LexiconEntryEditBox',
+  () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) })
+);
+jest.mock(
+  '../LexiconWysiwygValue',
+  () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) })
+);
 jest.mock('../AdminEditor', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
 jest.mock('react-image-crop', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
-jest.mock('react-tag-autocomplete', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
-jest.mock('react-simple-wysiwyg', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
+jest.mock(
+  'react-tag-autocomplete',
+  () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) })
+);
+jest.mock(
+  'react-simple-wysiwyg',
+  () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) })
+);
 jest.mock('dompurify', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
 jest.mock('json-edit-react', () => new Proxy({ __esModule: true }, { get: (t, p) => (p in t ? t[p] : () => null) }));
 
@@ -78,7 +111,9 @@ const recordScrollTop = (el) => {
   Object.defineProperty(el, 'scrollTop', {
     configurable: true,
     get: () => value,
-    set: (v) => { value = v; },
+    set: (v) => {
+      value = v;
+    },
   });
 };
 

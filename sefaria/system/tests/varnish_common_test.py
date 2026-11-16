@@ -4,6 +4,7 @@ A stalled Varnish admin or front-end socket must not block the calling request
 or job indefinitely. Both helpers swallow failures through graceful_exception,
 so a timeout is logged and returns None instead of raising.
 """
+
 import socket
 import subprocess
 from unittest import mock
@@ -32,15 +33,16 @@ def test_ban_url_subprocess_has_finite_timeout():
 
 def test_purge_url_timeout_is_swallowed():
     with mock.patch.object(common, "HTTPConnection") as conn_cls:
-        conn_cls.return_value.request.side_effect = socket.timeout("timed out")
+        conn_cls.return_value.request.side_effect = TimeoutError("timed out")
         result = common.purge_url("https://www.sefaria.org/api/texts/Genesis")
 
     assert result is None
 
 
 def test_ban_url_timeout_is_swallowed():
-    with mock.patch.object(common.subprocess, "run",
-                           side_effect=subprocess.TimeoutExpired(cmd="varnishadm", timeout=5)):
+    with mock.patch.object(
+        common.subprocess, "run", side_effect=subprocess.TimeoutExpired(cmd="varnishadm", timeout=5)
+    ):
         result = common.ban_url("/api/texts/Genesis")
 
     assert result is None

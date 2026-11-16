@@ -6,6 +6,7 @@ pin the payload checks on top of that seal: the hashed user id must match the us
 and the audience must match this service. Tokens minted before the audience claim
 existed are accepted only while CHATBOT_ACCEPT_LEGACY_TOKENS is enabled.
 """
+
 import base64
 import hashlib
 import json
@@ -52,7 +53,6 @@ def _open(token, secret=SECRET):
 
 
 class TestChatbotUserTokenBuild:
-
     def test_built_token_round_trips_to_user_id(self):
         token = build_chatbot_user_token(USER_ID, SECRET)
         assert get_user_id_from_chatbot_user_token(token, SECRET) == USER_ID
@@ -64,7 +64,6 @@ class TestChatbotUserTokenBuild:
 
 
 class TestChatbotUserTokenVerify:
-
     def test_token_with_audience_is_accepted(self):
         assert get_user_id_from_chatbot_user_token(_seal(_payload()), SECRET) == USER_ID
 

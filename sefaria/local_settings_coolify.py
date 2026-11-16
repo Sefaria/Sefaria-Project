@@ -2,7 +2,7 @@ import os
 
 from django.core.exceptions import ImproperlyConfigured
 
-SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+SILENCED_SYSTEM_CHECKS = ["captcha.recaptcha_test_key_error"]
 
 
 def resolve_allowed_hosts(debug):
@@ -16,38 +16,38 @@ def resolve_allowed_hosts(debug):
     if hosts:
         return hosts
     if debug and os.getenv("ALLOWED_HOSTS_ALLOW_ALL", "").strip().lower() in ("1", "true", "yes"):
-        return ['*']
+        return ["*"]
     raise ImproperlyConfigured("ALLOWED_HOSTS env var must list the served hostnames")
 
 
-CSRF_TRUSTED_ORIGINS = ['https://*.sefaria.org']
+CSRF_TRUSTED_ORIGINS = ["https://*.sefaria.org"]
 
 MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
 MONGO_PORT = int(os.getenv("MONGO_PORT", 27017))
-SEFARIA_DB = os.getenv('MONGO_DB_NAME')
-SEFARIA_DB_USER = os.getenv('MONGO_DB_USER', '')
-SEFARIA_DB_PASSWORD = os.getenv('MONGO_DB_PASSWORD', '')
+SEFARIA_DB = os.getenv("MONGO_DB_NAME")
+SEFARIA_DB_USER = os.getenv("MONGO_DB_USER", "")
+SEFARIA_DB_PASSWORD = os.getenv("MONGO_DB_PASSWORD", "")
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'sefaria_auth'),
-        'USER': os.getenv('POSTGRES_USER', 'admin'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'admin'),
-        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB", "sefaria_auth"),
+        "USER": os.getenv("POSTGRES_USER", "admin"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "admin"),
+        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+        "PORT": os.getenv("POSTGRES_PORT", "5432"),
     },
-    'vector_db': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('PGVECTOR_DB', 'pgvector'),
-        'USER': os.getenv('PGVECTOR_USER', os.getenv('POSTGRES_USER', 'admin')),
-        'PASSWORD': os.getenv('PGVECTOR_PASSWORD', os.getenv('POSTGRES_PASSWORD', 'admin')),
-        'HOST': os.getenv('PGVECTOR_HOST', 'localhost'),
-        'PORT': os.getenv('PGVECTOR_DB_PORT', '5432'),
+    "vector_db": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("PGVECTOR_DB", "pgvector"),
+        "USER": os.getenv("PGVECTOR_USER", os.getenv("POSTGRES_USER", "admin")),
+        "PASSWORD": os.getenv("PGVECTOR_PASSWORD", os.getenv("POSTGRES_PASSWORD", "admin")),
+        "HOST": os.getenv("PGVECTOR_HOST", "localhost"),
+        "PORT": os.getenv("PGVECTOR_DB_PORT", "5432"),
     },
 }
 
-ADMIN_PATH = 'admin'
+ADMIN_PATH = "admin"
 
 WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
 WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")

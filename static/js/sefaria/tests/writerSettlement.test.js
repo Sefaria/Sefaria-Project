@@ -12,40 +12,50 @@ import $ from '../sefariaJquery';
 
 // Resolves to 'resolved', 'rejected', or 'pending' if nothing settled within the window.
 const SETTLE_WINDOW_MS = 50;
-const outcomeOf = (promise) => Promise.race([
-  promise.then(() => 'resolved', () => 'rejected'),
-  new Promise(resolve => setTimeout(() => resolve('pending'), SETTLE_WINDOW_MS)),
-]);
+const outcomeOf = (promise) =>
+  Promise.race([
+    promise.then(
+      () => 'resolved',
+      () => 'rejected'
+    ),
+    new Promise((resolve) => setTimeout(() => resolve('pending'), SETTLE_WINDOW_MS)),
+  ]);
 
 // Lets queued microtasks and timers run before asserting.
-const flush = () => new Promise(resolve => setTimeout(resolve, 0));
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 // Makes $.post settle asynchronously with `ok` (a response body) or, when `ok` is
 // undefined, with a failed request. A success callback passed as the third argument is
 // honoured, matching jQuery's $.post(url, data, success) form.
-const mockPost = (outcome) => jest.spyOn($, 'post').mockImplementation((url, data, success) => {
-  const deferred = $.Deferred();
-  if (typeof success === 'function') { deferred.done(success); }
-  setTimeout(() => {
-    try {
-      if (outcome.ok !== undefined) {
-        deferred.resolve(outcome.ok);
-      } else {
-        deferred.reject({ status: 500 }, 'error', 'Internal Server Error');
-      }
-    } catch (e) {
-      // A handler threw; jQuery leaves the request's own promise untouched.
+const mockPost = (outcome) =>
+  jest.spyOn($, 'post').mockImplementation((url, data, success) => {
+    const deferred = $.Deferred();
+    if (typeof success === 'function') {
+      deferred.done(success);
     }
-  }, 0);
-  return deferred.promise();
-});
+    setTimeout(() => {
+      try {
+        if (outcome.ok !== undefined) {
+          deferred.resolve(outcome.ok);
+        } else {
+          deferred.reject({ status: 500 }, 'error', 'Internal Server Error');
+        }
+      } catch (e) {
+        // A handler threw; jQuery leaves the request's own promise untouched.
+      }
+    }, 0);
+    return deferred.promise();
+  });
 
-const mockAjaxFailure = () => jest.spyOn($, 'ajax').mockImplementation((options) => {
-  setTimeout(() => {
-    if (options.error) { options.error({ status: 500 }, 'error', 'Internal Server Error'); }
-  }, 0);
-  return { abort() {} };
-});
+const mockAjaxFailure = () =>
+  jest.spyOn($, 'ajax').mockImplementation((options) => {
+    setTimeout(() => {
+      if (options.error) {
+        options.error({ status: 500 }, 'error', 'Internal Server Error');
+      }
+    }, 0);
+    return { abort() {} };
+  });
 
 afterEach(() => {
   jest.restoreAllMocks();
@@ -86,7 +96,9 @@ describe('toggleSavedItem', () => {
 
   test('rejects when applying a successful sync response throws', async () => {
     Sefaria._uid = 'uid-1';
-    jest.spyOn(Sefaria, 'removeSavedItem').mockImplementation(() => { throw new Error('store unavailable'); });
+    jest.spyOn(Sefaria, 'removeSavedItem').mockImplementation(() => {
+      throw new Error('store unavailable');
+    });
     mockPost({ ok: {} });
     const result = await outcomeOf(Sefaria.toggleSavedItem(item));
     expect(result).toBe('rejected');

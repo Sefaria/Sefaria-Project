@@ -1,14 +1,12 @@
-# -*- coding: utf-8 -*-
-
 import contextlib
 from unittest.mock import patch
 
 import pytest
 
-from sefaria.system.database import db
-from sefaria.system.exceptions import InputError
 import sefaria.model as model
 import sefaria.model.abstract as abstract
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 
 # cascade functions are tested in person_test.py
 
@@ -19,19 +17,16 @@ def setup_module(module):
     global record_to_set
     record_classes = abstract.get_record_classes()
     set_classes = abstract.get_set_classes()
-    record_to_set = {
-        set_class.recordClass.__name__: set_class for set_class in set_classes
-    }
+    record_to_set = {set_class.recordClass.__name__: set_class for set_class in set_classes}
     print(record_classes)
 
 
 def get_record_classes_with_slugs():
     classes = abstract.get_record_classes()
-    return filter(lambda x: getattr(x, 'slug_fields', None) is not None and x.__name__ != "Portal", classes)
+    return filter(lambda x: getattr(x, "slug_fields", None) is not None and x.__name__ != "Portal", classes)
 
 
-class TestMongoRecordModels(object):
-
+class TestMongoRecordModels:
     def test_class_attribute_collection(self):
         for sub in record_classes:
             assert sub.collection
@@ -46,7 +41,7 @@ class TestMongoRecordModels(object):
     @pytest.mark.parametrize("sub", abstract.get_record_classes())
     def test_instanciation_load_and_validity(self, sub):
         m = sub()
-        if m.collection == "term": #remove this line once terms are normalized
+        if m.collection == "term":  # remove this line once terms are normalized
             return
         res = m.load({})
         if not res:  # Collection may be empty
@@ -61,12 +56,12 @@ class TestMongoRecordModels(object):
             new_slug = a.normalize_slug(slug)
             assert new_slug == final_slug
 
-        test_slug('blah', 'blah')
-        test_slug('blah1', 'blah1')
-        test_slug('bla-h', 'bla-h')
-        test_slug('blah and blah', 'blah-and-blah')
-        test_slug('blah/blah', 'blah-blah')
-        test_slug('blah == בלה', 'blah-בלה')
+        test_slug("blah", "blah")
+        test_slug("blah1", "blah1")
+        test_slug("bla-h", "bla-h")
+        test_slug("blah and blah", "blah-and-blah")
+        test_slug("blah/blah", "blah-blah")
+        test_slug("blah == בלה", "blah-בלה")
 
     @pytest.mark.django_db
     @pytest.mark.parametrize("sub", get_record_classes_with_slugs())
@@ -75,21 +70,20 @@ class TestMongoRecordModels(object):
 
         :return:
         """
-        test_slug = 'test'
+        test_slug = "test"
 
         def get_slug(base, slug_field):
-            return abstract.SluggedAbstractMongoRecord.normalize_slug('{}{}'.format(base, slug_field))
+            return abstract.SluggedAbstractMongoRecord.normalize_slug(f"{base}{slug_field}")
+
         attrs = {  # fill in requirements
             attr: None for attr in sub.required_attrs
         }
-        attrs.update({
-            slug_field: get_slug(test_slug, slug_field) for slug_field in sub.slug_fields
-        })
+        attrs.update({slug_field: get_slug(test_slug, slug_field) for slug_field in sub.slug_fields})
         inst = sub(attrs)
         for slug_field in sub.slug_fields:
             temp_slug = get_slug(test_slug, slug_field)
             num_records = 1
-            dup_str = ''
+            dup_str = ""
             count = 0
             sub_set = record_to_set[sub.__name__]({slug_field: temp_slug})
             sub_set.delete()
@@ -112,7 +106,7 @@ class TestMongoRecordModels(object):
         inst2 = sub(attrs)
         inst2.save()
         for slug_field in sub.slug_fields:
-            temp_slug = get_slug(test_slug, slug_field) + '1'
+            temp_slug = get_slug(test_slug, slug_field) + "1"
             assert getattr(inst2, slug_field) == temp_slug
 
         # cleanup
@@ -131,22 +125,24 @@ class TestMongoRecordModels(object):
         records = getattr(db, record_class.collection).find()
         for rec in records:
             record_keys = set(rec.keys())
-            assert record_keys <= class_keys, "{} - unhandled keys {}".format(record_class, record_keys - class_keys)
-            assert req_class_keys <= record_keys, "{} - required keys missing: {}".format(record_class, req_class_keys - record_keys)
+            assert record_keys <= class_keys, f"{record_class} - unhandled keys {record_keys - class_keys}"
+            assert req_class_keys <= record_keys, (
+                f"{record_class} - required keys missing: {req_class_keys - record_keys}"
+            )
 
 
-class Test_Mongo_Set_Models(object):
-
+class Test_Mongo_Set_Models:
     def test_record_class(self):
         for sub in set_classes:
             assert sub.recordClass != abstract.AbstractMongoRecord
             assert issubclass(sub.recordClass, abstract.AbstractMongoRecord)
 
 
-class Test_Mongo_Record_Methods(object):
-    """ Tests of the methods on the abstract models.
+class Test_Mongo_Record_Methods:
+    """Tests of the methods on the abstract models.
     They often need instanciation, but are not designed to test the subclasses specifically.
     """
+
     def test_equality_and_identity(self):
         attrs = {
             "ref": "Psalms 145:22",
@@ -154,9 +150,11 @@ class Test_Mongo_Record_Methods(object):
             "anchorText": "Psalm 115:18",
             "owner": 7934,
             "type": "note",
-            "public": True
+            "public": True,
         }
-        model.Note(attrs).save() # added to make sure there is a note in the db, if the table is truncated or not extant.
+        model.Note(
+            attrs
+        ).save()  # added to make sure there is a note in the db, if the table is truncated or not extant.
         n1 = model.Note(attrs)
         n2 = model.Note(attrs)
         n3 = model.Note()
@@ -165,7 +163,6 @@ class Test_Mongo_Record_Methods(object):
         assert not n1.same_record(n2)
         assert n1 != n3
         assert not n1.same_record(n3)
-
 
         n4 = model.Note().load({"ref": "Psalms 145:22", "owner": 7934})
         n5 = model.Note().load({"ref": "Psalms 145:22", "owner": 7934})
@@ -181,7 +178,7 @@ class Test_Mongo_Record_Methods(object):
             "owner": 28,
             "type": "note",
             "public": True,
-            "foobar": "blaz"  # should raise an exception when loaded
+            "foobar": "blaz",  # should raise an exception when loaded
         }
         db.notes.delete_one({"ref": "Psalms 150:1", "owner": 28})
         db.notes.insert_one(attrs)
@@ -191,7 +188,7 @@ class Test_Mongo_Record_Methods(object):
 
     def test_copy(self):
         for sub in record_classes:
-            if sub is model.VersionState: #VersionState is derived - this test doesn't work well with it
+            if sub is model.VersionState:  # VersionState is derived - this test doesn't work well with it
                 continue
             m = sub()
             res = m.load({})
@@ -202,13 +199,13 @@ class Test_Mongo_Record_Methods(object):
             assert res == c
 
 
-class _FakeGuard(object):
+class _FakeGuard:
     """Stands in for skip_bad_record: records what it swallowed."""
 
     def __init__(self, exceptions=Exception):
         self.exceptions = exceptions
-        self.skipped = []   # (operation, record, exception name) per swallowed exception
-        self.calls = []     # (pathway, operation, record, level) per guard entry, swallowed or not
+        self.skipped = []  # (operation, record, exception name) per swallowed exception
+        self.calls = []  # (pathway, operation, record, level) per guard entry, swallowed or not
 
     def __call__(self, pathway, operation, record=None, level="warning"):
         self.calls.append((pathway, operation, record, level))
@@ -219,10 +216,11 @@ class _FakeGuard(object):
                 yield
             except self.exceptions as e:
                 self.skipped.append((operation, record, type(e).__name__))
+
         return guard()
 
 
-class TestWithSkipGuard(object):
+class TestWithSkipGuard:
     """AbstractMongoSet.with_skip_guard() -- skip records that fail to INSTANTIATE.
 
     `_read_records()` materializes the whole set the moment it is touched, including by the
@@ -233,17 +231,20 @@ class TestWithSkipGuard(object):
     def _set_of(self, docs, instantiate, post=None):
         """A minimal AbstractMongoSet over `docs`, shaped like the real subclasses: it
         overrides _read_records() and instantiates through _build_records()."""
+
         class _Set(abstract.AbstractMongoSet):
             def __init__(self):
                 self.raw_records = list(docs)
                 self.records = None
                 self.record_kwargs = {}
                 self.max = None
+
             def _read_records(self):
                 if self.records is None:
                     self._build_records(instantiate)
                     if post:
                         post(self)
+
         return _Set()
 
     def _failing_set(self, docs):
@@ -251,6 +252,7 @@ class TestWithSkipGuard(object):
             if raw.get("title") == "bad" or raw.get("boom"):
                 raise InputError("Please provide category for Index record: bad.")
             return raw.get("title")
+
         return self._set_of(docs, instantiate)
 
     def test_without_the_guard_one_bad_record_aborts_the_whole_set(self):
@@ -270,9 +272,11 @@ class TestWithSkipGuard(object):
     def test_guard_applies_to_every_access_path_not_just_iteration(self):
         """The reason the guard lives on the set rather than on one method: rewriting a loop
         as .array() / len() / contents() must not silently drop the protection."""
-        class _Rec(object):                       # contents() calls .contents() per record
+
+        class _Rec:  # contents() calls .contents() per record
             def __init__(self, title):
                 self.title = title
+
             def contents(self, **kwargs):
                 return {"title": self.title}
 
@@ -281,11 +285,16 @@ class TestWithSkipGuard(object):
                 raise InputError("bad record")
             return _Rec(raw["title"])
 
-        for access in (lambda s: list(s), lambda s: s.array(), lambda s: len(s),
-                       lambda s: s[0], lambda s: s.contents()):
+        for access in (
+            lambda s: list(s),
+            lambda s: s.array(),
+            lambda s: len(s),
+            lambda s: s[0],
+            lambda s: s.contents(),
+        ):
             s = self._set_of([{"title": "good1"}, {"title": "bad"}], instantiate)
             s.with_skip_guard(_FakeGuard(InputError), "startup", "op")
-            access(s)                     # must not raise
+            access(s)  # must not raise
             assert s.max == 1
 
     def test_pathway_and_level_are_forwarded_to_the_guard(self):
@@ -295,8 +304,10 @@ class TestWithSkipGuard(object):
         guard = _FakeGuard(InputError)
         s = self._failing_set([{"title": "good"}, {"title": "bad"}])
         list(s.with_skip_guard(guard, "reset_cache,startup", "op", level="error"))
-        assert guard.calls == [("reset_cache,startup", "op", "good", "error"),
-                               ("reset_cache,startup", "op", "bad", "error")]
+        assert guard.calls == [
+            ("reset_cache,startup", "op", "good", "error"),
+            ("reset_cache,startup", "op", "bad", "error"),
+        ]
 
     def test_level_defaults_to_warning(self):
         guard = _FakeGuard()
@@ -347,8 +358,9 @@ class TestWithSkipGuard(object):
     def test_whole_list_work_after_build_records_still_runs(self):
         """A subclass's own post-processing (LexiconEntrySet's sort) is unaffected by the
         guard -- _build_records() returns and the subclass carries on."""
-        s = self._set_of([{"title": "b"}, {"title": "a"}], lambda raw: raw["title"],
-                         post=lambda self: self.records.sort())
+        s = self._set_of(
+            [{"title": "b"}, {"title": "a"}], lambda raw: raw["title"], post=lambda self: self.records.sort()
+        )
         s.with_skip_guard(_FakeGuard(), "startup", "op")
         assert list(s) == ["a", "b"]
 
@@ -357,6 +369,7 @@ class TestWithSkipGuard(object):
         subclass does with the finished list. A failure there has no single record to blame,
         so swallowing it could only hand back a half-processed set. Per-record work that can
         raise belongs inside the `instantiate` function -- see TopicSet._read_records."""
+
         def boom(self):
             raise InputError("post-processing blew up")
 
@@ -380,13 +393,17 @@ def zz_topics():
     over `TopicSet({"subclass": "author"})` would pass vacuously wherever that data is absent.
     """
     good, bad = "zzabstract-author", "zzabstract-bad-subclass"
-    titles = lambda text: [{"text": text, "lang": "en", "primary": True},
-                           {"text": "א" + text, "lang": "he", "primary": True}]
+    titles = lambda text: [
+        {"text": text, "lang": "en", "primary": True},
+        {"text": "א" + text, "lang": "he", "primary": True},
+    ]
     db.topics.delete_many({"slug": {"$in": [good, bad]}})
-    db.topics.insert_many([
-        {"slug": good, "subclass": "author", "titles": titles("ZZAbstract Author")},
-        {"slug": bad, "subclass": "no-such-subclass", "titles": titles("ZZAbstract Bad")},
-    ])
+    db.topics.insert_many(
+        [
+            {"slug": good, "subclass": "author", "titles": titles("ZZAbstract Author")},
+            {"slug": bad, "subclass": "no-such-subclass", "titles": titles("ZZAbstract Bad")},
+        ]
+    )
     yield good, bad
     db.topics.delete_many({"slug": {"$in": [good, bad]}})
 
@@ -395,18 +412,25 @@ def zz_topics():
 def zz_lexicon_entry():
     headword = "zzabstract-headword"
     db.lexicon_entry.delete_many({"headword": headword})
-    db.lexicon_entry.insert_one({"headword": headword, "parent_lexicon": "Jastrow Dictionary",
-                                 "rid": "zzabstract-rid", "content": {"senses": []}})
+    db.lexicon_entry.insert_one(
+        {
+            "headword": headword,
+            "parent_lexicon": "Jastrow Dictionary",
+            "rid": "zzabstract-rid",
+            "content": {"senses": []},
+        }
+    )
     yield headword
     db.lexicon_entry.delete_many({"headword": headword})
 
 
-class TestPolymorphicSetsStillTypeTheirRecords(object):
+class TestPolymorphicSetsStillTypeTheirRecords:
     """The instantiation hooks moved in the same change as with_skip_guard; these pin the
     behavior that moved, against the real sets rather than stubs."""
 
     def test_topic_set_casts_to_subclass(self, zz_topics):
-        from sefaria.model.topic import TopicSet, AuthorTopic
+        from sefaria.model.topic import AuthorTopic, TopicSet
+
         good, _ = zz_topics
         topics = TopicSet({"slug": good}).array()
         assert len(topics) == 1
@@ -415,6 +439,7 @@ class TestPolymorphicSetsStillTypeTheirRecords(object):
     def test_an_unknown_subclass_aborts_an_unguarded_topic_set(self, zz_topics):
         """Unchanged: without a guard, a corrupt record is still loud."""
         from sefaria.model.topic import TopicSet
+
         _, bad = zz_topics
         with pytest.raises(KeyError):
             TopicSet({"slug": bad}).array()
@@ -425,31 +450,35 @@ class TestPolymorphicSetsStillTypeTheirRecords(object):
         set -- taking every healthy topic with it, on the guarded startup path in
         Library._build_topic_mapping."""
         from sefaria.model.topic import TopicSet
+
         good, bad = zz_topics
         guard = _FakeGuard(KeyError)
-        topics = TopicSet({"slug": {"$in": [good, bad]}}).with_skip_guard(
-            guard, "startup", "op").array()
+        topics = TopicSet({"slug": {"$in": [good, bad]}}).with_skip_guard(guard, "startup", "op").array()
         assert [t.slug for t in topics] == [good]
         assert guard.skipped == [("op", bad, "KeyError")]
 
     def test_lexicon_entry_set_builds_lexicon_specific_entries(self, zz_lexicon_entry):
-        from sefaria.model.lexicon import LexiconEntrySet, JastrowDictionaryEntry
+        from sefaria.model.lexicon import JastrowDictionaryEntry, LexiconEntrySet
+
         entries = LexiconEntrySet({"headword": zz_lexicon_entry}).array()
         assert len(entries) == 1
         assert type(entries[0]) is JastrowDictionaryEntry
 
 
-class Test_Load_By_Id_Validation(object):
-    """ load_by_id accepts only a string or ObjectId id; anything else is rejected before any query runs. """
+class Test_Load_By_Id_Validation:
+    """load_by_id accepts only a string or ObjectId id; anything else is rejected before any query runs."""
 
     VALID_HEX = "0123456789abcdef01234567"
 
-    @pytest.mark.parametrize("bad_id", [
-        {"$ne": None},          # operator dict used as an id
-        ["0123456789abcdef01234567"],
-        12345,
-        b"0123456789abcdef01234567",
-    ])
+    @pytest.mark.parametrize(
+        "bad_id",
+        [
+            {"$ne": None},  # operator dict used as an id
+            ["0123456789abcdef01234567"],
+            12345,
+            b"0123456789abcdef01234567",
+        ],
+    )
     def test_rejects_non_string_non_objectid(self, bad_id):
         with patch.object(abstract, "db") as fake_db:
             with pytest.raises(InputError):
@@ -465,6 +494,7 @@ class Test_Load_By_Id_Validation(object):
 
     def test_accepts_valid_string_and_objectid(self):
         from bson.objectid import ObjectId
+
         expected = ObjectId(self.VALID_HEX)
         for given in (self.VALID_HEX, expected):
             with patch.object(abstract, "db") as fake_db:

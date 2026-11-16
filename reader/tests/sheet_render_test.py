@@ -1,4 +1,5 @@
 """Sheet pages print user-written fields as escaped text or as bleached HTML, and embed sheet JSON safely."""
+
 from unittest import mock
 
 import pytest
@@ -87,7 +88,7 @@ def test_render_cleaner_bleaches_text_fields_and_keeps_media():
 
 @pytest.mark.django_db
 def test_ref_link_fallback_escapes_unparseable_ref():
-    from reader.templatetags.sefaria_tags import ref_link, he_ref_link
+    from reader.templatetags.sefaria_tags import he_ref_link, ref_link
 
     assert "<img" not in ref_link(IMG_ONERROR)
     assert "<img" not in he_ref_link(IMG_ONERROR)

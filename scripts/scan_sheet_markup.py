@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Read-only report of sheets whose stored fields still contain markup.
 
@@ -12,6 +11,7 @@ Usage:
 --limit caps how many sheets are read (0 = all). --sample caps the per-sheet
 lines printed (the counts always cover every scanned sheet).
 """
+
 import argparse
 import collections
 import os
@@ -26,8 +26,8 @@ django.setup()
 
 import structlog
 
-from sefaria.system.database import db
 from sefaria.sheet_markup_scan import scan_sheets
+from sefaria.system.database import db
 
 logger = structlog.get_logger(__name__)
 

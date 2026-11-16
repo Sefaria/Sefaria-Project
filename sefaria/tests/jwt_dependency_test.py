@@ -4,6 +4,7 @@ on top of PyJWT.
 
 Pure unit tests: no Django models, no Mongo.
 """
+
 import os
 import re
 
@@ -12,9 +13,7 @@ import pytest
 from rest_framework_simplejwt.backends import TokenBackend
 from rest_framework_simplejwt.exceptions import TokenBackendError
 
-REQUIREMENTS_PATH = os.path.join(
-    os.path.dirname(__file__), "..", "..", "requirements.txt"
-)
+REQUIREMENTS_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "requirements.txt")
 # PyJWT 2.4.0 is the first release with the algorithm-handling fix for CVE-2022-29217.
 MIN_PYJWT = (2, 4, 0)
 SIGNING_KEY = "test-signing-key-at-least-256-bits-long-0123456789"

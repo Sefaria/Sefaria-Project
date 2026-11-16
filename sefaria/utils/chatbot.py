@@ -21,9 +21,9 @@ MCP_LOGIN_TOKEN_TTL_MINUTES = 5
 MCP_TOKEN_AUDIENCE = "mcp"
 NONCE_SIZE_BYTES = 12
 # Publicly known placeholder; tokens built with it are forgeable, so it is only accepted under DEBUG.
-INSECURE_DEFAULT_CHATBOT_USER_ID_SECRET = 'secret'
+INSECURE_DEFAULT_CHATBOT_USER_ID_SECRET = "secret"
 # Audience claim binding a token to this service; tokens carrying another audience are rejected.
-CHATBOT_TOKEN_AUDIENCE = 'sefaria-chatbot-session'
+CHATBOT_TOKEN_AUDIENCE = "sefaria-chatbot-session"
 
 
 def is_usable_chatbot_user_id_secret(secret):
@@ -32,6 +32,7 @@ def is_usable_chatbot_user_id_secret(secret):
     if secret == INSECURE_DEFAULT_CHATBOT_USER_ID_SECRET and not settings.DEBUG:
         return False
     return True
+
 
 # Set on logout from any module. The next Library page load clears the Library
 # Assistant's localStorage (templates/base.html) and deletes the cookie, so the next

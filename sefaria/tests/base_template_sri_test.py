@@ -4,6 +4,7 @@ Scripts loaded from a CDN are pinned to an exact version and carry a Subresource
 Integrity hash, so the browser refuses a file that does not match the pinned bytes.
 These checks read the template source only; they do not need Django or a database.
 """
+
 import re
 from pathlib import Path
 

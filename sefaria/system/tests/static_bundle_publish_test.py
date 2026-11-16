@@ -21,7 +21,7 @@ def test_static_alias_refuses_server_bundle_and_source_maps(nginx_template):
     start = 0
     for _ in range(static_blocks):
         index = nginx_template.index(STATIC_LOCATION, start)
-        preceding = nginx_template[max(0, index - 400):index]
+        preceding = nginx_template[max(0, index - 400) : index]
         assert SERVER_BUNDLE_DENY in preceding
         assert SOURCE_MAP_DENY in preceding
         start = index + len(STATIC_LOCATION)

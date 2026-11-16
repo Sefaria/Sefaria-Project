@@ -4,11 +4,7 @@
  * BroadcastChannel is replaced with a small in-test double so every channel
  * instance, its listeners and its close() calls can be observed directly.
  */
-import {
-  REFRESH_EDITOR_CHANNEL,
-  postRefreshEditor,
-  subscribeRefreshEditor,
-} from '../refreshEditorChannel';
+import { REFRESH_EDITOR_CHANNEL, postRefreshEditor, subscribeRefreshEditor } from '../refreshEditorChannel';
 
 let instances;
 
@@ -21,15 +17,24 @@ class FakeBroadcastChannel {
     instances.push(this);
   }
   addEventListener(type, fn) {
-    if (type === 'message') { this.listeners.push(fn); }
+    if (type === 'message') {
+      this.listeners.push(fn);
+    }
   }
   removeEventListener(type, fn) {
-    this.listeners = this.listeners.filter(l => l !== fn);
+    this.listeners = this.listeners.filter((l) => l !== fn);
   }
-  postMessage(data) { this.posted.push(data); }
-  close() { this.closed = true; this.listeners = []; }
+  postMessage(data) {
+    this.posted.push(data);
+  }
+  close() {
+    this.closed = true;
+    this.listeners = [];
+  }
   // Test helper: deliver a message to every open listener on this channel.
-  receive(data) { this.listeners.slice().forEach(fn => fn({ data })); }
+  receive(data) {
+    this.listeners.slice().forEach((fn) => fn({ data }));
+  }
 }
 
 beforeEach(() => {
@@ -97,7 +102,9 @@ test('an unscoped legacy message reloads only when the editor is clean', () => {
 test('unsubscribing closes the channel and stops delivery', () => {
   const onRefresh = jest.fn();
   const unsubscribe = subscribeRefreshEditor({
-    sheetId: 1, canReload: () => true, onRefresh,
+    sheetId: 1,
+    canReload: () => true,
+    onRefresh,
   });
   const channel = instances[0];
   unsubscribe();

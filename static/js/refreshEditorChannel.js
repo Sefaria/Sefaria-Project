@@ -27,11 +27,12 @@ export function subscribeRefreshEditor({ sheetId, canReload, onRefresh }) {
   const channel = new BroadcastChannel(REFRESH_EDITOR_CHANNEL);
   const handleMessage = (event) => {
     const data = event.data;
-    if (data && typeof data === 'object' && data.sheetId != null
-        && String(data.sheetId) !== String(sheetId)) {
+    if (data && typeof data === 'object' && data.sheetId != null && String(data.sheetId) !== String(sheetId)) {
       return;
     }
-    if (!canReload()) { return; }
+    if (!canReload()) {
+      return;
+    }
     onRefresh();
   };
   channel.addEventListener('message', handleMessage);

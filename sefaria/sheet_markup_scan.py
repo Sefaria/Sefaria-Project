@@ -7,6 +7,7 @@ sheet attribution. Sheets saved before that gap was closed can still hold
 hostile markup in those fields. This module only reports paths; it never
 writes. scripts/scan_sheet_markup.py drives it over the sheets collection.
 """
+
 import re
 
 # Any "<" that starts a tag, comment or doctype. Deliberately loose: a false
@@ -15,7 +16,15 @@ MARKUP_RE = re.compile(r"<\s*[A-Za-z!/?]")
 
 # Source keys whose values are rendered as HTML without a sanitizer. The editor
 # stores a source's custom title as `title`; `customTitle` is kept for legacy records.
-SOURCE_FIELDS_WITHOUT_SANITIZER = ("title", "customTitle", "caption", "options", "outsideText", "outsideBiText", "comment")
+SOURCE_FIELDS_WITHOUT_SANITIZER = (
+    "title",
+    "customTitle",
+    "caption",
+    "options",
+    "outsideText",
+    "outsideBiText",
+    "comment",
+)
 
 
 def _string_paths(value, path):

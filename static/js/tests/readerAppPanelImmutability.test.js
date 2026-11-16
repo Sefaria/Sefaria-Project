@@ -8,69 +8,108 @@
  */
 
 jest.mock('../sefaria/sefaria', () => {
-  const LIBRARY = 'library', VOICES = 'voices';
-  return { __esModule: true, default: {
-    LIBRARY_MODULE: LIBRARY,
-    VOICES_MODULE: VOICES,
-    activeModule: LIBRARY,
-    _: (k) => k,
-    _bilingual: (s) => ({ en: s, he: s }),
-    interfaceLang: 'english',
-    apiHost: '',
-    toc: [],
-    terms: {},
-    _tocOrderLookup: {},
-    track: { event: () => {} },
-    _siteSettings: { ABOUT_SIDEBAR_PAGES: [] },
-    hebrew: { isHebrew: () => false },
-    search: { entitySearch: jest.fn() },
-    setup: () => {},
-    isRef: () => false,
-    humanRef: (r) => r,
-    util: {
-      clone: (x) => x,
-      cookie: () => {},
-      getObjectFromUrlParam: () => null,
-      currentPath: () => '/',
-      // Real fullURL rewrites the subdomain for a cross-module target; all these tests need
-      // is an absolute URL for `new URL()` to parse.
-      fullURL: (href, moduleTarget) =>
-        (href.startsWith('http') ? href
-          : `https://${moduleTarget === VOICES ? 'voices' : 'www'}.sefaria.org${href}`),
+  const LIBRARY = 'library',
+    VOICES = 'voices';
+  return {
+    __esModule: true,
+    default: {
+      LIBRARY_MODULE: LIBRARY,
+      VOICES_MODULE: VOICES,
+      activeModule: LIBRARY,
+      _: (k) => k,
+      _bilingual: (s) => ({ en: s, he: s }),
+      interfaceLang: 'english',
+      apiHost: '',
+      toc: [],
+      terms: {},
+      _tocOrderLookup: {},
+      track: { event: () => {} },
+      _siteSettings: { ABOUT_SIDEBAR_PAGES: [] },
+      hebrew: { isHebrew: () => false },
+      search: { entitySearch: jest.fn() },
+      setup: () => {},
+      isRef: () => false,
+      humanRef: (r) => r,
+      util: {
+        clone: (x) => x,
+        cookie: () => {},
+        getObjectFromUrlParam: () => null,
+        currentPath: () => '/',
+        // Real fullURL rewrites the subdomain for a cross-module target; all these tests need
+        // is an absolute URL for `new URL()` to parse.
+        fullURL: (href, moduleTarget) =>
+          href.startsWith('http') ? href : `https://${moduleTarget === VOICES ? 'voices' : 'www'}.sefaria.org${href}`,
+      },
+      isSefariaURL: (url) => url.hostname.endsWith('sefaria.org'),
     },
-    isSefariaURL: (url) => url.hostname.endsWith('sefaria.org'),
-  }};
+  };
 });
 
-global.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+global.ResizeObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
 
 // Misc.jsx and ImageCropper.jsx are the only two modules in the tree that import a
 // stylesheet, which Jest cannot parse. Stubbing them keeps this test free of any
 // project-level Jest configuration. Every named export becomes a no-op component; nothing
 // under test renders them.
 // (factories must be inline -- jest hoists them above the imports)
-jest.mock("../Misc", () => new Proxy({}, {
-  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
-}));
-jest.mock("../ImageCropper", () => new Proxy({}, {
-  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
-}));
+jest.mock(
+  '../Misc',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => (prop === '__esModule' ? true : () => null),
+      }
+    )
+);
+jest.mock(
+  '../ImageCropper',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => (prop === '__esModule' ? true : () => null),
+      }
+    )
+);
 // json-edit-react (pulled in via ConnectionsPanel -> LexiconContentEditBox) does DOM feature
 // detection at import time that jsdom doesn't support (insertAdjacentElement); stubbing it
 // avoids ever evaluating the real package, same as the two mocks above.
-jest.mock("json-edit-react", () => new Proxy({}, {
-  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
-}));
+jest.mock(
+  'json-edit-react',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => (prop === '__esModule' ? true : () => null),
+      }
+    )
+);
 // react-simple-wysiwyg (pulled in via LexiconContentEditBox -> LexiconWysiwygValue) injects its
 // stylesheet at import time via insertAdjacentElement, same jsdom gap as json-edit-react above.
 // createButton(...) is called at module-load time and must itself return a component, not null.
-jest.mock("react-simple-wysiwyg", () => new Proxy({}, {
-  get: (_t, prop) => {
-    if (prop === "__esModule") { return true; }
-    if (prop === "createButton") { return () => (() => null); }
-    return () => null;
-  },
-}));
+jest.mock(
+  'react-simple-wysiwyg',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => {
+          if (prop === '__esModule') {
+            return true;
+          }
+          if (prop === 'createButton') {
+            return () => () => null;
+          }
+          return () => null;
+        },
+      }
+    )
+);
 
 import Sefaria from '../sefaria/sefaria';
 import { ReaderApp } from '../ReaderApp.jsx';

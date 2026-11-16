@@ -4,7 +4,7 @@ import sefaria.system.cache as cache_module
 from sefaria.system.cache import InMemoryCache
 
 
-@pytest.fixture()
+@pytest.fixture
 def fake_clock(monkeypatch):
     """Replaces the cache clock with a controllable value (seconds since epoch)."""
     clock = {"now": 1_000_000.0}

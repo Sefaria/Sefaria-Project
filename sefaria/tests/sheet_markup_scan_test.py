@@ -2,6 +2,7 @@
 Tests for sefaria/sheet_markup_scan.py: detection of stored sheet fields that
 still hold markup. Pure dict-in, paths-out checks; no database needed.
 """
+
 from sefaria.sheet_markup_scan import find_markup_fields, scan_sheets
 
 HOSTILE = '<img src=x onerror="alert(1)">'
@@ -47,11 +48,13 @@ def test_markup_nested_inside_options_list_is_reported():
 
 
 def test_ref_less_text_fields_are_reported():
-    sheet = _sheet(sources=[
-        {"outsideText": HOSTILE},
-        {"outsideBiText": {"en": "e", "he": HOSTILE}},
-        {"comment": "<script>x</script>"},
-    ])
+    sheet = _sheet(
+        sources=[
+            {"outsideText": HOSTILE},
+            {"outsideBiText": {"en": "e", "he": HOSTILE}},
+            {"comment": "<script>x</script>"},
+        ]
+    )
     assert find_markup_fields(sheet) == [
         "sources[0].outsideText",
         "sources[1].outsideBiText.he",

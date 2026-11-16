@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import { useEffect, useRef } from 'react';
 
 /*
  * Debounced autosave for the sheet editor.
@@ -10,7 +10,7 @@ import {useEffect, useRef} from 'react';
  * If the component unmounts while a save is still pending (for example, navigating away within
  * the delay), that save is run immediately so the last edit is not lost.
  */
-export function useAutosaveDebounce(save, value, deps, {enabled = true, delayMs = 500, onSchedule} = {}) {
+export function useAutosaveDebounce(save, value, deps, { enabled = true, delayMs = 500, onSchedule } = {}) {
   // { value } while a save is scheduled and has not fired yet, otherwise null.
   const pendingRef = useRef(null);
   // Latest save, so the unmount flush does not use a stale closure.
@@ -20,7 +20,7 @@ export function useAutosaveDebounce(save, value, deps, {enabled = true, delayMs 
   useEffect(() => {
     if (!enabled) return;
     onSchedule && onSchedule();
-    pendingRef.current = {value};
+    pendingRef.current = { value };
     const handler = setTimeout(() => {
       pendingRef.current = null;
       save(value);
@@ -29,11 +29,14 @@ export function useAutosaveDebounce(save, value, deps, {enabled = true, delayMs 
     return () => clearTimeout(handler);
   }, deps);
 
-  useEffect(() => () => {
-    const pending = pendingRef.current;
-    if (pending) {
-      pendingRef.current = null;
-      saveRef.current(pending.value);
-    }
-  }, []);
+  useEffect(
+    () => () => {
+      const pending = pendingRef.current;
+      if (pending) {
+        pendingRef.current = null;
+        saveRef.current(pending.value);
+      }
+    },
+    []
+  );
 }
