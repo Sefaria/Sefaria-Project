@@ -362,7 +362,6 @@ class Test_Ref(object):
     def test_range_list(self):
         assert Ref("Leviticus 15:12-17").range_list() ==  [Ref('Leviticus 15:12'), Ref('Leviticus 15:13'), Ref('Leviticus 15:14'), Ref('Leviticus 15:15'), Ref('Leviticus 15:16'), Ref('Leviticus 15:17')]
         assert Ref("Shabbat 15b:5-8").range_list() ==  [Ref('Shabbat 15b:5'), Ref('Shabbat 15b:6'), Ref('Shabbat 15b:7'), Ref('Shabbat 15b:8')]
-
         assert Ref("Exodus 15:25-16:2").range_list() == [
                              Ref('Exodus 15:25'),
                              Ref('Exodus 15:26'),
@@ -374,6 +373,20 @@ class Test_Ref(object):
                                                         Ref('Shabbat 15a:10'),
                                                         Ref('Shabbat 15b:1'),
                                                         Ref('Shabbat 15b:2')]
+
+    def test_range_list_rejects_oversized_expansion(self):
+        # Build the Ref first so only range_list() is under test; the end is far beyond any real text.
+        oref = Ref("Genesis 1:1-1:99999999")
+        with pytest.raises(InputError, match="too large to expand"):
+            oref.range_list()
+
+    def test_range_list_size_boundary(self):
+        limit = Ref.MAX_RANGE_LIST_SIZE
+        at_limit = Ref("Genesis 1:1-{}".format(limit))
+        over_limit = Ref("Genesis 1:1-{}".format(limit + 1))
+        assert len(at_limit.range_list()) == limit
+        with pytest.raises(InputError, match="too large to expand"):
+            over_limit.range_list()
 
     def test_range_list_first_and_last_segment(self):
         assert Ref("Shabbat 15a:9-15b:1").range_list() == [Ref('Shabbat 15a:9'),
