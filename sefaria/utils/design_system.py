@@ -13,12 +13,12 @@ from django.conf import settings
 
 PREVIEW_PARAM = "design_system"
 SESSION_KEY = "design_system_preview"
-_REF = re.compile(r"^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*$")
+_REF = re.compile(r"[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*")
 
 
 def is_preview_ref(ref):
     """A branch name or commit: letters, digits, ".", "_", "-" and "/", no "..", at most 100 characters."""
-    return isinstance(ref, str) and len(ref) <= 100 and bool(_REF.match(ref)) and ".." not in ref
+    return isinstance(ref, str) and len(ref) <= 100 and bool(_REF.fullmatch(ref)) and ".." not in ref
 
 
 def preview_allowed(host):

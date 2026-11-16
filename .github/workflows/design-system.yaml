@@ -9,7 +9,8 @@ name: Design system update
 # commit> outside production loads them over the pinned version (sefaria/utils/design_system.py).
 #
 # Setup: the sefaria-design-system GitHub App installed on this repo (org variable
-# DESIGN_SYSTEM_APP_ID, org secret DESIGN_SYSTEM_APP_PRIVATE_KEY), and "Allow auto-merge" on.
+# DESIGN_SYSTEM_APP_ID; its private key is the secret DESIGN_SYSTEM_APP_PRIVATE_KEY of this repo's
+# `design-system` environment, which only `master` may use), and "Allow auto-merge" on.
 
 on:
   repository_dispatch:
@@ -24,6 +25,8 @@ concurrency: design-system-release
 jobs:
   update:
     runs-on: ubuntu-latest
+    # Holds the app's private key; only master may use it, and repository_dispatch runs on master.
+    environment: design-system
     env:
       TAG: ${{ github.event.client_payload.tag }}
     steps:
@@ -35,20 +38,28 @@ jobs:
           ref: master
           persist-credentials: false
 
-      # Skip a late or re-run event for a release that isn't newer than master's.
-      - name: Is it newer than master's version?
+      # Skip a late or re-run event for a release that isn't newer than both master's version and the
+      # one an open update PR already holds: the update PR only ever moves forward.
+      - name: Is it newer than master's and the update PR's version?
         id: newer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
-          current=$(node -p "require('./package.json').dependencies['@sefaria/design-system'] || ''")
-          current=${current##*#}
-          echo "master uses ${current:-nothing}; release is $TAG"
-          if [[ "$current" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
-             [[ "$(printf '%s\n%s\n' "${current#v}" "${TAG#v}" | sort -V | tail -1)" == "${current#v}" ]]; then
-            echo "Not newer; nothing to do."
-            echo "update=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "update=true" >> "$GITHUB_OUTPUT"
-          fi
+          version_in() { node -e 'const s = JSON.parse(require("fs").readFileSync(0, "utf8")).dependencies?.["@sefaria/design-system"] || ""; console.log(s.split("#")[1] || "")'; }
+          on_master=$(version_in < package.json)
+          # The branch may not exist (no open update PR); then it doesn't count.
+          on_update=$(gh api "repos/$REPO/contents/package.json?ref=design-system/update" -H "Accept: application/vnd.github.raw" 2>/dev/null | version_in || true)
+          echo "master uses ${on_master:-nothing}; the update branch has ${on_update:-nothing}; release is $TAG"
+          update=true
+          for current in "$on_master" "$on_update"; do
+            if [[ "$current" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
+               [[ "$(printf '%s\n%s\n' "${current#v}" "${TAG#v}" | sort -V | tail -1)" == "${current#v}" ]]; then
+              echo "$TAG isn't newer than $current; nothing to do."
+              update=false
+            fi
+          done
+          echo "update=$update" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-node@v4
         if: steps.newer.outputs.update == 'true'
@@ -64,7 +75,7 @@ jobs:
       - name: Get the design-system app's token
         if: steps.newer.outputs.update == 'true'
         id: app
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
           app-id: ${{ vars.DESIGN_SYSTEM_APP_ID }}
           private-key: ${{ secrets.DESIGN_SYSTEM_APP_PRIVATE_KEY }}
@@ -76,7 +87,7 @@ jobs:
       - name: Open or update the update PR
         if: steps.newer.outputs.update == 'true'
         id: cpr
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
           token: ${{ steps.app.outputs.token }}
           base: master

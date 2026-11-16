@@ -129,20 +129,45 @@
     {% if design_system_preview %}
     <script>
       // Design-system preview, outside production only (sefaria/utils/design_system.py): load
-      // Sefaria/design-system at this branch or commit over the pinned tokens, as text.
-      (function () {
-        var source = "https://raw.githubusercontent.com/Sefaria/design-system/{{ design_system_preview|escapejs }}/";
-        var after = document.currentScript;
-        ["core.css", "semantic.css"].forEach(function (file) {
-          var style = document.createElement("style");
+      // Sefaria/design-system at this branch or commit over the pinned tokens, as text. It's
+      // unreviewed CSS, so it's used only if it is nothing but token declarations; the same rule as
+      // the Library Assistant's (ai-chatbot src/lib/designSystem.js).
+      (() => {
+        const source = "https://raw.githubusercontent.com/Sefaria/design-system/{{ design_system_preview|escapejs }}/";
+        const files = ["core.css", "semantic.css"];
+
+        // Allowed: `:root, :host` blocks (or their dark-mode form) holding only `--name: value;` lines.
+        // A value can't contain `@` (at-rules), `\` (escapes), `<` (markup) or braces.
+        const selector = String.raw`(?::root\s*,\s*:host|:root\[data-theme="dark"\]\s*,\s*:host\(\[data-theme="dark"\]\))`;
+        const declaration = String.raw`\s*--[A-Za-z0-9-]+\s*:[^;{}@\\<]*;`;
+        const tokenCss = new RegExp(String.raw`^\s*(?:${selector}\s*\{(?:${declaration})*\s*\}\s*)*$`);
+        // Nor anything that loads a URL.
+        const urlFunction = /(?:url|image-set|image|cross-fade|element|expression)\s*\(/i;
+        const isTokenCss = (css) => {
+          const text = css.replace(/\/\*[\s\S]*?\*\//g, " ");
+          return css.length <= 200000 && tokenCss.test(text) && !urlFunction.test(text);
+        };
+
+        // The style elements go right after this script, so they override the pinned files above.
+        let after = document.currentScript;
+        const styles = files.map((file) => {
+          const style = document.createElement("style");
           style.setAttribute("data-design-system-preview", file);
-          after.parentNode.insertBefore(style, after.nextSibling);
+          after.after(style);
           after = style;
-          fetch(source + file)
-            .then(function (response) { if (!response.ok) throw new Error("HTTP " + response.status); return response.text(); })
-            .then(function (css) { style.textContent = css; })
-            .catch(function (error) { console.warn("Design system preview: couldn't load " + file, error); });
+          return style;
         });
+
+        Promise.all(files.map(async (file) => {
+          const response = await fetch(source + file);
+          if (!response.ok) throw new Error(`${file}: HTTP ${response.status}`);
+          return response.text();
+        }))
+          .then((texts) => {
+            if (!texts.every(isTokenCss)) throw new Error("it holds something other than token declarations");
+            texts.forEach((css, i) => { styles[i].textContent = css; });
+          })
+          .catch((error) => console.warn("Design system preview ignored:", error));
       })();
     </script>
     {% endif %}

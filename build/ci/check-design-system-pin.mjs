@@ -29,9 +29,15 @@ if (!pinned) {
 const tag = pinned[1];
 
 // The commit the tag points at (an annotated tag's ^{} line, if any, is the commit).
-const remote = execFileSync('git', ['ls-remote', REPO, `refs/tags/${tag}`, `refs/tags/${tag}^{}`], {
-  encoding: 'utf8',
-});
+let remote;
+try {
+  remote = execFileSync('git', ['ls-remote', REPO, `refs/tags/${tag}`, `refs/tags/${tag}^{}`], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+} catch (error) {
+  fail(`Couldn't reach ${REPO} to read tag ${tag}: ${String(error.stderr || error.message).trim()}`);
+}
 const lines = remote.trim().split('\n').filter(Boolean).map((l) => l.split('\t'));
 const tagCommit = (lines.find(([, ref]) => ref.endsWith('^{}')) || lines[0])?.[0];
 if (!tagCommit) fail(`${NAME} is pinned to ${tag}, but ${REPO} has no such tag.`);

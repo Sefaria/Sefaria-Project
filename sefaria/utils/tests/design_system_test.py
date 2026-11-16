@@ -2,13 +2,14 @@ import pytest
 from django.contrib.sessions.backends.signed_cookies import SessionStore
 from django.test import RequestFactory, override_settings
 
+from sefaria.system.context_processors import design_system
 from sefaria.utils.design_system import SESSION_KEY, design_system_preview, is_preview_ref, preview_allowed
 
-HOSTS = ["localhost", ".cauldron.sefaria.org", "sefariastaging.org", ".sefariastaging.org"]
+HOSTS = ["localhost", "127.0.0.1", ".cauldron.sefaria.org", "sefariastaging.org", ".sefariastaging.org"]
 
 
-def request_for(host, query=""):
-    request = RequestFactory().get(f"/texts{query}", HTTP_HOST=host)
+def request_for(host, query="", path="/texts"):
+    request = RequestFactory().get(f"{path}{query}", HTTP_HOST=host)
     request.session = SessionStore()
     return request
 
@@ -21,7 +22,7 @@ def test_branch_names_and_commits_are_refs(ref):
 
 
 @pytest.mark.parametrize(
-    "ref", ["", "../evil", "a/../b", "/main", "main/", "a//b", 'main"><script>', "a b", "x" * 101, None]
+    "ref", ["", "../evil", "a/../b", "/main", "main/", "a//b", 'main"><script>', "a b", "x" * 101, None, "main\n"]
 )
 def test_anything_else_is_not(ref):
     assert not is_preview_ref(ref)
@@ -32,6 +33,9 @@ def test_anything_else_is_not(ref):
     "host,allowed",
     [
         ("localhost:8000", True),
+        ("127.0.0.1:8000", True),
+        ("LOCALHOST", True),
+        ("WWW.SefariaStaging.org:443", True),
         ("sandbox-63f2029.cauldron.sefaria.org", True),
         ("www.sefariastaging.org", True),
         ("sefariastaging.org", True),
@@ -71,3 +75,22 @@ def test_production_ignores_the_parameter():
 def test_an_invalid_ref_is_ignored():
     request = request_for("localhost", "?design_system=../evil")
     assert design_system_preview(request) is None
+
+
+@override_settings(DESIGN_SYSTEM_PREVIEW_HOSTS=HOSTS, ALLOWED_HOSTS=["*"])
+def test_a_stored_preview_is_ignored_on_production():
+    request = request_for("www.sefaria.org")
+    request.session[SESSION_KEY] = "main"
+    assert design_system_preview(request) is None
+
+
+@override_settings(DESIGN_SYSTEM_PREVIEW_HOSTS=HOSTS, ALLOWED_HOSTS=["*"])
+def test_the_context_processor_runs_on_pages_but_not_the_api():
+    assert design_system(request_for("localhost", "?design_system=main")) == {"design_system_preview": "main"}
+    assert design_system(request_for("localhost", "?design_system=main", path="/api/texts/Genesis")) == {}
+
+
+@override_settings(ALLOWED_HOSTS=["*"])
+@pytest.mark.parametrize("host", ["www.sefaria.org", "sefaria.org", "www.sefaria.org.il", "sefaria.org.il"])
+def test_the_real_settings_list_no_production_host(host):
+    assert not preview_allowed(host)
