@@ -17987,6 +17987,8 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-hint { margin: 0; font-size: 14px; line-height: 1.5; color: var(--darker-grey); /* text-secondary */ }
 .devPocPage .devE-textBtn { align-self: center; border: 0; background: none; padding: 4px; font: 500 14px/1.4 var(--english-sans-serif-font-family); color: var(--sefaria-blue); /* action-primary */ cursor: pointer; }
 .devPocPage .devE-textBtn:hover { color: #132b4c; /* action-primary-hover */ text-decoration: underline; }
+/* Delete this project matches the Save project button's text: 16px, 600 (Penina, 2026-11-16). */
+.devPocPage .devE-danger .devE-textBtn { font-size: 16px; font-weight: 600; }
 .devPocPage .devE-start { align-self: flex-start; }
 .devPocPage .devE-select { appearance: auto; -webkit-appearance: auto; cursor: pointer; }
 .devPocPage .devE-countField { display: flex; flex-direction: column; gap: 4px; }
@@ -18091,7 +18093,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-path .devE-n { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #e4eaf3; /* surface-highlighted */ color: var(--sefaria-blue); /* action-primary */ font-size: 14px; font-weight: 600; }
 .devPocPage .devE-links { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; font-size: 14px; color: var(--medium-grey-legacy); /* gray-400 */ }
 /* trial E: optional fields say "Optional"; required fields carry no mark */
-.devPocPage .devE-opt { margin-inline-start: 4px; font: italic 400 12px/20px var(--english-sans-serif-font-family); color: var(--secondary-text-grey); /* en-system-caption, text-muted: the quietest text that still passes AA */ }
+.devPocPage .devE-opt { margin-inline-start: 8px; /* 8px, not 4: Hebrew has no italic to set it apart (2026-11-16) */ font: italic 400 12px/20px var(--english-sans-serif-font-family); color: var(--secondary-text-grey); /* en-system-caption, text-muted: the quietest text that still passes AA */ }
 /* A tip that opens over its label, so it never covers the field being typed in. */
 .devPocPopover.devPocPopoverAbove { top: auto; bottom: calc(100% + 8px); }
 .devPocPage.devE .devPocTip { position: relative; display: inline-flex; align-self: center; }
@@ -18686,7 +18688,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 /* "Optional" flows right after the question's last word instead of dropping to a line of its own (2026-11-15). */
 .devPocPage .sefaria-input-labelGroup { display: block; }
 .devPocPage .sefaria-input-labelGroup .sefaria-input-label { display: inline; }
-.devPocPage .sefaria-input-labelGroup .devE-opt { display: inline; margin-inline-start: 4px; white-space: nowrap; }
+.devPocPage .sefaria-input-labelGroup .devE-opt { display: inline; margin-inline-start: 8px; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { .devPocPage .devE-moreChevron { transition: none; } }
 
 /* The added website and "Submitted to be featured" are facts, not buttons: no hover (2026-11-08). */
@@ -18747,6 +18749,11 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .sefaria-input-field.has-addon .sefaria-input-control--multiline { padding-bottom: 12px; }
 .devPocPage .sefaria-input-field.has-addon:has(textarea) .sefaria-input-fieldAddon { position: static; align-self: flex-end; margin-top: 4px; }
 .devPocPage .sefaria-input:has(.has-addon textarea) .sefaria-input-error { margin-top: -28px; min-height: 20px; padding-inline-end: 64px; }
+/* The short description fits all 150 characters on phones without scrolling (2026-11-16): five lines of 16px text at
+   1.45 line height, plus padding and border. Three rows were enough on desktop but showed only about three lines here. */
+@media (max-width: 842px) {
+  .devPocPage #devEProjDesc { min-height: 142px; }
+}
 
 /* Developer Settings button and link states, made consistent (Penina, 2026-11-12). Scoped to .devPocPage: nothing here
    changes the site's common components on other pages. */
