@@ -776,9 +776,9 @@ def _clean_source_options(options):
             if isinstance(value, str) and _SHEET_CLASS_TOKEN_RE.match(value):
                 cleaned[key] = value
         elif key in _SHEET_OPTION_TEXT_KEYS:
-            # Quotes are removed because the legacy renderer places this text inside a quoted attribute.
+            # Quotes are kept; the legacy renderer escapes this text where it places it in an attribute.
             if isinstance(value, str):
-                cleaned[key] = bleach_text(value).replace("'", "").replace('"', "")
+                cleaned[key] = bleach_text(value)
         elif key in _SHEET_OPTION_FLAG_KEYS:
             if isinstance(value, (bool, int)):
                 cleaned[key] = value

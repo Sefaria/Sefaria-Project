@@ -91,9 +91,13 @@ def test_option_values_are_validated_and_unknown_keys_dropped():
     assert "onclick" not in options
 
 
-def test_option_text_drops_quote_characters():
-    source = clean_source({"comment": "hi", "node": 1, "options": {"PrependRefWithEn": "a'b\"c"}})
-    assert source["options"]["PrependRefWithEn"] == "abc"
+def test_option_text_keeps_quote_characters_and_strips_markup():
+    source = clean_source(
+        {"comment": "hi", "node": 1, "options": {"PrependRefWithEn": "a'b\"c", "sourcePrefix": "<b>x</b>'y"}}
+    )
+    assert source["options"]["PrependRefWithEn"] == "a'b\"c"
+    assert "onerror" not in source["options"]["sourcePrefix"]
+    assert source["options"]["sourcePrefix"].endswith("'y")
 
 
 def test_known_option_tokens_are_kept():
