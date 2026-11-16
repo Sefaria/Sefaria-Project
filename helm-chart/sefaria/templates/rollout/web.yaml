@@ -94,6 +94,22 @@ spec:
           # WEB_CONCURRENCY is used for determining the number of server workers
           - name: WEB_CONCURRENCY
             value: "{{ .Values.web.resources.web.gunicornWorkerCount }}"
+          {{- with .Values.web.resources.web }}
+          {{- if .maxRequests }}
+          - name: MAX_REQUESTS
+            value: "{{ .maxRequests | int }}"
+          - name: MAX_REQUESTS_JITTER
+            value: "{{ .maxRequestsJitter | int }}"
+          {{- end }}
+          {{- if .gcFreeze }}
+          - name: GUNICORN_GC_FREEZE
+            value: "true"
+          {{- end }}
+          {{- if .mallocArenaMax }}
+          - name: MALLOC_ARENA_MAX
+            value: "{{ .mallocArenaMax | int }}"
+          {{- end }}
+          {{- end }}
           - name: randomstringtoforceredeployments
             value: {{ randAlphaNum 8 }}
           - name: GOOGLE_APPLICATION_CREDENTIALS

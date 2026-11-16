@@ -117,6 +117,17 @@ web:
     web:
       gunicornWorkerCount: 1
       gunicornThreadCount: 1
+      # Memory settings, all off by default. Turn on one at a time and compare the web
+      # container's working set (starting level and daily slope) before and after.
+      # Replace a worker after maxRequests requests (+ random 0..maxRequestsJitter), clearing
+      # whatever memory it built up. 0 = never (gunicorn's default).
+      maxRequests: 0
+      maxRequestsJitter: 0
+      # gc.freeze() before forking workers, so they keep sharing the objects loaded at startup.
+      gcFreeze: false
+      # glibc malloc arenas per process (e.g. 2): fewer arenas, less fragmentation with threads.
+      # 0 = glibc's default (8 x CPU cores).
+      mallocArenaMax: 0
       resources:
         requests:
           memory: "1Gi"
