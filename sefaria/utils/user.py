@@ -53,8 +53,6 @@ def delete_user_account(uid, confirm=True):
     # Delete Following Relationships
     db.following.delete_many({"follower": uid})
     db.following.delete_many({"followee": uid})
-    # Delete Sheet Likes
-    db.sheets.update_many({"likes": uid}, {"$pull": {"likes": uid}})
     # Delete Profile
     db.profiles.delete_one({"id": uid})
     # Delete User Object
