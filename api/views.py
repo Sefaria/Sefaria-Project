@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+import structlog
 
 from sefaria.client.util import jsonResponse
 from sefaria.model import *
@@ -14,6 +15,7 @@ from .api_warnings import *
 
 
 logger = logging.getLogger(__name__)
+error_logger = structlog.get_logger(__name__)
 
 
 class StaffRequiredMixin:
@@ -32,8 +34,11 @@ class Text(View):
     def dispatch(self, request, *args, **kwargs):
         try:
             self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs['tref'])
-        except Exception as e:
+        except InputError as e:
             return jsonResponse({'error': getattr(e, 'message', str(e))}, status=404)
+        except Exception:
+            error_logger.exception("Unexpected error parsing ref in v3 texts view", tref=kwargs.get('tref'))
+            raise
         return super().dispatch(request, *args, **kwargs)
 
     @staticmethod
@@ -82,8 +87,11 @@ class Text(View):
             data = text_manager.get_versions_for_query()
             data = self._handle_warnings(data)
 
-        except Exception as e:
+        except InputError as e:
             return jsonResponse({'error': str(e)}, status=400)
+        except Exception:
+            error_logger.exception("Unexpected error building v3 text response", tref=kwargs.get('tref'))
+            raise
 
         return jsonResponse(data)
 
@@ -95,8 +103,9 @@ class RefView(View):
             self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs['tref'])
         except (InputError, DictionaryEntryNotFoundError):
             return jsonResponse({'is_ref': False})
-        except Exception as e:
-            return jsonResponse({'error': getattr(e, 'message', str(e))}, status=404)
+        except Exception:
+            error_logger.exception("Unexpected error parsing ref in ref view", tref=kwargs.get('tref'))
+            raise
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
