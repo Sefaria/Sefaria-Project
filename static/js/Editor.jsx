@@ -22,6 +22,7 @@ import $ from "./sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import {SheetOptions} from "./sheets/SheetOptions";
 import {useAutosaveDebounce} from "./useAutosaveDebounce";
+import {subscribeRefreshEditor} from "./refreshEditorChannel";
 
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
@@ -2756,6 +2757,8 @@ const SefariaEditor = (props) => {
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
+    hasUnsavedChangesRef.current = hasUnsavedChanges;
     const [blockEditing, setBlockEditing] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [canUseDOM, setCanUseDOM] = useState(false);
@@ -2811,13 +2814,17 @@ const SefariaEditor = (props) => {
             setCanUseDOM(true)
 
 
-            const channel = new BroadcastChannel('refresh-editor');
-            channel.addEventListener('message', event => {
-                reloadFromDb()
+            // Only reload for this sheet, and never over unsaved edits.
+            const unsubscribeRefresh = subscribeRefreshEditor({
+                sheetId: sheet.id,
+                canReload: () => !hasUnsavedChangesRef.current,
+                onRefresh: reloadFromDb,
             });
 
             //TODO: Check that we still need/want this temporary analytics tracking code
             try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
+
+            return unsubscribeRefresh;
         }, []
     )
 
