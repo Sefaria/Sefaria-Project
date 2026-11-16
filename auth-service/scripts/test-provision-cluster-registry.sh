@@ -2,6 +2,7 @@
 # auth-service/scripts/test-provision-cluster-registry.sh — runs provision-cluster-registry.sh (create and --verify)
 # against a throwaway postgres:18 container with a stand-in registry schema and a fake sops. No cluster is touched.
 #   auth-service/scripts/test-provision-cluster-registry.sh      needs docker; removes its container on exit
+#   PROVISION_SCRIPT=<path> ...   tests another copy of provision-cluster-registry.sh (the one on the code branch)
 set -uo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 tmp=$(mktemp -d)
@@ -11,7 +12,9 @@ fail=0
 ok() { echo "ok: $*"; }
 bad() { echo "FAIL: $*"; fail=1; }
 
-docker run -d --name "$name" -e POSTGRES_PASSWORD=pg postgres:18 >/dev/null || { echo "FAIL: cannot start postgres:18"; exit 1; }
+# Every statement goes to the server log, as log_statement=all would on a real server, so the test can see what SQL
+# the script sent.
+docker run -d --name "$name" -e POSTGRES_PASSWORD=pg postgres:18 -c log_statement=all >/dev/null || { echo "FAIL: cannot start postgres:18"; exit 1; }
 for _ in $(seq 60); do docker exec "$name" pg_isready -U postgres >/dev/null 2>&1 && break; sleep 0.5; done
 sleep 1
 psql_() { docker exec -i "$name" psql -U postgres -v ON_ERROR_STOP=1 -qtA "$@"; }
@@ -54,7 +57,7 @@ FAKE
 chmod +x "$tmp/bin/sops"
 export SOPS_SEEN="$tmp/seen-pw"
 run() { PATH="$tmp/bin:$PATH" OUT_DIR="$tmp/out" SOPS_SEEN="$SOPS_SEEN" PG_EXEC="docker exec -i $name" OUT_DIR="$tmp/out" KMS=projects/x/locations/global/keyRings/k/cryptoKeys/k \
-  SECRET_NS="${SECRET_NS:-default}" bash "$here/provision-cluster-registry.sh" "$@" >"$tmp/log" 2>&1; }
+  SECRET_NS="${SECRET_NS:-default}" bash "${PROVISION_SCRIPT:-$here/provision-cluster-registry.sh}" "$@" >"$tmp/log" 2>&1; }
 
 run --verify && bad "--verify passes before the role exists" || ok "--verify fails before the role exists"
 run --verfy; [ $? = 2 ] && [ "$(psql_ -c "SELECT count(*) FROM pg_roles WHERE rolname = 'auth_service_reader'")" = 0 ] \
@@ -136,6 +139,21 @@ pw="$(cat "$SOPS_SEEN")"
 [ ! -s "$SOPS_SEEN.mode" ] && ok "the temporary output file was mode 0600" || bad "the temporary file was not mode 0600: $(cat "$SOPS_SEEN.mode")"
 ! grep -rqF --exclude='seen-pw*' --exclude=slowpg -- "$pw" "$tmp" 2>/dev/null && ok "no file anywhere under the test directory contains the password" || bad "the password is on disk: $(grep -rlF --exclude='seen-pw*' -- "$pw" "$tmp")"
 [ "$(stat -c %a "$tmp/out/auth-service-registry.yaml" 2>/dev/null || stat -f %Lp "$tmp/out/auth-service-registry.yaml")" = 600 ] && ok "the Secret file is mode 0600" || bad "the Secret file is not mode 0600"
+# The password never reaches Postgres in clear: the script sends a SCRAM-SHA-256 verifier, so neither the server log
+# (log_statement=all here, ddl in many setups) nor pg_stat_statements can hold it. The role still logs in with it over
+# a scram-sha-256 TCP connection.
+docker logs "$name" >"$tmp/pg-server.log" 2>&1
+grep -q 'CREATE ROLE auth_service_reader' "$tmp/pg-server.log" && ok "the server log shows the CREATE ROLE (the log check is live)" \
+  || bad "test setup: the CREATE ROLE is not in the server log"
+! grep -qF -- "$pw" "$tmp/pg-server.log" && ok "the password is not in the server log" || bad "the password is in the server log in clear"
+grep -q "CREATE ROLE auth_service_reader LOGIN PASSWORD 'SCRAM-SHA-256\$4096:" "$tmp/pg-server.log" \
+  && ok "the role is created with a SCRAM-SHA-256 verifier" || bad "the CREATE ROLE does not send a SCRAM-SHA-256 verifier"
+rm -f "$tmp/pg-server.log"
+pg_ip="$(docker exec "$name" hostname -i | awk '{print $1}')"
+docker exec -e PGPASSWORD="$pw" "$name" psql -h "$pg_ip" -U auth_service_reader -d sefaria_auth -qtA -c 'SELECT 1' 2>/dev/null | grep -qx 1 \
+  && ok "the role logs in with the password over scram-sha-256" || bad "the role cannot log in with the password"
+docker exec -e PGPASSWORD="${pw}x" "$name" psql -h "$pg_ip" -U auth_service_reader -d sefaria_auth -qtA -c 'SELECT 1' >/dev/null 2>&1 \
+  && bad "the role logs in with a wrong password" || ok "a wrong password is refused (the login check is live)"
 run && bad "a second create ran" || ok "a second create refuses (the file exists)"
 rm -f "$tmp/out/auth-service-registry.yaml"
 run && bad "a create ran with an existing role" || ok "a create refuses when the role exists"
