@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Tests of the env file reader in release_lib.py (env-get, env-flag-off, env-images, auth-service-enabled): every read
 fails closed. Run by tests/run-tests.sh with the suite's Python (PyYAML needed); no cluster.
-    python3 tests/test_env_reader.py [PATH_TO_release_lib.py [PATH_TO_envs/prod/helmrelease.yaml]]
+    python3 tests/test_env_reader.py [PATH_TO_release_lib.py [PATH_TO_envs/<env>/helmrelease.yaml ...]]
+Every env file given is checked as a real one: pass the phase 1 file and the ones deployed now (origin/prod and
+origin/preprod, which have no authService section until their promotion).
 """
 
 import subprocess
@@ -11,7 +13,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 LIB = Path(sys.argv[1]) if len(sys.argv) > 1 else HERE.parent / "release_lib.py"
-REAL_ENV = Path(sys.argv[2]) if len(sys.argv) > 2 else None
+REAL_ENVS = [Path(a) for a in sys.argv[2:]]
 del sys.argv[1:]
 
 
@@ -65,11 +67,14 @@ class Booleans(unittest.TestCase):
         for line in ("enabled: 1", "enabled: 0", "enabled:", "enabled: [true]", 'enabled: ""'):
             self.assertEqual(self.read(line)[0], 2, line)
 
-    def test_missing_key_or_section_is_an_error(self):
+    def test_a_missing_key_in_the_section_is_an_error(self):
         rc, _, err = run(["auth-service-enabled"], doc("    authService:\n      image: {}\n"))
         self.assertEqual(rc, 2)
         self.assertIn("spec.values.authService.enabled is missing", err)
-        self.assertEqual(run(["auth-service-enabled"], doc("    web:\n      enabled: true\n"))[0], 2)
+
+    def test_a_missing_section_is_disabled_not_taken_from_another_section(self):
+        # No authService section: not deployed (see AbsentAuthService), and web.enabled is not read in its place.
+        self.assertEqual(run(["auth-service-enabled"], doc("    web:\n      enabled: true\n")), (0, "false", ""))
 
     def test_the_value_of_another_section_is_not_mistaken_for_it(self):
         text = doc("    web:\n      enabled: true\n    authService:\n      enabled: false\n")
@@ -212,13 +217,57 @@ class Images(unittest.TestCase):
         self.assertEqual(run(["env-images"], self.values(web_tag="7.1"))[:2], (2, ""))
         self.assertEqual(run(["env-images"], "kind: HelmRelease\nspec: {}\n")[:2], (2, ""))
 
-    @unittest.skipUnless(REAL_ENV and REAL_ENV.exists(), "no real env file given")
-    def test_the_real_prod_env_file(self):
-        rc, out, _ = run(["env-images"], REAL_ENV.read_text())
-        self.assertEqual(rc, 0)
-        rows = {line.split("\t")[0]: line.split("\t")[1:] for line in out.splitlines()}
-        self.assertTrue(all(rows[c][0] and rows[c][1] for c in ("web", "nodejs", "nginx")), rows)
-        self.assertEqual(run(["auth-service-enabled"], REAL_ENV.read_text())[0], 0)
+    @unittest.skipUnless(REAL_ENVS, "no real env file given")
+    def test_the_real_env_files(self):
+        for path in REAL_ENVS:
+            with self.subTest(env_file=str(path)):
+                text = path.read_text()
+                rc, out, err = run(["env-images"], text)
+                self.assertEqual(rc, 0, err)
+                rows = {line.split("\t")[0]: line.split("\t")[1:] for line in out.splitlines()}
+                self.assertTrue(all(rows[c][0] and rows[c][1] for c in ("web", "nodejs", "nginx")), rows)
+                rc, out, err = run(["auth-service-enabled"], text)
+                self.assertEqual(rc, 0, err)
+                self.assertIn(out, ("true", "false"))
+
+
+class AbsentAuthService(unittest.TestCase):
+    """The env files deployed before the phase 1 promotion have no authService section at all: that is "not deployed"
+    (enabled false, no image to check), not an unreadable file. A section that is there but malformed stays an error."""
+
+    WEB = (
+        "    web:\n      containerImage:\n        imageRegistry: reg/web\n        tag: v1\n"
+        "    nodejs:\n      containerImage:\n        imageRegistry: reg/node\n        tag: v2\n"
+        "    nginx:\n      containerImage:\n        imageRegistry: reg/nginx\n        tag: v3\n"
+    )
+
+    def test_an_absent_section_is_disabled(self):
+        self.assertEqual(run(["auth-service-enabled"], doc(self.WEB)), (0, "false", ""))
+
+    def test_env_images_leaves_out_an_absent_component(self):
+        self.assertEqual(
+            run(["env-images"], doc(self.WEB)), (0, "web\treg/web\tv1\nnodejs\treg/node\tv2\nnginx\treg/nginx\tv3", "")
+        )
+
+    def test_a_present_but_empty_or_null_section_is_still_an_error(self):
+        for section in ("    authService: {}\n", "    authService:\n", "    authService: off\n"):
+            with self.subTest(section=section):
+                rc, out, err = run(["auth-service-enabled"], doc(self.WEB + section))
+                self.assertEqual((rc, out), (2, ""))
+                self.assertIn("authService", err)
+
+    def test_the_other_components_stay_required(self):
+        rc, out, err = run(
+            ["env-images"], doc("    nodejs:\n      containerImage:\n        imageRegistry: r\n        tag: t\n")
+        )
+        self.assertEqual((rc, out), (2, ""))
+        self.assertIn("spec.values.web", err)
+
+    def test_no_values_at_all_is_still_an_error(self):
+        for text in ("kind: HelmRelease\nspec: {}\n", "kind: HelmRelease\nspec:\n  values: []\n"):
+            with self.subTest(text=text):
+                self.assertEqual(run(["auth-service-enabled"], text)[:2], (2, ""))
+                self.assertEqual(run(["env-images"], text)[:2], (2, ""))
 
 
 if __name__ == "__main__":

@@ -793,7 +793,7 @@ check "migration discovery and authService.enabled reading, from a real checkout
 check "snapshot.sh output directory refusals and default" "$HERE/test-snapshot-out.sh"
 check "preflight reads DEVELOPER_SETTINGS_ENABLED and authService.enabled fail-closed (no cluster)" "$HERE/test-preflight-env-flags.sh"
 check "scoped schema round trip checks every step and removes its container on every path (fake docker)" "$HERE/test-schema-roundtrip.sh"
-check "env file reader: booleans, quoted strings, missing paths, invalid YAML, comments, single quotes, flags, images" "$PY" "$HERE/test_env_reader.py" "$REL/release_lib.py" "$PHASE1_CODE/envs/prod/helmrelease.yaml"
+check "env file reader: booleans, quoted strings, missing paths, invalid YAML, comments, single quotes, flags, images, master's env files without authService" "$PY" "$HERE/test_env_reader.py" "$REL/release_lib.py" "$PHASE1_CODE/envs/prod/helmrelease.yaml" "$MASTER_CODE/envs/prod/helmrelease.yaml" "$MASTER_CODE/envs/preprod/helmrelease.yaml"
 
 # ---------------------------------------------------------------------------------------------------------------
 echo "# concurrent migrate"
