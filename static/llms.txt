@@ -103,6 +103,6 @@ Classical texts are Public Domain. Sefaria translations are CC-BY-SA. Some moder
 - [Sefaria-Project](https://github.com/Sefaria/Sefaria-Project): Open-source codebase (GNU AGPLv3)
 
 ## Optional
-- [Projects Powered By Sefaria](https://developers.sefaria.org/docs/powered-by-sefaria.md): Third-party projects built with Sefaria's API and data 
+- [Projects Powered By Sefaria](https://developers.sefaria.org/docs/powered-by-sefaria.md): Third-party projects built with Sefaria's API and data. Full gallery can be found at https://powered-by.sefaria.org. 
 - [The Sefaria MCPs](https://developers.sefaria.org/docs/the-sefaria-mcp.md): Use our MCPs to integrate your LLM of choice with Sefaria's rich library of Jewish texts and huge cache of open-source data.
 - [AI at Sefaria](https://www.sefaria.org/ai): Sefaria's use of AI and AI policy.
