@@ -7,7 +7,12 @@ import isHotkey from 'is-hotkey';
 import Sefaria from './sefaria/sefaria';
 import * as sheetsUtils from './sefaria/sheetsUtils';
 import { createSaveQueue } from './sefaria/sheetSaveQueue';
-import { classifySheetSaveResponse, planSavedResponseApplication, SAVE_RESPONSE } from './sefaria/sheetSaveResponse';
+import {
+  buildPublishBody,
+  classifySheetSaveResponse,
+  planSavedResponseApplication,
+  SAVE_RESPONSE,
+} from './sefaria/sheetSaveResponse';
 
 import { SheetMetaDataBox, SheetTitle, InterfaceText, Autocompleter, ToolTipped } from './Misc';
 import { ProfilePic } from './ProfilePic';
@@ -3149,8 +3154,10 @@ const SefariaEditor = (props) => {
   // Builds and posts one save. Resolves to true only when the server stored it.
   async function sendSave(payload, saveRevision, kind = 'autosave') {
     if (kind === 'publish') {
-      // Built at send time so it carries the modification time left by any save that ran before it.
-      return postSheet(JSON.stringify({ ...payload, lastModified: getLastModified() }), saveRevision, kind);
+      // Built at send time from the current cached sheet, so it carries the sources and modification
+      // time left by any save that ran before it. `payload` holds only the dialog's own fields.
+      const current = Sefaria.sheets._loadSheetByID[props.data.id] || props.data;
+      return postSheet(JSON.stringify(buildPublishBody(current, payload)), saveRevision, kind);
     }
     const doc = payload;
     const lastModified = getLastModified();

@@ -58,3 +58,15 @@ export function planSavedResponseApplication(res, { kind, saveRevision, currentR
   }
   return plan;
 }
+
+/*
+  Builds the body of a publish or unpublish save. `current` is the cached sheet as it is when the
+  request is sent, so it already holds the sources and modification time of any save that finished
+  first; `fields` holds only what the publish dialog owns (status, and title, summary and topics when
+  publishing). Building it earlier from a snapshot would write the snapshot's older sources back.
+*/
+export function buildPublishBody(current, fields) {
+  const body = { ...current, ...fields, lastModified: current.dateModified };
+  delete body._id;
+  return body;
+}
