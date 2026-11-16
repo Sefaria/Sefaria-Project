@@ -1282,3 +1282,127 @@ def test_disk_guard_reports_threshold_breaches():
     guard = orch.DiskGuard(max_disk_percent=85, grace_seconds=600, now_fn=itertools.count().__next__)
     reasons = guard.check([_alloc("es-0", 40), _alloc("es-1", 90)])
     assert len(reasons) == 1 and "es-1" in reasons[0] and "90%" in reasons[0]
+
+
+# --- pre-flight minimum free space and abort reasons ------------------------------------
+
+
+@pytest.mark.parametrize("raw", ["-1", "-0.5", "0", "nan", "inf", "-inf", "abc", ""])
+def test_parse_preflight_min_free_gb_rejects_values_that_disable_the_check(raw):
+    # A minimum of zero or below makes `avail < min_free_bytes` always False, so every node
+    # would pass the absolute free-space check no matter how full it is.
+    spec.loader.exec_module(orch)
+    with pytest.raises(ValueError, match="REINDEX_PREFLIGHT_MIN_FREE_GB"):
+        orch.parse_preflight_min_free_gb(raw)
+
+
+def test_parse_preflight_min_free_gb_accepts_a_real_size():
+    spec.loader.exec_module(orch)
+    assert orch.parse_preflight_min_free_gb("12") == 12.0
+    assert orch.parse_preflight_min_free_gb(" 7.5 ") == 7.5
+
+
+def test_main_rejects_a_negative_min_free_before_any_job_or_index_change(monkeypatch):
+    spec.loader.exec_module(orch)
+    events = []
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            events.append("delete_job")
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            events.append("create_job")
+
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        }
+    )
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, lambda **kwargs: None)
+    pipeline = sys.modules["scripts.scheduled.reindex_pipeline"]
+    monkeypatch.setattr(pipeline, "run_reindex_init_all", lambda debug=False: events.append("init"))
+    monkeypatch.setenv("REINDEX_PREFLIGHT_SKIP", "")
+    monkeypatch.setenv("REINDEX_PREFLIGHT_MIN_FREE_GB", "-1")
+
+    with pytest.raises(ValueError, match="REINDEX_PREFLIGHT_MIN_FREE_GB"):
+        orch.main()
+
+    assert events == []
+    assert search.deleted == []
+
+
+def test_run_barrier_loop_records_why_it_aborted():
+    spec.loader.exec_module(orch)
+    reasons = []
+    state, _ = orch.run_barrier_loop(
+        read_job_status=lambda: _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=itertools.count().__next__,
+        log_fn=lambda msg: None,
+        check_abort=lambda: ["node es-2 has reported no disk usage for 700s (limit 600s)"],
+        abort_reasons=reasons,
+    )
+    assert state == "aborted"
+    assert reasons == ["node es-2 has reported no disk usage for 700s (limit 600s)"]
+
+
+def test_run_barrier_loop_records_why_it_aborted_after_failed_checks():
+    spec.loader.exec_module(orch)
+    reasons = []
+
+    def failing_check():
+        raise ConnectionError("es unreachable")
+
+    state, _ = orch.run_barrier_loop(
+        read_job_status=lambda: _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=itertools.count(step=100).__next__,
+        log_fn=lambda msg: None,
+        check_abort=failing_check,
+        abort_check_grace_seconds=600,
+        abort_reasons=reasons,
+    )
+    assert state == "aborted"
+    assert len(reasons) == 1 and "no successful disk check" in reasons[0] and "es unreachable" in reasons[0]
+
+
+def test_main_abort_error_names_the_reason(monkeypatch, caplog):
+    # The disk guard also aborts when a node goes silent, so "aborted at 85% disk" alone can be wrong.
+    spec.loader.exec_module(orch)
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            pass
+
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        }
+    )
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, lambda **kwargs: None)
+    reason = "node es-1 has reported no disk usage for 650s (limit 600s)"
+
+    def aborting_barrier(**kwargs):
+        kwargs["abort_reasons"].append(reason)
+        return "aborted", [3]
+
+    monkeypatch.setattr(orch, "run_barrier_loop", aborting_barrier)
+    monkeypatch.setattr(orch, "delete_stale_shard_job", lambda *args, **kwargs: True)
+
+    with caplog.at_level("ERROR"), pytest.raises(SystemExit):
+        orch.main()
+
+    errors = [r.getMessage() for r in caplog.records if r.levelname == "ERROR"]
+    assert any(reason in message for message in errors)
