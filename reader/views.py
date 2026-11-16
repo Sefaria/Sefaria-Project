@@ -3573,6 +3573,35 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+def dictionary_entry_completions(lexicon_ac, base_title, word, limit):
+    """
+    Function to get completions for a partial dictionary headword.
+
+    Each value stored in a LexiconTrie is a list of headwords, because several entries
+    can share one normalized headword (an entry and its alternate headwords).  Build one
+    completion for each headword, titled "<dictionary>, <headword>".
+    :param lexicon_ac: LexiconTrie of a single dictionary
+    :param base_title: string - full title of the dictionary
+    :param word: string - partial headword to complete
+    :param limit: int - max number of matched entries to use, 0 for unlimited
+    :return: completions list, completion objects list
+    """
+    completions = OrderedDict()
+    for _normalized_headword, headwords in lexicon_ac.items(word)[: limit or None]:
+        for headword in headwords:
+            title = f"{base_title}, {headword}"
+            completions.setdefault(
+                title,
+                {
+                    "title": title,
+                    "key": headword,
+                    "type": "word_form",
+                    "is_primary": True,
+                },
+            )
+    return list(completions.keys()), list(completions.values())
+
+
 def get_name_completions(
     name,
     limit,
@@ -3616,9 +3645,7 @@ def get_name_completions(
         ):
             base_title = inode.parent.full_title()
             lexicon_ac = library.lexicon_auto_completer(inode.parent.lexiconName)
-            t = [base_title + ", " + t[1] for t in lexicon_ac.items(inode.word)[: limit or None]]
-            completions = list(OrderedDict.fromkeys(t))  # filter out dupes
-            completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
+            completions, completion_objects = dictionary_entry_completions(lexicon_ac, base_title, inode.word, limit)
 
         else:
             completions, completion_objects = completer.complete(
@@ -3634,9 +3661,7 @@ def get_name_completions(
     except DictionaryEntryNotFoundError as e:
         # A dictionary beginning, but not a valid entry
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
-        t = [e.base_title + ", " + t[1] for t in lexicon_ac.items(e.word)[: limit or None]]
-        completions = list(OrderedDict.fromkeys(t))  # filter out dupes
-        completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
+        completions, completion_objects = dictionary_entry_completions(lexicon_ac, e.base_title, e.word, limit)
     except InputError:  # Not a Ref
         completions, completion_objects = completer.complete(
             name,
