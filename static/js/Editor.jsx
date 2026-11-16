@@ -6,6 +6,7 @@ import { Slate, Editable, ReactEditor, withReact, useSlate, useSelected, useFocu
 import isHotkey from 'is-hotkey';
 import Sefaria from './sefaria/sefaria';
 import * as sheetsUtils from './sefaria/sheetsUtils';
+import { createSaveQueue } from './sefaria/sheetSaveQueue';
 import { classifySheetSaveResponse, isCurrentRevision, SAVE_RESPONSE } from './sefaria/sheetSaveResponse';
 
 import { SheetMetaDataBox, SheetTitle, InterfaceText, Autocompleter, ToolTipped } from './Misc';
@@ -2885,6 +2886,16 @@ const SefariaEditor = (props) => {
   hasUnsavedChangesRef.current = hasUnsavedChanges;
   // Bumped on every local change; each save remembers the value it started with.
   const docRevisionRef = useRef(0);
+  // Saves go through one queue per editor so two requests are never open at once. The queue calls the
+  // latest sendSave, so a held save is built from current state when it is finally sent.
+  const sendSaveRef = useRef(null);
+  useEffect(() => {
+    sendSaveRef.current = sendSave;
+  });
+  const saveQueueRef = useRef(null);
+  if (!saveQueueRef.current) {
+    saveQueueRef.current = createSaveQueue((doc, revision) => sendSaveRef.current(doc, revision));
+  }
   const [blockEditing, setBlockEditing] = useState(false);
   const [lastModified, setlastModified] = useState(props.data.dateModified);
   const [canUseDOM, setCanUseDOM] = useState(false);
@@ -3117,20 +3128,25 @@ const SefariaEditor = (props) => {
   function getLastModified() {
     return Sefaria.sheets._loadSheetByID[props.data.id]?.dateModified || props.data.dateModified;
   }
-  async function saveDocument(doc) {
-    savingState === 'saved' && setSavingState(sheetsUtils.editorSaveStates.SAVING);
-    const lastModified = getLastModified();
+  function saveDocument(doc) {
     // transition into saving state only if previous state is a valid "saved" state
+    savingState === 'saved' && setSavingState(sheetsUtils.editorSaveStates.SAVING);
+    saveQueueRef.current.request(doc, docRevisionRef.current);
+  }
+
+  // Builds and posts one save. Resolves to true only when the server stored it.
+  async function sendSave(doc, saveRevision) {
+    const lastModified = getLastModified();
     const json = saveSheetContent(doc[0], lastModified);
     if (!json) {
-      return;
+      return false;
     }
     // console.log('saving...');
     if (Sefaria.testUnknownNewEditorSaveError) {
       console.log('Simulating unknown error');
-      return;
+      return false;
     }
-    postSheet(json, docRevisionRef.current);
+    return postSheet(json, saveRevision);
   }
 
   function handlePostError(jqXHR, textStatus, errorThrown) {
@@ -3146,30 +3162,38 @@ const SefariaEditor = (props) => {
   }
 
   function postSheet(json, saveRevision) {
-    $.post('/api/sheets/', { json: json }, (res) => {
-      // console.log("saved at: "+ res.dateModified);
-      if (classifySheetSaveResponse(res) !== SAVE_RESPONSE.SAVED) {
-        // The server did not store this save (e.g. the sheet changed elsewhere). Keep the local
-        // changes marked unsaved, leave the cached sheet and its modification time alone, and
-        // block further edits so a later save cannot overwrite the newer stored version.
-        setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
-        return;
-      }
-      // The server stored this save, so the cached sheet and its modification time (sent with the
-      // next save for conflict detection) are current whether or not the editor has changed since.
-      const updatedSheet = { ...Sefaria.sheets._loadSheetByID[res.id], ...res };
-      Sefaria.sheets._loadSheetByID[res.id] = updatedSheet;
-      if (!isCurrentRevision(saveRevision, docRevisionRef.current)) {
-        // Edited while this save was in flight: those edits are not stored yet. Keep them marked
-        // unsaved and do not overwrite the local title or summary; the autosave they scheduled follows.
-        return;
-      }
-      setHasUnsavedChanges(false);
-      setStatus(res.status);
-      setTitle(res.title);
-      setSummary(res.summary);
-      setSavingState(sheetsUtils.editorSaveStates.SAVED);
-    }).fail(handlePostError);
+    return new Promise((resolve) => {
+      $.post('/api/sheets/', { json: json }, (res) => {
+        // console.log("saved at: "+ res.dateModified);
+        if (classifySheetSaveResponse(res) !== SAVE_RESPONSE.SAVED) {
+          // The server did not store this save (e.g. the sheet changed elsewhere). Keep the local
+          // changes marked unsaved, leave the cached sheet and its modification time alone, and
+          // block further edits so a later save cannot overwrite the newer stored version.
+          setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
+          resolve(false);
+          return;
+        }
+        // The server stored this save, so the cached sheet and its modification time (sent with the
+        // next save for conflict detection) are current whether or not the editor has changed since.
+        const updatedSheet = { ...Sefaria.sheets._loadSheetByID[res.id], ...res };
+        Sefaria.sheets._loadSheetByID[res.id] = updatedSheet;
+        if (!isCurrentRevision(saveRevision, docRevisionRef.current)) {
+          // Edited while this save was in flight: those edits are not stored yet. Keep them marked
+          // unsaved and do not overwrite the local title or summary; the queue sends them next.
+          resolve(true);
+          return;
+        }
+        setHasUnsavedChanges(false);
+        setStatus(res.status);
+        setTitle(res.title);
+        setSummary(res.summary);
+        setSavingState(sheetsUtils.editorSaveStates.SAVED);
+        resolve(true);
+      }).fail((jqXHR, textStatus, errorThrown) => {
+        handlePostError(jqXHR, textStatus, errorThrown);
+        resolve(false);
+      });
+    });
   }
 
   function onChange(value) {
