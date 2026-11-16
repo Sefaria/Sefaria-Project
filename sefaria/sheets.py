@@ -718,10 +718,10 @@ def _clean_source_options(options):
     return cleaned
 
 
-def clean_source(source):
+def clean_source_text(source):
     """
-    Sanitizes every field the sheet UI renders from a source. Each field is handled independently,
-    so a source is cleaned no matter which content keys it carries (including ones with no `ref`).
+    Bleaches every text field of a source that the sheet UI prints as HTML. Each field is handled
+    independently, so a source is cleaned no matter which content keys it carries.
     """
     if "text" in source:
         source["text"] = _bleach_lang_dict(source["text"])
@@ -735,6 +735,15 @@ def clean_source(source):
         source["customTitle"] = _bleach_if_str(source["customTitle"])
     if "caption" in source:
         source["caption"] = _bleach_lang_dict(source["caption"])
+    return source
+
+
+def clean_source(source):
+    """
+    Sanitizes every field the sheet UI renders from a source. Each field is handled independently,
+    so a source is cleaned no matter which content keys it carries (including ones with no `ref`).
+    """
+    clean_source_text(source)
     if "options" in source:
         source["options"] = _clean_source_options(source["options"])
     if "media" in source:
@@ -768,6 +777,26 @@ def clean_sheet_attribution(sheet):
     """
     if isinstance(sheet.get("attribution"), str):
         sheet["attribution"] = bleach_text(sheet["attribution"])
+    return sheet
+
+
+def _clean_sources_text_for_render(sources):
+    if not isinstance(sources, list):
+        return
+    for source in sources:
+        if isinstance(source, dict):
+            clean_source_text(source)
+            _clean_sources_text_for_render(source.get("subsources"))
+
+
+def clean_sheet_for_render(sheet):
+    """
+    Prepares a stored sheet for the pages that print it. Sheets saved before save-time cleaning
+    existed still hold unbleached text, so the text fields and attribution are bleached here as well.
+    Media and options are left as stored: the page only prints text, and the editor reads the rest.
+    """
+    clean_sheet_attribution(sheet)
+    _clean_sources_text_for_render(sheet.get("sources"))
     return sheet
 
 
