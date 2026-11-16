@@ -35,6 +35,12 @@ const STRINGS = {
   health: 'Job health',
   checkHealth: 'Check job health',
   notAvailable: 'Personalization is not available here.',
+  notAvailableNoPreview:
+    'Personalization is not available here. Open the test link you were sent; this page is not connected to the personalization test server.',
+  jobsHour: 'Profile updates this hour',
+  jobRunning: 'Job running',
+  jobParked: 'Paused after repeated failures',
+  recentRuns: 'Recent runs',
   signIn: 'Reload the page to sign in again.',
   quota: 'Too many changes. Try again in a while.',
   jobQuota: 'Hourly limit reached. Try again later.',
@@ -47,21 +53,33 @@ const STRINGS = {
   testingNote: 'These tools appear only on test deployments.',
 };
 
-const errorMessage = (e) => {
-  if (e && e.status === 404) return STRINGS.notAvailable;
+// A page with no preview server is one whose API base is not a `*.ai-server.coolifydev.sefaria.org` preview.
+const isPreviewBase = (base) => /^https:\/\/\d+\.ai-server\.coolifydev\.sefaria\.org\//.test(base || '');
+
+const errorMessage = (e, preview) => {
+  if (e && e.status === 404) return preview ? STRINGS.notAvailable : STRINGS.notAvailableNoPreview;
   if (e && e.status === 401) return STRINGS.signIn;
   if (e && e.status === 429) return STRINGS.quota;
   if (e && e.status === 400 && e.body && e.body.error === 'too_long') return `Keep it to ${e.body.max} characters.`;
   return STRINGS.unreachable;
 };
 
+const formatTime = (value) => {
+  const date = new Date(value);
+  return isNaN(date)
+    ? String(value)
+    : date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+};
+
 const lastUpdated = (updatedAt, by) => {
   if (!updatedAt) return 'Last updated: Never';
-  const date = new Date(updatedAt);
-  const when = isNaN(date)
-    ? updatedAt
-    : date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-  return `Last updated: ${when}${by ? ` by ${by}` : ''}`;
+  return `Last updated: ${formatTime(updatedAt)}${by ? ` by ${by}` : ''}`;
 };
 
 const PROFILE_AUTHOR = { la: 'LA', you_la: 'You/LA' };
@@ -292,7 +310,7 @@ const Personalization = ({ base, token }) => {
         // `onQuota`: a caller with its own result area shows the hourly limit there, not as the page error
         if (e && e.status === 429 && onQuota) {
           if (mounted.current) onQuota();
-        } else if (mounted.current) setError(errorMessage(e));
+        } else if (mounted.current) setError(errorMessage(e, isPreviewBase(base)));
         return null;
       } finally {
         if (mounted.current) setBusy(false);
@@ -512,6 +530,23 @@ const Personalization = ({ base, token }) => {
               {STRINGS.checkHealth}
             </button>
           </div>
+          {testing.jobState && typeof testing.jobState === 'object' && (
+            <div className="laJobState">
+              <div>{`${STRINGS.jobsHour}: ${testing.jobState.hourUsed} of ${testing.jobState.hourLimit}`}</div>
+              <div>{`${STRINGS.jobRunning}: ${testing.jobState.lockHeld ? 'yes' : 'no'}`}</div>
+              <div>{`${STRINGS.jobParked}: ${testing.jobState.parked ? 'yes' : 'no'}`}</div>
+            </div>
+          )}
+          {Array.isArray(testing.recentRuns) && testing.recentRuns.length > 0 && (
+            <div className="laRuns">
+              <strong>{STRINGS.recentRuns}</strong>
+              {testing.recentRuns.map((run, i) => (
+                <div className="laRunsRow" key={`${run.startedAt}-${i}`}>
+                  {`${formatTime(run.startedAt)} · ${run.trigger} · ${run.window} · ${run.status}${run.reason ? `: ${run.reason}` : ''}`}
+                </div>
+              ))}
+            </div>
+          )}
           {health && (
             <div className="laHealthResult">
               {health.map((j) => (

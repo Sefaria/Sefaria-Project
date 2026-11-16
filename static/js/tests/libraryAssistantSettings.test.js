@@ -174,7 +174,10 @@ describe('LibraryAssistantSettings', () => {
   });
 
   it.each([
-    [404, 'Personalization is not available here.'],
+    [
+      404,
+      'Personalization is not available here. Open the test link you were sent; this page is not connected to the personalization test server.',
+    ],
     [401, 'Reload the page to sign in again.'],
     [429, 'Too many changes. Try again in a while.'],
     [500, 'Could not reach the Library Assistant. Try again.'],
@@ -182,6 +185,71 @@ describe('LibraryAssistantSettings', () => {
     global.fetch.mockImplementation(() => reply({}, status));
     await render();
     expect(q('#personalization').textContent).toContain(message);
+  });
+
+  it('shows date and time on Last updated for Profile and Instructions', async () => {
+    const at = '2026-11-16T09:02:00Z';
+    global.fetch.mockImplementation(() =>
+      reply(
+        state({
+          instructions: { text: 'x', enabled: true, updatedAt: at },
+          profile: { text: '', sections: [], enabled: true, updatedAt: at, updatedBy: 'la', revision: 1 },
+        })
+      )
+    );
+    await render();
+    const re = /Last updated: Nov 16, 2026, \d{1,2}:\d{2}[\s\u202f]?[AP]M by (You|LA)/;
+    const texts = [...container.querySelectorAll('.laUpdated')].map((e) => e.textContent);
+    expect(texts).toHaveLength(2);
+    texts.forEach((t) => expect(t).toMatch(re));
+  });
+
+  describe('testing tools job info', () => {
+    const lab = (testing) =>
+      global.fetch.mockImplementation(() =>
+        reply(state({ labEnabled: true, testing: { showPlainResponse: false, updateEveryMessage: false, ...testing } }))
+      );
+    it('shows job state and recent runs when present', async () => {
+      lab({
+        jobState: { hourUsed: 3, hourLimit: 10, lockHeld: false, parked: true },
+        recentRuns: [
+          { startedAt: '2026-11-16T09:02:00Z', trigger: 'manual', window: 'session', status: 'ok', reason: null },
+          { startedAt: '2026-11-16T09:02:00Z', trigger: 'cron', window: 'dream', status: 'skipped', reason: 'locked' },
+        ],
+      });
+      await render();
+      const t = q('#testing-tools').textContent;
+      expect(t).toContain('Profile updates this hour: 3 of 10');
+      expect(t).toContain('Job running: no');
+      expect(t).toContain('Paused after repeated failures: yes');
+      expect(t).toContain('manual');
+      expect(t).toContain('skipped');
+      expect(t).toContain('locked');
+      expect(container.querySelectorAll('.laRunsRow')).toHaveLength(2);
+    });
+    it('shows neither when absent', async () => {
+      lab({});
+      await render();
+      const t = q('#testing-tools').textContent;
+      expect(t).not.toContain('Profile updates this hour');
+      expect(q('.laRunsRow')).toBeNull();
+    });
+  });
+
+  it('explains a 404 on a page with no preview server', async () => {
+    global.fetch.mockImplementation(() => reply({}, 404));
+    await render();
+    expect(q('#personalization').textContent).toContain(
+      'Open the test link you were sent; this page is not connected to the personalization test server.'
+    );
+  });
+
+  it('keeps the short 404 message when a preview server is in use', async () => {
+    global.fetch.mockImplementation(() => reply({}, 404));
+    await render({ chatbot_version: 9298 });
+    const t = q('#personalization').textContent;
+    expect(t).toContain('Personalization is not available here.');
+    expect(t).not.toContain('test link');
   });
 
   it.each([['Run now'], ['Dream now']])(
