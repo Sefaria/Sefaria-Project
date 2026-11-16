@@ -1855,8 +1855,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       openSidebarAsConnect: typeof connectAfter !== "undefined" ? connectAfter : false,
     });
     Sefaria.track.event("Reader", "Other Text Click");
-    this.state.panels[n] = comparePanel;
-    this.setState({panels: this.state.panels});
+    const panels = this.state.panels.slice();
+    panels[n] = comparePanel;
+    this.setState({panels});
   }
   openTextListAt(n, refs, textListState) {
     // Open a connections panel at position `n` for `refs`
@@ -1957,8 +1958,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     //console.log(this.state.panels[n].refs);
     const next = this.state.panels[n+1];
     if (next && !next.menuOpen) {
-      this.state.panels[n+1].selectedWords = words;
-      this.setState({panels: this.state.panels});
+      const panels = this.state.panels.slice();
+      panels[n+1] = {...next, selectedWords: words};
+      this.setState({panels});
     }
   }
   setUnreadNotificationsCount(n) {
