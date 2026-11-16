@@ -50,6 +50,14 @@ const createSharedCache = function({ getAsync, cacheKeyMapping, logger }) {
       logger.error(`Shared cache load failed: ${e.message}`);
       throw e;
     }
+    // Refreshes can overlap. A load for an older timestamp that finishes after a newer one has
+    // been committed must not put its older data back, so it commits nothing.
+    const incoming = normalizeTimestamp(last_cached_to_compare);
+    const committed = normalizeTimestamp(sharedCacheData["last_cached"]);
+    if(incoming !== null && committed !== null && incoming < committed){
+      logger.debug(`Load Shared Data - Discarding stale refresh for ${incoming}; cache is at ${committed}`);
+      return;
+    }
     for (const [key, parsed] of fetched) {
       sharedCacheData[key] = parsed;
     }

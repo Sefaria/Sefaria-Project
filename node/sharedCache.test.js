@@ -51,6 +51,33 @@ describe('loadSharedData failure handling', () => {
   });
 });
 
+describe('overlapping refreshes', () => {
+  test('an older load finishing after a newer one does not overwrite it', async () => {
+    const resolvers = {};
+    const getAsync = jest.fn(key => new Promise(resolve => {
+      (resolvers[key] = resolvers[key] || []).push(resolve);
+    }));
+    const logger = { debug: jest.fn(), error: jest.fn() };
+    const cache = createSharedCache({ getAsync, cacheKeyMapping, logger });
+
+    const older = cache.loadSharedData({ last_cached_to_compare: 100 });
+    const newer = cache.loadSharedData({ last_cached_to_compare: 200 });
+    // Every key has one pending read per load: [older, newer]. Newer finishes first.
+    for (const key of Object.values(cacheKeyMapping)) {
+      resolvers[key][1](JSON.stringify({ from: 'new' }));
+    }
+    await newer;
+    for (const key of Object.values(cacheKeyMapping)) {
+      resolvers[key][0](JSON.stringify({ from: 'old' }));
+    }
+    await older;
+
+    expect(cache.data.last_cached).toBe(200);
+    expect(cache.data.toc).toEqual({ from: 'new' });
+    expect(cache.data.terms).toEqual({ from: 'new' });
+  });
+});
+
 describe('staleness comparison', () => {
   test('a newer timestamp refreshes every key and stores it as a number', async () => {
     const cache = makeCache(fullRedis());
