@@ -214,6 +214,9 @@ varnish:
     tag: 0.32.0
   logging: {}
   replicaCount: 1
+  # Store JSON responses gzipped (vcl_backend_response). Off by default: turn it on per
+  # environment once Varnish metrics have a baseline to compare against.
+  gzipJson: false
   resources:
     requests:
       # must be in megabibytes, because we pass it into the malloc definition
@@ -232,6 +235,13 @@ varnish:
     # are unaffected by this default; this change only takes effect for staging/dev/
     # cauldrons/local, which inherit the chart default.
     malloc: "512m"
+    # Cap for Transient storage (passed, hit-for-pass and short-lived objects), e.g. "1g".
+    # Empty keeps Varnish's default, which is unlimited. A full Transient truncates or 503s a
+    # response that does not fit, so size it above the largest passed response times its
+    # concurrency. Note that malloc counts object bytes only: measured on prod (2026-11-12),
+    # the process used ~24% more than the malloc size (allocator overhead), so leave
+    # malloc * 1.25 + transient well under the memory limit.
+    transient: ""
     nuke_limit: "400"
     # Threading
     # http://book.varnish-software.com/4.0/chapters/Tuning.html#details-of-threading-parameters
@@ -252,6 +262,37 @@ varnish:
     enabled: false
     image: ibmcom/varnish-metrics-exporter
     tag: 0.32.0
+    # Send exporter metrics to Datadog (OpenMetrics check, set through pod annotations).
+    # Needs monitoring.enabled. Names verified against the exporter on Varnish 6.5.1.
+    # Counters arrive in Datadog with a .count suffix; sma_* and backend_* keep the
+    # exporter's labels (type:s0/transient, backend) as tags.
+    datadog:
+      enabled: true
+      metrics:
+        varnish_main_client_req: main.client_req
+        varnish_main_cache_hit: main.cache_hit
+        varnish_main_cache_hit_grace: main.cache_hit_grace
+        varnish_main_cache_hitpass: main.cache_hitpass
+        varnish_main_cache_hitmiss: main.cache_hitmiss
+        varnish_main_cache_miss: main.cache_miss
+        varnish_main_s_pass: main.s_pass
+        varnish_main_n_object: main.n_object
+        varnish_main_n_lru_nuked: main.n_lru_nuked
+        varnish_main_n_lru_limited: main.n_lru_limited
+        varnish_main_n_gzip: main.n_gzip
+        varnish_main_n_gunzip: main.n_gunzip
+        varnish_main_req_dropped: main.req_dropped
+        varnish_main_threads: main.threads
+        varnish_main_threads_limited: main.threads_limited
+        varnish_main_bans: main.bans
+        varnish_main_uptime: main.uptime
+        varnish_mgt_child_died: mgt.child_died
+        varnish_mgt_child_panic: mgt.child_panic
+        varnish_sma_g_bytes: sma.g_bytes
+        varnish_sma_g_space: sma.g_space
+        varnish_sma_c_fail: sma.c_fail
+        varnish_backend_fail: backend.fail
+        varnish_backend_beresp_bodybytes: backend.beresp_bodybytes
 
 tasks:
   localsettings: {}
