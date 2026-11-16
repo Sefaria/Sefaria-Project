@@ -467,6 +467,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
         return sheet_id
     scored_by_llm = False
     sheet["dateModified"] = datetime.now().isoformat()
+    clean_sheet_attribution(sheet)
     status_changed = False
     # Updating an existing sheet
     if "id" in sheet:
@@ -641,22 +642,133 @@ def bleach_text(text):
     return bleach.clean(text, tags=_OK_SHEET_TAGS, attributes=_OK_SHEET_ATTRS, css_sanitizer=_SHEET_CSS_SANITIZER, strip=True)
 
 
+# Source options the sheet UI reads: CSS class tokens (empty string allowed), text it prints, and flags.
+# Any other key in `options` is dropped.
+_SHEET_OPTION_CLASS_KEYS = {"indented", "refDisplayPosition", "sourceLayout", "sourceLanguage", "sourceLangLayout"}
+_SHEET_OPTION_TEXT_KEYS = {"sourcePrefix", "PrependRefWithHe", "PrependRefWithEn"}
+_SHEET_OPTION_FLAG_KEYS = {"numbered"}
+_SHEET_CLASS_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{0,64}$")
+
+# Media URLs are interpolated into embed and image markup by the sheet UI. They must be https (http and
+# protocol-relative URLs, which older sheets may hold, are upgraded to https first). A URL is kept when it
+# points at a known embed host with an embeddable path, or at an image or mp3 file on any host.
+_SHEET_EMBED_PATH_PREFIXES = {
+    "www.youtube.com": ("/embed/",),
+    "youtube.com": ("/embed/",),
+    "player.vimeo.com": ("/video/",),
+    "w.soundcloud.com": ("/player/",),
+    "open.spotify.com": ("/embed/",),
+    "bandcamp.com": ("/EmbeddedPlayer",),
+}
+_SHEET_FILE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".mp3")
+_SHEET_MEDIA_FORBIDDEN_CHARS_RE = re.compile(r"[\s\"'<>`\\]")
+
+
+def _bleach_if_str(value):
+    return bleach_text(value) if isinstance(value, str) else value
+
+
+def _bleach_lang_dict(value):
+    if isinstance(value, dict):
+        for lang in ("he", "en"):
+            if lang in value:
+                value[lang] = _bleach_if_str(value[lang])
+    return value
+
+
+def _normalize_media_url(url):
+    if isinstance(url, str):
+        if url.startswith("//"):
+            return "https:" + url
+        if url[:7].lower() == "http://":
+            return "https://" + url[7:]
+    return url
+
+
+def is_safe_media_url(url):
+    if not isinstance(url, str) or not url or _SHEET_MEDIA_FORBIDDEN_CHARS_RE.search(url):
+        return False
+    try:
+        parsed = urllib.parse.urlparse(url)
+        host = (parsed.hostname or "").lower()
+    except ValueError:
+        return False
+    if parsed.scheme != "https" or not host or parsed.username is not None or parsed.password is not None:
+        return False
+    if host in _SHEET_EMBED_PATH_PREFIXES:
+        return parsed.path.startswith(_SHEET_EMBED_PATH_PREFIXES[host])
+    return parsed.path.lower().endswith(_SHEET_FILE_EXTENSIONS)
+
+
+def _clean_source_options(options):
+    if not isinstance(options, dict):
+        return {}
+    cleaned = {}
+    for key, value in options.items():
+        if key in _SHEET_OPTION_CLASS_KEYS:
+            if isinstance(value, str) and _SHEET_CLASS_TOKEN_RE.match(value):
+                cleaned[key] = value
+        elif key in _SHEET_OPTION_TEXT_KEYS:
+            # Quotes are removed because the legacy renderer places this text inside a quoted attribute.
+            if isinstance(value, str):
+                cleaned[key] = bleach_text(value).replace("'", "").replace('"', "")
+        elif key in _SHEET_OPTION_FLAG_KEYS:
+            if isinstance(value, (bool, int)):
+                cleaned[key] = value
+    return cleaned
+
+
 def clean_source(source):
-    if "ref" in source:
-        source["text"]["he"] = bleach_text(source["text"]["he"])
-        source["text"]["en"] = bleach_text(source["text"]["en"])
-
-    elif "outsideText" in source:
-        source["outsideText"] = bleach_text(source["outsideText"])
-
-    elif "comment" in source:
-        source["comment"] = bleach_text(source["comment"])
-
-    elif "outsideBiText" in source:
-        source["outsideBiText"]["he"] = bleach_text(source["outsideBiText"]["he"])
-        source["outsideBiText"]["en"] = bleach_text(source["outsideBiText"]["en"])
-
+    """
+    Sanitizes every field the sheet UI renders from a source. Each field is handled independently,
+    so a source is cleaned no matter which content keys it carries (including ones with no `ref`).
+    """
+    if "text" in source:
+        source["text"] = _bleach_lang_dict(source["text"])
+    if "outsideText" in source:
+        source["outsideText"] = _bleach_if_str(source["outsideText"])
+    if "comment" in source:
+        source["comment"] = _bleach_if_str(source["comment"])
+    if "outsideBiText" in source:
+        source["outsideBiText"] = _bleach_lang_dict(source["outsideBiText"])
+    if "customTitle" in source:
+        source["customTitle"] = _bleach_if_str(source["customTitle"])
+    if "caption" in source:
+        source["caption"] = _bleach_lang_dict(source["caption"])
+    if "options" in source:
+        source["options"] = _clean_source_options(source["options"])
+    if "media" in source:
+        source["media"] = _normalize_media_url(source["media"])
+        if not is_safe_media_url(source["media"]):
+            logger.warning("Removed sheet media with disallowed URL", media=str(source["media"])[:200])
+            del source["media"]
+            source.pop("caption", None)
     return source
+
+
+def clean_sources(sources):
+    """
+    Cleans each source for saving. Sources are kept even when they have no renderable content, so a save
+    never removes data; those are only logged for review. Entries that are not objects are dropped.
+    """
+    cleaned = []
+    for source in sources:
+        if not isinstance(source, dict):
+            continue
+        source = clean_source(source)
+        if not is_valid_source(source):
+            logger.info("Saved sheet source has no renderable content", node=source.get("node"))
+        cleaned.append(source)
+    return cleaned
+
+
+def clean_sheet_attribution(sheet):
+    """
+    Bleaches the sheet-level attribution, which the sheet pages print as HTML.
+    """
+    if isinstance(sheet.get("attribution"), str):
+        sheet["attribution"] = bleach_text(sheet["attribution"])
+    return sheet
 
 
 def get_sheet_language(sheet):
