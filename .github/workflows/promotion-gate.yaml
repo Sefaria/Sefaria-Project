@@ -6,7 +6,8 @@ name: "Promotion Gate"
 # settings for preprod and prod — PRs cannot merge without this passing.
 #
 # Allowed paths:
-#   preprod ← master, hotfix/* (preferred hotfix path), prod (reverse back-merge)
+#   preprod ← master, hotfix/* (preferred hotfix path), prod or
+#             backmerge/prod-into-preprod (reverse back-merge, see back-merge.yaml)
 #   prod    ← preprod, hotfix/* (BREAK-GLASS — emergencies only)
 #
 # Hotfix policy: ship hotfixes via hotfix/* → preprod → prod, the same gate as
@@ -62,10 +63,10 @@ jobs:
           if [[ "$TARGET" == "preprod" ]]; then
             if [[ "$SOURCE" == "master" ]]; then
               echo "✅ preprod ← master: allowed"
-            elif [[ "$SOURCE" == "prod" ]]; then
-              echo "✅ preprod ← prod: reverse back-merge allowed"
+            elif [[ "$SOURCE" == "prod" || "$SOURCE" == "backmerge/prod-into-preprod" ]]; then
+              echo "✅ preprod ← $SOURCE: reverse back-merge allowed"
             else
-              echo "❌ BLOCKED: preprod only accepts PRs from master, prod, or hotfix/*"
+              echo "❌ BLOCKED: preprod only accepts PRs from master, prod, backmerge/prod-into-preprod, or hotfix/*"
               echo ""
               echo "  Got: $SOURCE → preprod"
               echo "  Expected: master → preprod, prod → preprod (back-merge), or hotfix/* → preprod"
