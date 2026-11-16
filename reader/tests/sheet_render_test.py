@@ -1,12 +1,13 @@
 """Sheet pages print user-written fields as escaped text or as bleached HTML, and embed sheet JSON safely."""
 
-import re
+from html.parser import HTMLParser
 from unittest import mock
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
+from reader.conftest import create_test_user, purge_test_profiles
 from sefaria.sheets import clean_sheet_for_render
 from sourcesheets import views
 
@@ -14,22 +15,41 @@ IMG_ONERROR = "<img src=x onerror=alert(1)>"
 SCRIPT_BREAKOUT = "</script><img src=x onerror=alert(1)>"
 
 
-def _hostile_sheet():
+def _hostile_sheet(owner=0):
+    """A stored sheet document with the fields the sheet pages read, and hostile user-written text."""
     return {
         "id": 1,
-        "owner": 0,
+        "owner": owner,
         "title": SCRIPT_BREAKOUT,
         "status": "public",
+        "summary": "A summary",
+        "views": 3,
+        "likes": [],
+        "topics": [],
+        "collections": [],
+        "dateCreated": "2026-01-01T10:00:00.000000",
+        "dateModified": "2026-01-02T10:00:00.000000",
+        "nextNode": 3,
+        "options": {
+            "language": "bilingual",
+            "layout": "sideBySide",
+            "langLayout": "heRight",
+            "numbered": 0,
+            "boxed": 0,
+            "collaboration": "none",
+            "divineNames": "noSub",
+        },
         "attribution": IMG_ONERROR + "Credit",
         "sources": [
             {
                 "ref": "Genesis 1:1",
+                "heRef": "בראשית א:א",
                 "node": 1,
                 "customTitle": IMG_ONERROR + "Custom",
                 "text": {"en": "<b>kept</b><script>alert(2)</script>", "he": ""},
-                "options": {"sourceLayout": "stacked"},
+                "options": {"sourceLayout": "stacked", "sourceLanguage": "bilingual", "indented": "indented-1"},
             },
-            {"comment": "<i>note</i>" + IMG_ONERROR, "node": 2},
+            {"comment": "<i>note</i>" + IMG_ONERROR, "node": 2, "options": {"indented": "indented-1"}},
         ],
     }
 
@@ -53,31 +73,61 @@ def _request(path):
 
 
 @pytest.fixture
-def hostile_sheet(monkeypatch):
-    monkeypatch.setattr(views, "get_sheet", lambda sheet_id: _hostile_sheet())
+def hostile_sheet(db, monkeypatch):
+    owner = create_test_user("sheet-render")
+    monkeypatch.setattr(views, "get_sheet", lambda sheet_id: _hostile_sheet(owner.id))
     monkeypatch.setattr(views, "db", mock.MagicMock())
     monkeypatch.setattr(views, "get_redirect_to_help_center", lambda request, sheet_id: None)
-    return _hostile_sheet
+    yield _hostile_sheet
+    purge_test_profiles(owner)
 
 
-SCRIPT_BLOCK = re.compile(r"<script\b.*?</script>", re.IGNORECASE | re.DOTALL)
-EVENT_HANDLER_ATTR = re.compile(r"<[^>]*\bon\w+\s*=", re.IGNORECASE)
+URL_ATTRIBUTES = ("href", "src", "action", "formaction", "xlink:href", "data")
+INJECTABLE_TAGS = {"svg", "iframe", "object", "embed", "math"}
+
+
+class _MarkupAudit(HTMLParser):
+    """Collects what a browser would treat as live content: elements, attributes and script blocks."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.problems = []
+        self.script_blocks = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "script":
+            self.script_blocks += 1
+        if tag in INJECTABLE_TAGS:
+            self.problems.append(f"injected <{tag}>")
+        for name, value in attrs:
+            value = (value or "").strip().lower()
+            if name.startswith("on"):
+                self.problems.append(f"event handler {name} on <{tag}>")
+            if name in URL_ATTRIBUTES and value.startswith(("javascript:", "data:text/html", "vbscript:")):
+                self.problems.append(f"script URL in {name} on <{tag}>")
+            if tag == "img" and value == "x":
+                self.problems.append("injected <img src=x>")
+            if "alert(" in value:
+                self.problems.append(f"payload in {name} on <{tag}>")
+
+    handle_startendtag = handle_starttag
 
 
 def _assert_no_executable_injection(html):
     """
-    The sheet JSON blob is escaped inside a script block, so the payload text legitimately appears there.
-    Remove every script block and check what is left: any injected tag, event-handler attribute or
-    script-breakout would sit outside the blocks (a premature </script> ends the block early).
+    The sheet JSON blob sits in a script block, JSON-escaped, so the payload text legitimately appears
+    in it, and escaped text (such as the title) may still read `alert(1)`. So parse the page and judge
+    elements and attributes only: no injected element or attribute, no event handler, no script URL,
+    and no script block ended early (each opening script tag has exactly one closing tag).
     """
-    markup = SCRIPT_BLOCK.sub("", html)
-    assert "<img src=x" not in markup
-    assert not EVENT_HANDLER_ATTR.search(markup)
-    assert "alert(" not in markup
+    audit = _MarkupAudit()
+    audit.feed(html)
+    audit.close()
+    assert audit.problems == []
+    assert html.lower().count("</script") == audit.script_blocks
     assert "</script><img" not in html
-    # No script block may contain a second closing tag (a breakout would end it early).
-    for block in SCRIPT_BLOCK.findall(html):
-        assert block.lower().count("</script") == 1
+    # The payload's closing tag reaches the page only inside the escaped JSON.
+    assert "\\u003c/script\\u003e" in html
 
 
 @pytest.mark.django_db
