@@ -93,7 +93,12 @@ spec:
           memory: "18Gi"
           cpu: "1500m"
       tuning:
-        malloc: "14440m"
+        # The varnish store plus Varnish's ~24% allocator overhead must stay under the 18Gi
+        # limit. 14440m left only ~0.5GiB of headroom, so the kubelet OOMKilled the single
+        # varnish pod about daily and every restart returned origin 502/503/504 to readers.
+        # 13056m is ~75% of the 17Gi request (the rule in helm-chart/sefaria/values.yaml)
+        # and leaves ~2GiB of headroom, so the store nukes LRU instead of the pod being killed.
+        malloc: "13056m"
         nuke_limit: "400"
         thread_pools: 2
         thread_pool_max: 5000
