@@ -6,6 +6,7 @@ import { Slate, Editable, ReactEditor, withReact, useSlate, useSelected, useFocu
 import isHotkey from 'is-hotkey';
 import Sefaria from './sefaria/sefaria';
 import * as sheetsUtils from './sefaria/sheetsUtils';
+import { classifySheetSaveResponse, SAVE_RESPONSE } from './sefaria/sheetSaveResponse';
 
 import { SheetMetaDataBox, SheetTitle, InterfaceText, Autocompleter, ToolTipped } from './Misc';
 import { ProfilePic } from './ProfilePic';
@@ -3142,6 +3143,13 @@ const SefariaEditor = (props) => {
   function postSheet(json) {
     $.post('/api/sheets/', { json: json }, (res) => {
       // console.log("saved at: "+ res.dateModified);
+      if (classifySheetSaveResponse(res) !== SAVE_RESPONSE.SAVED) {
+        // The server did not store this save (e.g. the sheet changed elsewhere). Keep the local
+        // changes marked unsaved, leave the cached sheet and its modification time alone, and
+        // block further edits so a later save cannot overwrite the newer stored version.
+        setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
+        return;
+      }
       setHasUnsavedChanges(false);
       setStatus(res.status);
       setTitle(res.title);
