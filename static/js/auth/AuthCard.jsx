@@ -39,7 +39,11 @@ const AuthCard = ({ heading, sub, onBack, backLabel = 'auth.back', className = '
       )}
       {(heading || sub) && (
         <div className="sefaria-auth-card-header">
-          {heading && <h1 ref={headingRef} tabIndex={-1} className="sefaria-auth-card-heading">{heading}</h1>}
+          {heading && (
+            <h1 ref={headingRef} tabIndex={-1} className="sefaria-auth-card-heading">
+              {heading}
+            </h1>
+          )}
           {sub && <div className="sefaria-auth-card-sub">{sub}</div>}
         </div>
       )}

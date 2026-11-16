@@ -5,6 +5,7 @@ for both web /register and the mobile api/register/.
 These tests check the steps that run after the Django user is created. The form,
 database, and network calls are replaced with mocks, so no database is needed.
 """
+
 from unittest.mock import MagicMock, patch
 
 from sefaria.views import process_register_form

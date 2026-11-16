@@ -2,10 +2,10 @@ from django.conf import settings
 
 from semantic_search.embedder import embed_query
 from semantic_search.models import (
+    DEFAULT_EMBEDDING_MODEL_ID,
     ChunkMetadata,
     SemanticTextChunk,
     Vector,
-    DEFAULT_EMBEDDING_MODEL_ID,
 )
 
 

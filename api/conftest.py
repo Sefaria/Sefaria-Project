@@ -14,9 +14,9 @@ User row, but the row is undone before the next test starts.
 from unittest import mock
 
 import pytest
-from requests.adapters import BaseAdapter
-from django.test import Client
 from django.contrib.auth.models import User
+from django.test import Client
+from requests.adapters import BaseAdapter
 
 
 @pytest.fixture(autouse=True)
@@ -91,12 +91,12 @@ def test_user():
     the test ends.
     """
     user = User.objects.create_user(
-        username='testuser@sefaria.org',
-        email='testuser@sefaria.org',
-        password='testpass123',
+        username="testuser@sefaria.org",
+        email="testuser@sefaria.org",
+        password="testpass123",
     )
-    user.first_name = 'Test'
-    user.last_name = 'User'
+    user.first_name = "Test"
+    user.last_name = "User"
     user.save()
     return user
 
@@ -109,12 +109,12 @@ def test_user_no_name():
     but the user hasn't set one in their profile).
     """
     user = User.objects.create_user(
-        username='testuser@sefaria.org',
-        email='testuser@sefaria.org',
-        password='testpass123',
+        username="testuser@sefaria.org",
+        email="testuser@sefaria.org",
+        password="testpass123",
     )
-    user.first_name = ''
-    user.last_name = ''
+    user.first_name = ""
+    user.last_name = ""
     user.save()
     return user
 
@@ -128,7 +128,7 @@ def logged_in_client(client, test_user):
     test that uses this gets its own client AND its own user — no state
     bleeds across tests.
     """
-    client.login(email='testuser@sefaria.org', password='testpass123')
+    client.login(email="testuser@sefaria.org", password="testpass123")
     return client
 
 
@@ -142,38 +142,38 @@ def mock_newsletters():
     """
     return [
         {
-            'id': '1',
-            'stringid': 'sefaria_news',
-            'displayName': {'en': 'Sefaria News & Resources', 'he': None},
-            'icon': 'news-and-resources.svg',
-            'language': 'english',
+            "id": "1",
+            "stringid": "sefaria_news",
+            "displayName": {"en": "Sefaria News & Resources", "he": None},
+            "icon": "news-and-resources.svg",
+            "language": "english",
         },
         {
-            'id': '3',
-            'stringid': 'text_updates',
-            'displayName': {'en': 'New Text Updates', 'he': None},
-            'icon': 'new-text-release-updates.svg',
-            'language': 'english',
+            "id": "3",
+            "stringid": "text_updates",
+            "displayName": {"en": "New Text Updates", "he": None},
+            "icon": "new-text-release-updates.svg",
+            "language": "english",
         },
         {
-            'id': '5',
-            'stringid': 'parashah_series',
-            'displayName': {'en': 'Weekly Parashah Study Series', 'he': None},
-            'icon': 'weekly-study-guide.svg',
-            'language': 'english',
+            "id": "5",
+            "stringid": "parashah_series",
+            "displayName": {"en": "Weekly Parashah Study Series", "he": None},
+            "icon": "weekly-study-guide.svg",
+            "language": "english",
         },
         {
-            'id': '7',
-            'stringid': 'educator_resources',
-            'displayName': {'en': 'Educator Resources', 'he': None},
-            'icon': 'educator-resources.svg',
-            'language': 'english',
+            "id": "7",
+            "stringid": "educator_resources",
+            "displayName": {"en": "Educator Resources", "he": None},
+            "icon": "educator-resources.svg",
+            "language": "english",
         },
         {
-            'id': '9',
-            'stringid': 'hebrew_newsletter',
-            'displayName': {'en': None, 'he': 'חדשות עברית'},
-            'icon': 'news-and-resources.svg',
-            'language': 'hebrew',
+            "id": "9",
+            "stringid": "hebrew_newsletter",
+            "displayName": {"en": None, "he": "חדשות עברית"},
+            "icon": "news-and-resources.svg",
+            "language": "hebrew",
         },
     ]

@@ -1,4 +1,4 @@
-from typing import Optional, Type, Union
+from typing import Optional, Union
 
 import bleach
 import regex as re
@@ -22,7 +22,6 @@ from .text import AbstractTextRecord, Index, IndexSet, Ref, Term
 logger = structlog.get_logger(__name__)
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
 
 from sefaria.system.progress_context import report_progress
 
@@ -372,7 +371,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         if search_slug_set is not None and len(search_slug_set.intersection(types)) > 0:
             return types
         for isa_slug in isa_set:
-            new_path = [p for p in curr_path]
+            new_path = list(curr_path)
             if isa_slug in new_path:
                 logger.warning(f"Circular path starting from {new_path[0]} and ending at {isa_slug} detected")
                 continue
@@ -1328,7 +1327,7 @@ class TopicLinkSetHelper:
         return query
 
     @staticmethod
-    def find(query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, record_kwargs=None):
+    def find(query=None, page=0, limit=0, sort=(("_id", 1),), proj=None, record_kwargs=None):
         from sefaria.system.database import db
 
         record_kwargs = record_kwargs or {}

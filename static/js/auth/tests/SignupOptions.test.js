@@ -6,9 +6,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import SignupOptions from '../SignupOptions.jsx';
-import {
-  fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded,
-} from '../authAnalytics.js';
+import { fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded } from '../authAnalytics.js';
 
 // Misc.jsx transitively imports a .css file, which this repo's Jest setup has no transform for.
 // Only InterfaceText is reached from this tree, and it just renders text.
@@ -54,9 +52,13 @@ class FakeIntersectionObserver {
     this.targets = [];
     observers.push(this);
   }
-  observe(el) { this.targets.push(el); }
+  observe(el) {
+    this.targets.push(el);
+  }
   unobserve() {}
-  disconnect() { this.targets = []; }
+  disconnect() {
+    this.targets = [];
+  }
 }
 
 function setVisible(visible) {
@@ -71,15 +73,19 @@ function mount() {
   act(() => {
     ReactDOM.render(
       React.createElement(SignupOptions, { source: SOURCE, next: '/texts', onEmailClick, featureName: FEATURE_NAME }),
-      container,
+      container
     );
   });
   // Let whenReady see the (already present) SDKs.
-  act(() => { jest.runOnlyPendingTimers(); });
+  act(() => {
+    jest.runOnlyPendingTimers();
+  });
 }
 
 function unmount() {
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
 }
@@ -127,7 +133,9 @@ describe('SignupOptions', () => {
   it('Email hands over to the host, which opens the sign-up form', () => {
     mount();
 
-    act(() => { button('auth.continue_with_email').click(); });
+    act(() => {
+      button('auth.continue_with_email').click();
+    });
 
     expect(onEmailClick).toHaveBeenCalledTimes(1);
     // AuthPage reports the email sign-up itself, so the options report nothing.
@@ -137,7 +145,9 @@ describe('SignupOptions', () => {
   it('Apple starts Apple sign-up, reported as a sign-up from this source', () => {
     mount();
 
-    act(() => { button('auth.continue_with_apple').click(); });
+    act(() => {
+      button('auth.continue_with_apple').click();
+    });
 
     expect(window.AppleID.auth.signIn).toHaveBeenCalled();
     expect(fireFlowStarted).toHaveBeenCalledWith(expect.any(String), SOURCE, 'registration');
@@ -151,7 +161,9 @@ describe('SignupOptions', () => {
     expect(window.google.accounts.id.renderButton).not.toHaveBeenCalled();
 
     setVisible(true);
-    act(() => { jest.runOnlyPendingTimers(); });
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
 
     expect(window.google.accounts.id.renderButton).toHaveBeenCalled();
     const renderedInto = window.google.accounts.id.renderButton.mock.calls[0][0];
@@ -161,9 +173,13 @@ describe('SignupOptions', () => {
   it("a click on Google's button is reported as a Google sign-up from this source", () => {
     mount();
     setVisible(true);
-    act(() => { jest.runOnlyPendingTimers(); });
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
 
-    act(() => { googleClickListener()(); });
+    act(() => {
+      googleClickListener()();
+    });
 
     expect(fireFlowStarted).toHaveBeenCalledWith(expect.any(String), SOURCE, 'registration');
     const [flowId] = fireFlowStarted.mock.calls[0];
@@ -182,24 +198,36 @@ describe('SignupOptions', () => {
     // Google's button is a cross-origin iframe: its clicks never reach the page by themselves.
     mount();
     setVisible(true);
-    act(() => { jest.runOnlyPendingTimers(); });
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
     const clicked = [];
     container.addEventListener('click', (e) => clicked.push(e.target));
 
-    act(() => { googleClickListener()(); });
+    act(() => {
+      googleClickListener()();
+    });
 
     expect(clicked).toEqual([googleCircle()]);
   });
 
   it('a failed sign-in shows an error with the options', () => {
     mount();
-    act(() => { button('auth.continue_with_apple').click(); });
+    act(() => {
+      button('auth.continue_with_apple').click();
+    });
 
     act(() => {
       document.dispatchEvent(new CustomEvent('AppleIDSignInOnFailure', { detail: { error: 'invalid_request' } }));
     });
 
-    expect(fireProcessEnded).toHaveBeenCalledWith(expect.any(String), expect.any(String), 'failure', 'invalid_request', null);
+    expect(fireProcessEnded).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'failure',
+      'invalid_request',
+      null
+    );
     expect(container.querySelector('[role="alert"]').textContent).toBe('auth.generic_error');
   });
 });

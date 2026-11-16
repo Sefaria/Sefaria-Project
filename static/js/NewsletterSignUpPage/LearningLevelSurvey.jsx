@@ -1,9 +1,9 @@
-import React from "react";
-import { InterfaceText, LoadingMessage } from "../Misc";
-import SelectableOption from "./SelectableOption";
-import Sefaria from "../sefaria/sefaria";
-import { TEXT_KEYS } from "./textKeys";
-import { InterfaceTextWithSlots } from "./InterfaceTextWithSlots";
+import React from 'react';
+import { InterfaceText, LoadingMessage } from '../Misc';
+import SelectableOption from './SelectableOption';
+import Sefaria from '../sefaria/sefaria';
+import { TEXT_KEYS } from './textKeys';
+import { InterfaceTextWithSlots } from './InterfaceTextWithSlots';
 
 /**
  * LearningLevelSurvey — optional radio-group form asking the user their learning level.
@@ -35,8 +35,8 @@ export default function LearningLevelSurvey({
     <div
       className="embeddedLearningLevel"
       data-anl-batch={JSON.stringify({
-        form_name: "learning_level_survey",
-        engagement_type: "optional_profile_data",
+        form_name: 'learning_level_survey',
+        engagement_type: 'optional_profile_data',
       })}
     >
       {/* HEADER WITH OPTIONAL INDICATOR */}
@@ -84,9 +84,9 @@ export default function LearningLevelSurvey({
               onChange={() => onLevelSelect(level.value)}
               disabled={isSubmitting}
               analyticsAttributes={{
-                "data-anl-event": "learning_level_selected:input",
-                "data-anl-text": level.analyticsName,
-                "data-anl-form_name": "learning_level_survey",
+                'data-anl-event': 'learning_level_selected:input',
+                'data-anl-text': level.analyticsName,
+                'data-anl-form_name': 'learning_level_survey',
               }}
             />
           ))}
@@ -120,7 +120,7 @@ export default function LearningLevelSurvey({
                 skip_link: (
                   <button
                     type="button"
-                    className={`skipLink${isSubmitting ? " disabled" : ""}`}
+                    className={`skipLink${isSubmitting ? ' disabled' : ''}`}
                     onClick={onSkip}
                     disabled={isSubmitting}
                     data-anl-event="learning_level_action:click"

@@ -4,7 +4,11 @@ import os.path
 
 from django.utils.translation import gettext_lazy as _
 
-relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(os.path.realpath(__file__)), *x)
+
+def relative_to_abs_path(*x):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), *x)
+
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.

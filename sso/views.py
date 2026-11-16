@@ -9,7 +9,8 @@ from allauth.socialaccount.helpers import complete_social_login
 from allauth.socialaccount.providers.google.views import (
     login_by_token as google_login_by_token,
 )
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as auth_login
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
@@ -115,9 +116,7 @@ def _sso_only_account_response(providers, status=401):
     )
 
 
-def _social_login_or_error(
-    request, provider_id, id_token, first_name=None, last_name=None
-):
+def _social_login_or_error(request, provider_id, id_token, first_name=None, last_name=None):
     """Verify a provider ID token and complete the social login.
     Returns (user, outcome, None) on success, or (None, None, JsonResponse(error)) on
     failure. `outcome` is 'created_new_account' or 'existing_user_login', per
@@ -249,9 +248,7 @@ def apple_callback(request):
     if not id_token:
         return JsonResponse({"error": "auth.generic_error"}, status=400)
 
-    user, outcome, err = _social_login_or_error(
-        request, "apple", id_token, first_name, last_name
-    )
+    user, outcome, err = _social_login_or_error(request, "apple", id_token, first_name, last_name)
     if err:
         return err
     return JsonResponse({"outcome": outcome})
@@ -285,9 +282,7 @@ def apple_mobile(request):
     if not id_token:
         return JsonResponse({"error": "auth.generic_error"}, status=400)
 
-    user, _outcome, err = _social_login_or_error(
-        request, "apple", id_token, first_name, last_name
-    )
+    user, _outcome, err = _social_login_or_error(request, "apple", id_token, first_name, last_name)
     if err:
         return err
     tokens = _jwt_for_user(user)

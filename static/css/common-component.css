@@ -49,11 +49,12 @@
   padding: 0 16px;
   border: 1px solid #e6e6e6;
   border-radius: 4px;
-  background: #ffffff;
+  background: #fff;
   color: #121212;
   font-size: 16px;
   line-height: 1.45;
   outline: none;
+  /* stylelint-disable-next-line property-no-vendor-prefix -- keep -webkit- fallback for older Safari */
   -webkit-appearance: none;
   appearance: none;
 }
@@ -120,11 +121,11 @@ a.sefaria-common-button.auth-primary {
   font-size: 16px;
   font-weight: 600;
   height: 51px;
-  color: #ffffff;
+  color: #fff;
 }
 button.sefaria-common-button.auth-primary *,
 a.sefaria-common-button.auth-primary * {
-  color: #ffffff;
+  color: #fff;
 }
 button.sefaria-common-button.auth-primary:hover,
 a.sefaria-common-button.auth-primary:hover {

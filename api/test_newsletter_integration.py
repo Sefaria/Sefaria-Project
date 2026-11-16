@@ -23,10 +23,11 @@ Two flavors live here:
 """
 
 import json
-import pytest
 from unittest import mock
-from api import newsletter_service
 
+import pytest
+
+from api import newsletter_service
 
 # Shared fixtures (`client`, `test_user`, `logged_in_client`, etc.) live in
 # api/conftest.py so they're available to every test file in this package.
@@ -83,9 +84,9 @@ def _ac_side_effect(contact_memberships, all_lists=None):
     def side_effect(endpoint, method="GET", data=None, timeout=None):
         if "contacts?filters" in endpoint:
             return {"contacts": [{"id": "100", "email": "testuser@sefaria.org"}]}
-        elif "contactLists" in endpoint:
+        if "contactLists" in endpoint:
             return {"contactLists": contact_memberships}
-        elif endpoint.startswith("lists"):
+        if endpoint.startswith("lists"):
             return {"lists": all_lists or []}
         return {}
 
@@ -249,9 +250,7 @@ class TestFetchUserSubscriptionsIntegration:
         but has active managed subscriptions in AC (re-subscribed via another channel).
         The backend corrects and persists the stale MongoDB flag.
         """
-        mock_request.return_value = {
-            "contacts": [{"id": "100", "email": "user@example.com"}]
-        }
+        mock_request.return_value = {"contacts": [{"id": "100", "email": "user@example.com"}]}
         # User has active managed subscriptions in AC
         mock_get_memberships.return_value = ["1", "3"]
 
@@ -270,9 +269,7 @@ class TestFetchUserSubscriptionsIntegration:
             {"stringid": "text_updates", "id": "3"},
         ]
 
-        result = newsletter_service.fetch_user_subscriptions(
-            "user@example.com", newsletter_list, user=mock_user
-        )
+        result = newsletter_service.fetch_user_subscriptions("user@example.com", newsletter_list, user=mock_user)
 
         assert result["wants_marketing_emails"] is True
         assert len(result["subscribed_newsletters"]) == 2
@@ -418,9 +415,7 @@ class TestViewThroughServiceOptOut:
 
         response = logged_in_client.post(
             "/api/newsletter/preferences",
-            json.dumps(
-                {"newsletters": {"sefaria_news": True}, "marketingOptOut": True}
-            ),
+            json.dumps({"newsletters": {"sefaria_news": True}, "marketingOptOut": True}),
             content_type="application/json",
         )
 
@@ -536,9 +531,7 @@ class TestViewThroughServiceFetchSubscriptions:
     @mock.patch("api.newsletter_service._profiles.UserProfile")
     @mock.patch("api.newsletter_service._ac_client._client.make_request")
     @mock.patch("api.newsletter_service._catalog.get_newsletters")
-    def test_maps_list_ids_to_stringids(
-        self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client
-    ):
+    def test_maps_list_ids_to_stringids(self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client):
         """
         Service maps AC list IDs back to stringids using the newsletter list.
         Only managed lists with matching IDs appear in the response.
@@ -765,9 +758,7 @@ class TestViewThroughServiceSubscribe:
         create_calls = [
             call
             for call in mock_ac_request.call_args_list
-            if call.args
-            and call.args[0] == "contacts"
-            and call.kwargs.get("method") == "POST"
+            if call.args and call.args[0] == "contacts" and call.kwargs.get("method") == "POST"
         ]
         assert len(create_calls) == 1, (
             f"Expected exactly one POST to /contacts; saw endpoints: "

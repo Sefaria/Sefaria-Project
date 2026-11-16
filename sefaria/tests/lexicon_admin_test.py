@@ -18,16 +18,16 @@ Every successful headword-rename test patches out sefaria.helper.schema.library,
 the model-level tests for change_lexicon_headword -- a real rename calls library.rebuild()
 by default, which is unrelated to what's being tested here.
 """
+
 import json
-from urllib.parse import quote
 from unittest.mock import patch
+from urllib.parse import quote
 
 import pytest
-from django.test import Client
 from django.contrib.auth.models import User
+from django.test import Client
 
-from sefaria.model.lexicon import LexiconEntry, StrongsDictionaryEntry, LexiconEntrySet
-
+from sefaria.model.lexicon import LexiconEntry, LexiconEntrySet, StrongsDictionaryEntry
 
 NO_INDEX_LEXICON = "Halachic Terminology"
 SHAPE_VALIDATED_LEXICON = "BDB Augmented Strong"
@@ -47,8 +47,9 @@ def patch_json(client, url, body):
 
 @pytest.fixture
 def staff_client(db):
-    user = User.objects.create_user(username="lexadmintest_staff", email="lexadmintest_staff@sefaria.org",
-                                     password="testpass123", is_staff=True)
+    user = User.objects.create_user(
+        username="lexadmintest_staff", email="lexadmintest_staff@sefaria.org", password="testpass123", is_staff=True
+    )
     client = Client()
     client.force_login(user)
     return client
@@ -56,8 +57,9 @@ def staff_client(db):
 
 @pytest.fixture
 def regular_client(db):
-    user = User.objects.create_user(username="lexadmintest_user", email="lexadmintest_user@sefaria.org",
-                                     password="testpass123", is_staff=False)
+    user = User.objects.create_user(
+        username="lexadmintest_user", email="lexadmintest_user@sefaria.org", password="testpass123", is_staff=False
+    )
     client = Client()
     client.force_login(user)
     return client
@@ -71,8 +73,13 @@ def anon_client():
 @pytest.fixture(autouse=True)
 def clean_lexicon_entries():
     def wipe():
-        LexiconEntrySet({"parent_lexicon": {"$in": [NO_INDEX_LEXICON, SHAPE_VALIDATED_LEXICON]},
-                          "headword": {"$regex": "^lexadmintest-"}}).delete()
+        LexiconEntrySet(
+            {
+                "parent_lexicon": {"$in": [NO_INDEX_LEXICON, SHAPE_VALIDATED_LEXICON]},
+                "headword": {"$regex": "^lexadmintest-"},
+            }
+        ).delete()
+
     wipe()
     yield
     wipe()
@@ -117,16 +124,18 @@ class TestLexiconEntryPatch:
     @pytest.mark.django_db
     def test_rejects_excluded_attr(self, staff_client):
         LexiconEntry({"headword": "lexadmintest-excl", "parent_lexicon": NO_INDEX_LEXICON}).save()
-        response = patch_json(staff_client, entry_url(NO_INDEX_LEXICON, "lexadmintest-excl"),
-                               {"content": {"headword": "hijacked"}})
+        response = patch_json(
+            staff_client, entry_url(NO_INDEX_LEXICON, "lexadmintest-excl"), {"content": {"headword": "hijacked"}}
+        )
         assert response.status_code == 400
         assert "headword" in json.loads(response.content)["error"]
 
     @pytest.mark.django_db
     def test_success_replaces_content(self, staff_client):
         LexiconEntry({"headword": "lexadmintest-ok", "parent_lexicon": NO_INDEX_LEXICON, "notes": "old"}).save()
-        response = patch_json(staff_client, entry_url(NO_INDEX_LEXICON, "lexadmintest-ok"),
-                               {"content": {"notes": "new"}})
+        response = patch_json(
+            staff_client, entry_url(NO_INDEX_LEXICON, "lexadmintest-ok"), {"content": {"notes": "new"}}
+        )
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data["status"] == "ok"
@@ -150,10 +159,19 @@ class TestLexiconEntryPatch:
     def test_rejects_bad_content_shape(self, staff_client):
         """DictionaryEntry.attr_schemas rejects a non-dict content -- exercised end-to-end
         through the real HTTP PATCH, not just the model layer."""
-        StrongsDictionaryEntry({"headword": "lexadmintest-shape", "parent_lexicon": SHAPE_VALIDATED_LEXICON,
-                                 "content": {"senses": []}, "strong_number": "H1"}).save()
-        response = patch_json(staff_client, entry_url(SHAPE_VALIDATED_LEXICON, "lexadmintest-shape"),
-                               {"content": {"strong_number": "H1", "content": "not a dict"}})
+        StrongsDictionaryEntry(
+            {
+                "headword": "lexadmintest-shape",
+                "parent_lexicon": SHAPE_VALIDATED_LEXICON,
+                "content": {"senses": []},
+                "strong_number": "H1",
+            }
+        ).save()
+        response = patch_json(
+            staff_client,
+            entry_url(SHAPE_VALIDATED_LEXICON, "lexadmintest-shape"),
+            {"content": {"strong_number": "H1", "content": "not a dict"}},
+        )
         assert response.status_code == 400
         assert "content" in json.loads(response.content)["error"]
 
@@ -163,8 +181,9 @@ class TestLexiconEntryHeadwordPatch:
     def test_requires_staff(self, anon_client, regular_client):
         LexiconEntry({"headword": "lexadmintest-hwperm", "parent_lexicon": NO_INDEX_LEXICON}).save()
         for client in (anon_client, regular_client):
-            response = patch_json(client, headword_url(NO_INDEX_LEXICON, "lexadmintest-hwperm"),
-                                   {"new_headword": "lexadmintest-hwperm2"})
+            response = patch_json(
+                client, headword_url(NO_INDEX_LEXICON, "lexadmintest-hwperm"), {"new_headword": "lexadmintest-hwperm2"}
+            )
             assert response.status_code == 403
             assert json.loads(response.content) == {"error": "Staff only."}
 
@@ -177,8 +196,9 @@ class TestLexiconEntryHeadwordPatch:
     @pytest.mark.django_db
     def test_rejects_non_string_new_headword(self, staff_client):
         LexiconEntry({"headword": "lexadmintest-hwnonstr", "parent_lexicon": NO_INDEX_LEXICON}).save()
-        response = patch_json(staff_client, headword_url(NO_INDEX_LEXICON, "lexadmintest-hwnonstr"),
-                               {"new_headword": 123})
+        response = patch_json(
+            staff_client, headword_url(NO_INDEX_LEXICON, "lexadmintest-hwnonstr"), {"new_headword": 123}
+        )
         assert response.status_code == 400
 
     @pytest.mark.django_db
@@ -186,8 +206,9 @@ class TestLexiconEntryHeadwordPatch:
         """Same headword as already stored -- a legitimate no-op, not a rename, so this
         doesn't even reach change_lexicon_headword (no library mock needed)."""
         LexiconEntry({"headword": "lexadmintest-hwsame", "parent_lexicon": NO_INDEX_LEXICON}).save()
-        response = patch_json(staff_client, headword_url(NO_INDEX_LEXICON, "lexadmintest-hwsame"),
-                               {"new_headword": "lexadmintest-hwsame"})
+        response = patch_json(
+            staff_client, headword_url(NO_INDEX_LEXICON, "lexadmintest-hwsame"), {"new_headword": "lexadmintest-hwsame"}
+        )
         assert response.status_code == 200
         assert json.loads(response.content) == {"status": "ok", "headword": "lexadmintest-hwsame"}
 
@@ -195,8 +216,11 @@ class TestLexiconEntryHeadwordPatch:
     def test_rename_success(self, staff_client):
         LexiconEntry({"headword": "lexadmintest-hwold", "parent_lexicon": NO_INDEX_LEXICON}).save()
         with patch("sefaria.helper.schema.library"):
-            response = patch_json(staff_client, headword_url(NO_INDEX_LEXICON, "lexadmintest-hwold"),
-                                   {"new_headword": "lexadmintest-hwnew"})
+            response = patch_json(
+                staff_client,
+                headword_url(NO_INDEX_LEXICON, "lexadmintest-hwold"),
+                {"new_headword": "lexadmintest-hwnew"},
+            )
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data == {"status": "ok", "headword": "lexadmintest-hwnew"}
@@ -208,8 +232,11 @@ class TestLexiconEntryHeadwordPatch:
         LexiconEntry({"headword": "lexadmintest-hwtaken", "parent_lexicon": NO_INDEX_LEXICON}).save()
         LexiconEntry({"headword": "lexadmintest-hwmover", "parent_lexicon": NO_INDEX_LEXICON}).save()
         with patch("sefaria.helper.schema.library"):
-            response = patch_json(staff_client, headword_url(NO_INDEX_LEXICON, "lexadmintest-hwmover"),
-                                   {"new_headword": "lexadmintest-hwtaken"})
+            response = patch_json(
+                staff_client,
+                headword_url(NO_INDEX_LEXICON, "lexadmintest-hwmover"),
+                {"new_headword": "lexadmintest-hwtaken"},
+            )
         assert response.status_code == 200
         assert json.loads(response.content)["headword"] == "lexadmintest-hwtaken²"
 
@@ -220,23 +247,28 @@ class TestLexiconEntryHeadwordPatch:
         headword -- a real conflict, not a no-op, so this must not silently succeed."""
         LexiconEntry({"headword": "lexadmintest-clash", "parent_lexicon": NO_INDEX_LEXICON}).save()
         LexiconEntry({"headword": "lexadmintest-clash²", "parent_lexicon": NO_INDEX_LEXICON}).save()
-        response = patch_json(staff_client, headword_url(NO_INDEX_LEXICON, "lexadmintest-clash²"),
-                               {"new_headword": "lexadmintest-clash³"})
+        response = patch_json(
+            staff_client, headword_url(NO_INDEX_LEXICON, "lexadmintest-clash²"), {"new_headword": "lexadmintest-clash³"}
+        )
         assert response.status_code == 409
         assert "own current headword" in json.loads(response.content)["error"]
 
     @pytest.mark.django_db
     def test_rename_not_found(self, staff_client):
-        response = patch_json(staff_client, headword_url(NO_INDEX_LEXICON, "lexadmintest-nonexistent"),
-                               {"new_headword": "lexadmintest-x"})
+        response = patch_json(
+            staff_client, headword_url(NO_INDEX_LEXICON, "lexadmintest-nonexistent"), {"new_headword": "lexadmintest-x"}
+        )
         assert response.status_code == 404
 
     @pytest.mark.django_db
     def test_rename_ambiguous_duplicate(self, staff_client):
         LexiconEntry({"headword": "lexadmintest-dupe3", "parent_lexicon": NO_INDEX_LEXICON}).save()
         LexiconEntry({"headword": "lexadmintest-dupe3", "parent_lexicon": NO_INDEX_LEXICON}).save()
-        response = patch_json(staff_client, headword_url(NO_INDEX_LEXICON, "lexadmintest-dupe3"),
-                               {"new_headword": "lexadmintest-dupe3-renamed"})
+        response = patch_json(
+            staff_client,
+            headword_url(NO_INDEX_LEXICON, "lexadmintest-dupe3"),
+            {"new_headword": "lexadmintest-dupe3-renamed"},
+        )
         assert response.status_code == 409
 
     @pytest.mark.django_db
@@ -246,10 +278,12 @@ class TestLexiconEntryHeadwordPatch:
         in between, which change_lexicon_headword's own check then catches."""
         LexiconEntry({"headword": "lexadmintest-race-src", "parent_lexicon": NO_INDEX_LEXICON}).save()
         LexiconEntry({"headword": "lexadmintest-race-taken", "parent_lexicon": NO_INDEX_LEXICON}).save()
-        with patch("api.lexicon_admin_views.get_available_lexicon_headword",
-                   return_value="lexadmintest-race-taken"):
-            response = patch_json(staff_client, headword_url(NO_INDEX_LEXICON, "lexadmintest-race-src"),
-                                   {"new_headword": "irrelevant-disambiguation-already-happened"})
+        with patch("api.lexicon_admin_views.get_available_lexicon_headword", return_value="lexadmintest-race-taken"):
+            response = patch_json(
+                staff_client,
+                headword_url(NO_INDEX_LEXICON, "lexadmintest-race-src"),
+                {"new_headword": "irrelevant-disambiguation-already-happened"},
+            )
         assert response.status_code == 409
         assert "please retry" in json.loads(response.content)["error"]
 
@@ -257,9 +291,17 @@ class TestLexiconEntryHeadwordPatch:
     def test_rename_corrupted_pointer_returns_500_not_409(self, staff_client):
         """A next_hw pointing at no real entry is pre-existing bad data, unrelated to this
         request -- retrying would fail again forever, so this must not read as a 409 race."""
-        LexiconEntry({"headword": "lexadmintest-badptr", "parent_lexicon": NO_INDEX_LEXICON,
-                      "next_hw": "lexadmintest-ghost-neighbor"}).save()
-        response = patch_json(staff_client, headword_url(NO_INDEX_LEXICON, "lexadmintest-badptr"),
-                               {"new_headword": "lexadmintest-badptr-renamed"})
+        LexiconEntry(
+            {
+                "headword": "lexadmintest-badptr",
+                "parent_lexicon": NO_INDEX_LEXICON,
+                "next_hw": "lexadmintest-ghost-neighbor",
+            }
+        ).save()
+        response = patch_json(
+            staff_client,
+            headword_url(NO_INDEX_LEXICON, "lexadmintest-badptr"),
+            {"new_headword": "lexadmintest-badptr-renamed"},
+        )
         assert response.status_code == 500
         assert "next_hw" in json.loads(response.content)["error"]

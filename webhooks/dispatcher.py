@@ -43,7 +43,7 @@ def enqueue_event_for_processing(event: EventIndicatingPersonIsDonor) -> Process
             # every one of them must become a 503 so the sender's retry recovers the event.
             # Only the type is logged: broker error messages can contain connection strings.
             logger.error("donor_event_enqueue_failed", error_type=type(error).__name__)
-            raise EventCouldNotBeEnqueued() from error
+            raise EventCouldNotBeEnqueued from error
         return ProcessingMode.QUEUED
     # Same fallback as sefaria/helper/crm/tasks.py: local development has no worker.
     process_event_indicating_person_is_donor_task(serialized_event)

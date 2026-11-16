@@ -1,6 +1,6 @@
-import React from "react";
-import { InterfaceText } from "../Misc";
-import { TEXT_KEYS } from "./textKeys";
+import React from 'react';
+import { InterfaceText } from '../Misc';
+import { TEXT_KEYS } from './textKeys';
 
 /**
  * SuccessView - Final success view after form completion
@@ -13,8 +13,8 @@ export default function SuccessView() {
       className="successView"
       data-anl-event="newsletter_signup_complete:scrollIntoView"
       data-anl-batch={JSON.stringify({
-        form_name: "newsletter_signup_complete",
-        engagement_type: "form_complete",
+        form_name: 'newsletter_signup_complete',
+        engagement_type: 'form_complete',
       })}
     >
       {/* SUCCESS MESSAGE */}

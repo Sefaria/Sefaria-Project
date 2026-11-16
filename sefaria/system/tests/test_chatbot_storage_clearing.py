@@ -4,6 +4,7 @@ Logging out clears the Library Assistant's saved chat in the browser.
 Logout (from any module) sets CLEAR_STORAGE_COOKIE; the next Library page renders a
 script that clears the assistant's localStorage and deletes the cookie.
 """
+
 from unittest.mock import patch
 
 import pytest

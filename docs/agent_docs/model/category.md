@@ -1,12 +1,15 @@
 # Category & TOC Tree
+
 > Source: `sefaria/model/category.py`
 
 ## Purpose
+
 Defines the hierarchical category taxonomy (e.g., "Talmud" > "Bavli" > "Seder Moed") that organizes every text in the Sefaria library. Also implements the in-memory Table of Contents (TOC) tree, which is the runtime representation of the full library hierarchy including categories, text indices, and collections. The TOC tree is built once during Library initialization and updated incrementally as records change.
 
 ## Key Classes
 
 ### Category
+
 - **Inherits**: `AbstractMongoRecord`, `AbstractTitledOrTermedObject`, `MatchTemplateMixin`
 - **Collection**: `category`
 - **Role**: Persistent Mongo record representing a single node in the category hierarchy. Each Category has a `path` (list of strings from root to itself) and either a `sharedTitle` (referencing a `Term`) or inline `titles`.
@@ -18,11 +21,13 @@ Defines the hierarchical category taxonomy (e.g., "Talmud" > "Bavli" > "Seder Mo
   - `get_shared_category(indexes)` — Static. Finds the lowest (deepest) category that contains all given Index objects.
 
 ### CategorySet
+
 - **Inherits**: `AbstractMongoSet`
 - **Collection**: `category`
 - **Role**: Standard set class for querying multiple Category records.
 
 ### TocTree
+
 - **Inherits**: `object`
 - **Collection**: N/A (in-memory only)
 - **Role**: The runtime tree representation of the entire library. Built during `Library.__init__()` by loading all Categories (sorted by depth), then placing all Index records and listed Collections as leaf nodes. Maintains a `_path_hash` dict mapping `tuple(path)` to TocNode for O(1) lookup.
@@ -34,19 +39,23 @@ Defines the hierarchical category taxonomy (e.g., "Talmud" > "Bavli" > "Seder Mo
   - `_sort()` — Sorts children: by `base_text_order` if all children have it, otherwise by `order` attr then alphabetically. Negative order values sort last.
 
 ### TocNode
+
 - **Inherits**: `TitledTreeNode` (from schema)
 - **Collection**: N/A
 - **Role**: Abstract base for all TOC tree nodes. Handles bilingual title storage and serialization.
 
 ### TocCategory
+
 - **Inherits**: `TocNode`
 - **Role**: Represents a category folder in the TOC tree. Wraps a `Category` Mongo record and copies display fields (`enDesc`, `isPrimary`, `searchRoot`, `order`) onto itself. Tracks `enComplete`/`heComplete` (set to False if any child text is incomplete).
 
 ### TocTextIndex
+
 - **Inherits**: `TocNode`
 - **Role**: Represents a single text (Index) as a leaf in the TOC tree. Wraps an `Index` object and holds serialized metadata (`categories`, `dependence`, `firstSection`, `primary_category`, `collectiveTitle`, `base_text_titles`, etc.).
 
 ### TocCollectionNode
+
 - **Inherits**: `TocNode`
 - **Role**: Represents a Collection that is listed in the library TOC (collections with a `toc` field set and `listed: True`).
 
@@ -62,6 +71,7 @@ Defines the hierarchical category taxonomy (e.g., "Talmud" > "Bavli" > "Seder Mo
 - **`_path_hash` keys**: For categories the key is `tuple(cat.path)`, for indices it is `tuple(categories + [title])`, for collections it is `tuple(categories + [slug])`.
 
 ## Relationships
+
 - **Depends on**: `abstract` (AbstractMongoRecord), `schema` (TitledTreeNode, Term, AbstractTitledOrTermedObject), `text` (IndexSet, Library, TocSerializationOptions), `collection` (CollectionSet, Collection), `linker.has_match_template` (MatchTemplateMixin)
 - **Depended on by**: `text.py` (Library builds TocTree), `topic.py` (imports Category), `linker/category_resolver.py`, `helper/category.py`, `model/__init__.py` (public API)
 - **Dependency subscriptions** (from `dependencies.py`):

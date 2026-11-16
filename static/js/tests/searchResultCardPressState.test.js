@@ -35,11 +35,15 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import SearchResultCard from '../SearchResultCard.jsx';
 
-global.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+global.ResizeObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
 
 // Mirrors the constants in SearchResultCard.jsx.
 const PRESS_DELAY_MS = 100;
-const PRESS_MIN_MS   = 150;
+const PRESS_MIN_MS = 150;
 
 let container = null;
 
@@ -63,16 +67,21 @@ const card = () => container.querySelector('.searchResultCard');
 const isPressed = () => card().classList.contains('is-pressed');
 
 // jsdom has no TouchEvent constructor, and the card only ever reads touches[0].clientX/Y.
-const touch = (type, x = 0, y = 0) => act(() => {
-  const e = new Event(type, { bubbles: true });
-  e.touches = [{ clientX: x, clientY: y }];
-  card().dispatchEvent(e);
-});
+const touch = (type, x = 0, y = 0) =>
+  act(() => {
+    const e = new Event(type, { bubbles: true });
+    e.touches = [{ clientX: x, clientY: y }];
+    card().dispatchEvent(e);
+  });
 
 // Jest 24's fake timers don't touch Date.now, which the card uses to decide how much of the
 // minimum display time is left -- so move the clock by hand alongside the timers.
 let now;
-const advance = (ms) => act(() => { now += ms; jest.advanceTimersByTime(ms); });
+const advance = (ms) =>
+  act(() => {
+    now += ms;
+    jest.advanceTimersByTime(ms);
+  });
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -84,7 +93,9 @@ afterEach(() => {
   Date.now.mockRestore();
   jest.useRealTimers();
   if (!container) return;
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
 });
@@ -93,20 +104,20 @@ describe('scrolling past a card', () => {
   test('never shows the pressed state, even for an instant', () => {
     mount();
     touch('touchstart', 100, 300);
-    expect(isPressed()).toBe(false);        // nothing yet -- this could still be a scroll
+    expect(isPressed()).toBe(false); // nothing yet -- this could still be a scroll
 
-    touch('touchmove', 102, 260);           // the finger is dragging: it's a scroll
+    touch('touchmove', 102, 260); // the finger is dragging: it's a scroll
     advance(PRESS_DELAY_MS + PRESS_MIN_MS);
     expect(isPressed()).toBe(false);
 
     touch('touchend');
-    expect(isPressed()).toBe(false);        // and releasing after a scroll doesn't light it up
+    expect(isPressed()).toBe(false); // and releasing after a scroll doesn't light it up
   });
 
   test('a finger that drifts a few pixels is still a tap', () => {
     mount();
     touch('touchstart', 100, 300);
-    touch('touchmove', 103, 304);           // under the 10px tolerance
+    touch('touchmove', 103, 304); // under the 10px tolerance
     advance(PRESS_DELAY_MS);
     expect(isPressed()).toBe(true);
   });
@@ -132,19 +143,19 @@ describe('tapping a card', () => {
     advance(1);
     expect(isPressed()).toBe(true);
 
-    advance(2000);                          // a long press stays lit; it doesn't time out
+    advance(2000); // a long press stays lit; it doesn't time out
     expect(isPressed()).toBe(true);
 
     touch('touchend');
-    expect(isPressed()).toBe(false);        // already shown well past the minimum, so clears now
+    expect(isPressed()).toBe(false); // already shown well past the minimum, so clears now
   });
 
   test('a tap quicker than the delay still flashes, then clears', () => {
     mount();
     touch('touchstart', 100, 300);
     advance(30);
-    touch('touchend');                      // released before the card ever lit up
-    expect(isPressed()).toBe(true);         // show it now so the tap gets its feedback
+    touch('touchend'); // released before the card ever lit up
+    expect(isPressed()).toBe(true); // show it now so the tap gets its feedback
 
     advance(PRESS_MIN_MS - 1);
     expect(isPressed()).toBe(true);

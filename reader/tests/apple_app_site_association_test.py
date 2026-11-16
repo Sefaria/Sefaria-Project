@@ -5,6 +5,7 @@ Covers the two exclusion mechanisms: the static AASA_EXCLUDED_PATHS entries
 (allauth OAuth callbacks, always excluded), and the dynamic no_applink query
 marker (WebSessionRedirectMiddleware) -- see sefaria/utils/views_utils.py.
 """
+
 import json
 
 from django.test import RequestFactory
@@ -14,7 +15,7 @@ from sefaria.utils.views_utils import AASA_EXCLUDED_PATHS, NO_APPLINK_PARAM
 
 
 def _components():
-    response = views.apple_app_site_association(RequestFactory().get('/'))
+    response = views.apple_app_site_association(RequestFactory().get("/"))
     body = json.loads(response.content)
     return body["applinks"]["details"][0]["components"]
 

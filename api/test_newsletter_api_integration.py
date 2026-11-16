@@ -12,23 +12,24 @@ full HTTP request/response cycle including Django middleware and authentication.
 
 import json
 import time
-import pytest
-from unittest import mock
 from typing import cast
+from unittest import mock
+
+import pytest
 from django.conf import settings
 from django.core import signing
 from django.http import HttpResponse
 from django.test import Client
+
 from api.newsletter_service import (
     LEARNING_LEVEL_TOKEN_MAX_AGE,
     LEARNING_LEVEL_TOKEN_SALT,
-    NewsletterServiceError,
     NewsletterListUnavailableError,
+    NewsletterServiceError,
     sign_learning_level_token,
     verify_learning_level_token,
 )
 from sefaria.system.exceptions import InputError
-
 
 # Shared fixtures (`client`, `test_user`, `test_user_no_name`,
 # `logged_in_client`, `mock_newsletters`) live in api/conftest.py.
@@ -225,9 +226,7 @@ class TestUpdateUserPreferencesIntegration:
 
     @mock.patch("api.newsletter_views.replace_user_preferences")
     @mock.patch("api.newsletter_views.get_newsletters")
-    def test_partial_overlap_add_remove_keep(
-        self, mock_get_list, mock_update, logged_in_client, mock_newsletters
-    ):
+    def test_partial_overlap_add_remove_keep(self, mock_get_list, mock_update, logged_in_client, mock_newsletters):
         """Handles partial overlap (add some, remove some, keep some)."""
         mock_get_list.return_value = mock_newsletters
         mock_update.return_value = {
@@ -257,14 +256,10 @@ class TestUpdateUserPreferencesIntegration:
 
     @mock.patch("api.newsletter_views.replace_user_preferences")
     @mock.patch("api.newsletter_views.get_newsletters")
-    def test_invalid_stringid_returns_400(
-        self, mock_get_list, mock_update, logged_in_client, mock_newsletters
-    ):
+    def test_invalid_stringid_returns_400(self, mock_get_list, mock_update, logged_in_client, mock_newsletters):
         """Invalid newsletter stringid raises error from service layer."""
         mock_get_list.return_value = mock_newsletters
-        mock_update.side_effect = InputError(
-            "Invalid newsletter IDs: invalid_newsletter_123"
-        )
+        mock_update.side_effect = InputError("Invalid newsletter IDs: invalid_newsletter_123")
 
         response = logged_in_client.post(
             "/api/newsletter/preferences",
@@ -317,14 +312,10 @@ class TestUpdateUserPreferencesIntegration:
 
     @mock.patch("api.newsletter_views.replace_user_preferences")
     @mock.patch("api.newsletter_views.get_newsletters")
-    def test_ac_api_error_returns_500(
-        self, mock_get_list, mock_update, logged_in_client, mock_newsletters
-    ):
+    def test_ac_api_error_returns_500(self, mock_get_list, mock_update, logged_in_client, mock_newsletters):
         """ActiveCampaign API error returns 500."""
         mock_get_list.return_value = mock_newsletters
-        mock_update.side_effect = NewsletterServiceError(
-            "Failed to connect to ActiveCampaign API"
-        )
+        mock_update.side_effect = NewsletterServiceError("Failed to connect to ActiveCampaign API")
 
         response = logged_in_client.post(
             "/api/newsletter/preferences",
@@ -346,9 +337,7 @@ class TestUpdateUserPreferencesIntegration:
 
     @mock.patch("api.newsletter_views.replace_user_preferences")
     @mock.patch("api.newsletter_views.get_newsletters")
-    def test_response_format_is_correct(
-        self, mock_get_list, mock_update, logged_in_client, mock_newsletters
-    ):
+    def test_response_format_is_correct(self, mock_get_list, mock_update, logged_in_client, mock_newsletters):
         """Response has correct format with all required fields and types."""
         mock_get_list.return_value = mock_newsletters
         mock_update.return_value = {
@@ -460,6 +449,7 @@ class TestUpdateUserPreferencesIntegration:
     ):
         """A list removal that fails during opt-out returns a code, so the page can say "please try again" """
         from api import newsletter_service
+
         mock_get_list.return_value = mock_newsletters
         mock_find.return_value = {"id": "100", "email": "testuser@sefaria.org"}
         mock_get_all_ids.return_value = ["1", "99"]
@@ -516,9 +506,7 @@ class TestGetUserSubscriptionsIntegration:
 
     @mock.patch("api.newsletter_views.fetch_user_subscriptions")
     @mock.patch("api.newsletter_views.get_newsletters")
-    def test_authenticated_user_with_subscriptions(
-        self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters
-    ):
+    def test_authenticated_user_with_subscriptions(self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters):
         """Authenticated user with subscriptions returns correct list."""
         mock_get_list.return_value = mock_newsletters
         mock_fetch.return_value = {
@@ -557,9 +545,7 @@ class TestGetUserSubscriptionsIntegration:
 
     @mock.patch("api.newsletter_views.fetch_user_subscriptions")
     @mock.patch("api.newsletter_views.get_newsletters")
-    def test_user_not_in_ac_returns_empty_array(
-        self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters
-    ):
+    def test_user_not_in_ac_returns_empty_array(self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters):
         """User not in ActiveCampaign returns empty array (not error)."""
         mock_get_list.return_value = mock_newsletters
         mock_fetch.return_value = {
@@ -576,14 +562,10 @@ class TestGetUserSubscriptionsIntegration:
 
     @mock.patch("api.newsletter_views.fetch_user_subscriptions")
     @mock.patch("api.newsletter_views.get_newsletters")
-    def test_ac_api_error_returns_500(
-        self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters
-    ):
+    def test_ac_api_error_returns_500(self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters):
         """ActiveCampaign API error returns 500."""
         mock_get_list.return_value = mock_newsletters
-        mock_fetch.side_effect = NewsletterServiceError(
-            "Failed to connect to ActiveCampaign API"
-        )
+        mock_fetch.side_effect = NewsletterServiceError("Failed to connect to ActiveCampaign API")
 
         response = logged_in_client.get("/api/newsletter/subscriptions")
 
@@ -591,9 +573,7 @@ class TestGetUserSubscriptionsIntegration:
 
     @mock.patch("api.newsletter_views.fetch_user_subscriptions")
     @mock.patch("api.newsletter_views.get_newsletters")
-    def test_response_format_is_correct(
-        self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters
-    ):
+    def test_response_format_is_correct(self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters):
         """Response has correct format with all required fields and types."""
         mock_get_list.return_value = mock_newsletters
         mock_fetch.return_value = {
@@ -615,9 +595,7 @@ class TestGetUserSubscriptionsIntegration:
 
     @mock.patch("api.newsletter_views.fetch_user_subscriptions")
     @mock.patch("api.newsletter_views.get_newsletters")
-    def test_response_includes_learning_level(
-        self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters
-    ):
+    def test_response_includes_learning_level(self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters):
         """`learningLevel` is included in the GET response when the user has one set."""
         mock_get_list.return_value = mock_newsletters
         mock_fetch.return_value = {
@@ -725,9 +703,7 @@ class TestGetNewsletterListsView:
         assert "error" in data
         assert "GET" in data["error"]
 
-    @mock.patch(
-        "api.newsletter_views.is_newsletter_service_configured", return_value=False
-    )
+    @mock.patch("api.newsletter_views.is_newsletter_service_configured", return_value=False)
     def test_returns_503_when_not_configured(self, mock_configured, client):
         """Returns 503 with a stable error key when AC credentials are absent."""
         response = client.get("/api/newsletter/lists")
@@ -832,9 +808,7 @@ class TestSubscribeNewsletterEndpoint:
 
     @mock.patch("api.newsletter_views.add_newsletter_subscriptions")
     @mock.patch("api.newsletter_views.get_newsletters")
-    def test_subscribe_returns_learning_level_token(
-        self, mock_get_list, mock_subscribe, client
-    ):
+    def test_subscribe_returns_learning_level_token(self, mock_get_list, mock_subscribe, client):
         """Subscribe returns a token that the learning-level step can use for this email."""
         mock_get_list.return_value = [{"stringid": "sefaria_news", "id": "1"}]
         mock_subscribe.return_value = {
@@ -959,9 +933,7 @@ class TestSubscribeNewsletterEndpoint:
 
     @mock.patch("api.newsletter_views.add_newsletter_subscriptions")
     @mock.patch("api.newsletter_views.get_newsletters")
-    def test_subscribe_activecampaign_error(
-        self, mock_get_list, mock_subscribe, client
-    ):
+    def test_subscribe_activecampaign_error(self, mock_get_list, mock_subscribe, client):
         """When the service raises NewsletterServiceError, the view returns 500."""
         mock_get_list.return_value = [
             {"stringid": "sefaria_news", "id": "1"},
@@ -1041,6 +1013,7 @@ class TestSubscribeNewsletterEndpoint:
         data = json.loads(response.content)
         assert "POST" in data["error"]
 
+
 # ============================================================================
 # Update Learning Level Endpoint Tests (POST /api/newsletter/learning-level)
 # ============================================================================
@@ -1059,9 +1032,7 @@ def learning_level_result(email, learning_level, user_id=None):
 
 
 def post_learning_level(client, body, **extra):
-    return client.post(
-        LEARNING_LEVEL_URL, json.dumps(body), content_type="application/json", **extra
-    )
+    return client.post(LEARNING_LEVEL_URL, json.dumps(body), content_type="application/json", **extra)
 
 
 def expired_learning_level_token(email):
@@ -1111,9 +1082,7 @@ class TestUpdateLearningLevelView:
     @mock.patch("api.newsletter_views.set_learning_level")
     def test_logged_out_never_gets_user_id(self, mock_update, client):
         """Even when the email has an account, its user ID is not sent back."""
-        mock_update.return_value = learning_level_result(
-            "has-account@example.com", 3, user_id=42
-        )
+        mock_update.return_value = learning_level_result("has-account@example.com", 3, user_id=42)
 
         response = post_learning_level(
             client,
@@ -1168,13 +1137,9 @@ class TestUpdateLearningLevelView:
     # ---------- Logged in: the session decides whose level it is ----------
 
     @mock.patch("api.newsletter_views.set_learning_level")
-    def test_logged_in_uses_session_email(
-        self, mock_update, logged_in_client, test_user
-    ):
+    def test_logged_in_uses_session_email(self, mock_update, logged_in_client, test_user):
         """Logged-in users need no token. Their user ID isn't sent back either."""
-        mock_update.return_value = learning_level_result(
-            "testuser@sefaria.org", 4, user_id=test_user.id
-        )
+        mock_update.return_value = learning_level_result("testuser@sefaria.org", 4, user_id=test_user.id)
 
         response = post_learning_level(logged_in_client, {"learningLevel": 4})
 
@@ -1225,9 +1190,7 @@ class TestUpdateLearningLevelView:
 
     def test_update_learning_level_invalid_json(self, client):
         """Malformed JSON in the request body returns 400."""
-        response = client.post(
-            LEARNING_LEVEL_URL, "invalid json", content_type="application/json"
-        )
+        response = client.post(LEARNING_LEVEL_URL, "invalid json", content_type="application/json")
 
         assert response.status_code == 400
         data = json.loads(response.content)
@@ -1297,27 +1260,21 @@ class TestRequestBodyTypeChecks:
 
     @pytest.mark.parametrize("newsletters", BAD_NEWSLETTERS_VALUES)
     @mock.patch("api.newsletter_views.replace_user_preferences")
-    def test_preferences_rejects_bad_newsletters(
-        self, mock_update, logged_in_client, newsletters
-    ):
+    def test_preferences_rejects_bad_newsletters(self, mock_update, logged_in_client, newsletters):
         response = logged_in_client.post(
             "/api/newsletter/preferences",
             json.dumps({"newsletters": newsletters}),
             content_type="application/json",
         )
 
-        data = assert_error(
-            response, 400, "newsletters must be an object of true/false values."
-        )
+        data = assert_error(response, 400, "newsletters must be an object of true/false values.")
         # Not something the person can fix, so no code and the text stays in English
         assert "code" not in data
         mock_update.assert_not_called()
 
     @pytest.mark.parametrize("marketing_opt_out", ["false", "true", 0, 1, None])
     @mock.patch("api.newsletter_views.replace_user_preferences")
-    def test_preferences_rejects_non_boolean_marketing_opt_out(
-        self, mock_update, logged_in_client, marketing_opt_out
-    ):
+    def test_preferences_rejects_non_boolean_marketing_opt_out(self, mock_update, logged_in_client, marketing_opt_out):
         """
         Opting out unsubscribes from every list, so "false" (truthy in Python) must
         never reach the service, where it would have meant "opt out".
@@ -1365,24 +1322,18 @@ class TestRequestBodyTypeChecks:
             content_type="application/json",
         )
 
-        data = assert_error(
-            response, 400, "newsletters must be an object of true/false values."
-        )
+        data = assert_error(response, 400, "newsletters must be an object of true/false values.")
         assert "code" not in data
         mock_subscribe.assert_not_called()
 
     @pytest.mark.parametrize("learning_level", [True, False])
     @mock.patch("api.newsletter_views.set_learning_level")
-    def test_learning_level_rejects_booleans(
-        self, mock_update, logged_in_client, learning_level
-    ):
+    def test_learning_level_rejects_booleans(self, mock_update, logged_in_client, learning_level):
         """
         In Python True == 1 and bool is a kind of int, so without an explicit
         check `true` would be saved as a learning level.
         """
-        response = post_learning_level(
-            logged_in_client, {"learningLevel": learning_level}
-        )
+        response = post_learning_level(logged_in_client, {"learningLevel": learning_level})
 
         assert_error(response, 400, "Learning level must be")
         mock_update.assert_not_called()
@@ -1390,9 +1341,7 @@ class TestRequestBodyTypeChecks:
     @pytest.mark.parametrize("value", [None, 5, ["John"]])
     @pytest.mark.parametrize("field", ["firstName", "lastName", "email"])
     @mock.patch("api.newsletter_views.add_newsletter_subscriptions")
-    def test_subscribe_rejects_non_string_text_fields(
-        self, mock_subscribe, client, field, value
-    ):
+    def test_subscribe_rejects_non_string_text_fields(self, mock_subscribe, client, field, value):
         """
         A default in body.get(field, "") only covers a missing key. null or a
         number would crash on .strip() and show up as a 500.
@@ -1454,9 +1403,7 @@ class TestSubscribeDoesNotRevealExistingSubscriptions:
 
     @mock.patch("api.newsletter_views.add_newsletter_subscriptions")
     @mock.patch("api.newsletter_views.get_newsletters")
-    def test_response_lists_only_this_requests_selections(
-        self, mock_get_list, mock_subscribe, client
-    ):
+    def test_response_lists_only_this_requests_selections(self, mock_get_list, mock_subscribe, client):
         mock_get_list.return_value = [
             {"stringid": "sefaria_news", "id": "1"},
             {"stringid": "educator_resources", "id": "2"},

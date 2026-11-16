@@ -1,4 +1,5 @@
 # Sefaria Utilities (`sefaria/utils/`)
+
 > Sources: `sefaria/utils/util.py`, `hebrew.py`, `user.py`, `talmud.py`, `log.py`, `calendars.py`, `chatbot.py`, `testing_utils.py`, `domains_and_languages.py`, `views_utils.py`
 
 ## Purpose
@@ -9,26 +10,28 @@ A collection of pure-ish utility modules that provide foundational operations us
 
 ### `util.py` -- General-Purpose Helpers
 
-| Area | Key Functions |
-|---|---|
-| **Time** | `epoch_time()`, `td_format()` (timedelta to readable string), `get_hebrew_date()` (Gregorian to Hebrew calendar via `convertdate`) |
-| **Lists** | `list_depth()` (nesting depth of a list), `list_chunks()`, `union()`, `flatten_jagged_array()`, `is_text_empty()`, `rtrim_jagged_string_array()` |
-| **Dicts** | `traverse_dict_tree(dict, key_list)` -- navigate nested dicts by key path; `deep_update()` -- recursive dict merge |
-| **Text/HTML** | `strip_tags()` (via `MLStripper` HTMLParser subclass), `titlecase()` (NYT-style smart title-casing), `string_overlap()`, `replace_using_regex()`, `count_by_regex()`, `truncate_string()` (HTML-aware truncation with ellipsis), `text_preview()` |
-| **Language codes** | `short_to_long_lang_code()` ("he" -> "hebrew"), `get_short_lang()` (reverse), `get_lang_codes_for_territory()` (via babel) |
-| **Wrapping** | `wrap_chars_with_overlaps()` -- wraps character ranges in a string, correctly shifting indices when ranges overlap |
-| **Subclasses** | `get_all_subclasses(cls)`, `get_all_subclass_attribute(cls, attr)` -- recursively find all subclasses of a class |
-| **Other** | `get_size()` (recursive memory size), `graceful_exception()` (decorator: catch exceptions, log, return default), `in_directory()`, `get_directory_content()`, `is_int()` |
+| Area               | Key Functions                                                                                                                                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Time**           | `epoch_time()`, `td_format()` (timedelta to readable string), `get_hebrew_date()` (Gregorian to Hebrew calendar via `convertdate`)                                                                                                                |
+| **Lists**          | `list_depth()` (nesting depth of a list), `list_chunks()`, `union()`, `flatten_jagged_array()`, `is_text_empty()`, `rtrim_jagged_string_array()`                                                                                                  |
+| **Dicts**          | `traverse_dict_tree(dict, key_list)` -- navigate nested dicts by key path; `deep_update()` -- recursive dict merge                                                                                                                                |
+| **Text/HTML**      | `strip_tags()` (via `MLStripper` HTMLParser subclass), `titlecase()` (NYT-style smart title-casing), `string_overlap()`, `replace_using_regex()`, `count_by_regex()`, `truncate_string()` (HTML-aware truncation with ellipsis), `text_preview()` |
+| **Language codes** | `short_to_long_lang_code()` ("he" -> "hebrew"), `get_short_lang()` (reverse), `get_lang_codes_for_territory()` (via babel)                                                                                                                        |
+| **Wrapping**       | `wrap_chars_with_overlaps()` -- wraps character ranges in a string, correctly shifting indices when ranges overlap                                                                                                                                |
+| **Subclasses**     | `get_all_subclasses(cls)`, `get_all_subclass_attribute(cls, attr)` -- recursively find all subclasses of a class                                                                                                                                  |
+| **Other**          | `get_size()` (recursive memory size), `graceful_exception()` (decorator: catch exceptions, log, return default), `in_directory()`, `get_directory_content()`, `is_int()`                                                                          |
 
 ### `hebrew.py` -- Hebrew Numeral & Text Operations (~676 lines)
 
 **Constants:**
+
 - `GERESH`, `GERSHAYIM` -- Unicode punctuation marks for Hebrew numerals
 - `ALPHABET_22`, `ALPHABET_27` (with final letters), `FINAL_LETTERS`
 - `H2E_KEYBOARD_MAP`, `E2H_KEYBOARD_MAP`, `KEYBOARD_SWAP_MAP` -- bidirectional Hebrew/English keyboard layout mappings
 - `PREFIXES` -- set of common Hebrew grammatical prefixes (single and double letter)
 
 **Numeral conversion:**
+
 - `heb_to_int(char)` / `int_to_heb(int)` -- single character <-> integer (memoized)
 - `decode_hebrew_numeral(str)` -- full Hebrew numeral string to int (handles thousands via geresh)
 - `encode_hebrew_numeral(n)` / `encode_small_hebrew_numeral(n)` -- int to Hebrew numeral string (memoized)
@@ -39,6 +42,7 @@ A collection of pure-ish utility modules that provide foundational operations us
 - `gematria(string)` -- sum of letter values
 
 **Text analysis:**
+
 - `has_hebrew()`, `is_all_hebrew()`, `is_mostly_hebrew()` -- detect Hebrew content
 - `strip_nikkud()`, `strip_cantillation()`, `has_cantillation()` -- vowel/cantillation mark handling
 - `hebrew_plural(s)` -- irregular plurals for Jewish terms (Daf->Dappim, Mishnah->Mishnayot, etc.)
@@ -46,11 +50,13 @@ A collection of pure-ish utility modules that provide foundational operations us
 - `hebrew_parasha_name(value)` -- English parasha name to Hebrew, handles double-parshiot with hyphens
 
 **Keyboard & normalization:**
+
 - `swap_keyboards_for_string()` -- convert text typed on wrong keyboard layout
 - `decompose_presentation_forms_in_str()` -- normalize Unicode presentation forms to standard Hebrew
 - `normalize_final_letters_in_str()` -- convert final letters (sofit) to regular forms
 
 **Abbreviation matching:**
+
 - `is_abbr(word)` -- detect Hebrew abbreviations (contains embedded quotation mark)
 - `get_abbr()`, `get_all_abbrs()` -- match abbreviations against expanded word lists
 - `hebrew_starts_with()` -- prefix matching with abbreviation expansion support
@@ -133,39 +139,51 @@ Entirely commented out. Previously contained `CategoryFilter`, `ErrorTypeFilter`
 ## Common Tasks
 
 **Convert an integer to a Hebrew numeral string:**
+
 ```python
 from sefaria.utils.hebrew import encode_hebrew_numeral
+
 encode_hebrew_numeral(5784)  # Returns Hebrew year string with gershayim
 ```
 
 **Check if text is Hebrew:**
+
 ```python
 from sefaria.utils.hebrew import has_hebrew, is_mostly_hebrew
+
 has_hebrew("some text with Hebrew")
 is_mostly_hebrew(some_string, len_to_check=300)
 ```
 
 **Strip HTML tags from text content:**
+
 ```python
 from sefaria.utils.util import strip_tags
+
 plain_text = strip_tags(html_string)
 ```
 
 **Get today's calendar items:**
+
 ```python
 from sefaria.utils.calendars import get_todays_calendar_items
+
 items = get_todays_calendar_items(diaspora=True, custom="sephardi")
 ```
 
 **Convert between daf notation and section numbers:**
+
 ```python
 from sefaria.utils.talmud import section_to_daf, daf_to_section
-section_to_daf(5)    # "3b"
-daf_to_section("3b") # 6
+
+section_to_daf(5)  # "3b"
+daf_to_section("3b")  # 6
 ```
 
 **Swap keyboard layout for mistyped search input:**
+
 ```python
 from sefaria.utils.hebrew import swap_keyboards_for_string
+
 swap_keyboards_for_string("akuo")  # Converts English keys to Hebrew letters
 ```

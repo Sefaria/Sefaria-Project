@@ -1,4 +1,4 @@
-import { getCsrfToken } from "../sefaria/csrf";
+import { getCsrfToken } from '../sefaria/csrf';
 
 /**
  * Newsletter API — Real endpoints
@@ -17,16 +17,16 @@ import { getCsrfToken } from "../sefaria/csrf";
 // api/newsletter_service/_errors.py), so they stay strings, but we only ever use them
 // through this map so a typo shows up as undefined.
 export const SERVER_ERROR_CODE = Object.freeze({
-  LEARNING_LEVEL_TOKEN_INVALID: "learning_level_token_invalid",
-  INVALID_EMAIL: "invalid_email",
-  AUTHENTICATION_REQUIRED: "authentication_required",
-  PREFERENCES_UPDATE_INCOMPLETE: "preferences_update_incomplete",
+  LEARNING_LEVEL_TOKEN_INVALID: 'learning_level_token_invalid',
+  INVALID_EMAIL: 'invalid_email',
+  AUTHENTICATION_REQUIRED: 'authentication_required',
+  PREFERENCES_UPDATE_INCOMPLETE: 'preferences_update_incomplete',
 });
 
 // TODO: Use Sefaria.apiRequestWithBody in the future by adjusting it
 const parseJsonResponse = async (response) => {
-  const contentType = response.headers.get("content-type");
-  if (!contentType || !contentType.includes("application/json")) {
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
     // Empty message so callers fall through to their TEXT_KEYS.GENERIC_ERROR.
     // code property preserves the HTTP status for debugging.
     throw Object.assign(new Error(), { code: `server_error_${response.status}` });
@@ -49,15 +49,15 @@ const parseJsonResponse = async (response) => {
  * parseJsonResponse throws a code-tagged Error with an empty message so callers
  * fall through to a generic user-facing message.
  */
-const apiRequest = async (url, { method = "POST", body, csrf, fallbackError } = {}) => {
-  const headers = { "Content-Type": "application/json" };
+const apiRequest = async (url, { method = 'POST', body, csrf, fallbackError } = {}) => {
+  const headers = { 'Content-Type': 'application/json' };
   if (csrf) {
-    headers["X-CSRFToken"] = getCsrfToken();
+    headers['X-CSRFToken'] = getCsrfToken();
   }
   const response = await fetch(url, {
     method,
-    mode: "same-origin",
-    credentials: "same-origin",
+    mode: 'same-origin',
+    credentials: 'same-origin',
     headers,
     body: body && JSON.stringify(body),
   });
@@ -72,39 +72,39 @@ const apiRequest = async (url, { method = "POST", body, csrf, fallbackError } = 
 // the three @csrf_protect-decorated views need a token; the two GETs do not.
 
 export const subscribeNewsletter = (data) =>
-  apiRequest("/api/newsletter/subscribe", {
+  apiRequest('/api/newsletter/subscribe', {
     body: data,
     csrf: true,
-    fallbackError: "Failed to subscribe",
+    fallbackError: 'Failed to subscribe',
   });
 
 export const updatePreferences = (newsletters, { marketingOptOut = false } = {}) =>
-  apiRequest("/api/newsletter/preferences", {
+  apiRequest('/api/newsletter/preferences', {
     body: { newsletters, marketingOptOut },
     csrf: true,
-    fallbackError: "Failed to update preferences",
+    fallbackError: 'Failed to update preferences',
   });
 
 // Logged-out visitors pass the `learningLevelToken` that subscribeNewsletter returned;
 // the server reads their email from it. Logged-in users pass no token (the server
 // uses their session), and JSON.stringify leaves an undefined token out of the body.
 export const updateLearningLevel = ({ learningLevel, token }) =>
-  apiRequest("/api/newsletter/learning-level", {
+  apiRequest('/api/newsletter/learning-level', {
     body: { learningLevel, token },
     csrf: true,
-    fallbackError: "Failed to update learning level",
+    fallbackError: 'Failed to update learning level',
   });
 
 export const fetchUserSubscriptions = () =>
-  apiRequest("/api/newsletter/subscriptions", {
-    method: "GET",
+  apiRequest('/api/newsletter/subscriptions', {
+    method: 'GET',
     csrf: false,
-    fallbackError: "Failed to fetch subscriptions",
+    fallbackError: 'Failed to fetch subscriptions',
   });
 
 export const getNewsletterLists = () =>
-  apiRequest("/api/newsletter/lists", {
-    method: "GET",
+  apiRequest('/api/newsletter/lists', {
+    method: 'GET',
     csrf: false,
-    fallbackError: "Failed to fetch newsletter lists",
+    fallbackError: 'Failed to fetch newsletter lists',
   });

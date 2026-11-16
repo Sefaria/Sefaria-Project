@@ -6,20 +6,20 @@
  * only understands { en, he } objects. These tests make sure the text shows up.
  */
 
-import React from "react";
-import ReactDOMServer from "react-dom/server";
-import LearningLevelSurvey from "../LearningLevelSurvey";
-import { TEXT_KEYS, LEARNING_LEVELS } from "../textKeys";
-import { enText, escapeHtml } from "../testSupport/i18nTestUtils";
+import React from 'react';
+import ReactDOMServer from 'react-dom/server';
+import LearningLevelSurvey from '../LearningLevelSurvey';
+import { TEXT_KEYS, LEARNING_LEVELS } from '../textKeys';
+import { enText, escapeHtml } from '../testSupport/i18nTestUtils';
 
-jest.mock("../../sefaria/sefaria", () => ({
-  interfaceLang: "english",
-  _: (text) => require("../testSupport/i18nTestUtils").translate(text),
-  _bilingual: (id) => require("../testSupport/i18nTestUtils").bilingual(id),
+jest.mock('../../sefaria/sefaria', () => ({
+  interfaceLang: 'english',
+  _: (text) => require('../testSupport/i18nTestUtils').translate(text),
+  _bilingual: (id) => require('../testSupport/i18nTestUtils').bilingual(id),
   site: false,
 }));
 
-jest.mock("../../Misc", () => ({
+jest.mock('../../Misc', () => ({
   // Behaves like the real InterfaceText: a `text` prop is read as { en, he }, so a
   // plain string passed there renders nothing. A friendlier mock would hide the bug.
   InterfaceText: ({ text, children }) => {
@@ -27,12 +27,12 @@ jest.mock("../../Misc", () => ({
       const { en, he } = text;
       return <span>{en || he}</span>;
     }
-    return <span>{require("../testSupport/i18nTestUtils").translate(children)}</span>;
+    return <span>{require('../testSupport/i18nTestUtils').translate(children)}</span>;
   },
   LoadingMessage: ({ message }) => <span>{message}</span>,
 }));
 
-jest.mock("../SelectableOption", () => {
+jest.mock('../SelectableOption', () => {
   return function MockSelectableOption({ label }) {
     return <div>{label}</div>;
   };
@@ -57,8 +57,8 @@ const errorBox = (html) => {
   return match ? match[0] : null;
 };
 
-describe("LearningLevelSurvey error message", () => {
-  it("shows the translated text for a TEXT_KEYS error", () => {
+describe('LearningLevelSurvey error message', () => {
+  it('shows the translated text for a TEXT_KEYS error', () => {
     const box = errorBox(renderSurvey(TEXT_KEYS.SELECT_LEARNING_LEVEL));
 
     expect(box).toContain(escapeHtml(enText(TEXT_KEYS.SELECT_LEARNING_LEVEL)));
@@ -71,13 +71,13 @@ describe("LearningLevelSurvey error message", () => {
     expect(box).toContain(escapeHtml(enText(TEXT_KEYS.LEARNING_LEVEL_EXPIRED)));
   });
 
-  it("shows a plain server message as-is", () => {
-    const box = errorBox(renderSurvey("Failed to connect to ActiveCampaign API"));
+  it('shows a plain server message as-is', () => {
+    const box = errorBox(renderSurvey('Failed to connect to ActiveCampaign API'));
 
-    expect(box).toContain("Failed to connect to ActiveCampaign API");
+    expect(box).toContain('Failed to connect to ActiveCampaign API');
   });
 
-  it("shows no error box when there is no error", () => {
+  it('shows no error box when there is no error', () => {
     expect(errorBox(renderSurvey(null))).toBeNull();
   });
 });
