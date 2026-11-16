@@ -12,7 +12,7 @@ const elemFrom = (html) => {
   return div;
 };
 
-const MARKUP_OR_HANDLER = /<\s*[a-z!\/]|on[a-z]+\s*=|javascript:/i;
+const MARKUP_OR_HANDLER = /<\s*[a-z!/]|on[a-z]+\s*=|javascript:/i;
 
 describe('linker sanitizeElem', () => {
   test('runs on the DOMPurify 3.1.6+ line', () => {

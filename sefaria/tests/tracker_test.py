@@ -90,7 +90,7 @@ def test_update_of_missing_record_raises_input_error_without_logging():
     with (
         patch.object(model.Note, "load_by_id", return_value=None),
         patch.object(tracker.model, "log_update") as fake_log_update,
+        pytest.raises(InputError, match="Note record not found for update"),
     ):
-        with pytest.raises(InputError, match="Note record not found for update"):
-            tracker.update(1, model.Note, {"_id": missing_id, "text": "x"})
+        tracker.update(1, model.Note, {"_id": missing_id, "text": "x"})
     fake_log_update.assert_not_called()

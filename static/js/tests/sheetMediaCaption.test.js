@@ -9,7 +9,6 @@ jest.mock('../sefaria/sefaria', () => {
   return { __esModule: true, default: { _: (k) => k, util } };
 });
 
-// eslint-disable-next-line import/first
 import { SheetMedia } from '../sheets/SheetContentSegments';
 
 describe('SheetMedia caption sanitization', () => {
