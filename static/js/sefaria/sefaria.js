@@ -749,7 +749,11 @@ Sefaria = extend(Sefaria, {
   },
   getPrimaryAndTranslationFromVersions: function(versions) {
     let primary, translation;
-    if (versions.length === 1) {
+    if (versions.length === 0) {
+      // No versions returned: use empty placeholders so callers can still read .text and .sources.
+      primary = {text: []};
+      translation = {text: []};
+    } else if (versions.length === 1) {
       primary = versions[0];
       translation = {text: []};
     } else if (versions[0].isPrimary && !versions[1].isSource) {
@@ -1110,7 +1114,11 @@ Sefaria = extend(Sefaria, {
           }, {});
   },
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
-  deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
+  deconstructVersionsKey: (versionsKey) => {
+    // Language is the segment after the last separator, so a version title may itself contain '|'.
+    const sep = versionsKey.lastIndexOf('|');
+    return sep === -1 ? [versionsKey] : [versionsKey.slice(0, sep), versionsKey.slice(sep + 1)];
+  },
   setVersionPreference(sref, vtitle, lang) {
     if (lang !== 'en') { return; }  // Currently only tracking preferences for translations
     const title = Sefaria.parseRef(sref).index
