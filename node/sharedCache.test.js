@@ -118,6 +118,30 @@ describe('refresh generations', () => {
     expect(cache.data.last_cached).toBeNull();
   });
 
+  test('a cache hit that finishes while a real refresh is in flight does not block it', async () => {
+    const redis = fullRedis();
+    const resolvers = {};
+    let hold = false;
+    const getAsync = jest.fn(key => hold
+      ? new Promise(resolve => { (resolvers[key] = resolvers[key] || []).push(resolve); })
+      : Promise.resolve(redis[key]));
+    const logger = { debug: jest.fn(), error: jest.fn() };
+    const cache = createSharedCache({ getAsync, cacheKeyMapping, logger });
+    await cache.loadSharedData({ last_cached_to_compare: 100 });
+
+    hold = true;
+    const refresh = cache.loadSharedData({ last_cached_to_compare: 200 });
+    const hit = cache.loadSharedData({ last_cached_to_compare: 100 });  // nothing to fetch
+    await hit;
+    for (const key of Object.values(cacheKeyMapping)) {
+      resolvers[key][0](JSON.stringify({ from: 'refresh' }));
+    }
+    await refresh;
+
+    expect(cache.data.toc).toEqual({ from: 'refresh' });
+    expect(cache.data.last_cached).toBe(200);
+  });
+
   test('refreshes completing in start order both commit', async () => {
     const cache = makeCache(fullRedis());
     await cache.loadSharedData({ last_cached_to_compare: 100 });

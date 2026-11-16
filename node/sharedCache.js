@@ -57,6 +57,11 @@ const createSharedCache = function({ getAsync, cacheKeyMapping, logger }) {
       logger.error(`Shared cache load failed: ${e.message}`);
       throw e;
     }
+    // A cache hit fetched nothing, so it commits nothing and must not rank above a real refresh that
+    // started earlier and is still running.
+    if(fetched.length === 0){
+      return;
+    }
     // Refreshes can overlap. A load that started before one already committed must not put its
     // older data back, whatever timestamp it carries (or lacks), so it commits nothing.
     if(generation < committedGeneration){
