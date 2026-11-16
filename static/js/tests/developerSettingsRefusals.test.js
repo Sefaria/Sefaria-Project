@@ -271,7 +271,7 @@ describe('after the account email changes', () => {
     server.state.confirmationSentAt = null;
     await advance(3000);
     await advance(1200);
-    expect(screen.getByRole('status').textContent).toBe('Your email is confirmed.');
+    expect(screen.getAllByRole('status').map((el) => el.textContent)).toContain('Your email is confirmed.');
     expect(screen.queryByRole('region', { name: 'Confirm your new email address' })).toBeNull();
     expect(button('New project').getAttribute('aria-disabled')).toBeNull();
     await advance(8000);

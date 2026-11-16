@@ -8,8 +8,8 @@ export const AuthNoticeContext = React.createContext(null);
 
 const AUTH_NOTICES = {
   developer: {
-    title: { en: 'Looking for Developer Settings?', he: 'מחפשים את הגדרות מפתחים?' },
-    body: { en: 'Log in or create a free Sefaria account first.', he: 'קודם צריך להתחבר או ליצור חשבון ספריא בחינם.' },
+    title: 'developer.signin_notice.header',
+    body: 'developer.signin_notice.body',
   },
 };
 
@@ -18,9 +18,9 @@ const AuthNotice = ({ kind }) => (
     {/* No icon (Penina, 2026-11-08). */}
     <span>
       <strong>
-        <InterfaceText text={AUTH_NOTICES[kind].title} />
+        <InterfaceText text={Sefaria._bilingual(AUTH_NOTICES[kind].title)} />
       </strong>{' '}
-      <InterfaceText text={AUTH_NOTICES[kind].body} />
+      <InterfaceText text={Sefaria._bilingual(AUTH_NOTICES[kind].body)} />
     </span>
   </p>
 );

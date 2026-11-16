@@ -9,10 +9,20 @@ jest.mock('../sefaria/sefaria', () => {
     interfaceLang: 'english',
     full_name: 'Tova Levi',
     _email: 'tova@example.org',
-    _: (k) => k,
+    _: (k) =>
+      k.startsWith('developer.') ? sefaria._keyedString(k, sefaria.interfaceLang === 'hebrew' ? 'he' : 'en') : k,
+    // Developer Settings strings are Weblate keys: resolve them from the real interface files.
+    _keyedString: (id, lang) => {
+      const maps = {
+        en: require('../sefaria/i18n/interface/en.json'),
+        he: require('../sefaria/i18n/interface/he.json'),
+      };
+      return (lang === 'he' && maps.he[id]) || maps.en[id] || id;
+    },
     track: { event: jest.fn(), setInterfaceLanguage: jest.fn() },
   };
   sefaria._v = (options) => options[sefaria.interfaceLang === 'hebrew' ? 'he' : 'en'];
+  sefaria._bilingual = (id) => ({ en: sefaria._keyedString(id, 'en'), he: sefaria._keyedString(id, 'he') });
   return { __esModule: true, default: sefaria };
 });
 
