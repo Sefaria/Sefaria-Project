@@ -2849,6 +2849,7 @@ class ReaderApp extends Component {
                       is-moderator={this.props.is_moderator || undefined}
                       placement="right"
                       default-open={true}
+                      start-closed={this.props.chatbotStartClosed || undefined}
                       mode="floating" //this simply defines the initial mode which can be toggled by the user
                       max-input-chars={this.props.chatbot_max_input_chars}
                       max-prompts={this.props.chatbot_max_prompts}

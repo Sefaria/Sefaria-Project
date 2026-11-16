@@ -5293,7 +5293,8 @@ def library_assistant_settings(request):
     return render_template(
         request,
         "library_assistant_settings.html",
-        {"headerMode": True},
+        # The assistant starts closed here: its panel would cover the settings controls.
+        {"headerMode": True, "chatbotStartClosed": True},
         {
             "settings_tab": "library-assistant",
             # The toggle must show the *effective* value: a user who is on through the
