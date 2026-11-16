@@ -89,7 +89,7 @@ test.describe("several texts side by side (old multi-panel URLs)", () => {
   });
 
   // @feature SHL-048 @feature SHL-033
-  // Owner decision 2026-10-06: exactly as sefaria.org (VERIFIED with scripts/parity-panels.mjs: citation, citation-replaces-reader-panel)
+  // Owner decision 2026-10-06: exactly as sefaria.org (VERIFIED on the live site: citation, citation-replaces-reader-panel)
   // @feature SHL-049 @feature SHL-066
   test("a citation closes whatever is next to its panel — even a text the reader opened — and opens there", async ({ page }) => {
     await open(page, "/Ramban_on_Genesis.1.1?lang=bi&p2=Exodus.1");

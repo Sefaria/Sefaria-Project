@@ -2,7 +2,6 @@ import { expect, test } from "@playwright/test";
 import { open } from "./helpers";
 
 // Browse the Library as the site's home (no promo banner since sefaria.org #3934) and the phone header's content-language toggle.
-// Pixel parity with sefaria.org itself is checked by scripts/parity-page.mjs and scripts/parity-header-states.mjs (live site).
 
 // @feature LIB-001
 test("/ answers 302 → /texts, as sefaria.org does (verified 2026-10-29)", async ({ request, page }) => {

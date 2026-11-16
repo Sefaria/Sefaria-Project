@@ -2,7 +2,7 @@ import { devices, expect, test } from "@playwright/test";
 import { open } from "./helpers";
 
 // /translations/<lang>: the texts available in one translation language (the old TranslationsPage). Data from the API cassette
-// (sefaria.org). Pixel parity with the live site: scripts/parity-page.mjs (docs/features/CHANGELOG.md, 2026-11-04 — translations).
+// (sefaria.org).
 
 const SLUGS: Record<string, string> = {
   ar: "نصوص يهودية بالعربية", de: "Jüdische Texte in Deutscher Sprache", en: "Jewish Texts in English", eo: "Judaj Tekstoj en Esperanto",

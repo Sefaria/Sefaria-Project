@@ -1,5 +1,5 @@
 /**
- * Multi-panel URLs exactly as www.sefaria.org writes them, recorded with scripts/probes/multipanel-probe*.mjs (desktop,
+ * Multi-panel URLs exactly as www.sefaria.org writes them, recorded from the live site (desktop,
  * 2026-10-06). The decoded form (decodeURIComponent) is what is compared. Owner decision 2026-10-06: this client reads every one
  * of these and writes them back byte for byte.
  */

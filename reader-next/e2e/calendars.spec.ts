@@ -3,7 +3,7 @@ import { open } from "./helpers";
 
 // The Learning Schedules page (/calendars) and the shortcuts /parashat-hashavua and /todays-daf-yomi, as sefaria.org has them
 // (VERIFIED 2026-11-04 against www.sefaria.org: 302s, Location "/" + the calendar item's url, ?diaspora ignored; "/calendars/" a page
-// of its own; "/parashat-hashavua/" a 404). Pixel parity with the live page: scripts/parity-page.mjs calendars=/calendars.
+// of its own; "/parashat-hashavua/" a 404).
 // What the page should show is read from the same API the server asked (through the e2e cassette), so the day's schedules never
 // make the test stale.
 

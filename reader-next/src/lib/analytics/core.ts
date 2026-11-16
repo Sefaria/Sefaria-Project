@@ -8,7 +8,7 @@
  *  - sa:    `sa_event(name, params)` — Simple Analytics (impressions are sent to both).
  *  - ua:    the old Universal Analytics `Track.event(category, action, label, value)`: LOGGED ONLY, never sent. Owner decision
  *           2026-11-10: on www.sefaria.org the old client's UA calls never fire (track.js binds `ga` before GTM's analytics.js has made
- *           its tracker, so they go to its mock; VERIFIED with scripts/analytics-parity.mjs) and the UA property is shut down, so the
+ *           its tracker, so they go to its mock; VERIFIED on the live site) and the UA property is shut down, so the
  *           new reader sends no UA hits either. The log keeps the old names, so tests still see which UA event a control stands for.
  *
  * Every event is also appended to an in-memory log (`analyticsLog`, `window.__SEFARIA_ANALYTICS__`) — tests assert on it and

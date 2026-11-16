@@ -5,7 +5,7 @@ type Logged = { channel: string; name: string; params?: Record<string, unknown> 
 const log = (page: Page) => page.evaluate(() => (window as unknown as { __SEFARIA_ANALYTICS__?: Logged[] }).__SEFARIA_ANALYTICS__ ?? []);
 const names = async (page: Page) => (await log(page)).map((e) => `${e.channel}:${e.name}`);
 
-// The page-load events sefaria.org sends on /Genesis.1 (recorded 2026-10-06 with scripts/probes/anl-probe.mjs), minus the
+// The page-load events sefaria.org sends on /Genesis.1 (recorded 2026-10-06), minus the
 // promotions this client does not have yet (promo_viewed, modal_viewed). No vendor is configured in tests: only the log.
 // @feature ANL-008 @feature ANL-003 @feature ANL-004 @feature ANL-009 @feature ANL-012 @feature ANL-015
 test.describe("analytics", () => {
