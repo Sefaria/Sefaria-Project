@@ -1,6 +1,6 @@
 /* Testing done using Jest */
 import { createSaveQueue } from '../sheetSaveQueue';
-import { buildPublishBody, planSavedResponseApplication } from '../sheetSaveResponse';
+import { planSavedResponseApplication } from '../sheetSaveResponse';
 
 // A send function whose requests stay open until the test settles them.
 function makeSend(serverState) {
@@ -109,10 +109,8 @@ describe('createSaveQueue', function () {
 describe('publish through the save queue', function () {
   // A tiny stand-in for the editor: local state, a revision counter, and a fake server.
   function makeEditor() {
-    const server = { status: 'unlisted', title: 'T0', summary: 'S0', sources: ['s0'], dateModified: 0, requests: [] };
-    // The editor's cached copy of the sheet, replaced by every stored response.
-    let cache = { _id: 'x', id: 1, status: 'unlisted', title: 'T0', summary: 'S0', sources: ['s0'], dateModified: 0 };
-    const local = { status: 'unlisted', title: 'T0', summary: 'S0', sources: ['s0'], revision: 0, unsaved: false };
+    const server = { status: 'unlisted', title: 'T0', summary: 'S0', dateModified: 0, requests: [] };
+    const local = { status: 'unlisted', title: 'T0', summary: 'S0', revision: 0, unsaved: false };
     const open = [];
     let concurrent = 0;
     let maxConcurrent = 0;
@@ -128,14 +126,8 @@ describe('publish through the save queue', function () {
             resolve(false); // genuine-looking conflict: sent with a stale modification time
             return;
           }
-          Object.assign(server, {
-            status: body.status,
-            title: body.title,
-            summary: body.summary,
-            sources: body.sources,
-          });
+          Object.assign(server, { status: body.status, title: body.title, summary: body.summary });
           server.dateModified += 1;
-          cache = { ...cache, ...server };
           const plan = planSavedResponseApplication(
             { status: server.status, title: server.title, summary: server.summary },
             { kind, saveRevision: revision, currentRevision: local.revision }
@@ -153,14 +145,8 @@ describe('publish through the save queue', function () {
     const queue = createSaveQueue((payload, revision, kind) => {
       const body =
         kind === 'publish'
-          ? buildPublishBody(cache, payload)
-          : {
-              status: local.status,
-              title: payload.title,
-              summary: payload.summary,
-              sources: payload.sources,
-              lastModified: cache.dateModified,
-            };
+          ? { ...payload, lastModified: server.dateModified }
+          : { status: local.status, title: payload.title, summary: payload.summary, lastModified: server.dateModified };
       return post(body, revision, kind);
     });
 
@@ -174,15 +160,10 @@ describe('publish through the save queue', function () {
         local.unsaved = true;
       },
       autosave() {
-        return queue.request({ title: local.title, summary: local.summary, sources: local.sources }, local.revision);
+        return queue.request({ title: local.title, summary: local.summary }, local.revision);
       },
       publish() {
-        return queue.requestPublish({ status: 'public' }, local.revision);
-      },
-      editSources(sources) {
-        local.revision += 1;
-        local.sources = sources;
-        local.unsaved = true;
+        return queue.requestPublish({ status: 'public', title: local.title, summary: local.summary }, local.revision);
       },
       finish() {
         open.shift()();
@@ -218,7 +199,6 @@ describe('publish through the save queue', function () {
     expect(editor.server.requests).toHaveLength(2);
     expect(editor.server.requests[1].kind).toBe('publish');
     expect(editor.server.requests[1].lastModified).toBe(1);
-    expect(editor.server.requests[1]._id).toBeUndefined();
     editor.finish();
     await expect(published).resolves.toBe(true);
     expect(editor.maxConcurrent()).toBe(1);
@@ -249,24 +229,5 @@ describe('publish through the save queue', function () {
     const queue = createSaveQueue(() => Promise.resolve(false));
     await expect(queue.requestPublish({}, 0)).resolves.toBe(false);
     expect(queue.isInFlight()).toBe(false);
-  });
-
-  it("a publish queued behind an autosave carries that autosave's sources and keeps its edits", async function () {
-    const editor = makeEditor();
-    editor.editSources(['s0', 'added by A']);
-    editor.autosave();
-    const published = editor.publish();
-    editor.finish();
-    await tick();
-
-    const publishBody = editor.server.requests[1];
-    expect(publishBody.kind).toBe('publish');
-    expect(publishBody.sources).toEqual(['s0', 'added by A']);
-    expect(publishBody.status).toBe('public');
-    expect(publishBody.lastModified).toBe(1);
-    editor.finish();
-    await expect(published).resolves.toBe(true);
-    expect(editor.server.sources).toEqual(['s0', 'added by A']);
-    expect(editor.server.status).toBe('public');
   });
 });

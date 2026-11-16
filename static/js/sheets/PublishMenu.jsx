@@ -27,14 +27,12 @@ const PublishModal = ({ close, status, sheetID, publishSheet }) => {
       close();
     }
   };
-  // Title, summary and topics chosen in the publish menu; empty when unpublishing.
-  const publishFields = useRef({});
   const togglePublishStatus = async () => {
-    // Only the fields this dialog owns are sent. The editor merges them into the current sheet when the
-    // request is sent, so a save still in flight is not overwritten by this dialog's older snapshot.
-    const fields = { ...publishFields.current, status: status === 'public' ? 'unlisted' : 'public' };
+    sheet.status = status === 'public' ? 'unlisted' : 'public';
+    // The editor sets lastModified when the request is sent, after any save already in flight.
+    delete sheet._id;
     try {
-      await publishSheet(fields);
+      await publishSheet(sheet);
       setPostingText(postingState.posted);
     } catch (error) {
       setPostingText(`Error: ${error.message}`);
@@ -53,15 +51,7 @@ const PublishModal = ({ close, status, sheetID, publishSheet }) => {
 
   let contents;
   if (postingText === postingState.notPosting) {
-    contents = (
-      <PublishMenu
-        sheet={sheet}
-        publishCallback={(fields) => {
-          publishFields.current = fields;
-          setPostingText(postingState.posting);
-        }}
-      />
-    );
+    contents = <PublishMenu sheet={sheet} publishCallback={() => setPostingText(postingState.posting)} />;
   } else {
     contents = (
       <div className="modalMessage">
@@ -166,15 +156,14 @@ const PublishMenu = ({ sheet, publishCallback }) => {
     setSummary(newSummary);
   };
   const handlePublish = () => {
+    sheet.title = Sefaria.sheets.getSheetTitle(title);
+    sheet.summary = summary;
+    sheet.topics = tags.map((tag) => ({
+      asTyped: tag.name,
+      slug: tag.slug,
+    }));
     if (isFormValidated()) {
-      publishCallback({
-        title: Sefaria.sheets.getSheetTitle(title),
-        summary,
-        topics: tags.map((tag) => ({
-          asTyped: tag.name,
-          slug: tag.slug,
-        })),
-      });
+      publishCallback(true);
     }
   };
   return (
