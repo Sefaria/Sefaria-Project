@@ -438,7 +438,8 @@ def get_author_indexes(slug: str, include_aggregations: bool = False, include_de
 
 
 def recommend_topics(refs: list) -> list:
-    """Returns a list of topics recommended for the list of string refs"""
+    """Returns a list of topics recommended for the list of string refs.
+    Only whole-segment links count; char-level links are excluded, as in Ref.topiclinkset()."""
     seg_refs = []
     for tref in refs:
         try:
@@ -447,13 +448,16 @@ def recommend_topics(refs: list) -> list:
             continue
         seg_refs += [r.normal() for r in oref.all_segment_refs()]
     topic_count = defaultdict(int)
-    ref_links = RefTopicLinkSet({"expandedRefs": {"$in": seg_refs}})
+    ref_links = RefTopicLinkSet({"expandedRefs": {"$in": seg_refs}, "charLevelData": {"$exists": False}})
     for link in ref_links:
         topic_count[link.toTopic] += 1
 
+    topics_by_slug = {t.slug: t for t in TopicSet({"slug": {"$in": list(topic_count.keys())}})}
     recommend_topics = []
     for slug in topic_count.keys():
-        topic = Topic.init(slug)
+        topic = topics_by_slug.get(slug)
+        if topic is None:
+            continue
         recommend_topics.append({
             "slug": slug,
             "titles": {
