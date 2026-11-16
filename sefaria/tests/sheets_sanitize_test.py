@@ -4,7 +4,7 @@ import copy
 
 import pytest
 
-from sefaria.sheets import bleach_text, clean_sheet_attribution, clean_source, clean_sources
+from sefaria.sheets import bleach_text, clean_sheet_attribution, clean_sheet_for_render, clean_source, clean_sources
 
 SCRIPT = "<script>alert(1)</script>"
 IMG_ONERROR = "<img src=x onerror=alert(1)>"
@@ -15,6 +15,27 @@ def test_custom_title_is_bleached():
     assert "<" not in source["customTitle"]
     assert "onerror" not in source["customTitle"]
     assert "Title" in source["customTitle"]
+
+
+def test_source_title_is_bleached():
+    source = clean_source({"ref": "Genesis 1:1", "node": 1, "title": IMG_ONERROR + "Title" + SCRIPT})
+    assert "<" not in source["title"]
+    assert "onerror" not in source["title"]
+    assert "Title" in source["title"]
+
+
+def test_source_title_dict_is_bleached():
+    source = clean_source({"ref": "Genesis 1:1", "node": 1, "title": {"en": IMG_ONERROR + "T", "he": "<b>x</b>"}})
+    assert "<" not in source["title"]["en"]
+    assert "onerror" not in source["title"]["en"]
+    assert source["title"]["he"] == "<b>x</b>"
+
+
+def test_render_cleaner_bleaches_source_title():
+    sheet = {"sources": [{"ref": "Genesis 1:1", "node": 1, "title": IMG_ONERROR + "Title"}]}
+    clean_sheet_for_render(sheet)
+    assert "<" not in sheet["sources"][0]["title"]
+    assert "Title" in sheet["sources"][0]["title"]
 
 
 @pytest.mark.parametrize("field", ["outsideText", "comment"])

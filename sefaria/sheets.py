@@ -798,8 +798,11 @@ def clean_source_text(source):
         source["comment"] = _bleach_if_str(source["comment"])
     if "outsideBiText" in source:
         source["outsideBiText"] = _bleach_lang_dict(source["outsideBiText"])
-    if "customTitle" in source:
-        source["customTitle"] = _bleach_if_str(source["customTitle"])
+    # The editor stores a source's custom title as `title`; `customTitle` is kept for legacy records.
+    # Either may be a string or a {he, en} dict.
+    for key in ("title", "customTitle"):
+        if key in source:
+            source[key] = _bleach_lang_dict(_bleach_if_str(source[key]))
     if "caption" in source:
         source["caption"] = _bleach_lang_dict(source["caption"])
     return source
