@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 import pytest
+from types import SimpleNamespace
+from pymongo.errors import AutoReconnect
 from sefaria.model import *
-from sefaria.system.exceptions import DuplicateRecordError
+import sefaria.model.link as link_model
+from sefaria.system.database import db
+from sefaria.system.exceptions import DuplicateRecordError, InputError
 
 class Test_Link_Save(object):
 
@@ -133,3 +137,33 @@ class Test_Link_Save(object):
                       "type": "quotation_auto_tanakh",
                       "refs": [ref, "Ramban on Genesis 2:1"]})
             assert link._pre_save() == None
+
+
+class Test_LinkCascadeOnTitleChange(object):
+
+    @pytest.mark.parametrize("save_error", [
+        AutoReconnect("connection dropped during cascade"),
+        InputError("renamed ref no longer validates"),
+    ])
+    def test_failed_save_keeps_link(self, monkeypatch, save_error):
+        refs = ["Avi Ezer, Deuteronomy 10:16:1", "Deuteronomy 10:16"]
+        lk = Link({"auto": True,
+                   "generated_by": "link_cascade_tester",
+                   "type": "commentary",
+                   "refs": refs})
+        lk.save()
+        try:
+            def failing_save(self, *args, **kwargs):
+                raise save_error
+
+            monkeypatch.setattr(link_model.Link, "save", failing_save)
+            monkeypatch.setattr(link_model, "report_progress", lambda *a, **k: None)
+
+            link_model.process_index_title_change_in_links(
+                SimpleNamespace(title="Avi Ezer"), old="Avi Ezer", new="Avi Ezer Renamed")
+
+            stored = db.links.find_one({"generated_by": "link_cascade_tester"})
+            assert stored is not None
+            assert stored["refs"] == refs
+        finally:
+            db.links.delete_many({"generated_by": "link_cascade_tester"})
