@@ -44,6 +44,16 @@ def uh_secondary_item():
     uh.delete()
 
 
+def test_save_history_item_with_empty_ref_raises_input_error():
+    # profile_sync_api skips a history item whose normalization raises InputError.
+    # An item with an empty ref must raise InputError, not AttributeError -> HTTP 500.
+    with pytest.raises(InputError):
+        UserHistory.save_history_item(
+            0,
+            {"ref": "", "versions": {"he": "x", "en": "x"}, "time_stamp": 1, "saved": False},
+        )
+
+
 def test_saved_with_secondary_item(uh_secondary_item):
     """
     Ephraim found bug where saved flag can get attached to secondary item that was created immediately before saving
