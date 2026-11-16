@@ -473,8 +473,10 @@ def check_reindex_preflight(health, allocation_rows, min_free_bytes, max_disk_pe
 
     `health` is the parsed GET _cluster/health body; `allocation_rows` is the parsed
     GET _cat/allocation?format=json&bytes=b body. It refuses on what it cannot verify: a
-    status other than green, or a data node whose disk numbers are missing. The UNASSIGNED
-    row and any row without a node are not data nodes and are skipped.
+    status other than green, a data node whose disk numbers are missing, or an allocation
+    response that lists fewer data nodes than health's `number_of_data_nodes` (the disk
+    guard is seeded from these rows, so a node missing here would never be watched). The
+    UNASSIGNED row and any row without a node are not data nodes and are skipped.
     """
     problems = []
     status = (health or {}).get("status")
@@ -505,6 +507,16 @@ def check_reindex_preflight(health, allocation_rows, min_free_bytes, max_disk_pe
     if checked_nodes == 0:
         # An empty or node-less _cat/allocation proves nothing about disk headroom.
         problems.append("_cat/allocation returned no data nodes, so disk headroom cannot be verified")
+    expected_nodes = (health or {}).get("number_of_data_nodes")
+    if isinstance(expected_nodes, bool) or not isinstance(expected_nodes, int) or expected_nodes < 0:
+        problems.append(
+            f"cluster health number_of_data_nodes is {expected_nodes!r}, so the node list cannot be verified complete"
+        )
+    elif checked_nodes and checked_nodes < expected_nodes:
+        problems.append(
+            f"_cat/allocation reported {checked_nodes} of {expected_nodes} data nodes; "
+            "a missing node's disk cannot be checked or watched"
+        )
     return problems
 
 

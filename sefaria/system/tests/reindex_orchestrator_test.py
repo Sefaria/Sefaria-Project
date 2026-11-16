@@ -500,7 +500,7 @@ class _FakeSearchModule:
         self.index_client = _FakeIndexClient(live_alias_pairs)
         healthy_allocation = [{"node": "es-data-0", "disk.avail": str(100 * _GIB), "disk.percent": "30"}]
         self.es_client = _FakeEsClient(
-            health if health is not None else {"status": "green"},
+            health if health is not None else {"status": "green", "number_of_data_nodes": 1},
             allocation if allocation is not None else healthy_allocation,
         )
         self.deleted = []
@@ -881,7 +881,7 @@ def _data_node_row(node="es-data-0", avail=50 * _GIB, percent=40):
 def test_preflight_passes_when_green_and_every_data_node_has_headroom():
     spec.loader.exec_module(orch)
     problems = orch.check_reindex_preflight(
-        {"status": "green"},
+        {"status": "green", "number_of_data_nodes": 2},
         [_data_node_row("es-0"), _data_node_row("es-1")],
         min_free_bytes=20 * _GIB,
         max_disk_percent=75,
@@ -893,7 +893,7 @@ def test_preflight_flags_non_green_cluster_status():
     spec.loader.exec_module(orch)
     for status in ("yellow", "red"):
         problems = orch.check_reindex_preflight(
-            {"status": status},
+            {"status": status, "number_of_data_nodes": 1},
             [_data_node_row()],
             min_free_bytes=20 * _GIB,
             max_disk_percent=75,
@@ -905,7 +905,7 @@ def test_preflight_flags_non_green_cluster_status():
 def test_preflight_flags_missing_cluster_status():
     spec.loader.exec_module(orch)
     problems = orch.check_reindex_preflight(
-        {},
+        {"number_of_data_nodes": 1},
         [_data_node_row()],
         min_free_bytes=20 * _GIB,
         max_disk_percent=75,
@@ -917,7 +917,7 @@ def test_preflight_flags_missing_cluster_status():
 def test_preflight_flags_node_below_minimum_free_bytes():
     spec.loader.exec_module(orch)
     problems = orch.check_reindex_preflight(
-        {"status": "green"},
+        {"status": "green", "number_of_data_nodes": 2},
         [_data_node_row("es-0", avail=5 * _GIB), _data_node_row("es-1")],
         min_free_bytes=20 * _GIB,
         max_disk_percent=75,
@@ -930,7 +930,7 @@ def test_preflight_flags_node_below_minimum_free_bytes():
 def test_preflight_flags_node_above_maximum_disk_percent():
     spec.loader.exec_module(orch)
     problems = orch.check_reindex_preflight(
-        {"status": "green"},
+        {"status": "green", "number_of_data_nodes": 1},
         [_data_node_row("es-1", percent=91)],
         min_free_bytes=20 * _GIB,
         max_disk_percent=75,
@@ -944,7 +944,7 @@ def test_preflight_threshold_boundaries_pass():
     """Exactly min free bytes and exactly max percent are still acceptable."""
     spec.loader.exec_module(orch)
     problems = orch.check_reindex_preflight(
-        {"status": "green"},
+        {"status": "green", "number_of_data_nodes": 1},
         [_data_node_row(avail=20 * _GIB, percent=75)],
         min_free_bytes=20 * _GIB,
         max_disk_percent=75,
@@ -960,7 +960,7 @@ def test_preflight_ignores_unassigned_and_nodeless_rows():
         _data_node_row(),
     ]
     problems = orch.check_reindex_preflight(
-        {"status": "green"},
+        {"status": "green", "number_of_data_nodes": 1},
         rows,
         min_free_bytes=20 * _GIB,
         max_disk_percent=75,
@@ -968,11 +968,41 @@ def test_preflight_ignores_unassigned_and_nodeless_rows():
     assert problems == []
 
 
+def test_preflight_flags_allocation_missing_a_data_node_that_health_reports():
+    """A node absent from _cat/allocation would never be watched by the disk guard, which is
+    seeded from the pre-flight rows: refuse instead of starting a build on a partial view."""
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green", "number_of_data_nodes": 3},
+        [_data_node_row("es-0"), _data_node_row("es-1")],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "2 of 3" in problems[0]
+
+
+@pytest.mark.parametrize("count", [None, "3", True, -1])
+def test_preflight_flags_unknown_data_node_count(count):
+    spec.loader.exec_module(orch)
+    health = {"status": "green"}
+    if count is not None:
+        health["number_of_data_nodes"] = count
+    problems = orch.check_reindex_preflight(
+        health,
+        [_data_node_row("es-0")],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "number_of_data_nodes" in problems[0]
+
+
 @pytest.mark.parametrize("rows", [None, [], [{"node": "UNASSIGNED", "shards": "3"}], [{"node": None}]])
 def test_preflight_fails_closed_when_no_data_node_is_reported(rows):
     spec.loader.exec_module(orch)
     problems = orch.check_reindex_preflight(
-        {"status": "green"},
+        {"status": "green", "number_of_data_nodes": 1},
         rows,
         min_free_bytes=20 * _GIB,
         max_disk_percent=75,
@@ -986,7 +1016,7 @@ def test_preflight_accepts_string_numbers_and_reports_null_disk_values():
     prove headroom, so it is a problem rather than a silent pass."""
     spec.loader.exec_module(orch)
     ok = orch.check_reindex_preflight(
-        {"status": "green"},
+        {"status": "green", "number_of_data_nodes": 1},
         [{"node": "es-0", "disk.avail": "21474836480", "disk.percent": "74"}],
         min_free_bytes=20 * _GIB,
         max_disk_percent=75,
@@ -994,7 +1024,7 @@ def test_preflight_accepts_string_numbers_and_reports_null_disk_values():
     assert ok == []
 
     unknown = orch.check_reindex_preflight(
-        {"status": "green"},
+        {"status": "green", "number_of_data_nodes": 1},
         [{"node": "es-1", "disk.avail": None, "disk.percent": None}],
         min_free_bytes=20 * _GIB,
         max_disk_percent=75,
@@ -1019,7 +1049,7 @@ def test_preflight_treats_non_finite_or_impossible_disk_values_as_unknown(avail,
     readings would pass silently unless they are treated as unknown."""
     spec.loader.exec_module(orch)
     problems = orch.check_reindex_preflight(
-        {"status": "green"},
+        {"status": "green", "number_of_data_nodes": 1},
         [{"node": "es-0", "disk.avail": avail, "disk.percent": percent}],
         min_free_bytes=20 * _GIB,
         max_disk_percent=75,
