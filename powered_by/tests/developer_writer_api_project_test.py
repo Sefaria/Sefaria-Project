@@ -16,6 +16,7 @@ STATE_KEYS = {
     "profile",
     "projects",
     "maxKeysPerProject",
+    "maxProjects",
 }
 PROJECT_KEYS = {
     "id",
