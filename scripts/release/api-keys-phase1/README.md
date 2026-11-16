@@ -74,10 +74,12 @@ server); without it the reader exits 3 and the check that needs it FAILs. Check:
 (`spec.values.authService.enabled`) and returns the value, or exits 2 with a message when the file is empty, is not valid
 YAML, has a duplicate key, is not exactly one HelmRelease, the path is missing, or the value is not the type asked for
 (`str`, `str-or-empty`, `bool`). A boolean must be a YAML boolean: the string `"true"` is an error, never a guess, and
-a missing `authService.enabled` is an error, not `false`. `DEVELOPER_SETTINGS_ENABLED` (a string setting Django reads as
+a missing `authService.enabled` inside an `authService` section is an error, not `false`. An env file with no
+`authService` section at all (prod and preprod until their promotion) means the service is not deployed: enabled is
+`false` and `env-images` leaves the component out. `DEVELOPER_SETTINGS_ENABLED` (a string setting Django reads as
 `os.getenv(..., "False").lower() == "true"`) passes only when it is explicitly `False`/`false`/`0`; a missing entry, a
 null, a file that cannot be read and any other value FAIL. No script parses an env file with sed, grep or a regex. The
-cases are in `tests/test_env_reader.py`.
+cases are in `tests/test_env_reader.py` on the branch `tooling/api-keys-phase1-testing`.
 
 ## Runbook
 
@@ -163,7 +165,7 @@ scripts/release/api-keys-phase1/preflight.sh --env prod --context $C      # afte
 ```
 
 Expected preflight result before this promotion: the phase 1 tables do not exist yet (WARN). While `authService.enabled` is
-false in the env file on the env's branch, a missing reader role and a missing `auth-service-registry` Secret are WARN lines
+false or absent in the env file on the env's branch, a missing reader role and a missing `auth-service-registry` Secret are WARN lines
 ("not needed yet"), not failures: they are required only for the step that enables the auth service (`preflight.sh
 --require-auth-service` fails on them before that file is flipped). Provisioning them is that step's work:
 `auth-service/scripts/provision-cluster-registry.sh` refuses to run until the phase 1 tables and their NOTIFY triggers exist,
