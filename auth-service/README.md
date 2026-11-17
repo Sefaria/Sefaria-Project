@@ -30,8 +30,9 @@ What ships in Phase 1 besides the service:
 - Helm: the gateway templates under `templates/gateway/` (the ClientTrafficPolicy header strip, and the
   BackendTrafficPolicy rate limit, which renders only when `authService.rateLimit.enabled` is set and is off by
   default), and the nginx log fields.
-- `scripts/`: the release gates (`policy-gate.sh`, `crd-gate.sh`, `render-check.sh`) and the per-cluster registry
-  provisioning (`provision-cluster-registry.sh`).
+- The release gates (`policy-gate.sh`, `crd-gate.sh`, `render-check.sh`) and the per-cluster registry provisioning
+  (`provision-cluster-registry.sh`) are run by hand around a release, so they live on the branch
+  `tooling/api-keys-phase1-testing` (`auth-service/scripts/`), not here.
 
 Out (later phases): first-party JWT minting and verification, the legacy body-borne `apikey`, the HTTP ext_authz
 transport, Redis/HTTP push, and the HTTPRoute changes. A bearer token is not verified in Phase 1: it rides the
