@@ -18,12 +18,13 @@ export function postRefreshEditor(sheetId) {
  * Listen for refresh requests for one sheet.
  *
  * canReload() is consulted per message; it should return false while the
- * editor holds unsaved changes. Messages without a sheet id (the older
+ * editor holds unsaved changes. When it does, onDeferred() (if given) is
+ * called so the caller can reload after the next successful save. Messages without a sheet id (the older
  * unscoped form) are treated as applying to any open sheet.
  *
  * Returns an unsubscribe function that closes the channel.
  */
-export function subscribeRefreshEditor({ sheetId, canReload, onRefresh }) {
+export function subscribeRefreshEditor({ sheetId, canReload, onRefresh, onDeferred }) {
   const channel = new BroadcastChannel(REFRESH_EDITOR_CHANNEL);
   const handleMessage = (event) => {
     const data = event.data;
@@ -31,6 +32,9 @@ export function subscribeRefreshEditor({ sheetId, canReload, onRefresh }) {
       return;
     }
     if (!canReload()) {
+      if (onDeferred) {
+        onDeferred();
+      }
       return;
     }
     onRefresh();

@@ -17,6 +17,7 @@ import ReactDOM from 'react-dom';
 import { SheetOptions } from './sheets/SheetOptions';
 import { useAutosaveDebounce } from './useAutosaveDebounce';
 import { subscribeRefreshEditor } from './refreshEditorChannel';
+import { createDeferredRefresh, isFailedSave } from './sheetSaveOutcome';
 
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
@@ -2891,6 +2892,11 @@ const SefariaEditor = (props) => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
   hasUnsavedChangesRef.current = hasUnsavedChanges;
+  // A refresh that arrives while edits are unsaved is remembered and applied after the next successful save.
+  const deferredRefreshRef = useRef(null);
+  if (deferredRefreshRef.current === null) {
+    deferredRefreshRef.current = createDeferredRefresh();
+  }
   const [blockEditing, setBlockEditing] = useState(false);
   const [lastModified, setlastModified] = useState(props.data.dateModified);
   const [canUseDOM, setCanUseDOM] = useState(false);
@@ -2956,6 +2962,7 @@ const SefariaEditor = (props) => {
       sheetId: sheet.id,
       canReload: () => !hasUnsavedChangesRef.current,
       onRefresh: reloadFromDb,
+      onDeferred: () => deferredRefreshRef.current.defer(),
     });
 
     //TODO: Check that we still need/want this temporary analytics tracking code
@@ -3150,6 +3157,14 @@ const SefariaEditor = (props) => {
 
   function postSheet(json) {
     $.post('/api/sheets/', { json: json }, (res) => {
+      if (isFailedSave(res)) {
+        // The server did not store the edit as sent (error or rebuild): show the failure and reload the stored sheet.
+        console.warn('Sheet save was not accepted:', res && res.error);
+        setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
+        deferredRefreshRef.current.take();
+        reloadFromDb();
+        return;
+      }
       // console.log("saved at: "+ res.dateModified);
       setHasUnsavedChanges(false);
       setStatus(res.status);
@@ -3158,6 +3173,9 @@ const SefariaEditor = (props) => {
       const updatedSheet = { ...Sefaria.sheets._loadSheetByID[res.id], ...res };
       Sefaria.sheets._loadSheetByID[res.id] = updatedSheet;
       setSavingState(sheetsUtils.editorSaveStates.SAVED);
+      if (deferredRefreshRef.current.take()) {
+        reloadFromDb();
+      }
     }).fail(handlePostError);
   }
 
