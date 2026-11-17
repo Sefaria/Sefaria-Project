@@ -405,10 +405,15 @@ def process_index_title_change_in_links(indx, **kwargs):
             l.save()
         except InputError:  # TODO: this belongs in a better place - perhaps in abstract
             # The renamed ref no longer validates. Keep the link rather than deleting it; it is left pointing at the old title.
-            logger.warning(f"Leaving link with stale refs after failed save: {l.refs[0]} - {l.refs[1]}")
+            logger.warning(
+                f"Leaving link {l._id} with stale refs after failed save: {l.refs[0]} - {l.refs[1]}", link_id=str(l._id)
+            )
         except Exception:
             # Unexpected (e.g. connection) failure: never delete on error, and keep cascading to the remaining links.
-            logger.exception(f"Leaving link with stale refs after unexpected save failure: {l.refs[0]} - {l.refs[1]}")
+            logger.exception(
+                f"Leaving link {l._id} with stale refs after unexpected save failure: {l.refs[0]} - {l.refs[1]}",
+                link_id=str(l._id),
+            )
 
 
 def process_index_delete_in_links(indx, **kwargs):

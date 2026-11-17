@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 import pytest
 from pymongo.errors import AutoReconnect
@@ -219,10 +220,16 @@ class Test_LinkCascadeOnTitleChange:
 
             monkeypatch.setattr(link_model.Link, "save", failing_save)
             monkeypatch.setattr(link_model, "report_progress", lambda *a, **k: None)
+            log = MagicMock()
+            monkeypatch.setattr(link_model, "logger", log)
 
             link_model.process_index_title_change_in_links(
                 SimpleNamespace(title="Avi Ezer"), old="Avi Ezer", new="Avi Ezer Renamed"
             )
+
+            logged = log.warning.call_args_list + log.exception.call_args_list
+            assert len(logged) == 1
+            assert logged[0].kwargs["link_id"] == str(lk._id)
 
             stored = db.links.find_one({"generated_by": "link_cascade_tester"})
             assert stored is not None
