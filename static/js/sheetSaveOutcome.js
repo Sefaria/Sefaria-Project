@@ -26,3 +26,19 @@ export function createDeferredRefresh() {
     },
   };
 }
+
+// Counts edits so a save acknowledgement can tell whether the document changed after the request was sent.
+export function createChangeCounter() {
+  let count = 0;
+  return {
+    bump() {
+      count += 1;
+    },
+    mark() {
+      return count;
+    },
+    isCurrent(mark) {
+      return mark === count;
+    },
+  };
+}

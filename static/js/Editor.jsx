@@ -17,7 +17,7 @@ import ReactDOM from 'react-dom';
 import { SheetOptions } from './sheets/SheetOptions';
 import { useAutosaveDebounce } from './useAutosaveDebounce';
 import { subscribeRefreshEditor } from './refreshEditorChannel';
-import { createDeferredRefresh, isFailedSave } from './sheetSaveOutcome';
+import { createChangeCounter, createDeferredRefresh, isFailedSave } from './sheetSaveOutcome';
 
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
@@ -2897,6 +2897,11 @@ const SefariaEditor = (props) => {
   if (deferredRefreshRef.current === null) {
     deferredRefreshRef.current = createDeferredRefresh();
   }
+  // Counts edits, so a save acknowledgement only clears unsaved state when nothing changed after it was sent.
+  const changeCounterRef = useRef(null);
+  if (changeCounterRef.current === null) {
+    changeCounterRef.current = createChangeCounter();
+  }
   const [blockEditing, setBlockEditing] = useState(false);
   const [lastModified, setlastModified] = useState(props.data.dateModified);
   const [canUseDOM, setCanUseDOM] = useState(false);
@@ -2934,7 +2939,10 @@ const SefariaEditor = (props) => {
   // Debounced autosave: re-runs (and restarts the 500ms timer) when the content, title or summary changes.
   useAutosaveDebounce(saveDocument, currentDocument, [currentDocument[0].children[0], title, summary], {
     enabled: canUseDOM,
-    onSchedule: () => setHasUnsavedChanges(true),
+    onSchedule: () => {
+      changeCounterRef.current.bump();
+      setHasUnsavedChanges(true);
+    },
   });
 
   useEffect(() => {
@@ -3156,22 +3164,26 @@ const SefariaEditor = (props) => {
   }
 
   function postSheet(json) {
+    const sentAt = changeCounterRef.current.mark();
     $.post('/api/sheets/', { json: json }, (res) => {
       if (isFailedSave(res)) {
-        // The server did not store the edit as sent (error or rebuild): show the failure and reload the stored sheet.
+        // The server did not store the edit as sent (error or rebuild). Keep the local draft, keep it marked
+        // unsaved and keep any deferred refresh pending; the save indicator tells the user to reload.
         console.warn('Sheet save was not accepted:', res && res.error);
         setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
-        deferredRefreshRef.current.take();
-        reloadFromDb();
         return;
       }
       // console.log("saved at: "+ res.dateModified);
-      setHasUnsavedChanges(false);
-      setStatus(res.status);
-      setTitle(res.title);
-      setSummary(res.summary);
       const updatedSheet = { ...Sefaria.sheets._loadSheetByID[res.id], ...res };
       Sefaria.sheets._loadSheetByID[res.id] = updatedSheet;
+      setStatus(res.status);
+      if (!changeCounterRef.current.isCurrent(sentAt)) {
+        // The document changed after this request was sent: stay unsaved and keep any refresh deferred.
+        return;
+      }
+      setHasUnsavedChanges(false);
+      setTitle(res.title);
+      setSummary(res.summary);
       setSavingState(sheetsUtils.editorSaveStates.SAVED);
       if (deferredRefreshRef.current.take()) {
         reloadFromDb();
