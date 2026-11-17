@@ -15,7 +15,7 @@ import { LANGUAGES, t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
 import { MODULE_URLS, SEARCH_DROPDOWN } from '../../constants';
 
-test.describe('Search', { tag: '@sanity' }, () => {
+test.describe('Search', { tag: ['@sanity', '@pr'] }, () => {
 
   // =================================================================
   // TEST 1: LIBRARY - Search suggestion click and navigation

@@ -124,6 +124,27 @@ So a full release-gate pass is **two commands**: `npm run test:sanity` (desktop)
 4. **If it destroys or rotates a session** (UI logout, re-login of a globalSetup profile, password change), it must use a profile no other concurrent test reads — currently `enAdmin` is the de-facto throwaway (`UMN-007` already destroys it every run) — or intercept the destructive request. See [../CLAUDE.md](../CLAUDE.md) rule §2.21 and the root handbook's [Destructive-auth tests](../README.md#destructive-auth-tests).
 5. **Keep it independent** unless it genuinely needs shared state (then opt into `test.describe.serial`, like Sheet Lifecycle).
 
+## 6a. The `@pr` subset: what blocks a pull request
+
+Every non-draft PR gets its own sandbox (`sandbox-<sha>.cauldron.sefaria.org`), and CI runs the
+**`@pr`** tests against it (`npm run test:pr` = `playwright test --project=chrome-pr`). When the
+`E2E_PR_BLOCKING` repo variable is `true`, a failing `@pr` test blocks the merge. **It starts as
+`false`:** a failure shows as a warning on the PR while we confirm the suite is stable on PR
+sandboxes. Flip it to `true` once it is.
+
+`@pr` is a subset of `@sanity`. A test may carry `@pr` only if it:
+
+- **only reads.** PR sandboxes share the dev database, so nothing that creates or edits sheets,
+  notes, bookmarks, profiles or account settings, and no UI logout (see `../CLAUDE.md` §2.21).
+- **runs on the English domain.** PR sandboxes have no `.org.il` host, so no Hebrew-domain or
+  language-switch-to-Hebrew tests.
+- **doesn't need the Library Assistant.** The chatbot isn't guaranteed on a sandbox.
+- **passes on master today.** A test that fails because of a known bug stays out until the bug
+  is fixed, or every PR is blocked.
+
+Tag it alongside `@sanity`: `{ tag: ['@sanity', '@pr'] }`. List the set with
+`npx playwright test --project=chrome-pr --list`.
+
 ## 7. Related
 
 - [../README.md](../README.md) — the suite handbook

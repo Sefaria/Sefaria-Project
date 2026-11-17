@@ -36,7 +36,7 @@ test.describe('Library Topics — source listing & interaction', () => {
     await pm.onLibraryTopic().expectNoDraftMarkers();
   });
 
-  test('LIB-007: Click a source → opens reader at /<Ref>; back button returns to topic', { tag: '@sanity' }, async () => {
+  test('LIB-007: Click a source → opens reader at /<Ref>; back button returns to topic', { tag: ['@sanity', '@pr'] }, async () => {
     test.setTimeout(t(90000));
     await pm.onLibraryTopic().open(LIB, SLUG);
     const { href } = await pm.onLibraryTopic().clickFirstSourceAndExpectReader();
