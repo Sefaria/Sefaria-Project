@@ -48,6 +48,7 @@ urlpatterns = [
     re_path(r"^visualize/unique-words-by-commentator", reader_views.unique_words_viz),
     re_path(r"^settings/account?$", reader_views.account_settings),
     path("settings/account/user", reader_views.account_user_update),
+    re_path(r"^settings/library-assistant/?$", reader_views.library_assistant_settings),
     re_path(r"^settings/profile/?$", reader_views.settings_profile_redirect),
     re_path(r"^community/?$", reader_views.community_to_voices_redirect),
     path("parashat-hashavua", reader_views.parashat_hashavua_redirect),

@@ -1,0 +1,11 @@
+{# The Settings tab bar: one real link per tab. `settings_tab` ("account" or "library-assistant") marks the open one. #}
+<nav class="settingsNav" aria-label="Settings">
+    <a href="/settings/account"{% if settings_tab == "account" %} aria-current="page"{% endif %}>
+        <span class="int-en">Account Settings</span>
+        <span class="int-he">הגדרות חשבון</span>
+    </a>
+    <a href="/settings/library-assistant"{% if settings_tab == "library-assistant" %} aria-current="page"{% endif %}>
+        <span class="int-en">Library Assistant</span>
+        <span class="int-he">עוזר הספרייה</span>
+    </a>
+</nav>
