@@ -2,6 +2,7 @@ import { Page, expect } from "@playwright/test"
 import { LANGUAGES, testUser } from '../globals'
 import { getPathAndParams } from "../utils"
 import { LoginPage } from "./loginPage"
+import { MODULE_TEXTS } from "../constants"
 
 export class Banner{
     private page: Page
@@ -27,7 +28,7 @@ export class Banner{
             await this.page.getByRole('banner').getByRole('link', { name: 'Texts' }).click();
         }
         else{
-            await this.page.getByRole('banner').getByRole('link', { name: 'מקורות' }).click();
+            await this.page.getByRole('banner').getByRole('link', { name: MODULE_TEXTS.LIBRARY.HE.TEXTS_LINK }).click();
         }
         
         expect(getPathAndParams(this.page.url())).toEqual("/texts")

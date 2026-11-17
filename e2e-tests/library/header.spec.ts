@@ -15,7 +15,8 @@ import {
   EXTERNAL_URLS,
   SEARCH_DROPDOWN,
   MODULE_SELECTORS,
-  USER_MENU_ITEMS
+  USER_MENU_ITEMS,
+  MODULE_TEXTS
 } from '../constants';
 
 test.describe('Library Module Header Tests - English', () => {
@@ -88,10 +89,10 @@ test.describe('Library Module Header Tests - English', () => {
     await pm.onModuleHeader().selectDropdownOption('עברית', false, MODULE_SELECTORS.LANGUAGE_SWITCHER_GLOBE);
 
     await expect(page.locator('body')).toHaveClass(/interface-hebrew/);
-    await expect(page.getByRole('link', { name: 'מקורות' })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: MODULE_TEXTS.LIBRARY.HE.TEXTS_LINK })).toBeVisible();
   });
 
-  test('MOD-H006: Module switcher navigation', { tag: '@sanity' }, async () => {
+  test('MOD-H006: Module switcher navigation', { tag: ['@sanity', '@pr'] }, async () => {
     // Test Voices navigation (new tab)
     await pm.onModuleHeader().openDropdown(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
     let newPage = await pm.onModuleHeader().selectDropdownOption('Voices', true);
@@ -203,13 +204,13 @@ test.describe('Library Module Header Tests - Logged In', () => {
     await hideAllModalsAndPopups(page);
   });
 
-  test('MOD-H015: Library header shows the Saved items (bookmark) icon when logged in', { tag: '@sanity' }, async () => {
+  test('MOD-H015: Library header shows the Saved items (bookmark) icon when logged in', { tag: ['@sanity', '@pr'] }, async () => {
     await expect(pm.onModuleHeader().isLoggedIn()).resolves.toBe(true);
     // Presence-only: the bookmark icon renders in the header for a logged-in Library user.
     await pm.onModuleHeader().expectSavedItemsIcon();
   });
 
-  test('MOD-H016: Library user menu contains all expected items', { tag: '@sanity' }, async () => {
+  test('MOD-H016: Library user menu contains all expected items', { tag: ['@sanity', '@pr'] }, async () => {
     // Presence-only: every expected item exists in the logged-in user-menu dropdown.
     await pm.onModuleHeader().assertUserMenuItems(USER_MENU_ITEMS.LIBRARY_LOGGED_IN);
   });

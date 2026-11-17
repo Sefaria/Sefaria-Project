@@ -11,7 +11,7 @@ import { MODULE_URLS } from '../../constants';
  * always available, has commentary connections, and has both Hebrew and
  * English text. Tests that need a specific segment use Genesis 1:1.
  */
-test.describe('Resource Panel — Opening & General — English', { tag: '@sanity' }, () => {
+test.describe('Resource Panel — Opening & General — English', { tag: ['@sanity', '@pr'] }, () => {
   let page: Page;
   let pm: PageManager;
 

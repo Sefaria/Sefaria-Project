@@ -22,7 +22,7 @@ test.describe('Resource Panel — Navigation (TOC) — English', () => {
     await pm.onResourcePanel().clickSegment('Genesis 1:1');
   });
 
-  test('RP-020: TOC opens with the full book hierarchy', { tag: '@sanity' }, async () => {
+  test('RP-020: TOC opens with the full book hierarchy', { tag: ['@sanity', '@pr'] }, async () => {
     await pm.onResourcePanel().openTOC();
     // At least one section link must be rendered.
     const links = page.locator('.connectionsPanel .textTableOfContents a, .connectionsPanel .tocContent a');
