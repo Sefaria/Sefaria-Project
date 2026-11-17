@@ -102,3 +102,54 @@ kubectl --context $D -n default logs -l app=nginx-sefariastaging --since=5m | gr
 # Counts only: these commands never print a key value, even when redaction is broken.
 kubectl --context $D -n default get pods | grep sefariastaging                                                          # Running, restarts unchanged
 ```
+
+## Penina's Developer Settings (draft for Daniel and Penina to go over)
+
+Drafted 2026-11-17 from the wiki's `projects/api-key-program/developer-settings-as-built`, for the joint merge
+(#4042 into #3774). Developer settings stay **off on staging**, so run these on the rehearsal cauldron, which has them
+on for every account: `https://www.p1merge.cauldron.sefaria.org` (`DEVELOPER_SETTINGS_ENABLED` and
+`DEVELOPER_SETTINGS_STAFF_ONLY` set there only). Log in with your own account or the throwaway one
+(`staging-smoke-creds.sh --cauldron p1merge`). Each prompt is pasted into Claude in Chrome as written.
+
+**G1. First-time setup.**
+
+> Open https://www.p1merge.cauldron.sefaria.org/settings/developer (logged in, no developer profile yet). Walk the
+> setup: the welcome screen ("Get a free API key", Get started), confirm email if asked (report the step count shown),
+> About you (pick "Somewhat technical", leave the rest empty), Your project (name "Claude test project", what you're
+> building "Testing", short description "Test", no website), then Create an API key ("Claude test key", limit switch
+> off). Report each screen's title and step counter, that "Creating your key…" shows, and that the home lists the
+> project with its new key row tinted. Read the console and network log: report any 4xx/5xx or console error.
+
+**G2. Keys: show, hide, copy, limit, delete.**
+
+> On https://www.p1merge.cauldron.sefaria.org/settings/developer, in the project "Claude test project": Show the key
+> (the full value appears, starting sfr_), Hide it, then Copy it and say what the page shows ("Copied"). Turn on
+> "Limit to website" for the key: since the project has no website, a window asks for one; enter example.com and save;
+> report that the switch is on and the project shows example.com ↗. Add a second key, then delete it (report the
+> dialog text). Report any error text, console error, or 4xx/5xx in the network log.
+
+**G3. Removing a website that keys are limited to.**
+
+> Edit "Claude test project", empty the Website field and save. A window "Remove the website?" must list the limited
+> key. Click "Keep the website" and check nothing changed; then do it again and click "Remove the website": report that
+> the website is gone and the key's "Limit to website" switch is off.
+
+**G4. Publish to Powered by Sefaria.**
+
+> Click "Publish project" on "Claude test project" (or the "Publish a project" header link and pick it). Fill the
+> required fields (website example.com, kind of project: any one), leave "Show my name" unchecked, submit for review.
+> Report the confirmation screen text and that the project's chip now reads "Submitted for review". Do not submit
+> anything else.
+
+**G5. Phone width.**
+
+> Resize to 390 px wide. Open /settings/developer: report that the tabs read "Account" and "Developer", that each key
+> is a stacked card, and that the header links moved to a Resources section at the bottom. Screenshot each.
+
+**G6. Clean up.**
+
+> Delete "Claude test project" (the dialog lists its keys as stopping immediately; confirm). Report the empty state
+> ("No projects or keys yet").
+
+The API itself for these flows is covered by Jest on #4068 (1042 tests pass on the combined tree). Playwright specs for
+the new screens are not written yet: the `ui/` specs on this branch target the old settings design.
