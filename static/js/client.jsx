@@ -7,9 +7,6 @@ import ReactDOM from 'react-dom';
 import DjangoCSRF from './lib/django-csrf';
 const SefariaReact = require('./ReaderApp');
 import * as Sentry from '@sentry/react';
-import { resolveSentrySampleRate, installGlobalErrorCapture } from './sefaria/sentryErrorCapture';
-
-installGlobalErrorCapture(window, Sentry);
 
 $(function () {
   // no_applink (see sefaria/utils/views_utils.py) is a one-hop marker; strip it so a
@@ -26,15 +23,9 @@ $(function () {
     Sentry.init({
       dsn: sentryDSN,
       release: DJANGO_VARS.props?.appVersion || undefined,
-      integrations: [
-        new Sentry.BrowserTracing(),
-        new Sentry.Replay(),
-        // Global errors are reported by installGlobalErrorCapture; disable the SDK's own
-        // handlers so each error is captured once.
-        new Sentry.GlobalHandlers({ onerror: false, onunhandledrejection: false }),
-      ],
+      integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],
       tracesSampleRate: remoteConfig?.sentry?.tracesSampleRate || 0.0,
-      sampleRate: resolveSentrySampleRate(remoteConfig?.sentry?.sampleRate),
+      sampleRate: remoteConfig?.sentry?.sampleRate || 0.0,
       replaysSessionSampleRate: remoteConfig?.sentry?.replaysSessionSampleRate || 0.0,
       replaysOnErrorSampleRate: remoteConfig?.sentry?.replaysOnErrorSampleRate || 0.0,
     });
