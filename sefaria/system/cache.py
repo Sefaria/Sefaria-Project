@@ -1,7 +1,6 @@
 import hashlib
 import random
 import sys
-import threading
 import time
 import uuid
 from collections.abc import Callable
@@ -212,51 +211,26 @@ def delete_template_cache(fragment_name="", *args):
     )
 
 
-def _now_timestamp() -> float:
-    return datetime.now().timestamp()
-
-
 class InMemoryCache:
-    """
-    Per-process cache with optional per-key timeouts and a bounded number of entries.
-    State is per instance. When the bound is exceeded, the least recently set entry is evicted.
-    """
-
-    DEFAULT_MAX_ENTRIES = 10000
-
-    def __init__(self, max_entries: int = DEFAULT_MAX_ENTRIES):
-        self.data = {}
-        self.timeouts = {}
-        self.max_entries = max_entries
-        self._lock = threading.Lock()
+    data = {}
+    timeouts = {}
 
     def set(self, key, val, timeout=None):
-        with self._lock:
-            self.data.pop(key, None)
-            self.data[key] = val
-            if timeout:
-                self.timeouts[key] = (timeout, _now_timestamp())
-            else:
-                self.timeouts.pop(key, None)
-            while len(self.data) > self.max_entries:
-                oldest = next(iter(self.data))
-                del self.data[oldest]
-                self.timeouts.pop(oldest, None)
+        self.data[key] = val
+        if timeout:
+            self.timeouts[key] = (timeout, datetime.now().timestamp())
 
     def get(self, key):
-        with self._lock:
-            timeout = self.timeouts.get(key, None)
-            if timeout and timeout[0] + timeout[1] < _now_timestamp():
-                self.data.pop(key, None)
-                self.timeouts.pop(key, None)
-                return None
+        timeout = self.timeouts.get(key, None)
+        if timeout and timeout[0] + timeout[1] < datetime.now().timestamp():
+            self.set(key, None, timeout=timeout[0])
+            return None
 
-            return self.data.get(key, None)
+        return self.data.get(key, None)
 
     def reset_all(self):
-        with self._lock:
-            self.data.clear()
-            self.timeouts.clear()
+        for k in self.data:
+            self.data[k] = None
 
 
 in_memory_cache = InMemoryCache()
