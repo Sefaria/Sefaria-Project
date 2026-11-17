@@ -4,7 +4,14 @@ import copy
 
 import pytest
 
-from sefaria.sheets import bleach_text, clean_sheet_attribution, clean_sheet_for_render, clean_source, clean_sources
+from sefaria.sheets import (
+    bleach_text,
+    clean_sheet_attribution,
+    clean_sheet_for_render,
+    clean_source,
+    clean_sources,
+    sheet_removes_rendered_media,
+)
 
 SCRIPT = "<script>alert(1)</script>"
 IMG_ONERROR = "<img src=x onerror=alert(1)>"
@@ -253,3 +260,24 @@ def test_save_time_cleaning_recurses_into_subsources():
     assert "onerror" not in sub["comment"]
     assert "<script" not in sub["subsources"][0]["outsideText"]
     assert len(source["subsources"]) == 1
+
+
+UPLOAD = "https://storage.googleapis.com/sefaria-sheet-uploads/pic.png"
+
+
+def test_unchanged_legacy_media_is_not_a_removal():
+    existing = {"sources": [{"node": 1, "media": UPLOAD.replace("https:", "http:")}]}
+    returned = copy.deepcopy(existing)
+    clean_sheet_for_render(returned)
+    assert returned["sources"][0]["media"] == UPLOAD
+    assert not sheet_removes_rendered_media(existing, returned)
+
+
+def test_dropping_an_uploaded_file_url_is_a_removal():
+    existing = {"sources": [{"node": 1, "media": UPLOAD}, {"node": 2, "comment": "x"}]}
+    assert sheet_removes_rendered_media(existing, {"sources": [{"node": 2, "comment": "x"}]})
+
+
+def test_media_removed_at_render_may_be_left_out():
+    existing = {"sources": [{"node": 1, "media": "javascript:alert(1)"}, {"node": 2, "media": UPLOAD}]}
+    assert not sheet_removes_rendered_media(existing, {"sources": [{"node": 1}, {"node": 2, "media": UPLOAD}]})

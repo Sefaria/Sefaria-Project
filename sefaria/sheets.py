@@ -4,6 +4,7 @@ sheets.py - backend core for Sefaria Source sheets
 Writes to MongoDB Collection: sheets
 """
 
+import copy
 import hashlib
 import html
 import re
@@ -861,6 +862,22 @@ def _clean_sources_for_render(sources):
         return
     for source in sources:
         clean_source_for_render(source)
+
+
+def _media_urls(sheet):
+    return {source["media"] for source in sheet.get("sources", []) if isinstance(source, dict) and "media" in source}
+
+
+def sheet_removes_rendered_media(existing, incoming):
+    """
+    True when `incoming` (a sheet a client read from the API and posts back) drops a media URL that the
+    API shows for `existing`. Both sides are compared in the form the API returns: the stored sheet goes
+    through the render cleaner (legacy http or protocol-relative URLs upgraded, disallowed media removed),
+    and incoming URLs are normalized the same way, so an unchanged legacy sheet is not a removal.
+    """
+    shown = _media_urls(clean_sheet_for_render(copy.deepcopy(existing)))
+    sent = {_normalize_media_url(url) for url in _media_urls(incoming)}
+    return not shown <= sent
 
 
 def get_sheet_language(sheet):

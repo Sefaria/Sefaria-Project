@@ -38,7 +38,13 @@ from sefaria.model.collection import Collection, CollectionSet, process_sheet_de
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.user_profile import *
 from sefaria.sheets import *
-from sefaria.sheets import bleach_text, clean_sheet_for_render, clean_source_for_render, clean_sources
+from sefaria.sheets import (
+    bleach_text,
+    clean_sheet_for_render,
+    clean_source_for_render,
+    clean_sources,
+    sheet_removes_rendered_media,
+)
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.cache import django_cache
 from sefaria.system.decorators import catch_error_as_json
@@ -591,10 +597,6 @@ def sheet_stats(request):
     pass
 
 
-def _media_urls(sheet):
-    return {source["media"] for source in sheet.get("sources", []) if isinstance(source, dict) and "media" in source}
-
-
 def _limit_mcp_sheet_save(sheet, user_id):
     """
     Narrows what a save through an MCP token (the AI chatbot's MCP tools) may do, in place.
@@ -616,7 +618,7 @@ def _limit_mcp_sheet_save(sheet, user_id):
         return jsonResponse({"error": "MCP clients can only update sheets you own."}, status=403)
     if "lastModified" not in sheet:
         return jsonResponse({"error": "lastModified is required to update a sheet."}, status=400)
-    if "sources" in sheet and not _media_urls(existing) <= _media_urls(sheet):
+    if "sources" in sheet and sheet_removes_rendered_media(existing, sheet):
         return jsonResponse({"error": "MCP clients can't remove image or media sources."}, status=403)
     sheet["status"] = existing["status"]
     return None
