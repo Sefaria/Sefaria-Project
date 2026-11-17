@@ -39,21 +39,22 @@ Before your first spec, check all three. The `write-feature-spec` skill checks t
 
 ## Who does what
 
-| Step                 | Who                                                                 | What                                                                                                                                                           |
-| -------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Write the spec    | Product (often with an agent, using the `write-feature-spec` skill) | One `.feature` file per Shortcut story, using the template                                                                                                     |
-| 2. Hand off          | Product                                                             | Create the story's branch (Shortcut's suggested branch name, copied exactly), commit **only** the `.feature` file, push, and tell the engineer the branch name |
-| 3. Make it red       | Engineer                                                            | `npm run bddgen`: generation fails and prints a snippet for every sentence with no step yet                                                                    |
-| 4. Bind the steps    | Engineer (or their agent)                                           | Reuse the shared vocabulary where it fits; write the rest in `steps/<area>/`; add page-object methods                                                          |
-| 5. Build the feature | Engineer                                                            | Until `npm run test:bdd` is green locally                                                                                                                      |
-| 6. Open the PR       | Engineer                                                            | CI runs the BDD suite (blocking) and the Chrome `@pr` core journeys (warning only for now; see `E2E_PR_BLOCKING`)                                              |
-| 7. Merge             | Engineer                                                            | The lock passes on its own: the only commit that touches the spec is product's. No spec review is needed                                                       |
+| Step                 | Who                                                                 | What                                                                                                                                                                                                                                           |
+| -------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Write the spec    | Product (often with an agent, using the `write-feature-spec` skill) | One `.feature` file per Shortcut story, using the template                                                                                                                                                                                     |
+| 2. Hand off          | Product                                                             | Create the story's branch (Shortcut's suggested branch name, copied exactly), commit **only** the `.feature` file, push, and tell the engineer the branch name. CI then commits a stub for every new sentence to the branch (see "Step stubs") |
+| 3. Make it red       | Engineer                                                            | Pull the branch: `steps/<area>/<name>.steps.ts` has a stub per new sentence, and `npm run test:bdd` fails with "Step not implemented yet"                                                                                                      |
+| 4. Bind the steps    | Engineer (or their agent)                                           | Reuse the shared vocabulary where it fits; write the rest in `steps/<area>/`; add page-object methods                                                                                                                                          |
+| 5. Build the feature | Engineer                                                            | Until `npm run test:bdd` is green locally                                                                                                                                                                                                      |
+| 6. Open the PR       | Engineer                                                            | CI runs the BDD suite (blocking) and the Chrome `@pr` core journeys (warning only for now; see `E2E_PR_BLOCKING`)                                                                                                                              |
+| 7. Merge             | Engineer                                                            | The lock passes on its own: the only commit that touches the spec is product's. No spec review is needed                                                                                                                                       |
 
 ## Running locally
 
 ```bash
 cp e2e-tests/example.env e2e-tests/.env       # once; set SANDBOX_URL (and credentials for logged-in steps)
 npm run bddgen                                # generate; prints snippets for missing steps
+npm run bdd:stubs                             # write stubs for missing steps (what CI does at handoff)
 npm run test:bdd                              # generate, then run every story
 npm run test:bdd -- --project=chrome-bdd -g "opens a chapter"   # one scenario
 npm run test:bdd -- --ui                      # Playwright UI mode
@@ -64,15 +65,19 @@ Outside CI, `e2e-tests/.env` **overrides** your shell (same as the main suite), 
 
 ## Writing steps
 
-1. **Start from the snippet.** `npm run bddgen` prints, for each sentence without a step:
+1. **Start from the stub.** CI has already written one per new sentence (see "Step stubs"):
    ```ts
-   Then('the reader shows the text of {string}', async ({}, arg: string) => {
+   Then('the reader shows the text of {string}', async ({ visitor }, arg: string) => {
      // Step: And the reader shows the text of "Genesis 1:1"
      // From: e2e-tests/feature-specs/features/library/reading-a-text.feature:9:5
+     throw new Error('Step not implemented yet: And the reader shows the text of "Genesis 1:1"');
    });
    ```
+   Replace the `throw` with the real step. If a sentence matches an existing step's wording, delete
+   the stub and reuse that step; move steps other features can use to `common.steps.ts`.
 2. **Import from `fixtures.ts`, never from `playwright-bdd`.** Our `Given/When/Then` refuse a step
-   with an empty body. An unfilled snippet would otherwise pass while checking nothing.
+   with an empty body, for example a hand-pasted `bddgen` snippet that was never filled in. It
+   would otherwise pass while checking nothing.
 3. **Use the `visitor` fixture.** It holds who the story is about (logged in or out, interface
    language) and opens the page lazily: `await visitor.page()`, `await visitor.pm()` (the
    `PageManager`), `visitor.urlFor('Library', '/Genesis.1')`.
@@ -82,13 +87,35 @@ Outside CI, `e2e-tests/.env` **overrides** your shell (same as the main suite), 
 6. **Check the step fails when it should.** Before trusting a green run, break the expectation
    once and watch it go red.
 
+### Step stubs
+
+When a push changes `features/` on any branch but `master`, the **`BDD step stubs`** workflow
+(`.github/workflows/bdd-stubs.yaml`) runs `build/ci/bdd-stubs/generate-step-stubs.cjs`. It
+finds every sentence with no step definition, desktop and `@mobile` alike, and commits a stub
+for each to `steps/<area>/<name>.steps.ts`, appending if the file exists. The commit is
+`github-actions[bot]`'s and touches only `steps/`, so the lock is unaffected.
+
+- **At handoff:** product pushes the spec; within a few minutes the branch has the stubs. The
+  engineer pulls before starting.
+- **On an amendment:** new sentences get stubs the same way. Removed sentences leave their steps
+  behind; delete them by hand.
+- **No PR CI run for the stub commit:** a push made by the workflow doesn't trigger other
+  workflows, so if a PR is already open its CI runs again on your next push.
+- **If the workflow fails,** the spec most likely has a Gherkin syntax error; the run log says
+  where. Ask the spec editor to fix it.
+- **Locally:** `npm run bdd:stubs` does the same, and `npm run bdd:stubs -- --check` lists what it
+  would write.
+- It hooks into playwright-bdd internals (`build/ci/bdd-stubs/capture-missing-steps.cjs`), which
+  is why `playwright-bdd` is pinned to an exact version. After upgrading it, check that
+  `npm run bdd:stubs -- --check` still finds a missing step.
+
 Tags: `@mobile` runs a scenario in the phone project (Pixel 5) instead of desktop Chrome;
 `@manual` documents a behavior that is never automated. `@sc-<id>` links a scenario to its story.
 
 ## The lock
 
-Only the spec editors may change a `.feature` file: add, edit, rename or delete it. They are Akiva,
-Mickey and Penina, listed in the `SPEC_EDITORS` repo variable. That includes engineers and their
+Only the spec editors may change a `.feature` file: add, edit, rename or delete it. They are the people
+listed in the `SPEC_EDITORS` repo variable. That includes engineers and their
 agents. This stops anyone, human or agent, from "fixing" a failing test by changing the behavior
 it describes. Steps, page objects, fixtures and test data are not locked.
 

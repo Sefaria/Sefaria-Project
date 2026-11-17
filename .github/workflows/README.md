@@ -39,3 +39,7 @@ The `Linting` pipeline (`linting.yaml`) runs four independent jobs: Ruff (Python
 ## Pull request touches behavior specs (`e2e-tests/feature-specs/features/`)
 
 The `Feature Spec Lock` pipeline (`feature-spec-lock.yaml`) runs on every PR. It passes immediately when no locked file changed (the `.feature` specs, `e2e-tests/feature-specs/CLAUDE.md`, the `.claude/hooks/guard-feature-specs.sh` agent guard, this workflow and `build/ci/check-feature-spec-lock.sh`). Otherwise it fails if any commit that changes a locked file was authored by someone not listed in the `SPEC_EDITORS` repo variable. No review is involved. It runs on `pull_request_target`, so the workflow and script always come from `master` and a PR can't edit the check to let itself through. It never executes code from the PR. Set `SPEC_LOCK_REQUIRE_SIGNED=true` to also require verified signatures on those commits. Process and amendment path: `e2e-tests/feature-specs/README.md`.
+
+## Commit pushed to a branch that changes behavior specs (not `master`)
+
+The `BDD step stubs` pipeline (`bdd-stubs.yaml`) runs when a push changes `e2e-tests/feature-specs/features/`. It writes a step-definition stub for every spec sentence that has no step yet (`build/ci/bdd-stubs/generate-step-stubs.cjs`) and commits them to the same branch as `github-actions[bot]`, so the engineer receives a branch whose new scenarios fail with "Step not implemented yet". It only touches `e2e-tests/feature-specs/steps/`. Its push doesn't trigger other workflows. Process: `e2e-tests/feature-specs/README.md`, "Step stubs".

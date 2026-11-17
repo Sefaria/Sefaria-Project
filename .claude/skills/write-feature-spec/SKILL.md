@@ -87,11 +87,18 @@ git push -u origin <branch>
 
 ## 5. Hand off
 
+First check that CI added the step stubs. The push starts the **BDD step stubs** workflow:
+`gh run list --branch <branch> --workflow bdd-stubs.yaml --limit 1` should show it succeeded
+within a few minutes. If it failed, open the log (`gh run view --log-failed`): it is almost
+always a Gherkin syntax error in the spec. Fix it in a new commit and push again.
+
 Post a comment on the Shortcut story (Shortcut MCP `create_story_comment`):
 
 > Behavior spec ready on branch `<branch>`:
 > `e2e-tests/feature-specs/features/<area>/<slug>.feature` (<N> scenarios).
-> Engineering: check out the branch and run `npm run bddgen` to get step snippets.
+> CI has added a step stub for each new sentence. Engineering: pull the branch and run
+> `npm run test:bdd`; the new scenarios fail with "Step not implemented yet" until the stubs are
+> filled in.
 > Process: e2e-tests/feature-specs/README.md. Open questions: <list, or "none">.
 
 Then tell the person the branch name. No approval is needed on the eventual PR: the lock passes
