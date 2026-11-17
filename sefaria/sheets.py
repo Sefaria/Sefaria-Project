@@ -788,6 +788,8 @@ def clean_source(source):
             logger.warning("Removed sheet media with disallowed URL", media=str(source["media"])[:200])
             del source["media"]
             source.pop("caption", None)
+    if isinstance(source.get("subsources"), list):
+        source["subsources"] = [clean_source(sub) for sub in source["subsources"] if isinstance(sub, dict)]
     return source
 
 

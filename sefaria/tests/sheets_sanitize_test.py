@@ -229,3 +229,27 @@ def test_option_text_keeps_ampersand_unescaped():
     )
     assert source["options"]["sourcePrefix"] == "Q&A"
     assert source["options"]["PrependRefWithEn"] == "Rock & Roll"
+
+
+def test_save_time_cleaning_recurses_into_subsources():
+    source = clean_source(
+        {
+            "ref": "Genesis 1:1",
+            "node": 1,
+            "subsources": [
+                {
+                    "node": 2,
+                    "media": "https://evil.example/page.html",
+                    "caption": {"en": "cap"},
+                    "comment": IMG_ONERROR + "hi",
+                    "subsources": [{"node": 3, "outsideText": SCRIPT + "deep"}],
+                },
+                "not a source",
+            ],
+        }
+    )
+    sub = source["subsources"][0]
+    assert "media" not in sub and "caption" not in sub
+    assert "onerror" not in sub["comment"]
+    assert "<script" not in sub["subsources"][0]["outsideText"]
+    assert len(source["subsources"]) == 1

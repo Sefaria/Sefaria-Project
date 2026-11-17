@@ -41,16 +41,25 @@ def _string_paths(value, path):
             yield from _string_paths(child, f"{path}[{index}]")
 
 
+def _source_candidates(sources, prefix):
+    """Collect (path, string) pairs for the unsanitized fields of `sources` and of their subsources."""
+    candidates = []
+    for index, source in enumerate(sources if isinstance(sources, list) else []):
+        if not isinstance(source, dict):
+            continue
+        path = f"{prefix}[{index}]"
+        for field in SOURCE_FIELDS_WITHOUT_SANITIZER:
+            if field in source:
+                candidates += list(_string_paths(source[field], f"{path}.{field}"))
+        candidates += _source_candidates(source.get("subsources"), f"{path}.subsources")
+    return candidates
+
+
 def find_markup_fields(sheet):
     """Return dotted paths of string values in `sheet` that contain markup, in document order."""
     candidates = list(_string_paths(sheet.get("attribution"), "attribution"))
     candidates += list(_string_paths(sheet.get("options"), "options"))
-    for index, source in enumerate(sheet.get("sources") or []):
-        if not isinstance(source, dict):
-            continue
-        for field in SOURCE_FIELDS_WITHOUT_SANITIZER:
-            if field in source:
-                candidates += list(_string_paths(source[field], f"sources[{index}].{field}"))
+    candidates += _source_candidates(sheet.get("sources"), "sources")
     markup = [path for path, text in candidates if MARKUP_RE.search(text)]
     return markup + find_unsafe_media(sheet)
 

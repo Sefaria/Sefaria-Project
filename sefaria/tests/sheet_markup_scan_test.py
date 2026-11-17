@@ -97,3 +97,20 @@ def test_safe_media_is_not_reported():
         ]
     )
     assert find_markup_fields(sheet) == []
+
+
+def test_markup_in_nested_subsources_is_reported():
+    sheet = {
+        "sources": [
+            {
+                "node": 1,
+                "subsources": [
+                    {"node": 2, "caption": {"en": "<b>x</b>"}, "subsources": [{"node": 3, "comment": "<i>y</i>"}]}
+                ],
+            }
+        ]
+    }
+    assert find_markup_fields(sheet) == [
+        "sources[0].subsources[0].caption.en",
+        "sources[0].subsources[0].subsources[0].comment",
+    ]
