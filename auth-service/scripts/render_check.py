@@ -8,7 +8,7 @@ must contain none of them (render-check.sh does both per environment).
   render_check.py RENDERED.yaml --rate-limit                            the render has authService.rateLimit.enabled=true
   render_check.py --off RENDERED.yaml                                   the flag-off render: no auth-service objects
 
-Needs PyYAML only. helm-chart/tests/auth_service_render_test.py checks the header strip, the nginx log fields and the
+Needs PyYAML only. helm-chart/sefaria/tests/auth_service_render_test.py checks the header strip, the nginx log fields and the
 key scrubbing; this file checks names, wiring and listener attachments, so the two do not overlap.
 """
 

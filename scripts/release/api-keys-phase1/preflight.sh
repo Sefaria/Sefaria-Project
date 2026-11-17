@@ -118,8 +118,9 @@ trap 'web_pod_cleanup; rm -rf "$tmp"' EXIT
 
 # Is the auth service enabled? Until it is, the reader role and the registry Secret are not needed yet. It counts as enabled
 # when EITHER the env file that is deployed (origin/<env branch>) OR the one in the code being promoted ($CODE_REF) enables
-# it: the promotion carries the code ref's file. A file that cannot be read is a FAIL (and the service is then assumed
-# enabled), never "false".
+# it: the promotion carries the code ref's file. A file with no authService section (prod and preprod before their
+# promotion) counts as disabled. A file that cannot be read, or a section that is there but malformed, is a FAIL (and the
+# service is then assumed enabled), never "false".
 AUTH_ENABLED=false
 deployed_envfile="" # envs/$ENV/helmrelease.yaml on origin/<env branch>: what runs now, the rollback target (check 5)
 code_envfile=""     # the same file at $CODE_REF: what the promotion carries (check 8)
@@ -143,7 +144,7 @@ done
 [[ "$REQUIRE_AUTH" == 1 ]] && AUTH_ENABLED=true
 # auth_required MESSAGE: FAIL when the auth service is enabled (or --require-auth-service), else a WARN.
 auth_required() {
-  if [[ "$AUTH_ENABLED" == true ]]; then fail "$1"; else warn "$1: not needed yet (authService.enabled is false in envs/$ENV/helmrelease.yaml, deployed and at $CODE_REF); required for the enabling step"; fi
+  if [[ "$AUTH_ENABLED" == true ]]; then fail "$1"; else warn "$1: not needed yet (authService is disabled or absent in envs/$ENV/helmrelease.yaml, deployed and at $CODE_REF); required for the enabling step"; fi
 }
 
 # 2. The reader role and its grants: the columns of auth-service/internal/registry/pgload.go.

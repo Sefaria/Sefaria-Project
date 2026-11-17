@@ -130,6 +130,8 @@ OUT="$OUT_DIR/$SECRET.yaml"
 [ "$(pg -d "$DB" -c "SELECT count(*) FROM pg_trigger WHERE tgname LIKE 'apikeys\_notify\_%'")" -ge 4 ] \
   || { echo "refusing: NOTIFY triggers missing in $DB (run the Django migrations first)"; exit 1; }
 
+command -v python3 >/dev/null 2>&1 || { echo "refusing: python3 is needed to compute the role's SCRAM-SHA-256 verifier"; exit 1; }
+
 # KMS must work before the role exists: a password that cannot be stored would strand the role.
 printf 'probe: x\n' | sops --encrypt --gcp-kms "$KMS" --input-type yaml --output-type yaml /dev/stdin >/dev/null \
   || { echo "refusing: sops cannot encrypt with $KMS (gcloud auth application-default login?)"; exit 1; }
@@ -145,6 +147,23 @@ trap 'rm -f "$TMP"' EXIT
 trap 'rm -f "$TMP"; exit 130' INT TERM HUP
 chmod 600 "$TMP"
 PW=$(openssl rand -hex 24)
+# Postgres gets a SCRAM-SHA-256 verifier for the role, never the password: a plaintext PASSWORD '...' can land in the
+# server log (log_statement=ddl or all) and in pg_stat_statements. The verifier is computed here, in the format
+# Postgres stores (RFC 7677, 4096 iterations, 16-byte salt); the password reaches python3 on stdin, never in argv.
+VERIFIER="$(printf '%s' "$PW" | python3 -c '
+import base64, hashlib, hmac, os, sys
+pw = sys.stdin.buffer.read()
+salt, n = os.urandom(16), 4096
+salted = hashlib.pbkdf2_hmac("sha256", pw, salt, n)
+stored = hashlib.sha256(hmac.new(salted, b"Client Key", hashlib.sha256).digest()).digest()
+server = hmac.new(salted, b"Server Key", hashlib.sha256).digest()
+b64 = lambda b: base64.b64encode(b).decode()
+print(f"SCRAM-SHA-256${n}:{b64(salt)}${b64(stored)}:{b64(server)}")
+')"
+case "$VERIFIER" in
+  'SCRAM-SHA-256$4096:'*) ;;
+  *) unset PW VERIFIER; echo "FAIL: could not compute the SCRAM-SHA-256 verifier; nothing created"; exit 1 ;;
+esac
 # sops reports on stderr; whatever it says is shown with the password and the DSN masked, never raw.
 SOPS_ERR="$(printf 'apiVersion: v1\nkind: Secret\nmetadata:\n  name: %s\n  namespace: %s\ntype: Opaque\nstringData:\n  AUTH_PG_DSN: postgres://%s:%s@postgres-18.%s.svc.cluster.local:5432/%s?sslmode=disable\n' \
     "$SECRET" "$SECRET_NS" "$ROLE" "$PW" "$PG_NS" "$DB" \
@@ -158,7 +177,7 @@ trap - EXIT INT TERM HUP
 trap 'echo "INTERRUPTED while the role was being created: role $ROLE may exist now; the encrypted Secret is kept at $TMP (check with --verify, then rename it to $OUT, or drop the role and delete the file)"; exit 130' INT TERM HUP
 {
   printf 'BEGIN;\n'
-  printf "CREATE ROLE %s LOGIN PASSWORD '%s';\n" "$ROLE" "$PW"
+  printf "CREATE ROLE %s LOGIN PASSWORD '%s';\n" "$ROLE" "$VERIFIER"
   printf 'ALTER ROLE %s SET default_transaction_read_only = on;\n' "$ROLE"
   printf 'GRANT CONNECT ON DATABASE %s TO %s;\nGRANT USAGE ON SCHEMA public TO %s;\n' "$DB" "$ROLE" "$ROLE"
   for entry in "${GRANTS[@]}"; do
@@ -166,7 +185,7 @@ trap 'echo "INTERRUPTED while the role was being created: role $ROLE may exist n
   done
   printf 'COMMIT;\n'
 } | pg -d "$DB" >/dev/null || {
-  unset PW
+  unset PW VERIFIER
   # The transaction may have committed with its answer lost (a dropped exec): then the role exists and the encrypted
   # file is the only copy of its password, so it is kept.
   if [ "$(pg -c "SELECT count(*) FROM pg_roles WHERE rolname = '$ROLE'" 2>/dev/null)" != 0 ]; then
@@ -178,7 +197,7 @@ trap 'echo "INTERRUPTED while the role was being created: role $ROLE may exist n
   trap - INT TERM HUP
   exit 1
 }
-unset PW
+unset PW VERIFIER
 # The role exists now, so the encrypted file must survive whatever happens next: the phase 2 trap only keeps it.
 mv "$TMP" "$OUT" || { echo "FAIL: the role exists but the Secret could not be moved into place; the encrypted file is $TMP (rename it to $OUT)"; exit 1; }
 trap - INT TERM HUP
