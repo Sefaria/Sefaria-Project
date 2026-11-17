@@ -932,6 +932,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.8-choresefaria-audit-consolidated.1.tgz
     version: 0.92.8-choresefaria-audit-consolidated.1
   - apiVersion: v2
+    appVersion: v7.13.2
+    created: "2026-11-17T22:58:08.371220457Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: d2f75fc1a80dc0ff24e163ce71cd77014d3195293fa620a743e53d2c9047f359
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.8-autofix.1.tgz
+    version: 0.92.8-autofix.1
+  - apiVersion: v2
     appVersion: v7.12.2
     created: "2026-11-16T11:32:12.638731839Z"
     description: Chart to deploy complete Sefaria environment
@@ -25185,4 +25200,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-17T15:06:46.291444373Z"
+generated: "2026-11-17T22:58:08.367327591Z"
