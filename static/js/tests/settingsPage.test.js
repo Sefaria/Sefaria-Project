@@ -120,6 +120,14 @@ describe('agent instructions', () => {
     expect(within(instructions).getByRole('heading', { name: 'Instructions for AI agents' })).toBeTruthy();
     expect(instructions.textContent).toContain('https://github.com/Sefaria/Sefaria-Export');
   });
+
+  it('name only controls that exist on the page', () => {
+    const source = require('fs').readFileSync(require('path').join(__dirname, '../SettingsPage.jsx'), 'utf8');
+    const { container } = open(SSO_NEW);
+    const named = container.querySelector('[data-agent-instructions]').textContent.match(/\[[a-z-]+\]/g);
+    expect(named.length).toBeGreaterThan(10);
+    named.forEach((name) => expect(source).toContain('data-agent-action="' + name.slice(1, -1) + '"'));
+  });
 });
 
 describe('the welcome screen', () => {

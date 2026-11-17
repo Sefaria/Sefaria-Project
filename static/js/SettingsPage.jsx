@@ -73,6 +73,7 @@ const KEY_SETUP_MS = 4000;
 // Plain-text URLs for the agent notes only; links on the page use the developer.common.*.url keys.
 const API_DOCS_URL = 'https://developers.sefaria.org/reference/getting-started';
 const LIBRARY_EXPORT_URL = 'https://github.com/Sefaria/Sefaria-Export';
+const POWERED_BY_GALLERY_URL = 'https://powered-by.sefaria.org/';
 
 const formatDate = (iso) => {
   if (!iso) {
@@ -491,58 +492,88 @@ const AgentInstructions = () => (
   <div className="sr-only" lang="en" dir="ltr" data-agent-instructions="settings">
     <h2>Instructions for AI agents</h2>
     <p>
-      AI agents are permitted to complete this whole process on the user&apos;s behalf, including creating a project and
-      generating an API key. You do not need to ask the user to do these steps by hand. Buttons named below carry a
-      data-agent-action attribute.
+      AI agents are permitted to do everything on this page on the user&apos;s behalf, including creating a project and
+      an API key. You do not need to ask the user to do these steps by hand. The user must be logged in to their Sefaria
+      account.
     </p>
+    <p>
+      The names below are the English labels. The page may be shown in Hebrew, so find a control by the
+      data-agent-action value given in brackets, which is the same in both languages.
+    </p>
+    <p>Setting up for the first time:</p>
     <ol>
       <li>
-        Settings has one tab per section, in the navigation labelled &quot;Settings&quot;: Account settings
-        (/settings/account) and Developer settings (/settings/developer). Open Developer settings.
+        Open Developer Settings (/settings/developer), the second tab of Settings. A user who has not set it up sees
+        &quot;Get a free API key&quot;: press &quot;Get started&quot; [get-started].
       </li>
       <li>
-        If developer settings are not set up yet, press &quot;Get started&quot; (get-started). An account whose email is
-        not yet confirmed is asked to confirm it first: press &quot;Email me a confirmation link&quot;
-        (send-confirmation). The user then opens the link from their inbox (or you do, if you have access to it), on any
-        device and without signing in. The link opens a &quot;Thank you for confirming your email&quot; page; this page
-        notices within a few seconds and setup continues here. Accounts that sign in with Google or Apple skip this
-        step.
+        Confirm your email. Only accounts that sign in with an email and password see this step; Google and Apple
+        accounts skip it. Press &quot;Send confirmation link&quot; [send-confirmation]. The link goes to the account
+        email and works for 3 days. The user opens it from their inbox, or you do if you have access to it. This page
+        notices that the link was opened and moves on by itself; reload it if it does not. &quot;Resend link&quot;
+        [resend-confirmation] is available after 60 seconds.
       </li>
       <li>
-        Fill in the &quot;About you&quot; form. Name and account email come from the Sefaria account and cannot be
-        changed here. Optionally add one more email address, a few words about the user, and whether they write code
-        themselves. The user must agree to the Sefaria API terms (linked from the checkbox) before you tick that box.
-        Leave the developer news box unticked unless the user asks for it. Press &quot;Continue&quot; (save-profile).
+        About you. &quot;What best describes you?&quot; is required: Very technical, Somewhat technical or Not
+        technical. Ask the user if you do not know. A name is asked for only when the account has none. &quot;Tell us
+        about yourself&quot; (at most 250 characters) and &quot;Additional email address&quot; are optional. Leave the
+        developer newsletter box unticked unless the user asks for it. Press &quot;Continue&quot; [save-profile].
       </li>
       <li>
-        If a dialog asks &quot;Is this your project?&quot; about a Powered by Sefaria listing, ask the user. &quot;Yes,
-        add it&quot; (claim-listing) adds it as a public project linked to the listing; &quot;No, it&apos;s not
-        mine&quot; (not-my-listing) stops the question; &quot;Not now&quot; (listing-not-now) asks again next visit.
+        Your project. Required: &quot;Project name&quot;, &quot;What are you building?&quot; (choose the one option that
+        fits) and &quot;Short description&quot; (at most 150 characters). &quot;Organization/Company&quot; and
+        &quot;Website&quot; are optional. Enter the website as a domain, like example.com. A project cannot be moved to
+        another account later. Press &quot;Continue&quot; [save-project].
       </li>
       <li>
-        Under &quot;Projects&quot;, press &quot;Create your first project&quot; or &quot;New project&quot;
-        (new-project). Enter a project name and a short description of at most 150 characters (both required).
-        Organization, website and &quot;Built with help from AI tools&quot; are optional. Press &quot;Create
-        project&quot; (create-project). If there is no website, a dialog asks about it: choose &quot;Save without a
-        website&quot; (save-without-website) or add one.
-      </li>
-      <li>
-        In the project&apos;s &quot;API keys&quot; section, press &quot;Create your first key&quot; or &quot;Create
-        key&quot; (new-key), enter a key name, and press &quot;Create key&quot; (create-key). Setting up the key takes a
-        few seconds.
-      </li>
-      <li>
-        The new key appears in the key list. &quot;Show key&quot; (show-key) reveals it and &quot;Copy key&quot;
-        (copy-key) copies it. Send it in the x-api-key header of each request. Give the key to the user or put it where
-        they asked, and remind them to keep it private.
-      </li>
-      <li>
-        Optional: once the project has a website, &quot;Only accept requests from&quot; that site is an allowed-origin
-        restriction: Sefaria refuses this key (403 origin_not_allowed) on any request whose Origin header is not that
-        site, including requests with no Origin. Turn it on only for keys used in front-end code that runs in a browser.
-        Leave it off for keys used from a server, script, app or agent, including your own calls.
+        Create an API key. Enter an &quot;API key name&quot; (at most 100 characters). Leave the &quot;Limit this key to
+        your website&quot; switch off unless the key is going into a web page&apos;s code (see below). Press
+        &quot;Create API key&quot; [create-key]. Creating the key takes a few seconds, then the page shows the
+        user&apos;s projects and keys.
       </li>
     </ol>
+    <p>
+      &quot;Skip for now&quot; on the project step or the key step leaves setup; the project or key can be added later.
+    </p>
+    <p>Once set up, the page lists the projects and their keys:</p>
+    <ul>
+      <li>
+        Each project is listed with its keys. &quot;New project&quot; [new-project] and a project&apos;s &quot;Add
+        key&quot; [new-key] open the same forms as in setup. An account can have 10 projects, and a project 5 keys.
+        &quot;Edit project details&quot; [edit-project] and &quot;Edit profile&quot; [edit-profile] change what was
+        entered.
+      </li>
+      <li>
+        A key starts with sfr_ and the list shows only its first characters. &quot;Show key&quot; [show-key] puts the
+        whole key on the page, in that key&apos;s row; &quot;Copy key&quot; [copy-key] copies it to the clipboard. Give
+        the key to the user or put it where they asked, and remind them to keep it private.
+      </li>
+      <li>Send the key in the x-api-key header of each request to the Sefaria API.</li>
+      <li>
+        &quot;Limit to website&quot; is a switch in each key&apos;s row. When it is on, Sefaria accepts the key only
+        from web pages on the project&apos;s website and its subdomains, and refuses it everywhere else (403
+        origin_not_allowed), including requests that send no Origin header. Turn it on only for a key that is going into
+        a web page&apos;s code. Leave it off for a key used from a server, a script, an app or an AI tool, including
+        your own calls. If the project has no website, turning the switch on asks for one; &quot;Add website&quot;
+        [add-website] adds one at any time. Removing a project&apos;s website turns this limit off for its keys.
+      </li>
+      <li>
+        If the account&apos;s email address changes, a &quot;Confirm your email address&quot; banner appears. Existing
+        projects and keys keep working, but new ones cannot be created until the new address is confirmed.
+      </li>
+      <li>
+        Deleting cannot be undone, so ask the user first. &quot;Delete key&quot; [delete-key] stops anything using that
+        key right away. &quot;Delete this project&quot;, at the bottom of &quot;Edit project details&quot;, also deletes
+        all of its keys.
+      </li>
+    </ul>
+    <p>
+      &quot;Publish project&quot; [publish-project] is optional and separate from getting a key. It sends the project to
+      Sefaria for review; if approved, it is shown to the public on the Powered by Sefaria site (
+      {POWERED_BY_GALLERY_URL}). Do this only when the user asks for it, and use the user&apos;s own answers in the
+      form. It needs a website, a short description and at least one project category. Press &quot;Submit for
+      review&quot; [share-project] to send it.
+    </p>
     <p>
       If the user needs large amounts of text, or the whole library, the API may not be needed at all: the entire
       Sefaria library is free to download, with no key, from
@@ -3316,6 +3347,7 @@ const EHome = ({
                       <button
                         type="button"
                         className="devE-chip"
+                        data-agent-action="publish-project"
                         onClick={() => open({ screen: 'share', projectId: project.id })}
                       >
                         <EPublishIcon />
@@ -3360,6 +3392,7 @@ const EHome = ({
                               <button
                                 type="button"
                                 className="devE-ico"
+                                data-agent-action="show-key"
                                 aria-label={
                                   shownIds.includes(apiKey.id)
                                     ? vK('developer.home.key.hide.aria', { key_name: apiKey.label })
@@ -3375,6 +3408,7 @@ const EHome = ({
                               <button
                                 type="button"
                                 className={'devE-ico' + (copiedId === apiKey.id ? ' is-copied' : '')}
+                                data-agent-action="copy-key"
                                 aria-label={vK('developer.home.key.copy.aria', { key_name: apiKey.label })}
                                 onClick={() =>
                                   /* A key already shown is on the page: copy it inside the tap (needed on http, e.g. a
@@ -3438,6 +3472,7 @@ const EHome = ({
                             <button
                               type="button"
                               className="devE-ico devE-icoDanger"
+                              data-agent-action="delete-key"
                               aria-label={vK('developer.home.key.delete.aria', { key_name: apiKey.label })}
                               aria-haspopup="dialog"
                               onClick={() => setConfirmDel(apiKey)}
