@@ -106,6 +106,15 @@ class VerificationTest(DeveloperApiTestCase):
         self.assertEqual(status, 200)
         self.assertTrue(state["developerEnabled"])
 
+    def test_the_confirmation_email_has_an_html_version_with_the_same_link(self):
+        self.call("post", "confirmation")
+
+        message = mail.outbox[0]
+        link = re.search(r"https?://\S+/settings/developer/confirm-email/\S+", message.body).group(0)
+        html, mimetype = message.alternatives[0]
+        self.assertEqual(mimetype, "text/html")
+        self.assertIn('href="%s"' % link, html)
+
     def test_the_emailed_link_confirms_the_address_without_a_login_and_turns_developer_settings_on(self):
         status, state = self.call("post", "confirmation")
 
@@ -583,18 +592,19 @@ class KeyTest(DeveloperApiTestCase):
         self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://new.example.org"])
         self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
 
-    def test_the_website_cannot_be_removed_while_a_key_is_restricted_to_it(self):
+    def test_removing_the_website_turns_off_its_keys_limits_in_the_same_save(self):
         restricted = self.create_key(self.project["id"], "Production")["keyId"]
+        unrestricted = self.create_key(self.project["id"], "Local")["keyId"]
         self.call("post", "keys/" + restricted, {"restrictToWebsite": True})
         url = "projects/" + self.project["id"]
 
         status, state = self.call("post", url, {"project": {**PROJECT, "name": "Renamed", "websiteUrl": ""}})
 
-        self.assertEqual(status, 400)
-        self.assertEqual(state["error"], developer.WEBSITE_IN_USE_ERROR)
+        self.assertEqual(status, 200, state)
         project = ApiProject.objects.get(id=int(self.project["id"])).profile
-        self.assertEqual((project.project_name, project.project_link), (PROJECT["name"], PROJECT["websiteUrl"]))
-        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://dafportal.org"])
+        self.assertEqual((project.project_name, project.project_link), ("Renamed", ""))
+        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, [])
+        self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
 
     def test_the_website_can_be_removed_once_no_live_key_is_restricted(self):
         restricted = self.create_key(self.project["id"], "Production")["keyId"]
