@@ -101,9 +101,6 @@ DESIGN_SYSTEM_PREVIEW_HOSTS = [
 SECRET_KEY = ""
 CHATBOT_USER_ID_SECRET = None  # Must be set in local_settings / env; 'secret' is rejected outside DEBUG
 SESSION_ID_AUTH_HEADER = "HTTP_X_SESSION_ID"
-CHATBOT_ACCEPT_LEGACY_TOKENS = (
-    True  # Accept tokens minted before the audience claim; turn off after one TTL window (72h)
-)
 # Secret shared with the AI chatbot for MCP sign-in (see api/mcp_auth_views.py and
 # SessionIDAuthMiddleware). Unset disables MCP sign-in and MCP token access. Read from the
 # environment here so a deployment's env secret enables it even when its local_settings doesn't
