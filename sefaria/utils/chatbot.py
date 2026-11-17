@@ -24,8 +24,14 @@ NONCE_SIZE_BYTES = 12
 INSECURE_DEFAULT_CHATBOT_USER_ID_SECRET = "secret"
 
 
+# The value the old example settings file shipped with; never usable, whatever DEBUG is.
+EXAMPLE_PLACEHOLDER_CHATBOT_USER_ID_SECRET = "insert your chatbot user id secret here"
+
+
 def is_usable_chatbot_user_id_secret(secret):
-    if not secret:
+    if not secret or not isinstance(secret, str):
+        return False
+    if secret.strip() == EXAMPLE_PLACEHOLDER_CHATBOT_USER_ID_SECRET:
         return False
     if secret == INSECURE_DEFAULT_CHATBOT_USER_ID_SECRET and not settings.DEBUG:
         return False
