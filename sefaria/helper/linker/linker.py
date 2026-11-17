@@ -311,9 +311,21 @@ def _get_preferred_vtitle(oref: text.Ref, lang: str, version_preferences_by_corp
     return vprefs[corpus][lang]
 
 
+def _ref_has_text(oref: text.Ref) -> bool:
+    """Whether TextChunk can build a chunk for this ref (mirrors TextChunk.__init__)."""
+    if isinstance(oref.index_node, (text.JaggedArrayNode, text.DictionaryEntryNode)):
+        return True
+    return oref.has_default_child()
+
+
 def _get_ref_text_by_lang_for_linker(
     oref: text.Ref, lang: str, options: _FindRefsTextOptions
 ) -> tuple[list[str], bool]:
+    if not _ref_has_text(oref):
+        # A ref to an internal node of a complex text (e.g. "Sifra, Shemini") has no text of its
+        # own and no default child. TextChunk rejects it with ComplexBookLevelRefError, which
+        # otherwise aborts the whole find-refs response. Return no preview text instead.
+        return [], False
     vtitle = _get_preferred_vtitle(oref, lang, options.version_preferences_by_corpus)
     direction = get_direction_from_legacy_lang(lang)
     chunk = oref.text(direction=direction, vtitle=vtitle, merge_versions=True)
