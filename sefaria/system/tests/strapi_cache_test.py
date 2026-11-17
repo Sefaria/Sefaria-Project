@@ -38,15 +38,22 @@ def client():
 
 @pytest.fixture(autouse=True)
 def clear_cache(cache):  # noqa: F811 -- pytest fixture param intentionally shadows the module-level `cache` import
-    # Clear cache before and after each test
-    from django.core.cache import cache
-
-    cache.clear()
+    # Clear the Strapi cache entries before and after each test. Only those entries: in CI and
+    # on cauldrons the default cache is the dev cluster's shared Redis, where FLUSHDB is disabled
+    # and other environments' keys live. The pattern is the one the invalidation view uses.
+    _clear_strapi_cache()
 
     yield
 
-    # Cleanup after test
-    cache.clear()
+    _clear_strapi_cache()
+
+
+def _clear_strapi_cache():
+
+    if hasattr(cache, "delete_pattern"):
+        cache.delete_pattern("*strapi_graphql*")
+    else:
+        cache.clear()
 
 
 def get_sample_graphql_query(start_date, end_date):

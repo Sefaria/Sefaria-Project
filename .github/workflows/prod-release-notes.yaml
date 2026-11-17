@@ -267,6 +267,16 @@ jobs:
           fi
           echo "generated=true" >> "$GITHUB_OUTPUT"
 
+      # Deterministic, after the LLM step: operational instructions are listed verbatim, never paraphrased.
+      - name: Append post-deploy actions to tech notes
+        if: steps.generate.outputs.generated == 'true'
+        # A formatting failure must never block posting the notes themselves.
+        continue-on-error: true
+        run: |
+          python3 build/ci/post_deploy.py \
+            --input shipped-stories.json \
+            --append-to release-notes-output/release-notes-tech-slack.txt
+
       - name: Post tech notes to Slack
         if: steps.generate.outputs.generated == 'true'
         env:
