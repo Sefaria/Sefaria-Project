@@ -6,7 +6,7 @@ A push to `master` triggers the `continuous` pipeline in limited run mode (pushe
 
 ## Commit is pushed to PR branch
 
-If a commit is pushed to a branch that has an open PR, the `continuous` pipeline is triggered in full run mode. This will build and push the images asin limited mode, and then additionally deploy a sandbox instance using the built images. The sandbox is deployed as a helm install, using the latest version of the chart, and a values file located in `build/ci/`, which is modified during the pipeline to indicate which commit triggered the deployment. After the sandbox deployment has been verified, pytest and selenium tests are executed in the sandbox, after which the sandbox is destroyed.
+If a commit is pushed to a branch that has an open PR, the `continuous` pipeline is triggered in full run mode. This will build and push the images asin limited mode, and then additionally deploy a sandbox instance using the built images. The sandbox is deployed as a helm install, using the latest version of the chart, and a values file located in `build/ci/`, which is modified during the pipeline to indicate which commit triggered the deployment. Every non-draft PR now gets a sandbox. After it is verified, the `Continuous Testing: Playwright e2e` job runs the BDD story suite (`npm run test:bdd`, blocking) and the Chrome `@pr` core journeys (`npm run test:pr`; a warning only while the `E2E_PR_BLOCKING` repo variable is `false`, which is how it starts; blocking once it is set to `true`) against it, and pytest runs when Python files changed. Then the sandbox is destroyed. See `e2e-tests/feature-specs/README.md`.
 
 ## Commit is pushed to a PR that has a merge conflict
 
@@ -35,3 +35,7 @@ When github detected a release verson tag is applied to the repository, it will 
 ## Pull request is opened or updated (non-draft), or commit is pushed to master
 
 The `Linting` pipeline (`linting.yaml`) runs four independent jobs: Ruff (Python lint + format check), ESLint (JS/JSX), Stylelint (SCSS) and Prettier (formatting check for JS/JSX, SCSS and Markdown). Warnings fail the build. It can also be triggered manually. See `docs/linting.md` for how to run the same checks locally.
+
+## Pull request touches behavior specs (`e2e-tests/feature-specs/features/`)
+
+The `Feature Spec Lock` pipeline (`feature-spec-lock.yaml`) runs on every PR. It passes immediately when no locked file changed (the `.feature` specs, `e2e-tests/feature-specs/CLAUDE.md`, the `.claude/hooks/guard-feature-specs.sh` agent guard, this workflow and `build/ci/check-feature-spec-lock.sh`). Otherwise it fails if any commit that changes a locked file was authored by someone not listed in the `SPEC_EDITORS` repo variable. No review is involved. It runs on `pull_request_target`, so the workflow and script always come from `master` and a PR can't edit the check to let itself through. It never executes code from the PR. Set `SPEC_LOCK_REQUIRE_SIGNED=true` to also require verified signatures on those commits. Process and amendment path: `e2e-tests/feature-specs/README.md`.
