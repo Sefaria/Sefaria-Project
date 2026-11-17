@@ -86,6 +86,20 @@
     return /^(https?:|mailto:|\/(?!\/)|#)/i.test(String(href).trim());
   }
 
+  // Caption links follow the server's bleach policy: relative and protocol-relative links are kept, and
+  // a link with a scheme is kept only for http, https and mailto.
+  function isSafeCaptionHref(href) {
+    // Browsers ignore whitespace and control characters inside a scheme, so drop them before testing.
+    var compact = Array.prototype.filter
+      .call(String(href), function (ch) {
+        var code = ch.charCodeAt(0);
+        return code > 0x20 && (code < 0x7f || code > 0x9f);
+      })
+      .join('');
+    var scheme = /^([a-z][a-z0-9+.-]*):/i.exec(compact);
+    return !scheme || /^(https?|mailto)$/i.test(scheme[1]);
+  }
+
   function cleanStyle(style) {
     return String(style)
       .split(';')
@@ -145,7 +159,7 @@
         var copy = doc.createElement(tag.toLowerCase());
         if (tag === 'A') {
           var href = child.getAttribute('href');
-          if (href && isSafeHref(href)) {
+          if (href && (caption ? isSafeCaptionHref(href) : isSafeHref(href))) {
             copy.setAttribute('href', href);
             copy.setAttribute('rel', 'noopener noreferrer');
           }

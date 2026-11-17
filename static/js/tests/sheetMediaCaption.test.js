@@ -59,4 +59,24 @@ describe('SheetMedia caption sanitization', () => {
     const captionEl = render({ en: '<b>Bold</b> text', he: '' });
     expect(captionEl.querySelector('.en b').textContent).toBe('Bold');
   });
+
+  it.each([
+    'Genesis.1',
+    '//www.sefaria.org/Genesis.1',
+    '/Genesis.1',
+    '#top',
+    'https://example.org/a',
+    'mailto:a@b.org',
+  ])('keeps the caption link %s', (href) => {
+    const captionEl = render({ en: '<a href="' + href + '">x</a>', he: '' });
+    expect(captionEl.querySelector('.en a').getAttribute('href')).toBe(href);
+  });
+
+  it.each(['javascript:void(0)', ' JaVa\tScript:void(0)', 'data:text/html,x', 'vbscript:x'])(
+    'drops the caption link target %s',
+    (href) => {
+      const captionEl = render({ en: '<a href="' + href + '">x</a>', he: '' });
+      expect(captionEl.querySelector('.en a').hasAttribute('href')).toBe(false);
+    }
+  );
 });

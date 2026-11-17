@@ -167,8 +167,12 @@ $('.sheetItem')
     }
 
     if ($(this).hasClass('mediaWrapper')) {
-      var mediaSource =
-        visibleSources[$(this).prevAll('.sheetItem').length + $(this).prevAll('.outsideBiWrapper').length].media;
+      // Match by node id: a source whose media was dropped at render has no element, so position is unreliable.
+      var mediaNode = $(this).attr('data-node');
+      var mediaSourceEntry = visibleSources.find(function (source) {
+        return String(source.node) === mediaNode;
+      });
+      var mediaSource = mediaSourceEntry ? mediaSourceEntry.media : undefined;
       var mediaLink;
       var parsedMedia = sheetsSanitize.parseMediaUrl(mediaSource);
       var mediaSrc = parsedMedia ? sheetsSanitize.escapeHtml(parsedMedia.url) : '';
