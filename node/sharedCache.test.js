@@ -117,6 +117,40 @@ describe('overlapping refreshes', () => {
   });
 });
 
+describe('refresh that commits no keys', () => {
+  test('a newer refresh that finds every key missing does not discard an older refresh still running', async () => {
+    const redisValues = fullRedis();
+    const resolvers = {};
+    let slow = false;
+    const getAsync = jest.fn(key => {
+      if (!slow) {
+        return Promise.resolve(redisValues[key]);
+      }
+      return new Promise(resolve => {
+        (resolvers[key] = resolvers[key] || []).push(resolve);
+      });
+    });
+    const logger = { debug: jest.fn(), error: jest.fn() };
+    const cache = createSharedCache({ getAsync, cacheKeyMapping, logger });
+    await cache.loadSharedData({ startup: true, last_cached_to_compare: 100 });
+
+    slow = true;
+    const older = cache.loadSharedData({ last_cached_to_compare: 200 });
+    const newer = cache.loadSharedData({ last_cached_to_compare: 300 });
+    for (const key of Object.values(cacheKeyMapping)) {
+      resolvers[key][1](null);  // newer: every key missing from Redis
+    }
+    await newer;
+    for (const key of Object.values(cacheKeyMapping)) {
+      resolvers[key][0](JSON.stringify({ from: 'older' }));
+    }
+    await older;
+
+    expect(cache.data.toc).toEqual({ from: 'older' });
+    expect(cache.data.terms).toEqual({ from: 'older' });
+  });
+});
+
 describe('refresh generations', () => {
   // Two overlapping loads; the second-started one finishes first, then the first-started one.
   const overlap = async (firstTimestamp, secondTimestamp, firstStartup = false) => {

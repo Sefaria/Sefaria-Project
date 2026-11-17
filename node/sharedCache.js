@@ -82,7 +82,10 @@ const createSharedCache = function({ getAsync, cacheKeyMapping, logger }) {
       logger.debug(`Load Shared Data - Discarding stale refresh for ${incoming}; cache is at ${committed}`);
       return;
     }
-    committedGeneration = generation;
+    // A refresh that committed no keys must not outrank an older refresh that is still running.
+    if(fetched.length > 0){
+      committedGeneration = generation;
+    }
     for (const [key, parsed] of fetched) {
       sharedCacheData[key] = parsed;
     }
