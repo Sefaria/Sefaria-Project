@@ -197,3 +197,28 @@ class TestLegacyRefsRandomIndex:
         err = get_partial_ref_error(tref_no_legacy_parser)
         with pytest.raises(NoLegacyRefParserError):
             legacy_ref_parser_handler[Ref(err.matched_part).index.title]
+
+
+class TestLegacyParseFallbackWithCachedObjRef:
+    def test_obj_cached_ref_lacking_lang_does_not_raise(self, test_index_title, url_test_index_title):
+        """
+        A Ref built from ``_obj`` (as the library does internally) never sets the
+        ``_lang`` slot. ``RefCacheType`` caches by ``uid``, so once such an instance
+        is cached the bare title resolves back to it. A ref that ``Ref()`` cannot
+        fully parse - e.g. a two-segment ``/<ref A>/<ref B>`` reader path - falls
+        into the legacy parse fallback, which must not raise ``AttributeError`` when
+        the matched title is served from that cached instance.
+        """
+        core = Ref(test_index_title)._core_dict()
+        Ref.clear_cache()
+        # Rebuild the bare ref the way the library does internally: via ``_obj``.
+        obj_ref = Ref(_obj=core)
+        assert not hasattr(obj_ref, "_lang")
+        # the bare title is now served from the _obj cache entry
+        assert Ref(test_index_title) is obj_ref
+
+        with pytest.raises(PartialRefInputError):
+            Ref(f"{url_test_index_title}.1.2/Genesis.3.4")
+
+        oref = Ref.instantiate_ref_with_legacy_parse_fallback(f"{url_test_index_title}.1.2/Genesis.3.4")
+        assert oref.index.title == test_index_title
