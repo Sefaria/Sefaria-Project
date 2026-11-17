@@ -56,45 +56,28 @@ test('postRefreshEditor broadcasts the sheet id on the refresh channel', () => {
 
 test('a refresh for another sheet id does not reload the open sheet', () => {
   const onRefresh = jest.fn();
-  subscribeRefreshEditor({ sheetId: 1, canReload: () => true, onRefresh });
+  subscribeRefreshEditor({ sheetId: 1, onRefresh });
   instances[0].receive({ type: 'refresh', sheetId: 2 });
   expect(onRefresh).not.toHaveBeenCalled();
 });
 
 test('a refresh for the open sheet id reloads it', () => {
   const onRefresh = jest.fn();
-  subscribeRefreshEditor({ sheetId: 1, canReload: () => true, onRefresh });
+  subscribeRefreshEditor({ sheetId: 1, onRefresh });
   instances[0].receive({ type: 'refresh', sheetId: 1 });
   expect(onRefresh).toHaveBeenCalledTimes(1);
 });
 
 test('ids are compared as strings so numeric and string forms match', () => {
   const onRefresh = jest.fn();
-  subscribeRefreshEditor({ sheetId: 7, canReload: () => true, onRefresh });
+  subscribeRefreshEditor({ sheetId: 7, onRefresh });
   instances[0].receive({ type: 'refresh', sheetId: '7' });
   expect(onRefresh).toHaveBeenCalledTimes(1);
 });
 
-test('a refresh is skipped while the editor has unsaved changes', () => {
+test('an unscoped legacy message reloads the open sheet', () => {
   const onRefresh = jest.fn();
-  let dirty = true;
-  subscribeRefreshEditor({ sheetId: 1, canReload: () => !dirty, onRefresh });
-  instances[0].receive({ type: 'refresh', sheetId: 1 });
-  expect(onRefresh).not.toHaveBeenCalled();
-
-  dirty = false;
-  instances[0].receive({ type: 'refresh', sheetId: 1 });
-  expect(onRefresh).toHaveBeenCalledTimes(1);
-});
-
-test('an unscoped legacy message reloads only when the editor is clean', () => {
-  const onRefresh = jest.fn();
-  let dirty = true;
-  subscribeRefreshEditor({ sheetId: 1, canReload: () => !dirty, onRefresh });
-  instances[0].receive('refresh');
-  expect(onRefresh).not.toHaveBeenCalled();
-
-  dirty = false;
+  subscribeRefreshEditor({ sheetId: 1, onRefresh });
   instances[0].receive('refresh');
   expect(onRefresh).toHaveBeenCalledTimes(1);
 });
@@ -103,7 +86,7 @@ test('unsubscribing closes the channel and stops delivery', () => {
   const onRefresh = jest.fn();
   const unsubscribe = subscribeRefreshEditor({
     sheetId: 1,
-    canReload: () => true,
+
     onRefresh,
   });
   const channel = instances[0];

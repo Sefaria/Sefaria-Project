@@ -2889,8 +2889,6 @@ const SefariaEditor = (props) => {
   const [value, setValue] = useState(initValue);
   const [currentDocument, setCurrentDocument] = useState(initValue);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
-  hasUnsavedChangesRef.current = hasUnsavedChanges;
   const [blockEditing, setBlockEditing] = useState(false);
   const [lastModified, setlastModified] = useState(props.data.dateModified);
   const [canUseDOM, setCanUseDOM] = useState(false);
@@ -2951,10 +2949,9 @@ const SefariaEditor = (props) => {
     /* normalize on load */
     setCanUseDOM(true);
 
-    // Only reload for this sheet, and never over unsaved edits.
+    // Only reload for this sheet.
     const unsubscribeRefresh = subscribeRefreshEditor({
       sheetId: sheet.id,
-      canReload: () => !hasUnsavedChangesRef.current,
       onRefresh: reloadFromDb,
     });
 
