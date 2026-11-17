@@ -958,5 +958,12 @@
     "developer.errors.key_create_failed.error": "We couldn't create your key. Please try again.",
     "developer.errors.save_failed.error": "Something went wrong and your change wasn't saved. Please try again.",
     "developer.errors.session_check_failed.error": "We couldn't check your session. Reload the page to see developer settings.",
-    "developer.errors.daily_link_limit.error": "You've asked for {count} links today. Try again tomorrow, or contact hello@sefaria.org."
+    "developer.errors.daily_link_limit.error": "You've asked for {count} links today. Try again tomorrow, or contact hello@sefaria.org.",
+    "developer.common.api_docs.url": "https://developers.sefaria.org/reference/getting-started",
+    "developer.common.library_export.url": "https://github.com/Sefaria/Sefaria-Export",
+    "developer.common.site_security_learn_more.url": "https://developers.sefaria.org/reference/getting-started",
+    "developer.common.powered_by_gallery.url": "https://powered-by.sefaria.org/",
+    "developer.common.discord_signup.url": "https://sefaria.formstack.com/forms/sefaria_developer_discord_community",
+    "developer.common.name_and_logo_usage.url": "https://developers.sefaria.org/docs/usage-of-our-name-and-logo",
+    "developer.common.developers_email.address": "developers@sefaria.org"
 }
