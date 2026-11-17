@@ -10,6 +10,8 @@ writes. scripts/scan_sheet_markup.py drives it over the sheets collection.
 
 import re
 
+from sefaria.sheet_media import _normalize_media_url, is_safe_media_url
+
 # Any "<" that starts a tag, comment or doctype. Deliberately loose: a false
 # positive only adds a row to the report, while a miss leaves hostile markup.
 MARKUP_RE = re.compile(r"<\s*[A-Za-z!/?]")
@@ -49,7 +51,27 @@ def find_markup_fields(sheet):
         for field in SOURCE_FIELDS_WITHOUT_SANITIZER:
             if field in source:
                 candidates += list(_string_paths(source[field], f"sources[{index}].{field}"))
-    return [path for path, text in candidates if MARKUP_RE.search(text)]
+    markup = [path for path, text in candidates if MARKUP_RE.search(text)]
+    return markup + find_unsafe_media(sheet)
+
+
+def find_unsafe_media(sheet):
+    """Return dotted paths of `media` values that the sheet pages would not embed (no markup needed)."""
+    paths = []
+
+    def walk(sources, prefix):
+        for index, source in enumerate(sources if isinstance(sources, list) else []):
+            if not isinstance(source, dict):
+                continue
+            path = f"{prefix}[{index}]"
+            if "media" in source:
+                media = source["media"]
+                if not is_safe_media_url(_normalize_media_url(media)):
+                    paths.append(f"{path}.media")
+            walk(source.get("subsources"), f"{path}.subsources")
+
+    walk(sheet.get("sources"), "sources")
+    return paths
 
 
 def scan_sheets(sheets):

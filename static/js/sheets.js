@@ -77,47 +77,42 @@ window.onerror = function (errorMsg, url, lineNumber) {
 
 $(function () {
   function makeMediaEmbedLink(mediaURL) {
-    let embedHTML;
-    let youtubeRe = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
-    let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
-    let m;
+    var embedHTML;
+    mediaURL = String(mediaURL || '').trim();
+    var youtubeRe = /^https?:\/\/(?:www\.|m\.)?(?:youtu\.be\/|youtube\.com\/(?:.*v(?:\/|=)|(?:.*\/)?))([\w-]+)/i;
+    var vimeoRe = /^https?:\/\/(?:www\.)?(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
+    var clypRe = /^https?:\/\/(?:www\.)?clyp\.it\/([\w-]+)$/i;
+    var soundcloudRe = /^https?:\/\/(?:www\.|m\.)?soundcloud\.com\/[\w\-.]+\/[\w\-.]+\/?(?:[?#][^\s"'<>`\\]*)?$/i;
+    var m;
+    var fileMedia = sheetsSanitize.parseMediaUrl(mediaURL);
+    var esc = sheetsSanitize.escapeHtml;
 
     if ((m = youtubeRe.exec(mediaURL)) !== null) {
-      if (m.index === youtubeRe.lastIndex) {
-        youtubeRe.lastIndex++;
-      }
-      if (m.length > 0) {
-        embedHTML =
-          '<iframe width="560" height="315" src="https://www.youtube.com/embed/' +
-          m[m.length - 1] +
-          '?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>';
-      }
+      embedHTML =
+        '<iframe width="560" height="315" src="https://www.youtube.com/embed/' +
+        esc(m[1]) +
+        '?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>';
     } else if ((m = vimeoRe.exec(mediaURL)) !== null) {
-      if (m.index === vimeoRe.lastIndex) {
-        vimeoRe.lastIndex++;
-      }
-      if (m.length > 0) {
-        embedHTML =
-          '<iframe width="560" height="315" src="https://player.vimeo.com/video/' +
-          m[5] +
-          '?title=0&amp;byline=0&amp;portrait=0" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>';
-      }
-    } else if (mediaURL.match(/https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null) {
-      embedHTML = '<img class="addedMedia" src="' + mediaURL + '" />';
-    } else if (mediaURL.match(/https?:\/\/(www\.)?.+\.(mp3)$/i) != null) {
+      embedHTML =
+        '<iframe width="560" height="315" src="https://player.vimeo.com/video/' +
+        esc(m[5]) +
+        '?title=0&amp;byline=0&amp;portrait=0" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>';
+    } else if (fileMedia && fileMedia.kind === 'image') {
+      embedHTML = '<img class="addedMedia" src="' + esc(fileMedia.url) + '" />';
+    } else if (fileMedia && fileMedia.kind === 'audio') {
       embedHTML =
         '<audio src="' +
-        mediaURL +
+        esc(fileMedia.url) +
         '" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
-    } else if (mediaURL.match(/https?:\/\/.*clyp\.it\/.+/i) != null) {
+    } else if ((m = clypRe.exec(mediaURL)) !== null) {
       embedHTML =
-        '<audio src="' +
-        mediaURL +
+        '<audio src="https://clyp.it/' +
+        esc(m[1]) +
         '.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
-    } else if (mediaURL.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-.]+\/[\w\-.]+\/?/i) != null) {
+    } else if (soundcloudRe.exec(mediaURL) !== null) {
       embedHTML =
         '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=' +
-        mediaURL +
+        esc(mediaURL) +
         '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false"></iframe>';
     } else embedHTML = false;
 
@@ -3330,26 +3325,28 @@ function buildSource($target, source, appendOrInsert) {
     var mediaLink;
     var mediaClass = 'media';
     var wrapperClass = 'mediaWrapper';
+    var parsedMedia = sheetsSanitize.parseMediaUrl(source.media);
+    var mediaSrc = parsedMedia ? sheetsSanitize.escapeHtml(parsedMedia.url) : '';
+    var mediaKind = parsedMedia ? parsedMedia.kind : null;
 
-    if (source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
-      mediaLink = '<img class="addedMedia" src="' + source.media + '" />';
+    if (mediaKind === 'image') {
+      mediaLink = '<img class="addedMedia" src="' + mediaSrc + '" />';
       mediaClass = 'media';
       wrapperClass += !sjs.is_owner && sjs.current.hideImages ? ' hidden' : '';
-    } else if (source.media.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
-      mediaLink = '<iframe width="560" height="315" src=' + source.media + ' frameborder="0" allowfullscreen></iframe>';
-    } else if (source.media.toLowerCase().match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
-      mediaLink =
-        '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + source.media + '"></iframe>';
+    } else if (mediaKind === 'youtube') {
+      mediaLink = '<iframe width="560" height="315" src="' + mediaSrc + '" frameborder="0" allowfullscreen></iframe>';
+    } else if (mediaKind === 'soundcloud') {
+      mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaSrc + '"></iframe>';
       mediaClass = 'media fullWidth';
-    } else if (source.media.match(/https?:\/\/player\.vimeo\.com\/.*/i) != null) {
+    } else if (mediaKind === 'vimeo') {
       mediaLink =
-        '<iframe width="560" height="315" src=' +
-        source.media +
-        ' frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>';
-    } else if (source.media.match(/\.(mp3)$/i) != null) {
+        '<iframe width="560" height="315" src="' +
+        mediaSrc +
+        '" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>';
+    } else if (mediaKind === 'audio') {
       mediaLink =
         '<audio src="' +
-        source.media +
+        mediaSrc +
         '" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
       mediaClass = 'media fullWidth';
     } else {
@@ -3369,10 +3366,10 @@ function buildSource($target, source, appendOrInsert) {
         cls +
         "'><div class='mediaCaptionInner'>" +
         "<div class='en'>" +
-        (source.caption.en || '') +
+        sheetsSanitize.sanitizeHtml(source.caption.en || '') +
         '</div>' +
         "<div class='he'>" +
-        (source.caption.he || '') +
+        sheetsSanitize.sanitizeHtml(source.caption.he || '') +
         '</div>' +
         '</div></div>';
     }

@@ -196,3 +196,28 @@ def test_sheet_attribution_is_bleached():
 def test_sheet_without_string_attribution_is_left_alone():
     assert clean_sheet_attribution({"attribution": None}) == {"attribution": None}
     assert clean_sheet_attribution({"title": "x"}) == {"title": "x"}
+
+
+def test_add_source_to_sheet_runs_media_through_the_cleaner(monkeypatch):
+    from sefaria import sheets
+
+    saved = {}
+    stored = {"_id": 1, "id": 7, "sources": [], "nextNode": 1}
+
+    class FakeSheets:
+        def find_one(self, query):
+            return dict(stored, sources=[])
+
+        def replace_one(self, query, doc, upsert=False):
+            saved["doc"] = doc
+
+    monkeypatch.setattr(sheets, "db", type("DB", (), {"sheets": FakeSheets()})())
+    result = sheets.add_source_to_sheet(7, {"media": "javascript:alert(1)//x.png"})
+    assert "error" in result
+    assert "doc" not in saved
+
+    result = sheets.add_source_to_sheet(7, {"media": "http://example.com/pic.png", "comment": "<script>x</script>hi"})
+    assert result["status"] == "ok"
+    source = saved["doc"]["sources"][0]
+    assert source["media"] == "https://example.com/pic.png"
+    assert "<script" not in source["comment"]

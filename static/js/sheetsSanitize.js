@@ -81,7 +81,89 @@
     return holder.innerHTML;
   }
 
-  var api = { escapeHtml: escapeHtml, sanitizeHtml: sanitizeHtml };
+  // Media URL allowlist. Mirrors sefaria/sheet_media.py (is_safe_media_url): https only (http and
+  // protocol-relative URLs are upgraded first), no credentials or markup characters, and either a known
+  // embed host with an embeddable path or an image or mp3 file on any host. Every place that builds
+  // media markup or an iframe/audio/img src must go through safeMediaUrl first.
+  var EMBED_HOSTS = {
+    'www.youtube.com': { prefixes: ['/embed/'], kind: 'youtube' },
+    'youtube.com': { prefixes: ['/embed/'], kind: 'youtube' },
+    'player.vimeo.com': { prefixes: ['/video/'], kind: 'vimeo' },
+    'w.soundcloud.com': { prefixes: ['/player/'], kind: 'soundcloud' },
+    'open.spotify.com': { prefixes: ['/embed/'], kind: 'spotify' },
+    'bandcamp.com': { prefixes: ['/EmbeddedPlayer'], kind: 'bandcamp' },
+  };
+  var FILE_KINDS = {
+    '.png': 'image',
+    '.jpg': 'image',
+    '.jpeg': 'image',
+    '.gif': 'image',
+    '.webp': 'image',
+    '.mp3': 'audio',
+  };
+  var FORBIDDEN_MEDIA_CHARS = /[\s"'<>`\\]/;
+
+  function normalizeMediaUrl(url) {
+    if (typeof url === 'string') {
+      if (url.indexOf('//') === 0) {
+        return 'https:' + url;
+      }
+      if (url.slice(0, 7).toLowerCase() === 'http://') {
+        return 'https://' + url.slice(7);
+      }
+    }
+    return url;
+  }
+
+  // Returns {url, kind} for an allowed media URL (url is the https-normalised form), else null.
+  // kind is one of image, audio, youtube, vimeo, soundcloud, spotify, bandcamp.
+  function parseMediaUrl(url) {
+    var normalized = normalizeMediaUrl(url);
+    if (typeof normalized !== 'string' || !normalized || FORBIDDEN_MEDIA_CHARS.test(normalized)) {
+      return null;
+    }
+    var parsed;
+    try {
+      parsed = new URL(normalized);
+    } catch (e) {
+      return null;
+    }
+    var host = parsed.hostname.toLowerCase();
+    if (parsed.protocol !== 'https:' || !host || parsed.username || parsed.password) {
+      return null;
+    }
+    if (Object.prototype.hasOwnProperty.call(EMBED_HOSTS, host)) {
+      var embed = EMBED_HOSTS[host];
+      var ok = embed.prefixes.some(function (prefix) {
+        return parsed.pathname.indexOf(prefix) === 0;
+      });
+      return ok ? { url: normalized, kind: embed.kind } : null;
+    }
+    var path = parsed.pathname.toLowerCase();
+    for (var ext in FILE_KINDS) {
+      if (Object.prototype.hasOwnProperty.call(FILE_KINDS, ext) && path.slice(-ext.length) === ext) {
+        return { url: normalized, kind: FILE_KINDS[ext] };
+      }
+    }
+    return null;
+  }
+
+  function safeMediaUrl(url) {
+    var parsed = parseMediaUrl(url);
+    return parsed ? parsed.url : null;
+  }
+
+  function isSafeMediaUrl(url) {
+    return parseMediaUrl(url) !== null;
+  }
+
+  var api = {
+    escapeHtml: escapeHtml,
+    sanitizeHtml: sanitizeHtml,
+    parseMediaUrl: parseMediaUrl,
+    safeMediaUrl: safeMediaUrl,
+    isSafeMediaUrl: isSafeMediaUrl,
+  };
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = api;
   }

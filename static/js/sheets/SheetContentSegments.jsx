@@ -2,6 +2,7 @@ import Component from 'react-class';
 import classNames from 'classnames';
 import Sefaria from '../sefaria/sefaria';
 import React from 'react';
+import sheetsSanitize from '../sheetsSanitize';
 
 class SheetSource extends Component {
   render() {
@@ -316,39 +317,33 @@ class SheetMedia extends Component {
     var mediaLink;
     var mediaCaption = '';
     var mediaClass = 'media fullWidth';
-    var mediaURL = this.props.source.media;
     var caption = this.props.source.caption;
-    let parsedUrl;
-    if (mediaURL) {
-      try {
-        const urlStr = mediaURL.startsWith('//') ? 'https:' + mediaURL : mediaURL;
-        parsedUrl = new URL(urlStr);
-      } catch (e) {
-        // invalid URL, parsedUrl remains undefined
-      }
-    }
+    // Only allowlisted https media is turned into markup; the URL is attribute-escaped and every src is quoted.
+    const parsedMedia = sheetsSanitize.parseMediaUrl(this.props.source.media);
+    const mediaURL = parsedMedia ? sheetsSanitize.escapeHtml(parsedMedia.url) : '';
+    const mediaKind = parsedMedia ? parsedMedia.kind : null;
 
-    if (this.isImage()) {
+    if (mediaKind === 'image') {
       mediaLink =
         '<img class="addedMedia" src="' +
         mediaURL +
         '" alt="' +
-        Sefaria._('sheet_content_segments.user_uploaded_image') +
+        sheetsSanitize.escapeHtml(Sefaria._('sheet_content_segments.user_uploaded_image')) +
         '" />';
-    } else if (mediaURL.match(/(?:https?:)?\/\/(?:www\.)?youtube\.com\/embed\/.+/i) != null) {
+    } else if (mediaKind === 'youtube') {
       mediaLink =
-        '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' +
+        '<div class="youTubeContainer"><iframe width="100%" height="100%" src="' +
         mediaURL +
-        ' frameborder="0" allowfullscreen></iframe></div>';
-    } else if (mediaURL.toLowerCase().match(/(?:https?:)?\/\/player\.vimeo\.com\/.*/i) != null) {
+        '" frameborder="0" allowfullscreen></iframe></div>';
+    } else if (mediaKind === 'vimeo') {
       mediaLink =
-        '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' +
+        '<div class="youTubeContainer"><iframe width="100%" height="100%" src="' +
         mediaURL +
-        ' frameborder="0"  allow="autoplay; fullscreen" allowfullscreen></iframe></div>';
-    } else if (mediaURL.match(/(?:https?:)?\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
+        '" frameborder="0"  allow="autoplay; fullscreen" allowfullscreen></iframe></div>';
+    } else if (mediaKind === 'soundcloud') {
       mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';
-    } else if (parsedUrl && parsedUrl.hostname.includes('spotify.com')) {
-      const [, , type] = parsedUrl.pathname.split('/');
+    } else if (mediaKind === 'spotify') {
+      const [, , type] = new URL(parsedMedia.url).pathname.split('/');
 
       // Spotify embed heights are fixed by Spotify's player design.
       // DO NOT change these values — reducing them will cut off content.
@@ -356,14 +351,14 @@ class SheetMedia extends Component {
       const SPOTIFY_IFRAME_HEIGHT_COMPACT = 80; // music tracks
       const height = type === 'episode' ? SPOTIFY_IFRAME_HEIGHT_WITH_METADATA : SPOTIFY_IFRAME_HEIGHT_COMPACT;
       return `<iframe 
-        src=${mediaURL}
+        src="${mediaURL}"
         width="100%"
         height="${height}"
         frameborder="0"
         allow="autoplay; encrypted-media" 
         loading="lazy">
       </iframe>`;
-    } else if (mediaURL.match(/\.(mp3)$/i) != null) {
+    } else if (mediaKind === 'audio') {
       mediaLink =
         '<audio src="' +
         mediaURL +
@@ -389,7 +384,8 @@ class SheetMedia extends Component {
     return "<div class='" + mediaClass + "'>" + mediaLink + mediaCaption + '</div>';
   }
   isImage() {
-    return this.props.source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null;
+    const parsedMedia = sheetsSanitize.parseMediaUrl(this.props.source.media);
+    return parsedMedia !== null && parsedMedia.kind === 'image';
   }
   render() {
     const sectionClasses = classNames('SheetMedia', this.props.highlighted && 'highlight');

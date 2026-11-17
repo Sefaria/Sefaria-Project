@@ -154,16 +154,24 @@ def test_embedded_sheet_page_escapes_hostile_fields(hostile_sheet):
     assert "Credit" in html
 
 
-def test_render_cleaner_bleaches_text_fields_and_keeps_media():
+def test_render_cleaner_bleaches_text_fields_and_drops_unsafe_media_from_the_copy():
     sheet = _hostile_sheet()
-    sheet["sources"].append({"media": "http://example.com/clip.mp4", "node": 3})
+    sheet["sources"].append({"media": "javascript:alert(1)//x.png", "caption": {"en": "c"}, "node": 3})
+    sheet["sources"].append(
+        {"ref": "Genesis 1:1", "subsources": [{"media": "https://evil.example/page.html", "node": 4}], "node": 5}
+    )
+    sheet["sources"].append({"media": "https://www.youtube.com/embed/abc123", "node": 6})
+    sheet["sources"].append({"media": "http://example.com/pic.png", "node": 7})
     clean_sheet_for_render(sheet)
     assert "onerror" not in sheet["attribution"]
     assert "onerror" not in sheet["sources"][0]["customTitle"]
     assert "<script" not in sheet["sources"][0]["text"]["en"]
     assert "onerror" not in sheet["sources"][1]["comment"]
-    # Media is left for the editor to handle; render-time cleaning only bleaches text.
-    assert sheet["sources"][2]["media"] == "http://example.com/clip.mp4"
+    assert "media" not in sheet["sources"][2]
+    assert "caption" not in sheet["sources"][2]
+    assert "media" not in sheet["sources"][3]["subsources"][0]
+    assert sheet["sources"][4]["media"] == "https://www.youtube.com/embed/abc123"
+    assert sheet["sources"][5]["media"] == "https://example.com/pic.png"
 
 
 @pytest.mark.django_db

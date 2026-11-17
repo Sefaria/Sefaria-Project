@@ -12,6 +12,7 @@ import { ProfilePic } from './ProfilePic';
 
 import classNames from 'classnames';
 import $ from './sefaria/sefariaJquery';
+import sheetsSanitize from './sheetsSanitize';
 import ReactDOM from 'react-dom';
 import { SheetOptions } from './sheets/SheetOptions';
 import { useAutosaveDebounce } from './useAutosaveDebounce';
@@ -900,9 +901,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
   const [inputValue, setInputValue] = useState('');
   const [showAddMediaButton, setShowAddMediaButton] = useState(false);
 
-  const isMediaLink = (url) => {
-    console.log(url);
-
+  const rawMediaLink = (url) => {
     if (url.match(/^https?/i) == null) {
       return null;
     }
@@ -945,6 +944,13 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
     } else {
       return false;
     }
+  };
+
+  // The converted URL must also pass the shared allowlist (https, known embed host or image/mp3 file,
+  // no quotes or markup characters) before it is offered or inserted.
+  const isMediaLink = (url) => {
+    const link = rawMediaLink(url);
+    return link && sheetsSanitize.isSafeMediaUrl(link) ? link : link === null ? null : false;
   };
 
   const onMediaChange = (e) => {
@@ -1263,68 +1269,71 @@ const Element = (props) => {
 
     case 'SheetMedia': {
       let mediaComponent;
-      let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
-      if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
+      // Only allowlisted https media is rendered; anything else shows an empty media block.
+      const parsedMedia = sheetsSanitize.parseMediaUrl(element.mediaUrl);
+      const mediaUrl = parsedMedia ? parsedMedia.url : null;
+      const mediaKind = parsedMedia ? parsedMedia.kind : null;
+      if (mediaKind === 'image') {
         mediaComponent = (
           <div className="SheetMedia media">
-            <img className="addedMedia" src={element.mediaUrl} alt={Sefaria._('editor.user_uploaded_media')} />
+            <img className="addedMedia" src={mediaUrl} alt={Sefaria._('editor.user_uploaded_media')} />
             {children}
           </div>
         );
-      } else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
+      } else if (mediaKind === 'youtube') {
         mediaComponent = (
           <div className="media fullWidth SheetMedia">
             <div className="youTubeContainer">
-              <iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>
+              <iframe width="100%" height="100%" src={mediaUrl} frameBorder="0" allowFullScreen></iframe>
               {children}
             </div>
           </div>
         );
-      } else if (vimeoRe.exec(element.mediaUrl) !== null) {
+      } else if (mediaKind === 'vimeo') {
         mediaComponent = (
           <div className="SheetMedia media fullWidth">
             <iframe
               width="100%"
               height="315"
-              src={element.mediaUrl}
+              src={mediaUrl}
               frameBorder="0"
               allow="autoplay; fullscreen"
-              allowfullscreen
+              allowFullScreen
             >
               {children}
             </iframe>
           </div>
         );
-      } else if (element.mediaUrl.match(/^https?:\/\/open\.spotify\.com\/embed\/\w+\/\w+/i) != null) {
+      } else if (mediaKind === 'spotify') {
         mediaComponent = (
           <div className="SheetMedia media fullWidth">
-            <iframe width="100%" height="380" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>
+            <iframe width="100%" height="380" scrolling="no" frameBorder="no" src={mediaUrl}></iframe>
             {children}
           </div>
         );
-      } else if (element.mediaUrl.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
+      } else if (mediaKind === 'soundcloud') {
         mediaComponent = (
           <div className="SheetMedia media fullWidth">
             <iframe
               style={{ border: '0', width: '100%', height: '120px' }}
               scrolling="no"
               frameBorder="no"
-              src={element.mediaUrl}
+              src={mediaUrl}
             ></iframe>
             {children}
           </div>
         );
-      } else if (element.mediaUrl.match(/^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+=\w+)+\/?/i)) {
+      } else if (mediaKind === 'bandcamp') {
         mediaComponent = (
           <div className="SheetMedia media fullWidth">
-            <iframe width="100%" height="120" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>
+            <iframe width="100%" height="120" scrolling="no" frameBorder="no" src={mediaUrl}></iframe>
             {children}
           </div>
         );
-      } else if (element.mediaUrl.match(/\.(mp3)$/i) != null) {
+      } else if (mediaKind === 'audio') {
         mediaComponent = (
           <div className="SheetMedia media fullWidth">
-            <audio src={element.mediaUrl} type="audio/mpeg" controls>
+            <audio src={mediaUrl} type="audio/mpeg" controls>
               Your browser does not support the audio element.
             </audio>
             {children}

@@ -38,7 +38,7 @@ from sefaria.model.collection import Collection, CollectionSet, process_sheet_de
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.user_profile import *
 from sefaria.sheets import *
-from sefaria.sheets import bleach_text, clean_sheet_for_render, clean_sources
+from sefaria.sheets import bleach_text, clean_sheet_for_render, clean_source_for_render, clean_sources
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.cache import django_cache
 from sefaria.system.decorators import catch_error_as_json
@@ -730,6 +730,8 @@ def sheet_api(request, sheet_id):
             sheet = get_sheet_for_panel(int(sheet_id))
         else:
             sheet = get_sheet(int(sheet_id))
+        if "error" not in sheet:
+            clean_sheet_for_render(sheet)
         return jsonResponse(sheet, callback=request.GET.get("callback", None))
 
     if request.method == "POST":
@@ -739,6 +741,8 @@ def sheet_api(request, sheet_id):
 def sheet_node_api(request, sheet_id, node_id):
     if request.method == "GET":
         sheet_node = get_sheet_node(int(sheet_id), int(node_id))
+        if "error" not in sheet_node:
+            clean_source_for_render(sheet_node)
         return jsonResponse(sheet_node, callback=request.GET.get("callback", None))
 
     if request.method == "POST":

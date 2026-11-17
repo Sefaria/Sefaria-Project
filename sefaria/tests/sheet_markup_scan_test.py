@@ -76,3 +76,24 @@ def test_scan_sheets_yields_only_flagged_sheets_with_owner():
     clean = _sheet(id=1)
     flagged = _sheet(id=2, owner=7, attribution=HOSTILE)
     assert list(scan_sheets([clean, flagged])) == [(2, 7, ["attribution"])]
+
+
+def test_unsafe_media_is_reported_without_markup():
+    sheet = _sheet(sources=[{"media": "javascript:alert(1)//x.png", "node": 1}])
+    assert find_markup_fields(sheet) == ["sources[0].media"]
+
+
+def test_unsafe_media_in_subsources_is_reported():
+    sheet = _sheet(sources=[{"ref": "Genesis 1:1", "subsources": [{"media": "https://evil.example/a.html"}]}])
+    assert find_markup_fields(sheet) == ["sources[0].subsources[0].media"]
+
+
+def test_safe_media_is_not_reported():
+    sheet = _sheet(
+        sources=[
+            {"media": "https://www.youtube.com/embed/abc"},
+            {"media": "http://example.com/pic.png"},
+            {"media": "//example.com/pic.jpg"},
+        ]
+    )
+    assert find_markup_fields(sheet) == []

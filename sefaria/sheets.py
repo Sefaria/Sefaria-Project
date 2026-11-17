@@ -716,19 +716,7 @@ _SHEET_OPTION_TEXT_KEYS = {"sourcePrefix", "PrependRefWithHe", "PrependRefWithEn
 _SHEET_OPTION_FLAG_KEYS = {"numbered"}
 _SHEET_CLASS_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{0,64}$")
 
-# Media URLs are interpolated into embed and image markup by the sheet UI. They must be https (http and
-# protocol-relative URLs, which older sheets may hold, are upgraded to https first). A URL is kept when it
-# points at a known embed host with an embeddable path, or at an image or mp3 file on any host.
-_SHEET_EMBED_PATH_PREFIXES = {
-    "www.youtube.com": ("/embed/",),
-    "youtube.com": ("/embed/",),
-    "player.vimeo.com": ("/video/",),
-    "w.soundcloud.com": ("/player/",),
-    "open.spotify.com": ("/embed/",),
-    "bandcamp.com": ("/EmbeddedPlayer",),
-}
-_SHEET_FILE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".mp3")
-_SHEET_MEDIA_FORBIDDEN_CHARS_RE = re.compile(r"[\s\"'<>`\\]")
+from sefaria.sheet_media import _normalize_media_url, is_safe_media_url  # noqa: E402,F401
 
 
 def _bleach_if_str(value):
@@ -741,30 +729,6 @@ def _bleach_lang_dict(value):
             if lang in value:
                 value[lang] = _bleach_if_str(value[lang])
     return value
-
-
-def _normalize_media_url(url):
-    if isinstance(url, str):
-        if url.startswith("//"):
-            return "https:" + url
-        if url[:7].lower() == "http://":
-            return "https://" + url[7:]
-    return url
-
-
-def is_safe_media_url(url):
-    if not isinstance(url, str) or not url or _SHEET_MEDIA_FORBIDDEN_CHARS_RE.search(url):
-        return False
-    try:
-        parsed = urllib.parse.urlparse(url)
-        host = (parsed.hostname or "").lower()
-    except ValueError:
-        return False
-    if parsed.scheme != "https" or not host or parsed.username is not None or parsed.password is not None:
-        return False
-    if host in _SHEET_EMBED_PATH_PREFIXES:
-        return parsed.path.startswith(_SHEET_EMBED_PATH_PREFIXES[host])
-    return parsed.path.lower().endswith(_SHEET_FILE_EXTENSIONS)
 
 
 def _clean_source_options(options):
@@ -850,24 +814,49 @@ def clean_sheet_attribution(sheet):
     return sheet
 
 
-def _clean_sources_text_for_render(sources):
+def clean_sheet_for_render(sheet):
+    """
+    Prepares a stored sheet for the pages and APIs that output it. Sheets saved before save-time cleaning
+    existed still hold unbleached text and unchecked media, so text fields, attribution and media URLs
+    (in sources and subsources) are cleaned here as well. The result is for output only; never save it.
+    Options are left as stored: the editor reads them.
+    """
+    clean_sheet_attribution(sheet)
+    _clean_sources_for_render(sheet.get("sources"))
+    return sheet
+
+
+def _clean_source_media_for_render(source):
+    """
+    Drops media with a disallowed URL from a rendered copy of a source. The stored sheet is never
+    changed: render-time cleaning is not saved back, so the media-file cleanup that compares stored
+    media URLs on save never sees a removal.
+    """
+    if "media" not in source:
+        return
+    media = _normalize_media_url(source["media"])
+    if is_safe_media_url(media):
+        source["media"] = media
+    else:
+        del source["media"]
+        source.pop("caption", None)
+
+
+def clean_source_for_render(source):
+    """Cleans one stored source (text fields and media) for output, recursing into subsources."""
+    if not isinstance(source, dict):
+        return source
+    clean_source_text(source)
+    _clean_source_media_for_render(source)
+    _clean_sources_for_render(source.get("subsources"))
+    return source
+
+
+def _clean_sources_for_render(sources):
     if not isinstance(sources, list):
         return
     for source in sources:
-        if isinstance(source, dict):
-            clean_source_text(source)
-            _clean_sources_text_for_render(source.get("subsources"))
-
-
-def clean_sheet_for_render(sheet):
-    """
-    Prepares a stored sheet for the pages that print it. Sheets saved before save-time cleaning
-    existed still hold unbleached text, so the text fields and attribution are bleached here as well.
-    Media and options are left as stored: the page only prints text, and the editor reads the rest.
-    """
-    clean_sheet_attribution(sheet)
-    _clean_sources_text_for_render(sheet.get("sources"))
-    return sheet
+        clean_source_for_render(source)
 
 
 def get_sheet_language(sheet):
@@ -900,6 +889,9 @@ def add_source_to_sheet(id, source, note=None):
     if string `note` is present, add it as a coment immediately after the source.
         pass
     """
+    if not isinstance(source, dict):
+        return {"error": "Malformed source could not be added to sheet"}
+    source = clean_source(source)
     if not is_valid_source(source):
         return {"error": "Malformed source could not be added to sheet"}
     sheet = db.sheets.find_one({"id": id})
@@ -911,7 +903,7 @@ def add_source_to_sheet(id, source, note=None):
     sheet["nextNode"] = nextNode + 1
     sheet["sources"].append(source)
     if note:
-        sheet["sources"].append({"outsideText": note, "options": {"indented": "indented-1"}})
+        sheet["sources"].append(clean_source({"outsideText": note, "options": {"indented": "indented-1"}}))
     db.sheets.replace_one({"_id": sheet["_id"]}, sheet, upsert=True)
     return {"status": "ok", "id": id, "source": source}
 
