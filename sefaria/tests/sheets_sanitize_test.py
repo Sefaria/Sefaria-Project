@@ -221,3 +221,11 @@ def test_add_source_to_sheet_runs_media_through_the_cleaner(monkeypatch):
     source = saved["doc"]["sources"][0]
     assert source["media"] == "https://example.com/pic.png"
     assert "<script" not in source["comment"]
+
+
+def test_option_text_keeps_ampersand_unescaped():
+    source = clean_source(
+        {"comment": "hi", "node": 1, "options": {"sourcePrefix": "Q&A", "PrependRefWithEn": "Rock &amp; Roll"}}
+    )
+    assert source["options"]["sourcePrefix"] == "Q&A"
+    assert source["options"]["PrependRefWithEn"] == "Rock & Roll"

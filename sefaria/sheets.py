@@ -5,6 +5,7 @@ Writes to MongoDB Collection: sheets
 """
 
 import hashlib
+import html
 import re
 import sys
 import urllib.error
@@ -740,9 +741,10 @@ def _clean_source_options(options):
             if isinstance(value, str) and _SHEET_CLASS_TOKEN_RE.match(value):
                 cleaned[key] = value
         elif key in _SHEET_OPTION_TEXT_KEYS:
-            # Quotes are kept; the legacy renderer escapes this text where it places it in an attribute.
+            # Tags are stripped, then entities are decoded: this is plain text that every renderer escapes
+            # where it prints it, so "&" must be stored as "&" and not as "&amp;".
             if isinstance(value, str):
-                cleaned[key] = bleach_text(value)
+                cleaned[key] = html.unescape(bleach_text(value))
         elif key in _SHEET_OPTION_FLAG_KEYS:
             if isinstance(value, (bool, int)):
                 cleaned[key] = value
