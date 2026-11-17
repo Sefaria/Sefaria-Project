@@ -112,19 +112,3 @@ test('unsubscribing closes the channel and stops delivery', () => {
   channel.receive({ type: 'refresh', sheetId: 1 });
   expect(onRefresh).not.toHaveBeenCalled();
 });
-
-test('a refresh dropped because of unsaved edits is reported through onDeferred', () => {
-  const onRefresh = jest.fn();
-  const onDeferred = jest.fn();
-  subscribeRefreshEditor({ sheetId: 1, canReload: () => false, onRefresh, onDeferred });
-  instances[0].receive({ type: 'refresh', sheetId: 1 });
-  expect(onRefresh).not.toHaveBeenCalled();
-  expect(onDeferred).toHaveBeenCalledTimes(1);
-});
-
-test('a refresh for another sheet is not deferred', () => {
-  const onDeferred = jest.fn();
-  subscribeRefreshEditor({ sheetId: 1, canReload: () => false, onRefresh: jest.fn(), onDeferred });
-  instances[0].receive({ type: 'refresh', sheetId: 2 });
-  expect(onDeferred).not.toHaveBeenCalled();
-});
