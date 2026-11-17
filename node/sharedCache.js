@@ -40,26 +40,34 @@ const createSharedCache = function({ getAsync, cacheKeyMapping, logger }) {
     // Or you know, fix it so Node does send a signal to Django to populate cache.
     const keysToFetch = Object.keys(cacheKeyMapping).filter(key =>
       startup || last_cached_to_compare == null || needsUpdating(key, last_cached_to_compare));
-    // Every required key is read before anything is committed, so a failed refresh
-    // never leaves a mix of old and new data behind. Any failure rejects the load.
+    // Every key is read before anything is committed. A key that is missing from Redis keeps its last
+    // good value on this node and is logged; only a node with no value for it yet (a cold start) fails
+    // the load. A failed Redis read always rejects the load.
+    const keptLastGood = [];
     let fetched;
     try{
-      fetched = await Promise.all(keysToFetch.map(async key => {
+      const results = await Promise.all(keysToFetch.map(async key => {
         const redisKey = cacheKeyMapping[key];
         const resp = await getAsync(redisKey);
         const parsed = resp ? JSON.parse(resp) : null;
         if(parsed === null || parsed === undefined){
-          throw new Error(`Error with ${key}: ${redisKey} not found in cache`);
+          if(sharedCacheData[key] === null || sharedCacheData[key] === undefined){
+            throw new Error(`Error with ${key}: ${redisKey} not found in cache`);
+          }
+          logger.error(`Shared cache key ${redisKey} is missing from Redis; keeping the last good value for ${key}`);
+          keptLastGood.push(key);
+          return null;
         }
         return [key, parsed];
       }));
+      fetched = results.filter(entry => entry !== null);
     }catch(e) {
       logger.error(`Shared cache load failed: ${e.message}`);
       throw e;
     }
     // A cache hit fetched nothing, so it commits nothing and must not rank above a real refresh that
     // started earlier and is still running.
-    if(fetched.length === 0){
+    if(keysToFetch.length === 0){
       return;
     }
     // Refreshes can overlap. A load that started before one already committed must not put its
@@ -78,7 +86,8 @@ const createSharedCache = function({ getAsync, cacheKeyMapping, logger }) {
     for (const [key, parsed] of fetched) {
       sharedCacheData[key] = parsed;
     }
-    if(cacheTimestampNeedsUpdating("last_cached", last_cached_to_compare)){
+    // A key that kept its last good value is still behind, so the timestamp stays put and the next request retries it.
+    if(keptLastGood.length === 0 && cacheTimestampNeedsUpdating("last_cached", last_cached_to_compare)){
       // A null timestamp means the next request refreshes again.
       sharedCacheData["last_cached"] = normalizeTimestamp(last_cached_to_compare);
     }

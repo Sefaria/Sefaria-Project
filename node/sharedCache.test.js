@@ -37,7 +37,19 @@ describe('loadSharedData failure handling', () => {
     await expect(loadSharedData({ startup: true })).rejects.toThrow('connection lost');
   });
 
-  test('a failed refresh keeps the previous data and timestamp', async () => {
+  test('a failed Redis read keeps the previous data and timestamp', async () => {
+    const redis = fullRedis();
+    const cache = makeCache(redis);
+    await cache.loadSharedData({ last_cached_to_compare: 100 });
+
+    cache.getAsync.mockImplementation(() => Promise.reject(new Error('connection lost')));
+
+    await expect(cache.loadSharedData({ last_cached_to_compare: 200 })).rejects.toThrow('connection lost');
+    expect(cache.data.last_cached).toBe(100);
+    expect(cache.data.toc).toEqual([{ title: 'first' }]);
+  });
+
+  test('a missing key keeps its last good value, logs, and still refreshes the other keys', async () => {
     const redis = fullRedis();
     const cache = makeCache(redis);
     await cache.loadSharedData({ last_cached_to_compare: 100 });
@@ -45,9 +57,36 @@ describe('loadSharedData failure handling', () => {
     redis.toc = JSON.stringify([{ title: 'second' }]);
     delete redis.term_mapping;
 
-    await expect(cache.loadSharedData({ last_cached_to_compare: 200 })).rejects.toThrow('term_mapping');
+    await expect(cache.loadSharedData({ last_cached_to_compare: 200 })).resolves.toBeUndefined();
+    expect(cache.data.terms).toEqual({ a: 1 });
+    expect(cache.data.toc).toEqual([{ title: 'second' }]);
+    expect(cache.logger.error).toHaveBeenCalledWith(expect.stringContaining('last good value for terms'));
+  });
+
+  test('a key that kept its last good value is retried on the next request', async () => {
+    const redis = fullRedis();
+    const cache = makeCache(redis);
+    await cache.loadSharedData({ last_cached_to_compare: 100 });
+    delete redis.term_mapping;
+    await cache.loadSharedData({ last_cached_to_compare: 200 });
     expect(cache.data.last_cached).toBe(100);
-    expect(cache.data.toc).toEqual([{ title: 'first' }]);
+
+    redis.term_mapping = JSON.stringify({ a: 2 });
+    await cache.loadSharedData({ last_cached_to_compare: 200 });
+    expect(cache.data.terms).toEqual({ a: 2 });
+    expect(cache.data.last_cached).toBe(200);
+  });
+
+  test('a cold node with no last good value still fails when a key is missing', async () => {
+    const redis = fullRedis();
+    const cache = makeCache(redis);
+    await cache.loadSharedData({ last_cached_to_compare: 100 });
+    // Only terms exists on this node; toc was never loaded here.
+    cache.data.toc = null;
+    delete redis.toc;
+
+    await expect(cache.loadSharedData({ last_cached_to_compare: 200 })).rejects.toThrow('toc');
+    expect(cache.data.terms).toEqual({ a: 1 });
   });
 });
 
