@@ -944,7 +944,7 @@ class ReaderApp extends Component {
             hist.url += '&namedEntity=' + connectionsHistory.selectedNamedEntity;
           }
           if (connectionsHistory.sidebarSearchQuery) {
-            hist.url += '&sbsq=' + connectionsHistory.sidebarSearchQuery;
+            hist.url += '&sbsq=' + encodeURIComponent(connectionsHistory.sidebarSearchQuery);
           }
           if (connectionsHistory.selectedNamedEntityText) {
             hist.url += '&namedEntityText=' + encodeURIComponent(connectionsHistory.selectedNamedEntityText);

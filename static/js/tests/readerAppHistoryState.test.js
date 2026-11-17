@@ -164,6 +164,14 @@ describe('makeHistoryState sidebar search suffix', () => {
   });
 });
 
+describe('makeHistoryState sidebar search on the short text+commentary URL', () => {
+  test('encodes the first-panel sidebar search query', () => {
+    const url = urlFor([textPanel(), sidebarSearchPanel('peace & quiet')]);
+
+    expect(url).toContain('&sbsq=peace%20%26%20quiet');
+  });
+});
+
 describe('makeHistoryState aliyot on the short text+commentary URL', () => {
   test('keeps the first panel aliyot flag in the merged URL', () => {
     const torahPanel = textPanel({
