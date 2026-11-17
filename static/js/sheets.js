@@ -3366,10 +3366,10 @@ function buildSource($target, source, appendOrInsert) {
         cls +
         "'><div class='mediaCaptionInner'>" +
         "<div class='en'>" +
-        sheetsSanitize.sanitizeHtml(source.caption.en || '') +
+        sheetsSanitize.sanitizeCaptionHtml(source.caption.en || '') +
         '</div>' +
         "<div class='he'>" +
-        sheetsSanitize.sanitizeHtml(source.caption.he || '') +
+        sheetsSanitize.sanitizeCaptionHtml(source.caption.he || '') +
         '</div>' +
         '</div></div>';
     }

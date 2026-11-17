@@ -22,6 +22,52 @@
     BIG: 1,
     A: 1,
   };
+  // Caption policy: mirrors the server's sheet text cleaning (_OK_SHEET_TAGS, _OK_SHEET_ATTRS and
+  // _OK_SHEET_STYLES in sefaria/sheets.py), so formatting the server keeps survives a legacy-editor save.
+  var CAPTION_TAGS = {};
+  [
+    'blockquote',
+    'p',
+    'a',
+    'ul',
+    'ol',
+    'nl',
+    'li',
+    'b',
+    'i',
+    'strong',
+    'em',
+    'small',
+    'big',
+    'span',
+    'strike',
+    'hr',
+    'br',
+    'div',
+    'table',
+    'thead',
+    'caption',
+    'tbody',
+    'tr',
+    'th',
+    'td',
+    'pre',
+    'sup',
+    'u',
+    'h1',
+  ].forEach(function (t) {
+    CAPTION_TAGS[t.toUpperCase()] = 1;
+  });
+  var CAPTION_ATTRS = {
+    A: ['name', 'target', 'data-ref'],
+    P: ['style'],
+    SPAN: ['style'],
+    DIV: ['style'],
+    TD: ['colspan'],
+  };
+  var CAPTION_STYLES = { color: 1, 'background-color': 1, 'text-align': 1 };
+  var SAFE_STYLE_VALUE = /^[#a-z0-9(),.\s%-]+$/i;
+  var SAFE_ATTR_VALUE = /^[^<>"'`]*$/;
   var DROP_WITH_CONTENT = { SCRIPT: 1, STYLE: 1, IFRAME: 1, OBJECT: 1, EMBED: 1, TEMPLATE: 1, NOSCRIPT: 1 };
 
   function escapeHtml(value) {
@@ -40,7 +86,49 @@
     return /^(https?:|mailto:|\/(?!\/)|#)/i.test(String(href).trim());
   }
 
-  function cleanNode(node, doc) {
+  function cleanStyle(style) {
+    return String(style)
+      .split(';')
+      .map(function (decl) {
+        var idx = decl.indexOf(':');
+        if (idx < 0) {
+          return '';
+        }
+        var prop = decl.slice(0, idx).trim().toLowerCase();
+        var val = decl.slice(idx + 1).trim();
+        if (!CAPTION_STYLES[prop] || !SAFE_STYLE_VALUE.test(val) || /url\(|expression/i.test(val)) {
+          return '';
+        }
+        return prop + ': ' + val;
+      })
+      .filter(Boolean)
+      .join('; ');
+  }
+
+  function copyCaptionAttributes(child, copy, tag) {
+    (CAPTION_ATTRS[tag] || []).forEach(function (name) {
+      var value = child.getAttribute(name);
+      if (value === null) {
+        return;
+      }
+      if (name === 'style') {
+        value = cleanStyle(value);
+        if (!value) {
+          return;
+        }
+      } else if (!SAFE_ATTR_VALUE.test(value)) {
+        return;
+      }
+      copy.setAttribute(name, value);
+    });
+    var cls = child.getAttribute('class');
+    if (cls && /^[A-Za-z0-9_ -]+$/.test(cls)) {
+      copy.setAttribute('class', cls);
+    }
+  }
+
+  function cleanNode(node, doc, caption) {
+    var allowed = caption ? CAPTION_TAGS : ALLOWED_TAGS;
     var out = doc.createDocumentFragment();
     Array.prototype.forEach.call(node.childNodes, function (child) {
       if (child.nodeType === 3) {
@@ -50,8 +138,8 @@
         if (DROP_WITH_CONTENT[tag]) {
           return;
         }
-        if (!ALLOWED_TAGS[tag]) {
-          out.appendChild(cleanNode(child, doc));
+        if (!allowed[tag]) {
+          out.appendChild(cleanNode(child, doc, caption));
           return;
         }
         var copy = doc.createElement(tag.toLowerCase());
@@ -62,7 +150,10 @@
             copy.setAttribute('rel', 'noopener noreferrer');
           }
         }
-        copy.appendChild(cleanNode(child, doc));
+        if (caption) {
+          copyCaptionAttributes(child, copy, tag);
+        }
+        copy.appendChild(cleanNode(child, doc, caption));
         out.appendChild(copy);
       }
     });
@@ -71,14 +162,19 @@
 
   // Returns markup limited to simple formatting tags: no event handlers, styles or scripts.
   // Parsed with DOMParser, which builds an inert document, so nothing runs while cleaning.
-  function sanitizeHtml(value) {
+  function sanitizeHtml(value, caption) {
     if (value === null || value === undefined) {
       return '';
     }
     var parsed = new DOMParser().parseFromString('<body>' + String(value) + '</body>', 'text/html');
     var holder = parsed.createElement('div');
-    holder.appendChild(cleanNode(parsed.body, parsed));
+    holder.appendChild(cleanNode(parsed.body, parsed, caption));
     return holder.innerHTML;
+  }
+
+  // Same cleaning with the caption policy (lists, tables, data-ref, the allowed styles).
+  function sanitizeCaptionHtml(value) {
+    return sanitizeHtml(value, true);
   }
 
   // Media URL allowlist. Mirrors sefaria/sheet_media.py (is_safe_media_url): https only (http and
@@ -105,6 +201,8 @@
 
   function normalizeMediaUrl(url) {
     if (typeof url === 'string') {
+      // Stored URLs from older saves can carry HTML-encoded query separators; decode before validating.
+      url = url.replace(/&amp;/gi, '&');
       if (url.indexOf('//') === 0) {
         return 'https:' + url;
       }
@@ -160,6 +258,7 @@
   var api = {
     escapeHtml: escapeHtml,
     sanitizeHtml: sanitizeHtml,
+    sanitizeCaptionHtml: sanitizeCaptionHtml,
     parseMediaUrl: parseMediaUrl,
     safeMediaUrl: safeMediaUrl,
     isSafeMediaUrl: isSafeMediaUrl,

@@ -20,7 +20,7 @@ MCP_LOGIN_TOKEN_AUDIENCE = "mcp-login"
 MCP_LOGIN_TOKEN_TTL_MINUTES = 5
 MCP_TOKEN_AUDIENCE = "mcp"
 NONCE_SIZE_BYTES = 12
-# Publicly known placeholder; tokens built with it are forgeable, so it is only accepted under DEBUG.
+# Development-only default value; it is only accepted under DEBUG.
 INSECURE_DEFAULT_CHATBOT_USER_ID_SECRET = "secret"
 
 
