@@ -1,4 +1,4 @@
-import { createChangeCounter, createDeferredRefresh, isFailedSave } from '../sheetSaveOutcome';
+import { createDeferredRefresh, isFailedSave } from '../sheetSaveOutcome';
 
 describe('isFailedSave', () => {
   test('a response with an error is a failed save', () => {
@@ -27,17 +27,5 @@ describe('createDeferredRefresh', () => {
     expect(deferred.isPending()).toBe(true);
     expect(deferred.take()).toBe(true);
     expect(deferred.take()).toBe(false);
-  });
-});
-
-describe('createChangeCounter', () => {
-  test('a mark is current until the document changes again', () => {
-    const counter = createChangeCounter();
-    counter.bump();
-    const sentAt = counter.mark();
-    expect(counter.isCurrent(sentAt)).toBe(true);
-    counter.bump();
-    expect(counter.isCurrent(sentAt)).toBe(false);
-    expect(counter.isCurrent(counter.mark())).toBe(true);
   });
 });
