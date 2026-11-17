@@ -2871,6 +2871,7 @@ class ReaderApp extends Component {
                       hide-launcher={
                         this.state.chatbotHideLauncher == null ? undefined : String(this.state.chatbotHideLauncher)
                       }
+                      design-system-preview={this.props.design_system_preview || undefined}
                     >
                       {!Sefaria._uid && (
                         // Shown in the assistant's login prompt (its signup-options slot). They stay in
