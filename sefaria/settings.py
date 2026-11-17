@@ -80,6 +80,21 @@ STATICFILES_FINDERS = (
 
 STATICFILES_DIRS = [
     relative_to_abs_path("../static/"),
+    # Sefaria design system tokens (Sefaria/design-system), installed by npm and served as
+    # static/design-system/core.css and semantic.css. Pinned in package.json.
+    ("design-system", relative_to_abs_path("../node_modules/@sefaria/design-system")),
+]
+
+# Hosts where ?design_system=<branch or commit> previews an unreleased design-system version
+# (sefaria/utils/design_system.py). Never production. Entries starting with "." match subdomains.
+DESIGN_SYSTEM_PREVIEW_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    ".cauldron.sefaria.org",
+    "sefariastaging.org",
+    ".sefariastaging.org",
+    "sefariastaging-il.org",
+    ".sefariastaging-il.org",
 ]
 
 # Make this unique, and don't share it with anybody.
@@ -122,6 +137,7 @@ TEMPLATES = [
                 "sefaria.system.context_processors.large_data",
                 "sefaria.system.context_processors.body_flags",
                 "sefaria.system.context_processors.chatbot_user_token",
+                "sefaria.system.context_processors.design_system",
                 "sefaria.system.context_processors.base_props",
                 "sefaria.system.context_processors.module_context",
             ],
