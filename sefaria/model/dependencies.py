@@ -186,7 +186,7 @@ for topic_klass in (topic.Topic, topic.PersonTopic, topic.AuthorTopic):
     subscribe(process_topic_save_in_topic_search, topic_klass, "save")
     subscribe(process_topic_delete_in_topic_search, topic_klass, "delete")
     subscribe(topic.process_topic_delete, topic_klass, "delete")
-    subscribe(topic.process_topic_description_change, topic_klass, "attributeChange", "description")
+subscribe(topic.process_topic_description_change, topic.Topic, "attributeChange", "description")
 subscribe(marked_up_text_chunk.process_topic_slug_change, topic.Topic, "attributeChange", "slug")
 
 

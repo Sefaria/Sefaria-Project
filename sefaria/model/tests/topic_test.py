@@ -431,11 +431,15 @@ def _topic_classes():
 
 class TestTopicDeleteCascadeSubclasses:
     @pytest.mark.parametrize("klass", _topic_classes(), ids=lambda k: k.__name__)
-    def test_delete_and_description_cascades_subscribed(self, klass):
+    def test_delete_cascade_subscribed(self, klass):
         assert topic_model.process_topic_delete in notify_deps.get((klass, "delete", None), [])
-        assert topic_model.process_topic_description_change in notify_deps.get(
+
+    @pytest.mark.parametrize("klass", _topic_classes(), ids=lambda k: k.__name__)
+    def test_description_change_link_creation_only_for_base_topic(self, klass):
+        subscribed = topic_model.process_topic_description_change in notify_deps.get(
             (klass, "attributeChange", "description"), []
         )
+        assert subscribed == (klass is Topic)
 
     @pytest.mark.django_db
     def test_deleting_person_topic_removes_links_sheet_tags_and_django_row(self, django_db_setup, django_db_blocker):
