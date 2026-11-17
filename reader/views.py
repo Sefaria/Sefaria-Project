@@ -160,6 +160,7 @@ from sefaria.utils.calendars import (
     parashat_hashavua_and_haftara,
 )
 from sefaria.utils.chatbot import build_chatbot_user_token
+from sefaria.utils.design_system import design_system_preview
 from sefaria.utils.domains_and_languages import (
     current_domain_lang,
     get_cookie_domain,
@@ -486,6 +487,8 @@ def base_props(request):
     chatbot_data = {
         "chatbot_api_base_url": CHATBOT_API_BASE_URL,
         "chatbot_version": chatbot_version,
+        # The Library Assistant previews this design-system version too (its design-system-preview attribute).
+        "design_system_preview": design_system_preview(request),
         "chatbot_max_input_chars": remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=10000),
         "chatbot_max_prompts": remoteConfigCache.get(CHATBOT_MAX_PROMPTS, default=100),
         "chatbot_promo_learn_more_urls": remoteConfigCache.get(CHATBOT_PROMO_LEARN_MORE_URLS, default=None),

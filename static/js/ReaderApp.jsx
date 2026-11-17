@@ -2894,6 +2894,7 @@ class ReaderApp extends Component {
                       max-prompts={this.props.chatbot_max_prompts}
                       interface-lang={Sefaria._getShortInterfaceLang()}
                       anon-free-answers={this.props.chatbot_anon_free_answers ?? undefined}
+                      design-system-preview={this.props.design_system_preview || undefined}
                     >
                       {!Sefaria._uid && (
                         // Shown in the assistant's login prompt (its signup-options slot). They stay in
