@@ -25,6 +25,12 @@ Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader ha
   question for the link and the button), waiting up to 3s for the widget's script before falling back to the browse button.
   Not here, as not on master either: the anonymous Stop and sheet behaviour live in the widget (ai-chatbot); PR #3791's further
   copy changes are not merged. (AI-003, AI-011, GUI-001, SRC-064)
+- **The Library Assistant docked ("Maximize & move to sidebar") sits beside the reader**, as on sefaria.org: the page and
+  `<lc-chatbot>` share a flex row (the old `#main`), so the docked widget is a full-height column (right in English, left in Hebrew)
+  and the panels narrow beside it; at 601-842px, where the window scrolls, the column stays in view above the cookie notice. It used to
+  drop below the page. The widget also inherits sefaria.org's line height and font, so its text sits as there. _Verified_ with
+  Playwright against www.sefaria.org and the real widget, 2026-11-18: same chat box, panel widths and verse positions at 1400, 1100 and
+  800px, one and two panels, English and Hebrew; phones identical (the widget's own Ask button and sheet). (AI-011)
 - No reader-visible change from the rest: search reindexing, Varnish, gunicorn, deploy and auth-service infrastructure.
 
 ## 2026-11-11 — statuses checked against their notes and the code

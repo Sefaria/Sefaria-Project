@@ -1,13 +1,27 @@
 /* A fixed-height page on desktop: the header, then the workspace filling the rest (each panel scrolls on its own). */
 .app { display: flex; flex-direction: column; height: 100dvh; }
 .header { flex: none; }
+/* Under the header, the page and the Library Assistant side by side (sefaria.org's #main: a flex row of .panelContainer, flex 1 and
+   min-width 0, and <lc-chatbot>). Floating, the widget's element takes no room; docked, it is a full-height column (its own
+   :host rule, height 100%) and the page narrows beside it. The row starts under the header, so the docked column needs no inset
+   for it (the widget's --lc-docked-top-offset, 60px for sefaria.org's header drawn over #main). */
+.body { flex: 1; min-height: 0; display: flex; flex-direction: row; }
+.body > :global(lc-chatbot) { --lc-docked-top-offset: 0px; }
 /* the page scrolls inside, under a header (and banner) that stay put, as the old .readerNavMenu .content did */
-.main { flex: 1; min-height: 0; overflow-y: auto; outline: none; }
+.main { flex: 1; min-width: 0; min-height: 0; overflow-y: auto; outline: none; }
 
 /* Phone: the page scrolls; a reader hides the site header (the panel has its own controls). */
 @media (max-width: 842px) {
   .app { display: block; height: auto; }
   .main { overflow-y: visible; }
+  /* the page scrolls the window here: a docked widget (601-842px; a phone gets the widget's own full-screen sheet) stays in view
+     beside it as a column the height of the screen, as the old #main kept it, under the header's 60px */
+  .body { align-items: flex-start; }
+  /* above the cookie notice while it spans the bottom (--bottom-bar-height), as the old #main ended above it */
+  .body > :global(lc-chatbot) {
+    position: sticky; top: 0; height: calc(100dvh - var(--bottom-bar-height, 0px)); max-height: calc(100dvh - var(--bottom-bar-height, 0px));
+    --lc-docked-top-offset: 60px;
+  }
   .app[data-reading="true"] .header { display: none; }
   /* ...unless the panel's menu button opened the navigation menu */
   .app[data-reading="true"][data-menu="open"] .header { display: block; position: sticky; top: 0; z-index: 70; background: var(--sefaria-color-surface); }

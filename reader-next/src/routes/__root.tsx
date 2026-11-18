@@ -259,10 +259,14 @@ function Shell() {
       <div className={appCss.header}>
         <SiteHeader next={loc.pathname + (loc.searchStr ?? "")} search={search} viewer={viewer} menuOpen={menuOpen} onMenuOpenChange={setMobileMenuOpen} optIn={optIn.actions} onOpenAssistant={assistantShown ? openAssistantFromHeader : undefined} />
       </div>
-      <main id="main" className={appCss.main} tabIndex={-1} data-scroll-restoration-id="main">
-        <Outlet />
-      </main>
-      <LibraryAssistant search={loc.searchStr ?? ""} />
+      {/* the page and the Library Assistant side by side: docked, the widget is a full-height column in this row and the page narrows
+          beside it (sefaria.org's #main, a flex row of .panelContainer and <lc-chatbot>) */}
+      <div className={appCss.body}>
+        <main id="main" className={appCss.main} tabIndex={-1} data-scroll-restoration-id="main">
+          <Outlet />
+        </main>
+        <LibraryAssistant search={loc.searchStr ?? ""} />
+      </div>
       <CookieNotice />
       <BannerImpressionProbe />
       {optIn.dialog}
