@@ -1,0 +1,81 @@
+/* Global editor rules for markup the canvas's node views write outside CSS Modules. */
+
+.dp-editor-html-tag {
+  padding: 0 0.125rem;
+  border-radius: 3px;
+  background: var(--dp-color-bg-subtle, #f3f4f6);
+  color: var(--dp-color-text-muted, #6b7280);
+  font-family: var(--dp-font-mono, monospace);
+  font-size: 0.75em;
+}
+
+dp-unwrap {
+  display: contents;
+}
+
+/* In a tight list (and a table cell holding one paragraph) the public page has no <p>; the canvas keeps the
+   paragraph node, so it must not add spacing. */
+ul[data-dp-editor-tight] > li > p,
+ol[data-dp-editor-tight] > li > p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* ProseMirror's own required rules (prosemirror-view/style/prosemirror.css and TipTap's injected CSS, which the
+   CSP does not allow as a <style> element). Class names are the libraries'. */
+/* stylelint-disable selector-class-pattern */
+.ProseMirror {
+  position: relative;
+  font-feature-settings: 'liga' 0;
+  font-variant-ligatures: none;
+  overflow-wrap: break-word;
+  white-space: break-spaces;
+}
+
+.ProseMirror pre {
+  white-space: pre-wrap;
+}
+
+.ProseMirror li {
+  position: relative;
+}
+
+.ProseMirror [contenteditable='false'] {
+  white-space: normal;
+}
+
+.ProseMirror [contenteditable='false'] [contenteditable='true'] {
+  white-space: pre-wrap;
+}
+
+.ProseMirror-hideselection *::selection {
+  background: transparent;
+}
+
+.ProseMirror-hideselection {
+  caret-color: transparent;
+}
+
+.ProseMirror-selectednode {
+  outline: 2px solid var(--dp-color-primary, #2563eb);
+}
+
+.ProseMirror-gapcursor {
+  position: absolute;
+  display: none;
+  pointer-events: none;
+}
+
+.ProseMirror-gapcursor::after {
+  position: absolute;
+  top: -2px;
+  display: block;
+  width: 20px;
+  border-top: 1px solid black;
+  content: '';
+}
+
+.ProseMirror-focused .ProseMirror-gapcursor {
+  display: block;
+}
+/* stylelint-enable selector-class-pattern */

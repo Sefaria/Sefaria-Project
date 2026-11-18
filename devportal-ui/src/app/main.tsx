@@ -6,4 +6,9 @@ import './fonts.css';
 import './base.css';
 import { mount } from './mount';
 
-mount(document);
+// The staff editor is its own lazy chunk; only /editor pages carry its root element.
+if (document.getElementById('dp-editor-root')) {
+  void import('../editor').then((m) => m.mountEditor(document));
+} else {
+  mount(document);
+}
