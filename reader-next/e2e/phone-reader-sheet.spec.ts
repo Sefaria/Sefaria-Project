@@ -105,4 +105,16 @@ test.describe("the translation suggestion on a phone", () => {
     await expect(sheet(page)).toHaveCount(1);
     await expect(go).toBeHidden();
   });
+
+  // @feature SHL-061 @feature TXD-001
+  test("the bar's text display menu opens over it: every option takes a tap @mobile", async ({ page }) => {
+    await open(page, "/Genesis.1?lang=bi");
+    await expect(page.getByRole("region", { name: "Suggestion" })).toBeVisible();
+    await page.getByRole("button", { name: "Text display options" }).tap();
+    const menu = page.locator('[class*="displayMenu"]');
+    await expect(menu).toBeVisible();
+    const n = await menu.locator("button").count();
+    expect(n).toBeGreaterThan(4);
+    expect(await covering(page, `[...document.querySelector('[class*="displayMenu"]').querySelectorAll("button")]`)).toEqual(Array(n).fill(null));
+  });
 });
