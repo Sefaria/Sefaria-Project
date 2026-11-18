@@ -67,6 +67,13 @@ export class SourceTextPage extends HelperBase {
         await expect(this.page.getByRole('banner')).toContainText(text)
     }
 
+    /** Asserts the reader rendered the segment for `ref` with some text in it (any language). */
+    async expectSegmentHasText(ref: string) {
+        const segment = this.page.locator(`div.segment[data-ref="${ref}"]`).first();
+        await expect(segment).toBeVisible({ timeout: t(20000) });
+        await expect(segment).toHaveText(/\S/);
+    }
+
     async clickSegment(ref: string) {
         const segment = this.page.locator(`div.segment[data-ref="${ref}"]`);
         await expect(segment).toBeVisible();

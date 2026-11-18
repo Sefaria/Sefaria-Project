@@ -80,7 +80,24 @@ const localBase = (raw: string | undefined, voicesHost?: string) => {
   return `${u.protocol}//${host}`
 }
 
-export const MODULE_URLS = isLocalSandbox ? {
+// Explicit per-module URLs win over the derivations below. CI's per-PR sandboxes
+// (https://sandbox-<sha>.cauldron.sefaria.org, Voices on sheets.sandbox-<sha>...)
+// don't follow the www./voices. pattern, so the PR e2e job sets these.
+// Keep this in sync with the same override in ../playwright.config.ts.
+const EXPLICIT_LIBRARY_URL = process.env.E2E_LIBRARY_URL
+const EXPLICIT_VOICES_URL = process.env.E2E_VOICES_URL
+
+export const MODULE_URLS = EXPLICIT_LIBRARY_URL ? {
+  EN : {
+    LIBRARY: EXPLICIT_LIBRARY_URL,
+    VOICES:  EXPLICIT_VOICES_URL ?? EXPLICIT_LIBRARY_URL
+  },
+  // No Hebrew-domain sandbox exists per PR; Hebrew runs use the interfaceLang cookie.
+  HE : {
+    LIBRARY: EXPLICIT_LIBRARY_URL,
+    VOICES:  EXPLICIT_VOICES_URL ?? EXPLICIT_LIBRARY_URL
+  }
+} as const : isLocalSandbox ? {
   EN : {
     LIBRARY: localBase(process.env.SANDBOX_URL),
     VOICES:  localBase(process.env.SANDBOX_URL, 'voices')
@@ -492,7 +509,7 @@ export const MODULE_TEXTS = {
       SIGN_UP_BUTTON: 'Sign Up'
     },
     HE: {
-      TEXTS_LINK: 'מקורות',
+      TEXTS_LINK: 'טקסטים', // was 'מקורות' until the header label changed
       TOPICS_LINK: 'נושאים',
       SIGN_UP_BUTTON: 'הרשמה'
     }
