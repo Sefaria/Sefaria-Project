@@ -49,6 +49,13 @@ RULES = [
     ("nginx log_format and scrub maps", ENVS, "ConfigMap", r"^nginx-conf-",
      rf"({BLANK}|\s*#.*|\s*map \$\S+ \$(uri_scrub_\d|referer_scrub_\d|uri_key_\d|referer_key_\d|request_uri_scrubbed|referer_scrubbed) \{{"
      r"|\s*\"~\*.*\" .*;|\s*default \$(request_uri|http_referer|uri_scrub_\d|referer_scrub_\d|uri_key_\d|referer_key_\d);|\s*\}|\s*log_format structured .*)"),
+    # This change: gunicorn access and error loggers keep their own handler and stop propagating to the
+    # root logger in local_settings, so each access line is written once instead of twice.
+    ("gunicorn loggers stop propagating", ENVS, "ConfigMap", r"^gunicorn-config-",
+     r'(\s*|\s*#.*|\s*"loggers": \{|\s*"gunicorn\.(error|access)": \{"handlers": \["(error_console|console)"\], "level": "INFO", "propagate": False\},|\s{8}\},)'),
+    # This change: the shared structlog formatter gives records from plain stdlib loggers a level and a timestamp.
+    ("local_settings foreign_pre_chain", ENVS, "ConfigMap", r"^local-settings-",
+     r'(\s*|\s*#.*|\s*"foreign_pre_chain": \[|\s*structlog\.processors\.TimeStamper\(fmt="iso"\),|\s*structlog\.stdlib\.add_logger_name,|\s*sefaria_logging\.add_severity,|\s{16}\],)'),
     ("staging sync-postgres CronJob", ("staging",), "CronJob", r"sync-postgres", r".*"),
     # Not in the plan's list: one comment line in the ClientTrafficPolicy, a no-op for Kubernetes.
     ("ClientTrafficPolicy comment", ENVS, "ClientTrafficPolicy", r".*", rf"({BLANK}|\s*# Port 80 still serves the site here.*)"),
