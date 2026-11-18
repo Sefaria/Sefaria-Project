@@ -309,6 +309,14 @@ data:
             "json_formatter": {
                 "()": structlog.stdlib.ProcessorFormatter,
                 "processor": structlog.processors.JSONRenderer(),
+                # Records from plain stdlib loggers (gunicorn, django, celery) reach this
+                # handler without an event_dict, so they need their own level and
+                # timestamp or the log pipeline cannot classify them.
+                "foreign_pre_chain": [
+                    structlog.processors.TimeStamper(fmt="iso"),
+                    structlog.stdlib.add_logger_name,
+                    sefaria_logging.add_severity,
+                ],
             },
         },
         'handlers': {
