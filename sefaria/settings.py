@@ -133,6 +133,7 @@ TEMPLATES = [
                 "sefaria.system.context_processors.cache_timestamp",
                 "sefaria.system.context_processors.large_data",
                 "sefaria.system.context_processors.body_flags",
+                "sefaria.system.context_processors.add_to_home_screen",
                 "sefaria.system.context_processors.chatbot_user_token",
                 "sefaria.system.context_processors.design_system",
                 "sefaria.system.context_processors.base_props",
