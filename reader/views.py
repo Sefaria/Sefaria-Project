@@ -4821,7 +4821,9 @@ def profile_api(request, slug=None):
                 profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
 
         profile = UserProfile(id=request.user.id)
+        la_was_enabled = library_assistant.is_enabled(profile)
         profile.update(profileUpdate)
+        library_assistant.show_floating_button_if_turned_on(profile, la_was_enabled)
 
         error = profile.errors()
         # TODO: should validation not need to be called manually? maybe inside the save
@@ -5057,9 +5059,11 @@ def profile_sync_api(request):
                 if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
                     profile.attr_time_stamps.update({field: settings_time_stamp})
+                    la_was_enabled = library_assistant.is_enabled(profile)
                     settingsInDB = profile.settings
                     settingsInDB.update(field_data)
                     profile.update({field: settingsInDB, "attr_time_stamps": profile.attr_time_stamps})
+                    library_assistant.show_floating_button_if_turned_on(profile, la_was_enabled)
                     profile_updated = True
             elif field == "user_history":
                 if len(field_data) > MAX_LEN_USER_HISTORY:

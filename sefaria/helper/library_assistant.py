@@ -78,6 +78,15 @@ def is_floating_button_hidden(profile):
     return normalize(settings.get(FLOATING_BUTTON_HIDDEN_KEY, False))
 
 
+def show_floating_button_if_turned_on(profile, was_enabled):
+    """
+    Turning the assistant back on starts with its Ask button shown: a hidden choice made
+    before it was turned off is cleared. Call after updating the profile, before saving.
+    """
+    if not was_enabled and is_enabled(profile):
+        profile.settings[FLOATING_BUTTON_HIDDEN_KEY] = False
+
+
 def is_enabled_for_anonymous():
     """
     Whether logged-out visitors get the Library Assistant.
@@ -125,7 +134,9 @@ def set_enabled(user, enabled):
     """
     enabled = normalize(enabled)
     profile = UserProfile(id=user.id)
+    was_enabled = is_enabled(profile)
     profile.update({"settings": {SETTING_KEY: enabled}})
+    show_floating_button_if_turned_on(profile, was_enabled)
     profile.save()
 
     return enabled

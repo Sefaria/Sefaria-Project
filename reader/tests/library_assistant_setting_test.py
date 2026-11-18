@@ -318,6 +318,38 @@ class FloatingButtonHiddenTest(LibraryAssistantUserTestCase):
 
         self.assertNotIn("chatbot_hide_launcher", self.access_props())
 
+    def test_turning_the_assistant_back_on_shows_the_button(self):
+        self.post_setting(True)
+        self.post_hidden(True)
+        self.post_setting(False)
+        self.post_setting(True)
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], False)
+
+    def test_turning_back_on_wins_over_a_hidden_choice_posted_with_it(self):
+        # The settings page posts every setting at once, the old hidden choice included.
+        self.post_setting(True)
+        self.post_hidden(True)
+        self.post_setting(False)
+        self.post_profile({"settings": {SETTING_KEY: True, self.KEY: True}})
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], False)
+
+    def test_enabling_through_the_signup_flow_shows_the_button(self):
+        self.post_setting(True)
+        self.post_hidden(True)
+        library_assistant.set_enabled(self.user, False)
+        library_assistant.set_enabled(self.user, True)
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], False)
+
+    def test_saving_other_settings_keeps_the_button_hidden(self):
+        self.post_setting(True)
+        self.post_hidden(True)
+        self.post_setting(True)
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], True)
+
 
 class RequestedChatbotVersionTest(SimpleTestCase):
     def request(self, query="", session=None):
