@@ -4817,7 +4817,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
                 <input
                   id="email"
                   type="text"
-                  placeholder={Sefaria._('New Email')}
+                  placeholder={Sefaria._('account_settings.new_email')}
                   autoComplete="off"
                   value={emailFields.email}
                   onChange={(e) => setEmailFields({ ...emailFields, email: e.target.value })}
@@ -4825,7 +4825,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
                 <input
                   id="confirmEmail"
                   type="text"
-                  placeholder={Sefaria._('Confirm New Email')}
+                  placeholder={Sefaria._('account_settings.confirm_new_email')}
                   autoComplete="off"
                   value={emailFields.confirmEmail}
                   onChange={(e) => setEmailFields({ ...emailFields, confirmEmail: e.target.value })}
@@ -4833,7 +4833,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
                 <input
                   id="confirmPassword"
                   type="password"
-                  placeholder={Sefaria._('Password')}
+                  placeholder={Sefaria._('account_settings.password')}
                   autoComplete="new-password"
                   value={emailFields.confirmPassword}
                   onChange={(e) => setEmailFields({ ...emailFields, confirmPassword: e.target.value })}

@@ -578,6 +578,18 @@ describe('Account tab after Back', () => {
   });
 });
 
+describe('Account tab in Hebrew', () => {
+  it('has Hebrew placeholders on the email change form', () => {
+    const he = require('../sefaria/i18n/interface/he.json');
+    mount();
+    const placeholders = Array.from(container.querySelectorAll('#username-change-edit input')).map(
+      (i) => i.placeholder
+    );
+    expect(placeholders).toHaveLength(3);
+    placeholders.forEach((id) => expect(he[id]).toMatch(/[֐-׿]/));
+  });
+});
+
 /* Django answers a logged-out call to a login_required endpoint with the login page: status 200, an HTML body, which
    jQuery hands to the success callback as a string. Nothing here is a mocked .fail(). */
 const LOGIN_PAGE =
