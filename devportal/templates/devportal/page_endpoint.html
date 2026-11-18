@@ -1,0 +1,39 @@
+{% extends base_template %}
+{% comment %}
+  An endpoint page of the API reference (PLAN.md §2.5; view: devportal/views/reference.py).
+
+  Django renders the title, the description and the overlay's free Markdown from the overlay and the Python
+  spec layer; the URL line, parameters and responses come from the file the Vite build prerendered from the
+  React components for this operationId. React replaces this markup in one commit (createRoot on #dp-root),
+  reading the same data from the #dp-data island.
+
+  `base_template` is devportal/base.html when the shell provides it (blocks: title, content, data), else a
+  minimal stand-in. `prerendered_html` is what `{% devportal_prerendered "endpoint" operation_id %}`
+  returns; the view calls the tag's function, so this file compiles before the devportal_assets library
+  exists. When that library lands this can become:
+    {% load devportal_assets %}{% devportal_prerendered "endpoint" operation.operation_id %}
+{% endcomment %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<article class="dp-endpoint" data-operation-id="{{ operation.operation_id }}">
+  <header class="dp-endpoint-header">
+    <h1 class="dp-endpoint-title" dir="auto">{{ merged.title }}</h1>
+    {% if merged.deprecated %}<span class="dp-endpoint-deprecated">Deprecated</span>{% endif %}
+  </header>
+  {% if description_html %}
+  <div class="dp-endpoint-description dp-markdown">{{ description_html|safe }}</div>
+  {% endif %}
+  {% if body_html %}
+  <div class="dp-endpoint-body dp-markdown">{{ body_html|safe }}</div>
+  {% endif %}
+  {% if prerendered_html %}
+  {{ prerendered_html|safe }}
+  {% else %}
+  <div class="dp-endpoint-request" data-dp-prerender="missing">
+    <span class="dp-method dp-method-{{ operation.method }}">{{ operation.method|upper }}</span>
+    <code class="dp-endpoint-url">{{ payload.site.apiOrigin }}{{ operation.path }}</code>
+  </div>
+  {% endif %}
+</article>
+{% endblock %}
+{% block data %}{{ payload|json_script:"dp-data" }}{% endblock %}
