@@ -22,6 +22,12 @@
 /* and no language button: sefaria.org builds it for several panels only (ConnectionsPanelHeader.jsx: `if (this.props.multiPanel)`);
    on a phone the sidebar follows the panel's language */
 @media (max-width: 842px) { .headerTitle { text-align: center; } .langToggle { display: none; } }
+/* the title centred on the whole bar, as there (138px in at 375, 2026-11-18): the Close this client adds (sefaria.org's phone sheet
+   has none; Back or the verse close it there) sits over the bar's end without pushing the title off centre */
+@media (max-width: 842px) {
+  .header { position: relative; }
+  .header > .headerTitle ~ button:last-child { position: absolute; inset-inline-end: 34px; top: 50%; transform: translateY(-50%); margin: 0; }
+}
 
 /* Print (legacy s2-print.css .connectionsPanel, .connectionsHeader): the sidebar is not printed */
 @media print { .panel { display: none !important; } }

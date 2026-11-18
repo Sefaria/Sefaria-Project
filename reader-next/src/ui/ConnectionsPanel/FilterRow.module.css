@@ -53,3 +53,8 @@
 .heading { margin: 20px 0 10px; padding-bottom: 13px; line-height: 18px; letter-spacing: normal; color: var(--sefaria-color-text-dark-grey); }
 .row:not([data-tool]):not(.list) { color: var(--sefaria-color-text-strong); }
 .row:not([data-tool]) .count { font-size: 16px; font-weight: 100; letter-spacing: 1px; color: var(--sefaria-color-text-dark-grey); }
+
+/* Measured on sefaria.org 2026-11-18 (375 and 1280): a tool's text 15px after its 18px icon (it was 12px); the EN tag Roboto 12px,
+   #6f6f6f, a 1px #ccc border with 3px corners, 3px sides, 16px high (span.englishAvailableTag) */
+.row[data-tool] { gap: 15px; }
+.tag { padding: 0 3px; border-radius: 3px; font: 400 12px/14px var(--sefaria-font-ui-en); letter-spacing: normal; color: var(--sefaria-color-text-muted); }
