@@ -346,9 +346,17 @@ export function TextColumn(props: TextColumnProps) {
       atStart.current = false;
       engine.restorePosition({ ref: selected, offset: PHONE_SELECTED_TOP });
     } else if (wasOpen) {
+      // what came back above the column (the bar, the translation suggestion) pushed the text down by its height
       const el = contentRef.current?.querySelector<HTMLElement>(`[role="group"][data-ref="${CSS.escape(selected)}"]`);
-      const bar = sc.closest("[data-panel-id]")?.querySelector<HTMLElement>(":scope header");
-      if (el && bar) engine.restorePosition({ ref: selected, offset: el.getBoundingClientRect().top - bar.offsetHeight });
+      const bar = sc.closest("[data-panel-id]")?.querySelector<HTMLElement>("header");
+      let column: Element | null = sc;
+      while (column && bar && column.parentElement !== bar.parentElement) column = column.parentElement;
+      let above = 0;
+      for (let p = column?.previousElementSibling; p; p = p.previousElementSibling) {
+        const pos = getComputedStyle(p).position;
+        if (pos !== "absolute" && pos !== "fixed") above += p.getBoundingClientRect().height;
+      }
+      if (el && column) engine.restorePosition({ ref: selected, offset: el.getBoundingClientRect().top - above });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- placed when the choice or the sheet changes; `engine` is a new object each render, its methods are stable
   }, [selected, connectionsOnScreen]);
