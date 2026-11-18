@@ -88,8 +88,10 @@ spec:
       #     database's keys: decrypt and check it, then repoint it or give staging its own Secret, before enabling.
       # Staging rehearses every prod step first (Yotam, 2026-11-18): on in observe, with its own registry Secret.
       enabled: true
-      # observe: never denies; records what would be rejected in x-sefaria-auth-result.
-      mode: observe
+      # enforce: /api/knn-search (the chart's gatedPaths) needs a registered sfr_ key in x-api-key, and an unknown or
+      # revoked sfr_ key gets 401 on that path; a website-restricted key used from another origin gets 403 on any path.
+      # Back to observe to stop denying.
+      mode: enforce
       replicaCount: 1
       image:
         # Release image, built by scripts/release-prepare.sh; deploy-static.yaml writes the tag on each release.
