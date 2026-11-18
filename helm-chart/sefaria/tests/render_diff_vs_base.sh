@@ -53,6 +53,12 @@ RULES = [
      rf"({BLANK}|\s*#.*|\s*map \$\S+ \$(uri_scrub_\d|referer_scrub_\d|uri_key_\d|referer_key_\d|request_uri_scrubbed|referer_scrubbed) \{{"
      r"|\s*\"~\*.*\" .*;|\s*default \$(request_uri|http_referer|uri_scrub_\d|referer_scrub_\d|uri_key_\d|referer_key_\d);|\s*\}|\s*log_format structured .*)"),
     ("staging sync-postgres CronJob", ("staging",), "CronJob", r"sync-postgres", r".*"),
+    # A varnish restart must not drop a request: nginx keeps the web tier as a backup peer for the varnish upstream.
+    ("varnish last-resort web peer in nginx", ENVS, "ConfigMap", r"^nginx-conf-",
+     r"(\s*#.*|\s*server \$\{WEB_HOST\}:80 backup;|\s*proxy_next_upstream error;"
+     r"|\s*envsubst '[^']*' < /conf/nginx.template.conf > /nginx.conf)"),
+    ("WEB_HOST on the nginx Rollout", ENVS, "Rollout", r"-nginx$",
+     r'(\s*#.*|\s*- name: WEB_HOST|\s*value: "web-[a-z]+-\d+")'),
     # Not in the plan's list: one comment line in the ClientTrafficPolicy, a no-op for Kubernetes.
     ("ClientTrafficPolicy comment", ENVS, "ClientTrafficPolicy", r".*", rf"({BLANK}|\s*# Port 80 still serves the site here.*)"),
 ]

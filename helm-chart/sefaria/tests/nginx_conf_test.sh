@@ -47,7 +47,7 @@ TMP="$(mktemp -d)"
 RUN_ID="nginxtest-$$"
 NET="$RUN_ID-net"
 cleanup() {
-  docker rm -f "$RUN_ID-stub" "$RUN_ID-nginx" >/dev/null 2>&1 || true
+  docker rm -f "$RUN_ID-stub" "$RUN_ID-nginx" "$RUN_ID-varnishdown" >/dev/null 2>&1 || true
   docker network rm "$NET" >/dev/null 2>&1 || true
   rm -rf "$TMP"
 }
@@ -62,7 +62,7 @@ bad() { echo "FAIL: $*"; fail=1; }
 cat > "$TMP/stub.conf" <<'CONF'
 events {}
 http {
-  server { listen 8040; listen 9200; location / { return 200 "stub\n"; } }
+  server { listen 80; listen 8040; listen 9200; location / { return 200 "stub\n"; } }
 }
 CONF
 start_stub() {
@@ -93,10 +93,10 @@ open(f"{tmp}/{env}.www-host", "w").write(re.search(r"server_name (www\.[^;\s]+);
 PY
 }
 
-substitute() { # substitute <env> <template> <out conf>
-  local env="$1" tpl="$2" out="$3"
+substitute() { # substitute <env> <template> <out conf> [varnish host]
+  local env="$1" tpl="$2" out="$3" vhost="${4:-stub}"
   docker run --rm -i \
-    -e ENV_NAME="$env" -e VARNISH_HOST=stub -e SEARCH_HOST=stub -e SEARCH_PORT=9200 -e SEARCH_PATH=/ \
+    -e ENV_NAME="$env" -e VARNISH_HOST="$vhost" -e WEB_HOST=stub -e SEARCH_HOST=stub -e SEARCH_PORT=9200 -e SEARCH_PATH=/ \
     -e SEARCH_SSL_ENABLE=false -e RELEASE_TAG=1 -e STRAPI_LOCATION=http://stub -e ELASTIC_AUTH_HEADER=dGVzdA== \
     -e NGINX_VERSION=1.23.3 \
     "$NGINX_IMAGE" envsubst "$(cat "$TMP/$env.envsubst-list")" < "$tpl" > "$out"
@@ -270,7 +270,7 @@ for env in staging preprod prod; do
   render "$env"
   substitute "$env" "$TMP/$env.template.conf" "$TMP/$env.conf"
   # shellcheck disable=SC2016
-  if grep -q '\${\(ENV_NAME\|VARNISH_HOST\|SEARCH_HOST\|SEARCH_PORT\|SEARCH_PATH\|SEARCH_SSL_ENABLE\|RELEASE_TAG\|STRAPI_LOCATION\|ELASTIC_AUTH_HEADER\)}' "$TMP/$env.conf"; then
+  if grep -q '\${\(ENV_NAME\|VARNISH_HOST\|WEB_HOST\|SEARCH_HOST\|SEARCH_PORT\|SEARCH_PATH\|SEARCH_SSL_ENABLE\|RELEASE_TAG\|STRAPI_LOCATION\|ELASTIC_AUTH_HEADER\)}' "$TMP/$env.conf"; then
     bad "$env: a variable from the envsubst list is still unsubstituted"
   fi
   run_case "$env" "$env" "$TMP/$env.conf" || fail=1
@@ -288,6 +288,35 @@ for kind in uri_all referer_all uri_passes token_all; do
     echo "ok: mutation $kind detected (the run failed as required)"
   fi
 done
+
+# Varnish restart: a varnish container that is not listening (the OOM-killed origin tier restarts every few hours) made
+# every reader and API request a 502. The web tier is the backup peer, so the same request must reach it, uncached.
+note "== request survives a varnish restart (prod) =="
+host="$(cat "$TMP/prod.www-host")"
+cat > "$TMP/varnishdown.conf" <<'CONF'
+events {}
+http {
+  server { listen 9200; location / { return 200 "down\n"; } }
+}
+CONF
+docker rm -f "$RUN_ID-varnishdown" >/dev/null 2>&1 || true
+docker run -d --name "$RUN_ID-varnishdown" --network "$NET" --network-alias varnishdown \
+  -v "$TMP/varnishdown.conf:/etc/nginx/nginx.conf:ro" "$NGINX_IMAGE" >/dev/null
+substitute prod "$TMP/prod.template.conf" "$TMP/failover.conf" varnishdown
+start_stub; sleep 1
+if ! docker run --rm --network "$NET" -v "$TMP/failover.conf:/nginx.conf:ro" "$NGINX_IMAGE" nginx -t -c /nginx.conf >"$TMP/t.out" 2>&1; then
+  cat "$TMP/t.out"; bad "failover: nginx -t"
+elif start_nginx "$TMP/failover.conf" "$host"; then
+  code="$(curl -s -o "$TMP/failover.body" -w '%{http_code}' --globoff -H "Host: $host" \
+    "http://127.0.0.1:$PORT/api/texts/Genesis.1?commentary=0")"
+  if [ "$code" = "200" ] && grep -q stub "$TMP/failover.body"; then
+    echo "ok: failover: a reader request reaches the web tier while varnish refuses connections (HTTP $code)"
+  else
+    bad "failover: a reader request failed while varnish refused connections (HTTP $code, body: $(head -c 60 "$TMP/failover.body"))"
+  fi
+else
+  bad "failover: nginx did not start"
+fi
 
 # Error log: an upstream failure writes the request line and Referer to the error log, which log_format does not govern.
 note "== error log on upstream failure (staging) =="
