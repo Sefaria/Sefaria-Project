@@ -1,7 +1,7 @@
 // Embeds and HTMLBlock frames.
 import { axe } from 'vitest-axe';
 import { DEFAULT_EMBED_TITLE, enhanceEmbeds } from './embeds';
-import { FRAME_SANDBOX, enhanceHtmlBlockFrames, frameContentHeight, sizeFrame } from './htmlblock';
+import { FRAME_SANDBOX, enhanceHtmlBlockFrames, frameContentHeight, frameOuterMargins, sizeFrame } from './htmlblock';
 import { golden, mountArticle } from './test-utils';
 
 afterEach(() => {
@@ -88,6 +88,29 @@ describe('HTMLBlock frames', () => {
     } as DOMRect);
     window.dispatchEvent(new Event('resize'));
     expect(frame).toHaveAttribute('height', '250');
+  });
+
+  it('passes the margins that collapse out of the block on to its wrapper and takes them out of the frame', () => {
+    const frame = frameWithHeight(500);
+    const doc = frame.contentDocument!;
+    // The Hebrew guide's block: an h2 (28px top margin) first, then trailing text after the last element.
+    doc.body.innerHTML =
+      '<div class="dp-markdown dp-htmlblock-document"><div><h2>Title</h2><p>Body</p>Trailing text</div></div>';
+    const content = doc.body.firstElementChild as HTMLElement;
+    const h2 = doc.querySelector('h2')!;
+    const p = doc.querySelector('p')!;
+    vi.spyOn(content.firstElementChild!, 'getBoundingClientRect').mockReturnValue({ top: 0, bottom: 500 } as DOMRect);
+    vi.spyOn(content, 'getBoundingClientRect').mockReturnValue({ top: 0, bottom: 500 } as DOMRect);
+    vi.spyOn(h2, 'getBoundingClientRect').mockReturnValue({ top: 28, bottom: 60 } as DOMRect);
+    vi.spyOn(p, 'getBoundingClientRect').mockReturnValue({ top: 75, bottom: 470 } as DOMRect);
+    expect(frameOuterMargins(frame)).toEqual({ top: 28, bottom: 0 });
+    sizeFrame(frame);
+    const block = frame.parentElement!;
+    expect(block.style.getPropertyValue('margin-top')).toBe('28px');
+    expect(block.style.getPropertyPriority('margin-top')).toBe('important');
+    expect(block.style.getPropertyValue('margin-bottom')).toBe('');
+    expect(content.style.marginTop).toBe('-28px');
+    expect(frame).not.toHaveAttribute('style');
   });
 
   it('leaves the height alone while the frame has no layout', () => {

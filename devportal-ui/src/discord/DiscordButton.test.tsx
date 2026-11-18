@@ -62,13 +62,13 @@ describe('DiscordButton', () => {
   });
 
   it('uses the design-system tokens: action-primary with text-inverse, Roboto body-strong', () => {
-    expect(rule('.dp-discord-button--primary')).toMatchObject({
+    expect(rule('.dp-discord-button.dp-discord-button--primary')).toMatchObject({
       'background-color': 'var(--action-primary)',
       color: 'var(--text-inverse)',
     });
     expect(rule('.dp-discord-button').font).toBe('var(--text-en-system-body-strong)');
     // The secondary variant reads as the white "Sign Up" button live uses on purple (I-3).
-    expect(rule('.dp-discord-button--secondary')).toMatchObject({
+    expect(rule('.dp-discord-button.dp-discord-button--secondary')).toMatchObject({
       'background-color': 'var(--surface-page)',
       color: 'var(--action-primary)',
     });

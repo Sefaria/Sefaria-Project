@@ -31,34 +31,43 @@
   text-decoration: none;
 }
 
+/*
+ * Inside a Markdown body (the contact page's placement) `.dp-markdown a` (0,1,1) would recolour the button
+ * (the grey link colour on navy, 2.16:1: DEV-A11Y-005) and underline it, so its own rules carry two classes.
+ */
+.dp-discord-button.dp-discord-button,
+.dp-discord-button.dp-discord-button:hover {
+  text-decoration: none;
+}
+
 .dp-discord-button:focus-visible {
   outline: 2px solid var(--functional-focus-blue);
   outline-offset: 2px;
 }
 
-.dp-discord-button--primary,
-.dp-discord-button--primary:visited {
+.dp-discord-button.dp-discord-button--primary,
+.dp-discord-button.dp-discord-button--primary:visited {
   border-color: var(--action-primary);
   background-color: var(--action-primary);
   color: var(--text-inverse);
 }
 
-.dp-discord-button--primary:hover,
-.dp-discord-button--primary:active {
+.dp-discord-button.dp-discord-button--primary:hover,
+.dp-discord-button.dp-discord-button--primary:active {
   border-color: var(--action-primary-hover);
   background-color: var(--action-primary-hover);
   color: var(--text-inverse);
 }
 
-.dp-discord-button--secondary,
-.dp-discord-button--secondary:visited {
+.dp-discord-button.dp-discord-button--secondary,
+.dp-discord-button.dp-discord-button--secondary:visited {
   border-color: var(--surface-page);
   background-color: var(--surface-page);
   color: var(--action-primary);
 }
 
-.dp-discord-button--secondary:hover,
-.dp-discord-button--secondary:active {
+.dp-discord-button.dp-discord-button--secondary:hover,
+.dp-discord-button.dp-discord-button--secondary:active {
   border-color: var(--surface-hover);
   background-color: var(--surface-hover);
   color: var(--action-primary-hover);

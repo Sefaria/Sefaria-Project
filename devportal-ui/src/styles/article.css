@@ -463,6 +463,11 @@
   white-space: pre-wrap;
   word-break: normal;
   text-wrap: wrap;
+
+  /* Live's `:where(*)` scrollbar: thin (10px, not 15px, so a block taller than 90vh wraps its lines as live does)
+     with its thumb at 20% of the page's inverse colour (#000) on a clear track. */
+  scrollbar-color: rgb(0 0 0 / 20%) transparent;
+  scrollbar-width: thin;
 }
 
 /* Code tabs: div.dp-codetabs > div.dp-codetabs-toolbar > button + div.dp-codetabs-inner > pre. */

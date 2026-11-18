@@ -2,11 +2,12 @@
 {% comment %}
 The 404 page copies live (I-14): "Page Not Found", then up to three suggestions chosen by slug
 similarity. Live's strings: pageNotFound.heading, suggestionsPrompt_one / suggestionsPrompt_other.
+article#content is C6's article landmark and the skip link's target (DEV-A11Y-041).
 The same markup as the client's (devportal-ui/src/shell/NotFoundPage, inside PortalPage's <main>), so React's
 takeover moves nothing; data-visual* are the visual-parity hooks.
 {% endcomment %}
 {% block content %}<main class="dp-main" id="dp-main">
-<div class="dp-notfound">
+<article id="content" class="dp-notfound" tabindex="-1">
 <h1 class="dp-notfound-title" data-visual-region="notFound">Page Not Found</h1>
 {% if suggestions %}<div class="dp-notfound-suggestions" data-visual-region="notFound">
 <p class="dp-notfound-prompt">{% if suggestions|length == 1 %}Maybe you were looking for this:{% else %}Maybe you were looking for one of these:{% endif %}</p>
@@ -14,5 +15,5 @@ takeover moves nothing; data-visual* are the visual-parity hooks.
 {% for suggestion in suggestions|slice:":3" %}<li><a class="dp-notfound-link" href="{{ suggestion.path }}">{{ suggestion.title }}</a></li>
 {% endfor %}</ul>
 </div>{% endif %}
-</div>
+</article>
 </main>{% endblock %}

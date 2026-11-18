@@ -154,10 +154,11 @@ export const MASKS: Record<MaskId, MaskDef> = {
   notFoundSuggestions: {
     id: 'notFoundSuggestions',
     // Added by W15; confirmed by the Integrator (PLAN §6.1.4, dynamic content): live picks the suggestions at
-    // random on each load, so the whole suggestion list is masked on both sides (the portal marks its <ul>; the
+    // chosen by ReadMe's own search engine (deterministic per path, but a different engine from ours, like D-9), so the whole suggestion list is masked on both sides (the portal marks its <ul>; the
     // baseline holds live's item boxes) and the not_found state compares its notFound region only down to the
     // list (states.ts `cropRegionsAtMask`). The title and the prompt are compared.
-    reason: 'The 404 page\'s "Maybe you were looking for one of these" links are chosen at random per load',
+    reason:
+      'The 404 page\'s "Maybe you were looking for one of these" links come from ReadMe\'s search engine; ours picks by slug similarity (I-14), so the list differs by engine, as D-9 for search results',
     live: '[class*="PageNotFound-suggestions-item"]',
     local: '[data-visual-mask="notFoundSuggestions"]',
   },

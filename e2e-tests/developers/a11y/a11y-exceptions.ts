@@ -67,6 +67,24 @@ export const REGISTERED_EXCEPTIONS: readonly A11yException[] = [
     reason: `${LIVE_WINS}. Response-example menu "Clear Example": #e95f6a on white, 3.32:1.`,
     source: 'W3 Playground (.clearItem); live "Clear Example" colour #e95f6a',
   },
+  {
+    id: 'EXC-06-home-inactive-card',
+    rule: 'color-contrast',
+    // The carousel's inactive (peeking) cards are faded as on live; card 1 is the active one on load.
+    target:
+      /^(?:\.dp-home__card--[2-6] > \.dp-home__card-content > \.dp-home__card-text > \.dp-home__card-(?:title|blurb)|a\[href\$="koveah\.org\/"\])$/,
+    paths: [/^\/$/],
+    reason: `${LIVE_WINS}. Homepage inactive carousel card: title and link #b0b0b0 (2.11:1), blurb #cfcfcf (1.51:1) on #fcfcfc, identical on live (.card-2 .project-title, .project-description, a[href$="koveah.org/"]).`,
+    source: 'W11 home_body.html carousel; live homepage computed colours (axe, GET only)',
+  },
+  {
+    id: 'EXC-07-home-tool-blurbs',
+    rule: 'color-contrast',
+    target: /> \.dp-home__tool-content > \.dp-home__tool-blurb$/,
+    paths: [/^\/$/],
+    reason: `${LIVE_WINS}. Homepage tool tile blurbs #718096 on #fbfbfa (3.87:1), identical on live (.developer-tool .tool-blurb).`,
+    source: 'W11 home_body.html tools grid; live homepage computed colours (axe, GET only)',
+  },
 ];
 
 /**
@@ -75,6 +93,8 @@ export const REGISTERED_EXCEPTIONS: readonly A11yException[] = [
  */
 export const ALLOWED_H1_COUNT: Readonly<Record<string, number>> = {
   '/docs/welcome': 2,
+  // Live: "The Disambiguator" (page title) and the body's "# Bringing Redemption to Citations…" heading.
+  '/docs/the-disambiguator': 2,
   // Not /reference/get-v3-texts: live's second h1 there is the response-schema toggle wrapped in an h1, the
   // ReadMe bug the brief (§4.3) says to fix, so the portal has one h1 on endpoint pages.
 };

@@ -28,8 +28,12 @@ function Line({ tokens }: { tokens: TokenLine }) {
 export function CodeView({ code, mode, label }: { code: string; mode: string | object | null; label: string }) {
   // The pixel harness maps live's `.CodeMirror-line` to the first line of each viewer.
   const lines = useMemo(() => highlight(code, mode), [code, mode]);
+  // A scroll container with nothing focusable inside: tabIndex 0 lets the keyboard scroll it, and the region role
+  // carries the label (axe scrollable-region-focusable, DEV-A11Y-003/025/026). A focusable scroll region is the
+  // WCAG-recommended pattern, which jsx-a11y's no-noninteractive-tabindex does not know about.
   return (
-    <pre className={`${styles.code} ${styles.palenight} dp-cm-palenight`} aria-label={label}>
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+    <pre className={`${styles.code} ${styles.palenight} dp-cm-palenight`} role="region" aria-label={label} tabIndex={0}>
       <code className={styles.lines}>
         {lines.map((tokens, i) => (
           <span key={i} className={styles.row}>

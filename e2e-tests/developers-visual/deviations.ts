@@ -210,10 +210,12 @@ export const DEVIATIONS: readonly Deviation[] = [
     source: 'Brief §4.7',
     states: DOCS_PAGE_END_STATES,
     treatments: [
-      // Integrator's decision (D-7 treatment): the end-of-page Discord button is masked on the portal (live has
-      // none), and the footer pieces ("Updated", prev/next, the feedback widget) are compared by their own boxes,
-      // so the button's place in the footer cannot move them into failure.
-      { kind: 'mask', live: null, local: '[data-discord-placement="docs_page_end"]' },
+      // Integrator's decision (D-7 treatment): the end-of-page Discord button is the portal's only (live has none).
+      // Its placement (the button and the space it adds, 61 to 84px by width) is cut out of the portal's screenshot,
+      // as D-10 does with the homepage community band, so what follows it is compared at live's positions; and the
+      // footer pieces ("Updated", prev/next, the feedback widget) are compared by their own boxes, so the button's
+      // place in the footer cannot move them into failure.
+      { kind: 'excise', local: '[data-discord-placement="docs_page_end"]' },
       { kind: 'split-region', region: 'pageFooter', elements: ['updated', 'pagination', 'thumbs'] },
     ],
   },

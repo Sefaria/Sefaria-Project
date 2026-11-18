@@ -257,12 +257,19 @@
   background-color: #cb4452;
 }
 
-/* "Deprecated Endpoint": a 12px marker just left of the pill (Texts (v1), Topic (v1)). */
+/*
+ * "Deprecated Endpoint": a 12px marker just left of the pill (Texts (v1), Topic (v1)), drawn where live has it
+ * (top 10px, right 49px) inside a 24px target (WCAG 2.2, docs.css), with the focus ring kept at 4px around the icon.
+ */
 .dp-sidebar-row--endpoint .dp-sidebar-deprecated {
-  top: 10px;
-  right: 49px;
-  width: 12px;
-  height: 12px;
+  top: 4px;
+  right: 43px;
+  width: 24px;
+  height: 24px;
+}
+
+.dp-sidebar-row--endpoint .dp-sidebar-deprecated:focus-visible {
+  outline-offset: -4px;
 }
 
 .dp-sidebar-row--endpoint .dp-sidebar-deprecated::before {

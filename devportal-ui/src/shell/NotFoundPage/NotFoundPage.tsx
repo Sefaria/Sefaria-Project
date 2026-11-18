@@ -10,11 +10,12 @@ export interface NotFoundSuggestion {
  * suggestions chosen by the server (C3 `NotFoundPayload.suggestions`). Live's title is an `h2`; the
  * portal uses the page's one `h1` (C6). Global `dp-notfound*` classes: devportal/templates/devportal/404.html
  * renders the same markup on the server. `data-visual*` are the visual-parity hooks (live's suggestions are
- * chosen at random per load, so they are masked).
+ * chosen at random per load, so they are masked). The body is `article#content`, C6's article landmark and the
+ * skip link's target (DEV-A11Y-041).
  */
 export function NotFoundPage({ suggestions }: { suggestions: readonly NotFoundSuggestion[] }) {
   return (
-    <div className="dp-notfound">
+    <article id="content" className="dp-notfound" tabIndex={-1}>
       <h1 className="dp-notfound-title" data-visual-region="notFound">
         Page Not Found
       </h1>
@@ -34,6 +35,6 @@ export function NotFoundPage({ suggestions }: { suggestions: readonly NotFoundSu
           </ul>
         </div>
       )}
-    </div>
+    </article>
   );
 }

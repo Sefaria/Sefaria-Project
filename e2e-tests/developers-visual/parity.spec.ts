@@ -75,6 +75,23 @@ for (const state of STATES) {
 
     const fullPage = !!state.fullPage;
     if (fullPage) await adapter.prepareFullPage();
+    else {
+      // `excise` in a viewport state framed at the end of the page (docs_footer, D-7): the portal's page is longer by
+      // the boxes cut out, so a recipe that scrolls to the end scrolls that much further than live, and everything
+      // above them would sit higher than on live. Scrolled back by their height, the portal frames live's scroll
+      // offset; the boxes then lie at or below the viewport's bottom and are cut from what is left of them there.
+      const exciseSelectors = deviationsFor(state.id).flatMap((d) =>
+        d.treatments.flatMap((t) => (t.kind === 'excise' ? [t.local] : []))
+      );
+      let height = 0;
+      for (const selector of exciseSelectors)
+        for (const r of await measureAll(page, selector, false)) if (r[1] >= 0) height += r[3];
+      if (height > 0)
+        await page.evaluate((h) => {
+          const end = document.documentElement.scrollHeight - window.innerHeight;
+          if (window.scrollY >= end - 1) window.scrollTo({ top: window.scrollY - h, behavior: 'instant' });
+        }, height);
+    }
     const maskIds = state.masks ?? DEFAULT_MASKS;
     const local = await measureElements(page, Object.fromEntries(MAPPED_ELEMENTS.map((e) => [e.key, e.local])));
     let localElements: Record<string, { rect: Rect; style: Record<string, string> }> = Object.fromEntries(

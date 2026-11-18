@@ -753,10 +753,11 @@ export const STATES: readonly VisualState[] = [
     path: '/docs/devportal-visual-parity-404',
     widths: ALL,
     regions: ['header', 'notFound'],
-    // Integrator's decision (PLAN §6.1.4 dynamic content): live picks the suggestions at random, so the list is
+    // Integrator's decision (PLAN §6.1.4 dynamic content): live's suggestions come from ReadMe's search engine (deterministic per path; ours use slug similarity, I-14), so the list is
     // masked on both sides and the notFound region is compared down to it; the rest of the page is compared.
     cropRegionsAtMask: [{ region: 'notFound', mask: 'notFoundSuggestions' }],
-    notes: 'The "Maybe you were looking for one of these" suggestions are chosen at random by live per load.',
+    notes:
+      'The "Maybe you were looking for one of these" suggestions are chosen by ReadMe\'s search engine; ours by slug similarity (I-14).',
     recipe: nothing,
   },
   {

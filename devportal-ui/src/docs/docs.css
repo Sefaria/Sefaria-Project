@@ -326,6 +326,21 @@
   cursor: pointer;
 }
 
+/*
+ * WCAG 2.2 target size (24px, axe target-size, DEV-A11Y-003/010): the "Deprecated" marker is a button, so its box is
+ * 24px square, grown 4px on each side around the same 16px icon (centred, transparent box: no pixel moves), with the
+ * focus ring pulled in so it is drawn where it was.
+ */
+.dp-sidebar-deprecated {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 4px;
+  right: 1px;
+  width: 24px;
+  height: 24px;
+}
+
 .dp-sidebar-row--parent .dp-sidebar-link,
 .dp-sidebar-row--deprecated .dp-sidebar-link {
   padding-right: 29px;
@@ -348,6 +363,7 @@
 }
 
 .dp-sidebar-deprecated::before {
+  flex: 0 0 auto;
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.25' fill='none' stroke='black' stroke-width='1.5'/%3E%3Cpath d='M8 7.5v3.5M8 5v.5' stroke='black' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
@@ -357,8 +373,12 @@
   outline-offset: 2px;
 }
 
+.dp-sidebar-deprecated:focus-visible {
+  outline-offset: -2px;
+}
+
 .dp-sidebar-row--parent .dp-sidebar-deprecated {
-  right: 25px;
+  right: 21px;
 }
 
 .dp-sidebar-row--parent.dp-sidebar-row--deprecated .dp-sidebar-link {
