@@ -199,6 +199,16 @@ class Project(models.Model):
         help_text="API access tier of the project's keys.",
     )
     organization = models.CharField(max_length=255, blank=True, default="", db_default="")
+    show_name = models.BooleanField(
+        default=False,
+        db_default=False,
+        help_text="The submitter agreed to show their name with the project if it's featured.",
+    )
+    has_donate_link = models.BooleanField(
+        default=False,
+        db_default=False,
+        help_text="The submitter says the project links to a donation page for Sefaria.",
+    )
     consent_withdrawn_at = models.DateTimeField(
         null=True,
         blank=True,
