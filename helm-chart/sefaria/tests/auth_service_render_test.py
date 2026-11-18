@@ -24,6 +24,9 @@ import yaml
 ROOT = Path(__file__).resolve().parents[3]
 CHART = ROOT / "helm-chart" / "sefaria"
 ENVS = ("staging", "preprod", "prod")
+# What each env file ships, changed only on purpose: staging rehearses every prod step first, so it is turned on before
+# preprod and prod (Yotam, 2026-11-18). A flip here must come with the flip in envs/<env>/helmrelease.yaml.
+SHIPPED_ENABLED = {"staging": True, "preprod": False, "prod": False}
 SEFARIA_HEADERS = {
     "x-sefaria-tier",
     "x-sefaria-project",
@@ -60,6 +63,9 @@ def render(release, enabled):
         if enabled:
             # A release writes the image tag; rendering with the flag on fails without one.
             args += ["--set", "authService.enabled=true", "--set", "authService.image.tag=render-test"]
+        else:
+            # The off render is the rollback path (enabled: false), whatever the env file ships.
+            args += ["--set", "authService.enabled=false"]
         result = subprocess.run(args, capture_output=True, text=True)
     if result.returncode != 0:
         sys.exit(f"helm template failed for {release['metadata']['name']} (enabled={enabled}):\n{result.stderr}")
@@ -267,7 +273,11 @@ def check_release_rules(env, release, rendered_on):
 def main():
     for env in ENVS:
         release = helm_release(env)
-        check(release["spec"]["values"]["authService"]["enabled"] is False, f"{env}: ships authService.enabled false")
+        shipped = SHIPPED_ENABLED[env]
+        check(
+            release["spec"]["values"]["authService"]["enabled"] is shipped,
+            f"{env}: ships authService.enabled {str(shipped).lower()}",
+        )
         check_off(env, render(release, enabled=False))
         rendered_on = render(release, enabled=True)
         check_on(env, rendered_on)

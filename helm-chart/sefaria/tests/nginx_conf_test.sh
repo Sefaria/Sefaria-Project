@@ -78,7 +78,10 @@ import re, subprocess, sys, yaml
 root, env, tmp = sys.argv[1:4]
 release = next(d for d in yaml.safe_load_all(open(f"{root}/envs/{env}/helmrelease.yaml")) if d and d.get("kind") == "HelmRelease")
 yaml.safe_dump(release["spec"].get("values", {}), open(f"{tmp}/{env}.values.yaml", "w"))
+# This test covers the flag-off nginx (a forged x-sefaria-* header must not be logged), so it forces the flag off: staging
+# ships it on (it rehearses prod first); the on render's log fields are checked by auth_service_render_test.py.
 out = subprocess.run(["helm", "template", env, f"{root}/helm-chart/sefaria", "-f", f"{tmp}/{env}.values.yaml",
+                      "--set", "authService.enabled=false",
                       "-s", "templates/configmap/nginx.yaml"], capture_output=True, text=True, check=True).stdout
 data = yaml.safe_load(out)["data"]
 open(f"{tmp}/{env}.template.conf", "w").write(data["nginx.template.conf"])
