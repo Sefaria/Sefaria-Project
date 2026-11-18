@@ -15,6 +15,9 @@
   .app { display: block; height: auto; }
   .main { overflow-y: visible; }
   .body { align-items: flex-start; }
+  /* the site header stays at the top of the screen as the page scrolls, as sefaria.org's .headerInner.mobile is fixed (z-index
+     1001; measured 2026-11-18: its menu button at 15,18 after scrolling 900px on /texts, /Genesis, search, calendars) */
+  .header { position: sticky; top: 0; z-index: 70; background: var(--sefaria-color-surface); }
   .app[data-reading="true"] .header { display: none; }
   /* ...unless the panel's menu button opened the navigation menu */
   .app[data-reading="true"][data-menu="open"] .header { display: block; position: sticky; top: 0; z-index: 70; background: var(--sefaria-color-surface); }
