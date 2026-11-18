@@ -4230,10 +4230,9 @@ class Ref(metaclass=RefCacheType):
         :return string:
         """
 
-        cats = self.index.categories[:]
-
-        key = "/".join(cats + [self.index.title])
         try:
+            cats = self.index.categories[:]
+            key = "/".join(cats + [self.index.title])
             base = library.category_id_dict()[key]
             if self.index.is_complex() and self.index_node.parent:
                 child_order = self.index.nodes.get_child_order(self.index_node)
@@ -4244,7 +4243,9 @@ class Ref(metaclass=RefCacheType):
                 res = reduce(lambda x, y: x + str(format(y, "04")), self.toSections, res + "-")
             return res
         except Exception as e:
-            logger.warning(f"Failed to execute order_id for {self} : {e}")
+            # A ref with no index (e.g. one built from empty text) also has no normal form,
+            # so avoid formatting the ref itself here - it would raise from inside the handler.
+            logger.warning(f"Failed to execute order_id for {getattr(self, 'tref', self.__class__.__name__)} : {e}")
             return "Z"
 
     """ Methods for working with Versions and VersionSets """
