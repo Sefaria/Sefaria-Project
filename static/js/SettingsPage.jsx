@@ -861,13 +861,27 @@ const eCopyFetched = (getValue, done, failed) => {
   if (secure && typeof ClipboardItem !== 'undefined' && navigator.clipboard && navigator.clipboard.write) {
     const value = getValue(); // one request, shared by the clipboard write and its fallback
     const blob = value.then((v) => new Blob([v], { type: 'text/plain' }));
-    navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob })]).then(
-      () => done && done(),
-      () =>
-        value.then(
-          (v) => eCopy(v, done, failed),
-          () => {}
-        )
+    blob.catch(() => {}); // a failed fetch leaves no unhandled rejection; valueOf has already handled it
+    let item = null;
+    try {
+      item = new ClipboardItem({ 'text/plain': blob });
+    } catch (e) {
+      item = null; // a browser that refuses a promise in a ClipboardItem copies once the value arrives
+    }
+    if (item) {
+      navigator.clipboard.write([item]).then(
+        () => done && done(),
+        () =>
+          value.then(
+            (v) => eCopy(v, done, failed),
+            () => {}
+          )
+      );
+      return;
+    }
+    value.then(
+      (v) => eCopy(v, done, failed),
+      () => {}
     );
     return;
   }
@@ -4803,7 +4817,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
                 <input
                   id="email"
                   type="text"
-                  placeholder={Sefaria._("New Email")}
+                  placeholder={Sefaria._('New Email')}
                   autoComplete="off"
                   value={emailFields.email}
                   onChange={(e) => setEmailFields({ ...emailFields, email: e.target.value })}
@@ -4811,7 +4825,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
                 <input
                   id="confirmEmail"
                   type="text"
-                  placeholder={Sefaria._("Confirm New Email")}
+                  placeholder={Sefaria._('Confirm New Email')}
                   autoComplete="off"
                   value={emailFields.confirmEmail}
                   onChange={(e) => setEmailFields({ ...emailFields, confirmEmail: e.target.value })}
@@ -4819,7 +4833,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
                 <input
                   id="confirmPassword"
                   type="password"
-                  placeholder={Sefaria._("Password")}
+                  placeholder={Sefaria._('Password')}
                   autoComplete="new-password"
                   value={emailFields.confirmPassword}
                   onChange={(e) => setEmailFields({ ...emailFields, confirmPassword: e.target.value })}

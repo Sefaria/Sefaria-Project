@@ -312,6 +312,101 @@ describe('keys', () => {
     expect(screen.getByText('Copied')).toBeTruthy();
   });
 
+  describe('where the browser has ClipboardItem (Safari)', () => {
+    const RealBlob = global.Blob;
+    let write;
+    let written;
+
+    beforeEach(() => {
+      written = null;
+      /* The Blob records its parts, so the test can read what was written without a FileReader. */
+      global.Blob = function Blob(parts, options) {
+        this.parts = parts;
+        this.type = options && options.type;
+      };
+      window.ClipboardItem = class {
+        constructor(items) {
+          this.items = items;
+        }
+      };
+      write = jest.fn(async ([item]) => {
+        const blob = await item.items['text/plain'];
+        written = blob.parts.join('');
+      });
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { write, writeText: jest.fn(() => Promise.resolve()) },
+        configurable: true,
+      });
+    });
+
+    afterEach(() => {
+      delete window.ClipboardItem;
+      delete document.execCommand;
+      global.Blob = RealBlob;
+    });
+
+    it('starts the clipboard write inside the tap, before the key arrives, and writes the key once it does', async () => {
+      openHome({ projects: [project(1, { keys: [key(1)] })] });
+      const answer = global.fetch;
+      let arrive;
+      global.fetch = jest.fn((url, options) =>
+        /\/value$/.test(url)
+          ? new Promise((resolve) => (arrive = () => resolve(answer(url, options))))
+          : answer(url, options)
+      );
+      await click(button('Copy key, Key 1'));
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(written).toBeNull();
+      arrive();
+      await settle();
+      expect(written).toBe(key(1).value);
+      expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
+      expect(screen.getByText('Copied')).toBeTruthy();
+      expect(screen.queryByText(key(1).value)).toBeNull();
+    });
+
+    it('falls back to writeText when the browser refuses the ClipboardItem write', async () => {
+      write.mockImplementation(() => Promise.reject(new Error('NotAllowedError')));
+      openHome({ projects: [project(1, { keys: [key(1)] })] });
+      await click(button('Copy key, Key 1'));
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(key(1).value);
+      expect(screen.getByText('Copied')).toBeTruthy();
+    });
+
+    it('copies once the key arrives when the browser refuses a promise in a ClipboardItem', async () => {
+      window.ClipboardItem = class {
+        constructor() {
+          throw new TypeError('ClipboardItem takes no promises here');
+        }
+      };
+      openHome({ projects: [project(1, { keys: [key(1)] })] });
+      await click(button('Copy key, Key 1'));
+      expect(write).not.toHaveBeenCalled();
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(key(1).value);
+      expect(screen.getByText('Copied')).toBeTruthy();
+    });
+
+    it('shows the key to copy by hand when every way to copy is refused', async () => {
+      write.mockImplementation(() => Promise.reject(new Error('NotAllowedError')));
+      navigator.clipboard.writeText.mockImplementation(() => Promise.reject(new Error('denied')));
+      document.execCommand = jest.fn(() => false);
+      openHome({ projects: [project(1, { keys: [key(1)] })] });
+      await click(button('Copy key, Key 1'));
+      expect(screen.queryByText('Copied')).toBeNull();
+      expect(screen.getByText(key(1).value)).toBeTruthy();
+    });
+
+    it('copies nothing and says nothing when the key cannot be fetched', async () => {
+      openHome({ projects: [project(1, { keys: [key(1)] })] });
+      server.fail('POST', 'keys/k1/value', 500, 'Something went wrong.');
+      await click(button('Copy key, Key 1'));
+      expect(written).toBeNull();
+      expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
+      expect(screen.queryByText('Copied')).toBeNull();
+      expect(screen.queryByText(key(1).value)).toBeNull();
+    });
+  });
+
   it('deletes a key after asking, with no confirmation message after', async () => {
     openHome({ projects: [project(1, { keys: [key(1), key(2)] })] });
     const opener = button('Delete key, Key 1');
