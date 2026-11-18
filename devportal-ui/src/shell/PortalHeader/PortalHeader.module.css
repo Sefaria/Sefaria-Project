@@ -61,7 +61,12 @@
   pointer-events: auto;
 }
 
+/* Above 768px the main bar is `.barMain` (live's rm-Header-bottom); `.bar` only groups it. */
 .bar {
+  display: contents;
+}
+
+.barMain {
   display: flex;
   height: 65px;
 }
@@ -428,10 +433,16 @@
 }
 
 @media (width <= 768px) {
+  /* At 768px and below the row is `.bar` (live's rm-Header-top) and `.barMain` only groups its children. */
   .bar {
+    display: flex;
     align-items: center;
     height: 51px;
     border-bottom: 1px solid rgb(0 0 0 / 10%);
+  }
+
+  .barMain {
+    display: contents;
   }
 
   .left {

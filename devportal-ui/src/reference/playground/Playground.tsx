@@ -40,6 +40,7 @@ function LanguagePicker() {
           align="end"
           popup="dialog"
           label="More Languages"
+          wholePixels
           trigger={(props) => (
             <button
               type="button"

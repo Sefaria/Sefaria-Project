@@ -134,6 +134,12 @@
   border-radius: 0 0 8px 8px;
 }
 
+/* An open panel followed by another has no bottom border: the next toggle's top border, pulled up 1px, closes it. */
+.first .panelContent,
+.middle .panelContent {
+  border-bottom: 0;
+}
+
 .body {
   display: block;
 }
@@ -395,4 +401,91 @@
 /* Live: the children start 1px below the button, then the fieldset's 8px. */
 .expandChildren {
   padding: 9px 0 0;
+}
+
+/* A top-level object's properties, listed straight in an open box (live's `Param-expand_expanded` fieldset): 10px
+   below the description, rows of 10px 8px separated by hairlines, no "object" type row. */
+.objectBox {
+  border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+  border-radius: 8px;
+}
+
+.objectProps {
+  padding: 10px 8px;
+}
+
+/* Inside an opened expander the properties start under a hairline below the button. */
+.expand > .objectProps {
+  border-top: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+}
+
+/* An `anyOf` with structured variants: a stack of closed options ("string", "Array 1"…), 10px inside the row. */
+.anyOfList {
+  padding: 10px;
+}
+
+.anyOfOption {
+  border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+  border-radius: 0;
+}
+
+.anyOfOption + .anyOfOption {
+  margin-top: -1px;
+}
+
+.anyOfOption:first-child {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.anyOfOption:last-child {
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.anyOfButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: #666b79;
+  font-family: var(--font-en-system);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: normal;
+  text-align: left;
+  cursor: pointer;
+}
+
+.anyOfOptionOpen > .anyOfButton {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.anyOfLabel {
+  flex: 1 1 auto;
+}
+
+.anyOfDetails {
+  border-top: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+}
+
+.anyOfNested {
+  padding: 0 10px 10px;
+}
+
+/* Nested boxes alternate: white at an even depth, grey at an odd one (live's `even` / `odd`). */
+.toneEven {
+  background: #fff;
+}
+
+.toneOdd {
+  background: #f9fafb;
 }

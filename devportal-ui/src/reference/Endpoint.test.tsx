@@ -147,6 +147,38 @@ describe('C. Responses', () => {
     expect(screen.queryByText('Response body')).toBeNull();
   });
 
+  it('opens top-level objects and arrays of objects, closes deeper objects, and documents scalar-item arrays', async () => {
+    const { user } = setup('post-find-refs');
+    const body = screen.getByRole('region', { name: /^200/ });
+    // title and body (top-level objects) list their properties; results (array of objects) shows its item fields.
+    expect(within(body).getAllByText('startChar')).toHaveLength(2);
+    // refs: items are a documented string ($ref ref); live labels it "array of objects" and shows the item text.
+    expect(within(body).getAllByText(/A string representing a citation to a Jewish text/)).toHaveLength(2);
+    // refData (an object one level down) is closed until opened.
+    expect(within(body).queryByText('RefTitle')).toBeNull();
+    const [refData] = within(body).getAllByRole('button', { name: 'refData object' });
+    await user.click(refData!);
+    expect(within(body).getByText('RefTitle')).toBeInTheDocument();
+  });
+
+  it('shows anyOf unions as closed options, oneOf with an array as a select and expander, nullable as "| null"', async () => {
+    const { user } = setup('get-v1-texts');
+    const body = screen.getByRole('region', { name: /^200/ });
+    expect(within(body).getByText('string | array')).toBeInTheDocument();
+    for (const label of ['Array 1', 'Array 2', 'Array 3'])
+      expect(within(body).getByRole('button', { name: label })).toHaveAttribute('aria-expanded', 'false');
+    await user.click(within(body).getByRole('button', { name: 'Array 1' }));
+    expect(within(body).getByRole('button', { name: 'Array 1' })).toHaveAttribute('aria-expanded', 'true');
+    const he = within(body).getByRole('combobox', { name: 'he type' });
+    expect(
+      within(he)
+        .getAllByRole('option')
+        .map((o) => o.textContent)
+    ).toEqual(['array', 'string']);
+    expect(within(body).getByRole('button', { name: 'he array of strings' })).toBeInTheDocument();
+    expect(within(body).getAllByText('string | null').length).toBeGreaterThanOrEqual(2);
+  });
+
   it('shows the first example on load; the menu lists examples and "Clear Example", which shows the empty state', async () => {
     const { user } = setup('get-v3-texts');
     const card = screen.getByRole('region', { name: 'Response' });

@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
@@ -146,6 +147,11 @@ export interface DropdownProps {
   frameClassName?: string;
   /** Accessible name of the panel. */
   label?: string;
+  /**
+   * Snap the panel to whole pixels, as live's tippy/popper menus are (More Languages, the tags popover). A trigger
+   * centred in an odd-height row otherwise leaves the panel half a pixel off, blurring every line of it.
+   */
+  wholePixels?: boolean;
 }
 
 /**
@@ -162,10 +168,12 @@ export function Dropdown({
   panelClassName,
   frameClassName,
   label,
+  wholePixels = false,
 }: DropdownProps) {
   const [open, setOpen] = useState(false);
   const baseId = useId();
   const rootId = `${baseId}root`;
+  const frameId = `${baseId}frame`;
   const triggerId = `${baseId}trigger`;
   const panelId = `${baseId}panel`;
   const close = useCallback(() => {
@@ -185,6 +193,21 @@ export function Dropdown({
     first?.focus();
     return () => document.removeEventListener('mousedown', onDown);
   }, [open, rootId, panelId]);
+  // `wholePixels`: More Languages opens at 157.5 against live's 157 without it.
+  useLayoutEffect(() => {
+    const frame = document.getElementById(frameId);
+    if (!open || !wholePixels || frame === null) return;
+    // A margin, not a transform: the panel must be laid out on the whole pixel, or its border and text still paint
+    // across two rows.
+    frame.style.margin = '';
+    const box = frame.getBoundingClientRect();
+    // Halves round down: live's trigger sits a quarter pixel higher than ours (133.25 against 133.5), so its menu
+    // rounds to the whole pixel above.
+    const whole = (v: number) => Math.ceil(v - 0.5);
+    const dx = whole(box.left) - box.left;
+    const dy = whole(box.top) - box.top;
+    if (dx !== 0 || dy !== 0) frame.style.margin = `${dy}px ${-dx}px 0 ${dx}px`;
+  }, [open, wholePixels, frameId]);
   const onPanelKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
       event.stopPropagation();
@@ -216,6 +239,7 @@ export function Dropdown({
       })}
       {open ? (
         <div
+          id={frameId}
           className={[styles.panelFrame, align === 'end' ? styles.alignEnd : styles.alignStart, frameClassName]
             .filter(Boolean)
             .join(' ')}

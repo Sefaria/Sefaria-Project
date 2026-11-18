@@ -26,7 +26,18 @@
   top: 0;
   display: flex;
   flex-direction: column;
+  box-sizing: content-box;
+
+  /* Live caps the sticky column at the viewport height and its response card shrinks to fill what the request card
+     leaves (727px under get-v3-texts' 161px request at 900px, 691px under find-refs' 197px one). Ours also holds the
+     Discord prompt (D-3: 16px + 44px), so the cap is 60px taller and the prompt keeps its place under the cards. */
+  max-height: calc(100vh + 60px);
   padding: 20px 0;
+}
+
+/* Only the response card gives way to the cap. */
+.sticky > :not(.responseCard) {
+  flex-shrink: 0;
 }
 
 .sectionHeader {
@@ -133,9 +144,13 @@
   flex-direction: column;
 }
 
+/* Live's icon slot is 14px wide (its font glyphs' advance); a 16px mark overflows it to the right, as live's SVG
+   marks do, and the label starts 8px after the slot. */
 .menuIcon {
+  flex: none;
   width: 16px;
   height: 16px;
+  margin-right: -2px;
 }
 
 /* Request card (live's rm-PlaygroundRequest) */
@@ -746,5 +761,6 @@
 
   .sticky {
     position: static;
+    max-height: none;
   }
 }

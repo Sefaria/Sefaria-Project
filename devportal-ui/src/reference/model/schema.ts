@@ -107,11 +107,9 @@ export function typeLabel(schema: Schema): string {
   return type;
 }
 
-/** Short label of a union variant as live's union select shows it ("string", "number", "array"). */
+/** Short label of a union variant as live's union select shows it: its bare type ("string", "number", "array"). */
 export function variantLabel(schema: Schema): string {
-  const type = schemaType(schema);
-  if (type === 'array') return typeLabel(schema);
-  return type ?? 'string';
+  return schemaType(schema) ?? 'string';
 }
 
 export interface PropertyEntry {

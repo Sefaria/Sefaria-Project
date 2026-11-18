@@ -1,6 +1,7 @@
 // Interface icons as live draws them (24×24 stroke icons, `currentColor`), and the language icons of the
 // language picker. Decorative: every icon is aria-hidden; the control around it carries the name.
 import type { ReactElement } from 'react';
+import { LANGUAGE_LOGOS } from './languageLogos';
 
 const STROKE: Record<string, string[]> = {
   copy: [
@@ -123,45 +124,11 @@ const LANGUAGE_ICONS: Record<string, ReactElement> = {
   ),
 };
 
-const LETTER_COLORS: Record<string, [string, string]> = {
-  c: ['C', '#5c6bc0'],
-  csharp: ['C#', '#68217a'],
-  cplusplus: ['C++', '#00599c'],
-  clojure: ['clj', '#5881d8'],
-  crystal: ['Cr', '#333'],
-  go: ['Go', '#00acd7'],
-  http: ['HTTP', '#666b79'],
-  java: ['J', '#e76f00'],
-  javascript: ['JS', '#c9a400'],
-  json: ['{ }', '#666b79'],
-  kotlin: ['K', '#7f52ff'],
-  objectivec: ['OC', '#438eff'],
-  ocaml: ['ml', '#ec6813'],
-  powershell: ['PS', '#2671be'],
-  r: ['R', '#276dc3'],
-  rust: ['Rs', '#a72145'],
-  swift: ['Sw', '#f05138'],
-};
-
+/** A language's mark: the picker's own five and the agent robot, else the More Languages logos (languageLogos.tsx). */
 export function LanguageIcon({ name, className }: { name: string; className?: string }) {
-  const known = LANGUAGE_ICONS[name];
-  const letters = LETTER_COLORS[name];
   return (
     <svg className={className} viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-      {known ??
-        (letters !== undefined ? (
-          <text
-            x="8"
-            y="11"
-            textAnchor="middle"
-            fontSize={letters[0].length > 2 ? 5.5 : 8}
-            fontWeight="700"
-            fill={letters[1]}
-            fontFamily="Arial, sans-serif"
-          >
-            {letters[0]}
-          </text>
-        ) : null)}
+      {LANGUAGE_ICONS[name] ?? LANGUAGE_LOGOS[name] ?? null}
     </svg>
   );
 }

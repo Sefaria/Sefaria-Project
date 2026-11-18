@@ -272,52 +272,57 @@ export function PortalHeader({ activeTab, subnav = null, sectionLabel: sectionLa
       data-visual-region="header"
     >
       <SkipLink />
-      <div className={styles.bar} data-visual="headerBottom">
-        <div className={styles.left}>
-          <MobileMenu activeTab={activeTab} />
-          <a className={styles.logo} href="/">
-            <img className={styles.logoImg} src={LOGO_SRC} alt={LOGO_ALT} data-visual="logo" />
-          </a>
-          {sectionLabel && <div className={styles.sectionLabel}>{sectionLabel}</div>}
-        </div>
-        <nav className={styles.nav} aria-label="Primary navigation">
-          {PRIMARY_LINKS.map((link) => {
-            const active = link.tab !== undefined && link.tab === activeTab;
-            return (
-              <a
-                key={link.label}
-                className={styles.navLink}
-                data-visual={active ? 'navLinkActive' : 'navLink'}
-                href={link.href}
-                aria-current={active ? 'page' : undefined}
-                {...linkTargetProps(link)}
-              >
-                <span>{link.label}</span>
-              </a>
-            );
-          })}
-        </nav>
-        <div className={styles.search}>
-          <button
-            type="button"
-            className={styles.searchToggle}
-            aria-label="Search ⌘k"
-            onClick={openSearch}
-            data-visual="search"
-          >
-            <SearchIcon className={styles.searchIcon} />
-            <span className={styles.searchPlaceholder}>Search</span>
-            <kbd className={styles.searchKbd} aria-hidden="true">
-              {keyHint}
-            </kbd>
-          </button>
-        </div>
-        <div className={styles.right}>
-          <LinksMenu />
+      {/* Live's header is two rows: rm-Header-top (hamburger, logo, search; ≤768px only) and rm-Header-bottom (the
+          main bar above 768px, the sidebar dropdown row below). One bar serves both here: `.bar` is the row at ≤768px
+          and `display: contents` above, `.barMain` the reverse, so each hook sits on the box live measures. */}
+      <div className={styles.bar} data-visual="headerTop">
+        <div className={styles.barMain} data-visual="headerBottom">
+          <div className={styles.left}>
+            <MobileMenu activeTab={activeTab} />
+            <a className={styles.logo} href="/">
+              <img className={styles.logoImg} src={LOGO_SRC} alt={LOGO_ALT} data-visual="logo" />
+            </a>
+            {sectionLabel && <div className={styles.sectionLabel}>{sectionLabel}</div>}
+          </div>
+          <nav className={styles.nav} aria-label="Primary navigation">
+            {PRIMARY_LINKS.map((link) => {
+              const active = link.tab !== undefined && link.tab === activeTab;
+              return (
+                <a
+                  key={link.label}
+                  className={styles.navLink}
+                  data-visual={active ? 'navLinkActive' : 'navLink'}
+                  href={link.href}
+                  aria-current={active ? 'page' : undefined}
+                  {...linkTargetProps(link)}
+                >
+                  <span>{link.label}</span>
+                </a>
+              );
+            })}
+          </nav>
+          <div className={styles.search}>
+            <button
+              type="button"
+              className={styles.searchToggle}
+              aria-label="Search ⌘k"
+              onClick={openSearch}
+              data-visual="search"
+            >
+              <SearchIcon className={styles.searchIcon} />
+              <span className={styles.searchPlaceholder}>Search</span>
+              <kbd className={styles.searchKbd} aria-hidden="true">
+                {keyHint}
+              </kbd>
+            </button>
+          </div>
+          <div className={styles.right}>
+            <LinksMenu />
+          </div>
         </div>
       </div>
       {subnav && (
-        <div className={styles.subnavRow}>
+        <div className={styles.subnavRow} data-visual="headerBottom">
           <button
             type="button"
             className={styles.subnavButton}

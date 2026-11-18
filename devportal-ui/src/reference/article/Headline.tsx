@@ -16,6 +16,7 @@ function TagsButton({ tags }: { tags: string[] }) {
       label="Tags"
       panelClassName={styles.tagsPanel}
       frameClassName={styles.tagsFrame}
+      wholePixels
       trigger={(props) => (
         <button type="button" className={styles.tagsButton} aria-label="View tags" {...props}>
           <Icon name="tag" className={styles.tagsIcon} />

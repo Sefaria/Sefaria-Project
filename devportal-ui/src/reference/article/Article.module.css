@@ -389,15 +389,23 @@
   white-space: nowrap;
 }
 
+/* Live: a flex row (gap 2px) of the status chip, an 18×22 box (padding 5px 3px) around the 12px dot, then the code. */
 .logStatus {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
+}
+
+.logStatus > :first-child {
+  flex: none;
+  margin: 5px 3px;
 }
 
 .logAgent {
   display: inline-block;
-  padding: 0 5px;
+
+  /* Live's Badge_xs: 6px either side of the label (37.86px wide with "Try It!"). */
+  padding: 0 6px;
   border-radius: 4px;
   background: #0222c6;
   color: #fff;

@@ -1,6 +1,6 @@
 // "Response" / "Responses": one accordion per status (an `h3 > button`, fixing live's `h1`), the first expanded on
 // load as live does after hydration, each with its "RESPONSE BODY" schema.
-import { useId, useState } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import type { OperationResponse } from '../../contracts';
 import { sortedResponses } from '../model/responses';
 import {
@@ -32,8 +32,89 @@ function nestedSchema(schema: Schema): Schema | null {
   return null;
 }
 
+/** An object with declared properties: live lists them straight in a box, with no "object" type row. */
+function isPropertyObject(schema: Schema): boolean {
+  const s = mergeAllOf(schema);
+  return schemaType(s) === 'object' && objectProperties(s).length > 0;
+}
+
+/** An array of objects with declared properties: live always shows its item card open. */
+function isObjectArray(schema: Schema): boolean {
+  const s = mergeAllOf(schema);
+  return schemaType(s) === 'array' && isPropertyObject(asSchema(s.items));
+}
+
+/**
+ * The items of an array of documented scalars (a `$ref` to `ref`: a string with a description). Live labels such an
+ * array "array of objects" and appends the items' description to the property's (`refs`, `includedRefs`).
+ */
+function describedScalarItems(schema: Schema): Schema | null {
+  const s = mergeAllOf(schema);
+  if (schemaType(s) !== 'array') return null;
+  const items = mergeAllOf(asSchema(s.items));
+  const type = schemaType(items);
+  if (type === null || type === 'object' || type === 'array' || unionVariants(items) !== null) return null;
+  return schemaDescription(items) !== '' ? items : null;
+}
+
+/** Live's type label of a property; a nullable schema ends in "| null" ("string | null"). */
+function propertyTypeLabel(schema: Schema): string {
+  const s = mergeAllOf(schema);
+  const label = describedScalarItems(s) !== null ? 'array of objects' : typeLabel(s);
+  return s.nullable === true ? `${label} | null` : label;
+}
+
+const STRUCTURED = ['array', 'object'];
+
+function isStructured(schema: Schema): boolean {
+  return STRUCTURED.includes(schemaType(schema) ?? '');
+}
+
+/** An `anyOf` with an array or object among its variants: live lists the variants as closed options. */
+function anyOfOptions(schema: Schema): Schema[] | null {
+  const s = mergeAllOf(schema);
+  if (!Array.isArray(s.anyOf)) return null;
+  const variants = unionVariants(s) ?? [];
+  return variants.some(isStructured) ? variants : null;
+}
+
+/** "string | array": the variants' types, once each. */
+function anyOfTypeLabel(variants: Schema[]): string {
+  return [...new Set(variants.map((v) => schemaType(v) ?? 'string'))].join(' | ');
+}
+
+/** Live's option labels: the variant's title, else its type, arrays numbered ("string", "Array 1", "Array 2"). */
+function anyOfOptionLabels(variants: Schema[]): string[] {
+  let arrays = 0;
+  return variants.map((v) => {
+    const title = mergeAllOf(v).title;
+    if (typeof title === 'string' && title !== '') return title;
+    const type = schemaType(v) ?? 'string';
+    if (type === 'array') {
+      arrays += 1;
+      return `Array ${arrays}`;
+    }
+    return type;
+  });
+}
+
+/** Live alternates nested boxes between white (even depth) and grey (odd depth). */
+function toneClass(depth: number): string {
+  return (depth % 2 === 0 ? styles.toneEven : styles.toneOdd) ?? '';
+}
+
 /** A card listing a schema: its type, its description, then its properties (live's `rm-ParamContainer`). */
-function SchemaCard({ schema, depth, nested }: { schema: Schema; depth: number; nested: boolean }) {
+function SchemaCard({
+  schema,
+  depth,
+  nested,
+  tone,
+}: {
+  schema: Schema;
+  depth: number;
+  nested: boolean;
+  tone?: string;
+}) {
   const s = mergeAllOf(schema);
   const props = objectProperties(s);
   const variants = unionVariants(s);
@@ -48,7 +129,7 @@ function SchemaCard({ schema, depth, nested }: { schema: Schema; depth: number; 
     );
   }
   return (
-    <div className={nested ? styles.nestedCard : styles.card}>
+    <div className={[nested ? styles.nestedCard : styles.card, tone ?? ''].filter(Boolean).join(' ')}>
       <div className={styles.typeRow}>{variants !== null ? 'one of' : typeLabel(s)}</div>
       {text !== '' ? (
         <div className={styles.descriptionRow}>
@@ -61,11 +142,30 @@ function SchemaCard({ schema, depth, nested }: { schema: Schema; depth: number; 
         </div>
       ) : props.length > 0 ? (
         <div className={styles.propsBlock}>
-          {props.map((p) => (
-            <PropertyRow key={p.name} name={p.name} schema={p.schema} required={p.required} depth={depth} />
-          ))}
+          <PropertyRows schema={s} depth={depth} />
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function PropertyRows({ schema, depth }: { schema: Schema; depth: number }) {
+  return (
+    <>
+      {objectProperties(schema).map((p) => (
+        <PropertyRow key={p.name} name={p.name} schema={p.schema} required={p.required} depth={depth} />
+      ))}
+    </>
+  );
+}
+
+/** A top-level object's properties in an open box of their own (live's expanded `Param-expand` fieldset). */
+function ObjectBox({ schema, depth }: { schema: Schema; depth: number }) {
+  return (
+    <div className={`${styles.objectBox} ${toneClass(depth)}`}>
+      <div className={styles.objectProps}>
+        <PropertyRows schema={schema} depth={depth + 1} />
+      </div>
     </div>
   );
 }
@@ -127,25 +227,96 @@ function UnionBody({ variants, depth, nameless = false }: { variants: Schema[]; 
   );
 }
 
+/** The open content of an expander: an object's properties, an array's item card, or a scalar array's item type. */
+function ExpandedContent({ schema, depth }: { schema: Schema; depth: number }) {
+  const s = mergeAllOf(schema);
+  if (isPropertyObject(s)) {
+    return (
+      <div className={styles.objectProps}>
+        <PropertyRows schema={s} depth={depth + 1} />
+      </div>
+    );
+  }
+  const nested = nestedSchema(s);
+  const items = schemaType(s) === 'array' ? mergeAllOf(asSchema(s.items)) : s;
+  return (
+    <div className={styles.expandChildren}>
+      {nested !== null ? (
+        <SchemaCard schema={nested} depth={depth + 1} nested />
+      ) : (
+        <div className={`${styles.nestedCard} ${toneClass(depth + 1)}`}>
+          <div className={styles.typeRow}>{typeLabel(items)}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Expander({ name, schema, depth }: { name: string; schema: Schema; depth: number }) {
   const [open, setOpen] = useState(false);
-  const label = `${name} ${schemaType(schema) === 'array' ? 'array' : 'object'}`;
-  const nested = nestedSchema(schema);
+  const s = mergeAllOf(schema);
+  // Live names the box after the schema's title when it has one ("Root Type for RawIndexNodesJSON object").
+  const title = typeof s.title === 'string' && s.title !== '' ? s.title : name;
+  const label = `${title} ${schemaType(s) === 'object' ? 'object' : typeLabel(s)}`;
   return (
     <section
-      className={[styles.expand, open ? styles.expandOpen : ''].filter(Boolean).join(' ')}
+      className={[styles.expand, toneClass(depth), open ? styles.expandOpen : ''].filter(Boolean).join(' ')}
       data-visual-region={open ? 'schemaArrayExpander' : undefined}
     >
       <button type="button" className={styles.expandButton} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
         <span className={styles.expandLabel}>{label}</span>
         <Icon name={open ? 'x' : 'plus'} className={styles.expandIcon} />
       </button>
-      {open && nested !== null ? (
-        <div className={styles.expandChildren}>
-          <SchemaCard schema={nested} depth={depth + 1} nested />
-        </div>
-      ) : null}
+      {open ? <ExpandedContent schema={s} depth={depth} /> : null}
     </section>
+  );
+}
+
+/** An `anyOf` with structured variants: each variant a closed option that opens to its type and contents. */
+function AnyOfList({ variants, depth }: { variants: Schema[]; depth: number }) {
+  const [open, setOpen] = useState<ReadonlySet<number>>(() => new Set());
+  const labels = anyOfOptionLabels(variants);
+  const toggle = (i: number) =>
+    setOpen((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  return (
+    <div className={styles.anyOfList}>
+      {variants.map((variant, i) => {
+        const isOpen = open.has(i);
+        const nested = nestedSchema(variant);
+        return (
+          <section
+            key={i}
+            className={[styles.anyOfOption, toneClass(depth), isOpen ? styles.anyOfOptionOpen : '']
+              .filter(Boolean)
+              .join(' ')}
+          >
+            <button type="button" className={styles.anyOfButton} aria-expanded={isOpen} onClick={() => toggle(i)}>
+              <span className={styles.anyOfLabel}>{labels[i]}</span>
+              <Icon name={isOpen ? 'chevron-down' : 'chevron-right'} className={styles.expandIcon} />
+            </button>
+            {isOpen ? (
+              <div className={styles.anyOfDetails}>
+                <div className={styles.typeRow}>{typeLabel(variant)}</div>
+                {isPropertyObject(variant) ? (
+                  <div className={styles.propsBlock}>
+                    <PropertyRows schema={mergeAllOf(variant)} depth={depth + 1} />
+                  </div>
+                ) : nested !== null ? (
+                  <div className={styles.anyOfNested}>
+                    <SchemaCard schema={nested} depth={depth + 1} nested tone={toneClass(depth + 1)} />
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </section>
+        );
+      })}
+    </div>
   );
 }
 
@@ -160,37 +331,52 @@ function PropertyRow({
   required: boolean;
   depth: number;
 }) {
-  const variants = unionVariants(schema);
+  const options = anyOfOptions(schema);
+  const variants = options === null ? unionVariants(schema) : null;
   const [variantIndex, setVariantIndex] = useState(0);
   const selectId = useId();
   const shown = variants !== null ? (variants[variantIndex] ?? schema) : schema;
   const nested = nestedSchema(shown);
-  const text = schemaDescription(schema);
+  const scalarItems = describedScalarItems(schema);
+  const text = [schemaDescription(schema), scalarItems === null ? '' : schemaDescription(scalarItems)]
+    .filter((t) => t !== '')
+    .join('\n\n');
   // Live draws a union of plain types ("priority: string | number") as a small select beside the name, and a union
-  // with an array or object among its variants ("text") as a full-width select under the description, followed by
-  // the chosen variant's expander.
-  const blockUnion = variants !== null && variants.some((v) => nestedSchema(v) !== null);
+  // with an array or object among its variants ("text", "he") as a full-width select under the description, followed
+  // by the chosen variant's expander.
+  const blockUnion = variants !== null && variants.some(isStructured);
   // An object without declared properties allows any: live says so in a box shaped like a closed expander.
   const openObject =
     nested === null && schemaType(shown) === 'object' && mergeAllOf(shown).additionalProperties !== false;
-  const children =
-    nested !== null ? (
-      depth === 0 ? (
-        <SchemaCard schema={nested} depth={depth + 1} nested />
-      ) : (
-        <Expander name={name} schema={shown} depth={depth} />
-      )
-    ) : openObject ? (
+  let children: ReactNode = null;
+  let boxed = false;
+  if (options !== null) {
+    children = <AnyOfList variants={options} depth={depth} />;
+    boxed = true;
+  } else if (blockUnion) {
+    children = isStructured(shown) ? <Expander name={name} schema={shown} depth={depth} /> : null;
+  } else if (isPropertyObject(shown)) {
+    // Live opens the objects of the top level and closes the deeper ones.
+    children =
+      depth === 0 ? <ObjectBox schema={shown} depth={depth} /> : <Expander name={name} schema={shown} depth={depth} />;
+    boxed = true;
+  } else if (nested !== null && (depth === 0 || isObjectArray(shown))) {
+    children = <SchemaCard schema={nested} depth={depth + 1} nested tone={toneClass(depth)} />;
+  } else if (nested !== null) {
+    children = <Expander name={name} schema={shown} depth={depth} />;
+    boxed = true;
+  } else if (openObject) {
+    children = (
       <div className={`${styles.expand} ${styles.additionalFields}`}>
         <div className={styles.expandButton}>Has additional fields</div>
       </div>
-    ) : null;
+    );
+    boxed = true;
+  }
+  const isArray = schemaType(shown) === 'array';
   return (
     <div
-      className={[
-        styles.propRow,
-        children === null && !blockUnion && schemaType(shown) !== 'array' ? styles.propRowLeaf : '',
-      ]
+      className={[styles.propRow, children === null && !blockUnion && !isArray ? styles.propRowLeaf : '']
         .filter(Boolean)
         .join(' ')}
     >
@@ -198,15 +384,15 @@ function PropertyRow({
         className={[
           styles.propHeader,
           // Live keeps a lone header as tall as a type select, except for arrays ("toSections array").
-          text === '' && children === null && !blockUnion && schemaType(shown) !== 'array'
-            ? styles.propHeaderAlone
-            : '',
+          text === '' && children === null && !blockUnion && !isArray ? styles.propHeaderAlone : '',
         ]
           .filter(Boolean)
           .join(' ')}
       >
         <span className={styles.propName}>{name}</span>
-        {blockUnion ? null : variants !== null ? (
+        {blockUnion ? null : options !== null ? (
+          <span className={styles.propType}>{anyOfTypeLabel(options)}</span>
+        ) : variants !== null ? (
           <UnionSelect
             id={selectId}
             label={`${name} type`}
@@ -215,7 +401,7 @@ function PropertyRow({
             onChange={setVariantIndex}
           />
         ) : (
-          <span className={styles.propType}>{typeLabel(schema)}</span>
+          <span className={styles.propType}>{propertyTypeLabel(schema)}</span>
         )}
         {required ? <span className={styles.propRequired}>required</span> : null}
       </div>
@@ -236,11 +422,7 @@ function PropertyRow({
           {children}
         </div>
       ) : children !== null ? (
-        <div
-          className={[styles.propChildren, openObject || (nested !== null && depth > 0) ? styles.propChildrenBox : '']
-            .filter(Boolean)
-            .join(' ')}
-        >
+        <div className={[styles.propChildren, boxed ? styles.propChildrenBox : ''].filter(Boolean).join(' ')}>
           {children}
         </div>
       ) : null}
