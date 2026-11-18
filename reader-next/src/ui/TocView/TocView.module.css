@@ -61,3 +61,20 @@ a.groupTitle { text-decoration: none; }
 .view:not([data-variant="page"]) .group[data-fixed-group="part"] .sectionLink { display: inline; min-width: 0; min-height: 0; padding: 0 4px; background: none; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 30px; color: var(--sefaria-color-text-muted); }
 .view:not([data-variant="page"]) .group[data-fixed-group="part"] .sectionLink[lang="he"] { font-family: var(--sefaria-font-ui-he); }
 .view:not([data-variant="page"]) .group[data-fixed-group="part"] .sectionLink[data-current] { background: none; color: var(--sefaria-color-brand); }
+
+/* The book page's contents, measured on sefaria.org 2026-11-18 (/Genesis, 375 and 1280; s2.css .textTableOfContents): "Chapters" and
+   "Torah Portions" 16px/18.75px #666, 10px above the tiles; a tile 50px with 3px all round, its number 18px light (weight 100)
+   #666 on a 50px line; the portions two even columns 60px apart, each 24px black over its aliyot (14px Roboto #6f6f6f, 4px sides,
+   a 30px line) */
+.view[data-variant="page"] .heading,
+.view[data-variant="page"] .group[data-fixed-group="heading"] > .groupTitle { font-size: 16px; line-height: 18.75px; color: var(--sefaria-color-text-dark-grey); margin-block-end: 10px; }
+.view[data-variant="page"] .grid { gap: 0; }
+.view[data-variant="page"] .sectionLink { margin: 3px; padding: 0 6px; font-size: 18px; font-weight: 100; line-height: 50px; color: var(--sefaria-color-text-dark-grey); }
+.view[data-variant="page"] .group[data-fixed-group="heading"] > .level { column-gap: 0; row-gap: 0; }
+.view[data-variant="page"] .group[data-fixed-group="part"] .groupTitle { font-size: 24px; margin-block-end: 0; }
+.view[data-variant="page"] .group[data-fixed-group="part"] .sectionLink { margin: 0; padding: 0 4px; font-size: 14px; font-weight: 400; line-height: 30px; color: var(--sefaria-color-text-muted); }
+.view[data-variant="page"] .group[data-fixed-group="part"] .grid { gap: 0; }
+/* each portion 60px under the last (its 24px title on a normal line over the 30px aliyot line), the portions 30px under the chapters
+   (.torahNavParshiot margin-top: 30px) */
+.view[data-variant="page"] .group[data-fixed-group="part"] .groupTitle { line-height: normal; }
+.view[data-variant="page"] .group[data-fixed-group="heading"] { margin-block-start: 10px; }

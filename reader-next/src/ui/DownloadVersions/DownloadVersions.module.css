@@ -5,3 +5,4 @@
 .form select { width: 100%; padding: 8px 10px; border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-sm, 6px); background: var(--sefaria-color-surface, #fff); font: inherit; color: var(--sefaria-color-text); }
 .button { display: block; text-align: center; padding: 10px 12px; border-radius: var(--sefaria-radius-sm, 6px); background: var(--sefaria-color-brand, #18345d); color: #fff; text-decoration: none; }
 .button[aria-disabled="true"] { background: var(--sefaria-color-border); color: var(--sefaria-color-text-muted); cursor: not-allowed; }
+.button { font-size: 16px; line-height: normal; } /* sefaria.org: Roboto 16px (2026-11-18, /Genesis) */

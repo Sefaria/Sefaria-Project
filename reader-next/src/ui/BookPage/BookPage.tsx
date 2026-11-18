@@ -111,7 +111,7 @@ export function BookPage({ title, category, attribution, dedication, readHref, c
             {aboutBody}
           </section>
         ) : null}
-        {sidebar}
+        {sidebar ? <div className={styles.sideModules}>{sidebar}</div> : null}
       </>}>
       {admin?.editor ?? (
         <ContentLanguage>

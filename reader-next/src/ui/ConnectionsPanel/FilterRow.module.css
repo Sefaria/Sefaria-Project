@@ -58,3 +58,7 @@
    #6f6f6f, a 1px #ccc border with 3px corners, 3px sides, 16px high (span.englishAvailableTag) */
 .row[data-tool] { gap: 15px; }
 .tag { padding: 0 3px; border-radius: 3px; font: 400 12px/14px var(--sefaria-font-ui-en); letter-spacing: normal; color: var(--sefaria-color-text-muted); }
+/* A titled section (About this Text, Current Version, the book page's Related Topics and Download Text): sefaria.org's
+   .navSidebarModule h1 / .aboutBox h2, 22px #666 on a normal line over a 1px #ccc rule, 13px under the words and 15px above
+   what follows (measured 2026-11-18, Genesis 1:1 with About, 1280) */
+.headingTitle { font-size: 22px; line-height: normal; color: var(--sefaria-color-text-dark-grey); border-bottom-color: var(--sefaria-color-border-strong); padding-bottom: 13px; margin-bottom: 15px; }
