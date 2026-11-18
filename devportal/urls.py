@@ -32,6 +32,7 @@ urlpatterns = [
     # Internal endpoints.
     path("_portal/page.json", api.page_json, name="page_json"),
     path("_portal/csrf", api.csrf_token, name="csrf"),
+    re_path(r"^_portal/nav/(?P<section>[a-z]+)\.json$", api.portal_nav, name="portal_nav"),
     re_path(r"^_portal/search-docs\.(?P<sha>[0-9a-f]{7,64})\.json$", api.search_docs, name="search_docs"),
     path("_portal/htmlblock/<str:revision>/<str:n>", htmlblock_frame, name="htmlblock"),
     re_path(r"^_portal/", api.portal_not_found, name="portal_not_found"),

@@ -1,5 +1,8 @@
 """Internal JSON endpoints under /_portal/ (contract C9). Never under /api/ (C9 rule no_api_prefix)."""
 
+import re
+from urllib.parse import unquote
+
 from django.http import HttpResponse, JsonResponse
 from django.middleware.csrf import get_token
 from django.views.decorators.http import require_GET
@@ -7,7 +10,10 @@ from django.views.decorators.http import require_GET
 from devportal.security.headers import request_origin
 from devportal.security.permissions import error_response
 
-from .pages import is_portal_path, resolve
+from . import reference
+from .pages import NAV_SECTIONS, _generation, is_portal_path, resolve, sidebar_tree
+
+REFERENCE_PAGE = re.compile(r"^/reference/(?P<slug>[^/]+)$")
 
 
 @require_GET
@@ -25,7 +31,11 @@ def page_json(request):
             "The path parameter must be a path on this host.",
             {"path": ["Must start with a single slash and be at most 2048 characters."]},
         )
-    payload = resolve(path, request_origin(request))
+    # Endpoint pages and tag groups are the reference module's (reference_payload); everything else resolves here.
+    match = REFERENCE_PAGE.match(path)
+    payload = reference.reference_payload(unquote(match["slug"]), request=request) if match else None
+    if payload is None:
+        payload = resolve(path, request_origin(request))
     nav = payload.get("nav")
     if nav and request.GET.get("nav") == str(nav["generation"]):
         nav["tree"] = None
@@ -33,6 +43,16 @@ def page_json(request):
     response["Cache-Control"] = "no-cache"
     if payload["kind"] == "notfound":
         response.devportal_not_found_path = path
+    return response
+
+
+@require_GET
+def portal_nav(request, section):
+    """GET /_portal/nav/<section>.json (C9 portal-nav): the C3 sidebar tree of `docs` or `reference`."""
+    if section not in NAV_SECTIONS:
+        return error_response(404, "not_found", "There is no sidebar for this section.")
+    response = JsonResponse(sidebar_tree(section, _generation()), json_dumps_params={"ensure_ascii": False})
+    response["Cache-Control"] = "no-cache"
     return response
 
 

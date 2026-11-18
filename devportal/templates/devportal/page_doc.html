@@ -17,7 +17,7 @@
 {% endcomment %}{% with page=payload.page tree=payload.nav.tree active=payload.path %}
 <div class="dp-docs dp-docs--{% if payload.section == "page" %}custom{% else %}standard{% endif %}" data-layout="{{ payload.layout }}">
   {% if tree %}
-  <div class="dp-docs__sidebar" data-slot="sidebar">
+  <div class="dp-docs__sidebar" data-slot="sidebar" id="dp-sidebar">
     <nav class="dp-sidebar dp-sidebar--static" aria-label="Secondary navigation">
       <div class="dp-sidebar-tree">
         {% for category in tree.categories %}

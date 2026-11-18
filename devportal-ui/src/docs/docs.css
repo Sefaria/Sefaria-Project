@@ -95,8 +95,34 @@
 }
 
 @media (width <= 768px) {
+  .dp-docs {
+    position: relative;
+  }
+
   .dp-docs__sidebar {
     display: none;
+  }
+
+  /* The mobile sub-nav panel (the header's sub-nav button), as the shell's PortalFrame draws it. */
+  .dp-docs__sidebar[data-open='true'] {
+    position: absolute;
+    top: 0;
+    left: 20px;
+    z-index: 50;
+    display: block;
+    width: 293px;
+    max-height: 70vh;
+    border: 1px solid rgb(0 0 0 / 10%);
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 5px 10px 0 rgb(0 0 0 / 5%);
+  }
+}
+
+@media (width <= 414px) {
+  .dp-docs__sidebar[data-open='true'] {
+    left: 15px;
+    width: calc(100% - 30px);
   }
 }
 

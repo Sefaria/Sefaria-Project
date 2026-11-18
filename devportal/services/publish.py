@@ -99,7 +99,8 @@ def render_revision(revision, *, force=False):
     version = md.renderer_version()
     if not force and revision.renderer_version == version:
         return revision
-    result = md.render(revision.body_md, revision=revision.number)
+    # The HTML-block frame URL names the PageRevision primary key (devportal/views/htmlblock.py).
+    result = md.render(revision.body_md, revision=revision.pk)
     revision.rendered_html = result.html
     revision.rendered_toc = list(result.toc)
     revision.search_text = result.text

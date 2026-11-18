@@ -40,3 +40,12 @@ export function interceptPortalLinks(doc: Document, router: Navigator): () => vo
   doc.addEventListener('click', onClick);
   return () => doc.removeEventListener('click', onClick);
 }
+/**
+ * Where a search result goes: through the router for every path this app renders (the portal's pages and
+ * the gallery), by a full page load for anything else (an absolute URL, a file such as `.md`).
+ */
+export function navigateTarget(path: string): 'router' | 'document' {
+  if (!path.startsWith('/') || path.startsWith('//')) return 'document';
+  const pathname = path.split(/[?#]/, 1)[0] ?? path;
+  return /\.[a-z0-9]+$/i.test(pathname) ? 'document' : 'router';
+}

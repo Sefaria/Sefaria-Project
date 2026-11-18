@@ -25,9 +25,13 @@ export interface DocPageProps {
   slots?: DocPageSlots;
   enhance?: EnhanceOptions;
   now?: Date;
+  /** Id of the sidebar column, for the shell's mobile sub-nav button (`aria-controls`). */
+  sidebarId?: string;
+  /** At ≤768px the sidebar is hidden unless the sub-nav button opened it. */
+  sidebarOpen?: boolean;
 }
 
-export function DocPage({ data, adopt, slots = {}, enhance, now }: DocPageProps) {
+export function DocPage({ data, adopt, slots = {}, enhance, now, sidebarId, sidebarOpen = false }: DocPageProps) {
   const { page } = data;
   const isCustom = data.section === 'page';
   const tree = data.nav?.tree ?? null;
@@ -35,7 +39,12 @@ export function DocPage({ data, adopt, slots = {}, enhance, now }: DocPageProps)
   return (
     <div className={`dp-docs dp-docs--${isCustom ? 'custom' : 'standard'}`} data-layout={data.layout}>
       {tree && (
-        <div className="dp-docs__sidebar" data-slot="sidebar">
+        <div
+          className="dp-docs__sidebar"
+          data-slot="sidebar"
+          id={sidebarId}
+          data-open={sidebarOpen ? 'true' : undefined}
+        >
           <nav className="dp-sidebar" aria-label="Secondary navigation">
             <DocsSidebarTree tree={tree} activePath={data.path} />
           </nav>

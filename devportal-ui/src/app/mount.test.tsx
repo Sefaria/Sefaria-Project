@@ -66,9 +66,27 @@ describe('mount', () => {
     expect(container.querySelector('main article#content h1')).toHaveTextContent(
       "Welcome to Sefaria's Technical Documentation"
     );
-    expect(container.querySelector('[data-dp-adopted="body"]')).toHaveTextContent('What is Sefaria?');
+    expect(container.querySelector('main.dp-main #dp-article-body')).toHaveTextContent('What is Sefaria?');
+    expect(container.querySelector('#dp-sidebar nav[aria-label="Secondary navigation"]')).not.toBeNull();
     expect(document.title).toBe("Welcome to Sefaria's Technical Documentation");
     expect(await axe(container)).toHaveNoViolations();
+    act(() => root!.unmount());
+  });
+
+  it('adopts the server-rendered body nodes instead of re-parsing them', async () => {
+    renderShell(fixture('doc'));
+    const server = document.getElementById('dp-root')!;
+    server.innerHTML =
+      '<main><div class="dp-markdown" id="dp-article-body"><p>server body</p><img alt="kept" src="data:,"></div></main>';
+    const image = server.querySelector('img')!;
+    let root: ReturnType<typeof mount> = null;
+    await act(async () => {
+      root = mount(document);
+    });
+    const body = document.getElementById('dp-article-body')!;
+    expect(body).toHaveTextContent('server body');
+    expect(body.querySelector('img')).toBe(image);
+    expect(image.isConnected).toBe(true);
     act(() => root!.unmount());
   });
 

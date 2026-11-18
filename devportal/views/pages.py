@@ -14,6 +14,7 @@ Sefaria context processor runs. Views never touch `request.session` (S-12).
 
 import difflib
 import hashlib
+import json
 import re
 from pathlib import Path
 from urllib.parse import quote, urlsplit
@@ -30,6 +31,7 @@ from django.views.decorators.http import require_safe
 
 from devportal.models import Page, PageKind, PortalArtifact, PortalState, Redirect, Section
 from devportal.security.headers import request_origin
+from devportal.services import nav
 
 CONTRACT_VERSION = 1
 
@@ -141,16 +143,52 @@ def home_payload(origin, site):
     return payload
 
 
-def sidebar_tree(section, generation):
-    import json  # noqa: PLC0415
+def _c3_item(node, ids):
+    """One node of the publish pipeline's tree (devportal.services.nav) as a C3 sidebar item."""
+    kind = node["kind"]
+    item = {
+        "id": ids.get((kind, node["slug"])),
+        "kind": kind,
+        "title": node["title"] or node["slug"],
+        "href": (node.get("link_url") or node["path"]) if kind == PageKind.LINK else node["path"],
+        "newTab": kind == PageKind.LINK and bool(node.get("new_tab")),
+        "method": (node.get("method") or "get").lower() if kind == PageKind.ENDPOINT else None,
+        "deprecated": bool(node.get("deprecated")),
+        "children": [],
+    }
+    item["children"] = [c for c in (_c3_item(child, ids) for child in node.get("pages", [])) if c is not None]
+    return item if item["id"] is not None and item["href"] else None
 
+
+def sidebar_tree(section, generation):
+    """The C3 sidebar tree (sidebar-tree.schema.json) of `section`.
+
+    The publish pipeline stores its own tree shape in the `sidebar-<section>.json` artifact (categories with
+    `pages`, `path`, `link_url`, no ids); this converts it, taking the ids from the pages themselves.
+    """
+    tree = None
     artifact = PortalArtifact.objects.filter(name=SIDEBAR_ARTIFACT.format(section=section)).first()
     if artifact is not None:
         try:
-            return json.loads(artifact.content)
+            tree = json.loads(artifact.content)
         except ValueError:
-            pass
-    return {"contractVersion": CONTRACT_VERSION, "section": section, "generation": generation, "categories": []}
+            tree = None
+    if not isinstance(tree, list):
+        tree = nav.build_tree(section)
+    ids = {
+        (kind, slug): pk
+        for pk, kind, slug in Page.objects.filter(section=section, deleted_at__isnull=True).values_list(
+            "pk", "kind", "slug"
+        )
+    }
+    categories = []
+    for node in tree:
+        category_id = ids.get((PageKind.CATEGORY, node["slug"]))
+        if node.get("kind") != PageKind.CATEGORY or category_id is None:
+            continue
+        items = [c for c in (_c3_item(child, ids) for child in node.get("pages", [])) if c is not None]
+        categories.append({"id": category_id, "title": node["title"], "items": items})
+    return {"contractVersion": CONTRACT_VERSION, "section": section, "generation": generation, "categories": categories}
 
 
 def _iso(value):
