@@ -233,6 +233,8 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
       - name: Set up yq
         uses: frenck/action-setup-yq@v1
+        with:
+          version: v4.20.2
       - name: Resolve app version
         id: app
         run: |
