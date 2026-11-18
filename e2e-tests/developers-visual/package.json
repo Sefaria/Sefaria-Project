@@ -1,0 +1,11 @@
+{
+  "name": "devportal-visual",
+  "private": true,
+  "description": "Visual-parity harness for developers.sefaria.org (PLAN.md §6.1). Uses the root node_modules; no dependencies of its own.",
+  "type": "module",
+  "scripts": {
+    "test:unit": "node --test tests/*.test.ts",
+    "capture": "node capture/capture-live.ts",
+    "verify-mapped": "node capture/verify-mapped.ts"
+  }
+}

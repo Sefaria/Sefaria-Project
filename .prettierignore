@@ -17,3 +17,5 @@ devportal/migration_source/
 # Markdown contract fixtures and goldens (byte-exact test inputs/outputs)
 devportal/contracts/fixtures/
 devportal/contracts/golden/
+# Visual-parity baselines and capture records (generated; byte-exact)
+e2e-tests/developers-visual/baselines/
