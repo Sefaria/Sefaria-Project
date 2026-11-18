@@ -5310,7 +5310,8 @@ def home(request):
     """
     Homepage (which is the texts page)
     """
-    return redirect("/texts")
+    query_string = request.META.get("QUERY_STRING", "")
+    return redirect("/texts?" + query_string if query_string else "/texts")
 
 
 def new_home_redirect(request):
