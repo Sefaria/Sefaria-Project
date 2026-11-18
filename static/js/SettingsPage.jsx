@@ -2249,16 +2249,16 @@ const EKeyColumns = ({ id }) => (
    Not repeated here, since they live on the profile: the additional email and the developer newsletter opt-in.
    Removed: how did you hear, years of experience (merged into the developer-status question), endpoint categories
    and specific endpoints, the public/private question (submitting is the request to be shown).
-   DESIGN PREVIEW: the profile and project fields save; the Powered by-only answers (show my name, current role, built
-   with AI, category, source code, tools, other technologies, inspiration, monthly users, anything else, the logo)
-   aren't stored on this branch yet. */
+   The Powered by-only answers go with the project as `poweredBy` and come back on the project, so the form reopens
+   with them. */
+/* `id` is what's stored (powered_by.developer.PUBLISH_CATEGORIES). */
 const E_PB_CATEGORIES = [
-  eBi('developer.publish_form.category.option_01'),
-  eBi('developer.publish_form.category.option_02'),
-  eBi('developer.publish_form.category.option_03'),
-  eBi('developer.publish_form.category.option_04'),
-  eBi('developer.publish_form.category.option_05'),
-  eBi('developer.publish_form.category.option_06'),
+  { id: 'learning', text: eBi('developer.publish_form.category.option_01') },
+  { id: 'ai', text: eBi('developer.publish_form.category.option_02') },
+  { id: 'visualization', text: eBi('developer.publish_form.category.option_03') },
+  { id: 'community', text: eBi('developer.publish_form.category.option_04') },
+  { id: 'extensions', text: eBi('developer.publish_form.category.option_05') },
+  { id: 'other', text: eBi('developer.publish_form.category.option_06') },
 ];
 /* The tools list (Sarah, 2026-11-08): no "Sefaria" in front of each one, since the question already says so, and each
    tool links to its repo or its page on the developer portal. `value` keeps the live form's wording for the intake.
@@ -2288,6 +2288,38 @@ const E_PB_USERS = [
   { v: '1000', key: 'developer.publish_form.monthly_users.option_04' },
   { v: 'other', key: 'developer.publish_form.monthly_users.option_05' },
 ];
+/* Monthly users is stored as the option's value, or for Other as the number typed (or "other" if none was). */
+const ePbUsersFromStored = (stored) => {
+  if (!stored) {
+    return { users: '', usersOther: '' };
+  }
+  if (stored !== 'other' && E_PB_USERS.some((o) => o.v === stored)) {
+    return { users: stored, usersOther: '' };
+  }
+  return { users: 'other', usersOther: stored === 'other' ? '' : stored };
+};
+const ePbUsersToStored = (users, usersOther) => (users === 'other' ? usersOther.trim() || 'other' : users);
+
+/* The saved Powered by answers of a project, as the publish form's starting values. A saved "no" to built with AI
+   can't be told from never answered except by the project having been submitted (it then has a category). */
+const ePbAnswers = (project) => {
+  const pb = (project && project.poweredBy) || {};
+  const categories = (pb.categories || []).filter((c) => E_PB_CATEGORIES.some((o) => o.id === c));
+  return {
+    showName: !!pb.showName,
+    currentRole: pb.currentRole || '',
+    builtWithAi: project && project.aiAssisted ? 'yes' : categories.length ? 'no' : '',
+    cats: categories,
+    sourceUrl: pb.sourceCode || '',
+    tools: (pb.tools || []).filter((t) => E_PB_TOOLS.some((o) => o.value === t)),
+    otherTech: pb.otherTech || '',
+    inspired: pb.inspiration || '',
+    ...ePbUsersFromStored(pb.monthlyUsers),
+    anythingElse: pb.anythingElse || '',
+    logo: pb.addedLogo ? 'yes' : '',
+    donateLink: !!pb.addedDonateLink,
+  };
+};
 
 const EFieldError = ({ id, error }) =>
   error ? (
@@ -2427,6 +2459,9 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
     form.set('description', p.description || '');
     form.set('organization', p.organization || '');
     form.set('websiteUrl', toDomain(p.websiteUrl || ''));
+    if (ePbAnswers(project).cats.length) {
+      setAnswers(ePbAnswers(project)); // a project submitted before brings its own answers; otherwise keep what's typed
+    }
     setEditProject(creating || (!!project && (!(p.websiteUrl || '').trim() || !(p.description || '').trim())));
   }, [projectId]);
   const [person, setPerson] = useState({
@@ -2434,19 +2469,25 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
     ...(profile || {}),
     role: profile ? (profile.notADeveloper ? 'ai' : 'developer') : '',
   });
-  const [showName, setShowName] = useState(false); // unchecked by default (2026-11-08)
-  const [currentRole, setCurrentRole] = useState('');
-  const [builtWithAi, setBuiltWithAi] = useState(''); // the project doesn't store this (removed from the project form)
-  const [cats, setCats] = useState([]);
-  const [sourceUrl, setSourceUrl] = useState('');
-  const [tools, setTools] = useState([]);
-  const [otherTech, setOtherTech] = useState('');
-  const [inspired, setInspired] = useState('');
-  const [users, setUsers] = useState('');
-  const [usersOther, setUsersOther] = useState('');
-  const [anythingElse, setAnythingElse] = useState('');
-  const [logo, setLogo] = useState('');
-  const [donateLink, setDonateLink] = useState(false); // design only: not saved anywhere yet
+  /* Starts from what the project was last submitted with; Show my name starts unchecked (2026-11-08). */
+  const [answers, setAnswers] = useState(() => ePbAnswers(project));
+  const answer = (key) => (value) => setAnswers((a) => ({ ...a, [key]: value }));
+  const { showName, currentRole, builtWithAi, cats, sourceUrl, tools, otherTech, inspired, users, usersOther } =
+    answers;
+  const { anythingElse, logo, donateLink } = answers;
+  const setShowName = answer('showName');
+  const setCurrentRole = answer('currentRole');
+  const setBuiltWithAi = answer('builtWithAi');
+  const setCats = answer('cats');
+  const setSourceUrl = answer('sourceUrl');
+  const setTools = answer('tools');
+  const setOtherTech = answer('otherTech');
+  const setInspired = answer('inspired');
+  const setUsers = answer('users');
+  const setUsersOther = answer('usersOther');
+  const setAnythingElse = answer('anythingElse');
+  const setLogo = answer('logo');
+  const setDonateLink = answer('donateLink');
   /* About you and the project start as filled-in summaries with an Edit link; a summary opens by itself when
      something in it is missing or wrong (2026-11-08). */
   const [editYou, setEditYou] = useState(!person.role);
@@ -2477,12 +2518,14 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
     const next = {
       websiteUrl: required(form.fields.websiteUrl),
       cats: cats.length ? null : <InterfaceText text={eBi('developer.publish_form.category.error')} />,
+      sourceUrl: eSiteError(sourceUrl, false),
       role: person.role ? null : 'auth.required_field',
     };
     setErrors(next);
     const order = [
       ['websiteUrl', 'devEProjSite'],
       ['cats', 'devEShareCat0'],
+      ['sourceUrl', 'devEShareSource'],
       ['role', 'devEShareRole'],
     ];
     const first = order.find(([k]) => next[k]);
@@ -2525,7 +2568,24 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
     Promise.resolve(
       onSubmit(
         cleanProfile({ ...person, termsAccepted: true, notADeveloper: person.role === 'ai' || person.role === 'none' }),
-        form.projectBody({ aiAssisted: builtWithAi === 'yes', visibility: 'public' }),
+        form.projectBody({
+          aiAssisted: builtWithAi ? builtWithAi === 'yes' : !!p.aiAssisted,
+          visibility: 'public',
+          poweredBy: {
+            showName,
+            currentRole: currentRole.trim(),
+            isDeveloper: person.role === 'developer',
+            categories: cats,
+            sourceCode: parseWebsite(sourceUrl).url,
+            tools,
+            otherTech: otherTech.trim(),
+            inspiration: inspired.trim(),
+            monthlyUsers: ePbUsersToStored(users, usersOther),
+            anythingElse: anythingElse.trim(),
+            addedLogo: logo === 'yes',
+            addedDonateLink: donateLink,
+          },
+        }),
         creating
       )
     ).catch((err) => {
@@ -2715,14 +2775,14 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
                   </legend>
                   {E_PB_CATEGORIES.map((c, i) => (
                     <Checkbox
-                      key={i}
+                      key={c.id}
                       id={'devEShareCat' + i}
-                      checked={cats.includes(c.en)}
+                      checked={cats.includes(c.id)}
                       onChange={() => {
-                        toggle(cats, setCats, c.en);
+                        toggle(cats, setCats, c.id);
                         clear('cats');
                       }}
-                      label={<InterfaceText text={c} />}
+                      label={<InterfaceText text={c.text} />}
                     />
                   ))}
                   <EFieldError id="devEShareCats-error" error={errors.cats} />
@@ -2733,7 +2793,11 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
                   label={tK('developer.publish_form.source_code.label')}
                   labelAddon={EOpt}
                   value={sourceUrl}
-                  onChange={(e) => setSourceUrl(e.target.value)}
+                  onChange={(e) => {
+                    setSourceUrl(e.target.value);
+                    clear('sourceUrl');
+                  }}
+                  error={errors.sourceUrl}
                 />
                 <fieldset className="devE-choices">
                   <legend>

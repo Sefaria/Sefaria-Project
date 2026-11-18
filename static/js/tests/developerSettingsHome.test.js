@@ -825,6 +825,97 @@ describe('publishing a project', () => {
     expect(within(section).queryByRole('button', { name: 'Publish project' })).toBeNull();
   });
 
+  it('sends every Powered by answer with the project', async () => {
+    await openPublish();
+    type(field('Current role'), ' Teacher ');
+    await click(field("Show my name with the project if it's featured"));
+    await click(field('Learning & Study Tools'));
+    await click(field('Visualization & Data Analysis'));
+    type(field('Link to source code'), 'github.com/example/daf');
+    await click(document.getElementById('devEShareTool0'));
+    await click(document.getElementById('devEShareTool1'));
+    type(field(/non-Sefaria technologies/), 'React');
+    type(field(/What inspired you/), 'My chavruta');
+    await click(screen.getByRole('radio', { name: 'Yes' }));
+    await click(screen.getAllByRole('radio', { name: 'Other' })[0]);
+    type(field('How many?'), '25000');
+    type(field(/Anything else/), 'Thanks');
+    await click(field("I've added the Powered by Sefaria logo"));
+    await click(field("I've added a link to donate to Sefaria"));
+    await click(button('Submit for review'));
+    const sent = server.sent('POST', 'projects/p1')[0].project;
+    expect(sent.aiAssisted).toBe(true);
+    expect(sent.poweredBy).toEqual({
+      showName: true,
+      currentRole: 'Teacher',
+      isDeveloper: true,
+      categories: ['learning', 'visualization'],
+      sourceCode: 'https://github.com/example/daf',
+      tools: ['Sefaria API', 'Sefaria MCP'],
+      otherTech: 'React',
+      inspiration: 'My chavruta',
+      monthlyUsers: '25000',
+      anythingElse: 'Thanks',
+      addedLogo: true,
+      addedDonateLink: true,
+    });
+  });
+
+  it('reopens with the answers the project was submitted with', async () => {
+    await openPublish({
+      aiAssisted: false,
+      poweredBy: {
+        showName: true,
+        currentRole: 'Teacher',
+        isDeveloper: true,
+        categories: ['ai'],
+        sourceCode: 'https://github.com/example/daf',
+        tools: ['Sefaria-Export'],
+        otherTech: 'React',
+        inspiration: 'My chavruta',
+        monthlyUsers: '100',
+        anythingElse: 'Thanks',
+        addedLogo: false,
+        addedDonateLink: true,
+      },
+    });
+    expect(field("Show my name with the project if it's featured").checked).toBe(true);
+    expect(field('Current role').value).toBe('Teacher');
+    expect(field('AI Projects, Apps, & Other Tools').checked).toBe(true);
+    expect(field('Learning & Study Tools').checked).toBe(false);
+    expect(field('Link to source code').value).toBe('https://github.com/example/daf');
+    expect(document.getElementById('devEShareTool2').checked).toBe(true);
+    expect(field(/non-Sefaria technologies/).value).toBe('React');
+    expect(screen.getByRole('radio', { name: 'No' }).checked).toBe(true);
+    expect(screen.getByRole('radio', { name: 'About 100' }).checked).toBe(true);
+    expect(field(/Anything else/).value).toBe('Thanks');
+    expect(field("I've added the Powered by Sefaria logo").checked).toBe(false);
+    expect(field("I've added a link to donate to Sefaria").checked).toBe(true);
+  });
+
+  it('starts "built with AI" from the project and keeps it on submit', async () => {
+    await openPublish({ aiAssisted: true });
+    expect(screen.getByRole('radio', { name: 'Yes' }).checked).toBe(true);
+    await click(field('Learning & Study Tools'));
+    await click(button('Submit for review'));
+    expect(server.sent('POST', 'projects/p1')[0].project.aiAssisted).toBe(true);
+  });
+
+  it('leaves "built with AI" unanswered for a project never submitted', async () => {
+    await openPublish();
+    expect(screen.getByRole('radio', { name: 'Yes' }).checked).toBe(false);
+    expect(screen.getByRole('radio', { name: 'No' }).checked).toBe(false);
+  });
+
+  it('asks for a valid source code link before submitting', async () => {
+    await openPublish();
+    await click(field('Learning & Study Tools'));
+    type(field('Link to source code'), 'not a link');
+    await click(button('Submit for review'));
+    expect(field('Link to source code').getAttribute('aria-invalid')).toBe('true');
+    expect(server.requests).toEqual([]);
+  });
+
   it("keeps the form with the server's reason when submitting fails", async () => {
     await openPublish();
     server.fail('POST', 'projects/p1', 400, 'The website is not a valid web address.');
