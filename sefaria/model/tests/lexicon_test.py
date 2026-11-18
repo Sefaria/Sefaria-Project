@@ -54,9 +54,22 @@ class Test_Lexicon_Lookup:
         assert results2.count() == 2
         assert results3.count() == 2
 
+        # The library gains dictionaries (Ben Yehuda added a 9th match), so check that the known
+        # matches are all found rather than the exact count.
         word2 = "עִוֵּ֔ר"
         results = LexiconLookupAggregator.lexicon_lookup(word2)
-        assert results.count() == 8
+        found = {(r.parent_lexicon, unicodedata.normalize("NFC", r.headword)) for r in results}
+        expected = {
+            ("BDB Augmented Strong", "עָוַר"),
+            ("BDB Augmented Strong", "עִוֵּר"),
+            ("Jastrow Dictionary", "עִוֵּר I"),
+            ("Jastrow Dictionary", "עִוֵּר II"),
+            ("Klein Dictionary", "עור ᴵᴵᴵ"),
+            ("Klein Dictionary", "עִוֵּר"),
+            ("BDB Dictionary", "עָוַר"),
+            ("BDB Dictionary", "עִוֵּר"),
+        }
+        assert {(lexicon, unicodedata.normalize("NFC", headword)) for lexicon, headword in expected} <= found
 
     def test_hts_lookup(self):
         word = "Ma'aser Sheni"

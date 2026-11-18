@@ -1,6 +1,8 @@
+import pymongo
 import pytest
 
 from sefaria.model.user_profile import UserHistory, UserHistorySet
+from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
 
@@ -78,6 +80,9 @@ def sync_history():
     """
     Ten plain reads at server_time_stamp 1..10, with saved and last_place items among the oldest.
     """
+    # get_sync_items hints the (uid, server_time_stamp) index. ensure_indices() registers it but
+    # nothing runs that in the CI sandbox, and a hint on a missing index is an error, not a slow query.
+    db.user_history.create_index([("uid", pymongo.ASCENDING), ("server_time_stamp", pymongo.ASCENDING)])
     items = [
         make_uh(
             uid=SYNC_UID, ref=f"Genesis 1:{i}", time_stamp=i, server_time_stamp=i, saved=(i == 1), last_place=(i == 2)

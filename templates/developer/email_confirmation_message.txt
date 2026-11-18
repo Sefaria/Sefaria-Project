@@ -1,0 +1,7 @@
+Someone, hopefully you, asked to set up developer settings on the Sefaria account that uses this address. Confirm it to continue:
+
+{{ activate_url }}
+
+The link works for 3 days. If you didn't ask for this, you can ignore this email.
+
+Sefaria

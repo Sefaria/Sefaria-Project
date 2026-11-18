@@ -801,15 +801,22 @@ class UserProfile:
         Set the slug according to the profile name,
         using the first available number at the end if duplicated exist
         """
-        slug = "%s-%s" % (self.first_name, self.last_name)
-        slug = slug.lower()
-        slug = slug.replace(" ", "-")
-        slug = re.sub(r"[^a-z0-9\-]", "", slug)
-        self.slug = slug
+        base = f"{self.first_name}-{self.last_name}"
+        base = base.lower()
+        base = base.replace(" ", "-")
+        base = re.sub(r"[^a-z0-9\-]", "", base)
+        taken = {
+            doc["slug"]
+            for doc in db.profiles.find(
+                {"slug": {"$regex": f"^{re.escape(base)}[0-9]*$"}, "_id": {"$ne": self._id}}, {"slug": 1, "_id": 0}
+            )
+        }
+        slug = base
         dupe_count = 0
-        while self.errors():
+        while slug in taken:
             dupe_count += 1
-            self.slug = "%s%d" % (slug, dupe_count)
+            slug = f"{base}{dupe_count}"
+        self.slug = slug
 
         return self
 
