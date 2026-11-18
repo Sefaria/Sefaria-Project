@@ -15,7 +15,7 @@ import { highlightsOf, mergeTextResultsVersions, type SearchHit } from "~/lib/se
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { VisuallyHidden } from "~/ui/VisuallyHidden/VisuallyHidden";
 import { NavPage } from "~/ui/NavPage/NavPage";
-import { AutocorrectBanner, EntityResults, ExactToggle, MobileFilterButton, MobileFilterPanel, NoResults, PanelSection, SearchError, SearchSkeleton, SearchBar, SearchFilters, SearchResultCard, SearchTabs, SortMenu, SortRadios } from "~/ui/SearchPage/SearchPage";
+import { AutocorrectBanner, EntityResults, ExactToggle, MobileFilterButton, MobileFilterPanel, NoResults, PanelSection, SearchError, SearchSkeleton, SearchBar, SearchFilters, SearchResultCard, SearchSortBar, SearchTabs, SortMenu, SortRadios } from "~/ui/SearchPage/SearchPage";
 import { toRouterLocation } from "../shared/RouterLink";
 import { searchFlow, tabLabel } from "~/lib/analytics";
 import { resultClickHandlers, useSearchFlowAnalytics } from "./use-search-analytics";
@@ -227,7 +227,7 @@ export function SearchRoute() {
   return (
     <NavPage
       layout="search"
-      top={{ main: 64, side: 142 }}
+      top={{ main: 60, side: 140 }}
       sidebar={
         // the filters need the catalog's order and names, which are not in the page: they appear once it is here
         mobile || !catalog ? undefined
@@ -254,14 +254,14 @@ export function SearchRoute() {
           {mobile ? (
             <MobileFilterButton onClick={() => setPanelOpen(true)} />
           ) : params.tab === "sources" ? (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBlockEnd: 18 }}>
+            <SearchSortBar>
               <ExactToggle exact={params.exact} onChange={onExact} />
               <SortMenu sort={params.sort} onChange={onSourcesSort} disabled={first?.total === 0} />
-            </div>
+            </SearchSortBar>
           ) : entityType ? (
-            <div style={{ display: "flex", justifyContent: "flex-end", marginBlockEnd: 18 }}>
+            <SearchSortBar end>
               <SortMenu sort={entitySort[entityType]} options={ENTITY_SORTS[entityType]} onChange={(v) => onEntitySort(entityType, v)} disabled={entities.data?.pages[0]?.hits.length === 0} />
-            </div>
+            </SearchSortBar>
           ) : null}
           {mobile && panelOpen ? (
             <MobileFilterPanel title={<InterfaceText en={params.tab === "sources" ? "Filters" : params.tab === "books" ? "Filter" : "Sort"} he={params.tab === "sources" ? "פילטרים" : params.tab === "books" ? "סינון" : "מיון"} />} onClose={() => setPanelOpen(false)}>

@@ -130,3 +130,58 @@
 .autocorrectCorrected:lang(he) { font-weight: 700; }
 .autocorrectTerm { cursor: pointer; color: var(--sefaria-color-brand); text-decoration: underline; }
 .autocorrectTerm:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
+
+/* Measured against sefaria.org (2026-11-18, Playwright, /search?q=light at 375x900 and 1280x900; s2.css .searchContent rules):
+   - a tab: 22px, its padding 10px above and below, the current one black over a 4px #ccc rule, the others #666 (#575757 on a
+     phone, .searchTabsMobileWeb-tab); its count Roboto 12px/20px #666 on #ededec, 2px 4px, 24px wide at least, 12px after the name;
+   - All Results / Exact Phrase (.searchToggle): a 216px #fafafa pill with a 1px #ededec border and 4px inside, each option 104px,
+     Roboto 14px/18px with 8px 12px, #575757, the chosen one #121212 600 on a white pill with a soft shadow; full width in the
+     phone's panel;
+   - the sort button Roboto 16px #575757 (.searchSortDropdown);
+   - a result's version and "N more versions" Roboto 12px/20px #707070, the version right under the text (.searchResultCard-*);
+   - "Filters", "Search Type", "Sort by" 22px #666 over a 1px #ccc rule with 10px either side; a filter's name black, its count #666,
+     on a 22.5px line; the phone panel's sorts 16px. */
+.tab, .stripTab { padding-block: 10px; border-block-end-width: 4px; color: var(--sefaria-color-text-dark-grey); }
+.tab[data-current], .stripTab[aria-selected="true"] { color: var(--sefaria-color-text-strong); border-block-end-color: var(--sefaria-color-border-strong); }
+@media (max-width: 842px) { .stripTab:not([aria-selected="true"]) { color: #575757; } }
+.count { display: inline-block; min-width: 24px; box-sizing: border-box; padding: 2px 4px; border-radius: 4px; background: var(--sefaria-color-chip); font-family: var(--sefaria-font-ui-en); font-size: 12px; line-height: 20px; color: var(--sefaria-color-text-dark-grey); text-align: center; }
+.tab, .stripTab { gap: 12px; }
+.toggle { position: relative; display: inline-flex; align-items: center; width: 216px; padding: 4px; box-sizing: border-box; background: #fafafa; border: 1px solid var(--sefaria-color-chip); border-radius: 9999px; }
+.toggle[data-block] { display: flex; width: 100%; }
+.toggleOption { width: 104px; padding: 8px 12px; border: 0; border-radius: 9999px; background: none; cursor: pointer; font-family: var(--sefaria-font-ui-en); font-size: 14px; font-weight: 400; line-height: 18px; color: #575757; white-space: nowrap; text-align: center; }
+.toggle[data-block] .toggleOption { flex: 1 0 0; width: auto; min-width: 0; }
+.toggleOption[aria-pressed="true"] { background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / 10%); color: var(--sefaria-color-text); font-weight: 600; }
+:lang(he) .toggleOption { font-family: var(--sefaria-font-ui-he); }
+.sortBtn { font-family: var(--sefaria-font-ui-en); color: #575757; }
+:lang(he) .sortBtn { font-family: var(--sefaria-font-ui-he); }
+.version, .version a, .more { font-family: var(--sefaria-font-ui-en); font-size: 12px; line-height: 20px; color: var(--sefaria-color-text-secondary); }
+.version { margin-block-start: 0; }
+.version:lang(he), .more:lang(he) { font-family: var(--sefaria-font-ui-he); line-height: normal; }
+.more { margin-block-start: 8px; gap: 2px; }
+.filtersTitle, .panelSection h2 { margin: 0 0 10px; padding-block-end: 10px; border-block-end: 1px solid var(--sefaria-color-border-strong); font-size: 22px; line-height: normal; color: var(--sefaria-color-text-dark-grey); }
+.row label { line-height: 22.5px; color: var(--sefaria-color-text-strong); }
+.num { color: var(--sefaria-color-text-dark-grey); }
+.radios label { font-size: 16px; line-height: normal; }
+/* The rows above the results (s2.css .searchPageSearchBar, .searchTopLine, .tab-view .tab-list .tab, .searchSortBar /
+   .searchTopMatter, .searchTabsMobileWeb*): the bar 45px with 20px under it; desktop tabs 30px apart on a normal line, right on the
+   76px row that holds the toggle and the sort; a phone's strip tabs 10px above and 14px below, the count 8px after the name, 18px
+   under the strip, then the 76px row with the filter button in its middle. */
+.bar { height: 45px; margin-block-end: 20px; }
+.tabs { gap: 30px; margin-block-end: 0; }
+.tab { line-height: normal; }
+.stripTab { padding: 10px 0 14px; gap: 8px; line-height: normal; }
+.strip { margin-block-end: 18px; }
+.mobileFilterBtn { margin-block: 36px 18px; } /* the strip's 18px collapses into this: the button 18px into the 76px row */
+.sortBar { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 76px; }
+.sortBar[data-end] { justify-content: flex-end; }
+/* the filter box 10px under its heading and 12px above the first filter, each filter 6px above and below (.searchFilterBoxes li);
+   a version 8px under its result's text; the phone panel's body 20px 15px (.mobileSearchFilters .searchFilters) */
+.filters, .panelSection .filters { gap: 0; }
+.filterBox { margin-block-end: 12px; }
+.row { padding-block: 6px; }
+.version { margin-block-start: 8px; }
+.panelBody { padding: 19px 15px; }
+/* the phone panel's sorts: 4px above and below each, the radio 8px from its name (.sortRadioItem label) */
+.radios { gap: 0; }
+.radios label { padding-block: 4px; gap: 8px; }
+.stripTab { margin-block-end: 0; } /* its 4px rule over the strip's 1px line, not on it (the button lands at 240) */

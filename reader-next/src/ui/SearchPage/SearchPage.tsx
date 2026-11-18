@@ -167,14 +167,20 @@ export function SortRadios<V extends string>({ options, value, onChange, name }:
 export function ExactToggle({ exact, onChange, block }: { exact: boolean; onChange: (exact: boolean) => void; block?: boolean }) {
   const he = useInterfaceLang() === "hebrew";
   const btn = (value: boolean, en: string, hb: string) => (
-    <button type="button" aria-pressed={exact === value} onClick={() => exact !== value && onChange(value)} style={{ flex: block ? 1 : undefined, padding: "6px 14px", border: 0, borderRadius: 6, cursor: "pointer", fontSize: 15, background: exact === value ? "var(--sefaria-color-surface)" : "transparent", boxShadow: exact === value ? "0 1px 3px rgb(0 0 0 / 20%)" : "none", fontWeight: exact === value ? 600 : 400, color: "var(--sefaria-color-text)" }}>{he ? hb : en}</button>
+    <button type="button" className={styles.toggleOption} aria-pressed={exact === value} onClick={() => exact !== value && onChange(value)}>{he ? hb : en}</button>
   );
   return (
-    <div role="group" aria-label={he ? "סוג חיפוש" : "Search type"} style={{ display: block ? "flex" : "inline-flex", gap: 2, padding: 3, borderRadius: 8, background: "var(--sefaria-color-surface-disabled)", border: "1px solid var(--sefaria-color-border)" }}>
+    <div role="group" aria-label={he ? "סוג חיפוש" : "Search type"} className={styles.toggle} data-block={block || undefined}>
       {btn(false, "All Results", "כל התוצאות")}
       {btn(true, "Exact Phrase", "ביטוי מדויק")}
     </div>
   );
+}
+
+/** The 76px row between the tabs and the results that holds the toggle and the sort (sefaria.org's .searchSortBar); `end` for the
+ * sort alone. */
+export function SearchSortBar({ end, children }: { end?: boolean; children: ReactNode }) {
+  return <div className={styles.sortBar} data-end={end || undefined}>{children}</div>;
 }
 
 const SORTS = SOURCE_SORTS;
