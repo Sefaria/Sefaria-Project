@@ -164,6 +164,10 @@ spec:
         ref: backup-manager
     localSettings:
       DEBUG: true
+      # API keys phase 1, R5 of the staging rehearsal: the developer settings tab and its routes, for staff (is_staff) only.
+      # Staging's database is restored from prod every Sunday, so projects and keys made here do not survive the week.
+      DEVELOPER_SETTINGS_ENABLED: "True"
+      DEVELOPER_SETTINGS_STAFF_ONLY: "True"
       DOMAIN_LANGUAGE:
         "https://sefariastaging.org": "english"
         "https://voices.sefariastaging.org": "english"
