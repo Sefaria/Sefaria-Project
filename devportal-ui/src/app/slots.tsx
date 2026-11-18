@@ -1,13 +1,13 @@
 // The lanes' components, plugged into the page (PLAN §2.5, §4.2). Shared file, owned by the Integrator.
-// Docs (W7) are wired here; the slots still to come from other lanes are typed in `PageSlots` and left
-// empty: `endpointArticle` and `playground` (W3, src/reference), `home` and the Discord button (W11,
-// src/home and src/discord), `editor` (W13, src/editor). The shell's sidebar, Copy Page and feedback (W2) are
-// wired here too; the endpoint page's Copy Page and footer are ready in `endpointHeaderActions` and
-// `endpointFooter` for whoever wires W3's EndpointArticle.
+// Wired: docs (W7), the shell's sidebar, Copy Page and feedback (W2), the reference (W3, src/reference, through
+// endpoint.tsx), and the homepage and Discord buttons (W11, src/home and src/discord). The editor (W13) mounts
+// from main.tsx on /editor pages, outside this router.
 import type { DocPayload, EndpointPayload, PagePayload } from '../contracts';
-import { SidebarFooterDiscord } from '../discord';
+import { DocsPageEndDiscord, SidebarFooterDiscord } from '../discord';
 import { DocPage } from '../docs';
+import { homeSlot } from '../home';
 import { CopyPage, EndpointFooter, Feedback, Sidebar } from '../shell';
+import { EndpointArticleSlot, EndpointPlaygroundSlot, EndpointSpecGate } from './endpoint';
 import type { DocFrame, PageSlots } from './PortalPage';
 
 // ------------------------------------------------------------------------- server body adoption
@@ -98,11 +98,23 @@ export function createPageSlots(): PageSlots {
   const slots: PageSlots = {
     sidebar: renderSidebar,
     docPage: (data, frame) => renderDocPage(data, frame, slots),
-    docExtras: renderDocExtras,
-    // Extension points, filled by their lanes:
-    // docExtras: add `discord: <DocsPageEndDiscord />` (W11, placement docs_page_end)
-    // endpointArticle, playground: W3 (src/reference)
-    // home: W11 (src/home)
+    // Copy Page and feedback (W2) on docs and custom pages; W11's Discord button at the end of docs pages
+    // (placement docs_page_end; not on custom pages such as the contact page, which has its own).
+    docExtras: (data) => ({
+      ...renderDocExtras(data),
+      ...(data.section === 'page' ? {} : { discord: <DocsPageEndDiscord /> }),
+    }),
+    // W3: one EndpointProvider around both columns, so the article's form and the playground share the request.
+    endpointProvider: (data, frame, fallback) => (
+      <EndpointSpecGate data={data} fallback={fallback}>
+        {frame}
+      </EndpointSpecGate>
+    ),
+    endpointArticle: (data) => (
+      <EndpointArticleSlot data={data} headerActions={endpointHeaderActions(data)} footer={endpointFooter(data)} />
+    ),
+    playground: () => <EndpointPlaygroundSlot />,
+    home: homeSlot,
     // editor: W13 (src/editor)
   };
   return slots;

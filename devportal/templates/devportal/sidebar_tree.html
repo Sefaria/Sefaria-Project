@@ -1,0 +1,48 @@
+{% comment %}
+  The sidebar tree of a docs or endpoint page, rendered on the server (PLAN.md §2.5): the C3 tree, a
+  category plus at most three levels (Page.MAX_DEPTH), unrolled. Context: `tree` (the C3 sidebar tree) and
+  `active` (the page's path). Included by page_doc.html and page_endpoint.html; the client renders the same
+  DOM (devportal-ui/src/docs/DocsSidebarTree.tsx).
+{% endcomment %}<nav class="dp-sidebar dp-sidebar--static" aria-label="Secondary navigation">
+  <div class="dp-sidebar-tree">
+    {% for category in tree.categories %}
+    <section class="dp-sidebar-section" aria-labelledby="dp-sidebar-heading-{{ category.id }}">
+      <h2 class="dp-sidebar-heading" id="dp-sidebar-heading-{{ category.id }}">{{ category.title }}</h2>
+      <ul class="dp-sidebar-list">
+        {% for item in category.items %}
+        <li class="dp-sidebar-item">
+          <div class="dp-sidebar-row{% if item.children %} dp-sidebar-row--parent{% endif %}{% if item.deprecated %} dp-sidebar-row--deprecated{% endif %}">
+            <a class="dp-sidebar-link{% if item.href == active %} dp-active{% endif %}" href="{{ item.href }}"{% if item.href == active %} aria-current="page"{% endif %}{% if item.kind == "link" and item.newTab %} target="_blank" rel="noopener noreferrer"{% endif %}><span class="dp-sidebar-link__text">{{ item.title }}</span>{% if item.kind == "link" %}<svg class="dp-sidebar-external" aria-hidden="true" focusable="false" viewBox="0 0 16 16" width="16" height="16"><path d="M5 4h7v7M12 4 4 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>{% endif %}</a>
+            {% if item.deprecated %}<button type="button" class="dp-sidebar-deprecated" aria-label="Deprecated Doc" title="Deprecated"></button>{% endif %}
+          </div>
+          {% if item.children %}
+          <ul class="dp-sidebar-list dp-sidebar-list--sub">
+            {% for child in item.children %}
+            <li class="dp-sidebar-item">
+              <div class="dp-sidebar-row{% if child.children %} dp-sidebar-row--parent{% endif %}{% if child.deprecated %} dp-sidebar-row--deprecated{% endif %}">
+                <a class="dp-sidebar-link{% if child.href == active %} dp-active{% endif %} dp-sidebar-link--sub" href="{{ child.href }}"{% if child.href == active %} aria-current="page"{% endif %}{% if child.kind == "link" and child.newTab %} target="_blank" rel="noopener noreferrer"{% endif %}><span class="dp-sidebar-link__text">{{ child.title }}</span>{% if child.kind == "link" %}<svg class="dp-sidebar-external" aria-hidden="true" focusable="false" viewBox="0 0 16 16" width="16" height="16"><path d="M5 4h7v7M12 4 4 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>{% endif %}</a>
+                {% if child.deprecated %}<button type="button" class="dp-sidebar-deprecated" aria-label="Deprecated Doc" title="Deprecated"></button>{% endif %}
+              </div>
+              {% if child.children %}
+              <ul class="dp-sidebar-list dp-sidebar-list--sub">
+                {% for leaf in child.children %}
+                <li class="dp-sidebar-item">
+                  <div class="dp-sidebar-row{% if leaf.deprecated %} dp-sidebar-row--deprecated{% endif %}">
+                    <a class="dp-sidebar-link{% if leaf.href == active %} dp-active{% endif %} dp-sidebar-link--sub" href="{{ leaf.href }}"{% if leaf.href == active %} aria-current="page"{% endif %}{% if leaf.kind == "link" and leaf.newTab %} target="_blank" rel="noopener noreferrer"{% endif %}><span class="dp-sidebar-link__text">{{ leaf.title }}</span>{% if leaf.kind == "link" %}<svg class="dp-sidebar-external" aria-hidden="true" focusable="false" viewBox="0 0 16 16" width="16" height="16"><path d="M5 4h7v7M12 4 4 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>{% endif %}</a>
+                    {% if leaf.deprecated %}<button type="button" class="dp-sidebar-deprecated" aria-label="Deprecated Doc" title="Deprecated"></button>{% endif %}
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endfor %}
+  </div>
+</nav>

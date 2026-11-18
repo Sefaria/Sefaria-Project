@@ -37,6 +37,20 @@ def tree():
     return build_reference_tree()
 
 
+@pytest.fixture(autouse=True)
+def no_bundle(tmp_path):
+    """These tests read the server's own endpoint markup, the page without a prerendered article; a local
+    static/bundles/devportal build must not change it (integration_round2_test.py covers the prerendered page)."""
+    from django.test import override_settings
+
+    from devportal.templatetags import devportal_assets
+
+    devportal_assets.clear_caches()
+    with override_settings(DEVPORTAL_BUNDLE_DIR=str(tmp_path / "no-bundle")):
+        yield
+    devportal_assets.clear_caches()
+
+
 def _island(response):
     match = re.search(r'<script\b[^>]*\bid="dp-data"[^>]*>(.*?)</script>', response.content.decode(), re.S)
     assert match, "no #dp-data island"

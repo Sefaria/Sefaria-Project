@@ -57,16 +57,18 @@ describe('router and page loader', () => {
     expect(calls).toEqual([]);
   });
 
-  it('loads /_portal/page.json on navigation', async () => {
+  it('loads /_portal/page.json on navigation, and an endpoint page its spec file', async () => {
     const endpoint = fixture('endpoint');
-    const calls = mockFetch({ [endpoint.path]: endpoint });
+    if (endpoint.kind !== 'endpoint') throw new Error('not an endpoint fixture');
+    const spec: unknown = JSON.parse(readFileSync(resolve(FIXTURES, '../operation-spec/get-v3-texts.json'), 'utf8'));
+    const calls = mockFetch({ [endpoint.path]: endpoint, [endpoint.operation.specUrl]: spec });
     const doc = fixture<DocPayload>('doc');
     const router = renderRouter(doc.path, doc);
     await act(() => router.navigate(endpoint.path));
     expect(await screen.findByRole('heading', { level: 1, name: 'Texts (v3)' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'API Reference' })).toHaveAttribute('aria-current', 'page');
     expect(document.title).toBe('Texts (v3)');
-    expect(calls).toEqual([`${PAGE_JSON_URL}?path=${encodeURIComponent(endpoint.path)}`]);
+    expect(calls).toEqual([`${PAGE_JSON_URL}?path=${encodeURIComponent(endpoint.path)}`, endpoint.operation.specUrl]);
   });
 
   it('follows a redirect payload (301 /docs → /docs/welcome)', async () => {

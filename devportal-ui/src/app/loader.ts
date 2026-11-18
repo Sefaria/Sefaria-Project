@@ -4,6 +4,7 @@
 import { redirect, type LoaderFunctionArgs } from 'react-router';
 import type { NavSection, PagePayload, SidebarTree } from '../contracts';
 import { PageDataError } from './data';
+import { preloadEndpointSpec } from './endpointSpecs';
 
 export const PAGE_JSON_URL = '/_portal/page.json';
 
@@ -76,5 +77,7 @@ export async function pageLoader({ request }: LoaderFunctionArgs): Promise<PageP
     const query = payload.location.includes('?') || payload.location.includes('#') ? '' : url.search;
     throw redirect(payload.location + query, payload.status);
   }
+  // An endpoint page renders in one commit once its operation's spec is here (endpoint.tsx).
+  await preloadEndpointSpec(payload);
   return payload;
 }

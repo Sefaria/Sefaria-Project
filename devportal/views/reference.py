@@ -8,8 +8,9 @@
 - Any other kind of reference page (hand-written guides) is a Markdown page, served by the docs-page view
   of ``devportal.views.pages`` when it is installed.
 
-The page shell (``meta``, ``header``, ``site``, ``nav``, ``pager``) belongs to the shell backend; until a
-shared builder exists, ``default_shell`` provides contract-valid values (nav tree and pager left empty).
+The page shell (``meta``, ``header``, ``site``, ``nav``, ``pager``) comes from ``default_shell``, with the site
+settings, the reference sidebar tree and the prev/next links of ``devportal.views.pages``. The HTML page is
+``pages.render_page`` (base.html with the CSP nonce) around ``devportal/page_endpoint.html``.
 """
 
 from __future__ import annotations
@@ -21,31 +22,19 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from django.conf import settings
 from django.http import Http404, HttpResponse, HttpResponsePermanentRedirect, HttpResponseRedirect
-from django.template import engines
-from django.template.exceptions import TemplateDoesNotExist
-from django.template.loader import get_template, render_to_string
 from django.views.decorators.http import require_safe
 
 from devportal.models import Page, PageKind, PortalState, Section
 from devportal.spec import MergedOperation, Overlay, load_spec, merge
+
+from . import pages
 
 logger = logging.getLogger("devportal")
 
 CONTRACT_VERSION = 1
 REFERENCE_ROOT_TARGET = "/reference/getting-started"
 SPEC_FILE_URL = "/static/bundles/devportal/spec/{operation_id}.json"
-NAV_URL = "/_portal/nav/reference.json"
-BASE_TEMPLATE = "devportal/base.html"
-ENDPOINT_TEMPLATE = "devportal/page_endpoint.html"
-
-# Used only while the shell's base template does not exist yet (it belongs to the shell workstream).
-_FALLBACK_BASE = """<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}{% endblock %}</title></head>
-<body><main id="dp-root">{% block content %}{% endblock %}</main>{% block data %}{% endblock %}</body></html>
-"""
 
 
 # -- lookups -------------------------------------------------------------------------------------------
@@ -177,8 +166,7 @@ def default_shell(request, page: Page, *, description: str) -> dict[str, Any]:
     metadata = (revision.metadata if revision is not None else None) or {}
     robots = metadata.get("robots") if metadata.get("robots") in ("index", "noindex") else "index"
     canonical = f"{origin}{page.url_path}"
-    search_sha = state.snapshot_sha or load_spec().sha
-    ga4 = getattr(settings, "DEVPORTAL_GA4", {}) or {}
+    nav = pages.section_nav(Section.REFERENCE, state.generation)
     return {
         "meta": {
             "description": metadata.get("description") or description,
@@ -187,17 +175,9 @@ def default_shell(request, page: Page, *, description: str) -> dict[str, Any]:
             "markdownUrl": f"{canonical}.md",
         },
         "header": {"activeTab": "reference"},
-        "site": {
-            "apiOrigin": getattr(settings, "DEVPORTAL_API_ORIGIN", "https://www.sefaria.org"),
-            "ga4": dict(ga4),
-            "analyticsSection": "default",
-            "demoApiKey": getattr(settings, "DEVPORTAL_DEMO_API_KEY", "") or None,
-            "searchDocsUrl": f"/_portal/search-docs.{search_sha}.json",
-            "mcpUrl": f"{origin}/mcp",
-            "generation": state.generation,
-        },
-        "nav": {"section": "reference", "generation": state.generation, "url": NAV_URL, "tree": None},
-        "pager": {"prev": None, "next": None},
+        "site": pages.site_config(origin, state.generation),
+        "nav": nav,
+        "pager": pages.pager_for(nav["tree"], page.url_path, pages.has_next_pages(revision)),
     }
 
 
@@ -270,46 +250,10 @@ def reference_payload(slug: str | None, *, request=None) -> dict[str, Any] | Non
 # -- rendering -------------------------------------------------------------------------------------------
 
 
-def _base_template():
-    try:
-        return get_template(BASE_TEMPLATE)
-    except TemplateDoesNotExist:
-        return engines["django"].from_string(_FALLBACK_BASE)
-
-
-def prerendered_endpoint(operation_id: str) -> str:
-    """The Vite-prerendered endpoint article (URL line, parameters, responses), or "" when unavailable.
-
-    The ``{% devportal_prerendered "endpoint" operation_id %}`` tag belongs to the shell workstream's
-    ``devportal_assets`` library; it is called from here so this template compiles before that library exists.
-    """
-    try:
-        assets = importlib.import_module("devportal.templatetags.devportal_assets")
-    except ModuleNotFoundError:
-        return ""
-    fn = getattr(assets, "devportal_prerendered", None)
-    if fn is None:
-        return ""
-    try:
-        return str(fn("endpoint", operation_id) or "")
-    except Exception:  # a missing prerender file must not take the page down
-        logger.exception("prerendered endpoint %s unavailable", operation_id)
-        return ""
-
-
 def render_endpoint(request, view: EndpointView) -> HttpResponse:
+    """The endpoint page: base.html around page_endpoint.html (the sidebar and the prerendered article)."""
     payload = endpoint_payload(view, request=request)
-    context = {
-        "base_template": _base_template(),
-        "payload": payload,
-        "title": payload["title"],
-        "merged": view.merged,
-        "operation": view.merged.operation,
-        "description_html": view.description_html,
-        "body_html": view.body_html,
-        "prerendered_html": prerendered_endpoint(view.merged.operation_id),
-    }
-    return HttpResponse(render_to_string(ENDPOINT_TEMPLATE, context), content_type="text/html; charset=utf-8")
+    return pages.render_page(payload, pages.nonce_for(request), _origin(request))
 
 
 def _delegate_to_doc_page(request, slug: str):

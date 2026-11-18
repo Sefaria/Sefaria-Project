@@ -195,6 +195,62 @@ def sidebar_tree(section, generation):
     return {"contractVersion": CONTRACT_VERSION, "section": section, "generation": generation, "categories": categories}
 
 
+def section_nav(section, generation):
+    """The C3 `nav` of a docs or reference page, with its sidebar tree."""
+    return {
+        "section": section,
+        "generation": generation,
+        "url": f"/_portal/nav/{section}.json",
+        "tree": sidebar_tree(section, generation),
+    }
+
+
+def pager_pages(tree):
+    """`[{title, path}]` of a C3 sidebar tree's pages in sidebar order, depth first across categories.
+
+    Only `page` and `endpoint` items take part: categories, tag groups (group rows) and external links are
+    skipped, and hidden pages are not in the tree. devportal-ui/src/docs/pager.ts `flattenPages` is the same.
+    """
+    out = []
+
+    def walk(items):
+        for item in items:
+            if item["kind"] in (PageKind.PAGE, PageKind.ENDPOINT):
+                out.append({"title": item["title"], "path": item["href"]})
+            walk(item["children"])
+
+    for category in (tree or {}).get("categories", []):
+        walk(category["items"])
+    return out
+
+
+def no_pager():
+    return {"prev": None, "next": None}
+
+
+def pager_for(tree, path, has_next_pages=False):
+    """The C3 `pager` of the page at `path`: its neighbours in the sidebar order (contract C6 Pagination).
+
+    As on live, a page whose front matter lists `next.pages` shows no pager, and neither does a page
+    missing from the tree (custom and hidden pages).
+    """
+    if has_next_pages or not tree:
+        return no_pager()
+    pages = pager_pages(tree)
+    index = next((i for i, p in enumerate(pages) if p["path"] == path), None)
+    if index is None:
+        return no_pager()
+    return {
+        "prev": pages[index - 1] if index > 0 else None,
+        "next": pages[index + 1] if index + 1 < len(pages) else None,
+    }
+
+
+def has_next_pages(revision):
+    """Whether a revision's front matter lists `next.pages` (PageRevision.next)."""
+    return bool(((revision.next if revision is not None else None) or {}).get("pages"))
+
+
 def _iso(value):
     if value is None:
         return None
@@ -218,15 +274,8 @@ def doc_payload(origin, site, page, path):
         markdown_path=f"{canonical_path}.md",
     )
     payload = _base("doc", path, revision.title, meta, active_tab, site)
-    nav = None
-    if section in NAV_SECTIONS:
-        generation = site["generation"]
-        nav = {
-            "section": section,
-            "generation": generation,
-            "url": f"/_portal/nav/{section}.json",
-            "tree": sidebar_tree(section, generation),
-        }
+    nav = section_nav(section, site["generation"]) if section in NAV_SECTIONS else None
+    pager = pager_for(nav["tree"], canonical_path, has_next_pages(revision)) if nav else no_pager()
     payload.update(
         {
             "section": section,
@@ -242,7 +291,7 @@ def doc_payload(origin, site, page, path):
                 "deprecated": revision.deprecated,
             },
             "nav": nav,
-            "pager": {"prev": None, "next": None},
+            "pager": pager,
         }
     )
     return payload
@@ -349,6 +398,12 @@ def _content_html(payload):
     kind = payload["kind"]
     if kind == "home":
         return format_html('<main class="dp-main" id="dp-main">{}</main>', mark_safe(payload["bodyHtml"]))  # noqa: S308
+    if kind == "endpoint":
+        # The sidebar and the endpoint article the Vite build prerendered (devportal/views/reference.py).
+        return format_html(
+            '<main class="dp-main" id="dp-main">{}</main>',
+            mark_safe(render_to_string("devportal/page_endpoint.html", {"payload": payload})),  # noqa: S308
+        )
     if kind == "doc":
         # W7's docs layout (sidebar, article, TOC, page footer); the body is rendered and sanitized by
         # devportal.markdown at publish time.

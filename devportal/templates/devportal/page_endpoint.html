@@ -1,38 +1,40 @@
-{% extends base_template %}
-{% comment %}
-  An endpoint page of the API reference (PLAN.md §2.5; view: devportal/views/reference.py).
+{% load devportal_assets devportal_endpoint %}{% comment %}
+  An endpoint page of the API reference, rendered on the server (PLAN.md §2.5; view: devportal/views/reference.py).
+  pages.render_page puts it in base.html's <main class="dp-main">. Context: `payload`, the C3 endpoint payload
+  (the same dict as the #dp-data island).
 
-  Django renders the title, the description and the overlay's free Markdown from the overlay and the Python
-  spec layer; the URL line, parameters and responses come from the file the Vite build prerendered from the
-  React components for this operationId. React replaces this markup in one commit (createRoot on #dp-root),
-  reading the same data from the #dp-data island.
-
-  `base_template` is devportal/base.html when the shell provides it (blocks: title, content, data), else a
-  minimal stand-in. `prerendered_html` is what `{% devportal_prerendered "endpoint" operation_id %}`
-  returns; the view calls the tag's function, so this file compiles before the devportal_assets library
-  exists. When that library lands this can become:
-    {% load devportal_assets %}{% devportal_prerendered "endpoint" operation.operation_id %}
-{% endcomment %}
-{% block title %}{{ title }}{% endblock %}
-{% block content %}
-<article class="dp-endpoint" data-operation-id="{{ operation.operation_id }}">
-  <header class="dp-endpoint-header">
-    <h1 class="dp-endpoint-title" dir="auto">{{ merged.title }}</h1>
-    {% if merged.deprecated %}<span class="dp-endpoint-deprecated">Deprecated</span>{% endif %}
-  </header>
-  {% if description_html %}
-  <div class="dp-endpoint-description dp-markdown">{{ description_html|safe }}</div>
-  {% endif %}
-  {% if body_html %}
-  <div class="dp-endpoint-body dp-markdown">{{ body_html|safe }}</div>
-  {% endif %}
-  {% if prerendered_html %}
-  {{ prerendered_html|safe }}
-  {% else %}
-  <div class="dp-endpoint-request" data-dp-prerender="missing">
-    <span class="dp-method dp-method-{{ operation.method }}">{{ operation.method|upper }}</span>
-    <code class="dp-endpoint-url">{{ payload.site.apiOrigin }}{{ operation.path }}</code>
+  The sidebar is the docs pages' (sidebar_tree.html). The article and the playground are the file the Vite build
+  prerendered from the React components for this operationId ({% devportal_prerendered %}), fitted to the payload
+  by the `endpoint_page` filter (overlay title and description, free Markdown, the page footer). Without that file
+  (no build, or an operation added since) a plain article stands in: title, description, method and URL, footer.
+  React replaces this markup in one commit (createRoot on #dp-root), reading the same payload.
+{% endcomment %}{% with page=payload.page op=payload.operation tree=payload.nav.tree active=payload.path %}{% devportal_prerendered "endpoint" op.operationId as prerendered %}
+<div class="dp-endpoint-layout" data-operation-id="{{ op.operationId }}">
+  {% if tree %}
+  <div class="dp-docs__sidebar dp-endpoint-layout__sidebar" data-slot="sidebar" id="dp-sidebar">
+    {% include "devportal/sidebar_tree.html" %}
   </div>
   {% endif %}
-</article>
-{% endblock %}
+  {% if prerendered|is_prerendered_endpoint %}
+  {{ prerendered|endpoint_page:payload }}
+  {% else %}
+  <article id="content" class="dp-endpoint dp-endpoint-layout__article" data-operation-id="{{ op.operationId }}" data-dp-prerender="missing">
+    <header class="dp-endpoint-header">
+      <h1 class="dp-endpoint-title" dir="auto">{{ page.title }}</h1>
+      {% if op.deprecated %}<span class="dp-endpoint-deprecated">Deprecated</span>{% endif %}
+    </header>
+    <div class="dp-endpoint-request">
+      <span class="dp-method dp-method-{{ op.method }}">{{ op.method|upper }}</span>
+      <code class="dp-endpoint-url">{{ payload.site.apiOrigin }}{{ op.path }}</code>
+    </div>
+    {% if page.descriptionHtml %}
+    <div class="dp-endpoint-description dp-markdown">{{ page.descriptionHtml|safe }}</div>
+    {% endif %}
+    {% if page.bodyHtml %}
+    <div class="dp-endpoint-body dp-markdown">{{ page.bodyHtml|safe }}</div>
+    {% endif %}
+    {% include "devportal/endpoint_footer.html" %}
+  </article>
+  {% endif %}
+</div>
+{% endwith %}

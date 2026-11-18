@@ -4,6 +4,7 @@ import type { DocPayload, EndpointPayload, PagePayload } from '../contracts';
 import type { DocPageSlots } from '../docs';
 import { NotFoundPage, PortalFrame, PortalHeader } from '../shell';
 import { AdoptedHtml } from '../ui';
+import { mountPagePlacements } from './placements';
 
 /** The id of the sidebar column; the mobile sub-nav button controls it. */
 export const SIDEBAR_ID = 'dp-sidebar';
@@ -41,6 +42,11 @@ export interface PageSlots {
   docsRail?: (data: DocPayload) => ReactNode;
   /** The article of docs and custom pages, when `docPage` is not set. Default: the title and the adopted body. */
   docArticle?: (data: DocPayload) => ReactNode;
+  /**
+   * Wraps an endpoint page's frame (both columns), e.g. in W3's `EndpointProvider`. `fallback` is the frame
+   * with only the title, for while the wrapper cannot render `frame` yet (its spec is loading).
+   */
+  endpointProvider?: (data: EndpointPayload, frame: ReactNode, fallback: ReactNode) => ReactNode;
   /** The article of endpoint pages (W3, `src/reference`). Default: the title. */
   endpointArticle?: (data: EndpointPayload) => ReactNode;
   /** The playground column of endpoint pages (W3, `src/reference`). */
@@ -77,6 +83,11 @@ export function PortalPage({ slots }: { slots: PageSlots }) {
   useEffect(() => {
     if (title !== null) document.title = title;
   }, [title]);
+
+  // After the page's own effects (DocBody adopts and enhances the body in its effect, which runs first).
+  useEffect(() => {
+    if (data.kind !== 'redirect') mountPagePlacements(data);
+  }, [data]);
 
   if (data.kind === 'redirect') return null;
 
@@ -123,19 +134,17 @@ export function PortalPage({ slots }: { slots: PageSlots }) {
         </PortalFrame>
       );
       break;
-    case 'endpoint':
-      body = (
-        <PortalFrame
-          layout="reference"
-          sidebar={sidebar}
-          sidebarOpen={sidebarOpen}
-          sidebarId={SIDEBAR_ID}
-          rail={slots.playground?.(data)}
-        >
-          {slots.endpointArticle ? slots.endpointArticle(data) : <h1 className="dp-page-title">{data.page.title}</h1>}
+    case 'endpoint': {
+      const title = <h1 className="dp-page-title">{data.page.title}</h1>;
+      const frame = (rail: ReactNode, article: ReactNode) => (
+        <PortalFrame layout="reference" sidebar={sidebar} sidebarOpen={sidebarOpen} sidebarId={SIDEBAR_ID} rail={rail}>
+          {article}
         </PortalFrame>
       );
+      const full = frame(slots.playground?.(data), slots.endpointArticle ? slots.endpointArticle(data) : title);
+      body = slots.endpointProvider ? slots.endpointProvider(data, full, frame(null, title)) : full;
       break;
+    }
     case 'home':
       body = slots.home ? (
         slots.home(data)

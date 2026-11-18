@@ -1,11 +1,14 @@
 import { StrictMode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
+import { startAnalytics } from '../analytics';
 import { takeServerBody } from '../docs';
 import { collectServerNodes } from '../ui';
 import { App } from './App';
 import { ROOT_ELEMENT_ID, readPageData } from './data';
+import { loadedSpec, preloadEndpointSpec } from './endpointSpecs';
 import { interceptPortalLinks } from './links';
 import { createPortalRouter } from './router';
+import { PAGE_ROUTE_ID } from './routes';
 import { registerServerBody } from './slots';
 
 /**
@@ -23,6 +26,8 @@ export function mount(doc: Document): Root | null {
   const data = readPageData(doc);
   const router = createPortalRouter(data);
   interceptPortalLinks(doc, router);
+  // One page_view per navigation, the C8 key events and Discord clicks; nothing at all without a GA4 id.
+  startAnalytics({ data, router, routeId: PAGE_ROUTE_ID, win: doc.defaultView ?? window });
   const root = createRoot(container);
   const render = () => {
     collectServerNodes(container);
@@ -33,13 +38,21 @@ export function mount(doc: Document): Root | null {
       </StrictMode>
     );
   };
+  const renderWhenReady = () => {
+    // An endpoint page waits for its spec, so the prerendered article is replaced by the full one directly.
+    if (data !== null && data.kind === 'endpoint' && loadedSpec(data) === null) {
+      void preloadEndpointSpec(data).then(render);
+    } else {
+      render();
+    }
+  };
   if (router.state.initialized) {
-    render();
+    renderWhenReady();
   } else {
     const unsubscribe = router.subscribe((state) => {
       if (!state.initialized) return;
       unsubscribe();
-      render();
+      renderWhenReady();
     });
   }
   return root;
