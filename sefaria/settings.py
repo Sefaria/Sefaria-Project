@@ -398,6 +398,7 @@ DEVPORTAL_ALLOW_INDEXING = False  # robots.txt allows crawling only when true (p
 DEVPORTAL_ALLOW_README_IMAGES = True  # adds https://files.readme.io to img-src until images are mirrored
 DEVPORTAL_AUTO_SEED = True  # post_migrate imports the vendored content snapshot when it changed
 DEVPORTAL_CUTOVER_DONE = False  # true once developers.sefaria.org is served from here
+DEVPORTAL_TRUST_GATEWAY_CLIENT_IP = False  # read the visitor IP from the gateway header (helm: gateway.enabled)
 DEVPORTAL_VITE_DEV_SERVER = ""  # e.g. "http://localhost:5173" to load the Vite dev client
 
 # Grab environment specific settings from a file which

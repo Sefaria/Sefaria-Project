@@ -72,6 +72,14 @@
       "helm": false,
       "description": "Local development only, e.g. \"http://localhost:5173\". When set, {% devportal_entry %} emits the Vite dev client instead of the built bundle, and the CSP allows that origin (C10 dev_only).",
       "used_by": ["devportal/templatetags/devportal_assets.py", "devportal/security/csp.py"]
+    },
+    {
+      "name": "DEVPORTAL_TRUST_GATEWAY_CLIENT_IP",
+      "type": "bool",
+      "default": false,
+      "helm": true,
+      "description": "When true, per-visitor rate limits (feedback, MCP, 404 log) take the client address from the gateway's X-Original-Forwarded-For header instead of REMOTE_ADDR (the proxy). Helm sets it from gateway.enabled. Never enable it without that gateway in front: the header would be client-controlled.",
+      "used_by": ["devportal/security/client_ip.py"]
     }
   ],
   "standalone_only": [

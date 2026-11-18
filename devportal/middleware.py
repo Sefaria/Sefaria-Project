@@ -23,6 +23,7 @@ from django.utils import timezone, translation
 
 from sefaria.constants.model import DEVELOPERS_MODULE
 
+from .security.client_ip import client_ip
 from .security.csp import new_nonce
 from .security.headers import apply_portal_headers
 
@@ -83,7 +84,7 @@ class DevportalMiddleware:
 
 def _within_rate_limit(request):
     window = timezone.now().strftime("%Y%m%d%H%M")
-    client = request.META.get("REMOTE_ADDR") or "unknown"
+    client = client_ip(request) or "unknown"
     client_key = "dp:404log:ip:" + hashlib.sha256(f"{client}:{window}".encode()).hexdigest()[:32]
     total_key = f"dp:404log:all:{window}"
     for key, limit in ((client_key, NOT_FOUND_LOG_PER_IP_PER_MINUTE), (total_key, NOT_FOUND_LOG_TOTAL_PER_MINUTE)):

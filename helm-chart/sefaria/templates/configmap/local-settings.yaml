@@ -40,6 +40,7 @@ data:
   DEVPORTAL_MEDIA_BUCKET: {{ .Values.localSettings.DEVPORTAL_MEDIA_BUCKET | default "" | quote }}
   DEVPORTAL_AUTO_SEED: "{{ .Values.localSettings.DEVPORTAL_AUTO_SEED }}"
   DEVPORTAL_CUTOVER_DONE: "{{ .Values.localSettings.DEVPORTAL_CUTOVER_DONE }}"
+  DEVPORTAL_TRUST_GATEWAY_CLIENT_IP: "{{ .Values.gateway.enabled }}"
   SEARCH_HOST: {{ .Values.nginx.SEARCH_HOST | quote }}
   SEARCH_PORT: {{ .Values.nginx.SEARCH_PORT | quote }}
   SEARCH_PATH: {{ .Values.nginx.SEARCH_PATH | quote }}

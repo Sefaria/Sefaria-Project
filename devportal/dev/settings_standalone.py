@@ -88,6 +88,7 @@ DEVPORTAL_ALLOW_INDEXING = False
 DEVPORTAL_ALLOW_README_IMAGES = True
 DEVPORTAL_AUTO_SEED = os.environ.get("DEVPORTAL_AUTO_SEED", "1") == "1"
 DEVPORTAL_CUTOVER_DONE = False
+DEVPORTAL_TRUST_GATEWAY_CLIENT_IP = False  # no gateway in front of the standalone server
 DEVPORTAL_VITE_DEV_SERVER = os.environ.get("DEVPORTAL_VITE_DEV_SERVER", "")
 
 # Standalone only: the JSON file that answers GET /api/powered-by (the gallery's API snapshot).

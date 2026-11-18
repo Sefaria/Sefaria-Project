@@ -221,6 +221,8 @@ data:
         DEVPORTAL_AUTO_SEED = os.getenv("DEVPORTAL_AUTO_SEED").lower() == "true"
     if os.getenv("DEVPORTAL_CUTOVER_DONE"):
         DEVPORTAL_CUTOVER_DONE = os.getenv("DEVPORTAL_CUTOVER_DONE").lower() == "true"
+    if os.getenv("DEVPORTAL_TRUST_GATEWAY_CLIENT_IP"):
+        DEVPORTAL_TRUST_GATEWAY_CLIENT_IP = os.getenv("DEVPORTAL_TRUST_GATEWAY_CLIENT_IP").lower() == "true"
 
     auth_str = f'{os.getenv("ELASTIC_USERNAME")}:{os.getenv("ELASTIC_PASSWORD")}@' if os.getenv("ELASTIC_USERNAME") else ''
     SEARCH_SSL_ENABLE = os.getenv("SEARCH_SSL_ENABLE").lower() == "true"

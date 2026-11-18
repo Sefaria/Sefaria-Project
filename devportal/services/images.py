@@ -73,19 +73,66 @@ def find_external_images(pages=None):
     return found
 
 
-def fetch_url(url):
-    """GET an image. Returns its bytes. Follows no more than the requests default redirects."""
-    import requests
+MAX_REDIRECTS = 5
 
-    with requests.get(url, timeout=30, stream=True) as response:
-        response.raise_for_status()
-        data = io.BytesIO()
-        for chunk in response.iter_content(65536):
-            data.write(chunk)
-            if data.tell() > MAX_BYTES:
-                msg = "larger than the size limit"
-                raise RefusedImage(msg)
-        return data.getvalue()
+
+def check_public_url(url, resolve=None):
+    """Raise `RefusedImage` unless `url` is http(s) on a host whose every address is public.
+
+    The image URLs come from page content (staff-written, or imported), and the download runs inside the
+    cluster: without this check a URL such as `http://169.254.169.254/...` or `http://localhost:8000/...`
+    would make the server fetch an internal address (SSRF). Every redirect hop is checked the same way.
+    """
+    import ipaddress  # noqa: PLC0415
+    import socket  # noqa: PLC0415
+
+    parts = urlsplit(url)
+    if parts.scheme not in ("http", "https") or not parts.hostname or parts.username or parts.password:
+        msg = "not a plain http(s) URL"
+        raise RefusedImage(msg)
+    resolve = resolve or socket.getaddrinfo
+    try:
+        infos = resolve(
+            parts.hostname, parts.port or (443 if parts.scheme == "https" else 80), proto=socket.IPPROTO_TCP
+        )
+    except (OSError, UnicodeError) as exc:
+        msg = f"the host does not resolve: {exc}"
+        raise RefusedImage(msg) from exc
+    addresses = {info[4][0] for info in infos}
+    if not addresses:
+        msg = "the host does not resolve"
+        raise RefusedImage(msg)
+    for address in addresses:
+        ip = ipaddress.ip_address(address.split("%", 1)[0])
+        if not ip.is_global or ip.is_multicast:
+            msg = f"the host resolves to a non-public address ({ip})"
+            raise RefusedImage(msg)
+
+
+def fetch_url(url, *, get=None, resolve=None):
+    """GET an image. Returns its bytes. Only public http(s) hosts, checked again on every redirect hop."""
+    if get is None:
+        import requests  # noqa: PLC0415
+
+        get = requests.get
+    from urllib.parse import urljoin  # noqa: PLC0415
+
+    for _hop in range(MAX_REDIRECTS + 1):
+        check_public_url(url, resolve)
+        with get(url, timeout=30, stream=True, allow_redirects=False) as response:
+            if response.is_redirect:
+                url = urljoin(url, response.headers["Location"])
+                continue
+            response.raise_for_status()
+            data = io.BytesIO()
+            for chunk in response.iter_content(65536):
+                data.write(chunk)
+                if data.tell() > MAX_BYTES:
+                    msg = "larger than the size limit"
+                    raise RefusedImage(msg)
+            return data.getvalue()
+    msg = "too many redirects"
+    raise RefusedImage(msg)
 
 
 def check_svg(data):

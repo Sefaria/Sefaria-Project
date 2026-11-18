@@ -129,7 +129,20 @@ def _base(kind, path, title, meta, active_tab, site):
     }
 
 
+def local_location(location):
+    """A redirect target that stays a path on this host when it was meant to be one.
+
+    A target built from the request path (the `/v1.0/<rest>` fallback) could otherwise start with `//` or
+    `/\\`, which a browser reads as another host (`/v1.0//evil.com` -> `//evil.com`, an open redirect).
+    Absolute `http(s)://` targets (staff-made Redirect rows) are left as they are.
+    """
+    if location.startswith("/") and location[1:2] in ("/", "\\"):
+        return "/" + location.lstrip("/\\")
+    return location
+
+
 def redirect_payload(path, status, location):
+    location = local_location(location)
     return {
         "contractVersion": CONTRACT_VERSION,
         "kind": "redirect",
@@ -446,7 +459,7 @@ class PortalRedirect(HttpResponseRedirectBase):
 
 
 def redirect_response(payload, query_string=""):
-    location = payload["location"]
+    location = local_location(payload["location"])
     if query_string and payload["path"].startswith("/v1.0"):  # C9: the versioned fallback keeps the query
         location = f"{location}?{query_string}"
     return PortalRedirect(iri_to_uri(location), payload["status"])

@@ -146,10 +146,22 @@ export function sanitizeTree(root: ParentNode): void {
   walk(root);
 }
 
-/** Sanitize an HTML fragment string with the given document. */
-export function sanitizeHtml(html: string, doc: Document = document): string {
+/**
+ * Sanitize an HTML fragment string. It is parsed in an inert document (no browsing context) by default, so nothing
+ * in it loads or runs before the allow-list removes it: in the live document `<img src=… onerror=…>` would start a
+ * request (and queue its error event) as soon as `innerHTML` is set.
+ */
+export function sanitizeHtml(html: string, doc: Document = inertDocument()): string {
   const container = doc.createElement('div');
   container.innerHTML = html;
   sanitizeTree(container);
   return container.innerHTML;
+}
+
+let inert: Document | null = null;
+
+/** A document with no browsing context: its elements fetch nothing and run no handlers. */
+function inertDocument(): Document {
+  inert ??= document.implementation.createHTMLDocument('');
+  return inert;
 }

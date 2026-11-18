@@ -33,7 +33,9 @@ def get_server() -> McpServer:
 
 
 def client_ip(request) -> str | None:
-    return request.META.get("REMOTE_ADDR")
+    from devportal.security.client_ip import client_ip as visitor_ip  # noqa: PLC0415
+
+    return visitor_ip(request)
 
 
 def mcp_view(request):
